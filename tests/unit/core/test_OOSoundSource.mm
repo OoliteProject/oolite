@@ -12,14 +12,18 @@
 	through the runtime before the conversion). These expectations were written against the
 	Objective-C API and ran on the unconverted class first; they now run through the facade, which
 	is its forwarding test. After them come the C++ API (cxx::OOSoundSource) and the facade's
-	contract. Run: bash tools/check-core-tests.sh test_OOSoundSource
+	contract. The mixer and the channel are C++ stand-ins since beads oo-9ht.87 and oo-9ht.86
+	deleted their facades, and the source is its channel's C++ delegate (OOSoundChannelDelegate).
+	Run: bash tools/check-core-tests.sh test_OOSoundSource
 */
 
 #import "OOSoundSource.h"
+#import "OOALSoundMixer.h"
 #import "OODescription.h"
 
 #include "oo_test.hpp"
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -59,111 +63,102 @@ static int gLiveSounds = 0;
 @end
 
 
-@interface OOObject (TestChannelDelegate)
-- (void)channel:(id)inChannel didFinishPlayingSound:(OOSound *)inSound;
-@end
-
-
-// A channel records what it is told, in order; -finish ends its sound as the real one does when
-// OpenAL stops, and -stop as its -stop does: both tell the delegate.
+/*	A channel records what it is told, in order; Finish() ends its sound as the real one does when
+	OpenAL stops, and stop() as its stop() does: both tell the delegate. A C++ stand-in since bead
+	oo-9ht.86 deleted the Objective-C facade this file stubbed (the members a source calls): its
+	delegate, sound and loop are the channel's own; the position and gain it is given are kept per
+	channel here.
+*/
 static std::vector<std::string> gLog;
 
-@interface OOSoundChannel: OOObject
+struct TestChannelState
 {
-@public
-	id			_delegate;
-	OOSound		*_sound;
-	Vector		_position;
-	float		_gain;
-	BOOL		_loop;
+	Vector	position = {};
+	float	gain = 0;
+};
+static std::map<OOSoundChannel *, TestChannelState> gChannels;
+
+
+struct OOSoundChannelTestAccess
+{
+	static OOSoundChannelDelegate *Delegate(OOSoundChannel *channel)  { return channel->_delegate; }
+
+	// The stub's -finish.
+	static void Finish(OOSoundChannel *channel)
+	{
+		oo::ObjCRef<OOSound *> sound = std::move(channel->_sound);	// [sound release] at the end of the scope
+		channel->_sound = oo::ObjCRef<OOSound *>();
+		if (channel->_delegate != nullptr)  channel->_delegate->channel(channel, sound.get());
+	}
+};
+
+
+OOSoundChannel::~OOSoundChannel()
+{
+	gChannels.erase(this);
 }
 
-- (void) finish;
 
-@end
-
-
-@implementation OOSoundChannel
-
-- (void) setDelegate:(id)delegate
+void OOSoundChannel::setDelegate(OOSoundChannelDelegate *delegate)
 {
 	_delegate = delegate;
 }
 
 
-- (void) setPosition:(Vector)position
+void OOSoundChannel::setPosition(Vector position)
 {
-	_position = position;
+	gChannels[this].position = position;
 }
 
 
-- (void) setGain:(float)gain
+void OOSoundChannel::setGain(float gain)
 {
-	_gain = gain;
+	gChannels[this].gain = gain;
 }
 
 
-- (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop
+bool OOSoundChannel::playSound(::OOSound *sound, bool loop)
 {
 	gLog.push_back("play " + sound->_name + (loop ? " looped" : ""));
 	_loop = loop;
-	_sound = [sound retain];
-	return YES;
+	_sound = oo::ObjCRef<::OOSound *>(sound);	// [sound retain]
+	return true;
 }
 
 
-- (void) finish
-{
-	OOSound *sound = _sound;
-	_sound = nil;
-	[_delegate channel:self didFinishPlayingSound:sound];
-	[sound release];
-}
-
-
-- (void) stop
+void OOSoundChannel::stop()
 {
 	gLog.push_back("stop");
-	[self finish];
+	OOSoundChannelTestAccess::Finish(this);
 }
-
-@end
 
 
 static int gChannelsOut = 0;
 static int gChannelsAvailable = 8;
 
-@interface OOSoundMixer: OOObject
-+ (id) sharedMixer;
-@end
-
-
-@implementation OOSoundMixer
-
-+ (id) sharedMixer
+// The mixer (a C++ stand-in since bead oo-9ht.87 deleted the Objective-C facade this file stubbed):
+// one, never released, handing out at most gChannelsAvailable channels.
+OOSoundMixer *OOSoundMixer::sharedMixer()
 {
-	static OOSoundMixer *mixer = nil;
-	if (mixer == nil)  mixer = [[OOSoundMixer alloc] init];
+	static OOSoundMixer *mixer = oo::makeRef<OOSoundMixer>().leakRef();
 	return mixer;
 }
 
 
-- (OOSoundChannel *) popChannel
+::OOSoundChannel *OOSoundMixer::popChannel()
 {
 	if (gChannelsOut == gChannelsAvailable)  return nil;
 	gChannelsOut++;
-	return [[OOSoundChannel alloc] init];	// leaked: a few per run
+	return oo::makeRef<OOSoundChannel>().leakRef();	// leaked: a few per run
 }
 
 
-- (void) pushChannel:(OOSoundChannel *)channel
+void OOSoundMixer::pushChannel(::OOSoundChannel *channel)
 {
 	(void)channel;
 	gChannelsOut--;
 	gLog.push_back("push");
 }
-
-@end
 
 
 namespace {
@@ -281,14 +276,14 @@ OO_TEST(playsThroughAChannel)
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play beep looped" }));
 
 		OOSoundChannel *channel = ChannelOf(source);
-		OO_CHECK(channel != nil && channel->_delegate == source);
-		OO_CHECK(vector_equal(channel->_position, make_vector(4, 5, 6)) && channel->_gain == 0.25f);
+		OO_CHECK(channel != nullptr && OOSoundChannelTestAccess::Delegate(channel) == oo::ToCxx(source));
+		OO_CHECK(vector_equal(gChannels[channel].position, make_vector(4, 5, 6)) && gChannels[channel].gain == 0.25f);
 		OO_CHECK(oo::DescriptionOf(source).find("playing on channel <OOSoundChannel 0x") != std::string::npos);
 
 		// Changes reach the playing channel.
 		[source setGain:0.75f];
 		[source setPosition:make_vector(7, 8, 9)];
-		OO_CHECK(channel->_gain == 0.75f && vector_equal(channel->_position, make_vector(7, 8, 9)));
+		OO_CHECK(gChannels[channel].gain == 0.75f && vector_equal(gChannels[channel].position, make_vector(7, 8, 9)));
 
 		weak = source;
 		[source release];	// playing: still alive
@@ -298,7 +293,7 @@ OO_TEST(playsThroughAChannel)
 	// The channel ends the sound: the source pushes the channel back and lets itself go.
 	@autoreleasepool
 	{
-		[ChannelOf(weak) finish];
+		OOSoundChannelTestAccess::Finish(ChannelOf(weak));
 	}
 	OO_CHECK((TakeLog() == std::vector<std::string>{ "push" }));
 	OO_CHECK(gChannelsOut == 0);
@@ -315,10 +310,10 @@ OO_TEST(repeats)
 		[source playSound:MakeSound("beep") repeatCount:3];
 		OO_CHECK([source repeatCount] == 3);
 		OOSoundChannel *channel = ChannelOf(source);
-		[channel finish];
-		[channel finish];
+		OOSoundChannelTestAccess::Finish(channel);
+		OOSoundChannelTestAccess::Finish(channel);
 		OO_CHECK([source isPlaying]);
-		[channel finish];
+		OOSoundChannelTestAccess::Finish(channel);
 		OO_CHECK(![source isPlaying]);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play beep", "play beep", "play beep", "push" }));
 
@@ -327,9 +322,9 @@ OO_TEST(repeats)
 		[source play];
 		[source playOrRepeat];
 		channel = ChannelOf(source);
-		[channel finish];
+		OOSoundChannelTestAccess::Finish(channel);
 		OO_CHECK([source isPlaying]);
-		[channel finish];
+		OOSoundChannelTestAccess::Finish(channel);
 		OO_CHECK(![source isPlaying]);
 		OO_CHECK((TakeLog() == std::vector<std::string>{ "play beep", "play beep", "push" }));
 	}
@@ -408,7 +403,7 @@ OO_TEST(stopAllAndNoChannel)
 }
 
 
-// The C++ API, and a playing C++ source: its facade is the channel's delegate and keeps it alive.
+// The C++ API, and a playing C++ source: it is the channel's delegate, and its facade keeps it alive.
 OO_TEST(cxxApi)
 {
 	TakeLog();
@@ -422,14 +417,14 @@ OO_TEST(cxxApi)
 		source->play();
 		OO_CHECK(source->isPlaying());
 		OOSoundChannel *channel = OOSoundSourceTestAccess::Channel(source.get());
-		OO_CHECK(channel->_delegate == oo::ToObjC(source.get()) && channel->_gain == 0.5f);
+		OO_CHECK(OOSoundChannelTestAccess::Delegate(channel) == source.get() && gChannels[channel].gain == 0.5f);
 		weak = source.get();
 	}
 	// The Ref and the pool are gone; the playing source keeps itself.
 	OO_CHECK(weak->isPlaying());
 	@autoreleasepool
 	{
-		[OOSoundSourceTestAccess::Channel(weak) finish];
+		OOSoundChannelTestAccess::Finish(OOSoundSourceTestAccess::Channel(weak));
 	}
 	OO_CHECK((TakeLog() == std::vector<std::string>{ "play beep", "push" }));
 	@autoreleasepool

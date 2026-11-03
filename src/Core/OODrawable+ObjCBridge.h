@@ -17,7 +17,13 @@ It is a hierarchy root's facade, as OOMaterial+ObjCBridge.h is; the tables there
         an Objective-C subclass              the subclass instance itself, and  the subclass's
           (unconverted, [[X alloc] init])    an adapter is its C++ part         methods
         a C++ subclass (converted)           made by oo::ToObjC, one live one   the C++ overrides
-                                             per drawable (oo::ObjCPeers)
+                                             per drawable (oo::ObjCPeers), of
+                                             the subclass's own facade class
+                                             if it has one (OOMesh), else this
+
+A converted subclass that its callers message by its own selectors (cxx::OOMesh) has a facade of
+its own, an Objective-C subclass of this one with the C++ class's name and no ivars (amendments
+oo-up4b item 3 and oo-dnbf); its initialisers make the C++ drawable with -initWithNewCxxDrawable:.
 
 A converted caller that keeps a drawable while any subclass is Objective-C holds
 oo::ObjCRef<OODrawable *>: an Objective-C drawable's C++ part does not retain it.
@@ -79,6 +85,14 @@ SOFTWARE.
 - (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 - (size_t)totalSize; // Size including dynamic data, not counting textures.
 #endif
+
+@end
+
+@interface OODrawable (OOObjCBridge)
+
+// A converted subclass's facade initialiser (OOMesh's -init): the new C++ drawable, and this is
+// its peer.
+- (id)initWithNewCxxDrawable:(const oo::Ref<cxx::OODrawable>&)drawable;
 
 @end
 

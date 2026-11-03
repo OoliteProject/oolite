@@ -218,7 +218,7 @@ void OOOpenGLExtensionManager::reset()
      search paths here. If we don't, the search path dump ends up in
      the middle of the OpenGL stuff.
      */
-    [ResourceManager cxx_paths];
+    [::ResourceManager cxx_paths];
 
     OO_LOG("rendering.opengl.version", "OpenGL renderer version: {}.{}.{} (\"{}\"). Vendor: \"{}\". Renderer: \"{}\".", major, minor, release_, versionString ? reinterpret_cast<const char*>(versionString) : "(null)", vendor.value_or("(null)"), renderer.value_or("(null)"));
     {
@@ -673,21 +673,28 @@ void OOOpenGLExtensionManager::checkTextureCombinersSupported()
 
 namespace {
 
-    // The regexp test sent to a string that may be nil (a nil string matched nothing).
-    BOOL MatchesRegExp(const std::optional<std::string>& string, const std::string& regexp)
+    // The regexp test sent to a string that may be nil (a nil string matched nothing). matcher is the
+    // one pass's matcher, taken on first use and held by the caller: the autoreleased Objective-C
+    // matcher lived until the pool drained, so one pass compiled one tester (ADR-0056 amendment
+    // oo-ct7c item 3). A null matcher (the tester did not compile) answers NO and is asked again.
+    BOOL MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const std::string& regexp)
     {
         if (!string.has_value())
             return NO;
-        return [[::OORegExpMatcher regExpMatcher] string:*string matchesExpression:regexp];
+        if (matcher == nullptr)
+            matcher = ::OORegExpMatcher::regExpMatcher();
+        if (matcher == nullptr)
+            return NO;
+        return matcher->string(*string, regexp);
     }
 
     // regexps may be a single string or an array of strings (in which case results are ANDed).
-    BOOL CheckRegExps(const std::optional<std::string>& string, const oo::PList& regexps)
+    BOOL CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const oo::PList& regexps)
     {
         if (regexps.isNull())
             return YES; // No restriction == match.
         if (const std::string* regexp = regexps.getIf<std::string>()) {
-            return MatchesRegExp(string, *regexp);
+            return MatchesRegExp(matcher, string, *regexp);
         }
         if (const oo::PList::Array* array = regexps.getIf<oo::PList::Array>()) {
             for (const oo::PList& element : *array) {
@@ -697,7 +704,7 @@ namespace {
                     return NO;
                 }
 
-                if (!MatchesRegExp(string, *regexp))
+                if (!MatchesRegExp(matcher, string, *regexp))
                     return NO;
             }
             return YES;
@@ -720,9 +727,9 @@ namespace {
 
 oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const std::optional<std::string>& versionStr, const std::optional<std::string>& extensionsStr)
 {
-    const oo::PList configurations = [ResourceManager cxx_dictionaryFromFilesNamed:"gpu-settings.plist"
-                                                                          inFolder:"Config"
-                                                                          andMerge:YES];
+    const oo::PList configurations = [::ResourceManager cxx_dictionaryFromFilesNamed:"gpu-settings.plist"
+                                                                            inFolder:"Config"
+                                                                            andMerge:YES];
 
     // Highest precedence first, then case-insensitive name order (keys were taken in hash order
     // before sorting; ties between names equal but for case now keep byte order).
@@ -742,6 +749,7 @@ oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const 
         return oo::str::caseInsensitiveCompare(keyA, keyB) < 0;
     });
 
+    oo::Ref<::OORegExpMatcher> matcher; // one for the pass (see MatchesRegExp)
     for (const std::string& key : keys) {
         const oo::PList* config = configurations.get<oo::PList::Dict>(key);
         if (EXPECT_NOT(config == nullptr))
@@ -750,16 +758,16 @@ oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const 
         const oo::PList* match = config->get<oo::PList::Dict>("match");
         const oo::PList* vendorExpr = (match != nullptr) ? match->find("vendor") : nullptr;
 
-        if (!CheckRegExps(vendor, vendorExpr != nullptr ? *vendorExpr : oo::PList()))
+        if (!CheckRegExps(matcher, vendor, vendorExpr != nullptr ? *vendorExpr : oo::PList()))
             continue;
 
-        if (!CheckRegExps(renderer, StringForKey(match, "renderer")))
+        if (!CheckRegExps(matcher, renderer, StringForKey(match, "renderer")))
             continue;
 
-        if (!CheckRegExps(versionStr, StringForKey(match, "version")))
+        if (!CheckRegExps(matcher, versionStr, StringForKey(match, "version")))
             continue;
 
-        if (!CheckRegExps(extensionsStr, StringForKey(match, "extensions")))
+        if (!CheckRegExps(matcher, extensionsStr, StringForKey(match, "extensions")))
             continue;
 
         OO_LOG("rendering.opengl.gpuSpecific", "Matched GPU configuration \"{}\".", key);

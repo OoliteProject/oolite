@@ -4,10 +4,9 @@ OOShaderUniform.h
 
 Manages a uniform variable for OOShaderMaterial.
 
-C++20 since bead oo-n99o (proposed ADR-0056). The class is cxx::OOShaderUniform while
-OOShaderUniform+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOShaderUniform that its callers make and message; the bridge's deletion bead moves it out of
-namespace cxx.
+C++20 since bead oo-n99o (proposed ADR-0056). Its Objective-C facade was deleted by bead oo-9ht.55
+(ADR-0056 amendment "deleting a facade"): the class is global, and OOShaderMaterial and DustEntity
+hold its uniforms as oo::Ref<OOShaderUniform>.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -47,8 +46,6 @@ SOFTWARE.
 
 @class OOShaderProgram, OOWeakReference;
 
-namespace cxx {
-
 class OOShaderUniform : public oo::RefCounted {
 public:
     ~OOShaderUniform() override;
@@ -60,7 +57,7 @@ public:
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLint constValue); // intValue:
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue); // floatValue:
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue[4]); // vectorValue:
-    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, OOColor* constValue); // colorValue: Converted to vector
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, cxx::OOColor* constValue); // colorValue: Converted to vector
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, Quaternion constValue, bool asMatrix); // quaternionValue:asMatrix: Converted to vector (in xyzw order, not wxyz!) or rotation matrix.
     static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, OOMatrix constValue); // matrixValue:
 
@@ -114,12 +111,6 @@ private:
         } binding;
     } value = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOShaderUniform, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOShaderUniform+ObjCBridge.h"
 
 #endif // OO_SHADERS
 

@@ -55,18 +55,18 @@ std::optional<std::string> OOCheckEquipmentPListVerifierStage::name()
 
 bool OOCheckEquipmentPListVerifierStage::shouldRun()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     return fileScanner != nullptr && fileScanner->fileExists("equipment.plist", "Config", std::nullopt, false);
 }
 
 void OOCheckEquipmentPListVerifierStage::run()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
     oo::PList equipmentPList;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
 
     if (fileScanner != nullptr)
         equipmentPList = fileScanner->plistNamed("equipment.plist", "Config", std::nullopt, false);

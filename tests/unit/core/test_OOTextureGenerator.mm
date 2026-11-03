@@ -150,7 +150,7 @@ OO_TEST(aTextureTakesTheGeneratorsSettings)
 		OO_CHECK([generator anisotropy] == 0.25f && [generator lodBias] == 0.5f);
 
 		OOTexture *texture = [OOTexture textureWithGenerator:generator];
-		OO_CHECK([texture isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr));
 		OO_CHECK([texture cxx_cacheKey] == std::optional<std::string>("test:choosy"));
 		OO_CHECK([OOTexture textureWithGenerator:generator] == texture);	// cached by the generator's key
 		[texture ensureFinishedLoading];

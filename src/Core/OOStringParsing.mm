@@ -236,7 +236,7 @@ std::string cxx_OOPadStringToEms(const std::string& string, float padEms)
 std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
     JSContext* context = OOJSAcquireContext();
-    JSValueConst global = [[OOJavaScriptEngine sharedEngine] globalObject];
+    JSValueConst global = cxx::OOJavaScriptEngine::sharedEngine()->globalObject();
     JSValue exception = JS_UNDEFINED;
     std::optional<std::string> result;
     BOOL hadException;

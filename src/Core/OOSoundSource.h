@@ -11,8 +11,8 @@ unimplemented).
 C++20 since bead oo-zoj3 (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
 cxx::OOSoundSource while OOSoundSource+ObjCBridge.h, imported at the end of this header, keeps the
 Objective-C OOSoundSource that its many callers make and message (the player, the JS SoundSource,
-the music, the trumbles, the pools) and that the channels call back as their delegate; the
-bridge's deletion bead moves it out of namespace cxx.
+the music, the trumbles, the pools); the bridge's deletion bead moves it out of namespace cxx. A
+playing source is its channel's delegate (OOSoundChannelDelegate) since bead oo-9ht.86.
 
 
 Copyright (C) 2006-2013 Jens Ayton
@@ -39,6 +39,7 @@ OUT OF OR
 #ifndef OOSOUNDSOURCE_H
 #define OOSOUNDSOURCE_H
 
+#import "OOALSoundChannel.h"
 #import "OOMaths.h"
 #import "OOSoundSource.h"
 
@@ -49,13 +50,13 @@ OUT OF OR
 #define OO_DEFAULT_SOUNDSOURCE_GAIN 1.0f
 #endif
 
-@class OOSound, OOSoundChannel;
+@class OOSound;
 class OOSoundReferencePoint; // C++ (OOBasicSoundReferencePoint.h, bead oo-odlx)
 struct OOSoundSourceTestAccess;
 
 namespace cxx {
 
-class OOSoundSource : public oo::RefCounted {
+class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
 public:
     OOSoundSource(); // was -init
     explicit OOSoundSource(::OOSound* inSound); // was -initWithSound:
@@ -98,12 +99,13 @@ public:
     void setGainInsideCone(float inInside, float inOutside);
     void positionRelativeTo(OOSoundReferencePoint* inPoint);
 
-    // OOSoundChannelDelegate: was -channel:didFinishPlayingSound:, which the channel sends to the
-    // playing source's facade.
-    void channel(::OOSoundChannel* channel, ::OOSound* sound);
+    // OOSoundChannelDelegate: was -channel:didFinishPlayingSound:, which the channel sent to the
+    // playing source's facade until bead oo-9ht.86.
+    void channel(::OOSoundChannel* channel, ::OOSound* sound) override;
 
     /*	Was +channel:didFinishPlayingSound:, the class as the delegate of a stopped source's channel.
-            Its first keyword is the instance member's, which a static member cannot overload.
+            Its first keyword is the instance member's, which a static member cannot overload. The
+            channel reaches it through the stopped-source handler in OOSoundSource.mm.
     */
     static void channelOfStoppedSource(::OOSoundChannel* inChannel, ::OOSound* inSound);
 
@@ -112,7 +114,7 @@ public:
 
 private:
     oo::ObjCRef<::OOSound*> _sound; // the Objective-C sound, retained as before (amendment oo-smy item 4)
-    ::OOSoundChannel* _channel = { }; // the Objective-C channel, not retained, as before
+    ::OOSoundChannel* _channel = { }; // borrowed from the mixer, not retained, as before
     bool _loop = { };
     uint8_t _repeatCount = { },
             _remainingCount = { };

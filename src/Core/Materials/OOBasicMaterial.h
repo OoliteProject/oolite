@@ -7,10 +7,8 @@ Material using basic OpenGL properties. Normal materials
 desireable to have a material which does not use normal GL material
 properties, in which case it should be based on OOMaterial directly.
 
-C++20 since bead oo-vl43 (proposed ADR-0056, amendment oo-vl43). The class is cxx::OOBasicMaterial
-while OOBasicMaterial+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOBasicMaterial that its callers message and its unconverted subclasses derive from; the bridge's
-deletion bead moves it out of namespace cxx.
+C++20 since bead oo-vl43 (proposed ADR-0056, amendment oo-vl43). The Objective-C facade
+(its bridge header) was deleted by bead oo-9ht.33, which moved the class out of namespace cxx.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -43,9 +41,7 @@ SOFTWARE.
 
 #include "oofnd/StdLib.hpp"
 
-namespace cxx {
-
-class OOBasicMaterial : public OOMaterial {
+class OOBasicMaterial : public cxx::OOMaterial {
 public:
     /*	A new material, initialised by the initialiser of the same arguments (below). They were
             [[OOBasicMaterial alloc] cxx_initWithName:] and [[OOBasicMaterial alloc] initWithName:configuration:].
@@ -74,7 +70,7 @@ public:
                     emission	colour description
                     shininess	integer
 
-            "Colour description" refers to anything OOColor::colorWithDescription()
+            "Colour description" refers to anything cxx::OOColor::colorWithDescription()
             will accept.
     */
     void initWithName(const std::optional<std::string>& name, const oo::PList& configuration); // a null configuration is an empty one. Shared by the material classes.
@@ -86,15 +82,15 @@ public:
     std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
 #endif
 
-    oo::Ref<OOColor> diffuseColor();
-    void setDiffuseColor(OOColor* color);
-    void setAmbientAndDiffuseColor(OOColor* color);
-    oo::Ref<OOColor> specularColor();
-    void setSpecularColor(OOColor* color);
-    oo::Ref<OOColor> ambientColor();
-    void setAmbientColor(OOColor* color);
-    oo::Ref<OOColor> emmisionColor();
-    void setEmissionColor(OOColor* color);
+    oo::Ref<cxx::OOColor> diffuseColor();
+    void setDiffuseColor(cxx::OOColor* color);
+    void setAmbientAndDiffuseColor(cxx::OOColor* color);
+    oo::Ref<cxx::OOColor> specularColor();
+    void setSpecularColor(cxx::OOColor* color);
+    oo::Ref<cxx::OOColor> ambientColor();
+    void setAmbientColor(cxx::OOColor* color);
+    oo::Ref<cxx::OOColor> emmisionColor();
+    void setEmissionColor(cxx::OOColor* color);
 
     void getDiffuseComponents(GLfloat outComponents[4]);
     void setDiffuseComponents(const GLfloat components[4]);
@@ -132,11 +128,5 @@ private:
     // Specular exponent. The leading underscore: shininess() is the getter's name (amendment oo-rdfh).
     uint8_t _shininess = { }; // Default: 0.0
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOBasicMaterial, for callers and subclasses not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOBasicMaterial+ObjCBridge.h"
 
 #endif // OOBASICMATERIAL_H

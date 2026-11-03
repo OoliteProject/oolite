@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJavaScriptEngine.h"
+#include "OOJSEngineCore.h"
 
 void InitOOJSSpecialFunctions(JSContext* context, JSValueConst global);
 

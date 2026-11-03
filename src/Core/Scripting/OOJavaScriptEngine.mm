@@ -80,6 +80,7 @@ MA 02110-1301, USA.
 #import "OOJSWormhole.h"
 
 #include "oofnd/objc/OOException.h"
+#include "oofnd/objc/OORuntime.h"
 
 #include "oofnd/objc/OOAssert.h"
 
@@ -97,26 +98,7 @@ MA 02110-1301, USA.
 #define OOJS_TIME_LIMIT (1) // seconds
 #endif
 
-static OOJavaScriptEngine* sSharedEngine = nil;
-#if OOJSENGINE_MONITOR_SUPPORT
-
-@interface OOJavaScriptEngine (OOMonitorSupportInternal)
-
-// file is nullopt when the stack gives no location (a nil file before).
-- (void)sendMonitorProblemOfSeverity:(const std::string&)severity
-                              inFile:(const std::optional<std::string>&)file
-                                line:(unsigned)line
-                         withMessage:(const std::string&)message
-                           inContext:(JSContext*)context;
-
-// nullopt is meaningful to the monitor (Log() with a null message; no class for Log()).
-- (void)sendMonitorLogMessage:(const std::optional<std::string>&)message
-             withMessageClass:(const std::optional<std::string>&)messageClass
-                    inContext:(JSContext*)context;
-
-@end
-
-#endif
+static cxx::OOJavaScriptEngine* sSharedEngine = nullptr; // the one +1 is never released (amendment oo-r7m0 item 1)
 
 static unsigned sErrorHandlerStackSkip = 0;
 
@@ -132,40 +114,37 @@ static void RegisterStandardObjectConverters(JSContext* context);
 static void RemoveNonSpiderMonkeyGlobals(JSContext* context, JSValueConst global);
 static void LoadCompatibilityScript(JSContext* context);
 
-@interface OOJavaScriptEngine (Private)
-
-- (void)createMainThreadContext;
-- (void)destroyMainThreadContext;
-
-@end
-
 //===========================================================================
 // JavaScript engine initialisation and shutdown
 //===========================================================================
 
-@implementation OOJavaScriptEngine
+namespace cxx {
 
-+ (OOJavaScriptEngine*)sharedEngine
+OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine()
 {
-    if (sSharedEngine == nil)
-        sSharedEngine = [[self alloc] init];
+    if (sSharedEngine == nullptr) {
+        // The one +1, never released (amendment oo-r7m0 item 1). Recorded before init() runs, as
+        // -init recorded self before it made the context, so a re-entrant sharedEngine() answers
+        // the engine being set up (amendment oo-3bgz item 3).
+        OOJavaScriptEngine* engine = oo::makeRef<OOJavaScriptEngine>().leakRef();
+        sSharedEngine = engine;
+        engine->init();
+    }
 
     return sSharedEngine;
 }
 
-- (void)runMissionCallback
+void OOJavaScriptEngine::runMissionCallback()
 {
     MissionRunCallback();
 }
 
-- (id)init
+void OOJavaScriptEngine::init()
 {
-    OOAssert(sSharedEngine == nil, "Attempt to create multiple OOJavaScriptEngines.");
+    // -init asserted that no engine existed yet; sharedEngine() makes only this one.
+    OOCAssert(sSharedEngine == this, "Attempt to create multiple OOJavaScriptEngines.");
 
-    if (!(self = [super init]))
-        return nil;
-    sSharedEngine = self;
-    _showErrorLocations = YES;
+    _showErrorLocations = true;
 
     oo::Defaults& defaults = oo::Defaults::standard();
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -174,8 +153,8 @@ static void LoadCompatibilityScript(JSContext* context);
             without setting up the debug console could be useful for debugging
             users' problems.
     */
-    [self setDumpStackForErrors:defaults.boolForKey("dump-stack-for-errors")];
-    [self setDumpStackForWarnings:defaults.boolForKey("dump-stack-for-warnings")];
+    setDumpStackForErrors(defaults.boolForKey("dump-stack-for-errors"));
+    setDumpStackForWarnings(defaults.boolForKey("dump-stack-for-warnings"));
 #endif
 
     _runtime = JS_NewRuntime();
@@ -190,14 +169,12 @@ static void LoadCompatibilityScript(JSContext* context);
     JS_SetMaxStackSize(_runtime, OOJS_STACK_SIZE);
     JS_SetInterruptHandler(_runtime, InterruptHandler, NULL);
 
-    [self createMainThreadContext];
-
-    return self;
+    createMainThreadContext();
 }
 
-- (void)createMainThreadContext
+void OOJavaScriptEngine::createMainThreadContext()
 {
-    OOAssert(gOOJSMainThreadContext == NULL, "-[OOJavaScriptEngine createMainThreadContext] called while the main thread context exists.");
+    OOCAssert(gOOJSMainThreadContext == NULL, "-[OOJavaScriptEngine createMainThreadContext] called while the main thread context exists.");
 
     gOOJSMainThreadContext = JS_NewContext(_runtime);
     if (gOOJSMainThreadContext == NULL) {
@@ -253,15 +230,15 @@ static void LoadCompatibilityScript(JSContext* context);
 
     // Run prefix scripts.
     JSValue special = JSSpecialFunctionsObjectWrapper(_context);
-    OOJSValue* specialWrapper = [OOJSValue valueWithJSValue:special inContext:_context];
+    ::OOJSValue* specialWrapper = [::OOJSValue valueWithJSValue:special inContext:_context];
     JS_FreeValue(_context, special);
-    [OOJSScript cxx_jsScriptFromFileNamed:"oolite-global-prefix.js"
-                               properties:oo::PList(oo::PList::Dict { { "special", oo::PListObject(specialWrapper) } })];
+    [::OOJSScript cxx_jsScriptFromFileNamed:"oolite-global-prefix.js"
+                                 properties:oo::PList(oo::PList::Dict { { "special", oo::PListObject(specialWrapper) } })];
 
     OO_LOG("script.javaScript.init.success", "{}", "Set up JavaScript context.");
 }
 
-- (void)destroyMainThreadContext
+void OOJavaScriptEngine::destroyMainThreadContext()
 {
     if (gOOJSMainThreadContext != NULL) {
         OOConstToJSStringDestroy();
@@ -294,23 +271,25 @@ static void LoadCompatibilityScript(JSContext* context);
     }
 }
 
-- (BOOL)reset
+bool OOJavaScriptEngine::reset()
 {
-    OOAssert(gOOJSMainThreadContext != NULL, "JavaScript engine not active. Can't reset.");
+    OOCAssert(gOOJSMainThreadContext != NULL, "JavaScript engine not active. Can't reset.");
 
     OOJSFrameCallbacksRemoveAll();
 
-    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, self);
+    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, oo::ToObjC(this)); // the facade: what observers filter on
 
-    [self destroyMainThreadContext];
-    [self createMainThreadContext];
+    destroyMainThreadContext();
+    createMainThreadContext();
 
-    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineDidResetNotificationName, self);
+    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineDidResetNotificationName, oo::ToObjC(this));
 
-    [self garbageCollectionOpportunity:YES];
+    garbageCollectionOpportunity(true);
     OO_LOG("script.javascript.init", "{}", "JavaScript reset successful.");
-    return YES;
+    return true;
 }
+
+} // namespace cxx
 
 // YES if JavaScript code is on the stack (e.g. quitGame() called from a script).
 static BOOL IsRunningJavaScript(JSContext* context)
@@ -327,7 +306,9 @@ static BOOL IsRunningJavaScript(JSContext* context)
     return NO;
 }
 
-- (NSUInteger)shutDown
+namespace cxx {
+
+NSUInteger OOJavaScriptEngine::shutDown()
 {
     if (_runtime == NULL)
         return 0;
@@ -343,8 +324,8 @@ static BOOL IsRunningJavaScript(JSContext* context)
     }
 
     OOJSFrameCallbacksRemoveAll();
-    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, self);
-    [self destroyMainThreadContext];
+    oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, oo::ToObjC(this)); // the facade: what observers filter on
+    destroyMainThreadContext();
 
     JSMemoryUsage usage;
     JS_ComputeMemoryUsage(_runtime, &usage);
@@ -363,31 +344,26 @@ static BOOL IsRunningJavaScript(JSContext* context)
     return 0;
 }
 
-- (void)dealloc
+OOJavaScriptEngine::~OOJavaScriptEngine()
 {
-    [self shutDown];
-    if (sSharedEngine == self)
-        sSharedEngine = nil;
-    [super dealloc];
+    shutDown();
+    if (sSharedEngine == this)
+        sSharedEngine = nullptr;
 }
 
-- (JSContext*)context
+JSContext* OOJavaScriptEngine::context()
 {
     return _context;
 }
 
-- (JSValueConst)globalObject
+JSValueConst OOJavaScriptEngine::globalObject()
 {
     return _globalObject;
 }
 
-- (BOOL)callJSFunction:(JSValueConst)function
-             forObject:(JSValueConst)jsThis
-                  argc:(int)argc
-                  argv:(JSValueConst*)argv
-                result:(JSValue*)outResult
+bool OOJavaScriptEngine::callJSFunction(JSValueConst function, JSValueConst jsThis, int argc, JSValueConst* argv, JSValue* outResult)
 {
-    OOParameterAssert(JS_IsFunction(_context, function));
+    OOCParameterAssert(JS_IsFunction(_context, function));
 
     OOJSStartTimeLimiter();
     JSValue result = JS_Call(_context, function, jsThis, argc, argv);
@@ -397,17 +373,17 @@ static BOOL IsRunningJavaScript(JSContext* context)
         OOJSReportPendingException(_context);
         if (outResult != NULL)
             *outResult = JS_UNDEFINED;
-        return NO;
+        return false;
     }
 
     if (outResult != NULL)
         *outResult = result;
     else
         JS_FreeValue(_context, result);
-    return YES;
+    return true;
 }
 
-- (void)garbageCollectionOpportunity:(BOOL)force
+void OOJavaScriptEngine::garbageCollectionOpportunity(bool force)
 {
     /*	Reference counting frees most objects immediately, and QuickJS runs its
             cycle collector by allocation threshold, so only forced collections
@@ -417,80 +393,70 @@ static BOOL IsRunningJavaScript(JSContext* context)
         JS_RunGC(_runtime);
 }
 
-- (BOOL)showErrorLocations
+bool OOJavaScriptEngine::showErrorLocations()
 {
     return _showErrorLocations;
 }
 
-- (void)setShowErrorLocations:(BOOL)value
+void OOJavaScriptEngine::setShowErrorLocations(bool value)
 {
     _showErrorLocations = !!value;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (BOOL)dumpStackForErrors
+bool OOJavaScriptEngine::dumpStackForErrors()
 {
     return _dumpStackForErrors;
 }
 
-- (void)setDumpStackForErrors:(BOOL)value
+void OOJavaScriptEngine::setDumpStackForErrors(bool value)
 {
     _dumpStackForErrors = !!value;
 }
 
-- (BOOL)dumpStackForWarnings
+bool OOJavaScriptEngine::dumpStackForWarnings()
 {
     return _dumpStackForWarnings;
 }
 
-- (void)setDumpStackForWarnings:(BOOL)value
+void OOJavaScriptEngine::setDumpStackForWarnings(bool value)
 {
     _dumpStackForWarnings = !!value;
 }
 
-- (void)enableDebuggerStatement
+void OOJavaScriptEngine::enableDebuggerStatement()
 {
     // QuickJS treats the debugger statement as a no-op and has no hook for it.
 }
 #endif
 
-@end
+} // namespace cxx
 
 #if OOJSENGINE_MONITOR_SUPPORT
 
-@implementation OOJavaScriptEngine (OOMonitorSupport)
+namespace cxx {
 
-- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)inMonitor
+void OOJavaScriptEngine::setMonitor(id<OOJavaScriptEngineMonitor> inMonitor)
 {
-    [_monitor autorelease];
-    _monitor = [inMonitor retain];
+    [_monitor.leakRef() autorelease];
+    _monitor = oo::ObjCRef<id<OOJavaScriptEngineMonitor>>(inMonitor);
 }
 
-@end
-
-@implementation OOJavaScriptEngine (OOMonitorSupportInternal)
-
-- (void)sendMonitorProblemOfSeverity:(const std::string&)severity
-                              inFile:(const std::optional<std::string>&)file
-                                line:(unsigned)line
-                         withMessage:(const std::string&)message
-                           inContext:(JSContext*)theContext
+void OOJavaScriptEngine::sendMonitorProblem(const std::string& severity, const std::optional<std::string>& file, unsigned line, const std::string& message, JSContext* theContext)
 {
-    if ([_monitor respondsToSelector:@selector(jsEngine:context:problemOfSeverity:inFile:line:stackSkip:showingLocation:withMessage:)]) {
-        [_monitor jsEngine:self context:theContext problemOfSeverity:severity inFile:file line:line stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:message];
+    if ([_monitor.get() respondsToSelector:OOSelectorFromName("jsEngine:context:problemOfSeverity:inFile:line:stackSkip:showingLocation:withMessage:")]) {
+        [_monitor.get() jsEngine:oo::ToObjC(this) context:theContext problemOfSeverity:severity inFile:file line:line stackSkip:sErrorHandlerStackSkip showingLocation:showErrorLocations() withMessage:message];
     }
 }
 
-- (void)sendMonitorLogMessage:(const std::optional<std::string>&)message
-             withMessageClass:(const std::optional<std::string>&)messageClass
-                    inContext:(JSContext*)theContext
+void OOJavaScriptEngine::sendMonitorLogMessage(const std::optional<std::string>& message, const std::optional<std::string>& messageClass, JSContext* theContext)
 {
-    if ([_monitor respondsToSelector:@selector(jsEngine:context:logMessage:ofClass:)]) {
-        [_monitor jsEngine:self context:theContext logMessage:message.value_or("") ofClass:messageClass];
+    if ([_monitor.get() respondsToSelector:OOSelectorFromName("jsEngine:context:logMessage:ofClass:")]) {
+        [_monitor.get() jsEngine:oo::ToObjC(this) context:theContext logMessage:message.value_or("") ofClass:messageClass];
     }
 }
 
-@end
+} // namespace cxx
 
 #endif
 
@@ -802,26 +768,27 @@ static void LogProblem(JSContext* context, const std::string& severity, const st
 {
     const std::string messageClass = "script.javaScript." + severity + "." + errorName;
     const std::string highlight = (severity == "warning") ? "-----" : "*****";
-    OOJavaScriptEngine* jsEng = [OOJavaScriptEngine sharedEngine];
+    cxx::OOJavaScriptEngine* jsEng = cxx::OOJavaScriptEngine::sharedEngine();
 
     // Skip the rest if this is a warning being ignored. Errors and exceptions always go to the debug monitor.
     if (severity == "warning" && !oo::log::willDisplay(messageClass))
         return;
 
     // avoid windows DEP exceptions!
-    OOJSScript* thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
-    const std::string activeScript = [[thisScript weakRefUnderlyingObject] displayName].value_or("<unidentified script>");
-    [thisScript release];
+    ::OOJSScript* runningScript = cxx::OOJSScript::currentlyRunningScript();
+    id thisScript = (runningScript != nil) ? oo::ToCxx(runningScript)->weakRetain() : nil; // a weak reference, retained
+    const std::string activeScript = OOJavaScriptEngineDisplayName(OOJavaScriptEngineWeakRefUnderlyingObject(thisScript)).value_or("<unidentified script>");
+    objc_release(thisScript);
     OO_LOG(messageClass, "{} JavaScript {} ({}): {}", highlight, severity, activeScript, message);
 
     std::optional<std::string> file;
     unsigned line = 0;
-    if ([jsEng showErrorLocations] && sErrorHandlerStackSkip == 0 && GetLocationFromStack(stack, &file, &line)) {
+    if (jsEng->showErrorLocations() && sErrorHandlerStackSkip == 0 && GetLocationFromStack(stack, &file, &line)) {
         OO_LOG(messageClass, "      {}, line {}.", *file, line);
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    BOOL dump = (severity == "warning") ? [jsEng dumpStackForWarnings] : [jsEng dumpStackForErrors];
+    bool dump = (severity == "warning") ? jsEng->dumpStackForWarnings() : jsEng->dumpStackForErrors();
     if (dump && stack.has_value())
         OO_LOG("script.javaScript.stackTrace", "{}", *stack);
 #endif
@@ -829,11 +796,7 @@ static void LogProblem(JSContext* context, const std::string& severity, const st
 #if OOJSENGINE_MONITOR_SUPPORT
     if (!file.has_value())
         GetLocationFromStack(stack, &file, &line);
-    [jsEng sendMonitorProblemOfSeverity:severity
-                                 inFile:file
-                                   line:line
-                            withMessage:message
-                              inContext:context];
+    jsEng->sendMonitorProblem(severity, file, line, message, context);
 #endif
 }
 
@@ -890,26 +853,26 @@ void cxx_OOJSReportErrorForCaller(JSContext* context, const std::optional<std::s
 {
     va_list args;
 
-    @try {
+    try {
         va_start(args, format);
         std::string msg = oo::str::vformat(format, args);
         va_end(args);
 
         cxx_OOJSReportError(context, "%s%s", CallerPrefix(scriptClass, function).c_str(), msg.c_str());
-    }
-    @catch (id exception) {
-        // Squash any secondary errors during error handling.
+    } catch (...) {
+        // Squash any secondary errors during error handling: nothing more to do.
+        return;
     }
 }
 
 void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args)
 {
-    @try {
+    try {
         std::string msg = oo::str::vformat(format, args);
         JS_ThrowPlainError(context, "%s", msg.c_str());
-    }
-    @catch (id exception) {
-        // Squash any secondary errors during error handling.
+    } catch (...) {
+        // Squash any secondary errors during error handling: nothing more to do.
+        return;
     }
 }
 
@@ -939,29 +902,29 @@ void cxx_OOJSReportWarningForCaller(JSContext* context, const std::optional<std:
 {
     va_list args;
 
-    @try {
+    try {
         va_start(args, format);
         std::string msg = oo::str::vformat(format, args);
         va_end(args);
 
         cxx_OOJSReportWarning(context, "%s%s", CallerPrefix(scriptClass, function).c_str(), msg.c_str());
-    }
-    @catch (id exception) {
-        // Squash any secondary errors during error handling.
+    } catch (...) {
+        // Squash any secondary errors during error handling: nothing more to do.
+        return;
     }
 }
 
 void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, va_list args)
 {
-    @try {
+    try {
         std::string msg = oo::str::vformat(format, args);
         OOJSPauseTimeLimiter();
         // SpiderMonkey reported Oolite's own warnings as error number 206, "ooliteDefined" in javascript-errors.plist.
         LogProblem(context, "warning", "ooliteDefined", msg, CurrentStack(context));
         OOJSResumeTimeLimiter();
-    }
-    @catch (id exception) {
-        // Squash any secondary errors during error handling.
+    } catch (...) {
+        // Squash any secondary errors during error handling: nothing more to do.
+        return;
     }
 }
 
@@ -993,7 +956,7 @@ void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj, int ma
 
 void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, const std::optional<std::string>& message, const std::optional<std::string>& expectedArgsDescription)
 {
-    @try {
+    try {
         std::string text = message ? *message : std::string("Invalid arguments");
         std::optional<std::string> parameters = cxx_OOJSStringWithJavaScriptParameters(argv, argc, context);
         text += " " + (parameters ? *parameters : std::string("(null)"));
@@ -1001,9 +964,9 @@ void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::str
             text += " -- expected " + *expectedArgsDescription;
 
         cxx_OOJSReportErrorForCaller(context, scriptClass, function, "%s.", text.c_str());
-    }
-    @catch (id exception) {
-        // Squash any secondary errors during error handling.
+    } catch (...) {
+        // Squash any secondary errors during error handling: nothing more to do.
+        return;
     }
 }
 
@@ -1063,7 +1026,7 @@ JSAtom OOJSInternAtomPRIVATE(const char* name)
 
     JSAtom atom = JS_NewAtom(OOJSAcquireContext(), name);
     if (EXPECT_NOT(atom == JS_ATOM_NULL)) {
-        [OOException raise:OOGenericException format:"Failed to initialize JS ID cache for \"%s\".", name];
+        OORaiseException(OOGenericException, "Failed to initialize JS ID cache for \"%s\".", name);
     }
     return atom;
 }
@@ -1103,29 +1066,29 @@ std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID)
 
 // The root-class JS glue for classes rooted on OOObject (ADR-0029). Foundation objects have none:
 // OOJSValueFromNativeObject() converts them through their property-list form (proposed ADR-0051).
-@implementation OOObject (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+// The category OOObject (OOJavaScriptConversion) forwards to these from OOJavaScriptEngine+ObjCBridge.mm
+// (amendment oo-ppc item 3); the sends to the object go through its bridges (amendment oo-9ht.139).
+JSValue OOObjectJSValueInContext(JSContext* /*context*/)
 {
     return JS_UNDEFINED;
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOObjectJSClassName()
 {
     return std::nullopt;
 }
 
-- (std::optional<std::string>)cxx_oo_jsDescription
+std::optional<std::string> OOObjectJSDescription(id object)
 {
-    return [self cxx_oo_jsDescriptionWithClassName:[self cxx_oo_jsClassName]];
+    return OOJavaScriptEngineJSDescriptionWithClassName(object, OOJavaScriptEngineJSClassName(object));
 }
 
-- (std::optional<std::string>)cxx_oo_jsDescriptionWithClassName:(const std::optional<std::string>&)className
+std::optional<std::string> OOObjectJSDescriptionWithClassName(id object, const std::optional<std::string>& className)
 {
-    const std::optional<std::string> components = [self cxx_descriptionComponents];
+    const std::optional<std::string> components = OOJavaScriptEngineDescriptionComponents(object);
     std::optional<std::string> name = className;
     if (!name.has_value())
-        name = oo::DescriptionOf([self class]); // the class's name
+        name = oo::DescriptionOf(OOJavaScriptEngineClass(object)); // the class's name
 
     if (components.has_value()) {
         return oo::str::format("[%s %s]", name->c_str(), components->c_str());
@@ -1134,11 +1097,9 @@ std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID)
     }
 }
 
-- (void)oo_clearJSSelf:(JSValueConst)selfVal
+void OOObjectClearJSSelf(JSValueConst /*selfVal*/)
 {
 }
-
-@end
 
 namespace {
 // YES if object's root class is OOObject: it answers -oo_jsValueInContext: itself. Anything else
@@ -1148,7 +1109,7 @@ static bool IsOOObjectRooted(id object)
     Class cls = object_getClass(object);
     for (Class superclass = class_getSuperclass(cls); superclass != Nil; superclass = class_getSuperclass(cls))
         cls = superclass;
-    return cls == [OOObject class];
+    return cls == OOJavaScriptEngineOOObjectClass();
 }
 
 // The Foundation array's glue (JSArrayFromNSArray) over ObjectFromPList's array: null elements dropped.
@@ -1211,7 +1172,7 @@ JSValue OOJSValueFromNativeObject(JSContext* context, id object)
     if (object == nil)
         return JS_NULL;
     if (EXPECT(IsOOObjectRooted(object)))
-        return [object oo_jsValueInContext:context];
+        return OOJavaScriptEngineJSValueInContext(object, context);
 
     // An object on another root has no JS glue: undefined, as the root class's gave. oo-qps.72 deleted
     // the Foundation branch (its property-list form, proposed ADR-0051): plist data is
@@ -1284,53 +1245,53 @@ JSValue OOJSObjectFromNativeObject(JSContext* context, id object)
     return result;
 }
 
-@implementation OOJSValue
+namespace cxx {
 
-+ (id)valueWithJSValue:(JSValueConst)value inContext:(JSContext*)context
+oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext* context)
 {
-    return [[[self alloc] initWithJSValue:value inContext:context] autorelease];
+    oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
+    result->initWithJSValue(value, context);
+    return result;
 }
 
-- (id)initWithJSValue:(JSValueConst)value inContext:(JSContext*)context
+void OOJSValue::initWithJSValue(JSValueConst value, JSContext* context)
 {
-    self = [super init];
-    if (self != nil) {
-        if (context == NULL)
-            context = OOJSAcquireContext();
+    if (context == NULL)
+        context = OOJSAcquireContext();
 
-        _val = JS_DupValue(context, value);
-        if (!JS_IsUndefined(_val)) {
-            oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
-                [OOJavaScriptEngine sharedEngine],
-                [self](const oo::Notification&) { [self deleteJSValue]; });
-        }
+    _val = JS_DupValue(context, value);
+    if (!JS_IsUndefined(_val)) {
+        // The engine's facade: the sender of its reset notifications. Kept for removing the
+        // observer, so the destructor does not ask for the engine (which could make it).
+        _resetSender = oo::ToObjC(OOJavaScriptEngine::sharedEngine());
+        oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
+            _resetSender,
+            [this](const oo::Notification&) { deleteJSValue(); });
     }
-    return self;
 }
 
-- (void)deleteJSValue
+void OOJSValue::deleteJSValue()
 {
     if (!JS_IsUndefined(_val)) {
         JS_FreeValue(OOJSAcquireContext(), _val);
         _val = JS_UNDEFINED;
 
-        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
-            [OOJavaScriptEngine sharedEngine]);
+        oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
+            _resetSender);
     }
 }
 
-- (void)dealloc
+OOJSValue::~OOJSValue()
 {
-    [self deleteJSValue];
-    [super dealloc];
+    deleteJSValue();
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue OOJSValue::jsValueInContext(JSContext* context)
 {
     return JS_DupValue(context, _val);
 }
 
-@end
+} // namespace cxx
 
 //===========================================================================
 // String utilities
@@ -1544,43 +1505,38 @@ std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string)
     return result;
 }
 
-@implementation OONativeVector (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+// OONativeVector (OOJavaScriptConversion)'s -oo_jsValueInContext:, which forwards here from
+// OOJavaScriptEngine+ObjCBridge.mm (amendment oo-ppc item 3).
+JSValue OONativeVectorJSValueInContext(cxx::OONativeVector* vector, JSContext* context)
 {
     JSValue value = JS_UNDEFINED;
-    VectorToJSValue(context, [self getVector], &value);
+    VectorToJSValue(context, vector->getVector(), &value);
     return value;
 }
 
-@end
+namespace cxx {
 
-@implementation OONull
-
-+ (OONull*)null
+OONull* OONull::null()
 {
-    static OONull* sNull = nil;
-    if (sNull == nil)
-        sNull = [[OONull alloc] init];
+    static OONull* sNull = nullptr; // the one +1 is never released (amendment oo-r7m0 item 1)
+    if (sNull == nullptr)
+        sNull = oo::makeRef<OONull>().leakRef();
     return sNull;
 }
 
-- (id)copyWithZone:(OOZone*)zone
-{
-    return [self retain];
-}
+// (-copyWithZone:, which answered the object itself, is the facade's: OOJavaScriptEngine+ObjCBridge.mm.)
 
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OONull::description()
 {
     return "<null>";
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue OONull::jsValueInContext(JSContext* /*context*/)
 {
     return JS_NULL;
 }
 
-@end
+} // namespace cxx
 
 //===========================================================================
 // Reusable callbacks
@@ -1603,8 +1559,8 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj)
     JSClassID classID;
     id object = (id)JS_GetAnyOpaque(thisObj, &classID);
     if (object != nil) {
-        [[object weakRefUnderlyingObject] oo_clearJSSelf:thisObj];
-        [object release];
+        OOJavaScriptEngineClearJSSelf(OOJavaScriptEngineWeakRefUnderlyingObject(object), thisObj);
+        objc_release(object);
         JS_SetOpaque(thisObj, NULL);
     }
 }
@@ -1620,7 +1576,7 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
     if (object != nil) {
         // A Foundation object (e.g. from a String object) has no JS glue any more.
         if (IsOOObjectRooted(object))
-            description = [object cxx_oo_jsDescription];
+            description = OOJavaScriptEngineJSDescription(object);
         if (!description.has_value())
             description = oo::DescriptionOf(object); // object is not nil
     }
@@ -1654,7 +1610,7 @@ BOOL JSFunctionPredicate(Entity* entity, void* parameter)
     if (EXPECT_NOT(param->errorFlag))
         return NO;
 
-    JSValue arg = [entity oo_jsValueInContext:param->context]; // entity is required to be non-nil (asserted above), so oo_jsValueInContext: is safe.
+    JSValue arg = OOJavaScriptEngineJSValueInContext(entity, param->context); // entity is required to be non-nil (asserted above), so oo_jsValueInContext: is safe.
 
     OOJSStartTimeLimiter();
     OOJSResumeTimeLimiter();
@@ -1677,21 +1633,22 @@ BOOL JSFunctionPredicate(Entity* entity, void* parameter)
 
 BOOL JSEntityIsJavaScriptVisiblePredicate(Entity* entity, void* parameter)
 {
-    return [entity isVisibleToScripts];
+    return OOJavaScriptEngineIsVisibleToScripts(entity);
 }
 
 BOOL JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter)
 {
-    if (![entity isVisibleToScripts])
+    if (!OOJavaScriptEngineIsVisibleToScripts(entity))
         return NO;
-    if ([entity isShip]) {
-        if ([entity isSubEntity])
+    if (OOJavaScriptEngineIsShip(entity)) {
+        if (OOJavaScriptEngineIsSubEntity(entity))
             return NO;
-        if ([entity status] == STATUS_COCKPIT_DISPLAY)
+        if (OOJavaScriptEngineStatus(entity) == STATUS_COCKPIT_DISPLAY)
             return NO; // Demo ship
         return YES;
-    } else if ([entity isPlanet]) {
-        switch ([(OOPlanetEntity*)entity planetType]) {
+    } else if (OOJavaScriptEngineIsPlanet(entity)) {
+        switch (oo::ToCxx((OOPlanetEntity*)entity)->planetType()) // a planet: not nil
+        {
         case STELLAR_TYPE_MOON:
         case STELLAR_TYPE_NORMAL_PLANET:
         case STELLAR_TYPE_SUN:
@@ -1707,7 +1664,7 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter)
 
 BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter)
 {
-    return ([entity isVisibleToScripts] && [entity isShip] && [entity status] == STATUS_COCKPIT_DISPLAY && ![entity isSubEntity]);
+    return (OOJavaScriptEngineIsVisibleToScripts(entity) && OOJavaScriptEngineIsShip(entity) && OOJavaScriptEngineStatus(entity) == STATUS_COCKPIT_DISPLAY && !OOJavaScriptEngineIsSubEntity(entity));
 }
 
 //===========================================================================
@@ -1915,7 +1872,7 @@ id OOJSNativeObjectFromJSObject(JSContext* context, JSValueConst object)
 id OOJSNativeObjectOfClassFromJSValue(JSContext* context, JSValueConst value, Class requiredClass)
 {
     id result = OOJSNativeObjectFromJSValue(context, value);
-    if (![result isKindOfClass:requiredClass])
+    if (!OOJavaScriptEngineIsKindOfClass(result, requiredClass))
         result = nil;
     return result;
 }
@@ -1923,7 +1880,7 @@ id OOJSNativeObjectOfClassFromJSValue(JSContext* context, JSValueConst value, Cl
 id OOJSNativeObjectOfClassFromJSObject(JSContext* context, JSValueConst object, Class requiredClass)
 {
     id result = OOJSNativeObjectFromJSObject(context, object);
-    if (![result isKindOfClass:requiredClass])
+    if (!OOJavaScriptEngineIsKindOfClass(result, requiredClass))
         result = nil;
     return result;
 }
@@ -1936,7 +1893,7 @@ oo::PList OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst objec
     */
     JSClassID ignored;
     id result = (id)JS_GetAnyOpaque(object, &ignored);
-    return oo::PListObject([result weakRefUnderlyingObject]); // nil: a null PList
+    return oo::PListObject(OOJavaScriptEngineWeakRefUnderlyingObject(result)); // nil: a null PList
 }
 
 void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback converter)
@@ -1970,7 +1927,7 @@ static oo::PList PListFromJSArray(JSContext* context, JSValueConst array)
         oo::PList element = cxx_OOJSPListFromJSValue(context, value);
         JS_FreeValue(context, value);
         if (element.isNull())
-            element = oo::PListObject([OONull null]);
+            element = oo::PListObject(oo::ToObjC(cxx::OONull::null())); // [OONull null]
         values.push_back(std::move(element));
     }
 

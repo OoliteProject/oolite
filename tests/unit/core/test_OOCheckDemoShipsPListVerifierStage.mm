@@ -8,11 +8,15 @@
 	demoships.plist or shipdata.plist of the wrong type, and each entry that names no ship (or is
 	not a string). Then the crossing: the converted stage is global, so Objective-C sees it as an
 	OOOXPVerifierStage.
+	Bead oo-9ht.4 deleted the stage facade: the verifier registers and answers the C++ stage
+	itself, so the facade case asks the stage (its description through description()), and the
+	checks that pinned only the facade crossing (one live facade, oo::ToObjC/oo::ToCxx, its class,
+	oo::AsObjCStage) were retired with it (ADR-0049, standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOCheckDemoShipsPListVerifierStage.h"
-#import "OOOXPVerifierStageInternal.h"
+#import "OOOXPVerifierStage.h"
 #import "OODescription.h"
 
 #include "oofnd/Log.hpp"
@@ -105,8 +109,8 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
 void RunScanner(OOOXPVerifier *verifier)
 {
-	[OOFileScannerVerifierStage nameForDependencyForVerifier:verifier];
-	[[verifier fileScannerStage] run];
+	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
+	[verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
 }
 
 
@@ -195,26 +199,21 @@ OO_TEST(entriesNameShips)
 }
 
 
-// The converted stage is global: Objective-C (the verifier) sees it as an OOOXPVerifierStage, one
-// facade per stage, whose methods answer as the stage does; its C++ part is the stage itself.
+// The converted stage is global: the verifier registers it and finds it by name (it held its
+// OOOXPVerifierStage facade until bead oo-9ht.4), and it describes itself with its class's name.
 OO_TEST(facade)
 {
 	@autoreleasepool
 	{
 		OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<OOCheckDemoShipsPListVerifierStage> stage = oo::makeRef<OOCheckDemoShipsPListVerifierStage>();
-		OOOXPVerifierStage *facade = oo::ToObjC(stage.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(stage.get()) && oo::ToCxx(facade) == stage.get());
-		OO_CHECK([facade class] == [OOOXPVerifierStage class]);
-		OO_CHECK(oo::AsObjCStage(stage.get()) == nullptr);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOCheckDemoShipsPListVerifierStage 0x"));
+		OO_CHECK(stage->description().starts_with("<OOCheckDemoShipsPListVerifierStage 0x"));
 
-		[verifier registerStage:facade];
-		OO_CHECK([verifier cxx_stageWithName:"Checking demoships.plist"] == facade);
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("Checking demoships.plist"));
-		OO_CHECK([facade cxx_dependencies] == kScannerName);
-		OO_CHECK([facade dependents] == kUnusedName);
-		OO_CHECK([facade shouldRun] == stage->shouldRun());
+		[verifier registerStage:stage.get()];
+		OO_CHECK([verifier cxx_stageWithName:"Checking demoships.plist"] == stage.get());
+		OO_CHECK(stage->name() == std::optional<std::string>("Checking demoships.plist"));
+		OO_CHECK(stage->dependencies() == kScannerName);
+		OO_CHECK(stage->dependents() == kUnusedName);
 	}
 }
 

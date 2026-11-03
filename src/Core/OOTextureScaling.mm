@@ -43,9 +43,9 @@ SOFTWARE.
         NOTE: the function definitions are grouped together for best code cache
         coherence rather than the order listed here.
  */
-static BOOL GenerateMipMaps1(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height) NONNULL_FUNC;
-static BOOL GenerateMipMaps2(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height) NONNULL_FUNC;
-static BOOL GenerateMipMaps4(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height) NONNULL_FUNC;
+static bool GenerateMipMaps1(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height) NONNULL_FUNC;
+static bool GenerateMipMaps2(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height) NONNULL_FUNC;
+static bool GenerateMipMaps4(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height) NONNULL_FUNC;
 
 /*	ScaleToHalf_P_xN functions
         These scale a texture with P planes (components) to half its size in each
@@ -86,7 +86,7 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth);
 static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth);
 static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth);
 
-static BOOL EnsureCorrectDataSize(OOPixMap* pixMap, BOOL leaveSpaceForMipMaps) NONNULL_FUNC;
+static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps) NONNULL_FUNC;
 
 #if !OOLITE_NATIVE_64_BIT
 
@@ -209,7 +209,7 @@ int32_t OSAtomicAdd32(int32_t __theAmount, volatile int32_t* __theValue);
 #define DUMP_MIP_MAP_PREPARE(pl)                       \
     uint32_t dumpPlanes = pl;                          \
     uint32_t dumpLevel = 0;                            \
-    BOOL dumpThis = (dumpPlanes & DUMP_CHANNELS) != 0; \
+    bool dumpThis = (dumpPlanes & DUMP_CHANNELS) != 0; \
     SInt32 dumpID = dumpThis ? OSAtomicAdd32(1, &sPreviousDumpID) : 0;
 #define DUMP_MIP_MAP_DUMP(px, w, h) \
     if (dumpThis)                   \
@@ -242,10 +242,10 @@ static void DumpMipMap(void* data, OOPixMapDimension width, OOPixMapDimension he
     } while (0)
 #endif
 
-OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps)
+OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, bool leaveSpaceForMipMaps)
 {
     OOPixMap dstPx = { 0 }, sparePx = { 0 };
-    BOOL OK = YES;
+    bool OK = YES;
 
     //	Sanity check.
     if (EXPECT_NOT(!OOIsValidPixMap(srcPx))) {
@@ -334,7 +334,7 @@ FAIL:
 }
 
 // FIXME: should take an OOPixMap.
-BOOL OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format)
+bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format)
 {
     if (EXPECT_NOT(width != OORoundUpToPowerOf2_PixMap(width) || height != OORoundUpToPowerOf2_PixMap(height))) {
         OO_LOG(cxx_kOOLogParameterError, "Non-power-of-two dimensions ({}x{}) passed to {}() - ignoring, data will be junk.", static_cast<unsigned>(width), static_cast<unsigned>(height), __PRETTY_FUNCTION__);
@@ -363,7 +363,7 @@ BOOL OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDime
     return NO;
 }
 
-static BOOL GenerateMipMaps1(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height)
+static bool GenerateMipMaps1(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height)
 {
     OOPixMapDimension w = width, h = height;
     uint8_t *curr, *next;
@@ -549,7 +549,7 @@ static void ScaleToHalf_1_x8(void* srcBytes, void* dstBytes, OOPixMapDimension s
 
 #endif
 
-static BOOL GenerateMipMaps2(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height)
+static bool GenerateMipMaps2(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height)
 {
     OOPixMapDimension w = width, h = height;
     uint16_t *curr, *next;
@@ -641,7 +641,7 @@ static void ScaleToHalf_2_x1(void* srcBytes, void* dstBytes, OOPixMapDimension s
     } while (--y);
 }
 
-static BOOL GenerateMipMaps4(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height)
+static bool GenerateMipMaps4(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height)
 {
     OOPixMapDimension w = width, h = height;
     uint32_t *curr, *next;
@@ -1243,7 +1243,13 @@ static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight)
                 ++y;
                 src = (uint8_t*)((char*)src + srcRowBytes);
                 if (EXPECT_NOT(y == endY)) {
-                    if (EXPECT(endY < lastRow))
+                    /*	<= as in SqueezeVertically2/4 (bead oo-9ht.115): with < the last
+                            source row's endWeight was counted in weight but not in accum, so a
+                            non-integer squeeze darkened the last output row (90 -> 33 for 8 -> 5).
+                            endY == srcPx.height (one past the last row) only happens with
+                            endWeight 0, and is still skipped.
+                    */
+                    if (EXPECT(endY <= lastRow))
                         accum += *src * endWeight;
                     break;
                 } else {
@@ -1546,7 +1552,7 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight)
     }
 }
 
-static BOOL EnsureCorrectDataSize(OOPixMap* pixMap, BOOL leaveSpaceForMipMaps)
+static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps)
 {
     size_t correctSize;
     void* bytes = NULL;

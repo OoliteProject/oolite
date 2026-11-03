@@ -5,10 +5,9 @@ OOShipRegistry+ObjCBridge.h
 TRANSITIONAL (proposed ADR-0056, bead oo-3bgz): the Objective-C OOShipRegistry, a facade over the
 C++ cxx::OOShipRegistry (OOShipRegistry.h), for the code that is not converted yet: the callers
 that message [OOShipRegistry sharedRegistry] (Universe, the player and ship entities, the
-scripting bindings, the shader synthesizer), and what is left of the OODataLoader category in
-OOShipRegistry.mm (slice 3 of docs/phases/3-slices/OOShipRegistry.md), which is still Objective-C
-and is a category of this facade: the C++ load stages (slice 2, bead oo-r9gn) send it to
-oo::ToObjC(this). Its interface is the one OOShipRegistry.h declared before the
+scripting bindings, the shader synthesizer). (The OODataLoader category, which was a category of
+this facade while slices 2 and 3 of docs/phases/3-slices/OOShipRegistry.md were Objective-C, is
+C++ members since beads oo-r9gn and oo-ugw3.) Its interface is the one OOShipRegistry.h declared before the
 conversion, copied exactly (same selectors, same types), less the ivars, which are the C++
 class's members; each method forwards to its C++ member. Imported as the last line of
 OOShipRegistry.h; do not import it directly.

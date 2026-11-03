@@ -44,11 +44,11 @@ SOFTWARE.
         nil-able strings (a generated texture has no path, and a generator may have no cache key).
 
         Phase 3 (bead oo-qa7c, proposed ADR-0056 amendment oo-whzh): a C++ leaf of cxx::OOTexture. Its
-        loader is still Objective-C, so it is held as the Objective-C object.
+        loader is still Objective-C, so it is held as the Objective-C object. Its Objective-C facade was
+        deleted by bead oo-9ht.105 (ADR-0056 amendment "deleting a facade"): the class is global, and
+        Objective-C sees a concrete texture as the root's facade, an OOTexture.
 */
-namespace cxx {
-
-class OOConcreteTexture : public OOTexture {
+class OOConcreteTexture : public cxx::OOTexture {
 public:
     /*	Were -initWithLoader:key:options:anisotropy:lodBias: and -initWithPath:..., which answered
             nil for no loader (amendment oo-novu item 1): null here. The new texture is in the caches.
@@ -146,11 +146,5 @@ private:
     std::optional<std::string> _name = { };
 #endif
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOConcreteTexture, for code that tests a texture's class.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOConcreteTexture+ObjCBridge.h"
 
 #endif // OOCONCRETETEXTURE_H

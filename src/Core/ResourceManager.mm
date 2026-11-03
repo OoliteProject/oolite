@@ -77,31 +77,6 @@ constexpr const char* kOOCacheKeyModificationDates = "modification dates";
 
 } // namespace
 
-@interface ResourceManager (OOPrivate)
-
-+ (void)checkOXPMessagesInPath:(const std::string&)path;
-+ (void)checkPotentialPath:(const std::string&)path searchPaths:(std::vector<std::string>&)searchPaths;
-+ (BOOL)validateManifest:(const oo::PList&)manifest forOXP:(const std::string&)path;
-+ (BOOL)areRequirementsFulfilled:(const oo::PList&)requirements forOXP:(const std::optional<std::string>&)path andFile:(const std::string&)file;
-+ (void)filterSearchPathsForConflicts:(std::vector<std::string>&)searchPaths;
-+ (BOOL)filterSearchPathsForRequirements:(std::vector<std::string>&)searchPaths;
-+ (void)filterSearchPathsToExcludeScenarioOnlyPaths:(std::vector<std::string>&)searchPaths;
-+ (void)filterSearchPathsByScenario:(std::vector<std::string>&)searchPaths;
-+ (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest;
-+ (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest withIdentifier:(const std::string&)identifier;
-+ (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest withTag:(const std::string&)tag;
-
-+ (void)addErrorWithKey:(const std::string&)descriptionKey param1:(const std::string&)param1 param2:(const std::string&)param2;
-+ (BOOL)checkCacheUpToDateForPaths:(const std::vector<std::string>&)searchPaths;
-+ (void)logPaths;
-+ (void)mergeRoleCategories:(const oo::PList&)catData intoDictionary:(oo::PList&)category;
-+ (void)preloadFileLists;
-+ (void)preloadFileListFromOXZ:(const std::string&)path forFolders:(const std::vector<std::string>&)folders;
-+ (void)preloadFileListFromFolder:(const std::string&)path forFolders:(const std::vector<std::string>&)folders;
-+ (void)preloadFilePathFor:(const std::string&)fileName inFolder:(const std::string&)subFolder atPath:(const std::string&)path;
-
-@end
-
 namespace {
 
 // A path-scan error: a descriptions.plist key and the text of its two %@ parameters ("" for nil).
@@ -269,7 +244,7 @@ void ReplaceArrayElement(oo::PList& array, std::size_t index, const oo::PList& v
 {
     oo::PList::Array& elements = *array.getIf<oo::PList::Array>();
     if (index >= elements.size()) {
-        [OOException raise:OORangeException format:"Index %lu is out of range %lu (in 'replaceObjectAtIndex:withObject:')", (unsigned long)index, (unsigned long)elements.size()];
+        OORaiseException(OORangeException, "Index %lu is out of range %lu (in 'replaceObjectAtIndex:withObject:')", (unsigned long)index, (unsigned long)elements.size());
     }
     elements[index] = value;
 }
@@ -383,9 +358,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 } // namespace
 
-@implementation ResourceManager
-
-+ (void)reset
+void cxx::ResourceManager::reset()
 {
     sFirstRun = YES;
     sUseAddOns.reset();
@@ -397,16 +370,16 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     sOXPManifests.clear();
 }
 
-+ (void)resetManifestKnowledgeForOXZManager
+void cxx::ResourceManager::resetManifestKnowledgeForOXZManager()
 {
     sUseAddOns.reset();
     sUseAddOnsParts.clear();
     sSearchPaths.reset();
     sOXPManifests.clear();
-    [ResourceManager cxx_pathsWithAddOns];
+    pathsWithAddOns();
 }
 
-+ (std::optional<std::string>)cxx_errors
+std::optional<std::string> cxx::ResourceManager::errors()
 {
     if (sErrors.empty())
         return std::nullopt;
@@ -433,7 +406,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return joined;
 }
 
-+ (std::vector<std::string>)cxx_rootPaths
+std::vector<std::string> cxx::ResourceManager::rootPaths()
 {
     /* Built-in data, then managed OXZs, then manually installed ones,
      * which may be useful for debugging/testing purposes.
@@ -443,14 +416,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (!sRootPaths.has_value()) {
         const oo::ResourcePaths resourcePaths = oo::ResourcePaths::current();
         std::vector<std::string> paths { oo::fs::utf8String(resourcePaths.builtInResourcesDirectory()), oo::fs::utf8String(resourcePaths.managedAddOnsDirectory()) };
-        for (const std::string& path : [self cxx_userRootPaths])
+        for (const std::string& path : userRootPaths())
             paths.push_back(path);
         sRootPaths = std::move(paths);
     }
     return *sRootPaths;
 }
 
-+ (std::vector<std::string>)cxx_userRootPaths
+std::vector<std::string> cxx::ResourceManager::userRootPaths()
 {
     // the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
     // (additional add-ons paths, <cwd>/../share/oolite/AddOns, <cwd>/AddOns, the extract path:
@@ -466,13 +439,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return *sUserRootPaths;
 }
 
-+ (std::optional<std::string>)cxx_builtInPath
+std::optional<std::string> cxx::ResourceManager::builtInPath()
 {
     // Look for a "Resources" folder in the cwd, else cwd/../share/oolite/Resources (Windows & Linux)
     return oo::fs::utf8String(oo::ResourcePaths::current().builtInResourcesDirectory());
 }
 
-+ (std::vector<std::string>)cxx_pathsWithAddOns
+std::vector<std::string> cxx::ResourceManager::pathsWithAddOns()
 {
     if (sSearchPaths.has_value() && !sSearchPaths->empty())
         return *sSearchPaths;
@@ -485,13 +458,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     /* Handle special case of 'strict mode' efficiently */
     // testing actual string
     if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_NONE)) {
-        return { *[self cxx_builtInPath] };
+        return { *builtInPath() };
     }
 
     sErrors.clear();
 
     // Copy those root paths that actually exist to search paths.
-    const std::vector<std::string> rootPaths = [self cxx_rootPaths];
+    const std::vector<std::string> rootPaths = ResourceManager::rootPaths();
     std::vector<std::string> existingRootPaths;
     existingRootPaths.reserve(rootPaths.size());
     for (const std::string& root : rootPaths) {
@@ -504,7 +477,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     sSearchPaths.emplace();
     std::vector<std::string>& searchPaths = *sSearchPaths;
     for (const std::string& path : existingRootPaths) {
-        [self checkPotentialPath:path searchPaths:searchPaths];
+        checkPotentialPath(path, searchPaths);
     }
 
     // Iterate over root paths.
@@ -524,9 +497,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     if (type == oo::fs::FileType::directory) {
                         // If it is, is it an OXP?.
                         if (oo::str::lowercase(oo::str::pathExtension(path)) == "oxp") {
-                            [self checkPotentialPath:path searchPaths:searchPaths];
+                            checkPotentialPath(path, searchPaths);
                             if (PathListContains(searchPaths, path))
-                                [self checkOXPMessagesInPath:path];
+                                checkOXPMessagesInPath(path);
                         } else {
                             // If not, don't search subdirectories.
                             dirEnum.skipDescendents();
@@ -534,9 +507,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     } else {
                         // If not a directory, is it an OXZ?
                         if (oo::str::lowercase(oo::str::pathExtension(path)) == "oxz") {
-                            [self checkPotentialPath:path searchPaths:searchPaths];
+                            checkPotentialPath(path, searchPaths);
                             if (PathListContains(searchPaths, path))
-                                [self checkOXPMessagesInPath:path];
+                                checkOXPMessagesInPath(path);
                         }
                     }
                 }
@@ -545,16 +518,16 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     for (const std::string& path : sExternalPaths) {
-        [self checkPotentialPath:path searchPaths:searchPaths];
+        checkPotentialPath(path, searchPaths);
         if (PathListContains(searchPaths, path))
-            [self checkOXPMessagesInPath:path];
+            checkOXPMessagesInPath(path);
     }
 
     /* If a scenario restriction is *not* in place, remove
      * scenario-only OXPs. */
     // test string
     if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_ALL)) {
-        [self filterSearchPathsToExcludeScenarioOnlyPaths:searchPaths];
+        filterSearchPathsToExcludeScenarioOnlyPaths(searchPaths);
     }
 
     /* This is a conservative filter. It probably gets rid of more
@@ -563,7 +536,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
      * resolved by the user rather than Oolite. The point is to avoid
      * loading OXPs which we shouldn't; if doing so takes out other
      * OXPs which would have been safe, that's not important. */
-    [self filterSearchPathsForConflicts:searchPaths];
+    filterSearchPathsForConflicts(searchPaths);
 
     /* This one needs to be run repeatedly to be sure. Take the chain
      * A depends on B depends on C. A and B are installed. A is
@@ -575,37 +548,37 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
      * There may well be more elegant and efficient ways to do this
      * but this is already fast enough for most purposes.
      */
-    while (![self filterSearchPathsForRequirements:searchPaths]) { }
+    while (!filterSearchPathsForRequirements(searchPaths)) { }
 
     /* If a scenario restriction is in place, restrict OXPs to the
      * ones valid for the scenario only. */
     // test string
     if (sUseAddOns != std::string(SCENARIO_OXP_DEFINITION_ALL)) {
-        [self filterSearchPathsByScenario:searchPaths];
+        filterSearchPathsByScenario(searchPaths);
     }
 
-    [self checkCacheUpToDateForPaths:searchPaths];
+    checkCacheUpToDateForPaths(searchPaths);
 
     return searchPaths;
 }
 
-+ (void)preloadFileLists
+void cxx::ResourceManager::preloadFileLists()
 {
     // folders which may contain files to be cached
     const std::vector<std::string> folders = { "AIs", "Images", "Models", "Music", "Scenarios", "Scripts", "Shaders", "Sounds", "Textures" };
 
-    const std::vector<std::string> paths = [ResourceManager cxx_paths];
+    const std::vector<std::string> paths = ResourceManager::paths();
     for (auto pathIt = paths.rbegin(); pathIt != paths.rend(); ++pathIt) {
         const std::string& path = *pathIt;
         if (oo::str::hasSuffix(path, ".oxz")) {
-            [self preloadFileListFromOXZ:path forFolders:folders];
+            preloadFileListFromOXZ(path, folders);
         } else {
-            [self preloadFileListFromFolder:path forFolders:folders];
+            preloadFileListFromFolder(path, folders);
         }
     }
 }
 
-+ (void)preloadFileListFromOXZ:(const std::string&)path forFolders:(const std::vector<std::string>&)folders
+void cxx::ResourceManager::preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders)
 {
     unzFile uf = NULL;
     const char* zipname = path.c_str();
@@ -633,7 +606,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     const std::string file = oo::str::pathWithComponents(std::vector<std::string>(pathBits.begin() + 1, pathBits.end()));
                     const std::string fullPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(path, folder), file);
 
-                    [self preloadFilePathFor:file inFolder:folder atPath:fullPath];
+                    preloadFilePathFor(file, folder, fullPath);
                 }
             }
 
@@ -642,38 +615,38 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     unzClose(uf);
 }
 
-+ (void)preloadFileListFromFolder:(const std::string&)path forFolders:(const std::vector<std::string>&)folders
+void cxx::ResourceManager::preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders)
 {
     // search each subfolder for files
     for (const std::string& subFolder : folders) {
         const std::string subFolderPath = oo::str::appendingPathComponent(path, subFolder);
         const std::vector<std::string> fileList = oo::fs::directoryContents(oo::fs::pathFromUTF8(subFolderPath)).value_or(std::vector<std::string>());
         for (const std::string& fileName : fileList) {
-            [self preloadFilePathFor:fileName inFolder:subFolder atPath:oo::str::appendingPathComponent(subFolderPath, fileName)];
+            preloadFilePathFor(fileName, subFolder, oo::str::appendingPathComponent(subFolderPath, fileName));
         }
     }
 }
 
-+ (void)preloadFilePathFor:(const std::string&)fileName inFolder:(const std::string&)subFolder atPath:(const std::string&)path
+void cxx::ResourceManager::preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path)
 {
-    OOCacheManager* cache = [OOCacheManager sharedCache];
+    OOCacheManager* cache = OOCacheManager::sharedCache(); // C++ since bead oo-rmd7
     const std::string cacheKey = subFolder + "/" + fileName;
     // if nil, not found in another OXP already
-    if ([cache cxx_pListForKey:cacheKey inCache:"resolved paths"].isNull()) {
+    if (cache->pListForKey(cacheKey, "resolved paths").isNull()) {
         OO_LOG("resourceManager.foundFile.preLoad", "Found {}/{} at {}", subFolder, fileName, path);
-        [cache cxx_setPList:oo::PList(path) forKey:cacheKey inCache:"resolved paths"];
+        cache->setPList(oo::PList(path), cacheKey, "resolved paths");
     }
 }
 
-+ (std::vector<std::string>)cxx_paths
+std::vector<std::string> cxx::ResourceManager::paths()
 {
     if (EXPECT_NOT(!sSearchPaths.has_value())) {
         sSearchPaths.emplace();
     }
-    return [self cxx_pathsWithAddOns];
+    return pathsWithAddOns();
 }
 
-+ (std::vector<std::string>)cxx_maskUserNameInPathArray:(const std::vector<std::string>&)inputPathArray
+std::vector<std::string> cxx::ResourceManager::maskUserNameInPathArray(const std::vector<std::string>& inputPathArray)
 {
     std::vector<std::string> maskedArray;
     maskedArray.reserve(inputPathArray.size());
@@ -685,54 +658,54 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 #endif
     const std::string userName = oo::str::lastPathComponent(oo::str::format("%s", userNamePathEnvVar));
     for (const std::string& path : inputPathArray) {
-        maskedArray.push_back(*[self cxx_maskUserName:userName inPath:path]);
+        maskedArray.push_back(*maskUserName(userName, path));
     }
     return maskedArray;
 }
 
-+ (std::optional<std::string>)cxx_maskUserName:(const std::string&)name inPath:(const std::string&)path
+std::optional<std::string> cxx::ResourceManager::maskUserName(const std::string& name, const std::string& path)
 {
     return oo::str::replaceOccurrences(path, name, "*", oo::str::Search::literal);
 }
 
-+ (std::optional<std::string>)cxx_useAddOns
+std::optional<std::string> cxx::ResourceManager::useAddOns()
 {
     return sUseAddOns;
 }
 
-+ (void)cxx_setUseAddOns:(const std::string&)useAddOns
+void cxx::ResourceManager::setUseAddOns(const std::string& useAddOns)
 {
     if (sFirstRun || useAddOns != sUseAddOns) {
-        [self reset];
+        reset();
         sFirstRun = NO;
         sUseAddOns = useAddOns;
         sUseAddOnsParts = oo::str::split(*sUseAddOns, ";");
 
-        [ResourceManager clearCaches];
+        clearCaches();
         OOHUDResetTextEngine();
 
-        OOCacheManager* cmgr = [OOCacheManager sharedCache];
+        OOCacheManager* cmgr = OOCacheManager::sharedCache(); // C++ since bead oo-rmd7
         /* only allow cache writes for the "all OXPs" default
          *
          * cache should be less necessary for restricted sets anyway */
         // testing the actual string here
         if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_ALL)) {
-            [cmgr reloadAllCaches];
-            [cmgr setAllowCacheWrites:YES];
+            cmgr->reloadAllCaches();
+            cmgr->setAllowCacheWrites(true);
         } else {
-            [cmgr clearAllCaches];
-            [cmgr setAllowCacheWrites:NO];
+            cmgr->clearAllCaches();
+            cmgr->setAllowCacheWrites(false);
         }
 
-        [self checkCacheUpToDateForPaths:[self cxx_paths]];
-        [self logPaths];
+        checkCacheUpToDateForPaths(paths());
+        logPaths();
         /* preloading the file lists at this stage helps efficiency a
          * lot when many OXZs are installed */
-        [self preloadFileLists];
+        preloadFileLists();
     }
 }
 
-+ (void)cxx_addExternalPath:(const std::string&)path
+void cxx::ResourceManager::addExternalPath(const std::string& path)
 {
     if (!sSearchPaths.has_value())
         sSearchPaths.emplace();
@@ -743,12 +716,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-+ (std::vector<std::string>)cxx_OXPsWithMessagesFound
+std::vector<std::string> cxx::ResourceManager::OXPsWithMessagesFound()
 {
     return sOXPsWithMessagesFound;
 }
 
-+ (oo::PList)cxx_manifestForIdentifier:(const std::string&)identifier
+oo::PList cxx::ResourceManager::manifestForIdentifier(const std::string& identifier)
 {
     auto it = sOXPManifests.find(identifier);
     if (it == sOXPManifests.end())
@@ -756,7 +729,31 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return it->second;
 }
 
-+ (void)checkOXPMessagesInPath:(const std::string&)path
+void cxx::ResourceManager::logPaths()
+{
+    // Prettify paths for logging, as -stringByStandardizingPath and -stringByAbbreviatingWithTildeInPath
+    // did for these (AbbreviatedWithTilde).
+    std::string displayPaths;
+    if (sSearchPaths.has_value()) {
+        bool first = true;
+        for (const std::string& path : *sSearchPaths) {
+            if (!first)
+                displayPaths += "\n    ";
+            first = false;
+            displayPaths += AbbreviatedWithTilde(path);
+        }
+    }
+
+    OO_LOG("searchPaths.dumpAll", "Resource paths: {}\n    {}", sUseAddOns.value_or("(null)"), displayPaths);
+}
+
+void cxx::ResourceManager::clearCaches()
+{
+    sSoundCache.clear();
+    sStringCache.clear();
+}
+
+void cxx::ResourceManager::checkOXPMessagesInPath(const std::string& path)
 {
     // OOArrayFromFile (OOPListParsing) is an unmigrated callee: its array arrives through oo::PListFrom.
     const oo::PList OXPMessageArray = PListArrayFromFile(oo::str::appendingPathComponent(path, "OXPMessages.plist"));
@@ -775,7 +772,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 }
 
 // Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist or manifest.plist and add to search paths if acceptable.
-+ (void)checkPotentialPath:(const std::string&)path searchPaths:(std::vector<std::string>&)searchPaths
+void cxx::ResourceManager::checkPotentialPath(const std::string& path, std::vector<std::string>& searchPaths)
 {
     oo::PList requirements;
     oo::PList manifest;
@@ -786,12 +783,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (extension != "oxz") {
         // OXZ format ignores requires.plist
         requirements = PListDictionaryFromFile(oo::str::appendingPathComponent(path, "requires.plist"));
-        requirementsMet = [self areRequirementsFulfilled:requirements forOXP:path andFile:"requires.plist"];
+        requirementsMet = areRequirementsFulfilled(requirements, path, "requires.plist");
     }
     if (!requirementsMet) {
         const std::optional<std::string> version = OoliteInfoString("CFBundleVersion");
         OO_LOG("oxp.versionMismatch", "OXP {} is incompatible with version {} of Oolite.", path, version.value_or("(null)"));
-        [self addErrorWithKey:"oxp-is-incompatible" param1:oo::str::lastPathComponent(path) param2:version.value_or("")];
+        addErrorWithKey("oxp-is-incompatible", oo::str::lastPathComponent(path), version.value_or(""));
         return;
     }
 
@@ -799,13 +796,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (manifest.isNull()) {
         if (extension == "oxz") {
             OO_LOG("oxp.noManifest", "OXZ {} has no manifest.plist", path);
-            [self addErrorWithKey:"oxz-lacks-manifest" param1:oo::str::lastPathComponent(path) param2:""];
+            addErrorWithKey("oxz-lacks-manifest", oo::str::lastPathComponent(path), "");
             return;
         } else {
             if (extension == "oxp") {
                 cxx_OOStandardsError(oo::str::format("OXP %s has no manifest.plist", path.c_str()));
                 if (OOEnforceStandards()) {
-                    [self addErrorWithKey:"oxp-lacks-manifest" param1:oo::str::lastPathComponent(path) param2:""];
+                    addErrorWithKey("oxp-lacks-manifest", oo::str::lastPathComponent(path), "");
                     return;
                 }
             }
@@ -819,14 +816,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
     }
 
-    requirementsMet = [self validateManifest:manifest forOXP:path];
+    requirementsMet = validateManifest(manifest, path);
 
     if (requirementsMet) {
         searchPaths.push_back(path);
     }
 }
 
-+ (BOOL)validateManifest:(const oo::PList&)manifest forOXP:(const std::string&)path
+bool cxx::ResourceManager::validateManifest(const oo::PList& manifest, const std::string& path)
 {
     BOOL OK = YES;
     const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
@@ -836,33 +833,33 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     if (!identifier.has_value()) {
         OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestIdentifier);
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestIdentifier)];
+        addErrorWithKey("oxp-manifest-incomplete", title.value_or(""), std::string(kOOManifestIdentifier));
         OK = NO;
     }
     if (!version.has_value()) {
         OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestVersion);
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestVersion)];
+        addErrorWithKey("oxp-manifest-incomplete", title.value_or(""), std::string(kOOManifestVersion));
         OK = NO;
     }
     if (!required.has_value()) {
         OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestRequiredOoliteVersion);
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestRequiredOoliteVersion)];
+        addErrorWithKey("oxp-manifest-incomplete", title.value_or(""), std::string(kOOManifestRequiredOoliteVersion));
         OK = NO;
     }
     if (!title.has_value()) {
         OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestTitle);
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestTitle)];
+        addErrorWithKey("oxp-manifest-incomplete", title.value_or(""), std::string(kOOManifestTitle));
         OK = NO;
     }
     if (!OK) {
         return NO;
     }
-    OK = [self cxx_checkVersionCompatibility:manifest forOXP:title];
+    OK = checkVersionCompatibility(manifest, title);
 
     if (!OK) {
         const std::optional<std::string> ooliteVersion = OoliteInfoString("CFBundleVersion");
         OO_LOG("oxp.versionMismatch", "OXP {} is incompatible with version {} of Oolite.", path, ooliteVersion.value_or("(null)"));
-        [self addErrorWithKey:"oxp-is-incompatible" param1:oo::str::lastPathComponent(path) param2:ooliteVersion.value_or("")];
+        addErrorWithKey("oxp-is-incompatible", oo::str::lastPathComponent(path), ooliteVersion.value_or(""));
         return NO;
     }
 
@@ -870,7 +867,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (duplicate != sOXPManifests.end()) {
         const std::optional<std::string> duplicatePath = ManifestString(duplicate->second, std::string(kOOManifestFilePath));
         OO_LOG("oxp.duplicate", "OXP {} has the same identifier ({}) as {} which has already been loaded.", path, *identifier, duplicatePath.value_or("(null)"));
-        [self addErrorWithKey:"oxp-manifest-duplicate" param1:path param2:duplicatePath.value_or("")];
+        addErrorWithKey("oxp-manifest-duplicate", path, duplicatePath.value_or(""));
         return NO;
     }
     oo::PList mData = manifest;
@@ -881,7 +878,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return YES;
 }
 
-+ (BOOL)cxx_checkVersionCompatibility:(const oo::PList&)manifest forOXP:(const std::optional<std::string>&)title
+bool cxx::ResourceManager::checkVersionCompatibility(const oo::PList& manifest, const std::optional<std::string>& title)
 {
     const std::optional<std::string> required = ManifestString(manifest, std::string(kOOManifestRequiredOoliteVersion));
     const std::optional<std::string> maxRequired = ManifestString(manifest, std::string(kOOManifestMaximumOoliteVersion));
@@ -893,10 +890,10 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         if (maxRequired.has_value() && !maxRequired->empty())
             requirements["max_version"] = oo::PList(*maxRequired);
     }
-    return [self areRequirementsFulfilled:oo::PList(std::move(requirements)) forOXP:title andFile:"manifest.plist"];
+    return areRequirementsFulfilled(oo::PList(std::move(requirements)), title, "manifest.plist");
 }
 
-+ (BOOL)areRequirementsFulfilled:(const oo::PList&)requirements forOXP:(const std::optional<std::string>&)path andFile:(const std::string&)file
+bool cxx::ResourceManager::areRequirementsFulfilled(const oo::PList& requirements, const std::optional<std::string>& path, const std::string& file)
 {
     BOOL OK = YES;
     unsigned conditionsHandled = 0;
@@ -952,7 +949,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return OK;
 }
 
-+ (BOOL)cxx_manifestHasConflicts:(const oo::PList&)manifest logErrors:(BOOL)logErrors
+bool cxx::ResourceManager::manifestHasConflicts(const oo::PList& manifest, bool logErrors)
 {
     const oo::PList* conflicts = manifest.get<oo::PList::Array>(std::string(kOOManifestConflictOXPs), nullptr);
     // if it has a non-empty conflict_oxps list
@@ -964,9 +961,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             // if the other OXP is in the list
             if (conflictManifest != sOXPManifests.end()) {
                 // then check versions
-                if ([self cxx_matchVersions:conflicting withVersion:ManifestString(conflictManifest->second, std::string(kOOManifestVersion)).value_or("")]) {
+                if (matchVersions(conflicting, ManifestString(conflictManifest->second, std::string(kOOManifestVersion)).value_or(""))) {
                     if (logErrors) {
-                        [self addErrorWithKey:"oxp-conflict" param1:ManifestString(manifest, std::string(kOOManifestTitle)).value_or("") param2:ManifestString(conflictManifest->second, std::string(kOOManifestTitle)).value_or("")];
+                        addErrorWithKey("oxp-conflict", ManifestString(manifest, std::string(kOOManifestTitle)).value_or(""), ManifestString(conflictManifest->second, std::string(kOOManifestTitle)).value_or(""));
                         OO_LOG("oxp.conflict", "OXP {} conflicts with {} and was removed from the loading list", (LastPathComponent(ManifestString(manifest, std::string(kOOManifestFilePath)))).value_or("(null)"), (LastPathComponent(ManifestString(conflictManifest->second, std::string(kOOManifestFilePath)))).value_or("(null)"));
                     }
                     return YES;
@@ -977,7 +974,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return NO;
 }
 
-+ (void)filterSearchPathsForConflicts:(std::vector<std::string>&)searchPaths
+void cxx::ResourceManager::filterSearchPathsForConflicts(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -990,7 +987,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         auto entry = sOXPManifests.find(identifier);
         if (entry != sOXPManifests.end()) {
             const oo::PList manifest = entry->second;
-            if ([self cxx_manifestHasConflicts:manifest logErrors:YES]) {
+            if (manifestHasConflicts(manifest, YES)) {
                 // then we have a conflict, so remove this path
                 RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
@@ -999,14 +996,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-+ (BOOL)cxx_manifestHasMissingDependencies:(const oo::PList&)manifest logErrors:(BOOL)logErrors
+bool cxx::ResourceManager::manifestHasMissingDependencies(const oo::PList& manifest, bool logErrors)
 {
     const oo::PList* requireds = manifest.get<oo::PList::Array>(std::string(kOOManifestRequiresOXPs), nullptr);
     // if it has a non-empty required_oxps list
     if (requireds != nullptr && requireds->count() > 0) {
         // iterate over that list
         for (const oo::PList& required : *requireds->getIf<oo::PList::Array>()) {
-            if ([ResourceManager cxx_manifest:manifest HasUnmetDependency:required logErrors:logErrors]) {
+            if (ResourceManager::manifest(manifest, required, logErrors)) {
                 return YES;
             }
         }
@@ -1014,7 +1011,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return NO;
 }
 
-+ (BOOL)cxx_manifest:(const oo::PList&)manifest HasUnmetDependency:(const oo::PList&)required logErrors:(BOOL)logErrors
+bool cxx::ResourceManager::manifest(const oo::PList& manifest, const oo::PList& required, bool logErrors)
 {
     const std::optional<std::string> requiredID = ManifestString(required, std::string(kOOManifestRelationIdentifier));
     auto requiredManifest = requiredID.has_value() ? sOXPManifests.find(*requiredID) : sOXPManifests.end();
@@ -1022,7 +1019,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     BOOL requirementsMet = NO;
     if (requiredManifest != sOXPManifests.end()) {
         // then check versions
-        if ([self cxx_matchVersions:required withVersion:ManifestString(requiredManifest->second, std::string(kOOManifestVersion)).value_or("")]) {
+        if (matchVersions(required, ManifestString(requiredManifest->second, std::string(kOOManifestVersion)).value_or(""))) {
             requirementsMet = YES;
             /* Mark the requiredManifest as a dependency of the
              * requiring manifest */
@@ -1054,7 +1051,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (!requirementsMet) {
         if (logErrors) {
             const std::optional<std::string> requiredDescription = ManifestString(required, std::string(kOOManifestRelationDescription));
-            [self addErrorWithKey:"oxp-required" param1:ManifestString(manifest, std::string(kOOManifestTitle)).value_or("") param2:requiredDescription.has_value() ? *requiredDescription : requiredID.value_or("")];
+            addErrorWithKey("oxp-required", ManifestString(manifest, std::string(kOOManifestTitle)).value_or(""), requiredDescription.has_value() ? *requiredDescription : requiredID.value_or(""));
             OO_LOG("oxp.requirementMissing", "OXP {} had unmet requirements and was removed from the loading list", (LastPathComponent(ManifestString(manifest, std::string(kOOManifestFilePath)))).value_or("(null)"));
         }
         return YES;
@@ -1062,7 +1059,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return NO;
 }
 
-+ (BOOL)filterSearchPathsForRequirements:(std::vector<std::string>&)searchPaths
+bool cxx::ResourceManager::filterSearchPathsForRequirements(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -1077,7 +1074,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         auto entry = sOXPManifests.find(identifier);
         if (entry != sOXPManifests.end()) {
             const oo::PList manifest = entry->second;
-            if ([self cxx_manifestHasMissingDependencies:manifest logErrors:YES]) {
+            if (manifestHasMissingDependencies(manifest, YES)) {
                 // then we have a missing requirement, so remove this path
                 RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
@@ -1089,7 +1086,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return sAllMet;
 }
 
-+ (BOOL)cxx_matchVersions:(const oo::PList&)rangeDict withVersion:(const std::string&)version
+bool cxx::ResourceManager::matchVersions(const oo::PList& rangeDict, const std::string& version)
 {
     const std::optional<std::string> minimum = ManifestString(rangeDict, std::string(kOOManifestRelationVersion));
     const std::optional<std::string> maximum = ManifestString(rangeDict, std::string(kOOManifestRelationMaxVersion));
@@ -1110,7 +1107,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return YES;
 }
 
-+ (void)filterSearchPathsToExcludeScenarioOnlyPaths:(std::vector<std::string>&)searchPaths
+void cxx::ResourceManager::filterSearchPathsToExcludeScenarioOnlyPaths(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -1131,7 +1128,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-+ (void)filterSearchPathsByScenario:(std::vector<std::string>&)searchPaths
+void cxx::ResourceManager::filterSearchPathsByScenario(std::vector<std::string>& searchPaths)
 {
     std::vector<std::string> identifiers; // identifier order (was hash order)
     identifiers.reserve(sOXPManifests.size());
@@ -1144,7 +1141,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         auto entry = sOXPManifests.find(identifier);
         if (entry != sOXPManifests.end()) {
             const oo::PList manifest = entry->second;
-            if (![ResourceManager manifestAllowedByScenario:manifest]) {
+            if (!manifestAllowedByScenario(manifest)) {
                 // then we don't need this one
                 RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
@@ -1153,7 +1150,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-+ (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest
+bool cxx::ResourceManager::manifestAllowedByScenario(const oo::PList& manifest)
 {
     /* Checks for a couple of "never happens" cases */
 #ifndef NDEBUG
@@ -1177,15 +1174,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     BOOL result = NO;
     for (const std::string& uaoBit : sUseAddOnsParts) {
         if (oo::str::hasPrefix(uaoBit, byID)) {
-            result |= [ResourceManager manifestAllowedByScenario:manifest withIdentifier:uaoBit.substr(byID.size())];
+            result |= manifestAllowedByScenario(manifest, uaoBit.substr(byID.size()));
         } else if (oo::str::hasPrefix(uaoBit, byTag)) {
-            result |= [ResourceManager manifestAllowedByScenario:manifest withTag:uaoBit.substr(byTag.size())];
+            result |= manifestAllowedByScenarioWithTag(manifest, uaoBit.substr(byTag.size()));
         }
     }
     return result;
 }
 
-+ (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest withIdentifier:(const std::string&)identifier
+bool cxx::ResourceManager::manifestAllowedByScenario(const oo::PList& manifest, const std::string& identifier)
 {
     if (ManifestString(manifest, std::string(kOOManifestIdentifier)) == identifier) {
         // manifest has the identifier - easy
@@ -1200,7 +1197,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return NO;
 }
 
-+ (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest withTag:(const std::string&)tag
+bool cxx::ResourceManager::manifestAllowedByScenarioWithTag(const oo::PList& manifest, const std::string& tag)
 {
     if (ManifestListContains(manifest, std::string(kOOManifestTags), tag)) {
         // manifest has the tag - easy
@@ -1219,13 +1216,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return NO;
 }
 
-+ (void)addErrorWithKey:(const std::string&)descriptionKey param1:(const std::string&)param1 param2:(const std::string&)param2
+void cxx::ResourceManager::addErrorWithKey(const std::string& descriptionKey, const std::string& param1, const std::string& param2)
 {
     // Every caller passes a key; a nil parameter arrives as "" (was `param ?: @""`).
     sErrors.push_back({ descriptionKey, param1, param2 });
 }
 
-+ (BOOL)checkCacheUpToDateForPaths:(const std::vector<std::string>&)searchPaths
+bool cxx::ResourceManager::checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths)
 {
     /*	Check if caches are up to date.
             The strategy is to use a two-entry cache. One entry is an array
@@ -1235,18 +1232,18 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             OOCacheManager holds Foundation objects (an unmigrated callee): the two
             arrays are built for it at each call and compared with -isEqual:, as before.
     */
-    OOCacheManager* cacheMgr = [OOCacheManager sharedCache];
+    OOCacheManager* cacheMgr = OOCacheManager::sharedCache();
     BOOL upToDate = YES;
 
     if (EXPECT_NOT(oo::Defaults::standard().boolForKey("always-flush-cache"))) {
         OO_LOG("dataCache.rebuild.explicitFlush", "{}", "Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
         upToDate = NO;
-    } else if ([MyOpenGLView pollShiftKey]) {
+    } else if ([::MyOpenGLView pollShiftKey]) {
         OO_LOG("dataCache.rebuild.explicitFlush", "{}", "Cache explicitly flushed with shift key. Rebuilding from scratch.");
         upToDate = NO;
     }
 
-    const oo::PList oldPaths = [cacheMgr cxx_pListForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates]; // null: none
+    const oo::PList oldPaths = cacheMgr->pListForKey(kOOCacheKeySearchPaths, kOOCacheSearchPathModDates); // null: none
     const oo::PList searchPathList = StringArray(searchPaths);
     if (upToDate && !PListIsEqual(&oldPaths, &searchPathList)) {
         // OXPs added/removed
@@ -1267,16 +1264,16 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     const oo::PList modDateList(std::move(modDates));
 
-    const oo::PList oldModDates = [cacheMgr cxx_pListForKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
+    const oo::PList oldModDates = cacheMgr->pListForKey(kOOCacheKeyModificationDates, kOOCacheSearchPathModDates);
     if (upToDate && !PListIsEqual(&oldModDates, &modDateList)) {
         OO_LOG("dataCache.rebuild.datesChanged", "{}", "Cache is stale (modification dates have changed). Rebuilding from scratch.");
         upToDate = NO;
     }
 
     if (!upToDate) {
-        [cacheMgr clearAllCaches];
-        [cacheMgr cxx_setPList:searchPathList forKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
-        [cacheMgr cxx_setPList:modDateList forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
+        cacheMgr->clearAllCaches();
+        cacheMgr->setPList(searchPathList, kOOCacheKeySearchPaths, kOOCacheSearchPathModDates);
+        cacheMgr->setPList(modDateList, kOOCacheKeyModificationDates, kOOCacheSearchPathModDates);
     } else
         OO_LOG("dataCache.upToDate", "{}", "Data cache is up to date.");
 
@@ -1291,9 +1288,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
  * excluded by not including the plists which reference them, and
  * everything else can be excluded by not referencing it from a plist.
  */
-+ (BOOL)cxx_corePlist:(const std::string&)fileName excludedAt:(const std::string&)path
+bool cxx::ResourceManager::corePlist(const std::string& fileName, const std::string& path)
 {
-    if (path != [self cxx_builtInPath]) {
+    if (path != builtInPath()) {
         // non-core paths always okay
         return NO;
     }
@@ -1310,22 +1307,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return NO;
 }
 
-+ (oo::PList)cxx_dictionaryFromFilesNamed:(const std::string&)fileName
-                                 inFolder:(const std::optional<std::string>&)folderName
-                                 andMerge:(BOOL)mergeFiles
+oo::PList cxx::ResourceManager::dictionaryFromFilesNamed(const std::string& fileName,
+    const std::optional<std::string>& folderName,
+    bool mergeFiles)
 {
-    return [ResourceManager cxx_dictionaryFromFilesNamed:fileName inFolder:folderName mergeMode:mergeFiles ? MERGE_BASIC : MERGE_NONE cache:YES];
+    return dictionaryFromFilesNamed(fileName, folderName, mergeFiles ? MERGE_BASIC : MERGE_NONE, YES);
 }
 
-+ (oo::PList)cxx_dictionaryFromFilesNamed:(const std::string&)fileName
-                                 inFolder:(const std::optional<std::string>&)folderName
-                                mergeMode:(OOResourceMergeMode)mergeMode
-                                    cache:(BOOL)cache
+oo::PList cxx::ResourceManager::dictionaryFromFilesNamed(const std::string& fileName,
+    const std::optional<std::string>& folderName,
+    OOResourceMergeMode mergeMode,
+    bool cache)
 {
     oo::PList result;
     std::string cacheKey;
     const char* mergeType = nullptr;
-    OOCacheManager* cacheMgr = [OOCacheManager sharedCache];
+    OOCacheManager* cacheMgr = OOCacheManager::sharedCache();
 
     switch (mergeMode) {
     case MERGE_NONE:
@@ -1352,7 +1349,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         } else {
             cacheKey = oo::str::format("%s merge:%s", fileName.c_str(), mergeType);
         }
-        oo::PList cached = [cacheMgr cxx_pListForKey:cacheKey inCache:"dictionaries"];
+        oo::PList cached = cacheMgr->pListForKey(cacheKey, "dictionaries");
         if (!cached.isNull())
             return cached;
     }
@@ -1360,7 +1357,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // OODictionaryFromFile (OOPListParsing) is an unmigrated callee: its dictionaries arrive through oo::PListFrom.
     if (mergeMode == MERGE_NONE) {
         // Find "last" matching dictionary
-        const std::vector<std::string> paths = [ResourceManager cxx_paths];
+        const std::vector<std::string> paths = ResourceManager::paths();
         for (auto pathIt = paths.rbegin(); pathIt != paths.rend(); ++pathIt) {
             const std::string& path = *pathIt;
             if (folderName.has_value()) {
@@ -1375,8 +1372,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     } else {
         // Find all matching dictionaries
         std::vector<oo::PList> results;
-        for (const std::string& path : [ResourceManager cxx_paths]) {
-            if ([ResourceManager cxx_corePlist:fileName excludedAt:path]) {
+        for (const std::string& path : paths()) {
+            if (corePlist(fileName, path)) {
                 continue;
             }
             oo::PList dict = PListDictionaryFromFile(oo::str::appendingPathComponent(path, fileName));
@@ -1407,27 +1404,27 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     if (cache && !result.isNull())
-        [cacheMgr cxx_setPList:result forKey:cacheKey inCache:"dictionaries"];
+        cacheMgr->setPList(result, cacheKey, "dictionaries");
 
     return result;
 }
 
-+ (oo::PList)cxx_arrayFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName andMerge:(BOOL)mergeFiles
+oo::PList cxx::ResourceManager::arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles)
 {
-    return [self cxx_arrayFromFilesNamed:fileName inFolder:folderName andMerge:mergeFiles cache:YES];
+    return arrayFromFilesNamed(fileName, folderName, mergeFiles, YES);
 }
 
-+ (oo::PList)cxx_arrayFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName andMerge:(BOOL)mergeFiles cache:(BOOL)useCache
+oo::PList cxx::ResourceManager::arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles, bool useCache)
 {
     oo::PList result;
     std::string cacheKey;
-    OOCacheManager* cache = [OOCacheManager sharedCache];
+    OOCacheManager* cache = OOCacheManager::sharedCache();
     const std::string lowercaseName = oo::str::lowercase(fileName);
     const bool textureList = lowercaseName == "nebulatextures.plist" || lowercaseName == "startextures.plist";
 
     if (useCache) {
         cacheKey = oo::str::format("%s%s merge:%s", folderName.has_value() ? (*folderName + "/").c_str() : "", fileName.c_str(), mergeFiles ? "yes" : "no");
-        oo::PList cached = [cache cxx_pListForKey:cacheKey inCache:"arrays"];
+        oo::PList cached = cache->pListForKey(cacheKey, "arrays");
         if (!cached.isNull())
             return cached;
     }
@@ -1435,7 +1432,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // OOArrayFromFile (OOPListParsing) is an unmigrated callee: its arrays arrive through oo::PListFrom.
     if (!mergeFiles) {
         // Find "last" matching array
-        const std::vector<std::string> paths = [ResourceManager cxx_paths];
+        const std::vector<std::string> paths = ResourceManager::paths();
         for (auto pathIt = paths.rbegin(); pathIt != paths.rend(); ++pathIt) {
             const std::string& path = *pathIt;
             if (folderName.has_value()) {
@@ -1451,8 +1448,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         // Find all matching arrays (an array of arrays, merged in place by the handlers below)
         oo::PList results = oo::PList(oo::PList::Array());
         oo::PList::Array& resultArrays = *results.getIf<oo::PList::Array>();
-        for (const std::string& path : [ResourceManager cxx_paths]) {
-            if ([ResourceManager cxx_corePlist:fileName excludedAt:path]) {
+        for (const std::string& path : paths()) {
+            if (corePlist(fileName, path)) {
                 continue;
             }
 
@@ -1473,11 +1470,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 // "key" property
                 // (The array just added is the last of results, which the handlers edit in place.)
                 if (resultArrays.back().count() != 0 && textureList)
-                    [self handleStarNebulaListMerging:results];
+                    handleStarNebulaListMerging(results);
 
                 if (resultArrays.back().count() != 0 && resultArrays.back().at(0)->isArray()) {
                     if (lowercaseName == "equipment.plist")
-                        [self handleEquipmentListMerging:results forLookupIndex:3]; // Index 3 is the role string (EQ_*).
+                        handleEquipmentListMerging(results, 3); // Index 3 is the role string (EQ_*).
                 }
             }
         }
@@ -1495,12 +1492,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
         // if we're doing equipment.plist, do equipment overrides now, while the array is still mutable
         if (lowercaseName == "equipment.plist") {
-            [self handleEquipmentOverrides:result];
+            handleEquipmentOverrides(result);
         }
     }
 
     if (useCache && !result.isNull())
-        [cache cxx_setPList:result forKey:cacheKey inCache:"arrays"];
+        cache->setPList(result, cacheKey, "arrays");
 
     return result;
 }
@@ -1508,7 +1505,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 // A method for handling merging of arrays. Currently used with the equipment.plist entries.
 // The arrayToProcess array is scanned for repetitions of the item at lookup index location and, if found,
 // the latest entry replaces the earliest.
-+ (void)handleEquipmentListMerging:(oo::PList&)arrayToProcess forLookupIndex:(unsigned)lookupIndex
+void cxx::ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess, unsigned lookupIndex)
 {
     NSUInteger i, j, k;
     oo::PList::Array& lists = *arrayToProcess.getIf<oo::PList::Array>();
@@ -1540,12 +1537,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 // format of file is slightly different to the standard equipment.plist file, in that it is a
 // dictionary of dictionary objects (rather than an array of arrays). this allows properties like
 // techlevel, price, name/short_description and description/long_description to be updated via the overrides file.
-+ (void)handleEquipmentOverrides:(oo::PList&)arrayToProcess
+void cxx::ResourceManager::handleEquipmentOverrides(oo::PList& arrayToProcess)
 {
-    const oo::PList overrides = [ResourceManager cxx_dictionaryFromFilesNamed:"equipment-overrides.plist"
-                                                                     inFolder:std::string("Config")
-                                                                    mergeMode:MERGE_SMART
-                                                                        cache:NO];
+    const oo::PList overrides = dictionaryFromFilesNamed("equipment-overrides.plist", std::string("Config"), MERGE_SMART, NO);
     const oo::PList::Dict* overrideEntries = overrides.getIf<oo::PList::Dict>();
     if (overrideEntries == nullptr)
         return;
@@ -1606,7 +1600,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 // A method for handling merging of arrays. Currently used with the nebulatextures.plist and startextures.plist entries.
 // uses the "texture" filename as the key value, or "key" if found
-+ (void)handleStarNebulaListMerging:(oo::PList&)arrayToProcess
+void cxx::ResourceManager::handleStarNebulaListMerging(oo::PList& arrayToProcess)
 {
     NSUInteger i, j, k;
     oo::PList::Array& lists = *arrayToProcess.getIf<oo::PList::Array>();
@@ -1641,22 +1635,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // arrayToProcess has been processed at this point. Any necessary merging has been done.
 }
 
-+ (oo::PList)cxx_whitelistDictionary
+oo::PList cxx::ResourceManager::whitelistDictionary()
 {
     static std::optional<oo::PList> whitelistDictionary; // a missing whitelist is remembered as null, not retried
 
     if (!whitelistDictionary.has_value()) {
-        whitelistDictionary = DictionaryWithContentsOfFile(oo::str::appendingPathComponent(oo::str::appendingPathComponent(*[ResourceManager cxx_builtInPath], "Config"), "whitelist.plist"));
+        whitelistDictionary = DictionaryWithContentsOfFile(oo::str::appendingPathComponent(oo::str::appendingPathComponent(*builtInPath(), "Config"), "whitelist.plist"));
     }
 
     return *whitelistDictionary;
 }
 
-+ (oo::PList)cxx_logControlDictionary
+oo::PList cxx::ResourceManager::logControlDictionary()
 {
     // Load built-in copy of logcontrol.plist.
     // OODictionaryFromFile (OOPListParsing) is an unmigrated callee: its dictionaries arrive through oo::PListFrom.
-    const std::string builtInPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(*[ResourceManager cxx_builtInPath], "Config"), "logcontrol.plist");
+    const std::string builtInPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(*ResourceManager::builtInPath(), "Config"), "logcontrol.plist");
     oo::PList logControl = PListDictionaryFromFile(builtInPath);
     if (!logControl.isDict())
         logControl = oo::PList(oo::PList::Dict());
@@ -1668,7 +1662,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         coreRoots.insert(LogClassKeyRoot(key));
     }
 
-    const std::vector<std::string> rootPaths = [self cxx_rootPaths];
+    const std::vector<std::string> rootPaths = ResourceManager::rootPaths();
 
     // The logcontrol.plist in path/Config, else in path itself.
     auto configDictionary = [](const std::string& path) -> oo::PList {
@@ -1680,7 +1674,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     };
 
     // Look for logcontrol.plists inside OXPs (but not in root paths). These are not allowed to define keys in hierarchies used by the build-in one.
-    for (const std::string& path : [self cxx_paths]) {
+    for (const std::string& path : paths()) {
         if (std::find(rootPaths.begin(), rootPaths.end(), path) != rootPaths.end())
             continue;
 
@@ -1714,40 +1708,40 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return logControl;
 }
 
-+ (oo::PList)cxx_roleCategoriesDictionary
+oo::PList cxx::ResourceManager::roleCategoriesDictionary()
 {
     oo::PList roleCategories = oo::PList(oo::PList::Dict());
 
     // OODictionaryFromFile (OOPListParsing) is an unmigrated callee: its dictionaries arrive through oo::PListFrom.
-    for (const std::string& path : [self cxx_paths]) {
-        if ([ResourceManager cxx_corePlist:"role-categories.plist" excludedAt:path]) {
+    for (const std::string& path : paths()) {
+        if (corePlist("role-categories.plist", path)) {
             continue;
         }
 
         const std::string configPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(path, "Config"), "role-categories.plist");
         const oo::PList categories = PListDictionaryFromFile(configPath);
         if (!categories.isNull()) {
-            [ResourceManager mergeRoleCategories:categories intoDictionary:roleCategories];
+            mergeRoleCategories(categories, roleCategories);
         }
     }
 
     /* If the old pirate-victim-roles files exist, merge them in */
-    const oo::PList pirateVictims = [ResourceManager cxx_arrayFromFilesNamed:"pirate-victim-roles.plist" inFolder:std::string("Config") andMerge:YES];
+    const oo::PList pirateVictims = arrayFromFilesNamed("pirate-victim-roles.plist", std::string("Config"), YES);
     if (OOEnforceStandards() && pirateVictims.count() > 0) {
         cxx_OOStandardsDeprecated("pirate-victim-roles.plist is still being used.");
     }
     if (pirateVictims.isNull()) {
         // +dictionaryWithObject:forKey: with a nil object raised
-        [OOException raise:OOInvalidArgumentException format:"Tried to init dictionary with nil value"];
+        OORaiseException(OOInvalidArgumentException, "Tried to init dictionary with nil value");
     }
     oo::PList::Dict pirateVictimCategory;
     pirateVictimCategory.emplace("oolite-pirate-victim", pirateVictims);
-    [ResourceManager mergeRoleCategories:oo::PList(std::move(pirateVictimCategory)) intoDictionary:roleCategories];
+    mergeRoleCategories(oo::PList(std::move(pirateVictimCategory)), roleCategories);
 
     return roleCategories;
 }
 
-+ (void)mergeRoleCategories:(const oo::PList&)catData intoDictionary:(oo::PList&)categories
+void cxx::ResourceManager::mergeRoleCategories(const oo::PList& catData, oo::PList& categories)
 {
     // A category is a set of roles: an array of unique values (by -isEqual:), in the order first seen.
     const oo::PList::Dict* catDataEntries = catData.getIf<oo::PList::Dict>();
@@ -1775,15 +1769,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-+ (OOSystemDescriptionManager*)systemDescriptionManager
+oo::Ref<cxx::OOSystemDescriptionManager> cxx::ResourceManager::systemDescriptionManager()
 {
     OO_LOG("resourceManager.planetinfo.load", "{}", "Initialising manager");
-    OOSystemDescriptionManager* manager = [[OOSystemDescriptionManager alloc] init];
+    oo::Ref<cxx::OOSystemDescriptionManager> manager = oo::makeRef<cxx::OOSystemDescriptionManager>();
 
     // OODictionaryFromFile (OOPListParsing) and OOSystemDescriptionManager are unmigrated callees:
     // the planetinfo dictionaries arrive through oo::PListFrom and leave through oo::ObjectFromPList.
-    for (const std::string& path : [self cxx_paths]) {
-        if ([ResourceManager cxx_corePlist:"planetinfo.plist" excludedAt:path]) {
+    for (const std::string& path : paths()) {
+        if (corePlist("planetinfo.plist", path)) {
             continue;
         }
         const std::string configPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(path, "Config"), "planetinfo.plist");
@@ -1792,28 +1786,28 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             for (const auto& [systemKey, values] : *systems) {
                 if (values.isDict()) {
                     if (systemKey == std::string(PLANETINFO_UNIVERSAL_KEY)) {
-                        [manager cxx_setUniversalProperties:values];
+                        manager->setUniversalProperties(values);
                     } else if (systemKey == std::string(PLANETINFO_INTERSTELLAR_KEY)) {
-                        [manager cxx_setInterstellarProperties:values];
+                        manager->setInterstellarProperties(values);
                     } else {
-                        [manager cxx_setProperties:values forSystemKey:systemKey];
+                        manager->setProperties(values, systemKey);
                     }
                 }
             }
         }
     }
     OO_LOG("resourceManager.planetinfo.load", "{}", "Caching routes");
-    [manager buildRouteCache];
+    manager->buildRouteCache();
     OO_LOG("resourceManager.planetinfo.load", "{}", "Initialised manager");
-    return [manager autorelease];
+    return manager;
 }
 
-+ (oo::PList)cxx_shaderBindingTypesDictionary
+oo::PList cxx::ResourceManager::shaderBindingTypesDictionary()
 {
     static std::optional<oo::PList> shaderBindingTypesDictionary;
 
     if (!shaderBindingTypesDictionary.has_value()) {
-        oo::PList dict = DictionaryWithContentsOfFile(oo::str::appendingPathComponent(oo::str::appendingPathComponent(*[ResourceManager cxx_builtInPath], "Config"), "shader-uniform-bindings.plist"));
+        oo::PList dict = DictionaryWithContentsOfFile(oo::str::appendingPathComponent(oo::str::appendingPathComponent(*builtInPath(), "Config"), "shader-uniform-bindings.plist"));
         oo::PList::Dict* entries = dict.getIf<oo::PList::Dict>();
         std::vector<std::string> keys;
         if (entries != nullptr) {
@@ -1850,17 +1844,17 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return *shaderBindingTypesDictionary;
 }
 
-+ (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName
+std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
-    return [self cxx_pathForFileNamed:fileName inFolder:folderName cache:YES];
+    return pathForFileNamed(fileName, folderName, YES);
 }
 
 /* This is extremely expensive to call with useCache:NO */
-+ (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache
+std::optional<std::string> cxx::ResourceManager::pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache)
 {
     std::optional<std::string> result;
     std::string cacheKey;
-    OOCacheManager* cache = [OOCacheManager sharedCache];
+    OOCacheManager* cache = OOCacheManager::sharedCache();
     std::string filePath;
 
     // (The resolved-paths cache is consulted whatever useCache says: the old test was of the cache
@@ -1871,14 +1865,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             cacheKey = *folderName + "/" + fileName;
         else
             cacheKey = fileName;
-        const oo::PList cached = [cache cxx_pListForKey:cacheKey inCache:"resolved paths"]; // a string (null: none)
+        const oo::PList cached = cache->pListForKey(cacheKey, "resolved paths"); // a string (null: none)
         if (const std::string* cachedPath = cached.getIf<std::string>())
             return *cachedPath;
     }
 
     // Search for file (OXZ-aware exists, same answers as -oo_oxzFileExistsAtPath:).
     // reverse object enumerator allows OXPs to override core
-    const std::vector<std::string> paths = [ResourceManager cxx_paths];
+    const std::vector<std::string> paths = ResourceManager::paths();
     for (auto pathIt = paths.rbegin(); pathIt != paths.rend(); ++pathIt) {
         const std::string& path = *pathIt;
         // appending a nil folder left the path as it was
@@ -1898,7 +1892,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (result.has_value()) {
         OO_LOG("resourceManager.foundFile", "Found {}/{} at {}", folderName.value_or("(null)"), fileName, filePath);
         if (useCache) {
-            [cache cxx_setPList:oo::PList(*result) forKey:cacheKey inCache:"resolved paths"];
+            cache->setPList(oo::PList(*result), cacheKey, "resolved paths");
         }
     }
     return result;
@@ -1906,12 +1900,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 /* use extreme caution in calling with usePathCache:NO - this can be
  * an extremely expensive operation */
-+ (id)retrieveFileNamed:(const std::string&)fileName
-               inFolder:(const std::optional<std::string>&)folderName
-                  cache:(std::map<std::string, oo::ObjCRef<id>, std::less<>>*)ioCache
-                    key:(std::optional<std::string>)key
-                  class:(Class)klass
-           usePathCache:(BOOL)useCache
+id cxx::ResourceManager::retrieveFileNamed(const std::string& fileName,
+    const std::optional<std::string>& folderName,
+    std::map<std::string, oo::ObjCRef<id>, std::less<>>* ioCache,
+    std::optional<std::string> key,
+    Class klass,
+    bool useCache)
 {
     id result = nil;
 
@@ -1924,7 +1918,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             return cached->second.get();
     }
 
-    const std::optional<std::string> path = [self cxx_pathForFileNamed:fileName inFolder:folderName cache:useCache];
+    const std::optional<std::string> path = pathForFileNamed(fileName, folderName, useCache);
     if (path.has_value())
         result = [[[klass alloc] cxx_initWithContentsOfFile:path] autorelease]; // klass: OOSound or OOMusic
 
@@ -1935,32 +1929,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return result;
 }
 
-+ (OOMusic*)cxx_ooMusicNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName
+::OOMusic* cxx::ResourceManager::ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
-    return [self retrieveFileNamed:fileName
-                          inFolder:folderName
-                             cache:NULL // Don't cache music objects; minimizing latency isn't really important.
-                               key:oo::str::format("OOMusic:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str())
-                             class:[OOMusic class]
-                      usePathCache:YES];
+    return retrieveFileNamed(fileName, folderName, NULL /* Don't cache music objects; minimizing latency isn't really important. */, oo::str::format("OOMusic:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str()), [::OOMusic class], YES);
 }
 
-+ (OOSound*)cxx_ooSoundNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName
+::OOSound* cxx::ResourceManager::ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
-    return [self retrieveFileNamed:fileName
-                          inFolder:folderName
-                             cache:&sSoundCache
-                               key:oo::str::format("OOSound:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str())
-                             class:[OOSound class]
-                      usePathCache:YES];
+    return retrieveFileNamed(fileName, folderName, &sSoundCache, oo::str::format("OOSound:%s:%s", folderName.has_value() ? folderName->c_str() : "(null)", fileName.c_str()), [::OOSound class], YES);
 }
 
-+ (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName
+std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName)
 {
-    return [self cxx_stringFromFilesNamed:fileName inFolder:folderName cache:YES];
+    return stringFromFilesNamed(fileName, folderName, YES);
 }
 
-+ (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache
+std::optional<std::string> cxx::ResourceManager::stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache)
 {
     std::optional<std::string> result;
     std::string key;
@@ -1973,7 +1957,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             return cached->second;
     }
 
-    const std::optional<std::string> path = [self cxx_pathForFileNamed:fileName inFolder:folderName cache:YES];
+    const std::optional<std::string> path = pathForFileNamed(fileName, folderName, YES);
     if (path.has_value()) {
         // +stringWithContentsOfUnicodeFile: (NSStringOOExtensions): the file's bytes, read as it read
         // them (through the OXZ reader), decoded as it decoded them.
@@ -1989,25 +1973,25 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return result;
 }
 
-+ (std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>)cxx_loadScripts
+std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> cxx::ResourceManager::loadScripts()
 {
     // name -> script, in the order each name was first loaded (a later script of the same name replaces the earlier one in place)
-    std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>> loadedScripts;
+    std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> loadedScripts;
 
     OO_LOG("script.load.world.begin", "{}", "Loading world scripts...");
 
-    for (const std::string& path : [ResourceManager cxx_paths]) {
+    for (const std::string& path : paths()) {
         // excluding world-scripts.plist also excludes script.js / script.plist
         // though as those core files don't and won't exist this is not
         // a problem.
-        if (![ResourceManager cxx_corePlist:"world-scripts.plist" excludedAt:path]) {
+        if (!corePlist("world-scripts.plist", path)) {
             @autoreleasepool {
                 @try {
-                    std::optional<std::vector<oo::ObjCRef<OOScript*>>> results = [OOScript cxx_worldScriptsAtPath:oo::str::appendingPathComponent(path, "Config")];
+                    std::optional<std::vector<oo::ObjCRef<::OOScript*>>> results = [::OOScript cxx_worldScriptsAtPath:oo::str::appendingPathComponent(path, "Config")];
                     if (!results.has_value())
-                        results = [OOScript cxx_worldScriptsAtPath:path];
+                        results = [::OOScript cxx_worldScriptsAtPath:path];
                     if (results.has_value()) {
-                        for (const oo::ObjCRef<OOScript*>& script : *results) {
+                        for (const oo::ObjCRef<::OOScript*>& script : *results) {
                             const std::optional<std::string> name = [script.get() cxx_name];
                             if (name.has_value()) {
                                 auto existing = std::find_if(loadedScripts.begin(), loadedScripts.end(), [&](const auto& entry) { return entry.first == *name; });
@@ -2054,9 +2038,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return loadedScripts;
 }
 
-+ (BOOL)cxx_writeDiagnosticData:(const oo::Data&)data toFileNamed:(const std::string&)name
+bool cxx::ResourceManager::writeDiagnosticData(const oo::Data& data, const std::string& name)
 {
-    std::optional<std::string> directory = [self cxx_diagnosticFileLocation];
+    std::optional<std::string> directory = diagnosticFileLocation();
     if (!directory.has_value())
         return NO;
 
@@ -2081,12 +2065,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return oo::fs::writeFile(oo::fs::pathFromUTF8(oo::str::appendingPathComponent(*directory, fileName)), data, oo::fs::WriteMode::atomic).has_value();
 }
 
-+ (BOOL)cxx_writeDiagnosticString:(const std::string&)string toFileNamed:(const std::string&)name
+bool cxx::ResourceManager::writeDiagnosticString(const std::string& string, const std::string& name)
 {
-    return [self cxx_writeDiagnosticData:oo::Data::fromString(string) toFileNamed:name];
+    return writeDiagnosticData(oo::Data::fromString(string), name);
 }
 
-+ (BOOL)cxx_writeDiagnosticPList:(const oo::PList&)plist toFileNamed:(const std::string&)name
+bool cxx::ResourceManager::writeDiagnosticPList(const oo::PList& plist, const std::string& name)
 {
     // The old-school writer (oo::writeOldStylePList, the port of the retired Objective-C old-school plist writer). Its
     // XML fallback's result was never used, so a plist it cannot write is not written.
@@ -2094,15 +2078,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (!data.has_value())
         return NO;
 
-    return [self cxx_writeDiagnosticData:*data toFileNamed:name];
+    return writeDiagnosticData(*data, name);
 }
 
-+ (oo::PList)cxx_materialDefaults
+oo::PList cxx::ResourceManager::materialDefaults()
 {
-    return [self cxx_dictionaryFromFilesNamed:"material-defaults.plist" inFolder:std::string("Config") andMerge:YES];
+    return dictionaryFromFilesNamed("material-defaults.plist", std::string("Config"), YES);
 }
 
-+ (BOOL)directoryExists:(const std::string&)inPath create:(BOOL)inCreate
+bool cxx::ResourceManager::directoryExists(const std::string& inPath, bool inCreate)
 {
     const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(inPath));
     const BOOL exists = type != oo::fs::FileType::none;
@@ -2124,33 +2108,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return YES;
 }
 
-+ (std::optional<std::string>)cxx_diagnosticFileLocation
+std::optional<std::string> cxx::ResourceManager::diagnosticFileLocation()
 {
     return cxx_OOLogHandlerGetLogBasePath();
 }
-
-+ (void)logPaths
-{
-    // Prettify paths for logging, as -stringByStandardizingPath and -stringByAbbreviatingWithTildeInPath
-    // did for these (AbbreviatedWithTilde).
-    std::string displayPaths;
-    if (sSearchPaths.has_value()) {
-        bool first = true;
-        for (const std::string& path : *sSearchPaths) {
-            if (!first)
-                displayPaths += "\n    ";
-            first = false;
-            displayPaths += AbbreviatedWithTilde(path);
-        }
-    }
-
-    OO_LOG("searchPaths.dumpAll", "Resource paths: {}\n    {}", sUseAddOns.value_or("(null)"), displayPaths);
-}
-
-+ (void)clearCaches
-{
-    sSoundCache.clear();
-    sStringCache.clear();
-}
-
-@end

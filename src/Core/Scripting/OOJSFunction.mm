@@ -69,7 +69,7 @@ OOJSFunction::OOJSFunction(JSValueConst function, JSContext* context)
         JS_FreeValue(context, nameValue);
 
         oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-            [OOJavaScriptEngine sharedEngine],
+            [::OOJavaScriptEngine sharedEngine],
             [this](const oo::Notification&) { deleteJSValue(); });
     }
 }
@@ -162,7 +162,7 @@ void OOJSFunction::deleteJSValue()
 
         _function = JS_NULL;
         oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-            [OOJavaScriptEngine sharedEngine]);
+            [::OOJavaScriptEngine sharedEngine]);
     }
 }
 

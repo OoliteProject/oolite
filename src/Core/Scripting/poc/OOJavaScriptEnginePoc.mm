@@ -43,7 +43,10 @@ MA 02110-1301, USA.
 #define OOJS_RUNTIME_SIZE_MiB 256
 #define OOJS_TIME_LIMIT (1) // seconds
 
-static OOJavaScriptEngine* sSharedEngine = nil;
+namespace {
+cxx::OOJavaScriptEngine* sSharedEngine = nullptr; // the one +1 is never released
+}
+
 JSContext* gOOJSMainThreadContext = NULL;
 
 static int InterruptHandler(JSRuntime* runtime, void* opaque);
@@ -62,24 +65,23 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
         callbacks, resets, garbage collection hints, the debug console's stack
         dump switches) do nothing.
 */
-@implementation OOJavaScriptEngine
+namespace cxx {
 
-+ (OOJavaScriptEngine*)sharedEngine
+OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine()
 {
-    if (sSharedEngine == nil)
-        sSharedEngine = [[self alloc] init];
+    if (sSharedEngine == nullptr) {
+        OOJavaScriptEngine* engine = oo::makeRef<OOJavaScriptEngine>().leakRef();
+        sSharedEngine = engine;
+        engine->init();
+    }
 
     return sSharedEngine;
 }
 
-- (id)init
+void OOJavaScriptEngine::init()
 {
-    OOAssert(sSharedEngine == nil, "Attempt to create multiple OOJavaScriptEngines.");
-
-    if (!(self = [super init]))
-        return nil;
-    sSharedEngine = self;
-    _showErrorLocations = YES;
+    OOCAssert(sSharedEngine == this, "Attempt to create multiple OOJavaScriptEngines.");
+    _showErrorLocations = true;
 
     _runtime = JS_NewRuntime();
     if (_runtime == NULL) {
@@ -110,11 +112,9 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     InitOOJSScript(_context, _globalObject);
     InitOOJSVector(_context, _globalObject);
     InitOOJSQuaternion(_context, _globalObject);
-
-    return self;
 }
 
-- (NSUInteger)shutDown
+NSUInteger OOJavaScriptEngine::shutDown()
 {
     if (_context == NULL)
         return 0;
@@ -143,42 +143,37 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
     return 0;
 }
 
-- (void)dealloc
+OOJavaScriptEngine::~OOJavaScriptEngine()
 {
-    [self shutDown];
-    if (sSharedEngine == self)
-        sSharedEngine = nil;
-    [super dealloc];
+    shutDown();
+    if (sSharedEngine == this)
+        sSharedEngine = nullptr;
 }
 
-- (JSContext*)context
+JSContext* OOJavaScriptEngine::context()
 {
     return _context;
 }
 
-- (JSValueConst)globalObject
+JSValueConst OOJavaScriptEngine::globalObject()
 {
     return _globalObject;
 }
 
-- (void)runMissionCallback
+void OOJavaScriptEngine::runMissionCallback()
 {
     // The harness has no mission screens.
 }
 
-- (BOOL)reset
+bool OOJavaScriptEngine::reset()
 {
-    // The harness's context lives until -shutDown; it is never rebuilt.
-    return NO;
+    // The harness's context lives until shutDown(); it is never rebuilt.
+    return false;
 }
 
-- (BOOL)callJSFunction:(JSValueConst)function
-             forObject:(JSValueConst)jsThis
-                  argc:(int)argc
-                  argv:(JSValueConst*)argv
-                result:(JSValue*)outResult
+bool OOJavaScriptEngine::callJSFunction(JSValueConst function, JSValueConst jsThis, int argc, JSValueConst* argv, JSValue* outResult)
 {
-    OOParameterAssert(JS_IsFunction(_context, function));
+    OOCParameterAssert(JS_IsFunction(_context, function));
 
     OOJSStartTimeLimiter();
     JSValue result = JS_Call(_context, function, jsThis, argc, argv);
@@ -188,61 +183,61 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
         OOJSReportPendingException(_context);
         if (outResult != NULL)
             *outResult = JS_UNDEFINED;
-        return NO;
+        return false;
     }
 
     if (outResult != NULL)
         *outResult = result;
     else
         JS_FreeValue(_context, result);
-    return YES;
+    return true;
 }
 
-- (void)garbageCollectionOpportunity:(BOOL)force
+void OOJavaScriptEngine::garbageCollectionOpportunity(bool force)
 {
-    // The harness collects only in -shutDown.
+    // The harness collects only in shutDown().
     (void)force;
 }
 
-- (BOOL)showErrorLocations
+bool OOJavaScriptEngine::showErrorLocations()
 {
     return _showErrorLocations;
 }
 
-- (void)setShowErrorLocations:(BOOL)value
+void OOJavaScriptEngine::setShowErrorLocations(bool value)
 {
-    _showErrorLocations = !!value;
+    _showErrorLocations = value;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 // The harness dumps no stacks; the switches are only kept.
-- (BOOL)dumpStackForErrors
+bool OOJavaScriptEngine::dumpStackForErrors()
 {
     return _dumpStackForErrors;
 }
 
-- (void)setDumpStackForErrors:(BOOL)value
+void OOJavaScriptEngine::setDumpStackForErrors(bool value)
 {
-    _dumpStackForErrors = !!value;
+    _dumpStackForErrors = value;
 }
 
-- (BOOL)dumpStackForWarnings
+bool OOJavaScriptEngine::dumpStackForWarnings()
 {
     return _dumpStackForWarnings;
 }
 
-- (void)setDumpStackForWarnings:(BOOL)value
+void OOJavaScriptEngine::setDumpStackForWarnings(bool value)
 {
-    _dumpStackForWarnings = !!value;
+    _dumpStackForWarnings = value;
 }
 
-- (void)enableDebuggerStatement
+void OOJavaScriptEngine::enableDebuggerStatement()
 {
     // Not supported by QuickJS; does nothing, as in the full engine.
 }
 #endif
 
-@end
+} // namespace cxx
 
 JSAtom cxx_OOJSIDFromString(const std::string& string)
 {
@@ -453,7 +448,7 @@ static void LogProblem(const std::string& severity, const std::string& errorName
 
     std::string file;
     unsigned line = 0;
-    if ([[OOJavaScriptEngine sharedEngine] showErrorLocations] && GetLocationFromStack(stack, &file, &line)) {
+    if (cxx::OOJavaScriptEngine::sharedEngine()->showErrorLocations() && GetLocationFromStack(stack, &file, &line)) {
         OO_LOG(messageClass, "      {}, line {}.", file, line);
     }
 }

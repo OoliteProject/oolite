@@ -8,7 +8,8 @@
 	It was pasted into each stage test; this is that code, moved, with the same methods and the
 	same behaviour. Its state is its own ivars, declared in the @implementation (the non-fragile
 	runtime allows that), not OOOXPVerifier.h's, so converting the verifier (oo-tsa4) does not
-	reach into the tests.
+	reach into the tests. Since bead oo-9ht.4 deleted the stage facade it keeps, and answers, the
+	C++ stages themselves (it kept their facades), as the verifier does.
 
 	Include it once, from a stage test, after its imports.
 */
@@ -17,7 +18,7 @@
 #define OO_TESTS_UNIT_CORE_OOOXPVERIFIERTESTDOUBLE_H
 
 #import "OOOXPVerifier.h"
-#import "OOOXPVerifierStageInternal.h"
+#import "OOOXPVerifierStage.h"
 #include "oofnd/PListParsing.hpp"
 
 #include <map>
@@ -42,7 +43,7 @@ static int gRegistrations = 0;
 {
 	oo::PList														_doubleVerifierPList;
 	std::string														_doubleBasePath;
-	std::map<std::string, oo::ObjCRef<OOOXPVerifierStage *>, std::less<>>	_doubleStagesByName;
+	std::map<std::string, oo::Ref<OOOXPVerifierStage>, std::less<>>	_doubleStagesByName;
 	BOOL															_doubleOpenForRegistration;
 }
 
@@ -67,8 +68,8 @@ static int gRegistrations = 0;
 
 - (void)registerStage:(OOOXPVerifierStage *)stage
 {
-	_doubleStagesByName[*[stage cxx_name]] = oo::ObjCRef<OOOXPVerifierStage *>(stage);
-	[stage setVerifier:self];
+	_doubleStagesByName[*stage->name()] = oo::Ref<OOOXPVerifierStage>(stage);
+	stage->setVerifier(self);
 	gRegistrations++;
 }
 
@@ -77,10 +78,10 @@ static int gRegistrations = 0;
 - (std::optional<std::string>)cxx_oxpDisplayName	{ return "Test.oxp"; }
 
 
-- (id)cxx_stageWithName:(const std::string &)name
+- (OOOXPVerifierStage *)cxx_stageWithName:(const std::string &)name
 {
 	const auto found = _doubleStagesByName.find(name);
-	return found != _doubleStagesByName.end() ? found->second.get() : nil;
+	return found != _doubleStagesByName.end() ? found->second.get() : nullptr;
 }
 
 

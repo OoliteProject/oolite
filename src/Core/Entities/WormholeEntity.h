@@ -50,7 +50,7 @@ typedef enum {
 
 // A ship in transit (the old entry dictionary's "ship", "time" and "shipBeacon").
 struct OOWormholeTransit {
-    oo::ObjCRef<ShipEntity*> ship;
+    oo::ObjCRef<::ShipEntity*> ship;
     double time; // arrival relative to the wormhole's arrival_time
     std::optional<std::string> beacon; // the ship's beacon code when it entered, if any
 };
@@ -67,9 +67,9 @@ public:
             this object (amendment oo-0mxi item 2), because the player and the ships allocate wormholes.
     */
     void initWithDict(const oo::PList& dict);
-    void initWormholeTo(OOSystemID s, ShipEntity* ship);
+    void initWormholeTo(OOSystemID s, ::ShipEntity* ship);
 
-    bool suckInShip(ShipEntity* ship);
+    bool suckInShip(::ShipEntity* ship);
     void disgorgeShips();
     void setExitPosition(HPVector pos);
 
@@ -100,7 +100,7 @@ public:
 
     oo::PList getShipsInTransit(); // -shipsInTransit (the ivar keeps the name). Dicts: "ship" (an Object node), "time", "shipBeacon" when set
 
-    std::optional<std::string> identFromShip(ShipEntity* ship); // flipped with its family (bead oo-3rb.279)
+    std::optional<std::string> identFromShip(::ShipEntity* ship); // flipped with its family (bead oo-3rb.279)
 
     oo::PList getDict();
 

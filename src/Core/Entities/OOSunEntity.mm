@@ -548,7 +548,7 @@ void OOSunEntity::drawDirectVisionSunGlare()
     GLfloat directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:cosf(sunGlareAngularSize)];
     if (directVisionSunGlare) {
         NSSize siz = [[UNIVERSE gui] size];
-        MyOpenGLView* gameView = [UNIVERSE gameView];
+        ::MyOpenGLView* gameView = [UNIVERSE gameView];
         GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
         GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
         GLfloat atmosphericReductionFactor = 1.0f - [PLAYER insideAtmosphereFraction];
@@ -588,7 +588,7 @@ void OOSunEntity::drawStarGlare()
         alpha *= alphaMult;
         GLfloat glareColor[4] = { discColor[0], discColor[1], discColor[2], alpha };
         NSSize siz = [[UNIVERSE gui] size];
-        MyOpenGLView* gameView = [UNIVERSE gameView];
+        ::MyOpenGLView* gameView = [UNIVERSE gameView];
         GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
         GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
         OOGL(glColor4fv(glareColor));

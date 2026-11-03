@@ -36,6 +36,7 @@ SOFTWARE.
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -49,15 +50,11 @@ SOFTWARE.
 */
 BOOL OOSynthesizeMaterialShader(const oo::PList& materialConfiguration, const std::optional<std::string>& materialKey, const std::optional<std::string>& entityName, std::string* outVertexShader, std::string* outFragmentShader, oo::PList* outTextureSpecs, oo::PList* outUniformSpecs);
 
-/*	The synthesizer itself (Phase 3, bead oo-bm1q: slice 1 of docs/phases/3-slices/
-        OODefaultShaderSynthesizer.md). It was an Objective-C class private to OODefaultShaderSynthesizer.mm;
-        its one caller is OOSynthesizeMaterialShader() above. Until the shader stages (slice 2) are C++
-        they stay Objective-C methods of its facade (OODefaultShaderSynthesizer+ObjCBridge.h), so the
-        members they reach, and the state they read and write, are public under "Internal" (ADR-0056
-        amendment oo-pni4 item 1).
+/*	The synthesizer itself (Phase 3, beads oo-bm1q and oo-bhxc: slices 1 and 2 of
+        docs/phases/3-slices/OODefaultShaderSynthesizer.md). It was an Objective-C class private to
+        OODefaultShaderSynthesizer.mm; its one caller is OOSynthesizeMaterialShader() above. Its
+        Objective-C facade was deleted, and the class moved to the global namespace, by bead oo-9ht.134.
 */
-namespace cxx {
-
 class OODefaultShaderSynthesizer : public oo::RefCounted {
 public:
     OODefaultShaderSynthesizer(const oo::PList& configuration, const std::optional<std::string>& materialKey, const std::optional<std::string>& name); // -initWithMaterialConfiguration:materialKey:entityName:
@@ -72,7 +69,10 @@ public:
     std::optional<std::string> materialKey();
     std::optional<std::string> entityName();
 
-    // Internal: what the shader stages of slice 2 (Objective-C on the facade) reach.
+private:
+    void createTemporaries();
+    void destroyTemporaries();
+
     void composeVertexShader();
     void composeFragmentShader();
 
@@ -96,10 +96,100 @@ public:
     void getSampleName(std::string* outSampleName, std::string* outSwizzleOp, const oo::PList& textureSpec); // swizzle "" = none
 
 #ifndef NDEBUG
-    void performStage(SEL stage); // runs a stage (a facade method), checking for recursion
+    using Stage = void (OODefaultShaderSynthesizer::*)();
+    void performStage(const char* name, Stage stage); // runs a stage, checking for recursion
 #endif
 
-    // Internal: the state (the old ivars).
+    /*	Stages. These should only be called through the REQUIRE_STAGE macro (in the .mm) to
+            avoid duplicated code and ensure data depedencies are met.
+    */
+
+    /*	writeTextureCoordRead
+            Generate vec2 texCoords.
+    */
+    void writeTextureCoordRead();
+
+    /*	writeDiffuseColorTermIfNeeded
+            Generates and populates the fragment shader value vec3 diffuseColor, unless
+            the diffuse term is black. If a diffuseColor is generated, _usesDiffuseTerm
+            is set. The value will be const if possible.
+            See also: writeDiffuseColorTerm.
+    */
+    void writeDiffuseColorTermIfNeeded();
+
+    /*	writeDiffuseColorTerm
+            Generates vec3 diffuseColor unconditionally – that is, even if the diffuse
+            term is black.
+            See also: writeDiffuseColorTermIfNeeded.
+    */
+    void writeDiffuseColorTerm();
+
+    /*	writeDiffuseLighting
+            Generate the fragment variable vec3 diffuseLight and add Lambertian and
+            ambient terms to it.
+    */
+    void writeDiffuseLighting();
+
+    /*	writeLightVector
+            Generate the fragment variable vec3 lightVector (unit vector) for temporary
+            lighting. Calling this if lighting mode is kLightingUniform will cause an
+            exception.
+    */
+    void writeLightVector();
+
+    /*	writeEyeVector
+            Generate vec3 lightVector, the normalized direction from the fragment to
+            the light source.
+    */
+    void writeEyeVector();
+
+    /*	writeVertexTangentBasis
+            Generates tangent space basis matrix (TBN) in vertex shader, if in tangent-
+            space lighting mode. If not, an exeception is raised.
+    */
+    void writeVertexTangentBasis();
+
+    /*	writeNormalIfNeeded
+            Writes fragment variable vec3 normal if necessary. Otherwise, it sets
+            _constZNormal, indicating that the normal is always (0, 0, 1).
+
+            See also: writeNormal.
+    */
+    void writeNormalIfNeeded();
+
+    /*	writeNormal
+            Generates vec3 normal unconditionally – if _constZNormal is set, normal will
+            be const vec3 normal = vec3 (0.0, 0.0, 1.0).
+    */
+    void writeNormal();
+
+    /*	writeSpecularLighting
+            Calculate specular writing and add it to totalColor.
+    */
+    void writeSpecularLighting();
+
+    /*	writeLightMaps
+            Add emission and illumination maps to totalColor.
+    */
+    void writeLightMaps();
+
+    /*	writeVertexPosition
+            Calculate vertex position and write it to gl_Position.
+    */
+    void writeVertexPosition();
+
+    /*	writeTotalColor
+            Generate vec3 totalColor, the accumulator for output colour values.
+    */
+    void writeTotalColor();
+
+    /*	writeFinalColorComposite
+            This stage writes the final fragment shader. It also pulls in other stages
+            through dependencies.
+    */
+    void writeFinalColorComposite();
+
+    // The state (the old ivars).
     oo::PList _configuration;
     std::optional<std::string> _materialKey;
     std::optional<std::string> _entityName;
@@ -152,12 +242,6 @@ public:
                                 _completed_writeVertexTangentBasis : 1 = 0;
 
 #ifndef NDEBUG
-    std::unordered_set<SEL> _stagesInProgress; // by pointer identity, as the hash table was
+    std::unordered_set<std::string_view> _stagesInProgress; // the stages' names (was a hash table of selectors)
 #endif
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C facade, for the shader stages that are still Objective-C (slice 2).
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OODefaultShaderSynthesizer+ObjCBridge.h"

@@ -50,13 +50,13 @@ std::string FormattedCharacter(unsigned code)
     const oo::PList* normal = (subset != nullptr) ? subset->find("mapping_normal") : nullptr;
     const oo::PList* shifted = (subset != nullptr) ? subset->find("mapping_shifted") : nullptr;
 
-    keyMappings_normal = (normal != nullptr) ? *normal : oo::PList();
-    keyMappings_shifted = (shifted != nullptr) ? *shifted : oo::PList();
+    oo::ToCxx(self)->keyMappings_normal = (normal != nullptr) ? *normal : oo::PList();
+    oo::ToCxx(self)->keyMappings_shifted = (shifted != nullptr) ? *shifted : oo::PList();
 }
 - (void)autoShowMouse
 {
     // don't touch the 'please wait...' cursor.
-    if (fullScreen) {
+    if (oo::ToCxx(self)->fullScreen) {
         if (SDL_CursorVisible())
             SDL_HideCursor();
     } else {
@@ -66,30 +66,30 @@ std::string FormattedCharacter(unsigned code)
 }
 - (void)setStringInput:(enum StringInput)value
 {
-    allowingStringInput = value;
+    oo::ToCxx(self)->allowingStringInput = value;
 }
 - (void)allowStringInput:(BOOL)value
 {
     if (value)
-        allowingStringInput = gvStringInputAlpha;
+        oo::ToCxx(self)->allowingStringInput = gvStringInputAlpha;
     else
-        allowingStringInput = gvStringInputNo;
+        oo::ToCxx(self)->allowingStringInput = gvStringInputNo;
 }
 - (enum StringInput)allowingStringInput
 {
-    return allowingStringInput;
+    return oo::ToCxx(self)->allowingStringInput;
 }
 - (std::optional<std::string>)cxx_typedString
 {
-    return typedString;
+    return oo::ToCxx(self)->typedString;
 }
 - (void)resetTypedString
 {
-    typedString.clear();
+    oo::ToCxx(self)->typedString.clear();
 }
 - (void)cxx_setTypedString:(const std::string&)value
 {
-    typedString = value;
+    oo::ToCxx(self)->typedString = value;
 }
 - (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
 {
@@ -98,32 +98,32 @@ std::string FormattedCharacter(unsigned code)
 }
 - (void)setVirtualJoystick:(double)vmx vmy:(double)vmy
 {
-    virtualJoystickPosition.x = vmx;
-    virtualJoystickPosition.y = vmy;
+    oo::ToCxx(self)->virtualJoystickPosition.x = vmx;
+    oo::ToCxx(self)->virtualJoystickPosition.y = vmy;
 }
 - (NSPoint)virtualJoystickPosition
 {
-    return virtualJoystickPosition;
+    return oo::ToCxx(self)->virtualJoystickPosition;
 }
 
 /////////////////////////////////////////////////////////////
 - (void)clearKeys
 {
     int i;
-    lastKeyShifted = NO;
+    oo::ToCxx(self)->lastKeyShifted = NO;
     for (i = 0; i < [self numKeys]; i++)
-        keys[i] = NO;
+        oo::ToCxx(self)->keys[i] = NO;
 }
 - (void)clearMouse
 {
-    keys[gvMouseDoubleClick] = NO;
-    keys[gvMouseLeftButton] = NO;
-    doubleClick = NO;
+    oo::ToCxx(self)->keys[gvMouseDoubleClick] = NO;
+    oo::ToCxx(self)->keys[gvMouseLeftButton] = NO;
+    oo::ToCxx(self)->doubleClick = NO;
 }
 - (void)clearKey:(int)theKey
 {
     if (theKey >= 0 && theKey < [self numKeys]) {
-        keys[theKey] = NO;
+        oo::ToCxx(self)->keys[theKey] = NO;
     }
 }
 - (void)resetMouse
@@ -131,16 +131,16 @@ std::string FormattedCharacter(unsigned code)
     [self setVirtualJoystick:0.0 vmy:0.0];
     if ([[PlayerEntity sharedPlayer] isMouseControlOn]) {
         // viewSize is in pixels; SDL mouse coordinates are in points (they differ on high-DPI displays)
-        float pixelDensity = SDL_GetWindowPixelDensity(window);
+        float pixelDensity = SDL_GetWindowPixelDensity(oo::ToCxx(self)->window);
         if (pixelDensity <= 0.0f)
             pixelDensity = 1.0f;
-        SDL_WarpMouseInWindow(window, viewSize.width / 2 / pixelDensity, viewSize.height / 2 / pixelDensity);
-        mouseWarped = YES;
+        SDL_WarpMouseInWindow(oo::ToCxx(self)->window, oo::ToCxx(self)->viewSize.width / 2 / pixelDensity, oo::ToCxx(self)->viewSize.height / 2 / pixelDensity);
+        oo::ToCxx(self)->mouseWarped = YES;
     }
 }
 - (BOOL)isAlphabetKeyDown
 {
-    return isAlphabetKeyDown = NO;
+    return oo::ToCxx(self)->isAlphabetKeyDown = NO;
     ;
 }
 
@@ -150,8 +150,8 @@ std::string FormattedCharacter(unsigned code)
 // event has been received from SDL.
 - (void)suppressKeysUntilKeyUp
 {
-    if (keys[gvMouseDoubleClick] == NO) {
-        suppressKeys = YES;
+    if (oo::ToCxx(self)->keys[gvMouseDoubleClick] == NO) {
+        oo::ToCxx(self)->suppressKeys = YES;
         [self clearKeys];
     } else {
         [self clearMouse];
@@ -159,29 +159,29 @@ std::string FormattedCharacter(unsigned code)
 }
 - (BOOL)isDown:(int)key
 {
-    if (suppressKeys)
+    if (oo::ToCxx(self)->suppressKeys)
         return NO;
     if (key < 0)
         return NO;
     if (key >= [self numKeys])
         return NO;
-    return keys[key];
+    return oo::ToCxx(self)->keys[key];
 }
 - (BOOL)isOptDown
 {
-    return opt;
+    return oo::ToCxx(self)->opt;
 }
 - (BOOL)isCtrlDown
 {
-    return ctrl;
+    return oo::ToCxx(self)->ctrl;
 }
 - (BOOL)isCommandDown
 {
-    return command;
+    return oo::ToCxx(self)->command;
 }
 - (BOOL)isShiftDown
 {
-    return shift;
+    return oo::ToCxx(self)->shift;
 }
 - (BOOL)isCapsLockOn
 {
@@ -195,7 +195,7 @@ std::string FormattedCharacter(unsigned code)
 }
 - (BOOL)lastKeyWasShifted
 {
-    return lastKeyShifted;
+    return oo::ToCxx(self)->lastKeyShifted;
 }
 - (int)numKeys
 {
@@ -203,20 +203,20 @@ std::string FormattedCharacter(unsigned code)
 }
 - (int)mouseWheelState
 {
-    if (_mouseWheelDelta > 0.0f)
+    if (oo::ToCxx(self)->_mouseWheelDelta > 0.0f)
         return gvMouseWheelUp;
-    else if (_mouseWheelDelta < 0.0f)
+    else if (oo::ToCxx(self)->_mouseWheelDelta < 0.0f)
         return gvMouseWheelDown;
     else
         return gvMouseWheelNeutral;
 }
 - (float)mouseWheelDelta
 {
-    return _mouseWheelDelta / OOMOUSEWHEEL_DELTA;
+    return oo::ToCxx(self)->_mouseWheelDelta / OOMOUSEWHEEL_DELTA;
 }
 - (void)setMouseWheelDelta:(float)newWheelDelta
 {
-    _mouseWheelDelta = newWheelDelta * OOMOUSEWHEEL_DELTA;
+    oo::ToCxx(self)->_mouseWheelDelta = newWheelDelta * OOMOUSEWHEEL_DELTA;
 }
 - (BOOL)isCommandQDown
 {
@@ -238,8 +238,8 @@ std::string FormattedCharacter(unsigned code)
     SDL_MouseMotionEvent* mmove_event;
     SDL_MouseWheelEvent* mw_event;
     float mxdelta, mydelta;
-    float mouseVirtualStickSensitivityX = viewSize.width * _mouseVirtualStickSensitivityFactor;
-    float mouseVirtualStickSensitivityY = viewSize.height * _mouseVirtualStickSensitivityFactor;
+    float mouseVirtualStickSensitivityX = oo::ToCxx(self)->viewSize.width * oo::ToCxx(self)->_mouseVirtualStickSensitivityFactor;
+    float mouseVirtualStickSensitivityY = oo::ToCxx(self)->viewSize.height * oo::ToCxx(self)->_mouseVirtualStickSensitivityFactor;
     NSTimeInterval timeNow = oo::date::monotonicSeconds(); // same clock as MyOpenGLView.mm's -init
     Uint16 key_id;
     SDL_Scancode scan_code;
@@ -263,7 +263,7 @@ std::string FormattedCharacter(unsigned code)
 
             switch (mbtn_event->button) {
             case SDL_BUTTON_LEFT:
-                keys[gvMouseLeftButton] = YES;
+                oo::ToCxx(self)->keys[gvMouseLeftButton] = YES;
                 break;
             case SDL_BUTTON_RIGHT:
                 // Cocoa version does this in the GameController
@@ -289,14 +289,14 @@ std::string FormattedCharacter(unsigned code)
             NSTimeInterval timeOfClick;
             timeOfClick = (NSTimeInterval)mbtn_event->timestamp / 1e9;
             NSTimeInterval timeBetweenClicks;
-            timeBetweenClicks = timeOfClick - timeIntervalAtLastClick;
-            timeIntervalAtLastClick += timeBetweenClicks;
+            timeBetweenClicks = timeOfClick - oo::ToCxx(self)->timeIntervalAtLastClick;
+            oo::ToCxx(self)->timeIntervalAtLastClick += timeBetweenClicks;
             if (mbtn_event->button == SDL_BUTTON_LEFT) {
-                if (!doubleClick) {
-                    doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL); // One fifth of a second
-                    keys[gvMouseDoubleClick] = doubleClick;
+                if (!oo::ToCxx(self)->doubleClick) {
+                    oo::ToCxx(self)->doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL); // One fifth of a second
+                    oo::ToCxx(self)->keys[gvMouseDoubleClick] = oo::ToCxx(self)->doubleClick;
                 }
-                keys[gvMouseLeftButton] = NO;
+                oo::ToCxx(self)->keys[gvMouseLeftButton] = NO;
             }
             break;
 
@@ -305,15 +305,15 @@ std::string FormattedCharacter(unsigned code)
 
             inDelta = mw_event->y;
             if (inDelta > 0) {
-                if (_mouseWheelDelta >= 0.0f)
-                    _mouseWheelDelta += inDelta;
+                if (oo::ToCxx(self)->_mouseWheelDelta >= 0.0f)
+                    oo::ToCxx(self)->_mouseWheelDelta += inDelta;
                 else
-                    _mouseWheelDelta = 0.0f;
+                    oo::ToCxx(self)->_mouseWheelDelta = 0.0f;
             } else if (inDelta < 0) {
-                if (_mouseWheelDelta <= 0.0f)
-                    _mouseWheelDelta += inDelta;
+                if (oo::ToCxx(self)->_mouseWheelDelta <= 0.0f)
+                    oo::ToCxx(self)->_mouseWheelDelta += inDelta;
                 else
-                    _mouseWheelDelta = 0.0f;
+                    oo::ToCxx(self)->_mouseWheelDelta = 0.0f;
             }
             /*
                Mousewheel handling - just note time since last use here and mark as inactive,
@@ -322,8 +322,8 @@ std::string FormattedCharacter(unsigned code)
                button down one - Nikos 20140809
             */
             NSTimeInterval timeBetweenMouseWheels;
-            timeBetweenMouseWheels = timeNow - timeSinceLastMouseWheel;
-            timeSinceLastMouseWheel += timeBetweenMouseWheels;
+            timeBetweenMouseWheels = timeNow - oo::ToCxx(self)->timeSinceLastMouseWheel;
+            oo::ToCxx(self)->timeSinceLastMouseWheel += timeBetweenMouseWheels;
             break;
 
         case SDL_EVENT_MOUSE_MOTION: {
@@ -335,28 +335,28 @@ std::string FormattedCharacter(unsigned code)
             // as the player touches the mouse again, the virtual joystick
             // will snap back to the absolute position (which can be
             // annoyingly fatal in battle).
-            if (mouseInDeltaMode) {
+            if (oo::ToCxx(self)->mouseInDeltaMode) {
                 // note: virtual stick sensitivity is configurable
                 SDL_GetRelativeMouseState(&mxdelta, &mydelta);
                 double mxd = (double)mxdelta / mouseVirtualStickSensitivityX;
                 double myd = (double)mydelta / mouseVirtualStickSensitivityY;
 
-                if (!mouseWarped) // Standard event, update coordinates
+                if (!oo::ToCxx(self)->mouseWarped) // Standard event, update coordinates
                 {
-                    virtualJoystickPosition.x += mxd;
-                    virtualJoystickPosition.y += myd;
+                    oo::ToCxx(self)->virtualJoystickPosition.x += mxd;
+                    oo::ToCxx(self)->virtualJoystickPosition.y += myd;
 
                     // if we excceed the limits, revert changes
-                    if (fabs(virtualJoystickPosition.x) > MOUSEX_MAXIMUM) {
-                        virtualJoystickPosition.x -= mxd;
+                    if (fabs(oo::ToCxx(self)->virtualJoystickPosition.x) > MOUSEX_MAXIMUM) {
+                        oo::ToCxx(self)->virtualJoystickPosition.x -= mxd;
                     }
-                    if (fabs(virtualJoystickPosition.y) > MOUSEY_MAXIMUM) {
-                        virtualJoystickPosition.y -= myd;
+                    if (fabs(oo::ToCxx(self)->virtualJoystickPosition.y) > MOUSEY_MAXIMUM) {
+                        oo::ToCxx(self)->virtualJoystickPosition.y -= myd;
                     }
                 } else {
                     // Motion event generated by WarpMouse is ignored and
                     // we reset mouseWarped for the next time.
-                    mouseWarped = NO;
+                    oo::ToCxx(self)->mouseWarped = NO;
                 }
             } else {
                 // Windowed mode. Use the absolute position so the
@@ -364,19 +364,19 @@ std::string FormattedCharacter(unsigned code)
                 // mouse pointer.
                 mmove_event = (SDL_MouseMotionEvent*)&event;
 
-                int w = viewSize.width;
-                int h = viewSize.height;
+                int w = oo::ToCxx(self)->viewSize.width;
+                int h = oo::ToCxx(self)->viewSize.height;
 
-                if (!mouseWarped) // standard event, handle it
+                if (!oo::ToCxx(self)->mouseWarped) // standard event, handle it
                 {
                     // Event coordinates are in points, viewSize in pixels (they differ on high-DPI displays)
-                    float pixelDensity = SDL_GetWindowPixelDensity(window);
+                    float pixelDensity = SDL_GetWindowPixelDensity(oo::ToCxx(self)->window);
                     if (pixelDensity <= 0.0f)
                         pixelDensity = 1.0f;
                     double mx = mmove_event->x * pixelDensity - w / 2.0;
                     double my = mmove_event->y * pixelDensity - h / 2.0;
-                    if (display_z > 640.0) {
-                        mx /= w * MAIN_GUI_PIXEL_WIDTH / display_z;
+                    if (oo::ToCxx(self)->display_z > 640.0) {
+                        mx /= w * MAIN_GUI_PIXEL_WIDTH / oo::ToCxx(self)->display_z;
                         my /= h;
                     } else {
                         mx /= MAIN_GUI_PIXEL_WIDTH * w / 640.0;
@@ -386,7 +386,7 @@ std::string FormattedCharacter(unsigned code)
                     [self setVirtualJoystick:mx vmy:my];
                 } else {
                     // event coming from WarpMouse ignored, get ready for the next
-                    mouseWarped = NO;
+                    oo::ToCxx(self)->mouseWarped = NO;
                 }
             }
             break;
@@ -403,9 +403,9 @@ std::string FormattedCharacter(unsigned code)
             BOOL special_key;
             special_key = NO;
 
-            shift = (kbd_event->mod & SDL_KMOD_SHIFT) != 0;
-            ctrl = (kbd_event->mod & SDL_KMOD_CTRL) != 0;
-            opt = (kbd_event->mod & SDL_KMOD_ALT) != 0;
+            oo::ToCxx(self)->shift = (kbd_event->mod & SDL_KMOD_SHIFT) != 0;
+            oo::ToCxx(self)->ctrl = (kbd_event->mod & SDL_KMOD_CTRL) != 0;
+            oo::ToCxx(self)->opt = (kbd_event->mod & SDL_KMOD_ALT) != 0;
 
             // translate scancode to unicode equiv
             switch (kbd_event->key) {
@@ -419,67 +419,67 @@ std::string FormattedCharacter(unsigned code)
                 break;
 
             case SDLK_KP_0:
-                key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey0 : gvNumberKey0);
                 special_key = YES;
                 break;
             case SDLK_KP_1:
-                key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey1 : gvNumberKey1);
                 special_key = YES;
                 break;
             case SDLK_KP_2:
-                key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey2 : gvNumberKey2);
                 special_key = YES;
                 break;
             case SDLK_KP_3:
-                key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey3 : gvNumberKey3);
                 special_key = YES;
                 break;
             case SDLK_KP_4:
-                key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey4 : gvNumberKey4);
                 special_key = YES;
                 break;
             case SDLK_KP_5:
-                key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey5 : gvNumberKey5);
                 special_key = YES;
                 break;
             case SDLK_KP_6:
-                key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey6 : gvNumberKey6);
                 special_key = YES;
                 break;
             case SDLK_KP_7:
-                key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey7 : gvNumberKey7);
                 special_key = YES;
                 break;
             case SDLK_KP_8:
-                key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey8 : gvNumberKey8);
                 special_key = YES;
                 break;
             case SDLK_KP_9:
-                key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey9 : gvNumberKey9);
                 special_key = YES;
                 break;
             case SDLK_KP_PERIOD:
-                key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyPeriod : 46);
                 special_key = YES;
                 break;
             case SDLK_KP_DIVIDE:
-                key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyDivide : 47);
                 special_key = YES;
                 break;
             case SDLK_KP_MULTIPLY:
-                key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyMultiply : 42);
                 special_key = YES;
                 break;
             case SDLK_KP_MINUS:
-                key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyMinus : 45);
                 special_key = YES;
                 break;
             case SDLK_KP_PLUS:
-                key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyPlus : 43);
                 special_key = YES;
                 break;
             case SDLK_KP_EQUALS:
-                key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyEquals : 61);
                 special_key = YES;
                 break;
             case SDLK_KP_ENTER:
@@ -597,9 +597,9 @@ std::string FormattedCharacter(unsigned code)
                 break;
 
             case SDLK_ESCAPE:
-                if (shift) {
-                    SDL_DestroyWindow(window);
-                    [gameController cxx_exitAppWithContext:"Shift-escape pressed"];
+                if (oo::ToCxx(self)->shift) {
+                    SDL_DestroyWindow(oo::ToCxx(self)->window);
+                    [oo::ToCxx(self)->gameController cxx_exitAppWithContext:"Shift-escape pressed"];
                 } else {
                     key_id = 27;
                     special_key = YES;
@@ -614,11 +614,11 @@ std::string FormattedCharacter(unsigned code)
             // the ctrl key tends to mix up the unicode values, so deal with some special cases
             // we also need (in most cases) to get the character without the impact of caps lock.
 
-            if (((!special_key && (ctrl || key_id == 0)) || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) //
+            if (((!special_key && (oo::ToCxx(self)->ctrl || key_id == 0)) || ([self isCapsLockOn] && (!special_key && !oo::ToCxx(self)->allowingStringInput))) && !modifier_pressed) //
             {
                 // ctrl changes alpha characters to control codes (1-26)
-                if (ctrl && key_id >= 1 && key_id <= 26) {
-                    if (shift)
+                if (oo::ToCxx(self)->ctrl && key_id >= 1 && key_id <= 26) {
+                    if (oo::ToCxx(self)->shift)
                         key_id += 64; // A-Z is from 65, offset by -1 for the scancode start point
                     else
                         key_id += 96; // a-z is from 97, offset by -1 for the scancode start point
@@ -631,103 +631,103 @@ std::string FormattedCharacter(unsigned code)
 
             // if we've got the unicode value, we can store it in our array now
             if (key_id > 0)
-                scancode2Unicode[scan_code] = key_id;
+                oo::ToCxx(self)->scancode2Unicode[scan_code] = key_id;
 
-            if (allowingStringInput && !modifier_pressed) {
+            if (oo::ToCxx(self)->allowingStringInput && !modifier_pressed) {
                 [self handleStringInput:kbd_event keyID:key_id];
             }
 
             OO_LOG("input.keyMapping.keyPress.keyDown", "Keydown scancode = {}, unicode = {}", static_cast<int>(scan_code), static_cast<int>(key_id));
 
             if (key_id > 0 && key_id <= [self numKeys]) {
-                keys[key_id] = YES;
+                oo::ToCxx(self)->keys[key_id] = YES;
             } else {
                 OO_LOG("keys.test", "Unhandled Keydown scancode/unicode: {} {}", static_cast<int>(scan_code), static_cast<int>(key_id));
             }
             break;
 
         case SDL_EVENT_KEY_UP:
-            suppressKeys = NO; // DJS
+            oo::ToCxx(self)->suppressKeys = NO; // DJS
             kbd_event = (SDL_KeyboardEvent*)&event;
             scan_code = kbd_event->scancode;
 
-            shift = kbd_event->mod & SDL_KMOD_SHIFT;
-            ctrl = kbd_event->mod & SDL_KMOD_CTRL;
-            opt = kbd_event->mod & SDL_KMOD_ALT;
+            oo::ToCxx(self)->shift = kbd_event->mod & SDL_KMOD_SHIFT;
+            oo::ToCxx(self)->ctrl = kbd_event->mod & SDL_KMOD_CTRL;
+            oo::ToCxx(self)->opt = kbd_event->mod & SDL_KMOD_ALT;
 
             // all the work should have been down on the keydown event, so all we need to do is get the unicode value from the array
-            key_id = scancode2Unicode[scan_code];
+            key_id = oo::ToCxx(self)->scancode2Unicode[scan_code];
 
             // deal with modifiers first
             switch (kbd_event->key) {
             case SDLK_LSHIFT:
             case SDLK_RSHIFT:
-                shift = NO;
+                oo::ToCxx(self)->shift = NO;
                 break;
 
             case SDLK_LCTRL:
             case SDLK_RCTRL:
-                ctrl = NO;
+                oo::ToCxx(self)->ctrl = NO;
                 break;
 
             case SDLK_LALT:
             case SDLK_RALT:
-                opt = NO;
+                oo::ToCxx(self)->opt = NO;
                 break;
             default:;
             }
-            OO_LOG("input.keyMapping.keyPress.keyUp", "Keyup scancode = {}, unicode = {}, character = {}, shift = {}, ctrl = {}, alt = {}", static_cast<int>(scan_code), static_cast<int>(key_id), static_cast<char>(key_id), static_cast<int>(shift), static_cast<int>(ctrl), static_cast<int>(opt));
+            OO_LOG("input.keyMapping.keyPress.keyUp", "Keyup scancode = {}, unicode = {}, character = {}, shift = {}, ctrl = {}, alt = {}", static_cast<int>(scan_code), static_cast<int>(key_id), static_cast<char>(key_id), static_cast<int>(oo::ToCxx(self)->shift), static_cast<int>(oo::ToCxx(self)->ctrl), static_cast<int>(oo::ToCxx(self)->opt));
             // OO_LOG("input.keyMapping.keyPress.keyUp", "Keyup scancode = {}, shift = {}, ctrl = {}, alt = {}", static_cast<int>(scan_code), static_cast<int>(shift), static_cast<int>(ctrl), static_cast<int>(opt));
 
             // translate scancode to unicode equiv
             switch (kbd_event->key) {
             case SDLK_KP_0:
-                key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey0 : gvNumberKey0);
                 break;
             case SDLK_KP_1:
-                key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey1 : gvNumberKey1);
                 break;
             case SDLK_KP_2:
-                key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey2 : gvNumberKey2);
                 break;
             case SDLK_KP_3:
-                key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey3 : gvNumberKey3);
                 break;
             case SDLK_KP_4:
-                key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey4 : gvNumberKey4);
                 break;
             case SDLK_KP_5:
-                key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey5 : gvNumberKey5);
                 break;
             case SDLK_KP_6:
-                key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey6 : gvNumberKey6);
                 break;
             case SDLK_KP_7:
-                key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey7 : gvNumberKey7);
                 break;
             case SDLK_KP_8:
-                key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey8 : gvNumberKey8);
                 break;
             case SDLK_KP_9:
-                key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKey9 : gvNumberKey9);
                 break;
             case SDLK_KP_PERIOD:
-                key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyPeriod : 46);
                 break;
             case SDLK_KP_DIVIDE:
-                key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyDivide : 47);
                 break;
             case SDLK_KP_MULTIPLY:
-                key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyMultiply : 42);
                 break;
             case SDLK_KP_MINUS:
-                key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyMinus : 45);
                 break;
             case SDLK_KP_PLUS:
-                key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyPlus : 43);
                 break;
             case SDLK_KP_EQUALS:
-                key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61);
+                key_id = (!oo::ToCxx(self)->allowingStringInput ? gvNumberPadKeyEquals : 61);
                 break;
             case SDLK_KP_ENTER:
                 key_id = gvNumberPadKeyEnter;
@@ -823,7 +823,7 @@ std::string FormattedCharacter(unsigned code)
             }
 
             if (key_id > 0 && key_id <= [self numKeys]) {
-                keys[key_id] = NO;
+                oo::ToCxx(self)->keys[key_id] = NO;
             } else {
                 // OO_LOG("keys.test", "Unhandled Keyup scancode: {}", static_cast<int>(kbd_event->keysym.scancode));
             }
@@ -836,40 +836,40 @@ std::string FormattedCharacter(unsigned code)
 
 #if OOLITE_WINDOWS
         case SDL_EVENT_WINDOW_FOCUS_GAINED: {
-            [gameController setEcoQoS:[gameController isGamePaused]];
+            [oo::ToCxx(self)->gameController setEcoQoS:[oo::ToCxx(self)->gameController isGamePaused]];
             break;
         }
 
         case SDL_EVENT_WINDOW_FOCUS_LOST: {
-            [gameController setEcoQoS:YES];
+            [oo::ToCxx(self)->gameController setEcoQoS:YES];
             break;
         }
 #endif
 
         // caused by INTR or someone hitting close
         case SDL_EVENT_QUIT: {
-            SDL_DestroyWindow(window);
-            [gameController cxx_exitAppWithContext:"SDL_QUIT event received"];
+            SDL_DestroyWindow(oo::ToCxx(self)->window);
+            [oo::ToCxx(self)->gameController cxx_exitAppWithContext:"SDL_QUIT event received"];
         }
         }
     }
     // check if enough time has passed since last use of the mousewheel and act
     // if needed
-    if (timeNow >= timeSinceLastMouseWheel + OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL) {
-        _mouseWheelDelta = 0.0f;
+    if (timeNow >= oo::ToCxx(self)->timeSinceLastMouseWheel + OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL) {
+        oo::ToCxx(self)->_mouseWheelDelta = 0.0f;
     }
     if (resize_pending) {
         int pixelWidth, pixelHeight;
         // Fetch actual pixel bounds back from SDL
-        SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
+        SDL_GetWindowSizeInPixels(oo::ToCxx(self)->window, &pixelWidth, &pixelHeight);
 
         [self updateGLSize:NSMakeSize(pixelWidth, pixelHeight)];
 
-        if (!fullScreen) {
+        if (!oo::ToCxx(self)->fullScreen) {
             // Save the window size in points, not pixels: they differ on high-DPI displays,
             // and the saved size is passed back to SDL_SetWindowSize().
             int windowWidth, windowHeight;
-            SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            SDL_GetWindowSize(oo::ToCxx(self)->window, &windowWidth, &windowHeight);
             [self saveWindowSize:NSMakeSize(windowWidth, windowHeight)];
         }
         resize_pending = false;
@@ -884,22 +884,22 @@ std::string FormattedCharacter(unsigned code)
 
     // Del, Backspace
     // lengths in UTF-16 units, as the old mutable-string buffer counted them
-    const std::size_t typedLength = oo::utf8ToUtf16(typedString).size();
+    const std::size_t typedLength = oo::utf8ToUtf16(oo::ToCxx(self)->typedString).size();
     if ((key == SDLK_BACKSPACE || key == SDLK_DELETE) && typedLength > 0) {
         // delete
-        oo::str::deleteUnitAt(typedString, typedLength - 1);
+        oo::str::deleteUnitAt(oo::ToCxx(self)->typedString, typedLength - 1);
     }
 
-    isAlphabetKeyDown = NO;
+    oo::ToCxx(self)->isAlphabetKeyDown = NO;
 
     // TODO: a more flexible mechanism  for max. string length ?
-    if (oo::utf8ToUtf16(typedString).size() < 40) {
-        lastKeyShifted = shift;
-        if (allowingStringInput == gvStringInputAlpha) {
+    if (oo::utf8ToUtf16(oo::ToCxx(self)->typedString).size() < 40) {
+        oo::ToCxx(self)->lastKeyShifted = oo::ToCxx(self)->shift;
+        if (oo::ToCxx(self)->allowingStringInput == gvStringInputAlpha) {
             // inputAlpha - limited input for planet find screen
             if (key >= SDLK_A && key <= SDLK_Z) {
-                isAlphabetKeyDown = YES;
-                typedString += FormattedCharacter(key);
+                oo::ToCxx(self)->isAlphabetKeyDown = YES;
+                oo::ToCxx(self)->typedString += FormattedCharacter(key);
                 // if in inputAlpha, keep in lower case.
             }
         } else {
@@ -907,9 +907,9 @@ std::string FormattedCharacter(unsigned code)
             //  printable range
             if (key_id >= 32 && key_id <= 255) // 126
             {
-                if ((char)key_id != '/' || allowingStringInput == gvStringInputAll) {
-                    isAlphabetKeyDown = YES;
-                    typedString += FormattedCharacter(key_id);
+                if ((char)key_id != '/' || oo::ToCxx(self)->allowingStringInput == gvStringInputAll) {
+                    oo::ToCxx(self)->isAlphabetKeyDown = YES;
+                    oo::ToCxx(self)->typedString += FormattedCharacter(key_id);
                 }
             }
         }
@@ -917,6 +917,6 @@ std::string FormattedCharacter(unsigned code)
 }
 - (void)setMouseInDeltaMode:(BOOL)inDelta
 {
-    mouseInDeltaMode = inDelta;
+    oo::ToCxx(self)->mouseInDeltaMode = inDelta;
 }
 @end

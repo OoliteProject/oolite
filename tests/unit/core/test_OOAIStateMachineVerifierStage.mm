@@ -9,12 +9,16 @@
 	reports goes to the log, which the test captures. Then the crossing: the converted stage is
 	global, so Objective-C sees it as an OOOXPVerifierStage (the verifier registers its facade, and
 	the ship data stage finds it by name), and it reaches the scanner through
-	the verifier's -fileScannerStage.
+	the stage lookup by the scanner's name (the verifier's -fileScannerStage until bead oo-9ht.7).
+	Bead oo-9ht.4 deleted the stage facade: the verifier registers and answers the C++ stage
+	itself, so the facade case asks the stage (its description through description()), and the
+	checks that pinned only the facade crossing (one live facade, oo::ToObjC/oo::ToCxx, its class,
+	oo::AsObjCStage) were retired with it (ADR-0049, standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOAIStateMachineVerifierStage.h"
-#import "OOOXPVerifierStageInternal.h"
+#import "OOOXPVerifierStage.h"
 #import "OODescription.h"
 
 #import "OOLogging.h"
@@ -155,8 +159,8 @@ int LogLinesContaining(std::string_view text)
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
 void RunScanner(OOOXPVerifier *verifier)
 {
-	[OOFileScannerVerifierStage nameForDependencyForVerifier:verifier];
-	[[verifier fileScannerStage] run];
+	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
+	[verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
 }
 
 const std::vector<std::string> kScannerName = { "Scanning files" };
@@ -273,8 +277,8 @@ OO_TEST(runChecksEachAIAgainstTheWhitelist)
 }
 
 
-// The converted stage is global: Objective-C (the verifier, the ship data stage's holder) sees it
-// as an OOOXPVerifierStage, one facade per stage, and its C++ part is the stage itself.
+// The converted stage is global: the verifier (the ship data stage's holder) registers it and
+// finds it by name (it held its OOOXPVerifierStage facade until bead oo-9ht.4).
 OO_TEST(facade)
 {
 	@autoreleasepool
@@ -283,28 +287,24 @@ OO_TEST(facade)
 		OOOXPVerifier *verifier = MakeVerifier(base);
 		RunScanner(verifier);
 		const oo::Ref<OOAIStateMachineVerifierStage> stage = oo::makeRef<OOAIStateMachineVerifierStage>();
-		OOOXPVerifierStage *facade = oo::ToObjC(stage.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(stage.get()) && oo::ToCxx(facade) == stage.get());
-		OO_CHECK([facade class] == [OOOXPVerifierStage class]);
-		OO_CHECK(oo::AsObjCStage(stage.get()) == nullptr);
 
 		// Registered as the verifier registers it, found again by name, as the ship data stage finds it.
-		[verifier registerStage:facade];
-		OO_CHECK([verifier cxx_stageWithName:"Validating AIs"] == facade);
-		OO_CHECK(static_cast<OOAIStateMachineVerifierStage *>(oo::ToCxx(static_cast<OOOXPVerifierStage *>([verifier cxx_stageWithName:"Validating AIs"]))) == stage.get());
+		[verifier registerStage:stage.get()];
+		OO_CHECK([verifier cxx_stageWithName:"Validating AIs"] == stage.get());
+		OO_CHECK(static_cast<OOAIStateMachineVerifierStage *>([verifier cxx_stageWithName:"Validating AIs"]) == stage.get());
 
-		// The facade answers as the stage does.
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("Validating AIs"));
-		OO_CHECK([facade cxx_dependencies] == kScannerName);
-		OO_CHECK([facade dependents] == kUnusedName);
-		OO_CHECK(![facade shouldRun]);
+		// The stage answers as its facade did.
+		OO_CHECK(stage->name() == std::optional<std::string>("Validating AIs"));
+		OO_CHECK(stage->dependencies() == kScannerName);
+		OO_CHECK(stage->dependents() == kUnusedName);
+		OO_CHECK(!stage->shouldRun());
 		stage->stateMachineNamed("oneAI.plist", "a ship");
-		OO_CHECK([facade shouldRun]);
+		OO_CHECK(stage->shouldRun());
 		StartLog();
-		[facade dependencyRegistrationComplete];
-		[facade performRun];
+		stage->dependencyRegistrationComplete();
+		stage->performRun();
 		OO_CHECK(LogLinesContaining("***** ERROR: the AI \"oneAI.plist\" uses 1 unpermitted method: fly") == 1);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOAIStateMachineVerifierStage 0x"));
+		OO_CHECK(stage->description().starts_with("<OOAIStateMachineVerifierStage 0x"));
 
 		std::filesystem::remove_all(base);
 	}

@@ -86,7 +86,7 @@ void OOMusicController::playMusicNamed(const std::string& name, bool loop, float
         return;
 
     if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && name == "OoliteTheme.ogg")) {
-        ::OOMusic* music = [ResourceManager cxx_ooMusicNamed:name inFolder:"Music"];
+        ::OOMusic* music = [::ResourceManager cxx_ooMusicNamed:name inFolder:"Music"];
         if (music != nil) {
             [_current.get() stop];
 

@@ -5,6 +5,12 @@ OOPListSchemaVerifier.h
 Utility class to verify the structure of a property list based on a schema
 (which is itself a property list).
 
+C++20 since beads oo-pni4 and oo-pgh9 (Phase 3 slice plan docs/phases/3-slices/
+OOPListSchemaVerifier.md). Bead oo-9ht.119 deleted its transitional Objective-C facade (the
+class's bridge files) and moved the class out of namespace cxx (ADR-0056 amendment "deleting a
+facade"); the delegate's informal protocol became the C++ interface OOPListSchemaVerifierDelegate
+(amendment oo-9ht.86 item 1).
+
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -52,28 +58,54 @@ struct OOPListSchemaVerifierError {
     oo::PList userInfo;
 };
 
-/*	The key path the verification core hands down, one link per level (a dictionary key, an array
-        index, or neither for the root). Private to OOPListSchemaVerifier.mm until slice 1 of its
-        Phase 3 conversion (bead oo-pni4): the verification core's members below take it, so its
-        definition is here. Not for other callers.
+/*	The key path the verification core hands down, one link per level. Defined in
+        OOPListSchemaVerifier.mm, the only file that uses it (it was defined here from bead oo-pni4
+        until bead oo-9ht.119); the verification core's members below take it.
 */
-typedef struct BackLinkChain BackLinkChain;
-struct BackLinkChain {
-    BackLinkChain* link;
-    const std::string* key; // a dictionary key (the caller keeps it alive), or
-    NSUInteger index; // an array index when isIndex; neither for the root
-    bool isIndex;
-};
+struct BackLinkChain;
 
-namespace cxx {
+class OOPListSchemaVerifier;
+
+/*	The verifier's delegate: was the informal OOObject (OOPListSchemaVerifierDelegate) category, any
+        object answering the two selectors below (bead oo-9ht.119; ADR-0056 amendment oo-9ht.86 item 1).
+        The verifier holds it unretained, as before. Both selectors begin with verifier:, which a
+        verifier stage could not use as a member name (it would hide the stage's verifier()), so each
+        member adds the selector's distinguishing keyword.
+*/
+class OOPListSchemaVerifierDelegate {
+public:
+    // Handle "delegated types". Return true for valid, false for invalid.
+    // name: a string; keyPath: an array of strings and numbers; typeKey: a string.
+    virtual bool verifierTestProperty(OOPListSchemaVerifier* verifier,
+        const oo::PList& rootPList,
+        const std::string& name,
+        const oo::PList& subPList,
+        const oo::PList& keyPath,
+        const oo::PList& typeKey,
+        std::optional<OOPListSchemaVerifierError>* outError) = 0;
+
+    /*	Method notifying of verification failure.
+            Return true to continue verifying, false to stop.
+    */
+    // name: a string; localSchema: the schema type specifier (a string or a dictionary).
+    virtual bool verifierFailedForProperty(OOPListSchemaVerifier* verifier,
+        const oo::PList& rootPList,
+        const std::string& name,
+        const oo::PList& subPList,
+        const OOPListSchemaVerifierError& error,
+        const oo::PList& localSchema) = 0;
+
+protected:
+    ~OOPListSchemaVerifierDelegate() = default;
+};
 
 class OOPListSchemaVerifier : public oo::RefCounted {
 public:
     static oo::Ref<OOPListSchemaVerifier> verifierWithSchema(const oo::PList& schema); // null for a null schema
     static oo::Ref<OOPListSchemaVerifier> initWithSchema(const oo::PList& schema); // -initWithSchema:; null for a null schema
 
-    void setDelegate(id delegate);
-    id delegate();
+    void setDelegate(OOPListSchemaVerifierDelegate* delegate); // not retained
+    OOPListSchemaVerifierDelegate* delegate();
 
     bool verifyPropertyList(const oo::PList& plist, const std::string& name);
 
@@ -99,11 +131,9 @@ private:
     oo::PList _schema;
     oo::PList _definitions; // the schema's $definitions (null if none)
 
-    id _delegate = { };
+    OOPListSchemaVerifierDelegate* _delegate = { }; // Not retained.
     uint32_t _badDelegateWarning : 1 = 0;
 };
-
-} // namespace cxx
 
 // Error domain and codes used to report schema verifier errors (UTF-8; the error's domain and
 // userInfo keys are these texts).
@@ -168,7 +198,5 @@ OOINLINE BOOL OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error)
 {
     return kPListErrorStartOfSchemaErrors < error && error < kPListErrorLastErrorCode;
 }
-
-#import "OOPListSchemaVerifier+ObjCBridge.h"
 
 #endif // OO_OXP_VERIFIER_ENABLED

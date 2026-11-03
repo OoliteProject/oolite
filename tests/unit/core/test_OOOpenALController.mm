@@ -15,6 +15,7 @@
 */
 
 #import "OOOpenALController.h"
+#import "OOALSoundMixer.h"
 
 #include "oo_test.hpp"
 #include "oofnd/Process.hpp"
@@ -26,30 +27,19 @@
 static unsigned sMixerShutdowns = 0;
 
 
-@interface OOSoundMixer: OOObject
-
-+ (OOSoundMixer *) sharedMixer;
-- (void) shutdown;
-
-@end
-
-
-@implementation OOSoundMixer
-
-+ (OOSoundMixer *) sharedMixer
+// The mixer (a C++ stand-in since bead oo-9ht.87 deleted the Objective-C facade this file stubbed):
+// one, never released, counting the shutdowns the controller sends it.
+OOSoundMixer *OOSoundMixer::sharedMixer()
 {
-	static OOSoundMixer *mixer = nil;
-	if (mixer == nil)  mixer = [[OOSoundMixer alloc] init];
+	static OOSoundMixer *mixer = oo::makeRef<OOSoundMixer>().leakRef();
 	return mixer;
 }
 
 
-- (void) shutdown
+void OOSoundMixer::shutdown()
 {
 	sMixerShutdowns++;
 }
-
-@end
 
 
 namespace {

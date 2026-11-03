@@ -117,7 +117,7 @@ SOFTWARE.
 
 namespace oo {
 
-/*	The C++ part of an Objective-C loader (amendment oo-up4b item 1, as oo::ObjCStage): Base is the
+/*	The C++ part of an Objective-C loader (amendment oo-up4b item 1, as the verifier stages' oo::ObjCStage was): Base is the
         C++ class of its nearest converted superclass (cxx::OOTextureLoader, cxx::OOTextureGenerator).
         Each virtual member messages the Objective-C object, so the subclass's override runs; the
         super...() members are Base's own, which is what a subclass that does not override a method,

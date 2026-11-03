@@ -4,10 +4,9 @@ OOSingleTextureMaterial.h
 
 A material with a single texture (and no shaders).
 
-C++20 since bead oo-zxzb (proposed ADR-0056, amendments oo-smy and oo-vl43). The class is
-cxx::OOSingleTextureMaterial while OOSingleTextureMaterial+ObjCBridge.h, imported at the end of this
-header, keeps the Objective-C OOSingleTextureMaterial that its callers make and message; the
-bridge's deletion bead moves it out of namespace cxx.
+C++20 since bead oo-zxzb (proposed ADR-0056, amendments oo-smy and oo-vl43). Its Objective-C
+facade was deleted by bead oo-9ht.38 (ADR-0056 amendment "deleting a facade"): the class is global,
+and Objective-C sees one as an OOMaterial (OOBasicMaterial's facade was deleted by bead oo-9ht.33).
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -38,8 +37,6 @@ SOFTWARE.
 #import "OOBasicMaterial.h"
 
 @class OOTexture;
-
-namespace cxx {
 
 class OOSingleTextureMaterial : public OOBasicMaterial {
 public:
@@ -82,11 +79,5 @@ public:
 private:
     oo::ObjCRef<::OOTexture*> _texture = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOSingleTextureMaterial, for callers not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOSingleTextureMaterial+ObjCBridge.h"
 
 #endif // OOSINGLETEXTUREMATERIAL_H

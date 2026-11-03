@@ -45,7 +45,7 @@ OOJSGuiScreenKeyDefinition::OOJSGuiScreenKeyDefinition()
 
     // Stays registered until destruction, so values set after a reset are also released on the next one.
     oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        [OOJavaScriptEngine sharedEngine],
+        [::OOJavaScriptEngine sharedEngine],
         [this](const oo::Notification&) { deleteJSPointers(); });
 }
 
@@ -62,7 +62,7 @@ void OOJSGuiScreenKeyDefinition::deleteJSPointers()
 OOJSGuiScreenKeyDefinition::~OOJSGuiScreenKeyDefinition()
 {
     oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        [OOJavaScriptEngine sharedEngine]);
+        [::OOJavaScriptEngine sharedEngine]);
 
     _owningScript = nullptr;
 
@@ -119,7 +119,7 @@ void OOJSGuiScreenKeyDefinition::setCallbackThis(JSValueConst callbackThis)
 
 void OOJSGuiScreenKeyDefinition::runCallback(const std::string& key)
 {
-    OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
+    ::OOJavaScriptEngine* engine = [::OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();
     JSValue rval = JS_UNDEFINED;
 

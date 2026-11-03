@@ -79,15 +79,15 @@ std::optional<std::string> OOCheckRequiresPListVerifierStage::name()
 
 bool OOCheckRequiresPListVerifierStage::shouldRun()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     return fileScanner != nullptr && fileScanner->fileExists("requires.plist", "Config", std::nullopt, false);
 }
 
 void OOCheckRequiresPListVerifierStage::run()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
     oo::PList requiresPList;
     std::vector<std::string> knownKeys;
     std::string unknownKeys;
@@ -97,7 +97,7 @@ void OOCheckRequiresPListVerifierStage::run()
     std::optional<std::vector<unsigned>> versionComponents,
         maxVersionComponents;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     if (fileScanner != nullptr)
         requiresPList = fileScanner->plistNamed("requires.plist", "Config", std::nullopt, false);
 

@@ -38,7 +38,7 @@ class OOLaserShotEntity : public Entity {
 public:
     // +laserFromShip:direction:offset:: a new shot, initialised. The facade's class method hands it
     // to Objective-C (oo::NewEntityFacade).
-    static oo::Ref<OOLaserShotEntity> laserFromShip(ShipEntity* ship, OOWeaponFacing direction, Vector offset);
+    static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship, OOWeaponFacing direction, Vector offset);
 
     std::optional<std::string> descriptionComponents() const override;
 
@@ -65,7 +65,7 @@ private:
 
     // -initLaserFromShip:direction:offset:'s body, run once right after construction (amendment
     // oo-vl43 item 2).
-    void initLaserFromShip(ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset);
+    void initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset);
 
     GLfloat _color[4] = { };
     OOTimeDelta _lifetime = { };

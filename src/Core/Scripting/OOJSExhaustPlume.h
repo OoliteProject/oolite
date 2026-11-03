@@ -33,9 +33,10 @@ void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 JSClassID JSExhaustPlumeClassID(void);
 
 /*	The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the engine reaches by
-        selector. Its methods are one-line forwarders to these in OOJSExhaustPlume+ObjCBridge.mm
-        until OOExhaustPlumeEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). Its
-        -oo_jsClassID answers JSExhaustPlumeClassID().
+        selector. Its methods are one-line forwarders to these on the OOExhaustPlumeEntity facade, in
+        OOExhaustPlumeEntity+ObjCBridge.mm (bead oo-9ht.48), until that facade goes (oo-9ht.110;
+        proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its -oo_jsClassID answers
+        JSExhaustPlumeClassID().
 */
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void);
 bool OOJSExhaustPlumeIsVisibleToScripts(void);

@@ -4,10 +4,9 @@ OOALStreamedSound.h
 
 OOALStreamedSound - OpenAL sound implementation for Oolite.
 
-C++20 since bead oo-03g7 (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
-cxx::OOALStreamedSound, a subclass of cxx::OOSound, while OOALStreamedSound+ObjCBridge.h, imported
-at the end of this header, keeps the Objective-C OOALStreamedSound that the root's class cluster
-makes (OOALSound.mm, whose test stubs it); the bridge's deletion bead moves it out of namespace cxx.
+C++20 since bead oo-03g7 (proposed ADR-0056, the Audio module: amendment oo-2en): a subclass of
+cxx::OOSound. Bead oo-9ht.84 deleted its Objective-C facade and moved it to the global namespace;
+the root's class cluster makes it, and it crosses to Objective-C as the root's facade, an OOSound.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,15 +31,13 @@ SOFTWARE.
 #ifndef OOALSTREAMEDSOUND_H
 #define OOALSTREAMEDSOUND_H
 
-#import "OOALSoundDecoder.h"
-#import "OOSound.h"
+#import "OOALSound.h"
+@class OOALSoundDecoder; // only named here; the tests that stub the decoder declare their own
 
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-namespace cxx {
-
-class OOALStreamedSound : public OOSound {
+class OOALStreamedSound : public cxx::OOSound {
 public:
     /*	Was -initWithDecoder:, which kept the decoder to stream from: null where it answered nil
             (sound not OK, or no decoder).
@@ -55,6 +52,8 @@ public:
     ALuint soundBuffer() override;
 
 private:
+    friend struct OOALStreamedSoundTestAccess; // the stand-ins of tests that stub the sound (bead oo-9ht.84)
+
     OOALStreamedSound() = default;
 
     char* _buffer = { };
@@ -65,11 +64,5 @@ private:
     oo::ObjCRef<::OOALSoundDecoder*> decoder; // the Objective-C decoder, retained as before
     bool _reachedEnd = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOALStreamedSound, for the root's class cluster.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOALStreamedSound+ObjCBridge.h"
 
 #endif // OOALSTREAMEDSOUND_H

@@ -7,9 +7,8 @@ implementation detail. Do not use it directly; use an OOSoundSource to play an
 OOSound.
 
 C++20 since bead oo-6g4z (proposed ADR-0056, the Audio module: amendment oo-2en; a singleton:
-amendment oo-r7m0). The class is cxx::OOSoundMixer while OOALSoundMixer+ObjCBridge.h, imported at
-the end of this header, keeps the Objective-C OOSoundMixer that the sound sources, the root sound
-and the OpenAL controller message; the bridge's deletion bead moves it out of namespace cxx.
+amendment oo-r7m0). Its Objective-C facade was deleted by bead oo-9ht.87: the sound sources, the
+root sound and the OpenAL controller call OOSoundMixer::sharedMixer(), null-guarded.
 
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2006-2013 Jens Ayton
@@ -42,13 +41,11 @@ SOFTWARE.
 
 #include "oofnd/Ref.hpp"
 
-@class OOSoundChannel;
+class OOSoundChannel;
 
 enum {
     kMixerGeneralChannels = 32
 };
-
-namespace cxx {
 
 class OOSoundMixer : public oo::RefCounted {
 public:
@@ -63,25 +60,21 @@ public:
     // bead oo-r7m0: the declaration it resolved to was OOOpenALController's own -shutdown.)
     void shutdown();
 
-    ::OOSoundChannel* popChannel();
-    void pushChannel(::OOSoundChannel* channel);
+    OOSoundChannel* popChannel();
+    void pushChannel(OOSoundChannel* channel);
 
 private:
     bool init();
 
-    // The channels are Objective-C objects (the mixer makes them by alloc/init, and its test stubs
-    // them; amendment oo-rmd7 item 3): _channels retains each, as before.
-    ::OOSoundChannel* _channels[kMixerGeneralChannels] = { };
-    ::OOSoundChannel* _freeList = { };
+    // _channels holds one reference to each channel the mixer made (+1 from oo::makeRef, released
+    // by shutdown(), as alloc/init and DESTROY did: the mixer is never destroyed, so no oo::Ref
+    // member, whose destructor would need the complete class in every includer); the free list is
+    // borrowed. C++ channels since bead oo-9ht.86 deleted their facade.
+    OOSoundChannel* _channels[kMixerGeneralChannels] = { };
+    OOSoundChannel* _freeList = { };
 
     // (The Objective-C class's _maxChannels and _playMask, which nothing read or wrote, are not
     // kept: -Wunused-private-field.)
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOSoundMixer, for the sound sources, the root sound and the OpenAL
-// controller. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOALSoundMixer+ObjCBridge.h"
 
 #endif // OOALSOUNDMIXER_H

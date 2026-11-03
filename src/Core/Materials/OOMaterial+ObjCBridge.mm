@@ -82,10 +82,8 @@ const std::type_info* BaseOf(const std::type_info& type)
 
 /*	The class of a C++ material's facade. A C++ class in namespace cxx has a facade of its own
         (ADR-0056 item 5): the Objective-C class of the same name, a subclass of this one, which its
-        callers message by its own selectors (cxx::OOBasicMaterial's is OOBasicMaterial; ADR-0056
-        amendment of bead oo-up4b, item 3). A class without one (a global C++ class) is seen as its
-        nearest base class that has one, so a global subclass of cxx::OOBasicMaterial still answers the
-        basic material's selectors (amendment oo-vl43); failing that, as an OOMaterial.
+        callers message by its own selectors (ADR-0056
+        amendment of bead oo-up4b, item 3). A class without one (a global C++ class) is seen as an OOMaterial.
 */
 Class FacadeClass(cxx::OOMaterial& material)
 {

@@ -39,10 +39,10 @@ MA 02110-1301, USA.
         other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
 
         C++20 since bead oo-5zby (proposed ADR-0056 Amendment 1, amendments oo-up4b and oo-94qk): a
-        subclass of cxx::OOTextureHandlingStage. It is global and has no facade: its one caller, the
-        ship data stage, calls these members, and the Objective-C verifier holds it as an
-        OOOXPVerifierStage (oo::ToObjC). The verifier's -modelVerifierStage, a category of an
-        Objective-C class, is in OOModelVerifierStage+ObjCBridge.h, imported at the end of this header.
+        subclass of OOTextureHandlingStage. It is global and has no facade: its one caller, the
+        ship data stage, calls these members, and the verifier holds it (as its OOOXPVerifierStage
+        facade until bead oo-9ht.4). The ship data stage finds it by name through the verifier's
+        stage lookup (the verifier's category that answered it went with bead oo-9ht.56).
 */
 struct OOModelVerifierEntry {
     std::string name;
@@ -53,9 +53,9 @@ struct OOModelVerifierEntry {
     friend bool operator==(const OOModelVerifierEntry&, const OOModelVerifierEntry&) = default;
 };
 
-class OOModelVerifierStage : public cxx::OOTextureHandlingStage {
+class OOModelVerifierStage : public OOTextureHandlingStage {
 public:
-    // The stage's name, as name() returns it (for the verifier's -modelVerifierStage).
+    // The stage's name, as name() returns it (the ship data stage looks the stage up by it).
     static const char* const kName;
 
     // Returns name to be used in dependents() by other stages; also registers stage.
@@ -83,9 +83,5 @@ private:
 
     std::vector<OOModelVerifierEntry> _modelsToCheck = { };
 };
-
-// Transitional: the verifier's -modelVerifierStage, a category of the Objective-C verifier.
-// Deleted by the bridge's deletion bead.
-#import "OOModelVerifierStage+ObjCBridge.h"
 
 #endif

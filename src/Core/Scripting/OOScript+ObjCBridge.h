@@ -91,6 +91,14 @@ MA 02110-1301, USA.
 
 @end
 
+@interface OOScript (OOObjCBridge)
+
+// For a subclass facade that makes its own C++ script (OOJSScript, bead oo-u61e.4): stores it and
+// records the facade as its peer, so oo::ToObjC answers the subclass facade.
+- (id)initWithCxxRootScript:(cxx::OOScript*)script;
+
+@end
+
 namespace oo {
 
 // The script's Objective-C object: an Objective-C subclass's instance itself, else a C++ script's

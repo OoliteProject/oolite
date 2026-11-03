@@ -9,8 +9,15 @@
 	texture), the configuration reaching the basic material, the texture kept for the material's
 	life, what -doApply / -unapplyWithNext: do to the texture and the GL material, the loading and
 	cube-map questions it passes to the texture, and the description. Those checks ran on the
-	Objective-C class first and now run through the facade. After them: the C++ API (null where an
+	Objective-C class first and then through the facade. After them: the C++ API (null where an
 	initialiser answered nil), the facade's class and identity, and nil.
+
+	Bead oo-9ht.38 deleted the facade (ADR-0056 amendment "deleting a facade"). The cases that asked
+	through its selectors ask the C++ class with the same expectations (alloc/init is
+	materialWithName(), nil is null, retain/release a held Ref); the facade's own cases (facade,
+	nilCrossesAsNull) were retired with it (ADR-0049, standing approval oo-9n5p9), and
+	crossesAsTheBasicMaterialFacade pins what Objective-C sees now: the nearest facade,
+	OOBasicMaterial's.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -111,9 +118,16 @@ OOTexture *MakeTexture()
 }
 
 
-OOSingleTextureMaterial *Make(const std::optional<std::string> &name, OOTexture *texture, const oo::PList &configuration = oo::PList())
+oo::Ref<OOSingleTextureMaterial> Make(const std::optional<std::string> &name, OOTexture *texture, const oo::PList &configuration = oo::PList())
 {
-	return [[[OOSingleTextureMaterial alloc] initWithName:name texture:texture configuration:configuration] autorelease];
+	return OOSingleTextureMaterial::materialWithName(name, texture, configuration);
+}
+
+
+// The material's description, as Objective-C prints it (through the root facade).
+std::string Description(cxx::OOMaterial *material)
+{
+	return oo::DescriptionOf(oo::ToObjC(material));
 }
 
 
@@ -135,20 +149,20 @@ OO_TEST(initWithTexture)
 	@autoreleasepool
 	{
 		OOTexture *texture = MakeTexture();
-		OOSingleTextureMaterial *m = Make(std::string("Hull"), texture, oo::PList(oo::PList::Dict{ { "diffuse_color", oo::PList("redColor") } }));
-		OO_CHECK(m != nil && [m cxx_name] == std::optional<std::string>("Hull"));
+		const oo::Ref<OOSingleTextureMaterial> m = Make(std::string("Hull"), texture, oo::PList(oo::PList::Dict{ { "diffuse_color", oo::PList("redColor") } }));
+		OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Hull"));
 		GLfloat c[4] = {};
-		[m getDiffuseComponents:c];
+		m->getDiffuseComponents(c);
 		OO_CHECK(Same(c, { 1, 0, 0, 1 }));	// the configuration reached the basic material
-		OO_CHECK([m shininess] == 10);
+		OO_CHECK(m->shininess() == 10);
 #ifndef NDEBUG
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = [m cxx_allTextures];
+		const std::vector<oo::ObjCRef<OOTexture *>> textures = m->allTextures();
 		OO_CHECK(textures.size() == 1 && textures[0].get() == texture);
 #endif
 
 		// No name, or no texture: no material.
-		OO_CHECK(Make(std::nullopt, texture) == nil);
-		OO_CHECK(Make(std::string("Bare"), nil) == nil);
+		OO_CHECK(Make(std::nullopt, texture) == nullptr);
+		OO_CHECK(Make(std::string("Bare"), nil) == nullptr);
 	}
 }
 
@@ -159,30 +173,30 @@ OO_TEST(initWithConfiguration)
 	{
 		// A configuration: the texture is the diffuse_map's specifier, with the name as its default.
 		gTextureConfigurations.clear();
-		OOSingleTextureMaterial *m = [[[OOSingleTextureMaterial alloc] initWithName:std::string("Hull") configuration:oo::PList(oo::PList::Dict{
+		oo::Ref<OOSingleTextureMaterial> m = OOSingleTextureMaterial::materialWithName(std::string("Hull"), oo::PList(oo::PList::Dict{
 			{ "diffuse_map", oo::PList("hull_diffuse.png") },
-		})] autorelease];
-		OO_CHECK(m != nil);
+		}));
+		OO_CHECK(m != nullptr);
 		OO_CHECK(gTextureConfigurations.size() == 1 && gTextureConfigurations[0] == oo::PList(oo::PList::Dict{
 			{ "object", oo::PList("hull_diffuse.png") }, { "defaultName", oo::PList("Hull") } }));
 
 		// No diffuse_map: the specifier of nothing, still with the name as its default.
 		gTextureConfigurations.clear();
-		m = [[[OOSingleTextureMaterial alloc] initWithName:std::string("Plain") configuration:oo::PList(oo::PList::Dict{})] autorelease];
-		OO_CHECK(m != nil && gTextureConfigurations.size() == 1);
+		m = OOSingleTextureMaterial::materialWithName(std::string("Plain"), oo::PList(oo::PList::Dict{}));
+		OO_CHECK(m != nullptr && gTextureConfigurations.size() == 1);
 		OO_CHECK(gTextureConfigurations[0] == oo::PList(oo::PList::Dict{ { "object", oo::PList("(null)") }, { "defaultName", oo::PList("Plain") } }));
 
 		// No configuration: the name is the texture's specifier.
 		gTextureConfigurations.clear();
-		m = [[[OOSingleTextureMaterial alloc] initWithName:std::string("named.png") configuration:oo::PList()] autorelease];
-		OO_CHECK(m != nil && gTextureConfigurations.size() == 1 && gTextureConfigurations[0] == oo::PList("named.png"));
-		OO_CHECK([m cxx_name] == std::optional<std::string>("named.png"));
+		m = OOSingleTextureMaterial::materialWithName(std::string("named.png"), oo::PList());
+		OO_CHECK(m != nullptr && gTextureConfigurations.size() == 1 && gTextureConfigurations[0] == oo::PList("named.png"));
+		OO_CHECK(m->name() == std::optional<std::string>("named.png"));
 
 		// Neither: a null specifier, no texture, no material. A texture that fails: no material.
 		gTextureConfigurations.clear();
-		OO_CHECK([[[OOSingleTextureMaterial alloc] initWithName:std::nullopt configuration:oo::PList()] autorelease] == nil);
+		OO_CHECK(OOSingleTextureMaterial::materialWithName(std::nullopt, oo::PList()) == nullptr);
 		OO_CHECK(gTextureConfigurations.size() == 1 && gTextureConfigurations[0].isNull());
-		OO_CHECK([[[OOSingleTextureMaterial alloc] initWithName:std::string("missing") configuration:oo::PList()] autorelease] == nil);
+		OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("missing"), oo::PList()) == nullptr);
 	}
 }
 
@@ -190,13 +204,13 @@ OO_TEST(initWithConfiguration)
 OO_TEST(textureKeptForTheMaterialsLife)
 {
 	const int deallocated = gTexturesDeallocated;
-	OOSingleTextureMaterial *m = nil;
+	oo::Ref<OOSingleTextureMaterial> m;
 	@autoreleasepool
 	{
-		m = [Make(std::string("Kept"), MakeTexture()) retain];
+		m = Make(std::string("Kept"), MakeTexture());
 	}
 	OO_CHECK(gTexturesDeallocated == deallocated);
-	[m release];
+	m = nullptr;
 	OO_CHECK(gTexturesDeallocated == deallocated + 1);
 }
 
@@ -206,18 +220,18 @@ OO_TEST(texturesQuestions)
 	@autoreleasepool
 	{
 		OOTexture *texture = MakeTexture();
-		OOSingleTextureMaterial *m = Make(std::string("Asks"), texture);
-		OO_CHECK(![m isFinishedLoading] && ![m wantsNormalsAsTextureCoordinates]);
+		const oo::Ref<OOSingleTextureMaterial> m = Make(std::string("Asks"), texture);
+		OO_CHECK(!m->isFinishedLoading() && !m->wantsNormalsAsTextureCoordinates());
 		texture->_finished = YES;
 		texture->_cubeMap = YES;
-		OO_CHECK([m isFinishedLoading] && [m wantsNormalsAsTextureCoordinates]);
-		[m ensureFinishedLoading];
+		OO_CHECK(m->isFinishedLoading() && m->wantsNormalsAsTextureCoordinates());
+		m->ensureFinishedLoading();
 		OO_CHECK(texture->_ensures == 1);
 #if OO_MULTITEXTURE
-		OO_CHECK([m countOfTextureUnitsWithBaseCoordinates] == 1);
+		OO_CHECK(m->countOfTextureUnitsWithBaseCoordinates() == 1);
 #endif
-		[m setBindingTarget:nil];
-		OO_CHECK([m permitSpecular]);
+		m->setBindingTarget(nil);
+		OO_CHECK(m->permitSpecular());
 	}
 }
 
@@ -228,20 +242,20 @@ OO_TEST(doApply)
 	@autoreleasepool
 	{
 		OOTexture *texture = MakeTexture();
-		OOSingleTextureMaterial *m = Make(std::string("Applied"), texture);
-		[m setDiffuseRed:0.5f green:0.25f blue:0.125f alpha:1];
+		const oo::Ref<OOSingleTextureMaterial> m = Make(std::string("Applied"), texture);
+		m->setDiffuseRed(0.5f, 0.25f, 0.125f, 1);
 		const int applyNones = gTextureApplyNones;
-		OO_CHECK([m doApply]);
+		OO_CHECK(m->doApply());
 		OO_CHECK(texture->_applies == 1);
 		OO_CHECK(gTextureApplyNones == applyNones);	// not exactly a basic material
 		GLfloat c[4] = {};
 		glGetMaterialfv(GL_FRONT, GL_DIFFUSE, c);
 		OO_CHECK(Same(c, { 0.5f, 0.25f, 0.125f, 1 }));
 
-		[m apply];
-		OO_CHECK([OOMaterial current] == m && texture->_applies == 2);
-		[OOMaterial applyNone];
-		OO_CHECK([OOMaterial current] == nil);
+		m->apply();
+		OO_CHECK(cxx::OOMaterial::current().get() == m.get() && texture->_applies == 2);
+		cxx::OOMaterial::applyNone();
+		OO_CHECK(cxx::OOMaterial::current() == nullptr);
 	}
 }
 
@@ -251,27 +265,27 @@ OO_TEST(unapplyWithNext)
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OOSingleTextureMaterial *m = Make(std::string("Current"), MakeTexture());
-		[m setDiffuseRed:0.5f green:0.25f blue:0.125f alpha:1];
-		[m doApply];
+		const oo::Ref<OOSingleTextureMaterial> m = Make(std::string("Current"), MakeTexture());
+		m->setDiffuseRed(0.5f, 0.25f, 0.125f, 1);
+		m->doApply();
 		GLfloat c[4] = {};
 
 		// Another textured material: the texture stays, and so does the GL material.
 		int applyNones = gTextureApplyNones;
-		[m unapplyWithNext:Make(std::string("Next"), MakeTexture())];
+		m->unapplyWithNext(Make(std::string("Next"), MakeTexture()).get());
 		OO_CHECK(gTextureApplyNones == applyNones);
 		glGetMaterialfv(GL_FRONT, GL_DIFFUSE, c);
 		OO_CHECK(Same(c, { 0.5f, 0.25f, 0.125f, 1 }));
 
 		// A basic material: no texture; it sets its own GL material.
-		[m unapplyWithNext:[[[OOBasicMaterial alloc] cxx_initWithName:std::string("Basic")] autorelease]];
+		m->unapplyWithNext(OOBasicMaterial::materialWithName(std::string("Basic")).get());
 		OO_CHECK(gTextureApplyNones == applyNones + 1);
 		glGetMaterialfv(GL_FRONT, GL_DIFFUSE, c);
 		OO_CHECK(Same(c, { 0.5f, 0.25f, 0.125f, 1 }));
 
 		// Nothing: no texture, and the default material (which also has none).
 		applyNones = gTextureApplyNones;
-		[m unapplyWithNext:nil];
+		m->unapplyWithNext(nullptr);
 		OO_CHECK(gTextureApplyNones == applyNones + 2);
 		glGetMaterialfv(GL_FRONT, GL_DIFFUSE, c);
 		OO_CHECK(Same(c, { 1, 1, 1, 1 }));
@@ -283,7 +297,7 @@ OO_TEST(description)
 {
 	@autoreleasepool
 	{
-		const std::string text = oo::DescriptionOf(Make(std::string("Hull"), MakeTexture()));
+		const std::string text = Description(Make(std::string("Hull"), MakeTexture()).get());
 		OO_CHECK(text.starts_with("<OOSingleTextureMaterial 0x"));
 		OO_CHECK(text.ends_with(">{<TestTexture>}"));
 	}
@@ -297,7 +311,7 @@ OO_TEST(cxxAPI)
 	@autoreleasepool
 	{
 		OOTexture *texture = MakeTexture();
-		const oo::Ref<cxx::OOSingleTextureMaterial> m = cxx::OOSingleTextureMaterial::materialWithName(std::string("Cxx"), texture, oo::PList());
+		const oo::Ref<OOSingleTextureMaterial> m = OOSingleTextureMaterial::materialWithName(std::string("Cxx"), texture, oo::PList());
 		OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Cxx") && m->shininess() == 10);
 		OO_CHECK(m->descriptionComponents() == std::optional<std::string>("<TestTexture>"));
 		OO_CHECK(!m->isFinishedLoading() && !m->wantsNormalsAsTextureCoordinates());
@@ -307,10 +321,10 @@ OO_TEST(cxxAPI)
 		OO_CHECK(m->allTextures().size() == 1 && m->allTextures()[0].get() == texture);
 #endif
 
-		OO_CHECK(cxx::OOSingleTextureMaterial::materialWithName(std::nullopt, texture, oo::PList()) == nullptr);
-		OO_CHECK(cxx::OOSingleTextureMaterial::materialWithName(std::string("Bare"), nil, oo::PList()) == nullptr);
-		OO_CHECK(cxx::OOSingleTextureMaterial::materialWithName(std::string("named.png"), oo::PList()) != nullptr);
-		OO_CHECK(cxx::OOSingleTextureMaterial::materialWithName(std::string("missing"), oo::PList()) == nullptr);
+		OO_CHECK(OOSingleTextureMaterial::materialWithName(std::nullopt, texture, oo::PList()) == nullptr);
+		OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("Bare"), nil, oo::PList()) == nullptr);
+		OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("named.png"), oo::PList()) != nullptr);
+		OO_CHECK(OOSingleTextureMaterial::materialWithName(std::string("missing"), oo::PList()) == nullptr);
 
 		if (OOTestGLContext())
 		{
@@ -324,38 +338,19 @@ OO_TEST(cxxAPI)
 }
 
 
-OO_TEST(facade)
+// Objective-C sees a single-texture material as an OOMaterial (beads oo-9ht.38, oo-9ht.33).
+OO_TEST(crossesAsTheBasicMaterialFacade)
 {
 	@autoreleasepool
 	{
-		// [[OOSingleTextureMaterial alloc] initWith...] is a C++ material's facade.
-		OOSingleTextureMaterial *made = Make(std::string("Made"), MakeTexture());
-		cxx::OOSingleTextureMaterial *part = oo::ToCxx(made);
-		OO_CHECK(part != nullptr && oo::AsObjCMaterial(part) == nullptr);
-		OO_CHECK(oo::ToObjC(part) == made);
-		OO_CHECK(oo::ToCxx(static_cast<OOBasicMaterial *>(made)) == part && oo::ToCxx(static_cast<OOMaterial *>(made)) == part);
-
-		// A C++ material's facade is an OOSingleTextureMaterial, however the pointer is typed.
-		const oo::Ref<cxx::OOSingleTextureMaterial> m = cxx::OOSingleTextureMaterial::materialWithName(std::string("Cxx"), MakeTexture(), oo::PList());
+		const oo::Ref<OOSingleTextureMaterial> m = OOSingleTextureMaterial::materialWithName(std::string("Cxx"), MakeTexture(), oo::PList());
 		OOMaterial *facade = oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get()));
-		OO_CHECK([facade isMemberOfClass:[OOSingleTextureMaterial class]]);
-		OO_CHECK(oo::ToObjC(m.get()) == facade && oo::ToObjC(static_cast<cxx::OOBasicMaterial *>(m.get())) == facade);
-		OO_CHECK([oo::ToObjC(m) shininess] == 10 && [facade cxx_name] == std::optional<std::string>("Cxx"));
+		OO_CHECK([facade isMemberOfClass:[OOMaterial class]]);
+		OO_CHECK(oo::ToCxx(facade) == m.get() && oo::AsObjCMaterial(m.get()) == nullptr);
+		OO_CHECK([facade cxx_name] == std::optional<std::string>("Cxx"));
 		const std::string text = oo::DescriptionOf(facade);
 		OO_CHECK(text.starts_with("<OOSingleTextureMaterial 0x") && text.ends_with(">{<TestTexture>}"));
-
-		// Plain -init: every field zero, as before.
-		OOSingleTextureMaterial *plain = [[[OOSingleTextureMaterial alloc] init] autorelease];
-		OO_CHECK(plain != nil && ![plain cxx_name].has_value() && ![plain isFinishedLoading]);
 	}
-}
-
-
-OO_TEST(nilCrossesAsNull)
-{
-	OOSingleTextureMaterial *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOSingleTextureMaterial *>(nullptr)) == nil);
 }
 
 OO_TEST_MAIN()

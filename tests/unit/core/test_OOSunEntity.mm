@@ -20,6 +20,9 @@
 */
 
 #import "OOSunEntity.h"
+#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEntity.h"
+#import "OOJSSun.h"
 #import "OOColor.h"
 #import "OODescription.h"
 #import "Universe.h"
@@ -319,6 +322,38 @@ OO_TEST(facade)
 		OO_CHECK(dynamic_cast<cxx::OOSunEntity *>(oo::ToCxx(sun)) != nullptr);
 		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(sun)) == nullptr);
 		OO_CHECK(oo::ToObjC(oo::ToCxx(sun)) == sun);
+	}
+}
+
+
+// Registers Entity's JS class and the given class (a child of Entity) in the test's context, as the
+// engine's start does; the context is made here if the test has none yet.
+static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
+{
+	extern JSContext *gOOJSMainThreadContext;
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
+	JSContext *context = OOJSAcquireContext();
+	JSValue global = JS_GetGlobalObject(context);
+	InitOOJSEntity(context, global);
+	initClass(context, global);
+	JS_FreeValue(context, global);
+}
+
+
+// The binding's category, which the facade carries since bead oo-9ht.51: what the engine asks a
+// OOSunEntity for by selector is what OOJSSun.mm answers.
+OO_TEST(jsExtensions)
+{
+	@autoreleasepool
+	{
+		SetUp();
+		OOSunEntity *sun = RedSun();
+		RegisterJSClasses(InitOOJSSun);
+		const JSClassID jsClass = [sun oo_jsClassID];
+		const JSClassID expectedClass = JSSunClassID();
+		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+		OO_CHECK([sun cxx_oo_jsClassName] == std::optional<std::string>("Sun"));
+		OO_CHECK([sun isVisibleToScripts] == YES);
 	}
 }
 

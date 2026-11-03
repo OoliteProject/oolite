@@ -104,7 +104,7 @@ oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithTextureSpecifier(cons
     if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL, NO))
         return nullptr;
     options |= extraOptions;
-    path = [ResourceManager cxx_pathForFileNamed:name inFolder:folder];
+    path = [::ResourceManager cxx_pathForFileNamed:name inFolder:folder];
     if (!path.has_value()) {
         if (!(options & kOOTextureNoFNFMessage)) {
             OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", name);

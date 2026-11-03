@@ -53,9 +53,9 @@ std::optional<std::string> OOCheckJSSyntaxVerifierStage::name()
 
 bool OOCheckJSSyntaxVerifierStage::shouldRun()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     if (fileScanner == nullptr)
         return false; // a nil scanner listed no files
     return (!fileScanner->filesInFolder("Scripts").value_or(std::vector<std::string> { }).empty() || Contains(fileScanner->filesInFolder("Config").value_or(std::vector<std::string> { }), "script.js"));
@@ -63,12 +63,12 @@ bool OOCheckJSSyntaxVerifierStage::shouldRun()
 
 void OOCheckJSSyntaxVerifierStage::run()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
     std::vector<std::string> scriptFiles;
     bool scriptsFolder = false;
     bool configScript = false;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     if (fileScanner == nullptr)
         return; // a nil scanner listed no files
     scriptsFolder = fileScanner->filesInFolder("Scripts").has_value();

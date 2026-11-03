@@ -6,7 +6,7 @@ TRANSITIONAL (proposed ADR-0056, amendments oo-qa7c, oo-rmd7 item 3 and oo-e6xa)
 OOCombinedEmissionMapGenerator, the facade of the C++ cxx::OOCombinedEmissionMapGenerator
 (OOCombinedEmissionMapGenerator.h), a subclass of the OOTextureGenerator facade with no ivars. Its
 interface is the one OOCombinedEmissionMapGenerator.h declared before the conversion, copied
-exactly, for its caller (cxx::OOMultiTextureMaterial), whose test stubs the class by name.
+exactly, for its caller (OOMultiTextureMaterial), whose test stubs the class by name.
 Imported as the last line of OOCombinedEmissionMapGenerator.h; do not import it directly.
 Deleted by its deletion bead, which turns the caller's messages into the C++ factories.
 

@@ -90,30 +90,15 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
 };
 
-@interface OOJSScript (OOPrivate)
+namespace cxx {
 
-- (std::string)scriptNameFromPath:(const std::optional<std::string>&)path;
-- (oo::PList::Dict)defaultPropertiesFromPath:(const std::optional<std::string>&)path;
-- (void)checkForTickle:(JSContext*)context;
-
-@end
-
-@implementation OOJSScript
-
-+ (id)scriptWithPath:(const std::optional<std::string>&)path properties:(const oo::PList&)properties
-{
-    return [[[self alloc] initWithPath:path properties:properties] autorelease];
-}
-
-- (id)initWithPath:(const std::optional<std::string>&)path properties:(const oo::PList&)properties
+bool OOJSScript::initWithPath(const std::optional<std::string>& path, const oo::PList& properties)
 {
     JSContext* context = NULL;
     std::optional<std::string> problem; // Acts as error flag.
 
-    self = [super init];
-    if (self == nil)
-        problem = "allocation failure";
-    else {
+    // (the facade's [super init] ran before this, and failed with nil: "allocation failure")
+    {
         context = OOJSAcquireContext();
 
         if (JS_HasException(context)) {
@@ -132,28 +117,28 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         }
 
         if (!problem.has_value()) {
-            JS_SetOpaque(_jsSelf, OOConsumeReference([self weakRetain]));
+            JS_SetOpaque(_jsSelf, OOConsumeReference(weakRetain()));
         }
 
         // Push self on stack of running scripts.
         RunningStack stackElement = {
             .back = sRunningStack,
-            .current = self
+            .current = oo::ToObjC(this)
         };
         sRunningStack = &stackElement;
 
-        filePath = path;
+        _filePath = path;
 
         // Set default properties from manifest.plist
         // Order-sensitive: the properties are set in key order (they were set in hash order).
-        const oo::PList::Dict defaultProperties = [self defaultPropertiesFromPath:path];
+        const oo::PList::Dict defaultProperties = defaultPropertiesFromPath(path);
         for (const auto& [key, property] : defaultProperties) {
             if (key == kLocalManifestProperty) {
                 // this must not be editable
-                [self defineProperty:property named:key];
+                defineProperty(property, key);
             } else {
                 // can be overwritten by script itself
-                [self setProperty:property named:key];
+                setProperty(property, key);
             }
         }
 
@@ -162,7 +147,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         if (!problem.has_value() && !properties.isNull()) {
             if (const oo::PList::Dict* propertyDict = properties.getIf<oo::PList::Dict>()) {
                 for (const auto& [key, property] : *propertyDict) {
-                    [self defineProperty:property named:key];
+                    defineProperty(property, key);
                 }
             }
         }
@@ -174,7 +159,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
                 probably also be achieved by fiddling with JS property attributes.
         */
         JSAtom nameID = OOJSID("name");
-        [self setProperty:oo::PList([self scriptNameFromPath:path]) withID:nameID inContext:context];
+        setProperty(oo::PList(scriptNameFromPath(path)), nameID, context);
 
         // Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
         if (!problem.has_value()) {
@@ -190,49 +175,50 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         sRunningStack = stackElement.back;
 
         if (!problem.has_value()) {
-            [self checkForTickle:context];
+            checkForTickle(context);
 
             // Get display attributes from script
-            name.reset();
-            name = StrippedName(DescriptionOrNil([self cxx_propertyWithID:nameID inContext:context]));
-            if (!name.has_value()) {
-                name = [self scriptNameFromPath:path];
-                [self setProperty:oo::PList(*name) withID:nameID inContext:context];
+            _name.reset();
+            _name = StrippedName(DescriptionOrNil(propertyWithID(nameID, context)));
+            if (!_name.has_value()) {
+                _name = scriptNameFromPath(path);
+                setProperty(oo::PList(*_name), nameID, context);
             }
 
-            version = DescriptionOrNil([self cxx_propertyWithID:OOJSID("version") inContext:context]);
-            description = DescriptionOrNil([self cxx_propertyWithID:OOJSID("description") inContext:context]);
+            _version = DescriptionOrNil(propertyWithID(OOJSID("version"), context));
+            _description = DescriptionOrNil(propertyWithID(OOJSID("description"), context));
 
-            OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}", [self displayName].value_or("(null)"), description.value_or("(no description)"));
+            OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}", displayName().value_or("(null)"), _description.value_or("(no description)"));
         }
 
         oo::log::outdentIf("script.javaScript.willLoad");
 
-        filePath.reset(); // Only used for error reporting during startup.
+        _filePath.reset(); // Only used for error reporting during startup.
     }
 
     if (problem.has_value()) {
         OO_LOG("script.javaScript.load.failed", "***** Error loading JavaScript script {} -- {}", path.value_or("(null)"), *problem);
         if (context != NULL && JS_HasException(context))
             OOJSReportPendingException(context);
-        DESTROY(self);
+        // (was DESTROY(self) here: the facade releases itself when this answers false, after the
+        // context below is relinquished)
     }
 
     OOJSRelinquishContext(context);
 
-    if (self != nil) {
-        oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
-            [OOJavaScriptEngine sharedEngine],
-            [self](const oo::Notification& notification) { [self javaScriptEngineWillReset:notification]; });
+    if (!problem.has_value()) {
+        oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
+            [::OOJavaScriptEngine sharedEngine],
+            [this](const oo::Notification& notification) { javaScriptEngineWillReset(notification); });
     }
 
-    return self;
+    return !problem.has_value();
 }
 
-- (void)dealloc
+void OOJSScript::willDealloc()
 {
-    oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
-        [OOJavaScriptEngine sharedEngine]);
+    oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
+        [::OOJavaScriptEngine sharedEngine]);
 
     if (JS_IsObject(_jsSelf)) {
         JSContext* context = OOJSAcquireContext();
@@ -247,25 +233,23 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         OOJSRelinquishContext(context);
     }
 
-    [weakSelf weakRefDrop];
-
-    [super dealloc];
+    [_weakSelf weakRefDrop];
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOJSScript::jsClassName()
 {
     return std::string("Script");
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOJSScript::descriptionComponents()
 {
     if (JS_IsObject(_jsSelf))
-        return [super cxx_descriptionComponents];
+        return OOScript::descriptionComponents();
     else
         return "invalid script";
 }
 
-- (void)javaScriptEngineWillReset:(const oo::Notification&)notification
+void OOJSScript::javaScriptEngineWillReset(const oo::Notification&)
 {
     // All scripts become invalid when the JS engine resets.
     if (JS_IsObject(_jsSelf)) {
@@ -274,71 +258,70 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     }
 }
 
-+ (OOJSScript*)currentlyRunningScript
+::OOJSScript* OOJSScript::currentlyRunningScript()
 {
     if (sRunningStack == NULL)
         return NULL;
     return sRunningStack->current;
 }
 
-+ (std::vector<oo::ObjCRef<OOJSScript*>>)scriptStack
+std::vector<oo::ObjCRef<::OOJSScript*>> OOJSScript::scriptStack()
 {
-    std::vector<oo::ObjCRef<OOJSScript*>> result;
+    std::vector<oo::ObjCRef<::OOJSScript*>> result;
 
     AddStackToArrayReversed(result, sRunningStack);
     return result;
 }
 
-- (id)weakRetain
+id OOJSScript::weakRetain()
 {
-    if (weakSelf == nil)
-        weakSelf = [OOWeakReference weakRefWithObject:self];
-    return [weakSelf retain];
+    if (_weakSelf == nil)
+        _weakSelf = [::OOWeakReference weakRefWithObject:oo::ToObjC(this)];
+    return [_weakSelf retain];
 }
 
-- (void)weakRefDied:(OOWeakReference*)weakRef
+void OOJSScript::weakRefDied(::OOWeakReference* weakRef)
 {
-    if (weakRef == weakSelf)
-        weakSelf = nil;
+    if (weakRef == _weakSelf)
+        _weakSelf = nil;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOJSScript::name()
 {
     // (the property as text: a string is itself, anything else its -description)
-    if (!name.has_value())
-        name = DescriptionOrNil([self cxx_propertyNamed:"name"]);
-    if (!name.has_value())
-        return [self scriptNameFromPath:filePath]; // Special case for parse errors during load.
-    return name;
+    if (!_name.has_value())
+        _name = DescriptionOrNil(propertyNamed("name"));
+    if (!_name.has_value())
+        return scriptNameFromPath(_filePath); // Special case for parse errors during load.
+    return _name;
 }
 
-- (std::optional<std::string>)scriptDescription
+std::optional<std::string> OOJSScript::scriptDescription()
 {
-    return description;
+    return _description;
 }
 
-- (std::optional<std::string>)cxx_version
+std::optional<std::string> OOJSScript::version()
 {
-    return version;
+    return _version;
 }
 
-- (void)runWithTarget:(Entity*)target
+void OOJSScript::runWithTarget(::Entity*)
 {
 }
 
-- (BOOL)callMethod:(JSAtom)methodID
-         inContext:(JSContext*)context
-     withArguments:(JSValueConst*)argv
-             count:(int)argc
-            result:(JSValue*)outResult
+bool OOJSScript::callMethod(JSAtom methodID,
+    JSContext* context,
+    JSValueConst* argv, int argc,
+    JSValue* outResult)
 {
-    OOParameterAssert(name.has_value() && (argv != NULL || argc == 0) && context != NULL);
+    OOCParameterAssert(_name.has_value() && (argv != NULL || argc == 0) && context != NULL);
     if (outResult != NULL)
         *outResult = JS_UNDEFINED;
     if (!JS_IsObject(_jsSelf))
-        return NO;
+        return false;
 
-    BOOL OK = NO;
+    bool OK = false;
 
     JSValue method = JS_GetProperty(context, _jsSelf, methodID);
     if (EXPECT_NOT(JS_IsException(method))) {
@@ -353,14 +336,14 @@ static const JSCFunctionListEntry sScriptMethods[] = {
             JS_FreeValue(context, JS_GetException(context));
         }
 
-        OO_LOG("script.javaScript.call", "Calling [{}].{}()", [self cxx_name].value_or("(null)"), (cxx_OOStringFromJSID(methodID)).value_or("(null)"));
+        OO_LOG("script.javaScript.call", "Calling [{}].{}()", name().value_or("(null)"), (cxx_OOStringFromJSID(methodID)).value_or("(null)"));
         oo::log::indentIf("script.javaScript.call");
 #endif
 
         // Push self on stack of running scripts.
         RunningStack stackElement = {
             .back = sRunningStack,
-            .current = self
+            .current = oo::ToObjC(this)
         };
         sRunningStack = &stackElement;
 
@@ -371,9 +354,9 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
         if (JS_IsException(result)) {
             OOJSReportPendingException(context);
-            OK = NO;
+            OK = false;
         } else {
-            OK = YES;
+            OK = true;
             if (outResult != NULL)
                 *outResult = result;
             else
@@ -392,9 +375,9 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return OK;
 }
 
-- (oo::PList)cxx_propertyWithID:(JSAtom)propID inContext:(JSContext*)context
+oo::PList OOJSScript::propertyWithID(JSAtom propID, JSContext* context)
 {
-    OOParameterAssert(context != NULL);
+    OOCParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
         return oo::PList();
 
@@ -409,74 +392,74 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return result;
 }
 
-- (BOOL)setProperty:(const oo::PList&)value withID:(JSAtom)propID inContext:(JSContext*)context
+bool OOJSScript::setProperty(const oo::PList& value, JSAtom propID, JSContext* context)
 {
-    OOParameterAssert(context != NULL);
+    OOCParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
-        return NO;
+        return false;
 
     // JS_SetProperty() takes ownership of the value.
     return JS_SetProperty(context, _jsSelf, propID, OOJSValueFromPList(context, value)) >= 0;
 }
 
-- (BOOL)defineProperty:(const oo::PList&)value withID:(JSAtom)propID inContext:(JSContext*)context
+bool OOJSScript::defineProperty(const oo::PList& value, JSAtom propID, JSContext* context)
 {
-    OOParameterAssert(context != NULL);
+    OOCParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
-        return NO;
+        return false;
 
     // JS_DefinePropertyValue() takes ownership of the value.
     return JS_DefinePropertyValue(context, _jsSelf, propID, OOJSValueFromPList(context, value), OOJS_PROP_READONLY) >= 0;
 }
 
-- (oo::PList)cxx_propertyNamed:(const std::string&)propName
+oo::PList OOJSScript::propertyNamed(const std::string& propName)
 {
     if (!JS_IsObject(_jsSelf))
         return oo::PList();
 
     JSContext* context = OOJSAcquireContext();
-    oo::PList result = [self cxx_propertyWithID:cxx_OOJSIDFromString(propName) inContext:context];
+    oo::PList result = propertyWithID(cxx_OOJSIDFromString(propName), context);
     OOJSRelinquishContext(context);
 
     return result;
 }
 
-- (BOOL)setProperty:(const oo::PList&)value named:(const std::string&)propName
+bool OOJSScript::setProperty(const oo::PList& value, const std::string& propName)
 {
     if (value.isNull())
-        return NO;
+        return false;
     if (!JS_IsObject(_jsSelf))
-        return NO;
+        return false;
 
     JSContext* context = OOJSAcquireContext();
-    BOOL result = [self setProperty:value withID:cxx_OOJSIDFromString(propName) inContext:context];
+    bool result = setProperty(value, cxx_OOJSIDFromString(propName), context);
     OOJSRelinquishContext(context);
 
     return result;
 }
 
-- (BOOL)defineProperty:(const oo::PList&)value named:(const std::string&)propName
+bool OOJSScript::defineProperty(const oo::PList& value, const std::string& propName)
 {
     if (value.isNull())
-        return NO;
+        return false;
     if (!JS_IsObject(_jsSelf))
-        return NO;
+        return false;
 
     JSContext* context = OOJSAcquireContext();
-    BOOL result = [self defineProperty:value withID:cxx_OOJSIDFromString(propName) inContext:context];
+    bool result = defineProperty(value, cxx_OOJSIDFromString(propName), context);
     OOJSRelinquishContext(context);
 
     return result;
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue OOJSScript::jsValueInContext(JSContext* context)
 {
     if (!JS_IsObject(_jsSelf))
         return JS_UNDEFINED;
     return JS_DupValue(context, _jsSelf);
 }
 
-+ (void)pushScript:(OOJSScript*)script
+void OOJSScript::pushScript(::OOJSScript* script)
 {
     RunningStack* element = NULL;
 
@@ -489,7 +472,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     sRunningStack = element;
 }
 
-+ (void)popScript:(OOJSScript*)script
+void OOJSScript::popScript(::OOJSScript* script)
 {
     RunningStack* element = NULL;
 
@@ -499,10 +482,6 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     sRunningStack = sRunningStack->back;
     free(element);
 }
-
-@end
-
-@implementation OOJSScript (OOPrivate)
 
 /*	Generate default name for script which doesn't set its name property when
         first run.
@@ -518,14 +497,14 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         * If either of the two previous steps results in an empty string, fall
         back on the full path.
 */
-- (std::string)scriptNameFromPath:(const std::optional<std::string>&)path
+std::string OOJSScript::scriptNameFromPath(const std::optional<std::string>& path)
 {
     std::string lastComponent;
     std::string truncatedPath;
     std::string theName;
 
     if (!path.has_value())
-        theName = oo::str::pointerDescription(self);
+        theName = oo::str::pointerDescription(oo::ToObjC(this)); // (the facade's address, as self's was)
     else {
         lastComponent = oo::str::lastPathComponent(*path);
         if (!oo::str::hasPrefix(lastComponent, "script."))
@@ -553,7 +532,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return *StrippedName(theName + ".anon-script");
 }
 
-- (oo::PList::Dict)defaultPropertiesFromPath:(const std::optional<std::string>&)path
+oo::PList::Dict OOJSScript::defaultPropertiesFromPath(const std::optional<std::string>& path)
 {
     // remove file name, remove OXP subfolder, add manifest.plist (a nil path messaged nil: no manifest)
     oo::PList manifest = path.has_value() ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(oo::str::deletingLastPathComponent(oo::str::deletingLastPathComponent(*path)), "manifest.plist")) : oo::PList();
@@ -586,33 +565,18 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         hook, so check once the script's top level has run (which is where
         handlers are normally defined).
 */
-- (void)checkForTickle:(JSContext*)context
+void OOJSScript::checkForTickle(JSContext* context)
 {
     JSValue tickle = JS_GetPropertyStr(context, _jsSelf, "tickle");
     if (JS_IsException(tickle)) {
         JS_FreeValue(context, JS_GetException(context));
     } else if (!JS_IsUndefined(tickle)) {
-        cxx_OOJSReportWarning(context, "Script %s appears to use the tickle() event handler, which is no longer supported.", [self cxx_name].value_or("(null)").c_str());
+        cxx_OOJSReportWarning(context, "Script %s appears to use the tickle() event handler, which is no longer supported.", name().value_or("(null)").c_str());
     }
     JS_FreeValue(context, tickle);
 }
 
-@end
-
-@implementation OOScript (JavaScriptEvents)
-
-- (BOOL)callMethod:(JSAtom)methodID
-         inContext:(JSContext*)context
-     withArguments:(JSValueConst*)argv
-             count:(int)argc
-            result:(JSValue*)outResult
-{
-    if (outResult != NULL)
-        *outResult = JS_UNDEFINED;
-    return NO;
-}
-
-@end
+} // namespace cxx
 
 void InitOOJSScript(JSContext* context, JSValueConst global)
 {

@@ -22,6 +22,9 @@
 */
 
 #import "OOPlanetEntity.h"
+#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEntity.h"
+#import "OOJSPlanet.h"
 #import "OOColor.h"
 #import "OOTexture.h"
 #import "OODescription.h"
@@ -389,6 +392,38 @@ OO_TEST(facade)
 		OO_CHECK(oo::ToObjC(oo::ToCxx(moon)) == moon);
 		OOPlanetEntity *mini = [moon miniatureVersion];
 		OO_CHECK([mini class] == [OOPlanetEntity class] && dynamic_cast<cxx::OOPlanetEntity *>(oo::ToCxx(mini)) != nullptr);
+	}
+}
+
+
+// Registers Entity's JS class and the given class (a child of Entity) in the test's context, as the
+// engine's start does; the context is made here if the test has none yet.
+static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
+{
+	extern JSContext *gOOJSMainThreadContext;
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
+	JSContext *context = OOJSAcquireContext();
+	JSValue global = JS_GetGlobalObject(context);
+	InitOOJSEntity(context, global);
+	initClass(context, global);
+	JS_FreeValue(context, global);
+}
+
+
+// The binding's category, which the facade carries since bead oo-9ht.92: what the engine asks a
+// OOPlanetEntity for by selector is what OOJSPlanet.mm answers.
+OO_TEST(jsExtensions)
+{
+	@autoreleasepool
+	{
+		SetUp();
+		OOPlanetEntity *moon = Planet(NO);
+		RegisterJSClasses(InitOOJSPlanet);
+		const JSClassID jsClass = [moon oo_jsClassID];
+		const JSClassID expectedClass = JSPlanetClassID();
+		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+		OO_CHECK([moon cxx_oo_jsClassName] == std::optional<std::string>("Moon"));
+		OO_CHECK([moon isVisibleToScripts] == YES);
 	}
 }
 

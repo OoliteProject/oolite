@@ -1,8 +1,7 @@
 /*	test_OOTextureVerifierStage.mm
 	Unit tests for OOTextureVerifierStage.h/.mm (bead oo-tuq8; proposed ADR-0056 Amendment 1 and
 	amendment oo-up4b items 2 and 6): the texture stage, a leaf of OOFileHandlingVerifierStage,
-	and OOTextureHandlingStage, an intermediate class that the ship data and model stages still
-	subclass in Objective-C.
+	and OOTextureHandlingStage, an intermediate class that the ship data and model stages subclass.
 
 	What the file computed before the conversion is pinned: the texture stage's name and
 	neighbours, the textures other stages name (found or not, each once, empty names ignored), when
@@ -10,14 +9,22 @@
 	of two, OK). The texture loader reaches the whole game, so the test replaces it with a class
 	that reads "<width>x<height>" from the file. A texture-handling stage adds the texture stage to
 	its intermediate class's dependents, also through [super dependents]. Then the crossing: the
-	converted texture stage is global; an Objective-C subclass of OOTextureHandlingStage is behind a
-	C++ pointer whose class derives from cxx::OOTextureHandlingStage; a C++ subclass of it is behind
-	the root's facade; and the adapter outlives its owner.
+	converted texture stage is global, and a C++ subclass of OOTextureHandlingStage is behind the
+	root's facade. Bead oo-9ht.45 deleted OOTextureHandlingStage's facade: its Objective-C test
+	subclasses became C++ subclasses with the same answers (the super call a qualified base call),
+	the verifier's -textureVerifierStage became the stage lookup it made, and the two cases that
+	pinned the facade's crossing (objCTextureUserBehindACxxPointer, adapterOutlivesItsOwner) were
+	retired with it (ADR-0049, standing approval oo-9n5p9).
+	Bead oo-9ht.4 deleted the root's facade (OOOXPVerifierStage): the verifier registers and
+	answers the C++ stage itself, so cxxTextureUserBehindTheFacade and textureStageFacade ask the
+	stage (its description through description()), and the checks that pinned only that facade's
+	crossing (one live facade, oo::ToObjC/oo::ToCxx, its class) were retired with it (ADR-0049,
+	standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOTextureVerifierStage.h"
-#import "OOOXPVerifierStageInternal.h"
+#import "OOOXPVerifierStage.h"
 #import "OODescription.h"
 #import "OOPixMap.h"
 #import "OOTexture.h"
@@ -126,33 +133,25 @@ void OOFreePixMap(OOPixMap *ioPixMap)
 @end
 
 
-// An unconverted texture-handling stage, as the ship data and model stages are.
-@interface TestTextureUser: OOTextureHandlingStage
-@end
-
-
-@implementation TestTextureUser
-
-- (std::optional<std::string>)cxx_name	{ return "Using textures"; }
-
-@end
-
-
-// Extends its superclass's dependents through [super dependents], as the ship data stage does.
-@interface TestSuperCallingTextureUser: TestTextureUser
-@end
-
-
-@implementation TestSuperCallingTextureUser
-
-- (std::optional<std::vector<std::string>>)dependents
+// A texture-handling stage, as the ship data and model stages are.
+class TestTextureUser : public OOTextureHandlingStage
 {
-	std::vector<std::string> result = [super dependents].value_or(std::vector<std::string>());
-	result.push_back("Extra dependent");
-	return result;
-}
+public:
+	std::optional<std::string> name() override	{ return "Using textures"; }
+};
 
-@end
+
+// Extends its superclass's dependents through the base call, as the ship data stage does.
+class TestSuperCallingTextureUser : public TestTextureUser
+{
+public:
+	std::optional<std::vector<std::string>> dependents() override
+	{
+		std::vector<std::string> result = TestTextureUser::dependents().value_or(std::vector<std::string>());
+		result.push_back("Extra dependent");
+		return result;
+	}
+};
 
 
 namespace {
@@ -202,8 +201,8 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
 void RunScanner(OOOXPVerifier *verifier)
 {
-	[OOFileScannerVerifierStage nameForDependencyForVerifier:verifier];
-	[[verifier fileScannerStage] run];
+	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
+	[verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
 }
 
 
@@ -326,52 +325,31 @@ OO_TEST(textureHandlingStage)
 	@autoreleasepool
 	{
 		OOOXPVerifier *verifier = MakeVerifier({});
-		TestTextureUser *user = [[[TestTextureUser alloc] init] autorelease];
-		[user setVerifier:verifier];
-		OO_CHECK([user cxx_name] == std::optional<std::string>("Using textures"));
-		OO_CHECK([user cxx_dependencies] == kScannerName);
-		OO_CHECK([user dependents] == kTextureUserDependents);
-		OO_CHECK([user dependents] == kTextureUserDependents);	// asked again: no duplicate
+		const oo::Ref<TestTextureUser> user = oo::makeRef<TestTextureUser>();
+		user->setVerifier(verifier);
+		OO_CHECK(user->name() == std::optional<std::string>("Using textures"));
+		OO_CHECK(user->dependencies() == kScannerName);
+		OO_CHECK(user->dependents() == kTextureUserDependents);
+		OO_CHECK(user->dependents() == kTextureUserDependents);	// asked again: no duplicate
 
-		TestSuperCallingTextureUser *superCalling = [[[TestSuperCallingTextureUser alloc] init] autorelease];
-		[superCalling setVerifier:verifier];
-		OO_CHECK([superCalling dependents] == (std::vector<std::string>{ "Checking for unused files", "Testing textures and images", "Extra dependent" }));
+		const oo::Ref<TestSuperCallingTextureUser> superCalling = oo::makeRef<TestSuperCallingTextureUser>();
+		superCalling->setVerifier(verifier);
+		OO_CHECK(superCalling->dependents() == (std::vector<std::string>{ "Checking for unused files", "Testing textures and images", "Extra dependent" }));
 
-		OO_CHECK([user isKindOfClass:[OOTextureHandlingStage class]] && [user isKindOfClass:[OOFileHandlingVerifierStage class]]);
+		OOOXPVerifierStage *stage = user.get();
+		OO_CHECK(dynamic_cast<OOTextureHandlingStage *>(stage) != nullptr && dynamic_cast<OOFileHandlingVerifierStage *>(stage) != nullptr);
 	}
 }
 
 
 // A converted texture-handling stage: a C++ subclass of the intermediate class. Global, as the
-// ship data and model stages will be, so Objective-C sees it as an OOOXPVerifierStage.
-class TestCxxTextureUser : public cxx::OOTextureHandlingStage
+// ship data and model stages are (the verifier held it as its OOOXPVerifierStage facade until bead
+// oo-9ht.4).
+class TestCxxTextureUser : public OOTextureHandlingStage
 {
 public:
 	std::optional<std::string> name() override	{ return "Using textures in C++"; }
 };
-
-
-// An Objective-C subclass of the intermediate class is behind a C++ pointer whose class derives
-// from cxx::OOTextureHandlingStage; virtual calls reach the subclass, or the intermediate class.
-OO_TEST(objCTextureUserBehindACxxPointer)
-{
-	@autoreleasepool
-	{
-		OOOXPVerifier *verifier = MakeVerifier({});
-		TestTextureUser *user = [[[TestTextureUser alloc] init] autorelease];
-		[user setVerifier:verifier];
-		cxx::OOOXPVerifierStage *part = oo::ToCxx(user);
-		OO_CHECK(part != nullptr && oo::ToObjC(part) == user);
-		OO_CHECK(dynamic_cast<cxx::OOTextureHandlingStage *>(part) != nullptr);
-		OO_CHECK(part->name() == std::optional<std::string>("Using textures"));
-		OO_CHECK(part->dependencies() == kScannerName);
-		OO_CHECK(part->dependents() == kTextureUserDependents);
-
-		TestSuperCallingTextureUser *superCalling = [[[TestSuperCallingTextureUser alloc] init] autorelease];
-		[superCalling setVerifier:verifier];
-		OO_CHECK(oo::ToCxx(superCalling)->dependents() == (std::vector<std::string>{ "Checking for unused files", "Testing textures and images", "Extra dependent" }));
-	}
-}
 
 
 OO_TEST(cxxTextureUserBehindTheFacade)
@@ -383,55 +361,38 @@ OO_TEST(cxxTextureUserBehindTheFacade)
 		user->setVerifier(verifier);
 		OO_CHECK(user->dependents() == kTextureUserDependents);
 
-		OOOXPVerifierStage *facade = oo::ToObjC(user.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(user.get()) && oo::ToCxx(facade) == user.get());
-		OO_CHECK([facade class] == [OOOXPVerifierStage class]);
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("Using textures in C++"));
-		OO_CHECK([facade dependents] == kTextureUserDependents);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<TestCxxTextureUser 0x"));
+		OO_CHECK(user->name() == std::optional<std::string>("Using textures in C++"));
+		OO_CHECK(user->dependents() == kTextureUserDependents);
+		OO_CHECK(user->description().starts_with("<TestCxxTextureUser 0x"));
 	}
 }
 
 
-// The texture stage is global: Objective-C sees it as an OOOXPVerifierStage, which the verifier's
-// -textureVerifierStage (no caller left) answers once it is registered.
+// The texture stage is global: the verifier's stage lookup by the texture stage's name (what
+// -textureVerifierStage sent) answers it once it is registered (its OOOXPVerifierStage facade until
+// bead oo-9ht.4).
 OO_TEST(textureStageFacade)
 {
 	@autoreleasepool
 	{
 		OOOXPVerifier *verifier = MakeVerifier({ { "Images/a.png", "8x8" } });
 		const oo::Ref<OOTextureVerifierStage> stage = oo::makeRef<OOTextureVerifierStage>();
-		OOOXPVerifierStage *facade = oo::ToObjC(stage.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(stage.get()) && oo::ToCxx(facade) == stage.get());
-		OO_CHECK([facade class] == [OOOXPVerifierStage class]);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOTextureVerifierStage 0x"));
+		OO_CHECK(stage->description().starts_with("<OOTextureVerifierStage 0x"));
 
-		OO_CHECK([verifier textureVerifierStage] == nil);
-		[verifier registerStage:facade];
-		OO_CHECK([verifier textureVerifierStage] == facade);
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("Testing textures and images"));
-		OO_CHECK([facade cxx_dependencies] == kScannerName);
-		OO_CHECK([facade dependents] == kUnusedName);
-		OO_CHECK([facade shouldRun]);
+		OO_CHECK([verifier cxx_stageWithName:OOTextureVerifierStage::nameForReverseDependencyForVerifier(verifier)] == nullptr);
+		[verifier registerStage:stage.get()];
+		OO_CHECK([verifier cxx_stageWithName:OOTextureVerifierStage::nameForReverseDependencyForVerifier(verifier)] == stage.get());
+		OO_CHECK(stage->name() == std::optional<std::string>("Testing textures and images"));
+		OO_CHECK(stage->dependencies() == kScannerName);
+		OO_CHECK(stage->dependents() == kUnusedName);
+		OO_CHECK(stage->shouldRun());
 		gLog.clear();
-		[facade dependencyRegistrationComplete];
-		[facade performRun];
+		stage->dependencyRegistrationComplete();
+		stage->performRun();
 		OO_CHECK(gLog.size() == 1 && LogLinesContaining("- Images/a.png (8x8 px) OK.") == 1);
 	}
 	std::filesystem::remove_all(kBase);
 }
 
-
-OO_TEST(adapterOutlivesItsOwner)
-{
-	oo::Ref<cxx::OOOXPVerifierStage> part;
-	@autoreleasepool
-	{
-		part = oo::Ref<cxx::OOOXPVerifierStage>(oo::ToCxx([[[TestTextureUser alloc] init] autorelease]));
-	}
-	OO_CHECK(!part->name().has_value());
-	OO_CHECK(!part->dependents().has_value());
-	OO_CHECK(oo::ToObjC(part) == nil);
-}
 
 OO_TEST_MAIN()

@@ -173,7 +173,7 @@ OOCommodities::OOCommodities()
     // ResourceManager's dictionary API is not migrated: the merged table arrives through oo::PListFrom.
     // TODO: validation of inputs; convert 't', 'kg', 'g' in quantity_unit to 0, 1, 2 (for now it
     // needs them entering as the ints).
-    const oo::PList rawCommodityLists = [ResourceManager cxx_dictionaryFromFilesNamed:"trade-goods.plist" inFolder:"Config" mergeMode:MERGE_SMART cache:YES];
+    const oo::PList rawCommodityLists = [::ResourceManager cxx_dictionaryFromFilesNamed:"trade-goods.plist" inFolder:"Config" mergeMode:MERGE_SMART cache:YES];
     if (const oo::PList::Dict* entries = rawCommodityLists.getIf<oo::PList::Dict>())
         _commodityLists = *entries;
 }

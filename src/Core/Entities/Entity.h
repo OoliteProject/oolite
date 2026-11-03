@@ -128,8 +128,8 @@ public:
 
     virtual void setOwner(Entity* ent);
     id owner();
-    ShipEntity* parentEntity(); // owner if self is subentity of owner, otherwise nil.
-    ShipEntity* rootShipEntity(); // like parentEntity, but recursive.
+    ::ShipEntity* parentEntity(); // owner if self is subentity of owner, otherwise nil.
+    ::ShipEntity* rootShipEntity(); // like parentEntity, but recursive.
     id<OOWeakReferenceSupport> superShaderBindingTarget();
 
     virtual void setPosition(HPVector posn);
@@ -207,7 +207,7 @@ public:
     void dumpState(); // General "describe situtation verbosely in log" command.
     virtual void dumpSelfState(); // Subclasses should override this, not -dumpState, and call throught to super first.
 
-    virtual void subEntityReallyDied(ShipEntity* sub);
+    virtual void subEntityReallyDied(::ShipEntity* sub);
 
     NSUInteger getLastDrawCounter();
     void setLastDrawCounter(NSUInteger drawCounter);

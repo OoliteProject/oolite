@@ -120,7 +120,7 @@ oo::PList ValuesForKeys(const oo::PList& info, std::initializer_list<const char*
     oo::PList::Dict result;
     for (const char* key : keys) {
         const oo::PList* value = info.find(key);
-        result[key] = value != nullptr ? *value : oo::PListObject([OONull null]);
+        result[key] = value != nullptr ? *value : oo::PListObject([::OONull null]);
     }
     return oo::PList(std::move(result));
 }
@@ -787,7 +787,7 @@ bool OOPlanetEntity::checkCloseCollisionWith(Entity* other)
     if (!other)
         return NO;
     if (other->isShip) {
-        ShipEntity* ship = (ShipEntity*)oo::ToObjC(other);
+        ::ShipEntity* ship = (::ShipEntity*)oo::ToObjC(other);
         if ([ship behaviour] == BEHAVIOUR_LAND_ON_PLANET) {
             return NO;
         }
@@ -799,7 +799,7 @@ bool OOPlanetEntity::checkCloseCollisionWith(Entity* other)
 bool OOPlanetEntity::planetHasStation()
 {
     // find the nearest station...
-    ShipEntity* station = nil;
+    ::ShipEntity* station = nil;
     station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
                                            parameter:nil
                                     relativeToEntity:oo::ToObjC(this)];
@@ -831,7 +831,7 @@ void OOPlanetEntity::launchShuttle()
     float start_distance = collision_radius + 125.0f;
     HPVector launch_pos = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(vector_forward_from_quaternion(q1), start_distance)));
 
-    ShipEntity* shuttle_ship = [UNIVERSE cxx_newShipWithRole:"shuttle"]; // retain count = 1
+    ::ShipEntity* shuttle_ship = [UNIVERSE cxx_newShipWithRole:"shuttle"]; // retain count = 1
     if (shuttle_ship) {
         if ([shuttle_ship cxx_crew].value_or(std::vector<oo::ObjCRef<::OOCharacter*>>()).empty()) {
             [shuttle_ship cxx_setSingleCrewWithRole:"trader"];
@@ -851,7 +851,7 @@ void OOPlanetEntity::launchShuttle()
     }
 }
 
-void OOPlanetEntity::welcomeShuttle(ShipEntity* /*shuttle*/)
+void OOPlanetEntity::welcomeShuttle(::ShipEntity* /*shuttle*/)
 {
     _shuttlesOnGround++;
 }
@@ -981,7 +981,7 @@ void OOPlanetEntity::setTextureFileName(const std::optional<std::string>& textur
     ::OOTexture* normalMap = nil;
     oo::ObjCRef<::OOTexture*> generatedDiffuseMap, generatedNormalMap; // the C++ generator answers them retained (bead oo-kyje)
     oo::PList macros; // null: nil
-    const oo::PList materialDefaults = [ResourceManager cxx_materialDefaults];
+    const oo::PList materialDefaults = [::ResourceManager cxx_materialDefaults];
 
 #if OO_SHADERS
     OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];

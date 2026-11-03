@@ -255,10 +255,10 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
         const char* nameText = name ? name->c_str() : "(null)";
         std::string dumpPath = oo::str::format("Synthesized Materials/%s/%s", cacheKeyText, nameText);
 
-        [ResourceManager cxx_writeDiagnosticString:synthesized ? vertexShaderSource : std::string()
-                                       toFileNamed:dumpPath + ".vertex"];
-        [ResourceManager cxx_writeDiagnosticString:synthesized ? fragmentShaderSource : std::string()
-                                       toFileNamed:dumpPath + ".fragment"];
+        [::ResourceManager cxx_writeDiagnosticString:synthesized ? vertexShaderSource : std::string()
+                                         toFileNamed:dumpPath + ".vertex"];
+        [::ResourceManager cxx_writeDiagnosticString:synthesized ? fragmentShaderSource : std::string()
+                                         toFileNamed:dumpPath + ".fragment"];
 
         // Hide internal keys in the synthesized config before writing it.
         oo::PList::Dict humanFriendlyConfig = *synthesizedConfig.getIf<oo::PList::Dict>();
@@ -268,11 +268,11 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
         humanFriendlyConfig[kOOVertexShaderNameKey] = oo::PList(oo::str::format("%s.vertex", nameText));
         humanFriendlyConfig[kOOFragmentShaderNameKey] = oo::PList(oo::str::format("%s.fragment", nameText));
 
-        [ResourceManager cxx_writeDiagnosticPList:oo::PList(humanFriendlyConfig)
-                                      toFileNamed:dumpPath + ".plist"];
+        [::ResourceManager cxx_writeDiagnosticPList:oo::PList(humanFriendlyConfig)
+                                        toFileNamed:dumpPath + ".plist"];
 
-        [ResourceManager cxx_writeDiagnosticPList:configuration
-                                      toFileNamed:dumpPath + "-original.plist"];
+        [::ResourceManager cxx_writeDiagnosticPList:configuration
+                                        toFileNamed:dumpPath + "-original.plist"];
     }
 #endif
 

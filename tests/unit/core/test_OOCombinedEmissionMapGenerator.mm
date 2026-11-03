@@ -293,7 +293,7 @@ OO_TEST(aTextureOfTheGenerator)
 	@autoreleasepool
 	{
 		OOTexture *texture = [OOTexture textureWithGenerator:NewGenerator(oo::PList("e.png"), [OOColor redColor], nil, nil, oo::PList(), nil, oo::PList("e.png"))];
-		OO_CHECK([texture isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr));
 		[texture ensureFinishedLoading];
 		OO_CHECK([texture isFinishedLoading] && [texture dimensions].width > 0);
 		OO_CHECK([texture cxx_cacheKey] == [NewGenerator(oo::PList("e.png"), [OOColor redColor], nil, nil, oo::PList(), nil, oo::PList("e.png")) cxx_cacheKey]);

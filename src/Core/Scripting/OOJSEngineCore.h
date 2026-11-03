@@ -79,6 +79,7 @@ MA 02110-1301, USA.
 #include "OOJSPropID.h"
 #include "OOTypes.h"
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOFoundationTypes.h"
@@ -443,6 +444,39 @@ void OOJSResetTimeLimiter(void);
 OOTimeDelta OOJSGetTimeLimiterLimit(void);
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 #endif
+
+namespace cxx {
+
+/*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
+        This is somewhat useful for putting JavaScript objects in ObjC collections,
+        for instance to pass as properties to script loaders. The value is held
+        (with its own reference) until the OOJSValue is destroyed or the engine
+        is reset.
+
+        The Objective-C OOJSValue (OOJavaScriptEngine+ObjCBridge.h) is its facade,
+        which the collections hold.
+*/
+class OOJSValue : public oo::RefCounted {
+public:
+    // context may be NULL (the main thread context is used).
+    static oo::Ref<OOJSValue> valueWithJSValue(JSValueConst value, JSContext* context);
+
+    ~OOJSValue();
+
+    // The held value, owned by the caller (a new reference).
+    JSValue jsValueInContext(JSContext* context);
+
+private:
+    // The initialiser after [super init], which could not fail: run by the factory.
+    void initWithJSValue(JSValueConst value, JSContext* context);
+
+    void deleteJSValue();
+
+    JSValue _val = JS_UNDEFINED;
+    const void* _resetSender = { }; // the engine's facade, while _val is held
+};
+
+} // namespace cxx
 
 /*	OOJSDumpStack()
         Write the current JavaScript stack to the log. QuickJS provides only

@@ -33,11 +33,9 @@ SOFTWARE.
 #include "oofnd/Thread.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-namespace cxx {
-
 // Pseudo-singleton: a single instance exists at a given time, but can be released.
 namespace {
-    static OORegExpMatcher* sActiveInstance;
+static OORegExpMatcher* sActiveInstance;
 } // namespace
 
 oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()
@@ -61,7 +59,7 @@ bool OORegExpMatcher::init()
     unsigned codeLine = __LINE__ + 1; // NB: should remain line before code.
     const char* code = "return regexp.test(string);";
 
-    [OOJavaScriptEngine sharedEngine]; // Summon the beast from the Pit.
+    [::OOJavaScriptEngine sharedEngine]; // Summon the beast from the Pit.
 
     JSContext* context = OOJSAcquireContext();
     _tester = [[::OOJSFunction alloc] initWithName:std::string("matchesRegExp")
@@ -126,7 +124,7 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
             OOJSReportPendingException(context);
             regExpObj = JS_NULL;
         }
-        _cachedRegExpObject = [[OOJSValue alloc] initWithJSValue:regExpObj inContext:context];
+        _cachedRegExpObject = [[::OOJSValue alloc] initWithJSValue:regExpObj inContext:context];
         _cachedFlags = flags;
 
         JS_FreeValue(context, regExpObj);
@@ -162,5 +160,3 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
 
     return result;
 }
-
-} // namespace cxx

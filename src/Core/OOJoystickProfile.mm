@@ -65,8 +65,6 @@ private:
     double a[4] = { };
 };
 
-namespace cxx {
-
 OOJoystickAxisProfile::OOJoystickAxisProfile()
 {
     deadzone_ = STICK_DEADZONE;
@@ -151,8 +149,6 @@ double OOJoystickStandardAxisProfile::rawValue(double x)
     }
     return OOClamp_0_1_d(parameter_ * pow(x, power_) - (parameter_ - 1.0) * (x));
 }
-
-} // namespace cxx
 
 OOJoystickSplineSegment::OOJoystickSplineSegment()
 {
@@ -289,8 +285,6 @@ double OOJoystickSplineSegment::gradient(double x)
 {
     return a[1] + (2 * a[2] + 3 * a[3] * x) * x;
 }
-
-namespace cxx {
 
 OOJoystickSplineAxisProfile::OOJoystickSplineAxisProfile()
 {
@@ -513,5 +507,3 @@ double OOJoystickSplineAxisProfile::gradient(double x)
     }
     return 1.0;
 }
-
-} // namespace cxx

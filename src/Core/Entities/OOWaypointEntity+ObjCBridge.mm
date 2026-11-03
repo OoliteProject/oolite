@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOJSWaypoint.h"
 #import "OOWaypointEntity.h"
 
 @implementation OOWaypointEntity
@@ -111,6 +112,23 @@ MA 02110-1301, USA.
 - (BOOL)isJammingScanning
 {
     return oo::ToCxx(self)->isJammingScanning();
+}
+
+// The JS side, which the engine asks for by selector (Entity (OOJavaScriptExtensions)): the
+// binding's category, moved here from the binding's bridge file, which it deletes (bead oo-9ht.50;
+// ADR-0056 amendment oo-6ia4 item 3). Each forwards to the OOJSWaypoint.mm function that holds its
+// old body; they become members of the C++ class with this facade's deletion (oo-9ht.108).
+- (JSClassID)oo_jsClassID
+{
+    return ::JSWaypointClassID();
+}
+- (std::optional<std::string>)cxx_oo_jsClassName
+{
+    return ::OOJSWaypointJSClassName();
+}
+- (BOOL)isVisibleToScripts
+{
+    return ::OOJSWaypointIsVisibleToScripts();
 }
 
 @end

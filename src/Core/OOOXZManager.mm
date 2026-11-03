@@ -108,18 +108,7 @@ constexpr std::string_view kOOOXZFilterDays = "d:";
 constexpr std::string_view kOOOXZFilterTag = "t:";
 } // namespace
 
-typedef enum {
-    OXZ_INSTALLABLE_OKAY,
-    OXZ_INSTALLABLE_UPDATE,
-    OXZ_INSTALLABLE_DEPENDENCIES,
-    OXZ_INSTALLABLE_CONFLICTS,
-    // for things to work, _ALREADY must be the first UNINSTALLABLE state
-    // and all the INSTALLABLE ones must be before all the UNINSTALLABLE ones
-    OXZ_UNINSTALLABLE_ALREADY,
-    OXZ_UNINSTALLABLE_NOREMOTE,
-    OXZ_UNINSTALLABLE_VERSION,
-    OXZ_UNINSTALLABLE_MANUAL
-} OXZInstallableState;
+// OXZInstallableState is declared in OOOXZManager.h (bead oo-0hyr: a member's result).
 
 enum {
     OXZ_GUI_ROW_LISTHEAD = 0,
@@ -296,62 +285,7 @@ std::optional<std::string> JoinedTags(const oo::PList& manifest)
 }
 } // namespace
 
-static OOOXZManager* sSingleton = nil;
-
-@interface OOOXZManager (OOPrivate)
-
-- (std::optional<std::string>)manifestPath; // nullopt: no cache directory
-- (std::optional<std::string>)downloadPath; // nullopt: no cache directory
-- (std::optional<std::string>)extractionBasePathForIdentifier:(const std::string&)identifier andVersion:(const std::string&)version; // nullopt: no user root
-- (std::optional<std::string>)dataURL;
-- (std::optional<std::string>)humanSize:(NSUInteger)bytes; // nullopt: the missing-field description is missing
-
-- (BOOL)ensureInstallPath;
-
-- (BOOL)beginDownload:(const std::string&)url;
-- (BOOL)processDownloadedManifests;
-- (BOOL)processDownloadedOXZ;
-
-- (OXZInstallableState)installableState:(const oo::PList&)manifest;
-- (OOColor*)colorForManifest:(const oo::PList&)manifest;
-- (std::optional<std::string>)installStatusForManifest:(const oo::PList&)manifest; // nullopt: its description is missing
-
-- (BOOL)validateFilter:(const std::string&)input;
-
-- (void)setOXZList:(const oo::PList&)list; // an Array (sorted here), or null
-- (void)setFilteredList:(const oo::PList&)list;
-- (oo::PList)applyCurrentFilter:(const oo::PList&)list; // an Array
-
-- (void)setCurrentDownload:(oo::http::Download*)download withLabel:(const std::string&)label;
-- (void)setProgressStatus:(const std::string&)newStatus;
-
-- (BOOL)installOXZ:(NSUInteger)item;
-- (BOOL)updateAllOXZ;
-- (BOOL)removeOXZ:(NSUInteger)item;
-- (std::vector<oo::PList>)installOptions; // the manifests on the current page
-- (std::vector<oo::PList>)removeOptions; // empty: nothing removable (was nil)
-
-- (std::string)extractOXZ:(NSUInteger)item; // the extraction log
-
-/* The download's callbacks (HTTP client events until proposed ADR-0044) */
-- (void)downloadDidFailWithError:(const std::string&)error;
-- (void)downloadDidReceiveResponse:(long long)expectedContentLength;
-- (void)downloadDidReceiveData:(const std::string&)data;
-- (void)downloadDidFinishLoading;
-
-@end
-
-@interface OOOXZManager (OOFilterRules)
-- (BOOL)applyFilterByNoFilter:(const oo::PList&)manifest;
-- (BOOL)applyFilterByUpdateRequired:(const oo::PList&)manifest;
-- (BOOL)applyFilterByInstallable:(const oo::PList&)manifest;
-- (BOOL)applyFilterByKeyword:(const oo::PList&)manifest keyword:(const std::string&)keyword;
-- (BOOL)applyFilterByAuthor:(const oo::PList&)manifest author:(const std::string&)author;
-- (BOOL)applyFilterByDays:(const oo::PList&)manifest days:(const std::string&)days;
-- (BOOL)applyFilterByTag:(const oo::PList&)manifest tag:(const std::string&)tag;
-- (BOOL)applyFilterByCategory:(const oo::PList&)manifest category:(const std::string&)category;
-
-@end
+static cxx::OOOXZManager* sSingleton = nullptr; // the one +1 is never released (amendment oo-r7m0 item 1)
 
 namespace {
 
@@ -372,51 +306,48 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 } // namespace
 
-@implementation OOOXZManager
+namespace cxx {
 
-+ (OOOXZManager*)sharedManager
+OOOXZManager* OOOXZManager::sharedManager()
 {
     // NOTE: assumes single-threaded first access.
-    if (sSingleton == nil)
-        sSingleton = [[self alloc] init];
+    if (sSingleton == nullptr) {
+        OOOXZManager* manager = oo::makeRef<OOOXZManager>().leakRef(); // the one +1, never released (amendment oo-r7m0 item 1)
+        manager->init();
+        sSingleton = manager;
+    }
     return sSingleton;
 }
 
-- (id)init
+void OOOXZManager::init()
 {
-    self = [super init];
-    if (self != nil) {
-        _downloadStatus = OXZ_DOWNLOAD_NONE;
-        // if the file has not been downloaded, this will be nil
-        [self setOXZList:PListArrayFromFile([self manifestPath])];
-        OO_LOG("oxz.manager.debug", "Initialised with {}", oo::DescriptionOf(_oxzList));
-        _interfaceState = OXZ_STATE_NODATA;
-        _currentFilter = "*";
+    _downloadStatus = OXZ_DOWNLOAD_NONE;
+    // if the file has not been downloaded, this will be nil
+    setOXZList(PListArrayFromFile(manifestPath()));
+    OO_LOG("oxz.manager.debug", "Initialised with {}", oo::DescriptionOf(_oxzList));
+    _interfaceState = OXZ_STATE_NODATA;
+    _currentFilter = "*";
 
-        _interfaceShowingOXZDetail = NO;
-        _changesMade = NO;
-        _downloadAllDependencies = NO;
-        _dependencyStack.clear();
-        _dependencyStack.reserve(8);
-        [self setProgressStatus:""];
-    }
-    return self;
+    _interfaceShowingOXZDetail = false;
+    _changesMade = false;
+    _downloadAllDependencies = false;
+    _dependencyStack.clear();
+    _dependencyStack.reserve(8);
+    setProgressStatus("");
 }
 
-- (void)dealloc
+OOOXZManager::~OOOXZManager()
 {
-    if (sSingleton == self)
-        sSingleton = nil;
+    if (sSingleton == this)
+        sSingleton = nullptr;
 
-    [self setCurrentDownload:nil withLabel:""];
-
-    [super dealloc];
+    setCurrentDownload(nullptr, "");
 }
 
 /* The install path for OXZs downloaded by
  * Oolite. Library/ApplicationSupport seems to be the most appropriate
  * location. */
-- (std::optional<std::string>)installPath
+std::optional<std::string> OOOXZManager::installPath()
 {
     // OO_MANAGEDADDONSDIR, else <ApplicationSupport>/Oolite/ManagedAddOns (GNUstep uses
     // "ApplicationSupport" rather than "Application Support", so no space in "ManagedAddOns"
@@ -425,7 +356,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 }
 
 /* The extract path for OXZs . */
-- (std::optional<std::string>)extractAddOnsPath
+std::optional<std::string> OOOXZManager::extractAddOnsPath()
 {
     // OO_ADDONSEXTRACTDIR, else "../AddOns" on Windows (%LOCALAPPDATA%\Oolite\AddOns with
     // OO_GAME_DATA_TO_USER_FOLDER), else ~/.Oolite/AddOns.
@@ -433,7 +364,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 }
 
 /* Add additional AddOns paths */
-- (std::vector<std::string>)additionalAddOnsPaths
+std::vector<std::string> OOOXZManager::additionalAddOnsPaths()
 {
     // OO_ADDITIONALADDONSDIRS split on ',' (empty components kept, as before).
     std::vector<std::string> result;
@@ -442,9 +373,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return result;
 }
 
-- (std::optional<std::string>)extractionBasePathForIdentifier:(const std::string&)identifier andVersion:(const std::string&)version
+std::optional<std::string> OOOXZManager::extractionBasePathForIdentifier(const std::string& identifier, const std::string& version)
 {
-    const std::vector<std::string> userRootPaths = [ResourceManager cxx_userRootPaths];
+    const std::vector<std::string> userRootPaths = [::ResourceManager cxx_userRootPaths];
     if (userRootPaths.empty())
         return std::nullopt;
     const std::string& basePath = userRootPaths.back();
@@ -455,29 +386,29 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return oo::str::appendingPathComponent(basePath, mainDir);
 }
 
-- (BOOL)ensureInstallPath
+bool OOOXZManager::ensureInstallPath()
 {
-    const std::optional<std::string> path = [self installPath];
+    const std::optional<std::string> path = installPath();
     const oo::fs::Path fsPath = oo::fs::pathFromUTF8(path.value_or(std::string()));
     const bool exists = path.has_value() && oo::fs::fileExists(fsPath);
 
     if (exists && !oo::fs::isDirectory(fsPath)) {
         OO_LOG("oxz.manager.error", "Expected {} to be a folder, but it is a file.", path.value_or("(null)"));
-        return NO;
+        return false;
     }
     if (!exists) {
         if (!path.has_value() || !oo::fs::createDirectories(fsPath)) {
             OO_LOG("oxz.manager.error", "Could not create folder {}.", path.value_or("(null)"));
-            return NO;
+            return false;
         }
     }
 
-    return YES;
+    return true;
 }
 
-- (std::optional<std::string>)manifestPath
+std::optional<std::string> OOOXZManager::manifestPath()
 {
-    const std::optional<std::string> cacheDirectory = [[OOCacheManager sharedCache] cxx_cacheDirectoryPathCreatingIfNecessary:YES];
+    const std::optional<std::string> cacheDirectory = OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true);
     if (!cacheDirectory.has_value())
         return std::nullopt;
     return oo::str::appendingPathComponent(*cacheDirectory, kOOOXZManifestCache);
@@ -486,9 +417,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 /* Download mechanism could destroy a correct file if it failed
  * half-way and was downloaded on top of the old one. So this loads it
  * off to the side a bit */
-- (std::optional<std::string>)downloadPath
+std::optional<std::string> OOOXZManager::downloadPath()
 {
-    const std::optional<std::string> cacheDirectory = [[OOCacheManager sharedCache] cxx_cacheDirectoryPathCreatingIfNecessary:YES];
+    const std::optional<std::string> cacheDirectory = OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true);
     if (!cacheDirectory.has_value())
         return std::nullopt;
     if (_interfaceState == OXZ_STATE_UPDATING) {
@@ -498,7 +429,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-- (std::optional<std::string>)dataURL
+std::optional<std::string> OOOXZManager::dataURL()
 {
     /* Not expected to be set in general, but might be useful for some users */
     const std::optional<std::string> url = oo::Defaults::standard().stringForKey(kOOOXZDataConfig);
@@ -508,20 +439,21 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return kOOOXZDataURL;
 }
 
-- (std::optional<std::string>)humanSize:(NSUInteger)bytes
+std::optional<std::string> OOOXZManager::humanSize(NSUInteger bytes)
 {
     if (bytes == 0) {
         return OO_DESC("oolite-oxzmanager-missing-field");
     } else if (bytes < 1024) {
         return "<1 kB";
-    } else if (bytes < 1024 * 1024) {
+    } else if (bytes < static_cast<NSUInteger>(1024) * 1024) // the product in NSUInteger, as the Objective-C compare promoted it
+    {
         return oo::str::format("%zu kB", (size_t)(bytes >> 10));
     } else {
         return oo::str::format("%.2f MB", ((float)(bytes >> 10)) / 1024);
     }
 }
 
-- (void)setOXZList:(const oo::PList&)list
+void OOOXZManager::setOXZList(const oo::PList& list)
 {
     _oxzList = oo::PList();
     if (list) {
@@ -534,62 +466,61 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-- (void)setFilteredList:(const oo::PList&)list
+void OOOXZManager::setFilteredList(const oo::PList& list)
 {
     _filteredList = list;
 }
 
-- (void)setFilter:(const std::string&)filter
+void OOOXZManager::setFilter(const std::string& filter)
 {
     _currentFilter = oo::str::lowercase(filter);
 }
 
-- (void)setOXPURL:(const std::optional<std::string>&)url
+void OOOXZManager::setOXPURL(const std::optional<std::string>& url)
 {
     _currentOXPURL = url.has_value() ? std::optional<std::string>(oo::str::lowercase(*url)) : std::nullopt;
 }
 
-- (oo::PList)applyCurrentFilter:(const oo::PList&)list
+oo::PList OOOXZManager::applyCurrentFilter(const oo::PList& list)
 {
-    SEL filterSelector = @selector(applyFilterByNoFilter:);
+    /*	The filter is a member function (was a selector, called through its IMP: bead oo-3rb.53,
+            and before that a Foundation invocation object). The one-argument filters take the
+            manifest; the rest take the manifest and the parameter (the prefixes are ASCII, so the
+            byte offset is the old character offset).
+    */
+    typedef bool (OOOXZManager::*OneArgumentFilter)(const oo::PList&);
+    typedef bool (OOOXZManager::*TwoArgumentFilter)(const oo::PList&, const std::string&);
+    OneArgumentFilter oneArgumentFilter = &OOOXZManager::applyFilterByNoFilter;
+    TwoArgumentFilter twoArgumentFilter = nullptr;
     std::string parameter;
     if (_currentFilter == kOOOXZFilterUpdates) {
-        filterSelector = @selector(applyFilterByUpdateRequired:);
+        oneArgumentFilter = &OOOXZManager::applyFilterByUpdateRequired;
     } else if (_currentFilter == kOOOXZFilterInstallable) {
-        filterSelector = @selector(applyFilterByInstallable:);
+        oneArgumentFilter = &OOOXZManager::applyFilterByInstallable;
     } else if (oo::str::hasPrefix(_currentFilter, kOOOXZFilterKeyword)) {
-        filterSelector = @selector(applyFilterByKeyword:keyword:);
+        twoArgumentFilter = &OOOXZManager::applyFilterByKeyword;
         parameter = _currentFilter.substr(kOOOXZFilterKeyword.size());
     } else if (oo::str::hasPrefix(_currentFilter, kOOOXZFilterAuthor)) {
-        filterSelector = @selector(applyFilterByAuthor:author:);
+        twoArgumentFilter = &OOOXZManager::applyFilterByAuthor;
         parameter = _currentFilter.substr(kOOOXZFilterAuthor.size());
     } else if (oo::str::hasPrefix(_currentFilter, kOOOXZFilterDays)) {
-        filterSelector = @selector(applyFilterByDays:days:);
+        twoArgumentFilter = &OOOXZManager::applyFilterByDays;
         parameter = _currentFilter.substr(kOOOXZFilterDays.size());
     } else if (oo::str::hasPrefix(_currentFilter, kOOOXZFilterTag)) {
-        filterSelector = @selector(applyFilterByTag:tag:);
+        twoArgumentFilter = &OOOXZManager::applyFilterByTag;
         parameter = _currentFilter.substr(kOOOXZFilterTag.size());
     } else if (oo::str::hasPrefix(_currentFilter, kOOOXZFilterCategory)) {
-        filterSelector = @selector(applyFilterByCategory:category:);
+        twoArgumentFilter = &OOOXZManager::applyFilterByCategory;
         parameter = _currentFilter.substr(kOOOXZFilterCategory.size());
     }
 
     oo::PList::Array filteredList;
-    /*	A typed call through the filter's IMP (bead oo-3rb.53; was a Foundation invocation object). The
-            one-argument filters take the manifest; the rest take the manifest and the
-            parameter (the prefixes are ASCII, so the byte offset is the old character offset).
-    */
-    typedef BOOL (*OneArgumentFilter)(id, SEL, const oo::PList&);
-    typedef BOOL (*TwoArgumentFilter)(id, SEL, const oo::PList&, const std::string&);
-    IMP filterIMP = [self methodForSelector:filterSelector];
-    BOOL twoArguments = !(sel_isEqual(filterSelector, @selector(applyFilterByNoFilter:)) || sel_isEqual(filterSelector, @selector(applyFilterByUpdateRequired:)) || sel_isEqual(filterSelector, @selector(applyFilterByInstallable:)));
-
     for (const oo::PList& manifest : Elements(list)) {
-        BOOL filterAccepted = NO;
-        if (twoArguments) {
-            filterAccepted = ((TwoArgumentFilter)filterIMP)(self, filterSelector, manifest, parameter);
+        bool filterAccepted = false;
+        if (twoArgumentFilter != nullptr) {
+            filterAccepted = (this->*twoArgumentFilter)(manifest, parameter);
         } else {
-            filterAccepted = ((OneArgumentFilter)filterIMP)(self, filterSelector, manifest);
+            filterAccepted = (this->*oneArgumentFilter)(manifest);
         }
         if (filterAccepted) {
             filteredList.push_back(manifest);
@@ -601,22 +532,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 }
 
 /*** Start filters ***/
-- (BOOL)applyFilterByNoFilter:(const oo::PList&)manifest
+bool OOOXZManager::applyFilterByNoFilter(const oo::PList&)
 {
-    return YES;
+    return true;
 }
 
-- (BOOL)applyFilterByUpdateRequired:(const oo::PList&)manifest
+bool OOOXZManager::applyFilterByUpdateRequired(const oo::PList& manifest)
 {
-    return ([self installableState:manifest] == OXZ_INSTALLABLE_UPDATE);
+    return (installableState(manifest) == OXZ_INSTALLABLE_UPDATE);
 }
 
-- (BOOL)applyFilterByInstallable:(const oo::PList&)manifest
+bool OOOXZManager::applyFilterByInstallable(const oo::PList& manifest)
 {
-    return ([self installableState:manifest] < OXZ_UNINSTALLABLE_ALREADY);
+    return (installableState(manifest) < OXZ_UNINSTALLABLE_ALREADY);
 }
 
-- (BOOL)applyFilterByKeyword:(const oo::PList&)manifest keyword:(const std::string&)keyword
+bool OOOXZManager::applyFilterByKeyword(const oo::PList& manifest, const std::string& keyword)
 {
     // trim any eventual leading whitespace from input string
     const std::string trimmed = oo::str::trimLeadingWhitespaceAndNewlines(keyword);
@@ -624,14 +555,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     for (const std::string& parameter : parameters) {
         if (FoundIgnoringCase(ManifestString(manifest, parameter), trimmed)) {
-            return YES;
+            return true;
         }
     }
     // tags are slightly different
     return TagFoundIgnoringCase(manifest, trimmed);
 }
 
-- (BOOL)applyFilterByAuthor:(const oo::PList&)manifest author:(const std::string&)author
+bool OOOXZManager::applyFilterByAuthor(const oo::PList& manifest, const std::string& author)
 {
     // trim any eventual leading whitespace from input string
     const std::string trimmed = oo::str::trimLeadingWhitespaceAndNewlines(author);
@@ -639,11 +570,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return FoundIgnoringCase(ManifestString(manifest, std::string(kOOManifestAuthor)), trimmed);
 }
 
-- (BOOL)applyFilterByDays:(const oo::PList&)manifest days:(const std::string&)days
+bool OOOXZManager::applyFilterByDays(const oo::PList& manifest, const std::string& days)
 {
     NSInteger i = (NSInteger)oo::str::longLongValue(days); // -integerValue
     if (i < 1) {
-        return NO;
+        return false;
     } else {
         NSUInteger updated = manifest.get<unsigned long long>(std::string(kOOManifestUploadDate));
         NSUInteger now = (NSUInteger)oo::date::timeIntervalSince1970();
@@ -651,13 +582,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-- (BOOL)applyFilterByTag:(const oo::PList&)manifest tag:(const std::string&)tag
+bool OOOXZManager::applyFilterByTag(const oo::PList& manifest, const std::string& tag)
 {
     // trim any eventual leading whitespace from input string
     return TagFoundIgnoringCase(manifest, oo::str::trimLeadingWhitespaceAndNewlines(tag));
 }
 
-- (BOOL)applyFilterByCategory:(const oo::PList&)manifest category:(const std::string&)category
+bool OOOXZManager::applyFilterByCategory(const oo::PList& manifest, const std::string& category)
 {
     // trim any eventual leading whitespace from input string
     const std::string trimmed = oo::str::trimLeadingWhitespaceAndNewlines(category);
@@ -667,7 +598,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 /*** End filters ***/
 
-- (BOOL)validateFilter:(const std::string&)input
+bool OOOXZManager::validateFilter(const std::string& input)
 {
     const std::string filter = oo::str::lowercase(input);
     // The prefixes are ASCII: a byte count past one is a character past it.
@@ -680,13 +611,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         || (oo::str::hasPrefix(filter, kOOOXZFilterDays) && oo::str::intValue(filter.substr(kOOOXZFilterDays.size())) > 0)
         || (oo::str::hasPrefix(filter, kOOOXZFilterTag) && filter.size() > kOOOXZFilterTag.size())
         || (oo::str::hasPrefix(filter, kOOOXZFilterCategory) && filter.size() > kOOOXZFilterCategory.size())) {
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }
 
-- (void)setCurrentDownload:(oo::http::Download*)download withLabel:(const std::string&)label
+void OOOXZManager::setCurrentDownload(oo::http::Download* download, const std::string& label)
 {
     // Deleting the previous download cancels it and frees it.
     delete _currentDownload;
@@ -694,25 +625,25 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     _currentDownloadName = label;
 }
 
-- (void)setProgressStatus:(const std::string&)newValue
+void OOOXZManager::setProgressStatus(const std::string& newValue)
 {
     _progressStatus = newValue;
 }
 
-- (BOOL)updateManifests
+bool OOOXZManager::updateManifests()
 {
-    const std::string url = [self dataURL].value_or("");
+    const std::string url = dataURL().value_or("");
     if (_downloadStatus != OXZ_DOWNLOAD_NONE) {
-        return NO;
+        return false;
     }
     _downloadStatus = OXZ_DOWNLOAD_STARTED;
     _interfaceState = OXZ_STATE_UPDATING;
-    [self setProgressStatus:""];
+    setProgressStatus("");
 
-    return [self beginDownload:url];
+    return beginDownload(url);
 }
 
-- (BOOL)beginDownload:(const std::string&)url
+bool OOOXZManager::beginDownload(const std::string& url)
 {
     // No cookies are sent or kept, as -setHTTPShouldHandleCookies:NO had it (oofnd/Http.hpp).
     const std::optional<std::string> bundleVersion = OoliteInfoString("CFBundleVersion");
@@ -729,12 +660,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     .value_or("");
     }
 
-    [self setCurrentDownload:download withLabel:label]; // owns it
-    OO_LOG("oxz.manager.debug", "Download request received, using {} and downloading to {}", url, [self downloadPath].value_or("(null)"));
-    return YES;
+    setCurrentDownload(download, label); // owns it
+    OO_LOG("oxz.manager.debug", "Download request received, using {} and downloading to {}", url, downloadPath().value_or("(null)"));
+    return true;
 }
 
-- (void)processDownloadEvents
+void OOOXZManager::processDownloadEvents()
 {
     // The current download is read afresh for every event: a callback may cancel it or start
     // another, and a cancelled download answers nothing more.
@@ -745,32 +676,32 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         @autoreleasepool {
             switch (event->kind) {
             case oo::http::Event::Kind::response:
-                [self downloadDidReceiveResponse:event->expectedLength];
+                downloadDidReceiveResponse(event->expectedLength);
                 break;
             case oo::http::Event::Kind::data:
-                [self downloadDidReceiveData:event->bytes];
+                downloadDidReceiveData(event->bytes);
                 break;
             case oo::http::Event::Kind::finished:
-                [self downloadDidFinishLoading];
+                downloadDidFinishLoading();
                 break;
             case oo::http::Event::Kind::failed:
-                [self downloadDidFailWithError:event->error];
+                downloadDidFailWithError(event->error);
                 break;
             }
         }
     }
 }
 
-- (BOOL)cancelUpdate
+bool OOOXZManager::cancelUpdate()
 {
     if (!(_interfaceState == OXZ_STATE_UPDATING || _interfaceState == OXZ_STATE_INSTALLING) || _downloadStatus == OXZ_DOWNLOAD_NONE) {
-        return NO;
+        return false;
     }
     OO_LOG("oxz.manager.debug", "{}", "Trying to cancel file download");
     if (_currentDownload != nullptr) {
         _currentDownload->cancel(); // kept until the next download replaces it, as the connection was
     } else if (_downloadStatus == OXZ_DOWNLOAD_COMPLETE) {
-        if (const std::optional<std::string> path = [self downloadPath]) {
+        if (const std::optional<std::string> path = downloadPath()) {
             (void)oo::fs::removeItem(oo::fs::pathFromUTF8(*path));
         }
     }
@@ -780,21 +711,21 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     } else {
         _interfaceState = OXZ_STATE_MAIN;
     }
-    [self gui];
-    return YES;
+    gui(); // slice 3, still Objective-C on the facade
+    return true;
 }
 
-- (oo::PList)manifests
+oo::PList OOOXZManager::manifests()
 {
     return _oxzList;
 }
 
-- (oo::PList)managedOXZs
+oo::PList OOOXZManager::managedOXZs()
 {
     if (!_managedList) {
         // if this list is being reset, also reset the current install list
-        [ResourceManager resetManifestKnowledgeForOXZManager];
-        const std::optional<std::string> installPath = [self installPath];
+        [::ResourceManager resetManifestKnowledgeForOXZManager];
+        const std::optional<std::string> installPath = this->installPath();
         std::vector<std::string> filenames;
         if (installPath.has_value()) {
             auto contents = oo::fs::directoryContents(oo::fs::pathFromUTF8(*installPath));
@@ -815,11 +746,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                  * versions first. This flag means that it stops
                  * checking the list for versions once it finds one
                  * that is plausibly installable */
-                BOOL foundInstallable = NO;
+                bool foundInstallable = false;
                 for (const oo::PList& stored : Elements(_oxzList)) {
                     const std::optional<std::string> storedIdentifier = ManifestString(stored, std::string(kOOManifestIdentifier));
                     if (storedIdentifier.has_value() && identifier.has_value() && *storedIdentifier == *identifier) {
-                        if (foundInstallable == NO) {
+                        if (foundInstallable == false) {
                             // (A missing value raised on -setObject:forKey:; it is now not set.)
                             if (const std::optional<std::string> version = ManifestString(stored, std::string(kOOManifestVersion))) {
                                 adjEntries[std::string(kOOManifestAvailableVersion)] = oo::PList(*version);
@@ -827,8 +758,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                             if (const std::optional<std::string> url = ManifestString(stored, std::string(kOOManifestDownloadURL))) {
                                 adjEntries[std::string(kOOManifestDownloadURL)] = oo::PList(*url);
                             }
-                            if ([ResourceManager cxx_checkVersionCompatibility:manifest forOXP:std::nullopt]) {
-                                foundInstallable = YES;
+                            if ([::ResourceManager cxx_checkVersionCompatibility:manifest forOXP:std::nullopt]) {
+                                foundInstallable = true;
                             }
                         }
                     }
@@ -844,44 +775,44 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return _managedList;
 }
 
-- (BOOL)processDownloadedManifests
+bool OOOXZManager::processDownloadedManifests()
 {
     if (_downloadStatus != OXZ_DOWNLOAD_COMPLETE) {
-        return NO;
+        return false;
     }
-    [self setOXZList:PListArrayFromFile([self downloadPath])];
+    setOXZList(PListArrayFromFile(downloadPath()));
     if (_oxzList) {
         // As -writeToFile:atomically: wrote it: GNUstep's XML property list, atomically; nothing
         // for no cache directory (a nil path), and a failure is ignored as before.
-        if (const std::optional<std::string> manifestPath = [self manifestPath])
+        if (const std::optional<std::string> manifestPath = this->manifestPath())
             (void)OOWriteXMLPListToFile(_oxzList, *manifestPath, nullptr);
         // and clean up the temp file
-        if (const std::optional<std::string> downloadPath = [self downloadPath]) {
+        if (const std::optional<std::string> downloadPath = this->downloadPath()) {
             (void)oo::fs::removeItem(oo::fs::pathFromUTF8(*downloadPath));
         }
         // invalidate the managed list
         _managedList = oo::PList();
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return YES;
+        gui();
+        return true;
     } else {
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
-        OO_LOG("oxz.manager.error", "Downloaded manifest was not a valid plist, has been left in {}", [self downloadPath].value_or("(null)"));
+        OO_LOG("oxz.manager.error", "Downloaded manifest was not a valid plist, has been left in {}", downloadPath().value_or("(null)"));
         // revert to the old one
-        [self setOXZList:PListArrayFromFile([self manifestPath])];
+        setOXZList(PListArrayFromFile(manifestPath()));
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return NO;
+        gui();
+        return false;
     }
 }
 
-- (BOOL)processDownloadedOXZ
+bool OOOXZManager::processDownloadedOXZ()
 {
     if (_downloadStatus != OXZ_DOWNLOAD_COMPLETE) {
-        return NO;
+        return false;
     }
 
-    const std::optional<std::string> downloadPath = [self downloadPath];
+    const std::optional<std::string> downloadPath = this->downloadPath();
     const oo::PList downloadedManifest = downloadPath.has_value()
         ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(*downloadPath, "manifest.plist"))
         : oo::PList();
@@ -889,8 +820,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
         OO_LOG("oxz.manager.error", "Downloaded OXZ does not contain a manifest.plist, has been left in {}", downloadPath.value_or("(null)"));
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return NO;
+        gui();
+        return false;
     }
     const oo::PList expectedManifest = ElementAt(_filteredList, _item);
 
@@ -904,27 +835,27 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
         OO_LOG("oxz.manager.error", "{}", "Downloaded OXZ does not have the same identifer and version as expected. This might be due to your manifests list being out of date - try updating it.");
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return NO;
+        gui();
+        return false;
     }
     // filename is going to be identifier.oxz
     const std::string filename = *downloadedId + ".oxz";
 
-    if (![self ensureInstallPath]) {
+    if (!ensureInstallPath()) {
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
         OO_LOG("oxz.manager.error", "{}", "Unable to create installation folder.");
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return NO;
+        gui();
+        return false;
     }
 
-    const std::optional<std::string> installPath = [self installPath];
+    const std::optional<std::string> installPath = this->installPath();
     if (!installPath.has_value() || !downloadPath.has_value()) {
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
         OO_LOG("oxz.manager.error", "{}", "Downloaded OXZ could not be installed.");
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return NO;
+        gui();
+        return false;
     }
     const std::string destination = oo::str::appendingPathComponent(*installPath, filename);
     (void)oo::fs::removeItem(oo::fs::pathFromUTF8(destination));
@@ -933,12 +864,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         _downloadStatus = OXZ_DOWNLOAD_ERROR;
         OO_LOG("oxz.manager.error", "{}", "Downloaded OXZ could not be installed.");
         _interfaceState = OXZ_STATE_TASKDONE;
-        [self gui];
-        return NO;
+        gui();
+        return false;
     }
-    _changesMade = YES;
+    _changesMade = true;
     _managedList = oo::PList(); // will need updating
-    [ResourceManager resetManifestKnowledgeForOXZManager];
+    [::ResourceManager resetManifestKnowledgeForOXZManager];
 
     const oo::PList* requiredNode = downloadedManifest.find(std::string(kOOManifestRequiresOXPs));
     if (requiredNode == nullptr || !requiredNode->isArray()) {
@@ -963,7 +894,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     break;
                 }
             }
-            if (![ResourceManager cxx_manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]
+            if (![::ResourceManager cxx_manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]
                 && !requiredOXPs.empty() && inRequired) {
                 progress += DescFormat(OO_DESC("oolite-oxzmanager-progress-now-has-@"), { Arg(ManifestStringOr(requirement, std::string(kOOManifestRelationDescription), ManifestString(requirement, std::string(kOOManifestRelationIdentifier)))) });
                 DependencyStackRemove(_dependencyStack, requirement);
@@ -975,7 +906,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     if (!requiredOXPs.empty()) {
         for (const oo::PList& requirement : requiredOXPs) {
-            if ([ResourceManager cxx_manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]) {
+            if ([::ResourceManager cxx_manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]) {
                 OO_LOG("oxz.manager.debug", "Dependency stack: adding {}", ManifestString(requirement, std::string(kOOManifestRelationIdentifier)).value_or("(null)"));
                 DependencyStackAdd(_dependencyStack, requirement);
                 progress += DescFormat(OO_DESC("oolite-oxzmanager-progress-requires-@"), { Arg(ManifestStringOr(requirement, std::string(kOOManifestRelationDescription), ManifestString(requirement, std::string(kOOManifestRelationIdentifier)))) });
@@ -983,14 +914,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
     }
     if (!_dependencyStack.empty()) {
-        BOOL undownloadedRequirement = NO;
-        BOOL foundDownload = NO;
+        bool undownloadedRequirement = false;
+        bool foundDownload = false;
         NSUInteger index = 0;
         std::optional<std::string> needsIdentifier;
         oo::PList requirement;
 
         do {
-            undownloadedRequirement = YES;
+            undownloadedRequirement = true;
             requirement = _dependencyStack.front(); // was anyObject; order-sensitive — named in commit
             OO_LOG("oxz.manager.debug", "Dependency stack: next is {}", ManifestString(requirement, std::string(kOOManifestRelationIdentifier)).value_or("(null)"));
 
@@ -1003,9 +934,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 const oo::PList& availableDownload = *_oxzList.at(i);
                 const std::optional<std::string> availableIdentifier = ManifestString(availableDownload, std::string(kOOManifestIdentifier));
                 if (availableIdentifier.has_value() && needsIdentifier.has_value() && *availableIdentifier == *needsIdentifier) {
-                    if ([ResourceManager cxx_matchVersions:requirement withVersion:ManifestString(availableDownload, std::string(kOOManifestVersion)).value_or("")]) {
+                    if ([::ResourceManager cxx_matchVersions:requirement withVersion:ManifestString(availableDownload, std::string(kOOManifestVersion)).value_or("")]) {
                         OO_LOG("oxz.manager.debug", "{}", "Dependency stack: found download for next item");
-                        foundDownload = YES;
+                        foundDownload = true;
                         index = i;
                         break;
                     }
@@ -1013,63 +944,63 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             }
 
             if (foundDownload) {
-                if ([self installableState:ElementAt(_oxzList, index)] == OXZ_UNINSTALLABLE_ALREADY) {
+                if (installableState(ElementAt(_oxzList, index)) == OXZ_UNINSTALLABLE_ALREADY) {
                     OO_LOG("oxz.manager.debug", "Dependency stack: {} is downloaded but not yet loadable, removing from list.", ManifestString(requirement, std::string(kOOManifestRelationIdentifier)).value_or("(null)"));
                     DependencyStackRemove(_dependencyStack, requirement);
                     if (!_dependencyStack.empty()) {
-                        undownloadedRequirement = NO;
+                        undownloadedRequirement = false;
                     } else {
-                        foundDownload = NO;
+                        foundDownload = false;
                     }
                 }
             }
         } while (!undownloadedRequirement);
 
         if (foundDownload) {
-            [self setFilteredList:_oxzList];
+            setFilteredList(_oxzList);
             _downloadStatus = OXZ_DOWNLOAD_NONE;
             if (_downloadAllDependencies) {
                 OO_LOG("oxz.manager.debug", "Dependency stack: installing {} from list", index);
-                if (![self installOXZ:index]) {
+                if (!installOXZ(index)) {
                     progress += DescFormat(OO_DESC("oolite-oxzmanager-progress-required-@-not-found"), { Arg(ManifestStringOr(requirement, std::string(kOOManifestRelationDescription), ManifestString(requirement, std::string(kOOManifestRelationIdentifier)))) });
-                    [self setProgressStatus:progress];
+                    setProgressStatus(progress);
                     OO_LOG("oxz.manager.error", "OXZ dependency {} could not be found for automatic download.", needsIdentifier.value_or("(null)"));
                     _downloadStatus = OXZ_DOWNLOAD_ERROR;
                     OO_LOG("oxz.manager.error", "{}", "Downloaded OXZ could not be installed.");
                     _interfaceState = OXZ_STATE_TASKDONE;
-                    [self gui];
-                    return NO;
+                    gui();
+                    return false;
                 }
             } else {
                 _interfaceState = OXZ_STATE_DEPENDENCIES;
                 _item = index;
             }
-            [self setProgressStatus:progress];
-            [self gui];
-            return YES;
+            setProgressStatus(progress);
+            gui();
+            return true;
         } else if (!_dependencyStack.empty()) {
             progress += DescFormat(OO_DESC("oolite-oxzmanager-progress-required-@-not-found"), { Arg(ManifestStringOr(requirement, std::string(kOOManifestRelationDescription), ManifestString(requirement, std::string(kOOManifestRelationIdentifier)))) });
-            [self setProgressStatus:progress];
+            setProgressStatus(progress);
             OO_LOG("oxz.manager.error", "OXZ dependency {} could not be found for automatic download.", needsIdentifier.value_or("(null)"));
             _downloadStatus = OXZ_DOWNLOAD_ERROR;
             OO_LOG("oxz.manager.error", "{}", "Downloaded OXZ could not be installed.");
             _interfaceState = OXZ_STATE_TASKDONE;
-            [self gui];
-            return NO;
+            gui();
+            return false;
         }
     }
 
-    [self setProgressStatus:""];
+    setProgressStatus("");
     _interfaceState = OXZ_STATE_TASKDONE;
     _dependencyStack.clear(); // just in case
-    _downloadAllDependencies = NO;
-    [self gui];
-    return YES;
+    _downloadAllDependencies = false;
+    gui();
+    return true;
 }
 
-- (oo::PList)installedManifestForIdentifier:(const std::string&)identifier
+oo::PList OOOXZManager::installedManifestForIdentifier(const std::string& identifier)
 {
-    const oo::PList installed = [self managedOXZs];
+    const oo::PList installed = managedOXZs();
     if (const oo::PList::Array* manifests = installed.getIf<oo::PList::Array>()) {
         for (const oo::PList& manifest : *manifests) {
             if (ManifestString(manifest, std::string(kOOManifestIdentifier)) == identifier) {
@@ -1080,19 +1011,19 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return oo::PList();
 }
 
-- (OXZInstallableState)installableState:(const oo::PList&)manifest
+OXZInstallableState OOOXZManager::installableState(const oo::PList& manifest)
 {
     const std::optional<std::string> title = ManifestString(manifest, std::string(kOOManifestTitle));
     const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
     /* Check Oolite version */
-    if (![ResourceManager cxx_checkVersionCompatibility:manifest forOXP:title]) {
+    if (![::ResourceManager cxx_checkVersionCompatibility:manifest forOXP:title]) {
         return OXZ_UNINSTALLABLE_VERSION;
     }
     /* Check for current automated install (a missing identifier matched nothing) */
-    oo::PList installed = identifier.has_value() ? [self installedManifestForIdentifier:*identifier] : oo::PList();
+    oo::PList installed = identifier.has_value() ? installedManifestForIdentifier(*identifier) : oo::PList();
     if (!installed) {
         // check for manual install
-        installed = [ResourceManager cxx_manifestForIdentifier:identifier.value_or(std::string())];
+        installed = [::ResourceManager cxx_manifestForIdentifier:identifier.value_or(std::string())];
     }
 
     // available_version, else version (the fallback of the old string read)
@@ -1102,7 +1033,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     if (installed) {
         const std::optional<std::string> filePath = ManifestString(installed, std::string(kOOManifestFilePath));
-        const std::optional<std::string> installPath = [self installPath];
+        const std::optional<std::string> installPath = this->installPath();
         if (!(filePath.has_value() && installPath.has_value() && oo::str::hasPrefix(*filePath, *installPath))) {
             // installed manually
             return OXZ_UNINSTALLABLE_MANUAL;
@@ -1120,7 +1051,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
     }
     /* Check for dependencies being met */
-    if ([ResourceManager cxx_manifestHasConflicts:manifest logErrors:NO]) {
+    if ([::ResourceManager cxx_manifestHasConflicts:manifest logErrors:NO]) {
         return OXZ_INSTALLABLE_CONFLICTS;
     }
     if (installed) {
@@ -1135,38 +1066,38 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
         return OXZ_INSTALLABLE_UPDATE;
     }
-    if ([ResourceManager cxx_manifestHasMissingDependencies:manifest logErrors:NO]) {
+    if ([::ResourceManager cxx_manifestHasMissingDependencies:manifest logErrors:NO]) {
         return OXZ_INSTALLABLE_DEPENDENCIES;
     }
     return OXZ_INSTALLABLE_OKAY;
 }
 
-- (OOColor*)colorForManifest:(const oo::PList&)manifest
+oo::Ref<OOColor> OOOXZManager::colorForManifest(const oo::PList& manifest)
 {
-    switch ([self installableState:manifest]) {
+    switch (installableState(manifest)) {
     case OXZ_INSTALLABLE_OKAY:
-        return [OOColor yellowColor];
+        return OOColor::yellowColor();
     case OXZ_INSTALLABLE_UPDATE:
-        return [OOColor cyanColor];
+        return OOColor::cyanColor();
     case OXZ_INSTALLABLE_DEPENDENCIES:
-        return [OOColor orangeColor];
+        return OOColor::orangeColor();
     case OXZ_INSTALLABLE_CONFLICTS:
-        return [OOColor brownColor];
+        return OOColor::brownColor();
     case OXZ_UNINSTALLABLE_ALREADY:
-        return [OOColor whiteColor];
+        return OOColor::whiteColor();
     case OXZ_UNINSTALLABLE_MANUAL:
-        return [OOColor redColor];
+        return OOColor::redColor();
     case OXZ_UNINSTALLABLE_VERSION:
-        return [OOColor grayColor];
+        return OOColor::grayColor();
     case OXZ_UNINSTALLABLE_NOREMOTE:
-        return [OOColor blueColor];
+        return OOColor::blueColor();
     }
-    return [OOColor yellowColor]; // never
+    return OOColor::yellowColor(); // never
 }
 
-- (std::optional<std::string>)installStatusForManifest:(const oo::PList&)manifest
+std::optional<std::string> OOOXZManager::installStatusForManifest(const oo::PList& manifest)
 {
-    switch ([self installableState:manifest]) {
+    switch (installableState(manifest)) {
     case OXZ_INSTALLABLE_OKAY:
         return OO_DESC("oolite-oxzmanager-installable-okay");
     case OXZ_INSTALLABLE_UPDATE:
@@ -1187,7 +1118,103 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return std::nullopt; // never
 }
 
-- (void)gui
+bool OOOXZManager::isRestarting()
+{
+    // for the restart
+    if (EXPECT_NOT(_interfaceState == OXZ_STATE_RESTARTING)) {
+        // Rebuilds OXP search
+        [::ResourceManager reset];
+        [UNIVERSE reinitAndShowDemo:YES];
+        _changesMade = false;
+        _interfaceState = OXZ_STATE_MAIN;
+        _downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool OOOXZManager::installOXZ(NSUInteger item)
+{
+    if (_filteredList.count() <= item) {
+        return false;
+    }
+    const oo::PList manifest = ElementAt(_filteredList, item);
+    _item = item;
+
+    if (installableState(manifest) >= OXZ_UNINSTALLABLE_ALREADY) {
+        OO_LOG("oxz.manager.debug", "Cannot install {}", oo::DescriptionOf(manifest));
+        // can't be installed on this version of Oolite, or already is installed
+        return false;
+    }
+    const oo::PList* url = manifest.find(std::string(kOOManifestDownloadURL));
+    if (url == nullptr) {
+        OO_LOG("oxz.manager.error", "{}", "Manifest does not have a download URL - cannot install");
+        return false;
+    }
+    // The URL as a string; any other kind fetches nothing and fails at once (proposed ADR-0044).
+    const std::string urlString = ManifestString(manifest, std::string(kOOManifestDownloadURL)).value_or("");
+    if (_downloadStatus != OXZ_DOWNLOAD_NONE) {
+        return false;
+    }
+    _downloadStatus = OXZ_DOWNLOAD_STARTED;
+    _interfaceState = OXZ_STATE_INSTALLING;
+
+    setProgressStatus("");
+    return beginDownload(urlString);
+}
+
+bool OOOXZManager::updateAllOXZ()
+{
+    _dependencyStack.clear();
+    _downloadAllDependencies = true;
+    setFilteredList(_oxzList);
+
+    for (const oo::PList& entry : Elements(_oxzList)) {
+        if (installableState(entry) == OXZ_INSTALLABLE_UPDATE) {
+            OO_LOG("oxz.manager.debug", "Queuing in for update: {}", oo::DescriptionOf(entry));
+            DependencyStackAdd(_dependencyStack, entry);
+        }
+    }
+    // First requirement is front() (was anyObject; order-sensitive — named in commit).
+    const std::optional<std::string> identifier = _dependencyStack.empty()
+        ? std::nullopt
+        : ManifestString(_dependencyStack.front(), std::string(kOOManifestRelationIdentifier));
+    NSUInteger item = NSUIntegerMax;
+    for (NSUInteger i = 0; i < _oxzList.count(); i++) {
+        const std::optional<std::string> availableIdentifier = ManifestString(*_oxzList.at(i), std::string(kOOManifestIdentifier));
+        if (availableIdentifier.has_value() && identifier.has_value() && *availableIdentifier == *identifier) {
+            item = i; // the first equal manifest, as -indexOfObject: found
+            break;
+        }
+    }
+    return installOXZ(item);
+}
+
+bool OOOXZManager::removeOXZ(NSUInteger item)
+{
+    if (_filteredList.count() <= item) {
+        OO_LOG("oxz.manager.debug", "Unable to remove item {} as only {} in list", item, _filteredList.count());
+        return false;
+    }
+    const std::optional<std::string> filename = ManifestString(ElementAt(_filteredList, item), std::string(kOOManifestFilePath));
+    if (!filename.has_value()) {
+        OO_LOG("oxz.manager.debug", "Unable to remove item {} as filename not found", item);
+        return false;
+    }
+
+    if (!oo::fs::removeItem(oo::fs::pathFromUTF8(*filename))) {
+        OO_LOG("oxz.manager.error", "Unable to remove file {}", *filename);
+        return false;
+    }
+    _changesMade = true;
+    _managedList = oo::PList(); // will need updating
+    _interfaceState = OXZ_STATE_REMOVING;
+    gui();
+    return true;
+}
+
+void OOOXZManager::gui()
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
     OOGUIRow startRow = OXZ_GUI_ROW_EXIT;
@@ -1195,7 +1222,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 #if OOLITE_WINDOWS
     /* unlock OXZs ahead of potential changes by making sure sound
      * files aren't being held open */
-    [ResourceManager clearCaches];
+    [::ResourceManager clearCaches];
     [PLAYER destroySound];
 #endif
 
@@ -1241,7 +1268,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     case OXZ_STATE_PICK_REMOVE:
         if (_interfaceState != OXZ_STATE_MAIN) {
             [gui cxx_setText:DescFormat(OO_DESC("oolite-oxzmanager-currentfilter-is-@-@"), { cxx_OOExpand("[oolite_key_oxzmanager_setfilter]").value_or("(null)"), _currentFilter }) forRow:OXZ_GUI_ROW_LISTFILTER align:GUI_ALIGN_LEFT];
-            [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTFILTER];
+            [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTFILTER];
         }
 
         [gui cxx_setText:OO_DESC("oolite-oxzmanager-install") forRow:OXZ_GUI_ROW_INSTALL align:GUI_ALIGN_CENTER];
@@ -1264,7 +1291,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         if (_downloadStatus == OXZ_DOWNLOAD_ERROR) {
             [gui cxx_addLongText:cxx_OOExpandKey("oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
         } else {
-            [gui cxx_addLongText:DescFormat(OO_DESC("oolite-oxzmanager-progress-@-is-@-of-@"), { _currentDownloadName, Arg([self humanSize:_downloadProgress]), Arg([self humanSize:_downloadExpected]) }) startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+            [gui cxx_addLongText:DescFormat(OO_DESC("oolite-oxzmanager-progress-@-is-@-of-@"), { _currentDownloadName, Arg(humanSize(_downloadProgress)), Arg(humanSize(_downloadExpected)) }) startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
         }
         [gui cxx_addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS + 2 align:GUI_ALIGN_LEFT];
 
@@ -1298,7 +1325,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         break;
     case OXZ_STATE_TASKDONE:
         if (_downloadStatus == OXZ_DOWNLOAD_COMPLETE) {
-            [gui cxx_addLongText:DescFormat(OO_DESC("oolite-oxzmanager-progress-done-%u-%u"), { (unsigned long long)_oxzList.count(), (unsigned long long)[self managedOXZs].count() }) startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+            [gui cxx_addLongText:DescFormat(OO_DESC("oolite-oxzmanager-progress-done-%u-%u"), { (unsigned long long)_oxzList.count(), (unsigned long long)managedOXZs().count() }) startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
         } else {
             [gui cxx_addLongText:cxx_OOExpandKey("oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
         }
@@ -1322,18 +1349,18 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         [gui cxx_addLongText:OO_DESC("oolite-oxzmanager-extract-releasebuild")
                startingAtRow:7
                        align:GUI_ALIGN_LEFT];
-        [gui setColor:[OOColor orangeColor] forRow:7];
-        [gui setColor:[OOColor orangeColor] forRow:8];
+        [gui setColor:oo::ToObjC(OOColor::orangeColor()) forRow:7];
+        [gui setColor:oo::ToObjC(OOColor::orangeColor()) forRow:8];
 #endif
         // (a nil identifier or version read "(null)" in the directory name)
-        const std::optional<std::string> path = [self extractionBasePathForIdentifier:identifier.value_or("(null)") andVersion:version.value_or("(null)")];
+        const std::optional<std::string> path = extractionBasePathForIdentifier(identifier.value_or("(null)"), version.value_or("(null)"));
         if (path.has_value() && oo::fs::fileExists(oo::fs::pathFromUTF8(*path))) {
             [gui cxx_addLongText:DescFormat(OO_DESC("oolite-oxzmanager-extract-@-already-exists"), { Arg(path) })
                    startingAtRow:10
                            align:GUI_ALIGN_LEFT];
             startRow = OXZ_GUI_ROW_CANCEL;
             [gui cxx_setText:OO_DESC("oolite-oxzmanager-extract-unavailable") forRow:OXZ_GUI_ROW_PROCEED align:GUI_ALIGN_CENTER];
-            [gui setColor:[OOColor grayColor] forRow:OXZ_GUI_ROW_PROCEED];
+            [gui setColor:oo::ToObjC(OOColor::grayColor()) forRow:OXZ_GUI_ROW_PROCEED];
         } else {
             [gui cxx_addLongText:DescFormat(OO_DESC("oolite-oxzmanager-extract-to-@"), { Arg(path) })
                    startingAtRow:10
@@ -1356,16 +1383,16 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     if (_interfaceState == OXZ_STATE_PICK_INSTALL) {
         [gui cxx_setTitle:OO_DESC("oolite-oxzmanager-title-install")];
-        [self setFilteredList:[self applyCurrentFilter:_oxzList]];
-        startRow = [self showInstallOptions];
+        setFilteredList(applyCurrentFilter(_oxzList));
+        startRow = showInstallOptions();
     } else if (_interfaceState == OXZ_STATE_PICK_INSTALLED) {
         [gui cxx_setTitle:OO_DESC("oolite-oxzmanager-title-installed")];
-        [self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
-        startRow = [self showInstallOptions];
+        setFilteredList(applyCurrentFilter(managedOXZs()));
+        startRow = showInstallOptions();
     } else if (_interfaceState == OXZ_STATE_PICK_REMOVE) {
         [gui cxx_setTitle:OO_DESC("oolite-oxzmanager-title-remove")];
-        [self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
-        startRow = [self showRemoveOptions];
+        setFilteredList(applyCurrentFilter(managedOXZs()));
+        startRow = showRemoveOptions();
     }
 
     if (_changesMade) {
@@ -1384,31 +1411,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-- (BOOL)isRestarting
-{
-    // for the restart
-    if (EXPECT_NOT(_interfaceState == OXZ_STATE_RESTARTING)) {
-        // Rebuilds OXP search
-        [ResourceManager reset];
-        [UNIVERSE reinitAndShowDemo:YES];
-        _changesMade = NO;
-        _interfaceState = OXZ_STATE_MAIN;
-        _downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
-        return YES;
-    } else {
-        return NO;
-    }
-}
-
-- (void)processSelection
+void OOOXZManager::processSelection()
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
     OOGUIRow selection = [gui selectedRow];
 
     if (selection == OXZ_GUI_ROW_EXIT) {
-        [self cancelUpdate]; // doesn't hurt if no update in progress
+        cancelUpdate(); // doesn't hurt if no update in progress
         _dependencyStack.clear(); // cleanup
-        _downloadAllDependencies = NO;
+        _downloadAllDependencies = false;
         _downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
         if (_changesMade) {
             _interfaceState = OXZ_STATE_RESTARTING;
@@ -1428,126 +1439,126 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             _downloadStatus = OXZ_DOWNLOAD_NONE;
         } else if (_interfaceState == OXZ_STATE_TASKDONE || _interfaceState == OXZ_STATE_DEPENDENCIES) {
             _dependencyStack.clear();
-            _downloadAllDependencies = NO;
+            _downloadAllDependencies = false;
             _interfaceState = OXZ_STATE_PICK_INSTALL;
             _downloadStatus = OXZ_DOWNLOAD_NONE;
         } else if (_interfaceState == OXZ_STATE_EXTRACTDONE) {
             _dependencyStack.clear();
-            _downloadAllDependencies = NO;
+            _downloadAllDependencies = false;
             _interfaceState = OXZ_STATE_PICK_INSTALLED;
             _downloadStatus = OXZ_DOWNLOAD_NONE;
         } else if (_interfaceState == OXZ_STATE_INSTALLING || _interfaceState == OXZ_STATE_UPDATING) {
-            [self cancelUpdate]; // sets interface state and download status
+            cancelUpdate(); // sets interface state and download status
         } else if (_interfaceState == OXZ_STATE_EXTRACT) {
             _interfaceState = OXZ_STATE_MAIN;
         } else {
-            [self updateManifests];
+            updateManifests();
         }
     } else if (selection == OXZ_GUI_ROW_INSTALL) {
         _interfaceState = OXZ_STATE_PICK_INSTALL;
     } else if (selection == OXZ_GUI_ROW_INSTALLED) {
         if (_interfaceState == OXZ_STATE_DEPENDENCIES) // also == _PROCEED_ALL
         {
-            _downloadAllDependencies = YES;
-            [self installOXZ:_item];
+            _downloadAllDependencies = true;
+            installOXZ(_item);
         } else {
             _interfaceState = OXZ_STATE_PICK_INSTALLED;
         }
     } else if (selection == OXZ_GUI_ROW_REMOVE) // also == _PROCEED
     {
         if (_interfaceState == OXZ_STATE_DEPENDENCIES) {
-            [self installOXZ:_item];
+            installOXZ(_item);
         } else if (_interfaceState == OXZ_STATE_NODATA) {
             _interfaceState = OXZ_STATE_MAIN;
         } else if (_interfaceState == OXZ_STATE_EXTRACT) {
-            [self setProgressStatus:[self extractOXZ:_item]];
+            setProgressStatus(extractOXZ(_item));
             _interfaceState = OXZ_STATE_EXTRACTDONE;
         } else {
             _interfaceState = OXZ_STATE_PICK_REMOVE;
         }
     } else if (selection == OXZ_GUI_ROW_UPDATE_ALL) {
         OO_LOG("oxz.manager.debug", "{}", "Trying to update all managed OXPs");
-        [self updateAllOXZ];
+        updateAllOXZ();
     } else if (selection == OXZ_GUI_ROW_LISTPREV) {
-        [self processOptionsPrev];
+        processOptionsPrev();
         return;
     } else if (selection == OXZ_GUI_ROW_LISTNEXT) {
-        [self processOptionsNext];
+        processOptionsNext();
         return;
     } else {
         NSUInteger item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
         if (_interfaceState == OXZ_STATE_PICK_REMOVE) {
-            [self removeOXZ:item];
+            removeOXZ(item);
         } else if (_interfaceState == OXZ_STATE_PICK_INSTALL) {
             OO_LOG("oxz.manager.debug", "Trying to install index {}", item);
-            [self installOXZ:item];
+            installOXZ(item);
         } else if (_interfaceState == OXZ_STATE_PICK_INSTALLED) {
             OO_LOG("oxz.manager.debug", "Trying to install index {}", item);
-            [self installOXZ:item];
+            installOXZ(item);
         }
     }
 
-    [self gui]; // update GUI
+    this->gui(); // update GUI
 }
 
-- (BOOL)isAcceptingTextInput
+bool OOOXZManager::isAcceptingTextInput()
 {
     return (_interfaceState == OXZ_STATE_SETFILTER);
 }
 
-- (BOOL)isAcceptingGUIInput
+bool OOOXZManager::isAcceptingGUIInput()
 {
     return !_interfaceShowingOXZDetail;
 }
 
-- (void)processTextInput:(const std::string&)input
+void OOOXZManager::processTextInput(const std::string& input)
 {
-    if ([self validateFilter:input]) {
+    if (validateFilter(input)) {
         if (!input.empty()) {
-            [self setFilter:input];
+            setFilter(input);
         } // else keep previous filter
         _interfaceState = OXZ_STATE_PICK_INSTALL;
-        [self gui];
+        this->gui();
     }
     // else nothing
 }
 
-- (void)refreshTextInput:(const std::string&)input
+void OOOXZManager::refreshTextInput(const std::string& input)
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
     [gui cxx_setText:DescFormat(OO_DESC("oolite-oxzmanager-text-prompt-@"), { input }) forRow:OXZ_GUI_ROW_INPUT align:GUI_ALIGN_LEFT];
-    if ([self validateFilter:input]) {
-        [gui setColor:[OOColor cyanColor] forRow:OXZ_GUI_ROW_INPUT];
+    if (validateFilter(input)) {
+        [gui setColor:oo::ToObjC(OOColor::cyanColor()) forRow:OXZ_GUI_ROW_INPUT];
     } else {
-        [gui setColor:[OOColor orangeColor] forRow:OXZ_GUI_ROW_INPUT];
+        [gui setColor:oo::ToObjC(OOColor::orangeColor()) forRow:OXZ_GUI_ROW_INPUT];
     }
 }
 
-- (void)processFilterKey
+void OOOXZManager::processFilterKey()
 {
     if (_interfaceShowingOXZDetail) {
-        _interfaceShowingOXZDetail = NO;
+        _interfaceShowingOXZDetail = false;
     }
     if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_MAIN) {
         _interfaceState = OXZ_STATE_SETFILTER;
         [[UNIVERSE gameView] resetTypedString];
-        [self gui];
+        this->gui();
     }
     // else this key does nothing
 }
 
-- (void)processShowInfoKey
+void OOOXZManager::processShowInfoKey()
 {
     if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE) {
         GuiDisplayGen* gui = [UNIVERSE gui];
 
         if (_interfaceShowingOXZDetail) {
-            _interfaceShowingOXZDetail = NO;
-            [self gui]; // restore screen
+            _interfaceShowingOXZDetail = false;
+            this->gui(); // restore screen
             // reset list selection position
             [gui setSelectedRow:(_item - _offset + OXZ_GUI_ROW_LISTSTART)];
             // and do the GUI again with the correct positions
-            [self showOptionsUpdate]; // restore screen
+            showOptionsUpdate(); // restore screen
         } else {
             OOGUIRow selection = [gui selectedRow];
 
@@ -1559,7 +1570,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             _item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
 
             const oo::PList manifest = ElementAt(_filteredList, _item);
-            _interfaceShowingOXZDetail = YES;
+            _interfaceShowingOXZDetail = true;
 
             [gui clearAndKeepBackground:YES];
             [gui cxx_setTitle:OO_DESC("oolite-oxzmanager-title-infopage")];
@@ -1598,15 +1609,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                                  { Arg(infoURL) })
                       forRow:25
                        align:GUI_ALIGN_LEFT];
-            [self setOXPURL:infoURL];
+            setOXPURL(infoURL);
             // instructions
             [gui cxx_setText:cxx_OOExpand(cxx_OOLookUpDescriptionPRIV("oolite-oxzmanager-infopage-return")) forRow:27 align:GUI_ALIGN_CENTER];
-            [gui setColor:[OOColor greenColor] forRow:27];
+            [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:27];
         }
     }
 }
 
-- (void)processCopyUrlKey
+void OOOXZManager::processCopyUrlKey()
 {
 
     if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE) {
@@ -1634,7 +1645,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-- (void)processExtractKey
+void OOOXZManager::processExtractKey()
 {
     // TODO: Extraction functionality - converts an installed OXZ to
     // an OXP in the main AddOns folder if it's safe to do so.
@@ -1649,68 +1660,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
         _item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
         _interfaceState = OXZ_STATE_EXTRACT;
-        [self gui];
+        this->gui();
     }
 }
 
-- (BOOL)installOXZ:(NSUInteger)item
-{
-    if (_filteredList.count() <= item) {
-        return NO;
-    }
-    const oo::PList manifest = ElementAt(_filteredList, item);
-    _item = item;
-
-    if ([self installableState:manifest] >= OXZ_UNINSTALLABLE_ALREADY) {
-        OO_LOG("oxz.manager.debug", "Cannot install {}", oo::DescriptionOf(manifest));
-        // can't be installed on this version of Oolite, or already is installed
-        return NO;
-    }
-    const oo::PList* url = manifest.find(std::string(kOOManifestDownloadURL));
-    if (url == nullptr) {
-        OO_LOG("oxz.manager.error", "{}", "Manifest does not have a download URL - cannot install");
-        return NO;
-    }
-    // The URL as a string; any other kind fetches nothing and fails at once (proposed ADR-0044).
-    const std::string urlString = ManifestString(manifest, std::string(kOOManifestDownloadURL)).value_or("");
-    if (_downloadStatus != OXZ_DOWNLOAD_NONE) {
-        return NO;
-    }
-    _downloadStatus = OXZ_DOWNLOAD_STARTED;
-    _interfaceState = OXZ_STATE_INSTALLING;
-
-    [self setProgressStatus:""];
-    return [self beginDownload:urlString];
-}
-
-- (BOOL)updateAllOXZ
-{
-    _dependencyStack.clear();
-    _downloadAllDependencies = YES;
-    [self setFilteredList:_oxzList];
-
-    for (const oo::PList& entry : Elements(_oxzList)) {
-        if ([self installableState:entry] == OXZ_INSTALLABLE_UPDATE) {
-            OO_LOG("oxz.manager.debug", "Queuing in for update: {}", oo::DescriptionOf(entry));
-            DependencyStackAdd(_dependencyStack, entry);
-        }
-    }
-    // First requirement is front() (was anyObject; order-sensitive — named in commit).
-    const std::optional<std::string> identifier = _dependencyStack.empty()
-        ? std::nullopt
-        : ManifestString(_dependencyStack.front(), std::string(kOOManifestRelationIdentifier));
-    NSUInteger item = NSUIntegerMax;
-    for (NSUInteger i = 0; i < _oxzList.count(); i++) {
-        const std::optional<std::string> availableIdentifier = ManifestString(*_oxzList.at(i), std::string(kOOManifestIdentifier));
-        if (availableIdentifier.has_value() && identifier.has_value() && *availableIdentifier == *identifier) {
-            item = i; // the first equal manifest, as -indexOfObject: found
-            break;
-        }
-    }
-    return [self installOXZ:item];
-}
-
-- (std::vector<oo::PList>)installOptions
+std::vector<oo::PList> OOOXZManager::installOptions()
 {
     NSUInteger start = _offset;
     if (start >= _filteredList.count()) {
@@ -1725,11 +1679,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return std::vector<oo::PList>(all.begin() + start, all.begin() + end);
 }
 
-- (OOGUIRow)showInstallOptions
+OOGUIRow OOOXZManager::showInstallOptions()
 {
     // shows the current installation options page
     OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
-    const std::vector<oo::PList> options = [self installOptions];
+    const std::vector<oo::PList> options = installOptions();
     NSUInteger optCount = _filteredList.count();
     GuiDisplayGen* gui = [UNIVERSE gui];
     OOGUITabSettings tab_stops;
@@ -1746,7 +1700,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                forRow:OXZ_GUI_ROW_LISTHEAD];
 
     if (_offset > 0) {
-        [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTPREV];
+        [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTPREV];
         [gui cxx_setArray:Columns({ OO_DESC("gui-back"), "", "", " <-- " }) forRow:OXZ_GUI_ROW_LISTPREV];
         [gui cxx_setKey:"_BACK" forRow:OXZ_GUI_ROW_LISTPREV];
     } else {
@@ -1757,7 +1711,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         [gui cxx_setKey:std::string(GUI_KEY_SKIP) forRow:OXZ_GUI_ROW_LISTPREV];
     }
     if (_offset + 10 < optCount) {
-        [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
+        [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTNEXT];
         [gui cxx_setArray:Columns({ OO_DESC("gui-more"), "", "", " --> " }) forRow:OXZ_GUI_ROW_LISTNEXT];
         [gui cxx_setKey:"_NEXT" forRow:OXZ_GUI_ROW_LISTNEXT];
     } else {
@@ -1780,12 +1734,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     OOGUIRow row = OXZ_GUI_ROW_LISTSTART;
-    BOOL oxzLineSelected = NO;
-    const std::optional<std::string> installPath = [self installPath];
+    bool oxzLineSelected = false;
+    const std::optional<std::string> installPath = this->installPath();
 
     for (const oo::PList& manifest : options) {
         const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
-        oo::PList installed = [ResourceManager cxx_manifestForIdentifier:identifier.value_or(std::string())];
+        oo::PList installed = [::ResourceManager cxx_manifestForIdentifier:identifier.value_or(std::string())];
         const std::string localPath = oo::str::appendingPathComponent(installPath.value_or(std::string()), identifier.value_or(std::string())) + ".oxz";
         const auto readLocalManifest = [&localPath] { return PListDictionaryFromFile(oo::str::appendingPathComponent(localPath, "manifest.plist")); };
         if (!installed) {
@@ -1820,13 +1774,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
         [gui cxx_setKey:identifier.value_or(std::string()) forRow:row];
         /* yellow for installable, orange for dependency issues, grey and unselectable for version issues, white and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version. */
-        [gui setColor:[self colorForManifest:manifest] forRow:row];
+        [gui setColor:oo::ToObjC(colorForManifest(manifest)) forRow:row];
 
         if (row == [gui selectedRow]) {
-            oxzLineSelected = YES;
+            oxzLineSelected = true;
 
-            [gui cxx_setText:[self installStatusForManifest:manifest].value_or(std::string()) forRow:OXZ_GUI_ROW_LISTSTATUS];
-            [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
+            [gui cxx_setText:installStatusForManifest(manifest).value_or(std::string()) forRow:OXZ_GUI_ROW_LISTSTATUS];
+            [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTSTATUS];
 
             [gui cxx_addLongText:FirstDescriptionLine(manifest) startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
@@ -1842,10 +1796,10 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 // keep only the first part of the date string description, which should be in YYYY-MM-DD format
                 const std::string updatedDesc = oo::str::split(oo::date::description(oo::date::dateWithTimeIntervalSince1970(timestamp)), " ").front();
 
-                [gui cxx_setArray:Columns({ OO_DESC("oolite-oxzmanager-infoline-size"), [self humanSize:size], OO_DESC("oolite-oxzmanager-infoline-date"), updatedDesc }) forRow:OXZ_GUI_ROW_LISTINFO2];
+                [gui cxx_setArray:Columns({ OO_DESC("oolite-oxzmanager-infoline-size"), humanSize(size), OO_DESC("oolite-oxzmanager-infoline-date"), updatedDesc }) forRow:OXZ_GUI_ROW_LISTINFO2];
             } else if (size > 0) {
                 // list of installed/removable OXZs
-                [gui cxx_setArray:Columns({ OO_DESC("oolite-oxzmanager-infoline-size"), [self humanSize:size] }) forRow:OXZ_GUI_ROW_LISTINFO2];
+                [gui cxx_setArray:Columns({ OO_DESC("oolite-oxzmanager-infoline-size"), humanSize(size) }) forRow:OXZ_GUI_ROW_LISTINFO2];
             }
         }
 
@@ -1865,30 +1819,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return startRow;
 }
 
-- (BOOL)removeOXZ:(NSUInteger)item
-{
-    if (_filteredList.count() <= item) {
-        OO_LOG("oxz.manager.debug", "Unable to remove item {} as only {} in list", item, _filteredList.count());
-        return NO;
-    }
-    const std::optional<std::string> filename = ManifestString(ElementAt(_filteredList, item), std::string(kOOManifestFilePath));
-    if (!filename.has_value()) {
-        OO_LOG("oxz.manager.debug", "Unable to remove item {} as filename not found", item);
-        return NO;
-    }
-
-    if (!oo::fs::removeItem(oo::fs::pathFromUTF8(*filename))) {
-        OO_LOG("oxz.manager.error", "Unable to remove file {}", *filename);
-        return NO;
-    }
-    _changesMade = YES;
-    _managedList = oo::PList(); // will need updating
-    _interfaceState = OXZ_STATE_REMOVING;
-    [self gui];
-    return YES;
-}
-
-- (std::vector<oo::PList>)removeOptions
+std::vector<oo::PList> OOOXZManager::removeOptions()
 {
     if (_filteredList.count() == 0) {
         return { };
@@ -1906,11 +1837,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return std::vector<oo::PList>(all.begin() + start, all.begin() + end);
 }
 
-- (OOGUIRow)showRemoveOptions
+OOGUIRow OOOXZManager::showRemoveOptions()
 {
     // shows the current installation options page
     OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
-    const std::vector<oo::PList> options = [self removeOptions];
+    const std::vector<oo::PList> options = removeOptions();
     GuiDisplayGen* gui = [UNIVERSE gui];
     if (options.empty()) {
         [gui cxx_addLongText:OO_DESC("oolite-oxzmanager-nothing-removable") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
@@ -1928,7 +1859,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                           OO_DESC("oolite-oxzmanager-heading-version") })
                forRow:OXZ_GUI_ROW_LISTHEAD];
     if (_offset > 0) {
-        [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTPREV];
+        [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTPREV];
         [gui cxx_setArray:Columns({ OO_DESC("gui-back"), "", " <-- " }) forRow:OXZ_GUI_ROW_LISTPREV];
         [gui cxx_setKey:"_BACK" forRow:OXZ_GUI_ROW_LISTPREV];
     } else {
@@ -1938,8 +1869,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         [gui cxx_setText:"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
         [gui cxx_setKey:std::string(GUI_KEY_SKIP) forRow:OXZ_GUI_ROW_LISTPREV];
     }
-    if (_offset + OXZ_GUI_NUM_LISTROWS < [self managedOXZs].count()) {
-        [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
+    if (_offset + OXZ_GUI_NUM_LISTROWS < managedOXZs().count()) {
+        [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTNEXT];
         [gui cxx_setArray:Columns({ OO_DESC("gui-more"), "", " --> " }) forRow:OXZ_GUI_ROW_LISTNEXT];
         [gui cxx_setKey:"_NEXT" forRow:OXZ_GUI_ROW_LISTNEXT];
     } else {
@@ -1962,7 +1893,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     OOGUIRow row = OXZ_GUI_ROW_LISTSTART;
-    BOOL oxzSelected = NO;
+    bool oxzSelected = false;
 
     for (const oo::PList& manifest : options) {
 
@@ -1973,15 +1904,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
         [gui cxx_setKey:identifier.value_or(std::string()) forRow:row];
 
-        [gui setColor:[self colorForManifest:manifest] forRow:row];
+        [gui setColor:oo::ToObjC(colorForManifest(manifest)) forRow:row];
 
         if (row == [gui selectedRow]) {
-            [gui cxx_setText:[self installStatusForManifest:manifest].value_or(std::string()) forRow:OXZ_GUI_ROW_LISTSTATUS];
-            [gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
+            [gui cxx_setText:installStatusForManifest(manifest).value_or(std::string()) forRow:OXZ_GUI_ROW_LISTSTATUS];
+            [gui setColor:oo::ToObjC(OOColor::greenColor()) forRow:OXZ_GUI_ROW_LISTSTATUS];
 
             [gui cxx_addLongText:FirstDescriptionLine(manifest) startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
-            oxzSelected = YES;
+            oxzSelected = true;
         }
         row++;
     }
@@ -1993,68 +1924,68 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return startRow;
 }
 
-- (void)showOptionsUpdate
+void OOOXZManager::showOptionsUpdate()
 {
 
     if (_interfaceState == OXZ_STATE_PICK_INSTALL) {
-        [self setFilteredList:[self applyCurrentFilter:_oxzList]];
-        [self showInstallOptions];
+        setFilteredList(applyCurrentFilter(_oxzList));
+        showInstallOptions();
     } else if (_interfaceState == OXZ_STATE_PICK_INSTALLED) {
-        [self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
-        [self showInstallOptions];
+        setFilteredList(applyCurrentFilter(managedOXZs()));
+        showInstallOptions();
     } else if (_interfaceState == OXZ_STATE_PICK_REMOVE) {
-        [self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
-        [self showRemoveOptions];
+        setFilteredList(applyCurrentFilter(managedOXZs()));
+        showRemoveOptions();
     }
     // else nothing necessary
 }
 
-- (void)showOptionsPrev
+void OOOXZManager::showOptionsPrev()
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
     if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_PICK_INSTALLED) {
         if ([gui selectedRow] == OXZ_GUI_ROW_LISTPREV) {
-            [self processSelection];
+            processSelection();
         }
     }
 }
 
-- (void)processOptionsPrev
+void OOOXZManager::processOptionsPrev()
 {
     if (_offset < OXZ_GUI_NUM_LISTROWS) {
         _offset = 0;
     } else {
         _offset -= OXZ_GUI_NUM_LISTROWS;
     }
-    [self showOptionsUpdate];
+    showOptionsUpdate();
 }
 
-- (void)processOptionsNext
+void OOOXZManager::processOptionsNext()
 {
     if (_offset + OXZ_GUI_NUM_LISTROWS < _filteredList.count()) {
         _offset += OXZ_GUI_NUM_LISTROWS;
     }
-    [self showOptionsUpdate];
+    showOptionsUpdate();
     return;
 }
 
-- (void)showOptionsNext
+void OOOXZManager::showOptionsNext()
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
     if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_PICK_INSTALLED) {
         if ([gui selectedRow] == OXZ_GUI_ROW_LISTNEXT) {
-            [self processSelection];
+            processSelection();
         }
     }
 }
 
-- (std::string)extractOXZ:(NSUInteger)item
+std::string OOOXZManager::extractOXZ(NSUInteger item)
 {
     std::string extractionLog;
     const oo::PList manifest = ElementAt(_filteredList, item);
     const std::optional<std::string> version = ManifestString(manifest, std::string(kOOManifestVersion));
     const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
-    const std::optional<std::string> path = [self extractionBasePathForIdentifier:identifier.value_or("") andVersion:version.value_or("")];
+    const std::optional<std::string> path = extractionBasePathForIdentifier(identifier.value_or(""), version.value_or(""));
 
     const std::optional<std::string> oxzfile = ManifestString(manifest, std::string(kOOManifestFilePath));
     if (!oxzfile.has_value() || !oo::fs::fileExists(oo::fs::pathFromUTF8(*oxzfile))) {
@@ -2091,7 +2022,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     extractionLog += OO_DESC("oolite-oxzmanager-extract-log-main-created");
     NSUInteger counter = 0;
     char rawComponentName[512];
-    BOOL error = NO;
+    bool error = false;
     unz_file_info64 file_info = { 0 };
     if (unzGoToFirstFile(uf) == UNZ_OK) {
         do {
@@ -2105,7 +2036,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 if (!oo::fs::createDirectories(oo::fs::pathFromUTF8(folderPath))) {
                     OO_LOG("oxz.manager.error", "Subpath {} could not be created", componentName);
                     extractionLog += OO_DESC("oolite-oxzmanager-extract-log-sub-failed");
-                    error = YES;
+                    error = true;
                     break;
                 } else {
                     OO_LOG("oxz.manager.debug", "Subpath {} created OK", componentName);
@@ -2117,7 +2048,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     && !oo::fs::createDirectories(oo::fs::pathFromUTF8(folder))) {
                     OO_LOG("oxz.manager.error", "Subpath {} could not be created", folder);
                     extractionLog += OO_DESC("oolite-oxzmanager-extract-log-sub-failed");
-                    error = YES;
+                    error = true;
                     break;
                 }
 
@@ -2126,13 +2057,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 if (!tmp.has_value()) {
                     OO_LOG("oxz.manager.error", "Sub file {} could not be extracted from the OXZ", componentName);
                     extractionLog += OO_DESC("oolite-oxzmanager-extract-log-sub-failed");
-                    error = YES;
+                    error = true;
                     break;
                 } else {
                     if (!oo::fs::writeFile(oo::fs::pathFromUTF8(fullComponent), *tmp, oo::fs::WriteMode::atomic)) {
                         OO_LOG("oxz.manager.error", "Sub file {} could not be created", componentName);
                         extractionLog += OO_DESC("oolite-oxzmanager-extract-log-sub-failed");
-                        error = YES;
+                        error = true;
                         break;
                     } else {
                         ++counter;
@@ -2151,7 +2082,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return extractionLog;
 }
 
-- (void)downloadDidReceiveResponse:(long long)expectedContentLength
+void OOOXZManager::downloadDidReceiveResponse(long long expectedContentLength)
 {
     _downloadStatus = OXZ_DOWNLOAD_RECEIVING;
     OO_LOG("oxz.manager.debug", "{}", "Download receiving");
@@ -2161,23 +2092,23 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         fclose(_fileWriter);
         _fileWriter = NULL;
     }
-    const std::optional<std::string> path = [self downloadPath];
+    const std::optional<std::string> path = downloadPath();
     _fileWriter = path.has_value() ? oo::fs::createFileForWriting(oo::fs::pathFromUTF8(*path)) : NULL;
     if (_fileWriter == NULL) {
         // file system is full or read-only or something
         OO_LOG("oxz.manager.error", "{}", "Unable to create download file");
-        [self cancelUpdate];
+        cancelUpdate();
     }
 }
 
-- (void)downloadDidReceiveData:(const std::string&)data
+void OOOXZManager::downloadDidReceiveData(const std::string& data)
 {
     OO_LOG("oxz.manager.debug", "Downloaded {} bytes", data.size());
     if (_fileWriter != NULL) {
         fwrite(data.data(), 1, data.size(), _fileWriter);
     }
     _downloadProgress += data.size();
-    [self gui]; // update GUI
+    gui(); // update GUI
 #if OOLITE_WINDOWS
     /* Irritating fix to issue https://github.com/OoliteProject/oolite/issues/95
      *
@@ -2204,7 +2135,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 #endif
 }
 
-- (void)downloadDidFinishLoading
+void OOOXZManager::downloadDidFinishLoading()
 {
     _downloadStatus = OXZ_DOWNLOAD_COMPLETE;
     OO_LOG("oxz.manager.debug", "{}", "Download complete");
@@ -2216,11 +2147,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     delete _currentDownload;
     _currentDownload = nullptr;
     if (_interfaceState == OXZ_STATE_UPDATING) {
-        if (![self processDownloadedManifests]) {
+        if (!processDownloadedManifests()) {
             _downloadStatus = OXZ_DOWNLOAD_ERROR;
         }
     } else if (_interfaceState == OXZ_STATE_INSTALLING) {
-        if (![self processDownloadedOXZ]) {
+        if (!processDownloadedOXZ()) {
             _downloadStatus = OXZ_DOWNLOAD_ERROR;
         }
     } else {
@@ -2229,7 +2160,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 }
 
-- (void)downloadDidFailWithError:(const std::string&)error
+void OOOXZManager::downloadDidFailWithError(const std::string& error)
 {
     _downloadStatus = OXZ_DOWNLOAD_ERROR;
     OO_LOG("oxz.manager.error", "Error downloading file: {}", error);
@@ -2241,4 +2172,4 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     _currentDownload = nullptr;
 }
 
-@end
+} // namespace cxx

@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOColor.h"
 #import "OOFlasherEntity.h"
+#import "OOJSFlasher.h"
 
 @implementation OOFlasherEntity
 
@@ -95,6 +96,23 @@ MA 02110-1301, USA.
 - (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
 {
     oo::ToCxx(self)->rescaleBy(factor, writeToCache);
+}
+
+// The JS side, which the engine asks for by selector (Entity (OOJavaScriptExtensions)): the
+// binding's category, moved here from the binding's bridge file, which it deletes (bead oo-9ht.49;
+// ADR-0056 amendment oo-6ia4 item 3). Each forwards to the OOJSFlasher.mm function that holds its
+// old body; they become members of the C++ class with this facade's deletion (oo-9ht.107).
+- (JSClassID)oo_jsClassID
+{
+    return ::JSFlasherClassID();
+}
+- (std::optional<std::string>)cxx_oo_jsClassName
+{
+    return ::OOJSFlasherJSClassName();
+}
+- (BOOL)isVisibleToScripts
+{
+    return ::OOJSFlasherIsVisibleToScripts();
 }
 
 @end

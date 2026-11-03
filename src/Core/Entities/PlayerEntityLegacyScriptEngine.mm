@@ -1033,7 +1033,7 @@ static int shipsFound;
 
 - (oo::PList)fuelLevel_number // called by name (ADR-0043 item 21); returns the fuel level in LY
 {
-    return oo::PList::singleReal((float)(floor(0.1 * fuel)));
+    return oo::PList::singleReal((float)(floor(0.1 * _cxxShip->fuel)));
 }
 
 - (oo::PList)dockedAtMainStation_bool // called by name (ADR-0043 item 21)
@@ -1240,7 +1240,7 @@ static int shipsFound;
 
     const std::string equipKey = equipString;
     if (equipKey == "EQ_FUEL") {
-        fuel = 0;
+        _cxxShip->fuel = 0;
         return;
     }
 
@@ -1356,13 +1356,13 @@ static int shipsFound;
 
     if (forceRemoval && [self status] != STATUS_DOCKED) {
         NSInteger i;
-        for (i = cargo.size() - 1; i >= 0; i--) {
-            ShipEntity* canister = cargo[i].get();
+        for (i = _cxxShip->cargo.size() - 1; i >= 0; i--) {
+            ShipEntity* canister = _cxxShip->cargo[i].get();
             if (!canister)
                 break;
             // Since we are forcing cargo removal, we don't really care about the unit of measurement. Any
             // commodity at more than 1000kg or 1000000gr will be inside cargopods, so remove those too.
-            cargo.erase(cargo.begin() + i);
+            _cxxShip->cargo.erase(_cxxShip->cargo.begin() + i);
         }
     }
 

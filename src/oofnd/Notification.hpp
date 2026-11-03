@@ -80,7 +80,9 @@ public:
     // The process-wide center, as +[NSNotificationCenter defaultCenter].
     static NotificationCenter& defaultCenter()
     {
-        static NotificationCenter center;
+        // Immortal (bead oo-9ht.173): an object freed by a pool drained at thread detach, after the
+        // CRT's static destructors, may still remove its observers here.
+        static NotificationCenter& center = *new NotificationCenter;
         return center;
     }
 

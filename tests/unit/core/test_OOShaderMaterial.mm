@@ -13,12 +13,21 @@
 	bindings and the whitelist, random values under the target's seed, gloss and gamma
 	defaults); the textures loaded or passed in; and -doApply, -unapplyWithNext:, the loading
 	questions, -setBindingTarget:, -permitSpecular and the description. Those checks ran on the
-	Objective-C class first and now run through the facade. After them: the C++ API (null where the
+	Objective-C class first and then through the facade. After them: the C++ API (null where the
 	initialiser answered nil), and the facade's class and identity.
+
+	Bead oo-9ht.46 deleted the facade (ADR-0056 amendment "deleting a facade"). The cases that asked
+	through its selectors ask the C++ class with the same expectations (alloc/init and the factory
+	are shaderMaterialWithName(), nil is null, retain/release a held Ref, each -setUniform:...Value:
+	the overload its comment names); the facade's own case (facade) was retired with it (ADR-0049,
+	standing approval oo-9n5p9), and crossesAsTheBasicMaterialFacade pins what Objective-C sees now:
+	the nearest facade, OOBasicMaterial's.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOShaderMaterial.h"
+#import "OOShaderUniform.h"
+#import "OORegExpMatcher.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODescription.h"
 #import "OOObjCPList.h"
@@ -87,15 +96,10 @@ static std::vector<std::string> gShaderFileRequests;
 @end
 
 
-@interface OORegExpMatcher: OOObject
-+ (instancetype) regExpMatcher;
-- (BOOL) string:(const std::string &)string matchesExpression:(const std::string &)regExp;
-@end
-
-@implementation OORegExpMatcher
-+ (instancetype) regExpMatcher  { return [[[self alloc] init] autorelease]; }
-- (BOOL) string:(const std::string &)string matchesExpression:(const std::string &)regExp  { return NO; }
-@end
+// OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
+oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
+bool OORegExpMatcher::string(const std::string &, const std::string &)  { return false; }
+OORegExpMatcher::~OORegExpMatcher()  {}
 
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
@@ -161,62 +165,49 @@ static std::vector<std::string> gUniforms;
 static int gUniformApplies = 0;
 static std::vector<std::string> gUniformTargets;
 
-@interface OOShaderUniform: OOObject
-{
-@public
-	std::string	_name;
-}
-@end
+// OOShaderUniform is C++ since its facade was deleted (bead oo-9ht.55): the same stand-in, as
+// definitions of the members the material calls. Each initialiser is recorded as "name kind
+// value"; the name "bad" fails (null).
+#define OO_TEST_MADE_UNIFORM(uniformName, what)	\
+	do {	\
+		gUniforms.push_back((uniformName) + " " + (what));	\
+		if ((uniformName) == "bad")  return nullptr;	\
+		oo::Ref<OOShaderUniform> made = oo::adopt(new OOShaderUniform());	\
+		made->name = (uniformName);	\
+		return made;	\
+	} while (0)
 
-@implementation OOShaderUniform
-
-- (id) made:(const std::string &)name what:(const std::string &)what
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *shaderProgram, GLint constValue)
 {
-	gUniforms.push_back(name + " " + what);
-	if (name == "bad")
-	{
-		[self release];
-		return nil;
-	}
-	self = [super init];
-	_name = name;
-	return self;
+	OO_TEST_MADE_UNIFORM(uniformName, "int " + std::to_string(constValue) + (shaderProgram != nil ? "" : " (no program)"));
 }
 
-- (id)initWithName:(const std::string &)uniformName shaderProgram:(OOShaderProgram *)shaderProgram intValue:(GLint)constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, GLfloat constValue)
 {
-	return [self made:uniformName what:"int " + std::to_string(constValue) + (shaderProgram != nil ? "" : " (no program)")];
+	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("float %g", constValue));
 }
 
-- (id)initWithName:(const std::string &)uniformName shaderProgram:(OOShaderProgram *)shaderProgram floatValue:(GLfloat)constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, GLfloat constValue[4])
 {
-	return [self made:uniformName what:oo::str::format("float %g", constValue)];
+	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("vector %g %g %g %g", constValue[0], constValue[1], constValue[2], constValue[3]));
 }
 
-- (id)initWithName:(const std::string &)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(GLfloat[4])constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, Quaternion constValue, bool asMatrix)
 {
-	return [self made:uniformName what:oo::str::format("vector %g %g %g %g", constValue[0], constValue[1], constValue[2], constValue[3])];
+	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("quaternion %g %g %g %g %s", constValue.w, constValue.x, constValue.y, constValue.z, asMatrix ? "matrix" : "vector"));
 }
 
-- (id)initWithName:(const std::string &)uniformName shaderProgram:(OOShaderProgram *)shaderProgram quaternionValue:(Quaternion)constValue asMatrix:(BOOL)asMatrix
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, ::OOShaderProgram *, id<OOWeakReferenceSupport>, SEL selector, OOUniformConvertOptions options)
 {
-	return [self made:uniformName what:oo::str::format("quaternion %g %g %g %g %s", constValue.w, constValue.x, constValue.y, constValue.z, asMatrix ? "matrix" : "vector")];
+	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("binding %s options %u", sel_getName(selector), (unsigned)options));
 }
 
-- (id)initWithName:(const std::string &)uniformName
-	 shaderProgram:(OOShaderProgram *)shaderProgram
-	 boundToObject:(id<OOWeakReferenceSupport>)target
-		  property:(SEL)selector
-	convertOptions:(OOUniformConvertOptions)options
-{
-	return [self made:uniformName what:oo::str::format("binding %s options %u", sel_getName(selector), (unsigned)options)];
-}
+#undef OO_TEST_MADE_UNIFORM
 
-- (void) apply											{ gUniformApplies++; }
-- (void) setBindingTarget:(id<OOWeakReferenceSupport>)target	{ gUniformTargets.push_back(_name + (target != nil ? " target" : " nil")); }
-- (std::optional<std::string>) cxx_descriptionComponents	{ return _name; }
-
-@end
+OOShaderUniform::~OOShaderUniform()  {}
+std::optional<std::string> OOShaderUniform::description()					{ return name; }
+void OOShaderUniform::apply()												{ gUniformApplies++; }
+void OOShaderUniform::setBindingTarget(id<OOWeakReferenceSupport> target)	{ gUniformTargets.push_back(name + (target != nil ? " target" : " nil")); }
 
 
 // The textures: "missing" fails to load, and then the null texture stands in.
@@ -311,12 +302,12 @@ oo::PList Config(oo::PList::Dict dict)
 const oo::PList kSources = Config({ { "_oo_vertex_shader_source", oo::PList("VS") }, { "_oo_fragment_shader_source", oo::PList("FS") } });
 
 
-OOShaderMaterial *Make(const oo::PList &configuration, const oo::PList &macros = oo::PList(), id<OOWeakReferenceSupport> target = nil)
+oo::Ref<OOShaderMaterial> Make(const oo::PList &configuration, const oo::PList &macros = oo::PList(), id<OOWeakReferenceSupport> target = nil)
 {
 	gProgramRequests.clear();
 	gUniforms.clear();
 	gShaderFileRequests.clear();
-	return [[[OOShaderMaterial alloc] initWithName:std::string("Shader") configuration:configuration macros:macros bindingTarget:target] autorelease];
+	return OOShaderMaterial::shaderMaterialWithName(std::string("Shader"), configuration, macros, target);
 }
 
 
@@ -332,15 +323,15 @@ oo::PList With(const oo::PList &base, oo::PList::Dict more)
 
 OO_TEST(specifiesShaderMaterial)
 {
-	OO_CHECK(![OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:oo::PList()]);
-	OO_CHECK(![OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({})]);
-	OO_CHECK([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({ { "vertex_shader", oo::PList("v") } })]);
-	OO_CHECK([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({ { "_oo_vertex_shader_source", oo::PList("v") } })]);
-	OO_CHECK([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({ { "_oo_fragment_shader_source", oo::PList("f") } })]);
-	OO_CHECK([OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({ { "vertex_shader", oo::PList(std::int64_t(3)) } })]);	// a number's string value
+	OO_CHECK(!OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(oo::PList()));
+	OO_CHECK(!OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({})));
+	OO_CHECK(OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({ { "vertex_shader", oo::PList("v") } })));
+	OO_CHECK(OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({ { "_oo_vertex_shader_source", oo::PList("v") } })));
+	OO_CHECK(OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({ { "_oo_fragment_shader_source", oo::PList("f") } })));
+	OO_CHECK(OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({ { "vertex_shader", oo::PList(std::int64_t(3)) } })));	// a number's string value
 	// Only the vertex shader's name is asked, twice: a fragment shader name alone does not count.
-	OO_CHECK(![OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({ { "fragment_shader", oo::PList("f") } })]);
-	OO_CHECK(![OOShaderMaterial configurationDictionarySpecifiesShaderMaterial:Config({ { "vertex_shader", oo::PList(oo::PList::Array{}) } })]);
+	OO_CHECK(!OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({ { "fragment_shader", oo::PList("f") } })));
+	OO_CHECK(!OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(Config({ { "vertex_shader", oo::PList(oo::PList::Array{}) } })));
 }
 
 
@@ -350,8 +341,8 @@ OO_TEST(programFromSources)
 	@autoreleasepool
 	{
 		const std::string units = std::to_string(TextureUnits());
-		OOShaderMaterial *m = Make(kSources, Config({ { "A", oo::PList(std::int64_t(1)) }, { "B", oo::PList("two") } }));
-		OO_CHECK(m != nil && [m cxx_name] == std::optional<std::string>("Shader"));
+		oo::Ref<OOShaderMaterial> m = Make(kSources, Config({ { "A", oo::PList(std::int64_t(1)) }, { "B", oo::PList("two") } }));
+		OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Shader"));
 		const std::string prefix = "#define A  1\n#define B  two\n#define OO_TEXTURE_UNIT_COUNT  " + units + "\n\n\n";
 		OO_CHECK(gProgramRequests.size() == 1);
 		OO_CHECK(gProgramRequests[0] == "vs=VS fs=FS vsName=<synthesized> fsName=<synthesized> prefix=" + prefix
@@ -361,7 +352,7 @@ OO_TEST(programFromSources)
 
 		// No macros: only the unit count.
 		m = Make(Config({ { "_oo_vertex_shader_source", oo::PList("VS") } }));
-		OO_CHECK(m != nil && gProgramRequests.size() == 1);
+		OO_CHECK(m != nullptr && gProgramRequests.size() == 1);
 		OO_CHECK(gProgramRequests[0].starts_with("vs=VS fs=(nil) vsName=<synthesized> fsName=(nil) prefix=#define OO_TEXTURE_UNIT_COUNT  " + units + "\n\n\n"));
 		OO_CHECK(gProgramRequests[0].ends_with(" key=$VERTEX:\nVS\n\n$FRAGMENT:\n(null)\n\n$MACROS:\n#define OO_TEXTURE_UNIT_COUNT  " + units + "\n\n\n\n"));
 	}
@@ -377,19 +368,19 @@ OO_TEST(programFromFiles)
 
 		// A name with no extension tries it bare, then .vertex (found). One with an unknown
 		// extension tries it bare, then .fragment and .frag (found).
-		OOShaderMaterial *m = Make(Config({ { "vertex_shader", oo::PList("hull") }, { "fragment_shader", oo::PList("hull.fs") } }));
-		OO_CHECK(m != nil);
+		oo::Ref<OOShaderMaterial> m = Make(Config({ { "vertex_shader", oo::PList("hull") }, { "fragment_shader", oo::PList("hull.fs") } }));
+		OO_CHECK(m != nullptr);
 		OO_CHECK(gShaderFileRequests == (std::vector<std::string>{ "Shaders/hull", "Shaders/hull.vertex", "Shaders/hull.fs", "Shaders/hull.fs.fragment", "Shaders/hull.fs.frag" }));
 		OO_CHECK(gProgramRequests.size() == 1 && gProgramRequests[0].starts_with("vs=VSRC fs=FSRC vsName=hull fsName=hull.fs prefix="));
 		OO_CHECK(gProgramRequests[0].find(" key=$VERTEX:\nhull\n\n$FRAGMENT:\nhull.fs\n\n$MACROS:\n") != std::string::npos);
 
 		// A name that has one of the two extensions is not extended.
 		m = Make(Config({ { "fragment_shader", oo::PList("plain.fragment") } }));
-		OO_CHECK(m != nil && gShaderFileRequests == (std::vector<std::string>{ "Shaders/plain.fragment" }));
+		OO_CHECK(m != nullptr && gShaderFileRequests == (std::vector<std::string>{ "Shaders/plain.fragment" }));
 
 		// A file that is not there: no material, and no program asked for.
 		m = Make(Config({ { "vertex_shader", oo::PList("gone.vert") } }));
-		OO_CHECK(m == nil && gProgramRequests.empty());
+		OO_CHECK(m == nullptr && gProgramRequests.empty());
 		OO_CHECK(gShaderFileRequests == (std::vector<std::string>{ "Shaders/gone.vert" }));
 		gShaderFiles.clear();
 	}
@@ -401,13 +392,13 @@ OO_TEST(failures)
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OO_CHECK(Make(oo::PList()) == nil);	// no configuration
-		OO_CHECK(Make(Config({ { "gloss", oo::PList(0.5) } })) == nil && gProgramRequests.empty());	// no shader
-		OO_CHECK(Make(With(kSources, { { "_oo_vertex_shader_source", oo::PList("fail") } })) == nil);	// no program
+		OO_CHECK(Make(oo::PList()) == nullptr);	// no configuration
+		OO_CHECK(Make(Config({ { "gloss", oo::PList(0.5) } })) == nullptr && gProgramRequests.empty());	// no shader
+		OO_CHECK(Make(With(kSources, { { "_oo_vertex_shader_source", oo::PList("fail") } })) == nullptr);	// no program
 		OO_CHECK(gProgramRequests.size() == 1 && gUniforms.empty());
-		OO_CHECK([OOShaderMaterial shaderMaterialWithName:std::string("S") configuration:oo::PList() macros:oo::PList() bindingTarget:nil] == nil);
-		OOShaderMaterial *made = [OOShaderMaterial shaderMaterialWithName:std::string("S") configuration:kSources macros:oo::PList() bindingTarget:nil];
-		OO_CHECK(made != nil && [made cxx_name] == std::optional<std::string>("S"));
+		OO_CHECK(OOShaderMaterial::shaderMaterialWithName(std::string("S"), oo::PList(), oo::PList(), nil) == nullptr);
+		const oo::Ref<OOShaderMaterial> made = OOShaderMaterial::shaderMaterialWithName(std::string("S"), kSources, oo::PList(), nil);
+		OO_CHECK(made != nullptr && made->name() == std::optional<std::string>("S"));
 	}
 }
 
@@ -419,7 +410,7 @@ OO_TEST(uniformsFromTheConfiguration)
 	{
 		TestTarget *target = [[[TestTarget alloc] init] autorelease];
 		const RANROTSeed before = RANROTGetFullSeed();
-		OOShaderMaterial *m = Make(With(kSources, { { "uniforms", Config({
+		oo::Ref<OOShaderMaterial> m = Make(With(kSources, { { "uniforms", Config({
 			{ "a", oo::PList(1.5) },
 			{ "b", Config({ { "type", oo::PList("int") }, { "value", oo::PList(std::int64_t(3)) } }) },
 			{ "c", oo::PList("2.5") },
@@ -433,7 +424,7 @@ OO_TEST(uniformsFromTheConfiguration)
 			{ "k", Config({ { "type", oo::PList("randomFloat") }, { "scale", oo::PList(2.0) } }) },
 			{ "uGloss", oo::PList(0.25) },
 		}) } }), oo::PList(), target);
-		OO_CHECK(m != nil);
+		OO_CHECK(m != nullptr);
 
 		// The random value is the target's seed's first draw, scaled; the seed is put back after.
 		RANROTSeed seeded = RANROTGetFullSeed();
@@ -473,20 +464,20 @@ OO_TEST(settingUniforms)
 	@autoreleasepool
 	{
 		TestTarget *target = [[[TestTarget alloc] init] autorelease];
-		OOShaderMaterial *m = Make(kSources);
+		const oo::Ref<OOShaderMaterial> m = Make(kSources);
 		gUniforms.clear();
-		[m setUniform:"i" intValue:7];
-		[m setUniform:"f" floatValue:0.5f];
+		m->setUniform("i", 7);
+		m->setUniform("f", 0.5f);
 		GLfloat v[4] = { 1, 2, 3, 4 };
-		[m setUniform:"v" vectorValue:v];
-		[m setUniform:"o" vectorObjectValue:oo::PList(oo::PList::Array{ oo::PList(5.0), oo::PList(6.0), oo::PList(7.0), oo::PList(8.0) })];
-		[m setUniform:"p" vectorObjectValue:oo::PList(oo::PList::Array{ oo::PList(1.0), oo::PList(2.0), oo::PList(3.0) })];	// a vector: w is 1
-		[m setUniform:"q" quaternionValue:kIdentityQuaternion asMatrix:YES];
-		OO_CHECK([m bindUniform:"b" toObject:target property:OOSelectorFromName("someBinding") convertOptions:kOOUniformConvertClamp]);
-		OO_CHECK([m bindSafeUniform:"s" toObject:target propertyNamed:std::string("someBinding") convertOptions:0]);
-		OO_CHECK(![m bindSafeUniform:"n" toObject:target propertyNamed:std::nullopt convertOptions:0]);
-		OO_CHECK(![m bindSafeUniform:"x" toObject:target propertyNamed:std::string("forbidden") convertOptions:0]);
-		OO_CHECK(![m bindUniform:"bad" toObject:target property:OOSelectorFromName("someBinding") convertOptions:0]);
+		m->setUniform("v", v);
+		m->setUniform("o", oo::PList(oo::PList::Array{ oo::PList(5.0), oo::PList(6.0), oo::PList(7.0), oo::PList(8.0) }));
+		m->setUniform("p", oo::PList(oo::PList::Array{ oo::PList(1.0), oo::PList(2.0), oo::PList(3.0) }));	// a vector: w is 1
+		m->setUniform("q", kIdentityQuaternion, true);
+		OO_CHECK(m->bindUniform("b", target, OOSelectorFromName("someBinding"), kOOUniformConvertClamp));
+		OO_CHECK(m->bindSafeUniform("s", target, std::string("someBinding"), 0));
+		OO_CHECK(!m->bindSafeUniform("n", target, std::nullopt, 0));
+		OO_CHECK(!m->bindSafeUniform("x", target, std::string("forbidden"), 0));
+		OO_CHECK(!m->bindUniform("bad", target, OOSelectorFromName("someBinding"), 0));
 		const std::vector<std::string> expected = {
 			"i int 7", "f float 0.5", "v vector 1 2 3 4", "o vector 5 6 7 8", "p vector 1 2 3 1",
 			"q quaternion 1 0 0 0 matrix",
@@ -498,12 +489,12 @@ OO_TEST(settingUniforms)
 
 		// Every uniform is told the binding target; a failed one ("bad") replaced nothing.
 		gUniformTargets.clear();
-		[m setBindingTarget:target];
+		m->setBindingTarget(target);
 		OO_CHECK(gUniformTargets.size() == 10);	// b f i o p q s v, uGammaCorrect, uGloss
 		OO_CHECK(gUniformTargets.front() == "b target" && gUniformTargets.back() == "v target");
-		[m setUniform:"bad" intValue:1];
+		m->setUniform("bad", 1);
 		gUniformTargets.clear();
-		[m setBindingTarget:nil];
+		m->setBindingTarget(nil);
 		OO_CHECK(gUniformTargets.size() == 10 && gUniformTargets.front() == "b nil");
 	}
 }
@@ -514,20 +505,20 @@ OO_TEST(texturesApplyAndUnapply)
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OOShaderMaterial *m = Make(With(kSources, { { "textures", oo::PList(oo::PList::Array{ oo::PList("a.png"), oo::PList("missing"), oo::PList("c.png") }) } }));
+		const oo::Ref<OOShaderMaterial> m = Make(With(kSources, { { "textures", oo::PList(oo::PList::Array{ oo::PList("a.png"), oo::PList("missing"), oo::PList("c.png") }) } }));
 #ifndef NDEBUG
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = [m cxx_allTextures];
+		const std::vector<oo::ObjCRef<OOTexture *>> textures = m->allTextures();
 		OO_CHECK(textures.size() == 3);
 		OO_CHECK(textures[0].get()->_name == "a.png" && textures[1].get() == [OOTexture nullTexture] && textures[2].get()->_name == "c.png");
-		OO_CHECK([m isFinishedLoading]);
+		OO_CHECK(m->isFinishedLoading());
 		textures[2].get()->_finished = NO;
-		OO_CHECK(![m isFinishedLoading]);
-		[m ensureFinishedLoading];
+		OO_CHECK(!m->isFinishedLoading());
+		m->ensureFinishedLoading();
 		OO_CHECK(textures[0].get()->_ensures == 1 && textures[2].get()->_ensures == 1);
 #endif
 
 		const int programApplies = gProgramApplies, uniformApplies = gUniformApplies, applyNones = gTextureApplyNones;
-		OO_CHECK([m doApply]);
+		OO_CHECK(m->doApply());
 		OO_CHECK(gProgramApplies == programApplies + 1 && gUniformApplies == uniformApplies + 2);	// uGloss, uGammaCorrect
 		OO_CHECK(gTextureApplyNones == applyNones);	// not exactly a basic material
 #ifndef NDEBUG
@@ -539,27 +530,27 @@ OO_TEST(texturesApplyAndUnapply)
 
 		// Another shader material comes next: nothing to undo.
 		const int programApplyNones = gProgramApplyNones;
-		[m unapplyWithNext:Make(kSources)];
+		m->unapplyWithNext(Make(kSources).get());
 		OO_CHECK(gProgramApplyNones == programApplyNones && gTextureApplyNones == applyNones);
 
 		// Anything else: no program, and each texture unit cleared (the superclass is not asked).
-		[m unapplyWithNext:nil];
+		m->unapplyWithNext(nullptr);
 		OO_CHECK(gProgramApplyNones == programApplyNones + 1 && gTextureApplyNones == applyNones + 3);
-		[m unapplyWithNext:[[[OOBasicMaterial alloc] cxx_initWithName:std::string("Basic")] autorelease]];
+		m->unapplyWithNext(OOBasicMaterial::materialWithName(std::string("Basic")).get());
 		OO_CHECK(gProgramApplyNones == programApplyNones + 2 && gTextureApplyNones == applyNones + 6);
 
 		// No textures: one unit is still cleared.
-		[Make(kSources) unapplyWithNext:nil];
+		Make(kSources)->unapplyWithNext(nullptr);
 		OO_CHECK(gTextureApplyNones == applyNones + 7);
 
 		// Texture objects passed in are used as they are, and win over specifiers.
 		OOTexture *given = [OOTexture cxx_textureWithConfiguration:oo::PList("given.png")];
-		OOShaderMaterial *withObjects = Make(With(kSources, {
+		const oo::Ref<OOShaderMaterial> withObjects = Make(With(kSources, {
 			{ "_oo_texture_objects", oo::PList(oo::PList::Array{ oo::PListObject(given) }) },
 			{ "textures", oo::PList(oo::PList::Array{ oo::PList("a.png") }) },
 		}));
 #ifndef NDEBUG
-		OO_CHECK([withObjects cxx_allTextures].size() == 1 && [withObjects cxx_allTextures][0].get() == given);
+		OO_CHECK(withObjects->allTextures().size() == 1 && withObjects->allTextures()[0].get() == given);
 #endif
 		(void)withObjects;
 	}
@@ -570,29 +561,29 @@ OO_TEST(lifetimeAndDescription)
 {
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	const int programs = gProgramsDeallocated, textures = gTexturesDeallocated;
-	OOShaderMaterial *m = nil;
+	oo::Ref<OOShaderMaterial> m;
 	@autoreleasepool
 	{
-		m = [Make(With(kSources, { { "textures", oo::PList(oo::PList::Array{ oo::PList("a.png") }) } })) retain];
+		m = Make(With(kSources, { { "textures", oo::PList(oo::PList::Array{ oo::PList("a.png") }) } }));
 	}
 	OO_CHECK(gProgramsDeallocated == programs && gTexturesDeallocated == textures);
 	@autoreleasepool
 	{
-		const std::string text = oo::DescriptionOf(m);
+		const std::string text = oo::DescriptionOf(oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())));
 		OO_CHECK(text.starts_with("<OOShaderMaterial 0x") && text.ends_with(">{\"Shader\"}"));
-		OO_CHECK([m permitSpecular]);
-		[m apply];
-		OO_CHECK([OOMaterial current] == m);
-		[OOMaterial applyNone];
+		OO_CHECK(m->permitSpecular());
+		m->apply();
+		OO_CHECK(cxx::OOMaterial::current().get() == m.get());
+		cxx::OOMaterial::applyNone();
 	}
-	[m release];
+	m = nullptr;
 	OO_CHECK(gProgramsDeallocated == programs + 1 && gTexturesDeallocated == textures + 1);
 
 	@autoreleasepool
 	{
 		// Specular is always permitted: the exponent applies.
-		OOShaderMaterial *shiny = Make(With(kSources, { { "specular_exponent", oo::PList(std::int64_t(20)) } }));
-		OO_CHECK([shiny shininess] == 20);
+		const oo::Ref<OOShaderMaterial> shiny = Make(With(kSources, { { "specular_exponent", oo::PList(std::int64_t(20)) } }));
+		OO_CHECK(shiny->shininess() == 20);
 	}
 }
 
@@ -604,12 +595,12 @@ OO_TEST(cxxAPI)
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OO_CHECK(cxx::OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(kSources));
-		OO_CHECK(!cxx::OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(oo::PList()));
-		OO_CHECK(cxx::OOShaderMaterial::shaderMaterialWithName(std::string("S"), oo::PList(), oo::PList(), nil) == nullptr);
+		OO_CHECK(OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(kSources));
+		OO_CHECK(!OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(oo::PList()));
+		OO_CHECK(OOShaderMaterial::shaderMaterialWithName(std::string("S"), oo::PList(), oo::PList(), nil) == nullptr);
 
 		gUniforms.clear();
-		const oo::Ref<cxx::OOShaderMaterial> m = cxx::OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources, oo::PList(), nil);
+		const oo::Ref<OOShaderMaterial> m = OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources, oo::PList(), nil);
 		OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Cxx") && m->permitSpecular());
 		OO_CHECK(gUniforms == (std::vector<std::string>{ "uGloss float 0.5", "uGammaCorrect float 1" }));
 
@@ -633,29 +624,17 @@ OO_TEST(cxxAPI)
 }
 
 
-OO_TEST(facade)
+// Objective-C sees a shader material as an OOMaterial (beads oo-9ht.46, oo-9ht.33).
+OO_TEST(crossesAsTheBasicMaterialFacade)
 {
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OOShaderMaterial *made = Make(kSources);
-		cxx::OOShaderMaterial *part = oo::ToCxx(made);
-		OO_CHECK(part != nullptr && oo::AsObjCMaterial(part) == nullptr && oo::ToObjC(part) == made);
-		OO_CHECK(oo::ToCxx(static_cast<OOBasicMaterial *>(made)) == part);
-
-		OOShaderMaterial *factoryMade = [OOShaderMaterial shaderMaterialWithName:std::string("F") configuration:kSources macros:oo::PList() bindingTarget:nil];
-		OO_CHECK([factoryMade isMemberOfClass:[OOShaderMaterial class]] && oo::ToObjC(oo::ToCxx(factoryMade)) == factoryMade);
-
-		const oo::Ref<cxx::OOShaderMaterial> m = cxx::OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources, oo::PList(), nil);
+		const oo::Ref<OOShaderMaterial> m = OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources, oo::PList(), nil);
 		OOMaterial *facade = oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get()));
-		OO_CHECK([facade isMemberOfClass:[OOShaderMaterial class]] && oo::ToObjC(m) == facade);
+		OO_CHECK([facade isMemberOfClass:[OOMaterial class]]);
+		OO_CHECK(oo::ToCxx(facade) == m.get() && oo::AsObjCMaterial(m.get()) == nullptr);
 		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOShaderMaterial 0x"));
-
-		OOShaderMaterial *plain = [[[OOShaderMaterial alloc] init] autorelease];
-		OO_CHECK(plain != nil && [plain isFinishedLoading]);
-
-		OOShaderMaterial *none = nil;
-		OO_CHECK(oo::ToCxx(none) == nullptr && oo::ToObjC(static_cast<cxx::OOShaderMaterial *>(nullptr)) == nil);
 	}
 }
 

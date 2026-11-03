@@ -31,11 +31,9 @@ SOFTWARE.
 
 namespace {
 
-cxx::OONullTexture* sSingleton = nullptr;
+OONullTexture* sSingleton = nullptr;
 
 } // namespace
-
-namespace cxx {
 
 OONullTexture* OONullTexture::sharedNullTexture()
 {
@@ -78,5 +76,3 @@ std::optional<std::string> OONullTexture::name()
         not translated: nothing but sharedNullTexture() makes the object, and the one reference it
         keeps is never released (amendment oo-r7m0 item 1).
 */
-
-} // namespace cxx

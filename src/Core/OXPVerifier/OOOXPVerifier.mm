@@ -1,6 +1,13 @@
 /*
 
-OOOXPVerifier.m
+OOOXPVerifier.mm
+
+cxx::OOOXPVerifier (bead oo-tsa4; proposed ADR-0056). The bodies are the Objective-C methods'
+with the message syntax converted: the verifier's own methods are member calls, the stages' are
+calls on the C++ stages, and the cache manager is the C++ one. The stages are kept as the C++
+stages and described with their description() (they were kept, and handed to OO_LOG, as their
+Objective-C objects until bead oo-9ht.4 deleted the stage facade); the verifier's own facade is
+OOOXPVerifier+ObjCBridge.mm.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -63,7 +70,7 @@ SOFTWARE.
 #import "OOCheckShipDataPListVerifierStage.h"
 #import "OODebugStandards.h"
 #import "OOLoggingExtended.h"
-#import "OOOXPVerifierStageInternal.h"
+#import "OOOXPVerifierStage.h"
 #import "OOTextureVerifierStage.h"
 #import "ResourceManager.h"
 #include "oofnd/Date.hpp"
@@ -116,62 +123,44 @@ std::string ExpandTildeInPath(const std::string& path)
 
 /*	The stages verifyOXP.plist names ("stages") that are C++ (proposed ADR-0056 amendment oo-up4b
         item 5). A converted leaf stage is global and has no Objective-C class, so OOClassFromName finds
-        nothing; -registerBaseStages looks here first and registers the stage's facade. Each bead that
-        converts such a stage adds its line; the table moves into the verifier when it converts (oo-tsa4).
+        nothing; -registerBaseStages looks here first and registers the stage (its facade until bead
+        oo-9ht.4). Each bead that converts such a stage adds its line. It is the C++ verifier's since
+        oo-tsa4.
 */
 struct CxxStage {
     std::string_view name;
-    oo::Ref<cxx::OOOXPVerifierStage> (*make)();
+    oo::Ref<OOOXPVerifierStage> (*make)();
 };
 
 constexpr CxxStage kCxxStages[] = {
-    { "OOAIStateMachineVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOAIStateMachineVerifierStage>()); } },
-    { "OOCheckJSSyntaxVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckJSSyntaxVerifierStage>()); } },
-    { "OOCheckPListSyntaxVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckPListSyntaxVerifierStage>()); } },
-    { "OOCheckDemoShipsPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckDemoShipsPListVerifierStage>()); } },
-    { "OOCheckRequiresPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckRequiresPListVerifierStage>()); } },
-    { "OOCheckEquipmentPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckEquipmentPListVerifierStage>()); } },
-    { "OOTextureVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOTextureVerifierStage>()); } },
-    { "OOCheckShipDataPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckShipDataPListVerifierStage>()); } },
+    { "OOAIStateMachineVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOAIStateMachineVerifierStage>()); } },
+    { "OOCheckJSSyntaxVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOCheckJSSyntaxVerifierStage>()); } },
+    { "OOCheckPListSyntaxVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOCheckPListSyntaxVerifierStage>()); } },
+    { "OOCheckDemoShipsPListVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOCheckDemoShipsPListVerifierStage>()); } },
+    { "OOCheckRequiresPListVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOCheckRequiresPListVerifierStage>()); } },
+    { "OOCheckEquipmentPListVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOCheckEquipmentPListVerifierStage>()); } },
+    { "OOTextureVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOTextureVerifierStage>()); } },
+    { "OOCheckShipDataPListVerifierStage", [] { return oo::Ref<OOOXPVerifierStage>(oo::makeRef<OOCheckShipDataPListVerifierStage>()); } },
 };
 
 }
 
-@interface OOOXPVerifier (OOPrivate)
+namespace cxx {
 
-- (id)cxx_initWithPath:(const std::optional<std::string>&)path OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
-- (void)run;
-
-- (void)setUpLogOverrides;
-
-- (void)registerBaseStages;
-- (void)buildDependencyGraph;
-- (void)runStages;
-
-- (BOOL)setUpDependencies:(const std::vector<std::string>&)dependencies
-                 forStage:(OOOXPVerifierStage*)stage;
-
-- (void)setUpDependents:(const std::vector<std::string>&)dependents
-               forStage:(OOOXPVerifierStage*)stage;
-
-- (void)dumpDebugGraphviz;
-
-@end
-
-@implementation OOOXPVerifier
+oo::Ref<::OOOXPVerifierStage> (*OOOXPVerifier::sTestStageMaker)(const std::string& name) = nullptr;
 
 /**
  * \ingroup cli
  * Scans the command line for -verify-oxp or --verify-oxp, followed by a
  * path to the oxp to verify.
  *
- * @return YES or NO
+ * @return true or false
  */
-+ (BOOL)runVerificationIfRequested
+bool OOOXPVerifier::runVerificationIfRequested()
 {
     std::optional<std::string> foundPath;
-    BOOL exists, isDirectory;
-    OOOXPVerifier* verifier = nil;
+    bool exists, isDirectory;
+    oo::Ref<OOOXPVerifier> verifier;
     void* pool = NULL;
 
     pool = objc_autoreleasePoolPush();
@@ -187,7 +176,7 @@ constexpr CxxStage kCxxStages[] = {
             if (!foundPath.has_value()) {
                 OO_LOG("verifyOXP.noPath", "***** ERROR: {} passed without path argument; nothing to verify.", arg.c_str());
                 objc_autoreleasePoolPop(pool);
-                return YES;
+                return true;
             }
             foundPath = ExpandTildeInPath(*foundPath);
             break;
@@ -196,7 +185,7 @@ constexpr CxxStage kCxxStages[] = {
 
     if (!foundPath.has_value()) {
         objc_autoreleasePoolPop(pool);
-        return NO;
+        return false;
     }
 
     // We got a path; does it point to a directory?
@@ -208,100 +197,94 @@ constexpr CxxStage kCxxStages[] = {
     } else if (!isDirectory) {
         OO_LOG("verifyOXP.badPath", "***** ERROR: \"{}\" is a file, not an OXP directory; nothing to verify.", *foundPath);
     } else {
-        verifier = [[OOOXPVerifier alloc] cxx_initWithPath:foundPath];
+        verifier = createWithPath(foundPath);
         objc_autoreleasePoolPop(pool);
         pool = objc_autoreleasePoolPush();
-        [verifier run];
-        [verifier release];
+        if (verifier != nullptr)
+            verifier->run(); // -run sent to nil did nothing
+        verifier = nullptr;
     }
     objc_autoreleasePoolPop(pool);
 
     // Whether or not we got a valid path, -verify-oxp was passed.
-    return YES;
+    return true;
 }
 
-- (void)dealloc
-{
-    // The C++ ivars (the configuration, the strings, the retained stages) are destroyed with the object.
-    [super dealloc];
-}
-
-- (void)registerStage:(OOOXPVerifierStage*)stage
+void OOOXPVerifier::registerStage(::OOOXPVerifierStage* stage)
 {
     std::optional<std::string> name;
-    OOOXPVerifierStage* existing = nil;
+    ::OOOXPVerifierStage* existing = nullptr;
 
     // Sanity checking
-    if (stage == nil)
+    if (stage == nullptr)
         return;
 
-    if (![stage isKindOfClass:[OOOXPVerifierStage class]]) {
-        OO_LOG("verifyOXP.registration.failed", "Attempt to register class {} as a verifier stage, but it is not a subclass of OOOXPVerifierStage; ignoring.", oo::DescriptionOf([stage class]));
-        return;
-    }
+    // A stage is a C++ OOOXPVerifierStage (since bead oo-9ht.4), so the check that it was a
+    // subclass of OOOXPVerifierStage is in registerBaseStages(), for a class found by its name.
 
     if (!_openForRegistration) {
-        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} after registration closed, ignoring.", oo::DescriptionOf(stage));
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} after registration closed, ignoring.", stage->description());
         return;
     }
 
-    name = [stage cxx_name];
+    name = stage->name();
     if (!name.has_value()) {
-        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} with nil name, ignoring.", oo::DescriptionOf(stage));
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} with nil name, ignoring.", stage->description());
         return;
     }
 
     // We can only have one stage with a given name. Registering the same stage twice is OK, though.
     const auto found = _stagesByName.find(*name);
-    existing = found != _stagesByName.end() ? found->second.get() : nil;
+    existing = found != _stagesByName.end() ? found->second.get() : nullptr;
     if (existing == stage)
         return;
-    if (existing != nil) {
-        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} with same name as stage {}, ignoring.", oo::DescriptionOf(stage), oo::DescriptionOf(existing));
+    if (existing != nullptr) {
+        OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} with same name as stage {}, ignoring.", stage->description(), existing->description());
         return;
     }
 
     // Checks passed, store state.
-    [stage setVerifier:self];
-    _stagesByName[*name] = oo::ObjCRef<OOOXPVerifierStage*>(stage);
-    _waitingStages.push_back(oo::ObjCRef<OOOXPVerifierStage*>(stage));
+    // The stage keeps the Objective-C verifier, unretained: run() keeps it alive while stages work.
+    stage->setVerifier(oo::ToObjC(this));
+    _stagesByName[*name] = oo::Ref<::OOOXPVerifierStage>(stage);
+    _waitingStages.push_back(oo::Ref<::OOOXPVerifierStage>(stage));
 }
 
-- (std::optional<std::string>)cxx_oxpPath
+std::optional<std::string> OOOXPVerifier::oxpPath()
 {
     return _basePath;
 }
 
-- (std::optional<std::string>)cxx_oxpDisplayName
+std::optional<std::string> OOOXPVerifier::oxpDisplayName()
 {
     return _displayName;
 }
 
-- (id)cxx_stageWithName:(const std::string&)name
+::OOOXPVerifierStage* OOOXPVerifier::stageWithName(const std::string& name)
 {
     const auto found = _stagesByName.find(name);
-    return found != _stagesByName.end() ? found->second.get() : nil;
+    return found != _stagesByName.end() ? found->second.get() : nullptr;
 }
 
-- (oo::PList)configurationValueForKey:(const std::string&)key
+oo::PList OOOXPVerifier::configurationValueForKey(const std::string& key)
 {
     const oo::PList* value = _verifierPList.find(key);
     return value != nullptr ? *value : oo::PList();
 }
 
-- (oo::PList)cxx_configurationArrayForKey:(const std::string&)key
+oo::PList OOOXPVerifier::configurationArrayForKey(const std::string& key)
 {
     const oo::PList* array = _verifierPList.get<oo::PList::Array>(key);
     return array != nullptr ? *array : oo::PList();
 }
 
-- (oo::PList)cxx_configurationDictionaryForKey:(const std::string&)key
+oo::PList OOOXPVerifier::configurationDictionaryForKey(const std::string& key)
 {
     const oo::PList* dictionary = _verifierPList.get<oo::PList::Dict>(key);
     return dictionary != nullptr ? *dictionary : oo::PList();
 }
 
-- (std::optional<std::string>)cxx_configurationStringForKey:(const std::string&)key
+std::optional<std::string> OOOXPVerifier::configurationStringForKey(const std::string& key)
 {
     const oo::PList* value = _verifierPList.find(key);
     if (value == nullptr || !(value->isString() || value->isNumber()))
@@ -309,7 +292,7 @@ constexpr CxxStage kCxxStages[] = {
     return _verifierPList.get<std::string>(key);
 }
 
-- (std::optional<std::vector<std::string>>)cxx_configurationSetForKey:(const std::string&)key
+std::optional<std::vector<std::string>> OOOXPVerifier::configurationSetForKey(const std::string& key)
 {
     const oo::PList* array = _verifierPList.get<oo::PList::Array>(key);
     if (array == nullptr)
@@ -323,19 +306,23 @@ constexpr CxxStage kCxxStages[] = {
     return std::vector<std::string>(strings.begin(), strings.end());
 }
 
-@end
+// Private
 
-@implementation OOOXPVerifier (OOPrivate)
-
-- (id)cxx_initWithPath:(const std::optional<std::string>&)path
+oo::Ref<OOOXPVerifier> OOOXPVerifier::createWithPath(const std::optional<std::string>& path)
 {
-    self = [super init];
+    oo::Ref<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier);
+    if (!verifier->initWithPath(path))
+        return nullptr;
+    return verifier;
+}
 
+bool OOOXPVerifier::initWithPath(const std::optional<std::string>& path)
+{
     OOSetStandardsForOXPVerifierMode();
 
     // Any plist format; missing, unreadable or not a dictionary is no configuration, as
     // -dictionaryWithContentsOfFile: returned nil for them.
-    const std::optional<std::string> builtInPath = [ResourceManager cxx_builtInPath];
+    const std::optional<std::string> builtInPath = [::ResourceManager cxx_builtInPath];
     if (builtInPath.has_value()) {
         const std::string verifierPListPath = oo::str::appendingPathComponent(oo::str::appendingPathComponent(*builtInPath, "Config"), "verifyOXP.plist");
         if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(oo::fs::pathFromUTF8(verifierPListPath)); bytes && !bytes->empty()) {
@@ -350,38 +337,42 @@ constexpr CxxStage kCxxStages[] = {
 
     if (_verifierPList.isNull()) {
         OO_LOG("verifyOXP.setup.failed", "{}", "***** ERROR: failed to set up OXP verifier.");
-        [self release];
-        return nil;
+        return false;
     }
 
-    _openForRegistration = YES;
+    _openForRegistration = true;
 
-    return self;
+    return true;
 }
 
-- (void)run
+void OOOXPVerifier::run()
 {
+    /*	The stages keep the Objective-C verifier, unretained (OOOXPVerifierStage's verifier()), and
+            message it; it lived for the whole run when it was the verifier itself. Its facade does now.
+    */
+    const oo::ObjCRef<::OOOXPVerifier*> facade(oo::ToObjC(this));
+
     NoteVerificationStage(_displayName, "");
 
-    [self setUpLogOverrides];
+    setUpLogOverrides();
 
     /*	We need to be able to look up internal files, but not other OXP files.
             To do this without clobbering the disk cache, we disable cache writes.
     */
-    [[OOCacheManager sharedCache] flush];
-    [[OOCacheManager sharedCache] setAllowCacheWrites:NO];
+    OOCacheManager::sharedCache()->flush();
+    OOCacheManager::sharedCache()->setAllowCacheWrites(false);
     /* FIXME: the OXP verifier should load files from OXPs which have
      * been explicitly listed as required_oxps in the
      * manifest. Reading the manifest from the OXP being verified and
      * setting 'id:<its identifier>' below will do this. */
-    [ResourceManager cxx_setUseAddOns:std::string(SCENARIO_OXP_DEFINITION_NONE)];
+    [::ResourceManager cxx_setUseAddOns:std::string(SCENARIO_OXP_DEFINITION_NONE)];
 
     SwitchLogFile(_displayName);
     OO_LOG("verifyOXP.start", "Running OXP verifier for {}", _basePath); //_displayName);
 
-    [self registerBaseStages];
-    [self buildDependencyGraph];
-    [self runStages];
+    registerBaseStages();
+    buildDependencyGraph();
+    runStages();
 
     NoteVerificationStage(_displayName, "");
     OO_LOG("verifyOXP.done", "{}", "OXP verification complete.");
@@ -389,14 +380,14 @@ constexpr CxxStage kCxxStages[] = {
     OpenLogFile();
 }
 
-- (void)setUpLogOverrides
+void OOOXPVerifier::setUpLogOverrides()
 {
-    OOLogSetShowMessageClassTemporary(_verifierPList.get<bool>("logShowMessageClassOverride", NO));
+    OOLogSetShowMessageClassTemporary(_verifierPList.get<bool>("logShowMessageClassOverride", false));
 
     const oo::PList* overrides = _verifierPList.get<oo::PList::Dict>("logControlOverride");
     if (overrides != nullptr) {
         for (const auto& override : *overrides->getIf<oo::PList::Dict>()) {
-            oo::log::logger().setDisplay(override.first, overrides->get<bool>(override.first, NO));
+            oo::log::logger().setDisplay(override.first, overrides->get<bool>(override.first, false));
         }
     }
 
@@ -411,23 +402,30 @@ constexpr CxxStage kCxxStages[] = {
     }
 }
 
-- (void)registerBaseStages
+void OOOXPVerifier::registerBaseStages()
 {
     Class stageClass = Nil;
-    OOOXPVerifierStage* stage = nil;
 
     @autoreleasepool {
         // Load stages specified as array of class names in verifyOXP.plist
-        std::vector<std::string> stages = [self cxx_configurationSetForKey:"stages"].value_or(std::vector<std::string>());
-        const std::vector<std::string> excludeStages = [self cxx_configurationSetForKey:"excludeStages"].value_or(std::vector<std::string>());
+        std::vector<std::string> stages = configurationSetForKey("stages").value_or(std::vector<std::string>());
+        const std::vector<std::string> excludeStages = configurationSetForKey("excludeStages").value_or(std::vector<std::string>());
         if (!excludeStages.empty()) {
             std::erase_if(stages, [&excludeStages](const std::string& stageName) { return std::binary_search(excludeStages.begin(), excludeStages.end(), stageName); });
         }
         for (const std::string& stageName : stages) {
             const auto cxxStage = std::find_if(std::begin(kCxxStages), std::end(kCxxStages), [&stageName](const CxxStage& entry) { return entry.name == stageName; });
             if (cxxStage != std::end(kCxxStages)) {
-                [self registerStage:oo::ToObjC(cxxStage->make().get())];
+                registerStage(cxxStage->make().get());
                 continue;
+            }
+
+            if (sTestStageMaker != nullptr) {
+                const oo::Ref<::OOOXPVerifierStage> testStage = sTestStageMaker(stageName);
+                if (testStage.get() != nullptr) {
+                    registerStage(testStage.get());
+                    continue;
+                }
             }
 
             stageClass = OOClassFromName(stageName);
@@ -435,18 +433,18 @@ constexpr CxxStage kCxxStages[] = {
                 OO_LOG("verifyOXP.registration.failed", "Attempt to register unknown class {} as a verifier stage, ignoring.", stageName);
                 continue;
             }
-            stage = [[stageClass alloc] init];
-            [self registerStage:stage];
-            [stage release];
+            // Every stage is C++ since bead oo-9ht.4, so a class found by the name is not one: this is
+            // what registerStage() logged for the object [[stageClass alloc] init] made.
+            OO_LOG("verifyOXP.registration.failed", "Attempt to register class {} as a verifier stage, but it is not a subclass of OOOXPVerifierStage; ignoring.", oo::DescriptionOf(stageClass));
         }
     }
 }
 
-- (void)buildDependencyGraph
+void OOOXPVerifier::buildDependencyGraph()
 {
-    OOOXPVerifierStage* stage = nil;
+    ::OOOXPVerifierStage* stage = nullptr;
     std::optional<std::string> name;
-    std::map<OOOXPVerifierStage*, std::vector<std::string>> dependenciesByStage,
+    std::map<::OOOXPVerifierStage*, std::vector<std::string>> dependenciesByStage,
         dependentsByStage;
 
     @autoreleasepool {
@@ -461,23 +459,23 @@ constexpr CxxStage kCxxStages[] = {
             */
             if (_waitingStages.empty())
                 break;
-            const oo::ObjCRef<OOOXPVerifierStage*> waiting = _waitingStages.front();
+            const oo::Ref<::OOOXPVerifierStage> waiting = _waitingStages.front();
             _waitingStages.erase(_waitingStages.begin());
             stage = waiting.get();
 
-            std::optional<std::vector<std::string>> dependencies = [stage cxx_dependencies];
+            std::optional<std::vector<std::string>> dependencies = stage->dependencies();
             if (dependencies.has_value()) {
                 dependenciesByStage[stage] = std::move(*dependencies);
             }
 
-            const std::optional<std::vector<std::string>> dependents = [stage dependents];
+            const std::optional<std::vector<std::string>> dependents = stage->dependents();
             if (dependents.has_value()) {
                 // -setUpDependents: registers them in this order (-dependents has no duplicates).
                 dependentsByStage[stage] = *dependents;
             }
         }
         _waitingStages.clear();
-        _openForRegistration = NO;
+        _openForRegistration = false;
 
         // Iterate over all stages, resolving dependencies.
         std::vector<std::string> stageKeys; // Get the keys up front because we may need to remove entries from the map.
@@ -491,9 +489,9 @@ constexpr CxxStage kCxxStages[] = {
             stage = found->second.get();
 
             // Sanity check
-            name = [stage cxx_name];
+            name = stage->name();
             if (!name.has_value() || *name != stageKey) {
-                OO_LOG("verifyOXP.buildDependencyGraph.badName", "***** Stage name appears to have changed from \"{}\" to \"{}\" for verifier stage {}, removing.", stageKey, name.value_or("(null)"), oo::DescriptionOf(stage));
+                OO_LOG("verifyOXP.buildDependencyGraph.badName", "***** Stage name appears to have changed from \"{}\" to \"{}\" for verifier stage {}, removing.", stageKey, name.value_or("(null)"), stage->description());
                 _stagesByName.erase(stageKey);
                 continue;
             }
@@ -501,7 +499,7 @@ constexpr CxxStage kCxxStages[] = {
             // Get dependency set
             const auto stageDependencies = dependenciesByStage.find(stage);
 
-            if (stageDependencies != dependenciesByStage.end() && ![self setUpDependencies:stageDependencies->second forStage:stage]) {
+            if (stageDependencies != dependenciesByStage.end() && !setUpDependencies(stageDependencies->second, stage)) {
                 _stagesByName.erase(stageKey);
             }
         }
@@ -524,25 +522,25 @@ constexpr CxxStage kCxxStages[] = {
             const auto stageDependents = dependentsByStage.find(stage);
 
             if (stageDependents != dependentsByStage.end()) {
-                [self setUpDependents:stageDependents->second forStage:stage];
+                setUpDependents(stageDependents->second, stage);
             }
         }
 
         for (const auto& entry : _stagesByName)
             _waitingStages.push_back(entry.second);
         for (const auto& waiting : _waitingStages)
-            [waiting.get() dependencyRegistrationComplete];
+            waiting->dependencyRegistrationComplete();
 
         if (oo::Defaults::standard().boolForKey("oxp-verifier-dump-debug-graphviz")) {
-            [self dumpDebugGraphviz];
+            dumpDebugGraphviz();
         }
     }
 }
 
-- (void)runStages
+void OOOXPVerifier::runStages()
 {
     void* pool = NULL;
-    OOOXPVerifierStage* stageToRun = nil;
+    ::OOOXPVerifierStage* stageToRun = nullptr;
     std::optional<std::string> stageName;
 
     // Loop while there are still stages to run.
@@ -550,14 +548,14 @@ constexpr CxxStage kCxxStages[] = {
         pool = objc_autoreleasePoolPush();
 
         // Look through queue for a stage that's ready
-        stageToRun = nil;
+        stageToRun = nullptr;
         for (const auto& candidateStage : _waitingStages) {
-            if ([candidateStage.get() canRun]) {
+            if (candidateStage->canRun()) {
                 stageToRun = candidateStage.get();
                 break;
             }
         }
-        if (stageToRun == nil) {
+        if (stageToRun == nullptr) {
             // No more runnable stages
             objc_autoreleasePoolPop(pool);
             break;
@@ -566,20 +564,20 @@ constexpr CxxStage kCxxStages[] = {
         stageName.reset();
         oo::log::pushIndent();
         @try {
-            stageName = [stageToRun cxx_name];
-            if ([stageToRun shouldRun]) {
+            stageName = stageToRun->name();
+            if (stageToRun->shouldRun()) {
                 NoteVerificationStage(_displayName, stageName.value_or("(null)")); // "%@" text, as the old format printed it
                 OO_LOG("verifyOXP.runStage", "{}", stageName.value_or("(null)"));
                 oo::log::indent();
-                [stageToRun performRun];
+                stageToRun->performRun();
             } else {
                 OO_LOG("verifyOXP.verbose.skipStage", "- Skipping stage: {} (nothing to do).", stageName.value_or("(null)"));
-                [stageToRun noteSkipped];
+                stageToRun->noteSkipped();
             }
         }
         @catch (OOException* exception) {
             if (!stageName.has_value())
-                stageName = oo::DescriptionOf([stageToRun class]);
+                stageName = stageToRun->className(); // was [stageToRun class]
             OO_LOG("verifyOXP.exception", "***** Exception occurred when running OXP verifier stage \"{}\": {}: {}", *stageName, [exception name], [exception reason]);
         }
         oo::log::popIndent();
@@ -594,7 +592,7 @@ constexpr CxxStage kCxxStages[] = {
         OO_LOG("verifyOXP.incomplete", "{}", "Some verifier stages could not be run:");
         oo::log::indent();
         for (const auto& candidateStage : _waitingStages) {
-            OO_LOG("verifyOXP.incomplete.item", "{}", oo::DescriptionOf(candidateStage.get()));
+            OO_LOG("verifyOXP.incomplete.item", "{}", candidateStage->description());
         }
         oo::log::outdent();
     }
@@ -603,59 +601,57 @@ constexpr CxxStage kCxxStages[] = {
     objc_autoreleasePoolPop(pool);
 }
 
-- (BOOL)setUpDependencies:(const std::vector<std::string>&)dependencies
-                 forStage:(OOOXPVerifierStage*)stage
+bool OOOXPVerifier::setUpDependencies(const std::vector<std::string>& dependencies, ::OOOXPVerifierStage* stage)
 {
-    OOOXPVerifierStage* depStage = nil;
+    ::OOOXPVerifierStage* depStage = nullptr;
 
     // Iterate over dependencies, connecting them up.
     for (const std::string& depName : dependencies) {
-        depStage = [self cxx_stageWithName:depName];
-        if (depStage == nil) {
-            OO_LOG("verifyOXP.buildDependencyGraph.unresolved", "Verifier stage {} has unresolved dependency \"{}\", skipping.", oo::DescriptionOf(stage), depName);
-            return NO;
+        depStage = stageWithName(depName);
+        if (depStage == nullptr) {
+            OO_LOG("verifyOXP.buildDependencyGraph.unresolved", "Verifier stage {} has unresolved dependency \"{}\", skipping.", stage->description(), depName);
+            return false;
         }
 
-        if ([depStage isDependentOf:stage]) {
-            OO_LOG("verifyOXP.buildDependencyGraph.circularReference", "Verifier stages {} and {} have a dependency loop, skipping.", oo::DescriptionOf(stage), oo::DescriptionOf(depStage));
+        if (depStage->isDependentOf(stage)) {
+            OO_LOG("verifyOXP.buildDependencyGraph.circularReference", "Verifier stages {} and {} have a dependency loop, skipping.", stage->description(), depStage->description());
             _stagesByName.erase(depName);
-            return NO;
+            return false;
         }
 
-        [stage registerDependency:depStage];
+        stage->registerDependency(depStage);
     }
 
-    return YES;
+    return true;
 }
 
-- (void)setUpDependents:(const std::vector<std::string>&)dependents
-               forStage:(OOOXPVerifierStage*)stage
+void OOOXPVerifier::setUpDependents(const std::vector<std::string>& dependents, ::OOOXPVerifierStage* stage)
 {
-    OOOXPVerifierStage* depStage = nil;
+    ::OOOXPVerifierStage* depStage = nullptr;
 
     // Iterate over dependents, connecting them up.
     for (const std::string& depName : dependents) {
-        depStage = [self cxx_stageWithName:depName];
-        if (depStage == nil) {
-            OO_LOG("verifyOXP.buildDependencyGraph.unresolved", "Verifier stage {} has unresolved dependent \"{}\".", oo::DescriptionOf(stage), depName);
+        depStage = stageWithName(depName);
+        if (depStage == nullptr) {
+            OO_LOG("verifyOXP.buildDependencyGraph.unresolved", "Verifier stage {} has unresolved dependent \"{}\".", stage->description(), depName);
             continue; // Unresolved/conflicting dependents are non-fatal
         }
 
-        if ([stage isDependentOf:depStage]) {
-            OO_LOG("verifyOXP.buildDependencyGraph.circularReference", "Verifier stage {} lists {} as both dependent and dependency (possibly indirectly); will execute {} after {}.", oo::DescriptionOf(stage), oo::DescriptionOf(depStage), oo::DescriptionOf(stage), oo::DescriptionOf(depStage));
+        if (stage->isDependentOf(depStage)) {
+            OO_LOG("verifyOXP.buildDependencyGraph.circularReference", "Verifier stage {} lists {} as both dependent and dependency (possibly indirectly); will execute {} after {}.", stage->description(), depStage->description(), stage->description(), depStage->description());
             continue;
         }
 
-        [depStage registerDependency:stage];
+        depStage->registerDependency(stage);
     }
 }
 
-- (void)dumpDebugGraphviz
+void OOOXPVerifier::dumpDebugGraphviz()
 {
     using oo::str::FormatArg;
 
     // The templates are data (verifyOXP.plist), so they are formatted at run time (ADR-0043 item 19).
-    const oo::PList graphVizTemplate = [self cxx_configurationDictionaryForKey:"debugGraphvizTempate"];
+    const oo::PList graphVizTemplate = configurationDictionaryForKey("debugGraphvizTempate");
     std::string graphViz = oo::str::formatRuntime(graphVizTemplate.get<std::string>("preamble"), { oo::date::description() });
 
     /*	Pass 1: enumerate over graph setting node attributes for each stage.
@@ -663,8 +659,8 @@ constexpr CxxStage kCxxStages[] = {
     */
     std::string arcTemplate = graphVizTemplate.get<std::string>("node");
     for (const auto& entry : _stagesByName) {
-        OOOXPVerifierStage* stage = entry.second.get();
-        graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(stage), oo::DescriptionOf([stage class]), [stage cxx_name].value_or("(null)") });
+        ::OOOXPVerifierStage* stage = entry.second.get();
+        graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(stage), stage->className(), stage->name().value_or("(null)") }); // was [stage class]
     }
 
     graphViz += graphVizTemplate.get<std::string>("forwardPreamble");
@@ -674,11 +670,11 @@ constexpr CxxStage kCxxStages[] = {
     arcTemplate = graphVizTemplate.get<std::string>("forwardArc");
     const std::string startTemplate = graphVizTemplate.get<std::string>("startArc");
     for (const auto& entry : _stagesByName) {
-        OOOXPVerifierStage* stage = entry.second.get();
-        const std::vector<oo::ObjCRef<OOOXPVerifierStage*>> deps = [stage resolvedDependencies];
+        ::OOOXPVerifierStage* stage = entry.second.get();
+        const std::vector<oo::Ref<OOOXPVerifierStage>> deps = stage->resolvedDependencies();
         if (!deps.empty()) {
             for (const auto& dep : deps) {
-                graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(dep.get()), FormatArg::pointer(stage) });
+                graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(dep.get()), FormatArg::pointer(stage) }); // the nodes are the stages (their facades until bead oo-9ht.4)
             }
         } else {
             graphViz += oo::str::formatRuntime(startTemplate, { FormatArg::pointer(stage) });
@@ -692,11 +688,11 @@ constexpr CxxStage kCxxStages[] = {
     arcTemplate = graphVizTemplate.get<std::string>("backwardArc");
     const std::string endTemplate = graphVizTemplate.get<std::string>("endArc");
     for (const auto& entry : _stagesByName) {
-        OOOXPVerifierStage* stage = entry.second.get();
-        const std::vector<oo::ObjCRef<OOOXPVerifierStage*>> deps = [stage resolvedDependents];
+        ::OOOXPVerifierStage* stage = entry.second.get();
+        const std::vector<oo::Ref<OOOXPVerifierStage>> deps = stage->resolvedDependents();
         if (!deps.empty()) {
             for (const auto& dep : deps) {
-                graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(dep.get()), FormatArg::pointer(stage) });
+                graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(dep.get()), FormatArg::pointer(stage) }); // the nodes are the stages (their facades until bead oo-9ht.4)
             }
         } else {
             graphViz += oo::str::formatRuntime(endTemplate, { FormatArg::pointer(stage) });
@@ -705,16 +701,16 @@ constexpr CxxStage kCxxStages[] = {
 
     graphViz += graphVizTemplate.get<std::string>("postamble");
 
-    // Write file: what +[ResourceManager writeDiagnosticString:toFileNamed:] did for a name with no
+    // Write file: what +[::ResourceManager writeDiagnosticString:toFileNamed:] did for a name with no
     // directory part (UTF-8, atomically, in the diagnostic directory).
-    const std::optional<std::string> directory = [ResourceManager cxx_diagnosticFileLocation];
+    const std::optional<std::string> directory = [::ResourceManager cxx_diagnosticFileLocation];
     if (directory.has_value()) {
         const std::string path = oo::str::appendingPathComponent(*directory, "OXPVerifierStageDependencies.dot");
         (void)oo::fs::writeFile(oo::fs::pathFromUTF8(path), oo::Data::fromString(graphViz));
     }
 }
 
-@end
+} // namespace cxx
 
 #import "OOLogOutputHandler.h"
 

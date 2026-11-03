@@ -35,6 +35,7 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOObjCPeer.h"
+#include "oofnd/objc/OORuntime.h"
 
 #include <cstdlib>
 #include <cxxabi.h>
@@ -89,16 +90,51 @@ ObjCDrawable* AsObjCDrawable(cxx::OODrawable* drawable)
     return dynamic_cast<ObjCDrawable*>(drawable);
 }
 
+std::string DemangledName(const std::type_info& type)
+{
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(type.name(), nullptr, nullptr, &status);
+    std::string result = (status == 0 && demangled != nullptr) ? demangled : type.name();
+    std::free(demangled);
+    return result;
+}
+
 // The C++ class's name, as [self class] named an Objective-C drawable's class ("cxx::" dropped).
 std::string ClassName(cxx::OODrawable& drawable)
 {
-    int status = 0;
-    char* demangled = abi::__cxa_demangle(typeid(drawable).name(), nullptr, nullptr, &status);
-    std::string result = (status == 0 && demangled != nullptr) ? demangled : typeid(drawable).name();
-    std::free(demangled);
+    std::string result = DemangledName(typeid(drawable));
     if (result.starts_with("cxx::"))
         result.erase(0, 5);
     return result;
+}
+
+// A class's (first) base class, from the Itanium C++ ABI's type information; null for none.
+const std::type_info* BaseOf(const std::type_info& type)
+{
+    if (const auto* single = dynamic_cast<const abi::__si_class_type_info*>(&type))
+        return single->__base_type;
+    if (const auto* multiple = dynamic_cast<const abi::__vmi_class_type_info*>(&type)) {
+        return multiple->__base_count > 0 ? multiple->__base_info[0].__base_type : nullptr;
+    }
+    return nullptr;
+}
+
+/*	The class of a C++ drawable's facade, as OOMaterial+ObjCBridge.mm picks a material's: a C++
+        class in namespace cxx that has a facade of its own (cxx::OOMesh's is OOMesh, a subclass of
+        this one; amendment oo-up4b item 3) gets it; a class without one is seen as its nearest base
+        class that has one; failing that, as an OODrawable.
+*/
+Class FacadeClass(cxx::OODrawable& drawable)
+{
+    for (const std::type_info* type = &typeid(drawable); type != nullptr; type = BaseOf(*type)) {
+        const std::string name = DemangledName(*type);
+        if (!name.starts_with("cxx::"))
+            continue;
+        Class facade = OOClassFromName(std::string_view(name).substr(5));
+        if (facade != Nil && [facade isSubclassOfClass:[OODrawable class]])
+            return facade;
+    }
+    return [OODrawable class];
 }
 
 } // namespace
@@ -116,7 +152,10 @@ OODrawable* oo::ToObjC(cxx::OODrawable* drawable)
 {
     if (ObjCDrawable* objCDrawable = AsObjCDrawable(drawable))
         return [[objCDrawable->owner() retain] autorelease];
-    return Peers().peerFor(drawable, [drawable] { return [[OODrawable alloc] initWithCxxDrawable:drawable]; });
+    if (drawable == nullptr)
+        return nil;
+    Class facadeClass = FacadeClass(*drawable);
+    return Peers().peerFor(drawable, [drawable, facadeClass] { return [[facadeClass alloc] initWithCxxDrawable:drawable]; });
 }
 
 cxx::OODrawable* oo::ToCxx(OODrawable* drawable)
@@ -147,6 +186,19 @@ void oo::ConstructCxxPartOfCopy(OODrawable* copy)
     self = [super init];
     if (self != nil)
         _cxxDrawable = oo::Ref<cxx::OODrawable>(drawable);
+    return self;
+}
+
+// A converted subclass's facade initialiser: the new C++ drawable, and this is its peer.
+- (id)initWithNewCxxDrawable:(const oo::Ref<cxx::OODrawable>&)drawable
+{
+    self = [super init];
+    if (self != nil) {
+        _cxxDrawable = drawable;
+        @autoreleasepool {
+            Peers().peerFor(_cxxDrawable.get(), [self] { return [self retain]; });
+        }
+    }
     return self;
 }
 

@@ -89,17 +89,17 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     if (context == nullptr)
         context = &localContext;
 
-    result[KEY_SHIP_KEY] = _shipKey.value_or(std::string()); // nil as "", as oo::StdString gave
+    result[KEY_SHIP_KEY] = _cxxShip->_shipKey.value_or(std::string()); // nil as "", as oo::StdString gave
 
-    oo::PList::Dict updatedShipInfo = DictFrom(shipinfoDictionary);
+    oo::PList::Dict updatedShipInfo = DictFrom(_cxxShip->shipinfoDictionary);
 
     // A role set without a role string (nil before, which -setObject:forKey: refused) adds no key.
     if (const std::optional<std::string> roleString = [[self roleSet] roleString])
         updatedShipInfo[KEY_ROLES] = *roleString;
-    updatedShipInfo[KEY_FUEL] = oo::PList::unsignedInteger(fuel);
-    updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(bounty);
-    updatedShipInfo[KEY_FORWARD_WEAPON] = cxx_OOStringFromWeaponType(forward_weapon_type).value_or("");
-    updatedShipInfo[KEY_AFT_WEAPON] = cxx_OOStringFromWeaponType(aft_weapon_type).value_or("");
+    updatedShipInfo[KEY_FUEL] = oo::PList::unsignedInteger(_cxxShip->fuel);
+    updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(_cxxShip->bounty);
+    updatedShipInfo[KEY_FORWARD_WEAPON] = cxx_OOStringFromWeaponType(_cxxShip->forward_weapon_type).value_or("");
+    updatedShipInfo[KEY_AFT_WEAPON] = cxx_OOStringFromWeaponType(_cxxShip->aft_weapon_type).value_or("");
     updatedShipInfo[KEY_SCAN_CLASS] = cxx_OOStringFromScanClass(_cxxEntity->scanClass);
 
     std::vector<std::string> deletes;
@@ -128,11 +128,11 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         result[KEY_EQUIPMENT] = ArrayFromStrings(equipment);
 
     // Add missiles.
-    if (missiles > 0) {
+    if (_cxxShip->missiles > 0) {
         std::vector<std::string> missileArray;
         unsigned i;
-        for (i = 0; i < missiles; i++) {
-            const std::optional<std::string> missileType = [missile_list[i] cxx_identifier];
+        for (i = 0; i < _cxxShip->missiles; i++) {
+            const std::optional<std::string> missileType = [_cxxShip->missile_list[i] cxx_identifier];
             if (missileType.has_value())
                 missileArray.push_back(*missileType);
         }
@@ -140,24 +140,24 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     }
 
     // Add groups.
-    if (_group != nil) {
-        result[KEY_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
-        if ([_group leader] == self)
+    if (_cxxShip->_group != nil) {
+        result[KEY_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_cxxShip->_group, *context));
+        if ([_cxxShip->_group leader] == self)
             result[KEY_IS_GROUP_LEADER] = oo::PList(static_cast<bool>(YES));
-        const std::optional<std::string> groupName = [_group cxx_name];
+        const std::optional<std::string> groupName = [_cxxShip->_group cxx_name];
         if (groupName.has_value()) {
             result[KEY_GROUP_NAME] = *groupName;
         }
     }
-    if (_escortGroup != nil) {
-        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_escortGroup, *context));
+    if (_cxxShip->_escortGroup != nil) {
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_cxxShip->_escortGroup, *context));
     }
     /*	Eric:
             The escortGroup property is removed from the lead ship, on entering witchspace.
             But it is needed in the save file to correctly restore an escorted group.
     */
-    else if (_group != nil && [_group leader] == self) {
-        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
+    else if (_cxxShip->_group != nil && [_cxxShip->_group leader] == self) {
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_cxxShip->_group, *context));
     }
 
     // FIXME: AI.
@@ -218,7 +218,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         if (primaryRole.has_value())
             [ship setPrimaryRole:*primaryRole];
         else
-            ship->primaryRole = std::nullopt; // as -setPrimaryRole: stored nil
+            ship->_cxxShip->primaryRole = std::nullopt; // as -setPrimaryRole: stored nil
 
     } else {
         // Unknown ship; fall back on role if desired and possible.

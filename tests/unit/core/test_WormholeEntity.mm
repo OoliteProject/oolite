@@ -24,6 +24,9 @@
 */
 
 #import "WormholeEntity.h"
+#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEntity.h"
+#import "OOJSWormhole.h"
 #import "OOSystemDescriptionManager.h"
 #import "OODescription.h"
 #import "Universe.h"
@@ -399,6 +402,38 @@ OO_TEST(facade)
 		OO_CHECK(dynamic_cast<cxx::WormholeEntity *>(oo::ToCxx(wh)) != nullptr);
 		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(wh)) == nullptr);
 		OO_CHECK(oo::ToObjC(oo::ToCxx(wh)) == wh);
+	}
+}
+
+
+// Registers Entity's JS class and the given class (a child of Entity) in the test's context, as the
+// engine's start does; the context is made here if the test has none yet.
+static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
+{
+	extern JSContext *gOOJSMainThreadContext;
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
+	JSContext *context = OOJSAcquireContext();
+	JSValue global = JS_GetGlobalObject(context);
+	InitOOJSEntity(context, global);
+	initClass(context, global);
+	JS_FreeValue(context, global);
+}
+
+
+// The binding's category, which the facade carries since bead oo-9ht.43: what the engine asks a
+// WormholeEntity for by selector is what OOJSWormhole.mm answers.
+OO_TEST(jsExtensions)
+{
+	@autoreleasepool
+	{
+		SetUp();
+		WormholeEntity *wh = ToNine(Ship(1000.0f));
+		RegisterJSClasses(InitOOJSWormhole);
+		const JSClassID jsClass = [wh oo_jsClassID];
+		const JSClassID expectedClass = JSWormholeClassID();
+		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+		OO_CHECK([wh cxx_oo_jsClassName] == std::optional<std::string>("Wormhole"));
+		OO_CHECK([wh isVisibleToScripts] == YES);
 	}
 }
 

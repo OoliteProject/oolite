@@ -8,10 +8,9 @@ of Objective-C regexp support. Not thread-safe.
 If we had a performance-critical need for regexps, I'd want a real library,
 but this will do for light usage.
 
-C++20 since bead oo-ct7c (proposed ADR-0056). The class is cxx::OORegExpMatcher while
-OORegExpMatcher+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OORegExpMatcher its unconverted caller (OOOpenGLExtensionManager.mm) messages; the bridge's
-deletion bead moves it out of namespace cxx.
+C++20 since bead oo-ct7c (proposed ADR-0056). Its Objective-C facade was deleted by bead
+oo-9ht.12 (ADR-0056 amendment "deleting a facade"): the class is global, and a caller that wants
+one matcher across several matches holds the Ref (amendment oo-ct7c item 3).
 
 
 Copyright (C) 2010-2013 Jens Ayton
@@ -51,14 +50,11 @@ enum {
     kOORegExpMultiLine = 0x04
 };
 
-namespace cxx {
-
 class OORegExpMatcher : public oo::RefCounted {
 public:
     /*	Pseudo-singleton: a single instance exists at a given time, but can be released. While
-            one is alive (held by a Ref, or by its facade until the autorelease pool drains, as the
-            autoreleased Objective-C instance was) this returns it; otherwise a new one. Null if the
-            tester function could not be compiled.
+            one is alive (held by a Ref) this returns it; otherwise a new one. Null if the tester
+            function could not be compiled.
     */
     static oo::Ref<OORegExpMatcher> regExpMatcher();
 
@@ -77,14 +73,8 @@ private:
 
     ::OOJSFunction* _tester = { }; // the facade (ADR-0056 amendment oo-rmd7 item 3)
     std::optional<std::string> _cachedRegExpString = { }; // UTF-8; nullopt: nothing cached (proposed ADR-0043)
-    OOJSValue* _cachedRegExpObject = { };
+    ::OOJSValue* _cachedRegExpObject = { };
     NSUInteger _cachedFlags = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OORegExpMatcher, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OORegExpMatcher+ObjCBridge.h"
 
 #endif // OOREGEXPMATCHER_H
