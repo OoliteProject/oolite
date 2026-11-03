@@ -2,6 +2,12 @@
 
 OOParticleSystem.m
 
+C++20 since bead oo-cenx (see OOParticleSystem.h). The bodies are the Objective-C ones: a
+message to self is a member call, [super ...] the base's member, a superclass initialiser that
+could not fail keeps its guarded statements in a plain block, and the universe is handed the
+entity's Objective-C object, oo::ToObjC(this). Other entities stay their Objective-C objects
+(amendment oo-bj8 item 4).
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -37,30 +43,23 @@ MA 02110-1301, USA.
 //	Testing toy: cause particle systems to stop after half a second.
 #define FREEZE_PARTICLES 0
 
-@implementation OOParticleSystem
-
-- (id)init
-{
-    [self release];
-    return nil;
-}
-
 /*	Initialize shared aspects of the fragburst entities.
         Also stashes generated particle speeds in _particleSize[] array.
 */
-- (id)initWithPosition:(HPVector)pos
-              velocity:(Vector)vel
-                 count:(unsigned)count
-              minSpeed:(float)minSpeed
-              maxSpeed:(float)maxSpeed
-              duration:(OOTimeDelta)duration
-             baseColor:(GLfloat[4])baseColor
+void OOParticleSystem::initWithPosition(HPVector pos,
+    Vector vel,
+    unsigned count,
+    float minSpeed,
+    float maxSpeed,
+    OOTimeDelta duration,
+    GLfloat baseColor[4])
 {
-    OOParameterAssert(count <= kFragmentBurstMaxParticles);
+    OOCParameterAssert(count <= kFragmentBurstMaxParticles);
 
-    if ((self = [super init])) {
+    // [super init] could not fail: the object is constructed.
+    {
         _count = count;
-        [self setPosition:pos];
+        setPosition(pos);
 
         velocity = vel;
         _duration = duration;
@@ -80,33 +79,31 @@ MA 02110-1301, USA.
             _particleSize[i] = speed;
         }
 
-        [self setStatus:STATUS_EFFECT];
+        setStatus(STATUS_EFFECT);
         scanClass = CLASS_NO_DRAW;
     }
-
-    return self;
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOParticleSystem::descriptionComponents() const
 {
     return oo::str::format("ttl: %.3fs", _duration - _timePassed);
 }
 
-- (BOOL)canCollide
+bool OOParticleSystem::canCollide()
 {
-    return NO;
+    return false;
 }
 
-- (BOOL)checkCloseCollisionWith:(Entity*)other
+bool OOParticleSystem::checkCloseCollisionWith(cxx::Entity* other)
 {
-    if (other == [self owner])
-        return NO;
-    return ![other isEffect];
+    if (oo::ToObjC(other) == owner())
+        return false;
+    return other == nullptr || !other->isEffect(); // [nil isEffect] answered NO
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOParticleSystem::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
+    Entity::update(delta_t);
 
     _timePassed += delta_t;
     collision_radius += delta_t * _maxSpeed;
@@ -121,7 +118,7 @@ MA 02110-1301, USA.
 
     // disappear eventually.
     if (_timePassed > _duration)
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
 }
 
 #define DrawQuadForView(x, y, z, sz)   \
@@ -136,7 +133,7 @@ MA 02110-1301, USA.
         glVertex3f(x - sz, y + sz, z); \
     } while (0)
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
 {
     if (!translucent || [UNIVERSE breakPatternHide])
         return;
@@ -149,10 +146,10 @@ MA 02110-1301, USA.
     OOGL(glEnable(GL_TEXTURE_2D));
     OOGL(glEnable(GL_BLEND));
     OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
-    [[self texture] apply];
+    [texture() apply];
 
     HPVector viewPosition = [PLAYER viewpointPosition];
-    HPVector selfPosition = [self position];
+    HPVector selfPosition = getPosition();
 
     unsigned i, count = _count;
     Vector* particlePosition = _particlePosition;
@@ -222,21 +219,21 @@ MA 02110-1301, USA.
     OOGL(glPopAttrib());
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOParticleSystem after drawing " + oo::DescriptionOf(self); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOParticleSystem after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
 }
 
-- (BOOL)isEffect
+bool OOParticleSystem::isEffect()
 {
-    return YES;
+    return true;
 }
 
-- (OOTexture*)texture
+OOTexture* OOParticleSystem::texture()
 {
     return [OOLightParticleEntity defaultParticleTexture];
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
+std::vector<oo::ObjCRef<OOTexture*>> OOParticleSystem::allTextures()
 {
     std::vector<oo::ObjCRef<OOTexture*>> result;
     result.emplace_back([OOLightParticleEntity defaultParticleTexture]);
@@ -244,11 +241,7 @@ MA 02110-1301, USA.
 }
 #endif
 
-@end
-
-@implementation OOSmallFragmentBurstEntity : OOParticleSystem
-
-- (id)initFragmentBurstFrom:(HPVector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
+void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vector fragVelocity, GLfloat size)
 {
     enum {
         kMinSpeed = 100,
@@ -260,33 +253,34 @@ MA 02110-1301, USA.
 
     // Select base colour
     // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
-    OOColor* hsvColor = [OOColor colorWithHue:0.12f + 0.08f * randf() saturation:1.0f brightness:1.0f alpha:1.0f];
+    oo::Ref<cxx::OOColor> hsvColor = cxx::OOColor::colorWithHue(0.12f + 0.08f * randf(), 1.0f, 1.0f, 1.0f);
     GLfloat baseColor[4];
-    [hsvColor getRed:&baseColor[0] green:&baseColor[1] blue:&baseColor[2] alpha:&baseColor[3]];
+    hsvColor->getRed(&baseColor[0], &baseColor[1], &baseColor[2], &baseColor[3]);
 
-    if ((self = [super initWithPosition:fragPosition velocity:fragVelocity count:count minSpeed:kMinSpeed maxSpeed:kMaxSpeed duration:1.5 baseColor:baseColor])) {
+    initWithPosition(fragPosition, fragVelocity, count, kMinSpeed, kMaxSpeed, 1.5, baseColor);
+    {
         for (unsigned i = 0; i < count; i++) {
             // Note: initWithPosition:... stashes speeds in _particleSize[].
             _particleSize[i] = 32.0f * static_cast<float>(kMinSpeed) / _particleSize[i];
         }
     }
-
-    return self;
 }
 
-+ (id)fragmentBurstFromEntity:(Entity*)entity
+oo::Ref<OOSmallFragmentBurstEntity> OOSmallFragmentBurstEntity::fragmentBurstFromEntity(::Entity* entity)
 {
-    return [[[self alloc] initFragmentBurstFrom:[entity position] velocity:[entity velocity] size:[entity collisionRadius]] autorelease];
+    oo::Ref<OOSmallFragmentBurstEntity> result = oo::makeRef<OOSmallFragmentBurstEntity>();
+    result->initFragmentBurstFrom([entity position], [entity velocity], [entity collisionRadius]);
+    return result;
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOSmallFragmentBurstEntity::update(OOTimeDelta delta_t)
 {
 #if FREEZE_PARTICLES
     if (_timePassed + delta_t > 0.5)
         delta_t = 0.5 - _timePassed;
 #endif
 
-    [super update:delta_t];
+    OOParticleSystem::update(delta_t);
 
     unsigned i, count = _count;
     GLfloat(*particleColor)[4] = _particleColor;
@@ -298,11 +292,7 @@ MA 02110-1301, USA.
     }
 }
 
-@end
-
-@implementation OOBigFragmentBurstEntity : OOParticleSystem
-
-- (id)initFragmentBurstFrom:(HPVector)fragPosition velocity:(Vector)fragVelocity size:(GLfloat)size
+void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vector fragVelocity, GLfloat size)
 {
     float minSpeed = 1.0f + size * 0.5f;
     float maxSpeed = minSpeed * 4.0f;
@@ -313,30 +303,31 @@ MA 02110-1301, USA.
     GLfloat baseColor[4] = { 1.0f, 1.0f, 0.5f, 1.0f };
 
     size *= 2.0f; // Account for margins in particle texture.
-    if ((self = [super initWithPosition:fragPosition velocity:fragVelocity count:count minSpeed:minSpeed maxSpeed:maxSpeed duration:1.0 baseColor:baseColor])) {
+    initWithPosition(fragPosition, fragVelocity, count, minSpeed, maxSpeed, 1.0, baseColor);
+    {
         _baseSize = size;
 
         for (unsigned i = 0; i < count; i++) {
             _particleSize[i] = size;
         }
     }
-
-    return self;
 }
 
-+ (id)fragmentBurstFromEntity:(Entity*)entity
+oo::Ref<OOBigFragmentBurstEntity> OOBigFragmentBurstEntity::fragmentBurstFromEntity(::Entity* entity)
 {
-    return [[[self alloc] initFragmentBurstFrom:[entity position] velocity:vector_multiply_scalar([entity velocity], 0.85) size:[entity collisionRadius]] autorelease];
+    oo::Ref<OOBigFragmentBurstEntity> result = oo::makeRef<OOBigFragmentBurstEntity>();
+    result->initFragmentBurstFrom([entity position], vector_multiply_scalar([entity velocity], 0.85), [entity collisionRadius]);
+    return result;
 }
 
-- (void)update:(double)delta_t
+void OOBigFragmentBurstEntity::update(double delta_t)
 {
 #if FREEZE_PARTICLES
     if (_timePassed + delta_t > 0.5)
         delta_t = 0.5 - _timePassed;
 #endif
 
-    [super update:delta_t];
+    OOParticleSystem::update(delta_t);
 
     unsigned i, count = _count;
     GLfloat(*particleColor)[4] = _particleColor;
@@ -354,5 +345,3 @@ MA 02110-1301, USA.
         particleSize[i] = size;
     }
 }
-
-@end

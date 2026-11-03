@@ -2,6 +2,9 @@
 
 OOExplosionCloudEntity.m
 
+C++20 since bead oo-cenx, with its superclass (see OOParticleSystem.h and OOParticleSystem.mm:
+the bodies are the Objective-C ones, translated the same way).
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -51,13 +54,7 @@ constexpr std::string_view kExplosionSpread = "spread";
 constexpr std::string_view kExplosionTexture = "texture";
 } // namespace
 
-@interface OOExplosionCloudEntity (OOPrivate)
-- (id)initExplosionCloudWithEntity:(Entity*)entity size:(float)size andSettings:(const oo::PList&)settings;
-@end
-
-@implementation OOExplosionCloudEntity
-
-- (id)initExplosionCloudWithEntity:(Entity*)entity size:(float)size andSettings:(const oo::PList&)settings
+bool OOExplosionCloudEntity::initExplosionCloudWithEntity(::Entity* entity, float size, const oo::PList& settings)
 {
     unsigned i;
     unsigned maxCount = [UNIVERSE detailLevel] <= DETAIL_LEVEL_SHADERS ? 10 : 25;
@@ -90,14 +87,13 @@ constexpr std::string_view kExplosionTexture = "texture";
 
     std::string textureFile = _settings.get<std::string>(kExplosionTexture, "oolite-particle-cloud2.png");
 
-    _texture = [[OOTexture cxx_textureWithName:textureFile
-                                      inFolder:std::string("Textures")
-                                       options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                    anisotropy:kOOTextureDefaultAnisotropy
-                                       lodBias:0.0] retain];
-    if (_texture == nil) {
-        [self release];
-        return nil;
+    _texture = oo::ObjCRef<OOTexture*>([OOTexture cxx_textureWithName:textureFile
+                                                             inFolder:std::string("Textures")
+                                                              options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+                                                           anisotropy:kOOTextureDefaultAnisotropy
+                                                              lodBias:0.0]);
+    if (_texture == nullptr) {
+        return false;
     }
 
     GLfloat baseColor[4] = { 1.0, 1.0, 1.0, 1.0 };
@@ -107,7 +103,8 @@ constexpr std::string_view kExplosionTexture = "texture";
         vel = vector_multiply_scalar(vector_normal(vel), 1000);
     }
 
-    if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size * 0.8f * spread maxSpeed:size * 1.2f * spread duration:_cloudDuration baseColor:baseColor])) {
+    initWithPosition(pos, vel, count, size * 0.8f * spread, size * 1.2f * spread, _cloudDuration, baseColor);
+    {
         const std::string color_order = _settings.get<std::string>(kExplosionColors, "rgb");
 
         for (i = 0; i < count; i++) {
@@ -157,28 +154,30 @@ constexpr std::string_view kExplosionTexture = "texture";
             _particleColor[i][3] = _alpha;
         }
     }
-    return self;
+    return true;
 }
 
-- (void)dealloc
+// -dealloc released the texture: _texture does.
+
+oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity(::Entity* entity, const oo::PList& settings)
 {
-    DESTROY(_texture);
-    [super dealloc];
+    oo::Ref<OOExplosionCloudEntity> result = oo::makeRef<OOExplosionCloudEntity>();
+    if (!result->initExplosionCloudWithEntity(entity, 0, settings))
+        return nullptr;
+    return result;
 }
 
-+ (instancetype)explosionCloudFromEntity:(Entity*)entity withSettings:(const oo::PList&)settings
+oo::Ref<OOExplosionCloudEntity> OOExplosionCloudEntity::explosionCloudFromEntity(::Entity* entity, float size, const oo::PList& settings)
 {
-    return [[[self alloc] initExplosionCloudWithEntity:entity size:0 andSettings:settings] autorelease];
+    oo::Ref<OOExplosionCloudEntity> result = oo::makeRef<OOExplosionCloudEntity>();
+    if (!result->initExplosionCloudWithEntity(entity, size, settings))
+        return nullptr;
+    return result;
 }
 
-+ (instancetype)explosionCloudFromEntity:(Entity*)entity withSize:(float)size andSettings:(const oo::PList&)settings
+void OOExplosionCloudEntity::update(OOTimeDelta delta_t)
 {
-    return [[[self alloc] initExplosionCloudWithEntity:entity size:size andSettings:settings] autorelease];
-}
-
-- (void)update:(OOTimeDelta)delta_t
-{
-    [super update:delta_t];
+    OOParticleSystem::update(delta_t);
 
     // Fade out.
     GLfloat fadeRate = _count * _brightnessMult / 25.0;
@@ -246,9 +245,7 @@ constexpr std::string_view kExplosionTexture = "texture";
     }
 }
 
-- (OOTexture*)texture
+OOTexture* OOExplosionCloudEntity::texture()
 {
-    return _texture;
+    return _texture.get();
 }
-
-@end

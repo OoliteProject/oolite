@@ -45,7 +45,7 @@ extern "C" {
 // Return true if in standard enforcing mode
 // Always false in release builds
 // This will *not* exit in "exit on error" mode
-BOOL OOEnforceStandards(void);
+bool OOEnforceStandards(void);
 
 void OOSetStandardsForOXPVerifierMode(void);
 

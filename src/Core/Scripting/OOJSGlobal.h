@@ -33,3 +33,11 @@ MA 02110-1301, USA.
         global properties and functions on it.
 */
 void SetUpOOJSGlobal(JSContext* context, JSValueConst global);
+
+/*	-[OOJavaScriptEngine sendMonitorLogMessage:withMessageClass:inContext:], which OOJSGlobal.mm
+        sends from log(); defined, with the category that declares the selector, in
+        OOJSGlobal+ObjCBridge.mm when OOJSENGINE_MONITOR_SUPPORT is on (proposed ADR-0056 amendments
+        oo-9ht.66 and oo-6ia4 item 6).
+*/
+#include "oofnd/StdLib.hpp"
+void OOJSGlobalSendMonitorLogMessage(const std::optional<std::string>& message, const std::optional<std::string>& messageClass, JSContext* context);

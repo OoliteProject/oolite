@@ -411,6 +411,6 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y, NSSize siz);
 
-CGFloat cxx_OOStringWidthInEm(const std::string& text);
+#include "OOStringWidth.h" // cxx_OOStringWidthInEm() (bead oo-9ht.72: plain header)
 
 void OOHUDResetTextEngine(void);

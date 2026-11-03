@@ -30,6 +30,7 @@
 #import "Universe.h"
 
 #import "OOJSFunction.h"
+#import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
 #import "OOPlanetEntity.h"
 #import "OOShipGroup.h"
@@ -608,7 +609,7 @@ int RandArgument(const std::string& token)
     ShipEntity* targEnt = [self primaryTarget];
     double found_d2 = scannerRange * scannerRange;
 
-    if (targEnt && (HPdistance2(position, [targEnt position]) < found_d2)) {
+    if (targEnt && (HPdistance2(_cxxEntity->position, [targEnt position]) < found_d2)) {
         if ([targEnt isWormhole])
             whole = (WormholeEntity*)targEnt;
         else if ([targEnt isPlayer])
@@ -623,13 +624,13 @@ int RandArgument(const std::string& token)
         int i;
         int wh_count = 0;
         for (i = 0; i < ent_count; i++)
-            if (uni_entities[i]->isWormhole)
+            if (uni_entities[i]->_cxxEntity->isWormhole)
                 wormholes[wh_count++] = [(WormholeEntity*)uni_entities[i] retain];
         //
         // double found_d2 = scannerRange * scannerRange;
         for (i = 0; i < wh_count; i++) {
             WormholeEntity* wh = wormholes[i];
-            double d2 = HPdistance2(position, wh->position);
+            double d2 = HPdistance2(_cxxEntity->position, wh->_cxxEntity->position);
             if (d2 < found_d2) {
                 whole = wh;
                 found_d2 = d2;
@@ -727,7 +728,7 @@ int RandArgument(const std::string& token)
     if (messageTime > 2.0 * randf())
         return;
 
-    BOOL is_buoy = (scanClass == CLASS_BUOY);
+    BOOL is_buoy = (_cxxEntity->scanClass == CLASS_BUOY);
     const char* distress_message = is_buoy ? "[buoy-distress-call]" : "[distress-call]";
 
     unsigned i;
@@ -735,17 +736,17 @@ int RandArgument(const std::string& token)
         ShipEntity* ship = scanned_ships[i];
 
         // dump cargo if energy is low
-        if (dumpCargo && !is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy) {
+        if (dumpCargo && !is_buoy && [self primaryAggressor] == ship && _cxxEntity->energy < 0.375 * _cxxEntity->maxEnergy) {
             [self ejectCargo];
             [self performFlee];
         }
 
         // tell it! (only plist AIs send comms here; JS AIs are
         // expected to handle their own)
-        if (ship->isPlayer && ![self hasNewAI]) {
+        if (ship->_cxxEntity->isPlayer && ![self hasNewAI]) {
             [ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
 
-            if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy) {
+            if (!is_buoy && [self primaryAggressor] == ship && _cxxEntity->energy < 0.375 * _cxxEntity->maxEnergy) {
                 [self cxx_sendExpandedMessage:"[beg-for-mercy]" toShip:ship];
             } else if ([self bounty] == 0) {
                 // only send distress message to player if plausibly sending
@@ -767,7 +768,7 @@ int RandArgument(const std::string& token)
             // distressMessageReceived
             if (![self hasNewAI]) {
                 // FIXME: this test only works with core AIs
-                if (ship->isStation || [ship cxx_hasPrimaryRole:"police"] || [ship cxx_hasPrimaryRole:"hunter"]) {
+                if (ship->_cxxEntity->isStation || [ship cxx_hasPrimaryRole:"police"] || [ship cxx_hasPrimaryRole:"hunter"]) {
                     [ship acceptDistressMessageFrom:self];
                 }
             }
@@ -820,13 +821,13 @@ int RandArgument(const std::string& token)
 - (void)setDestinationToCurrentLocation
 {
     // randomly add a .5m variance
-    _destination = HPvector_add(position, OOHPVectorRandomSpatial(0.5));
+    _destination = HPvector_add(_cxxEntity->position, OOHPVectorRandomSpatial(0.5));
 }
 
 - (void)setDestinationToJinkPosition
 {
     Vector front = vector_multiply_scalar([self forwardVector], flightSpeed / max_flight_pitch * 2);
-    _destination = HPvector_add(position, vectorToHPVector(vector_add(front, OOVectorRandomSpatial(100))));
+    _destination = HPvector_add(_cxxEntity->position, vectorToHPVector(vector_add(front, OOVectorRandomSpatial(100))));
     pitching_over = YES; // don't complete roll first, but immediately start with pitching.
 }
 
@@ -882,9 +883,9 @@ int RandArgument(const std::string& token)
         // inform our old target of our new target
         //
         Entity* primeTarget = [self primaryTarget];
-        if ((primeTarget) && (primeTarget->isShip)) {
+        if ((primeTarget) && (primeTarget->_cxxEntity->isShip)) {
             ShipEntity* currentShip = [self primaryTarget];
-            [[currentShip getAI] message:oo::str::format("%s %d %d", std::string(AIMS_AGGRESSOR_SWITCHED_TARGET).c_str(), universalID, [[self primaryAggressor] universalID])];
+            [[currentShip getAI] message:oo::str::format("%s %d %d", std::string(AIMS_AGGRESSOR_SWITCHED_TARGET).c_str(), _cxxEntity->universalID, [[self primaryAggressor] universalID])];
             [currentShip doScriptEvent:OOJSID("shipAttackerDistracted") withArgument:[self primaryAggressor]];
         }
 
@@ -922,7 +923,7 @@ int RandArgument(const std::string& token)
         ship = scanned_ships[i];
         if ([ship isPirateVictim] && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && ![ship isCloaked]) {
             d2 = distance2_scanned_ships[i];
-            if (PIRATES_PREFER_PLAYER && (d2 < desired_range * desired_range) && ship->isPlayer && [self isPirate]) {
+            if (PIRATES_PREFER_PLAYER && (d2 < desired_range * desired_range) && ship->_cxxEntity->isPlayer && [self isPirate]) {
                 d2 = 0.0;
             } else
                 d2 = distance2_scanned_ships[i];
@@ -962,7 +963,7 @@ int RandArgument(const std::string& token)
 - (void)scanForLoot
 {
     /*-- Locates the nearest debris in range --*/
-    if (!isStation) {
+    if (!_cxxEntity->isStation) {
         if (![self hasCargoScoop]) {
             [shipAI message:"NOTHING_FOUND"]; // can't collect loot if you have no scoop!
             return;
@@ -1064,7 +1065,7 @@ int RandArgument(const std::string& token)
     /*- calculates coordinates from the nearest station it can find, or just fly 10s forward -*/
     if (!UNIVERSE) {
         Vector vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0); // 10 second flying away
-        coordinates = HPvector_add(position, vectorToHPVector(vr));
+        coordinates = HPvector_add(_cxxEntity->position, vectorToHPVector(vr));
         return;
     }
     //
@@ -1077,13 +1078,13 @@ int RandArgument(const std::string& token)
                                            parameter:nil
                                     relativeToEntity:self];
 
-    if (station && HPdistance2([station position], position) < SCANNER_MAX_RANGE2) // there is a station in range.
+    if (station && HPdistance2([station position], _cxxEntity->position) < SCANNER_MAX_RANGE2) // there is a station in range.
     {
         Vector vr = vector_multiply_scalar([station rightVector], 10000); // 10km from station
         coordinates = HPvector_add([station position], vectorToHPVector(vr));
     } else {
         Vector vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0); // 10 second flying away
-        coordinates = HPvector_add(position, vectorToHPVector(vr));
+        coordinates = HPvector_add(_cxxEntity->position, vectorToHPVector(vr));
     }
 }
 
@@ -1094,7 +1095,7 @@ int RandArgument(const std::string& token)
 
 - (void)setCoordinatesFromPosition
 {
-    coordinates = position;
+    coordinates = _cxxEntity->position;
 }
 
 - (void)fightOrFleeMissile
@@ -1109,7 +1110,7 @@ int RandArgument(const std::string& token)
     [self checkScannerIgnoringUnpowered];
     for (i = 0; (i < n_scanned_ships) && (missile == nil); i++) {
         ShipEntity* thing = scanned_ships[i];
-        if (thing->scanClass == CLASS_MISSILE) {
+        if (thing->_cxxEntity->scanClass == CLASS_MISSILE) {
             target = [thing primaryTarget];
 
             if (target == self) {
@@ -1174,16 +1175,16 @@ int RandArgument(const std::string& token)
     OOPlanetEntity* the_planet = [self findNearestPlanetExcludingMoons];
     if (the_planet) {
         double variation = (aegis_status == AEGIS_NONE ? 0.5 : 0.2); // more random deviation when far from planet.
-        HPVector p_pos = the_planet->position;
-        double p_cr = the_planet->collision_radius; // the surface
-        HPVector p1 = HPvector_between(p_pos, position);
+        HPVector p_pos = the_planet->_cxxEntity->position;
+        double p_cr = the_planet->_cxxEntity->collision_radius; // the surface
+        HPVector p1 = HPvector_between(p_pos, _cxxEntity->position);
         p1 = HPvector_normal(p1); // vector towards ship
         p1.x += variation * (randf() - variation);
         p1.y += variation * (randf() - variation);
         p1.z += variation * (randf() - variation);
         p1 = HPvector_normal(p1);
         _destination = HPvector_add(p_pos, HPvector_multiply_scalar(p1, p_cr)); // on surface
-        desired_range = collision_radius + 100.0; // +100m from the destination
+        desired_range = _cxxEntity->collision_radius + 100.0; // +100m from the destination
     } else {
         [shipAI message:"NO_PLANET_FOUND"];
     }
@@ -1194,7 +1195,7 @@ int RandArgument(const std::string& token)
     /*- selects the nearest planet it can find -*/
     OOPlanetEntity* the_planet = [self findNearestPlanet];
     if (the_planet) {
-        _destination = HPvector_add([the_planet position], HPvector_multiply_scalar(HPvector_normal(HPvector_subtract([the_planet position], position)), -10000.0 - the_planet->collision_radius)); // 10km straight up
+        _destination = HPvector_add([the_planet position], HPvector_multiply_scalar(HPvector_normal(HPvector_subtract([the_planet position], _cxxEntity->position)), -10000.0 - the_planet->_cxxEntity->collision_radius)); // 10km straight up
         desired_range = 50.0;
     } else {
         OO_LOG("ai.setTakeOffFromPlanet.noPlanet", "{}", "***** Error. Planet not found during take off!");
@@ -1233,7 +1234,7 @@ int RandArgument(const std::string& token)
 
 - (void)checkOwnLegalStatus
 {
-    if (scanClass == CLASS_THARGOID) {
+    if (_cxxEntity->scanClass == CLASS_THARGOID) {
         [shipAI message:"SELF_THARGOID"];
         return;
     }
@@ -1262,18 +1263,18 @@ int RandArgument(const std::string& token)
 {
     Entity* the_target = [self primaryTarget];
     if (the_target)
-        _destination = the_target->position;
+        _destination = the_target->_cxxEntity->position;
 }
 
 - (void)setDestinationWithinTarget
 {
     Entity* the_target = [self primaryTarget];
     if (the_target) {
-        HPVector pos = the_target->position;
+        HPVector pos = the_target->_cxxEntity->position;
         Quaternion q;
         quaternion_set_random(&q);
         Vector v = vector_forward_from_quaternion(q);
-        GLfloat d = (randf() - randf()) * the_target->collision_radius;
+        GLfloat d = (randf() - randf()) * the_target->_cxxEntity->collision_radius; // NOLINT(misc-redundant-expression): two independent randf() draws, pre-existing; behaviour unchanged by this retarget.
         _destination = make_HPvector(pos.x + d * v.x, pos.y + d * v.y, pos.z + d * v.z);
     }
 }
@@ -1282,7 +1283,7 @@ int RandArgument(const std::string& token)
 {
     Entity* hazard = [UNIVERSE hazardOnRouteFromEntity:self toDistance:desired_range fromPoint:_destination];
 
-    if (hazard == nil || ([hazard isShip] && HPdistance(position, [hazard position]) > scannerRange) || ([hazard isPlanet] && aegis_status == AEGIS_NONE))
+    if (hazard == nil || ([hazard isShip] && HPdistance(_cxxEntity->position, [hazard position]) > scannerRange) || ([hazard isPlanet] && aegis_status == AEGIS_NONE))
         [shipAI message:"COURSE_OK"]; // Avoid going into a waypoint.plist for far away objects, it cripples the main AI a bit in its funtionality.
     else {
         if ([hazard isShip] && (weapon_damage * 24.0 > [hazard energy])) {
@@ -1332,15 +1333,15 @@ int RandArgument(const std::string& token)
 
 - (void)checkEnergy
 {
-    if (energy == maxEnergy) {
+    if (_cxxEntity->energy == _cxxEntity->maxEnergy) {
         [shipAI message:"ENERGY_FULL"];
         return;
     }
-    if (energy >= maxEnergy * 0.75) {
+    if (_cxxEntity->energy >= _cxxEntity->maxEnergy * 0.75) {
         [shipAI message:"ENERGY_HIGH"];
         return;
     }
-    if (energy <= maxEnergy * 0.25) {
+    if (_cxxEntity->energy <= _cxxEntity->maxEnergy * 0.25) {
         [shipAI message:"ENERGY_LOW"];
         return;
     }
@@ -1392,7 +1393,7 @@ int RandArgument(const std::string& token)
     OOShipGroup* group = [self group];
     for (i = 0; i < n_scanned_ships; i++) {
         ShipEntity* ship = scanned_ships[i];
-        if ((ship->scanClass != CLASS_CARGO) && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && ![ship isCloaked]) {
+        if ((ship->_cxxEntity->scanClass != CLASS_CARGO) && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && ![ship isCloaked]) {
             GLfloat d2 = distance2_scanned_ships[i];
             float legal_factor = [ship legalStatus] * gov_factor;
             int random_factor = ranrot_rand() & 255; // 25% chance of spotting a fugitive in 15s
@@ -1518,7 +1519,7 @@ int RandArgument(const std::string& token)
 
     double maxRange2 = scannerRange * scannerRange;
 
-    if (mother && mother != self && HPdistance2(mother->position, position) < maxRange2) {
+    if (mother && mother != self && HPdistance2(mother->_cxxEntity->position, _cxxEntity->position) < maxRange2) {
         [shipAI message:"TARGET_FOUND"]; // no need for scanning, we still have our mother.
     } else {
         // we lost the old mother, search for a new one
@@ -1540,7 +1541,7 @@ int RandArgument(const std::string& token)
     Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
     int i;
     for (i = 0; i < ent_count; i++)
-        if (uni_entities[i]->isShip) {
+        if (uni_entities[i]->_cxxEntity->isShip) {
             ShipEntity* other = (ShipEntity*)uni_entities[i];
             if ([other primaryTarget] == self) {
                 [other removeTarget:self];
@@ -1550,7 +1551,7 @@ int RandArgument(const std::string& token)
             }
         }
     // now we're just a bunch of alien artefacts!
-    scanClass = CLASS_CARGO;
+    _cxxEntity->scanClass = CLASS_CARGO;
     reportAIMessages = NO;
     [self setAITo:"dumbAI.plist"];
     DESTROY(_primaryTarget);
@@ -1560,7 +1561,7 @@ int RandArgument(const std::string& token)
 
 - (void)checkDistanceTravelled
 {
-    if (distanceTravelled > desired_range)
+    if (_cxxEntity->distanceTravelled > desired_range)
         [shipAI message:"GONE_BEYOND_RANGE"];
 }
 
@@ -1597,7 +1598,7 @@ int RandArgument(const std::string& token)
     }
 
     // consider fighting
-    if (energy > maxEnergy * 0.80) {
+    if (_cxxEntity->energy > _cxxEntity->maxEnergy * 0.80) {
         [self setPrimaryAggressor:[self foundTarget]];
         //[self performAttack];
         [shipAI message:"FIGHTING"];
@@ -1652,7 +1653,7 @@ int RandArgument(const std::string& token)
     GLfloat found_d2 = scannerRange * scannerRange;
     for (i = 0; i < n_scanned_ships; i++) {
         ShipEntity* ship = scanned_ships[i];
-        if ((ship != self) && (!ship->isPlayer) && (ship->scanClass == scanClass) && [ship primaryTarget] != self && ![ship isCloaked]) // look for alike
+        if ((ship != self) && (!ship->_cxxEntity->isPlayer) && (ship->_cxxEntity->scanClass == _cxxEntity->scanClass) && [ship primaryTarget] != self && ![ship isCloaked]) // look for alike
         {
             GLfloat d2 = distance2_scanned_ships[i];
             if ((d2 < found_d2) && [ship canAcceptEscort:self]) {
@@ -1690,7 +1691,7 @@ int RandArgument(const std::string& token)
 - (void)setPlanetPatrolCoordinates
 {
     // check we've arrived near the last given coordinates
-    HPVector r_pos = HPvector_subtract(position, coordinates);
+    HPVector r_pos = HPvector_subtract(_cxxEntity->position, coordinates);
     if (HPmagnitude2(r_pos) < 1000000 || patrol_counter == 0) {
         Entity* the_sun = [UNIVERSE sun];
         ShipEntity* the_station = [[self group] leader];
@@ -1698,8 +1699,8 @@ int RandArgument(const std::string& token)
             the_station = [UNIVERSE station];
         if ((!the_sun) || (!the_station))
             return;
-        HPVector sun_pos = the_sun->position;
-        HPVector stn_pos = the_station->position;
+        HPVector sun_pos = the_sun->_cxxEntity->position;
+        HPVector stn_pos = the_station->_cxxEntity->position;
         HPVector sun_dir = HPvector_subtract(sun_pos, stn_pos);
         Vector vSun = make_vector(0, 0, 1);
         if (sun_dir.x || sun_dir.y || sun_dir.z)
@@ -1783,7 +1784,7 @@ int RandArgument(const std::string& token)
     if (the_sun == nil)
         return;
     HPVector v1 = [UNIVERSE getSunSkimEndPositionForShip:self];
-    HPVector vs = the_sun->position;
+    HPVector vs = the_sun->_cxxEntity->position;
     HPVector vout = HPvector_subtract(v1, vs);
     if (vout.x || vout.y || vout.z)
         vout = HPvector_normal(vout);
@@ -1808,13 +1809,13 @@ int RandArgument(const std::string& token)
 - (void)checkForMotherStation
 {
     ShipEntity* motherStation = [[self group] leader];
-    if ((!motherStation) || (!(motherStation->isStation))) {
+    if ((!motherStation) || (!(motherStation->_cxxEntity->isStation))) {
         [shipAI message:"NOTHING_FOUND"];
         return;
     }
     double found_d2 = scannerRange * scannerRange;
-    HPVector v0 = motherStation->position;
-    if (HPdistance2(v0, position) > found_d2) {
+    HPVector v0 = motherStation->_cxxEntity->position;
+    if (HPdistance2(v0, _cxxEntity->position) > found_d2) {
         [shipAI message:"NOTHING_FOUND"];
         return;
     }
@@ -1844,7 +1845,7 @@ int RandArgument(const std::string& token)
 
 - (void)markTargetForOffence:(const std::string&)valueString // called by name (ADR-0055 item 5)
 {
-    if ((isStation) || (scanClass == CLASS_POLICE)) {
+    if ((_cxxEntity->isStation) || (_cxxEntity->scanClass == CLASS_POLICE)) {
         ShipEntity* ship = [self primaryTarget];
         if ((ship == nil) || ([ship status] == STATUS_DEAD) || ([ship status] == STATUS_DOCKED)) {
             [self noteLostTarget];
@@ -1872,7 +1873,7 @@ int RandArgument(const std::string& token)
     BOOL found = NO;
 
     if (oldTarget && ![oldTarget isCloaked]) {
-        GLfloat range2 = HPdistance2([oldTarget position], position);
+        GLfloat range2 = HPdistance2([oldTarget position], _cxxEntity->position);
         if (range2 <= scannerRange * scannerRange && range2 <= SCANNER_MAX_RANGE2) {
             found = YES;
         }
@@ -1933,11 +1934,11 @@ int RandArgument(const std::string& token)
         the_target = [UNIVERSE station];
     }
     double bo_distance = 8000; //	8km back off
-    HPVector v0 = position;
-    HPVector d0 = (the_target) ? the_target->position : kZeroHPVector;
-    v0.x += (randf() - 0.5) * collision_radius;
-    v0.y += (randf() - 0.5) * collision_radius;
-    v0.z += (randf() - 0.5) * collision_radius;
+    HPVector v0 = _cxxEntity->position;
+    HPVector d0 = (the_target) ? the_target->_cxxEntity->position : kZeroHPVector;
+    v0.x += (randf() - 0.5) * _cxxEntity->collision_radius;
+    v0.y += (randf() - 0.5) * _cxxEntity->collision_radius;
+    v0.z += (randf() - 0.5) * _cxxEntity->collision_radius;
     v0.x -= d0.x;
     v0.y -= d0.y;
     v0.z -= d0.z;
@@ -2194,9 +2195,9 @@ int RandArgument(const std::string& token)
 
     for (i = 0; i < ent_count; i++) {
         // find stations within range but exclude carriers.
-        if (uni_entities[i]->isStation) {
+        if (uni_entities[i]->_cxxEntity->isStation) {
             my_station = (StationEntity*)uni_entities[i];
-            if ([my_station maxFlightSpeed] == 0 && [my_station hasNPCTraffic] && HPdistance2(position, [my_station position]) < maxRange2) {
+            if ([my_station maxFlightSpeed] == 0 && [my_station hasNPCTraffic] && HPdistance2(_cxxEntity->position, [my_station position]) < maxRange2) {
                 my_entities[station_count++] = [uni_entities[i] retain]; //	retained
             }
         }
@@ -2376,8 +2377,8 @@ int RandArgument(const std::string& token)
         return;
     }
     Vector k = ship->v_forward;
-    GLfloat c = ship->collision_radius;
-    HPVector o = ship->position;
+    GLfloat c = ship->_cxxEntity->collision_radius;
+    HPVector o = ship->_cxxEntity->position;
     navpoints[0] = make_HPvector(o.x - c * k.x, o.y - c * k.y, o.z - c * k.z);
     navpoints[1] = make_HPvector(o.x + c * k.x, o.y + c * k.y, o.z + c * k.z);
     navpoints[2] = make_HPvector(o.x + 2.0 * c * k.x, o.y + 2.0 * c * k.y, o.z + 2.0 * c * k.z);
@@ -2390,7 +2391,7 @@ int RandArgument(const std::string& token)
 - (void)performFlyRacepoints
 {
     next_navpoint_index = 0;
-    desired_range = collision_radius;
+    desired_range = _cxxEntity->collision_radius;
     behaviour = BEHAVIOUR_FLY_THRU_NAVPOINTS;
 }
 
@@ -2501,7 +2502,7 @@ int RandArgument(const std::string& token)
     for (i = 0; i < n_scanned_ships; i++) {
         candidate = scanned_ships[i];
         d2 = distance2_scanned_ships[i];
-        if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) && ([candidate status] != STATUS_DOCKED)
+        if ((d2 < found_d2) && (candidate->_cxxEntity->scanClass != CLASS_CARGO) && ([candidate status] != STATUS_DOCKED)
             && predicate(candidate, parameter) && ![candidate isCloaked]) {
             [self setFoundTarget:candidate];
             found_d2 = d2;

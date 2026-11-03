@@ -32,53 +32,58 @@ SOFTWARE.
 #import "OOALSoundMixer.h"
 #import "OOFoundation.h"
 
-static OOSoundMixer* sSingleton = nil;
+namespace {
 
-@implementation OOSoundMixer
+cxx::OOSoundMixer* sSingleton = nullptr;
 
-+ (id)sharedMixer
+} // namespace
+
+namespace cxx {
+
+/*	The singleton category recorded the mixer in +allocWithZone:, before -init ran (amendment
+        oo-z1s4 item 2); it is recorded first here too. -init's failure ([super release], which freed
+        the mixer and left sSingleton pointing at it) leaves sSingleton null instead, and the next call
+        asks again (amendment oo-r7m0 item 2): a dangling singleton was undefined behaviour.
+*/
+OOSoundMixer* OOSoundMixer::sharedMixer()
 {
-    if (nil == sSingleton) {
-        [[self alloc] init];
+    if (nullptr == sSingleton) {
+        sSingleton = oo::makeRef<OOSoundMixer>().leakRef();
+        if (!sSingleton->init()) {
+            OOSoundMixer* failed = sSingleton;
+            sSingleton = nullptr;
+            oo::release(failed);
+        }
     }
     return sSingleton;
 }
 
-- (id)init
+// The body of -init after [super init].
+bool OOSoundMixer::init()
 {
-    BOOL OK = YES;
+    bool OK = true;
     uint32_t idx = 0, count = kMixerGeneralChannels;
-    OOSoundChannel* channel;
+    ::OOSoundChannel* channel;
 
-    if (!(self = [super init]))
-        return nil;
-    if (![OOSound setUp])
-        OK = NO;
+    if (!OOSound::setUp())
+        OK = false;
 
     if (OK) {
         // Allocate channels
         do {
-            channel = [[OOSoundChannel alloc] init];
+            channel = [[::OOSoundChannel alloc] init];
             if (nil != channel) {
                 _channels[idx++] = channel;
-                [self pushChannel:channel];
+                pushChannel(channel);
             }
         } while (--count);
     }
 
-    if (!OK) {
-        [super release];
-        // static analyser complains about this next line; probably nothing - CIM
-        self = nil;
-    } else {
-        sSingleton = self;
-    }
-
-    return sSingleton;
+    return OK;
 }
 
 // only to be called at app shutdown by OOOpenALController::shutdown
-- (void)shutdown
+void OOSoundMixer::shutdown()
 {
     uint32_t i;
     for (i = 0; i < kMixerGeneralChannels; ++i) {
@@ -86,7 +91,7 @@ static OOSoundMixer* sSingleton = nil;
     }
 }
 
-- (void)update
+void OOSoundMixer::update()
 {
     uint32_t i;
     for (i = 0; i < kMixerGeneralChannels; ++i) {
@@ -94,16 +99,16 @@ static OOSoundMixer* sSingleton = nil;
     }
 }
 
-- (OOSoundChannel*)popChannel
+::OOSoundChannel* OOSoundMixer::popChannel()
 {
-    OOSoundChannel* channel = _freeList;
+    ::OOSoundChannel* channel = _freeList;
     _freeList = [channel next];
     [channel setNext:nil];
 
     return channel;
 }
 
-- (void)pushChannel:(OOSoundChannel*)channel
+void OOSoundMixer::pushChannel(::OOSoundChannel* channel)
 {
     assert(channel != nil);
 
@@ -111,48 +116,7 @@ static OOSoundMixer* sSingleton = nil;
     _freeList = channel;
 }
 
-@end
+} // namespace cxx
 
-@implementation OOSoundMixer (Singleton)
-
-/*	Canonical singleton boilerplate.
-        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-        See also +sharedMixer above.
-
-        NOTE: assumes single-threaded access.
-*/
-
-+ (id)allocWithZone:(OOZone*)inZone
-{
-    if (sSingleton == nil) {
-        sSingleton = [super allocWithZone:inZone];
-        return sSingleton;
-    }
-    return nil;
-}
-
-- (id)copyWithZone:(OOZone*)inZone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
-@end
+// The singleton category (+allocWithZone:, -retain and the rest) is not translated: the mixer has
+// no other creator and is never released (amendment oo-r7m0 item 1).

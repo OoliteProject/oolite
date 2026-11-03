@@ -2,6 +2,9 @@
 
 OORingEffectEntity.m
 
+C++20 since bead oo-peql (see OORingEffectEntity.h). The bodies are the Objective-C ones: a
+message to self is a member call, [super ...] the base's member, and the universe is handed the
+entity's Objective-C object, oo::ToObjC(this).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -49,10 +52,14 @@ static struct {
     float x, y;
 } sCircleVerts[kCircleSegments]; // holds vector coordinates for a unit circle
 
-@implementation OORingEffectEntity
-
-+ (void)initialize
+// +initialize: run once, before the first ring is made.
+void OORingEffectEntity::initialize()
 {
+    static bool initialized = false;
+    if (initialized)
+        return;
+    initialized = true;
+
     unsigned i;
     for (i = 0; i < kCircleSegments; i++) {
         sCircleVerts[i].x = sinf(i * 2 * M_PI / (kCircleSegments - 1));
@@ -60,67 +67,72 @@ static struct {
     }
 }
 
-- (id)initRingFromEntity:(Entity*)sourceEntity
+// The other entity stays its Objective-C object (amendment oo-bj8 item 4).
+bool OORingEffectEntity::initRingFromEntity(::Entity* sourceEntity)
 {
     if (sourceEntity == nil) {
-        [self release];
-        return nil;
+        return false;
     }
 
-    if ((self = [super init])) {
+    // [super init] could not fail: the object is constructed.
+    {
         GLfloat baseSize = [sourceEntity collisionRadius];
         _innerRadius = baseSize * kInnerRingInitialSizeFactor;
         _outerRadius = baseSize * kOuterRingInitialSizeFactor;
         _innerGrowthRate = baseSize * kInnerRingGrowthRateFactor;
         _outerGrowthRate = baseSize * kOuterRingGrowthRateFactor;
 
-        [self setPosition:[sourceEntity position]];
-        [self setOrientation:[sourceEntity orientation]];
-        [self setVelocity:[sourceEntity velocity]];
+        setPosition([sourceEntity position]);
+        setOrientation([sourceEntity orientation]);
+        setVelocity([sourceEntity velocity]);
 
-        [self setStatus:STATUS_EFFECT];
-        [self setScanClass:CLASS_NO_DRAW];
+        setStatus(STATUS_EFFECT);
+        setScanClass(CLASS_NO_DRAW);
 
-        [self setOwner:sourceEntity];
+        setOwner(oo::ToCxx(sourceEntity));
     }
 
-    return self;
+    return true;
 }
 
-+ (instancetype)ringFromEntity:(Entity*)sourceEntity
+oo::Ref<OORingEffectEntity> OORingEffectEntity::ringFromEntity(::Entity* sourceEntity)
 {
-    return [[[self alloc] initRingFromEntity:sourceEntity] autorelease];
+    initialize();
+    oo::Ref<OORingEffectEntity> result = oo::makeRef<OORingEffectEntity>();
+    if (!result->initRingFromEntity(sourceEntity))
+        return nullptr;
+    return result;
 }
 
-+ (instancetype)shrinkingRingFromEntity:(Entity*)sourceEntity
+oo::Ref<OORingEffectEntity> OORingEffectEntity::shrinkingRingFromEntity(::Entity* sourceEntity)
 {
-    OORingEffectEntity* result = [self ringFromEntity:sourceEntity];
-    if (result != nil) {
+    oo::Ref<OORingEffectEntity> result = ringFromEntity(sourceEntity);
+    if (result != nullptr) {
         result->_innerGrowthRate *= kShrinkingRingInnerGrowthFactor;
         result->_outerGrowthRate *= kShrinkingRingOuterGrowthFactor;
     }
     return result;
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OORingEffectEntity::descriptionComponents() const
 {
     return oo::str::format("%f seconds passed of %f", _timePassed, kRingDuration);
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OORingEffectEntity::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
+    Entity::update(delta_t);
     _timePassed += delta_t;
 
     _innerRadius += delta_t * _innerGrowthRate;
     _outerRadius += delta_t * _outerGrowthRate;
 
     if (_timePassed > kRingDuration) {
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
     }
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OORingEffectEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
     if (!translucent || [UNIVERSE breakPatternHide])
         return;
@@ -143,17 +155,15 @@ static struct {
     OOGLEND();
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOQuiriumCascadeEntity after drawing " + oo::DescriptionOf(self); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOQuiriumCascadeEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
 }
 
-- (BOOL)isEffect
+bool OORingEffectEntity::isEffect()
 {
-    return YES;
+    return true;
 }
 
-- (BOOL)canCollide
+bool OORingEffectEntity::canCollide()
 {
-    return NO;
+    return false;
 }
-
-@end

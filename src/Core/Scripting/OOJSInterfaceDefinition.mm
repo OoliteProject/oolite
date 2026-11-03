@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSInterfaceDefinition.h"
+#import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
 
 #include "oofnd/Notification.hpp"
@@ -41,25 +42,27 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
 }
 } // namespace
 
-@implementation OOJSInterfaceDefinition
+/*	C++20 since bead oo-8fpc (proposed ADR-0056 amendment oo-o89): cxx::OOJSInterfaceDefinition. -init after
+        [super init] is the constructor, -dealloc the destructor; the engine, the script stack and the
+        owning script's weak reference are Objective-C and are messaged as before.
+*/
 
-- (id)init
+namespace cxx {
+
+OOJSInterfaceDefinition::OOJSInterfaceDefinition()
 {
-    self = [super init];
     _callback = JS_UNDEFINED;
     _callbackThis = JS_UNDEFINED;
 
-    _owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
+    _owningScript = oo::adoptObjC(static_cast<::OOJSScript*>([[::OOJSScript currentlyRunningScript] weakRetain]));
 
-    // Stays registered until dealloc, so values set after a reset are also released on the next one.
-    oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+    // Stays registered until destruction, so values set after a reset are also released on the next one.
+    oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine],
-        [self](const oo::Notification&) { [self deleteJSPointers]; });
-
-    return self;
+        [this](const oo::Notification&) { deleteJSPointers(); });
 }
 
-- (void)deleteJSPointers
+void OOJSInterfaceDefinition::deleteJSPointers()
 {
     JSContext* context = OOJSAcquireContext();
     JS_FreeValue(context, _callback);
@@ -69,54 +72,52 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
     OOJSRelinquishContext(context);
 }
 
-- (void)dealloc
+OOJSInterfaceDefinition::~OOJSInterfaceDefinition()
 {
-    oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+    oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine]);
 
-    [_owningScript release];
+    _owningScript = nullptr;
 
-    [self deleteJSPointers];
-
-    [super dealloc];
+    deleteJSPointers();
 }
 
-- (std::optional<std::string>)cxx_title
+std::optional<std::string> OOJSInterfaceDefinition::title()
 {
     return _title;
 }
 
-- (void)cxx_setTitle:(const std::optional<std::string>&)title
+void OOJSInterfaceDefinition::setTitle(const std::optional<std::string>& title)
 {
     _title = title;
 }
 
-- (std::optional<std::string>)category
+std::optional<std::string> OOJSInterfaceDefinition::category()
 {
     return _category;
 }
 
-- (void)setCategory:(const std::string&)category
+void OOJSInterfaceDefinition::setCategory(const std::string& category)
 {
     _category = category;
 }
 
-- (std::optional<std::string>)summary
+std::optional<std::string> OOJSInterfaceDefinition::summary()
 {
     return _summary;
 }
 
-- (void)setSummary:(const std::string&)summary
+void OOJSInterfaceDefinition::setSummary(const std::string& summary)
 {
     _summary = summary;
 }
 
-- (JSValue)callback
+JSValue OOJSInterfaceDefinition::callback()
 {
     return JS_DupValue(OOJSAcquireContext(), _callback);
 }
 
-- (void)setCallback:(JSValueConst)callback
+void OOJSInterfaceDefinition::setCallback(JSValueConst callback)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue old = _callback;
@@ -125,12 +126,12 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
     OOJSRelinquishContext(context);
 }
 
-- (JSValue)callbackThis
+JSValue OOJSInterfaceDefinition::callbackThis()
 {
     return JS_DupValue(OOJSAcquireContext(), _callbackThis);
 }
 
-- (void)setCallbackThis:(JSValueConst)callbackThis
+void OOJSInterfaceDefinition::setCallbackThis(JSValueConst callbackThis)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue old = _callbackThis;
@@ -139,7 +140,7 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
     OOJSRelinquishContext(context);
 }
 
-- (void)runCallback:(const std::string&)key
+void OOJSInterfaceDefinition::runCallback(const std::string& key)
 {
     OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();
@@ -153,8 +154,8 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
 
     JSValue cKey = OOJSValueFromPList(context, oo::PList(key));
 
-    OOJSScript* owner = [_owningScript retain]; // local copy needed
-    [OOJSScript pushScript:owner];
+    const oo::ObjCRef<::OOJSScript*> owner = _owningScript; // local copy needed
+    [::OOJSScript pushScript:owner.get()];
 
     // Hold our own references in case the callback replaces them.
     JSValue callback = JS_DupValue(context, _callback);
@@ -167,22 +168,21 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
     JS_FreeValue(context, callback);
     JS_FreeValue(context, callbackThis);
 
-    [OOJSScript popScript:owner];
-    [owner release];
+    [::OOJSScript popScript:owner.get()];
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, cKey);
     OOJSRelinquishContext(context);
 }
 
-- (OOComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other
+OOComparisonResult OOJSInterfaceDefinition::interfaceCompare(OOJSInterfaceDefinition* other)
 {
-    OOComparisonResult byCategory = CaseInsensitiveCompare(_category, [other category]);
+    OOComparisonResult byCategory = CaseInsensitiveCompare(_category, (other != nullptr) ? other->category() : std::nullopt);
     if (byCategory == OOOrderedSame) {
-        return CaseInsensitiveCompare(_title, [other cxx_title]);
+        return CaseInsensitiveCompare(_title, (other != nullptr) ? other->title() : std::nullopt);
     } else {
         return byCategory;
     }
 }
 
-@end
+} // namespace cxx

@@ -45,6 +45,14 @@ MA 02110-1301, USA.
         of Object.prototype (such as toString) are found there unless a mission
         variable of the same name exists.
 */
+/*
+        C++20 since bead oo-s4ns, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. Nothing else in the file was
+        Objective-C: the player (PlayerEntity), which is not converted, is still messaged, which is why
+        the file is still .mm until Phase 4.
+*/
 
 // Property name for a string property ID, or nullopt for other IDs (symbols).
 static std::optional<std::string> NameForPropertyID(JSContext* context, JSAtom propID)
@@ -126,7 +134,7 @@ static JSValue ValueForMissionVariable(JSContext* context, const std::string& ke
 
     if (const std::string* string = mvar.getIf<std::string>()) // Currently there should only be strings, but we may want to change this.
     {
-        if (OOIsNumberLiteral(*string, YES)) {
+        if (OOIsNumberLiteral(*string, true)) {
             return JS_NewNumber(context, oo::str::doubleValue(*string)); // -[NSString doubleValue]
         }
     }
@@ -136,14 +144,14 @@ static JSValue ValueForMissionVariable(JSContext* context, const std::string& ke
 
 static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID)
 {
-    @try {
+    try {
         std::optional<std::string> key = KeyForPropertyName(NameForPropertyID(context, propID));
         if (!key.has_value())
-            return NO;
+            return false;
 
         JSValue value = ValueForMissionVariable(context, *key);
         if (JS_IsUndefined(value))
-            return NO;
+            return false;
 
         if (desc != NULL) {
             desc->flags = JS_PROP_C_W_E;
@@ -153,17 +161,16 @@ static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescript
         } else {
             JS_FreeValue(context, value);
         }
-        return YES;
-    }
-    @catch (id exception) {
-        OOJSReportWrappedException(context, exception);
+        return true;
+    } catch (...) {
+        OOJSReportCurrentException(context);
         return -1;
     }
 }
 
 static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnum** outTable, uint32_t* outCount, JSValueConst object)
 {
-    @try {
+    try {
         // A copy of the keys, which is good since the enumerating code might mutate. In key order
         // (-allKeys gave them in hash order).
         std::vector<std::string> mvars;
@@ -200,16 +207,15 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnu
         *outTable = table;
         *outCount = used;
         return 0;
-    }
-    @catch (id exception) {
-        OOJSReportWrappedException(context, exception);
+    } catch (...) {
+        OOJSReportCurrentException(context);
         return -1;
     }
 }
 
 static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst object, JSAtom propID)
 {
-    @try {
+    try {
         PlayerEntity* player = OOPlayerForScripting();
 
         std::optional<std::string> name = NameForPropertyID(context, propID);
@@ -218,10 +224,9 @@ static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst objec
             if (key.has_value())
                 [player cxx_setMissionVariable:oo::PList() forKey:*key];
         }
-        return YES;
-    }
-    @catch (id exception) {
-        OOJSReportWrappedException(context, exception);
+        return true;
+    } catch (...) {
+        OOJSReportCurrentException(context);
         return -1;
     }
 }
@@ -244,7 +249,7 @@ static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst obje
 
     JSValue result = JS_UNDEFINED;
     if (JS_IsObject(prototype)) {
-        int found = key.has_value() ? JS_HasProperty(context, prototype, propID) : YES;
+        int found = key.has_value() ? JS_HasProperty(context, prototype, propID) : true;
         if (found < 0) {
             result = JS_EXCEPTION;
         } else if (found) {
@@ -262,7 +267,7 @@ static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst obje
     OOJS_NATIVE_EXIT
 }
 
-static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst value)
+static bool SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst value)
 {
     PlayerEntity* player = OOPlayerForScripting();
 
@@ -271,7 +276,7 @@ static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
         std::optional<std::string> key = KeyForPropertyName(name);
         if (!key.has_value()) {
             cxx_OOJSReportError(context, "Invalid mission variable name \"%s\".", cxx_OOJSEscapedForJavaScriptLiteral(*name).c_str());
-            return NO;
+            return false;
         }
 
         // nil (a value with no string form) clears the variable. (The old OONull test could not match
@@ -280,16 +285,15 @@ static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
 
         [player cxx_setMissionVariable:objValue.has_value() ? oo::PList(*objValue) : oo::PList() forKey:*key];
     }
-    return YES;
+    return true;
 }
 
 static int MissionVariablesSetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst receiver, int flags)
 {
-    @try {
-        return SetMissionVariable(context, propID, value) ? YES : -1;
-    }
-    @catch (id exception) {
-        OOJSReportWrappedException(context, exception);
+    try {
+        return SetMissionVariable(context, propID, value) ? true : -1;
+    } catch (...) {
+        OOJSReportCurrentException(context);
         return -1;
     }
 }
@@ -299,18 +303,17 @@ static int MissionVariablesDefineOwnProperty(JSContext* context, JSValueConst ob
     /*	Object.defineProperty() and friends. Mission variables can't be
             accessors; a defined value is stored like an assignment.
     */
-    @try {
+    try {
         if (flags & (JS_PROP_HAS_GET | JS_PROP_HAS_SET)) {
             const std::optional<std::string> badName = cxx_OOStringFromJSID(propID);
             cxx_OOJSReportError(context, "Invalid mission variable name \"%s\".", badName.has_value() ? cxx_OOJSEscapedForJavaScriptLiteral(*badName).c_str() : "(null)");
             return -1;
         }
         if (!(flags & JS_PROP_HAS_VALUE))
-            return YES;
-        return SetMissionVariable(context, propID, value) ? YES : -1;
-    }
-    @catch (id exception) {
-        OOJSReportWrappedException(context, exception);
+            return true;
+        return SetMissionVariable(context, propID, value) ? true : -1;
+    } catch (...) {
+        OOJSReportCurrentException(context);
         return -1;
     }
 }

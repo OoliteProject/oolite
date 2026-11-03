@@ -28,90 +28,88 @@ SOFTWARE.
 
 #import "OOALMusic.h"
 
-static OOMusic* sPlayingMusic = nil;
+namespace {
+
+cxx::OOMusic* sPlayingMusic = nullptr;
+
+} // namespace
 static OOSoundSource* sMusicSource = nil;
 
-@implementation OOMusic
+namespace cxx {
 
-+ (id)allocWithZone:(OOZone*)inZone
+// +allocWithZone: (an OOMusic whatever the receiver) stays with the facade, whose class it is.
+
+OOMusic::~OOMusic()
 {
-    return class_createInstance([OOMusic class], 0); // zones unused (ADR-0029)
+    if (sPlayingMusic == this)
+        stop();
 }
 
-- (void)dealloc
+oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(const std::optional<std::string>& inPath) // OOSound's designated initializer, overridden
 {
-    if (sPlayingMusic == self)
-        [self stop];
-    [sound release];
-
-    [super dealloc];
-}
-
-- (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)inPath // OOSound's designated initializer, overridden
-{
-    self = [super init];
-    if (nil != self) {
-        sound = [[OOSound alloc] cxx_initWithContentsOfFile:inPath];
-        if (nil == sound) {
-            [self release];
-            self = nil;
+    oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
+    {
+        self->sound = OOSound::initWithContentsOfFile(inPath);
+        if (!self->sound) {
+            self = nullptr;
         }
     }
 
     return self;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOMusic::name()
 {
-    return [sound cxx_name];
+    cxx::OOSound* wrapped = oo::ToCxx(sound.get());
+    return wrapped != nullptr ? wrapped->name() : std::nullopt;
 }
 
-- (void)setMusicGain:(float)newValue
+void OOMusic::setMusicGain(float newValue)
 {
     if (nil != sMusicSource) {
         [sMusicSource setGain:newValue];
     }
 }
 
-- (float)musicGain
+float OOMusic::musicGain()
 {
     if (nil == sMusicSource)
         return 0.0f;
     return [sMusicSource gain];
 }
 
-- (void)playLooped:(BOOL)inLoop
+void OOMusic::playLooped(bool inLoop)
 {
-    if (sPlayingMusic != self) {
+    if (sPlayingMusic != this) {
         if (nil == sMusicSource) {
-            sMusicSource = [[OOSoundSource alloc] init];
+            sMusicSource = [[::OOSoundSource alloc] init];
         }
         [sMusicSource stop];
         [sMusicSource setLoop:inLoop];
-        [sMusicSource setSound:sound];
+        [sMusicSource setSound:sound.get()];
         [sMusicSource play];
 
-        sPlayingMusic = self;
+        sPlayingMusic = this;
     }
 }
 
-- (OOSoundSource*)musicSoundSource
+::OOSoundSource* OOMusic::musicSoundSource()
 {
     return sMusicSource;
 }
 
-- (BOOL)isPlaying
+bool OOMusic::isPlaying()
 {
-    return sPlayingMusic == self && [sMusicSource isPlaying];
+    return sPlayingMusic == this && [sMusicSource isPlaying];
 }
 
-- (void)stop
+void OOMusic::stop()
 {
-    if (sPlayingMusic == self) {
-        sPlayingMusic = nil;
+    if (sPlayingMusic == this) {
+        sPlayingMusic = nullptr;
         [sMusicSource stop];
         [sMusicSource setSound:nil];
     }
 }
 
-@end
+} // namespace cxx

@@ -1,5 +1,5 @@
 // Captured from GNUstep base 1.31.1 by tools/captures/plist-description/capture.sh (bead oo-qps.32):
-// -[NSObject description] of each case in tools/captures/plist-description/cases.txt, TZ=UTC.
+// the root class's -description of each case in tools/captures/plist-description/cases.txt, TZ=UTC.
 // Test data: do not edit; rerun the script. Rows: { kind, name, input text, captured description }.
 	{ "nil", "nil", "-", "(null)" },
 	{ "plist", "string", "\"hello\"", "hello" },

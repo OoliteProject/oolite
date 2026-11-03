@@ -39,30 +39,34 @@ static constexpr std::string_view KEY_VOLUME_CONTROL = "volume_control";
 
 static const size_t kMaxBufferedSoundSize = 1 << 20; // 1 MB
 
-static BOOL sIsSetUp = NO;
-static BOOL sIsSoundOK = NO;
+namespace {
 
-@implementation OOSound
+bool sIsSetUp = false;
+bool sIsSoundOK = false;
 
-+ (BOOL)setUp
+} // namespace
+
+namespace cxx {
+
+bool OOSound::setUp()
 {
     if (!sIsSetUp) {
-        sIsSetUp = YES;
+        sIsSetUp = true;
         OOOpenALController* controller = OOOpenALController::sharedController();
         if (controller != nullptr) {
-            sIsSoundOK = YES;
+            sIsSoundOK = true;
             oo::Defaults& prefs = oo::Defaults::standard();
             float volume = prefs.object(std::string(KEY_VOLUME_CONTROL)).isNull() ? 0.5f : prefs.floatForKey(std::string(KEY_VOLUME_CONTROL));
-            [self setMasterVolume:volume];
+            setMasterVolume(volume);
         }
     }
 
     return sIsSoundOK;
 }
 
-+ (void)setMasterVolume:(float)fraction
+void OOSound::setMasterVolume(float fraction)
 {
-    if (!sIsSetUp && ![self setUp])
+    if (!sIsSetUp && !setUp())
         return;
 
     fraction = OOClamp_0_1_f(fraction);
@@ -76,41 +80,44 @@ static BOOL sIsSoundOK = NO;
     }
 }
 
-+ (float)masterVolume
+float OOSound::masterVolume()
 {
-    if (!sIsSetUp && ![self setUp])
+    if (!sIsSetUp && !setUp())
         return 0.0;
 
     OOOpenALController* controller = OOOpenALController::sharedController();
     return controller != nullptr ? controller->masterVolume() : 0.0f;
 }
 
-- (id)init
+OOSound::OOSound()
 {
     if (!sIsSetUp)
-        [OOSound setUp];
-    return [super init];
+        setUp();
 }
 
-- (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)path
+/*	The receiver that -cxx_initWithContentsOfFile: released (or, when sound was not OK, leaked)
+        is the facade's (OOALSound+ObjCBridge.mm); this is the rest of the body, which answers the
+        concrete sound it makes.
+*/
+oo::ObjCRef<::OOSound*> OOSound::initWithContentsOfFile(const std::optional<std::string>& path)
 {
     if (!sIsSoundOK)
-        return nil;
+        return nullptr;
 
-    [self release];
-    if (!sIsSetUp && ![OOSound setUp])
-        return nil;
+    if (!sIsSetUp && !setUp())
+        return nullptr;
 
-    OOALSoundDecoder* decoder;
+    ::OOALSoundDecoder* decoder;
+    ::OOSound* self;
 
-    decoder = [[OOALSoundDecoder alloc] cxx_initWithPath:path];
+    decoder = [[::OOALSoundDecoder alloc] cxx_initWithPath:path];
     if (nil == decoder)
-        return nil;
+        return nullptr;
 
     if ([decoder sizeAsBuffer] <= kMaxBufferedSoundSize) {
-        self = [[OOALBufferedSound alloc] initWithDecoder:decoder];
+        self = [[::OOALBufferedSound alloc] initWithDecoder:decoder];
     } else {
-        self = [[OOALStreamedSound alloc] initWithDecoder:decoder];
+        self = [[::OOALStreamedSound alloc] initWithDecoder:decoder];
     }
     [decoder release];
 
@@ -122,47 +129,46 @@ static BOOL sIsSoundOK = NO;
         OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"", path.value_or("(null)"));
     }
 
-    return self;
+    return oo::ObjCRef<::OOSound*>::adopt(self);
 }
 
-- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder
-{
-    [self release];
-    return nil;
-}
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOSound::name()
 {
     OOLogGenericSubclassResponsibility();
     return std::string();
 }
 
-+ (void)update
+void OOSound::update()
 {
-    OOSoundMixer* mixer = [OOSoundMixer sharedMixer];
+    ::OOSoundMixer* mixer = [::OOSoundMixer sharedMixer];
     if (sIsSoundOK && mixer)
         [mixer update];
 }
 
-+ (BOOL)isSoundOK
+bool OOSound::isSoundOK()
 {
     return sIsSoundOK;
 }
 
-- (ALuint)soundBuffer
+ALuint OOSound::soundBuffer()
 {
     OOLogGenericSubclassResponsibility();
     return 0;
 }
 
-- (BOOL)soundIncomplete
+bool OOSound::soundIncomplete()
 {
-    return NO;
+    return false;
 }
 
-- (void)rewind
+void OOSound::rewind()
 {
     // doesn't need to do anything on seekable FDs
 }
 
-@end
+std::optional<std::string> OOSound::descriptionComponents() const
+{
+    return std::nullopt;
+}
+
+} // namespace cxx

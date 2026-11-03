@@ -1860,7 +1860,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     afterburnerSoundLooping = NO;
 
-    isPlayer = YES;
+    _cxxEntity->isPlayer = YES;
 
     [self setStatus:STATUS_START_GAME];
 
@@ -2021,7 +2021,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     roleSystemList.clear();
 
-    energy = 256;
+    _cxxEntity->energy = 256;
     weapon_temp = 0.0f;
     forward_weapon_temp = 0.0f;
     aft_weapon_temp = 0.0f;
@@ -2036,7 +2036,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     alertFlags = 0;
     hyperspeed_engaged = NO;
     autopilot_engaged = NO;
-    velocity = kZeroVector;
+    _cxxEntity->velocity = kZeroVector;
 
     flightRoll = 0.0f;
     flightPitch = 0.0f;
@@ -2177,7 +2177,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     forward_shield = [self maxForwardShieldLevel];
     aft_shield = [self maxAftShieldLevel];
 
-    scanClass = CLASS_PLAYER;
+    _cxxEntity->scanClass = CLASS_PLAYER;
 
     [UNIVERSE clearGUIs];
 
@@ -2287,7 +2287,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     pitch_delta = 2.0f * max_flight_pitch;
     yaw_delta = 2.0f * max_flight_yaw;
 
-    energy = maxEnergy;
+    _cxxEntity->energy = _cxxEntity->maxEnergy;
     // if (forward_weapon_type == WEAPON_NONE) [self setWeaponDataFromType:forward_weapon_type];
     scannerRange = (float)SCANNER_MAX_RANGE;
 
@@ -2446,7 +2446,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     unsigned ent_count = UNIVERSE->n_entities;
     Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
     for (i = 0; i < ent_count; i++) {
-        if (uni_entities[i]->isSunlit) {
+        if (uni_entities[i]->_cxxEntity->isSunlit) {
             if ([uni_entities[i] isPlanet] || ([uni_entities[i] isShip] && [uni_entities[i] isVisible])) {
                 // the player ship can't shadow internal views
                 if (EXPECT(vdir > VIEW_STARBOARD || ![uni_entities[i] isPlayer])) {
@@ -2683,8 +2683,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if ([self hasCloakingDevice] && cloaking_device_active) {
         UPDATE_STAGE("updating cloaking device");
 
-        energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
-        if (energy < CLOAKING_DEVICE_MIN_ENERGY)
+        _cxxEntity->energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
+        if (_cxxEntity->energy < CLOAKING_DEVICE_MIN_ENERGY)
             [self deactivateCloakingDevice];
     }
 
@@ -2693,11 +2693,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         UPDATE_STAGE("updating military jammer");
 
         if (military_jammer_active) {
-            energy -= (float)delta_t * MILITARY_JAMMER_ENERGY_RATE;
-            if (energy < MILITARY_JAMMER_MIN_ENERGY)
+            _cxxEntity->energy -= (float)delta_t * MILITARY_JAMMER_ENERGY_RATE;
+            if (_cxxEntity->energy < MILITARY_JAMMER_MIN_ENERGY)
                 military_jammer_active = NO;
         } else {
-            if (energy > 1.5 * MILITARY_JAMMER_MIN_ENERGY)
+            if (_cxxEntity->energy > 1.5 * MILITARY_JAMMER_MIN_ENERGY)
                 military_jammer_active = YES;
         }
     }
@@ -2706,8 +2706,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (ecm_in_operation) {
         UPDATE_STAGE("updating ECM");
 
-        if (energy > 0.0)
-            energy -= (float)(ECM_ENERGY_DRAIN_FACTOR * delta_t); // drain energy because of the ECM
+        if (_cxxEntity->energy > 0.0)
+            _cxxEntity->energy -= (float)(ECM_ENERGY_DRAIN_FACTOR * delta_t); // drain energy because of the ECM
         else {
             ecm_in_operation = NO;
             [UNIVERSE cxx_addMessage:OO_DESC("ecm-out-of-juice") forCount:3.0];
@@ -2744,7 +2744,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     UPDATE_STAGE("updating energy and shield charges");
 
     // 1. (Over)charge energy banks (will get normalised later)
-    energy += [self energyRechargeRate] * delta_t;
+    _cxxEntity->energy += [self energyRechargeRate] * delta_t;
 
     // 2. Calculate shield recharge rates
     float fwdMax = [self maxForwardShieldLevel];
@@ -2766,11 +2766,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     //       the critical threshold, we allocate all energy.  Ideally we
     //       would only allocate the full recharge to the critical shield,
     //       but doing so would add another few levels of if-then below.
-    float energyForShields = energy;
+    float energyForShields = _cxxEntity->energy;
     if ((forward_shield > fwdMax * 0.25) && (aft_shield > aftMax * 0.25)) {
         // TODO: Can this be cached anywhere sensibly (without adding another member variable)?
         float minEnergyBankLevel = [UNIVERSE cxx_globalSettings].get<float>("shield_charge_energybank_threshold", 0.25);
-        energyForShields = MAX(0.0, energy - 0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
+        energyForShields = MAX(0.0, _cxxEntity->energy - 0.1 - (_cxxEntity->maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
     }
 
     if (forward_shield < aft_shield) {
@@ -2784,18 +2784,18 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // 3. Recharge shields, drain banks, and clamp values
     forward_shield += rechargeFwd;
     aft_shield += rechargeAft;
-    energy -= rechargeFwd + rechargeAft;
+    _cxxEntity->energy -= rechargeFwd + rechargeAft;
 
     forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
     aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
-    energy = OOClamp_0_max_f(energy, maxEnergy);
+    _cxxEntity->energy = OOClamp_0_max_f(_cxxEntity->energy, _cxxEntity->maxEnergy);
 
     if (sun) {
         UPDATE_STAGE("updating sun effects");
 
         // set the ambient temperature here
-        double sun_zd = sun->zero_distance; // square of distance
-        double sun_cr = sun->collision_radius;
+        double sun_zd = sun->_cxxEntity->zero_distance; // square of distance
+        double sun_cr = sun->_cxxEntity->collision_radius;
         double alt1 = sun_cr * sun_cr / sun_zd;
         external_temp = SUN_TEMPERATURE * alt1;
 
@@ -3009,7 +3009,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     // update subentities
     UPDATE_STAGE("updating subentities");
-    totalBoundingBox = boundingBox; //	reset totalBoundingBox
+    totalBoundingBox = _cxxEntity->boundingBox; //	reset totalBoundingBox
     for (const auto& seRef : [self subEntities]) {
         Entity* se = seRef.get();
         [se update:delta_t];
@@ -3049,10 +3049,10 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (void)updateMovementFlags
 {
-    hasMoved = !HPvector_equal(position, lastPosition);
-    hasRotated = !quaternion_equal(orientation, lastOrientation);
-    lastPosition = position;
-    lastOrientation = orientation;
+    _cxxEntity->hasMoved = !HPvector_equal(_cxxEntity->position, _cxxEntity->lastPosition);
+    _cxxEntity->hasRotated = !quaternion_equal(_cxxEntity->orientation, _cxxEntity->lastOrientation);
+    _cxxEntity->lastPosition = _cxxEntity->position;
+    _cxxEntity->lastOrientation = _cxxEntity->orientation;
 }
 
 - (void)updateAlertConditionForNearbyEntities
@@ -3084,21 +3084,21 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         if (EXPECT_NOT(needHyperspeedNearest)) {
             // not visual effects, waypoints, ships, etc.
             if (scannedEntity != self && [scannedEntity canCollide] && (![scannedEntity isShip] || ![self collisionExceptedFor:(ShipEntity*)scannedEntity])) {
-                hsnDistance = sqrt(scannedEntity->zero_distance) - [scannedEntity collisionRadius];
+                hsnDistance = sqrt(scannedEntity->_cxxEntity->zero_distance) - [scannedEntity collisionRadius];
                 needHyperspeedNearest = NO;
             }
         } else if ([scannedEntity isStellarObject]) {
             // planets, stars might be closest surface even if not
             // closest centre. That could be true of others, but the
             // error is negligible there.
-            double thisHSN = sqrt(scannedEntity->zero_distance) - [scannedEntity collisionRadius];
+            double thisHSN = sqrt(scannedEntity->_cxxEntity->zero_distance) - [scannedEntity collisionRadius];
             if (thisHSN < hsnDistance) {
                 hsnDistance = thisHSN;
             }
         }
 #endif
 
-        if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip) {
+        if (scannedEntity->_cxxEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->_cxxEntity->isShip) {
             int theirClass = [scannedEntity scanClass];
             // here we could also force masslock for higher than yellow alert, but
             // if we are going to hand over masslock control to scripting, might as well
@@ -3148,7 +3148,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     BOOL energyCritical = NO;
-    if (energy < 64 && energy < maxEnergy * 0.8) {
+    if (_cxxEntity->energy < 64 && _cxxEntity->energy < _cxxEntity->maxEnergy * 0.8) {
         energyCritical = YES;
     }
     [self setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
@@ -3184,8 +3184,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (EXPECT_NOT([ent isStellarObject])) {
         Entity<OOStellarBody>* stellar = (Entity<OOStellarBody>*)ent;
         if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE)) {
-            double dist = stellar->zero_distance;
-            double rad = stellar->collision_radius;
+            double dist = stellar->_cxxEntity->zero_distance;
+            double rad = stellar->_cxxEntity->collision_radius;
             double factor = ([stellar isSun]) ? 2.0 : 4.0;
             // plus ensure mass lock when 25 km or less from the surface of small stellar bodies
             // dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
@@ -3199,7 +3199,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
     }
 
-    if (!massLocked && ent->zero_distance <= SCANNER_MAX_RANGE2) {
+    if (!massLocked && ent->_cxxEntity->zero_distance <= SCANNER_MAX_RANGE2) {
         switch (theirClass) {
         case CLASS_NO_DRAW:
             // cloaked ships do mass lock! - Nikos 20200718
@@ -3244,9 +3244,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         lastScriptAlertCondition = cond;
     }
     /* Update heuristic assessment of whether player is fleeing */
-    if (cond == ALERT_CONDITION_DOCKED || cond == ALERT_CONDITION_GREEN || (cond == ALERT_CONDITION_YELLOW && energy == maxEnergy)) {
+    if (cond == ALERT_CONDITION_DOCKED || cond == ALERT_CONDITION_GREEN || (cond == ALERT_CONDITION_YELLOW && _cxxEntity->energy == _cxxEntity->maxEnergy)) {
         fleeing_status = PLAYER_FLEEING_NONE;
-    } else if (fleeing_status == PLAYER_FLEEING_UNLIKELY && (energy > maxEnergy * 0.6 || cond != ALERT_CONDITION_RED)) {
+    } else if (fleeing_status == PLAYER_FLEEING_UNLIKELY && (_cxxEntity->energy > _cxxEntity->maxEnergy * 0.6 || cond != ALERT_CONDITION_RED)) {
         fleeing_status = PLAYER_FLEEING_NONE;
     } else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_UNLIKELY) && cargo_dump_time > last_shot_time) {
         fleeing_status = PLAYER_FLEEING_CARGO;
@@ -3256,7 +3256,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         fleeing_status = PLAYER_FLEEING_UNLIKELY;
     } else if (fleeing_status == PLAYER_FLEEING_NONE && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75 * maxFlightSpeed) {
         fleeing_status = PLAYER_FLEEING_MAYBE;
-    } else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_CARGO) && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75 * maxFlightSpeed && energy < maxEnergy * 0.5 && (forward_shield < [self maxForwardShieldLevel] * 0.25 || aft_shield < [self maxAftShieldLevel] * 0.25)) {
+    } else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_CARGO) && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75 * maxFlightSpeed && _cxxEntity->energy < _cxxEntity->maxEnergy * 0.5 && (forward_shield < [self maxForwardShieldLevel] * 0.25 || aft_shield < [self maxAftShieldLevel] * 0.25)) {
         fleeing_status = PLAYER_FLEEING_LIKELY;
     }
 }
@@ -3457,7 +3457,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     autopilot_engaged = YES;
     ident_engaged = NO;
     [self safeAllMissiles];
-    velocity = kZeroVector;
+    _cxxEntity->velocity = kZeroVector;
     if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
         [self cancelWitchspaceCountdown]; // cancel witchspace countdown properly
     [self setStatus:STATUS_AUTOPILOT_ENGAGED];
@@ -3550,7 +3550,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
     }
 
-    GLfloat velmag = magnitude(velocity);
+    GLfloat velmag = magnitude(_cxxEntity->velocity);
     GLfloat velmag2 = velmag - (float)delta_t * thrust * thrust_factor;
     if (velmag > 0) {
         UPDATE_STAGE("applying power braking");
@@ -3565,9 +3565,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             velmag2 -= velmag * rate;
         }
         if (velmag2 < 0.0f)
-            velocity = kZeroVector;
+            _cxxEntity->velocity = kZeroVector;
         else
-            velocity = vector_multiply_scalar(velocity, velmag2 / velmag);
+            _cxxEntity->velocity = vector_multiply_scalar(_cxxEntity->velocity, velmag2 / velmag);
     }
 
     UPDATE_STAGE("updating joystick");
@@ -3769,7 +3769,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         return NO;
 
     // If target is beyond scanner range, it's lost
-    if (target->zero_distance > SCANNER_MAX_RANGE2)
+    if (target->_cxxEntity->zero_distance > SCANNER_MAX_RANGE2)
         return NO;
 
     // If target is a ship, check whether it's cloaked or is actively jamming our scanner
@@ -3970,13 +3970,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (void)orientationChanged
 {
-    quaternion_normalize(&orientation);
-    rotMatrix = OOMatrixForQuaternionRotation(orientation);
-    OOMatrixGetBasisVectors(rotMatrix, &v_right, &v_up, &v_forward);
+    quaternion_normalize(&_cxxEntity->orientation);
+    _cxxEntity->rotMatrix = OOMatrixForQuaternionRotation(_cxxEntity->orientation);
+    OOMatrixGetBasisVectors(_cxxEntity->rotMatrix, &v_right, &v_up, &v_forward);
 
-    orientation.w = -orientation.w;
-    playerRotMatrix = OOMatrixForQuaternionRotation(orientation); // this is the rotation similar to ordinary ships
-    orientation.w = -orientation.w;
+    _cxxEntity->orientation.w = -_cxxEntity->orientation.w;
+    playerRotMatrix = OOMatrixForQuaternionRotation(_cxxEntity->orientation); // this is the rotation similar to ordinary ships
+    _cxxEntity->orientation.w = -_cxxEntity->orientation.w;
 }
 
 - (void)applyAttitudeChanges:(double)delta_t
@@ -3987,22 +3987,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (void)applyRoll:(GLfloat)roll1 andClimb:(GLfloat)climb1
 {
-    if (roll1 == 0.0 && climb1 == 0.0 && hasRotated == NO)
+    if (roll1 == 0.0 && climb1 == 0.0 && _cxxEntity->hasRotated == NO)
         return;
 
     if (roll1)
-        quaternion_rotate_about_z(&orientation, -roll1);
+        quaternion_rotate_about_z(&_cxxEntity->orientation, -roll1);
     if (climb1)
-        quaternion_rotate_about_x(&orientation, -climb1);
+        quaternion_rotate_about_x(&_cxxEntity->orientation, -climb1);
 
     /*	Bugginess may put us in a state where the orientation quat is all
             zeros, at which point it’s impossible to move.
     */
-    if (EXPECT_NOT(quaternion_equal(orientation, kZeroQuaternion))) {
-        if (!quaternion_equal(lastOrientation, kZeroQuaternion)) {
-            orientation = lastOrientation;
+    if (EXPECT_NOT(quaternion_equal(_cxxEntity->orientation, kZeroQuaternion))) {
+        if (!quaternion_equal(_cxxEntity->lastOrientation, kZeroQuaternion)) {
+            _cxxEntity->orientation = _cxxEntity->lastOrientation;
         } else {
-            orientation = kIdentityQuaternion;
+            _cxxEntity->orientation = kIdentityQuaternion;
         }
     }
 
@@ -4016,7 +4016,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
  */
 - (void)applyYaw:(GLfloat)yaw
 {
-    quaternion_rotate_about_y(&orientation, -yaw);
+    quaternion_rotate_about_y(&_cxxEntity->orientation, -yaw);
 
     [self orientationChanged];
 }
@@ -4030,12 +4030,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 {
     OOMatrix result = playerRotMatrix;
     // HPVect: modify to use camera-relative positioning
-    return OOMatrixTranslate(result, HPVectorToVector(position));
+    return OOMatrixTranslate(result, HPVectorToVector(_cxxEntity->position));
 }
 
 - (Quaternion)normalOrientation
 {
-    return make_quaternion(-orientation.w, orientation.x, orientation.y, orientation.z);
+    return make_quaternion(-_cxxEntity->orientation.w, _cxxEntity->orientation.x, _cxxEntity->orientation.y, _cxxEntity->orientation.z);
 }
 
 - (void)setNormalOrientation:(Quaternion)quat
@@ -4045,13 +4045,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (void)moveForward:(double)amount
 {
-    distanceTravelled += (float)amount;
-    [self setPosition:HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)))];
+    _cxxEntity->distanceTravelled += (float)amount;
+    [self setPosition:HPvector_add(_cxxEntity->position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)))];
 }
 
 - (HPVector)breakPatternPosition
 {
-    return HPvector_add(position, vectorToHPVector(quaternion_rotate_vector(quaternion_conjugate(orientation), forwardViewOffset)));
+    return HPvector_add(_cxxEntity->position, vectorToHPVector(quaternion_rotate_vector(quaternion_conjugate(_cxxEntity->orientation), forwardViewOffset)));
 }
 
 - (Vector)viewpointOffset
@@ -4105,14 +4105,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
  * that it's worth caching the result per-frame - CIM */
 - (HPVector)viewpointPosition
 {
-    HPVector viewpoint = position;
+    HPVector viewpoint = _cxxEntity->position;
     if (showDemoShips) {
         viewpoint = kZeroHPVector;
     }
     Vector offset = [self viewpointOffset];
 
     // FIXME: this ought to be done with matrix or quaternion functions.
-    OOMatrix r = rotMatrix;
+    OOMatrix r = _cxxEntity->rotMatrix;
 
     viewpoint.x += offset.x * r.m[0][0];
     viewpoint.y += offset.x * r.m[1][0];
@@ -4439,13 +4439,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (GLfloat)dialEnergy
 {
-    GLfloat result = energy / maxEnergy;
+    GLfloat result = _cxxEntity->energy / _cxxEntity->maxEnergy;
     return OOClamp_0_1_f(result);
 }
 
 - (GLfloat)dialMaxEnergy
 {
-    return maxEnergy;
+    return _cxxEntity->maxEnergy;
 }
 
 - (GLfloat)dialFuel
@@ -4507,8 +4507,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (nearestPlanet == nil)
         return 1.0f;
 
-    GLfloat zd = nearestPlanet->zero_distance;
-    GLfloat cr = nearestPlanet->collision_radius;
+    GLfloat zd = nearestPlanet->_cxxEntity->zero_distance;
+    GLfloat cr = nearestPlanet->_cxxEntity->collision_radius;
     GLfloat alt = sqrt(zd) - cr;
 
     return OOClamp_0_1_f(alt / (GLfloat)PLAYER_DIAL_MAX_ALTITUDE);
@@ -5649,14 +5649,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         multiplier = [self cxx_laserPortOffset:currentWeaponFacing].size();
     }
 
-    if (energy <= weapon_energy_use * multiplier) {
+    if (_cxxEntity->energy <= weapon_energy_use * multiplier) {
         [UNIVERSE cxx_addMessage:OO_DESC("weapon-out-of-juice") forCount:3.0];
         return NO;
     }
 
     using_mining_laser = [weapon_to_be_fired isMiningLaser];
 
-    energy -= weapon_energy_use * multiplier;
+    _cxxEntity->energy -= weapon_energy_use * multiplier;
 
     switch (currentWeaponFacing) {
     case WEAPON_FACING_FORWARD:
@@ -5733,8 +5733,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 {
     if (hitEntity)
         hitEntity[0] = (ShipEntity*)nil;
-    Vector u0 = HPVectorToVector(HPvector_between(position, v0)); // relative to origin of model / octree
-    Vector u1 = HPVectorToVector(HPvector_between(position, v1));
+    Vector u0 = HPVectorToVector(HPvector_between(_cxxEntity->position, v0)); // relative to origin of model / octree
+    Vector u1 = HPVectorToVector(HPvector_between(_cxxEntity->position, v1));
     Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward)); // in ijk vectors
     Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
     GLfloat hit_distance = [octree isHitByLine:w0 v1:w1];
@@ -5799,7 +5799,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     [[other retain] autorelease];
 
     rel_pos = (ent != nil) ? [ent position] : kZeroHPVector;
-    rel_pos = HPvector_subtract(rel_pos, position);
+    rel_pos = HPvector_subtract(rel_pos, _cxxEntity->position);
 
     [self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:ent];
     if ([ent isShip])
@@ -5838,7 +5838,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     OOShipDamageType damageType = cascadeWeapon ? kOODamageTypeCascadeWeapon : kOODamageTypeEnergy;
 
     if (amount > 0.0) {
-        energy -= amount;
+        _cxxEntity->energy -= amount;
         [self cxx_playDirectHit:relative weaponIdentifier:weaponIdentifier];
         if (ship_temperature < SHIP_MAX_CABIN_TEMP) {
             /* Heat increase from energy impacts will never directly cause
@@ -5852,9 +5852,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     [self noteTakingDamage:amount from:other type:damageType];
     if (cascading)
-        energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.
+        _cxxEntity->energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.
 
-    if (energy <= 0.0) // use normal ship temperature calculations for heat damage
+    if (_cxxEntity->energy <= 0.0) // use normal ship temperature calculations for heat damage
     {
         if ([other isShip]) {
             [(ShipEntity*)other noteTargetDestroyed:self];
@@ -5889,7 +5889,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     [[ent retain] autorelease];
     rel_pos = ent ? [ent position] : kZeroHPVector;
-    rel_pos = HPvector_subtract(rel_pos, position);
+    rel_pos = HPvector_subtract(rel_pos, _cxxEntity->position);
     // rel_pos is now small
     d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
     d_right = dot_product(HPVectorToVector(rel_pos), v_right);
@@ -6021,10 +6021,10 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     [self setStatus:STATUS_ESCAPE_SEQUENCE]; // now set up the escape sequence.
 
     // must do this before next step or uses BBox of pod, not old ship!
-    float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
-    position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_up, sheight)));
-    float sdepth = (float)(boundingBox.max.z - boundingBox.min.z);
-    position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_forward, sdepth / 2.0)));
+    float sheight = (float)(_cxxEntity->boundingBox.max.y - _cxxEntity->boundingBox.min.y);
+    _cxxEntity->position = HPvector_subtract(_cxxEntity->position, vectorToHPVector(vector_multiply_scalar(v_up, sheight)));
+    float sdepth = (float)(_cxxEntity->boundingBox.max.z - _cxxEntity->boundingBox.min.z);
+    _cxxEntity->position = HPvector_subtract(_cxxEntity->position, vectorToHPVector(vector_multiply_scalar(v_forward, sdepth / 2.0)));
 
     // set up you
     escapePod = [UNIVERSE cxx_newShipWithName:"escape-capsule"]; // retained
@@ -6083,7 +6083,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // remove cargo
     cargo.clear();
 
-    energy = 25;
+    _cxxEntity->energy = 25;
     [UNIVERSE cxx_addMessage:OO_DESC("escape-sequence") forCount:4.5];
     [self resetShotTime];
 
@@ -6366,7 +6366,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         [[UNIVERSE gameController] cxx_setPlayerFileToLoad:save_path.value_or("")]; // make sure we load the correct game
     }
 
-    energy = 0.0f;
+    _cxxEntity->energy = 0.0f;
     afterburner_engaged = NO;
     [self disengageAutopilot];
 
@@ -6380,7 +6380,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     [self moveForward:100.0];
 
     flightSpeed = 160.0f;
-    velocity = kZeroVector;
+    _cxxEntity->velocity = kZeroVector;
     flightRoll = 0.0;
     flightPitch = 0.0;
     flightYaw = 0.0;
@@ -6405,7 +6405,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         my_entities[i] = [uni_entities[i] retain]; //	retained
     for (i = 0; i < ent_count; i++) {
         Entity* thing = my_entities[i];
-        if (thing->isShip) {
+        if (thing->_cxxEntity->isShip) {
             ShipEntity* ship = (ShipEntity*)thing;
             if (self == [ship primaryTarget]) {
                 [ship noteLostTarget];
@@ -6458,7 +6458,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         return; // a JS script has aborted the docking.
 
     [self setOrientation:kIdentityQuaternion]; // reset orientation to dock
-    [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
+    [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:_cxxEntity->orientation forDocking:YES];
     [self playDockWithStation];
     [station noteDockedShip:self];
 
@@ -6491,7 +6491,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     forward_shield = [self maxForwardShieldLevel];
     aft_shield = [self maxAftShieldLevel];
-    energy = maxEnergy;
+    _cxxEntity->energy = _cxxEntity->maxEnergy;
     weapon_temp = 0.0f;
     ship_temperature = 60.0f;
 
@@ -6634,13 +6634,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     [UNIVERSE forceWitchspaceEntries];
     ship_clock_adjust += 600.0; // 10 minutes to leave dock
-    velocity = kZeroVector; // just in case
+    _cxxEntity->velocity = kZeroVector; // just in case
 
     [station launchShip:self];
 
     launchRoll = -flightRoll; // save the station's spin. (inverted for player)
     flightRoll = 0; // don't spin when showing the break pattern.
-    [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
+    [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:_cxxEntity->orientation forDocking:YES];
 
     [self setDockedStation:nil];
 
@@ -7093,7 +7093,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
     HPVector v1 = HPvector_forward_from_quaternion(q1);
     exitpos = HPvector_add(pos, HPvector_multiply_scalar(v1, d1)); // randomise exit position
-    position = exitpos;
+    _cxxEntity->position = exitpos;
     [self setOrientation:[UNIVERSE getWitchspaceExitRotation]];
 
     // While setting the wormhole position to the player position looks very nice for ships following the player,
@@ -7123,7 +7123,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 distance.z = 0;
                 distance = HPvector_multiply_scalar(HPvector_normal(distance), min_d1);
                 whpos = HPvector_add(whpos, distance);
-                position = HPvector_add(position, distance);
+                _cxxEntity->position = HPvector_add(_cxxEntity->position, distance);
             }
             [wormhole setExitPosition:whpos];
         } else {
@@ -7143,7 +7143,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     flightPitch = 0.0f;
     flightYaw = 0.0f;
 
-    velocity = kZeroVector;
+    _cxxEntity->velocity = kZeroVector;
     [self setStatus:STATUS_EXITING_WITCHSPACE];
     gui_screen = GUI_SCREEN_MAIN;
     being_fined = NO; // until you're scanned by a copper!
@@ -7166,7 +7166,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     const std::optional<std::string> jumpCause = [self cxx_jumpCause];
     [self cxx_doScriptEvent:OOJSID("shipWillExitWitchspace") withPListArguments:{ jumpCause.has_value() ? oo::PList(*jumpCause) : oo::PList() }];
-    [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
+    [UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:_cxxEntity->orientation forDocking:NO];
 }
 
 ///////////////////////////////////
@@ -8203,14 +8203,6 @@ std::string SliderString(NSInteger amountIn20ths)
             [gui cxx_setText:oo::str::format("%s%s (%d) ", paperWhiteWordDesc.c_str(), SliderString(paperWhiteTicks).c_str(), (int)paperWhite) forRow:GUI_ROW(GAME, HDRPAPERWHITE) align:GUI_ALIGN_CENTER];
             [gui cxx_setKey:std::string(GUI_KEY_OK) forRow:GUI_ROW(GAME, HDRPAPERWHITE)];
         }
-#endif
-
-#if !NEW_PLANETS
-        if ([UNIVERSE doProcedurallyTexturedPlanets])
-            [gui cxx_setText:OO_DESC("gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
-        else
-            [gui cxx_setText:OO_DESC("gameoptions-procedurally-textured-planets-no") forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
-        [gui cxx_setKey:std::string(GUI_KEY_OK) forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS)];
 #endif
 
         OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
@@ -10745,13 +10737,13 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 
 - (void)setDefaultViewOffsets
 {
-    float halfLength = 0.5f * (boundingBox.max.z - boundingBox.min.z);
-    float halfWidth = 0.5f * (boundingBox.max.x - boundingBox.min.x);
+    float halfLength = 0.5f * (_cxxEntity->boundingBox.max.z - _cxxEntity->boundingBox.min.z);
+    float halfWidth = 0.5f * (_cxxEntity->boundingBox.max.x - _cxxEntity->boundingBox.min.x);
 
-    forwardViewOffset = make_vector(0.0f, 0.0f, boundingBox.max.z - halfLength);
-    aftViewOffset = make_vector(0.0f, 0.0f, boundingBox.min.z + halfLength);
-    portViewOffset = make_vector(boundingBox.min.x + halfWidth, 0.0f, 0.0f);
-    starboardViewOffset = make_vector(boundingBox.max.x - halfWidth, 0.0f, 0.0f);
+    forwardViewOffset = make_vector(0.0f, 0.0f, _cxxEntity->boundingBox.max.z - halfLength);
+    aftViewOffset = make_vector(0.0f, 0.0f, _cxxEntity->boundingBox.min.z + halfLength);
+    portViewOffset = make_vector(_cxxEntity->boundingBox.min.x + halfWidth, 0.0f, 0.0f);
+    starboardViewOffset = make_vector(_cxxEntity->boundingBox.max.x - halfWidth, 0.0f, 0.0f);
     customViewOffset = kZeroVector;
 }
 
@@ -11123,8 +11115,8 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
         if ([targ_id isProxy]) {
             ShipEntity* potential_target = [(OOWeakReference*)targ_id weakRefUnderlyingObject];
 
-            if ((potential_target) && (potential_target->isShip) && ([potential_target isInSpace])) {
-                if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked])) {
+            if ((potential_target) && (potential_target->_cxxEntity->isShip) && ([potential_target isInSpace])) {
+                if (potential_target->_cxxEntity->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked])) {
                     [super addTarget:potential_target];
                     if (missile_status != MISSILE_STATUS_SAFE) {
                         if ([missile_entity[activeMissile] isMissile]) {
@@ -11204,8 +11196,8 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
     customViewOffset = vector_multiply_scalar(customViewOffset, 1.0 / rate);
     OOScalar m = magnitude(customViewOffset);
-    if (m < CUSTOM_VIEW_MAX_ZOOM_IN * collision_radius) {
-        scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_IN * collision_radius / m);
+    if (m < CUSTOM_VIEW_MAX_ZOOM_IN * _cxxEntity->collision_radius) {
+        scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_IN * _cxxEntity->collision_radius / m);
     }
     customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
@@ -11215,8 +11207,8 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
     customViewOffset = vector_multiply_scalar(customViewOffset, rate);
     OOScalar m = magnitude(customViewOffset);
-    if (m > CUSTOM_VIEW_MAX_ZOOM_OUT * collision_radius) {
-        scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_OUT * collision_radius / m);
+    if (m > CUSTOM_VIEW_MAX_ZOOM_OUT * _cxxEntity->collision_radius) {
+        scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_OUT * _cxxEntity->collision_radius / m);
     }
     customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }

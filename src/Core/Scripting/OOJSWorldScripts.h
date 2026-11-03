@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
 #include <quickjs.h>
 
 void InitOOJSWorldScripts(JSContext* context, JSValueConst global);

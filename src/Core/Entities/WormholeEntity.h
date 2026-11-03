@@ -55,70 +55,94 @@ struct OOWormholeTransit {
     std::optional<std::string> beacon; // the ship's beacon code when it entered, if any
 };
 
-@interface WormholeEntity : Entity {
-@private
-    double expiry_time; // Time when wormhole entrance closes
-    double travel_time; // Time taken for a ship to traverse the wormhole
-    double arrival_time; // Time when wormhole exit opens
-    double estimated_arrival_time; // Time when wormhole should open (be different to arrival_time for misjump wormholes)
-    double scan_time; // Time when wormhole was scanned
+namespace cxx {
 
-    OOSystemID origin;
-    OOSystemID destination;
+class WormholeEntity : public Entity {
+public:
+    // The private -init's body (after [super init]: the constructor ran Entity's). The initialisers
+    // below run it first, as they sent [self init].
+    void init();
 
-    NSPoint originCoords; // May not equal our origin system if the wormhole opens from Interstellar Space
-    NSPoint destinationCoords; // May not equal the destination system if the wormhole misjumps
+    /*	-initWithDict: and -initWormholeTo:fromShip:'s bodies. The facade runs them once it holds
+            this object (amendment oo-0mxi item 2), because the player and the ships allocate wormholes.
+    */
+    void initWithDict(const oo::PList& dict);
+    void initWormholeTo(OOSystemID s, ShipEntity* ship);
+
+    bool suckInShip(ShipEntity* ship);
+    void disgorgeShips();
+    void setExitPosition(HPVector pos);
+
+    OOSystemID getOrigin(); // -origin (amendment oo-862e item 1: the ivar keeps the name)
+    OOSystemID getDestination(); // -destination
+    NSPoint originCoordinates();
+    NSPoint destinationCoordinates();
+
+    void setMisjump(); // Flags up a wormhole as 'misjumpy'
+    void setMisjumpWithRange(GLfloat range); // Flags up a wormhole as 'misjumpy'
+    bool withMisjump();
+    GLfloat misjumpRange();
+
+    double exitSpeed(); // exit speed from this wormhole
+    void setExitSpeed(double speed); // set exit speed from this wormhole
+
+    double expiryTime(); // Time at which the wormholes entrance closes
+    double arrivalTime(); // Time at which the wormholes exit opens
+    double estimatedArrivalTime(); // Time when wormhole should open (different from arrival_time for misjump wormholes)
+    double travelTime(); // Time needed for a ship to traverse the wormhole
+    double scanTime(); // Time when wormhole was scanned
+    void setScannedAt(double time);
+    void setContainsPlayer(bool val); // mark the wormhole as waiting for player exit
+
+    bool isScanned(); // True if the wormhole has been scanned by the player
+    WORMHOLE_SCANINFO scanInfo(); // Stage of scanning
+    void setScanInfo(WORMHOLE_SCANINFO scanInfo);
+
+    oo::PList getShipsInTransit(); // -shipsInTransit (the ivar keeps the name). Dicts: "ship" (an Object node), "time", "shipBeacon" when set
+
+    std::optional<std::string> identFromShip(ShipEntity* ship); // flipped with its family (bead oo-3rb.279)
+
+    oo::PList getDict();
+
+    std::optional<std::string> descriptionComponents() const override;
+    bool canCollide() override;
+    bool checkCloseCollisionWith(Entity* other) override;
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    void dumpSelfState() override;
+
+private:
+    const char* scanInfoString();
+
+    double expiry_time = { }; // Time when wormhole entrance closes
+    double travel_time = { }; // Time taken for a ship to traverse the wormhole
+    double arrival_time = { }; // Time when wormhole exit opens
+    double estimated_arrival_time = { }; // Time when wormhole should open (be different to arrival_time for misjump wormholes)
+    double scan_time = { }; // Time when wormhole was scanned
+
+    OOSystemID origin = { };
+    OOSystemID destination = { };
+
+    NSPoint originCoords = { }; // May not equal our origin system if the wormhole opens from Interstellar Space
+    NSPoint destinationCoords = { }; // May not equal the destination system if the wormhole misjumps
 
     std::vector<OOWormholeTransit> shipsInTransit;
 
-    double witch_mass;
-    double shrink_factor; // used during nova mission
+    double witch_mass = { };
+    double shrink_factor = { }; // used during nova mission
     // not used yet
-    double exit_speed; // exit speed of ships in this wormhole
+    double exit_speed = { }; // exit speed of ships in this wormhole
 
-    WORMHOLE_SCANINFO scan_info;
-    BOOL hasExitPosition;
-    BOOL _misjump;
-    GLfloat _misjumpRange;
-    BOOL containsPlayer;
-}
+    WORMHOLE_SCANINFO scan_info = { };
+    bool hasExitPosition = { };
+    bool _misjump = { };
+    GLfloat _misjumpRange = { };
+    bool containsPlayer = { };
+};
 
-- (WormholeEntity*)initWithDict:(const oo::PList&)dict;
-- (WormholeEntity*)initWormholeTo:(OOSystemID)s fromShip:(ShipEntity*)ship;
+} // namespace cxx
 
-- (BOOL)suckInShip:(ShipEntity*)ship;
-- (void)disgorgeShips;
-- (void)setExitPosition:(HPVector)pos;
-
-- (OOSystemID)origin;
-- (OOSystemID)destination;
-- (NSPoint)originCoordinates;
-- (NSPoint)destinationCoordinates;
-
-- (void)setMisjump; // Flags up a wormhole as 'misjumpy'
-- (void)setMisjumpWithRange:(GLfloat)range; // Flags up a wormhole as 'misjumpy'
-- (BOOL)withMisjump;
-- (GLfloat)misjumpRange;
-
-- (double)exitSpeed; // exit speed from this wormhole
-- (void)setExitSpeed:(double)speed; // set exit speed from this wormhole
-
-- (double)expiryTime; // Time at which the wormholes entrance closes
-- (double)arrivalTime; // Time at which the wormholes exit opens
-- (double)estimatedArrivalTime; // Time when wormhole should open (different from arrival_time for misjump wormholes)
-- (double)travelTime; // Time needed for a ship to traverse the wormhole
-- (double)scanTime; // Time when wormhole was scanned
-- (void)setScannedAt:(double)time;
-- (void)setContainsPlayer:(BOOL)val; // mark the wormhole as waiting for player exit
-
-- (BOOL)isScanned; // True if the wormhole has been scanned by the player
-- (WORMHOLE_SCANINFO)scanInfo; // Stage of scanning
-- (void)setScanInfo:(WORMHOLE_SCANINFO)scanInfo;
-
-- (oo::PList)shipsInTransit; // Dicts: "ship" (an Object node), "time", "shipBeacon" when set
-
-- (std::optional<std::string>)identFromShip:(ShipEntity*)ship; // flipped with its family (bead oo-3rb.279)
-
-- (oo::PList)getDict;
-
-@end
+// Transitional: the Objective-C WormholeEntity, for the player, the ships, the universe, the HUD and
+// the scripting bindings, which make it and message it. Deleted, with namespace cxx above, by the
+// bridge's deletion bead.
+#import "WormholeEntity+ObjCBridge.h"

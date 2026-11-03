@@ -28,10 +28,36 @@ SOFTWARE.
 
 */
 
+#ifndef OONULLTEXTURE_H
+#define OONULLTEXTURE_H
+
 #import "OOTexture.h"
 
-@interface OONullTexture : OOTexture
+@class OONullTexture;
 
-+ (OONullTexture*)sharedNullTexture;
+namespace cxx {
 
-@end
+class OONullTexture : public OOTexture {
+public:
+    /*	The one null texture, made on first use and never released (it was an immortal singleton;
+            proposed ADR-0056 amendments oo-r7m0 item 1 and oo-489v item 3). Borrowed.
+            NOTE: assumes single-threaded access.
+    */
+    static OONullTexture* sharedNullTexture();
+
+    void apply() override;
+    NSSize dimensions() override;
+    bool isMipMapped() override;
+    void forceRebind() override;
+#ifndef NDEBUG
+    std::optional<std::string> name() override;
+#endif
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OONullTexture, for OOTexture's +nullTexture and the callers that
+// test for the class. Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OONullTexture+ObjCBridge.h"
+
+#endif // OONULLTEXTURE_H

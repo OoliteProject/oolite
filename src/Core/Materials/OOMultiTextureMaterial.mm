@@ -89,24 +89,24 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
             if (_emissionMap.get() != nil)
                 _unitsUsed++;
         } else {
-            OOCombinedEmissionMapGenerator* generator = nil;
+            ::OOCombinedEmissionMapGenerator* generator = nil; // the facade (proposed ADR-0056, amendment oo-e6xa)
 
             if (!emissionAndIlluminationSpec.isNull()) {
-                generator = [[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
-                                                                                                    diffuseMap:_diffuseMap.get()
-                                                                                                  diffuseColor:diffuseColor
-                                                                                                 emissionColor:emissionColor
-                                                                                             illuminationColor:illuminationColor
-                                                                                              optionsSpecifier:emissionAndIlluminationSpec];
+                generator = [[::OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
+                                                                                                      diffuseMap:_diffuseMap.get()
+                                                                                                    diffuseColor:diffuseColor
+                                                                                                   emissionColor:emissionColor
+                                                                                               illuminationColor:illuminationColor
+                                                                                                optionsSpecifier:emissionAndIlluminationSpec];
             } else {
                 const oo::PList optionsSpec = !emissionSpec.isNull() ? emissionSpec : illuminationSpec;
-                generator = [[OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionMapSpec:emissionSpec
-                                                                                  emissionColor:emissionColor
-                                                                                     diffuseMap:_diffuseMap.get()
-                                                                                   diffuseColor:diffuseColor
-                                                                            illuminationMapSpec:illuminationSpec
-                                                                              illuminationColor:illuminationColor
-                                                                               optionsSpecifier:optionsSpec];
+                generator = [[::OOCombinedEmissionMapGenerator alloc] cxx_initWithEmissionMapSpec:emissionSpec
+                                                                                    emissionColor:emissionColor
+                                                                                       diffuseMap:_diffuseMap.get()
+                                                                                     diffuseColor:diffuseColor
+                                                                              illuminationMapSpec:illuminationSpec
+                                                                                illuminationColor:illuminationColor
+                                                                                 optionsSpecifier:optionsSpec];
             }
 
             _emissionMap = oo::ObjCRef<::OOTexture*>([::OOTexture textureWithGenerator:[generator autorelease]]);
@@ -203,9 +203,9 @@ void OOMultiTextureMaterial::unapplyWithNext(OOMaterial* next)
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<OOTexture*>> OOMultiTextureMaterial::allTextures()
+std::vector<oo::ObjCRef<::OOTexture*>> OOMultiTextureMaterial::allTextures()
 {
-    std::vector<oo::ObjCRef<OOTexture*>> result;
+    std::vector<oo::ObjCRef<::OOTexture*>> result;
     if (_diffuseMap.get() == nil) {
         result.emplace_back(_emissionMap.get());
         return result;

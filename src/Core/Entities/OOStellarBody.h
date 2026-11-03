@@ -30,17 +30,9 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
-#ifndef NEW_PLANETS
-// not for 1.77/8
-#define NEW_PLANETS 1
-#endif
-
 typedef enum {
     STELLAR_TYPE_SUN,
     STELLAR_TYPE_NORMAL_PLANET, // Terrestrial planet with atmosphere and oceans
-#if !NEW_PLANETS
-    STELLAR_TYPE_ATMOSPHERE,
-#endif
     STELLAR_TYPE_MOON, // Rocky/airless planet
     STELLAR_TYPE_MINIATURE // Display proxy for a "normal" planet
 } OOStellarBodyType;

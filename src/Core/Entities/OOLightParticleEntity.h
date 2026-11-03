@@ -27,32 +27,51 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@class OOTexture, OOColor;
+@class OOTexture;
 
-@interface OOLightParticleEntity : Entity {
-@protected
-    GLfloat _colorComponents[4];
-    float _diameter;
-}
+namespace cxx {
 
-- (id)initWithDiameter:(float)diameter;
+class OOLightParticleEntity : public Entity {
+public:
+    // -initWithDiameter:'s body, run once right after construction (amendment oo-vl43 item 2): it
+    // calls members a subclass overrides. A converted subclass's initialiser calls it first.
+    void initWithDiameter(float diameter);
 
-- (float)diameter;
-- (void)setDiameter:(float)diameter;
+    float diameter();
+    void setDiameter(float diameter);
 
-- (void)setColor:(OOColor*)color;
-- (void)setColor:(OOColor*)color alpha:(GLfloat)alpha;
+    void setColor(OOColor* color);
+    void setColor(OOColor* color, GLfloat alpha);
 
-/*	For subclasses that don't want the default blur texture.
-        NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
-        OOLightParticleEntity assumes the texture is twice as big as the nominal
-        size of the particle (with a black border for anti-aliasing purposes).
-*/
-- (OOTexture*)texture;
+    /*	For subclasses that don't want the default blur texture.
+            NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
+            OOLightParticleEntity assumes the texture is twice as big as the nominal
+            size of the particle (with a black border for anti-aliasing purposes).
+    */
+    virtual ::OOTexture* texture();
 
-+ (void)setUpTexture;
-+ (OOTexture*)defaultParticleTexture;
+    static void setUpTexture();
+    static ::OOTexture* defaultParticleTexture();
+    // The graphics reset client is the facade class, which forwards here.
+    static void resetGraphicsState();
 
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+    virtual void drawSubEntityImmediate(bool immediate, bool translucent);
 
-@end
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
+    bool canCollide() override;
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+#endif
+
+    // @protected in Objective-C: public while Objective-C subclasses read them.
+    GLfloat _colorComponents[4] = { };
+    float _diameter = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOLightParticleEntity, for the subclasses not yet converted and the
+// callers that message it. Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOLightParticleEntity+ObjCBridge.h"

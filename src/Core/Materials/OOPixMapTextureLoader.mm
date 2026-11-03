@@ -1,6 +1,6 @@
 /*
 
-OOPixMapTextureLoader.m
+OOPixMapTextureLoader.mm
 
 
 Copyright (C) 2010-2013 Jens Ayton
@@ -30,34 +30,38 @@ SOFTWARE.
 
 #include "oofnd/String.hpp"
 
-@implementation OOPixMapTextureLoader
-
-- (id)initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone
+oo::Ref<OOPixMapTextureLoader> OOPixMapTextureLoader::loaderWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone)
 {
-    self = [super cxx_initWithPath:oo::str::format("OOPixMap@%s", oo::str::pointerDescription(self).c_str()) options:options];
-    if (self != nil) {
-        if (freeWhenDone)
-            _pixMap = pixMap;
-        else
-            _pixMap = OODuplicatePixMap(_pixMap, 0);
-
-        _texOptions = OOApplyTextureOptionDefaults(options);
-
-        if (!OOIsValidPixMap(_pixMap))
-            DESTROY(self);
-    }
-
-    return self;
+    oo::Ref<OOPixMapTextureLoader> result = oo::makeRef<OOPixMapTextureLoader>();
+    if (!result->initWithPixMap(pixMap, options, freeWhenDone))
+        return { };
+    return result;
 }
 
-- (void)dealloc
+bool OOPixMapTextureLoader::initWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone)
+{
+    if (!initWithPath(oo::str::format("OOPixMap@%s", oo::str::pointerDescription(this).c_str()), options))
+        return false;
+
+    if (freeWhenDone)
+        _pixMap = pixMap;
+    else
+        _pixMap = OODuplicatePixMap(_pixMap, 0);
+
+    _texOptions = OOApplyTextureOptionDefaults(options);
+
+    if (!OOIsValidPixMap(_pixMap))
+        return false; // was DESTROY(self): the destructor frees _pixMap
+
+    return true;
+}
+
+OOPixMapTextureLoader::~OOPixMapTextureLoader()
 {
     OOFreePixMap(&_pixMap);
-
-    [super dealloc];
 }
 
-- (void)loadTexture
+void OOPixMapTextureLoader::loadTexture()
 {
     // Generate mip maps if needed.
     if ((_texOptions & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap) {
@@ -81,9 +85,7 @@ SOFTWARE.
     _pixMap.pixels = NULL;
 }
 
-- (uint32_t)textureOptions
+uint32_t OOPixMapTextureLoader::textureOptions()
 {
     return _texOptions;
 }
-
-@end

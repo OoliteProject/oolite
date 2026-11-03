@@ -96,6 +96,21 @@ cxx::OOSDLJoystickManager* oo::ToCxx(OOSDLJoystickManager* manager)
     return _cxxManager->handleSDLEvent(evt);
 }
 
+- (void)decodeAxisEvent:(SDL_JoyAxisEvent*)evt
+{
+    _cxxManager->decodeAxisEvent(evt);
+}
+
+- (void)decodeButtonEvent:(SDL_JoyButtonEvent*)evt
+{
+    _cxxManager->decodeButtonEvent(evt);
+}
+
+- (void)decodeHatEvent:(SDL_JoyHatEvent*)evt
+{
+    _cxxManager->decodeHatEvent(evt);
+}
+
 // Overrides
 
 - (NSUInteger)joystickCount

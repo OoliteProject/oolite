@@ -34,74 +34,64 @@ MA 02110-1301, USA.
 
 static const char* const kStageName = "Testing models";
 
-@interface OOModelVerifierStage (OOPrivate)
+const char* const OOModelVerifierStage::kName = kStageName;
 
-- (void)checkModel:(const std::string&)name
-           context:(const std::string&)context
-         materials:(const oo::PList&)materials
-           shaders:(const oo::PList&)shaders;
-
-@end
-
-@implementation OOModelVerifierStage
-
-+ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
+std::string OOModelVerifierStage::nameForReverseDependencyForVerifier(OOOXPVerifier* verifier)
 {
-    OOModelVerifierStage* stage = [verifier cxx_stageWithName:kStageName];
+    ::OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kStageName];
     if (stage == nil) {
-        stage = [[OOModelVerifierStage alloc] init];
-        [verifier registerStage:stage];
-        [stage release];
+        const oo::Ref<OOModelVerifierStage> newStage = oo::makeRef<OOModelVerifierStage>();
+        [verifier registerStage:oo::ToObjC(newStage.get())];
     }
 
     return kStageName;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOModelVerifierStage::name()
 {
     return kStageName;
 }
 
-- (BOOL)shouldRun
+bool OOModelVerifierStage::shouldRun()
 {
     return !_modelsToCheck.empty();
 }
 
-- (void)run
+void OOModelVerifierStage::run()
 {
     OO_LOG("verifyOXP.models.unimplemented", "{}", "TODO: implement model verifier.");
 
     for (const OOModelVerifierEntry& info : _modelsToCheck) {
         @autoreleasepool {
-            [self checkModel:info.name
-                     context:info.context
-                   materials:info.materials
-                     shaders:info.shaders];
+            checkModel(info.name,
+                info.context,
+                info.materials,
+                info.shaders);
         }
     }
     _modelsToCheck.clear();
 }
 
-- (BOOL)modelNamed:(const std::string&)name
-      usedForEntry:(const std::optional<std::string>&)entryName
-            inFile:(const std::string&)fileName
-     withMaterials:(const oo::PList&)materials
-        andShaders:(const oo::PList&)shaders
+bool OOModelVerifierStage::modelNamed(const std::string& name,
+    const std::optional<std::string>& entryName,
+    const std::string& fileName,
+    const oo::PList& materials,
+    const oo::PList& shaders)
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
     std::string context;
 
     if (name.empty())
-        return NO;
+        return false;
 
     if (entryName.has_value())
         context = oo::str::format("entry \"%s\" of %s", entryName->c_str(), fileName.c_str());
     else
         context = fileName;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    if (![fileScanner cxx_fileExists:name inFolder:"Models" referencedFrom:context checkBuiltIn:YES]) {
-        return NO;
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner == nullptr || !fileScanner->fileExists(name, "Models", context, true)) {
+        return false;
     }
 
     OOModelVerifierEntry info { name, context, materials, shaders };
@@ -109,31 +99,16 @@ static const char* const kStageName = "Testing models";
         _modelsToCheck.push_back(std::move(info));
     }
 
-    return YES;
+    return true;
 }
 
-@end
-
-@implementation OOModelVerifierStage (OOPrivate)
-
-- (void)checkModel:(const std::string&)name
-           context:(const std::string&)context
-         materials:(const oo::PList&)materials
-           shaders:(const oo::PList&)shaders
+void OOModelVerifierStage::checkModel(const std::string& name,
+    const std::string& context,
+    const oo::PList&,
+    const oo::PList&)
 {
     OO_LOG("verifyOXP.verbose.model.unimp", "- Pretending to verify model {} referenced in {}.", name, context);
     // FIXME: this should check DAT files.
 }
-
-@end
-
-@implementation OOOXPVerifier (OOModelVerifierStage)
-
-- (OOModelVerifierStage*)modelVerifierStage
-{
-    return [self cxx_stageWithName:kStageName];
-}
-
-@end
 
 #endif

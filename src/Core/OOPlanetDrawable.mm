@@ -23,7 +23,6 @@
  */
 
 #import "OOStellarBody.h"
-#if NEW_PLANETS
 
 #import "MyOpenGLView.h"
 #import "OOMacroOpenGL.h"
@@ -43,66 +42,58 @@
 #define LOD_GRANULARITY ((float)(kOOPlanetDataLevels - 1))
 #define LOD_FACTOR (1.0 / 4.0)
 
-@interface OOPlanetDrawable (Private)
+namespace {
 
-- (void)recalculateTransform;
-
-- (void)debugDrawNormals;
-
-- (void)renderCommonParts;
-
-@end
-
-@implementation OOPlanetDrawable
-
-+ (instancetype)planetWithTextureName:(const std::string&)textureName radius:(float)radius
+// The C++ part of the drawable's material (null for none: a message to nil).
+cxx::OOMaterial* CxxMaterial(OOMaterial* material)
 {
-    OOPlanetDrawable* result = [[[self alloc] init] autorelease];
-    [result setTextureName:textureName];
-    [result setRadius:radius];
+    return oo::ToCxx(material);
+}
+
+} // namespace
+
+oo::Ref<OOPlanetDrawable> OOPlanetDrawable::planetWithTextureName(const std::string& textureName, float radius)
+{
+    oo::Ref<OOPlanetDrawable> result = oo::makeRef<OOPlanetDrawable>();
+    result->setTextureName(textureName);
+    result->setRadius(radius);
 
     return result;
 }
 
-+ (instancetype)atmosphereWithRadius:(float)radius
+oo::Ref<OOPlanetDrawable> OOPlanetDrawable::atmosphereWithRadius(float radius)
 {
-    OOPlanetDrawable* result = [[[self alloc] initAsAtmosphere] autorelease];
-    [result setRadius:radius];
+    oo::Ref<OOPlanetDrawable> result = initAsAtmosphere();
+    result->setRadius(radius);
 
     return result;
 }
 
-- (id)init
+OOPlanetDrawable::OOPlanetDrawable()
 {
-    if ((self = [super init])) {
+    { // [super init] could not fail (amendment oo-lh0x item 3).
         _radius = 1.0f;
-        [self recalculateTransform];
-        [self setLevelOfDetail:0.5f];
+        recalculateTransform();
+        setLevelOfDetail(0.5f);
+    }
+}
+
+oo::Ref<OOPlanetDrawable> OOPlanetDrawable::initAsAtmosphere()
+{
+    oo::Ref<OOPlanetDrawable> self = oo::makeRef<OOPlanetDrawable>();
+    { // -init could not fail.
+        self->_isAtmosphere = true;
     }
 
     return self;
 }
 
-- (id)initAsAtmosphere
+// -dealloc's DESTROY(_material) is the member's destructor.
+
+oo::Ref<OOPlanetDrawable> OOPlanetDrawable::copy()
 {
-    if ((self = [self init])) {
-        _isAtmosphere = YES;
-    }
-
-    return self;
-}
-
-- (void)dealloc
-{
-    DESTROY(_material);
-
-    [super dealloc];
-}
-
-- (id)copyWithZone:(OOZone*)zone
-{
-    OOPlanetDrawable* copy = [[[self class] allocWithZone:zone] init];
-    [copy setMaterial:[self material]];
+    oo::Ref<OOPlanetDrawable> copy = oo::makeRef<OOPlanetDrawable>(); // [[[self class] allocWithZone:zone] init]: the class has no subclass
+    copy->setMaterial(material());
     copy->_isAtmosphere = _isAtmosphere;
     copy->_radius = _radius;
     copy->_transform = _transform;
@@ -111,55 +102,57 @@
     return copy;
 }
 
-- (OOMaterial*)material
+OOMaterial* OOPlanetDrawable::material()
 {
-    return _material;
+    return _material.get();
 }
 
-- (void)setMaterial:(OOMaterial*)material
+void OOPlanetDrawable::setMaterial(OOMaterial* material)
 {
-    [_material autorelease];
-    _material = [material retain];
+    objc_autorelease(_material.leakRef()); // [_material autorelease]
+    _material = oo::ObjCRef<OOMaterial*>(material);
 }
 
-- (std::optional<std::string>)textureName
+std::optional<std::string> OOPlanetDrawable::textureName()
 {
-    return [_material cxx_name];
+    cxx::OOMaterial* material = CxxMaterial(_material.get());
+    return material != nullptr ? material->name() : std::nullopt;
 }
 
-- (void)setTextureName:(const std::string&)textureName
+void OOPlanetDrawable::setTextureName(const std::string& textureName)
 {
-    if ([self textureName] != textureName) {
-        [_material release];
+    if (this->textureName() != textureName) {
         // {diffuse_map={repeat_s=yes;cube_map=yes};}, as the old-style property list parsed.
         const oo::PList spec(oo::PList::Dict {
             { "diffuse_map", oo::PList(oo::PList::Dict { { "repeat_s", oo::PList("yes") }, { "cube_map", oo::PList("yes") } }) } });
-        _material = [[OOSingleTextureMaterial alloc] initWithName:textureName configuration:spec];
+        // [_material release], then [[OOSingleTextureMaterial alloc] initWithName:configuration:]:
+        // the factory's material, kept as its facade (nil for none).
+        _material = oo::ObjCRef<OOMaterial*>(oo::ToObjC(cxx::OOSingleTextureMaterial::materialWithName(textureName, spec).get()));
     }
 }
 
-- (float)radius
+float OOPlanetDrawable::radius()
 {
     return _radius;
 }
 
-- (void)setRadius:(float)radius
+void OOPlanetDrawable::setRadius(float radius)
 {
     _radius = fabsf(radius);
-    [self recalculateTransform];
+    recalculateTransform();
 }
 
-- (float)levelOfDetail
+float OOPlanetDrawable::levelOfDetail()
 {
     return (float)_lod / LOD_GRANULARITY;
 }
 
-- (void)setLevelOfDetail:(float)lod
+void OOPlanetDrawable::setLevelOfDetail(float lod)
 {
     _lod = roundf(OOClamp_0_1_f(lod) * LOD_GRANULARITY);
 }
 
-- (void)calculateLevelOfDetailForViewDistance:(float)distance
+void OOPlanetDrawable::calculateLevelOfDetailForViewDistance(float distance)
 {
     BOOL simple = [UNIVERSE reducedDetail];
     float drawFactor = [[UNIVERSE gameView] viewSize].width / (simple ? 100.0 : 40.0);
@@ -170,33 +163,33 @@
         lod -= 0.5f / LOD_GRANULARITY; // Make LOD transitions earlier.
         lod = OOClamp_0_max_f(lod, (LOD_GRANULARITY - 1) / LOD_GRANULARITY); // Don't use highest LOD.
     }
-    [self setLevelOfDetail:lod];
+    setLevelOfDetail(lod);
 }
 
-- (void)renderOpaqueParts
+void OOPlanetDrawable::renderOpaqueParts()
 {
     assert(_lod < kOOPlanetDataLevels);
 
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
-    [self renderCommonParts];
+    renderCommonParts();
 
     OOVerifyOpenGLState();
 }
 
-- (void)renderTranslucentParts
+void OOPlanetDrawable::renderTranslucentParts()
 {
     assert(_lod < kOOPlanetDataLevels);
 
     // yes, opaque - necessary changes made later
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
-    [self renderCommonParts];
+    renderCommonParts();
 
     OOVerifyOpenGLState();
 }
 
-- (void)renderTranslucentPartsOnOpaquePass
+void OOPlanetDrawable::renderTranslucentPartsOnOpaquePass()
 {
     assert(_lod < kOOPlanetDataLevels);
 
@@ -206,15 +199,16 @@
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
     OOGL(glDisable(GL_DEPTH_TEST));
-    [self renderCommonParts];
+    renderCommonParts();
     OOGL(glEnable(GL_DEPTH_TEST));
 
     OOVerifyOpenGLState();
 }
 
-- (void)renderCommonParts
+void OOPlanetDrawable::renderCommonParts()
 {
     const OOPlanetDataLevel* data = &kPlanetData[_lod];
+    cxx::OOMaterial* material = CxxMaterial(_material.get()); // messages to nil did nothing and answered NO
 
     OO_ENTER_OPENGL();
 
@@ -232,13 +226,14 @@
     OOGLPushModelView();
     OOGLMultModelView(_transform);
 
-    [_material apply];
+    if (material != nullptr)
+        material->apply();
 
     OOGL(glEnable(GL_LIGHTING));
     OOGL(glEnable(GL_TEXTURE_2D));
 
 #if OO_TEXTURE_CUBE_MAP
-    if ([_material wantsNormalsAsTextureCoordinates]) {
+    if (material != nullptr && material->wantsNormalsAsTextureCoordinates()) {
         OOGL(glDisable(GL_TEXTURE_2D));
         OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
     }
@@ -249,7 +244,7 @@
     OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
     OOGL(glVertexPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
-    if ([_material wantsNormalsAsTextureCoordinates]) {
+    if (material != nullptr && material->wantsNormalsAsTextureCoordinates()) {
         OOGL(glTexCoordPointer(3, GL_FLOAT, 0, kOOPlanetVertices));
     } else {
         OOGL(glTexCoordPointer(2, GL_FLOAT, 0, kOOPlanetTexCoords));
@@ -268,7 +263,7 @@
 #endif
 
 #if OO_TEXTURE_CUBE_MAP
-    if ([_material wantsNormalsAsTextureCoordinates]) {
+    if (material != nullptr && material->wantsNormalsAsTextureCoordinates()) {
         OOGL(glEnable(GL_TEXTURE_2D));
         OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
     }
@@ -277,61 +272,62 @@
     OOGLPopModelView();
 #ifdef OO_DEBUG_MONITOR_ENABLED
     if (gDebugFlags & DEBUG_DRAW_NORMALS)
-        [self debugDrawNormals];
+        debugDrawNormals();
 #endif
 
-    [OOMaterial applyNone];
+    cxx::OOMaterial::applyNone();
     OOGL(glPopAttrib());
 
     OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 }
 
-- (BOOL)hasOpaqueParts
+bool OOPlanetDrawable::hasOpaqueParts()
 {
     return !_isAtmosphere;
 }
 
-- (BOOL)hasTranslucentParts
+bool OOPlanetDrawable::hasTranslucentParts()
 {
     return _isAtmosphere;
 }
 
-- (GLfloat)collisionRadius
+GLfloat OOPlanetDrawable::collisionRadius()
 {
     return _radius;
 }
 
-- (GLfloat)maxDrawDistance
+GLfloat OOPlanetDrawable::maxDrawDistance()
 {
     // FIXME
     return INFINITY;
 }
 
-- (BoundingBox)boundingBox
+BoundingBox OOPlanetDrawable::boundingBox()
 {
     return (BoundingBox) { { -_radius, -_radius, -_radius }, { _radius, _radius, _radius } };
 }
 
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+void OOPlanetDrawable::setBindingTarget(id<OOWeakReferenceSupport> target)
 {
-    [_material setBindingTarget:target];
+    if (cxx::OOMaterial* material = CxxMaterial(_material.get()))
+        material->setBindingTarget(target);
 }
 
-- (void)dumpSelfState
+void OOPlanetDrawable::dumpSelfState()
 {
-    [super dumpSelfState];
-    OO_LOG("dumpState.planetDrawable", "radius: {:g}", [self radius]);
-    OO_LOG("dumpState.planetDrawable", "LOD: {:g}", [self levelOfDetail]);
+    OODrawable::dumpSelfState();
+    OO_LOG("dumpState.planetDrawable", "radius: {:g}", radius());
+    OO_LOG("dumpState.planetDrawable", "LOD: {:g}", levelOfDetail());
 }
 
-- (void)recalculateTransform
+void OOPlanetDrawable::recalculateTransform()
 {
     _transform = OOMatrixForScaleUniform(_radius);
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
-- (void)debugDrawNormals
+void OOPlanetDrawable::debugDrawNormals()
 {
     OODebugWFState state;
 
@@ -380,13 +376,10 @@
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
+std::vector<oo::ObjCRef<::OOTexture*>> OOPlanetDrawable::allTextures()
 {
-    return [[self material] cxx_allTextures];
+    cxx::OOMaterial* material = CxxMaterial(this->material());
+    return material != nullptr ? material->allTextures() : std::vector<oo::ObjCRef<::OOTexture*>>();
 }
 
 #endif
-
-@end
-
-#endif /* NEW_PLANETS */

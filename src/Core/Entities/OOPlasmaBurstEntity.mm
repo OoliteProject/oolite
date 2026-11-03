@@ -30,25 +30,30 @@ MA 02110-1301, USA.
 #define kPlasmaBurstGrowthRate 64.0f
 #define kPlasmaBurstDuration 2.0f
 
-@implementation OOPlasmaBurstEntity
-
-- (id)initWithPosition:(HPVector)inPosition
+oo::Ref<OOPlasmaBurstEntity> OOPlasmaBurstEntity::burstWithPosition(HPVector inPosition)
 {
-    if ((self = [super initWithDiameter:kPlasmaBurstInitialSize])) {
-        [self setPosition:inPosition];
-        [self setCollisionRadius:2.0];
-
-        [self setColor:[OOColor redColor]];
-    }
-
-    return self;
+    const oo::Ref<OOPlasmaBurstEntity> burst = oo::makeRef<OOPlasmaBurstEntity>();
+    burst->initWithPosition(inPosition);
+    return burst;
 }
 
-- (void)update:(double)delta_t
+void OOPlasmaBurstEntity::initWithPosition(HPVector inPosition)
 {
-    [super update:delta_t];
+    OOLightParticleEntity::initWithDiameter(kPlasmaBurstInitialSize);
+    // [super initWithDiameter:] could not fail.
+    {
+        setPosition(inPosition);
+        setCollisionRadius(2.0);
 
-    OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
+        setColor(cxx::OOColor::redColor().get());
+    }
+}
+
+void OOPlasmaBurstEntity::update(OOTimeDelta delta_t)
+{
+    OOLightParticleEntity::update(delta_t);
+
+    OOTimeDelta lifeTime = timeElapsedSinceSpawn();
     float attenuation = OOClamp_0_1_f(1.0f - lifeTime / kPlasmaBurstDuration);
 
     _diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
@@ -56,7 +61,5 @@ MA 02110-1301, USA.
     _colorComponents[3] = attenuation;
 
     if (lifeTime > kPlasmaBurstDuration)
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
 }
-
-@end

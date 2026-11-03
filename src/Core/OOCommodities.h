@@ -77,7 +77,7 @@ public:
     OOMassUnit massUnitForGood(const std::string& good);
 
 private:
-    oo::PList modifyGood(const oo::PList& good, OOScript* script, StationEntity* station, OOSystemID system, bool local);
+    oo::PList modifyGood(const oo::PList& good, ::OOScript* script, StationEntity* station, OOSystemID system, bool local);
     oo::PList createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, StationEntity* station, OOSystemID system);
 
     OOCargoQuantity generateQuantityForGood(const oo::PList& good, OOEconomyID economy);

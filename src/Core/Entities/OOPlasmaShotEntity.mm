@@ -2,6 +2,10 @@
 
 OOPlasmaShotEntity.m
 
+C++20 since bead oo-z9md (see OOPlasmaShotEntity.h). The bodies are the Objective-C ones: a
+message to self is a member call, [super ...] the base's member, and the universe and the entity
+hit are handed the shot's Objective-C object, self = oo::ToObjC(this).
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -38,44 +42,56 @@ MA 02110-1301, USA.
 */
 #define PLASMA_ATTENUATION 0
 
-@implementation OOPlasmaShotEntity
-
-- (id)initWithPosition:(HPVector)inPosition
-              velocity:(Vector)inVelocity
-                energy:(float)inEnergy
-              duration:(OOTimeDelta)duration
-                 color:(OOColor*)color
+oo::Ref<OOPlasmaShotEntity> OOPlasmaShotEntity::shotWithPosition(HPVector inPosition,
+    Vector inVelocity,
+    float inEnergy,
+    OOTimeDelta duration,
+    cxx::OOColor* color)
 {
-    if ((self = [super initWithDiameter:kPlasmaShotSize])) {
-        [self setPosition:inPosition];
-        [self setVelocity:inVelocity];
-        [self setCollisionRadius:2.0];
+    const oo::Ref<OOPlasmaShotEntity> shot = oo::makeRef<OOPlasmaShotEntity>();
+    shot->initWithPosition(inPosition, inVelocity, inEnergy, duration, color);
+    return shot;
+}
 
-        [self setColor:color alpha:1.0];
+void OOPlasmaShotEntity::initWithPosition(HPVector inPosition,
+    Vector inVelocity,
+    float inEnergy,
+    OOTimeDelta duration,
+    cxx::OOColor* color)
+{
+    OOLightParticleEntity::initWithDiameter(kPlasmaShotSize);
+    // [super initWithDiameter:] could not fail.
+    {
+        setPosition(inPosition);
+        setVelocity(inVelocity);
+        setCollisionRadius(2.0);
+
+        setColor(color, 1.0);
         _colorComponents[3] = 1.0f;
 
-        [self setEnergy:inEnergy];
+        setEnergy(inEnergy);
         _duration = duration;
     }
-
-    return self;
 }
 
-- (BOOL)canCollide
+bool OOPlasmaShotEntity::canCollide()
 {
-    return [UNIVERSE getTime] > [self spawnTime] + kPlasmaShotActivationDelay;
+    return [UNIVERSE getTime] > getSpawnTime() + kPlasmaShotActivationDelay;
 }
 
-- (BOOL)checkCloseCollisionWith:(Entity*)other
+// The other entity stays its Objective-C object (amendment oo-bj8 item 4): messages to nil answer as before.
+bool OOPlasmaShotEntity::checkCloseCollisionWith(cxx::Entity* otherEntity)
 {
-    return ([other rootShipEntity] != [self owner]) && ![other isEffect];
+    ::Entity* other = oo::ToObjC(otherEntity);
+    return ([other rootShipEntity] != owner()) && ![other isEffect];
 }
 
-- (void)update:(double)delta_t
+void OOPlasmaShotEntity::update(double delta_t)
 {
-    [super update:delta_t];
+    ::Entity* self = oo::ToObjC(this);
+    OOLightParticleEntity::update(delta_t);
 
-    OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
+    OOTimeDelta lifeTime = timeElapsedSinceSpawn();
 
 #if PLASMA_ATTENUATION
     float attenuation = OOClamp_0_1_f(1.0f - lifeTime / _duration);
@@ -83,23 +99,22 @@ MA 02110-1301, USA.
     const float attenuation = 1.0f;
 #endif
 
-    const std::vector<oo::ObjCRef<Entity*>> colliding = collidingEntities; // a snapshot (enumerating the live array while it changed raised)
+    const std::vector<oo::ObjCRef<::Entity*>> colliding = collidingEntities; // a snapshot (enumerating the live array while it changed raised)
     NSUInteger i, count = colliding.size();
     for (i = 0; i < count; i++) {
-        Entity* e = colliding[i].get();
-        if ([e rootShipEntity] != [self owner]) {
+        ::Entity* e = colliding[i].get();
+        if ([e rootShipEntity] != owner()) {
             // we're going to force the weapon id to be a phantom equipment key so there is something for
             // the PlayerEntitySound to reference. it allow allows for the sound effects to be overridden by OXP.
-            [e takeEnergyDamage:[self energy] * attenuation
+            [e takeEnergyDamage:getEnergy() * attenuation
                             from:self
-                       becauseOf:[self owner]
+                       becauseOf:owner()
                 weaponIdentifier:"EQ_WEAPON_PLASMA_SHOT"];
             [UNIVERSE removeEntity:self];
 
             // Spawn a plasma burst.
-            OOPlasmaBurstEntity* burst = [[OOPlasmaBurstEntity alloc] initWithPosition:[self position]];
+            ::Entity* burst = oo::NewEntityFacade(OOPlasmaBurstEntity::burstWithPosition(getPosition()));
             [UNIVERSE addEntity:burst];
-            [burst release];
         }
     }
 
@@ -110,5 +125,3 @@ MA 02110-1301, USA.
     if (lifeTime > _duration)
         [UNIVERSE removeEntity:self];
 }
-
-@end

@@ -28,40 +28,45 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "Universe.h"
 
-@interface OOSparkEntity (Private)
-
-- (void)performUpdate:(OOTimeDelta)delta_t;
-
-@end
-
-@implementation OOSparkEntity
-
-- (id)initWithPosition:(HPVector)pos
-              velocity:(Vector)vel
-              duration:(OOTimeDelta)duration
-                  size:(float)size
-                 color:(OOColor*)color
+oo::Ref<OOSparkEntity> OOSparkEntity::sparkWithPosition(HPVector pos,
+    Vector vel,
+    OOTimeDelta duration,
+    float size,
+    cxx::OOColor* color)
 {
-    if ((self = [super initWithDiameter:size])) {
-        [self setPosition:pos];
-        [self setVelocity:vel];
+    const oo::Ref<OOSparkEntity> spark = oo::makeRef<OOSparkEntity>();
+    spark->initWithPosition(pos, vel, duration, size, color);
+    return spark;
+}
+
+void OOSparkEntity::initWithPosition(HPVector pos,
+    Vector vel,
+    OOTimeDelta duration,
+    float size,
+    cxx::OOColor* color)
+{
+    OOLightParticleEntity::initWithDiameter(size);
+    // [super initWithDiameter:] could not fail.
+    {
+        setPosition(pos);
+        setVelocity(vel);
         _duration = _timeRemaining = duration;
-        [self setCollisionRadius:2.0];
+        setCollisionRadius(2.0);
 
-        [color getRed:&_baseRGBA[0] green:&_baseRGBA[1] blue:&_baseRGBA[2] alpha:&_baseRGBA[3]];
-        [self performUpdate:0]; // Handle colour mixing and such.
+        // A message to a nil colour did nothing.
+        if (color != nullptr)
+            color->getRed(&_baseRGBA[0], &_baseRGBA[1], &_baseRGBA[2], &_baseRGBA[3]);
+        performUpdate(0); // Handle colour mixing and such.
     }
-
-    return self;
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOSparkEntity::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
-    [self performUpdate:delta_t];
+    OOLightParticleEntity::update(delta_t);
+    performUpdate(delta_t);
 }
 
-- (void)performUpdate:(OOTimeDelta)delta_t
+void OOSparkEntity::performUpdate(OOTimeDelta delta_t)
 {
     _timeRemaining -= delta_t;
 
@@ -75,7 +80,5 @@ MA 02110-1301, USA.
 
     // Disappear when gone.
     if (mix == 0)
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
 }
-
-@end

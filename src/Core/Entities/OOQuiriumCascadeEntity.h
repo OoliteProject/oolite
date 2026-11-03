@@ -27,18 +27,32 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@interface OOQuiriumCascadeEntity : Entity {
-@private
-    OOTimeDelta _timePassed;
-    GLfloat _color[4];
-}
+/*	A converted leaf (amendment oo-bj8 item 12): global, over cxx::Entity, with no facade of its own.
+        Unconverted code makes one with quiriumCascadeFromShip() and hands it to Objective-C with
+        oo::NewEntityFacade, whose object is an Entity; -isCascadeWeapon (the category below) asks it.
+*/
+class OOQuiriumCascadeEntity : public cxx::Entity {
+public:
+    // +quiriumCascadeFromShip:: a new cascade where the ship is, or null for a nil ship.
+    static oo::Ref<OOQuiriumCascadeEntity> quiriumCascadeFromShip(ShipEntity* ship);
 
-+ (instancetype)quiriumCascadeFromShip:(ShipEntity*)ship;
+    std::optional<std::string> descriptionComponents() const override;
 
-@end
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
+    bool isCascadeWeapon();
+    bool canCollide() override;
+    bool checkCloseCollisionWith(cxx::Entity* other) override;
 
-@interface Entity (OOQuiriumCascadeExtensions)
+private:
+    // -initQuiriumCascadeFromShip:'s body: false (no cascade) for a nil ship (amendment oo-novu).
+    bool initQuiriumCascadeFromShip(ShipEntity* ship);
 
-- (BOOL)isCascadeWeapon;
+    OOTimeDelta _timePassed = { };
+    GLfloat _color[4] = { };
+};
 
-@end
+// Transitional: the category the header declared, on the Objective-C Entity. Deleted with the
+// Entity facade.
+#import "OOQuiriumCascadeEntity+ObjCBridge.h"

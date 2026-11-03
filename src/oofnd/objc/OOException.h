@@ -42,6 +42,12 @@ extern const char* const OORangeException;
 extern const char* const OOInternalInconsistencyException;
 extern const char* const OOMallocException;
 
+/*	+[OOException raise:name format:...] as a function, for converted C++ code (Phase 3, proposed
+        ADR-0056 amendment oo-dqxj): the same exception object is thrown, with the same name and
+        reason, so every @catch that caught the message send catches this. Never returns.
+*/
+void OORaiseException(const char* name, const char* format, ...) __attribute__((format(printf, 2, 3), noreturn));
+
 #ifdef __cplusplus
 }
 #endif

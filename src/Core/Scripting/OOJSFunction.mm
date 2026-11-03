@@ -221,11 +221,11 @@ bool OOJSFunction::evaluateWithContext(JSContext* context,
         jsThis = global;
     }
 
-    [OOJSScript pushScript:nil];
+    [::OOJSScript pushScript:nil];
     OOJSStartTimeLimiter();
     JSValue rval = JS_Call(context, _function, jsThis, argc, argv);
     OOJSStopTimeLimiter();
-    [OOJSScript popScript:nil];
+    [::OOJSScript popScript:nil];
 
     JS_FreeValue(context, global);
 

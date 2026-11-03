@@ -69,7 +69,7 @@
 // heat taken from energy damage depends on mass
 // but limit maximum rate since masses vary so much
 // Cobra III ~=215000
-#define SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR (mass > 400000 ? 200000 / mass : 0.5)
+#define SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR (_cxxEntity->mass > 400000 ? 200000 / _cxxEntity->mass : 0.5)
 #define SHIP_INSULATION_FACTOR 0.00175f
 #define SHIP_MAX_CABIN_TEMP 256.0f
 #define SHIP_MIN_CABIN_TEMP 60.0f
@@ -177,13 +177,8 @@ typedef enum {
     ALERT_CONDITION_RED = 3
 } OOAlertCondition;
 
-typedef enum {
-#define DIFF_STRING_ENTRY(label, string) label,
-#include "OOShipDamageType.tbl"
-#undef DIFF_STRING_ENTRY
-
-    kOOShipDamageTypeDefault = kOODamageTypeEnergy
-} OOShipDamageType;
+// OOShipDamageType (bead oo-9ht.64: plain header).
+#include "OOEntityEnums.h"
 
 @interface ShipEntity : OOEntityWithDrawable <OOSubEntity, OOBeaconEntity> {
 @public

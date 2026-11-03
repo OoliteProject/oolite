@@ -4,6 +4,15 @@ EntityOOJavaScriptExtensions.h (QuickJS-ng)
 
 JavaScript support methods for entities.
 
+C++20 since bead oo-g223 (proposed ADR-0056, amendments oo-ppc and oo-ykoy): the bodies of the
+categories Entity (OOJavaScriptExtensions) and ShipEntity (OOJavaScriptExtensions), which the
+engine and the bindings reach by selector, are the free functions below, one per method, named
+after the class the category extends and the selector's first keyword. The categories'
+interface declarations, with PlayerEntity's (implemented in OOJSPlayerShip.mm), are in
+EntityOOJavaScriptExtensions+ObjCBridge.h, imported at the end of this header, and their methods
+are one-line forwarders in EntityOOJavaScriptExtensions+ObjCBridge.mm until Entity and ShipEntity
+lose their facades.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -28,31 +37,24 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "OOJavaScriptEngine.h"
 
-@interface Entity (OOJavaScriptExtensions)
+@class ShipEntity;
 
-- (BOOL)isVisibleToScripts;
+// Entity (OOJavaScriptExtensions)
+bool EntityJSIsVisibleToScripts(void);
+std::optional<std::string> EntityJSClassName(void);
+// The entity's JS object, owned by the caller (JS null for none).
+JSValue EntityJSValueInContext(Entity* entity, JSContext* context);
+// The JS class of the entity's wrapper object; subclasses override -oo_jsClassID.
+JSClassID EntityJSClassID(void);
+void EntityJSDeleteJSSelf(Entity* entity);
 
-- (std::optional<std::string>)cxx_oo_jsClassName;
+// ShipEntity (OOJavaScriptExtensions)
+bool ShipEntityJSIsVisibleToScripts(void);
+JSClassID ShipEntityJSClassID(void);
+std::optional<std::string> ShipEntityJSClassName(void);
+std::vector<oo::ObjCRef<Entity*>> ShipEntityJSSubEntitiesForScript(ShipEntity* ship);
+void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target);
 
-// Internal:
-// The JS class of the entity's wrapper object; subclasses override this.
-- (JSClassID)oo_jsClassID;
-- (void)deleteJSSelf;
-
-@end
-
-@interface ShipEntity (OOJavaScriptExtensions)
-
-// "Normal" subentities, excluding flashers and exhaust plumes.
-- (std::vector<oo::ObjCRef<Entity*>>)subEntitiesForScript;
-
-- (void)setTargetForScript:(ShipEntity*)target;
-
-@end
-
-@interface PlayerEntity (OOJavaScriptExtensions)
-
-// The player's wrapper is created by OOJSPlayerShip; the entity keeps its own reference to val.
-- (void)setJSSelf:(JSValueConst)val context:(JSContext*)context;
-
-@end
+// Transitional: the categories' interface declarations, for the engine, the bindings and the entities that
+// send their selectors. Deleted by the bridge's deletion bead.
+#import "EntityOOJavaScriptExtensions+ObjCBridge.h"

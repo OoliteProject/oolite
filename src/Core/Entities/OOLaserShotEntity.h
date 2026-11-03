@@ -30,28 +30,52 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "ShipEntity.h"
 
-@class OOColor;
+struct OOLaserShotEntityTestAccess;
 
-@interface OOLaserShotEntity : Entity {
-@private
-    GLfloat _color[4];
-    OOTimeDelta _lifetime;
-    GLfloat _range;
-    Vector _offset;
-    Quaternion _relOrientation;
-}
+namespace cxx {
 
-+ (instancetype)laserFromShip:(ShipEntity*)ship direction:(OOWeaponFacing)direction offset:(Vector)offset;
+class OOLaserShotEntity : public Entity {
+public:
+    // +laserFromShip:direction:offset:: a new shot, initialised. The facade's class method hands it
+    // to Objective-C (oo::NewEntityFacade).
+    static oo::Ref<OOLaserShotEntity> laserFromShip(ShipEntity* ship, OOWeaponFacing direction, Vector offset);
 
-- (void)setColor:(OOColor*)color;
+    std::optional<std::string> descriptionComponents() const override;
 
-- (void)setRange:(GLfloat)range;
+    void setColor(OOColor* color);
 
-- (OOTexture*)texture1;
-- (OOTexture*)texture2;
+    void setRange(GLfloat range);
 
-+ (void)setUpTexture;
-+ (OOTexture*)innerTexture;
-+ (OOTexture*)outerTexture;
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
+    bool canCollide() override;
 
-@end
+    ::OOTexture* texture1();
+    ::OOTexture* texture2();
+
+    static void setUpTexture();
+    static ::OOTexture* innerTexture();
+    static ::OOTexture* outerTexture();
+    // The graphics reset client is the facade class, which forwards here.
+    static void resetGraphicsState();
+
+private:
+    friend struct ::OOLaserShotEntityTestAccess;
+
+    // -initLaserFromShip:direction:offset:'s body, run once right after construction (amendment
+    // oo-vl43 item 2).
+    void initLaserFromShip(ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset);
+
+    GLfloat _color[4] = { };
+    OOTimeDelta _lifetime = { };
+    GLfloat _range = { };
+    Vector _offset = { };
+    Quaternion _relOrientation = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOLaserShotEntity, for the ships that fire and the player that keeps
+// its last shots. Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOLaserShotEntity+ObjCBridge.h"

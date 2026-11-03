@@ -24,31 +24,34 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSPopulatorDefinition.h"
+#import "OOJSScript.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 #import "OOMaths.h"
 
 #include "oofnd/Notification.hpp"
 
-@implementation OOJSPopulatorDefinition
+/*	C++20 since bead oo-1h0h (proposed ADR-0056 amendment oo-o89): cxx::OOJSPopulatorDefinition.
+        -init after [super init] is the constructor, -dealloc the destructor; the engine, the script
+        stack and the owning script's weak reference are Objective-C and are messaged as before.
+*/
 
-- (id)init
+namespace cxx {
+
+OOJSPopulatorDefinition::OOJSPopulatorDefinition()
 {
-    self = [super init];
     _callback = JS_UNDEFINED;
     _callbackThis = JS_UNDEFINED;
 
-    _owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
+    _owningScript = oo::adoptObjC(static_cast<::OOJSScript*>([[::OOJSScript currentlyRunningScript] weakRetain]));
 
-    // Stays registered until dealloc, so values set after a reset are also released on the next one.
-    oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+    // Stays registered until destruction, so values set after a reset are also released on the next one.
+    oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine],
-        [self](const oo::Notification&) { [self deleteJSPointers]; });
-
-    return self;
+        [this](const oo::Notification&) { deleteJSPointers(); });
 }
 
-- (void)deleteJSPointers
+void OOJSPopulatorDefinition::deleteJSPointers()
 {
     JSContext* context = OOJSAcquireContext();
     JS_FreeValue(context, _callback);
@@ -58,24 +61,22 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (void)dealloc
+OOJSPopulatorDefinition::~OOJSPopulatorDefinition()
 {
-    oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+    oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine]);
 
-    [_owningScript release];
+    _owningScript = nullptr;
 
-    [self deleteJSPointers];
-
-    [super dealloc];
+    deleteJSPointers();
 }
 
-- (JSValue)callback
+JSValue OOJSPopulatorDefinition::callback()
 {
     return JS_DupValue(OOJSAcquireContext(), _callback);
 }
 
-- (void)setCallback:(JSValueConst)callback
+void OOJSPopulatorDefinition::setCallback(JSValueConst callback)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue old = _callback;
@@ -84,12 +85,12 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (JSValue)callbackThis
+JSValue OOJSPopulatorDefinition::callbackThis()
 {
     return JS_DupValue(OOJSAcquireContext(), _callbackThis);
 }
 
-- (void)setCallbackThis:(JSValueConst)callbackThis
+void OOJSPopulatorDefinition::setCallbackThis(JSValueConst callbackThis)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue old = _callbackThis;
@@ -98,7 +99,7 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (void)runPopulatorCallback:(HPVector)location
+void OOJSPopulatorDefinition::runPopulatorCallback(HPVector location)
 {
     OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();
@@ -113,8 +114,8 @@ MA 02110-1301, USA.
     JSValue loc = JS_UNDEFINED;
     VectorToJSValue(context, HPVectorToVector(location), &loc);
 
-    OOJSScript* owner = [_owningScript retain]; // local copy needed
-    [OOJSScript pushScript:owner];
+    const oo::ObjCRef<::OOJSScript*> owner = _owningScript; // local copy needed
+    [::OOJSScript pushScript:owner.get()];
 
     // Hold our own references in case the callback replaces them.
     JSValue callback = JS_DupValue(context, _callback);
@@ -127,12 +128,11 @@ MA 02110-1301, USA.
     JS_FreeValue(context, callback);
     JS_FreeValue(context, callbackThis);
 
-    [OOJSScript popScript:owner];
-    [owner release];
+    [::OOJSScript popScript:owner.get()];
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, loc);
     OOJSRelinquishContext(context);
 }
 
-@end
+} // namespace cxx

@@ -67,15 +67,11 @@ typedef enum {
 
 static MethodType GetMethodType(id object, SEL selector);
 
-// -boolValue / -intValue as Foundation's number and string classes declared them (no Foundation
-// header declares them since oo-qps.17).
-@protocol OOJSCallScalarValues
-- (BOOL)boolValue;
-- (int)intValue;
-@end
-OOINLINE BOOL MethodExpectsParameter(MethodType type) { return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
+namespace {
+OOINLINE bool MethodExpectsParameter(MethodType type) { return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
+} // namespace
 
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult)
+bool OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult)
 {
     OOJS_PROFILE_ENTER
 
@@ -83,13 +79,13 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
     SEL selector = NULL;
     std::optional<std::string> paramString;
     MethodType type;
-    BOOL haveParameter = NO,
-         error = NO;
+    bool haveParameter = false,
+         error = false;
     oo::PList result; // null for none
 
     if (argc == 0) {
         cxx_OOJSReportError(context, "%s.callObjC(): no selector specified.", oo_jsClassName.c_str());
-        return NO;
+        return false;
     }
 
     if ([object isKindOfClass:[ShipEntity class]]) {
@@ -100,7 +96,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
 
     // Join all parameters together with spaces.
     if (1 < argc && selectorString.has_value() && oo::str::hasSuffix(*selectorString, ":")) {
-        haveParameter = YES;
+        haveParameter = true;
         // As +concatenationOfStringsFromJavaScriptValues:count:separator:@" " joined them.
         std::string joined;
         for (int i = 1; i < argc; i++) {
@@ -119,7 +115,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
 
         if (MethodExpectsParameter(type) && !haveParameter) {
             cxx_OOJSReportError(context, "%s.callObjC(): method %s requires a parameter.", oo_jsClassName.c_str(), (selectorString ? selectorString->c_str() : "(null)"));
-            error = YES;
+            error = true;
         } else {
             IMP method = [object methodForSelector:selector];
             switch (type) {
@@ -138,15 +134,15 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
                 else
                     result = oo::PListObject(((id (*)(id, SEL))method)(object, selector));
                 if (selectorString.has_value() && oo::str::hasSuffix(*selectorString, "_bool")) {
-                    // OOBooleanFromObject(result, NO): a string or number reads as oo::plist_get::boolFrom
+                    // OOBooleanFromObject(result, false): a string or number reads as oo::plist_get::boolFrom
                     // does (bead oo-2764); any other object answers -boolValue / -intValue if it can.
                     id resultObject = oo::ObjectIn(result);
-                    bool boolResult = NO;
+                    bool boolResult = false;
                     if (result.type() != oo::PList::Type::Object)
-                        boolResult = oo::plist_get::boolFrom(!result.isNull() ? &result : nullptr, NO);
-                    else if ([resultObject respondsToSelector:@selector(boolValue)])
+                        boolResult = oo::plist_get::boolFrom(!result.isNull() ? &result : nullptr, false);
+                    else if ([resultObject respondsToSelector:OOSelectorFromName("boolValue")])
                         boolResult = [(id<OOJSCallScalarValues>)resultObject boolValue];
-                    else if ([resultObject respondsToSelector:@selector(intValue)])
+                    else if ([resultObject respondsToSelector:OOSelectorFromName("intValue")])
                         boolResult = [(id<OOJSCallScalarValues>)resultObject intValue] != 0;
                     result = oo::PList(boolResult);
                 }
@@ -179,7 +175,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
                 Vector v = ((VectorReturnMsgSend)method)(object, selector);
                 JSValue vectorValue = JSVectorWithVector(context, v);
                 if (JS_IsException(vectorValue)) {
-                    error = YES;
+                    error = true;
                 } else {
                     *outResult = vectorValue;
                 }
@@ -190,7 +186,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
                 Quaternion q = ((QuaternionReturnMsgSend)method)(object, selector);
                 JSValue quaternionValue = JSQuaternionWithQuaternion(context, q);
                 if (JS_IsException(quaternionValue)) {
-                    error = YES;
+                    error = true;
                 } else {
                     *outResult = quaternionValue;
                 }
@@ -201,7 +197,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
             case kMethodTypePointVoid:
             case kMethodTypeInvalid:
                 cxx_OOJSReportError(context, "%s.callObjC(): method %s cannot be called from JavaScript.", oo_jsClassName.c_str(), (selectorString ? selectorString->c_str() : "(null)"));
-                error = YES;
+                error = true;
                 break;
             }
             if (!result.isNull()) {
@@ -210,7 +206,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
         }
     } else {
         cxx_OOJSReportError(context, "%s.callObjC(): %s does not respond to method %s.", oo_jsClassName.c_str(), oo::ShortDescriptionOf(object).c_str(), (selectorString ? selectorString->c_str() : "(null)"));
-        error = YES;
+        error = true;
     }
 
     return !error;
@@ -218,61 +214,55 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
     OOJS_PROFILE_EXIT
 }
 
-// Template class providing method type encodings for the signatures matched here.
-@interface OOJSCallMethodSignatureTemplateClass : OOObject
-
-- (void)voidVoidMethod;
-- (void)voidStringMethod:(const std::string&)string;
-- (oo::PList)pListStringMethod:(const std::string&)string;
-- (oo::PList)pListVoidMethod;
-
-@end
-
-static BOOL SameTypeEncoding(char* a, char* b)
+namespace {
+static bool SameTypeEncoding(char* a, char* b)
 {
-    BOOL result = (a != NULL && b != NULL && strcmp(a, b) == 0);
+    bool result = (a != NULL && b != NULL && strcmp(a, b) == 0);
     free(a);
     free(b);
     return result;
 }
+} // namespace
 
 /*	Whether method has the same signature as the template's method for selector: the same
         return type and the same argument types, as the method signature objects' -isEqual:
         compared them (bead oo-3rb.15; offsets and frame size are not compared).
 */
-static BOOL SignatureMatch(Method method, SEL selector)
+namespace {
+static bool SignatureMatch(Method method, SEL selector)
 {
     Method methodTemplate = class_getInstanceMethod([OOJSCallMethodSignatureTemplateClass class], selector);
 
     if (method == NULL || methodTemplate == NULL)
-        return NO;
+        return false;
 
     unsigned argCount = method_getNumberOfArguments(method);
     if (argCount != method_getNumberOfArguments(methodTemplate))
-        return NO;
+        return false;
     if (!SameTypeEncoding(method_copyReturnType(method), method_copyReturnType(methodTemplate)))
-        return NO;
+        return false;
     for (unsigned i = 0; i < argCount; i++) {
         if (!SameTypeEncoding(method_copyArgumentType(method, i), method_copyArgumentType(methodTemplate, i)))
-            return NO;
+            return false;
     }
-    return YES;
+    return true;
 }
+} // namespace
 
 static MethodType GetMethodType(id object, SEL selector)
 {
     Method method = class_getInstanceMethod(object_getClass(object), selector);
 
-    if (SignatureMatch(method, @selector(voidVoidMethod)))
+    if (SignatureMatch(method, OOSelectorFromName("voidVoidMethod")))
         return kMethodTypeVoidVoid;
     // The C++ signatures of a selector called by name (ADR-0055 item 5), which OOCallByName calls:
     // the joined string argument, a PList result. oo-qps.72 deleted the id-parameter forms
     // (-voidObjectMethod:, -objectObjectMethod:): OOCallByName no longer passes an object.
-    if (SignatureMatch(method, @selector(voidStringMethod:)))
+    if (SignatureMatch(method, OOSelectorFromName("voidStringMethod:")))
         return kMethodTypeVoidObject;
-    if (SignatureMatch(method, @selector(pListStringMethod:)))
+    if (SignatureMatch(method, OOSelectorFromName("pListStringMethod:")))
         return kMethodTypeObjectObject;
-    if (SignatureMatch(method, @selector(pListVoidMethod)))
+    if (SignatureMatch(method, OOSelectorFromName("pListVoidMethod")))
         return kMethodTypePListVoid;
 
     MethodType type = (MethodType)OOShaderUniformTypeFromMethod(method);
@@ -281,27 +271,5 @@ static MethodType GetMethodType(id object, SEL selector)
 
     return kMethodTypeInvalid;
 }
-
-@implementation OOJSCallMethodSignatureTemplateClass : OOObject
-
-- (void)voidVoidMethod
-{
-}
-
-- (void)voidStringMethod:(const std::string&)string
-{
-}
-
-- (oo::PList)pListStringMethod:(const std::string&)string
-{
-    return oo::PList();
-}
-
-- (oo::PList)pListVoidMethod
-{
-    return oo::PList();
-}
-
-@end
 
 #endif

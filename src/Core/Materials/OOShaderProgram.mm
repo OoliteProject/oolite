@@ -39,33 +39,15 @@ SOFTWARE.
 #import "ResourceManager.h"
 #import "Universe.h"
 
+#include <regex>
+#include <vector>
+
 #include "oofnd/PListGet.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
-/*	Cache key -> program, not retained: a program removes itself in -dealloc. Was an
-        Objective-C mutable dictionary of boxed values (bead oo-3rb.10); keys are the cache keys' UTF-8.
-        Allocated on first use and never freed, as the dictionary was, so a program deallocated
-        during exit never finds it destroyed.
-*/
 namespace {
-
-std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = NULL;
-
-OOShaderProgram* CachedShaderProgram(const std::optional<std::string>& cacheKey)
-{
-    if (!cacheKey.has_value() || sShaderCache == NULL)
-        return nil;
-    auto it = sShaderCache->find(*cacheKey);
-    return (it != sShaderCache->end()) ? it->second : nil;
-}
-
-void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program)
-{
-    if (sShaderCache == NULL)
-        sShaderCache = new std::unordered_map<std::string, OOShaderProgram*>;
-    (*sShaderCache)[cacheKey] = program;
-}
 
 // What "%@" printed for a nil-able string.
 std::string StringOrNull(const std::optional<std::string>& string)
@@ -73,43 +55,59 @@ std::string StringOrNull(const std::optional<std::string>& string)
     return string.value_or("(null)");
 }
 
-OOShaderProgram* sActiveProgram = nil;
-
 BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::string& shaderType, std::optional<std::string>* outResult);
 std::string GetGLSLInfoLog(GLhandleARB shaderObject);
 
 } // namespace
 
-#if OOLITE_MAC_OS_X
-static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings);
-#endif
+namespace cxx {
 
-@interface OOShaderProgram (OOPrivate)
+/*	Cache key -> program, not retained: a program removes itself in its destructor. Was an
+        Objective-C mutable dictionary of boxed values (bead oo-3rb.10); keys are the cache keys' UTF-8.
+        Allocated on first use and never freed, as the dictionary was, so a program destroyed
+        during exit never finds it destroyed.
+*/
+namespace {
 
-- (id)initWithVertexShaderSource:(const std::optional<std::string>&)vertexSource
-            fragmentShaderSource:(const std::optional<std::string>&)fragmentSource
-                    prefixString:(const std::optional<std::string>&)prefixString
-                      vertexName:(const std::optional<std::string>&)vertexName
-                    fragmentName:(const std::optional<std::string>&)fragmentName
-               attributeBindings:(const oo::PList&)attributeBindings
-                             key:(const std::optional<std::string>&)key;
+    std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = NULL;
 
-- (void)bindAttributes:(const oo::PList&)attributeBindings;
-- (void)bindStandardMatrixUniforms;
+    OOShaderProgram* CachedShaderProgram(const std::optional<std::string>& cacheKey)
+    {
+        if (!cacheKey.has_value() || sShaderCache == NULL)
+            return nullptr;
+        auto it = sShaderCache->find(*cacheKey);
+        return (it != sShaderCache->end()) ? it->second : nullptr;
+    }
 
-@end
+    void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program)
+    {
+        if (sShaderCache == NULL)
+            sShaderCache = new std::unordered_map<std::string, OOShaderProgram*>;
+        (*sShaderCache)[cacheKey] = program;
+    }
 
-@implementation OOShaderProgram
+    /*	The program in use, retained (sActiveProgram). It holds the Objective-C object (the facade),
+            which owns the C++ program and is what sActiveProgram retained, so a program in use keeps its
+            facade while the facade exists (proposed ADR-0056, amendment oo-f9zg item 2). Never destroyed,
+            as the static pointer was not (amendment oo-smy item 3).
+    */
+    oo::ObjCRef<::OOShaderProgram*>& ActiveProgram()
+    {
+        static auto* active = new oo::ObjCRef<::OOShaderProgram*>;
+        return *active;
+    }
 
-+ (id)shaderProgramWithVertexShader:(const std::optional<std::string>&)vertexShaderSource
-                     fragmentShader:(const std::optional<std::string>&)fragmentShaderSource
-                   vertexShaderName:(const std::optional<std::string>&)vertexShaderName
-                 fragmentShaderName:(const std::optional<std::string>&)fragmentShaderName
-                             prefix:(const std::optional<std::string>&)inPrefixString // String prepended to program source (both vs and fs)
-                  attributeBindings:(const oo::PList&)attributeBindings // Maps vertex attribute names to "locations".
-                           cacheKey:(const std::optional<std::string>&)cacheKey
+} // namespace
+
+oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(const std::optional<std::string>& vertexShaderSource,
+    const std::optional<std::string>& fragmentShaderSource,
+    const std::optional<std::string>& vertexShaderName,
+    const std::optional<std::string>& fragmentShaderName,
+    const std::optional<std::string>& inPrefixString, // String prepended to program source (both vs and fs)
+    const oo::PList& attributeBindings, // Maps vertex attribute names to "locations".
+    const std::optional<std::string>& cacheKey)
 {
-    OOShaderProgram* result = nil;
+    oo::Ref<OOShaderProgram> result;
     std::optional<std::string> prefixString = inPrefixString;
 
     if (prefixString.has_value() && prefixString->empty())
@@ -117,35 +115,36 @@ static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NS
 
     // Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
     // FIXME: probably needs to respond to graphics resets.
-    result = CachedShaderProgram(cacheKey);
+    result = oo::Ref<OOShaderProgram>(CachedShaderProgram(cacheKey));
 
-    if (result == nil) {
+    if (result == nullptr) {
         // No cached program; create one...
-        result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexShaderSource
-                                                fragmentShaderSource:fragmentShaderSource
-                                                        prefixString:prefixString
-                                                          vertexName:vertexShaderName
-                                                        fragmentName:fragmentShaderName
-                                                   attributeBindings:attributeBindings
-                                                                 key:cacheKey];
-        [result autorelease];
+        result = oo::adopt(new OOShaderProgram());
+        if (!result->initWithVertexShaderSource(vertexShaderSource,
+                fragmentShaderSource,
+                prefixString,
+                vertexShaderName,
+                fragmentShaderName,
+                attributeBindings,
+                cacheKey))
+            result = nullptr;
 
-        if (result != nil && cacheKey.has_value()) {
+        if (result != nullptr && cacheKey.has_value()) {
             // ...and add it to the cache.
-            CacheShaderProgram(*cacheKey, result); // the cache doesn't retain the program
+            CacheShaderProgram(*cacheKey, result.get()); // the cache doesn't retain the program
         }
     }
 
     return result;
 }
 
-+ (id)shaderProgramWithVertexShaderName:(const std::string&)vertexShaderName
-                     fragmentShaderName:(const std::string&)fragmentShaderName
-                                 prefix:(const std::optional<std::string>&)inPrefixString
-                      attributeBindings:(const oo::PList&)attributeBindings
+oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(const std::string& vertexShaderName,
+    const std::string& fragmentShaderName,
+    const std::optional<std::string>& inPrefixString,
+    const oo::PList& attributeBindings)
 {
     std::string cacheKey;
-    OOShaderProgram* result = nil;
+    oo::Ref<OOShaderProgram> result;
     std::optional<std::string> vertexSource;
     std::optional<std::string> fragmentSource;
     std::optional<std::string> prefixString = inPrefixString;
@@ -156,52 +155,60 @@ static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NS
     // Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
     // FIXME: probably needs to respond to graphics resets.
     cacheKey = "vertex:" + vertexShaderName + "\nfragment:" + fragmentShaderName + "\n----\n" + prefixString.value_or("");
-    result = CachedShaderProgram(cacheKey);
+    result = oo::Ref<OOShaderProgram>(CachedShaderProgram(cacheKey));
 
-    if (result == nil) {
+    if (result == nullptr) {
         // No cached program; create one...
         if (!GetShaderSource(vertexShaderName, "vertex", &vertexSource))
-            return nil;
+            return nullptr;
         if (!GetShaderSource(fragmentShaderName, "fragment", &fragmentSource))
-            return nil;
-#if OOLITE_MAC_OS_X
+            return nullptr;
+        oo::PList bindings = attributeBindings;
+#if OOLITE_MACOS
         /*	The macOS legacy OpenGL context only supports GLSL 1.20, so shaders
                 written for #version 330 are translated when loaded.
         */
-        if ([prefixString hasPrefix:@"#version 330"]) {
-            NSMutableDictionary* bindings = [NSMutableDictionary dictionaryWithDictionary:attributeBindings ?: [NSDictionary dictionary]];
-            vertexSource = TranslateGLSL330To120(vertexSource, YES, bindings);
-            fragmentSource = TranslateGLSL330To120(fragmentSource, NO, bindings);
-            attributeBindings = bindings;
-            prefixString = [@"#version 120\n#extension GL_EXT_gpu_shader4 : enable\n" stringByAppendingString:[prefixString substringFromIndex:[@"#version 330" length]]];
+        const std::string version330 = "#version 330";
+        if (prefixString.has_value() && oo::str::hasPrefix(*prefixString, version330)) {
+            oo::PList::Dict translatedBindings;
+            if (const oo::PList::Dict* given = attributeBindings.getIf<oo::PList::Dict>())
+                translatedBindings = *given;
+            vertexSource = OOTranslateGLSL330To120(vertexSource, true, translatedBindings);
+            fragmentSource = OOTranslateGLSL330To120(fragmentSource, false, translatedBindings);
+            bindings = oo::PList(std::move(translatedBindings));
+            prefixString = "#version 120\n#extension GL_EXT_gpu_shader4 : enable\n" + prefixString->substr(version330.length());
         }
 #endif
-        result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource
-                                                fragmentShaderSource:fragmentSource
-                                                        prefixString:prefixString
-                                                          vertexName:vertexShaderName
-                                                        fragmentName:fragmentShaderName
-                                                   attributeBindings:attributeBindings
-                                                                 key:cacheKey];
+        result = oo::adopt(new OOShaderProgram());
+        if (!result->initWithVertexShaderSource(vertexSource,
+                fragmentSource,
+                prefixString,
+                vertexShaderName,
+                fragmentShaderName,
+                bindings,
+                cacheKey))
+            result = nullptr;
 
-        if (result != nil) {
+        if (result != nullptr) {
             // ...and add it to the cache.
-            [result autorelease];
-            CacheShaderProgram(cacheKey, result); // the cache doesn't retain the program
+            CacheShaderProgram(cacheKey, result.get()); // the cache doesn't retain the program
         }
     }
 
     return result;
 }
 
-- (void)dealloc
+OOShaderProgram::~OOShaderProgram()
 {
     OO_ENTER_OPENGL();
 
 #ifndef NDEBUG
-    if (EXPECT_NOT(sActiveProgram == self)) {
+    // Cannot happen while being in use retains the program; kept as the old imbalance check.
+    if (EXPECT_NOT(ActiveProgram() != nullptr && oo::ToCxx(ActiveProgram().get()) == this)) {
         OO_LOG("shader.dealloc.imbalance", "{}", "***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
-        [OOShaderProgram applyNone];
+        // applyNone(), but not released: it is being destroyed.
+        (void)ActiveProgram().leakRef();
+        OOGL(glUseProgramObjectARB(NULL_SHADER));
     }
 #endif
 
@@ -211,40 +218,40 @@ static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NS
         key = std::nullopt;
     }
 
-    OOGL(glDeleteObjectARB(program));
-
-    [super dealloc];
+    OOGL(glDeleteObjectARB(_program));
 }
 
-- (void)apply
+void OOShaderProgram::apply()
 {
     OO_ENTER_OPENGL();
 
-    if (sActiveProgram != self) {
-        [sActiveProgram release];
-        sActiveProgram = [self retain];
-        OOGL(glUseProgramObjectARB(program));
-        [self bindStandardMatrixUniforms];
+    if (oo::ToCxx(ActiveProgram().get()) != this) {
+        // The pool drains oo::ToObjC's autorelease here, so the program in use carries only the
+        // slot's retain, as [program retain] did (amendment oo-f9zg item 2).
+        @autoreleasepool {
+            ActiveProgram() = oo::ObjCRef<::OOShaderProgram*>(oo::ToObjC(this));
+        }
+        OOGL(glUseProgramObjectARB(_program));
+        bindStandardMatrixUniforms();
     }
 }
 
-+ (void)applyNone
+void OOShaderProgram::applyNone()
 {
     OO_ENTER_OPENGL();
 
-    if (sActiveProgram != nil) {
-        [sActiveProgram release];
-        sActiveProgram = nil;
+    if (ActiveProgram() != nullptr) {
+        ActiveProgram() = nullptr;
         OOGL(glUseProgramObjectARB(NULL_SHADER));
     }
 }
 
-- (GLhandleARB)program
+GLhandleARB OOShaderProgram::program()
 {
-    return program;
+    return _program;
 }
 
-@end
+} // namespace cxx
 
 namespace {
 
@@ -313,15 +320,15 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
 
 } // namespace
 
-@implementation OOShaderProgram (OOPrivate)
+namespace cxx {
 
-- (id)initWithVertexShaderSource:(const std::optional<std::string>&)vertexSource
-            fragmentShaderSource:(const std::optional<std::string>&)fragmentSource
-                    prefixString:(const std::optional<std::string>&)prefixString
-                      vertexName:(const std::optional<std::string>&)vertexName
-                    fragmentName:(const std::optional<std::string>&)fragmentName
-               attributeBindings:(const oo::PList&)attributeBindings
-                             key:(const std::optional<std::string>&)inKey
+bool OOShaderProgram::initWithVertexShaderSource(const std::optional<std::string>& vertexSource,
+    const std::optional<std::string>& fragmentSource,
+    const std::optional<std::string>& prefixString,
+    const std::optional<std::string>& vertexName,
+    const std::optional<std::string>& fragmentName,
+    const oo::PList& attributeBindings,
+    const std::optional<std::string>& inKey)
 {
     BOOL OK = YES;
     const GLcharARB* sourceStrings[3] = { "", "#line 0\n", NULL };
@@ -330,9 +337,7 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
 
     OO_ENTER_OPENGL();
 
-    self = [super init];
-    if (self == nil)
-        OK = NO;
+    // ([super init] could not fail: the object is already constructed.)
 
     if (OK && !vertexSource.has_value() && !fragmentSource.has_value())
         OK = NO; // Must have at least one shader!
@@ -369,16 +374,16 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
 
     if (OK) {
         // Link shader.
-        OOGL(program = glCreateProgramObjectARB());
-        if (program != NULL_SHADER) {
+        OOGL(_program = glCreateProgramObjectARB());
+        if (_program != NULL_SHADER) {
             if (vertexShader != NULL_SHADER)
-                OOGL(glAttachObjectARB(program, vertexShader));
+                OOGL(glAttachObjectARB(_program, vertexShader));
             if (fragmentShader != NULL_SHADER)
-                OOGL(glAttachObjectARB(program, fragmentShader));
-            [self bindAttributes:attributeBindings];
-            OOGL(glLinkProgramARB(program));
+                OOGL(glAttachObjectARB(_program, fragmentShader));
+            bindAttributes(attributeBindings);
+            OOGL(glLinkProgramARB(_program));
 
-            OK = ValidateShaderObject(program, StringOrNull(vertexName) + "/" + StringOrNull(fragmentName));
+            OK = ValidateShaderObject(_program, StringOrNull(vertexName) + "/" + StringOrNull(fragmentName));
         } else
             OK = NO;
     }
@@ -393,48 +398,51 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
         OOGL(glDeleteObjectARB(fragmentShader));
 
     if (OK) {
-        OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-        standardMatrixUniformLocations = [matrixManager standardMatrixUniformLocations:program];
+        // The matrix manager is C++: reached from the game view's facade (null-guarded, as a
+        // message to nil answered a null list).
+        OOOpenGLMatrixManager* matrixManager = oo::ToCxx([[UNIVERSE gameView] getOpenGLMatrixManager]);
+        standardMatrixUniformLocations = (matrixManager != nullptr) ? matrixManager->standardMatrixUniformLocations(_program) : oo::PList();
     } else {
-        if (self != nil && program != NULL_SHADER) {
-            OOGL(glDeleteObjectARB(program));
-            program = NULL_SHADER;
+        if (_program != NULL_SHADER) {
+            OOGL(glDeleteObjectARB(_program));
+            _program = NULL_SHADER;
         }
 
-        [self release];
-        self = nil;
+        // [self release]; self = nil: the factory drops the object.
     }
-    return self;
+    return OK;
 }
 
-- (void)bindAttributes:(const oo::PList&)attributeBindings
+void OOShaderProgram::bindAttributes(const oo::PList& attributeBindings)
 {
     OO_ENTER_OPENGL();
 
     if (!attributeBindings.isDict())
         return;
     for (const auto& [attrKey, location] : *attributeBindings.getIf<oo::PList::Dict>()) {
-        OOGL(glBindAttribLocationARB(program, attributeBindings.get<unsigned int>(attrKey), attrKey.c_str()));
+        OOGL(glBindAttribLocationARB(_program, attributeBindings.get<unsigned int>(attrKey), attrKey.c_str()));
     }
 }
 
-- (void)bindStandardMatrixUniforms
+void OOShaderProgram::bindStandardMatrixUniforms()
 {
     if (standardMatrixUniformLocations.isArray()) {
-        OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+        OOOpenGLMatrixManager* matrixManager = oo::ToCxx([[UNIVERSE gameView] getOpenGLMatrixManager]);
 
         OO_ENTER_OPENGL();
 
-        [matrixManager syncModelView];
+        // Null-guarded as messages to nil: nothing synced, and a zero matrix (amendment oo-vt0o item 3).
+        if (matrixManager != nullptr)
+            matrixManager->syncModelView();
         for (const oo::PList& pair : *standardMatrixUniformLocations.getIf<oo::PList::Array>()) {
             if (pair.isArray()) {
                 // -[nil compare:] answered 0, so an entry without a type string counts as "mat3".
                 const oo::PList* typeName = pair.at<oo::PList>(2);
                 const bool noTypeName = typeName == nullptr || !(typeName->isString() || typeName->isNumber());
                 if (noTypeName || pair.at<std::string>(2) == "mat3") {
-                    OOGL(GLUniformMatrix3(pair.at<int>(0), [matrixManager getMatrix:pair.at<int>(1)]));
+                    OOGL(GLUniformMatrix3(pair.at<int>(0), matrixManager != nullptr ? matrixManager->getMatrix(pair.at<int>(1)) : kZeroMatrix));
                 } else {
-                    OOMatrix matrix = [matrixManager getMatrix:pair.at<int>(1)];
+                    OOMatrix matrix = matrixManager != nullptr ? matrixManager->getMatrix(pair.at<int>(1)) : kZeroMatrix;
                     GLUniformMatrix(pair.at<int>(0), matrix);
                 }
             }
@@ -443,7 +451,7 @@ BOOL ValidateShaderObject(GLhandleARB object, const std::optional<std::string>& 
     return;
 }
 
-@end
+} // namespace cxx
 
 namespace {
 
@@ -570,67 +578,73 @@ std::string GetGLSLInfoLog(GLhandleARB shaderObject)
 
 } // namespace
 
-#endif // OO_SHADERS
+namespace {
 
+constexpr std::regex::flag_type kGLSLRegexFlags = std::regex::ECMAScript | std::regex::multiline;
 
-#if OOLITE_MAC_OS_X
-static NSString* ReplaceRegex(NSString* source, NSString* pattern, NSString* replacement)
+std::string ReplaceRegex(const std::string& source, const char* pattern,
+    const char* replacement)
 {
-    NSRegularExpression* regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionAnchorsMatchLines error:NULL];
-    return [regex stringByReplacingMatchesInString:source options:0 range:NSMakeRange(0, [source length]) withTemplate:replacement];
+    return std::regex_replace(source, std::regex(pattern, kGLSLRegexFlags),
+        replacement);
 }
 
+} // namespace
 
-/*	Translate the subset of GLSL 3.30 used by Oolite's post-processing shaders
-        to GLSL 1.20 (plus GL_EXT_gpu_shader4). Only top-level declarations are
-        rewritten, so in/out parameter qualifiers inside functions are untouched.
-*/
-static NSString* TranslateGLSL330To120(NSString* source, BOOL isVertexShader, NSMutableDictionary* attributeBindings)
+std::optional<std::string> OOTranslateGLSL330To120(
+    const std::optional<std::string>& inSource, bool isVertexShader,
+    oo::PList::Dict& attributeBindings)
 {
-    if (source == nil)
-        return nil;
-
-    NSRegularExpression* regex = nil;
-    NSArray* matches = nil;
-    NSTextCheckingResult* match = nil;
+    if (!inSource.has_value())
+        return std::nullopt;
+    std::string source = *inSource;
 
     if (isVertexShader) {
         // layout(location = N) in TYPE NAME;  ->  attribute binding NAME = N
-        regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*in\\s+\\w+\\s+(\\w+)\\s*;" options:NSRegularExpressionAnchorsMatchLines error:NULL];
-        matches = [regex matchesInString:source options:0 range:NSMakeRange(0, [source length])];
-        foreach (match, matches) {
-            NSString* location = [source substringWithRange:[match rangeAtIndex:1]];
-            NSString* name = [source substringWithRange:[match rangeAtIndex:2]];
-            [attributeBindings setObject:[NSNumber numberWithInt:[location intValue]] forKey:name];
+        const std::regex location(
+            R"(^\s*layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s*in\s+\w+\s+(\w+)\s*;)",
+            kGLSLRegexFlags);
+        for (std::sregex_iterator match(source.begin(), source.end(), location),
+            end;
+            match != end; ++match) {
+            attributeBindings[(*match)[2].str()] = oo::PList::signedInteger(std::stoi((*match)[1].str()));
         }
     } else {
         // [layout(location = N)] out vec4 NAME;  ->  #define NAME gl_FragData[N]
-        NSMutableString* result = [NSMutableString stringWithString:source];
-        regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*(?:layout\\s*\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s*)?out\\s+vec4\\s+(\\w+)\\s*;" options:NSRegularExpressionAnchorsMatchLines error:NULL];
-        matches = [regex matchesInString:source options:0 range:NSMakeRange(0, [source length])];
-        foreach (match, [matches reverseObjectEnumerator]) {
-            NSRange locationRange = [match rangeAtIndex:1];
-            NSString* location = locationRange.location != NSNotFound ? [source substringWithRange:locationRange] : @"0";
-            NSString* name = [source substringWithRange:[match rangeAtIndex:2]];
-            [result replaceCharactersInRange:[match range] withString:[NSString stringWithFormat:@"#define %@ gl_FragData[%@]", name, location]];
+        const std::regex output(
+            R"(^\s*(?:layout\s*\(\s*location\s*=\s*(\d+)\s*\)\s*)?out\s+vec4\s+(\w+)\s*;)",
+            kGLSLRegexFlags);
+        std::vector<std::smatch> matches;
+        for (std::sregex_iterator match(source.begin(), source.end(), output), end;
+            match != end; ++match)
+            matches.push_back(*match);
+        std::string result = source;
+        for (auto match = matches.rbegin(); match != matches.rend(); ++match) {
+            const std::string location = (*match)[1].matched ? (*match)[1].str() : std::string("0");
+            result.replace(
+                match->position(0), match->length(0),
+                "#define " + (*match)[2].str() + " gl_FragData[" + location + "]");
         }
         source = result;
     }
 
-    source = ReplaceRegex(source, @"layout\\s*\\([^)]*\\)\\s*", @"");
+    source = ReplaceRegex(source, R"(layout\s*\([^)]*\)\s*)", "");
     if (isVertexShader) {
-        source = ReplaceRegex(source, @"^(\\s*)in\\s+", @"$1attribute ");
-        source = ReplaceRegex(source, @"^(\\s*)out\\s+", @"$1varying ");
+        source = ReplaceRegex(source, R"(^(\s*)in\s+)", "$1attribute ");
+        source = ReplaceRegex(source, R"(^(\s*)out\s+)", "$1varying ");
     } else {
-        source = ReplaceRegex(source, @"^(\\s*)in\\s+", @"$1varying ");
+        source = ReplaceRegex(source, R"(^(\s*)in\s+)", "$1varying ");
     }
-    source = ReplaceRegex(source, @"\\btexture\\s*\\(", @"texture2D(");
-    source = ReplaceRegex(source, @"\\btextureSize\\s*\\(", @"textureSize2D(");
-    if ([source rangeOfString:@"isnan("].location != NSNotFound) {
+    source = ReplaceRegex(source, R"(\btexture\s*\()", "texture2D(");
+    source = ReplaceRegex(source, R"(\btextureSize\s*\()", "textureSize2D(");
+    if (source.find("isnan(") != std::string::npos) {
         // isnan() is not available before GLSL 1.30.
-        source = [@"bool oo_isnan(float x) { return !(x < 0.0 || x > 0.0 || x == 0.0); }\n" stringByAppendingString:ReplaceRegex(source, @"\\bisnan\\s*\\(", @"oo_isnan(")];
+        source = "bool oo_isnan(float x) { return !(x < 0.0 || x > 0.0 || x == 0.0); "
+                 "}\n"
+            + ReplaceRegex(source, R"(\bisnan\s*\()", "oo_isnan(");
     }
 
     return source;
 }
-#endif
+
+#endif // OO_SHADERS

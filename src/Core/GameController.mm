@@ -331,15 +331,7 @@ static GameController* sSharedController = nil;
 #endif
 }
 
-#if OOLITE_MAC_COCOA_UI
-
-- (void)performGameTick:(id)sender
-{
-    [gameView pollControls];
-    [self doPerformGameTick];
-}
-
-#else
+#if !OOLITE_MAC_COCOA_UI // the Mac -performGameTick: is in GameController (MacOSX) at the end of the file
 
 - (void)performGameTick:(id)sender
 {
@@ -614,7 +606,232 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
     }
 }
 
+// The Mac-only methods are in the GameController (MacOSX) category at the end of the file.
+// -snapshotsURLCreatingIfNeeded: is Mac-only: nothing on SDL called it (bead oo-3rb.13).
+#if !OOLITE_MAC_COCOA_UI && !OOLITE_SDL
+#error Unknown environment!
+#endif
+
+- (void)cxx_logProgress:(const std::string&)message
+{
+    if (![UNIVERSE doingStartUp])
+        return;
+
 #if OOLITE_MAC_COCOA_UI
+    [splashProgressTextField setStringValue:oo::NSStringFrom(message)];
+    [splashProgressTextField display];
+#endif
+    if (!message.empty()) {
+        OO_LOG("startup.progress", "===== [{:.2f} s] {}", oo::date::monotonicSeconds() - _splashStart, message);
+    }
+}
+
+#if OO_DEBUG
+#if !OOLITE_MAC_COCOA_UI // the Mac arms are in GameController (MacOSX) at the end of the file
+- (BOOL)debugMessageTrackingIsOn
+{
+    return oo::log::willDisplay("startup.progress");
+}
+
+- (std::string)cxx_debugMessageCurrentString
+{
+    return "";
+}
+#endif
+
+- (void)cxx_debugLogProgress:(const std::string&)message
+{
+    [self cxx_logProgress:message];
+}
+
+namespace {
+std::vector<std::string> sMessageStack;
+}
+
+- (void)cxx_debugPushProgressMessage:(const std::string&)message
+{
+    if ([self debugMessageTrackingIsOn]) {
+        sMessageStack.push_back([self cxx_debugMessageCurrentString]);
+        [self cxx_debugLogProgress:message];
+    }
+
+    oo::log::indentIf("startup.progress");
+}
+
+- (void)debugPopProgressMessage
+{
+    oo::log::outdentIf("startup.progress");
+
+    if (!sMessageStack.empty()) {
+        const std::string message = sMessageStack.back();
+        if (!message.empty())
+            [self cxx_logProgress:message];
+        sMessageStack.pop_back();
+    }
+}
+
+#endif
+
+- (void)endSplashScreen
+{
+    oo::log::logger().setDisplay("startup.progress", false);
+
+#if OOLITE_MAC_COCOA_UI
+    // These views will be released when we replace the content view.
+    splashProgressTextField = nil;
+    splashView = nil;
+
+    [gameWindow setAcceptsMouseMovedEvents:YES];
+    [gameWindow setContentView:gameView];
+    [gameWindow makeFirstResponder:gameView];
+#elif OOLITE_SDL
+    [gameView endSplashScreen];
+#endif
+}
+
+#if OOLITE_SDL
+#include <SDL3/SDL_init.h>
+
+- (void)cxx_exitAppWithContext:(const std::string&)context
+{
+    OO_LOG("exit.context", "Exiting: {}.", context);
+#if (OOLITE_SDL && defined(OO_DEBUG_MONITOR_ENABLED))
+    [[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
+#endif
+#if OOLITE_WINDOWS
+    // This should not be required normally but we have to ensure that
+    // desktop resolution is restored also on some Intel cards on Win10
+    if (![gameView atDesktopResolution]) {
+        OO_LOG("gameController.exitApp", "{}", "Restoring desktop resolution.");
+        ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+    }
+#endif
+    oo::Defaults::standard().synchronize();
+    OO_LOG("gameController.exitApp", "{}", ".GNUstepDefaults synchronized.");
+#ifndef NDEBUG
+    // Leak check: tears down the JavaScript runtime and logs any objects still alive.
+    [[OOJavaScriptEngine sharedEngine] shutDown];
+#endif
+    OOLoggingTerminate();
+    SDL_Quit();
+    if (OOOpenALController* controller = OOOpenALController::sharedController())
+        controller->shutdown();
+    exit(0);
+}
+
+#elif !OOLITE_MAC_COCOA_UI
+#error Unknown environment!
+#endif
+
+- (void)exitAppCommandQ
+{
+    [self cxx_exitAppWithContext:"Command-Q"];
+}
+
+- (void)windowDidResize
+{
+    [gameView updateScreen];
+}
+
+- (std::optional<std::string>)cxx_playerFileToLoad
+{
+    return playerFileToLoad;
+}
+
+- (void)cxx_setPlayerFileToLoad:(const std::string&)filename
+{
+    playerFileToLoad = std::nullopt;
+    if (oo::str::lowercase(oo::str::pathExtension(filename)) == "oolite-save")
+        playerFileToLoad = filename;
+}
+
+- (std::optional<std::string>)cxx_playerFileDirectory
+{
+    if (!playerFileDirectory.has_value()) {
+        // save-directory via oo::Defaults (ADR-0032 / oo-mwo0 shared store).
+        playerFileDirectory = oo::Defaults::standard().stringForKey("save-directory");
+        if (playerFileDirectory.has_value() && !oo::fs::fileExists(oo::fs::pathFromUTF8(*playerFileDirectory))) {
+            playerFileDirectory = std::nullopt;
+        }
+        // -[defaultCommanderPath]: OO_SAVEDIR or ~/oolite-saves, create if missing, else home.
+        if (!playerFileDirectory.has_value()) {
+            const oo::ResourcePaths paths = oo::ResourcePaths::current();
+            const oo::fs::Path savedir = paths.saveDirectory();
+            const oo::fs::FileType type = oo::fs::fileType(savedir);
+            if (type == oo::fs::FileType::none) {
+                if (oo::fs::createDirectories(savedir)) {
+                    playerFileDirectory = oo::fs::utf8String(savedir);
+                } else {
+                    OO_LOG_ERR("savedGame.defaultPath.create.failed", "Unable to create '{}'. Saved games will go to the home directory.", oo::fs::utf8String(savedir));
+                    playerFileDirectory = oo::fs::utf8String(paths.homeDirectory());
+                }
+            } else if (type != oo::fs::FileType::directory) {
+                OO_LOG_ERR("savedGame.defaultPath.notDirectory", "'{}' is not a directory, saved games will go to the home directory.", oo::fs::utf8String(savedir));
+                playerFileDirectory = oo::fs::utf8String(paths.homeDirectory());
+            } else {
+                playerFileDirectory = oo::fs::utf8String(savedir);
+            }
+        }
+    }
+
+    return playerFileDirectory;
+}
+
+- (void)cxx_setPlayerFileDirectory:(const std::optional<std::string>&)filename
+{
+    std::optional<std::string> directory = filename;
+    if (directory.has_value() && oo::str::lowercase(oo::str::pathExtension(*directory)) == "oolite-save") {
+        directory = oo::str::deletingLastPathComponent(*directory);
+    }
+
+    playerFileDirectory = directory;
+    if (directory.has_value())
+        oo::Defaults::standard().setObject("save-directory", oo::PList(*directory));
+    else
+        oo::Defaults::standard().removeObject("save-directory");
+}
+
+- (void)cxx_reportUnhandledStartupExceptionName:(const std::string&)name reason:(const std::optional<std::string>&)reason
+{
+    // %@ of a nil reason printed "(null)", as NSStringOrNil's nil still does.
+    OO_LOG("startup.exception", "***** Unhandled exception during startup: {} ({}).", name, reason.value_or("(null)"));
+
+#if OOLITE_MAC_COCOA_UI
+    // Display an error alert.
+    // TODO: provide better information on reporting bugs in the manual, and refer to it here.
+    NSRunCriticalAlertPanel(@"Oolite failed to start up, because an unhandled exception occurred.", @"An exception of type %@ occurred. If this problem persists, please file a bug report.", @"OK", NULL, NULL, oo::NSStringFrom(name));
+#endif
+}
+
+#ifndef NDEBUG
+/*	This method exists purely to suppress Clang static analyzer warnings that
+        these ivars are unused (but may be used by categories, which they are).
+*/
+- (BOOL)suppressClangStuff
+{
+    return pauseSelector && pauseTarget;
+}
+#endif
+
+@end
+
+#if OOLITE_MAC_COCOA_UI
+
+/*	The Mac-only methods, gathered verbatim into one category at the end of the file by bead
+        oo-q9l2w (a behaviour-neutral pre-split for the Phase 3 conversion; the Windows/SDL translation
+        unit is token-for-token unchanged): the menu actions, the snapshots-folder and add-ons helpers,
+        the dock menu, -awakeFromNib, the application-delegate methods, and the Mac arms of
+        -performGameTick:, -cxx_exitAppWithContext: and the two debug-progress accessors. The fleet never
+        compiles this block and does not convert it: Phase 5 writes the Mac layer again (ADR-0009;
+        ADR-0056 amendment oo-bgmb item 2; ADR-0043 item 18(b); docs/phases/3-slices/GameController.md).
+*/
+@implementation GameController (MacOSX)
+
+- (void)performGameTick:(id)sender
+{
+    [gameView pollControls];
+    [self doPerformGameTick];
+}
 
 - (void)recenterVirtualJoystick
 {
@@ -819,30 +1036,7 @@ static void RemovePreference(const std::string& key)
     return dockMenu;
 }
 
-#elif OOLITE_SDL
-
-// -snapshotsURLCreatingIfNeeded: is Mac-only: nothing on SDL called it (bead oo-3rb.13).
-
-#else
-#error Unknown environment!
-#endif
-
-- (void)cxx_logProgress:(const std::string&)message
-{
-    if (![UNIVERSE doingStartUp])
-        return;
-
-#if OOLITE_MAC_COCOA_UI
-    [splashProgressTextField setStringValue:oo::NSStringFrom(message)];
-    [splashProgressTextField display];
-#endif
-    if (!message.empty()) {
-        OO_LOG("startup.progress", "===== [{:.2f} s] {}", oo::date::monotonicSeconds() - _splashStart, message);
-    }
-}
-
 #if OO_DEBUG
-#if OOLITE_MAC_COCOA_UI
 - (BOOL)debugMessageTrackingIsOn
 {
     return splashProgressTextField != nil;
@@ -852,69 +1046,7 @@ static void RemovePreference(const std::string& key)
 {
     return oo::StdString([splashProgressTextField stringValue]);
 }
-#else
-- (BOOL)debugMessageTrackingIsOn
-{
-    return oo::log::willDisplay("startup.progress");
-}
-
-- (std::string)cxx_debugMessageCurrentString
-{
-    return "";
-}
 #endif
-
-- (void)cxx_debugLogProgress:(const std::string&)message
-{
-    [self cxx_logProgress:message];
-}
-
-namespace {
-std::vector<std::string> sMessageStack;
-}
-
-- (void)cxx_debugPushProgressMessage:(const std::string&)message
-{
-    if ([self debugMessageTrackingIsOn]) {
-        sMessageStack.push_back([self cxx_debugMessageCurrentString]);
-        [self cxx_debugLogProgress:message];
-    }
-
-    oo::log::indentIf("startup.progress");
-}
-
-- (void)debugPopProgressMessage
-{
-    oo::log::outdentIf("startup.progress");
-
-    if (!sMessageStack.empty()) {
-        const std::string message = sMessageStack.back();
-        if (!message.empty())
-            [self cxx_logProgress:message];
-        sMessageStack.pop_back();
-    }
-}
-
-#endif
-
-- (void)endSplashScreen
-{
-    oo::log::logger().setDisplay("startup.progress", false);
-
-#if OOLITE_MAC_COCOA_UI
-    // These views will be released when we replace the content view.
-    splashProgressTextField = nil;
-    splashView = nil;
-
-    [gameWindow setAcceptsMouseMovedEvents:YES];
-    [gameWindow setContentView:gameView];
-    [gameWindow makeFirstResponder:gameView];
-#elif OOLITE_SDL
-    [gameView endSplashScreen];
-#endif
-}
-
-#if OOLITE_MAC_COCOA_UI
 
 // NIB methods
 - (void)awakeFromNib
@@ -963,133 +1095,7 @@ std::vector<std::string> sMessageStack;
     return NSTerminateNow;
 }
 
-#elif OOLITE_SDL
-#include <SDL3/SDL_init.h>
-
-- (void)cxx_exitAppWithContext:(const std::string&)context
-{
-    OO_LOG("exit.context", "Exiting: {}.", context);
-#if (OOLITE_SDL && defined(OO_DEBUG_MONITOR_ENABLED))
-    [[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
-#endif
-#if OOLITE_WINDOWS
-    // This should not be required normally but we have to ensure that
-    // desktop resolution is restored also on some Intel cards on Win10
-    if (![gameView atDesktopResolution]) {
-        OO_LOG("gameController.exitApp", "{}", "Restoring desktop resolution.");
-        ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
-    }
-#endif
-    oo::Defaults::standard().synchronize();
-    OO_LOG("gameController.exitApp", "{}", ".GNUstepDefaults synchronized.");
-#ifndef NDEBUG
-    // Leak check: tears down the JavaScript runtime and logs any objects still alive.
-    [[OOJavaScriptEngine sharedEngine] shutDown];
-#endif
-    OOLoggingTerminate();
-    SDL_Quit();
-    if (OOOpenALController* controller = OOOpenALController::sharedController())
-        controller->shutdown();
-    exit(0);
-}
-
-#else
-#error Unknown environment!
-#endif
-
-- (void)exitAppCommandQ
-{
-    [self cxx_exitAppWithContext:"Command-Q"];
-}
-
-- (void)windowDidResize
-{
-    [gameView updateScreen];
-}
-
-- (std::optional<std::string>)cxx_playerFileToLoad
-{
-    return playerFileToLoad;
-}
-
-- (void)cxx_setPlayerFileToLoad:(const std::string&)filename
-{
-    playerFileToLoad = std::nullopt;
-    if (oo::str::lowercase(oo::str::pathExtension(filename)) == "oolite-save")
-        playerFileToLoad = filename;
-}
-
-- (std::optional<std::string>)cxx_playerFileDirectory
-{
-    if (!playerFileDirectory.has_value()) {
-        // save-directory via oo::Defaults (ADR-0032 / oo-mwo0 shared store).
-        playerFileDirectory = oo::Defaults::standard().stringForKey("save-directory");
-        if (playerFileDirectory.has_value() && !oo::fs::fileExists(oo::fs::pathFromUTF8(*playerFileDirectory))) {
-            playerFileDirectory = std::nullopt;
-        }
-        // -[defaultCommanderPath]: OO_SAVEDIR or ~/oolite-saves, create if missing, else home.
-        if (!playerFileDirectory.has_value()) {
-            const oo::ResourcePaths paths = oo::ResourcePaths::current();
-            const oo::fs::Path savedir = paths.saveDirectory();
-            const oo::fs::FileType type = oo::fs::fileType(savedir);
-            if (type == oo::fs::FileType::none) {
-                if (oo::fs::createDirectories(savedir)) {
-                    playerFileDirectory = oo::fs::utf8String(savedir);
-                } else {
-                    OO_LOG_ERR("savedGame.defaultPath.create.failed", "Unable to create '{}'. Saved games will go to the home directory.", oo::fs::utf8String(savedir));
-                    playerFileDirectory = oo::fs::utf8String(paths.homeDirectory());
-                }
-            } else if (type != oo::fs::FileType::directory) {
-                OO_LOG_ERR("savedGame.defaultPath.notDirectory", "'{}' is not a directory, saved games will go to the home directory.", oo::fs::utf8String(savedir));
-                playerFileDirectory = oo::fs::utf8String(paths.homeDirectory());
-            } else {
-                playerFileDirectory = oo::fs::utf8String(savedir);
-            }
-        }
-    }
-
-    return playerFileDirectory;
-}
-
-- (void)cxx_setPlayerFileDirectory:(const std::optional<std::string>&)filename
-{
-    std::optional<std::string> directory = filename;
-    if (directory.has_value() && oo::str::lowercase(oo::str::pathExtension(*directory)) == "oolite-save") {
-        directory = oo::str::deletingLastPathComponent(*directory);
-    }
-
-    playerFileDirectory = directory;
-    if (directory.has_value())
-        oo::Defaults::standard().setObject("save-directory", oo::PList(*directory));
-    else
-        oo::Defaults::standard().removeObject("save-directory");
-}
-
-- (void)cxx_reportUnhandledStartupExceptionName:(const std::string&)name reason:(const std::optional<std::string>&)reason
-{
-    // %@ of a nil reason printed "(null)", as NSStringOrNil's nil still does.
-    OO_LOG("startup.exception", "***** Unhandled exception during startup: {} ({}).", name, reason.value_or("(null)"));
-
-#if OOLITE_MAC_COCOA_UI
-    // Display an error alert.
-    // TODO: provide better information on reporting bugs in the manual, and refer to it here.
-    NSRunCriticalAlertPanel(@"Oolite failed to start up, because an unhandled exception occurred.", @"An exception of type %@ occurred. If this problem persists, please file a bug report.", @"OK", NULL, NULL, oo::NSStringFrom(name));
-#endif
-}
-
-#ifndef NDEBUG
-/*	This method exists purely to suppress Clang static analyzer warnings that
-        these ivars are unused (but may be used by categories, which they are).
-*/
-- (BOOL)suppressClangStuff
-{
-    return pauseSelector && pauseTarget;
-}
-#endif
-
 @end
-
-#if OOLITE_MAC_COCOA_UI
 
 static void SetUpSparkle(void)
 {

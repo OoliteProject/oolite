@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 
 #import "OOJSFlasher.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "OOColor.h"
 #import "OOFlasherEntity.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
@@ -30,9 +31,21 @@ MA 02110-1301, USA.
 #import "OOVisualEffectEntity.h"
 #import "ShipEntity.h"
 
+/*
+        C++20 since bead oo-ub2g, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
+        OOFlasherEntity became free functions, and its methods and interface moved to
+        OOJSFlasher+ObjCBridge.mm (amendment oo-ykoy). OOColor, which is C++ since bead oo-11m, is
+        reached as cxx::OOColor through oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4). Messages to
+        classes that are still Objective-C (OOFlasherEntity, ShipEntity, OOVisualEffectEntity,
+        Entity) stay as they are, which is why the file is still .mm until Phase 4.
+*/
+
 static JSClassID sFlasherClassID;
 
-static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity);
+static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity);
 
 static JSValue FlasherGetProperty(OOJS_GETTER_ARGS);
 static JSValue FlasherSetProperty(OOJS_SETTER_ARGS);
@@ -42,12 +55,12 @@ static JSValue FlasherRemove(OOJS_NATIVE_ARGS);
 namespace {
 
     // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(OOColor* color)
+    oo::PList NormalizedColorComponents(cxx::OOColor* color)
     {
-        if (color == nil)
+        if (color == nullptr)
             return oo::PList();
         oo::PList::Array components;
-        for (float component : [color cxx_normalizedArray])
+        for (float component : color->normalizedArray())
             components.push_back(oo::PList::singleReal(component));
         return oo::PList(std::move(components));
     }
@@ -103,48 +116,42 @@ JSClassID JSFlasherClassID(void)
     return sFlasherClassID;
 }
 
-static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity)
+static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, jsobj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[OOFlasherEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (OOFlasherEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-@implementation OOFlasherEntity (OOJavaScriptExtensions)
-
-- (JSClassID)oo_jsClassID
-{
-    return sFlasherClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// The bodies of OOFlasherEntity (OOJavaScriptExtensions), whose methods are in
+// OOJSFlasher+ObjCBridge.mm until OOFlasherEntity converts (proposed ADR-0056 amendments oo-ppc
+// and oo-ykoy).
+std::optional<std::string> OOJSFlasherJSClassName(void)
 {
     return std::string("Flasher");
 }
 
-- (BOOL)isVisibleToScripts
+bool OOJSFlasherIsVisibleToScripts(void)
 {
-    return YES;
+    return true;
 }
-
-@end
 
 static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
 {
@@ -164,7 +171,7 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([entity isActive]);
 
     case kFlasher_color:
-        result = NormalizedColorComponents([entity color]);
+        result = NormalizedColorComponents(oo::ToCxx([entity color]));
         break;
 
     case kFlasher_frequency:
@@ -196,7 +203,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
     OOFlasherEntity* entity = nil;
     double fValue;
     int bValue;
-    OOColor* colorForScript = nil;
+    oo::Ref<cxx::OOColor> colorForScript;
 
     if (!JSFlasherGetFlasherEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
@@ -212,9 +219,9 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kFlasher_color:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            [entity setColor:colorForScript];
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            [entity setColor:oo::ToObjC(colorForScript.get())];
             return JS_UNDEFINED;
         }
         break;

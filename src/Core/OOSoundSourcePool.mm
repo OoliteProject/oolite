@@ -39,22 +39,20 @@ typedef struct OOSoundSourcePoolElement {
     float priority;
 } PoolElement;
 
-@interface OOSoundSourcePool (Private)
+namespace cxx {
 
-- (uint8_t)selectSlotForPriority:(float)priority;
-
-@end
-
-@implementation OOSoundSourcePool
-
-+ (instancetype)poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat
+oo::Ref<OOSoundSourcePool> OOSoundSourcePool::poolWithCount(uint8_t count, OOTimeDelta minRepeat)
 {
-    return [[[self alloc] initWithCount:count minRepeatTime:minRepeat] autorelease];
+    oo::Ref<OOSoundSourcePool> pool = oo::makeRef<OOSoundSourcePool>();
+    if (!pool->initWithCount(count, minRepeat))
+        return nullptr;
+    return pool;
 }
 
-- (id)initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat
+// The body of -initWithCount:minRepeatTime: after [super init]; [self release]; self = nil; is false.
+bool OOSoundSourcePool::initWithCount(uint8_t count, OOTimeDelta minRepeat)
 {
-    if ((self = [super init])) {
+    {
         // Sanity-check count
         if (count == 0)
             count = 1;
@@ -70,14 +68,13 @@ typedef struct OOSoundSourcePoolElement {
         // Create source pool
         _sources = (PoolElement*)calloc(sizeof(PoolElement), count);
         if (_sources == NULL) {
-            [self release];
-            self = nil;
+            return false;
         }
     }
-    return self;
+    return true;
 }
 
-- (void)dealloc
+OOSoundSourcePool::~OOSoundSourcePool()
 {
     uint8_t i;
 
@@ -85,20 +82,21 @@ typedef struct OOSoundSourcePoolElement {
         [_sources[i].source release];
     }
     free(_sources);
-
-    [super dealloc];
 }
 
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
-              expiryTime:(OOTimeDelta)expiryTime
-                 overlap:(BOOL)overlap
-                position:(Vector)position
+/*	The sounds and the sources are Objective-C objects, which the pool makes by their class methods
+        and alloc/init (its test stubs both; amendment oo-rmd7 item 3).
+*/
+void OOSoundSourcePool::playSoundWithKey(const std::string& key,
+    float priority,
+    OOTimeDelta expiryTime,
+    bool overlap,
+    Vector position)
 {
     uint8_t slot;
     OOTimeAbsolute now, absExpiryTime;
     PoolElement* element = NULL;
-    OOSound* sound = NULL;
+    ::OOSound* sound = NULL;
 
     // Convert expiry time to absolute
     now = [UNIVERSE getTime];
@@ -111,13 +109,13 @@ typedef struct OOSoundSourcePoolElement {
         return;
 
     // Look for a slot in the source list to use
-    slot = [self selectSlotForPriority:priority];
+    slot = selectSlotForPriority(priority);
     if (slot == kNoSlot)
         return;
     element = &_sources[slot];
 
     // Load sound
-    sound = [OOSound cxx_soundWithCustomSoundKey:key];
+    sound = [::OOSound cxx_soundWithCustomSoundKey:key];
     if (sound == nil)
         return;
 
@@ -125,7 +123,7 @@ typedef struct OOSoundSourcePoolElement {
     if (element->source != nil)
         [element->source stop];
     else {
-        element->source = [[OOSoundSource alloc] init];
+        element->source = [[::OOSoundSource alloc] init];
         if (element->source == nil)
             return;
     }
@@ -148,69 +146,66 @@ typedef struct OOSoundSourcePoolElement {
     _latest = slot;
 }
 
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
-              expiryTime:(OOTimeDelta)expiryTime
+void OOSoundSourcePool::playSoundWithKey(const std::string& key,
+    float priority,
+    OOTimeDelta expiryTime)
 {
-    [self playSoundWithKey:key
-                  priority:priority
-                expiryTime:expiryTime
-                   overlap:YES
-                  position:kZeroVector];
+    playSoundWithKey(key,
+        priority,
+        expiryTime,
+        true,
+        kZeroVector);
 }
 
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
-                position:(Vector)position
+void OOSoundSourcePool::playSoundWithKey(const std::string& key,
+    float priority,
+    Vector position)
 {
-    [self playSoundWithKey:key
-                  priority:priority
-                expiryTime:0.5 + randf() * 0.1
-                   overlap:YES
-                  position:position];
+    playSoundWithKey(key,
+        priority,
+        0.5 + randf() * 0.1,
+        true,
+        position);
 }
 
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
+void OOSoundSourcePool::playSoundWithKey(const std::string& key,
+    float priority)
 {
-    [self playSoundWithKey:key
-                  priority:priority
-                expiryTime:0.5 + randf() * 0.1];
+    playSoundWithKey(key,
+        priority,
+        0.5 + randf() * 0.1);
 }
 
-- (void)playSoundWithKey:(const std::string&)key
+void OOSoundSourcePool::playSoundWithKey(const std::string& key)
 {
-    [self playSoundWithKey:key priority:1.0];
+    playSoundWithKey(key, 1.0f);
 }
 
-- (void)playSoundWithKey:(const std::string&)key position:(Vector)position
+void OOSoundSourcePool::playSoundWithKey(const std::string& key, Vector position)
 {
-    [self playSoundWithKey:key priority:1.0 position:position];
+    playSoundWithKey(key, 1.0f, position);
 }
 
-- (void)playSoundWithKey:(const std::string&)key overlap:(BOOL)overlap
+void OOSoundSourcePool::playSoundWithKey(const std::string& key, bool overlap)
 {
-    [self playSoundWithKey:key
-                  priority:1.0
-                expiryTime:0.5
-                   overlap:overlap
-                  position:kZeroVector];
+    playSoundWithKey(key,
+        1.0f,
+        0.5,
+        overlap,
+        kZeroVector);
 }
 
-- (void)playSoundWithKey:(const std::string&)key overlap:(BOOL)overlap position:(Vector)position
+void OOSoundSourcePool::playSoundWithKey(const std::string& key, bool overlap, Vector position)
 {
-    [self playSoundWithKey:key
-                  priority:1.0
-                expiryTime:0.5
-                   overlap:overlap
-                  position:position];
+    playSoundWithKey(key,
+        1.0f,
+        0.5,
+        overlap,
+        position);
 }
 
-@end
-
-@implementation OOSoundSourcePool (Private)
-
-- (uint8_t)selectSlotForPriority:(float)priority
+// The private category's method.
+uint8_t OOSoundSourcePool::selectSlotForPriority(float priority)
 {
     uint8_t curr, count, expiredLower = kNoSlot, unexpiredLower = kNoSlot, expiredEqual = kNoSlot;
     PoolElement* element = NULL;
@@ -243,4 +238,4 @@ typedef struct OOSoundSourcePoolElement {
     return expiredEqual; // Will be kNoSlot if none found
 }
 
-@end
+} // namespace cxx

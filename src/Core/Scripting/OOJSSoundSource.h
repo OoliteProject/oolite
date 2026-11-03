@@ -27,6 +27,18 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #include <quickjs.h>
 
+#include <optional>
+#include <string>
+
 @class OOSoundSource;
 
 void InitOOJSSoundSource(JSContext* context, JSValueConst global);
+
+/*	The bodies of OOSoundSource (OOJavaScriptExtentions), which the engine reaches by selector.
+        Its methods are one-line forwarders to these in OOJSSoundSource+ObjCBridge.mm until
+        OOSoundSource converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+        OOJSSoundSourceJSValueInContext returns a new SoundSource object owned by the caller (JS
+        null for none).
+*/
+JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source, JSContext* context);
+std::optional<std::string> OOJSSoundSourceJSClassName(void);

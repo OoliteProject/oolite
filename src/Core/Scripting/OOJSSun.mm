@@ -29,6 +29,17 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOSunEntity.h"
 
+/*
+        C++20 since bead oo-hgfh, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSunEntity
+        became two free functions (its -oo_jsClassID answers JSSunClassID()), and its methods moved
+        to OOJSSun+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
+        Objective-C (OOSunEntity, Entity) stay as they are, which is why the file is still .mm
+        until Phase 4.
+*/
+
 static JSClassID sSunClassID;
 
 static JSValue SunGetProperty(OOJS_GETTER_ARGS);
@@ -83,24 +94,17 @@ JSClassID JSSunClassID(void)
     return sSunClassID;
 }
 
-@implementation OOSunEntity (OOJavaScriptExtensions)
-
-- (BOOL)isVisibleToScripts
+// The bodies of OOSunEntity (OOJavaScriptExtensions), whose methods are in OOJSSun+ObjCBridge.mm
+// until OOSunEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+bool OOJSSunIsVisibleToScripts(void)
 {
-    return YES;
+    return true;
 }
 
-- (JSClassID)oo_jsClassID
-{
-    return sSunClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOJSSunJSClassName(void)
 {
     return std::string("Sun");
 }
-
-@end
 
 static JSValue SunGetProperty(OOJS_GETTER_ARGS)
 {
@@ -149,7 +153,7 @@ static JSValue SunGoNova(OOJS_NATIVE_ARGS)
     if (argc > 0 && EXPECT_NOT(JS_ToFloat64(context, &delay, OOJS_ARGV[0]) != 0))
         return OOJSNativeFailure(context);
 
-    [sun setGoingNova:YES inTime:delay];
+    [sun setGoingNova:true inTime:delay];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -166,7 +170,7 @@ static JSValue SunCancelNova(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
 
     if ([sun willGoNova] && ![sun goneNova]) {
-        [sun setGoingNova:NO inTime:0];
+        [sun setGoingNova:false inTime:0];
     }
     OOJS_RETURN_VOID;
 

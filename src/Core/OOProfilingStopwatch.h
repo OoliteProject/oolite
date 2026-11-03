@@ -28,10 +28,32 @@ SOFTWARE.
 
 */
 
+#ifndef INCLUDED_OOPROFILINGSTOPWATCH_h
+#define INCLUDED_OOPROFILINGSTOPWATCH_h
+
 #ifndef OOSTOPWATCH_STANDALONE
+#ifdef __OBJC__
 #import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
-#import "OOTypes.h"
+#else
+/*	A plain C++ translation unit (bead oo-9ht.72: the JS bindings, through
+        OOJSEngineNativeWrappers.h) cannot parse OOFoundation.h's Objective-C class declarations. The one platform switch
+        below that differs from its default on this build is set as OOFoundation.h sets it (WIN32 is only
+        defined on the GNUstep build), so
+        OOHighResTimeValue is the same type in both kinds of translation unit.
+*/
+#if defined(WIN32) && !defined(OOLITE_WINDOWS)
+#define OOLITE_WINDOWS 1
+#endif
+#if OOLITE_WINDOWS
+// DWORD and timeGetTime(), below, as OOFoundation.h's <windows.h> gives them (with the Windows
+// BOOL renamed, as there, so Objective-C's stays BOOL).
+#define BOOL WinBOOL
+#include <windows.h>
+#undef BOOL
+#endif
+#endif
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
 #endif
 
 #include "oofnd/Ref.hpp"
@@ -126,3 +148,5 @@ private:
     OOHighResTimeValue _end = { };
     bool _running = { };
 };
+
+#endif // INCLUDED_OOPROFILINGSTOPWATCH_h

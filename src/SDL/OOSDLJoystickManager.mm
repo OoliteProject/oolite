@@ -129,8 +129,10 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
     case SDL_EVENT_GAMEPAD_AXIS_MOTION:
     case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
         SDL_JoyAxisEvent joyEvt = makeJoyAxisEvent((SDL_JoyAxisEvent*)evt);
-        if (joyEvt.which >= 0) {
-            [oo::ToObjC(this) decodeAxisEvent:&joyEvt]; // the facade's: it decodes through OOJoystickManager's state
+        // The index, not joyEvt.which: an unknown stick's -1 is 0xFFFFFFFF in the unsigned
+        // SDL_JoystickID, which passed a `which >= 0` test (bead oo-9ht.3).
+        if (getJoystickIndexFromId(((SDL_JoyAxisEvent*)evt)->which) >= 0) {
+            decodeAxisEvent(&joyEvt);
             rc = true;
         }
         break;
@@ -141,8 +143,8 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
     case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
     case SDL_EVENT_JOYSTICK_BUTTON_UP: {
         SDL_JoyButtonEvent joyEvt = makeJoyButtonEvent((SDL_JoyButtonEvent*)evt);
-        if (joyEvt.which >= 0) {
-            [oo::ToObjC(this) decodeButtonEvent:&joyEvt]; // the facade's: it decodes through OOJoystickManager's state
+        if (getJoystickIndexFromId(((SDL_JoyButtonEvent*)evt)->which) >= 0) {
+            decodeButtonEvent(&joyEvt);
             rc = true;
         }
         break;
@@ -150,8 +152,8 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
 
     case SDL_EVENT_JOYSTICK_HAT_MOTION: {
         SDL_JoyHatEvent joyEvt = makeJoyHatEvent((SDL_JoyHatEvent*)evt);
-        if (joyEvt.which >= 0) {
-            [oo::ToObjC(this) decodeHatEvent:&joyEvt]; // the facade's: it decodes through OOJoystickManager's state
+        if (getJoystickIndexFromId(((SDL_JoyHatEvent*)evt)->which) >= 0) {
+            decodeHatEvent(&joyEvt);
             rc = true;
         }
         break;
@@ -163,29 +165,34 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
     return rc;
 }
 
-} // namespace cxx
-
-// The decoders stay Objective-C, on the facade, until OOJoystickManager converts: they read and
-// write OOJoystickManager's (non-@private) state, which lives in the facade.
-@implementation OOSDLJoystickManager (SDLDecoding)
-
-- (void)decodeAxisEvent:(SDL_JoyAxisEvent*)evt
+cxx::OOJoystickManager* OOSDLJoystickManager::superclassState()
 {
+    return oo::ToCxx(static_cast<::OOJoystickManager*>(oo::ToObjC(this)));
+}
+
+// The decoders read and set OOJoystickManager's state, which lives in the C++ part of this
+// object's facade's superclass (see OOSDLJoystickManager.h).
+void OOSDLJoystickManager::decodeAxisEvent(SDL_JoyAxisEvent* evt)
+{
+    cxx::OOJoystickManager* const base = superclassState();
+    if (base == nullptr)
+        return;
+
     // Which axis moved? Does the value need to be made to fit a
     // certain function? Convert axis value to a double.
     double axisvalue = (double)evt->value;
 
     // First check if there is a callback and...
-    if (cbObject && (cbHardware & HW_AXIS)) {
+    if (base->cbObject && (base->cbHardware & HW_AXIS)) {
         // ...then check if axis moved more than AXCBTHRESH - (fix for BUG #17482)
         if (axisvalue > AXCBTHRESH) {
             oo::PList::Dict fnDict;
-            fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(YES));
+            fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(true));
             fnDict[std::string(STICK_NUMBER)] = oo::PList(static_cast<int>(evt->which));
             fnDict[std::string(STICK_AXBUT)] = oo::PList(static_cast<int>(evt->axis));
-            cbHardware = 0;
-            OOCallByName(cbObject, cbSelector, oo::PList(std::move(fnDict))); // called by name (ADR-0055 item 5)
-            cbObject = nil;
+            base->cbHardware = 0;
+            OOCallByName(base->cbObject, base->cbSelector, oo::PList(std::move(fnDict))); // called by name (ADR-0055 item 5)
+            base->cbObject = nullptr;
         }
 
         // we are done.
@@ -201,7 +208,7 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
     // not seem to happen with buttons.
     int function;
     if (evt->axis < MAX_AXES) {
-        function = axismap[evt->which][evt->axis];
+        function = base->axismap[evt->which][evt->axis];
     } else {
         OO_LOG("decodeAxisEvent", "Stick axis out of range - axis was {}", evt->axis);
         return;
@@ -212,37 +219,41 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
         break;
     case AXIS_THRUST:
         // Normalize the thrust setting.
-        axstate[function] = (float)(65536 - (axisvalue + 32768)) / 65536;
+        base->axstate[function] = (float)(65536 - (axisvalue + 32768)) / 65536;
         break;
     case AXIS_ROLL:
     case AXIS_PITCH:
     case AXIS_YAW:
     case AXIS_VIEWX:
     case AXIS_VIEWY:
-        axstate[function] = axisvalue / STICK_NORMALDIV;
+        base->axstate[function] = axisvalue / STICK_NORMALDIV;
         break;
     // TODO AXIS_FIELD_OF_VIEW
     default:
         // set the state with no modification.
-        axstate[function] = axisvalue / 32768;
+        base->axstate[function] = axisvalue / 32768;
     }
-    if ((function == AXIS_PITCH) && invertPitch)
-        axstate[function] = -1.0 * axstate[function];
+    if ((function == AXIS_PITCH) && base->invertPitch)
+        base->axstate[function] = -1.0 * base->axstate[function];
 }
 
-- (void)decodeButtonEvent:(SDL_JoyButtonEvent*)evt
+void OOSDLJoystickManager::decodeButtonEvent(SDL_JoyButtonEvent* evt)
 {
-    BOOL bs = NO;
+    cxx::OOJoystickManager* const base = superclassState();
+    if (base == nullptr)
+        return;
+
+    bool bs = false;
 
     // Is there a callback we need to make?
-    if (cbObject && (cbHardware & HW_BUTTON)) {
+    if (base->cbObject && (base->cbHardware & HW_BUTTON)) {
         oo::PList::Dict fnDict;
-        fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
+        fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(false));
         fnDict[std::string(STICK_NUMBER)] = oo::PList(static_cast<int>(evt->which));
         fnDict[std::string(STICK_AXBUT)] = oo::PList(static_cast<int>(evt->button));
-        cbHardware = 0;
-        OOCallByName(cbObject, cbSelector, oo::PList(std::move(fnDict))); // called by name (ADR-0055 item 5)
-        cbObject = nil;
+        base->cbHardware = 0;
+        OOCallByName(base->cbObject, base->cbSelector, oo::PList(std::move(fnDict))); // called by name (ADR-0055 item 5)
+        base->cbObject = nullptr;
 
         // we are done.
         return;
@@ -259,21 +270,25 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
         return;
     }
     if (evt->type == SDL_EVENT_JOYSTICK_BUTTON_DOWN) {
-        bs = YES;
+        bs = true;
         if (function == BUTTON_PRECISION)
-            precisionMode = !precisionMode;
+            base->precisionMode = !base->precisionMode;
     }
-    true_butstate[evt->which][evt->button] = bs;
+    base->true_butstate[evt->which][evt->button] = bs;
     if (function >= 0) {
-        butstate[function] = bs;
+        base->butstate[function] = bs;
     }
     if (guifunction >= 0) {
         butstate[guifunction] = bs;
     }
 }
 
-- (void)decodeHatEvent:(SDL_JoyHatEvent*)evt
+void OOSDLJoystickManager::decodeHatEvent(SDL_JoyHatEvent* evt)
 {
+    cxx::OOJoystickManager* const base = superclassState();
+    if (base == nullptr)
+        return;
+
     // HACK: handle this as a set of buttons
     int i;
     SDL_JoyButtonEvent btn;
@@ -281,15 +296,15 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
     btn.which = evt->which;
 
     for (i = 0; i < 4; ++i) {
-        if ((evt->value ^ hatstate[evt->which][evt->hat]) & (1 << i)) {
+        if ((evt->value ^ base->hatstate[evt->which][evt->hat]) & (1 << i)) {
             btn.type = (evt->value & (1 << i)) ? SDL_EVENT_JOYSTICK_BUTTON_DOWN : SDL_EVENT_JOYSTICK_BUTTON_UP;
             btn.button = MAX_REAL_BUTTONS + i + evt->which * 4;
             btn.down = (evt->value & (1 << i));
-            [self decodeButtonEvent:&btn];
+            decodeButtonEvent(&btn);
         }
     }
 
-    hatstate[evt->which][evt->hat] = evt->value;
+    base->hatstate[evt->which][evt->hat] = evt->value;
 }
 
-@end
+} // namespace cxx

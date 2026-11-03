@@ -15,10 +15,9 @@
 	the Objective-C files and run on them first; they pin the JS-visible behaviour: the
 	constructor and its errors, the three properties, start() and stop(), toString(), firing with
 	the right `this`, a timer whose `this` is null, and what an engine reset does. A timer that is
-	garbage-collected while running is not tested: its finalizer describes it for the warning, which
-	calls back into the engine during the collection, and on QuickJS that corrupts the heap (the
-	test crashed at exit about one run in six, on the Objective-C file as on the converted one;
-	filed as a bug bead).
+	garbage-collected while running (unrootedRunningTimerGC, bead oo-r1ci7) must not call back into
+	the engine from its finalizer: describing it for the warning did, and on QuickJS that corrupted
+	the heap (the test crashed at exit about one run in six with a single collection).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -540,6 +539,32 @@ OO_TEST(engineReset)
 	OO_CHECK_EQ(Eval("String(r)"), "[Timer invalid]");
 	Update(105.0);
 	OO_CHECK_EQ(Eval("log3.length"), "0");
+}
+
+
+OO_TEST(unrootedRunningTimerGC)
+{
+	// A script drops its last reference to a running timer and the engine collects it: the
+	// finalizer warns and lets go of the timer, without re-entering the engine (bead oo-r1ci7).
+	// The function's name is a getter that counts its calls: reading it from the finalizer would
+	// run script inside the collection, which is the defect.
+	sNow = 100.0;
+	OO_CHECK_EQ(Eval("globalThis.nameReads = 0; (function () { var f = function () {}; Object.defineProperty(f, 'name', { get: function () { nameReads++; return 'spy'; } }); new Timer({}, f, 1, 1); })(); 'dropped'"), "dropped");
+	JS_RunGC(sRuntime);
+	// As in #768, the constructor reads the name once and keeps it, so the one read is the
+	// constructor's; the finalizer adds none.
+	OO_CHECK_EQ(Eval("nameReads"), "1");
+
+	// Many collections in one process, then more script, so a corrupted heap shows up here or
+	// at exit rather than one run in six.
+	for (int i = 0; i < 40; i++)
+	{
+		OO_CHECK_EQ(Eval("(function () { new Timer({}, function tick() {}, 1, 1); new Timer({}, function () {}, 2); })(); 'dropped'"), "dropped");
+		JS_RunGC(sRuntime);
+	}
+	OO_CHECK_EQ(Eval("var a = []; for (var i = 0; i < 1000; i++) a.push({ n: String(i) }); a.length"), "1000");
+	JS_RunGC(sRuntime);
+	OO_CHECK_EQ(Eval("String(new Timer({}, function after() {}, 1))"), "[Timer nextTime: 101, one-shot, running, function: after]");
 }
 
 

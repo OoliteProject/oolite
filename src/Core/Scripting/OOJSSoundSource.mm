@@ -29,6 +29,16 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "ResourceManager.h"
 
+/*
+        C++20 since bead oo-cib0, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSoundSource
+        became two free functions, and its methods moved to OOJSSoundSource+ObjCBridge.mm (amendment
+        oo-ykoy). Messages to classes that are still Objective-C (OOSoundSource, OOSound) stay as
+        they are, which is why the file is still .mm until Phase 4.
+*/
+
 static JSClassID sSoundSourceClassID;
 
 static JSValue SoundSourceGetProperty(OOJS_GETTER_ARGS);
@@ -283,23 +293,22 @@ static JSValue SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-@implementation OOSoundSource (OOJavaScriptExtentions)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+// The bodies of OOSoundSource (OOJavaScriptExtentions), whose methods are in
+// OOJSSoundSource+ObjCBridge.mm until OOSoundSource converts (proposed ADR-0056 amendments oo-ppc
+// and oo-ykoy).
+JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source, JSContext* context)
 {
     JSValue result = JS_NewObjectClass(context, (int)sSoundSourceClassID);
     if (JS_IsException(result)) {
         JS_FreeValue(context, JS_GetException(context));
         return JS_NULL;
     }
-    JS_SetOpaque(result, [self retain]);
+    JS_SetOpaque(result, [source retain]);
 
     return result;
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOJSSoundSourceJSClassName(void)
 {
     return std::string("SoundSource");
 }
-
-@end

@@ -51,4 +51,90 @@ MA 02110-1301, USA.
         working.
 */
 
-#import "OOJavaScriptEngine.h"
+// The scope OOJS_PROFILE_ENTER opens: enters the frame, and exits it however the scope ends.
+class OOJSProfileScope {
+public:
+    explicit OOJSProfileScope(const char* function) { OOJSProfileEnter(&_frame, function); }
+    ~OOJSProfileScope() { OOJSProfileExit(&_frame); }
+    OOJSProfileScope(const OOJSProfileScope&) = delete;
+    OOJSProfileScope& operator=(const OOJSProfileScope&) = delete;
+
+private:
+    OOJSProfileStackFrame _frame = { };
+};
+
+#define OOJS_PROFILE_ENTER_NAMED(NAME)           \
+    {                                            \
+        OOJSProfileScope oojsProfileScope(NAME); \
+        {
+
+#define OOJS_PROFILE_EXIT \
+    }                     \
+    }
+
+#define OOJS_NATIVE_ENTER(cx)                            \
+    {                                                    \
+        JSContext* oojsNativeContext = (cx);             \
+        OOJSProfileScope oojsProfileScope(__FUNCTION__); \
+        try {
+
+#define OOJS_NATIVE_EXIT                               \
+    }                                                  \
+    catch (...)                                        \
+    {                                                  \
+        OOJSReportCurrentException(oojsNativeContext); \
+        return JS_EXCEPTION;                           \
+    }                                                  \
+    }
+
+#else
+
+#define OOJS_PROFILE_ENTER_NAMED(NAME) {
+#define OOJS_PROFILE_EXIT }
+
+#define OOJS_NATIVE_ENTER(cx)                \
+    {                                        \
+        JSContext* oojsNativeContext = (cx); \
+        try {
+
+#define OOJS_NATIVE_EXIT                               \
+    }                                                  \
+    catch (...)                                        \
+    {                                                  \
+        OOJSReportCurrentException(oojsNativeContext); \
+        return JS_EXCEPTION;                           \
+    }                                                  \
+    }
+
+#endif // OOJS_PROFILE
+
+/*	OOJSReportCurrentException()
+        Call only inside a catch handler. Reports the exception being handled as a JS error unless
+        one is already pending: an Objective-C exception as OOJSReportWrappedException() does, a C++
+        one as "Native exception: <what()>" (std::exception) or "Unidentified native exception".
+*/
+void OOJSReportCurrentException(JSContext* context);
+
+#define OOJS_PROFILE_ENTER OOJS_PROFILE_ENTER_NAMED(__FUNCTION__)
+#define OOJS_PROFILE_EXIT_VOID OOJS_PROFILE_EXIT
+
+#define OOJS_BEGIN_FULL_NATIVE(context)                   \
+    {                                                     \
+        OOJSFullNativeScope oojsFullNativeScope(context); \
+        {
+
+#define OOJS_END_FULL_NATIVE \
+    }                        \
+    }
+
+// The scope OOJS_BEGIN_FULL_NATIVE opens: what its Objective-C try and finally did, in the same order.
+class OOJSFullNativeScope {
+public:
+    explicit OOJSFullNativeScope(JSContext* /*context*/) { OOJSPauseTimeLimiter(); }
+    ~OOJSFullNativeScope() { OOJSResumeTimeLimiter(); }
+    OOJSFullNativeScope(const OOJSFullNativeScope&) = delete;
+    OOJSFullNativeScope& operator=(const OOJSFullNativeScope&) = delete;
+};
+
+
+#endif // INCLUDED_OOJSENGINENATIVEWRAPPERS_h

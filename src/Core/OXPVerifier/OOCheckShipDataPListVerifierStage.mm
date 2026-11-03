@@ -84,63 +84,46 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
 
 } // namespace
 
-@interface OOCheckShipDataPListVerifierStage (OOPrivate)
-
-- (void)verifyShipInfo:(const oo::PList&)info withName:(const std::string&)name;
-
-- (void)reportMessage:(const std::string&)message; // formatted by the caller, oo::str::formatRuntime (was -message:, renamed so AI's -message: could flip; bead oo-3rb.276; bead oo-qps.24)
-- (void)verboseMessage:(const std::string&)message;
-
-- (void)getRoles;
-- (void)checkKeys;
-- (void)checkSchema;
-- (void)checkModel;
-
-- (std::vector<std::string>)rolesFromString:(const std::string&)string;
-
-@end
-
-@implementation OOCheckShipDataPListVerifierStage
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOCheckShipDataPListVerifierStage::name()
 {
     return kStageName;
 }
 
-- (std::optional<std::vector<std::string>>)dependents
+std::optional<std::vector<std::string>> OOCheckShipDataPListVerifierStage::dependents()
 {
-    std::vector<std::string> result = [super dependents].value_or(std::vector<std::string>());
-    for (const std::string& name : { [OOModelVerifierStage nameForReverseDependencyForVerifier:[self verifier]],
-             OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier([self verifier]) }) {
+    std::vector<std::string> result = cxx::OOTextureHandlingStage::dependents().value_or(std::vector<std::string>());
+    for (const std::string& name : { OOModelVerifierStage::nameForReverseDependencyForVerifier(verifier()),
+             OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(verifier()) }) {
         if (std::find(result.begin(), result.end(), name) == result.end())
             result.push_back(name);
     }
     return result;
 }
 
-- (BOOL)shouldRun
+bool OOCheckShipDataPListVerifierStage::shouldRun()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    return [fileScanner cxx_fileExists:"shipdata.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    return fileScanner != nullptr && fileScanner->fileExists("shipdata.plist", "Config", std::nullopt, false);
 }
 
-- (void)run
+void OOCheckShipDataPListVerifierStage::run()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
     std::vector<std::string> ooliteShipData; // the keys of Oolite's own merged shipdata.plist
     oo::PList settings;
     std::vector<std::string> shipList;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    _shipdataPList = [fileScanner cxx_plistNamed:"shipdata.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner != nullptr)
+        _shipdataPList = fileScanner->plistNamed("shipdata.plist", "Config", std::nullopt, false);
 
     if (_shipdataPList.isNull())
         return;
 
     // Get AI verifier stage (may be null). C++ since bead oo-94qk; the verifier holds it as its facade.
-    _aiVerifierStage = static_cast<OOAIStateMachineVerifierStage*>(oo::ToCxx(static_cast<OOOXPVerifierStage*>([[self verifier] cxx_stageWithName:OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier([self verifier])])));
+    _aiVerifierStage = static_cast<OOAIStateMachineVerifierStage*>(oo::ToCxx(static_cast<::OOOXPVerifierStage*>([verifier() cxx_stageWithName:OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(verifier())])));
 
     const oo::PList ooliteShipDataPList = [ResourceManager cxx_dictionaryFromFilesNamed:"shipdata.plist" inFolder:"Config" andMerge:YES];
     if (const oo::PList::Dict* shipDataDict = ooliteShipDataPList.getIf<oo::PList::Dict>()) {
@@ -157,7 +140,7 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
     // Keys that apply to all ships
     for (const std::string& shipName : ooliteShipData)
         AddString(_ooliteShipNames, shipName);
-    settings = [[self verifier] cxx_configurationDictionaryForKey:"shipdataPListSettings"];
+    settings = [verifier() cxx_configurationDictionaryForKey:"shipdataPListSettings"];
     _basicKeys = StringSetForKey(settings, "knownShipKeys");
 
     // Keys that apply to stations/carriers
@@ -176,7 +159,8 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
         AddString(_allKeys, key);
 
     _schemaVerifier = [OOPListSchemaVerifier verifierWithSchema:[ResourceManager cxx_dictionaryFromFilesNamed:"shipdataEntrySchema.plist" inFolder:"Schemata" andMerge:NO]];
-    [_schemaVerifier setDelegate:self];
+    _schemaDelegate = oo::adoptObjC([[OOCheckShipDataPListVerifierStageSchemaDelegate alloc] initWithStage:this]);
+    [_schemaVerifier setDelegate:_schemaDelegate.get()];
 
     for (const auto& [shipKey, value] : *_shipdataPList.getIf<oo::PList::Dict>())
         shipList.push_back(shipKey);
@@ -189,7 +173,7 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
             if (shipInfo == nullptr) {
                 OO_LOG("verifyOXP.shipdata.badType", "***** ERROR: shipdata.plist entry for \"{}\" is not a dictionary.", shipKey);
             } else {
-                [self verifyShipInfo:*shipInfo withName:shipKey];
+                verifyShipInfo(*shipInfo, shipKey);
             }
         }
     }
@@ -201,21 +185,17 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
     _playerKeys.clear();
 }
 
-@end
-
-@implementation OOCheckShipDataPListVerifierStage (OOPrivate)
-
-- (void)verifyShipInfo:(const oo::PList&)info withName:(const std::string&)name
+void OOCheckShipDataPListVerifierStage::verifyShipInfo(const oo::PList& info, const std::string& name)
 {
     _name = name;
     _info = info;
-    _havePrintedMessage = NO;
+    _havePrintedMessage = false;
     oo::log::pushIndent();
 
-    [self getRoles];
-    [self checkKeys];
-    [self checkSchema];
-    [self checkModel];
+    getRoles();
+    checkKeys();
+    checkSchema();
+    checkModel();
 
     const std::optional<std::string> aiName = OptionalStringForKey(info, "ai_type");
     if (aiName.has_value()) {
@@ -237,12 +217,12 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
 }
 
 // Custom log method to group messages by ship.
-- (void)reportMessage:(const std::string&)message
+void OOCheckShipDataPListVerifierStage::reportMessage(const std::string& message)
 {
     if (!_havePrintedMessage) {
         OO_LOG("verifyOXP.shipData.firstMessage", "Ship \"{}\":", _name);
         oo::log::indent();
-        _havePrintedMessage = YES;
+        _havePrintedMessage = true;
     }
 
     if (oo::log::willDisplay("verifyOXP.shipData")) {
@@ -250,7 +230,7 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
     }
 }
 
-- (void)verboseMessage:(const std::string&)message
+void OOCheckShipDataPListVerifierStage::verboseMessage(const std::string& message)
 {
     if (!oo::log::willDisplay("verifyOXP.verbose.shipData"))
         return;
@@ -258,13 +238,13 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
     if (!_havePrintedMessage) {
         OO_LOG("verifyOXP.shipData.firstMessage", "Ship \"{}\":", _name);
         oo::log::indent();
-        _havePrintedMessage = YES;
+        _havePrintedMessage = true;
     }
 
     oo::log::logger().write("verifyOXP.verbose.shipData", NULL, NULL, 0, message);
 }
 
-- (void)getRoles
+void OOCheckShipDataPListVerifierStage::getRoles()
 {
     std::optional<std::string> rolesString;
 
@@ -272,7 +252,7 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
         if (const std::string* string = roles->getIf<std::string>())
             rolesString = *string;
     }
-    _roles = [self rolesFromString:rolesString.value_or("")];
+    _roles = rolesFromString(rolesString.value_or(""));
     _isPlayer = ContainsString(_roles, "player");
     // A nil roles string answered -rangeOfString: with location 0 (found), as messaging nil does.
     _isStation = _info.get<bool>("is_carrier", false) || _info.get<bool>("isCarrier", false) || !rolesString.has_value() || rolesString->find("station") != std::string::npos || rolesString->find("carrier") != std::string::npos;
@@ -280,12 +260,12 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
     _isTemplate = _info.get<bool>("is_template", false);
 
     if (_isPlayer && _isStation) {
-        [self reportMessage:"***** ERROR: ship is both a player ship and a station. Treating as non-station."];
-        _isStation = NO;
+        reportMessage("***** ERROR: ship is both a player ship and a station. Treating as non-station.");
+        _isStation = false;
     }
 }
 
-- (void)checkKeys
+void OOCheckShipDataPListVerifierStage::checkKeys()
 {
     const std::vector<std::string>* referenceSet = nullptr;
 
@@ -302,43 +282,41 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
                 if (!_isTemplate) {
                     // if it's a template, this key might apply to a descendant
                     // as happens in the core files
-                    [self reportMessage:oo::str::formatRuntime("----- WARNING: key \"%@\" does not apply to this category of ship.", { key })];
+                    reportMessage(oo::str::formatRuntime("----- WARNING: key \"%@\" does not apply to this category of ship.", { key }));
                 }
             } else {
-                [self reportMessage:oo::str::formatRuntime("----- WARNING: unknown key \"%@\".", { key })];
+                reportMessage(oo::str::formatRuntime("----- WARNING: unknown key \"%@\".", { key }));
             }
         }
     }
 }
 
-- (void)checkSchema
+void OOCheckShipDataPListVerifierStage::checkSchema()
 {
     [_schemaVerifier verifyPropertyList:_info named:_name];
 }
 
-- (void)checkModel
+void OOCheckShipDataPListVerifierStage::checkModel()
 {
     const std::optional<std::string> model = OptionalStringForKey(_info, "model");
     const oo::PList* materials = _info.get<oo::PList::Dict>("materials");
     const oo::PList* shaders = _info.get<oo::PList::Dict>("shaders");
 
     if (model.has_value()) {
-        if (![[[self verifier] modelVerifierStage] modelNamed:*model
-                                                 usedForEntry:_name
-                                                       inFile:"shipdata.plist"
-                                                withMaterials:materials != nullptr ? *materials : oo::PList()
-                                                   andShaders:shaders != nullptr ? *shaders : oo::PList()]) {
-            [self reportMessage:oo::str::formatRuntime("----- WARNING: model \"%@\" could not be found in %@ or in Oolite.", { *model, TextOrNull([[self verifier] cxx_oxpDisplayName]) })];
+        // C++ since bead oo-5zby; the verifier holds it as its facade (may be null).
+        OOModelVerifierStage* modelStage = static_cast<OOModelVerifierStage*>(oo::ToCxx([verifier() modelVerifierStage]));
+        if (modelStage == nullptr || !modelStage->modelNamed(*model, _name, "shipdata.plist", materials != nullptr ? *materials : oo::PList(), shaders != nullptr ? *shaders : oo::PList())) {
+            reportMessage(oo::str::formatRuntime("----- WARNING: model \"%@\" could not be found in %@ or in Oolite.", { *model, TextOrNull([verifier() cxx_oxpDisplayName]) }));
         }
     } else {
         if (!OptionalStringForKey(_info, "like_ship").has_value()) {
-            [self reportMessage:"***** ERROR: ship does not specify model or like_ship."];
+            reportMessage("***** ERROR: ship does not specify model or like_ship.");
         }
     }
 }
 
 // Convert a roles string to a set of role names, discarding probabilities.
-- (std::vector<std::string>)rolesFromString:(const std::string&)string
+std::vector<std::string> OOCheckShipDataPListVerifierStage::rolesFromString(const std::string& string)
 {
     std::vector<std::string> result;
 
@@ -353,30 +331,28 @@ oo::str::FormatArg TextOrNull(const std::optional<std::string>& text)
     return result;
 }
 
-- (BOOL)verifier:(OOPListSchemaVerifier*)verifier
-    withPropertyList:(const oo::PList&)rootPList
-               named:(const std::string&)name
-        testProperty:(const oo::PList&)subPList
-              atPath:(const oo::PList&)keyPath
-         againstType:(const oo::PList&)typeKey
-               error:(std::optional<OOPListSchemaVerifierError>*)outError
+bool OOCheckShipDataPListVerifierStage::verifierTestProperty(OOPListSchemaVerifier*,
+    const oo::PList&,
+    const std::string&,
+    const oo::PList&,
+    const oo::PList& keyPath,
+    const oo::PList& typeKey,
+    std::optional<OOPListSchemaVerifierError>*)
 {
-    [self verboseMessage:oo::str::formatRuntime("- Skipping verification for type %@ at %@.%@.", { oo::DescriptionOf(typeKey), _name, TextOrNull([OOPListSchemaVerifier descriptionForKeyPath:keyPath]) })];
-    return YES;
+    verboseMessage(oo::str::formatRuntime("- Skipping verification for type %@ at %@.%@.", { oo::DescriptionOf(typeKey), _name, TextOrNull([OOPListSchemaVerifier descriptionForKeyPath:keyPath]) }));
+    return true;
 }
 
-- (BOOL)verifier:(OOPListSchemaVerifier*)verifier
-     withPropertyList:(const oo::PList&)rootPList
-                named:(const std::string&)name
-    failedForProperty:(const oo::PList&)subPList
-            withError:(const OOPListSchemaVerifierError&)error
-         expectedType:(const oo::PList&)localSchema
+bool OOCheckShipDataPListVerifierStage::verifierFailedForProperty(OOPListSchemaVerifier*,
+    const oo::PList&,
+    const std::string& name,
+    const oo::PList&,
+    const OOPListSchemaVerifierError& error,
+    const oo::PList&)
 {
     // FIXME: use fancy new error codes to provide useful error descriptions.
-    [self reportMessage:oo::str::formatRuntime("***** ERROR: verification of ship \"%@\" failed at \"%@\": %@", { name, TextOrNull([OOPListSchemaVerifier descriptionForKeyPath:(error.userInfo.find(kPListKeyPathErrorKey) != nullptr) ? *error.userInfo.find(kPListKeyPathErrorKey) : oo::PList()]), TextOrNull(error.failureReason) })];
-    return YES;
+    reportMessage(oo::str::formatRuntime("***** ERROR: verification of ship \"%@\" failed at \"%@\": %@", { name, TextOrNull([OOPListSchemaVerifier descriptionForKeyPath:(error.userInfo.find(kPListKeyPathErrorKey) != nullptr) ? *error.userInfo.find(kPListKeyPathErrorKey) : oo::PList()]), TextOrNull(error.failureReason) }));
+    return true;
 }
-
-@end
 
 #endif

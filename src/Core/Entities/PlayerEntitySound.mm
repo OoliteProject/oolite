@@ -268,7 +268,7 @@ std::string WeaponSoundKey(const OOWeaponSoundMap& sounds, const std::string& we
 - (void)playAutopilotOff
 {
     // only if still alive
-    if (energy > 0.0) {
+    if (_cxxEntity->energy > 0.0) {
         [self playInterfaceBeep:"[autopilot-off]"];
     }
 }

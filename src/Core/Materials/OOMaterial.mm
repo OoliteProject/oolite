@@ -113,7 +113,7 @@ NSUInteger OOMaterial::countOfTextureUnitsWithBaseCoordinates()
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<OOTexture*>> OOMaterial::allTextures()
+std::vector<oo::ObjCRef<::OOTexture*>> OOMaterial::allTextures()
 {
     return { };
 }

@@ -204,6 +204,15 @@ extern "C++" {
 #define OOLITE_MAC_OS_X 0
 #endif
 
+// macOS as a platform (SDL front end, Apple's GL and libc), without Apple
+// Foundation. OOLITE_MAC_OS_X above is the legacy Foundation/Cocoa switch and
+// stays 0.
+#ifdef __APPLE__
+#define OOLITE_MACOS 1
+#else
+#define OOLITE_MACOS 0
+#endif
+
 #ifndef OOLITE_WINDOWS
 #define OOLITE_WINDOWS 0
 #endif

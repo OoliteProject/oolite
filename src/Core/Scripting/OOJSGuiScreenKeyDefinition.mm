@@ -24,29 +24,32 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSGuiScreenKeyDefinition.h"
+#import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/String.hpp"
 
-@implementation OOJSGuiScreenKeyDefinition
+/*	C++20 since bead oo-xg7g (proposed ADR-0056 amendment oo-o89): cxx::OOJSGuiScreenKeyDefinition. -init after
+        [super init] is the constructor, -dealloc the destructor; the engine, the script stack and the
+        owning script's weak reference are Objective-C and are messaged as before.
+*/
 
-- (id)init
+namespace cxx {
+
+OOJSGuiScreenKeyDefinition::OOJSGuiScreenKeyDefinition()
 {
-    self = [super init];
     _callback = JS_UNDEFINED;
     _callbackThis = JS_UNDEFINED;
 
-    _owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
+    _owningScript = oo::adoptObjC(static_cast<::OOJSScript*>([[::OOJSScript currentlyRunningScript] weakRetain]));
 
-    // Stays registered until dealloc, so values set after a reset are also released on the next one.
-    oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+    // Stays registered until destruction, so values set after a reset are also released on the next one.
+    oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine],
-        [self](const oo::Notification&) { [self deleteJSPointers]; });
-
-    return self;
+        [this](const oo::Notification&) { deleteJSPointers(); });
 }
 
-- (void)deleteJSPointers
+void OOJSGuiScreenKeyDefinition::deleteJSPointers()
 {
     JSContext* context = OOJSAcquireContext();
     JS_FreeValue(context, _callback);
@@ -56,44 +59,42 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (void)dealloc
+OOJSGuiScreenKeyDefinition::~OOJSGuiScreenKeyDefinition()
 {
-    oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+    oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine]);
 
-    [_owningScript release];
+    _owningScript = nullptr;
 
-    [self deleteJSPointers];
-
-    [super dealloc];
+    deleteJSPointers();
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOJSGuiScreenKeyDefinition::name()
 {
     return _name;
 }
 
-- (void)cxx_setName:(const std::optional<std::string>&)name
+void OOJSGuiScreenKeyDefinition::setName(const std::optional<std::string>& name)
 {
     _name = name;
 }
 
-- (oo::PList)registerKeys
+oo::PList OOJSGuiScreenKeyDefinition::registerKeys()
 {
     return _registerKeys;
 }
 
-- (void)setRegisterKeys:(const oo::PList&)registerKeys
+void OOJSGuiScreenKeyDefinition::setRegisterKeys(const oo::PList& registerKeys)
 {
     _registerKeys = registerKeys;
 }
 
-- (JSValue)callback
+JSValue OOJSGuiScreenKeyDefinition::callback()
 {
     return JS_DupValue(OOJSAcquireContext(), _callback);
 }
 
-- (void)setCallback:(JSValueConst)callback
+void OOJSGuiScreenKeyDefinition::setCallback(JSValueConst callback)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue old = _callback;
@@ -102,12 +103,12 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (JSValue)callbackThis
+JSValue OOJSGuiScreenKeyDefinition::callbackThis()
 {
     return JS_DupValue(OOJSAcquireContext(), _callbackThis);
 }
 
-- (void)setCallbackThis:(JSValueConst)callbackThis
+void OOJSGuiScreenKeyDefinition::setCallbackThis(JSValueConst callbackThis)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue old = _callbackThis;
@@ -116,7 +117,7 @@ MA 02110-1301, USA.
     OOJSRelinquishContext(context);
 }
 
-- (void)runCallback:(const std::string&)key
+void OOJSGuiScreenKeyDefinition::runCallback(const std::string& key)
 {
     OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();
@@ -130,8 +131,8 @@ MA 02110-1301, USA.
 
     JSValue cKey = OOJSValueFromPList(context, oo::PList(key));
 
-    OOJSScript* owner = [_owningScript retain]; // local copy needed
-    [OOJSScript pushScript:owner];
+    const oo::ObjCRef<::OOJSScript*> owner = _owningScript; // local copy needed
+    [::OOJSScript pushScript:owner.get()];
 
     // Hold our own references in case the callback replaces them.
     JSValue callback = JS_DupValue(context, _callback);
@@ -144,22 +145,21 @@ MA 02110-1301, USA.
     JS_FreeValue(context, callback);
     JS_FreeValue(context, callbackThis);
 
-    [OOJSScript popScript:owner];
-    [owner release];
+    [::OOJSScript popScript:owner.get()];
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, cKey);
     OOJSRelinquishContext(context);
 }
 
-- (OOComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other
+OOComparisonResult OOJSGuiScreenKeyDefinition::interfaceCompare(OOJSGuiScreenKeyDefinition* other)
 {
     // -caseInsensitiveCompare: as it was sent: a nil name answers OOOrderedSame (a message to nil); a
     // nil other name compares as the empty string.
     if (!_name.has_value())
         return OOOrderedSame;
-    int order = oo::str::caseInsensitiveCompare(*_name, [other cxx_name].value_or(std::string()));
+    int order = oo::str::caseInsensitiveCompare(*_name, ((other != nullptr) ? other->name() : std::nullopt).value_or(std::string()));
     return (order < 0) ? OOOrderedAscending : ((order > 0) ? OOOrderedDescending : OOOrderedSame);
 }
 
-@end
+} // namespace cxx

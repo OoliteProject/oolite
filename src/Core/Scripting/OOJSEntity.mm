@@ -33,6 +33,18 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "ShipEntity.h"
 
+/*
+        C++20 since bead oo-tq53, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The C API in OOJSEntity.h
+        (JSValueToEntity(), EntityFromArgumentList(), OOIsPlayerStale(), OOIsStaleEntity()) returns bool
+        too; its callers compile unchanged. Nothing else in the file was Objective-C: an entity is still
+        messaged through the Objective-C Entity, the façade every entity is while its subclasses are
+        Objective-C (ShipEntity's own selectors included), as OOJSSun.mm does, which is why the file is
+        still .mm until Phase 4.
+*/
+
 static JSClassID sEntityClassID;
 
 static JSValue EntityGetProperty(OOJS_GETTER_ARGS);
@@ -125,16 +137,16 @@ void InitOOJSEntity(JSContext* context, JSValueConst global)
     OOJSRegisterObjectConverter(sEntityClassID, OOJSBasicPrivateObjectConverter);
 }
 
-BOOL JSValueToEntity(JSContext* context, JSValueConst value, Entity** outEntity)
+bool JSValueToEntity(JSContext* context, JSValueConst value, Entity** outEntity)
 {
     if (JS_IsObject(value)) {
         return OOJSEntityGetEntity(context, value, outEntity);
     }
 
-    return NO;
+    return false;
 }
 
-BOOL EntityFromArgumentList(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed)
+bool EntityFromArgumentList(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed)
 {
     OOJS_PROFILE_ENTER
 
@@ -143,7 +155,7 @@ BOOL EntityFromArgumentList(JSContext* context, const std::optional<std::string>
         *outConsumed = 0;
     if (EXPECT_NOT(argc == 0 || argv == NULL || outEntity == NULL)) {
         OOLogGenericParameterError();
-        return NO;
+        return false;
     }
 
     // Get value, if possible.
@@ -151,16 +163,16 @@ BOOL EntityFromArgumentList(JSContext* context, const std::optional<std::string>
         // Failed; report bad parameters, if given a class and function.
         if (scriptClass.has_value() && function.has_value()) {
             // The argument described as +stringWithJavaScriptParameters:count:1 described it: "(value)".
-            const std::string parameters = "(" + cxx_OOJSDescribeValue(context, argv[0], NO) + ")";
+            const std::string parameters = "(" + cxx_OOJSDescribeValue(context, argv[0], false) + ")";
             cxx_OOJSReportWarning(context, "%s.%s(): expected entity, got %s.", scriptClass->c_str(), function->c_str(), parameters.c_str());
-            return NO;
+            return false;
         }
     }
 
     // Success.
     if (outConsumed != NULL)
         *outConsumed = 1;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }

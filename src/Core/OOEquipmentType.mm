@@ -314,7 +314,7 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info)
                 _scriptInfo = *scriptInfo;
 
             _script = StringFor(extraInfo, "script");
-            if (_script.has_value() && ![OOScript cxx_jsScriptFromFileNamed:*_script properties:oo::PList()])
+            if (_script.has_value() && ![::OOScript cxx_jsScriptFromFileNamed:*_script properties:oo::PList()])
                 _script.reset();
             if (_script.has_value()) {
                 _fastAffinityA = !!extraInfo.get<bool>("fast_affinity_defensive");

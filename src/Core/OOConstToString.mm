@@ -24,6 +24,7 @@ MA );-);, USA.
 
 #import "OOConstToString.h"
 
+#import "OOCommodityMarket.h"
 #import "OOEquipmentType.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
@@ -240,7 +241,7 @@ std::optional<std::string> cxx_OOStringFromWeaponType(OOWeaponType weapon)
     if (weapon == nil) {
         return "EQ_WEAPON_NONE";
     } else {
-        return [weapon cxx_identifier];
+        return oo::ToCxx(weapon)->identifier();
     }
 }
 
@@ -251,22 +252,26 @@ OOWeaponType cxx_OOWeaponTypeFromString(const std::string& string)
 
 std::optional<std::string> cxx_OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon)
 {
-    return [weapon cxx_identifier];
+    // No weapon: a message to nil answered a zeroed std::optional, no identifier.
+    cxx::OOEquipmentType* type = oo::ToCxx(weapon);
+    return (type != nullptr) ? type->identifier() : std::nullopt;
 }
 
 OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(const std::string& string)
 {
-    OOWeaponType w = [OOEquipmentType cxx_equipmentTypeWithIdentifier:string];
-    if (w == nil) {
+    // The weapon type is still the Objective-C OOEquipmentType * (ShipEntity.h): the C++ type
+    // crosses at the return, as +cxx_equipmentTypeWithIdentifier: did.
+    oo::Ref<cxx::OOEquipmentType> w = cxx::OOEquipmentType::equipmentTypeWithIdentifier(string);
+    if (w == nullptr) {
         if (!oo::str::hasPrefix(string, "EQ_")) {
-            w = [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_" + string];
-            if (w != nil) {
-                return w;
+            w = cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_" + string);
+            if (w != nullptr) {
+                return oo::ToObjC(w);
             }
         }
-        return [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_WEAPON_NONE"];
+        return oo::ToObjC(cxx::OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_NONE"));
     }
-    return w;
+    return oo::ToObjC(w);
 }
 
 /* Previous save games will have weapon types stored as ints to the
@@ -489,8 +494,9 @@ std::optional<std::string> cxx_DisplayStringForMassUnit(OOMassUnit unit)
 
 std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(const std::string& commodity)
 {
-    // -massUnitForGood: is a shared selector (id): the good is given as an Objective-C string.
-    return cxx_DisplayStringForMassUnit([[UNIVERSE commodityMarket] massUnitForGood:commodity]);
+    // No market: -massUnitForGood: sent to nil answered 0, UNITS_TONS.
+    cxx::OOCommodityMarket* market = oo::ToCxx([UNIVERSE commodityMarket]);
+    return cxx_DisplayStringForMassUnit((market != nullptr) ? market->massUnitForGood(commodity) : UNITS_TONS);
 }
 
 OORouteType cxx_StringToRouteType(const std::string& string)

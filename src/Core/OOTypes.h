@@ -25,8 +25,19 @@ MA 02110-1301, USA.
 
 */
 
-#include "OOFoundation.h"
+#ifndef INCLUDED_OOTYPES_h
+#define INCLUDED_OOTYPES_h
+
 #include "OOFunctionAttributes.h"
+#ifdef __OBJC__
+#include "OOFoundation.h"
+#else
+/*	A plain C or C++ translation unit (bead oo-9ht.64: OOConstToJSString) needs only the C types
+        OOFoundation.h's floor gives (NSInteger, NSUInteger). OOFoundation.h itself declares @interfaces.
+*/
+#include "oofnd/objc/OOFoundationTypes.h"
+#include <limits.h>
+#endif
 
 typedef enum {
     OPTIMIZED_BY_NONE,
@@ -213,3 +224,5 @@ typedef enum {
 
     DETAIL_LEVEL_MAXIMUM = 3
 } OOGraphicsDetail;
+
+#endif // INCLUDED_OOTYPES_h

@@ -43,12 +43,6 @@ MA 02110-1301, USA.
 #define SKY_alpha 0.10
 #define SKY_scale 10.0
 
-@interface SkyEntity (OOPrivate)
-
-- (BOOL)readColor1:(OOColor**)ioColor1 andColor2:(OOColor**)ioColor2 andColor3:(OOColor**)ioColor3 andColor4:(OOColor**)ioColor4 fromDictionary:(const oo::PList&)dictionary;
-
-@end
-
 namespace {
 
 // -objectForKey: as plist data (a null PList when absent), for +cxx_colorWithDescription:.
@@ -68,13 +62,20 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return dict.get<std::string>(key);
 }
 
+// [[OOColor cxx_colorWithDescription:description] premultipliedColor]: null where the colour was nil.
+oo::Ref<cxx::OOColor> PremultipliedColorWithDescription(const oo::PList& description)
+{
+    const oo::Ref<cxx::OOColor> color = cxx::OOColor::colorWithDescription(description);
+    return color != nullptr ? color->premultipliedColor() : nullptr;
+}
+
 } // namespace
 
-@implementation SkyEntity
+namespace cxx {
 
-- (id)initWithColors:(OOColor*)col1 col2:(OOColor*)col2 andSystemInfo:(const oo::PList&)systemInfo
+void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In, const oo::PList& systemInfo)
 {
-    OOSkyDrawable* skyDrawable;
+    oo::Ref<OOSkyDrawable> skyDrawable;
     float clusterChance,
         alpha,
         scale,
@@ -83,19 +84,20 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     signed starCount, // Need to be able to hold -1...
         nebulaCount;
 
-    self = [super init];
-    if (self == nil)
-        return nil;
+    // self = [super init]: the constructor ran Entity's -init body.
 
-    OOColor* col3 = [OOColor cxx_colorWithDescription:oo::PListObject(col1)]; // a copy, as the id form made of a colour
-    OOColor* col4 = [OOColor cxx_colorWithDescription:oo::PListObject(col2)];
+    // The colours the body replaces are owned here (they were autoreleased).
+    oo::Ref<OOColor> col1(col1In), col2(col2In);
+    oo::Ref<OOColor> col3 = OOColor::colorWithDescription(oo::PListObject(oo::ToObjC(col1))); // a copy, as the id form made of a colour
+    oo::Ref<OOColor> col4 = OOColor::colorWithDescription(oo::PListObject(oo::ToObjC(col2)));
 
     // Load colours
-    BOOL nebulaColorSet = [self readColor1:&col1 andColor2:&col2 andColor3:&col3 andColor4:&col4 fromDictionary:systemInfo];
+    bool nebulaColorSet = readColor1(&col1, &col2, &col3, &col4, systemInfo);
 
-    skyColor = [[OOColor cxx_colorWithDescription:ValueForKey(systemInfo, "sun_color")] retain];
-    if (skyColor == nil) {
-        skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
+    skyColor = OOColor::colorWithDescription(ValueForKey(systemInfo, "sun_color"));
+    if (skyColor == nullptr) {
+        // A message to a nil colour answered nil.
+        skyColor = (col2 != nullptr) ? col2->blendedColorWithFraction(0.5, col1.get()) : nullptr;
     }
 
     // Load distribution values
@@ -140,47 +142,34 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         }
     }
 
-    skyDrawable = [[OOSkyDrawable alloc]
-        initWithColor1:col1
-                Color2:col2
-                Color3:col3
-                Color4:col4
-             starCount:starCount
-           nebulaCount:nebulaCount
-          nebulaHueFix:nebulaColorSet
-         clusterFactor:clusterChance
-                 alpha:alpha
-                 scale:scale];
-    [self setDrawable:skyDrawable];
-    [skyDrawable release];
+    skyDrawable = oo::makeRef<OOSkyDrawable>(col1.get(),
+        col2.get(),
+        col3.get(),
+        col4.get(),
+        starCount,
+        nebulaCount,
+        nebulaColorSet,
+        clusterChance,
+        alpha,
+        scale);
+    setDrawable(oo::ToObjC(skyDrawable.get())); // the root facade (no OOSkyDrawable facade; bead oo-4jjl)
 
-    [self setStatus:STATUS_EFFECT];
-
-    return self;
+    setStatus(STATUS_EFFECT);
 }
 
-- (void)dealloc
+OOColor* SkyEntity::getSkyColor()
 {
-    [skyColor release];
-
-    [super dealloc];
+    return skyColor.get();
 }
 
-- (OOColor*)skyColor
-{
-    return skyColor;
-}
-
-- (BOOL)changeProperty:(const std::string&)key withDictionary:(const oo::PList&)dict
+bool SkyEntity::changeProperty(const std::string& key, const oo::PList& dict)
 {
 
     // TODO: properties requiring reInit?
     if (key == "sun_color") {
-        OOColor* col = [[OOColor cxx_colorWithDescription:ValueForKey(dict, key)] retain];
-        if (col != nil) {
-            [skyColor release];
-            skyColor = [col copy];
-            [col release];
+        oo::Ref<OOColor> col = OOColor::colorWithDescription(ValueForKey(dict, key));
+        if (col != nullptr) {
+            skyColor = col; // [col copy]: a copy of an immutable colour is the colour itself
             [UNIVERSE setLighting];
         }
     } else {
@@ -190,7 +179,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return YES;
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void SkyEntity::update(OOTimeDelta /*delta_t*/)
 {
     PlayerEntity* player = PLAYER;
     zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
@@ -202,58 +191,54 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     }
 }
 
-- (BOOL)isSky
+bool SkyEntity::isSky()
 {
     return YES;
 }
 
-- (BOOL)isVisible
+bool SkyEntity::isVisible()
 {
     return YES;
 }
 
-- (BOOL)canCollide
+bool SkyEntity::canCollide()
 {
     return NO;
 }
 
-- (GLfloat)cameraRangeFront
+GLfloat SkyEntity::cameraRangeFront()
 {
     return MAX_CLEAR_DEPTH;
 }
 
-- (GLfloat)cameraRangeBack
+GLfloat SkyEntity::cameraRangeBack()
 {
     return MAX_CLEAR_DEPTH;
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void SkyEntity::drawImmediate(bool immediate, bool translucent)
 {
     if ([UNIVERSE breakPatternHide])
         return;
 
-    [super drawImmediate:immediate translucent:translucent];
+    OOEntityWithDrawable::drawImmediate(immediate, translucent);
 
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SkyEntity after drawing " + oo::DescriptionOf(self); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SkyEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::optional<std::string>)descriptionForObjDump
+std::optional<std::string> SkyEntity::descriptionForObjDump()
 {
     // Don't include range and visibility flag as they're irrelevant.
-    return [self descriptionForObjDumpBasic];
+    return descriptionForObjDumpBasic();
 }
 #endif
 
-@end
-
-@implementation SkyEntity (OOPrivate)
-
-- (BOOL)readColor1:(OOColor**)ioColor1 andColor2:(OOColor**)ioColor2 andColor3:(OOColor**)ioColor3 andColor4:(OOColor**)ioColor4 fromDictionary:(const oo::PList&)dictionary
+bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor2, oo::Ref<OOColor>* ioColor3, oo::Ref<OOColor>* ioColor4, const oo::PList& dictionary)
 {
     oo::PList colorDesc;
-    OOColor* color = nil;
-    BOOL nebulaSet = NO;
+    oo::Ref<OOColor> color;
+    bool nebulaSet = NO;
 
     assert(ioColor1 != NULL && ioColor2 != NULL);
 
@@ -271,24 +256,24 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             float r2 = OOClamp_0_1_f(tokens.at<float>(3));
             float g2 = OOClamp_0_1_f(tokens.at<float>(4));
             float b2 = OOClamp_0_1_f(tokens.at<float>(5));
-            *ioColor1 = [OOColor colorWithRed:r1 green:g1 blue:b1 alpha:1.0];
-            *ioColor2 = [OOColor colorWithRed:r2 green:g2 blue:b2 alpha:1.0];
+            *ioColor1 = OOColor::colorWithRed(r1, g1, b1, 1.0);
+            *ioColor2 = OOColor::colorWithRed(r2, g2, b2, 1.0);
         } else {
             OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as two RGB colours (must be six numbers).", *string);
         }
     }
     colorDesc = ValueForKey(dictionary, "sky_color_1");
     if (!colorDesc.isNull()) {
-        color = [[OOColor cxx_colorWithDescription:colorDesc] premultipliedColor];
-        if (color != nil)
+        color = PremultipliedColorWithDescription(colorDesc);
+        if (color != nullptr)
             *ioColor1 = color;
         else
             OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     }
     colorDesc = ValueForKey(dictionary, "sky_color_2");
     if (!colorDesc.isNull()) {
-        color = [[OOColor cxx_colorWithDescription:colorDesc] premultipliedColor];
-        if (color != nil)
+        color = PremultipliedColorWithDescription(colorDesc);
+        if (color != nullptr)
             *ioColor2 = color;
         else
             OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
@@ -296,8 +281,8 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
     colorDesc = ValueForKey(dictionary, "nebula_color_1");
     if (!colorDesc.isNull()) {
-        color = [[OOColor cxx_colorWithDescription:colorDesc] premultipliedColor];
-        if (color != nil) {
+        color = PremultipliedColorWithDescription(colorDesc);
+        if (color != nullptr) {
             *ioColor3 = color;
             nebulaSet = YES;
         } else
@@ -305,8 +290,8 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     } else {
         colorDesc = ValueForKey(dictionary, "sky_color_1");
         if (!colorDesc.isNull()) {
-            color = [[OOColor cxx_colorWithDescription:colorDesc] premultipliedColor];
-            if (color != nil)
+            color = PremultipliedColorWithDescription(colorDesc);
+            if (color != nullptr)
                 *ioColor3 = color;
             else
                 OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
@@ -315,8 +300,8 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
     colorDesc = ValueForKey(dictionary, "nebula_color_2");
     if (!colorDesc.isNull()) {
-        color = [[OOColor cxx_colorWithDescription:colorDesc] premultipliedColor];
-        if (color != nil) {
+        color = PremultipliedColorWithDescription(colorDesc);
+        if (color != nullptr) {
             *ioColor4 = color;
             nebulaSet = YES;
         } else
@@ -324,8 +309,8 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     } else {
         colorDesc = ValueForKey(dictionary, "sky_color_2");
         if (!colorDesc.isNull()) {
-            color = [[OOColor cxx_colorWithDescription:colorDesc] premultipliedColor];
-            if (color != nil)
+            color = PremultipliedColorWithDescription(colorDesc);
+            if (color != nullptr)
                 *ioColor4 = color;
             else
                 OO_LOG_WARN("sky.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
@@ -334,4 +319,4 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return nebulaSet;
 }
 
-@end
+} // namespace cxx

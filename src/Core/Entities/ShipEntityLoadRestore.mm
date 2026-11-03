@@ -100,7 +100,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(bounty);
     updatedShipInfo[KEY_FORWARD_WEAPON] = cxx_OOStringFromWeaponType(forward_weapon_type).value_or("");
     updatedShipInfo[KEY_AFT_WEAPON] = cxx_OOStringFromWeaponType(aft_weapon_type).value_or("");
-    updatedShipInfo[KEY_SCAN_CLASS] = cxx_OOStringFromScanClass(scanClass);
+    updatedShipInfo[KEY_SCAN_CLASS] = cxx_OOStringFromScanClass(_cxxEntity->scanClass);
 
     std::vector<std::string> deletes;
     [self simplifyShipdata:updatedShipInfo andGetDeletes:&deletes];
@@ -117,8 +117,8 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     }
 
     // -oo_setFloat:forKey: stored a double.
-    if (energy != maxEnergy)
-        result[KEY_ENERGY_LEVEL] = oo::PList(static_cast<double>(energy / maxEnergy));
+    if (_cxxEntity->energy != _cxxEntity->maxEnergy)
+        result[KEY_ENERGY_LEVEL] = oo::PList(static_cast<double>(_cxxEntity->energy / _cxxEntity->maxEnergy));
 
     result[KEY_PRIMARY_ROLE] = [self cxx_primaryRole].value_or("");
 

@@ -169,7 +169,7 @@ namespace plist_description_detail {
         return out;
     }
 
-    // NSDate's -description (oo::date::description): in the local time zone, or at <utcOffsetMinutes>.
+    // The Foundation date's -description (oo::date::description): in the local time zone, or at <utcOffsetMinutes>.
     inline std::string dateText(const PList::Date& when, std::optional<int> utcOffsetMinutes)
     {
         const auto t = date::dateWithTimeIntervalSinceReferenceDate(when.sinceReferenceDate);

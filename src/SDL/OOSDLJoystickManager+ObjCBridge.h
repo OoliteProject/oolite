@@ -6,23 +6,23 @@ TRANSITIONAL (proposed ADR-0056 and its amendment oo-o89): the Objective-C
 OOSDLJoystickManager, a facade over the C++ cxx::OOSDLJoystickManager (OOSDLJoystickManager.h).
 Its interface is the one OOSDLJoystickManager.h declared before the conversion, copied exactly
 (same selectors, same types, same superclass), so its callers and its superclass compile and
-behave unchanged; each method forwards to its C++ member, except the three decoders
-(decodeAxisEvent: & co.), which stay Objective-C in the SDLDecoding category below (implemented
-in OOSDLJoystickManager.mm): they decode through OOJoystickManager's inherited state, which lives
-here. Imported as the last line of OOSDLJoystickManager.h; do not import it directly.
+behave unchanged; each method forwards to its C++ member, the three decoders (decodeAxisEvent:
+& co.) included: the C++ decoders decode into OOJoystickManager's state, which lives in the C++
+part (cxx::OOJoystickManager) of this facade's superclass. Imported as the last line of
+OOSDLJoystickManager.h; do not import it directly.
 
-Unlike OOColor's facade this one is not thin: its superclass OOJoystickManager is still
-Objective-C, creates it (+setStickHandlerClass: / +sharedStickHandler) and keeps its own state in
-it. So the facade makes and owns its C++ object in -init, and the pair lives and dies together:
+Unlike OOColor's facade this one is not thin: its superclass, the Objective-C OOJoystickManager,
+creates it (+setStickHandlerClass: / +sharedStickHandler) and keeps its own state in its C++ part.
+So the facade makes and owns its C++ object in -init, and the pair lives and dies together:
 
         direction                      crosses with                what it gives
         -----------------------------  --------------------------  -------------------------------------
-        C++ -> the decoders            oo::ToObjC(this)            the live facade; never a new one (a
-          (decodeAxisEvent: & co.)                                 new one would have fresh superclass
+        C++ -> the superclass's state  oo::ToObjC(this)            the live facade; never a new one (a
+          (decodeAxisEvent() & co.)                                new one would have fresh superclass
                                                                    state), so nil once it is gone
         Objective-C -> C++             oo::ToCxx(manager)          the borrowed C++ object; null for nil
 
-Never add to this file; converted code does not message the facade except for the decoders.
+Never add to this file; converted code does not message the facade.
 Deleted by its deletion bead once OOJoystickManager is C++ and cxx::OOSDLJoystickManager can
 derive from it.
 
@@ -67,12 +67,6 @@ MA 02110-1301, USA.
 - (SDL_JoyButtonEvent)makeJoyButtonEvent:(SDL_JoyButtonEvent*)sdlevt;
 - (SDL_JoyHatEvent)makeJoyHatEvent:(SDL_JoyHatEvent*)sdlevt;
 - (BOOL)handleSDLEvent:(SDL_Event*)evt;
-
-@end
-
-// Not forwarded: OOSDLJoystickManager.mm implements these on the facade (see above).
-@interface OOSDLJoystickManager (SDLDecoding)
-
 - (void)decodeAxisEvent:(SDL_JoyAxisEvent*)evt;
 - (void)decodeButtonEvent:(SDL_JoyButtonEvent*)evt;
 - (void)decodeHatEvent:(SDL_JoyHatEvent*)evt;

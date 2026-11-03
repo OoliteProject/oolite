@@ -17,10 +17,12 @@ C++20 since bead oo-o89, the Phase 3 platform (SDL/) pattern (proposed ADR-0056,
 The SDL half of the joystick manager is cxx::OOSDLJoystickManager. Its superclass,
 OOJoystickManager, is still Objective-C, so the Objective-C OOSDLJoystickManager in
 OOSDLJoystickManager+ObjCBridge.h (imported at the end of this header) stays the subclass that
-superclass creates and messages; it owns the C++ object and forwards its overrides to it. Until
-OOJoystickManager converts, the C++ object is made only by that facade's -init: the superclass's
-state lives in the facade, and so do the decoders (decodeAxisEvent: & co., which decode SDL events
-through that inherited state; handleSDLEvent() reaches them through oo::ToObjC(this)).
+superclass creates and messages; it owns the C++ object and forwards its overrides to it.
+OOJoystickManager is C++ now (cxx::OOJoystickManager), but this class does not derive from it yet:
+its Objective-C facade derives from the Objective-C OOJoystickManager, whose C++ part (an adapter)
+holds the superclass's state. The C++ object is made only by that facade's -init. The decoders
+(decodeAxisEvent() & co., which decode SDL events, upstream #742) are this class's; they read and
+set that state through the facade (oo::ToObjC(this)), as cxx::OOJoystickManager's friend.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -65,11 +67,18 @@ public:
     SDL_JoyButtonEvent makeJoyButtonEvent(SDL_JoyButtonEvent* sdlevt);
     SDL_JoyHatEvent makeJoyHatEvent(SDL_JoyHatEvent* sdlevt);
     NSInteger getJoystickIndexFromId(SDL_JoystickID joystickId);
+    void decodeAxisEvent(SDL_JoyAxisEvent* evt);
+    void decodeButtonEvent(SDL_JoyButtonEvent* evt);
+    void decodeHatEvent(SDL_JoyHatEvent* evt);
 
     // Overrides of OOJoystickManager (its facade subclass forwards them here).
     NSUInteger joystickCount();
 
 private:
+    // The superclass's C++ part, the state the decoders read and set: that of this object's facade,
+    // borrowed; null once the facade is gone (the decoders then do nothing, as a message to nil did).
+    cxx::OOJoystickManager* superclassState();
+
     std::map<std::string, int, std::less<>> joystickIdMap = { }; // "%d" of an SDL joystick id -> stick index (proposed ADR-0043)
     SDL_Joystick* stick[MAX_STICKS] = { };
     int stickCount = { };

@@ -25,10 +25,22 @@ MA 02110-1301, USA.
 #import "OOJSSound.h"
 #import "OOJavaScriptEngine.h"
 #import "OOMusicController.h"
+#import "OOSound.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 
 #include "oofnd/String.hpp"
+
+/*
+        C++20 since bead oo-crq2, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSound
+        became three free functions, and its methods moved to OOJSSound+ObjCBridge.mm (amendment oo-
+        ykoy). Messages to classes that are still Objective-C (OOSound, ResourceManager,
+        OOMusicController, PlayerEntity) stay as they are, which is why the file is still .mm until
+        Phase 4.
+*/
 
 static JSClassID sSoundClassID;
 
@@ -186,7 +198,7 @@ static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     std::optional<std::string> name;
-    BOOL loop = NO;
+    bool loop = false;
     double gain = OO_DEFAULT_SOUNDSOURCE_GAIN;
 
     if (argc > 0)
@@ -247,28 +259,26 @@ static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-@implementation OOSound (OOJavaScriptExtentions)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+// The bodies of OOSound (OOJavaScriptExtentions), whose methods are in OOJSSound+ObjCBridge.mm
+// until OOSound converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context)
 {
     JSValue result = JS_NewObjectClass(context, (int)sSoundClassID);
     if (JS_IsException(result)) {
         JS_FreeValue(context, JS_GetException(context));
         return JS_NULL;
     }
-    JS_SetOpaque(result, [self retain]);
+    JS_SetOpaque(result, [sound retain]);
 
     return result;
 }
 
-- (std::optional<std::string>)cxx_oo_jsDescription
+std::optional<std::string> OOJSSoundJSDescription(OOSound* sound)
 {
-    return oo::str::format("[Sound \"%s\"]", [self cxx_name].value_or("(null)").c_str());
+    return oo::str::format("[Sound \"%s\"]", [sound cxx_name].value_or("(null)").c_str());
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> OOJSSoundJSClassName(void)
 {
     return std::string("Sound");
 }
-
-@end

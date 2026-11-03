@@ -29,11 +29,21 @@ SOFTWARE.
 
 #import "OODebuggerInterface.h"
 #import "OOFoundation.h"
+#import "OOTCPStreamDecoderAbstractionLayer.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
+#if OOLITE_WINDOWS
+struct fd_set; // winsock2.h's, which the .mm includes
+#else
+#include <sys/select.h>
+#endif
+
 @class OODebugMonitor;
+struct OOTCPStreamDecoder;
 
 typedef enum {
     kOOTCPClientNotConnected,
@@ -44,37 +54,122 @@ typedef enum {
     kOOTCPClientDisconnected
 } OOTCPClientConnectionStatus;
 
+/*	The frame loop's side of the console socket: what the run loop did for the console's
+        streams. OODebugTCPConsoleIsWaitingForInput() is true while a console socket can deliver
+        something (input, end of stream or an error); OODebugTCPConsoleServiceInput() waits up to
+        timeout seconds (< 0: no limit) for that, then handles what arrived, as one run-loop wait
+        did.
+*/
+bool OODebugTCPConsoleIsWaitingForInput(void);
+void OODebugTCPConsoleServiceInput(double timeout);
+
+namespace cxx {
+
+class OODebugMonitor;
+
 /*	The connection is one non-blocking TCP socket (bead oo-3rb.14, proposed ADR-0041), where it was a
         Foundation host lookup and an input/output stream pair on the run loop. _inStatus/_outStatus
         keep the two streams' status numbers (Foundation's stream-status values), which the
         connection-failure messages print; _pendingErrorCode is an error event the run loop would
         still have delivered to the stream delegate.
+
+        The debug monitor reaches the client through the OODebuggerInterface protocol, which the
+        Objective-C facade (OODebugTCPConsoleClient+ObjCBridge.h) adopts; its members below are the
+        protocol's, with the monitor as the C++ one.
 */
-@interface OODebugTCPConsoleClient : OOObject <OODebuggerInterface> {
-@private
+class OODebugTCPConsoleClient : public oo::RefCounted {
+public:
+    // [[OODebugTCPConsoleClient alloc] initWithAddress:port:]; null when the connection fails.
+    static oo::Ref<OODebugTCPConsoleClient> clientWithAddress(const std::optional<std::string>& address, // Pass nullopt for localhost
+        uint16_t port); // Pass 0 for default port
+
+    ~OODebugTCPConsoleClient();
+
+    // The debugger interface (OODebuggerInterface).
+    bool connectDebugMonitor(OODebugMonitor* debugMonitor,
+        std::optional<std::string>* message);
+    void disconnectDebugMonitor(OODebugMonitor* debugMonitor,
+        const std::optional<std::string>& message);
+    void debugMonitor(OODebugMonitor* debugMonitor,
+        const std::string& output,
+        const std::optional<std::string>& colorKey,
+        NSRange emphasisRange);
+    void debugMonitorClearConsole(OODebugMonitor* debugMonitor);
+    void debugMonitorShowConsole(OODebugMonitor* debugMonitor);
+    void debugMonitor(OODebugMonitor* debugMonitor,
+        const oo::PList& configuration);
+    void debugMonitor(OODebugMonitor* debugMonitor,
+        const oo::PList& newValue,
+        const std::string& key);
+
+private:
+    // The frame loop's functions below read the clients' sockets.
+    friend bool ::OODebugTCPConsoleIsWaitingForInput(void);
+    friend void ::OODebugTCPConsoleServiceInput(double timeout);
+
+    OODebugTCPConsoleClient() = default;
+    bool initWithAddress(const std::optional<std::string>& address, uint16_t port);
+
+    // The decoder's callbacks; its string and dictionary handles are OOALObjectRef.
+    static void DecoderPacket(void* cbInfo, OOALObjectRef packetType, OOALObjectRef packet);
+    static void DecoderError(void* cbInfo, OOALObjectRef errorDesc);
+
+    void closeConnection();
+
+    bool sendBytes(const void* bytes, size_t count);
+    void sendDictionary(const oo::PList& dictionary);
+
+    // Packet type and parameter names are OODebugTCPConsoleProtocol.h's constants (ProtocolName()).
+    void sendPacket(const std::string& packetType,
+        const oo::PList& parameters); // a dictionary; null: the type alone
+
+    void sendPacket(const std::string& packetType,
+        const oo::PList& value,
+        const std::string& paramKey); // a null value or empty key: the type alone
+
+    bool openSocketToHost(const std::string& address, uint16_t port);
+    NSInteger receive(uint8_t* buffer, size_t length);
+    bool isWaitingForInput();
+    bool hasPendingErrorEvent();
+    uintptr_t socket();
+    void addToWaitSets(fd_set* readSet, fd_set* writeSet, fd_set* exceptSet);
+    void handleWaitResultRead(bool readable, bool writable, bool exceptional);
+    void handleErrorEvent();
+    void serviceSocketFor(double seconds);
+
+    void readData();
+    void dispatchPacket(const oo::PList& packet, const std::string& packetType);
+
+    // Packets are property-list dictionaries (anything else answers no values).
+    void handleApproveConnectionPacket(const oo::PList& packet);
+    void handleRejectConnectionPacket(const oo::PList& packet);
+    void handleCloseConnectionPacket(const oo::PList& packet);
+    void handleNoteConfigurationChangePacket(const oo::PList& packet);
+    void handlePerformCommandPacket(const oo::PList& packet);
+    void handleRequestConfigurationValuePacket(const oo::PList& packet);
+    void handlePingPacket(const oo::PList& packet);
+    void handlePongPacket(const oo::PList& packet);
+
+    void disconnectFromServerWithMessage(const std::optional<std::string>& message); // nullopt: a close packet without a message
+    void breakConnectionWithMessage(const std::string& message);
+    void breakConnectionWithStreamError(int error);
+
     std::optional<std::string> _hostName; // was the host object; nullopt when closed
-    uintptr_t _socket; // SOCKET / file descriptor; all ones when closed
-    int _inStatus,
-        _outStatus;
-    int _inError,
-        _outError;
-    int _pendingErrorCode;
-    BOOL _errorEventPending;
-    OOTCPClientConnectionStatus _status;
-    OODebugMonitor* _monitor;
-    struct OOTCPStreamDecoder* _decoder;
-}
+    uintptr_t _socket = { }; // SOCKET / file descriptor; all ones when closed
+    int _inStatus = { },
+        _outStatus = { };
+    int _inError = { },
+        _outError = { };
+    int _pendingErrorCode = { };
+    bool _errorEventPending = { };
+    OOTCPClientConnectionStatus _status = { };
+    OODebugMonitor* _monitor = { };
+    ::OOTCPStreamDecoder* _decoder = { };
+};
 
-- (id)initWithAddress:(const std::optional<std::string>&)address // Pass nullopt for localhost
-                 port:(uint16_t)port; // Pass 0 for default port
+} // namespace cxx
 
-@end
-
-/*	The frame loop's side of the console socket: what the run loop did for the console's
-        streams. OODebugTCPConsoleIsWaitingForInput() is YES while a console socket can deliver
-        something (input, end of stream or an error); OODebugTCPConsoleServiceInput() waits up to
-        timeout seconds (< 0: no limit) for that, then handles what arrived, as one run-loop wait
-        did.
-*/
-BOOL OODebugTCPConsoleIsWaitingForInput(void);
-void OODebugTCPConsoleServiceInput(double timeout);
+// Transitional: the Objective-C OODebugTCPConsoleClient, for the debug support and the debug
+// monitor, which hold it as their debugger (id<OODebuggerInterface>). Deleted, with namespace cxx
+// above, by the bridge's deletion bead.
+#import "OODebugTCPConsoleClient+ObjCBridge.h"

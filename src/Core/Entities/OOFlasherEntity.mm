@@ -30,111 +30,107 @@ MA 02110-1301, USA.
 
 #include "oofnd/PListGet.hpp"
 
-@interface OOFlasherEntity (Internal)
+namespace cxx {
 
-- (void)setUpColors:(const oo::PList*)colorSpecifiers; // an array node, or nullptr
-- (void)getCurrentColorComponents;
-
-@end
-
-@implementation OOFlasherEntity
-
-+ (instancetype)flasherWithDictionary:(const oo::PList&)dictionary
+oo::Ref<OOFlasherEntity> OOFlasherEntity::flasherWithDictionary(const oo::PList& dictionary)
 {
-    return [[[OOFlasherEntity alloc] cxx_initWithDictionary:dictionary] autorelease];
+    const oo::Ref<OOFlasherEntity> flasher = oo::makeRef<OOFlasherEntity>();
+    flasher->initWithDictionary(dictionary);
+    return flasher;
 }
 
-- (id)cxx_initWithDictionary:(const oo::PList&)dictionary
+void OOFlasherEntity::initWithDictionary(const oo::PList& dictionary)
 {
     float size = dictionary.get<float>("size", 1.0f);
 
-    if ((self = [super initWithDiameter:size])) {
+    OOLightParticleEntity::initWithDiameter(size);
+    // [super initWithDiameter:] could not fail.
+    {
         _frequency = dictionary.get<float>("frequency", 1.0f) * 2.0f;
         _phase = dictionary.get<float>("phase", 0.0f);
         _brightfraction = dictionary.get<float>("bright_fraction", 0.5f);
 
-        [self setUpColors:dictionary.get<oo::PList::Array>("colors")];
-        [self getCurrentColorComponents];
+        setUpColors(dictionary.get<oo::PList::Array>("colors"));
+        getCurrentColorComponents();
 
-        [self setActive:dictionary.get<bool>("initially_on", YES)];
+        setActive(dictionary.get<bool>("initially_on", YES));
     }
-    return self;
 }
 
-- (void)setUpColors:(const oo::PList*)colorSpecifiers
+void OOFlasherEntity::setUpColors(const oo::PList* colorSpecifiers)
 {
-    std::vector<oo::ObjCRef<OOColor*>> colors;
+    std::vector<oo::Ref<OOColor>> colors;
     if (colorSpecifiers != nullptr) {
         for (const oo::PList& specifier : *colorSpecifiers->getIf<oo::PList::Array>()) {
-            colors.emplace_back([OOColor cxx_colorWithDescription:specifier saturationFactor:0.75f]);
+            colors.emplace_back(OOColor::colorWithDescription(specifier, 0.75f));
         }
     }
 
     _colors = std::move(colors);
 }
 
-// The colour at index; nil past the end (-objectAtIndex: raised there).
-- (OOColor*)flasherColorAtIndex:(NSUInteger)index
+// The colour at index; null past the end (-objectAtIndex: raised there).
+OOColor* OOFlasherEntity::flasherColorAtIndex(NSUInteger index)
 {
-    return index < _colors.size() ? _colors[index].get() : nil;
+    return index < _colors.size() ? _colors[index].get() : nullptr;
 }
 
-- (void)getCurrentColorComponents
+void OOFlasherEntity::getCurrentColorComponents()
 {
-    [self setColor:[self flasherColorAtIndex:_activeColor] alpha:_colorComponents[3]];
+    setColor(flasherColorAtIndex(_activeColor), _colorComponents[3]);
 }
 
-- (BOOL)isActive
+bool OOFlasherEntity::isActive()
 {
     return _active;
 }
 
-- (void)setActive:(BOOL)active
+void OOFlasherEntity::setActive(bool active)
 {
     _active = !!active;
 }
 
-- (OOColor*)color
+oo::Ref<OOColor> OOFlasherEntity::color()
 {
-    return [OOColor colorWithRed:_colorComponents[0]
-                           green:_colorComponents[1]
-                            blue:_colorComponents[2]
-                           alpha:_colorComponents[3]];
+    return OOColor::colorWithRed(_colorComponents[0],
+        _colorComponents[1],
+        _colorComponents[2],
+        _colorComponents[3]);
 }
 
-- (float)frequency
+float OOFlasherEntity::frequency()
 {
     return _frequency;
 }
 
-- (void)setFrequency:(float)frequency
+void OOFlasherEntity::setFrequency(float frequency)
 {
     _frequency = frequency;
 }
 
-- (float)phase
+float OOFlasherEntity::phase()
 {
     return _phase;
 }
 
-- (void)setPhase:(float)phase
+void OOFlasherEntity::setPhase(float phase)
 {
     _phase = phase;
 }
 
-- (float)fraction
+float OOFlasherEntity::fraction()
 {
     return _brightfraction;
 }
 
-- (void)setFraction:(float)fraction
+void OOFlasherEntity::setFraction(float fraction)
 {
     _brightfraction = fraction;
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOFlasherEntity::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
+    OOLightParticleEntity::update(delta_t);
 
     _time += delta_t;
 
@@ -147,7 +143,7 @@ MA 02110-1301, USA.
                 _justSwitched = YES;
                 ++_activeColor;
                 _activeColor %= count; //_activeColor = ++_activeColor % count; is potentially undefined operation
-                [self setColor:[self flasherColorAtIndex:_activeColor]];
+                setColor(flasherColorAtIndex(_activeColor));
             }
         } else if (_justSwitched) {
             _justSwitched = NO;
@@ -170,48 +166,39 @@ MA 02110-1301, USA.
     }
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OOFlasherEntity::drawImmediate(bool immediate, bool translucent)
 {
     if (_active) {
-        [super drawImmediate:immediate translucent:translucent];
+        OOLightParticleEntity::drawImmediate(immediate, translucent);
     }
 }
 
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
+void OOFlasherEntity::drawSubEntityImmediate(bool immediate, bool translucent)
 {
     if (_active) {
-        [super drawSubEntityImmediate:immediate translucent:translucent];
+        OOLightParticleEntity::drawSubEntityImmediate(immediate, translucent);
     }
 }
 
-- (BOOL)isFlasher
+bool OOFlasherEntity::isFlasher()
 {
     return YES;
 }
 
-- (double)findCollisionRadius
+double OOFlasherEntity::findCollisionRadius()
 {
-    return [self diameter] / 2.0;
+    return diameter() / 2.0;
 }
 
-- (void)rescaleBy:(GLfloat)factor
+void OOFlasherEntity::rescaleBy(GLfloat factor)
 {
-    [self setDiameter:[self diameter] * factor];
+    setDiameter(diameter() * factor);
 }
 
-- (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+void OOFlasherEntity::rescaleBy(GLfloat /*factor*/, bool /*writeToCache*/)
 {
     /* Do nothing; this is only needed because of OOEntityWithDrawable
        implementation requirements */
 }
 
-@end
-
-@implementation Entity (OOFlasherEntityExtensions)
-
-- (BOOL)isFlasher
-{
-    return NO;
-}
-
-@end
+} // namespace cxx

@@ -29,70 +29,70 @@ SOFTWARE.
 #import "OOALStreamedSound.h"
 #import "OOALSoundDecoder.h"
 
-@implementation OOALStreamedSound
+namespace cxx {
 
-- (void)dealloc
+// The decoder is released by its oo::ObjCRef.
+OOALStreamedSound::~OOALStreamedSound()
 {
     free(_buffer);
     _buffer = NULL;
-    [decoder release];
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOALStreamedSound::name()
 {
     return _name;
 }
 
-- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder
+/*	The body of -initWithDecoder:, with self as the new sound; its [self release]; self = nil; is
+        the null it answers. The decoder is still the Objective-C one, which the root's class cluster
+        makes; [inDecoder retain] is the oo::ObjCRef.
+*/
+oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(::OOALSoundDecoder* inDecoder)
 {
-    BOOL OK = YES;
+    bool OK = true;
+    oo::Ref<OOALStreamedSound> self;
 
-    [OOSound setUp];
-    if (![OOSound isSoundOK] || nil == inDecoder)
-        OK = NO;
+    setUp();
+    if (!isSoundOK() || nil == inDecoder)
+        OK = false;
 
     if (OK) {
-        self = [super init];
-        if (nil == self)
-            OK = NO;
+        self = oo::adopt(new OOALStreamedSound);
     }
 
     if (OK) {
-        _name = [inDecoder cxx_name];
-        _sampleRate = [inDecoder sampleRate];
-        _stereo = [inDecoder isStereo];
-        _reachedEnd = NO;
-        _buffer = (char*)malloc(OOAL_STREAM_CHUNK_SIZE);
-        decoder = [inDecoder retain];
-        [self rewind];
+        self->_name = [inDecoder cxx_name];
+        self->_sampleRate = [inDecoder sampleRate];
+        self->_stereo = [inDecoder isStereo];
+        self->_reachedEnd = false;
+        self->_buffer = (char*)malloc(OOAL_STREAM_CHUNK_SIZE);
+        self->decoder = oo::ObjCRef<::OOALSoundDecoder*>(inDecoder);
+        self->rewind();
     }
 
     if (!OK) {
-        [self release];
-        self = nil;
+        self = nullptr;
     }
     return self;
 }
 
-- (void)rewind
+void OOALStreamedSound::rewind()
 {
-    [decoder reset];
-    _reachedEnd = NO;
+    [decoder.get() reset];
+    _reachedEnd = false;
 }
 
-- (BOOL)soundIncomplete
+bool OOALStreamedSound::soundIncomplete()
 {
     return !_reachedEnd;
 }
 
-- (ALuint)soundBuffer
+ALuint OOALStreamedSound::soundBuffer()
 {
-    size_t transferred = [decoder streamToBuffer:_buffer];
+    size_t transferred = [decoder.get() streamToBuffer:_buffer];
     if (transferred < OOAL_STREAM_CHUNK_SIZE) {
         // otherwise keep going
-        _reachedEnd = YES;
+        _reachedEnd = true;
     }
 
     ALuint buffer;
@@ -111,4 +111,4 @@ SOFTWARE.
     }
 }
 
-@end
+} // namespace cxx

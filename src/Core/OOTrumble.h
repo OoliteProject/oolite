@@ -169,7 +169,7 @@ private:
     enum trumble_mouth mouthFrame = { }; // which mouth position - determines what part of the texture to display
     enum trumble_eyes eyeFrame = { }; // which eye position - determines what part of the texture to display
     //
-    oo::ObjCRef<OOTexture*> texture;
+    oo::ObjCRef<::OOTexture*> texture;
     //
     GLfloat saved_float1 = { }, saved_float2 = { };
     //

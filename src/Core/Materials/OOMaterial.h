@@ -47,6 +47,7 @@ SOFTWARE.
 #import "OOWeakReference.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
@@ -96,7 +97,7 @@ public:
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    virtual std::vector<oo::ObjCRef<OOTexture*>> allTextures();
+    virtual std::vector<oo::ObjCRef<::OOTexture*>> allTextures();
 #endif
 
     // Subclass interface (was the OOSubclassInterface category).
@@ -110,6 +111,46 @@ public:
             that did is the facade's (proposed ADR-0056, amendment oo-smy).
     */
     void willDealloc();
+
+    /*	The convenience creators: the category OOConvenienceCreators, whose class methods are these
+            static members since bead oo-9fwb, defined in OOMaterialConvenienceCreators.mm (proposed
+            ADR-0056 amendment oo-o89 item 4; OOMaterialConvenienceCreators.h documents them).
+
+            Get a material based on configuration. The result will be an
+            OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
+            only if shaders are available). cacheKey is used for caching of synthesized
+            shader materials; nullopt may be passed for no caching. configuration and
+            macros are oo::PList (null = nil).
+    */
+    static oo::Ref<OOMaterial> materialWithName(const std::optional<std::string>& name,
+        const std::optional<std::string>& cacheKey,
+        const oo::PList& configuration,
+        const oo::PList& macros,
+        id<OOWeakReferenceSupport> object,
+        bool smooth);
+
+    /*	Select an appropriate material description (based on availability of
+            shaders and content of dictionaries, which may be null) and call
+            the one above.
+    */
+    static oo::Ref<OOMaterial> materialWithName(const std::optional<std::string>& name,
+        const std::optional<std::string>& cacheKey,
+        const oo::PList& materialDict,
+        const oo::PList& shadersDict,
+        const oo::PList& macros,
+        id<OOWeakReferenceSupport> object,
+        bool smooth);
+
+private:
+    // The category's own class methods, which only it called.
+    static oo::PList synthesizeMaterialDictionaryWithName(const std::optional<std::string>& name,
+        const oo::PList& configuration,
+        const oo::PList& macros);
+    static oo::Ref<OOMaterial> defaultShaderMaterialWithName(const std::optional<std::string>& name,
+        const std::optional<std::string>& cacheKey,
+        const oo::PList& configuration,
+        const oo::PList& macros,
+        id<OOWeakReferenceSupport> target);
 };
 
 } // namespace cxx

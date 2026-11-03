@@ -6,6 +6,12 @@ Class responsible for converting a sound to a PCM buffer for playback. This
 class is an implementation detail. Do not use it directly; use OOSound to
 load sounds.
 
+C++20 since bead oo-y0gz (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
+cxx::OOALSoundDecoder while OOALSoundDecoder+ObjCBridge.h, imported at the end of this header,
+keeps the Objective-C OOALSoundDecoder that the sounds message; the bridge's deletion bead moves it
+out of namespace cxx. The Vorbis codec, the class cluster's one concrete decoder, is private to
+OOALSoundDecoder.mm.
+
 
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2005-2013 Jens Ayton
@@ -30,35 +36,56 @@ SOFTWARE.
 
 */
 
+#ifndef OOALSOUNDDECODER_H
+#define OOALSOUNDDECODER_H
+
 #import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
-@interface OOALSoundDecoder : OOObject
+namespace cxx {
 
-- (id)cxx_initWithPath:(const std::optional<std::string>&)inPath OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
-+ (OOALSoundDecoder*)codecWithPath:(const std::string&)inPath;
+class OOALSoundDecoder : public oo::RefCounted {
+public:
+    /*	Was -cxx_initWithPath:, a class cluster's initialiser: it answered, in place of the
+            receiver, the Vorbis codec for a path whose extension is "ogg", else nil. Null where it
+            answered nil (also when the codec could not open the file).
+    */
+    static oo::Ref<OOALSoundDecoder> initWithPath(const std::optional<std::string>& inPath); // nullopt: null (bead oo-3rb.292.2)
+    static oo::Ref<OOALSoundDecoder> codecWithPath(const std::string& inPath);
 
-// Full-buffer reading.
-- (BOOL)readCreatingBuffer:(char**)outBuffer withFrameCount:(size_t*)outSize;
+    // Full-buffer reading.
+    virtual bool readCreatingBuffer(char** outBuffer, size_t* outSize);
 
-// Stream reading.
-- (size_t)streamToBuffer:(char*)buffer;
+    // Stream reading.
+    virtual size_t streamToBuffer(char* buffer);
 
-// Returns the size of the data -readMonoCreatingBuffer:withFrameCount: will create.
-- (size_t)sizeAsBuffer;
+    // Returns the size of the data readCreatingBuffer() will create.
+    virtual size_t sizeAsBuffer();
 
-- (BOOL)isStereo;
+    virtual bool isStereo();
 
-- (long)sampleRate;
+    virtual long sampleRate();
 
-// For streaming
-- (void)reset;
+    // For streaming
+    virtual void reset();
 
-- (std::optional<std::string>)cxx_name; // (bead oo-3rb.289.2)
+    virtual std::optional<std::string> name(); // (bead oo-3rb.289.2)
 
-@end
+    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
+    // OOObject answered; the codec prints its name and comments.
+    virtual std::optional<std::string> descriptionComponents() const;
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOALSoundDecoder, for the sounds not yet converted.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOALSoundDecoder+ObjCBridge.h"
+
+#endif // OOALSOUNDDECODER_H

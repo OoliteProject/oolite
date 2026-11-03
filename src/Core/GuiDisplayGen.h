@@ -371,6 +371,10 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (oo::PList)cxx_getLastLines; // text, colour, fade time (x 2); null with no rows
 
 - (int)drawGUI:(GLfloat)alpha drawCursor:(BOOL)drawCursor;
+// The row under a virtual-joystick (pointer) position: the row -drawGUI:drawCursor:YES returns for
+// that position, without rendering. A click uses it so that it activates the row under the pointer
+// NOW, not the row of the last render (bead oo-3rb.348).
+- (int)rowAtVirtualJoystickPosition:(NSPoint)vjpos;
 - (void)drawGUIBackground;
 - (void)setStatusPage:(NSInteger)pageNum;
 - (NSUInteger)statusPage;

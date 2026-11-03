@@ -279,10 +279,10 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
 - (BOOL)isOffCentre
 {
-    if (fabs(position.x) + fabs(position.y) > 5.0) {
+    if (fabs(_cxxEntity->position.x) + fabs(_cxxEntity->position.y) > 5.0) {
         return YES;
     }
-    Vector dir = vector_forward_from_quaternion(orientation);
+    Vector dir = vector_forward_from_quaternion(_cxxEntity->orientation);
     if (fabs(dir.x) + fabs(dir.y) > 0.1) {
         return YES;
     }
@@ -298,7 +298,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     const unsigned short shipID = (unsigned short)ship_id; // +numberWithUnsignedShort:
     StationEntity* station = (StationEntity*)[self parentEntity];
 
-    HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
+    HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(_cxxEntity->orientation, [station orientation]));
     HPVector temp = (fabs(launchVector.x) < 0.8) ? make_HPvector(1, 0, 0) : make_HPvector(0, 1, 0);
     temp = HPcross_product(launchVector, temp); // 90 deg to launchVector & temp
     HPVector vi = HPcross_product(launchVector, temp);
@@ -318,7 +318,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
         [self addShipToShipsOnApproach:ship];
 
-        if (ship_distance < 1000.0 + [station collisionRadius] + ship->collision_radius) // too close - back off
+        if (ship_distance < 1000.0 + [station collisionRadius] + ship->_cxxEntity->collision_radius) // too close - back off
             return DockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 5000, "BACK_OFF", NO, -1);
 
         float dot = HPdot_product(launchVector, delta);
@@ -372,8 +372,8 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 
     // check if the ship is at the control point
-    double max_allowed_range = 2.0f * rangeAdvised + ship->collision_radius; // maximum distance permitted from control point - twice advised range
-    HPVector delta = HPvector_subtract(ship->position, coords);
+    double max_allowed_range = 2.0f * rangeAdvised + ship->_cxxEntity->collision_radius; // maximum distance permitted from control point - twice advised range
+    HPVector delta = HPvector_subtract(ship->_cxxEntity->position, coords);
 
     if (HPmagnitude2(delta) > max_allowed_range * max_allowed_range) // too far from the coordinates - do not remove them from the stack!
     {
@@ -449,7 +449,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
         }
     }
 
-    return DockingInstructions(station, ship->position, 0, 100, "HOLD_POSITION", NO, -1);
+    return DockingInstructions(station, ship->_cxxEntity->position, 0, 100, "HOLD_POSITION", NO, -1);
 }
 
 - (void)addShipToShipsOnApproach:(ShipEntity*)ship
@@ -470,7 +470,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     const unsigned short shipID = (unsigned short)[ship universalID]; // +numberWithUnsignedShort:
     StationEntity* station = (StationEntity*)[self parentEntity];
 
-    HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(orientation, [station orientation]));
+    HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(_cxxEntity->orientation, [station orientation]));
     HPVector temp = (fabs(launchVector.x) < 0.8) ? make_HPvector(1, 0, 0) : make_HPvector(0, 1, 0);
     temp = HPcross_product(launchVector, temp); // 90 deg to launchVector & temp
     HPVector rightVector = HPcross_product(launchVector, temp);
@@ -493,7 +493,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     alt1.x -= c * upVector.x * corridor_offset[corridor_count - 1] + s * rightVector.x * corridor_offset[corridor_count - 1];
     alt1.y -= c * upVector.y * corridor_offset[corridor_count - 1] + s * rightVector.y * corridor_offset[corridor_count - 1];
     alt1.z -= c * upVector.z * corridor_offset[corridor_count - 1] + s * rightVector.z * corridor_offset[corridor_count - 1];
-    if (HPdistance2(alt1, ship->position) < HPdistance2(point1, ship->position)) {
+    if (HPdistance2(alt1, ship->_cxxEntity->position) < HPdistance2(point1, ship->_cxxEntity->position)) {
         s = -s;
         c = -c; // turn 180 degrees
     }
@@ -619,9 +619,9 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     BOOL twist = ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y));
 
     if (!twist) {
-        return vector_up_from_quaternion(quaternion_multiply(orientation, [[self parentEntity] orientation]));
+        return vector_up_from_quaternion(quaternion_multiply(_cxxEntity->orientation, [[self parentEntity] orientation]));
     } else {
-        return vector_right_from_quaternion(quaternion_multiply(orientation, [[self parentEntity] orientation]));
+        return vector_right_from_quaternion(quaternion_multiply(_cxxEntity->orientation, [[self parentEntity] orientation]));
     }
 }
 
@@ -672,7 +672,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
         return NO;
     }
 
-    Quaternion q0 = quaternion_multiply(orientation, [station orientation]);
+    Quaternion q0 = quaternion_multiply(_cxxEntity->orientation, [station orientation]);
     Vector vi = vector_right_from_quaternion(q0);
     Vector vj = vector_up_from_quaternion(q0);
     Vector vk = vector_forward_from_quaternion(q0);
@@ -867,7 +867,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
         launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + [station flightSpeed] / [station maxFlightSpeed]);
     }
     Quaternion q1 = [station orientation];
-    q1 = quaternion_multiply(orientation, q1);
+    q1 = quaternion_multiply(_cxxEntity->orientation, q1);
     Vector launchVector = vector_forward_from_quaternion(q1);
 
     // launch orientation
@@ -988,14 +988,14 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
         if ((ship != station) && (d2 < 25000000) && ([ship status] != STATUS_DOCKED)) // within 5km
         {
             HPVector ppos = [self absolutePositionForSubentity];
-            d2 = HPdistance2(ppos, ship->position);
+            d2 = HPdistance2(ppos, ship->_cxxEntity->position);
             if (d2 < 4000000) // within 2km of the port entrance
             {
                 Quaternion q1 = [station orientation];
                 q1 = quaternion_multiply([self orientation], q1);
                 //
                 HPVector v_out = HPvector_forward_from_quaternion(q1);
-                HPVector r_pos = make_HPvector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
+                HPVector r_pos = make_HPvector(ship->_cxxEntity->position.x - ppos.x, ship->_cxxEntity->position.y - ppos.y, ship->_cxxEntity->position.z - ppos.z);
                 if (r_pos.x || r_pos.y || r_pos.z)
                     r_pos = HPvector_normal(r_pos);
                 else
@@ -1030,7 +1030,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     int ship_count = 0;
 
     for (i = 0; i < ent_count; i++) {
-        if (uni_entities[i]->isShip) {
+        if (uni_entities[i]->_cxxEntity->isShip) {
             my_entities[ship_count++] = [uni_entities[i] retain]; //	retained
         }
     }
@@ -1044,14 +1044,14 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
             float time_out = -15.00; // 15 secs
             do {
                 isClear = YES;
-                d2 = HPdistance2(ppos, ship->position);
+                d2 = HPdistance2(ppos, ship->_cxxEntity->position);
                 if (d2 < 4000000) // within 2km of the port entrance
                 {
                     Quaternion q1 = [station orientation];
                     q1 = quaternion_multiply([self orientation], q1);
                     //
                     Vector v_out = vector_forward_from_quaternion(q1);
-                    Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
+                    Vector r_pos = make_vector(ship->_cxxEntity->position.x - ppos.x, ship->_cxxEntity->position.y - ppos.y, ship->_cxxEntity->position.z - ppos.z);
                     if (r_pos.x || r_pos.y || r_pos.z)
                         r_pos = vector_normal(r_pos);
                     else
@@ -1067,8 +1067,8 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
                         time_out += 0.25;
                     }
                     if (time_out > 0) {
-                        HPVector v1 = HPvector_forward_from_quaternion(orientation);
-                        HPVector spos = ship->position;
+                        HPVector v1 = HPvector_forward_from_quaternion(_cxxEntity->orientation);
+                        HPVector spos = ship->_cxxEntity->position;
                         spos.x += 3000.0 * v1.x;
                         spos.y += 3000.0 * v1.y;
                         spos.z += 3000.0 * v1.z;
@@ -1094,14 +1094,14 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
         port_dimensions = make_vector(bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z);
     }
 
-    HPVector vk = HPvector_forward_from_quaternion(orientation);
+    HPVector vk = HPvector_forward_from_quaternion(_cxxEntity->orientation);
 
     BoundingBox stbb = [station boundingBox];
-    HPVector start = position;
+    HPVector start = _cxxEntity->position;
     while ((start.x > stbb.min.x) && (start.x < stbb.max.x) && (start.y > stbb.min.y) && (start.y < stbb.max.y) && (start.z > stbb.min.z) && (start.z < stbb.max.z)) {
         start = HPvector_add(start, HPvector_multiply_scalar(vk, port_dimensions.z));
     }
-    port_corridor = start.z - position.z;
+    port_corridor = start.z - _cxxEntity->position.z;
 
     allow_docking = docking;
     disallowed_docking_collides = ddc;
@@ -1161,8 +1161,8 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 {
     OOJS_PROFILE_ENTER
 
-    isShip = YES;
-    isStation = NO;
+    _cxxEntity->isShip = YES;
+    _cxxEntity->isStation = NO;
 
     if (![super setUpShipFromDictionary:dict])
         return NO;

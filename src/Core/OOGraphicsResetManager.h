@@ -46,6 +46,14 @@ SOFTWARE.
 
 namespace cxx {
 
+// A converted client (amendment oo-jpd8 item 3, added by bead oo-4jjl for OOSkyDrawable): the
+// protocol OOGraphicsResetClient's method as a pure virtual. It registers with registerCxxClient().
+class OOGraphicsResetClient {
+public:
+    virtual ~OOGraphicsResetClient() = default;
+    virtual void resetGraphicsState() = 0;
+};
+
 // A client is an Objective-C object adopting OOGraphicsResetClient (OOGraphicsResetManager+ObjCBridge.h),
 // which is sent -resetGraphicsState.
 class OOGraphicsResetManager : public oo::RefCounted {
@@ -60,11 +68,16 @@ public:
     void registerClient(id client);
     void unregisterClient(id client);
 
+    // The same for a C++ client (not retained either; null is never registered).
+    void registerCxxClient(OOGraphicsResetClient* client);
+    void unregisterCxxClient(OOGraphicsResetClient* client);
+
     // Forwarded to all clients, after resetting textures.
     void resetGraphicsState();
 
 private:
     std::unordered_set<id> clients = { }; // not retained; was a Foundation mutable set of boxed values (bead oo-3rb.10)
+    std::unordered_set<OOGraphicsResetClient*> cxxClients = { }; // not retained
 };
 
 } // namespace cxx

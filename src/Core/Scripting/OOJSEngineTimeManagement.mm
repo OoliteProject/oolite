@@ -52,51 +52,33 @@ void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime)
 
 #if OOJS_PROFILE
 
-static BOOL sProfiling = NO;
-static BOOL sTracing = NO;
+namespace {
+static bool sProfiling = false;
+static bool sTracing = false;
+} // namespace
 static OOJSProfileStackFrame* sProfileStack = NULL;
 // Profile key (native name or JS function, by pointer) -> entry, retained. Was a map table with
 // non-owned pointer keys and retained object values (bead oo-3rb.20).
-static std::unordered_map<const void*, OOTimeProfileEntry*>* sProfileInfo;
+namespace {
+static std::unordered_map<const void*, oo::Ref<cxx::OOTimeProfileEntry>>* sProfileInfo;
 
-static OOTimeProfileEntry* ProfileEntryForKey(const void* key)
+static cxx::OOTimeProfileEntry* ProfileEntryForKey(const void* key)
 {
     auto found = sProfileInfo->find(key);
-    return (found != sProfileInfo->end()) ? found->second : nil;
+    return (found != sProfileInfo->end()) ? found->second.get() : nullptr;
 }
+} // namespace
 static double sProfilerOverhead;
 static double sProfilerTotalNativeTime;
 static double sProfilerEntryTimeLimit;
 static OOHighResTimeValue sProfilerStartTime;
 
-@interface OOTimeProfile (Private)
-
-- (void)setTotalTime:(double)value;
-- (void)setNativeTime:(double)value;
-- (void)setProfilerOverhead:(double)value;
-- (void)setExtensionTime:(double)value;
-- (void)setProfileEntries:(const std::vector<oo::ObjCRef<OOTimeProfileEntry*>>&)value;
-
-- (oo::PList)propertyListRepresentation;
-
-@end
-
-@interface OOTimeProfileEntry (Private)
-
-- (id)initWithCName:(const char*)name;
-
-- (void)addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime;
-
-- (oo::PList)propertyListRepresentation;
-
-@end
-
-void OOJSBeginProfiling(BOOL trace)
+void OOJSBeginProfiling(bool trace)
 {
-    assert(sProfiling == NO);
-    sProfiling = YES;
+    assert(sProfiling == false);
+    sProfiling = true;
     sTracing = trace;
-    sProfileInfo = new std::unordered_map<const void*, OOTimeProfileEntry*>;
+    sProfileInfo = new std::unordered_map<const void*, oo::Ref<cxx::OOTimeProfileEntry>>;
     sProfileInfo->reserve(100);
     sProfilerOverhead = 0.0;
     sProfilerTotalNativeTime = 0.0;
@@ -120,33 +102,31 @@ OOTimeProfile* OOJSEndProfiling(void)
 
     assert(sProfiling && sProfileStack == NULL);
 
-    sProfiling = NO;
+    sProfiling = false;
 
-    OOTimeProfile* result = [[OOTimeProfile alloc] init];
+    oo::Ref<cxx::OOTimeProfile> result = oo::makeRef<cxx::OOTimeProfile>();
 
-    [result setTotalTime:OOHighResTimeDeltaInSeconds(sProfilerStartTime, now)];
-    [result setNativeTime:sProfilerTotalNativeTime];
-    [result setProfilerOverhead:sProfilerOverhead];
+    result->setTotalTime(OOHighResTimeDeltaInSeconds(sProfilerStartTime, now));
+    result->setNativeTime(sProfilerTotalNativeTime);
+    result->setProfilerOverhead(sProfilerOverhead);
 
     double currentTimeLimit = OOJSGetTimeLimiterLimit();
-    [result setExtensionTime:currentTimeLimit - sProfilerEntryTimeLimit];
+    result->setExtensionTime(currentTimeLimit - sProfilerEntryTimeLimit);
 
-    std::vector<oo::ObjCRef<OOTimeProfileEntry*>> entries;
+    std::vector<oo::Ref<cxx::OOTimeProfileEntry>> entries;
     entries.reserve(sProfileInfo->size());
     for (const auto& keyAndEntry : *sProfileInfo)
         entries.emplace_back(keyAndEntry.second);
-    std::stable_sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) { return [a.get() compareBySelfTimeReverse:b.get()] == OOOrderedAscending; });
-    [result setProfileEntries:entries];
+    std::stable_sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) { return a->compareBySelfTimeReverse(b.get()) == OOOrderedAscending; });
+    result->setProfileEntries(entries);
 
     if (sTracing) {
         oo::log::outdent();
         OO_LOG("script.javaScript.trace", "{}", "<<<< End of trace.");
-        sTracing = NO;
+        sTracing = false;
     }
 
-    // Clean up.
-    for (const auto& keyAndEntry : *sProfileInfo)
-        [keyAndEntry.second release];
+    // Clean up (the table held the entries' references).
     delete sProfileInfo;
     sProfileInfo = NULL;
     OODisposeHighResTime(sProfilerStartTime);
@@ -154,15 +134,17 @@ OOTimeProfile* OOJSEndProfiling(void)
     OODisposeHighResTime(now);
 
     OOJSResumeTimeLimiter();
-    return [result autorelease];
+    return oo::ToObjC(result.get()); // autoreleased; the facade holds the profile
 }
 
-BOOL OOJSIsProfiling(void)
+bool OOJSIsProfiling(void)
 {
     return sProfiling;
 }
 
+namespace {
 static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame* frame);
+} // namespace
 
 void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function)
 {
@@ -200,7 +182,7 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame)
 
     OOHighResTimeValue now = OOGetHighResTime();
     @autoreleasepool {
-        BOOL done = NO;
+        bool done = false;
 
         // Pop any frames above this one, as for a native that threw.
         for (;;) {
@@ -224,19 +206,21 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame)
     OODisposeHighResTime(end);
 }
 
+namespace {
 static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame* frame)
 {
     sProfileStack = frame->back;
 
-    OOTimeProfileEntry* entry = ProfileEntryForKey(frame->key);
-    if (entry == nil) {
-        entry = [[OOTimeProfileEntry alloc] initWithCName:frame->function];
-        (*sProfileInfo)[frame->key] = entry; // the table's reference
+    cxx::OOTimeProfileEntry* entry = ProfileEntryForKey(frame->key);
+    if (entry == nullptr) {
+        const oo::Ref<cxx::OOTimeProfileEntry> made = oo::makeRef<cxx::OOTimeProfileEntry>(frame->function);
+        (*sProfileInfo)[frame->key] = made; // the table's reference
+        entry = made.get();
     }
 
     OOTimeDelta time = OOHighResTimeDeltaInSeconds(frame->startTime, now);
     OOTimeDelta selfTime = time - frame->subTime;
-    [entry addSampleWithTotalTime:time selfTime:selfTime];
+    entry->addSampleWithTotalTime(time, selfTime);
 
     *(frame->total) += selfTime;
     if (sProfileStack != NULL)
@@ -245,12 +229,13 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     if (EXPECT_NOT(sTracing))
         oo::log::outdent();
 }
+} // namespace
 
-@implementation OOTimeProfile
+namespace cxx {
 
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OOTimeProfile::description()
 {
-    double totalTime = [self totalTime];
+    double totalTime = this->totalTime();
 
     std::string result = oo::str::format(
         "Total time: %g ms\n"
@@ -258,132 +243,127 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
         "Counted towards limit: %g ms, excluded: %g ms\n"
         "Profiler overhead: %g ms",
         totalTime * 1000.0,
-        [self javaScriptTime] * 1000.0, [self nativeTime] * 1000.0,
-        [self nonExtensionTime] * 1000.0, [self extensionTime] * 1000.0,
-        [self profilerOverhead] * 1000.0);
+        javaScriptTime() * 1000.0, nativeTime() * 1000.0,
+        nonExtensionTime() * 1000.0, extensionTime() * 1000.0,
+        profilerOverhead() * 1000.0);
 
-    const std::vector<oo::ObjCRef<OOTimeProfileEntry*>>& profileEntries = _profileEntries;
+    const std::vector<oo::Ref<OOTimeProfileEntry>>& profileEntries = _profileEntries;
     NSUInteger i, count = profileEntries.size();
     if (count != 0) {
         result += "\n                                                        NAME  T  COUNT    TOTAL     SELF  TOTAL%   SELF%  SELFMAX";
         for (i = 0; i < count; i++) {
             OOTimeProfileEntry* entry = profileEntries[i].get();
 
-            double totalPc = [entry totalTimeSum] * 100.0 / totalTime;
-            double selfPc = [entry selfTimeSum] * 100.0 / totalTime;
+            double totalPc = entry->totalTimeSum() * 100.0 / totalTime;
+            double selfPc = entry->selfTimeSum() * 100.0 / totalTime;
 
             result += oo::str::format("\n%60s  %c%7lu %8.2f %8.2f   %5.1f   %5.1f %8.2f",
-                [entry cxx_function].value_or("(null)").c_str(),
-                [entry isJavaScriptFrame] ? 'J' : 'N',
-                (unsigned long)[entry hitCount], [entry totalTimeSum] * 1000.0, [entry selfTimeSum] * 1000.0, totalPc, selfPc, [entry selfTimeMax] * 1000.0);
+                entry->function().value_or("(null)").c_str(),
+                entry->isJavaScriptFrame() ? 'J' : 'N',
+                (unsigned long)entry->hitCount(), entry->totalTimeSum() * 1000.0, entry->selfTimeSum() * 1000.0, totalPc, selfPc, entry->selfTimeMax() * 1000.0);
         }
     }
 
     return result;
 }
 
-- (double)totalTime
+double OOTimeProfile::totalTime()
 {
     return _totalTime;
 }
 
-- (void)setTotalTime:(double)value
+void OOTimeProfile::setTotalTime(double value)
 {
     _totalTime = value;
 }
 
-- (double)javaScriptTime
+double OOTimeProfile::javaScriptTime()
 {
     return _totalTime - _nativeTime;
 }
 
-- (double)nativeTime
+double OOTimeProfile::nativeTime()
 {
     return _nativeTime;
 }
 
-- (void)setNativeTime:(double)value
+void OOTimeProfile::setNativeTime(double value)
 {
     _nativeTime = value;
 }
 
-- (double)extensionTime
+double OOTimeProfile::extensionTime()
 {
     return _extensionTime;
 }
 
-- (void)setExtensionTime:(double)value
+void OOTimeProfile::setExtensionTime(double value)
 {
     _extensionTime = value;
 }
 
-- (double)nonExtensionTime
+double OOTimeProfile::nonExtensionTime()
 {
     return _totalTime - _extensionTime;
 }
 
-- (double)profilerOverhead
+double OOTimeProfile::profilerOverhead()
 {
     return _profilerOverhead;
 }
 
-- (void)setProfilerOverhead:(double)value
+void OOTimeProfile::setProfilerOverhead(double value)
 {
     _profilerOverhead = value;
 }
 
-- (std::vector<oo::ObjCRef<OOTimeProfileEntry*>>)profileEntries
+std::vector<oo::Ref<OOTimeProfileEntry>> OOTimeProfile::profileEntries()
 {
     return _profileEntries;
 }
 
-- (void)setProfileEntries:(const std::vector<oo::ObjCRef<OOTimeProfileEntry*>>&)value
+void OOTimeProfile::setProfileEntries(const std::vector<oo::Ref<OOTimeProfileEntry>>& value)
 {
     _profileEntries = value;
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue OOTimeProfile::oo_jsValueInContext(JSContext* context)
 {
-    return OOJSValueFromPList(context, [self propertyListRepresentation]);
+    return OOJSValueFromPList(context, propertyListRepresentation());
 }
 
-- (oo::PList)propertyListRepresentation
+oo::PList OOTimeProfile::propertyListRepresentation()
 {
     // "profiles" holds each entry's own property list.
     oo::PList::Array profiles;
     profiles.reserve(_profileEntries.size());
     for (const auto& entry : _profileEntries)
-        profiles.push_back([entry.get() propertyListRepresentation]);
+        profiles.push_back(entry->propertyListRepresentation());
 
     oo::PList::Dict result;
     result.emplace("profiles", oo::PList(std::move(profiles)));
-    result.emplace("totalTime", oo::PList([self totalTime]));
-    result.emplace("javaScriptTime", oo::PList([self javaScriptTime]));
-    result.emplace("nativeTime", oo::PList([self nativeTime]));
-    result.emplace("extensionTime", oo::PList([self extensionTime]));
-    result.emplace("nonExtensionTime", oo::PList([self nonExtensionTime]));
-    result.emplace("profilerOverhead", oo::PList([self profilerOverhead]));
+    result.emplace("totalTime", oo::PList(totalTime()));
+    result.emplace("javaScriptTime", oo::PList(javaScriptTime()));
+    result.emplace("nativeTime", oo::PList(nativeTime()));
+    result.emplace("extensionTime", oo::PList(extensionTime()));
+    result.emplace("nonExtensionTime", oo::PList(nonExtensionTime()));
+    result.emplace("profilerOverhead", oo::PList(profilerOverhead()));
     return oo::PList(std::move(result));
 }
 
-@end
-
-@implementation OOTimeProfileEntry
-
-- (id)initWithCName:(const char*)name
+OOTimeProfileEntry::OOTimeProfileEntry(const char* name)
 {
-    OOAssert(sProfiling, "Can't create profile entries while not profiling.");
+    OOCAssert(sProfiling, "Can't create profile entries while not profiling.");
 
-    if ((self = [super init])) {
+    {
         if (name != NULL) {
             _function = std::string(name);
         }
     }
-
-    return self;
 }
 
-- (void)addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime
+
+void OOTimeProfileEntry::addSampleWithTotalTime(OOTimeDelta totalTime, OOTimeDelta selfTime)
 {
     _hitCount++;
     _totalTimeSum += totalTime;
@@ -392,7 +372,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     _selfTimeMax = fmax(_selfTimeMax, selfTime);
 }
 
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OOTimeProfileEntry::description()
 {
     const char* function = _function.has_value() ? _function->c_str() : "(null)"; // as %@ printed nil
     if (_hitCount == 0)
@@ -419,60 +399,60 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     }
 }
 
-- (std::optional<std::string>)cxx_function
+std::optional<std::string> OOTimeProfileEntry::function()
 {
     return _function;
 }
 
-- (NSUInteger)hitCount
+NSUInteger OOTimeProfileEntry::hitCount()
 {
     return _hitCount;
 }
 
-- (double)totalTimeSum
+double OOTimeProfileEntry::totalTimeSum()
 {
     return _totalTimeSum;
 }
 
-- (double)selfTimeSum
+double OOTimeProfileEntry::selfTimeSum()
 {
     return _selfTimeSum;
 }
 
-- (double)totalTimeAverage
+double OOTimeProfileEntry::totalTimeAverage()
 {
     return _hitCount ? (_totalTimeSum / _hitCount) : 0.0;
 }
 
-- (double)selfTimeAverage
+double OOTimeProfileEntry::selfTimeAverage()
 {
     return _hitCount ? (_selfTimeSum / _hitCount) : 0.0;
 }
 
-- (double)totalTimeMax
+double OOTimeProfileEntry::totalTimeMax()
 {
     return _totalTimeMax;
 }
 
-- (double)selfTimeMax
+double OOTimeProfileEntry::selfTimeMax()
 {
     return _selfTimeMax;
 }
 
-- (BOOL)isJavaScriptFrame
+bool OOTimeProfileEntry::isJavaScriptFrame()
 {
-    return NO;
+    return false;
 }
 
-- (OOComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other
+OOComparisonResult OOTimeProfileEntry::compareByTotalTime(OOTimeProfileEntry* other)
 {
-    return (OOComparisonResult)-[self compareByTotalTimeReverse:other];
+    return (OOComparisonResult)-compareByTotalTimeReverse(other);
 }
 
-- (OOComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other
+OOComparisonResult OOTimeProfileEntry::compareByTotalTimeReverse(OOTimeProfileEntry* other)
 {
-    double selfTotal = [self totalTimeSum];
-    double otherTotal = [other totalTimeSum];
+    double selfTotal = totalTimeSum();
+    double otherTotal = (other != nullptr) ? other->totalTimeSum() : 0.0; // (a message to nil gave 0)
 
     if (selfTotal < otherTotal)
         return OOOrderedDescending;
@@ -481,15 +461,15 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     return OOOrderedSame;
 }
 
-- (OOComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other
+OOComparisonResult OOTimeProfileEntry::compareBySelfTime(OOTimeProfileEntry* other)
 {
-    return (OOComparisonResult)-[self compareBySelfTimeReverse:other];
+    return (OOComparisonResult)-compareBySelfTimeReverse(other);
 }
 
-- (OOComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other
+OOComparisonResult OOTimeProfileEntry::compareBySelfTimeReverse(OOTimeProfileEntry* other)
 {
-    double selfTotal = [self selfTimeSum];
-    double otherTotal = [other selfTimeSum];
+    double selfTotal = selfTimeSum();
+    double otherTotal = (other != nullptr) ? other->selfTimeSum() : 0.0; // (a message to nil gave 0)
 
     if (selfTotal < otherTotal)
         return OOOrderedDescending;
@@ -498,29 +478,29 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     return OOOrderedSame;
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue OOTimeProfileEntry::oo_jsValueInContext(JSContext* context)
 {
-    return OOJSValueFromPList(context, [self propertyListRepresentation]);
+    return OOJSValueFromPList(context, propertyListRepresentation());
 }
 
-- (oo::PList)propertyListRepresentation
+oo::PList OOTimeProfileEntry::propertyListRepresentation()
 {
     oo::PList::Dict result;
     // A nameless entry gave an empty dictionary: its nil name ended the object/key list.
     if (_function.has_value()) {
         result.emplace("name", oo::PList(*_function));
-        result.emplace("hitCount", oo::PList::unsignedInteger([self hitCount]));
-        result.emplace("totalTimeSum", oo::PList([self totalTimeSum]));
-        result.emplace("selfTimeSum", oo::PList([self selfTimeSum]));
-        result.emplace("totalTimeAverage", oo::PList([self totalTimeAverage]));
-        result.emplace("selfTimeAverage", oo::PList([self selfTimeAverage]));
-        result.emplace("totalTimeMax", oo::PList([self totalTimeMax]));
-        result.emplace("selfTimeMax", oo::PList([self selfTimeMax]));
-        result.emplace("isJavaScriptFrame", oo::PList(static_cast<bool>([self isJavaScriptFrame])));
+        result.emplace("hitCount", oo::PList::unsignedInteger(hitCount()));
+        result.emplace("totalTimeSum", oo::PList(totalTimeSum()));
+        result.emplace("selfTimeSum", oo::PList(selfTimeSum()));
+        result.emplace("totalTimeAverage", oo::PList(totalTimeAverage()));
+        result.emplace("selfTimeAverage", oo::PList(selfTimeAverage()));
+        result.emplace("totalTimeMax", oo::PList(totalTimeMax()));
+        result.emplace("selfTimeMax", oo::PList(selfTimeMax()));
+        result.emplace("isJavaScriptFrame", oo::PList(static_cast<bool>(isJavaScriptFrame())));
     }
     return oo::PList(std::move(result));
 }
 
-@end
+} // namespace cxx
 
 #endif

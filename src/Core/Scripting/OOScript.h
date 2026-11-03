@@ -13,6 +13,16 @@ the order of precedence is:
 //	script.oos		(OOS)
         script.plist	(property list)
 
+C++20 since bead oo-604l (proposed ADR-0056, Amendment 1 of bead oo-cwz: a hierarchy root, as
+amendment oo-6bux's OOJoystickManager). The script is cxx::OOScript. Its subclasses are still
+Objective-C (OOJSScript) or a facade that subclasses the Objective-C root (OOPListScript, amendment
+oo-o89), as are the callers, so the Objective-C OOScript in OOScript+ObjCBridge.h (imported at the
+end of this header) is both their facade and the subclasses' superclass. The methods a subclass
+overrides (name, scriptDescription, version, requiresTickle, runWithTarget, and the description's
+components) are virtual; an Objective-C subclass's C++ part is an adapter whose overrides message
+it. The class methods that load scripts are static members; they still make the subclasses'
+Objective-C objects, which they answer as the root's facade.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -33,38 +43,56 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOSCRIPT_H
+#define OOSCRIPT_H
+
 #import "OOFoundation.h"
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
-#import "oofnd/objc/OOObject.h"
 
-@class Entity;
+#include <optional>
+#include <string>
+#include <vector>
 
-@interface OOScript : OOObject
+@class OOScript, Entity;
 
-/*	Looks for path/world-scripts.plist, path/script.js, then path/script.plist.
-        May return zero or more scripts; nullopt (was nil) when none could be loaded.
-*/
-+ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)cxx_worldScriptsAtPath:(const std::string&)path;
+namespace cxx {
 
-//	Load named scripts from Scripts folders. nullopt where these returned nil.
-+ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsFromFileNamed:(const std::string&)fileName;
-+ (std::vector<oo::ObjCRef<OOScript*>>)scriptsFromList:(const std::vector<std::string>&)fileNames;
+class OOScript : public oo::RefCounted {
+public:
+    /*	Looks for path/world-scripts.plist, path/script.js, then path/script.plist.
+            May return zero or more scripts; nullopt (was nil) when none could be loaded.
+    */
+    static std::optional<std::vector<oo::ObjCRef<::OOScript*>>> worldScriptsAtPath(const std::string& path);
 
-+ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsFromFileAtPath:(const std::string&)filePath;
+    //	Load named scripts from Scripts folders. nullopt where these returned nil.
+    static std::optional<std::vector<oo::ObjCRef<::OOScript*>>> scriptsFromFileNamed(const std::string& fileName);
+    static std::vector<oo::ObjCRef<::OOScript*>> scriptsFromList(const std::vector<std::string>& fileNames);
 
-//	Load a single JavaScript script. The properties may hold live objects (oo::PList Object nodes).
-+ (id)cxx_jsScriptFromFileNamed:(const std::string&)fileName properties:(const oo::PList&)properties;
-//  As above, but load from the "AIs" directory
-+ (id)cxx_jsAIScriptFromFileNamed:(const std::string&)fileName properties:(const oo::PList&)properties;
+    static std::optional<std::vector<oo::ObjCRef<::OOScript*>>> scriptsFromFileAtPath(const std::string& filePath);
 
-- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.6)
-- (std::optional<std::string>)scriptDescription; // nullopt: none
-- (std::optional<std::string>)cxx_version; // nullopt: none (bead oo-3rb.291.1)
-- (std::optional<std::string>)displayName; // flipped with its family (bead oo-3rb.267): "name version" if version is defined, otherwise just "name".
+    //	Load a single JavaScript script (an OOJSScript, or nil). The properties may hold live objects (oo::PList Object nodes).
+    static id jsScriptFromFileNamed(const std::string& fileName, const oo::PList& properties);
+    //  As above, but load from the "AIs" directory
+    static id jsAIScriptFromFileNamed(const std::string& fileName, const oo::PList& properties);
 
-- (BOOL)requiresTickle;
-- (void)runWithTarget:(Entity*)target;
+    // The subclass responsibilities (Amendment 1 item 2). The root's own answer none, logging an error.
+    virtual std::optional<std::string> descriptionComponents();
+    virtual std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.6)
+    virtual std::optional<std::string> scriptDescription(); // nullopt: none
+    virtual std::optional<std::string> version(); // nullopt: none (bead oo-3rb.291.1)
+    virtual bool requiresTickle();
+    virtual void runWithTarget(::Entity* target);
 
-@end
+    std::optional<std::string> displayName(); // flipped with its family (bead oo-3rb.267): "name version" if version is defined, otherwise just "name".
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOScript, for callers and subclasses not yet converted. Deleted,
+// with namespace cxx above, by the bridge's deletion bead.
+#import "OOScript+ObjCBridge.h"
+
+#endif // OOSCRIPT_H

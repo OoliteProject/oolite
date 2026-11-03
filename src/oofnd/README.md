@@ -66,6 +66,11 @@ Rules that hold for every component:
 
 ## Migrating oo_*ForKey
 
+> **History (ADR-0055).** This recipe is kept as the record of what the sweep beads did. Its
+> header, `src/Core/OOPListView.h`, was deleted by oo-snzn with `OOCollectionExtractors`; do not recreate it or import it. Code written today holds
+> C++ values: `oo::PList`'s own `get<T>`/`at<T>` (`oofnd/PListGet.hpp`), and an Objective-C object in a
+> property list goes through `Core/OOObjCPList.h`.
+
 The recipe for every `sweep:extractors` bead ("Retire oo_*ForKey in <file>"). Proposed
 [ADR-0031](../../../../docs/decisions/0031-plist-get-and-the-foundation-bridge.md); exemplar
 `src/Core/Entities/OOWaypointEntity.mm` (bead oo-u77) - open it and do what it does.
@@ -75,9 +80,9 @@ The file keeps its Foundation collections. Each call goes through `oo::PListView
 the same lookup and calls the same conversion function as the category method it replaces, so the
 change is behaviour-preserving by construction. Do exactly this, nothing else:
 
-1. **Import.** Replace `#import "OOCollectionExtractors.h"` with `#import "OOPListView.h"` (the view
-   imports it, so nothing is lost). If the file has no such import, add `#import "OOPListView.h"`
-   after its last `#import`.
+1. **Import** (history). The bead swapped the file's `OOCollectionExtractors.h` import for the
+   view's header, `OOPListView.h` (the view imported it, so nothing was lost), or added the view's
+   header after the file's last import.
 2. **Rewrite each call.** Receiver, key, index and fallback expressions move over **unchanged**
    (keep `@"..."`, `#define`d keys and `NSString *` constants as they are):
 
@@ -132,14 +137,19 @@ becomes `x.` and the Objective-C types map to `std::string`, `PList::Array`, `PL
 
 ## Migrating NSString category calls (oo::str)
 
+> **History (ADR-0055).** This recipe is kept as the record of what the sweep beads did. Its
+> header, `src/Core/OOStringBridge.h`, was deleted by oo-qps.16; do not recreate it or import it. Code written today holds
+> C++ values: call `oo::str` on the `std::string` directly (the table in `String.hpp`'s banner),
+> with no `oo::StdString` / `oo::StringMap` / `oo::NSStringFrom` around it.
+
 The recipe for a file's `NSStringOOExtensions` / `NSString (OOUtilities)` calls (seam 2.5b, bead
 oo-dps; proposed [ADR-0034](../../../../docs/decisions/0034-oofnd-strings.md)); exemplar
 `src/Core/OOOXZManager.mm`. The file keeps its `NSString`s; each call goes through the bridge in
 `src/Core/OOStringBridge.h`.
 
-1. **Import.** Replace `#import "NSStringOOExtensions.h"` with `#import "OOStringBridge.h"`; if the
-   file has no such import (the call came through `OOStringParsing.h`), add it after its last
-   `#import`. Keep `OOStringParsing.h` if the file uses anything else from it.
+1. **Import** (history). The bead swapped the file's `NSStringOOExtensions.h` import for the
+   string bridge header, `OOStringBridge.h`, or added the bridge header after its last import when
+   the call came through `OOStringParsing.h` (kept if the file used anything else from it).
 2. **Rewrite each call** (the table is in `String.hpp`'s banner):
 
    | Objective-C | becomes |
@@ -165,12 +175,18 @@ retained a string, take `std::string_view` / `const std::string&` or move; copy 
 
 ## Migrating NSScanner / NSCharacterSet calls (oo::str::Scanner)
 
+> **History (ADR-0055).** This recipe is kept as the record of what the sweep beads did. Its
+> header, `src/Core/OOStringBridge.h`, was deleted by oo-qps.16; do not recreate it or import it. Code written today holds
+> C++ values: `#include "oofnd/Scanner.hpp"` and construct `oo::str::Scanner` from the
+> `std::string` itself.
+
 The recipe for the `NSScanner` / `NSCharacterSet` chunk beads (bead oo-3rb.12; proposed
 [ADR-0039](../../../../docs/decisions/0039-oofnd-scanner.md)); exemplars `src/Core/OOColor.mm`,
 `src/Core/OORoleSet.mm`, `src/Core/OOStringParsing.mm`. The file keeps its `NSString`s and bridges
 per call (`OOStringBridge.h`).
 
-1. **Include** `#import "OOStringBridge.h"` and `#include "oofnd/Scanner.hpp"` after the last `#import`.
+1. **Include** (history) the string bridge header, `OOStringBridge.h`, and `#include "oofnd/Scanner.hpp"`
+   after the last import. Today only the `Scanner.hpp` include remains.
 2. **Rewrite each call** (the full table is in `Scanner.hpp`'s banner):
 
    | Objective-C | becomes |
@@ -251,8 +267,13 @@ acceptance grep matches (comments included), the whole tree builds, and the game
 
 Use `oofnd/StdLib.hpp` for standard containers (never `<vector>` directly: OOFoundation.h's
 `true`/`false` macros), `oofnd/String.hpp` for `oo::str`, `oofnd/PList.hpp` for `oo::PList`,
-`oofnd/objc/OOObjCRef.h` for `oo::ObjCRef`, and `#import "OOFoundationBridge.h"` (which brings
-`OOStringBridge.h`) for the boundary helpers.
+`oofnd/objc/OOObjCRef.h` for `oo::ObjCRef`, `Core/OOObjCPList.h` for an Objective-C object inside a
+property list (`oo::PListObject`, `oo::ObjectIn`, `oo::PListFromObjects`, `oo::ObjCRefsIn`), and
+`oo::DescriptionOf` (`Core/OODescription.h`, imported by `OOFoundation.h`) for `%@` text. The boundary
+helpers this step used to name (`oo::StdString`, `oo::NSStringFrom`, `oo::NSStringOrNil`,
+`oo::NSArrayFromStrings` & co.) lived in `OOFoundationBridge.h` / `OOStringBridge.h`, deleted by
+oo-qps.16 (ADR-0055): where the tables below still name them they are history, and the forms that
+replace them are in "The last Foundation boundaries (ADR-0055)".
 
 | Foundation | inside the file (ivars, locals, statics) | parameter of a unique selector / C function | result of a unique **method** (receiver may be nil) | result of a C function |
 |---|---|---|---|---|
@@ -313,7 +334,8 @@ direct caller **at the call expression only**, in the same commit:
 | use of the result as a dictionary of numbers | `std::optional<std::map<std::string, float>>` | build it in the caller's own Foundation code: `for (const auto &[k, v] : *m) [d setObject:[NSNumber numberWithFloat:v] forKey:oo::NSStringFrom(k)];` (the exact NSNumber type the old code stored) |
 | a nil receiver whose nil result mattered (e.g. handed to JavaScript, where nil is not `[]`) | any collection result | test the receiver: `r != nil ? oo::NSArrayFromStrings([r foo]) : nil` (`OOJSShip.mm`, `kShip_roles`) |
 
-Add `#import "OOFoundationBridge.h"` (or `OOStringBridge.h`) after the caller's last import. Change
+(History: the bead also added the bridge header, `OOFoundationBridge.h` or `OOStringBridge.h`, after
+the caller's last import; both are deleted (ADR-0055), and a caller today holds C++ values.) Change
 nothing else in the caller. A caller whose own bead has landed already holds C++ values: pass them
 directly.
 
@@ -383,6 +405,9 @@ Root-class selectors are shared by construction: `-description`, `-descriptionCo
 
 ### 6. Over budget: a transitional bridge
 
+> **History (ADR-0055).** No bridge can be made now: every one was deleted (see "Transitional
+> bridges" below), and so was the bridge header they imported. The steps record how they were built.
+
 For a file `X` whose unique Foundation-typed API has too many direct callers (exemplar
 `OOColor.mm`):
 
@@ -394,7 +419,7 @@ For a file `X` whose unique Foundation-typed API has too many direct callers (ex
    it), an include guard, no imports, and a category `@interface X (OOFoundationBridge)` holding
    the old declarations **copied exactly** (same selector names, same types) plus the old C
    function prototypes. Create `X+FoundationBridge.mm`: `#import "X.h"` and
-   `#import "OOFoundationBridge.h"`, and implement each old method by forwarding to its `cxx_`
+   the boundary helper header, `OOFoundationBridge.h`, and implement each old method by forwarding to its `cxx_`
    twin and converting the result as the old code built it (the same NSNumber type, nil for nil,
    immutable collections).
 3. Add `#import "X+FoundationBridge.h"` as the LAST line of `X.h`, under a comment saying it is

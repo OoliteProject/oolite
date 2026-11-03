@@ -11,7 +11,8 @@
 	leave), dead members leaving, the two member arrays, the cursor (and its mutation check), and
 	the description text. The C++ test then pins the same through cxx::OOShipGroup, and the last
 	test the facade's contract (alloc/init from Objective-C, one facade per group, nil stays nil,
-	the cursor's transitional constructor).
+	the cursor's transitional constructor). A dying group lets go of its weak reference to its
+	leader as it does of its members' (bead oo-9ht.24).
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -54,6 +55,17 @@
 	lastOwner = owner;
 }
 
+@end
+
+
+// A ship that says whether a weak reference to it is still alive: OOWeakRefObject keeps one
+// (weakSelf) while any -weakRetain is unbalanced, and clears it when the reference deallocates.
+@interface WatchedShip: ShipEntity
+- (BOOL) hasLiveWeakReference;
+@end
+
+@implementation WatchedShip
+- (BOOL) hasLiveWeakReference  { return weakSelf != nil; }
 @end
 
 
@@ -276,6 +288,38 @@ OO_TEST(facadeContract)
 		OO_CHECK(oo::ToObjC(cxxGroup) == facade && oo::ToCxx(facade) == cxxGroup.get());
 		OO_CHECK([OOShipGroup cxx_groupWithName:std::nullopt] != [OOShipGroup cxx_groupWithName:std::nullopt]);	// distinct groups, as before
 	}
+}
+
+
+OO_TEST(dyingGroupReleasesLeaderReference)
+{
+	// The group weak-retains its leader (setLeader) as it does each member (addShip); its
+	// destructor must balance both, or every group that dies with a leader leaks one
+	// OOWeakReference (bead oo-9ht.24).
+	WatchedShip *leader = [[WatchedShip alloc] init];
+	WatchedShip *member = [[WatchedShip alloc] init];
+	@autoreleasepool
+	{
+		oo::Ref<cxx::OOShipGroup> group = cxx::OOShipGroup::groupWithName(std::string("doomed"));
+		group->addShip(member);
+		group->setLeader(leader);
+		OO_CHECK(group->leader() == leader && group->count() == 2);
+		OO_CHECK([leader hasLiveWeakReference] && [member hasLiveWeakReference]);
+	}
+	OO_CHECK(![member hasLiveWeakReference]);
+	OO_CHECK(![leader hasLiveWeakReference]);
+
+	// The same through the facade, the way Objective-C callers make and drop groups.
+	@autoreleasepool
+	{
+		OOShipGroup *group = [[OOShipGroup alloc] cxx_initWithName:std::string("doomed too")];
+		[group setLeader:leader];
+		OO_CHECK([group leader] == leader && [leader hasLiveWeakReference]);
+		[group release];
+	}
+	OO_CHECK(![leader hasLiveWeakReference]);
+	[leader release];
+	[member release];
 }
 
 

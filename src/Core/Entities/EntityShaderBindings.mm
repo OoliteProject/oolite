@@ -4,6 +4,11 @@ EntityShaderBindings.m
 
 Extra methods exposed for shader bindings.
 
+C++20 since bead oo-aeev (proposed ADR-0056, amendment oo-9fwb): the category Entity
+(ShaderBindings) is members of cxx::Entity (Entity.h), defined here. The shader uniforms find the
+methods by selector on the entity's Objective-C object, so the category's forwarders stay in
+EntityShaderBindings+ObjCBridge.mm until the uniforms bind C++ members.
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -35,49 +40,49 @@ static unsigned UnsignedIntValueOf(const oo::PList& value)
     return value.isNumber() ? static_cast<unsigned>(value.int64Value()) : 0;
 }
 
-@implementation Entity (ShaderBindings)
+namespace cxx {
 
 // Clock time.
-- (GLfloat)clock
+GLfloat Entity::clock()
 {
     return [PLAYER clockTime];
 }
 
 // System "flavour" numbers.
-- (unsigned)pseudoFixedD100
+unsigned Entity::pseudoFixedD100()
 {
     return [PLAYER systemPseudoRandom100];
 }
 
-- (unsigned)pseudoFixedD256
+unsigned Entity::pseudoFixedD256()
 {
     return [PLAYER systemPseudoRandom256];
 }
 
 // System attributes.
-- (unsigned)systemGovernment
+unsigned Entity::systemGovernment()
 {
     return UnsignedIntValueOf([PLAYER systemGovernment_number]);
 }
 
-- (unsigned)systemEconomy
+unsigned Entity::systemEconomy()
 {
     return UnsignedIntValueOf([PLAYER systemEconomy_number]);
 }
 
-- (unsigned)systemTechLevel
+unsigned Entity::systemTechLevel()
 {
     return UnsignedIntValueOf([PLAYER systemTechLevel_number]);
 }
 
-- (unsigned)systemPopulation
+unsigned Entity::systemPopulation()
 {
     return UnsignedIntValueOf([PLAYER systemPopulation_number]);
 }
 
-- (unsigned)systemProductivity
+unsigned Entity::systemProductivity()
 {
     return UnsignedIntValueOf([PLAYER systemProductivity_number]);
 }
 
-@end
+} // namespace cxx

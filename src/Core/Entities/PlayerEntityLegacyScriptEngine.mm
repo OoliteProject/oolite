@@ -2514,7 +2514,6 @@ static int shipsFound;
 
         [UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
 
-#if NEW_PLANETS
         OOPlanetEntity* originalPlanet = nil;
         if (i_key == "local-planet" && [UNIVERSE sun]) {
             originalPlanet = [UNIVERSE planet];
@@ -2525,33 +2524,6 @@ static int shipsFound;
         if (doppelganger == nil)
             return NO;
 
-#else
-        // (the planet info is a mixed configuration: plist data and the texture object, Amendment 2)
-        OOPlanetEntity* doppelganger = nil;
-        oo::PList planetInfo = [UNIVERSE cxx_generateSystemData:target_system_seed];
-        if (!planetInfo.isDict())
-            planetInfo = oo::PList(oo::PList::Dict { });
-
-        if (i_key == "local-planet" && [UNIVERSE sun]) {
-            OOPlanetEntity* mainPlanet = [UNIVERSE planet];
-            OOTexture* texture = [mainPlanet texture];
-            if (texture != nil) {
-                oo::PList::Dict& info = *planetInfo.getIf<oo::PList::Dict>();
-                info["_oo_textureObject"] = oo::PListObject(texture);
-                info["_oo_isExplicitlyTextured"] = oo::PList((bool)[mainPlanet isExplicitlyTextured]);
-                info["mainForLocalSystem"] = oo::PList(true);
-                //[planetInfo oo_setQuaternion:[mainPlanet orientation] forKey:@"orientation"]; // the orientation is overwritten later on, without regard for the real planet's orientation.
-            }
-        }
-
-        doppelganger = [[OOPlanetEntity alloc] initFromDictionary:planetInfo withAtmosphere:YES andSeed:target_system_seed];
-        [doppelganger miniaturize];
-        [doppelganger autorelease];
-
-        if (doppelganger == nil)
-            return NO;
-#endif
-
         cxx_ScanVectorFromString(joined(1, 3), &model_p0);
 
         // miniature radii are roughly between 60 and 120. Place miniatures with a radius bigger than 60 a bit futher away.
@@ -2560,14 +2532,9 @@ static int shipsFound;
         model_p0 = vector_add(model_p0, off);
 
         // TODO: find better quaternion values.
-#if NEW_PLANETS
         // Quaternion model_q = { 0.83, 0.365148, 0.182574, 0.0 }; // shows new planets' north pole.
         // Quaternion model_q = { 0.83, -0.365148, 0.182574, 0.0 }; // shows new planets' south pole.
         Quaternion model_q = { 0.83, 0.12, 0.44, 0.0 }; // new planets - default orientation.
-#else
-        // model_q = make_quaternion( M_SQRT1_2, 0.314, M_SQRT1_2, 0.0 );
-        Quaternion model_q = { 0.833492, 0.333396, 0.440611, 0.0 };
-#endif
         OO_LOG(kOOLogDebugProcessSceneStringAddMiniPlanet, "::::: adding {} to scene:'{}'", i_key, oo::DescriptionOf(doppelganger));
         [doppelganger setOrientation:model_q];
         // HPVect: mission screen coordinates are small enough that we don't need high-precision for calculations

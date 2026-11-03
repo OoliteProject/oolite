@@ -266,117 +266,13 @@ std::optional<std::string> cxx_OOGenerateSystemDescription(Random_Seed seed, con
 }
 
 /*	The Foundation forms, kept as the expander test's surface (OOStringExpander.h; bead oo-m2nh,
-        proposed ADR-0052). The overrides and legacy locals convert once per call (mixed values, Object
-        nodes for anything else), strings unit for unit in, and out as nil for nullopt.
-        Compiled only by tools/check-string-expander.sh (OO_EXPANDER_TEST_SURFACE; bead oo-qps.29),
-        which links gnustep-base: the conversions below are the deleted OOStringBridge.h /
-        OOFoundationBridge.h ones (oo-qps.16, ADR-0055; their GNUstep branch), inlined here for that harness alone.
+        proposed ADR-0052). Compiled only by tools/check-string-expander.sh (OO_EXPANDER_TEST_SURFACE;
+        bead oo-qps.29), which links gnustep-base; the definitions live with that harness, in
+        tests/unit/expander/OOStringExpanderTestSurface.h (bead oo-3rb.345), which it copies next to
+        this file.
 */
 #if OO_EXPANDER_TEST_SURFACE
-#import "OOObjCPList.h"
-
-namespace {
-
-std::string SurfaceStdString(NSString* string)
-{
-    const NSUInteger length = [string length];
-    if (length == 0)
-        return std::string();
-    std::u16string units(length, u' ');
-    [string getCharacters:reinterpret_cast<unichar*>(units.data()) range:NSMakeRange(0, length)];
-    return oo::utf16ToUtf8(units);
-}
-
-std::optional<std::string> SurfaceOptionalString(NSString* string)
-{
-    if (string == nil)
-        return std::nullopt;
-    return SurfaceStdString(string);
-}
-
-NSString* SurfaceNSStringOrNil(const std::optional<std::string>& string)
-{
-    if (!string.has_value())
-        return nil;
-    const std::u16string units = oo::utf8ToUtf16(*string);
-    return [[[NSString alloc] initWithBytes:units.data()
-                                     length:units.size() * sizeof(char16_t)
-                                   encoding:NSUTF16LittleEndianStringEncoding] autorelease];
-}
-
-oo::PList SurfacePListFrom(id object)
-{
-    if (object == nil)
-        return oo::PList();
-    if ([object isKindOfClass:[NSString class]])
-        return oo::PList(SurfaceStdString(object));
-    if ([object isKindOfClass:[NSNumber class]]) {
-        NSNumber* number = object;
-        // Former NSNumber (OOExtensions) boolean identity test: constant true/false objects only.
-        static NSNumber *sTrue = nil, *sFalse = nil;
-        if (sTrue == nil) {
-            sTrue = [[NSNumber numberWithBool:YES] retain];
-            sFalse = [[NSNumber numberWithBool:NO] retain];
-        }
-        if (number == sTrue || number == sFalse)
-            return oo::PList(static_cast<bool>([number boolValue]));
-        // gnustep-base reports 'd' for a float too; its class tells (NSSmallFloat, NSFloatNumber: probed).
-        if (std::string_view(class_getName(object_getClass(number))).find("Float") != std::string_view::npos)
-            return oo::PList::singleReal([number floatValue]);
-        switch (*[number objCType]) {
-        case 'f':
-        case 'd':
-            return oo::PList([number doubleValue]);
-        case 'C':
-        case 'S':
-        case 'I':
-        case 'L':
-        case 'Q':
-            return oo::PList::unsignedInteger([number unsignedLongLongValue]);
-        default:
-            return oo::PList::signedInteger([number longLongValue]);
-        }
-    }
-    if ([object isKindOfClass:[NSData class]]) {
-        NSData* data = object;
-        return oo::PList(oo::Data([data bytes], [data length]));
-    }
-    if ([object isKindOfClass:[NSDate class]]) {
-        return oo::PList(oo::PList::Date { [(NSDate*)object timeIntervalSinceReferenceDate] });
-    }
-    if ([object isKindOfClass:[NSArray class]]) {
-        oo::PList::Array array;
-        array.reserve([(NSArray*)object count]);
-        for (id element in (NSArray*)object)
-            array.push_back(SurfacePListFrom(element));
-        return oo::PList(std::move(array));
-    }
-    if ([object isKindOfClass:[NSDictionary class]]) {
-        NSDictionary* dictionary = object;
-        oo::PList::Dict dict;
-        for (id key in dictionary) {
-            if (![key isKindOfClass:[NSString class]])
-                return oo::PList();
-            dict.emplace(SurfaceStdString(key), SurfacePListFrom([dictionary objectForKey:key]));
-        }
-        return oo::PList(std::move(dict));
-    }
-    return oo::PListObject(object);
-}
-
-} // namespace
-
-NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictionary* overrides, NSDictionary* legacyLocals, NSString* systemName, OOExpandOptions options)
-{
-    if (string == nil)
-        return nil;
-    return SurfaceNSStringOrNil(cxx_OOExpandDescriptionString(seed, SurfaceStdString(string), SurfacePListFrom(overrides), SurfacePListFrom(legacyLocals), SurfaceOptionalString(systemName), options));
-}
-
-NSString* OOGenerateSystemDescription(Random_Seed seed, NSString* name)
-{
-    return SurfaceNSStringOrNil(cxx_OOGenerateSystemDescription(seed, SurfaceOptionalString(name)));
-}
+#import "OOStringExpanderTestSurface.h"
 #endif
 
 Random_Seed OOStringExpanderDefaultRandomSeed(void)

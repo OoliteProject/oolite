@@ -10,6 +10,11 @@ expired.
 
 All sounds are specified by customsounds.plist key.
 
+C++20 since bead oo-d2y9 (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
+cxx::OOSoundSourcePool while OOSoundSourcePool+ObjCBridge.h, imported at the end of this header,
+keeps the Objective-C OOSoundSourcePool that the player's sound category makes and messages; the
+bridge's deletion bead moves it out of namespace cxx.
+
 
 Copyright (C) 2008-2013 Jens Ayton
 
@@ -33,50 +38,60 @@ SOFTWARE.
 
 */
 
+#ifndef OOSOUNDSOURCEPOOL_H
+#define OOSOUNDSOURCEPOOL_H
+
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-@interface OOSoundSourcePool : OOObject {
-@private
-    struct OOSoundSourcePoolElement* _sources;
-    uint8_t _count;
-    uint8_t _latest;
-    uint8_t _reserved;
-    OOTimeDelta _minRepeat;
-    OOTimeAbsolute _nextRepeat;
+struct OOSoundSourcePoolElement; // OOSoundSourcePool.mm
+
+namespace cxx {
+
+class OOSoundSourcePool : public oo::RefCounted {
+public:
+    /*	Was +poolWithCount:minRepeatTime:, alloc and -initWithCount:minRepeatTime:, which answered
+            nil when the sources could not be allocated: null then.
+    */
+    static oo::Ref<OOSoundSourcePool> poolWithCount(uint8_t count, OOTimeDelta minRepeat);
+
+    ~OOSoundSourcePool() override;
+
+    /*	The selectors that share playSoundWithKey: are overloads (ADR-0056 item 3), told apart by
+            the types of their arguments: a priority is a float and an overlap a bool, so a caller
+            passes each with its own type (1.0f, true).
+    */
+    void playSoundWithKey(const std::string& key, float priority, OOTimeDelta expiryTime, bool overlap, Vector position);
+    void playSoundWithKey(const std::string& key, float priority, OOTimeDelta expiryTime);
+    void playSoundWithKey(const std::string& key, float priority); // expiryTime:0.1 +/- 0.5
+    void playSoundWithKey(const std::string& key, float priority, Vector position); // expiryTime:0.1 +/- 0.5
+    void playSoundWithKey(const std::string& key, Vector position); // expiryTime:0.1 +/- 0.5
+    void playSoundWithKey(const std::string& key); // priority: 1.0, expiryTime:0.1 +/- 0.5
+    void playSoundWithKey(const std::string& key, bool overlap); // if overlap == NO it waits for key to finish before playing key again
+    void playSoundWithKey(const std::string& key, bool overlap, Vector position);
+
+private:
+    bool initWithCount(uint8_t count, OOTimeDelta minRepeat);
+    uint8_t selectSlotForPriority(float priority);
+
+    ::OOSoundSourcePoolElement* _sources = { };
+    uint8_t _count = { };
+    uint8_t _latest = { };
+    uint8_t _reserved = { };
+    OOTimeDelta _minRepeat = { };
+    OOTimeAbsolute _nextRepeat = { };
     std::optional<std::string> _lastKey; // nullopt until a repeat-limited sound plays (proposed ADR-0043)
-}
+};
 
-+ (instancetype)poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
-- (id)initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
+} // namespace cxx
 
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
-              expiryTime:(OOTimeDelta)expiryTime
-                 overlap:(BOOL)overlap
-                position:(Vector)position;
+// Transitional: the Objective-C OOSoundSourcePool, for the player's sound category.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOSoundSourcePool+ObjCBridge.h"
 
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
-              expiryTime:(OOTimeDelta)expiryTime;
-
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority; // expiryTime:0.1 +/- 0.5
-
-- (void)playSoundWithKey:(const std::string&)key
-                priority:(float)priority
-                position:(Vector)position; // expiryTime:0.1 +/- 0.5
-
-- (void)playSoundWithKey:(const std::string&)key
-                position:(Vector)position; // expiryTime:0.1 +/- 0.5
-
-- (void)playSoundWithKey:(const std::string&)key; // priority: 1.0, expiryTime:0.1 +/- 0.5
-
-- (void)playSoundWithKey:(const std::string&)key overlap:(BOOL)overlap; // if overlap == NO it waits for key to finish before playing key again
-- (void)playSoundWithKey:(const std::string&)key overlap:(BOOL)overlap position:(Vector)position;
-
-@end
+#endif // OOSOUNDSOURCEPOOL_H

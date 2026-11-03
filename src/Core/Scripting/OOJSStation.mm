@@ -32,6 +32,8 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 
 #import "GameController.h"
+#import "OOCommodities.h"
+#import "OOCommodityMarket.h"
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
 #import "OOShipRegistry.h"
@@ -40,9 +42,24 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 
+/*
+        C++20 since bead oo-3oxq, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on StationEntity
+        became a free function (its -oo_jsClassID answers JSStationClassID()), and its methods moved
+        to OOJSStation+ObjCBridge.mm (amendment oo-ykoy). OOCommodities, OOCommodityMarket,
+        OOEquipmentType and OOJSInterfaceDefinition, which are C++ since beads oo-fqyw, oo-ih7y,
+        oo-fg7i and oo-8fpc, are reached as cxx:: classes through oo::ToCxx (amendment oo-ppc, item
+        4), null-guarded where a message to nil answered; an interface definition is still made as
+        its façade, which the station keeps (amendment oo-q9q4 item 1). Messages to classes that are
+        still Objective-C (StationEntity, ShipEntity, PlayerEntity, Universe, GameController,
+        OOShipRegistry) stay as they are, which is why the file is still .mm until Phase 4.
+*/
+
 static JSClassID sStationClassID;
 
-static BOOL JSStationGetStationEntity(JSContext* context, JSValueConst stationObj, StationEntity** outEntity);
+static bool JSStationGetStationEntity(JSContext* context, JSValueConst stationObj, StationEntity** outEntity);
 
 static JSValue StationGetProperty(OOJS_GETTER_ARGS);
 static JSValue StationSetProperty(OOJS_SETTER_ARGS);
@@ -160,54 +177,54 @@ JSClassID JSStationClassID(void)
     return sStationClassID;
 }
 
-/*	As in the SpiderMonkey version, these return NO without an exception for
+/*	As in the SpiderMonkey version, these return false without an exception for
         stale references (nil entity) and for entities of the wrong native class;
         OOJSEntityGetEntity() throws if the object is not an Entity at all.
 */
-static BOOL JSStationGetStationEntity(JSContext* context, JSValueConst stationObj, StationEntity** outEntity)
+static bool JSStationGetStationEntity(JSContext* context, JSValueConst stationObj, StationEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, stationObj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[StationEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (StationEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-static BOOL JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity)
+static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, shipObj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[ShipEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (ShipEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
@@ -226,19 +243,13 @@ static BOOL JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, Shi
         }                                                               \
     } while (0)
 
-@implementation StationEntity (OOJavaScriptExtensions)
-
-- (JSClassID)oo_jsClassID
-{
-    return sStationClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// The bodies of StationEntity (OOJavaScriptExtensions), whose methods are in
+// OOJSStation+ObjCBridge.mm until StationEntity converts (proposed ADR-0056 amendments oo-ppc and
+// oo-ykoy).
+std::optional<std::string> OOJSStationJSClassName(void)
 {
     return std::string("Station");
 }
-
-@end
 
 static JSValue StationGetProperty(OOJS_GETTER_ARGS)
 {
@@ -353,7 +364,7 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS)
 
     case kStation_alertCondition:
         if (OOJSValueToInt32(context, value, &iValue)) {
-            [entity setAlertLevel:(OOStationAlertLevel)iValue signallingScript:NO]; // Performs range checking
+            [entity setAlertLevel:(OOStationAlertLevel)iValue signallingScript:false]; // Performs range checking
             return JS_UNDEFINED;
         }
         break;
@@ -479,7 +490,7 @@ static JSValue StationCanDockShip(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = YES;
+    bool result = true;
     ShipEntity* shipToCheck = nil;
 
     if (argc > 0) {
@@ -496,7 +507,7 @@ static JSValue StationCanDockShip(OOJS_NATIVE_ARGS)
     GET_THIS_STATION(station);
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = [station fitsInDock:shipToCheck andLogNoFit:NO];
+    result = [station fitsInDock:shipToCheck andLogNoFit:false];
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_BOOL(result);
@@ -517,7 +528,7 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS)
                 Do we want to return an error or just unpause and continue?
                 I think unpausing is the sensible thing to do here - Nikos 20110208
         */
-        [gameController setGamePaused:NO];
+        [gameController setGamePaused:false];
     }
 
     if (EXPECT(![player isDocked])) {
@@ -576,7 +587,7 @@ static JSValue StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
     std::optional<std::string> shipRole;
     StationEntity* station = nil;
     ShipEntity* result = nil;
-    BOOL abortAllDockings = NO;
+    bool abortAllDockings = false;
 
     GET_THIS_STATION(station);
 
@@ -762,6 +773,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
     std::optional<std::string> summary;
     std::optional<std::string> category;
     OOJSInterfaceDefinition* definition = nil;
+    cxx::OOJSInterfaceDefinition* cxxDefinition = nullptr;
 
     // SpiderMonkey's JS_ValueToObject() boxed primitives. (It gave no object for undefined, which then could not work; treat it as invalid.)
     if (!JS_IsUndefined(OOJS_ARGV[1])) {
@@ -828,11 +840,14 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
         goto fail;
     }
 
+    // The definition is still made as its façade (its superclass, OOWeakRefObject, is Objective-C:
+    // amendment oo-q9q4 item 1), which the station keeps; its members are reached as C++.
     definition = [[OOJSInterfaceDefinition alloc] init];
-    [definition cxx_setTitle:title];
-    [definition setCategory:*category];
-    [definition setSummary:*summary];
-    [definition setCallback:callback]; // Takes its own reference.
+    cxxDefinition = oo::ToCxx(definition);
+    cxxDefinition->setTitle(title);
+    cxxDefinition->setCategory(*category);
+    cxxDefinition->setSummary(*summary);
+    cxxDefinition->setCallback(callback); // Takes its own reference.
     JS_FreeValue(context, callback);
 
     // get callback 'this'
@@ -844,7 +859,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS)
             if (JS_IsException(callbackThis)) {
                 JS_FreeValue(context, JS_GetException(context));
             } else {
-                [definition setCallbackThis:callbackThis]; // Takes its own reference.
+                cxxDefinition->setCallbackThis(callbackThis); // Takes its own reference.
             }
             JS_FreeValue(context, callbackThis);
         }
@@ -882,13 +897,14 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS)
     }
 
     std::optional<std::string> commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
-    if (EXPECT_NOT(![[UNIVERSE commodities] cxx_goodDefined:commodity.value_or("")])) {
+    cxx::OOCommodities* commodities = oo::ToCxx([UNIVERSE commodities]); // null: no good is defined, as a message to nil
+    if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity.value_or("")))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
         return OOJSNativeFailure(context);
     }
 
     int32_t price;
-    BOOL gotPrice = OOJSValueToInt32(context, OOJS_ARGV[1], &price);
+    bool gotPrice = OOJSValueToInt32(context, OOJS_ARGV[1], &price);
     if (EXPECT_NOT(!gotPrice || price < 0)) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Price must be at least 0 decicredits");
         return OOJSNativeFailure(context);
@@ -900,7 +916,7 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS)
         [PLAYER setGuiToMarketScreen]; // refresh screen
     }
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }
@@ -918,14 +934,16 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS)
     }
 
     const std::string commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("");
-    if (EXPECT_NOT(![[UNIVERSE commodities] cxx_goodDefined:commodity])) {
+    cxx::OOCommodities* commodities = oo::ToCxx([UNIVERSE commodities]); // null: no good is defined, as a message to nil
+    if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
         return OOJSNativeFailure(context);
     }
 
     int32_t quantity;
-    BOOL gotQuantity = OOJSValueToInt32(context, OOJS_ARGV[1], &quantity);
-    if (EXPECT_NOT(!gotQuantity || quantity < 0 || (OOCargoQuantity)quantity > [[station localMarket] cxx_capacityForGood:commodity])) {
+    bool gotQuantity = OOJSValueToInt32(context, OOJS_ARGV[1], &quantity);
+    cxx::OOCommodityMarket* market = oo::ToCxx([station localMarket]); // null: no capacity, as a message to nil
+    if (EXPECT_NOT(!gotQuantity || quantity < 0 || (OOCargoQuantity)quantity > ((market != nullptr) ? market->capacityForGood(commodity) : 0))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Quantity must be between 0 and the station market capacity");
         return OOJSNativeFailure(context);
     }
@@ -936,7 +954,7 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS)
         [PLAYER setGuiToMarketScreen]; // refresh screen
     }
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }
@@ -972,6 +990,14 @@ static std::string ValueForKey(const std::optional<std::string>& value, std::str
     if (!value.has_value())
         RaiseNilValueForKey(key);
     return *value;
+}
+
+// -[OOEquipmentType weaponThreatAssessment] of a weapon, which is C++ since bead oo-fg7i: 0 for no
+// weapon, as a message to nil answered.
+static GLfloat WeaponThreatAssessment(OOWeaponType weapon)
+{
+    cxx::OOEquipmentType* type = oo::ToCxx(weapon);
+    return (type != nullptr) ? type->weaponThreatAssessment() : 0;
 }
 
 static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
@@ -1103,14 +1129,14 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
             if (equipmentKey.has_value() && oo::str::hasPrefix(*equipmentKey, "EQ_WEAPON")) {
                 OOWeaponType new_weapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey.value_or(""));
                 // fit best weapon forward
-                if (availableFacings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwdWeapon weaponThreatAssessment]) {
+                if (availableFacings & WEAPON_FACING_FORWARD && WeaponThreatAssessment(new_weapon) > WeaponThreatAssessment(fwdWeapon)) {
                     // again remember to divide price by 10 to get credits from tenths of credit
                     fwdWeaponString = equipmentKey;
                     fwdWeapon = new_weapon;
                     (*shipInfo.getIf<oo::PList::Dict>())[std::string(KEY_EQUIPMENT_FORWARD_WEAPON)] = *fwdWeaponString;
                 } else {
                     // if less good than current forward, try fitting is to rear
-                    if (availableFacings & WEAPON_FACING_AFT && (isWeaponNone(aftWeapon) || [new_weapon weaponThreatAssessment] > [aftWeapon weaponThreatAssessment])) {
+                    if (availableFacings & WEAPON_FACING_AFT && (isWeaponNone(aftWeapon) || WeaponThreatAssessment(new_weapon) > WeaponThreatAssessment(aftWeapon))) {
                         aftWeaponString = equipmentKey;
                         aftWeapon = new_weapon;
                         (*shipInfo.getIf<oo::PList::Dict>())[std::string(KEY_EQUIPMENT_AFT_WEAPON)] = *aftWeaponString;
@@ -1132,7 +1158,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
         [PLAYER setGuiToShipyardScreen:0];
     }
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }
@@ -1155,7 +1181,7 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS)
     std::vector<oo::PList>* shipyard = [station cxx_localShipyard];
 
     int32_t shipIndex = -1;
-    BOOL gotIndex = YES;
+    bool gotIndex = true;
     gotIndex = OOJSValueToInt32(context, OOJS_ARGV[0], &shipIndex); // argv[0] is undefined if argc is 0 (min args 1).
 
     if (argc != 1 || (!JS_IsNull(OOJS_ARGV[0]) && !gotIndex) || shipIndex < 0 || (shipIndex + 1) > (shipyard != nullptr ? shipyard->size() : 0)) {
@@ -1170,7 +1196,7 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS)
         [PLAYER setGuiToShipyardScreen:0];
     }
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }

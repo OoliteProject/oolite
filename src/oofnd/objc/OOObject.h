@@ -68,7 +68,7 @@ typedef struct OOZone OOZone;
 - (id)mutableCopyWithZone:(OOZone*)zone;
 @end
 
-/*	Protocol form of the floor (oo-9evb). Protocols that inherited <NSObject>
+/*	Protocol form of the floor (oo-9evb). Protocols that inherited the root protocol
         inherit <OOObject> so id<P> can send -retain / -respondsToSelector: and the
         rest without "method not found in protocol" once gnustep-base is gone.
         No -description here: that is the Logging seam.
@@ -116,7 +116,7 @@ __attribute__((objc_root_class))
 + (IMP)instanceMethodForSelector:(SEL)selector;
 + (BOOL)conformsToProtocol:(Protocol*)protocol;
 
-// A class object is not refcounted; these make [SomeClass retain] etc. harmless, as on NSObject.
+// A class object is not refcounted; these make [SomeClass retain] etc. harmless, as on the Foundation root class.
 + (id)retain;
 + (oneway void)release;
 + (id)autorelease;

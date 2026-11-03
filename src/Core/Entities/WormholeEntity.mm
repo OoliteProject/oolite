@@ -46,25 +46,31 @@ MA 02110-1301, USA.
 #define OO_WORMHOLE_COLOR_BOOST 25.0
 #define OO_WORMHOLE_COLOR_FVEC4 { 0.067, 0.067, 1.0, 0.25 }
 
-// Hidden interface
-@interface WormholeEntity (Private)
-
-- (id)init;
-
-@end
-
 // Static local functions
 static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int step, GLfloat z_distance, GLfloat* col4v1);
 
-@implementation WormholeEntity (Private)
+namespace {
 
-- (id)init
+// [[UNIVERSE systemManager] getCoordinatesForSystem:inGalaxy:]: the manager is converted (a message
+// to a missing manager answered zeros).
+NSPoint SystemCoordinates(OOSystemID system, OOGalaxyID galaxy)
 {
-    if ((self = [super init])) {
+    cxx::OOSystemDescriptionManager* manager = oo::ToCxx([UNIVERSE systemManager]);
+    return manager != nullptr ? manager->getCoordinatesForSystem(system, galaxy) : NSMakePoint(0, 0);
+}
+
+} // namespace
+
+namespace cxx {
+
+void WormholeEntity::init()
+{
+    // [super init] could not fail: the constructor ran Entity's -init body.
+    {
         witch_mass = 0.0;
         shipsInTransit.reserve(4);
         collision_radius = 0.0;
-        [self setStatus:STATUS_EFFECT];
+        setStatus(STATUS_EFFECT);
         scanClass = CLASS_WORMHOLE;
         isWormhole = YES;
         scan_info = WH_SCANINFO_NONE;
@@ -73,30 +79,27 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         containsPlayer = NO;
         exit_speed = 50.0;
     }
-    return self;
 }
-
-@end // Private interface implementation
 
 //
 // Public Wormhole Implementation
 //
 
-@implementation WormholeEntity
-
-- (WormholeEntity*)initWithDict:(const oo::PList&)dict
+void WormholeEntity::initWithDict(const oo::PList& dict)
 {
     assert(!dict.isNull());
 
-    if ((self = [self init])) {
+    init();
+    // [self init] could not fail.
+    {
         @autoreleasepool {
             // wormholes from pre-1.80 savegames using "origin_seed" and "dest_seed"
             // currently get defaults set; will probably disappear unnoticed
             origin = dict.get<int>("origin_id", 0);
             destination = dict.get<int>("dest_id", 255);
 
-            originCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:origin inGalaxy:[PLAYER galaxyNumber]];
-            destinationCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:destination inGalaxy:[PLAYER galaxyNumber]];
+            originCoords = SystemCoordinates(origin, [PLAYER galaxyNumber]);
+            destinationCoords = SystemCoordinates(destination, [PLAYER galaxyNumber]);
 
             // We only ever init from dictionary if we're loaded by the player, so
             // by definition we have been scanned
@@ -140,23 +143,24 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
             }
         }
     }
-    return self;
 }
 
-- (WormholeEntity*)initWormholeTo:(OOSystemID)s fromShip:(ShipEntity*)ship
+void WormholeEntity::initWormholeTo(OOSystemID s, ShipEntity* ship)
 {
     assert(ship != nil);
 
-    if ((self = [self init])) {
+    init();
+    // [self init] could not fail.
+    {
         double now = [PLAYER clockTimeAdjusted];
         double distance;
-        OOSunEntity* sun = [UNIVERSE sun];
+        ::OOSunEntity* sun = [UNIVERSE sun];
 
         _misjump = NO;
         origin = [UNIVERSE currentSystemID];
         destination = s;
         originCoords = [PLAYER galaxy_coordinates];
-        destinationCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:destination inGalaxy:[PLAYER galaxyNumber]];
+        destinationCoords = SystemCoordinates(destination, [PLAYER galaxyNumber]);
         distance = distanceBetweenPlanetPositions(originCoords.x, originCoords.y, destinationCoords.x, destinationCoords.y);
         distance = fmax(distance, 0.1);
         witch_mass = 200000.0; // MKW 2010.11.21 - originally the ship's mass was added twice - once here and once in suckInShip.  Instead, we give each wormhole a minimum mass.
@@ -185,10 +189,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         position = [ship position];
         zero_distance = HPdistance2([PLAYER position], position);
     }
-    return self;
 }
 
-- (void)setMisjump
+void WormholeEntity::setMisjump()
 {
     // Test for misjump first - it's entirely possibly that the wormhole
     // has already been marked for misjumping when another ship enters it.
@@ -203,7 +206,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     }
 }
 
-- (void)setMisjumpWithRange:(GLfloat)range
+void WormholeEntity::setMisjumpWithRange(GLfloat range)
 {
     if (range <= 0.0 || range >= 1.0) {
         range = 0.5; // for safety, though nothing should be setting this
@@ -225,17 +228,17 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     }
 }
 
-- (BOOL)withMisjump
+bool WormholeEntity::withMisjump()
 {
     return _misjump;
 }
 
-- (GLfloat)misjumpRange
+GLfloat WormholeEntity::misjumpRange()
 {
     return _misjumpRange;
 }
 
-- (BOOL)suckInShip:(ShipEntity*)ship
+bool WormholeEntity::suckInShip(ShipEntity* ship)
 {
     if (!ship || [ship status] == STATUS_ENTERING_WITCHSPACE) {
         return NO;
@@ -259,7 +262,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     // This is for AI ships which get told to enter the wormhole even though they
     // may still be some distance from it when the player exits the system
     float d = HPdistance(position, [ship position]);
-    d -= [ship collisionRadius] + [self collisionRadius];
+    d -= [ship collisionRadius] + collisionRadius();
     if (d > 0.0f) {
         float afterburnerFactor = [ship hasFuelInjection] && [ship fuel] > MIN_FUEL ? [ship afterburnerFactor] : 1.0;
         float shipSpeed = [ship maxFlightSpeed] * afterburnerFactor;
@@ -306,7 +309,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         if ([PLAYER dockedStation] == (StationEntity*)ship) {
             // the carrier has jumped while the player is docked
             [ship retain];
-            [UNIVERSE carryPlayerOn:(StationEntity*)ship inWormhole:self];
+            [UNIVERSE carryPlayerOn:(StationEntity*)ship inWormhole:oo::ToObjC(this)];
             [ship release];
         }
     }
@@ -314,7 +317,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     return YES;
 }
 
-- (void)disgorgeShips
+void WormholeEntity::disgorgeShips()
 {
     double now = [PLAYER clockTimeAdjusted];
     std::vector<OOWormholeTransit> shipsStillInTransit;
@@ -372,7 +375,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
                 [ship setPosition:shippos];
             } else {
                 // this is the first ship out of the wormhole
-                [self setExitSpeed:[ship maxFlightSpeed] * WORMHOLE_LEADER_SPEED_FACTOR];
+                setExitSpeed([ship maxFlightSpeed] * WORMHOLE_LEADER_SPEED_FACTOR);
                 if (containsPlayer) { // reset the player's speed to the new speed
                     [PLAYER setSpeed:exit_speed];
                 }
@@ -405,7 +408,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
                 [ship setVelocity:kZeroVector];
                 [UNIVERSE addEntity:ship]; // AI and status get initialised here
             }
-            [ship setSpeed:[self exitSpeed]]; // all ships from this wormhole have same velocity
+            [ship setSpeed:exitSpeed()]; // all ships from this wormhole have same velocity
 
             // awaken JS-based AIs
             [ship doScriptEvent:OOJSID("aiStarted")];
@@ -445,78 +448,78 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     // no need to move it
 }
 
-- (void)setContainsPlayer:(BOOL)val
+void WormholeEntity::setContainsPlayer(bool val)
 {
     containsPlayer = val;
 }
 
-- (void)setExitPosition:(HPVector)pos
+void WormholeEntity::setExitPosition(HPVector pos)
 {
-    [self setPosition:pos];
+    setPosition(pos);
     hasExitPosition = YES;
 }
 
-- (OOSystemID)origin
+OOSystemID WormholeEntity::getOrigin()
 {
     return origin;
 }
 
-- (OOSystemID)destination
+OOSystemID WormholeEntity::getDestination()
 {
     return destination;
 }
 
-- (NSPoint)originCoordinates
+NSPoint WormholeEntity::originCoordinates()
 {
     return originCoords;
 }
 
-- (NSPoint)destinationCoordinates
+NSPoint WormholeEntity::destinationCoordinates()
 {
     return destinationCoords;
 }
 
-- (double)exitSpeed
+double WormholeEntity::exitSpeed()
 {
     return exit_speed;
 }
 
-- (void)setExitSpeed:(double)speed
+void WormholeEntity::setExitSpeed(double speed)
 {
     exit_speed = speed;
 }
 
-- (double)expiryTime
+double WormholeEntity::expiryTime()
 {
     return expiry_time;
 }
 
-- (double)arrivalTime
+double WormholeEntity::arrivalTime()
 {
     return arrival_time;
 }
 
-- (double)estimatedArrivalTime
+double WormholeEntity::estimatedArrivalTime()
 {
     return estimated_arrival_time;
 }
 
-- (double)travelTime
+double WormholeEntity::travelTime()
 {
     return travel_time;
 }
 
-- (double)scanTime
+double WormholeEntity::scanTime()
 {
     return scan_time;
 }
 
-- (BOOL)isScanned
+bool WormholeEntity::isScanned()
 {
     return scan_info > WH_SCANINFO_NONE;
 }
 
-- (void)setScannedAt:(double)p_scanTime
+void WormholeEntity::setScannedAt(double p_scanTime)
 {
     if (scan_info == WH_SCANINFO_NONE) {
         scan_time = p_scanTime;
@@ -525,17 +528,17 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     // else we previously scanned this wormhole
 }
 
-- (WORMHOLE_SCANINFO)scanInfo
+WORMHOLE_SCANINFO WormholeEntity::scanInfo()
 {
     return scan_info;
 }
 
-- (void)setScanInfo:(WORMHOLE_SCANINFO)p_scanInfo
+void WormholeEntity::setScanInfo(WORMHOLE_SCANINFO p_scanInfo)
 {
     scan_info = p_scanInfo;
 }
 
-- (oo::PList)shipsInTransit
+oo::PList WormholeEntity::getShipsInTransit()
 {
     oo::PList::Array result;
     result.reserve(shipsInTransit.size());
@@ -551,12 +554,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     return oo::PList(std::move(result));
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-}
-
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> WormholeEntity::descriptionComponents() const
 {
     double now = [PLAYER clockTime];
     return oo::str::format("destination: %s ttl: %.2fs arrival: %s",
@@ -565,10 +563,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         cxx_ClockToString(arrival_time, false).c_str());
 }
 
-- (std::optional<std::string>)identFromShip:(ShipEntity*)ship
+std::optional<std::string> WormholeEntity::identFromShip(ShipEntity* ship)
 {
     if ([ship hasEquipmentItem:oo::PList("EQ_WORMHOLE_SCANNER")]) {
-        if ([self scanInfo] >= WH_SCANINFO_DESTINATION) {
+        if (scanInfo() >= WH_SCANINFO_DESTINATION) {
             return oo::str::formatRuntime(OO_DESC("wormhole-to-@"), { [UNIVERSE cxx_getSystemName:destination].value_or("(null)") });
         } else {
             return OO_DESC("wormhole-desc");
@@ -584,7 +582,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     }
 }
 
-- (BOOL)canCollide
+bool WormholeEntity::canCollide()
 {
     /* Correct test for far end of wormhole */
     if (origin != [UNIVERSE currentSystemID]) {
@@ -599,14 +597,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     return (witch_mass > 0.0);
 }
 
-- (BOOL)checkCloseCollisionWith:(Entity*)other
+// The other entity stays its Objective-C object (amendment oo-bj8 item 4): messages to nil answer as before.
+bool WormholeEntity::checkCloseCollisionWith(Entity* otherEntity)
 {
+    ::Entity* other = oo::ToObjC(otherEntity);
     return ![other isEffect];
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void WormholeEntity::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
+    Entity::update(delta_t);
 
     PlayerEntity* player = PLAYER;
     assert(player != nil);
@@ -628,11 +628,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
         // If we're a saved wormhole waiting to disgorge more ships, it's safe
         // to remove self from UNIVERSE, but we need the current position!
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
     }
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void WormholeEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
     if ([UNIVERSE breakPatternHide])
         return; // DON'T DRAW DURING BREAK PATTERN
@@ -646,7 +646,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     if (collision_radius <= 0.0)
         return;
 
-    if ([self scanClass] == CLASS_NO_DRAW)
+    if (getScanClass() == CLASS_NO_DRAW)
         return;
 
     if (translucent) {
@@ -672,8 +672,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     }
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "WormholeEntity after drawing " + oo::DescriptionOf(self); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "WormholeEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
 }
+
+} // namespace cxx
 
 static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int step, GLfloat z_distance, GLfloat* col4v1)
 {
@@ -735,7 +737,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     OOGLEND();
 }
 
-- (oo::PList)getDict
+namespace cxx {
+
+oo::PList WormholeEntity::getDict()
 {
     oo::PList::Dict myDict;
 
@@ -768,7 +772,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     return oo::PList(std::move(myDict));
 }
 
-- (const char*)scanInfoString
+const char* WormholeEntity::scanInfoString()
 {
     switch (scan_info) {
     case WH_SCANINFO_NONE:
@@ -787,16 +791,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     return "WH_SCANINFO_UNDEFINED"; // should never get here
 }
 
-- (void)dumpSelfState
+void WormholeEntity::dumpSelfState()
 {
-    [super dumpSelfState];
+    Entity::dumpSelfState();
     OO_LOG("dumpState.wormholeEntity", "Origin                 : {}", [UNIVERSE cxx_getSystemName:origin].value_or("(null)"));
     OO_LOG("dumpState.wormholeEntity", "Destination            : {}", [UNIVERSE cxx_getSystemName:destination].value_or("(null)"));
     OO_LOG("dumpState.wormholeEntity", "Expiry Time            : {}", cxx_ClockToString(expiry_time, false));
     OO_LOG("dumpState.wormholeEntity", "Arrival Time           : {}", cxx_ClockToString(arrival_time, false));
     OO_LOG("dumpState.wormholeEntity", "Projected Arrival Time : {}", cxx_ClockToString(estimated_arrival_time, false));
     OO_LOG("dumpState.wormholeEntity", "Scanned Time           : {}", cxx_ClockToString(scan_time, false));
-    OO_LOG("dumpState.wormholeEntity", "Scanned State          : {}", [self scanInfoString]);
+    OO_LOG("dumpState.wormholeEntity", "Scanned State          : {}", scanInfoString());
 
     OO_LOG("dumpState.wormholeEntity", "Mass                   : {:.2f}", witch_mass);
     OO_LOG("dumpState.wormholeEntity", "Ships                  : {}", shipsInTransit.size());
@@ -808,4 +812,4 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     }
 }
 
-@end
+} // namespace cxx

@@ -77,7 +77,7 @@ std::optional<std::string> OODrawable::descriptionComponents() const
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<OOTexture*>> OODrawable::allTextures()
+std::vector<oo::ObjCRef<::OOTexture*>> OODrawable::allTextures()
 {
     return { };
 }
