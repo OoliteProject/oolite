@@ -34,9 +34,18 @@ SOFTWARE.
 #import "OOAsyncWorkManager.h"
 #import "OOTexture.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-wzti): the path is a UTF-8
+        std::string (never empty once initialised: a nil path failed -init); paths passed in are
+        std::optional where the old code accepted nil; a texture specifier is an oo::PList. The
+        Foundation-typed API this header declared moved to OOTextureLoader+FoundationBridge.h
+        (transitional), forwarding to the cxx_ API below.
+*/
 @interface OOTextureLoader : OOObject <OOAsyncWorkTask> {
 @protected
-    NSString* _path;
+    std::string _path;
 
     OOTextureFlags _options;
     uint8_t _generateMipMaps : 1,
@@ -60,7 +69,7 @@ SOFTWARE.
     size_t _rowBytes;
 }
 
-+ (id)loaderWithPath:(NSString*)path options:(uint32_t)options;
++ (id)cxx_loaderWithPath:(const std::optional<std::string>&)path options:(uint32_t)options;
 
 /*	Convenience method to load images not destined for normal texture use.
         Specifier is a string or a dictionary as with textures. ExtraOptions is
@@ -68,7 +77,7 @@ SOFTWARE.
         directory to look in, typically Textures or Images. Options in the
         specifier which are applied at the OOTexture level will be ignored.
 */
-+ (id)loaderWithTextureSpecifier:(id)specifier extraOptions:(uint32_t)extraOptions folder:(NSString*)folder;
++ (id)cxx_loaderWithTextureSpecifier:(const oo::PList&)specifier extraOptions:(uint32_t)extraOptions folder:(const std::optional<std::string>&)folder;
 
 - (BOOL)isReady;
 
@@ -83,14 +92,14 @@ SOFTWARE.
 /*	Hopefully-unique string for texture loader; analagous, but not identical,
         to corresponding texture cacheKey.
 */
-- (NSString*)cacheKey;
+- (id)cacheKey; // an Objective-C string. Shared selector (proposed ADR-0043).
 
 /*** Subclass interface; do not use on pain of pain. Unless you're subclassing. ***/
 
 // Subclasses shouldn't do much on init, because of the whole asynchronous thing.
-- (id)initWithPath:(NSString*)path options:(uint32_t)options;
+- (id)cxx_initWithPath:(const std::optional<std::string>&)path options:(uint32_t)options OO_RETURNS_RETAINED;
 
-- (NSString*)path;
+- (std::optional<std::string>)cxx_path;
 
 /*	Load data, setting up _data, _format, _width, and _height; also _rowBytes
         if it's not _width * OOTextureComponentsForFormat(_format), and
@@ -107,3 +116,10 @@ SOFTWARE.
 - (void)loadTexture;
 
 @end
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-wzti, forwarding to the cxx_ API above, so unmigrated callers and
+        subclasses compile unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge
+        goes in its own bead.
+*/
+#import "OOTextureLoader+FoundationBridge.h"

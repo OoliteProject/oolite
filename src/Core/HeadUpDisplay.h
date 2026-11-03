@@ -355,16 +355,6 @@ enum {
 
 @end
 
-@interface NSString (OODisplayEncoding)
-
-// Return a C string in the 8-bit encoding used for display.
-- (const char*)cStringUsingOoliteEncoding;
-
-// Return a C string in the 8-bit encoding used for display, with substitutions performed.
-- (const char*)cStringUsingOoliteEncodingAndRemapping;
-
-@end
-
 /*
         Protocol for things that can be used as HUD compass items. Really ought
         to grow into a general protocol for HUD elements.
@@ -375,46 +365,42 @@ enum {
 
 @end
 
-@interface NSString (OOHUDBeaconIcon) <OOHUDBeaconIcon>
-@end
+void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
 
-void OODrawString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-void OODrawStringAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
-
-/* OODrawString(Aligned) handles all the string drawing, but because
+/* cxx_OODrawString(Aligned) handles all the string drawing, but because
  * it does texture application and GL_QUADS beginning once per string
  * it's quite slow.
  *
  * Where efficiency is needed, call OOStartDrawingStrings(), then
- * OODrawStringQuadsAligned for each bit of text, then
+ * cxx_OODrawStringQuadsAligned for each bit of text, then
  * OOStopDrawingStrings().
  *
  * Trying to draw anything else between OOStartDrawingStrings() and
  * OOStopDrawingStrings() will have messy results. You can safely call
  * Stop, draw the other thing you want, then call Start again - it's
  * just a little inefficient. Similarly calling
- * OODrawStringQuadsAligned() without calling OOStartDrawingStrings()
+ * cxx_OODrawStringQuadsAligned() without calling OOStartDrawingStrings()
  * won't work very well.
  *
  * - CIM
  */
 void OOStartDrawingStrings(void);
-void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
 void OOStopDrawingStrings(void);
 
-void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-NSRect OORectFromString(NSString* text, GLfloat x, GLfloat y, NSSize siz);
+NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y, NSSize siz);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-CGFloat OOStringWidthInEm(NSString* text);
-
-#ifdef __cplusplus
-}
-#endif
+CGFloat cxx_OOStringWidthInEm(const std::string& text);
 
 void OOHUDResetTextEngine(void);
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-3rb.209 (the HeadUpDisplay sweep oo-3rb.81, chunk 1), forwarding to the
+        cxx_ API above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their own
+        sweep beads; the bridge goes in its own bead.
+*/
+#import "HeadUpDisplay+FoundationBridge.h"

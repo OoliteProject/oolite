@@ -27,6 +27,16 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-8mxr): the Foundation-typed selectors of this
+        category have more direct callers than the sizing rule allows (PlayerEntity.mm,
+        PlayerEntityControls.mm, PlayerEntityLegacyScriptEngine.mm, PlayerEntityKeyMapper.mm,
+        OOStringExpander.mm, OOJSMission.mm, OOJSGlobal.mm, Universe.mm), so they are cxx_ twins here
+        and the originals live in PlayerEntityScriptMethods+FoundationBridge.h. Strings that could be
+        nil are std::optional; a marker is an oo::PList Dict (null where it was nil).
+*/
 @interface PlayerEntity (ScriptMethods)
 
 - (unsigned)score;
@@ -35,21 +45,21 @@ MA 02110-1301, USA.
 - (double)creditBalance;
 - (void)setCreditBalance:(double)value;
 
-- (NSString*)dockedStationName;
-- (NSString*)dockedStationDisplayName;
+- (std::optional<std::string>)cxx_dockedStationName;
+- (std::optional<std::string>)cxx_dockedStationDisplayName;
 - (BOOL)dockedAtMainStation;
 
-- (void)awardCommodityType:(NSString*)type amount:(OOCargoQuantity)amount;
+- (void)cxx_awardCommodityType:(const std::string&)type amount:(OOCargoQuantity)amount;
 
 - (void)resetScannerZoom;
 
 - (OOGalaxyID)currentGalaxyID;
 - (OOSystemID)currentSystemID;
 
-- (void)setMissionChoice:(NSString*)newChoice;
-- (void)setMissionChoice:(NSString*)newChoice withEvent:(BOOL)withEvent;
-- (void)setMissionChoice:(NSString*)newChoice keyPress:(NSString*)keyPress;
-- (void)setMissionChoice:(NSString*)newChoice keyPress:(NSString*)keyPress withEvent:(BOOL)withEvent;
+- (void)cxx_setMissionChoice:(const std::optional<std::string>&)newChoice;
+- (void)cxx_setMissionChoice:(const std::optional<std::string>&)newChoice withEvent:(BOOL)withEvent;
+- (void)cxx_setMissionChoice:(const std::optional<std::string>&)newChoice keyPress:(const std::optional<std::string>&)keyPress;
+- (void)cxx_setMissionChoice:(const std::optional<std::string>&)newChoice keyPress:(const std::optional<std::string>&)keyPress withEvent:(BOOL)withEvent;
 - (void)allowMissionInterrupt;
 
 - (OOTimeDelta)scriptTimer;
@@ -58,21 +68,21 @@ MA 02110-1301, USA.
 - (unsigned)systemPseudoRandom256;
 - (double)systemPseudoRandomFloat;
 
-- (NSDictionary*)passengerContractMarker:(OOSystemID)system;
-- (NSDictionary*)parcelContractMarker:(OOSystemID)system;
-- (NSDictionary*)cargoContractMarker:(OOSystemID)system;
-- (NSDictionary*)defaultMarker:(OOSystemID)system;
-- (NSDictionary*)validatedMarker:(NSDictionary*)marker;
+- (oo::PList)cxx_passengerContractMarker:(OOSystemID)system;
+- (oo::PList)cxx_parcelContractMarker:(OOSystemID)system;
+- (oo::PList)cxx_cargoContractMarker:(OOSystemID)system;
+- (oo::PList)cxx_defaultMarker:(OOSystemID)system;
+- (oo::PList)cxx_validatedMarker:(const oo::PList&)marker;
 
-- (NSString*)keyBindingDescription2:(NSString*)binding;
-- (NSString*)getKeyBindingDescription:(NSArray*)keyList;
-- (NSString*)keyCodeDescription:(OOKeyCode)code;
-- (NSString*)keyCodeDescriptionShort:(OOKeyCode)code;
+- (std::optional<std::string>)cxx_keyBindingDescription2:(const std::string&)binding;
+- (std::optional<std::string>)cxx_getKeyBindingDescription:(const oo::PList&)keyList;
+- (std::optional<std::string>)cxx_keyCodeDescription:(OOKeyCode)code;
+- (std::optional<std::string>)cxx_keyCodeDescriptionShort:(OOKeyCode)code;
 
-- (NSString*)commanderKillsAsString;
-- (NSString*)commanderBountyAsString;
-- (NSString*)creditsFormattedForSubstitution;
-- (NSString*)creditsFormattedForLegacySubstitution;
+- (std::optional<std::string>)cxx_commanderKillsAsString;
+- (std::optional<std::string>)cxx_commanderBountyAsString;
+- (std::optional<std::string>)cxx_creditsFormattedForSubstitution;
+- (std::optional<std::string>)cxx_creditsFormattedForLegacySubstitution;
 
 @end
 
@@ -97,3 +107,9 @@ NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates);
 #ifdef __cplusplus
 }
 #endif
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-8mxr, forwarding to the cxx_ methods above, so unmigrated callers compile
+        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
+*/
+#import "PlayerEntityScriptMethods+FoundationBridge.h"

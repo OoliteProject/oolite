@@ -26,224 +26,215 @@ SOFTWARE.
 */
 
 #import "OOMaterialSpecifier.h"
-#import "NSDictionaryOOExtensions.h"
 #import "OOColor.h"
-#import "OOPListView.h"
+#import "OOFoundationBridge.h"
 #import "OOTexture.h"
 #import "Universe.h"
 
-NSString* const kOOMaterialDiffuseColorName = @"diffuse_color";
-NSString* const kOOMaterialDiffuseColorLegacyName = @"diffuse";
-NSString* const kOOMaterialAmbientColorName = @"ambient_color";
-NSString* const kOOMaterialAmbientColorLegacyName = @"ambient";
-NSString* const kOOMaterialSpecularColorName = @"specular_color";
-NSString* const kOOMaterialSpecularColorLegacyName = @"specular";
-NSString* const kOOMaterialSpecularModulateColorName = @"specular_modulate_color";
-NSString* const kOOMaterialEmissionColorName = @"emission_color";
-NSString* const kOOMaterialEmissionColorLegacyName = @"emission";
-NSString* const kOOMaterialEmissionModulateColorName = @"emission_modulate_color";
-NSString* const kOOMaterialIlluminationModulateColorName = @"illumination_modulate_color";
+namespace {
 
-NSString* const kOOMaterialDiffuseMapName = @"diffuse_map";
-NSString* const kOOMaterialSpecularColorMapName = @"specular_color_map";
-NSString* const kOOMaterialSpecularExponentMapName = @"specular_exponent_map";
-NSString* const kOOMaterialCombinedSpecularMapName = @"specular_map"; // Combined specular_color_map and specular_exponent_map (unfortunate name required for backwards-compatibility).
-NSString* const kOOMaterialNormalMapName = @"normal_map";
-NSString* const kOOMaterialParallaxMapName = @"parallax_map";
-NSString* const kOOMaterialNormalAndParallaxMapName = @"normal_and_parallax_map";
-NSString* const kOOMaterialEmissionMapName = @"emission_map";
-NSString* const kOOMaterialIlluminationMapName = @"illumination_map";
-NSString* const kOOMaterialEmissionAndIlluminationMapName = @"emission_and_illumination_map";
-
-NSString* const kOOMaterialParallaxScaleName = @"parallax_scale";
-NSString* const kOOMaterialParallaxBiasName = @"parallax_bias";
-
-NSString* const kOOMaterialGammaCorrectName = @"gamma_correct";
-
-NSString* const kOOMaterialGlossName = @"gloss";
-
-NSString* const kOOMaterialSpecularExponentName = @"specular_exponent";
-NSString* const kOOMaterialSpecularExponentLegacyName = @"shininess";
-
-NSString* const kOOMaterialLightMapsName = @"light_map";
-
-@implementation NSDictionary (OOMateralProperties)
-
-// Internal. Used to avoid mutual recusion between -oo_specularExponentMapSpecifier and -oo_specularExponent.
-- (int)oo_rawSpecularExponentValue
+id ValueFor(const oo::PList& configuration, const char* key)
 {
-    NSObject* value = [self objectForKey:kOOMaterialSpecularExponentName];
-    if (value == nil)
-        value = [self objectForKey:kOOMaterialSpecularExponentLegacyName];
-    return OOIntFromObject(value, -1);
+    const oo::PList* value = configuration.find(key);
+    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
 }
 
-- (OOColor*)oo_diffuseColor
+OOColor* ColorFor(const oo::PList& configuration, const char* key)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorName]];
+    return [OOColor colorWithDescription:ValueFor(configuration, key)];
+}
+
+// OOTextureSpecFromObject() (OOTexture.mm, not yet migrated) applied to the value for key, as
+// -oo_textureSpecifierForKey:defaultName: did.
+oo::PList TextureSpecifierFor(const oo::PList& configuration, const char* key, const std::optional<std::string>& defaultName)
+{
+    return oo::PListFrom(OOTextureSpecFromObject(ValueFor(configuration, key), oo::NSStringOrNil(defaultName)));
+}
+
+// -dictionaryByAddingObject:@"a" forKey:@"extract_channel" (nil stays nil).
+oo::PList AddingExtractChannelA(oo::PList specifier)
+{
+    if (oo::PList::Dict* dict = specifier.getIf<oo::PList::Dict>())
+        (*dict)["extract_channel"] = oo::PList("a");
+    return specifier;
+}
+
+// Internal. Used to avoid mutual recusion between the specular exponent map specifier and the specular exponent.
+int RawSpecularExponentValue(const oo::PList& configuration)
+{
+    const oo::PList* value = configuration.find(cxx_kOOMaterialSpecularExponentName);
+    if (value == nullptr)
+        value = configuration.find(cxx_kOOMaterialSpecularExponentLegacyName);
+    return oo::PListGet<int>::from(value, -1);
+}
+
+} // namespace
+
+OOColor* cxx_OOMaterialDiffuseColor(const oo::PList& configuration)
+{
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorName);
     if (result == nil)
-        result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorLegacyName]];
+        result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorLegacyName);
 
     if ([result isWhite])
         result = nil;
     return result;
 }
 
-- (OOColor*)oo_ambientColor
+OOColor* cxx_OOMaterialAmbientColor(const oo::PList& configuration)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialAmbientColorName]];
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialAmbientColorName);
     if (result == nil)
-        result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialAmbientColorLegacyName]];
+        result = ColorFor(configuration, cxx_kOOMaterialAmbientColorLegacyName);
     return result;
 }
 
-- (OOColor*)oo_specularColor
+OOColor* cxx_OOMaterialSpecularColor(const oo::PList& configuration)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorName]];
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialSpecularColorName);
     if (result == nil)
-        result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularColorLegacyName]];
+        result = ColorFor(configuration, cxx_kOOMaterialSpecularColorLegacyName);
     if (result == nil) {
         result = [OOColor colorWithWhite:0.2f alpha:1.0f];
     }
     return result;
 }
 
-- (OOColor*)oo_specularModulateColor
+OOColor* cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularModulateColorName]];
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialSpecularModulateColorName);
     if (result == nil)
         result = [OOColor whiteColor];
 
     return result;
 }
 
-- (OOColor*)oo_emissionColor
+OOColor* cxx_OOMaterialEmissionColor(const oo::PList& configuration)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorName]];
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialEmissionColorName);
     if (result == nil)
-        result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorLegacyName]];
+        result = ColorFor(configuration, cxx_kOOMaterialEmissionColorLegacyName);
 
     if ([result isBlack])
         result = nil;
     return result;
 }
 
-- (OOColor*)oo_emissionModulateColor
+OOColor* cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionModulateColorName]];
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialEmissionModulateColorName);
 
     if ([result isWhite])
         result = nil;
     return result;
 }
 
-- (OOColor*)oo_illuminationModulateColor
+OOColor* cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration)
 {
-    OOColor* result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialIlluminationModulateColorName]];
+    OOColor* result = ColorFor(configuration, cxx_kOOMaterialIlluminationModulateColorName);
 
     if ([result isWhite])
         result = nil;
     return result;
 }
 
-- (NSDictionary*)oo_diffuseMapSpecifierWithDefaultName:(NSString*)name
+oo::PList cxx_OOMaterialDiffuseMapSpecifier(const oo::PList& configuration, const std::optional<std::string>& defaultName)
 {
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialDiffuseMapName, name);
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialDiffuseMapName, defaultName);
 }
 
-- (NSDictionary*)oo_combinedSpecularMapSpecifier
+oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(const oo::PList& configuration)
 {
-    if ([self oo_rawSpecularExponentValue] == 0)
-        return nil;
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialCombinedSpecularMapName, nil);
+    if (RawSpecularExponentValue(configuration) == 0)
+        return oo::PList();
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialCombinedSpecularMapName, std::nullopt);
 }
 
-- (NSDictionary*)oo_specularColorMapSpecifier
+oo::PList cxx_OOMaterialSpecularColorMapSpecifier(const oo::PList& configuration)
 {
-    if ([self oo_rawSpecularExponentValue] == 0)
-        return nil;
-    NSDictionary* result = oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialSpecularColorMapName, nil);
-    if (result == nil)
-        result = [self oo_combinedSpecularMapSpecifier];
+    if (RawSpecularExponentValue(configuration) == 0)
+        return oo::PList();
+    oo::PList result = TextureSpecifierFor(configuration, cxx_kOOMaterialSpecularColorMapName, std::nullopt);
+    if (result.isNull())
+        result = cxx_OOMaterialCombinedSpecularMapSpecifier(configuration);
     return result;
 }
 
-- (NSDictionary*)oo_specularExponentMapSpecifier
+oo::PList cxx_OOMaterialSpecularExponentMapSpecifier(const oo::PList& configuration)
 {
-    if ([self oo_rawSpecularExponentValue] == 0)
-        return nil;
-    NSDictionary* result = oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialSpecularExponentMapName, nil);
-    if (result == nil)
-        result = [[self oo_combinedSpecularMapSpecifier] dictionaryByAddingObject:@"a" forKey:@"extract_channel"];
+    if (RawSpecularExponentValue(configuration) == 0)
+        return oo::PList();
+    oo::PList result = TextureSpecifierFor(configuration, cxx_kOOMaterialSpecularExponentMapName, std::nullopt);
+    if (result.isNull())
+        result = AddingExtractChannelA(cxx_OOMaterialCombinedSpecularMapSpecifier(configuration));
     return result;
 }
 
-- (NSDictionary*)oo_normalMapSpecifier
+oo::PList cxx_OOMaterialNormalMapSpecifier(const oo::PList& configuration)
 {
-    if ([self oo_normalAndParallaxMapSpecifier] != nil)
-        return nil;
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialNormalMapName, nil);
+    if (!cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull())
+        return oo::PList();
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialNormalMapName, std::nullopt);
 }
 
-- (NSDictionary*)oo_parallaxMapSpecifier
+oo::PList cxx_OOMaterialParallaxMapSpecifier(const oo::PList& configuration)
 {
-    id spec = oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialParallaxMapName, nil);
-    if (spec == nil) {
+    oo::PList spec = TextureSpecifierFor(configuration, cxx_kOOMaterialParallaxMapName, std::nullopt);
+    if (spec.isNull()) {
         // Default is alpha channel of normal_and_parallax_map.
-        spec = [[self oo_normalAndParallaxMapSpecifier] dictionaryByAddingObject:@"a"
-                                                                          forKey:@"extract_channel"];
+        spec = AddingExtractChannelA(cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration));
     }
 
     return spec;
 }
 
-- (NSDictionary*)oo_normalAndParallaxMapSpecifier
+oo::PList cxx_OOMaterialNormalAndParallaxMapSpecifier(const oo::PList& configuration)
 {
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialNormalAndParallaxMapName, nil);
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialNormalAndParallaxMapName, std::nullopt);
 }
 
-- (NSDictionary*)oo_emissionMapSpecifier
+oo::PList cxx_OOMaterialEmissionMapSpecifier(const oo::PList& configuration)
 {
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialEmissionMapName, nil);
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialEmissionMapName, std::nullopt);
 }
 
-- (NSDictionary*)oo_illuminationMapSpecifier
+oo::PList cxx_OOMaterialIlluminationMapSpecifier(const oo::PList& configuration)
 {
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialIlluminationMapName, nil);
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialIlluminationMapName, std::nullopt);
 }
 
-- (NSDictionary*)oo_emissionAndIlluminationMapSpecifier
+oo::PList cxx_OOMaterialEmissionAndIlluminationMapSpecifier(const oo::PList& configuration)
 {
-    if ([self oo_emissionMapSpecifier] != nil || [self oo_illuminationMapSpecifier] != nil)
-        return nil;
-    return oo::PListView(self).get<oo::TextureSpecifier>(kOOMaterialEmissionAndIlluminationMapName, nil);
+    if (!cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() || !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull())
+        return oo::PList();
+    return TextureSpecifierFor(configuration, cxx_kOOMaterialEmissionAndIlluminationMapName, std::nullopt);
 }
 
-- (float)oo_parallaxScale
+float cxx_OOMaterialParallaxScale(const oo::PList& configuration)
 {
-    return oo::PListView(self).get<float>(kOOMaterialParallaxScaleName, kOOMaterialDefaultParallaxScale);
+    return configuration.get<float>(cxx_kOOMaterialParallaxScaleName, kOOMaterialDefaultParallaxScale);
 }
 
-- (float)oo_parallaxBias
+float cxx_OOMaterialParallaxBias(const oo::PList& configuration)
 {
-    return oo::PListView(self).get<float>(kOOMaterialParallaxBiasName);
+    return configuration.get<float>(cxx_kOOMaterialParallaxBiasName);
 }
 
-- (BOOL)oo_gammaCorrect
+bool cxx_OOMaterialGammaCorrect(const oo::PList& configuration)
 {
     return oo::PListView(self).get<bool>(kOOMaterialGammaCorrectName, ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
 }
 
-- (float)oo_gloss
+float cxx_OOMaterialGloss(const oo::PList& configuration)
 {
-    return OOClamp_0_1_f(oo::PListView(self).get<float>(kOOMaterialGlossName, 0.375f));
+    return OOClamp_0_1_f(configuration.get<float>(cxx_kOOMaterialGlossName, 0.375f));
 }
 
-- (int)oo_specularExponent
+int cxx_OOMaterialSpecularExponent(const oo::PList& configuration)
 {
-    int result = [self oo_rawSpecularExponentValue];
+    int result = RawSpecularExponentValue(configuration);
     if (result < 0) {
-        if ([UNIVERSE useShaders] && [self oo_specularExponentMapSpecifier] != nil) {
+        if ([UNIVERSE useShaders] && !cxx_OOMaterialSpecularExponentMapSpecifier(configuration).isNull()) {
             result = 128;
         } else {
             result = 10;
@@ -252,5 +243,3 @@ NSString* const kOOMaterialLightMapsName = @"light_map";
 
     return result;
 }
-
-@end

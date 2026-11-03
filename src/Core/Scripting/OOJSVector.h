@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOMaths.h"
+#include "oofnd/StdLib.hpp"
 #import <Foundation/Foundation.h>
 #include <quickjs.h>
 
@@ -66,7 +67,7 @@ BOOL JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj, HPVector ve
         DEPRECATED in favour of JSObjectGetVector(), since the list-of-number form
         is no longer used.
 */
-BOOL VectorFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
+BOOL VectorFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
 
 /*	VectorFromArgumentListNoError()
 

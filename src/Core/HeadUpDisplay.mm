@@ -27,14 +27,15 @@ MA 02110-1301, USA.
 #include <vector>
 #import "GameController.h"
 #import "GuiDisplayGen.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOConstToString.h"
 #import "OOCrosshairs.h"
 #import "OOEncodingConverter.h"
 #import "OOFoundation.h"
+#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJoystickManager.h"
+#import "OOPListView.h"
 #import "OOPlanetEntity.h"
 #import "OOPolygonSprite.h"
 #import "OOQuiriumCascadeEntity.h"
@@ -88,13 +89,15 @@ struct OOHUDWidget {
     NSString* selectorString; // dials only; retained
 };
 
-static const OOHUDWidget* sCurrentDrawItem;
+namespace {
+
+const OOHUDWidget* sCurrentDrawItem;
 
 /*	The current widget's cached geometry. An MFD entry that is not a dictionary was a tuple
         built with arrayWithObjects: starting at its nil info, i.e. an empty array, and reading
         its cache raised this exception (caught by Universe's render loop); keep that.
 */
-static void GetCurrentCachedInfo(struct CachedInfo* cached)
+void GetCurrentCachedInfo(struct CachedInfo* cached)
 {
     if (EXPECT_NOT(!sCurrentDrawItem->hasCache)) {
         [NSException raise:NSRangeException format:@"Index 1 is out of range 0 (in 'objectAtIndex:')"];
@@ -102,12 +105,12 @@ static void GetCurrentCachedInfo(struct CachedInfo* cached)
     *cached = sCurrentDrawItem->cache;
 }
 
-static void AddHUDWidget(std::vector<OOHUDWidget>& widgets, NSDictionary* info, const struct CachedInfo* cache, SEL selector, NSString* selectorString)
+void AddHUDWidget(std::vector<OOHUDWidget>& widgets, NSDictionary* info, const struct CachedInfo* cache, SEL selector, NSString* selectorString)
 {
     widgets.push_back(OOHUDWidget { [info retain], *cache, info != nil, selector, [selectorString retain] });
 }
 
-static void ReleaseHUDWidgets(std::vector<OOHUDWidget>& widgets)
+void ReleaseHUDWidgets(std::vector<OOHUDWidget>& widgets)
 {
     for (OOHUDWidget& widget : widgets) {
         [widget.info release];
@@ -115,6 +118,8 @@ static void ReleaseHUDWidgets(std::vector<OOHUDWidget>& widgets)
     }
     widgets.clear();
 }
+
+} // namespace
 
 OOINLINE float useDefined(float val, float validVal)
 {
@@ -275,17 +280,17 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     _reticleColors = nil;
 
     // populate arrays
-    NSArray* dials = [hudinfo oo_arrayForKey:DIALS_KEY];
+    NSArray* dials = oo::PListView(hudinfo).get<NSArray*>(DIALS_KEY);
     for (i = 0; i < [dials count]; i++) {
-        NSDictionary* dial_info = [dials oo_dictionaryAtIndex:i];
-        if (!areTrumblesToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])
+        NSDictionary* dial_info = oo::PListView(dials).at<NSDictionary*>(i);
+        if (!areTrumblesToBeDrawn && [oo::PListView(dial_info).get<NSString*>(SELECTOR_KEY) isEqualToString:@"drawTrumbles:"])
             areTrumblesToBeDrawn = YES;
-        if (!isCompassToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawCompass:"])
+        if (!isCompassToBeDrawn && [oo::PListView(dial_info).get<NSString*>(SELECTOR_KEY) isEqualToString:@"drawCompass:"])
             isCompassToBeDrawn = YES;
-        if ([[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTargetReticle:"]) {
-            _reticleColors = [[NSMutableArray arrayWithObjects:[OOColor colorWithDescription:[dial_info oo_objectForKey:@"target_rgba" defaultValue:@"greenColor"]],
-                [OOColor colorWithDescription:[dial_info oo_objectForKey:@"target_sensitive_rgba" defaultValue:@"redColor"]],
-                [OOColor colorWithDescription:[dial_info oo_objectForKey:@"wormhole_rgba" defaultValue:@"cyanColor"]],
+        if ([oo::PListView(dial_info).get<NSString*>(SELECTOR_KEY) isEqualToString:@"drawTargetReticle:"]) {
+            _reticleColors = [[NSMutableArray arrayWithObjects:[OOColor colorWithDescription:oo::PListView(dial_info).get<id>(@"target_rgba", @"greenColor")],
+                [OOColor colorWithDescription:oo::PListView(dial_info).get<id>(@"target_sensitive_rgba", @"redColor")],
+                [OOColor colorWithDescription:oo::PListView(dial_info).get<id>(@"wormhole_rgba", @"cyanColor")],
                 nil] retain];
         }
         [self addDial:dial_info];
@@ -306,14 +311,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 
     _lastWeaponType = nil;
 
-    NSArray* legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
+    NSArray* legends = oo::PListView(hudinfo).get<NSArray*>(LEGENDS_KEY);
     for (i = 0; i < [legends count]; i++) {
-        [self addLegend:[legends oo_dictionaryAtIndex:i]];
+        [self addLegend:oo::PListView(legends).at<NSDictionary*>(i)];
     }
 
-    NSArray* mfds = [hudinfo oo_arrayForKey:MFDS_KEY];
+    NSArray* mfds = oo::PListView(hudinfo).get<NSArray*>(MFDS_KEY);
     for (i = 0; i < [mfds count]; i++) {
-        [self addMFD:[mfds oo_dictionaryAtIndex:i]];
+        [self addMFD:oo::PListView(mfds).at<NSDictionary*>(i)];
     }
 
     hudHidden = NO;
@@ -322,40 +327,40 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 
     hudUpdating = NO;
 
-    overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
+    overallAlpha = oo::PListView(hudinfo).get<float>(@"overall_alpha", DEFAULT_OVERALL_ALPHA);
 
-    reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
+    reticleTargetSensitive = oo::PListView(hudinfo).get<BOOL>(@"reticle_target_sensitive", NO);
     propertiesReticleTargetSensitive = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
             [NSNumber numberWithBool:YES], @"isAccurate",
         [NSNumber numberWithDouble:[UNIVERSE getTime]], @"timeLastAccuracyProbabilityCalculation",
         nil];
 
-    cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
+    cloakIndicatorOnStatusLight = oo::PListView(hudinfo).get<BOOL>(@"cloak_indicator_on_status_light", YES);
 
-    allowBigGui = [hudinfo oo_boolForKey:@"allow_big_gui" defaultValue:NO];
+    allowBigGui = oo::PListView(hudinfo).get<BOOL>(@"allow_big_gui", NO);
 
     last_transmitter = NO_TARGET;
 
     [crosshairDefinition release];
 
-    NSString* crossfile = [[hudinfo oo_stringForKey:@"crosshair_file"] retain];
+    NSString* crossfile = [oo::PListView(hudinfo).get<NSString*>(@"crosshair_file") retain];
     if (crossfile == nil) {
-        _crosshairOverrides = [[hudinfo oo_dictionaryForKey:@"crosshairs"] retain];
+        _crosshairOverrides = [oo::PListView(hudinfo).get<NSDictionary*>(@"crosshairs") retain];
         crosshairDefinition = nil;
     } else {
         [self setCrosshairDefinition:crossfile];
     }
     [crossfile release];
 
-    id crosshairColor = [hudinfo oo_objectForKey:@"crosshair_color" defaultValue:@"greenColor"];
+    id crosshairColor = oo::PListView(hudinfo).get<id>(@"crosshair_color", @"greenColor");
     _crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
-    _crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
-    _crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
+    _crosshairScale = oo::PListView(hudinfo).get<float>(@"crosshair_scale", 32.0f);
+    _crosshairWidth = oo::PListView(hudinfo).get<float>(@"crosshair_width", 1.5f);
 
-    minimalistic_scanner = [hudinfo oo_boolForKey:@"scanner_minimalistic" defaultValue:NO];
+    minimalistic_scanner = oo::PListView(hudinfo).get<BOOL>(@"scanner_minimalistic", NO);
 
-    nonlinear_scanner = [hudinfo oo_boolForKey:@"scanner_non_linear" defaultValue:NO];
-    scanner_ultra_zoom = [hudinfo oo_boolForKey:@"scanner_ultra_zoom" defaultValue:NO];
+    nonlinear_scanner = oo::PListView(hudinfo).get<BOOL>(@"scanner_non_linear", NO);
+    scanner_ultra_zoom = oo::PListView(hudinfo).get<BOOL>(@"scanner_ultra_zoom", NO);
 
     distance_unit = DESC(@"oolite-hud-distance-unit");
 
@@ -389,18 +394,18 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     int rht = [gui rowHeight];
     NSString* title = [gui title];
     if ([gui_info objectForKey:WIDTH_KEY])
-        siz.width = [gui_info oo_floatForKey:WIDTH_KEY];
+        siz.width = oo::PListView(gui_info).get<float>(WIDTH_KEY);
     if ([gui_info objectForKey:HEIGHT_KEY])
-        siz.height = [gui_info oo_floatForKey:HEIGHT_KEY];
+        siz.height = oo::PListView(gui_info).get<float>(HEIGHT_KEY);
     if ([gui_info objectForKey:ROW_HEIGHT_KEY])
-        rht = [gui_info oo_floatForKey:ROW_HEIGHT_KEY];
+        rht = oo::PListView(gui_info).get<float>(ROW_HEIGHT_KEY);
     if ([gui_info objectForKey:TITLE_KEY])
-        title = [gui_info oo_stringForKey:TITLE_KEY];
+        title = oo::PListView(gui_info).get<NSString*>(TITLE_KEY);
     [gui resizeTo:siz characterHeight:rht title:title];
     if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-        [gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
+        [gui setBackgroundColor:[OOColor colorFromString:oo::PListView(gui_info).get<NSString*>(BACKGROUND_RGBA_KEY)]];
     if ([gui_info objectForKey:ALPHA_KEY])
-        [gui setMaxAlpha:OOClamp_0_max_f([gui_info oo_floatForKey:ALPHA_KEY], 1.0f)];
+        [gui setMaxAlpha:OOClamp_0_max_f(oo::PListView(gui_info).get<float>(ALPHA_KEY), 1.0f)];
     else
         [gui setMaxAlpha:1.0f];
 }
@@ -409,15 +414,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 {
     Vector pos = [gui drawPosition];
     if ([gui_info objectForKey:X_KEY])
-        pos.x = [gui_info oo_floatForKey:X_KEY] +
-            [[UNIVERSE gameView] x_offset] *
-                [gui_info oo_floatForKey:X_ORIGIN_KEY
-                            defaultValue:0.0];
+        pos.x = oo::PListView(gui_info).get<float>(X_KEY) +
+            [[UNIVERSE gameView] x_offset] * oo::PListView(gui_info).get<float>(X_ORIGIN_KEY, 0.0);
     if ([gui_info objectForKey:Y_KEY])
-        pos.y = [gui_info oo_floatForKey:Y_KEY] +
-            [[UNIVERSE gameView] y_offset] *
-                [gui_info oo_floatForKey:Y_ORIGIN_KEY
-                            defaultValue:0.0];
+        pos.y = oo::PListView(gui_info).get<float>(Y_KEY) +
+            [[UNIVERSE gameView] y_offset] * oo::PListView(gui_info).get<float>(Y_ORIGIN_KEY, 0.0);
 
     [gui setDrawPosition:pos];
 }
@@ -428,7 +429,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     // then resize and reposition them accordingly.
 
     GuiDisplayGen* gui = [UNIVERSE messageGUI];
-    NSDictionary* gui_info = [info oo_dictionaryForKey:@"message_gui"];
+    NSDictionary* gui_info = oo::PListView(info).get<NSDictionary*>(@"message_gui");
     if (gui && [gui_info count] > 0) {
         /*
                 If switching message guis, remember the last 2 message lines.
@@ -439,13 +440,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         */
 
         NSArray* lastLines = [gui getLastLines]; // text, colour, fade time - text, colour, fade time
-        BOOL line1 = ![[lastLines oo_stringAtIndex:0] isEqualToString:@""];
+        BOOL line1 = ![oo::PListView(lastLines).at<NSString*>(0) isEqualToString:@""];
         [self resetGui:gui withInfo:gui_info];
 
-        BOOL permanent = [gui_info oo_boolForKey:@"permanent" defaultValue:NO];
+        BOOL permanent = oo::PListView(gui_info).get<BOOL>(@"permanent", NO);
         [UNIVERSE setPermanentMessageLog:permanent];
 
-        BOOL automaticBg = [gui_info oo_boolForKey:@"background_automatic" defaultValue:YES];
+        BOOL automaticBg = oo::PListView(gui_info).get<BOOL>(@"background_automatic", YES);
         [UNIVERSE setAutoMessageLogBg:automaticBg];
 
         // set message gui text colors - one for standard messages, one for incoming comms
@@ -458,17 +459,17 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         [gui setTextCommsColor:textCommsColor];
 
         if (line1) {
-            [gui printLongText:[lastLines oo_stringAtIndex:0]
+            [gui printLongText:oo::PListView(lastLines).at<NSString*>(0)
                          align:GUI_ALIGN_CENTER
-                         color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]]
-                      fadeTime:(permanent ? 0.0 : [lastLines oo_floatAtIndex:2])key:nil
+                         color:[OOColor colorFromString:oo::PListView(lastLines).at<NSString*>(1)]
+                      fadeTime:(permanent ? 0.0 : oo::PListView(lastLines).at<float>(2))key:nil
                     addToArray:nil];
         }
-        if ([lastLines count] > 3 && (line1 || ![[lastLines oo_stringAtIndex:3] isEqualToString:@""])) {
-            [gui printLongText:[lastLines oo_stringAtIndex:3]
+        if ([lastLines count] > 3 && (line1 || ![oo::PListView(lastLines).at<NSString*>(3) isEqualToString:@""])) {
+            [gui printLongText:oo::PListView(lastLines).at<NSString*>(3)
                          align:GUI_ALIGN_CENTER
-                         color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]]
-                      fadeTime:(permanent ? 0.0 : [lastLines oo_floatAtIndex:5])key:nil
+                         color:[OOColor colorFromString:oo::PListView(lastLines).at<NSString*>(4)]
+                      fadeTime:(permanent ? 0.0 : oo::PListView(lastLines).at<float>(5))key:nil
                     addToArray:nil];
         }
     }
@@ -490,11 +491,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     // And now set up the comms log
 
     gui = [UNIVERSE commLogGUI];
-    gui_info = [info oo_dictionaryForKey:@"comm_log_gui"];
+    gui_info = oo::PListView(info).get<NSDictionary*>(@"comm_log_gui");
 
     if (gui && [gui_info count] > 0) {
-        [UNIVERSE setAutoCommLog:[gui_info oo_boolForKey:@"automatic" defaultValue:YES]];
-        [UNIVERSE setPermanentCommLog:[gui_info oo_boolForKey:@"permanent" defaultValue:NO]];
+        [UNIVERSE setAutoCommLog:oo::PListView(gui_info).get<BOOL>(@"automatic", YES)];
+        [UNIVERSE setPermanentCommLog:oo::PListView(gui_info).get<BOOL>(@"permanent", NO)];
 
         /*
                 We need to repopulate the comms log after resetting it.
@@ -515,7 +516,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         [self resetGui:gui withInfo:gui_info];
 
         for (i = 0; i < commCount; i++) {
-            [gui printLongText:[cLog oo_stringAtIndex:i]
+            [gui printLongText:oo::PListView(cLog).at<NSString*>(i)
                          align:GUI_ALIGN_LEFT
                          color:nil
                       fadeTime:0.0
@@ -684,7 +685,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     // prefetch data associated with this legend
     prefetchData(info, &cache);
 
-    imageName = [info oo_stringForKey:IMAGE_KEY];
+    imageName = oo::PListView(info).get<NSString*>(IMAGE_KEY);
     if (imageName != nil) {
         texture = [OOTexture textureWithName:imageName
                                     inFolder:@"Images"
@@ -697,8 +698,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         }
 
         imageSize = [texture dimensions];
-        imageSize.width = [info oo_floatForKey:WIDTH_KEY defaultValue:imageSize.width];
-        imageSize.height = [info oo_floatForKey:HEIGHT_KEY defaultValue:imageSize.height];
+        imageSize.width = oo::PListView(info).get<float>(WIDTH_KEY, imageSize.width);
+        imageSize.height = oo::PListView(info).get<float>(HEIGHT_KEY, imageSize.height);
 
         legendSprite = [[OOTextureSprite alloc] initWithTexture:texture size:imageSize];
 
@@ -708,7 +709,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         AddHUDWidget(legendArray, legendDict, &cache, NULL, nil);
         [legendDict release];
         [legendSprite release];
-    } else if ([info oo_stringForKey:TEXT_KEY] != nil) {
+    } else if (oo::PListView(info).get<NSString*>(TEXT_KEY) != nil) {
         // add info and cache to the list
         AddHUDWidget(legendArray, info, &cache, NULL, nil);
     }
@@ -719,10 +720,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     static NSSet* allowedSelectors = nil;
     if (allowedSelectors == nil) {
         NSDictionary* whitelist = [ResourceManager whitelistDictionary];
-        allowedSelectors = [[NSSet alloc] initWithArray:[whitelist oo_arrayForKey:@"hud_dial_methods"]];
+        allowedSelectors = [[NSSet alloc] initWithArray:oo::PListView(whitelist).get<NSArray*>(@"hud_dial_methods")];
     }
 
-    NSString* selectorString = [info oo_stringForKey:SELECTOR_KEY];
+    NSString* selectorString = oo::PListView(info).get<NSString*>(SELECTOR_KEY);
     if (selectorString == nil) {
         OOLogERR(@"hud.dial.noSelector", @"HUD dial in %@ is missing selector.", hudName);
         return;
@@ -884,7 +885,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         // Make new crosshairs object
         points = [self crosshairDefinitionForWeaponType:weapon];
 
-        _crosshairs = [[OOCrosshairs alloc] initWithPoints:points
+        _crosshairs = [[OOCrosshairs alloc] initWithPoints:oo::PListFrom(points)
                                                      scale:_crosshairScale
                                                      color:_crosshairColor
                                               overallAlpha:useAlpha];
@@ -939,12 +940,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 
     weaponName = OOStringFromWeaponType(weapon);
     weaponName2 = [weaponName substringFromIndex:3]; // strip "EQ_"
-    result = [_crosshairOverrides oo_arrayForKey:weaponName];
+    result = oo::PListView(_crosshairOverrides).get<NSArray*>(weaponName);
     if (result == nil) {
-        result = [_crosshairOverrides oo_arrayForKey:weaponName2];
+        result = oo::PListView(_crosshairOverrides).get<NSArray*>(weaponName2);
     }
     if (result == nil)
-        result = [_crosshairOverrides oo_arrayForKey:@"OTHER"];
+        result = oo::PListView(_crosshairOverrides).get<NSArray*>(@"OTHER");
     if (result == nil) {
         if (crosshairDefs == nil) {
             crosshairDefs = [ResourceManager dictionaryFromFilesNamed:@"crosshairs.plist"
@@ -953,12 +954,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
             [crosshairDefs retain];
         }
 
-        result = [crosshairDefs oo_arrayForKey:weaponName];
+        result = oo::PListView(crosshairDefs).get<NSArray*>(weaponName);
         if (result == nil) {
-            result = [crosshairDefs oo_arrayForKey:weaponName2];
+            result = oo::PListView(crosshairDefs).get<NSArray*>(weaponName2);
         }
         if (result == nil)
-            result = [crosshairDefs oo_arrayForKey:@"OTHER"];
+            result = oo::PListView(crosshairDefs).get<NSArray*>(@"OTHER");
     }
 
     return result;
@@ -967,13 +968,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 - (void)drawLegend:(NSDictionary*)info
 {
     // check if equipment is required
-    NSString* equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
+    NSString* equipmentRequired = oo::PListView(info).get<NSString*>(EQUIPMENT_REQUIRED_KEY);
     if (equipmentRequired != nil && ![PLAYER hasEquipmentItemProviding:equipmentRequired]) {
         return;
     }
 
     // check alert condition
-    NSUInteger alertMask = [info oo_unsignedIntForKey:ALERT_CONDITIONS_KEY defaultValue:15];
+    NSUInteger alertMask = oo::PListView(info).get<unsigned int>(ALERT_CONDITIONS_KEY, 15);
     // 1=docked, 2=green, 4=yellow, 8=red
     if (alertMask < 15) {
         OOAlertCondition alertCondition = [PLAYER alertCondition];
@@ -982,14 +983,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         }
     }
 
-    BOOL viewOnly = [info oo_boolForKey:VIEWSCREEN_KEY defaultValue:NO];
+    BOOL viewOnly = oo::PListView(info).get<BOOL>(VIEWSCREEN_KEY, NO);
     // 1=docked, 2=green, 4=yellow, 8=red
     if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN) {
         return;
     }
 
     // check association with hidden dials
-    if ([self hasHidden:[info oo_stringForKey:DIAL_REQUIRED_KEY defaultValue:nil]]) {
+    if ([self hasHidden:oo::PListView(info).get<NSString*>(DIAL_REQUIRED_KEY, nil)]) {
         return;
     }
 
@@ -1012,13 +1013,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     if (legendSprite != nil) {
         [legendSprite blitCentredToX:x Y:y Z:z1 alpha:alpha];
     } else {
-        legendText = [info oo_stringForKey:TEXT_KEY];
+        legendText = oo::PListView(info).get<NSString*>(TEXT_KEY);
         if (legendText != nil) {
             // randomly chosen default width & height
             size.width = useDefined(cached.width, 14.0f);
             size.height = useDefined(cached.height, 8.0f);
             SET_COLOR(green_color);
-            if ([info oo_intForKey:@"align"] == 1) {
+            if (oo::PListView(info).get<int>(@"align") == 1) {
                 OODrawStringAligned(legendText, x, y, z1, size, YES);
             } else {
                 OODrawStringAligned(legendText, x, y, z1, size, NO);
@@ -1029,14 +1030,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 
 - (void)drawHUDItem:(NSDictionary*)info
 {
-    NSString* equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
+    NSString* equipment = oo::PListView(info).get<NSString*>(EQUIPMENT_REQUIRED_KEY);
 
     if (equipment != nil && ![PLAYER hasEquipmentItemProviding:equipment]) {
         return;
     }
 
     // check alert condition
-    NSUInteger alertMask = [info oo_unsignedIntForKey:ALERT_CONDITIONS_KEY defaultValue:15];
+    NSUInteger alertMask = oo::PListView(info).get<unsigned int>(ALERT_CONDITIONS_KEY, 15);
     // 1=docked, 2=green, 4=yellow, 8=red
     if (alertMask < 15) {
         OOAlertCondition alertCondition = [PLAYER alertCondition];
@@ -1045,7 +1046,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         }
     }
 
-    BOOL viewOnly = [info oo_boolForKey:VIEWSCREEN_KEY defaultValue:NO];
+    BOOL viewOnly = oo::PListView(info).get<BOOL>(VIEWSCREEN_KEY, NO);
 
     // 1=docked, 2=green, 4=yellow, 8=red
     if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN) {
@@ -1080,13 +1081,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 
 static void prefetchData(NSDictionary* info, struct CachedInfo* data)
 {
-    data->x = [info oo_floatForKey:X_KEY defaultValue:NOT_DEFINED];
-    data->x0 = [info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-    data->y = [info oo_floatForKey:Y_KEY defaultValue:NOT_DEFINED];
-    data->y0 = [info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-    data->width = [info oo_floatForKey:WIDTH_KEY defaultValue:NOT_DEFINED];
-    data->height = [info oo_floatForKey:HEIGHT_KEY defaultValue:NOT_DEFINED];
-    data->alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+    data->x = oo::PListView(info).get<float>(X_KEY, NOT_DEFINED);
+    data->x0 = oo::PListView(info).get<float>(X_ORIGIN_KEY, 0.0);
+    data->y = oo::PListView(info).get<float>(Y_KEY, NOT_DEFINED);
+    data->y0 = oo::PListView(info).get<float>(Y_ORIGIN_KEY, 0.0);
+    data->width = oo::PListView(info).get<float>(WIDTH_KEY, NOT_DEFINED);
+    data->height = oo::PListView(info).get<float>(HEIGHT_KEY, NOT_DEFINED);
+    data->alpha = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, 1.0f);
 }
 
 //---------------------------------------------------------------------//
@@ -1097,7 +1098,7 @@ static void prefetchData(NSDictionary* info, struct CachedInfo* data)
     NSSize siz;
     GLfloat scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 
-    BOOL emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
+    BOOL emptyDial = (oo::PListView(info).get<float>(ALPHA_KEY) == 0.0f);
 
     BOOL isHostile = NO;
 
@@ -1732,7 +1733,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     NSSize siz;
     BOOL draw_surround;
     GLfloat alpha = overallAlpha;
-    GLfloat ds = OOClamp_0_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+    GLfloat ds = OOClamp_0_1_f([PLAYER dialCustomFloat:oo::PListView(info).get<NSString*>(CUSTOM_DIAL_KEY)]);
     struct CachedInfo cached;
 
     GetCurrentCachedInfo(&cached);
@@ -1743,7 +1744,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.height = useDefined(cached.height, 8);
     alpha *= cached.alpha;
 
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
 
     SET_COLOR_SURROUND(green_color);
     if (draw_surround) {
@@ -1767,7 +1768,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     int x, y;
     NSSize size;
     GLfloat alpha = overallAlpha;
-    NSString* text = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+    NSString* text = [PLAYER dialCustomString:oo::PListView(info).get<NSString*>(CUSTOM_DIAL_KEY)];
     struct CachedInfo cached;
 
     GetCurrentCachedInfo(&cached);
@@ -1781,7 +1782,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     size.width = useDefined(cached.width, 10.0f);
     size.height = useDefined(cached.height, 10.0f);
 
-    if ([info oo_intForKey:@"align"] == 1) {
+    if (oo::PListView(info).get<int>(@"align") == 1) {
         OODrawStringAligned(text, x, y, z1, size, YES);
     } else {
         OODrawStringAligned(text, x, y, z1, size, NO);
@@ -1794,7 +1795,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     NSSize siz;
     BOOL draw_surround;
     GLfloat alpha = overallAlpha;
-    GLfloat iv = OOClamp_n1_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+    GLfloat iv = OOClamp_n1_1_f([PLAYER dialCustomFloat:oo::PListView(info).get<NSString*>(CUSTOM_DIAL_KEY)]);
 
     struct CachedInfo cached;
 
@@ -1805,7 +1806,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, 50);
     siz.height = useDefined(cached.height, 8);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         // draw custom surround
@@ -1835,7 +1836,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
     GLfloat light_color[4] = { 0.25, 0.25, 0.25, 0.0 };
 
-    OOColor* color = [PLAYER dialCustomColor:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+    OOColor* color = [PLAYER dialCustomColor:oo::PListView(info).get<NSString*>(CUSTOM_DIAL_KEY)];
     [color getRed:&light_color[0]
             green:&light_color[1]
              blue:&light_color[2]
@@ -1864,7 +1865,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
     alpha *= cached.alpha;
 
-    NSString* textureFile = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+    NSString* textureFile = [PLAYER dialCustomString:oo::PListView(info).get<NSString*>(CUSTOM_DIAL_KEY)];
     if (textureFile == nil || [textureFile length] == 0) {
         return;
     }
@@ -1911,7 +1912,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.height = useDefined(cached.height, SPEED_BAR_HEIGHT);
     alpha *= cached.alpha;
 
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, SPEED_BAR_DRAW_SURROUND);
 
     SET_COLOR_SURROUND(green_color);
     if (draw_surround) {
@@ -1945,7 +1946,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, ROLL_BAR_WIDTH);
     siz.height = useDefined(cached.height, ROLL_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, ROLL_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw ROLL surround
@@ -1972,7 +1973,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, PITCH_BAR_WIDTH);
     siz.height = useDefined(cached.height, PITCH_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, PITCH_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw PITCH surround
@@ -2000,7 +2001,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, PITCH_BAR_WIDTH);
     siz.height = useDefined(cached.height, PITCH_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, PITCH_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw YAW surround
@@ -2023,7 +2024,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     PlayerEntity* player = PLAYER;
 
     unsigned n_bars = [player dialMaxEnergy] / 64.0;
-    n_bars = [info oo_unsignedIntForKey:N_BARS_KEY defaultValue:n_bars];
+    n_bars = oo::PListView(info).get<unsigned int>(N_BARS_KEY, n_bars);
     if (n_bars < 1) {
         n_bars = 1;
     }
@@ -2037,8 +2038,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, ENERGY_GAUGE_WIDTH);
     siz.height = useDefined(cached.height, ENERGY_GAUGE_HEIGHT);
     alpha *= cached.alpha;
-    drawSurround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
-    labelled = [info oo_boolForKey:LABELLED_KEY defaultValue:YES];
+    drawSurround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, ENERGY_GAUGE_DRAW_SURROUND);
+    labelled = oo::PListView(info).get<BOOL>(LABELLED_KEY, YES);
     if (n_bars > 8)
         labelled = NO;
 
@@ -2099,7 +2100,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, FORWARD_SHIELD_BAR_WIDTH);
     siz.height = useDefined(cached.height, FORWARD_SHIELD_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, FORWARD_SHIELD_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw forward_shield surround
@@ -2133,7 +2134,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, AFT_SHIELD_BAR_WIDTH);
     siz.height = useDefined(cached.height, AFT_SHIELD_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, AFT_SHIELD_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw forward_shield surround
@@ -2167,7 +2168,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, FUEL_BAR_WIDTH);
     siz.height = useDefined(cached.height, FUEL_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(green_color);
@@ -2213,13 +2214,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.height = useDefined(cached.height, WITCHDEST_HEIGHT);
     alpha *= cached.alpha;
     NSString* dest = [UNIVERSE getSystemName:[PLAYER targetSystemID]];
-    NSInteger concealment = [[[UNIVERSE systemManager] getPropertiesForSystem:[PLAYER targetSystemID] inGalaxy:[PLAYER galaxyNumber]] oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+    NSInteger concealment = oo::PListView([[UNIVERSE systemManager] getPropertiesForSystem:[PLAYER targetSystemID] inGalaxy:[PLAYER galaxyNumber]]).get<int>(@"concealment", OO_SYSTEMCONCEALMENT_NONE);
     if (concealment >= OO_SYSTEMCONCEALMENT_NONAME)
         dest = DESC(@"status-unknown-system");
 
     SET_COLOR(green_color);
 
-    if ([info oo_intForKey:@"align"] == 1) {
+    if (oo::PListView(info).get<int>(@"align") == 1) {
         OODrawStringAligned(dest, x, y, z1, siz, YES);
     } else {
         OODrawStringAligned(dest, x, y, z1, siz, NO);
@@ -2242,7 +2243,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, CABIN_TEMP_BAR_WIDTH);
     siz.height = useDefined(cached.height, CABIN_TEMP_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(green_color);
@@ -2283,7 +2284,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, WEAPON_TEMP_BAR_WIDTH);
     siz.height = useDefined(cached.height, WEAPON_TEMP_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(green_color);
@@ -2316,7 +2317,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, ALTITUDE_BAR_WIDTH);
     siz.height = useDefined(cached.height, ALTITUDE_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(yellow_color);
@@ -2354,9 +2355,9 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     result = [sIcons objectForKey:role];
     if (result == nil) {
         NSString* key = role;
-        NSArray* iconDef = [[UNIVERSE descriptions] oo_arrayForKey:key];
+        NSArray* iconDef = oo::PListView([UNIVERSE descriptions]).get<NSArray*>(key);
         if (iconDef != nil)
-            result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:kOutlineWidth name:key];
+            result = [[OOPolygonSprite alloc] initWithDataArray:oo::PListFrom(iconDef) outlineWidth:kOutlineWidth name:oo::StdString(key)];
         if (result == nil) // No custom icon or bad data
         {
             /*	Backwards compatibility note:
@@ -2371,8 +2372,8 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
             else
                 key = kDefaultMineIconKey;
 
-            iconDef = [[UNIVERSE descriptions] oo_arrayForKey:key];
-            result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:kOutlineWidth name:key];
+            iconDef = oo::PListView([UNIVERSE descriptions]).get<NSArray*>(key);
+            result = [[OOPolygonSprite alloc] initWithDataArray:oo::PListFrom(iconDef) outlineWidth:kOutlineWidth name:oo::StdString(key)];
         }
 
         if (result != nil) {
@@ -2469,7 +2470,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     siz.width = useDefined(cached.width, MISSILE_ICON_WIDTH);
     siz.height = useDefined(cached.height, MISSILE_ICON_HEIGHT);
     alpha *= cached.alpha;
-    sp = [info oo_unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
+    sp = oo::PListView(info).get<unsigned int>(SPACING_KEY, MISSILES_DISPLAY_SPACING);
 
     BOOL weaponsOnline = [PLAYER weaponsOnline];
     if (!weaponsOnline)
@@ -2526,7 +2527,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
 
 - (void)drawTargetReticle:(NSDictionary*)info
 {
-    GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+    GLfloat alpha = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, 1.0f) * overallAlpha;
 
     if ([PLAYER primaryTarget] != nil) {
         hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES, info, _reticleColors);
@@ -2540,7 +2541,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
 
 - (void)drawSecondaryTargetReticle:(NSDictionary*)info
 {
-    GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha * 0.4;
+    GLfloat alpha = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, 1.0f) * overallAlpha * 0.4;
 
     PlayerEntity* player = PLAYER;
     if ([player hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"]) {
@@ -2569,8 +2570,8 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
 
 - (void)drawWaypoints:(NSDictionary*)info
 {
-    GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
-    GLfloat scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
+    GLfloat alpha = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, 1.0f) * overallAlpha;
+    GLfloat scale = oo::PListView(info).get<float>(@"reticle_scale", ONE_SIXTYFOURTH);
 
     OOWaypointEntity* waypoint = nil;
     Entity* compass = [PLAYER compassTarget];
@@ -2751,7 +2752,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     GLfloat itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
     struct CachedInfo cached;
 
-    NSUInteger lines = [info oo_intForKey:@"n_bars" defaultValue:1];
+    NSUInteger lines = oo::PListView(info).get<int>(@"n_bars", 1);
     NSInteger pec = (NSInteger)[PLAYER primedEquipmentCount];
 
     GetCurrentCachedInfo(&cached);
@@ -2817,7 +2818,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     itemColor[3] *= overallAlpha;
 
     OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
-    if ([info oo_intForKey:@"align"] == 1) {
+    if (oo::PListView(info).get<int>(@"align") == 1) {
         OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size, YES);
     } else {
         OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size, NO);
@@ -2909,7 +2910,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     siz.width = useDefined(cached.width, SCOOPSTATUS_WIDTH);
     siz.height = useDefined(cached.height, SCOOPSTATUS_HEIGHT);
     // default alpha value different from all others, won't use cached.alpha
-    alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
+    alpha = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, 0.75f);
 
     const GLfloat* s0_color = red_color;
     GLfloat s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -3113,7 +3114,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     {
         return;
     }
-    GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+    GLfloat alpha = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, 1.0f) * overallAlpha;
 
     GLfloat mfd_color[4] = { 0.0, 1.0, 0.0, (GLfloat)(0.9 * alpha) };
     OOColor* mfdcol = [OOColor colorWithDescription:[info objectForKey:COLOR_KEY]];
@@ -3149,7 +3150,7 @@ static OOPolygonSprite* IconForMissileRole(NSString* role)
     // text at full opacity
     GLColorWithOverallAlpha(mfd_color, alpha);
     for (i = 0; i < 10; i++) {
-        line = [lines oo_stringAtIndex:i defaultValue:nil];
+        line = oo::PListView(lines).at<NSString*>(i, nil);
         if (line != nil) {
             y0 -= siz.height;
             // all lines should be shorter than the size of the MFD
@@ -3286,7 +3287,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
     ShipEntity* target_ship = nil;
     NSString* legal_desc = nil;
 
-    GLfloat scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
+    GLfloat scale = oo::PListView(info).get<float>(@"reticle_scale", ONE_SIXTYFOURTH);
 
     if ([target isShip]) {
         target_ship = (ShipEntity*)target;
@@ -3338,7 +3339,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
                 // After MAX_ACCURACY_RANGE km start decreasing high accuracy probability by ACCURACY_PROBABILITY_DECREASE_FACTOR%
                 if (range > MAX_ACCURACY_RANGE) {
                     // Every one second re-evaluate accuracy
-                    if ([UNIVERSE getTime] > [propertiesReticleTargetSensitive oo_doubleForKey:@"timeLastAccuracyProbabilityCalculation"] + 1) {
+                    if ([UNIVERSE getTime] > oo::PListView(propertiesReticleTargetSensitive).get<double>(@"timeLastAccuracyProbabilityCalculation") + 1) {
                         probabilityAccuracy = 1 - (range - MAX_ACCURACY_RANGE) * ACCURACY_PROBABILITY_DECREASE_FACTOR;
                         // Make sure probability does not go below a minimum
                         probabilityAccuracy = probabilityAccuracy < MIN_PROBABILITY_ACCURACY ? MIN_PROBABILITY_ACCURACY : probabilityAccuracy;
@@ -3347,7 +3348,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
                         // Store the time the last accuracy probability has been performed
                         [propertiesReticleTargetSensitive setObject:[NSNumber numberWithDouble:[UNIVERSE getTime]] forKey:@"timeLastAccuracyProbabilityCalculation"];
                     }
-                    if ([propertiesReticleTargetSensitive oo_boolForKey:@"isAccurate"]) {
+                    if (oo::PListView(propertiesReticleTargetSensitive).get<BOOL>(@"isAccurate")) {
                         // high accuracy reticle
                         isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
                     } else {
@@ -3601,34 +3602,48 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity* player1, Vector p1)
 
 static void InitTextEngine(void)
 {
-    NSDictionary* fontSpec = nil;
-    NSArray* widths = nil;
-    NSString* texName = nil;
+    oo::PList fontSpec;
+    const oo::PList* widths = nullptr;
+    std::string texName;
     NSUInteger i, count;
 
-    fontSpec = [ResourceManager dictionaryFromFilesNamed:@"oolite-font.plist"
-                                                inFolder:@"Config"
-                                                andMerge:NO];
+    fontSpec = [ResourceManager cxx_dictionaryFromFilesNamed:"oolite-font.plist"
+                                                    inFolder:std::string("Config")
+                                                    andMerge:NO];
 
-    texName = [fontSpec oo_stringForKey:@"texture" defaultValue:@"oolite-font.png"];
-    sFontTexture = [OOTexture textureWithName:texName
-                                     inFolder:@"Textures"
-                                      options:kFontTextureOptions
-                                   anisotropy:0.0f
-                                      lodBias:-0.75f];
+    texName = fontSpec.get<std::string>("texture", "oolite-font.png");
+    sFontTexture = [OOTexture cxx_textureWithName:texName
+                                         inFolder:std::string("Textures")
+                                          options:kFontTextureOptions
+                                       anisotropy:0.0f
+                                          lodBias:-0.75f];
     [sFontTexture retain];
 
-    sF6KernGovt = [fontSpec oo_floatForKey:@"f6KernGovernment" defaultValue:1.0];
-    sF6KernTL = [fontSpec oo_floatForKey:@"f6KernTechLevel" defaultValue:2.0];
+    sF6KernGovt = fontSpec.get<float>("f6KernGovernment", 1.0);
+    sF6KernTL = fontSpec.get<float>("f6KernTechLevel", 2.0);
 
-    sEncodingCoverter = [[OOEncodingConverter alloc] initWithFontPList:fontSpec];
-    widths = [fontSpec oo_arrayForKey:@"widths"];
-    count = [widths count];
+    // OOEncodingConverter is not migrated yet (oo-gosz): it gets the font specification as the
+    // dictionary it read before.
+    sEncodingCoverter = [[OOEncodingConverter alloc] initWithFontPList:oo::ObjectFromPList(fontSpec)];
+    widths = fontSpec.find("widths"); // used only if it is an array, as before
+    count = (widths != nullptr && widths->isArray()) ? widths->count() : 0;
     if (count > 256)
         count = 256;
     for (i = 0; i != count; ++i) {
-        sGlyphWidths[i] = [widths oo_floatAtIndex:i] * GLYPH_SCALE_FACTOR;
+        sGlyphWidths[i] = widths->at<float>(i) * GLYPH_SCALE_FACTOR;
     }
+}
+
+/*	The display-encoded bytes of text. OOEncodingConverter is not migrated yet (oo-gosz): the text
+        goes to -convertString: through the bridge, and its result comes back as oo::Data (empty where
+        it was nil).
+*/
+static oo::Data ConvertedString(const std::string& text)
+{
+    const oo::PList converted = oo::PListFrom([sEncodingCoverter convertString:oo::NSStringFrom(text)]);
+    if (const oo::Data* data = converted.getIf<oo::Data>())
+        return *data;
+    return oo::Data();
 }
 
 void OOHUDResetTextEngine(void)
@@ -3659,16 +3674,16 @@ static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, N
     return siz.width * sGlyphWidths[chr];
 }
 
-NSRect OORectFromString(NSString* text, GLfloat x, GLfloat y, NSSize siz)
+NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y, NSSize siz)
 {
     GLfloat w = 0;
-    NSData* data = nil;
+    oo::Data data;
     const uint8_t* bytes = NULL;
     NSUInteger i, length;
 
-    data = [sEncodingCoverter convertString:text];
-    bytes = (const uint8_t*)[data bytes];
-    length = [data length];
+    data = ConvertedString(text);
+    bytes = (const uint8_t*)data.bytes();
+    length = data.length();
 
     for (i = 0; i < length; i++) {
         w += siz.width * sGlyphWidths[bytes[i]];
@@ -3677,9 +3692,9 @@ NSRect OORectFromString(NSString* text, GLfloat x, GLfloat y, NSSize siz)
     return NSMakeRect(x, y, w, siz.height);
 }
 
-CGFloat OOStringWidthInEm(NSString* text)
+CGFloat cxx_OOStringWidthInEm(const std::string& text)
 {
-    return OORectFromString(text, 0, 0, NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0)).size.width;
+    return cxx_OORectFromString(text, 0, 0, NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0)).size.width;
 }
 
 void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
@@ -3711,15 +3726,15 @@ void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
     OOGLEND();
 }
 
-void OODrawString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
+void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-    OODrawStringAligned(text, x, y, z, siz, NO);
+    cxx_OODrawStringAligned(text, x, y, z, siz, NO);
 }
 
-void OODrawStringAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
 {
     OOStartDrawingStrings();
-    OODrawStringQuadsAligned(text, x, y, z, siz, rightAlign);
+    cxx_OODrawStringQuadsAligned(text, x, y, z, siz, rightAlign);
     OOStopDrawingStrings();
 }
 
@@ -3732,19 +3747,19 @@ void OOStartDrawingStrings()
     OOGLBEGIN(GL_QUADS);
 }
 
-void OODrawStringQuadsAligned(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
 {
     GLfloat cx = x;
     NSInteger i, length;
-    NSData* data = nil;
+    oo::Data data;
     const uint8_t* bytes = NULL;
 
-    data = [sEncodingCoverter convertString:text];
-    length = [data length];
-    bytes = (const uint8_t*)[data bytes];
+    data = ConvertedString(text);
+    length = data.length();
+    bytes = (const uint8_t*)data.bytes();
 
     if (EXPECT_NOT(rightAlign)) {
-        cx -= OORectFromString(text, 0.0f, 0.0f, siz).size.width;
+        cx -= cxx_OORectFromString(text, 0.0f, 0.0f, siz).size.width;
     }
 
     for (i = 0; i < length; i++) {
@@ -3762,12 +3777,12 @@ void OOStopDrawingStrings()
     OOVerifyOpenGLState();
 }
 
-void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
+void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
     GLfloat color[4];
 
     // get the physical dimensions of the string
-    NSSize strsize = OORectFromString(text, 0.0f, 0.0f, siz).size;
+    NSSize strsize = cxx_OORectFromString(text, 0.0f, 0.0f, siz).size;
     strsize.width += 0.5f;
 
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
@@ -3779,7 +3794,7 @@ void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSi
 
     OOGL(glPopAttrib()); // restore the colour
 
-    OODrawString(text, x, y, z, siz);
+    cxx_OODrawString(text, x, y, z, siz);
 
     OOVerifyOpenGLState();
 }
@@ -4116,28 +4131,6 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 
 @end
 
-@implementation NSString (OODisplayEncoding)
-
-- (const char*)cStringUsingOoliteEncoding
-{
-    if (sEncodingCoverter == nil)
-        InitTextEngine();
-
-    // Note: the data will be autoreleased, so the bytes behave as though they're autoreleased too.
-    return (const char*)[[self dataUsingEncoding:[sEncodingCoverter encoding] allowLossyConversion:YES] bytes];
-}
-
-- (const char*)cStringUsingOoliteEncodingAndRemapping
-{
-    if (sEncodingCoverter == nil)
-        InitTextEngine();
-
-    // Note: the data will be autoreleased, so the bytes behave as though they're autoreleased too.
-    return (const char*)[[sEncodingCoverter convertString:self] bytes];
-}
-
-@end
-
 @implementation OOPolygonSprite (OOHUDBeaconIcon)
 
 - (void)oo_drawHUDBeaconIconAt:(NSPoint)where size:(NSSize)size alpha:(GLfloat)alpha z:(GLfloat)z
@@ -4157,15 +4150,6 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
     glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
     [self drawOutline];
     OOGLPopModelView();
-}
-
-@end
-
-@implementation NSString (OOHUDBeaconIcon)
-
-- (void)oo_drawHUDBeaconIconAt:(NSPoint)where size:(NSSize)size alpha:(GLfloat)alpha z:(GLfloat)z
-{
-    OODrawString(self, where.x - 2.5 * size.width, where.y - 3.0 * size.height, z, NSMakeSize(size.width * 2, size.height * 2));
 }
 
 @end
@@ -4203,11 +4187,11 @@ static void GetRGBAArrayFromInfo(NSDictionary* info, GLfloat ioColor[4])
     }
 
     // Failing that, look for rgb_color and alpha.
-    colorDesc = [info oo_arrayForKey:RGB_COLOR_KEY];
+    colorDesc = oo::PListView(info).get<NSArray*>(RGB_COLOR_KEY);
     if (colorDesc != nil && [colorDesc count] == 3) {
-        ioColor[0] = [colorDesc oo_nonNegativeFloatAtIndex:0];
-        ioColor[1] = [colorDesc oo_nonNegativeFloatAtIndex:1];
-        ioColor[2] = [colorDesc oo_nonNegativeFloatAtIndex:2];
+        ioColor[0] = oo::PListView(colorDesc).at<oo::NonNegative<float>>(0);
+        ioColor[1] = oo::PListView(colorDesc).at<oo::NonNegative<float>>(1);
+        ioColor[2] = oo::PListView(colorDesc).at<oo::NonNegative<float>>(2);
     }
-    ioColor[3] = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:ioColor[3]];
+    ioColor[3] = oo::PListView(info).get<oo::NonNegative<float>>(ALPHA_KEY, ioColor[3]);
 }

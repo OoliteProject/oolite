@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOMaths.h"
+#include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
 extern const char* ooliteStandardMatrixUniforms[];
@@ -48,7 +49,7 @@ enum {
 
 @interface OOOpenGLMatrixStack : OOObject {
 @private
-    std::vector<OOMatrix> stack; // was an NSMutableArray of boxed values (bead oo-3rb.10)
+    std::vector<OOMatrix> stack; // was a Foundation mutable array of boxed values (bead oo-3rb.10)
 }
 
 - (id)init;
@@ -95,7 +96,9 @@ enum {
 - (OOMatrix)getProjection;
 - (void)syncProjection;
 - (OOMatrix)getMatrix:(int)which;
-- (NSArray*)standardMatrixUniformLocations:(GLhandleARB)program;
+// An array of (location, matrix index, "mat3" / "mat4") triples, as property-list values
+// (Foundation sweep, proposed ADR-0043); a null PList from a nil manager.
+- (oo::PList)standardMatrixUniformLocations:(GLhandleARB)program;
 
 @end
 

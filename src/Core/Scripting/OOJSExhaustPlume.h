@@ -36,7 +36,7 @@ JSClassID JSExhaustPlumeClassID(void);
 
 // Replaces SpiderMonkey's -getJSClass:andPrototype:.
 - (JSClassID)oo_jsClassID;
-- (NSString*)oo_jsClassName;
+- (id)oo_jsClassName; // shared selector (proposed ADR-0043)
 - (BOOL)isVisibleToScripts;
 
 @end

@@ -24,12 +24,14 @@ MA 02110-1301, USA.
 */
 
 #import "OOExhaustPlumeEntity.h"
-#import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
+
+#import "MyOpenGLView.h"
 #import "OOMacroOpenGL.h"
 #import "PlayerEntity.h"
 #import "ShipEntity.h"
 #import "Universe.h"
+#include "oofnd/PListGet.hpp"
 
 #import "OOGraphicsResetManager.h"
 #import "OOTexture.h"
@@ -54,24 +56,26 @@ static OOTexture* sPlumeTexture = nil;
 
 @implementation OOExhaustPlumeEntity
 
-+ (id)exhaustForShip:(ShipEntity*)ship withDefinition:(NSArray*)definition andScale:(float)scale
++ (id)exhaustForShip:(ShipEntity*)ship withDefinition:(const std::vector<std::string>&)definition andScale:(float)scale
 {
     return [[[self alloc] initForShip:ship withDefinition:definition andScale:(float)scale] autorelease];
 }
 
-- (id)initForShip:(ShipEntity*)ship withDefinition:(NSArray*)definition andScale:(float)scaleFactor
+- (id)initForShip:(ShipEntity*)ship withDefinition:(const std::vector<std::string>&)tokens andScale:(float)scaleFactor
 {
-    if ([definition count] == 0) {
+    if (tokens.size() == 0) {
         [self release];
         return nil;
     }
 
     if ((self = [super init])) {
         [self setOwner:ship];
-        HPVector pos = { [definition oo_floatAtIndex:0] * scaleFactor, [definition oo_floatAtIndex:1] * scaleFactor, [definition oo_floatAtIndex:2] * scaleFactor };
+        oo::PList::Array tokenList(tokens.begin(), tokens.end());
+        const oo::PList definition(std::move(tokenList)); // at<float>: the conversion -oo_floatAtIndex: made
+        HPVector pos = { definition.at<float>(0) * scaleFactor, definition.at<float>(1) * scaleFactor, definition.at<float>(2) * scaleFactor };
         [self setPosition:pos];
         // scale.z is special and *not* multiplied by scaleFactor
-        Vector scale = { [definition oo_floatAtIndex:3] * scaleFactor, [definition oo_floatAtIndex:4] * scaleFactor, [definition oo_floatAtIndex:5] };
+        Vector scale = { definition.at<float>(3) * scaleFactor, definition.at<float>(4) * scaleFactor, definition.at<float>(5) };
         [self setScale:scale];
     }
 

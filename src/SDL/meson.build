@@ -4,6 +4,7 @@ oolite_sources += files(
     'Comparison.mm',
     'GameController+SDLFullScreen.mm',
     'MyOpenGLView.mm',
+    'MyOpenGLView+FoundationBridge.mm',
     'MyOpenGLView+Input.mm',
     'OOSDLJoystickManager.mm',
     'main.mm',

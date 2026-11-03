@@ -31,7 +31,9 @@ oolite_sources += files(
     'PlayerEntityLegacyScriptEngine.mm',
     'PlayerEntityLoadSave.mm',
     'PlayerEntityScriptMethods.mm',
+    'PlayerEntityScriptMethods+FoundationBridge.mm',
     'PlayerEntitySound.mm',
+    'PlayerEntitySound+FoundationBridge.mm',
     'PlayerEntityStickMapper.mm',
     'PlayerEntityStickProfile.mm',
     'ProxyPlayerEntity.mm',
@@ -41,6 +43,7 @@ oolite_sources += files(
     'ShipEntityScriptMethods.mm',
     'SkyEntity.mm',
     'StationEntity.mm',
+    'StationEntity+FoundationBridge.mm',
     'WormholeEntity.mm',
 )
 

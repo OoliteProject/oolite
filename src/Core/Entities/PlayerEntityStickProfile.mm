@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickProfile.h"
 #import "HeadUpDisplay.h"
+#import "OOFoundationBridge.h"
 #import "OOJoystickManager.h"
 #import "OOJoystickProfile.h"
 #import "OOMacroOpenGL.h"
@@ -32,6 +33,8 @@ MA 02110-1301, USA.
 #import "PlayerEntityControls.h"
 #import "PlayerEntitySound.h"
 #import "PlayerEntityStickMapper.h"
+
+#include "oofnd/String.hpp"
 
 #define GUI_ROW_STICKPROFILE_BACK 20
 #define GUI_ROW_STICKPROFILE_AXIS 1
@@ -42,11 +45,33 @@ MA 02110-1301, USA.
 
 static BOOL stickProfileArrow_pressed;
 
+namespace {
+
+// The columns of a row as +arrayWithObjects: took them: up to the first nil.
+std::vector<std::string> ColumnsUpToNil(std::initializer_list<std::optional<std::string>> columns)
+{
+    std::vector<std::string> result;
+    for (const std::optional<std::string>& column : columns) {
+        if (!column.has_value())
+            break;
+        result.push_back(*column);
+    }
+    return result;
+}
+
+// "|||..." / "..." bars: the first `count` characters of a 20-character run of `mark`.
+std::string Bars(char mark, int count)
+{
+    return std::string(static_cast<std::size_t>(count), mark);
+}
+
+} // namespace
+
 @interface StickProfileScreen (StickProfileInternal)
 
 - (void)showScreen;
 - (void)nextAxis;
-- (NSString*)currentAxis;
+- (std::optional<std::string>)currentAxis;
 - (void)previousAxis;
 - (void)increaseDeadzone;
 - (void)decreaseDeadzone;
@@ -60,7 +85,7 @@ static BOOL stickProfileArrow_pressed;
 - (void)saveSettings;
 - (void)graphProfile:(GLfloat)alpha at:(Vector)at size:(NSSize)size;
 - (void)startEdit;
-- (NSString*)profileType;
+- (std::optional<std::string>)profileType;
 
 @end
 
@@ -297,19 +322,19 @@ static BOOL stickProfileArrow_pressed;
     return;
 }
 
-- (NSString*)currentAxis
+- (std::optional<std::string>)currentAxis
 {
     switch (current_axis) {
     case AXIS_ROLL:
-        return DESC(@"stickmapper-roll");
+        return oo::OptionalString(DESC(@"stickmapper-roll"));
 
     case AXIS_PITCH:
-        return DESC(@"stickmapper-pitch");
+        return oo::OptionalString(DESC(@"stickmapper-pitch"));
 
     case AXIS_YAW:
-        return DESC(@"stickmapper-yaw");
+        return oo::OptionalString(DESC(@"stickmapper-yaw"));
     }
-    return @"";
+    return std::string();
 }
 
 - (void)increaseDeadzone
@@ -511,8 +536,6 @@ static BOOL stickProfileArrow_pressed;
 {
     OOJoystickAxisProfile* profile = [stickHandler getProfileForAxis:current_axis];
     OOJoystickStandardAxisProfile* standard_profile;
-    NSString* v1 = @"||||||||||||||||||||";
-    NSString* v2 = @"....................";
     int bars;
     double value;
     double power;
@@ -521,25 +544,24 @@ static BOOL stickProfileArrow_pressed;
     tabStop[0] = 50;
     tabStop[1] = 140;
     [gui setTabStops:tabStop];
-    [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-stickprofile-axis"), [self currentAxis], nil] forRow:GUI_ROW_STICKPROFILE_AXIS];
-    [gui setKey:GUI_KEY_OK forRow:GUI_ROW_STICKPROFILE_AXIS];
+    [gui cxx_setArray:ColumnsUpToNil({ oo::OptionalString(DESC(@"oolite-stickprofile-axis")), [self currentAxis] }) forRow:GUI_ROW_STICKPROFILE_AXIS];
+    [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW_STICKPROFILE_AXIS];
     value = [profile deadzone];
     bars = (int)(20 * value / STICK_MAX_DEADZONE + 0.5);
     if (bars < 0)
         bars = 0;
     if (bars > 20)
         bars = 20;
-    [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-stickprofile-deadzone"),
-                      [NSString stringWithFormat:
-                              @"%@%@ (%0.4f)",
-                          [v1 substringToIndex:bars],
-                          [v2 substringToIndex:20 - bars],
-                          value],
-                      nil]
-           forRow:GUI_ROW_STICKPROFILE_DEADZONE];
-    [gui setKey:GUI_KEY_OK forRow:GUI_ROW_STICKPROFILE_DEADZONE];
-    [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-stickprofile-profile-type"), [self profileType], nil] forRow:GUI_ROW_STICKPROFILE_PROFILE_TYPE];
-    [gui setKey:GUI_KEY_OK forRow:GUI_ROW_STICKPROFILE_PROFILE_TYPE];
+    [gui cxx_setArray:ColumnsUpToNil({ oo::OptionalString(DESC(@"oolite-stickprofile-deadzone")),
+                          oo::str::format(
+                              "%s%s (%0.4f)",
+                              Bars('|', bars).c_str(),
+                              Bars('.', 20 - bars).c_str(),
+                              value) })
+               forRow:GUI_ROW_STICKPROFILE_DEADZONE];
+    [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW_STICKPROFILE_DEADZONE];
+    [gui cxx_setArray:ColumnsUpToNil({ oo::OptionalString(DESC(@"oolite-stickprofile-profile-type")), [self profileType] }) forRow:GUI_ROW_STICKPROFILE_PROFILE_TYPE];
+    [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW_STICKPROFILE_PROFILE_TYPE];
     if ([profile isKindOfClass:[OOJoystickStandardAxisProfile class]]) {
         standard_profile = (OOJoystickStandardAxisProfile*)profile;
         power = [standard_profile power];
@@ -548,50 +570,48 @@ static BOOL stickProfileArrow_pressed;
             bars = 0;
         if (bars > 20)
             bars = 20;
-        [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-stickprofile-range"),
-                          [NSString stringWithFormat:@"%@%@ (%.1f) ", [v1 substringToIndex:bars], [v2 substringToIndex:20 - bars], power],
-                          nil]
-               forRow:GUI_ROW_STICKPROFILE_POWER];
-        [gui setKey:GUI_KEY_OK forRow:GUI_ROW_STICKPROFILE_POWER];
+        [gui cxx_setArray:ColumnsUpToNil({ oo::OptionalString(DESC(@"oolite-stickprofile-range")),
+                              oo::str::format("%s%s (%.1f) ", Bars('|', bars).c_str(), Bars('.', 20 - bars).c_str(), power) })
+                   forRow:GUI_ROW_STICKPROFILE_POWER];
+        [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW_STICKPROFILE_POWER];
         value = [standard_profile parameter];
         bars = 20 * value;
         if (bars < 0)
             bars = 0;
         if (bars > 20)
             bars = 20;
-        [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-stickprofile-sensitivity"),
-                          [NSString stringWithFormat:@"%@%@ (%0.2f) ", [v1 substringToIndex:bars], [v2 substringToIndex:20 - bars], value],
-                          nil]
-               forRow:GUI_ROW_STICKPROFILE_PARAM];
-        [gui setKey:GUI_KEY_OK forRow:GUI_ROW_STICKPROFILE_PARAM];
+        [gui cxx_setArray:ColumnsUpToNil({ oo::OptionalString(DESC(@"oolite-stickprofile-sensitivity")),
+                              oo::str::format("%s%s (%0.2f) ", Bars('|', bars).c_str(), Bars('.', 20 - bars).c_str(), value) })
+                   forRow:GUI_ROW_STICKPROFILE_PARAM];
+        [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW_STICKPROFILE_PARAM];
         [gui setColor:[OOColor yellowColor] forRow:GUI_ROW_STICKPROFILE_PARAM];
     } else {
-        [gui setText:@"" forRow:GUI_ROW_STICKPROFILE_POWER];
-        [gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_STICKPROFILE_POWER];
-        [gui setText:DESC(@"oolite-stickprofile-spline-instructions") forRow:GUI_ROW_STICKPROFILE_PARAM];
-        [gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_STICKPROFILE_PARAM];
+        [gui cxx_setText:std::string() forRow:GUI_ROW_STICKPROFILE_POWER];
+        [gui cxx_setKey:oo::StdString(GUI_KEY_SKIP) forRow:GUI_ROW_STICKPROFILE_POWER];
+        [gui cxx_setText:oo::StdString(DESC(@"oolite-stickprofile-spline-instructions")) forRow:GUI_ROW_STICKPROFILE_PARAM];
+        [gui cxx_setKey:oo::StdString(GUI_KEY_SKIP) forRow:GUI_ROW_STICKPROFILE_PARAM];
         [gui setColor:[OOColor magentaColor] forRow:GUI_ROW_STICKPROFILE_PARAM];
     }
-    [gui setText:DESC(@"gui-back") forRow:GUI_ROW_STICKPROFILE_BACK];
-    [gui setKey:GUI_KEY_OK forRow:GUI_ROW_STICKPROFILE_BACK];
+    [gui cxx_setText:oo::StdString(DESC(@"gui-back")) forRow:GUI_ROW_STICKPROFILE_BACK];
+    [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW_STICKPROFILE_BACK];
     [gui setSelectableRange:NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
     [[UNIVERSE gameView] suppressKeysUntilKeyUp];
-    [gui setForegroundTextureKey:[PLAYER status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
-    [gui setBackgroundTextureKey:@"settings"];
+    [gui cxx_setForegroundTextureKey:std::string([PLAYER status] == STATUS_DOCKED ? "docked_overlay" : "paused_overlay")];
+    [gui cxx_setBackgroundTextureKey:std::string("settings")];
     return;
 }
 
-- (NSString*)profileType
+- (std::optional<std::string>)profileType
 {
     OOJoystickAxisProfile* profile = [stickHandler getProfileForAxis:current_axis];
 
     if ([profile isKindOfClass:[OOJoystickStandardAxisProfile class]]) {
-        return DESC(@"oolite-stickprofile-type-standard");
+        return oo::OptionalString(DESC(@"oolite-stickprofile-type-standard"));
     }
     if ([profile isKindOfClass:[OOJoystickSplineAxisProfile class]]) {
-        return DESC(@"oolite-stickprofile-type-spline");
+        return oo::OptionalString(DESC(@"oolite-stickprofile-type-spline"));
     }
-    return DESC(@"oolite-stickprofile-type-standard");
+    return oo::OptionalString(DESC(@"oolite-stickprofile-type-standard"));
 }
 
 @end

@@ -28,6 +28,7 @@ SOFTWARE.
 #import "OOEquipmentType.h"
 #import "OOCacheManager.h"
 #import "OODebugStandards.h"
+#import "OOFoundationBridge.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOPListView.h"
 #import "PlayerEntityControls.h"
@@ -330,7 +331,7 @@ static NSDictionary* sMissilesRegistry = nil;
                 if (object != nil) {
                     // do processing for key
                     _defaultActivateKey = [PLAYER processKeyCode:keydef];
-                    checking = [PLAYER validateKey:[NSString stringWithFormat:@"activate_%@", _identifier] checkKeys:_defaultActivateKey];
+                    checking = oo::NSStringOrNil([PLAYER validateKey:oo::StdString([NSString stringWithFormat:@"activate_%@", _identifier]) checkKeys:oo::PListFrom(_defaultActivateKey)]);
 
                     if (checking != nil) {
                         OOLog(@"equipment.load", @"***** Error: %@ for equipment item %@ is already in use for %@. Default not applied", @"default_activate_key", _identifier, checking);
@@ -349,7 +350,7 @@ static NSDictionary* sMissilesRegistry = nil;
                 if (object != nil) {
                     // do processing for key
                     _defaultModeKey = [PLAYER processKeyCode:keydef];
-                    checking = [PLAYER validateKey:[NSString stringWithFormat:@"mode_%@", _identifier] checkKeys:_defaultModeKey];
+                    checking = oo::NSStringOrNil([PLAYER validateKey:oo::StdString([NSString stringWithFormat:@"mode_%@", _identifier]) checkKeys:oo::PListFrom(_defaultModeKey)]);
 
                     if (checking != nil) {
                         OOLog(@"equipment.load", @"***** Error: %@ for equipment item %@ is already in use for %@. Default not applied.", @"default_mode_key", _identifier, checking);

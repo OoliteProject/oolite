@@ -29,6 +29,8 @@
 
 #import "OOFoundation.h"
 
+#include "oofnd/StdLib.hpp"
+
 /*	Recognise C-style decimal integer or float literals, without type suffix.
         More formally, it tests against the following grammar:
 
@@ -46,12 +48,7 @@
 
         if allowSpaces = NO, the [<whitespace>] terms are excluded.
 */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-BOOL OOIsNumberLiteral(NSString* string, BOOL allowSpaces);
-
-#ifdef __cplusplus
-}
-#endif
+/*	Foundation sweep (proposed ADR-0043, bead oo-7zgv): the string is UTF-8. A nil string used to
+        answer NO; callers pass oo::StdString(s), and "" answers NO too (no digits).
+*/
+BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces);

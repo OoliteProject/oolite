@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 @class ShipEntity;
 
-@interface OOShipGroup : OOWeakRefObject <NSFastEnumeration> {
+@interface OOShipGroup : OOWeakRefObject {
 @private
     NSUInteger _count, _capacity;
     unsigned long _updateCount;

@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOMaths.h"
+#include "oofnd/String.hpp"
 
 const HPVector kZeroHPVector = { 0.0, 0.0, 0.0 };
 const HPVector kBasisXHPVector = { 1.0, 0.0, 0.0 };
@@ -34,17 +35,14 @@ const HPVector2D kBasisXHPVector2D = { 1.0, 0.0 };
 const HPVector2D kBasisYHPVector2D = { 0.0, 1.0 };
 
 #if __OBJC__
-NSString* HPVectorDescription(HPVector vector)
+std::string cxx_HPVectorDescription(HPVector vector)
 {
-    return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
+    return oo::str::format("(%g, %g, %g)", vector.x, vector.y, vector.z);
 }
 
-NSArray* ArrayFromHPVector(HPVector vec)
+std::vector<double> cxx_ArrayFromHPVector(HPVector vec)
 {
-    return [NSArray arrayWithObjects:[NSNumber numberWithDouble:vec.x],
-        [NSNumber numberWithDouble:vec.y],
-        [NSNumber numberWithDouble:vec.z],
-        nil];
+    return { vec.x, vec.y, vec.z };
 }
 
 #endif

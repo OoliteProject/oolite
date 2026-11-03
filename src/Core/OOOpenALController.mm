@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOOpenALController.h"
 #import "OOALSoundMixer.h"
 #import "OOLogging.h"
+#import "OOStringBridge.h"
 #include "oofnd/Process.hpp"
 
 static id sSingleton = nil;
@@ -53,18 +54,18 @@ static id sSingleton = nil;
         ALuint error;
         device = alcOpenDevice(NULL); // default device
         if (!device) {
-            OOLog(kOOLogSoundInitError, @"%@", @"Failed to open default sound device");
+            OOLog(oo::NSStringFrom(kOOLogSoundInitError), @"%@", @"Failed to open default sound device");
             [self release];
             return nil;
         }
         context = alcCreateContext(device, NULL); // default context
         if (!alcMakeContextCurrent(context)) {
-            OOLog(kOOLogSoundInitError, @"%@", @"Failed to create default sound context");
+            OOLog(oo::NSStringFrom(kOOLogSoundInitError), @"%@", @"Failed to create default sound context");
             [self release];
             return nil;
         }
         if ((error = alGetError()) != AL_NO_ERROR) {
-            OOLog(kOOLogSoundInitError, @"Error %d creating sound context", error);
+            OOLog(oo::NSStringFrom(kOOLogSoundInitError), @"Error %d creating sound context", error);
         }
         OOAL(alDistanceModel(AL_NONE));
     }

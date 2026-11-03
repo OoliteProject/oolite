@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/StdLib.hpp"
+
 typedef struct
 {
     float r, g, b, a;
@@ -63,7 +65,7 @@ typedef struct
 + (OOColor*)colorWithDescription:(id)description saturationFactor:(float)factor;
 
 // Creates a colour given a string with components.
-+ (OOColor*)colorFromString:(NSString*)colorFloatString;
++ (OOColor*)cxx_colorFromString:(const std::string&)colorFloatString;
 
 + (OOColor*)blackColor; // 0.0 white
 + (OOColor*)darkGrayColor; // 0.333 white
@@ -120,12 +122,18 @@ typedef struct
 - (OOColor*)colorWithBrightnessFactor:(float)factor;
 
 // r,g,b,a array in 0..1 range.
-- (NSArray*)normalizedArray;
+- (std::vector<float>)cxx_normalizedArray;
 
-- (NSString*)rgbaDescription;
-- (NSString*)hsbaDescription;
+- (std::optional<std::string>)cxx_rgbaDescription;
+- (std::optional<std::string>)cxx_hsbaDescription;
 
 @end
 
-NSString* OORGBAComponentsDescription(OORGBAComponents components);
-NSString* OOHSBAComponentsDescription(OOHSBAComponents components);
+std::string cxx_OORGBAComponentsDescription(OORGBAComponents components);
+std::string cxx_OOHSBAComponentsDescription(OOHSBAComponents components);
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-tms0, forwarding to the cxx_ methods above, so unmigrated callers compile
+        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
+*/
+#import "OOColor+FoundationBridge.h"

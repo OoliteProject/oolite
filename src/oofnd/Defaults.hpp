@@ -264,6 +264,9 @@ namespace defaults_detail {
         case PList::Type::Null:
             out += "\"<null>\"";
             return;
+        case PList::Type::Object:
+            appendOpenStepString(out, v.getIf<PList::Object>()->get()->description());
+            return; // not captured; never written by the game
         case PList::Type::Bool:
             out += *v.getIf<bool>() ? "1" : "0";
             return;
@@ -282,7 +285,7 @@ namespace defaults_detail {
                 std::snprintf(buf, sizeof buf, "nan");
             else if (std::isinf(d))
                 std::snprintf(buf, sizeof buf, d < 0 ? "-inf" : "inf");
-            else if (single && single(v))
+            else if (v.isSinglePrecision() || (single && single(v)))
                 std::snprintf(buf, sizeof buf, "%.7g", static_cast<double>(static_cast<float>(d)));
             else
                 std::snprintf(buf, sizeof buf, "%.16g", d);

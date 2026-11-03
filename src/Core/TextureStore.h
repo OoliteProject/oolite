@@ -41,7 +41,9 @@ MA 02110-1301, USA.
 @interface TextureStore : OOObject
 
 // routines to create textures...
-+ (BOOL)getPlanetTextureNameFor:(NSDictionary*)planetInfo
+// planetInfo: a dictionary whose colours are OOColor objects, not property-list data, so it stays
+// an Objective-C object at this boundary (Foundation sweep, proposed ADR-0043).
++ (BOOL)getPlanetTextureNameFor:(id)planetInfo
                        intoData:(unsigned char**)textureData
                           width:(GLuint*)textureWidth
                          height:(GLuint*)textureHeight;

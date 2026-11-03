@@ -36,6 +36,8 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import <Foundation/Foundation.h>
 
+#include "oofnd/StdLib.hpp"
+
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class OOJoystickManager, OOTexture, OOLaserShotEntity;
@@ -418,7 +420,7 @@ typedef enum {
     BOOL showingLongRangeChart;
 
     // For OO-GUI based save screen
-    NSString* commanderNameString;
+    std::string commanderNameString; // owned; the save screen refreshes it from the typed string each frame
     NSMutableArray* cdrDetailArray;
     int currentPage;
     BOOL pollControls;

@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "ShipEntity.h"
 
+#import "OOFoundationBridge.h"
+
 static JSClassID sEntityClassID;
 
 static JSValue EntityGetProperty(OOJS_GETTER_ARGS);
@@ -134,7 +136,7 @@ BOOL JSValueToEntity(JSContext* context, JSValueConst value, Entity** outEntity)
     return NO;
 }
 
-BOOL EntityFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed)
+BOOL EntityFromArgumentList(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed)
 {
     OOJS_PROFILE_ENTER
 
@@ -149,8 +151,10 @@ BOOL EntityFromArgumentList(JSContext* context, NSString* scriptClass, NSString*
     // Get value, if possible.
     if (EXPECT_NOT(!JSValueToEntity(context, argv[0], outEntity))) {
         // Failed; report bad parameters, if given a class and function.
-        if (scriptClass != nil && function != nil) {
-            OOJSReportWarning(context, @"%@.%@(): expected entity, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
+        if (scriptClass.has_value() && function.has_value()) {
+            // The argument described as +stringWithJavaScriptParameters:count:1 described it: "(value)".
+            const std::string parameters = "(" + oo::StdString(OOJSDescribeValue(context, argv[0], NO)) + ")";
+            OOJSReportWarning(context, @"%@.%@(): expected entity, got %@.", oo::NSStringFrom(*scriptClass), oo::NSStringFrom(*function), oo::NSStringFrom(parameters));
             return NO;
         }
     }

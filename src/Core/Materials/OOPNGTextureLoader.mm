@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
+#import "OOStringBridge.h"
 
 // void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
 
@@ -49,7 +50,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 - (void)loadTexture
 {
     // Get data from file
-    fileData = [[NSData oo_dataWithOXZFile:_path] retain];
+    fileData = [[NSData oo_dataWithOXZFile:oo::NSStringFrom(_path)] retain];
     if (fileData == nil)
         return;
     length = [fileData length];
@@ -90,7 +91,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
     if (pngInfo != NULL)
         pngEndInfo = png_create_info_struct(png);
     if (pngEndInfo == NULL) {
-        OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", _path);
+        OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", oo::NSStringFrom(_path));
         goto FAIL;
     }
 
@@ -108,7 +109,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
     png_read_info(png, pngInfo);
     // Read header, get format info and check that it meets our expectations.
     if (EXPECT_NOT(!png_get_IHDR(png, pngInfo, &pngWidth, &pngHeight, &depth, &colorType, NULL, NULL, NULL))) {
-        OOLog(@"texture.load.png.failed", @"Failed to get metadata from PNG %@", _path);
+        OOLog(@"texture.load.png.failed", @"Failed to get metadata from PNG %@", oo::NSStringFrom(_path));
         goto FAIL;
     }
     png_set_strip_16(png); // 16 bits per channel -> 8 bpc
@@ -154,7 +155,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
             free(_data);
             _data = NULL;
         }
-        OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%zu bytes) for texture %@", _rowBytes * _height, _path);
+        OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%zu bytes) for texture %@", _rowBytes * _height, oo::NSStringFrom(_path));
         goto FAIL;
     }
 
@@ -173,7 +174,7 @@ FAIL:
 {
     // Check that we're within the file's bounds
     if (EXPECT_NOT(length - offset < count)) {
-        NSString* message = [NSString stringWithFormat:@"attempt to read beyond end of file (%@), file may be truncated.", _path];
+        NSString* message = [NSString stringWithFormat:@"attempt to read beyond end of file (%@), file may be truncated.", oo::NSStringFrom(_path)];
         png_error(png, [message UTF8String]); // Will not return
     }
 

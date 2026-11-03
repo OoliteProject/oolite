@@ -31,6 +31,7 @@ SOFTWARE.
 #if OO_SHADERS
 
 #import "OODebugFlags.h"
+#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOIsNumberLiteral.h"
 #import "OOLogging.h"
@@ -39,10 +40,27 @@ SOFTWARE.
 #import "OOPListView.h"
 #import "OOShaderProgram.h"
 #import "OOShaderUniform.h"
+#import "OOStringBridge.h"
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#include "oofnd/PListGet.hpp"
+#include "oofnd/String.hpp"
+
+namespace {
+
+// -[NSDictionary oo_stringForKey:] as the old code read it: a string, or a number's -stringValue;
+// nullopt (nil) for anything else or a missing key.
+std::optional<std::string> StringForKey(const oo::PList& dictionary, std::string_view key)
+{
+    const oo::PList* entry = dictionary.find(key);
+    if (entry == nullptr || !(entry->isString() || entry->isNumber()))
+        return std::nullopt;
+    return dictionary.get<std::string>(key);
+}
+
+} // namespace
 
 NSString* const kOOVertexShaderSourceKey = @"_oo_vertex_shader_source";
 NSString* const kOOVertexShaderNameKey = @"vertex_shader";
@@ -168,13 +186,13 @@ static NSString* MacrosToString(NSDictionary* macros);
             NSString* cacheKey = [NSString stringWithFormat:@"$VERTEX:\n%@\n\n$FRAGMENT:\n%@\n\n$MACROS:\n%@\n", vsCacheKey, fsCacheKey, macroString];
 
             OOLogIndent();
-            shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:vertexShader
-                                                            fragmentShader:fragmentShader
-                                                          vertexShaderName:vsName
-                                                        fragmentShaderName:fsName
-                                                                    prefix:macroString
-                                                         attributeBindings:attributeBindings
-                                                                  cacheKey:cacheKey];
+            shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:oo::OptionalString(vertexShader)
+                                                            fragmentShader:oo::OptionalString(fragmentShader)
+                                                          vertexShaderName:oo::OptionalString(vsName)
+                                                        fragmentShaderName:oo::OptionalString(fsName)
+                                                                    prefix:oo::OptionalString(macroString)
+                                                         attributeBindings:oo::PListFrom(attributeBindings)
+                                                                  cacheKey:oo::OptionalString(cacheKey)];
             OOLogOutdent();
 
 // no reduced complexity mode now
@@ -195,13 +213,13 @@ static NSString* MacrosToString(NSDictionary* macros);
 					cacheKey = [cacheKey stringByAppendingString:@"\n$SIMPLIFIED FALLBACK\n"];
 					
 					OOLogIndent();
-					shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:vertexShader
-																	fragmentShader:fragmentShader
-																  vertexShaderName:vsName
-																fragmentShaderName:fsName
-																			prefix:macroString
-																 attributeBindings:attributeBindings
-																		  cacheKey:cacheKey];
+					shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:oo::OptionalString(vertexShader)
+																	fragmentShader:oo::OptionalString(fragmentShader)
+																  vertexShaderName:oo::OptionalString(vsName)
+																fragmentShaderName:oo::OptionalString(fsName)
+																			prefix:oo::OptionalString(macroString)
+																 attributeBindings:oo::PListFrom(attributeBindings)
+																		  cacheKey:oo::OptionalString(cacheKey)];
 					OOLogOutdent();
 					
 					if (shaderProgram != nil)
@@ -226,7 +244,7 @@ static NSString* MacrosToString(NSDictionary* macros);
 
     if (OK) {
         // Load uniforms and textures, which are a flavour of uniform for our purpose.
-        NSDictionary* uniformDefs = oo::PListView(configuration).get<NSDictionary*>(kOOUniformsKey);
+        NSDictionary* uniformDefs = oo::PListView(configuration).get<NSDictionary*>(kOOUniformsKey); // until chunk 4
 
         NSArray* textureArray = oo::PListView(configuration).get<NSArray*>(kOOTextureObjectsKey);
         if (textureArray == nil) {
@@ -236,17 +254,16 @@ static NSString* MacrosToString(NSDictionary* macros);
             }
         }
 
-        uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureArray count]];
-        [self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
+        [self addUniformsFromDictionary:oo::PListFrom(uniformDefs) withBindingTarget:target];
         [self addTexturesFromArray:textureArray unitCount:textureUnits];
     }
 
     if (OK) {
         // write gloss and gamma correction preference to the uniforms dictionary
 
-        if (![uniforms objectForKey:@"uGloss"]) {
+        if (uniforms.find("uGloss") == uniforms.end()) {
             float gloss = OOClamp_0_1_f(oo::PListView(configuration).get<float>(@"gloss", 0.5f));
-            [self setUniform:@"uGloss" floatValue:gloss];
+            [self setUniform:"uGloss" floatValue:gloss];
         }
 
         if (![uniforms objectForKey:@"uGammaCorrect"]) {
@@ -269,7 +286,6 @@ static NSString* MacrosToString(NSDictionary* macros);
     [self willDealloc];
 
     [shaderProgram release];
-    [uniforms release];
 
     if (textures != NULL) {
         for (i = 0; i != texCount; ++i) {
@@ -283,15 +299,12 @@ static NSString* MacrosToString(NSDictionary* macros);
     [super dealloc];
 }
 
-- (BOOL)bindUniform:(NSString*)uniformName
+- (BOOL)bindUniform:(const std::string&)uniformName
            toObject:(id<OOWeakReferenceSupport>)source
            property:(SEL)selector
      convertOptions:(OOUniformConvertOptions)options
 {
     OOShaderUniform* uniform = nil;
-
-    if (uniformName == nil)
-        return NO;
 
     uniform = [[OOShaderUniform alloc] initWithName:uniformName
                                       shaderProgram:shaderProgram
@@ -300,109 +313,93 @@ static NSString* MacrosToString(NSDictionary* macros);
                                      convertOptions:options];
     if (uniform != nil) {
         OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
-        [uniforms setObject:uniform forKey:uniformName];
-        [uniform release];
+        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
         return YES;
     } else {
-        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
-        [uniforms removeObjectForKey:uniformName];
+        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", oo::NSStringFrom(uniformName));
+        uniforms.erase(uniformName);
         return NO;
     }
 }
 
-- (BOOL)bindSafeUniform:(NSString*)uniformName
+- (BOOL)bindSafeUniform:(const std::string&)uniformName
                toObject:(id<OOWeakReferenceSupport>)target
-          propertyNamed:(NSString*)property
+          propertyNamed:(const std::optional<std::string>&)property
          convertOptions:(OOUniformConvertOptions)options
 {
     SEL selector = NULL;
 
-    selector = OOSelectorFromName([property UTF8String]);
+    selector = OOSelectorFromName(property.has_value() ? property->c_str() : nullptr);
 
-    if (selector != NULL && OOUniformBindingPermitted(property, target)) {
+    if (selector != NULL && OOUniformBindingPermitted(*property, target)) {
         return [self bindUniform:uniformName
                         toObject:target
                         property:selector
                   convertOptions:options];
     } else {
-        OOLog(@"shader.uniform.unpermittedMethod", @"Did not bind uniform \"%@\" to property -[%@ %@] - unpermitted method.", uniformName, [target class], property);
+        OOLog(@"shader.uniform.unpermittedMethod", @"Did not bind uniform \"%@\" to property -[%@ %@] - unpermitted method.", oo::NSStringFrom(uniformName), [target class], oo::NSStringOrNil(property));
     }
 
     return NO;
 }
 
-- (void)setUniform:(NSString*)uniformName intValue:(int)value
+- (void)setUniform:(const std::string&)uniformName intValue:(int)value
 {
     OOShaderUniform* uniform = nil;
-
-    if (uniformName == nil)
-        return;
 
     uniform = [[OOShaderUniform alloc] initWithName:uniformName
                                       shaderProgram:shaderProgram
                                            intValue:value];
     if (uniform != nil) {
         OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
-        [uniforms setObject:uniform forKey:uniformName];
-        [uniform release];
+        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
     } else {
-        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
-        [uniforms removeObjectForKey:uniformName];
+        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", oo::NSStringFrom(uniformName));
+        uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(NSString*)uniformName floatValue:(float)value
+- (void)setUniform:(const std::string&)uniformName floatValue:(float)value
 {
     OOShaderUniform* uniform = nil;
-
-    if (uniformName == nil)
-        return;
 
     uniform = [[OOShaderUniform alloc] initWithName:uniformName
                                       shaderProgram:shaderProgram
                                          floatValue:value];
     if (uniform != nil) {
         OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
-        [uniforms setObject:uniform forKey:uniformName];
-        [uniform release];
+        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
     } else {
-        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
-        [uniforms removeObjectForKey:uniformName];
+        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", oo::NSStringFrom(uniformName));
+        uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(NSString*)uniformName vectorValue:(GLfloat[4])value
+- (void)setUniform:(const std::string&)uniformName vectorValue:(GLfloat[4])value
 {
     OOShaderUniform* uniform = nil;
-
-    if (uniformName == nil)
-        return;
 
     uniform = [[OOShaderUniform alloc] initWithName:uniformName
                                       shaderProgram:shaderProgram
                                         vectorValue:value];
     if (uniform != nil) {
         OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
-        [uniforms setObject:uniform forKey:uniformName];
-        [uniform release];
+        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
     } else {
-        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
-        [uniforms removeObjectForKey:uniformName];
+        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", oo::NSStringFrom(uniformName));
+        uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(NSString*)uniformName vectorObjectValue:(id)value
+- (void)setUniform:(const std::string&)uniformName vectorObjectValue:(const oo::PList&)value
 {
-    if (uniformName == nil)
-        return;
-
     GLfloat vecArray[4];
-    if ([value isKindOfClass:[NSArray class]] && [value count] == 4) {
+    if (value.isArray() && value.count() == 4) {
         for (unsigned i = 0; i < 4; i++) {
-            vecArray[i] = OOFloatFromObject([value objectAtIndex:i], 0.0f);
+            vecArray[i] = value.at<float>(i, 0.0f); // OOFloatFromObject's conversion
         }
     } else {
-        Vector vec = OOVectorFromObject(value, kZeroVector);
+        Vector vec = OOVectorFromObject(oo::ObjectFromPList(value), kZeroVector);
         vecArray[0] = vec.x;
         vecArray[1] = vec.y;
         vecArray[2] = vec.z;
@@ -414,20 +411,16 @@ static NSString* MacrosToString(NSDictionary* macros);
                                                          vectorValue:vecArray];
     if (uniform != nil) {
         OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
-        [uniforms setObject:uniform forKey:uniformName];
-        [uniform release];
+        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
     } else {
-        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
-        [uniforms removeObjectForKey:uniformName];
+        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", oo::NSStringFrom(uniformName));
+        uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(NSString*)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix
+- (void)setUniform:(const std::string&)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix
 {
     OOShaderUniform* uniform = nil;
-
-    if (uniformName == nil)
-        return;
 
     uniform = [[OOShaderUniform alloc] initWithName:uniformName
                                       shaderProgram:shaderProgram
@@ -435,21 +428,18 @@ static NSString* MacrosToString(NSDictionary* macros);
                                            asMatrix:asMatrix];
     if (uniform != nil) {
         OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
-        [uniforms setObject:uniform forKey:uniformName];
-        [uniform release];
+        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
     } else {
-        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
-        [uniforms removeObjectForKey:uniformName];
+        OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", oo::NSStringFrom(uniformName));
+        uniforms.erase(uniformName);
     }
 }
 
-- (void)addUniformsFromDictionary:(NSDictionary*)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target
+- (void)addUniformsFromDictionary:(const oo::PList&)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-    NSString* name = nil;
-    id definition = nil;
-    id value = nil;
-    NSString* binding = nil;
-    NSString* type = nil;
+    oo::PList value;
+    std::optional<std::string> binding;
+    std::optional<std::string> type;
     GLfloat floatValue;
     BOOL gotValue;
     OOUniformConvertOptions convertOptions;
@@ -457,7 +447,6 @@ static NSString* MacrosToString(NSDictionary* macros);
     GLfloat scale = 1.0;
     uint32_t randomSeed;
     RANROTSeed savedSeed;
-    NSArray* keys = nil;
 
     if ([target respondsToSelector:@selector(randomSeedForShaders)]) {
         randomSeed = [(id)target randomSeedForShaders];
@@ -467,75 +456,77 @@ static NSString* MacrosToString(NSDictionary* macros);
     savedSeed = RANROTGetFullSeed();
     ranrot_srand(randomSeed);
 
-    keys = [[uniformDefs allKeys] sortedArrayUsingSelector:@selector(compare:)];
-    foreach (name, keys) {
+    // The std::map's byte order is the old -compare:-sorted key order (literal UTF-16 order, the
+    // same as UTF-8 byte order).
+    const oo::PList::Dict* definitions = uniformDefs.getIf<oo::PList::Dict>();
+    for (const auto& [name, definition] : (definitions != nullptr) ? *definitions : oo::PList::Dict()) {
         gotValue = NO;
-        definition = [uniformDefs objectForKey:name];
 
-        type = nil;
-        value = nil;
-        binding = nil;
+        type.reset();
+        value = oo::PList();
+        binding.reset();
 
-        if ([definition isKindOfClass:[NSDictionary class]]) {
-            value = [(NSDictionary*)definition objectForKey:@"value"];
-            binding = oo::PListView((NSDictionary*)definition).get<NSString*>(@"binding");
-            type = oo::PListView((NSDictionary*)definition).get<NSString*>(@"type");
-            scale = oo::PListView((NSDictionary*)definition).get<float>(@"scale", 1.0);
-            if (type == nil) {
-                if (value == nil && binding != nil)
-                    type = @"binding";
+        if (definition.isDict()) {
+            const oo::PList* valueEntry = definition.find("value");
+            if (valueEntry != nullptr)
+                value = *valueEntry;
+            binding = StringForKey(definition, "binding");
+            type = StringForKey(definition, "type");
+            scale = definition.get<float>("scale", 1.0);
+            if (!type.has_value()) {
+                if (!value && binding.has_value())
+                    type = "binding";
                 else
-                    type = @"float";
+                    type = "float";
             }
-        } else if ([definition isKindOfClass:[NSNumber class]]) {
+        } else if (definition.isNumber()) {
             value = definition;
-            type = @"float";
-        } else if ([definition isKindOfClass:[NSString class]]) {
-            if (OOIsNumberLiteral(definition, NO)) {
+            type = "float";
+        } else if (const std::string* string = definition.getIf<std::string>()) {
+            if (OOIsNumberLiteral(*string, NO)) {
                 value = definition;
-                type = @"float";
+                type = "float";
             } else {
-                binding = definition;
-                type = @"binding";
+                binding = *string;
+                type = "binding";
             }
-        } else if ([definition isKindOfClass:[NSArray class]]) {
-            binding = definition;
-            type = @"vector";
+        } else if (definition.isArray()) {
+            // (The old code kept the array as the binding; only a "binding" type reads it.)
+            type = "vector";
         }
 
         // Transform random values to concrete values
-        if ([type isEqualToString:@"randomFloat"]) {
-            type = @"float";
-            value = [NSNumber numberWithFloat:randf() * scale];
-        } else if ([type isEqualToString:@"randomUnitVector"]) {
-            type = @"vector";
-            value = OOPropertyListFromVector(vector_multiply_scalar(OORandomUnitVector(), scale));
-        } else if ([type isEqualToString:@"randomVectorSpatial"]) {
-            type = @"vector";
-            value = OOPropertyListFromVector(OOVectorRandomSpatial(scale));
-        } else if ([type isEqualToString:@"randomVectorRadial"]) {
-            type = @"vector";
-            value = OOPropertyListFromVector(OOVectorRandomRadial(scale));
-        } else if ([type isEqualToString:@"randomQuaternion"]) {
-            type = @"quaternion";
-            value = OOPropertyListFromQuaternion(OORandomQuaternion());
+        if (type == "randomFloat") {
+            type = "float";
+            value = oo::PList::singleReal(randf() * scale);
+        } else if (type == "randomUnitVector") {
+            type = "vector";
+            value = oo::PListFrom(OOPropertyListFromVector(vector_multiply_scalar(OORandomUnitVector(), scale)));
+        } else if (type == "randomVectorSpatial") {
+            type = "vector";
+            value = oo::PListFrom(OOPropertyListFromVector(OOVectorRandomSpatial(scale)));
+        } else if (type == "randomVectorRadial") {
+            type = "vector";
+            value = oo::PListFrom(OOPropertyListFromVector(OOVectorRandomRadial(scale)));
+        } else if (type == "randomQuaternion") {
+            type = "quaternion";
+            value = oo::PListFrom(OOPropertyListFromQuaternion(OORandomQuaternion()));
         }
 
-        if ([type isEqualToString:@"float"] || [type isEqualToString:@"real"]) {
+        if (type == "float" || type == "real") {
+            // -floatValue: only a number or a string answers it.
             gotValue = YES;
-            if ([value respondsToSelector:@selector(floatValue)])
-                floatValue = [value floatValue];
-            else if ([value respondsToSelector:@selector(doubleValue)])
-                floatValue = [value doubleValue];
-            else if ([value respondsToSelector:@selector(intValue)])
-                floatValue = [value intValue];
+            if (value.isNumber())
+                floatValue = oo::plist_get::numberFloatValue(value);
+            else if (const std::string* string = value.getIf<std::string>())
+                floatValue = (float)oo::str::doubleValue(*string);
             else
                 gotValue = NO;
 
             if (gotValue) {
                 [self setUniform:name floatValue:floatValue];
             }
-        } else if ([type isEqualToString:@"int"] || [type isEqualToString:@"integer"] || [type isEqualToString:@"texture"]) {
+        } else if (type == "int" || type == "integer" || type == "texture") {
             /*	"texture" is allowed as a synonym for "int" because shader
                     uniforms are mapped to texture units by specifying an integer
                     index.
@@ -543,11 +534,15 @@ static NSString* MacrosToString(NSDictionary* macros);
                     means "bind uniform diffuseMap to texture unit 0" (which will
                     have the first texture in the textures array).
             */
-            if ([value respondsToSelector:@selector(intValue)]) {
-                [self setUniform:name intValue:[value intValue]];
+            // -intValue: only a number or a string answers it.
+            if (value.isNumber()) {
+                [self setUniform:name intValue:(int)value.int64Value()];
+                gotValue = YES;
+            } else if (const std::string* string = value.getIf<std::string>()) {
+                [self setUniform:name intValue:oo::str::intValue(*string)];
                 gotValue = YES;
             }
-        } else if ([type isEqualToString:@"vector"]) {
+        } else if (type == "vector") {
             [self setUniform:name vectorObjectValue:value];
             gotValue = YES;
         } else if ([type isEqualToString:@"quaternion"]) {
@@ -555,11 +550,11 @@ static NSString* MacrosToString(NSDictionary* macros);
                 quatAsMatrix = oo::PListView(definition).get<bool>(@"asMatrix", quatAsMatrix);
             }
             [self setUniform:name
-                quaternionValue:OOQuaternionFromObject(value, kIdentityQuaternion)
+                quaternionValue:OOQuaternionFromObject(oo::ObjectFromPList(value), kIdentityQuaternion)
                        asMatrix:quatAsMatrix];
             gotValue = YES;
-        } else if (target != nil && [type isEqualToString:@"binding"]) {
-            if ([definition isKindOfClass:[NSDictionary class]]) {
+        } else if (target != nil && type == "binding") {
+            if (definition.isDict()) {
                 convertOptions = 0;
                 if (oo::PListView(definition).get<bool>(@"clamped", NO))
                     convertOptions |= kOOUniformConvertClamp;
@@ -579,7 +574,7 @@ static NSString* MacrosToString(NSDictionary* macros);
         }
 
         if (!gotValue) {
-            OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" for target %@ -- could not interpret definition:\n%@", name, target, definition);
+            OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" for target %@ -- could not interpret definition:\n%@", oo::NSStringFrom(name), target, oo::ObjectFromPList(definition));
         }
     }
 
@@ -588,7 +583,6 @@ static NSString* MacrosToString(NSDictionary* macros);
 
 - (BOOL)doApply
 {
-    OOShaderUniform* uniform = nil;
     uint32_t i;
 
     OO_ENTER_OPENGL();
@@ -604,8 +598,8 @@ static NSString* MacrosToString(NSDictionary* macros);
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 
     @try {
-        foreach (uniform, [uniforms allValues]) {
-            [uniform apply];
+        for (const auto& [name, uniform] : uniforms) {
+            [uniform.get() apply];
         }
     }
     @catch (id exception) {
@@ -668,7 +662,9 @@ static NSString* MacrosToString(NSDictionary* macros);
 
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-    [[uniforms allValues] makeObjectsPerformSelector:@selector(setBindingTarget:) withObject:target];
+    for (const auto& [name, uniform] : uniforms) {
+        [uniform.get() setBindingTarget:target];
+    }
     [bindingTarget release];
     bindingTarget = [target weakRetain];
 }

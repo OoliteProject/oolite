@@ -26,8 +26,8 @@ SOFTWARE.
 */
 
 #import "OOMultiTextureMaterial.h"
-#import "NSDictionaryOOExtensions.h"
 #import "OOCombinedEmissionMapGenerator.h"
+#import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaterialSpecifier.h"
 #import "OOOpenGLExtensionManager.h"
@@ -37,63 +37,70 @@ SOFTWARE.
 
 @implementation OOMultiTextureMaterial
 
-- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration
+- (id)initWithName:(id)name configuration:(id)configuration
 {
     if (![[OOOpenGLExtensionManager sharedManager] textureCombinersSupported]) {
         [self release];
         return nil;
     }
 
-    NSDictionary* diffuseSpec = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
-    NSDictionary* emissionSpec = [configuration oo_emissionMapSpecifier];
-    NSDictionary* illuminationSpec = [configuration oo_illuminationMapSpecifier];
-    NSDictionary* emissionAndIlluminationSpec = [configuration oo_emissionAndIlluminationMapSpecifier];
-    OOColor* diffuseColor = [configuration oo_diffuseColor];
+    // The configuration mixes plist data with live objects (colours): an oo::PList carries both
+    // exactly (proposed ADR-0043 Amendment 2).
+    const oo::PList config = oo::PListFrom(configuration);
+    const oo::PList diffuseSpec = cxx_OOMaterialDiffuseMapSpecifier(config, oo::OptionalString(name));
+    const oo::PList emissionSpec = cxx_OOMaterialEmissionMapSpecifier(config);
+    const oo::PList illuminationSpec = cxx_OOMaterialIlluminationMapSpecifier(config);
+    const oo::PList emissionAndIlluminationSpec = cxx_OOMaterialEmissionAndIlluminationMapSpecifier(config);
+    OOColor* diffuseColor = cxx_OOMaterialDiffuseColor(config);
     OOColor* emissionColor = nil;
-    OOColor* illuminationColor = [configuration oo_illuminationModulateColor];
+    OOColor* illuminationColor = cxx_OOMaterialIlluminationModulateColor(config);
 
-    NSMutableDictionary* mutableConfiguration = [NSMutableDictionary dictionaryWithDictionary:configuration];
+    // A copy of the configuration (an empty one for nil, as +dictionaryWithDictionary: gave).
+    oo::PList mutableConfiguration = config.isDict() ? config : oo::PList(oo::PList::Dict { });
 
-    if (emissionSpec != nil || emissionAndIlluminationSpec != nil) {
-        emissionColor = [configuration oo_emissionModulateColor];
+    if (!emissionSpec.isNull() || !emissionAndIlluminationSpec.isNull()) {
+        emissionColor = cxx_OOMaterialEmissionModulateColor(config);
 
         /*	If an emission map and an emission colour are both specified, stop
                 the superclass (OOBasicMaterial) from applying the emission colour.
         */
-        [mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorName];
-        [mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorLegacyName];
+        mutableConfiguration.getIf<oo::PList::Dict>()->erase(cxx_kOOMaterialEmissionColorName);
+        mutableConfiguration.getIf<oo::PList::Dict>()->erase(cxx_kOOMaterialEmissionColorLegacyName);
     }
 
-    if ((self = [super initWithName:name configuration:mutableConfiguration])) {
-        if (diffuseSpec != nil) {
-            _diffuseMap = [[OOTexture textureWithConfiguration:diffuseSpec] retain];
+    self = [super initWithName:name configuration:oo::ObjectFromPList(mutableConfiguration)];
+    if (self != nil) {
+        if (!diffuseSpec.isNull()) {
+            _diffuseMap = [[OOTexture textureWithConfiguration:oo::ObjectFromPList(diffuseSpec)] retain];
             if (_diffuseMap != nil)
                 _unitsUsed++;
         }
 
         // Check for simplest cases, where we don't need to bake a derived emission map.
-        if (emissionSpec != nil && illuminationSpec == nil && emissionAndIlluminationSpec == nil && emissionColor == nil) {
-            _emissionMap = [[OOTexture textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
+        if (!emissionSpec.isNull() && illuminationSpec.isNull() && emissionAndIlluminationSpec.isNull() && emissionColor == nil) {
+            _emissionMap = [[OOTexture textureWithConfiguration:oo::ObjectFromPList(emissionSpec) extraOptions:kOOTextureExtraShrink] retain];
             if (_emissionMap != nil)
                 _unitsUsed++;
         } else {
             OOCombinedEmissionMapGenerator* generator = nil;
 
-            if (emissionAndIlluminationSpec != nil) {
-                generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
+            if (!emissionAndIlluminationSpec.isNull()) {
+                id spec = oo::ObjectFromPList(emissionAndIlluminationSpec); // one object for both arguments, as before
+                generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMapSpec:spec
                                                                                                 diffuseMap:_diffuseMap
                                                                                               diffuseColor:diffuseColor
                                                                                              emissionColor:emissionColor
                                                                                          illuminationColor:illuminationColor
-                                                                                          optionsSpecifier:emissionAndIlluminationSpec];
+                                                                                          optionsSpecifier:spec];
             } else {
-                generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMapSpec:emissionSpec
+                id emission = oo::ObjectFromPList(emissionSpec), illumination = oo::ObjectFromPList(illuminationSpec); // one object each, as before
+                generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMapSpec:emission
                                                                               emissionColor:emissionColor
                                                                                  diffuseMap:_diffuseMap
                                                                                diffuseColor:diffuseColor
-                                                                        illuminationMapSpec:illuminationSpec
+                                                                        illuminationMapSpec:illumination
                                                                           illuminationColor:illuminationColor
-                                                                           optionsSpecifier:emissionSpec ?: illuminationSpec];
+                                                                           optionsSpecifier:emission ?: illumination];
             }
 
             _emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];
@@ -115,17 +122,21 @@ SOFTWARE.
     [super dealloc];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    NSMutableArray* bits = [NSMutableArray array];
+    std::vector<std::string> bits;
     if (_diffuseMap)
-        [bits addObject:[NSString stringWithFormat:@"diffuse map: %@", [_diffuseMap shortDescription]]];
+        bits.push_back("diffuse map: " + oo::DescriptionOf([_diffuseMap shortDescription]));
     if (_emissionMap)
-        [bits addObject:[NSString stringWithFormat:@"emission map: %@", [_emissionMap shortDescription]]];
+        bits.push_back("emission map: " + oo::DescriptionOf([_emissionMap shortDescription]));
 
-    NSString* result = [super descriptionComponents];
-    if ([bits count] > 0)
-        result = [result stringByAppendingFormat:@" - %@", [bits componentsJoinedByString:@","]];
+    id result = [super descriptionComponents];
+    if (!bits.empty()) {
+        std::string joined;
+        for (const std::string& bit : bits)
+            joined += (joined.empty() ? "" : ",") + bit;
+        result = oo::NSStringFrom(oo::StdString(result) + " - " + joined);
+    }
     return result;
 }
 
@@ -191,11 +202,11 @@ SOFTWARE.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
     if (_diffuseMap == nil)
-        return [NSSet setWithObject:_emissionMap];
-    return [NSSet setWithObjects:_diffuseMap, _emissionMap, nil];
+        return oo::NSSetFromObjects(std::vector<id> { _emissionMap });
+    return oo::NSSetFromObjects(std::vector<id> { _diffuseMap, _emissionMap });
 }
 #endif
 

@@ -44,7 +44,7 @@ SOFTWARE.
 
 @interface OOGraphicsResetManager : OOObject {
 @private
-    std::unordered_set<id> clients; // not retained; was an NSMutableSet of boxed values (bead oo-3rb.10)
+    std::unordered_set<id> clients; // not retained; was a Foundation mutable set of boxed values (bead oo-3rb.10)
 }
 
 + (OOGraphicsResetManager*)sharedManager;

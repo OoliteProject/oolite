@@ -13,14 +13,17 @@
 #include "oo_test.hpp"
 
 #include <atomic>
-#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <string>
 
 namespace {
 
-// Runs `body` through oo::thread::detach and waits (bounded) for it to finish.
+// Runs `body` through oo::thread::detach and waits for it to finish. The wait is UNBOUNDED
+// (bead oo-3rb.68): a 10 s bound flaked under a loaded ASan build, and a timed-out wait returned
+// while the detached lambda still held references to this frame's m/cv/done - a use-after-return
+// in the test itself. A hung thread is bounded by the run's own timeout (check-oofnd, ctest,
+// accept.sh's budget) instead. Returns true once `body` has run, so callers still check it.
 template <typename F>
 bool RunDetachedAndWait(F body)
 {
@@ -34,7 +37,8 @@ bool RunDetachedAndWait(F body)
 		cv.notify_one();
 	});
 	std::unique_lock<std::mutex> lock(m);
-	return cv.wait_for(lock, std::chrono::seconds(10), [&] { return done; });
+	cv.wait(lock, [&] { return done; });
+	return done;
 }
 
 } // namespace

@@ -24,10 +24,42 @@ MA 02110-1301, USA.
 
 #import "OOCommodityMarket.h"
 #import "OOCommodities.h"
-#import "OOPListView.h"
+#import "OOFoundationBridge.h"
 #import "OOStringExpander.h"
 
-static NSComparisonResult goodsSorter(id a, id b, void* context);
+namespace {
+
+// The trade-goods.plist keys of OOCommodities.h (kOOCommodityName & co.), as C++ strings.
+constexpr std::string_view kName = "name";
+constexpr std::string_view kContainer = "quantity_unit";
+constexpr std::string_view kPriceCurrent = "price";
+constexpr std::string_view kQuantityCurrent = "quantity";
+constexpr std::string_view kLegalityExport = "legality_export";
+constexpr std::string_view kLegalityImport = "legality_import";
+constexpr std::string_view kTrumbleOpinion = "trumble_opinion";
+constexpr std::string_view kSortOrder = "sort_order";
+constexpr std::string_view kCapacity = "capacity";
+constexpr std::string_view kComment = "comment";
+constexpr std::string_view kShortComment = "short_comment";
+
+// A string element of a saved-game entry, or nullopt where -oo_stringAtIndex: gave nil.
+std::optional<std::string> SavedGoodKey(const oo::PList& entry)
+{
+    const oo::PList* value = entry.isNull() ? nullptr : entry.at(0);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return entry.at<std::string>(0);
+}
+
+} // namespace
+
+@interface OOCommodityMarket (OOPrivate)
+
+// nullptr: no such good (a nil definition).
+- (oo::PList*)definitionPointerForGood:(const std::string&)good;
+- (std::vector<std::string>)sortedGoodKeys;
+
+@end
 
 @implementation OOCommodityMarket
 
@@ -37,33 +69,22 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
     if (self == nil)
         return nil;
 
-    _commodityList = [[NSMutableDictionary dictionaryWithCapacity:24] retain];
-
-    _sortedKeys = nil;
-
     return self;
-}
-
-- (void)dealloc
-{
-    DESTROY(_commodityList);
-    DESTROY(_sortedKeys);
-    [super dealloc];
 }
 
 - (NSUInteger)count
 {
-    return [_commodityList count];
+    return _commodityList.size();
 }
 
-- (void)setGood:(OOCommodityType)key withInfo:(NSDictionary*)info
+- (void)cxx_setGood:(const std::string&)key withInfo:(const oo::PList&)info
 {
-    NSMutableDictionary* definition = [NSMutableDictionary dictionaryWithDictionary:info];
-    [_commodityList setObject:definition forKey:key];
-    DESTROY(_sortedKeys); // reset
+    // A nil info made an empty definition, as +dictionaryWithDictionary:nil did.
+    _commodityList[key] = info.isDict() ? info : oo::PList(oo::PList::Dict { });
+    _sortedKeys.reset(); // reset
 }
 
-- (NSArray*)goods
+- (id)goods
 {
     if (_sortedKeys == nil) {
         NSArray* keys = [_commodityList allKeys];
@@ -72,210 +93,207 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
     return _sortedKeys;
 }
 
-- (NSDictionary*)dictionaryForScripting
+- (id)dictionaryForScripting
 {
-    return [[_commodityList copy] autorelease];
+    return oo::ObjectFromPList(oo::PList(oo::PList::Dict(_commodityList.begin(), _commodityList.end())));
 }
 
-- (BOOL)setPrice:(OOCreditsQuantity)price forGood:(OOCommodityType)good
+- (BOOL)cxx_setPrice:(OOCreditsQuantity)price forGood:(const std::string&)good
 {
-    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
-    if (definition == nil) {
+    oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return NO;
     }
-    [definition oo_setUnsignedInteger:price forKey:kOOCommodityPriceCurrent];
+    (*definition->getIf<oo::PList::Dict>())[std::string(kPriceCurrent)] = oo::PList::unsignedInteger(price);
     return YES;
 }
 
-- (BOOL)setQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
+- (BOOL)cxx_setQuantity:(OOCargoQuantity)quantity forGood:(const std::string&)good
 {
-    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
-    if (definition == nil || quantity > [self capacityForGood:good]) {
+    oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr || quantity > [self cxx_capacityForGood:good]) {
         return NO;
     }
-    [definition oo_setUnsignedInteger:quantity forKey:kOOCommodityQuantityCurrent];
+    (*definition->getIf<oo::PList::Dict>())[std::string(kQuantityCurrent)] = oo::PList::unsignedInteger(quantity);
     return YES;
 }
 
-- (BOOL)addQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
+- (BOOL)cxx_addQuantity:(OOCargoQuantity)quantity forGood:(const std::string&)good
 {
-    OOCargoQuantity current = [self quantityForGood:good];
-    if (current + quantity > [self capacityForGood:good]) {
+    OOCargoQuantity current = [self cxx_quantityForGood:good];
+    if (current + quantity > [self cxx_capacityForGood:good]) {
         return NO;
     }
-    [self setQuantity:(current + quantity) forGood:good];
+    [self cxx_setQuantity:(current + quantity) forGood:good];
     return YES;
 }
 
-- (BOOL)removeQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
+- (BOOL)cxx_removeQuantity:(OOCargoQuantity)quantity forGood:(const std::string&)good
 {
-    OOCargoQuantity current = [self quantityForGood:good];
+    OOCargoQuantity current = [self cxx_quantityForGood:good];
     if (current < quantity) {
         return NO;
     }
-    [self setQuantity:(current - quantity) forGood:good];
+    [self cxx_setQuantity:(current - quantity) forGood:good];
     return YES;
 }
 
 - (void)removeAllGoods
 {
-    OOCommodityType good = nil;
-    foreach (good, [_commodityList allKeys]) {
-        [self setQuantity:0 forGood:good];
+    for (const auto& entry : _commodityList) {
+        [self cxx_setQuantity:0 forGood:entry.first];
     }
 }
 
-- (BOOL)setComment:(NSString*)comment forGood:(OOCommodityType)good
+- (BOOL)cxx_setComment:(const std::string&)comment forGood:(const std::string&)good
 {
-    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
-    if (definition == nil) {
+    oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return NO;
     }
-    [definition setObject:comment forKey:kOOCommodityComment];
+    (*definition->getIf<oo::PList::Dict>())[std::string(kComment)] = oo::PList(comment);
     return YES;
 }
 
-- (BOOL)setShortComment:(NSString*)comment forGood:(OOCommodityType)good
+- (BOOL)cxx_setShortComment:(const std::string&)comment forGood:(const std::string&)good
 {
-    NSMutableDictionary* definition = oo::PListView(_commodityList).get<NSMutableDictionary*>(good);
-    if (definition == nil) {
+    oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return NO;
     }
-    [definition setObject:comment forKey:kOOCommodityShortComment];
+    (*definition->getIf<oo::PList::Dict>())[std::string(kShortComment)] = oo::PList(comment);
     return YES;
 }
 
-- (NSString*)nameForGood:(OOCommodityType)good
+- (std::optional<std::string>)cxx_nameForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
-        return OOExpand(@"[oolite-unknown-commodity-name]");
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
+        return oo::OptionalString(OOExpand(@"[oolite-unknown-commodity-name]"));
     }
-    return OOExpand(oo::PListView(definition).get<NSString*>(kOOCommodityName, @"[oolite-unknown-commodity-name]"));
+    return oo::OptionalString(OOExpand(oo::NSStringFrom(definition->get<std::string>(kName, "[oolite-unknown-commodity-name]"))));
 }
 
-- (NSString*)commentForGood:(OOCommodityType)good
+- (std::optional<std::string>)cxx_commentForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
-        return OOExpand(@"[oolite-unknown-commodity-name]");
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
+        return oo::OptionalString(OOExpand(@"[oolite-unknown-commodity-name]"));
     }
-    return OOExpand(oo::PListView(definition).get<NSString*>(kOOCommodityComment, @"[oolite-commodity-no-comment]"));
+    return oo::OptionalString(OOExpand(oo::NSStringFrom(definition->get<std::string>(kComment, "[oolite-commodity-no-comment]"))));
 }
 
-- (NSString*)shortCommentForGood:(OOCommodityType)good
+- (std::optional<std::string>)cxx_shortCommentForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
-        return OOExpand(@"[oolite-unknown-commodity-name]");
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
+        return oo::OptionalString(OOExpand(@"[oolite-unknown-commodity-name]"));
     }
-    return OOExpand(oo::PListView(definition).get<NSString*>(kOOCommodityShortComment, @"[oolite-commodity-no-short-comment]"));
+    return oo::OptionalString(OOExpand(oo::NSStringFrom(definition->get<std::string>(kShortComment, "[oolite-commodity-no-short-comment]"))));
 }
 
-- (OOCreditsQuantity)priceForGood:(OOCommodityType)good
+- (OOCreditsQuantity)cxx_priceForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return 0;
     }
-    return oo::PListView(definition).get<NSUInteger>(kOOCommodityPriceCurrent);
+    return definition->get<unsigned long long>(kPriceCurrent);
 }
 
-- (OOCargoQuantity)quantityForGood:(OOCommodityType)good
+- (OOCargoQuantity)cxx_quantityForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return 0;
     }
-    return oo::PListView(definition).get<unsigned int>(kOOCommodityQuantityCurrent);
+    return definition->get<unsigned int>(kQuantityCurrent);
 }
 
-- (OOMassUnit)massUnitForGood:(OOCommodityType)good
+- (OOMassUnit)massUnitForGood:(id)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:oo::StdString(good)];
+    if (definition == nullptr) {
         return UNITS_TONS;
     }
-    return OOMassUnitFromNumber(oo::PListView(definition).get<unsigned int>(kOOCommodityContainer));
+    return OOMassUnitFromNumber(definition->get<unsigned int>(kContainer));
 }
 
-- (NSUInteger)exportLegalityForGood:(OOCommodityType)good
+- (NSUInteger)cxx_exportLegalityForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return 0;
     }
-    return oo::PListView(definition).get<NSUInteger>(kOOCommodityLegalityExport);
+    return definition->get<unsigned long long>(kLegalityExport);
 }
 
-- (NSUInteger)importLegalityForGood:(OOCommodityType)good
+- (NSUInteger)cxx_importLegalityForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return 0;
     }
-    return oo::PListView(definition).get<NSUInteger>(kOOCommodityLegalityImport);
+    return definition->get<unsigned long long>(kLegalityImport);
 }
 
-- (OOCargoQuantity)capacityForGood:(OOCommodityType)good
+- (OOCargoQuantity)cxx_capacityForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return 0;
     }
     // should only be undefined for main system markets, not secondary stations
     // meaningless for player ship, though
-    return oo::PListView(definition).get<unsigned int>(kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);
+    return definition->get<unsigned int>(kCapacity, MAIN_SYSTEM_MARKET_LIMIT);
 }
 
-- (float)trumbleOpinionForGood:(OOCommodityType)good
+- (float)cxx_trumbleOpinionForGood:(const std::string&)good
 {
-    NSDictionary* definition = oo::PListView(_commodityList).get<NSDictionary*>(good);
-    if (definition == nil) {
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    if (definition == nullptr) {
         return 0;
     }
-    return oo::PListView(definition).get<float>(kOOCommodityTrumbleOpinion);
+    return definition->get<float>(kTrumbleOpinion);
 }
 
-- (NSDictionary*)definitionForGood:(OOCommodityType)good
+- (oo::PList)cxx_definitionForGood:(const std::string&)good
 {
-    return [[oo::PListView(_commodityList).get<NSDictionary*>(good) copy] autorelease];
+    const oo::PList* definition = [self definitionPointerForGood:good];
+    return definition != nullptr ? *definition : oo::PList();
 }
 
-- (NSArray*)savePlayerAmounts
+- (oo::PList)cxx_savePlayerAmounts
 {
-    NSMutableArray* amounts = [NSMutableArray arrayWithCapacity:[self count]];
-    OOCommodityType good = nil;
-    foreach (good, [self goods]) {
-        [amounts addObject:[NSArray arrayWithObjects:good, [NSNumber numberWithUnsignedInt:[self quantityForGood:good]], nil]];
+    oo::PList::Array amounts;
+    for (const std::string& good : [self sortedGoodKeys]) {
+        amounts.push_back(oo::PList(oo::PList::Array { oo::PList(good), oo::PList::unsignedInteger([self cxx_quantityForGood:good]) }));
     }
-    return [NSArray arrayWithArray:amounts];
+    return oo::PList(std::move(amounts));
 }
 
-- (void)loadPlayerAmounts:(NSArray*)amounts
+- (void)cxx_loadPlayerAmounts:(const oo::PList&)amounts
 {
     OOCargoQuantity q;
     BOOL loadedOK;
-    NSString* good = nil;
-    foreach (good, [self goods]) {
+    for (const std::string& good : [self sortedGoodKeys]) {
         // make sure that any goods not defined in the save game are zeroed
-        [self setQuantity:0 forGood:good];
+        [self cxx_setQuantity:0 forGood:good];
     }
 
-    NSArray* loaded = nil;
-    foreach (loaded, amounts) {
+    const oo::PList::Array* loadedAmounts = amounts.getIf<oo::PList::Array>();
+    for (const oo::PList& loaded : loadedAmounts != nullptr ? *loadedAmounts : oo::PList::Array()) {
         loadedOK = NO;
-        good = oo::PListView(loaded).at<NSString*>(0);
-        q = oo::PListView(loaded).at<unsigned int>(1);
+        const std::optional<std::string> good = SavedGoodKey(loaded);
+        q = loaded.at<unsigned int>(1);
         // old save games might have more in the array, but we don't care
-        if (![self setQuantity:q forGood:good]) {
+        if (!good.has_value() || ![self cxx_setQuantity:q forGood:*good]) {
             // then it's an array from a 1.80-or-earlier save game and
             // the good name is the description string (maybe a
             // translated one)
-            OOCommodityType key = nil;
-            foreach (key, [self goods]) {
-                if ([good isEqualToString:[self nameForGood:key]]) {
-                    [self setQuantity:q forGood:key];
+            for (const std::string& key : [self sortedGoodKeys]) {
+                if (good.has_value() && good == [self cxx_nameForGood:key]) {
+                    [self cxx_setQuantity:q forGood:key];
                     loadedOK = YES;
                     break;
                 }
@@ -284,71 +302,79 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
             loadedOK = YES;
         }
         if (!loadedOK) {
-            OOLog(@"setCommanderDataFromDictionary.warning.cargo", @"Cargo %@ (%u units) could not be loaded from the saved game, as it is no longer defined", good, q);
+            OOLog(@"setCommanderDataFromDictionary.warning.cargo", @"Cargo %@ (%u units) could not be loaded from the saved game, as it is no longer defined", oo::NSStringOrNil(good), q);
         }
     }
 }
 
-- (NSArray*)saveStationAmounts
+- (oo::PList)cxx_saveStationAmounts
 {
-    NSMutableArray* amounts = [NSMutableArray arrayWithCapacity:[self count]];
-    OOCommodityType good = nil;
-    foreach (good, [self goods]) {
-        [amounts addObject:[NSArray arrayWithObjects:good, [NSNumber numberWithUnsignedInt:[self quantityForGood:good]], [NSNumber numberWithUnsignedInteger:[self priceForGood:good]], nil]];
+    oo::PList::Array amounts;
+    for (const std::string& good : [self sortedGoodKeys]) {
+        amounts.push_back(oo::PList(oo::PList::Array { oo::PList(good), oo::PList::unsignedInteger([self cxx_quantityForGood:good]), oo::PList::unsignedInteger([self cxx_priceForGood:good]) }));
     }
-    return [NSArray arrayWithArray:amounts];
+    return oo::PList(std::move(amounts));
 }
 
-- (void)loadStationAmounts:(NSArray*)amounts
+- (void)cxx_loadStationAmounts:(const oo::PList&)amounts
 {
     OOCargoQuantity q;
     OOCreditsQuantity p;
     BOOL loadedOK;
-    NSString* good = nil;
 
-    NSArray* loaded = nil;
-    foreach (loaded, amounts) {
+    const oo::PList::Array* loadedAmounts = amounts.getIf<oo::PList::Array>();
+    for (const oo::PList& loaded : loadedAmounts != nullptr ? *loadedAmounts : oo::PList::Array()) {
         loadedOK = NO;
-        good = oo::PListView(loaded).at<NSString*>(0);
-        q = oo::PListView(loaded).at<unsigned int>(1);
-        p = oo::PListView(loaded).at<NSUInteger>(2);
+        const std::optional<std::string> good = SavedGoodKey(loaded);
+        q = loaded.at<unsigned int>(1);
+        p = loaded.at<unsigned long long>(2);
         // old save games might have more in the array, but we don't care
-        if (![self setQuantity:q forGood:good]) {
+        if (!good.has_value() || ![self cxx_setQuantity:q forGood:*good]) {
             // then it's an array from a 1.80-or-earlier save game and
             // the good name is the description string (maybe a
             // translated one)
-            OOCommodityType key = nil;
-            foreach (key, [self goods]) {
-                if ([good isEqualToString:[self nameForGood:key]]) {
-                    [self setQuantity:q forGood:key];
-                    [self setPrice:p forGood:key];
+            for (const std::string& key : [self sortedGoodKeys]) {
+                if (good.has_value() && good == [self cxx_nameForGood:key]) {
+                    [self cxx_setQuantity:q forGood:key];
+                    [self cxx_setPrice:p forGood:key];
                     loadedOK = YES;
                     break;
                 }
             }
         } else {
-            [self setPrice:p forGood:good];
+            [self cxx_setPrice:p forGood:*good];
             loadedOK = YES;
         }
         if (!loadedOK) {
-            OOLog(@"load.warning.cargo", @"Station market good %@ (%u units) could not be loaded from the saved game, as it is no longer defined", good, q);
+            OOLog(@"load.warning.cargo", @"Station market good %@ (%u units) could not be loaded from the saved game, as it is no longer defined", oo::NSStringOrNil(good), q);
         }
     }
 }
 
 @end
 
-static NSComparisonResult goodsSorter(id a, id b, void* context)
-{
-    NSDictionary* commodityList = (NSDictionary*)context;
-    int v1 = oo::PListView(oo::PListView(commodityList).get<NSDictionary*>((NSString*)a)).get<int>(kOOCommoditySortOrder);
-    int v2 = oo::PListView(oo::PListView(commodityList).get<NSDictionary*>((NSString*)b)).get<int>(kOOCommoditySortOrder);
+@implementation OOCommodityMarket (OOPrivate)
 
-    if (v1 < v2) {
-        return NSOrderedAscending;
-    } else if (v1 > v2) {
-        return NSOrderedDescending;
-    } else {
-        return NSOrderedSame;
-    }
+- (oo::PList*)definitionPointerForGood:(const std::string&)good
+{
+    const auto it = _commodityList.find(good);
+    return it != _commodityList.end() ? &it->second : nullptr;
 }
+
+// The goods in sort_order; goods of equal sort_order in byte order of their key (the Foundation
+// version sorted -allKeys, in hash order).
+- (std::vector<std::string>)sortedGoodKeys
+{
+    if (!_sortedKeys.has_value()) {
+        std::vector<std::string> keys;
+        for (const auto& entry : _commodityList)
+            keys.push_back(entry.first);
+        std::stable_sort(keys.begin(), keys.end(), [self](const std::string& a, const std::string& b) {
+            return _commodityList.find(a)->second.get<int>(kSortOrder) < _commodityList.find(b)->second.get<int>(kSortOrder);
+        });
+        _sortedKeys = std::move(keys);
+    }
+    return *_sortedKeys;
+}
+
+@end

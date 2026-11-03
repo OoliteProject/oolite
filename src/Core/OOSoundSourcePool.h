@@ -38,6 +38,8 @@ SOFTWARE.
 #import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
+#include "oofnd/StdLib.hpp"
+
 @interface OOSoundSourcePool : OOObject {
 @private
     struct OOSoundSourcePoolElement* _sources;
@@ -46,35 +48,35 @@ SOFTWARE.
     uint8_t _reserved;
     OOTimeDelta _minRepeat;
     OOTimeAbsolute _nextRepeat;
-    NSString* _lastKey;
+    std::optional<std::string> _lastKey; // nullopt until a repeat-limited sound plays (proposed ADR-0043)
 }
 
 + (instancetype)poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
 - (id)initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
 
-- (void)playSoundWithKey:(NSString*)key
+- (void)playSoundWithKey:(const std::string&)key
                 priority:(float)priority
               expiryTime:(OOTimeDelta)expiryTime
                  overlap:(BOOL)overlap
                 position:(Vector)position;
 
-- (void)playSoundWithKey:(NSString*)key
+- (void)playSoundWithKey:(const std::string&)key
                 priority:(float)priority
               expiryTime:(OOTimeDelta)expiryTime;
 
-- (void)playSoundWithKey:(NSString*)key
+- (void)playSoundWithKey:(const std::string&)key
                 priority:(float)priority; // expiryTime:0.1 +/- 0.5
 
-- (void)playSoundWithKey:(NSString*)key
+- (void)playSoundWithKey:(const std::string&)key
                 priority:(float)priority
                 position:(Vector)position; // expiryTime:0.1 +/- 0.5
 
-- (void)playSoundWithKey:(NSString*)key
+- (void)playSoundWithKey:(const std::string&)key
                 position:(Vector)position; // expiryTime:0.1 +/- 0.5
 
-- (void)playSoundWithKey:(NSString*)key; // priority: 1.0, expiryTime:0.1 +/- 0.5
+- (void)playSoundWithKey:(const std::string&)key; // priority: 1.0, expiryTime:0.1 +/- 0.5
 
-- (void)playSoundWithKey:(NSString*)key overlap:(BOOL)overlap; // if overlap == NO it waits for key to finish before playing key again
-- (void)playSoundWithKey:(NSString*)key overlap:(BOOL)overlap position:(Vector)position;
+- (void)playSoundWithKey:(const std::string&)key overlap:(BOOL)overlap; // if overlap == NO it waits for key to finish before playing key again
+- (void)playSoundWithKey:(const std::string&)key overlap:(BOOL)overlap position:(Vector)position;
 
 @end

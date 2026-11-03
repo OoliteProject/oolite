@@ -32,9 +32,17 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
+        std::strings; cached values stay Objective-C objects (property-list data), held by
+        oo::ObjCRef. The cache directory is std::nullopt where it was nil.
+*/
 @interface OOCacheManager : OOObject {
 @private
-    NSMutableDictionary* _caches;
+    // cache name -> key -> cached object; std::nullopt before loading, as nil was.
+    std::optional<std::map<std::string, std::map<std::string, oo::ObjCRef<id>, std::less<>>, std::less<>>> _caches;
     id _scheduledWrite;
     BOOL _permitWrites;
     BOOL _dirty;
@@ -42,18 +50,24 @@ MA 02110-1301, USA.
 
 + (OOCacheManager*)sharedCache;
 
-- (id)objectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)setObject:(id)inElement forKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)removeObjectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)clearCache:(NSString*)inCacheKey;
+- (id)cxx_objectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
+- (void)cxx_setObject:(id)inElement forKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
+- (void)cxx_removeObjectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
+- (void)cxx_clearCache:(const std::string&)inCacheKey;
 - (void)clearAllCaches;
 - (void)reloadAllCaches;
 
 - (void)setAllowCacheWrites:(BOOL)flag;
 
-- (NSString*)cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
+- (std::optional<std::string>)cxx_cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
 
 - (void)flush;
 - (void)finishOngoingFlush; // Wait for flush to complete. Does nothing if async flushing is disabled.
 
 @end
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-19g0, forwarding to the cxx_ methods above, so unmigrated callers compile
+        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
+*/
+#import "OOCacheManager+FoundationBridge.h"

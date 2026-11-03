@@ -24,36 +24,43 @@ MA 02110-1301, USA.
 */
 
 #import "OOFlasherEntity.h"
-#import "NSDictionaryOOExtensions.h"
 #import "OOColor.h"
-#import "OOPListView.h"
+#import "OOFoundationBridge.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
 
+#include "oofnd/PListGet.hpp"
+
 @interface OOFlasherEntity (Internal)
 
-- (void)setUpColors:(NSArray*)colorSpecifiers;
+- (id)initWithFlasherConfiguration:(const oo::PList&)dictionary;
+- (void)setUpColors:(const oo::PList*)colorSpecifiers; // an array node, or nullptr
 - (void)getCurrentColorComponents;
 
 @end
 
 @implementation OOFlasherEntity
 
-+ (instancetype)flasherWithDictionary:(NSDictionary*)dictionary
++ (instancetype)flasherWithDictionary:(const oo::PList&)dictionary
 {
-    return [[[OOFlasherEntity alloc] initWithDictionary:dictionary] autorelease];
+    return [[[OOFlasherEntity alloc] initWithFlasherConfiguration:dictionary] autorelease];
 }
 
-- (id)initWithDictionary:(NSDictionary*)dictionary
+- (id)initWithDictionary:(id)dictionary
 {
-    float size = oo::PListView(dictionary).get<float>(@"size", 1.0f);
+    return [self initWithFlasherConfiguration:oo::PListFrom(dictionary)];
+}
+
+- (id)initWithFlasherConfiguration:(const oo::PList&)dictionary
+{
+    float size = dictionary.get<float>("size", 1.0f);
 
     if ((self = [super initWithDiameter:size])) {
-        _frequency = oo::PListView(dictionary).get<float>(@"frequency", 1.0f) * 2.0f;
-        _phase = oo::PListView(dictionary).get<float>(@"phase", 0.0f);
-        _brightfraction = oo::PListView(dictionary).get<float>(@"bright_fraction", 0.5f);
+        _frequency = dictionary.get<float>("frequency", 1.0f) * 2.0f;
+        _phase = dictionary.get<float>("phase", 0.0f);
+        _brightfraction = dictionary.get<float>("bright_fraction", 0.5f);
 
-        [self setUpColors:oo::PListView(dictionary).get<NSArray*>(@"colors")];
+        [self setUpColors:dictionary.get<oo::PList::Array>("colors")];
         [self getCurrentColorComponents];
 
         [self setActive:oo::PListView(dictionary).get<bool>(@"initially_on", YES)];
@@ -61,27 +68,27 @@ MA 02110-1301, USA.
     return self;
 }
 
-- (void)dealloc
+- (void)setUpColors:(const oo::PList*)colorSpecifiers
 {
-    [_colors release];
-
-    [super dealloc];
-}
-
-- (void)setUpColors:(NSArray*)colorSpecifiers
-{
-    NSMutableArray* colors = [NSMutableArray arrayWithCapacity:[colorSpecifiers count]];
-    id specifier = nil;
-    foreach (specifier, colorSpecifiers) {
-        [colors addObject:[OOColor colorWithDescription:specifier saturationFactor:0.75f]];
+    std::vector<oo::ObjCRef<OOColor*>> colors;
+    if (colorSpecifiers != nullptr) {
+        for (const oo::PList& specifier : *colorSpecifiers->getIf<oo::PList::Array>()) {
+            colors.emplace_back([OOColor colorWithDescription:oo::ObjectFromPList(specifier) saturationFactor:0.75f]);
+        }
     }
 
-    _colors = [colors copy];
+    _colors = std::move(colors);
+}
+
+// The colour at index; nil past the end (-objectAtIndex: raised there).
+- (OOColor*)flasherColorAtIndex:(NSUInteger)index
+{
+    return index < _colors.size() ? _colors[index].get() : nil;
 }
 
 - (void)getCurrentColorComponents
 {
-    [self setColor:[_colors objectAtIndex:_activeColor] alpha:_colorComponents[3]];
+    [self setColor:[self flasherColorAtIndex:_activeColor] alpha:_colorComponents[3]];
 }
 
 - (BOOL)isActive
@@ -140,14 +147,14 @@ MA 02110-1301, USA.
 
     if (_frequency != 0) {
         float wave = sinf(_frequency * M_PI * (_time + _phase));
-        NSUInteger count = [_colors count];
+        NSUInteger count = _colors.size();
         if (count > 1 && wave < 0) {
             if (!_justSwitched && wave > _wave) // don't test for wave >= _wave - could give wrong results with very low frequencies
             {
                 _justSwitched = YES;
                 ++_activeColor;
                 _activeColor %= count; //_activeColor = ++_activeColor % count; is potentially undefined operation
-                [self setColor:[_colors objectAtIndex:_activeColor]];
+                [self setColor:[self flasherColorAtIndex:_activeColor]];
             }
         } else if (_justSwitched) {
             _justSwitched = NO;

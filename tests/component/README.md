@@ -42,6 +42,19 @@ so stop and file a bead rather than adding one inside a conversion story
 Assert **"within N ticks"**, never "at tick N". Assert **"no pirate remains"**, never an exact
 position. A scenario that needs an exact float does not belong in this tier.
 
+**The spawn steps pin the cast.** `I spawn <n> ship(s) with role "<role>"` does not ask `addShips`
+for the role: for `police`, `pirate`, `trader` and `escort` it asks for a literal core ship key
+(`[viper]`, `[sidewinder]`, `[boa]`, `[sidewinder-escort]`, `ROLE_SHIP_KEY` in
+`steps/world_steps.py`), then sets `primaryRole` back to the role. A role spawn is a RANROT draw
+between hulls, and the role path also draws a pirate's starting bounty (20-70) across policeAI's
+`fineThreshold()` gate, so the same seed gave a different, sometimes non-engageable cast each run
+(oo-sjvz; LEARNINGS oo-qwk5, oo-rkm). A spawned pirate's bounty is set to `PIRATE_BOUNTY` (100)
+for the same reason. A role with no pinned key falls back to the plain role draw. The step text is
+unchanged; add a key here, not a new step, when a new role needs to be deterministic.
+Pinning removes the draw, not the fight: a scenario that asserts who survives a long dogfight (S6)
+can still lose it, because a real-time fight on a software renderer is not seed-deterministic
+(oo-9aq4).
+
 ## What this tier deliberately cannot see
 
 - **`energy` is not exposed to JS** (only `energyRechargeRate`, `OOJSShip.m:371`). Assert death and

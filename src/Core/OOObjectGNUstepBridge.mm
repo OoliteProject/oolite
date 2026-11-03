@@ -31,7 +31,7 @@ runtime functions on object_getClass(self) (and, for the timed perform, -retain/
 
 */
 
-#import "OOObjectGNUstepBridge.h"
+#import "OOFoundation.h" // imports OOObjectGNUstepBridge.h after Foundation
 
 static IMP NSObjectInstanceIMP(SEL selector)
 {

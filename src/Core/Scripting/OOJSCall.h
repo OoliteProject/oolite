@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
+#include "oofnd/StdLib.hpp"
 #import <Foundation/Foundation.h>
 #include <quickjs.h>
 
@@ -49,6 +50,6 @@ MA 02110-1301, USA.
 
         argv is assumed to contain at least one value.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
+BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
 
 #endif

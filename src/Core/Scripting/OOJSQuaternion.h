@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOMaths.h"
+#include "oofnd/StdLib.hpp"
 #import <Foundation/Foundation.h>
 #include <quickjs.h>
 
@@ -58,7 +59,7 @@ BOOL JSQuaternionSetQuaternion(JSContext* context, JSValueConst quaternionObj, Q
         On failure, it will return NO and raise an error. If the caller is a JS
         callback, it must return JS_EXCEPTION to signal an error.
 */
-BOOL QuaternionFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, Quaternion* outQuaternion, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
+BOOL QuaternionFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, Quaternion* outQuaternion, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
 
 /*	QuaternionFromArgumentList()
 

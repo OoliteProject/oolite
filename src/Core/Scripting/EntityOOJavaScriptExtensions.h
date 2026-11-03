@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 - (BOOL)isVisibleToScripts;
 
-- (NSString*)oo_jsClassName;
+- (id)oo_jsClassName; // shared selector (proposed ADR-0043)
 
 // Internal:
 // The JS class of the entity's wrapper object; subclasses override this.
@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 @interface ShipEntity (OOJavaScriptExtensions)
 
 // "Normal" subentities, excluding flashers and exhaust plumes.
-- (NSArray*)subEntitiesForScript;
+- (id)subEntitiesForScript; // shared selector (proposed ADR-0043): an Objective-C array
 
 - (void)setTargetForScript:(ShipEntity*)target;
 

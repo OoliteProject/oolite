@@ -390,11 +390,11 @@ const char* ooliteStandardMatrixUniforms[] = {
     return matrices[which];
 }
 
-- (NSArray*)standardMatrixUniformLocations:(GLhandleARB)program
+- (oo::PList)standardMatrixUniformLocations:(GLhandleARB)program
 {
     GLint location;
     NSUInteger i;
-    NSMutableArray* locationSet = [[[NSMutableArray alloc] init] autorelease];
+    oo::PList::Array locationSet;
 
     OO_ENTER_OPENGL();
 
@@ -402,23 +402,19 @@ const char* ooliteStandardMatrixUniforms[] = {
         location = glGetUniformLocationARB(program, ooliteStandardMatrixUniforms[i]);
         if (location >= 0) {
             if (i == OOLITE_GL_MATRIX_NORMAL) {
-                [locationSet addObject:
-                        [NSArray arrayWithObjects:
-                                [NSNumber numberWithInt:location],
-                            [NSNumber numberWithInteger:i],
-                            @"mat3",
-                            nil]];
+                locationSet.push_back(oo::PList(oo::PList::Array {
+                    oo::PList(location),
+                    oo::PList(static_cast<NSInteger>(i)),
+                    oo::PList("mat3") }));
             } else {
-                [locationSet addObject:
-                        [NSArray arrayWithObjects:
-                                [NSNumber numberWithInt:location],
-                            [NSNumber numberWithInteger:i],
-                            @"mat4",
-                            nil]];
+                locationSet.push_back(oo::PList(oo::PList::Array {
+                    oo::PList(location),
+                    oo::PList(static_cast<NSInteger>(i)),
+                    oo::PList("mat4") }));
             }
         }
     }
-    return [[NSArray arrayWithArray:locationSet] retain];
+    return oo::PList(std::move(locationSet));
 }
 
 @end

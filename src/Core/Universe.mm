@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 #import "ResourceManager.h"
+#include "oofnd/Date.hpp"
 #include "oofnd/Process.hpp"
 
 #import "CollisionRegion.h"
@@ -69,6 +70,7 @@ MA 02110-1301, USA.
 #import "OODebugStandards.h"
 #import "OOExplosionCloudEntity.h"
 #import "OOFlashEffectEntity.h"
+#import "OOFoundationException.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSFrameCallbacks.h"
 #import "OOJSPopulatorDefinition.h"
@@ -82,6 +84,7 @@ MA 02110-1301, USA.
 #import "OORingEffectEntity.h"
 #import "OOScriptTimer.h"
 #import "OOShaderProgram.h"
+#import "OOStringBridge.h"
 #import "OOSunEntity.h"
 #import "OOSystemDescriptionManager.h"
 #import "OOVisualEffectEntity.h"
@@ -98,6 +101,7 @@ MA 02110-1301, USA.
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
+#import "OOFoundationBridge.h"
 #endif
 
 enum {
@@ -482,24 +486,24 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // shader for drawing a textured quad on the passthrough framebuffer and preparing it for bloom using MRT
     if (![[OOOpenGLExtensionManager sharedManager] shadersForceDisabled]) {
-        textureProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-texture.vertex"
-                                                          fragmentShaderName:@"oolite-texture.fragment"
-                                                                      prefix:@"#version 330\n"
-                                                           attributeBindings:[NSDictionary dictionary]] retain];
+        textureProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:"oolite-texture.vertex"
+                                                          fragmentShaderName:"oolite-texture.fragment"
+                                                                      prefix:"#version 330\n"
+                                                           attributeBindings:oo::PList(oo::PList::Dict { })] retain];
         // shader for blurring the over-threshold brightness image generated from the previous step using Gaussian filter
-        blurProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-blur.vertex"
-                                                       fragmentShaderName:@"oolite-blur.fragment"
-                                                                   prefix:@"#version 330\n"
-                                                        attributeBindings:[NSDictionary dictionary]] retain];
+        blurProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:"oolite-blur.vertex"
+                                                       fragmentShaderName:"oolite-blur.fragment"
+                                                                   prefix:"#version 330\n"
+                                                        attributeBindings:oo::PList(oo::PList::Dict { })] retain];
         // shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
-        finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
+        finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:"oolite-final.vertex"
 #if OOLITE_WINDOWS
-                                                        fragmentShaderName:[[UNIVERSE gameView] hdrOutput] ? @"oolite-final-hdr.fragment" : @"oolite-final.fragment"
+                                                        fragmentShaderName:[[UNIVERSE gameView] hdrOutput] ? "oolite-final-hdr.fragment" : "oolite-final.fragment"
 #else
-                                                        fragmentShaderName:@"oolite-final.fragment"
+                                                        fragmentShaderName:"oolite-final.fragment"
 #endif
-                                                                    prefix:@"#version 330\n"
-                                                         attributeBindings:[NSDictionary dictionary]] retain];
+                                                                    prefix:"#version 330\n"
+                                                         attributeBindings:oo::PList(oo::PList::Dict { })] retain];
     }
 
     OOGL(glGenVertexArrays(1, &quadTextureVAO));
@@ -696,7 +700,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 {
     if (gSharedUniverse != nil) {
         [self release];
-        [NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __PRETTY_FUNCTION__];
+        [OOException raise:OOInternalInconsistencyException format:"%s: expected only one Universe to exist at a time.", __PRETTY_FUNCTION__];
     }
 
     OO_DEBUG_PROGRESS(@"%@", @"Universe initWithGameView:");
@@ -707,7 +711,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     _doingStartUp = YES;
 
-    OOInitReallyRandom([NSDate timeIntervalSinceReferenceDate] * 1e9);
+    OOInitReallyRandom(oo::date::timeIntervalSinceReferenceDate() * 1e9);
 
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 
@@ -1253,7 +1257,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     /*- the sky backdrop -*/
     OOColor* col1 = [OOColor colorWithRed:0.0 green:1.0 blue:0.5 alpha:1.0];
     OOColor* col2 = [OOColor colorWithRed:0.0 green:1.0 blue:0.0 alpha:1.0];
-    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:systeminfo]; // alloc retains!
+    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:oo::PListFrom(systeminfo)]; // alloc retains!
     [thing setScanClass:CLASS_NO_DRAW];
     quaternion_set_random(&randomQ);
     [thing setOrientation:randomQ];
@@ -1306,7 +1310,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     NSMutableDictionary* planetDict = [NSMutableDictionary dictionaryWithDictionary:[systemManager getPropertiesForCurrentSystem]];
     [planetDict oo_setBool:YES forKey:@"mainForLocalSystem"];
-    OOPlanetEntity* a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:[planetDict oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:systemSeed forSystem:systemID];
+    OOPlanetEntity* a_planet = [[OOPlanetEntity alloc] initFromDictionary:oo::PListFrom(planetDict) withAtmosphere:[planetDict oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:systemSeed forSystem:systemID];
 
     double planet_zpos = [planetDict oo_floatForKey:@"planet_distance" defaultValue:500000];
     planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:1.0];
@@ -1399,7 +1403,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOColor* col1 = [OOColor colorWithHue:h1 saturation:randf() brightness:0.5 + randf() / 2.0 alpha:1.0];
     OOColor* col2 = [OOColor colorWithHue:h2 saturation:0.5 + randf() / 2.0 brightness:0.5 + randf() / 2.0 alpha:1.0];
 
-    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:systeminfo]; // alloc retains!
+    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:oo::PListFrom(systeminfo)]; // alloc retains!
     [thing setScanClass:CLASS_NO_DRAW];
     [self addEntity:thing];
     //	bgcolor = [(SkyEntity *)thing skyColor];
@@ -1522,7 +1526,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOLog(@"planetinfo.record", @"corona_hues = %f", [sun_dict oo_floatForKey:@"corona_hues"]);
     OOLog(@"planetinfo.record", @"sun_color = %@", [bgcolor descriptionComponents]);
 #endif
-    a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:sun_dict]; // alloc retains!
+    a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:oo::PListFrom(sun_dict)]; // alloc retains!
 
     [a_sun setStatus:STATUS_ACTIVE];
     [a_sun setPosition:sunPos]; // sets also light origin
@@ -3002,11 +3006,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
          * available, and at least the Ships category. */
         NSArray* subList = nil;
         foreach (subList, demo_ships) {
-            if ([[[subList oo_dictionaryAtIndex:0] oo_stringForKey:kOODemoShipClass] isEqualToString:@"ship"]) {
+            if ([[[subList oo_dictionaryAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)] isEqualToString:@"ship"]) {
                 demo_ship_index = [demo_ships indexOfObject:subList];
                 NSDictionary* shipEntry = nil;
                 foreach (shipEntry, subList) {
-                    if ([[shipEntry oo_stringForKey:kOODemoShipKey] isEqualToString:@"cobra3-trader"]) {
+                    if ([[shipEntry oo_stringForKey:oo::NSStringFrom(kOODemoShipKey)] isEqualToString:@"cobra3-trader"]) {
                         demo_ship_subindex = [subList indexOfObject:shipEntry];
                         break;
                     }
@@ -3016,7 +3020,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         }
 
         if (!demo_ship)
-            ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
+            ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:oo::NSStringFrom(kOODemoShipKey)] usePlayerProxy:NO];
         // stop consistency problems on the ship library screen
         [ship removeEquipmentItem:@"EQ_SHIELD_BOOSTER"];
         [ship removeEquipmentItem:@"EQ_SHIELD_ENHANCER"];
@@ -3088,12 +3092,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 
     /* Row 1: ScanClass, Name, Summary */
-    override = [librarySettings oo_stringForKey:kOODemoShipClass defaultValue:@"ship"];
-    field1 = OOShipLibraryCategorySingular(override);
+    override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipClass) defaultValue:@"ship"];
+    field1 = oo::NSStringFrom(OOShipLibraryCategorySingular(oo::StdString(override)));
 
     field2 = [demo_ship shipClassName];
 
-    override = [librarySettings oo_stringForKey:kOODemoShipSummary defaultValue:nil];
+    override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipSummary) defaultValue:nil];
     if (override != nil) {
         field3 = OOExpand(override);
     } else {
@@ -3103,12 +3107,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [gui setColor:[OOColor greenColor] forRow:1];
 
     // ship_data defaults to true for "ship" class, false for everything else
-    if (![librarySettings oo_boolForKey:kOODemoShipShipData defaultValue:[[librarySettings oo_stringForKey:kOODemoShipClass defaultValue:@"ship"] isEqualToString:@"ship"]]) {
+    if (![librarySettings oo_boolForKey:oo::NSStringFrom(kOODemoShipShipData) defaultValue:[[librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipClass) defaultValue:@"ship"] isEqualToString:@"ship"]]) {
         descRow = 3;
     } else {
         /* Row 2: Speed, Turn Rate, Cargo */
 
-        override = [librarySettings oo_stringForKey:kOODemoShipSpeed defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipSpeed) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field1 = @"";
@@ -3116,10 +3120,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-speed-custom"), OOExpand(override)];
             }
         } else {
-            field1 = OOShipLibrarySpeed(demo_ship);
+            field1 = oo::NSStringFrom(OOShipLibrarySpeed(demo_ship));
         }
 
-        override = [librarySettings oo_stringForKey:kOODemoShipTurnRate defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipTurnRate) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field2 = @"";
@@ -3127,10 +3131,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turn-custom"), OOExpand(override)];
             }
         } else {
-            field2 = OOShipLibraryTurnRate(demo_ship);
+            field2 = oo::NSStringFrom(OOShipLibraryTurnRate(demo_ship));
         }
 
-        override = [librarySettings oo_stringForKey:kOODemoShipCargo defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipCargo) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field3 = @"";
@@ -3138,13 +3142,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-custom"), OOExpand(override)];
             }
         } else {
-            field3 = OOShipLibraryCargo(demo_ship);
+            field3 = oo::NSStringFrom(OOShipLibraryCargo(demo_ship));
         }
 
         [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:3];
 
         /* Row 3: recharge rate, energy banks, witchspace */
-        override = [librarySettings oo_stringForKey:kOODemoShipGenerator defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipGenerator) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field1 = @"";
@@ -3152,10 +3156,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-generator-custom"), OOExpand(override)];
             }
         } else {
-            field1 = OOShipLibraryGenerator(demo_ship);
+            field1 = oo::NSStringFrom(OOShipLibraryGenerator(demo_ship));
         }
 
-        override = [librarySettings oo_stringForKey:kOODemoShipShields defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipShields) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field2 = @"";
@@ -3163,10 +3167,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-shields-custom"), OOExpand(override)];
             }
         } else {
-            field2 = OOShipLibraryShields(demo_ship);
+            field2 = oo::NSStringFrom(OOShipLibraryShields(demo_ship));
         }
 
-        override = [librarySettings oo_stringForKey:kOODemoShipWitchspace defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipWitchspace) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field3 = @"";
@@ -3174,13 +3178,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-witchspace-custom"), OOExpand(override)];
             }
         } else {
-            field3 = OOShipLibraryWitchspace(demo_ship);
+            field3 = oo::NSStringFrom(OOShipLibraryWitchspace(demo_ship));
         }
 
         [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:4];
 
         /* Row 4: weapons, turrets, size */
-        override = [librarySettings oo_stringForKey:kOODemoShipWeapons defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipWeapons) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field1 = @"";
@@ -3188,10 +3192,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-weapons-custom"), OOExpand(override)];
             }
         } else {
-            field1 = OOShipLibraryWeapons(demo_ship);
+            field1 = oo::NSStringFrom(OOShipLibraryWeapons(demo_ship));
         }
 
-        override = [librarySettings oo_stringForKey:kOODemoShipTurrets defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipTurrets) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field2 = @"";
@@ -3199,10 +3203,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turrets-custom"), OOExpand(override)];
             }
         } else {
-            field2 = OOShipLibraryTurrets(demo_ship);
+            field2 = oo::NSStringFrom(OOShipLibraryTurrets(demo_ship));
         }
 
-        override = [librarySettings oo_stringForKey:kOODemoShipSize defaultValue:nil];
+        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipSize) defaultValue:nil];
         if (override != nil) {
             if ([override length] == 0) {
                 field3 = @"";
@@ -3210,21 +3214,21 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-size-custom"), OOExpand(override)];
             }
         } else {
-            field3 = OOShipLibrarySize(demo_ship);
+            field3 = oo::NSStringFrom(OOShipLibrarySize(demo_ship));
         }
 
         [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:5];
     }
 
-    override = [librarySettings oo_stringForKey:kOODemoShipDescription defaultValue:nil];
+    override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipDescription) defaultValue:nil];
     if (override != nil) {
         [gui addLongText:OOExpand(override) startingAtRow:descRow align:GUI_ALIGN_LEFT];
     }
 
     // line 19: ship categories
-    field1 = [NSString stringWithFormat:@"<-- %@", OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:((demo_ship_index + [demo_ships count] - 1) % [demo_ships count])] objectAtIndex:0] oo_stringForKey:kOODemoShipClass])];
-    field2 = OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:demo_ship_index] objectAtIndex:0] oo_stringForKey:kOODemoShipClass]);
-    field3 = [NSString stringWithFormat:@"%@ -->", OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:((demo_ship_index + 1) % [demo_ships count])] objectAtIndex:0] oo_stringForKey:kOODemoShipClass])];
+    field1 = [NSString stringWithFormat:@"<-- %@", oo::NSStringFrom(OOShipLibraryCategoryPlural(oo::StdString([[[demo_ships objectAtIndex:((demo_ship_index + [demo_ships count] - 1) % [demo_ships count])] objectAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)])))];
+    field2 = oo::NSStringFrom(OOShipLibraryCategoryPlural(oo::StdString([[[demo_ships objectAtIndex:demo_ship_index] objectAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)])));
+    field3 = [NSString stringWithFormat:@"%@ -->", oo::NSStringFrom(OOShipLibraryCategoryPlural(oo::StdString([[[demo_ships objectAtIndex:((demo_ship_index + 1) % [demo_ships count])] objectAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)])))];
 
     [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:19];
     [gui setColor:[OOColor greenColor] forRow:19];
@@ -3240,7 +3244,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     field1 = @"";
     field3 = @"";
     for (i = start; i <= end; i++) {
-        field2 = [[subList objectAtIndex:i] oo_stringForKey:kOODemoShipName];
+        field2 = [[subList objectAtIndex:i] oo_stringForKey:oo::NSStringFrom(kOODemoShipName)];
         [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:row];
         if (i == demo_ship_subindex) {
             [gui setColor:[OOColor yellowColor] forRow:row];
@@ -3485,7 +3489,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         [waypoints removeObjectForKey:key];
     }
     if (definition != nil) {
-        waypoint = [OOWaypointEntity waypointWithDictionary:definition];
+        waypoint = [OOWaypointEntity waypointWithDictionary:oo::PListFrom(definition)];
         if (waypoint != nil) {
             [self addEntity:waypoint];
             [waypoints setObject:waypoint forKey:key];
@@ -3682,9 +3686,9 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     @try {
         effect = [[OOVisualEffectEntity alloc] initWithKey:effectKey definition:effectDict];
     }
-    @catch (NSException* exception) {
-        if ([[exception name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND]) {
-            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newVisualEffectWithName: %@ ] *****", [exception reason], effectKey);
+    @catch (OOException* exception) {
+        if (strcmp([exception name], OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
+            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newVisualEffectWithName: %@ ] *****", oo::NSStringFrom([exception reason]), effectKey);
         } else
             @throw exception;
     }
@@ -3739,9 +3743,9 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         }
         ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
     }
-    @catch (NSException* exception) {
-        if ([[exception name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND]) {
-            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [exception reason], shipKey);
+    @catch (OOException* exception) {
+        if (strcmp([exception name], OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
+            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", oo::NSStringFrom([exception reason]), shipKey);
         } else
             @throw exception;
     }
@@ -3776,9 +3780,9 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         }
         dock = [[DockEntity alloc] initWithKey:shipDataKey definition:shipDict];
     }
-    @catch (NSException* exception) {
-        if ([[exception name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND]) {
-            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newDockWithName: %@ ] *****", [exception reason], shipDataKey);
+    @catch (OOException* exception) {
+        if (strcmp([exception name], OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
+            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newDockWithName: %@ ] *****", oo::NSStringFrom([exception reason]), shipDataKey);
         } else
             @throw exception;
     }
@@ -4757,11 +4761,21 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 framesDoneThisUpdate++;
             }
         }
-        @catch (NSException* exception) {
+        @catch (OOException* exception) {
+            no_update = NO; // make sure we don't get stuck in all subsequent frames.
+
+            if (strncmp([exception name], "Oolite", 6) == 0) {
+                [self handleOoliteException:exception];
+            } else {
+                OOLog(kOOLogException, @"***** Exception: %@ : %@ *****", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+                @throw exception;
+            }
+        }
+        @catch (OOFoundationException* exception) {
             no_update = NO; // make sure we don't get stuck in all subsequent frames.
 
             if ([[exception name] hasPrefix:@"Oolite"]) {
-                [self handleOoliteException:exception];
+                [self handleOoliteException:[OOException exceptionWithName:[[exception name] UTF8String] reason:[[exception reason] UTF8String]]];
             } else {
                 OOLog(kOOLogException, @"***** Exception: %@ : %@ *****", [exception name], [exception reason]);
                 @throw exception;
@@ -5536,7 +5550,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     if ([target showDamage] && [target energy] < [target maxEnergy] / 2) {
         NSString* key = (randf() < 0.5) ? @"oolite-hull-spark" : @"oolite-hull-spark-b";
         NSDictionary* settings = [UNIVERSE explosionSetting:key];
-        OOExplosionCloudEntity* burst = [OOExplosionCloudEntity explosionCloudFromEntity:target withSettings:settings];
+        OOExplosionCloudEntity* burst = [OOExplosionCloudEntity explosionCloudFromEntity:target withSettings:oo::PListFrom(settings)];
         [burst setPosition:pos];
         [self addEntity:burst];
         if ([target energy] * randf() < damage) {
@@ -6492,7 +6506,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                                                                                             NSDictionary	*shipDict = nil; */
 
                             demo_ship_subindex = (demo_ship_subindex + 1) % [[demo_ships objectAtIndex:demo_ship_index] count];
-                            demo_ship = [self newShipWithName:[[self demoShipData] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
+                            demo_ship = [self newShipWithName:[[self demoShipData] oo_stringForKey:oo::NSStringFrom(kOODemoShipKey)] usePlayerProxy:NO];
 
                             if (demo_ship != nil) {
                                 [demo_ship removeEquipmentItem:@"EQ_SHIELD_BOOSTER"];
@@ -6620,9 +6634,21 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 doLinkedListMaintenanceThisUpdate = NO;
             }
         }
-        @catch (NSException* exception) {
-            if ([[exception name] hasPrefix:@"Oolite"]) {
+        @catch (OOException* exception) {
+            if (strncmp([exception name], "Oolite", 6) == 0) {
                 [self handleOoliteException:exception];
+            } else {
+#ifndef NDEBUG
+                if (update_stage_param != nil)
+                    update_stage = [NSString stringWithFormat:update_stage, update_stage_param];
+#endif
+                OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+                @throw exception;
+            }
+        }
+        @catch (OOFoundationException* exception) {
+            if ([[exception name] hasPrefix:@"Oolite"]) {
+                [self handleOoliteException:[OOException exceptionWithName:[[exception name] UTF8String] reason:[[exception reason] UTF8String]]];
             } else {
 #ifndef NDEBUG
                 if (update_stage_param != nil)
@@ -7460,7 +7486,7 @@ static void VerifyDesc(NSString* key, id desc)
                     the_sky = (SkyEntity*)sortedEntities[i];
 
             if (the_sky != nil) {
-                [the_sky changeProperty:key withDictionary:sysInfo];
+                [the_sky changeProperty:oo::StdString(key) withDictionary:oo::PListFrom(sysInfo)];
 
                 if ([key isEqualToString:@"sun_color"]) {
                     OOColor* color = [the_sky skyColor];
@@ -7475,7 +7501,7 @@ static void VerifyDesc(NSString* key, id desc)
                 }
             }
         } else if (the_sun != nil && ([key hasPrefix:@"sun_"] || [key hasPrefix:@"corona_"])) {
-            [the_sun changeSunProperty:key withDictionary:sysInfo];
+            [the_sun changeSunProperty:oo::StdString(key) withDictionary:oo::PListFrom(sysInfo)];
         } else if ([key isEqualToString:@"texture"]) {
             [[self planet] setUpPlanetFromTexture:(NSString*)object];
         } else if ([key isEqualToString:@"texture_hsb_color"]) {
@@ -9039,19 +9065,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return detailLevel >= DETAIL_LEVEL_SHADERS;
 }
 
-- (void)handleOoliteException:(NSException*)exception
+- (void)handleOoliteException:(OOException*)exception
 {
     if (exception != nil) {
-        if ([[exception name] isEqual:OOLITE_EXCEPTION_FATAL]) {
+        if (strcmp([exception name], OOLITE_EXCEPTION_FATAL) == 0) {
             PlayerEntity* player = PLAYER;
             [player setStatus:STATUS_HANDLING_ERROR];
 
-            OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****", [exception name], [exception reason]);
-            NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]];
+            OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+            NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason])];
             [self addMessage:exception_msg forCount:30.0];
             [[self gameController] setGamePaused:YES];
         } else {
-            OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****", [exception name], [exception reason]);
+            OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
         }
     }
 }
@@ -9673,7 +9699,10 @@ static void PreloadOneSound(NSString* soundName)
                 }
                 [activeWormholes removeObjectAtIndex:0]; // empty it out
             }
-            @catch (NSException* exception) {
+            @catch (OOException* exception) {
+                OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+            }
+            @catch (OOFoundationException* exception) {
                 OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", [exception name], [exception reason]);
             }
         }

@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 
 #import "OOJSVisualEffect.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
@@ -166,7 +167,7 @@ static BOOL JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
     return sVisualEffectClassID;
 }
 
-- (NSString*)oo_jsClassName
+- (id)oo_jsClassName // shared selector (proposed ADR-0043)
 {
     return @"VisualEffect";
 }
@@ -176,9 +177,10 @@ static BOOL JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
     return YES;
 }
 
-- (NSArray*)subEntitiesForScript
+- (id)subEntitiesForScript // shared selector (proposed ADR-0043)
 {
-    return [[self visualEffectSubEntityEnumerator] allObjects];
+    const auto subs = [self visualEffectSubEntityEnumerator];
+    return subs.has_value() ? oo::NSArrayFromObjects(*subs) : nil; // nil before the first subentity, as before
 }
 
 @end
@@ -206,7 +208,7 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
         break;
 
     case kVisualEffect_dataKey:
-        result = [entity effectKey];
+        result = oo::NSStringOrNil([entity effectKey]);
         break;
 
     case kVisualEffect_isBreakPattern:
@@ -270,7 +272,7 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
     case kVisualEffect_scriptInfo:
         result = [entity scriptInfo];
         if (result == nil)
-            result = [NSDictionary dictionary]; // empty rather than null
+            result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // empty rather than null
         break;
 
     default:
@@ -293,7 +295,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
     int32_t iValue;
     double fValue;
     Vector vValue;
-    NSString* sValue = nil;
+    std::optional<std::string> sValue;
 
     if (!JSVisualEffectGetVisualEffectEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
@@ -302,8 +304,8 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kVisualEffect_beaconCode:
-        sValue = OOStringFromJSValue(context, value);
-        if (sValue == nil || [sValue length] == 0) {
+        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        if (!sValue.has_value() || sValue->empty()) {
             if ([entity isBeacon]) {
                 [UNIVERSE clearBeacon:entity];
                 if ([PLAYER nextBeacon] == entity) {
@@ -312,10 +314,10 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
             }
         } else {
             if ([entity isBeacon]) {
-                [entity setBeaconCode:sValue];
+                [entity setBeaconCode:oo::NSStringFrom(*sValue)];
             } else // Universe needs to update beacon lists in this case only
             {
-                [entity setBeaconCode:sValue];
+                [entity setBeaconCode:oo::NSStringFrom(*sValue)];
                 [UNIVERSE setNextBeacon:entity];
             }
         }
@@ -323,9 +325,9 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kVisualEffect_beaconLabel:
-        sValue = OOStringFromJSValue(context, value);
-        if (sValue != nil) {
-            [entity setBeaconLabel:sValue];
+        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        if (sValue.has_value()) {
+            [entity setBeaconLabel:oo::NSStringFrom(*sValue)];
             return JS_UNDEFINED;
         }
         break;
@@ -479,9 +481,9 @@ static JSValue VisualEffectGetMaterials(OOJS_NATIVE_ARGS)
 
     GET_THIS_EFFECT(thisEnt);
 
-    result = [[thisEnt mesh] materials];
+    result = oo::ObjectFromPList([[thisEnt mesh] materials]);
     if (result == nil)
-        result = [NSDictionary dictionary];
+        result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // an empty dictionary
     OOJS_RETURN_OBJECT(result);
 
     OOJS_PROFILE_EXIT
@@ -497,9 +499,9 @@ static JSValue VisualEffectGetShaders(OOJS_NATIVE_ARGS)
 
     GET_THIS_EFFECT(thisEnt);
 
-    result = [[thisEnt mesh] shaders];
+    result = oo::ObjectFromPList([[thisEnt mesh] shaders]);
     if (result == nil)
-        result = [NSDictionary dictionary];
+        result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // an empty dictionary
     OOJS_RETURN_OBJECT(result);
 
     OOJS_PROFILE_EXIT
@@ -561,8 +563,8 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
     OOJS_PROFILE_ENTER
 
     JSValueConst params = JS_UNDEFINED;
-    NSDictionary* materials;
-    NSDictionary* shaders;
+    oo::PList materials;
+    oo::PList shaders;
     BOOL withShaders = NO;
     BOOL success = NO;
 
@@ -584,24 +586,33 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
     if (fromShaders) {
         materials = [[thisEnt mesh] materials];
         params = OOJS_ARGV[0];
-        shaders = OOJSNativeObjectFromJSObject(context, params);
+        shaders = oo::PListFrom(OOJSNativeObjectFromJSObject(context, params));
     } else {
         params = OOJS_ARGV[0];
-        materials = OOJSNativeObjectFromJSObject(context, params);
+        materials = oo::PListFrom(OOJSNativeObjectFromJSObject(context, params));
         if (withShaders) {
             params = OOJS_ARGV[1];
-            shaders = OOJSNativeObjectFromJSObject(context, params);
+            shaders = oo::PListFrom(OOJSNativeObjectFromJSObject(context, params));
         } else {
             shaders = [[thisEnt mesh] shaders];
         }
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    NSDictionary* effectDict = [thisEnt effectInfoDictionary];
+    const oo::PList effectDict = [thisEnt effectInfoDictionary];
+    // -oo_stringForKey: / -oo_dictionaryForKey: as the mesh call read them: nil unless a string (or a
+    // number's text) / a dictionary.
+    const oo::PList* model = effectDict.get<oo::PList>("model");
+    std::optional<std::string> modelName;
+    if (model != nullptr && (model->isString() || model->isNumber()))
+        modelName = effectDict.get<std::string>("model");
+    oo::PList shaderMacros = oo::PListFrom([[ResourceManager materialDefaults] objectForKey:@"ship-prefix-macros"]);
+    if (!shaderMacros.isDict())
+        shaderMacros = oo::PList();
 
     // First we test to see if we can create the mesh.
-    OOMesh* mesh = [OOMesh meshWithName:oo::PListView(effectDict).get<NSString*>(@"model")
-                               cacheKey:nil
+    OOMesh* mesh = [OOMesh meshWithName:modelName.value_or(std::string())
+                               cacheKey:std::nullopt
                      materialDictionary:materials
                       shadersDictionary:shaders
                                  smooth:oo::PListView(effectDict).get<bool>(@"smooth", NO)

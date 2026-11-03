@@ -26,11 +26,14 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 
 #include "oofnd/Notification.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/String.hpp"
 
 #import "EntityOOJavaScriptExtensions.h"
 #import "NSNumberOOExtensions.h"
 #import "NSStringOOExtensions.h"
 #import "OOConstToJSString.h"
+#import "OOFoundationBridge.h"
 #import "OOPListView.h"
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
@@ -836,63 +839,58 @@ void OOJSReportPendingException(JSContext* context)
     OOJSResumeTimeLimiter();
 }
 
-static NSString* CallerPrefix(NSString* scriptClass, NSString* function)
+static std::string CallerPrefix(const std::optional<std::string>& scriptClass, const std::optional<std::string>& function)
 {
-    if (function == nil)
-        return @"";
-    if (scriptClass == nil)
-        return [function stringByAppendingString:@": "];
-    return [NSString stringWithFormat:@"%@.%@: ", scriptClass, function];
+    if (!function)
+        return std::string();
+    if (!scriptClass)
+        return *function + ": ";
+    return *scriptClass + "." + *function + ": ";
 }
 
-void OOJSReportError(JSContext* context, NSString* format, ...)
+void cxx_OOJSReportError(JSContext* context, const char* format, ...)
 {
     va_list args;
 
     va_start(args, format);
-    OOJSReportErrorWithArguments(context, format, args);
+    cxx_OOJSReportErrorWithArguments(context, format, args);
     va_end(args);
 }
 
-void OOJSReportErrorForCaller(JSContext* context, NSString* scriptClass, NSString* function, NSString* format, ...)
+void cxx_OOJSReportErrorForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...)
 {
     va_list args;
-    NSString* msg = nil;
 
     @try {
         va_start(args, format);
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
+        std::string msg = oo::str::vformat(format, args);
         va_end(args);
 
-        OOJSReportError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+        cxx_OOJSReportError(context, "%s%s", CallerPrefix(scriptClass, function).c_str(), msg.c_str());
     }
     @catch (id exception) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-void OOJSReportErrorWithArguments(JSContext* context, NSString* format, va_list args)
+void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args)
 {
-    NSString* msg = nil;
-
     @try {
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
-        JS_ThrowPlainError(context, "%s", [msg UTF8String]);
+        std::string msg = oo::str::vformat(format, args);
+        JS_ThrowPlainError(context, "%s", msg.c_str());
     }
     @catch (id exception) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
 void OOJSReportWrappedException(JSContext* context, id exception)
 {
     if (!JS_HasException(context)) {
         if ([exception isKindOfClass:[NSException class]])
-            OOJSReportError(context, @"Native exception: %@", [exception reason]);
+            cxx_OOJSReportError(context, "Native exception: %s", oo::DescriptionOf([exception reason]).c_str());
         else
-            OOJSReportError(context, @"Unidentified native exception");
+            cxx_OOJSReportError(context, "Unidentified native exception");
     }
     // Else, let the pending exception propagate.
 }
@@ -908,86 +906,81 @@ JSValue OOJSNativeFailure(JSContext* context)
     return JS_Throw(context, error);
 }
 
-void OOJSReportWarning(JSContext* context, NSString* format, ...)
+void cxx_OOJSReportWarning(JSContext* context, const char* format, ...)
 {
     va_list args;
 
     va_start(args, format);
-    OOJSReportWarningWithArguments(context, format, args);
+    cxx_OOJSReportWarningWithArguments(context, format, args);
     va_end(args);
 }
 
-void OOJSReportWarningForCaller(JSContext* context, NSString* scriptClass, NSString* function, NSString* format, ...)
+void cxx_OOJSReportWarningForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...)
 {
     va_list args;
-    NSString* msg = nil;
 
     @try {
         va_start(args, format);
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
+        std::string msg = oo::str::vformat(format, args);
         va_end(args);
 
-        OOJSReportWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+        cxx_OOJSReportWarning(context, "%s%s", CallerPrefix(scriptClass, function).c_str(), msg.c_str());
     }
     @catch (id exception) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-void OOJSReportWarningWithArguments(JSContext* context, NSString* format, va_list args)
+void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, va_list args)
 {
-    NSString* msg = nil;
-
     @try {
-        msg = [[NSString alloc] initWithFormat:format arguments:args];
+        std::string msg = oo::str::vformat(format, args);
         OOJSPauseTimeLimiter();
         // SpiderMonkey reported Oolite's own warnings as error number 206, "ooliteDefined" in javascript-errors.plist.
-        LogProblem(context, @"warning", @"ooliteDefined", msg, CurrentStack(context));
+        LogProblem(context, @"warning", @"ooliteDefined", oo::NSStringFrom(msg), CurrentStack(context));
         OOJSResumeTimeLimiter();
     }
     @catch (id exception) {
         // Squash any secondary errors during error handling.
     }
-    [msg release];
 }
 
-NSString* OOStringFromJSPropertyMagic(int magic, const JSCFunctionListEntry* list, size_t count)
+std::string cxx_OOStringFromJSPropertyMagic(int magic, const JSCFunctionListEntry* list, size_t count)
 {
     for (size_t i = 0; i < count; i++) {
         if (list[i].def_type == JS_DEF_CGETSET_MAGIC && list[i].magic == magic)
-            return [NSString stringWithUTF8String:list[i].name];
+            return std::string(list[i].name);
     }
-    return [NSString stringWithFormat:@"%i", magic];
+    return oo::str::format("%i", magic);
 }
 
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count)
 {
-    NSString* propName = OOStringFromJSPropertyMagic(magic, list, count);
+    std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
     NSString* className = OOJSClassNameOfValue(context, thisObj);
 
-    OOJSReportError(context, @"Invalid property identifier %@ for instance of %@.", propName, className);
+    cxx_OOJSReportError(context, "Invalid property identifier %s for instance of %s.", propName.c_str(), oo::DescriptionOf(className).c_str());
 }
 
 void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count, JSValueConst value)
 {
-    NSString* propName = OOStringFromJSPropertyMagic(magic, list, count);
+    std::string propName = cxx_OOStringFromJSPropertyMagic(magic, list, count);
     NSString* className = OOJSClassNameOfValue(context, thisObj);
-    NSString* valueDesc = OOJSDescribeValue(context, value, YES);
+    std::string valueDesc = cxx_OOJSDescribeValue(context, value, YES);
 
-    OOJSReportError(context, @"Cannot set property %@ of instance of %@ to invalid value %@.", propName, className, valueDesc);
+    cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", propName.c_str(), oo::DescriptionOf(className).c_str(), valueDesc.c_str());
 }
 
-void OOJSReportBadArguments(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, NSString* message, NSString* expectedArgsDescription)
+void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, const std::optional<std::string>& message, const std::optional<std::string>& expectedArgsDescription)
 {
     @try {
-        if (message == nil)
-            message = @"Invalid arguments";
-        message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
-        if (expectedArgsDescription != nil)
-            message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
+        std::string text = message ? *message : std::string("Invalid arguments");
+        std::optional<std::string> parameters = cxx_OOJSStringWithJavaScriptParameters(argv, argc, context);
+        text += " " + (parameters ? *parameters : std::string("(null)"));
+        if (expectedArgsDescription)
+            text += " -- expected " + *expectedArgsDescription;
 
-        OOJSReportErrorForCaller(context, scriptClass, function, @"%@.", message);
+        cxx_OOJSReportErrorForCaller(context, scriptClass, function, "%s.", text.c_str());
     }
     @catch (id exception) {
         // Squash any secondary errors during error handling.
@@ -1007,13 +1000,13 @@ void OOJSDumpStack(JSContext* context)
 }
 #endif
 
-BOOL OOJSArgumentListGetNumber(JSContext* context, NSString* scriptClass, NSString* function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
+BOOL cxx_OOJSArgumentListGetNumber(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
 {
     if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber, outConsumed)) {
         return YES;
     } else {
-        OOJSReportBadArguments(context, scriptClass, function, argc, argv,
-            @"Expected number, got", NULL);
+        cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv,
+            std::string("Expected number, got"), std::nullopt);
         return NO;
     }
 }
@@ -1056,32 +1049,31 @@ JSAtom OOJSInternAtomPRIVATE(const char* name)
     return atom;
 }
 
-JSAtom OOJSIDFromString(NSString* string)
+JSAtom cxx_OOJSIDFromString(const std::string& string)
 {
-    static NSMutableDictionary* sAtomCache = nil;
+    // Atoms are interned for the life of the process; the cache keeps its one reference to each.
+    static std::unordered_map<std::string, JSAtom>* sAtomCache = nullptr;
 
-    if (EXPECT_NOT(string == nil))
-        return JS_ATOM_NULL;
+    if (sAtomCache != nullptr) {
+        auto cached = sAtomCache->find(string);
+        if (cached != sAtomCache->end())
+            return cached->second;
+    }
 
-    NSNumber* cached = [sAtomCache objectForKey:string];
-    if (cached != nil)
-        return (JSAtom)[cached unsignedIntValue];
-
-    NSData* utf8 = [string dataUsingEncoding:NSUTF8StringEncoding];
-    JSAtom atom = JS_NewAtomLen(OOJSAcquireContext(), (const char*)[utf8 bytes], [utf8 length]);
+    JSAtom atom = JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
     if (EXPECT(atom != JS_ATOM_NULL)) {
-        if (sAtomCache == nil)
-            sAtomCache = [[NSMutableDictionary alloc] init];
-        [sAtomCache setObject:[NSNumber numberWithUnsignedInt:atom] forKey:string];
+        if (sAtomCache == nullptr)
+            sAtomCache = new std::unordered_map<std::string, JSAtom>;
+        sAtomCache->emplace(string, atom);
     }
     return atom;
 }
 
-NSString* OOStringFromJSID(JSAtom propID)
+std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID)
 {
     JSContext* context = OOJSAcquireContext();
     JSValue value = JS_AtomToString(context, propID);
-    NSString* result = OOStringFromJSValue(context, value);
+    std::optional<std::string> result = cxx_OOStringFromJSValue(context, value);
     JS_FreeValue(context, value);
     return result;
 }
@@ -1090,126 +1082,8 @@ NSString* OOStringFromJSID(JSAtom propID)
 // Native to JS conversion
 //===========================================================================
 
-static JSValue JSArrayFromNSArray(JSContext* context, NSArray* array)
-{
-    if (array == nil)
-        return JS_UNDEFINED;
-
-    JSValue result = JS_NewArray(context);
-    if (JS_IsException(result))
-        return JS_UNDEFINED;
-
-    @try {
-        NSUInteger i, count = [array count];
-        for (i = 0; i != count; ++i) {
-            // JS_SetPropertyUint32() takes ownership of the value.
-            JSValue value = [[array objectAtIndex:i] oo_jsValueInContext:context];
-            if (EXPECT_NOT(JS_SetPropertyUint32(context, result, (uint32_t)i, value) < 0)) {
-                JS_FreeValue(context, result);
-                return JS_UNDEFINED;
-            }
-        }
-    }
-    @catch (id ex) {
-        JS_FreeValue(context, result);
-        return JS_UNDEFINED;
-    }
-
-    return result;
-}
-
-/*	Convert an NSDictionary to a JavaScript Object.
-        Only properties whose keys are either strings or non-negative NSNumbers,
-        and	whose values have a non-void JS representation, are converted.
-*/
-static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictionary)
-{
-    if (dictionary == nil)
-        return JS_UNDEFINED;
-
-    JSValue result = JS_NewObject(context);
-    if (JS_IsException(result))
-        return JS_UNDEFINED;
-
-    BOOL OK = YES;
-    @try {
-        id key = nil;
-        foreachkey(key, dictionary)
-        {
-            JSValue value = JS_UNDEFINED;
-            if ([key isKindOfClass:[NSString class]] && [key length] != 0) {
-                value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
-                if (!JS_IsUndefined(value)) {
-                    OK = JS_SetProperty(context, result, OOJSIDFromString(key), value) >= 0;
-                }
-            } else if ([key isKindOfClass:[NSNumber class]]) {
-                int index = [key intValue];
-                if (0 < index) {
-                    value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
-                    if (!JS_IsUndefined(value)) {
-                        OK = JS_SetPropertyUint32(context, result, (uint32_t)index, value) >= 0;
-                    }
-                }
-            }
-
-            if (EXPECT_NOT(!OK))
-                break;
-        }
-    }
-    @catch (id exception) {
-        OK = NO;
-    }
-
-    if (EXPECT_NOT(!OK)) {
-        JS_FreeValue(context, result);
-        return JS_UNDEFINED;
-    }
-
-    return result;
-}
-
-@implementation NSObject (OOJavaScript)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    return JS_UNDEFINED;
-}
-
-- (NSString*)oo_jsClassName
-{
-    return nil;
-}
-
-- (NSString*)oo_jsDescription
-{
-    return [self oo_jsDescriptionWithClassName:[self oo_jsClassName]];
-}
-
-- (NSString*)oo_jsDescriptionWithClassName:(NSString*)className
-{
-    NSString* components = nil;
-    NSString* description = nil;
-
-    components = [self descriptionComponents];
-    if (className == nil)
-        className = [[self class] description];
-
-    if (components != nil) {
-        description = [NSString stringWithFormat:@"[%@ %@]", className, components];
-    } else {
-        description = [NSString stringWithFormat:@"[object %@]", className];
-    }
-
-    return description;
-}
-
-- (void)oo_clearJSSelf:(JSValueConst)selfVal
-{
-}
-
-@end
-
-// NSObject (OOJavaScriptConversion) above, for classes rooted on OOObject (ADR-0029).
+// The root-class JS glue for classes rooted on OOObject (ADR-0029); the same methods on the
+// Foundation root class live in OOJavaScriptEngine+FoundationBridge.mm until gnustep-base goes.
 @implementation OOObject (OOJavaScriptConversion)
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
@@ -1217,32 +1091,28 @@ static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictio
     return JS_UNDEFINED;
 }
 
-- (NSString*)oo_jsClassName
+- (id)oo_jsClassName
 {
     return nil;
 }
 
-- (NSString*)oo_jsDescription
+- (id)oo_jsDescription
 {
     return [self oo_jsDescriptionWithClassName:[self oo_jsClassName]];
 }
 
-- (NSString*)oo_jsDescriptionWithClassName:(NSString*)className
+- (id)oo_jsDescriptionWithClassName:(id)className
 {
-    NSString* components = nil;
-    NSString* description = nil;
-
-    components = [self descriptionComponents];
+    id components = [self descriptionComponents];
     if (className == nil)
         className = [[self class] description];
 
+    // "%@" of each: oo::DescriptionOf prints the same text.
     if (components != nil) {
-        description = [NSString stringWithFormat:@"[%@ %@]", className, components];
+        return oo::NSStringFrom(oo::str::format("[%s %s]", oo::DescriptionOf(className).c_str(), oo::DescriptionOf(components).c_str()));
     } else {
-        description = [NSString stringWithFormat:@"[object %@]", className];
+        return oo::NSStringFrom(oo::str::format("[object %s]", oo::DescriptionOf(className).c_str()));
     }
-
-    return description;
 }
 
 - (void)oo_clearJSSelf:(JSValueConst)selfVal
@@ -1314,26 +1184,26 @@ JSValue OOJSObjectFromNativeObject(JSContext* context, id object)
 // String utilities
 //===========================================================================
 
-NSString* OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
+std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
 {
     size_t length;
     const char* chars = JS_ToCStringLen(context, &length, value); // Calls the value's toString method if needed.
     if (chars == NULL) {
         JS_FreeValue(context, JS_GetException(context));
-        return nil;
+        return std::nullopt;
     }
 
-    NSString* result = [[[NSString alloc] initWithBytes:chars length:length encoding:NSUTF8StringEncoding] autorelease];
+    std::string result(chars, length);
     JS_FreeCString(context, chars);
     return result;
 }
 
-NSString* OOStringFromJSValue(JSContext* context, JSValueConst value)
+std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context, JSValueConst value)
 {
     if (EXPECT(!JS_IsNull(value) && !JS_IsUndefined(value))) {
-        return OOStringFromJSValueEvenIfNull(context, value);
+        return cxx_OOStringFromJSValueEvenIfNull(context, value);
     }
-    return nil;
+    return std::nullopt;
 }
 
 NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value)
@@ -1353,206 +1223,174 @@ NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value)
     return result ?: @"Object";
 }
 
-static NSString* DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
+static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
 {
     if (JS_IsFunction(context, value)) {
         JSValue nameVal = JS_GetPropertyStr(context, value, "name");
-        NSString* name = OOStringFromJSValue(context, nameVal);
+        std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
         JS_FreeValue(context, nameVal);
-        if ([name length] != 0)
-            return [NSString stringWithFormat:@"function %@", name];
+        if (name.has_value() && !name->empty())
+            return "function " + *name;
         else
-            return @"function";
+            return "function";
     }
 
-    NSString* result = nil;
+    std::optional<std::string> result;
     JSClassID classID = JS_GetClassID(value);
 
     if (JS_IsString(value) || (classID != JS_INVALID_CLASS_ID && classID == gOOJSStringClassID)) {
         enum { kMaxLength = 200 };
 
-        NSString* string = OOStringFromJSValueEvenIfNull(context, value);
-        NSUInteger length = [string length];
-        result = [string substringToIndex:MIN(length, (NSUInteger)kMaxLength)];
-        result = [NSString stringWithFormat:@"\"%@%@\"", [result escapedForJavaScriptLiteral], (length > kMaxLength) ? @"..." : @""];
+        // Truncated to kMaxLength UTF-16 units, as the NSString was cut.
+        const std::u16string units = oo::utf8ToUtf16(cxx_OOStringFromJSValueEvenIfNull(context, value).value_or(""));
+        const std::string truncated = oo::utf16ToUtf8(std::u16string_view(units.data(), MIN(units.size(), (size_t)kMaxLength)));
+        result = "\"" + cxx_OOJSEscapedForJavaScriptLiteral(truncated) + ((units.size() > kMaxLength) ? "..." : "") + "\"";
     } else if (JS_IsArray(value)) {
         // Descibe up to four elements of an array.
         int64_t count;
         if (JS_GetLength(context, value, &count) == 0) {
             if (!recursing) {
-                NSMutableString* arrayDesc = [NSMutableString stringWithString:@"["];
+                std::string arrayDesc = "[";
                 int64_t i, effectiveCount = MIN(count, (int64_t)4);
                 for (i = 0; i < effectiveCount; i++) {
                     JSValue item = JS_GetPropertyUint32(context, value, (uint32_t)i);
-                    NSString* itemDesc = @"?";
+                    std::string itemDesc = "?";
                     if (!JS_IsException(item)) {
                         itemDesc = DescribeValue(context, item, YES /* always abbreviate objects in arrays */, YES);
                     }
                     JS_FreeValue(context, item);
                     if (i != 0)
-                        [arrayDesc appendString:@", "];
-                    [arrayDesc appendString:itemDesc];
+                        arrayDesc += ", ";
+                    arrayDesc += itemDesc;
                 }
                 if (effectiveCount != count) {
-                    [arrayDesc appendFormat:@", ... <%lli items total>]", (long long)count];
+                    arrayDesc += oo::str::format(", ... <%lli items total>]", (long long)count);
                 } else {
-                    [arrayDesc appendString:@"]"];
+                    arrayDesc += "]";
                 }
 
                 result = arrayDesc;
             } else {
-                result = [NSString stringWithFormat:@"[<%lli items>]", (long long)count];
+                result = oo::str::format("[<%lli items>]", (long long)count);
             }
         } else {
             JS_FreeValue(context, JS_GetException(context));
-            result = @"[...]";
+            result = "[...]";
         }
     }
 
-    if (result == nil) {
-        result = OOStringFromJSValueEvenIfNull(context, value);
+    if (!result) {
+        result = cxx_OOStringFromJSValueEvenIfNull(context, value);
 
-        if (abbreviateObjects && classID == gOOJSObjectClassID && [result isEqualToString:@"[object Object]"]) {
-            result = @"{...}";
+        if (abbreviateObjects && classID == gOOJSObjectClassID && result && *result == "[object Object]") {
+            result = "{...}";
         }
 
-        if (result == nil)
-            result = @"?";
+        if (!result)
+            result = "?";
     }
 
-    return result;
+    return *result;
 }
 
-NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects)
+std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects)
 {
     return DescribeValue(context, value, abbreviateObjects, NO);
 }
 
-@implementation NSString (OOJavaScriptExtensions)
-
-+ (NSString*)stringWithJavaScriptParameters:(JSValueConst*)params count:(int)count inContext:(JSContext*)context
+std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(JSValueConst* params, int count, JSContext* context)
 {
     if (params == NULL && count != 0)
-        return nil;
+        return std::nullopt;
 
     int i;
-    NSMutableString* result = [NSMutableString stringWithString:@"("];
+    std::string result = "(";
 
     for (i = 0; i < count; ++i) {
         if (i != 0)
-            [result appendString:@", "];
-        [result appendString:OOJSDescribeValue(context, params[i], NO)];
+            result += ", ";
+        result += cxx_OOJSDescribeValue(context, params[i], NO);
     }
 
-    [result appendString:@")"];
+    result += ")";
     return result;
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    NSData* utf8 = [self dataUsingEncoding:NSUTF8StringEncoding];
-    return JS_NewStringLen(context, (const char*)[utf8 bytes], [utf8 length]);
-}
-
-+ (NSString*)concatenationOfStringsFromJavaScriptValues:(JSValueConst*)values count:(size_t)count separator:(NSString*)separator inContext:(JSContext*)context
+std::optional<std::string> cxx_OOJSConcatenationOfStringsFromJavaScriptValues(JSValueConst* values, size_t count, const std::string& separator, JSContext* context)
 {
     size_t i;
-    NSMutableString* result = nil;
-    NSString* element = nil;
+    std::optional<std::string> result;
 
     if (count < 1)
-        return nil;
+        return std::nullopt;
     if (values == NULL)
-        return NULL;
+        return std::nullopt;
 
     for (i = 0; i != count; ++i) {
-        element = OOStringFromJSValueEvenIfNull(context, values[i]);
-        if (result == nil)
-            result = [[element mutableCopy] autorelease];
+        std::optional<std::string> element = cxx_OOStringFromJSValueEvenIfNull(context, values[i]);
+        if (!result)
+            result = element; // a nil element left the result nil, as -mutableCopy of nil did
         else {
-            if (separator != nil)
-                [result appendString:separator];
-            [result appendString:element];
+            *result += separator;
+            if (element)
+                *result += *element;
         }
     }
 
     return result;
 }
 
-- (NSString*)escapedForJavaScriptLiteral
+std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string)
 {
-    NSMutableString* result = nil;
-    NSUInteger i, length;
-    unichar c;
+    // Byte-wise over UTF-8: every escaped character is ASCII, so multi-byte sequences pass through
+    // unchanged, as the UTF-16 units they encode did.
+    std::string result;
+    result.reserve(string.size());
 
-    length = [self length];
-    result = [NSMutableString stringWithCapacity:length];
+    for (char c : string) {
+        switch (c) {
+        case '\\':
+            result += "\\\\";
+            break;
 
-    // Not hugely efficient.
-    @autoreleasepool {
-        for (i = 0; i != length; ++i) {
-            c = [self characterAtIndex:i];
-            switch (c) {
-            case '\\':
-                [result appendString:@"\\\\"];
-                break;
+        case '\b':
+            result += "\\b";
+            break;
 
-            case '\b':
-                [result appendString:@"\\b"];
-                break;
+        case '\f':
+            result += "\\f";
+            break;
 
-            case '\f':
-                [result appendString:@"\\f"];
-                break;
+        case '\n':
+            result += "\\n";
+            break;
 
-            case '\n':
-                [result appendString:@"\\n"];
-                break;
+        case '\r':
+            result += "\\r";
+            break;
 
-            case '\r':
-                [result appendString:@"\\r"];
-                break;
+        case '\t':
+            result += "\\t";
+            break;
 
-            case '\t':
-                [result appendString:@"\\t"];
-                break;
+        case '\v':
+            result += "\\v";
+            break;
 
-            case '\v':
-                [result appendString:@"\\v"];
-                break;
+        case '\'':
+            result += "\\\'";
+            break;
 
-            case '\'':
-                [result appendString:@"\\\'"];
-                break;
+        case '\"':
+            result += "\\\"";
+            break;
 
-            case '\"':
-                [result appendString:@"\\\""];
-                break;
-
-            default:
-                [result appendString:[NSString stringWithCharacters:&c length:1]];
-            }
+        default:
+            result += c;
         }
     }
-
     return result;
 }
-
-- (NSString*)oo_jsClassName
-{
-    return @"String";
-}
-
-@end
-
-@implementation NSArray (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    return JSArrayFromNSArray(context, self);
-}
-
-@end
 
 @implementation OONativeVector (OOJavaScriptConversion)
 
@@ -1561,32 +1399,6 @@ NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbrevi
     JSValue value = JS_UNDEFINED;
     VectorToJSValue(context, [self getVector], &value);
     return value;
-}
-
-@end
-
-@implementation NSDictionary (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    return JSObjectFromNSDictionary(context, self);
-}
-
-@end
-
-@implementation NSNumber (OOJavaScriptConversion)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context
-{
-    // As with SpiderMonkey, all NSNumbers (including booleans) become JS numbers.
-    if ([self oo_isFloatingPointNumber])
-        return JS_NewFloat64(context, [self doubleValue]);
-    return JS_NewNumber(context, (double)[self longLongValue]);
-}
-
-- (NSString*)oo_jsClassName
-{
-    return @"Number";
 }
 
 @end
@@ -1606,9 +1418,9 @@ NSString* OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbrevi
     return [self retain];
 }
 
-- (NSString*)description
+- (id)description // shared selector (proposed ADR-0043)
 {
-    return @"<null>";
+    return oo::NSStringFrom("<null>");
 }
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
@@ -1626,10 +1438,11 @@ JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj, i
 {
     // For constructors, this is new.target, i.e. the constructor function itself.
     JSValue nameVal = JS_GetPropertyStr(context, thisObj, "name");
-    NSString* name = OOStringFromJSValue(context, nameVal);
+    std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
     JS_FreeValue(context, nameVal);
 
-    OOJSReportError(context, @"%@ cannot be used as a constructor.", name);
+    // %@ of a nil name printed "(null)".
+    cxx_OOJSReportError(context, "%s cannot be used as a constructor.", name ? name->c_str() : "(null)");
     return JS_EXCEPTION;
 }
 
@@ -1649,7 +1462,7 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
     OOJS_NATIVE_ENTER(context)
 
     id object = nil;
-    NSString* description = nil;
+    id description = nil; // the object's own -oo_jsDescription / -description
 
     object = OOJSNativeObjectFromJSObject(context, thisObj);
     if (object != nil) {
@@ -1660,11 +1473,11 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
     if (description == nil) {
         const char* className = OOJSClassName(JS_GetClassID(thisObj));
         if (className != NULL) {
-            description = [NSString stringWithFormat:@"[object %@]", [NSString stringWithUTF8String:className]];
+            description = oo::NSStringFrom(oo::str::format("[object %s]", className));
         }
     }
     if (description == nil)
-        description = @"[object]";
+        description = oo::NSStringFrom("[object]");
 
     OOJS_RETURN_OBJECT(description);
 
@@ -1765,7 +1578,8 @@ BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClas
     */
     JSClassID actualClassID = JS_GetClassID(object);
     if (EXPECT_NOT(!OOJSIsSubclass(actualClassID, requiredClassID))) {
-        OOJSReportError(context, @"Native method expected %s, got %@.", OOJSClassName(requiredClassID), OOStringFromJSValue(context, object));
+        std::optional<std::string> got = cxx_OOStringFromJSValue(context, object);
+        cxx_OOJSReportError(context, "Native method expected %s, got %s.", OOJSClassName(requiredClassID), got ? got->c_str() : "(null)");
         return NO;
     }
 
@@ -1776,7 +1590,7 @@ BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClas
 #ifndef NDEBUG
     // Double-check that the underlying object is of the expected ObjC class.
     if (EXPECT_NOT(*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])) {
-        OOJSReportError(context, @"Native method expected %@ from %s and got correct JS type but incorrect native object %@", requiredObjCClass, OOJSClassName(requiredClassID), *outObject);
+        cxx_OOJSReportError(context, "Native method expected %s from %s and got correct JS type but incorrect native object %s", oo::DescriptionOf(requiredObjCClass).c_str(), OOJSClassName(requiredClassID), oo::DescriptionOf(*outObject).c_str());
         return NO;
     }
 #endif

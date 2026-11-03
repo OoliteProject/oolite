@@ -34,35 +34,24 @@
 
 #import "OOCPUInfo.h"
 #import "OOCache.h"
-#import "OOCollectionExtractors.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOPListView.h"
 #import "OOPixMap.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 
+#import "OOFoundationBridge.h"
 #include "oofnd/StdLib.hpp"
 
-NSString* const kOOTextureSpecifierNameKey = @"name";
-NSString* const kOOTextureSpecifierSwizzleKey = @"extract_channel";
-NSString* const kOOTextureSpecifierMinFilterKey = @"min_filter";
-NSString* const kOOTextureSpecifierMagFilterKey = @"mag_filter";
-NSString* const kOOTextureSpecifierNoShrinkKey = @"no_shrink";
-NSString* const kOOTextureSpecifierExtraShrinkKey = @"extra_shrink";
-NSString* const kOOTextureSpecifierRepeatSKey = @"repeat_s";
-NSString* const kOOTextureSpecifierRepeatTKey = @"repeat_t";
-NSString* const kOOTextureSpecifierCubeMapKey = @"cube_map";
-NSString* const kOOTextureSpecifierAnisotropyKey = @"anisotropy";
-NSString* const kOOTextureSpecifierLODBiasKey = @"texture_LOD_bias";
+#include "oofnd/String.hpp"
 
-NSString* const kOOTextureSpecifierModulateColorKey = @"color";
-NSString* const kOOTextureSpecifierIlluminationModeKey = @"illumination_mode";
-NSString* const kOOTextureSpecifierSelfColorKey = @"self_color";
-NSString* const kOOTextureSpecifierScaleFactorKey = @"scale_factor";
-NSString* const kOOTextureSpecifierBindingKey = @"binding";
+namespace {
 
-// Used only by "internal" specifiers from OOMakeTextureSpecifier.
-static NSString* const kOOTextureSpecifierFlagValueInternalKey = @"_oo_internal_flags";
+// Used only by "internal" specifiers from cxx_OOMakeTextureSpecifier.
+const char* const kOOTextureSpecifierFlagValueInternalKey = "_oo_internal_flags";
+
+} // namespace
 
 /*	Texture caching:
         two and a half parallel caching mechanisms are used. sLiveTextureCache
@@ -92,7 +81,7 @@ enum {
 };
 
 // Allocated on first use and never freed, so a texture deallocated during exit never finds them
-// destroyed. Were an NSMutableDictionary / NSMutableSet of boxed pointers (bead oo-3rb.10).
+// destroyed. Were a Foundation mutable dictionary / set of boxed pointers (bead oo-3rb.10).
 static std::unordered_map<std::string, OOTexture*>* sLiveTextureCache;
 static std::unordered_set<OOTexture*>* sAllLiveTextures;
 static OOCache* sRecentTextures;
@@ -103,22 +92,25 @@ OOTextureInfo gOOTextureInfo;
 @interface OOTexture (OOPrivate)
 
 - (void)addToCaches;
-+ (OOTexture*)existingTextureForKey:(NSString*)key;
 
 - (void)forceRebind;
 
 + (void)checkExtensions;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)retainInContext:(NSString*)context;
-- (void)releaseInContext:(NSString*)context;
-- (id)autoreleaseInContext:(NSString*)context;
+- (id)retainInContext:(const char*)context;
+- (void)releaseInContext:(const char*)context;
+- (id)autoreleaseInContext:(const char*)context;
 #endif
 
 @end
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-static NSString* sGlobalTraceContext = nil;
+namespace {
+
+const char* sGlobalTraceContext = nullptr;
+
+} // namespace
 
 #define SET_TRACE_CONTEXT(str)       \
     do {                             \
@@ -129,22 +121,22 @@ static NSString* sGlobalTraceContext = nil;
     do {                       \
     } while (0)
 #endif
-#define CLEAR_TRACE_CONTEXT() SET_TRACE_CONTEXT(nil)
+#define CLEAR_TRACE_CONTEXT() SET_TRACE_CONTEXT(nullptr)
 
 @implementation OOTexture
 
-+ (id)textureWithName:(NSString*)name
-             inFolder:(NSString*)directory
-              options:(OOTextureFlags)options
-           anisotropy:(GLfloat)anisotropy
-              lodBias:(GLfloat)lodBias
++ (id)cxx_textureWithName:(const std::optional<std::string>&)name
+                 inFolder:(const std::optional<std::string>&)directory
+                  options:(OOTextureFlags)options
+               anisotropy:(GLfloat)anisotropy
+                  lodBias:(GLfloat)lodBias
 {
-    NSString* key = nil;
+    std::string key;
     OOTexture* result = nil;
-    NSString* path = nil;
+    std::optional<std::string> path;
     BOOL noFNF;
 
-    if (EXPECT_NOT(name == nil))
+    if (EXPECT_NOT(!name.has_value()))
         return nil;
     if (EXPECT_NOT(!sCheckedExtensions))
         [self checkExtensions];
@@ -160,49 +152,49 @@ static NSString* sGlobalTraceContext = nil;
     options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 
     // Look for existing texture
-    key = OOGenerateTextureCacheKey(directory, name, options, anisotropy, lodBias);
-    result = [OOTexture existingTextureForKey:key];
+    key = OOGenerateTextureCacheKey(directory, *name, options, anisotropy, lodBias);
+    result = [OOTexture cxx_existingTextureForKey:key];
     if (result == nil) {
-        path = [ResourceManager pathForFileNamed:name inFolder:directory];
-        if (path == nil) {
+        path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(*name) inFolder:oo::NSStringOrNil(directory)]);
+        if (!path.has_value()) {
             if (!noFNF)
-                OOLogWARN(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
+                OOLogWARN(kOOLogFileNotFound, @"Could not find texture file \"%@\".", oo::NSStringFrom(*name));
             return nil;
         }
 
         // No existing texture, load texture.
-        result = [[[OOConcreteTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
+        result = [[[OOConcreteTexture alloc] initWithPath:*path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
     }
 
     return result;
 }
 
-+ (id)textureWithName:(NSString*)name
-             inFolder:(NSString*)directory
++ (id)cxx_textureWithName:(const std::optional<std::string>&)name
+                 inFolder:(const std::optional<std::string>&)directory
 {
-    return [self textureWithName:name
-                        inFolder:directory
-                         options:kOOTextureDefaultOptions
-                      anisotropy:kOOTextureDefaultAnisotropy
-                         lodBias:kOOTextureDefaultLODBias];
+    return [self cxx_textureWithName:name
+                            inFolder:directory
+                             options:kOOTextureDefaultOptions
+                          anisotropy:kOOTextureDefaultAnisotropy
+                             lodBias:kOOTextureDefaultLODBias];
 }
 
-+ (id)textureWithConfiguration:(id)configuration
++ (id)cxx_textureWithConfiguration:(const oo::PList&)configuration
 {
-    return [self textureWithConfiguration:configuration extraOptions:0];
+    return [self cxx_textureWithConfiguration:configuration extraOptions:0];
 }
 
-+ (id)textureWithConfiguration:(id)configuration extraOptions:(OOTextureFlags)extraOptions
++ (id)cxx_textureWithConfiguration:(const oo::PList&)configuration extraOptions:(OOTextureFlags)extraOptions
 {
-    NSString* name = nil;
+    std::string name;
     OOTextureFlags options = 0;
     GLfloat anisotropy = 0.0f;
     GLfloat lodBias = 0.0f;
 
-    if (!OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy, &lodBias, NO))
+    if (!cxx_OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy, &lodBias, NO))
         return nil;
 
-    return [self textureWithName:name inFolder:@"Textures" options:options | extraOptions anisotropy:anisotropy lodBias:lodBias];
+    return [self cxx_textureWithName:name inFolder:"Textures" options:options | extraOptions anisotropy:anisotropy lodBias:lodBias];
 }
 
 + (id)nullTexture
@@ -221,7 +213,7 @@ static NSString* sGlobalTraceContext = nil;
         return nil;
 
 #ifndef OOTEXTURE_NO_CACHE
-    OOTexture* existing = [OOTexture existingTextureForKey:[generator cacheKey]];
+    OOTexture* existing = [OOTexture cxx_existingTextureForKey:oo::OptionalString([generator cacheKey])];
     if (existing != nil && !enqueue)
         return [[existing retain] autorelease];
 #endif
@@ -233,7 +225,7 @@ static NSString* sGlobalTraceContext = nil;
     OOLog(@"texture.generator.queue", @"Queued texture generator %@", generator);
 
     OOTexture* result = [[[OOConcreteTexture alloc] initWithLoader:generator
-                                                               key:[generator cacheKey]
+                                                               key:oo::OptionalString([generator cacheKey])
                                                            options:OOApplyTextureOptionDefaults([generator textureOptions])
                                                         anisotropy:[generator anisotropy]
                                                            lodBias:[generator lodBias]] autorelease];
@@ -289,7 +281,7 @@ static NSString* sGlobalTraceContext = nil;
     return YES;
 }
 
-- (NSString*)cacheKey
+- (id)cacheKey // shared selector (proposed ADR-0043)
 {
     return nil;
 }
@@ -342,11 +334,11 @@ static NSString* sGlobalTraceContext = nil;
     /*	Does not clear sAllLiveTextures - that really must refer to all
             live texture objects.
     */
-    SET_TRACE_CONTEXT(@"clearing sLiveTextureCache");
+    SET_TRACE_CONTEXT("clearing sLiveTextureCache");
     if (sLiveTextureCache != NULL)
         sLiveTextureCache->clear();
 
-    SET_TRACE_CONTEXT(@"clearing sRecentTextures");
+    SET_TRACE_CONTEXT("clearing sRecentTextures");
     [sRecentTextures autorelease];
     sRecentTextures = nil;
     CLEAR_TRACE_CONTEXT();
@@ -359,7 +351,7 @@ static NSString* sGlobalTraceContext = nil;
 
     if (sAllLiveTextures == NULL)
         return;
-    // A copy: the set is unordered (as the NSSet was) and must not change under the loop.
+    // A copy: the set is unordered (as the Foundation set was) and must not change under the loop.
     const std::vector<OOTexture*> textures(sAllLiveTextures->begin(), sAllLiveTextures->end());
     for (OOTexture* texture : textures) {
         [texture forceRebind];
@@ -375,17 +367,22 @@ static NSString* sGlobalTraceContext = nil;
     _trace = trace;
 }
 
-+ (NSArray*)cachedTexturesByAge
++ (std::vector<oo::ObjCRef<OOTexture*>>)cxx_cachedTexturesByAge
 {
-    return [sRecentTextures objectsByAge];
+    std::vector<oo::ObjCRef<OOTexture*>> result;
+    for (const oo::ObjCRef<id>& texture : [sRecentTextures objectsByAge]) {
+        result.emplace_back((OOTexture*)texture.get());
+    }
+    return result;
 }
 
-+ (NSSet*)allTextures
++ (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    NSMutableSet* result = [NSMutableSet setWithCapacity:(sAllLiveTextures != NULL) ? sAllLiveTextures->size() : 0];
+    std::vector<oo::ObjCRef<OOTexture*>> result;
     if (sAllLiveTextures != NULL) {
+        result.reserve(sAllLiveTextures->size());
         for (OOTexture* texture : *sAllLiveTextures) {
-            [result addObject:texture];
+            result.emplace_back(texture);
         }
     }
 
@@ -404,7 +401,7 @@ static NSString* sGlobalTraceContext = nil;
     return size;
 }
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
     OOLogGenericSubclassResponsibility();
     return nil;
@@ -419,16 +416,16 @@ static NSString* sGlobalTraceContext = nil;
 - (void)addToCaches
 {
 #ifndef OOTEXTURE_NO_CACHE
-    NSString* cacheKey = [self cacheKey];
-    if (cacheKey == nil)
+    const std::optional<std::string> cacheKey = oo::OptionalString([self cacheKey]);
+    if (!cacheKey.has_value())
         return;
 
     // Add self to in-use textures cache, as a raw pointer so the texture isn't retained by the cache.
     if (EXPECT_NOT(sLiveTextureCache == NULL))
         sLiveTextureCache = new std::unordered_map<std::string, OOTexture*>;
 
-    SET_TRACE_CONTEXT(@"in-use textures cache - SHOULD NOT RETAIN");
-    (*sLiveTextureCache)[[cacheKey UTF8String]] = self;
+    SET_TRACE_CONTEXT("in-use textures cache - SHOULD NOT RETAIN");
+    (*sLiveTextureCache)[*cacheKey] = self;
     CLEAR_TRACE_CONTEXT();
 
     // Add self to recent textures cache.
@@ -439,8 +436,8 @@ static NSString* sGlobalTraceContext = nil;
         [sRecentTextures setPruneThreshold:kRecentTexturesCount];
     }
 
-    SET_TRACE_CONTEXT(@"adding to recent textures cache");
-    [sRecentTextures setObject:self forKey:cacheKey];
+    SET_TRACE_CONTEXT("adding to recent textures cache");
+    [sRecentTextures setObject:self forKey:oo::NSStringFrom(*cacheKey)];
     CLEAR_TRACE_CONTEXT();
 #endif
 }
@@ -448,13 +445,13 @@ static NSString* sGlobalTraceContext = nil;
 - (void)removeFromCaches
 {
 #ifndef OOTEXTURE_NO_CACHE
-    NSString* cacheKey = [self cacheKey];
-    if (cacheKey == nil)
+    const std::optional<std::string> cacheKey = oo::OptionalString([self cacheKey]);
+    if (!cacheKey.has_value())
         return;
 
     if (sLiveTextureCache != NULL)
-        sLiveTextureCache->erase([cacheKey UTF8String]);
-    if (EXPECT_NOT([sRecentTextures objectForKey:cacheKey] == self)) {
+        sLiveTextureCache->erase(*cacheKey);
+    if (EXPECT_NOT([sRecentTextures objectForKey:oo::NSStringFrom(*cacheKey)] == self)) {
         /* Experimental for now: I think the recent crash problems may
          * be because if the last reference to a texture is in
          * sRecentTextures, and the texture is regenerated, it
@@ -467,20 +464,20 @@ static NSString* sGlobalTraceContext = nil;
          * needed to generate a planet texture compared with loading a
          * standard one may be why this problem shows up.  - CIM 20140122
          */
-        NSAssert2(0, @"Texture retain count error for %@; cacheKey is %@.", self, cacheKey); // miscount in autorelease
+        NSAssert2(0, @"Texture retain count error for %@; cacheKey is %@.", self, oo::NSStringFrom(*cacheKey)); // miscount in autorelease
         // The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-        [sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+        [sRecentTextures removeObjectForKey:oo::NSStringFrom(*cacheKey)]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
     }
 #endif
 }
 
-+ (OOTexture*)existingTextureForKey:(NSString*)key
++ (OOTexture*)cxx_existingTextureForKey:(const std::optional<std::string>&)key
 {
 #ifndef OOTEXTURE_NO_CACHE
-    if (key != nil) {
+    if (key.has_value()) {
         if (sLiveTextureCache == NULL)
             return nil;
-        auto it = sLiveTextureCache->find([key UTF8String]);
+        auto it = sLiveTextureCache->find(*key);
         return (it != sLiveTextureCache->end()) ? it->second : nil;
     }
     return nil;
@@ -500,36 +497,36 @@ static NSString* sGlobalTraceContext = nil;
     BOOL ver130 = [extMgr versionIsAtLeastMajor:1 minor:3];
 
 #if GL_EXT_texture_filter_anisotropic
-    gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
+    gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:"GL_EXT_texture_filter_anisotropic"] ? 1 : 0;
     OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gOOTextureInfo.anisotropyScale));
-    gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] oo_floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
+    gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f(oo::PListView([NSUserDefaults standardUserDefaults]).get<float>(@"texture-anisotropy-scale", 0.5));
 #endif
 
 #ifdef GL_CLAMP_TO_EDGE
-    gOOTextureInfo.clampToEdgeAvailable = ver120 || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
+    gOOTextureInfo.clampToEdgeAvailable = ver120 || [extMgr haveExtension:"GL_SGIS_texture_edge_clamp"];
 #endif
 
 #if OO_GL_CLIENT_STORAGE
-    gOOTextureInfo.clientStorageAvailable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
+    gOOTextureInfo.clientStorageAvailable = [extMgr haveExtension:"GL_APPLE_client_storage"] ? 1 : 0;
 #endif
 
-    gOOTextureInfo.textureMaxLevelAvailable = ver120 || [extMgr haveExtension:@"GL_SGIS_texture_lod"];
+    gOOTextureInfo.textureMaxLevelAvailable = ver120 || [extMgr haveExtension:"GL_SGIS_texture_lod"];
 
 #if GL_EXT_texture_lod_bias
-    if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"use-texture-lod-bias" defaultValue:YES]) {
-        gOOTextureInfo.textureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
+    if (oo::PListView([NSUserDefaults standardUserDefaults]).get<BOOL>(@"use-texture-lod-bias", YES)) {
+        gOOTextureInfo.textureLODBiasAvailable = [extMgr haveExtension:"GL_EXT_texture_lod_bias"] ? 1 : 0;
     } else {
         gOOTextureInfo.textureLODBiasAvailable = NO;
     }
 #endif
 
 #if GL_EXT_texture_rectangle
-    gOOTextureInfo.rectangleTextureAvailable = [extMgr haveExtension:@"GL_EXT_texture_rectangle"];
+    gOOTextureInfo.rectangleTextureAvailable = [extMgr haveExtension:"GL_EXT_texture_rectangle"];
 #endif
 
 #if OO_TEXTURE_CUBE_MAP
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"disable-cube-maps"]) {
-        gOOTextureInfo.cubeMapAvailable = ver130 || [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
+        gOOTextureInfo.cubeMapAvailable = ver130 || [extMgr haveExtension:"GL_ARB_texture_cube_map"];
     } else {
         gOOTextureInfo.cubeMapAvailable = NO;
     }
@@ -538,11 +535,11 @@ static NSString* sGlobalTraceContext = nil;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)retainInContext:(NSString*)context
+- (id)retainInContext:(const char*)context
 {
     if (_trace) {
         if (context)
-            OOLog(@"texture.allocTrace.retain", @"Texture %p retained (retain count -> %zu) - %@.", self, [self retainCount] + 1, context);
+            OOLog(@"texture.allocTrace.retain", @"Texture %p retained (retain count -> %zu) - %@.", self, [self retainCount] + 1, oo::NSStringFrom(context));
         else
             OOLog(@"texture.allocTrace.retain", @"Texture %p retained  (retain count -> %zu).", self, [self retainCount] + 1);
     }
@@ -550,11 +547,11 @@ static NSString* sGlobalTraceContext = nil;
     return [super retain];
 }
 
-- (void)releaseInContext:(NSString*)context
+- (void)releaseInContext:(const char*)context
 {
     if (_trace) {
         if (context)
-            OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %zu) - %@.", self, [self retainCount] - 1, context);
+            OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %zu) - %@.", self, [self retainCount] - 1, oo::NSStringFrom(context));
         else
             OOLog(@"texture.allocTrace.release", @"Texture %p released (retain count -> %zu).", self, [self retainCount] - 1);
     }
@@ -562,11 +559,11 @@ static NSString* sGlobalTraceContext = nil;
     [super release];
 }
 
-- (id)autoreleaseInContext:(NSString*)context
+- (id)autoreleaseInContext:(const char*)context
 {
     if (_trace) {
         if (context)
-            OOLog(@"texture.allocTrace.autoreleased", @"Texture %p autoreleased - %@.", self, context);
+            OOLog(@"texture.allocTrace.autoreleased", @"Texture %p autoreleased - %@.", self, oo::NSStringFrom(context));
         else
             OOLog(@"texture.allocTrace.autoreleased", @"Texture %p autoreleased.", self);
     }
@@ -592,44 +589,31 @@ static NSString* sGlobalTraceContext = nil;
 
 @end
 
-@implementation NSDictionary (OOTextureConveniences)
-
-- (NSDictionary*)oo_textureSpecifierForKey:(id)key defaultName:(NSString*)name
+oo::PList cxx_OOTextureSpecFromObject(const oo::PList& object, const std::optional<std::string>& defaultName)
 {
-    return OOTextureSpecFromObject([self objectForKey:key], name);
-}
-
-@end
-
-@implementation NSArray (OOTextureConveniences)
-
-- (NSDictionary*)oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString*)name
-{
-    return OOTextureSpecFromObject([self objectAtIndex:index], name);
-}
-
-@end
-
-NSDictionary* OOTextureSpecFromObject(id object, NSString* defaultName)
-{
-    if (object == nil)
-        object = defaultName;
-    if ([object isKindOfClass:[NSString class]]) {
-        if ([object isEqualToString:@""])
-            return nil;
-        return [NSDictionary dictionaryWithObject:object forKey:@"name"];
+    oo::PList value = object;
+    if (value.isNull()) {
+        if (!defaultName.has_value())
+            return oo::PList();
+        value = oo::PList(*defaultName);
     }
-    if (![object isKindOfClass:[NSDictionary class]])
-        return nil;
+    if (const std::string* name = value.getIf<std::string>()) {
+        if (name->empty())
+            return oo::PList();
+        return oo::PList(oo::PList::Dict { { "name", value } });
+    }
+    if (!value.isDict())
+        return oo::PList();
 
-    // If we're here, it's a dictionary.
-    if (defaultName == nil || [object oo_stringForKey:@"name"] != nil)
-        return object;
+    // If we're here, it's a dictionary. (A "name" the old -oo_stringForKey: read: a string or a number.)
+    const oo::PList* name = value.find("name");
+    if (!defaultName.has_value() || (name != nullptr && (name->isString() || name->isNumber())))
+        return value;
 
     // If we get here, there's no "name" key and there is a default, so we fill it in:
-    NSMutableDictionary* mutableResult = [NSMutableDictionary dictionaryWithDictionary:object];
-    [mutableResult setObject:[[defaultName copy] autorelease] forKey:@"name"];
-    return mutableResult;
+    oo::PList::Dict mutableResult = *value.getIf<oo::PList::Dict>();
+    mutableResult["name"] = oo::PList(*defaultName);
+    return oo::PList(std::move(mutableResult));
 }
 
 uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format)
@@ -656,80 +640,83 @@ BOOL OOCubeMapsAvailable(void)
     return gOOTextureInfo.cubeMapAvailable;
 }
 
-BOOL OOInterpretTextureSpecifier(id specifier, NSString** outName, OOTextureFlags* outOptions, float* outAnisotropy, float* outLODBias, BOOL ignoreExtract)
+BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* outName, OOTextureFlags* outOptions, float* outAnisotropy, float* outLODBias, BOOL ignoreExtract)
 {
-    NSString* name = nil;
+    std::string name;
     OOTextureFlags options = kOOTextureDefaultOptions;
     float anisotropy = kOOTextureDefaultAnisotropy;
     float lodBias = kOOTextureDefaultLODBias;
 
-    if ([specifier isKindOfClass:[NSString class]]) {
-        name = specifier;
-    } else if ([specifier isKindOfClass:[NSDictionary class]]) {
-        name = [specifier oo_stringForKey:kOOTextureSpecifierNameKey];
-        if (name == nil) {
-            OOLog(@"texture.load.noName", @"Invalid texture configuration dictionary (must specify name):\n%@", specifier);
+    if (const std::string* string = specifier.getIf<std::string>()) {
+        name = *string;
+    } else if (specifier.isDict()) {
+        // -oo_stringForKey: gave nil unless the value was a string or a number.
+        const oo::PList* nameValue = specifier.find(cxx_kOOTextureSpecifierNameKey);
+        if (nameValue == nullptr || !(nameValue->isString() || nameValue->isNumber())) {
+            OOLog(@"texture.load.noName", @"Invalid texture configuration dictionary (must specify name):\n%@", oo::ObjectFromPList(specifier));
             return NO;
         }
+        name = specifier.get<std::string>(cxx_kOOTextureSpecifierNameKey);
 
-        int quickFlags = [specifier oo_intForKey:kOOTextureSpecifierFlagValueInternalKey defaultValue:-1];
+        int quickFlags = specifier.get<int>(kOOTextureSpecifierFlagValueInternalKey, -1);
         if (quickFlags != -1) {
             options = quickFlags;
         } else {
-            NSString* filterString = [specifier oo_stringForKey:kOOTextureSpecifierMinFilterKey defaultValue:@"default"];
-            if ([filterString isEqualToString:@"nearest"])
+            std::string filterString = specifier.get<std::string>(cxx_kOOTextureSpecifierMinFilterKey, "default");
+            if (filterString == "nearest")
                 options |= kOOTextureMinFilterNearest;
-            else if ([filterString isEqualToString:@"linear"])
+            else if (filterString == "linear")
                 options |= kOOTextureMinFilterLinear;
-            else if ([filterString isEqualToString:@"mipmap"])
+            else if (filterString == "mipmap")
                 options |= kOOTextureMinFilterMipMap;
             else
                 options |= kOOTextureMinFilterDefault; // Covers "default"
 
-            filterString = [specifier oo_stringForKey:kOOTextureSpecifierMagFilterKey defaultValue:@"default"];
-            if ([filterString isEqualToString:@"nearest"])
+            filterString = specifier.get<std::string>(cxx_kOOTextureSpecifierMagFilterKey, "default");
+            if (filterString == "nearest")
                 options |= kOOTextureMagFilterNearest;
             else
                 options |= kOOTextureMagFilterLinear; // Covers "default" and "linear"
 
-            if ([specifier oo_boolForKey:kOOTextureSpecifierNoShrinkKey defaultValue:NO])
+            if (specifier.get<bool>(cxx_kOOTextureSpecifierNoShrinkKey, false))
                 options |= kOOTextureNoShrink;
-            if ([specifier oo_boolForKey:kOOTextureSpecifierExtraShrinkKey defaultValue:NO])
+            if (specifier.get<bool>(cxx_kOOTextureSpecifierExtraShrinkKey, false))
                 options |= kOOTextureExtraShrink;
-            if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatSKey defaultValue:NO])
+            if (specifier.get<bool>(cxx_kOOTextureSpecifierRepeatSKey, false))
                 options |= kOOTextureRepeatS;
-            if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatTKey defaultValue:NO])
+            if (specifier.get<bool>(cxx_kOOTextureSpecifierRepeatTKey, false))
                 options |= kOOTextureRepeatT;
-            if ([specifier oo_boolForKey:kOOTextureSpecifierCubeMapKey defaultValue:NO])
+            if (specifier.get<bool>(cxx_kOOTextureSpecifierCubeMapKey, false))
                 options |= kOOTextureAllowCubeMap;
 
             if (!ignoreExtract) {
-                NSString* extractChannel = [specifier oo_stringForKey:@"extract_channel"];
-                if (extractChannel != nil) {
-                    if ([extractChannel isEqualToString:@"r"])
+                const oo::PList* extractValue = specifier.find("extract_channel");
+                if (extractValue != nullptr && (extractValue->isString() || extractValue->isNumber())) {
+                    const std::string extractChannel = specifier.get<std::string>("extract_channel");
+                    if (extractChannel == "r")
                         options |= kOOTextureExtractChannelR;
-                    else if ([extractChannel isEqualToString:@"g"])
+                    else if (extractChannel == "g")
                         options |= kOOTextureExtractChannelG;
-                    else if ([extractChannel isEqualToString:@"b"])
+                    else if (extractChannel == "b")
                         options |= kOOTextureExtractChannelB;
-                    else if ([extractChannel isEqualToString:@"a"])
+                    else if (extractChannel == "a")
                         options |= kOOTextureExtractChannelA;
                     else {
-                        OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel in specifier \"%@\" (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel, specifier);
+                        OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel in specifier \"%@\" (should be \"r\", \"g\", \"b\" or \"a\").", oo::NSStringFrom(extractChannel), oo::ObjectFromPList(specifier));
                     }
                 }
             }
         }
-        anisotropy = [specifier oo_floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
-        lodBias = [specifier oo_floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
+        anisotropy = specifier.get<float>("anisotropy", kOOTextureDefaultAnisotropy);
+        lodBias = specifier.get<float>("texture_LOD_bias", kOOTextureDefaultLODBias);
     } else {
         // Bad type
-        if (specifier != nil)
-            OOLog(kOOLogParameterError, @"%s: expected string or dictionary, got %@.", __PRETTY_FUNCTION__, [specifier class]);
+        if (!specifier.isNull())
+            OOLog(kOOLogParameterError, @"%s: expected string or dictionary, got %@.", __PRETTY_FUNCTION__, [oo::ObjectFromPList(specifier) class]);
         return NO;
     }
 
-    if ([name length] == 0)
+    if (name.empty())
         return NO;
 
     if (outName != NULL)
@@ -744,87 +731,88 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString** outName, OOTextureFlag
     return YES;
 }
 
-NSDictionary* OOMakeTextureSpecifier(NSString* name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal)
+oo::PList cxx_OOMakeTextureSpecifier(const std::string& name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal)
 {
-    NSMutableDictionary* result = [NSMutableDictionary dictionary];
+    oo::PList::Dict result;
 
-    [result setObject:name forKey:kOOTextureSpecifierNameKey];
+    result[cxx_kOOTextureSpecifierNameKey] = oo::PList(name);
 
+    // -oo_setFloat:forKey: stored +numberWithFloat:, -oo_setUnsignedInteger: +numberWithUnsignedInteger:.
     if (anisotropy != kOOTextureDefaultAnisotropy)
-        [result oo_setFloat:anisotropy forKey:kOOTextureSpecifierAnisotropyKey];
+        result[cxx_kOOTextureSpecifierAnisotropyKey] = oo::PList::singleReal(anisotropy);
     if (lodBias != kOOTextureDefaultLODBias)
-        [result oo_setFloat:lodBias forKey:kOOTextureSpecifierLODBiasKey];
+        result[cxx_kOOTextureSpecifierLODBiasKey] = oo::PList::singleReal(lodBias);
 
     if (internal) {
-        [result oo_setUnsignedInteger:options forKey:kOOTextureSpecifierFlagValueInternalKey];
+        result[kOOTextureSpecifierFlagValueInternalKey] = oo::PList::unsignedInteger(options);
     } else {
-        NSString* value = nil;
+        const char* value = nullptr;
         switch (options & kOOTextureMinFilterMask) {
         case kOOTextureMinFilterDefault:
             break;
 
         case kOOTextureMinFilterNearest:
-            value = @"nearest";
+            value = "nearest";
             break;
 
         case kOOTextureMinFilterLinear:
-            value = @"linear";
+            value = "linear";
             break;
 
         case kOOTextureMinFilterMipMap:
-            value = @"mipmap";
+            value = "mipmap";
             break;
         }
-        if (value != nil)
-            [result setObject:value forKey:kOOTextureSpecifierNoShrinkKey];
+        if (value != nullptr)
+            result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(value);
 
-        value = nil;
+        value = nullptr;
         switch (options & kOOTextureMagFilterMask) {
         case kOOTextureMagFilterNearest:
-            value = @"nearest";
+            value = "nearest";
             break;
 
         case kOOTextureMagFilterLinear:
             break;
         }
-        if (value != nil)
-            [result setObject:value forKey:kOOTextureSpecifierMagFilterKey];
+        if (value != nullptr)
+            result[cxx_kOOTextureSpecifierMagFilterKey] = oo::PList(value);
 
-        value = nil;
+        value = nullptr;
         switch (options & kOOTextureExtractChannelMask) {
         case kOOTextureExtractChannelNone:
             break;
 
         case kOOTextureExtractChannelR:
-            value = @"r";
+            value = "r";
             break;
 
         case kOOTextureExtractChannelG:
-            value = @"g";
+            value = "g";
             break;
 
         case kOOTextureExtractChannelB:
-            value = @"b";
+            value = "b";
             break;
 
         case kOOTextureExtractChannelA:
-            value = @"a";
+            value = "a";
             break;
         }
-        if (value != nil)
-            [result setObject:value forKey:kOOTextureSpecifierSwizzleKey];
+        if (value != nullptr)
+            result[cxx_kOOTextureSpecifierSwizzleKey] = oo::PList(value);
 
         if (options & kOOTextureNoShrink)
-            [result oo_setBool:YES forKey:kOOTextureSpecifierNoShrinkKey];
+            result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(true);
         if (options & kOOTextureRepeatS)
-            [result oo_setBool:YES forKey:kOOTextureSpecifierRepeatSKey];
+            result[cxx_kOOTextureSpecifierRepeatSKey] = oo::PList(true);
         if (options & kOOTextureRepeatT)
-            [result oo_setBool:YES forKey:kOOTextureSpecifierRepeatTKey];
+            result[cxx_kOOTextureSpecifierRepeatTKey] = oo::PList(true);
         if (options & kOOTextureAllowCubeMap)
-            [result oo_setBool:YES forKey:kOOTextureSpecifierCubeMapKey];
+            result[cxx_kOOTextureSpecifierCubeMapKey] = oo::PList(true);
     }
 
-    return result;
+    return oo::PList(std::move(result));
 }
 
 OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
@@ -870,7 +858,7 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
     return options;
 }
 
-NSString* OOGenerateTextureCacheKey(NSString* directory, NSString* name, OOTextureFlags options, float anisotropy, float lodBias)
+std::string OOGenerateTextureCacheKey(const std::optional<std::string>& directory, const std::string& name, OOTextureFlags options, float anisotropy, float lodBias)
 {
     if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap) {
         anisotropy = 0.0f;
@@ -880,16 +868,17 @@ NSString* OOGenerateTextureCacheKey(NSString* directory, NSString* name, OOTextu
     }
     options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 
-    return [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString*)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+    return oo::str::format("%s%s%s:0x%.4X/%g/%g", directory.has_value() ? directory->c_str() : "", directory.has_value() ? "/" : "", name.c_str(), options, anisotropy, lodBias);
 }
 
-NSString* OOTextureCacheKeyForSpecifier(id specifier)
+std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier)
 {
-    NSString* name;
-    OOTextureFlags options;
-    float anisotropy;
-    float lodBias;
+    // Left as initialised when the specifier is not understood (they were uninitialised).
+    std::string name;
+    OOTextureFlags options = 0;
+    float anisotropy = 0.0f;
+    float lodBias = 0.0f;
 
-    OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias, NO);
-    return OOGenerateTextureCacheKey(@"Textures", name, options, anisotropy, lodBias);
+    cxx_OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias, NO);
+    return OOGenerateTextureCacheKey("Textures", name, options, anisotropy, lodBias);
 }

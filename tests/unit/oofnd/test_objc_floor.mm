@@ -243,8 +243,9 @@ OO_TEST(autoreleasePoolDrainsOnExit)
 	OO_CHECK_EQ(gLog.size(), 3u);
 	// libobjc2's pool releases in REVERSE order of autorelease. So does the game's pool today:
 	// on this toolchain GNUstep's Foundation pool is backed by libobjc2's (measured, ADR-0029),
-	// so the floor changes nothing. (oo::AutoreleaseScope drains in insertion order: ADR-0029
-	// records the mismatch.) This check pins the order so a runtime change cannot slip past.
+	// so the floor changes nothing. (oo::AutoreleaseScope now drains in this order too: ADR-0045,
+	// pinned against this pool by autoreleaseScopeDrainsInTheRuntimePoolsOrder below.) This check
+	// pins the order so a runtime change cannot slip past.
 	OO_CHECK(gLog.size() == 3 && gLog[1] == "p2" && gLog[2] == "p1");
 
 	gLog.clear();
@@ -258,6 +259,83 @@ OO_TEST(autoreleasePoolDrainsOnExit)
 	OO_CHECK_EQ([kept retainCount], 1u);
 	[kept release];
 	OO_CHECK_EQ(gLog.size(), 2u);
+}
+
+// --- oo::AutoreleaseScope against the runtime's pool (bead oo-3rb.22, ADR-0045) -----------------
+
+// An object whose -dealloc autoreleases another, as a -dealloc that returns an autoreleased
+// temporary does: the case where FIFO and LIFO pools disagree most.
+@interface OOTestSpawner : OOTestThing
+@end
+
+@implementation OOTestSpawner
+
+- (void) dealloc
+{
+	objc_autorelease([[OOTestThing alloc] initWithName:"spawned"]);
+	[super dealloc];   // OOTestThing's -dealloc logs the name
+}
+
+@end
+
+namespace {
+
+class Named : public oo::RefCounted
+{
+public:
+	explicit Named(const char *name) : name_(name) {}
+	~Named() override { gLog.push_back(name_); }
+
+private:
+	std::string name_;
+};
+
+// The C++ twin of OOTestSpawner: autoreleases "spawned", then ~Named logs "spawner".
+class NamedSpawner : public Named
+{
+public:
+	NamedSpawner() : Named("spawner") {}
+	~NamedSpawner() override { oo::autorelease(new Named("spawned")); }
+};
+
+} // namespace
+
+OO_TEST(autoreleaseScopeDrainsInTheRuntimePoolsOrder)
+{
+	// The same sequence through libobjc2's pool (the game's pool: ADR-0029 measurement 3) and
+	// through oo::AutoreleaseScope. The death orders must be IDENTICAL, so the scope matches the
+	// game whatever the runtime does; the expected order is also spelled out, so a runtime and
+	// oofnd that changed together cannot pass unnoticed.
+	gLog.clear();
+	void *pool = objc_autoreleasePoolPush();
+	objc_autorelease([[OOTestThing alloc] initWithName:"a"]);
+	objc_autorelease([[OOTestSpawner alloc] initWithName:"spawner"]);
+	objc_autorelease([[OOTestThing alloc] initWithName:"b"]);
+	objc_autoreleasePoolPop(pool);
+	const std::vector<std::string> runtimeOrder = gLog;
+
+	gLog.clear();
+	{
+		oo::AutoreleaseScope scope;
+		oo::autorelease(new Named("a"));
+		oo::autorelease(new NamedSpawner());
+		oo::autorelease(new Named("b"));
+	}
+	const std::vector<std::string> scopeOrder = gLog;
+
+	// LIFO, and an object autoreleased during the drain is released next, before older ones.
+	OO_CHECK(runtimeOrder == (std::vector<std::string>{"b", "spawner", "spawned", "a"}));
+	OO_CHECK(scopeOrder == runtimeOrder);
+
+	// drain() - the recycled pool - releases in the same order and leaves the scope open.
+	gLog.clear();
+	oo::AutoreleaseScope scope;
+	oo::autorelease(new Named("x"));
+	oo::autorelease(new Named("y"));
+	scope.drain();
+	OO_CHECK(gLog == (std::vector<std::string>{"y", "x"}));
+	OO_CHECK(oo::AutoreleaseScope::current() == &scope);
+	OO_CHECK_EQ(scope.pendingCount(), 0u);
 }
 
 OO_TEST(weakReferencesZero)

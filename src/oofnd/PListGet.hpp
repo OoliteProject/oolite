@@ -427,7 +427,10 @@ namespace plist_get {
             return "nan";
         if (std::isinf(d))
             return d < 0 ? "-inf" : "inf";
-        std::snprintf(buf, sizeof buf, "%0.16g", d);
+        if (v.isSinglePrecision())
+            std::snprintf(buf, sizeof buf, "%0.7g", static_cast<double>(static_cast<float>(d))); // +numberWithFloat: (captured)
+        else
+            std::snprintf(buf, sizeof buf, "%0.16g", d);
         return buf;
     }
 

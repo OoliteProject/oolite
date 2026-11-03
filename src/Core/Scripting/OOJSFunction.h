@@ -26,27 +26,29 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 #import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
 @interface OOJSFunction : OOObject {
 @private
     JSValue _function; // Owned; zero-filled (not an object) when invalid.
-    NSString* _name;
+    std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
 }
 
 // function must be a function value; the OOJSFunction takes its own reference.
 - (id)initWithFunction:(JSValueConst)function context:(JSContext*)context;
-- (id)initWithName:(NSString*)name
+- (id)initWithName:(const std::optional<std::string>&)name
              scope:(JSValueConst)scope // Ignored; QuickJS compiles functions in the global scope. Pass JS_UNDEFINED.
-              code:(NSString*)code // Function body.
+              code:(const std::optional<std::string>&)code // Function body.
      argumentCount:(NSUInteger)argCount
      argumentNames:(const char**)argNames
-          fileName:(NSString*)fileName
+          fileName:(const std::optional<std::string>&)fileName
         lineNumber:(NSUInteger)lineNumber
            context:(JSContext*)context; // may be NULL.
 
-- (NSString*)name;
+- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
 // Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
 - (JSValueConst)function;
 // Owned (caller must free). JS_NULL if invalid.
@@ -62,11 +64,11 @@ MA 02110-1301, USA.
 // Object-wrapper evaluation.
 - (id)evaluateWithContext:(JSContext*)context
                     scope:(id)jsThis
-                arguments:(NSArray*)arguments;
+                arguments:(const std::vector<oo::ObjCRef<id>>&)arguments;
 
 // As above, but converts result to a boolean.
 - (BOOL)evaluatePredicateWithContext:(JSContext*)context
                                scope:(id)jsThis
-                           arguments:(NSArray*)arguments;
+                           arguments:(const std::vector<oo::ObjCRef<id>>&)arguments;
 
 @end

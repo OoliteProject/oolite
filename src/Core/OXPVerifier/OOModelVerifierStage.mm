@@ -28,138 +28,89 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFileScannerVerifierStage.h"
-#import "oofnd/objc/OOObject.h"
+#import "OOFoundationBridge.h"
 
-static NSString* const kStageName = @"Testing models";
+#include "oofnd/String.hpp"
 
-// Placeholder for a nil context/materials/shaders in the info dictionaries (was Foundation's null).
-static id NSNULL = nil;
+static const char* const kStageName = "Testing models";
 
 @interface OOModelVerifierStage (OOPrivate)
 
-- (void)checkModel:(NSString*)name
-           context:(NSString*)context
-         materials:(NSDictionary*)materials
-           shaders:(NSDictionary*)shaders;
+- (void)checkModel:(const std::string&)name
+           context:(const std::string&)context
+         materials:(const oo::PList&)materials
+           shaders:(const oo::PList&)shaders;
 
 @end
 
 @implementation OOModelVerifierStage
 
-- (id)init
++ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-    self = [super init];
-    if (self != nil) {
-        if (NSNULL == nil)
-            NSNULL = [[OOObject alloc] init];
-        _modelsToCheck = [[NSMutableSet alloc] init];
-    }
-    return self;
-}
-
-- (void)dealloc
-{
-    [_modelsToCheck release];
-
-    [super dealloc];
-}
-
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
-{
-    OOModelVerifierStage* stage = [verifier stageWithName:kStageName];
+    OOModelVerifierStage* stage = [verifier stageWithName:oo::NSStringFrom(kStageName)];
     if (stage == nil) {
         stage = [[OOModelVerifierStage alloc] init];
         [verifier registerStage:stage];
         [stage release];
     }
 
-    return kStageName;
+    return oo::NSStringFrom(kStageName);
 }
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
-    return kStageName;
+    return oo::NSStringFrom(kStageName);
 }
 
 - (BOOL)shouldRun
 {
-    return [_modelsToCheck count] != 0;
+    return !_modelsToCheck.empty();
 }
 
 - (void)run
 {
-    NSDictionary* info = nil;
-    NSString *name = nil,
-             *context = nil;
-    NSDictionary *materials = nil,
-                 *shaders = nil;
-
     OOLog(@"verifyOXP.models.unimplemented", @"%@", @"TODO: implement model verifier.");
 
-    foreach (info, _modelsToCheck) {
+    for (const OOModelVerifierEntry& info : _modelsToCheck) {
         @autoreleasepool {
-            name = [info objectForKey:@"name"];
-            context = [info objectForKey:@"context"];
-            if (context == NSNULL)
-                context = nil;
-            materials = [info objectForKey:@"materials"];
-            if (materials == NSNULL)
-                materials = nil;
-            shaders = [info objectForKey:@"shaders"];
-            if (shaders == NSNULL)
-                shaders = nil;
-
-            [self checkModel:name
-                     context:context
-                   materials:materials
-                     shaders:shaders];
+            [self checkModel:info.name
+                     context:info.context
+                   materials:info.materials
+                     shaders:info.shaders];
         }
     }
-    [_modelsToCheck release];
-    _modelsToCheck = nil;
+    _modelsToCheck.clear();
 }
 
-- (BOOL)modelNamed:(NSString*)name
-      usedForEntry:(NSString*)entryName
-            inFile:(NSString*)fileName
-     withMaterials:(NSDictionary*)materials
-        andShaders:(NSDictionary*)shaders
+- (BOOL)modelNamed:(const std::string&)name
+      usedForEntry:(const std::optional<std::string>&)entryName
+            inFile:(const std::string&)fileName
+     withMaterials:(const oo::PList&)materials
+        andShaders:(const oo::PList&)shaders
 {
     OOFileScannerVerifierStage* fileScanner = nil;
-    NSDictionary* info = nil;
-    NSString* context = nil;
+    std::string context;
 
-    if (name == nil)
+    if (name.empty())
         return NO;
 
-    if (entryName != nil)
-        context = [NSString stringWithFormat:@"entry \"%@\" of %@", entryName, fileName];
+    if (entryName.has_value())
+        context = oo::str::format("entry \"%s\" of %s", entryName->c_str(), fileName.c_str());
     else
         context = fileName;
 
     fileScanner = [[self verifier] fileScannerStage];
-    if (![fileScanner fileExists:name
+    if (![fileScanner fileExists:oo::NSStringFrom(name)
                         inFolder:@"Models"
-                  referencedFrom:context
+                  referencedFrom:oo::NSStringFrom(context)
                     checkBuiltIn:YES]) {
         return NO;
     }
 
-    if (context == nil)
-        context = NSNULL;
-    if (materials == nil)
-        materials = NSNULL;
-    if (shaders == nil)
-        shaders = NSNULL;
-
-    info = [NSDictionary dictionaryWithObjectsAndKeys:
-            name, @"name",
-        context, @"context",
-        materials, @"materials",
-        shaders, @"shaders",
-        nil];
-
-    [_modelsToCheck addObject:info];
+    OOModelVerifierEntry info { name, context, materials, shaders };
+    if (std::find(_modelsToCheck.begin(), _modelsToCheck.end(), info) == _modelsToCheck.end()) {
+        _modelsToCheck.push_back(std::move(info));
+    }
 
     return YES;
 }
@@ -168,12 +119,12 @@ static id NSNULL = nil;
 
 @implementation OOModelVerifierStage (OOPrivate)
 
-- (void)checkModel:(NSString*)name
-           context:(NSString*)context
-         materials:(NSDictionary*)materials
-           shaders:(NSDictionary*)shaders
+- (void)checkModel:(const std::string&)name
+           context:(const std::string&)context
+         materials:(const oo::PList&)materials
+           shaders:(const oo::PList&)shaders
 {
-    OOLog(@"verifyOXP.verbose.model.unimp", @"- Pretending to verify model %@ referenced in %@.", name, context);
+    OOLog(@"verifyOXP.verbose.model.unimp", @"- Pretending to verify model %@ referenced in %@.", oo::NSStringFrom(name), oo::NSStringFrom(context));
     // FIXME: this should check DAT files.
 }
 
@@ -183,7 +134,7 @@ static id NSNULL = nil;
 
 - (OOModelVerifierStage*)modelVerifierStage
 {
-    return [self stageWithName:kStageName];
+    return [self stageWithName:oo::NSStringFrom(kStageName)];
 }
 
 @end

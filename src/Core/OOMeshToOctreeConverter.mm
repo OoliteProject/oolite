@@ -23,6 +23,9 @@ MA 02110-1301, USA.
 */
 
 #import "OOMeshToOctreeConverter.h"
+#import "OOStringBridge.h"
+
+#include "oofnd/String.hpp"
 
 /*
         DESIGN NOTES
@@ -245,9 +248,9 @@ OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
     return [[[self alloc] initWithCapacity:capacity] autorelease];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    return [NSString stringWithFormat:@"%u triangles", _data.count];
+    return oo::NSStringFrom(oo::str::format("%u triangles", _data.count));
 }
 
 - (void)addTriangle:(Triangle)tri

@@ -79,11 +79,15 @@ typedef struct OOPlanetTextureGeneratorInfo {
     OOPlanetAtmosphereGenerator* _atmoGenerator;
 }
 
-- (id)initWithPlanetInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
+/*	Foundation sweep (proposed ADR-0043, bead oo-lzk6): planetInfo is the planet's material
+        parameters, an Objective-C dictionary that holds OOColor objects (not a property list), so it
+        stays id at this boundary and is never round-tripped through oo::PList.
+*/
+- (id)initWithPlanetInfo:(id)planetInfo seed:(RANROTSeed)seed; // Shared selector (proposed ADR-0043).
 
-+ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
++ (OOTexture*)planetTextureWithInfo:(id)planetInfo seed:(RANROTSeed)seed; // Shared selector (proposed ADR-0043).
++ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(id)planetInfo seed:(RANROTSeed)seed;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(id)planetInfo seed:(RANROTSeed)seed;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(id)planetInfo seed:(RANROTSeed)seed;
 
 @end

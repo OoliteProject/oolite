@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOEquipmentType.h"
+#import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
 #import "OOJavaScriptEngine.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOLoggingExtended.h"
@@ -41,6 +43,7 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOScript.h"
 #import "OOSound.h"
+#import "OOStringBridge.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOSunEntity.h"
@@ -310,7 +313,10 @@ static BOOL sRunningScript = NO;
         // After all that, actually running the scripts is trivial.
         [[tickleScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        OOLog(kOOLogException, @"***** Exception running world scripts: %@ : %@", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+    }
+    @catch (OOFoundationException* exception) {
         OOLog(kOOLogException, @"***** Exception running world scripts: %@ : %@", [exception name], [exception reason]);
     }
 
@@ -333,7 +339,15 @@ static BOOL sRunningScript = NO;
         @try {
             PerformScriptActions(actions, target);
         }
-        @catch (NSException* exception) {
+        @catch (OOException* exception) {
+            OOLog(@"script.error.exception",
+                @"***** EXCEPTION %@: %@ while handling legacy script actions for %@",
+                oo::NSStringFrom([exception name]),
+                oo::NSStringFrom([exception reason]),
+                [theMissionKey hasPrefix:kActionTempPrefix] ? [target shortDescription] : theMissionKey);
+            // Suppress exception
+        }
+        @catch (OOFoundationException* exception) {
             OOLog(@"script.error.exception",
                 @"***** EXCEPTION %@: %@ while handling legacy script actions for %@",
                 [exception name],
@@ -360,7 +374,14 @@ static BOOL sRunningScript = NO;
     @try {
         result = TestScriptConditions(array);
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        OOLog(@"script.error.exception",
+            @"***** EXCEPTION %@: %@ while testing legacy script conditions.",
+            oo::NSStringFrom([exception name]),
+            oo::NSStringFrom([exception reason]));
+        // Suppress exception
+    }
+    @catch (OOFoundationException* exception) {
         OOLog(@"script.error.exception",
             @"***** EXCEPTION %@: %@ while testing legacy script conditions.",
             [exception name],
@@ -1313,7 +1334,7 @@ static int shipsFound;
 {
     if (scriptTarget == nil)
         scriptTarget = self;
-    [scriptTarget ejectShipOfType:itemKey];
+    [scriptTarget ejectShipOfType:oo::OptionalString(itemKey)];
 }
 
 - (void)addShips:(NSString*)roles_number
@@ -2016,7 +2037,7 @@ static int shipsFound;
 
     /*- add planet -*/
     OOLog(kOOLogDebugAddPlanet, @"DEBUG: initPlanetFromDictionary: %@", dict);
-    OOPlanetEntity* planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
+    OOPlanetEntity* planet = [[[OOPlanetEntity alloc] initFromDictionary:oo::PListFrom(dict) withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
 
     Quaternion planetOrientation;
     if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation)) {
@@ -2059,7 +2080,7 @@ static int shipsFound;
     }
 
     OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
-    OOPlanetEntity* planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
+    OOPlanetEntity* planet = [[[OOPlanetEntity alloc] initFromDictionary:oo::PListFrom(dict) withAtmosphere:NO andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
 
     Quaternion planetOrientation;
     if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation)) {
@@ -2107,7 +2128,7 @@ static int shipsFound;
 
 - (void)playSound:(NSString*)soundName
 {
-    [self playLegacyScriptSound:soundName];
+    [self playLegacyScriptSound:oo::StdString(soundName)];
 }
 
 /*-----------------------------------------------------*/
@@ -2440,7 +2461,7 @@ static int shipsFound;
             }
         }
 
-        doppelganger = [[OOPlanetEntity alloc] initFromDictionary:planetInfo withAtmosphere:YES andSeed:target_system_seed];
+        doppelganger = [[OOPlanetEntity alloc] initFromDictionary:oo::PListFrom(planetInfo) withAtmosphere:YES andSeed:target_system_seed];
         [doppelganger miniaturize];
         [doppelganger autorelease];
 

@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OOJSFrameCallbacks.h"
+#import "OOFoundationBridge.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOPListView.h"
 #include "oofnd/Date.hpp"
@@ -92,7 +93,17 @@ typedef struct
 static CallbackEntry* sCallbacks;
 static NSUInteger sCount; // Number of slots in use.
 static NSUInteger sSpace; // Number of slots allocated.
-static NSMutableArray* sDeferredOps; // Deferred adds/removes while running.
+// A deferred add or remove (proposed ADR-0043: was a Foundation dictionary with the same three entries).
+typedef struct
+{
+    std::string operation; // "add" or "remove"
+    uint32_t trackingID;
+    oo::ObjCRef<OOJSValue*> value; // the callback, for "add"
+} DeferredOperation;
+
+namespace {
+static std::vector<DeferredOperation>* sDeferredOps; // Deferred adds/removes while running.
+} // namespace
 static uint32_t sNextID;
 static BOOL sRunning;
 
@@ -102,15 +113,19 @@ static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS);
 static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS);
 
 // Internals
-static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, NSString** errorString);
-static BOOL GrowCallbackList(JSContext* context, NSString** errorString);
+namespace {
+static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString);
+static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* errorString);
+} // namespace
 
 static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex);
 
 static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID);
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index);
 
-static void QueueDeferredOperation(NSString* opType, uint32_t trackingID, OOJSValue* value);
+namespace {
+static void QueueDeferredOperation(const std::string& opType, uint32_t trackingID, OOJSValue* value);
+} // namespace
 static void RunDeferredOperations(JSContext* context);
 
 static const JSCFunctionListEntry sFrameCallbackMethods[] = {
@@ -173,7 +188,8 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
 
         if (EXPECT_NOT(sDeferredOps != NULL)) {
             RunDeferredOperations(context);
-            DESTROY(sDeferredOps);
+            delete sDeferredOps;
+            sDeferredOps = NULL;
         }
         OOJSRelinquishContext(context);
     }
@@ -211,15 +227,15 @@ static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
 
     if (EXPECT(!sRunning)) {
         // Add to list immediately.
-        NSString* errorString = nil;
+        std::optional<std::string> errorString;
         if (EXPECT_NOT(!AddCallback(context, callback, trackingID, &errorString))) {
-            OOJSReportError(context, @"%@", errorString);
+            OOJSReportError(context, @"%@", oo::NSStringOrNil(errorString));
             return JS_EXCEPTION;
         }
     } else {
         // Defer mutations during callback invocation.
         FCBLog(@"script.frameCallback.debug.add.deferred", @"Deferring addition of frame callback with tracking ID %u.", trackingID);
-        QueueDeferredOperation(@"add", trackingID, [OOJSValue valueWithJSValue:callback inContext:context]);
+        QueueDeferredOperation("add", trackingID, [OOJSValue valueWithJSValue:callback inContext:context]);
     }
 
     OOJS_RETURN_INT(trackingID);
@@ -249,7 +265,7 @@ static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
     } else {
         // Defer mutations during callback invocation.
         FCBLog(@"script.frameCallback.debug.remove.deferred", @"Deferring removal of frame callback with tracking ID %u.", trackingID);
-        QueueDeferredOperation(@"remove", trackingID, nil);
+        QueueDeferredOperation("remove", trackingID, nil);
     }
 
     OOJS_RETURN_VOID;
@@ -282,7 +298,8 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
 
 // MARK: Internals
 
-static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, NSString** errorString)
+namespace {
+static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString)
 {
     NSCParameterAssert(context != NULL);
     NSCParameterAssert(errorString != NULL);
@@ -301,8 +318,10 @@ static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trac
 
     return YES;
 }
+} // namespace
 
-static BOOL GrowCallbackList(JSContext* context, NSString** errorString)
+namespace {
+static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* errorString)
 {
     NSCParameterAssert(context != NULL);
     NSCParameterAssert(errorString != NULL);
@@ -311,7 +330,7 @@ static BOOL GrowCallbackList(JSContext* context, NSString** errorString)
 
     CallbackEntry* newCallbacks = (CallbackEntry*)calloc(sizeof(CallbackEntry), newSpace);
     if (newCallbacks == NULL) {
-        *errorString = @"Failed to allocate space for frame callback.";
+        *errorString = "Failed to allocate space for frame callback.";
         return NO;
     }
 
@@ -326,6 +345,7 @@ static BOOL GrowCallbackList(JSContext* context, NSString** errorString)
 
     return YES;
 }
+} // namespace
 
 static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
 {
@@ -384,40 +404,36 @@ static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 #endif
 }
 
-static void QueueDeferredOperation(NSString* opType, uint32_t trackingID, OOJSValue* value)
+namespace {
+static void QueueDeferredOperation(const std::string& opType, uint32_t trackingID, OOJSValue* value)
 {
     NSCAssert1(sRunning, @"%s can only be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
-    if (sDeferredOps == nil)
-        sDeferredOps = [[NSMutableArray alloc] init];
-    [sDeferredOps addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                    opType, @"operation",
-                                [NSNumber numberWithInt:trackingID], @"trackingID",
-                                value, @"value",
-                                nil]];
+    if (sDeferredOps == NULL)
+        sDeferredOps = new std::vector<DeferredOperation>;
+    sDeferredOps->push_back(DeferredOperation { opType, trackingID, oo::ObjCRef<OOJSValue*>(value) });
 }
+} // namespace
 
 static void RunDeferredOperations(JSContext* context)
 {
-    NSDictionary* operation = nil;
-
-    FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %zu deferred frame callback operations.", (long)[sDeferredOps count]);
+    FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %zu deferred frame callback operations.", (long)sDeferredOps->size());
     FCBLogIndentIf(@"script.frameCallback.debug.run-deferred");
 
-    foreach (operation, sDeferredOps) {
-        NSString* opType = [operation objectForKey:@"operation"];
-        uint32_t trackingID = oo::PListView(operation).get<int>(@"trackingID");
+    for (const DeferredOperation& operation : *sDeferredOps) {
+        const std::string& opType = operation.operation;
+        uint32_t trackingID = operation.trackingID;
 
-        if ([opType isEqualToString:@"add"]) {
-            OOJSValue* callbackObj = [operation objectForKey:@"value"];
-            NSString* errorString = nil;
+        if (opType == "add") {
+            OOJSValue* callbackObj = operation.value.get();
+            std::optional<std::string> errorString;
 
             JSValue callback = OOJSValueFromNativeObject(context, callbackObj);
             if (!AddCallback(context, callback, trackingID, &errorString)) {
-                OOLogWARN(@"script.frameCallback.deferredAdd.failed", @"Deferred frame callback insertion failed: %@", errorString);
+                OOLogWARN(@"script.frameCallback.deferredAdd.failed", @"Deferred frame callback insertion failed: %@", oo::NSStringOrNil(errorString));
             }
             JS_FreeValue(context, callback);
-        } else if ([opType isEqualToString:@"remove"]) {
+        } else if (opType == "remove") {
             RemoveCallbackWithTrackingID(context, trackingID);
         }
     }

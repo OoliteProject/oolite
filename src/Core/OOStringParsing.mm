@@ -36,74 +36,46 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "legacy_random.h"
 
+#import "OOFoundationBridge.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJavaScriptEngine.h"
+#import "OOStringBridge.h"
 
-static NSString* const kOOLogStringVectorConversion = @"strings.conversion.vector";
-static NSString* const kOOLogStringQuaternionConversion = @"strings.conversion.quaternion";
-static NSString* const kOOLogStringRandomSeedConversion = @"strings.conversion.randomSeed";
-
-NSMutableArray* ScanTokensFromString(NSString* values)
-{
-    NSMutableArray* result = nil;
-    NSScanner* scanner = nil;
-    NSString* token = nil;
-    static NSCharacterSet* space_set = nil;
-
-    // Note: Shark suggests we're getting a lot of early exits, but testing showed a pretty steady 2% early exit rate.
-    if (EXPECT_NOT(values == nil))
-        return [NSMutableArray array];
-    if (EXPECT_NOT(space_set == nil))
-        space_set = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
-
-    result = [NSMutableArray array];
-    scanner = [NSScanner scannerWithString:values];
-
-    while (![scanner isAtEnd]) {
-        [scanner ooliteScanCharactersFromSet:space_set intoString:NULL];
-        if ([scanner ooliteScanUpToCharactersFromSet:space_set intoString:&token]) {
-            [result addObject:token];
-        }
-    }
-
-    return result;
-}
-
-BOOL ScanVectorFromString(NSString* xyzString, Vector* outVector)
+BOOL cxx_ScanVectorFromString(const std::optional<std::string>& xyzString, Vector* outVector)
 {
     GLfloat xyz[] = { 0.0, 0.0, 0.0 };
     int i = 0;
-    NSString* error = nil;
+    const char* error = nullptr;
     NSScanner* scanner = nil;
 
     assert(outVector != NULL);
-    if (xyzString == nil)
+    if (!xyzString.has_value())
         return NO;
 
     if (!error)
-        scanner = [NSScanner scannerWithString:xyzString];
+        scanner = [NSScanner scannerWithString:oo::NSStringFrom(*xyzString)]; // the NSScanner family (oo-3rb.12) retires this
     while (![scanner isAtEnd] && i < 3 && !error) {
         if (![scanner scanFloat:&xyz[i++]])
-            error = @"could not scan a float value.";
+            error = "could not scan a float value.";
     }
 
     if (!error && i < 3)
-        error = @"found less than three float values.";
+        error = "found less than three float values.";
 
     if (!error) {
         *outVector = make_vector(xyz[0], xyz[1], xyz[2]);
         return YES;
     } else {
-        OOLogERR(kOOLogStringVectorConversion, @"cannot make vector from '%@': %@", xyzString, error);
+        OOLogERR(@"strings.conversion.vector", @"cannot make vector from '%@': %s", oo::NSStringFrom(*xyzString), error);
         return NO;
     }
 }
 
-BOOL ScanHPVectorFromString(NSString* xyzString, HPVector* outVector)
+BOOL cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString, HPVector* outVector)
 {
     Vector scanVector;
     assert(outVector != NULL);
-    BOOL result = ScanVectorFromString(xyzString, &scanVector);
+    BOOL result = cxx_ScanVectorFromString(xyzString, &scanVector);
     if (!result) {
         return NO;
     }
@@ -111,26 +83,26 @@ BOOL ScanHPVectorFromString(NSString* xyzString, HPVector* outVector)
     return YES;
 }
 
-BOOL ScanQuaternionFromString(NSString* wxyzString, Quaternion* outQuaternion)
+BOOL cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion* outQuaternion)
 {
     GLfloat wxyz[] = { 1.0, 0.0, 0.0, 0.0 };
     int i = 0;
-    NSString* error = nil;
+    const char* error = nullptr;
     NSScanner* scanner = nil;
 
     assert(outQuaternion != NULL);
-    if (wxyzString == nil)
+    if (!wxyzString.has_value())
         return NO;
 
     if (!error)
-        scanner = [NSScanner scannerWithString:wxyzString];
+        scanner = [NSScanner scannerWithString:oo::NSStringFrom(*wxyzString)]; // the NSScanner family (oo-3rb.12) retires this
     while (![scanner isAtEnd] && i < 4 && !error) {
         if (![scanner scanFloat:&wxyz[i++]])
-            error = @"could not scan a float value.";
+            error = "could not scan a float value.";
     }
 
     if (!error && i < 4)
-        error = @"found less than four float values.";
+        error = "found less than four float values.";
 
     if (!error) {
         outQuaternion->w = wxyz[0];
@@ -140,34 +112,34 @@ BOOL ScanQuaternionFromString(NSString* wxyzString, Quaternion* outQuaternion)
         quaternion_normalize(outQuaternion);
         return YES;
     } else {
-        OOLogERR(kOOLogStringQuaternionConversion, @"cannot make quaternion from '%@': %@", wxyzString, error);
+        OOLogERR(@"strings.conversion.quaternion", @"cannot make quaternion from '%@': %s", oo::NSStringFrom(*wxyzString), error);
         return NO;
     }
 }
 
-BOOL ScanVectorAndQuaternionFromString(NSString* xyzwxyzString, Vector* outVector, Quaternion* outQuaternion)
+BOOL cxx_ScanVectorAndQuaternionFromString(const std::optional<std::string>& xyzwxyzString, Vector* outVector, Quaternion* outQuaternion)
 {
     GLfloat xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 };
     int i = 0;
-    NSString* error = nil;
+    const char* error = nullptr;
     NSScanner* scanner = nil;
 
     assert(outVector != NULL && outQuaternion != NULL);
-    if (xyzwxyzString == nil)
+    if (!xyzwxyzString.has_value())
         return NO;
 
     if (!error)
-        scanner = [NSScanner scannerWithString:xyzwxyzString];
+        scanner = [NSScanner scannerWithString:oo::NSStringFrom(*xyzwxyzString)]; // the NSScanner family (oo-3rb.12) retires this
     while (![scanner isAtEnd] && i < 7 && !error) {
         if (![scanner scanFloat:&xyzwxyz[i++]])
-            error = @"Could not scan a float value.";
+            error = "Could not scan a float value.";
     }
 
     if (!error && i < 7)
-        error = @"Found less than seven float values.";
+        error = "Found less than seven float values.";
 
     if (error) {
-        OOLogERR(kOOLogStringQuaternionConversion, @"cannot make vector and quaternion from '%@': %@", xyzwxyzString, error);
+        OOLogERR(@"strings.conversion.quaternion", @"cannot make vector and quaternion from '%@': %s", oo::NSStringFrom(*xyzwxyzString), error);
         return NO;
     }
 
@@ -182,55 +154,55 @@ BOOL ScanVectorAndQuaternionFromString(NSString* xyzwxyzString, Vector* outVecto
     return YES;
 }
 
-Vector VectorFromString(NSString* xyzString, Vector defaultValue)
+Vector cxx_VectorFromString(const std::optional<std::string>& xyzString, Vector defaultValue)
 {
     Vector result;
-    if (!ScanVectorFromString(xyzString, &result))
+    if (!cxx_ScanVectorFromString(xyzString, &result))
         result = defaultValue;
     return result;
 }
 
-Quaternion QuaternionFromString(NSString* wxyzString, Quaternion defaultValue)
+Quaternion cxx_QuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion defaultValue)
 {
     Quaternion result;
-    if (!ScanQuaternionFromString(wxyzString, &result))
+    if (!cxx_ScanQuaternionFromString(wxyzString, &result))
         result = defaultValue;
     return result;
 }
 
-NSString* StringFromPoint(NSPoint point)
+std::string cxx_StringFromPoint(NSPoint point)
 {
-    return [NSString stringWithFormat:@"%f %f", point.x, point.y];
+    return oo::str::format("%f %f", point.x, point.y);
 }
 
-NSPoint PointFromString(NSString* xyString)
+NSPoint cxx_PointFromString(const std::string& xyString)
 {
-    NSArray* tokens = ScanTokensFromString(xyString);
+    const std::vector<std::string> tokens = oo::str::tokens(xyString);
     NSPoint result = NSZeroPoint;
 
-    NSUInteger n_tokens = [tokens count];
-    if (n_tokens == 2) {
-        result.x = [[tokens objectAtIndex:0] doubleValue];
-        result.y = [[tokens objectAtIndex:1] doubleValue];
+    if (tokens.size() == 2) {
+        result.x = oo::str::doubleValue(tokens[0]);
+        result.y = oo::str::doubleValue(tokens[1]);
     }
     return result;
 }
 
-Random_Seed RandomSeedFromString(NSString* abcdefString)
+Random_Seed cxx_RandomSeedFromString(const std::optional<std::string>& abcdefString)
 {
     Random_Seed result;
     int abcdef[] = { 0, 0, 0, 0, 0, 0 };
     int i = 0;
-    NSString* error = nil;
-    NSScanner* scanner = [NSScanner scannerWithString:abcdefString];
+    const char* error = nullptr;
+    // the NSScanner family (oo-3rb.12) retires this; a nil string scans as it did
+    NSScanner* scanner = [NSScanner scannerWithString:oo::NSStringOrNil(abcdefString)];
 
     while (![scanner isAtEnd] && i < 6 && !error) {
         if (![scanner scanInt:&abcdef[i++]])
-            error = @"could not scan a int value.";
+            error = "could not scan a int value.";
     }
 
     if (!error && i < 6)
-        error = @"found less than six int values.";
+        error = "found less than six int values.";
 
     if (!error) {
         result.a = abcdef[0];
@@ -240,41 +212,42 @@ Random_Seed RandomSeedFromString(NSString* abcdefString)
         result.e = abcdef[4];
         result.f = abcdef[5];
     } else {
-        OOLogERR(kOOLogStringRandomSeedConversion, @"cannot make Random_Seed from '%@': %@", abcdefString, error);
+        OOLogERR(@"strings.conversion.randomSeed", @"cannot make Random_Seed from '%@': %s", oo::NSStringOrNil(abcdefString), error);
         result = kNilRandomSeed;
     }
 
     return result;
 }
 
-NSString* StringFromRandomSeed(Random_Seed seed)
+std::string cxx_StringFromRandomSeed(Random_Seed seed)
 {
-    return [NSString stringWithFormat:@"%d %d %d %d %d %d", seed.a, seed.b, seed.c, seed.d, seed.e, seed.f];
+    return oo::str::format("%d %d %d %d %d %d", seed.a, seed.b, seed.c, seed.d, seed.e, seed.f);
 }
 
-NSString* OOPadStringToEms(NSString* string, float padEms)
+std::string cxx_OOPadStringToEms(const std::string& string, float padEms)
 {
-    NSString* result = string;
-    float numEms = padEms - OOStringWidthInEm(result);
+    // OOStringWidthInEm (HeadUpDisplay) is an unmigrated callee: convert at the calls.
+    std::string result = string;
+    float numEms = padEms - OOStringWidthInEm(oo::NSStringFrom(result));
     if (numEms > 0) {
         numEms /= OOStringWidthInEm(@" "); // start with wide space
-        result = [[@"" stringByPaddingToLength:(NSUInteger)numEms withString:@" " startingAtIndex:0] stringByAppendingString:result];
+        result = std::string((NSUInteger)numEms, ' ') + result;
     }
     // most of the way there, so switch to narrow space
-    numEms = padEms - OOStringWidthInEm(result);
+    numEms = padEms - OOStringWidthInEm(oo::NSStringFrom(result));
     if (numEms > 0) {
         numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space
-        result = [[@"" stringByPaddingToLength:(NSUInteger)numEms withString:@"\037" startingAtIndex:0] stringByAppendingString:result];
+        result = std::string((NSUInteger)numEms, '\037') + result;
     }
     return result;
 }
 
-NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
+std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
     JSContext* context = OOJSAcquireContext();
     JSValueConst global = [[OOJavaScriptEngine sharedEngine] globalObject];
     JSValue exception = JS_UNDEFINED;
-    NSString* result = nil;
+    std::optional<std::string> result;
     BOOL hadException;
 
     /*	Because the |cr etc. formatting operators call this, and the
@@ -283,7 +256,7 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
     */
     static BOOL reentrancyLock;
     if (reentrancyLock)
-        return [NSString stringWithFormat:@"%0.1f", tenthsOfCredits * 0.1];
+        return oo::str::format("%0.1f", tenthsOfCredits * 0.1);
 
     reentrancyLock = YES;
 
@@ -302,7 +275,8 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
         if (JS_IsException(rval))
             OOJSReportPendingException(context);
         else
-            result = OOStringFromJSValue(context, rval);
+            // OOStringFromJSValue is an unmigrated callee (nil for null or undefined)
+            result = oo::OptionalString(OOStringFromJSValue(context, rval));
         JS_FreeValue(context, rval);
     } else {
         OOJSReportPendingException(context);
@@ -314,99 +288,33 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
     OOJSRelinquishContext(context);
 
-    if (EXPECT_NOT(result == nil))
-        result = [NSString stringWithFormat:@"%li", (long)(tenthsOfCredits) / 10];
+    if (EXPECT_NOT(!result.has_value()))
+        result = oo::str::format("%li", (long)(tenthsOfCredits) / 10);
 
     reentrancyLock = NO;
 
-    return result;
+    return *result;
 }
 
-@implementation NSString (OOUtilities)
-
-- (BOOL)pathHasExtension:(NSString*)extension
+std::vector<unsigned> cxx_ComponentsFromVersionString(const std::string& string)
 {
-    return [[self pathExtension] caseInsensitiveCompare:extension] == NSOrderedSame;
+    return oo::str::versionComponents(string);
 }
 
-- (BOOL)pathHasExtensionInArray:(NSArray*)extensions
+NSComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1, const std::vector<unsigned>& version2)
 {
-    NSString* extension = nil;
-
-    foreach (extension, extensions) {
-        if ([[self pathExtension] caseInsensitiveCompare:extension] == NSOrderedSame)
-            return YES;
-    }
-
-    return NO;
-}
-
-@end
-
-NSArray* ComponentsFromVersionString(NSString* string)
-{
-    NSArray* stringComponents = nil;
-    NSMutableArray* result = nil;
-    NSUInteger i, count;
-    int value;
-    id component;
-
-    stringComponents = [string componentsSeparatedByString:@" "];
-    stringComponents = [[stringComponents objectAtIndex:0] componentsSeparatedByString:@"-"];
-    stringComponents = [[stringComponents objectAtIndex:0] componentsSeparatedByString:@"."];
-    count = [stringComponents count];
-    result = [NSMutableArray arrayWithCapacity:count];
-
-    for (i = 0; i != count; ++i) {
-        component = [stringComponents objectAtIndex:i];
-        if ([component respondsToSelector:@selector(intValue)])
-            value = MAX([component intValue], 0);
-        else
-            value = 0;
-
-        [result addObject:[NSNumber numberWithUnsignedInt:value]];
-    }
-
-    return result;
-}
-
-NSComparisonResult CompareVersions(NSArray* version1, NSArray* version2)
-{
-    NSEnumerator *leftEnum = nil,
-                 *rightEnum = nil;
-    NSNumber *leftComponent = nil,
-             *rightComponent = nil;
-    unsigned leftValue,
-        rightValue;
-
-    leftEnum = [version1 objectEnumerator];
-    rightEnum = [version2 objectEnumerator];
-
-    for (;;) {
-        leftComponent = [leftEnum nextObject];
-        rightComponent = [rightEnum nextObject];
-
-        if (leftComponent == nil && rightComponent == nil)
-            break; // End of both versions
-
-        // We'll get 0 if the component is nil, which is what we want.
-        leftValue = [leftComponent unsignedIntValue];
-        rightValue = [rightComponent unsignedIntValue];
-
-        if (leftValue < rightValue)
-            return NSOrderedAscending;
-        if (leftValue > rightValue)
-            return NSOrderedDescending;
-    }
-
-    // If there was a difference, we'd have returned already.
+    const int order = oo::str::compareVersions(version1, version2);
+    if (order < 0)
+        return NSOrderedAscending;
+    if (order > 0)
+        return NSOrderedDescending;
     return NSOrderedSame;
 }
 
-NSString* ClockToString(double clock, BOOL adjusting)
+std::string cxx_ClockToString(double clock, BOOL adjusting)
 {
     int days, hrs, mins, secs;
-    NSString* format = nil;
+    std::string format;
 
     days = floor(clock / 86400.0);
     secs = floor(clock - days * 86400.0);
@@ -415,117 +323,115 @@ NSString* ClockToString(double clock, BOOL adjusting)
     mins = floor(secs / 60.0);
     secs %= 60;
 
+    // DESC() (Universe) is unmigrated: convert at the call. The format is read at run time.
     if (adjusting)
-        format = DESC(@"clock-format-adjusting");
+        format = oo::StdString(DESC(@"clock-format-adjusting"));
     else
-        format = DESC(@"clock-format");
+        format = oo::StdString(DESC(@"clock-format"));
 
-    return [NSString stringWithFormat:format, days, hrs, mins, secs];
+    return oo::str::formatRuntime(format, { days, hrs, mins, secs });
 }
 
 #if DEBUG_GRAPHVIZ
 
-NSString* EscapedGraphVizString(NSString* string)
+std::string cxx_EscapedGraphVizString(const std::string& string)
 {
-    NSString* const srcStrings[] = {
+    const char* const srcStrings[] = {
         // Note: backslash must be first.
-        @"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
+        "\\", "\"", "\'", "\r", "\n", "\t", nullptr
     };
-    NSString* const subStrings[] = {
+    const char* const subStrings[] = {
         // Note: must be same order.
-        @"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
+        "\\\\", "\\\"", "\\\'", "\\r", "\\n", "\\t", nullptr
     };
 
-    NSString* const* src = srcStrings;
-    NSString* const* sub = subStrings;
-    NSMutableString* mutableString = nil;
-    NSString* result = nil;
+    const char* const* src = srcStrings;
+    const char* const* sub = subStrings;
+    std::string result = string;
 
-    mutableString = [string mutableCopy];
-    while (*src != nil) {
-        [mutableString replaceOccurrencesOfString:*src++
-                                       withString:*sub++
-                                          options:0
-                                            range:(NSRange) { 0, [mutableString length] }];
+    while (*src != nullptr) {
+        // -replaceOccurrencesOfString:withString:options:0 range:(the whole string)
+        result = oo::str::replaceOccurrences(result, *src++, *sub++);
     }
 
-    if ([mutableString length] == [string length]) {
-        result = string;
-    } else {
-        result = [[mutableString copy] autorelease];
-    }
-    [mutableString release];
     return result;
 }
 
-static BOOL NameIsTaken(NSString* name, NSSet* uniqueSet);
+namespace {
 
-NSString* GraphVizTokenString(NSString* string, NSMutableSet* uniqueSet)
+// The GraphViz keywords, matched case-insensitively (-lowercaseString).
+constexpr std::string_view kGraphVizKeywords[] = { "node", "edge", "graph", "digraph", "subgraph", "strict" };
+
+BOOL NameIsTaken(const std::string& name, const std::set<std::string>* uniqueSet)
 {
-    NSString* token = nil;
-    @autoreleasepool {
-        BOOL lastWasUnderscore = NO;
-        NSUInteger i, length = [string length], ri = 0;
-        std::vector<unichar> result(length);
-
-        if (length > 0) {
-            // Special case for first char - can't be digit.
-            unichar c = [string characterAtIndex:0];
-            if (!isalpha(c)) {
-                c = '_';
-                lastWasUnderscore = YES;
-            }
-            result[ri++] = c;
-
-            for (i = 1; i < length; i++) {
-                c = [string characterAtIndex:i];
-                if (!isalnum(c)) {
-                    if (lastWasUnderscore)
-                        continue;
-                    c = '_';
-                    lastWasUnderscore = YES;
-                } else {
-                    lastWasUnderscore = NO;
-                }
-
-                result[ri++] = c;
-            }
-
-            token = [NSString stringWithCharacters:result.data() length:ri];
-        } else {
-            token = @"_";
-        }
-
-        if (NameIsTaken(token, uniqueSet)) {
-            if (!lastWasUnderscore)
-                token = [token stringByAppendingString:@"_"];
-            NSString* uniqueToken = nil;
-            unsigned uniqueID = 2;
-
-            for (;;) {
-                uniqueToken = [NSString stringWithFormat:@"%@%u", token, uniqueID];
-                if (!NameIsTaken(uniqueToken, uniqueSet))
-                    break;
-            }
-            token = uniqueToken;
-        }
-        [uniqueSet addObject:token];
-
-        [token retain];
-    }
-    return [token autorelease];
-}
-
-static BOOL NameIsTaken(NSString* name, NSSet* uniqueSet)
-{
-    if ([uniqueSet containsObject:name])
+    if (uniqueSet != nullptr && uniqueSet->contains(name))
         return YES;
 
-    static NSSet* keywords = nil;
-    if (keywords == nil)
-        keywords = [[NSSet alloc] initWithObjects:@"node", @"edge", @"graph", @"digraph", @"subgraph", @"strict", nil];
+    const std::string lowercaseName = oo::str::lowercase(name);
+    for (std::string_view keyword : kGraphVizKeywords) {
+        if (lowercaseName == keyword)
+            return YES;
+    }
+    return NO;
+}
 
-    return [keywords containsObject:[name lowercaseString]];
+} // namespace
+
+std::string cxx_GraphVizTokenString(const std::string& string, std::set<std::string>* uniqueSet)
+{
+    std::string token;
+    BOOL lastWasUnderscore = NO;
+    // UTF-16 units, as -characterAtIndex: read them
+    const std::u16string units = oo::utf8ToUtf16(string);
+    std::size_t i, length = units.size();
+    std::u16string result;
+    result.reserve(length);
+
+    if (length > 0) {
+        // Special case for first char - can't be digit.
+        char16_t c = units[0];
+        if (!isalpha(c)) {
+            c = '_';
+            lastWasUnderscore = YES;
+        }
+        result.push_back(c);
+
+        for (i = 1; i < length; i++) {
+            c = units[i];
+            if (!isalnum(c)) {
+                if (lastWasUnderscore)
+                    continue;
+                c = '_';
+                lastWasUnderscore = YES;
+            } else {
+                lastWasUnderscore = NO;
+            }
+
+            result.push_back(c);
+        }
+
+        token = oo::utf16ToUtf8(result);
+    } else {
+        token = "_";
+    }
+
+    if (NameIsTaken(token, uniqueSet)) {
+        if (!lastWasUnderscore)
+            token += "_";
+        std::string uniqueToken;
+        unsigned uniqueID = 2;
+
+        for (;;) {
+            uniqueToken = oo::str::format("%s%u", token.c_str(), uniqueID);
+            if (!NameIsTaken(uniqueToken, uniqueSet))
+                break;
+        }
+        token = uniqueToken;
+    }
+    if (uniqueSet != nullptr)
+        uniqueSet->insert(token);
+
+    return token;
 }
 
 #endif // DEBUG_GRAPHVIZ

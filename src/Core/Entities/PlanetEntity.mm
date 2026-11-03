@@ -33,8 +33,8 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 #import "OOColor.h"
 #import "OODebugFlags.h"
+#import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
-#import "OOPListView.h"
 #import "OOPixMapTextureLoader.h"
 #import "OOStringParsing.h"
 #import "OOTexture.h"
@@ -43,6 +43,10 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "TextureStore.h"
 #import "Universe.h"
+#include "oofnd/PListGet.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/String.hpp"
+#include "oofnd/objc/OOException.h"
 
 #if !OOLITE_MAC_OS_X
 #define NSIntegerMapKeyCallBacks NSIntMapKeyCallBacks
@@ -53,7 +57,9 @@ MA 02110-1301, USA.
 static Vector base_vertex_array[MAX_PLANET_VERTICES];
 static int base_terrain_array[MAX_PLANET_VERTICES];
 static unsigned next_free_vertex;
-static NSMapTable* sEdgeToVertex;
+// Edge key ((va << 16) | vb) -> vertex index + 1. Was an integer-keyed map table (bead oo-3rb.20);
+// never iterated.
+static std::unordered_map<uintptr_t, uintptr_t>* sEdgeToVertex;
 
 static int n_triangles[MAX_SUBDIVIDE];
 static int triangle_start[MAX_SUBDIVIDE];
@@ -73,13 +79,13 @@ static GLfloat texture_uv_array[MAX_PLANET_VERTICES * 2];
 - (void)paintVertex:(unsigned)vi seed:(int)seed;
 - (void)scaleVertices;
 
-- (id)initAsAtmosphereForPlanet:(PlanetEntity*)planet dictionary:(NSDictionary*)dict;
+- (id)initAsAtmosphereForPlanet:(PlanetEntity*)planet dictionary:(const oo::PList&)dictionary;
 - (void)setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal;
 
 - (id)initMiniatureFromPlanet:(PlanetEntity*)planet withAlpha:(float)alpha;
 
-- (void)loadTexture:(NSDictionary*)configuration;
-- (OOTexture*)planetTextureWithInfo:(NSDictionary*)info;
+- (void)loadTexture:(const oo::PList&)configuration;
+- (OOTexture*)planetTextureWithInfo:(const oo::PList&)info;
 - (OOTexture*)cloudTextureWithCloudColor:(OOColor*)cloudColor cloudImpress:(GLfloat)cloud_impress cloudBias:(GLfloat)cloud_bias;
 
 - (void)deleteDisplayLists;
@@ -175,25 +181,60 @@ static const BaseFace kTexturedFaces[][3] = {
     { { 11, +0.700000, +0.333333 }, { 13, +0.900000, +0.333333 }, { 7, +0.500000, +0.000000 } }
 };
 
+namespace {
+
+// A dictionary as given, or an empty one for anything else (the empty dictionary that stood in for nil).
+oo::PList DictionaryOrEmpty(const oo::PList& dictionary)
+{
+    return dictionary.isDict() ? dictionary : oo::PList(oo::PList::Dict { });
+}
+
+// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
+id ObjectForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
+}
+
+// get<std::string> where the Foundation code read nil: std::nullopt when the key is absent or its
+// value is neither a string nor a number.
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return dict.get<std::string>(key);
+}
+
+// { percent_cloud = "0"; cloud_alpha = <+numberWithFloat:>; }, the atmosphere of a textured planet.
+oo::PList CloudAtmosphereDictionary(float cloudAlpha)
+{
+    oo::PList::Dict result;
+    result["percent_cloud"] = "0";
+    result["cloud_alpha"] = oo::PList::singleReal(cloudAlpha);
+    return oo::PList(std::move(result));
+}
+
+} // namespace
+
 @implementation PlanetEntity
 
 - (id)init
 {
     [self release];
-    [NSException raise:NSInternalInconsistencyException format:@"%s, believed dead, called.", __PRETTY_FUNCTION__];
+    [OOException raise:OOInternalInconsistencyException format:"%s, believed dead, called.", __PRETTY_FUNCTION__];
     return nil;
 }
 
-- (id)initAsAtmosphereForPlanet:(PlanetEntity*)planet dictionary:(NSDictionary*)dict
+- (id)initAsAtmosphereForPlanet:(PlanetEntity*)planet dictionary:(const oo::PList&)dictionary
 {
     BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 
-    if (dict == nil)
-        dict = [NSDictionary dictionary];
+    const oo::PList dict = DictionaryOrEmpty(dictionary);
 
     self = [super init];
 
-    int percent_land = 100 - oo::PListView(dict).get<int>(@"percent_cloud", 100 - (3 + (gen_rnd_number() & 31) + (gen_rnd_number() & 31)));
+    int percent_land = 100 - dict.get<int>("percent_cloud", 100 - (3 + (gen_rnd_number() & 31) + (gen_rnd_number() & 31)));
 
     polar_color_factor = 1.0;
 
@@ -226,11 +267,11 @@ static const BaseFace kTexturedFaces[][3] = {
     OOColor* polarCloudColor = nil;
     float cloudAlpha;
 
-    clearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"atmosphere_color"]];
-    cloudColor = [OOColor colorWithDescription:[dict objectForKey:@"cloud_color"]];
-    polarClearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_atmosphere_color"]];
-    polarCloudColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_cloud_color"]];
-    cloudAlpha = OOClamp_0_1_f(oo::PListView(dict).get<float>(@"cloud_alpha", 1.0));
+    clearSkyColor = [OOColor colorWithDescription:ObjectForKey(dict, "atmosphere_color")];
+    cloudColor = [OOColor colorWithDescription:ObjectForKey(dict, "cloud_color")];
+    polarClearSkyColor = [OOColor colorWithDescription:ObjectForKey(dict, "polar_atmosphere_color")];
+    polarCloudColor = [OOColor colorWithDescription:ObjectForKey(dict, "polar_cloud_color")];
+    cloudAlpha = OOClamp_0_1_f(dict.get<float>("cloud_alpha", 1.0));
 
     if (clearSkyColor != nil) {
         [clearSkyColor getRed:&amb_land[0] green:&amb_land[1] blue:&amb_land[2] alpha:&amb_land[3]];
@@ -320,7 +361,7 @@ static const BaseFace kTexturedFaces[][3] = {
     [self scaleVertices];
 
     // set speed of rotation
-    rotational_velocity = oo::PListView(dict).get<float>(@"atmosphere_rotational_velocity", [planet rotationalVelocity] * (0.9 + (randf() * 0.2))); // 90-110% of planet rotation speed
+    rotational_velocity = dict.get<float>("atmosphere_rotational_velocity", [planet rotationalVelocity] * (0.9 + (randf() * 0.2))); // 90-110% of planet rotation speed
 
     root_planet = planet;
 
@@ -348,12 +389,11 @@ static const BaseFace kTexturedFaces[][3] = {
     rotationAxis = kBasisYVector;
 }
 
-- (id)initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed
+- (id)initFromDictionary:(const oo::PList&)dictionary withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed
 {
     BOOL procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 
-    if (dict == nil)
-        dict = [NSDictionary dictionary];
+    const oo::PList dict = DictionaryOrEmpty(dictionary);
     RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 
     self = [super init];
@@ -365,13 +405,15 @@ static const BaseFace kTexturedFaces[][3] = {
     else
         planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13; // pseudo-random set-up for vertex colours
 
-    OOTexture* texture = oo::PListView(dict).get<OOTexture*>(@"_oo_textureObject");
+    id textureObject = ObjectForKey(dict, "_oo_textureObject");
+    OOTexture* texture = [textureObject isKindOfClass:[OOTexture class]] ? (OOTexture*)textureObject : nil;
     if (texture != nil) {
         _texture = [texture retain];
         isTextureImage = oo::PListView(dict).get<bool>(@"_oo_isExplicitlyTextured");
     } else {
-        NSDictionary* textureSpec = oo::PListView(dict).get<oo::TextureSpecifier>(@"texture", nil);
-        if (textureSpec != nil) {
+        const oo::PList* textureValue = dict.find("texture");
+        const oo::PList textureSpec = cxx_OOTextureSpecFromObject(textureValue != nullptr ? *textureValue : oo::PList(), std::nullopt);
+        if (textureSpec) {
             [self loadTexture:textureSpec];
         }
 
@@ -382,24 +424,24 @@ static const BaseFace kTexturedFaces[][3] = {
                                 textureSpec = OOTextureSpecFromObject(@"metal.png", nil);
                                 } */
 
-        NSString* seedStr = oo::PListView(dict).get<NSString*>(@"seed");
-        if (seedStr != nil) {
-            Random_Seed seed = RandomSeedFromString(seedStr);
+        const std::optional<std::string> seedStr = OptionalStringForKey(dict, "seed");
+        if (seedStr.has_value()) {
+            Random_Seed seed = RandomSeedFromString(oo::NSStringFrom(*seedStr));
             if (!is_nil_seed(seed)) {
                 p_seed = seed;
             } else {
-                OOLogERR(@"planet.fromDict", @"could not interpret \"%@\" as planet seed, using default.", seedStr);
+                OOLogERR(@"planet.fromDict", @"could not interpret \"%@\" as planet seed, using default.", oo::NSStringFrom(*seedStr));
             }
         }
     }
 
     seed_for_planet_description(p_seed);
 
-    NSMutableDictionary* planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
-    int radius_km = oo::PListView(dict).get<int>(KEY_RADIUS,
-        oo::PListView(planetInfo).get<int>(KEY_RADIUS));
-    int techlevel = oo::PListView(dict).get<int>(KEY_TECHLEVEL,
-        oo::PListView(planetInfo).get<int>(KEY_TECHLEVEL));
+    oo::PList planetInfo = DictionaryOrEmpty(oo::PListFrom([UNIVERSE generateSystemData:p_seed]));
+    int radius_km = dict.get<int>(oo::StdString(KEY_RADIUS),
+        planetInfo.get<int>(oo::StdString(KEY_RADIUS)));
+    int techlevel = dict.get<int>(oo::StdString(KEY_TECHLEVEL),
+        planetInfo.get<int>(oo::StdString(KEY_TECHLEVEL)));
 
     shuttles_on_ground = 1 + floor(techlevel * 0.5);
     last_launch_time = 0.0;
@@ -418,7 +460,7 @@ static const BaseFace kTexturedFaces[][3] = {
 
     [self setUseTexturedModel:(procGen || _texture != nil)];
 
-    int percent_land = oo::PListView(planetInfo).get<int>(@"percent_land", 24 + (gen_rnd_number() % 48));
+    int percent_land = planetInfo.get<int>("percent_land", 24 + (gen_rnd_number() % 48));
     // if (isTextured)  percent_land =  atmo ? 0 :100; // moon/planet override
 
     // save the current random number generator seed
@@ -429,9 +471,9 @@ static const BaseFace kTexturedFaces[][3] = {
     for (i = 0; i < vertexCount; i++)
         gen_rnd_number();
 
-    [planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
+    (*planetInfo.getIf<oo::PList::Dict>())["land_fraction"] = oo::PList::singleReal(0.01 * percent_land); // +numberWithFloat:
 
-    polar_color_factor = oo::PListView(dict).get<double>(@"polar_color_factor", 0.5f);
+    polar_color_factor = dict.get<double>("polar_color_factor", 0.5f);
 
     Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 
@@ -461,8 +503,8 @@ static const BaseFace kTexturedFaces[][3] = {
         }
 
         // assign land_hsb and sea_hsb overrides from planetinfo.plist if they're there.
-        ScanVectorFromString([dict objectForKey:@"land_hsb_color"], &land_hsb);
-        ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
+        ScanVectorFromString(ObjectForKey(dict, "land_hsb_color"), &land_hsb);
+        ScanVectorFromString(ObjectForKey(dict, "sea_hsb_color"), &sea_hsb);
 
         // polar areas are brighter but have less color (closer to white)
         land_polar_hsb.x = land_hsb.x;
@@ -494,10 +536,11 @@ static const BaseFace kTexturedFaces[][3] = {
         amb_polar_sea[2] = [amb_polar_sea_color greenComponent];
         amb_polar_sea[3] = 1.0;
 
-        [planetInfo setObject:amb_land_color forKey:@"land_color"];
-        [planetInfo setObject:amb_sea_color forKey:@"sea_color"];
-        [planetInfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
-        [planetInfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
+        oo::PList::Dict& planetInfoDict = *planetInfo.getIf<oo::PList::Dict>();
+        planetInfoDict["land_color"] = oo::PListObject(amb_land_color);
+        planetInfoDict["sea_color"] = oo::PListObject(amb_sea_color);
+        planetInfoDict["polar_land_color"] = oo::PListObject(amb_polar_land_color);
+        planetInfoDict["polar_sea_color"] = oo::PListObject(amb_polar_sea_color);
     }
 
     if (procGen && _texture == nil) {
@@ -515,17 +558,17 @@ static const BaseFace kTexturedFaces[][3] = {
 
     [self scaleVertices];
     // set speed of rotation
-    if ([dict objectForKey:@"rotational_velocity"]) {
-        rotational_velocity = oo::PListView(dict).get<float>(@"rotational_velocity", 0.01f * randf()); // 0.0 .. 0.01 avr 0.005
+    if (dict.find("rotational_velocity") != nullptr) {
+        rotational_velocity = dict.get<float>("rotational_velocity", 0.01f * randf()); // 0.0 .. 0.01 avr 0.005
     } else {
-        rotational_velocity = oo::PListView(planetInfo).get<float>(@"rotation_speed", 0.002 * (0.5 + 0.5 * randf())); // 0.001 .. 0.002 avr 0.0015
-        rotational_velocity *= oo::PListView(planetInfo).get<float>(@"rotation_speed_factor", 1.0f);
+        rotational_velocity = planetInfo.get<float>("rotation_speed", 0.002 * (0.5 + 0.5 * randf())); // 0.001 .. 0.002 avr 0.0015
+        rotational_velocity *= planetInfo.get<float>("rotation_speed_factor", 1.0f);
     }
 
     // do atmosphere
-    NSDictionary* atmoDict = dict;
+    oo::PList atmoDict = dict;
     if (_texture != nil)
-        atmoDict = [NSDictionary dictionaryWithObjectsAndKeys:@"0", @"percent_cloud", [NSNumber numberWithFloat:oo::PListView(planetInfo).get<float>(@"cloud_alpha", 1.0)], @"cloud_alpha", nil];
+        atmoDict = CloudAtmosphereDictionary(planetInfo.get<float>("cloud_alpha", 1.0));
     if (atmo)
         atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmoDict];
 
@@ -557,34 +600,34 @@ static const BaseFace kTexturedFaces[][3] = {
 
     DESTROY(atmosphere);
     DESTROY(_texture);
-    DESTROY(_textureFileName);
+    _textureFileName.reset();
 
     [[OOGraphicsResetManager sharedManager] unregisterClient:self];
 
     [super dealloc];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
-    NSString* typeString;
+    const char* typeString;
     switch (planet_type) {
     case STELLAR_TYPE_MINIATURE:
-        typeString = @"STELLAR_TYPE_MINIATURE";
+        typeString = "STELLAR_TYPE_MINIATURE";
         break;
     case STELLAR_TYPE_NORMAL_PLANET:
-        typeString = @"STELLAR_TYPE_NORMAL_PLANET";
+        typeString = "STELLAR_TYPE_NORMAL_PLANET";
         break;
     case STELLAR_TYPE_ATMOSPHERE:
-        typeString = @"STELLAR_TYPE_ATMOSPHERE";
+        typeString = "STELLAR_TYPE_ATMOSPHERE";
         break;
     case STELLAR_TYPE_MOON:
-        typeString = @"STELLAR_TYPE_MOON";
+        typeString = "STELLAR_TYPE_MOON";
         break;
 
     default:
-        typeString = @"UNKNOWN";
+        typeString = "UNKNOWN";
     }
-    return [NSString stringWithFormat:@"ID: %u position: %@ type: %@ radius: %.3fkm", [self universalID], HPVectorDescription([self position]), typeString, 0.001 * [self radius]];
+    return oo::NSStringFrom(oo::str::format("ID: %u position: %s type: %s radius: %.3fkm", [self universalID], cxx_HPVectorDescription([self position]).c_str(), typeString, 0.001 * [self radius]));
 }
 
 - (BOOL)canCollide
@@ -934,9 +977,9 @@ static const BaseFace kTexturedFaces[][3] = {
     return _texture != nil;
 }
 
-- (NSString*)textureFileName
+- (id)textureFileName // shared selector (proposed ADR-0043)
 {
-    return _textureFileName;
+    return oo::NSStringOrNil(_textureFileName);
 }
 
 - (void)setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal
@@ -968,12 +1011,12 @@ static const BaseFace kTexturedFaces[][3] = {
     amb_polar_sea[3] = amb_polar_land[3] = 1.0;
 }
 
-- (BOOL)setUpPlanetFromTexture:(NSString*)fileName
+- (BOOL)setUpPlanetFromTexture:(id)fileName // shared selector (proposed ADR-0043)
 {
     if (fileName == nil)
         return NO;
 
-    [self loadTexture:OOTextureSpecFromObject(fileName, nil)];
+    [self loadTexture:cxx_OOTextureSpecFromObject(oo::PListFrom(fileName), std::nullopt)];
     [self deleteDisplayLists];
 
     unsigned i;
@@ -996,7 +1039,7 @@ static const BaseFace kTexturedFaces[][3] = {
         oldCloudAlpha = [atmosphere amb_sea][3] / CLOUD_ALPHA;
     }
 
-    NSDictionary* atmo_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:@"0", @"percent_cloud", [NSNumber numberWithFloat:oldCloudAlpha], @"cloud_alpha", nil];
+    const oo::PList atmo_dictionary = CloudAtmosphereDictionary(oldCloudAlpha);
     [atmosphere autorelease];
     atmosphere = [self hasAtmosphere] ? [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary] : nil;
 
@@ -1124,14 +1167,15 @@ static const BaseFace kTexturedFaces[][3] = {
 
     if (lastOneWasTextured != isTextured) {
         if (sEdgeToVertex != NULL) {
-            NSFreeMapTable(sEdgeToVertex);
+            delete sEdgeToVertex;
             sEdgeToVertex = NULL;
         }
         lastOneWasTextured = isTextured;
     }
 
     if (sEdgeToVertex == NULL) {
-        sEdgeToVertex = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSIntegerMapValueCallBacks, 7680); // make a new one
+        sEdgeToVertex = new std::unordered_map<uintptr_t, uintptr_t>; // make a new one
+        sEdgeToVertex->reserve(7680);
         next_free_vertex = 0;
 
         const Vector* vertices = NULL;
@@ -1216,8 +1260,9 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
         va = vb;
         vb = temp;
     }
-    void* key = (void*)(((uintptr_t)va << 16) | vb);
-    uintptr_t num = (uintptr_t)NSMapGet(sEdgeToVertex, key);
+    uintptr_t key = ((uintptr_t)va << 16) | vb;
+    auto found = sEdgeToVertex->find(key);
+    uintptr_t num = (found != sEdgeToVertex->end()) ? found->second : 0;
     if (num != 0) {
         // Overall cache hit rate is just over 83 %.
         return (unsigned)num - 1;
@@ -1247,7 +1292,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 
         // add new edge to the look-up
         num = vindex + 1;
-        NSMapInsertKnownAbsent(sEdgeToVertex, key, (void*)num);
+        sEdgeToVertex->emplace(key, num);
         return vindex;
     }
 }
@@ -1405,18 +1450,17 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
     return _texture;
 }
 
-- (void)loadTexture:(NSDictionary*)configuration
+- (void)loadTexture:(const oo::PList&)configuration
 {
     [_texture release];
-    _texture = [OOTexture textureWithConfiguration:configuration extraOptions:kOOTextureAllowCubeMap | kOOTextureRepeatS];
+    _texture = [OOTexture cxx_textureWithConfiguration:configuration extraOptions:kOOTextureAllowCubeMap | kOOTextureRepeatS];
     [_texture retain];
 
-    [_textureFileName release];
     if (_texture != nil) {
-        _textureFileName = [oo::PListView(configuration).get<NSString*>(@"name") copy];
+        _textureFileName = OptionalStringForKey(configuration, "name");
         isTextureImage = YES;
     } else {
-        _textureFileName = nil;
+        _textureFileName.reset();
         isTextureImage = NO;
     }
 }
@@ -1427,13 +1471,13 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
         different objects.
         -- Ahruman 2010-06-04
 */
-- (OOTexture*)planetTextureWithInfo:(NSDictionary*)info
+- (OOTexture*)planetTextureWithInfo:(const oo::PList&)info
 {
     unsigned char* data;
     GLuint width, height;
 
     fillRanNoiseBuffer();
-    if (![TextureStore getPlanetTextureNameFor:info
+    if (![TextureStore getPlanetTextureNameFor:oo::ObjectFromPList(info)
                                       intoData:&data
                                          width:&width
                                         height:&height]) {
@@ -1474,10 +1518,10 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
     if (_texture != nil)
-        return [NSSet setWithObject:_texture];
+        return oo::NSSetFromObjects(std::vector<id> { _texture });
     else
         return nil;
 }

@@ -26,9 +26,11 @@ MA 02110-1301, USA.
 
 #import "OOOpenAL.h"
 
-static NSString* const kOOLogSoundInitError = @"sound.initialization.error";
-static NSString* const kOOLogSoundLoadingSuccess = @"sound.load.success";
-static NSString* const kOOLogSoundLoadingError = @"sound.load.error";
+// Log message classes, UTF-8 (Foundation sweep, proposed ADR-0043): an OOLog call passes
+// oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.
+static constexpr const char* kOOLogSoundInitError = "sound.initialization.error";
+static constexpr const char* kOOLogSoundLoadingSuccess = "sound.load.success";
+static constexpr const char* kOOLogSoundLoadingError = "sound.load.error";
 
 @interface OOOpenALController : OOObject {
 @private

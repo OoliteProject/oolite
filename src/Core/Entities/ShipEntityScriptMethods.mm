@@ -24,19 +24,18 @@ MA 02110-1301, USA.
 */
 
 #import "ShipEntityScriptMethods.h"
+#import "OOFoundationBridge.h"
 #import "OOPListView.h"
 #import "Universe.h"
 
-static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
-
 @implementation ShipEntity (ScriptMethods)
 
-- (ShipEntity*)ejectShipOfType:(NSString*)shipKey
+- (ShipEntity*)ejectShipOfType:(const std::optional<std::string>&)shipKey
 {
     ShipEntity* item = nil;
 
-    if (shipKey != nil) {
-        item = [[UNIVERSE newShipWithName:shipKey] autorelease];
+    if (shipKey.has_value()) {
+        item = [[UNIVERSE newShipWithName:oo::NSStringFrom(*shipKey)] autorelease];
         if (item != nil)
             [self dumpItem:item];
     }
@@ -44,12 +43,12 @@ static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
     return item;
 }
 
-- (ShipEntity*)ejectShipOfRole:(NSString*)role
+- (ShipEntity*)ejectShipOfRole:(const std::optional<std::string>&)role
 {
     ShipEntity* item = nil;
 
-    if (role != nil) {
-        item = [[UNIVERSE newShipWithRole:role] autorelease];
+    if (role.has_value()) {
+        item = [[UNIVERSE newShipWithRole:oo::NSStringFrom(*role)] autorelease];
         if (item != nil)
             [self dumpItem:item];
     }
@@ -57,21 +56,21 @@ static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
     return item;
 }
 
-- (NSArray*)spawnShipsWithRole:(NSString*)role count:(NSUInteger)count
+- (std::vector<oo::ObjCRef<ShipEntity*>>)spawnShipsWithRole:(const std::string&)role count:(NSUInteger)count
 {
     ShipEntity* ship = [self rootShipEntity]; // FIXME: (EMMSTRAN) implement an -absolutePosition method, use that in spawnShipWithRole:near:, and use self instead of root.
     ShipEntity* spawned = nil;
-    NSMutableArray* result = nil;
+    std::vector<oo::ObjCRef<ShipEntity*>> result;
 
     if (count == 0)
-        return [NSArray array];
+        return result;
 
-    OOLog(kOOLogNoteAddShips, @"Spawning %zu x '%@' near %@ %d", count, role, [self shortDescription], [self universalID]);
+    OOLog(@"script.debug.note.addShips", @"Spawning %zu x '%@' near %@ %d", count, oo::NSStringFrom(role), [self shortDescription], [self universalID]);
 
-    result = [NSMutableArray arrayWithCapacity:count];
+    result.reserve(count);
 
     do {
-        spawned = [UNIVERSE spawnShipWithRole:role near:ship];
+        spawned = [UNIVERSE spawnShipWithRole:oo::NSStringFrom(role) near:ship];
         if (spawned != nil) {
             [spawned setTemperature:[self randomEjectaTemperature]];
             if ([self isMissileFlagSet] && oo::PListView([spawned shipInfoDictionary]).get<bool>(@"is_submunition")) {
@@ -82,7 +81,7 @@ static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
             if ([spawned isMine]) {
                 [spawned setOwner:self];
             }
-            [result addObject:spawned];
+            result.emplace_back(spawned);
         }
     } while (--count);
 

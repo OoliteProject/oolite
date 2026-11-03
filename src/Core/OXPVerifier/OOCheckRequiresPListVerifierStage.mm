@@ -28,15 +28,34 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFileScannerVerifierStage.h"
+#import "OOFoundationBridge.h"
 #import "OOStringParsing.h"
 
-static NSString* const kStageName = @"Checking requires.plist";
+#include "oofnd/String.hpp"
+
+static const char* const kStageName = "Checking requires.plist";
+
+namespace {
+
+// The string value of <key>, or nullopt (logging an error) when it is present but not a string.
+std::optional<std::string> VersionStringForKey(const oo::PList& requiresPList, std::string_view key, std::string_view errorMessage)
+{
+    const oo::PList* value = requiresPList.find(key);
+    if (value == nullptr)
+        return std::nullopt;
+    if (const std::string* string = value->getIf<std::string>())
+        return *string;
+    OOLog(@"verifyOXP.requiresPList.badValue", @"%@", oo::NSStringFrom(errorMessage));
+    return std::nullopt;
+}
+
+} // namespace
 
 @implementation OOCheckRequiresPListVerifierStage
 
-- (NSString*)name
+- (id)name // shared selector (proposed ADR-0043)
 {
-    return kStageName;
+    return oo::NSStringFrom(kStageName);
 }
 
 - (BOOL)shouldRun
@@ -53,86 +72,80 @@ static NSString* const kStageName = @"Checking requires.plist";
 - (void)run
 {
     OOFileScannerVerifierStage* fileScanner = nil;
-    NSDictionary* requiresPList = nil;
-    NSSet* knownKeys = nil;
-    NSMutableSet* actualKeys = nil;
-    NSString *version = nil,
-             *maxVersion = nil;
-    NSArray *ooVersionComponents = nil,
-            *versionComponents = nil,
-            *maxVersionComponents = nil;
+    oo::PList requiresPList;
+    std::vector<std::string> knownKeys;
+    std::string unknownKeys;
+    std::optional<std::string> version,
+        maxVersion;
+    std::vector<unsigned> ooVersionComponents; // empty where ComponentsFromVersionString() answered nil
+    std::optional<std::vector<unsigned>> versionComponents,
+        maxVersionComponents;
 
     fileScanner = [[self verifier] fileScannerStage];
-    requiresPList = [fileScanner plistNamed:@"requires.plist"
-                                   inFolder:@"Config"
-                             referencedFrom:nil
-                               checkBuiltIn:NO];
+    requiresPList = oo::PListFrom([fileScanner plistNamed:@"requires.plist"
+                                                 inFolder:@"Config"
+                                           referencedFrom:nil
+                                             checkBuiltIn:NO]);
 
-    if (requiresPList == nil)
+    if (requiresPList.isNull())
         return;
 
     // Check that it's a dictionary
-    if (![requiresPList isKindOfClass:[NSDictionary class]]) {
+    if (!requiresPList.isDict()) {
         OOLog(@"verifyOXP.requiresPList.notDict", @"%@", @"***** ERROR: requires.plist is not a dictionary.");
         return;
     }
 
     // Check that all the keys are known.
-    knownKeys = [[self verifier] configurationSetForKey:@"requiresPListSupportedKeys"];
-    actualKeys = [NSMutableSet setWithArray:[requiresPList allKeys]];
-    [actualKeys minusSet:knownKeys];
+    knownKeys = oo::StringsFrom([[self verifier] configurationSetForKey:@"requiresPListSupportedKeys"]);
+    for (const auto& [key, value] : *requiresPList.getIf<oo::PList::Dict>()) {
+        if (std::find(knownKeys.begin(), knownKeys.end(), key) != knownKeys.end())
+            continue;
+        if (!unknownKeys.empty())
+            unknownKeys += ", ";
+        unknownKeys += key;
+    }
 
-    if ([actualKeys count] != 0) {
+    if (!unknownKeys.empty()) {
 
-        OOLog(@"verifyOXP.requiresPList.unknownKeys", @"----- WARNING: requires.plist contains unknown keys. This OXP will not be loaded by this version of Oolite. Unknown keys are: %@.", [[actualKeys allObjects] componentsJoinedByString:@", "]);
+        OOLog(@"verifyOXP.requiresPList.unknownKeys", @"----- WARNING: requires.plist contains unknown keys. This OXP will not be loaded by this version of Oolite. Unknown keys are: %@.", oo::NSStringFrom(unknownKeys));
     }
 
     // Sanity check the known keys.
-    version = [requiresPList objectForKey:@"version"];
-    if (version != nil) {
-        if (![version isKindOfClass:[NSString class]]) {
-            OOLog(@"verifyOXP.requiresPList.badValue", @"%@", @"***** ERROR: Value for 'version' is not a string.");
-            version = nil;
-        }
-    }
+    version = VersionStringForKey(requiresPList, "version", "***** ERROR: Value for 'version' is not a string.");
+    maxVersion = VersionStringForKey(requiresPList, "max_version", "***** ERROR: Value for 'max_version' is not a string.");
 
-    maxVersion = [requiresPList objectForKey:@"max_version"];
-    if (maxVersion != nil) {
-        if (![maxVersion isKindOfClass:[NSString class]]) {
-            OOLog(@"verifyOXP.requiresPList.badValue", @"%@", @"***** ERROR: Value for 'max_version' is not a string.");
-            maxVersion = nil;
-        }
-    }
-
-    if (version != nil || maxVersion != nil) {
-        ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
-        if (ooVersionComponents == nil) {
+    if (version.has_value() || maxVersion.has_value()) {
+        ooVersionComponents = oo::str::versionComponents(oo::StdString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]));
+        if (ooVersionComponents.empty()) {
             OOLog(@"verifyOXP.requiresPList.cantFindOoliteVersion", @"%@", @"----- WARNING: could not find Oolite's version for requires.plist sanity check.");
         }
-        if (version != nil) {
-            versionComponents = ComponentsFromVersionString(version);
-            if (versionComponents == nil) {
-                OOLog(@"verifyOXP.requiresPList.badValue", @"***** ERROR: could not interpret version string \"%@\" as version number.", version);
-            } else if (ooVersionComponents != nil) {
-                if (CompareVersions(ooVersionComponents, versionComponents) == NSOrderedAscending) {
-                    OOLog(@"verifyOXP.requiresPList.oxpRequiresNewerOolite", @"----- WARNING: this OXP requires a newer version of Oolite (%@) to work.", version);
+        if (version.has_value()) {
+            versionComponents = oo::str::versionComponents(*version);
+            if (versionComponents->empty()) {
+                OOLog(@"verifyOXP.requiresPList.badValue", @"***** ERROR: could not interpret version string \"%@\" as version number.", oo::NSStringFrom(*version));
+                versionComponents = std::nullopt;
+            } else if (!ooVersionComponents.empty()) {
+                if (oo::str::compareVersions(ooVersionComponents, *versionComponents) < 0) {
+                    OOLog(@"verifyOXP.requiresPList.oxpRequiresNewerOolite", @"----- WARNING: this OXP requires a newer version of Oolite (%@) to work.", oo::NSStringFrom(*version));
                 }
             }
         }
-        if (maxVersion != nil) {
-            maxVersionComponents = ComponentsFromVersionString(maxVersion);
-            if (maxVersionComponents == nil) {
-                OOLog(@"verifyOXP.requiresPList.badValue", @"***** ERROR: could not interpret max_version string \"%@\" as version number.", maxVersion);
-            } else if (ooVersionComponents != nil) {
-                if (CompareVersions(ooVersionComponents, maxVersionComponents) == NSOrderedDescending) {
-                    OOLog(@"verifyOXP.requiresPList.oxpRequiresOlderOolite", @"----- WARNING: this OXP requires an older version of Oolite (%@) to work.", maxVersion);
+        if (maxVersion.has_value()) {
+            maxVersionComponents = oo::str::versionComponents(*maxVersion);
+            if (maxVersionComponents->empty()) {
+                OOLog(@"verifyOXP.requiresPList.badValue", @"***** ERROR: could not interpret max_version string \"%@\" as version number.", oo::NSStringFrom(*maxVersion));
+                maxVersionComponents = std::nullopt;
+            } else if (!ooVersionComponents.empty()) {
+                if (oo::str::compareVersions(ooVersionComponents, *maxVersionComponents) > 0) {
+                    OOLog(@"verifyOXP.requiresPList.oxpRequiresOlderOolite", @"----- WARNING: this OXP requires an older version of Oolite (%@) to work.", oo::NSStringFrom(*maxVersion));
                 }
             }
         }
 
-        if (versionComponents != nil && maxVersionComponents != nil) {
-            if (CompareVersions(versionComponents, maxVersionComponents) == NSOrderedDescending) {
-                OOLog(@"verifyOXP.requiresPList.noVersionsInRange", @"***** ERROR: this OXP's maximum version (%@) is less than its minimum version (%@).", maxVersion, version);
+        if (versionComponents.has_value() && maxVersionComponents.has_value()) {
+            if (oo::str::compareVersions(*versionComponents, *maxVersionComponents) > 0) {
+                OOLog(@"verifyOXP.requiresPList.noVersionsInRange", @"***** ERROR: this OXP's maximum version (%@) is less than its minimum version (%@).", oo::NSStringFrom(*maxVersion), oo::NSStringFrom(*version));
             }
         }
     }

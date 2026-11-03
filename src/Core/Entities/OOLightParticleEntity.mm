@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
+#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
@@ -320,9 +321,9 @@ static OOTexture* sBlobTexture = nil;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures
+- (id)allTextures // shared selector (proposed ADR-0043)
 {
-    return [NSSet setWithObject:[self texture]];
+    return oo::NSSetFromObjects(std::vector<id> { [self texture] });
 }
 #endif
 

@@ -27,220 +27,247 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #import "AI.h"
+#import "OOCollectionExtractors.h" // OOHPVectorFromObject() & co., OOPropertyListFromHPVector() & co. (unmigrated callees)
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
 #import "OOFoundationBridge.h"
-#import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
 #import "ShipEntityAI.h"
 
-#define KEY_SHIP_KEY @"ship_key"
-#define KEY_SHIPDATA_OVERRIDES @"shipdata_overrides"
-#define KEY_SHIPDATA_DELETES @"shipdata_deletes"
-#define KEY_PRIMARY_ROLE @"primary_role"
-#define KEY_POSITION @"position"
-#define KEY_ORIENTATION @"orientation"
-#define KEY_ROLES @"roles"
-#define KEY_FUEL @"fuel"
-#define KEY_BOUNTY @"bounty"
-#define KEY_ENERGY_LEVEL @"energy_level"
-#define KEY_EQUIPMENT @"equipment"
-#define KEY_MISSILES @"missiles"
-#define KEY_FORWARD_WEAPON @"forward_weapon_type"
-#define KEY_AFT_WEAPON @"aft_weapon_type"
-#define KEY_SCAN_CLASS @"scan_class"
+#include "oofnd/PListGet.hpp"
+
+#define KEY_SHIP_KEY "ship_key"
+#define KEY_SHIPDATA_OVERRIDES "shipdata_overrides"
+#define KEY_SHIPDATA_DELETES "shipdata_deletes"
+#define KEY_PRIMARY_ROLE "primary_role"
+#define KEY_POSITION "position"
+#define KEY_ORIENTATION "orientation"
+#define KEY_ROLES "roles"
+#define KEY_FUEL "fuel"
+#define KEY_BOUNTY "bounty"
+#define KEY_ENERGY_LEVEL "energy_level"
+#define KEY_EQUIPMENT "equipment"
+#define KEY_MISSILES "missiles"
+#define KEY_FORWARD_WEAPON "forward_weapon_type"
+#define KEY_AFT_WEAPON "aft_weapon_type"
+#define KEY_SCAN_CLASS "scan_class"
 
 // AI is a complete pickled AI state.
-#define KEY_AI @"AI"
+#define KEY_AI "AI"
 
 // Group IDs are numbers synchronised through the context object.
-#define KEY_GROUP_ID @"group"
-#define KEY_GROUP_NAME @"group_name"
-#define KEY_IS_GROUP_LEADER @"is_group_leader"
-#define KEY_ESCORT_GROUP_ID @"escort_group"
+#define KEY_GROUP_ID "group"
+#define KEY_GROUP_NAME "group_name"
+#define KEY_IS_GROUP_LEADER "is_group_leader"
+#define KEY_ESCORT_GROUP_ID "escort_group"
 
-static void StripIgnoredKeys(NSMutableDictionary* dict);
-static NSUInteger GroupIDForGroup(OOShipGroup* group, NSMutableDictionary* context);
-static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* context);
+namespace {
+
+void StripIgnoredKeys(oo::PList::Dict& dict);
+NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context);
+OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context);
+oo::PList::Dict DictFrom(const oo::PList& plist);
+oo::PList ArrayFromStrings(const std::vector<std::string>& strings);
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key);
+id ObjectForKey(const oo::PList& dict, std::string_view key);
+} // namespace
 
 @interface ShipEntity (LoadRestoreInternal)
 
-- (void)simplifyShipdata:(NSMutableDictionary*)data andGetDeletes:(NSArray**)deletes;
+// deletes: the keys to delete, empty where the Foundation version gave nil.
+- (void)simplifyShipdata:(oo::PList::Dict&)data andGetDeletes:(std::vector<std::string>*)deletes;
 
 @end
 
 @implementation ShipEntity (LoadRestore)
 
-- (NSDictionary*)savedShipDictionaryWithContext:(NSMutableDictionary*)context
+- (oo::PList)savedShipDictionaryWithContext:(OOShipSaveContext*)context
 {
-    NSMutableDictionary* result = [NSMutableDictionary dictionary];
-    if (context == nil)
-        context = [NSMutableDictionary dictionary];
+    oo::PList::Dict result;
+    OOShipSaveContext localContext;
+    if (context == nullptr)
+        context = &localContext;
 
-    [result setObject:_shipKey forKey:KEY_SHIP_KEY];
+    result[KEY_SHIP_KEY] = oo::StdString(_shipKey);
 
-    NSMutableDictionary* updatedShipInfo = [NSMutableDictionary dictionaryWithDictionary:shipinfoDictionary];
+    oo::PList::Dict updatedShipInfo = DictFrom(oo::PListFrom(shipinfoDictionary));
 
-    [updatedShipInfo setObject:oo::NSStringOrNil([[self roleSet] roleString]) forKey:KEY_ROLES];
-    [updatedShipInfo oo_setUnsignedInteger:fuel forKey:KEY_FUEL];
-    [updatedShipInfo oo_setUnsignedLongLong:bounty forKey:KEY_BOUNTY];
-    [updatedShipInfo setObject:OOStringFromWeaponType(forward_weapon_type) forKey:KEY_FORWARD_WEAPON];
-    [updatedShipInfo setObject:OOStringFromWeaponType(aft_weapon_type) forKey:KEY_AFT_WEAPON];
-    [updatedShipInfo setObject:OOStringFromScanClass(scanClass) forKey:KEY_SCAN_CLASS];
+    // A role set without a role string (nil before, which -setObject:forKey: refused) adds no key.
+    if (const std::optional<std::string> roleString = [[self roleSet] roleString])
+        updatedShipInfo[KEY_ROLES] = *roleString;
+    updatedShipInfo[KEY_FUEL] = oo::PList::unsignedInteger(fuel);
+    updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(bounty);
+    updatedShipInfo[KEY_FORWARD_WEAPON] = oo::StdString(OOStringFromWeaponType(forward_weapon_type));
+    updatedShipInfo[KEY_AFT_WEAPON] = oo::StdString(OOStringFromWeaponType(aft_weapon_type));
+    updatedShipInfo[KEY_SCAN_CLASS] = oo::StdString(OOStringFromScanClass(scanClass));
 
-    NSArray* deletes = nil;
+    std::vector<std::string> deletes;
     [self simplifyShipdata:updatedShipInfo andGetDeletes:&deletes];
 
-    [result setObject:updatedShipInfo forKey:KEY_SHIPDATA_OVERRIDES];
-    if (deletes != nil)
-        [result setObject:deletes forKey:KEY_SHIPDATA_DELETES];
+    result[KEY_SHIPDATA_OVERRIDES] = oo::PList(std::move(updatedShipInfo));
+    if (!deletes.empty())
+        result[KEY_SHIPDATA_DELETES] = ArrayFromStrings(deletes);
 
     if (!HPvector_equal([self position], kZeroHPVector)) {
-        [result oo_setHPVector:[self position] forKey:KEY_POSITION];
+        result[KEY_POSITION] = oo::PListFrom(OOPropertyListFromHPVector([self position]));
     }
     if (!quaternion_equal([self normalOrientation], kIdentityQuaternion)) {
-        [result oo_setQuaternion:[self normalOrientation] forKey:KEY_ORIENTATION];
+        result[KEY_ORIENTATION] = oo::PListFrom(OOPropertyListFromQuaternion([self normalOrientation]));
     }
 
+    // -oo_setFloat:forKey: stored a double.
     if (energy != maxEnergy)
-        [result oo_setFloat:energy / maxEnergy forKey:KEY_ENERGY_LEVEL];
+        result[KEY_ENERGY_LEVEL] = oo::PList(static_cast<double>(energy / maxEnergy));
 
-    [result setObject:[self primaryRole] forKey:KEY_PRIMARY_ROLE];
+    result[KEY_PRIMARY_ROLE] = oo::StdString([self primaryRole]);
 
     // Add equipment.
-    NSArray* equipment = [[self equipmentEnumerator] allObjects];
-    if ([equipment count] != 0)
-        [result setObject:equipment forKey:KEY_EQUIPMENT];
+    const std::vector<std::string> equipment = oo::StringsFrom([self equipmentEnumerator]);
+    if (equipment.size() != 0)
+        result[KEY_EQUIPMENT] = ArrayFromStrings(equipment);
 
     // Add missiles.
     if (missiles > 0) {
-        NSMutableArray* missileArray = [NSMutableArray array];
+        std::vector<std::string> missileArray;
         unsigned i;
         for (i = 0; i < missiles; i++) {
-            NSString* missileType = [missile_list[i] identifier];
-            if (missileType != nil)
-                [missileArray addObject:missileType];
+            const std::optional<std::string> missileType = oo::OptionalString([missile_list[i] identifier]);
+            if (missileType.has_value())
+                missileArray.push_back(*missileType);
         }
-        [result setObject:missileArray forKey:KEY_MISSILES];
+        result[KEY_MISSILES] = ArrayFromStrings(missileArray);
     }
 
     // Add groups.
     if (_group != nil) {
-        [result oo_setUnsignedInteger:GroupIDForGroup(_group, context) forKey:KEY_GROUP_ID];
+        result[KEY_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
         if ([_group leader] == self)
-            [result oo_setBool:YES forKey:KEY_IS_GROUP_LEADER];
-        NSString* groupName = [_group name];
-        if (groupName != nil) {
-            [result setObject:groupName forKey:KEY_GROUP_NAME];
+            result[KEY_IS_GROUP_LEADER] = oo::PList(static_cast<bool>(YES));
+        const std::optional<std::string> groupName = oo::OptionalString([_group name]);
+        if (groupName.has_value()) {
+            result[KEY_GROUP_NAME] = *groupName;
         }
     }
     if (_escortGroup != nil) {
-        [result oo_setUnsignedInteger:GroupIDForGroup(_escortGroup, context) forKey:KEY_ESCORT_GROUP_ID];
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_escortGroup, *context));
     }
     /*	Eric:
             The escortGroup property is removed from the lead ship, on entering witchspace.
             But it is needed in the save file to correctly restore an escorted group.
     */
     else if (_group != nil && [_group leader] == self) {
-        [result oo_setUnsignedInteger:GroupIDForGroup(_group, context) forKey:KEY_ESCORT_GROUP_ID];
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
     }
 
     // FIXME: AI.
     // Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
     // Also the AI restarts itself with the GLOBAL state, so no need to store any old state.
-    if ([[[self getAI] name] isEqualToString:@"nullAI.plist"]) {
-        // might be a JS version
-        [result setObject:[[self getAI] associatedJS] forKey:KEY_AI];
+    if (oo::StdString([[self getAI] name]) == "nullAI.plist") {
+        // might be a JS version (with none, no key: -setObject:forKey: refused nil)
+        if (const std::optional<std::string> js = [[self getAI] cxx_associatedJS])
+            result[KEY_AI] = *js;
         // if there isn't, loading nullAI.js will load nullAI.plist anyway
     } else {
-        [result setObject:[[self getAI] name] forKey:KEY_AI];
+        result[KEY_AI] = oo::StdString([[self getAI] name]);
     }
 
-    return result;
+    return oo::PList(std::move(result));
 }
 
-+ (id)shipRestoredFromDictionary:(NSDictionary*)dict
++ (id)shipRestoredFromDictionary:(const oo::PList&)dict
                      useFallback:(BOOL)fallback
-                         context:(NSMutableDictionary*)context
+                         context:(OOShipSaveContext*)context
 {
-    if (dict == nil)
+    if (dict.isNull())
         return nil;
-    if (context == nil)
-        context = [NSMutableDictionary dictionary];
+    OOShipSaveContext localContext;
+    if (context == nullptr)
+        context = &localContext;
 
     ShipEntity* ship = nil;
 
-    NSString* shipKey = oo::PListView(dict).get<NSString*>(KEY_SHIP_KEY);
-    NSDictionary* shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+    const std::string shipKey = dict.get<std::string>(KEY_SHIP_KEY); // "" finds no ship, as nil did
+    const oo::PList shipData = oo::PListFrom([[OOShipRegistry sharedRegistry] shipInfoForKey:oo::NSStringFrom(shipKey)]);
 
-    if (shipData != nil) {
-        NSMutableDictionary* mergedData = [NSMutableDictionary dictionaryWithDictionary:shipData];
+    if (shipData) {
+        oo::PList::Dict mergedData = DictFrom(shipData);
 
         StripIgnoredKeys(mergedData);
-        NSArray* deletes = oo::PListView(dict).get<NSArray*>(KEY_SHIPDATA_DELETES);
-        if (deletes != nil)
-            [mergedData removeObjectsForKeys:deletes];
-        [mergedData addEntriesFromDictionary:oo::PListView(dict).get<NSDictionary*>(KEY_SHIPDATA_OVERRIDES)];
-        [mergedData oo_setBool:NO forKey:@"auto_ai"];
-        [mergedData oo_setUnsignedInteger:0 forKey:@"escorts"];
+        if (const oo::PList* deletes = dict.get<oo::PList::Array>(KEY_SHIPDATA_DELETES)) {
+            for (const oo::PList& key : *deletes->getIf<oo::PList::Array>()) {
+                if (const std::string* name = key.getIf<std::string>())
+                    mergedData.erase(*name);
+            }
+        }
+        if (const oo::PList* overrides = dict.get<oo::PList::Dict>(KEY_SHIPDATA_OVERRIDES)) {
+            for (const auto& [key, value] : *overrides->getIf<oo::PList::Dict>())
+                mergedData.insert_or_assign(key, value);
+        }
+        mergedData["auto_ai"] = oo::PList(static_cast<bool>(NO));
+        mergedData["escorts"] = oo::PList::unsignedInteger(0);
 
-        Class shipClass = [UNIVERSE shipClassForShipDictionary:mergedData];
-        ship = [[[shipClass alloc] initWithKey:shipKey definition:mergedData] autorelease];
+        // One Objective-C dictionary for both callees, as before.
+        id definition = oo::ObjectFromPList(oo::PList(std::move(mergedData)));
+        Class shipClass = [UNIVERSE shipClassForShipDictionary:definition];
+        ship = [[[shipClass alloc] initWithKey:oo::NSStringFrom(shipKey) definition:definition] autorelease];
 
         // FIXME: restore AI.
-        [ship setAITo:oo::PListView(dict).get<NSString*>(KEY_AI, @"nullAI.plist")];
+        [ship setAITo:oo::NSStringFrom(dict.get<std::string>(KEY_AI, "nullAI.plist"))];
 
-        [ship setPrimaryRole:oo::PListView(dict).get<NSString*>(KEY_PRIMARY_ROLE)];
+        [ship setPrimaryRole:oo::NSStringOrNil(OptionalStringForKey(dict, KEY_PRIMARY_ROLE))];
 
     } else {
         // Unknown ship; fall back on role if desired and possible.
-        NSString* shipPrimaryRole = oo::PListView(dict).get<NSString*>(KEY_PRIMARY_ROLE);
-        if (!fallback || shipPrimaryRole == nil)
+        const std::optional<std::string> shipPrimaryRole = OptionalStringForKey(dict, KEY_PRIMARY_ROLE);
+        if (!fallback || !shipPrimaryRole.has_value())
             return nil;
 
-        ship = [[UNIVERSE newShipWithRole:shipPrimaryRole] autorelease];
+        ship = [[UNIVERSE newShipWithRole:oo::NSStringFrom(*shipPrimaryRole)] autorelease];
         if (ship == nil)
             return nil;
     }
 
     // The following stuff is deliberately set up the same way even if using role fallback.
-    [ship setPosition:oo::PListView(dict).get<HPVector>(KEY_POSITION)];
-    [ship setNormalOrientation:oo::PListView(dict).get<Quaternion>(KEY_ORIENTATION)];
+    [ship setPosition:OOHPVectorFromObject(ObjectForKey(dict, KEY_POSITION), kZeroHPVector)];
+    [ship setNormalOrientation:OOQuaternionFromObject(ObjectForKey(dict, KEY_ORIENTATION), kIdentityQuaternion)];
 
-    float energyLevel = oo::PListView(dict).get<float>(KEY_ENERGY_LEVEL, 1.0f);
+    float energyLevel = dict.get<float>(KEY_ENERGY_LEVEL, 1.0f);
     [ship setEnergy:energyLevel * [ship maxEnergy]];
 
     [ship removeAllEquipment];
-    NSString* eqKey = nil;
-    foreach (eqKey, oo::PListView(dict).get<NSArray*>(KEY_EQUIPMENT)) {
-        [ship addEquipmentItem:eqKey withValidation:NO inContext:@"loading"];
+    if (const oo::PList* equipment = dict.get<oo::PList::Array>(KEY_EQUIPMENT)) {
+        for (const oo::PList& eqKey : *equipment->getIf<oo::PList::Array>()) {
+            [ship addEquipmentItem:oo::ObjectFromPList(eqKey) withValidation:NO inContext:@"loading"];
+        }
     }
 
     [ship removeMissiles];
-    foreach (eqKey, oo::PListView(dict).get<NSArray*>(KEY_MISSILES)) {
-        [ship addEquipmentItem:eqKey withValidation:NO inContext:@"loading"];
+    if (const oo::PList* missileList = dict.get<oo::PList::Array>(KEY_MISSILES)) {
+        for (const oo::PList& eqKey : *missileList->getIf<oo::PList::Array>()) {
+            [ship addEquipmentItem:oo::ObjectFromPList(eqKey) withValidation:NO inContext:@"loading"];
+        }
     }
 
     // Groups.
-    NSUInteger groupID = oo::PListView(dict).get<NSInteger>(KEY_GROUP_ID, NSNotFound);
+    NSUInteger groupID = dict.get<NSInteger>(KEY_GROUP_ID, NSNotFound);
     if (groupID != NSNotFound) {
-        OOShipGroup* group = GroupForGroupID(groupID, context);
+        OOShipGroup* group = GroupForGroupID(groupID, *context);
         [ship setGroup:group]; // Handles adding to group
         if (oo::PListView(dict).get<bool>(KEY_IS_GROUP_LEADER))
             [group setLeader:ship];
-        NSString* groupName = oo::PListView(dict).get<NSString*>(KEY_GROUP_NAME);
-        if (groupName != nil)
-            [group setName:groupName];
+        const std::optional<std::string> groupName = OptionalStringForKey(dict, KEY_GROUP_NAME);
+        if (groupName.has_value())
+            [group setName:oo::NSStringFrom(*groupName)];
         if ([ship hasPrimaryRole:@"escort"] && ship != [group leader]) {
             [ship setOwner:[group leader]];
         }
     }
 
-    groupID = oo::PListView(dict).get<NSInteger>(KEY_ESCORT_GROUP_ID, NSNotFound);
+    groupID = dict.get<NSInteger>(KEY_ESCORT_GROUP_ID, NSNotFound);
     if (groupID != NSNotFound) {
-        OOShipGroup* group = GroupForGroupID(groupID, context);
+        OOShipGroup* group = GroupForGroupID(groupID, *context);
         [group setLeader:ship];
         [group setName:@"escort group"];
         [ship setEscortGroup:group];
@@ -249,29 +276,24 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
     return ship;
 }
 
-- (void)simplifyShipdata:(NSMutableDictionary*)data andGetDeletes:(NSArray**)deletes
+- (void)simplifyShipdata:(oo::PList::Dict&)data andGetDeletes:(std::vector<std::string>*)deletes
 {
-    NSParameterAssert(data != nil && deletes != NULL);
-    *deletes = nil;
+    NSParameterAssert(deletes != NULL);
+    deletes->clear();
 
     // Get original ship data.
-    NSMutableDictionary* referenceData = [NSMutableDictionary dictionaryWithDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]]];
+    oo::PList::Dict referenceData = DictFrom(oo::PListFrom([[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]]));
 
     // Discard stuff that we handle separately.
     StripIgnoredKeys(referenceData);
     StripIgnoredKeys(data);
 
-    // Note items that are in referenceData, but not data.
-    NSMutableArray* foundDeletes = [NSMutableArray array];
-    NSString* key = nil;
-    foreachkey(key, referenceData)
-    {
-        if ([data objectForKey:key] == nil) {
-            [foundDeletes addObject:key];
+    // Note items that are in referenceData, but not data (in byte order of the key; hash order before).
+    for (const auto& [key, value] : referenceData) {
+        if (!data.contains(key)) {
+            deletes->push_back(key);
         }
     }
-    if ([foundDeletes count] != 0)
-        *deletes = foundDeletes;
 
     // after rev3010 this loop was using cycles without doing anything - commenting this whole loop out for now. -- kaks 20100207
     /*
@@ -290,70 +312,84 @@ static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* con
 
 @end
 
-static void StripIgnoredKeys(NSMutableDictionary* dict)
-{
-    static NSArray* ignoredKeys = nil;
-    if (ignoredKeys == nil)
-        ignoredKeys = [[NSArray alloc] initWithObjects:@"ai_type", @"has_ecm", @"has_scoop", @"has_escape_pod", @"has_energy_bomb", @"has_fuel_injection", @"has_cloaking_device", @"has_military_jammer", @"has_military_scanner_filter", @"has_shield_booster", @"has_shield_enhancer", @"escorts", @"escort_role", @"escort-ship", @"conditions", @"missiles", @"auto_ai", nil];
+namespace {
 
-    NSString* key = nil;
-    foreach (key, ignoredKeys) {
-        [dict removeObjectForKey:key];
+void StripIgnoredKeys(oo::PList::Dict& dict)
+{
+    static const char* const ignoredKeys[] = { "ai_type", "has_ecm", "has_scoop", "has_escape_pod", "has_energy_bomb", "has_fuel_injection", "has_cloaking_device", "has_military_jammer", "has_military_scanner_filter", "has_shield_booster", "has_shield_enhancer", "escorts", "escort_role", "escort-ship", "conditions", "missiles", "auto_ai" };
+
+    for (const char* key : ignoredKeys) {
+        const auto found = dict.find(std::string_view(key));
+        if (found != dict.end())
+            dict.erase(found);
     }
 }
 
-static NSUInteger GroupIDForGroup(OOShipGroup* group, NSMutableDictionary* context)
+NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context)
 {
-    NSMutableDictionary* groupIDs = [context objectForKey:@"groupIDs"];
-    if (groupIDs == nil) {
-        groupIDs = [NSMutableDictionary dictionary];
-        [context setObject:groupIDs forKey:@"groupIDs"];
-    }
-
-    NSValue* key = [NSValue valueWithNonretainedObject:group];
-    NSNumber* groupIDObj = [groupIDs objectForKey:key];
+    const auto found = context.groupIDs.find(group);
     unsigned groupID;
-    if (groupIDObj == nil) {
+    if (found == context.groupIDs.end()) {
         // Assign a new group ID.
-        groupID = oo::PListView(context).get<unsigned int>(@"nextGroupID");
-        groupIDObj = [NSNumber numberWithUnsignedInt:groupID];
-        [context oo_setUnsignedInteger:groupID + 1 forKey:@"nextGroupID"];
-        [groupIDs setObject:groupIDObj forKey:key];
+        groupID = context.nextGroupID;
+        context.nextGroupID = groupID + 1;
+        context.groupIDs.emplace(group, groupID);
 
         /*	Also keep references to the groups. This isn't necessary at the
                 time of writing, but would be if we e.g. switched to pickling
                 ships in wormholes all the time (each wormhole would then need a
-                persistent context). We can't simply use the groups instead of
-                NSValues as keys, becuase dictionary keys must be copyable.
+                persistent context).
         */
-        NSMutableSet* groups = [context objectForKey:@"groups"];
-        if (groups == nil) {
-            groups = [NSMutableSet set];
-            [context setObject:groups forKey:@"groups"];
-        }
-        [groups addObject:group];
+        context.groups.emplace_back(group);
     } else {
-        groupID = [groupIDObj unsignedIntValue];
+        groupID = found->second;
     }
 
     return groupID;
 }
 
-static OOShipGroup* GroupForGroupID(NSUInteger groupID, NSMutableDictionary* context)
+OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context)
 {
-    NSNumber* key = [NSNumber numberWithUnsignedInteger:groupID];
-
-    NSMutableDictionary* groups = [context objectForKey:@"groupsByID"];
-    if (groups == nil) {
-        groups = [NSMutableDictionary dictionary];
-        [context setObject:groups forKey:@"groupsByID"];
+    oo::ObjCRef<OOShipGroup*>& group = context.groupsByID[groupID];
+    if (group.get() == nil) {
+        group = oo::adoptObjC([[OOShipGroup alloc] init]);
     }
 
-    OOShipGroup* group = [groups objectForKey:key];
-    if (group == nil) {
-        group = [[[OOShipGroup alloc] init] autorelease];
-        [groups setObject:group forKey:key];
-    }
-
-    return group;
+    return group.get();
 }
+
+// A dictionary's entries; empty for anything else (as +dictionaryWithDictionary: of nil was).
+oo::PList::Dict DictFrom(const oo::PList& plist)
+{
+    if (const oo::PList::Dict* dict = plist.getIf<oo::PList::Dict>())
+        return *dict;
+    return { };
+}
+
+oo::PList ArrayFromStrings(const std::vector<std::string>& strings)
+{
+    oo::PList::Array array;
+    array.reserve(strings.size());
+    for (const std::string& string : strings)
+        array.emplace_back(string);
+    return oo::PList(std::move(array));
+}
+
+// get<std::string> where the Foundation code read nil: std::nullopt when the key is absent or its
+// value is neither a string nor a number.
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return dict.get<std::string>(key);
+}
+
+// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
+id ObjectForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
+}
+
+} // namespace

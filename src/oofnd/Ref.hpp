@@ -33,9 +33,11 @@
           * CYCLES ARE NOT COLLECTED. Two objects that hold Refs to each other are never freed, exactly
             as two ObjC objects that retain each other are not. Break cycles with WeakRef, which is
             what the OOWeakReference edges in today's entity graph already do (ADR-0003).
-          * AutoreleaseScope follows GNUstep's autorelease pool: per-thread, nested, the innermost
-            scope receives autoreleased objects, draining releases them in the order they were added,
-            and objects autoreleased *while* draining are drained too. oo::autorelease() with no scope
+          * AutoreleaseScope follows the game's autorelease pool, which on this toolchain is libobjc2's
+            (ADR-0029 measurement 3): per-thread, nested, the innermost scope receives autoreleased
+            objects, draining releases them LAST-IN-FIRST-OUT (ADR-0045, superseding ADR-0026 point 4's
+            insertion order), and an object autoreleased *while* draining is pushed on top and so is
+            released next, before the older objects still pending (libobjc2's emptyPool). oo::autorelease() with no scope
             on the thread leaks the object (GNUstep's behaviour) and is counted in
             AutoreleaseScope::leakedWithoutScope(). Scopes must end in LIFO order on the thread that
             opened them; anything else is a programming error and aborts.
@@ -506,16 +508,17 @@ public:
     static void* operator new(std::size_t) = delete;
     static void* operator new[](std::size_t) = delete;
 
-    // Releases everything autoreleased into this scope so far, in the order it was added,
-    // including objects autoreleased by those releases; the scope stays open. This is the
+    // Releases everything autoreleased into this scope so far, newest first, including objects
+    // autoreleased by those releases (each lands on top and is released next), exactly as
+    // libobjc2's objc_autoreleasePoolPop does (ADR-0045); the scope stays open. This is the
     // [pool release]; pool = [[<pool class> alloc] init]; idiom in long loops.
     void drain() noexcept
     {
-        for (std::size_t i = 0; i < pending_.size(); ++i) {
-            const RefCounted* object = std::exchange(pending_[i], nullptr);
-            object->release(); // may append to pending_; the index loop picks those up
+        while (!pending_.empty()) {
+            const RefCounted* object = pending_.back();
+            pending_.pop_back();
+            object->release(); // may push_back onto pending_; that object is released next
         }
-        pending_.clear();
     }
 
     std::size_t pendingCount() const noexcept { return pending_.size(); }

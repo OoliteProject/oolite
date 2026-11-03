@@ -24,19 +24,23 @@ commit. Everything else in the file is std / oofnd.
         refs (or raw pointers) -> NSArray / NSSet       oo::NSArrayFromObjects(r) / NSSetFromObjects(r)
         property-list object graph -> oo::PList         oo::PListFrom(object)
         oo::PList -> property-list object graph         oo::ObjectFromPList(plist)
+        the object inside a PList::Object node          oo::ObjectIn(plist)                 (nil for any other node)
+        an object as a PList::Object node               oo::PListObject(object)
         what "%@" printed for an object                 oo::DescriptionOf(object)         (nil -> "(null)")
 
 Exactness. Strings are unit for unit (OOStringBridge.h). PListFrom follows the table in
 oofnd/PList.hpp: an NSNumber is a bool when -oo_isBoolean says so (the test the game's plist
 writer uses), a real when its -objCType is float or double, an unsigned integer for an unsigned
-C type, else a signed integer. (GNUstep caches small integers as int, so a non-negative <integer>
+C type, else a signed integer; a float (its class is NSSmallFloat / NSFloatNumber: gnustep-base
+reports -objCType 'd' for both) is a PList::singleReal, so it comes
+back as +numberWithFloat: and prints as a float. (GNUstep caches small integers as int, so a non-negative <integer>
 GNUstep parsed is a SIGNED PList::Integer here, where oo::parsePropertyList marks it unsigned:
 same value, same writer output, but PList == is type-strict.) A dictionary with a key that is
-not a string becomes a null PList, and so does a value that is not a property-list object: such
-a container is not property-list data, and a migrated file holds it in a typed std container
-instead. ObjectFromPList builds immutable objects and drops null elements; a real comes back as
-+numberWithDouble:, so an NSNumber that was +numberWithFloat: keeps its value but describes
-itself as the double would. Checked against gnustep-base 1.31.1 with a throwaway harness
+not a string becomes a null PList. Any other object (a colour, a texture, NSNull, a placeholder)
+becomes a PList::Object node that holds it (retained): the typed carrier for configuration
+dictionaries that mix plist data with live objects (proposed ADR-0043 Amendment 2), so
+ObjectFromPList(PListFrom(x)) gives back the same objects and the same NSNumber types.
+ObjectFromPList builds immutable containers and drops null elements. Checked against gnustep-base 1.31.1 with a throwaway harness
 (numbers of each kind, an old-style plist of every type round-tripping to an -isEqual: graph and
 an == PList, a lone surrogate, the collection helpers) when this header was written.
 
@@ -177,6 +181,38 @@ NSSet* NSSetFromObjects(const Range& objects)
 
 // --- property lists ---------------------------------------------------------------------------
 
+// A PList::Object node's payload: an Objective-C object, retained (Amendment 2 carrier).
+class ObjCPListForeign final : public PListForeign {
+public:
+    explicit ObjCPListForeign(id object)
+        : object_(object)
+    {
+    }
+    id object() const noexcept { return object_.get(); }
+    std::string className() const override { return class_getName(object_getClass(object_.get())); }
+    std::string description() const override { return StdString([object_.get() description]); }
+
+private:
+    ObjCRef<id> object_;
+};
+
+inline PList PListObject(id object)
+{
+    if (object == nil)
+        return PList();
+    return PList(PList::Object(makeRef<ObjCPListForeign>(object)));
+}
+
+// The object a PList::Object node holds; nil for any other node.
+inline id ObjectIn(const PList& plist)
+{
+    if (const PList::Object* node = plist.getIf<PList::Object>()) {
+        if (const auto* foreign = dynamic_cast<const ObjCPListForeign*>(node->get()))
+            return foreign->object();
+    }
+    return nil;
+}
+
 inline PList PListFrom(id object)
 {
     if (object == nil)
@@ -187,6 +223,9 @@ inline PList PListFrom(id object)
         NSNumber* number = object;
         if ([number oo_isBoolean])
             return PList(static_cast<bool>([number boolValue]));
+        // gnustep-base reports 'd' for a float too; its class tells (NSSmallFloat, NSFloatNumber: probed).
+        if (std::string_view(class_getName(object_getClass(number))).find("Float") != std::string_view::npos)
+            return PList::singleReal([number floatValue]);
         switch (*[number objCType]) {
         case 'f':
         case 'd':
@@ -225,7 +264,7 @@ inline PList PListFrom(id object)
         }
         return PList(std::move(dict));
     }
-    return PList();
+    return PListObject(object);
 }
 
 inline id ObjectFromPList(const PList& plist)
@@ -242,6 +281,8 @@ inline id ObjectFromPList(const PList& plist)
         return [NSNumber numberWithLongLong:integer.value];
     }
     case PList::Type::Real:
+        if (plist.isSinglePrecision())
+            return [NSNumber numberWithFloat:static_cast<float>(*plist.getIf<double>())];
         return [NSNumber numberWithDouble:*plist.getIf<double>()];
     case PList::Type::String:
         return NSStringFrom(*plist.getIf<std::string>());
@@ -271,6 +312,8 @@ inline id ObjectFromPList(const PList& plist)
         }
         return [[result copy] autorelease];
     }
+    case PList::Type::Object:
+        return ObjectIn(plist);
     }
     return nil;
 }

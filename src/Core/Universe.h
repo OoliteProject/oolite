@@ -46,7 +46,8 @@ MA 02110-1301, USA.
 @class GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
     Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
     OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity,
-    DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager;
+    DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager,
+    OOException;
 
 typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter);
 
@@ -147,9 +148,9 @@ enum {
 #define PLANETINFO_UNIVERSAL_KEY @"universal"
 #define PLANETINFO_INTERSTELLAR_KEY @"interstellar space"
 
-#define OOLITE_EXCEPTION_LOOPING @"OoliteLoopingException"
-#define OOLITE_EXCEPTION_DATA_NOT_FOUND @"OoliteDataNotFoundException"
-#define OOLITE_EXCEPTION_FATAL @"OoliteFatalException"
+#define OOLITE_EXCEPTION_LOOPING "OoliteLoopingException"
+#define OOLITE_EXCEPTION_DATA_NOT_FOUND "OoliteDataNotFoundException"
+#define OOLITE_EXCEPTION_FATAL "OoliteFatalException"
 
 // the distance the sky backdrop is from the camera
 // though it appears at infinity
@@ -762,7 +763,7 @@ enum {
 - (OOGraphicsDetail)detailLevel;
 - (BOOL)useShaders;
 
-- (void)handleOoliteException:(NSException*)ooliteException;
+- (void)handleOoliteException:(OOException*)ooliteException;
 
 - (GLfloat)airResistanceFactor;
 - (void)setAirResistanceFactor:(GLfloat)newFactor;
