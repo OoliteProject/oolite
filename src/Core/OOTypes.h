@@ -94,7 +94,6 @@ enum
 };
 typedef NSInteger OOCommodityType;
 */
-typedef NSString* OOCommodityType;
 
 typedef enum {
     CARGO_FLAG_NONE = 400,

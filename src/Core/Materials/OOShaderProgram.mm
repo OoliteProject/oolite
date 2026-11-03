@@ -460,15 +460,15 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
     if (!fileName.has_value())
         return YES; // It's OK for one or the other of the shaders to be undefined.
 
-    result = oo::OptionalString([ResourceManager stringFromFilesNamed:oo::NSStringFrom(*fileName) inFolder:@"Shaders"]);
+    result = [ResourceManager cxx_stringFromFilesNamed:*fileName inFolder:"Shaders"];
     if (!result.has_value()) {
         const std::vector<std::string> extensions { shaderType, shaderType.substr(0, 4) }; // vertex and vert, or fragment and frag
 
         // Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
         if (!oo::str::pathHasExtensionIn(*fileName, extensions)) {
             for (const std::string& extension : extensions) {
-                result = oo::OptionalString([ResourceManager stringFromFilesNamed:[oo::NSStringFrom(*fileName) stringByAppendingPathExtension:oo::NSStringFrom(extension)]
-                                                                         inFolder:@"Shaders"]);
+                result = [ResourceManager cxx_stringFromFilesNamed:oo::StdString([oo::NSStringFrom(*fileName) stringByAppendingPathExtension:oo::NSStringFrom(extension)])
+                                                          inFolder:"Shaders"];
                 if (result.has_value())
                     break;
             }

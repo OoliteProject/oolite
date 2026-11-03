@@ -92,13 +92,13 @@ This code is hereby placed in the public domain.
 
 */
 
+#import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 @class OOWeakReference;
 
-@protocol OOWeakReferenceSupport <NSObject>
+@protocol OOWeakReferenceSupport <OOObject>
 
 - (id)weakRetain OO_RETURNS_RETAINED; // Returns a retained OOWeakReference, which should be released when finished with.
 - (void)weakRefDied:(OOWeakReference*)weakRef;
@@ -120,15 +120,9 @@ This code is hereby placed in the public domain.
 
 @end
 
-@interface NSObject (OOWeakReference)
-
-- (id)weakRefUnderlyingObject; // Always self for non-weakrefs (and of course nil for nil).
-
-@end
-
 @interface OOObject (OOWeakReference)
 
-- (id)weakRefUnderlyingObject; // As NSObject (OOWeakReference), for classes rooted on OOObject.
+- (id)weakRefUnderlyingObject; // Always self for non-weakrefs (and of course nil for nil).
 
 @end
 

@@ -76,7 +76,7 @@ MA 02110-1301, USA.
 - (void)findShadowedEntities;
 
 // Description for FPS HUD
-- (id)collisionDescription; // an Objective-C string. Shared selector (proposed ADR-0043).
+- (std::string)collisionDescription; // flipped with its family (bead oo-3rb.277)
 
 - (std::optional<std::string>)debugOut;
 

@@ -158,26 +158,26 @@ MA 02110-1301, USA.
         is provided with debugging information by the OOJavaScriptEngine.
 
         QuickJS has no JSErrorReport, so problems are described by severity
-        (@"exception" or @"warning") and the innermost location on the stack, if
-        any (file is nil otherwise).
+        ("exception" or "warning") and the innermost location on the stack, if
+        any (file is nullopt otherwise).
 */
-@protocol OOJavaScriptEngineMonitor <NSObject>
+@protocol OOJavaScriptEngineMonitor <OOObject>
 
 // Sent for JS errors or warnings.
-- (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
-                context:(in JSContext*)context
-      problemOfSeverity:(in NSString*)severity
-                 inFile:(in NSString*)file
-                   line:(in unsigned)line
-              stackSkip:(in unsigned)stackSkip
-        showingLocation:(in BOOL)showLocation
-            withMessage:(in id)message; // shared selector (proposed ADR-0043): OODebugMonitor implements it with a string
+- (void)jsEngine:(OOJavaScriptEngine*)engine
+              context:(JSContext*)context
+    problemOfSeverity:(const std::string&)severity
+               inFile:(const std::optional<std::string>&)file
+                 line:(unsigned)line
+            stackSkip:(unsigned)stackSkip
+      showingLocation:(BOOL)showLocation
+          withMessage:(const std::string&)message;
 
-// Sent for JS log messages. Note: messageClass will be nil if Log() is used rather than LogWithClass().
-- (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
-                context:(in JSContext*)context
-             logMessage:(in id)message
-                ofClass:(in id)messageClass; // shared selector (proposed ADR-0043): OODebugMonitor implements it with strings
+// Sent for JS log messages. Note: messageClass is nullopt if Log() is used rather than LogWithClass().
+- (void)jsEngine:(OOJavaScriptEngine*)engine
+         context:(JSContext*)context
+      logMessage:(const std::string&)message
+         ofClass:(const std::optional<std::string>&)messageClass;
 
 @end
 
@@ -321,9 +321,9 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
     return JS_NewBool(NULL, b != 0);
 }
 
-/*	The root-class JS glue for classes rooted on OOObject (ADR-0029). The same methods on the
-        Foundation root class are declared in OOJavaScriptEngine+FoundationBridge.h until
-        gnustep-base goes.
+/*	The root-class JS glue for classes rooted on OOObject (ADR-0029). A Foundation object has
+        none: OOJSValueFromNativeObject() converts it through its property-list form (proposed
+        ADR-0051).
 
         -oo_jsValueInContext:
 
@@ -331,12 +331,11 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
         caller. The default implementation returns JS_UNDEFINED.
         If the receiver may be nil, use OOJSValueFromNativeObject() instead.
 
-        -oo_jsDescription
-        -oo_jsDescriptionWithClassName:
-        -oo_jsClassName
+        -cxx_oo_jsDescription
+        -cxx_oo_jsDescriptionWithClassName:
+        -cxx_oo_jsClassName
 
-        See comments for -descriptionComponents in OOFoundation.h. Strings, typed id: the selectors are
-        shared with the Foundation root class and every class that overrides them.
+        They wrap -cxx_descriptionComponents (OODescription.h) as [jsClassName components]. C++ string twins on OOObject.
 
         oo_clearJSSelf:
         This is called by OOJSObjectWrapperFinalize() when a JS object wrapper is
@@ -345,20 +344,33 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
 @interface OOObject (OOJavaScript)
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context;
-- (id)oo_jsDescription; // shared selector (proposed ADR-0043)
-- (id)oo_jsDescriptionWithClassName:(id)className; // shared selector (proposed ADR-0043)
-- (id)oo_jsClassName; // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsDescription;
+- (std::optional<std::string>)cxx_oo_jsDescriptionWithClassName:(const std::optional<std::string>&)className;
+- (std::optional<std::string>)cxx_oo_jsClassName;
 - (void)oo_clearJSSelf:(JSValueConst)selfVal;
 
 @end
 
-// Return an owned JavaScript value for an object, or null if passed nil.
-OOINLINE JSValue OOJSValueFromNativeObject(JSContext* context, id object)
-{
-    if (object != nil)
-        return [object oo_jsValueInContext:context];
-    return JS_NULL;
-}
+/*	OOJSValueFromNativeObject()
+        Return an owned JavaScript value for an object, or null if passed nil. An
+        object whose root class is not OOObject (a Foundation object) is converted
+        through oo::PListFrom() and OOJSValueFromPList(), which give what its
+        Foundation JS glue gave; one that is not property-list data gives
+        undefined, as the NSObject glue did (proposed ADR-0051).
+*/
+JSValue OOJSValueFromNativeObject(JSContext* context, id object);
+
+/*	OOJSValueFromPList()
+        Return the owned JavaScript value representation of a property list,
+        exactly as OOJSValueFromNativeObject(context, oo::ObjectFromPList(plist))
+        gave it (proposed ADR-0051): null for a null PList; a bool as the number 1
+        or 0; an integer as a number; a real as a double (a single-precision one as
+        the double of its float); a string as a string; data and dates undefined;
+        an array as an Array and a dictionary as an Object (null elements and
+        values dropped, empty keys skipped, key order); a PList::Object node as
+        OOJSValueFromNativeObject() of its object.
+*/
+JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist);
 
 // Like OOJSValueFromNativeObject(), but primitives are boxed. Returns an owned object or JS_EXCEPTION.
 JSValue OOJSObjectFromNativeObject(JSContext* context, id object);
@@ -472,6 +484,20 @@ BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter);
 // Class IDs of the standard classes, looked up when the engine starts.
 extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJSNumberClassID, gOOJSBooleanClassID;
 
+/*	cxx_OOJSPListFromJSValue(context, value) / cxx_OOJSPListFromJSObject(context, object)
+        The oo::PList form of the native-object family: exactly what oo::PListFrom()
+        made of OOJSNativeObjectFromJSValue()'s result (proposed ADR-0051): null for
+        null, undefined or an unconvertible value; numbers, booleans and strings as
+        themselves; a JS Array -> array (a null or undefined element -> a
+        PList::Object holding [OONull null]); a plain Object -> dictionary (see
+        cxx_OOJSDictionaryFromJSObject()); an object of a class with a registered
+        converter -> oo::PListFrom() of what the converter returns (a private
+        object -> a PList::Object node holding it). The id functions below return
+        oo::ObjectFromPList() of these.
+*/
+oo::PList cxx_OOJSPListFromJSValue(JSContext* context, JSValueConst value);
+oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object);
+
 id OOJSNativeObjectFromJSValue(JSContext* context, JSValueConst value);
 id OOJSNativeObjectFromJSObject(JSContext* context, JSValueConst object);
 id OOJSNativeObjectOfClassFromJSValue(JSContext* context, JSValueConst value, Class requiredClass);
@@ -491,17 +517,15 @@ OOINLINE BOOL OOJSValueIsArray(JSContext* context, JSValueConst value)
         cxx_OOJSDictionaryFromJSObject(context, object)
 
         Converts a JavaScript value to a dictionary by calling
-        OOJSNativeObjectFromJSValue() on each of its values (a live object such as
-        an entity or OONull stays a PList::Object node).
+        cxx_OOJSPListFromJSValue() on each of its values (a live object such as
+        an entity or OONull stays a PList::Object node); a value that converts to
+        null is left out.
 
-        Only enumerable own (i.e., not inherited) properties with string keys are
-        included; an object with an integer-like property gives a null PList, as
-        does a value that is not an object or cannot be enumerated.
-
-        The converter for plain JS Objects that OOJSNativeObjectFromJSValue() uses
-        is the Foundation OOJSDictionaryFromJSObject() in the bridge
-        (OOJavaScriptEngine+FoundationBridge.h), where integer keys become
-        NSNumbers, as before.
+        Only enumerable own (i.e., not inherited) properties are included; an
+        integer-like property is keyed by its decimal text, as JS itself names it
+        (proposed ADR-0051). A value that is not an object or cannot be enumerated
+        gives a null PList. This is also how the native-object family converts a
+        plain JS Object.
 */
 oo::PList OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value);
 oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object);
@@ -667,7 +691,7 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
         Implementation of toString() for JS classes whose private storage is an
         Objective-C object reference (generally an OOWeakReference).
 
-        Calls -oo_jsDescription and, if that fails, -description.
+        Calls -cxx_oo_jsDescription and, if that fails, -description.
 */
 JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
 
@@ -705,6 +729,31 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
 #define OOJS_RETURN_INT(v) OOJS_RETURN(JS_NewInt32(context, (v)))
 #define OOJS_RETURN_DOUBLE(v) OOJS_RETURN(JS_NewFloat64(context, (v)))
 #define OOJS_RETURN_OBJECT(o) OOJS_RETURN(OOJSValueFromNativeObject(context, (o)))
+
+/*	PList return slots (proposed ADR-0055 item 4). A native returns C++ values as
+        oo::PList, converted by OOJSValueFromPList() (the same JS value
+        OOJSValueFromNativeObject() gave for the Foundation object it replaces):
+
+        OOJS_RETURN_PLIST(plist)            the value of <plist> (null for a null PList)
+        OOJS_RETURN_STRING_OR_NULL(opt)     a std::optional<std::string>: the string,
+                                            or null for nullopt (what nil gave)
+
+        The recipe:
+
+        OOJS_RETURN_OBJECT(oo::NSStringFrom(s))           OOJS_RETURN_PLIST(oo::PList(s))
+        OOJS_RETURN_OBJECT(oo::NSStringOrNil(o))          OOJS_RETURN_STRING_OR_NULL(o)
+        OOJS_RETURN_OBJECT(oo::ObjectFromPList(p))        OOJS_RETURN_PLIST(p)
+        OOJS_RETURN_OBJECT(oo::NSArrayFromObjects(v))     OOJS_RETURN_PLIST(oo::PListFromObjects(v))  (OOObjCPList.h)
+        OOJSValueFromNativeObject(context, oo::ObjectFromPList(p))    OOJSValueFromPList(context, p)
+
+        Exemplar: OOJSObjectWrapperToString() in OOJavaScriptEngine.mm.
+*/
+#define OOJS_RETURN_PLIST(plist) OOJS_RETURN(OOJSValueFromPList(context, (plist)))
+#define OOJS_RETURN_STRING_OR_NULL(opt)                                                                     \
+    do {                                                                                                    \
+        const std::optional<std::string>& oojsOptionalString_ = (opt);                                      \
+        OOJS_RETURN_PLIST(oojsOptionalString_.has_value() ? oo::PList(*oojsOptionalString_) : oo::PList()); \
+    } while (0)
 
 #define OOJS_RETURN_WITH_HELPER(helper, value)    \
     do {                                          \
@@ -836,9 +885,3 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame);
 // Property definition shorthands for the common cases.
 #define OOJS_PROPERTY_RW(name, getter, setter, magic) JS_CGETSET_MAGIC_DEF2(name, getter, setter, magic, OOJS_PROP_READWRITE_CB)
 #define OOJS_PROPERTY_RO(name, getter, magic) JS_CGETSET_MAGIC_DEF2(name, getter, NULL, magic, OOJS_PROP_READONLY_CB)
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before its sweep, forwarding to the cxx_ functions above, so unmigrated callers
-        compile unchanged. Callers move to the cxx_ API in their own sweeps; the bridge then goes.
-*/
-#import "OOJavaScriptEngine+FoundationBridge.h"

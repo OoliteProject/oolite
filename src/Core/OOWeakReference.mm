@@ -9,7 +9,6 @@ This code is hereby placed in the public domain.
 
 #import "OOWeakReference.h"
 #import "NSObjectOOExtensions.h"
-#import "OODeepCopy.h"
 #import "OOFoundation.h" // OOObject's -description components
 #import "OOJavaScriptEngine.h" // OOObject (OOJavaScript)
 #import "OOStringBridge.h"
@@ -61,12 +60,12 @@ This code is hereby placed in the public domain.
     [super dealloc];
 }
 
-- (id)description
+- (std::optional<std::string>)cxx_description
 {
     if (_object != nil)
-        return [_object description];
+        return [(id)_object cxx_description]; // -description is not in the OOObject protocol (the Logging seam)
     else
-        return oo::NSStringFrom(oo::str::format("<Dead %s %s>", oo::StdString([[self class] description]).c_str(), oo::str::pointerDescription(self).c_str()));
+        return oo::str::format("<Dead %s %s>", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str());
 }
 
 - (id)weakRefUnderlyingObject
@@ -137,29 +136,24 @@ This code is hereby placed in the public domain.
     return [(id)_object conformsToProtocol:protocol];
 }
 
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return [(id)_object descriptionComponents];
+    return [(id)_object cxx_descriptionComponents];
 }
 
-- (id)shortDescription
+- (std::optional<std::string>)cxx_shortDescription
 {
-    return [(id)_object shortDescription];
+    return [(id)_object cxx_shortDescription];
 }
 
-- (id)shortDescriptionComponents
+- (std::optional<std::string>)cxx_shortDescriptionComponents
 {
-    return [(id)_object shortDescriptionComponents];
+    return [(id)_object cxx_shortDescriptionComponents];
 }
 
 - (id)className
 {
     return [(id)_object className];
-}
-
-- (id)ooDeepCopyWithSharedObjects:(id)objects
-{
-    return [(id)_object ooDeepCopyWithSharedObjects:objects];
 }
 
 - (size_t)oo_objectSize
@@ -174,33 +168,30 @@ This code is hereby placed in the public domain.
     return [(id)_object oo_jsValueInContext:context];
 }
 
-- (id)oo_jsDescription
+- (std::optional<std::string>)cxx_oo_jsDescription
 {
-    return [(id)_object oo_jsDescription];
+    if (_object == nil)
+        return std::nullopt;
+    return [(id)_object cxx_oo_jsDescription];
 }
 
-- (id)oo_jsDescriptionWithClassName:(id)className
+- (std::optional<std::string>)cxx_oo_jsDescriptionWithClassName:(const std::optional<std::string>&)className
 {
-    return [(id)_object oo_jsDescriptionWithClassName:className];
+    if (_object == nil)
+        return std::nullopt;
+    return [(id)_object cxx_oo_jsDescriptionWithClassName:className];
 }
 
-- (id)oo_jsClassName
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return [(id)_object oo_jsClassName];
+    if (_object == nil)
+        return std::nullopt;
+    return [(id)_object cxx_oo_jsClassName];
 }
 
 - (void)oo_clearJSSelf:(JSValueConst)selfVal
 {
     [(id)_object oo_clearJSSelf:selfVal];
-}
-
-@end
-
-@implementation NSObject (OOWeakReference)
-
-- (id)weakRefUnderlyingObject
-{
-    return self;
 }
 
 @end

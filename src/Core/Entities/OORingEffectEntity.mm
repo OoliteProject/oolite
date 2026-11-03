@@ -104,9 +104,9 @@ static struct {
     return result;
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%f seconds passed of %f", _timePassed, kRingDuration));
+    return oo::str::format("%f seconds passed of %f", _timePassed, kRingDuration);
 }
 
 - (void)update:(OOTimeDelta)delta_t

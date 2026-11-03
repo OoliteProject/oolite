@@ -27,7 +27,6 @@ SOFTWARE.
 
 #import "OOEquipmentType.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h" // OOUIntegerFromObject, for the unmigrated -missionVariableForKey:
 #import "OODebugStandards.h"
 #import "OOFoundationBridge.h"
 #import "OOLegacyScriptWhitelist.h"
@@ -65,12 +64,12 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
     return array.at<std::string>(index);
 }
 
-// -[UNIVERSE equipmentData] & co. are not migrated: each item arrives through oo::PListFrom.
-std::vector<oo::PList> EquipmentItems(id equipmentData)
+// The items of -[UNIVERSE cxx_equipmentData] & co. (enumerating a non-array found none, as nil did).
+std::vector<oo::PList> EquipmentItems(const oo::PList& equipmentData)
 {
     std::vector<oo::PList> items;
-    for (id itemInfo in equipmentData)
-        items.push_back(oo::PListFrom(itemInfo));
+    if (const oo::PList::Array* elements = equipmentData.getIf<oo::PList::Array>())
+        items.assign(elements->begin(), elements->end());
     return items;
 }
 
@@ -111,7 +110,7 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
     std::vector<std::string> conditionScripts; // first-seen order
     std::map<std::string, oo::ObjCRef<OOEquipmentType*>, std::less<>> byIdentifier;
 
-    for (const oo::PList& itemInfo : EquipmentItems([UNIVERSE equipmentData])) {
+    for (const oo::PList& itemInfo : EquipmentItems([UNIVERSE cxx_equipmentData])) {
         OOEquipmentType* item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
         if (item != nil) {
             equipmentTypes.emplace_back(item);
@@ -132,7 +131,7 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
 
     // same for the outfitting dataset
     equipmentTypes.clear();
-    for (const oo::PList& itemInfo : EquipmentItems([UNIVERSE equipmentDataOutfitting])) {
+    for (const oo::PList& itemInfo : EquipmentItems([UNIVERSE cxx_equipmentDataOutfitting])) {
         OOEquipmentType* item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
         if (item != nil) {
             equipmentTypes.emplace_back(item);
@@ -307,8 +306,7 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
                 _scriptInfo = *scriptInfo;
 
             _script = StringFor(extraInfo, "script");
-            // +jsScriptFromFileNamed:properties: is not migrated: the name crosses at the call.
-            if (_script.has_value() && ![OOScript jsScriptFromFileNamed:oo::NSStringFrom(*_script) properties:nil])
+            if (_script.has_value() && ![OOScript cxx_jsScriptFromFileNamed:*_script properties:oo::PList()])
                 _script.reset();
             if (_script.has_value()) {
                 _fastAffinityA = !!extraInfo.get<bool>("fast_affinity_defensive");
@@ -328,8 +326,8 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
                     }
 
                     if (keydef != nullptr) {
-                        // do processing for key (-processKeyCode: is not migrated: converted once at the call)
-                        defaultKey = oo::PListFrom([PLAYER processKeyCode:oo::ObjectFromPList(*keydef)]);
+                        // do processing for key
+                        defaultKey = [PLAYER cxx_processKeyCode:*keydef];
                         const std::optional<std::string> checking = [PLAYER validateKey:(activate ? "activate_" : "mode_") + _identifier checkKeys:defaultKey];
 
                         if (checking.has_value()) {
@@ -366,9 +364,9 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
     return [self retain];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%s \"%s\"", _identifier.c_str(), _name.c_str()));
+    return oo::str::format("%s \"%s\"", _identifier.c_str(), _name.c_str());
 }
 
 - (std::optional<std::string>)cxx_identifier
@@ -381,9 +379,14 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
     return _identifier + "_DAMAGED";
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
 {
-    return oo::NSStringFrom(_name);
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
+{
+    return _name;
 }
 
 - (std::optional<std::string>)cxx_descriptiveText
@@ -553,9 +556,9 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
     return _condition_script;
 }
 
-- (id)scriptInfo // shared selector (proposed ADR-0043)
+- (oo::PList)scriptInfo
 {
-    return oo::ObjectFromPList(_scriptInfo);
+    return _scriptInfo;
 }
 
 - (std::optional<std::string>)cxx_scriptName
@@ -704,14 +707,13 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
 - (OOTechLevelID)effectiveTechLevel
 {
     OOTechLevelID tl;
-    id missionVar = nil;
 
     tl = [self techLevel];
     if (tl == kOOVariableTechLevel) {
         cxx_OOStandardsDeprecated(oo::str::format("TL99 is deprecated for %s", _identifier.c_str()));
         if (!OOEnforceStandards()) {
-            missionVar = [PLAYER missionVariableForKey:oo::NSStringFrom("mission_TL_FOR_" + _identifier)];
-            tl = OOUIntegerFromObject(missionVar, tl);
+            const oo::PList missionValue = [PLAYER cxx_missionVariableForKey:"mission_TL_FOR_" + _identifier]; // OOUIntegerFromObject: OOUnsignedLongLongFromObject on this 64-bit build
+            tl = static_cast<NSInteger>(oo::plist_get::unsignedLongLongFrom(!missionValue.isNull() ? &missionValue : nullptr, tl));
         }
     }
 

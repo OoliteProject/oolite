@@ -164,9 +164,9 @@ enum {
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("seed: %u,%u", _info.seed.high, _info.seed.low));
+    return oo::str::format("seed: %u,%u", _info.seed.high, _info.seed.low);
 }
 
 - (uint32_t)textureOptions
@@ -174,15 +174,15 @@ enum {
     return PLANET_TEXTURE_OPTIONS;
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return oo::NSStringFrom(oo::str::format("OOStandaloneAtmosphereGenerator-@%u\n%u,%u/%u,%u/%f/%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
+    return oo::str::format("OOStandaloneAtmosphereGenerator-@%u\n%u,%u/%u,%u/%f/%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
         _planetScale,
         _info.width, _info.height, _info.seed.high, _info.seed.low,
         _info.cloudAlpha, _info.cloudFraction,
         _info.airColor.r, _info.airColor.g, _info.airColor.b,
         _info.cloudColor.r, _info.cloudColor.g, _info.cloudColor.b,
-        _info.paleCloudColor.r, _info.paleCloudColor.g, _info.paleCloudColor.b));
+        _info.paleCloudColor.r, _info.paleCloudColor.g, _info.paleCloudColor.b);
 }
 
 - (BOOL)getResult:(OOPixMap*)outData
@@ -282,12 +282,12 @@ END:
         const std::string diffuseName = oo::str::format("atmosphere-%u-%u-diffuse-new", _info.seed.high, _info.seed.low);
         const std::string lightsName = oo::str::format("atmosphere-%u-%u-alpha-new", _info.seed.high, _info.seed.low);
 
-        [[UNIVERSE gameView] dumpRGBAToRGBFileNamed:oo::NSStringFrom(diffuseName)
-                                   andGrayFileNamed:oo::NSStringFrom(lightsName)
-                                              bytes:aBuffer
-                                              width:_width
-                                             height:_height
-                                           rowBytes:_width * 4];
+        [[UNIVERSE gameView] cxx_dumpRGBAToRGBFileNamed:diffuseName
+                                       andGrayFileNamed:lightsName
+                                                  bytes:aBuffer
+                                                  width:_width
+                                                 height:_height
+                                               rowBytes:_width * 4];
     }
 #endif
 }
@@ -306,11 +306,11 @@ END:
         }
     }
 
-    [[UNIVERSE gameView] dumpGrayToFileNamed:oo::NSStringFrom(noiseName)
-                                       bytes:noisePx
-                                       width:_width
-                                      height:_height
-                                    rowBytes:_width];
+    [[UNIVERSE gameView] cxx_dumpGrayToFileNamed:noiseName
+                                           bytes:noisePx
+                                           width:_width
+                                          height:_height
+                                        rowBytes:_width];
     FREE(noisePx);
 }
 

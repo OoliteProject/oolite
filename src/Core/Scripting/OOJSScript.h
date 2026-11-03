@@ -65,13 +65,14 @@ inline constexpr char kLocalManifestProperty[] = "oolite_manifest_identifier";
              count:(int)argc
             result:(JSValue*)outResult;
 
-- (id)propertyWithID:(JSAtom)propID inContext:(JSContext*)context;
+// The property as cxx_OOJSPListFromJSValue() converts it; null when there is no script object or it could not be read.
+- (oo::PList)cxx_propertyWithID:(JSAtom)propID inContext:(JSContext*)context;
 // Set a property which can be modified or deleted by the script.
 - (BOOL)setProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context;
 // Set a special property which cannot be modified or deleted by the script.
 - (BOOL)defineProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context;
 
-- (id)propertyNamed:(const std::string&)name;
+- (oo::PList)cxx_propertyNamed:(const std::string&)name;
 - (BOOL)setProperty:(id)value named:(const std::string&)name;
 - (BOOL)defineProperty:(id)value named:(const std::string&)name;
 

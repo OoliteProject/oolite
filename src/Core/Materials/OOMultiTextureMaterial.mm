@@ -32,6 +32,7 @@ SOFTWARE.
 #import "OOMaterialSpecifier.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
+#include "oofnd/objc/OOAssert.h"
 
 #if OO_MULTITEXTURE
 
@@ -71,14 +72,14 @@ SOFTWARE.
     self = [super initWithName:name configuration:oo::ObjectFromPList(mutableConfiguration)];
     if (self != nil) {
         if (!diffuseSpec.isNull()) {
-            _diffuseMap = [[OOTexture textureWithConfiguration:oo::ObjectFromPList(diffuseSpec)] retain];
+            _diffuseMap = [[OOTexture cxx_textureWithConfiguration:diffuseSpec] retain];
             if (_diffuseMap != nil)
                 _unitsUsed++;
         }
 
         // Check for simplest cases, where we don't need to bake a derived emission map.
         if (!emissionSpec.isNull() && illuminationSpec.isNull() && emissionAndIlluminationSpec.isNull() && emissionColor == nil) {
-            _emissionMap = [[OOTexture textureWithConfiguration:oo::ObjectFromPList(emissionSpec) extraOptions:kOOTextureExtraShrink] retain];
+            _emissionMap = [[OOTexture cxx_textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
             if (_emissionMap != nil)
                 _unitsUsed++;
         } else {
@@ -121,20 +122,20 @@ SOFTWARE.
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     std::vector<std::string> bits;
     if (_diffuseMap)
-        bits.push_back("diffuse map: " + oo::DescriptionOf([_diffuseMap shortDescription]));
+        bits.push_back("diffuse map: " + oo::ShortDescriptionOf(_diffuseMap));
     if (_emissionMap)
-        bits.push_back("emission map: " + oo::DescriptionOf([_emissionMap shortDescription]));
+        bits.push_back("emission map: " + oo::ShortDescriptionOf(_emissionMap));
 
-    id result = [super descriptionComponents];
+    std::optional<std::string> result = [super cxx_descriptionComponents];
     if (!bits.empty()) {
         std::string joined;
         for (const std::string& bit : bits)
             joined += (joined.empty() ? "" : ",") + bit;
-        result = oo::NSStringFrom(oo::StdString(result) + " - " + joined);
+        result = result.value_or("") + " - " + joined; // StdString(nil) was ""
     }
     return result;
 }
@@ -177,7 +178,7 @@ SOFTWARE.
         [_emissionMap apply];
     }
 
-    NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
+    OOAssert(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, "OOMultiTextureMaterial texture unit count invalid (expected %zu, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
 
     if (textureUnit > GL_TEXTURE1_ARB) {
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
@@ -201,11 +202,16 @@ SOFTWARE.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    if (_diffuseMap == nil)
-        return oo::NSSetFromObjects(std::vector<id> { _emissionMap });
-    return oo::NSSetFromObjects(std::vector<id> { _diffuseMap, _emissionMap });
+    std::vector<oo::ObjCRef<OOTexture*>> result;
+    if (_diffuseMap == nil) {
+        result.emplace_back(_emissionMap);
+        return result;
+    }
+    result.emplace_back(_diffuseMap);
+    result.emplace_back(_emissionMap);
+    return result;
 }
 #endif
 

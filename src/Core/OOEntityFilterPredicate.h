@@ -71,8 +71,8 @@ BOOL IsSunPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tes
 BOOL IsVisualEffectPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isVisualEffect and !isSubentity.
 
 // These predicates assume their parameter is a ShipEntity.
-BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: an Objective-C string
-BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: an Objective-C string
+BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: a std::string (null: none)
+BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: a std::string (null: none)
 BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: an Objective-C set of role strings
 BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: an Objective-C set of role strings
 BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter); // Parameter: ShipEntity

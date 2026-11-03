@@ -109,7 +109,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     BOOL added_entry = NO; // to prevent empty lines for slaves and the rare empty report.
     std::string result;
     std::vector<oo::ObjCRef<OOCharacter*>> rescuees;
-    OOGovernmentID government = [[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
+    OOGovernmentID government = [[oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_GOVERNMENT)] intValue];
     if ([UNIVERSE inInterstellarSpace])
         government = 1; // equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 
@@ -118,11 +118,11 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     for (i = 0; i < cargo.size(); i++) {
         ShipEntity* cargoItem = cargo[i].get();
 
-        if ([cargoItem crew] != nil) {
+        const std::optional<std::vector<oo::ObjCRef<OOCharacter*>>> podCrew = [cargoItem cxx_crew];
+        if (podCrew.has_value()) {
             // Has crew -> is escape pod.
-            for (OOCharacter* member in [cargoItem crew])
-                rescuees.push_back(oo::ObjCRef<OOCharacter*>(member));
-            [cargoItem setCrew:nil];
+            rescuees.insert(rescuees.end(), podCrew->begin(), podCrew->end());
+            [cargoItem cxx_setCrew:std::nullopt];
             cargo.erase(cargo.begin() + i);
             i--;
         }
@@ -135,49 +135,47 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         if ([rescuee script]) {
             [rescuee doScriptEvent:OOJSID("unloadCharacter")];
         } else if (![rescuee legacyScript].isNull()) {
-            [self runUnsanitizedScriptActions:oo::ObjectFromPList([rescuee legacyScript])
-                            allowingAIMethods:YES
-                              withContextName:oo::NSStringFrom(oo::str::format("<character \"%s\" script>", oo::DescriptionOf([rescuee name]).c_str()))
-                                    forTarget:nil];
+            [self cxx_runUnsanitizedScriptActions:[rescuee legacyScript]
+                                allowingAIMethods:YES
+                                  withContextName:oo::str::format("<character \"%s\" script>", [rescuee cxx_name].value_or("(null)").c_str())
+                                        forTarget:nil];
         } else if ([rescuee insuranceCredits] && [rescuee legalStatus]) {
             float reward = (5.0 + government) * [rescuee legalStatus];
             float insurance = 10 * [rescuee insuranceCredits];
             if (government > (Ranrot() & 7) || reward >= insurance) {
                 // claim bounty for capture, ignore insurance
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"capture-reward-for-@@-@-credits-@-alt")),
-                    { oo::DescriptionOf([rescuee name]), oo::DescriptionOf([rescuee shortDescription]), oo::DescriptionOf(OOStringFromDeciCredits(reward, YES, NO)),
-                        oo::DescriptionOf(OOStringFromDeciCredits(insurance, YES, NO)) });
-                [self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("bounty"), [rescuee infoForScripting] }))];
+                result += oo::str::formatRuntime(OO_DESC("capture-reward-for-@@-@-credits-@-alt"),
+                    { [rescuee cxx_name].value_or("(null)"), oo::ShortDescriptionOf(rescuee), cxx_OOStringFromDeciCredits(reward, YES, NO), cxx_OOStringFromDeciCredits(insurance, YES, NO) });
+                [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("bounty"), [rescuee infoForScripting] })))];
             } else {
                 // claim insurance reward with reduction of bounty
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"rescue-reward-for-@@-@-credits-@-alt")),
-                    { oo::DescriptionOf([rescuee name]), oo::DescriptionOf([rescuee shortDescription]), oo::DescriptionOf(OOStringFromDeciCredits(insurance - reward, YES, NO)),
-                        oo::DescriptionOf(OOStringFromDeciCredits(reward, YES, NO)) });
+                result += oo::str::formatRuntime(OO_DESC("rescue-reward-for-@@-@-credits-@-alt"),
+                    { [rescuee cxx_name].value_or("(null)"), oo::ShortDescriptionOf(rescuee), cxx_OOStringFromDeciCredits(insurance - reward, YES, NO), cxx_OOStringFromDeciCredits(reward, YES, NO) });
                 reward = insurance - reward;
-                [self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("insurance"), [rescuee infoForScripting] }))];
+                [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("insurance"), [rescuee infoForScripting] })))];
             }
             credits += reward;
             added_entry = YES;
         } else if ([rescuee insuranceCredits]) {
             // claim insurance reward
-            result += oo::str::formatRuntime(oo::StdString(DESC(@"rescue-reward-for-@@-@-credits")),
-                { oo::DescriptionOf([rescuee name]), oo::DescriptionOf([rescuee shortDescription]), oo::DescriptionOf(OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO)) });
+            result += oo::str::formatRuntime(OO_DESC("rescue-reward-for-@@-@-credits"),
+                { [rescuee cxx_name].value_or("(null)"), oo::ShortDescriptionOf(rescuee), cxx_OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO) });
             credits += 10 * [rescuee insuranceCredits];
-            [self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * [rescuee insuranceCredits])), oo::PList("insurance"), [rescuee infoForScripting] }))];
+            [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * [rescuee insuranceCredits])), oo::PList("insurance"), [rescuee infoForScripting] })))];
 
             added_entry = YES;
         } else if ([rescuee legalStatus]) {
             // claim bounty for capture
             float reward = (5.0 + government) * [rescuee legalStatus];
-            result += oo::str::formatRuntime(oo::StdString(DESC(@"capture-reward-for-@@-@-credits")),
-                { oo::DescriptionOf([rescuee name]), oo::DescriptionOf([rescuee shortDescription]), oo::DescriptionOf(OOStringFromDeciCredits(reward, YES, NO)) });
+            result += oo::str::formatRuntime(OO_DESC("capture-reward-for-@@-@-credits"),
+                { [rescuee cxx_name].value_or("(null)"), oo::ShortDescriptionOf(rescuee), cxx_OOStringFromDeciCredits(reward, YES, NO) });
             credits += reward;
-            [self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("bounty"), [rescuee infoForScripting] }))];
+            [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("bounty"), [rescuee infoForScripting] })))];
             added_entry = YES;
         } else {
             // sell as slave - increase no. of slaves in manifest
             [shipCommodityData cxx_addQuantity:1 forGood:"slaves"];
-            [self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(0), oo::PList("slave"), [rescuee infoForScripting] }))];
+            [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::unsignedInteger(0), oo::PList("slave"), [rescuee infoForScripting] })))];
         }
         if ((i < rescuees.size() - 1) && added_entry)
             result += "\n";
@@ -203,17 +201,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // check passenger contracts
     for (i = 0; i < passengers.size(); i++) {
         const oo::PList passenger_info = passengers[i]; // a copy: the entry may be removed below (it was retained)
-        const std::optional<std::string> passenger_name = OptionalStringForKey(passenger_info, oo::StdString(PASSENGER_KEY_NAME));
-        int dest = passenger_info.get<int>(oo::StdString(CONTRACT_KEY_DESTINATION));
+        const std::optional<std::string> passenger_name = OptionalStringForKey(passenger_info, std::string(PASSENGER_KEY_NAME));
+        int dest = passenger_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
         // the system name can change via script
-        const std::optional<std::string> passenger_dest_name = oo::OptionalString([UNIVERSE getSystemName:dest]);
-        int dest_eta = passenger_info.get<double>(oo::StdString(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        const std::optional<std::string> passenger_dest_name = [UNIVERSE cxx_getSystemName:dest];
+        int dest_eta = passenger_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
 
         if (system_id == dest) {
             // we've arrived in system!
             if (dest_eta > 0) {
                 // and in good time
-                long long fee = passenger_info.get<long long>(oo::StdString(CONTRACT_KEY_FEE));
+                long long fee = passenger_info.get<long long>(std::string(CONTRACT_KEY_FEE));
                 while ((randf() < 0.75) && (dest_eta > 3600)) // delivered with more than an hour to spare and a decent customer?
                 {
                     fee *= 110; // tip + 10%
@@ -222,37 +220,37 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 }
                 credits += 10 * fee;
 
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"passenger-delivered-okay-@-@-@")), { TextArg(passenger_name), oo::DescriptionOf(OOIntCredits(fee)), TextArg(passenger_dest_name) }) + "\n";
-                if (passenger_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0) > 0) {
-                    [self addRoleToPlayer:@"trader-courier+"];
+                result += oo::str::formatRuntime(OO_DESC("passenger-delivered-okay-@-@-@"), { TextArg(passenger_name), cxx_OOIntCredits(fee), TextArg(passenger_dest_name) }) + "\n";
+                if (passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
+                    [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
 
-                [self increasePassengerReputation:RepForRisk(passenger_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0))];
+                [self increasePassengerReputation:RepForRisk(passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
                 passengers.erase(passengers.begin() + i--);
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), passenger_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), passenger_info })))];
             } else {
                 // but we're late!
-                long long fee = passenger_info.get<long long>(oo::StdString(CONTRACT_KEY_FEE)) / 2; // halve fare
+                long long fee = passenger_info.get<long long>(std::string(CONTRACT_KEY_FEE)) / 2; // halve fare
                 while (randf() < 0.5) // maybe halve fare a few times!
                     fee /= 2;
                 credits += 10 * fee;
 
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"passenger-delivered-late-@-@-@")), { TextArg(passenger_name), oo::DescriptionOf(OOIntCredits(fee)), TextArg(passenger_dest_name) }) + "\n";
-                if (passenger_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0) > 0) {
-                    [self addRoleToPlayer:@"trader-courier+"];
+                result += oo::str::formatRuntime(OO_DESC("passenger-delivered-late-@-@-@"), { TextArg(passenger_name), cxx_OOIntCredits(fee), TextArg(passenger_dest_name) }) + "\n";
+                if (passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
+                    [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
 
                 passengers.erase(passengers.begin() + i--);
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), passenger_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), passenger_info })))];
             }
         } else {
             if (dest_eta < 0) {
                 // we've run out of time!
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"passenger-failed-@")), { TextArg(passenger_name) }) + "\n";
+                result += oo::str::formatRuntime(OO_DESC("passenger-failed-@"), { TextArg(passenger_name) }) + "\n";
 
-                [self decreasePassengerReputation:RepForRisk(passenger_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0))];
+                [self decreasePassengerReputation:RepForRisk(passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
                 passengers.erase(passengers.begin() + i--);
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), passenger_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), passenger_info })))];
             }
         }
     }
@@ -260,15 +258,15 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // check parcel contracts
     for (i = 0; i < parcels.size(); i++) {
         const oo::PList parcel_info = parcels[i]; // a copy: the entry may be removed below (it was retained)
-        const std::optional<std::string> parcel_name = OptionalStringForKey(parcel_info, oo::StdString(PASSENGER_KEY_NAME));
-        int dest = parcel_info.get<int>(oo::StdString(CONTRACT_KEY_DESTINATION));
-        int dest_eta = parcel_info.get<double>(oo::StdString(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        const std::optional<std::string> parcel_name = OptionalStringForKey(parcel_info, std::string(PASSENGER_KEY_NAME));
+        int dest = parcel_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
+        int dest_eta = parcel_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
 
         if (system_id == dest) {
             // we've arrived in system!
             if (dest_eta > 0) {
                 // and in good time
-                long long fee = parcel_info.get<long long>(oo::StdString(CONTRACT_KEY_FEE));
+                long long fee = parcel_info.get<long long>(std::string(CONTRACT_KEY_FEE));
                 while ((randf() < 0.75) && (dest_eta > 86400)) // delivered with more than a day to spare and a decent customer?
                 {
                     // lower tips than passengers
@@ -278,38 +276,38 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 }
                 credits += 10 * fee;
 
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"parcel-delivered-okay-@-@")), { TextArg(parcel_name), oo::DescriptionOf(OOIntCredits(fee)) }) + "\n";
+                result += oo::str::formatRuntime(OO_DESC("parcel-delivered-okay-@-@"), { TextArg(parcel_name), cxx_OOIntCredits(fee) }) + "\n";
 
-                [self increaseParcelReputation:RepForRisk(parcel_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0))];
+                [self increaseParcelReputation:RepForRisk(parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
 
                 parcels.erase(parcels.begin() + i--);
-                if (parcel_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0) > 0) {
-                    [self addRoleToPlayer:@"trader-courier+"];
+                if (parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
+                    [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), parcel_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), parcel_info })))];
 
             } else {
                 // but we're late!
-                long long fee = parcel_info.get<long long>(oo::StdString(CONTRACT_KEY_FEE)) / 2; // halve fare
+                long long fee = parcel_info.get<long long>(std::string(CONTRACT_KEY_FEE)) / 2; // halve fare
                 while (randf() < 0.5) // maybe halve fare a few times!
                     fee /= 2;
                 credits += 10 * fee;
 
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"parcel-delivered-late-@-@")), { TextArg(parcel_name), oo::DescriptionOf(OOIntCredits(fee)) }) + "\n";
-                if (parcel_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0) > 0) {
-                    [self addRoleToPlayer:@"trader-courier+"];
+                result += oo::str::formatRuntime(OO_DESC("parcel-delivered-late-@-@"), { TextArg(parcel_name), cxx_OOIntCredits(fee) }) + "\n";
+                if (parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
+                    [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
                 parcels.erase(parcels.begin() + i--);
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), parcel_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), parcel_info })))];
             }
         } else {
             if (dest_eta < 0) {
                 // we've run out of time!
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"parcel-failed-@")), { TextArg(parcel_name) }) + "\n";
+                result += oo::str::formatRuntime(OO_DESC("parcel-failed-@"), { TextArg(parcel_name) }) + "\n";
 
-                [self decreaseParcelReputation:RepForRisk(parcel_info.get<unsigned int>(oo::StdString(CONTRACT_KEY_RISK), 0))];
+                [self decreaseParcelReputation:RepForRisk(parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
                 parcels.erase(parcels.begin() + i--);
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), parcel_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), parcel_info })))];
             }
         }
     }
@@ -317,17 +315,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // check cargo contracts
     for (i = 0; i < contracts.size(); i++) {
         const oo::PList contract_info = contracts[i]; // a copy: the entry may be removed below (it was retained)
-        const std::optional<std::string> contract_cargo_desc = OptionalStringForKey(contract_info, oo::StdString(CARGO_KEY_DESCRIPTION));
-        int dest = contract_info.get<int>(oo::StdString(CONTRACT_KEY_DESTINATION));
-        int dest_eta = contract_info.get<double>(oo::StdString(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        const std::optional<std::string> contract_cargo_desc = OptionalStringForKey(contract_info, std::string(CARGO_KEY_DESCRIPTION));
+        int dest = contract_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
+        int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
 
         if (system_id == dest) {
             // no longer needed
             // int premium = 10 * oo::PListView(contract_info).get<float>(CONTRACT_KEY_PREMIUM);
-            int fee = 10 * contract_info.get<float>(oo::StdString(CONTRACT_KEY_FEE));
+            int fee = 10 * contract_info.get<float>(std::string(CONTRACT_KEY_FEE));
 
-            const std::string contract_cargo_type = contract_info.get<std::string>(oo::StdString(CARGO_KEY_TYPE)); // a missing type was nil, which the market read as ""
-            int contract_amount = contract_info.get<int>(oo::StdString(CARGO_KEY_AMOUNT));
+            const std::string contract_cargo_type = contract_info.get<std::string>(std::string(CARGO_KEY_TYPE)); // a missing type was nil, which the market read as ""
+            int contract_amount = contract_info.get<int>(std::string(CARGO_KEY_AMOUNT));
 
             int quantity_on_hand = [shipCommodityData cxx_quantityForGood:contract_cargo_type];
 
@@ -346,19 +344,19 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                     // is now all that needs to be paid - CIM
 
                     if ([shipCommodityData cxx_exportLegalityForGood:contract_cargo_type] > 0) {
-                        [self addRoleToPlayer:@"trader-smuggler"];
+                        [self cxx_addRoleToPlayer:"trader-smuggler"];
                     } else {
-                        [self addRoleToPlayer:@"trader"];
+                        [self cxx_addRoleToPlayer:"trader"];
                     }
 
                     credits += fee;
-                    result += oo::str::formatRuntime(oo::StdString(DESC(@"cargo-delivered-okay-@-@")), { TextArg(contract_cargo_desc), oo::DescriptionOf(OOCredits(fee)) }) + "\n";
+                    result += oo::str::formatRuntime(OO_DESC("cargo-delivered-okay-@-@"), { TextArg(contract_cargo_desc), cxx_OOCredits(fee) }) + "\n";
 
                     contracts.erase(contracts.begin() + i--);
                     // repute++
                     // +10 as cargo contracts don't have risk modifiers
                     [self increaseContractReputation:10];
-                    [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(fee)), contract_info }))];
+                    [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(fee)), contract_info })))];
 
                 } else {
                     // see if the amount of goods delivered is acceptable
@@ -376,40 +374,40 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                         credits += payment;
 
                         if ([shipCommodityData cxx_exportLegalityForGood:contract_cargo_type] > 0) {
-                            [self addRoleToPlayer:@"trader-smuggler"];
+                            [self cxx_addRoleToPlayer:"trader-smuggler"];
                         } else {
-                            [self addRoleToPlayer:@"trader"];
+                            [self cxx_addRoleToPlayer:"trader"];
                         }
 
-                        result += oo::str::formatRuntime(oo::StdString(DESC(@"cargo-delivered-short-@-@-d")), { TextArg(contract_cargo_desc), oo::DescriptionOf(OOCredits(payment)), shortfall }) + "\n";
+                        result += oo::str::formatRuntime(OO_DESC("cargo-delivered-short-@-@-d"), { TextArg(contract_cargo_desc), cxx_OOCredits(payment), shortfall }) + "\n";
 
                         contracts.erase(contracts.begin() + i--);
                         // repute unchanged
-                        [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("short"), oo::PList::unsignedInteger(static_cast<NSUInteger>(payment)), contract_info }))];
+                        [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("short"), oo::PList::unsignedInteger(static_cast<NSUInteger>(payment)), contract_info })))];
 
                     } else {
-                        result += oo::str::formatRuntime(oo::StdString(DESC(@"cargo-refused-short-%@")), { TextArg(contract_cargo_desc) }) + "\n";
+                        result += oo::str::formatRuntime(OO_DESC("cargo-refused-short-%@"), { TextArg(contract_cargo_desc) }) + "\n";
                         // The player has still time to buy the missing goods elsewhere and fulfil the contract.
                     }
                 }
             } else {
                 // but we're late!
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"cargo-delivered-late-@")), { TextArg(contract_cargo_desc) }) + "\n";
+                result += oo::str::formatRuntime(OO_DESC("cargo-delivered-late-@"), { TextArg(contract_cargo_desc) }) + "\n";
 
                 contracts.erase(contracts.begin() + i--);
                 // repute--
                 [self decreaseContractReputation:10];
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), contract_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), contract_info })))];
             }
         } else {
             if (dest_eta < 0) {
                 // we've run out of time!
-                result += oo::str::formatRuntime(oo::StdString(DESC(@"cargo-failed-@")), { TextArg(contract_cargo_desc) }) + "\n";
+                result += oo::str::formatRuntime(OO_DESC("cargo-failed-@"), { TextArg(contract_cargo_desc) }) + "\n";
 
                 contracts.erase(contracts.begin() + i--);
                 // repute--
                 [self decreaseContractReputation:10];
-                [self doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), contract_info }))];
+                [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), contract_info })))];
             }
         }
     }
@@ -425,7 +423,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             BOOL on_board = NO;
             unsigned j;
             for (j = 0; j < passengers.size(); j++) {
-                const oo::PList* passenger_name = passengers[j].find(oo::StdString(PASSENGER_KEY_NAME)); // -isEqual: to the record's key
+                const oo::PList* passenger_name = passengers[j].find(std::string(PASSENGER_KEY_NAME)); // -isEqual: to the record's key
                 if (passenger_name != nullptr && passenger_name->isString() && *passenger_name->getIf<std::string>() == names[i])
                     on_board = YES;
             }
@@ -472,8 +470,8 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     OOCargoQuantity total = 0;
     for (unsigned i = 0; i < contracts.size(); i++) {
         const oo::PList& contract_info = contracts[i];
-        if (OptionalStringForKey(contract_info, oo::StdString(CARGO_KEY_TYPE)) == good) {
-            total += contract_info.get<NSUInteger>(oo::StdString(CARGO_KEY_AMOUNT));
+        if (OptionalStringForKey(contract_info, std::string(CARGO_KEY_TYPE)) == good) {
+            total += contract_info.get<NSUInteger>(std::string(CARGO_KEY_AMOUNT));
         }
     }
     return total;
@@ -496,9 +494,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (int)passengerReputation
 {
-    int good = ReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
 
     if (unknown > 0)
         unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
@@ -510,9 +508,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)increasePassengerReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -528,16 +526,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 good++;
         }
     }
-    SetReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY), good);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY), bad);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY), unknown);
+    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), good);
+    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), bad);
+    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), unknown);
 }
 
 - (void)decreasePassengerReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -553,16 +551,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 bad++;
         }
     }
-    SetReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY), good);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY), bad);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY), unknown);
+    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), good);
+    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), bad);
+    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), unknown);
 }
 
 - (int)parcelReputation
 {
-    int good = ReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     if (unknown > 0)
         unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
@@ -574,9 +572,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)increaseParcelReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -592,16 +590,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 good++;
         }
     }
-    SetReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY), good);
-    SetReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY), bad);
-    SetReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY), unknown);
+    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), good);
+    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), bad);
+    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), unknown);
 }
 
 - (void)decreaseParcelReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -617,16 +615,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 bad++;
         }
     }
-    SetReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY), good);
-    SetReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY), bad);
-    SetReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY), unknown);
+    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), good);
+    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), bad);
+    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), unknown);
 }
 
 - (int)contractReputation
 {
-    int good = ReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
 
     if (unknown > 0)
         unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
@@ -638,9 +636,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)increaseContractReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -656,16 +654,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 good++;
         }
     }
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY), good);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY), bad);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY), unknown);
+    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), good);
+    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), bad);
+    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), unknown);
 }
 
 - (void)decreaseContractReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY));
-    int bad = ReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY));
-    int unknown = ReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY));
+    int good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
+    int bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
+    int unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -681,22 +679,22 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 bad++;
         }
     }
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY), good);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY), bad);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY), unknown);
+    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), good);
+    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), bad);
+    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), unknown);
 }
 
 - (void)erodeReputation
 {
-    int c_good = ReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY));
-    int c_bad = ReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY));
-    int c_unknown = ReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY));
-    int p_good = ReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY));
-    int p_bad = ReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY));
-    int p_unknown = ReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY));
-    int pl_good = ReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY));
-    int pl_bad = ReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY));
-    int pl_unknown = ReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY));
+    int c_good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
+    int c_bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
+    int c_unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int p_good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
+    int p_bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
+    int p_unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int pl_good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
+    int pl_bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
+    int pl_unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     if (c_unknown < MAX_CONTRACT_REP) {
         if (c_bad > 0)
@@ -728,29 +726,29 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         pl_unknown++;
     }
 
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY), c_good);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY), c_bad);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY), c_unknown);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY), p_good);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY), p_bad);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY), p_unknown);
-    SetReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY), pl_good);
-    SetReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY), pl_bad);
-    SetReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY), pl_unknown);
+    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), c_good);
+    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), c_bad);
+    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), c_unknown);
+    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), p_good);
+    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), p_bad);
+    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), p_unknown);
+    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), pl_good);
+    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), pl_bad);
+    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), pl_unknown);
 }
 
 /* Update reputation levels in case of change in MAX_CONTRACT_REP */
 - (void)normaliseReputation
 {
-    int c_good = ReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY));
-    int c_bad = ReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY));
-    int c_unknown = ReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY));
-    int p_good = ReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY));
-    int p_bad = ReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY));
-    int p_unknown = ReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY));
-    int pl_good = ReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY));
-    int pl_bad = ReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY));
-    int pl_unknown = ReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY));
+    int c_good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
+    int c_bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
+    int c_unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int p_good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
+    int p_bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
+    int p_unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int pl_good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
+    int pl_bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
+    int pl_unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     int c = c_good + c_bad + c_unknown;
     if (c == 0) {
@@ -779,29 +777,29 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         pl_unknown = MAX_CONTRACT_REP - pl_good - pl_bad;
     }
 
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_GOOD_KEY), c_good);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_BAD_KEY), c_bad);
-    SetReputationValue(reputation, oo::StdString(CONTRACTS_UNKNOWN_KEY), c_unknown);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_GOOD_KEY), p_good);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_BAD_KEY), p_bad);
-    SetReputationValue(reputation, oo::StdString(PASSAGE_UNKNOWN_KEY), p_unknown);
-    SetReputationValue(reputation, oo::StdString(PARCEL_GOOD_KEY), pl_good);
-    SetReputationValue(reputation, oo::StdString(PARCEL_BAD_KEY), pl_bad);
-    SetReputationValue(reputation, oo::StdString(PARCEL_UNKNOWN_KEY), pl_unknown);
+    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), c_good);
+    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), c_bad);
+    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), c_unknown);
+    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), p_good);
+    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), p_bad);
+    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), p_unknown);
+    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), pl_good);
+    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), pl_bad);
+    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), pl_unknown);
 }
 
 - (BOOL)cxx_addPassenger:(const std::string&)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee advance:(double)advance risk:(unsigned)risk
 {
     // the number kinds the old dictionary held: +numberWithInt:, +numberWithDouble:, +numberWithUnsignedInt:
     const oo::PList passenger_info(oo::PList::Dict {
-        { oo::StdString(PASSENGER_KEY_NAME), oo::PList(Name) },
-        { oo::StdString(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
-        { oo::StdString(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
-        { oo::StdString(CONTRACT_KEY_DEPARTURE_TIME), oo::PList([PLAYER clockTime]) },
-        { oo::StdString(CONTRACT_KEY_ARRIVAL_TIME), oo::PList(eta) },
-        { oo::StdString(CONTRACT_KEY_FEE), oo::PList(fee) },
-        { oo::StdString(CONTRACT_KEY_PREMIUM), oo::PList(advance) },
-        { oo::StdString(CONTRACT_KEY_RISK), oo::PList::unsignedInteger(risk) },
+        { std::string(PASSENGER_KEY_NAME), oo::PList(Name) },
+        { std::string(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
+        { std::string(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
+        { std::string(CONTRACT_KEY_DEPARTURE_TIME), oo::PList([PLAYER clockTime]) },
+        { std::string(CONTRACT_KEY_ARRIVAL_TIME), oo::PList(eta) },
+        { std::string(CONTRACT_KEY_FEE), oo::PList(fee) },
+        { std::string(CONTRACT_KEY_PREMIUM), oo::PList(advance) },
+        { std::string(CONTRACT_KEY_RISK), oo::PList::unsignedInteger(risk) },
     });
 
     // extra checks, just in case.
@@ -809,13 +807,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         return NO;
 
     if (risk > 1) {
-        [self addRoleToPlayer:@"trader-courier+"];
+        [self cxx_addRoleToPlayer:"trader-courier+"];
     }
 
     passengers.push_back(passenger_info);
     passenger_record[Name] = oo::PList(eta); // +numberWithDouble:
 
-    [self doScriptEvent:OOJSID("playerEnteredContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), passenger_info }))];
+    [self cxx_doScriptEvent:OOJSID("playerEnteredContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("passenger"), passenger_info })))];
 
     return YES;
 }
@@ -829,7 +827,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     unsigned i;
 
     for (i = 0; i < passengers.size(); i++) {
-        const std::optional<std::string> this_name = OptionalStringForKey(passengers[i], oo::StdString(PASSENGER_KEY_NAME));
+        const std::optional<std::string> this_name = OptionalStringForKey(passengers[i], std::string(PASSENGER_KEY_NAME));
 
         if (this_name == Name) {
             passengers.erase(passengers.begin() + i);
@@ -845,14 +843,14 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 {
     // the number kinds the old dictionary held: +numberWithInt:, +numberWithDouble:, +numberWithUnsignedInt:
     const oo::PList parcel_info(oo::PList::Dict {
-        { oo::StdString(PASSENGER_KEY_NAME), oo::PList(Name) },
-        { oo::StdString(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
-        { oo::StdString(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
-        { oo::StdString(CONTRACT_KEY_DEPARTURE_TIME), oo::PList([PLAYER clockTime]) },
-        { oo::StdString(CONTRACT_KEY_ARRIVAL_TIME), oo::PList(eta) },
-        { oo::StdString(CONTRACT_KEY_FEE), oo::PList(fee) },
-        { oo::StdString(CONTRACT_KEY_PREMIUM), oo::PList(premium) },
-        { oo::StdString(CONTRACT_KEY_RISK), oo::PList::unsignedInteger(risk) },
+        { std::string(PASSENGER_KEY_NAME), oo::PList(Name) },
+        { std::string(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
+        { std::string(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
+        { std::string(CONTRACT_KEY_DEPARTURE_TIME), oo::PList([PLAYER clockTime]) },
+        { std::string(CONTRACT_KEY_ARRIVAL_TIME), oo::PList(eta) },
+        { std::string(CONTRACT_KEY_FEE), oo::PList(fee) },
+        { std::string(CONTRACT_KEY_PREMIUM), oo::PList(premium) },
+        { std::string(CONTRACT_KEY_RISK), oo::PList::unsignedInteger(risk) },
     });
 
     // extra checks, just in case.
@@ -862,13 +860,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // if ([parcel_record objectForKey:Name] != nil) return NO;
 
     if (risk > 1) {
-        [self addRoleToPlayer:@"trader-courier+"];
+        [self cxx_addRoleToPlayer:"trader-courier+"];
     }
 
     parcels.push_back(parcel_info);
     parcel_record[Name] = oo::PList(eta); // +numberWithDouble:
 
-    [self doScriptEvent:OOJSID("playerEnteredContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), parcel_info }))];
+    [self cxx_doScriptEvent:OOJSID("playerEnteredContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("parcel"), parcel_info })))];
 
     return YES;
 }
@@ -882,7 +880,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     unsigned i;
 
     for (i = 0; i < parcels.size(); i++) {
-        const std::optional<std::string> this_name = OptionalStringForKey(parcels[i], oo::StdString(PASSENGER_KEY_NAME));
+        const std::optional<std::string> this_name = OptionalStringForKey(parcels[i], std::string(PASSENGER_KEY_NAME));
 
         if (this_name == Name) {
             parcels.erase(parcels.begin() + i);
@@ -906,7 +904,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
     std::string cargo_ID = oo::str::format("%06x-%06x", sr1, sr2);
 
-    if (![[UNIVERSE commodities] goodDefined:oo::NSStringFrom(type)])
+    if (![[UNIVERSE commodities] cxx_goodDefined:type])
         return NO;
     if (qty < 1)
         return NO;
@@ -919,22 +917,22 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
     // the number kinds the old dictionary held: +numberWithInt:, +numberWithDouble:
     const oo::PList cargo_info(oo::PList::Dict {
-        { oo::StdString(CARGO_KEY_ID), oo::PList(cargo_ID) },
-        { oo::StdString(CARGO_KEY_TYPE), oo::PList(type) },
-        { oo::StdString(CARGO_KEY_AMOUNT), oo::PList::signedInteger(static_cast<int>(qty)) },
-        { oo::StdString(CARGO_KEY_DESCRIPTION), oo::PList(oo::StdString([UNIVERSE describeCommodity:oo::NSStringFrom(type) amount:qty])) },
-        { oo::StdString(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
-        { oo::StdString(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
-        { oo::StdString(CONTRACT_KEY_DEPARTURE_TIME), oo::PList([PLAYER clockTime]) },
-        { oo::StdString(CONTRACT_KEY_ARRIVAL_TIME), oo::PList(eta) },
-        { oo::StdString(CONTRACT_KEY_FEE), oo::PList(fee) },
-        { oo::StdString(CONTRACT_KEY_PREMIUM), oo::PList(premium) },
+        { std::string(CARGO_KEY_ID), oo::PList(cargo_ID) },
+        { std::string(CARGO_KEY_TYPE), oo::PList(type) },
+        { std::string(CARGO_KEY_AMOUNT), oo::PList::signedInteger(static_cast<int>(qty)) },
+        { std::string(CARGO_KEY_DESCRIPTION), oo::PList([UNIVERSE cxx_describeCommodity:type amount:qty].value_or(std::string())) },
+        { std::string(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
+        { std::string(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
+        { std::string(CONTRACT_KEY_DEPARTURE_TIME), oo::PList([PLAYER clockTime]) },
+        { std::string(CONTRACT_KEY_ARRIVAL_TIME), oo::PList(eta) },
+        { std::string(CONTRACT_KEY_FEE), oo::PList(fee) },
+        { std::string(CONTRACT_KEY_PREMIUM), oo::PList(premium) },
     });
 
     // check available space
 
     OOCargoQuantity cargoSpaceRequired = qty;
-    OOMassUnit contractCargoUnits = [shipCommodityData massUnitForGood:oo::NSStringFrom(type)]; // shared selector (OOCommodities): an Objective-C string
+    OOMassUnit contractCargoUnits = [shipCommodityData massUnitForGood:type]; // shared selector (OOCommodities): an Objective-C string
 
     if (contractCargoUnits == UNITS_KILOGRAMS)
         cargoSpaceRequired /= 1000;
@@ -950,17 +948,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
     // roleWeightFlags entries are signed integers, as +numberWithInt: was
     if ([shipCommodityData cxx_exportLegalityForGood:type] > 0) {
-        [self addRoleToPlayer:@"trader-smuggler"];
+        [self cxx_addRoleToPlayer:"trader-smuggler"];
         roleWeightFlags.insert_or_assign("bought-illegal", oo::PList::signedInteger(1));
     } else {
-        [self addRoleToPlayer:@"trader"];
+        [self cxx_addRoleToPlayer:"trader"];
         roleWeightFlags.insert_or_assign("bought-legal", oo::PList::signedInteger(1));
     }
 
     contracts.push_back(cargo_info);
     contract_record[cargo_ID] = oo::PList(eta); // +numberWithDouble:
 
-    [self doScriptEvent:OOJSID("playerEnteredContract") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), cargo_info }))];
+    [self cxx_doScriptEvent:OOJSID("playerEnteredContract") withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("cargo"), cargo_info })))];
 
     return YES;
 }
@@ -970,18 +968,18 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     if (contracts.empty() || dest > 255)
         return NO;
 
-    if (![[UNIVERSE commodities] goodDefined:oo::NSStringFrom(type)])
+    if (![[UNIVERSE commodities] cxx_goodDefined:type])
         return NO;
 
     unsigned i;
 
     for (i = 0; i < contracts.size(); i++) {
         const oo::PList& contractInfo = contracts[i];
-        unsigned cargoDest = contractInfo.get<int>(oo::StdString(CONTRACT_KEY_DESTINATION));
-        const std::optional<std::string> cargoType = OptionalStringForKey(contractInfo, oo::StdString(CARGO_KEY_TYPE));
+        unsigned cargoDest = contractInfo.get<int>(std::string(CONTRACT_KEY_DESTINATION));
+        const std::optional<std::string> cargoType = OptionalStringForKey(contractInfo, std::string(CARGO_KEY_TYPE));
 
         if (cargoType == type && cargoDest == dest) {
-            const std::optional<std::string> cargoID = OptionalStringForKey(contractInfo, oo::StdString(CARGO_KEY_ID));
+            const std::optional<std::string> cargoID = OptionalStringForKey(contractInfo, std::string(CARGO_KEY_ID));
             if (cargoID)
                 contract_record.erase(*cargoID);
             contracts.erase(contracts.begin() + i);
@@ -1015,17 +1013,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     unsigned i;
     for (i = 0; i < contracts_array.size(); i++) {
         const oo::PList& contract_info = contracts_array[i];
-        const std::optional<std::string> label = OptionalStringForKey(contract_info, forCargo ? oo::StdString(CARGO_KEY_DESCRIPTION) : oo::StdString(PASSENGER_KEY_NAME));
+        const std::optional<std::string> label = OptionalStringForKey(contract_info, forCargo ? std::string(CARGO_KEY_DESCRIPTION) : std::string(PASSENGER_KEY_NAME));
         // the system name can change via script. The following PASSENGER_KEYs are identical to the corresponding CONTRACT_KEYs
-        const std::optional<std::string> destination = oo::OptionalString([UNIVERSE getSystemName:contract_info.get<int>(oo::StdString(CONTRACT_KEY_DESTINATION))]);
-        int dest_eta = contract_info.get<double>(oo::StdString(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
-        const std::optional<std::string> deadline = oo::OptionalString([UNIVERSE shortTimeDescription:dest_eta]);
+        const std::optional<std::string> destination = [UNIVERSE cxx_getSystemName:contract_info.get<int>(std::string(CONTRACT_KEY_DESTINATION))];
+        int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        const std::optional<std::string> deadline = [UNIVERSE cxx_shortTimeDescription:dest_eta];
 
-        OOCreditsQuantity fee = contract_info.get<int>(oo::StdString(CONTRACT_KEY_FEE));
-        const std::optional<std::string> feeDesc = oo::OptionalString(OOIntCredits(fee));
+        OOCreditsQuantity fee = contract_info.get<int>(std::string(CONTRACT_KEY_FEE));
+        const std::optional<std::string> feeDesc = std::optional<std::string>(cxx_OOIntCredits(fee));
 
-        // OOExpandKey(formatString, label, destination, deadline, feeDesc), spelled out: the macro names
-        // each argument after its expression, so the dictionary of named values is built here.
+        // cxx_OOExpandKey(formatString, label, destination, deadline, feeDesc), spelled out: the macro
+        // names each argument after its expression, so the dictionary of named values is built here.
         oo::PList::Dict arguments;
         if (label)
             arguments["label"] = oo::PList(*label);
@@ -1035,7 +1033,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             arguments["deadline"] = oo::PList(*deadline);
         if (feeDesc)
             arguments["feeDesc"] = oo::PList(*feeDesc);
-        result.push_back(oo::StdString(OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), oo::NSStringFrom(std::string(formatString)), oo::ObjectFromPList(oo::PList(std::move(arguments))), nil, nil, kOOExpandKey)));
+        result.push_back(cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), std::string(formatString), oo::PList(std::move(arguments)), oo::PList(), std::nullopt, kOOExpandKey).value_or(std::string()));
     }
 
     return result;
@@ -1058,13 +1056,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // GUI stuff
     {
         NSInteger current, max;
-        OOColor* subheadColor = [gui colorFromSetting:kGuiManifestSubheadColor defaultValue:[OOColor greenColor]];
-        OOColor* entryColor = [gui colorFromSetting:kGuiManifestEntryColor defaultValue:nil];
-        OOColor* scrollColor = [gui colorFromSetting:kGuiManifestScrollColor defaultValue:[OOColor greenColor]];
-        OOColor* noScrollColor = [gui colorFromSetting:kGuiManifestNoScrollColor defaultValue:[OOColor darkGrayColor]];
+        OOColor* subheadColor = [gui cxx_colorFromSetting:cxx_kGuiManifestSubheadColor defaultValue:[OOColor greenColor]];
+        OOColor* entryColor = [gui cxx_colorFromSetting:cxx_kGuiManifestEntryColor defaultValue:nil];
+        OOColor* scrollColor = [gui cxx_colorFromSetting:cxx_kGuiManifestScrollColor defaultValue:[OOColor greenColor]];
+        OOColor* noScrollColor = [gui cxx_colorFromSetting:cxx_kGuiManifestNoScrollColor defaultValue:[OOColor darkGrayColor]];
 
-        const std::vector<std::string> cargoManifest = oo::StringsFrom([self cargoList]);
-        id missionsManifest = [self missionsList]; // strings and arrays of strings
+        const std::vector<std::string> cargoManifest = [self cxx_cargoList];
+        id missionsManifest = oo::ObjectFromPList([self cxx_missionsList]); // strings and arrays of strings
 
         NSUInteger i = 0;
         NSUInteger max_rows = 20;
@@ -1106,21 +1104,21 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         OOGUITabSettings tab_stops;
         tab_stops[0] = 0;
         tab_stops[1] = 256;
-        [gui overrideTabs:tab_stops from:kGuiManifestTabs length:3];
+        [gui cxx_overrideTabs:tab_stops from:cxx_kGuiManifestTabs length:3];
         [gui setTabStops:tab_stops];
 
         // Cargo Manifest
         current_cargo = [self cargoQuantityOnBoard];
 
         [gui clearAndKeepBackground:!guiChanged];
-        [gui setTitle:DESC(@"manifest-title")];
+        [gui cxx_setTitle:OO_DESC("manifest-title")];
 
         current = current_cargo;
         max = [self maxAvailableCargoSpace];
-        const std::string cargoString = oo::StdString(OOExpandKey(@"oolite-manifest-cargo", current, max));
+        const std::string cargoString = cxx_OOExpandKey("oolite-manifest-cargo", current, max).value_or(std::string());
         current = [self cxx_passengerList].size();
         max = max_passengers;
-        const std::string cabinString = oo::StdString(OOExpandKey(@"oolite-manifest-cabins", current, max));
+        const std::string cabinString = cxx_OOExpandKey("oolite-manifest-cabins", current, max).value_or(std::string());
         const std::vector<std::string> manifestHeader = { cargoString, cabinString };
 
         SET_MANIFEST_ROW(oo::NSArrayFromStrings(manifestHeader), entryColor, cargoRow - 1);
@@ -1138,7 +1136,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 SET_MANIFEST_ROW(oo::NSArrayFromStrings(row_info), subheadColor, cargoRow + i);
             }
         } else {
-            SET_MANIFEST_ROW((DESC(@"manifest-none")), subheadColor, cargoRow);
+            SET_MANIFEST_ROW((oo::NSStringFrom(OO_DESC("manifest-none"))), subheadColor, cargoRow);
             cargoRowCount = 1;
         }
 
@@ -1151,7 +1149,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             if (oo::IsNSString([missionsManifest objectAtIndex:0])) {
                 // then there's at least one without its own heading
                 // to go under the generic 'missions' heading
-                SET_MANIFEST_ROW((DESC(@"manifest-missions")), entryColor, missionsRow - 1);
+                SET_MANIFEST_ROW((oo::NSStringFrom(OO_DESC("manifest-missions"))), entryColor, missionsRow - 1);
             } else {
                 missionsRow--;
             }
@@ -1183,21 +1181,21 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             OOGUIRow r_end = nextPageRow;
             if (page_offset > 0) {
                 [gui setColor:scrollColor forRow:MANIFEST_SCREEN_ROW_BACK];
-                [gui setKey:GUI_KEY_OK forRow:MANIFEST_SCREEN_ROW_BACK];
+                [gui cxx_setKey:std::string(GUI_KEY_OK) forRow:MANIFEST_SCREEN_ROW_BACK];
             } else {
                 [gui setColor:noScrollColor forRow:MANIFEST_SCREEN_ROW_BACK];
                 r_start = nextPageRow;
             }
-            [gui cxx_setArray: { oo::StdString(DESC(@"gui-back")), " <-- " } forRow:MANIFEST_SCREEN_ROW_BACK];
+            [gui cxx_setArray: { OO_DESC("gui-back"), " <-- " } forRow:MANIFEST_SCREEN_ROW_BACK];
 
             if (total_rows > max_rows + page_offset) {
                 [gui setColor:scrollColor forRow:nextPageRow];
-                [gui setKey:GUI_KEY_OK forRow:nextPageRow];
+                [gui cxx_setKey:std::string(GUI_KEY_OK) forRow:nextPageRow];
             } else {
                 [gui setColor:noScrollColor forRow:nextPageRow];
                 r_end = MANIFEST_SCREEN_ROW_BACK;
             }
-            [gui cxx_setArray: { oo::StdString(DESC(@"gui-more")), " --> " } forRow:nextPageRow];
+            [gui cxx_setArray: { OO_DESC("gui-more"), " --> " } forRow:nextPageRow];
 
             [gui setSelectableRange:NSMakeRange(r_start, r_end + 1 - r_start)];
             [gui setSelectedRow:r_start];
@@ -1213,8 +1211,8 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 
     if (guiChanged) {
-        [gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-        [gui setBackgroundTextureKey:@"manifest"];
+        [gui cxx_setForegroundTextureKey:std::optional<std::string>([self status] == STATUS_DOCKED ? "docked_overlay" : "overlay")];
+        [gui cxx_setBackgroundTextureKey:"manifest"];
         [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
     }
 }
@@ -1250,7 +1248,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // GUI stuff
     {
         [gui clearAndKeepBackground:!guiChanged];
-        [gui setTitle:OOExpandKey(@"arrival-report-title")];
+        [gui cxx_setTitle:cxx_OOExpandKey("arrival-report-title")];
 
         for (i = 1; i <= 18; i++) {
             [gui setColor:[gui cxx_colorFromSetting:std::string(cxx_kGuiDockingReportColor) defaultValue:nil] forRow:21];
@@ -1273,10 +1271,10 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             }
         }
 
-        [gui cxx_setText:oo::str::formatRuntime(oo::StdString(DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers)), { oo::DescriptionOf(OOCredits(credits)), current_cargo, [self maxAvailableCargoSpace], passengers.size(), max_passengers }) forRow:GUI_ROW_MARKET_CASH];
+        [gui cxx_setText:oo::str::formatRuntime(OO_DESC_PLURAL("contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), { cxx_OOCredits(credits), current_cargo, [self maxAvailableCargoSpace], passengers.size(), max_passengers }) forRow:GUI_ROW_MARKET_CASH];
         [gui setColor:[gui cxx_colorFromSetting:std::string(cxx_kGuiDockingSummaryColor) defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
 
-        [gui cxx_setText:oo::OptionalString(DESC(@"press-space-commander")) forRow:21 align:GUI_ALIGN_CENTER];
+        [gui cxx_setText:OO_DESC("press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
         [gui setColor:[gui cxx_colorFromSetting:std::string(cxx_kGuiDockingContinueColor) defaultValue:nil] forRow:21];
         [gui setShowTextCursor:NO];
     }
@@ -1290,11 +1288,11 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     if (guiChanged) {
         [gui cxx_setForegroundTextureKey:std::string("docked_overlay")]; // has to be docked!
 
-        oo::PList bgDescriptor = oo::PListFrom([UNIVERSE screenTextureDescriptorForKey:@"report"]);
+        oo::PList bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"report"];
         if (bgDescriptor.isNull())
-            bgDescriptor = oo::PListFrom([UNIVERSE screenTextureDescriptorForKey:@"status_docked"]);
+            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"status_docked"];
         if (bgDescriptor.isNull())
-            bgDescriptor = oo::PListFrom([UNIVERSE screenTextureDescriptorForKey:@"status"]);
+            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"status"];
         [gui cxx_setBackgroundTextureDescriptor:bgDescriptor];
         [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
     }
@@ -1325,10 +1323,11 @@ std::optional<std::string> OptionalStringAt(const oo::PList& array, std::size_t 
     return array.at<std::string>(index);
 }
 
-// OOExpandKey(key, ...) with the arguments it would have named after their variables.
+// cxx_OOExpandKey(key, ...) with the arguments it would have named after their variables; nothing
+// expanded is "".
 std::string ExpandKey(const char* key, oo::PList::Dict arguments)
 {
-    return oo::StdString(OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), oo::NSStringFrom(std::string(key)), oo::ObjectFromPList(oo::PList(std::move(arguments))), nil, nil, kOOExpandKey));
+    return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), std::string(key), oo::PList(std::move(arguments)), oo::PList(), std::nullopt, kOOExpandKey).value_or(std::string());
 }
 
 // The labels row as the GUI holds it, padded to four columns.
@@ -1394,7 +1393,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     // GUI stuff
     {
         [gui clearAndKeepBackground:!guiChanged];
-        [gui setTitle:oo::NSStringFrom(ExpandKey("shipyard-title", { { "system", oo::PListFrom([UNIVERSE getSystemName:system_id]) } }))];
+        [gui cxx_setTitle:ExpandKey("shipyard-title", { { "system", oo::PListFrom(oo::NSStringOrNil([UNIVERSE cxx_getSystemName:system_id])) } })];
 
         OOGUITabSettings tab_stops;
         tab_stops[0] = 0;
@@ -1425,13 +1424,13 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
         if (shipCount > 0) {
             [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardHeadingColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_LABELS];
-            [gui cxx_setArray: { oo::StdString(DESC(@"shipyard-shiptype")), oo::StdString(DESC(@"shipyard-price-label")),
-                                   oo::StdString(DESC(@"shipyard-cargo-label")), oo::StdString(DESC(@"shipyard-speed-label")) }
+            [gui cxx_setArray: { OO_DESC("shipyard-shiptype"), OO_DESC("shipyard-price-label"),
+                                   OO_DESC("shipyard-cargo-label"), OO_DESC("shipyard-speed-label") }
                        forRow:GUI_ROW_SHIPYARD_LABELS];
 
             if (skip > 0) {
                 [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardScrollColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_START];
-                [gui cxx_setArray: { oo::StdString(DESC(@"gui-back")), " <-- " } forRow:GUI_ROW_SHIPYARD_START];
+                [gui cxx_setArray: { OO_DESC("gui-back"), " <-- " } forRow:GUI_ROW_SHIPYARD_START];
                 [gui cxx_setKey:oo::str::format("More:%zd", previous) forRow:GUI_ROW_SHIPYARD_START];
             }
             for (i = 0; i < (shipCount - skip) && (int)i < rowCount; i++) {
@@ -1442,13 +1441,13 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
                 if (!shipName && ship != nullptr)
                     shipName = OptionalStringForKey(*ship, "name"); // KEY_NAME
                 [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardEntryColor defaultValue:nil] forRow:startRow + i];
-                [gui cxx_setArray: { " " + shipName.value_or("(null)") + " ", oo::StdString(OOIntCredits(ship_price)) }
+                [gui cxx_setArray: { " " + shipName.value_or("(null)") + " ", cxx_OOIntCredits(ship_price) }
                            forRow:startRow + i];
                 [gui cxx_setKey:OptionalStringForKey(ship_info, "id").value_or("") forRow:startRow + i]; // SHIPYARD_KEY_ID
             }
             if (i < shipCount - skip) {
                 [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardScrollColor defaultValue:[OOColor greenColor]] forRow:startRow + i];
-                [gui cxx_setArray: { oo::StdString(DESC(@"gui-more")), " --> " } forRow:startRow + i];
+                [gui cxx_setArray: { OO_DESC("gui-more"), " --> " } forRow:startRow + i];
                 [gui cxx_setKey:oo::str::format("More:%zu", rowCount + skip) forRow:startRow + i];
                 i++;
             }
@@ -1459,7 +1458,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
                 [gui setFirstSelectableRow];
             [self showShipyardInfoForSelection];
         } else {
-            [gui cxx_setText:oo::OptionalString(DESC(@"shipyard-no-ships-available-for-purchase")) forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("shipyard-no-ships-available-for-purchase") forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
             [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardNoshipColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_NO_SHIPS];
 
             [gui setNoSelectedRow];
@@ -1476,8 +1475,8 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     [UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 
     if (guiChanged) {
-        [gui setForegroundTextureKey:@"docked_overlay"];
-        [gui setBackgroundTextureKey:@"shipyard"];
+        [gui cxx_setForegroundTextureKey:"docked_overlay"];
+        [gui cxx_setBackgroundTextureKey:"shipyard"];
     }
 }
 
@@ -1523,8 +1522,8 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
             }
         }
 
-        row_info[2] = oo::StdString(OOExpandKey(@"shipyard-cargo-value", cargoRating));
-        row_info[3] = oo::StdString(OOExpandKey(@"shipyard-speed-value", speedRating));
+        row_info[2] = cxx_OOExpandKey("shipyard-cargo-value", cargoRating).value_or(std::string());
+        row_info[3] = cxx_OOExpandKey("shipyard-speed-value", speedRating).value_or(std::string());
 
         // Show footer first. It'll be overwritten by the sales_pitch if that text is longer than usual.
         [self showTradeInInformationFooter];
@@ -1555,7 +1554,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     GuiDisplayGen* gui = [UNIVERSE gui];
     OOCreditsQuantity tradeIn = [self tradeInValue];
     OOCreditsQuantity total = tradeIn + credits;
-    const oo::PList shipType = oo::PListFrom([self displayName]);
+    const oo::PList shipType = oo::PList([self displayName].value_or(""));
 
     [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH - 1];
     [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
@@ -1567,13 +1566,13 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 {
     if ([self dockedStation] == nil)
         return;
-    [self showShipModelWithKey:oo::NSStringFrom(shipKey) shipData:oo::ObjectFromPList(shipData) personality:personality factorX:1.2 factorY:0.8 factorZ:6.4 inContext:@"shipyard"];
+    [self cxx_showShipModelWithKey:shipKey shipData:shipData personality:personality factorX:1.2 factorY:0.8 factorZ:6.4 inContext:"shipyard"];
 }
 
 - (NSInteger)missingSubEntitiesAdjustment
 {
     // each missing subentity depreciates the ship by 5%, up to a maximum of 35% depreciation.
-    NSUInteger percent = 5 * ([self maxShipSubEntities] - [[[self shipSubEntityEnumerator] allObjects] count]);
+    NSUInteger percent = 5 * ([self maxShipSubEntities] - [self cxx_shipSubEntities].size());
     return (percent > 35 ? 35 : percent);
 }
 
@@ -1591,7 +1590,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
             for-sale ships.
             -- Ahruman 20070707, fix applied 20070708
     */
-    unsigned long long value = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
+    unsigned long long value = [UNIVERSE cxx_tradeInValueForCommanderDictionary:[self cxx_commanderDataDictionary]];
     value -= value * 0.006 * [self missingSubEntitiesAdjustment]; // TODO: 0.006 might need rethinking.
     value = cunningFee(((value * 75 * ship_trade_in_factor) + 5000) / 10000, 0.005); // Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
     return value * 10;
@@ -1656,12 +1655,12 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
             break; // +arrayWithObjects: stopped at the first nil
         buyArguments.push_back(argument);
     }
-    [self doScriptEvent:OOJSID("playerWillBuyNewShip")
-          withArguments:oo::ObjectFromPList(oo::PList(std::move(buyArguments)))];
+    [self cxx_doScriptEvent:OOJSID("playerWillBuyNewShip")
+              withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(std::move(buyArguments))))];
 
     // sell all the commodities carried
-    for (const std::string& good : oo::StringsFrom([shipCommodityData goods])) {
-        [self trySellingCommodity:oo::NSStringFrom(good) all:YES];
+    for (const std::string& good : [shipCommodityData goods]) {
+        [self cxx_trySellingCommodity:good all:YES];
     }
     // We tried to sell everything. If there are still items present in our inventory, it
     // means that the market got saturated (quantity in station > 127 t) before we could sell
@@ -1683,14 +1682,16 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
             max_passengers++;
             max_cargo -= PASSENGER_BERTH_SPACE;
         } else {
-            [self addEquipmentItem:oo::NSStringOrNil(eq_key) withValidation:YES inContext:@"newShip"];
+            [self addEquipmentItem:eq_key.value_or(std::string()) withValidation:YES inContext:"newShip"]; // none: "", as nil was
         }
     }
 
     // add bought ship to shipyard_record
     const std::optional<std::string> shipID = OptionalStringForKey(shipInfo, "id"); // SHIPYARD_KEY_ID
-    if (shipID)
-        shipyard_record[*shipID] = oo::PListFrom([self shipDataKey]); // (a nil key raised)
+    if (shipID) {
+        const std::optional<std::string> dataKey = [self cxx_shipDataKey];
+        shipyard_record[*shipID] = dataKey ? oo::PList(*dataKey) : oo::PList(); // (a nil key raised)
+    }
 
     // remove the ship from the localShipyard
     dockedShipyard = [[self dockedStation] cxx_localShipyard];
@@ -1698,7 +1699,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
         dockedShipyard->erase(dockedShipyard->begin() + (selectedRow - GUI_ROW_SHIPYARD_START));
 
     // perform the transformation
-    if (![self setCommanderDataFromDictionary:[self commanderDataDictionary]])
+    if (![self cxx_setCommanderDataFromDictionary:[self cxx_commanderDataDictionary]])
         return NO; // gather up all the info
 
     [self setStatus:STATUS_DOCKED];
@@ -1733,7 +1734,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     [self newShipCommonSetup:shipKey yardInfo:ship_info baseInfo:ship_base_dict];
 
     // perform the transformation
-    if (![self setCommanderDataFromDictionary:[self commanderDataDictionary]])
+    if (![self cxx_setCommanderDataFromDictionary:[self cxx_commanderDataDictionary]])
         return NO; // gather up all the info
 
     // refill from ship_info
@@ -1746,7 +1747,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
             max_passengers++;
             max_cargo -= PASSENGER_BERTH_SPACE;
         } else {
-            [self addEquipmentItem:oo::NSStringOrNil(eq_key) withValidation:YES inContext:@"newShip"];
+            [self addEquipmentItem:eq_key.value_or(std::string()) withValidation:YES inContext:"newShip"]; // none: "", as nil was
         }
     }
 
@@ -1771,7 +1772,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
     [self clearSubEntities];
 
-    [self setShipDataKey:oo::NSStringFrom(shipKey)];
+    [self cxx_setShipDataKey:shipKey];
 
     const oo::PList& shipDict = ship_base_dict;
 
@@ -1784,30 +1785,30 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
     // not retained - weapon types are references to the objects in OOEquipmentType's cache
     if (available_facings & WEAPON_FACING_AFT)
-        aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil(OptionalStringForKey(shipDict, "aft_weapon_type")));
+        aft_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(OptionalStringForKey(shipDict, "aft_weapon_type").value_or(""));
     else
-        aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
+        aft_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
     if (available_facings & WEAPON_FACING_PORT)
-        port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil(OptionalStringForKey(shipDict, "port_weapon_type")));
+        port_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(OptionalStringForKey(shipDict, "port_weapon_type").value_or(""));
     else
-        port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
+        port_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
     if (available_facings & WEAPON_FACING_STARBOARD)
-        starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil(OptionalStringForKey(shipDict, "starboard_weapon_type")));
+        starboard_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(OptionalStringForKey(shipDict, "starboard_weapon_type").value_or(""));
     else
-        starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
+        starboard_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
     if (available_facings & WEAPON_FACING_FORWARD)
-        forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil(OptionalStringForKey(shipDict, "forward_weapon_type")));
+        forward_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(OptionalStringForKey(shipDict, "forward_weapon_type").value_or(""));
     else
-        forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
+        forward_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
     // new ships start with weapons online
     weapons_online = 1;
 
     // get basic max_cargo
-    max_cargo = [UNIVERSE maxCargoForShip:[self shipDataKey]];
+    max_cargo = [UNIVERSE cxx_maxCargoForShip:[self cxx_shipDataKey].value_or(std::string())];
 
     // ensure all missiles are tidied up and start at pylon 0
     [self tidyMissilePylons];
@@ -1824,8 +1825,8 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
     std::set<std::string> portable_equipment;
 
-    for (const std::string& eq_desc : oo::StringsFrom([self equipmentEnumerator])) {
-        OOEquipmentType* item = [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringFrom(eq_desc)];
+    for (const std::string& eq_desc : [self cxx_equipmentKeys]) {
+        OOEquipmentType* item = [OOEquipmentType cxx_equipmentTypeWithIdentifier:eq_desc];
         if ([item isPortableBetweenShips])
             portable_equipment.insert(eq_desc);
     }
@@ -1835,15 +1836,15 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
     // restore  portable equipment (in key order; the set it replaced gave hash order)
     for (const std::string& eq_desc : portable_equipment) {
-        [self addEquipmentItem:oo::NSStringFrom(eq_desc) withValidation:NO inContext:@"portable"];
+        [self addEquipmentItem:eq_desc withValidation:NO inContext:"portable"];
     }
 
     // set up subentities from scratch; new ship could carry more or fewer than the old one
     [self setUpSubEntities];
 
     // clear old ship names
-    [self setShipClassName:oo::NSStringOrNil(OptionalStringForKey(shipDict, "name"))];
-    [self setShipUniqueName:@""];
+    [self cxx_setShipClassName:OptionalStringForKey(shipDict, "name")];
+    [self cxx_setShipUniqueName:""];
 
     // new ship, so lose some memory of actions
     // new ship, so lose some memory of player actions

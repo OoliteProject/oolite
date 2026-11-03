@@ -47,7 +47,7 @@ static id LoadDebugPlugIn(void);
 
 static id sDebugPlugInController;
 
-@interface NSObject (OODebugPlugInController)
+@interface OOObject (OODebugPlugInController)
 
 - (id<OODebuggerInterface>)setUpDebugger;
 
@@ -63,13 +63,13 @@ void OOInitDebugSupport(void)
     BOOL activateDebugConsole = NO;
 
     // Load debug settings.
-    debugSettings = oo::PListFrom([ResourceManager dictionaryFromFilesNamed:@"debugConfig.plist"
-                                                                   inFolder:@"Config"
-                                                                  mergeMode:MERGE_BASIC
-                                                                      cache:NO]);
+    debugSettings = [ResourceManager cxx_dictionaryFromFilesNamed:"debugConfig.plist"
+                                                         inFolder:"Config"
+                                                        mergeMode:MERGE_BASIC
+                                                            cache:NO];
 
     // Check that the debug OXP is installed. If not, we don't enable debug support.
-    debugOXPPath = oo::OptionalString([ResourceManager pathForFileNamed:@"DebugOXPLocatorBeacon.magic" inFolder:@"nil"]);
+    debugOXPPath = [ResourceManager cxx_pathForFileNamed:"DebugOXPLocatorBeacon.magic" inFolder:"nil"];
     if (debugOXPPath.has_value()) {
         // Load plug-in debugging code on platforms where this is supported.
         sDebugPlugInController = [(id)LoadDebugPlugIn() retain];

@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView+Input.h"
-#import "NSFileManagerOOExtensions.h" // to find savedir
 #import "OOConstToString.h"
 #import "OOFoundationBridge.h"
 #import "OOFullScreenController.h"
@@ -50,7 +49,9 @@ MA 02110-1301, USA.
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "stb_image_write.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
+// The save and snapshot directory names (moved here when the NSFileManager category header retired, bead oo-pwz0).
+#define SAVEDIR "oolite-saves"
+#define SNAPSHOTDIR "snapshots"
 
 extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
 
@@ -127,9 +128,9 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         OO_LOG("display.mode.list.native.failed", "{}", "SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
     }
 
-    mode[oo::StdString(kOODisplayWidth)] = oo::PList(std::int64_t(nativeDisplayWidth));
-    mode[oo::StdString(kOODisplayHeight)] = oo::PList(std::int64_t(nativeDisplayHeight));
-    mode[oo::StdString(kOODisplayRefreshRate)] = oo::PList(std::int64_t(0));
+    mode[std::string(kOODisplayWidth)] = oo::PList(std::int64_t(nativeDisplayWidth));
+    mode[std::string(kOODisplayHeight)] = oo::PList(std::int64_t(nativeDisplayHeight));
+    mode[std::string(kOODisplayRefreshRate)] = oo::PList(std::int64_t(0));
 
     return oo::PList(std::move(mode));
 }
@@ -227,7 +228,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         // Keep the splash screen's context (and its textures); the GL attributes are unchanged,
         // so the new window's pixel format matches.
         if (!SDL_GL_MakeCurrent(window, glContext)) {
-            OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+            OO_LOG("sdl.create_context", "Could not make OpenGL context current: {}", SDL_GetError());
             exit(1);
         }
     } else {
@@ -249,7 +250,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     // shaders). SDL_GetWindowSurface() may create an internal GL renderer context for the window
     // and leave it current, so make glContext current again before any GL call.
     if (!SDL_GL_MakeCurrent(window, glContext)) {
-        OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+        OO_LOG("sdl.create_context", "Could not make OpenGL context current: {}", SDL_GetError());
         exit(1);
     }
 
@@ -290,10 +291,10 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     _hdrMaxBrightness = oo::PListGet<float>::from(hdrMaxBrightness.isNull() ? nullptr : &hdrMaxBrightness, 1000.0f);
     const oo::PList hdrPaperWhiteBrightness = prefs.object("hdr-paperwhite-brightness");
     _hdrPaperWhiteBrightness = oo::PListGet<float>::from(hdrPaperWhiteBrightness.isNull() ? nullptr : &hdrPaperWhiteBrightness, 200.0f);
-    _hdrToneMapper = OOHDRToneMapperFromString(oo::NSStringFrom(DefaultsString("hdr-tone-mapper", "OOHDR_TONEMAPPER_ACES_APPROX")));
+    _hdrToneMapper = cxx_OOHDRToneMapperFromString(DefaultsString("hdr-tone-mapper", "OOHDR_TONEMAPPER_ACES_APPROX"));
 #endif
 
-    _sdrToneMapper = OOSDRToneMapperFromString(oo::NSStringFrom(DefaultsString("sdr-tone-mapper", "OOSDR_TONEMAPPER_ACES")));
+    _sdrToneMapper = cxx_OOSDRToneMapperFromString(DefaultsString("sdr-tone-mapper", "OOSDR_TONEMAPPER_ACES"));
 
 #if OOLITE_MAC_OS_X
     SDL_GL_SetSwapInterval(vSyncPreference ? 1 : 0);
@@ -471,7 +472,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
                 "oolite.exe - HDR requested",
                 MB_OKCANCEL | MB_ICONWARNING)
             == IDCANCEL) {
-            [gameController exitAppWithContext:@"Cancel selected on no-HDR confirmation dialog"];
+            [gameController cxx_exitAppWithContext:"Cancel selected on no-HDR confirmation dialog"];
         }
     }
 
@@ -501,7 +502,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         // which SDL makes current and then releases, so no context is current afterwards.
         // Rebind glContext before anything draws.
         if (!SDL_GL_MakeCurrent(window, glContext)) {
-            OOLog(@"sdl.create_context", @"Could not make OpenGL context current: %s", SDL_GetError());
+            OO_LOG("sdl.create_context", "Could not make OpenGL context current: {}", SDL_GetError());
             exit(1);
         }
         SDL_ShowWindow(window);
@@ -595,7 +596,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     viewSize = v_size;
 
-    OO_LOG("display.initGL", "Requested a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), oo::DescriptionOf((fullScreen ? @"fullscreen" : @"windowed")));
+    OO_LOG("display.initGL", "Requested a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), std::string((fullScreen ? "fullscreen" : "windowed")));
 
     SDL_GL_SwapWindow(window); // clear the buffer before resize
 
@@ -619,7 +620,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     [self updateGLSize:NSMakeSize(pixelWidth, pixelHeight)];
 
-    OO_LOG("display.initGL", "Created a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), oo::DescriptionOf((fullScreen ? @"fullscreen" : @"windowed")));
+    OO_LOG("display.initGL", "Created a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), std::string((fullScreen ? "fullscreen" : "windowed")));
 
     [self autoShowMouse];
 
@@ -742,8 +743,8 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 - (NSSize)modeAsSize:(int)sizeIndex
 {
     const oo::PList& mode = screenSizes.at(sizeIndex);
-    return NSMakeSize(mode.get<int>(oo::StdString(kOODisplayWidth)),
-        mode.get<int>(oo::StdString(kOODisplayHeight)));
+    return NSMakeSize(mode.get<int>(std::string(kOODisplayWidth)),
+        mode.get<int>(std::string(kOODisplayHeight)));
 }
 
 #endif
@@ -1041,8 +1042,17 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     // backup the previous directory
     const auto originalDirectory = oo::fs::currentDirectory();
-    // use the snapshots directory
-    [[NSFileManager defaultManager] chdirToSnapshotPath];
+    // use the snapshots directory (mkdir + chdir of ResourcePaths::snapshotDirectory)
+    {
+        const oo::fs::Path snapshotDir = oo::ResourcePaths::current().snapshotDirectory();
+        if (!oo::fs::setCurrentDirectory(snapshotDir)) {
+            if (!oo::fs::createDirectories(snapshotDir)) {
+                OO_LOG("savedSnapshot.defaultPath.create.failed", "Unable to create directory {}", oo::fs::utf8String(snapshotDir));
+            } else if (!oo::fs::setCurrentDirectory(snapshotDir)) {
+                OO_LOG("savedSnapshot.defaultPath.chdir.failed", "Created {} but couldn't make it the current directory.", oo::fs::utf8String(snapshotDir));
+            }
+        }
+    }
 
     BOOL withFilename = filename.has_value();
     static unsigned imageNo = 0;
@@ -1122,15 +1132,15 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     // if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
     if ([self hdrOutput]) {
-        std::string fileExtension = DefaultsString("hdr-snapshot-format", oo::StdString(SNAPSHOTHDR_EXTENSION_DEFAULT));
+        std::string fileExtension = DefaultsString("hdr-snapshot-format", std::string(SNAPSHOTHDR_EXTENSION_DEFAULT));
 
         // we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
         if (!oo::str::hasPrefix(fileExtension, "."))
             fileExtension = "." + fileExtension;
 
-        if (fileExtension != oo::StdString(SNAPSHOTHDR_EXTENSION_EXR) && fileExtension != oo::StdString(SNAPSHOTHDR_EXTENSION_HDR)) {
-            OO_LOG("screenshotHDR", "Unrecognized HDR file format requested, defaulting to {}", oo::DescriptionOf(SNAPSHOTHDR_EXTENSION_DEFAULT));
-            fileExtension = oo::StdString(SNAPSHOTHDR_EXTENSION_DEFAULT);
+        if (fileExtension != std::string(SNAPSHOTHDR_EXTENSION_EXR) && fileExtension != std::string(SNAPSHOTHDR_EXTENSION_HDR)) {
+            OO_LOG("screenshotHDR", "Unrecognized HDR file format requested, defaulting to {}", SNAPSHOTHDR_EXTENSION_DEFAULT);
+            fileExtension = std::string(SNAPSHOTHDR_EXTENSION_DEFAULT);
         }
 
         const std::string pathToPicHDR = oo::str::replaceOccurrences(*pathToPic, ".png", fileExtension);
@@ -1140,8 +1150,8 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
             glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
         }
 
-        if ((fileExtension == oo::StdString(SNAPSHOTHDR_EXTENSION_EXR) && SaveEXRSnapshot(pathToPicHDR.c_str(), surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
-            || (fileExtension == oo::StdString(SNAPSHOTHDR_EXTENSION_HDR) && !stbi_write_hdr(pathToPicHDR.c_str(), surface->w, surface->h, 3, pixlsf))) {
+        if ((fileExtension == std::string(SNAPSHOTHDR_EXTENSION_EXR) && SaveEXRSnapshot(pathToPicHDR.c_str(), surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
+            || (fileExtension == std::string(SNAPSHOTHDR_EXTENSION_HDR) && !stbi_write_hdr(pathToPicHDR.c_str(), surface->w, surface->h, 3, pixlsf))) {
             OO_LOG("screenshotHDR", "Failed to save {}", pathToPicHDR);
             snapShotOK = NO;
         }
@@ -1182,9 +1192,9 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     for (i = 0; i < displayModeCount; i++) {
         oo::PList::Dict modeDict;
-        modeDict[oo::StdString(kOODisplayWidth)] = oo::PList(std::int64_t((int)modes[i]->w));
-        modeDict[oo::StdString(kOODisplayHeight)] = oo::PList(std::int64_t((int)modes[i]->h));
-        modeDict[oo::StdString(kOODisplayRefreshRate)] = oo::PList::singleReal((float)(int)modes[i]->refresh_rate); // +numberWithFloat:
+        modeDict[std::string(kOODisplayWidth)] = oo::PList(std::int64_t((int)modes[i]->w));
+        modeDict[std::string(kOODisplayHeight)] = oo::PList(std::int64_t((int)modes[i]->h));
+        modeDict[std::string(kOODisplayRefreshRate)] = oo::PList::singleReal((float)(int)modes[i]->refresh_rate); // +numberWithFloat:
         const oo::PList mode(std::move(modeDict));
         if (std::find_if(screenSizes.begin(), screenSizes.end(), [&](const oo::PList& m) { return SameMode(m, mode); }) == screenSizes.end()) {
             screenSizes.push_back(mode);
@@ -1246,13 +1256,13 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     }
 
     if (width && height) {
-        currentSize = [self findDisplayModeForWidth:width Height:height Refresh:refresh];
+        currentSize = [self indexOfDisplayModeForWidth:width Height:height Refresh:refresh];
         return currentSize;
     }
     return currentSize;
 }
 
-- (int)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
+- (int)indexOfDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
 {
     int i, modeCount;
     unsigned int modeWidth, modeHeight, modeRefresh;
@@ -1261,17 +1271,17 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     for (i = 0; i < modeCount; i++) {
         const oo::PList& mode = screenSizes[i];
-        modeWidth = mode.get<int>(oo::StdString(kOODisplayWidth));
-        modeHeight = mode.get<int>(oo::StdString(kOODisplayHeight));
-        modeRefresh = mode.get<int>(oo::StdString(kOODisplayRefreshRate));
+        modeWidth = mode.get<int>(std::string(kOODisplayWidth));
+        modeHeight = mode.get<int>(std::string(kOODisplayHeight));
+        modeRefresh = mode.get<int>(std::string(kOODisplayRefreshRate));
         if ((modeWidth == d_width) && (modeHeight == d_height) && (modeRefresh == d_refresh)) {
-            OO_LOG("display.mode.found", "Found mode {}", oo::DescriptionOf(oo::ObjectFromPList(mode)));
+            OO_LOG("display.mode.found", "Found mode {}", oo::DescriptionOf(mode));
             return i;
         }
     }
 
     OO_LOG("display.mode.found.failed", "Failed to find mode: width={} height={} refresh={}", static_cast<int>(d_width), static_cast<int>(d_height), static_cast<int>(d_refresh));
-    OO_LOG("display.mode.found.failed.list", "Contents of list: {}", oo::DescriptionOf(oo::ObjectFromPList(oo::PList(oo::PList::Array(screenSizes)))));
+    OO_LOG("display.mode.found.failed.list", "Contents of list: {}", oo::DescriptionOf(oo::PList(oo::PList::Array(screenSizes))));
     return 0;
 }
 
@@ -1280,8 +1290,8 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     const oo::PList& mode = screenSizes.at(currentSize);
 
     if (mode) {
-        return NSMakeSize(mode.get<int>(oo::StdString(kOODisplayWidth)),
-            mode.get<int>(oo::StdString(kOODisplayHeight)));
+        return NSMakeSize(mode.get<int>(std::string(kOODisplayWidth)),
+            mode.get<int>(std::string(kOODisplayHeight)));
     }
     OO_LOG("display.mode.unknown", "{}", "Screen size unknown!");
     return NSMakeSize(WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT);
@@ -1339,7 +1349,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         return;
 
     // use the snapshots directory
-    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::StdString(NSHomeDirectory()), SAVEDIR), SNAPSHOTDIR);
+    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), SAVEDIR), SNAPSHOTDIR);
     dumpFile = oo::str::appendingPathComponent(dumpFile, name + ".png");
 
     SDL_Surface* tmpSurface = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGBA32, bytes, rowBytes);
@@ -1357,7 +1367,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         return;
 
     // use the snapshots directory
-    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::StdString(NSHomeDirectory()), SAVEDIR), SNAPSHOTDIR);
+    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), SAVEDIR), SNAPSHOTDIR);
     dumpFile = oo::str::appendingPathComponent(dumpFile, name + ".png");
 
     SDL_Surface* tmpSurface = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGB24, bytes, rowBytes);
@@ -1375,7 +1385,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         return;
 
     // use the snapshots directory
-    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::StdString(NSHomeDirectory()), SAVEDIR), SNAPSHOTDIR);
+    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), SAVEDIR), SNAPSHOTDIR);
     dumpFile = oo::str::appendingPathComponent(dumpFile, name + ".png");
 
     SDL_Surface* tmpSurface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
@@ -1403,7 +1413,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         return;
 
     // use the snapshots directory
-    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::StdString(NSHomeDirectory()), SAVEDIR), SNAPSHOTDIR);
+    std::string dumpFile = oo::str::appendingPathComponent(oo::str::appendingPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), SAVEDIR), SNAPSHOTDIR);
     dumpFile = oo::str::appendingPathComponent(dumpFile, name + ".png");
 
     SDL_Surface* tmpSurface = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGBA32, bytes, rowBytes);

@@ -36,7 +36,7 @@ JSClassID JSExhaustPlumeClassID(void);
 
 // Replaces SpiderMonkey's -getJSClass:andPrototype:.
 - (JSClassID)oo_jsClassID;
-- (id)oo_jsClassName; // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName;
 - (BOOL)isVisibleToScripts;
 
 @end

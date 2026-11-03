@@ -119,9 +119,14 @@ static int OOCloseOXZVorbis(void* datasource);
     // nothing
 }
 
-- (id)name
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
 {
-    return @"";
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
+{
+    return std::string();
 }
 
 @end
@@ -390,7 +395,7 @@ static int OOCloseOXZVorbis(void* datasource);
 
 // OOObject's -description wraps this as "<OOALSoundVorbisCodec 0x...>{...}", which is what this
 // class's own -description printed.
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     oo::PList commentList;
     if (const auto comments = [self comments]) {
@@ -399,7 +404,7 @@ static int OOCloseOXZVorbis(void* datasource);
             dict.emplace(key, oo::PList(value));
         commentList = oo::PList(std::move(dict));
     }
-    return oo::NSStringFrom(oo::str::format("\"%s\", comments=%s", oo::DescriptionOf(oo::NSStringOrNil(_name)).c_str(), oo::DescriptionOf(oo::ObjectFromPList(commentList)).c_str()));
+    return oo::str::format("\"%s\", comments=%s", oo::DescriptionOf(oo::NSStringOrNil(_name)).c_str(), oo::DescriptionOf(commentList).c_str());
 }
 
 - (long)sampleRate
@@ -430,9 +435,9 @@ static int OOCloseOXZVorbis(void* datasource);
     _readStarted = NO;
 }
 
-- (id)name
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringOrNil(_name);
+    return _name;
 }
 
 @end

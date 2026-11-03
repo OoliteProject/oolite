@@ -74,7 +74,7 @@ MA 02110-1301, USA.
     NSTimeInterval _splashStart; // oo::date::monotonicSeconds() at start-up
 
     SEL pauseSelector;
-    NSObject* pauseTarget;
+    OOObject* pauseTarget;
 
     BOOL gameIsPaused;
 
@@ -153,8 +153,7 @@ MA 02110-1301, USA.
 - (void)beginSplashScreen;
 - (void)cxx_logProgress:(const std::string&)message;
 #if OO_DEBUG
-// These take the formatted message; the %@ format forms (GameController+FoundationBridge.h, and
-// OO_DEBUG_PROGRESS / OO_DEBUG_PUSH_PROGRESS below) format it as they always did.
+// These take the formatted message, as do OO_DEBUG_PROGRESS / OO_DEBUG_PUSH_PROGRESS below.
 - (void)cxx_debugLogProgress:(const std::string&)message;
 - (void)cxx_debugPushProgressMessage:(const std::string&)message;
 - (void)debugPopProgressMessage;
@@ -193,8 +192,8 @@ MA 02110-1301, USA.
 - (BOOL)inFullScreenMode;
 
 - (BOOL)setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh;
-- (id)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh; // a display-mode dictionary. Shared selector (proposed ADR-0043).
-- (id)displayModes; // an Objective-C array of display-mode dictionaries. Shared selector (proposed ADR-0043).
+- (oo::PList)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh; // a mode dictionary; null: none (flipped with its family, bead oo-3rb.273)
+- (oo::PList)displayModes; // an array of mode dictionaries (flipped with its family, bead oo-3rb.273)
 - (NSUInteger)indexOfCurrentDisplayMode;
 
 - (void)pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target;
@@ -216,24 +215,17 @@ MA 02110-1301, USA.
 void OOScheduleDeferredCall(id target, SEL selector, id argument, NSTimeInterval delay);
 
 #if OO_DEBUG
-#define OO_DEBUG_PROGRESS(...) [[GameController sharedController] debugLogProgress:__VA_ARGS__]
-#define OO_DEBUG_PUSH_PROGRESS(...) [[GameController sharedController] debugPushProgressMessage:__VA_ARGS__]
+#define OO_DEBUG_PROGRESS(message) [[GameController sharedController] cxx_debugLogProgress:message]
+#define OO_DEBUG_PUSH_PROGRESS(message) [[GameController sharedController] cxx_debugPushProgressMessage:message]
 #define OO_DEBUG_POP_PROGRESS() [[GameController sharedController] debugPopProgressMessage]
 #else
-#define OO_DEBUG_PROGRESS(...) \
-    do {                       \
+#define OO_DEBUG_PROGRESS(message) \
+    do {                           \
     } while (0)
-#define OO_DEBUG_PUSH_PROGRESS(...) \
-    do {                            \
+#define OO_DEBUG_PUSH_PROGRESS(message) \
+    do {                                \
     } while (0)
 #define OO_DEBUG_POP_PROGRESS() \
     do {                        \
     } while (0)
 #endif
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-m6ej (chunks oo-3rb.88..91), forwarding to the cxx_ methods above, so
-        unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep beads;
-        the bridge goes in its own bead.
-*/
-#import "GameController+FoundationBridge.h"

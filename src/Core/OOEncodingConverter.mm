@@ -78,7 +78,7 @@ static unsigned sCacheMisses = 0;
     if (self != nil) {
         _cache = [[OOCache alloc] init];
         [_cache setPruneThreshold:kCachePruneThreshold];
-        [_cache setName:@"Text encoding"];
+        [_cache cxx_setName:std::string("Text encoding")];
         if (substitutions.isDict()) {
             // In the order the Foundation dictionary enumerated them (two that overlap give
             // different results in different orders), which is the order this one enumerates in.
@@ -120,10 +120,10 @@ static unsigned sCacheMisses = 0;
     [super dealloc];
 }
 
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     // (an unknown encoding printed as NSNotFound's low 32 bits, 4294967295)
-    return oo::NSStringFrom(oo::str::format("encoding: %u", _encoding.has_value() ? static_cast<unsigned>(*_encoding) : static_cast<unsigned>(NSNotFound)));
+    return oo::str::format("encoding: %u", _encoding.has_value() ? static_cast<unsigned>(*_encoding) : static_cast<unsigned>(NSNotFound));
 }
 
 - (oo::Data)convertString:(const std::string&)string
@@ -134,14 +134,13 @@ static unsigned sCacheMisses = 0;
     // (Unicode Normalization Form KC has no oofnd equivalent; the mapping has always been off.)
 #endif
 
-    // OOCache holds Objective-C objects: the string is its key, the bytes its value.
-    id key = oo::NSStringFrom(string);
-    id cached = [_cache objectForKey:key];
-    if (cached == nil) {
+    // The string is the cache key, the bytes its value (PList data).
+    const oo::PList cached = [_cache cxx_pListForKey:string];
+    if (cached.isNull()) {
         const std::optional<oo::Data> converted = [self performConversionForString:string];
         if (converted.has_value()) {
             data = *converted;
-            [_cache setObject:oo::ObjectFromPList(oo::PList(data)) forKey:key];
+            [_cache cxx_setPList:oo::PList(data) forKey:string];
         }
 
 #if PROFILE_ENCODING_CONVERTER
@@ -151,7 +150,7 @@ static unsigned sCacheMisses = 0;
 #if PROFILE_ENCODING_CONVERTER
         ++sCacheHits;
 #endif
-        if (const oo::Data* cachedData = oo::PListFrom(cached).getIf<oo::Data>())
+        if (const oo::Data* cachedData = cached.getIf<oo::Data>())
             data = *cachedData;
     }
 

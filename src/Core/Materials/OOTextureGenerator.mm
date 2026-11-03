@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OOTextureGenerator.h"
 #import "OOAsyncWorkManager.h"
+#import "OOFoundationBridge.h"
 
 @implementation OOTextureGenerator
 
@@ -45,9 +46,9 @@ SOFTWARE.
     return kOOTextureDefaultLODBias;
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return nil;
+    return std::nullopt;
 }
 
 - (BOOL)enqueue

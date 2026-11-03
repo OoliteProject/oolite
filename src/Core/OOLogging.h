@@ -71,41 +71,6 @@ extern "C++" {
 #define OOLOG_SHORT_CIRCUIT 1
 #endif
 
-/*	General usage:
-                OOLog(messageClass, format, parameters);
-        is conceptually equivalent to:
-                NSLog(format, parameters);
-        except that it will do nothing if logging is disabled for messageClass.
-
-        A message class is a hierarchical string, such as:
-                @"all.script.debug"
-
-        To determine whether scripting is enabled for this class, a setting for
-        @"all.script.debug" is looked up in a settings table. If it is not found,
-        @"all.script" is tried, followed by @"all".
-
-        Message class display settings can be manipulated with
-        OOLogSetDisplayMessagesInClass() and tested with
-        OOLogWillDisplayMessagesInClass().
-*/
-#if OOLOG_SHORT_CIRCUIT
-#define OOLog(class, format, ...)                                                                                       \
-    do {                                                                                                                \
-        if (OOLogWillDisplayMessagesInClass(class)) {                                                                   \
-            OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ##__VA_ARGS__); \
-        }                                                                                                               \
-    } while (0)
-#define OOLogWithArguments(class, format, args)                                                                            \
-    do {                                                                                                                   \
-        if (OOLogWillDisplayMessagesInClass(class)) {                                                                      \
-            OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args); \
-        }                                                                                                                  \
-    } while (0)
-#else
-#define OOLog(class, format, ...) OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ##__VA_ARGS__)
-#define OOLogWithArguments(class, format, args) OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,25 +81,6 @@ void OOLogOutdent(void);
 #ifdef __cplusplus
 }
 #endif
-
-#if OOLOG_SHORT_CIRCUIT
-#define OOLogIndentIf(class)                        \
-    do {                                            \
-        if (OOLogWillDisplayMessagesInClass(class)) \
-            OOLogIndent();                          \
-    } while (0)
-#define OOLogOutdentIf(class)                       \
-    do {                                            \
-        if (OOLogWillDisplayMessagesInClass(class)) \
-            OOLogOutdent();                         \
-    } while (0)
-#endif // otherwise they are functions, declared in OOLogging+FoundationBridge.h
-
-#define OOLOG_ERROR_PREFIX @"***** ERROR: "
-#define OOLOG_WARNING_PREFIX @"----- WARNING: "
-
-#define OOLogERR(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_ERROR_PREFIX, format, ##__VA_ARGS__)
-#define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_WARNING_PREFIX, format, ##__VA_ARGS__)
 
 // Remember/restore indent levels, for cases where an exception may occur while indented.
 #ifdef __cplusplus
@@ -157,35 +103,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
 #endif
 
 #if OOLOG_POISON_NSLOG
-#pragma GCC poison NSLog // Use OOLog instead
-#elif !OOLOG_NO_HIJACK_NSLOG
-// Hijack NSLog. Buahahahaha.
-#define NSLog(format, ...) OOLog(kOOLogUnconvertedNSLog, format, ##__VA_ARGS__)
-#define NSLogv(format, args) OOLogWithArguments(kOOLogUnconvertedNSLog, format, args)
-#endif
-
-// OODebugLog() is only included in debug builds.
-#if OO_DEBUG
-#define OODebugLog OOLog
-#else
-#define OODebugLog(class, format, ...) \
-    do {                               \
-        (void)class;                   \
-        if (0)                         \
-            (void)format;              \
-    } while (0)
-#endif
-
-// OOExtraLog() is included in debug and test-release builds, but not deployment builds.
-#ifndef NDEBUG
-#define OOExtraLog OOLog
-#else
-#define OOExtraLog(class, format, ...) \
-    do {                               \
-        (void)class;                   \
-        if (0)                         \
-            (void)format;              \
-    } while (0)
+#pragma GCC poison NSLog // Use OO_LOG instead
 #endif
 
 // *** Predefined message classes.
@@ -210,11 +128,3 @@ extern const char* const cxx_kOOLogOpenGLError; // "rendering.opengl.error"
 // Don't use.
 extern const char* const cxx_kOOLogUnconvertedNSLog; // "unclassified"
 #endif
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the message-class API that takes
-        Foundation strings (and the constants above as Foundation strings), as it was declared before
-        its sweep (bead oo-lskf, chunk oo-3rb.136), so unmigrated callers and the macros above compile
-        unchanged. Migrated code uses OO_LOG with a cxx_kOOLog* constant or a literal class; the bridge
-        goes in its own bead, the last one deleted.
-*/
-#import "OOLogging+FoundationBridge.h"

@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
-#import "NSFileManagerOOExtensions.h"
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OOFoundationBridge.h"
@@ -43,6 +42,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "ResourceManager.h"
 #include "oofnd/FileSystem.hpp"
+#include "oofnd/ResourcePaths.hpp"
 #include "oofnd/Scanner.hpp"
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -64,12 +64,17 @@ static JSValue GlobalGetProperty(OOJS_GETTER_ARGS);
 
 // What -oo_stringForKey: made of the value it found: a string, or a number's text; nullopt (was
 // nil) for no value or any other kind of value.
+static std::optional<std::string> StringFromPList(const oo::PList* value)
+{
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return oo::PListGet<std::string>::from(value, std::string());
+}
+
 static std::optional<std::string> StringFromObject(id object)
 {
     const oo::PList value = oo::PListFrom(object);
-    if (!(value.isString() || value.isNumber()))
-        return std::nullopt;
-    return oo::PListGet<std::string>::from(&value, std::string());
+    return StringFromPList(&value);
 }
 #ifdef OO_DEBUG_MONITOR_ENABLED
 static JSValue GlobalSetProperty(OOJS_SETTER_ARGS);
@@ -223,9 +228,9 @@ static JSValue GlobalLog(OOJS_NATIVE_ARGS)
     }
     if (argc < 2) {
         messageClass = kOOLogDebugMessage;
-        message = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        message = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     } else {
-        messageClass = oo::StdString(OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]));
+        messageClass = cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]).value_or(std::string());
         if (!oo::log::willDisplay(messageClass)) {
             // Do nothing (and short-circuit) if message class is filtered out.
             OOJS_RETURN_VOID;
@@ -236,7 +241,7 @@ static JSValue GlobalLog(OOJS_NATIVE_ARGS)
         for (int i = 1; i < argc; i++) {
             if (i > 1)
                 joined += ", ";
-            joined += oo::StdString(OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[i]));
+            joined += cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[i]).value_or(std::string());
         }
         message = joined;
     }
@@ -265,9 +270,9 @@ static JSValue GlobalExpandDescription(OOJS_NATIVE_ARGS)
     oo::PList overrides;
 
     if (argc > 0)
-        string = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        string = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!string.has_value()) {
-        OOJSReportBadArguments(context, nil, @"expandDescription", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "expandDescription", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return JS_EXCEPTION;
     }
     if (argc > 1) {
@@ -275,7 +280,7 @@ static JSValue GlobalExpandDescription(OOJS_NATIVE_ARGS)
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    string = oo::OptionalString(OOExpandDescriptionString(kNilRandomSeed, oo::NSStringFrom(*string), oo::ObjectFromPList(overrides), nil, nil, kOOExpandForJavaScript | kOOExpandGoodRNG));
+    string = cxx_OOExpandDescriptionString(kNilRandomSeed, *string, overrides, oo::PList(), std::nullopt, kOOExpandForJavaScript | kOOExpandGoodRNG);
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_OBJECT(oo::NSStringOrNil(string));
@@ -291,9 +296,9 @@ static JSValue GlobalKeyBindingDescription(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
 
     if (argc > 0)
-        string = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        string = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!string.has_value()) {
-        OOJSReportBadArguments(context, nil, @"keyBindingDescription", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "keyBindingDescription", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return JS_EXCEPTION;
     }
 
@@ -315,17 +320,18 @@ static JSValue GlobalExpandMissionText(OOJS_NATIVE_ARGS)
     oo::PList overrides;
 
     if (argc > 0)
-        string = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        string = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!string.has_value()) {
-        OOJSReportBadArguments(context, nil, @"expandMissionText", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "expandMissionText", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return JS_EXCEPTION;
     }
     if (argc > 1) {
         overrides = OOJSDictionaryFromStringTable(context, OOJS_ARGV[1]);
     }
 
-    string = StringFromObject([[UNIVERSE missiontext] objectForKey:oo::NSStringFrom(*string)]);
-    string = oo::OptionalString(OOExpandDescriptionString(kNilRandomSeed, oo::NSStringOrNil(string), oo::ObjectFromPList(overrides), nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG));
+    string = StringFromObject([oo::ObjectFromPList([UNIVERSE cxx_missiontext]) objectForKey:oo::NSStringFrom(*string)]);
+    if (string.has_value())
+        string = cxx_OOExpandDescriptionString(kNilRandomSeed, *string, overrides, oo::PList(), std::nullopt, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG); // nil expanded to nil
 
     OOJS_RETURN_OBJECT(oo::NSStringOrNil(string));
 
@@ -340,12 +346,12 @@ static JSValue GlobalDisplayNameForCommodity(OOJS_NATIVE_ARGS)
     std::optional<std::string> string;
 
     if (argc > 0)
-        string = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        string = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!string.has_value()) {
-        OOJSReportBadArguments(context, nil, @"displayNameForCommodity", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "displayNameForCommodity", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return JS_EXCEPTION;
     }
-    OOJS_RETURN_OBJECT(CommodityDisplayNameForSymbolicName(oo::NSStringFrom(*string)));
+    OOJS_RETURN_OBJECT(oo::NSStringFrom(cxx_CommodityDisplayNameForSymbolicName(*string)));
 
     OOJS_NATIVE_EXIT
 }
@@ -361,7 +367,7 @@ static JSValue GlobalRandomName(OOJS_NATIVE_ARGS)
     RNG_Seed savedSeed = currentRandomSeed();
     setRandomSeed((RNG_Seed) { (int32_t)Ranrot(), (int32_t)Ranrot(), (int32_t)Ranrot(), (int32_t)Ranrot() });
 
-    std::optional<std::string> result = oo::OptionalString(OOExpand(@"%N"));
+    std::optional<std::string> result = cxx_OOExpand("%N");
 
     // Restore seed.
     setRandomSeed(savedSeed);
@@ -382,12 +388,12 @@ static JSValue GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
 
     if (argc > 0 && (isPlural = JS_ToBool(context, OOJS_ARGV[0])) < 0) {
         JS_FreeValue(context, JS_GetException(context));
-        OOJSReportBadArguments(context, nil, @"randomInhabitantsDescription", 1, OOJS_ARGV, nil, @"boolean");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "randomInhabitantsDescription", 1, OOJS_ARGV, std::nullopt, "boolean");
         return JS_EXCEPTION;
     }
 
     make_pseudo_random_seed(&aSeed);
-    string = oo::OptionalString([UNIVERSE getSystemInhabitants:Ranrot() % OO_SYSTEMS_PER_GALAXY plural:isPlural]);
+    string = [UNIVERSE cxx_getSystemInhabitants:Ranrot() % OO_SYSTEMS_PER_GALAXY plural:isPlural];
     OOJS_RETURN_OBJECT(oo::NSStringOrNil(string));
 
     OOJS_NATIVE_EXIT
@@ -401,23 +407,23 @@ static JSValue GlobalClearExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
 
     if (EXPECT_NOT(argc < 2)) {
-        OOJSReportBadArguments(context, nil, @"setExtraGuiScreenKeys", 0, OOJS_ARGV, nil, @"missing arguments");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setExtraGuiScreenKeys", 0, OOJS_ARGV, std::nullopt, "missing arguments");
         return JS_EXCEPTION;
     }
 
-    std::optional<std::string> key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (EXPECT_NOT(!key.has_value() || key->empty())) {
-        OOJSReportBadArguments(context, nil, @"clearExtraGuiScreenKeys", 1, OOJS_ARGV, nil, @"key");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "clearExtraGuiScreenKeys", 1, OOJS_ARGV, std::nullopt, "key");
         return JS_EXCEPTION;
     }
 
     OOGUIScreenID gui = OOGUIScreenIDFromJSValue(context, OOJS_ARGV[1]);
     if (!gui) {
-        OOJSReportBadArguments(context, nil, @"clearExtraGuiScreenKeys", 0, OOJS_ARGV, nil, @"guiScreen invalid entry");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "clearExtraGuiScreenKeys", 0, OOJS_ARGV, std::nullopt, "guiScreen invalid entry");
         return JS_EXCEPTION;
     }
 
-    [player clearExtraGuiScreenKeys:gui key:oo::NSStringFrom(*key)];
+    [player cxx_clearExtraGuiScreenKeys:gui key:*key];
 
     result = YES;
     OOJS_RETURN_BOOL(result);
@@ -457,10 +463,10 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
     int defArgc = MIN(argc - 1, 2);
 
     if (EXPECT_NOT(argc < 1)) {
-        OOJSReportBadArguments(context, nil, @"setExtraGuiScreenKeys", 0, OOJS_ARGV, nil, @"key, definition");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setExtraGuiScreenKeys", 0, OOJS_ARGV, std::nullopt, "key, definition");
         return JS_EXCEPTION;
     }
-    key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
 
     // Validate arguments.
     // (SpiderMonkey's JS_ValueToObject() accepted null and undefined, yielding no object; treat them as invalid.)
@@ -472,14 +478,14 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
         }
     }
     if (!JS_IsObject(params)) {
-        OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], nil, @"key, definition: definition is not a valid dictionary.");
+        cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition: definition is not a valid dictionary.");
         return JS_EXCEPTION;
     }
 
     value = GetParam(context, params, "guiScreen");
     if (JS_IsUndefined(value)) {
         JS_FreeValue(context, params);
-        OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], nil, @"key, definition: must have a 'guiScreen' property.");
+        cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition: must have a 'guiScreen' property.");
         return JS_EXCEPTION;
     }
 
@@ -488,23 +494,23 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
     // gui will be 0 for invalid screen id's as well as GUI_SCREEN_MAIN
     if (gui == 0 || gui == GUI_SCREEN_LOAD || gui == GUI_SCREEN_SAVE || gui == GUI_SCREEN_STICKMAPPER || gui == GUI_SCREEN_OXZMANAGER || gui == GUI_SCREEN_NEWGAME || gui == GUI_SCREEN_SAVE_OVERWRITE || gui == GUI_SCREEN_KEYBOARD || gui == GUI_SCREEN_STICKPROFILE || gui == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR || gui == GUI_SCREEN_KEYBOARD_CONFIG || gui == GUI_SCREEN_KEYBOARD_ENTRY || gui == GUI_SCREEN_KEYBOARD_LAYOUT) {
         JS_FreeValue(context, params);
-        OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], nil, @"key, definition: 'guiScreen' property must be a permitted and valid GUI_SCREEN idenfifier.");
+        cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition: 'guiScreen' property must be a permitted and valid GUI_SCREEN idenfifier.");
         return JS_EXCEPTION;
     }
 
     value = GetParam(context, params, "registerKeys");
     if (JS_IsUndefined(value)) {
         JS_FreeValue(context, params);
-        OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], nil, @"key, definition: must have a 'registerKeys' property.");
+        cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition: must have a 'registerKeys' property.");
         return JS_EXCEPTION;
     }
     if (!JS_IsNull(value)) {
         if (JS_IsObject(value)) {
-            keydefs = oo::PListFrom(OOJSNativeObjectFromJSObject(context, value));
+            keydefs = cxx_OOJSPListFromJSObject(context, value);
         } else {
             JS_FreeValue(context, value);
             JS_FreeValue(context, params);
-            OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], nil, @"key, definition: registerKeys is not a valid dictionary.");
+            cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition: registerKeys is not a valid dictionary.");
             return JS_EXCEPTION;
         }
     }
@@ -513,18 +519,18 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
     callback = GetParam(context, params, "callback");
     if (JS_IsUndefined(callback)) {
         JS_FreeValue(context, params);
-        OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], NULL, @"key, definition; must have a 'callback' property.");
+        cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition; must have a 'callback' property.");
         return JS_EXCEPTION;
     }
     if (!OOJSValueIsFunction(context, callback)) {
         JS_FreeValue(context, callback);
         JS_FreeValue(context, params);
-        OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], NULL, @"key, definition; 'callback' property must be a function.");
+        cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys", defArgc, &OOJS_ARGV[1], std::nullopt, "key, definition; 'callback' property must be a function.");
         return JS_EXCEPTION;
     }
 
     OOJSGuiScreenKeyDefinition* definition = [[OOJSGuiScreenKeyDefinition alloc] init];
-    [definition setName:oo::NSStringOrNil(key)];
+    [definition cxx_setName:key];
     [definition setRegisterKeys:keydefs];
     [definition setCallback:callback]; // Takes its own reference.
     JS_FreeValue(context, callback);
@@ -564,9 +570,9 @@ static JSValue GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
     JSValueConst value = (argc > 0) ? OOJS_ARGV[0] : JS_NULL;
 
     if (EXPECT_NOT(argc == 0)) {
-        OOJSReportWarning(context, @"Usage error: %@() called with no arguments. Treating as %@(null). This call may fail in a future version of Oolite.", @"setScreenBackground", @"setScreenBackground");
+        cxx_OOJSReportWarning(context, "Usage error: %s() called with no arguments. Treating as %s(null). This call may fail in a future version of Oolite.", "setScreenBackground", "setScreenBackground");
     } else if (EXPECT_NOT(JS_IsUndefined(value))) {
-        OOJSReportBadArguments(context, nil, @"setScreenBackground", 1, &value, nil, @"GUI texture descriptor");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setScreenBackground", 1, &value, std::nullopt, "GUI texture descriptor");
         return JS_EXCEPTION;
     }
 
@@ -574,11 +580,11 @@ static JSValue GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
         GuiDisplayGen* gui = [UNIVERSE gui];
         oo::PList descriptor = [gui cxx_textureDescriptorFromJSValue:value inContext:context callerDescription:std::string("setScreenBackground()")];
 
-        result = [gui setBackgroundTextureDescriptor:oo::ObjectFromPList(descriptor)];
+        result = [gui cxx_setBackgroundTextureDescriptor:descriptor];
 
         // add some permanence to the override if we're in the equip ship screen
         if (result && [PLAYER guiScreen] == GUI_SCREEN_EQUIP_SHIP)
-            [PLAYER setEquipScreenBackgroundDescriptor:oo::ObjectFromPList(descriptor)];
+            [PLAYER cxx_setEquipScreenBackgroundDescriptor:descriptor];
     }
 
     OOJS_RETURN_BOOL(result);
@@ -591,15 +597,15 @@ static JSValue GlobalGetScreenBackgroundForKey(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     if (EXPECT_NOT(argc == 0)) {
-        OOJSReportBadArguments(context, nil, @"getScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"missing arguments");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "getScreenBackgroundDefault", 0, OOJS_ARGV, std::nullopt, "missing arguments");
         return JS_EXCEPTION;
     }
-    std::optional<std::string> key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (EXPECT_NOT(!key.has_value() || key->empty())) {
-        OOJSReportBadArguments(context, nil, @"getScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"key");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "getScreenBackgroundDefault", 0, OOJS_ARGV, std::nullopt, "key");
         return JS_EXCEPTION;
     }
-    OOJS_RETURN_OBJECT([UNIVERSE screenTextureDescriptorForKey:oo::NSStringFrom(*key)]);
+    OOJS_RETURN_OBJECT(oo::ObjectFromPList([UNIVERSE cxx_screenTextureDescriptorForKey:*key]));
 
     OOJS_NATIVE_EXIT
 }
@@ -612,21 +618,21 @@ static JSValue GlobalSetScreenBackgroundForKey(OOJS_NATIVE_ARGS)
     BOOL result = NO;
 
     if (EXPECT_NOT(argc < 2)) {
-        OOJSReportBadArguments(context, nil, @"setScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"missing arguments");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setScreenBackgroundDefault", 0, OOJS_ARGV, std::nullopt, "missing arguments");
         return JS_EXCEPTION;
     }
 
-    std::optional<std::string> key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     JSValueConst value = OOJS_ARGV[1];
     if (EXPECT_NOT(!key.has_value() || key->empty())) {
-        OOJSReportBadArguments(context, nil, @"setScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"key");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setScreenBackgroundDefault", 0, OOJS_ARGV, std::nullopt, "key");
         return JS_EXCEPTION;
     }
 
     GuiDisplayGen* gui = [UNIVERSE gui];
     oo::PList descriptor = [gui cxx_textureDescriptorFromJSValue:value inContext:context callerDescription:std::string("setScreenBackgroundDefault()")];
 
-    [UNIVERSE setScreenTextureDescriptorForKey:oo::NSStringFrom(*key) descriptor:oo::ObjectFromPList(descriptor)];
+    [UNIVERSE cxx_setScreenTextureDescriptorForKey:*key descriptor:oo::PListFrom(oo::ObjectFromPList(descriptor))];
     result = YES;
 
     OOJS_RETURN_BOOL(result);
@@ -643,9 +649,9 @@ static JSValue GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
     JSValueConst value = (argc > 0) ? OOJS_ARGV[0] : JS_NULL;
 
     if (EXPECT_NOT(argc == 0)) {
-        OOJSReportWarning(context, @"Usage error: %@() called with no arguments. Treating as %@(null). This call may fail in a future version of Oolite.", @"setScreenOverlay", @"setScreenOverlay");
+        cxx_OOJSReportWarning(context, "Usage error: %s() called with no arguments. Treating as %s(null). This call may fail in a future version of Oolite.", "setScreenOverlay", "setScreenOverlay");
     } else if (EXPECT_NOT(JS_IsUndefined(value))) {
-        OOJSReportBadArguments(context, nil, @"setScreenOverlay", 1, &value, nil, @"GUI texture descriptor");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setScreenOverlay", 1, &value, std::nullopt, "GUI texture descriptor");
         return JS_EXCEPTION;
     }
 
@@ -653,7 +659,7 @@ static JSValue GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
         GuiDisplayGen* gui = [UNIVERSE gui];
         oo::PList descriptor = [gui cxx_textureDescriptorFromJSValue:value inContext:context callerDescription:std::string("setScreenOverlay()")];
 
-        result = [gui setForegroundTextureDescriptor:oo::ObjectFromPList(descriptor)];
+        result = [gui cxx_setForegroundTextureDescriptor:descriptor];
     }
 
     OOJS_RETURN_BOOL(result);
@@ -666,21 +672,21 @@ static JSValue GlobalGetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     if (EXPECT_NOT(argc == 0)) {
-        OOJSReportBadArguments(context, nil, @"getGuiColorForKey", 0, OOJS_ARGV, nil, @"missing arguments");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "getGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "missing arguments");
         return JS_EXCEPTION;
     }
-    std::optional<std::string> key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (EXPECT_NOT(!key.has_value() || key->empty())) {
-        OOJSReportBadArguments(context, nil, @"getGuiColorForKey", 0, OOJS_ARGV, nil, @"key");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "getGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "key");
         return JS_EXCEPTION;
     }
     if (key->find("color") == std::string::npos) {
-        OOJSReportBadArguments(context, nil, @"getGuiColorForKey", 0, OOJS_ARGV, nil, @"valid color key setting");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "getGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "valid color key setting");
         return JS_EXCEPTION;
     }
 
     GuiDisplayGen* gui = [UNIVERSE gui];
-    OOColor* col = [gui colorFromSetting:oo::NSStringFrom(*key) defaultValue:nil];
+    OOColor* col = [gui cxx_colorFromSetting:*key defaultValue:nil];
 
     // The components as the colour's -normalizedArray gave them: floats, nil for no colour.
     oo::PList::Array components;
@@ -700,31 +706,31 @@ static JSValue GlobalSetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
     OOColor* col = nil;
 
     if (EXPECT_NOT(argc != 2)) {
-        OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 0, OOJS_ARGV, nil, @"missing arguments");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "missing arguments");
         return JS_EXCEPTION;
     }
 
-    std::optional<std::string> key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+    std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     JSValueConst value = OOJS_ARGV[1];
     if (EXPECT_NOT(!key.has_value() || key->empty())) {
-        OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 0, OOJS_ARGV, nil, @"key");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "key");
         return JS_EXCEPTION;
     }
     if (key->find("color") == std::string::npos) {
-        OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 0, OOJS_ARGV, nil, @"valid color key setting");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "valid color key setting");
         return JS_EXCEPTION;
     }
 
     if (!JS_IsNull(value)) {
-        col = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        col = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (col == nil) {
-            OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 1, OOJS_ARGV, nil, @"color descriptor");
+            cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 1, OOJS_ARGV, std::nullopt, "color descriptor");
             return JS_EXCEPTION;
         }
     }
 
     GuiDisplayGen* gui = [UNIVERSE gui];
-    [gui setGuiColorSettingFromKey:oo::NSStringFrom(*key) color:col];
+    [gui cxx_setGuiColorSettingFromKey:*key color:col];
     result = YES;
 
     OOJS_RETURN_BOOL(result);
@@ -752,21 +758,34 @@ static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
     };
 
     if (argc > 0) {
-        value = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        value = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
         if (EXPECT_NOT(!value.has_value() || !isAllowed(*value))) {
-            OOJSReportBadArguments(context, nil, @"takeSnapShot", argc, OOJS_ARGV, nil, @"alphanumeric string");
+            cxx_OOJSReportBadArguments(context, std::nullopt, "takeSnapShot", argc, OOJS_ARGV, std::nullopt, "alphanumeric string");
             return JS_EXCEPTION;
         }
     }
 
-    std::string playerFileDirectory = oo::StdString([[NSFileManager defaultManager] defaultCommanderPath]);
+    const oo::ResourcePaths resourcePaths = oo::ResourcePaths::current();
+    const oo::fs::Path savedir = resourcePaths.saveDirectory();
+    const oo::fs::FileType saveType = oo::fs::fileType(savedir);
+    std::string playerFileDirectory;
+    if (saveType == oo::fs::FileType::none) {
+        if (oo::fs::createDirectories(savedir))
+            playerFileDirectory = oo::fs::utf8String(savedir);
+        else
+            playerFileDirectory = oo::fs::utf8String(resourcePaths.homeDirectory());
+    } else if (saveType != oo::fs::FileType::directory) {
+        playerFileDirectory = oo::fs::utf8String(resourcePaths.homeDirectory());
+    } else {
+        playerFileDirectory = oo::fs::utf8String(savedir);
+    }
     const auto freeBytes = oo::fs::freeSpace(oo::fs::pathFromUTF8(playerFileDirectory));
 
     if (freeBytes.has_value()) {
         double freeSpace = static_cast<double>(*freeBytes);
         if (freeSpace < 1073741824) // less than 1 GB free on disk?
         {
-            OOJSReportWarning(context, @"takeSnapShot: function disabled when free disk space is less than 1GB.");
+            cxx_OOJSReportWarning(context, "takeSnapShot: function disabled when free disk space is less than 1GB.");
             OOJS_RETURN_BOOL(NO);
         }
     }
@@ -789,13 +808,14 @@ static JSValue GlobalAutoAIForRole(OOJS_NATIVE_ARGS)
     std::optional<std::string> string;
 
     if (argc > 0)
-        string = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        string = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!string.has_value()) {
-        OOJSReportBadArguments(context, nil, @"autoAIForRole", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "autoAIForRole", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return JS_EXCEPTION;
     }
 
-    std::optional<std::string> autoAI = StringFromObject([[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] objectForKey:oo::NSStringFrom(*string)]);
+    const oo::PList autoAIMap = [ResourceManager cxx_dictionaryFromFilesNamed:"autoAImap.plist" inFolder:"Config" andMerge:YES];
+    std::optional<std::string> autoAI = StringFromPList(autoAIMap.find(*string));
 
     OOJS_RETURN_OBJECT(oo::NSStringOrNil(autoAI));
 

@@ -54,18 +54,18 @@ SOFTWARE.
 @protocol OODebugMonitorInterface
 
 // Note: disconnectDebugger:message: will cause a disconnectDebugMonitor:message: message to be sent to the debugger. The debugger should not send disconnectDebugger:message: in response to disconnectDebugMonitor:message:.
-- (void)disconnectDebugger:(in id<OODebuggerInterface>)debugger
-                   message:(in id)message; // shared selector (proposed ADR-0043); a string or nil
+- (void)disconnectDebugger:(id<OODebuggerInterface>)debugger
+                   message:(const std::optional<std::string>&)message;
 
 // *** JavaScript console support.
 
 // Perform a JS command as though entered at the console, including echoing.
-- (oneway void)performJSConsoleCommand:(in id)command; // shared selector (proposed ADR-0043); a string
+- (void)performJSConsoleCommand:(const std::string&)command;
 
-- (id)configurationValueForKey:(in id)key; // shared selector (proposed ADR-0043); key: a string
-- (void)setConfigurationValue:(in id)value forKey:(in id)key; // shared selector (proposed ADR-0043); key: a string
+- (oo::PList)configurationValueForKey:(const std::string&)key;
+- (void)setConfigurationValue:(const oo::PList&)value forKey:(const std::string&)key;
 
-- (id)sourceCodeForFile:(in id)filePath line:(in unsigned)line; // shared selector (proposed ADR-0043); a string in and out
+- (std::string)sourceCodeForFile:(const std::string&)filePath line:(unsigned)line;
 
 @end
 
@@ -103,7 +103,7 @@ SOFTWARE.
 - (void)clearJSConsole;
 - (void)showJSConsole;
 
-- (id)configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value;
+- (id)cxx_configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value;
 - (long long)configurationIntValueForKey:(const std::string&)key defaultValue:(long long)value;
 
 - (std::vector<std::string>)configurationKeys; // sorted case-insensitively

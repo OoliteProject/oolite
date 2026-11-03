@@ -99,10 +99,3 @@ std::string cxx_EscapedGraphVizString(const std::string& string);
 std::string cxx_GraphVizTokenString(const std::string& string, std::set<std::string>* uniqueSet);
 
 #endif
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API as it was
-        declared before its sweep (bead oo-1886, chunks oo-3rb.124 ff.), forwarding to the cxx_
-        functions above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their
-        own sweep beads; the bridge goes in its own bead.
-*/
-#import "OOStringParsing+FoundationBridge.h"

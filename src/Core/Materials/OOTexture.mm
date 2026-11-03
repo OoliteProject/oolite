@@ -35,6 +35,7 @@
 #import "OOCPUInfo.h"
 #import "OOCache.h"
 #import "OOMacroOpenGL.h"
+#import "OOObjCPList.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOPListView.h"
 #import "OOPixMap.h"
@@ -158,7 +159,7 @@ const char* sGlobalTraceContext = nullptr;
     key = OOGenerateTextureCacheKey(directory, *name, options, anisotropy, lodBias);
     result = [OOTexture cxx_existingTextureForKey:key];
     if (result == nil) {
-        path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(*name) inFolder:oo::NSStringOrNil(directory)]);
+        path = [ResourceManager cxx_pathForFileNamed:*name inFolder:directory];
         if (!path.has_value()) {
             if (!noFNF)
                 OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", *name);
@@ -216,7 +217,7 @@ const char* sGlobalTraceContext = nullptr;
         return nil;
 
 #ifndef OOTEXTURE_NO_CACHE
-    OOTexture* existing = [OOTexture cxx_existingTextureForKey:oo::OptionalString([generator cacheKey])];
+    OOTexture* existing = [OOTexture cxx_existingTextureForKey:[generator cxx_cacheKey]];
     if (existing != nil && !enqueue)
         return [[existing retain] autorelease];
 #endif
@@ -228,7 +229,7 @@ const char* sGlobalTraceContext = nullptr;
     OO_LOG("texture.generator.queue", "Queued texture generator {}", oo::DescriptionOf(generator));
 
     OOTexture* result = [[[OOConcreteTexture alloc] initWithLoader:generator
-                                                               key:oo::OptionalString([generator cacheKey])
+                                                               key:[generator cxx_cacheKey]
                                                            options:OOApplyTextureOptionDefaults([generator textureOptions])
                                                         anisotropy:[generator anisotropy]
                                                            lodBias:[generator lodBias]] autorelease];
@@ -284,9 +285,9 @@ const char* sGlobalTraceContext = nullptr;
     return YES;
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return nil;
+    return std::nullopt;
 }
 
 - (NSSize)dimensions
@@ -373,8 +374,8 @@ const char* sGlobalTraceContext = nullptr;
 + (std::vector<oo::ObjCRef<OOTexture*>>)cxx_cachedTexturesByAge
 {
     std::vector<oo::ObjCRef<OOTexture*>> result;
-    for (const oo::ObjCRef<id>& texture : [sRecentTextures objectsByAge]) {
-        result.emplace_back((OOTexture*)texture.get());
+    for (const oo::PList& texture : [sRecentTextures pListsByAge]) {
+        result.emplace_back((OOTexture*)oo::ObjectIn(texture));
     }
     return result;
 }
@@ -404,10 +405,15 @@ const char* sGlobalTraceContext = nullptr;
     return size;
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
+{
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
 {
     OOLogGenericSubclassResponsibility();
-    return nil;
+    return std::nullopt;
 }
 #endif
 
@@ -419,7 +425,7 @@ const char* sGlobalTraceContext = nullptr;
 - (void)addToCaches
 {
 #ifndef OOTEXTURE_NO_CACHE
-    const std::optional<std::string> cacheKey = oo::OptionalString([self cacheKey]);
+    const std::optional<std::string> cacheKey = [self cxx_cacheKey];
     if (!cacheKey.has_value())
         return;
 
@@ -434,13 +440,13 @@ const char* sGlobalTraceContext = nullptr;
     // Add self to recent textures cache.
     if (EXPECT_NOT(sRecentTextures == nil)) {
         sRecentTextures = [[OOCache alloc] init];
-        [sRecentTextures setName:@"recent textures"];
+        [sRecentTextures cxx_setName:std::string("recent textures")];
         [sRecentTextures setAutoPrune:YES];
         [sRecentTextures setPruneThreshold:kRecentTexturesCount];
     }
 
     SET_TRACE_CONTEXT("adding to recent textures cache");
-    [sRecentTextures setObject:self forKey:oo::NSStringFrom(*cacheKey)];
+    [sRecentTextures cxx_setPList:oo::PListObject(self) forKey:*cacheKey];
     CLEAR_TRACE_CONTEXT();
 #endif
 }
@@ -448,13 +454,13 @@ const char* sGlobalTraceContext = nullptr;
 - (void)removeFromCaches
 {
 #ifndef OOTEXTURE_NO_CACHE
-    const std::optional<std::string> cacheKey = oo::OptionalString([self cacheKey]);
+    const std::optional<std::string> cacheKey = [self cxx_cacheKey];
     if (!cacheKey.has_value())
         return;
 
     if (sLiveTextureCache != NULL)
         sLiveTextureCache->erase(*cacheKey);
-    if (EXPECT_NOT([sRecentTextures objectForKey:oo::NSStringFrom(*cacheKey)] == self)) {
+    if (EXPECT_NOT(oo::ObjectIn([sRecentTextures cxx_pListForKey:*cacheKey]) == self)) {
         /* Experimental for now: I think the recent crash problems may
          * be because if the last reference to a texture is in
          * sRecentTextures, and the texture is regenerated, it
@@ -469,7 +475,7 @@ const char* sGlobalTraceContext = nullptr;
          */
         OOAssert(0, "Texture retain count error for %s; cacheKey is %s.", oo::DescriptionOf(self).c_str(), cacheKey->c_str()); // miscount in autorelease
         // The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-        [sRecentTextures removeObjectForKey:oo::NSStringFrom(*cacheKey)]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+        [sRecentTextures cxx_removePListForKey:*cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
     }
 #endif
 }
@@ -662,7 +668,7 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
         // The old string extractor gave nil unless the value was a string or a number.
         const oo::PList* nameValue = specifier.find(cxx_kOOTextureSpecifierNameKey);
         if (nameValue == nullptr || !(nameValue->isString() || nameValue->isNumber())) {
-            OO_LOG("texture.load.noName", "Invalid texture configuration dictionary (must specify name):\n{}", oo::DescriptionOf(oo::ObjectFromPList(specifier)));
+            OO_LOG("texture.load.noName", "Invalid texture configuration dictionary (must specify name):\n{}", oo::DescriptionOf(specifier));
             return NO;
         }
         name = specifier.get<std::string>(cxx_kOOTextureSpecifierNameKey);
@@ -711,7 +717,7 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
                     else if (extractChannel == "a")
                         options |= kOOTextureExtractChannelA;
                     else {
-                        OO_LOG_WARN("texture.load.extractChannel.invalid", "Unknown value \"{}\" for extract_channel in specifier \"{}\" (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel, oo::DescriptionOf(oo::ObjectFromPList(specifier)));
+                        OO_LOG_WARN("texture.load.extractChannel.invalid", "Unknown value \"{}\" for extract_channel in specifier \"{}\" (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel, oo::DescriptionOf(specifier));
                     }
                 }
             }

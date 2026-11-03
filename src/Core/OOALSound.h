@@ -24,9 +24,9 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOOpenALController.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 #include "oofnd/StdLib.hpp"
 
@@ -41,7 +41,8 @@ SOFTWARE.
 - (id)initWithContentsOfFile:(id)path; // path: an Objective-C string. Shared selector (Foundation declares it too): -cxx_initWithContentsOfFile:.
 - (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)path OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
 
-- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.3)
 
 + (BOOL)isSoundOK;
 

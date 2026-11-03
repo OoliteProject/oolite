@@ -28,7 +28,6 @@ SOFTWARE.
 #import "OOSkyDrawable.h"
 #import "GameController.h"
 #import "NSObjectOOExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
@@ -234,16 +233,16 @@ static OOColor* SaturatedColorInRange(OOColor* color1, OOColor* color2, BOOL hue
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    std::vector<id> result;
+    std::vector<oo::ObjCRef<OOTexture*>> result;
     result.reserve(_quadSets.size());
 
     for (const oo::ObjCRef<OOSkyQuadSet*>& quadSet : _quadSets) {
-        result.push_back([quadSet.get() texture]);
+        result.emplace_back([quadSet.get() texture]);
     }
 
-    return oo::NSSetFromObjects(result);
+    return result;
 }
 
 - (size_t)totalSize
@@ -627,9 +626,9 @@ static OOColor* DebugColor(Vector orientation)
 
 // OOObject's -description wraps this as "<OOSkyQuadSet 0x...>{...}", the text this class's own
 // -description printed. Shared selector (proposed ADR-0043).
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%u quads, texture: %s", _count, oo::DescriptionOf(_texture).c_str()));
+    return oo::str::format("%u quads, texture: %s", _count, oo::DescriptionOf(_texture).c_str());
 }
 
 - (void)render

@@ -40,10 +40,3 @@ oo::PList cxx_OOPropertyListFromFile(const std::string& path);
 
 // The typed wrappers have no twins: test the result's kind (getIf<oo::PList::Dict> /
 // getIf<oo::PList::Array>).
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed functions as they
-        were declared before their sweep (bead oo-crpp, chunk oo-3rb.132), forwarding to the cxx_
-        functions above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their
-        own sweep beads; the bridge goes in its own bead.
-*/
-#import "OOPListParsing+FoundationBridge.h"

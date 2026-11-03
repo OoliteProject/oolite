@@ -36,9 +36,8 @@ SOFTWARE.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-hi38): roles are UTF-8 std::strings. An empty
         role means "no role", as nil did. Results that could be nil are std::optional (a message to a
-        nil role set yields std::nullopt / an empty vector). -hasRole: and -intersectsSet: are shared
-        selectors (ShipEntity; Foundation sets), so they keep Objective-C object parameters until their family
-        bead.
+        nil role set yields std::nullopt / an empty vector). -hasRole: is flipped with ShipEntity (bead oo-3rb.280) to const std::string &.
+        -intersectsSet: remains a shared selector (Foundation sets) until its family bead.
 */
 @interface OORoleSet : OOObject <OOCopying> {
 @private
@@ -55,7 +54,7 @@ SOFTWARE.
 
 - (std::optional<std::string>)roleString;
 
-- (BOOL)hasRole:(id)role; // role: an Objective-C string. Shared selector (proposed ADR-0043).
+- (BOOL)hasRole:(const std::string&)role; // flipped with its family (bead oo-3rb.280)
 - (float)probabilityForRole:(const std::string&)role;
 - (BOOL)intersectsSet:(id)set; // an OORoleSet or an Objective-C set of strings. Shared selector (proposed ADR-0043).
 

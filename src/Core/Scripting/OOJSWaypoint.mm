@@ -111,9 +111,9 @@ static BOOL JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypoin
     return sWaypointClassID;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Waypoint";
+    return std::string("Waypoint");
 }
 
 - (BOOL)isVisibleToScripts
@@ -139,11 +139,11 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kWaypoint_beaconCode:
-        result = [entity beaconCode];
+        result = oo::NSStringOrNil([entity beaconCode]);
         break;
 
     case kWaypoint_beaconLabel:
-        result = [entity beaconLabel];
+        result = oo::NSStringOrNil([entity beaconLabel]);
         break;
 
     case kWaypoint_orientation:
@@ -182,7 +182,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kWaypoint_beaconCode:
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (!sValue.has_value() || sValue->empty()) {
             if ([entity isBeacon]) {
                 [UNIVERSE clearBeacon:entity];
@@ -192,10 +192,10 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
             }
         } else {
             if ([entity isBeacon]) {
-                [entity setBeaconCode:oo::NSStringFrom(*sValue)];
+                [entity setBeaconCode:sValue];
             } else // Universe needs to update beacon lists in this case only
             {
-                [entity setBeaconCode:oo::NSStringFrom(*sValue)];
+                [entity setBeaconCode:sValue];
                 [UNIVERSE setNextBeacon:entity];
             }
         }
@@ -203,9 +203,9 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kWaypoint_beaconLabel:
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [entity setBeaconLabel:oo::NSStringFrom(*sValue)];
+            [entity setBeaconLabel:sValue];
             return JS_UNDEFINED;
         }
         break;

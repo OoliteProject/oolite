@@ -76,12 +76,12 @@ std::vector<oo::ObjCRef<OOSoundSource*>>* sPlayingSoundSources = nullptr;
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     if ([self isPlaying]) {
-        return oo::NSStringFrom(oo::str::format("sound=%s, loop=%s, repeatCount=%u, playing on channel %s", oo::DescriptionOf(_sound).c_str(), [self loop] ? "YES" : "NO", [self repeatCount], oo::DescriptionOf(_channel).c_str()));
+        return oo::str::format("sound=%s, loop=%s, repeatCount=%u, playing on channel %s", oo::DescriptionOf(_sound).c_str(), [self loop] ? "YES" : "NO", [self repeatCount], oo::DescriptionOf(_channel).c_str());
     } else {
-        return oo::NSStringFrom(oo::str::format("sound=%s, loop=%s, repeatCount=%u, not playing", oo::DescriptionOf(_sound).c_str(), [self loop] ? "YES" : "NO", [self repeatCount]));
+        return oo::str::format("sound=%s, loop=%s, repeatCount=%u, not playing", oo::DescriptionOf(_sound).c_str(), [self loop] ? "YES" : "NO", [self repeatCount]);
     }
 }
 

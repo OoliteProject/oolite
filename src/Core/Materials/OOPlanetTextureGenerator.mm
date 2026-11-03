@@ -303,9 +303,9 @@ enum {
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("seed: %u,%u land: %g", _info.seed.high, _info.seed.low, _info.landFraction));
+    return oo::str::format("seed: %u,%u land: %g", _info.seed.high, _info.seed.low, _info.landFraction);
 }
 
 - (uint32_t)textureOptions
@@ -313,12 +313,12 @@ enum {
     return PLANET_TEXTURE_OPTIONS;
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
     std::string type = (_nMapGenerator == nil) ? "diffuse-baked" : "diffuse-raw";
     if (_atmoGenerator != nil)
         type = oo::str::format("%s-atmo", type.c_str());
-    return oo::NSStringOrNil([self cacheKeyForType:type]);
+    return [self cacheKeyForType:type];
 }
 
 - (std::optional<std::string>)cacheKeyForType:(const std::string&)type
@@ -546,12 +546,12 @@ END:
         const std::string diffuseName = oo::str::format("planet-%u-%u-diffuse-new", _info.seed.high, _info.seed.low);
         const std::string lightsName = oo::str::format("planet-%u-%u-lights-new", _info.seed.high, _info.seed.low);
 
-        [[UNIVERSE gameView] dumpRGBAToRGBFileNamed:oo::NSStringFrom(diffuseName)
-                                   andGrayFileNamed:oo::NSStringFrom(lightsName)
-                                              bytes:buffer
-                                              width:_width
-                                             height:_height
-                                           rowBytes:_width * 4];
+        [[UNIVERSE gameView] cxx_dumpRGBAToRGBFileNamed:diffuseName
+                                       andGrayFileNamed:lightsName
+                                                  bytes:buffer
+                                                  width:_width
+                                                 height:_height
+                                               rowBytes:_width * 4];
     }
 #endif
 }
@@ -570,11 +570,11 @@ END:
         }
     }
 
-    [[UNIVERSE gameView] dumpGrayToFileNamed:oo::NSStringFrom(noiseName)
-                                       bytes:noisePx
-                                       width:_width
-                                      height:_height
-                                    rowBytes:_width];
+    [[UNIVERSE gameView] cxx_dumpGrayToFileNamed:noiseName
+                                           bytes:noisePx
+                                           width:_width
+                                          height:_height
+                                        rowBytes:_width];
     FREE(noisePx);
 }
 
@@ -1124,9 +1124,9 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo* info, float temperatur
     [super dealloc];
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return oo::NSStringFrom(_cacheKey);
+    return _cacheKey;
 }
 
 - (uint32_t)textureOptions
@@ -1169,12 +1169,12 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo* info, float temperatur
     const std::string normalName = oo::str::format("planet-%u-%u-normal-new", _seed.high, _seed.low);
     const std::string specularName = oo::str::format("planet-%u-%u-specular-new", _seed.high, _seed.low);
 
-    [[UNIVERSE gameView] dumpRGBAToRGBFileNamed:oo::NSStringFrom(normalName)
-                               andGrayFileNamed:oo::NSStringFrom(specularName)
-                                          bytes:_data
-                                          width:_width
-                                         height:_height
-                                       rowBytes:_width * 4];
+    [[UNIVERSE gameView] cxx_dumpRGBAToRGBFileNamed:normalName
+                                   andGrayFileNamed:specularName
+                                              bytes:_data
+                                              width:_width
+                                             height:_height
+                                           rowBytes:_width * 4];
 #endif
 }
 
@@ -1202,9 +1202,9 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo* info, float temperatur
     [super dealloc];
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return oo::NSStringFrom(_cacheKey);
+    return _cacheKey;
 }
 
 - (uint32_t)textureOptions
@@ -1268,12 +1268,12 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo* info, float temperatur
     const std::string rgbName = oo::str::format("planet-%u-%u-atmosphere-rgb-new", _seed.high, _seed.low);
     const std::string alphaName = oo::str::format("planet-%u-%u-atmosphere-alpha-new", _seed.high, _seed.low);
 
-    [[UNIVERSE gameView] dumpRGBAToRGBFileNamed:oo::NSStringFrom(rgbName)
-                               andGrayFileNamed:oo::NSStringFrom(alphaName)
-                                          bytes:_data
-                                          width:_width
-                                         height:_height
-                                       rowBytes:_width * 4];
+    [[UNIVERSE gameView] cxx_dumpRGBAToRGBFileNamed:rgbName
+                                   andGrayFileNamed:alphaName
+                                              bytes:_data
+                                              width:_width
+                                             height:_height
+                                           rowBytes:_width * 4];
 #endif
 }
 

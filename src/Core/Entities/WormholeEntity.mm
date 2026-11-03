@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "OOFoundationBridge.h"
 #import "OOLogging.h"
+#import "OOPListGameTypes.h"
 #import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
@@ -113,7 +114,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
             // Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
             estimated_arrival_time = dict.get<double>("estimated_arrival_time", arrival_time);
             const oo::PList* positionNode = dict.find("position");
-            position = OOHPVectorFromObject(positionNode != nullptr ? oo::ObjectFromPList(*positionNode) : nil, kZeroHPVector); // what PListView's get<HPVector> called
+            position = OOHPVectorFromPList(positionNode, kZeroHPVector); // what PListView's get<HPVector> called
             _misjump = dict.get<bool>("misjump", NO);
 
             // Setup shipsInTransit
@@ -281,7 +282,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
     shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<ShipEntity*>(ship),
         now + travel_time - arrival_time,
-        oo::OptionalString([ship beaconCode]) }); // in case a beacon code has been set, nil otherwise
+        [ship beaconCode] }); // in case a beacon code has been set, nullopt otherwise
     witch_mass += [ship mass];
     expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
     // and, again, cap to be earlier than arrival time
@@ -380,7 +381,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
             }
 
             if (shipBeacon) {
-                [ship setBeaconCode:oo::NSStringFrom(*shipBeacon)];
+                [ship setBeaconCode:shipBeacon];
             }
 
             // Don't reduce bounty on misjump. Fixes #17992
@@ -411,7 +412,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
             // Wormholes now have a JS representation, so we could provide it
             // but is it worth it for the exit wormhole?
-            [ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
+            [ship cxx_doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:"EXITED WITCHSPACE"];
 
             // update the ships's position
             if (!hasExitPosition) {
@@ -555,22 +556,22 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     double now = [PLAYER clockTime];
-    return oo::NSStringFrom(oo::str::format("destination: %s ttl: %.2fs arrival: %s",
-        _misjump ? "Interstellar Space" : oo::DescriptionOf([UNIVERSE getSystemName:destination]).c_str(),
+    return oo::str::format("destination: %s ttl: %.2fs arrival: %s",
+        _misjump ? "Interstellar Space" : [UNIVERSE cxx_getSystemName:destination].value_or("(null)").c_str(),
         expiry_time - now,
-        cxx_ClockToString(arrival_time, false).c_str()));
+        cxx_ClockToString(arrival_time, false).c_str());
 }
 
-- (id)identFromShip:(ShipEntity*)ship // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)identFromShip:(ShipEntity*)ship
 {
     if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]) {
         if ([self scanInfo] >= WH_SCANINFO_DESTINATION) {
-            return oo::NSStringFrom(oo::str::formatRuntime(oo::StdString(DESC(@"wormhole-to-@")), { oo::DescriptionOf([UNIVERSE getSystemName:destination]) }));
+            return oo::str::formatRuntime(OO_DESC("wormhole-to-@"), { [UNIVERSE cxx_getSystemName:destination].value_or("(null)") });
         } else {
-            return DESC(@"wormhole-desc");
+            return OO_DESC("wormhole-desc");
         }
     } else {
         OO_LOG_ERR(cxx_kOOLogInconsistentState, "{}", "Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
@@ -579,7 +580,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
                 http://aegidian.org/bb/viewtopic.php?p=128110#p128110
                 -- Ahruman 2011-01-27
         */
-        return nil;
+        return std::nullopt;
     }
 }
 
@@ -748,7 +749,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     myDict["expiry_time"] = oo::PList(expiry_time);
     myDict["arrival_time"] = oo::PList(arrival_time);
     myDict["estimated_arrival_time"] = oo::PList(estimated_arrival_time);
-    myDict["position"] = oo::PListFrom(OOPropertyListFromHPVector(position)); // -oo_setHPVector:
+    myDict["position"] = OOPListFromHPVector(position); // -oo_setHPVector:
     myDict["misjump"] = oo::PList(static_cast<bool>(_misjump));
 
     oo::PList::Array shipArray;
@@ -789,8 +790,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (void)dumpSelfState
 {
     [super dumpSelfState];
-    OO_LOG("dumpState.wormholeEntity", "Origin                 : {}", oo::DescriptionOf([UNIVERSE getSystemName:origin]));
-    OO_LOG("dumpState.wormholeEntity", "Destination            : {}", oo::DescriptionOf([UNIVERSE getSystemName:destination]));
+    OO_LOG("dumpState.wormholeEntity", "Origin                 : {}", [UNIVERSE cxx_getSystemName:origin].value_or("(null)"));
+    OO_LOG("dumpState.wormholeEntity", "Destination            : {}", [UNIVERSE cxx_getSystemName:destination].value_or("(null)"));
     OO_LOG("dumpState.wormholeEntity", "Expiry Time            : {}", cxx_ClockToString(expiry_time, false));
     OO_LOG("dumpState.wormholeEntity", "Arrival Time           : {}", cxx_ClockToString(arrival_time, false));
     OO_LOG("dumpState.wormholeEntity", "Projected Arrival Time : {}", cxx_ClockToString(estimated_arrival_time, false));

@@ -247,7 +247,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
 
 @implementation OOTimeProfile
 
-- (id)description // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_description
 {
     double totalTime = [self totalTime];
 
@@ -278,7 +278,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
         }
     }
 
-    return oo::NSStringFrom(result);
+    return result;
 }
 
 - (double)totalTime
@@ -343,7 +343,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    return OOJSValueFromNativeObject(context, oo::ObjectFromPList([self propertyListRepresentation]));
+    return OOJSValueFromPList(context, [self propertyListRepresentation]);
 }
 
 - (oo::PList)propertyListRepresentation
@@ -391,11 +391,11 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     _selfTimeMax = fmax(_selfTimeMax, selfTime);
 }
 
-- (id)description // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_description
 {
     const char* function = _function.has_value() ? _function->c_str() : "(null)"; // as %@ printed nil
     if (_hitCount == 0)
-        return oo::NSStringFrom(oo::str::format("%s: --", function));
+        return oo::str::format("%s: --", function);
 
     // Convert everything to milliseconds.
     float totalTimeSum = _totalTimeSum * 1000.0;
@@ -405,15 +405,15 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
 
     if (totalTimeSum == selfTimeSum && totalTimeMax == selfTimeMax) {
         if (_hitCount == 1) {
-            return oo::NSStringFrom(oo::str::format("%s: 1 time, %g ms", function, totalTimeSum));
+            return oo::str::format("%s: 1 time, %g ms", function, totalTimeSum);
         } else {
-            return oo::NSStringFrom(oo::str::format("%s: %lu times, total %g ms, avg %g ms, max %g ms", function, _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax));
+            return oo::str::format("%s: %lu times, total %g ms, avg %g ms, max %g ms", function, _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax);
         }
     } else {
         if (_hitCount == 1) {
-            return oo::NSStringFrom(oo::str::format("%s: 1 time, %g ms (self %g ms)", function, totalTimeSum, selfTimeSum));
+            return oo::str::format("%s: 1 time, %g ms (self %g ms)", function, totalTimeSum, selfTimeSum);
         } else {
-            return oo::NSStringFrom(oo::str::format("%s: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax));
+            return oo::str::format("%s: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), max %g ms, max self %g ms", function, _hitCount, totalTimeSum, selfTimeSum, totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax, selfTimeMax);
         }
     }
 }
@@ -504,7 +504,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    return OOJSValueFromNativeObject(context, oo::ObjectFromPList([self propertyListRepresentation]));
+    return OOJSValueFromPList(context, [self propertyListRepresentation]);
 }
 
 - (oo::PList)propertyListRepresentation

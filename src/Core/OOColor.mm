@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOFoundationBridge.h"
 #import "OOMaths.h"
-#import "OOPListView.h"
+#import "OOObjCPList.h"
 #include "oofnd/objc/OORuntime.h"
 
 #include "oofnd/Scanner.hpp"
@@ -138,57 +138,68 @@ MA 02110-1301, USA.
                         alpha:components.a];
 }
 
-+ (OOColor*)colorWithDescription:(id)description
++ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description
 {
-    return [self colorWithDescription:description saturationFactor:1.0f];
+    return [self cxx_colorWithDescription:description saturationFactor:1.0f];
 }
 
-+ (OOColor*)colorWithDescription:(id)description saturationFactor:(float)factor
++ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description saturationFactor:(float)factor
 {
-    id dict = nil;
     OOColor* result = nil;
 
-    if (description == nil)
+    if (description.isNull())
         return nil;
 
-    if ([description isKindOfClass:[OOColor class]]) {
-        result = [[description copy] autorelease];
-    } else if (oo::IsNSString(description)) {
-        if ([description hasSuffix:@"Color"]) {
+    if (description.type() == oo::PList::Type::Object) {
+        id object = oo::ObjectIn(description);
+        if ([object isKindOfClass:[OOColor class]])
+            result = [[object copy] autorelease];
+    } else if (const std::string* string = description.getIf<std::string>()) {
+        if (string->ends_with("Color")) {
             // +fooColor selector
-            SEL selector = OOSelectorFromName([description UTF8String]);
+            SEL selector = OOSelectorFromName(string->c_str());
             if ([self respondsToSelector:selector])
                 result = [self performSelector:selector];
         } else {
             // Some other string
-            result = [self cxx_colorFromString:oo::StdString(description)];
+            result = [self cxx_colorFromString:*string];
         }
-    } else if (oo::IsNSArray(description)) {
-        result = [self cxx_colorFromString:oo::StdString([description componentsJoinedByString:@" "])];
-    } else if (oo::IsNSDictionary(description)) {
-        dict = description; // Workaround for gnu-gcc's more agressive "multiple methods named..." warnings.
-
-        if ([dict objectForKey:@"hue"] != nil) {
+    } else if (const oo::PList::Array* array = description.getIf<oo::PList::Array>()) {
+        // The components' descriptions joined with spaces (-componentsJoinedByString:@" ").
+        std::string components;
+        bool first = true;
+        for (const oo::PList& element : *array) {
+            if (element.isNull())
+                continue; // not an element of the Foundation array
+            if (!first)
+                components += ' ';
+            components += oo::DescriptionOf(element);
+            first = false;
+        }
+        result = [self cxx_colorFromString:components];
+    } else if (description.isDict()) {
+        const oo::PList* hue = description.find("hue");
+        if (hue != nullptr && !hue->isNull()) {
             // Treat as HSB(A) dictionary
-            float h = oo::PListView(dict).get<float>(@"hue");
-            float s = oo::PListView(dict).get<float>(@"saturation", 1.0f);
-            float b = oo::PListView(dict).get<float>(@"brightness", -1.0f);
+            float h = description.get<float>("hue");
+            float s = description.get<float>("saturation", 1.0f);
+            float b = description.get<float>("brightness", -1.0f);
             if (b < 0.0f)
-                b = oo::PListView(dict).get<float>(@"value", 1.0f);
-            float a = oo::PListView(dict).get<float>(@"alpha", -1.0f);
+                b = description.get<float>("value", 1.0f);
+            float a = description.get<float>("alpha", -1.0f);
             if (a < 0.0f)
-                a = oo::PListView(dict).get<float>(@"opacity", 1.0f);
+                a = description.get<float>("opacity", 1.0f);
 
             // Not "result =", because we handle the saturation scaling here to allow oversaturation.
             return [OOColor colorWithHue:h / 360.0f saturation:s * factor brightness:b alpha:a];
         } else {
             // Treat as RGB(A) dictionary
-            float r = oo::PListView(dict).get<float>(@"red");
-            float g = oo::PListView(dict).get<float>(@"green");
-            float b = oo::PListView(dict).get<float>(@"blue");
-            float a = oo::PListView(dict).get<float>(@"alpha", -1.0f);
+            float r = description.get<float>("red");
+            float g = description.get<float>("green");
+            float b = description.get<float>("blue");
+            float a = description.get<float>("alpha", -1.0f);
             if (a < 0.0f)
-                a = oo::PListView(dict).get<float>(@"opacity", 1.0f);
+                a = description.get<float>("opacity", 1.0f);
 
             result = [OOColor colorWithRed:r green:g blue:b alpha:a];
         }
@@ -205,13 +216,28 @@ MA 02110-1301, USA.
     return result;
 }
 
-+ (OOColor*)brightColorWithDescription:(id)description
++ (OOColor*)cxx_brightColorWithDescription:(const oo::PList&)description
 {
-    OOColor* color = [OOColor colorWithDescription:description];
+    OOColor* color = [OOColor cxx_colorWithDescription:description];
     if (color == nil || 0.5f <= [color brightnessComponent])
         return color;
 
     return [OOColor colorWithHue:[color hueComponent] / 360.0f saturation:[color saturationComponent] brightness:0.5f alpha:1.0f];
+}
+
++ (OOColor*)colorWithDescription:(id)description
+{
+    return [self cxx_colorWithDescription:oo::PListFrom(description)];
+}
+
++ (OOColor*)colorWithDescription:(id)description saturationFactor:(float)factor
+{
+    return [self cxx_colorWithDescription:oo::PListFrom(description) saturationFactor:factor];
+}
+
++ (OOColor*)brightColorWithDescription:(id)description
+{
+    return [self cxx_brightColorWithDescription:oo::PListFrom(description)];
 }
 
 + (OOColor*)cxx_colorFromString:(const std::string&)colorFloatString
@@ -326,9 +352,9 @@ MA 02110-1301, USA.
     return [result autorelease];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]));
+    return oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
 // Get the red, green, or blue components.

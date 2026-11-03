@@ -91,7 +91,7 @@ static JSClassID sTimerClassID;
         if (JS_IsException(nameValue)) {
             JS_FreeValue(context, JS_GetException(context));
         } else {
-            NSString* name = OOStringFromJSValue(context, nameValue);
+            NSString* name = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, nameValue));
             if ([name length] != 0)
                 _functionName = [name copy];
         }
@@ -168,12 +168,12 @@ static JSClassID sTimerClassID;
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     std::optional<std::string> funcName;
 
     if (!JS_IsObject(_function)) {
-        return @"invalid";
+        return "invalid";
     }
 
     funcName = oo::OptionalString(_functionName);
@@ -181,12 +181,12 @@ static JSClassID sTimerClassID;
         funcName = "anonymous";
     }
 
-    return oo::NSStringFrom(oo::str::format("%s, function: %s", oo::DescriptionOf([super descriptionComponents]).c_str(), funcName->c_str()));
+    return oo::str::format("%s, function: %s", [super cxx_descriptionComponents].value_or("(null)").c_str(), funcName->c_str());
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Timer";
+    return std::string("Timer");
 }
 
 - (void)timerFired
@@ -198,11 +198,16 @@ static JSClassID sTimerClassID;
     JSContext* context = OOJSAcquireContext();
 
     // stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
-    id object = OOJSNativeObjectFromJSObject(context, _jsThis);
+    const oo::PList thisValue = cxx_OOJSPListFromJSObject(context, _jsThis);
+    id object = oo::ObjectIn(thisValue);
     if (object != nil) {
-        described = [object oo_jsDescription] != nil;
+        described = [object cxx_oo_jsDescription].has_value();
         if (!described)
-            described = [object description] != nil;
+            described = oo::DescriptionOf(object) != "(null)"; // -description was nil
+    } else {
+        // A plain value (object, array, String/Number/Boolean object): its Foundation form's
+        // -oo_jsDescription was never nil (ADR-0051).
+        described = !thisValue.isNull();
     }
 
     if (!described || !JS_IsObject(_function)) {
@@ -357,7 +362,7 @@ static JSValue TimerSetProperty(OOJS_SETTER_ARGS)
     case kTimer_nextTime:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (![timer setNextTime:fValue]) {
-                OOJSReportWarning(context, @"Ignoring attempt to change next fire time for running timer %@.", timer);
+                cxx_OOJSReportWarning(context, "Ignoring attempt to change next fire time for running timer %s.", oo::DescriptionOf(timer).c_str());
             }
             return JS_UNDEFINED;
         }
@@ -414,12 +419,12 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS)
     JSValue callbackThis = JS_NULL;
 
     if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {
-        OOJSReportError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
+        cxx_OOJSReportError(context, "Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
         return JS_EXCEPTION;
     }
 
     if (argc < 3) {
-        OOJSReportBadArguments(context, nil, @"Timer", argc, OOJS_ARGV, @"Invalid arguments in constructor", @"(object, function, number [, number])");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", argc, OOJS_ARGV, "Invalid arguments in constructor", "(object, function, number [, number])");
         return JS_EXCEPTION;
     }
 
@@ -427,7 +432,7 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS)
         callbackThis = JS_ToObject(context, OOJS_ARGV[0]);
         if (JS_IsException(callbackThis)) {
             JS_FreeValue(context, JS_GetException(context));
-            OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV, @"Invalid argument in constructor", @"object");
+            cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV, "Invalid argument in constructor", "object");
             return JS_EXCEPTION;
         }
     }
@@ -435,7 +440,7 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS)
     function = OOJS_ARGV[1];
     if (!JS_IsFunction(context, function)) {
         JS_FreeValue(context, callbackThis);
-        OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 1, @"Invalid argument in constructor", @"function");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV + 1, "Invalid argument in constructor", "function");
         return JS_EXCEPTION;
     }
 
@@ -443,7 +448,7 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS)
         if (JS_HasException(context))
             JS_FreeValue(context, JS_GetException(context));
         JS_FreeValue(context, callbackThis);
-        OOJSReportBadArguments(context, nil, @"Timer", 1, OOJS_ARGV + 2, @"Invalid argument in constructor", @"number");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV + 2, "Invalid argument in constructor", "number");
         return JS_EXCEPTION;
     }
 

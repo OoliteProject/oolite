@@ -61,7 +61,7 @@ typedef enum {
 
 @end
 
-@protocol OOAsyncWorkTask <NSObject>
+@protocol OOAsyncWorkTask <OOObject>
 
 // Called on a worker thread. There may be multiple worker threads.
 - (void)performAsyncTask;

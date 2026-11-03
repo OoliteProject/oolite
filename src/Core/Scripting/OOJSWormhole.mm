@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 
 #import "OOJSWormhole.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "OOCollectionExtractors.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
@@ -113,9 +112,9 @@ static BOOL JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormhol
     return sWormholeClassID;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Wormhole";
+    return std::string("Wormhole");
 }
 
 - (BOOL)isVisibleToScripts

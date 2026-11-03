@@ -24,11 +24,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOSDLJoystickManager.h"
+#import "OOCallByName.h"
 #import "OOFoundationBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
-
-#define kOOLogUnconvertedNSLog @"unclassified.OOSDLJoystickManager"
 
 @implementation OOSDLJoystickManager
 
@@ -141,11 +140,11 @@ MA 02110-1301, USA.
         // ...then check if axis moved more than AXCBTHRESH - (fix for BUG #17482)
         if (axisvalue > AXCBTHRESH) {
             oo::PList::Dict fnDict;
-            fnDict[oo::StdString(STICK_ISAXIS)] = oo::PList(static_cast<bool>(YES));
-            fnDict[oo::StdString(STICK_NUMBER)] = oo::PList(static_cast<int>(evt->which));
-            fnDict[oo::StdString(STICK_AXBUT)] = oo::PList(static_cast<int>(evt->axis));
+            fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(YES));
+            fnDict[std::string(STICK_NUMBER)] = oo::PList(static_cast<int>(evt->which));
+            fnDict[std::string(STICK_AXBUT)] = oo::PList(static_cast<int>(evt->axis));
             cbHardware = 0;
-            [cbObject performSelector:cbSelector withObject:oo::ObjectFromPList(oo::PList(std::move(fnDict)))];
+            OOCallByName(cbObject, cbSelector, oo::PList(std::move(fnDict))); // called by name (ADR-0055 item 5)
             cbObject = nil;
         }
 
@@ -198,11 +197,11 @@ MA 02110-1301, USA.
     // Is there a callback we need to make?
     if (cbObject && (cbHardware & HW_BUTTON)) {
         oo::PList::Dict fnDict;
-        fnDict[oo::StdString(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
-        fnDict[oo::StdString(STICK_NUMBER)] = oo::PList(static_cast<int>(evt->which));
-        fnDict[oo::StdString(STICK_AXBUT)] = oo::PList(static_cast<int>(evt->button));
+        fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
+        fnDict[std::string(STICK_NUMBER)] = oo::PList(static_cast<int>(evt->which));
+        fnDict[std::string(STICK_AXBUT)] = oo::PList(static_cast<int>(evt->button));
         cbHardware = 0;
-        [cbObject performSelector:cbSelector withObject:oo::ObjectFromPList(oo::PList(std::move(fnDict)))];
+        OOCallByName(cbObject, cbSelector, oo::PList(std::move(fnDict))); // called by name (ADR-0055 item 5)
         cbObject = nil;
 
         // we are done.

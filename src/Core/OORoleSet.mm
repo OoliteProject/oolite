@@ -68,11 +68,11 @@ SOFTWARE.
     return [self initWithRolesAndProbabilities:dict.empty() ? nullptr : &dict];
 }
 
-// OOObject's -description wraps this as "<OORoleSet 0x...>{roleString}", which is what this
+// -cxx_description (OODescription.h) wraps this as "<OORoleSet 0x...>{roleString}", which is what this
 // class's own -description printed.
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringOrNil([self roleString]);
+    return [self roleString];
 }
 
 - (BOOL)isEqual:(id)other
@@ -120,9 +120,9 @@ SOFTWARE.
     return _roleString;
 }
 
-- (BOOL)hasRole:(id)role
+- (BOOL)hasRole:(const std::string&)role
 {
-    return role != nil && _rolesAndProbabilities.contains(oo::StdString(role));
+    return !role.empty() && _rolesAndProbabilities.contains(role);
 }
 
 - (float)probabilityForRole:(const std::string&)role

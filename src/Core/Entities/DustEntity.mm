@@ -100,11 +100,11 @@ enum {
     hasPointSprites = [[OOOpenGLExtensionManager sharedManager] haveExtension:"GL_ARB_point_sprite"];
 
     if (hasPointSprites) {
-        texture = [[OOTexture textureWithName:@"oolite-particle-dust.png"
-                                     inFolder:@"Textures"
-                                      options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                   anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                      lodBias:0.0] retain];
+        texture = [[OOTexture cxx_textureWithName:"oolite-particle-dust.png"
+                                         inFolder:"Textures"
+                                          options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+                                       anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                          lodBias:0.0] retain];
     }
 
     collision_radius = DUST_SCALE; // for draw pass calculations
@@ -412,10 +412,10 @@ enum {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)descriptionForObjDump // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)descriptionForObjDump
 {
     // Don't include range and visibility flag as they're irrelevant.
-    return oo::NSStringOrNil([self descriptionForObjDumpBasic]);
+    return [self descriptionForObjDumpBasic];
 }
 #endif
 

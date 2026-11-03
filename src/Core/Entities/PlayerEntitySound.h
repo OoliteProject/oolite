@@ -28,8 +28,7 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-14c5): weapon identifiers and sound keys are
         std::strings. The weapon-identifier selectors are called from PlayerEntity.mm and
-        PlayerEntityControls.mm, so they are cxx_ twins here and the Foundation-typed originals live in
-        PlayerEntitySound+FoundationBridge.h until those callers are swept.
+        PlayerEntityControls.mm, so they are cxx_ twins here.
 */
 @interface PlayerEntity (Sound)
 
@@ -143,9 +142,3 @@ MA 02110-1301, USA.
 - (void)playLegacyScriptSound:(const std::string&)key;
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-14c5, forwarding to the cxx_ methods above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "PlayerEntitySound+FoundationBridge.h"

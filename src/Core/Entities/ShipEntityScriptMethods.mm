@@ -36,7 +36,7 @@ MA 02110-1301, USA.
     ShipEntity* item = nil;
 
     if (shipKey.has_value()) {
-        item = [[UNIVERSE newShipWithName:oo::NSStringFrom(*shipKey)] autorelease];
+        item = [[UNIVERSE cxx_newShipWithName:*shipKey] autorelease];
         if (item != nil)
             [self dumpItem:item];
     }
@@ -49,7 +49,7 @@ MA 02110-1301, USA.
     ShipEntity* item = nil;
 
     if (role.has_value()) {
-        item = [[UNIVERSE newShipWithRole:oo::NSStringFrom(*role)] autorelease];
+        item = [[UNIVERSE cxx_newShipWithRole:*role] autorelease];
         if (item != nil)
             [self dumpItem:item];
     }
@@ -66,12 +66,12 @@ MA 02110-1301, USA.
     if (count == 0)
         return result;
 
-    OO_LOG("script.debug.note.addShips", "Spawning {} x '{}' near {} {}", count, role, oo::DescriptionOf([self shortDescription]), [self universalID]);
+    OO_LOG("script.debug.note.addShips", "Spawning {} x '{}' near {} {}", count, role, oo::ShortDescriptionOf(self), [self universalID]);
 
     result.reserve(count);
 
     do {
-        spawned = [UNIVERSE spawnShipWithRole:oo::NSStringFrom(role) near:ship];
+        spawned = [UNIVERSE cxx_spawnShipWithRole:role near:ship];
         if (spawned != nil) {
             [spawned setTemperature:[self randomEjectaTemperature]];
             if ([self isMissileFlagSet] && oo::PListView([spawned shipInfoDictionary]).get<bool>(@"is_submunition")) {

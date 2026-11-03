@@ -29,18 +29,7 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-@interface NSObject (OOExtensions)
-
-#ifdef OO_DEBUG_MONITOR_ENABLED
-
-+ (size_t)oo_instanceSize;
-- (size_t)oo_objectSize;
-
-#endif
-
-@end
-
-// The same for classes rooted on OOObject (ADR-0029).
+// On OOObject, the root of every Oolite class (ADR-0029).
 @interface OOObject (OOExtensions)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

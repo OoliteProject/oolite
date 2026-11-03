@@ -188,7 +188,7 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kPlayer_name:
-        result = [player commanderName];
+        result = oo::NSStringOrNil([player cxx_commanderName]);
         break;
 
     case kPlayer_score:
@@ -198,10 +198,10 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [player creditBalance]);
 
     case kPlayer_rank:
-        return OOJSValueFromNativeObject(context, OODisplayRatingStringFromKillCount([player score]));
+        return OOJSValueFromNativeObject(context, oo::NSStringOrNil(cxx_OODisplayRatingStringFromKillCount([player score])));
 
     case kPlayer_legalStatus:
-        return OOJSValueFromNativeObject(context, OODisplayStringFromLegalStatus([player legalStatus]));
+        return OOJSValueFromNativeObject(context, oo::NSStringOrNil(cxx_OODisplayStringFromLegalStatus([player legalStatus])));
 
     case kPlayer_alertCondition:
         return JS_NewInt32(context, [player alertCondition]);
@@ -250,13 +250,13 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
 
     case kPlayer_dockingClearanceStatus:
         // EMMSTRAN: OOConstToJSString-ify this.
-        return OOJSValueFromNativeObject(context, DockingClearanceStatusToString([player getDockingClearanceStatus]));
+        return OOJSValueFromNativeObject(context, oo::NSStringFrom(cxx_DockingClearanceStatusToString([player getDockingClearanceStatus])));
 
     case kPlayer_bounty:
         return JS_NewInt32(context, [player legalStatus]);
 
     case kPlayer_roleWeights:
-        result = [player roleWeights];
+        result = oo::NSArrayFromStrings([player cxx_roleWeights]);
         break;
 
     default:
@@ -280,9 +280,9 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kPlayer_name:
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [player setCommanderName:oo::NSStringFrom(*sValue)];
+            [player cxx_setCommanderName:*sValue];
             return JS_UNDEFINED;
         }
         break;
@@ -341,15 +341,15 @@ static JSValue PlayerCommsMessage(OOJS_NATIVE_ARGS)
     BOOL gotTime = YES;
 
     if (argc > 0)
-        message = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        message = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (argc > 1)
         gotTime = (JS_ToFloat64(context, &time, OOJS_ARGV[1]) == 0);
     if (!message.has_value() || !gotTime) {
-        OOJSReportBadArguments(context, @"Player", @"commsMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
+        cxx_OOJSReportBadArguments(context, "Player", "commsMessage", argc, OOJS_ARGV, std::nullopt, "message and optional duration");
         return OOJSNativeFailure(context);
     }
 
-    [UNIVERSE addCommsMessage:oo::NSStringFrom(*message) forCount:time];
+    [UNIVERSE cxx_addCommsMessage:*message forCount:time];
     [PLAYER doScriptEvent:OOJSID("commsMessageReceived") withArgument:oo::NSStringFrom(*message) andArgument:nil];
     OOJS_RETURN_VOID;
 
@@ -366,15 +366,15 @@ static JSValue PlayerConsoleMessage(OOJS_NATIVE_ARGS)
     BOOL gotTime = YES;
 
     if (argc > 0)
-        message = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        message = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (argc > 1)
         gotTime = (JS_ToFloat64(context, &time, OOJS_ARGV[1]) == 0);
     if (!message.has_value() || !gotTime) {
-        OOJSReportBadArguments(context, @"Player", @"consoleMessage", argc, OOJS_ARGV, nil, @"message and optional duration");
+        cxx_OOJSReportBadArguments(context, "Player", "consoleMessage", argc, OOJS_ARGV, std::nullopt, "message and optional duration");
         return OOJSNativeFailure(context);
     }
 
-    [UNIVERSE addMessage:oo::NSStringFrom(*message) forCount:time];
+    [UNIVERSE cxx_addMessage:*message forCount:time];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -388,13 +388,13 @@ static JSValue PlayerEndScenario(OOJS_NATIVE_ARGS)
     std::optional<std::string> scenario;
 
     if (argc > 0)
-        scenario = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        scenario = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!scenario.has_value()) {
-        OOJSReportBadArguments(context, @"Player", @"endScenario", argc, OOJS_ARGV, nil, @"scenario key");
+        cxx_OOJSReportBadArguments(context, "Player", "endScenario", argc, OOJS_ARGV, std::nullopt, "scenario key");
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_BOOL([PLAYER endScenario:oo::NSStringFrom(*scenario)]);
+    OOJS_RETURN_BOOL([PLAYER cxx_endScenario:*scenario]);
 
     OOJS_NATIVE_EXIT
 }
@@ -474,13 +474,13 @@ static JSValue PlayerAddMessageToArrivalReport(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
 
     if (argc > 0)
-        report = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        report = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!report.has_value()) {
-        OOJSReportBadArguments(context, @"Player", @"addMessageToArrivalReport", MIN(argc, 1), OOJS_ARGV, nil, @"string (arrival message)");
+        cxx_OOJSReportBadArguments(context, "Player", "addMessageToArrivalReport", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string (arrival message)");
         return OOJSNativeFailure(context);
     }
 
-    [player addMessageToReport:oo::NSStringFrom(*report)];
+    [player cxx_addMessageToReport:*report];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -494,14 +494,14 @@ static JSValue PlayerAudioMessage(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
 
     if (argc > 0)
-        audioMessage = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        audioMessage = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!audioMessage.has_value()) {
-        OOJSReportBadArguments(context, @"Player", @"audioMessage", argc, OOJS_ARGV, nil, @"audiomessage (string)");
+        cxx_OOJSReportBadArguments(context, "Player", "audioMessage", argc, OOJS_ARGV, std::nullopt, "audiomessage (string)");
         return OOJSNativeFailure(context);
     }
 
     if ([player isSpeechOn] >= OOSPEECHSETTINGS_COMMS)
-        [UNIVERSE startSpeakingString:oo::NSStringFrom(*audioMessage)];
+        [UNIVERSE cxx_startSpeakingString:*audioMessage];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -518,18 +518,18 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS)
     int32_t personality = 0;
 
     if (argc > 0)
-        shipKey = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        shipKey = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!shipKey.has_value()) {
-        OOJSReportBadArguments(context, @"Player", @"replaceShip", MIN(argc, 1), OOJS_ARGV, nil, @"string (shipyard key)");
+        cxx_OOJSReportBadArguments(context, "Player", "replaceShip", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string (shipyard key)");
         return OOJSNativeFailure(context);
     }
 
     if (EXPECT_NOT(!([player status] == STATUS_DOCKED))) {
-        OOJSReportError(context, @"Player.replaceShip() only works while the player is docked.");
+        cxx_OOJSReportError(context, "Player.replaceShip() only works while the player is docked.");
         return OOJSNativeFailure(context);
     }
 
-    success = [player replaceShipWithNamedShip:oo::NSStringFrom(*shipKey)];
+    success = [player cxx_replaceShipWithNamedShip:*shipKey];
     if (argc > 1) {
         // As before, an invalid personality is ignored (personality stays 0); don't leave the conversion error pending.
         if (!OOJSValueToInt32(context, OOJS_ARGV[1], &personality))
@@ -556,25 +556,26 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     if (EXPECT_NOT(!OOIsPlayerStale())) {
-        OOJSReportError(context, @"Player.setEscapePodDestination() only works while the escape pod is in flight.");
+        cxx_OOJSReportError(context, "Player.setEscapePodDestination() only works while the escape pod is in flight.");
         return OOJSNativeFailure(context);
     }
 
     BOOL OK = NO;
-    id destValue = nil;
+    oo::PList destValue;
     PlayerEntity* player = OOPlayerForScripting();
 
     if (argc == 1) {
-        destValue = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
+        destValue = cxx_OOJSPListFromJSValue(context, OOJS_ARGV[0]);
+        id destObject = oo::ObjectIn(destValue);
 
-        if (destValue == nil) {
+        if (destValue.isNull()) {
             [player setDockTarget:NULL];
             OK = YES;
-        } else if ([destValue isKindOfClass:[ShipEntity class]] && [destValue isStation]) {
-            [player setDockTarget:destValue];
+        } else if ([destObject isKindOfClass:[ShipEntity class]] && [destObject isStation]) {
+            [player setDockTarget:destObject];
             OK = YES;
-        } else if (oo::IsNSString(destValue)) {
-            if (oo::StdString(destValue) == "NEARBY_SYSTEM") {
+        } else if (const std::string* destString = destValue.getIf<std::string>()) {
+            if (*destString == "NEARBY_SYSTEM") {
                 // find the nearest system with a main station, or die in the attempt!
                 [player setDockTarget:NULL];
 
@@ -583,7 +584,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
                     // Set 3.5 ly as the limit, enough to reach at least 2 systems!
                     rescueRange = MAX_JUMP_RANGE / 2.0;
                 }
-                oo::PList destinations = oo::PListFrom([UNIVERSE nearbyDestinationsWithinRange:rescueRange]);
+                oo::PList destinations = [UNIVERSE cxx_nearbyDestinationsWithinRange:rescueRange];
                 oo::PList::Array sDests;
                 if (const oo::PList::Array* array = destinations.getIf<oo::PList::Array>())
                     sDests = *array;
@@ -623,7 +624,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
     }
 
     if (OK == NO) {
-        OOJSReportBadArguments(context, @"Player", @"setEscapePodDestination", argc, OOJS_ARGV, nil, @"a valid station, null, or 'NEARBY_SYSTEM'");
+        cxx_OOJSReportBadArguments(context, "Player", "setEscapePodDestination", argc, OOJS_ARGV, std::nullopt, "a valid station, null, or 'NEARBY_SYSTEM'");
         return OOJSNativeFailure(context);
     }
     OOJS_RETURN_VOID;
@@ -641,21 +642,21 @@ static JSValue PlayerSetPlayerRole(OOJS_NATIVE_ARGS)
     uint32_t index = 0;
 
     if (argc > 0)
-        role = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        role = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!role.has_value()) {
-        OOJSReportBadArguments(context, @"Player", @"setPlayerRole", MIN(argc, 1), OOJS_ARGV, nil, @"string (role) [, number (index)]");
+        cxx_OOJSReportBadArguments(context, "Player", "setPlayerRole", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string (role) [, number (index)]");
         return OOJSNativeFailure(context);
     }
 
     if (argc > 1) {
         if (JS_ToUint32(context, &index, OOJS_ARGV[1]) == 0) {
-            [player addRoleToPlayer:oo::NSStringFrom(*role) inSlot:index];
+            [player cxx_addRoleToPlayer:*role inSlot:index];
             OOJS_RETURN_VOID;
         }
         // As before, fall back to the default slot if the index can't be converted.
         JS_FreeValue(context, JS_GetException(context));
     }
-    [player addRoleToPlayer:oo::NSStringFrom(*role)];
+    [player cxx_addRoleToPlayer:*role];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT

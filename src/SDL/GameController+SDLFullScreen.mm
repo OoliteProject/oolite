@@ -42,9 +42,9 @@ const oo::PList* FindDisplayMode(const oo::PList::Array& modes, unsigned int d_w
     unsigned int modeWidth, modeHeight, modeRefresh;
 
     for (const oo::PList& mode : modes) {
-        modeWidth = mode.get<int>(oo::StdString(kOODisplayWidth));
-        modeHeight = mode.get<int>(oo::StdString(kOODisplayHeight));
-        modeRefresh = mode.get<int>(oo::StdString(kOODisplayRefreshRate));
+        modeWidth = mode.get<int>(std::string(kOODisplayWidth));
+        modeHeight = mode.get<int>(std::string(kOODisplayHeight));
+        modeRefresh = mode.get<int>(std::string(kOODisplayRefreshRate));
         if ((modeWidth == d_width) && (modeHeight == d_height) && (modeRefresh == d_refresh)) {
             return &mode;
         }
@@ -63,8 +63,8 @@ const oo::PList* FindDisplayMode(const oo::PList::Array& modes, unsigned int d_w
 
     displayModes.clear();
     for (const oo::PList& mode : modes) {
-        modeWidth = mode.get<int>(oo::StdString(kOODisplayWidth));
-        modeHeight = mode.get<int>(oo::StdString(kOODisplayHeight));
+        modeWidth = mode.get<int>(std::string(kOODisplayWidth));
+        modeHeight = mode.get<int>(std::string(kOODisplayHeight));
 
         if (modeWidth < DISPLAY_MIN_WIDTH || modeWidth > DISPLAY_MAX_WIDTH || modeHeight < DISPLAY_MIN_HEIGHT || modeHeight > DISPLAY_MAX_HEIGHT)
             continue;
@@ -73,9 +73,9 @@ const oo::PList* FindDisplayMode(const oo::PList::Array& modes, unsigned int d_w
 
     const oo::PList currentMode = [gameView currentScreenMode];
     if (currentMode) {
-        width = currentMode.get<int>(oo::StdString(kOODisplayWidth));
-        height = currentMode.get<int>(oo::StdString(kOODisplayHeight));
-        refresh = currentMode.get<int>(oo::StdString(kOODisplayRefreshRate));
+        width = currentMode.get<int>(std::string(kOODisplayWidth));
+        height = currentMode.get<int>(std::string(kOODisplayHeight));
+        refresh = currentMode.get<int>(std::string(kOODisplayRefreshRate));
     } else {
         NSSize fsmSize = [gameView currentScreenSize];
         width = fsmSize.width;
@@ -122,15 +122,15 @@ const oo::PList* FindDisplayMode(const oo::PList::Array& modes, unsigned int d_w
     return NO;
 }
 
-- (id)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh // shared selector (proposed ADR-0043)
+- (oo::PList)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh
 {
     const oo::PList* mode = FindDisplayMode(displayModes, d_width, d_height, d_refresh);
-    return (mode != nullptr) ? oo::ObjectFromPList(*mode) : nil; // a mode dictionary
+    return (mode != nullptr) ? *mode : oo::PList(); // a mode dictionary; null: none
 }
 
-- (id)displayModes // shared selector (proposed ADR-0043)
+- (oo::PList)displayModes
 {
-    return oo::ObjectFromPList(oo::PList(displayModes)); // an immutable array of mode dictionaries
+    return oo::PList(displayModes); // an array of mode dictionaries
 }
 
 - (NSUInteger)indexOfCurrentDisplayMode

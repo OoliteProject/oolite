@@ -113,9 +113,9 @@ MA 02110-1301, USA.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return [[self drawable] allTextures];
+    return [[self drawable] cxx_allTextures];
 }
 #endif
 

@@ -68,7 +68,7 @@ static std::optional<std::string> ScriptNameForPropertyID(JSContext* context, JS
     std::optional<std::string> result;
     JSValue idValue = JS_AtomToValue(context, propID);
     if (JS_IsString(idValue)) {
-        result = oo::OptionalString(OOStringFromJSValue(context, idValue));
+        result = cxx_OOStringFromJSValue(context, idValue);
     }
     JS_FreeValue(context, idValue);
     return result;
@@ -84,7 +84,12 @@ static int WorldScriptsGetOwnProperty(JSContext* context, JSPropertyDescriptor* 
         scriptName = ScriptNameForPropertyID(context, propID);
 
         if (scriptName.has_value()) {
-            script = [[player worldScriptsByName] objectForKey:oo::NSStringFrom(*scriptName)];
+            script = nil;
+            for (const auto& [name, scriptRef] : [player cxx_worldScriptsByName]) // the last of a name, as the dictionary kept
+            {
+                if (name == *scriptName && scriptRef.get() != nil)
+                    script = scriptRef.get();
+            }
             if (script != nil) {
                 if (desc != NULL) {
                     /*	If script is an OOJSScript, this should return a JS Script
@@ -116,7 +121,7 @@ static int WorldScriptsGetOwnPropertyNames(JSContext* context, JSPropertyEnum** 
             QuickJS frees the table and its atoms.
     */
     @try {
-        const std::vector<std::string> names = oo::StringsFrom([OOPlayerForScripting() worldScriptNames]);
+        const std::vector<std::string> names = [OOPlayerForScripting() cxx_worldScriptNames];
         uint32_t i, count = (uint32_t)names.size();
 
         JSPropertyEnum* table = (JSPropertyEnum*)js_malloc(context, sizeof *table * MAX(count, 1U));

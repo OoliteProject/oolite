@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
 #import "MyOpenGLView.h"
-#import "NSFileManagerOOExtensions.h"
 #import "OOCacheManager.h"
 #import "OODebugStandards.h"
 #import "OOLogOutputHandler.h"
@@ -42,9 +41,9 @@ MA 02110-1301, USA.
 #import "OOPListScript.h"
 
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOManifestProperties.h"
 #import "OOStringBridge.h"
+#include "oofnd/objc/OOException.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Encoding.hpp"
@@ -150,7 +149,7 @@ bool ManifestListContains(const oo::PList& manifest, const std::string& key, std
 std::set<std::string> ManifestRequiredBy(const oo::PList& manifest)
 {
     std::set<std::string> result;
-    const oo::PList* list = manifest.get<oo::PList::Array>(oo::StdString(kOOManifestRequiredBy));
+    const oo::PList* list = manifest.get<oo::PList::Array>(std::string(kOOManifestRequiredBy));
     if (list == nullptr)
         return result;
     for (const oo::PList& element : *list->getIf<oo::PList::Array>()) {
@@ -284,14 +283,6 @@ std::string LogClassKeyRoot(const std::string& key)
     }
 }
 
-// OOScript's world-script array (OOScript is an unmigrated callee) as references; nullopt for nil.
-std::optional<std::vector<oo::ObjCRef<OOScript*>>> ScriptRefsOrNil(id scripts)
-{
-    if (scripts == nil)
-        return std::nullopt;
-    return oo::ObjCRefsFrom<OOScript*>(scripts);
-}
-
 // [path lastPathComponent] of a nil-able path, as %@ printed it.
 std::optional<std::string> LastPathComponent(const std::optional<std::string>& path)
 {
@@ -365,7 +356,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     std::vector<std::string> result;
     result.reserve(sErrors.size());
     for (const ResourceManagerError& error : sErrors) {
-        std::optional<std::string> errStr = oo::OptionalString([UNIVERSE descriptionForKey:oo::NSStringFrom(error.key)]);
+        std::optional<std::string> errStr = [UNIVERSE cxx_descriptionForKey:error.key];
         if (errStr.has_value()) {
             // The descriptions.plist entry is the format (data, not a literal): ADR-0043 item 19.
             result.push_back(oo::str::formatRuntime(*errStr, { error.param1, error.param2 }));
@@ -428,13 +419,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         return *sSearchPaths;
 
     if (!sUseAddOns.has_value()) {
-        sUseAddOns = oo::StdString(SCENARIO_OXP_DEFINITION_ALL);
+        sUseAddOns = std::string(SCENARIO_OXP_DEFINITION_ALL);
         sUseAddOnsParts = oo::str::split(*sUseAddOns, ";");
     }
 
     /* Handle special case of 'strict mode' efficiently */
     // testing actual string
-    if (sUseAddOns == oo::StdString(SCENARIO_OXP_DEFINITION_NONE)) {
+    if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_NONE)) {
         return { *[self cxx_builtInPath] };
     }
 
@@ -461,17 +452,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     for (const std::string& root : existingRootPaths) {
         // Iterate over each root path's contents.
         if (oo::fs::isDirectory(oo::fs::pathFromUTF8(root))) {
-            // NSFileManager's recursive enumerator (with -skipDescendents) has no oo::fs form yet:
-            // it lists, converted at the boundary, as it always did.
-            NSDirectoryEnumerator* dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:oo::NSStringFrom(root)];
+            oo::fs::RecursiveDirectoryEnumerator dirEnum(oo::fs::pathFromUTF8(root));
             for (;;) {
-                const std::optional<std::string> subPath = oo::OptionalString([dirEnum nextObject]);
+                const std::optional<std::string> subPath = dirEnum.next();
                 if (!subPath.has_value())
                     break;
 
                 // Check if it's a directory.
                 const std::string path = oo::str::appendingPathComponent(root, *subPath);
-                const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
+                const oo::fs::FileType type = dirEnum.entryType();
                 if (type != oo::fs::FileType::none) {
                     if (type == oo::fs::FileType::directory) {
                         // If it is, is it an OXP?.
@@ -481,7 +470,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                                 [self checkOXPMessagesInPath:path];
                         } else {
                             // If not, don't search subdirectories.
-                            [dirEnum skipDescendents];
+                            dirEnum.skipDescendents();
                         }
                     } else {
                         // If not a directory, is it an OXZ?
@@ -505,7 +494,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     /* If a scenario restriction is *not* in place, remove
      * scenario-only OXPs. */
     // test string
-    if (sUseAddOns == oo::StdString(SCENARIO_OXP_DEFINITION_ALL)) {
+    if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_ALL)) {
         [self filterSearchPathsToExcludeScenarioOnlyPaths:searchPaths];
     }
 
@@ -532,7 +521,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     /* If a scenario restriction is in place, restrict OXPs to the
      * ones valid for the scenario only. */
     // test string
-    if (sUseAddOns != oo::StdString(SCENARIO_OXP_DEFINITION_ALL)) {
+    if (sUseAddOns != std::string(SCENARIO_OXP_DEFINITION_ALL)) {
         [self filterSearchPathsByScenario:searchPaths];
     }
 
@@ -668,7 +657,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
          *
          * cache should be less necessary for restricted sets anyway */
         // testing the actual string here
-        if (sUseAddOns == oo::StdString(SCENARIO_OXP_DEFINITION_ALL)) {
+        if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_ALL)) {
             [cmgr reloadAllCaches];
             [cmgr setAllowCacheWrites:YES];
         } else {
@@ -763,10 +752,10 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             }
             // make up a basic manifest in relaxed mode or for base folders
             oo::PList::Dict basicManifest;
-            basicManifest[oo::StdString(kOOManifestIdentifier)] = oo::PList("__oolite.tmp." + path);
-            basicManifest[oo::StdString(kOOManifestVersion)] = oo::PList("1");
-            basicManifest[oo::StdString(kOOManifestTitle)] = oo::PList("OXP without manifest");
-            basicManifest[oo::StdString(kOOManifestRequiredOoliteVersion)] = oo::PList("1");
+            basicManifest[std::string(kOOManifestIdentifier)] = oo::PList("__oolite.tmp." + path);
+            basicManifest[std::string(kOOManifestVersion)] = oo::PList("1");
+            basicManifest[std::string(kOOManifestTitle)] = oo::PList("OXP without manifest");
+            basicManifest[std::string(kOOManifestRequiredOoliteVersion)] = oo::PList("1");
             manifest = oo::PList(std::move(basicManifest));
         }
     }
@@ -781,29 +770,29 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 + (BOOL)validateManifest:(const oo::PList&)manifest forOXP:(const std::string&)path
 {
     BOOL OK = YES;
-    const std::optional<std::string> identifier = ManifestString(manifest, oo::StdString(kOOManifestIdentifier));
-    const std::optional<std::string> version = ManifestString(manifest, oo::StdString(kOOManifestVersion));
-    const std::optional<std::string> required = ManifestString(manifest, oo::StdString(kOOManifestRequiredOoliteVersion));
-    const std::optional<std::string> title = ManifestString(manifest, oo::StdString(kOOManifestTitle));
+    const std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier));
+    const std::optional<std::string> version = ManifestString(manifest, std::string(kOOManifestVersion));
+    const std::optional<std::string> required = ManifestString(manifest, std::string(kOOManifestRequiredOoliteVersion));
+    const std::optional<std::string> title = ManifestString(manifest, std::string(kOOManifestTitle));
 
     if (!identifier.has_value()) {
-        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, oo::DescriptionOf(kOOManifestIdentifier));
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:oo::StdString(kOOManifestIdentifier)];
+        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestIdentifier);
+        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestIdentifier)];
         OK = NO;
     }
     if (!version.has_value()) {
-        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, oo::DescriptionOf(kOOManifestVersion));
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:oo::StdString(kOOManifestVersion)];
+        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestVersion);
+        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestVersion)];
         OK = NO;
     }
     if (!required.has_value()) {
-        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, oo::DescriptionOf(kOOManifestRequiredOoliteVersion));
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:oo::StdString(kOOManifestRequiredOoliteVersion)];
+        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestRequiredOoliteVersion);
+        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestRequiredOoliteVersion)];
         OK = NO;
     }
     if (!title.has_value()) {
-        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, oo::DescriptionOf(kOOManifestTitle));
-        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:oo::StdString(kOOManifestTitle)];
+        OO_LOG("oxp.noManifest", "OXZ {} manifest.plist has no '{}' field.", path, kOOManifestTitle);
+        [self addErrorWithKey:"oxp-manifest-incomplete" param1:title.value_or("") param2:std::string(kOOManifestTitle)];
         OK = NO;
     }
     if (!OK) {
@@ -820,7 +809,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
     auto duplicate = sOXPManifests.find(*identifier);
     if (duplicate != sOXPManifests.end()) {
-        const std::optional<std::string> duplicatePath = ManifestString(duplicate->second, oo::StdString(kOOManifestFilePath));
+        const std::optional<std::string> duplicatePath = ManifestString(duplicate->second, std::string(kOOManifestFilePath));
         OO_LOG("oxp.duplicate", "OXP {} has the same identifier ({}) as {} which has already been loaded.", path, *identifier, duplicatePath.value_or("(null)"));
         [self addErrorWithKey:"oxp-manifest-duplicate" param1:path param2:duplicatePath.value_or("")];
         return NO;
@@ -828,15 +817,15 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     oo::PList mData = manifest;
     // add an extra key
     if (oo::PList::Dict* dict = mData.getIf<oo::PList::Dict>())
-        (*dict)[oo::StdString(kOOManifestFilePath)] = oo::PList(path);
+        (*dict)[std::string(kOOManifestFilePath)] = oo::PList(path);
     sOXPManifests[*identifier] = std::move(mData);
     return YES;
 }
 
 + (BOOL)cxx_checkVersionCompatibility:(const oo::PList&)manifest forOXP:(const std::optional<std::string>&)title
 {
-    const std::optional<std::string> required = ManifestString(manifest, oo::StdString(kOOManifestRequiredOoliteVersion));
-    const std::optional<std::string> maxRequired = ManifestString(manifest, oo::StdString(kOOManifestMaximumOoliteVersion));
+    const std::optional<std::string> required = ManifestString(manifest, std::string(kOOManifestRequiredOoliteVersion));
+    const std::optional<std::string> maxRequired = ManifestString(manifest, std::string(kOOManifestMaximumOoliteVersion));
     // A nil required version ended the old key/value list at once: an empty requirements dictionary.
     oo::PList::Dict requirements;
     if (required.has_value()) {
@@ -905,20 +894,20 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (BOOL)cxx_manifestHasConflicts:(const oo::PList&)manifest logErrors:(BOOL)logErrors
 {
-    const oo::PList* conflicts = manifest.get<oo::PList::Array>(oo::StdString(kOOManifestConflictOXPs), nullptr);
+    const oo::PList* conflicts = manifest.get<oo::PList::Array>(std::string(kOOManifestConflictOXPs), nullptr);
     // if it has a non-empty conflict_oxps list
     if (conflicts != nullptr && conflicts->count() > 0) {
         // iterate over that list
         for (const oo::PList& conflicting : *conflicts->getIf<oo::PList::Array>()) {
-            const std::optional<std::string> conflictID = ManifestString(conflicting, oo::StdString(kOOManifestRelationIdentifier));
+            const std::optional<std::string> conflictID = ManifestString(conflicting, std::string(kOOManifestRelationIdentifier));
             auto conflictManifest = conflictID.has_value() ? sOXPManifests.find(*conflictID) : sOXPManifests.end();
             // if the other OXP is in the list
             if (conflictManifest != sOXPManifests.end()) {
                 // then check versions
-                if ([self cxx_matchVersions:conflicting withVersion:ManifestString(conflictManifest->second, oo::StdString(kOOManifestVersion)).value_or("")]) {
+                if ([self cxx_matchVersions:conflicting withVersion:ManifestString(conflictManifest->second, std::string(kOOManifestVersion)).value_or("")]) {
                     if (logErrors) {
-                        [self addErrorWithKey:"oxp-conflict" param1:ManifestString(manifest, oo::StdString(kOOManifestTitle)).value_or("") param2:ManifestString(conflictManifest->second, oo::StdString(kOOManifestTitle)).value_or("")];
-                        OO_LOG("oxp.conflict", "OXP {} conflicts with {} and was removed from the loading list", (LastPathComponent(ManifestString(manifest, oo::StdString(kOOManifestFilePath)))).value_or("(null)"), (LastPathComponent(ManifestString(conflictManifest->second, oo::StdString(kOOManifestFilePath)))).value_or("(null)"));
+                        [self addErrorWithKey:"oxp-conflict" param1:ManifestString(manifest, std::string(kOOManifestTitle)).value_or("") param2:ManifestString(conflictManifest->second, std::string(kOOManifestTitle)).value_or("")];
+                        OO_LOG("oxp.conflict", "OXP {} conflicts with {} and was removed from the loading list", (LastPathComponent(ManifestString(manifest, std::string(kOOManifestFilePath)))).value_or("(null)"), (LastPathComponent(ManifestString(conflictManifest->second, std::string(kOOManifestFilePath)))).value_or("(null)"));
                     }
                     return YES;
                 }
@@ -943,7 +932,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             const oo::PList manifest = entry->second;
             if ([self cxx_manifestHasConflicts:manifest logErrors:YES]) {
                 // then we have a conflict, so remove this path
-                RemovePath(searchPaths, ManifestString(manifest, oo::StdString(kOOManifestFilePath)));
+                RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
             }
         }
@@ -952,7 +941,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (BOOL)cxx_manifestHasMissingDependencies:(const oo::PList&)manifest logErrors:(BOOL)logErrors
 {
-    const oo::PList* requireds = manifest.get<oo::PList::Array>(oo::StdString(kOOManifestRequiresOXPs), nullptr);
+    const oo::PList* requireds = manifest.get<oo::PList::Array>(std::string(kOOManifestRequiresOXPs), nullptr);
     // if it has a non-empty required_oxps list
     if (requireds != nullptr && requireds->count() > 0) {
         // iterate over that list
@@ -967,13 +956,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (BOOL)cxx_manifest:(const oo::PList&)manifest HasUnmetDependency:(const oo::PList&)required logErrors:(BOOL)logErrors
 {
-    const std::optional<std::string> requiredID = ManifestString(required, oo::StdString(kOOManifestRelationIdentifier));
+    const std::optional<std::string> requiredID = ManifestString(required, std::string(kOOManifestRelationIdentifier));
     auto requiredManifest = requiredID.has_value() ? sOXPManifests.find(*requiredID) : sOXPManifests.end();
     // if the other OXP is in the list
     BOOL requirementsMet = NO;
     if (requiredManifest != sOXPManifests.end()) {
         // then check versions
-        if ([self cxx_matchVersions:required withVersion:ManifestString(requiredManifest->second, oo::StdString(kOOManifestVersion)).value_or("")]) {
+        if ([self cxx_matchVersions:required withVersion:ManifestString(requiredManifest->second, std::string(kOOManifestVersion)).value_or("")]) {
             requirementsMet = YES;
             /* Mark the requiredManifest as a dependency of the
              * requiring manifest */
@@ -982,7 +971,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             /* then add this manifest to its required set. This is
              * done without checking if it's already there, because
              * the list of nested requirements may have changed. */
-            if (std::optional<std::string> identifier = ManifestString(manifest, oo::StdString(kOOManifestIdentifier)))
+            if (std::optional<std::string> identifier = ManifestString(manifest, std::string(kOOManifestIdentifier)))
                 reqby.insert(*identifier);
             // *and* anything that requires this OXP to be installed
             const std::set<std::string> manifestReqby = ManifestRequiredBy(manifest);
@@ -999,14 +988,14 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             for (const std::string& identifier : reqby)
                 reqbyList.emplace_back(identifier);
             if (oo::PList::Dict* dict = requiredManifest->second.getIf<oo::PList::Dict>())
-                (*dict)[oo::StdString(kOOManifestRequiredBy)] = oo::PList(std::move(reqbyList));
+                (*dict)[std::string(kOOManifestRequiredBy)] = oo::PList(std::move(reqbyList));
         }
     }
     if (!requirementsMet) {
         if (logErrors) {
-            const std::optional<std::string> requiredDescription = ManifestString(required, oo::StdString(kOOManifestRelationDescription));
-            [self addErrorWithKey:"oxp-required" param1:ManifestString(manifest, oo::StdString(kOOManifestTitle)).value_or("") param2:requiredDescription.has_value() ? *requiredDescription : requiredID.value_or("")];
-            OO_LOG("oxp.requirementMissing", "OXP {} had unmet requirements and was removed from the loading list", (LastPathComponent(ManifestString(manifest, oo::StdString(kOOManifestFilePath)))).value_or("(null)"));
+            const std::optional<std::string> requiredDescription = ManifestString(required, std::string(kOOManifestRelationDescription));
+            [self addErrorWithKey:"oxp-required" param1:ManifestString(manifest, std::string(kOOManifestTitle)).value_or("") param2:requiredDescription.has_value() ? *requiredDescription : requiredID.value_or("")];
+            OO_LOG("oxp.requirementMissing", "OXP {} had unmet requirements and was removed from the loading list", (LastPathComponent(ManifestString(manifest, std::string(kOOManifestFilePath)))).value_or("(null)"));
         }
         return YES;
     }
@@ -1030,7 +1019,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             const oo::PList manifest = entry->second;
             if ([self cxx_manifestHasMissingDependencies:manifest logErrors:YES]) {
                 // then we have a missing requirement, so remove this path
-                RemovePath(searchPaths, ManifestString(manifest, oo::StdString(kOOManifestFilePath)));
+                RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
                 sAllMet = NO;
             }
@@ -1042,8 +1031,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (BOOL)cxx_matchVersions:(const oo::PList&)rangeDict withVersion:(const std::string&)version
 {
-    const std::optional<std::string> minimum = ManifestString(rangeDict, oo::StdString(kOOManifestRelationVersion));
-    const std::optional<std::string> maximum = ManifestString(rangeDict, oo::StdString(kOOManifestRelationMaxVersion));
+    const std::optional<std::string> minimum = ManifestString(rangeDict, std::string(kOOManifestRelationVersion));
+    const std::optional<std::string> maximum = ManifestString(rangeDict, std::string(kOOManifestRelationMaxVersion));
     const std::vector<unsigned> isVersionComponents = oo::str::versionComponents(version); // "" (was nil) compares as the empty version
     if (minimum.has_value()) {
         if (oo::str::compareVersions(isVersionComponents, oo::str::versionComponents(*minimum)) < 0) {
@@ -1074,8 +1063,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         auto entry = sOXPManifests.find(identifier);
         if (entry != sOXPManifests.end()) {
             const oo::PList manifest = entry->second;
-            if (ManifestListContains(manifest, oo::StdString(kOOManifestTags), oo::StdString(kOOManifestTagScenarioOnly))) {
-                RemovePath(searchPaths, ManifestString(manifest, oo::StdString(kOOManifestFilePath)));
+            if (ManifestListContains(manifest, std::string(kOOManifestTags), std::string(kOOManifestTagScenarioOnly))) {
+                RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
             }
         }
@@ -1097,7 +1086,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             const oo::PList manifest = entry->second;
             if (![ResourceManager manifestAllowedByScenario:manifest]) {
                 // then we don't need this one
-                RemovePath(searchPaths, ManifestString(manifest, oo::StdString(kOOManifestFilePath)));
+                RemovePath(searchPaths, ManifestString(manifest, std::string(kOOManifestFilePath)));
                 sOXPManifests.erase(identifier);
             }
         }
@@ -1109,22 +1098,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     /* Checks for a couple of "never happens" cases */
 #ifndef NDEBUG
     // test string
-    if (sUseAddOns == oo::StdString(SCENARIO_OXP_DEFINITION_ALL)) {
+    if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_ALL)) {
         OO_LOG("scenario.check", "{}", "Checked scenario allowances in all state - this is an internal error; please report this");
         return YES;
     }
-    if (sUseAddOns == oo::StdString(SCENARIO_OXP_DEFINITION_NONE)) {
+    if (sUseAddOns == std::string(SCENARIO_OXP_DEFINITION_NONE)) {
         OO_LOG("scenario.check", "{}", "Checked scenario allowances in none state - this is an internal error; please report this");
         return NO;
     }
 #endif
-    if (ManifestString(manifest, oo::StdString(kOOManifestIdentifier)) == "org.oolite.oolite") {
+    if (ManifestString(manifest, std::string(kOOManifestIdentifier)) == "org.oolite.oolite") {
         // the core data is always allowed!
         return YES;
     }
 
-    const std::string byID = oo::StdString(SCENARIO_OXP_DEFINITION_BYID);
-    const std::string byTag = oo::StdString(SCENARIO_OXP_DEFINITION_BYTAG);
+    const std::string byID = std::string(SCENARIO_OXP_DEFINITION_BYID);
+    const std::string byTag = std::string(SCENARIO_OXP_DEFINITION_BYTAG);
     BOOL result = NO;
     for (const std::string& uaoBit : sUseAddOnsParts) {
         if (oo::str::hasPrefix(uaoBit, byID)) {
@@ -1138,13 +1127,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest withIdentifier:(const std::string&)identifier
 {
-    if (ManifestString(manifest, oo::StdString(kOOManifestIdentifier)) == identifier) {
+    if (ManifestString(manifest, std::string(kOOManifestIdentifier)) == identifier) {
         // manifest has the identifier - easy
         return YES;
     }
     // manifest is also allowed if a manifest with that identifier
     // requires it to be installed
-    if (ManifestListContains(manifest, oo::StdString(kOOManifestRequiredBy), identifier)) {
+    if (ManifestListContains(manifest, std::string(kOOManifestRequiredBy), identifier)) {
         return YES;
     }
     // otherwise, no
@@ -1153,7 +1142,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 + (BOOL)manifestAllowedByScenario:(const oo::PList&)manifest withTag:(const std::string&)tag
 {
-    if (ManifestListContains(manifest, oo::StdString(kOOManifestTags), tag)) {
+    if (ManifestListContains(manifest, std::string(kOOManifestTags), tag)) {
         // manifest has the tag - easy
         return YES;
     }
@@ -1162,7 +1151,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     for (const std::string& identifier : ManifestRequiredBy(manifest)) {
         auto reqManifest = sOXPManifests.find(identifier);
         // need to check for nil as this one may already have been ruled out
-        if (reqManifest != sOXPManifests.end() && ManifestListContains(reqManifest->second, oo::StdString(kOOManifestTags), tag)) {
+        if (reqManifest != sOXPManifests.end() && ManifestListContains(reqManifest->second, std::string(kOOManifestTags), tag)) {
             return YES;
         }
     }
@@ -1187,10 +1176,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             arrays are built for it at each call and compared with -isEqual:, as before.
     */
     OOCacheManager* cacheMgr = [OOCacheManager sharedCache];
-    NSFileManager* fmgr = [NSFileManager defaultManager];
     BOOL upToDate = YES;
     id oldPaths = nil;
-    id modDate = nil;
 
     if (EXPECT_NOT(oo::Defaults::standard().boolForKey("always-flush-cache"))) {
         OO_LOG("dataCache.rebuild.explicitFlush", "{}", "Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
@@ -1209,14 +1196,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     // Build modification date list. (We need this regardless of whether the search paths matched.)
-    // The dates come from NSFileManager's attributes (oo::fs has no modification date yet).
     oo::PList::Array modDates;
     modDates.reserve(searchPaths.size());
     for (const std::string& path : searchPaths) {
-        modDate = [[fmgr oo_fileAttributesAtPath:oo::NSStringFrom(path) traverseLink:YES] objectForKey:NSFileModificationDate];
-        if (modDate != nil) {
-            // Converts to double because I'm not sure the cache can deal with dates under GNUstep.
-            modDates.emplace_back([modDate timeIntervalSince1970]);
+        const auto modTime = oo::fs::modificationTimeSince1970(oo::fs::pathFromUTF8(path));
+        if (modTime) {
+            // Double, as before: the cache stored -timeIntervalSince1970 of NSFileModificationDate.
+            modDates.emplace_back(*modTime);
         }
     }
     const oo::PList modDateList(std::move(modDates));
@@ -1250,7 +1236,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         // non-core paths always okay
         return NO;
     }
-    const std::string noPList = oo::StdString(SCENARIO_OXP_DEFINITION_NOPLIST);
+    const std::string noPList = std::string(SCENARIO_OXP_DEFINITION_NOPLIST);
     for (const std::string& uaoBit : sUseAddOnsParts) {
         if (oo::str::hasPrefix(uaoBit, noPList)) {
             if (uaoBit.substr(noPList.size()) == fileName) {
@@ -1748,12 +1734,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         if (const oo::PList::Dict* systems = categories.getIf<oo::PList::Dict>()) {
             for (const auto& [systemKey, values] : *systems) {
                 if (values.isDict()) {
-                    if (systemKey == oo::StdString(PLANETINFO_UNIVERSAL_KEY)) {
-                        [manager setUniversalProperties:oo::ObjectFromPList(values)];
-                    } else if (systemKey == oo::StdString(PLANETINFO_INTERSTELLAR_KEY)) {
-                        [manager setInterstellarProperties:oo::ObjectFromPList(values)];
+                    if (systemKey == std::string(PLANETINFO_UNIVERSAL_KEY)) {
+                        [manager cxx_setUniversalProperties:values];
+                    } else if (systemKey == std::string(PLANETINFO_INTERSTELLAR_KEY)) {
+                        [manager cxx_setInterstellarProperties:values];
                     } else {
-                        [manager setProperties:oo::ObjectFromPList(values) forSystemKey:oo::NSStringFrom(systemKey)];
+                        [manager cxx_setProperties:values forSystemKey:systemKey];
                     }
                 }
             }
@@ -1819,7 +1805,6 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     std::string cacheKey;
     OOCacheManager* cache = [OOCacheManager sharedCache];
     std::string filePath;
-    NSFileManager* fmgr = nil;
 
     // (The resolved-paths cache is consulted whatever useCache says: the old test was of the cache
     // manager, which always exists.) OOCacheManager is an unmigrated callee: it holds the path as a
@@ -1834,23 +1819,20 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             return result;
     }
 
-    // Search for file
-    // (-oo_oxzFileExistsAtPath:, the NSFileManager category that also looks inside OXZs, has no
-    // oo::fs form yet: it answers through the bridged path.)
-    fmgr = [NSFileManager defaultManager];
+    // Search for file (OXZ-aware exists, same answers as -oo_oxzFileExistsAtPath:).
     // reverse object enumerator allows OXPs to override core
     const std::vector<std::string> paths = [ResourceManager cxx_paths];
     for (auto pathIt = paths.rbegin(); pathIt != paths.rend(); ++pathIt) {
         const std::string& path = *pathIt;
         // appending a nil folder left the path as it was
         filePath = oo::str::appendingPathComponent(folderName.has_value() ? oo::str::appendingPathComponent(path, *folderName) : path, fileName);
-        if ([fmgr oo_oxzFileExistsAtPath:oo::NSStringFrom(filePath)]) {
+        if (OOOxzFileExistsAtPath(filePath)) {
             result = filePath;
             break;
         }
 
         filePath = oo::str::appendingPathComponent(path, fileName);
-        if ([fmgr oo_oxzFileExistsAtPath:oo::NSStringFrom(filePath)]) {
+        if (OOOxzFileExistsAtPath(filePath)) {
             result = filePath;
             break;
         }
@@ -1964,9 +1946,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         if (![ResourceManager cxx_corePlist:"world-scripts.plist" excludedAt:path]) {
             @autoreleasepool {
                 @try {
-                    std::optional<std::vector<oo::ObjCRef<OOScript*>>> results = ScriptRefsOrNil([OOScript worldScriptsAtPath:oo::NSStringFrom(oo::str::appendingPathComponent(path, "Config"))]);
+                    std::optional<std::vector<oo::ObjCRef<OOScript*>>> results = [OOScript cxx_worldScriptsAtPath:oo::str::appendingPathComponent(path, "Config")];
                     if (!results.has_value())
-                        results = ScriptRefsOrNil([OOScript worldScriptsAtPath:oo::NSStringFrom(path)]);
+                        results = [OOScript cxx_worldScriptsAtPath:path];
                     if (results.has_value()) {
                         for (const oo::ObjCRef<OOScript*>& script : *results) {
                             const std::optional<std::string> name = oo::OptionalString([script.get() name]);
@@ -1985,10 +1967,6 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                     OO_LOG("script.load.exception", "***** {} encountered exception {} ({}) while trying to load script from {} -- ignoring this location.", "+[ResourceManager loadScripts]", [exception name], [exception reason], path);
                     // Ignore exception and keep loading other scripts.
                 }
-                @catch (OOFoundationException* exception) {
-                    OO_LOG("script.load.exception", "***** {} encountered exception {} ({}) while trying to load script from {} -- ignoring this location.", "+[ResourceManager loadScripts]", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]), path);
-                    // Ignore exception and keep loading other scripts.
-                }
             }
         }
     }
@@ -2000,7 +1978,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             displayNames.reserve(count);
 
             for (const auto& [name, script] : loadedScripts) {
-                displayNames.push_back(oo::StdString([script.get() displayName]));
+                displayNames.push_back([script.get() displayName].value_or(""));
             }
 
             std::stable_sort(displayNames.begin(), displayNames.end(), [](const std::string& a, const std::string& b) { return oo::str::caseInsensitiveCompare(a, b) < 0; });

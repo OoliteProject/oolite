@@ -27,23 +27,24 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#include <string_view>
 
-#define PASSENGER_KEY_NAME @"name"
+inline constexpr std::string_view PASSENGER_KEY_NAME = "name";
 
-#define CARGO_KEY_ID @"id"
-#define CARGO_KEY_TYPE @"co_type"
-#define CARGO_KEY_AMOUNT @"co_amount"
-#define CARGO_KEY_DESCRIPTION @"cargo_description"
+inline constexpr std::string_view CARGO_KEY_ID = "id";
+inline constexpr std::string_view CARGO_KEY_TYPE = "co_type";
+inline constexpr std::string_view CARGO_KEY_AMOUNT = "co_amount";
+inline constexpr std::string_view CARGO_KEY_DESCRIPTION = "cargo_description";
 
-#define CONTRACT_KEY_START @"start"
-#define CONTRACT_KEY_DESTINATION @"destination"
+inline constexpr std::string_view CONTRACT_KEY_START = "start";
+inline constexpr std::string_view CONTRACT_KEY_DESTINATION = "destination";
 #define CONTRACT_KEY_DESTINATION_NAME @"destination_name"
 #define CONTRACT_KEY_LONG_DESCRIPTION @"long_description"
-#define CONTRACT_KEY_DEPARTURE_TIME @"departure_time"
-#define CONTRACT_KEY_ARRIVAL_TIME @"arrival_time"
-#define CONTRACT_KEY_FEE @"fee"
-#define CONTRACT_KEY_PREMIUM @"premium"
-#define CONTRACT_KEY_RISK @"risk"
+inline constexpr std::string_view CONTRACT_KEY_DEPARTURE_TIME = "departure_time";
+inline constexpr std::string_view CONTRACT_KEY_ARRIVAL_TIME = "arrival_time";
+inline constexpr std::string_view CONTRACT_KEY_FEE = "fee";
+inline constexpr std::string_view CONTRACT_KEY_PREMIUM = "premium";
+inline constexpr std::string_view CONTRACT_KEY_RISK = "risk";
 
 #define MAX_CONTRACT_REP 70
 
@@ -120,10 +121,3 @@ MA 02110-1301, USA.
 - (void)newShipCommonSetup:(const std::string&)shipKey yardInfo:(const oo::PList&)ship_info baseInfo:(const oo::PList&)ship_base_dict;
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-3rb.179 (chunks of oo-ldqo), forwarding to the cxx_ methods above, so
-        unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep beads; the
-        bridge goes in its own bead.
-*/
-#import "PlayerEntityContracts+FoundationBridge.h"

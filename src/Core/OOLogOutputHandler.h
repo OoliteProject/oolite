@@ -57,9 +57,3 @@ void cxx_OOLogOutputHandlerChangeLogFile(const std::string& newLogName);
 
 void OOLogOutputHandlerStartLoggingToStdout(void);
 void OOLogOutputHandlerStopLoggingToStdout(void);
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"; bead oo-vjts): gnustep-base's NSLog
-        hook, and the Foundation-typed API this header declared before its sweep, forwarding to the
-        cxx_ functions above so unmigrated callers compile unchanged.
-*/
-#import "OOLogOutputHandler+FoundationBridge.h"

@@ -30,8 +30,6 @@ std::string FormattedCharacter(unsigned code)
 
 } // namespace
 
-#define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
-
 @interface MyOpenGLView (InputPrivate)
 
 @end
@@ -42,9 +40,9 @@ std::string FormattedCharacter(unsigned code)
 {
     // load in our keyboard scancode mappings
 #if OOLITE_WINDOWS
-    const oo::PList kmap = oo::PListFrom([ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]);
+    const oo::PList kmap = [ResourceManager cxx_dictionaryFromFilesNamed:"keymappings_windows.plist" inFolder:"Config" mergeMode:MERGE_BASIC cache:NO];
 #else
-    const oo::PList kmap = oo::PListFrom([ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]);
+    const oo::PList kmap = [ResourceManager cxx_dictionaryFromFilesNamed:"keymappings_linux.plist" inFolder:"Config" mergeMode:MERGE_BASIC cache:NO];
 #endif
     // get the stored keyboard code from preferences (oo_stringForKey:defaultValue: over the value)
     const oo::PList kbdValue = oo::Defaults::standard().object("keyboard-code");
@@ -595,7 +593,7 @@ std::string FormattedCharacter(unsigned code)
             case SDLK_ESCAPE:
                 if (shift) {
                     SDL_DestroyWindow(window);
-                    [gameController exitAppWithContext:@"Shift-escape pressed"];
+                    [gameController cxx_exitAppWithContext:"Shift-escape pressed"];
                 } else {
                     key_id = 27;
                     special_key = YES;
@@ -845,7 +843,7 @@ std::string FormattedCharacter(unsigned code)
         // caused by INTR or someone hitting close
         case SDL_EVENT_QUIT: {
             SDL_DestroyWindow(window);
-            [gameController exitAppWithContext:@"SDL_QUIT event received"];
+            [gameController cxx_exitAppWithContext:"SDL_QUIT event received"];
         }
         }
     }

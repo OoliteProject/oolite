@@ -29,8 +29,8 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 @class OOSoundChannel;
 

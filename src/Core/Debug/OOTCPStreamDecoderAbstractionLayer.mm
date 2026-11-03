@@ -52,7 +52,7 @@ std::string DescriptionOf(OOALObjectRef object)
         return "(null)";
     if (const std::string* string = object->value.getIf<std::string>())
         return *string;
-    return oo::DescriptionOf(oo::ObjectFromPList(object->value));
+    return oo::DescriptionOf(object->value);
 }
 
 } // namespace

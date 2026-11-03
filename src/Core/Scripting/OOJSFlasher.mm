@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 #import "OOJSFlasher.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOFlasherEntity.h"
+#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
@@ -38,6 +39,21 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS);
 static JSValue FlasherSetProperty(OOJS_SETTER_ARGS);
 
 static JSValue FlasherRemove(OOJS_NATIVE_ARGS);
+
+namespace {
+
+    // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
+    oo::PList NormalizedColorComponents(OOColor* color)
+    {
+        if (color == nil)
+            return oo::PList();
+        oo::PList::Array components;
+        for (float component : [color cxx_normalizedArray])
+            components.push_back(oo::PList::singleReal(component));
+        return oo::PList(std::move(components));
+    }
+
+} // namespace
 
 static JSClassDef sFlasherClass = {
     .class_name = "Flasher",
@@ -119,9 +135,9 @@ static BOOL JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OO
     return sFlasherClassID;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Flasher";
+    return std::string("Flasher");
 }
 
 - (BOOL)isVisibleToScripts
@@ -149,7 +165,7 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([entity isActive]);
 
     case kFlasher_color:
-        result = [[entity color] normalizedArray];
+        result = oo::ObjectFromPList(NormalizedColorComponents([entity color]));
         break;
 
     case kFlasher_frequency:
@@ -197,7 +213,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kFlasher_color:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setColor:colorForScript];
             return JS_UNDEFINED;

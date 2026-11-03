@@ -51,7 +51,7 @@ MA 02110-1301, USA.
         if (JS_IsException(nameValue)) {
             JS_FreeValue(context, JS_GetException(context));
         } else {
-            std::optional<std::string> name = oo::OptionalString(OOStringFromJSValue(context, nameValue));
+            std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameValue);
             if (name.has_value() && !name->empty())
                 _name = name;
         }
@@ -165,14 +165,19 @@ MA 02110-1301, USA.
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%s()", _name.value_or("<anonymous>").c_str()));
+    return oo::str::format("%s()", _name.value_or("<anonymous>").c_str());
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
 {
-    return oo::NSStringOrNil(_name);
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
+{
+    return _name;
 }
 
 - (BOOL)isValid
@@ -242,13 +247,13 @@ MA 02110-1301, USA.
     std::vector<JSValue> argv(argc);
 
     for (i = 0; i < argc; i++) {
-        argv[i] = [arguments[i].get() oo_jsValueInContext:context];
+        argv[i] = arguments[i].get() != nil ? OOJSValueFromNativeObject(context, arguments[i].get()) : JSValue {}; // (a message to nil gave the zero value)
     }
 
     JSValue scopeObj = JS_UNDEFINED;
     BOOL OK = YES;
     if (jsThis != nil) {
-        JSValue thisValue = [jsThis oo_jsValueInContext:context];
+        JSValue thisValue = OOJSValueFromNativeObject(context, jsThis);
         // As with JS_ValueToObject(), null and undefined give no object (the global object is used).
         if (!JS_IsNull(thisValue) && !JS_IsUndefined(thisValue)) {
             scopeObj = JS_ToObject(context, thisValue);
@@ -280,23 +285,6 @@ MA 02110-1301, USA.
     }
 
     return OK;
-}
-
-- (id)evaluateWithContext:(JSContext*)context
-                    scope:(id)jsThis
-                arguments:(const std::vector<oo::ObjCRef<id>>&)arguments
-{
-    JSValue result;
-    BOOL OK = [self evaluateWithContext:context
-                                  scope:jsThis
-                              arguments:arguments
-                                 result:&result];
-    if (!OK)
-        return nil;
-
-    id object = OOJSNativeObjectFromJSValue(context, result);
-    JS_FreeValue(context, result);
-    return object;
 }
 
 - (BOOL)evaluatePredicateWithContext:(JSContext*)context

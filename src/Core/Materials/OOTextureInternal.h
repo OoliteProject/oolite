@@ -54,7 +54,7 @@ SOFTWARE.
 
 - (void)ensureFinishedLoading; // Default: does nothing
 - (BOOL)isFinishedLoading; // Default: YES
-- (id)cacheKey; // Default: nil. Shared selector (proposed ADR-0043).
+- (std::optional<std::string>)cxx_cacheKey; // Default: nullopt
 - (BOOL)isRectangleTexture; // Default: NO
 - (BOOL)isCubeMap; // Default: NO
 - (NSSize)texCoordsScale; // Default: 1,1

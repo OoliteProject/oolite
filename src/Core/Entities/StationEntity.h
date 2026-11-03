@@ -247,10 +247,3 @@ typedef enum {
 // A mixed configuration (proposed ADR-0043 Amendment 2): "station" is an Object node holding the
 // station's weak reference; ai_message / comms_message absent when nullopt.
 oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords, float speed, float range, const std::optional<std::string>& ai_message, const std::optional<std::string>& comms_message, BOOL match_rotation, int docking_stage);
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-3rb.172 (chunks of oo-e7ab), forwarding to the cxx_ API above, so
-        unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep beads; the
-        bridge goes in its own bead.
-*/
-#import "StationEntity+FoundationBridge.h"

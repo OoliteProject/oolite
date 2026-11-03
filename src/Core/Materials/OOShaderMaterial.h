@@ -157,7 +157,7 @@ typedef uint16_t OOUniformConvertOptions;
 
 @end
 
-@interface NSObject (ShaderBindingHierarchy)
+@interface OOObject (ShaderBindingHierarchy)
 
 /*	Informal protocol for objects to "forward" their shader bindings up a
         hierarchy (for instance, subentities to parent entities).
@@ -182,7 +182,7 @@ enum {
 */
 BOOL OOUniformBindingPermitted(const std::string& propertyName, id bindingTarget);
 
-@interface NSObject (OOShaderMaterialTargetOptional)
+@interface OOObject (OOShaderMaterialTargetOptional)
 
 - (uint32_t)randomSeedForShaders;
 

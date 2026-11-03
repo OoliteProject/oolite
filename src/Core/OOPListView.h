@@ -4,7 +4,7 @@ OOPListView.h
 
 oo::PListView: the bridge that lets a file drop OOCollectionExtractors' `oo_*ForKey:` shape
 while the game still holds Foundation collections (proposed ADR-0031, bead oo-u77). It is a
-zero-copy view over an NSDictionary / NSUserDefaults / NSArray (anything answering
+zero-copy view over an NSDictionary / oo::Defaults / NSArray (anything answering
 -objectForKey: or -objectAtIndex:) with oo::PList's accessor API (oofnd/PListGet.hpp):
 
         [dict oo_floatForKey:KEY defaultValue:1.0f]      ->  oo::PListView(dict).get<float>(KEY, 1.0f)
@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 
+#import "OOFoundationBridge.h"
 #include "oofnd/PListGet.hpp" // oo::NonNegative<F>, and the PList API this mirrors
 
 namespace oo {
@@ -129,7 +130,7 @@ struct TextureSpecifier {
 
 } // namespace oo
 
-NSDictionary* OOTextureSpecFromObject(id object, NSString* defaultName); // OOTexture.h
+oo::PList cxx_OOTextureSpecFromObject(const oo::PList& object, const std::optional<std::string>& defaultName); // OOTexture.h
 
 namespace oo {
 
@@ -138,7 +139,7 @@ struct PListViewGet<TextureSpecifier> {
     using Result = NSDictionary*;
     using Fallback = NSString*;
     static NSString* defaultFallback() { return nil; }
-    static NSDictionary* from(id object, NSString* defaultName) { return OOTextureSpecFromObject(object, defaultName); }
+    static NSDictionary* from(id object, NSString* defaultName) { return oo::ObjectFromPList(cxx_OOTextureSpecFromObject(oo::PListFrom(object), oo::OptionalString(defaultName))); }
 };
 
 // oo_objectForKey: any object.

@@ -57,14 +57,14 @@ namespace {
 constexpr const char* kObjectsKey = "objects";
 constexpr const char* kWeightsKey = "weights";
 
-// The property list representation: the objects (each converted as oo::PListFrom converts it, as
-// the Objective-C dictionary this was before was converted) and their weights (single reals, as
+// The property list representation: the objects (the elements themselves, as oo::PListFrom
+// converted the Objective-C objects they were) and their weights (single reals, as
 // +numberWithFloat: made them).
-oo::PList PropertyListRepresentation(const id* objects, const float* weights, NSUInteger count)
+oo::PList PropertyListRepresentation(const oo::PList* objects, const float* weights, NSUInteger count)
 {
     oo::PList::Array objectList, weightList;
     for (NSUInteger i = 0; i < count; ++i) {
-        objectList.push_back(oo::PListFrom(objects[i]));
+        objectList.push_back(objects[i]);
         weightList.push_back(oo::PList::singleReal(weights[i]));
     }
     oo::PList::Dict result;
@@ -73,15 +73,36 @@ oo::PList PropertyListRepresentation(const id* objects, const float* weights, NS
     return oo::PList(std::move(result));
 }
 
+// -isEqual: of the objects the elements were: == of two values (a string is equal to the same
+// string); an Object node is equal to one holding the same or an -isEqual: object.
+bool SameElement(const oo::PList& element, const oo::PList& object)
+{
+    id elementObject = oo::ObjectIn(element), objectObject = oo::ObjectIn(object);
+    if (elementObject != nil || objectObject != nil)
+        return elementObject == objectObject || [elementObject isEqual:objectObject];
+    return element == object;
+}
+
 // -indexOfObject: of the old object array: the first object that is the same, or -isEqual:.
-NSUInteger IndexOfObject(const std::vector<oo::ObjCRef<id>>& objects, id object)
+NSUInteger IndexOfObject(const std::vector<oo::PList>& objects, const oo::PList& object)
 {
     for (std::size_t i = 0; i < objects.size(); ++i) {
-        id element = objects[i].get();
-        if (element == object || [element isEqual:object])
+        if (SameElement(objects[i], object))
             return i;
     }
     return NSNotFound;
+}
+
+// The shared -allObjects (an id form, until oo-qps.44): the elements as the Objective-C objects the
+// id element API held, a string as an NSString and an Object node as its object.
+id ObjectiveCArray(const std::vector<oo::PList>& elements)
+{
+    std::vector<oo::ObjCRef<id>> objects;
+    for (const oo::PList& element : elements) {
+        const std::string* string = element.getIf<std::string>();
+        objects.emplace_back(string != nullptr ? oo::NSStringOrNil(*string) : oo::ObjectIn(element));
+    }
+    return oo::NSArrayFromObjects(objects);
 }
 
 } // namespace
@@ -101,18 +122,18 @@ NSUInteger IndexOfObject(const std::vector<oo::ObjCRef<id>>& objects, id object)
 
 @interface OOSingleObjectProbabilitySet : OOProbabilitySet {
 @private
-    id _object;
+    oo::PList _object;
     float _weight;
 }
 
-- (id)initWithObject:(id)object weight:(float)weight;
+- (id)initWithObject:(const oo::PList&)object weight:(float)weight;
 
 @end
 
 @interface OOConcreteProbabilitySet : OOProbabilitySet {
 @private
     NSUInteger _count;
-    id* _objects;
+    oo::PList* _objects;
     float* _cumulativeWeights; // Each cumulative weight is weight of object at this index + weight of all objects to left.
     float _sumOfWeights;
 }
@@ -120,12 +141,12 @@ NSUInteger IndexOfObject(const std::vector<oo::ObjCRef<id>>& objects, id object)
 
 @interface OOConcreteMutableProbabilitySet : OOMutableProbabilitySet {
 @private
-    std::vector<oo::ObjCRef<id>> _objects;
+    std::vector<oo::PList> _objects;
     std::vector<float> _weights;
     float _sumOfWeights;
 }
 
-- (id)initPrivWithObjectArray:(const std::vector<oo::ObjCRef<id>>&)objects weightsArray:(const std::vector<float>&)weights sum:(float)sumOfWeights;
+- (id)initPrivWithObjectArray:(const std::vector<oo::PList>&)objects weightsArray:(const std::vector<float>&)weights sum:(float)sumOfWeights;
 
 @end
 
@@ -140,7 +161,7 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     return [[OOEmptyProbabilitySet singleton] autorelease];
 }
 
-+ (id)probabilitySetWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count
++ (id)probabilitySetWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
 {
     return [[[self alloc] initWithObjects:objects weights:weights count:count] autorelease];
 }
@@ -156,7 +177,7 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     return [OOEmptyProbabilitySet singleton];
 }
 
-- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count
+- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
 {
     OOZone* zone = [self zone];
     DESTROY(self);
@@ -184,8 +205,8 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     const oo::PList* objects = representation.find(kObjectsKey);
     const oo::PList* weights = representation.find(kWeightsKey);
     NSUInteger i = 0, count = 0;
-    id* rawObjects = NULL;
-    float* rawWeights = NULL;
+    std::vector<oo::PList> rawObjects;
+    std::vector<float> rawWeights;
 
     // Validate
     if (objects == nullptr || !objects->isArray() || weights == nullptr || !weights->isArray()) {
@@ -199,31 +220,20 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     }
 
     // Extract contents.
-    rawObjects = (id*)malloc(sizeof *rawObjects * count);
-    rawWeights = (float*)malloc(sizeof *rawWeights * count);
+    rawObjects.reserve(count);
+    rawWeights.reserve(count);
 
-    if (rawObjects != NULL || rawWeights != NULL) {
-        // Extract objects.
-        for (i = 0; i < count; ++i) {
-            rawObjects[i] = oo::ObjectFromPList(*objects->at(i));
-        }
-
-        // Extract and convert weights.
-        for (i = 0; i < count; ++i) {
-            rawWeights[i] = fmax(weights->at<float>(i), 0.0f);
-        }
-
-        self = [self initWithObjects:rawObjects weights:rawWeights count:count];
-    } else {
-        [self release];
-        self = nil;
+    // Extract objects.
+    for (i = 0; i < count; ++i) {
+        rawObjects.push_back(*objects->at(i));
     }
 
-    // Clean up.
-    free(rawObjects);
-    free(rawWeights);
+    // Extract and convert weights.
+    for (i = 0; i < count; ++i) {
+        rawWeights.push_back(fmax(weights->at<float>(i), 0.0f));
+    }
 
-    return self;
+    return [self initWithObjects:rawObjects.data() weights:rawWeights.data() count:count];
 }
 
 - (id)initPriv
@@ -231,9 +241,11 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     return [super init];
 }
 
-- (id)descriptionComponents
+// -cxx_description (OODescription.h) wraps this as "<Class 0x...>{count=N}", as the legacy
+// -descriptionComponents did.
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("count=%zu", [self count]));
+    return oo::str::format("count=%zu", [self count]);
 }
 
 - (oo::PList)propertyListRepresentation
@@ -241,12 +253,12 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     ThrowAbstractionViolationException(self);
 }
 
-- (id)randomObject
+- (oo::PList)randomObject
 {
     ThrowAbstractionViolationException(self);
 }
 
-- (float)weightForObject:(id)object
+- (float)weightForObject:(const oo::PList&)object
 {
     ThrowAbstractionViolationException(self);
 }
@@ -262,6 +274,11 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
 }
 
 - (id)allObjects
+{
+    ThrowAbstractionViolationException(self);
+}
+
+- (std::vector<oo::PList>)cxx_allElements
 {
     ThrowAbstractionViolationException(self);
 }
@@ -284,7 +301,7 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
 
 @implementation OOProbabilitySet (OOExtendedProbabilitySet)
 
-- (BOOL)containsObject:(id)object
+- (BOOL)cxx_containsObject:(const oo::PList&)object
 {
     return [self weightForObject:object] >= 0.0f;
 }
@@ -294,7 +311,7 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
     return [[self allObjects] objectEnumerator];
 }
 
-- (float)probabilityForObject:(id)object
+- (float)probabilityForObject:(const oo::PList&)object
 {
     float weight = [self weightForObject:object];
     if (weight > 0)
@@ -323,12 +340,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return PropertyListRepresentation(NULL, NULL, 0);
 }
 
-- (id)randomObject
+- (oo::PList)randomObject
 {
-    return nil;
+    return oo::PList();
 }
 
-- (float)weightForObject:(id)object
+- (float)weightForObject:(const oo::PList&)object
 {
     return -1.0f;
 }
@@ -345,7 +362,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (id)allObjects
 {
-    return oo::NSArrayFromObjects(std::vector<id>());
+    return ObjectiveCArray([self cxx_allElements]);
+}
+
+- (std::vector<oo::PList>)cxx_allElements
+{
+    return std::vector<oo::PList>();
 }
 
 - (id)mutableCopyWithZone:(OOZone*)zone
@@ -402,15 +424,15 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 @implementation OOSingleObjectProbabilitySet : OOProbabilitySet
 
-- (id)initWithObject:(id)object weight:(float)weight
+- (id)initWithObject:(const oo::PList&)object weight:(float)weight
 {
-    if (object == nil) {
+    if (object.isNull()) {
         [self release];
         return nil;
     }
 
     if ((self = [super initPriv])) {
-        _object = [object retain];
+        _object = object;
         _weight = fmax(weight, 0.0f);
     }
 
@@ -419,7 +441,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (void)dealloc
 {
-    [_object release];
+    _object = oo::PList();
 
     [super dealloc];
 }
@@ -429,14 +451,14 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return PropertyListRepresentation(&_object, &_weight, 1);
 }
 
-- (id)randomObject
+- (oo::PList)randomObject
 {
     return _object;
 }
 
-- (float)weightForObject:(id)object
+- (float)weightForObject:(const oo::PList&)object
 {
-    if ([_object isEqual:object])
+    if (SameElement(_object, object))
         return _weight;
     else
         return -1.0f;
@@ -454,7 +476,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (id)allObjects
 {
-    return oo::NSArrayFromObjects(std::vector<id> { _object });
+    return ObjectiveCArray([self cxx_allElements]);
+}
+
+- (std::vector<oo::PList>)cxx_allElements
+{
+    return std::vector<oo::PList> { _object };
 }
 
 - (id)mutableCopyWithZone:(OOZone*)zone
@@ -466,25 +493,31 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 @implementation OOConcreteProbabilitySet
 
-- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count
+- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
 {
     NSUInteger i = 0;
     float cuWeight = 0.0f;
 
     assert(count > 1 && objects != NULL && weights != NULL);
+    if (objects == NULL || weights == NULL) {
+        // Unreachable (-[OOProbabilitySet initWithObjects:...] raises first); copying an element
+        // forms a reference, where the old -retain of an id element was a message to nil.
+        [self release];
+        return nil;
+    }
 
     if ((self = [super initPriv])) {
         // Allocate arrays
-        _objects = (id*)malloc(sizeof *objects * count);
+        _objects = new oo::PList[count];
         _cumulativeWeights = (float*)malloc(sizeof *_cumulativeWeights * count);
-        if (_objects == NULL || _cumulativeWeights == NULL) {
+        if (_cumulativeWeights == NULL) {
             [self release];
             return nil;
         }
 
-        // Fill in arrays, retain objects, add up weights.
+        // Fill in arrays, copy objects, add up weights.
         for (i = 0; i != count; ++i) {
-            _objects[i] = [objects[i] retain];
+            _objects[i] = objects[i];
             cuWeight += weights[i];
             _cumulativeWeights[i] = cuWeight;
         }
@@ -497,15 +530,8 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (void)dealloc
 {
-    NSUInteger i = 0;
-
-    if (_objects != NULL) {
-        for (i = 0; i < _count; ++i) {
-            [_objects[i] release];
-        }
-        free(_objects);
-        _objects = NULL;
-    }
+    delete[] _objects;
+    _objects = NULL;
 
     if (_cumulativeWeights != NULL) {
         free(_cumulativeWeights);
@@ -536,7 +562,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return _count;
 }
 
-- (id)privObjectForWeight:(float)target
+- (oo::PList)privObjectForWeight:(float)target
 {
     /*	Select an object at random. This is a binary search in the cumulative
             weights array. Since weights of zero are allowed, there may be several
@@ -569,28 +595,27 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     }
 
     assert(idx < _count);
-    id result = _objects[idx];
-    return result;
+    return _objects[idx];
 }
 
-- (id)randomObject
+- (oo::PList)randomObject
 {
     if (_sumOfWeights <= 0.0f)
-        return nil;
+        return oo::PList();
     return [self privObjectForWeight:randf() * _sumOfWeights];
 }
 
-- (float)weightForObject:(id)object
+- (float)weightForObject:(const oo::PList&)object
 {
     NSUInteger i;
 
-    // Can't have nil in collection.
-    if (object == nil)
+    // Can't have a null object in collection.
+    if (object.isNull())
         return -1.0f;
 
     // Perform linear search, then get weight by subtracting cumulative weight from cumulative weight to left.
     for (i = 0; i < _count; ++i) {
-        if ([_objects[i] isEqual:object]) {
+        if (SameElement(_objects[i], object)) {
             float leftWeight = (i != 0) ? _cumulativeWeights[i - 1] : 0.0f;
             return _cumulativeWeights[i] - leftWeight;
         }
@@ -607,7 +632,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (id)allObjects
 {
-    return oo::NSArrayFromObjects(std::vector<id>(_objects, _objects + _count));
+    return ObjectiveCArray([self cxx_allElements]);
+}
+
+- (std::vector<oo::PList>)cxx_allElements
+{
+    return std::vector<oo::PList>(_objects, _objects + _count);
 }
 
 - (id)objectEnumerator
@@ -655,7 +685,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initPriv];
 }
 
-- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count
+- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
 {
     OOZone* zone = [self zone];
     [self release];
@@ -674,12 +704,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return [[OOProbabilitySet allocWithZone:zone] initWithPropertyListRepresentation:[self propertyListRepresentation]];
 }
 
-- (void)setWeight:(float)weight forObject:(id)object
+- (void)setWeight:(float)weight forObject:(const oo::PList&)object
 {
     ThrowAbstractionViolationException(self);
 }
 
-- (void)removeObject:(id)object
+- (void)cxx_removeObject:(const oo::PList&)object
 {
     ThrowAbstractionViolationException(self);
 }
@@ -696,7 +726,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 }
 
 // For internal use by mutableCopy
-- (id)initPrivWithObjectArray:(const std::vector<oo::ObjCRef<id>>&)objects weightsArray:(const std::vector<float>&)weights sum:(float)sumOfWeights
+- (id)initPrivWithObjectArray:(const std::vector<oo::PList>&)objects weightsArray:(const std::vector<float>&)weights sum:(float)sumOfWeights
 {
     assert(objects.size() == weights.size() && sumOfWeights >= 0.0f);
 
@@ -709,7 +739,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return self;
 }
 
-- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count
+- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
 {
     NSUInteger i = 0;
 
@@ -756,7 +786,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
     if (OK) {
         for (i = 0; i < count; ++i) {
-            [self setWeight:weights->at<float>(i) forObject:oo::ObjectFromPList(*objects->at(i))];
+            [self setWeight:weights->at<float>(i) forObject:*objects->at(i)];
         }
     }
 
@@ -778,10 +808,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (oo::PList)propertyListRepresentation
 {
-    std::vector<id> objects;
-    for (const oo::ObjCRef<id>& object : _objects)
-        objects.push_back(object.get());
-    return PropertyListRepresentation(objects.data(), _weights.data(), objects.size());
+    return PropertyListRepresentation(_objects.data(), _weights.data(), _objects.size());
 }
 
 - (NSUInteger)count
@@ -789,7 +816,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return _objects.size();
 }
 
-- (id)randomObject
+- (oo::PList)randomObject
 {
     float target = 0.0f, sum = 0.0f, sumOfWeights;
     NSUInteger i = 0, count = 0;
@@ -798,23 +825,23 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     target = randf() * sumOfWeights;
     count = _objects.size();
     if (count == 0 || sumOfWeights <= 0.0f)
-        return nil;
+        return oo::PList();
 
     for (i = 0; i < count; ++i) {
         sum += _weights[i];
         if (sum >= target)
-            return _objects[i].get();
+            return _objects[i];
     }
 
     OO_LOG("probabilitySet.broken", "{} fell off end, returning first object. Nominal sum = {:f}, target = {:f}, actual sum = {:f}, count = {}. {}", __PRETTY_FUNCTION__, sumOfWeights, target, sum, count, "This is an internal error, please report it.");
-    return _objects[0].get();
+    return _objects[0];
 }
 
-- (float)weightForObject:(id)object
+- (float)weightForObject:(const oo::PList&)object
 {
     float result = -1.0f;
 
-    if (object != nil) {
+    if (!object.isNull()) {
         NSUInteger index = IndexOfObject(_objects, object);
         if (index != NSNotFound) {
             result = _weights[index];
@@ -841,7 +868,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (id)allObjects
 {
-    return oo::NSArrayFromObjects(_objects);
+    return ObjectiveCArray([self cxx_allElements]);
+}
+
+- (std::vector<oo::PList>)cxx_allElements
+{
+    return _objects;
 }
 
 - (id)objectEnumerator
@@ -849,9 +881,9 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return [[self allObjects] objectEnumerator];
 }
 
-- (void)setWeight:(float)weight forObject:(id)object
+- (void)setWeight:(float)weight forObject:(const oo::PList&)object
 {
-    if (object == nil)
+    if (object.isNull())
         return;
 
     weight = fmax(weight, 0.0f);
@@ -869,9 +901,9 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     }
 }
 
-- (void)removeObject:(id)object
+- (void)cxx_removeObject:(const oo::PList&)object
 {
-    if (object == nil)
+    if (object.isNull())
         return;
 
     NSUInteger index = IndexOfObject(_objects, object);
@@ -884,35 +916,13 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
 - (id)copyWithZone:(OOZone*)zone
 {
-    id result = nil;
-    id* objects = NULL;
-    float* weights = NULL;
-    NSUInteger i = 0, count = 0;
+    NSUInteger count = 0;
 
     count = _objects.size();
     if (EXPECT_NOT(count == 0))
         return [OOEmptyProbabilitySet singleton];
 
-    objects = (id*)malloc(sizeof *objects * count);
-    weights = (float*)malloc(sizeof *weights * count);
-    if (objects != NULL && weights != NULL) {
-        for (i = 0; i < count; ++i) {
-            objects[i] = _objects[i].get();
-        }
-
-        for (i = 0; i < count; ++i) {
-            weights[i] = _weights[i];
-        }
-
-        result = [[OOProbabilitySet probabilitySetWithObjects:objects weights:weights count:count] retain];
-    }
-
-    if (objects != NULL)
-        free(objects);
-    if (weights != NULL)
-        free(weights);
-
-    return result;
+    return [[OOProbabilitySet probabilitySetWithObjects:_objects.data() weights:_weights.data() count:count] retain];
 }
 
 - (id)mutableCopyWithZone:(OOZone*)zone

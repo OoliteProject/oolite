@@ -31,24 +31,6 @@ SOFTWARE.
 #import <objc/runtime.h>
 #endif
 
-@implementation NSObject (OOExtensions)
-
-#ifdef OO_DEBUG_MONITOR_ENABLED
-
-+ (size_t)oo_instanceSize
-{
-    return class_getInstanceSize(self);
-}
-
-- (size_t)oo_objectSize
-{
-    return [[self class] oo_instanceSize];
-}
-
-#endif
-
-@end
-
 @implementation OOObject (OOExtensions)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

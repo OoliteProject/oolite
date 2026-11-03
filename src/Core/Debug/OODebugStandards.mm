@@ -101,7 +101,7 @@ void OOStandardsInternal(const std::string& type, const std::string& message)
     OO_LOG(type, "{}", message);
 
     if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT) {
-        [[GameController sharedController] exitAppWithContext:oo::NSStringFrom(type)];
+        [[GameController sharedController] cxx_exitAppWithContext:type];
         // exit
     }
 }

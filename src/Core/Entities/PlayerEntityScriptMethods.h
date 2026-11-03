@@ -33,9 +33,9 @@ MA 02110-1301, USA.
 /*	Foundation sweep (proposed ADR-0043, bead oo-8mxr): the Foundation-typed selectors of this
         category have more direct callers than the sizing rule allows (PlayerEntity.mm,
         PlayerEntityControls.mm, PlayerEntityLegacyScriptEngine.mm, PlayerEntityKeyMapper.mm,
-        OOStringExpander.mm, OOJSMission.mm, OOJSGlobal.mm, Universe.mm), so they are cxx_ twins here
-        and the originals live in PlayerEntityScriptMethods+FoundationBridge.h. Strings that could be
-        nil are std::optional; a marker is an oo::PList Dict (null where it was nil).
+        OOStringExpander.mm, OOJSMission.mm, OOJSGlobal.mm, Universe.mm), so they are cxx_ twins here.
+        Strings that could be nil are std::optional; a marker is an oo::PList Dict (null where it was
+        nil).
 */
 @interface PlayerEntity (ScriptMethods)
 
@@ -83,6 +83,12 @@ MA 02110-1301, USA.
 - (std::optional<std::string>)cxx_commanderBountyAsString;
 - (std::optional<std::string>)cxx_creditsFormattedForSubstitution;
 - (std::optional<std::string>)cxx_creditsFormattedForLegacySubstitution;
+// OOStringExpander's special substitution table sends these by name: the cxx_ result above as an
+// Objective-C string, or nil.
+- (id)commanderKillsAsString; // called by name (ADR-0043 item 21)
+- (id)commanderBountyAsString; // called by name (ADR-0043 item 21)
+- (id)creditsFormattedForSubstitution; // called by name (ADR-0043 item 21)
+- (id)creditsFormattedForLegacySubstitution; // called by name (ADR-0043 item 21)
 
 @end
 
@@ -107,9 +113,3 @@ NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates);
 #ifdef __cplusplus
 }
 #endif
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-8mxr, forwarding to the cxx_ methods above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "PlayerEntityScriptMethods+FoundationBridge.h"

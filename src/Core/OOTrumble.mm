@@ -198,11 +198,11 @@ static void PlayTrumbleSqueal(void);
     animationTime = 0.0;
     animationDuration = 1.5 + randf() * 3.0; // time until next animation
     //
-    texture = [OOTexture textureWithName:@"trumblekit.png"
-                                inFolder:@"Textures"
-                                 options:kOOTextureDefaultOptions | kOOTextureNoShrink
-                              anisotropy:0.0f
-                                 lodBias:kOOTextureDefaultLODBias];
+    texture = [OOTexture cxx_textureWithName:"trumblekit.png"
+                                    inFolder:"Textures"
+                                     options:kOOTextureDefaultOptions | kOOTextureNoShrink
+                                  anisotropy:0.0f
+                                     lodBias:kOOTextureDefaultLODBias];
     [texture retain];
 
     InitTrumbleSounds();
@@ -583,8 +583,8 @@ static void PlayTrumbleSqueal(void);
         NSUInteger i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
         for (i = 0; i < n_pods; i++) {
             ShipEntity* cargopod = (*cargopods)[i].get();
-            OOCommodityType cargo_type = [cargopod commodityType];
-            float yumminess = (1.0 + randf()) * [[UNIVERSE commodityMarket] trumbleOpinionForGood:cargo_type];
+            const std::string cargo_type = [cargopod cxx_commodityType].value_or(""); // nil arrived as ""
+            float yumminess = (1.0 + randf()) * [[UNIVERSE commodityMarket] cxx_trumbleOpinionForGood:cargo_type];
             if (yumminess > mostYummy) {
                 selectedCargopod = cargopod;
                 mostYummy = yumminess;
@@ -601,10 +601,10 @@ static void PlayTrumbleSqueal(void);
                 discomfort = 0.0;
             if (trumbleAppetiteAccumulator > 10.0) {
                 // eaten all of this cargo!
-                const std::string ms = oo::str::formatRuntime(oo::StdString(DESC(@"trumbles-eat-@")),
-                    { oo::DescriptionOf([UNIVERSE displayNameForCommodity:[selectedCargopod commodityType]]) });
+                const std::string ms = oo::str::formatRuntime(OO_DESC("trumbles-eat-@"),
+                    { [UNIVERSE cxx_displayNameForCommodity:[selectedCargopod cxx_commodityType].value_or("")].value_or("(null)") });
 
-                [UNIVERSE addMessage:oo::NSStringFrom(ms) forCount:4.5];
+                [UNIVERSE cxx_addMessage:ms forCount:4.5];
                 if (cargopods != nullptr)
                     std::erase(*cargopods, selectedCargopod);
                 trumbleAppetiteAccumulator -= 10.0;
@@ -946,8 +946,8 @@ static void InitTrumbleSounds(void)
 {
     if (sTrumbleSoundSource == nil) {
         sTrumbleSoundSource = [[OOSoundSource alloc] init];
-        sTrumbleIdleSound = [[OOSound alloc] initWithCustomSoundKey:@"[trumble-idle]"];
-        sTrumbleSqealSound = [[OOSound alloc] initWithCustomSoundKey:@"[trumble-squeal]"];
+        sTrumbleIdleSound = [[OOSound alloc] initWithCustomSoundKey:"[trumble-idle]"];
+        sTrumbleSqealSound = [[OOSound alloc] initWithCustomSoundKey:"[trumble-squeal]"];
     }
 }
 

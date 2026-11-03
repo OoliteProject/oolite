@@ -46,7 +46,7 @@ oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape)
 {
     oo::PList::Dict marker;
     marker["system"] = oo::PList::signedInteger(system);
-    marker["name"] = oo::StdString(MISSION_DEST_LEGACY);
+    marker["name"] = std::string(MISSION_DEST_LEGACY);
     marker["markerColor"] = color;
     marker["markerShape"] = shape;
     return oo::PList(std::move(marker));
@@ -89,12 +89,12 @@ NSInteger IntegerValueOf(const oo::PList* value)
 
 - (std::optional<std::string>)cxx_dockedStationName
 {
-    return oo::OptionalString([[self dockedStation] name]);
+    return [[self dockedStation] cxx_name];
 }
 
 - (std::optional<std::string>)cxx_dockedStationDisplayName
 {
-    return oo::OptionalString([[self dockedStation] displayName]);
+    return [[self dockedStation] displayName];
 }
 
 - (BOOL)dockedAtMainStation
@@ -106,13 +106,13 @@ NSInteger IntegerValueOf(const oo::PList* value)
 {
     OOMassUnit unit;
 
-    if (![[UNIVERSE commodities] goodDefined:oo::NSStringFrom(type)]) {
+    if (![[UNIVERSE commodities] cxx_goodDefined:type]) {
         return;
     }
 
-    OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, oo::NSStringFrom(type));
+    OO_LOG("script.debug.note.awardCargo", "Going to award cargo: {} x '{}'", static_cast<int>(amount), type);
 
-    unit = [shipCommodityData massUnitForGood:oo::NSStringFrom(type)];
+    unit = [shipCommodityData massUnitForGood:type];
 
     if ([self status] != STATUS_DOCKED) {
         // in-flight
@@ -126,13 +126,13 @@ NSInteger IntegerValueOf(const oo::PList* value)
                     while (amount > 0) {
                         int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
                         if (cargo.size() < [self maxAvailableCargoSpace]) {
-                            ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+                            ShipEntity* container = [UNIVERSE cxx_newShipWithRole:"1t-cargopod"];
                             if (container) {
                                 // the cargopod ship is just being set up. If ejected,  will call UNIVERSE addEntity
                                 // [container wasAddedToUniverse]; // seems to be not needed anymore for pods
                                 [container setScanClass:CLASS_CARGO];
                                 [container setStatus:STATUS_IN_HOLD];
-                                [container setCommodity:oo::NSStringFrom(type) andAmount:smaller_quantity];
+                                [container cxx_setCommodity:type andAmount:smaller_quantity];
                                 cargo.emplace_back(container);
                                 [container release];
                             }
@@ -146,13 +146,13 @@ NSInteger IntegerValueOf(const oo::PList* value)
                 // put each ton in a separate container
                 while (amount) {
                     if (cargo.size() < [self maxAvailableCargoSpace]) {
-                        ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+                        ShipEntity* container = [UNIVERSE cxx_newShipWithRole:"1t-cargopod"];
                         if (container) {
                             // the cargopod ship is just being set up. If ejected, will call UNIVERSE addEntity
                             // [container wasAddedToUniverse]; // seems to be not needed anymore for pods
                             [container setScanClass:CLASS_CARGO];
                             [container setStatus:STATUS_IN_HOLD];
-                            [container setCommodity:oo::NSStringFrom(type) andAmount:1];
+                            [container cxx_setCommodity:type andAmount:1];
                             cargo.emplace_back(container);
                             [container release];
                         }
@@ -295,7 +295,7 @@ NSInteger IntegerValueOf(const oo::PList* value)
     if (dest < 0 || dest > kOOMaximumSystemID) {
         return oo::PList();
     }
-    std::string group = marker.get<std::string>("name", oo::StdString(MISSION_DEST_LEGACY));
+    std::string group = marker.get<std::string>("name", std::string(MISSION_DEST_LEGACY));
 
     oo::PList::Dict result;
     result["system"] = oo::PList::signedInteger(dest);
@@ -309,7 +309,7 @@ NSInteger IntegerValueOf(const oo::PList* value)
 // Implements string expansion code [credits_number].
 - (std::optional<std::string>)cxx_creditsFormattedForSubstitution
 {
-    return oo::OptionalString(OOStringFromDeciCredits([self deciCredits], YES, NO));
+    return std::optional<std::string>(cxx_OOStringFromDeciCredits([self deciCredits], YES, NO));
 }
 
 /*	Implements string expansion code [_oo_legacy_credits_number].
@@ -337,6 +337,26 @@ NSInteger IntegerValueOf(const oo::PList* value)
 - (std::optional<std::string>)cxx_commanderKillsAsString
 {
     return oo::str::format("%i", [self score]);
+}
+
+- (id)commanderKillsAsString // called by name (ADR-0043 item 21)
+{
+    return oo::NSStringOrNil([self cxx_commanderKillsAsString]);
+}
+
+- (id)commanderBountyAsString // called by name (ADR-0043 item 21)
+{
+    return oo::NSStringOrNil([self cxx_commanderBountyAsString]);
+}
+
+- (id)creditsFormattedForSubstitution // called by name (ADR-0043 item 21)
+{
+    return oo::NSStringOrNil([self cxx_creditsFormattedForSubstitution]);
+}
+
+- (id)creditsFormattedForLegacySubstitution // called by name (ADR-0043 item 21)
+{
+    return oo::NSStringOrNil([self cxx_creditsFormattedForLegacySubstitution]);
 }
 
 // utilising new keyconfig2.plist data
@@ -380,95 +400,95 @@ NSInteger IntegerValueOf(const oo::PList* value)
 {
     switch (code) {
     case 0:
-        return oo::OptionalString(DESC(@"oolite-keycode-unset"));
+        return OO_DESC("oolite-keycode-unset");
     case 9:
-        return oo::OptionalString(DESC(@"oolite-keycode-tab"));
+        return OO_DESC("oolite-keycode-tab");
     case 13:
-        return oo::OptionalString(DESC(@"oolite-keycode-enter"));
+        return OO_DESC("oolite-keycode-enter");
     case 27:
-        return oo::OptionalString(DESC(@"oolite-keycode-esc"));
+        return OO_DESC("oolite-keycode-esc");
     case 32:
-        return oo::OptionalString(DESC(@"oolite-keycode-space"));
+        return OO_DESC("oolite-keycode-space");
     case gvFunctionKey1:
-        return oo::OptionalString(DESC(@"oolite-keycode-f1"));
+        return OO_DESC("oolite-keycode-f1");
     case gvFunctionKey2:
-        return oo::OptionalString(DESC(@"oolite-keycode-f2"));
+        return OO_DESC("oolite-keycode-f2");
     case gvFunctionKey3:
-        return oo::OptionalString(DESC(@"oolite-keycode-f3"));
+        return OO_DESC("oolite-keycode-f3");
     case gvFunctionKey4:
-        return oo::OptionalString(DESC(@"oolite-keycode-f4"));
+        return OO_DESC("oolite-keycode-f4");
     case gvFunctionKey5:
-        return oo::OptionalString(DESC(@"oolite-keycode-f5"));
+        return OO_DESC("oolite-keycode-f5");
     case gvFunctionKey6:
-        return oo::OptionalString(DESC(@"oolite-keycode-f6"));
+        return OO_DESC("oolite-keycode-f6");
     case gvFunctionKey7:
-        return oo::OptionalString(DESC(@"oolite-keycode-f7"));
+        return OO_DESC("oolite-keycode-f7");
     case gvFunctionKey8:
-        return oo::OptionalString(DESC(@"oolite-keycode-f8"));
+        return OO_DESC("oolite-keycode-f8");
     case gvFunctionKey9:
-        return oo::OptionalString(DESC(@"oolite-keycode-f9"));
+        return OO_DESC("oolite-keycode-f9");
     case gvFunctionKey10:
-        return oo::OptionalString(DESC(@"oolite-keycode-f10"));
+        return OO_DESC("oolite-keycode-f10");
     case gvFunctionKey11:
-        return oo::OptionalString(DESC(@"oolite-keycode-f11"));
+        return OO_DESC("oolite-keycode-f11");
     case gvArrowKeyRight:
-        return oo::OptionalString(DESC(@"oolite-keycode-right"));
+        return OO_DESC("oolite-keycode-right");
     case gvArrowKeyLeft:
-        return oo::OptionalString(DESC(@"oolite-keycode-left"));
+        return OO_DESC("oolite-keycode-left");
     case gvArrowKeyDown:
-        return oo::OptionalString(DESC(@"oolite-keycode-down"));
+        return OO_DESC("oolite-keycode-down");
     case gvArrowKeyUp:
-        return oo::OptionalString(DESC(@"oolite-keycode-up"));
+        return OO_DESC("oolite-keycode-up");
     case gvHomeKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-home"));
+        return OO_DESC("oolite-keycode-home");
     case gvEndKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-end"));
+        return OO_DESC("oolite-keycode-end");
     case gvInsertKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-insert"));
+        return OO_DESC("oolite-keycode-insert");
     case gvDeleteKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-delete"));
+        return OO_DESC("oolite-keycode-delete");
     case gvPageUpKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-pageup"));
+        return OO_DESC("oolite-keycode-pageup");
     case gvPageDownKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-pagedown"));
+        return OO_DESC("oolite-keycode-pagedown");
     case gvNumberPadKey0:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad0"));
+        return OO_DESC("oolite-keycode-numpad0");
     case gvNumberPadKey1:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad1"));
+        return OO_DESC("oolite-keycode-numpad1");
     case gvNumberPadKey2:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad2"));
+        return OO_DESC("oolite-keycode-numpad2");
     case gvNumberPadKey3:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad3"));
+        return OO_DESC("oolite-keycode-numpad3");
     case gvNumberPadKey4:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad4"));
+        return OO_DESC("oolite-keycode-numpad4");
     case gvNumberPadKey5:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad5"));
+        return OO_DESC("oolite-keycode-numpad5");
     case gvNumberPadKey6:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad6"));
+        return OO_DESC("oolite-keycode-numpad6");
     case gvNumberPadKey7:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad7"));
+        return OO_DESC("oolite-keycode-numpad7");
     case gvNumberPadKey8:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad8"));
+        return OO_DESC("oolite-keycode-numpad8");
     case gvNumberPadKey9:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad9"));
+        return OO_DESC("oolite-keycode-numpad9");
     case gvPrintScreenKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-printscreen"));
+        return OO_DESC("oolite-keycode-printscreen");
     case gvPauseKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-pause"));
+        return OO_DESC("oolite-keycode-pause");
     case gvNumberPadKeyDivide:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad/"));
+        return OO_DESC("oolite-keycode-numpad/");
     case gvNumberPadKeyEquals:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad="));
+        return OO_DESC("oolite-keycode-numpad=");
     case gvNumberPadKeyMinus:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad-"));
+        return OO_DESC("oolite-keycode-numpad-");
     case gvNumberPadKeyMultiply:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad*"));
+        return OO_DESC("oolite-keycode-numpad*");
     case gvNumberPadKeyPeriod:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad."));
+        return OO_DESC("oolite-keycode-numpad.");
     case gvNumberPadKeyPlus:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpad+"));
+        return OO_DESC("oolite-keycode-numpad+");
     case gvNumberPadKeyEnter:
-        return oo::OptionalString(DESC(@"oolite-keycode-numpadenter"));
+        return OO_DESC("oolite-keycode-numpadenter");
 
     default:
         return oo::utf16ToUtf8(std::u16string(1, static_cast<char16_t>(code))); // %C
@@ -479,95 +499,95 @@ NSInteger IntegerValueOf(const oo::PList* value)
 {
     switch (code) {
     case 0:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-unset"));
+        return OO_DESC("oolite-keycode-short-unset");
     case 9:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-tab"));
+        return OO_DESC("oolite-keycode-short-tab");
     case 13:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-enter"));
+        return OO_DESC("oolite-keycode-short-enter");
     case 27:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-esc"));
+        return OO_DESC("oolite-keycode-short-esc");
     case 32:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-space"));
+        return OO_DESC("oolite-keycode-short-space");
     case gvFunctionKey1:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f1"));
+        return OO_DESC("oolite-keycode-short-f1");
     case gvFunctionKey2:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f2"));
+        return OO_DESC("oolite-keycode-short-f2");
     case gvFunctionKey3:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f3"));
+        return OO_DESC("oolite-keycode-short-f3");
     case gvFunctionKey4:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f4"));
+        return OO_DESC("oolite-keycode-short-f4");
     case gvFunctionKey5:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f5"));
+        return OO_DESC("oolite-keycode-short-f5");
     case gvFunctionKey6:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f6"));
+        return OO_DESC("oolite-keycode-short-f6");
     case gvFunctionKey7:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f7"));
+        return OO_DESC("oolite-keycode-short-f7");
     case gvFunctionKey8:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f8"));
+        return OO_DESC("oolite-keycode-short-f8");
     case gvFunctionKey9:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f9"));
+        return OO_DESC("oolite-keycode-short-f9");
     case gvFunctionKey10:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f10"));
+        return OO_DESC("oolite-keycode-short-f10");
     case gvFunctionKey11:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-f11"));
+        return OO_DESC("oolite-keycode-short-f11");
     case gvArrowKeyRight:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-right"));
+        return OO_DESC("oolite-keycode-short-right");
     case gvArrowKeyLeft:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-left"));
+        return OO_DESC("oolite-keycode-short-left");
     case gvArrowKeyDown:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-down"));
+        return OO_DESC("oolite-keycode-short-down");
     case gvArrowKeyUp:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-up"));
+        return OO_DESC("oolite-keycode-short-up");
     case gvHomeKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-home"));
+        return OO_DESC("oolite-keycode-short-home");
     case gvEndKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-end"));
+        return OO_DESC("oolite-keycode-short-end");
     case gvInsertKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-insert"));
+        return OO_DESC("oolite-keycode-short-insert");
     case gvDeleteKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-delete"));
+        return OO_DESC("oolite-keycode-short-delete");
     case gvPageUpKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-pageup"));
+        return OO_DESC("oolite-keycode-short-pageup");
     case gvPageDownKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-pagedown"));
+        return OO_DESC("oolite-keycode-short-pagedown");
     case gvNumberPadKey0:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad0"));
+        return OO_DESC("oolite-keycode-short-numpad0");
     case gvNumberPadKey1:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad1"));
+        return OO_DESC("oolite-keycode-short-numpad1");
     case gvNumberPadKey2:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad2"));
+        return OO_DESC("oolite-keycode-short-numpad2");
     case gvNumberPadKey3:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad3"));
+        return OO_DESC("oolite-keycode-short-numpad3");
     case gvNumberPadKey4:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad4"));
+        return OO_DESC("oolite-keycode-short-numpad4");
     case gvNumberPadKey5:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad5"));
+        return OO_DESC("oolite-keycode-short-numpad5");
     case gvNumberPadKey6:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad6"));
+        return OO_DESC("oolite-keycode-short-numpad6");
     case gvNumberPadKey7:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad7"));
+        return OO_DESC("oolite-keycode-short-numpad7");
     case gvNumberPadKey8:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad8"));
+        return OO_DESC("oolite-keycode-short-numpad8");
     case gvNumberPadKey9:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad9"));
+        return OO_DESC("oolite-keycode-short-numpad9");
     case gvPrintScreenKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-printscreen"));
+        return OO_DESC("oolite-keycode-short-printscreen");
     case gvPauseKey:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-pause"));
+        return OO_DESC("oolite-keycode-short-pause");
     case gvNumberPadKeyDivide:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad/"));
+        return OO_DESC("oolite-keycode-short-numpad/");
     case gvNumberPadKeyEquals:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad="));
+        return OO_DESC("oolite-keycode-short-numpad=");
     case gvNumberPadKeyMinus:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad-"));
+        return OO_DESC("oolite-keycode-short-numpad-");
     case gvNumberPadKeyMultiply:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad*"));
+        return OO_DESC("oolite-keycode-short-numpad*");
     case gvNumberPadKeyPeriod:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad."));
+        return OO_DESC("oolite-keycode-short-numpad.");
     case gvNumberPadKeyPlus:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpad+"));
+        return OO_DESC("oolite-keycode-short-numpad+");
     case gvNumberPadKeyEnter:
-        return oo::OptionalString(DESC(@"oolite-keycode-short-numpadenter"));
+        return OO_DESC("oolite-keycode-short-numpadenter");
     default:
         return oo::utf16ToUtf8(std::u16string(1, static_cast<char16_t>(code))); // %C
     }

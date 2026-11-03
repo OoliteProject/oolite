@@ -35,7 +35,7 @@ static OOSoundSource* sMusicSource = nil;
 
 + (id)allocWithZone:(OOZone*)inZone
 {
-    return class_createInstance([OOMusic class], 0); // NSAllocateObject without Foundation; zones unused (ADR-0029)
+    return class_createInstance([OOMusic class], 0); // zones unused (ADR-0029)
 }
 
 - (void)dealloc
@@ -61,9 +61,9 @@ static OOSoundSource* sMusicSource = nil;
     return self;
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return [sound name];
+    return [sound cxx_name];
 }
 
 - (void)setMusicGain:(float)newValue

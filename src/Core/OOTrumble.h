@@ -24,9 +24,9 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 #include "oofnd/PList.hpp"
 

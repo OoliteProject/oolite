@@ -5,7 +5,8 @@ OOFoundationBridge.h
 The boundary between a file the Foundation sweep has migrated to oofnd types and the code around
 it that still holds Foundation objects (proposed ADR-0043; recipe in src/oofnd/README.md,
 "Migrating Foundation usage"). Objective-C++ only; deleted with gnustep-base (oo-qps), when no
-Foundation object is left to bridge. Strings are OOStringBridge.h's (imported here).
+Foundation object is left to bridge. Strings are OOStringBridge.h's (imported here); what "%@" printed
+for an object is OODescription.h's (ADR-0055 item 1).
 
 A migrated file includes this header and never spells a Foundation class itself. It uses these
 functions only at its boundary: a shared selector that keeps an Objective-C object type (declared
@@ -24,9 +25,8 @@ commit. Everything else in the file is std / oofnd.
         refs (or raw pointers) -> NSArray / NSSet       oo::NSArrayFromObjects(r) / NSSetFromObjects(r)
         property-list object graph -> oo::PList         oo::PListFrom(object)
         oo::PList -> property-list object graph         oo::ObjectFromPList(plist)
-        the object inside a PList::Object node          oo::ObjectIn(plist)                 (nil for any other node)
-        an object as a PList::Object node               oo::PListObject(object)
-        what "%@" printed for an object                 oo::DescriptionOf(object)         (nil -> "(null)")
+        the object inside a PList::Object node          oo::ObjectIn(plist)                 (OOObjCPList.h, imported)
+        an object as a PList::Object node               oo::PListObject(object)             (OOObjCPList.h, imported)
 
 Exactness. Strings are unit for unit (OOStringBridge.h). PListFrom follows the table in
 oofnd/PList.hpp: an NSNumber is a bool when it is the constant true/false object (kCFBoolean*
@@ -69,6 +69,7 @@ MA 02110-1301, USA.
 #define OOFOUNDATIONBRIDGE_H
 
 #import "OOFoundation.h"
+#import "OOObjCPList.h"
 #import "OOStringBridge.h"
 
 #include "oofnd/PList.hpp"
@@ -180,38 +181,6 @@ NSSet* NSSetFromObjects(const Range& objects)
 }
 
 // --- property lists ---------------------------------------------------------------------------
-
-// A PList::Object node's payload: an Objective-C object, retained (Amendment 2 carrier).
-class ObjCPListForeign final : public PListForeign {
-public:
-    explicit ObjCPListForeign(id object)
-        : object_(object)
-    {
-    }
-    id object() const noexcept { return object_.get(); }
-    std::string className() const override { return class_getName(object_getClass(object_.get())); }
-    std::string description() const override { return StdString([object_.get() description]); }
-
-private:
-    ObjCRef<id> object_;
-};
-
-inline PList PListObject(id object)
-{
-    if (object == nil)
-        return PList();
-    return PList(PList::Object(makeRef<ObjCPListForeign>(object)));
-}
-
-// The object a PList::Object node holds; nil for any other node.
-inline id ObjectIn(const PList& plist)
-{
-    if (const PList::Object* node = plist.getIf<PList::Object>()) {
-        if (const auto* foreign = dynamic_cast<const ObjCPListForeign*>(node->get()))
-            return foreign->object();
-    }
-    return nil;
-}
 
 inline PList PListFrom(id object)
 {
@@ -329,16 +298,6 @@ inline id ObjectFromPList(const PList& plist)
         return ObjectIn(plist);
     }
     return nil;
-}
-
-// --- descriptions -----------------------------------------------------------------------------
-
-// The text "%@" put in a formatted string for <object>: its -description, or "(null)" for nil.
-inline std::string DescriptionOf(id object)
-{
-    if (object == nil)
-        return "(null)";
-    return StdString([object description]);
 }
 
 } // namespace oo

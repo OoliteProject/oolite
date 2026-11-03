@@ -167,8 +167,6 @@ extern "C++" {
 #define IBAction void
 #endif
 
-#import "Comparison.h"
-
 /* Define AppKit constants for events */
 enum {
     NSUpArrowFunctionKey = 0xF700,
@@ -286,44 +284,13 @@ enum {
 
 #import "OOLogging.h"
 
-@interface NSObject (OODescriptionComponents)
-
-/*	In order to allow implementations of -description to inherit description
-        components from superclasses, and to allow implementations of -description
-        and -oo_jsDescription to share code, both are implemented as wrappers
-        around -descriptionComponents. -descriptionComponents should provide
-        information about an object without a class name or surrounding
-        punctuation. -description will wrap the components like this:
-                <ClassName 0xnnnnnnnn>{descriptionComponents}
-        and -oo_jsDescription will wrap them like this:
-                [oo_jsClassName descriptionComponents]
-*/
-- (NSString*)descriptionComponents;
-
-/*	A lot of Oolite's -description implementations are rather long, and many
-        embed other descriptions. -shortDescription provides a truncated
-        alternative, while -shortDescriptionComponents provides a
-        -descriptionComponents-like mechanism to simplify implementation.
-*/
-- (NSString*)shortDescription;
-- (NSString*)shortDescriptionComponents;
-
-@end
-
-/*	The same for classes rooted on the Foundation-free OOObject (proposed ADR-0029), so a class
-        rerooted from NSObject describes itself exactly as before.
-*/
 #import "OOObjectGNUstepBridge.h"
 #import "oofnd/objc/OOObject.h"
 
-@interface OOObject (OODescriptionComponents)
-
-- (NSString*)description;
-- (NSString*)descriptionComponents;
-- (NSString*)shortDescription;
-- (NSString*)shortDescriptionComponents;
-
-@end
+/*	The description family (-cxx_descriptionComponents & co., oo::DescriptionOf), Foundation-free
+        (proposed ADR-0055 item 1).
+*/
+#import "OODescription.h"
 
 #if OOLITE_MAC_OS_X
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
@@ -352,81 +319,6 @@ inline constexpr OOComparisonResult OOOrderedSame = NSOrderedSame;
 inline constexpr OOComparisonResult OOOrderedDescending = NSOrderedDescending;
 static_assert(OOOrderedAscending == -1 && OOOrderedSame == 0 && OOOrderedDescending == 1, "Foundation's ordering values");
 #endif
-
-/*	Fast enumeration (for (x in y) syntax) is supported in all Mac compilers
-        when targeting 10.5 or later, and in gcc 4.6 with the GNU libobjc runtime.
-        At the time of writing, GNUstep stable does not support gcc 4.6, but it
-        already has support for the fast enumeration protocol in its collection
-        classes.
-
-        All release versions of clang support fast enumeration, assuming libobjc2
-        or ObjectiveC2.framework is being used. We shall make that assumption.
-
-        References:
-                http://lists.gnu.org/archive/html/discuss-gnustep/2011-02/msg00019.html
-                http://wiki.gnustep.org/index.php/ObjC2_FAQ
-        -- Ahruman 2011-02-04
-*/
-
-/*	Enumeration macros:
-        foreach(VAR, COLLECTION) enumerates the members of an array or set, setting
-        the variable VAR to a member on each pass.
-        foreachkey(VAR, DICT) enumerates the keys of a dictionary the same way.
-
-        Example:
-                id element = nil;
-                foreach (element, array)
-                {
-                        OOLog(@"element", @"%@", element);
-                }
-
-    These are based on macros by Jens Alfke.
-
-        In a DEBUG build these route through the enumeration-order shuffle
-        (OOEnumerationShuffle.h): with OO_SHUFFLE_ENUMERATION set to a seed, dictionaries and
-        sets are enumerated in a seeded, reproducible order instead of GNUstep's hash order, so
-        code that silently depends on that order fails here rather than after the C++ port.
-
-        The two functions are declared here rather than by including OOEnumerationShuffle.h,
-        which includes this file; the documentation lives there.
-
-        In every non-debug flavour (deployment, test, dev) OO_DEBUG is 0 and the macros below
-        are character-for-character the upstream ones, so the shuffle is compiled out rather
-        than branched around: an unset OO_SHUFFLE_ENUMERATION cannot change behaviour because
-        in a shipping build there is no code to change it.
-*/
-/* OO_ENUMERATION_MACROS_BEGIN - tools/check-enumeration-shuffle.sh extracts between these
-   sentinels and preprocesses the block under both settings of OO_DEBUG. Do not remove them
-   without updating that script. */
-#if OO_DEBUG
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-id OOShuffledKeys(id dictionary);
-id OOShuffledObjects(id collection);
-#ifdef __cplusplus
-}
-#endif
-
-#define foreach(VAR, COLLECTION) for (VAR in OOShuffledObjects(COLLECTION))
-#define foreachkey(VAR, DICT) for (VAR in OOShuffledKeys(DICT))
-
-#else
-
-#define foreach(VAR, COLLECTION) for (VAR in COLLECTION)
-#define foreachkey(VAR, DICT) for (VAR in DICT)
-
-#endif
-/* OO_ENUMERATION_MACROS_END */
-
-/*	Support for foreach() with NSEnumerators in GCC.
-        It works without this with for (x in y) support, but we leave it defined
-        to reduce differences between different build environments.
-*/
-@interface NSEnumerator (OOForEachSupport)
-- (NSEnumerator*)objectEnumerator;
-@end
 
 #define OOLITE_OPTIONAL(protocolName) @optional
 

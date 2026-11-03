@@ -27,9 +27,9 @@ SOFTWARE.
 
 #include <assert.h>
 
-#import "OOFoundationException.h"
 #import "OOOXPVerifierStageInternal.h"
 #import "OOStringBridge.h"
+#include "oofnd/objc/OOException.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
@@ -72,9 +72,9 @@ void AddStage(std::vector<oo::ObjCRef<OOOXPVerifierStage*>>& stages, OOOXPVerifi
 
 // OOObject's -description wraps this as "<Class 0x...>{"name"}", which is what this class's own
 // -description printed.
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom("\"" + oo::DescriptionOf([self name]) + "\"");
+    return "\"" + [self cxx_name].value_or("(null)") + "\"";
 }
 
 - (OOOXPVerifier*)verifier
@@ -87,10 +87,15 @@ void AddStage(std::vector<oo::ObjCRef<OOOXPVerifierStage*>>& stages, OOOXPVerifi
     return _hasRun;
 }
 
-- (id)name
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
+{
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
 {
     OOLogGenericSubclassResponsibility();
-    return nil;
+    return std::nullopt;
 }
 
 - (id)dependencies // shared selector (Foundation declares -dependencies too; retires with oo-qps)
@@ -170,10 +175,7 @@ void AddStage(std::vector<oo::ObjCRef<OOOXPVerifierStage*>>& stages, OOOXPVerifi
     @catch (OOException* exception) {
         // %@ of a Foundation exception printed GNUstep's -description, "<ClassName: 0x...> NAME:... REASON:...";
         // OOException has no -description, so the same layout is spelled out (proposed ADR-0037).
-        OO_LOG("verifyOXP.exception", "***** Exception while running verification stage \"{}\": <OOException: {}> NAME:{} REASON:{}", oo::DescriptionOf([self name]), oo::str::pointerDescription(exception), [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("verifyOXP.exception", "***** Exception while running verification stage \"{}\": {}", oo::DescriptionOf([self name]), oo::DescriptionOf(exception));
+        OO_LOG("verifyOXP.exception", "***** Exception while running verification stage \"{}\": <OOException: {}> NAME:{} REASON:{}", [self cxx_name].value_or("(null)"), oo::str::pointerDescription(exception), [exception name], [exception reason]);
     }
     oo::log::popIndent();
 

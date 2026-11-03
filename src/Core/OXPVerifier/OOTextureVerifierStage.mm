@@ -48,9 +48,9 @@ static const char* const kStageName = "Testing textures and images";
     return kStageName;
 }
 
-- (id)name
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (BOOL)shouldRun

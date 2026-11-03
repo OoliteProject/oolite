@@ -39,40 +39,46 @@ SOFTWARE.
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 @interface OOProbabilitySet : OOObject <OOCopying, OOMutableCopying>
 
+// The elements are oo::PList values (proposed ADR-0055 item 2): ship keys are strings; an
+// Object node (oo::PListObject) carries an Objective-C object. Two elements are the same if they
+// are == or are Object nodes holding the same object or -isEqual: objects.
 + (id)probabilitySet;
-+ (id)probabilitySetWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
++ (id)probabilitySetWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count;
 + (id)probabilitySetWithPropertyListRepresentation:(const oo::PList&)plist;
 
 - (id)init;
-- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
+- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count;
 - (id)initWithPropertyListRepresentation:(const oo::PList&)plist;
 
 // propertyListRepresentation is only valid if objects are property list objects.
 - (oo::PList)propertyListRepresentation;
 
 - (NSUInteger)count;
-- (id)randomObject;
+- (oo::PList)randomObject; // A null PList for none (an empty set, or every weight zero).
 
-- (float)weightForObject:(id)object; // Returns -1 for unknown objects.
+- (float)weightForObject:(const oo::PList&)object; // Returns -1 for unknown objects.
 - (float)sumOfWeights;
-- (id)allObjects; // shared selector: an Objective-C array
+- (id)allObjects; // shared selector: an Objective-C array (strings as NSStrings, Object nodes as their objects)
+- (std::vector<oo::PList>)cxx_allElements; // the elements, in the same order (-cxx_allObjects is OOWeakSet's family)
 
 @end
 
 @interface OOProbabilitySet (OOExtendedProbabilitySet)
 
-- (BOOL)containsObject:(id)object;
+- (BOOL)cxx_containsObject:(const oo::PList&)object;
 - (id)objectEnumerator; // shared selector: an enumerator over -allObjects
-- (float)probabilityForObject:(id)object; // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
+- (float)probabilityForObject:(const oo::PList&)object; // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
 
 @end
 
 @interface OOMutableProbabilitySet : OOProbabilitySet
 
-- (void)setWeight:(float)weight forObject:(id)object; // Adds object if needed.
-- (void)removeObject:(id)object;
+- (void)setWeight:(float)weight forObject:(const oo::PList&)object; // Adds object if needed; a null object is ignored.
+- (void)cxx_removeObject:(const oo::PList&)object;
 
 @end

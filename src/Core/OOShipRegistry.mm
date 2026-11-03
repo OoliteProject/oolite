@@ -29,7 +29,6 @@ SOFTWARE.
 #import "GameController.h"
 #import "OOCacheManager.h"
 #import "OOColor.h"
-#import "OODeepCopy.h"
 #import "OOJSScript.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOMesh.h"
@@ -44,6 +43,7 @@ SOFTWARE.
 
 #import "OODebugStandards.h"
 #import "OOFoundationBridge.h"
+#import "OOPListGameTypes.h"
 #include "oofnd/objc/OOException.h"
 
 #define PRELOAD 0
@@ -77,25 +77,25 @@ std::optional<std::string> StringForKey(const oo::PList* dict, const std::string
 Vector VectorForKey(const oo::PList& dict, const char* key)
 {
     const oo::PList* value = dict.find(key);
-    return OOVectorFromObject(value != nullptr ? oo::ObjectFromPList(*value) : nil, kZeroVector);
+    return OOVectorFromPList(value, kZeroVector);
 }
 
 Quaternion QuaternionForKey(const oo::PList& dict, const char* key)
 {
     const oo::PList* value = dict.find(key);
-    return OOQuaternionFromObject(value != nullptr ? oo::ObjectFromPList(*value) : nil, kIdentityQuaternion);
+    return OOQuaternionFromPList(value, kIdentityQuaternion);
 }
 
 // oo_setVector: / oo_setQuaternion:: OOPropertyListFromVector / OOPropertyListFromQuaternion's
 // dictionaries (float components), as property lists.
 oo::PList VectorPList(Vector value)
 {
-    return oo::PListFrom(OOPropertyListFromVector(value));
+    return OOPListFromVector(value);
 }
 
 oo::PList QuaternionPList(Quaternion value)
 {
-    return oo::PListFrom(OOPropertyListFromQuaternion(value));
+    return OOPListFromQuaternion(value);
 }
 
 // The first token of a string, as [ScanTokensFromString(s) objectAtIndex:0] read it: an empty
@@ -359,13 +359,25 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
 - (std::vector<std::string>)cxx_shipKeysWithRole:(const std::string&)role
 {
-    // OOProbabilitySet is an unmigrated callee: its objects (ship keys) arrive through oo::StringsFrom.
-    return oo::StringsFrom([[self cxx_probabilitySetForRole:role] allObjects]);
+    // The set's string elements (ship keys), in its order; anything else skipped, as oo::StringsFrom did.
+    std::vector<std::string> keys;
+    for (const oo::PList& key : [[self cxx_probabilitySetForRole:role] cxx_allElements]) {
+        if (const std::string* string = key.getIf<std::string>())
+            keys.push_back(*string);
+    }
+    return keys;
 }
 
 - (std::optional<std::string>)cxx_randomShipKeyForRole:(const std::string&)role
 {
-    return oo::OptionalString([[self cxx_probabilitySetForRole:role] randomObject]);
+    // nullopt for no set, or no pick (every weight zero), as nil was.
+    OOProbabilitySet* set = [self cxx_probabilitySetForRole:role];
+    if (set == nil)
+        return std::nullopt;
+    const oo::PList key = [set randomObject];
+    if (const std::string* string = key.getIf<std::string>())
+        return *string;
+    return std::nullopt;
 }
 
 @end
@@ -546,14 +558,14 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                     // conditions always false here
                     removeEntry(key);
                 } else {
-                    OOJSScript* condScript = [UNIVERSE getConditionScript:oo::NSStringFrom(*conditions)];
+                    OOJSScript* condScript = [UNIVERSE cxx_getConditionScript:*conditions];
                     if (condScript != nil) // should always be non-nil, but just in case
                     {
                         JSContext* context = OOJSAcquireContext();
                         BOOL OK;
                         BOOL allow_use = NO;
                         OOJSVal result = OOJSUndefinedValue();
-                        OOJSVal args[] = { OOJSValueFromNativeObject(context, oo::NSStringFrom(*shipKey)) };
+                        OOJSVal args[] = { OOJSValueFromPList(context, oo::PList(*shipKey)) };
 
                         OK = [condScript callMethod:OOJSID("allowShowLibraryShip")
                                           inContext:context
@@ -1009,9 +1021,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                 OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies no {}.", shipKey, "model");
                 cxx_OOStandardsError("Error in shipdata.plist");
                 remove = YES;
-            }
-            // ResourceManager's path lookup is an unmigrated callee: convert at the call.
-            else if (!modelName.empty() && [ResourceManager pathForFileNamed:oo::NSStringFrom(modelName) inFolder:@"Models"] == nil) {
+            } else if (!modelName.empty() && ![ResourceManager cxx_pathForFileNamed:modelName inFolder:"Models"].has_value()) {
                 OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies non-existent model \"{}\".", shipKey, modelName);
                 cxx_OOStandardsError("Error in shipdata.plist");
                 remove = YES;
@@ -1197,7 +1207,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
             probSet = oo::ObjCRef<OOMutableProbabilitySet*>([OOMutableProbabilitySet probabilitySet]);
         }
 
-        [probSet.get() setWeight:weight forObject:oo::NSStringFrom(shipKey)];
+        [probSet.get() setWeight:weight forObject:oo::PList(shipKey)];
     }
 }
 
@@ -1319,7 +1329,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     std::vector<std::string> tokenStrings;
     for (std::size_t i = 0; i != tokens.count(); ++i)
         tokenStrings.push_back(tokens.at<std::string>(i));
-    OO_LOG("shipData.translateSubentity.flasher", "Translated flasher declaration \"{}\" to {}", JoinTokens(tokenStrings), oo::DescriptionOf(oo::ObjectFromPList(resultPList)));
+    OO_LOG("shipData.translateSubentity.flasher", "Translated flasher declaration \"{}\" to {}", JoinTokens(tokenStrings), oo::DescriptionOf(resultPList));
 
     return resultPList;
 }
@@ -1370,7 +1380,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     std::vector<std::string> tokenStrings;
     for (std::size_t i = 0; i != tokens.count(); ++i)
         tokenStrings.push_back(tokens.at<std::string>(i));
-    OO_LOG("shipData.translateSubentity.standard", "Translated subentity declaration \"{}\" to {}", JoinTokens(tokenStrings), oo::DescriptionOf(oo::ObjectFromPList(resultPList)));
+    OO_LOG("shipData.translateSubentity.standard", "Translated subentity declaration \"{}\" to {}", JoinTokens(tokenStrings), oo::DescriptionOf(resultPList));
 
     return resultPList;
 }

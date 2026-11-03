@@ -32,6 +32,7 @@ SOFTWARE.
 
 #pragma once
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOOpenALController.h"
 #import "oofnd/objc/OOObject.h"
@@ -68,7 +69,7 @@ SOFTWARE.
 
 @end
 
-@interface NSObject (OOSoundChannelDelegate)
+@interface OOObject (OOSoundChannelDelegate)
 
 - (void)channel:(OOSoundChannel*)inChannel didFinishPlayingSound:(OOSound*)inSound;
 

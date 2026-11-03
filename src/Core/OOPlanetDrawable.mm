@@ -125,7 +125,7 @@
 
 - (std::optional<std::string>)textureName
 {
-    return oo::OptionalString([_material name]);
+    return [_material cxx_name];
 }
 
 - (void)setTextureName:(const std::string&)textureName
@@ -381,9 +381,9 @@
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return [[self material] allTextures];
+    return [[self material] cxx_allTextures];
 }
 
 #endif

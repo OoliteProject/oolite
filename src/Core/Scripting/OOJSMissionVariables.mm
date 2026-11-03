@@ -53,7 +53,7 @@ static std::optional<std::string> NameForPropertyID(JSContext* context, JSAtom p
     JSValue idValue = JS_AtomToValue(context, propID);
     // SpiderMonkey's hooks ignored integer IDs; QuickJS uses integer atoms for names like "0".
     if (JS_IsString(idValue)) {
-        result = oo::OptionalString(OOStringFromJSValue(context, idValue));
+        result = cxx_OOStringFromJSValue(context, idValue);
     }
     JS_FreeValue(context, idValue);
     return result;
@@ -111,7 +111,7 @@ void InitOOJSMissionVariables(JSContext* context, JSValueConst global)
 #ifdef OO_DEBUG_MONITOR_ENABLED
 static id MissionVariablesConverter(JSContext* context, JSValueConst object)
 {
-    return [PLAYER missionVariables];
+    return oo::ObjectFromPList([PLAYER cxx_missionVariables]);
 }
 #endif
 
@@ -119,7 +119,7 @@ static id MissionVariablesConverter(JSContext* context, JSValueConst object)
 static JSValue ValueForMissionVariable(JSContext* context, const std::string& key)
 {
     PlayerEntity* player = OOPlayerForScripting();
-    id mvar = [player missionVariableForKey:oo::NSStringFrom(key)];
+    id mvar = oo::ObjectFromPList([player cxx_missionVariableForKey:key]);
 
     if (mvar == nil)
         return JS_UNDEFINED;
@@ -165,7 +165,7 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnu
 {
     @try {
         // -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
-        const std::vector<std::string> mvars = oo::StringsFrom([[PLAYER missionVariables] allKeys]);
+        const std::vector<std::string> mvars = oo::StringsFrom([oo::ObjectFromPList([PLAYER cxx_missionVariables]) allKeys]);
         NSUInteger count = mvars.size();
         assert(count <= INT32_MAX);
 
@@ -209,7 +209,8 @@ static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst objec
         std::optional<std::string> name = NameForPropertyID(context, propID);
         if (name.has_value()) {
             std::optional<std::string> key = KeyForPropertyName(name);
-            [player setMissionVariable:nil forKey:oo::NSStringOrNil(key)];
+            if (key.has_value())
+                [player cxx_setMissionVariable:oo::PList() forKey:*key];
         }
         return YES;
     }
@@ -263,15 +264,15 @@ static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
     if (name.has_value()) {
         std::optional<std::string> key = KeyForPropertyName(name);
         if (!key.has_value()) {
-            OOJSReportError(context, @"Invalid mission variable name \"%@\".", [oo::NSStringFrom(*name) escapedForJavaScriptLiteral]);
+            cxx_OOJSReportError(context, "Invalid mission variable name \"%s\".", cxx_OOJSEscapedForJavaScriptLiteral(*name).c_str());
             return NO;
         }
 
         // nil (a value with no string form) clears the variable. (The old OONull test could not match
         // a string and is gone.)
-        std::optional<std::string> objValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        std::optional<std::string> objValue = cxx_OOStringFromJSValue(context, value);
 
-        [player setMissionVariable:oo::NSStringOrNil(objValue) forKey:oo::NSStringFrom(*key)];
+        [player cxx_setMissionVariable:objValue.has_value() ? oo::PList(*objValue) : oo::PList() forKey:*key];
     }
     return YES;
 }
@@ -294,7 +295,8 @@ static int MissionVariablesDefineOwnProperty(JSContext* context, JSValueConst ob
     */
     @try {
         if (flags & (JS_PROP_HAS_GET | JS_PROP_HAS_SET)) {
-            OOJSReportError(context, @"Invalid mission variable name \"%@\".", [OOStringFromJSID(propID) escapedForJavaScriptLiteral]);
+            const std::optional<std::string> badName = cxx_OOStringFromJSID(propID);
+            cxx_OOJSReportError(context, "Invalid mission variable name \"%s\".", badName.has_value() ? cxx_OOJSEscapedForJavaScriptLiteral(*badName).c_str() : "(null)");
             return -1;
         }
         if (!(flags & JS_PROP_HAS_VALUE))

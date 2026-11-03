@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 
 #if OOLITE_ESPEAK
 #include <espeak-ng/speak_lib.h>
+#include <string_view>
 #endif
 
 @class GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
@@ -113,46 +114,46 @@ enum {
 #define SUN_SKIM_RADIUS_FACTOR 1.15470053838 // 2 sqrt(3) / 3. Why? I have no idea. -- Ahruman 2009-10-04
 #define SUN_SPARKS_RADIUS_FACTOR 2.0
 
-#define KEY_TECHLEVEL @"techlevel"
-#define KEY_ECONOMY @"economy"
-#define KEY_ECONOMY_DESC @"economy_description"
-#define KEY_GOVERNMENT @"government"
-#define KEY_GOVERNMENT_DESC @"government_description"
-#define KEY_POPULATION @"population"
-#define KEY_POPULATION_DESC @"population_description"
-#define KEY_PRODUCTIVITY @"productivity"
-#define KEY_RADIUS @"radius"
-#define KEY_NAME @"name"
-#define KEY_INHABITANT @"inhabitant"
-#define KEY_INHABITANTS @"inhabitants"
-#define KEY_DESCRIPTION @"description"
-#define KEY_SHORT_DESCRIPTION @"short_description"
-#define KEY_PLANETNAME @"planet_name"
-#define KEY_SUNNAME @"sun_name"
+inline constexpr std::string_view KEY_TECHLEVEL = "techlevel";
+inline constexpr std::string_view KEY_ECONOMY = "economy";
+inline constexpr std::string_view KEY_ECONOMY_DESC = "economy_description";
+inline constexpr std::string_view KEY_GOVERNMENT = "government";
+inline constexpr std::string_view KEY_GOVERNMENT_DESC = "government_description";
+inline constexpr std::string_view KEY_POPULATION = "population";
+inline constexpr std::string_view KEY_POPULATION_DESC = "population_description";
+inline constexpr std::string_view KEY_PRODUCTIVITY = "productivity";
+inline constexpr std::string_view KEY_RADIUS = "radius";
+inline constexpr std::string_view KEY_NAME = "name";
+inline constexpr std::string_view KEY_INHABITANT = "inhabitant";
+inline constexpr std::string_view KEY_INHABITANTS = "inhabitants";
+inline constexpr std::string_view KEY_DESCRIPTION = "description";
+inline constexpr std::string_view KEY_SHORT_DESCRIPTION = "short_description";
+inline constexpr std::string_view KEY_PLANETNAME = "planet_name";
+inline constexpr std::string_view KEY_SUNNAME = "sun_name";
 
-#define KEY_CHANCE @"chance"
-#define KEY_PRICE @"price"
-#define KEY_OPTIONAL_EQUIPMENT @"optional_equipment"
-#define KEY_STANDARD_EQUIPMENT @"standard_equipment"
-#define KEY_EQUIPMENT_MISSILES @"missiles"
-#define KEY_EQUIPMENT_FORWARD_WEAPON @"forward_weapon_type"
-#define KEY_EQUIPMENT_AFT_WEAPON @"aft_weapon_type"
+inline constexpr std::string_view KEY_CHANCE = "chance";
+inline constexpr std::string_view KEY_PRICE = "price";
+inline constexpr std::string_view KEY_OPTIONAL_EQUIPMENT = "optional_equipment";
+inline constexpr std::string_view KEY_STANDARD_EQUIPMENT = "standard_equipment";
+inline constexpr std::string_view KEY_EQUIPMENT_MISSILES = "missiles";
+inline constexpr std::string_view KEY_EQUIPMENT_FORWARD_WEAPON = "forward_weapon_type";
+inline constexpr std::string_view KEY_EQUIPMENT_AFT_WEAPON = "aft_weapon_type";
 #define KEY_EQUIPMENT_PORT_WEAPON @"port_weapon_type"
 #define KEY_EQUIPMENT_STARBOARD_WEAPON @"starboard_weapon_type"
-#define KEY_EQUIPMENT_EXTRAS @"extras"
-#define KEY_WEAPON_FACINGS @"weapon_facings"
-#define KEY_RENOVATION_MULTIPLIER @"renovation_multiplier"
+inline constexpr std::string_view KEY_EQUIPMENT_EXTRAS = "extras";
+inline constexpr std::string_view KEY_WEAPON_FACINGS = "weapon_facings";
+inline constexpr std::string_view KEY_RENOVATION_MULTIPLIER = "renovation_multiplier";
 
-#define SHIPYARD_KEY_ID @"id"
-#define SHIPYARD_KEY_SHIPDATA_KEY @"shipdata_key"
-#define SHIPYARD_KEY_SHIP @"ship"
-#define SHIPYARD_KEY_PRICE @"price"
-#define SHIPYARD_KEY_PERSONALITY @"personality"
+inline constexpr std::string_view SHIPYARD_KEY_ID = "id";
+inline constexpr std::string_view SHIPYARD_KEY_SHIPDATA_KEY = "shipdata_key";
+inline constexpr std::string_view SHIPYARD_KEY_SHIP = "ship";
+inline constexpr std::string_view SHIPYARD_KEY_PRICE = "price";
+inline constexpr std::string_view SHIPYARD_KEY_PERSONALITY = "personality";
 // default passenger berth required space
 #define PASSENGER_BERTH_SPACE 5
 
-#define PLANETINFO_UNIVERSAL_KEY @"universal"
-#define PLANETINFO_INTERSTELLAR_KEY @"interstellar space"
+inline constexpr std::string_view PLANETINFO_UNIVERSAL_KEY = "universal";
+inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar space";
 
 #define OOLITE_EXCEPTION_LOOPING "OoliteLoopingException"
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND "OoliteDataNotFoundException"
@@ -530,7 +531,7 @@ enum {
 - (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name how_much:(OOCargoQuantity)how_many;
 - (void)fillCargopodWithRandomCargo:(ShipEntity*)cargopod;
 
-- (id)getRandomCommodity; // shared selector (proposed ADR-0043): an Objective-C string (a commodity key)
+- (std::string)getRandomCommodity; // a commodity key
 - (OOCargoQuantity)cxx_getRandomAmountOfCommodity:(const std::string&)co_type;
 
 - (oo::PList)commodityDataForType:(const std::string&)type; // null: no such good
@@ -617,7 +618,7 @@ enum {
 - (OOTimeDelta)getTimeDelta;
 
 - (void)findCollisionsAndShadows;
-- (id)collisionDescription; // shared selector (proposed ADR-0043): an Objective-C string, as CollisionRegion's
+- (std::string)collisionDescription; // flipped with its family (bead oo-3rb.277)
 - (void)dumpCollisions;
 
 - (OOViewID)viewDirection;
@@ -842,28 +843,28 @@ OOINLINE Universe* OOGetUniverse(void)
 }
 #define UNIVERSE OOGetUniverse()
 
-// Only for use with string literals, and only for looking up strings.
-// DESC() is deprecated in favour of OOExpandKey() except in known performance-
-// critical contexts.
-#define DESC(key) (OOLookUpDescriptionPRIV(key ""))
-#define DESC_PLURAL(key, count) (OOLookUpPluralDescriptionPRIV(key "", count))
+// Only for use with string literals, and only for looking up strings: the description, or the
+// key itself when there is none (proposed ADR-0053). OO_DESC() is deprecated in favour of
+// cxx_OOExpandKey() except in known performance-critical contexts.
+#define OO_DESC(key) (cxx_OOLookUpDescriptionPRIV(key ""))
+#define OO_DESC_PLURAL(key, count) (cxx_OOLookUpPluralDescriptionPRIV(key "", count))
 
 // Not for direct use.
-// The lookups behind DESC() / DESC_PLURAL(): the description, or the key itself when there is none.
+// The lookups behind OO_DESC() / OO_DESC_PLURAL(): the description, or the key itself when there is none.
 std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
 std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger count);
 
 @interface OOSound (OOCustomSounds)
 
 + (id)cxx_soundWithCustomSoundKey:(const std::string&)key;
-- (id)initWithCustomSoundKey:(id)key; // shared selector (proposed ADR-0043): an Objective-C string, as OOSoundSource's
+- (id)initWithCustomSoundKey:(const std::string&)key;
 
 @end
 
 @interface OOSoundSource (OOCustomSounds)
 
 + (id)sourceWithCustomSoundKey:(const std::string&)key;
-- (id)initWithCustomSoundKey:(id)key; // shared selector (proposed ADR-0043): an Objective-C string, as OOSound's
+- (id)initWithCustomSoundKey:(const std::string&)key;
 
 - (void)cxx_playCustomSoundWithKey:(const std::string&)key;
 
@@ -873,14 +874,7 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger 
 #include "oofnd/StdLib.hpp"
 
 // C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.162): nullopt where the
-// Foundation forms (Universe+FoundationBridge.h; they forward to these) gave nil.
+// old Foundation forms gave nil.
 std::optional<std::string> cxx_OODisplayStringFromGovernmentID(OOGovernmentID government);
 std::optional<std::string> cxx_OODisplayStringFromEconomyID(OOEconomyID economy);
 #endif
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-3rb.220 (the Universe sweep oo-3rb.79, chunk 1), forwarding to the
-        cxx_ API above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their
-        own sweep beads; the bridge goes in its own bead.
-*/
-#import "Universe+FoundationBridge.h"

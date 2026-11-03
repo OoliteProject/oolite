@@ -41,9 +41,9 @@ static const char* const kStageName = "Checking demoships.plist";
 
 @implementation OOCheckDemoShipsPListVerifierStage
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (BOOL)shouldRun
@@ -97,7 +97,7 @@ static const char* const kStageName = "Checking demoships.plist";
         // An entry that is not a string is no key of shipdata.plist; print the entry description.
         const std::string* name = entry.getIf<std::string>();
         if (name == nullptr || shipdataPList.find(*name) == nullptr) {
-            OO_LOG("verifyOXP.demoshipsPList.unknownShip", "----- WARNING: demoships.plist entry \"{}\" not found in shipdata.plist.", name != nullptr ? *name : oo::DescriptionOf(oo::ObjectFromPList(entry)));
+            OO_LOG("verifyOXP.demoshipsPList.unknownShip", "----- WARNING: demoships.plist entry \"{}\" not found in shipdata.plist.", name != nullptr ? *name : oo::DescriptionOf(entry));
         }
     }
 }

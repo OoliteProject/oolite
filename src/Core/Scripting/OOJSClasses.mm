@@ -127,7 +127,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID, const 
     table->sortedAtoms = (JSAtom*)malloc(sizeof(JSAtom) * (count ? count : 1));
     for (size_t i = 0; i < count; i++) {
         if (properties[i].def_type == JS_DEF_CGETSET || properties[i].def_type == JS_DEF_CGETSET_MAGIC) {
-            JSAtom atom = OOJSIDFromString([NSString stringWithUTF8String:properties[i].name]);
+            JSAtom atom = cxx_OOJSIDFromString(properties[i].name);
 
             // Some tables define a property twice (e.g. Ship's homeSystem); like SpiderMonkey, keep the first.
             BOOL duplicate = NO;

@@ -93,7 +93,7 @@ OOSound* SoundFromJSValue(JSContext* context, JSValueConst value)
     */
     OOJSPauseTimeLimiter();
     if ([PLAYER status] != STATUS_START_GAME && JS_IsString(value)) {
-        result = GetNamedSound(oo::StdString(OOStringFromJSValue(context, value)));
+        result = GetNamedSound(cxx_OOStringFromJSValue(context, value).value_or(std::string()));
     } else {
         result = OOJSNativeObjectOfClassFromJSValue(context, value, [OOSound class]);
     }
@@ -117,7 +117,7 @@ static JSValue SoundGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kSound_name:
-        return OOJSValueFromNativeObject(context, [sound name]);
+        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([sound cxx_name]));
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sSoundProperties, OOJS_COUNT(sSoundProperties));
@@ -132,9 +132,9 @@ static OOSound* GetNamedSound(const std::string& name)
     OOSound* sound = nil;
 
     if (oo::str::hasPrefix(name, "[") && oo::str::hasSuffix(name, "]")) {
-        sound = [OOSound soundWithCustomSoundKey:oo::NSStringFrom(name)];
+        sound = [OOSound cxx_soundWithCustomSoundKey:name];
     } else {
-        sound = [ResourceManager ooSoundNamed:oo::NSStringFrom(name) inFolder:@"Sounds"];
+        sound = [ResourceManager cxx_ooSoundNamed:name inFolder:"Sounds"];
     }
 
     return sound;
@@ -151,9 +151,9 @@ static JSValue SoundStaticLoad(OOJS_NATIVE_ARGS)
     OOSound* sound = nil;
 
     if (argc > 0)
-        name = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        name = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!name.has_value()) {
-        OOJSReportBadArguments(context, @"Sound", @"load", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, "Sound", "load", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return OOJSNativeFailure(context);
     }
 
@@ -187,23 +187,23 @@ static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
     double gain = OO_DEFAULT_SOUNDSOURCE_GAIN;
 
     if (argc > 0)
-        name = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        name = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!name.has_value()) {
-        OOJSReportBadArguments(context, @"Sound", @"playMusic", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, "Sound", "playMusic", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return OOJSNativeFailure(context);
     }
     if (argc > 1) {
         int b = JS_ToBool(context, OOJS_ARGV[1]);
         if (b < 0) {
-            OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 1, nil, @"boolean");
+            cxx_OOJSReportBadArguments(context, "Sound", "playMusic", 1, OOJS_ARGV + 1, std::nullopt, "boolean");
             return OOJSNativeFailure(context);
         }
         loop = b;
     }
 
     if (argc > 2) {
-        if (!OOJSArgumentListGetNumber(context, @"Sound", @"playMusic", 2, OOJS_ARGV + 2, &gain, NULL)) {
-            OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 2, nil, @"float");
+        if (!cxx_OOJSArgumentListGetNumber(context, "Sound", "playMusic", 2, OOJS_ARGV + 2, &gain, NULL)) {
+            cxx_OOJSReportBadArguments(context, "Sound", "playMusic", 1, OOJS_ARGV + 2, std::nullopt, "float");
             return OOJSNativeFailure(context);
         }
     }
@@ -225,9 +225,9 @@ static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS)
     std::optional<std::string> name;
 
     if (argc > 0) {
-        name = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        name = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
         if (EXPECT_NOT(!name.has_value())) {
-            OOJSReportBadArguments(context, @"Sound", @"stopMusic", argc, OOJS_ARGV, nil, @"string or no argument");
+            cxx_OOJSReportBadArguments(context, "Sound", "stopMusic", argc, OOJS_ARGV, std::nullopt, "string or no argument");
             return OOJSNativeFailure(context);
         }
     }
@@ -258,14 +258,14 @@ static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS)
     return result;
 }
 
-- (id)oo_jsDescription // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsDescription
 {
-    return oo::NSStringFrom(oo::str::format("[Sound \"%s\"]", oo::DescriptionOf([self name]).c_str()));
+    return oo::str::format("[Sound \"%s\"]", [self cxx_name].value_or("(null)").c_str());
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Sound";
+    return std::string("Sound");
 }
 
 @end

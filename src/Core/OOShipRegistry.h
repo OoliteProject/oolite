@@ -69,10 +69,3 @@ SOFTWARE.
 - (std::optional<std::string>)cxx_randomShipKeyForRole:(const std::string&)role; // nullopt: no ship has the role
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before its sweep (bead oo-92mj, chunks oo-3rb.114 ff.), forwarding to the cxx_ methods
-        above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep
-        beads; the bridge goes in its own bead.
-*/
-#import "OOShipRegistry+FoundationBridge.h"

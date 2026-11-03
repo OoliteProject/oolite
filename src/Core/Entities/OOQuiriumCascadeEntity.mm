@@ -65,9 +65,9 @@ MA 02110-1301, USA.
     return [[[self alloc] initQuiriumCascadeFromShip:ship] autorelease];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%f seconds passed of %f", _timePassed, kQuiriumCascadeDuration));
+    return oo::str::format("%f seconds passed of %f", _timePassed, kQuiriumCascadeDuration);
 }
 
 - (void)update:(OOTimeDelta)delta_t
@@ -103,7 +103,7 @@ MA 02110-1301, USA.
         Entity* e = collidingEntity.get();
         // we're going to force the weapon id to be the qbomb key here, because at this point the cascade entity isn't a ship any more
         // and there's no link back to the original.
-        [e takeEnergyDamage:energy from:self becauseOf:owner weaponIdentifier:@"EQ_QC_MINE"];
+        [e takeEnergyDamage:energy from:self becauseOf:owner weaponIdentifier:"EQ_QC_MINE"];
     }
 
     // expire after ttl

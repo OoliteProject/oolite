@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "AI.h"
 #import "OOCacheManager.h"
+#import "OOCallByName.h"
 #import "OOPListParsing.h"
 #import "OOPListView.h"
 #import "OOStringParsing.h"
@@ -35,10 +36,10 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOStringBridge.h"
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
+#include "oofnd/objc/OOException.h"
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/Log.hpp"
@@ -54,7 +55,7 @@ typedef struct
 {
     AI* ai;
     SEL selector;
-    id parameter;
+    std::string parameter; // the by-name call's string argument (OOCallByName.h)
 } OOAIDeferredCallTrampolineInfo;
 
 /*	Carries the trampoline info through OOScheduleDeferredCall(),
@@ -95,11 +96,12 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 @interface AI (OOPrivate)
 
-// Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs.
-- (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay;
+// Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs. <selector> is called by
+// name with <argument> (OOCallByName.h).
+- (void)performDeferredCall:(SEL)selector withArgument:(const std::string&)argument afterDelay:(NSTimeInterval)delay;
 + (void)deferredCallTrampolineWithInfo:(OOAIDeferredCallTrampolineInfoHolder*)info;
-// The target of -cxx_setState:afterDelay:'s deferred call: stateName is an Objective-C string.
-- (void)deferredSetState:(id)stateName;
+// The target of -cxx_setState:afterDelay:'s deferred call (called by name).
+- (void)deferredSetState:(const std::string&)stateName;
 
 - (void)refreshOwnerDesc;
 
@@ -116,6 +118,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 #if DEBUG_GRAPHVIZ
 #import "AIGraphViz.h"
+#include "oofnd/Defaults.hpp"
 #endif
 
 @interface OOPreservedAIStateMachine : OOObject {
@@ -134,7 +137,8 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
                   jsScript:(const std::optional<std::string>&)script;
 
 - (oo::PList)stateMachine;
-- (id)name; // shared selector (proposed ADR-0043): an Objective-C string
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string
+- (std::optional<std::string>)cxx_name; // (bead oo-3rb.289.8)
 - (std::optional<std::string>)cxx_state;
 - (std::set<std::string>)pendingMessages;
 - (std::optional<std::string>)jsScript;
@@ -151,7 +155,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 + (std::optional<std::string>)cxx_currentlyRunningAIDescription
 {
     if (sCurrentlyRunningAI != nil) {
-        return oo::str::format("%s in state %s", oo::DescriptionOf([sCurrentlyRunningAI name]).c_str(), [sCurrentlyRunningAI cxx_state].value_or("(null)").c_str());
+        return oo::str::format("%s in state %s", [sCurrentlyRunningAI cxx_name].value_or("(null)").c_str(), [sCurrentlyRunningAI cxx_state].value_or("(null)").c_str());
     } else {
         return "<no AI running>";
     }
@@ -192,14 +196,14 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
     [super dealloc];
 }
 
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("\"%s\" in state: \"%s\" for %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), ownerDesc.value_or("(null)").c_str()));
+    return oo::str::format("\"%s\" in state: \"%s\" for %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), ownerDesc.value_or("(null)").c_str());
 }
 
-- (id)shortDescriptionComponents
+- (std::optional<std::string>)cxx_shortDescriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%s:%s / %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), oo::DescriptionOf(JSScriptObjectOf(stateMachine)).c_str()));
+    return oo::str::format("%s:%s / %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), oo::DescriptionOf(JSScriptObjectOf(stateMachine)).c_str());
 }
 
 - (ShipEntity*)owner
@@ -222,11 +226,11 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 - (void)reportStackOverflow
 {
-    if (OOLogWillDisplayMessagesInClass(@"ai.error.stackOverflow")) {
-        BOOL stackDump = OOLogWillDisplayMessagesInClass(@"ai.error.stackOverflow.dump");
+    if (oo::log::willDisplay("ai.error.stackOverflow")) {
+        BOOL stackDump = oo::log::willDisplay("ai.error.stackOverflow.dump");
 
         const char* trailer = stackDump ? " -- stack:" : ".";
-        OO_LOG_ERR("ai.error.stackOverflow", "AI stack overflow for {} in {}: {}{}\n", oo::DescriptionOf([_owner shortDescription]), stateMachineName, currentState.value_or("(null)"), trailer);
+        OO_LOG_ERR("ai.error.stackOverflow", "AI stack overflow for {} in {}: {}{}\n", oo::ShortDescriptionOf(_owner), stateMachineName, currentState.value_or("(null)"), trailer);
 
         if (stackDump) {
             OOLogIndent();
@@ -234,7 +238,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
             std::size_t count = aiStack.size();
             while (count--) {
                 OOPreservedAIStateMachine* preservedMachine = aiStack[count].get();
-                OO_LOG("ai.error.stackOverflow.dump", "{}: {}: {}", count, oo::DescriptionOf([preservedMachine name]), [preservedMachine cxx_state].value_or("(null)"));
+                OO_LOG("ai.error.stackOverflow.dump", "{}: {}: {}", count, [preservedMachine cxx_name].value_or("(null)"), [preservedMachine cxx_state].value_or("(null)"));
             }
 
             OOLogOutdent();
@@ -251,7 +255,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
         [self reportStackOverflow];
 
         [OOException raise:"OoliteException"
-                    format:"AI stack overflow for %s", [[_owner description] UTF8String]];
+                    format:"AI stack overflow for %s", oo::DescriptionOf(_owner).c_str()];
     }
 
     const oo::PList* script = stateMachine.find("jsScript");
@@ -283,7 +287,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 #endif
 
     [self directSetStateMachine:[preservedMachine.get() stateMachine]
-                           name:oo::StdString([preservedMachine.get() name])];
+                           name:[preservedMachine.get() cxx_name].value_or(std::string())];
 
     [self directSetState:[preservedMachine.get() cxx_state]];
 
@@ -321,7 +325,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
         /*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"ENTER"] (1.69, OS X/x86).
                 Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
-                through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
+                through NSObject's -performSelector: (with an object), suggesting it's using IMP caching. An
                 invalid self is therefore possible.
                 Attempted fix: new delayed dispatch with trampoline, see -[AI setStateMachine:afterDelay:].
                  -- Ahruman, 20070706
@@ -338,7 +342,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
     if (stateMachine.find(stateName) != nullptr) {
         /*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"EXIT"] (1.69, OS X/x86).
                 Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
-                through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
+                through NSObject's -performSelector: (with an object), suggesting it's using IMP caching. An
                 invalid self is therefore possible.
                 Attempted fix: new delayed dispatch with trampoline, see -[AI setState:afterDelay:].
                  -- Ahruman, 20070706
@@ -349,23 +353,24 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
     }
 }
 
-/*	The deferred call's parameter is retained here and released by the trampoline (which released
-        the caller's string before: harmless for the literals callers passed, and now balanced for the
-        string made here).
-*/
 - (void)cxx_setStateMachine:(const std::string&)smName afterDelay:(NSTimeInterval)delay
 {
-    [self performDeferredCall:@selector(setStateMachine:) withObject:[oo::NSStringFrom(smName) retain] afterDelay:delay];
+    [self performDeferredCall:@selector(setStateMachine:) withArgument:smName afterDelay:delay];
 }
 
 - (void)cxx_setState:(const std::string&)stateName afterDelay:(NSTimeInterval)delay
 {
-    [self performDeferredCall:@selector(deferredSetState:) withObject:[oo::NSStringFrom(stateName) retain] afterDelay:delay];
+    [self performDeferredCall:@selector(deferredSetState:) withArgument:stateName afterDelay:delay];
 }
 
-- (id)name
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
 {
-    return oo::NSStringFrom(stateMachineName);
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
+{
+    return stateMachineName;
 }
 
 - (std::optional<std::string>)cxx_associatedJS
@@ -447,7 +452,7 @@ static AIStackElement* sStack = NULL;
         AIStackElement* stack = sStack;
         unsigned depth = 0;
         while (stack != NULL) {
-            OO_LOG("ai.error.recursion.stackTrace", "{}  {} - {}:{}.{} ({})", depth++, oo::DescriptionOf([stack->owner shortDescription]), stack->aiName, stack->state.value_or("(null)"), *stack->message, *stack->context);
+            OO_LOG("ai.error.recursion.stackTrace", "{}  {} - {}:{}.{} ({})", depth++, oo::ShortDescriptionOf(stack->owner), stack->aiName, stack->state.value_or("(null)"), *stack->message, *stack->context);
             stack = stack->back;
         }
 
@@ -490,15 +495,12 @@ static AIStackElement* sStack = NULL;
         @catch (OOException* exception) {
             OO_LOG(cxx_kOOLogException, "Squashing exception {}:{} in AI handler {}:{}.{}", [exception name], [exception reason], stateMachineName, currentState.value_or("(null)"), message);
         }
-        @catch (OOFoundationException* exception) {
-            OO_LOG(cxx_kOOLogException, "Squashing exception {}:{} in AI handler {}:{}.{}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]), stateMachineName, currentState.value_or("(null)"), message);
-        }
 
         --recursionLimiter;
     } else {
         if (currentState.has_value()) {
             if ([owner respondsToSelector:@selector(interpretAIMessage:)]) {
-                [owner performSelector:@selector(interpretAIMessage:) withObject:oo::NSStringFrom(message)];
+                OOCallByName(owner, @selector(interpretAIMessage:), message);
             }
         }
     }
@@ -547,9 +549,9 @@ static AIStackElement* sStack = NULL;
             SEL selector = OOSelectorFromName(selectorStr);
             if ([owner respondsToSelector:selector]) {
                 if (dataString.has_value())
-                    [owner performSelector:selector withObject:oo::NSStringFrom(*dataString)];
+                    OOCallByName(owner, selector, *dataString);
                 else
-                    [owner performSelector:selector];
+                    OOCallByName(owner, selector);
             } else {
                 OO_LOG_ERR("ai.takeAction.badSelector", "in AI {} in state {}: {} does not respond to {}", stateMachineName, currentState.value_or("(null)"), ownerDesc.value_or("(null)"), selectorStr);
             }
@@ -629,7 +631,7 @@ static AIStackElement* sStack = NULL;
         displayMessages = "none";
     }
 
-    OO_LOG("ai.debug.pendingMessages", "Pending messages for AI {}: {}", oo::DescriptionOf([self descriptionComponents]), displayMessages);
+    OO_LOG("ai.debug.pendingMessages", "Pending messages for AI {}: {}", [self cxx_descriptionComponents].value_or("(null)"), displayMessages);
 }
 
 - (void)setNextThinkTime:(OOTimeAbsolute)ntt
@@ -686,7 +688,7 @@ static AIStackElement* sStack = NULL;
 */
 @implementation AI (OOPrivate)
 
-- (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay
+- (void)performDeferredCall:(SEL)selector withArgument:(const std::string&)argument afterDelay:(NSTimeInterval)delay
 {
     OOAIDeferredCallTrampolineInfo infoStruct;
     OOAIDeferredCallTrampolineInfoHolder* info = nil;
@@ -694,7 +696,7 @@ static AIStackElement* sStack = NULL;
     if (selector != NULL) {
         infoStruct.ai = [self retain];
         infoStruct.selector = selector;
-        infoStruct.parameter = object;
+        infoStruct.parameter = argument;
 
         info = [[OOAIDeferredCallTrampolineInfoHolder alloc] init];
         info->info = infoStruct;
@@ -704,9 +706,9 @@ static AIStackElement* sStack = NULL;
     }
 }
 
-- (void)deferredSetState:(id)stateName
+- (void)deferredSetState:(const std::string&)stateName
 {
-    [self cxx_setState:oo::StdString(stateName)];
+    [self cxx_setState:stateName];
 }
 
 + (void)deferredCallTrampolineWithInfo:(OOAIDeferredCallTrampolineInfoHolder*)info
@@ -716,10 +718,9 @@ static AIStackElement* sStack = NULL;
     if (info != nil) {
         infoStruct = info->info;
 
-        [infoStruct.ai performSelector:infoStruct.selector withObject:infoStruct.parameter];
+        OOCallByName(infoStruct.ai, infoStruct.selector, infoStruct.parameter);
 
         [infoStruct.ai release];
-        [infoStruct.parameter release];
     }
 }
 
@@ -729,7 +730,7 @@ static AIStackElement* sStack = NULL;
     if ([owner isPlayer]) {
         ownerDesc = "player autopilot";
     } else if (owner != nil) {
-        ownerDesc = oo::str::format("%s %d", oo::DescriptionOf([owner name]).c_str(), [owner universalID]);
+        ownerDesc = oo::str::format("%s %d", [owner cxx_name].value_or("(null)").c_str(), [owner universalID]);
     } else {
         ownerDesc = "no owner";
     }
@@ -768,7 +769,7 @@ static AIStackElement* sStack = NULL;
 
         @try {
             // Load state machine and validate against whitelist.
-            const std::optional<std::string> aiPath = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(smName) inFolder:@"AIs"]);
+            const std::optional<std::string> aiPath = [ResourceManager cxx_pathForFileNamed:smName inFolder:"AIs"];
             if (aiPath.has_value()) {
                 newSM = PListDictionaryFromFile(*aiPath);
             }
@@ -777,9 +778,9 @@ static AIStackElement* sStack = NULL;
                 std::string fromString;
                 const std::optional<std::string> state = [self cxx_state];
                 if (state.has_value()) {
-                    fromString = oo::str::format(" from %s:%s", oo::DescriptionOf([self name]).c_str(), state->c_str());
+                    fromString = oo::str::format(" from %s:%s", [self cxx_name].value_or("(null)").c_str(), state->c_str());
                 }
-                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::DescriptionOf([[self owner] shortDescription]), fromString, smName);
+                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::ShortDescriptionOf([self owner]), fromString, smName);
                 return oo::PList();
             }
 
@@ -800,7 +801,7 @@ static AIStackElement* sStack = NULL;
             newSM = oo::PList(std::move(cleanSM));
 
 #if DEBUG_GRAPHVIZ
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:@"generate-ai-graphviz"]) {
+            if (oo::Defaults::standard().boolForKey("generate-ai-graphviz")) {
                 GenerateGraphVizForAIStateMachine(newSM, smName);
             }
 #endif
@@ -843,7 +844,7 @@ static AIStackElement* sStack = NULL;
     static oo::PList aliases;
 
     if (!whitelist.has_value()) {
-        const oo::PList whitelistDictionary = oo::PListFrom([ResourceManager whitelistDictionary]);
+        const oo::PList whitelistDictionary = [ResourceManager cxx_whitelistDictionary];
         whitelist.emplace();
         for (const char* key : { "ai_methods", "ai_and_action_methods" }) {
             const oo::PList* methods = whitelistDictionary.get<oo::PList::Array>(key);
@@ -898,10 +899,10 @@ static AIStackElement* sStack = NULL;
                     if (!first)
                         joined += " ";
                     first = false;
-                    joined += oo::DescriptionOf(oo::ObjectFromPList(token));
+                    joined += oo::DescriptionOf(token);
                 }
                 action = std::move(joined);
-                selector = oo::DescriptionOf(oo::ObjectFromPList(aliasedSelector->getIf<oo::PList::Array>()->front()));
+                selector = oo::DescriptionOf(aliasedSelector->getIf<oo::PList::Array>()->front());
             }
         }
 
@@ -943,9 +944,14 @@ static AIStackElement* sStack = NULL;
     return _stateMachine;
 }
 
-- (id)name
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
 {
-    return oo::NSStringFrom(_name);
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
+{
+    return _name;
 }
 
 - (std::optional<std::string>)cxx_state

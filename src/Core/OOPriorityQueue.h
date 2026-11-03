@@ -77,6 +77,7 @@ SOFTWARE.
 - (void)addObjects:(id)collection; // collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an Objective-C enumerator.
 
 - (std::vector<oo::ObjCRef<id>>)sortedObjects; // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
+- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator; // -sortedObjects: C++ iteration in -nextObject order (empties the heap)
 - (id)objectEnumerator; // shared selector: an enumerator over the objects in -nextObject order. Like -sortedObjects it empties the heap, now all at once rather than as it is enumerated. Note howeverthat the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
 
 @end

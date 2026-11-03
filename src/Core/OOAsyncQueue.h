@@ -30,9 +30,9 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #include "oofnd/StdLib.hpp"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 @interface OOAsyncQueue : OOObject {
 @private

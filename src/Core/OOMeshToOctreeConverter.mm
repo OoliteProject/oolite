@@ -249,9 +249,9 @@ OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
     return [[[self alloc] initWithCapacity:capacity] autorelease];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%u triangles", _data.count));
+    return oo::str::format("%u triangles", _data.count);
 }
 
 - (void)addTriangle:(Triangle)tri

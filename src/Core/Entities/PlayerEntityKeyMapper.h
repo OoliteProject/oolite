@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
+#include <string_view>
 
 #define MAX_ROWS_KC_FUNCTIONS 12
 
@@ -58,12 +59,12 @@ MA 02110-1301, USA.
 #define GUI_ROW_KC_ENTRY_INFO 2
 
 // Dictionary keys
-#define KEY_KC_GUIDESC @"guiDesc"
-#define KEY_KC_DEFINITION @"keyDef"
-#define KEY_KC_HEADER @"header"
+inline constexpr std::string_view KEY_KC_GUIDESC = "guiDesc";
+inline constexpr std::string_view KEY_KC_DEFINITION = "keyDef";
+inline constexpr std::string_view KEY_KC_HEADER = "header";
 
 // Dictionary keys - used in the defaults file
-#define KEYCONFIG_OVERRIDES @"KeyConfigOverrides" // preferences key (oo::Defaults)
+inline constexpr std::string_view KEYCONFIG_OVERRIDES = "KeyConfigOverrides"; // preferences key (oo::Defaults)
 
 @interface PlayerEntity (KeyMapper)
 - (void)resetKeyFunctions;

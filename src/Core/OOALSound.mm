@@ -35,8 +35,10 @@ SOFTWARE.
 #import "OOOpenALController.h"
 #import "OOPListView.h"
 #import "OOStringBridge.h"
+#include "oofnd/Defaults.hpp"
+#include <string_view>
 
-#define KEY_VOLUME_CONTROL @"volume_control"
+static constexpr std::string_view KEY_VOLUME_CONTROL = "volume_control";
 
 static const size_t kMaxBufferedSoundSize = 1 << 20; // 1 MB
 
@@ -52,7 +54,8 @@ static BOOL sIsSoundOK = NO;
         OOOpenALController* controller = [OOOpenALController sharedController];
         if (controller != nil) {
             sIsSoundOK = YES;
-            float volume = oo::PListView([NSUserDefaults standardUserDefaults]).get<float>(KEY_VOLUME_CONTROL, 0.5);
+            oo::Defaults& prefs = oo::Defaults::standard();
+            float volume = prefs.object(std::string(KEY_VOLUME_CONTROL)).isNull() ? 0.5f : prefs.floatForKey(std::string(KEY_VOLUME_CONTROL));
             [self setMasterVolume:volume];
         }
     }
@@ -70,7 +73,7 @@ static BOOL sIsSoundOK = NO;
     OOOpenALController* controller = [OOOpenALController sharedController];
     if (fraction != [controller masterVolume]) {
         [controller setMasterVolume:fraction];
-        [[NSUserDefaults standardUserDefaults] setFloat:[controller masterVolume] forKey:KEY_VOLUME_CONTROL];
+        oo::Defaults::standard().setFloat(std::string(KEY_VOLUME_CONTROL), [controller masterVolume]);
     }
 }
 
@@ -119,10 +122,10 @@ static BOOL sIsSoundOK = NO;
 
     if (nil != self) {
 #ifndef NDEBUG
-        OOLog(oo::NSStringFrom(kOOLogSoundLoadingSuccess), @"Loaded sound %@", oo::NSStringOrNil(path));
+        OO_LOG(kOOLogSoundLoadingSuccess, "Loaded sound {}", path.value_or("(null)"));
 #endif
     } else {
-        OOLog(oo::NSStringFrom(kOOLogSoundLoadingError), @"Failed to load sound \"%@\"", oo::NSStringOrNil(path));
+        OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"", path.value_or("(null)"));
     }
 
     return self;
@@ -134,10 +137,15 @@ static BOOL sIsSoundOK = NO;
     return nil;
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
+{
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
 {
     OOLogGenericSubclassResponsibility();
-    return @"";
+    return std::string();
 }
 
 + (void)update

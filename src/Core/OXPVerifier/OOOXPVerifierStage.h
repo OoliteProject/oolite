@@ -57,7 +57,8 @@ SOFTWARE.
         unique. The name should be a phrase describing what will be done, like
         "Scanning files" or "Verifying plist scripts".
 */
-- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.1)
 
 /*	Dependencies and dependents:
         -dependencies returns a set of names of stages that must be run before this

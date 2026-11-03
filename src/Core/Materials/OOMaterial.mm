@@ -47,15 +47,20 @@ static OOMaterial* sActiveMaterial = nil;
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom("\"" + oo::DescriptionOf([self name]) + "\""); // "%@" of the name, quoted
+    return "\"" + [self cxx_name].value_or("(null)") + "\""; // "%@" of the name, quoted
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
+{
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
 {
     OOLogGenericParameterError();
-    return nil;
+    return std::nullopt;
 }
 
 // Make this the current GL shader program.
@@ -108,15 +113,11 @@ static OOMaterial* sActiveMaterial = nil;
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return nil;
+    return { };
 }
 #endif
-
-@end
-
-@implementation OOMaterial (OOSubclassInterface)
 
 - (BOOL)doApply
 {
