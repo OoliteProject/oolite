@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 
 #import "OOFoundationBridge.h"
+#include "oofnd/objc/OOAssert.h"
 
 static JSClassID sShipGroupClassID;
 
@@ -93,7 +94,7 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kShipGroup_ships:
-        result = [group memberArray];
+        result = oo::NSArrayFromObjects((group != nil) ? [group cxx_memberArray] : std::vector<oo::ObjCRef<ShipEntity*>>()); // (no C++ value from a message to nil)
         if (result == nil)
             result = oo::NSArrayFromObjects(std::vector<id>()); // an empty array
         break;
@@ -189,7 +190,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS)
         }
     }
 
-    OOJS_RETURN_OBJECT([OOShipGroup groupWithName:oo::NSStringOrNil(name) leader:leader]);
+    OOJS_RETURN_OBJECT([OOShipGroup cxx_groupWithName:name leader:leader]);
 
     OOJS_NATIVE_EXIT
 }

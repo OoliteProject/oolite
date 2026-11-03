@@ -49,32 +49,32 @@
 
 - (BOOL)isEqualTo:(id)object
 {
-    return (object != nil && [self compare:object] == NSOrderedSame) ? YES : NO;
+    return (object != nil && [self compare:object] == OOOrderedSame) ? YES : NO;
 }
 
 - (BOOL)isGreaterThan:(id)object
 {
-    return (object != nil && [self compare:object] == NSOrderedDescending) ? YES : NO;
+    return (object != nil && [self compare:object] == OOOrderedDescending) ? YES : NO;
 }
 
 - (BOOL)isGreaterThanOrEqualTo:(id)object
 {
-    return (object != nil && [self compare:object] != NSOrderedAscending) ? YES : NO;
+    return (object != nil && [self compare:object] != OOOrderedAscending) ? YES : NO;
 }
 
 - (BOOL)isLessThan:(id)object
 {
-    return (object != nil && [self compare:object] == NSOrderedAscending) ? YES : NO;
+    return (object != nil && [self compare:object] == OOOrderedAscending) ? YES : NO;
 }
 
 - (BOOL)isLessThanOrEqualTo:(id)object
 {
-    return (object != nil && [self compare:object] != NSOrderedDescending) ? YES : NO;
+    return (object != nil && [self compare:object] != OOOrderedDescending) ? YES : NO;
 }
 
 - (BOOL)isNotEqualTo:(id)object
 {
-    return (object != nil && [self compare:object] != NSOrderedSame) ? YES : NO;
+    return (object != nil && [self compare:object] != OOOrderedSame) ? YES : NO;
 }
 
 @end

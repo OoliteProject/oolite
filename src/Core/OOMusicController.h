@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #import "OOSoundSource.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/StdLib.hpp"
+
 @class OOMusic;
 
 #define OOLITE_ITUNES_SUPPORT OOLITE_MAC_COCOA_UI
@@ -48,26 +50,26 @@ typedef enum {
 @interface OOMusicController : OOObject {
 @private
     OOMusicMode _mode;
-    NSString* _missionMusic;
+    std::optional<std::string> _missionMusic;
     OOMusic* _current;
     uint8_t _special;
 }
 
 + (OOMusicController*)sharedController;
 
-- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop;
-- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop gain:(float)gain;
+- (void)playMusicNamed:(const std::string&)name loop:(BOOL)loop;
+- (void)playMusicNamed:(const std::string&)name loop:(BOOL)loop gain:(float)gain;
 
 - (void)playThemeMusic;
 - (void)playDockingMusic;
 - (void)playDockedMusic;
 
-- (void)setMissionMusic:(NSString*)missionMusicName;
+- (void)setMissionMusic:(id)missionMusicName; // shared selector: an Objective-C string, or nil
 - (void)playMissionMusic;
 
 - (void)justStop;
 - (void)stop;
-- (void)stopMusicNamed:(NSString*)name; // Stop only if name == playingMusic
+- (void)stopMusicNamed:(const std::string&)name; // Stop only if name == playingMusic
 - (void)stopThemeMusic;
 - (void)stopDockingMusic;
 - (void)stopMissionMusic;
@@ -76,7 +78,7 @@ typedef enum {
 
 - (OOSoundSource*)soundSource;
 
-- (NSString*)playingMusic;
+- (std::optional<std::string>)playingMusic; // nullopt: nothing playing
 - (BOOL)isPlaying;
 
 - (OOMusicMode)mode;

@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/PList.hpp"
+
 #define OCTREE_MIN_HALF_WIDTH 1.0
 
 #if !defined(OODEBUGLDRAWING_DISABLE) && !defined(OO_DEBUG_MONITOR_ENABLED)
@@ -44,16 +46,19 @@ MA 02110-1301, USA.
 
     unsigned char* _collisionOctree;
 
-    NSData* _data;
+    oo::Data _data;
 }
 
 /*
-- (id) initWithDictionary:
+        - (id) cxx_initWithDictionary:
 
         Deserialize an octree from cache representation.
         (To make a new octree, build it with OOOctreeBuilder.)
+        Foundation declares -initWithDictionary: too, so the typed form is the twin
+        (bead oo-3rb.292.1); -initWithDictionary: converts and forwards to it.
 */
-- (id)initWithDictionary:(NSDictionary*)dictionary;
+- (id)initWithDictionary:(id)dictionary; // shared selector (Foundation declares -initWithDictionary: too): -cxx_initWithDictionary: with an Objective-C dictionary
+- (id)cxx_initWithDictionary:(const oo::PList&)dictionary OO_RETURNS_RETAINED;
 
 - (Octree*)octreeScaledBy:(GLfloat)factor;
 
@@ -67,7 +72,7 @@ MA 02110-1301, USA.
 - (BOOL)isHitByOctree:(Octree*)other withOrigin:(Vector)origin andIJK:(Triangle)ijk;
 - (BOOL)isHitByOctree:(Octree*)other withOrigin:(Vector)origin andIJK:(Triangle)ijk s1:(GLfloat)s1 s2:(GLfloat)s2;
 
-- (NSDictionary*)dictionaryRepresentation;
+- (oo::PList)cxx_dictionaryRepresentation; // the cache representation: a dictionary (-dictionaryRepresentation is a Foundation selector)
 
 - (GLfloat)volume;
 

@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 /*	Foundation sweep (proposed ADR-0043, bead oo-asx8): the models to check are a vector of
         distinct entries, in the order they were reported. Materials and shaders are plist data
         (oo::PList, null for none). +nameForReverseDependencyForVerifier: is a shared selector (the
-        other stages declare it) and keeps an Objective-C string result.
+        other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
 */
 struct OOModelVerifierEntry {
     std::string name;
@@ -53,7 +53,7 @@ struct OOModelVerifierEntry {
 }
 
 // Returns name to be used in -dependents by other stages; also registers stage.
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // shared selector (proposed ADR-0043)
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // flipped with its family (bead oo-3rb.274.2)
 
 /*	This can be called by other stages *before* the model stage runs.
         returns YES if the model is found, NO if it is not. Caller is responsible

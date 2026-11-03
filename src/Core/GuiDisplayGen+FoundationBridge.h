@@ -94,6 +94,9 @@ Copyright (C) 2004-2013 Giles C Williams and contributors (GuiDisplayGen.h)
 - (BOOL)preloadGUITexture:(NSDictionary*)descriptor; // -> -cxx_preloadGUITexture:
 - (NSDictionary*)textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext*)context callerDescription:(NSString*)callerDescription; // -> -cxx_textureDescriptorFromJSValue:inContext:callerDescription:
 
+// Chunk 5b (oo-3rb.96): equipment list.
+- (void)drawEquipmentList:(NSArray*)eqptList z:(GLfloat)z; // -> -cxx_drawEquipmentList:z:
+
 @end
 
 // Chunk 3 (oo-3rb.94): the gui-settings.plist keys as they were declared in GuiDisplayGen.h

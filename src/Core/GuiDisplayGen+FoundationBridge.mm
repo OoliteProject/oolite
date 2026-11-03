@@ -193,4 +193,9 @@ and converts the result exactly as the old method produced it (nil for nil).
     return oo::ObjectFromPList([self cxx_textureDescriptorFromJSValue:value inContext:context callerDescription:oo::OptionalString(callerDescription)]);
 }
 
+- (void)drawEquipmentList:(NSArray*)eqptList z:(GLfloat)z
+{
+    [self cxx_drawEquipmentList:oo::PListFrom(eqptList) z:z];
+}
+
 @end

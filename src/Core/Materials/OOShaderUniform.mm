@@ -155,7 +155,7 @@ SOFTWARE.
         location = glGetUniformLocationARB([shaderProgram program], uniformName.c_str());
         if (location == -1) {
             OK = NO;
-            OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", oo::NSStringFrom(uniformName), [target class], OOSelectorName(selector));
+            OO_LOG("shader.uniform.bind.failed", "Could not bind uniform \"{}\" to -[{} {}] (no uniform of that name could be found).", uniformName, oo::DescriptionOf([target class]), OOSelectorName(selector));
         }
     }
 
@@ -359,7 +359,7 @@ SOFTWARE.
 
     isActiveBinding = OK;
     if (!OK)
-        OOLog(@"shader.uniform.bind.failed", @"Shader could not bind uniform \"%@\" to -[%@ %s] (%@).", oo::NSStringFrom(name), [target class], OOSelectorName(value.binding.selector), oo::NSStringFrom(methodProblem));
+        OO_LOG("shader.uniform.bind.failed", "Shader could not bind uniform \"{}\" to -[{} {}] ({}).", name, oo::DescriptionOf([target class]), OOSelectorName(value.binding.selector), methodProblem);
 }
 
 @end

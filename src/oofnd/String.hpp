@@ -71,10 +71,15 @@
 #include <cstdio>
 #include <initializer_list>
 #include <iterator>
+#include <memory>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
+
+// ICU (C API), for localizedCompare: GNUstep-base already links it, so no new runtime dependency.
+#include <unicode/ucol.h>
+#include <unicode/uloc.h>
 
 namespace oo::str {
 
@@ -1251,6 +1256,48 @@ inline int caseInsensitiveCompare(std::string_view a, std::string_view b)
         u = toLower(u);
     const int c = ua.compare(ub);
     return c < 0 ? -1 : (c > 0 ? 1 : 0);
+}
+
+// -[NSString localizedCompare:] as an ordering (< 0, 0, > 0; bead oo-r4d6). GNUstep hands it to ICU:
+// a collator for [NSLocale currentLocale] -- ICU's default locale, en_US on the fleet machine -- at
+// its default attributes, comparing the strings as ICU does (so "a" < "A" < "b", "_x" < "1.10" <
+// "a", accents after the base letter, "e" + U+0301 equal to U+00E9). Pinned against a table
+// captured from GNUstep 1.31.1 in tests/unit/oofnd/test_localized_compare.cpp. The <locale> form
+// names the locale (the test's, so it does not depend on the machine); the two-argument form
+// uses ICU's default, as GNUstep does. If ICU cannot open a collator the literal order
+// (compare) decides, rather than calling everything equal.
+inline int localizedCompare(std::string_view a, std::string_view b, const char* locale)
+{
+    struct Closer {
+        void operator()(UCollator* c) const noexcept { ucol_close(c); }
+    };
+    // One collator per thread (a UCollator is not shared across threads), reopened only when
+    // the locale changes: ucol_open is far too slow to pay per comparison in a sort.
+    thread_local std::unique_ptr<UCollator, Closer> collator;
+    thread_local std::string openedFor;
+    thread_local bool opened = false;
+    const std::string wanted = (locale != nullptr) ? locale : "";
+    if (!opened || openedFor != wanted) {
+        UErrorCode status = U_ZERO_ERROR;
+        collator.reset(ucol_open(wanted.c_str(), &status));
+        if (U_FAILURE(status))
+            collator.reset();
+        openedFor = wanted;
+        opened = true;
+    }
+    if (!collator)
+        return compare(a, b);
+    UErrorCode status = U_ZERO_ERROR;
+    const UCollationResult r = ucol_strcollUTF8(collator.get(), a.data(), static_cast<int32_t>(a.size()),
+        b.data(), static_cast<int32_t>(b.size()), &status);
+    if (U_FAILURE(status))
+        return compare(a, b);
+    return r == UCOL_LESS ? -1 : (r == UCOL_GREATER ? 1 : 0);
+}
+
+inline int localizedCompare(std::string_view a, std::string_view b)
+{
+    return localizedCompare(a, b, uloc_getDefault());
 }
 
 // --- numbers --------------------------------------------------------------------------------

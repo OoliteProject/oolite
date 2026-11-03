@@ -37,10 +37,8 @@ SOFTWARE.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-56tr): file and folder names are UTF-8
-        std::strings; a name that could be nil is std::optional. The Foundation-typed API this header
-        declared moved to OOFileScannerVerifierStage+FoundationBridge.h (transitional), forwarding to
-        the cxx_ methods below.
+/*	Foundation sweep (proposed ADR-0043, bead oo-56tr / oo-cjel): file and folder names are UTF-8
+        std::strings; a name that could be nil is std::optional. Callers use the cxx_ methods below.
 */
 
 @interface OOFileScannerVerifierStage : OOOXPVerifierStage {
@@ -106,7 +104,7 @@ SOFTWARE.
 @interface OOListUnusedFilesStage : OOOXPVerifierStage
 
 // Returns name to be used in -dependents by other stages; also registers stage.
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // an Objective-C string. Shared selector (proposed ADR-0043).
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // flipped with its family (bead oo-3rb.274.2)
 
 @end
 
@@ -120,11 +118,5 @@ SOFTWARE.
 @interface OOFileHandlingVerifierStage : OOOXPVerifierStage
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-56tr, forwarding to the cxx_ methods above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "OOFileScannerVerifierStage+FoundationBridge.h"
 
 #endif

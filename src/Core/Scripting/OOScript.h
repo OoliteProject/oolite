@@ -33,11 +33,11 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 @class Entity;
 
@@ -60,8 +60,9 @@ MA 02110-1301, USA.
 + (id)cxx_jsAIScriptFromFileNamed:(const std::string&)fileName properties:(const oo::PList&)properties;
 
 - (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
-- (id)scriptDescription; // shared selector (proposed ADR-0043): an Objective-C string, or nil
-- (id)version; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (std::optional<std::string>)scriptDescription; // nullopt: none
+- (id)version; // shared selector (Foundation declares -version too): -cxx_version as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_version; // nullopt: none (bead oo-3rb.291.1)
 - (id)displayName; // shared selector (proposed ADR-0043): "name version" if version is defined, otherwise just "name".
 
 - (BOOL)requiresTickle;

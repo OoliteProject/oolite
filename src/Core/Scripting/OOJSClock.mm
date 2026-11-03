@@ -141,7 +141,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [player clockTimeAdjusted]);
 
     case kClock_legacy_scriptTimer:
-        OOStandardsDeprecated(@"The legacy_scriptTimer property is deprecated");
+        cxx_OOStandardsDeprecated("The legacy_scriptTimer property is deprecated");
         return JS_NewNumber(context, [player scriptTimer]);
 
     default:

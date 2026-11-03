@@ -26,15 +26,20 @@ SOFTWARE.
 */
 
 #import "OOPListSchemaVerifier.h"
+#include "oofnd/objc/OORuntime.h"
 #import <objc/objc-arc.h>
 #import <objc/runtime.h>
 
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
 #import "OOLoggingExtended.h"
 #import "OOMaths.h"
 #import "OOPListView.h"
+#import "OOStringBridge.h"
+#include "oofnd/Defaults.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 #include <limits.h>
 
@@ -55,30 +60,30 @@ enum {
 #if PLIST_VERIFIER_DEBUG_DUMP_ENABLED
 static BOOL sDebugDump = NO;
 
-#define DebugDumpIndent()  \
-    do {                   \
-        if (sDebugDump)    \
-            OOLogIndent(); \
-    } while (0)
-#define DebugDumpOutdent()  \
-    do {                    \
-        if (sDebugDump)     \
-            OOLogOutdent(); \
-    } while (0)
-#define DebugDumpPushIndent()  \
+#define DebugDumpIndent()      \
     do {                       \
         if (sDebugDump)        \
-            OOLogPushIndent(); \
+            oo::log::indent(); \
     } while (0)
-#define DebugDumpPopIndent()  \
-    do {                      \
-        if (sDebugDump)       \
-            OOLogPopIndent(); \
+#define DebugDumpOutdent()      \
+    do {                        \
+        if (sDebugDump)         \
+            oo::log::outdent(); \
+    } while (0)
+#define DebugDumpPushIndent()      \
+    do {                           \
+        if (sDebugDump)            \
+            oo::log::pushIndent(); \
+    } while (0)
+#define DebugDumpPopIndent()      \
+    do {                          \
+        if (sDebugDump)           \
+            oo::log::popIndent(); \
     } while (0)
 #define DebugDump(...)                                               \
     do {                                                             \
         if (sDebugDump)                                              \
-            OOLog(@"verifyOXP.verbose.plistDebugDump", __VA_ARGS__); \
+            OO_LOG("verifyOXP.verbose.plistDebugDump", __VA_ARGS__); \
     } while (0)
 #else
 #define DebugDumpIndent() \
@@ -273,9 +278,9 @@ VERIFY_PROTO(DelegatedType);
         _schema = schema;
         const oo::PList* definitions = _schema.get<oo::PList::Dict>("$definitions");
         _definitions = (definitions != nullptr) ? *definitions : oo::PList();
-        sDebugDump = [[NSUserDefaults standardUserDefaults] boolForKey:@"plist-schema-verifier-dump-structure"];
+        sDebugDump = oo::Defaults::standard().boolForKey("plist-schema-verifier-dump-structure") ? YES : NO;
         if (sDebugDump)
-            OOLogSetDisplayMessagesInClass(@"verifyOXP.verbose.plistDebugDump", YES);
+            oo::log::logger().setDisplay("verifyOXP.verbose.plistDebugDump", YES);
 
         if (!_schema) {
             [self release];
@@ -373,8 +378,13 @@ VERIFY_PROTO(DelegatedType);
                              againstType:oo::ObjectFromPList(typeKey)
                                    error:&error];
         }
-        @catch (NSException* exception) {
-            OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"%@\" at %@ in %@ -- treating as failure.", [exception name], oo::ObjectFromPList(typeKey), oo::NSStringFrom(KeyPathToString(keyPath)), oo::NSStringFrom(name));
+        @catch (OOException* exception) {
+            OO_LOG("plistVerifier.delegateException", "Property list schema verifier: delegate threw exception ({}) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"{}\" at {} in {} -- treating as failure.", [exception name], oo::DescriptionOf(oo::ObjectFromPList(typeKey)), KeyPathToString(keyPath), name);
+            result = NO;
+            error = nil;
+        }
+        @catch (OOFoundationException* exception) {
+            OO_LOG("plistVerifier.delegateException", "Property list schema verifier: delegate threw exception ({}) in -verifier:withPropertyList:named:testProperty:atPath:againstType: for type \"{}\" at {} in {} -- treating as failure.", oo::DescriptionOf([exception name]), oo::DescriptionOf(oo::ObjectFromPList(typeKey)), KeyPathToString(keyPath), name);
             result = NO;
             error = nil;
         }
@@ -388,7 +398,7 @@ VERIFY_PROTO(DelegatedType);
         }
     } else {
         if (!_badDelegateWarning) {
-            OOLog(@"plistVerifier.badDelegate", @"%@", @"Property list schema verifier: delegate does not handle delegated types.");
+            OO_LOG("plistVerifier.badDelegate", "{}", "Property list schema verifier: delegate does not handle delegated types.");
             _badDelegateWarning = YES;
         }
         result = YES;
@@ -415,12 +425,16 @@ VERIFY_PROTO(DelegatedType);
                                withError:error
                             expectedType:oo::ObjectFromPList(localSchema)];
         }
-        @catch (NSException* exception) {
-            OOLog(@"plistVerifier.delegateException", @"Property list schema verifier: delegate threw exception (%@) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at %@ in %@ -- stopping.", [exception name], oo::NSStringOrNil(KeyPathDescriptionOfError(error)), oo::NSStringFrom(name));
+        @catch (OOException* exception) {
+            OO_LOG("plistVerifier.delegateException", "Property list schema verifier: delegate threw exception ({}) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at {} in {} -- stopping.", [exception name], KeyPathDescriptionOfError(error).value_or("(null)"), name);
+            result = NO;
+        }
+        @catch (OOFoundationException* exception) {
+            OO_LOG("plistVerifier.delegateException", "Property list schema verifier: delegate threw exception ({}) in -verifier:withPropertyList:named:failedForProperty:atPath:expectedType: at {} in {} -- stopping.", oo::DescriptionOf([exception name]), KeyPathDescriptionOfError(error).value_or("(null)"), name);
             result = NO;
         }
     } else {
-        OOLog(@"plistVerifier.failed", @"Verification of property list \"%@\" failed at %@: %@", oo::NSStringFrom(name), oo::NSStringOrNil(KeyPathDescriptionOfError(error)), [error localizedFailureReason]);
+        OO_LOG("plistVerifier.failed", "Verification of property list \"{}\" failed at {}: {}", name, KeyPathDescriptionOfError(error).value_or("(null)"), oo::DescriptionOf([error localizedFailureReason]));
         result = NO;
     }
     return result;
@@ -479,7 +493,10 @@ VERIFY_PROTO(DelegatedType);
             *outStop = YES;
         }
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        error = Error(kPListErrorInternal, (BackLinkChain*)&keyPath, "Uncaught exception %s: %s in plist verifier for \"%s\" at %s.", oo::DescriptionOf(oo::NSStringFrom([exception name])).c_str(), oo::DescriptionOf(oo::NSStringFrom([exception reason])).c_str(), name.c_str(), KeyPathToString(keyPath).c_str());
+    }
+    @catch (OOFoundationException* exception) {
         error = Error(kPListErrorInternal, (BackLinkChain*)&keyPath, "Uncaught exception %s: %s in plist verifier for \"%s\" at %s.", oo::DescriptionOf([exception name]).c_str(), oo::DescriptionOf([exception reason]).c_str(), name.c_str(), KeyPathToString(keyPath).c_str());
     }
 
@@ -610,12 +627,12 @@ bool HasSubString(const std::string& string, const std::string& sub)
     return FindSubString(oo::utf8ToUtf16(string), oo::utf8ToUtf16(sub)) != std::u16string_view::npos;
 }
 
-// -substringToIndex: over UTF-16 units. Past the end GNUstep raised NSRangeException with this
+// -substringToIndex: over UTF-16 units. Past the end GNUstep raised OORangeException with this
 // reason (captured, whatever the string's class); -verifyPList: reports it as before.
 std::u16string SubstringToIndex(const std::u16string& units, unsigned long long index)
 {
     if (index > units.size()) {
-        [NSException raise:NSRangeException format:@"in substringWithRange:, range { 0, %llu } extends beyond size (%llu)", index, (unsigned long long)units.size()];
+        [OOException raise:OORangeException format:"in substringWithRange:, range { 0, %llu } extends beyond size (%llu)", index, (unsigned long long)units.size()];
     }
     return units.substr(0, index);
 }
@@ -873,7 +890,7 @@ static NSError* Verify_String(OOPListSchemaVerifier* /*verifier*/, const oo::PLi
     REQUIRE_PLIST_TYPE(isString, "string");
     const std::string& stringValue = *value.getIf<std::string>();
 
-    DebugDump(@"* string: \"%@\"", oo::NSStringFrom(StringForErrorReport(stringValue)));
+    DebugDump("* string: \"{}\"", StringForErrorReport(stringValue));
 
     // Apply filters
     const oo::PList* filter = params.find("filter");
@@ -937,7 +954,7 @@ static NSError* Verify_Array(OOPListSchemaVerifier* verifier, const oo::PList& v
     REQUIRE_PLIST_TYPE(isArray, "array");
     const oo::PList::Array& elements = *value.getIf<oo::PList::Array>();
 
-    DebugDump(@"%@", @"* array");
+    DebugDump("{}", "* array");
 
     // Apply count bounds.
     count = elements.size();
@@ -997,7 +1014,7 @@ static NSError* Verify_Dictionary(OOPListSchemaVerifier* verifier, const oo::PLi
     REQUIRE_PLIST_TYPE(isDict, "dictionary");
     const oo::PList::Dict& members = *value.getIf<oo::PList::Dict>();
 
-    DebugDump(@"%@", @"* dictionary");
+    DebugDump("{}", "* dictionary");
 
     // Apply count bounds.
     count = members.size();
@@ -1037,7 +1054,7 @@ static NSError* Verify_Dictionary(OOPListSchemaVerifier* verifier, const oo::PLi
         if (typeSpec == nullptr)
             typeSpec = valueType;
 
-        DebugDump(@"- \"%@\"", oo::NSStringFrom(key));
+        DebugDump("- \"{}\"", key);
         DebugDumpIndent();
 
         if (typeSpec != nullptr) {
@@ -1102,7 +1119,7 @@ static NSError* Verify_Integer(OOPListSchemaVerifier* /*verifier*/, const oo::PL
     // OOLongLongFromObject(value, d): d for nil and for what cannot be read.
     numericValue = oo::plist_get::longLongFrom(&value, 0);
 
-    DebugDump(@"* integer: %lli", numericValue);
+    DebugDump("* integer: {}", numericValue);
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     if (numericValue != oo::plist_get::longLongFrom(&value, 1)) {
@@ -1134,7 +1151,7 @@ static NSError* Verify_PositiveInteger(OOPListSchemaVerifier* /*verifier*/, cons
 
     numericValue = oo::plist_get::unsignedLongLongFrom(&value, 0);
 
-    DebugDump(@"* positive integer: %llu", numericValue);
+    DebugDump("* positive integer: {}", numericValue);
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     if (numericValue != oo::plist_get::unsignedLongLongFrom(&value, 1)) {
@@ -1167,7 +1184,7 @@ static NSError* Verify_Float(OOPListSchemaVerifier* /*verifier*/, const oo::PLis
     // OODoubleFromObject(value, d).
     numericValue = oo::plist_get::realFrom<double>(&value, 0);
 
-    DebugDump(@"* float: %g", numericValue);
+    DebugDump("* float: {:g}", numericValue);
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     if (numericValue != oo::plist_get::realFrom<double>(&value, 1)) {
@@ -1200,7 +1217,7 @@ static NSError* Verify_PositiveFloat(OOPListSchemaVerifier* /*verifier*/, const 
     // OODoubleFromObject(value, d).
     numericValue = oo::plist_get::realFrom<double>(&value, 0);
 
-    DebugDump(@"* positive float: %g", numericValue);
+    DebugDump("* positive float: {:g}", numericValue);
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     if (numericValue != oo::plist_get::realFrom<double>(&value, 1)) {
@@ -1236,7 +1253,7 @@ static NSError* Verify_OneOf(OOPListSchemaVerifier* verifier, const oo::PList& v
     NSError* error;
     oo::PList::Dict errors;
 
-    DebugDump(@"%@", @"* oneOf");
+    DebugDump("{}", "* oneOf");
 
     options = params.get<oo::PList::Array>("options");
     if (options == nullptr) {
@@ -1253,7 +1270,7 @@ static NSError* Verify_OneOf(OOPListSchemaVerifier* verifier, const oo::PList& v
                         tentative:YES
                             error:&error
                              stop:&stop]) {
-            DebugDump(@"%@", @"> Match.");
+            DebugDump("{}", "> Match.");
             OK = YES;
             break;
         }
@@ -1262,7 +1279,7 @@ static NSError* Verify_OneOf(OOPListSchemaVerifier* verifier, const oo::PList& v
     }
 
     if (!OK) {
-        DebugDump(@"%@", @"! No match.");
+        DebugDump("{}", "! No match.");
         return ErrorWithProperty(kPListErrorOneOfNoMatch, &keyPath, kErrorsByOptionErrorKey, oo::PList(std::move(errors)), "No matching type rule could be found.");
     }
 
@@ -1280,13 +1297,13 @@ static NSError* Verify_Enumeration(OOPListSchemaVerifier* /*verifier*/, const oo
     std::string filteredString;
     NSError* error = nil;
 
-    DebugDump(@"%@", @"* enumeration");
+    DebugDump("{}", "* enumeration");
 
     REQUIRE_PLIST_TYPE(isString, "string");
     const std::string& stringValue = *value.getIf<std::string>();
 
     values = params.get<oo::PList::Array>("values");
-    DebugDump(@"  - \"%@\" in %@", oo::NSStringFrom(StringForErrorReport(stringValue)), oo::NSStringFrom(ArrayForErrorReport((values != nullptr) ? *values : oo::PList())));
+    DebugDump("  - \"{}\" in {}", StringForErrorReport(stringValue), ArrayForErrorReport((values != nullptr) ? *values : oo::PList()));
 
     if (values == nullptr) {
         *outStop = YES;
@@ -1311,7 +1328,7 @@ namespace {
 
 static NSError* Verify_Boolean(OOPListSchemaVerifier* /*verifier*/, const oo::PList& value, const oo::PList& /*params*/, const oo::PList& /*rootPList*/, const std::string& /*name*/, BackLinkChain keyPath, BOOL /*tentative*/, BOOL* /*outStop*/)
 {
-    DebugDump(@"* boolean: %@", oo::ObjectFromPList(value));
+    DebugDump("* boolean: {}", oo::DescriptionOf(oo::ObjectFromPList(value)));
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     if (oo::plist_get::boolFrom(&value, false) == oo::plist_get::boolFrom(&value, true))
@@ -1326,7 +1343,7 @@ namespace {
 
 static NSError* Verify_FuzzyBoolean(OOPListSchemaVerifier* /*verifier*/, const oo::PList& value, const oo::PList& /*params*/, const oo::PList& /*rootPList*/, const std::string& /*name*/, BackLinkChain keyPath, BOOL /*tentative*/, BOOL* /*outStop*/)
 {
-    DebugDump(@"* fuzzy boolean: %@", oo::ObjectFromPList(value));
+    DebugDump("* fuzzy boolean: {}", oo::DescriptionOf(oo::ObjectFromPList(value)));
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     if (oo::plist_get::realFrom<double>(&value, 0) == oo::plist_get::realFrom<double>(&value, 1) || oo::plist_get::boolFrom(&value, false) == oo::plist_get::boolFrom(&value, true))
@@ -1341,7 +1358,7 @@ namespace {
 
 static NSError* Verify_Vector(OOPListSchemaVerifier* /*verifier*/, const oo::PList& value, const oo::PList& /*params*/, const oo::PList& /*rootPList*/, const std::string& /*name*/, BackLinkChain keyPath, BOOL /*tentative*/, BOOL* /*outStop*/)
 {
-    DebugDump(@"* vector: %@", oo::ObjectFromPList(value));
+    DebugDump("* vector: {}", oo::DescriptionOf(oo::ObjectFromPList(value)));
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     // OOVectorFromObject is not migrated: it reads the same object.
@@ -1357,7 +1374,7 @@ namespace {
 
 static NSError* Verify_Quaternion(OOPListSchemaVerifier* /*verifier*/, const oo::PList& value, const oo::PList& /*params*/, const oo::PList& /*rootPList*/, const std::string& /*name*/, BackLinkChain keyPath, BOOL /*tentative*/, BOOL* /*outStop*/)
 {
-    DebugDump(@"* quaternion: %@", oo::ObjectFromPList(value));
+    DebugDump("* quaternion: {}", oo::DescriptionOf(oo::ObjectFromPList(value)));
 
     // Check basic parseability. If there's inequality here, the default value is being returned.
     // OOQuaternionFromObject is not migrated: it reads the same object.
@@ -1380,7 +1397,7 @@ static NSError* Verify_DelegatedType(OOPListSchemaVerifier* verifier, const oo::
     const oo::PList* keyValue = params.find("key");
     const oo::PList key = (keyValue != nullptr) ? *keyValue : oo::PList();
 
-    DebugDump(@"* delegated type: %@", oo::ObjectFromPList(key));
+    DebugDump("* delegated type: {}", oo::DescriptionOf(oo::ObjectFromPList(key)));
 
     baseType = params.find("baseType");
     if (baseType != nullptr) {

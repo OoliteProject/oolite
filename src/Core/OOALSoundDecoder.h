@@ -30,6 +30,7 @@ SOFTWARE.
 
 */
 
+#import "OOFunctionAttributes.h"
 #import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
@@ -39,7 +40,8 @@ SOFTWARE.
 
 @interface OOALSoundDecoder : OOObject
 
-- (id)initWithPath:(id)inPath; // inPath: an Objective-C string. Shared selector (proposed ADR-0043).
+- (id)initWithPath:(id)inPath; // inPath: an Objective-C string. Shared selector (Foundation declares -initWithPath: too): -cxx_initWithPath:.
+- (id)cxx_initWithPath:(const std::optional<std::string>&)inPath OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
 + (OOALSoundDecoder*)codecWithPath:(const std::string&)inPath;
 
 // Full-buffer reading.

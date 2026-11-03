@@ -59,7 +59,7 @@ bool Contains(const std::vector<std::string>& strings, std::string_view string)
     OOFileScannerVerifierStage* fileScanner = nil;
 
     fileScanner = [[self verifier] fileScannerStage];
-    return (!oo::StringsFrom([fileScanner filesInFolder:@"Scripts"]).empty() || Contains(oo::StringsFrom([fileScanner filesInFolder:@"Config"]), "script.js"));
+    return (![fileScanner cxx_filesInFolder:"Scripts"].value_or(std::vector<std::string> { }).empty() || Contains([fileScanner cxx_filesInFolder:"Config"].value_or(std::vector<std::string> { }), "script.js"));
 }
 
 - (void)run
@@ -70,9 +70,9 @@ bool Contains(const std::vector<std::string>& strings, std::string_view string)
     BOOL configScript = NO;
 
     fileScanner = [[self verifier] fileScannerStage];
-    scriptsFolder = [fileScanner filesInFolder:@"Scripts"] != nil;
-    scriptFiles = oo::StringsFrom([fileScanner filesInFolder:@"Scripts"]);
-    configScript = Contains(oo::StringsFrom([fileScanner filesInFolder:@"Config"]), "script.js");
+    scriptsFolder = [fileScanner cxx_filesInFolder:"Scripts"].has_value();
+    scriptFiles = [fileScanner cxx_filesInFolder:"Scripts"].value_or(std::vector<std::string> { });
+    configScript = Contains([fileScanner cxx_filesInFolder:"Config"].value_or(std::vector<std::string> { }), "script.js");
 
     if (scriptsFolder == NO && configScript == NO)
         return;
@@ -82,12 +82,12 @@ bool Contains(const std::vector<std::string>& strings, std::string_view string)
     for (const std::string& scriptFile : scriptFiles) {
         const std::string fileExt = oo::str::lowercase(oo::str::pathExtension(scriptFile));
         if (fileExt == "js" || fileExt == "es") {
-            OOScript* script = [OOJSScript scriptWithPath:oo::OptionalString([fileScanner pathForFile:oo::NSStringFrom(scriptFile) inFolder:@"Scripts" referencedFrom:nil checkBuiltIn:NO]) properties:oo::PList()];
+            OOScript* script = [OOJSScript scriptWithPath:[fileScanner cxx_pathForFile:scriptFile inFolder:"Scripts" referencedFrom:std::nullopt checkBuiltIn:NO] properties:oo::PList()];
             (void)script;
         }
     }
     if (configScript == YES) {
-        OOScript* script = [OOJSScript scriptWithPath:oo::OptionalString([fileScanner pathForFile:@"script.js" inFolder:@"Config" referencedFrom:nil checkBuiltIn:NO]) properties:oo::PList()];
+        OOScript* script = [OOJSScript scriptWithPath:[fileScanner cxx_pathForFile:"script.js" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO] properties:oo::PList()];
         (void)script;
     }
 }

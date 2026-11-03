@@ -8,7 +8,6 @@ OOMaterial.
 Note: OOTexture is abstract. The factory methods return instances of
 OOConcreteTexture, but special-case implementations are possible.
 
-
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,7 +32,7 @@ SOFTWARE.
 
 #pragma once
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 
 #import "OOOpenGL.h"
 #import "OOPixMap.h"

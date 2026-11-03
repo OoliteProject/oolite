@@ -31,11 +31,11 @@ SOFTWARE.
 #import "OOTexture.h"
 #include "oofnd/objc/OORuntime.h"
 
-#import "NSDictionaryOOExtensions.h"
-#import "NSStringOOExtensions.h"
+#import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
 #import "OOMaterialSpecifier.h"
-#import "OOPListView.h"
 #import "ResourceManager.h"
+#include "oofnd/Log.hpp"
 #include "oofnd/StdLib.hpp"
 
 /*
@@ -49,40 +49,49 @@ SOFTWARE.
 #define NSIntegerHashCallBacks NSIntHashCallBacks
 #endif
 
-static NSDictionary* CanonicalizeMaterialSpecifier(NSDictionary* spec, NSString* materialKey);
+namespace {
 
-static NSString* FormatFloat(double value);
+oo::PList CanonicalizeMaterialSpecifier(const oo::PList& spec, const std::optional<std::string>& materialKey);
+
+} // namespace
+
+namespace {
+
+std::string FormatFloat(double value);
+
+} // namespace
 
 @interface OODefaultShaderSynthesizer : OOObject {
 @private
-    NSDictionary* _configuration;
-    NSString* _materialKey;
-    NSString* _entityName;
+    oo::PList _configuration;
+    std::optional<std::string> _materialKey;
+    std::optional<std::string> _entityName;
 
-    NSString* _vertexShader;
-    NSString* _fragmentShader;
-    NSMutableArray* _textures;
-    NSMutableDictionary* _uniforms;
+    std::string _vertexShader;
+    std::string _fragmentShader;
+    std::vector<oo::PList> _textures; // the texture list, in insertion order
+    oo::PList::Dict _uniforms; // uniform name -> specification (byte order of the name)
 
-    NSMutableString* _attributes;
-    NSMutableString* _varyings;
-    NSMutableString* _vertexUniforms;
-    NSMutableString* _fragmentUniforms;
-    NSMutableString* _vertexHelpers;
-    NSMutableString* _fragmentHelpers;
-    NSMutableString* _vertexBody;
-    NSMutableString* _fragmentPreTextures;
-    NSMutableString* _fragmentTextureLookups;
-    NSMutableString* _fragmentBody;
+    std::string _attributes;
+    std::string _varyings;
+    std::string _vertexUniforms;
+    std::string _fragmentUniforms;
+    std::string _vertexHelpers;
+    std::string _fragmentHelpers;
+    std::string _vertexBody;
+    std::string _fragmentPreTextures;
+    std::string _fragmentTextureLookups;
+    std::string _fragmentBody;
 
     // _texturesByName: dictionary mapping texture file names to texture specifications.
-    NSMutableDictionary* _texturesByName;
+    std::map<std::string, oo::PList> _texturesByName;
     // _textureIDs: dictionary mapping texture file names to numerical IDs used to name variables.
-    NSMutableDictionary* _textureIDs;
+    std::map<std::string, NSUInteger> _textureIDs;
     // _sampledTextures: hash of integer texture IDs for which we’ve set up a sample.
     std::unordered_set<NSUInteger> _sampledTextures; // was an integer hash table (bead oo-3rb.20)
 
-    NSMutableDictionary* _uniformBindingNames;
+    // _uniformBindingNames: binding specification -> uniform name (compared with oo::PList ==).
+    std::vector<std::pair<oo::PList, std::string>> _uniformBindingNames;
 
     NSUInteger _usesNormalMap : 1,
         _usesDiffuseTerm : 1,
@@ -110,19 +119,19 @@ static NSString* FormatFloat(double value);
 #endif
 }
 
-- (id)initWithMaterialConfiguration:(NSDictionary*)configuration
-                        materialKey:(NSString*)materialKey
-                         entityName:(NSString*)name;
+- (id)initWithMaterialConfiguration:(const oo::PList&)configuration
+                        materialKey:(const std::optional<std::string>&)materialKey
+                         entityName:(const std::optional<std::string>&)name;
 
 - (BOOL)run;
 
-- (NSString*)vertexShader;
-- (NSString*)fragmentShader;
-- (NSArray*)textureSpecifications;
-- (NSDictionary*)uniformSpecifications;
+- (std::string)vertexShader;
+- (std::string)fragmentShader;
+- (oo::PList)textureSpecifications; // an array
+- (oo::PList)uniformSpecifications; // a dictionary
 
-- (NSString*)materialKey;
-- (NSString*)entityName;
+- (std::optional<std::string>)materialKey;
+- (std::optional<std::string>)entityName;
 
 - (void)createTemporaries;
 - (void)destroyTemporaries;
@@ -131,22 +140,22 @@ static NSString* FormatFloat(double value);
 - (void)composeFragmentShader;
 
 // Write various types of declarations.
-- (void)appendVariable:(NSString*)name ofType:(NSString*)type withPrefix:(NSString*)prefix to:(NSMutableString*)buffer;
-- (void)addAttribute:(NSString*)name ofType:(NSString*)type;
-- (void)addVarying:(NSString*)name ofType:(NSString*)type;
-- (void)addVertexUniform:(NSString*)name ofType:(NSString*)type;
-- (void)addFragmentUniform:(NSString*)name ofType:(NSString*)type;
+- (void)appendVariable:(const std::string&)name ofType:(const std::string&)type withPrefix:(const std::string&)prefix to:(std::string&)buffer;
+- (void)addAttribute:(const std::string&)name ofType:(const std::string&)type;
+- (void)addVarying:(const std::string&)name ofType:(const std::string&)type;
+- (void)addVertexUniform:(const std::string&)name ofType:(const std::string&)type;
+- (void)addFragmentUniform:(const std::string&)name ofType:(const std::string&)type;
 
 // Create or retrieve a uniform variable name for a given binding.
-- (NSString*)defineBindingUniform:(NSDictionary*)binding ofType:(NSString*)type;
+- (std::optional<std::string>)defineBindingUniform:(const oo::PList&)binding ofType:(const std::string&)type;
 
-- (NSString*)readRGBForTextureSpec:(NSDictionary*)textureSpec mapName:(NSString*)mapName; // Generate a read for an RGB value, or a single channel splatted across RGB.
-- (NSString*)readOneChannelForTextureSpec:(NSDictionary*)textureSpec mapName:(NSString*)mapName; // Generate a read for a single channel.
+- (std::optional<std::string>)readRGBForTextureSpec:(const oo::PList&)textureSpec mapName:(const std::string&)mapName; // Generate a read for an RGB value, or a single channel splatted across RGB.
+- (std::optional<std::string>)readOneChannelForTextureSpec:(const oo::PList&)textureSpec mapName:(const std::string&)mapName; // Generate a read for a single channel.
 
 // Details of texture setup; generally use -read*ForTextureSpec:mapName: instead.
-- (NSUInteger)textureIDForSpec:(NSDictionary*)textureSpec;
-- (void)setUpOneTexture:(NSDictionary*)textureSpec;
-- (void)getSampleName:(NSString**)outSampleName andSwizzleOp:(NSString**)outSwizzleOp forTextureSpec:(NSDictionary*)textureSpec;
+- (NSUInteger)textureIDForSpec:(const oo::PList&)textureSpec;
+- (void)setUpOneTexture:(const oo::PList&)textureSpec;
+- (void)getSampleName:(std::string*)outSampleName andSwizzleOp:(std::string*)outSwizzleOp forTextureSpec:(const oo::PList&)textureSpec; // swizzle "" = none
 
 /*	Stages. These should only be called through the REQUIRE_STAGE macro to
         avoid duplicated code and ensure data depedencies are met.
@@ -261,11 +270,15 @@ static NSString* FormatFloat(double value);
 
 @end
 
-static NSString* GetExtractMode(NSDictionary* textureSpecifier);
+namespace {
 
-BOOL OOSynthesizeMaterialShader(NSDictionary* configuration, NSString* materialKey, NSString* entityName, NSString** outVertexShader, NSString** outFragmentShader, NSArray** outTextureSpecs, NSDictionary** outUniformSpecs)
+std::optional<std::string> GetExtractMode(const oo::PList& textureSpecifier);
+
+} // namespace
+
+BOOL OOSynthesizeMaterialShader(const oo::PList& configuration, const std::optional<std::string>& materialKey, const std::optional<std::string>& entityName, std::string* outVertexShader, std::string* outFragmentShader, oo::PList* outTextureSpecs, oo::PList* outUniformSpecs)
 {
-    NSCParameterAssert(configuration != nil && outVertexShader != NULL && outFragmentShader != NULL && outTextureSpecs != NULL && outUniformSpecs != NULL);
+    NSCParameterAssert(!configuration.isNull() && outVertexShader != NULL && outFragmentShader != NULL && outTextureSpecs != NULL && outUniformSpecs != NULL);
 
     @autoreleasepool {
         OODefaultShaderSynthesizer* synthesizer = [[OODefaultShaderSynthesizer alloc]
@@ -276,36 +289,31 @@ BOOL OOSynthesizeMaterialShader(NSDictionary* configuration, NSString* materialK
 
         BOOL OK = [synthesizer run];
         if (OK) {
-            *outVertexShader = [[synthesizer vertexShader] retain];
-            *outFragmentShader = [[synthesizer fragmentShader] retain];
-            *outTextureSpecs = [[synthesizer textureSpecifications] retain];
-            *outUniformSpecs = [[synthesizer uniformSpecifications] retain];
+            *outVertexShader = [synthesizer vertexShader];
+            *outFragmentShader = [synthesizer fragmentShader];
+            *outTextureSpecs = [synthesizer textureSpecifications];
+            *outUniformSpecs = [synthesizer uniformSpecifications];
         } else {
-            *outVertexShader = nil;
-            *outFragmentShader = nil;
-            *outTextureSpecs = nil;
-            *outUniformSpecs = nil;
+            outVertexShader->clear();
+            outFragmentShader->clear();
+            *outTextureSpecs = oo::PList();
+            *outUniformSpecs = oo::PList();
         }
     }
-
-    [*outVertexShader autorelease];
-    [*outFragmentShader autorelease];
-    [*outTextureSpecs autorelease];
-    [*outUniformSpecs autorelease];
 
     return YES;
 }
 
 @implementation OODefaultShaderSynthesizer
 
-- (id)initWithMaterialConfiguration:(NSDictionary*)configuration
-                        materialKey:(NSString*)materialKey
-                         entityName:(NSString*)name
+- (id)initWithMaterialConfiguration:(const oo::PList&)configuration
+                        materialKey:(const std::optional<std::string>&)materialKey
+                         entityName:(const std::optional<std::string>&)name
 {
     if ((self = [super init])) {
-        _configuration = [CanonicalizeMaterialSpecifier(configuration, materialKey) retain];
-        _materialKey = [materialKey copy];
-        _entityName = [_entityName copy];
+        _configuration = CanonicalizeMaterialSpecifier(configuration, materialKey);
+        _materialKey = materialKey;
+        // _entityName stays nil: upstream copied it from itself ([_entityName copy]) instead of name.
     }
 
     return self;
@@ -314,50 +322,36 @@ BOOL OOSynthesizeMaterialShader(NSDictionary* configuration, NSString* materialK
 - (void)dealloc
 {
     [self destroyTemporaries];
-    DESTROY(_configuration);
-    DESTROY(_materialKey);
-    DESTROY(_entityName);
-    DESTROY(_vertexShader);
-    DESTROY(_fragmentShader);
-    DESTROY(_textures);
 
     [super dealloc];
 }
 
-- (NSString*)vertexShader
+- (std::string)vertexShader
 {
     return _vertexShader;
 }
 
-- (NSString*)fragmentShader
+- (std::string)fragmentShader
 {
     return _fragmentShader;
 }
 
-- (NSArray*)textureSpecifications
+- (oo::PList)textureSpecifications
 {
-#ifndef NDEBUG
-    return [NSArray arrayWithArray:_textures];
-#else
-    return _textures;
-#endif
+    return oo::PList(oo::PList::Array(_textures));
 }
 
-- (NSDictionary*)uniformSpecifications
+- (oo::PList)uniformSpecifications
 {
-#ifndef NDEBUG
-    return [NSDictionary dictionaryWithDictionary:_uniforms];
-#else
-    return _uniforms;
-#endif
+    return oo::PList(_uniforms);
 }
 
 - (BOOL)run
 {
     [self createTemporaries];
-    _uniforms = [[NSMutableDictionary alloc] init];
-    [_vertexBody appendString:@"void main(void)\n{\n"];
-    [_fragmentPreTextures appendString:@"void main(void)\n{\n"];
+    _uniforms.clear();
+    _vertexBody += "void main(void)\n{\n";
+    _fragmentPreTextures += "void main(void)\n{\n";
 
     @try {
         REQUIRE_STAGE(writeFinalColorComposite);
@@ -365,7 +359,11 @@ BOOL OOSynthesizeMaterialShader(NSDictionary* configuration, NSString* materialK
         [self composeVertexShader];
         [self composeFragmentShader];
     }
-    @catch (NSException* exception) {
+    @catch (OOException* exception) {
+        // Error should have been reported already.
+        return NO;
+    }
+    @catch (OOFoundationException* exception) {
         // Error should have been reported already.
         return NO;
     }
@@ -376,156 +374,170 @@ BOOL OOSynthesizeMaterialShader(NSDictionary* configuration, NSString* materialK
     return YES;
 }
 
-- (NSString*)materialKey
+- (std::optional<std::string>)materialKey
 {
     return _materialKey;
 }
 
-- (NSString*)entityName
+- (std::optional<std::string>)entityName
 {
     return _entityName;
 }
 
 // MARK: - Utilities
 
-static void AppendIfNotEmpty(NSMutableString* buffer, NSString* segment, NSString* name)
+namespace {
+
+void AppendIfNotEmpty(std::string& buffer, const std::string& segment, const char* name)
 {
-    if ([segment length] > 0) {
-        if ([buffer length] > 0)
-            [buffer appendString:@"\n\n"];
-        if ([name length] > 0)
-            [buffer appendFormat:@"// %@\n", name];
-        [buffer appendString:segment];
+    if (!segment.empty()) {
+        if (!buffer.empty())
+            buffer += "\n\n";
+        if (name != nullptr && name[0] != '\0') {
+            buffer += "// ";
+            buffer += name;
+            buffer += "\n";
+        }
+        buffer += segment;
     }
 }
 
-static NSString* GetExtractMode(NSDictionary* textureSpecifier)
+} // namespace
+
+namespace {
+
+/*	The extract_channel of a texture specifier if it is one to four of r, g, b and a, else nil.
+        (A number never qualifies, so only a string value is read; all-ASCII, so its UTF-8 length is its
+        length in characters.)
+*/
+std::optional<std::string> GetExtractMode(const oo::PList& textureSpecifier)
 {
-    NSString* result = nil;
+    std::optional<std::string> result;
 
-    NSString* rawMode = oo::PListView(textureSpecifier).get<NSString*>(kOOTextureSpecifierSwizzleKey);
-    if (rawMode != nil) {
-        NSUInteger length = [rawMode length];
-        if (1 <= length && length <= 4) {
-            static NSCharacterSet* nonRGBACharset = nil;
-            if (nonRGBACharset == nil) {
-                nonRGBACharset = [[[NSCharacterSet characterSetWithCharactersInString:@"rgba"] invertedSet] retain];
-            }
-
-            if ([rawMode rangeOfCharacterFromSet:nonRGBACharset].location == NSNotFound) {
-                result = rawMode;
-            }
+    const oo::PList* value = textureSpecifier.find(cxx_kOOTextureSpecifierSwizzleKey);
+    const std::string* rawMode = (value != nullptr) ? value->getIf<std::string>() : nullptr;
+    if (rawMode != nullptr) {
+        std::size_t length = rawMode->size();
+        if (1 <= length && length <= 4 && rawMode->find_first_not_of("rgba") == std::string::npos) {
+            result = *rawMode;
         }
     }
 
     return result;
 }
 
-- (void)appendVariable:(NSString*)name ofType:(NSString*)type withPrefix:(NSString*)prefix to:(NSMutableString*)buffer
+// The string-typed read of the value for key that oo::PListView did: a string, or a number as a string; anything else nil.
+std::optional<std::string> OptionalStringFor(const oo::PList& spec, const char* key)
 {
-    NSUInteger typeDeclLength = [prefix length] + [type length] + 1;
+    const oo::PList* value = spec.find(key);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return spec.get<std::string>(key);
+}
+
+} // namespace
+
+- (void)appendVariable:(const std::string&)name ofType:(const std::string&)type withPrefix:(const std::string&)prefix to:(std::string&)buffer
+{
+    NSUInteger typeDeclLength = prefix.size() + type.size() + 1;
     NSUInteger padding = (typeDeclLength < 20) ? (23 - typeDeclLength) / 4 : 1;
-    [buffer appendFormat:@"%@ %@%@%@;\n", prefix, type, OOTabString(padding), name];
+    buffer += prefix + " " + type + std::string(padding, '\t') + name + ";\n";
 }
 
-- (void)addAttribute:(NSString*)name ofType:(NSString*)type
+- (void)addAttribute:(const std::string&)name ofType:(const std::string&)type
 {
-    [self appendVariable:name ofType:type withPrefix:@"attribute" to:_attributes];
+    [self appendVariable:name ofType:type withPrefix:"attribute" to:_attributes];
 }
 
-- (void)addVarying:(NSString*)name ofType:(NSString*)type
+- (void)addVarying:(const std::string&)name ofType:(const std::string&)type
 {
-    [self appendVariable:name ofType:type withPrefix:@"varying" to:_varyings];
+    [self appendVariable:name ofType:type withPrefix:"varying" to:_varyings];
 }
 
-- (void)addVertexUniform:(NSString*)name ofType:(NSString*)type
+- (void)addVertexUniform:(const std::string&)name ofType:(const std::string&)type
 {
-    [self appendVariable:name ofType:type withPrefix:@"uniform" to:_vertexUniforms];
+    [self appendVariable:name ofType:type withPrefix:"uniform" to:_vertexUniforms];
 }
 
-- (void)addFragmentUniform:(NSString*)name ofType:(NSString*)type
+- (void)addFragmentUniform:(const std::string&)name ofType:(const std::string&)type
 {
-    [self appendVariable:name ofType:type withPrefix:@"uniform" to:_fragmentUniforms];
+    [self appendVariable:name ofType:type withPrefix:"uniform" to:_fragmentUniforms];
 }
 
-- (NSString*)defineBindingUniform:(NSDictionary*)binding ofType:(NSString*)type
+- (std::optional<std::string>)defineBindingUniform:(const oo::PList&)binding ofType:(const std::string&)type
 {
-    NSString* name = oo::PListView(binding).get<NSString*>(@"binding");
-    NSParameterAssert([name length] > 0);
+    std::string name = OptionalStringFor(binding, "binding").value_or(std::string());
+    NSParameterAssert(!name.empty());
 
-    NSMutableDictionary* bindingSpec = [[binding mutableCopy] autorelease];
-    if (oo::PListView(bindingSpec).get<NSString*>(@"type") == nil)
-        [bindingSpec setObject:@"binding" forKey:@"type"];
+    oo::PList bindingSpec = binding;
+    if (!OptionalStringFor(bindingSpec, "type").has_value()) {
+        if (oo::PList::Dict* dict = bindingSpec.getIf<oo::PList::Dict>())
+            (*dict)["type"] = oo::PList("binding");
+    }
 
     // Use existing uniform if one is defined.
-    NSString* uniformName = [_uniformBindingNames objectForKey:bindingSpec];
-    if (uniformName != nil)
-        return uniformName;
+    for (const auto& [spec, uniformName] : _uniformBindingNames) {
+        if (spec == bindingSpec)
+            return uniformName;
+    }
 
-    // Capitalize first char of name, and prepend u.
-    unichar firstChar = toupper([name characterAtIndex:0]);
-    NSString* baseName = [NSString stringWithFormat:@"u%C%@", firstChar, [name substringFromIndex:1]];
+    // Capitalize first char of name, and prepend u. (Binding names are ASCII property names.)
+    std::string baseName = "u";
+    baseName += static_cast<char>(toupper(static_cast<unsigned char>(name[0])));
+    baseName += name.substr(1);
 
     // Ensure name is unique.
     name = baseName;
     unsigned idx = 1;
-    while ([_uniforms objectForKey:name] != nil) {
-        name = [NSString stringWithFormat:@"%@%u", baseName, ++idx];
+    while (_uniforms.contains(name)) {
+        name = oo::str::format("%s%u", baseName.c_str(), ++idx);
     }
 
     [self addFragmentUniform:name ofType:type];
 
-    [_uniforms setObject:bindingSpec forKey:name];
-    [_uniformBindingNames setObject:name forKey:bindingSpec];
+    _uniforms[name] = bindingSpec;
+    _uniformBindingNames.emplace_back(bindingSpec, name);
 
     return name;
 }
 
 - (void)composeVertexShader
 {
-    while ([_vertexBody hasSuffix:@"\t\n"]) {
-        [_vertexBody deleteCharactersInRange:(NSRange) { [_vertexBody length] - 2, 2 }];
+    while (_vertexBody.ends_with("\t\n")) {
+        _vertexBody.erase(_vertexBody.size() - 2);
     }
-    [_vertexBody appendString:@"}"];
+    _vertexBody += "}";
 
-    NSMutableString* vertexShader = [NSMutableString string];
-    AppendIfNotEmpty(vertexShader, _attributes, @"Attributes");
-    AppendIfNotEmpty(vertexShader, _vertexUniforms, @"Uniforms");
-    AppendIfNotEmpty(vertexShader, _varyings, @"Varyings");
-    AppendIfNotEmpty(vertexShader, _vertexHelpers, @"Helper functions");
-    AppendIfNotEmpty(vertexShader, _vertexBody, nil);
+    std::string vertexShader;
+    AppendIfNotEmpty(vertexShader, _attributes, "Attributes");
+    AppendIfNotEmpty(vertexShader, _vertexUniforms, "Uniforms");
+    AppendIfNotEmpty(vertexShader, _varyings, "Varyings");
+    AppendIfNotEmpty(vertexShader, _vertexHelpers, "Helper functions");
+    AppendIfNotEmpty(vertexShader, _vertexBody, nullptr);
 
-#ifndef NDEBUG
-    _vertexShader = [vertexShader copy];
-#else
-    _vertexShader = [vertexShader retain];
-#endif
+    _vertexShader = vertexShader;
 }
 
 - (void)composeFragmentShader
 {
-    while ([_fragmentBody hasSuffix:@"\t\n"]) {
-        [_fragmentBody deleteCharactersInRange:(NSRange) { [_fragmentBody length] - 2, 2 }];
+    while (_fragmentBody.ends_with("\t\n")) {
+        _fragmentBody.erase(_fragmentBody.size() - 2);
     }
 
-    NSMutableString* fragmentShader = [NSMutableString string];
-    AppendIfNotEmpty(fragmentShader, _fragmentUniforms, @"Uniforms");
-    AppendIfNotEmpty(fragmentShader, _varyings, @"Varyings");
-    AppendIfNotEmpty(fragmentShader, _fragmentHelpers, @"Helper functions");
-    AppendIfNotEmpty(fragmentShader, _fragmentPreTextures, nil);
-    if ([_fragmentTextureLookups length] > 0) {
-        [fragmentShader appendString:@"\t\n\t// Texture lookups\n"];
-        [fragmentShader appendString:_fragmentTextureLookups];
+    std::string fragmentShader;
+    AppendIfNotEmpty(fragmentShader, _fragmentUniforms, "Uniforms");
+    AppendIfNotEmpty(fragmentShader, _varyings, "Varyings");
+    AppendIfNotEmpty(fragmentShader, _fragmentHelpers, "Helper functions");
+    AppendIfNotEmpty(fragmentShader, _fragmentPreTextures, nullptr);
+    if (!_fragmentTextureLookups.empty()) {
+        fragmentShader += "\t\n\t// Texture lookups\n";
+        fragmentShader += _fragmentTextureLookups;
     }
-    [fragmentShader appendString:@"\t\n"];
-    [fragmentShader appendString:_fragmentBody];
-    [fragmentShader appendString:@"}"];
+    fragmentShader += "\t\n";
+    fragmentShader += _fragmentBody;
+    fragmentShader += "}";
 
-#ifndef NDEBUG
-    _fragmentShader = [fragmentShader copy];
-#else
-    _fragmentShader = [fragmentShader retain];
-#endif
+    _fragmentShader = fragmentShader;
 }
 
 /*
@@ -534,7 +546,9 @@ static NSString* GetExtractMode(NSDictionary* textureSpecifier)
 
         FIXME: efficiency and stuff.
 */
-static NSString* KeyFromTextureParameters(NSString* name, OOTextureFlags options, float anisotropy, float lodBias)
+namespace {
+
+std::string KeyFromTextureParameters(const std::string& name, OOTextureFlags options, float anisotropy, float lodBias)
 {
 #ifndef NDEBUG
     options = OOApplyTextureOptionDefaults(options);
@@ -543,52 +557,53 @@ static NSString* KeyFromTextureParameters(NSString* name, OOTextureFlags options
     // Extraction modes are ignored in synthesized shaders, since we use swizzling instead.
     options &= ~kOOTextureExtractChannelMask;
 
-    return [NSString stringWithFormat:@"%@:%X:%g:%g", name, options, anisotropy, lodBias];
+    return oo::str::format("%s:%X:%g:%g", name.c_str(), options, anisotropy, lodBias);
 }
 
-static NSString* KeyFromTextureSpec(NSDictionary* spec)
+std::string KeyFromTextureSpec(const oo::PList& spec)
 {
-    NSString* texName = nil;
+    std::string texName;
     OOTextureFlags texOptions;
     float anisotropy, lodBias;
-    if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy, &lodBias, YES)) {
+    if (!cxx_OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy, &lodBias, YES)) {
         // OOInterpretTextureSpecifier() will have logged something.
-        [NSException raise:NSGenericException format:@"Invalid texture specifier"];
+        [OOException raise:OOGenericException format:"Invalid texture specifier"];
     }
 
     return KeyFromTextureParameters(texName, texOptions, anisotropy, lodBias);
 }
 
-- (NSUInteger)assignIDForTexture:(NSDictionary*)spec
+} // namespace
+
+- (NSUInteger)assignIDForTexture:(const oo::PList&)textureSpec
 {
-    NSParameterAssert(spec != nil);
+    NSParameterAssert(!textureSpec.isNull());
 
     // extract_channel doesn't affect uniqueness, and we don't want OOTexture to do actual extraction.
-    if ([spec objectForKey:kOOTextureSpecifierSwizzleKey] != nil) {
-        spec = [spec dictionaryByRemovingObjectForKey:kOOTextureSpecifierSwizzleKey];
+    oo::PList spec = textureSpec;
+    if (oo::PList::Dict* dict = spec.getIf<oo::PList::Dict>()) {
+        dict->erase(cxx_kOOTextureSpecifierSwizzleKey);
     }
 
-    NSString* texName = nil;
+    std::string texName;
     OOTextureFlags texOptions;
     float anisotropy, lodBias;
-    if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy, &lodBias, YES)) {
+    if (!cxx_OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy, &lodBias, YES)) {
         // OOInterpretTextureSpecifier() will have logged something.
-        [NSException raise:NSGenericException format:@"Invalid texture specifier"];
+        [OOException raise:OOGenericException format:"Invalid texture specifier"];
     }
 
     if (texOptions & kOOTextureAllowCubeMap) {
         // cube_map = true; fail regardless of whether actual texture qualifies.
-        OOLogERR(@"material.synthesis.error.cubeMap", @"The material \"%@\" of \"%@\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey], [self entityName]);
-        [NSException raise:NSGenericException format:@"Invalid material"];
+        OO_LOG_ERR("material.synthesis.error.cubeMap", "The material \"{}\" of \"{}\" specifies a cube map texture, but doesn't have custom shaders. Cube map textures are not supported with the default shaders.", [self materialKey].value_or("(null)"), [self entityName].value_or("(null)"));
+        [OOException raise:OOGenericException format:"Invalid material"];
     }
 
-    NSString* key = KeyFromTextureParameters(texName, texOptions, anisotropy, lodBias);
+    std::string key = KeyFromTextureParameters(texName, texOptions, anisotropy, lodBias);
     NSUInteger texID;
-    NSObject* existing = [_texturesByName objectForKey:key];
-    if (existing == nil) {
-        texID = [_texturesByName count];
-        NSNumber* texIDObj = [NSNumber numberWithUnsignedInteger:texID];
-        NSString* texUniform = [NSString stringWithFormat:@"uTexture%zu", texID];
+    if (_texturesByName.find(key) == _texturesByName.end()) {
+        texID = _texturesByName.size();
+        std::string texUniform = oo::str::format("uTexture%zu", texID);
 
 #ifndef NDEBUG
         BOOL useInternalFormat = NO;
@@ -596,87 +611,90 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         BOOL useInternalFormat = YES;
 #endif
 
-        [_textures addObject:OOMakeTextureSpecifier(texName, texOptions, anisotropy, lodBias, useInternalFormat)];
-        [_texturesByName setObject:spec forKey:key];
-        [_textureIDs setObject:texIDObj forKey:key];
-        [_uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", texIDObj, @"value", nil]
-                      forKey:texUniform];
+        _textures.push_back(cxx_OOMakeTextureSpecifier(texName, texOptions, anisotropy, lodBias, useInternalFormat));
+        _texturesByName[key] = spec;
+        _textureIDs[key] = texID;
+        oo::PList uniform(oo::PList::Dict { { "type", oo::PList("texture") }, { "value", oo::PList::unsignedInteger(texID) } });
+        _uniforms[texUniform] = uniform;
 
-        [self addFragmentUniform:texUniform ofType:@"sampler2D"];
+        [self addFragmentUniform:texUniform ofType:"sampler2D"];
     } else {
-        texID = oo::PListView(_textureIDs).get<NSUInteger>(texName);
+        // Upstream looks the ID up by texName, not by key, so it finds none and answers 0 (kept).
+        auto found = _textureIDs.find(texName);
+        texID = (found != _textureIDs.end()) ? found->second : 0;
     }
 
     return texID;
 }
 
-- (NSUInteger)textureIDForSpec:(NSDictionary*)textureSpec
+- (NSUInteger)textureIDForSpec:(const oo::PList&)textureSpec
 {
-    return oo::PListView(_textureIDs).get<NSUInteger>(KeyFromTextureSpec(textureSpec));
+    auto found = _textureIDs.find(KeyFromTextureSpec(textureSpec));
+    return (found != _textureIDs.end()) ? found->second : 0;
 }
 
-- (void)setUpOneTexture:(NSDictionary*)textureSpec
+- (void)setUpOneTexture:(const oo::PList&)textureSpec
 {
-    if (textureSpec == nil)
+    if (textureSpec.isNull())
         return;
 
     REQUIRE_STAGE(writeTextureCoordRead);
 
     NSUInteger texID = [self assignIDForTexture:textureSpec];
     if (_sampledTextures.insert(texID).second) {
-        [_fragmentTextureLookups appendFormat:@"\tvec4 tex%zuSample = texture2D(uTexture%zu, texCoords);  // %@\n", texID, texID, oo::PListView(textureSpec).get<NSString*>(kOOTextureSpecifierNameKey)];
+        _fragmentTextureLookups += oo::str::format("\tvec4 tex%zuSample = texture2D(uTexture%zu, texCoords);  // %s\n", texID, texID, OptionalStringFor(textureSpec, cxx_kOOTextureSpecifierNameKey).value_or("(null)").c_str());
     }
 }
 
-- (void)getSampleName:(NSString**)outSampleName andSwizzleOp:(NSString**)outSwizzleOp forTextureSpec:(NSDictionary*)textureSpec
+- (void)getSampleName:(std::string*)outSampleName andSwizzleOp:(std::string*)outSwizzleOp forTextureSpec:(const oo::PList&)textureSpec
 {
-    NSParameterAssert(outSampleName != NULL && outSwizzleOp != NULL && textureSpec != nil);
+    NSParameterAssert(outSampleName != NULL && outSwizzleOp != NULL && !textureSpec.isNull());
 
     [self setUpOneTexture:textureSpec];
     NSUInteger texID = [self textureIDForSpec:textureSpec];
 
-    *outSampleName = [NSString stringWithFormat:@"tex%zuSample", texID];
-    *outSwizzleOp = GetExtractMode(textureSpec);
+    *outSampleName = oo::str::format("tex%zuSample", texID);
+    *outSwizzleOp = GetExtractMode(textureSpec).value_or(std::string());
 }
 
-- (NSString*)readRGBForTextureSpec:(NSDictionary*)textureSpec mapName:(NSString*)mapName
+- (std::optional<std::string>)readRGBForTextureSpec:(const oo::PList&)textureSpec mapName:(const std::string&)mapName
 {
-    NSString *sample, *swizzle;
+    std::string sample, swizzle;
     [self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:textureSpec];
 
-    if (swizzle == nil) {
-        return [sample stringByAppendingString:@".rgb"];
+    if (swizzle.empty()) {
+        return sample + ".rgb";
     }
 
-    NSUInteger channelCount = [swizzle length];
+    NSUInteger channelCount = swizzle.size();
 
     if (channelCount == 1) {
-        return [NSString stringWithFormat:@"%@.%@%@%@", sample, swizzle, swizzle, swizzle];
+        return sample + "." + swizzle + swizzle + swizzle;
     } else if (channelCount == 3) {
-        return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
+        return sample + "." + swizzle;
     }
 
-    OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1 or 3");
-    return nil;
+    OO_LOG_WARN("material.synthesis.warning.extractionMismatch", "The {} map for material \"{}\" of \"{}\" specifies {} channels to extract, but only {} may be used.", mapName, [self materialKey].value_or("(null)"), [self entityName].value_or("(null)"), channelCount, "1 or 3");
+    return std::nullopt;
 }
 
-- (NSString*)readOneChannelForTextureSpec:(NSDictionary*)textureSpec mapName:(NSString*)mapName
+- (std::optional<std::string>)readOneChannelForTextureSpec:(const oo::PList&)textureSpec mapName:(const std::string&)mapName
 {
-    NSString *sample, *swizzle;
+    std::string sample, swizzle;
     [self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:textureSpec];
 
-    if (swizzle == nil) {
-        return [sample stringByAppendingString:@".r"];
+    if (swizzle.empty()) {
+        return sample + ".r";
     }
 
-    NSUInteger channelCount = [swizzle length];
+    NSUInteger channelCount = swizzle.size();
 
     if (channelCount == 1) {
-        return [NSString stringWithFormat:@"%@.%@", sample, swizzle];
+        return sample + "." + swizzle;
     }
 
-    OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", mapName, [self materialKey], [self entityName], channelCount, @"1");
-    return nil;
+    OO_LOG_WARN("material.synthesis.warning.extractionMismatch", "The {} map for material \"{}\" of \"{}\" specifies {} channels to extract, but only {} may be used.", mapName, [self materialKey].value_or("(null)"), [self entityName].value_or("(null)"), channelCount, "1");
+    return std::nullopt;
 }
 
 #ifndef NDEBUG
@@ -684,8 +702,8 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
 {
     // Ensure that we aren’t recursing.
     if (_stagesInProgress.count(stage) != 0) {
-        OOLogERR(@"material.synthesis.error.recursion", @"Shader synthesis recursion for stage %s.", OOSelectorName(stage));
-        [NSException raise:NSInternalInconsistencyException format:@"stage recursion"];
+        OO_LOG_ERR("material.synthesis.error.recursion", "Shader synthesis recursion for stage {}.", OOSelectorName(stage));
+        [OOException raise:OOInternalInconsistencyException format:"stage recursion"];
     }
 
     _stagesInProgress.insert(stage);
@@ -698,23 +716,23 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
 
 - (void)createTemporaries
 {
-    _attributes = [[NSMutableString alloc] init];
-    _varyings = [[NSMutableString alloc] init];
-    _vertexUniforms = [[NSMutableString alloc] init];
-    _fragmentUniforms = [[NSMutableString alloc] init];
-    _vertexHelpers = [[NSMutableString alloc] init];
-    _fragmentHelpers = [[NSMutableString alloc] init];
-    _vertexBody = [[NSMutableString alloc] init];
-    _fragmentPreTextures = [[NSMutableString alloc] init];
-    _fragmentTextureLookups = [[NSMutableString alloc] init];
-    _fragmentBody = [[NSMutableString alloc] init];
+    _attributes.clear();
+    _varyings.clear();
+    _vertexUniforms.clear();
+    _fragmentUniforms.clear();
+    _vertexHelpers.clear();
+    _fragmentHelpers.clear();
+    _vertexBody.clear();
+    _fragmentPreTextures.clear();
+    _fragmentTextureLookups.clear();
+    _fragmentBody.clear();
 
-    _textures = [[NSMutableArray alloc] init];
-    _texturesByName = [[NSMutableDictionary alloc] init];
-    _textureIDs = [[NSMutableDictionary alloc] init];
+    _textures.clear();
+    _texturesByName.clear();
+    _textureIDs.clear();
     _sampledTextures.clear();
 
-    _uniformBindingNames = [[NSMutableDictionary alloc] init];
+    _uniformBindingNames.clear();
 
 #ifndef NDEBUG
     _stagesInProgress.clear();
@@ -723,22 +741,22 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
 
 - (void)destroyTemporaries
 {
-    DESTROY(_attributes);
-    DESTROY(_varyings);
-    DESTROY(_vertexUniforms);
-    DESTROY(_fragmentUniforms);
-    DESTROY(_vertexHelpers);
-    DESTROY(_fragmentHelpers);
-    DESTROY(_vertexBody);
-    DESTROY(_fragmentPreTextures);
-    DESTROY(_fragmentTextureLookups);
-    DESTROY(_fragmentBody);
+    _attributes.clear();
+    _varyings.clear();
+    _vertexUniforms.clear();
+    _fragmentUniforms.clear();
+    _vertexHelpers.clear();
+    _fragmentHelpers.clear();
+    _vertexBody.clear();
+    _fragmentPreTextures.clear();
+    _fragmentTextureLookups.clear();
+    _fragmentBody.clear();
 
-    DESTROY(_texturesByName);
-    DESTROY(_textureIDs);
+    _texturesByName.clear();
+    _textureIDs.clear();
     _sampledTextures.clear();
 
-    DESTROY(_uniformBindingNames);
+    _uniformBindingNames.clear();
 
 #ifndef NDEBUG
     _stagesInProgress.clear();
@@ -749,69 +767,69 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
 
 - (void)writeTextureCoordRead
 {
-    [self addVarying:@"vTexCoords" ofType:@"vec2"];
-    [_vertexBody appendString:@"\tvTexCoords = gl_MultiTexCoord0.st;\n\t\n"];
+    [self addVarying:"vTexCoords" ofType:"vec2"];
+    _vertexBody += "\tvTexCoords = gl_MultiTexCoord0.st;\n\t\n";
 
     BOOL haveTexCoords = NO;
-    NSDictionary* parallaxMap = [_configuration oo_parallaxMapSpecifier];
+    oo::PList parallaxMap = cxx_OOMaterialParallaxMapSpecifier(_configuration);
 
-    if (parallaxMap != nil) {
-        float parallaxScale = [_configuration oo_parallaxScale];
+    if (!parallaxMap.isNull()) {
+        float parallaxScale = cxx_OOMaterialParallaxScale(_configuration);
         if (parallaxScale != 0.0f) {
             /*
                     We can’t call -getSampleName:... here because the standard
                     texture loading mechanism has to occur after determining
                     texture coordinates (duh).
             */
-            NSString* swizzle = GetExtractMode(parallaxMap) ?: (NSString*)@"a";
-            NSUInteger channelCount = [swizzle length];
+            std::string swizzle = GetExtractMode(parallaxMap).value_or("a");
+            NSUInteger channelCount = swizzle.size();
             if (channelCount == 1) {
                 haveTexCoords = YES;
 
                 REQUIRE_STAGE(writeEyeVector);
 
-                [_fragmentPreTextures appendString:@"\t// Parallax mapping\n"];
+                _fragmentPreTextures += "\t// Parallax mapping\n";
 
                 NSUInteger texID = [self assignIDForTexture:parallaxMap];
-                [_fragmentPreTextures appendFormat:@"\tfloat parallax = texture2D(uTexture%zu, vTexCoords).%@;\n", texID, swizzle];
+                _fragmentPreTextures += oo::str::format("\tfloat parallax = texture2D(uTexture%zu, vTexCoords).%s;\n", texID, swizzle.c_str());
 
                 if (parallaxScale != 1.0f) {
-                    [_fragmentPreTextures appendFormat:@"\tparallax *= %@;  // Parallax scale\n", FormatFloat(parallaxScale)];
+                    _fragmentPreTextures += oo::str::format("\tparallax *= %s;  // Parallax scale\n", FormatFloat(parallaxScale).c_str());
                 }
 
-                float parallaxBias = [_configuration oo_parallaxBias];
+                float parallaxBias = cxx_OOMaterialParallaxBias(_configuration);
                 if (parallaxBias != 0.0) {
-                    [_fragmentPreTextures appendFormat:@"\tparallax += %@;  // Parallax bias\n", FormatFloat(parallaxBias)];
+                    _fragmentPreTextures += oo::str::format("\tparallax += %s;  // Parallax bias\n", FormatFloat(parallaxBias).c_str());
                 }
 
-                [_fragmentPreTextures appendString:@"\tvec2 texCoords = vTexCoords - parallax * eyeVector.xy * vec2(1.0, -1.0);\n"];
+                _fragmentPreTextures += "\tvec2 texCoords = vTexCoords - parallax * eyeVector.xy * vec2(1.0, -1.0);\n";
             } else {
-                OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", @"parallax", [self materialKey], [self entityName], channelCount, @"1");
+                OO_LOG_WARN("material.synthesis.warning.extractionMismatch", "The {} map for material \"{}\" of \"{}\" specifies {} channels to extract, but only {} may be used.", "parallax", [self materialKey].value_or("(null)"), [self entityName].value_or("(null)"), channelCount, "1");
             }
         }
     }
 
     if (!haveTexCoords) {
-        [_fragmentPreTextures appendString:@"\tvec2 texCoords = vTexCoords;\n"];
+        _fragmentPreTextures += "\tvec2 texCoords = vTexCoords;\n";
     }
 }
 
 - (void)writeDiffuseColorTermIfNeeded
 {
-    NSDictionary* diffuseMap = [_configuration oo_diffuseMapSpecifierWithDefaultName:[self materialKey]];
-    OOColor* diffuseColor = [_configuration oo_diffuseColor] ?: [OOColor whiteColor];
+    oo::PList diffuseMap = cxx_OOMaterialDiffuseMapSpecifier(_configuration, [self materialKey]);
+    OOColor* diffuseColor = cxx_OOMaterialDiffuseColor(_configuration) ?: [OOColor whiteColor];
 
     if ([diffuseColor isBlack])
         return;
     _usesDiffuseTerm = YES;
 
     BOOL haveDiffuseColor = NO;
-    if (diffuseMap != nil) {
-        NSString* readInstr = [self readRGBForTextureSpec:diffuseMap mapName:@"diffuse"];
-        if (EXPECT_NOT(readInstr == nil)) {
-            [_fragmentBody appendString:@"\t// INVALID EXTRACTION KEY\n\t\n"];
+    if (!diffuseMap.isNull()) {
+        std::optional<std::string> readInstr = [self readRGBForTextureSpec:diffuseMap mapName:"diffuse"];
+        if (EXPECT_NOT(!readInstr.has_value())) {
+            _fragmentBody += "\t// INVALID EXTRACTION KEY\n\t\n";
         } else {
-            [_fragmentBody appendFormat:@"\tvec3 diffuseColor = %@;\n", readInstr];
+            _fragmentBody += oo::str::format("\tvec3 diffuseColor = %s;\n", readInstr->c_str());
             haveDiffuseColor = YES;
         }
     }
@@ -819,18 +837,16 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     if (!haveDiffuseColor || ![diffuseColor isWhite]) {
         float rgba[4];
         [diffuseColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
-        NSString* format = nil;
         if (haveDiffuseColor) {
-            format = @"\tdiffuseColor *= vec3(%@, %@, %@);\n";
+            _fragmentBody += oo::str::format("\tdiffuseColor *= vec3(%s, %s, %s);\n", FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str());
         } else {
-            format = @"\tconst vec3 diffuseColor = vec3(%@, %@, %@);\n";
+            _fragmentBody += oo::str::format("\tconst vec3 diffuseColor = vec3(%s, %s, %s);\n", FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str());
             haveDiffuseColor = YES;
         }
-        [_fragmentBody appendFormat:format, FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
     }
 
     (void)haveDiffuseColor;
-    [_fragmentBody appendString:@"\t\n"];
+    _fragmentBody += "\t\n";
 }
 
 - (void)writeDiffuseColorTerm
@@ -838,7 +854,7 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeDiffuseColorTermIfNeeded);
 
     if (!_usesDiffuseTerm) {
-        [_fragmentBody appendString:@"\tconst vec3 diffuseColor = vec3(0.0);  // Diffuse colour is black.\n\t\n"];
+        _fragmentBody += "\tconst vec3 diffuseColor = vec3(0.0);  // Diffuse colour is black.\n\t\n";
     }
 }
 
@@ -854,12 +870,12 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeLightVector);
 
     // FIXME: currently uncoloured diffuse and ambient lighting.
-    NSString* normalDotLight = _constZNormal ? @"lightVector.z" : @"dot(normal, lightVector)";
+    const char* normalDotLight = _constZNormal ? "lightVector.z" : "dot(normal, lightVector)";
 
-    [_fragmentBody appendFormat:
-            @"\t// Diffuse (Lambertian) and ambient lighting\n"
-             "\tvec3 diffuseLight = (gl_LightSource[1].diffuse * max(0.0, %@) + gl_LightModel.ambient).rgb;\n\t\n",
-        normalDotLight];
+    _fragmentBody += oo::str::format(
+        "\t// Diffuse (Lambertian) and ambient lighting\n"
+        "\tvec3 diffuseLight = (gl_LightSource[1].diffuse * max(0.0, %s) + gl_LightModel.ambient).rgb;\n\t\n",
+        normalDotLight);
 
     _haveDiffuseLight = YES;
 }
@@ -869,12 +885,11 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeVertexPosition);
     REQUIRE_STAGE(writeNormalIfNeeded);
 
-    [self addVarying:@"vLightVector" ofType:@"vec3"];
+    [self addVarying:"vLightVector" ofType:"vec3"];
 
-    [_vertexBody appendString:
-            @"\tvec3 lightVector = gl_LightSource[1].position.xyz;\n"
-             "\tvLightVector = lightVector * TBN;\n\t\n"];
-    [_fragmentBody appendFormat:@"\tvec3 lightVector = normalize(vLightVector);\n\t\n"];
+    _vertexBody += "\tvec3 lightVector = gl_LightSource[1].position.xyz;\n"
+                   "\tvLightVector = lightVector * TBN;\n\t\n";
+    _fragmentBody += "\tvec3 lightVector = normalize(vLightVector);\n\t\n";
 }
 
 - (void)writeEyeVector
@@ -882,22 +897,21 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeVertexPosition);
     REQUIRE_STAGE(writeVertexTangentBasis);
 
-    [self addVarying:@"vEyeVector" ofType:@"vec3"];
+    [self addVarying:"vEyeVector" ofType:"vec3"];
 
-    [_vertexBody appendString:@"\tvEyeVector = position.xyz * TBN;\n\t\n"];
-    [_fragmentPreTextures appendString:@"\tvec3 eyeVector = normalize(vEyeVector);\n\t\n"];
+    _vertexBody += "\tvEyeVector = position.xyz * TBN;\n\t\n";
+    _fragmentPreTextures += "\tvec3 eyeVector = normalize(vEyeVector);\n\t\n";
 }
 
 - (void)writeVertexTangentBasis
 {
-    [self addAttribute:@"tangent" ofType:@"vec3"];
+    [self addAttribute:"tangent" ofType:"vec3"];
 
-    [_vertexBody appendString:
-            @"\t// Build tangent space basis\n"
-             "\tvec3 n = gl_NormalMatrix * gl_Normal;\n"
-             "\tvec3 t = gl_NormalMatrix * tangent;\n"
-             "\tvec3 b = cross(n, t);\n"
-             "\tmat3 TBN = mat3(t, b, n);\n\t\n"];
+    _vertexBody += "\t// Build tangent space basis\n"
+                   "\tvec3 n = gl_NormalMatrix * gl_Normal;\n"
+                   "\tvec3 t = gl_NormalMatrix * tangent;\n"
+                   "\tvec3 b = cross(n, t);\n"
+                   "\tmat3 TBN = mat3(t, b, n);\n\t\n";
 }
 
 - (void)writeNormalIfNeeded
@@ -905,22 +919,22 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeVertexPosition);
     REQUIRE_STAGE(writeVertexTangentBasis);
 
-    NSDictionary* normalMap = [_configuration oo_normalMapSpecifier];
-    if (normalMap == nil) {
+    oo::PList normalMap = cxx_OOMaterialNormalMapSpecifier(_configuration);
+    if (normalMap.isNull()) {
         // FIXME: this stuff should be handled in OOMaterialSpecifier.m when synthesizer takes over the world. -- Ahruman 2012-02-08
-        normalMap = [_configuration oo_normalAndParallaxMapSpecifier];
+        normalMap = cxx_OOMaterialNormalAndParallaxMapSpecifier(_configuration);
     }
-    if (normalMap != nil) {
-        NSString *sample, *swizzle;
+    if (!normalMap.isNull()) {
+        std::string sample, swizzle;
         [self getSampleName:&sample andSwizzleOp:&swizzle forTextureSpec:normalMap];
-        if (swizzle == nil)
-            swizzle = @"rgb";
-        if ([swizzle length] == 3) {
-            [_fragmentBody appendFormat:@"\tvec3 normal = normalize(%@.%@ - 0.5);\n\t\n", sample, swizzle];
+        if (swizzle.empty())
+            swizzle = "rgb";
+        if (swizzle.size() == 3) {
+            _fragmentBody += oo::str::format("\tvec3 normal = normalize(%s.%s - 0.5);\n\t\n", sample.c_str(), swizzle.c_str());
             _usesNormalMap = YES;
             return;
         } else {
-            OOLogWARN(@"material.synthesis.warning.extractionMismatch", @"The %@ map for material \"%@\" of \"%@\" specifies %zu channels to extract, but only %@ may be used.", @"normal", [self materialKey], [self entityName], [swizzle length], @"3");
+            OO_LOG_WARN("material.synthesis.warning.extractionMismatch", "The {} map for material \"{}\" of \"{}\" specifies {} channels to extract, but only {} may be used.", "normal", [self materialKey].value_or("(null)"), [self entityName].value_or("(null)"), swizzle.size(), "3");
         }
     }
     _constZNormal = YES;
@@ -931,29 +945,29 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeNormalIfNeeded);
 
     if (_constZNormal) {
-        [_fragmentBody appendString:@"\tconst vec3 normal = vec3(0.0, 0.0, 1.0);\n\t\n"];
+        _fragmentBody += "\tconst vec3 normal = vec3(0.0, 0.0, 1.0);\n\t\n";
     }
 }
 
 - (void)writeSpecularLighting
 {
-    float specularExponent = [_configuration oo_specularExponent];
+    float specularExponent = cxx_OOMaterialSpecularExponent(_configuration);
     if (specularExponent <= 0)
         return;
 
-    NSDictionary* specularColorMap = [_configuration oo_specularColorMapSpecifier];
-    NSDictionary* specularExponentMap = [_configuration oo_specularExponentMapSpecifier];
+    oo::PList specularColorMap = cxx_OOMaterialSpecularColorMapSpecifier(_configuration);
+    oo::PList specularExponentMap = cxx_OOMaterialSpecularExponentMapSpecifier(_configuration);
     float scaleFactor = 1.0f;
 
-    if (specularColorMap) {
-        scaleFactor = oo::PListView(specularColorMap).get<double>(kOOTextureSpecifierScaleFactorKey, 1.0f);
+    if (!specularColorMap.isNull()) {
+        scaleFactor = specularColorMap.get<double>(cxx_kOOTextureSpecifierScaleFactorKey, 1.0f);
     }
 
     OOColor* specularColor = nil;
-    if (specularColorMap == nil) {
-        specularColor = [_configuration oo_specularColor];
+    if (specularColorMap.isNull()) {
+        specularColor = cxx_OOMaterialSpecularColor(_configuration);
     } else {
-        specularColor = [_configuration oo_specularModulateColor];
+        specularColor = cxx_OOMaterialSpecularModulateColor(_configuration);
     }
 
     if ([specularColor isBlack])
@@ -969,17 +983,17 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         REQUIRE_STAGE(writeDiffuseColorTerm);
     }
 
-    [_fragmentBody appendString:@"\t// Specular (Blinn-Phong) lighting\n"];
+    _fragmentBody += "\t// Specular (Blinn-Phong) lighting\n";
 
     BOOL haveSpecularColor = NO;
-    if (specularColorMap != nil) {
-        NSString* readInstr = [self readRGBForTextureSpec:specularColorMap mapName:@"specular colour"];
-        if (EXPECT_NOT(readInstr == nil)) {
-            [_fragmentBody appendString:@"\t// INVALID EXTRACTION KEY\n\t\n"];
+    if (!specularColorMap.isNull()) {
+        std::optional<std::string> readInstr = [self readRGBForTextureSpec:specularColorMap mapName:"specular colour"];
+        if (EXPECT_NOT(!readInstr.has_value())) {
+            _fragmentBody += "\t// INVALID EXTRACTION KEY\n\t\n";
             return;
         }
 
-        [_fragmentBody appendFormat:@"\tvec3 specularColor = %@;\n", readInstr];
+        _fragmentBody += oo::str::format("\tvec3 specularColor = %s;\n", readInstr->c_str());
         haveSpecularColor = YES;
     }
 
@@ -987,7 +1001,7 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         float rgba[4];
         [specularColor getRed:&rgba[0] green:&rgba[1] blue:&rgba[2] alpha:&rgba[3]];
 
-        NSString* comment = (scaleFactor == 1.0f) ? @"Constant colour" : @"Constant colour and scale factor";
+        const char* comment = (scaleFactor == 1.0f) ? "Constant colour" : "Constant colour and scale factor";
 
         // Handle scale factor, colour, and colour alpha scaling as one multiply.
         scaleFactor *= rgba[3];
@@ -998,61 +1012,58 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         // Avoid reapplying scaleFactor below.
         scaleFactor = 1.0;
 
-        NSString* format = nil;
         if (haveSpecularColor) {
-            format = @"\tspecularColor *= vec3(%@, %@, %@);  // %@\n";
+            _fragmentBody += oo::str::format("\tspecularColor *= vec3(%s, %s, %s);  // %s\n", FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str(), comment);
         } else {
-            format = @"\tvec3 specularColor = vec3(%@, %@, %@);  // %@\n";
+            _fragmentBody += oo::str::format("\tvec3 specularColor = vec3(%s, %s, %s);  // %s\n", FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str(), comment);
             haveSpecularColor = YES;
         }
-        [_fragmentBody appendFormat:format, FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2]), comment];
     }
 
     // Handle scale_factor if no constant colour.
     if (haveSpecularColor && scaleFactor != 1.0f) {
-        [_fragmentBody appendFormat:@"\tspecularColor *= %@;  // Scale factor\n", FormatFloat(scaleFactor)];
+        _fragmentBody += oo::str::format("\tspecularColor *= %s;  // Scale factor\n", FormatFloat(scaleFactor).c_str());
     }
 
     // Handle self_color.
     if (modulateWithDiffuse) {
-        [_fragmentBody appendString:@"\tspecularColor *= diffuseColor;  // Self-colouring\n"];
+        _fragmentBody += "\tspecularColor *= diffuseColor;  // Self-colouring\n";
     }
 
     // Specular exponent.
     BOOL haveSpecularExponent = NO;
-    if (specularExponentMap != nil) {
-        NSString* readInstr = [self readOneChannelForTextureSpec:specularExponentMap mapName:@"specular exponent"];
-        if (EXPECT_NOT(readInstr == nil)) {
-            [_fragmentBody appendString:@"\t// INVALID EXTRACTION KEY\n\t\n"];
+    if (!specularExponentMap.isNull()) {
+        std::optional<std::string> readInstr = [self readOneChannelForTextureSpec:specularExponentMap mapName:"specular exponent"];
+        if (EXPECT_NOT(!readInstr.has_value())) {
+            _fragmentBody += "\t// INVALID EXTRACTION KEY\n\t\n";
             return;
         }
 
-        [_fragmentBody appendFormat:@"\tfloat specularExponent = %@ * %.1f;\n", readInstr, specularExponent];
+        _fragmentBody += oo::str::format("\tfloat specularExponent = %s * %.1f;\n", readInstr->c_str(), specularExponent);
         haveSpecularExponent = YES;
     }
     if (!haveSpecularExponent) {
-        [_fragmentBody appendFormat:@"\tconst float specularExponent = %.1f;\n", specularExponent];
+        _fragmentBody += oo::str::format("\tconst float specularExponent = %.1f;\n", specularExponent);
     }
 
     if (_usesNormalMap) {
-        [_fragmentBody appendFormat:@"\tvec3 reflection = reflect(lightVector, normal);\n"];
+        _fragmentBody += "\tvec3 reflection = reflect(lightVector, normal);\n";
     } else {
         /*	reflect(I, N) is defined as I - 2 * dot(N, I) * N
                 If N is (0,0,1), this becomes (I.x,I.y,-I.z).
         */
-        [_fragmentBody appendFormat:@"\tvec3 reflection = vec3(lightVector.x, lightVector.y, -lightVector.z);  // Equivalent to reflect(lightVector, normal) since normal is known to be (0, 0, 1) in tangent space.\n"];
+        _fragmentBody += "\tvec3 reflection = vec3(lightVector.x, lightVector.y, -lightVector.z);  // Equivalent to reflect(lightVector, normal) since normal is known to be (0, 0, 1) in tangent space.\n";
     }
 
-    [_fragmentBody appendFormat:
-            @"\tfloat specIntensity = dot(reflection, eyeVector);\n"
-             "\tspecIntensity = pow(max(0.0, specIntensity), specularExponent);\n"
-             "\ttotalColor += specIntensity * specularColor * gl_LightSource[1].specular.rgb;\n\t\n"];
+    _fragmentBody += "\tfloat specIntensity = dot(reflection, eyeVector);\n"
+                     "\tspecIntensity = pow(max(0.0, specIntensity), specularExponent);\n"
+                     "\ttotalColor += specIntensity * specularColor * gl_LightSource[1].specular.rgb;\n\t\n";
 }
 
 - (void)writeLightMaps
 {
-    NSArray* lightMaps = oo::PListView(_configuration).get<NSArray*>(kOOMaterialLightMapsName);
-    NSUInteger idx, count = [lightMaps count];
+    const oo::PList* lightMaps = _configuration.get<oo::PList::Array>(cxx_kOOMaterialLightMapsName);
+    NSUInteger idx, count = (lightMaps != nullptr) ? lightMaps->count() : 0;
     if (count == 0)
         return;
 
@@ -1068,26 +1079,28 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         }
     }
 
-    [_fragmentBody appendString:@"\tvec3 lightMapColor;\n"];
+    _fragmentBody += "\tvec3 lightMapColor;\n";
 
+    const oo::PList notADictionary; // a light map entry that is not a dictionary reads as nil
     for (idx = 0; idx < count; idx++) {
-        NSDictionary* lightMapSpec = oo::PListView(lightMaps).at<NSDictionary*>(idx);
-        NSDictionary* textureSpec = OOTextureSpecFromObject(lightMapSpec, nil);
-        NSArray* color = oo::PListView(lightMapSpec).get<NSArray*>(kOOTextureSpecifierModulateColorKey);
+        const oo::PList* entry = lightMaps->at<oo::PList::Dict>(idx);
+        const oo::PList& lightMapSpec = (entry != nullptr) ? *entry : notADictionary;
+        oo::PList textureSpec = cxx_OOTextureSpecFromObject(lightMapSpec, std::nullopt);
+        const oo::PList* color = lightMapSpec.get<oo::PList::Array>(cxx_kOOTextureSpecifierModulateColorKey);
         float rgba[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
         BOOL isIllumination = oo::PListView(lightMapSpec).get<bool>(kOOTextureSpecifierIlluminationModeKey);
 
-        if (EXPECT_NOT(color == nil && textureSpec == nil)) {
-            [_fragmentBody appendString:@"\t// Light map with neither colour nor texture has no effect.\n\t\n"];
+        if (EXPECT_NOT(color == nullptr && textureSpec.isNull())) {
+            _fragmentBody += "\t// Light map with neither colour nor texture has no effect.\n\t\n";
             continue;
         }
 
-        if (color != nil) {
-            NSUInteger idx, count = [color count];
+        if (color != nullptr) {
+            NSUInteger idx, count = color->count();
             if (count > 4)
                 count = 4;
             for (idx = 0; idx < count; idx++) {
-                rgba[idx] = oo::PListView(color).at<double>(idx);
+                rgba[idx] = color->at<double>(idx);
             }
             rgba[0] *= rgba[3];
             rgba[1] *= rgba[3];
@@ -1095,74 +1108,74 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         }
 
         if (EXPECT_NOT((rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f) || (!_usesDiffuseTerm && isIllumination))) {
-            [_fragmentBody appendString:@"\t// Light map tinted black has no effect.\n\t\n"];
+            _fragmentBody += "\t// Light map tinted black has no effect.\n\t\n";
             continue;
         }
 
-        if (textureSpec != nil) {
-            NSString* readInstr = [self readRGBForTextureSpec:textureSpec mapName:@"light"];
-            if (EXPECT_NOT(readInstr == nil)) {
-                [_fragmentBody appendString:@"\t// INVALID EXTRACTION KEY\n\n"];
+        if (!textureSpec.isNull()) {
+            std::optional<std::string> readInstr = [self readRGBForTextureSpec:textureSpec mapName:"light"];
+            if (EXPECT_NOT(!readInstr.has_value())) {
+                _fragmentBody += "\t// INVALID EXTRACTION KEY\n\n";
                 continue;
             }
 
-            [_fragmentBody appendFormat:@"\tlightMapColor = %@;\n", readInstr];
+            _fragmentBody += oo::str::format("\tlightMapColor = %s;\n", readInstr->c_str());
 
             if (rgba[0] != 1.0f || rgba[1] != 1.0f || rgba[2] != 1.0f) {
-                [_fragmentBody appendFormat:@"\tlightMapColor *= vec3(%@, %@, %@);\n", FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
+                _fragmentBody += oo::str::format("\tlightMapColor *= vec3(%s, %s, %s);\n", FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str());
             }
         } else {
-            [_fragmentBody appendFormat:@"\tlightMapColor = vec3(%@, %@, %@);\n", FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2])];
+            _fragmentBody += oo::str::format("\tlightMapColor = vec3(%s, %s, %s);\n", FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str());
         }
 
-        NSDictionary* binding = oo::PListView(textureSpec).get<NSDictionary*>(kOOTextureSpecifierBindingKey);
-        if (binding != nil) {
-            NSString* bindingName = oo::PListView(binding).get<NSString*>(@"binding");
-            NSDictionary* typeDict = oo::PListView([ResourceManager shaderBindingTypesDictionary]).get<NSDictionary*>(@"player"); // FIXME: select appropriate binding subset.
-            NSString* bindingType = oo::PListView(typeDict).get<NSString*>(bindingName);
-            NSString* glslType = nil;
-            NSString* swizzle = @"";
+        const oo::PList* binding = textureSpec.get<oo::PList::Dict>(cxx_kOOTextureSpecifierBindingKey);
+        if (binding != nullptr) {
+            std::string bindingName = binding->get<std::string>("binding");
+            oo::PList bindingTypes = [ResourceManager cxx_shaderBindingTypesDictionary];
+            const oo::PList* typeDict = bindingTypes.get<oo::PList::Dict>("player"); // FIXME: select appropriate binding subset.
+            std::optional<std::string> bindingType = (typeDict != nullptr) ? OptionalStringFor(*typeDict, bindingName.c_str()) : std::nullopt;
+            const char* glslType = nullptr;
+            const char* swizzle = "";
 
-            if ([bindingType isEqualToString:@"float"]) {
-                glslType = @"float";
-            } else if ([bindingType isEqualToString:@"vector"]) {
-                glslType = @"vec3";
-            } else if ([bindingType isEqualToString:@"color"]) {
-                glslType = @"vec4";
-                swizzle = @".rgb";
+            if (bindingType == "float") {
+                glslType = "float";
+            } else if (bindingType == "vector") {
+                glslType = "vec3";
+            } else if (bindingType == "color") {
+                glslType = "vec4";
+                swizzle = ".rgb";
             }
 
-            if (glslType != nil) {
-                NSString* uniformName = [self defineBindingUniform:binding ofType:bindingType];
-                [_fragmentBody appendFormat:@"\tlightMapColor *= %@%@;\n", uniformName, swizzle];
+            if (glslType != nullptr) {
+                std::optional<std::string> uniformName = [self defineBindingUniform:*binding ofType:bindingType.value_or(std::string())];
+                _fragmentBody += oo::str::format("\tlightMapColor *= %s%s;\n", uniformName.value_or(std::string()).c_str(), swizzle);
             } else {
-                if (bindingType == nil) {
-                    OOLogERR(@"material.binding.error.unknown", @"Cannot bind light map to unknown attribute \"%@\".", bindingName);
+                if (!bindingType.has_value()) {
+                    OO_LOG_ERR("material.binding.error.unknown", "Cannot bind light map to unknown attribute \"{}\".", bindingName);
                 } else {
-                    OOLogERR(@"material.binding.error.badType", @"Cannot bind light map to attribute \"%@\" of type %@.", bindingName, bindingType);
+                    OO_LOG_ERR("material.binding.error.badType", "Cannot bind light map to attribute \"{}\" of type {}.", bindingName, *bindingType);
                 }
-                [_fragmentBody appendString:@"\tlightMapColor = vec3(0.0);  // Bad binding, see log.\n"];
+                _fragmentBody += "\tlightMapColor = vec3(0.0);  // Bad binding, see log.\n";
             }
         }
 
         if (!isIllumination) {
-            [_fragmentBody appendString:@"\ttotalColor += lightMapColor;\n\t\n"];
+            _fragmentBody += "\ttotalColor += lightMapColor;\n\t\n";
         } else {
-            [_fragmentBody appendString:@"\tdiffuseLight += lightMapColor;\n\t\n"];
+            _fragmentBody += "\tdiffuseLight += lightMapColor;\n\t\n";
         }
     }
 }
 
 - (void)writeVertexPosition
 {
-    [_vertexBody appendString:
-            @"\tvec4 position = gl_ModelViewMatrix * gl_Vertex;\n"
-             "\tgl_Position = gl_ProjectionMatrix * position;\n\t\n"];
+    _vertexBody += "\tvec4 position = gl_ModelViewMatrix * gl_Vertex;\n"
+                   "\tgl_Position = gl_ProjectionMatrix * position;\n\t\n";
 }
 
 - (void)writeTotalColor
 {
-    [_fragmentPreTextures appendString:@"\tvec3 totalColor = vec3(0.0);\n\t\n"];
+    _fragmentPreTextures += "\tvec3 totalColor = vec3(0.0);\n\t\n";
 }
 
 - (void)writeFinalColorComposite
@@ -1173,13 +1186,57 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     REQUIRE_STAGE(writeLightMaps);
 
     if (_haveDiffuseLight) {
-        [_fragmentBody appendString:@"\ttotalColor += diffuseColor * diffuseLight;\n"];
+        _fragmentBody += "\ttotalColor += diffuseColor * diffuseLight;\n";
     }
 
-    [_fragmentBody appendString:@"\tgl_FragColor = vec4(totalColor, 1.0);\n\t\n"];
+    _fragmentBody += "\tgl_FragColor = vec4(totalColor, 1.0);\n\t\n";
 }
 
 @end
+
+namespace {
+
+// A texture specifier naming just a file: a dictionary with the one key kOOTextureSpecifierNameKey.
+oo::PList NameSpecifier(const std::string& name)
+{
+    return oo::PList(oo::PList::Dict { { cxx_kOOTextureSpecifierNameKey, oo::PList(name) } });
+}
+
+// A string becomes a name specifier, a dictionary is kept, anything else (or no value) is nil.
+oo::PList StringOrDictionarySpecifier(const oo::PList* texSpec)
+{
+    if (texSpec == nullptr)
+        return oo::PList();
+    if (const std::string* name = texSpec->getIf<std::string>())
+        return NameSpecifier(*name);
+    if (texSpec->isDict())
+        return *texSpec;
+    return oo::PList();
+}
+
+// PList dict with one added entry on a dictionary specifier.
+oo::PList AddingValue(oo::PList specifier, const char* key, oo::PList value)
+{
+    if (oo::PList::Dict* dict = specifier.getIf<oo::PList::Dict>())
+        (*dict)[key] = std::move(value);
+    return specifier;
+}
+
+// +[OOColor colorWithDescription:] of the value for key (nil if there is none).
+OOColor* ColorIn(const oo::PList& spec, const char* key)
+{
+    const oo::PList* value = spec.find(key);
+    return [OOColor colorWithDescription:(value != nullptr) ? oo::ObjectFromPList(*value) : nil];
+}
+
+// -[OOColor normalizedArray]: four +numberWithFloat: components.
+oo::PList NormalizedArray(OOColor* color)
+{
+    oo::PList::Array result;
+    for (float component : [color cxx_normalizedArray])
+        result.push_back(oo::PList::singleReal(component));
+    return oo::PList(std::move(result));
+}
 
 /*
         Convert any legacy properties and simplified forms in a material specifier
@@ -1188,100 +1245,86 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         FIXME: this should be done up front in OOShipRegistry. When doing that, it
         also need to be done when materials are set on the fly through JS,
 */
-static NSDictionary* CanonicalizeMaterialSpecifier(NSDictionary* spec, NSString* materialKey)
+oo::PList CanonicalizeMaterialSpecifier(const oo::PList& spec, const std::optional<std::string>& materialKey)
 {
-    NSMutableDictionary* result = [NSMutableDictionary dictionary];
+    oo::PList::Dict result;
     OOColor* col = nil;
-    id texSpec = nil;
+    oo::PList texSpec;
 
     // Colours.
-    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialDiffuseColorName]];
+    col = ColorIn(spec, cxx_kOOMaterialDiffuseColorName);
     if (col == nil)
-        col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialDiffuseColorLegacyName]];
+        col = ColorIn(spec, cxx_kOOMaterialDiffuseColorLegacyName);
     if (col != nil)
-        [result setObject:[col normalizedArray] forKey:kOOMaterialDiffuseColorName];
+        result[cxx_kOOMaterialDiffuseColorName] = NormalizedArray(col);
 
-    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialAmbientColorName]];
+    col = ColorIn(spec, cxx_kOOMaterialAmbientColorName);
     if (col == nil)
-        col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialAmbientColorLegacyName]];
+        col = ColorIn(spec, cxx_kOOMaterialAmbientColorLegacyName);
     if (col != nil)
-        [result setObject:[col normalizedArray] forKey:kOOMaterialAmbientColorName];
+        result[cxx_kOOMaterialAmbientColorName] = NormalizedArray(col);
 
-    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialSpecularColorName]];
+    col = ColorIn(spec, cxx_kOOMaterialSpecularColorName);
     if (col == nil)
-        col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialSpecularColorLegacyName]];
+        col = ColorIn(spec, cxx_kOOMaterialSpecularColorLegacyName);
     if (col != nil)
-        [result setObject:[col normalizedArray] forKey:kOOMaterialSpecularColorName];
+        result[cxx_kOOMaterialSpecularColorName] = NormalizedArray(col);
 
-    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialSpecularModulateColorName]];
+    col = ColorIn(spec, cxx_kOOMaterialSpecularModulateColorName);
     if (col != nil)
-        [result setObject:[col normalizedArray] forKey:kOOMaterialSpecularModulateColorName];
+        result[cxx_kOOMaterialSpecularModulateColorName] = NormalizedArray(col);
 
-    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialEmissionColorName]];
+    col = ColorIn(spec, cxx_kOOMaterialEmissionColorName);
     if (col == nil)
-        col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialEmissionColorLegacyName]];
+        col = ColorIn(spec, cxx_kOOMaterialEmissionColorLegacyName);
     if (col != nil)
-        [result setObject:[col normalizedArray] forKey:kOOMaterialEmissionColorName];
+        result[cxx_kOOMaterialEmissionColorName] = NormalizedArray(col);
 
     // Diffuse map.
-    texSpec = [spec objectForKey:kOOMaterialDiffuseMapName];
-    if ([texSpec isKindOfClass:[NSString class]]) {
-        if ([texSpec length] > 0) {
-            texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-        }
-    } else if ([texSpec isKindOfClass:[NSDictionary class]]) {
+    const oo::PList* diffuseSpec = spec.find(cxx_kOOMaterialDiffuseMapName);
+    if (diffuseSpec != nullptr && diffuseSpec->isString()) {
+        const std::string& name = *diffuseSpec->getIf<std::string>();
+        texSpec = name.empty() ? *diffuseSpec : NameSpecifier(name);
+    } else if (diffuseSpec != nullptr && diffuseSpec->isDict()) {
         /*	Special case for diffuse map: no name is changed to
                 name = materialKey, while name = "" is changed to no name.
         */
-        NSString* name = [texSpec objectForKey:kOOTextureSpecifierNameKey];
-        if (name == nil)
-            texSpec = [texSpec dictionaryByAddingObject:materialKey forKey:kOOTextureSpecifierNameKey];
-        else if ([name length] == 0) {
-            texSpec = [texSpec dictionaryByRemovingObjectForKey:kOOTextureSpecifierNameKey];
+        texSpec = *diffuseSpec;
+        const oo::PList* name = diffuseSpec->find(cxx_kOOTextureSpecifierNameKey);
+        if (name == nullptr) {
+            if (materialKey.has_value())
+                texSpec = AddingValue(texSpec, cxx_kOOTextureSpecifierNameKey, oo::PList(*materialKey));
+        } else if (name->isString() && name->getIf<std::string>()->empty()) {
+            texSpec.getIf<oo::PList::Dict>()->erase(cxx_kOOTextureSpecifierNameKey);
         }
     } else {
-        // Special case for unspecified diffuse map.
-        texSpec = [NSDictionary dictionaryWithObject:materialKey forKey:kOOTextureSpecifierNameKey];
+        // Special case for unspecified diffuse map. (The one caller always has a material key.)
+        texSpec = NameSpecifier(materialKey.value_or(std::string()));
     }
-    [result setObject:texSpec forKey:kOOMaterialDiffuseMapName];
+    result[cxx_kOOMaterialDiffuseMapName] = texSpec;
 
     // Specular maps.
     {
         BOOL haveNewSpecular = NO;
-        texSpec = [spec objectForKey:kOOMaterialSpecularColorMapName];
-        if ([texSpec isKindOfClass:[NSString class]]) {
-            texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-        } else if (![texSpec isKindOfClass:[NSDictionary class]]) {
-            texSpec = nil;
-        }
-        if (texSpec != nil) {
+        texSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialSpecularColorMapName));
+        if (!texSpec.isNull()) {
             haveNewSpecular = YES;
-            [result setObject:texSpec forKey:kOOMaterialSpecularColorMapName];
+            result[cxx_kOOMaterialSpecularColorMapName] = texSpec;
         }
 
-        texSpec = [spec objectForKey:kOOMaterialSpecularExponentMapName];
-        if ([texSpec isKindOfClass:[NSString class]]) {
-            texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-        } else if (![texSpec isKindOfClass:[NSDictionary class]]) {
-            texSpec = nil;
-        }
-        if (texSpec != nil) {
+        texSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialSpecularExponentMapName));
+        if (!texSpec.isNull()) {
             haveNewSpecular = YES;
-            [result setObject:texSpec forKey:kOOMaterialSpecularExponentMapName];
+            result[cxx_kOOMaterialSpecularExponentMapName] = texSpec;
         }
 
         if (!haveNewSpecular) {
             // Fall back to legacy combined specular map if defined.
-            texSpec = [spec objectForKey:kOOMaterialCombinedSpecularMapName];
-            if ([texSpec isKindOfClass:[NSString class]]) {
-                texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-            } else if (![texSpec isKindOfClass:[NSDictionary class]]) {
-                texSpec = nil;
-            }
-            if (texSpec != nil) {
-                [result setObject:texSpec forKey:kOOMaterialSpecularColorMapName];
-                texSpec = [texSpec dictionaryByAddingObject:@"a" forKey:kOOTextureSpecifierSwizzleKey];
-                [result setObject:texSpec forKey:kOOMaterialSpecularExponentMapName];
+            texSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialCombinedSpecularMapName));
+            if (!texSpec.isNull()) {
+                result[cxx_kOOMaterialSpecularColorMapName] = texSpec;
+                texSpec = AddingValue(texSpec, cxx_kOOTextureSpecifierSwizzleKey, oo::PList("a"));
+                result[cxx_kOOMaterialSpecularExponentMapName] = texSpec;
             }
         }
     }
@@ -1290,155 +1333,148 @@ static NSDictionary* CanonicalizeMaterialSpecifier(NSDictionary* spec, NSString*
     {
         BOOL haveParallax = NO;
         BOOL haveNewNormal = NO;
-        texSpec = [spec objectForKey:kOOMaterialNormalMapName];
-        if ([texSpec isKindOfClass:[NSString class]]) {
-            texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-        } else if (![texSpec isKindOfClass:[NSDictionary class]]) {
-            texSpec = nil;
-        }
-        if (texSpec != nil) {
+        texSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialNormalMapName));
+        if (!texSpec.isNull()) {
             haveNewNormal = YES;
-            [result setObject:texSpec forKey:kOOMaterialNormalMapName];
+            result[cxx_kOOMaterialNormalMapName] = texSpec;
         }
 
-        texSpec = [spec objectForKey:kOOMaterialParallaxMapName];
-        if ([texSpec isKindOfClass:[NSString class]]) {
-            texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-        } else if (![texSpec isKindOfClass:[NSDictionary class]]) {
-            texSpec = nil;
-        }
-        if (texSpec != nil) {
+        texSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialParallaxMapName));
+        if (!texSpec.isNull()) {
             haveNewNormal = YES;
             haveParallax = YES;
-            [result setObject:texSpec forKey:kOOMaterialParallaxMapName];
+            result[cxx_kOOMaterialParallaxMapName] = texSpec;
         }
 
         if (!haveNewNormal) {
             // Fall back to legacy combined normal and parallax map if defined.
-            texSpec = [spec objectForKey:kOOMaterialNormalAndParallaxMapName];
-            if ([texSpec isKindOfClass:[NSString class]]) {
-                texSpec = [NSDictionary dictionaryWithObject:texSpec forKey:kOOTextureSpecifierNameKey];
-            } else if (![texSpec isKindOfClass:[NSDictionary class]]) {
-                texSpec = nil;
-            }
-            if (texSpec != nil) {
+            texSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialNormalAndParallaxMapName));
+            if (!texSpec.isNull()) {
                 haveParallax = YES;
-                [result setObject:texSpec forKey:kOOMaterialNormalMapName];
-                texSpec = [texSpec dictionaryByAddingObject:@"a" forKey:kOOTextureSpecifierSwizzleKey];
-                [result setObject:texSpec forKey:kOOMaterialParallaxMapName];
+                result[cxx_kOOMaterialNormalMapName] = texSpec;
+                texSpec = AddingValue(texSpec, cxx_kOOTextureSpecifierSwizzleKey, oo::PList("a"));
+                result[cxx_kOOMaterialParallaxMapName] = texSpec;
             }
         }
 
-        // Additional parallax parameters.
+        // Additional parallax parameters (-oo_setFloat:forKey: stores a double).
         if (haveParallax) {
-            float parallaxScale = oo::PListView(spec).get<float>(kOOMaterialParallaxScaleName, kOOMaterialDefaultParallaxScale);
-            [result oo_setFloat:parallaxScale forKey:kOOMaterialParallaxScaleName];
+            float parallaxScale = spec.get<float>(cxx_kOOMaterialParallaxScaleName, kOOMaterialDefaultParallaxScale);
+            result[cxx_kOOMaterialParallaxScaleName] = oo::PList(static_cast<double>(parallaxScale));
 
-            float parallaxBias = oo::PListView(spec).get<float>(kOOMaterialParallaxBiasName);
-            [result oo_setFloat:parallaxBias forKey:kOOMaterialParallaxBiasName];
+            float parallaxBias = spec.get<float>(cxx_kOOMaterialParallaxBiasName);
+            result[cxx_kOOMaterialParallaxBiasName] = oo::PList(static_cast<double>(parallaxBias));
         }
     }
 
     // Light maps.
     {
-        NSMutableArray* lightMaps = [NSMutableArray array];
-        id lightMapSpecs = [spec objectForKey:kOOMaterialLightMapsName];
-        if (lightMapSpecs != nil && ![lightMapSpecs isKindOfClass:[NSArray class]]) {
-            lightMapSpecs = [NSArray arrayWithObject:lightMapSpecs];
+        oo::PList::Array lightMaps;
+        oo::PList::Array lightMapSpecs;
+        if (const oo::PList* value = spec.find(cxx_kOOMaterialLightMapsName)) {
+            if (const oo::PList::Array* array = value->getIf<oo::PList::Array>())
+                lightMapSpecs = *array;
+            else
+                lightMapSpecs.push_back(*value);
         }
 
-        id lmSpec = nil;
-        foreach (lmSpec, lightMapSpecs) {
-            if ([lmSpec isKindOfClass:[NSString class]]) {
-                lmSpec = [NSMutableDictionary dictionaryWithObject:lmSpec forKey:kOOTextureSpecifierNameKey];
-            } else if ([lmSpec isKindOfClass:[NSDictionary class]]) {
-                lmSpec = [[lmSpec mutableCopy] autorelease];
+        for (const oo::PList& entry : lightMapSpecs) {
+            oo::PList lmSpec;
+            if (const std::string* name = entry.getIf<std::string>()) {
+                lmSpec = NameSpecifier(*name);
+            } else if (entry.isDict()) {
+                lmSpec = entry;
             } else {
                 continue;
             }
+            oo::PList::Dict& lmDict = *lmSpec.getIf<oo::PList::Dict>();
 
-            id modulateColor = [lmSpec objectForKey:kOOTextureSpecifierModulateColorKey];
-            if (modulateColor != nil && ![modulateColor isKindOfClass:[NSArray class]]) {
+            auto modulateColor = lmDict.find(cxx_kOOTextureSpecifierModulateColorKey);
+            if (modulateColor != lmDict.end() && !modulateColor->second.isArray()) {
                 // Don't convert arrays here, because we specifically don't want the behaviour of treating numbers greater than 1 as 0..255 components.
-                col = [OOColor colorWithDescription:modulateColor];
-                [lmSpec setObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
+                col = [OOColor colorWithDescription:oo::ObjectFromPList(modulateColor->second)];
+                // A description that is no colour leaves no colour (upstream set nil, which Foundation refuses).
+                if (col != nil)
+                    modulateColor->second = NormalizedArray(col);
+                else
+                    lmDict.erase(modulateColor);
             }
 
-            id binding = [lmSpec objectForKey:kOOTextureSpecifierBindingKey];
-            if (binding != nil) {
-                if ([binding isKindOfClass:[NSString class]]) {
-                    NSDictionary* expandedBinding = [NSDictionary dictionaryWithObjectsAndKeys:@"binding", @"type", binding, @"binding", nil];
-                    [lmSpec setObject:expandedBinding forKey:kOOTextureSpecifierBindingKey];
-                } else if (![binding isKindOfClass:[NSDictionary class]] || [oo::PListView(binding).get<NSString*>(@"binding") length] == 0) {
-                    [lmSpec removeObjectForKey:kOOTextureSpecifierBindingKey];
+            auto binding = lmDict.find(cxx_kOOTextureSpecifierBindingKey);
+            if (binding != lmDict.end()) {
+                if (const std::string* bindingName = binding->second.getIf<std::string>()) {
+                    oo::PList expandedBinding(oo::PList::Dict { { "type", oo::PList("binding") }, { "binding", oo::PList(*bindingName) } });
+                    binding->second = std::move(expandedBinding);
+                } else if (!binding->second.isDict() || binding->second.get<std::string>("binding").empty()) {
+                    lmDict.erase(binding);
                 }
             }
 
-            [lightMaps addObject:[[lmSpec copy] autorelease]];
+            lightMaps.push_back(std::move(lmSpec));
         }
 
-        if ([lightMaps count] == 0) {
+        if (lightMaps.empty()) {
             // If light_map isn't use, handle legacy emission_map, illumination_map and emission_and_illumination_map.
-            id emissionSpec = [spec objectForKey:kOOMaterialEmissionMapName];
-            id illuminationSpec = [spec objectForKey:kOOMaterialIlluminationMapName];
+            const oo::PList* emissionValue = spec.find(cxx_kOOMaterialEmissionMapName);
+            const oo::PList* illuminationValue = spec.find(cxx_kOOMaterialIlluminationMapName);
+            oo::PList emissionSpec = (emissionValue != nullptr) ? *emissionValue : oo::PList();
+            oo::PList illuminationSpec = (illuminationValue != nullptr) ? *illuminationValue : oo::PList();
 
-            if (emissionSpec == nil && illuminationSpec == nil) {
-                emissionSpec = [spec objectForKey:kOOMaterialEmissionAndIlluminationMapName];
-                if ([emissionSpec isKindOfClass:[NSString class]]) {
-                    // Redundantish check required because we want to modify this as a dictionary to make illuminationSpec.
-                    emissionSpec = [NSDictionary dictionaryWithObject:emissionSpec forKey:kOOTextureSpecifierNameKey];
-                } else if (![emissionSpec isKindOfClass:[NSDictionary class]]) {
-                    emissionSpec = nil;
-                }
+            if (emissionSpec.isNull() && illuminationSpec.isNull()) {
+                // Redundantish string check required because we want to modify this as a dictionary to make illuminationSpec.
+                emissionSpec = StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialEmissionAndIlluminationMapName));
 
-                if (emissionSpec != nil) {
-                    illuminationSpec = [emissionSpec dictionaryByAddingObject:@"a" forKey:kOOTextureSpecifierSwizzleKey];
+                if (!emissionSpec.isNull()) {
+                    illuminationSpec = AddingValue(emissionSpec, cxx_kOOTextureSpecifierSwizzleKey, oo::PList("a"));
                 }
             }
 
-            if (emissionSpec != nil) {
-                if ([emissionSpec isKindOfClass:[NSString class]]) {
-                    emissionSpec = [NSDictionary dictionaryWithObject:emissionSpec forKey:kOOTextureSpecifierNameKey];
+            if (!emissionSpec.isNull()) {
+                if (const std::string* name = emissionSpec.getIf<std::string>()) {
+                    emissionSpec = NameSpecifier(*name);
                 }
-                if ([emissionSpec isKindOfClass:[NSDictionary class]]) {
-                    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialEmissionModulateColorName]];
+                if (emissionSpec.isDict()) {
+                    col = ColorIn(spec, cxx_kOOMaterialEmissionModulateColorName);
                     if (col != nil)
-                        emissionSpec = [emissionSpec dictionaryByAddingObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
+                        emissionSpec = AddingValue(emissionSpec, cxx_kOOTextureSpecifierModulateColorKey, NormalizedArray(col));
 
-                    [lightMaps addObject:emissionSpec];
+                    lightMaps.push_back(emissionSpec);
                 }
             }
 
-            if (illuminationSpec != nil) {
-                if ([illuminationSpec isKindOfClass:[NSString class]]) {
-                    illuminationSpec = [NSDictionary dictionaryWithObject:illuminationSpec forKey:kOOTextureSpecifierNameKey];
+            if (!illuminationSpec.isNull()) {
+                if (const std::string* name = illuminationSpec.getIf<std::string>()) {
+                    illuminationSpec = NameSpecifier(*name);
                 }
-                if ([illuminationSpec isKindOfClass:[NSDictionary class]]) {
-                    col = [OOColor colorWithDescription:[spec objectForKey:kOOMaterialIlluminationModulateColorName]];
+                if (illuminationSpec.isDict()) {
+                    col = ColorIn(spec, cxx_kOOMaterialIlluminationModulateColorName);
                     if (col != nil)
-                        illuminationSpec = [illuminationSpec dictionaryByAddingObject:[col normalizedArray] forKey:kOOTextureSpecifierModulateColorKey];
+                        illuminationSpec = AddingValue(illuminationSpec, cxx_kOOTextureSpecifierModulateColorKey, NormalizedArray(col));
 
-                    illuminationSpec = [illuminationSpec dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:kOOTextureSpecifierIlluminationModeKey];
+                    illuminationSpec = AddingValue(illuminationSpec, cxx_kOOTextureSpecifierIlluminationModeKey, oo::PList(true));
 
-                    [lightMaps addObject:illuminationSpec];
+                    lightMaps.push_back(illuminationSpec);
                 }
             }
         }
 
-        [result setObject:lightMaps forKey:kOOMaterialLightMapsName];
+        result[cxx_kOOMaterialLightMapsName] = oo::PList(std::move(lightMaps));
     }
 
-    OOLog(@"material.canonicalForm", @"Canonicalized material %@:\nORIGINAL:\n%@\n\n@CANONICAL:\n%@", materialKey, spec, result);
+    oo::PList canonical(std::move(result));
+    OO_LOG("material.canonicalForm", "Canonicalized material {}:\nORIGINAL:\n{}\n\n@CANONICAL:\n{}", materialKey.value_or("(null)"), oo::DescriptionOf(oo::ObjectFromPList(spec)), oo::DescriptionOf(oo::ObjectFromPList(canonical)));
 
-    return result;
+    return canonical;
 }
 
-static NSString* FormatFloat(double value)
+std::string FormatFloat(double value)
 {
     long long intValue = value;
     if (value == intValue) {
-        return [NSString stringWithFormat:@"%lli.0", intValue];
+        return oo::str::format("%lli.0", intValue);
     } else {
-        return [NSString stringWithFormat:@"%g", value];
+        return oo::str::format("%g", value);
     }
 }
+
+} // namespace

@@ -33,21 +33,25 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Encoding.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 @class OOCache;
 
 @interface OOEncodingConverter : OOObject {
 @private
-    NSStringEncoding _encoding;
+    std::optional<oo::str::Encoding> _encoding; // nullopt: an unknown encoding name (was NSNotFound)
     OOCache* _cache;
-    NSDictionary* _substitutions;
+    std::vector<std::pair<std::string, std::string>> _substitutions; // in the order they are applied
 }
 
-- (id)initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary*)substitutions;
-- (id)initWithFontPList:(NSDictionary*)fontPList;
+- (id)initWithEncoding:(std::optional<oo::str::Encoding>)encoding substitutions:(const oo::PList&)substitutions; // a dictionary of strings
+- (id)initWithFontPList:(const oo::PList&)fontPList;
 
-- (NSData*)convertString:(NSString*)string;
+- (oo::Data)convertString:(const std::string&)string; // empty if the string cannot be converted
 
-- (NSStringEncoding)encoding;
+- (std::optional<oo::str::Encoding>)encoding;
 
 @end
 
@@ -55,12 +59,12 @@ SOFTWARE.
 
 /*
         There are a variety of overlapping naming schemes for text encoding.
-        We ignore them and use a fixed list:
-                "windows-latin-1"		NSWindowsCP1252StringEncoding
-                "windows-latin-2"		NSWindowsCP1250StringEncoding
-                "windows-cyrillic"		NSWindowsCP1251StringEncoding
-                "windows-greek"			NSWindowsCP1253StringEncoding
-                "windows-turkish"		NSWindowsCP1254StringEncoding
+        We ignore them and use a fixed list (oo::str::Encoding in oofnd/Encoding.hpp):
+                "windows-latin-1"		windowsCP1252 (code page 1252)
+                "windows-latin-2"		windowsCP1250 (code page 1250)
+                "windows-cyrillic"		windowsCP1251 (code page 1251)
+                "windows-greek"			windowsCP1253 (code page 1253)
+                "windows-turkish"		windowsCP1254 (code page 1254)
 */
-NSString* StringFromEncoding(NSStringEncoding encoding); // Returns nil for unknown
-NSStringEncoding EncodingFromString(NSString* name); // Returns (NSStringEncoding)NSNotFound for unknown
+const char* StringFromEncoding(unsigned encoding); // oo::str::Encoding numeric value; NULL for unknown
+// (EncodingFromString() retired with the Foundation sweep, bead oo-gosz: oo::str::encodingFromName() in oofnd/Encoding.hpp)

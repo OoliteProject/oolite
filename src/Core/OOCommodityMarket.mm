@@ -298,7 +298,7 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
             loadedOK = YES;
         }
         if (!loadedOK) {
-            OOLog(@"setCommanderDataFromDictionary.warning.cargo", @"Cargo %@ (%u units) could not be loaded from the saved game, as it is no longer defined", oo::NSStringOrNil(good), q);
+            OO_LOG("setCommanderDataFromDictionary.warning.cargo", "Cargo {} ({} units) could not be loaded from the saved game, as it is no longer defined", good.value_or("(null)"), q);
         }
     }
 }
@@ -342,7 +342,7 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
             loadedOK = YES;
         }
         if (!loadedOK) {
-            OOLog(@"load.warning.cargo", @"Station market good %@ (%u units) could not be loaded from the saved game, as it is no longer defined", oo::NSStringOrNil(good), q);
+            OO_LOG("load.warning.cargo", "Station market good {} ({} units) could not be loaded from the saved game, as it is no longer defined", good.value_or("(null)"), q);
         }
     }
 }

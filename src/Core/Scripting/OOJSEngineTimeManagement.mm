@@ -27,7 +27,9 @@ SOFTWARE.
 
 #import "OOJSEngineTimeManagement.h"
 #import "OOFoundationBridge.h"
+#include "oofnd/Log.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 /*	The SpiderMonkey version of this file implemented the time limiter
         (with a watchdog thread that triggered SpiderMonkey's operation
@@ -74,7 +76,7 @@ static OOHighResTimeValue sProfilerStartTime;
 - (void)setExtensionTime:(double)value;
 - (void)setProfileEntries:(const std::vector<oo::ObjCRef<OOTimeProfileEntry*>>&)value;
 
-- (id)propertyListRepresentation; // shared selector (proposed ADR-0043): an Objective-C dictionary
+- (oo::PList)propertyListRepresentation;
 
 @end
 
@@ -84,7 +86,7 @@ static OOHighResTimeValue sProfilerStartTime;
 
 - (void)addSampleWithTotalTime:(OOTimeDelta)totalTime selfTime:(OOTimeDelta)selfTime;
 
-- (id)propertyListRepresentation; // shared selector (proposed ADR-0043): an Objective-C dictionary
+- (oo::PList)propertyListRepresentation;
 
 @end
 
@@ -103,8 +105,8 @@ void OOJSBeginProfiling(BOOL trace)
     sProfilerStartTime = OOGetHighResTime();
 
     if (trace) {
-        OOLog(@"script.javaScript.trace", @"%@", @">>>> Beginning trace.");
-        OOLogIndent();
+        OO_LOG("script.javaScript.trace", "{}", ">>>> Beginning trace.");
+        oo::log::indent();
     }
 }
 
@@ -132,12 +134,12 @@ OOTimeProfile* OOJSEndProfiling(void)
     entries.reserve(sProfileInfo->size());
     for (const auto& keyAndEntry : *sProfileInfo)
         entries.emplace_back(keyAndEntry.second);
-    std::stable_sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) { return [a.get() compareBySelfTimeReverse:b.get()] == NSOrderedAscending; });
+    std::stable_sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) { return [a.get() compareBySelfTimeReverse:b.get()] == OOOrderedAscending; });
     [result setProfileEntries:entries];
 
     if (sTracing) {
-        OOLogOutdent();
-        OOLog(@"script.javaScript.trace", @"%@", @"<<<< End of trace.");
+        oo::log::outdent();
+        OO_LOG("script.javaScript.trace", "{}", "<<<< End of trace.");
         sTracing = NO;
     }
 
@@ -167,8 +169,8 @@ void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function)
         return;
     if (EXPECT_NOT(sTracing)) {
         // We use EXPECT_NOT here because profiles are time-critical and traces are not.
-        OOLog(@"script.javaScript.trace.ON", @">> %s [ON]", function);
-        OOLogIndent();
+        OO_LOG("script.javaScript.trace.ON", ">> {} [ON]", function);
+        oo::log::indent();
     }
 
     *frame = (OOJSProfileStackFrame) {
@@ -240,7 +242,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
         sProfileStack->subTime += time;
 
     if (EXPECT_NOT(sTracing))
-        OOLogOutdent();
+        oo::log::outdent();
 }
 
 @implementation OOTimeProfile
@@ -341,16 +343,16 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
+    return OOJSValueFromNativeObject(context, oo::ObjectFromPList([self propertyListRepresentation]));
 }
 
-- (id)propertyListRepresentation // shared selector (proposed ADR-0043)
+- (oo::PList)propertyListRepresentation
 {
     // "profiles" holds each entry's own property list.
     oo::PList::Array profiles;
     profiles.reserve(_profileEntries.size());
     for (const auto& entry : _profileEntries)
-        profiles.push_back(oo::PListFrom([entry.get() propertyListRepresentation]));
+        profiles.push_back([entry.get() propertyListRepresentation]);
 
     oo::PList::Dict result;
     result.emplace("profiles", oo::PList(std::move(profiles)));
@@ -360,7 +362,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     result.emplace("extensionTime", oo::PList([self extensionTime]));
     result.emplace("nonExtensionTime", oo::PList([self nonExtensionTime]));
     result.emplace("profilerOverhead", oo::PList([self profilerOverhead]));
-    return oo::ObjectFromPList(oo::PList(std::move(result)));
+    return oo::PList(std::move(result));
 }
 
 @end
@@ -369,7 +371,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
 
 - (id)initWithCName:(const char*)name
 {
-    NSAssert(sProfiling, @"Can't create profile entries while not profiling.");
+    OOAssert(sProfiling, "Can't create profile entries while not profiling.");
 
     if ((self = [super init])) {
         if (name != NULL) {
@@ -416,9 +418,14 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     }
 }
 
-- (id)function // shared selector (proposed ADR-0043)
+- (id)function // shared selector (Foundation declares -function too; retires with oo-qps)
 {
-    return oo::NSStringOrNil(_function);
+    return oo::NSStringOrNil([self cxx_function]);
+}
+
+- (std::optional<std::string>)cxx_function
+{
+    return _function;
 }
 
 - (NSUInteger)hitCount
@@ -461,46 +468,46 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
     return NO;
 }
 
-- (NSComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other
+- (OOComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other
 {
-    return (NSComparisonResult)-[self compareByTotalTimeReverse:other];
+    return (OOComparisonResult)-[self compareByTotalTimeReverse:other];
 }
 
-- (NSComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other
+- (OOComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other
 {
     double selfTotal = [self totalTimeSum];
     double otherTotal = [other totalTimeSum];
 
     if (selfTotal < otherTotal)
-        return NSOrderedDescending;
+        return OOOrderedDescending;
     if (selfTotal > otherTotal)
-        return NSOrderedAscending;
-    return NSOrderedSame;
+        return OOOrderedAscending;
+    return OOOrderedSame;
 }
 
-- (NSComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other
+- (OOComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other
 {
-    return (NSComparisonResult)-[self compareBySelfTimeReverse:other];
+    return (OOComparisonResult)-[self compareBySelfTimeReverse:other];
 }
 
-- (NSComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other
+- (OOComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other
 {
     double selfTotal = [self selfTimeSum];
     double otherTotal = [other selfTimeSum];
 
     if (selfTotal < otherTotal)
-        return NSOrderedDescending;
+        return OOOrderedDescending;
     if (selfTotal > otherTotal)
-        return NSOrderedAscending;
-    return NSOrderedSame;
+        return OOOrderedAscending;
+    return OOOrderedSame;
 }
 
 - (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    return OOJSValueFromNativeObject(context, [self propertyListRepresentation]);
+    return OOJSValueFromNativeObject(context, oo::ObjectFromPList([self propertyListRepresentation]));
 }
 
-- (id)propertyListRepresentation // shared selector (proposed ADR-0043)
+- (oo::PList)propertyListRepresentation
 {
     oo::PList::Dict result;
     // A nameless entry gave an empty dictionary: its nil name ended the object/key list.
@@ -515,7 +522,7 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame*
         result.emplace("selfTimeMax", oo::PList([self selfTimeMax]));
         result.emplace("isJavaScriptFrame", oo::PList(static_cast<bool>([self isJavaScriptFrame])));
     }
-    return oo::ObjectFromPList(oo::PList(std::move(result)));
+    return oo::PList(std::move(result));
 }
 
 @end

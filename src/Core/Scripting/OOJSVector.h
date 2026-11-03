@@ -25,9 +25,9 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
 #include "oofnd/StdLib.hpp"
-#import <Foundation/Foundation.h>
 #include <quickjs.h>
 
 void InitOOJSVector(JSContext* context, JSValueConst global);

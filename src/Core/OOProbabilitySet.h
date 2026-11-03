@@ -38,32 +38,34 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/PList.hpp"
+
 @interface OOProbabilitySet : OOObject <OOCopying, OOMutableCopying>
 
 + (id)probabilitySet;
 + (id)probabilitySetWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
-+ (id)probabilitySetWithPropertyListRepresentation:(NSDictionary*)plist;
++ (id)probabilitySetWithPropertyListRepresentation:(const oo::PList&)plist;
 
 - (id)init;
 - (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
-- (id)initWithPropertyListRepresentation:(NSDictionary*)plist;
+- (id)initWithPropertyListRepresentation:(const oo::PList&)plist;
 
 // propertyListRepresentation is only valid if objects are property list objects.
-- (NSDictionary*)propertyListRepresentation;
+- (oo::PList)propertyListRepresentation;
 
 - (NSUInteger)count;
 - (id)randomObject;
 
 - (float)weightForObject:(id)object; // Returns -1 for unknown objects.
 - (float)sumOfWeights;
-- (NSArray*)allObjects;
+- (id)allObjects; // shared selector: an Objective-C array
 
 @end
 
 @interface OOProbabilitySet (OOExtendedProbabilitySet)
 
 - (BOOL)containsObject:(id)object;
-- (NSEnumerator*)objectEnumerator;
+- (id)objectEnumerator; // shared selector: an enumerator over -allObjects
 - (float)probabilityForObject:(id)object; // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
 
 @end

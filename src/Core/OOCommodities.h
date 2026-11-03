@@ -25,6 +25,11 @@ MA 02110-1301, USA.
 */
 
 #import "OOTypes.h"
+#include "oofnd/PList.hpp"
+
+#include <map>
+#include <optional>
+#include <string>
 
 #define MAIN_SYSTEM_MARKET_LIMIT 127
 
@@ -35,72 +40,33 @@ static inline OOMassUnit OOMassUnitFromNumber(unsigned n)
     return (n <= UNITS_GRAMS) ? (OOMassUnit)n : UNITS_UNKNOWN;
 }
 
-// keys in trade-goods.plist
-static NSString* const kOOCommodityName = @"name";
-static NSString* const kOOCommodityClasses = @"classes";
-static NSString* const kOOCommodityContainer = @"quantity_unit";
-static NSString* const kOOCommodityPeakExport = @"peak_export";
-static NSString* const kOOCommodityPeakImport = @"peak_import";
-static NSString* const kOOCommodityPriceAverage = @"price_average";
-static NSString* const kOOCommodityPriceEconomic = @"price_economic";
-static NSString* const kOOCommodityPriceRandom = @"price_random";
-// next one cannot be set from file - named for compatibility
-static NSString* const kOOCommodityPriceCurrent = @"price";
-static NSString* const kOOCommodityQuantityAverage = @"quantity_average";
-static NSString* const kOOCommodityQuantityEconomic = @"quantity_economic";
-static NSString* const kOOCommodityQuantityRandom = @"quantity_random";
-// next one cannot be set from file - named for compatibility
-static NSString* const kOOCommodityQuantityCurrent = @"quantity";
-static NSString* const kOOCommodityLegalityExport = @"legality_export";
-static NSString* const kOOCommodityLegalityImport = @"legality_import";
-static NSString* const kOOCommodityTrumbleOpinion = @"trumble_opinion";
-static NSString* const kOOCommoditySortOrder = @"sort_order";
-static NSString* const kOOCommodityCapacity = @"capacity";
-static NSString* const kOOCommodityScript = @"market_script";
-static NSString* const kOOCommodityComment = @"comment";
-static NSString* const kOOCommodityShortComment = @"short_comment";
-// next one cannot be set from file - named for compatibility
-static NSString* const kOOCommodityKey = @"key";
-
-// keys in secondary market definitions
-static NSString* const kOOCommodityMarketType = @"type";
-static NSString* const kOOCommodityMarketName = @"name";
-static NSString* const kOOCommodityMarketPriceAdder = @"price_adder";
-static NSString* const kOOCommodityMarketPriceMultiplier = @"price_multiplier";
-static NSString* const kOOCommodityMarketPriceRandomiser = @"price_randomiser";
-static NSString* const kOOCommodityMarketQuantityAdder = @"quantity_adder";
-static NSString* const kOOCommodityMarketQuantityMultiplier = @"quantity_multiplier";
-static NSString* const kOOCommodityMarketQuantityRandomiser = @"quantity_randomiser";
-static NSString* const kOOCommodityMarketLegalityExport = @"legality_export";
-static NSString* const kOOCommodityMarketLegalityImport = @"legality_import";
-static NSString* const kOOCommodityMarketCapacity = @"capacity";
-
-// values for "type" in the plist
-static NSString* const kOOCommodityMarketTypeValueDefault = @"default";
-static NSString* const kOOCommodityMarketTypeValueClass = @"class";
-static NSString* const kOOCommodityMarketTypeValueGood = @"good";
-
 @class OOCommodityMarket, StationEntity;
 
 @interface OOCommodities : OOObject {
 @private
-    NSDictionary* _commodityLists;
+    std::map<std::string, oo::PList, std::less<>> _commodityLists; // trade-goods.plist: commodity key -> its info (a Dict)
 }
 
-+ (OOCommodityType)legacyCommodityType:(NSUInteger)i;
++ (std::optional<std::string>)cxx_legacyCommodityType:(NSUInteger)i; // always a key (the old method never returned nil)
 
 - (OOCommodityMarket*)generateManifestForPlayer;
 - (OOCommodityMarket*)generateBlankMarket;
-- (OOCommodityMarket*)generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString*)scriptName;
+- (OOCommodityMarket*)cxx_generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(const std::optional<std::string>&)scriptName; // nullopt: no script (was nil)
 - (OOCommodityMarket*)generateMarketForStation:(StationEntity*)station;
 
-- (OOCreditsQuantity)samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString*)scriptName inSystem:(OOSystemID)system;
+- (OOCreditsQuantity)cxx_samplePriceForCommodity:(const std::string&)commodity inEconomy:(OOEconomyID)economy withScript:(const std::optional<std::string>&)scriptName inSystem:(OOSystemID)system;
 
 - (NSUInteger)count;
-- (NSArray*)goods;
-- (BOOL)goodDefined:(NSString*)key;
-- (NSString*)goodNamed:(NSString*)name;
-- (NSString*)getRandomCommodity;
-- (OOMassUnit)massUnitForGood:(NSString*)good;
+- (id)goods; // shared selector (proposed ADR-0043): an array of the commodity keys, in key order
+- (BOOL)cxx_goodDefined:(const std::string&)key;
+- (std::optional<std::string>)cxx_goodNamed:(const std::string&)name; // nullopt: no good has that (expanded) name
+- (id)getRandomCommodity; // shared selector: a commodity key string
+- (OOMassUnit)massUnitForGood:(id)good; // shared selector: a commodity key string
 
 @end
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-3rb.154, forwarding to the cxx_ methods above, so unmigrated callers compile
+        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
+*/
+#import "OOCommodities+FoundationBridge.h"

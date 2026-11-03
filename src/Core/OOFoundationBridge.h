@@ -29,8 +29,9 @@ commit. Everything else in the file is std / oofnd.
         what "%@" printed for an object                 oo::DescriptionOf(object)         (nil -> "(null)")
 
 Exactness. Strings are unit for unit (OOStringBridge.h). PListFrom follows the table in
-oofnd/PList.hpp: an NSNumber is a bool when -oo_isBoolean says so (the test the game's plist
-writer uses), a real when its -objCType is float or double, an unsigned integer for an unsigned
+oofnd/PList.hpp: an NSNumber is a bool when it is the constant true/false object (kCFBoolean*
+or GNUstep's cached +numberWithBool: identities — the test the game's plist writer uses),
+a real when its -objCType is float or double, an unsigned integer for an unsigned
 C type, else a signed integer; a float (its class is NSSmallFloat / NSFloatNumber: gnustep-base
 reports -objCType 'd' for both) is a PList::singleReal, so it comes
 back as +numberWithFloat: and prints as a float. (GNUstep caches small integers as int, so a non-negative <integer>
@@ -67,7 +68,6 @@ MA 02110-1301, USA.
 #ifndef OOFOUNDATIONBRIDGE_H
 #define OOFOUNDATIONBRIDGE_H
 
-#import "NSNumberOOExtensions.h"
 #import "OOFoundation.h"
 #import "OOStringBridge.h"
 
@@ -221,8 +221,21 @@ inline PList PListFrom(id object)
         return PList(StdString(object));
     if (IsNSNumber(object)) {
         NSNumber* number = object;
-        if ([number oo_isBoolean])
+        // Former NSNumber (OOExtensions) boolean identity test: constant true/false objects only.
+#if __COREFOUNDATION_CFNUMBER__
+        if (number == (NSNumber*)kCFBooleanTrue || number == (NSNumber*)kCFBooleanFalse)
             return PList(static_cast<bool>([number boolValue]));
+#else
+        {
+            static NSNumber *sTrue = nil, *sFalse = nil;
+            if (sTrue == nil) {
+                sTrue = [[NSNumber numberWithBool:YES] retain];
+                sFalse = [[NSNumber numberWithBool:NO] retain];
+            }
+            if (number == sTrue || number == sFalse)
+                return PList(static_cast<bool>([number boolValue]));
+        }
+#endif
         // gnustep-base reports 'd' for a float too; its class tells (NSSmallFloat, NSFloatNumber: probed).
         if (std::string_view(class_getName(object_getClass(number))).find("Float") != std::string_view::npos)
             return PList::singleReal([number floatValue]);

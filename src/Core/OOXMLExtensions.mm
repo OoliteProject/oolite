@@ -24,32 +24,25 @@ MA 02110-1301, USA.
 
 #import "OOXMLExtensions.h"
 
-@implementation NSDictionary (OOXMLExtensions)
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/PListWriting.hpp"
 
-- (BOOL)writeOOXMLToFile:(NSString*)path atomically:(BOOL)flag errorDescription:(NSString**)outErrorDesc
+bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path, std::string* outError)
 {
-    NSData* data = nil;
-    NSString* errorDesc = nil;
-
-    data = [NSPropertyListSerialization dataFromPropertyList:self format:NSPropertyListXMLFormat_v1_0 errorDescription:outErrorDesc];
-    if (data == nil) {
-        if (outErrorDesc != NULL) {
-            *outErrorDesc = [NSString stringWithFormat:@"could not convert property list to XML: %@", errorDesc];
+    const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(plist);
+    if (!data) {
+        if (outError != nullptr) {
+            *outError = "could not convert property list to XML: " + data.error().description();
         }
-#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
-        [errorDesc release];
-#endif
-        return NO;
+        return false;
     }
 
-    if (![data writeToFile:path atomically:YES]) {
-        if (outErrorDesc != NULL) {
-            *outErrorDesc = [NSString stringWithFormat:@"could not write data to %@.", path];
+    if (!oo::fs::writeFile(oo::fs::pathFromUTF8(path), *data, oo::fs::WriteMode::atomic)) {
+        if (outError != nullptr) {
+            *outError = "could not write data to " + path + ".";
         }
-        return NO;
+        return false;
     }
 
-    return YES;
+    return true;
 }
-
-@end

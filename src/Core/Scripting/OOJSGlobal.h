@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 #include <quickjs.h>
 
 /*	QuickJS's global object is an ordinary object created with the context,

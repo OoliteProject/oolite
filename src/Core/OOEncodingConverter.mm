@@ -28,8 +28,10 @@ SOFTWARE.
 
 #import "OOEncodingConverter.h"
 #import "OOCache.h"
+#import "OOFoundationBridge.h"
 #import "OOLogging.h"
-#import "OOPListView.h"
+#include "oofnd/Encoding.hpp"
+#include "oofnd/String.hpp"
 
 /*	Using compatibility mapping - converting strings to Unicode form KC - would
         reduce potential complications in localizing Oolite. However, the method to
@@ -61,7 +63,7 @@ static unsigned sCacheMisses = 0;
 
 @interface OOEncodingConverter (Private)
 
-- (NSData*)performConversionForString:(NSString*)string;
+- (std::optional<oo::Data>)performConversionForString:(const std::string&)string;
 #if PROFILE_ENCODING_CONVERTER
 - (void)profileFire:(id)junk;
 #endif
@@ -70,14 +72,21 @@ static unsigned sCacheMisses = 0;
 
 @implementation OOEncodingConverter
 
-- (id)initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary*)substitutions
+- (id)initWithEncoding:(std::optional<oo::str::Encoding>)encoding substitutions:(const oo::PList&)substitutions
 {
     self = [super init];
     if (self != nil) {
         _cache = [[OOCache alloc] init];
         [_cache setPruneThreshold:kCachePruneThreshold];
         [_cache setName:@"Text encoding"];
-        _substitutions = [substitutions copy];
+        if (substitutions.isDict()) {
+            // In the order the Foundation dictionary enumerated them (two that overlap give
+            // different results in different orders), which is the order this one enumerates in.
+            id substitutionDictionary = oo::ObjectFromPList(substitutions);
+            for (id key in substitutionDictionary) {
+                _substitutions.emplace_back(oo::StdString(key), oo::StdString([substitutionDictionary objectForKey:key]));
+            }
+        }
         _encoding = encoding;
 
 #if PROFILE_ENCODING_CONVERTER
@@ -91,15 +100,16 @@ static unsigned sCacheMisses = 0;
     return self;
 }
 
-- (id)initWithFontPList:(NSDictionary*)fontPList
+- (id)initWithFontPList:(const oo::PList&)fontPList
 {
-    return [self initWithEncoding:EncodingFromString(oo::PListView(fontPList).get<NSString*>(@"encoding")) substitutions:oo::PListView(fontPList).get<NSDictionary*>(@"substitutions")];
+    const oo::PList* substitutions = fontPList.get<oo::PList::Dict>("substitutions");
+    return [self initWithEncoding:oo::str::encodingFromName(fontPList.get<std::string>("encoding")) substitutions:(substitutions != nullptr) ? *substitutions : oo::PList()];
 }
 
 - (void)dealloc
 {
     [_cache release];
-    [_substitutions release];
+    _substitutions.clear();
 
 #if PROFILE_ENCODING_CONVERTER
     sProfiledConverter = nil;
@@ -110,34 +120,39 @@ static unsigned sCacheMisses = 0;
     [super dealloc];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents
 {
-    return [NSString stringWithFormat:@"encoding: %u", _encoding];
+    // (an unknown encoding printed as NSNotFound's low 32 bits, 4294967295)
+    return oo::NSStringFrom(oo::str::format("encoding: %u", _encoding.has_value() ? static_cast<unsigned>(*_encoding) : static_cast<unsigned>(NSNotFound)));
 }
 
-- (NSData*)convertString:(NSString*)string
+- (oo::Data)convertString:(const std::string&)string
 {
-    NSData* data = nil;
+    oo::Data data;
 
 #if USE_COMPATIBILITY_MAPPING
-    // Convert to Unicode Normalization Form KC (that is, minimize the use of combining modifiers while avoiding precomposed ligatures)
-    string = [string precomposedStringWithCompatibilityMapping];
+    // (Unicode Normalization Form KC has no oofnd equivalent; the mapping has always been off.)
 #endif
 
-    if (string == nil)
-        return [NSData data];
-
-    data = [_cache objectForKey:string];
-    if (data == nil) {
-        data = [self performConversionForString:string];
-        if (data != nil)
-            [_cache setObject:data forKey:string];
+    // OOCache holds Objective-C objects: the string is its key, the bytes its value.
+    id key = oo::NSStringFrom(string);
+    id cached = [_cache objectForKey:key];
+    if (cached == nil) {
+        const std::optional<oo::Data> converted = [self performConversionForString:string];
+        if (converted.has_value()) {
+            data = *converted;
+            [_cache setObject:oo::ObjectFromPList(oo::PList(data)) forKey:key];
+        }
 
 #if PROFILE_ENCODING_CONVERTER
         ++sCacheMisses;
+#endif
     } else {
+#if PROFILE_ENCODING_CONVERTER
         ++sCacheHits;
 #endif
+        if (const oo::Data* cachedData = oo::PListFrom(cached).getIf<oo::Data>())
+            data = *cachedData;
     }
 
 #if PROFILE_ENCODING_CONVERTER
@@ -155,7 +170,7 @@ static unsigned sCacheMisses = 0;
     return data;
 }
 
-- (NSStringEncoding)encoding
+- (std::optional<oo::str::Encoding>)encoding
 {
     return _encoding;
 }
@@ -164,24 +179,13 @@ static unsigned sCacheMisses = 0;
 
 @implementation OOEncodingConverter (Private)
 
-- (NSData*)performConversionForString:(NSString*)string
+- (std::optional<oo::Data>)performConversionForString:(const std::string&)string
 {
-    NSString* subst = nil;
-    NSMutableString* mutableString = nil;
+    // (an unknown encoding, NSNotFound: the conversion gave nil)
+    if (!_encoding.has_value())
+        return std::nullopt;
 
-    mutableString = [[string mutableCopy] autorelease];
-    if (mutableString == nil)
-        return nil;
-
-    foreachkey(subst, _substitutions)
-    {
-        [mutableString replaceOccurrencesOfString:subst
-                                       withString:[_substitutions objectForKey:subst]
-                                          options:0
-                                            range:NSMakeRange(0, [mutableString length])];
-    }
-
-    return [mutableString dataUsingEncoding:_encoding allowLossyConversion:YES];
+    return oo::str::convertForFont(string, *_encoding, _substitutions);
 }
 
 #if PROFILE_ENCODING_CONVERTER
@@ -195,7 +199,7 @@ static unsigned sCacheMisses = 0;
 - (void)profileFire:(id)junk
 {
     float ratio = (float)sCacheHits / (float)(sCacheHits + sCacheMisses);
-    OOLog(@"strings.encoding.profile", @"Cache hits: %u, misses: %u, ratio: %.2g", sCacheHits, sCacheMisses, ratio);
+    OO_LOG("strings.encoding.profile", "Cache hits: {}, misses: {}, ratio: {:.2g}", sCacheHits, sCacheMisses, ratio);
     sCacheHits = sCacheMisses = 0;
 }
 #endif
@@ -204,56 +208,19 @@ static unsigned sCacheMisses = 0;
 
 #endif // OOENCODINGCONVERTER_EXCLUDE
 
+#include "oofnd/Encoding.hpp"
+
 /*
         There are a variety of overlapping naming schemes for text encoding.
-        We ignore them and use a fixed list:
-                "windows-latin-1"		NSWindowsCP1252StringEncoding
-                "windows-latin-2"		NSWindowsCP1250StringEncoding
-                "windows-cyrillic"		NSWindowsCP1251StringEncoding
-                "windows-greek"			NSWindowsCP1253StringEncoding
-                "windows-turkish"		NSWindowsCP1254StringEncoding
+        We ignore them and use a fixed list (oo::str::Encoding in oofnd/Encoding.hpp):
+                "windows-latin-1"		windowsCP1252 (code page 1252)
+                "windows-latin-2"		windowsCP1250 (code page 1250)
+                "windows-cyrillic"		windowsCP1251 (code page 1251)
+                "windows-greek"			windowsCP1253 (code page 1253)
+                "windows-turkish"		windowsCP1254 (code page 1254)
 */
 
-#define kWindowsLatin1Str @"windows-latin-1"
-#define kWindowsLatin2Str @"windows-latin-2"
-#define kWindowsCyrillicStr @"windows-cyrillic"
-#define kWindowsGreekStr @"windows-greek"
-#define kWindowsTurkishStr @"windows-turkish"
-
-NSString* StringFromEncoding(NSStringEncoding encoding)
+const char* StringFromEncoding(unsigned encoding)
 {
-    switch (encoding) {
-    case NSWindowsCP1252StringEncoding:
-        return kWindowsLatin1Str;
-
-    case NSWindowsCP1250StringEncoding:
-        return kWindowsLatin2Str;
-
-    case NSWindowsCP1251StringEncoding:
-        return kWindowsCyrillicStr;
-
-    case NSWindowsCP1253StringEncoding:
-        return kWindowsGreekStr;
-
-    case NSWindowsCP1254StringEncoding:
-        return kWindowsTurkishStr;
-
-    default:
-        return nil;
-    }
-}
-
-NSStringEncoding EncodingFromString(NSString* name)
-{
-    if ([name isEqualToString:kWindowsLatin1Str])
-        return NSWindowsCP1252StringEncoding;
-    if ([name isEqualToString:kWindowsLatin2Str])
-        return NSWindowsCP1250StringEncoding;
-    if ([name isEqualToString:kWindowsCyrillicStr])
-        return NSWindowsCP1251StringEncoding;
-    if ([name isEqualToString:kWindowsGreekStr])
-        return NSWindowsCP1253StringEncoding;
-    if ([name isEqualToString:kWindowsTurkishStr])
-        return NSWindowsCP1254StringEncoding;
-    return (NSStringEncoding)NSNotFound;
+    return oo::str::encodingName(static_cast<oo::str::Encoding>(encoding));
 }

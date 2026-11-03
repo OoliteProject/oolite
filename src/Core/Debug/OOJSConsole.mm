@@ -621,7 +621,7 @@ static JSValue ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
 
     if (message.has_value()) {
         [monitor appendJSConsoleLine:oo::NSStringFrom(*message)
-                            colorKey:oo::NSStringOrNil(colorKey)
+                            colorKey:colorKey
                        emphasisRange:emphasisRange];
     }
     OOJSResumeTimeLimiter();

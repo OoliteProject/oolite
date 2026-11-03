@@ -32,11 +32,21 @@ MA 02110-1301, USA.
 #import "OOFoundationBridge.h"
 #import "ResourceManager.h"
 
+#include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
 static const char* const kStageName = "Validating AIs";
 
 namespace {
+
+// OODictionaryFromFile (OOPListParsing's bridge) as a property list: the file's
+// property list when it is a dictionary, a null PList otherwise (its plist.wrongType log line,
+// which named the Foundation class, is not kept).
+oo::PList PListDictionaryFromFile(const std::string& path)
+{
+    oo::PList result = cxx_OOPropertyListFromFile(path);
+    return result.isDict() ? result : oo::PList();
+}
 
 // Adding to a set kept as a sorted vector; false if it was already there.
 bool AddString(std::vector<std::string>& set, const std::string& string)
@@ -105,9 +115,9 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
     _whitelist.clear();
 }
 
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (void)stateMachineNamed:(const std::string&)name usedByShip:(const std::string&)shipName
@@ -118,11 +128,8 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
         return;
 
     fileScanner = [[self verifier] fileScannerStage];
-    if (![fileScanner fileExists:oo::NSStringFrom(name)
-                        inFolder:@"AIs"
-                  referencedFrom:oo::NSStringFrom(oo::str::format("shipdata.plist entry \"%s\"", shipName.c_str()))
-                    checkBuiltIn:YES]) {
-        OOLog(@"verifyOXP.validateAI.notFound", @"----- WARNING: AI state machine \"%@\" referenced in shipdata.plist entry \"%@\" could not be found in %@ or in Oolite.", oo::NSStringFrom(name), oo::NSStringFrom(shipName), [[self verifier] oxpDisplayName]);
+    if (![fileScanner cxx_fileExists:name inFolder:"AIs" referencedFrom:oo::str::format("shipdata.plist entry \"%s\"", shipName.c_str()) checkBuiltIn:YES]) {
+        OO_LOG("verifyOXP.validateAI.notFound", "----- WARNING: AI state machine \"{}\" referenced in shipdata.plist entry \"{}\" could not be found in {} or in Oolite.", name, shipName, [[self verifier] cxx_oxpDisplayName].value_or("(null)"));
     }
 }
 
@@ -138,31 +145,31 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
     std::string badSelectorDesc;
     NSUInteger index = 0;
 
-    OOLog(@"verifyOXP.verbose.validateAI", @"- Validating AI \"%@\".", oo::NSStringFrom(aiName));
-    OOLogIndentIf(@"verifyOXP.verbose.validateAI");
+    OO_LOG("verifyOXP.verbose.validateAI", "- Validating AI \"{}\".", aiName);
+    oo::log::indentIf("verifyOXP.verbose.validateAI");
 
     // Attempt to load AI.
-    path = oo::OptionalString([[[self verifier] fileScannerStage] pathForFile:oo::NSStringFrom(aiName) inFolder:@"AIs" referencedFrom:@"AI list" checkBuiltIn:NO]);
+    path = [[[self verifier] fileScannerStage] cxx_pathForFile:aiName inFolder:"AIs" referencedFrom:"AI list" checkBuiltIn:NO];
     if (!path.has_value())
         return;
 
-    aiStateMachine = oo::PListFrom(OODictionaryFromFile(oo::NSStringFrom(*path)));
+    aiStateMachine = PListDictionaryFromFile(*path);
     if (aiStateMachine.isNull()) {
-        OOLog(@"verifyOXP.validateAI.failed.notDictPlist", @"***** ERROR: could not interpret \"%@\" as a dictionary.", oo::NSStringFrom(*path));
+        OO_LOG("verifyOXP.validateAI.failed.notDictPlist", "***** ERROR: could not interpret \"{}\" as a dictionary.", *path);
         return;
     }
 
     // Validate each state.
     for (const auto& [stateKey, stateHandlers] : *aiStateMachine.getIf<oo::PList::Dict>()) {
         if (!stateHandlers.isDict()) {
-            OOLog(@"verifyOXP.validateAI.failed.invalidFormat.state", @"***** ERROR: state \"%@\" in AI \"%@\" is not a dictionary.", oo::NSStringFrom(stateKey), oo::NSStringFrom(aiName));
+            OO_LOG("verifyOXP.validateAI.failed.invalidFormat.state", "***** ERROR: state \"{}\" in AI \"{}\" is not a dictionary.", stateKey, aiName);
             continue;
         }
 
         // Verify handlers for this state.
         for (const auto& [handlerKey, handlerActions] : *stateHandlers.getIf<oo::PList::Dict>()) {
             if (!handlerActions.isArray()) {
-                OOLog(@"verifyOXP.validateAI.failed.invalidFormat.handler", @"***** ERROR: handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", oo::NSStringFrom(handlerKey), oo::NSStringFrom(stateKey), oo::NSStringFrom(aiName));
+                OO_LOG("verifyOXP.validateAI.failed.invalidFormat.handler", "***** ERROR: handler \"{}\" for state \"{}\" in AI \"{}\" is not an array, ignoring.", handlerKey, stateKey, aiName);
                 continue;
             }
 
@@ -172,12 +179,12 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
                 index++;
                 const std::string* untrimmed = actionValue.getIf<std::string>();
                 if (untrimmed == nullptr) {
-                    OOLog(@"verifyOXP.validateAI.failed.invalidFormat.action", @"***** ERROR: action %zu in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", index - 1, oo::NSStringFrom(handlerKey), oo::NSStringFrom(stateKey), oo::NSStringFrom(aiName));
+                    OO_LOG("verifyOXP.validateAI.failed.invalidFormat.action", "***** ERROR: action {} in handler \"{}\" for state \"{}\" in AI \"{}\" is not a string, ignoring.", index - 1, handlerKey, stateKey, aiName);
                     continue;
                 }
 
                 // Trim spaces from beginning and end (the whitespace character set, not newlines).
-                const std::string action = oo::StdString([oo::NSStringFrom(*untrimmed) stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]);
+                const std::string action = oo::str::trim(*untrimmed, oo::str::CharacterSet::whitespace());
 
                 // Cut off parameters.
                 const std::string selector = action.substr(0, action.find(' '));
@@ -196,10 +203,10 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
                 badSelectorDesc += ", ";
             badSelectorDesc += selector;
         }
-        OOLog(@"verifyOXP.validateAI.failed.badSelector", @"***** ERROR: the AI \"%@\" uses %zu unpermitted method%s: %@", oo::NSStringFrom(aiName), badSelectors.size(), (badSelectors.size() == 1) ? "" : "s", oo::NSStringFrom(badSelectorDesc));
+        OO_LOG("verifyOXP.validateAI.failed.badSelector", "***** ERROR: the AI \"{}\" uses {} unpermitted method{}: {}", aiName, badSelectors.size(), (badSelectors.size() == 1) ? "" : "s", badSelectorDesc);
     }
 
-    OOLogOutdentIf(@"verifyOXP.verbose.validateAI");
+    oo::log::outdentIf("verifyOXP.verbose.validateAI");
 }
 
 @end

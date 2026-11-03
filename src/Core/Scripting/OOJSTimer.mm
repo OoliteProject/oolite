@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundationBridge.h"
 #include "oofnd/Notification.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 // Minimum allowable interval for repeating timers.
 #define kMinInterval 0.25
@@ -76,7 +77,7 @@ static JSClassID sTimerClassID;
 {
     self = [super initWithNextTime:[UNIVERSE getTime] + delay interval:interval];
     if (self != nil) {
-        NSAssert(OOJSValueIsFunction(context, function), @"Attempt to init OOJSTimer with a function that isn't.");
+        OOAssert(OOJSValueIsFunction(context, function), "Attempt to init OOJSTimer with a function that isn't.");
 
         _jsThis = JS_DupValue(context, jsThis);
         _function = JS_DupValue(context, function);

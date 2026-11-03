@@ -25,8 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOSDLJoystickManager.h"
 #import "OOFoundationBridge.h"
-#import "OOLogging.h"
-#import "OOStringBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
@@ -87,12 +85,14 @@ MA 02110-1301, USA.
     return stickCount;
 }
 
-- (id)nameOfJoystick:(NSUInteger)stickNumber // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)nameOfJoystick:(NSUInteger)stickNumber
 {
     if (stickNumber >= stickCount)
-        return @"(unknown joystick)";
+        return std::string("(unknown joystick)");
     const char* name = SDL_GetJoystickName(stick[stickNumber]);
-    return (name != NULL) ? oo::NSStringFrom(name) : nil; // no string for a NULL name, as before
+    if (name == NULL)
+        return std::nullopt; // no string for a NULL name, as before
+    return std::string(name);
 }
 
 - (int16_t)getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum
@@ -164,7 +164,7 @@ MA 02110-1301, USA.
     if (evt->axis < MAX_AXES) {
         function = axismap[evt->which][evt->axis];
     } else {
-        OOLog(@"decodeAxisEvent", @"Stick axis out of range - axis was %d", evt->axis);
+        OO_LOG("decodeAxisEvent", "Stick axis out of range - axis was {}", evt->axis);
         return;
     }
     switch (function) {
@@ -216,7 +216,7 @@ MA 02110-1301, USA.
         function = buttonmap[evt->which][evt->button];
         guifunction = guibuttonmap[evt->which][evt->button];
     } else {
-        OOLog(@"decodeButtonEvent", @"Joystick button out of range: %d", evt->button);
+        OO_LOG("decodeButtonEvent", "Joystick button out of range: {}", evt->button);
         return;
     }
     if (evt->type == SDL_EVENT_JOYSTICK_BUTTON_DOWN) {

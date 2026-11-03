@@ -209,7 +209,7 @@ static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS)
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    [[OOMusicController sharedController] playMusicNamed:oo::NSStringFrom(*name) loop:loop gain:(float)gain];
+    [[OOMusicController sharedController] playMusicNamed:*name loop:loop gain:(float)gain];
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_VOID;
@@ -234,7 +234,7 @@ static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS)
 
     OOJS_BEGIN_FULL_NATIVE(context)
     OOMusicController* controller = [OOMusicController sharedController];
-    if (!name.has_value() || name == oo::OptionalString([controller playingMusic])) {
+    if (!name.has_value() || name == [controller playingMusic]) {
         [[OOMusicController sharedController] stop];
     }
     OOJS_END_FULL_NATIVE

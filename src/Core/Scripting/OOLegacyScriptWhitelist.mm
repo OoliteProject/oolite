@@ -51,7 +51,6 @@ struct SanStackElement {
 namespace {
 static oo::PList OOSanitizeLegacyScriptInternal(const oo::PList& script, SanStackElement* stack, BOOL allowAIMethods);
 static oo::PList OOSanitizeLegacyScriptConditionsInternal(const oo::PList& conditions, SanStackElement* stack);
-static BOOL ConditionsAreSanitized(const oo::PList& conditions);
 
 static oo::PList SanitizeCondition(const std::string& condition, SanStackElement* stack);
 static oo::PList SanitizeConditionalStatement(const oo::PList& statement, SanStackElement* stack, BOOL allowAIMethods);
@@ -65,11 +64,10 @@ static BOOL IsAlwaysFalseConditions(const oo::PList& conditions);
 static std::string StringFromStack(SanStackElement* topOfStack);
 } // namespace
 
-NSArray* OOSanitizeLegacyScript(NSArray* script, NSString* context, BOOL allowAIMethods)
+oo::PList OOSanitizeLegacyScript(const oo::PList& script, const std::optional<std::string>& context, BOOL allowAIMethods)
 {
-    SanStackElement stackRoot = { NULL, oo::OptionalString(context), 0 };
-    oo::PList result = OOSanitizeLegacyScriptInternal(oo::PListFrom(script), &stackRoot, allowAIMethods);
-    return oo::ObjectFromPList(result); // a fresh tree, as the deep copy was
+    SanStackElement stackRoot = { NULL, context, 0 };
+    return OOSanitizeLegacyScriptInternal(script, &stackRoot, allowAIMethods); // a fresh tree, as the deep copy was
 }
 
 namespace {
@@ -93,7 +91,7 @@ static oo::PList OOSanitizeLegacyScriptInternal(const oo::PList& script, SanStac
                 } else if (const std::string* string = statement.getIf<std::string>()) {
                     sanitized = SanitizeActionStatement(*string, &subStack, allowAIMethods);
                 } else {
-                    OOLog(@"script.syntax.statement.invalidType", @"***** SCRIPT ERROR: in %@, statement is of invalid type - expected string or dictionary, got %@.", oo::NSStringFrom(StringFromStack(stack)), [oo::ObjectFromPList(statement) class]);
+                    OO_LOG("script.syntax.statement.invalidType", "***** SCRIPT ERROR: in {}, statement is of invalid type - expected string or dictionary, got {}.", StringFromStack(stack), oo::DescriptionOf([oo::ObjectFromPList(statement) class]));
                 }
 
                 if (!sanitized.isNull()) {
@@ -107,12 +105,10 @@ static oo::PList OOSanitizeLegacyScriptInternal(const oo::PList& script, SanStac
 }
 } // namespace
 
-NSArray* OOSanitizeLegacyScriptConditions(NSArray* conditions, NSString* context)
+oo::PList OOSanitizeLegacyScriptConditions(const oo::PList& conditions, const std::optional<std::string>& context)
 {
-    std::optional<std::string> contextString = (context != nil) ? oo::OptionalString(context) : std::optional<std::string>("<anonymous conditions>");
-    SanStackElement stackRoot = { NULL, contextString, 0 };
-    oo::PList result = OOSanitizeLegacyScriptConditionsInternal(oo::PListFrom(conditions), &stackRoot);
-    return oo::ObjectFromPList(result); // a fresh tree, as the deep copy was; null -> nil
+    SanStackElement stackRoot = { NULL, context ? context : std::optional<std::string>("<anonymous conditions>"), 0 };
+    return OOSanitizeLegacyScriptConditionsInternal(conditions, &stackRoot); // a copy, as the deep copy was; null = nil
 }
 
 namespace {
@@ -122,7 +118,7 @@ static oo::PList OOSanitizeLegacyScriptConditionsInternal(const oo::PList& condi
     BOOL OK = YES;
     NSUInteger index = 0;
 
-    if (ConditionsAreSanitized(conditions) || conditions.isNull())
+    if (OOLegacyConditionsAreSanitized(conditions) || conditions.isNull())
         return conditions;
 
     result.reserve(conditions.count());
@@ -135,7 +131,7 @@ static oo::PList OOSanitizeLegacyScriptConditionsInternal(const oo::PList& condi
 
             const std::string* conditionString = condition.getIf<std::string>();
             if (conditionString == nullptr) {
-                OOLog(@"script.syntax.condition.notString", @"***** SCRIPT ERROR: in %@, bad condition - expected string, got %@; ignoring.", oo::NSStringFrom(StringFromStack(stack)), [oo::ObjectFromPList(condition) class]);
+                OO_LOG("script.syntax.condition.notString", "***** SCRIPT ERROR: in {}, bad condition - expected string, got {}; ignoring.", StringFromStack(stack), oo::DescriptionOf([oo::ObjectFromPList(condition) class]));
                 OK = NO;
                 break;
             }
@@ -157,23 +153,13 @@ static oo::PList OOSanitizeLegacyScriptConditionsInternal(const oo::PList& condi
 }
 } // namespace
 
-BOOL OOLegacyConditionsAreSanitized(NSArray* conditions)
-{
-    if ([conditions count] == 0)
-        return YES; // Empty array is safe.
-    return oo::IsNSArray([conditions objectAtIndex:0]);
-}
-
-// OOLegacyConditionsAreSanitized() for the sanitizer's own trees.
-namespace {
-static BOOL ConditionsAreSanitized(const oo::PList& conditions)
+BOOL OOLegacyConditionsAreSanitized(const oo::PList& conditions)
 {
     if (conditions.count() == 0)
         return YES; // Empty array is safe.
     const oo::PList* first = conditions.at(0);
     return first != nullptr && first->isArray();
 }
-} // namespace
 
 namespace {
 static oo::PList SanitizeCondition(const std::string& condition, SanStackElement* stack)
@@ -193,7 +179,7 @@ static oo::PList SanitizeCondition(const std::string& condition, SanStackElement
     tokenCount = tokens.size();
 
     if (tokenCount < 1) {
-        OOLog(@"script.debug.syntax.scriptCondition.noneSpecified", @"***** SCRIPT ERROR: in %@, empty script condition.", oo::NSStringFrom(StringFromStack(stack)));
+        OO_LOG("script.debug.syntax.scriptCondition.noneSpecified", "***** SCRIPT ERROR: in {}, empty script condition.", StringFromStack(stack));
         return oo::PList();
     }
 
@@ -201,7 +187,7 @@ static oo::PList SanitizeCondition(const std::string& condition, SanStackElement
     selectorString = tokens[0];
     opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString);
     if (opType >= OP_INVALID) {
-        OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@ (\"%@\"), method \"%@\" not allowed.", oo::NSStringFrom(StringFromStack(stack)), oo::NSStringFrom(condition), oo::NSStringFrom(selectorString));
+        OO_LOG("script.unpermittedMethod", "***** SCRIPT ERROR: in {} (\"{}\"), method \"{}\" not allowed.", StringFromStack(stack), condition, selectorString);
         return oo::PList();
     }
 
@@ -221,7 +207,7 @@ static oo::PList SanitizeCondition(const std::string& condition, SanStackElement
         else if (comparatorString == "undefined")
             comparatorValue = COMPARISON_UNDEFINED;
         else {
-            OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@ (\"%@\"), unknown comparison operator \"%@\", will return NO.", oo::NSStringFrom(StringFromStack(stack)), oo::NSStringFrom(condition), oo::NSStringFrom(comparatorString));
+            OO_LOG("script.debug.syntax.badComparison", "***** SCRIPT ERROR: in {} (\"{}\"), unknown comparison operator \"{}\", will return NO.", StringFromStack(stack), condition, comparatorString);
             return oo::PList();
         }
     } else {
@@ -230,13 +216,13 @@ static oo::PList SanitizeCondition(const std::string& condition, SanStackElement
                 Returning NO here causes AlwaysFalseConditions() to be used, which
                 has the same effect.
          */
-        OOLog(@"script.debug.syntax.noOperator", @"----- WARNING: SCRIPT in %@ -- No operator in expression \"%@\", will always evaluate as false.", oo::NSStringFrom(StringFromStack(stack)), oo::NSStringFrom(condition));
+        OO_LOG("script.debug.syntax.noOperator", "----- WARNING: SCRIPT in {} -- No operator in expression \"{}\", will always evaluate as false.", StringFromStack(stack), condition);
         return oo::PList();
     }
 
     // Check for invalid opType/comparator combinations.
     if (opType == OP_NUMBER && comparatorValue == COMPARISON_UNDEFINED) {
-        OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@ (\"%@\"), comparison operator \"%@\" is not valid for %@.", oo::NSStringFrom(StringFromStack(stack)), oo::NSStringFrom(condition), @"undefined", @"numbers");
+        OO_LOG("script.debug.syntax.invalidOperator", "***** SCRIPT ERROR: in {} (\"{}\"), comparison operator \"{}\" is not valid for {}.", StringFromStack(stack), condition, "undefined", "numbers");
         return oo::PList();
     } else if (opType == OP_BOOL) {
         switch (comparatorValue) {
@@ -246,7 +232,7 @@ static oo::PList SanitizeCondition(const std::string& condition, SanStackElement
             break;
 
         default:
-            OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@ (\"%@\"), comparison operator \"%@\" is not valid for %@.", oo::NSStringFrom(StringFromStack(stack)), oo::NSStringFrom(condition), OOComparisonTypeToString(comparatorValue), @"booleans");
+            OO_LOG("script.debug.syntax.invalidOperator", "***** SCRIPT ERROR: in {} (\"{}\"), comparison operator \"{}\" is not valid for {}.", StringFromStack(stack), condition, oo::DescriptionOf(OOComparisonTypeToString(comparatorValue)), "booleans");
             return oo::PList();
         }
     }
@@ -318,7 +304,7 @@ static oo::PList SanitizeConditionalStatement(const oo::PList& statement, SanSta
 
     conditions = arrayForKey("conditions");
     if (conditions.isNull()) {
-        OOLog(@"script.syntax.noConditions", @"***** SCRIPT ERROR: in %@, conditions array contains no \"conditions\" entry, ignoring.", oo::NSStringFrom(StringFromStack(stack)));
+        OO_LOG("script.syntax.noConditions", "***** SCRIPT ERROR: in {}, conditions array contains no \"conditions\" entry, ignoring.", StringFromStack(stack));
         return oo::PList();
     }
 
@@ -374,7 +360,7 @@ static oo::PList SanitizeActionStatement(const std::string& statement, SanStackE
     rawSelectorString = tokens[0];
     selectorString = SanitizeActionMethod(rawSelectorString, allowAIMethods);
     if (!selectorString) {
-        OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@ (\"%@\"), method \"%@\" not allowed.", oo::NSStringFrom(StringFromStack(stack)), oo::NSStringFrom(statement), oo::NSStringFrom(rawSelectorString));
+        OO_LOG("script.unpermittedMethod", "***** SCRIPT ERROR: in {} (\"{}\"), method \"{}\" not allowed.", StringFromStack(stack), statement, rawSelectorString);
         return oo::PList();
     }
 
@@ -436,7 +422,7 @@ static OOOperationType ClassifyLHSConditionSelector(const std::string& selectorS
         return OP_BOOL;
 
     // If we got here, something's wrong.
-    OOLog(@"script.sanitize.unclassifiedSelector", @"***** ERROR: Whitelisted query method \"%@\" has no type suffix, treating as invalid.", oo::NSStringFrom(selectorString));
+    OO_LOG("script.sanitize.unclassifiedSelector", "***** ERROR: Whitelisted query method \"{}\" has no type suffix, treating as invalid.", selectorString);
     return OP_INVALID;
 }
 } // namespace
@@ -521,7 +507,7 @@ static std::optional<std::string> SanitizeActionMethod(const std::string& select
         aliases = WhitelistDictionary(whitelistDictionary, "action_method_aliases");
 
         // ai_method_aliases overlaid with action_method_aliases: the action entries win, as
-        // -dictionaryByAddingEntriesFromDictionary:aliases did.
+        // merging dictionary entriesaliases did.
         aliasesWithAI = WhitelistDictionary(whitelistDictionary, "ai_method_aliases");
         if (!aliasesWithAI.isNull()) {
             if (const oo::PList::Dict* actionAliases = aliases.getIf<oo::PList::Dict>()) {

@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "OOFoundationBridge.h"
 #import "OOFullScreenController.h"
 #import "OOGraphicsResetManager.h"
-#import "OOPListView.h" // for splash screen settings
 #import "OOSDLJoystickManager.h"
 #import "OOSound.h"
 #import "PlanetEntity.h"
@@ -42,7 +41,10 @@ MA 02110-1301, USA.
 #import "png.h"
 #include <SDL3/SDL_clipboard.h>
 #include <SDL3/SDL_init.h>
+#include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
+#include "oofnd/PListGet.hpp"
+#include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -65,7 +67,7 @@ namespace {
 // -stringValue, else the fallback.
 std::string DefaultsString(const char* key, const std::string& fallback)
 {
-    const oo::PList value = oo::PListFrom([[NSUserDefaults standardUserDefaults] objectForKey:oo::NSStringFrom(key)]);
+    const oo::PList value = oo::Defaults::standard().object(key);
     return oo::PListGet<std::string>::from(value.isNull() ? nullptr : &value, fallback);
 }
 
@@ -102,7 +104,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         if (displayIds) {
             displayId = displayIds[0];
         } else {
-            OOLog(@"sdl.display_id", @"Could not get list of displays. Error was: %s", SDL_GetError());
+            OO_LOG("sdl.display_id", "Could not get list of displays. Error was: {}", SDL_GetError());
         }
         SDL_free(displayIds);
     }
@@ -120,9 +122,9 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     if (displayId && SDL_GetDisplayUsableBounds(displayId, &boundsRect)) {
         nativeDisplayWidth = boundsRect.w;
         nativeDisplayHeight = boundsRect.h;
-        OOLog(@"display.mode.list.native", @"Native display resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
+        OO_LOG("display.mode.list.native", "Native display resolution detected: {} x {}", static_cast<int>(nativeDisplayWidth), static_cast<int>(nativeDisplayHeight));
     } else {
-        OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+        OO_LOG("display.mode.list.native.failed", "{}", "SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
     }
 
     mode[oo::StdString(kOODisplayWidth)] = oo::PList(std::int64_t(nativeDisplayWidth));
@@ -139,9 +141,9 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
 - (void)createWindowWithSize:(NSSize)size
 {
-    NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+    oo::Defaults& prefs = oo::Defaults::standard();
 
-    OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
+    OO_LOG("display.initGL", "Trying {}-bpcc, 24-bit depth buffer", static_cast<int>(bitsPerColorComponent));
     if (bitsPerColorComponent > 8) {
         SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 1);
         _hdrOutput = YES;
@@ -189,7 +191,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     window = SDL_CreateWindowWithProperties(props);
     if (!window) {
-        OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 24-bit depth buffer");
+        OO_LOG("display.initGL", "{}", "Trying 8-bpcc, 24-bit depth buffer");
         SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 0);
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -201,7 +203,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     }
 
     if (!window) {
-        OOLog(@"display.initGL", @"%@", @"Trying 5-bpcc, 16-bit depth buffer");
+        OO_LOG("display.initGL", "{}", "Trying 5-bpcc, 16-bit depth buffer");
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -217,7 +219,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     if (!window) {
         const char* errStr = SDL_GetError();
-        OOLogERR(@"display.mode.error", @"Could not create window: %s", errStr);
+        OO_LOG_ERR("display.mode.error", "Could not create window: {}", errStr);
         exit(1);
     }
     if (glContext) {
@@ -231,14 +233,14 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         glContext = SDL_GL_CreateContext(window);
     }
     if (!glContext) {
-        OOLog(@"sdl.create_context", @"%@", @"Could not create OpenGL context");
+        OO_LOG("sdl.create_context", "{}", "Could not create OpenGL context");
         exit(1);
     }
 #if !OOLITE_MAC_OS_X
     // On macOS a window surface replaces the OpenGL drawable, so it must not be created there.
     SDL_Surface* surface = SDL_GetWindowSurface(window);
     if (!SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB_LINEAR)) {
-        OOLogWARN(@"sdl.use_edr_surface", @"%@ %s", @"Failed to set SDR linear surface - falling back to SDR. Error was:", SDL_GetError());
+        OO_LOG_WARN("sdl.use_edr_surface", "{} {}", "Failed to set SDR linear surface - falling back to SDR. Error was:", SDL_GetError());
         SDL_SetSurfaceColorspace(surface, SDL_COLORSPACE_SRGB);
     }
 #endif
@@ -256,7 +258,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     SDL_PropertiesID windowPropertiesId = SDL_GetWindowProperties(window);
     windowHandle = (HWND)SDL_GetPointerProperty(windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
     if (!windowHandle) {
-        OOLog(@"sdl.window_handle", @"%@", @"Failed to retrieve window handle");
+        OO_LOG("sdl.window_handle", "{}", "Failed to retrieve window handle");
         exit(1);
     }
 
@@ -267,7 +269,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 #if !OOLITE_MAC_OS_X
     // On macOS SDL would set this 32x32 image as the Dock icon, replacing the bundle's
     // high-resolution oolite-icon.icns.
-    const std::string imagesDir = oo::str::appendingPathComponent(oo::StdString([[NSBundle mainBundle] resourcePath]), "Images");
+    const std::string imagesDir = oo::fs::utf8String(oo::ResourcePaths::current().builtInResourcesDirectory() / "Images");
     SDL_Surface* icon = SDL_LoadBMP(oo::str::appendingPathComponent(imagesDir, "WMicon.bmp").c_str());
 
     if (icon != NULL) {
@@ -283,8 +285,10 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     _colorSaturation = 1.0f;
 
 #if OOLITE_WINDOWS
-    _hdrMaxBrightness = oo::PListView(prefs).get<float>(@"hdr-max-brightness", 1000.0f);
-    _hdrPaperWhiteBrightness = oo::PListView(prefs).get<float>(@"hdr-paperwhite-brightness", 200.0f);
+    const oo::PList hdrMaxBrightness = prefs.object("hdr-max-brightness");
+    _hdrMaxBrightness = oo::PListGet<float>::from(hdrMaxBrightness.isNull() ? nullptr : &hdrMaxBrightness, 1000.0f);
+    const oo::PList hdrPaperWhiteBrightness = prefs.object("hdr-paperwhite-brightness");
+    _hdrPaperWhiteBrightness = oo::PListGet<float>::from(hdrPaperWhiteBrightness.isNull() ? nullptr : &hdrPaperWhiteBrightness, 200.0f);
     _hdrToneMapper = OOHDRToneMapperFromString(oo::NSStringFrom(DefaultsString("hdr-tone-mapper", "OOHDR_TONEMAPPER_ACES_APPROX")));
 #endif
 
@@ -295,26 +299,26 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 #else
     SDL_SetWindowSurfaceVSync(window, vSyncPreference);
 #endif
-    OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
+    OO_LOG("display.initGL", "V-Sync {}requested.", vSyncPreference ? "" : "not ");
 
     int testAttrib = -1;
-    OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
+    OO_LOG("display.initGL", "{}", "Achieved color / depth buffer sizes (bits):");
     SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
-    OOLog(@"display.initGL", @"Red: %d", testAttrib);
+    OO_LOG("display.initGL", "Red: {}", static_cast<int>(testAttrib));
     SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &testAttrib);
-    OOLog(@"display.initGL", @"Green: %d", testAttrib);
+    OO_LOG("display.initGL", "Green: {}", static_cast<int>(testAttrib));
     SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &testAttrib);
-    OOLog(@"display.initGL", @"Blue: %d", testAttrib);
+    OO_LOG("display.initGL", "Blue: {}", static_cast<int>(testAttrib));
     SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &testAttrib);
-    OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
+    OO_LOG("display.initGL", "Alpha: {}", static_cast<int>(testAttrib));
     SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
-    OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
+    OO_LOG("display.initGL", "Depth Buffer: {}", static_cast<int>(testAttrib));
 
     SDL_GL_GetAttribute(SDL_GL_FLOATBUFFERS, &testAttrib);
-    OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
+    OO_LOG("display.initGL", "Pixel type is float : {}", static_cast<int>(testAttrib));
 
     SDL_PixelFormat format = SDL_GetWindowPixelFormat(window);
-    OOLog(@"display.initGL", @"Window Pixel Format: %s", SDL_GetPixelFormatName(format));
+    OO_LOG("display.initGL", "Window Pixel Format: {}", SDL_GetPixelFormatName(format));
 
     // Verify V-sync successfully set - report it if not
 
@@ -324,10 +328,9 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 #else
     if (vSyncPreference && (!SDL_GetWindowSurfaceVSync(window, &hasVsync) || !hasVsync)) {
 #endif
-        OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
-            OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
+        OO_LOG_WARN("display.initGL", "Could not enable V-Sync. Please check that your graphics driver supports the {}_swap_control extension.", OOLITE_WINDOWS ? "WGL_EXT" : "[GLX_SGI/GLX_MESA]");
     } else {
-        OOLog(@"display.initGL", @"%@", @"V-Sync set");
+        OO_LOG("display.initGL", "{}", "V-Sync set");
     }
 
     int width, height;
@@ -380,7 +383,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         cmdLineArgsStr += arg + " ";
     }
 
-    OOLog(@"process.args", @"%@", oo::NSStringFrom(cmdLineArgsStr));
+    OO_LOG("process.args", "{}", cmdLineArgsStr);
 
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_ESPEAK
@@ -396,9 +399,9 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     // TODO: This code up to and including stickHandler really ought
     // not to be in this class.
-    OOLog(@"sdl.init", @"%@", @"initialising SDL");
+    OO_LOG("sdl.init", "{}", "initialising SDL");
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
-        OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
+        OO_LOG("sdl.init.failed", "Unable to init SDL: {}\n", SDL_GetError());
         [self dealloc];
         return nil;
     }
@@ -420,11 +423,11 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     [OOSound setUp];
     if (![OOSound isSoundOK])
-        OOLog(@"sound.init", @"%@", @"Sound system disabled.");
+        OO_LOG("sound.init", "{}", "Sound system disabled.");
 
     grabMouseStatus = NO;
 
-    OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
+    OO_LOG("display.mode.list", "{}", "CREATING MODE LIST");
 
     if (!showSplashScreen) {
         // blank the surface / go to fullscreen
@@ -436,7 +439,8 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     virtualJoystickPosition = NSMakePoint(0.0, 0.0);
     mouseWarped = NO;
 
-    _mouseVirtualStickSensitivityFactor = OOClamp_0_1_f(oo::PListView(prefs).get<float>(@"mouse-flight-sensitivity", 0.95f));
+    const oo::PList mouseFlightSensitivity = prefs.object("mouse-flight-sensitivity");
+    _mouseVirtualStickSensitivityFactor = OOClamp_0_1_f(oo::PListGet<float>::from(mouseFlightSensitivity.isNull() ? nullptr : &mouseFlightSensitivity, 0.95f));
     // ensure no chance of a divide by zero later on
     if (_mouseVirtualStickSensitivityFactor < 0.005f)
         _mouseVirtualStickSensitivityFactor = 0.005f;
@@ -510,7 +514,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     while (SDL_PollEvent(&dummyEvent)) {
         /* Do nothing; the below is for development info
         numEvents++;
-        OOLog(@"display.splash", @"Suppressed splash-screen event %d: %d ", numEvents, dummyEvent.type);
+        OO_LOG("display.splash", "Suppressed splash-screen event {}: {} ", static_cast<int>(numEvents), static_cast<int>(dummyEvent.type));
         */
     }
 
@@ -587,8 +591,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     viewSize = v_size;
 
-    OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,
-        (fullScreen ? @"fullscreen" : @"windowed"));
+    OO_LOG("display.initGL", "Requested a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), oo::DescriptionOf((fullScreen ? @"fullscreen" : @"windowed")));
 
     SDL_GL_SwapWindow(window); // clear the buffer before resize
 
@@ -612,11 +615,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     [self updateGLSize:NSMakeSize(pixelWidth, pixelHeight)];
 
-    OOLog(@"display.initGL",
-        @"Created a new surface of %d x %d, %@.",
-        (int)viewSize.width,
-        (int)viewSize.height,
-        (fullScreen ? @"fullscreen" : @"windowed"));
+    OO_LOG("display.initGL", "Created a new surface of {} x {}, {}.", static_cast<int>((int)viewSize.width), static_cast<int>((int)viewSize.height), oo::DescriptionOf((fullScreen ? @"fullscreen" : @"windowed")));
 
     [self autoShowMouse];
 
@@ -697,10 +696,8 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     fullScreen = fsm;
 
     // Save the settings for later.
-    [[NSUserDefaults standardUserDefaults]
-        setBool:fullScreen
-         forKey:@"fullscreen"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    oo::Defaults::standard().setBool("fullscreen", fullScreen);
+    oo::Defaults::standard().synchronize();
 }
 
 - (void)toggleScreenMode
@@ -774,7 +771,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     if (image == NULL) {
         SDL_DestroySurface(image);
-        OOLogWARN(@"sdl.gameStart", @"%@", @"image 'splash.bmp' not found!");
+        OO_LOG_WARN("sdl.gameStart", "{}", "image 'splash.bmp' not found!");
         [self endSplashScreen];
         return;
     }
@@ -825,7 +822,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
             texture_format = GL_BGR;
     } else {
         SDL_DestroySurface(image);
-        OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
+        OO_LOG("Sdl.GameStart", "{}", "----- Encoding error within image 'splash.bmp'");
         [self endSplashScreen];
         return;
     }
@@ -908,7 +905,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     {
         const char* clipboardText = stringToCopy.c_str();
         if (!SDL_SetClipboardText(clipboardText)) {
-            OOLog(@"stringToClipboard.failed", @"Failed to copy string %@ to clipboard: %s", oo::NSStringFrom(stringToCopy), SDL_GetError());
+            OO_LOG("stringToClipboard.failed", "Failed to copy string {} to clipboard: {}", stringToCopy, SDL_GetError());
         }
     }
 }
@@ -930,16 +927,16 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     BOOL result = NO;
     SDL_DisplayID displayID = SDL_GetPrimaryDisplay(); // Get the primary display ID
     if (displayID == 0) {
-        OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Failed to retrieve primary display ID: %s", SDL_GetError());
+        OO_LOG("gameView.isOutputDisplayHDREnabled", "Error! Failed to retrieve primary display ID: {}", SDL_GetError());
         return NO;
     }
     SDL_PropertiesID props = SDL_GetDisplayProperties(displayID); // Retrieve properties for the target display
     if (props == 0) {
-        OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Failed to get display properties: %s", SDL_GetError());
+        OO_LOG("gameView.isOutputDisplayHDREnabled", "Error! Failed to get display properties: {}", SDL_GetError());
         return NO;
     }
     result = SDL_GetBooleanProperty(props, SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN, false); // Query for HDR enabling
-    OOLog(@"gameView.isOutputDisplayHDREnabled", @"HDR display output requested - checking availability: %@", result ? @"YES" : @"NO");
+    OO_LOG("gameView.isOutputDisplayHDREnabled", "HDR display output requested - checking availability: {}", result ? "YES" : "NO");
     return result;
 }
 
@@ -956,7 +953,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         newMaxBrightness = MAX_HDR_MAXBRIGHTNESS;
     _hdrMaxBrightness = newMaxBrightness;
 
-    [[NSUserDefaults standardUserDefaults] setFloat:_hdrMaxBrightness forKey:@"hdr-max-brightness"];
+    oo::Defaults::standard().setFloat("hdr-max-brightness", _hdrMaxBrightness);
 }
 
 - (float)hdrPaperWhiteBrightness
@@ -972,7 +969,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         newPaperWhiteBrightness = MAX_HDR_PAPERWHITE;
     _hdrPaperWhiteBrightness = newPaperWhiteBrightness;
 
-    [[NSUserDefaults standardUserDefaults] setFloat:_hdrPaperWhiteBrightness forKey:@"hdr-paperwhite-brightness"];
+    oo::Defaults::standard().setFloat("hdr-paperwhite-brightness", _hdrPaperWhiteBrightness);
 }
 
 - (OOHDRToneMapper)hdrToneMapper
@@ -1063,7 +1060,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     }
 
     if (withFilename && oo::fs::fileExists(oo::fs::pathFromUTF8(*pathToPic))) {
-        OOLog(@"screenshot.filenameExists", @"Snapshot \"%@%@\" already exists - adding numerical sequence.", oo::NSStringFrom(*pathToPic), oo::NSStringFrom(extension));
+        OO_LOG("screenshot.filenameExists", "Snapshot \"{}{}\" already exists - adding numerical sequence.", *pathToPic, extension);
         pathToPic = std::nullopt;
     }
 
@@ -1089,7 +1086,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 #else
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 #endif
-    OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", oo::NSStringFrom(*pathToPic), surface->w, surface->h);
+    OO_LOG("screenshot", "Saving screen shot \"{}\" ({} x {} pixels).", *pathToPic, static_cast<unsigned>(surface->w), static_cast<unsigned>(surface->h));
 
     int pitch = surface->pitch;
     unsigned char* pixls = (unsigned char*)malloc(pitch * surface->h);
@@ -1107,12 +1104,12 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format, pixls, surface->pitch);
 #if SNAPSHOTS_PNG_FORMAT
     if (!SDL_SavePNG(tmpSurface, pathToPic->c_str())) {
-        OOLog(@"screenshotPNG", @"Failed to save %@", oo::NSStringFrom(*pathToPic));
+        OO_LOG("screenshotPNG", "Failed to save {}", *pathToPic);
         snapShotOK = NO;
     }
 #else
     if (!SDL_SaveBMP(tmpSurface, pathToPic->c_str())) {
-        OOLog(@"screenshotBMP", @"Failed to save %@", oo::NSStringFrom(*pathToPic));
+        OO_LOG("screenshotBMP", "Failed to save {}", *pathToPic);
         snapShotOK = NO;
     }
 #endif
@@ -1128,12 +1125,12 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
             fileExtension = "." + fileExtension;
 
         if (fileExtension != oo::StdString(SNAPSHOTHDR_EXTENSION_EXR) && fileExtension != oo::StdString(SNAPSHOTHDR_EXTENSION_HDR)) {
-            OOLog(@"screenshotHDR", @"Unrecognized HDR file format requested, defaulting to %@", SNAPSHOTHDR_EXTENSION_DEFAULT);
+            OO_LOG("screenshotHDR", "Unrecognized HDR file format requested, defaulting to {}", oo::DescriptionOf(SNAPSHOTHDR_EXTENSION_DEFAULT));
             fileExtension = oo::StdString(SNAPSHOTHDR_EXTENSION_DEFAULT);
         }
 
         const std::string pathToPicHDR = oo::str::replaceOccurrences(*pathToPic, ".png", fileExtension);
-        OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", oo::NSStringFrom(pathToPicHDR), surface->w, surface->h);
+        OO_LOG("screenshot", "Saving screen shot \"{}\" ({} x {} pixels).", pathToPicHDR, static_cast<unsigned>(surface->w), static_cast<unsigned>(surface->h));
         GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
         for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
             glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
@@ -1141,7 +1138,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
         if ((fileExtension == oo::StdString(SNAPSHOTHDR_EXTENSION_EXR) && SaveEXRSnapshot(pathToPicHDR.c_str(), surface->w, surface->h, pixlsf) != 0) // TINYEXR_SUCCESS
             || (fileExtension == oo::StdString(SNAPSHOTHDR_EXTENSION_HDR) && !stbi_write_hdr(pathToPicHDR.c_str(), surface->w, surface->h, 3, pixlsf))) {
-            OOLog(@"screenshotHDR", @"Failed to save %@", oo::NSStringFrom(pathToPicHDR));
+            OO_LOG("screenshotHDR", "Failed to save {}", pathToPicHDR);
             snapShotOK = NO;
         }
 
@@ -1175,7 +1172,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
     int displayModeCount;
     modes = SDL_GetFullscreenDisplayModes(displayId, &displayModeCount);
     if (!displayModeCount) {
-        OOLog(@"display.mode.list.none", @"%@", @"SDL didn't return any screen modes");
+        OO_LOG("display.mode.list.none", "{}", "SDL didn't return any screen modes");
         return;
     }
 
@@ -1187,7 +1184,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         const oo::PList mode(std::move(modeDict));
         if (std::find_if(screenSizes.begin(), screenSizes.end(), [&](const oo::PList& m) { return SameMode(m, mode); }) == screenSizes.end()) {
             screenSizes.push_back(mode);
-            OOLog(@"display.mode.list", @"Added res %d x %d", modes[i]->w, modes[i]->h);
+            OO_LOG("display.mode.list", "Added res {} x {}", static_cast<int>(modes[i]->w), static_cast<int>(modes[i]->h));
         }
     }
     SDL_free(modes);
@@ -1196,19 +1193,19 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 // Save and restore window sizes to/from defaults.
 - (void)saveWindowSize:(NSSize)windowSize
 {
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setInteger:(int)windowSize.width forKey:@"window_width"];
-    [defaults setInteger:(int)windowSize.height forKey:@"window_height"];
+    oo::Defaults& defaults = oo::Defaults::standard();
+    defaults.setInteger("window_width", (int)windowSize.width);
+    defaults.setInteger("window_height", (int)windowSize.height);
     currentWindowSize = windowSize;
 }
 
 - (NSSize)loadWindowSize
 {
     NSSize windowSize;
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    if ([defaults objectForKey:@"window_width"] && [defaults objectForKey:@"window_height"]) {
-        windowSize = NSMakeSize([defaults integerForKey:@"window_width"],
-            [defaults integerForKey:@"window_height"]);
+    oo::Defaults& defaults = oo::Defaults::standard();
+    if (!defaults.object("window_width").isNull() && !defaults.object("window_height").isNull()) {
+        windowSize = NSMakeSize(defaults.integerForKey("window_width"),
+            defaults.integerForKey("window_height"));
     } else {
         windowSize = NSMakeSize(WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT);
     }
@@ -1224,15 +1221,15 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
 
     const std::vector<std::string>& cmdline_arguments = oo::process::arguments();
 
-    NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
-    if ([userDefaults objectForKey:@"display_width"])
-        width = [userDefaults integerForKey:@"display_width"];
-    if ([userDefaults objectForKey:@"display_height"])
-        height = [userDefaults integerForKey:@"display_height"];
-    if ([userDefaults objectForKey:@"display_refresh"])
-        refresh = [userDefaults integerForKey:@"display_refresh"];
-    if ([userDefaults objectForKey:@"fullscreen"])
-        fullScreen = [userDefaults boolForKey:@"fullscreen"];
+    oo::Defaults& userDefaults = oo::Defaults::standard();
+    if (!userDefaults.object("display_width").isNull())
+        width = (int)userDefaults.integerForKey("display_width");
+    if (!userDefaults.object("display_height").isNull())
+        height = (int)userDefaults.integerForKey("display_height");
+    if (!userDefaults.object("display_refresh").isNull())
+        refresh = (int)userDefaults.integerForKey("display_refresh");
+    if (!userDefaults.object("fullscreen").isNull())
+        fullScreen = userDefaults.boolForKey("fullscreen") ? YES : NO;
 
     // Check if -fullscreen or -windowed has been passed on the command line. If yes,
     // set it regardless of what is set by .GNUstepDefaults. If both are found in the
@@ -1264,13 +1261,13 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         modeHeight = mode.get<int>(oo::StdString(kOODisplayHeight));
         modeRefresh = mode.get<int>(oo::StdString(kOODisplayRefreshRate));
         if ((modeWidth == d_width) && (modeHeight == d_height) && (modeRefresh == d_refresh)) {
-            OOLog(@"display.mode.found", @"Found mode %@", oo::ObjectFromPList(mode));
+            OO_LOG("display.mode.found", "Found mode {}", oo::DescriptionOf(oo::ObjectFromPList(mode)));
             return i;
         }
     }
 
-    OOLog(@"display.mode.found.failed", @"Failed to find mode: width=%d height=%d refresh=%d", d_width, d_height, d_refresh);
-    OOLog(@"display.mode.found.failed.list", @"Contents of list: %@", oo::ObjectFromPList(oo::PList(oo::PList::Array(screenSizes))));
+    OO_LOG("display.mode.found.failed", "Failed to find mode: width={} height={} refresh={}", static_cast<int>(d_width), static_cast<int>(d_height), static_cast<int>(d_refresh));
+    OO_LOG("display.mode.found.failed.list", "Contents of list: {}", oo::DescriptionOf(oo::ObjectFromPList(oo::PList(oo::PList::Array(screenSizes)))));
     return 0;
 }
 
@@ -1282,7 +1279,7 @@ bool SameMode(const oo::PList& a, const oo::PList& b)
         return NSMakeSize(mode.get<int>(oo::StdString(kOODisplayWidth)),
             mode.get<int>(oo::StdString(kOODisplayHeight)));
     }
-    OOLog(@"display.mode.unknown", @"%@", @"Screen size unknown!");
+    OO_LOG("display.mode.unknown", "{}", "Screen size unknown!");
     return NSMakeSize(WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT);
 }
 

@@ -18,6 +18,7 @@ dep_libs = [
     'dwmapi',
     'winmm',
     'ws2_32',
+    'winhttp',      # oofnd/Http.hpp, the OXZ manager's downloads (proposed ADR-0044)
     'objc',
     'gnustep-base',
 ]

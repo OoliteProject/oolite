@@ -12,7 +12,7 @@ This does two things:
    different to the macro in OOLogging.h, which acts at compile time; the
    filter catches logging in included frameworks.
 
-OOLogOutputHandlerPrint() is thread-safe. Other functions are not.
+OOLogOutputHandlerPrintLine() is thread-safe. Other functions are not.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -37,19 +37,29 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
+#include <optional>
+#include <string>
+#include <string_view>
 
 void OOLogOutputHandlerInit(void);
 void OOLogOutputHandlerClose(void);
-void OOLogOutputHandlerPrint(NSString* string);
+// One finished log line (UTF-8, no newline) to Latest.log and, if enabled, stderr/stdout.
+void OOLogOutputHandlerPrintLine(std::string_view line);
 
 // Queue the pending log-file flush if its deadline has passed. Called from the frame loop (proposed ADR-0033).
 void OOLogOutputHandlerFlushIfDue(void);
 
-// This will attempt to ensure the containing directory exists. If it fails, it will return nil.
-NSString* OOLogHandlerGetLogPath(void);
-NSString* OOLogHandlerGetLogBasePath(void);
-void OOLogOutputHandlerChangeLogFile(NSString* newLogName);
+// This will attempt to ensure the containing directory exists. If it fails, it will return nullopt.
+std::optional<std::string> cxx_OOLogHandlerGetLogPath(void);
+std::optional<std::string> cxx_OOLogHandlerGetLogBasePath(void);
+void cxx_OOLogOutputHandlerChangeLogFile(const std::string& newLogName);
 
 void OOLogOutputHandlerStartLoggingToStdout(void);
 void OOLogOutputHandlerStopLoggingToStdout(void);
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"; bead oo-vjts): gnustep-base's NSLog
+        hook, and the Foundation-typed API this header declared before its sweep, forwarding to the
+        cxx_ functions above so unmigrated callers compile unchanged.
+*/
+#import "OOLogOutputHandler+FoundationBridge.h"

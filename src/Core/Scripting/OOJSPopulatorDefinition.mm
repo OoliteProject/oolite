@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOMaths.h"
 
+#include "oofnd/Notification.hpp"
+
 @implementation OOJSPopulatorDefinition
 
 - (id)init
@@ -39,10 +41,9 @@ MA 02110-1301, USA.
     _owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
 
     // Stays registered until dealloc, so values set after a reset are also released on the next one.
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(deleteJSPointers)
-                                                 name:kOOJavaScriptEngineWillResetNotification
-                                               object:[OOJavaScriptEngine sharedEngine]];
+    oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        [OOJavaScriptEngine sharedEngine],
+        [self](const oo::Notification&) { [self deleteJSPointers]; });
 
     return self;
 }
@@ -59,9 +60,8 @@ MA 02110-1301, USA.
 
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:kOOJavaScriptEngineWillResetNotification
-                                                  object:[OOJavaScriptEngine sharedEngine]];
+    oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        [OOJavaScriptEngine sharedEngine]);
 
     [_owningScript release];
 

@@ -36,6 +36,8 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-5lu6): +flasherWithDictionary: is unique and takes
         the subentity configuration as an oo::PList; -initWithDictionary: is shared and keeps id.
+        Foundation declares -initWithDictionary: too, so its typed form is the twin
+        -cxx_initWithDictionary: (bead oo-3rb.292.1).
 */
 
 @interface OOFlasherEntity : OOLightParticleEntity <OOSubEntity> {
@@ -54,7 +56,8 @@ MA 02110-1301, USA.
 }
 
 + (instancetype)flasherWithDictionary:(const oo::PList&)dictionary;
-- (id)initWithDictionary:(id)dictionary; // shared selector (proposed ADR-0043): an Objective-C dictionary
+- (id)initWithDictionary:(id)dictionary; // shared selector (Foundation declares -initWithDictionary: too): -cxx_initWithDictionary: with an Objective-C dictionary
+- (id)cxx_initWithDictionary:(const oo::PList&)dictionary OO_RETURNS_RETAINED;
 
 - (BOOL)isActive;
 - (void)setActive:(BOOL)active;

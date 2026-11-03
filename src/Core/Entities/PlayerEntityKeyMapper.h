@@ -63,7 +63,7 @@ MA 02110-1301, USA.
 #define KEY_KC_HEADER @"header"
 
 // Dictionary keys - used in the defaults file
-#define KEYCONFIG_OVERRIDES @"KeyConfigOverrides" // NSUserDefaults
+#define KEYCONFIG_OVERRIDES @"KeyConfigOverrides" // preferences key (oo::Defaults)
 
 @interface PlayerEntity (KeyMapper)
 - (void)resetKeyFunctions;
@@ -76,7 +76,7 @@ MA 02110-1301, USA.
 - (void)setGuiToKeyConfigScreen;
 - (void)setGuiToKeyConfigScreen:(BOOL)resetSelectedRow;
 - (void)handleKeyConfigKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-- (void)outputKeyDefinition:(NSString*)key shift:(NSString*)shift mod1:(NSString*)mod1 mod2:(NSString*)mod2 skiprows:(NSUInteger)skiprows;
+- (void)outputKeyDefinition:(const std::string&)key shift:(const std::string&)shift mod1:(const std::string&)mod1 mod2:(const std::string&)mod2 skiprows:(NSUInteger)skiprows;
 
 - (void)setGuiToKeyConfigEntryScreen;
 - (void)handleKeyConfigEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
@@ -90,7 +90,7 @@ MA 02110-1301, USA.
 
 - (std::optional<std::string>)validateKey:(const std::string&)key checkKeys:(const oo::PList&)check_keys; // the conflicting function; nullopt: none
 
-- (NSDictionary*)makeKeyGuiDict:(NSString*)what keyDef:(NSString*)keyDef;
-- (NSDictionary*)makeKeyGuiDictHeader:(NSString*)header;
+- (oo::PList)makeKeyGuiDict:(const std::string&)what keyDef:(const std::string&)keyDef; // a keyFunctions entry
+- (oo::PList)makeKeyGuiDictHeader:(const std::string&)header;
 
 @end

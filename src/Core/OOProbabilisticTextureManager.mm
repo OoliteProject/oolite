@@ -113,7 +113,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
                 if (object != nullptr && object->isString()) {
                     galID = oo::str::intValue(*object->getIf<std::string>());
                 } else if (object != nullptr) {
-                    OOLog(@"textures.load", @"***** ERROR: %@ for texture %@ is not a string.", @"galaxy", oo::NSStringOrNil(name));
+                    OO_LOG("textures.load", "***** ERROR: {} for texture {} is not a string.", "galaxy", name.value_or("(null)"));
                 }
             } else if (entry->isString()) {
                 name = *entry->getIf<std::string>();
@@ -211,11 +211,11 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     // first catch point if loop above fails to return a texture
     // return first texture that meets the galaxy list criteria and has a probability > 0
     if (hold >= 0) {
-        OOLog(@"probabilisticTextureManager.internalWarning", @"%s: overrun! Galaxy List requirements not met. Choosing first texture available for galaxy.", __PRETTY_FUNCTION__);
+        OO_LOG("probabilisticTextureManager.internalWarning", "{}: overrun! Galaxy List requirements not met. Choosing first texture available for galaxy.", __PRETTY_FUNCTION__);
         return _textures[hold];
     }
 
-    OOLog(@"probabilisticTextureManager.internalFailure", @"%s: overrun! Choosing last texture.", __PRETTY_FUNCTION__);
+    OO_LOG("probabilisticTextureManager.internalFailure", "{}: overrun! Choosing last texture.", __PRETTY_FUNCTION__);
     return _textures[_count - 1];
 }
 

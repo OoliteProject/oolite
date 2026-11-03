@@ -34,6 +34,7 @@ SOFTWARE.
 
 #import "OODrawable.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOFoundationBridge.h"
 #import "OOPlanetEntity.h"
 #import "OOSunEntity.h"
 #import "PlayerEntity.h"
@@ -46,7 +47,7 @@ SOFTWARE.
 
 - (void)setUp;
 
-- (void)renderOnePassWithSky:(OODrawable*)sky sun:(OOSunEntity*)sun planets:(NSArray*)planets;
+- (void)renderOnePassWithSky:(OODrawable*)sky sun:(OOSunEntity*)sun planets:(const std::vector<oo::ObjCRef<OOPlanetEntity*>>&)planets;
 
 @end
 
@@ -103,7 +104,7 @@ SOFTWARE.
 
     OODrawable* sky = [[UNIVERSE nearestEntityMatchingPredicate:HasClassPredicate parameter:[SkyEntity class] relativeToEntity:nil] drawable];
     OOSunEntity* sun = [UNIVERSE sun];
-    NSArray* planets = [UNIVERSE planets];
+    const std::vector<oo::ObjCRef<OOPlanetEntity*>> planets = oo::ObjCRefsFrom<OOPlanetEntity*>([UNIVERSE planets]);
 
     unsigned i;
     Vector centers[6] = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
@@ -127,7 +128,7 @@ SOFTWARE.
     OOGL(glPopAttrib());
 }
 
-- (void)renderOnePassWithSky:(OODrawable*)sky sun:(OOSunEntity*)sun planets:(NSArray*)planets
+- (void)renderOnePassWithSky:(OODrawable*)sky sun:(OOSunEntity*)sun planets:(const std::vector<oo::ObjCRef<OOPlanetEntity*>>&)planets
 {
     OO_ENTER_OPENGL();
 
@@ -143,17 +144,16 @@ SOFTWARE.
     OOGLResetModelView();
     OOGLTranslateModelView(vector_flip([PLAYER position]));
 
-    NSEnumerator* planetEnum = nil;
-    OOPlanetEntity* planet = nil;
-    for (planetEnum = [planets objectEnumerator]; (planet = [planetEnum nextObject]);) {
+    for (const oo::ObjCRef<OOPlanetEntity*>& planetRef : planets) {
+        OOPlanetEntity* planet = planetRef.get();
         OOGLPushModelView();
-                OOGLTranslateModelView(planet position]);
+        OOGLTranslateModelView([planet position]); // (the Foundation code was missing the "[": this file is not built)
 #if NEW_PLANETS
-                [[planet drawable] renderOpaqueParts];
+        [[planet drawable] renderOpaqueParts];
 #else
-                [planet drawUnconditionally];
+        [planet drawUnconditionally];
 #endif
-                OOGLPopModelView();
+        OOGLPopModelView();
     }
 
     OOGLPushModelView();
@@ -200,11 +200,11 @@ SOFTWARE.
     GLenum status;
     OOGL(status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT));
     if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-        OOLogERR(@"environmentCube.fbo.setup.failed", @"Failed to set up FBO for environment cube map - status is %u.", status);
+        OO_LOG_ERR("environmentCube.fbo.setup.failed", "Failed to set up FBO for environment cube map - status is {}.", static_cast<unsigned>(status));
         DESTROY(self);
     }
 
-    OOCheckOpenGLErrors(@"after setting up environment cube map FBO");
+    cxx_OOCheckOpenGLErrors("after setting up environment cube map FBO");
 #endif
     OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
     OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));

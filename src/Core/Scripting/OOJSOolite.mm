@@ -33,9 +33,31 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/PListParsing.hpp"
+#include "oofnd/ResourcePaths.hpp"
 
 static JSValue OoliteGetProperty(OOJS_GETTER_ARGS);
 static JSValue OoliteSetProperty(OOJS_SETTER_ARGS);
+
+namespace {
+
+// Info-gnustep.plist string (CFBundleVersion / CFBundleName as the Override category used to expose).
+std::optional<std::string> OoliteInfoString(std::string_view key)
+{
+    const oo::fs::Path plistPath = oo::ResourcePaths::current().builtInResourcesDirectory() / "Info-gnustep.plist";
+    oo::PList info;
+    if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath); bytes && !bytes->empty()) {
+        if (oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(bytes->stringView());
+            parsed && parsed->isDict())
+            info = std::move(*parsed);
+    }
+    if (const oo::PList* v = info.find(key); v != nullptr && v->isString())
+        return *v->getIf<std::string>();
+    return std::nullopt;
+}
+
+} // namespace
 
 static std::optional<std::string> VersionString(void);
 static std::vector<unsigned> VersionComponents(void);
@@ -260,7 +282,7 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
 
 static std::optional<std::string> VersionString(void)
 {
-    return oo::OptionalString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
+    return OoliteInfoString("CFBundleVersion");
 }
 
 static std::vector<unsigned> VersionComponents(void)

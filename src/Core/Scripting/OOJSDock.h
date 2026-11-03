@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #pragma once
 
 #import "DockEntity.h"
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 #include <quickjs.h>
 
 @class DockEntity;

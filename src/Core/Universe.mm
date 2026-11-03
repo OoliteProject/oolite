@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OOCPUInfo.h"
 #import "OOCacheManager.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
@@ -40,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOMaterial.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenGLMatrixManager.h"
+#import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOSound.h"
@@ -48,7 +48,10 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "ResourceManager.h"
 #include "oofnd/Date.hpp"
+#include "oofnd/Defaults.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/Process.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 #import "CollisionRegion.h"
 #import "OODebugSupport.h"
@@ -119,10 +122,10 @@ enum {
 // currently twice scanner radius
 #define LANE_WIDTH 51200.0
 
-static NSString* const kOOLogUniversePopulateError = @"universe.populate.error";
-static NSString* const kOOLogUniversePopulateWitchspace = @"universe.populate.witchspace";
-static NSString* const kOOLogEntityVerificationError = @"entity.linkedList.verify.error";
-static NSString* const kOOLogEntityVerificationRebuild = @"entity.linkedList.verify.rebuild";
+static const char* const kOOLogUniversePopulateError = "universe.populate.error";
+static const char* const kOOLogUniversePopulateWitchspace = "universe.populate.witchspace";
+static const char* const kOOLogEntityVerificationError = "entity.linkedList.verify.error";
+static const char* const kOOLogEntityVerificationRebuild = "entity.linkedList.verify.rebuild";
 
 const GLfloat framebufferQuadVertices[] = {
     // positions  // texture coords
@@ -143,9 +146,6 @@ Entity* gOOJSPlayerIfStale = nil;
 
 static BOOL MaintainLinkedLists(Universe* uni);
 OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range);
-
-static OOComparisonResult compareName(id dict1, id dict2, void* context);
-static OOComparisonResult comparePrice(id dict1, id dict2, void* context);
 
 /* TODO: route calculation is really slow - find a way to safely enable this */
 #undef CACHE_ROUTE_FROM_SYSTEM_RESULTS
@@ -225,14 +225,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context);
 
 - (void)populateSpaceFromActiveWormholes;
 
-- (NSString*)chooseStringForKey:(NSString*)key inDictionary:(NSDictionary*)dictionary;
+- (std::optional<std::string>)chooseStringForKey:(const std::string&)key inDictionary:(const oo::PList&)dictionary;
 
 #if OO_LOCALIZATION_TOOLS
 #if DEBUG_GRAPHVIZ
 - (void)dumpDebugGraphViz;
 - (void)dumpSystemDescriptionGraphViz;
 #endif
-- (void)addNumericRefsInString:(NSString*)string toGraphViz:(NSMutableString*)graphViz fromNode:(NSString*)fromNode nodeCount:(NSUInteger)nodeCount;
+- (void)addNumericRefsInString:(const std::string&)string toGraphViz:(std::string&)graphViz fromNode:(const std::string&)fromNode nodeCount:(NSUInteger)nodeCount;
 
 /**
  * \ingroup cli
@@ -261,10 +261,71 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context);
 
 - (void)setDetailLevelDirectly:(OOGraphicsDetail)value;
 
-- (NSDictionary*)demoShipData;
+- (oo::PList)demoShipData; // null where there is no such entry
 - (void)setLibraryTextForDemoShip;
 
 @end
+
+namespace {
+
+// The saved detailLevel preference as an OOGraphicsDetail. 0-3 are the levels themselves; any other
+// number becomes DETAIL_LEVEL_MAXIMUM, which is what -setDetailLevelDirectly: made of it: the bare
+// cast this replaces handed the enum (underlying type unsigned int on this toolchain) an
+// out-of-range value, a negative one as a large unsigned number, and the setter clamped anything
+// >= DETAIL_LEVEL_MAXIMUM to it. Clamping as an integer means the enum only ever holds one of its
+// own values (the same idiom as OOSystemLayerFromNumber, bead oo-2eby).
+OOGraphicsDetail OOGraphicsDetailFromNumber(unsigned int number)
+{
+    return (number > DETAIL_LEVEL_MAXIMUM) ? DETAIL_LEVEL_MAXIMUM : static_cast<OOGraphicsDetail>(number);
+}
+
+// Defined with the configuration readers and the shipyard helpers below.
+id ObjectForKeyIn(const oo::PList& dict, std::string_view key);
+std::string ExpandKeyWith(const std::string& key, const char* name, const oo::PList& value);
+
+// -addObject: on a set of objects (identity, as Entity keeps NSObject's -isEqual:): once each, in
+// the order added.
+template <class T, class U>
+void AddIfAbsent(std::vector<oo::ObjCRef<T>>& objects, U object)
+{
+    if (std::find(objects.begin(), objects.end(), object) == objects.end())
+        objects.emplace_back(object);
+}
+
+// An autoreleased list: each element goes to the autorelease pool, which releases it when it
+// drains (the list itself released them then). The list is left empty.
+template <class T>
+void AutoreleaseAll(std::vector<oo::ObjCRef<T>>& objects)
+{
+    for (oo::ObjCRef<T>& object : objects)
+        [object.leakRef() autorelease];
+    objects.clear();
+}
+
+// -removeObjectAtIndex:0 on the wormhole list: an empty list raised a range exception.
+void RemoveFirstWormhole(std::vector<oo::ObjCRef<WormholeEntity*>>& wormholes)
+{
+    if (wormholes.empty()) {
+        [OOException raise:OORangeException format:"Index 0 is out of range 0 (in 'removeObjectAtIndex:')"];
+    }
+    wormholes.erase(wormholes.begin());
+}
+
+/*	[beaconCode rangeOfString:code options:NSCaseInsensitiveSearch].location != NSNotFound: the
+        units compared lowercased (oo::str::lowercase maps unit for unit, so a byte search of the two
+        lowercased strings finds the same places); an empty code is never found; a nil beacon code
+        answered a zeroed range from messaging nil, location 0, which counted as found.
+*/
+bool BeaconCodeMatches(const std::optional<std::string>& beaconCode, const std::string& code)
+{
+    if (!beaconCode.has_value())
+        return true;
+    if (code.empty())
+        return false;
+    return oo::str::lowercase(*beaconCode).find(oo::str::lowercase(code)) != std::string::npos;
+}
+
+}
 
 @implementation Universe
 
@@ -394,7 +455,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBufferID));
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Multisample framebuffer not complete");
+        OO_LOG_ERR("initTargetFramebufferWithViewSize.result", "{}", "***** Error: Multisample framebuffer not complete");
     }
 
     // create framebuffer and attach texture and depth buffer to framebuffer
@@ -421,7 +482,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glDrawBuffers(1, attachment));
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Framebuffer not complete");
+        OO_LOG_ERR("initTargetFramebufferWithViewSize.result", "{}", "***** Error: Framebuffer not complete");
     }
 
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
@@ -453,7 +514,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOGL(glDrawBuffers(2, attachments));
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Passthrough framebuffer not complete");
+        OO_LOG_ERR("initTargetFramebufferWithViewSize.result", "{}", "***** Error: Passthrough framebuffer not complete");
     }
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
@@ -471,7 +532,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0));
         // check if framebuffers are complete (no need for depth buffer)
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Pingpong framebuffers not complete");
+            OO_LOG_ERR("initTargetFramebufferWithViewSize.result", "{}", "***** Error: Pingpong framebuffers not complete");
         }
     }
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
@@ -714,25 +775,24 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     OOInitReallyRandom(oo::date::timeIntervalSinceReferenceDate() * 1e9);
 
-    NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+    oo::Defaults& prefs = oo::Defaults::standard();
 
     // prefs value no longer used - per save game but startup needs to
     // be non-strict
-    useAddOns = [[NSString alloc] initWithString:SCENARIO_OXP_DEFINITION_ALL];
+    useAddOns = oo::StdString(SCENARIO_OXP_DEFINITION_ALL);
 
     [self setGameView:inGameView];
     gSharedUniverse = self;
 
-    allPlanets = [[NSMutableArray alloc] init];
-    allStations = [[NSMutableSet alloc] init];
+    allPlanets.clear();
+    allStations.clear();
 
     OOCPUInfoInit();
     [OOJoystickManager sharedStickHandler];
 
     // init OpenGL extension manager (must be done before any other threads might use it)
     [OOOpenGLExtensionManager sharedManager];
-    [self setDetailLevelDirectly:(OOGraphicsDetail)[prefs oo_intForKey:@"detailLevel"
-                                                          defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultDetailLevel]]];
+    [self setDetailLevelDirectly:OOGraphicsDetailFromNumber(prefs.object("detailLevel").isNull() ? [[OOOpenGLExtensionManager sharedManager] defaultDetailLevel] : static_cast<unsigned int>(prefs.integerForKey("detailLevel")))];
 
     [self initTargetFramebufferWithViewSize:[gameView backingViewSize]];
 
@@ -742,11 +802,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [OOCacheManager sharedCache];
 
 #if OOLITE_SPEECH_SYNTH
-    OOLog(@"speech.synthesis", @"Spoken messages are %@.", ([prefs oo_boolForKey:@"speech_on" defaultValue:NO] ? @"on" : @"off"));
+    OO_LOG("speech.synthesis", "Spoken messages are {}.", (prefs.boolForKey("speech_on") ? "on" : "off"));
 #endif
 
     // init the Resource Manager
-    [ResourceManager setUseAddOns:useAddOns]; // also logs the paths if changed
+    [ResourceManager cxx_setUseAddOns:useAddOns]; // also logs the paths if changed
 
     // Set up the internal game strings
     [self loadDescriptions];
@@ -755,16 +815,16 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     // load starting saves
     [self loadScenarios];
 
-    autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
-    wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
-    doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
-    [inGameView setMsaa:[prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO]];
-    OOLog(@"MSAA.setup", @"Multisample anti-aliasing %@requested.", [inGameView msaa] ? @"" : @"not ");
-    [inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], MAX_FOV_DEG) fromFraction:NO];
+    autoSave = prefs.boolForKey("autosave");
+    wireframeGraphics = prefs.boolForKey("wireframe-graphics");
+    doProcedurallyTexturedPlanets = prefs.object("procedurally-textured-planets").isNull() ? YES : prefs.boolForKey("procedurally-textured-planets");
+    [inGameView setMsaa:prefs.boolForKey("anti-aliasing")];
+    OO_LOG("MSAA.setup", "Multisample anti-aliasing {}requested.", [inGameView msaa] ? "" : "not ");
+    [inGameView setFov:OOClamp_0_max_f(prefs.object("fov-value").isNull() ? 57.2f : prefs.floatForKey("fov-value"), MAX_FOV_DEG) fromFraction:NO];
     if ([inGameView fov:NO] < MIN_FOV_DEG)
         [inGameView setFov:MIN_FOV_DEG fromFraction:NO];
 
-    [self setECMVisualFXEnabled:[prefs oo_boolForKey:@"ecm-visual-fx" defaultValue:YES]];
+    [self setECMVisualFXEnabled:prefs.object("ecm-visual-fx").isNull() ? YES : prefs.boolForKey("ecm-visual-fx")];
 
     // Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
@@ -779,9 +839,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                     default one-thread-at-a-time access rule applies.
                     -- Ahruman 2012-09-13
             */
-            OOLog(@"speech.setup.begin", @"Starting to set up speech synthesizer.");
+            OO_LOG("speech.setup.begin", "Starting to set up speech synthesizer.");
             NSSpeechSynthesizer* synth = [[NSSpeechSynthesizer alloc] init];
-            OOLog(@"speech.setup.end", @"Finished setting up speech synthesizer.");
+            OO_LOG("speech.setup.end", "Finished setting up speech synthesizer.");
             speechSynthesizer = synth;
         });
 #elif OOLITE_ESPEAK
@@ -801,7 +861,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     [OOShipRegistry sharedRegistry];
 
-    entities = [[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
+    entities.reserve(MAX_NUMBER_OF_ENTITIES);
 
     [[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
 
@@ -809,9 +869,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     gui = [[GuiDisplayGen alloc] init]; // alloc retains
     comm_log_gui = [[GuiDisplayGen alloc] init]; // alloc retains
 
-    missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
+    missiontext = [ResourceManager cxx_dictionaryFromFilesNamed:"missiontext.plist" inFolder:std::string("Config") andMerge:YES];
 
-    waypoints = [[NSMutableDictionary alloc] init];
+    waypoints.clear();
 
     [self setUpSettings];
 
@@ -835,7 +895,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [self setUpInitialUniverse];
 
     universeRegion = [[CollisionRegion alloc] initAsUniverse];
-    entitiesDeadThisUpdate = [[NSMutableSet alloc] init];
+    entitiesDeadThisUpdate.clear();
     framesDoneThisUpdate = 0;
     drawCounter = 0;
 
@@ -867,60 +927,49 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 {
     gSharedUniverse = nil;
 
-    [currentMessage release];
+    currentMessage.reset();
 
     [gui release];
     [message_gui release];
     [comm_log_gui release];
 
-    [entities release];
+    entities.clear();
 
     [commodities release];
 
-    [_descriptions release];
-    [characters release];
-    [customSounds release];
-    [globalSettings release];
+    customSounds = oo::PList();
+    globalSettings = oo::PList();
     [systemManager release];
-    [missiontext release];
-    [equipmentData release];
-    [equipmentDataOutfitting release];
-    [demo_ships release];
-    [autoAIMap release];
-    [screenBackgrounds release];
+    demo_ships = oo::PList();
+    screenBackgrounds = oo::PList();
     [gameView release];
-    [populatorSettings release];
-    [system_repopulator release];
-    [allPlanets release];
-    [allStations release];
-    [explosionSettings release];
+    allPlanets.clear();
+    allStations.clear();
 
-    [activeWormholes release];
-    [characterPool release];
+    activeWormholes.clear();
+    characterPool.clear();
     [universeRegion release];
-    [cargoPods release];
 
     DESTROY(_firstBeacon);
     DESTROY(_lastBeacon);
-    DESTROY(waypoints);
+    waypoints.clear();
 
     unsigned i;
     for (i = 0; i < 256; i++)
-        [system_names[i] release];
+        system_names[i].reset();
 
-    [entitiesDeadThisUpdate release];
+    entitiesDeadThisUpdate.clear();
 
     [[OOCacheManager sharedCache] flush];
 
 #if OOLITE_SPEECH_SYNTH
-    [speechArray release];
+    speechArray = oo::PList();
 #if OOLITE_MAC_COCOA_UI
     [speechSynthesizer release];
 #elif OOLITE_ESPEAK
     espeak_Cancel();
 #endif
 #endif
-    [conditionScripts release];
 
     [self deleteOpenGLObjects];
 
@@ -945,33 +994,32 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)setDoProcedurallyTexturedPlanets:(BOOL)value
 {
     doProcedurallyTexturedPlanets = !!value; // ensure yes or no
-    [[NSUserDefaults standardUserDefaults] setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
+    oo::Defaults::standard().setBool("procedurally-textured-planets", doProcedurallyTexturedPlanets);
 }
 
-- (NSString*)useAddOns
+- (std::optional<std::string>)cxx_useAddOns
 {
     return useAddOns;
 }
 
-- (BOOL)setUseAddOns:(NSString*)newUse fromSaveGame:(BOOL)saveGame
+- (BOOL)cxx_setUseAddOns:(const std::string&)newUse fromSaveGame:(BOOL)saveGame
 {
-    return [self setUseAddOns:newUse fromSaveGame:saveGame forceReinit:NO];
+    return [self cxx_setUseAddOns:newUse fromSaveGame:saveGame forceReinit:NO];
 }
 
-- (BOOL)setUseAddOns:(NSString*)newUse fromSaveGame:(BOOL)saveGame forceReinit:(BOOL)force
+- (BOOL)cxx_setUseAddOns:(const std::string&)newUse fromSaveGame:(BOOL)saveGame forceReinit:(BOOL)force
 {
-    if (!force && [newUse isEqualToString:useAddOns]) {
+    if (!force && newUse == useAddOns) {
         return YES;
     }
-    DESTROY(useAddOns);
-    useAddOns = [newUse retain];
+    useAddOns = newUse;
 
     return [self reinitAndShowDemo:!saveGame];
 }
 
 - (NSUInteger)entityCount
 {
-    return [entities count];
+    return entities.size();
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -983,22 +1031,22 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if (!OOLogWillDisplayMessagesInClass(@"universe.objectDump"))
         return;
 
-    OOLog(@"universe.objectDump", @"DEBUG: Entity Dump - [entities count] = %zu,\tn_entities = %u", [entities count], n_entities);
+    OO_LOG("universe.objectDump", "DEBUG: Entity Dump - [entities count] = {},\tn_entities = {}", static_cast<size_t>(entities.size()), static_cast<unsigned>(n_entities));
 
     OOLogIndent();
     for (i = 0; i < show_count; i++) {
-        OOLog(@"universe.objectDump", @"Ent:%4u  %@", i, [sortedEntities[i] descriptionForObjDump]);
+        OO_LOG("universe.objectDump", "Ent:{:4}  {}", static_cast<unsigned>(i), oo::DescriptionOf([sortedEntities[i] descriptionForObjDump]));
     }
     OOLogOutdent();
 
-    if ([entities count] != n_entities) {
-        OOLog(@"universe.objectDump", @"entities = %@", [entities description]);
+    if (entities.size() != n_entities) {
+        OO_LOG("universe.objectDump", "entities = {}", oo::DescriptionOf([oo::NSArrayFromObjects(entities) description]));
     }
 }
 
-- (NSArray*)entityList
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_entityList
 {
-    return [NSArray arrayWithArray:entities];
+    return entities;
 }
 #endif
 
@@ -1008,21 +1056,21 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     PlayerEntity* player = PLAYER;
 
     [self setPauseMessageVisible:NO];
-    NSString* pauseKey = [PLAYER keyBindingDescription2:@"key_pausebutton"];
+    const std::optional<std::string> pauseKey = [PLAYER cxx_keyBindingDescription2:"key_pausebutton"];
 
     if ([player status] == STATUS_DOCKED) {
         if ([gui setForegroundTextureKey:@"paused_docked_overlay"]) {
             [gui drawGUI:1.0 drawCursor:NO];
         } else {
             [self setPauseMessageVisible:YES];
-            [self addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0];
+            [self cxx_addMessage:ExpandKeyWith("game-paused-docked", "pauseKey", pauseKey.has_value() ? oo::PList(*pauseKey) : oo::PList()) forCount:1.0];
         }
     } else {
         if ([player guiScreen] != GUI_SCREEN_MAIN && [gui setForegroundTextureKey:@"paused_overlay"]) {
             [gui drawGUI:1.0 drawCursor:NO];
         } else {
             [self setPauseMessageVisible:YES];
-            [self addMessage:OOExpandKey(@"game-paused", pauseKey) forCount:1.0];
+            [self cxx_addMessage:ExpandKeyWith("game-paused", "pauseKey", pauseKey.has_value() ? oo::PList(*pauseKey) : oo::PList()) forCount:1.0];
         }
     }
 
@@ -1031,7 +1079,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)quitGame
 {
-    OOLog(@"universe.quit", @"%@", @"Quit command received by Universe.");
+    OO_LOG("universe.quit", "{}", "Quit command received by Universe.");
     [[self gameController] exitAppWithContext:@"Universe Request"];
 }
 
@@ -1109,11 +1157,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         // remove everything except the player and the docked station
         if (dockedStation && !interstel) { // jump to the nearest system
             [player setSystemID:sys];
-            closeSystems = nil;
+            closeSystems.reset();
             [self setSystemTo:sys];
             int index = 0;
-            while ([entities count] > 2) {
-                Entity* ent = [entities objectAtIndex:index];
+            while (entities.size() > 2) {
+                Entity* ent = entities[index].get();
                 if ((ent != player) && (ent != dockedStation)) {
                     if (ent->isStation) // clear out queues
                         [(StationEntity*)ent clear];
@@ -1174,7 +1222,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     //
     // check the player is still around!
     //
-    if ([entities count] == 0) {
+    if (entities.empty()) {
         /*- the player ship -*/
         player = [[PlayerEntity alloc] init]; // alloc retains!
 
@@ -1193,12 +1241,16 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     [self setViewDirection:VIEW_FORWARD];
 
-    [comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self getSystemName:systemID], [player dial_clock_adjusted]]
-                          align:GUI_ALIGN_CENTER
-                          color:[OOColor whiteColor]
-                       fadeTime:0
-                            key:nil
-                     addToArray:[player commLog]];
+    // the printed lines go to the player's (unmigrated) comm log as they went before
+    std::vector<std::string> printedLines;
+    [comm_log_gui cxx_printLongText:oo::str::format("%s %s", TextOrNull([self cxx_getSystemName:systemID]).c_str(), oo::DescriptionOf([player dial_clock_adjusted]).c_str())
+                              align:GUI_ALIGN_CENTER
+                              color:[OOColor whiteColor]
+                           fadeTime:0
+                                key:std::nullopt
+                         addToArray:&printedLines];
+    for (const std::string& line : printedLines)
+        [[player commLog] addObject:oo::NSStringFrom(line)];
 
     displayGUI = NO;
 }
@@ -1210,7 +1262,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     //
     // check the player is still around!
     //
-    if ([entities count] == 0) {
+    if (entities.empty()) {
         /*- the player ship -*/
         player = [[PlayerEntity alloc] init]; // alloc retains!
 
@@ -1247,9 +1299,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     PlayerEntity* player = PLAYER;
     Quaternion randomQ;
 
-    NSString* override_key = [self keyForInterstellarOverridesForSystems:s1 s2:s2 inGalaxy:galaxyID];
+    const std::string override_key = *[self keyForInterstellarOverridesForSystems:s1 s2:s2 inGalaxy:galaxyID];
 
-    NSDictionary* systeminfo = [systemManager getPropertiesForSystemKey:override_key];
+    const oo::PList systeminfo = [systemManager cxx_getPropertiesForSystemKey:override_key];
 
     [universeRegion clearSubregions];
 
@@ -1258,7 +1310,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     /*- the sky backdrop -*/
     OOColor* col1 = [OOColor colorWithRed:0.0 green:1.0 blue:0.5 alpha:1.0];
     OOColor* col2 = [OOColor colorWithRed:0.0 green:1.0 blue:0.0 alpha:1.0];
-    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:oo::PListFrom(systeminfo)]; // alloc retains!
+    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:systeminfo]; // alloc retains!
     [thing setScanClass:CLASS_NO_DRAW];
     quaternion_set_random(&randomQ);
     [thing setOrientation:randomQ];
@@ -1271,27 +1323,27 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [self addEntity:thing];
     [thing release];
 
-    ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
+    ambientLightLevel = systeminfo.get<float>("ambient_level", 1.0);
     [self setLighting]; // also sets initial lights positions.
 
-    OOLog(kOOLogUniversePopulateWitchspace, @"%@", @"Populating witchspace ...");
-    OOLogIndentIf(kOOLogUniversePopulateWitchspace);
+    OO_LOG(kOOLogUniversePopulateWitchspace, "{}", "Populating witchspace ...");
+    oo::log::indentIf(kOOLogUniversePopulateWitchspace);
 
     [self clearSystemPopulator];
-    NSString* populator = [systeminfo oo_stringForKey:@"populator" defaultValue:@"interstellarSpaceWillPopulate"];
-    [system_repopulator release];
-    system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:@"interstellarSpaceWillRepopulate"] retain];
+    const std::string populator = systeminfo.get<std::string>("populator", "interstellarSpaceWillPopulate");
+    system_repopulator = systeminfo.get<std::string>("repopulator", "interstellarSpaceWillRepopulate");
     JSContext* context = OOJSAcquireContext();
-    [PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+    [PLAYER doWorldScriptEvent:cxx_OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
     OOJSRelinquishContext(context);
     [self populateSystemFromDictionariesWithSun:nil andPlanet:nil];
 
     // systeminfo might have a 'script_actions' resource we want to activate now...
-    NSArray* script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
-    if (script_actions != nil) {
-        OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.", override_key]);
+    const oo::PList* script_actions = systeminfo.get<oo::PList::Array>("script_actions");
+    if (script_actions != nullptr) {
+        cxx_OOStandardsDeprecated(oo::str::format("The script_actions system info key is deprecated for %s.", override_key.c_str()));
         if (!OOEnforceStandards()) {
-            [player runUnsanitizedScriptActions:script_actions
+            // the legacy script engine is not migrated yet: it gets the array it read before
+            [player runUnsanitizedScriptActions:oo::ObjectFromPList(*script_actions)
                               allowingAIMethods:NO
                                 withContextName:@"<witchspace script_actions>"
                                       forTarget:nil];
@@ -1300,7 +1352,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     next_repopulation = randf() * SYSTEM_REPOPULATION_INTERVAL;
 
-    OOLogOutdentIf(kOOLogUniversePopulateWitchspace);
+    oo::log::outdentIf(kOOLogUniversePopulateWitchspace);
 }
 
 - (OOPlanetEntity*)setUpPlanet
@@ -1309,26 +1361,29 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
     seed_for_planet_description(systemSeed);
 
-    NSMutableDictionary* planetDict = [NSMutableDictionary dictionaryWithDictionary:[systemManager getPropertiesForCurrentSystem]];
-    [planetDict oo_setBool:YES forKey:@"mainForLocalSystem"];
-    OOPlanetEntity* a_planet = [[OOPlanetEntity alloc] initFromDictionary:oo::PListFrom(planetDict) withAtmosphere:[planetDict oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:systemSeed forSystem:systemID];
+    // a copy of the system data, marked as the main planet (a bool, as -oo_setBool:forKey: stored it)
+    oo::PList planetDict = [systemManager cxx_getPropertiesForCurrentSystem];
+    if (!planetDict.isDict())
+        planetDict = oo::PList(oo::PList::Dict { });
+    (*planetDict.getIf<oo::PList::Dict>())["mainForLocalSystem"] = oo::PList(true);
+    OOPlanetEntity* a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:planetDict.get<bool>("has_atmosphere", YES) andSeed:systemSeed forSystem:systemID];
 
-    double planet_zpos = [planetDict oo_floatForKey:@"planet_distance" defaultValue:500000];
-    planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:1.0];
+    double planet_zpos = planetDict.get<float>("planet_distance", 500000);
+    planet_zpos *= planetDict.get<float>("planet_distance_multiplier", 1.0);
 
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"planet zpos = %f", planet_zpos);
+    OO_LOG("planetinfo.record", "planet zpos = {:f}", planet_zpos);
 #endif
     [a_planet setPosition:(HPVector) { 0, 0, planet_zpos }];
     [a_planet setEnergy:1000000.0];
 
-    if ([allPlanets count] > 0) // F7 sets [UNIVERSE planet], which can lead to some trouble! TODO: track down where exactly that happens!
+    if (allPlanets.size() > 0) // F7 sets [UNIVERSE planet], which can lead to some trouble! TODO: track down where exactly that happens!
     {
-        OOPlanetEntity* tmp = [allPlanets objectAtIndex:0];
+        OOPlanetEntity* tmp = allPlanets[0].get();
         [self addEntity:a_planet];
-        [allPlanets removeObject:a_planet];
+        std::erase(allPlanets, a_planet);
         cachedPlanet = a_planet;
-        [allPlanets replaceObjectAtIndex:0 withObject:a_planet];
+        allPlanets[0] = oo::ObjCRef<OOPlanetEntity*>(a_planet);
         [self removeEntity:(Entity*)tmp];
     } else {
         [self addEntity:a_planet];
@@ -1352,9 +1407,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     Vector vf;
     id dict_object;
 
-    NSDictionary* systeminfo = [systemManager getPropertiesForCurrentSystem];
-    unsigned techlevel = [systeminfo oo_unsignedIntForKey:KEY_TECHLEVEL];
-    NSString *stationDesc = nil, *defaultStationDesc = nil;
+    const oo::PList systeminfo = [systemManager cxx_getPropertiesForCurrentSystem];
+    unsigned techlevel = systeminfo.get<unsigned int>(oo::StdString(KEY_TECHLEVEL));
+    std::optional<std::string> stationDesc, defaultStationDesc; // the default is never set: nullopt, as nil
     OOColor* bgcolor;
     OOColor* pale_bgcolor;
     BOOL sunGoneNova;
@@ -1363,7 +1418,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     [[GameController sharedController] logProgress:DESC(@"populating-space")];
 
-    sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova" defaultValue:NO];
+    sunGoneNova = systeminfo.get<bool>("sun_gone_nova", NO);
 
     OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - clearSubRegions, sky, dust");
     [universeRegion clearSubregions];
@@ -1375,12 +1430,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                    alpha:0.0f];
 
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"seed = %d %d %d %d", system_seed.c, system_seed.d, system_seed.e, system_seed.f);
-    OOLog(@"planetinfo.record", @"coordinates = %d %d", system_seed.d, system_seed.b);
+    OO_LOG("planetinfo.record", "seed = {} {} {} {}", system_seed.c, system_seed.d, system_seed.e, system_seed.f);
+    OO_LOG("planetinfo.record", "coordinates = {} {}", system_seed.d, system_seed.b);
 
-#define SPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = \"%@\";", [systeminfo oo_stringForKey:@"" #PROP]);
-#define IPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %d;", [systeminfo oo_intForKey:@ #PROP]);
-#define FPROP(PROP) OOLog(@"planetinfo.record", @ #PROP " = %f;", [systeminfo oo_floatForKey:@"" #PROP]);
+#define SPROP(PROP) OO_LOG("planetinfo.record", #PROP " = \"{}\";", OptionalStringIn(systeminfo, "" #PROP).value_or("(null)"));
+#define IPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {};", systeminfo.get<int>(#PROP));
+#define FPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {:f};", systeminfo.get<float>("" #PROP));
     IPROP(government);
     IPROP(economy);
     IPROP(techlevel);
@@ -1404,7 +1459,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOColor* col1 = [OOColor colorWithHue:h1 saturation:randf() brightness:0.5 + randf() / 2.0 alpha:1.0];
     OOColor* col2 = [OOColor colorWithHue:h2 saturation:0.5 + randf() / 2.0 brightness:0.5 + randf() / 2.0 alpha:1.0];
 
-    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:oo::PListFrom(systeminfo)]; // alloc retains!
+    thing = [[SkyEntity alloc] initWithColors:col1 col2:col2 andSystemInfo:systeminfo]; // alloc retains!
     [thing setScanClass:CLASS_NO_DRAW];
     [self addEntity:thing];
     //	bgcolor = [(SkyEntity *)thing skyColor];
@@ -1414,11 +1469,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         h1 += 0.33;
     }
 
-    ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
+    ambientLightLevel = systeminfo.get<float>("ambient_level", 1.0);
 
     // pick a main sequence colour
 
-    dict_object = [systeminfo objectForKey:@"sun_color"];
+    dict_object = ObjectForKeyIn(systeminfo, "sun_color");
     if (dict_object != nil) {
         bgcolor = [OOColor colorWithDescription:dict_object];
     } else {
@@ -1459,30 +1514,30 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     double safeDistance;
     HPVector sunPos;
 
-    sunDistanceModifier = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:0.0];
+    sunDistanceModifier = systeminfo.get<oo::NonNegative<double>>("sun_distance_modifier", 0.0);
     if (sunDistanceModifier < 6.0) // <6 isn't valid
     {
-        sun_distance = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance" defaultValue:(planet_radius * 20)];
+        sun_distance = systeminfo.get<oo::NonNegative<double>>("sun_distance", (planet_radius * 20));
         // note, old property was _modifier, new property is _multiplier
-        sun_distance *= [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_multiplier" defaultValue:1];
+        sun_distance *= systeminfo.get<oo::NonNegative<double>>("sun_distance_multiplier", 1);
     } else {
         sun_distance = planet_radius * sunDistanceModifier;
     }
 
-    sun_radius = [systeminfo oo_nonNegativeDoubleForKey:@"sun_radius" defaultValue:2.5 * planet_radius];
+    sun_radius = systeminfo.get<oo::NonNegative<double>>("sun_radius", 2.5 * planet_radius);
     // clamp the sun radius
     if ((sun_radius < 1000.0) || (sun_radius > sun_distance / 2 && !sunGoneNova)) {
-        OOLogWARN(@"universe.setup.badSun", @"Sun radius of %f is not valid for this system", sun_radius);
+        OO_LOG_WARN("universe.setup.badSun", "Sun radius of {:f} is not valid for this system", sun_radius);
         sun_radius = sun_radius < 1000.0 ? 1000.0 : (sun_distance / 2);
     }
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"sun_radius = %f", sun_radius);
+    OO_LOG("planetinfo.record", "sun_radius = {:f}", sun_radius);
 #endif
     safeDistance = 36 * sun_radius * sun_radius; // 6 times the sun radius
 
     // here we need to check if the sun collides with (or is too close to) the witchpoint
     // otherwise at (for example) Maregais in Galaxy 1 we go BANG!
-    HPVector sun_dir = [systeminfo oo_hpvectorForKey:@"sun_vector"];
+    HPVector sun_dir = HPVectorIn(systeminfo, "sun_vector", kZeroHPVector);
     sun_distance /= 2.0;
     do {
         sun_distance *= 2.0;
@@ -1497,37 +1552,36 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [a_planet setOrientation:quaternion_rotation_betweenHP(sun_dir, make_HPvector(1.0, 0.0, 0.0))];
 
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"sun_vector = %.3f %.3f %.3f", vf.x, vf.y, vf.z);
-    OOLog(@"planetinfo.record", @"sun_distance = %.0f", sun_distance);
+    OO_LOG("planetinfo.record", "sun_vector = {:.3f} {:.3f} {:.3f}", vf.x, vf.y, vf.z);
+    OO_LOG("planetinfo.record", "sun_distance = {:.0f}", sun_distance);
 #endif
 
-    NSMutableDictionary* sun_dict = [NSMutableDictionary dictionaryWithCapacity:5];
-    [sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
-    dict_object = [systeminfo objectForKey:@"corona_shimmer"];
-    if (dict_object != nil)
-        [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
-    dict_object = [systeminfo objectForKey:@"corona_hues"];
-    if (dict_object != nil) {
-        [sun_dict setObject:dict_object forKey:@"corona_hues"];
+    // the sun's settings: the values as they were in the system info, else the defaults (floats,
+    // as +numberWithFloat: stored them: item 15); the radius a double
+    oo::PList::Dict sunSettings;
+    sunSettings["sun_radius"] = oo::PList(sun_radius);
+    if (const oo::PList* value = systeminfo.find("corona_shimmer"))
+        sunSettings["corona_shimmer"] = *value;
+    if (const oo::PList* value = systeminfo.find("corona_hues")) {
+        sunSettings["corona_hues"] = *value;
     } else {
-        [sun_dict setObject:[NSNumber numberWithFloat:defaultSunHues] forKey:@"corona_hues"];
+        sunSettings["corona_hues"] = oo::PList::singleReal(defaultSunHues);
     }
-    dict_object = [systeminfo objectForKey:@"corona_flare"];
-    if (dict_object != nil) {
-        [sun_dict setObject:dict_object forKey:@"corona_flare"];
+    if (const oo::PList* value = systeminfo.find("corona_flare")) {
+        sunSettings["corona_flare"] = *value;
     } else {
-        [sun_dict setObject:[NSNumber numberWithFloat:defaultSunFlare] forKey:@"corona_flare"];
+        sunSettings["corona_flare"] = oo::PList::singleReal(defaultSunFlare);
     }
-    dict_object = [systeminfo objectForKey:KEY_SUNNAME];
-    if (dict_object != nil) {
-        [sun_dict setObject:dict_object forKey:KEY_SUNNAME];
+    if (const oo::PList* value = systeminfo.find(oo::StdString(KEY_SUNNAME))) {
+        sunSettings[oo::StdString(KEY_SUNNAME)] = *value;
     }
+    const oo::PList sun_dict(std::move(sunSettings));
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"corona_flare = %f", [sun_dict oo_floatForKey:@"corona_flare"]);
-    OOLog(@"planetinfo.record", @"corona_hues = %f", [sun_dict oo_floatForKey:@"corona_hues"]);
-    OOLog(@"planetinfo.record", @"sun_color = %@", [bgcolor descriptionComponents]);
+    OO_LOG("planetinfo.record", "corona_flare = {:f}", sun_dict.get<float>("corona_flare"));
+    OO_LOG("planetinfo.record", "corona_hues = {:f}", sun_dict.get<float>("corona_hues"));
+    OO_LOG("planetinfo.record", "sun_color = {}", oo::DescriptionOf([bgcolor descriptionComponents]));
 #endif
-    a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:oo::PListFrom(sun_dict)]; // alloc retains!
+    a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:sun_dict]; // alloc retains!
 
     [a_sun setStatus:STATUS_ACTIVE];
     [a_sun setPosition:sunPos]; // sets also light origin
@@ -1548,23 +1602,24 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     /*- space station -*/
     stationPos = [a_planet position];
 
-    vf = [systeminfo oo_vectorForKey:@"station_vector"];
+    vf = VectorIn(systeminfo, "station_vector", kZeroVector);
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"station_vector = %.3f %.3f %.3f", vf.x, vf.y, vf.z);
+    OO_LOG("planetinfo.record", "station_vector = {:.3f} {:.3f} {:.3f}", vf.x, vf.y, vf.z);
 #endif
     stationPos = HPvector_subtract(stationPos, vectorToHPVector(vector_multiply_scalar(vf, 2.0 * planet_radius)));
 
     //// possibly systeminfo has an override for the station
-    stationDesc = [systeminfo oo_stringForKey:@"station" defaultValue:@"coriolis"];
+    stationDesc = systeminfo.get<std::string>("station", "coriolis");
 #ifdef OO_DUMP_PLANETINFO
-    OOLog(@"planetinfo.record", @"station = %@", stationDesc);
+    OO_LOG("planetinfo.record", "station = {}", stationDesc.value_or("(null)"));
 #endif
 
-    a_station = (StationEntity*)[self newShipWithRole:stationDesc]; // retain count = 1
+    // a missing role (the unset default) gives no ship, as a nil role did
+    a_station = stationDesc.has_value() ? (StationEntity*)[self cxx_newShipWithRole:*stationDesc] : nil; // retain count = 1
 
     /*	Sanity check: ensure that only stations are generated here. This is an
             attempt to fix exceptions of the form:
-                    NSInvalidArgumentException : *** -[ShipEntity setPlanet:]: selector
+                    OOInvalidArgumentException : *** -[ShipEntity setPlanet:]: selector
                     not recognized [self = 0x19b7e000] *****
             which I presume to be originating here since all other uses of
             setPlanet: are guarded by isStation checks. This error could happen if
@@ -1575,25 +1630,25 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if (![a_station isStation] || ![a_station validForAddToUniverse]) {
         if (a_station == nil) {
             // Should have had a more specific error already, just specify context
-            OOLog(@"universe.setup.badStation", @"Failed to set up a ship for role \"%@\" as system station, trying again with \"%@\".", stationDesc, defaultStationDesc);
+            OO_LOG("universe.setup.badStation", "Failed to set up a ship for role \"{}\" as system station, trying again with \"{}\".", stationDesc.value_or("(null)"), defaultStationDesc.value_or("(null)"));
         } else {
-            OOLog(@"universe.setup.badStation", @"***** ERROR: Attempt to use non-station ship of type \"%@\" for role \"%@\" as system station, trying again with \"%@\".", [a_station name], stationDesc, defaultStationDesc);
+            OO_LOG("universe.setup.badStation", "***** ERROR: Attempt to use non-station ship of type \"{}\" for role \"{}\" as system station, trying again with \"{}\".", oo::DescriptionOf([a_station name]), stationDesc.value_or("(null)"), defaultStationDesc.value_or("(null)"));
         }
         [a_station release];
         stationDesc = defaultStationDesc;
-        a_station = (StationEntity*)[self newShipWithRole:stationDesc]; // retain count = 1
+        a_station = stationDesc.has_value() ? (StationEntity*)[self cxx_newShipWithRole:*stationDesc] : nil; // retain count = 1
 
         if (![a_station isStation] || ![a_station validForAddToUniverse]) {
             if (a_station == nil) {
-                OOLog(@"universe.setup.badStation", @"On retry, failed to set up a ship for role \"%@\" as system station. Trying to fall back to built-in Coriolis station.", stationDesc);
+                OO_LOG("universe.setup.badStation", "On retry, failed to set up a ship for role \"{}\" as system station. Trying to fall back to built-in Coriolis station.", stationDesc.value_or("(null)"));
             } else {
-                OOLog(@"universe.setup.badStation", @"***** ERROR: On retry, rolled non-station ship of type \"%@\" for role \"%@\". Non-station ships should not have this role! Trying to fall back to built-in Coriolis station.", [a_station name], stationDesc);
+                OO_LOG("universe.setup.badStation", "***** ERROR: On retry, rolled non-station ship of type \"{}\" for role \"{}\". Non-station ships should not have this role! Trying to fall back to built-in Coriolis station.", oo::DescriptionOf([a_station name]), stationDesc.value_or("(null)"));
             }
             [a_station release];
 
-            a_station = (StationEntity*)[self newShipWithName:@"coriolis-station"];
+            a_station = (StationEntity*)[self cxx_newShipWithName:"coriolis-station"];
             if (![a_station isStation] || ![a_station validForAddToUniverse]) {
-                OOLog(@"universe.setup.badStation", @"%@", @"Could not create built-in Coriolis station! Generating a stationless system.");
+                OO_LOG("universe.setup.badStation", "{}", "Could not create built-in Coriolis station! Generating a stationless system.");
                 DESTROY(a_station);
             }
         }
@@ -1616,7 +1671,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     cachedSun = a_sun;
     cachedPlanet = a_planet;
     cachedStation = a_station;
-    closeSystems = nil;
+    closeSystems.reset();
     OO_DEBUG_POP_PROGRESS();
 
     OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - populate from wormholes");
@@ -1629,9 +1684,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)populateNormalSpace
 {
-    NSDictionary* systeminfo = [systemManager getPropertiesForCurrentSystem];
+    const oo::PList systeminfo = [systemManager cxx_getPropertiesForCurrentSystem];
 
-    BOOL sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
+    BOOL sunGoneNova = systeminfo.get<bool>("sun_gone_nova");
     // check for nova
     if (sunGoneNova) {
         OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - post-nova");
@@ -1658,12 +1713,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [self clearSystemPopulator];
 
     if ([PLAYER status] != STATUS_START_GAME) {
-        NSString* populator = [systeminfo oo_stringForKey:@"populator" defaultValue:(sunGoneNova) ? @"novaSystemWillPopulate" : @"systemWillPopulate"];
-        [system_repopulator release];
-        system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:(sunGoneNova) ? @"novaSystemWillRepopulate" : @"systemWillRepopulate"] retain];
+        const std::string populator = systeminfo.get<std::string>("populator", (sunGoneNova) ? "novaSystemWillPopulate" : "systemWillPopulate");
+        system_repopulator = systeminfo.get<std::string>("repopulator", (sunGoneNova) ? "novaSystemWillRepopulate" : "systemWillRepopulate");
 
         JSContext* context = OOJSAcquireContext();
-        [PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+        [PLAYER doWorldScriptEvent:cxx_OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
         OOJSRelinquishContext(context);
         [self populateSystemFromDictionariesWithSun:cachedSun andPlanet:cachedPlanet];
     }
@@ -1671,12 +1725,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OO_DEBUG_POP_PROGRESS();
 
     // systeminfo might have a 'script_actions' resource we want to activate now...
-    NSArray* script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
-    if (script_actions != nil) {
-        OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.", [self getSystemName:systemID]]);
+    const oo::PList* script_actions = systeminfo.get<oo::PList::Array>("script_actions");
+    if (script_actions != nullptr) {
+        cxx_OOStandardsDeprecated(oo::str::format("The script_actions system info key is deprecated for %s.", TextOrNull([self cxx_getSystemName:systemID]).c_str()));
         if (!OOEnforceStandards()) {
             OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - legacy script_actions");
-            [PLAYER runUnsanitizedScriptActions:script_actions
+            // the legacy script engine is not migrated yet: it gets the array it read before
+            [PLAYER runUnsanitizedScriptActions:oo::ObjectFromPList(*script_actions)
                               allowingAIMethods:NO
                                 withContextName:@"<system script_actions>"
                                       forTarget:nil];
@@ -1689,21 +1744,23 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)clearSystemPopulator
 {
-    [populatorSettings release];
-    populatorSettings = [[NSMutableDictionary alloc] initWithCapacity:128];
+    populatorSettings = oo::PList(oo::PList::Dict { });
 }
 
-- (NSDictionary*)getPopulatorSettings
+- (oo::PList)cxx_getPopulatorSettings
 {
     return populatorSettings;
 }
 
-- (void)setPopulatorSetting:(NSString*)key to:(NSDictionary*)setting
+- (void)cxx_setPopulatorSetting:(const std::string&)key to:(const oo::PList&)setting
 {
-    if (setting == nil) {
-        [populatorSettings removeObjectForKey:key];
+    if (!populatorSettings.isDict())
+        populatorSettings = oo::PList(oo::PList::Dict { });
+    oo::PList::Dict& settings = *populatorSettings.getIf<oo::PList::Dict>();
+    if (setting.isNull()) {
+        settings.erase(key);
     } else {
-        [populatorSettings setObject:setting forKey:key];
+        settings[key] = setting;
     }
 }
 
@@ -1722,22 +1779,22 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     uint32_t i, locationSeed, groupCount, rndvalue;
     RANROTSeed rndcache = RANROTGetFullSeed();
     RANROTSeed rndlocal = RANROTGetFullSeed();
-    NSString* locationCode = nil;
+    std::string locationCode;
     OOJSPopulatorDefinition* pdef = nil;
-    foreach (populator, sortedBlocks) {
-        deterministic_population = [populator oo_boolForKey:@"deterministic" defaultValue:NO];
+    for (const oo::PList& populator : sortedBlocks) {
+        deterministic_population = populator.get<bool>("deterministic", NO);
         if (EXPECT_NOT(sun == nil || planet == nil)) {
             // needs to be a non-nova system, and not interstellar space
             deterministic_population = NO;
         }
 
-        locationSeed = [populator oo_unsignedIntForKey:@"locationSeed" defaultValue:0];
-        groupCount = [populator oo_unsignedIntForKey:@"groupCount" defaultValue:1];
+        locationSeed = populator.get<unsigned int>("locationSeed", 0);
+        groupCount = populator.get<unsigned int>("groupCount", 1);
 
         for (i = 0; i < groupCount; i++) {
-            locationCode = [populator oo_stringForKey:@"location" defaultValue:@"COORDINATES"];
-            if ([locationCode isEqualToString:@"COORDINATES"]) {
-                location = [populator oo_hpvectorForKey:@"coordinates" defaultValue:kZeroHPVector];
+            locationCode = populator.get<std::string>("location", "COORDINATES");
+            if (locationCode == "COORDINATES") {
+                location = HPVectorIn(populator, "coordinates", kZeroHPVector);
             } else {
                 if (locationSeed != 0) {
                     rndcache = RANROTGetFullSeed();
@@ -1756,9 +1813,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 }
                 if (sun == nil || planet == nil) {
                     // all interstellar space and nova locations equal to WITCHPOINT
-                    location = [self locationByCode:@"WITCHPOINT" withSun:nil andPlanet:nil];
+                    location = [self cxx_locationByCode:"WITCHPOINT" withSun:nil andPlanet:nil];
                 } else {
-                    location = [self locationByCode:locationCode withSun:sun andPlanet:planet];
+                    location = [self cxx_locationByCode:locationCode withSun:sun andPlanet:planet];
                 }
                 if (locationSeed != 0) {
                     // go back to the main random sequence
@@ -1766,7 +1823,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 }
             }
             // location now contains a Vector coordinate, one way or another
-            pdef = [populator objectForKey:@"callbackObj"];
+            pdef = ObjectForKeyIn(populator, "callbackObj"); // an Object node: the populator definition itself
             [pdef runCallback:location];
         }
     }
@@ -1788,15 +1845,15 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
  * Can be called with nil sun or planet, but if so the calling function
  * must make sure the location code is WITCHPOINT.
  */
-- (HPVector)locationByCode:(NSString*)code withSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet
+- (HPVector)cxx_locationByCode:(const std::string&)code withSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet
 {
     HPVector result = kZeroHPVector;
-    if ([code isEqualToString:@"WITCHPOINT"] || sun == nil || planet == nil || [sun goneNova]) {
+    if (code == "WITCHPOINT" || sun == nil || planet == nil || [sun goneNova]) {
         result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
     }
     // past this point, can assume non-nil sun, planet
     else {
-        if ([code isEqualToString:@"LANE_WPS"]) {
+        if (code == "LANE_WPS") {
             // pick position on one of the lanes, weighted by lane length
             double l1 = HPmagnitude([planet position]);
             double l2 = HPmagnitude(HPvector_subtract([sun position], [planet position]));
@@ -1804,36 +1861,36 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
             double total = l1 + l2 + l3;
             float choice = randf();
             if (choice < l1 / total) {
-                return [self locationByCode:@"LANE_WP" withSun:sun andPlanet:planet];
+                return [self cxx_locationByCode:"LANE_WP" withSun:sun andPlanet:planet];
             } else if (choice < (l1 + l2) / total) {
-                return [self locationByCode:@"LANE_PS" withSun:sun andPlanet:planet];
+                return [self cxx_locationByCode:"LANE_PS" withSun:sun andPlanet:planet];
             } else {
-                return [self locationByCode:@"LANE_WS" withSun:sun andPlanet:planet];
+                return [self cxx_locationByCode:"LANE_WS" withSun:sun andPlanet:planet];
             }
-        } else if ([code isEqualToString:@"LANE_WP"]) {
+        } else if (code == "LANE_WP") {
             result = OORandomPositionInCylinder(kZeroHPVector, SCANNER_MAX_RANGE, [planet position], [planet radius] * 3, LANE_WIDTH);
-        } else if ([code isEqualToString:@"LANE_WS"]) {
+        } else if (code == "LANE_WS") {
             result = OORandomPositionInCylinder(kZeroHPVector, SCANNER_MAX_RANGE, [sun position], [sun radius] * 3, LANE_WIDTH);
-        } else if ([code isEqualToString:@"LANE_PS"]) {
+        } else if (code == "LANE_PS") {
             result = OORandomPositionInCylinder([planet position], [planet radius] * 3, [sun position], [sun radius] * 3, LANE_WIDTH);
-        } else if ([code isEqualToString:@"STATION_AEGIS"]) {
+        } else if (code == "STATION_AEGIS") {
             do {
                 result = OORandomPositionInShell([[self station] position], [[self station] collisionRadius] * 1.2, SCANNER_MAX_RANGE * 2.0);
             } while (HPdistance2(result, [planet position]) < [planet radius] * [planet radius] * 1.5);
             // loop to make sure not generated too close to the planet's surface
-        } else if ([code isEqualToString:@"PLANET_ORBIT_LOW"]) {
+        } else if (code == "PLANET_ORBIT_LOW") {
             result = OORandomPositionInShell([planet position], [planet radius] * 1.1, [planet radius] * 2.0);
-        } else if ([code isEqualToString:@"PLANET_ORBIT"]) {
+        } else if (code == "PLANET_ORBIT") {
             result = OORandomPositionInShell([planet position], [planet radius] * 2.0, [planet radius] * 4.0);
-        } else if ([code isEqualToString:@"PLANET_ORBIT_HIGH"]) {
+        } else if (code == "PLANET_ORBIT_HIGH") {
             result = OORandomPositionInShell([planet position], [planet radius] * 4.0, [planet radius] * 8.0);
-        } else if ([code isEqualToString:@"STAR_ORBIT_LOW"]) {
+        } else if (code == "STAR_ORBIT_LOW") {
             result = OORandomPositionInShell([sun position], [sun radius] * 1.1, [sun radius] * 2.0);
-        } else if ([code isEqualToString:@"STAR_ORBIT"]) {
+        } else if (code == "STAR_ORBIT") {
             result = OORandomPositionInShell([sun position], [sun radius] * 2.0, [sun radius] * 4.0);
-        } else if ([code isEqualToString:@"STAR_ORBIT_HIGH"]) {
+        } else if (code == "STAR_ORBIT_HIGH") {
             result = OORandomPositionInShell([sun position], [sun radius] * 4.0, [sun radius] * 8.0);
-        } else if ([code isEqualToString:@"TRIANGLE"]) {
+        } else if (code == "TRIANGLE") {
             do {
                 // pick random point in triangle by algorithm at
                 // http://adamswaab.wordpress.com/2009/12/11/random-point-in-a-triangle-barycentric-coordinates/
@@ -1848,23 +1905,23 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
             }
             // make sure at least 3 radii from vertices
             while (HPdistance2(result, [sun position]) < [sun radius] * [sun radius] * 9.0 || HPdistance2(result, [planet position]) < [planet radius] * [planet radius] * 9.0 || HPmagnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
-        } else if ([code isEqualToString:@"INNER_SYSTEM"]) {
+        } else if (code == "INNER_SYSTEM") {
             do {
                 result = OORandomPositionInShell([sun position], [sun radius] * 3.0, HPdistance([sun position], [planet position]));
                 result = OOProjectHPVectorToPlane(result, kZeroHPVector, HPcross_product([sun position], [planet position]));
                 result = HPvector_add(result, OOHPVectorRandomSpatial([planet radius]));
                 // projection to plane could bring back too close to sun
             } while (HPdistance2(result, [sun position]) < [sun radius] * [sun radius] * 9.0);
-        } else if ([code isEqualToString:@"INNER_SYSTEM_OFFPLANE"]) {
+        } else if (code == "INNER_SYSTEM_OFFPLANE") {
             result = OORandomPositionInShell([sun position], [sun radius] * 3.0, HPdistance([sun position], [planet position]));
-        } else if ([code isEqualToString:@"OUTER_SYSTEM"]) {
+        } else if (code == "OUTER_SYSTEM") {
             result = OORandomPositionInShell([sun position], HPdistance([sun position], [planet position]), HPdistance([sun position], [planet position]) * 10.0); // no more than 10 AU out
             result = OOProjectHPVectorToPlane(result, kZeroHPVector, HPcross_product([sun position], [planet position]));
             result = HPvector_add(result, OOHPVectorRandomSpatial(0.01 * HPdistance(result, [sun position]))); // within 1% of plane
-        } else if ([code isEqualToString:@"OUTER_SYSTEM_OFFPLANE"]) {
+        } else if (code == "OUTER_SYSTEM_OFFPLANE") {
             result = OORandomPositionInShell([sun position], HPdistance([sun position], [planet position]), HPdistance([sun position], [planet position]) * 10.0); // no more than 10 AU out
         } else {
-            OOLog(kOOLogUniversePopulateError, @"Named populator region %@ is not implemented, falling back to WITCHPOINT", code);
+            OO_LOG(kOOLogUniversePopulateError, "Named populator region {} is not implemented, falling back to WITCHPOINT", code);
             result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
         }
     }
@@ -1873,7 +1930,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void)setAmbientLightLevel:(float)newValue
 {
-    NSAssert(UNIVERSE != nil, @"Attempt to set ambient light level with a non yet existent universe.");
+    OOAssert(UNIVERSE != nil, "Attempt to set ambient light level with a non yet existent universe.");
 
     ambientLightLevel = OOClamp_0_max_f(newValue, 10.0f);
     return;
@@ -1978,7 +2035,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     main_light_position[3] = 1.0;
 }
 
-- (ShipEntity*)addShipWithRole:(NSString*)desc launchPos:(HPVector)launchPos rfactor:(GLfloat)rfactor
+- (ShipEntity*)addShipWithRole:(const std::string&)desc launchPos:(HPVector)launchPos rfactor:(GLfloat)rfactor
 {
     if (rfactor != 0.0) {
         // Calculate the position as soon as possible, to minimise 'lollipop flash'
@@ -1987,7 +2044,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         launchPos.z += 2 * rfactor * (randf() - 0.5);
     }
 
-    ShipEntity* ship = [self newShipWithRole:desc]; // retain count = 1
+    ShipEntity* ship = [self cxx_newShipWithRole:desc]; // retain count = 1
 
     if (ship) {
         [ship setPosition:launchPos]; // minimise 'lollipop flash'
@@ -1998,9 +2055,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
         // Ensure piloted ships have pilots.
         if (![ship crew] && ![ship isUnpiloted])
-            [ship setCrew:[NSArray arrayWithObject:
-                                  [OOCharacter randomCharacterWithRole:desc
-                                                     andOriginalSystem:Ranrot() & 255]]];
+            [ship setCrew:oo::NSArrayFromObjects(std::vector<id> {
+                              [OOCharacter randomCharacterWithRole:desc
+                                                 andOriginalSystem:Ranrot() & 255] })];
 
         if ([ship scanClass] == CLASS_NOT_SET) {
             [ship setScanClass:CLASS_NEUTRAL];
@@ -2012,7 +2069,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return nil;
 }
 
-- (void)addShipWithRole:(NSString*)desc nearRouteOneAt:(double)route_fraction
+- (void)cxx_addShipWithRole:(const std::string&)desc nearRouteOneAt:(double)route_fraction
 {
     // adds a ship within scanner range of a point on route 1
 
@@ -2026,7 +2083,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     [self addShipWithRole:desc launchPos:launchPos rfactor:SCANNER_MAX_RANGE];
 }
 
-- (HPVector)coordinatesForPosition:(HPVector)pos withCoordinateSystem:(NSString*)system returningScalar:(GLfloat*)my_scalar
+- (HPVector)cxx_coordinatesForPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system returningScalar:(GLfloat*)my_scalar
 {
     /*	the point is described using a system selected by a string
             consisting of a three letter code.
@@ -2063,12 +2120,12 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     */
 
-    NSString* l_sys = [system lowercaseString];
-    if ([l_sys length] != 3)
+    const std::string l_sys = oo::str::lowercase(system);
+    if (oo::str::length(l_sys) != 3) // UTF-16 units, as -length counted
         return kZeroHPVector;
     OOPlanetEntity* the_planet = [self planet];
     OOSunEntity* the_sun = [self sun];
-    if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"]) {
+    if (the_planet == nil || the_sun == nil || l_sys == "abs") {
         if (my_scalar)
             *my_scalar = 1.0;
         return pos;
@@ -2077,7 +2134,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     HPVector p_pos = the_planet->position;
     HPVector s_pos = the_sun->position;
 
-    const char* c_sys = [l_sys UTF8String];
+    const char* c_sys = l_sys.c_str();
     HPVector p0, p1, p2;
 
     switch (c_sys[0]) {
@@ -2168,27 +2225,27 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return result;
 }
 
-- (NSString*)expressPosition:(HPVector)pos inCoordinateSystem:(NSString*)system
+- (std::optional<std::string>)cxx_expressPosition:(HPVector)pos inCoordinateSystem:(const std::string&)system
 {
-    HPVector result = [self legacyPositionFrom:pos asCoordinateSystem:system];
-    return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, result.x, result.y, result.z];
+    HPVector result = [self cxx_legacyPositionFrom:pos asCoordinateSystem:system];
+    return oo::str::format("%s %.2f %.2f %.2f", system.c_str(), result.x, result.y, result.z);
 }
 
-- (HPVector)legacyPositionFrom:(HPVector)pos asCoordinateSystem:(NSString*)system
+- (HPVector)cxx_legacyPositionFrom:(HPVector)pos asCoordinateSystem:(const std::string&)system
 {
-    NSString* l_sys = [system lowercaseString];
-    if ([l_sys length] != 3)
+    const std::string l_sys = oo::str::lowercase(system);
+    if (oo::str::length(l_sys) != 3) // UTF-16 units, as -length counted
         return kZeroHPVector;
     OOPlanetEntity* the_planet = [self planet];
     OOSunEntity* the_sun = [self sun];
-    if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"]) {
+    if (the_planet == nil || the_sun == nil || l_sys == "abs") {
         return pos;
     }
     HPVector w_pos = [self getWitchspaceExitPosition]; // don't reset PRNG
     HPVector p_pos = the_planet->position;
     HPVector s_pos = the_sun->position;
 
-    const char* c_sys = [l_sys UTF8String];
+    const char* c_sys = l_sys.c_str();
     HPVector p0, p1, p2;
 
     switch (c_sys[0]) {
@@ -2278,22 +2335,27 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return result;
 }
 
-- (HPVector)coordinatesFromCoordinateSystemString:(NSString*)system_x_y_z
+- (HPVector)cxx_coordinatesFromCoordinateSystemString:(const std::string&)system_x_y_z
 {
-    NSArray* tokens = ScanTokensFromString(system_x_y_z);
-    if ([tokens count] != 4) {
+    const std::vector<std::string> tokens = oo::str::tokens(system_x_y_z);
+    if (tokens.size() != 4) {
         // Not necessarily an error.
         return make_HPvector(0, 0, 0);
     }
+    // each number read as at<float> read the token string before
+    oo::PList::Array tokenList;
+    for (const std::string& token : tokens)
+        tokenList.push_back(oo::PList(token));
+    const oo::PList tokenPList(std::move(tokenList));
     GLfloat dummy;
-    return [self coordinatesForPosition:make_HPvector([tokens oo_floatAtIndex:1], [tokens oo_floatAtIndex:2], [tokens oo_floatAtIndex:3]) withCoordinateSystem:[tokens oo_stringAtIndex:0] returningScalar:&dummy];
+    return [self cxx_coordinatesForPosition:make_HPvector(tokenPList.at<float>(1), tokenPList.at<float>(2), tokenPList.at<float>(3)) withCoordinateSystem:tokens[0] returningScalar:&dummy];
 }
 
-- (BOOL)addShipWithRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system
+- (BOOL)cxx_addShipWithRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system
 {
     // initial position
     GLfloat scalar = 1.0;
-    HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+    HPVector launchPos = [self cxx_coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
     //	randomise
     GLfloat rfactor = scalar;
     if (rfactor > SCANNER_MAX_RANGE)
@@ -2304,11 +2366,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return ([self addShipWithRole:desc launchPos:launchPos rfactor:rfactor] != nil);
 }
 
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc atPosition:(HPVector)pos withCoordinateSystem:(NSString*)system
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc atPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system
 {
     // initial bounding box
     GLfloat scalar = 1.0;
-    HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+    HPVector launchPos = [self cxx_coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
     GLfloat distance_from_center = 0.0;
     HPVector v_from_center, ship_pos;
     std::vector<HPVector> ship_positions(howMany);
@@ -2378,11 +2440,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return YES;
 }
 
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system
 {
     // initial bounding box
     GLfloat scalar = 1.0;
-    HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+    HPVector launchPos = [self cxx_coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
     GLfloat rfactor = scalar;
     if (rfactor > SCANNER_MAX_RANGE)
         rfactor = SCANNER_MAX_RANGE;
@@ -2392,14 +2454,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     bounding_box_reset_to_vector(&launch_bbox, make_vector(launchPos.x - rfactor, launchPos.y - rfactor, launchPos.z - rfactor));
     bounding_box_add_xyz(&launch_bbox, launchPos.x + rfactor, launchPos.y + rfactor, launchPos.z + rfactor);
 
-    return [self addShips:howMany withRole:desc intoBoundingBox:launch_bbox];
+    return [self cxx_addShips:howMany withRole:desc intoBoundingBox:launch_bbox];
 }
 
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system withinRadius:(GLfloat)radius
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system withinRadius:(GLfloat)radius
 {
     // initial bounding box
     GLfloat scalar = 1.0;
-    HPVector launchPos = [self coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
+    HPVector launchPos = [self cxx_coordinatesForPosition:pos withCoordinateSystem:system returningScalar:&scalar];
     GLfloat rfactor = radius;
     if (rfactor < 1000)
         rfactor = 1000;
@@ -2407,10 +2469,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     bounding_box_reset_to_vector(&launch_bbox, make_vector(launchPos.x - rfactor, launchPos.y - rfactor, launchPos.z - rfactor));
     bounding_box_add_xyz(&launch_bbox, launchPos.x + rfactor, launchPos.y + rfactor, launchPos.z + rfactor);
 
-    return [self addShips:howMany withRole:desc intoBoundingBox:launch_bbox];
+    return [self cxx_addShips:howMany withRole:desc intoBoundingBox:launch_bbox];
 }
 
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc intoBoundingBox:(BoundingBox)bbox
+- (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc intoBoundingBox:(BoundingBox)bbox
 {
     if (howMany < 1)
         return YES;
@@ -2440,7 +2502,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
             }
         }
         // place half the ships into each bounding box
-        return ([self addShips:h0 withRole:desc intoBoundingBox:bbox0] && [self addShips:h1 withRole:desc intoBoundingBox:bbox1]);
+        return ([self cxx_addShips:h0 withRole:desc intoBoundingBox:bbox0] && [self cxx_addShips:h1 withRole:desc intoBoundingBox:bbox1]);
     }
 
     //	randomise within the bounding box (biased towards the center of the box)
@@ -2452,54 +2514,57 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return ([self addShipWithRole:desc launchPos:pos rfactor:0.0] != nil);
 }
 
-- (BOOL)spawnShip:(NSString*)shipdesc
+- (BOOL)spawnShip:(id)shipdescObject // shared selector (proposed ADR-0043)
 {
+    const std::string shipdesc = oo::StdString(shipdescObject);
+
     // no need to do any more than log - enforcing modes wouldn't even have
     // loaded the legacy script
-    OOStandardsDeprecated([NSString stringWithFormat:@"'spawn' via legacy script is deprecated as a way of adding ships for %@", shipdesc]);
+    cxx_OOStandardsDeprecated(oo::str::format("'spawn' via legacy script is deprecated as a way of adding ships for %s", oo::DescriptionOf(shipdescObject).c_str()));
 
     ShipEntity* ship;
-    NSDictionary* shipdict = nil;
+    oo::PList shipdict;
 
-    shipdict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipdesc];
-    if (shipdict == nil)
+    shipdict = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipdesc];
+    if (shipdict.isNull())
         return NO;
 
-    ship = [self newShipWithName:shipdesc]; // retain count is 1
+    ship = [self cxx_newShipWithName:shipdesc]; // retain count is 1
 
     if (ship == nil)
         return NO;
 
     // set any spawning characteristics
-    NSDictionary* spawndict = [shipdict oo_dictionaryForKey:@"spawn"];
+    const oo::PList* spawnEntry = shipdict.get<oo::PList::Dict>("spawn");
+    const oo::PList spawndict = (spawnEntry != nullptr) ? *spawnEntry : oo::PList();
     HPVector pos, rpos, spos;
-    NSString* positionString = nil;
+    std::optional<std::string> positionString;
 
     // position
-    positionString = [spawndict oo_stringForKey:@"position"];
-    if (positionString != nil) {
-        if ([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] != nil)) {
-            OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", @"position", @"entity", shipdesc);
+    positionString = OptionalStringIn(spawndict, "position");
+    if (positionString.has_value()) {
+        if (oo::str::hasPrefix(*positionString, "abs ") && ([self planet] != nil || [self sun] != nil)) {
+            OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "position", "entity", oo::DescriptionOf(shipdescObject));
         }
 
-        pos = [self coordinatesFromCoordinateSystemString:positionString];
+        pos = [self cxx_coordinatesFromCoordinateSystemString:*positionString];
     } else {
         // without position defined, the ship will be added on top of the witchpoint buoy.
         pos = OOHPVectorRandomRadial(SCANNER_MAX_RANGE);
-        OOLogERR(@"universe.spawnShip.error", @"***** ERROR: failed to find a spawn position for ship %@.", shipdesc);
+        OO_LOG_ERR("universe.spawnShip.error", "***** ERROR: failed to find a spawn position for ship {}.", oo::DescriptionOf(shipdescObject));
     }
     [ship setPosition:pos];
 
     // facing_position
-    positionString = [spawndict oo_stringForKey:@"facing_position"];
-    if (positionString != nil) {
-        if ([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] != nil)) {
-            OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", @"facing_position", @"entity", shipdesc);
+    positionString = OptionalStringIn(spawndict, "facing_position");
+    if (positionString.has_value()) {
+        if (oo::str::hasPrefix(*positionString, "abs ") && ([self planet] != nil || [self sun] != nil)) {
+            OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "facing_position", "entity", oo::DescriptionOf(shipdescObject));
         }
 
         spos = [ship position];
         Quaternion q1;
-        rpos = [self coordinatesFromCoordinateSystemString:positionString];
+        rpos = [self cxx_coordinatesFromCoordinateSystemString:*positionString];
         rpos = HPvector_subtract(rpos, spos); // position relative to ship
 
         if (!HPvector_equal(rpos, kZeroHPVector)) {
@@ -2522,17 +2587,17 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return YES;
 }
 
-- (void)witchspaceShipWithPrimaryRole:(NSString*)role
+- (void)cxx_witchspaceShipWithPrimaryRole:(const std::string&)role
 {
     // adds a ship exiting witchspace (corollary of when ships leave the system)
     ShipEntity* ship = nil;
-    NSDictionary* systeminfo = nil;
+    oo::PList systeminfo;
     OOGovernmentID government;
 
-    systeminfo = [self currentSystemData];
-    government = [systeminfo oo_unsignedCharForKey:KEY_GOVERNMENT];
+    systeminfo = [self cxx_currentSystemData];
+    government = systeminfo.get<unsigned char>(oo::StdString(KEY_GOVERNMENT));
 
-    ship = [self newShipWithRole:role]; // retain count = 1
+    ship = [self cxx_newShipWithRole:role]; // retain count = 1
 
     // Deal with scripted cargopods and ensure they are filled with something.
     if (ship && [ship hasRole:@"cargopod"]) {
@@ -2542,7 +2607,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if (ship) {
         if (([ship scanClass] == CLASS_NO_DRAW) || ([ship scanClass] == CLASS_NOT_SET))
             [ship setScanClass:CLASS_NEUTRAL];
-        if ([role isEqual:@"trader"]) {
+        if (role == "trader") {
             [ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
             if ([ship hasRole:@"sunskim-trader"] && randf() < 0.25) // select 1/4 of the traders suitable for sunskimming.
             {
@@ -2558,14 +2623,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 [ship setPendingEscortCount:(nx > 0) ? nx : 0];
             }
         }
-        if ([role isEqual:@"pirate"]) {
+        if (role == "pirate") {
             [ship setCargoFlag:CARGO_FLAG_PIRATE];
             [ship setBounty:(Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05) ? 63 : 23) withReason:kOOLegalStatusReasonSetup]; // they already have a price on their heads
         }
         if ([ship crew] == nil && ![ship isUnpiloted])
-            [ship setCrew:[NSArray arrayWithObject:
-                                  [OOCharacter randomCharacterWithRole:role
-                                                     andOriginalSystem:Ranrot() & 255]]];
+            [ship setCrew:oo::NSArrayFromObjects(std::vector<id> {
+                              [OOCharacter randomCharacterWithRole:role
+                                                 andOriginalSystem:Ranrot() & 255] })];
         // The following is set inside leaveWitchspace: AI state GLOBAL, STATUS_EXITING_WITCHSPACE, ai message: EXITED_WITCHSPACE, then STATUS_IN_FLIGHT
         [ship leaveWitchspace];
         [ship release];
@@ -2573,7 +2638,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 }
 
 // adds a ship within the collision radius of the other entity
-- (ShipEntity*)spawnShipWithRole:(NSString*)desc near:(Entity*)entity
+- (ShipEntity*)cxx_spawnShipWithRole:(const std::string&)desc near:(Entity*)entity
 {
     if (entity == nil)
         return nil;
@@ -2592,13 +2657,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     return ship;
 }
 
-- (OOVisualEffectEntity*)addVisualEffectAt:(HPVector)pos withKey:(NSString*)key
+- (OOVisualEffectEntity*)cxx_addVisualEffectAt:(HPVector)pos withKey:(const std::string&)key
 {
     OOJS_PROFILE_ENTER
 
     // minimise the time between creating ship & assigning position.
 
-    OOVisualEffectEntity* vis = [self newVisualEffectWithName:key]; // is retained
+    OOVisualEffectEntity* vis = [self cxx_newVisualEffectWithName:key]; // is retained
     BOOL success = NO;
     if (vis != nil) {
         [vis setPosition:pos];
@@ -2613,14 +2678,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOJS_PROFILE_EXIT
 }
 
-- (ShipEntity*)addShipAt:(HPVector)pos withRole:(NSString*)role withinRadius:(GLfloat)radius
+- (ShipEntity*)addShipAt:(HPVector)pos withRole:(const std::string&)role withinRadius:(GLfloat)radius
 {
     OOJS_PROFILE_ENTER
 
     // minimise the time between creating ship & assigning position.
     if (radius == static_cast<GLfloat>(NSNotFound)) {
         GLfloat scalar = 1.0;
-        [self coordinatesForPosition:pos withCoordinateSystem:@"abs" returningScalar:&scalar];
+        [self cxx_coordinatesForPosition:pos withCoordinateSystem:"abs" returningScalar:&scalar];
         //	randomise
         GLfloat rfactor = scalar;
         if (rfactor > SCANNER_MAX_RANGE)
@@ -2634,7 +2699,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         pos = HPvector_add(pos, OOHPVectorRandomSpatial(radius));
     }
 
-    ShipEntity* ship = [self newShipWithRole:role]; // is retained
+    ShipEntity* ship = [self cxx_newShipWithRole:role]; // is retained
     BOOL success = NO;
 
     if (ship != nil) {
@@ -2648,14 +2713,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         }
 
         if ([ship crew] == nil && ![ship isUnpiloted]) {
-            [ship setCrew:[NSArray arrayWithObject:
-                                  [OOCharacter randomCharacterWithRole:role
-                                                     andOriginalSystem:Ranrot() & 255]]];
+            [ship setCrew:oo::NSArrayFromObjects(std::vector<id> {
+                              [OOCharacter randomCharacterWithRole:role
+                                                 andOriginalSystem:Ranrot() & 255] })];
         }
 
         [ship setOrientation:OORandomQuaternion()];
 
-        BOOL trader = [role isEqualToString:@"trader"];
+        BOOL trader = role == "trader";
         if (trader) {
             // half of traders created anywhere will now have cargo.
             if (randf() > 0.5f) {
@@ -2664,7 +2729,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
             uint8_t pendingEscortCount = [ship pendingEscortCount];
             if (pendingEscortCount > 0) {
-                OOGovernmentID government = [[self currentSystemData] oo_unsignedCharForKey:KEY_GOVERNMENT];
+                OOGovernmentID government = [self cxx_currentSystemData].get<unsigned char>(oo::StdString(KEY_GOVERNMENT));
                 if ((Ranrot() % 7) < government) // remove escorts if we feel safe
                 {
                     int nx = pendingEscortCount - 2 * (1 + (Ranrot() & 3)); // remove 2,4,6, or 8 escorts
@@ -2686,7 +2751,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
                 } else {
                     [ship switchAITo:@"oolite-traderAI.js"];
                 }
-            } else if ([role isEqual:@"pirate"]) {
+            } else if (role == "pirate") {
                 [ship setBounty:(Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05) ? 63 : 23) withReason:kOOLegalStatusReasonSetup]; // they already have a price on their heads
             }
 
@@ -2703,16 +2768,17 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOJS_PROFILE_EXIT
 }
 
-- (NSArray*)addShipsAt:(HPVector)pos withRole:(NSString*)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsAt:(HPVector)pos withRole:(const std::string&)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
 {
     OOJS_PROFILE_ENTER
 
-    NSMutableArray* ships = [NSMutableArray arrayWithCapacity:count];
+    std::vector<oo::ObjCRef<ShipEntity*>> ships;
+    ships.reserve(count);
     ShipEntity* ship = nil;
     OOShipGroup* group = nil;
 
     if (isGroup) {
-        group = [OOShipGroup groupWithName:[NSString stringWithFormat:@"%@ group", role]];
+        group = [OOShipGroup groupWithName:oo::NSStringFrom(oo::str::format("%s group", role.c_str()))];
     }
 
     while (count--) {
@@ -2721,69 +2787,67 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
             // TODO: avoid collisions!!!
             if (isGroup)
                 [ship setGroup:group];
-            [ships addObject:ship];
+            ships.push_back(oo::ObjCRef<ShipEntity*>(ship));
         }
     }
 
-    if ([ships count] == 0)
-        return nil;
-
-    return [[ships copy] autorelease];
+    return ships; // empty where nil was returned
 
     OOJS_PROFILE_EXIT
 }
 
-- (NSArray*)addShipsToRoute:(NSString*)route withRole:(NSString*)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_addShipsToRoute:(const std::string&)route withRole:(const std::string&)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
 {
-    NSMutableArray* ships = [NSMutableArray arrayWithCapacity:count];
+    std::vector<oo::ObjCRef<ShipEntity*>> ships;
+    ships.reserve(count);
     ShipEntity* ship = nil;
     Entity<OOStellarBody>* entity = nil;
     HPVector pos = kZeroHPVector, direction = kZeroHPVector, point0 = kZeroHPVector, point1 = kZeroHPVector;
     double radius = 0;
 
-    if ([route isEqualToString:@"pw"] || [route isEqualToString:@"sw"] || [route isEqualToString:@"ps"]) {
+    if (route == "pw" || route == "sw" || route == "ps") {
         routeFraction = 1.0f - routeFraction;
     }
 
     // which route is it?
-    if ([route isEqualTo:@"wp"] || [route isEqualTo:@"pw"]) {
+    if (route == "wp" || route == "pw") {
         point0 = [self getWitchspaceExitPosition];
         entity = [self planet];
         if (entity == nil)
-            return nil;
+            return { };
         point1 = [entity position];
         radius = [entity radius];
-    } else if ([route isEqualTo:@"ws"] || [route isEqualTo:@"sw"]) {
+    } else if (route == "ws" || route == "sw") {
         point0 = [self getWitchspaceExitPosition];
         entity = [self sun];
         if (entity == nil)
-            return nil;
+            return { };
         point1 = [entity position];
         radius = [entity radius];
-    } else if ([route isEqualTo:@"sp"] || [route isEqualTo:@"ps"]) {
+    } else if (route == "sp" || route == "ps") {
         entity = [self sun];
         if (entity == nil)
-            return nil;
+            return { };
         point0 = [entity position];
         double radius0 = [entity radius];
 
         entity = [self planet];
         if (entity == nil)
-            return nil;
+            return { };
         point1 = [entity position];
         radius = [entity radius];
 
         // shorten the route by scanner range & sun radius, otherwise ships could be created inside it.
         direction = HPvector_normal(HPvector_subtract(point0, point1));
         point0 = HPvector_subtract(point0, HPvector_multiply_scalar(direction, radius0 + SCANNER_MAX_RANGE * 1.1f));
-    } else if ([route isEqualTo:@"st"]) {
+    } else if (route == "st") {
         point0 = [self getWitchspaceExitPosition];
         if ([self station] == nil)
-            return nil;
+            return { };
         point1 = [[self station] position];
         radius = [[self station] collisionRadius];
     } else
-        return nil; // no route specifier? We shouldn't be here!
+        return { }; // no route specifier? We shouldn't be here!
 
     // shorten the route by scanner range & radius, otherwise ships could be created inside the route destination.
     direction = HPvector_normal(HPvector_subtract(point1, point0));
@@ -2791,35 +2855,36 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     pos = [self fractionalPositionFrom:point0 to:point1 withFraction:routeFraction];
     if (isGroup) {
-        return [self addShipsAt:pos withRole:role quantity:count withinRadius:(SCANNER_MAX_RANGE / 10.0f) asGroup:YES];
+        return [self cxx_addShipsAt:pos withRole:role quantity:count withinRadius:(SCANNER_MAX_RANGE / 10.0f) asGroup:YES];
     } else {
         while (count--) {
             ship = [self addShipAt:pos withRole:role withinRadius:0]; // no radius because pos is already randomised with SCANNER_MAX_RANGE.
             if (ship != nil)
-                [ships addObject:ship];
+                ships.push_back(oo::ObjCRef<ShipEntity*>(ship));
             if (count > 0)
                 pos = [self fractionalPositionFrom:point0 to:point1 withFraction:routeFraction];
         }
-
-        if ([ships count] == 0)
-            return nil;
     }
 
-    return [[ships copy] autorelease];
+    return ships; // empty where nil was returned
 }
 
-- (BOOL)roleIsPirateVictim:(NSString*)role
+- (BOOL)cxx_roleIsPirateVictim:(const std::string&)role
 {
-    return [self role:role isInCategory:@"oolite-pirate-victim"];
+    return [self cxx_role:role isInCategory:"oolite-pirate-victim"];
 }
 
-- (BOOL)role:(NSString*)role isInCategory:(NSString*)category
+- (BOOL)cxx_role:(const std::string&)role isInCategory:(const std::string&)category
 {
-    NSSet* categoryInfo = [roleCategories objectForKey:category];
-    if (categoryInfo == nil) {
+    const oo::PList* categoryInfo = roleCategories.get<oo::PList::Array>(category); // the category's roles, each once
+    if (categoryInfo == nullptr) {
         return NO;
     }
-    return [categoryInfo containsObject:role];
+    for (const oo::PList& member : *categoryInfo->getIf<oo::PList::Array>()) {
+        if (const std::string* memberRole = member.getIf<std::string>(); memberRole != nullptr && *memberRole == role)
+            return YES;
+    }
+    return NO;
 }
 
 // used to avoid having lost escorts when player advances clock while docked
@@ -2832,7 +2897,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
             Entity* my_target = [my_ship primaryTarget];
             if ([my_target isWormhole]) {
                 [my_ship enterTargetWormhole];
-            } else if ([[[my_ship getAI] state] isEqualToString:@"ENTER_WORMHOLE"]) {
+            } else if ([[my_ship getAI] cxx_state] == "ENTER_WORMHOLE") {
                 [my_ship enterTargetWormhole];
             }
         }
@@ -2878,22 +2943,22 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOColor* col1 = [OOColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.5]; // standard tunnel colour
     OOColor* col2 = [OOColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:0.25]; // standard tunnel colour
 
-    colorDesc = [[self globalSettings] objectForKey:@"hyperspace_tunnel_color_1"];
+    colorDesc = ObjectForKeyIn(globalSettings, "hyperspace_tunnel_color_1"); // +colorWithDescription: takes any description object
     if (colorDesc != nil) {
         color = [OOColor colorWithDescription:colorDesc];
         if (color != nil)
             col1 = color;
         else
-            OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+            OO_LOG_WARN("hyperspaceTunnel.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     }
 
-    colorDesc = [[self globalSettings] objectForKey:@"hyperspace_tunnel_color_2"];
+    colorDesc = ObjectForKeyIn(globalSettings, "hyperspace_tunnel_color_2");
     if (colorDesc != nil) {
         color = [OOColor colorWithDescription:colorDesc];
         if (color != nil)
             col2 = color;
         else
-            OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+            OO_LOG_WARN("hyperspaceTunnel.fromDict", "could not interpret \"{}\" as a colour.", oo::DescriptionOf(colorDesc));
     }
 
     unsigned sides = kOOBreakPatternMaxSides;
@@ -2901,10 +2966,10 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     GLfloat aspectRatio = 1;
 
     if (forDocking) {
-        NSDictionary* info = [[PLAYER dockedStation] shipInfoDictionary];
-        sides = [info oo_unsignedIntForKey:@"tunnel_corners" defaultValue:4];
-        startAngle = [info oo_floatForKey:@"tunnel_start_angle" defaultValue:45.0f];
-        aspectRatio = [info oo_floatForKey:@"tunnel_aspect_ratio" defaultValue:2.67f];
+        const oo::PList info = oo::PListFrom([[PLAYER dockedStation] shipInfoDictionary]); // the unmigrated ShipEntity's
+        sides = info.get<unsigned int>("tunnel_corners", 4);
+        startAngle = info.get<float>("tunnel_start_angle", 45.0f);
+        aspectRatio = info.get<float>("tunnel_aspect_ratio", 2.67f);
     }
 
     for (i = 1; i < 11; i++) {
@@ -2956,9 +3021,11 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
      * clearance requirements seems unlikely to work entirely
      * correctly. To be fixed. */
 
-    foreach (station, allStations) {
-        NSString* stationKey = [registry randomShipKeyForRole:[station primaryRole]];
-        if (![[[registry shipInfoForKey:stationKey] allKeys] containsObject:@"requires_docking_clearance"]) {
+    for (const oo::ObjCRef<StationEntity*>& entry : allStations) {
+        station = entry.get();
+        const std::optional<std::string> stationKey = [registry cxx_randomShipKeyForRole:oo::StdString([station primaryRole])];
+        const oo::PList stationInfo = stationKey.has_value() ? [registry cxx_shipInfoForKey:*stationKey] : oo::PList();
+        if (stationInfo.find("requires_docking_clearance") == nullptr) {
             [station setRequiresDockingClearance:!!newValue];
         }
     }
@@ -2971,9 +3038,73 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     if ([[self gameController] playerFileToLoad]) {
         [[self gameController] loadPlayerIfRequired];
     } else {
-        [self setUseAddOns:SCENARIO_OXP_DEFINITION_ALL fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
+        [self cxx_setUseAddOns:oo::StdString(SCENARIO_OXP_DEFINITION_ALL) fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
     }
 }
+
+namespace {
+
+std::optional<std::string> OptionalStringIn(const oo::PList& dict, std::string_view key); // defined with the other configuration readers below
+
+// The demo ship entry at <index>, <subindex> of the demo list: null where the old array /
+// dictionary lookup chain gave nil.
+oo::PList DemoShipEntry(const oo::PList& demoShips, NSUInteger index, NSUInteger subindex)
+{
+    const oo::PList* subList = demoShips.at(index);
+    const oo::PList* entry = (subList != nullptr && subList->isArray()) ? subList->at(subindex) : nullptr;
+    return (entry != nullptr && entry->isDict()) ? *entry : oo::PList();
+}
+
+// -count of the demo class at <index> (0 where it was nil).
+NSUInteger DemoClassCount(const oo::PList& demoShips, NSUInteger index)
+{
+    const oo::PList* subList = demoShips.at(index);
+    return (subList != nullptr) ? subList->count() : 0;
+}
+
+// The class of the first ship of the demo class at <index>; "" where it was nil (oo::StdString(nil)).
+std::string DemoClassAt(const oo::PList& demoShips, NSUInteger index)
+{
+    return OptionalStringIn(DemoShipEntry(demoShips, index, 0), kOODemoShipClass).value_or(std::string());
+}
+
+// A string setting of the library entry, <fallback> where absent; a null entry answered nil.
+std::optional<std::string> LibrarySetting(const oo::PList& settings, std::string_view key, const char* fallback)
+{
+    if (settings.isNull())
+        return std::nullopt;
+    const std::optional<std::string> value = OptionalStringIn(settings, key);
+    if (value.has_value() || fallback == nullptr)
+        return value;
+    return std::string(fallback);
+}
+
+// OOExpand(text), the unmigrated expander.
+std::optional<std::string> ExpandText(const std::string& text)
+{
+    return oo::OptionalString(OOExpand(oo::NSStringFrom(text)));
+}
+
+// The DESC(descKey) format given OOExpand(override): a nil expansion printed "(null)".
+std::string CustomLibraryText(const char* descKey, const std::string& override)
+{
+    const std::optional<std::string> expanded = ExpandText(override);
+    return oo::str::formatRuntime(cxx_OOLookUpDescriptionPRIV(descKey), { expanded.has_value() ? oo::str::FormatArg(*expanded) : oo::str::FormatArg::null() });
+}
+
+// +arrayWithObjects:field1, field2, field3, nil: the fields up to the first nil.
+std::vector<std::string> FieldsUpToNil(std::initializer_list<std::optional<std::string>> fields)
+{
+    std::vector<std::string> result;
+    for (const std::optional<std::string>& field : fields) {
+        if (!field.has_value())
+            break;
+        result.push_back(*field);
+    }
+    return result;
+}
+
+} // namespace
 
 - (void)setupIntroFirstGo:(BOOL)justCobra
 {
@@ -2983,8 +3114,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
     // in status demo draw ships and display text
     if (!justCobra) {
-        DESTROY(demo_ships);
-        demo_ships = [[[OOShipRegistry sharedRegistry] demoShipKeys] retain];
+        demo_ships = [[OOShipRegistry sharedRegistry] cxx_demoShipKeys];
         // always, even if it's the cobra, because it's repositioned
         [self removeDemoShips];
     }
@@ -3005,23 +3135,26 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
         /* Try to set the initial list position to Cobra III if
          * available, and at least the Ships category. */
-        NSArray* subList = nil;
-        foreach (subList, demo_ships) {
-            if ([[[subList oo_dictionaryAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)] isEqualToString:@"ship"]) {
-                demo_ship_index = [demo_ships indexOfObject:subList];
-                NSDictionary* shipEntry = nil;
-                foreach (shipEntry, subList) {
-                    if ([[shipEntry oo_stringForKey:oo::NSStringFrom(kOODemoShipKey)] isEqualToString:@"cobra3-trader"]) {
-                        demo_ship_subindex = [subList indexOfObject:shipEntry];
-                        break;
+        const oo::PList::Array* demoClasses = demo_ships.getIf<oo::PList::Array>();
+        if (demoClasses != nullptr) {
+            for (NSUInteger k = 0; k < demoClasses->size(); k++) {
+                const oo::PList& subList = (*demoClasses)[k];
+                if (OptionalStringIn(DemoShipEntry(demo_ships, k, 0), kOODemoShipClass) == "ship") {
+                    demo_ship_index = std::find(demoClasses->begin(), demoClasses->end(), subList) - demoClasses->begin(); // -indexOfObject:
+                    const oo::PList::Array* shipEntries = subList.getIf<oo::PList::Array>(); // an array: its first entry was found above
+                    for (const oo::PList& shipEntry : *shipEntries) {
+                        if (OptionalStringIn(shipEntry, kOODemoShipKey) == "cobra3-trader") {
+                            demo_ship_subindex = std::find(shipEntries->begin(), shipEntries->end(), shipEntry) - shipEntries->begin(); // -indexOfObject:
+                            break;
+                        }
                     }
+                    break;
                 }
-                break;
             }
         }
 
         if (!demo_ship)
-            ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:oo::NSStringFrom(kOODemoShipKey)] usePlayerProxy:NO];
+            ship = [self cxx_newShipWithName:OptionalStringIn(DemoShipEntry(demo_ships, demo_ship_index, demo_ship_subindex), kOODemoShipKey).value_or(std::string()) usePlayerProxy:NO];
         // stop consistency problems on the ship library screen
         [ship removeEquipmentItem:@"EQ_SHIELD_BOOSTER"];
         [ship removeEquipmentItem:@"EQ_SHIELD_ENHANCER"];
@@ -3062,9 +3195,9 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 }
 
-- (NSDictionary*)demoShipData
+- (oo::PList)demoShipData
 {
-    return [[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex];
+    return DemoShipEntry(demo_ships, demo_ship_index, demo_ship_subindex);
 }
 
 - (void)setLibraryTextForDemoShip
@@ -3078,14 +3211,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     /*	[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
             [gui setColor:[OOColor whiteColor] forRow:19]; */
 
-    NSDictionary* librarySettings = [self demoShipData];
+    const oo::PList librarySettings = [self demoShipData];
 
     OOGUIRow descRow = 7;
 
-    NSString* field1 = nil;
-    NSString* field2 = nil;
-    NSString* field3 = nil;
-    NSString* override = nil;
+    std::optional<std::string> field1;
+    std::optional<std::string> field2;
+    std::optional<std::string> field3;
+    std::optional<std::string> override;
 
     // clear rows
     for (NSUInteger i = 1; i <= 26; i++) {
@@ -3093,160 +3226,162 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 
     /* Row 1: ScanClass, Name, Summary */
-    override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipClass) defaultValue:@"ship"];
-    field1 = oo::NSStringFrom(OOShipLibraryCategorySingular(oo::StdString(override)));
+    override = LibrarySetting(librarySettings, kOODemoShipClass, "ship");
+    field1 = OOShipLibraryCategorySingular(override.value_or(std::string()));
 
-    field2 = [demo_ship shipClassName];
+    field2 = oo::OptionalString([demo_ship shipClassName]);
 
-    override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipSummary) defaultValue:nil];
-    if (override != nil) {
-        field3 = OOExpand(override);
+    override = LibrarySetting(librarySettings, kOODemoShipSummary, nullptr);
+    if (override.has_value()) {
+        field3 = ExpandText(*override);
     } else {
-        field3 = @"";
+        field3 = std::string();
     }
-    [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:1];
+    [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:1];
     [gui setColor:[OOColor greenColor] forRow:1];
 
     // ship_data defaults to true for "ship" class, false for everything else
-    if (![librarySettings oo_boolForKey:oo::NSStringFrom(kOODemoShipShipData) defaultValue:[[librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipClass) defaultValue:@"ship"] isEqualToString:@"ship"]]) {
+    if (!librarySettings.get<bool>(kOODemoShipShipData, LibrarySetting(librarySettings, kOODemoShipClass, "ship") == "ship")) {
         descRow = 3;
     } else {
         /* Row 2: Speed, Turn Rate, Cargo */
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipSpeed) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field1 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipSpeed, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field1 = std::string();
             } else {
-                field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-speed-custom"), OOExpand(override)];
+                field1 = CustomLibraryText("oolite-ship-library-speed-custom", *override);
             }
         } else {
-            field1 = oo::NSStringFrom(OOShipLibrarySpeed(demo_ship));
+            field1 = OOShipLibrarySpeed(demo_ship);
         }
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipTurnRate) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field2 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipTurnRate, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field2 = std::string();
             } else {
-                field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turn-custom"), OOExpand(override)];
+                field2 = CustomLibraryText("oolite-ship-library-turn-custom", *override);
             }
         } else {
-            field2 = oo::NSStringFrom(OOShipLibraryTurnRate(demo_ship));
+            field2 = OOShipLibraryTurnRate(demo_ship);
         }
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipCargo) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field3 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipCargo, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field3 = std::string();
             } else {
-                field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-custom"), OOExpand(override)];
+                field3 = CustomLibraryText("oolite-ship-library-cargo-custom", *override);
             }
         } else {
-            field3 = oo::NSStringFrom(OOShipLibraryCargo(demo_ship));
+            field3 = OOShipLibraryCargo(demo_ship);
         }
 
-        [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:3];
+        [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:3];
 
         /* Row 3: recharge rate, energy banks, witchspace */
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipGenerator) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field1 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipGenerator, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field1 = std::string();
             } else {
-                field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-generator-custom"), OOExpand(override)];
+                field1 = CustomLibraryText("oolite-ship-library-generator-custom", *override);
             }
         } else {
-            field1 = oo::NSStringFrom(OOShipLibraryGenerator(demo_ship));
+            field1 = OOShipLibraryGenerator(demo_ship);
         }
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipShields) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field2 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipShields, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field2 = std::string();
             } else {
-                field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-shields-custom"), OOExpand(override)];
+                field2 = CustomLibraryText("oolite-ship-library-shields-custom", *override);
             }
         } else {
-            field2 = oo::NSStringFrom(OOShipLibraryShields(demo_ship));
+            field2 = OOShipLibraryShields(demo_ship);
         }
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipWitchspace) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field3 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipWitchspace, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field3 = std::string();
             } else {
-                field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-witchspace-custom"), OOExpand(override)];
+                field3 = CustomLibraryText("oolite-ship-library-witchspace-custom", *override);
             }
         } else {
-            field3 = oo::NSStringFrom(OOShipLibraryWitchspace(demo_ship));
+            field3 = OOShipLibraryWitchspace(demo_ship);
         }
 
-        [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:4];
+        [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:4];
 
         /* Row 4: weapons, turrets, size */
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipWeapons) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field1 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipWeapons, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field1 = std::string();
             } else {
-                field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-weapons-custom"), OOExpand(override)];
+                field1 = CustomLibraryText("oolite-ship-library-weapons-custom", *override);
             }
         } else {
-            field1 = oo::NSStringFrom(OOShipLibraryWeapons(demo_ship));
+            field1 = OOShipLibraryWeapons(demo_ship);
         }
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipTurrets) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field2 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipTurrets, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field2 = std::string();
             } else {
-                field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turrets-custom"), OOExpand(override)];
+                field2 = CustomLibraryText("oolite-ship-library-turrets-custom", *override);
             }
         } else {
-            field2 = oo::NSStringFrom(OOShipLibraryTurrets(demo_ship));
+            field2 = OOShipLibraryTurrets(demo_ship);
         }
 
-        override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipSize) defaultValue:nil];
-        if (override != nil) {
-            if ([override length] == 0) {
-                field3 = @"";
+        override = LibrarySetting(librarySettings, kOODemoShipSize, nullptr);
+        if (override.has_value()) {
+            if (override->empty()) {
+                field3 = std::string();
             } else {
-                field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-size-custom"), OOExpand(override)];
+                field3 = CustomLibraryText("oolite-ship-library-size-custom", *override);
             }
         } else {
-            field3 = oo::NSStringFrom(OOShipLibrarySize(demo_ship));
+            field3 = OOShipLibrarySize(demo_ship);
         }
 
-        [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:5];
+        [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:5];
     }
 
-    override = [librarySettings oo_stringForKey:oo::NSStringFrom(kOODemoShipDescription) defaultValue:nil];
-    if (override != nil) {
-        [gui addLongText:OOExpand(override) startingAtRow:descRow align:GUI_ALIGN_LEFT];
+    override = LibrarySetting(librarySettings, kOODemoShipDescription, nullptr);
+    if (override.has_value()) {
+        [gui cxx_addLongText:ExpandText(*override) startingAtRow:descRow align:GUI_ALIGN_LEFT];
     }
 
     // line 19: ship categories
-    field1 = [NSString stringWithFormat:@"<-- %@", oo::NSStringFrom(OOShipLibraryCategoryPlural(oo::StdString([[[demo_ships objectAtIndex:((demo_ship_index + [demo_ships count] - 1) % [demo_ships count])] objectAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)])))];
-    field2 = oo::NSStringFrom(OOShipLibraryCategoryPlural(oo::StdString([[[demo_ships objectAtIndex:demo_ship_index] objectAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)])));
-    field3 = [NSString stringWithFormat:@"%@ -->", oo::NSStringFrom(OOShipLibraryCategoryPlural(oo::StdString([[[demo_ships objectAtIndex:((demo_ship_index + 1) % [demo_ships count])] objectAtIndex:0] oo_stringForKey:oo::NSStringFrom(kOODemoShipClass)])))];
+    field1 = oo::str::format("<-- %s", OOShipLibraryCategoryPlural(DemoClassAt(demo_ships, (demo_ship_index + demo_ships.count() - 1) % demo_ships.count())).c_str());
+    field2 = OOShipLibraryCategoryPlural(DemoClassAt(demo_ships, demo_ship_index));
+    field3 = oo::str::format("%s -->", OOShipLibraryCategoryPlural(DemoClassAt(demo_ships, (demo_ship_index + 1) % demo_ships.count())).c_str());
 
-    [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:19];
+    [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:19];
     [gui setColor:[OOColor greenColor] forRow:19];
 
     // lines 21-25: ship names
-    NSArray* subList = [demo_ships objectAtIndex:demo_ship_index];
+    const oo::PList* subListEntry = demo_ships.at(demo_ship_index);
+    const oo::PList subList = (subListEntry != nullptr) ? *subListEntry : oo::PList();
     NSUInteger i, start = demo_ship_subindex - (demo_ship_subindex % 5);
     NSUInteger end = start + 4;
-    if (end >= [subList count]) {
-        end = [subList count] - 1;
+    if (end >= subList.count()) {
+        end = subList.count() - 1;
     }
     OOGUIRow row = 21;
-    field1 = @"";
-    field3 = @"";
+    field1 = std::string();
+    field3 = std::string();
     for (i = start; i <= end; i++) {
-        field2 = [[subList objectAtIndex:i] oo_stringForKey:oo::NSStringFrom(kOODemoShipName)];
-        [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:row];
+        const oo::PList* shipEntry = subList.at(i);
+        field2 = (shipEntry != nullptr) ? OptionalStringIn(*shipEntry, kOODemoShipName) : std::nullopt;
+        [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:row];
         if (i == demo_ship_subindex) {
             [gui setColor:[OOColor yellowColor] forRow:row];
         } else {
@@ -3255,13 +3390,13 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         row++;
     }
 
-    field2 = @"...";
+    field2 = "...";
     if (start > 0) {
-        [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:20];
+        [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:20];
         [gui setColor:[OOColor whiteColor] forRow:20];
     }
-    if (end < [subList count] - 1) {
-        [gui setArray:[NSArray arrayWithObjects:field1, field2, field3, nil] forRow:26];
+    if (end < subList.count() - 1) {
+        [gui cxx_setArray:FieldsUpToNil({ field1, field2, field3 }) forRow:26];
         [gui setColor:[OOColor whiteColor] forRow:26];
     }
 }
@@ -3269,7 +3404,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)selectIntro2Previous
 {
     demo_stage = DEMO_SHOW_THING;
-    NSUInteger subcount = [[demo_ships objectAtIndex:demo_ship_index] count];
+    NSUInteger subcount = DemoClassCount(demo_ships, demo_ship_index);
     demo_ship_subindex = (demo_ship_subindex + subcount - 2) % subcount;
     demo_stage_time = universal_time - 1.0; // force change
 }
@@ -3277,16 +3412,16 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)selectIntro2PreviousCategory
 {
     demo_stage = DEMO_SHOW_THING;
-    demo_ship_index = (demo_ship_index + [demo_ships count] - 1) % [demo_ships count];
-    demo_ship_subindex = [[demo_ships objectAtIndex:demo_ship_index] count] - 1;
+    demo_ship_index = (demo_ship_index + demo_ships.count() - 1) % demo_ships.count();
+    demo_ship_subindex = DemoClassCount(demo_ships, demo_ship_index) - 1;
     demo_stage_time = universal_time - 1.0; // force change
 }
 
 - (void)selectIntro2NextCategory
 {
     demo_stage = DEMO_SHOW_THING;
-    demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
-    demo_ship_subindex = [[demo_ships objectAtIndex:demo_ship_index] count] - 1;
+    demo_ship_index = (demo_ship_index + 1) % demo_ships.count();
+    demo_ship_subindex = DemoClassCount(demo_ships, demo_ship_index) - 1;
     demo_stage_time = universal_time - 1.0; // force change
 }
 
@@ -3315,19 +3450,21 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     return cachedStation;
 }
 
-- (StationEntity*)stationWithRole:(NSString*)role andPosition:(HPVector)position
+- (StationEntity*)cxx_stationWithRole:(const std::string&)role andPosition:(HPVector)position
 {
-    if ([role isEqualToString:@""]) {
+    if (role.empty()) {
         return nil;
     }
 
     float range = 1000000; // allow a little variation in position
 
-    NSArray* stations = [self stations];
+    const std::vector<oo::ObjCRef<StationEntity*>> stations = [self cxx_stations];
     StationEntity* station = nil;
-    foreach (station, stations) {
+    for (const oo::ObjCRef<StationEntity*>& entry : stations) {
+        station = entry.get();
         if (HPdistance2(position, [station position]) < range) {
-            if ([[station primaryRole] isEqualToString:role]) {
+            if (oo::StdString([station primaryRole]) == role) // the unmigrated ShipEntity's role string
+            {
                 return station;
             }
         }
@@ -3344,8 +3481,8 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 
 - (OOPlanetEntity*)planet
 {
-    if (cachedPlanet == nil && [allPlanets count] > 0) {
-        cachedPlanet = [allPlanets objectAtIndex:0];
+    if (cachedPlanet == nil && allPlanets.size() > 0) {
+        cachedPlanet = allPlanets[0].get();
     }
     return cachedPlanet;
 }
@@ -3358,17 +3495,17 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     return cachedSun;
 }
 
-- (NSArray*)planets
+- (std::vector<oo::ObjCRef<OOPlanetEntity*>>)cxx_planets
 {
     return allPlanets;
 }
 
-- (NSArray*)stations
+- (std::vector<oo::ObjCRef<StationEntity*>>)cxx_stations
 {
-    return [allStations allObjects];
+    return allStations;
 }
 
-- (NSArray*)wormholes
+- (std::vector<oo::ObjCRef<WormholeEntity*>>)cxx_wormholes
 {
     return activeWormholes;
 }
@@ -3447,7 +3584,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         if ([self firstBeacon] == nil)
             [self setFirstBeacon:beaconShip];
     } else {
-        OOLog(@"universe.beacon.error", @"***** ERROR: Universe setNextBeacon '%@'. The ship has no beacon code set.", beaconShip);
+        OO_LOG("universe.beacon.error", "***** ERROR: Universe setNextBeacon '{}'. The ship has no beacon code set.", oo::DescriptionOf(beaconShip));
     }
 }
 
@@ -3472,28 +3609,30 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     }
 }
 
-- (NSDictionary*)currentWaypoints
+- (std::map<std::string, oo::ObjCRef<OOWaypointEntity*>, std::less<>>)cxx_currentWaypoints
 {
     return waypoints;
 }
 
-- (void)defineWaypoint:(NSDictionary*)definition forKey:(NSString*)key
+- (void)cxx_defineWaypoint:(const oo::PList&)definition forKey:(const std::string&)key
 {
     OOWaypointEntity* waypoint = nil;
     BOOL preserveCompass = NO;
-    waypoint = [waypoints objectForKey:key];
+    const auto existing = waypoints.find(key);
+    if (existing != waypoints.end())
+        waypoint = existing->second.get();
     if (waypoint != nil) {
         if ([PLAYER compassTarget] == waypoint) {
             preserveCompass = YES;
         }
         [self removeEntity:waypoint];
-        [waypoints removeObjectForKey:key];
+        waypoints.erase(key);
     }
-    if (definition != nil) {
-        waypoint = [OOWaypointEntity waypointWithDictionary:oo::PListFrom(definition)];
+    if (!definition.isNull()) {
+        waypoint = [OOWaypointEntity waypointWithDictionary:definition];
         if (waypoint != nil) {
             [self addEntity:waypoint];
-            [waypoints setObject:waypoint forKey:key];
+            waypoints[key] = oo::ObjCRef<OOWaypointEntity*>(waypoint);
             if (preserveCompass) {
                 [PLAYER setCompassTarget:waypoint];
                 [PLAYER setNextBeacon:waypoint];
@@ -3529,23 +3668,23 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 
 #define PROFILE_SHIP_SELECTION 0
 
-- (BOOL)canInstantiateShip:(NSString*)shipKey
+- (BOOL)canInstantiateShip:(const std::string&)shipKey
 {
-    NSDictionary* shipInfo = nil;
-    NSArray* conditions = nil;
-    NSString* condition_script = nil;
-    shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+    oo::PList shipInfo;
+    const oo::PList* conditions = nullptr;
+    std::optional<std::string> condition_script;
+    shipInfo = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipKey];
 
-    condition_script = [shipInfo oo_stringForKey:@"condition_script"];
-    if (condition_script != nil) {
-        OOJSScript* condScript = [self getConditionScript:condition_script];
+    condition_script = OptionalStringIn(shipInfo, "condition_script");
+    if (condition_script.has_value()) {
+        OOJSScript* condScript = [self cxx_getConditionScript:*condition_script];
         if (condScript != nil) // should always be non-nil, but just in case
         {
             JSContext* context = OOJSAcquireContext();
             BOOL OK;
             BOOL allow_instantiation = NO;
             OOJSVal result = OOJSUndefinedValue();
-            OOJSVal args[] = { OOJSValueFromNativeObject(context, shipKey) };
+            OOJSVal args[] = { OOJSValueFromNativeObject(context, oo::NSStringFrom(shipKey)) };
 
             OK = [condScript callMethod:OOJSID("allowSpawnShip")
                               inContext:context
@@ -3569,20 +3708,20 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         }
     }
 
-    conditions = [shipInfo oo_arrayForKey:@"conditions"];
-    if (conditions == nil)
+    conditions = shipInfo.get<oo::PList::Array>("conditions");
+    if (conditions == nullptr)
         return YES;
 
-    // Check conditions
-    return [PLAYER scriptTestConditions:conditions];
+    // Check conditions (the legacy script engine is not migrated yet: it gets the array it read before)
+    return [PLAYER scriptTestConditions:oo::ObjectFromPList(*conditions)];
 }
 
-- (NSString*)randomShipKeyForRoleRespectingConditions:(NSString*)role
+- (std::optional<std::string>)cxx_randomShipKeyForRoleRespectingConditions:(const std::string&)role
 {
     OOJS_PROFILE_ENTER
 
     OOShipRegistry* registry = [OOShipRegistry sharedRegistry];
-    NSString* shipKey = nil;
+    std::optional<std::string> shipKey;
     OOMutableProbabilitySet* pset = nil;
 
 #if PROFILE_SHIP_SELECTION
@@ -3591,8 +3730,10 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 #endif
 
     // Select a ship, check conditions and return it if possible.
-    shipKey = [registry randomShipKeyForRole:role];
-    if ([self canInstantiateShip:shipKey])
+    shipKey = [registry cxx_randomShipKeyForRole:role];
+    if (!shipKey.has_value())
+        return std::nullopt; // no ship has the role (a nil key passed the check and was returned)
+    if ([self canInstantiateShip:*shipKey])
         return shipKey;
 
     /*	If we got here, condition check failed.
@@ -3606,63 +3747,63 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     ++profSlowPath;
     if ((profSlowPath % 10) == 0) // Only print every tenth slow path, to reduce spamminess.
     {
-        OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %zu of %zu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath) / ((double)profTotal) * 100.0f);
+        OO_LOG("shipRegistry.selection.profile", "Hit slow path in ship selection for role \"{}\", having selected ship \"{}\". Now {} of {} on slow path ({:f}%).", role, shipKey.value_or("(null)"), static_cast<size_t>(profSlowPath), static_cast<size_t>(profTotal), ((double)profSlowPath) / ((double)profTotal) * 100.0f);
     }
 #endif
 
-    pset = [[[registry probabilitySetForRole:role] mutableCopy] autorelease];
+    pset = [[[registry cxx_probabilitySetForRole:role] mutableCopy] autorelease];
 
     while ([pset count] > 0) {
         // Select a ship, check conditions and return it if possible.
-        shipKey = [pset randomObject];
-        if ([self canInstantiateShip:shipKey])
-            return shipKey;
+        id shipKeyObject = [pset randomObject]; // the probability set (unmigrated) holds ship keys as objects
+        if ([self canInstantiateShip:oo::StdString(shipKeyObject)])
+            return oo::StdString(shipKeyObject);
 
         // Condition failed -> remove ship from consideration.
-        [pset removeObject:shipKey];
+        [pset removeObject:shipKeyObject];
     }
 
     // If we got here, some ships existed but all failed conditions test.
-    return nil;
+    return std::nullopt;
 
     OOJS_PROFILE_EXIT
 }
 
-- (ShipEntity*)newShipWithRole:(NSString*)role
+- (ShipEntity*)cxx_newShipWithRole:(const std::string&)role
 {
     OOJS_PROFILE_ENTER
 
     ShipEntity* ship = nil;
-    NSString* shipKey = nil;
-    NSDictionary* shipInfo = nil;
-    NSString* autoAI = nil;
+    std::optional<std::string> shipKey;
+    oo::PList shipInfo;
+    std::optional<std::string> autoAI;
 
-    shipKey = [self randomShipKeyForRoleRespectingConditions:role];
-    if (shipKey != nil) {
-        ship = [self newShipWithName:shipKey];
+    shipKey = [self cxx_randomShipKeyForRoleRespectingConditions:role];
+    if (shipKey.has_value()) {
+        ship = [self cxx_newShipWithName:*shipKey];
         if (ship != nil) {
-            [ship setPrimaryRole:role];
+            [ship setPrimaryRole:oo::NSStringFrom(role)];
 
-            shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-            if ([shipInfo oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) {
+            shipInfo = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:*shipKey];
+            if (FuzzyBooleanIn(shipInfo, "auto_ai", YES)) {
                 // Set AI based on role
                 autoAI = [self defaultAIForRole:role];
-                if (autoAI != nil) {
-                    [ship setAITo:autoAI];
+                if (autoAI.has_value()) {
+                    [ship setAITo:oo::NSStringFrom(*autoAI)];
                     // Nikos 20090604
                     // Pirate, trader or police with auto_ai? Follow populator rules for them.
-                    if ([role isEqualToString:@"pirate"])
+                    if (role == "pirate")
                         [ship setBounty:20 + randf() * 50 withReason:kOOLegalStatusReasonSetup];
-                    if ([role isEqualToString:@"trader"])
+                    if (role == "trader")
                         [ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
-                    if ([role isEqualToString:@"police"])
+                    if (role == "police")
                         [ship setScanClass:CLASS_POLICE];
-                    if ([role isEqualToString:@"interceptor"]) {
+                    if (role == "interceptor") {
                         [ship setScanClass:CLASS_POLICE];
                         [ship setPrimaryRole:@"police"]; // to make sure interceptors get the correct pilot later on.
                     }
                 }
-                if ([role isEqualToString:@"thargoid"])
+                if (role == "thargoid")
                     [ship setScanClass:CLASS_THARGOID]; // thargoids are not on the autoAIMap
             }
         }
@@ -3673,23 +3814,24 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     OOJS_PROFILE_EXIT
 }
 
-- (OOVisualEffectEntity*)newVisualEffectWithName:(NSString*)effectKey
+- (OOVisualEffectEntity*)cxx_newVisualEffectWithName:(const std::string&)effectKey
 {
     OOJS_PROFILE_ENTER
 
-    NSDictionary* effectDict = nil;
+    oo::PList effectDict;
     OOVisualEffectEntity* effect = nil;
 
-    effectDict = [[OOShipRegistry sharedRegistry] effectInfoForKey:effectKey];
-    if (effectDict == nil)
+    effectDict = [[OOShipRegistry sharedRegistry] cxx_effectInfoForKey:effectKey];
+    if (effectDict.isNull())
         return nil;
 
     @try {
-        effect = [[OOVisualEffectEntity alloc] initWithKey:effectKey definition:effectDict];
+        // -initWithKey:definition: is shared: the key and definition as the objects it took before
+        effect = [[OOVisualEffectEntity alloc] initWithKey:oo::NSStringFrom(effectKey) definition:oo::ObjectFromPList(effectDict)];
     }
     @catch (OOException* exception) {
         if (strcmp([exception name], OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
-            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newVisualEffectWithName: %@ ] *****", oo::NSStringFrom([exception reason]), effectKey);
+            OO_LOG(cxx_kOOLogException, "***** Oolite Exception : '{}' in [Universe newVisualEffectWithName: {} ] *****", [exception reason], effectKey);
         } else
             @throw exception;
     }
@@ -3699,37 +3841,37 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     OOJS_PROFILE_EXIT
 }
 
-- (ShipEntity*)newSubentityWithName:(NSString*)shipKey andScaleFactor:(float)scale
+- (ShipEntity*)cxx_newSubentityWithName:(const std::string&)shipKey andScaleFactor:(float)scale
 {
-    return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES andScaleFactor:scale];
+    return [self cxx_newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES andScaleFactor:scale];
 }
 
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy
 {
-    return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:NO];
+    return [self cxx_newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:NO];
 }
 
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity
 {
-    return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:isSubentity andScaleFactor:1.0f];
+    return [self cxx_newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:isSubentity andScaleFactor:1.0f];
 }
 
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale
 {
     OOJS_PROFILE_ENTER
 
-    NSDictionary* shipDict = nil;
+    oo::PList shipDict;
     ShipEntity* ship = nil;
 
-    shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-    if (shipDict == nil)
+    shipDict = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipKey];
+    if (shipDict.isNull())
         return nil;
 
     volatile Class shipClass = nil;
     if (isSubentity) {
         shipClass = [ShipEntity class];
     } else {
-        shipClass = [self shipClassForShipDictionary:shipDict];
+        shipClass = [self cxx_shipClassForShipDictionary:shipDict];
         if (usePlayerProxy && shipClass == [ShipEntity class]) {
             shipClass = [ProxyPlayerEntity class];
         }
@@ -3737,117 +3879,115 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 
     @try {
         if (scale != 1.0f) {
-            NSMutableDictionary* mShipDict = [shipDict mutableCopy];
-            [mShipDict setObject:[NSNumber numberWithFloat:scale] forKey:@"model_scale_factor"];
-            shipDict = [NSDictionary dictionaryWithDictionary:mShipDict];
-            [mShipDict release];
+            // a copy with the scale, a float as +numberWithFloat: stored it (ADR-0043 item 15)
+            (*shipDict.getIf<oo::PList::Dict>())["model_scale_factor"] = oo::PList::singleReal(scale);
         }
-        ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
+        // -initWithKey:definition: is shared: the key and definition as the objects it took before
+        ship = [[shipClass alloc] initWithKey:oo::NSStringFrom(shipKey) definition:oo::ObjectFromPList(shipDict)];
     }
     @catch (OOException* exception) {
         if (strcmp([exception name], OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
-            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", oo::NSStringFrom([exception reason]), shipKey);
+            OO_LOG(cxx_kOOLogException, "***** Oolite Exception : '{}' in [Universe newShipWithName: {} ] *****", [exception reason], shipKey);
         } else
             @throw exception;
     }
 
     // Set primary role to same as ship name, if ship name is also a role.
     // Otherwise, if caller doesn't set a role, one will be selected randomly.
-    if ([ship hasRole:shipKey])
-        [ship setPrimaryRole:shipKey];
+    if ([ship hasRole:oo::NSStringFrom(shipKey)])
+        [ship setPrimaryRole:oo::NSStringFrom(shipKey)];
 
     return ship;
 
     OOJS_PROFILE_EXIT
 }
 
-- (DockEntity*)newDockWithName:(NSString*)shipDataKey andScaleFactor:(float)scale
+- (DockEntity*)cxx_newDockWithName:(const std::string&)shipDataKey andScaleFactor:(float)scale
 {
     OOJS_PROFILE_ENTER
 
-    NSDictionary* shipDict = nil;
+    oo::PList shipDict;
     DockEntity* dock = nil;
 
-    shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDataKey];
-    if (shipDict == nil)
+    shipDict = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipDataKey];
+    if (shipDict.isNull())
         return nil;
 
     @try {
         if (scale != 1.0f) {
-            NSMutableDictionary* mShipDict = [shipDict mutableCopy];
-            [mShipDict setObject:[NSNumber numberWithFloat:scale] forKey:@"model_scale_factor"];
-            shipDict = [NSDictionary dictionaryWithDictionary:mShipDict];
-            [mShipDict release];
+            // a copy with the scale, a float as +numberWithFloat: stored it (ADR-0043 item 15)
+            (*shipDict.getIf<oo::PList::Dict>())["model_scale_factor"] = oo::PList::singleReal(scale);
         }
-        dock = [[DockEntity alloc] initWithKey:shipDataKey definition:shipDict];
+        // -initWithKey:definition: is shared: the key and definition as the objects it took before
+        dock = [[DockEntity alloc] initWithKey:oo::NSStringFrom(shipDataKey) definition:oo::ObjectFromPList(shipDict)];
     }
     @catch (OOException* exception) {
         if (strcmp([exception name], OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
-            OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newDockWithName: %@ ] *****", oo::NSStringFrom([exception reason]), shipDataKey);
+            OO_LOG(cxx_kOOLogException, "***** Oolite Exception : '{}' in [Universe newDockWithName: {} ] *****", [exception reason], shipDataKey);
         } else
             @throw exception;
     }
 
     // Set primary role to same as name, if ship name is also a role.
     // Otherwise, if caller doesn't set a role, one will be selected randomly.
-    if ([dock hasRole:shipDataKey])
-        [dock setPrimaryRole:shipDataKey];
+    if ([dock hasRole:oo::NSStringFrom(shipDataKey)])
+        [dock setPrimaryRole:oo::NSStringFrom(shipDataKey)];
 
     return dock;
 
     OOJS_PROFILE_EXIT
 }
 
-- (ShipEntity*)newShipWithName:(NSString*)shipKey
+- (ShipEntity*)cxx_newShipWithName:(const std::string&)shipKey
 {
-    return [self newShipWithName:shipKey usePlayerProxy:NO];
+    return [self cxx_newShipWithName:shipKey usePlayerProxy:NO];
 }
 
-- (Class)shipClassForShipDictionary:(NSDictionary*)dict
+- (Class)cxx_shipClassForShipDictionary:(const oo::PList&)dict
 {
     OOJS_PROFILE_ENTER
 
-    if (dict == nil)
+    if (dict.isNull())
         return Nil;
 
     BOOL isStation = NO;
-    NSString* shipRoles = [dict oo_stringForKey:@"roles"];
+    std::optional<std::string> shipRoles = OptionalStringIn(dict, "roles");
 
-    if (shipRoles != nil) {
-        isStation = [shipRoles rangeOfString:@"station"].location != NSNotFound ||
-            [shipRoles rangeOfString:@"carrier"].location != NSNotFound;
+    if (shipRoles.has_value()) {
+        isStation = shipRoles->find("station") != std::string::npos || shipRoles->find("carrier") != std::string::npos;
     }
 
     // Note priority here: is_carrier overrides isCarrier which overrides roles.
-    isStation = [dict oo_boolForKey:@"isCarrier" defaultValue:isStation];
-    isStation = [dict oo_boolForKey:@"is_carrier" defaultValue:isStation];
+    isStation = dict.get<bool>("isCarrier", isStation);
+    isStation = dict.get<bool>("is_carrier", isStation);
 
     return isStation ? [StationEntity class] : [ShipEntity class];
 
     OOJS_PROFILE_EXIT
 }
 
-- (NSString*)defaultAIForRole:(NSString*)role
+- (std::optional<std::string>)defaultAIForRole:(const std::string&)role
 {
-    return [autoAIMap oo_stringForKey:role];
+    return OptionalStringIn(autoAIMap, role);
 }
 
-- (OOCargoQuantity)maxCargoForShip:(NSString*)desc
+- (OOCargoQuantity)cxx_maxCargoForShip:(const std::string&)desc
 {
-    return [[[OOShipRegistry sharedRegistry] shipInfoForKey:desc] oo_unsignedIntForKey:@"max_cargo" defaultValue:0];
+    return [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:desc].get<unsigned int>("max_cargo", 0);
 }
 
 /*
  * Price for an item expressed in 10ths of credits (divide by 10 to get credits)
  */
-- (OOCreditsQuantity)getEquipmentPriceForKey:(NSString*)eq_key
+- (OOCreditsQuantity)cxx_getEquipmentPriceForKey:(const std::string&)eq_key
 {
-    NSArray* itemData;
-    foreach (itemData, equipmentData) {
-        NSString* itemType = [itemData oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
+    if (const oo::PList::Array* items = equipmentData.getIf<oo::PList::Array>()) {
+        for (const oo::PList& itemData : *items) {
+            std::optional<std::string> itemType = OptionalStringAt(itemData, EQUIPMENT_KEY_INDEX);
 
-        if ([itemType isEqual:eq_key]) {
-            return [itemData oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+            if (itemType.has_value() && *itemType == eq_key) {
+                return itemData.at<unsigned long long>(EQUIPMENT_PRICE_INDEX);
+            }
         }
     }
     return 0;
@@ -3872,35 +4012,35 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 {
     ShipEntity* container = nil;
     // this is a template container, so we need to make a real one
-    OOCommodityType co_type = [cargoObj commodityType];
-    OOCargoQuantity co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
+    const std::optional<std::string> co_type = oo::OptionalString([cargoObj commodityType]);
+    OOCargoQuantity co_amount = co_type.has_value() ? [UNIVERSE cxx_getRandomAmountOfCommodity:*co_type] : 0;
     if (randf() < 0.5) // stops OXP monopolising pods for commodities
     {
-        container = [UNIVERSE newShipWithRole:co_type]; // newShipWithRole returns retained object
+        container = co_type.has_value() ? [UNIVERSE cxx_newShipWithRole:*co_type] : nil; // newShipWithRole returns retained object
     }
     if (container == nil) {
-        container = [UNIVERSE newShipWithRole:@"cargopod"];
+        container = [UNIVERSE cxx_newShipWithRole:"cargopod"];
     }
-    [container setCommodity:co_type andAmount:co_amount];
+    [container setCommodity:oo::NSStringOrNil(co_type) andAmount:co_amount];
     return [container autorelease];
 }
 
-- (NSArray*)getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal
 {
     /*	build list of goods allocating 0..100 for each based on how much of
             each quantity there is. Use a ratio of n x 100/64 for plentiful goods;
             reverse the probabilities for scarce goods.
     */
-    NSMutableArray* accumulator = [NSMutableArray arrayWithCapacity:how_many];
+    std::vector<oo::ObjCRef<ShipEntity*>> accumulator;
+    accumulator.reserve(how_many);
     NSUInteger i = 0, commodityCount = [commodityMarket count];
     std::vector<OOCargoQuantity> quantities(commodityCount);
     OOCargoQuantity total_quantity = 0;
 
-    NSArray* goodsKeys = [commodityMarket goods];
-    NSString* goodsKey = nil;
+    const std::vector<std::string> goodsKeys = oo::StringsFrom([commodityMarket goods]); // -goods is shared: an array of the keys
 
-    foreach (goodsKey, goodsKeys) {
-        OOCargoQuantity q = [commodityMarket quantityForGood:goodsKey];
+    for (const std::string& goodsKey : goodsKeys) {
+        OOCargoQuantity q = [commodityMarket cxx_quantityForGood:goodsKey];
         if (scarce) {
             if (q < 64)
                 q = 64 - q;
@@ -3909,7 +4049,7 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         }
         // legal YES restricts (almost) only to legal goods
         // legal NO allows illegal goods, but not necessarily a full hold
-        if (legal && [commodityMarket exportLegalityForGood:goodsKey] > 0) {
+        if (legal && [commodityMarket cxx_exportLegalityForGood:goodsKey] > 0) {
             q &= 1; // keep a very small chance, sometimes
         }
         if (q > 64)
@@ -3928,41 +4068,52 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
             qr = 1 + (Ranrot() % total_quantity);
             co_type = 0;
             while (qr > 0) {
-                NSAssert((NSUInteger)co_type < commodityCount, @"Commodity type index out of range.");
+                OOAssert((NSUInteger)co_type < commodityCount, "Commodity type index out of range.");
                 qr -= quantities[co_type++];
             }
             co_type--;
         }
 
-        ShipEntity* container = [cargoPods objectForKey:[goodsKeys oo_stringAtIndex:co_type]];
+        const std::optional<std::string> goodsKey = (co_type < goodsKeys.size()) ? std::optional<std::string>(goodsKeys[co_type]) : std::nullopt;
+        ShipEntity* container = nil;
+        if (goodsKey.has_value()) {
+            const auto pod = cargoPods.find(*goodsKey);
+            if (pod != cargoPods.end())
+                container = pod->second.get();
+        }
 
         if (container != nil) {
-            [accumulator addObject:container];
+            accumulator.push_back(oo::ObjCRef<ShipEntity*>(container));
         } else {
-            OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@ (%zu).", [goodsKeys oo_stringAtIndex:co_type], co_type);
+            OO_LOG("universe.createContainer.failed", "***** ERROR: failed to find a container to fill with {} ({}).", goodsKey.value_or("(null)"), static_cast<size_t>(co_type));
         }
     }
-    return [NSArray arrayWithArray:accumulator];
+    return accumulator;
 }
 
-- (NSArray*)getContainersOfCommodity:(OOCommodityType)commodity_name how_much:(OOCargoQuantity)how_much
+- (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_getContainersOfCommodity:(const std::string&)commodity_name how_much:(OOCargoQuantity)how_much
 {
-    NSMutableArray* accumulator = [NSMutableArray arrayWithCapacity:how_much];
-    if (![commodities goodDefined:commodity_name]) {
-        return [NSArray array]; // empty array
+    std::vector<oo::ObjCRef<ShipEntity*>> accumulator;
+    accumulator.reserve(how_much);
+    if (![commodities goodDefined:oo::NSStringFrom(commodity_name)]) // OOCommodities is not migrated yet
+    {
+        return accumulator; // empty array
     }
 
-    ShipEntity* container = [cargoPods objectForKey:commodity_name];
+    ShipEntity* container = nil;
+    const auto pod = cargoPods.find(commodity_name);
+    if (pod != cargoPods.end())
+        container = pod->second.get();
     while (how_much > 0) {
         if (container) {
-            [accumulator addObject:container];
+            accumulator.push_back(oo::ObjCRef<ShipEntity*>(container));
         } else {
-            OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@", commodity_name);
+            OO_LOG("universe.createContainer.failed", "***** ERROR: failed to find a container to fill with {}", commodity_name);
         }
 
         how_much--;
     }
-    return [NSArray arrayWithArray:accumulator];
+    return accumulator;
 }
 
 - (void)fillCargopodWithRandomCargo:(ShipEntity*)cargopod
@@ -3971,26 +4122,22 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
         return;
 
     if ([cargopod commodityType] == nil || ![cargopod commodityAmount]) {
-        NSString* aCommodity = [self getRandomCommodity];
-        OOCargoQuantity aQuantity = [self getRandomAmountOfCommodity:aCommodity];
-        [cargopod setCommodity:aCommodity andAmount:aQuantity];
+        const std::optional<std::string> aCommodity = oo::OptionalString([self getRandomCommodity]);
+        OOCargoQuantity aQuantity = aCommodity.has_value() ? [self cxx_getRandomAmountOfCommodity:*aCommodity] : 0;
+        [cargopod setCommodity:oo::NSStringOrNil(aCommodity) andAmount:aQuantity];
     }
 }
 
-- (NSString*)getRandomCommodity
+- (id)getRandomCommodity // shared selector (proposed ADR-0043)
 {
     return [commodities getRandomCommodity];
 }
 
-- (OOCargoQuantity)getRandomAmountOfCommodity:(OOCommodityType)co_type
+- (OOCargoQuantity)cxx_getRandomAmountOfCommodity:(const std::string&)co_type
 {
     OOMassUnit units;
 
-    if (co_type == nil) {
-        return 0;
-    }
-
-    units = [commodities massUnitForGood:co_type];
+    units = [commodities massUnitForGood:oo::NSStringFrom(co_type)]; // OOCommodities is not migrated yet
     switch (units) {
     case 0: // TONNES
         return 1;
@@ -4001,61 +4148,62 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     case UNITS_UNKNOWN: // not a unit (ADR-0036): warned about below, as any other value was
         break;
     }
-    OOLog(@"universe.commodityAmount.warning", @"Commodity %@ has an unrecognised mass unit, assuming tonnes", co_type);
+    OO_LOG("universe.commodityAmount.warning", "Commodity {} has an unrecognised mass unit, assuming tonnes", co_type);
     return 1;
 }
 
-- (NSDictionary*)commodityDataForType:(OOCommodityType)type
+- (oo::PList)commodityDataForType:(const std::string&)type
 {
-    return [commodityMarket definitionForGood:type];
+    return [commodityMarket cxx_definitionForGood:type];
 }
 
-- (NSString*)displayNameForCommodity:(OOCommodityType)co_type
+- (std::optional<std::string>)cxx_displayNameForCommodity:(const std::string&)co_type
 {
-    return [commodityMarket nameForGood:co_type];
+    return [commodityMarket cxx_nameForGood:co_type];
 }
 
-- (NSString*)describeCommodity:(OOCommodityType)co_type amount:(OOCargoQuantity)co_amount
+- (std::optional<std::string>)cxx_describeCommodity:(const std::string&)co_type amount:(OOCargoQuantity)co_amount
 {
     int units;
-    NSString *unitDesc = nil, *typeDesc = nil;
-    NSDictionary* commodity = [self commodityDataForType:co_type];
+    std::string unitDesc;
+    std::optional<std::string> typeDesc;
+    const oo::PList commodity = [self commodityDataForType:co_type];
 
-    if (commodity == nil)
-        return @"";
+    if (commodity.isNull())
+        return std::string();
 
-    units = [commodityMarket massUnitForGood:co_type];
+    units = [commodityMarket massUnitForGood:oo::NSStringFrom(co_type)]; // shared: an Objective-C string
     if (co_amount == 1) {
         switch (units) {
         case UNITS_KILOGRAMS: // KILOGRAM
-            unitDesc = DESC(@"cargo-kilogram");
+            unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-kilogram");
             break;
         case UNITS_GRAMS: // GRAM
-            unitDesc = DESC(@"cargo-gram");
+            unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-gram");
             break;
         case UNITS_TONS: // TONNE
         default:
-            unitDesc = DESC(@"cargo-ton");
+            unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-ton");
             break;
         }
     } else {
         switch (units) {
         case UNITS_KILOGRAMS: // KILOGRAMS
-            unitDesc = DESC(@"cargo-kilograms");
+            unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-kilograms");
             break;
         case UNITS_GRAMS: // GRAMS
-            unitDesc = DESC(@"cargo-grams");
+            unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-grams");
             break;
         case UNITS_TONS: // TONNES
         default:
-            unitDesc = DESC(@"cargo-tons");
+            unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-tons");
             break;
         }
     }
 
-    typeDesc = [commodityMarket nameForGood:co_type];
+    typeDesc = [commodityMarket cxx_nameForGood:co_type];
 
-    return [NSString stringWithFormat:@"%d %@ %@", co_amount, unitDesc, typeDesc];
+    return oo::str::format("%d %s %s", co_amount, unitDesc.c_str(), TextOrNull(typeDesc).c_str());
 }
 
 ////////////////////////////////////////////////////
@@ -4076,59 +4224,54 @@ static BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
     return [[self gameView] gameController];
 }
 
-- (NSDictionary*)gameSettings
+// The number kinds the old dictionary held: oo_setInteger: a signed integer, oo_setBool: a
+// boolean, oo_setFloat: / +numberWithFloat: a single-precision real.
+- (oo::PList)cxx_gameSettings
 {
-#if OOLITE_SDL
-    NSMutableDictionary* result = [NSMutableDictionary dictionaryWithCapacity:12];
-#else
-    NSMutableDictionary* result = [NSMutableDictionary dictionaryWithCapacity:10];
-#endif
+    oo::PList::Dict result;
 
-    [result oo_setInteger:[PLAYER isSpeechOn]
-                   forKey:@"speechOn"];
-    [result oo_setBool:autoSave forKey:@"autosave"];
-    [result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
-    [result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
+    result["speechOn"] = oo::PList::signedInteger([PLAYER isSpeechOn]);
+    result["autosave"] = oo::PList(static_cast<bool>(autoSave));
+    result["wireframeGraphics"] = oo::PList(static_cast<bool>(wireframeGraphics));
+    result["procedurallyTexturedPlanets"] = oo::PList(static_cast<bool>(doProcedurallyTexturedPlanets));
 
-    [result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
+    result["fovValue"] = oo::PList::singleReal([gameView fov:NO]);
 
 #if OOLITE_WINDOWS
     if ([gameView hdrOutput]) {
-        [result oo_setFloat:[gameView hdrMaxBrightness] forKey:@"hdr-max-brightness"];
-        [result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];
-        [result setObject:OOStringFromHDRToneMapper([gameView hdrToneMapper]) forKey:@"hdr-tone-mapper"];
+        result["hdr-max-brightness"] = oo::PList::singleReal([gameView hdrMaxBrightness]);
+        result["hdr-paperwhite-brightness"] = oo::PList::singleReal([gameView hdrPaperWhiteBrightness]);
+        result["hdr-tone-mapper"] = oo::PList(cxx_OOStringFromHDRToneMapper([gameView hdrToneMapper]));
     }
 #endif
 
-    [result setObject:OOStringFromSDRToneMapper([gameView sdrToneMapper])
-               forKey:@"sdr-tone-mapper"];
+    result["sdr-tone-mapper"] = oo::PList(cxx_OOStringFromSDRToneMapper([gameView sdrToneMapper]));
 
-    [result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
+    result["detailLevel"] = oo::PList(cxx_OOStringFromGraphicsDetail([self detailLevel]));
 
-    NSString* desc = @"UNDEFINED";
+    const char* desc = "UNDEFINED";
     switch ([[OOMusicController sharedController] mode]) {
     case kOOMusicOff:
-        desc = @"MUSIC_OFF";
+        desc = "MUSIC_OFF";
         break;
     case kOOMusicOn:
-        desc = @"MUSIC_ON";
+        desc = "MUSIC_ON";
         break;
     case kOOMusicITunes:
-        desc = @"MUSIC_ITUNES";
+        desc = "MUSIC_ITUNES";
         break;
     }
-    [result setObject:desc forKey:@"musicMode"];
+    result["musicMode"] = oo::PList(desc);
 
-    NSDictionary* gameWindow = [NSDictionary dictionaryWithObjectsAndKeys:
-            [NSNumber numberWithFloat:[gameView backingViewSize].width], @"width",
-        [NSNumber numberWithFloat:[gameView backingViewSize].height], @"height",
-        [NSNumber numberWithBool:[[self gameController] inFullScreenMode]], @"fullScreen",
-        nil];
-    [result setObject:gameWindow forKey:@"gameWindow"];
+    result["gameWindow"] = oo::PList(oo::PList::Dict {
+        { "width", oo::PList::singleReal([gameView backingViewSize].width) },
+        { "height", oo::PList::singleReal([gameView backingViewSize].height) },
+        { "fullScreen", oo::PList(static_cast<bool>([[self gameController] inFullScreenMode])) },
+    });
 
-    [result setObject:[PLAYER keyConfig] forKey:@"keyConfig"];
+    result["keyConfig"] = oo::PListFrom([PLAYER keyConfig]); // the unmigrated PlayerEntity's
 
-    return [[result copy] autorelease];
+    return oo::PList(std::move(result));
 }
 
 - (void)useGUILightSource:(BOOL)GUILight
@@ -4365,7 +4508,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
     int currentPostFX = [self currentPostFX];
     BOOL hudSeparateRenderPass = [self useShaders] && (currentPostFX == OO_POSTFX_NONE || ((currentPostFX == OO_POSTFX_CLOAK || currentPostFX == OO_POSTFX_CRTBADSIGNAL) && [self colorblindMode] == OO_POSTFX_NONE));
     NSSize viewSize = [gameView backingViewSize];
-    OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
+    OO_LOG("universe.profile.draw", "{}", "Begin draw");
 
     if (!no_update) {
         if ((int)targetFramebufferSize.width != (int)viewSize.width || (int)targetFramebufferSize.height != (int)viewSize.height) {
@@ -4417,7 +4560,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
             v_status = [player status];
 
-            OOCheckOpenGLErrors(@"Universe before doing anything");
+            cxx_OOCheckOpenGLErrors("Universe before doing anything");
 
             OOSetOpenGLState(OPENGL_STATE_OPAQUE); // FIXME: should be redundant.
 
@@ -4546,8 +4689,8 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                     [self defineFrustum]; // camera is set up for this frame
 
                     OOVerifyOpenGLState();
-                    OOCheckOpenGLErrors(@"Universe after setting up for opaque pass");
-                    OOLog(@"universe.profile.draw", @"%@", @"Begin opaque pass");
+                    cxx_OOCheckOpenGLErrors("Universe after setting up for opaque pass");
+                    OO_LOG("universe.profile.draw", "{}", "Begin opaque pass");
 
                     //		DRAW ALL THE OPAQUE ENTITIES
                     for (i = furthest; i >= nearest; i--) {
@@ -4677,23 +4820,23 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
             // actions when the HUD should be rendered separately from the 3d universe
             if (hudSeparateRenderPass) {
-                OOCheckOpenGLErrors(@"Universe after drawing entities");
+                cxx_OOCheckOpenGLErrors("Universe after drawing entities");
                 OOSetOpenGLState(OPENGL_STATE_OVERLAY); // FIXME: should be redundant.
 
                 [self prepareToRenderIntoDefaultFramebuffer];
                 OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
-                OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
+                OO_LOG("universe.profile.secondPassDraw", "{}", "Begin second pass draw");
                 [self drawTargetTextureIntoDefaultFramebuffer];
-                OOCheckOpenGLErrors(@"Universe after drawing from custom framebuffer to screen framebuffer");
-                OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
+                cxx_OOCheckOpenGLErrors("Universe after drawing from custom framebuffer to screen framebuffer");
+                OO_LOG("universe.profile.secondPassDraw", "{}", "End second pass drawing");
 
-                OOLog(@"universe.profile.drawHUD", @"%@", @"Begin HUD drawing");
+                OO_LOG("universe.profile.drawHUD", "{}", "Begin HUD drawing");
             }
 
             /* Reset for HUD drawing */
-            OOCheckOpenGLErrors(@"Universe after drawing entities");
-            OOLog(@"universe.profile.draw", @"%@", @"Begin HUD");
+            cxx_OOCheckOpenGLErrors("Universe after drawing entities");
+            OO_LOG("universe.profile.draw", "{}", "Begin HUD");
 
             GLfloat lineWidth = [gameView backingViewSize].width / 1024.0; // restore line size
             if (lineWidth < 1.0)
@@ -4706,10 +4849,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
             // If the HUD has a non-nil deferred name string, it means that a HUD switch was requested while it was being rendered.
             // If so, execute the deferred HUD switch now - Nikos 20110628
-            if ([theHUD deferredHudName] != nil) {
-                NSString* deferredName = [[theHUD deferredHudName] retain];
-                [player switchHudTo:deferredName];
-                [deferredName release];
+            if ([theHUD cxx_deferredHudName].has_value()) {
+                const std::string deferredName = *[theHUD cxx_deferredHudName]; // a copy: the switch releases the HUD
+                [player switchHudTo:oo::NSStringFrom(deferredName)];
                 theHUD = [player hud]; // HUD has been changed, so point to its new address
             }
 
@@ -4746,11 +4888,11 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             [self drawMessage];
 
 #if (defined(DEV_RELEASE))
-            [self drawWatermarkString:@"Development version " @OO_VERSION_FULL];
+            [self drawWatermarkString:"Development version " OO_VERSION_FULL];
 #endif
 
-            OOLog(@"universe.profile.drawHUD", @"%@", @"End HUD drawing");
-            OOCheckOpenGLErrors(@"Universe after drawing HUD");
+            OO_LOG("universe.profile.drawHUD", "{}", "End HUD drawing");
+            cxx_OOCheckOpenGLErrors("Universe after drawing HUD");
 
             OOGL(glFlush()); // don't wait around for drawing to complete
 
@@ -4768,7 +4910,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             if (strncmp([exception name], "Oolite", 6) == 0) {
                 [self handleOoliteException:exception];
             } else {
-                OOLog(kOOLogException, @"***** Exception: %@ : %@ *****", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+                OO_LOG(cxx_kOOLogException, "***** Exception: {} : {} *****", [exception name], [exception reason]);
                 @throw exception;
             }
         }
@@ -4778,13 +4920,13 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             if ([[exception name] hasPrefix:@"Oolite"]) {
                 [self handleOoliteException:[OOException exceptionWithName:[[exception name] UTF8String] reason:[[exception reason] UTF8String]]];
             } else {
-                OOLog(kOOLogException, @"***** Exception: %@ : %@ *****", [exception name], [exception reason]);
+                OO_LOG(cxx_kOOLogException, "***** Exception: {} : {} *****", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
                 @throw exception;
             }
         }
     }
 
-    OOLog(@"universe.profile.draw", @"%@", @"End drawing");
+    OO_LOG("universe.profile.draw", "{}", "End drawing");
 
     // actions when the HUD should be rendered together with the 3d universe
     if (!hudSeparateRenderPass) {
@@ -4792,9 +4934,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
             [self prepareToRenderIntoDefaultFramebuffer];
             OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
-            OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
+            OO_LOG("universe.profile.secondPassDraw", "{}", "Begin second pass draw");
             [self drawTargetTextureIntoDefaultFramebuffer];
-            OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
+            OO_LOG("universe.profile.secondPassDraw", "{}", "End second pass drawing");
         }
     }
 }
@@ -4848,13 +4990,13 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
     OOVerifyOpenGLState();
 }
 
-- (void)drawWatermarkString:(NSString*)watermarkString
+- (void)drawWatermarkString:(const std::string&)watermarkString
 {
-    NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
+    NSSize watermarkStringSize = cxx_OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
 
     OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
     // position the watermark string on the top right hand corner of the game window and right-align it
-    OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
+    cxx_OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
         MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, [gameView display_z], NSMakeSize(10, 10));
 }
 
@@ -4864,7 +5006,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
         return PLAYER; // the player
 
     if (MAX_ENTITY_UID < u_id) {
-        OOLog(@"universe.badUID", @"Attempt to retrieve entity for out-of-range UID %u. (This is an internal programming error, please report it.)", u_id);
+        OO_LOG("universe.badUID", "Attempt to retrieve entity for out-of-range UID {}. (This is an internal programming error, please report it.)", static_cast<unsigned>(u_id));
         return nil;
     }
 
@@ -4886,7 +5028,7 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
 
 static BOOL MaintainLinkedLists(Universe* uni)
 {
-    NSCParameterAssert(uni != NULL);
+    OOCParameterAssert(uni != NULL);
     BOOL result = YES;
 
     // DEBUG check for loops and short lists
@@ -4903,7 +5045,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
             checkEnt = checkEnt->x_next;
         }
         if ((checkEnt) || (n > 0)) {
-            OOExtraLog(kOOLogEntityVerificationError, @"Broken x_next %@ list (%d) ***", uni->x_list_start, n);
+#ifndef NDEBUG
+            OO_LOG(kOOLogEntityVerificationError, "Broken x_next {} list ({}) ***", oo::DescriptionOf(uni->x_list_start), n);
+#endif
             result = NO;
         }
 
@@ -4912,9 +5056,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
         while ((n--) && (checkEnt))
             checkEnt = checkEnt->x_previous;
         if ((checkEnt) || (n > 0)) {
-            OOExtraLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", uni->x_list_start, n);
+#ifndef NDEBUG
+            OO_LOG(kOOLogEntityVerificationError, "Broken x_previous {} list ({}) ***", oo::DescriptionOf(uni->x_list_start), n);
+#endif
             if (result) {
-                OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"REBUILDING x_previous list from x_next list");
+#ifndef NDEBUG
+                OO_LOG(kOOLogEntityVerificationRebuild, "{}", "REBUILDING x_previous list from x_next list");
+#endif
                 checkEnt = uni->x_list_start;
                 checkEnt->x_previous = nil;
                 while (checkEnt->x_next) {
@@ -4932,7 +5080,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
             checkEnt = checkEnt->y_next;
         }
         if ((checkEnt) || (n > 0)) {
-            OOExtraLog(kOOLogEntityVerificationError, @"Broken *** broken y_next %@ list (%d) ***", uni->y_list_start, n);
+#ifndef NDEBUG
+            OO_LOG(kOOLogEntityVerificationError, "Broken *** broken y_next {} list ({}) ***", oo::DescriptionOf(uni->y_list_start), n);
+#endif
             result = NO;
         }
 
@@ -4941,9 +5091,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
         while ((n--) && (checkEnt))
             checkEnt = checkEnt->y_previous;
         if ((checkEnt) || (n > 0)) {
-            OOExtraLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", uni->y_list_start, n);
+#ifndef NDEBUG
+            OO_LOG(kOOLogEntityVerificationError, "Broken y_previous {} list ({}) ***", oo::DescriptionOf(uni->y_list_start), n);
+#endif
             if (result) {
-                OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"REBUILDING y_previous list from y_next list");
+#ifndef NDEBUG
+                OO_LOG(kOOLogEntityVerificationRebuild, "{}", "REBUILDING y_previous list from y_next list");
+#endif
                 checkEnt = uni->y_list_start;
                 checkEnt->y_previous = nil;
                 while (checkEnt->y_next) {
@@ -4961,7 +5115,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
             checkEnt = checkEnt->z_next;
         }
         if ((checkEnt) || (n > 0)) {
-            OOExtraLog(kOOLogEntityVerificationError, @"Broken z_next %@ list (%d) ***", uni->z_list_start, n);
+#ifndef NDEBUG
+            OO_LOG(kOOLogEntityVerificationError, "Broken z_next {} list ({}) ***", oo::DescriptionOf(uni->z_list_start), n);
+#endif
             result = NO;
         }
 
@@ -4970,11 +5126,15 @@ static BOOL MaintainLinkedLists(Universe* uni)
         while ((n--) && (checkEnt))
             checkEnt = checkEnt->z_previous;
         if ((checkEnt) || (n > 0)) {
-            OOExtraLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", uni->z_list_start, n);
+#ifndef NDEBUG
+            OO_LOG(kOOLogEntityVerificationError, "Broken z_previous {} list ({}) ***", oo::DescriptionOf(uni->z_list_start), n);
+#endif
             if (result) {
-                OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"REBUILDING z_previous list from z_next list");
+#ifndef NDEBUG
+                OO_LOG(kOOLogEntityVerificationRebuild, "{}", "REBUILDING z_previous list from z_next list");
+#endif
                 checkEnt = uni->z_list_start;
-                NSCAssert(checkEnt != nil, @"Expected z-list to be non-empty."); // Previously an implicit assumption. -- Ahruman 2011-01-25
+                OOCAssert(checkEnt != nil, "Expected z-list to be non-empty."); // Previously an implicit assumption. -- Ahruman 2011-01-25
                 checkEnt->z_previous = nil;
                 while (checkEnt->z_next) {
                     last = checkEnt;
@@ -4986,14 +5146,17 @@ static BOOL MaintainLinkedLists(Universe* uni)
     }
 
     if (!result) {
-        OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"Rebuilding all linked lists from scratch");
-        NSArray* allEntities = uni->entities;
+#ifndef NDEBUG
+        OO_LOG(kOOLogEntityVerificationRebuild, "{}", "Rebuilding all linked lists from scratch");
+#endif
+        const std::vector<oo::ObjCRef<Entity*>> allEntities = uni->entities; // a snapshot, as the enumeration was
         uni->x_list_start = nil;
         uni->y_list_start = nil;
         uni->z_list_start = nil;
 
         Entity* ent = nil;
-        foreach (ent, allEntities) {
+        for (const oo::ObjCRef<Entity*>& entry : allEntities) {
+            ent = entry.get();
             ent->x_next = nil;
             ent->x_previous = nil;
             ent->y_next = nil;
@@ -5018,12 +5181,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
             return NO;
 
         // don't add things twice!
-        if ([entities containsObject:entity])
+        if (std::find(entities.begin(), entities.end(), entity) != entities.end())
             return YES;
 
         if (n_entities >= UNIVERSE_MAX_ENTITIES - 1) {
             // throw an exception here...
-            OOLog(@"universe.addEntity.failed", @"***** Universe cannot addEntity:%@ -- Universe is full (%d entities out of %d)", entity, n_entities, UNIVERSE_MAX_ENTITIES);
+            OO_LOG("universe.addEntity.failed", "***** Universe cannot addEntity:{} -- Universe is full ({} entities out of {})", oo::DescriptionOf(entity), static_cast<int>(n_entities), static_cast<int>(UNIVERSE_MAX_ENTITIES));
 #ifndef NDEBUG
             if (OOLogWillDisplayMessagesInClass(@"universe.maxEntitiesDump"))
                 [self debugDumpEntities];
@@ -5041,7 +5204,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
                 }
                 if (limiter-- == 0) {
                     // Every slot has been tried! This should not happen due to previous test, but there was a problem here in 1.70.
-                    OOLog(@"universe.addEntity.failed", @"***** Universe cannot addEntity:%@ -- Could not find free slot for entity.", entity);
+                    OO_LOG("universe.addEntity.failed", "***** Universe cannot addEntity:{} -- Could not find free slot for entity.", oo::DescriptionOf(entity));
                     return NO;
                 }
             }
@@ -5062,7 +5225,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
                         if (definedRoll != nil) {
                             stationRoll = OODoubleFromObject(definedRoll, stationRoll);
                         } else {
-                            stationRoll = [[self currentSystemData] oo_doubleForKey:@"station_roll" defaultValue:STANDARD_STATION_ROLL];
+                            stationRoll = oo::PListView([self currentSystemData]).get<double>(@"station_roll", STANDARD_STATION_ROLL);
                         }
 
                         [se setRoll:stationRoll];
@@ -5098,7 +5261,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
         entity->shadingEntityID = NO_TARGET;
 
         // add it to the universe
-        [entities addObject:entity];
+        entities.emplace_back(entity);
         [entity wasAddedToUniverse];
 
         // maintain sorted list (and for the scanner relative position)
@@ -5129,14 +5292,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
         }
 
         if ([entity isWormhole]) {
-            [activeWormholes addObject:entity];
+            activeWormholes.emplace_back((WormholeEntity*)entity);
         } else if ([entity isPlanet]) {
-            [allPlanets addObject:entity];
+            allPlanets.emplace_back((OOPlanetEntity*)entity);
         } else if ([entity isShip]) {
             [[se getAI] setOwner:se];
             [[se getAI] setState:@"GLOBAL"];
             if ([entity isStation]) {
-                [allStations addObject:entity];
+                AddIfAbsent(allStations, (StationEntity*)entity);
             }
         }
 
@@ -5152,9 +5315,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
                 update (or the next update if none is in progress), because
                 there may be things pointing to it but not retaining it.
         */
-        [entitiesDeadThisUpdate addObject:entity];
+        AddIfAbsent(entitiesDeadThisUpdate, entity);
         if ([entity isStation]) {
-            [allStations removeObject:entity];
+            std::erase(allStations, entity);
             if ([PLAYER getTargetDockStation] == entity) {
                 [PLAYER setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
             }
@@ -5167,7 +5330,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 - (void)ensureEntityReallyRemoved:(Entity*)entity
 {
     if ([entity universalID] != NO_TARGET) {
-        OOLog(@"universe.unremovedEntity", @"Entity %@ dealloced without being removed from universe! (This is an internal programming error, please report it.)", entity);
+        OO_LOG("universe.unremovedEntity", "Entity {} dealloced without being removed from universe! (This is an internal programming error, please report it.)", oo::DescriptionOf(entity));
         [self doRemoveEntity:entity];
     }
 }
@@ -5178,18 +5341,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
     no_update = YES; // no drawing while we do this!
 
 #ifndef NDEBUG
-    Entity* p0 = [entities objectAtIndex:0];
+    Entity* p0 = entities[0].get();
     if (!(p0->isPlayer)) {
-        OOLog(kOOLogInconsistentState, @"%@", @"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
+        OO_LOG(cxx_kOOLogInconsistentState, "{}", "***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
         exit(EXIT_FAILURE);
     }
 #endif
 
     // preserve wormholes
-    NSMutableArray* savedWormholes = [activeWormholes mutableCopy];
+    std::vector<oo::ObjCRef<WormholeEntity*>> savedWormholes = activeWormholes;
 
-    while ([entities count] > 1) {
-        Entity* ent = [entities objectAtIndex:1];
+    while (entities.size() > 1) {
+        Entity* ent = entities[1].get();
         if (ent->isStation) // clear out queues
             [(StationEntity*)ent clear];
         if (EXPECT(![ent isVisualEffect])) {
@@ -5200,8 +5363,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
         }
     }
 
-    [activeWormholes release];
-    activeWormholes = savedWormholes; // will be cleared out by populateSpaceFromActiveWormholes
+    activeWormholes = std::move(savedWormholes); // will be cleared out by populateSpaceFromActiveWormholes
 
     // maintain sorted list
     n_entities = 1;
@@ -5209,11 +5371,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
     cachedSun = nil;
     cachedPlanet = nil;
     cachedStation = nil;
-    [closeSystems release];
-    closeSystems = nil;
+    closeSystems.reset();
 
     [self resetBeacons];
-    [waypoints removeAllObjects];
+    waypoints.clear();
 
     no_update = updating; // restore drawing
 }
@@ -5234,7 +5395,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     demo_ship = nil;
 }
 
-- (ShipEntity*)makeDemoShipWithRole:(NSString*)role spinning:(BOOL)spinning
+- (ShipEntity*)cxx_makeDemoShipWithRole:(const std::string&)role spinning:(BOOL)spinning
 {
     if ([PLAYER dockedStation] == nil)
         return nil;
@@ -5244,7 +5405,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     [PLAYER setShowDemoShips:YES];
     Quaternion q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0, (GLfloat)0.0 };
 
-    ShipEntity* ship = [self newShipWithRole:role]; // retain count = 1
+    ShipEntity* ship = [self cxx_newShipWithRole:role]; // retain count = 1
     if (ship) {
         double cr = [ship collisionRadius];
         [ship setOrientation:q2];
@@ -5401,7 +5562,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     // heuristic three
 
     if (!e1) {
-        OOLog(kOOLogParameterError, @"%@", @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
+        OO_LOG(cxx_kOOLogParameterError, "{}", "***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
         return kZeroHPVector;
     }
 
@@ -5514,9 +5675,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
     return result;
 }
 
-- (ShipEntity*)addWreckageFrom:(ShipEntity*)ship withRole:(NSString*)wreckRole at:(HPVector)rpos scale:(GLfloat)scale lifetime:(GLfloat)lifetime
+- (ShipEntity*)cxx_addWreckageFrom:(ShipEntity*)ship withRole:(const std::string&)wreckRole at:(HPVector)rpos scale:(GLfloat)scale lifetime:(GLfloat)lifetime
 {
-    ShipEntity* wreck = [UNIVERSE newShipWithRole:wreckRole]; // retain count = 1
+    ShipEntity* wreck = [UNIVERSE cxx_newShipWithRole:wreckRole]; // retain count = 1
     Quaternion q;
     if (wreck) {
         GLfloat expected_mass = 0.1f * [ship mass] * (0.75 + 0.5 * randf());
@@ -5549,9 +5710,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
     // low energy, start getting small surface explosions
     if ([target showDamage] && [target energy] < [target maxEnergy] / 2) {
-        NSString* key = (randf() < 0.5) ? @"oolite-hull-spark" : @"oolite-hull-spark-b";
-        NSDictionary* settings = [UNIVERSE explosionSetting:key];
-        OOExplosionCloudEntity* burst = [OOExplosionCloudEntity explosionCloudFromEntity:target withSettings:oo::PListFrom(settings)];
+        const char* key = (randf() < 0.5) ? "oolite-hull-spark" : "oolite-hull-spark-b";
+        const oo::PList settings = [UNIVERSE cxx_explosionSetting:key];
+        OOExplosionCloudEntity* burst = [OOExplosionCloudEntity explosionCloudFromEntity:target withSettings:settings];
         [burst setPosition:pos];
         [self addEntity:burst];
         if ([target energy] * randf() < damage) {
@@ -5749,76 +5910,78 @@ static BOOL MaintainLinkedLists(Universe* uni)
     switch (viewDirection) {
     case VIEW_FORWARD:
         targetFacing = WEAPON_FACING_FORWARD;
-        laserPortOffset = [[player forwardWeaponOffset] oo_vectorAtIndex:0];
+        laserPortOffset = oo::PListView([player forwardWeaponOffset]).at<Vector>(0);
         break;
 
     case VIEW_AFT:
         targetFacing = WEAPON_FACING_AFT;
-        laserPortOffset = [[player aftWeaponOffset] oo_vectorAtIndex:0];
+        laserPortOffset = oo::PListView([player aftWeaponOffset]).at<Vector>(0);
         break;
 
     case VIEW_PORT:
         targetFacing = WEAPON_FACING_PORT;
-        laserPortOffset = [[player portWeaponOffset] oo_vectorAtIndex:0];
+        laserPortOffset = oo::PListView([player portWeaponOffset]).at<Vector>(0);
         break;
 
     case VIEW_STARBOARD:
         targetFacing = WEAPON_FACING_STARBOARD;
-        laserPortOffset = [[player starboardWeaponOffset] oo_vectorAtIndex:0];
+        laserPortOffset = oo::PListView([player starboardWeaponOffset]).at<Vector>(0);
         break;
 
     default:
         // Match behaviour of -firstEntityTargetedByPlayer.
         targetFacing = WEAPON_FACING_FORWARD;
-        laserPortOffset = [[player forwardWeaponOffset] oo_vectorAtIndex:0];
+        laserPortOffset = oo::PListView([player forwardWeaponOffset]).at<Vector>(0);
     }
 
     return [self firstShipHitByLaserFromShip:PLAYER inDirection:targetFacing offset:laserPortOffset gettingRangeFound:NULL];
 }
 
-- (NSArray*)entitiesWithinRange:(double)range ofEntity:(Entity*)entity
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_entitiesWithinRange:(double)range ofEntity:(Entity*)entity
 {
     if (entity == nil)
-        return nil;
+        return { };
 
-    return [self findShipsMatchingPredicate:YESPredicate
-                                  parameter:NULL
-                                    inRange:range
-                                   ofEntity:entity];
+    return [self cxx_findShipsMatchingPredicate:YESPredicate
+                                      parameter:NULL
+                                        inRange:range
+                                       ofEntity:entity];
 }
 
-- (unsigned)countShipsWithRole:(NSString*)role inRange:(double)range ofEntity:(Entity*)entity
+// The role predicates read an Objective-C string (-hasRole: / -hasPrimaryRole: are the unmigrated ShipEntity's).
+- (unsigned)cxx_countShipsWithRole:(const std::string&)role inRange:(double)range ofEntity:(Entity*)entity
 {
     return [self countShipsMatchingPredicate:HasRolePredicate
-                                   parameter:role
+                                   parameter:oo::NSStringFrom(role)
                                      inRange:range
                                     ofEntity:entity];
 }
 
-- (unsigned)countShipsWithRole:(NSString*)role
+- (unsigned)cxx_countShipsWithRole:(const std::string&)role
 {
-    return [self countShipsWithRole:role inRange:-1 ofEntity:nil];
+    return [self cxx_countShipsWithRole:role inRange:-1 ofEntity:nil];
 }
 
-- (unsigned)countShipsWithPrimaryRole:(NSString*)role inRange:(double)range ofEntity:(Entity*)entity
+- (unsigned)cxx_countShipsWithPrimaryRole:(const std::string&)role inRange:(double)range ofEntity:(Entity*)entity
 {
     return [self countShipsMatchingPredicate:HasPrimaryRolePredicate
-                                   parameter:role
+                                   parameter:oo::NSStringFrom(role)
                                      inRange:range
                                     ofEntity:entity];
 }
 
+// HasScanClassPredicate reads the scan class as a number object's -intValue.
 - (unsigned)countShipsWithScanClass:(OOScanClass)scanClass inRange:(double)range ofEntity:(Entity*)entity
 {
     return [self countShipsMatchingPredicate:HasScanClassPredicate
-                                   parameter:[NSNumber numberWithInt:scanClass]
+                                   parameter:oo::ObjectFromPList(oo::PList(std::int64_t(scanClass)))
                                      inRange:range
                                     ofEntity:entity];
 }
 
-- (unsigned)countShipsWithPrimaryRole:(NSString*)role
+- (unsigned)cxx_countShipsWithPrimaryRole:(const std::string&)role
 {
-    return [self countShipsWithPrimaryRole:role inRange:-1 ofEntity:nil];
+    return [self cxx_countShipsWithPrimaryRole:role inRange:-1 ofEntity:nil];
 }
 
 - (unsigned)countEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
@@ -5889,23 +6052,23 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
 
 // NOTE: OOJSSystem relies on this returning entities in distance-from-player order.
 // This can be easily changed by removing the [reference isPlayer] conditions in FindJSVisibleEntities().
-- (NSMutableArray*)findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
-                                       parameter:(void*)parameter
-                                         inRange:(double)range
-                                        ofEntity:(Entity*)e1
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
+                                                             parameter:(void*)parameter
+                                                               inRange:(double)range
+                                                              ofEntity:(Entity*)e1
 {
     OOJS_PROFILE_ENTER
 
     unsigned i;
     HPVector p1;
-    NSMutableArray* result = nil;
+    std::vector<oo::ObjCRef<Entity*>> result;
 
     OOJSPauseTimeLimiter();
 
     if (predicate == NULL)
         predicate = YESPredicate;
 
-    result = [NSMutableArray arrayWithCapacity:n_entities];
+    result.reserve(n_entities);
 
     if (e1 != nil)
         p1 = [e1 position];
@@ -5916,7 +6079,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
         Entity* e2 = sortedEntities[i];
 
         if (e1 != e2 && EntityInRange(p1, e2, range) && predicate(e2, parameter)) {
-            [result addObject:e2];
+            result.emplace_back(e2);
         }
     }
 
@@ -5949,10 +6112,10 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
     return nil;
 }
 
-- (NSMutableArray*)findShipsMatchingPredicate:(EntityFilterPredicate)predicate
-                                    parameter:(void*)parameter
-                                      inRange:(double)range
-                                     ofEntity:(Entity*)entity
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_findShipsMatchingPredicate:(EntityFilterPredicate)predicate
+                                                          parameter:(void*)parameter
+                                                            inRange:(double)range
+                                                           ofEntity:(Entity*)entity
 {
     if (predicate != NULL) {
         BinaryOperationPredicateParameter param = {
@@ -5960,22 +6123,22 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             predicate, parameter
         };
 
-        return [self findEntitiesMatchingPredicate:ANDPredicate
-                                         parameter:&param
-                                           inRange:range
-                                          ofEntity:entity];
+        return [self cxx_findEntitiesMatchingPredicate:ANDPredicate
+                                             parameter:&param
+                                               inRange:range
+                                              ofEntity:entity];
     } else {
-        return [self findEntitiesMatchingPredicate:IsShipPredicate
-                                         parameter:NULL
-                                           inRange:range
-                                          ofEntity:entity];
+        return [self cxx_findEntitiesMatchingPredicate:IsShipPredicate
+                                             parameter:NULL
+                                               inRange:range
+                                              ofEntity:entity];
     }
 }
 
-- (NSMutableArray*)findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
-                                            parameter:(void*)parameter
-                                              inRange:(double)range
-                                             ofEntity:(Entity*)entity
+- (std::vector<oo::ObjCRef<Entity*>>)cxx_findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
+                                                                  parameter:(void*)parameter
+                                                                    inRange:(double)range
+                                                                   ofEntity:(Entity*)entity
 {
     if (predicate != NULL) {
         BinaryOperationPredicateParameter param = {
@@ -5983,15 +6146,15 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             predicate, parameter
         };
 
-        return [self findEntitiesMatchingPredicate:ANDPredicate
-                                         parameter:&param
-                                           inRange:range
-                                          ofEntity:entity];
+        return [self cxx_findEntitiesMatchingPredicate:ANDPredicate
+                                             parameter:&param
+                                               inRange:range
+                                              ofEntity:entity];
     } else {
-        return [self findEntitiesMatchingPredicate:IsVisualEffectPredicate
-                                         parameter:NULL
-                                           inRange:range
-                                          ofEntity:entity];
+        return [self cxx_findEntitiesMatchingPredicate:IsVisualEffectPredicate
+                                             parameter:NULL
+                                               inRange:range
+                                              ofEntity:entity];
     }
 }
 
@@ -6073,7 +6236,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
     [universeRegion findShadowedEntities];
 }
 
-- (NSString*)collisionDescription
+- (id)collisionDescription // shared selector (proposed ADR-0043): an Objective-C string, as CollisionRegion's
 {
     if (universeRegion != nil)
         return [universeRegion collisionDescription];
@@ -6093,7 +6256,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
 
 - (void)setViewDirection:(OOViewID)vd
 {
-    NSString* ms = nil;
+    std::optional<std::string> ms;
     BOOL guiSelected = NO;
 
     if ((viewDirection == vd) && (vd != VIEW_CUSTOM) && (!displayGUI))
@@ -6101,23 +6264,23 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
 
     switch (vd) {
     case VIEW_FORWARD:
-        ms = DESC(@"forward-view-string");
+        ms = cxx_OOLookUpDescriptionPRIV("forward-view-string");
         break;
 
     case VIEW_AFT:
-        ms = DESC(@"aft-view-string");
+        ms = cxx_OOLookUpDescriptionPRIV("aft-view-string");
         break;
 
     case VIEW_PORT:
-        ms = DESC(@"port-view-string");
+        ms = cxx_OOLookUpDescriptionPRIV("port-view-string");
         break;
 
     case VIEW_STARBOARD:
-        ms = DESC(@"starboard-view-string");
+        ms = cxx_OOLookUpDescriptionPRIV("starboard-view-string");
         break;
 
     case VIEW_CUSTOM:
-        ms = [PLAYER customViewDescription];
+        ms = oo::OptionalString([PLAYER customViewDescription]);
         break;
 
     case VIEW_GUI_DISPLAY:
@@ -6147,8 +6310,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
         // view notifications for when the player switches to/from gui!
         // if (EXPECT(viewDirection == VIEW_GUI_DISPLAY || vd == VIEW_GUI_DISPLAY )) [PLAYER noteViewDidChangeFrom:viewDirection toView:vd];
         viewDirection = vd;
-        if (ms && !gamePaused) {
-            [self addMessage:ms forCount:3];
+        if (ms.has_value() && !gamePaused) {
+            [self cxx_addMessage:ms forCount:3];
         } else if (gamePaused) {
             [message_gui clear];
         }
@@ -6168,95 +6331,113 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
     [[self gameController] setMouseInteractionModeForUIWithMouseInteraction:mouseInteraction];
 }
 
-- (NSString*)soundNameForCustomSoundKey:(NSString*)key
-{
-    NSString* result = nil;
-    NSMutableSet* seen = nil;
-    id object = [customSounds objectForKey:key];
+namespace {
 
-    if ([object isKindOfClass:[NSArray class]] && [object count] > 0) {
-        key = [object oo_stringAtIndex:Ranrot() % [object count]];
+std::optional<std::string> OptionalStringAt(const oo::PList& array, std::size_t index); // defined with the configuration readers below
+std::optional<std::string> OptionalStringIn(const oo::PList& dict, std::string_view key);
+std::string ExpandKey(const std::string& key); // defined with the shipyard helpers below
+
+// -[currentMessage isEqual:text]: both present and equal (a nil receiver or argument answered NO).
+bool SameMessage(const std::optional<std::string>& current, const std::optional<std::string>& text)
+{
+    return current.has_value() && text.has_value() && *current == *text;
+}
+
+} // namespace
+
+// Resolved names are cached by key; a nil key (an array entry that is neither a string nor a
+// number) is cached as "", as the cache took a nil key.
+- (std::optional<std::string>)soundNameForCustomSoundKey:(const std::string&)soundKey
+{
+    std::optional<std::string> key = soundKey;
+    std::optional<std::string> result;
+    std::set<std::string> seen;
+    const oo::PList* object = customSounds.find(*key);
+
+    if (object != nullptr && object->isArray() && object->count() > 0) {
+        key = OptionalStringAt(*object, Ranrot() % object->count());
     } else {
-        object = nil;
+        object = nullptr;
     }
 
-    result = [[OOCacheManager sharedCache] objectForKey:key inCache:@"resolved custom sounds"];
-    if (result == nil) {
+    result = oo::OptionalString([[OOCacheManager sharedCache] cxx_objectForKey:key.value_or(std::string()) inCache:"resolved custom sounds"]);
+    if (!result.has_value()) {
         // Resolve sound, allowing indirection within customsounds.plist
-        seen = [NSMutableSet set];
         result = key;
-        if (object == nil || ([result hasPrefix:@"["] && [result hasSuffix:@"]"])) {
+        if (object == nullptr || (result.has_value() && oo::str::hasPrefix(*result, "[") && oo::str::hasSuffix(*result, "]"))) {
             for (;;) {
-                [seen addObject:result];
-                object = [customSounds objectForKey:result];
-                if ([object isKindOfClass:[NSArray class]] && [object count] > 0) {
-                    result = [object oo_stringAtIndex:Ranrot() % [object count]];
-                    if ([key hasPrefix:@"["] && [key hasSuffix:@"]"])
+                seen.insert(*result);
+                object = customSounds.find(*result);
+                if (object != nullptr && object->isArray() && object->count() > 0) {
+                    result = OptionalStringAt(*object, Ranrot() % object->count());
+                    if (key.has_value() && oo::str::hasPrefix(*key, "[") && oo::str::hasSuffix(*key, "]"))
                         key = result;
                 } else {
-                    if ([object isKindOfClass:[NSString class]])
-                        result = object;
+                    if (object != nullptr && object->isString())
+                        result = *object->getIf<std::string>();
                     else
-                        result = nil;
+                        result = std::nullopt;
                 }
-                if (result == nil || ![result hasPrefix:@"["] || ![result hasSuffix:@"]"])
+                if (!result.has_value() || !oo::str::hasPrefix(*result, "[") || !oo::str::hasSuffix(*result, "]"))
                     break;
-                if ([seen containsObject:result]) {
-                    OOLogERR(@"sound.customSounds.recursion", @"recursion in customsounds.plist for '%@' (at '%@'), no sound will be played.", key, result);
-                    result = nil;
+                if (seen.contains(*result)) {
+                    OO_LOG_ERR("sound.customSounds.recursion", "recursion in customsounds.plist for '{}' (at '{}'), no sound will be played.", key.value_or("(null)"), *result);
+                    result = std::nullopt;
                     break;
                 }
             }
         }
 
-        if (result == nil)
-            result = @"__oolite-no-sound";
-        [[OOCacheManager sharedCache] setObject:result forKey:key inCache:@"resolved custom sounds"];
+        if (!result.has_value())
+            result = std::string("__oolite-no-sound");
+        [[OOCacheManager sharedCache] cxx_setObject:oo::NSStringFrom(*result) forKey:key.value_or(std::string()) inCache:"resolved custom sounds"];
     }
 
-    if ([result isEqualToString:@"__oolite-no-sound"]) {
-        OOLog(@"sound.customSounds", @"Could not resolve sound name in customsounds.plist for '%@', no sound will be played.", key);
-        result = nil;
+    if (*result == "__oolite-no-sound") {
+        OO_LOG("sound.customSounds", "Could not resolve sound name in customsounds.plist for '{}', no sound will be played.", key.value_or("(null)"));
+        result = std::nullopt;
     }
     return result;
 }
 
-- (NSDictionary*)screenTextureDescriptorForKey:(NSString*)key
+- (oo::PList)cxx_screenTextureDescriptorForKey:(const std::string&)key
 {
-    id value = [screenBackgrounds objectForKey:key];
-    while ([value isKindOfClass:[NSArray class]])
-        value = [value objectAtIndex:Ranrot() % [value count]];
+    const oo::PList* entry = screenBackgrounds.find(key);
+    oo::PList value = (entry != nullptr) ? *entry : oo::PList();
+    while (value.isArray()) {
+        const oo::PList* chosen = value.at(Ranrot() % value.count());
+        oo::PList next = (chosen != nullptr) ? *chosen : oo::PList();
+        value = std::move(next);
+    }
 
-    if ([value isKindOfClass:[NSString class]])
-        value = [NSDictionary dictionaryWithObject:value forKey:@"name"];
-    else if (![value isKindOfClass:[NSDictionary class]])
-        value = nil;
+    if (value.isString())
+        value = oo::PList(oo::PList::Dict { { "name", value } });
+    else if (!value.isDict())
+        value = oo::PList();
 
     // Start loading the texture, and return nil if it doesn't exist.
-    if (![[self gui] preloadGUITexture:value])
-        value = nil;
+    if (![[self gui] cxx_preloadGUITexture:value])
+        value = oo::PList();
 
     return value;
 }
 
-- (void)setScreenTextureDescriptorForKey:(NSString*)key descriptor:(NSDictionary*)desc
+// Unloaded backgrounds (null) stay unloaded, as messaging nil changed nothing.
+- (void)cxx_setScreenTextureDescriptorForKey:(const std::string&)key descriptor:(const oo::PList&)desc
 {
-    NSMutableDictionary* sbCopy = [screenBackgrounds mutableCopy];
-    if (desc == nil) {
-        [sbCopy removeObjectForKey:key];
+    oo::PList::Dict* backgrounds = screenBackgrounds.getIf<oo::PList::Dict>();
+    if (backgrounds == nullptr)
+        return;
+    if (desc.isNull()) {
+        backgrounds->erase(key);
     } else {
-        [sbCopy setObject:desc forKey:key];
+        (*backgrounds)[key] = desc;
     }
-    [screenBackgrounds release];
-    screenBackgrounds = [sbCopy copy];
-    [sbCopy release];
 }
 
 - (void)clearPreviousMessage
 {
-    if (currentMessage)
-        [currentMessage release];
-    currentMessage = nil;
+    currentMessage.reset();
 }
 
 - (void)setMessageGuiBackgroundColor:(OOColor*)some_color
@@ -6264,146 +6445,152 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
     [message_gui setBackgroundColor:some_color];
 }
 
-- (void)displayMessage:(NSString*)text forCount:(OOTimeDelta)count
+- (void)cxx_displayMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count
 {
-    if (![currentMessage isEqual:text] || universal_time >= messageRepeatTime) {
-        if (currentMessage)
-            [currentMessage release];
-        currentMessage = [text retain];
+    if (!SameMessage(currentMessage, text) || universal_time >= messageRepeatTime) {
+        currentMessage = text;
         messageRepeatTime = universal_time + 6.0;
         [self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
     }
 }
 
-- (void)displayCountdownMessage:(NSString*)text forCount:(OOTimeDelta)count
+- (void)cxx_displayCountdownMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count
 {
-    if (![currentMessage isEqual:text] && universal_time >= countdown_messageRepeatTime) {
-        if (currentMessage)
-            [currentMessage release];
-        currentMessage = [text retain];
+    if (!SameMessage(currentMessage, text) && universal_time >= countdown_messageRepeatTime) {
+        currentMessage = text;
         countdown_messageRepeatTime = universal_time + count;
         [self showGUIMessage:text withScroll:NO andColor:[message_gui textColor] overDuration:count];
     }
 }
 
-- (void)addDelayedMessage:(NSString*)text forCount:(OOTimeDelta)count afterDelay:(double)delay
+// The deferred call's argument is the dictionary -addDelayedMessage: reads (a missing text leaves
+// the message out: the delayed call then shows nothing; setting a nil text raised).
+- (void)cxx_addDelayedMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count afterDelay:(double)delay
 {
-    NSMutableDictionary* msgDict = [NSMutableDictionary dictionaryWithCapacity:2];
-    [msgDict setObject:text forKey:@"message"];
-    [msgDict setObject:[NSNumber numberWithDouble:count] forKey:@"duration"];
-    [self performSelector:@selector(addDelayedMessage:) withObject:msgDict afterDelay:delay];
+    oo::PList::Dict msgDict;
+    if (text.has_value())
+        msgDict["message"] = oo::PList(*text);
+    msgDict["duration"] = oo::PList(count);
+    OOScheduleDeferredCall(self, @selector(addDelayedMessage:), oo::ObjectFromPList(oo::PList(std::move(msgDict))), delay);
 }
 
-- (void)addDelayedMessage:(NSDictionary*)textdict
+- (void)addDelayedMessage:(id)textdict // called by name (ADR-0043 item 21): the deferred call above
 {
-    NSString* msg = nil;
+    std::optional<std::string> msg;
     OOTimeDelta msg_duration;
+    const oo::PList message = oo::PListFrom(textdict);
 
-    msg = [textdict oo_stringForKey:@"message"];
-    if (msg == nil)
+    msg = OptionalStringIn(message, "message");
+    if (!msg.has_value())
         return;
-    msg_duration = [textdict oo_nonNegativeDoubleForKey:@"duration" defaultValue:3.0];
+    msg_duration = message.get<oo::NonNegative<double>>("duration", 3.0);
 
-    [self addMessage:msg forCount:msg_duration];
+    [self cxx_addMessage:msg forCount:msg_duration];
 }
 
-- (void)addMessage:(NSString*)text forCount:(OOTimeDelta)count
+- (void)cxx_addMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count
 {
-    [self addMessage:text forCount:count forceDisplay:NO];
+    [self cxx_addMessage:text forCount:count forceDisplay:NO];
 }
 
-- (void)speakWithSubstitutions:(NSString*)text
+- (void)speakWithSubstitutions:(const std::optional<std::string>&)text
 {
 #if OOLITE_SPEECH_SYNTH
     // speech synthesis
 
     PlayerEntity* player = PLAYER;
     if ([player isSpeechOn] > OOSPEECHSETTINGS_OFF) {
-        NSString* systemSaid = nil;
-        NSString* h_systemSaid = nil;
+        std::optional<std::string> systemSaid;
+        std::optional<std::string> h_systemSaid;
 
-        NSString* systemName = [self getSystemName:systemID];
+        const std::optional<std::string> systemName = [self cxx_getSystemName:systemID];
 
         systemSaid = systemName;
 
-        NSString* h_systemName = [self getSystemName:[player targetSystemID]];
+        const std::optional<std::string> h_systemName = [self cxx_getSystemName:[player targetSystemID]];
         h_systemSaid = h_systemName;
 
-        NSString* spokenText = text;
-        if (speechArray != nil) {
-            NSArray* thePair = nil;
+        std::optional<std::string> spokenText = text;
+        if (!speechArray.isNull()) {
+            const oo::PList::Array* pairs = speechArray.getIf<oo::PList::Array>();
+            if (pairs != nullptr)
+                for (const oo::PList& thePair : *pairs) {
+                    const std::optional<std::string> original_phrase = OptionalStringAt(thePair, 0);
 
-            foreach (thePair, speechArray) {
-                NSString* original_phrase = [thePair oo_stringAtIndex:0];
-
-                NSUInteger replacementIndex;
+                    NSUInteger replacementIndex;
 #if OOLITE_MAC_COCOA_UI
-                replacementIndex = 1;
+                    replacementIndex = 1;
 #elif OOLITE_ESPEAK
-                replacementIndex = [thePair count] > 2 ? 2 : 1;
+                    replacementIndex = thePair.count() > 2 ? 2 : 1;
 #endif
 
-                NSString* replacement_phrase = [thePair oo_stringAtIndex:replacementIndex];
-                if (![replacement_phrase isEqualToString:@"_"]) {
-                    spokenText = [spokenText stringByReplacingOccurrencesOfString:original_phrase withString:replacement_phrase];
+                    const std::optional<std::string> replacement_phrase = OptionalStringAt(thePair, replacementIndex);
+                    // An empty or missing phrase replaced nothing (a missing replacement or a nil text stayed nil).
+                    if (replacement_phrase != "_" && spokenText.has_value() && original_phrase.has_value() && !original_phrase->empty() && replacement_phrase.has_value()) {
+                        spokenText = oo::str::replaceOccurrences(*spokenText, *original_phrase, *replacement_phrase);
+                    }
                 }
-            }
-            spokenText = [spokenText stringByReplacingOccurrencesOfString:systemName withString:systemSaid];
-            spokenText = [spokenText stringByReplacingOccurrencesOfString:h_systemName withString:h_systemSaid];
+            if (spokenText.has_value() && systemName.has_value() && !systemName->empty())
+                spokenText = oo::str::replaceOccurrences(*spokenText, *systemName, systemSaid.value_or(std::string()));
+            if (spokenText.has_value() && h_systemName.has_value() && !h_systemName->empty())
+                spokenText = oo::str::replaceOccurrences(*spokenText, *h_systemName, h_systemSaid.value_or(std::string()));
         }
         [self stopSpeaking];
-        [self startSpeakingString:spokenText];
+        if (spokenText.has_value())
+            [self cxx_startSpeakingString:*spokenText]; // a nil text said nothing
     }
 #endif // OOLITE_SPEECH_SYNTH
 }
 
-- (void)addMessage:(NSString*)text forCount:(OOTimeDelta)count forceDisplay:(BOOL)forceDisplay
+- (void)cxx_addMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count forceDisplay:(BOOL)forceDisplay
 {
-    if (![currentMessage isEqual:text] || forceDisplay || universal_time >= messageRepeatTime) {
+    if (!SameMessage(currentMessage, text) || forceDisplay || universal_time >= messageRepeatTime) {
         if ([PLAYER isSpeechOn] == OOSPEECHSETTINGS_ALL) {
             [self speakWithSubstitutions:text];
         }
 
         [self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
 
-        [PLAYER doScriptEvent:OOJSID("consoleMessageReceived") withArgument:text];
+        [PLAYER doScriptEvent:OOJSID("consoleMessageReceived") withArgument:oo::NSStringOrNil(text)];
 
-        [currentMessage release];
-        currentMessage = [text retain];
+        currentMessage = text;
         messageRepeatTime = universal_time + 6.0;
     }
 }
 
-- (void)addCommsMessage:(NSString*)text forCount:(OOTimeDelta)count
+- (void)cxx_addCommsMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count
 {
-    [self addCommsMessage:text forCount:count andShowComms:_autoCommLog logOnly:NO];
+    [self cxx_addCommsMessage:text forCount:count andShowComms:_autoCommLog logOnly:NO];
 }
 
-- (void)addCommsMessage:(NSString*)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly
+- (void)cxx_addCommsMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly
 {
     if ([PLAYER showDemoShips])
         return;
 
-    NSString* expandedMessage = OOExpand(text);
+    const std::optional<std::string> expandedMessage = oo::OptionalString(OOExpand(oo::NSStringOrNil(text)));
 
-    if (![currentMessage isEqualToString:expandedMessage] || universal_time >= messageRepeatTime) {
+    if (!SameMessage(currentMessage, expandedMessage) || universal_time >= messageRepeatTime) {
         PlayerEntity* player = PLAYER;
 
         if (!logOnly) {
             if ([player isSpeechOn] >= OOSPEECHSETTINGS_COMMS) {
                 // EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
-                NSString* format = OOExpandKey(@"speech-synthesis-incoming-message-@");
-                [self speakWithSubstitutions:[NSString stringWithFormat:format, expandedMessage]];
+                const std::string format = ExpandKey("speech-synthesis-incoming-message-@");
+                [self speakWithSubstitutions:oo::str::formatRuntime(format, { expandedMessage.has_value() ? oo::str::FormatArg(*expandedMessage) : oo::str::FormatArg::null() })];
             }
 
             [self showGUIMessage:expandedMessage withScroll:YES andColor:[message_gui textCommsColor] overDuration:count];
 
-            [currentMessage release];
-            currentMessage = [expandedMessage retain];
+            currentMessage = expandedMessage;
             messageRepeatTime = universal_time + 6.0;
         }
 
-        [comm_log_gui printLongText:expandedMessage align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player commLog]];
+        // the printed lines go to the player's (unmigrated) comm log as they went before
+        std::vector<std::string> printedLines;
+        [comm_log_gui cxx_printLongText:expandedMessage align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:std::nullopt addToArray:&printedLines];
+        for (const std::string& line : printedLines)
+            [[player commLog] addObject:oo::NSStringFrom(line)];
 
         if (showComms)
             [self showCommsLog:6.0];
@@ -6417,12 +6604,12 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
         [comm_log_gui fadeOutFromTime:[self getTime] overDuration:how_long];
 }
 
-- (void)showGUIMessage:(NSString*)text withScroll:(BOOL)scroll andColor:(OOColor*)selectedColor overDuration:(OOTimeDelta)how_long
+- (void)showGUIMessage:(const std::optional<std::string>&)text withScroll:(BOOL)scroll andColor:(OOColor*)selectedColor overDuration:(OOTimeDelta)how_long
 {
     if (scroll) {
-        [message_gui printLongText:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:nil addToArray:nil];
+        [message_gui cxx_printLongText:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:std::nullopt addToArray:nullptr];
     } else {
-        [message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:nil addToArray:nil];
+        [message_gui cxx_printLineNoScroll:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:std::nullopt addToArray:nullptr];
     }
     [message_gui setAlpha:1.0f];
 }
@@ -6433,7 +6620,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
         return; // no need to be adding ships as this is not a "real" game
     }
     JSContext* context = OOJSAcquireContext();
-    [PLAYER doWorldScriptEvent:OOJSIDFromString(system_repopulator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+    [PLAYER doWorldScriptEvent:(system_repopulator.has_value() ? cxx_OOJSIDFromString(*system_repopulator) : JS_ATOM_NULL) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
     OOJSRelinquishContext(context);
     next_repopulation = SYSTEM_REPOPULATION_INTERVAL;
 }
@@ -6442,7 +6629,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
 {
     volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
     NSUInteger sessionID = _sessionID;
-    OOLog(@"universe.profile.update", @"%@", @"Begin update");
+    OO_LOG("universe.profile.update", "{}", "Begin update");
     if (EXPECT(!no_update)) {
         next_repopulation -= delta_t;
         if (next_repopulation < 0) {
@@ -6459,7 +6646,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             my_entities[i] = [sortedEntities[i] retain]; // explicitly retain each one
         }
 
-        NSString* volatile update_stage = @"initialisation";
+        const char* volatile update_stage = "initialisation";
 #ifndef NDEBUG
         id volatile update_stage_param = nil;
 #endif
@@ -6476,7 +6663,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             universal_time += delta_t;
 
             if (EXPECT_NOT([player showDemoShips] && [player guiScreen] == GUI_SCREEN_SHIPLIBRARY)) {
-                update_stage = @"demo management";
+                update_stage = "demo management";
 
                 if (universal_time >= demo_stage_time) {
                     if (ent_count > 1) {
@@ -6502,12 +6689,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                             [self removeEntity:demo_ship];
                             demo_ship = nil;
 
-                            /*								NSString		*shipDesc = nil;
-                                                                                            NSString		*shipName = nil;
-                                                                                            NSDictionary	*shipDict = nil; */
-
-                            demo_ship_subindex = (demo_ship_subindex + 1) % [[demo_ships objectAtIndex:demo_ship_index] count];
-                            demo_ship = [self newShipWithName:[[self demoShipData] oo_stringForKey:oo::NSStringFrom(kOODemoShipKey)] usePlayerProxy:NO];
+                            demo_ship_subindex = (demo_ship_subindex + 1) % DemoClassCount(demo_ships, demo_ship_index);
+                            demo_ship = [self cxx_newShipWithName:OptionalStringIn([self demoShipData], kOODemoShipKey).value_or(std::string()) usePlayerProxy:NO]; // a missing key asked for "", as nil did
 
                             if (demo_ship != nil) {
                                 [demo_ship removeEquipmentItem:@"EQ_SHIELD_BOOSTER"];
@@ -6547,20 +6730,18 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 }
             }
 
-            update_stage = @"update:entity";
-            NSMutableSet* zombies = nil;
-            OOLog(@"universe.profile.update", @"%@", update_stage);
+            update_stage = "update:entity";
+            std::vector<oo::ObjCRef<Entity*>> zombies; // each once, in the order found
+            OO_LOG("universe.profile.update", "{}", const_cast<const char*>(update_stage));
             for (i = 0; i < ent_count; i++) {
                 Entity* thing = my_entities[i];
 #ifndef NDEBUG
                 update_stage_param = thing;
-                update_stage = @"update:entity [%@]";
+                update_stage = "update:entity [%@]";
 #endif
                 // Game Over code depends on regular delta_t updates to the dead player entity. Ignore the player entity, even when dead.
-                if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing] && ![thing isPlayer])) {
-                    if (zombies == nil)
-                        zombies = [NSMutableSet set];
-                    [zombies addObject:thing];
+                if (EXPECT_NOT([thing status] == STATUS_DEAD && std::find(entitiesDeadThisUpdate.begin(), entitiesDeadThisUpdate.end(), thing) == entitiesDeadThisUpdate.end() && ![thing isPlayer])) {
+                    AddIfAbsent(zombies, thing);
                     continue;
                 }
 
@@ -6571,7 +6752,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 }
 
 #ifndef NDEBUG
-                update_stage = @"update:list maintenance [%@]";
+                update_stage = "update:list maintenance [%@]";
 #endif
 
                 // maintain distance-from-player list
@@ -6589,7 +6770,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                 // update deterministic AI
                 if ([thing isShip]) {
 #ifndef NDEBUG
-                    update_stage = @"update:think [%@]";
+                    update_stage = "update:think [%@]";
 #endif
                     AI* theShipsAI = [(ShipEntity*)thing getAI];
                     if (theShipsAI) {
@@ -6605,26 +6786,27 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             update_stage_param = nil;
 #endif
 
-            if (zombies != nil) {
-                update_stage = @"shootin' zombies";
+            if (!zombies.empty()) {
+                update_stage = "shootin' zombies";
                 Entity* zombie = nil;
-                foreach (zombie, zombies) {
-                    OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
+                for (const oo::ObjCRef<Entity*>& entry : zombies) {
+                    zombie = entry.get();
+                    OO_LOG_ERR("universe.zombie", "Found dead entity {} in active entity list, removing. This is an internal error, please report it.", oo::DescriptionOf(zombie));
                     [self removeEntity:zombie];
                 }
             }
 
             // Maintain x/y/z order lists
-            update_stage = @"updating linked lists";
-            OOLog(@"universe.profile.update", @"%@", update_stage);
+            update_stage = "updating linked lists";
+            OO_LOG("universe.profile.update", "{}", const_cast<const char*>(update_stage));
             for (i = 0; i < ent_count; i++) {
                 [my_entities[i] updateLinkedLists];
             }
 
             // detect collisions and light ships that can see the sun
 
-            update_stage = @"collision and shadow detection";
-            OOLog(@"universe.profile.update", @"%@", update_stage);
+            update_stage = "collision and shadow detection";
+            OO_LOG("universe.profile.update", "{}", const_cast<const char*>(update_stage));
             [self filterSortedLists];
             [self findCollisionsAndShadows];
 
@@ -6639,11 +6821,12 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             if (strncmp([exception name], "Oolite", 6) == 0) {
                 [self handleOoliteException:exception];
             } else {
+                std::string stage = update_stage;
 #ifndef NDEBUG
                 if (update_stage_param != nil)
-                    update_stage = [NSString stringWithFormat:update_stage, update_stage_param];
+                    stage = oo::str::formatRuntime(stage, { oo::DescriptionOf(update_stage_param) });
 #endif
-                OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+                OO_LOG(cxx_kOOLogException, "***** Exception during [{}] in [Universe update:] : {} : {} *****", stage, [exception name], [exception reason]);
                 @throw exception;
             }
         }
@@ -6651,18 +6834,19 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             if ([[exception name] hasPrefix:@"Oolite"]) {
                 [self handleOoliteException:[OOException exceptionWithName:[[exception name] UTF8String] reason:[[exception reason] UTF8String]]];
             } else {
+                std::string stage = update_stage;
 #ifndef NDEBUG
                 if (update_stage_param != nil)
-                    update_stage = [NSString stringWithFormat:update_stage, update_stage_param];
+                    stage = oo::str::formatRuntime(stage, { oo::DescriptionOf(update_stage_param) });
 #endif
-                OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, [exception name], [exception reason]);
+                OO_LOG(cxx_kOOLogException, "***** Exception during [{}] in [Universe update:] : {} : {} *****", stage, oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
                 @throw exception;
             }
         }
 
         // dispose of the non-mutable copy and everything it references neatly
-        update_stage = @"clean up";
-        OOLog(@"universe.profile.update", @"%@", update_stage);
+        update_stage = "clean up";
+        OO_LOG("universe.profile.update", "{}", const_cast<const char*>(update_stage));
         for (i = 0; i < ent_count; i++) {
             [my_entities[i] release]; // explicitly release each one
         }
@@ -6674,8 +6858,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
          * necessary. Merely checking is not significant in terms of
          * time. - CIM: 4/8/2013
          */
-        update_stage = @"JS Garbage Collection";
-        OOLog(@"universe.profile.update", @"%@", update_stage);
+        update_stage = "JS Garbage Collection";
+        OO_LOG("universe.profile.update", "{}", const_cast<const char*>(update_stage));
         [[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:NO];
 
     } else {
@@ -6684,15 +6868,15 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
             [PLAYER update:delta_t];
     }
 
-    [entitiesDeadThisUpdate autorelease];
-    entitiesDeadThisUpdate = nil;
-    entitiesDeadThisUpdate = [[NSMutableSet alloc] initWithCapacity:n_entities];
+    // The dead stay alive until the autorelease pool drains, as the autoreleased set kept them.
+    AutoreleaseAll(entitiesDeadThisUpdate);
+    entitiesDeadThisUpdate.reserve(n_entities);
 
 #if NEW_PLANETS
     [self prunePreloadingPlanetMaterials];
 #endif
 
-    OOLog(@"universe.profile.update", @"%@", @"Update complete");
+    OO_LOG("universe.profile.update", "{}", "Update complete");
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -7130,7 +7314,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
                             } else {
                                 /* This shouldn't happen... If it does, we accept
                                  * missing collision checks and move on */
-                                OOLog(@"general.error.inconsistentState", @"Unexpected state in collision chain builder prev=%@, prev->c=%@, e0=%@, e0->c=%@", prev, prev->collision_chain, e0, e0->collision_chain);
+                                OO_LOG("general.error.inconsistentState", "Unexpected state in collision chain builder prev={}, prev->c={}, e0={}, e0->c={}", oo::DescriptionOf(prev), oo::DescriptionOf(prev->collision_chain), oo::DescriptionOf(e0), oo::DescriptionOf(e0->collision_chain));
                             }
                         }
                     }
@@ -7178,10 +7362,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
         // systems
         @autoreleasepool {
             for (i = 0; i < 256; i++) {
-                if (system_names[i]) {
-                    [system_names[i] release];
-                }
-                system_names[i] = [[systemManager getProperty:@"name" forSystem:i inGalaxy:g] retain];
+                system_names[i] = SystemPropertyString([systemManager cxx_getProperty:"name" forSystem:i inGalaxy:g]);
             }
         }
     }
@@ -7189,22 +7370,23 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
 
 - (void)setSystemTo:(OOSystemID)s
 {
-    NSDictionary* systemData;
+    oo::PList systemData;
     PlayerEntity* player = PLAYER;
     OOEconomyID economy;
-    NSString* scriptName;
+    std::optional<std::string> scriptName;
 
     [self setGalaxyTo:[player galaxyNumber]];
 
     systemID = s;
     targetSystemID = s;
 
-    systemData = [self generateSystemData:targetSystemID];
-    economy = [systemData oo_unsignedCharForKey:KEY_ECONOMY];
-    scriptName = [systemData oo_stringForKey:@"market_script" defaultValue:nil];
+    systemData = [self cxx_generateSystemData:targetSystemID];
+    economy = systemData.get<unsigned char>(oo::StdString(KEY_ECONOMY));
+    scriptName = OptionalStringIn(systemData, "market_script");
 
     DESTROY(commodityMarket);
-    commodityMarket = [[commodities generateMarketForSystemWithEconomy:economy andScript:scriptName] retain];
+    // OOCommodities is not migrated yet: the script name goes as the string (or nil) it read before.
+    commodityMarket = [[commodities generateMarketForSystemWithEconomy:economy andScript:oo::NSStringOrNil(scriptName)] retain];
 }
 
 - (OOSystemID)currentSystemID
@@ -7212,51 +7394,221 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range)
     return systemID;
 }
 
-- (NSDictionary*)descriptions
+namespace {
+
+// Makes each assignment of a Universe's _descriptions distinguishable (see -cxx_descriptionsGeneration).
+unsigned sDescriptionsGeneration = 0;
+
+// +dictionaryWithContentsOfFile: of the dictionary class: the file's property list if it is a
+// dictionary, else (missing, unreadable, unparsable, another kind) a null PList. As ResourceManager.mm.
+oo::PList DictionaryWithContentsOfFile(const std::string& path)
 {
-    if (_descriptions == nil) {
+    const auto data = oo::fs::readFile(oo::fs::pathFromUTF8(path));
+    if (!data)
+        return oo::PList();
+    auto plist = oo::parsePropertyListData(data->stringView());
+    if (!plist || !plist->isDict())
+        return oo::PList();
+    return std::move(*plist);
+}
+
+/*	A string element of an array, nullopt where oo_stringAtIndex: gave nil (past the end, or
+        neither a string nor a number; a number reads as its -stringValue).
+*/
+std::optional<std::string> OptionalStringAt(const oo::PList& array, std::size_t index)
+{
+    const oo::PList* value = array.at(index);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return array.at<std::string>(index);
+}
+
+/*	A string from a configuration dictionary, nullopt where oo_stringForKey: gave nil (the key is
+        absent, or its value is neither a string nor a number; a number reads as its -stringValue).
+*/
+std::optional<std::string> OptionalStringIn(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return std::nullopt;
+    return dict.get<std::string>(key);
+}
+
+/*	The object -objectForKey: gave for a configuration value (nil when absent), for callees that
+        still take Objective-C objects (+[OOColor colorWithDescription:]).
+*/
+id ObjectForKeyIn(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    return (value != nullptr) ? oo::ObjectFromPList(*value) : nil;
+}
+
+// get<Vector> / get<HPVector>: OOVectorFromObject / OOHPVectorFromObject (not migrated yet) of the
+// value; the zero vector for a null configuration (messaging nil).
+Vector VectorIn(const oo::PList& dict, std::string_view key, Vector fallback)
+{
+    if (dict.isNull())
+        return kZeroVector;
+    return OOVectorFromObject(ObjectForKeyIn(dict, key), fallback);
+}
+
+HPVector HPVectorIn(const oo::PList& dict, std::string_view key, HPVector fallback)
+{
+    if (dict.isNull())
+        return kZeroHPVector;
+    return OOHPVectorFromObject(ObjectForKeyIn(dict, key), fallback);
+}
+
+// What %@ printed for a string that may be nil.
+std::string TextOrNull(const std::optional<std::string>& text)
+{
+    return text.has_value() ? *text : std::string("(null)");
+}
+
+// An equipment entry's extra-info dictionary: the dictionary, or nullptr where the old read gave nil.
+const oo::PList* EquipmentExtraInfo(const oo::PList& item)
+{
+    return item.at<oo::PList::Dict>(EQUIPMENT_EXTRA_INFO_INDEX);
+}
+
+// -[nil oo_unsignedLongLongForKey:defaultValue:] was 0, not the fallback.
+unsigned long long ExtraInfoValue(const oo::PList* extra, std::string_view key, unsigned long long fallback)
+{
+    return (extra != nullptr) ? extra->get<unsigned long long>(key, fallback) : 0;
+}
+
+// equipment.plist order: explicit sort_order, then tech level, then price (ties keep file order).
+bool equipmentSort(const oo::PList& one, const oo::PList& two)
+{
+    unsigned long long comp1 = ExtraInfoValue(EquipmentExtraInfo(one), "sort_order", 1000);
+    unsigned long long comp2 = ExtraInfoValue(EquipmentExtraInfo(two), "sort_order", 1000);
+    if (comp1 != comp2)
+        return comp1 < comp2;
+
+    comp1 = one.at<unsigned long long>(EQUIPMENT_TECH_LEVEL_INDEX);
+    comp2 = two.at<unsigned long long>(EQUIPMENT_TECH_LEVEL_INDEX);
+    if (comp1 != comp2)
+        return comp1 < comp2;
+
+    comp1 = one.at<unsigned long long>(EQUIPMENT_PRICE_INDEX);
+    comp2 = two.at<unsigned long long>(EQUIPMENT_PRICE_INDEX);
+    return comp1 < comp2;
+}
+
+// As equipmentSort, but purchase_sort_order (falling back to sort_order) first.
+bool equipmentSortOutfitting(const oo::PList& one, const oo::PList& two)
+{
+    const oo::PList* extra1 = EquipmentExtraInfo(one);
+    const oo::PList* extra2 = EquipmentExtraInfo(two);
+    unsigned long long comp1 = ExtraInfoValue(extra1, "purchase_sort_order", ExtraInfoValue(extra1, "sort_order", 1000));
+    unsigned long long comp2 = ExtraInfoValue(extra2, "purchase_sort_order", ExtraInfoValue(extra2, "sort_order", 1000));
+    if (comp1 != comp2)
+        return comp1 < comp2;
+
+    comp1 = one.at<unsigned long long>(EQUIPMENT_TECH_LEVEL_INDEX);
+    comp2 = two.at<unsigned long long>(EQUIPMENT_TECH_LEVEL_INDEX);
+    if (comp1 != comp2)
+        return comp1 < comp2;
+
+    comp1 = one.at<unsigned long long>(EQUIPMENT_PRICE_INDEX);
+    comp2 = two.at<unsigned long long>(EQUIPMENT_PRICE_INDEX);
+    return comp1 < comp2;
+}
+
+// A string field of equipment entry j (nullopt where the old nested read gave nil).
+std::optional<std::string> EquipmentItemString(const oo::PList& equipment, std::size_t j, std::size_t index)
+{
+    const oo::PList* item = equipment.at<oo::PList::Array>(j);
+    return (item != nullptr) ? OptionalStringAt(*item, index) : std::nullopt;
+}
+
+// The populator blocks' order: ascending priority (100 when absent).
+bool populatorPrioritySort(const oo::PList& one, const oo::PList& two)
+{
+    int pri_one = one.get<int>("priority", 100);
+    int pri_two = two.get<int>("priority", 100);
+    return pri_one < pri_two;
+}
+
+/*	oo_fuzzyBooleanForKey:defaultValue: on a configuration: NO for a null one (messaging nil), else
+        OOFuzzyBooleanFromObject (not migrated yet) of the value as the object it was (nil when absent),
+        which draws the same random number it drew before.
+*/
+BOOL FuzzyBooleanIn(const oo::PList& dict, std::string_view key, float fallback)
+{
+    if (dict.isNull())
+        return NO;
+    const oo::PList* value = dict.find(key);
+    return OOFuzzyBooleanFromObject((value != nullptr) ? oo::ObjectFromPList(*value) : nil, fallback);
+}
+
+/*	A system property the old code handed on as a string object (a system name, inhabitants): the
+        string, nullopt where the property was absent (nil). Planetinfo names and inhabitants are
+        strings; a number reads as its -stringValue.
+*/
+std::optional<std::string> SystemPropertyString(const oo::PList& property)
+{
+    if (const std::string* string = property.getIf<std::string>())
+        return *string;
+    if (property.isNumber())
+        return oo::plist_get::numberStringValue(property);
+    return std::nullopt;
+}
+
+} // namespace
+
+- (const oo::PList*)cxx_descriptions
+{
+    if (_descriptions.isNull()) {
         // Load internal descriptions.plist for use in early init, OXP verifier etc.
         // It will be replaced by merged version later if running the game normally.
-        _descriptions = [NSDictionary dictionaryWithContentsOfFile:[[[ResourceManager builtInPath]
-                                                                       stringByAppendingPathComponent:@"Config"]
-                                                                       stringByAppendingPathComponent:@"descriptions.plist"]];
+        _descriptions = DictionaryWithContentsOfFile(oo::str::appendingPathComponent(oo::str::appendingPathComponent(*[ResourceManager cxx_builtInPath], "Config"), "descriptions.plist"));
+        _descriptionsGeneration = ++sDescriptionsGeneration;
 
         [self verifyDescriptions];
     }
-    return _descriptions;
+    return &_descriptions;
 }
 
-static void VerifyDesc(NSString* key, id desc);
-
-static void VerifyDescString(NSString* key, NSString* desc)
+- (unsigned)cxx_descriptionsGeneration
 {
-    if ([desc rangeOfString:@"%n"].location != NSNotFound) {
-        OOLog(@"descriptions.verify.percentN", @"***** FATAL: descriptions.plist entry \"%@\" contains the dangerous control sequence %%n.", key);
+    return _descriptionsGeneration;
+}
+
+namespace {
+
+void VerifyDesc(const std::string& key, const oo::PList& desc);
+
+void VerifyDescString(const std::string& key, const std::string& desc)
+{
+    if (desc.find("%n") != std::string::npos) {
+        OO_LOG("descriptions.verify.percentN", "***** FATAL: descriptions.plist entry \"{}\" contains the dangerous control sequence %n.", key);
         exit(EXIT_FAILURE);
     }
 }
 
-static void VerifyDescArray(NSString* key, NSArray* desc)
+void VerifyDescArray(const std::string& key, const oo::PList& desc)
 {
-    id subDesc = nil;
-    foreach (subDesc, desc) {
+    for (const oo::PList& subDesc : *desc.getIf<oo::PList::Array>()) {
         VerifyDesc(key, subDesc);
     }
 }
 
-static void VerifyDesc(NSString* key, id desc)
+void VerifyDesc(const std::string& key, const oo::PList& desc)
 {
-    if ([desc isKindOfClass:[NSString class]]) {
-        VerifyDescString(key, desc);
-    } else if ([desc isKindOfClass:[NSArray class]]) {
+    if (desc.isString()) {
+        VerifyDescString(key, *desc.getIf<std::string>());
+    } else if (desc.isArray()) {
         VerifyDescArray(key, desc);
-    } else if ([desc isKindOfClass:[NSNumber class]]) {
+    } else if (desc.isNumber()) {
         // No verification needed.
     } else {
-        OOLogERR(@"descriptions.verify.badType", @"***** FATAL: descriptions.plist entry for \"%@\" is neither a string nor an array.", key);
+        OO_LOG_ERR("descriptions.verify.badType", "***** FATAL: descriptions.plist entry for \"{}\" is neither a string nor an array.", key);
         exit(EXIT_FAILURE);
     }
 }
+
+} // namespace
 
 - (void)verifyDescriptions
 {
@@ -7270,66 +7622,67 @@ static void VerifyDesc(NSString* key, id desc)
             -- Ahruman 2011-05-05
     */
 
-    NSString* key = nil;
-    if (_descriptions == nil) {
-        OOLog(@"descriptions.verify", @"%@", @"***** FATAL: Tried to verify descriptions, but descriptions was nil - unable to load any descriptions.plist file.");
+    if (_descriptions.isNull()) {
+        OO_LOG("descriptions.verify", "{}", "***** FATAL: Tried to verify descriptions, but descriptions was nil - unable to load any descriptions.plist file.");
         exit(EXIT_FAILURE);
     }
-    foreachkey(key, _descriptions)
-    {
-        VerifyDesc(key, [_descriptions objectForKey:key]);
+    // Byte order of the key (was hash order): it decides only which bad entry is reported first.
+    if (const oo::PList::Dict* entries = _descriptions.getIf<oo::PList::Dict>()) {
+        for (const auto& [key, value] : *entries) {
+            VerifyDesc(key, value);
+        }
     }
 }
 
 - (void)loadDescriptions
 {
-    [_descriptions autorelease];
-    _descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+    _descriptions = [ResourceManager cxx_dictionaryFromFilesNamed:"descriptions.plist" inFolder:std::string("Config") andMerge:YES];
+    _descriptionsGeneration = ++sDescriptionsGeneration;
     [self verifyDescriptions];
 }
 
-- (NSDictionary*)explosionSetting:(NSString*)explosion
+- (oo::PList)cxx_explosionSetting:(const std::string&)explosion
 {
-    return [explosionSettings oo_dictionaryForKey:explosion defaultValue:nil];
+    const oo::PList* setting = explosionSettings.get<oo::PList::Dict>(explosion);
+    return (setting != nullptr) ? *setting : oo::PList();
 }
 
-- (NSArray*)scenarios
+- (oo::PList)cxx_scenarios
 {
     return _scenarios;
 }
 
 - (void)loadScenarios
 {
-    [_scenarios autorelease];
-    _scenarios = [[ResourceManager arrayFromFilesNamed:@"scenarios.plist" inFolder:@"Config" andMerge:YES] retain];
+    _scenarios = [ResourceManager cxx_arrayFromFilesNamed:"scenarios.plist" inFolder:std::string("Config") andMerge:YES];
 }
 
-- (NSDictionary*)characters
+- (oo::PList)cxx_characters
 {
     return characters;
 }
 
-- (NSDictionary*)missiontext
+- (oo::PList)cxx_missiontext
 {
     return missiontext;
 }
 
-- (NSString*)descriptionForKey:(NSString*)key
+- (std::optional<std::string>)cxx_descriptionForKey:(const std::string&)key
 {
-    return [self chooseStringForKey:key inDictionary:[self descriptions]];
+    return [self chooseStringForKey:key inDictionary:*[self cxx_descriptions]];
 }
 
-- (NSString*)descriptionForArrayKey:(NSString*)key index:(unsigned)index
+- (std::optional<std::string>)cxx_descriptionForArrayKey:(const std::string&)key index:(unsigned)index
 {
-    NSArray* array = [[self descriptions] oo_arrayForKey:key];
-    if ([array count] <= index)
-        return nil; // Catches nil array
-    return [array objectAtIndex:index];
+    const oo::PList* array = [self cxx_descriptions]->get<oo::PList::Array>(key);
+    if (array == nullptr || array->count() <= index)
+        return std::nullopt; // Catches a missing array
+    return OptionalStringAt(*array, index);
 }
 
-- (BOOL)descriptionBooleanForKey:(NSString*)key
+- (BOOL)descriptionBooleanForKey:(const std::string&)key
 {
-    return [[self descriptions] oo_boolForKey:key];
+    return [self cxx_descriptions]->get<bool>(key);
 }
 
 - (OOSystemDescriptionManager*)systemManager
@@ -7337,60 +7690,60 @@ static void VerifyDesc(NSString* key, id desc)
     return systemManager;
 }
 
-- (NSString*)keyForPlanetOverridesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+- (std::optional<std::string>)cxx_keyForPlanetOverridesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
 {
-    return [NSString stringWithFormat:@"%d %d", g, s];
+    return oo::str::format("%d %d", g, s);
 }
 
-- (NSString*)keyForInterstellarOverridesForSystems:(OOSystemID)s1 s2:(OOSystemID)s2 inGalaxy:(OOGalaxyID)g
+- (std::optional<std::string>)keyForInterstellarOverridesForSystems:(OOSystemID)s1 s2:(OOSystemID)s2 inGalaxy:(OOGalaxyID)g
 {
-    return [NSString stringWithFormat:@"interstellar: %d %d %d", g, s1, s2];
+    return oo::str::format("interstellar: %d %d %d", g, s1, s2);
 }
 
-- (NSDictionary*)generateSystemData:(OOSystemID)s
+- (oo::PList)cxx_generateSystemData:(OOSystemID)s
 {
-    return [self generateSystemData:s useCache:YES];
+    return [self cxx_generateSystemData:s useCache:YES];
 }
 
 // cache isn't handled this way any more
-- (NSDictionary*)generateSystemData:(OOSystemID)s useCache:(BOOL)useCache
+- (oo::PList)cxx_generateSystemData:(OOSystemID)s useCache:(BOOL)useCache
 {
     OOJS_PROFILE_ENTER
 
     // TODO: At the moment this method is only called for systems in the
     // same galaxy. At some point probably needs generalising to have a
     // galaxynumber parameter.
-    NSString* systemKey = [NSString stringWithFormat:@"%u %u", [PLAYER galaxyNumber], s];
+    const std::string systemKey = oo::str::format("%u %u", [PLAYER galaxyNumber], s);
 
-    return [systemManager getPropertiesForSystemKey:systemKey];
+    return [systemManager cxx_getPropertiesForSystemKey:systemKey];
 
     OOJS_PROFILE_EXIT
 }
 
-- (NSDictionary*)currentSystemData
+- (oo::PList)cxx_currentSystemData
 {
     OOJS_PROFILE_ENTER
 
     if (![self inInterstellarSpace]) {
-        return [self generateSystemData:systemID];
+        return [self cxx_generateSystemData:systemID];
     } else {
-        static NSDictionary* interstellarDict = nil;
-        if (interstellarDict == nil) {
-            NSString* interstellarName = DESC(@"interstellar-space");
-            NSString* notApplicable = DESC(@"not-applicable");
-            NSNumber* minusOne = [NSNumber numberWithInt:-1];
-            NSNumber* zero = [NSNumber numberWithInt:0];
-            interstellarDict = [[NSDictionary alloc] initWithObjectsAndKeys:
-                    interstellarName, KEY_NAME,
-                minusOne, KEY_GOVERNMENT,
-                minusOne, KEY_ECONOMY,
-                minusOne, KEY_TECHLEVEL,
-                zero, KEY_POPULATION,
-                zero, KEY_PRODUCTIVITY,
-                zero, KEY_RADIUS,
-                notApplicable, KEY_INHABITANTS,
-                notApplicable, KEY_DESCRIPTION,
-                nil];
+        static oo::PList interstellarDict; // null until built
+        if (interstellarDict.isNull()) {
+            const std::string interstellarName = cxx_OOLookUpDescriptionPRIV("interstellar-space");
+            const std::string notApplicable = cxx_OOLookUpDescriptionPRIV("not-applicable");
+            // signed integers, as +numberWithInt: made them
+            const oo::PList minusOne = oo::PList::signedInteger(-1);
+            const oo::PList zero = oo::PList::signedInteger(0);
+            interstellarDict = oo::PList(oo::PList::Dict {
+                { oo::StdString(KEY_NAME), oo::PList(interstellarName) },
+                { oo::StdString(KEY_GOVERNMENT), minusOne },
+                { oo::StdString(KEY_ECONOMY), minusOne },
+                { oo::StdString(KEY_TECHLEVEL), minusOne },
+                { oo::StdString(KEY_POPULATION), zero },
+                { oo::StdString(KEY_PRODUCTIVITY), zero },
+                { oo::StdString(KEY_RADIUS), zero },
+                { oo::StdString(KEY_INHABITANTS), oo::PList(notApplicable) },
+                { oo::StdString(KEY_DESCRIPTION), oo::PList(notApplicable) } });
         }
 
         return interstellarDict;
@@ -7406,16 +7759,16 @@ static void VerifyDesc(NSString* key, id desc)
 
 // layer 2
 // used by legacy script engine and sun going nova
-- (void)setSystemDataKey:(NSString*)key value:(NSObject*)object fromManifest:(NSString*)manifest
+- (void)cxx_setSystemDataKey:(const std::string&)key value:(id)object fromManifest:(const std::optional<std::string>&)manifest
 {
-    [self setSystemDataForGalaxy:galaxyID planet:systemID key:key value:object fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
+    [self cxx_setSystemDataForGalaxy:galaxyID planet:systemID key:key value:object fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
-- (void)setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString*)key value:(id)object fromManifest:(NSString*)manifest forLayer:(OOSystemLayer)layer
+- (void)cxx_setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key value:(id)object fromManifest:(const std::optional<std::string>&)manifest forLayer:(OOSystemLayer)layer
 {
     static BOOL sysdataLocked = NO;
     if (sysdataLocked) {
-        OOLogERR(@"script.error", @"%@", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
+        OO_LOG_ERR("script.error", "{}", "System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
         return;
     }
 
@@ -7423,62 +7776,62 @@ static void VerifyDesc(NSString* key, id desc)
     BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
 
     // trying to set  unsettable properties?
-    if ([key isEqualToString:KEY_RADIUS] && sameGalaxy && sameSystem) // buggy if we allow this key to be set while in the system
+    if (key == oo::StdString(KEY_RADIUS) && sameGalaxy && sameSystem) // buggy if we allow this key to be set while in the system
     {
-        OOLogERR(@"script.error", @"System property '%@' cannot be set while in the system.", key);
+        OO_LOG_ERR("script.error", "System property '{}' cannot be set while in the system.", key);
         return;
     }
 
-    if ([key isEqualToString:@"coordinates"]) // setting this in game would be very confusing
+    if (key == "coordinates") // setting this in game would be very confusing
     {
-        OOLogERR(@"script.error", @"System property '%@' cannot be set.", key);
+        OO_LOG_ERR("script.error", "System property '{}' cannot be set.", key);
         return;
     }
 
-    NSString* overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
-    NSDictionary* sysInfo = nil;
+    const std::string overrideKey = oo::str::format("%u %u", gnum, pnum);
+    oo::PList sysInfo;
 
     // short range map fix
     [gui refreshStarChart];
 
     if (object != nil) {
         // long range map fixes
-        if ([key isEqualToString:KEY_NAME]) {
-            object = (id)[[(NSString*)object lowercaseString] capitalizedString];
+        if (key == oo::StdString(KEY_NAME)) {
+            // -lowercaseString / -capitalizedString of the name (a script string)
+            const std::string name = oo::str::capitalized(oo::str::lowercase(oo::StdString(object)));
+            object = oo::NSStringFrom(name);
             if (sameGalaxy) {
-                if (system_names[pnum])
-                    [system_names[pnum] release];
-                system_names[pnum] = [(NSString*)object retain];
+                system_names[pnum] = name;
             }
-        } else if ([key isEqualToString:@"sun_radius"]) {
+        } else if (key == "sun_radius") {
             if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0) {
-                object = ([object doubleValue] < 1000.0 ? (id) @"1000.0" : (id) @"10000000.0"); // works!
+                object = oo::NSStringFrom([object doubleValue] < 1000.0 ? "1000.0" : "10000000.0"); // works!
             }
-        } else if ([key hasPrefix:@"corona_"]) {
-            object = (id)[NSString stringWithFormat:@"%f", OOClamp_0_1_f([object floatValue])];
+        } else if (oo::str::hasPrefix(key, "corona_")) {
+            object = oo::NSStringFrom(oo::str::format("%f", OOClamp_0_1_f([object floatValue])));
         }
     }
 
-    [systemManager setProperty:key forSystemKey:overrideKey andLayer:layer toValue:object fromManifest:manifest];
+    // the value read once (nil -> a null PList, which removes the property as nil did)
+    [systemManager cxx_setProperty:key forSystemKey:overrideKey andLayer:layer toValue:oo::PListFrom(object) fromManifest:manifest];
 
     // Apply changes that can be effective immediately, issue warning if they can't be changed just now
     if (sameSystem) {
-        sysInfo = [systemManager getPropertiesForCurrentSystem];
+        sysInfo = [systemManager cxx_getPropertiesForCurrentSystem];
 
         OOSunEntity* the_sun = [self sun];
         /* KEY_ECONOMY used to be here, but resetting the main station
          * market while the player is in the system is likely to cause
          * more trouble than it's worth. Let them leave and come back
          * - CIM */
-        if ([key isEqualToString:KEY_TECHLEVEL]) {
+        if (key == oo::StdString(KEY_TECHLEVEL)) {
             if ([self station]) {
                 [[self station] setEquivalentTechLevel:[object intValue]];
                 [[self station] setLocalShipyard:[self shipsForSaleForSystem:systemID
                                                                       withTL:[object intValue]
                                                                       atTime:[PLAYER clockTime]]];
             }
-        } else if ([key isEqualToString:@"sun_color"] || [key isEqualToString:@"star_count_multiplier"] ||
-            [key isEqualToString:@"nebula_count_multiplier"] || [key hasPrefix:@"sky_"]) {
+        } else if (key == "sun_color" || key == "star_count_multiplier" || key == "nebula_count_multiplier" || oo::str::hasPrefix(key, "sky_")) {
             SkyEntity* the_sky = nil;
             int i;
 
@@ -7487,9 +7840,9 @@ static void VerifyDesc(NSString* key, id desc)
                     the_sky = (SkyEntity*)sortedEntities[i];
 
             if (the_sky != nil) {
-                [the_sky changeProperty:oo::StdString(key) withDictionary:oo::PListFrom(sysInfo)];
+                [the_sky changeProperty:key withDictionary:sysInfo];
 
-                if ([key isEqualToString:@"sun_color"]) {
+                if (key == "sun_color") {
                     OOColor* color = [the_sky skyColor];
                     if (the_sun != nil) {
                         [the_sun setSunColor:color];
@@ -7501,51 +7854,59 @@ static void VerifyDesc(NSString* key, id desc)
                             [(DustEntity*)sortedEntities[i] setDustColor:[color blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]]];
                 }
             }
-        } else if (the_sun != nil && ([key hasPrefix:@"sun_"] || [key hasPrefix:@"corona_"])) {
-            [the_sun changeSunProperty:oo::StdString(key) withDictionary:oo::PListFrom(sysInfo)];
-        } else if ([key isEqualToString:@"texture"]) {
-            [[self planet] setUpPlanetFromTexture:(NSString*)object];
-        } else if ([key isEqualToString:@"texture_hsb_color"]) {
+        } else if (the_sun != nil && (oo::str::hasPrefix(key, "sun_") || oo::str::hasPrefix(key, "corona_"))) {
+            [the_sun changeSunProperty:key withDictionary:sysInfo];
+        } else if (key == "texture") {
+            [[self planet] setUpPlanetFromTexture:oo::OptionalString(object)];
+        } else if (key == "texture_hsb_color") {
             [[self planet] setUpPlanetFromTexture:[[self planet] textureFileName]];
-        } else if ([key isEqualToString:@"air_color"]) {
+        } else if (key == "air_color") {
             [[self planet] setAirColor:[OOColor brightColorWithDescription:object]];
-        } else if ([key isEqualToString:@"illumination_color"]) {
+        } else if (key == "illumination_color") {
             [[self planet] setIlluminationColor:[OOColor colorWithDescription:object]];
-        } else if ([key isEqualToString:@"air_color_mix_ratio"]) {
-            [[self planet] setAirColorMixRatio:[sysInfo oo_floatForKey:key]];
+        } else if (key == "air_color_mix_ratio") {
+            [[self planet] setAirColorMixRatio:sysInfo.get<float>(key)];
         }
     }
 
     sysdataLocked = YES;
-    [PLAYER doScriptEvent:OOJSID("systemInformationChanged") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithInt:gnum], [NSNumber numberWithInt:pnum], key, object, nil]];
+    // the same arguments (a nil value ends the list, as it did)
+    [PLAYER doScriptEvent:OOJSID("systemInformationChanged") withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList::signedInteger(gnum), oo::PList::signedInteger(pnum), oo::PList(key), oo::PListObject(object) }))];
     sysdataLocked = NO;
 }
 
-- (NSDictionary*)generateSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
+- (oo::PList)generateSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
 {
-    NSString* systemKey = [self keyForPlanetOverridesForSystem:pnum inGalaxy:gnum];
-    return [systemManager getPropertiesForSystemKey:systemKey];
+    const std::optional<std::string> systemKey = [self cxx_keyForPlanetOverridesForSystem:pnum inGalaxy:gnum];
+    return [systemManager cxx_getPropertiesForSystemKey:*systemKey];
 }
 
-- (NSArray*)systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
+// Byte order of the key (was the dictionary's -allKeys, hash order).
+- (std::vector<std::string>)cxx_systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
 {
-    return [[self generateSystemDataForGalaxy:gnum planet:pnum] allKeys];
+    std::vector<std::string> keys;
+    const oo::PList systemData = [self generateSystemDataForGalaxy:gnum planet:pnum];
+    if (const oo::PList::Dict* entries = systemData.getIf<oo::PList::Dict>()) {
+        for (const auto& [key, value] : *entries)
+            keys.push_back(key);
+    }
+    return keys;
 }
 
 /* Only called from OOJSSystemInfo. */
-- (id)systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString*)key
+- (id)cxx_systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key
 {
-    return [systemManager getProperty:key forSystem:pnum inGalaxy:gnum];
+    return oo::ObjectFromPList([systemManager cxx_getProperty:key forSystem:pnum inGalaxy:gnum]);
 }
 
-- (NSString*)getSystemName:(OOSystemID)sys
+- (std::optional<std::string>)cxx_getSystemName:(OOSystemID)sys
 {
-    return [self getSystemName:sys forGalaxy:galaxyID];
+    return [self cxx_getSystemName:sys forGalaxy:galaxyID];
 }
 
-- (NSString*)getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gnum
+- (std::optional<std::string>)cxx_getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gnum
 {
-    return [systemManager getProperty:@"name" forSystem:sys inGalaxy:gnum];
+    return SystemPropertyString([systemManager cxx_getProperty:"name" forSystem:sys inGalaxy:gnum]);
 }
 
 - (OOGovernmentID)getSystemGovernment:(OOSystemID)sys
@@ -7553,22 +7914,22 @@ static void VerifyDesc(NSString* key, id desc)
     return [[systemManager getProperty:@"government" forSystem:sys inGalaxy:galaxyID] unsignedCharValue];
 }
 
-- (NSString*)getSystemInhabitants:(OOSystemID)sys
+- (std::optional<std::string>)cxx_getSystemInhabitants:(OOSystemID)sys
 {
-    return [self getSystemInhabitants:sys plural:YES];
+    return [self cxx_getSystemInhabitants:sys plural:YES];
 }
 
-- (NSString*)getSystemInhabitants:(OOSystemID)sys plural:(BOOL)plural
+- (std::optional<std::string>)cxx_getSystemInhabitants:(OOSystemID)sys plural:(BOOL)plural
 {
-    NSString* ret = nil;
+    std::optional<std::string> ret;
     if (!plural) {
-        ret = [systemManager getProperty:KEY_INHABITANT forSystem:sys inGalaxy:galaxyID];
+        ret = SystemPropertyString([systemManager cxx_getProperty:oo::StdString(KEY_INHABITANT) forSystem:sys inGalaxy:galaxyID]);
     }
-    if (ret != nil) // the singular form might be absent.
+    if (ret.has_value()) // the singular form might be absent.
     {
         return ret;
     } else {
-        return [systemManager getProperty:KEY_INHABITANTS forSystem:sys inGalaxy:galaxyID];
+        return SystemPropertyString([systemManager cxx_getProperty:oo::StdString(KEY_INHABITANTS) forSystem:sys inGalaxy:galaxyID]);
     }
 }
 
@@ -7577,17 +7938,13 @@ static void VerifyDesc(NSString* key, id desc)
     return [systemManager getCoordinatesForSystem:s inGalaxy:galaxyID];
 }
 
-- (OOSystemID)findSystemFromName:(NSString*)sysName
+- (OOSystemID)cxx_findSystemFromName:(const std::string&)sysName
 {
-    if (sysName == nil)
-        return -1; // no match found!
-
-    NSString* system_name = nil;
-    NSString* match = [sysName lowercaseString];
+    const std::string match = oo::str::lowercase(sysName);
     int i;
     for (i = 0; i < 256; i++) {
-        system_name = [system_names[i] lowercaseString];
-        if ([system_name isEqualToString:match]) {
+        // a missing name matched nothing
+        if (system_names[i].has_value() && oo::str::lowercase(*system_names[i]) == match) {
             return i;
         }
     }
@@ -7596,13 +7953,13 @@ static void VerifyDesc(NSString* key, id desc)
 
 - (OOSystemID)findSystemAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)g
 {
-    OOLog(@"deprecated.function", @"%@", @"findSystemAtCoords");
+    OO_LOG("deprecated.function", "{}", "findSystemAtCoords");
     return [self findSystemNumberAtCoords:coords withGalaxy:g includingHidden:YES];
 }
 
-- (NSMutableArray*)nearbyDestinationsWithinRange:(double)range
+- (oo::PList)cxx_nearbyDestinationsWithinRange:(double)range
 {
-    NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
+    oo::PList::Array result;
 
     range = OOClamp_0_max_d(range, MAX_JUMP_RANGE); // limit to systems within 7LY
     NSPoint here = [PLAYER galaxy_coordinates];
@@ -7612,17 +7969,15 @@ static void VerifyDesc(NSString* key, id desc)
         double dist = distanceBetweenPlanetPositions(here.x, here.y, there.x, there.y);
         if (dist <= range && (i != systemID || [self inInterstellarSpace])) // if we are in interstellar space, it's OK to include the system we (mis)jumped from
         {
-            [result addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                      [NSNumber numberWithDouble:dist], @"distance",
-                                  [NSNumber numberWithInt:i], @"sysID",
-                                  [[self generateSystemData:i] oo_stringForKey:@"sun_gone_nova"
-                                                                  defaultValue:@"0"],
-                                  @"nova",
-                                  nil]];
+            // the number kinds it held: a double, a signed integer
+            result.push_back(oo::PList(oo::PList::Dict {
+                { "distance", oo::PList(dist) },
+                { "sysID", oo::PList::signedInteger(i) },
+                { "nova", oo::PList([self cxx_generateSystemData:i].get<std::string>("sun_gone_nova", "0")) } }));
         }
     }
 
-    return result;
+    return oo::PList(std::move(result));
 }
 
 - (OOSystemID)findNeighbouringSystemToCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)g
@@ -7722,8 +8077,8 @@ static void VerifyDesc(NSString* key, id desc)
 
     for (i = 0; i < 256; i++) {
         if (!hidden) {
-            NSDictionary* systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:g];
-            NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+            const oo::PList systemInfo = [systemManager cxx_getPropertiesForSystem:i inGalaxy:g];
+            NSInteger concealment = systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
             if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
                 // system is not known
                 continue;
@@ -7754,24 +8109,26 @@ static void VerifyDesc(NSString* key, id desc)
     return system;
 }
 
-- (NSPoint)findSystemCoordinatesWithPrefix:(NSString*)p_fix
+- (NSPoint)cxx_findSystemCoordinatesWithPrefix:(const std::string&)p_fix
 {
-    return [self findSystemCoordinatesWithPrefix:p_fix exactMatch:NO];
+    return [self cxx_findSystemCoordinatesWithPrefix:p_fix exactMatch:NO];
 }
 
-- (NSPoint)findSystemCoordinatesWithPrefix:(NSString*)p_fix exactMatch:(BOOL)exactMatch
+- (NSPoint)cxx_findSystemCoordinatesWithPrefix:(const std::string&)p_fix exactMatch:(BOOL)exactMatch
 {
-    NSString* system_name = nil;
+    std::string system_name;
     NSPoint system_coords = NSMakePoint(-1.0, -1.0);
     int i;
     int result = -1;
     for (i = 0; i < 256; i++) {
         system_found[i] = NO;
-        system_name = [system_names[i] lowercaseString];
-        if ((exactMatch && [system_name isEqualToString:p_fix]) || (!exactMatch && [system_name hasPrefix:p_fix])) {
+        if (!system_names[i].has_value())
+            continue; // a missing name matched nothing
+        system_name = oo::str::lowercase(*system_names[i]);
+        if ((exactMatch && system_name == p_fix) || (!exactMatch && oo::str::hasPrefix(system_name, p_fix))) {
             /* Only used in player-based search routines */
-            NSDictionary* systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxyID];
-            NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+            const oo::PList systemInfo = [systemManager cxx_getPropertiesForSystem:i inGalaxy:galaxyID];
+            NSInteger concealment = systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
             if (concealment >= OO_SYSTEMCONCEALMENT_NONAME) {
                 // system is not known
                 continue;
@@ -7792,12 +8149,12 @@ static void VerifyDesc(NSString* key, id desc)
     return (BOOL*)system_found;
 }
 
-- (NSString*)systemNameIndex:(OOSystemID)index
+- (std::optional<std::string>)cxx_systemNameIndex:(OOSystemID)index
 {
     return system_names[index & 255];
 }
 
-- (NSDictionary*)routeFromSystem:(OOSystemID)start toSystem:(OOSystemID)goal optimizedBy:(OORouteType)optimizeBy
+- (oo::PList)cxx_routeFromSystem:(OOSystemID)start toSystem:(OOSystemID)goal optimizedBy:(OORouteType)optimizeBy
 {
     /*
      time_cost = distance * distance
@@ -7811,15 +8168,15 @@ static void VerifyDesc(NSString* key, id desc)
 
     // no interstellar space for start and/or goal please
     if (start == -1 || goal == -1)
-        return nil;
+        return oo::PList();
 
 #ifdef CACHE_ROUTE_FROM_SYSTEM_RESULTS
 
-    static NSDictionary* c_route = nil;
+    static oo::PList c_route;
     static OOSystemID c_start, c_goal;
     static OORouteType c_optimizeBy;
 
-    if (c_route != nil && c_start == start && c_goal == goal && c_optimizeBy == optimizeBy) {
+    if (!c_route.isNull() && c_start == start && c_goal == goal && c_optimizeBy == optimizeBy) {
         return c_route;
     }
 
@@ -7828,16 +8185,16 @@ static void VerifyDesc(NSString* key, id desc)
     unsigned i, j;
 
     if (start > 255 || goal > 255)
-        return nil;
+        return oo::PList();
 
-    NSArray* neighbours[256];
+    std::vector<OOSystemID> neighbours[256];
     BOOL concealed[256];
     for (i = 0; i < 256; i++) {
-        NSDictionary* systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxyID];
-        NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+        const oo::PList systemInfo = [systemManager cxx_getPropertiesForSystem:i inGalaxy:galaxyID];
+        NSInteger concealment = systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
         if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
             // system is not known
-            neighbours[i] = [NSArray array];
+            neighbours[i].clear();
             concealed[i] = YES;
         } else {
             neighbours[i] = [self neighboursToSystem:i];
@@ -7849,17 +8206,19 @@ static void VerifyDesc(NSString* key, id desc)
 
     double maxCost = optimizeBy == OPTIMIZED_BY_TIME ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
 
-    NSMutableArray* curr = [NSMutableArray arrayWithCapacity:256];
-    [curr addObject:cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0 jumps:0]];
+    std::vector<oo::ObjCRef<RouteElement*>> curr;
+    curr.reserve(256);
+    curr.push_back(oo::ObjCRef<RouteElement*>(cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0 jumps:0]));
 
-    NSMutableArray* next = [NSMutableArray arrayWithCapacity:256];
-    while ([curr count] != 0) {
-        for (i = 0; i < [curr count]; i++) {
-            RouteElement* elemI = [curr objectAtIndex:i];
-            NSArray* ns = neighbours[[elemI location]];
-            for (j = 0; j < [ns count]; j++) {
+    std::vector<oo::ObjCRef<RouteElement*>> next;
+    next.reserve(256);
+    while (curr.size() != 0) {
+        for (i = 0; i < curr.size(); i++) {
+            RouteElement* elemI = curr[i].get();
+            const std::vector<OOSystemID>& ns = neighbours[[elemI location]];
+            for (j = 0; j < ns.size(); j++) {
                 RouteElement* ce = cheapest[[elemI location]];
-                OOSystemID n = [ns oo_intAtIndex:j];
+                OOSystemID n = ns[j];
                 if (concealed[n]) {
                     continue;
                 }
@@ -7879,24 +8238,24 @@ static void VerifyDesc(NSString* key, id desc)
                 if (cost < maxCost && (cheapest[n] == nil || [cheapest[n] cost] > cost)) {
                     RouteElement* e = [RouteElement elementWithLocation:n parent:c cost:cost distance:distance time:time jumps:jumps];
                     cheapest[n] = e;
-                    [next addObject:e];
+                    next.push_back(oo::ObjCRef<RouteElement*>(e));
 
                     if (n == goal && cost < maxCost)
                         maxCost = cost;
                 }
             }
         }
-        [curr setArray:next];
-        [next removeAllObjects];
+        curr = next;
+        next.clear();
     }
 
     if (!cheapest[goal])
-        return nil;
+        return oo::PList();
 
-    NSMutableArray* route = [NSMutableArray arrayWithCapacity:256];
+    oo::PList::Array route; // system IDs as signed integers, as +numberWithInt: made them
     RouteElement* e = cheapest[goal];
     for (;;) {
-        [route insertObject:[NSNumber numberWithInt:[e location]] atIndex:0];
+        route.insert(route.begin(), oo::PList::signedInteger([e location]));
         if ([e parent] == -1)
             break;
         e = cheapest[[e parent]];
@@ -7906,31 +8265,28 @@ static void VerifyDesc(NSString* key, id desc)
     c_start = start;
     c_goal = goal;
     c_optimizeBy = optimizeBy;
-    [c_route release];
-    c_route = [[NSDictionary alloc] initWithObjectsAndKeys:route, @"route", [NSNumber numberWithDouble:[cheapest[goal] distance]], @"distance", nil];
+    c_route = oo::PList(oo::PList::Dict { { "route", oo::PList(std::move(route)) }, { "distance", oo::PList((double)[cheapest[goal] distance]) } });
 
     return c_route;
 #else
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            route, @"route",
-        [NSNumber numberWithDouble:[cheapest[goal] distance]], @"distance",
-        [NSNumber numberWithDouble:[cheapest[goal] time]], @"time",
-        [NSNumber numberWithInt:[cheapest[goal] jumps]], @"jumps",
-        nil];
+    return oo::PList(oo::PList::Dict {
+        { "route", oo::PList(std::move(route)) },
+        { "distance", oo::PList((double)[cheapest[goal] distance]) },
+        { "time", oo::PList((double)[cheapest[goal] time]) },
+        { "jumps", oo::PList::signedInteger([cheapest[goal] jumps]) } });
 #endif
 }
 
-- (NSArray*)neighboursToSystem:(OOSystemID)s
+- (std::vector<OOSystemID>)neighboursToSystem:(OOSystemID)s
 {
-    if (s == systemID && closeSystems != nil) {
-        return closeSystems;
+    if (s == systemID && closeSystems.has_value()) {
+        return *closeSystems;
     }
-    NSArray* neighbours = [systemManager getNeighbourIDsForSystem:s inGalaxy:galaxyID];
+    std::vector<OOSystemID> neighbours = [systemManager cxx_getNeighbourIDsForSystem:s inGalaxy:galaxyID];
 
     if (s == systemID) {
-        [closeSystems release];
-        closeSystems = [neighbours copy];
-        return closeSystems;
+        closeSystems = neighbours;
+        return *closeSystems;
     }
     return neighbours;
 }
@@ -7969,9 +8325,8 @@ static void VerifyDesc(NSString* key, id desc)
 #if 0
 	[self prunePreloadingPlanetMaterials];
 	
-	if ([_preloadingPlanetMaterials count] < 3)
+	if (_preloadingPlanetMaterials.size() < 3)
 	{
-		if (_preloadingPlanetMaterials == nil)  _preloadingPlanetMaterials = [[NSMutableArray alloc] initWithCapacity:4];
 		
 		OOPlanetEntity *planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystem:s];
 		OOMaterial *surface = [planet material];
@@ -7981,12 +8336,12 @@ static void VerifyDesc(NSString* key, id desc)
 			// if it's already loaded, no need to continue
 			if (![surface isFinishedLoading])
 			{
-				[_preloadingPlanetMaterials addObject:surface];
+				_preloadingPlanetMaterials.push_back(oo::ObjCRef<OOMaterial *>(surface));
 		
 				// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
 				// Trying to add nil to _preloadingPlanetMaterials will prematurely terminate the calling function.(!) --Kaks 20100107
 				OOMaterial *atmo = [planet atmosphereMaterial];
-				if (atmo != nil)  [_preloadingPlanetMaterials addObject:atmo];
+				if (atmo != nil)  _preloadingPlanetMaterials.push_back(oo::ObjCRef<OOMaterial *>(atmo));
 			}
 		}
 		
@@ -7995,17 +8350,17 @@ static void VerifyDesc(NSString* key, id desc)
 #endif
 }
 
-- (NSDictionary*)globalSettings
+- (oo::PList)cxx_globalSettings
 {
     return globalSettings;
 }
 
-- (NSArray*)equipmentData
+- (oo::PList)cxx_equipmentData
 {
     return equipmentData;
 }
 
-- (NSArray*)equipmentDataOutfitting
+- (oo::PList)cxx_equipmentDataOutfitting
 {
     return equipmentDataOutfitting;
 }
@@ -8015,65 +8370,65 @@ static void VerifyDesc(NSString* key, id desc)
     return commodityMarket;
 }
 
-- (NSString*)timeDescription:(double)interval
+- (std::optional<std::string>)timeDescription:(double)interval
 {
     double r_time = interval;
-    NSString* result = @"";
+    std::string result;
 
     if (r_time > 86400) {
         int days = floor(r_time / 86400);
         r_time -= 86400 * days;
-        result = [NSString stringWithFormat:@"%@ %d day%@", result, days, (days > 1) ? @"s" : @""];
+        result = oo::str::format("%s %d day%s", result.c_str(), days, (days > 1) ? "s" : "");
     }
     if (r_time > 3600) {
         int hours = floor(r_time / 3600);
         r_time -= 3600 * hours;
-        result = [NSString stringWithFormat:@"%@ %d hour%@", result, hours, (hours > 1) ? @"s" : @""];
+        result = oo::str::format("%s %d hour%s", result.c_str(), hours, (hours > 1) ? "s" : "");
     }
     if (r_time > 60) {
         int mins = floor(r_time / 60);
         r_time -= 60 * mins;
-        result = [NSString stringWithFormat:@"%@ %d minute%@", result, mins, (mins > 1) ? @"s" : @""];
+        result = oo::str::format("%s %d minute%s", result.c_str(), mins, (mins > 1) ? "s" : "");
     }
     if (r_time > 0) {
         int secs = floor(r_time);
-        result = [NSString stringWithFormat:@"%@ %d second%@", result, secs, (secs > 1) ? @"s" : @""];
+        result = oo::str::format("%s %d second%s", result.c_str(), secs, (secs > 1) ? "s" : "");
     }
-    return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    return oo::str::trim(result, oo::str::CharacterSet::whitespace());
 }
 
-- (NSString*)shortTimeDescription:(double)interval
+- (std::optional<std::string>)cxx_shortTimeDescription:(double)interval
 {
     double r_time = interval;
-    NSString* result = @"";
+    std::string result;
     int parts = 0;
 
     if (interval <= 0.0)
-        return DESC(@"contracts-no-time");
+        return cxx_OOLookUpDescriptionPRIV("contracts-no-time");
 
     if (r_time > 86400) {
         int days = floor(r_time / 86400);
         r_time -= 86400 * days;
-        result = [NSString stringWithFormat:@"%@ %d %@", result, days, DESC_PLURAL(@"contracts-day-word", days)];
+        result = oo::str::format("%s %d %s", result.c_str(), days, cxx_OOLookUpPluralDescriptionPRIV("contracts-day-word", days).c_str());
         parts++;
     }
     if (r_time > 3600) {
         int hours = floor(r_time / 3600);
         r_time -= 3600 * hours;
-        result = [NSString stringWithFormat:@"%@ %d %@", result, hours, DESC_PLURAL(@"contracts-hour-word", hours)];
+        result = oo::str::format("%s %d %s", result.c_str(), hours, cxx_OOLookUpPluralDescriptionPRIV("contracts-hour-word", hours).c_str());
         parts++;
     }
     if (parts < 2 && r_time > 60) {
         int mins = floor(r_time / 60);
         r_time -= 60 * mins;
-        result = [NSString stringWithFormat:@"%@ %d %@", result, mins, DESC_PLURAL(@"contracts-minute-word", mins)];
+        result = oo::str::format("%s %d %s", result.c_str(), mins, cxx_OOLookUpPluralDescriptionPRIV("contracts-minute-word", mins).c_str());
         parts++;
     }
     if (parts < 2 && r_time > 0) {
         int secs = floor(r_time);
-        result = [NSString stringWithFormat:@"%@ %d %@", result, secs, DESC_PLURAL(@"contracts-second-word", secs)];
+        result = oo::str::format("%s %d %s", result.c_str(), secs, cxx_OOLookUpPluralDescriptionPRIV("contracts-second-word", secs).c_str());
     }
-    return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    return oo::str::trim(result, oo::str::CharacterSet::whitespace());
 }
 
 - (void)makeSunSkimmer:(ShipEntity*)ship andSetAI:(BOOL)setAI
@@ -8104,24 +8459,26 @@ static void VerifyDesc(NSString* key, id desc)
     return ret;
 }
 
-- (void)loadStationMarkets:(NSArray*)marketData
+- (void)cxx_loadStationMarkets:(const oo::PList&)marketData
 {
-    if (marketData == nil) {
+    if (marketData.isNull()) {
         return;
     }
 
-    NSArray* stations = [self stations];
-    StationEntity* station = nil;
-    NSDictionary* savedMarket = nil;
-
-    foreach (savedMarket, marketData) {
-        HPVector pos = [savedMarket oo_hpvectorForKey:@"position"];
-        foreach (station, stations) {
+    const oo::PList::Array* savedMarkets = marketData.getIf<oo::PList::Array>();
+    if (savedMarkets == nullptr)
+        return;
+    for (const oo::PList& savedMarket : *savedMarkets) {
+        HPVector pos = HPVectorIn(savedMarket, "position", kZeroHPVector);
+        for (const oo::ObjCRef<StationEntity*>& entry : [self cxx_stations]) // a snapshot
+        {
+            StationEntity* station = entry.get();
             // must be deterministic and secondary
             if ([station allowsSaving] && station != [UNIVERSE station]) {
                 // allow a km of drift just in case
                 if (HPdistance2(pos, [station position]) < 1000000) {
-                    [station setLocalMarket:[savedMarket oo_arrayForKey:@"market"]];
+                    const oo::PList* market = savedMarket.get<oo::PList::Array>("market");
+                    [station cxx_setLocalMarket:(market != nullptr) ? *market : oo::PList()];
                     break;
                 }
             }
@@ -8129,38 +8486,114 @@ static void VerifyDesc(NSString* key, id desc)
     }
 }
 
-- (NSArray*)getStationMarkets
+// Saved in the savegame: the market rows as OOCommodityMarket saves them, the position as the
+// doubles ArrayFromHPVector stored.
+- (oo::PList)cxx_getStationMarkets
 {
-    NSMutableArray* markets = [[NSMutableArray alloc] init];
-    NSArray* stations = [self stations];
-
-    StationEntity* station = nil;
-    NSMutableDictionary* savedMarket = nil;
+    oo::PList::Array markets;
 
     OOCommodityMarket* stationMarket = nil;
 
-    foreach (station, stations) {
+    for (const oo::ObjCRef<StationEntity*>& entry : [self cxx_stations]) // a snapshot
+    {
+        StationEntity* station = entry.get();
         // must be deterministic and secondary
         if ([station allowsSaving] && station != [UNIVERSE station]) {
             stationMarket = [station localMarket];
             if (stationMarket != nil) {
-                savedMarket = [NSMutableDictionary dictionaryWithCapacity:2];
-                [savedMarket setObject:[stationMarket saveStationAmounts] forKey:@"market"];
-                [savedMarket setObject:ArrayFromHPVector([station position]) forKey:@"position"];
-                [markets addObject:savedMarket];
+                const HPVector position = [station position];
+                markets.push_back(oo::PList(oo::PList::Dict {
+                    { "market", [stationMarket cxx_saveStationAmounts] },
+                    { "position", oo::PList(oo::PList::Array { oo::PList((double)position.x), oo::PList((double)position.y), oo::PList((double)position.z) }) } }));
             }
         }
     }
 
-    return [markets autorelease];
+    return oo::PList(std::move(markets));
 }
 
-- (NSArray*)shipsForSaleForSystem:(OOSystemID)s withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time
+namespace {
+
+/*	-removeObjectAtIndex: on the shipyard's candidate keys: an index past the end raised
+        OORangeException (the conditions test below can remove the same slot twice).
+*/
+void RemoveKeyAt(std::vector<std::string>& keys, unsigned index)
+{
+    if (index >= keys.size()) {
+        [OOException raise:OORangeException format:"Index %lu is out of range %lu (in 'removeObjectAtIndex:')", (unsigned long)index, (unsigned long)keys.size()];
+    }
+    keys.erase(keys.begin() + index);
+}
+
+// -containsObject: on an equipment list: -isEqual: of two strings.
+bool ContainsKey(const oo::PList::Array& list, const std::string& key)
+{
+    return std::find(list.begin(), list.end(), oo::PList(key)) != list.end();
+}
+
+// -removeObject: on the optional equipment: every equal entry goes; nil removed nothing.
+void RemoveOption(std::vector<std::optional<std::string>>& options, const std::optional<std::string>& key)
+{
+    if (key.has_value())
+        std::erase(options, key);
+}
+
+// -setObject:forKey: on the offered ship's dictionary.
+void SetInDict(oo::PList& dict, std::string_view key, const std::string& value)
+{
+    if (oo::PList::Dict* entries = dict.getIf<oo::PList::Dict>())
+        (*entries)[std::string(key)] = oo::PList(value);
+}
+
+/*	OOExpandKey(key, <name>): OOExpand's macro hands the expander a one-entry argument dictionary
+        keyed by the variable's name; a number keeps the number type OO_CAST_PARAMETER boxed it as.
+*/
+std::string ExpandKeyWith(const std::string& key, const char* name, const oo::PList& value)
+{
+    return oo::StdString(OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), oo::NSStringFrom(key),
+        oo::ObjectFromPList(oo::PList(oo::PList::Dict { { name, value } })), nil, nil, kOOExpandKey));
+}
+
+// OOExpandKey(key) with no arguments: no argument dictionary.
+std::string ExpandKey(const std::string& key)
+{
+    return oo::StdString(OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), oo::NSStringFrom(key), nil, nil, nil, kOOExpandKey));
+}
+
+// -compare: of the two offers' price numbers (unsigned long long).
+int comparePrice(const oo::PList& offer1, const oo::PList& offer2)
+{
+    const unsigned long long price1 = offer1.get<unsigned long long>(oo::StdString(SHIPYARD_KEY_PRICE));
+    const unsigned long long price2 = offer2.get<unsigned long long>(oo::StdString(SHIPYARD_KEY_PRICE));
+    return (price1 < price2) ? -1 : (price1 > price2) ? 1
+                                                      : 0;
+}
+
+/*	The offered ships' lowercased names as -compare: ordered them, then the price. A missing name
+        compares the same (messaging nil); ship definitions always carry one.
+*/
+int compareName(const oo::PList& offer1, const oo::PList& offer2)
+{
+    const oo::PList* ship1 = offer1.get<oo::PList::Dict>(oo::StdString(SHIPYARD_KEY_SHIP));
+    const oo::PList* ship2 = offer2.get<oo::PList::Dict>(oo::StdString(SHIPYARD_KEY_SHIP));
+    const std::optional<std::string> name1 = (ship1 != nullptr) ? OptionalStringIn(*ship1, oo::StdString(KEY_NAME)) : std::nullopt;
+    const std::optional<std::string> name2 = (ship2 != nullptr) ? OptionalStringIn(*ship2, oo::StdString(KEY_NAME)) : std::nullopt;
+
+    const int result = (name1.has_value() && name2.has_value()) ? oo::str::compare(oo::str::lowercase(*name1), oo::str::lowercase(*name2)) : 0;
+    if (result != 0)
+        return result;
+    else
+        return comparePrice(offer1, offer2);
+}
+
+} // namespace
+
+- (oo::PList)cxx_shipsForSaleForSystem:(OOSystemID)s withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time
 {
     RANROTSeed saved_seed = RANROTGetFullSeed();
     Random_Seed ship_seed = [self marketSeed];
 
-    NSMutableDictionary* resultDictionary = [NSMutableDictionary dictionary];
+    std::map<std::string, oo::PList> resultDictionary; // by ship ID
 
     float tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
     unsigned i;
@@ -8179,27 +8612,27 @@ static void VerifyDesc(NSString* key, id desc)
 
         double days_until_sale = (ship_sold_time - current_time) / 86400.0;
 
-        NSMutableArray* keysForShips = [NSMutableArray arrayWithArray:[registry playerShipKeys]];
+        std::vector<std::string> keysForShips = [registry cxx_playerShipKeys];
         unsigned si;
-        for (si = 0; si < [keysForShips count]; si++) {
+        for (si = 0; si < keysForShips.size(); si++) {
             // eliminate any ships that fail a 'conditions test'
-            NSString* key = [keysForShips oo_stringAtIndex:si];
-            NSDictionary* dict = [registry shipyardInfoForKey:key];
-            NSArray* conditions = [dict oo_arrayForKey:@"conditions"];
+            const std::string key = keysForShips[si];
+            const oo::PList dict = [registry cxx_shipyardInfoForKey:key];
+            const oo::PList* conditions = dict.get<oo::PList::Array>("conditions");
 
-            if (![player scriptTestConditions:conditions]) {
-                [keysForShips removeObjectAtIndex:si--];
+            if (![player scriptTestConditions:(conditions != nullptr) ? oo::ObjectFromPList(*conditions) : nil]) {
+                RemoveKeyAt(keysForShips, si--);
             }
-            NSString* condition_script = [dict oo_stringForKey:@"condition_script"];
-            if (condition_script != nil) {
-                OOJSScript* condScript = [self getConditionScript:condition_script];
+            std::optional<std::string> condition_script = OptionalStringIn(dict, "condition_script");
+            if (condition_script.has_value()) {
+                OOJSScript* condScript = [self cxx_getConditionScript:*condition_script];
                 if (condScript != nil) // should always be non-nil, but just in case
                 {
                     JSContext* context = OOJSAcquireContext();
                     BOOL OK;
                     BOOL allow_purchase = NO;
                     OOJSVal result = OOJSUndefinedValue();
-                    OOJSVal args[] = { OOJSValueFromNativeObject(context, key) };
+                    OOJSVal args[] = { OOJSValueFromNativeObject(context, oo::NSStringFrom(key)) };
 
                     OK = [condScript callMethod:OOJSID("allowOfferShip")
                                       inContext:context
@@ -8218,86 +8651,95 @@ static void VerifyDesc(NSString* key, id desc)
                         /* if the script exists, the function exists, the function
                          * returns a bool, and that bool is false, block
                          * purchase. Otherwise allow it as default */
-                        [keysForShips removeObjectAtIndex:si--];
+                        RemoveKeyAt(keysForShips, si--);
                     }
                 }
             }
         }
 
-        NSDictionary* systemInfo = [self generateSystemData:s];
+        const oo::PList systemInfo = [self cxx_generateSystemData:s];
         OOTechLevelID techlevel;
         if (specialTL != NSNotFound) {
             // if we are passed a tech level use that
             techlevel = specialTL;
         } else {
             // otherwise use default for system
-            techlevel = [systemInfo oo_unsignedIntForKey:KEY_TECHLEVEL];
+            techlevel = systemInfo.get<unsigned int>(oo::StdString(KEY_TECHLEVEL));
         }
-        unsigned ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
-        NSString* ship_key = [keysForShips oo_stringAtIndex:ship_index];
-        NSDictionary* ship_info = [registry shipyardInfoForKey:ship_key];
-        OOTechLevelID ship_techlevel = [ship_info oo_intForKey:KEY_TECHLEVEL];
+        unsigned ship_index = (ship_seed.d * 0x100 + ship_seed.e) % keysForShips.size();
+        const std::string ship_key = keysForShips[ship_index];
+        const oo::PList ship_info = [registry cxx_shipyardInfoForKey:ship_key];
+        OOTechLevelID ship_techlevel = ship_info.get<int>(oo::StdString(KEY_TECHLEVEL));
 
-        double chance = 1.0 - pow(1.0 - [ship_info oo_doubleForKey:KEY_CHANCE], MAX((OOTechLevelID)1, techlevel - ship_techlevel));
+        double chance = 1.0 - pow(1.0 - ship_info.get<double>(oo::StdString(KEY_CHANCE)), MAX((OOTechLevelID)1, techlevel - ship_techlevel));
 
         // seed random number generator
         int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
         uint32_t superRand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
         ranrot_srand(superRand2);
 
-        NSDictionary* shipBaseDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_key];
+        const oo::PList shipBaseDict = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:ship_key];
 
-        if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (shipBaseDict != nil)) {
-            NSMutableDictionary* shipDict = [NSMutableDictionary dictionaryWithDictionary:shipBaseDict];
-            NSMutableString* shortShipDescription = [NSMutableString stringWithCapacity:256];
-            NSString* shipName = [shipDict oo_stringForKey:@"display_name" defaultValue:[shipDict oo_stringForKey:KEY_NAME]];
-            OOCreditsQuantity price = [ship_info oo_unsignedIntForKey:KEY_PRICE];
+        if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && !shipBaseDict.isNull()) {
+            oo::PList shipDict = shipBaseDict;
+            std::string shortShipDescription;
+            std::optional<std::string> shipName = OptionalStringIn(shipDict, "display_name");
+            if (!shipName.has_value())
+                shipName = OptionalStringIn(shipDict, oo::StdString(KEY_NAME));
+            OOCreditsQuantity price = ship_info.get<unsigned int>(oo::StdString(KEY_PRICE));
             OOCreditsQuantity base_price = price;
-            NSMutableArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-            NSString* fwdWeaponString = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-            NSString* aftWeaponString = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
+            const oo::PList* standardEquipment = ship_info.get<oo::PList::Dict>(oo::StdString(KEY_STANDARD_EQUIPMENT));
+            const oo::PList* standardExtras = (standardEquipment != nullptr) ? standardEquipment->get<oo::PList::Array>(oo::StdString(KEY_EQUIPMENT_EXTRAS)) : nullptr;
+            oo::PList::Array extras = (standardExtras != nullptr) ? *standardExtras->getIf<oo::PList::Array>() : oo::PList::Array();
+            std::optional<std::string> fwdWeaponString = (standardEquipment != nullptr) ? OptionalStringIn(*standardEquipment, oo::StdString(KEY_EQUIPMENT_FORWARD_WEAPON)) : std::nullopt;
+            std::optional<std::string> aftWeaponString = (standardEquipment != nullptr) ? OptionalStringIn(*standardEquipment, oo::StdString(KEY_EQUIPMENT_AFT_WEAPON)) : std::nullopt;
 
-            NSMutableArray* options = [NSMutableArray arrayWithArray:[ship_info oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
-            OOCargoQuantity maxCargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
+            const oo::PList* optionalEquipment = ship_info.get<oo::PList::Array>(oo::StdString(KEY_OPTIONAL_EQUIPMENT));
+            std::vector<std::optional<std::string>> options;
+            if (optionalEquipment != nullptr) {
+                for (std::size_t k = 0; k < optionalEquipment->count(); k++)
+                    options.push_back(OptionalStringAt(*optionalEquipment, k));
+            }
+            OOCargoQuantity maxCargo = shipDict.get<unsigned int>("max_cargo");
 
             // more info for potential purchasers - how to reveal this I'm not yet sure...
-            // NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
-            // NSLog(@"%@ Brochure description : \"%@\"", [ship_dict objectForKey:KEY_NAME], brochure_desc);
+            // std::optional<std::string> brochure_desc = [self brochureDescriptionWithDictionary:shipDict standardEquipment:extras optionalEquipment:options];
+            // OO_LOG("shipyard.brochure", "{} Brochure description : \"{}\"", oo::DescriptionOf([ship name]), brochure_desc);
 
-            [shortShipDescription appendFormat:@"%@:", shipName];
+            shortShipDescription += TextOrNull(shipName) + ":";
 
-            OOWeaponFacingSet availableFacings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
+            OOWeaponFacingSet availableFacings = ship_info.get<unsigned int>(oo::StdString(KEY_WEAPON_FACINGS), VALID_WEAPON_FACINGS) & VALID_WEAPON_FACINGS;
 
-            OOWeaponType fwdWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwdWeaponString);
-            OOWeaponType aftWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aftWeaponString);
+            OOWeaponType fwdWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil(fwdWeaponString));
+            OOWeaponType aftWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil(aftWeaponString));
             // port and starboard weapons are not modified in the shipyard
             //  apply fwd and aft weapons to the ship
             if (fwdWeapon && fwdWeaponString)
-                [shipDict setObject:fwdWeaponString forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+                SetInDict(shipDict, oo::StdString(KEY_EQUIPMENT_FORWARD_WEAPON), *fwdWeaponString);
             if (aftWeapon && aftWeaponString)
-                [shipDict setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
+                SetInDict(shipDict, oo::StdString(KEY_EQUIPMENT_AFT_WEAPON), *aftWeaponString);
 
             int passengerBerthCount = 0;
             BOOL customised = NO;
             BOOL weaponCustomized = NO;
 
-            NSString* fwdWeaponDesc = nil;
+            std::optional<std::string> fwdWeaponDesc;
 
-            NSString* shortExtrasKey = @"shipyard-first-extra";
+            std::string shortExtrasKey = "shipyard-first-extra";
 
             // for testing condition scripts
-            ShipEntity* testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:shipDict];
+            ShipEntity* testship = [[ProxyPlayerEntity alloc] initWithKey:oo::NSStringFrom(ship_key) definition:oo::ObjectFromPList(shipDict)];
             // customise the ship (if chance = 1, then ship will get all possible add ons)
-            while ((randf() < chance) && ([options count])) {
+            while ((randf() < chance) && (options.size())) {
                 chance *= chance; // decrease the chance of a further customisation (unless it is 1, which might be a bug)
-                int optionIndex = Ranrot() % [options count];
-                NSString* equipmentKey = [options oo_stringAtIndex:optionIndex];
-                OOEquipmentType* item = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+                int optionIndex = Ranrot() % options.size();
+                const std::optional<std::string> equipmentKey = options[optionIndex];
+                OOEquipmentType* item = equipmentKey.has_value() ? [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringFrom(*equipmentKey)] : nil;
 
                 if (item != nil) {
                     OOTechLevelID eqTechLevel = [item techLevel];
                     OOCreditsQuantity eqPrice = [item price] / 10; // all amounts are x/10 due to being represented in tenths of credits.
-                    NSString* eqShortDesc = [item name];
+                    std::optional<std::string> eqShortDesc = oo::OptionalString([item name]);
 
                     if ([item techLevel] > techlevel) {
                         // Cap maximum tech level.
@@ -8311,13 +8753,13 @@ static void VerifyDesc(NSString* key, id desc)
                             break; // Bar this upgrade.
                     }
 
-                    if ([item incompatibleEquipment] != nil && extras != nil) {
-                        id key = nil;
+                    if ([item incompatibleEquipment] != nil) {
                         BOOL incompatible = NO;
+                        const std::vector<std::string> incompatibleKeys = oo::StringsFrom([item incompatibleEquipment]);
 
-                        foreach (key, [item incompatibleEquipment]) {
-                            if ([extras containsObject:key]) {
-                                [options removeObject:equipmentKey];
+                        for (const std::string& key : incompatibleKeys) {
+                            if (ContainsKey(extras, key)) {
+                                RemoveOption(options, equipmentKey);
                                 incompatible = YES;
                                 break;
                             }
@@ -8326,24 +8768,22 @@ static void VerifyDesc(NSString* key, id desc)
                             break;
 
                         // make sure the incompatible equipment is not choosen later on.
-                        foreach (key, [item incompatibleEquipment]) {
-                            if ([options containsObject:key]) {
-                                [options removeObject:key];
-                            }
+                        for (const std::string& key : incompatibleKeys) {
+                            RemoveOption(options, key);
                         }
                     }
 
                     /* Check condition scripts */
-                    NSString* condition_script = [item conditionScript];
-                    if (condition_script != nil) {
-                        OOJSScript* condScript = [self getConditionScript:condition_script];
+                    std::optional<std::string> condition_script = oo::OptionalString([item conditionScript]);
+                    if (condition_script.has_value()) {
+                        OOJSScript* condScript = [self cxx_getConditionScript:*condition_script];
                         if (condScript != nil) // should always be non-nil, but just in case
                         {
                             JSContext* JScontext = OOJSAcquireContext();
                             BOOL OK;
                             BOOL allow_addition = NO;
                             OOJSVal result = OOJSUndefinedValue();
-                            OOJSVal args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey), OOJSValueFromNativeObject(JScontext, testship), OOJSValueFromNativeObject(JScontext, @"newShip") };
+                            OOJSVal args[] = { OOJSValueFromNativeObject(JScontext, oo::NSStringFrom(*equipmentKey)), OOJSValueFromNativeObject(JScontext, testship), OOJSValueFromNativeObject(JScontext, @"newShip") };
 
                             OK = [condScript callMethod:OOJSID("allowAwardEquipment")
                                               inContext:JScontext
@@ -8369,12 +8809,11 @@ static void VerifyDesc(NSString* key, id desc)
                         }
                     }
 
-                    if ([item requiresEquipment] != nil && extras != nil) {
-                        id key = nil;
+                    if ([item requiresEquipment] != nil) {
                         BOOL missing = NO;
 
-                        foreach (key, [item requiresEquipment]) {
-                            if (![extras containsObject:key]) {
+                        for (const std::string& key : oo::StringsFrom([item requiresEquipment])) {
+                            if (!ContainsKey(extras, key)) {
                                 missing = YES;
                             }
                         }
@@ -8382,12 +8821,11 @@ static void VerifyDesc(NSString* key, id desc)
                             break;
                     }
 
-                    if ([item requiresAnyEquipment] != nil && extras != nil) {
-                        id key = nil;
+                    if ([item requiresAnyEquipment] != nil) {
                         BOOL missing = YES;
 
-                        foreach (key, [item requiresAnyEquipment]) {
-                            if ([extras containsObject:key]) {
+                        for (const std::string& key : oo::StringsFrom([item requiresAnyEquipment])) {
+                            if (ContainsKey(extras, key)) {
                                 missing = NO;
                             }
                         }
@@ -8397,108 +8835,107 @@ static void VerifyDesc(NSString* key, id desc)
 
                     // Special case, NEU has to be compatible with EEU inside equipment.plist
                     // but we can only have either one or the other on board.
-                    if ([equipmentKey isEqualTo:@"EQ_NAVAL_ENERGY_UNIT"]) {
-                        if ([extras containsObject:@"EQ_ENERGY_UNIT"]) {
-                            [options removeObject:equipmentKey];
+                    if (*equipmentKey == "EQ_NAVAL_ENERGY_UNIT") {
+                        if (ContainsKey(extras, "EQ_ENERGY_UNIT")) {
+                            RemoveOption(options, equipmentKey);
                             break;
                         }
                     }
 
-                    if ([equipmentKey hasPrefix:@"EQ_WEAPON"]) {
-                        OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
+                    if (oo::str::hasPrefix(*equipmentKey, "EQ_WEAPON")) {
+                        OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringFrom(*equipmentKey));
                         // fit best weapon forward
                         if (availableFacings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwdWeapon weaponThreatAssessment]) {
                             // again remember to divide price by 10 to get credits from tenths of credit
-                            price -= [self getEquipmentPriceForKey:fwdWeaponString] * 90 / 1000; // 90% credits
+                            price -= (fwdWeaponString ? [self cxx_getEquipmentPriceForKey:*fwdWeaponString] : 0) * 90 / 1000; // 90% credits
                             price += eqPrice;
                             fwdWeaponString = equipmentKey;
                             fwdWeapon = new_weapon;
-                            [shipDict setObject:fwdWeaponString forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+                            SetInDict(shipDict, oo::StdString(KEY_EQUIPMENT_FORWARD_WEAPON), *fwdWeaponString);
                             weaponCustomized = YES;
                             fwdWeaponDesc = eqShortDesc;
                         } else {
                             // if less good than current forward, try fitting is to rear
                             if (availableFacings & WEAPON_FACING_AFT && (isWeaponNone(aftWeapon) || [new_weapon weaponThreatAssessment] > [aftWeapon weaponThreatAssessment])) {
-                                price -= [self getEquipmentPriceForKey:aftWeaponString] * 90 / 1000; // 90% credits
+                                price -= (aftWeaponString ? [self cxx_getEquipmentPriceForKey:*aftWeaponString] : 0) * 90 / 1000; // 90% credits
                                 price += eqPrice;
                                 aftWeaponString = equipmentKey;
                                 aftWeapon = new_weapon;
-                                [shipDict setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
+                                SetInDict(shipDict, oo::StdString(KEY_EQUIPMENT_AFT_WEAPON), *aftWeaponString);
                             } else {
-                                [options removeObject:equipmentKey]; // dont try again
+                                RemoveOption(options, equipmentKey); // dont try again
                             }
                         }
 
                     } else {
-                        if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"]) {
+                        if (*equipmentKey == "EQ_PASSENGER_BERTH") {
                             if ((maxCargo >= PASSENGER_BERTH_SPACE) && (randf() < chance)) {
                                 maxCargo -= PASSENGER_BERTH_SPACE;
                                 price += eqPrice;
-                                [extras addObject:equipmentKey];
+                                extras.push_back(oo::PList(*equipmentKey));
                                 passengerBerthCount++;
                                 customised = YES;
                             } else {
                                 // remove the option if there's no space left
-                                [options removeObject:equipmentKey];
+                                RemoveOption(options, equipmentKey);
                             }
                         } else {
                             price += eqPrice;
-                            [extras addObject:equipmentKey];
+                            extras.push_back(oo::PList(*equipmentKey));
                             if ([item isVisible]) {
-                                NSString* item = eqShortDesc;
-                                [shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
-                                shortExtrasKey = @"shipyard-additional-extra";
+                                shortShipDescription += ExpandKeyWith(shortExtrasKey, "item", eqShortDesc ? oo::PList(*eqShortDesc) : oo::PList());
+                                shortExtrasKey = "shipyard-additional-extra";
                             }
                             customised = YES;
-                            [options removeObject:equipmentKey]; // dont add twice
+                            RemoveOption(options, equipmentKey); // dont add twice
                         }
                     }
                 } else {
-                    [options removeObject:equipmentKey];
+                    RemoveOption(options, equipmentKey);
                 }
             } // end adding optional equipment
             [testship release];
             // i18n: Some languages require that no conversion to lower case string takes place.
-            BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"];
+            BOOL lowercaseIgnore = [self cxx_descriptions]->get<bool>("lowercase_ignore");
 
             if (passengerBerthCount) {
-                NSString* npb = (passengerBerthCount > 1) ? [NSString stringWithFormat:@"%d ", passengerBerthCount] : (id) @"";
-                NSString* ppb = DESC_PLURAL(@"passenger-berth", passengerBerthCount);
-                NSString* extraPassengerBerthsDescription = [NSString stringWithFormat:DESC(@"extra-@-@-(passenger-berths)"), npb, ppb];
-                NSString* item = extraPassengerBerthsDescription;
-                [shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
-                shortExtrasKey = @"shipyard-additional-extra";
+                std::string npb = (passengerBerthCount > 1) ? oo::str::format("%d ", passengerBerthCount) : std::string();
+                std::string ppb = cxx_OOLookUpPluralDescriptionPRIV("passenger-berth", passengerBerthCount);
+                std::string extraPassengerBerthsDescription = oo::str::formatRuntime(cxx_OOLookUpDescriptionPRIV("extra-@-@-(passenger-berths)"), { npb, ppb });
+                shortShipDescription += ExpandKeyWith(shortExtrasKey, "item", oo::PList(extraPassengerBerthsDescription));
+                shortExtrasKey = "shipyard-additional-extra";
             }
 
             if (!customised) {
-                [shortShipDescription appendString:OOExpandKey(@"shipyard-standard-customer-model")];
+                shortShipDescription += ExpandKey("shipyard-standard-customer-model");
             }
 
             if (weaponCustomized) {
-                NSString* weapon = (lowercaseIgnore ? fwdWeaponDesc : [fwdWeaponDesc lowercaseString]);
-                [shortShipDescription appendString:OOExpandKey(@"shipyard-forward-weapon-upgraded", weapon)];
+                std::optional<std::string> weapon = fwdWeaponDesc;
+                if (!lowercaseIgnore && weapon.has_value())
+                    weapon = oo::str::lowercase(*weapon);
+                shortShipDescription += ExpandKeyWith("shipyard-forward-weapon-upgraded", "weapon", weapon ? oo::PList(*weapon) : oo::PList());
             }
             if (price > base_price) {
                 price = base_price + cunningFee(price - base_price, 0.05);
             }
 
-            [shortShipDescription appendString:OOExpandKey(@"shipyard-price", price)];
+            shortShipDescription += ExpandKeyWith("shipyard-price", "price", oo::PList(price));
 
-            NSString* shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
+            std::string shipID = oo::str::format("%06x-%06x", superRand1, superRand2);
 
             uint16_t personality = RanrotWithSeed(&personalitySeed) & ENTITY_PERSONALITY_MAX;
 
-            NSDictionary* ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-                    shipID, SHIPYARD_KEY_ID,
-                ship_key, SHIPYARD_KEY_SHIPDATA_KEY,
-                shipDict, SHIPYARD_KEY_SHIP,
-                shortShipDescription, KEY_SHORT_DESCRIPTION,
-                [NSNumber numberWithUnsignedLongLong:price], SHIPYARD_KEY_PRICE,
-                extras, KEY_EQUIPMENT_EXTRAS,
-                [NSNumber numberWithUnsignedShort:personality], SHIPYARD_KEY_PERSONALITY,
-                NULL];
+            oo::PList::Dict ship_info_dictionary;
+            ship_info_dictionary[oo::StdString(SHIPYARD_KEY_ID)] = oo::PList(shipID);
+            ship_info_dictionary[oo::StdString(SHIPYARD_KEY_SHIPDATA_KEY)] = oo::PList(ship_key);
+            ship_info_dictionary[oo::StdString(SHIPYARD_KEY_SHIP)] = shipDict;
+            ship_info_dictionary[oo::StdString(KEY_SHORT_DESCRIPTION)] = oo::PList(shortShipDescription);
+            ship_info_dictionary[oo::StdString(SHIPYARD_KEY_PRICE)] = oo::PList(price);
+            ship_info_dictionary[oo::StdString(KEY_EQUIPMENT_EXTRAS)] = oo::PList(extras);
+            ship_info_dictionary[oo::StdString(SHIPYARD_KEY_PERSONALITY)] = oo::PList(personality);
 
-            [resultDictionary setObject:ship_info_dictionary forKey:shipID]; // should order them fairly randomly
+            resultDictionary[shipID] = oo::PList(std::move(ship_info_dictionary)); // should order them fairly randomly
         }
 
         // next contract
@@ -8508,15 +8945,17 @@ static void VerifyDesc(NSString* key, id desc)
         rotate_seed(&ship_seed);
     }
 
-    NSMutableArray* resultArray = [[[resultDictionary allValues] mutableCopy] autorelease];
-    [resultArray sortUsingFunction:compareName context:NULL];
+    oo::PList::Array resultArray;
+    for (auto& entry : resultDictionary)
+        resultArray.push_back(std::move(entry.second));
+    std::stable_sort(resultArray.begin(), resultArray.end(), [](const oo::PList& a, const oo::PList& b) { return compareName(a, b) < 0; });
 
     // remove identically priced ships of the same name
     i = 1;
 
-    while (i < [resultArray count]) {
-        if (compareName([resultArray objectAtIndex:i - 1], [resultArray objectAtIndex:i], nil) == NSOrderedSame) {
-            [resultArray removeObjectAtIndex:i];
+    while (i < resultArray.size()) {
+        if (compareName(resultArray[i - 1], resultArray[i]) == 0) {
+            resultArray.erase(resultArray.begin() + i);
         } else {
             i++;
         }
@@ -8524,116 +8963,107 @@ static void VerifyDesc(NSString* key, id desc)
 
     RANROTSetFullSeed(saved_seed);
 
-    return [NSArray arrayWithArray:resultArray];
+    return oo::PList(std::move(resultArray));
 }
 
-static OOComparisonResult compareName(id dict1, id dict2, void* context)
-{
-    NSDictionary* ship1 = [(NSDictionary*)dict1 oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
-    NSDictionary* ship2 = [(NSDictionary*)dict2 oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
-    NSString* name1 = [ship1 oo_stringForKey:KEY_NAME];
-    NSString* name2 = [ship2 oo_stringForKey:KEY_NAME];
-
-    NSComparisonResult result = [[name1 lowercaseString] compare:[name2 lowercaseString]];
-    if (result != NSOrderedSame)
-        return result;
-    else
-        return comparePrice(dict1, dict2, context);
-}
-
-static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
-{
-    NSNumber* price1 = [(NSDictionary*)dict1 objectForKey:SHIPYARD_KEY_PRICE];
-    NSNumber* price2 = [(NSDictionary*)dict2 objectForKey:SHIPYARD_KEY_PRICE];
-
-    return [price1 compare:price2];
-}
-
-- (OOCreditsQuantity)tradeInValueForCommanderDictionary:(NSDictionary*)dict
+- (OOCreditsQuantity)cxx_tradeInValueForCommanderDictionary:(const oo::PList&)dict
 {
     // get basic information about the craft
     OOCreditsQuantity base_price = 0ULL;
-    NSString* ship_desc = [dict oo_stringForKey:@"ship_desc"];
-    NSDictionary* shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:ship_desc];
+    std::optional<std::string> ship_desc = OptionalStringIn(dict, "ship_desc");
+    const oo::PList shipyard_info = ship_desc.has_value() ? [[OOShipRegistry sharedRegistry] cxx_shipyardInfoForKey:*ship_desc] : oo::PList();
     // This checks a rare, but possible case. If the ship for which we are trying to calculate a trade in value
     // does not have a shipyard dictionary entry, report it and set its base price to 0 -- Nikos 20090613.
-    if (shipyard_info == nil) {
-        OOLogERR(@"universe.tradeInValueForCommanderDictionary.valueCalculationError",
-            @"Shipyard dictionary entry for ship %@ required for trade in value calculation, but does not exist. Setting ship value to 0.", ship_desc);
+    if (shipyard_info.isNull()) {
+        OO_LOG_ERR("universe.tradeInValueForCommanderDictionary.valueCalculationError", "Shipyard dictionary entry for ship {} required for trade in value calculation, but does not exist. Setting ship value to 0.", ship_desc.value_or("(null)"));
     } else {
-        base_price = [shipyard_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE defaultValue:0ULL];
+        base_price = shipyard_info.get<unsigned long long>(oo::StdString(SHIPYARD_KEY_PRICE), 0ULL);
     }
 
     if (base_price == 0ULL)
         return base_price;
 
+    // A missing key was priced as nothing ([UNIVERSE getEquipmentPriceForKey:nil]).
+    auto priceOf = [](const std::optional<std::string>& key) -> OOCreditsQuantity {
+        return key.has_value() ? [UNIVERSE cxx_getEquipmentPriceForKey:*key] : 0;
+    };
+
     OOCreditsQuantity scrap_value = 351; // translates to 250 cr.
 
-    OOWeaponType ship_fwd_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"forward_weapon"]];
-    OOWeaponType ship_aft_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"aft_weapon"]];
-    OOWeaponType ship_port_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"port_weapon"]];
-    OOWeaponType ship_starboard_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"starboard_weapon"]];
-    unsigned ship_missiles = [dict oo_unsignedIntForKey:@"missiles"];
-    unsigned ship_max_passengers = [dict oo_unsignedIntForKey:@"max_passengers"];
-    NSMutableArray* ship_extra_equipment = [NSMutableArray arrayWithArray:[[dict oo_dictionaryForKey:@"extra_equipment"] allKeys]];
+    OOWeaponType ship_fwd_weapon = [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringOrNil(OptionalStringIn(dict, "forward_weapon"))];
+    OOWeaponType ship_aft_weapon = [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringOrNil(OptionalStringIn(dict, "aft_weapon"))];
+    OOWeaponType ship_port_weapon = [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringOrNil(OptionalStringIn(dict, "port_weapon"))];
+    OOWeaponType ship_starboard_weapon = [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringOrNil(OptionalStringIn(dict, "starboard_weapon"))];
+    unsigned ship_missiles = dict.get<unsigned int>("missiles");
+    unsigned ship_max_passengers = dict.get<unsigned int>("max_passengers");
+    std::vector<std::string> ship_extra_equipment;
+    if (const oo::PList* extraEquipment = dict.get<oo::PList::Dict>("extra_equipment")) {
+        for (const auto& entry : *extraEquipment->getIf<oo::PList::Dict>())
+            ship_extra_equipment.push_back(entry.first);
+    }
 
-    NSDictionary* basic_info = [shipyard_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT];
-    unsigned base_missiles = [basic_info oo_unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
-    OOCreditsQuantity base_missiles_value = base_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
-    NSString* base_weapon_key = [basic_info oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-    OOCreditsQuantity base_weapons_value = [UNIVERSE getEquipmentPriceForKey:base_weapon_key] / 10;
-    NSMutableArray* base_extra_equipment = [NSMutableArray arrayWithArray:[basic_info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-    NSString* weapon_key = nil;
+    const oo::PList* basicInfoEntry = shipyard_info.get<oo::PList::Dict>(oo::StdString(KEY_STANDARD_EQUIPMENT));
+    const oo::PList basic_info = (basicInfoEntry != nullptr) ? *basicInfoEntry : oo::PList();
+    unsigned base_missiles = basic_info.get<unsigned int>(oo::StdString(KEY_EQUIPMENT_MISSILES));
+    OOCreditsQuantity base_missiles_value = base_missiles * [UNIVERSE cxx_getEquipmentPriceForKey:"EQ_MISSILE"] / 10;
+    std::optional<std::string> base_weapon_key = OptionalStringIn(basic_info, oo::StdString(KEY_EQUIPMENT_FORWARD_WEAPON));
+    OOCreditsQuantity base_weapons_value = priceOf(base_weapon_key) / 10;
+    std::vector<std::optional<std::string>> base_extra_equipment;
+    if (const oo::PList* baseExtras = basic_info.get<oo::PList::Array>(oo::StdString(KEY_EQUIPMENT_EXTRAS))) {
+        for (std::size_t k = 0; k < baseExtras->count(); k++)
+            base_extra_equipment.push_back(OptionalStringAt(*baseExtras, k));
+    }
+    std::string weapon_key;
 
     // was aft_weapon defined as standard equipment ?
-    base_weapon_key = [basic_info oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON defaultValue:nil];
-    if (base_weapon_key != nil)
-        base_weapons_value += [UNIVERSE getEquipmentPriceForKey:base_weapon_key] / 10;
+    base_weapon_key = OptionalStringIn(basic_info, oo::StdString(KEY_EQUIPMENT_AFT_WEAPON));
+    if (base_weapon_key.has_value())
+        base_weapons_value += priceOf(base_weapon_key) / 10;
 
     OOCreditsQuantity ship_main_weapons_value = 0;
     OOCreditsQuantity ship_other_weapons_value = 0;
     OOCreditsQuantity ship_missiles_value = 0;
 
     // calculate the actual value for the missiles present on board.
-    NSArray* missileRoles = [dict oo_arrayForKey:@"missile_roles"];
-    if (missileRoles != nil) {
+    const oo::PList* missileRoles = dict.get<oo::PList::Array>("missile_roles");
+    if (missileRoles != nullptr) {
         unsigned i;
         for (i = 0; i < ship_missiles; i++) {
-            NSString* missile_desc = [missileRoles oo_stringAtIndex:i];
-            if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"]) {
-                ship_missiles_value += [UNIVERSE getEquipmentPriceForKey:missile_desc] / 10;
+            std::optional<std::string> missile_desc = OptionalStringAt(*missileRoles, i);
+            if (missile_desc.has_value() && *missile_desc != "NONE") {
+                ship_missiles_value += [UNIVERSE cxx_getEquipmentPriceForKey:*missile_desc] / 10;
             }
         }
     } else
-        ship_missiles_value = ship_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
+        ship_missiles_value = ship_missiles * [UNIVERSE cxx_getEquipmentPriceForKey:"EQ_MISSILE"] / 10;
 
     // needs to be a signed value, we can then subtract from the base price, if less than standard equipment.
-    long long extra_equipment_value = ship_max_passengers * [UNIVERSE getEquipmentPriceForKey:@"EQ_PASSENGER_BERTH"] / 10;
+    long long extra_equipment_value = ship_max_passengers * [UNIVERSE cxx_getEquipmentPriceForKey:"EQ_PASSENGER_BERTH"] / 10;
 
     // add on missile values
     extra_equipment_value += ship_missiles_value - base_missiles_value;
 
     // work out weapon values
     if (ship_fwd_weapon) {
-        weapon_key = OOEquipmentIdentifierFromWeaponType(ship_fwd_weapon);
-        ship_main_weapons_value = [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
+        weapon_key = oo::StdString(OOEquipmentIdentifierFromWeaponType(ship_fwd_weapon));
+        ship_main_weapons_value = [UNIVERSE cxx_getEquipmentPriceForKey:weapon_key] / 10;
     }
     if (ship_aft_weapon) {
-        weapon_key = OOEquipmentIdentifierFromWeaponType(ship_aft_weapon);
-        if (base_weapon_key != nil) // aft weapon was defined as a base weapon
+        weapon_key = oo::StdString(OOEquipmentIdentifierFromWeaponType(ship_aft_weapon));
+        if (base_weapon_key.has_value()) // aft weapon was defined as a base weapon
         {
-            ship_main_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10; // take weapon downgrades into account
+            ship_main_weapons_value += [UNIVERSE cxx_getEquipmentPriceForKey:weapon_key] / 10; // take weapon downgrades into account
         } else {
-            ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
+            ship_other_weapons_value += [UNIVERSE cxx_getEquipmentPriceForKey:weapon_key] / 10;
         }
     }
     if (ship_port_weapon) {
-        weapon_key = OOEquipmentIdentifierFromWeaponType(ship_port_weapon);
-        ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
+        weapon_key = oo::StdString(OOEquipmentIdentifierFromWeaponType(ship_port_weapon));
+        ship_other_weapons_value += [UNIVERSE cxx_getEquipmentPriceForKey:weapon_key] / 10;
     }
     if (ship_starboard_weapon) {
-        weapon_key = OOEquipmentIdentifierFromWeaponType(ship_starboard_weapon);
-        ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
+        weapon_key = oo::StdString(OOEquipmentIdentifierFromWeaponType(ship_starboard_weapon));
+        ship_other_weapons_value += [UNIVERSE cxx_getEquipmentPriceForKey:weapon_key] / 10;
     }
 
     // add on extra weapons, take away the value of the base weapons
@@ -8641,38 +9071,39 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     extra_equipment_value += ship_main_weapons_value - base_weapons_value;
 
     NSInteger i;
-    NSString* eq_key = nil;
+    std::optional<std::string> eq_key;
 
     // shipyard.plist settings might have duplicate keys.
     // cull possible duplicates from inside base equipment
-    for (i = [base_extra_equipment count] - 1; i > 0; i--) {
-        eq_key = [base_extra_equipment oo_stringAtIndex:i];
-        if ([base_extra_equipment indexOfObject:eq_key inRange:NSMakeRange(0, i - 1)] != NSNotFound)
-            [base_extra_equipment removeObjectAtIndex:i];
+    // (the search range 0..i-2, as NSMakeRange(0, i-1) gave it, never looks at the entry just before)
+    for (i = (NSInteger)base_extra_equipment.size() - 1; i > 0; i--) {
+        eq_key = base_extra_equipment[i];
+        const auto searchEnd = base_extra_equipment.begin() + (i - 1);
+        if (eq_key.has_value() && std::find(base_extra_equipment.begin(), searchEnd, eq_key) != searchEnd)
+            base_extra_equipment.erase(base_extra_equipment.begin() + i);
     }
 
     // do we at least have the same equipment as a standard ship?
-    for (i = [base_extra_equipment count] - 1; i >= 0; i--) {
-        eq_key = [base_extra_equipment oo_stringAtIndex:i];
-        if ([ship_extra_equipment containsObject:eq_key])
-            [ship_extra_equipment removeObject:eq_key];
+    for (i = (NSInteger)base_extra_equipment.size() - 1; i >= 0; i--) {
+        eq_key = base_extra_equipment[i];
+        if (eq_key.has_value() && std::find(ship_extra_equipment.begin(), ship_extra_equipment.end(), *eq_key) != ship_extra_equipment.end())
+            std::erase(ship_extra_equipment, *eq_key);
         else // if the ship has less equipment than standard, deduct the missing equipent's price
-            extra_equipment_value -= ([UNIVERSE getEquipmentPriceForKey:eq_key] / 10);
+            extra_equipment_value -= (priceOf(eq_key) / 10);
     }
 
     // remove portable equipment from the totals
     OOEquipmentType* item = nil;
 
-    for (i = [ship_extra_equipment count] - 1; i >= 0; i--) {
-        eq_key = [ship_extra_equipment oo_stringAtIndex:i];
-        item = [OOEquipmentType equipmentTypeWithIdentifier:eq_key];
+    for (i = (NSInteger)ship_extra_equipment.size() - 1; i >= 0; i--) {
+        item = [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringFrom(ship_extra_equipment[i])];
         if ([item isPortableBetweenShips])
-            [ship_extra_equipment removeObjectAtIndex:i];
+            ship_extra_equipment.erase(ship_extra_equipment.begin() + i);
     }
 
     // add up what we've got left.
-    for (i = [ship_extra_equipment count] - 1; i >= 0; i--)
-        extra_equipment_value += ([UNIVERSE getEquipmentPriceForKey:[ship_extra_equipment oo_stringAtIndex:i]] / 10);
+    for (i = (NSInteger)ship_extra_equipment.size() - 1; i >= 0; i--)
+        extra_equipment_value += ([UNIVERSE cxx_getEquipmentPriceForKey:ship_extra_equipment[i]] / 10);
 
     // 10% discount for second hand value, steeper reduction if worse than standard.
     extra_equipment_value *= extra_equipment_value < 0 ? 1.4 : 0.9;
@@ -8685,69 +9116,73 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return base_price + extra_equipment_value;
 }
 
-- (NSString*)brochureDescriptionWithDictionary:(NSDictionary*)dict standardEquipment:(NSArray*)extras optionalEquipment:(NSArray*)options
+- (std::optional<std::string>)brochureDescriptionWithDictionary:(const oo::PList&)dict standardEquipment:(const std::vector<std::string>&)extras optionalEquipment:(const std::vector<std::string>&)options
 {
-    NSMutableArray* mut_extras = [NSMutableArray arrayWithArray:extras];
-    NSString* allOptions = [options componentsJoinedByString:@" "];
+    std::vector<std::string> mut_extras = extras;
+    std::string allOptions;
+    for (std::size_t k = 0; k < options.size(); k++) {
+        if (k > 0)
+            allOptions += " ";
+        allOptions += options[k];
+    }
 
-    NSMutableString* desc = [NSMutableString stringWithFormat:@"The %@.", [dict oo_stringForKey:KEY_NAME]];
+    std::string desc = "The " + TextOrNull(OptionalStringIn(dict, oo::StdString(KEY_NAME))) + ".";
 
     // cargo capacity and expansion
-    OOCargoQuantity max_cargo = [dict oo_unsignedIntForKey:@"max_cargo"];
+    OOCargoQuantity max_cargo = dict.get<unsigned int>("max_cargo");
     if (max_cargo) {
-        OOCargoQuantity extra_cargo = [dict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
-        [desc appendFormat:@" Cargo capacity %dt", max_cargo];
-        BOOL canExpand = ([allOptions rangeOfString:@"EQ_CARGO_BAY"].location != NSNotFound);
+        OOCargoQuantity extra_cargo = dict.get<unsigned int>("extra_cargo", 15);
+        desc += oo::str::format(" Cargo capacity %dt", max_cargo);
+        BOOL canExpand = (allOptions.find("EQ_CARGO_BAY") != std::string::npos);
         if (canExpand)
-            [desc appendFormat:@" (expandable to %dt at most starports)", max_cargo + extra_cargo];
-        [desc appendString:@"."];
+            desc += oo::str::format(" (expandable to %dt at most starports)", max_cargo + extra_cargo);
+        desc += ".";
     }
 
     // speed
-    float top_speed = [dict oo_intForKey:@"max_flight_speed"];
-    [desc appendFormat:@" Top speed %.3fLS.", 0.001 * top_speed];
+    float top_speed = dict.get<int>("max_flight_speed");
+    desc += oo::str::format(" Top speed %.3fLS.", 0.001 * top_speed);
 
     // passenger berths
-    if ([mut_extras count]) {
+    if (mut_extras.size()) {
         unsigned n_berths = 0;
         unsigned i;
-        for (i = 0; i < [mut_extras count]; i++) {
-            NSString* item_key = [mut_extras oo_stringAtIndex:i];
-            if ([item_key isEqual:@"EQ_PASSENGER_BERTH"]) {
+        for (i = 0; i < mut_extras.size(); i++) {
+            if (mut_extras[i] == "EQ_PASSENGER_BERTH") {
                 n_berths++;
-                [mut_extras removeObjectAtIndex:i--];
+                mut_extras.erase(mut_extras.begin() + i--);
             }
         }
         if (n_berths) {
             if (n_berths == 1)
-                [desc appendString:@" Includes luxury accomodation for a single passenger."];
+                desc += " Includes luxury accomodation for a single passenger.";
             else
-                [desc appendFormat:@" Includes luxury accomodation for %d passengers.", n_berths];
+                desc += oo::str::format(" Includes luxury accomodation for %d passengers.", n_berths);
         }
     }
 
     // standard fittings
-    if ([mut_extras count]) {
-        [desc appendString:@"\nComes with"];
+    if (mut_extras.size()) {
+        desc += "\nComes with";
         unsigned i, j;
-        for (i = 0; i < [mut_extras count]; i++) {
-            NSString* item_key = [mut_extras oo_stringAtIndex:i];
-            NSString* item_desc = nil;
-            for (j = 0; ((j < [equipmentData count]) && (!item_desc)); j++) {
-                NSString* eq_type = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
-                if ([eq_type isEqual:item_key])
-                    item_desc = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+        for (i = 0; i < mut_extras.size(); i++) {
+            const std::string& item_key = mut_extras[i];
+            std::optional<std::string> item_desc;
+            for (j = 0; ((j < equipmentData.count()) && (!item_desc)); j++) {
+                std::optional<std::string> eq_type = EquipmentItemString(equipmentData, j, EQUIPMENT_KEY_INDEX);
+                if (eq_type == item_key)
+                    item_desc = EquipmentItemString(equipmentData, j, EQUIPMENT_SHORT_DESC_INDEX);
             }
             if (item_desc) {
-                switch ([mut_extras count] - i) {
+                switch (mut_extras.size() - i) {
                 case 1:
-                    [desc appendFormat:@" %@ fitted as standard.", item_desc];
+                    desc += " " + *item_desc + " fitted as standard.";
                     break;
                 case 2:
-                    [desc appendFormat:@" %@ and", item_desc];
+                    desc += " " + *item_desc + " and";
                     break;
                 default:
-                    [desc appendFormat:@" %@,", item_desc];
+                    desc += " " + *item_desc + ",";
                     break;
                 }
             }
@@ -8755,27 +9190,27 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     }
 
     // optional fittings
-    if ([options count]) {
-        [desc appendString:@"\nCan additionally be outfitted with"];
+    if (options.size()) {
+        desc += "\nCan additionally be outfitted with";
         unsigned i, j;
-        for (i = 0; i < [options count]; i++) {
-            NSString* item_key = [options oo_stringAtIndex:i];
-            NSString* item_desc = nil;
-            for (j = 0; ((j < [equipmentData count]) && (!item_desc)); j++) {
-                NSString* eq_type = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
-                if ([eq_type isEqual:item_key])
-                    item_desc = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+        for (i = 0; i < options.size(); i++) {
+            const std::string& item_key = options[i];
+            std::optional<std::string> item_desc;
+            for (j = 0; ((j < equipmentData.count()) && (!item_desc)); j++) {
+                std::optional<std::string> eq_type = EquipmentItemString(equipmentData, j, EQUIPMENT_KEY_INDEX);
+                if (eq_type == item_key)
+                    item_desc = EquipmentItemString(equipmentData, j, EQUIPMENT_SHORT_DESC_INDEX);
             }
             if (item_desc) {
-                switch ([options count] - i) {
+                switch (options.size() - i) {
                 case 1:
-                    [desc appendFormat:@" %@ at suitably equipped starports.", item_desc];
+                    desc += " " + *item_desc + " at suitably equipped starports.";
                     break;
                 case 2:
-                    [desc appendFormat:@" %@ and/or", item_desc];
+                    desc += " " + *item_desc + " and/or";
                     break;
                 default:
-                    [desc appendFormat:@" %@,", item_desc];
+                    desc += " " + *item_desc + ",";
                     break;
                 }
             }
@@ -8812,13 +9247,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 - (HPVector)getSunSkimStartPositionForShip:(ShipEntity*)ship
 {
     if (!ship) {
-        OOLog(kOOLogParameterError, @"%@", @"***** No ship set in Universe getSunSkimStartPositionForShip:");
+        OO_LOG(cxx_kOOLogParameterError, "{}", "***** No ship set in Universe getSunSkimStartPositionForShip:");
         return kZeroHPVector;
     }
     OOSunEntity* the_sun = [self sun];
     // get vector from sun position to ship
     if (!the_sun) {
-        OOLog(kOOLogInconsistentState, @"%@", @"***** No sun set in Universe getSunSkimStartPositionForShip:");
+        OO_LOG(cxx_kOOLogInconsistentState, "{}", "***** No sun set in Universe getSunSkimStartPositionForShip:");
         return kZeroHPVector;
     }
     HPVector v0 = the_sun->position;
@@ -8846,12 +9281,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 {
     OOSunEntity* the_sun = [self sun];
     if (!ship) {
-        OOLog(kOOLogParameterError, @"%@", @"***** No ship set in Universe getSunSkimEndPositionForShip:");
+        OO_LOG(cxx_kOOLogParameterError, "{}", "***** No ship set in Universe getSunSkimEndPositionForShip:");
         return kZeroHPVector;
     }
     // get vector from sun position to ship
     if (!the_sun) {
-        OOLog(kOOLogInconsistentState, @"%@", @"***** No sun set in Universe getSunSkimEndPositionForShip:");
+        OO_LOG(cxx_kOOLogInconsistentState, "{}", "***** No sun set in Universe getSunSkimEndPositionForShip:");
         return kZeroHPVector;
     }
     HPVector v0 = the_sun->position;
@@ -8900,23 +9335,27 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return v1;
 }
 
-- (NSArray*)listBeaconsWithCode:(NSString*)code
+- (std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>>)cxx_listBeaconsWithCode:(const std::string&)code
 {
-    NSMutableArray* result = [NSMutableArray array];
+    std::vector<oo::ObjCRef<Entity<OOBeaconEntity>*>> result;
     Entity<OOBeaconEntity>* beacon = [self firstBeacon];
 
     while (beacon != nil) {
-        NSString* beaconCode = [beacon beaconCode];
-        if ([beaconCode rangeOfString:code options:NSCaseInsensitiveSearch].location != NSNotFound) {
-            [result addObject:beacon];
+        const std::optional<std::string> beaconCode = oo::OptionalString([beacon beaconCode]);
+        if (BeaconCodeMatches(beaconCode, code)) {
+            result.emplace_back(beacon);
         }
         beacon = [beacon nextBeacon];
     }
 
-    return [result sortedArrayUsingSelector:@selector(compareBeaconCodeWith:)];
+    // ORDER-SENSITIVE (decision D): beacons whose codes compare the same keep their list order.
+    std::stable_sort(result.begin(), result.end(), [](const oo::ObjCRef<Entity<OOBeaconEntity>*>& a, const oo::ObjCRef<Entity<OOBeaconEntity>*>& b) {
+        return [a.get() compareBeaconCodeWith:b.get()] == NSOrderedAscending;
+    });
+    return result;
 }
 
-- (void)allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString*)message
+- (void)cxx_allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(const std::optional<std::string>&)message
 {
     int i;
     int ent_count = n_entities;
@@ -8931,8 +9370,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     for (i = 0; i < ship_count; i++) {
         ShipEntity* se = my_ships[i];
         [se doScriptEvent:event];
-        if (message != nil)
-            [[se getAI] reactToMessage:message context:@"global message"];
+        if (message.has_value())
+            [[se getAI] reactToMessage:oo::NSStringFrom(*message) context:@"global message"];
         [se release]; //	released
     }
 }
@@ -8995,7 +9434,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 - (void)setAutoSave:(BOOL)value
 {
     autoSave = !!value;
-    [[NSUserDefaults standardUserDefaults] setBool:autoSave forKey:@"autosave"];
+    oo::Defaults::standard().setBool("autosave", autoSave);
 }
 
 - (BOOL)autoSave
@@ -9016,7 +9455,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 - (void)setWireframeGraphics:(BOOL)value
 {
     wireframeGraphics = !!value;
-    [[NSUserDefaults standardUserDefaults] setBool:wireframeGraphics forKey:@"wireframe-graphics"];
+    oo::Defaults::standard().setBool("wireframe-graphics", wireframeGraphics);
 }
 
 - (BOOL)wireframeGraphics
@@ -9047,11 +9486,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 {
     OOGraphicsDetail old = detailLevel;
     [self setDetailLevelDirectly:value];
-    [[NSUserDefaults standardUserDefaults] setInteger:detailLevel forKey:@"detailLevel"];
+    oo::Defaults::standard().setInteger("detailLevel", detailLevel);
     // if changed then reset graphics state
     // (some items now require this even if shader on/off mode unchanged)
     if (old != detailLevel) {
-        OOLog(@"rendering.detail-level", @"Detail level set to %@.", OOStringFromGraphicsDetail(detailLevel));
+        OO_LOG("rendering.detail-level", "Detail level set to {}.", oo::DescriptionOf(OOStringFromGraphicsDetail(detailLevel)));
         [[OOGraphicsResetManager sharedManager] resetGraphicsState];
     }
 }
@@ -9073,12 +9512,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
             PlayerEntity* player = PLAYER;
             [player setStatus:STATUS_HANDLING_ERROR];
 
-            OOLog(kOOLogException, @"***** Handling Fatal : %@ : %@ *****", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
-            NSString* exception_msg = [NSString stringWithFormat:@"Exception : %@ : %@ Please take a screenshot and/or press esc or Q to quit.", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason])];
-            [self addMessage:exception_msg forCount:30.0];
+            OO_LOG(cxx_kOOLogException, "***** Handling Fatal : {} : {} *****", [exception name], [exception reason]);
+            std::string exception_msg = oo::str::format("Exception : %s : %s Please take a screenshot and/or press esc or Q to quit.", [exception name], [exception reason]);
+            [self cxx_addMessage:exception_msg forCount:30.0];
             [[self gameController] setGamePaused:YES];
         } else {
-            OOLog(kOOLogException, @"***** Handling Non-fatal : %@ : %@ *****", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+            OO_LOG(cxx_kOOLogException, "***** Handling Non-fatal : {} : {} *****", [exception name], [exception reason]);
         }
     }
 }
@@ -9096,9 +9535,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 // speech routines
 #if OOLITE_MAC_COCOA_UI
 
-- (void)startSpeakingString:(NSString*)text
+- (void)cxx_startSpeakingString:(const std::string&)text
 {
-    [speechSynthesizer startSpeakingString:[NSString stringWithFormat:@"[[volm %.3f]]%@", 0.3333333f * [OOSound masterVolume], text]];
+    [speechSynthesizer startSpeakingString:oo::NSStringFrom(oo::str::format("[[volm %.3f]]%s", 0.3333333f * [OOSound masterVolume], text.c_str()))];
 }
 
 - (void)stopSpeaking
@@ -9117,15 +9556,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 
 #elif OOLITE_ESPEAK
 
-- (void)startSpeakingString:(NSString*)text
+- (void)cxx_startSpeakingString:(const std::string&)text
 {
-    NSData* utf8 = [text dataUsingEncoding:NSUTF8StringEncoding];
-
-    if (utf8 != nil) // we have a valid UTF-8 string
-    {
-        const char* stringToSay = [text UTF8String];
-        espeak_Synth(stringToSay, strlen(stringToSay) + 1 /* inc. NULL */, 0, POS_CHARACTER, 0, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
-    }
+    // the UTF-8 bytes of the text
+    const char* stringToSay = text.c_str();
+    espeak_Synth(stringToSay, strlen(stringToSay) + 1 /* inc. NULL */, 0, POS_CHARACTER, 0, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
 }
 
 - (void)stopSpeaking
@@ -9138,21 +9573,16 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     return espeak_IsPlaying();
 }
 
-- (NSString*)voiceName:(unsigned int)index
+- (std::optional<std::string>)cxx_voiceName:(unsigned int)index
 {
     if (index >= espeak_voice_count)
-        return @"-";
-    return [NSString stringWithCString:espeak_voices[index]->name];
+        return std::string("-");
+    return std::string(espeak_voices[index]->name);
 }
 
-- (unsigned int)voiceNumber:(NSString*)name
+- (unsigned int)cxx_voiceNumber:(const std::string&)name
 {
-    if (name == nil)
-        return UINT_MAX;
-
-    const char* const label = [name UTF8String];
-    if (!label)
-        return UINT_MAX;
+    const char* const label = name.c_str();
 
     unsigned int index = -1;
     while (espeak_voices[++index] && strcmp(espeak_voices[index]->name, label))
@@ -9177,7 +9607,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 - (unsigned int)setVoice:(unsigned int)index withGenderM:(BOOL)isMale
 {
     if (index == UINT_MAX)
-        index = [self voiceNumber:DESC(@"espeak-default-voice")];
+        index = [self cxx_voiceNumber:cxx_OOLookUpDescriptionPRIV("espeak-default-voice")];
 
     if (index < espeak_voice_count) {
         espeak_VOICE voice = { espeak_voices[index]->name, NULL, NULL, (unsigned char)(isMale ? 1 : 2) };
@@ -9189,7 +9619,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 
 #else
 
-- (void)startSpeakingString:(NSString*)text
+- (void)cxx_startSpeakingString:(const std::string&)text
 {
 }
 
@@ -9305,8 +9735,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     countdown_messageRepeatTime = 0.0;
 
 #if OOLITE_SPEECH_SYNTH
-    [speechArray autorelease];
-    speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
+    speechArray = [ResourceManager cxx_arrayFromFilesNamed:"speech_pronunciation_guide.plist" inFolder:std::string("Config") andMerge:YES];
 #endif
 
     [commodities autorelease];
@@ -9314,27 +9743,21 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 
     [self loadDescriptions];
 
-    [characters autorelease];
-    characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
+    characters = [ResourceManager cxx_dictionaryFromFilesNamed:"characters.plist" inFolder:std::string("Config") andMerge:YES];
 
-    [customSounds autorelease];
-    customSounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
+    customSounds = [ResourceManager cxx_dictionaryFromFilesNamed:"customsounds.plist" inFolder:std::string("Config") andMerge:YES];
 
-    [globalSettings autorelease];
-    globalSettings = [[ResourceManager dictionaryFromFilesNamed:@"global-settings.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+    globalSettings = [ResourceManager cxx_dictionaryFromFilesNamed:"global-settings.plist" inFolder:std::string("Config") mergeMode:MERGE_SMART cache:YES];
 
     [systemManager autorelease];
     systemManager = [[ResourceManager systemDescriptionManager] retain];
 
-    [screenBackgrounds autorelease];
-    screenBackgrounds = [[ResourceManager dictionaryFromFilesNamed:@"screenbackgrounds.plist" inFolder:@"Config" andMerge:YES] retain];
+    screenBackgrounds = [ResourceManager cxx_dictionaryFromFilesNamed:"screenbackgrounds.plist" inFolder:std::string("Config") andMerge:YES];
 
     // role-categories.plist and pirate-victim-roles.plist
-    [roleCategories autorelease];
-    roleCategories = [[ResourceManager roleCategoriesDictionary] retain];
+    roleCategories = [ResourceManager cxx_roleCategoriesDictionary];
 
-    [autoAIMap autorelease];
-    autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];
+    autoAIMap = [ResourceManager cxx_dictionaryFromFilesNamed:"autoAImap.plist" inFolder:std::string("Config") andMerge:YES];
 
     [equipmentData autorelease];
     [equipmentDataOutfitting autorelease];
@@ -9344,45 +9767,40 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 
     [OOEquipmentType loadEquipment];
 
-    [explosionSettings autorelease];
-    explosionSettings = [[ResourceManager dictionaryFromFilesNamed:@"explosions.plist" inFolder:@"Config" andMerge:YES] retain];
+    explosionSettings = [ResourceManager cxx_dictionaryFromFilesNamed:"explosions.plist" inFolder:std::string("Config") andMerge:YES];
 }
 
 - (void)setUpCargoPods
 {
-    NSMutableDictionary* tmp = [[NSMutableDictionary alloc] initWithCapacity:[commodities count]];
-    OOCommodityType type = nil;
-    foreach (type, [commodities goods]) {
-        ShipEntity* container = [self newShipWithRole:@"oolite-template-cargopod"];
+    std::map<std::string, oo::ObjCRef<ShipEntity*>, std::less<>> tmp;
+    for (const std::string& type : oo::StringsFrom([commodities goods])) // OOCommodities is not migrated yet
+    {
+        ShipEntity* container = [self cxx_newShipWithRole:"oolite-template-cargopod"];
         [container setScanClass:CLASS_CARGO];
-        [container setCommodity:type andAmount:1];
-        [tmp setObject:container forKey:type];
-        [container release];
+        [container setCommodity:oo::NSStringFrom(type) andAmount:1];
+        if (container != nil)
+            tmp[type] = oo::adoptObjC(container); // a nil container was an exception before
     }
-    [cargoPods release];
-    cargoPods = [[NSDictionary alloc] initWithDictionary:tmp];
-    [tmp release];
+    cargoPods = std::move(tmp);
 }
 
 - (void)verifyEntitySessionIDs
 {
 #ifndef NDEBUG
-    NSMutableArray* badEntities = nil;
+    std::vector<oo::ObjCRef<Entity*>> badEntities;
     Entity* entity = nil;
 
     unsigned i;
     for (i = 0; i < n_entities; i++) {
         entity = sortedEntities[i];
         if ([entity sessionID] != _sessionID) {
-            OOLogERR(@"universe.sessionIDs.verify.failed", @"Invalid entity %@ (came from session %zu, current session is %zu).", [entity shortDescription], [entity sessionID], _sessionID);
-            if (badEntities == nil)
-                badEntities = [NSMutableArray array];
-            [badEntities addObject:entity];
+            OO_LOG_ERR("universe.sessionIDs.verify.failed", "Invalid entity {} (came from session {}, current session is {}).", oo::DescriptionOf([entity shortDescription]), static_cast<size_t>([entity sessionID]), static_cast<size_t>(_sessionID));
+            badEntities.emplace_back(entity);
         }
     }
 
-    foreach (entity, badEntities) {
-        [self removeEntity:entity];
+    for (const oo::ObjCRef<Entity*>& entry : badEntities) {
+        [self removeEntity:entry.get()];
     }
 #endif
 }
@@ -9406,7 +9824,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
 
     _sessionID++; // Must be after removing old entities and before adding new ones.
 
-    [ResourceManager setUseAddOns:useAddOns]; // also logs the paths
+    [ResourceManager cxx_setUseAddOns:useAddOns]; // also logs the paths
     //[ResourceManager loadScripts]; // initialised inside [player setUp]!
 
     // NOTE: Anything in the sharedCache is now trashed and must be
@@ -9421,12 +9839,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     [self loadDescriptions];
     [self loadScenarios];
 
-    [missiontext autorelease];
-    missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
+    missiontext = [ResourceManager cxx_dictionaryFromFilesNamed:"missiontext.plist" inFolder:std::string("Config") andMerge:YES];
 
     if (showDemo) {
-        [demo_ships release];
-        demo_ships = [[[OOShipRegistry sharedRegistry] demoShipKeys] retain];
+        demo_ships = [[OOShipRegistry sharedRegistry] cxx_demoShipKeys];
         demo_ship_index = 0;
         demo_ship_subindex = 0;
     }
@@ -9497,12 +9913,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     PlayerEntity* player = PLAYER;
 
     OO_DEBUG_PUSH_PROGRESS(@"%@", @"Wormhole and character reset");
-    if (activeWormholes)
-        [activeWormholes autorelease];
-    activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
-    if (characterPool)
-        [characterPool autorelease];
-    characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
+    AutoreleaseAll(activeWormholes); // the old list was autoreleased
+    activeWormholes.reserve(16);
+    AutoreleaseAll(characterPool); // the old pool was autoreleased
+    characterPool.reserve(256);
     OO_DEBUG_POP_PROGRESS();
 
     OO_DEBUG_PUSH_PROGRESS(@"%@", @"Galaxy reset");
@@ -9519,8 +9933,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     [self setUpSpace];
 
     [self setDockingClearanceProtocolActive:
-            [[self currentSystemData] oo_boolForKey:@"stations_require_docking_clearance"
-                                       defaultValue:YES]];
+            oo::PListView([self currentSystemData]).get<BOOL>(@"stations_require_docking_clearance", YES)];
 
     [self enterGUIViewModeWithMouseInteraction:NO];
     [player setPosition:[[self station] position]];
@@ -9578,14 +9991,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     int n = 1;
     if (index >= 0) {
         if (sortedEntities[index] != entity) {
-            OOLog(kOOLogInconsistentState, @"DEBUG: Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
+            OO_LOG(cxx_kOOLogInconsistentState, "DEBUG: Universe removeEntity:{} ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", oo::DescriptionOf(entity));
             unsigned i;
             index = -1;
             for (i = 0; (i < n_entities) && (index == -1); i++)
                 if (sortedEntities[i] == entity)
                     index = i;
             if (index == -1)
-                OOLog(kOOLogInconsistentState, @"DEBUG: Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
+                OO_LOG(cxx_kOOLogInconsistentState, "DEBUG: Universe removeEntity:{} ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", oo::DescriptionOf(entity));
         }
         if (index != -1) {
             while ((unsigned)index < n_entities) {
@@ -9614,7 +10027,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
                 index++;
             }
             if (n > 1)
-                OOLog(kOOLogInconsistentState, @"DEBUG: Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
+                OO_LOG(cxx_kOOLogInconsistentState, "DEBUG: Universe removeEntity: REMOVED {} EXTRA COPIES OF {} FROM THE ZERO_DISTANCE SORTED LIST", n - 1, oo::DescriptionOf(entity));
             while (n--) {
                 n_entities--;
                 sortedEntities[n_entities] = nil;
@@ -9624,7 +10037,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     }
 
     // remove from the definitive list
-    if ([entities containsObject:entity]) {
+    if (std::find(entities.begin(), entities.end(), entity) != entities.end()) {
         // FIXME: better approach needed for core break patterns - CIM
         if ([entity isBreakPattern] && ![entity isVisualEffect]) {
             breakPatternCounter--;
@@ -9644,80 +10057,81 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
         }
 
         if ([entity isWormhole]) {
-            [activeWormholes removeObject:entity];
+            std::erase(activeWormholes, entity);
         } else if ([entity isPlanet]) {
-            [allPlanets removeObject:entity];
+            std::erase(allPlanets, entity);
         }
 
-        [entities removeObject:entity];
+        std::erase(entities, entity);
         return YES;
     }
 
     return NO;
 }
 
-static void PreloadOneSound(NSString* soundName)
+static void PreloadOneSound(const std::string& soundName)
 {
-    if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"]) {
-        [ResourceManager ooSoundNamed:soundName inFolder:@"Sounds"];
+    if (!oo::str::hasPrefix(soundName, "[") && !oo::str::hasSuffix(soundName, "]")) {
+        [ResourceManager cxx_ooSoundNamed:soundName inFolder:std::string("Sounds")];
     }
 }
 
+// ORDER-SENSITIVE (decision D): the keys in byte order (was the dictionary's hash order).
 - (void)preloadSounds
 {
     // Preload sounds to avoid loading stutter.
-    NSString* key = nil;
-    foreachkey(key, customSounds)
-    {
-        id object = [customSounds objectForKey:key];
-        if ([object isKindOfClass:[NSString class]]) {
-            PreloadOneSound(object);
-        } else if ([object isKindOfClass:[NSArray class]] && [object count] > 0) {
-            NSString* soundName = nil;
-            foreach (soundName, object) {
-                if ([soundName isKindOfClass:[NSString class]]) {
-                    PreloadOneSound(soundName);
+    if (const oo::PList::Dict* sounds = customSounds.getIf<oo::PList::Dict>()) {
+        for (const auto& [key, object] : *sounds) {
+            if (object.isString()) {
+                PreloadOneSound(*object.getIf<std::string>());
+            } else if (object.isArray() && object.count() > 0) {
+                for (const oo::PList& soundName : *object.getIf<oo::PList::Array>()) {
+                    if (soundName.isString()) {
+                        PreloadOneSound(*soundName.getIf<std::string>());
+                    }
                 }
             }
         }
     }
 
     // Afterburner sound doesn't go through customsounds.plist.
-    PreloadOneSound(@"afterburner1.ogg");
+    PreloadOneSound("afterburner1.ogg");
 }
 
 - (void)populateSpaceFromActiveWormholes
 {
-    while ([activeWormholes count]) {
+    while (!activeWormholes.empty()) {
         @autoreleasepool {
             @try {
-                WormholeEntity* whole = [activeWormholes objectAtIndex:0];
+                WormholeEntity* whole = activeWormholes[0].get();
                 // If the wormhole has been scanned by the player then the
                 // PlayerEntity will take care of it
                 if (![whole isScanned] && NSEqualPoints([PLAYER galaxy_coordinates], [whole destinationCoordinates])) {
                     // this is a wormhole to this system
                     [whole disgorgeShips];
                 }
-                [activeWormholes removeObjectAtIndex:0]; // empty it out
+                RemoveFirstWormhole(activeWormholes); // empty it out
             }
             @catch (OOException* exception) {
-                OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", oo::NSStringFrom([exception name]), oo::NSStringFrom([exception reason]));
+                OO_LOG(cxx_kOOLogException, "Squashing exception during wormhole unpickling ({}: {}).", [exception name], [exception reason]);
             }
             @catch (OOFoundationException* exception) {
-                OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", [exception name], [exception reason]);
+                OO_LOG(cxx_kOOLogException, "Squashing exception during wormhole unpickling ({}: {}).", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
             }
         }
     }
 }
 
-- (NSString*)chooseStringForKey:(NSString*)key inDictionary:(NSDictionary*)dictionary
+- (std::optional<std::string>)chooseStringForKey:(const std::string&)key inDictionary:(const oo::PList&)dictionary
 {
-    id object = [dictionary objectForKey:key];
-    if ([object isKindOfClass:[NSString class]])
-        return object;
-    else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)
-        return [object oo_stringAtIndex:Ranrot() % [object count]];
-    return nil;
+    const oo::PList* object = dictionary.find(key);
+    if (object == nullptr)
+        return std::nullopt;
+    if (object->isString())
+        return *object->getIf<std::string>();
+    else if (object->isArray() && object->count() > 0)
+        return OptionalStringAt(*object, Ranrot() % object->count());
+    return std::nullopt;
 }
 
 #if OO_LOCALIZATION_TOOLS
@@ -9725,162 +10139,169 @@ static void PreloadOneSound(NSString* soundName)
 #if DEBUG_GRAPHVIZ
 - (void)dumpDebugGraphViz
 {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"universe-dump-debug-graphviz"]) {
+    if (oo::Defaults::standard().boolForKey("universe-dump-debug-graphviz")) {
         [self dumpSystemDescriptionGraphViz];
     }
 }
 
+namespace {
+
+/*	EscapedGraphVizString(OOStringifySystemDescriptionLine(line, keyMap, NO)): the stringifier is
+        the unmigrated OOConvertSystemDescriptions' (oo-xh1g), given Objective-C objects at the call;
+        a nil line or result escaped to nil, which %@ printed as "(null)".
+*/
+std::string StringifiedLabel(id line, id keyMap)
+{
+    // oo-xh1g: stringify takes std::string / oo::PList; nil line still prints as "(null)".
+    if (line == nil)
+        return "(null)";
+    return cxx_EscapedGraphVizString(OOStringifySystemDescriptionLine(oo::StdString(line), oo::PListFrom(keyMap), NO));
+}
+
+} // namespace
+
 - (void)dumpSystemDescriptionGraphViz
 {
-    NSMutableString* graphViz = nil;
-    NSArray* systemDescriptions = nil;
-    NSArray* thisDesc = nil;
+    std::string graphViz;
+    const oo::PList* systemDescriptions = nullptr;
+    const oo::PList* thisDesc = nullptr;
     NSUInteger i, count, j, subCount;
-    NSString* descLine = nil;
-    NSArray* curses = nil;
-    NSString* label = nil;
-    NSDictionary* keyMap = nil;
+    std::string descLine;
+    const oo::PList* curses = nullptr;
+    std::string label;
+    oo::PList keyMap;
 
-    keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
-                                              inFolder:@"Config"
-                                              andMerge:NO];
+    keyMap = [ResourceManager cxx_dictionaryFromFilesNamed:"sysdesc_key_table.plist"
+                                                  inFolder:std::string("Config")
+                                                  andMerge:NO];
+    const id keyMapObject = oo::ObjectFromPList(keyMap); // for the unmigrated stringifier
 
-    graphViz = [NSMutableString stringWithString:
-            @"// System description grammar:\n\n"
-             "digraph system_descriptions\n"
-             "{\n"
-             "\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.02 ranksep=1.5 concentrate=true fontname=Helvetica]\n"
-             "\tedge [arrowhead=dot]\n"
-             "\tnode [shape=none height=0.2 width=3 fontname=Helvetica]\n\t\n"];
+    graphViz = "// System description grammar:\n\n"
+               "digraph system_descriptions\n"
+               "{\n"
+               "\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.02 ranksep=1.5 concentrate=true fontname=Helvetica]\n"
+               "\tedge [arrowhead=dot]\n"
+               "\tnode [shape=none height=0.2 width=3 fontname=Helvetica]\n\t\n";
 
-    systemDescriptions = [[self descriptions] oo_arrayForKey:@"system_description"];
-    count = [systemDescriptions count];
+    systemDescriptions = [self cxx_descriptions]->get<oo::PList::Array>("system_description");
+    count = (systemDescriptions != nullptr) ? systemDescriptions->count() : 0;
 
     // Add system-description-string as special node (it's the one thing that ties [14] to everything else).
-    descLine = DESC(@"system-description-string");
-    label = OOStringifySystemDescriptionLine(descLine, keyMap, NO);
-    [graphViz appendFormat:@"\tsystem_description_string [label=\"%@\" shape=ellipse]\n", EscapedGraphVizString(label)];
+    descLine = cxx_OOLookUpDescriptionPRIV("system-description-string");
+    graphViz += oo::str::format("\tsystem_description_string [label=\"%s\" shape=ellipse]\n", StringifiedLabel(oo::NSStringFrom(descLine), keyMapObject).c_str());
     [self addNumericRefsInString:descLine
                       toGraphViz:graphViz
-                        fromNode:@"system_description_string"
+                        fromNode:"system_description_string"
                        nodeCount:count];
-    [graphViz appendString:@"\t\n"];
+    graphViz += "\t\n";
 
     // Add special nodes for formatting codes
-    [graphViz appendString:
-            @"\tpercent_I [label=\"%I\\nInhabitants\" shape=diamond]\n"
-             "\tpercent_H [label=\"%H\\nSystem name\" shape=diamond]\n"
-             "\tpercent_RN [label=\"%R/%N\\nRandom name\" shape=diamond]\n"
-             "\tpercent_J [label=\"%J\\nNumbered system name\" shape=diamond]\n"
-             "\tpercent_G [label=\"%G\\nNumbered system name in chart number\" shape=diamond]\n\t\n"];
+    graphViz += "\tpercent_I [label=\"%I\\nInhabitants\" shape=diamond]\n"
+                "\tpercent_H [label=\"%H\\nSystem name\" shape=diamond]\n"
+                "\tpercent_RN [label=\"%R/%N\\nRandom name\" shape=diamond]\n"
+                "\tpercent_J [label=\"%J\\nNumbered system name\" shape=diamond]\n"
+                "\tpercent_G [label=\"%G\\nNumbered system name in chart number\" shape=diamond]\n\t\n";
 
     // Toss in the Thargoid curses, too
-    [graphViz appendString:@"\tsubgraph cluster_thargoid_curses\n\t{\n\t\tlabel = \"Thargoid curses\"\n"];
-    curses = [[self descriptions] oo_arrayForKey:@"thargoid_curses"];
-    subCount = [curses count];
+    graphViz += "\tsubgraph cluster_thargoid_curses\n\t{\n\t\tlabel = \"Thargoid curses\"\n";
+    curses = [self cxx_descriptions]->get<oo::PList::Array>("thargoid_curses");
+    subCount = (curses != nullptr) ? curses->count() : 0;
     for (j = 0; j < subCount; ++j) {
-        label = OOStringifySystemDescriptionLine([curses oo_stringAtIndex:j], keyMap, NO);
-        [graphViz appendFormat:@"\t\tthargoid_curse_%zu [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
+        graphViz += oo::str::format("\t\tthargoid_curse_%zu [label=\"%s\"]\n", j, StringifiedLabel(oo::NSStringOrNil(OptionalStringAt(*curses, j)), keyMapObject).c_str());
     }
-    [graphViz appendString:@"\t}\n"];
+    graphViz += "\t}\n";
     for (j = 0; j < subCount; ++j) {
-        [self addNumericRefsInString:[curses oo_stringAtIndex:j]
+        [self addNumericRefsInString:OptionalStringAt(*curses, j).value_or(std::string())
                           toGraphViz:graphViz
-                            fromNode:[NSString stringWithFormat:@"thargoid_curse_%zu", j]
+                            fromNode:oo::str::format("thargoid_curse_%zu", j)
                            nodeCount:count];
     }
-    [graphViz appendString:@"\t\n"];
+    graphViz += "\t\n";
 
     // The main show: the bits of systemDescriptions itself.
     // Define the nodes
     for (i = 0; i < count; ++i) {
         // Build label, using sysdesc_key_table.plist if available
-        label = [keyMap objectForKey:[NSString stringWithFormat:@"%zu", i]];
-        if (label == nil)
-            label = [NSString stringWithFormat:@"[%zu]", i];
+        const oo::PList* keyLabel = keyMap.find(oo::str::format("%zu", i));
+        if (keyLabel == nullptr)
+            label = oo::str::format("[%zu]", i);
         else
-            label = [NSString stringWithFormat:@"[%zu] (%@)", i, label];
+            label = oo::str::format("[%zu] (%s)", i, oo::DescriptionOf(oo::ObjectFromPList(*keyLabel)).c_str());
 
-        [graphViz appendFormat:@"\tsubgraph cluster_%zu\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
+        graphViz += oo::str::format("\tsubgraph cluster_%zu\n\t{\n\t\tlabel=\"%s\"\n", i, cxx_EscapedGraphVizString(label).c_str());
 
-        thisDesc = [systemDescriptions oo_arrayAtIndex:i];
-        subCount = [thisDesc count];
+        thisDesc = systemDescriptions->at<oo::PList::Array>(i);
+        subCount = (thisDesc != nullptr) ? thisDesc->count() : 0;
         for (j = 0; j < subCount; ++j) {
-            label = OOStringifySystemDescriptionLine([thisDesc oo_stringAtIndex:j], keyMap, NO);
-            [graphViz appendFormat:@"\t\tn%zu_%zu [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
+            graphViz += oo::str::format("\t\tn%zu_%zu [label=\"\\\"%s\\\"\"]\n", i, j, StringifiedLabel(oo::NSStringOrNil(OptionalStringAt(*thisDesc, j)), keyMapObject).c_str());
         }
 
-        [graphViz appendString:@"\t}\n"];
+        graphViz += "\t}\n";
     }
-    [graphViz appendString:@"\t\n"];
+    graphViz += "\t\n";
 
     // Define the edges
     for (i = 0; i != count; ++i) {
-        thisDesc = [systemDescriptions oo_arrayAtIndex:i];
-        subCount = [thisDesc count];
+        thisDesc = systemDescriptions->at<oo::PList::Array>(i);
+        subCount = (thisDesc != nullptr) ? thisDesc->count() : 0;
         for (j = 0; j != subCount; ++j) {
-            descLine = [thisDesc oo_stringAtIndex:j];
+            descLine = OptionalStringAt(*thisDesc, j).value_or(std::string());
             [self addNumericRefsInString:descLine
                               toGraphViz:graphViz
-                                fromNode:[NSString stringWithFormat:@"n%zu_%zu", i, j]
+                                fromNode:oo::str::format("n%zu_%zu", i, j)
                                nodeCount:count];
         }
     }
 
     // Write file
-    [graphViz appendString:@"\t}\n"];
-    [ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"SystemDescription.dot"];
+    graphViz += "\t}\n";
+    [ResourceManager cxx_writeDiagnosticData:oo::Data(graphViz.data(), graphViz.size()) toFileNamed:"SystemDescription.dot"];
 }
 #endif // DEBUG_GRAPHVIZ
 
-- (void)addNumericRefsInString:(NSString*)string toGraphViz:(NSMutableString*)graphViz fromNode:(NSString*)fromNode nodeCount:(NSUInteger)nodeCount
+// A missing line is "" here (the old nil receiver answered zeroed ranges and never ended the scan).
+- (void)addNumericRefsInString:(const std::string&)string toGraphViz:(std::string&)graphViz fromNode:(const std::string&)fromNode nodeCount:(NSUInteger)nodeCount
 {
-    NSString* index = nil;
-    NSInteger start, end;
-    NSRange remaining, subRange;
+    std::size_t start, end, remaining = 0;
     unsigned i;
 
-    remaining = NSMakeRange(0, [string length]);
-
     for (;;) {
-        subRange = [string rangeOfString:@"[" options:NSLiteralSearch range:remaining];
-        if (subRange.location == NSNotFound)
+        const std::size_t open = string.find('[', remaining);
+        if (open == std::string::npos)
             break;
-        start = subRange.location + subRange.length;
-        remaining.length -= start - remaining.location;
-        remaining.location = start;
+        start = open + 1;
+        remaining = start;
 
-        subRange = [string rangeOfString:@"]" options:NSLiteralSearch range:remaining];
-        if (subRange.location == NSNotFound)
+        const std::size_t close = string.find(']', remaining);
+        if (close == std::string::npos)
             break;
-        end = subRange.location;
-        remaining.length -= end - remaining.location;
-        remaining.location = end;
+        end = close;
+        remaining = end;
 
-        index = [string substringWithRange:NSMakeRange(start, end - start)];
-        i = [index intValue];
+        const std::string index = string.substr(start, end - start);
+        i = oo::str::intValue(index);
 
         // Each node gets a colour for its incoming edges. The multiplication and mod shuffle them to avoid adjacent nodes having similar colours.
-        [graphViz appendFormat:@"\t%@ -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode, i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i];
+        graphViz += oo::str::format("\t%s -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode.c_str(), i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i);
     }
 
-    if ([string rangeOfString:@"%I"].location != NSNotFound) {
-        [graphViz appendFormat:@"\t%@ -> percent_I [color=\"0,0,0.25\"]\n", fromNode];
+    if (string.find("%I") != std::string::npos) {
+        graphViz += oo::str::format("\t%s -> percent_I [color=\"0,0,0.25\"]\n", fromNode.c_str());
     }
-    if ([string rangeOfString:@"%H"].location != NSNotFound) {
-        [graphViz appendFormat:@"\t%@ -> percent_H [color=\"0,0,0.45\"]\n", fromNode];
+    if (string.find("%H") != std::string::npos) {
+        graphViz += oo::str::format("\t%s -> percent_H [color=\"0,0,0.45\"]\n", fromNode.c_str());
     }
-    if ([string rangeOfString:@"%R"].location != NSNotFound || [string rangeOfString:@"%N"].location != NSNotFound) {
-        [graphViz appendFormat:@"\t%@ -> percent_RN [color=\"0,0,0.65\"]\n", fromNode];
-    }
-
-    // TODO: test graphViz output for @"%Jxxx" and @"%Gxxxxxx"
-    if ([string rangeOfString:@"%J"].location != NSNotFound) {
-        [graphViz appendFormat:@"\t%@ -> percent_J [color=\"0,0,0.75\"]\n", fromNode];
+    if (string.find("%R") != std::string::npos || string.find("%N") != std::string::npos) {
+        graphViz += oo::str::format("\t%s -> percent_RN [color=\"0,0,0.65\"]\n", fromNode.c_str());
     }
 
-    if ([string rangeOfString:@"%G"].location != NSNotFound) {
-        [graphViz appendFormat:@"\t%@ -> percent_G [color=\"0,0,0.85\"]\n", fromNode];
+    // TODO: test graphViz output for "%Jxxx" and "%Gxxxxxx"
+    if (string.find("%J") != std::string::npos) {
+        graphViz += oo::str::format("\t%s -> percent_J [color=\"0,0,0.75\"]\n", fromNode.c_str());
+    }
+
+    if (string.find("%G") != std::string::npos) {
+        graphViz += oo::str::format("\t%s -> percent_G [color=\"0,0,0.85\"]\n", fromNode.c_str());
     }
 }
 
@@ -9914,10 +10335,10 @@ static void PreloadOneSound(NSString* soundName)
 {
     [[OOAsyncWorkManager sharedAsyncWorkManager] completePendingTasks];
 
-    NSUInteger i = [_preloadingPlanetMaterials count];
+    NSUInteger i = _preloadingPlanetMaterials.size();
     while (i--) {
-        if ([[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading]) {
-            [_preloadingPlanetMaterials removeObjectAtIndex:i];
+        if ([_preloadingPlanetMaterials[i].get() isFinishedLoading]) {
+            _preloadingPlanetMaterials.erase(_preloadingPlanetMaterials.begin() + i);
         }
     }
 }
@@ -9925,64 +10346,63 @@ static void PreloadOneSound(NSString* soundName)
 
 - (void)loadConditionScripts
 {
-    [conditionScripts autorelease];
-    conditionScripts = [[NSMutableDictionary alloc] init];
-    // get list of names from cache manager
-    [self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"equipment conditions" inCache:@"condition scripts"] objectEnumerator]];
+    conditionScripts.clear();
+    // get list of names from cache manager (the cache is not migrated yet: its arrays of names arrive as strings)
+    [self addConditionScripts:oo::StringsFrom([[OOCacheManager sharedCache] cxx_objectForKey:"equipment conditions" inCache:"condition scripts"])];
 
-    [self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"ship conditions" inCache:@"condition scripts"] objectEnumerator]];
+    [self addConditionScripts:oo::StringsFrom([[OOCacheManager sharedCache] cxx_objectForKey:"ship conditions" inCache:"condition scripts"])];
 
-    [self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"demoship conditions" inCache:@"condition scripts"] objectEnumerator]];
+    [self addConditionScripts:oo::StringsFrom([[OOCacheManager sharedCache] cxx_objectForKey:"demoship conditions" inCache:"condition scripts"])];
 }
 
-- (void)addConditionScripts:(NSEnumerator*)scripts
+- (void)addConditionScripts:(const std::vector<std::string>&)scripts
 {
-    NSString* scriptname = nil;
-    while ((scriptname = [scripts nextObject])) {
-        if ([conditionScripts objectForKey:scriptname] == nil) {
-            OOJSScript* script = [OOScript jsScriptFromFileNamed:scriptname properties:nil];
+    for (const std::string& scriptname : scripts) {
+        if (!conditionScripts.contains(scriptname)) {
+            OOJSScript* script = [OOScript cxx_jsScriptFromFileNamed:scriptname properties:oo::PList()];
             if (script != nil) {
-                [conditionScripts setObject:script forKey:scriptname];
+                conditionScripts[scriptname] = oo::ObjCRef<OOJSScript*>(script);
             }
         }
     }
 }
 
-- (OOJSScript*)getConditionScript:(NSString*)scriptname
+- (OOJSScript*)cxx_getConditionScript:(const std::string&)scriptname
 {
-    return [conditionScripts objectForKey:scriptname];
+    const auto found = conditionScripts.find(scriptname);
+    return (found != conditionScripts.end()) ? found->second.get() : nil;
 }
 
 @end
 
 @implementation OOSound (OOCustomSounds)
 
-+ (id)soundWithCustomSoundKey:(NSString*)key
++ (id)cxx_soundWithCustomSoundKey:(const std::string&)key
 {
-    NSString* fileName = [UNIVERSE soundNameForCustomSoundKey:key];
-    if (fileName == nil)
+    const std::optional<std::string> fileName = [UNIVERSE soundNameForCustomSoundKey:key];
+    if (!fileName.has_value())
         return nil;
-    return [ResourceManager ooSoundNamed:fileName inFolder:@"Sounds"];
+    return [ResourceManager cxx_ooSoundNamed:*fileName inFolder:std::string("Sounds")];
 }
 
-- (id)initWithCustomSoundKey:(NSString*)key
+- (id)initWithCustomSoundKey:(id)key // shared selector (proposed ADR-0043): an Objective-C string, as OOSoundSource's
 {
     [self release];
-    return [[OOSound soundWithCustomSoundKey:key] retain];
+    return [[OOSound cxx_soundWithCustomSoundKey:oo::StdString(key)] retain];
 }
 
 @end
 
 @implementation OOSoundSource (OOCustomSounds)
 
-+ (id)sourceWithCustomSoundKey:(NSString*)key
++ (id)sourceWithCustomSoundKey:(const std::string&)key
 {
-    return [[[self alloc] initWithCustomSoundKey:key] autorelease];
+    return [[[self alloc] initWithCustomSoundKey:oo::NSStringFrom(key)] autorelease];
 }
 
-- (id)initWithCustomSoundKey:(NSString*)key
+- (id)initWithCustomSoundKey:(id)key // shared selector (proposed ADR-0043): an Objective-C string, as OOSound's
 {
-    OOSound* theSound = [OOSound soundWithCustomSoundKey:key];
+    OOSound* theSound = [OOSound cxx_soundWithCustomSoundKey:oo::StdString(key)];
     if (theSound != nil) {
         self = [self initWithSound:theSound];
     } else {
@@ -9992,129 +10412,54 @@ static void PreloadOneSound(NSString* soundName)
     return self;
 }
 
-- (void)playCustomSoundWithKey:(NSString*)key
+- (void)cxx_playCustomSoundWithKey:(const std::string&)key
 {
-    OOSound* theSound = [OOSound soundWithCustomSoundKey:key];
+    OOSound* theSound = [OOSound cxx_soundWithCustomSoundKey:key];
     if (theSound != nil)
         [self playSound:theSound];
 }
 
 @end
 
-NSComparisonResult populatorPrioritySort(id a, id b, void* context)
+std::string cxx_OOLookUpDescriptionPRIV(const std::string& key)
 {
-    NSDictionary* one = (NSDictionary*)a;
-    NSDictionary* two = (NSDictionary*)b;
-    int pri_one = [one oo_intForKey:@"priority" defaultValue:100];
-    int pri_two = [two oo_intForKey:@"priority" defaultValue:100];
-    if (pri_one < pri_two)
-        return NSOrderedAscending;
-    if (pri_one > pri_two)
-        return NSOrderedDescending;
-    return NSOrderedSame;
-}
-
-NSComparisonResult equipmentSort(id a, id b, void* context)
-{
-    NSArray* one = (NSArray*)a;
-    NSArray* two = (NSArray*)b;
-
-    /* Sort by explicit sort_order, then tech level, then price */
-
-    OOCreditsQuantity comp1 = [[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
-    OOCreditsQuantity comp2 = [[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
-    if (comp1 < comp2)
-        return NSOrderedAscending;
-    if (comp1 > comp2)
-        return NSOrderedDescending;
-
-    comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-    comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-    if (comp1 < comp2)
-        return NSOrderedAscending;
-    if (comp1 > comp2)
-        return NSOrderedDescending;
-
-    comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
-    comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
-    if (comp1 < comp2)
-        return NSOrderedAscending;
-    if (comp1 > comp2)
-        return NSOrderedDescending;
-
-    return NSOrderedSame;
-}
-
-NSComparisonResult equipmentSortOutfitting(id a, id b, void* context)
-{
-    NSArray* one = (NSArray*)a;
-    NSArray* two = (NSArray*)b;
-
-    /* Sort by explicit sort_order, then tech level, then price */
-
-    OOCreditsQuantity comp1 = [[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"purchase_sort_order" defaultValue:[[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000]];
-    OOCreditsQuantity comp2 = [[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"purchase_sort_order" defaultValue:[[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000]];
-    if (comp1 < comp2)
-        return NSOrderedAscending;
-    if (comp1 > comp2)
-        return NSOrderedDescending;
-
-    comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-    comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-    if (comp1 < comp2)
-        return NSOrderedAscending;
-    if (comp1 > comp2)
-        return NSOrderedDescending;
-
-    comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
-    comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
-    if (comp1 < comp2)
-        return NSOrderedAscending;
-    if (comp1 > comp2)
-        return NSOrderedDescending;
-
-    return NSOrderedSame;
-}
-
-NSString* OOLookUpDescriptionPRIV(NSString* key)
-{
-    NSString* result = [UNIVERSE descriptionForKey:key];
-    if (result == nil)
+    std::optional<std::string> result = [UNIVERSE cxx_descriptionForKey:key];
+    if (!result.has_value())
         result = key;
-    return result;
+    return *result;
 }
 
 // There's a hint of gettext about this...
-NSString* OOLookUpPluralDescriptionPRIV(NSString* key, NSInteger count)
+std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger count)
 {
-    NSArray* conditions = [[UNIVERSE descriptions] oo_arrayForKey:@"plural-rules"];
+    const oo::PList* descriptions = [UNIVERSE cxx_descriptions];
+    const oo::PList* conditions = (descriptions != nullptr) ? descriptions->get<oo::PList::Array>("plural-rules") : nullptr;
 
     // are we using an older descriptions.plist (1.72.x) ?
-    NSString* tmp = [UNIVERSE descriptionForKey:key];
-    if (tmp != nil) {
-        static NSMutableSet* warned = nil;
+    std::optional<std::string> tmp = [UNIVERSE cxx_descriptionForKey:key];
+    if (tmp.has_value()) {
+        static std::set<std::string> warned;
 
-        if (![warned containsObject:tmp]) {
-            OOLogWARN(@"localization.plurals", @"'%@' found in descriptions.plist, should be '%@%%0'. Localization data needs updating.", key, key);
-            if (warned == nil)
-                warned = [[NSMutableSet alloc] init];
-            [warned addObject:tmp];
+        if (!warned.contains(*tmp)) {
+            OO_LOG_WARN("localization.plurals", "'{}' found in descriptions.plist, should be '{}%0'. Localization data needs updating.", key, key);
+            warned.insert(*tmp);
         }
     }
 
-    if (conditions == nil) {
-        if (tmp == nil) // this should mean that descriptions.plist is from 1.73 or above.
-            return OOLookUpDescriptionPRIV([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
+    if (conditions == nullptr) {
+        if (!tmp.has_value()) // this should mean that descriptions.plist is from 1.73 or above.
+            return cxx_OOLookUpDescriptionPRIV(oo::str::format("%s%%%d", key.c_str(), (int)(count != 1)));
         // still using an older descriptions.plist
-        return tmp;
+        return *tmp;
     }
     int unsigned i;
     long int index;
 
-    for (index = i = 0; i < [conditions count]; ++index, ++i) {
-        const char* cond = [[conditions oo_stringAtIndex:i] UTF8String];
-        if (!cond)
+    for (index = i = 0; i < conditions->count(); ++index, ++i) {
+        const std::optional<std::string> condition = OptionalStringAt(*conditions, i);
+        if (!condition.has_value())
             break;
+        const char* cond = condition->c_str();
 
         long int input = count;
         BOOL flag = NO; // we XOR test results with this
@@ -10174,5 +10519,5 @@ NSString* OOLookUpPluralDescriptionPRIV(NSString* key, NSInteger count)
     }
 
 passed:
-    return OOLookUpDescriptionPRIV([NSString stringWithFormat:@"%@%%%ld", key, index]);
+    return cxx_OOLookUpDescriptionPRIV(oo::str::format("%s%%%ld", key.c_str(), index));
 }

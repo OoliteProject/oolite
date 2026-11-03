@@ -69,10 +69,7 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
     OOFileScannerVerifierStage* fileScanner = nil;
 
     fileScanner = [[self verifier] fileScannerStage];
-    return [fileScanner fileExists:@"equipment.plist"
-                          inFolder:@"Config"
-                    referencedFrom:nil
-                      checkBuiltIn:NO];
+    return [fileScanner cxx_fileExists:"equipment.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
 }
 
 - (void)run
@@ -82,17 +79,14 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
 
     fileScanner = [[self verifier] fileScannerStage];
 
-    equipmentPList = oo::PListFrom([fileScanner plistNamed:@"equipment.plist"
-                                                  inFolder:@"Config"
-                                            referencedFrom:nil
-                                              checkBuiltIn:NO]);
+    equipmentPList = [fileScanner cxx_plistNamed:"equipment.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
 
     if (equipmentPList.isNull())
         return;
 
     // Check that it's an array
     if (!equipmentPList.isArray()) {
-        OOLog(@"verifyOXP.equipmentPList.notArray", @"%@", @"***** ERROR: equipment.plist is not an array.");
+        OO_LOG("verifyOXP.equipmentPList.notArray", "{}", "***** ERROR: equipment.plist is not an array.");
         return;
     }
 
@@ -115,7 +109,7 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
 
         // Entries should be arrays.
         if (!entry.isArray()) {
-            OOLog(@"verifyOXP.equipmentPList.entryNotArray", @"***** ERROR: equipment.plist entry %u of equipment.plist is not an array.", entryIndex);
+            OO_LOG("verifyOXP.equipmentPList.entryNotArray", "***** ERROR: equipment.plist entry {} of equipment.plist is not an array.", static_cast<unsigned>(entryIndex));
             continue;
         }
 
@@ -134,11 +128,11 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
 
         // Check that the entry has an acceptable number of elements.
         if (elemCount < 5) {
-            OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"***** ERROR: equipment.plist entry %@ has too few elements (%zu, should be 5 or 6).", oo::NSStringFrom(entryDesc), elemCount);
+            OO_LOG("verifyOXP.equipmentPList.badEntrySize", "***** ERROR: equipment.plist entry {} has too few elements ({}, should be 5 or 6).", entryDesc, elemCount);
             continue;
         }
         if (6 < elemCount) {
-            OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"----- WARNING: equipment.plist entry %@ has too many elements (%zu, should be 5 or 6).", oo::NSStringFrom(entryDesc), elemCount);
+            OO_LOG("verifyOXP.equipmentPList.badEntrySize", "----- WARNING: equipment.plist entry {} has too many elements ({}, should be 5 or 6).", entryDesc, elemCount);
         }
 
         /*	Check element types. The numbers are required to be unsigned
@@ -146,24 +140,24 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
                 values and unconvertible values.
         */
         if (entry.at<long>(EQUIPMENT_TECH_LEVEL_INDEX, -1) < 0) {
-            OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: tech level for entry %@ of equipment.plist is not a positive integer.", oo::NSStringFrom(entryDesc));
+            OO_LOG("verifyOXP.equipmentPList.badElementType", "***** ERROR: tech level for entry {} of equipment.plist is not a positive integer.", entryDesc);
         }
         if (entry.at<long>(EQUIPMENT_PRICE_INDEX, -1) < 0) {
-            OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: price for entry %@ of equipment.plist is not a positive integer.", oo::NSStringFrom(entryDesc));
+            OO_LOG("verifyOXP.equipmentPList.badElementType", "***** ERROR: price for entry {} of equipment.plist is not a positive integer.", entryDesc);
         }
         if (!StringAt(entry, EQUIPMENT_SHORT_DESC_INDEX).has_value()) {
-            OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: short description for entry %@ of equipment.plist is not a string.", oo::NSStringFrom(entryDesc));
+            OO_LOG("verifyOXP.equipmentPList.badElementType", "***** ERROR: short description for entry {} of equipment.plist is not a string.", entryDesc);
         }
         if (!StringAt(entry, EQUIPMENT_KEY_INDEX).has_value()) {
-            OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: key for entry %@ of equipment.plist is not a string.", oo::NSStringFrom(entryDesc));
+            OO_LOG("verifyOXP.equipmentPList.badElementType", "***** ERROR: key for entry {} of equipment.plist is not a string.", entryDesc);
         }
         if (!StringAt(entry, EQUIPMENT_LONG_DESC_INDEX).has_value()) {
-            OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: long description for entry %@ of equipment.plist is not a string.", oo::NSStringFrom(entryDesc));
+            OO_LOG("verifyOXP.equipmentPList.badElementType", "***** ERROR: long description for entry {} of equipment.plist is not a string.", entryDesc);
         }
 
         if (5 < elemCount) {
             if (entry.at<oo::PList::Dict>(EQUIPMENT_EXTRA_INFO_INDEX) == nullptr) {
-                OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: equipment.plist entry %@'s extra information dictionary is not a dictionary.", oo::NSStringFrom(entryDesc));
+                OO_LOG("verifyOXP.equipmentPList.badElementType", "***** ERROR: equipment.plist entry {}'s extra information dictionary is not a dictionary.", entryDesc);
             }
             // TODO: verify contents of extra info dictionary.
         }

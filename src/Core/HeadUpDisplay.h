@@ -33,7 +33,9 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "ShipEntity.h"
 
+#include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 struct OOHUDWidget; // HeadUpDisplay.mm
 
@@ -179,44 +181,44 @@ struct OOHUDWidget; // HeadUpDisplay.mm
 #define MFD_TEXT_WIDTH 10
 #define MFD_TEXT_HEIGHT 10
 
-#define DIALS_KEY @"dials"
-#define LEGENDS_KEY @"legends"
-#define MFDS_KEY @"multi_function_displays"
-#define X_KEY @"x"
-#define Y_KEY @"y"
-#define X_ORIGIN_KEY @"x_origin"
-#define Y_ORIGIN_KEY @"y_origin"
-#define SPACING_KEY @"spacing"
-#define ALPHA_KEY @"alpha"
-#define SELECTOR_KEY @"selector"
-#define IMAGE_KEY @"image"
-#define WIDTH_KEY @"width"
-#define HEIGHT_KEY @"height"
-#define SPRITE_KEY @"sprite"
-#define DRAW_SURROUND_KEY @"draw_surround"
-#define EQUIPMENT_REQUIRED_KEY @"equipment_required"
-#define ALERT_CONDITIONS_KEY @"alert_conditions"
-#define VIEWSCREEN_KEY @"viewscreen_only"
-#define DIAL_REQUIRED_KEY @"with_dial"
-#define LABELLED_KEY @"labelled"
-#define TEXT_KEY @"text"
-#define RGB_COLOR_KEY @"rgb_color"
-#define COLOR_KEY @"color"
-#define COLOR_KEY_LOW @"color_low"
-#define COLOR_KEY_MEDIUM @"color_medium"
-#define COLOR_KEY_HIGH @"color_high"
-#define COLOR_KEY_CRITICAL @"color_critical"
-#define COLOR_KEY_SURROUND @"color_surround"
-#define N_BARS_KEY @"n_bars"
-#define CUSTOM_DIAL_KEY @"data_source"
+#define DIALS_KEY "dials"
+#define LEGENDS_KEY "legends"
+#define MFDS_KEY "multi_function_displays"
+#define X_KEY "x"
+#define Y_KEY "y"
+#define X_ORIGIN_KEY "x_origin"
+#define Y_ORIGIN_KEY "y_origin"
+#define SPACING_KEY "spacing"
+#define ALPHA_KEY "alpha"
+#define SELECTOR_KEY "selector"
+#define IMAGE_KEY "image"
+#define WIDTH_KEY "width"
+#define HEIGHT_KEY "height"
+#define SPRITE_KEY "sprite"
+#define DRAW_SURROUND_KEY "draw_surround"
+#define EQUIPMENT_REQUIRED_KEY "equipment_required"
+#define ALERT_CONDITIONS_KEY "alert_conditions"
+#define VIEWSCREEN_KEY "viewscreen_only"
+#define DIAL_REQUIRED_KEY "with_dial"
+#define LABELLED_KEY "labelled"
+#define TEXT_KEY "text"
+#define RGB_COLOR_KEY "rgb_color"
+#define COLOR_KEY "color"
+#define COLOR_KEY_LOW "color_low"
+#define COLOR_KEY_MEDIUM "color_medium"
+#define COLOR_KEY_HIGH "color_high"
+#define COLOR_KEY_CRITICAL "color_critical"
+#define COLOR_KEY_SURROUND "color_surround"
+#define N_BARS_KEY "n_bars"
+#define CUSTOM_DIAL_KEY "data_source"
 
-#define ROWS_KEY @"rows"
-#define COLUMNS_KEY @"columns"
-#define ROW_HEIGHT_KEY @"row_height"
-#define ROW_START_KEY @"row_start"
-#define TITLE_KEY @"title"
-#define BACKGROUND_RGBA_KEY @"background_rgba"
-#define OVERALL_ALPHA_KEY @"overall_alpha"
+#define ROWS_KEY "rows"
+#define COLUMNS_KEY "columns"
+#define ROW_HEIGHT_KEY "row_height"
+#define ROW_START_KEY "row_start"
+#define TITLE_KEY "title"
+#define BACKGROUND_RGBA_KEY "background_rgba"
+#define OVERALL_ALPHA_KEY "overall_alpha"
 #define NONLINEAR_SCANNER @"nonlinear_scanner"
 
 #define Z1 [(MyOpenGLView*)[[player universe] gameView] display_z]
@@ -237,7 +239,7 @@ enum {
 
 @interface HeadUpDisplay : OOObject {
 @private
-    // Widgets in draw order; were NSMutableArrays of NSArray tuples (bead oo-3rb.49).
+    // Widgets in draw order; were mutable arrays of array tuples (bead oo-3rb.49).
     std::vector<OOHUDWidget> legendArray;
     std::vector<OOHUDWidget> dialArray;
     std::vector<OOHUDWidget> mfdArray;
@@ -249,15 +251,15 @@ enum {
     GLfloat z1;
     GLfloat lineWidth;
 
-    NSString* hudName;
-    NSString* deferredHudName; // Usually it will be nil. If not nil, then it means that we have a deferred HUD waiting to be drawn This may happen
-                               // for example when a script handler attempts to switch HUD while it is being rendered. - Nikos 20110628
+    std::optional<std::string> hudName;
+    std::optional<std::string> deferredHudName; // Usually it will be nullopt. If engaged, then it means that we have a deferred HUD waiting to be drawn This may happen
+                                                // for example when a script handler attempts to switch HUD while it is being rendered. - Nikos 20110628
     BOOL hudUpdating;
 
     GLfloat overallAlpha;
 
     BOOL reticleTargetSensitive; // TO DO: Move this into the propertiesReticleTargetSensitive structure (Getafix - 2010/08/21)
-    NSMutableDictionary* propertiesReticleTargetSensitive;
+    oo::PList propertiesReticleTargetSensitive; // isAccurate (bool), timeLastAccuracyProbabilityCalculation (double)
 
     BOOL cloakIndicatorOnStatusLight;
 
@@ -267,21 +269,21 @@ enum {
 
     int last_transmitter;
 
-    NSMutableSet* _hiddenSelectors;
+    std::set<std::string> _hiddenSelectors;
 
     // Crosshairs
     OOCrosshairs* _crosshairs;
     OOWeaponType _lastWeaponType;
     GLfloat _lastOverallAlpha;
     BOOL _lastWeaponsOnline;
-    NSDictionary* _crosshairOverrides;
+    oo::PList _crosshairOverrides; // null for none
     OOColor* _crosshairColor;
     GLfloat _crosshairScale;
     GLfloat _crosshairWidth;
-    NSString* crosshairDefinition;
+    std::optional<std::string> crosshairDefinition;
     BOOL _compassActive;
 
-    NSMutableArray* _reticleColors;
+    std::vector<oo::ObjCRef<OOColor*>> _reticleColors;
 
     // essentially scanner without gridlines
     BOOL minimalistic_scanner;
@@ -291,13 +293,13 @@ enum {
     BOOL scanner_ultra_zoom;
 }
 
-- (id)initWithDictionary:(NSDictionary*)hudinfo;
-- (id)initWithDictionary:(NSDictionary*)hudinfo inFile:(NSString*)hudFileName;
+- (id)initWithDictionary:(id)hudinfo; // shared selector (proposed ADR-0043)
+- (id)cxx_initWithDictionary:(const oo::PList&)hudinfo inFile:(const std::optional<std::string>&)hudFileName OO_RETURNS_RETAINED;
 
-- (void)resetGuis:(NSDictionary*)info;
+- (void)cxx_resetGuis:(const oo::PList&)info;
 
-- (NSString*)hudName;
-- (void)setHudName:(NSString*)newHudName;
+- (std::optional<std::string>)cxx_hudName;
+- (void)setHudName:(const std::optional<std::string>&)newHudName; // nullopt is ignored, as nil was
 
 - (GLfloat)scannerZoom;
 - (void)setScannerZoom:(GLfloat)value;
@@ -307,29 +309,30 @@ enum {
 
 - (BOOL)reticleTargetSensitive;
 - (void)setReticleTargetSensitive:(BOOL)newReticleTargetSensitiveValue;
-- (NSMutableDictionary*)propertiesReticleTargetSensitive;
+- (oo::PList*)propertiesReticleTargetSensitive; // the live dictionary; nullptr for a nil receiver
 
 - (BOOL)isHidden;
 - (void)setHidden:(BOOL)newValue;
 
 - (BOOL)allowBigGui;
 
-- (BOOL)hasHidden:(NSString*)selectorName;
-- (void)setHiddenSelector:(NSString*)selectorName hidden:(BOOL)hide;
+- (BOOL)hasHidden:(const std::optional<std::string>&)selectorName; // nullopt (was nil): NO
+- (void)cxx_setHiddenSelector:(const std::string&)selectorName hidden:(BOOL)hide;
 - (void)clearHiddenSelectors;
 
 - (BOOL)isCompassActive;
 - (void)setCompassActive:(BOOL)newValue;
 
 - (BOOL)isUpdating;
-- (void)setDeferredHudName:(NSString*)newDeferredHudName;
-- (NSString*)deferredHudName;
-- (NSString*)crosshairDefinition;
-- (BOOL)setCrosshairDefinition:(NSString*)newDefinition;
+- (void)cxx_setDeferredHudName:(const std::optional<std::string>&)newDeferredHudName;
+- (std::optional<std::string>)cxx_deferredHudName;
+- (std::optional<std::string>)cxx_crosshairDefinition;
+- (BOOL)cxx_setCrosshairDefinition:(const std::string&)newDefinition;
 
-- (void)addLegend:(NSDictionary*)info;
-- (void)addDial:(NSDictionary*)info;
-- (void)addMFD:(NSDictionary*)info;
+// Each takes one hud.plist entry; a null PList where the entry was not a dictionary.
+- (void)addLegend:(const oo::PList&)info;
+- (void)addDial:(const oo::PList&)info;
+- (void)addMFD:(const oo::PList&)info;
 
 - (NSUInteger)mfdCount;
 

@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOFoundationBridge.h"
 #import "OOMaths.h"
 #import "OOTextureLoader.h"
+#include "oofnd/Log.hpp"
 
 static const char* const kStageName = "Testing textures and images";
 
@@ -42,9 +43,9 @@ static const char* const kStageName = "Testing textures and images";
 
 @implementation OOTextureVerifierStage
 
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (id)name
@@ -54,7 +55,7 @@ static const char* const kStageName = "Testing textures and images";
 
 - (BOOL)shouldRun
 {
-    return !_usedTextures.empty() || [[[self verifier] fileScannerStage] filesInFolder:@"Images"] != nil;
+    return !_usedTextures.empty() || [[[self verifier] fileScannerStage] cxx_filesInFolder:"Images"].has_value();
 }
 
 - (void)run
@@ -67,7 +68,7 @@ static const char* const kStageName = "Testing textures and images";
     _usedTextures.clear();
 
     // All "images" are considered used, since we don't have a reasonable way to look for images referenced in JavaScript scripts.
-    for (const std::string& name : oo::StringsFrom([[[self verifier] fileScannerStage] filesInFolder:@"Images"])) {
+    for (const std::string& name : [[[self verifier] fileScannerStage] cxx_filesInFolder:"Images"].value_or(std::vector<std::string> { })) {
         [self checkTextureNamed:name inFolder:"Images"];
     }
 }
@@ -84,11 +85,8 @@ static const char* const kStageName = "Testing textures and images";
     _usedTextures.insert(where, name);
 
     fileScanner = [[self verifier] fileScannerStage];
-    if (![fileScanner fileExists:oo::NSStringFrom(name)
-                        inFolder:@"Textures"
-                  referencedFrom:oo::NSStringFrom(context)
-                    checkBuiltIn:YES]) {
-        OOLog(@"verifyOXP.texture.notFound", @"----- WARNING: texture \"%@\" referenced in %@ could not be found in %@ or in Oolite.", oo::NSStringFrom(name), oo::NSStringFrom(context), [[self verifier] oxpDisplayName]);
+    if (![fileScanner cxx_fileExists:name inFolder:"Textures" referencedFrom:context checkBuiltIn:YES]) {
+        OO_LOG("verifyOXP.texture.notFound", "----- WARNING: texture \"{}\" referenced in {} could not be found in {} or in Oolite.", name, context, [[self verifier] cxx_oxpDisplayName].value_or("(null)"));
     }
 }
 
@@ -108,21 +106,18 @@ static const char* const kStageName = "Testing textures and images";
     OOTextureDataFormat format;
 
     fileScanner = [[self verifier] fileScannerStage];
-    path = oo::OptionalString([fileScanner pathForFile:oo::NSStringFrom(name)
-                                              inFolder:oo::NSStringFrom(folder)
-                                        referencedFrom:nil
-                                          checkBuiltIn:NO]);
+    path = [fileScanner cxx_pathForFile:name inFolder:folder referencedFrom:std::nullopt checkBuiltIn:NO];
 
     if (!path.has_value())
         return;
 
-    loader = [OOTextureLoader loaderWithPath:oo::NSStringFrom(*path)
-                                     options:kOOTextureMinFilterNearest | kOOTextureMinFilterNearest | kOOTextureNoShrink | kOOTextureNoFNFMessage |
+    loader = [OOTextureLoader cxx_loaderWithPath:path
+                                         options:kOOTextureMinFilterNearest | kOOTextureMinFilterNearest | kOOTextureNoShrink | kOOTextureNoFNFMessage |
         kOOTextureNeverScale];
 
-    displayName = oo::OptionalString([fileScanner displayNameForFile:oo::NSStringFrom(name) andFolder:oo::NSStringFrom(folder)]);
+    displayName = [fileScanner cxx_displayNameForFile:name andFolder:folder];
     if (loader == nil) {
-        OOLog(@"verifyOXP.texture.failed", @"***** ERROR: image %@ could not be read.", oo::NSStringOrNil(displayName));
+        OO_LOG("verifyOXP.texture.failed", "***** ERROR: image {} could not be read.", displayName.value_or("(null)"));
     } else {
         success = [loader getResult:&pixmap format:&format originalWidth:NULL originalHeight:NULL];
 
@@ -130,14 +125,14 @@ static const char* const kStageName = "Testing textures and images";
             rWidth = OORoundUpToPowerOf2_PixMap((2 * pixmap.width) / 3);
             rHeight = OORoundUpToPowerOf2_PixMap((2 * pixmap.height) / 3);
             if (pixmap.width != rWidth || pixmap.height != rHeight) {
-                OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", oo::NSStringOrNil(displayName), pixmap.width, pixmap.height, rWidth, rHeight);
+                OO_LOG("verifyOXP.texture.notPOT", "----- WARNING: image {} has non-power-of-two dimensions; it will have to be rescaled (from {}x{} pixels to {}x{} pixels) at runtime.", displayName.value_or("(null)"), pixmap.width, pixmap.height, rWidth, rHeight);
             } else {
-                OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ (%ux%u px) OK.", oo::NSStringOrNil(displayName), pixmap.width, pixmap.height);
+                OO_LOG("verifyOXP.verbose.texture.OK", "- {} ({}x{} px) OK.", displayName.value_or("(null)"), pixmap.width, pixmap.height);
             }
 
             OOFreePixMap(&pixmap);
         } else {
-            OOLog(@"verifyOXP.texture.failed", @"***** ERROR: texture loader failed to load %@.", oo::NSStringOrNil(displayName));
+            OO_LOG("verifyOXP.texture.failed", "***** ERROR: texture loader failed to load {}.", displayName.value_or("(null)"));
         }
     }
 }
@@ -146,13 +141,13 @@ static const char* const kStageName = "Testing textures and images";
 
 @implementation OOTextureHandlingStage
 
-- (id)dependents // shared selector (proposed ADR-0043)
+- (std::optional<std::vector<std::string>>)dependents
 {
-    std::vector<std::string> result = oo::StringsFrom([super dependents]);
-    const std::string reverse = oo::StdString([OOTextureVerifierStage nameForReverseDependencyForVerifier:[self verifier]]);
+    std::vector<std::string> result = [super dependents].value_or(std::vector<std::string>());
+    const std::string reverse = [OOTextureVerifierStage nameForReverseDependencyForVerifier:[self verifier]];
     if (std::find(result.begin(), result.end(), reverse) == result.end())
         result.push_back(reverse);
-    return oo::NSSetFromStrings(result);
+    return result;
 }
 
 @end
@@ -161,7 +156,7 @@ static const char* const kStageName = "Testing textures and images";
 
 - (OOTextureVerifierStage*)textureVerifierStage
 {
-    return [self stageWithName:oo::NSStringFrom(kStageName)];
+    return [self cxx_stageWithName:kStageName];
 }
 
 @end

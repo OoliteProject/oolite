@@ -13,6 +13,14 @@ if ccid == 'gcc'
     oolite_override_options += 'c_std=gnu99'
 endif
 
+# QuickJS-ng adds dependency('threads') (-pthread) to its link line, and every target
+# that links it. The MinGW clang driver does not use -pthread when linking (cutils.h takes Win32
+# threads under _WIN32), so each link printed "argument unused during compilation: '-pthread'".
+# On Windows the threads dependency is the same compile flag without the unused link flag, so the
+# objects and the links are unchanged and the driver has nothing to report.
+if host_machine.system() == 'windows'
+    meson.override_dependency('threads', declare_dependency(compile_args: ['-pthread']))
+endif
 oolite_dependencies += dependency(
     'quickjs-ng',
     version: '>=0.17.0',
@@ -20,7 +28,21 @@ oolite_dependencies += dependency(
     # LTO objects are archived without a symbol index, so linking fails.
     # Warning level 2 (QuickJS defaults to 3) leaves out -Wpedantic, which
     # clang uses to flag QuickJS's "return f();" in void functions.
-    default_options: ['default_library=static', 'libc=false', 'b_lto=false', 'warning_level=2'],
+    # QuickJS-ng is part of the game binary, so it is held to the same golden flag policy as
+    # Oolite's own code (meson.build; tests/golden/check_build_flags.py): its dtoa/number code
+    # produces floats that land in the dumps. Its own project() defaults to buildtype=release
+    # (-O3), which the project-wide optimization=2 does not reach. Pass optimization=2 explicitly
+    # so the last -O on each QuickJS compile line is the pinned level; b_ndebug=true keeps release
+    # NDEBUG semantics.
+    default_options: [
+        'default_library=static',
+        'libc=false',
+        'b_lto=false',
+        'warning_level=2',
+        'buildtype=debugoptimized',
+        'optimization=2',
+        'b_ndebug=true',
+    ],
 )
 
 if get_option('b_lto')

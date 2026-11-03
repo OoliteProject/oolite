@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "StationEntity.h"
 #import "WormholeEntity.h"
+#include "oofnd/Notification.hpp"
 
 @implementation Entity (OOJavaScriptExtensions)
 
@@ -56,10 +57,9 @@ MA 02110-1301, USA.
         } else {
             JS_SetOpaque(_jsSelf, OOConsumeReference([self weakRetain]));
 
-            [[NSNotificationCenter defaultCenter] addObserver:self
-                                                     selector:@selector(deleteJSSelf)
-                                                         name:kOOJavaScriptEngineWillResetNotification
-                                                       object:[OOJavaScriptEngine sharedEngine]];
+            oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+                [OOJavaScriptEngine sharedEngine],
+                [self](const oo::Notification&) { [self deleteJSSelf]; });
         }
     }
 
@@ -85,9 +85,8 @@ MA 02110-1301, USA.
         JS_FreeValue(OOJSAcquireContext(), _jsSelf);
         _jsSelf = JS_UNDEFINED;
 
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                        name:kOOJavaScriptEngineWillResetNotification
-                                                      object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine]);
     }
 }
 

@@ -2,9 +2,10 @@
 
 NSFileManagerOOExtensions.m
 
-This extends NSFileManager and adds some methods to insulate the
-main oolite code from the gory details of creating/chdiring to the
-commander save directory.
+Category helpers that insulate the main oolite code from the gory details of
+creating/chdiring to the commander save directory. Internals use oo::fs where
+a direct file-manager call used to; the category itself is retired by oo-pwz0
+once remaining callers move off it.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -27,85 +28,62 @@ MA 02110-1301, USA.
 */
 
 #import "NSFileManagerOOExtensions.h"
-#import "GameController.h"
-#import "OOPListParsing.h"
-#import "ResourceManager.h"
+#import "OOFoundationBridge.h"
+#import "OOStringBridge.h"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/ResourcePaths.hpp"
+#include "oofnd/String.hpp"
 #import "unzip.h"
-#include <SDL3/SDL_stdinc.h>
 #include <stdlib.h>
 
 @implementation NSFileManager (OOExtensions)
 
 - (NSArray*)commanderContentsOfPath:(NSString*)savePath
 {
-    BOOL pathIsDirectory = NO;
-    if ([[NSFileManager defaultManager] fileExistsAtPath:savePath isDirectory:&pathIsDirectory] && pathIsDirectory) {
+    const oo::fs::Path saveFsPath = oo::fs::pathFromUTF8(oo::StdString(savePath));
+    if (oo::fs::fileType(saveFsPath) == oo::fs::FileType::directory) {
         NSMutableArray* contents = [NSMutableArray arrayWithArray:[self oo_directoryContentsAtPath:savePath]];
 
-        // at this point we should strip out any files not loadable as Oolite saved games
+        // Historical filter tested `!exists && isDirectory`, which never holds, so every entry
+        // becomes a full path (see PlayerEntityLoadSave.mm lsCommanders).
         unsigned i;
         for (i = 0; i < [contents count]; i++) {
             NSString* path = [savePath stringByAppendingPathComponent:(NSString*)[contents objectAtIndex:i]];
-
-            // ensure it's not a directory
-            if (![[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&pathIsDirectory] && pathIsDirectory) {
-
-                // check file extension
-                if (![[path pathExtension] isEqual:@"oolite-save"]) {
-                    [contents removeObjectAtIndex:i--];
-                    continue;
-                }
-
-                // check to see if we can parse the file okay
-                NSDictionary* cdr = OODictionaryFromFile(path);
-                if (!cdr) {
-                    OOLog(@"savedGame.read.fail.notDictionary", @">>>> %@ could not be parsed as a saved game.", path);
-                    [contents removeObjectAtIndex:i--];
-                    continue;
-                }
-            }
-
-            // all okay - we can use this path!
             [contents replaceObjectAtIndex:i withObject:path];
         }
 
         return contents;
     } else {
-        OOLogERR(@"savedGame.read.fail.fileNotFound", @"File at path '%@' could not be found.", savePath);
+        OO_LOG_ERR("savedGame.read.fail.fileNotFound", "File at path '{}' could not be found.", oo::DescriptionOf(savePath));
         return nil;
     }
 }
 
 - (NSString*)defaultCommanderPath
 {
-    const char* savedirEnv = SDL_getenv("OO_SAVEDIR");
-    NSString* savedir;
-
-    if (savedirEnv) {
-        savedir = [NSString stringWithUTF8String:savedirEnv];
-    } else {
-        savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
-    }
-    BOOL pathIsDirectory = NO;
+    const oo::ResourcePaths paths = oo::ResourcePaths::current();
+    const oo::fs::Path savedir = paths.saveDirectory();
+    const oo::fs::FileType type = oo::fs::fileType(savedir);
 
     // does it exist?
-    if (![[NSFileManager defaultManager] fileExistsAtPath:savedir isDirectory:&pathIsDirectory]) {
+    if (type == oo::fs::FileType::none) {
         // it doesn't exist.
-        if ([self oo_createDirectoryAtPath:savedir attributes:nil]) {
-            return savedir;
+        if (oo::fs::createDirectories(savedir)) {
+            return oo::NSStringFrom(oo::fs::utf8String(savedir));
         } else {
-            OOLogERR(@"savedGame.defaultPath.create.failed", @"Unable to create '%@'. Saved games will go to the home directory.", savedir);
-            return NSHomeDirectory();
+            OO_LOG_ERR("savedGame.defaultPath.create.failed", "Unable to create '{}'. Saved games will go to the home directory.", oo::fs::utf8String(savedir));
+            return oo::NSStringFrom(oo::fs::utf8String(paths.homeDirectory()));
         }
     }
 
     // is it a directory?
-    if (!pathIsDirectory) {
-        OOLogERR(@"savedGame.defaultPath.notDirectory", @"'%@' is not a directory, saved games will go to the home directory.", savedir);
-        return NSHomeDirectory();
+    if (type != oo::fs::FileType::directory) {
+        OO_LOG_ERR("savedGame.defaultPath.notDirectory", "'{}' is not a directory, saved games will go to the home directory.", oo::fs::utf8String(savedir));
+        return oo::NSStringFrom(oo::fs::utf8String(paths.homeDirectory()));
     }
 
-    return savedir;
+    return oo::NSStringFrom(oo::fs::utf8String(savedir));
 }
 
 #if OOLITE_MAC_OS_X
@@ -117,7 +95,8 @@ MA 02110-1301, USA.
 
 - (BOOL)oo_createDirectoryAtPath:(NSString*)path attributes:(NSDictionary*)attributes
 {
-    return [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:attributes error:NULL];
+    (void)attributes;
+    return static_cast<BOOL>(static_cast<bool>(oo::fs::createDirectories(oo::fs::pathFromUTF8(oo::StdString(path)))));
 }
 
 - (NSDictionary*)oo_fileAttributesAtPath:(NSString*)path traverseLink:(BOOL)traverseLink
@@ -141,24 +120,30 @@ MA 02110-1301, USA.
 
 - (BOOL)oo_removeItemAtPath:(NSString*)path
 {
-    return [self removeItemAtPath:path error:NULL];
+    return static_cast<BOOL>(static_cast<bool>(oo::fs::removeItem(oo::fs::pathFromUTF8(oo::StdString(path)))));
 }
 
 - (BOOL)oo_moveItemAtPath:(NSString*)src toPath:(NSString*)dest
 {
-    return [self moveItemAtPath:src toPath:dest error:NULL];
+    return static_cast<BOOL>(static_cast<bool>(oo::fs::moveItem(
+        oo::fs::pathFromUTF8(oo::StdString(src)),
+        oo::fs::pathFromUTF8(oo::StdString(dest)))));
 }
 
 #else
 
 - (NSArray*)oo_directoryContentsAtPath:(NSString*)path
 {
-    return [self directoryContentsAtPath:path];
+    const auto names = oo::fs::directoryContents(oo::fs::pathFromUTF8(oo::StdString(path)));
+    if (!names)
+        return nil;
+    return oo::NSArrayFromStrings(*names);
 }
 
 - (BOOL)oo_createDirectoryAtPath:(NSString*)path attributes:(NSDictionary*)attributes
 {
-    return [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:attributes error:NULL];
+    (void)attributes;
+    return static_cast<BOOL>(static_cast<bool>(oo::fs::createDirectories(oo::fs::pathFromUTF8(oo::StdString(path)))));
 }
 
 - (NSDictionary*)oo_fileAttributesAtPath:(NSString*)path traverseLink:(BOOL)yorn
@@ -173,12 +158,14 @@ MA 02110-1301, USA.
 
 - (BOOL)oo_removeItemAtPath:(NSString*)path
 {
-    return [self removeFileAtPath:path handler:nil];
+    return static_cast<BOOL>(static_cast<bool>(oo::fs::removeItem(oo::fs::pathFromUTF8(oo::StdString(path)))));
 }
 
 - (BOOL)oo_moveItemAtPath:(NSString*)src toPath:(NSString*)dest
 {
-    return [self movePath:src toPath:dest handler:nil];
+    return static_cast<BOOL>(static_cast<bool>(oo::fs::moveItem(
+        oo::fs::pathFromUTF8(oo::StdString(src)),
+        oo::fs::pathFromUTF8(oo::StdString(dest)))));
 }
 
 #endif
@@ -186,24 +173,16 @@ MA 02110-1301, USA.
 #if OOLITE_SDL
 - (BOOL)chdirToSnapshotPath
 {
-    const char* snapshotEnv = SDL_getenv("OO_SNAPSHOTSDIR");
-    NSString* savedir;
+    const oo::fs::Path savedir = oo::ResourcePaths::current().snapshotDirectory();
 
-    if (snapshotEnv) {
-        savedir = [NSString stringWithUTF8String:snapshotEnv];
-    } else {
-        // SDL: the default path for snapshots is oolite.app/oolite-saves/snapshots
-        savedir = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
-    }
-
-    if (![self changeCurrentDirectoryPath:savedir]) {
+    if (!oo::fs::setCurrentDirectory(savedir)) {
         // it probably doesn't exist.
-        if (![self oo_createDirectoryAtPath:savedir attributes:nil]) {
-            OOLog(@"savedSnapshot.defaultPath.create.failed", @"Unable to create directory %@", savedir);
+        if (!oo::fs::createDirectories(savedir)) {
+            OO_LOG("savedSnapshot.defaultPath.create.failed", "Unable to create directory {}", oo::fs::utf8String(savedir));
             return NO;
         }
-        if (![self changeCurrentDirectoryPath:savedir]) {
-            OOLog(@"savedSnapshot.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
+        if (!oo::fs::setCurrentDirectory(savedir)) {
+            OO_LOG("savedSnapshot.defaultPath.chdir.failed", "Created {} but couldn't make it the current directory.", oo::fs::utf8String(savedir));
             return NO;
         }
     }
@@ -225,12 +204,11 @@ MA 02110-1301, USA.
     }
     // if i == cl then the path is entirely uncompressed
     if (i == cl) {
-        BOOL directory = NO;
-        BOOL result = [self fileExistsAtPath:path isDirectory:&directory];
-        if (directory) {
+        const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(oo::StdString(path)));
+        if (type == oo::fs::FileType::directory) {
             return NO;
         }
-        return result;
+        return type != oo::fs::FileType::none;
     }
 
     NSRange range;

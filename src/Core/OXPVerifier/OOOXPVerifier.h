@@ -51,9 +51,8 @@ SOFTWARE.
 /*	Foundation sweep (proposed ADR-0043, bead oo-hkvv): verifyOXP.plist is an oo::PList, paths
         and names are UTF-8 std::strings, stages are retained through oo::ObjCRef. The stages waiting
         to be examined or run are a vector in registration order (they were a set). The configuration
-        accessors are cxx_ methods; the Foundation-typed ones they replace live on in the transitional
-        bridge imported at the end of this header. -configurationValueForKey: is a shared selector
-        (OODebugMonitor) and keeps Objective-C objects.
+        accessors are cxx_ methods. -configurationValueForKey: is a shared selector (OODebugMonitor)
+        and keeps Objective-C objects.
 */
 @interface OOOXPVerifier : OOObject {
 @private
@@ -97,11 +96,5 @@ SOFTWARE.
 - (std::optional<std::vector<std::string>>)cxx_configurationSetForKey:(const std::string&)key; // the array's distinct strings in byte order; nullopt (was nil) if not an array
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-hkvv, forwarding to the cxx_ methods above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "OOOXPVerifier+FoundationBridge.h"
 
 #endif

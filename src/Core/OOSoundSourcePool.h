@@ -33,10 +33,10 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 #include "oofnd/StdLib.hpp"
 

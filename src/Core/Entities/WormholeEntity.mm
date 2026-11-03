@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 #import "AI.h"
 #import "OOFoundationBridge.h"
-#import "OOLoggingExtended.h"
+#import "OOLogging.h"
 #import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOSystemDescriptionManager.h"
 #import "Universe.h"
+#include "oofnd/Log.hpp"
 
 #define OO_WORMHOLE_COLOR_BOOST 25.0
 #define OO_WORMHOLE_COLOR_FVEC4 { 0.067, 0.067, 1.0, 0.25 }
@@ -60,7 +61,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 {
     if ((self = [super init])) {
         witch_mass = 0.0;
-        shipsInTransit = [[NSMutableArray arrayWithCapacity:4] retain];
+        shipsInTransit.reserve(4);
         collision_radius = 0.0;
         [self setStatus:STATUS_EFFECT];
         scanClass = CLASS_WORMHOLE;
@@ -82,16 +83,16 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 @implementation WormholeEntity
 
-- (WormholeEntity*)initWithDict:(NSDictionary*)dict
+- (WormholeEntity*)initWithDict:(const oo::PList&)dict
 {
-    assert(dict != nil);
+    assert(!dict.isNull());
 
     if ((self = [self init])) {
         @autoreleasepool {
             // wormholes from pre-1.80 savegames using "origin_seed" and "dest_seed"
             // currently get defaults set; will probably disappear unnoticed
-            origin = oo::PListView(dict).get<int>(@"origin_id", 0);
-            destination = oo::PListView(dict).get<int>(@"dest_id", 255);
+            origin = dict.get<int>("origin_id", 0);
+            destination = dict.get<int>("dest_id", 255);
 
             originCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:origin inGalaxy:[PLAYER galaxyNumber]];
             destinationCoords = [[UNIVERSE systemManager] getCoordinatesForSystem:destination inGalaxy:[PLAYER galaxyNumber]];
@@ -102,8 +103,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
             // Remember, times are stored as Ship Clock - but anything
             // saving/restoring wormholes from dictionaries should know this!
-            expiry_time = oo::PListView(dict).get<double>(@"expiry_time");
-            arrival_time = oo::PListView(dict).get<double>(@"arrival_time");
+            expiry_time = dict.get<double>("expiry_time");
+            arrival_time = dict.get<double>("arrival_time");
             // just in case an old save game has one with crossed times
             if (expiry_time > arrival_time) {
                 expiry_time = arrival_time - 1.0;
@@ -115,24 +116,23 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
             _misjump = oo::PListView(dict).get<bool>(@"misjump", NO);
 
             // Setup shipsInTransit
-            NSArray* shipDictsArray = oo::PListView(dict).get<NSArray*>(@"ships");
-            NSDictionary* currShipDict = nil;
-            [shipsInTransit removeAllObjects];
+            const oo::PList* shipDictsArray = dict.get<oo::PList::Array>("ships");
+            shipsInTransit.clear();
             OOShipSaveContext restoreContext;
 
-            foreach (currShipDict, shipDictsArray) {
-                NSDictionary* shipInfo = oo::PListView(currShipDict).get<NSDictionary*>(@"ship_info");
-                if (shipInfo != nil) {
-                    ShipEntity* ship = [ShipEntity shipRestoredFromDictionary:oo::PListFrom(shipInfo)
+            for (std::size_t i = 0; shipDictsArray != nullptr && i < shipDictsArray->count(); i++) {
+                const oo::PList& currShipDict = *shipDictsArray->at(i);
+                const oo::PList* shipInfo = currShipDict.get<oo::PList::Dict>("ship_info");
+                if (shipInfo != nullptr) {
+                    ShipEntity* ship = [ShipEntity shipRestoredFromDictionary:*shipInfo
                                                                   useFallback:YES
                                                                       context:&restoreContext];
                     if (ship != nil) {
-                        [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                          ship, @"ship",
-                                                      [currShipDict objectForKey:@"time_delta"], @"time",
-                                                      nil]];
+                        // time_delta as stored; it was only ever read with -oo_doubleForKey: (0 when absent)
+                        shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<ShipEntity*>(ship), currShipDict.get<double>("time_delta"), std::nullopt });
                     } else {
-                        OOLog(@"wormhole.load.warning", @"Wormhole ship \"%@\" failed to initialize - missing OXP or old-style saved wormhole data.", oo::PListView(shipInfo).get<NSString*>(@"ship_key"));
+                        const oo::PList* shipKey = shipInfo->find("ship_key");
+                        OO_LOG("wormhole.load.warning", "Wormhole ship \"{}\" failed to initialize - missing OXP or old-style saved wormhole data.", (shipKey != nullptr && (shipKey->isString() || shipKey->isNumber())) ? shipInfo->get<std::string>("ship_key") : std::string("(null)"));
                     }
                 }
             }
@@ -278,11 +278,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
         }
     }
 
-    [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                      ship, @"ship",
-                                  [NSNumber numberWithDouble:now + travel_time - arrival_time], @"time",
-                                  [ship beaconCode], @"shipBeacon", // in case a beacon code has been set, nil otherwise
-                                  nil]];
+    shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<ShipEntity*>(ship),
+        now + travel_time - arrival_time,
+        oo::OptionalString([ship beaconCode]) }); // in case a beacon code has been set, nil otherwise
     witch_mass += [ship mass];
     expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
     // and, again, cap to be earlier than arrival time
@@ -297,7 +295,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     // Should probably pass the wormhole, but they have no JS representation
     [ship setStatus:STATUS_ENTERING_WITCHSPACE];
     [ship doScriptEvent:OOJSID("shipWillEnterWormhole")];
-    [[ship getAI] message:@"ENTERED_WITCHSPACE"];
+    [[ship getAI] message:"ENTERED_WITCHSPACE"];
 
     [UNIVERSE removeEntity:ship];
     [[ship getAI] clearStack]; // get rid of any preserved states
@@ -317,22 +315,23 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 - (void)disgorgeShips
 {
     double now = [PLAYER clockTimeAdjusted];
-    NSMutableArray* shipsStillInTransit = [[NSMutableArray alloc] initWithCapacity:[shipsInTransit count]];
+    std::vector<OOWormholeTransit> shipsStillInTransit;
+    shipsStillInTransit.reserve(shipsInTransit.size());
     BOOL hasShiftedExitPosition = NO;
     BOOL useExitXYScatter = NO;
 
-    NSDictionary* shipInfo = nil;
-    foreach (shipInfo, shipsInTransit) {
-        ShipEntity* ship = [shipInfo objectForKey:@"ship"];
-        NSString* shipBeacon = [shipInfo objectForKey:@"shipBeacon"];
-        double ship_arrival_time = arrival_time + oo::PListView(shipInfo).get<double>(@"time");
+    const std::vector<OOWormholeTransit> transits = shipsInTransit; // (the array was enumerated as it stood)
+    for (const OOWormholeTransit& shipInfo : transits) {
+        ShipEntity* ship = shipInfo.ship.get();
+        const std::optional<std::string>& shipBeacon = shipInfo.beacon;
+        double ship_arrival_time = arrival_time + shipInfo.time;
         double time_passed = now - ship_arrival_time;
 
         if ([ship status] == STATUS_DEAD)
             continue; // skip dead ships.
 
         if (ship_arrival_time > now) {
-            [shipsStillInTransit addObject:shipInfo];
+            shipsStillInTransit.push_back(shipInfo);
         } else {
             // Only calculate exit position once so that all ships arrive from the same point
             if (!hasExitPosition) {
@@ -379,8 +378,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
                 [ship setPosition:position];
             }
 
-            if (shipBeacon != nil) {
-                [ship setBeaconCode:shipBeacon];
+            if (shipBeacon) {
+                [ship setBeaconCode:oo::NSStringFrom(*shipBeacon)];
             }
 
             // Don't reduce bounty on misjump. Fixes #17992
@@ -432,8 +431,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
             }
         }
     }
-    [shipsInTransit release];
-    shipsInTransit = shipsStillInTransit;
+    shipsInTransit = std::move(shipsStillInTransit);
 
     if (containsPlayer) {
         // ships exiting the wormhole after now are following the player
@@ -535,37 +533,46 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     scan_info = p_scanInfo;
 }
 
-- (NSArray*)shipsInTransit
+- (oo::PList)shipsInTransit
 {
-    return shipsInTransit;
+    oo::PList::Array result;
+    result.reserve(shipsInTransit.size());
+    for (const OOWormholeTransit& transit : shipsInTransit) {
+        oo::PList::Dict entry {
+            { "ship", oo::PListObject(transit.ship.get()) },
+            { "time", oo::PList(transit.time) }
+        };
+        if (transit.beacon)
+            entry["shipBeacon"] = oo::PList(*transit.beacon);
+        result.push_back(oo::PList(std::move(entry)));
+    }
+    return oo::PList(std::move(result));
 }
 
 - (void)dealloc
 {
-    [shipsInTransit release];
-
     [super dealloc];
 }
 
-- (NSString*)descriptionComponents
+- (id)descriptionComponents // shared selector (proposed ADR-0043)
 {
     double now = [PLAYER clockTime];
-    return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs arrival: %@",
-        _misjump ? (NSString*)@"Interstellar Space" : [UNIVERSE getSystemName:destination],
+    return oo::NSStringFrom(oo::str::format("destination: %s ttl: %.2fs arrival: %s",
+        _misjump ? "Interstellar Space" : oo::DescriptionOf([UNIVERSE getSystemName:destination]).c_str(),
         expiry_time - now,
-        ClockToString(arrival_time, false)];
+        cxx_ClockToString(arrival_time, false).c_str()));
 }
 
-- (NSString*)identFromShip:(ShipEntity*)ship
+- (id)identFromShip:(ShipEntity*)ship // shared selector (proposed ADR-0043)
 {
     if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]) {
         if ([self scanInfo] >= WH_SCANINFO_DESTINATION) {
-            return [NSString stringWithFormat:DESC(@"wormhole-to-@"), [UNIVERSE getSystemName:destination]];
+            return oo::NSStringFrom(oo::str::formatRuntime(oo::StdString(DESC(@"wormhole-to-@")), { oo::DescriptionOf([UNIVERSE getSystemName:destination]) }));
         } else {
             return DESC(@"wormhole-desc");
         }
     } else {
-        OOLogERR(kOOLogInconsistentState, @"%@", @"Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
+        OO_LOG_ERR(cxx_kOOLogInconsistentState, "{}", "Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
         /*
                 This was previously an assertion, but a player reported hitting it.
                 http://aegidian.org/bb/viewtopic.php?p=128110#p128110
@@ -663,7 +670,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     }
 
     OOVerifyOpenGLState();
-    OOCheckOpenGLErrors(@"WormholeEntity after drawing %@", self);
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "WormholeEntity after drawing " + oo::DescriptionOf(self); });
 }
 
 static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int step, GLfloat z_distance, GLfloat* col4v1)
@@ -726,76 +733,76 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
     OOGLEND();
 }
 
-- (NSDictionary*)getDict
+- (oo::PList)getDict
 {
-    NSMutableDictionary* myDict = [NSMutableDictionary dictionary];
+    oo::PList::Dict myDict;
 
-    [myDict oo_setInteger:origin forKey:@"origin_id"];
-    [myDict oo_setInteger:destination forKey:@"dest_id"];
-    [myDict setObject:StringFromPoint(originCoords) forKey:@"origin_coords"];
-    [myDict setObject:StringFromPoint(destinationCoords) forKey:@"dest_coords"];
+    // -oo_setInteger: stored a signed integer, -oo_setFloat: a double, -oo_setBool: a boolean
+    myDict["origin_id"] = oo::PList::signedInteger(origin);
+    myDict["dest_id"] = oo::PList::signedInteger(destination);
+    myDict["origin_coords"] = oo::PList(cxx_StringFromPoint(originCoords));
+    myDict["dest_coords"] = oo::PList(cxx_StringFromPoint(destinationCoords));
     // Anything converting a wormhole to a dictionary should already have
     // modified its time to shipClock time
-    [myDict oo_setFloat:(expiry_time) forKey:@"expiry_time"];
-    [myDict oo_setFloat:(arrival_time) forKey:@"arrival_time"];
-    [myDict oo_setFloat:(estimated_arrival_time) forKey:@"estimated_arrival_time"];
-    [myDict oo_setHPVector:position forKey:@"position"];
-    [myDict oo_setBool:_misjump forKey:@"misjump"];
+    myDict["expiry_time"] = oo::PList(expiry_time);
+    myDict["arrival_time"] = oo::PList(arrival_time);
+    myDict["estimated_arrival_time"] = oo::PList(estimated_arrival_time);
+    myDict["position"] = oo::PListFrom(OOPropertyListFromHPVector(position)); // -oo_setHPVector:
+    myDict["misjump"] = oo::PList(static_cast<bool>(_misjump));
 
-    NSMutableArray* shipArray = [NSMutableArray arrayWithCapacity:[shipsInTransit count]];
-    NSEnumerator* ships = [shipsInTransit objectEnumerator];
-    NSDictionary* currShipDict = nil;
+    oo::PList::Array shipArray;
+    shipArray.reserve(shipsInTransit.size());
     OOShipSaveContext context;
-    while ((currShipDict = [ships nextObject]) != nil) {
-        id ship = [currShipDict objectForKey:@"ship"];
-        [shipArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                     [NSNumber numberWithDouble:oo::PListView(currShipDict).get<double>(@"time")], @"time_delta",
-                                 oo::ObjectFromPList([ship savedShipDictionaryWithContext:&context]), @"ship_info",
-                                 nil]];
+    for (const OOWormholeTransit& transit : shipsInTransit) {
+        // +dictionaryWithObjectsAndKeys: stopped at a nil ship_info
+        oo::PList::Dict shipDict { { "time_delta", oo::PList(transit.time) } };
+        oo::PList shipInfo = [transit.ship.get() savedShipDictionaryWithContext:&context];
+        if (!shipInfo.isNull())
+            shipDict["ship_info"] = std::move(shipInfo);
+        shipArray.push_back(oo::PList(std::move(shipDict)));
     }
-    [myDict setObject:shipArray forKey:@"ships"];
+    myDict["ships"] = oo::PList(std::move(shipArray));
 
-    return myDict;
+    return oo::PList(std::move(myDict));
 }
 
-- (NSString*)scanInfoString
+- (const char*)scanInfoString
 {
     switch (scan_info) {
     case WH_SCANINFO_NONE:
-        return @"WH_SCANINFO_NONE";
+        return "WH_SCANINFO_NONE";
     case WH_SCANINFO_SCANNED:
-        return @"WH_SCANINFO_SCANNED";
+        return "WH_SCANINFO_SCANNED";
     case WH_SCANINFO_COLLAPSE_TIME:
-        return @"WH_SCANINFO_COLLAPSE_TIME";
+        return "WH_SCANINFO_COLLAPSE_TIME";
     case WH_SCANINFO_ARRIVAL_TIME:
-        return @"WH_SCANINFO_ARRIVAL_TIME";
+        return "WH_SCANINFO_ARRIVAL_TIME";
     case WH_SCANINFO_DESTINATION:
-        return @"WH_SCANINFO_DESTINATION";
+        return "WH_SCANINFO_DESTINATION";
     case WH_SCANINFO_SHIP:
-        return @"WH_SCANINFO_SHIP";
+        return "WH_SCANINFO_SHIP";
     }
-    return @"WH_SCANINFO_UNDEFINED"; // should never get here
+    return "WH_SCANINFO_UNDEFINED"; // should never get here
 }
 
 - (void)dumpSelfState
 {
     [super dumpSelfState];
-    OOLog(@"dumpState.wormholeEntity", @"Origin                 : %@", [UNIVERSE getSystemName:origin]);
-    OOLog(@"dumpState.wormholeEntity", @"Destination            : %@", [UNIVERSE getSystemName:destination]);
-    OOLog(@"dumpState.wormholeEntity", @"Expiry Time            : %@", ClockToString(expiry_time, false));
-    OOLog(@"dumpState.wormholeEntity", @"Arrival Time           : %@", ClockToString(arrival_time, false));
-    OOLog(@"dumpState.wormholeEntity", @"Projected Arrival Time : %@", ClockToString(estimated_arrival_time, false));
-    OOLog(@"dumpState.wormholeEntity", @"Scanned Time           : %@", ClockToString(scan_time, false));
-    OOLog(@"dumpState.wormholeEntity", @"Scanned State          : %@", [self scanInfoString]);
+    OO_LOG("dumpState.wormholeEntity", "Origin                 : {}", oo::DescriptionOf([UNIVERSE getSystemName:origin]));
+    OO_LOG("dumpState.wormholeEntity", "Destination            : {}", oo::DescriptionOf([UNIVERSE getSystemName:destination]));
+    OO_LOG("dumpState.wormholeEntity", "Expiry Time            : {}", cxx_ClockToString(expiry_time, false));
+    OO_LOG("dumpState.wormholeEntity", "Arrival Time           : {}", cxx_ClockToString(arrival_time, false));
+    OO_LOG("dumpState.wormholeEntity", "Projected Arrival Time : {}", cxx_ClockToString(estimated_arrival_time, false));
+    OO_LOG("dumpState.wormholeEntity", "Scanned Time           : {}", cxx_ClockToString(scan_time, false));
+    OO_LOG("dumpState.wormholeEntity", "Scanned State          : {}", [self scanInfoString]);
 
-    OOLog(@"dumpState.wormholeEntity", @"Mass                   : %.2lf", witch_mass);
-    OOLog(@"dumpState.wormholeEntity", @"Ships                  : %zu", [shipsInTransit count]);
+    OO_LOG("dumpState.wormholeEntity", "Mass                   : {:.2f}", witch_mass);
+    OO_LOG("dumpState.wormholeEntity", "Ships                  : {}", shipsInTransit.size());
     unsigned i;
-    for (i = 0; i < [shipsInTransit count]; ++i) {
-        NSDictionary* shipDict = oo::PListView(shipsInTransit).at<NSDictionary*>(i);
-        ShipEntity* ship = (ShipEntity*)[shipDict objectForKey:@"ship"];
-        double ship_arrival_time = arrival_time + oo::PListView(shipDict).get<double>(@"time");
-        OOLog(@"dumpState.wormholeEntity.ships", @"Ship %d: %@  mass %.2f  arrival time %@", i + 1, ship, [ship mass], ClockToString(ship_arrival_time, false));
+    for (i = 0; i < shipsInTransit.size(); ++i) {
+        ShipEntity* ship = shipsInTransit[i].ship.get();
+        double ship_arrival_time = arrival_time + shipsInTransit[i].time;
+        OO_LOG("dumpState.wormholeEntity.ships", "Ship {}: {}  mass {:.2f}  arrival time {}", i + 1, oo::DescriptionOf(ship), [ship mass], cxx_ClockToString(ship_arrival_time, false));
     }
 }
 

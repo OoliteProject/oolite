@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 
 @interface OOFlasherEntity (Internal)
 
-- (id)initWithFlasherConfiguration:(const oo::PList&)dictionary;
 - (void)setUpColors:(const oo::PList*)colorSpecifiers; // an array node, or nullptr
 - (void)getCurrentColorComponents;
 
@@ -43,15 +42,15 @@ MA 02110-1301, USA.
 
 + (instancetype)flasherWithDictionary:(const oo::PList&)dictionary
 {
-    return [[[OOFlasherEntity alloc] initWithFlasherConfiguration:dictionary] autorelease];
+    return [[[OOFlasherEntity alloc] cxx_initWithDictionary:dictionary] autorelease];
 }
 
-- (id)initWithDictionary:(id)dictionary
+- (id)initWithDictionary:(id)dictionary // shared selector (Foundation declares it too)
 {
-    return [self initWithFlasherConfiguration:oo::PListFrom(dictionary)];
+    return [self cxx_initWithDictionary:oo::PListFrom(dictionary)];
 }
 
-- (id)initWithFlasherConfiguration:(const oo::PList&)dictionary
+- (id)cxx_initWithDictionary:(const oo::PList&)dictionary
 {
     float size = dictionary.get<float>("size", 1.0f);
 

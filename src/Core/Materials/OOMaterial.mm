@@ -132,7 +132,7 @@ static OOMaterial* sActiveMaterial = nil;
 - (void)willDealloc
 {
     if (EXPECT_NOT(sActiveMaterial == self)) {
-        OOLog(@"shader.dealloc.imbalance", @"%@", @"***** Material deallocated while active, indicating a retain/release imbalance.");
+        OO_LOG("shader.dealloc.imbalance", "{}", "***** Material deallocated while active, indicating a retain/release imbalance.");
         [self unapplyWithNext:nil];
         sActiveMaterial = nil;
     }

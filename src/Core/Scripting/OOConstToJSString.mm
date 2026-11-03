@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOConstToJSString.h"
+#include "oofnd/objc/OOAssert.h"
 
 /*
         Each type of constant has its own lookup table, which is a linear list of
@@ -129,8 +130,8 @@ static void InitTable(JSContext* context, ConstTable* table);
 
 void OOConstToJSStringInit(JSContext* context)
 {
-    NSCAssert(!sInited, @"OOConstToJSStringInit() called while already inited.");
-    NSCParameterAssert(context != NULL);
+    OOCAssert(!sInited, "OOConstToJSStringInit() called while already inited.");
+    OOCParameterAssert(context != NULL);
 
     // Atoms survive engine resets, so they only need interning once.
     if (!sAtomsInterned) {
@@ -154,7 +155,7 @@ void OOConstToJSStringInit(JSContext* context)
 
 void OOConstToJSStringDestroy(void)
 {
-    NSCAssert(sInited, @"OOConstToJSStringDestroy() called while not inited.");
+    OOCAssert(sInited, "OOConstToJSStringDestroy() called while not inited.");
     sInited = NO;
     // The atoms remain valid; they belong to the runtime.
 }
@@ -173,7 +174,7 @@ static int CompareEntries(const void* a, const void* b)
 
 static void InitTable(JSContext* context, ConstTable* table)
 {
-    NSCParameterAssert(context != NULL && table != NULL);
+    OOCParameterAssert(context != NULL && table != NULL);
 
     NSUInteger i;
     for (i = 0; i < table->count; i++) {
@@ -187,9 +188,9 @@ static void InitTable(JSContext* context, ConstTable* table)
 
 JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value, struct ConstTable* table)
 {
-    NSCAssert1(sInited, @"%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
-    NSCParameterAssert(context != NULL);
-    NSCParameterAssert(table != NULL && table->count > 0);
+    OOCAssert(sInited, "%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
+    OOCParameterAssert(context != NULL);
+    OOCParameterAssert(table != NULL && table->count > 0);
 
     // Binary search. (Signed bounds: the SpiderMonkey version underflowed for values below the first entry.)
     NSInteger min = 0, max = (NSInteger)table->count - 1;
@@ -211,8 +212,8 @@ JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value, struct
 
 NSUInteger OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value, struct ConstTable* table, NSInteger defaultValue)
 {
-    NSCAssert1(sInited, @"%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
-    NSCParameterAssert(context != NULL && table != NULL);
+    OOCAssert(sInited, "%s called before OOConstToJSStringInit().", __PRETTY_FUNCTION__);
+    OOCParameterAssert(context != NULL && table != NULL);
 
     if (EXPECT_NOT(!JS_IsString(value)))
         return defaultValue;

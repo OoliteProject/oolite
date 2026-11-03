@@ -29,7 +29,9 @@ SOFTWARE.
 #import "OOAsyncQueue.h"
 #import "OOCPUInfo.h"
 #import "OOCollectionExtractors.h"
+#import "OOFoundationBridge.h"
 #include "oofnd/Thread.hpp"
+#include "oofnd/objc/OOException.h"
 #include "oofnd/objc/OOObjCRef.h"
 
 // OOFoundation.h defines true/false as macros; the standard headers want the keywords (oofnd/Data.hpp).
@@ -51,6 +53,7 @@ SOFTWARE.
 #if USE_PTHREAD_ONCE
 #include <pthread.h>
 #endif
+#include "oofnd/objc/OOAssert.h"
 
 static OOAsyncWorkManager* sSingleton = nil;
 
@@ -164,7 +167,7 @@ std::mutex sInitLock;
 
 static void InitAsyncWorkManager(void)
 {
-    NSCAssert(sSingleton == nil, @"Async Work Manager singleton not nil in one-time init");
+    OOCAssert(sSingleton == nil, "Async Work Manager singleton not nil in one-time init");
 
     if ([OOOperationQueueAsyncWorkManager canBeUsed]) {
         sSingleton = [[OOOperationQueueAsyncWorkManager alloc] init];
@@ -174,11 +177,11 @@ static void InitAsyncWorkManager(void)
     }
 
     if (sSingleton == nil) {
-        OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"%@", @"***** FATAL ERROR: could not set up async work manager!");
+        OO_LOG("asyncWorkManager.setUpDispatcher.failed", "{}", "***** FATAL ERROR: could not set up async work manager!");
         exit(EXIT_FAILURE);
     }
 
-    OOLog(@"asyncWorkManager.dispatchMethod", @"Selected async work manager: %@", [sSingleton class]);
+    OO_LOG("asyncWorkManager.dispatchMethod", "Selected async work manager: {}", oo::DescriptionOf([sSingleton class]));
 }
 
 @implementation OOAsyncWorkManager
@@ -188,12 +191,12 @@ static void InitAsyncWorkManager(void)
 #if USE_PTHREAD_ONCE
     static pthread_once_t once = PTHREAD_ONCE_INIT;
     pthread_once(&once, InitAsyncWorkManager);
-    NSAssert(sSingleton != nil, @"Async Work Manager init failed");
+    OOAssert(sSingleton != nil, "Async Work Manager init failed");
 #else
     sInitLock.lock();
     if (sSingleton == nil) {
         InitAsyncWorkManager();
-        NSAssert(sSingleton != nil, @"Async Work Manager init failed");
+        OOAssert(sSingleton != nil, "Async Work Manager init failed");
     }
     sInitLock.unlock();
 #endif
@@ -244,7 +247,7 @@ static void InitAsyncWorkManager(void)
 - (void)waitForTaskToComplete:(id<OOAsyncWorkTask>)task
 {
     OOLogGenericSubclassResponsibility();
-    [NSException raise:NSInternalInconsistencyException format:@"%s called.", __PRETTY_FUNCTION__];
+    [OOException raise:OOInternalInconsistencyException format:"%s called.", __PRETTY_FUNCTION__];
 }
 
 @end
@@ -287,8 +290,8 @@ static void InitAsyncWorkManager(void)
         return;
 
 #if OO_DEBUG
-    NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
-    NSAssert1(oo::thread::isMainThread(), @"%s can only be called from the main thread.", __PRETTY_FUNCTION__);
+    OOParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
+    OOAssert(oo::thread::isMainThread(), "%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
 
     _pendingOpsLock.lock();

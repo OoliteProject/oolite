@@ -33,9 +33,9 @@ MA 02110-1301, USA.
 
 //	AI methods also used in other code.
 
-- (void)setAITo:(NSString*)aiString;
-- (void)setAIScript:(NSString*)aiString;
-- (void)switchAITo:(NSString*)aiString;
+- (void)setAITo:(id)aiString; // called by name (ADR-0043 item 21): an Objective-C string
+- (void)setAIScript:(const std::string&)aiString;
+- (void)switchAITo:(id)aiString; // called by name (ADR-0043 item 21): an Objective-C string
 
 - (void)scanForHostiles;
 - (BOOL)performHyperSpaceToSpecificSystem:(OOSystemID)systemID;

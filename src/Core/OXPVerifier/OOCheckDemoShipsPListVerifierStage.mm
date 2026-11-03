@@ -51,10 +51,7 @@ static const char* const kStageName = "Checking demoships.plist";
     OOFileScannerVerifierStage* fileScanner = nil;
 
     fileScanner = [[self verifier] fileScannerStage];
-    return [fileScanner fileExists:@"demoships.plist"
-                          inFolder:@"Config"
-                    referencedFrom:nil
-                      checkBuiltIn:NO];
+    return [fileScanner cxx_fileExists:"demoships.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
 }
 
 - (void)run
@@ -65,31 +62,25 @@ static const char* const kStageName = "Checking demoships.plist";
 
     fileScanner = [[self verifier] fileScannerStage];
 
-    demoshipsPList = oo::PListFrom([fileScanner plistNamed:@"demoships.plist"
-                                                  inFolder:@"Config"
-                                            referencedFrom:nil
-                                              checkBuiltIn:NO]);
+    demoshipsPList = [fileScanner cxx_plistNamed:"demoships.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
 
     if (demoshipsPList.isNull())
         return;
 
     // Check that it's an array
     if (!demoshipsPList.isArray()) {
-        OOLog(@"verifyOXP.demoshipsPList.notArray", @"%@", @"***** ERROR: demoships.plist is not an array.");
+        OO_LOG("verifyOXP.demoshipsPList.notArray", "{}", "***** ERROR: demoships.plist is not an array.");
         return;
     }
 
-    shipdataPList = oo::PListFrom([fileScanner plistNamed:@"shipdata.plist"
-                                                 inFolder:@"Config"
-                                           referencedFrom:nil
-                                             checkBuiltIn:NO]);
+    shipdataPList = [fileScanner cxx_plistNamed:"shipdata.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
 
     if (shipdataPList.isNull())
         return;
 
     // Check that it's a dictionary
     if (!shipdataPList.isDict()) {
-        OOLog(@"verifyOXP.demoshipsPList.notDict", @"%@", @"***** ERROR: shipdata.plist is not a dictionary.");
+        OO_LOG("verifyOXP.demoshipsPList.notDict", "{}", "***** ERROR: shipdata.plist is not a dictionary.");
         return;
     }
 
@@ -103,10 +94,10 @@ static const char* const kStageName = "Checking demoships.plist";
 - (void)runCheckWithDemoShips:(const oo::PList&)demoshipsPList shipData:(const oo::PList&)shipdataPList
 {
     for (const oo::PList& entry : *demoshipsPList.getIf<oo::PList::Array>()) {
-        // An entry that is not a string is no key of shipdata.plist; "%@" prints the entry itself.
+        // An entry that is not a string is no key of shipdata.plist; print the entry description.
         const std::string* name = entry.getIf<std::string>();
         if (name == nullptr || shipdataPList.find(*name) == nullptr) {
-            OOLog(@"verifyOXP.demoshipsPList.unknownShip", @"----- WARNING: demoships.plist entry \"%@\" not found in shipdata.plist.", name != nullptr ? oo::NSStringFrom(*name) : oo::ObjectFromPList(entry));
+            OO_LOG("verifyOXP.demoshipsPList.unknownShip", "----- WARNING: demoships.plist entry \"{}\" not found in shipdata.plist.", name != nullptr ? *name : oo::DescriptionOf(oo::ObjectFromPList(entry)));
         }
     }
 }

@@ -27,7 +27,6 @@ SOFTWARE.
 
 #import "OOShipRegistry.h"
 #import "GameController.h"
-#import "NSDictionaryOOExtensions.h"
 #import "OOCacheManager.h"
 #import "OOColor.h"
 #import "OODeepCopy.h"
@@ -401,55 +400,55 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     // Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
     if (![self makeShipEntriesMutable:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished initial cleanup...");
+    OO_LOG("shipData.load.progress", "{}", "Finished initial cleanup...");
 
     // Apply patches.
     if (![self loadAndApplyShipDataOverrides:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished applying patches...");
+    OO_LOG("shipData.load.progress", "{}", "Finished applying patches...");
 
     // Strip private keys (anything starting with _oo_).
     if (![self stripPrivateKeys:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished stripping private keys...");
+    OO_LOG("shipData.load.progress", "{}", "Finished stripping private keys...");
 
     // Resolve like_ship entries.
     if (![self applyLikeShips:result withKey:"like_ship"])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished resolving like_ships...");
+    OO_LOG("shipData.load.progress", "{}", "Finished resolving like_ships...");
 
     // Clean up subentity declarations and tag subentities so they won't be pruned.
     if (![self canonicalizeAndTagSubentities:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished cleaning up subentities...");
+    OO_LOG("shipData.load.progress", "{}", "Finished cleaning up subentities...");
 
     // Clean out templates and invalid entries.
     if (![self removeUnusableEntries:result shipMode:YES])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished removing invalid entries...");
+    OO_LOG("shipData.load.progress", "{}", "Finished removing invalid entries...");
 
     // Add shipyard entries into shipdata entries.
     if (![self loadAndMergeShipyard:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished adding shipyard entries...");
+    OO_LOG("shipData.load.progress", "{}", "Finished adding shipyard entries...");
 
     // Sanitize conditions.
     if (![self sanitizeConditions:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished validating data...");
+    OO_LOG("shipData.load.progress", "{}", "Finished validating data...");
 
 #if PRELOAD
     // Preload and cache meshes.
     if (![self preloadShipMeshes:result])
         return;
-    OOLog(@"shipData.load.progress", @"%@", @"Finished loading meshes...");
+    OO_LOG("shipData.load.progress", "{}", "Finished loading meshes...");
 #endif
 
     // The cache (an unmigrated callee) gets the data back as Foundation objects.
     _shipData = std::move(result);
     [[OOCacheManager sharedCache] cxx_setObject:oo::ObjectFromPList(_shipData) forKey:kShipDataCacheKey inCache:kShipRegistryCacheName];
 
-    OOLog(@"shipData.load.done", @"%@", @"Ship data loaded.");
+    OO_LOG("shipData.load.done", "{}", "Ship data loaded.");
 
     _effectData = oo::PList();
 
@@ -463,32 +462,32 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     // Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
     if (![self makeShipEntriesMutable:result])
         return;
-    OOLog(@"effectData.load.progress", @"%@", @"Finished initial cleanup...");
+    OO_LOG("effectData.load.progress", "{}", "Finished initial cleanup...");
 
     // Strip private keys (anything starting with _oo_).
     if (![self stripPrivateKeys:result])
         return;
-    OOLog(@"effectData.load.progress", @"%@", @"Finished stripping private keys...");
+    OO_LOG("effectData.load.progress", "{}", "Finished stripping private keys...");
 
     // Resolve like_effect entries.
     if (![self applyLikeShips:result withKey:"like_effect"])
         return;
-    OOLog(@"effectData.load.progress", @"%@", @"Finished resolving like_effects...");
+    OO_LOG("effectData.load.progress", "{}", "Finished resolving like_effects...");
 
     // Clean up subentity declarations and tag subentities so they won't be pruned.
     if (![self canonicalizeAndTagSubentities:result])
         return;
-    OOLog(@"effectData.load.progress", @"%@", @"Finished cleaning up subentities...");
+    OO_LOG("effectData.load.progress", "{}", "Finished cleaning up subentities...");
 
     // Clean out templates and invalid entries.
     if (![self removeUnusableEntries:result shipMode:NO])
         return;
-    OOLog(@"effectData.load.progress", @"%@", @"Finished removing invalid entries...");
+    OO_LOG("effectData.load.progress", "{}", "Finished removing invalid entries...");
 
     _effectData = std::move(result);
     [[OOCacheManager sharedCache] cxx_setObject:oo::ObjectFromPList(_effectData) forKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName];
 
-    OOLog(@"effectData.load.done", @"%@", @"Effect data loaded.");
+    OO_LOG("effectData.load.done", "{}", "Effect data loaded.");
 }
 
 - (void)loadDemoShipConditions
@@ -597,7 +596,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     for (const oo::PList& key : demoShips) {
         std::string klass = key.get<std::string>(kOODemoShipClass, "ship");
         if (OOShipLibraryCategoryPlural(klass).empty()) {
-            OOLog(@"shipdata.load.warning", @"Unexpected class '%@' in shiplibrary.plist for '%@'", oo::NSStringFrom(klass), oo::NSStringOrNil(StringForKey(&key, kOODemoShipKey)));
+            OO_LOG("shipdata.load.warning", "Unexpected class '{}' in shiplibrary.plist for '{}'", klass, StringForKey(&key, kOODemoShipKey).value_or("(null)"));
             klass = "ship";
         }
         oo::PList::Array& demoClass = demoList[klass];
@@ -635,7 +634,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
 - (void)loadCachedRoleProbabilitySets
 {
-    // OOCacheManager and OOProbabilitySet are unmigrated callees: convert at the calls.
+    // OOCacheManager is an unmigrated callee: convert at the call.
     const oo::PList cachedSets = oo::PListFrom([[OOCacheManager sharedCache] cxx_objectForKey:kRoleWeightsCacheKey inCache:kShipRegistryCacheName]);
     if (cachedSets.isNull())
         return;
@@ -643,7 +642,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     std::map<std::string, oo::ObjCRef<OOProbabilitySet*>, std::less<>> restoredSets;
     if (const oo::PList::Dict* sets = cachedSets.getIf<oo::PList::Dict>()) {
         for (const auto& [role, representation] : *sets) {
-            restoredSets[role] = oo::ObjCRef<OOProbabilitySet*>([OOProbabilitySet probabilitySetWithPropertyListRepresentation:oo::ObjectFromPList(representation)]);
+            restoredSets[role] = oo::ObjCRef<OOProbabilitySet*>([OOProbabilitySet probabilitySetWithPropertyListRepresentation:representation]);
         }
     }
 
@@ -668,7 +667,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         OOProbabilitySet* pset = [[mutableSet.get() copy] autorelease];
         sets[role] = oo::ObjCRef<OOProbabilitySet*>(pset);
         // OOProbabilitySet is an unmigrated callee (its weights are floats: single reals, written to disk)
-        cacheEntry[role] = oo::PListFrom([pset propertyListRepresentation]);
+        cacheEntry[role] = [pset propertyListRepresentation];
     }
 
     _probabilitySets = std::move(sets);
@@ -736,7 +735,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
             }
 
             if (!reportedBadShips.empty()) {
-                OOLogERR(@"shipData.merge.failed", @"one or more shipdata.plist entries have %@ references that cannot be resolved: %@", oo::NSStringFrom(likeKey), oo::NSStringFrom(CaseInsensitiveSortedList(std::move(reportedBadShips)))); // FIXME: distinguish shipdata and effectdata
+                OO_LOG_ERR("shipData.merge.failed", "one or more shipdata.plist entries have {} references that cannot be resolved: {}", likeKey, CaseInsensitiveSortedList(std::move(reportedBadShips))); // FIXME: distinguish shipdata and effectdata
                 cxx_OOStandardsError("Likely missing a dependency in a manifest.plist");
             }
             break;
@@ -810,7 +809,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     oo::PList::Dict& ships = Entries(ioData);
     for (auto ship = ships.begin(); ship != ships.end();) {
         if (!ship->second.isDict()) {
-            OOLogERR(@"shipData.load.badEntry", @"the shipdata.plist entry \"%@\" is not a dictionary.", oo::NSStringFrom(ship->first));
+            OO_LOG_ERR("shipData.load.badEntry", "the shipdata.plist entry \"{}\" is not a dictionary.", ship->first);
             ship = ships.erase(ship);
         } else {
             ++ship;
@@ -833,7 +832,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
             auto shipEntry = ships.find(shipKey);
             if (shipEntry != ships.end()) {
                 if (!overridesEntry.isDict()) {
-                    OOLogERR(@"shipData.load.error", @"the shipdata-overrides.plist entry \"%@\" is not a dictionary.", oo::NSStringFrom(shipKey));
+                    OO_LOG_ERR("shipData.load.error", "the shipdata-overrides.plist entry \"{}\" is not a dictionary.", shipKey);
                 } else {
                     AddEntries(Entries(shipEntry->second), overridesEntry);
                 }
@@ -889,7 +888,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         for (const auto& [shipKey, shipyardEntry] : *shipyardEntries) {
             auto shipEntry = ships.find(shipKey);
             if (shipEntry != ships.end()) {
-                // -dictionaryByAddingEntriesFromDictionary:
+                // merging dictionary entries
                 oo::PList mergedEntry = shipyardEntry;
                 const oo::PList* shipyardOverridesEntry = shipyardOverrides.find(shipKey);
                 if (shipyardOverridesEntry != nullptr && mergedEntry.isDict()) {
@@ -900,7 +899,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
                 playerShips.push_back(shipKey);
             } else {
-                OOLogWARN(@"shipData.load.shipyard.unknown", @"the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", oo::NSStringFrom(shipKey));
+                OO_LOG_WARN("shipData.load.shipyard.unknown", "the shipyard.plist entry \"{}\" does not have a corresponding shipdata.plist entry, ignoring.", shipKey);
             }
         }
     }
@@ -972,7 +971,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                 if (!shipEntry.get<bool>("is_external_dependency")) {
                     const std::size_t badCount = badSubentities.size();
                     const std::string badSubentitiesList = CaseInsensitiveSortedList(std::vector<std::string>(badSubentities.begin(), badSubentities.end()));
-                    OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", oo::NSStringFrom(shipKey), (badCount == 1) ? @"y" : @"ies", oo::NSStringFrom(badSubentitiesList));
+                    OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" has unresolved subentit{} {}.", shipKey, (badCount == 1) ? "y" : "ies", badSubentitiesList);
                     cxx_OOStandardsError("Bad subentity definition found");
                 }
                 remove = YES;
@@ -1001,19 +1000,19 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         if (shipEntry.get<bool>("is_template") || shipEntry.get<bool>("_oo_deferred_remove"))
             remove = YES;
         else if (shipMode && StringForKey(&shipEntry, "roles").value_or("").empty() && !shipEntry.get<bool>("_oo_is_subentity") && !shipEntry.get<bool>("_oo_is_effect")) {
-            OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", oo::NSStringFrom(shipKey), @"roles");
+            OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies no {}.", shipKey, "roles");
             remove = YES;
             cxx_OOStandardsError("Error in shipdata.plist");
         } else {
             const std::string modelName = StringForKey(&shipEntry, "model").value_or("");
             if (shipMode && modelName.empty()) {
-                OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", oo::NSStringFrom(shipKey), @"model");
+                OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies no {}.", shipKey, "model");
                 cxx_OOStandardsError("Error in shipdata.plist");
                 remove = YES;
             }
             // ResourceManager's path lookup is an unmigrated callee: convert at the call.
             else if (!modelName.empty() && [ResourceManager pathForFileNamed:oo::NSStringFrom(modelName) inFolder:@"Models"] == nil) {
-                OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", oo::NSStringFrom(shipKey), oo::NSStringFrom(modelName));
+                OO_LOG_ERR("shipData.load.error", "the shipdata.plist entry \"{}\" specifies non-existent model \"{}\".", shipKey, modelName);
                 cxx_OOStandardsError("Error in shipdata.plist");
                 remove = YES;
             }
@@ -1039,9 +1038,9 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
             conditionScripts.push_back(*script);
         }
     };
-    // OOSanitizeLegacyScriptConditions is an unmigrated callee: convert at the call (nil comes back null).
-    auto sanitize = [](const oo::PList& conditions, const std::string& context) {
-        return oo::PListFrom(OOSanitizeLegacyScriptConditions(oo::ObjectFromPList(conditions), oo::NSStringFrom(context)));
+    // OOSanitizeLegacyScriptConditions takes and returns oo::PList (bead oo-3rb.205; nil is null).
+    auto sanitize = [](const oo::PList& unsanitized, const std::string& context) {
+        return OOSanitizeLegacyScriptConditions(unsanitized, context);
     };
     auto valueOrNull = [](const oo::PList* value) { return value != nullptr ? *value : oo::PList(); };
 
@@ -1071,7 +1070,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                 if (conditions.isArray()) {
                     conditions = sanitize(conditions, oo::str::format("<shipdata.plist entry \"%s\">", key));
                 } else {
-                    OOLogWARN(@"shipdata.load.warning", @"conditions for shipdata.plist entry \"%@\" are not an array, ignoring.", oo::NSStringFrom(shipKey));
+                    OO_LOG_WARN("shipdata.load.warning", "conditions for shipdata.plist entry \"{}\" are not an array, ignoring.", shipKey);
                     conditions = oo::PList();
                 }
 
@@ -1104,7 +1103,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                 if (shipyardConditions.isArray()) {
                     shipyardConditions = sanitize(shipyardConditions, oo::str::format("<shipyard.plist entry \"%s\">", key));
                 } else {
-                    OOLogWARN(@"shipdata.load.warning", @"conditions for shipyard.plist entry \"%@\" are not an array, ignoring.", oo::NSStringFrom(shipKey));
+                    OO_LOG_WARN("shipdata.load.warning", "conditions for shipyard.plist entry \"{}\" are not an array, ignoring.", shipKey);
                     shipyardConditions = oo::PList();
                 }
 
@@ -1154,7 +1153,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
         if (mesh == nil) {
             // FIXME: what if it's a subentity? Need to rearrange things.
-            OOLogERR(@"shipData.load.error", @"model \"%@\" could not be loaded for ship \"%@\", removing.", oo::NSStringOrNil(modelName), oo::NSStringFrom(ship->first));
+            OO_LOG_ERR("shipData.load.error", "model \"{}\" could not be loaded for ship \"{}\", removing.", modelName.value_or("(null)"), ship->first);
             ship = ships.erase(ship);
         } else {
             ++ship;
@@ -1234,7 +1233,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                                                  fatalError:outFatalError];
     } else {
         // (%@ of the declaration's class: the class of the object the property list gives back)
-        OOLogERR(@"shipData.load.error.badSubentity", @"subentity declaration for ship %@ should be string or dictionary, found %@.", oo::NSStringFrom(shipKey), [oo::ObjectFromPList(declaration) class]);
+        OO_LOG_ERR("shipData.load.error.badSubentity", "subentity declaration for ship {} should be string or dictionary, found {}.", shipKey, oo::DescriptionOf([oo::ObjectFromPList(declaration) class]));
         *outFatalError = YES;
     }
 
@@ -1261,10 +1260,10 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     // Sanity check: require eight tokens.
     if (tokenStrings.size() != 8) {
         if (!isFlasher) {
-            OOLogERR(@"shipData.load.error.badSubentity", @"the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %zu).", oo::NSStringFrom(shipKey), oo::NSStringFrom(subentityKey), tokenStrings.size());
+            OO_LOG_ERR("shipData.load.error.badSubentity", "the shipdata.plist entry \"{}\" has a broken subentity definition \"{}\" (should have 8 tokens, has {}).", shipKey, subentityKey, tokenStrings.size());
             *outFatalError = YES;
         } else {
-            OOLogWARN(@"shipData.load.warning.badFlasher", @"the shipdata.plist entry \"%@\" has a broken flasher definition (should have 8 tokens, has %zu). This flasher will be ignored.", oo::NSStringFrom(shipKey), tokenStrings.size());
+            OO_LOG_WARN("shipData.load.warning.badFlasher", "the shipdata.plist entry \"{}\" has a broken flasher definition (should have 8 tokens, has {}). This flasher will be ignored.", shipKey, tokenStrings.size());
         }
         return oo::PList();
     }
@@ -1320,7 +1319,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     std::vector<std::string> tokenStrings;
     for (std::size_t i = 0; i != tokens.count(); ++i)
         tokenStrings.push_back(tokens.at<std::string>(i));
-    OOLog(@"shipData.translateSubentity.flasher", @"Translated flasher declaration \"%@\" to %@", oo::NSStringFrom(JoinTokens(tokenStrings)), oo::ObjectFromPList(resultPList));
+    OO_LOG("shipData.translateSubentity.flasher", "Translated flasher declaration \"{}\" to {}", JoinTokens(tokenStrings), oo::DescriptionOf(oo::ObjectFromPList(resultPList)));
 
     return resultPList;
 }
@@ -1350,7 +1349,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
     if (orientation.w == 0 && orientation.x == 0 && orientation.y == 0 && orientation.z == 0) {
         orientation.w = 1; // avoid dividing by zero.
-        OOLogWARN(@"shipData.load.error", @"The ship %@ has an undefined orientation for its %@ subentity. Setting it now at (1,0,0,0)", oo::NSStringFrom(shipKey), oo::NSStringFrom(subentityKey));
+        OO_LOG_WARN("shipData.load.error", "The ship {} has an undefined orientation for its {} subentity. Setting it now at (1,0,0,0)", shipKey, subentityKey);
     }
 
     quaternion_normalize(&orientation);
@@ -1371,7 +1370,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     std::vector<std::string> tokenStrings;
     for (std::size_t i = 0; i != tokens.count(); ++i)
         tokenStrings.push_back(tokens.at<std::string>(i));
-    OOLog(@"shipData.translateSubentity.standard", @"Translated subentity declaration \"%@\" to %@", oo::NSStringFrom(JoinTokens(tokenStrings)), oo::ObjectFromPList(resultPList));
+    OO_LOG("shipData.translateSubentity.standard", "Translated subentity declaration \"{}\" to {}", JoinTokens(tokenStrings), oo::DescriptionOf(oo::ObjectFromPList(resultPList)));
 
     return resultPList;
 }
@@ -1387,7 +1386,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     } else if (type == "standard" || type == "ball_turret") {
         return [self validateNewStyleStandardSubentityDeclaration:declaration forShip:shipKey fatalError:outFatalError];
     } else {
-        OOLogERR(@"shipData.load.error.badSubentity", @"subentity declaration for ship %@ does not declare a valid type (must be standard, flasher or ball_turret).", oo::NSStringFrom(shipKey));
+        OO_LOG_ERR("shipData.load.error.badSubentity", "subentity declaration for ship {} does not declare a valid type (must be standard, flasher or ball_turret).", shipKey);
         *outFatalError = YES;
         return oo::PList();
     }
@@ -1411,7 +1410,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         const oo::PList colorDesc = color != nullptr ? *color : oo::PList(kDefaultFlasherColor);
         if (colorDesc.isArray()) {
             // an easy made error is adding an array to "color" instead of "colors"
-            OOLogWARN(@"shipData.load.warning.flasher.badColor", @"changing flasher for ship %@ from a color to a colors definition.", oo::NSStringFrom(shipKey));
+            OO_LOG_WARN("shipData.load.warning.flasher.badColor", "changing flasher for ship {} from a color to a colors definition.", shipKey);
             colors = colorDesc;
         } else {
             colors = oo::PList(oo::PList::Array { colorDesc });
@@ -1428,7 +1427,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                 components.push_back(oo::PList::singleReal(component));
             validColors.emplace_back(std::move(components));
         } else {
-            OOLogWARN(@"shipdata.load.warning.flasher.badColor", @"skipping invalid colour specifier for flasher for ship %@.", oo::NSStringFrom(shipKey));
+            OO_LOG_WARN("shipdata.load.warning.flasher.badColor", "skipping invalid colour specifier for flasher for ship {}.", shipKey);
         }
     }
     // Ensure there's at least one.
@@ -1441,13 +1440,13 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     size = declaration.get<float>("size", 8.0);
 
     if (size <= 0) {
-        OOLogWARN(@"shipData.load.warning.flasher.badSize", @"skipping flasher of invalid size %g for ship %@.", size, oo::NSStringFrom(shipKey));
+        OO_LOG_WARN("shipData.load.warning.flasher.badSize", "skipping flasher of invalid size {:g} for ship {}.", size, shipKey);
         return oo::PList();
     }
 
     brightfraction = declaration.get<float>("bright_fraction", 0.5);
     if (brightfraction < 0.0 || brightfraction > 1.0) {
-        OOLogWARN(@"shipData.load.warning.flasher.badFraction", @"skipping flasher of invalid bright fraction %g for ship %@.", brightfraction, oo::NSStringFrom(shipKey));
+        OO_LOG_WARN("shipData.load.warning.flasher.badFraction", "skipping flasher of invalid bright fraction {:g} for ship {}.", brightfraction, shipKey);
         return oo::PList();
     }
 
@@ -1483,7 +1482,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
     const oo::PList* subentityKey = declaration.find("subentity_key");
     if (subentityKey == nullptr) {
-        OOLogERR(@"shipData.load.error.badSubentity", @"subentity declaration for ship %@ specifies no subentity_key.", oo::NSStringFrom(shipKey));
+        OO_LOG_ERR("shipData.load.error.badSubentity", "subentity declaration for ship {} specifies no subentity_key.", shipKey);
         *outFatalError = YES;
         return oo::PList();
     }
@@ -1492,12 +1491,12 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     if (isTurret) {
         fireRate = declaration.get<float>("fire_rate", -1.0f);
         if (fireRate < 0.25f && fireRate >= 0.0f) {
-            OOLogWARN(@"shipData.load.warning.turret.badFireRate", @"ball turret fire rate of %g for subentity of ship %@ is invalid, using 0.25.", fireRate, oo::NSStringFrom(shipKey));
+            OO_LOG_WARN("shipData.load.warning.turret.badFireRate", "ball turret fire rate of {:g} for subentity of ship {} is invalid, using 0.25.", fireRate, shipKey);
             fireRate = 0.25f;
         }
         weaponRange = declaration.get<float>("weapon_range", -1.0f);
         if (weaponRange > TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR) {
-            OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subentity of ship %@ is too high, using %.1f.", weaponRange, oo::NSStringFrom(shipKey), TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR);
+            OO_LOG_WARN("shipData.load.warning.turret.badWeaponRange", "ball turret weapon range of {:g} for subentity of ship {} is too high, using {:.1f}.", weaponRange, shipKey, TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR);
             weaponRange = TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR; // approx. range of primary plasma canon.
         }
 
@@ -1505,7 +1504,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         if (weaponEnergy > 100.0f)
 
         {
-            OOLogWARN(@"shipData.load.warning.turret.badWeaponEnergy", @"ball turret weapon energy of %g for subentity of ship %@ is too high, using 100.", weaponEnergy, oo::NSStringFrom(shipKey));
+            OO_LOG_WARN("shipData.load.warning.turret.badWeaponEnergy", "ball turret weapon energy of {:g} for subentity of ship {} is too high, using 100.", weaponEnergy, shipKey);
             weaponEnergy = 100.0f;
         }
     } else {
@@ -1590,7 +1589,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 + (id)allocWithZone:(OOZone*)inZone
 {
     if (sSingleton == nil) {
-        OOLog(@"shipData.load.begin", @"%@", @"Loading ship data.");
+        OO_LOG("shipData.load.begin", "{}", "Loading ship data.");
         sSingleton = [super allocWithZone:inZone];
         return sSingleton;
     }

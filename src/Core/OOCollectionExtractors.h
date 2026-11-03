@@ -114,7 +114,7 @@ SOFTWARE.
 - (double)oo_nonNegativeDoubleAtIndex:(NSUInteger)index;
 
 // Default: nil
-- (id)oo_objectAtIndex:(NSUInteger)index; // Differs from objectAtIndex: in that it returns nil rather than throwing NSRangeException.
+- (id)oo_objectAtIndex:(NSUInteger)index; // Differs from objectAtIndex: in that it returns nil rather than throwing OORangeException.
 - (id)oo_objectOfClass:(Class)aClass atIndex:(NSUInteger)index;
 - (NSString*)oo_stringAtIndex:(NSUInteger)index;
 - (NSArray*)oo_arrayAtIndex:(NSUInteger)index;
@@ -133,160 +133,25 @@ SOFTWARE.
 
 @interface NSDictionary (OOExtractor)
 
-- (char)oo_charForKey:(id)key defaultValue:(char)value;
-- (short)oo_shortForKey:(id)key defaultValue:(short)value;
-- (int)oo_intForKey:(id)key defaultValue:(int)value;
-- (long)oo_longForKey:(id)key defaultValue:(long)value;
-- (long long)oo_longLongForKey:(id)key defaultValue:(long long)value;
-- (NSInteger)oo_integerForKey:(id)key defaultValue:(NSInteger)value;
+// The typed readers (oo_*ForKey:) are retired (bead oo-m5u9): read through oo::PListView or
+// oo::PList::get<T> instead (src/oofnd/README.md, "Migrating oo_*ForKey").
 
-- (unsigned char)oo_unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
-- (unsigned short)oo_unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
-- (unsigned int)oo_unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
-- (unsigned long)oo_unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
-- (unsigned long long)oo_unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
-- (NSUInteger)oo_unsignedIntegerForKey:(id)key defaultValue:(NSUInteger)value;
-
-- (BOOL)oo_boolForKey:(id)key defaultValue:(BOOL)value;
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)oo_fuzzyBooleanForKey:(id)key defaultValue:(float)value; // Reads a float in the range [0, 1], and returns YES with that probability.
-#endif
-
-- (float)oo_floatForKey:(id)key defaultValue:(float)value;
-- (double)oo_doubleForKey:(id)key defaultValue:(double)value;
-- (float)oo_nonNegativeFloatForKey:(id)key defaultValue:(float)value;
-- (double)oo_nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
-
-- (id)oo_objectForKey:(id)key defaultValue:(id)value;
 - (id)oo_objectOfClass:(Class)aClass forKey:(id)key defaultValue:(id)value;
-- (NSString*)oo_stringForKey:(id)key defaultValue:(NSString*)value;
-- (NSArray*)oo_arrayForKey:(id)key defaultValue:(NSArray*)value;
-- (NSSet*)oo_setForKey:(id)key defaultValue:(NSSet*)value;
-- (NSDictionary*)oo_dictionaryForKey:(id)key defaultValue:(NSDictionary*)value;
-- (NSMutableDictionary*)oo_mutableDictionaryForKey:(id)key defaultValue:(NSDictionary*)value;
-- (NSData*)oo_dataForKey:(id)key defaultValue:(NSData*)value;
-
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (Vector)oo_vectorForKey:(id)key defaultValue:(Vector)value;
-- (HPVector)oo_hpvectorForKey:(id)key defaultValue:(HPVector)value;
-- (Quaternion)oo_quaternionForKey:(id)key defaultValue:(Quaternion)value;
-#endif
-
-// Default: 0
-- (char)oo_charForKey:(id)key;
-- (short)oo_shortForKey:(id)key;
-- (int)oo_intForKey:(id)key;
-- (long)oo_longForKey:(id)key;
-- (long long)oo_longLongForKey:(id)key;
-- (NSInteger)oo_integerForKey:(id)key;
-
-- (unsigned char)oo_unsignedCharForKey:(id)key;
-- (unsigned short)oo_unsignedShortForKey:(id)key;
-- (unsigned int)oo_unsignedIntForKey:(id)key;
-- (unsigned long)oo_unsignedLongForKey:(id)key;
-- (unsigned long long)oo_unsignedLongLongForKey:(id)key;
-- (NSUInteger)oo_unsignedIntegerForKey:(id)key;
-
-// Default: NO
-- (BOOL)oo_boolForKey:(id)key;
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)oo_fuzzyBooleanForKey:(id)key; // Reads a float in the range [0, 1], and returns YES with that probability.
-#endif
-
-// Default: 0.0
-- (float)oo_floatForKey:(id)key;
-- (double)oo_doubleForKey:(id)key;
-- (float)oo_nonNegativeFloatForKey:(id)key;
-- (double)oo_nonNegativeDoubleForKey:(id)key;
 
 // Default: nil
-// - (id)objectForKey:(id)key;	// Already defined
 - (id)oo_objectOfClass:(Class)aClass forKey:(id)key;
-- (NSString*)oo_stringForKey:(id)key;
-- (NSArray*)oo_arrayForKey:(id)key;
-- (NSSet*)oo_setForKey:(id)key;
-- (NSDictionary*)oo_dictionaryForKey:(id)key;
-- (NSMutableDictionary*)oo_mutableDictionaryForKey:(id)key;
-- (NSData*)oo_dataForKey:(id)key;
-
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-// Default: kZeroVector
-- (Vector)oo_vectorForKey:(id)key;
-// Default: kZeroHPVector
-- (HPVector)oo_hpvectorForKey:(id)key;
-// Default: kIdentityQuaternion
-- (Quaternion)oo_quaternionForKey:(id)key;
-#endif
 
 @end
 
 @interface NSUserDefaults (OOExtractor)
 
-- (char)oo_charForKey:(id)key defaultValue:(char)value;
-- (short)oo_shortForKey:(id)key defaultValue:(short)value;
-- (int)oo_intForKey:(id)key defaultValue:(int)value;
-- (long)oo_longForKey:(id)key defaultValue:(long)value;
-- (long long)oo_longLongForKey:(id)key defaultValue:(long long)value;
-- (NSInteger)oo_integerForKey:(id)key defaultValue:(NSInteger)value;
+// The typed readers (oo_*ForKey:) are retired (bead oo-m5u9): read through oo::PListView or
+// oo::PList::get<T> instead (src/oofnd/README.md, "Migrating oo_*ForKey").
 
-- (unsigned char)oo_unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
-- (unsigned short)oo_unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
-- (unsigned int)oo_unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
-- (unsigned long)oo_unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
-- (unsigned long long)oo_unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
-- (NSUInteger)oo_unsignedIntegerForKey:(id)key defaultValue:(NSUInteger)value;
-
-- (BOOL)oo_boolForKey:(id)key defaultValue:(BOOL)value;
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)oo_fuzzyBooleanForKey:(id)key defaultValue:(float)value; // Reads a float in the range [0, 1], and returns YES with that probability.
-#endif
-
-- (float)oo_floatForKey:(id)key defaultValue:(float)value;
-- (double)oo_doubleForKey:(id)key defaultValue:(double)value;
-- (float)oo_nonNegativeFloatForKey:(id)key defaultValue:(float)value;
-- (double)oo_nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
-
-- (id)oo_objectForKey:(id)key defaultValue:(id)value;
 - (id)oo_objectOfClass:(Class)aClass forKey:(id)key defaultValue:(id)value;
-- (NSString*)oo_stringForKey:(id)key defaultValue:(NSString*)value;
-- (NSArray*)oo_arrayForKey:(id)key defaultValue:(NSArray*)value;
-- (NSSet*)oo_setForKey:(id)key defaultValue:(NSSet*)value;
-- (NSDictionary*)oo_dictionaryForKey:(id)key defaultValue:(NSDictionary*)value;
-- (NSData*)oo_dataForKey:(id)key defaultValue:(NSData*)value;
-
-// Default: 0
-- (char)oo_charForKey:(id)key;
-- (short)oo_shortForKey:(id)key;
-- (int)oo_intForKey:(id)key;
-- (long)oo_longForKey:(id)key;
-- (long long)oo_longLongForKey:(id)key;
-
-- (unsigned char)oo_unsignedCharForKey:(id)key;
-- (unsigned short)oo_unsignedShortForKey:(id)key;
-- (unsigned int)oo_unsignedIntForKey:(id)key;
-- (unsigned long)oo_unsignedLongForKey:(id)key;
-- (unsigned long long)oo_unsignedLongLongForKey:(id)key;
-
-// Default: NO
-// - (BOOL) boolForKey:(id)key;
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)oo_fuzzyBooleanForKey:(id)key; // Reads a float in the range [0, 1], and returns YES with that probability.
-#endif
-
-// Default: 0.0
-// - (float) floatForKey:(id)key;
-- (double)oo_doubleForKey:(NSString*)key;
-- (float)oo_nonNegativeFloatForKey:(id)key;
-- (double)oo_nonNegativeDoubleForKey:(id)key;
 
 // Default: nil
-// - (id) objectForKey:(id)key;	// Already defined
 - (id)oo_objectOfClass:(Class)aClass forKey:(id)key;
-// - (NSString *) stringForKey:(id)key;
-// - (NSArray *) arrayForKey:(id)key;
-- (NSSet*)oo_setForKey:(id)key;
-// - (NSDictionary *) dictionaryForKey:(id)key;
-// - (NSData *) dataForKey:(id)key;
 
 @end
 

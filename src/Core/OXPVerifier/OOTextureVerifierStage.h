@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-0iq2): the used texture names are a sorted
         std::vector (a set), checked in byte order of the name. +nameForReverseDependencyForVerifier: is a shared selector
-        (the other stages declare it) and keeps an Objective-C string result.
+        (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
 */
 @interface OOTextureVerifierStage : OOFileHandlingVerifierStage {
 @private
@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 }
 
 // Returns name to be used in -dependents by other stages.
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // shared selector (proposed ADR-0043)
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // flipped with its family (bead oo-3rb.274.2)
 
 /*	This can be called by other stages *before* the texture stage runs.
         The context specifies where the texture is used; something like

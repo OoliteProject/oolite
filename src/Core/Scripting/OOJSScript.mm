@@ -29,11 +29,10 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJavaScriptEngine.h"
+#include "oofnd/Notification.hpp"
 
 #import "Entity.h"
 #import "EntityOOJavaScriptExtensions.h"
-#import "NSDataOOExtensions.h"
-#import "NSStringOOExtensions.h"
 #if OO_CACHE_JS_SCRIPTS
 #import "OOCacheManager.h"
 #endif
@@ -46,6 +45,9 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OOPListView.h"
 #include "oofnd/Encoding.hpp"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOException.h"
 
 typedef struct RunningStack RunningStack;
 struct RunningStack {
@@ -114,7 +116,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
         if (JS_HasException(context)) {
             JS_FreeValue(context, JS_GetException(context));
-            OOLogERR(@"script.javaScript.load.waitingException", @"Prior to loading script %@, there was a pending JavaScript exception, which has been cleared. This is an internal error, please report it.", oo::NSStringOrNil(path));
+            OO_LOG_ERR("script.javaScript.load.waitingException", "Prior to loading script {}, there was a pending JavaScript exception, which has been cleared. This is an internal error, please report it.", path.value_or("(null)"));
         }
 
         // Set up JS object
@@ -174,8 +176,8 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
         // Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
         if (!problem.has_value()) {
-            OOLog(@"script.javaScript.willLoad", @"About to load JavaScript %@", oo::NSStringOrNil(path));
-            OOLogIndentIf(@"script.javaScript.willLoad");
+            OO_LOG("script.javaScript.willLoad", "About to load JavaScript {}", path.value_or("(null)"));
+            oo::log::indentIf("script.javaScript.willLoad");
 
             if (!RunScriptWithName(context, path, _jsSelf, &problem)) {
                 if (!problem.has_value())
@@ -199,16 +201,16 @@ static const JSCFunctionListEntry sScriptMethods[] = {
             version = DescriptionOrNil([self propertyWithID:OOJSID("version") inContext:context]);
             description = DescriptionOrNil([self propertyWithID:OOJSID("description") inContext:context]);
 
-            OOLog(@"script.javaScript.load.success", @"Loaded JavaScript: %@ -- %@", [self displayName], oo::NSStringFrom(description.value_or("(no description)")));
+            OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}", oo::DescriptionOf([self displayName]), description.value_or("(no description)"));
         }
 
-        OOLogOutdentIf(@"script.javaScript.willLoad");
+        oo::log::outdentIf("script.javaScript.willLoad");
 
         filePath.reset(); // Only used for error reporting during startup.
     }
 
     if (problem.has_value()) {
-        OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- %@", oo::NSStringOrNil(path), oo::NSStringFrom(*problem));
+        OO_LOG("script.javaScript.load.failed", "***** Error loading JavaScript script {} -- {}", path.value_or("(null)"), *problem);
         if (context != NULL && JS_HasException(context))
             OOJSReportPendingException(context);
         DESTROY(self);
@@ -217,10 +219,9 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     OOJSRelinquishContext(context);
 
     if (self != nil) {
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(javaScriptEngineWillReset:)
-                                                     name:kOOJavaScriptEngineWillResetNotification
-                                                   object:[OOJavaScriptEngine sharedEngine]];
+        oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            [OOJavaScriptEngine sharedEngine],
+            [self](const oo::Notification& notification) { [self javaScriptEngineWillReset:notification]; });
     }
 
     return self;
@@ -228,9 +229,8 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:kOOJavaScriptEngineWillResetNotification
-                                                  object:[OOJavaScriptEngine sharedEngine]];
+    oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        [OOJavaScriptEngine sharedEngine]);
 
     if (JS_IsObject(_jsSelf)) {
         JSContext* context = OOJSAcquireContext();
@@ -263,7 +263,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         return @"invalid script";
 }
 
-- (void)javaScriptEngineWillReset:(NSNotification*)notification
+- (void)javaScriptEngineWillReset:(const oo::Notification&)notification
 {
     // All scripts become invalid when the JS engine resets.
     if (JS_IsObject(_jsSelf)) {
@@ -310,14 +310,14 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return oo::NSStringFrom(*name);
 }
 
-- (id)scriptDescription // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)scriptDescription
 {
-    return oo::NSStringOrNil(description);
+    return description;
 }
 
-- (id)version // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_version
 {
-    return oo::NSStringOrNil(version);
+    return version;
 }
 
 - (void)runWithTarget:(Entity*)target
@@ -330,7 +330,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
              count:(int)argc
             result:(JSValue*)outResult
 {
-    NSParameterAssert(name.has_value() && (argv != NULL || argc == 0) && context != NULL);
+    OOParameterAssert(name.has_value() && (argv != NULL || argc == 0) && context != NULL);
     if (outResult != NULL)
         *outResult = JS_UNDEFINED;
     if (!JS_IsObject(_jsSelf))
@@ -347,12 +347,12 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     if (EXPECT(!JS_IsUndefined(method))) {
 #ifndef NDEBUG
         if (JS_HasException(context)) {
-            OOLog(@"script.internalBug", @"Exception pending on context before calling method in %s, clearing. This is an internal error, please report it.", __PRETTY_FUNCTION__);
+            OO_LOG("script.internalBug", "Exception pending on context before calling method in {}, clearing. This is an internal error, please report it.", __PRETTY_FUNCTION__);
             JS_FreeValue(context, JS_GetException(context));
         }
 
-        OOLog(@"script.javaScript.call", @"Calling [%@].%@()", [self name], OOStringFromJSID(methodID));
-        OOLogIndentIf(@"script.javaScript.call");
+        OO_LOG("script.javaScript.call", "Calling [{}].{}()", oo::DescriptionOf([self name]), oo::DescriptionOf(OOStringFromJSID(methodID)));
+        oo::log::indentIf("script.javaScript.call");
 #endif
 
         // Push self on stack of running scripts.
@@ -382,7 +382,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         sRunningStack = stackElement.back;
 
 #ifndef NDEBUG
-        OOLogOutdentIf(@"script.javaScript.call");
+        oo::log::outdentIf("script.javaScript.call");
 #endif
     }
 
@@ -392,7 +392,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
 - (id)propertyWithID:(JSAtom)propID inContext:(JSContext*)context
 {
-    NSParameterAssert(context != NULL);
+    OOParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
         return nil;
 
@@ -409,7 +409,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
 - (BOOL)setProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context
 {
-    NSParameterAssert(context != NULL);
+    OOParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
         return NO;
 
@@ -419,7 +419,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
 - (BOOL)defineProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context
 {
-    NSParameterAssert(context != NULL);
+    OOParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
         return NO;
 
@@ -623,7 +623,7 @@ static void AddStackToArrayReversed(std::vector<oo::ObjCRef<OOJSScript*>>& array
         AddStackToArrayReversed(array, stack->back);
         // -addObject: raised on the nil a script-less push leaves (GNUstep 1.31.1's text).
         if (stack->current == nil)
-            [NSException raise:NSInvalidArgumentException format:@"Tried to add nil to array"];
+            [OOException raise:OOInvalidArgumentException format:"Tried to add nil to array"];
         array.emplace_back(stack->current);
     }
 }
@@ -636,10 +636,10 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
 {
     std::optional<std::string> utf8Contents;
 
-    NSCParameterAssert(outErrorMessage != NULL);
+    OOCParameterAssert(outErrorMessage != NULL);
     outErrorMessage->reset();
 
-    // +stringWithContentsOfUnicodeFile: (it read through .oxz archives)
+    // decodeUnicodeText (it read through .oxz archives)
     if (path.has_value()) {
         if (const std::optional<oo::Data> bytes = OODataFromOXZFile(*path))
             utf8Contents = oo::str::decodeUnicodeText(bytes->stringView());
@@ -967,6 +967,6 @@ static std::optional<std::string> StringForKey(const oo::PList& dictionary, cons
 static std::string ValueForKey(const std::optional<std::string>& value, id key)
 {
     if (!value.has_value())
-        [NSException raise:NSInvalidArgumentException format:@"Tried to add nil value for key '%@' to dictionary", key];
+        [OOException raise:OOInvalidArgumentException format:"Tried to add nil value for key '%s' to dictionary", oo::DescriptionOf(key).c_str()];
     return *value;
 }

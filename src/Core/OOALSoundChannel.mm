@@ -27,9 +27,13 @@ SOFTWARE.
 
 #import "OOALSoundChannel.h"
 #import "OOALSound.h"
+#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
 #import "OOStringBridge.h"
+
+#include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
 
 @interface OOSoundChannel (Private)
 
@@ -47,7 +51,7 @@ SOFTWARE.
         ALuint error;
         OOAL(alGenSources(1, &_source));
         if ((error = alGetError()) != AL_NO_ERROR) {
-            OOLog(oo::NSStringFrom(kOOLogSoundInitError), @"%@", @"Could not create OpenAL source");
+            OO_LOG(kOOLogSoundInitError, "{}", "Could not create OpenAL source");
             [self release];
             self = nil;
         } else {
@@ -76,10 +80,10 @@ SOFTWARE.
             [self hasStopped];
         } else if ([_sound soundIncomplete]) // streaming and not finished loading
         {
-            OOLog(@"sound.buffer", @"Incomplete, trying next for %@", [_sound name]);
+            OO_LOG("sound.buffer", "Incomplete, trying next for {}", oo::DescriptionOf([_sound name]));
             [self getNextSoundBuffer];
         } else if (_loop) {
-            OOLog(@"sound.buffer", @"Looping, trying restart for %@", [_sound name]);
+            OO_LOG("sound.buffer", "Looping, trying restart for {}", oo::DescriptionOf([_sound name]));
             // sound is complete, but needs to be looped, so start it again
             [_sound rewind];
             [self getNextSoundBuffer];
@@ -200,8 +204,8 @@ SOFTWARE.
     OOAL(alSourceQueueBuffers(_source, 1, &_buffer));
     ALuint error;
     if ((error = alGetError()) != AL_NO_ERROR) {
-        OOLog(@"ov.debug", @"Error %u queueing buffers (_source: %u (%p), _buffer: %u (%p))",
-            error, _source, &_source, _buffer, &_buffer);
+        OO_LOG("ov.debug", "Error {} queueing buffers (_source: {} ({}), _buffer: {} ({}))",
+            error, _source, oo::str::pointerDescription(&_source), _buffer, oo::str::pointerDescription(&_buffer));
         return NO;
     }
     ALint playing = 0;
@@ -209,7 +213,7 @@ SOFTWARE.
     if (playing != AL_PLAYING) {
         OOAL(alSourcePlay(_source));
         if ((error = alGetError()) != AL_NO_ERROR) {
-            OOLog(@"ov.debug", @"Error %d playing source", error);
+            OO_LOG("ov.debug", "Error {} playing source", static_cast<int>(error)); // %d of the ALuint
             return NO;
         }
     }

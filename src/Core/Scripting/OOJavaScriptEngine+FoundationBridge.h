@@ -99,4 +99,17 @@ BOOL OOJSArgumentListGetNumber(JSContext* context, NSString* scriptClass, NSStri
 
 @end
 
+// The converter for plain JS Objects (bead oo-3rb.202: moved verbatim, orchestrator decision on
+// the chunk's STOP). It builds the NSDictionary that OOJSNativeObjectFromJSValue() hands to code
+// that still expects Foundation objects, keeping an integer-like property id as an NSNumber key.
+// cxx_OOJSDictionaryFromJSObject in OOJavaScriptEngine.h is the oo::PList form; the C++ converter
+// and the integer-key question are bead oo-vp0y's.
+NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object);
+
+// Notifications sent when JavaScript engine is reset, for NSNotificationCenter observers (bead
+// oo-3rb.203). kOOJavaScriptEngineWillResetNotificationName / ...DidResetNotificationName in
+// OOJavaScriptEngine.h are the oo::NotificationCenter names.
+extern NSString* const kOOJavaScriptEngineWillResetNotification;
+extern NSString* const kOOJavaScriptEngineDidResetNotification;
+
 #endif // OOJAVASCRIPTENGINE_FOUNDATIONBRIDGE_H

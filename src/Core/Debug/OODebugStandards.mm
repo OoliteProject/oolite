@@ -29,9 +29,11 @@ SOFTWARE.
 
 #import "OODebugStandards.h"
 #import "GameController.h"
-#import "OOLogging.h"
 #import "OOPListView.h"
 #import "OOStringBridge.h"
+#include "oofnd/Defaults.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/PListGet.hpp"
 
 #ifndef OO_DEBUG_MONITOR_ENABLED
 // in release mode, stubs
@@ -76,8 +78,9 @@ void OOStandardsSetup()
     if (sSetup) {
         return;
     }
-    NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-    int s = oo::PListView(prefs).get<int>(@"enforce-oxp-standards", STANDARDS_ENFORCEMENT_DEFAULT);
+    oo::Defaults& prefs = oo::Defaults::standard();
+    const oo::PList enforce = prefs.object("enforce-oxp-standards");
+    int s = oo::PListGet<int>::from(enforce.isNull() ? nullptr : &enforce, STANDARDS_ENFORCEMENT_DEFAULT);
     if (s < STANDARDS_ENFORCEMENT_OFF) {
         s = STANDARDS_ENFORCEMENT_OFF;
     } else if (s > STANDARDS_ENFORCEMENT_QUIT) {
@@ -95,7 +98,7 @@ void OOStandardsInternal(const std::string& type, const std::string& message)
         return;
     }
 
-    OOLog(oo::NSStringFrom(type), @"%@", oo::NSStringFrom(message));
+    OO_LOG(type, "{}", message);
 
     if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT) {
         [[GameController sharedController] exitAppWithContext:oo::NSStringFrom(type)];

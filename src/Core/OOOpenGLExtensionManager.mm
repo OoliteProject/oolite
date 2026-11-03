@@ -35,7 +35,9 @@ SOFTWARE.
 #import "OOFoundationBridge.h"
 #import "OORegExpMatcher.h"
 #import "ResourceManager.h"
+#include "oofnd/objc/OOException.h"
 
+#include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
 /*	OpenGL version required, currently 1.1 or later (basic stuff like
@@ -247,7 +249,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
      */
     [ResourceManager paths];
 
-    OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\"). Vendor: \"%@\". Renderer: \"%@\".", major, minor, release, versionString, oo::NSStringOrNil(vendor), oo::NSStringOrNil(renderer));
+    OO_LOG("rendering.opengl.version", "OpenGL renderer version: {}.{}.{} (\"{}\"). Vendor: \"{}\". Renderer: \"{}\".", major, minor, release, versionString ? reinterpret_cast<const char*>(versionString) : "(null)", vendor.value_or("(null)"), renderer.value_or("(null)"));
     {
         // Listed in byte order of the name (the set's hash order before; proposed ADR-0043).
         std::string extensionList;
@@ -256,7 +258,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
                 extensionList += ", ";
             extensionList += extension;
         }
-        OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%zu):\n%@", extensions.size(), oo::NSStringFrom(extensionList));
+        OO_LOG("rendering.opengl.extensions", "OpenGL extensions ({}):\n{}", extensions.size(), extensionList);
     }
 
 #if OOLITE_MAC_OS_X
@@ -268,9 +270,9 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
     } else
 #endif
     if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
-        OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
-        [NSException raise:@"OoliteOpenGLTooOldException"
-                    format:@"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
+        OO_LOG("rendering.opengl.version.insufficient", "***** Oolite requires OpenGL version {}.{} or later.", static_cast<unsigned>(kMinMajorVersion), static_cast<unsigned>(kMinMinorVersion));
+        [OOException raise:"OoliteOpenGLTooOldException"
+                    format:"Oolite requires at least OpenGL %u.%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
     }
 
     const std::optional<std::string> versionStr = OptionalGLString(versionString);
@@ -291,7 +293,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
                 // A name that is not a string fell back to the renderer, which may itself be nil.
                 const oo::PList* name = gpuConfig.find("name");
                 const bool hasName = name != nullptr && (name->isString() || name->isNumber());
-                OOLog(oo::NSStringFrom(kOOLogOpenGLShaderSupport), @"Shaders will not be used (disallowed for GPU type \"%@\").", hasName ? oo::NSStringFrom(gpuConfig.get<std::string>("name")) : oo::NSStringOrNil(renderer));
+                OO_LOG(kOOLogOpenGLShaderSupport, "Shaders will not be used (disallowed for GPU type \"{}\").", hasName ? gpuConfig.get<std::string>("name") : renderer.value_or("(null)"));
             }
         }
         if (maximumShaderSetting < defaultShaderSetting) {
@@ -299,7 +301,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
         }
 
         if (shadersAvailable) {
-            OOLog(oo::NSStringFrom(kOOLogOpenGLShaderSupport), @"%@", @"Shaders are supported.");
+            OO_LOG(kOOLogOpenGLShaderSupport, "{}", "Shaders are supported.");
         }
     } else {
         defaultShaderSetting = SHADERS_NOT_SUPPORTED;
@@ -545,7 +547,7 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     for (const std::string& arg : oo::process::arguments()) {
         if (arg == "-noshaders" || arg == "--noshaders") {
             shadersForceDisabled = YES;
-            OOLog(oo::NSStringFrom(kOOLogOpenGLShaderSupport), @"%@", @"Shaders will not be used (disabled on command line).");
+            OO_LOG(kOOLogOpenGLShaderSupport, "{}", "Shaders will not be used (disabled on command line).");
             return;
         }
     }
@@ -562,7 +564,7 @@ static unsigned IntegerFromString(const GLubyte** ioString)
 
     for (required = requiredExtension; *required != NULL; ++required) {
         if (![self haveExtension:*required]) {
-            OOLog(oo::NSStringFrom(kOOLogOpenGLShaderSupport), @"Shaders will not be used (OpenGL extension %@ is not available).", oo::NSStringFrom(*required));
+            OO_LOG(kOOLogOpenGLShaderSupport, "Shaders will not be used (OpenGL extension {} is not available).", *required);
             return;
         }
     }
@@ -787,7 +789,7 @@ oo::PList StringForKey(const oo::PList* dict, std::string_view key)
         if (!CheckRegExps(extensionsStr, StringForKey(match, "extensions")))
             continue;
 
-        OOLog(@"rendering.opengl.gpuSpecific", @"Matched GPU configuration \"%@\".", oo::NSStringFrom(key));
+        OO_LOG("rendering.opengl.gpuSpecific", "Matched GPU configuration \"{}\".", key);
         return *config;
     }
 
@@ -844,7 +846,7 @@ oo::PList StringForKey(const oo::PList* dict, std::string_view key)
 
 static void OOBadOpenGLExtensionUsed(void)
 {
-    OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
+    OO_LOG("rendering.opengl.badExtension", "{}", "***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
     exit(EXIT_FAILURE);
 }
 

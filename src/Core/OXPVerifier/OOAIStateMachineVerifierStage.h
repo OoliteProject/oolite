@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-bfgm): the whitelist and the used AI names are
         sorted std::vectors of strings (sets). +nameForReverseDependencyForVerifier: is a shared
-        selector (the other stages declare it) and keeps an Objective-C string result.
+        selector (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
 */
 @interface OOAIStateMachineVerifierStage : OOFileHandlingVerifierStage {
 @private
@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 }
 
 // Returns name to be used in -dependents by other stages.
-+ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // shared selector (proposed ADR-0043)
++ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // flipped with its family (bead oo-3rb.274.2)
 
 // The caller only reports an AI it has a name for (it tested the name against nil).
 - (void)stateMachineNamed:(const std::string&)name usedByShip:(const std::string&)shipName;

@@ -21,7 +21,12 @@
                 objectForKey:NSFileSystemFreeSize         oo::fs::freeSpace(p)
             [[fm oo_fileAttributesAtPath:p ...] fileSize] oo::fs::fileSize(p)
             [NSData dataWithContentsOfFile:p]             oo::fs::readFile(p)
+            +[NSData oo_dataWithOXZFile:] (path may        OODataFromOXZFile(path)  (declared below; defined in
+                pass through a .oxz zip component)          Core/OODataFromOXZFile.mm)
             [data writeToFile:p atomically:YES / NO]      oo::fs::writeFile(p, data, WriteMode::atomic / direct)
+            [fm createFileAtPath:p contents:nil ...] +
+                [NSFileHandle fileHandleForWritingAtPath:p] oo::fs::createFileForWriting(p)  (a FILE *)
+            [handle synchronizeFile]                      oo::fs::synchronizeFile(file)
             [fm displayNameAtPath:p]                      (GNUstep returns [p lastPathComponent]; a string op)
 
         SEMANTICS (proposed ADR-0028), each matching what GNUstep does today:
@@ -64,10 +69,17 @@
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
+
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace oo::fs {
 
@@ -316,7 +328,35 @@ inline Result<void> writeFile(const Path& path, const Data& data, WriteMode mode
     return { };
 }
 
+// An empty file open for writing (created, or truncated if it exists), or nullptr: what
+// -createFileAtPath:contents:nil attributes:nil followed by +fileHandleForWritingAtPath: gave the
+// OXZ manager's download (bead oo-3rb.13). The caller writes with fwrite and closes with fclose.
+inline std::FILE* createFileForWriting(const Path& path) noexcept
+{
+    return detail::openFile(path, true);
+}
+
+// -[NSFileHandle synchronizeFile]: flush the stream, then commit the file to disk.
+inline bool synchronizeFile(std::FILE* file) noexcept
+{
+    if (file == nullptr || std::fflush(file) != 0)
+        return false;
+#if defined(_WIN32)
+    return ::_commit(::_fileno(file)) == 0;
+#else
+    return ::fsync(::fileno(file)) == 0;
+#endif
+}
+
 } // namespace oo::fs
+
+/*	The contents of the file at path, where a path component with the extension .oxz (any case)
+        is a zip archive and the rest of the path names a file inside it (bead oo-3rb.131). nullopt
+        where +oo_dataWithOXZFile: returned nil: no such file, a directory, an empty plain file, or an
+        archive or entry that cannot be read (with the same log lines). Defined in Core
+        (OODataFromOXZFile.mm); uses MiniZip for .oxz segments.
+*/
+std::optional<oo::Data> OODataFromOXZFile(const std::string& path);
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")

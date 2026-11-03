@@ -26,8 +26,12 @@ SOFTWARE.
 */
 
 #import "OOGraphicsResetManager.h"
+#import "OOFoundationBridge.h"
+#import "OOFoundationException.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOStringBridge.h"
 #import "OOTexture.h"
+#include "oofnd/Log.hpp"
 
 static OOGraphicsResetManager* sSingleton = nil;
 
@@ -64,8 +68,8 @@ static OOGraphicsResetManager* sSingleton = nil;
 {
     OOGL(glFinish());
 
-    OOLog(@"rendering.reset.start", @"%@", @"Resetting graphics state.");
-    OOLogIndentIf(@"rendering.reset.start");
+    OO_LOG("rendering.reset.start", "{}", "Resetting graphics state.");
+    oo::log::indentIf("rendering.reset.start");
 
     [[OOOpenGLExtensionManager sharedManager] reset];
     [OOTexture rebindAllTextures];
@@ -80,13 +84,16 @@ static OOGraphicsResetManager* sSingleton = nil;
         @try {
             [client resetGraphicsState];
         }
-        @catch (NSException* exception) {
-            OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [exception name], [exception reason]);
+        @catch (OOException* exception) {
+            OO_LOG(cxx_kOOLogException, "***** EXCEPTION -- {} : {} -- ignored during graphics reset.", [exception name], [exception reason]);
+        }
+        @catch (OOFoundationException* exception) {
+            OO_LOG(cxx_kOOLogException, "***** EXCEPTION -- {} : {} -- ignored during graphics reset.", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
         }
     }
 
-    OOLogOutdentIf(@"rendering.reset.start");
-    OOLog(@"rendering.reset.end", @"%@", @"End of graphics state reset.");
+    oo::log::outdentIf("rendering.reset.start");
+    OO_LOG("rendering.reset.end", "{}", "End of graphics state reset.");
 }
 
 @end

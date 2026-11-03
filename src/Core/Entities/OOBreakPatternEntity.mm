@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOBreakPatternEntity.h"
 #import "OOColor.h"
+#import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 
@@ -143,7 +144,7 @@ MA 02110-1301, USA.
         OOGL(glDisableClientState(GL_COLOR_ARRAY));
 
         OOVerifyOpenGLState();
-        OOCheckOpenGLErrors(@"OOBreakPatternEntity after drawing %@", self);
+        cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOBreakPatternEntity after drawing " + oo::DescriptionOf(self); });
     }
 }
 
