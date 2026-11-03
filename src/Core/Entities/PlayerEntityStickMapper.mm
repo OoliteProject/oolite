@@ -143,9 +143,9 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip)
 
 void PlayerEntity::setGuiToStickMapperScreen(unsigned skip, bool resetCurrentRow)
 {
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
-    ::OOJoystickManager* stickHandler = [::OOJoystickManager sharedStickHandler];
-    const std::vector<std::string> stickList = [stickHandler listSticks];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
+    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
+    const std::vector<std::string> stickList = stickHandler->listSticks();
     unsigned stickCount = stickList.size();
     unsigned i;
 
@@ -196,7 +196,8 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip, bool resetCurrentRow
     if (resetCurrentRow) {
         gui->setSelectedRow(GUI_ROW_STICKPROFILE);
     }
-    [[UNIVERSE gameView] suppressKeysUntilKeyUp];
+    if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
+        UNIVERSE->getGameView()->suppressKeysUntilKeyUp();
     gui->setForegroundTextureKey(std::string(status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
     gui->setBackgroundTextureKey(std::string("settings"));
 }
@@ -238,18 +239,16 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
                 from_function = 0;
 
             setGuiToStickMapperScreen(from_function);
-            if ([UNIVERSE gui]->getSelectedRow() < 0)
-                [UNIVERSE gui]->setSelectedRow(GUI_ROW_FUNCSTART);
+            if (UNIVERSE->getGui()->getSelectedRow() < 0)
+                UNIVERSE->getGui()->setSelectedRow(GUI_ROW_FUNCSTART);
             if (from_function == 0)
-                [UNIVERSE gui]->setSelectedRow(GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1);
+                UNIVERSE->getGui()->setSelectedRow(GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1);
             return;
         }
 
         const oo::PList& entry = StickFunctionAt(stickFunctions, selFunctionIdx);
         int hw = IntValueForKey(entry, KEY_ALLOWABLE);
-        [stickHandler setCallback:@selector(updateFunction:)
-                           object:oo::ToObjC(this)
-                         hardware:hw];
+        stickHandler->setCallback([this](const oo::PList& hwDict) { updateFunction(hwDict); }, hw); // was -updateFunction: on the root facade, by name
 
         // Print instructions
         std::string instructions;
@@ -267,7 +266,7 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
         waitingForStickCallback = YES;
     }
 
-    if ([gameView isDown:'u']) {
+    if ((gameView != nullptr ? gameView->isDown('u') : false)) {
         if (selFunctionIdx >= 0)
             removeFunction(selFunctionIdx);
     }
@@ -277,7 +276,7 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
 // is set. The dictionary contains the thing that was pressed/moved.
 void PlayerEntity::updateFunction(const oo::PList& hwDict) // called by name (joystick callback)
 {
-    ::OOJoystickManager* stickHandler = [::OOJoystickManager sharedStickHandler];
+    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
     waitingForStickCallback = NO;
 
     // Right time and the right place?
@@ -291,38 +290,38 @@ void PlayerEntity::updateFunction(const oo::PList& hwDict) // called by name (jo
     if (hwDict.get<bool>(std::string(STICK_ISAXIS))) {
         function = entry.get<int>(KEY_AXISFN);
         if (function == AXIS_THRUST) {
-            [stickHandler unsetButtonFunction:BUTTON_INCTHRUST];
-            [stickHandler unsetButtonFunction:BUTTON_DECTHRUST];
+            stickHandler->unsetButtonFunction(BUTTON_INCTHRUST);
+            stickHandler->unsetButtonFunction(BUTTON_DECTHRUST);
         }
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
         if (function == AXIS_FIELD_OF_VIEW) {
-            [stickHandler unsetButtonFunction:BUTTON_INC_FIELD_OF_VIEW];
-            [stickHandler unsetButtonFunction:BUTTON_DEC_FIELD_OF_VIEW];
+            stickHandler->unsetButtonFunction(BUTTON_INC_FIELD_OF_VIEW);
+            stickHandler->unsetButtonFunction(BUTTON_DEC_FIELD_OF_VIEW);
         }
 #endif
         if (function == AXIS_VIEWX) {
-            [stickHandler unsetButtonFunction:BUTTON_VIEWPORT];
-            [stickHandler unsetButtonFunction:BUTTON_VIEWSTARBOARD];
+            stickHandler->unsetButtonFunction(BUTTON_VIEWPORT);
+            stickHandler->unsetButtonFunction(BUTTON_VIEWSTARBOARD);
         }
         if (function == AXIS_VIEWY) {
-            [stickHandler unsetButtonFunction:BUTTON_VIEWFORWARD];
-            [stickHandler unsetButtonFunction:BUTTON_VIEWAFT];
+            stickHandler->unsetButtonFunction(BUTTON_VIEWFORWARD);
+            stickHandler->unsetButtonFunction(BUTTON_VIEWAFT);
         }
     } else {
         function = entry.get<int>(KEY_BUTTONFN);
         if (function == BUTTON_INCTHRUST || function == BUTTON_DECTHRUST) {
-            [stickHandler unsetAxisFunction:AXIS_THRUST];
+            stickHandler->unsetAxisFunction(AXIS_THRUST);
         }
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
         if (function == BUTTON_INC_FIELD_OF_VIEW || function == BUTTON_DEC_FIELD_OF_VIEW) {
-            [stickHandler unsetAxisFunction:AXIS_FIELD_OF_VIEW];
+            stickHandler->unsetAxisFunction(AXIS_FIELD_OF_VIEW);
         }
 #endif
         if (function == BUTTON_VIEWPORT || function == BUTTON_VIEWSTARBOARD) {
-            [stickHandler unsetAxisFunction:AXIS_VIEWX];
+            stickHandler->unsetAxisFunction(AXIS_VIEWX);
         }
         if (function == BUTTON_VIEWFORWARD || function == BUTTON_VIEWAFT) {
-            [stickHandler unsetAxisFunction:AXIS_VIEWY];
+            stickHandler->unsetAxisFunction(AXIS_VIEWY);
         }
     }
     // special case for OXP equipment buttons
@@ -366,7 +365,7 @@ void PlayerEntity::checkCustomEquipButtons(const oo::PList& stickFn, int idx)
     const std::string activateKey = std::string(CUSTOMEQUIP_BUTTONACTIVATE);
     const std::string modeKey = std::string(CUSTOMEQUIP_BUTTONMODE);
     int i;
-    for (i = 0; i < customEquipActivation.size(); i++) {
+    for (i = 0; static_cast<std::size_t>(i) < customEquipActivation.size(); i++) {
         if (i != idx) {
             const oo::PList original = customEquipActivation[i];
             oo::PList& custEquip = customEquipActivation[i]; // edited in place
@@ -385,7 +384,7 @@ void PlayerEntity::checkCustomEquipButtons(const oo::PList& stickFn, int idx)
 
 void PlayerEntity::removeFunction(int idx)
 {
-    ::OOJoystickManager* stickHandler = [::OOJoystickManager sharedStickHandler];
+    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
     const oo::PList& entry = StickFunctionAt(stickFunctions, idx);
     const oo::PList* butfunc = entry.find(KEY_BUTTONFN); // -intValue as before
     const oo::PList* axfunc = entry.find(KEY_AXISFN);
@@ -409,14 +408,14 @@ void PlayerEntity::removeFunction(int idx)
             if (oo::PList::Dict* custEquipDict = CustomEquipFields(customEquipActivation, bf))
                 custEquipDict->erase(key);
         } else {
-            [stickHandler unsetButtonFunction:IntValueOf(*butfunc)];
+            stickHandler->unsetButtonFunction(IntValueOf(*butfunc));
         }
     }
     if (axfunc != nullptr) {
-        [stickHandler unsetAxisFunction:IntValueOf(*axfunc)];
+        stickHandler->unsetAxisFunction(IntValueOf(*axfunc));
     }
     if (!custom) {
-        [stickHandler saveStickSettings];
+        stickHandler->saveStickSettings();
     } else {
         oo::Defaults::standard().setObject(std::string(KEYCONFIG_CUSTOMEQUIP), oo::PList(customEquipActivation));
     }
@@ -431,7 +430,7 @@ void PlayerEntity::removeFunction(int idx)
 
 void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip)
 {
-    ::OOJoystickManager* stickHandler = [::OOJoystickManager sharedStickHandler];
+    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
 
     gui->setColor(OOColor::greenColor().get(), GUI_ROW_HEADING);
     gui->setArray(std::vector<std::string> { OO_DESC("stickmapper-column-function"), OO_DESC("stickmapper-column-assigned-to"), OO_DESC("stickmapper-column-type") }, GUI_ROW_HEADING);
@@ -738,20 +737,14 @@ std::vector<oo::PList> PlayerEntity::stickFunctionList()
         makeStickGuiDict(OO_DESC("stickmapper-comms-log"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_COMMSLOG));
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
     funcList.push_back(
-        [oo::ToObjC(this) makeStickGuiDict:OO_DESC("stickmapper-increase-field-of-view")
-                                 allowable:HW_AXIS | HW_BUTTON
-                                    axisfn:AXIS_FIELD_OF_VIEW
-                                     butfn:BUTTON_INC_FIELD_OF_VIEW]);
+        makeStickGuiDict(OO_DESC("stickmapper-increase-field-of-view"), HW_AXIS | HW_BUTTON, AXIS_FIELD_OF_VIEW, BUTTON_INC_FIELD_OF_VIEW)); // the member
     funcList.push_back(
-        [oo::ToObjC(this) makeStickGuiDict:OO_DESC("stickmapper-decrease-field-of-view")
-                                 allowable:HW_AXIS | HW_BUTTON
-                                    axisfn:AXIS_FIELD_OF_VIEW
-                                     butfn:BUTTON_DEC_FIELD_OF_VIEW]);
+        makeStickGuiDict(OO_DESC("stickmapper-decrease-field-of-view"), HW_AXIS | HW_BUTTON, AXIS_FIELD_OF_VIEW, BUTTON_DEC_FIELD_OF_VIEW));
 #endif
     if (customEquipActivation.size() > 0) {
         funcList.push_back(makeStickGuiDictHeader(OO_DESC("stickmapper-header-oxp-equip")));
         int i;
-        for (i = 0; i < customEquipActivation.size(); i++) {
+        for (i = 0; static_cast<std::size_t>(i) < customEquipActivation.size(); i++) {
             funcList.push_back(
                 makeStickGuiDict(oo::str::format("%s '%s'", OO_DESC("stickmapper-cust-activate").c_str(), OptionalStringForKey(customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPNAME)).value_or("(null)").c_str()), HW_BUTTON, STICK_NOFUNCTION, (i + 10000)));
             funcList.push_back(

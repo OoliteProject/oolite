@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
+#import "OOObjCPList.h"
 
 #import "OOJSPlayer.h"
 #import "PlayerEntity.h"
@@ -55,7 +56,7 @@ static JSValue EntityDumpState(OOJS_NATIVE_ARGS);
 
 static JSClassDef sEntityClass = {
     .class_name = "Entity",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
 };
 
 enum {
@@ -118,7 +119,7 @@ static const JSCFunctionListEntry sEntityProperties[] = {
 
 static const JSCFunctionListEntry sEntityMethods[] = {
     // JS name, min args, function
-    JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
+    JS_CFUNC_DEF("toString", 0, OOJSEntityToString),
 #ifdef OO_DEBUG_MONITOR_ENABLED
     JS_CFUNC_DEF("dumpState", 0, EntityDumpState),
 #endif
@@ -134,7 +135,66 @@ void InitOOJSEntity(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sEntityClassID, &sEntityClass);
     OOJSInitClass(context, global, sEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0,
         sEntityProperties, OOJS_COUNT(sEntityProperties), sEntityMethods, OOJS_COUNT(sEntityMethods), NULL, 0);
-    OOJSRegisterObjectConverter(sEntityClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sEntityClassID, OOJSEntityObjectConverter);
+}
+
+// The holder's glue (OOJSEntityHolder.h): the entity's own, while it lives. Owned by the caller.
+JSValue OOJSEntityHolder::jsValueInContext(JSContext* context)
+{
+    Entity* held = entity();
+    return (held != nullptr) ? OOJSValueFromCxxObject(context, held) : JS_NULL;
+}
+
+// OOObject's -oo_clearJSSelf:, which the facade did not override, did nothing (Entity's
+// clearJSSelf() too): the entity keeps its own reference to its JS object while it lives.
+void OOJSEntityHolder::clearJSSelf(JSValueConst /*selfVal*/)
+{
+}
+
+std::optional<std::string> OOJSEntityHolder::jsDescription()
+{
+    Entity* held = entity();
+    return (held != nullptr) ? held->jsDescription() : std::nullopt;
+}
+
+JSValue OOJSEntityToString(OOJS_NATIVE_ARGS)
+{
+    return OOJSCxxObjectWrapperToString(context, OOJS_THIS, sEntityClassID);
+}
+
+namespace {
+// The C++ entity in an entity object's slot (of the Entity class or a subclass): the holder's
+// entity, null for none (a prototype) or a stale one.
+Entity* EntityOfJSObject(JSValueConst object)
+{
+    JSClassID ignored;
+    OOJSEntityHolder* holder = static_cast<OOJSEntityHolder*>(static_cast<oo::RefCounted*>(JS_GetAnyOpaque(object, &ignored)));
+    return (holder != nullptr) ? holder->entity() : nullptr;
+}
+}
+
+oo::PList OOJSEntityObjectConverter(JSContext* /*context*/, JSValueConst object)
+{
+    return oo::EntityObjectNode(EntityOfJSObject(object)); // nil: a null PList
+}
+
+HPVector OOJSEntityPositionOfJSObject(JSContext* /*context*/, JSValueConst object)
+{
+    Entity* entity = EntityOfJSObject(object);
+    return entity != nullptr ? entity->getPosition() : HPVector { }; // zero for none, as the message to nil
+}
+
+Quaternion OOJSEntityOrientationOfJSObject(JSContext* /*context*/, JSValueConst object)
+{
+    Entity* entity = EntityOfJSObject(object);
+    return entity != nullptr ? entity->getOrientation() : Quaternion { }; // zero for none, as the message to nil
+}
+
+Entity* OOJSEntityFromJSValue(JSContext* context, JSValueConst value)
+{
+    if (!OOJSIsMemberOfSubclass(context, value, sEntityClassID))
+        return nullptr;
+    return EntityOfJSObject(value);
 }
 
 bool JSValueToEntity(JSContext* context, JSValueConst value, Entity** outEntity)
@@ -181,105 +241,105 @@ static JSValue EntityGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    Entity* entity = nil;
-    id result = nil;
-    JSValue value = JS_UNDEFINED;
+    Entity* cxxEntity = nullptr;
+    Entity* result = nullptr;
 
-    if (EXPECT_NOT(!OOJSEntityGetEntity(context, thisObj, &entity)))
+    if (EXPECT_NOT(!OOJSEntityGetEntity(context, thisObj, &cxxEntity)))
         return JS_EXCEPTION;
-    if (OOIsStaleEntity(entity)) {
+    if (OOIsStaleEntity(cxxEntity)) {
         if (magic == kEntity_isValid)
             return JS_FALSE;
         else
             return JS_UNDEFINED;
     }
 
+    // The C++ members the root facade's selectors called: a virtual one reaches an Objective-C
+    // entity's override as the selector did.
     switch (magic) {
     case kEntity_collisionRadius:
-        return JS_NewFloat64(context, [entity collisionRadius]);
+        return JS_NewFloat64(context, cxxEntity->collisionRadius());
 
     case kEntity_position:
-        OOJS_RETURN_HPVECTOR([entity position]);
+        OOJS_RETURN_HPVECTOR(cxxEntity->getPosition());
 
     case kEntity_orientation:
-        OOJS_RETURN_QUATERNION([entity normalOrientation]);
+        OOJS_RETURN_QUATERNION(cxxEntity->normalOrientation());
 
     case kEntity_heading:
-        OOJS_RETURN_VECTOR(vector_forward_from_quaternion([entity normalOrientation]));
+        OOJS_RETURN_VECTOR(vector_forward_from_quaternion(cxxEntity->normalOrientation()));
 
     case kEntity_status:
-        return OOJSValueFromEntityStatus(context, [entity status]);
+        return OOJSValueFromEntityStatus(context, cxxEntity->status());
 
     case kEntity_scanClass:
-        return OOJSValueFromScanClass(context, [entity scanClass]);
+        return OOJSValueFromScanClass(context, cxxEntity->getScanClass());
 
     case kEntity_mass:
-        return JS_NewFloat64(context, [entity mass]);
+        return JS_NewFloat64(context, cxxEntity->getMass());
 
     case kEntity_owner:
-        result = [entity owner];
-        if (result == entity)
-            result = nil;
+        result = cxxEntity->ownerEntity(); // the owner's C++ entity (-owner answered its object)
+        if (result == cxxEntity)
+            result = nullptr;
         break;
 
     case kEntity_energy:
-        return JS_NewFloat64(context, [entity energy]);
+        return JS_NewFloat64(context, cxxEntity->getEnergy());
 
     case kEntity_maxEnergy:
-        return JS_NewFloat64(context, [entity maxEnergy]);
+        return JS_NewFloat64(context, cxxEntity->getMaxEnergy());
 
     case kEntity_isValid:
-        return [entity status] == STATUS_DEAD ? JS_FALSE : JS_TRUE;
+        return cxxEntity->status() == STATUS_DEAD ? JS_FALSE : JS_TRUE;
 
     case kEntity_isInSpace:
-        return OOJSValueFromBOOL([entity isInSpace]);
+        return OOJSValueFromBOOL(cxxEntity->isInSpace());
 
     case kEntity_isShip:
-        return OOJSValueFromBOOL([entity isShip]);
+        return OOJSValueFromBOOL(cxxEntity->getIsShip());
 
     case kEntity_isStation:
-        return OOJSValueFromBOOL([entity isStation]);
+        return OOJSValueFromBOOL(cxxEntity->getIsStation());
 
     case kEntity_isDock:
-        return OOJSValueFromBOOL([entity isDock]);
+        return OOJSValueFromBOOL(cxxEntity->isDock());
 
     case kEntity_isSubEntity:
-        return OOJSValueFromBOOL([entity isSubEntity]);
+        return OOJSValueFromBOOL(cxxEntity->getIsSubEntity());
 
     case kEntity_isPlayer:
-        return OOJSValueFromBOOL([entity isPlayer]);
+        return OOJSValueFromBOOL(cxxEntity->getIsPlayer());
 
     case kEntity_isPlanet:
-        return OOJSValueFromBOOL([entity isPlanet]);
+        return OOJSValueFromBOOL(cxxEntity->isPlanet());
 
     case kEntity_isSun:
-        return OOJSValueFromBOOL([entity isSun]);
+        return OOJSValueFromBOOL(cxxEntity->isSun());
 
     case kEntity_isSunlit:
-        return OOJSValueFromBOOL([entity isSunlit]);
+        return OOJSValueFromBOOL(cxxEntity->getIsSunlit());
 
     case kEntity_isVisible:
-        return OOJSValueFromBOOL([entity isVisible]);
+        return OOJSValueFromBOOL(cxxEntity->isVisible());
 
     case kEntity_isVisualEffect:
-        return OOJSValueFromBOOL([entity isVisualEffect]);
+        return OOJSValueFromBOOL(cxxEntity->getIsVisualEffect());
 
     case kEntity_isWormhole:
-        return OOJSValueFromBOOL([entity isWormhole]);
+        return OOJSValueFromBOOL(cxxEntity->getIsWormhole());
 
     case kEntity_distanceTravelled:
-        return JS_NewFloat64(context, [entity distanceTravelled]);
+        return JS_NewFloat64(context, cxxEntity->getDistanceTravelled());
 
     case kEntity_spawnTime:
-        return JS_NewFloat64(context, [entity spawnTime]);
+        return JS_NewFloat64(context, cxxEntity->getSpawnTime());
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sEntityProperties, OOJS_COUNT(sEntityProperties));
         return JS_EXCEPTION;
     }
 
-    value = OOJSValueFromNativeObject(context, result);
-    return value;
+    return OOJSValueFromCxxObject(context, result); // the owner's JS value, its object's (null for none); owned
 
     OOJS_NATIVE_EXIT
 }
@@ -288,25 +348,26 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    Entity* entity = nil;
+    Entity* cxxEntity = nullptr;
     double fValue;
     HPVector hpvValue;
     Quaternion qValue;
 
-    if (EXPECT_NOT(!OOJSEntityGetEntity(context, thisObj, &entity)))
+    if (EXPECT_NOT(!OOJSEntityGetEntity(context, thisObj, &cxxEntity)))
         return JS_EXCEPTION;
-    if (OOIsStaleEntity(entity))
+    if (OOIsStaleEntity(cxxEntity))
         return JS_UNDEFINED;
+    // The C++ members the root facade's selectors called.
 
     switch (magic) {
     case kEntity_position:
         if (JSValueToHPVector(context, value, &hpvValue)) {
-            [entity setPosition:hpvValue];
-            if ([entity isShip]) {
-                if (oo::ToShip(entity) != nullptr)
-                    oo::ToShip(entity)->resetExhaustPlumes();
-                if (oo::ToShip(entity) != nullptr)
-                    oo::ToShip(entity)->forceAegisCheck();
+            cxxEntity->setPosition(hpvValue);
+            if (cxxEntity->getIsShip()) {
+                if (oo::ToShip(cxxEntity) != nullptr)
+                    oo::ToShip(cxxEntity)->resetExhaustPlumes();
+                if (oo::ToShip(cxxEntity) != nullptr)
+                    oo::ToShip(cxxEntity)->forceAegisCheck();
             }
             return JS_UNDEFINED;
         }
@@ -314,15 +375,15 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
 
     case kEntity_orientation:
         if (JSValueToQuaternion(context, value, &qValue)) {
-            [entity setNormalOrientation:qValue];
+            cxxEntity->setNormalOrientation(qValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kEntity_energy:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            fValue = OOClamp_0_max_d(fValue, [entity maxEnergy]);
-            [entity setEnergy:fValue];
+            fValue = OOClamp_0_max_d(fValue, cxxEntity->getMaxEnergy());
+            cxxEntity->setEnergy(fValue);
             return JS_UNDEFINED;
         }
         JS_FreeValue(context, JS_GetException(context));
@@ -334,20 +395,20 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
                 cxx_OOJSReportError(context, "entity.maxEnergy must be positive.");
                 return JS_EXCEPTION;
             }
-            [entity setMaxEnergy:fValue];
+            cxxEntity->setMaxEnergy(fValue);
             return JS_UNDEFINED;
         }
         JS_FreeValue(context, JS_GetException(context));
         break;
 
     case kEntity_scanClass:
-        if ([entity isShip] && ![entity isPlayer]) {
+        if (cxxEntity->getIsShip() && !cxxEntity->getIsPlayer()) {
             OOScanClass newClass = OOScanClassFromJSValue(context, value);
             if (newClass == CLASS_NOT_SET || newClass == CLASS_NO_DRAW || newClass == CLASS_TARGET || newClass == CLASS_WORMHOLE || newClass == CLASS_PLAYER || newClass == CLASS_VISUAL_EFFECT) {
                 cxx_OOJSReportError(context, "entity.scanClass cannot be set to that value.");
                 return JS_EXCEPTION;
             }
-            [entity setScanClass:newClass];
+            cxxEntity->setScanClass(newClass);
             return JS_UNDEFINED;
         } else {
             cxx_OOJSReportError(context, "entity.scanClass is read-only except on NPC ships.");
@@ -369,9 +430,10 @@ static JSValue EntityDumpState(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
-    Entity* thisEnt = nil;
+    Entity* thisEnt = nullptr;
     OOJSEntityGetEntity(context, OOJS_THIS, &thisEnt);
-    [thisEnt dumpState];
+    if (thisEnt != nullptr)
+        thisEnt->dumpState(); // the C++ member, which the object's -dumpState called
 
     OOJS_RETURN_VOID;
 

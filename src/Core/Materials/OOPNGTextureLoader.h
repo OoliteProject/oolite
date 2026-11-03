@@ -38,11 +38,11 @@ SOFTWARE.
 #include "oofnd/StdLib.hpp"
 
 /*	Phase 3 (bead oo-z889, proposed ADR-0056 amendments oo-bj8 item 12, oo-vl43 item 4 and oo-zl36):
-        a converted leaf, global, over cxx::OOTextureLoader, with no facade of its own. Only the loaders'
-        factory (cxx::OOTextureLoader::loaderWithPath) makes one, and hands the work manager its facade,
-        whose object is an OOTextureLoader.
+        a converted leaf, global, over OOTextureLoader, with no facade of its own. Only the loaders'
+        factory (OOTextureLoader::loaderWithPath) makes one and queues it on the work manager (the
+        loaders' facade was deleted by bead oo-9ht.114).
 */
-class OOPNGTextureLoader : public cxx::OOTextureLoader {
+class OOPNGTextureLoader : public OOTextureLoader {
 public:
     ~OOPNGTextureLoader() override; // was -dealloc
 

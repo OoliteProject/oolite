@@ -30,17 +30,18 @@
 
 
 // The game clock.
-@interface Universe: OOObject
+// The universe as the code under test sees it: a stand-in for the C++ class (the
+// deleted Objective-C facade this stood in for), with the header's names and signatures.
+class Universe
 {
-@public
+public:
 	OOTimeAbsolute	_time;
-}
-- (OOTimeAbsolute) getTime;
-@end
 
-@implementation Universe
-- (OOTimeAbsolute) getTime	{ return _time; }
-@end
+	OOTimeAbsolute getTime();
+};
+
+OOTimeAbsolute Universe::getTime()	{ return _time; }
+
 
 Universe *gSharedUniverse = nil;
 
@@ -171,7 +172,7 @@ void StopAll()
 void Reset(OOTimeAbsolute time)
 {
 	gSources.clear();	// the pools of earlier tests keep their own
-	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
+	if (gSharedUniverse == nil)  gSharedUniverse = new Universe();
 	gSharedUniverse->_time = time;
 }
 
@@ -316,7 +317,7 @@ OO_TEST(noOverlap)
 
 
 // The C++ API: each overload is the selector it was. An overlap is passed as a bool, since game
-// code sees OOCocoa.h's integer true and false.
+// code sees OOFoundation.h's integer true and false.
 OO_TEST(cxxApi)
 {
 	const bool overlap = static_cast<bool>(1), noOverlap = static_cast<bool>(0);

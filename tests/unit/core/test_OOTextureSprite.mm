@@ -20,6 +20,8 @@
 #import "OOTextureSprite.h"
 #import "OORegExpMatcher.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOTexture.h"
+#include "oofnd/String.hpp"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"
@@ -33,15 +35,13 @@
 
 // --- Stubs --------------------------------------------------------------------------------------
 
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-@end
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
@@ -62,31 +62,67 @@ void OOLogOutdent(void)  {}
 
 
 // The sprite's texture: its original dimensions, and how often it was applied.
-@interface OOTexture: OOObject
+// Since bead oo-9ht.99 deleted the Objective-C facade, the stand-in is C++: TestTexture, and the
+// root's own members (a texture needs them).
+class TestTexture final : public OOTexture
+{
+public:
+	NSSize originalDimensions() override  { return _dimensions; }
+	void apply() override  { _applied++; }
+
+	NSSize		_dimensions = {};
+	unsigned	_applied = 0;
+};
+
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{}
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::shortDescription() const	{ return description(); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
+
+// What an autoreleased Objective-C texture was: the texture, kept until the current autorelease
+// pool drains (bead oo-9ht.99 made the stand-in C++).
+@interface TestTextureKeeper: OOObject
 {
 @public
-	NSSize		_dimensions;
-	unsigned	_applied;
+	oo::Ref<OOTexture>	_texture;
 }
-- (NSSize) originalDimensions;
-- (void) apply;
 @end
 
-@implementation OOTexture
-- (NSSize) originalDimensions  { return _dimensions; }
-- (void) apply  { _applied++; }
+@implementation TestTextureKeeper
 @end
+
 
 
 // --- Helpers ------------------------------------------------------------------------------------
 
 namespace {
 
-OOTexture *Texture(float width, float height)
+TestTexture *Texture(float width, float height)
 {
-	OOTexture *texture = [[[OOTexture alloc] init] autorelease];
+	TestTextureKeeper *keeper = [[[TestTextureKeeper alloc] init] autorelease];
+	oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
 	texture->_dimensions = NSMakeSize(width, height);
-	return texture;
+	keeper->_texture = texture;
+	return texture.get();
 }
 
 
@@ -199,7 +235,7 @@ bool IsQuad(const std::vector<Vertex> &vertices, double x, double y, double z, d
 bool GLReady()
 {
 	if (!OOTestGLContext())  return false;
-	(void)[OOOpenGLExtensionManager sharedManager];	// loads glActiveTextureARB & co. for the state manager
+	(void)OOOpenGLExtensionManager::sharedManager();	// loads glActiveTextureARB & co. for the state manager
 	return true;
 }
 
@@ -235,17 +271,17 @@ OO_TEST(sizeIsTheTexturesOrGiven)
 OO_TEST(spriteKeepsItsTexture)
 {
 	oo::Ref<OOTextureSprite> sprite;
-	OOTexture *texture = nil;
+	TestTexture *texture = nullptr;
 	@autoreleasepool
 	{
 		texture = Texture(8, 8);
 		sprite = OOTextureSprite::initWithTexture(texture);
-		[texture retain];
+		oo::retain(texture);
 	}
-	OO_CHECK([texture retainCount] == 2);	// the test's and the sprite's
+	OO_CHECK(texture->retainCount() == 2);	// the test's and the sprite's
 	sprite = nullptr;
-	OO_CHECK([texture retainCount] == 1);
-	[texture release];
+	OO_CHECK(texture->retainCount() == 1);
+	oo::release(texture);
 }
 
 
@@ -254,7 +290,7 @@ OO_TEST(blitDrawsTheTexturedQuad)
 	OO_CHECK(GLReady());
 	@autoreleasepool
 	{
-		OOTexture *texture = Texture(64, 32);
+		TestTexture *texture = Texture(64, 32);
 		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture, NSMakeSize(100, 50));
 
 		std::vector<Vertex> quad = Feedback([&] { sprite->blitToX(10, -20, 30, 0.25f); });
@@ -277,7 +313,7 @@ OO_TEST(centredBlits)
 	OO_CHECK(GLReady());
 	@autoreleasepool
 	{
-		OOTexture *texture = Texture(64, 32);
+		TestTexture *texture = Texture(64, 32);
 		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture, NSMakeSize(1.5, 0.75));
 
 		OO_CHECK(IsQuad(Feedback([&] { sprite->blitCentredToX(100, 200, -5, 0.5f); }), 100 - 0.75, 200 - 0.375, -5, 1.5, 0.75, 0.5));
@@ -302,7 +338,7 @@ OO_TEST(cxxSprite)
 		OO_CHECK(OOTextureSprite::initWithTexture(nil).get() == nullptr);
 		OO_CHECK(OOTextureSprite::initWithTexture(nil, NSMakeSize(4, 4)).get() == nullptr);
 
-		OOTexture *texture = Texture(64, 32);
+		TestTexture *texture = Texture(64, 32);
 		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture);
 		OO_CHECK(sprite.get() != nullptr && sprite->getSize().width == 64 && sprite->getSize().height == 32);
 

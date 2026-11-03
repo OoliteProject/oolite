@@ -4,10 +4,10 @@
 	of amendment oo-kq7 (proposed ADR-0056).
 
 	It runs the Console and ConsoleSettings classes in a real QuickJS-ng context and links the
-	game's own objects for the binding, the engine's class registry (OOJSClasses.mm), the engine's
-	exception translator (OOJSEngineNativeWrappers.mm), the debug monitor's Objective-C facade
-	(OODebugMonitor+ObjCBridge.mm, the object the console's JS objects hold) and its weak
-	reference. What the rest of the game provides is defined below as the smallest stand-in that
+	game's own objects for the binding, the engine's private-slot glue (OOJSPrivateObject.cpp), its
+	class registry (OOJSClasses.mm) and its exception translator (OOJSEngineNativeWrappers.mm); the
+	console's JS objects hold the C++ debug monitor (its Objective-C facade, which they held through
+	its weak reference, is deleted). What the rest of the game provides is defined below as the smallest stand-in that
 	does the same thing (amendments oo-z1s4 item 4, oo-ppc item 6, oo-ykoy item 4): the C++ debug
 	monitor's members (recording what they are asked), the JavaScript engine's flags and its time
 	limiter, the universe's detail level and FPS display, the OpenGL extension manager's answers,
@@ -34,6 +34,7 @@
 
 #include <cmath>
 #include <cstdarg>
+#include <cstdlib>
 #include <cstdio>
 #include <string>
 #include <utility>
@@ -60,58 +61,62 @@ MonitorRecord sMonitor;
 }	// namespace
 
 
-cxx::OODebugMonitor *cxx::OODebugMonitor::sharedDebugMonitor()
+OODebugMonitor *OODebugMonitor::sharedDebugMonitor()
 {
-	static cxx::OODebugMonitor *monitor = nullptr;
-	if (monitor == nullptr)  monitor = oo::makeRef<cxx::OODebugMonitor>().leakRef();
+	static OODebugMonitor *monitor = nullptr;
+	if (monitor == nullptr)  monitor = oo::makeRef<OODebugMonitor>().leakRef();
 	return monitor;
 }
 
-bool cxx::OODebugMonitor::setDebugger(id<OODebuggerInterface>)  { return false; }
-void cxx::OODebugMonitor::disconnectDebugger(id<OODebuggerInterface>, const std::optional<std::string> &)  {}
-void cxx::OODebugMonitor::performJSConsoleCommand(const std::string &)  {}
+bool OODebugMonitor::setDebugger(OODebuggerInterface *)  { return false; }
+void OODebugMonitor::disconnectDebugger(OODebuggerInterface *, const std::optional<std::string> &)  {}
+void OODebugMonitor::performJSConsoleCommand(const std::string &)  {}
 
-void cxx::OODebugMonitor::appendJSConsoleLine(const std::string &string, const std::optional<std::string> &colorKey, NSRange emphasisRange)
+void OODebugMonitor::appendJSConsoleLine(const std::string &string, const std::optional<std::string> &colorKey, NSRange emphasisRange)
 {
 	sMonitor.lines.push_back(colorKey.value_or("(none)") + "|" + string + "|" + std::to_string(emphasisRange.location) + "," + std::to_string(emphasisRange.length));
 }
 
-void cxx::OODebugMonitor::appendJSConsoleLine(const std::string &string, const std::optional<std::string> &colorKey)
+void OODebugMonitor::appendJSConsoleLine(const std::string &string, const std::optional<std::string> &colorKey)
 {
 	appendJSConsoleLine(string, colorKey, NSMakeRange(0, 0));
 }
 
-void cxx::OODebugMonitor::clearJSConsole()  { sMonitor.clears++; }
-void cxx::OODebugMonitor::showJSConsole()  {}
+void OODebugMonitor::clearJSConsole()  { sMonitor.clears++; }
+void OODebugMonitor::showJSConsole()  {}
 
-oo::PList cxx::OODebugMonitor::configurationValueForKey(const std::string &key)
+oo::PList OODebugMonitor::configurationValueForKey(const std::string &key)
 {
 	auto found = sMonitor.configuration.find(key);
 	return (found != sMonitor.configuration.end()) ? found->second : oo::PList();
 }
 
-long long cxx::OODebugMonitor::configurationIntValueForKey(const std::string &, long long value)  { return value; }
+long long OODebugMonitor::configurationIntValueForKey(const std::string &, long long value)  { return value; }
 
-void cxx::OODebugMonitor::setConfigurationValue(const oo::PList &value, const std::string &key)
+void OODebugMonitor::setConfigurationValue(const oo::PList &value, const std::string &key)
 {
 	sMonitor.configurationSets.emplace_back(key, value);
 }
 
-std::vector<std::string> cxx::OODebugMonitor::configurationKeys()  { return {}; }
-bool cxx::OODebugMonitor::debuggerConnected()  { return false; }
-void cxx::OODebugMonitor::dumpMemoryStatistics()  { sMonitor.memoryDumps++; }
-size_t cxx::OODebugMonitor::dumpJSMemoryStatistics()  { sMonitor.jsMemoryDumps++; return 0; }
-void cxx::OODebugMonitor::setTCPIgnoresDroppedPackets(bool flag)  { sMonitor.ignoresDroppedPackets = flag; }
-bool cxx::OODebugMonitor::TCPIgnoresDroppedPackets()  { return sMonitor.ignoresDroppedPackets; }
-void cxx::OODebugMonitor::setUsingPlugInController(bool)  {}
-bool cxx::OODebugMonitor::usingPlugInController()  { return false; }
-std::string cxx::OODebugMonitor::sourceCodeForFile(const std::string &, unsigned)  { return std::string(); }
+std::vector<std::string> OODebugMonitor::configurationKeys()  { return {}; }
+bool OODebugMonitor::debuggerConnected()  { return false; }
+void OODebugMonitor::dumpMemoryStatistics()  { sMonitor.memoryDumps++; }
+size_t OODebugMonitor::dumpJSMemoryStatistics()  { sMonitor.jsMemoryDumps++; return 0; }
+void OODebugMonitor::setTCPIgnoresDroppedPackets(bool flag)  { sMonitor.ignoresDroppedPackets = flag; }
+bool OODebugMonitor::TCPIgnoresDroppedPackets()  { return sMonitor.ignoresDroppedPackets; }
+void OODebugMonitor::setUsingPlugInController(bool)  {}
+bool OODebugMonitor::usingPlugInController()  { return false; }
+std::string OODebugMonitor::sourceCodeForFile(const std::string &, unsigned)  { return std::string(); }
 #if OOLITE_SDL
-void cxx::OODebugMonitor::applicationWillTerminate()  {}
+void OODebugMonitor::applicationWillTerminate()  {}
 #endif
-void cxx::OODebugMonitor::jsEngine(OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &, unsigned, unsigned, bool, const std::string &)  {}
-void cxx::OODebugMonitor::jsEngine(OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &)  {}
-JSValue cxx::OODebugMonitor::oo_jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
+void OODebugMonitor::jsEngine(OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &, unsigned, unsigned, bool, const std::string &)  {}
+void OODebugMonitor::jsEngine(OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &)  {}
+// The monitor's JS glue and description: its JS value is defined below, with the console object it
+// answers.
+void OODebugMonitor::clearJSSelf(JSValueConst)  {}
+std::string OODebugMonitor::className() const  { return "OODebugMonitor"; }
+std::string OODebugMonitor::description() const  { return "<OODebugMonitor>"; }
 
 
 // MARK: What the rest of the game provides ---------------------------------------------------------
@@ -265,30 +270,20 @@ JSValue sGlobal = JS_UNDEFINED;
 }	// namespace
 
 
-// The monitor's facade is the console object (as the monitor's -oo_jsValueInContext: makes it),
-// owned by the caller; anything else is undefined.
-JSValue OOJSValueFromNativeObject(JSContext *context, id object)
+// The monitor's JS value is the console object (as the monitor's jsValueInContext() makes it; the
+// stand-in was the engine's OOJSValueFromNativeObject() of the monitor's facade until it was
+// deleted), owned by the caller; undefined before it is made.
+JSValue OODebugMonitor::jsValueInContext(JSContext *context)
 {
-	if ([object isKindOfClass:[OODebugMonitor class]] && JS_IsObject(sConsoleObject))  return JS_DupValue(context, sConsoleObject);
-	return JS_UNDEFINED;
+	return JS_DupValue(context, sConsoleObject);
 }
 
 
-id OOJSNativeObjectFromJSObject(JSContext *context, JSValueConst object)
+id OOJSNativeObjectFromJSObject(JSContext *, JSValueConst)
 {
-	(void)context;
-	// The console objects' private slot holds the monitor's weak reference.
-	JSClassID classID;
-	id private_ = (id)JS_GetAnyOpaque(object, &classID);
-	return [private_ weakRefUnderlyingObject];
-}
-
-
-id OOJSNativeObjectOfClassFromJSObject(JSContext *context, JSValueConst object, Class requiredClass)
-{
-	id result = OOJSNativeObjectFromJSObject(context, object);
-	if (![result isKindOfClass:requiredClass])  result = nil;
-	return result;
+	// The console objects hold the C++ monitor, which the console takes from their slot; no other
+	// object in the test wraps an Objective-C object.
+	return nil;
 }
 
 
@@ -296,18 +291,9 @@ void OOJSRegisterObjectConverter(JSClassID, OOJSClassConverterCallback)  {}
 oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)  { return oo::PList(); }
 
 
-// As the engine's finalizer for an object whose private slot holds a weak reference: released.
-// (The facade's -oo_clearJSSelf: is the engine's OOObject category, which does nothing for it.)
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst thisObj)
-{
-	JSClassID classID;
-	id object = (id)JS_GetAnyOpaque(thisObj, &classID);
-	if (object != nil)
-	{
-		[object release];
-		JS_SetOpaque(thisObj, NULL);
-	}
-}
+// The shared toString(), which the private-slot glue hands a `this` of another class (never
+// reached here).
+JSValue OOJSObjectWrapperToString(JSContext *, JSValueConst, int, JSValueConst *)  { std::abort(); }
 
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
@@ -360,80 +346,132 @@ OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string &string)
 }
 
 
-@interface OOJavaScriptEngine: OOObject
-{
-@public
-	BOOL _showErrorLocations, _dumpStackForErrors, _dumpStackForWarnings;
+// EntityHelpers.mm's, which the test does not link: an entity's node (its hold and its description)
+// is reached only for an entity, which the test has none of. A null hold releases nothing.
+class Entity;
+namespace oo {
+namespace detail { void EntityRelease(Entity *entity) noexcept; }
+std::string EntityDescription(Entity *entity);
+Entity *WithObject(Entity *entity);
 }
-+ (OOJavaScriptEngine *) sharedEngine;
-@end
+void oo::detail::EntityRelease(Entity *entity) noexcept  { if (entity != nullptr)  std::abort(); }
+std::string oo::EntityDescription(Entity *)  { std::abort(); }
+Entity *oo::WithObject(Entity *entity)  { if (entity != nullptr)  std::abort();  return nullptr; }
 
-@implementation OOJavaScriptEngine
 
-+ (OOJavaScriptEngine *) sharedEngine
+// MARK: Debug-flavour link stand-ins ---------------------------------------------------------------
+// OOJSConsole.mm's callObjC() (#if OO_DEBUG) and its diagnostic dumps (#if DEBUG) compile only in
+// the debug flavour, which builds this test for Tier C's ASan stage. No case reaches them; a call
+// is a test bug.
+
+#if OO_DEBUG
+#import "OOShaderUniformMethodType.h"
+
+class Entity;
+
+std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *, JSValueConst)  { std::abort(); }
+std::optional<std::string> OOJSEntityJSClassName(Entity *)  { std::abort(); }
+bool OOJSCallEntityMethod(JSContext *, Entity *, const std::string &, int, JSValueConst *, JSValue *)  { std::abort(); }
+bool OOJSCallObjCObjectMethod(JSContext *, id, const std::string &, int, JSValueConst *, JSValue *)  { std::abort(); }
+OOShaderUniformType OOShaderUniformTypeFromEncoding(const char *)  { std::abort(); }
+// oo::EntityIn() (Entity+ObjCBridge.h) reads ::TestEntityObject's _cxxEntity ivar; its offset variable is
+// emitted by the @implementation in Entity+ObjCBridge.mm, which this test does not link. The name
+// is the one clang gives it: the ivar's type encoding, with its '=' written as byte 2.
+extern "C" int gOOTestEntityCxxEntityIvarOffset __asm__("__objc_ivar_offset_Entity._cxxEntity.{Ref<Entity>\002^{Entity}}");
+int gOOTestEntityCxxEntityIvarOffset = 0;
+#endif
+
+#if DEBUG
+#import "ResourceManager.h"
+
+std::string cxx_OOJSDescribeValue(JSContext *, JSValueConst, bool)  { std::abort(); }
+std::optional<std::string> ResourceManager::diagnosticFileLocation()  { std::abort(); }
+#endif
+
+
+// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared with the
+// header's names and signatures but not its class; the stand-in's answers are kept.
+class OOJavaScriptEngine
 {
-	static OOJavaScriptEngine *engine = nil;
-	if (engine == nil)  engine = [[OOJavaScriptEngine alloc] init];
+public:
+	static OOJavaScriptEngine *sharedEngine();
+	JSValueConst globalObject();
+	bool showErrorLocations();
+	void setShowErrorLocations(bool flag);
+	bool dumpStackForErrors();
+	void setDumpStackForErrors(bool flag);
+	bool dumpStackForWarnings();
+	void setDumpStackForWarnings(bool flag);
+
+	bool _showErrorLocations = false, _dumpStackForErrors = false, _dumpStackForWarnings = false;
+};
+
+
+OOJavaScriptEngine *OOJavaScriptEngine::sharedEngine()
+{
+	static OOJavaScriptEngine *engine = new OOJavaScriptEngine;
 	return engine;
 }
 
-- (JSValueConst) globalObject  { return sGlobal; }
-- (BOOL) showErrorLocations  { return _showErrorLocations; }
-- (void) setShowErrorLocations:(BOOL)flag  { _showErrorLocations = flag; }
-- (BOOL) dumpStackForErrors  { return _dumpStackForErrors; }
-- (void) setDumpStackForErrors:(BOOL)flag  { _dumpStackForErrors = flag; }
-- (BOOL) dumpStackForWarnings  { return _dumpStackForWarnings; }
-- (void) setDumpStackForWarnings:(BOOL)flag  { _dumpStackForWarnings = flag; }
-
-@end
+JSValueConst OOJavaScriptEngine::globalObject()  { return sGlobal; }
+bool OOJavaScriptEngine::showErrorLocations()  { return _showErrorLocations; }
+void OOJavaScriptEngine::setShowErrorLocations(bool flag)  { _showErrorLocations = flag; }
+bool OOJavaScriptEngine::dumpStackForErrors()  { return _dumpStackForErrors; }
+void OOJavaScriptEngine::setDumpStackForErrors(bool flag)  { _dumpStackForErrors = flag; }
+bool OOJavaScriptEngine::dumpStackForWarnings()  { return _dumpStackForWarnings; }
+void OOJavaScriptEngine::setDumpStackForWarnings(bool flag)  { _dumpStackForWarnings = flag; }
 
 
 // The OpenGL extension manager's answers: the C++ manager's members the console reads.
-cxx::OOOpenGLExtensionManager *cxx::OOOpenGLExtensionManager::sharedManager()
+OOOpenGLExtensionManager *OOOpenGLExtensionManager::sharedManager()
 {
-	static cxx::OOOpenGLExtensionManager *manager = nullptr;
-	if (manager == nullptr)  manager = new cxx::OOOpenGLExtensionManager;	// never released, as the game's
+	static OOOpenGLExtensionManager *manager = nullptr;
+	if (manager == nullptr)  manager = new OOOpenGLExtensionManager;	// never released, as the game's
 	return manager;
 }
 
-cxx::OOOpenGLExtensionManager::~OOOpenGLExtensionManager()  {}
-OOGraphicsDetail cxx::OOOpenGLExtensionManager::maximumDetailLevel()  { return DETAIL_LEVEL_MAXIMUM; }
-std::optional<std::string> cxx::OOOpenGLExtensionManager::vendorString()  { return std::string("Test Vendor"); }
-std::optional<std::string> cxx::OOOpenGLExtensionManager::rendererString()  { return std::nullopt; }
-GLint cxx::OOOpenGLExtensionManager::textureUnitCount()  { return 4; }
-GLint cxx::OOOpenGLExtensionManager::textureImageUnitCount()  { return 16; }
+OOOpenGLExtensionManager::~OOOpenGLExtensionManager()  {}
+OOGraphicsDetail OOOpenGLExtensionManager::maximumDetailLevel()  { return DETAIL_LEVEL_MAXIMUM; }
+std::optional<std::string> OOOpenGLExtensionManager::vendorString()  { return std::string("Test Vendor"); }
+std::optional<std::string> OOOpenGLExtensionManager::rendererString()  { return std::nullopt; }
+GLint OOOpenGLExtensionManager::textureUnitCount()  { return 4; }
+GLint OOOpenGLExtensionManager::textureImageUnitCount()  { return 16; }
 
 
-@interface FakeUniverse: OOObject
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// which the test's FakeUniverse stood in for, is deleted), with the header's names and signatures.
+class Universe
 {
-@public
+public:
 	OOGraphicsDetail _detailLevel;
 	BOOL _displayFPS;
-}
-@end
 
-@implementation FakeUniverse
+	OOGraphicsDetail getDetailLevel();
+	void setDetailLevel(OOGraphicsDetail);
+	bool getDisplayFPS();
+	void setDisplayFPS(bool);
+};
+typedef Universe FakeUniverse;
 
-- (OOGraphicsDetail) detailLevel  { return _detailLevel; }
-- (void) setDetailLevel:(OOGraphicsDetail)value  { _detailLevel = value; }
-- (BOOL) displayFPS  { return _displayFPS; }
-- (void) setDisplayFPS:(BOOL)value  { _displayFPS = value; }
+OOGraphicsDetail Universe::getDetailLevel()	{ return _detailLevel; }
+void Universe::setDetailLevel(OOGraphicsDetail value)	{ _detailLevel = value; }
+bool Universe::getDisplayFPS()	{ return _displayFPS; }
+void Universe::setDisplayFPS(bool value)	{ _displayFPS = value; }
 
-@end
-
-@class Universe;
+class Universe;
 Universe *gSharedUniverse = nil;
 
 
 // An entity, as the console's inspectEntity() sees it: one answers -inspect (the Mac debug OXP's
 // inspector), one does not.
-@interface Entity: OOObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 @end
 
-@implementation Entity
+@implementation TestEntityObject
 @end
 
-@interface InspectableEntity: Entity
+@interface InspectableEntity: TestEntityObject
 @end
 
 @implementation InspectableEntity
@@ -443,9 +481,29 @@ Universe *gSharedUniverse = nil;
 
 namespace {
 
-Entity *sPlainEntity = nil;
-Entity *sInspectableEntity = nil;
+TestEntityObject *sPlainEntity = nil;
+TestEntityObject *sInspectableEntity = nil;
 
+}	// namespace
+
+
+// Each entity's C++ part (an entity's JS object holds it, JSValueToEntity() answers it and
+// oo::ToObjC its object, which the console asks to -inspect). Kept for the life of the test.
+class Entity : public oo::RefCounted
+{
+};
+
+namespace {
+Entity *PlainPart()
+{
+	static const oo::Ref<Entity> part = oo::makeRef<Entity>();
+	return part.get();
+}
+Entity *InspectablePart()
+{
+	static const oo::Ref<Entity> part = oo::makeRef<Entity>();
+	return part.get();
+}
 }	// namespace
 
 
@@ -455,8 +513,27 @@ bool JSValueToEntity(JSContext *context, JSValueConst value, Entity **outEntity)
 bool JSValueToEntity(JSContext *context, JSValueConst value, Entity **outEntity)
 {
 	if (!JS_IsBool(value))  return false;
-	*outEntity = JS_ToBool(context, value) ? sInspectableEntity : sPlainEntity;
+	*outEntity = JS_ToBool(context, value) ? InspectablePart() : PlainPart();
 	return true;
+}
+
+
+// oo::ToObjC (Entity+ObjCBridge.mm): each C++ part's entity, nil for any other.
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }
+::TestEntityObject *oo::ToObjC(Entity *entity)
+{
+	if (entity == InspectablePart())  return sInspectableEntity;
+	if (entity == PlainPart())  return sPlainEntity;
+	return nil;
+}
+
+// EntityHelpers.mm's oo::InspectEntity(), as the console asked the object until the root facade's
+// deletion: -inspect, if the entity's object answers it.
+namespace oo { void InspectEntity(Entity *entity); }
+void oo::InspectEntity(Entity *entity)
+{
+	::TestEntityObject *object = oo::ToObjC(entity);
+	if ([object respondsToSelector:@selector(inspect)])  [(id)object inspect];
 }
 
 
@@ -498,11 +575,11 @@ void SetUpContext()
 	sContext = JS_NewContext(sRuntime);
 	gOOJSMainThreadContext = sContext;
 	sGlobal = JS_GetGlobalObject(sContext);
-	gSharedUniverse = (Universe *)[[FakeUniverse alloc] init];
-	sPlainEntity = [[Entity alloc] init];
+	gSharedUniverse = new FakeUniverse();
+	sPlainEntity = [[TestEntityObject alloc] init];
 	sInspectableEntity = [[InspectableEntity alloc] init];
 
-	sConsoleObject = DebugMonitorToJSConsole(sContext, oo::ToObjC(cxx::OODebugMonitor::sharedDebugMonitor()));
+	sConsoleObject = DebugMonitorToJSConsole(sContext, OODebugMonitor::sharedDebugMonitor());
 	// The global holds the console; sConsoleObject borrows it.
 	JS_SetPropertyStr(sContext, sGlobal, "console", sConsoleObject);
 }

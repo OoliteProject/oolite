@@ -49,13 +49,13 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-@class MyOpenGLView;
+class MyOpenGLView;
 class ShipEntity; // C++
 class GuiDisplayGen;
 #import "HeadUpDisplay.h" // C++: the player keeps its HUD (oo::Ref)
 class OOSound; // C++
 class OOSoundSource; // C++
-@class OOJoystickManager, OOTexture;
+class OOTexture;
 #import "OOJSGuiScreenKeyDefinition.h" // C++: extraGuiScreenKeys keeps it (oo::Ref)
 #include "OOScript.h" // oo::Ref<OOScript> members and results
 class StickProfileScreen; // C++ (PlayerEntityStickProfile.h, bead oo-movn)
@@ -441,7 +441,7 @@ public:
     void setMaxFlightPitch(GLfloat newValue) override;
     void setMaxFlightRoll(GLfloat newValue) override;
     void setMaxFlightYaw(GLfloat newValue) override;
-    bool checkEntityForMassLock(::Entity* ent, int theirClass);
+    bool checkEntityForMassLock(Entity* ent, int theirClass);
     void updateAlertCondition();
     void updateFuelScoops(OOTimeDelta delta_t);
     void updateClocks(OOTimeDelta delta_t);
@@ -468,7 +468,7 @@ public:
     void performDockingUpdates(OOTimeDelta /*delta_t*/);
     void performDeadUpdates(OOTimeDelta /*delta_t*/);
     void gameOverFadeToBW();
-    bool isValidTarget(::Entity* target) override;
+    bool isValidTarget(Entity* target) override;
     void showGameOver();
     void showShipModelWithKey(const std::string& shipKey, const oo::PList& shipDataIn, uint16_t personality, GLfloat factorX, GLfloat factorY, GLfloat factorZ, const std::optional<std::string>& context);
     void updateTargeting();
@@ -571,8 +571,8 @@ public:
     void clearRolesFromPlayer(float chance);
     NSUInteger maxPlayerRoles();
     void updateSystemMemory();
-    virtual ::Entity* getCompassTarget();
-    void setCompassTarget(::Entity* value);
+    virtual Entity* getCompassTargetEntity(); // the compass target's C++ entity, null for none or once its object has gone (it was the object-answering getCompassTarget())
+    void setCompassTargetEntity(Entity* value); // (it was setCompassTarget(), of the entity's object)
     virtual void validateCompassTarget();
     std::optional<std::string> compassTargetLabel();
 
@@ -634,8 +634,8 @@ public:
     // Slice 14: hit testing, damage, the doppelganger, the escape capsule, dumping cargo, bounty.
     using ShipEntity::doesHitLine; // the ship's other overloads, which the player does not override
     GLfloat doesHitLine(HPVector v0, HPVector v1, ::ShipEntity** hitEntity) override;
-    void takeEnergyDamage(double amount, cxx::Entity* entPart, cxx::Entity* otherPart, const std::string& weaponIdentifier) override;
-    void takeScrapeDamage(double amount, ::Entity* ent) override;
+    void takeEnergyDamage(double amount, Entity* entPart, Entity* otherPart, const std::string& weaponIdentifier) override;
+    void takeScrapeDamage(double amount, Entity* ent) override;
     void takeHeatDamage(double amount) override;
     ::ShipEntity* createDoppelganger(); // the proxy
     ::ShipEntity* launchEscapeCapsule() override;
@@ -652,7 +652,7 @@ public:
     void markAsOffender(int offence_value, OOLegalStatusReason reason) override;
     void collectBountyFor(::ShipEntity* other) override;
     virtual bool takeInternalDamage();
-    void getDestroyedBy(::Entity* whom, OOShipDamageType type) override;
+    void getDestroyedBy(Entity* whom, OOShipDamageType type) override;
     void loseTargetStatus();
     bool endScenario(const std::string& key);
     void enterDock(::StationEntity* station) override;
@@ -803,10 +803,10 @@ public:
     std::optional<std::string> screenModeStringForWidth(unsigned width, unsigned height, float refreshRate);
     void getSuppressTargetLost();
     virtual void setScoopsActive();
-    void setFoundTarget(::Entity* targetEntity) override;
-    void addTarget(::Entity* targetEntity) override;
+    void setFoundTarget(Entity* targetEntity) override;
+    void addTarget(Entity* targetEntity) override;
     void clearTargetMemory();
-    std::vector<oo::ObjCRef<::OOWeakReference*>> targetMemory();
+    std::vector<oo::WeakRef<Entity>> targetMemory();
     bool moveTargetMemoryBy(NSInteger delta);
     virtual void printIdentLockedOnForMissile(bool missile);
     Quaternion getCustomViewQuaternion();
@@ -886,7 +886,7 @@ public:
     void penaltyForUnauthorizedDocking();
     void addScannedWormhole(::WormholeEntity* whole);
     void updateWormholes();
-    std::vector<oo::ObjCRef<::Entity*>> getScannedWormholes();
+    std::vector<oo::EntityHold> getScannedWormholes(); // the wormholes, their objects held
     void initialiseMissionDestinations(const oo::PList& destinations, const oo::PList& legacy);
     std::optional<std::string> markerKey(const oo::PList& marker);
     void addMissionDestinationMarker(const oo::PList& marker);
@@ -1383,9 +1383,9 @@ public:
     void showCommanderShip(int cdrArrayIndex);
     int findIndexOfCommander(const std::string& cdrName);
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     /*	Names the members the analyser would call unused because only the categories read them
-            (it was a method of the Objective-C class, built only into debug builds).
+            (it was a method of the Objective-C class, built only into builds with the debug monitor).
     */
     bool suppressClangStuff() const;
 #endif
@@ -1486,7 +1486,7 @@ private:
     OOMarketFilterMode marketFilterMode = { };
     OOMarketSorterMode marketSorterMode = { };
 
-    oo::ObjCRef<::OOWeakReference*> _dockedStation; // a weak reference, held (was retained by hand)
+    oo::WeakRef<Entity> _dockedStation; // a weak reference to the station's C++ part (its object's, held, before)
 
     /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
      * stations. Could possibly overload use of 'dockedStation' instead
@@ -1552,7 +1552,7 @@ private:
 
     oo::Ref<OOCommodityMarket> shipCommodityData;
 
-    oo::ObjCRef<::Entity*> missile_entity[PLAYER_MAX_MISSILES]; // holds the actual missile entities or equivalents (held)
+    oo::EntityHold missile_entity[PLAYER_MAX_MISSILES]; // holds the actual missile entities or equivalents (held)
     OOUniversalID _dockTarget = { }; // used by the escape pod code
 
     int legalStatusValue = { }; // the ivar legalStatus; it both is and isn't an OOCreditsQuantity, because of quantum.
@@ -1560,7 +1560,7 @@ private:
     unsigned ship_kills = { };
 
     OOCompassMode compassMode = { };
-    oo::ObjCRef<::OOWeakReference*> compassTarget; // a weak reference, held
+    oo::WeakRef<Entity> compassTarget; // a weak reference to the target's C++ part (its object's, held, before)
 
     GLfloat fuel_leak_rate = { };
 
@@ -1750,7 +1750,7 @@ private:
 
     // target memory
     // TODO: this should use weakrefs
-    std::vector<oo::ObjCRef<::OOWeakReference*>> target_memory; // a null ref = an empty slot (was [OONull null])
+    std::vector<oo::WeakRef<Entity>> target_memory; // an empty ref = an empty slot (was [OONull null]); C++ parts
     NSUInteger target_memory_index = { };
 
     // custom view points
@@ -1830,11 +1830,11 @@ private:
 
     OODockingClearanceStatus dockingClearanceStatus = { };
 
-    std::vector<oo::ObjCRef<::Entity*>> scannedWormholes;
-    WormholeEntity* wormhole = { }; // C++; wormholeObject holds its Objective-C object
-    oo::ObjCRef<::Entity*> wormholeObject; // the wormhole's Objective-C object (the root's facade, which owns it), held
+    std::vector<oo::EntityHold> scannedWormholes; // their objects held
+    WormholeEntity* wormhole = { }; // C++; wormholeObject holds it
+    oo::EntityHold wormholeObject; // the wormhole, held
 
-    oo::ObjCRef<::Entity*> demoShip; // Used while docked to maintain demo ship rotation. (held)
+    oo::EntityHold demoShip; // Used while docked to maintain demo ship rotation. (held)
     std::vector<oo::Ref<OOLaserShotEntity>> lastShot; // used to correctly position laser shots on first frame of firing
 
     oo::Ref<::StickProfileScreen> stickProfileScreen;

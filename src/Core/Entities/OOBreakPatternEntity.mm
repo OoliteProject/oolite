@@ -105,7 +105,8 @@ void OOBreakPatternEntity::update(OOTimeDelta delta_t)
 
     _lifetime -= BREAK_PATTERN_RING_SPEED * delta_t;
     if (_lifetime < 0.0) {
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
     }
 }
 
@@ -139,7 +140,7 @@ void OOBreakPatternEntity::drawImmediate(bool immediate, bool translucent)
         OOGL(glDisableClientState(GL_COLOR_ARRAY));
 
         OOVerifyOpenGLState();
-        cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOBreakPatternEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+        cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOBreakPatternEntity after drawing " + oo::EntityDescription(this); });
     }
 }
 

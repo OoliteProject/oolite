@@ -115,7 +115,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
     */
     switch (magic) {
     case kClock_absoluteSeconds:
-        return JS_NewNumber(context, [UNIVERSE getTime]);
+        return JS_NewNumber(context, (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0));
 
     case kClock_seconds:
         return JS_NewNumber(context, clockTime);

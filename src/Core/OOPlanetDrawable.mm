@@ -30,6 +30,7 @@
 #import "OOPlanetData.h"
 #import "OOPlanetDrawable.h"
 #import "OOSingleTextureMaterial.h"
+#import "OOTexture.h" // allTextures() destroys oo::Ref<OOTexture>s
 #import "Universe.h"
 #include "oofnd/Log.hpp"
 
@@ -41,16 +42,6 @@
 
 #define LOD_GRANULARITY ((float)(kOOPlanetDataLevels - 1))
 #define LOD_FACTOR (1.0 / 4.0)
-
-namespace {
-
-// The C++ part of the drawable's material (null for none: a message to nil).
-cxx::OOMaterial* CxxMaterial(OOMaterial* material)
-{
-    return oo::ToCxx(material);
-}
-
-} // namespace
 
 oo::Ref<OOPlanetDrawable> OOPlanetDrawable::planetWithTextureName(const std::string& textureName, float radius)
 {
@@ -109,13 +100,13 @@ OOMaterial* OOPlanetDrawable::material()
 
 void OOPlanetDrawable::setMaterial(OOMaterial* material)
 {
-    objc_autorelease(_material.leakRef()); // [_material autorelease]
-    _material = oo::ObjCRef<OOMaterial*>(material);
+    OOMaterialAutorelease(std::move(_material)); // [_material autorelease]
+    _material = oo::Ref<OOMaterial>(material);
 }
 
 std::optional<std::string> OOPlanetDrawable::textureName()
 {
-    cxx::OOMaterial* material = CxxMaterial(_material.get());
+    OOMaterial* material = _material.get();
     return material != nullptr ? material->name() : std::nullopt;
 }
 
@@ -126,8 +117,8 @@ void OOPlanetDrawable::setTextureName(const std::string& textureName)
         const oo::PList spec(oo::PList::Dict {
             { "diffuse_map", oo::PList(oo::PList::Dict { { "repeat_s", oo::PList("yes") }, { "cube_map", oo::PList("yes") } }) } });
         // [_material release], then [[OOSingleTextureMaterial alloc] initWithName:configuration:]:
-        // the factory's material, kept as its facade (nil for none).
-        _material = oo::ObjCRef<OOMaterial*>(oo::ToObjC(static_cast<cxx::OOMaterial*>(OOSingleTextureMaterial::materialWithName(textureName, spec).get())));
+        // the factory's material (null for none).
+        _material = OOSingleTextureMaterial::materialWithName(textureName, spec);
     }
 }
 
@@ -154,8 +145,8 @@ void OOPlanetDrawable::setLevelOfDetail(float lod)
 
 void OOPlanetDrawable::calculateLevelOfDetailForViewDistance(float distance)
 {
-    BOOL simple = [UNIVERSE reducedDetail];
-    float drawFactor = [[UNIVERSE gameView] viewSize].width / (simple ? 100.0 : 40.0);
+    BOOL simple = (UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false);
+    float drawFactor = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getViewSize() : NSSize { }).width / (simple ? 100.0 : 40.0);
     float drawRatio2 = drawFactor * _radius / sqrtf(distance); // proportional to size on screen in pixels
 
     float lod = sqrtf(drawRatio2 * LOD_FACTOR);
@@ -208,7 +199,7 @@ void OOPlanetDrawable::renderTranslucentPartsOnOpaquePass()
 void OOPlanetDrawable::renderCommonParts()
 {
     const OOPlanetDataLevel* data = &kPlanetData[_lod];
-    cxx::OOMaterial* material = CxxMaterial(_material.get()); // messages to nil did nothing and answered NO
+    OOMaterial* material = _material.get(); // messages to nil did nothing and answered NO
 
     OO_ENTER_OPENGL();
 
@@ -257,7 +248,7 @@ void OOPlanetDrawable::renderCommonParts()
     OOGL(glDrawElements(GL_TRIANGLES, data->faceCount * 3, data->type, data->indices));
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([UNIVERSE wireframeGraphics]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false)) {
         OODebugDrawBasisAtOrigin(1.5);
     }
 #endif
@@ -275,7 +266,7 @@ void OOPlanetDrawable::renderCommonParts()
         debugDrawNormals();
 #endif
 
-    cxx::OOMaterial::applyNone();
+    OOMaterial::applyNone();
     OOGL(glPopAttrib());
 
     OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -307,9 +298,9 @@ BoundingBox OOPlanetDrawable::boundingBox()
     return (BoundingBox) { { -_radius, -_radius, -_radius }, { _radius, _radius, _radius } };
 }
 
-void OOPlanetDrawable::setBindingTarget(id<OOWeakReferenceSupport> target)
+void OOPlanetDrawable::setBindingTarget(Entity* target)
 {
-    if (cxx::OOMaterial* material = CxxMaterial(_material.get()))
+    if (OOMaterial* material = _material.get())
         material->setBindingTarget(target);
 }
 
@@ -376,10 +367,10 @@ void OOPlanetDrawable::debugDrawNormals()
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOPlanetDrawable::allTextures()
+std::vector<oo::Ref<OOTexture>> OOPlanetDrawable::allTextures()
 {
-    cxx::OOMaterial* material = CxxMaterial(this->material());
-    return material != nullptr ? material->allTextures() : std::vector<oo::ObjCRef<::OOTexture*>>();
+    OOMaterial* material = this->material();
+    return material != nullptr ? material->allTextures() : std::vector<oo::Ref<OOTexture>>();
 }
 
 #endif

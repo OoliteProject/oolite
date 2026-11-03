@@ -28,8 +28,6 @@
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
-namespace cxx {
-
 // The C++ root, as far as the binding and the root's JS category reach it.
 class Entity : public oo::RefCounted
 {
@@ -40,13 +38,11 @@ public:
 	virtual bool isVisibleToScripts();
 };
 
-}	// namespace cxx
-
 
 /*	A sun whose radius is 99 raises from radius(), one whose radius is 98 throws a C++ exception, so
 	the test sees what an exception under a native becomes.
 */
-class OOSunEntity : public cxx::Entity
+class OOSunEntity : public Entity
 {
 public:
 	double radius();
@@ -68,15 +64,20 @@ public:
 };
 
 
-@interface Entity: OOObject
+// What an entity's JS object holds: a weak reference to the C++ entity.
+#include "OOJSEntityHolder.h"
+
+
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;	// the sun's C++ part (oo::ToCxx reads it)
+	oo::Ref<Entity> _cxxEntity;	// the sun's C++ part (oo::ToCxx reads it)
 }
 - (id) weakRefUnderlyingObject;
 @end
 
-@interface Entity (OOJavaScriptExtensions)
+@interface TestEntityObject (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID;
 - (std::optional<std::string>) cxx_oo_jsClassName;
 - (BOOL) isVisibleToScripts;
@@ -96,7 +97,7 @@ public:
 #include <string>
 
 
-@implementation Entity
+@implementation TestEntityObject
 
 - (id) weakRefUnderlyingObject  { return self; }
 
@@ -105,17 +106,17 @@ public:
 
 // The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm,
 // bead oo-9ht.107): the engine sends these selectors to the wrapped object.
-@implementation Entity (OOJavaScriptExtensions)
+@implementation TestEntityObject (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
 - (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
 - (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
 @end
 
 
-cxx::Entity::~Entity()  {}
-JSClassID cxx::Entity::jsClassID()  { return 0; }
-std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
-bool cxx::Entity::isVisibleToScripts()  { return false; }
+Entity::~Entity()  {}
+JSClassID Entity::jsClassID()  { return 0; }
+std::optional<std::string> Entity::jsClassName()  { return std::string("Entity"); }
+bool Entity::isVisibleToScripts()  { return false; }
 
 
 std::optional<std::string> OOSunEntity::name()  { return _name; }
@@ -227,18 +228,15 @@ JSClassID sFakeEntityClassID = 0;
 std::map<JSClassID, int> sConverters;
 
 
-/*	Entity's toString(), as the game's (OOJSObjectWrapperToString() of an object with no
-	description of its own): "[object <its class>]". QuickJS-ng gives class prototypes no
+/*	Entity's toString(), as the game's (OOJSEntity.mm: OOJSCxxObjectWrapperToString() of an object
+	with no description of its own): "[object <its class>]". QuickJS-ng gives class prototypes no
 	Symbol.toStringTag, so without it String(plainEntity) would be "[object Object]".
 */
 JSValue FakeEntityToString(OOJS_NATIVE_ARGS)
 {
 	(void)argc;
 	(void)OOJS_ARGV;
-	JSClassID ignored;
-	id object = (id)JS_GetAnyOpaque(OOJS_THIS, &ignored);
-	std::string description = oo::str::format("[object %s]", object != nil ? class_getName(object_getClass(object)) : "Entity");
-	return JS_NewStringLen(context, description.data(), description.size());
+	return OOJSCxxObjectWrapperToString(context, OOJS_THIS, sFakeEntityClassID);
 }
 
 const JSCFunctionListEntry sFakeEntityMethods[] = {
@@ -271,24 +269,13 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// The engine's object getter: the JS class must be a subclass of the required one, and the
-// underlying object must be of the required Objective-C class.
-BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char *, id *outObject)
+// The engine's object getter is OOJSPrivateObject.cpp's (linked): the JS class must be a subclass
+// of the required one, and the slot holds the entity's holder.
+
+// The shared toString(), which OOJSCxxObjectWrapperToString() hands a `this` of another class.
+JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
-	{
-		cxx_OOJSReportError(context, "Native method expected %s, got %s.", OOJSClassName(requiredClassID), cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
-		return NO;
-	}
-	JSClassID ignored;
-	*outObject = [(id)JS_GetAnyOpaque(object, &ignored) weakRefUnderlyingObject];
-	if (*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])
-	{
-		cxx_OOJSReportError(context, "Native method expected %s from %s.", class_getName(requiredObjCClass), OOJSClassName(requiredClassID));
-		*outObject = nil;
-		return NO;
-	}
-	return YES;
+	return JS_NewString(context, "[object]");
 }
 
 
@@ -302,11 +289,6 @@ JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSVa
 {
 	cxx_OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
-}
-
-
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst)
-{
 }
 
 
@@ -329,10 +311,16 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 #endif
 
 
-oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
+oo::PList OOJSEntityObjectConverter(JSContext *, JSValueConst)
 {
 	return oo::PList();
 }
+
+
+// The holder's glue is OOJSEntity.mm's, which the test does not link; the binding never asks it.
+JSValue OOJSEntityHolder::jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
+void OOJSEntityHolder::clearJSSelf(JSValueConst)  {}
+std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::nullopt; }
 
 
 // MARK: The context -------------------------------------------------------------------------------
@@ -342,16 +330,17 @@ namespace {
 JSRuntime *sRuntime;
 JSContext *sContext;
 JSValue sGlobal;
-Entity *sSunObject = nil;	// the sun's Objective-C object, which the JS object holds
+TestEntityObject *sSunObject = nil;	// the sun's Objective-C object, which the JS object holds
 OOSunEntity *sSun = nullptr;	// its C++ part
 
 
-// A JS object of the class (its prototype is the class's), with the entity in the private slot;
-// owned by the caller.
-JSValue JSValueForObject(JSClassID classID, Entity *entity)
+// A JS object of the class (its prototype is the class's), with a holder of the entity's C++ part
+// in the private slot; owned by the caller.
+JSValue JSValueForObject(JSClassID classID, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(classID));
-	if (JS_IsException(object) || JS_SetOpaque(object, entity) != 0)
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get()))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
 		return JS_NULL;
@@ -360,9 +349,9 @@ JSValue JSValueForObject(JSClassID classID, Entity *entity)
 }
 
 
-// A JS object for an entity, as -[Entity oo_jsValueInContext:] makes it: the class the entity's
-// category names, and the entity in the private slot.
-JSValue JSValueForEntity(Entity *entity)
+// A JS object for an entity, as EntityJSValueInContext() makes it: the class the entity's
+// category names, and a holder of the entity in the private slot.
+JSValue JSValueForEntity(TestEntityObject *entity)
 {
 	return JSValueForObject([entity oo_jsClassID], entity);
 }
@@ -386,13 +375,13 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, sFakeEntityMethods, OOJS_COUNT(sFakeEntityMethods), nullptr, 0);
 	InitOOJSSun(sContext, sGlobal);
 
-	sSunObject = [[Entity alloc] init];	// kept for the life of the test
+	sSunObject = [[TestEntityObject alloc] init];	// kept for the life of the test
 	sSunObject->_cxxEntity = oo::makeRef<OOSunEntity>();
 	sSun = static_cast<OOSunEntity *>(sSunObject->_cxxEntity.get());
 	sSun->_radius = 250000.5;
 	sSun->_name = "Lave";
 	Define("sun", JSValueForEntity(sSunObject));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, [[Entity alloc] init]));	// kept for the life of the test
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, [[TestEntityObject alloc] init]));	// kept for the life of the test
 }
 
 

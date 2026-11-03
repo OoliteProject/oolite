@@ -71,7 +71,7 @@ void OOLaserShotEntity::initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacin
 {
     // [super init] could not fail: the constructor ran Entity's -init body.
 
-    ::ShipEntity* ship = oo::ToShip((srcEntity != nullptr ? srcEntity->rootShipEntity() : (::Entity*)nil));
+    ::ShipEntity* ship = oo::ToShip((srcEntity != nullptr ? srcEntity->rootShipEntity() : (Entity*)nullptr));
     Vector middle = OOBoundingBoxCenter((srcEntity != nullptr ? srcEntity->getBoundingBox() : BoundingBox { }));
 
     OOCParameterAssert((srcEntity != nullptr ? srcEntity->getIsShip() : false) && (ship != nullptr ? ship->getIsShip() : false));
@@ -135,7 +135,7 @@ oo::Ref<OOLaserShotEntity> OOLaserShotEntity::laserFromShip(::ShipEntity* ship, 
 std::optional<std::string> OOLaserShotEntity::descriptionComponents() const
 {
     // The getter read this ivar.
-    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, cxx::Entity::descriptionComponents().value_or("(null)").c_str(), QuaternionDescription(orientation).c_str());
+    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, Entity::descriptionComponents().value_or("(null)").c_str(), QuaternionDescription(orientation).c_str());
 }
 
 void OOLaserShotEntity::setColor(OOColor* color)
@@ -155,14 +155,14 @@ void OOLaserShotEntity::setRange(GLfloat range)
 
 void OOLaserShotEntity::update(OOTimeDelta delta_t)
 {
-    cxx::Entity::update(delta_t);
+    Entity::update(delta_t);
     _lifetime -= delta_t;
     ::ShipEntity* ship = oo::ToShip(owner());
 
     if ((ship != nullptr ? ship->getIsPlayer() : false)) {
         /*
                 Reposition this shot accurately. This overrides integration over
-                velocity in -[Entity update:], which is considered sufficient for
+                velocity in Entity::update(), which is considered sufficient for
                 NPC ships.
         */
         setPosition(HPvector_add((ship != nullptr ? ship->getPosition() : HPVector { }), vectorToHPVector(OOVectorMultiplyMatrix(_offset, (ship != nullptr ? ship->drawRotationMatrix() : OOMatrix { })))));
@@ -170,7 +170,8 @@ void OOLaserShotEntity::update(OOTimeDelta delta_t)
     }
 
     if (_lifetime < 0) {
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
     }
 }
 
@@ -204,7 +205,7 @@ static const GLfloat kLaserVertices[] = {
 
 void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
-    if (!translucent || [UNIVERSE breakPatternHide])
+    if (!translucent || (UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false))
         return;
 
     OO_ENTER_OPENGL();
@@ -219,8 +220,9 @@ void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGLPushModelView();
 
     OOGLScaleModelView(make_vector(kLaserHalfWidth, kLaserHalfWidth, _range));
-    [texture1() apply];
-    GLfloat s = sinf([UNIVERSE getTime]);
+    if (OOTexture* shot = texture1())
+        shot->apply(); // a message to nil did nothing
+    GLfloat s = sinf((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0));
     GLfloat phase = s * (_range / 200.0f);
     GLfloat phase2 = (1.0f + s) * (_range / 200.0f);
     GLfloat phase3 = -s * (_range / 500.0f);
@@ -246,7 +248,8 @@ void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glColor4f(kLaserBrightness, kLaserBrightness, kLaserBrightness, 0.9));
     glDrawArrays(GL_QUADS, 0, 8);
 
-    [texture2() apply];
+    if (OOTexture* shot = texture2())
+        shot->apply(); // a message to nil did nothing
     OOGLScaleModelView(make_vector(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0));
     OOGL(glColor4f(_color[0], _color[1], _color[2], 0.9));
     glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
@@ -257,7 +260,7 @@ void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glDisable(GL_TEXTURE_2D));
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOLaserShotEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOLaserShotEntity after drawing " + oo::EntityDescription(this); });
 }
 
 bool OOLaserShotEntity::isEffect()
@@ -270,12 +273,12 @@ bool OOLaserShotEntity::canCollide()
     return NO;
 }
 
-::OOTexture* OOLaserShotEntity::texture1()
+OOTexture* OOLaserShotEntity::texture1()
 {
     return OOLaserShotEntity::outerTexture();
 }
 
-::OOTexture* OOLaserShotEntity::texture2()
+OOTexture* OOLaserShotEntity::texture2()
 {
     return OOLaserShotEntity::innerTexture();
 }
@@ -283,29 +286,21 @@ bool OOLaserShotEntity::canCollide()
 void OOLaserShotEntity::setUpTexture()
 {
     if (sShotTexture == nil) {
-        sShotTexture = [[::OOTexture cxx_textureWithName:"oolite-laser-blur.png"
-                                                inFolder:"Textures"
-                                                 options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
-                                              anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                 lodBias:0.0] retain];
+        sShotTexture = OOTexture::textureWithName("oolite-laser-blur.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT, kOOTextureDefaultAnisotropy / 2.0, 0.0).leakRef();
         OOGraphicsResetManager::sharedManager()->registerCxxClient(new ShotTextureResetClient);
 
-        sShotTexture2 = [[::OOTexture cxx_textureWithName:"oolite-laser-blur2.png"
-                                                 inFolder:"Textures"
-                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
-                                               anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                  lodBias:0.0] retain];
+        sShotTexture2 = OOTexture::textureWithName("oolite-laser-blur2.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT, kOOTextureDefaultAnisotropy / 2.0, 0.0).leakRef();
     }
 }
 
-::OOTexture* OOLaserShotEntity::innerTexture()
+OOTexture* OOLaserShotEntity::innerTexture()
 {
     if (sShotTexture2 == nil)
         setUpTexture();
     return sShotTexture2;
 }
 
-::OOTexture* OOLaserShotEntity::outerTexture()
+OOTexture* OOLaserShotEntity::outerTexture()
 {
     if (sShotTexture == nil)
         setUpTexture();
@@ -314,8 +309,8 @@ void OOLaserShotEntity::setUpTexture()
 
 void OOLaserShotEntity::resetGraphicsState()
 {
-    [sShotTexture release];
-    sShotTexture = nil;
-    [sShotTexture2 release];
-    sShotTexture2 = nil;
+    oo::release(sShotTexture);
+    sShotTexture = nullptr;
+    oo::release(sShotTexture2);
+    sShotTexture2 = nullptr;
 }

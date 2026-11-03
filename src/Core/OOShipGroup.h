@@ -32,18 +32,21 @@ MA 02110-1301, USA.
 #define OOSHIPGROUP_H
 
 #import "OOFoundation.h"
-#import "OOWeakReference.h"
 
 #include <quickjs.h>
 
+#include "OOEntityHold.h" // memberArray()
 #include "OOJSPrivateObject.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
+#include <vector>
+
 class ShipEntity; // C++ since bead oo-9ht.144
-@class Entity; // the members' objects (a ship's object is the drawable's facade since bead oo-9ht.144)
+class Entity; // the members are held as weak references to the ships' C++ parts
+class Entity;
 
 class OOShipGroupCursor;
 class OOShipGroupMembers; // OOShipGroup.mm's range-for over the members
@@ -63,8 +66,8 @@ public:
     void setLeader(::ShipEntity* leader);
 
     // The members at the time this is called, even if the group is mutated later.
-    std::vector<oo::ObjCRef<::Entity*>> memberArray(); // arbitrary order
-    std::vector<oo::ObjCRef<::Entity*>> memberArrayExcludingLeader(); // arbitrary order
+    std::vector<oo::EntityHold> memberArray(); // arbitrary order
+    std::vector<oo::EntityHold> memberArrayExcludingLeader(); // arbitrary order
 
     bool containsShip(::ShipEntity* ship);
     bool addShip(::ShipEntity* ship);
@@ -102,8 +105,11 @@ private:
 
     NSUInteger _count = { }, _capacity = { };
     unsigned long _updateCount = { };
-    OOWeakReference** _members = { };
-    OOWeakReference* _leader = { };
+    // Weak references to the ships' C++ parts (the ships' objects' weak-reference
+    // proxies before): each reads null exactly when the object's reference did, since the entity
+    // facade's -dealloc drops its part's weak references. _capacity slots, the first _count in use.
+    std::vector<oo::WeakRef<Entity>> _members = { };
+    oo::WeakRef<Entity> _leader = { };
     std::optional<std::string> _name = { };
     JSValue _jsSelf = JS_UNDEFINED; // The JS ShipGroup object proxy for this group; not an object until created (test with JS_IsObject()).
 };

@@ -139,7 +139,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     oo::PList result; // null: nil
-    MyOpenGLView* gameView = [UNIVERSE gameView];
+    MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
 
     switch (magic) {
     case kOolite_version: {
@@ -166,30 +166,30 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
         break;
 
     case kOolite_gameSettings:
-        result = [UNIVERSE cxx_gameSettings];
+        result = (UNIVERSE != nullptr ? UNIVERSE->gameSettings() : oo::PList());
         break;
 
     case kOolite_resourcePaths:
         // user name in displayed paths masked for privacy - remember that the console can be run remotely too
         {
             oo::PList::Array paths;
-            for (const std::string& path : [ResourceManager cxx_maskUserNameInPathArray:[ResourceManager cxx_paths]])
+            for (const std::string& path : ResourceManager::maskUserNameInPathArray(ResourceManager::paths()))
                 paths.push_back(oo::PList(path));
             result = oo::PList(std::move(paths));
             break;
         }
 
     case kOolite_colorSaturation:
-        return JS_NewNumber(context, [gameView colorSaturation]);
+        return JS_NewNumber(context, (gameView != nullptr ? gameView->colorSaturation() : 0.0f));
 
     case kOolite_postFX:
-        return JS_NewInt32(context, [UNIVERSE currentPostFX]);
+        return JS_NewInt32(context, (UNIVERSE != nullptr ? UNIVERSE->currentPostFX() : 0));
 
     case kOolite_hdrToneMapper: {
         std::optional<std::string> toneMapperStr = "OOHDR_TONEMAPPER_UNDEFINED";
 #if OOLITE_WINDOWS
-        if ([gameView hdrOutput]) {
-            toneMapperStr = cxx_OOStringFromHDRToneMapper([gameView hdrToneMapper]);
+        if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
+            toneMapperStr = cxx_OOStringFromHDRToneMapper((gameView != nullptr ? gameView->hdrToneMapper() : OOHDRToneMapper { }));
         }
 #endif
         if (toneMapperStr.has_value())
@@ -199,8 +199,8 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
 
     case kOolite_sdrToneMapper: {
         std::optional<std::string> toneMapperStr = "OOSDR_TONEMAPPER_UNDEFINED";
-        if (![gameView hdrOutput]) {
-            toneMapperStr = cxx_OOStringFromSDRToneMapper([gameView sdrToneMapper]);
+        if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
+            toneMapperStr = cxx_OOStringFromSDRToneMapper((gameView != nullptr ? gameView->sdrToneMapper() : OOSDRToneMapper { }));
         }
         if (toneMapperStr.has_value())
             result = oo::PList(*toneMapperStr);
@@ -209,7 +209,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     case kOolite_timeAccelerationFactor:
-        return JS_NewNumber(context, [UNIVERSE timeAccelerationFactor]);
+        return JS_NewNumber(context, (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0));
 #endif
 
     default:
@@ -229,13 +229,14 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
     double fValue;
     int32_t iValue;
     std::optional<std::string> sValue;
-    MyOpenGLView* gameView = [UNIVERSE gameView];
+    MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
 
     switch (magic) {
     case kOolite_colorSaturation:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            float currentColorSaturation = [gameView colorSaturation];
-            [gameView adjustColorSaturation:fValue - currentColorSaturation];
+            float currentColorSaturation = (gameView != nullptr ? gameView->colorSaturation() : 0.0f);
+            if (gameView != nullptr)
+                gameView->adjustColorSaturation(fValue - currentColorSaturation);
             return JS_UNDEFINED;
         }
         break;
@@ -243,7 +244,8 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
     case kOolite_postFX:
         if (OOJSValueToInt32(context, value, &iValue)) {
             iValue = MAX(iValue, 0);
-            [UNIVERSE setCurrentPostFX:iValue];
+            if (UNIVERSE != nullptr)
+                UNIVERSE->setCurrentPostFX(iValue);
             return JS_UNDEFINED;
         }
         break;
@@ -254,9 +256,10 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
 #if OOLITE_WINDOWS
-            if ([gameView hdrOutput])
-                [gameView setHDRToneMapper:cxx_OOHDRToneMapperFromString(*sValue)];
-            else
+            if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
+                if (gameView != nullptr)
+                    gameView->setHDRToneMapper(cxx_OOHDRToneMapperFromString(*sValue));
+            } else
                 cxx_OOJSReportWarning(context, "hdrToneMapper cannot be set if not running in HDR mode");
 #endif
             return JS_UNDEFINED;
@@ -268,9 +271,10 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
             break; // non-string is not allowed
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            if (![gameView hdrOutput])
-                [gameView setSDRToneMapper:cxx_OOSDRToneMapperFromString(*sValue)];
-            else
+            if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
+                if (gameView != nullptr)
+                    gameView->setSDRToneMapper(cxx_OOSDRToneMapperFromString(*sValue));
+            } else
                 cxx_OOJSReportWarning(context, "sdrToneMapper cannot be set if not running in SDR mode");
             return JS_UNDEFINED;
         }
@@ -279,7 +283,8 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
 #ifdef OO_DEBUG_MONITOR_ENABLED
     case kOolite_timeAccelerationFactor:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [UNIVERSE setTimeAccelerationFactor:fValue];
+            if (UNIVERSE != nullptr)
+                UNIVERSE->setTimeAccelerationFactor(fValue);
             return JS_UNDEFINED;
         }
         break;

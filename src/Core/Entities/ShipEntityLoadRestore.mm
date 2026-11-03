@@ -164,13 +164,13 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
     // FIXME: AI.
     // Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
     // Also the AI restarts itself with the GLOBAL state, so no need to store any old state.
-    if ([getAI() cxx_name].value_or(std::string()) == "nullAI.plist") {
+    if ((getAI() != nullptr ? getAI()->name() : std::optional<std::string>()).value_or(std::string()) == "nullAI.plist") {
         // might be a JS version (with none, no key: -setObject:forKey: refused nil)
-        if (const std::optional<std::string> js = [getAI() cxx_associatedJS])
+        if (const std::optional<std::string> js = (getAI() != nullptr ? getAI()->associatedJS() : std::optional<std::string>()))
             result[KEY_AI] = *js;
         // if there isn't, loading nullAI.js will load nullAI.plist anyway
     } else {
-        result[KEY_AI] = [getAI() cxx_name].value_or(std::string());
+        result[KEY_AI] = (getAI() != nullptr ? getAI()->name() : std::optional<std::string>()).value_or(std::string());
     }
 
     return oo::PList(std::move(result));
@@ -187,7 +187,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
     ::ShipEntity* ship = nil;
 
     const std::string shipKey = dict.get<std::string>(KEY_SHIP_KEY); // "" finds no ship, as nil did
-    const oo::PList shipData = [[::OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipKey];
+    const oo::PList shipData = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipKey);
 
     if (shipData) {
         oo::PList::Dict mergedData = DictFrom(shipData);
@@ -208,10 +208,10 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
 
         const oo::PList mergedPlist(std::move(mergedData));
         // A station is made in C++ since bead oo-9ht.175 (the universe picked its class).
-        if ([UNIVERSE cxx_isStationShipDictionary:mergedPlist])
-            ship = oo::ToShip([oo::ToObjC(StationEntity::newStationObject(shipKey, mergedPlist)) autorelease]);
+        if ((UNIVERSE != nullptr ? UNIVERSE->isStationShipDictionary(mergedPlist) : false))
+            ship = oo::ToShip(oo::AutoreleaseEntity(StationEntity::newStationObject(shipKey, mergedPlist)));
         else
-            ship = oo::ToShip([oo::NewShipObject(oo::makeRef<::ShipEntity>(), shipKey, mergedPlist) autorelease]);
+            ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<::ShipEntity>(), shipKey, mergedPlist)));
 
         // FIXME: restore AI.
         if (ship != nullptr)
@@ -230,7 +230,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         if (!fallback || !shipPrimaryRole.has_value())
             return nil;
 
-        ship = oo::ToShip([oo::ToObjC([UNIVERSE cxx_newShipWithRole:*shipPrimaryRole]) autorelease]);
+        ship = oo::ToShip(oo::AutoreleaseEntity((UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*shipPrimaryRole) : (::ShipEntity*)nil)));
         if (ship == nil)
             return nil;
     }
@@ -308,7 +308,7 @@ void ShipEntity::simplifyShipdata(oo::PList::Dict& data, std::vector<std::string
     deletes->clear();
 
     // Get original ship data.
-    oo::PList::Dict referenceData = DictFrom([[::OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipDataKey().value_or(std::string())]);
+    oo::PList::Dict referenceData = DictFrom(OOShipRegistry::sharedRegistry()->shipInfoForKey(shipDataKey().value_or(std::string())));
 
     // Discard stuff that we handle separately.
     StripIgnoredKeys(referenceData);

@@ -6,8 +6,9 @@ Draw a ball, such as might be used to represent a planet.
 
 C++20 since bead oo-mw4u (proposed ADR-0056, amendments oo-smy and oo-zffj): a global class
 derived from the converted drawable root OODrawable, with no Objective-C facade, because its
-one caller, OOPlanetEntity, was adapted in the same bead. It keeps its material as the
-Objective-C object, as the ivar did (amendment oo-smy item 4), and calls it through oo::ToCxx.
+one caller, OOPlanetEntity, was adapted in the same bead. It keeps its material retained, as the
+ivar did (amendment oo-smy item 4): an oo::Ref<OOMaterial>, the
+material's facade deleted.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -30,13 +31,12 @@ MA 02110-1301, USA.
 */
 
 #import "OODrawable.h"
+#import "OOMaterial.h"
 #import "OOMaths.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
-
-@class OOMaterial;
 
 class OOPlanetDrawable : public OODrawable {
 public:
@@ -82,10 +82,10 @@ public:
     GLfloat collisionRadius() override;
     GLfloat maxDrawDistance() override;
     BoundingBox boundingBox() override;
-    void setBindingTarget(id<OOWeakReferenceSupport> target) override;
+    void setBindingTarget(Entity* target) override;
     void dumpSelfState() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
 private:
@@ -95,7 +95,7 @@ private:
 #endif
     void renderCommonParts();
 
-    oo::ObjCRef<OOMaterial*> _material;
+    oo::Ref<OOMaterial> _material;
     bool _isAtmosphere = false;
     float _radius = { };
     OOMatrix _transform = { };

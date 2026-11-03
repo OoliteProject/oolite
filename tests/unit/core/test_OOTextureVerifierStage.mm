@@ -28,6 +28,7 @@
 #import "OODescription.h"
 #import "OOPixMap.h"
 #import "OOTexture.h"
+#import "OOTextureLoader.h"
 
 #include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
@@ -54,22 +55,17 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 #include "OOOXPVerifierTestDouble.h"
 
 
-@interface ResourceManager: OOObject
-
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-
-@end
+#import "ResourceManager.h"
 
 
-@implementation ResourceManager
-
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName != "builtin.png")  return std::nullopt;
 	return "builtin/" + folderName.value_or("") + "/" + fileName;
 }
 
-@end
 
 
 /*	The texture loader (OOTextureLoader.mm reaches the whole game): a file saying "unreadable" has
@@ -90,47 +86,54 @@ void OOFreePixMap(OOPixMap *ioPixMap)
 }
 
 
-@interface OOTextureLoader: OOObject
+/*	The loader factory and a loader of the file's contents: C++ since bead oo-9ht.114 deleted the
+	loaders' facade (the Objective-C stand-in was an @implementation of it). The root's members are
+	defined here (no texture loader is linked); the stand-in's subclass answers the result.
+*/
+OOTextureLoader::OOTextureLoader()  {}
+OOTextureLoader::~OOTextureLoader()  {}
+bool OOTextureLoader::getResult(OOPixMap *, OOTextureDataFormat *, uint32_t *, uint32_t *)  { return false; }
+std::optional<std::string> OOTextureLoader::cacheKey()  { return std::nullopt; }
+std::optional<std::string> OOTextureLoader::descriptionComponents() const  { return std::nullopt; }
+std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const  { return std::nullopt; }
+void OOTextureLoader::loadTexture()  {}
+// The work manager's task (its vtable): never queued here.
+void OOTextureLoader::performAsyncTask()  { std::abort(); }
+void OOTextureLoader::completeAsyncTask()  { std::abort(); }
+
+
+class StandInLoader final : public OOTextureLoader
 {
-@private
+public:
+	explicit StandInLoader(std::string contents) : _contents(std::move(contents)) {}
+
+	bool getResult(OOPixMap *result, OOTextureDataFormat *outFormat, uint32_t *outWidth, uint32_t *outHeight) override
+	{
+		(void)outFormat;
+		(void)outWidth;
+		(void)outHeight;
+		unsigned width = 0, height = 0;
+		if (std::sscanf(_contents.c_str(), "%ux%u", &width, &height) != 2)  return NO;
+		*result = OOPixMap{};
+		result->width = width;
+		result->height = height;
+		return YES;
+	}
+
+private:
 	std::string _contents;
-}
-
-+ (id) cxx_loaderWithPath:(const std::optional<std::string> &)path options:(uint32_t)options;
-- (BOOL) getResult:(OOPixMap *)result format:(OOTextureDataFormat *)outFormat originalWidth:(uint32_t *)outWidth originalHeight:(uint32_t *)outHeight;
-
-@end
+};
 
 
-@implementation OOTextureLoader
-
-+ (id) cxx_loaderWithPath:(const std::optional<std::string> &)path options:(uint32_t)options
+oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(const std::optional<std::string> &path, uint32_t options)
 {
 	gLoaderOptions = options;
 	std::ifstream file(path.value_or(""), std::ios::binary);
 	std::stringstream bytes;
 	bytes << file.rdbuf();
-	if (bytes.str() == "unreadable")  return nil;
-	OOTextureLoader *loader = [[[OOTextureLoader alloc] init] autorelease];
-	loader->_contents = bytes.str();
-	return loader;
+	if (bytes.str() == "unreadable")  return nullptr;
+	return oo::makeRef<StandInLoader>(bytes.str());
 }
-
-
-- (BOOL) getResult:(OOPixMap *)result format:(OOTextureDataFormat *)outFormat originalWidth:(uint32_t *)outWidth originalHeight:(uint32_t *)outHeight
-{
-	(void)outFormat;
-	(void)outWidth;
-	(void)outHeight;
-	unsigned width = 0, height = 0;
-	if (std::sscanf(_contents.c_str(), "%ux%u", &width, &height) != 2)  return NO;
-	*result = OOPixMap{};
-	result->width = width;
-	result->height = height;
-	return YES;
-}
-
-@end
 
 
 // A texture-handling stage, as the ship data and model stages are.

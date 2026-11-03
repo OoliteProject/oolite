@@ -114,7 +114,7 @@ public:
     unsigned countOfDockedContractors();
     unsigned countOfDockedPolice();
     unsigned countOfDockedDefenders();
-    std::vector<oo::ObjCRef<::Entity*>> dockSubEntities();
+    std::vector<oo::EntityHold> dockSubEntities(); // the docks, their objects held
     bool setUpShipFromDictionary(const oo::PList& dict) override;
     bool setUpSubEntities() override;
     bool getInterstellarUndockingAllowed();
@@ -173,9 +173,9 @@ public:
     // Slice 3: docking clearance, damage, allegiance and alert level.
     bool collideWithShip(::ShipEntity* other) override;
     bool hasHostileTarget() override;
-    void takeEnergyDamage(double amount, cxx::Entity* ent, cxx::Entity* other, const std::string& weaponIdentifier) override;
+    void takeEnergyDamage(double amount, Entity* ent, Entity* other, const std::string& weaponIdentifier) override;
     void adjustVelocity(Vector xVel) override;
-    void takeScrapeDamage(double amount, ::Entity* ent) override;
+    void takeScrapeDamage(double amount, Entity* ent) override;
     void takeHeatDamage(double amount) override;
     std::optional<std::string> getAllegiance();
     void setAllegiance(const std::optional<std::string>& newAllegiance);
@@ -207,7 +207,7 @@ public:
 
     // @private in Objective-C; still public (the tests read them), as the player's were after its
     // facade went
-    oo::Ref<::OOWeakSet> _shipsOnHold = { };
+    oo::WeakSet<Entity> _shipsOnHold = { }; // the ships' C++ parts, weakly (an OOWeakSet of their objects until the root facade went)
     ::DockEntity* player_reserved_dock = { };
     double last_launch_time = { };
     double approach_spacing = { };
@@ -266,17 +266,16 @@ public:
 
 namespace oo {
 
-// The station whose Objective-C object is <entity> (a station's object is a ship's since bead
-// oo-9ht.175): nullptr for nil or any other entity, where -isKindOfClass:[StationEntity class] was NO.
-inline ::StationEntity* ToStation(::Entity* entity)
-{
-    return dynamic_cast<::StationEntity*>(ToCxx(entity));
-}
-
 // The same question of a C++ ship (a ship is C++ since bead oo-9ht.144): nullptr for null or another ship.
 inline ::StationEntity* ToStation(::ShipEntity* ship)
 {
     return dynamic_cast<::StationEntity*>(ship);
+}
+
+// The same of a C++ entity (what an entity's JS object holds).
+inline ::StationEntity* ToStation(Entity* entity)
+{
+    return dynamic_cast<::StationEntity*>(entity);
 }
 
 } // namespace oo

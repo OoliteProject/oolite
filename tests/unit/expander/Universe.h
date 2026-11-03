@@ -13,19 +13,21 @@ class OOHarnessSystemManager
 public:
 	Random_Seed getRandomSeedForCurrentSystem();
 };
-@interface Universe : NSObject
-- (NSDictionary *) descriptions;
-- (NSString *) getSystemName:(OOSystemID)sys;
-- (NSString *) getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal;
-- (OOHarnessSystemManager *) systemManager;
-// The C++ forms the expander calls since the Universe bridge callers moved (bead oo-3rb.311),
-// over the same stub data (bead oo-qqz6: stub-API tracking; the lines above are unchanged).
-#ifdef __cplusplus
-- (const oo::PList *) cxx_descriptions;
-- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys;
-- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal;
-#endif
-@end
+// The universe is C++ since bead oo-ql9rn deleted its Objective-C facade: the bridge calls the
+// members of the same names, as OOStringExpander.mm calls them in the game:
+//   [UNIVERSE cxx_descriptions]                  -> descriptions()
+//   [UNIVERSE cxx_getSystemName:s (forGalaxy:g)] -> getSystemName(s (, g))
+//   [UNIVERSE systemManager]                     -> getSystemManager()
+// The Objective-C forms the stub declared before (-descriptions, -getSystemName:(forGalaxy:),
+// answering NSDictionary / NSString) were unused and went with the facade.
+class Universe
+{
+public:
+	const oo::PList *descriptions();
+	std::optional<std::string> getSystemName(OOSystemID sys);
+	std::optional<std::string> getSystemName(OOSystemID sys, OOGalaxyID gal);
+	OOHarnessSystemManager *getSystemManager();
+};
 #ifdef __cplusplus
 extern "C" {
 #endif

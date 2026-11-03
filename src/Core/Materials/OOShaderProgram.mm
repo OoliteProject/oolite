@@ -61,7 +61,7 @@ std::string GetGLSLInfoLog(GLhandleARB shaderObject);
 // The game view's matrix manager, taken from the C++ view. Null when there is no universe or view.
 OOOpenGLMatrixManager* GameViewMatrixManager()
 {
-    cxx::MyOpenGLView* view = oo::ToCxx([UNIVERSE gameView]);
+    MyOpenGLView* view = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     return (view != nullptr) ? view->getOpenGLMatrixManager() : nullptr;
 }
 
@@ -459,15 +459,14 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
     if (!fileName.has_value())
         return YES; // It's OK for one or the other of the shaders to be undefined.
 
-    result = [::ResourceManager cxx_stringFromFilesNamed:*fileName inFolder:"Shaders"];
+    result = ResourceManager::stringFromFilesNamed(*fileName, "Shaders");
     if (!result.has_value()) {
         const std::vector<std::string> extensions { shaderType, shaderType.substr(0, 4) }; // vertex and vert, or fragment and frag
 
         // Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
         if (!oo::str::pathHasExtensionIn(*fileName, extensions)) {
             for (const std::string& extension : extensions) {
-                result = [::ResourceManager cxx_stringFromFilesNamed:oo::str::appendingPathExtension(*fileName, extension)
-                                                            inFolder:"Shaders"];
+                result = ResourceManager::stringFromFilesNamed(oo::str::appendingPathExtension(*fileName, extension), "Shaders");
                 if (result.has_value())
                     break;
             }

@@ -32,35 +32,8 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 
-@interface OOTexture (SubclassInterface)
-
-- (void)addToCaches;
-- (void)removeFromCaches; // Must be called on -dealloc (while -cacheKey is still valid) for cacheable textures.
-
-+ (OOTexture*)cxx_existingTextureForKey:(const std::optional<std::string>&)key; // nil for nullopt
-
-@end
-
-@interface OOTexture (SubclassResponsibilities)
-
-- (void)apply;
-- (NSSize)dimensions;
-
-- (void)forceRebind;
-
-@end
-
-@interface OOTexture (SubclassOptional)
-
-- (void)ensureFinishedLoading; // Default: does nothing
-- (BOOL)isFinishedLoading; // Default: YES
-- (std::optional<std::string>)cxx_cacheKey; // Default: nullopt
-- (BOOL)isRectangleTexture; // Default: NO
-- (BOOL)isCubeMap; // Default: NO
-- (NSSize)texCoordsScale; // Default: 1,1
-- (struct OOPixMap)copyPixMapRepresentation; // Default: kOONullPixMap
-
-@end
+// The subclass interface (the categories SubclassInterface, SubclassResponsibilities and
+// SubclassOptional) is OOTexture's own members since bead oo-9ht.99 deleted the facade.
 
 /*	OOGenerateTextureCacheKey()
         cxx_OOTextureCacheKeyForSpecifier()

@@ -75,7 +75,7 @@ public:
             Fill();
         }
 
-        ::ShipEntity* operator*() const { return oo::ToShip(_buffer[_position]); } // the member's ship (the object until bead oo-9ht.144)
+        ::ShipEntity* operator*() const { return oo::ToShip(_buffer[_position].get()); } // the member's ship (the object until the ship's facade went)
         Iterator& operator++()
         {
             OOCAssert(_group->updateCount() == _updateCount, "OOShipGroup was mutated while being enumerated.");
@@ -95,7 +95,7 @@ public:
         OOShipGroup* _group;
         NSUInteger _updateCount;
         NSUInteger _index = 0, _batchCount = 0, _position = 0;
-        id _buffer[kBatchSize];
+        oo::EntityHold _buffer[kBatchSize]; // held, as the autoreleased objects were
     };
 
     Iterator begin() const { return Iterator(_group); }
@@ -103,7 +103,7 @@ public:
 
 private:
     // One batch of live members (a friend of OOShipGroup, for its ivars).
-    static NSUInteger FillBatch(OOShipGroup* group, NSUInteger* ioIndex, id* buffer, NSUInteger length);
+    static NSUInteger FillBatch(OOShipGroup* group, NSUInteger* ioIndex, oo::EntityHold* buffer, NSUInteger length);
 
     OOShipGroup* _group;
 };
@@ -111,10 +111,7 @@ private:
 bool OOShipGroup::initWithName(const std::optional<std::string>& name)
 {
     _capacity = kMinSize;
-    _members = (OOWeakReference**)malloc(sizeof *_members * _capacity);
-    if (_members == NULL) {
-        return false;
-    }
+    _members.resize(_capacity); // the malloc of _capacity weak references
 
     setName(name);
 
@@ -153,13 +150,8 @@ std::string OOShipGroup::description() const
 
 OOShipGroup::~OOShipGroup()
 {
-    NSUInteger i;
-
-    for (i = 0; i < _count; i++) {
-        [_members[i] release];
-    }
-    free(_members);
-    [_leader release]; // setLeader() weak-retained it (bead oo-9ht.24)
+    // The members' and the leader's weak references go with the vector and the member (the
+    // release of the leader's included).
     _name.reset();
 }
 
@@ -172,7 +164,7 @@ std::optional<std::string> OOShipGroup::descriptionComponents() const
         desc = oo::str::format("\"%s\", %s", _name->c_str(), desc.c_str());
     }
     if (mutableThis->leader() != nil) {
-        desc = oo::str::format("%s, leader: %s", desc.c_str(), oo::ShortDescriptionOf(oo::ToObjC(mutableThis->leader())).c_str());
+        desc = oo::str::format("%s, leader: %s", desc.c_str(), oo::EntityShortDescription(mutableThis->leader()).c_str());
     }
     return desc;
 }
@@ -191,13 +183,11 @@ void OOShipGroup::setName(const std::optional<std::string>& name)
 
 ::ShipEntity* OOShipGroup::leader()
 {
-    ::ShipEntity* result = oo::ToShip([_leader weakRefUnderlyingObject]);
+    ::ShipEntity* result = oo::ToShip(_leader.get());
 
     // If reference is stale, delete weakref object.
-    if (result == nil && _leader != nil) {
-        [_leader release];
-        _leader = nil;
-    }
+    if (result == nil)
+        _leader.reset();
 
     return result;
 }
@@ -207,30 +197,30 @@ void OOShipGroup::setLeader(::ShipEntity* leader)
     _updateCount++;
 
     if (leader != this->leader()) {
-        [_leader release];
+        _leader.reset();
         addShip(leader);
-        _leader = (leader != nullptr ? [oo::ToObjC(leader) weakRetain] : id { });
+        _leader = oo::WeakRef<Entity>(leader); // empty for none
     }
 }
 
-std::vector<oo::ObjCRef<::Entity*>> OOShipGroup::memberArray()
+std::vector<oo::EntityHold> OOShipGroup::memberArray()
 {
-    std::vector<oo::ObjCRef<::Entity*>> result;
+    std::vector<oo::EntityHold> result;
 
     if (_count == 0)
         return result;
 
     result.reserve(_count);
     for (::ShipEntity* ship : OOShipGroupMembers(this)) {
-        result.emplace_back(oo::ToObjC(ship));
+        result.emplace_back(ship);
     }
 
     return result;
 }
 
-std::vector<oo::ObjCRef<::Entity*>> OOShipGroup::memberArrayExcludingLeader()
+std::vector<oo::EntityHold> OOShipGroup::memberArrayExcludingLeader()
 {
-    std::vector<oo::ObjCRef<::Entity*>> result;
+    std::vector<oo::EntityHold> result;
     ::ShipEntity* leader = nil;
 
     if (_count == 0)
@@ -240,7 +230,7 @@ std::vector<oo::ObjCRef<::Entity*>> OOShipGroup::memberArrayExcludingLeader()
     result.reserve(_count);
     for (::ShipEntity* ship : OOShipGroupMembers(this)) {
         if (ship != leader) {
-            result.emplace_back(oo::ToObjC(ship));
+            result.emplace_back(ship);
         }
     }
 
@@ -250,7 +240,8 @@ std::vector<oo::ObjCRef<::Entity*>> OOShipGroup::memberArrayExcludingLeader()
 bool OOShipGroup::containsShip(::ShipEntity* ship)
 {
     for (::ShipEntity* containedShip : OOShipGroupMembers(this)) {
-        if ((ship != nullptr ? [oo::ToObjC(ship) isEqual:oo::ToObjC(containedShip)] : false)) {
+        if (ship != nullptr && ship == containedShip) // what -isEqual: of their objects answered (identity)
+        {
             return true;
         }
     }
@@ -275,7 +266,7 @@ bool OOShipGroup::addShip(::ShipEntity* ship)
         }
     }
 
-    _members[_count++] = (ship != nullptr ? [oo::ToObjC(ship) weakRetain] : id { });
+    _members[_count++] = oo::WeakRef<Entity>(ship); // empty for none
     return true;
 }
 
@@ -293,7 +284,8 @@ bool OOShipGroup::removeShip(::ShipEntity* ship)
     OOShipGroupCursor shipEnum(this);
     shipEnum.setPerformCleanup(NO);
     while ((containedShip = shipEnum.next())) {
-        if ((ship != nullptr ? [oo::ToObjC(ship) isEqual:oo::ToObjC(containedShip)] : false)) {
+        if (ship != nullptr && ship == containedShip) // what -isEqual: of their objects answered (identity)
+        {
             index = shipEnum.index() - 1;
             _members[index] = _members[--_count];
             foundIt = true;
@@ -341,16 +333,10 @@ bool OOShipGroup::isEmpty()
 
 bool OOShipGroup::resizeTo(NSUInteger newCapacity)
 {
-    OOWeakReference** temp = NULL;
-
     if (newCapacity < _count)
         return false;
 
-    temp = (OOWeakReference**)realloc(_members, newCapacity * sizeof *_members);
-    if (temp == NULL)
-        return false;
-
-    _members = temp;
+    _members.resize(newCapacity); // the realloc: the first _count kept
     _capacity = newCapacity;
     return true;
 }
@@ -394,7 +380,7 @@ NSUInteger OOShipGroup::updateCount()
     }
 
     while (enumerator->_index < group->_count) {
-        result = oo::ToShip([group->_members[enumerator->_index] weakRefUnderlyingObject]);
+        result = oo::ToShip(group->_members[enumerator->_index].get());
         if (result != nil) {
             enumerator->_index++;
             break;
@@ -418,7 +404,7 @@ NSUInteger OOShipGroup::updateCount()
 
 // One batch of live members for OOShipGroupMembers: the body of the former
 // -countByEnumeratingWithState:objects:count:, unchanged.
-NSUInteger OOShipGroupMembers::FillBatch(OOShipGroup* group, NSUInteger* ioIndex, id* buffer, NSUInteger length)
+NSUInteger OOShipGroupMembers::FillBatch(OOShipGroup* group, NSUInteger* ioIndex, oo::EntityHold* buffer, NSUInteger length)
 {
     NSUInteger srcIndex, dstIndex = 0;
     ::ShipEntity* item = nil;
@@ -426,9 +412,9 @@ NSUInteger OOShipGroupMembers::FillBatch(OOShipGroup* group, NSUInteger* ioIndex
 
     srcIndex = *ioIndex;
     while (srcIndex < group->_count && dstIndex < length) {
-        item = oo::ToShip([group->_members[srcIndex] weakRefUnderlyingObject]);
+        item = oo::ToShip(group->_members[srcIndex].get());
         if (item != nil) {
-            buffer[dstIndex++] = oo::ToObjC(item);
+            buffer[dstIndex++] = oo::EntityHold(item); // its object retained (and autoreleased by oo::ToObjC), as before
             srcIndex++;
         } else {
             group->_members[srcIndex] = group->_members[--group->_count];

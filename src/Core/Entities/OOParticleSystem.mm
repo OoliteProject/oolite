@@ -94,10 +94,10 @@ bool OOParticleSystem::canCollide()
     return false;
 }
 
-bool OOParticleSystem::checkCloseCollisionWith(cxx::Entity* other)
+bool OOParticleSystem::checkCloseCollisionWith(Entity* other)
 {
-    if (oo::ToObjC(other) == owner())
-        return false;
+    if (other == oo::LiveOwner(this))
+        return false; // the owner's C++ entity, null for none
     return other == nullptr || !other->isEffect(); // [nil isEffect] answered NO
 }
 
@@ -117,8 +117,10 @@ void OOParticleSystem::update(OOTimeDelta delta_t)
     }
 
     // disappear eventually.
-    if (_timePassed > _duration)
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+    if (_timePassed > _duration) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
+    }
 }
 
 #define DrawQuadForView(x, y, z, sz)   \
@@ -135,7 +137,7 @@ void OOParticleSystem::update(OOTimeDelta delta_t)
 
 void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
 {
-    if (!translucent || [UNIVERSE breakPatternHide])
+    if (!translucent || (UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false))
         return;
 
     OO_ENTER_OPENGL();
@@ -146,7 +148,8 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glEnable(GL_TEXTURE_2D));
     OOGL(glEnable(GL_BLEND));
     OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
-    [texture() apply];
+    if (OOTexture* particle = texture())
+        particle->apply(); // a message to nil did nothing
 
     HPVector viewPosition = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
     HPVector selfPosition = getPosition();
@@ -156,7 +159,7 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
     GLfloat(*particleColor)[4] = _particleColor;
     GLfloat* particleSize = _particleSize;
 
-    if ([UNIVERSE reducedDetail]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
         // Quick rendering - particle cloud is effectively a 2D billboard.
         OOGLPushModelView();
         OOGLMultModelView(OOMatrixForBillboard(selfPosition, viewPosition));
@@ -219,7 +222,7 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glPopAttrib());
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOParticleSystem after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOParticleSystem after drawing " + oo::EntityDescription(this); });
 }
 
 bool OOParticleSystem::isEffect()
@@ -233,9 +236,9 @@ OOTexture* OOParticleSystem::texture()
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<OOTexture*>> OOParticleSystem::allTextures()
+std::vector<oo::Ref<OOTexture>> OOParticleSystem::allTextures()
 {
-    std::vector<oo::ObjCRef<OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     result.emplace_back(::OOLightParticleEntity::defaultParticleTexture());
     return result;
 }
@@ -266,10 +269,10 @@ void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Ve
     }
 }
 
-oo::Ref<OOSmallFragmentBurstEntity> OOSmallFragmentBurstEntity::fragmentBurstFromEntity(::Entity* entity)
+oo::Ref<OOSmallFragmentBurstEntity> OOSmallFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity)
 {
     oo::Ref<OOSmallFragmentBurstEntity> result = oo::makeRef<OOSmallFragmentBurstEntity>();
-    result->initFragmentBurstFrom([entity position], [entity velocity], [entity collisionRadius]);
+    result->initFragmentBurstFrom(entity != nullptr ? entity->getPosition() : kZeroHPVector, entity != nullptr ? entity->getVelocity() : kZeroVector, entity != nullptr ? entity->collisionRadius() : 0.0f); // the C++ entity's members; none answers zero, as nil did
     return result;
 }
 
@@ -313,10 +316,10 @@ void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vect
     }
 }
 
-oo::Ref<OOBigFragmentBurstEntity> OOBigFragmentBurstEntity::fragmentBurstFromEntity(::Entity* entity)
+oo::Ref<OOBigFragmentBurstEntity> OOBigFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity)
 {
     oo::Ref<OOBigFragmentBurstEntity> result = oo::makeRef<OOBigFragmentBurstEntity>();
-    result->initFragmentBurstFrom([entity position], vector_multiply_scalar([entity velocity], 0.85), [entity collisionRadius]);
+    result->initFragmentBurstFrom(entity != nullptr ? entity->getPosition() : kZeroHPVector, vector_multiply_scalar(entity != nullptr ? entity->getVelocity() : kZeroVector, 0.85), entity != nullptr ? entity->collisionRadius() : 0.0f); // the C++ entity's members
     return result;
 }
 

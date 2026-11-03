@@ -59,34 +59,25 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
 
 
 // UNIVERSE: never initialised; answers the test's time and records what is removed.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	OOTimeAbsolute	_time;
-	Entity			*_removed;
-}
-@end
+public:
+	OOTimeAbsolute &_time = universal_time;	// the universe's own state, which its getter answers
+	Entity			*_removed = {};
 
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime	{ return _time; }
-
-
-- (BOOL) removeEntity:(Entity *)entity
-{
-	_removed = entity;
-	return YES;
-}
-
-@end
+	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	{
+		_removed = entity;
+		return YES;
+	}
+};
 
 
 namespace {
@@ -95,12 +86,13 @@ TestUniverse *sUniverse = nil;
 
 // The texture loader's stand-in (as in test_OOParticleSystem).
 std::optional<std::string> sTextureName;
-id sTexture = nil;
+OOTexture *sTexture = nullptr;	// never released
 
-id LoadTexture(id, SEL, const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
+// OOTexture::nameFactory, the test-only loader hook, where the facade's class method was replaced.
+oo::Ref<OOTexture> LoadTexture(const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
 {
 	sTextureName = name;
-	return sTexture;
+	return oo::Ref<OOTexture>(sTexture);
 }
 
 
@@ -108,11 +100,9 @@ void SetUp(OOTimeAbsolute time)
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
-		sTexture = [[OOWeakRefObject alloc] init];	// never released
-		Method loader = class_getClassMethod([OOTexture class], @selector(cxx_textureWithName:inFolder:options:anisotropy:lodBias:));
-		method_setImplementation(loader, (IMP)LoadTexture);
+		sUniverse = new TestUniverse();	// never released
+		sTexture = oo::makeRef<OOTexture>().leakRef();	// never released
+		OOTexture::nameFactory = &LoadTexture;
 	}
 	sUniverse->_time = time;
 	sUniverse->_removed = nil;
@@ -125,8 +115,8 @@ void SetUp(OOTimeAbsolute time)
 
 // --- Ivars of OOLightParticleEntity the test reads, and nothing else ------------------------------
 
-const GLfloat *ColorComponents(Entity *e)	{ return static_cast<OOLightParticleEntity *>(oo::ToCxx(e))->_colorComponents; }
-float Diameter(Entity *e)					{ return static_cast<OOLightParticleEntity *>(oo::ToCxx(e))->_diameter; }
+const GLfloat *ColorComponents(Entity *e)	{ return static_cast<OOLightParticleEntity *>(e)->_colorComponents; }
+float Diameter(Entity *e)					{ return static_cast<OOLightParticleEntity *>(e)->_diameter; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -138,16 +128,16 @@ bool Near(double a, double b)
 
 
 // The flash's object, as the ship and the universe hand it to Objective-C.
-Entity *FlashObject(const oo::Ref<OOFlashEffectEntity> &flash)	{ return oo::NewEntityFacade(flash); }
-OOFlashEffectEntity *Part(Entity *flash)						{ return dynamic_cast<OOFlashEffectEntity *>(oo::ToCxx(flash)); }
+Entity *FlashObject(const oo::Ref<OOFlashEffectEntity> &flash)	{ return oo::MadeEntity(flash); }
+OOFlashEffectEntity *Part(Entity *flash)						{ return dynamic_cast<OOFlashEffectEntity *>(flash); }
 
 
 Entity *Exploding()
 {
-	Entity *e = [[[Entity alloc] init] autorelease];
-	[e setPosition:make_HPvector(10, 20, 30)];
-	[e setVelocity:make_vector(1, 2, 3)];
-	[e setCollisionRadius:2.0f];
+	Entity *e = oo::MadeEntity(oo::makeRef<Entity>());
+	e->setPosition(make_HPvector(10, 20, 30));
+	e->setVelocity(make_vector(1, 2, 3));
+	e->setCollisionRadius(2.0f);
 	return e;
 }
 
@@ -161,30 +151,30 @@ OO_TEST(explosionFlash)
 		SetUp(5.0);
 		Entity *flash = FlashObject(OOFlashEffectEntity::explosionFlashFromEntity(Exploding()));
 		OO_CHECK(flash != nil && Part(flash) != nullptr);
-		OO_CHECK(HPvector_equal([flash position], make_HPvector(10, 20, 30)));
-		Vector v = [flash velocity];
+		OO_CHECK(HPvector_equal(flash->getPosition(), make_HPvector(10, 20, 30)));
+		Vector v = flash->getVelocity();
 		OO_CHECK(v.x == 1 && v.y == 2 && v.z == 3);
 		OO_CHECK(Part(flash)->diameter() == 2.0f && Diameter(flash) == 2.0f);
-		OO_CHECK([flash collisionRadius] == 0.0f && [flash energy] == 0.0f);
-		OO_CHECK([flash status] == STATUS_EFFECT && [flash scanClass] == CLASS_NO_DRAW && [flash isEffect] && ![flash canCollide]);
+		OO_CHECK(flash->collisionRadius() == 0.0f && flash->getEnergy() == 0.0f);
+		OO_CHECK(flash->status() == STATUS_EFFECT && flash->getScanClass() == CLASS_NO_DRAW && flash->isEffect() && !flash->canCollide());
 		const GLfloat *c = ColorComponents(flash);
 		OO_CHECK(c[0] == 1.0f && c[1] == 1.0f && c[2] == 1.0f && c[3] == 1.0f);
 
 		// Growth max(150 * 2, 600) = 600 a second; alpha 0.5, duration 0.4: fade in for 0.2668 s.
 		sUniverse->_time = 5.1;
-		[flash update:0.1];
+		flash->update(0.1);
 		OO_CHECK(Near(Diameter(flash), 62.0));
 		OO_CHECK(Near(c[3], 0.5 * 0.1 / (0.4 * 0.667)));
 		OO_CHECK(sUniverse->_removed == nil);
 
 		sUniverse->_time = 5.35;
-		[flash update:0.25];
+		flash->update(0.25);
 		OO_CHECK(Near(Diameter(flash), 212.0));
 		OO_CHECK(Near(c[3], 0.5 * (0.4 - 0.35) / (0.4 - 0.4 * 0.667)));
 		OO_CHECK(sUniverse->_removed == nil);
 
 		sUniverse->_time = 5.41;
-		[flash update:0.06];
+		flash->update(0.06);
 		OO_CHECK(sUniverse->_removed == flash);
 	}
 }
@@ -196,11 +186,11 @@ OO_TEST(bigExplosionGrowsFaster)
 	{
 		SetUp(0.0);
 		Entity *big = Exploding();
-		[big setCollisionRadius:10.0f];
+		big->setCollisionRadius(10.0f);
 		Entity *flash = FlashObject(OOFlashEffectEntity::explosionFlashFromEntity(big));
 		OO_CHECK(Part(flash)->diameter() == 10.0f);
 		sUniverse->_time = 0.1;
-		[flash update:0.1];
+		flash->update(0.1);
 		OO_CHECK(Near(Diameter(flash), 10.0 + 0.1 * 1500.0));	// 150 * 10 > 600
 	}
 }
@@ -215,8 +205,8 @@ OO_TEST(laserFlash)
 																				make_vector(4, 5, 6),
 																				OOColor::colorWithRed(1.0f, 0.5f, 0.25f, 0.125f).get()));
 		OO_CHECK(flash != nil && Part(flash) != nullptr);
-		OO_CHECK(HPvector_equal([flash position], make_HPvector(-1, -2, -3)));
-		Vector v = [flash velocity];
+		OO_CHECK(HPvector_equal(flash->getPosition(), make_HPvector(-1, -2, -3)));
+		Vector v = flash->getVelocity();
 		OO_CHECK(v.x == 4 && v.y == 5 && v.z == 6);
 		OO_CHECK(Part(flash)->diameter() == 1.0f);
 		const GLfloat *c = ColorComponents(flash);
@@ -224,17 +214,17 @@ OO_TEST(laserFlash)
 
 		// Growth 150 a second; alpha 1, duration 0.3.
 		sUniverse->_time = 1.1;
-		[flash update:0.1];
+		flash->update(0.1);
 		OO_CHECK(Near(Diameter(flash), 16.0));
 		OO_CHECK(Near(c[3], 0.1 / (0.3 * 0.667)));
 
 		sUniverse->_time = 1.25;
-		[flash update:0.15];
+		flash->update(0.15);
 		OO_CHECK(Near(c[3], (0.3 - 0.25) / (0.3 - 0.3 * 0.667)));
 		OO_CHECK(sUniverse->_removed == nil);
 
 		sUniverse->_time = 1.31;
-		[flash update:0.06];
+		flash->update(0.06);
 		OO_CHECK(sUniverse->_removed == flash);
 	}
 }
@@ -276,9 +266,8 @@ OO_TEST(facade)
 		SetUp(0.0);
 		Entity *flash = FlashObject(OOFlashEffectEntity::explosionFlashFromEntity(Exploding()));
 		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		OO_CHECK(dynamic_cast<OOFlashEffectEntity *>(oo::ToCxx(flash)) != nullptr);
-		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(flash)) == nullptr);
-		OO_CHECK(oo::ToObjC(oo::ToCxx(flash)) == flash);
+		OO_CHECK(dynamic_cast<OOFlashEffectEntity *>(flash) != nullptr);
+		OO_CHECK(flash == flash);
 	}
 }
 

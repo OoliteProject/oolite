@@ -204,7 +204,7 @@ void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo)
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
 #if OO_USE_VBO
-    BOOL useVBO = [[OOOpenGLExtensionManager sharedManager] vboSupported];
+    BOOL useVBO = OOOpenGLExtensionManager::sharedManager()->vboSupported();
 
     if (useVBO) {
         if (*vbo == 0) {
@@ -731,7 +731,7 @@ static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData)
     }
 }
 
-static void APIENTRY TessCombineCallback(GLdouble coords[3], void* vertexData[4], GLfloat weight[4], void** outData, void* polygonData)
+void APIENTRY TessCombineCallback(GLdouble coords[3], void* /*vertexData*/[4], GLfloat /*weight*/[4], void** outData, void* polygonData)
 {
     TessPolygonData* data = (TessPolygonData*)polygonData;
     NSPoint point = { coords[0], coords[1] };
@@ -786,7 +786,7 @@ static void SVGDumpEnd(TessPolygonData* data)
         return;
 
     *data->debugSVG += "</svg>\n";
-    [::ResourceManager cxx_writeDiagnosticString:*data->debugSVG toFileNamed:oo::str::format("Polygon Sprites/%s.svg", data->name.c_str())];
+    ResourceManager::writeDiagnosticString(*data->debugSVG, oo::str::format("Polygon Sprites/%s.svg", data->name.c_str()));
     data->debugSVG.reset();
 }
 

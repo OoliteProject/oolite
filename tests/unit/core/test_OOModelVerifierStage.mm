@@ -16,6 +16,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
+#import "OOTextureLoader.h"
 #import "OOModelVerifierStage.h"
 #import "OOOXPVerifierStage.h"
 #import "OODescription.h"
@@ -45,22 +46,17 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 #include "OOOXPVerifierTestDouble.h"
 
 
-@interface ResourceManager: OOObject
-
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-
-@end
+#import "ResourceManager.h"
 
 
-@implementation ResourceManager
-
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName != "builtin.dat")  return std::nullopt;
 	return "builtin/" + folderName.value_or("") + "/" + fileName;
 }
 
-@end
 
 
 // The texture stage (linked for the intermediate class) loads through these; no model here names a texture.
@@ -70,19 +66,12 @@ void OOFreePixMap(OOPixMap *ioPixMap)
 }
 
 
-@interface OOTextureLoader: OOObject
-+ (id) cxx_loaderWithPath:(const std::optional<std::string> &)path options:(uint32_t)options;
-@end
-
-
-@implementation OOTextureLoader
-+ (id) cxx_loaderWithPath:(const std::optional<std::string> &)path options:(uint32_t)options
+// The loader factory, as the Objective-C stand-in answered it (nil); C++
+// deleted the loaders' facade.
+oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(const std::optional<std::string> & /*path*/, uint32_t /*options*/)
 {
-	(void)path;
-	(void)options;
-	return nil;
+	return nullptr;
 }
-@end
 
 
 namespace {

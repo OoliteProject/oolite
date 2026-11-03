@@ -150,7 +150,7 @@ constexpr const char* kOOLogOpenGLShaderSupport = "rendering.opengl.shader.suppo
 
 namespace {
 
-cxx::OOOpenGLExtensionManager* sSingleton = nullptr; // +1, never released (the retained singleton)
+OOOpenGLExtensionManager* sSingleton = nullptr; // +1, never released (the retained singleton)
 
 } // namespace
 
@@ -180,8 +180,6 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
 }
 
 } // namespace
-
-namespace cxx {
 
 void OOOpenGLExtensionManager::reset()
 {
@@ -218,7 +216,7 @@ void OOOpenGLExtensionManager::reset()
      search paths here. If we don't, the search path dump ends up in
      the middle of the OpenGL stuff.
      */
-    [::ResourceManager cxx_paths];
+    ResourceManager::paths();
 
     OO_LOG("rendering.opengl.version", "OpenGL renderer version: {}.{}.{} (\"{}\"). Vendor: \"{}\". Renderer: \"{}\".", major, minor, release_, versionString ? reinterpret_cast<const char*>(versionString) : "(null)", vendor.value_or("(null)"), renderer.value_or("(null)"));
     {
@@ -480,8 +478,6 @@ bool OOOpenGLExtensionManager::useDustShader()
     return useDustShader_;
 }
 
-} // namespace cxx
-
 static unsigned IntegerFromString(const GLubyte** ioString)
 {
     if (EXPECT_NOT(ioString == NULL))
@@ -497,8 +493,6 @@ static unsigned IntegerFromString(const GLubyte** ioString)
     *ioString = curr;
     return result;
 }
-
-namespace cxx {
 
 #if OO_SHADERS
 
@@ -673,63 +667,61 @@ void OOOpenGLExtensionManager::checkTextureCombinersSupported()
 
 namespace {
 
-    // The regexp test sent to a string that may be nil (a nil string matched nothing). matcher is the
-    // one pass's matcher, taken on first use and held by the caller: the autoreleased Objective-C
-    // matcher lived until the pool drained, so one pass compiled one tester (ADR-0056 amendment
-    // oo-ct7c item 3). A null matcher (the tester did not compile) answers NO and is asked again.
-    BOOL MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const std::string& regexp)
-    {
-        if (!string.has_value())
-            return NO;
-        if (matcher == nullptr)
-            matcher = ::OORegExpMatcher::regExpMatcher();
-        if (matcher == nullptr)
-            return NO;
-        return matcher->string(*string, regexp);
-    }
-
-    // regexps may be a single string or an array of strings (in which case results are ANDed).
-    BOOL CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const oo::PList& regexps)
-    {
-        if (regexps.isNull())
-            return YES; // No restriction == match.
-        if (const std::string* regexp = regexps.getIf<std::string>()) {
-            return MatchesRegExp(matcher, string, *regexp);
-        }
-        if (const oo::PList::Array* array = regexps.getIf<oo::PList::Array>()) {
-            for (const oo::PList& element : *array) {
-                const std::string* regexp = element.getIf<std::string>();
-                if (EXPECT_NOT(regexp == nullptr)) {
-                    // Invalid type -- match fails.
-                    return NO;
-                }
-
-                if (!MatchesRegExp(matcher, string, *regexp))
-                    return NO;
-            }
-            return YES;
-        }
-
-        // Invalid type -- match fails.
+// The regexp test sent to a string that may be nil (a nil string matched nothing). matcher is the
+// one pass's matcher, taken on first use and held by the caller: the autoreleased Objective-C
+// matcher lived until the pool drained, so one pass compiled one tester (ADR-0056 amendment
+// oo-ct7c item 3). A null matcher (the tester did not compile) answers NO and is asked again.
+BOOL MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const std::string& regexp)
+{
+    if (!string.has_value())
         return NO;
+    if (matcher == nullptr)
+        matcher = ::OORegExpMatcher::regExpMatcher();
+    if (matcher == nullptr)
+        return NO;
+    return matcher->string(*string, regexp);
+}
+
+// regexps may be a single string or an array of strings (in which case results are ANDed).
+BOOL CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const oo::PList& regexps)
+{
+    if (regexps.isNull())
+        return YES; // No restriction == match.
+    if (const std::string* regexp = regexps.getIf<std::string>()) {
+        return MatchesRegExp(matcher, string, *regexp);
+    }
+    if (const oo::PList::Array* array = regexps.getIf<oo::PList::Array>()) {
+        for (const oo::PList& element : *array) {
+            const std::string* regexp = element.getIf<std::string>();
+            if (EXPECT_NOT(regexp == nullptr)) {
+                // Invalid type -- match fails.
+                return NO;
+            }
+
+            if (!MatchesRegExp(matcher, string, *regexp))
+                return NO;
+        }
+        return YES;
     }
 
-    // oo_stringForKey: on a dictionary that may be nil: a string, a number's string value, or nil.
-    oo::PList StringForKey(const oo::PList* dict, std::string_view key)
-    {
-        const oo::PList* value = (dict != nullptr) ? dict->find(key) : nullptr;
-        if (value == nullptr || !(value->isString() || value->isNumber()))
-            return oo::PList();
-        return oo::PList(dict->get<std::string>(key));
-    }
+    // Invalid type -- match fails.
+    return NO;
+}
+
+// oo_stringForKey: on a dictionary that may be nil: a string, a number's string value, or nil.
+oo::PList StringForKey(const oo::PList* dict, std::string_view key)
+{
+    const oo::PList* value = (dict != nullptr) ? dict->find(key) : nullptr;
+    if (value == nullptr || !(value->isString() || value->isNumber()))
+        return oo::PList();
+    return oo::PList(dict->get<std::string>(key));
+}
 
 } // namespace
 
 oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const std::optional<std::string>& versionStr, const std::optional<std::string>& extensionsStr)
 {
-    const oo::PList configurations = [::ResourceManager cxx_dictionaryFromFilesNamed:"gpu-settings.plist"
-                                                                            inFolder:"Config"
-                                                                            andMerge:YES];
+    const oo::PList configurations = ResourceManager::dictionaryFromFilesNamed("gpu-settings.plist", "Config", YES);
 
     // Highest precedence first, then case-insensitive name order (keys were taken in hash order
     // before sorting; ties between names equal but for case now keep byte order).
@@ -776,8 +768,6 @@ oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(const 
 
     return oo::PList(oo::PList::Dict { });
 }
-
-} // namespace cxx
 
 // The singleton category (+allocWithZone:, and -retain/-release/-autorelease doing nothing) is
 // not translated: the one instance is made only by sharedManager() and never released (proposed

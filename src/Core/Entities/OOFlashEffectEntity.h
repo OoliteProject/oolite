@@ -35,7 +35,7 @@ class OOFlashEffectEntity : public OOLightParticleEntity {
 public:
     // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a new flash,
     // initialised. Callers hand it to Objective-C with oo::NewEntityFacade.
-    static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(::Entity* entity);
+    static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(Entity* entity); // the C++ entity
     static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position, Vector vel, OOColor* color);
 
     static void setUpTexture();
@@ -43,7 +43,7 @@ public:
     static void resetGraphicsState();
 
     void update(OOTimeDelta delta_t) override;
-    ::OOTexture* texture() override;
+    OOTexture* texture() override;
 
 private:
     // The initialisers' bodies, run once right after construction (amendment oo-vl43 item 2).

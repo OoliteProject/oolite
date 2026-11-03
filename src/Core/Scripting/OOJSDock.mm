@@ -53,7 +53,7 @@ static JSValue DockSetProperty(OOJS_SETTER_ARGS);
 
 static JSClassDef sDockClass = {
     .class_name = "Dock",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
 enum {
@@ -89,7 +89,7 @@ void InitOOJSDock(JSContext* context, JSValueConst global)
         sDockProperties, OOJS_COUNT(sDockProperties), sDockMethods, OOJS_COUNT(sDockMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sDockClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sDockClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sDockClassID, JSShipClassID());
 }
 
@@ -107,7 +107,7 @@ static bool JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEn
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -134,7 +134,7 @@ static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEn
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;

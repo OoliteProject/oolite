@@ -86,7 +86,7 @@ private:
     JSValue _function = JS_UNDEFINED; // Owned; released on engine reset.
     JSValue _jsThis = JS_UNDEFINED; // The object that is 'this' in the function call. Owned; may be JS_NULL.
 
-    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was the facade's weak reference proxy)
     // The function's name, read once: the finalizer's description must not run JS code. nullopt
     // for an anonymous function.
     std::optional<std::string> _functionName;

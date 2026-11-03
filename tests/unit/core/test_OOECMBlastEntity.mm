@@ -22,6 +22,7 @@
 #import "OOECMBlastEntity.h"
 #import "Universe.h"
 #import "ShipEntity.h"	// the ship is C++
+#import "PlayerEntity.h"	// the stand-in PLAYER
 
 #include "oo_test.hpp"
 
@@ -33,42 +34,30 @@
 uint32_t gDebugFlags = 0;
 #endif
 
-class PlayerEntity;
 extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
 // UNIVERSE: never initialised; records what is removed and what is searched for.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	Entity					*_removed;
-	std::vector<double>		*_ranges;
-	Entity					*_searchedFrom;
-}
-@end
+public:
+	Entity					*_removed = {};
+	std::vector<double>		*_ranges = {};
+	Entity					*_searchedFrom = {};
 
-
-@implementation TestUniverse
-
-- (BOOL) removeEntity:(Entity *)entity
-{
-	_removed = entity;
-	return YES;
-}
-
-
-- (std::vector<oo::ObjCRef<Entity *>>) cxx_findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
-										 parameter:(void *)parameter
-										   inRange:(double)range
-										  ofEntity:(Entity *)entity
-{
-	_ranges->push_back(range);
-	_searchedFrom = entity;
-	return {};
-}
-
-@end
+	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	{
+		_removed = entity;
+		return YES;
+	}
+	std::vector<oo::EntityHold> findEntitiesMatchingPredicate(EntityFilterPredicate /*predicate*/, void * /*parameter*/, double range, Entity *entity) override	// held C++ entities	// the reference's C++ entity
+	{
+		_ranges->push_back(range);
+		_searchedFrom = entity;
+		return {};
+	}
+};
 
 
 extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
@@ -80,18 +69,44 @@ TestUniverse *sUniverse = nil;
 std::vector<double> sRanges;
 
 
+// PLAYER: the debug build asserts it is set (OOGetPlayer()), so the entities' positions,
+// which read it, have a player whose viewpoint is the origin: the camera-relative positions are the
+// release build's with no player (the origin's). Never released, as the player is not.
+class TestPlayer : public PlayerEntity
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
+
+
+void SetUpTestPlayer()
+{
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)
+	{
+		oo::Ref<TestPlayer> made = oo::makeRef<TestPlayer>();
+		@autoreleasepool
+		{
+			oo::RetainEntity(oo::MadeEntity(made));	// +1, as PlayerEntity::sharedPlayer() makes the game's
+		}
+		player = made.get();
+	}
+	gOOPlayer = player;
+}
+
+
 void SetUp()
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		sUniverse = new TestUniverse();	// never released
 	}
 	sRanges.clear();
 	sUniverse->_ranges = &sRanges;
 	sUniverse->_removed = nil;
 	sUniverse->_searchedFrom = nil;
 	gSharedUniverse = sUniverse;
+	SetUpTestPlayer();
 	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
 	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
 	// oo-9ht.144, as test_StationEntity's ships are).
@@ -103,22 +118,22 @@ void SetUp()
 // (oo::NewEntityFacade, autoreleased as the plain entity was), never set up.
 Entity *Ship()
 {
-	Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());
-	[ship setPosition:make_HPvector(10, 20, 30)];
-	[ship setStatus:STATUS_IN_FLIGHT];
+	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
+	ship->setPosition(make_HPvector(10, 20, 30));
+	ship->setStatus(STATUS_IN_FLIGHT);
 	return ship;
 }
 
 
 // --- How the test makes a blast (ported by the conversion), and nothing else ---------------------
 
-Entity *Blast(Entity *ship)	{ return oo::NewEntityFacade(OOECMBlastEntity::initFromShip(oo::ToShip(ship))); }
+Entity *Blast(Entity *ship)	{ return oo::MadeEntity(OOECMBlastEntity::initFromShip(oo::ToShip(ship))); }
 
 
 // What -[Entity isECMBlast] answered, from the C++ member (bead oo-9ht.75 deleted the category).
 bool IsECMBlast(Entity *entity)
 {
-	OOECMBlastEntity *blast = dynamic_cast<OOECMBlastEntity *>(oo::ToCxx(entity));
+	OOECMBlastEntity *blast = dynamic_cast<OOECMBlastEntity *>(entity);
 	return blast != nullptr && blast->isECMBlast();
 }
 
@@ -145,9 +160,9 @@ OO_TEST(blastAtTheShip)
 		Entity *ship = Ship();
 		Entity *blast = Blast(ship);
 		OO_CHECK(blast != nil);
-		OO_CHECK(HPvector_equal([blast position], make_HPvector(10, 20, 30)));
-		OO_CHECK([blast status] == STATUS_EFFECT && [blast scanClass] == CLASS_NO_DRAW);
-		OO_CHECK([blast owner] == nil);
+		OO_CHECK(HPvector_equal(blast->getPosition(), make_HPvector(10, 20, 30)));
+		OO_CHECK(blast->status() == STATUS_EFFECT && blast->getScanClass() == CLASS_NO_DRAW);
+		OO_CHECK(blast->owner() == nil);
 		OO_CHECK(IsECMBlast(blast) && !IsECMBlast(ship));
 	}
 }
@@ -161,16 +176,16 @@ OO_TEST(fourPulsesThenGone)
 		Entity *ship = Ship();
 		Entity *blast = Blast(ship);
 
-		[blast update:0.25];
+		blast->update(0.25);
 		OO_CHECK(sRanges.empty() && sUniverse->_removed == nil);
-		[blast update:0.25];
+		blast->update(0.25);
 		OO_CHECK(sRanges.size() == 1 && sRanges[0] == SCANNER_MAX_RANGE * 0.25);
 		OO_CHECK(sUniverse->_searchedFrom == blast);
-		[blast update:0.5];
-		[blast update:0.5];
+		blast->update(0.5);
+		blast->update(0.5);
 		OO_CHECK(sRanges.size() == 3 && sRanges[1] == SCANNER_MAX_RANGE * 0.5 && sRanges[2] == SCANNER_MAX_RANGE * 0.75);
 		OO_CHECK(sUniverse->_removed == nil);
-		[blast update:0.5];
+		blast->update(0.5);
 		OO_CHECK(sRanges.size() == 4 && sRanges[3] == SCANNER_MAX_RANGE);
 		OO_CHECK(sUniverse->_removed == blast);
 	}
@@ -184,8 +199,8 @@ OO_TEST(deadShipEndsIt)
 		SetUp();
 		Entity *ship = Ship();
 		Entity *blast = Blast(ship);
-		[ship setStatus:STATUS_DEAD];
-		[blast update:0.5];
+		ship->setStatus(STATUS_DEAD);
+		blast->update(0.5);
 		OO_CHECK(sRanges.empty() && sUniverse->_removed == blast);
 	}
 
@@ -193,15 +208,15 @@ OO_TEST(deadShipEndsIt)
 	@autoreleasepool
 	{
 		SetUp();
-		Entity *ship = [oo::NewEntityFacade(oo::makeRef<::ShipEntity>()) retain];	// a ship
-		blast = [Blast(ship) retain];
-		[ship release];		// the blast holds it weakly
+		Entity *ship = oo::RetainEntity(oo::MadeEntity(oo::makeRef<::ShipEntity>()));	// a ship
+		blast = oo::RetainEntity(Blast(ship));
+		oo::ReleaseEntity(ship);		// the blast holds it weakly
 	}
 	@autoreleasepool
 	{
-		[blast update:0.5];
+		blast->update(0.5);
 		OO_CHECK(sRanges.empty() && sUniverse->_removed == blast);
-		[blast release];
+		oo::ReleaseEntity(blast);
 	}
 }
 

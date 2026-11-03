@@ -71,7 +71,9 @@ inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_EXR = ".exr";
 inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_HDR = ".hdr";
 #define SNAPSHOTHDR_EXTENSION_DEFAULT SNAPSHOTHDR_EXTENSION_EXR
 
-@class Entity, GameController, OpenGLSprite;
+class Entity;
+@class OpenGLSprite;
+class GameController;
 
 enum GameViewKeys {
     gvFunctionKey1 = 256,
@@ -168,41 +170,42 @@ typedef enum {
 
 extern int debug;
 
-namespace cxx {
-
+// The game view: a global class since the Objective-C facade was deleted.
 class MyOpenGLView : public oo::RefCounted {
 public:
     MyOpenGLView() = default; // the object -init fills; see init()
+    // The members marked virtual are the ones the whole-game tests' recording views answer
+    // (test_GameController, test_OOOXZManager, test_OOPlanetDrawable); nothing in the game
+    // overrides them.
     ~MyOpenGLView() override;
 
     /**
      * \ingroup cli
      * Scans the command line for -nosplash, --nosplash, -splash, --splash- -novsync and --novsync arguments.
      */
-    // -init's body, run by the facade's -init once it is the object's peer (ADR-0056 amendment
-    // oo-3bgz item 3): it sends the facade's input and display-mode methods. false where -init
-    // answered nil (SDL could not start).
+    // -init's body, run on the new view by its maker (GameController::beginSplashScreen()). false
+    // where -init answered nil (SDL could not start).
     bool init();
     std::optional<std::string> getWindowCaption();
     void createWindowWithSize(NSSize size);
     void initSplashScreen();
-    void endSplashScreen();
+    virtual void endSplashScreen();
     void initialiseGLWithSize(NSSize v_size);
     void updateGLSize(NSSize size);
-    void updateScreen();
+    virtual void updateScreen();
     SDL_DisplayID getDisplayId();
     oo::PList getNativeSize();
 
     // Slice 2 (bead oo-72cz): accessors, display modes, settings, display / HDR, FOV and MSAA. A getter
     // named like its member is get<Name> (ADR-0056 amendment oo-862e).
     NSRect getBounds();
-    NSSize getViewSize();
+    virtual NSSize getViewSize();
     NSSize backingViewSize();
     GLfloat getDisplay_z();
     GLfloat getX_offset();
     GLfloat getY_offset();
     ::GameController* getGameController();
-    void setGameController(::GameController* controller);
+    virtual void setGameController(::GameController* controller);
     bool isRunningOnPrimaryDisplayDevice();
     void getDisplayDimensions(unsigned* width, unsigned* height);
 #if OOLITE_WINDOWS
@@ -221,21 +224,21 @@ public:
     bool hdrOutput();
     bool isOutputDisplayHDREnabled();
     void grabMouseInsideGameWindow(bool value);
-    void stringToClipboard(const std::string& stringToCopy);
+    virtual void stringToClipboard(const std::string& stringToCopy);
     void setFullScreenMode(bool fsm);
-    bool inFullScreenMode();
+    virtual bool inFullScreenMode();
     void toggleScreenMode();
     void setDisplayMode(int mode, bool fsm);
     void setScreenSize(int sizeIndex);
-    std::vector<oo::PList> getScreenSizeArray();
+    virtual std::vector<oo::PList> getScreenSizeArray();
     void populateFullScreenModelist();
     NSSize modeAsSize(int sizeIndex);
     void saveWindowSize(NSSize windowSize);
     NSSize loadWindowSize();
     int loadFullscreenSettings();
     int indexOfDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh);
-    NSSize currentScreenSize();
-    oo::PList currentScreenMode(); // null: no mode
+    virtual NSSize currentScreenSize();
+    virtual oo::PList currentScreenMode(); // null: no mode
     void setFov(float value, bool fromFraction);
     float fov(bool inFraction);
     void setMsaa(bool newMsaa);
@@ -263,9 +266,9 @@ public:
     void allowStringInput(bool value);
     enum StringInput getAllowingStringInput();
     std::optional<std::string> getTypedString();
-    void resetTypedString();
+    virtual void resetTypedString();
     void setTypedString(const std::string& value);
-    void noteMouseInteractionModeChangedFrom(OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
+    virtual void noteMouseInteractionModeChangedFrom(OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
     void pollControls();
     void setVirtualJoystick(double vmx, double vmy);
     NSPoint getVirtualJoystickPosition();
@@ -295,7 +298,14 @@ public:
     // necessarily got more complex than the non-SDL versions.
     void handleStringInput(SDL_KeyboardEvent* kbd_event, Uint16 key_id);
 
-    /*	Internal: the view's state, read by the members above and by the other slices. */
+    // tests/unit/core/test_MyOpenGLView.mm and test_OOOpenGLMatrixManager.mm read and set the state
+    // below.
+    friend struct MyOpenGLViewTestAccess;
+
+private:
+    /*	Internal: the view's state, read by the members above and by the other slices. Private
+            again since the facade was deleted.
+    */
     ::GameController* gameController = { }; // not retained
     bool keys[NUM_KEYS] = { };
     int scancode2Unicode[NUM_KEYS] = { };
@@ -376,10 +386,3 @@ public:
 private:
     void setUpBasicOpenGLStateWithSize();
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C MyOpenGLView, for the game controller, the universe, the player and
-// the many callers of [UNIVERSE gameView], Deleted, with namespace cxx above, by the bridge's
-// deletion bead.
-#import "MyOpenGLView+ObjCBridge.h"

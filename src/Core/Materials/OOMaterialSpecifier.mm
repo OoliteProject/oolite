@@ -235,7 +235,7 @@ int cxx_OOMaterialSpecularExponent(const oo::PList& configuration)
 {
     int result = RawSpecularExponentValue(configuration);
     if (result < 0) {
-        if ([UNIVERSE useShaders] && !cxx_OOMaterialSpecularExponentMapSpecifier(configuration).isNull()) {
+        if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false) && !cxx_OOMaterialSpecularExponentMapSpecifier(configuration).isNull()) {
             result = 128;
         } else {
             result = 10;

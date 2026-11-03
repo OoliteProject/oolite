@@ -179,7 +179,7 @@ private:
 
 #endif
 
-@class OOJavaScriptEngine;
+class OOJavaScriptEngine;
 
 /*	Formerly installed the watchdog thread and operation callback. The QuickJS
         interrupt handler is installed by -[OOJavaScriptEngine init], so this

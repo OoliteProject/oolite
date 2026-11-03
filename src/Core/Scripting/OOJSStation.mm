@@ -53,8 +53,8 @@ MA 02110-1301, USA.
         message to nil answered; an interface definition is C++ (its façade was deleted), and the
         station keeps it as oo::Ref. The station is C++ (its façade was deleted): its members are
         called (its object, a ship's, is the JS object's; the ship is C++). Messages to classes that
-        are still Objective-C (Universe, GameController, OOShipRegistry) stay as they are, which is
-        why the file is still .mm until Phase 4.
+        are still Objective-C (Universe, GameController) stay as they are (the ship registry is C++),
+        which is why the file is still .mm until Phase 4.
 */
 
 static JSClassID sStationClassID;
@@ -87,7 +87,7 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS);
 
 static JSClassDef sStationClass = {
     .class_name = "Station",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
 enum {
@@ -168,7 +168,7 @@ void InitOOJSStation(JSContext* context, JSValueConst global)
         sStationProperties, OOJS_COUNT(sStationProperties), sStationMethods, OOJS_COUNT(sStationMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sStationClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sStationClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sStationClassID, JSShipClassID());
 }
 
@@ -186,7 +186,7 @@ static bool JSStationGetStationEntity(JSContext* context, JSValueConst stationOb
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -213,7 +213,7 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj, Shi
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -266,7 +266,7 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kStation_isMainStation:
-        return OOJSValueFromBOOL(entity == [UNIVERSE station]);
+        return OOJSValueFromBOOL(entity == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr));
 
     case kStation_hasNPCTraffic:
         return OOJSValueFromBOOL((entity != nullptr ? entity->getHasNPCTraffic() : false));
@@ -535,14 +535,15 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     PlayerEntity* player = OOPlayerForScripting();
-    GameController* gameController = [UNIVERSE gameController];
+    GameController* gameController = (UNIVERSE != nullptr ? UNIVERSE->gameController() : nullptr);
 
-    if (EXPECT_NOT([gameController isGamePaused])) {
+    if (EXPECT_NOT((gameController != nullptr ? gameController->isGamePaused() : false))) {
         /*	Station.dockPlayer() was executed while the game was in pause.
                 Do we want to return an error or just unpause and continue?
                 I think unpausing is the sensible thing to do here - Nikos 20110208
         */
-        [gameController setGamePaused:false];
+        if (gameController != nullptr)
+            gameController->setGamePaused(false);
     }
 
     if (EXPECT(!(player != nullptr ? player->PlayerEntity::isDocked() : false))) // qualified: the final overrider, so the binding test stands in for it
@@ -556,7 +557,8 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS)
             player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
         if (player != nullptr)
             player->PlayerEntity::safeAllMissiles(); // qualified: the final overrider, so the binding test stands in for it
-        [UNIVERSE setViewDirection:VIEW_FORWARD];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->setViewDirection(VIEW_FORWARD);
         if (player != nullptr)
             player->PlayerEntity::enterDock(stationForDockingPlayer); // qualified: the final overrider, so the binding test stands in for it
     }
@@ -624,14 +626,14 @@ static JSValue StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
         abortAllDockings = JS_ToBool(context, OOJS_ARGV[1]) > 0;
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = oo::ToShip(oo::ObjectIn((station != nullptr ? station->launchIndependentShip(*shipRole) : oo::PList())));
+    result = oo::ToShip(oo::EntityIn((station != nullptr ? station->launchIndependentShip(*shipRole) : oo::PList()))); // the ship's entity node
     if (abortAllDockings) {
         if (station != nullptr)
             station->abortAllDockings();
     }
     OOJS_END_FULL_NATIVE
 
-    OOJS_RETURN_OBJECT(oo::ToObjC(result));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, result)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
 }
 
@@ -646,7 +648,7 @@ static JSValue StationLaunchDefenseShip(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchDefenseShip() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
     OOJS_NATIVE_EXIT
 }
@@ -662,7 +664,7 @@ static JSValue StationLaunchEscort(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchEscort() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
     OOJS_NATIVE_EXIT
 }
@@ -678,7 +680,7 @@ static JSValue StationLaunchScavenger(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchScavenger() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
     OOJS_NATIVE_EXIT
 }
@@ -694,7 +696,7 @@ static JSValue StationLaunchMiner(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchMiner() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
 }
 
@@ -709,7 +711,7 @@ static JSValue StationLaunchPirateShip(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchPirateShip() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
 
     OOJS_NATIVE_EXIT
 }
@@ -725,7 +727,7 @@ static JSValue StationLaunchShuttle(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchShuttle() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
 }
 
@@ -740,7 +742,7 @@ static JSValue StationLaunchPatrol(OOJS_NATIVE_ARGS)
     OOJS_BEGIN_FULL_NATIVE(context)
     launched = (station != nullptr ? station->launchPatrol() : (::ShipEntity*)nil);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::ToObjC(launched));
+    OOJS_RETURN(OOJSValueFromCxxObject(context, launched)); // the C++ ship's JS value
     OOJS_NATIVE_EXIT
 }
 
@@ -751,11 +753,13 @@ static JSValue StationLaunchPolice(OOJS_NATIVE_ARGS)
     StationEntity* station = nil;
     GET_THIS_STATION(station);
 
-    std::vector<oo::ObjCRef<::Entity*>> launched;
+    oo::PList::Array launched; // the launched ships' entity nodes, in order
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = oo::ObjCRefsIn<::Entity*>((station != nullptr ? station->launchPolice() : oo::PList()));
+    const oo::PList police = (station != nullptr ? station->launchPolice() : oo::PList());
+    for (Entity* ship : oo::EntitiesIn(police))
+        launched.push_back(oo::EntityObjectNode(ship));
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_PLIST(oo::PListFromObjects(launched));
+    OOJS_RETURN_PLIST(oo::PList(std::move(launched)));
     OOJS_NATIVE_EXIT
 }
 
@@ -920,7 +924,7 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS)
     }
 
     std::optional<std::string> commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
-    OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
+    OOCommodities* commodities = (UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr); // null: no good is defined, as a message to nil
     if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity.value_or("")))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
         return OOJSNativeFailure(context);
@@ -960,7 +964,7 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS)
     }
 
     const std::string commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("");
-    OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
+    OOCommodities* commodities = (UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr); // null: no good is defined, as a message to nil
     if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity))) {
         cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
         return OOJSNativeFailure(context);
@@ -1085,14 +1089,14 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
     }
     // get the shipInfo and shipyardInfo for this key
     const std::optional<std::string> shipKey = StringForKey(shipyardDefinition, std::string(SHIPYARD_KEY_SHIPDATA_KEY));
-    OOShipRegistry* registry = [OOShipRegistry sharedRegistry];
+    OOShipRegistry* registry = OOShipRegistry::sharedRegistry();
     // A copy of the registry's entry: -dictionaryWithDictionary: made an empty one for an unknown
     // key, never nil, so an unknown key goes on to the tests below (its "Invalid shipdata_key" test
     // could not fire and is gone).
-    oo::PList shipInfo = (shipKey.has_value() ? [registry cxx_shipInfoForKey:*shipKey] : oo::PList());
+    oo::PList shipInfo = (shipKey.has_value() ? registry->shipInfoForKey(*shipKey) : oo::PList());
     if (!shipInfo.isDict())
         shipInfo = oo::PList(oo::PList::Dict());
-    const oo::PList shipyardInfo = (shipKey.has_value() ? [registry cxx_shipyardInfoForKey:*shipKey] : oo::PList());
+    const oo::PList shipyardInfo = (shipKey.has_value() ? registry->shipyardInfoForKey(*shipKey) : oo::PList());
     // make sure the ship is a player ship (no roles string searched as a nil receiver: found at 0)
     const std::optional<std::string> roles = StringForKey(shipInfo, "roles");
     if (roles.has_value() && roles->find("player") == std::string::npos) {
@@ -1107,7 +1111,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
     result[std::string(SHIPYARD_KEY_SHIPDATA_KEY)] = *shipKey; // non-nil: a nil key found no shipyard information above
 
     // add an ID
-    Random_Seed ship_seed = [UNIVERSE marketSeed];
+    Random_Seed ship_seed = (UNIVERSE != nullptr ? UNIVERSE->marketSeed() : Random_Seed { });
     int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
     uint32_t superRand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
     superRand2 &= Ranrot();
@@ -1219,7 +1223,7 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS)
     bool gotIndex = true;
     gotIndex = OOJSValueToInt32(context, OOJS_ARGV[0], &shipIndex); // argv[0] is undefined if argc is 0 (min args 1).
 
-    if (argc != 1 || (!JS_IsNull(OOJS_ARGV[0]) && !gotIndex) || shipIndex < 0 || (shipIndex + 1) > (shipyard != nullptr ? shipyard->size() : 0)) {
+    if (argc != 1 || (!JS_IsNull(OOJS_ARGV[0]) && !gotIndex) || shipIndex < 0 || static_cast<std::size_t>(shipIndex) + 1 > (shipyard != nullptr ? shipyard->size() : 0)) {
         cxx_OOJSReportBadArguments(context, "Station", "removeShipFromShipyard", MIN(argc, 1), OOJS_ARGV, std::nullopt, "valid ship index");
         return OOJSNativeFailure(context);
     }

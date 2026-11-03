@@ -288,13 +288,13 @@ NSUInteger OOSystemInfo::hash() const
 
 oo::PList OOSystemInfo::valueForKey(const std::optional<std::string>& key)
 {
-    if ([UNIVERSE inInterstellarSpace] && _system == -1) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false) && _system == -1) {
         // -objectForKey: (a nil key found nothing)
-        const oo::PList systemData = [UNIVERSE cxx_currentSystemData];
+        const oo::PList systemData = (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList());
         const oo::PList* value = key.has_value() ? systemData.find(*key) : nullptr;
         return (value != nullptr) ? *value : oo::PList();
     }
-    return [UNIVERSE cxx_systemDataForGalaxy:_galaxy planet:_system key:key.value_or("")]; // (a nil key as "")
+    return (UNIVERSE != nullptr ? UNIVERSE->systemDataForGalaxy(_galaxy, _system, key.value_or("")) : oo::PList()); // (a nil key as "")
 }
 
 void OOSystemInfo::setValue(const oo::PList& value, const std::string& key)
@@ -302,23 +302,24 @@ void OOSystemInfo::setValue(const oo::PList& value, const std::string& key)
     // The running script's manifest identifier, handed on as it was read.
     const oo::PList manifest = RunningScriptManifest();
 
-    [UNIVERSE cxx_setSystemDataForGalaxy:_galaxy planet:_system key:key value:value fromManifest:ManifestString(manifest) forLayer:OO_LAYER_OXP_DYNAMIC];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->setSystemDataForGalaxy(_galaxy, _system, key, value, ManifestString(manifest), OO_LAYER_OXP_DYNAMIC);
 }
 
 std::vector<std::string> OOSystemInfo::allKeys()
 {
-    if ([UNIVERSE inInterstellarSpace] && _system == -1) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false) && _system == -1) {
         // the dictionary's keys, in key order (-allKeys gave hash order)
         std::vector<std::string> keys;
         // -cxx_currentSystemData answers a copy: keep it alive while the loop reads it (bead oo-f4241).
-        const oo::PList systemData = [UNIVERSE cxx_currentSystemData];
+        const oo::PList systemData = (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList());
         if (const oo::PList::Dict* systemDict = systemData.getIf<oo::PList::Dict>()) {
             for (const auto& entry : *systemDict)
                 keys.push_back(entry.first);
         }
         return keys;
     }
-    return [UNIVERSE cxx_systemDataKeysForGalaxy:_galaxy planet:_system];
+    return (UNIVERSE != nullptr ? UNIVERSE->systemDataKeysForGalaxy(_galaxy, _system) : std::vector<std::string>());
 }
 
 OOGalaxyID OOSystemInfo::galaxy() const
@@ -339,10 +340,10 @@ OOSystemID OOSystemInfo::system() const
 
 NSPoint OOSystemInfo::coordinates()
 {
-    if ([UNIVERSE inInterstellarSpace] && _system == -1) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false) && _system == -1) {
         return (PLAYER != nullptr ? PLAYER->PlayerEntity::getGalaxy_coordinates() : NSPoint { }); // qualified: the final overrider, so the binding test stands in for it
     }
-    return [UNIVERSE coordinatesForSystem:_system];
+    return (UNIVERSE != nullptr ? UNIVERSE->coordinatesForSystem(_system) : NSPoint { });
 }
 
 JSValue OOSystemInfo::jsValueInContext(JSContext* context)
@@ -520,7 +521,7 @@ static bool SystemInfoGetSystemDataValue(JSContext* context, OOSystemInfo* info,
 {
     *outValue = JS_UNDEFINED;
 
-    OOSystemDescriptionManager* systemManager = [UNIVERSE systemManager];
+    OOSystemDescriptionManager* systemManager = (UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr);
     oo::PList propValue;
     // interstellar space needs more work at this stage
     if (info->system() != -1) {
@@ -850,7 +851,7 @@ static JSValue SystemInfoGetProperty(OOJS_GETTER_ARGS)
     }
 
     // What if we're trying to access a saved witchspace systemInfo object?
-    bool savedInterstellarInfo = ![UNIVERSE inInterstellarSpace] && SystemOf(info) == -1;
+    bool savedInterstellarInfo = !(UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false) && SystemOf(info) == -1;
     bool sameGalaxy = (PLAYER != nullptr ? PLAYER->PlayerEntity::currentGalaxyID() : OOGalaxyID { }) == GalaxyOf(info); // qualified: the final overrider, so the binding test stands in for it
 
     switch (magic) {
@@ -946,7 +947,7 @@ static JSValue SystemInfoRouteToSystem(OOJS_NATIVE_ARGS)
     }
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = [UNIVERSE cxx_routeFromSystem:SystemOf(thisInfo) toSystem:SystemOf(otherInfo) optimizedBy:routeType];
+    result = (UNIVERSE != nullptr ? UNIVERSE->routeFromSystem(SystemOf(thisInfo), SystemOf(otherInfo), routeType) : oo::PList());
     OOJS_END_FULL_NATIVE
 
     OOJS_RETURN_PLIST(result);
@@ -963,7 +964,7 @@ static JSValue SystemInfoSamplePrice(OOJS_NATIVE_ARGS)
 
     if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))
         return OOJSNativeFailure(context);
-    OOCommodities* commodities = [UNIVERSE commodities]; // null: no good is defined, as a message to nil
+    OOCommodities* commodities = (UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr); // null: no good is defined, as a message to nil
     std::optional<std::string> commodity = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (EXPECT_NOT(commodities == nullptr || !commodities->goodDefined(commodity.value_or("")))) {
         cxx_OOJSReportBadArguments(context, "SystemInfo", "samplePrice", MIN(argc, 1), OOJS_ARGV, std::nullopt, "Unrecognised commodity type");
@@ -1022,7 +1023,8 @@ static JSValue SystemInfoSetPropertyMethod(OOJS_NATIVE_ARGS)
         manifest = RunningScriptManifest();
     }
 
-    [UNIVERSE cxx_setSystemDataForGalaxy:GalaxyOf(thisInfo) planet:SystemOf(thisInfo) key:property.value_or("") value:value fromManifest:ManifestString(manifest) forLayer:layer];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->setSystemDataForGalaxy(GalaxyOf(thisInfo), SystemOf(thisInfo), property.value_or(""), value, ManifestString(manifest), layer);
 
     OOJS_RETURN_VOID;
 
@@ -1174,7 +1176,7 @@ static JSValue SystemInfoStaticSetInterstellarProperty(OOJS_NATIVE_ARGS)
 
     std::string key = oo::str::format("interstellar: %u %u %u", g, s1, s2);
 
-    OOSystemDescriptionManager* systemManager = [UNIVERSE systemManager]; // null: nothing set, as a message to nil
+    OOSystemDescriptionManager* systemManager = (UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr); // null: nothing set, as a message to nil
     if (systemManager != nullptr)
         systemManager->setProperty(property.value_or(""), key, layer, value, ManifestString(manifest));
 

@@ -98,20 +98,20 @@ void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta)  { sLimiterDepth++; sLimiter
 void OOJSStopTimeLimiter(void)  { sLimiterDepth--; }
 
 
-@interface OOJavaScriptEngine: OOObject
-+ (OOJavaScriptEngine *) sharedEngine;
-@end
-
-@implementation OOJavaScriptEngine
-
-+ (OOJavaScriptEngine *) sharedEngine
+// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared with the
+// header's names and signatures but not its class; the stand-in's answers are kept.
+class OOJavaScriptEngine
 {
-	static OOJavaScriptEngine *engine = nil;
-	if (engine == nil)  engine = [[OOJavaScriptEngine alloc] init];
+public:
+	static OOJavaScriptEngine *sharedEngine();
+};
+
+
+OOJavaScriptEngine *OOJavaScriptEngine::sharedEngine()
+{
+	static OOJavaScriptEngine *engine = new OOJavaScriptEngine;
 	return engine;
 }
-
-@end
 
 
 #import "OOScript.h"
@@ -330,7 +330,7 @@ OO_TEST(engineReset)
 	{
 		oo::Ref<OOJSFunction> function = Compile("resettable", "return 1;", {});
 		OO_CHECK(!JS_IsNull(function->function()));
-		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, [OOJavaScriptEngine sharedEngine]);
+		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, OOJavaScriptEngine::sharedEngine());
 		OO_CHECK(JS_IsNull(function->function()));
 		OO_CHECK(JS_IsNull(function->functionValue()));
 		OO_CHECK_EQ(function->name().value_or("<none>"), "resettable");	// the name stays

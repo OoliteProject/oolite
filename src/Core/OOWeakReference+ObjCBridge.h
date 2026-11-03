@@ -21,94 +21,18 @@ The facade is the reference's identity (ADR-0056 amendment oo-3kqi): its callers
 pointer to it (weakSelf). So the facade makes and owns its C++ object, as a facade over a subclass
 of an Objective-C class does (amendment oo-o89): oo::ToObjC answers the live facade or nil and
 never makes one, and converted code holds the facade, never the C++ object alone. The protocol,
-OOWeakRefObject (whose subclasses are Objective-C: Entity, Universe, AI, OOTexture and more) and
+OOWeakRefObject (whose one subclass left is the root Entity facade) and
 the OOObject category stay Objective-C here until the classes that use them are converted; then
 they and this file go, and oo::WeakRef replaces them. Never add to this file.
 
 
-Weak reference class for Cocoa/GNUstep/OpenStep. As it stands, this will not
-work as a weak reference in a garbage-collected environment.
-
-A weak reference allows code to maintain a reference to an object while
-allowing the object to reach a retain count of zero and deallocate itself.
-To function, the referenced object must implement the OOWeakReferenceSupport
-protocol.
-
-Client use is extremely simple: to get a weak reference to the object, call
--weakRetain and use the returned proxy instead of the actual object. When
-finished, release the proxy. Messages sent to the proxy will be forwarded as
-long as the underlying object exists; beyond that, they will act exactly like
-messages to nil. (IMPORTANT: this means messages returning floating-point or
-struct values have undefined return values, so use -weakRefUnderlyingObject in
-such cases.) Example:
-
-@interface ThingWatcher: OOObject
-{
-@private
-        Thing			*thing;
-}
-@end
-
-@implementation ThingWatcher
-- (void)setThing:(Thing *)aThing
-{
-        [thing release];
-        thing = [aThing weakRetain];
-}
-
-- (void)frobThing
-{
-        [thing frob];
-}
-
-- (void)dealloc
-{
-        [thing release];
-        [super dealloc];
-}
-@end
-
-
-Note that the only reference to OOWeakReference being involved is the call to
-weakRetain instead of retain. However, the following would not work:
-        thing = aThing;
-        [thing weakRetain];
-
-Additionally, it is not possible to access instance variables directly -- but
-then, that's a filthy habit.
-
-OOWeakReferenceSupport implementation is also simple:
-
-@interface Thing: OOObject <OOWeakReferenceSupport>
-{
-@private
-        OOWeakReference		*weakSelf;
-}
-@end
-
-@implementation Thing
-- (id)weakRetain
-{
-        if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
-        return [weakSelf retain];
-}
-
-- (void)weakRefDied:(OOWeakReference *)weakRef
-{
-        if (weakRef == weakSelf)  weakSelf = nil;
-}
-
-- (void)dealloc
-{
-        [weakSelf weakRefDrop];	// Very important!
-        [super dealloc];
-}
-
-- (void)frob
-{
-        NSBeep();
-}
-@end
+Weak reference class for Cocoa/GNUstep/OpenStep. The usage notes before the conversion: -weakRetain
+gave a retained proxy that forwarded messages while the object lived and acted like nil once it had
+gone (use -weakRefUnderlyingObject, the object or nil, for floating-point or struct results); a
+supporting class kept an unretained weakSelf, cleared it in -weakRefDied: and sent -weakRefDrop
+from -dealloc. Nothing outside the root Entity facade and what reads its weak references uses
+this (deleting that facade deletes them): a C++ object is held with oo::WeakRef
+(oofnd/Ref.hpp, whose banner maps each idiom) and a weak set is an oo::WeakSet (oofnd/WeakSet.hpp).
 
 
 Copyright (C) 2007-2013 Jens Ayton

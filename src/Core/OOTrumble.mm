@@ -183,11 +183,7 @@ void OOTrumble::setupForPlayer(::PlayerEntity* p1, const std::string& digramStri
     animationTime = 0.0;
     animationDuration = 1.5 + randf() * 3.0; // time until next animation
     //
-    texture = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithName:"trumblekit.png"
-                                                                inFolder:"Textures"
-                                                                 options:kOOTextureDefaultOptions | kOOTextureNoShrink
-                                                              anisotropy:0.0f
-                                                                 lodBias:kOOTextureDefaultLODBias]);
+    texture = oo::Ref<OOTexture>(OOTexture::textureWithName("trumblekit.png", "Textures", kOOTextureDefaultOptions | kOOTextureNoShrink, 0.0f, kOOTextureDefaultLODBias));
 
     InitTrumbleSounds();
 
@@ -360,7 +356,8 @@ void OOTrumble::drawTrumble(double z)
     OOGLTranslateModelView(make_vector(position.x, position.y, z));
     OOGLMultModelView(OOMatrixForRotationZ(rotation));
 
-    [texture.get() apply];
+    if (texture != nullptr)
+        texture->apply(); // a message to nil did nothing
 
     //
     // Body..
@@ -471,7 +468,7 @@ void OOTrumble::updateTrumble(double delta_t)
 {
     // player movement
     NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * (player != nullptr ? player->dialPitch() : 0.0f), TRUMBLE_MAX_ROTATIONAL_VELOCITY * (player != nullptr ? player->dialRoll() : 0.0f));
-    switch ([UNIVERSE viewDirection]) {
+    switch ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID { })) {
         GLfloat t;
     case VIEW_AFT:
         p_mov.x = -p_mov.x;
@@ -556,12 +553,12 @@ void OOTrumble::updateTrumble(double delta_t)
         // consult menu...
         ::ShipEntity* selectedCargopod = nil;
         float mostYummy = 0.0;
-        std::vector<oo::ObjCRef<::Entity*>>* cargopods = (player != nullptr ? player->getCargo() : (std::vector<oo::ObjCRef<::Entity*>>*)nullptr); // the cargo pods (live: eaten ones are removed)
+        std::vector<oo::EntityHold>* cargopods = (player != nullptr ? player->getCargo() : (std::vector<oo::EntityHold>*)nullptr); // the cargo pods (live: eaten ones are removed)
         NSUInteger i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
         for (i = 0; i < n_pods; i++) {
             ::ShipEntity* cargopod = oo::ToShip((*cargopods)[i].get());
             const std::string cargo_type = (cargopod != nullptr ? cargopod->commodityType() : std::optional<std::string>()).value_or(""); // nil arrived as ""
-            float yumminess = (1.0 + randf()) * ([UNIVERSE commodityMarket] != nullptr ? [UNIVERSE commodityMarket]->trumbleOpinionForGood(cargo_type) : 0.0f);
+            float yumminess = (1.0 + randf()) * ((UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket() : nullptr) != nullptr ? UNIVERSE->getCommodityMarket()->trumbleOpinionForGood(cargo_type) : 0.0f);
             if (yumminess > mostYummy) {
                 selectedCargopod = cargopod;
                 mostYummy = yumminess;
@@ -579,11 +576,12 @@ void OOTrumble::updateTrumble(double delta_t)
             if (trumbleAppetiteAccumulator > 10.0) {
                 // eaten all of this cargo!
                 const std::string ms = oo::str::formatRuntime(OO_DESC("trumbles-eat-@"),
-                    { [UNIVERSE cxx_displayNameForCommodity:(selectedCargopod != nullptr ? selectedCargopod->commodityType() : std::optional<std::string>()).value_or("")].value_or("(null)") });
+                    { (UNIVERSE != nullptr ? UNIVERSE->displayNameForCommodity((selectedCargopod != nullptr ? selectedCargopod->commodityType() : std::optional<std::string>()).value_or("")) : std::optional<std::string>()).value_or("(null)") });
 
-                [UNIVERSE cxx_addMessage:ms forCount:4.5];
+                if (UNIVERSE != nullptr)
+                    UNIVERSE->addMessage(ms, 4.5);
                 if (cargopods != nullptr)
-                    std::erase(*cargopods, oo::ToObjC(selectedCargopod));
+                    std::erase(*cargopods, static_cast<Entity*>(selectedCargopod));
                 trumbleAppetiteAccumulator -= 10.0;
 
                 // consider breeding - must be full grown and happy
@@ -787,7 +785,7 @@ void OOTrumble::updateShudder(double delta_t)
     }
 }
 
-void OOTrumble::updateStoned(double delta_t)
+void OOTrumble::updateStoned(double /*delta_t*/)
 {
 }
 

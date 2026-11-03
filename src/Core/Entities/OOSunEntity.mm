@@ -244,21 +244,26 @@ void OOSunEntity::update(OOTimeDelta delta_t)
             {
                 double sky_bri = 1.0 - 1.5 * _novaExpansionTimer;
                 if (sky_bri < 0) {
-                    [UNIVERSE setSkyColorRed:0.0f // back to black
-                                       green:0.0f
-                                        blue:0.0f
-                                       alpha:0.0f];
+                    if (UNIVERSE != nullptr)
+                        UNIVERSE->setSkyColorRed(0.0f, // back to black
+                            0.0f,
+                            0.0f,
+                            0.0f);
                 } else {
-                    [UNIVERSE setSkyColorRed:sky_bri // whiteout
-                                       green:sky_bri
-                                        blue:sky_bri
-                                       alpha:1.0f];
+                    if (UNIVERSE != nullptr)
+                        UNIVERSE->setSkyColorRed(sky_bri, // whiteout
+                            sky_bri,
+                            sky_bri,
+                            1.0f);
                 }
                 if (sky_bri == 1.0) {
                     // This sun has now gone nova!
-                    [UNIVERSE cxx_setSystemDataKey:"sun_gone_nova" value:oo::PList(static_cast<bool>(YES)) fromManifest:"org.oolite.oolite"]; // +numberWithBool:
-                    [UNIVERSE cxx_setSystemDataKey:"corona_flare" value:oo::PList::singleReal(0.3) fromManifest:"org.oolite.oolite"]; // +numberWithFloat:
-                    [UNIVERSE cxx_setSystemDataKey:"corona_hues" value:oo::PList::singleReal(0.05) fromManifest:"org.oolite.oolite"];
+                    if (UNIVERSE != nullptr)
+                        UNIVERSE->setSystemDataKey("sun_gone_nova", oo::PList(static_cast<bool>(YES)), "org.oolite.oolite"); // +numberWithBool:
+                    if (UNIVERSE != nullptr)
+                        UNIVERSE->setSystemDataKey("corona_flare", oo::PList::singleReal(0.3), "org.oolite.oolite"); // +numberWithFloat:
+                    if (UNIVERSE != nullptr)
+                        UNIVERSE->setSystemDataKey("corona_hues", oo::PList::singleReal(0.05), "org.oolite.oolite");
                     // Novas are stored under the core manifest if the
                     // player was there at the time. Default layer 2
                     // is fine.
@@ -268,7 +273,8 @@ void OOSunEntity::update(OOTimeDelta delta_t)
                 discColor[1] = 1.0 * _sunBrightnessFactor;
                 discColor[2] = 1.0 * _sunBrightnessFactor;
                 _novaExpansionTimer += delta_t;
-                [UNIVERSE cxx_setSystemDataKey:"sun_radius" value:oo::PList::singleReal(collision_radius + delta_t * _novaExpansionRate) fromManifest:"org.oolite.oolite"]; // +numberWithFloat:
+                if (UNIVERSE != nullptr)
+                    UNIVERSE->setSystemDataKey("sun_radius", oo::PList::singleReal(collision_radius + delta_t * _novaExpansionRate), "org.oolite.oolite"); // +numberWithFloat:
             } else {
                 OO_LOG("sun.nova.end", "DEBUG: NOVA final radius {:.1f}", collision_radius);
 
@@ -280,7 +286,7 @@ void OOSunEntity::update(OOTimeDelta delta_t)
     }
 
     // update corona
-    if (![UNIVERSE reducedDetail]) {
+    if (!(UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
         corona_stage += corona_speed_factor * delta_t;
         while (corona_stage > 1.0) {
             int i;
@@ -295,7 +301,7 @@ void OOSunEntity::update(OOTimeDelta delta_t)
 
 void OOSunEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
-    if (![UNIVERSE breakPatternHide]) {
+    if (!(UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false)) {
         if (translucent) {
             // nothing...
         } else {
@@ -346,9 +352,9 @@ void OOSunEntity::drawOpaqueParts()
 
     OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 
-    if ([UNIVERSE reducedDetail]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
         int subdivideLevel = 2; // 4 is probably the maximum!
-        float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
+        float drawFactor = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getViewSize() : NSSize { }).width / 100.0;
         float drawRatio2 = drawFactor * effective_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 
         if (cam_zero_distance > 0.0f) {
@@ -402,12 +408,12 @@ void OOSunEntity::drawOpaqueParts()
     }
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SunEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SunEntity after drawing " + oo::EntityDescription(this); });
 }
 
 void OOSunEntity::drawTranslucentParts()
 {
-    if ([UNIVERSE reducedDetail]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
         return;
     }
 
@@ -547,10 +553,10 @@ void OOSunEntity::drawDirectVisionSunGlare()
 
     GLfloat directVisionSunGlare = (PLAYER != nullptr ? PLAYER->lookingAtSunWithThresholdAngleCos(cosf(sunGlareAngularSize)) : 0.0f);
     if (directVisionSunGlare) {
-        NSSize siz = [UNIVERSE gui]->size();
-        ::MyOpenGLView* gameView = [UNIVERSE gameView];
-        GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
-        GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
+        NSSize siz = UNIVERSE->getGui()->size();
+        ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
+        GLfloat aspectRatio = ((gameView != nullptr ? gameView->getViewSize() : NSSize { }).width / (gameView != nullptr ? gameView->getViewSize() : NSSize { }).height);
+        GLfloat z = (gameView != nullptr ? gameView->getDisplay_z() : 0.0f) / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
         GLfloat atmosphericReductionFactor = 1.0f - (PLAYER != nullptr ? PLAYER->insideAtmosphereFraction() : 0.0f);
         // 182: square of ratio of radius to sun-witchpoint distance
         // in default Lave
@@ -587,10 +593,10 @@ void OOSunEntity::drawStarGlare()
         float alphaMult = _sunCoronaAlphaFactor * alpha;
         alpha *= alphaMult;
         GLfloat glareColor[4] = { discColor[0], discColor[1], discColor[2], alpha };
-        NSSize siz = [UNIVERSE gui]->size();
-        ::MyOpenGLView* gameView = [UNIVERSE gameView];
-        GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
-        GLfloat z = [gameView display_z] / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
+        NSSize siz = UNIVERSE->getGui()->size();
+        ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
+        GLfloat aspectRatio = ((gameView != nullptr ? gameView->getViewSize() : NSSize { }).width / (gameView != nullptr ? gameView->getViewSize() : NSSize { }).height);
+        GLfloat z = (gameView != nullptr ? gameView->getDisplay_z() : 0.0f) / (aspectRatio > 4.0f / 3.0f ? aspectRatio : 1.0f / aspectRatio);
         OOGL(glColor4fv(glareColor));
 
         OOGLBEGIN(GL_QUADS);
@@ -674,7 +680,8 @@ void OOSunEntity::setRadius(GLfloat rad, GLfloat corona)
 void OOSunEntity::setPosition(HPVector posn)
 {
     Entity::setPosition(posn);
-    [UNIVERSE setMainLightPosition:HPVectorToVector(posn)];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->setMainLightPosition(HPVectorToVector(posn));
 }
 
 bool OOSunEntity::willGoNova()
@@ -744,24 +751,24 @@ bool OOSunEntity::isVisibleToScripts()
 
 // OOStellarBody.h: the sun and the planet asked directly, any
 // other body by selector.
-double OOStellarBodyRadius(::Entity* body)
+double OOStellarBodyRadius(Entity* body)
 {
-    if (body == nil)
+    if (body == nullptr)
         return 0.0;
-    if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(oo::ToCxx(body)))
+    if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(body))
         return sun->radius();
-    if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(oo::ToCxx(body)))
+    if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(body))
         return planet->radius();
-    return [(::Entity<OOStellarBody>*)body radius];
+    return 0.0; // any other body: none in the game; its object did not answer -radius
 }
 
-OOStellarBodyType OOStellarBodyPlanetType(::Entity* body)
+OOStellarBodyType OOStellarBodyPlanetType(Entity* body)
 {
-    if (body == nil)
+    if (body == nullptr)
         return (OOStellarBodyType)0;
-    if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(oo::ToCxx(body)))
+    if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(body))
         return sun->planetType();
-    if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(oo::ToCxx(body)))
+    if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(body))
         return planet->planetType();
-    return [(::Entity<OOStellarBody>*)body planetType];
+    return (OOStellarBodyType)0; // any other body: none in the game; its object did not answer -planetType
 }

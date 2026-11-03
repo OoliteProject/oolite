@@ -56,82 +56,62 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
 
 
 // UNIVERSE: never initialised; answers the test's time and records what is added and removed.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	OOTimeAbsolute	_time;
-	Entity			*_removed;
-	Entity			*_added;
-}
-@end
+public:
+	OOTimeAbsolute &_time = universal_time;	// the universe's own state, which its getter answers
+	Entity			*_removed = {};
+	Entity			*_added = {};
+
+	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	{
+		_removed = entity;
+		return YES;
+	}
+	bool addEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	{
+		oo::ReleaseEntity(_added);
+		_added = oo::RetainEntity(entity);
+		return YES;
+	}
+};
 
 
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime	{ return _time; }
-
-
-- (BOOL) removeEntity:(Entity *)entity
+// What the shot hits: records the damage (an Objective-C subclass before; a C++ one
+// overriding the member its selector became, recording the C++ entities).
+class TestTarget : public Entity
 {
-	_removed = entity;
-	return YES;
-}
+public:
+	void takeEnergyDamage(double amount, Entity *ent, Entity *other, const std::string &weaponIdentifier) override
+	{
+		_hits++;
+		_amount = amount;
+		_from = ent;
+		_becauseOf = other;
+		_weapon = weaponIdentifier;
+	}
+
+	double			_amount = 0;
+	Entity		*_from = nullptr;
+	Entity		*_becauseOf = nullptr;
+	std::string		_weapon;
+	int				_hits = 0;
+};
 
 
-- (BOOL) addEntity:(Entity *)entity
+// An effect, for the collision test (an Objective-C subclass before).
+class TestEffect : public Entity
 {
-	[_added release];
-	_added = [entity retain];
-	return YES;
-}
-
-@end
-
-
-// What the shot hits: records the damage.
-@interface TestTarget: Entity
-{
-@public
-	double		_amount;
-	Entity		*_from;
-	Entity		*_becauseOf;
-	std::string	_weapon;
-	int			_hits;
-}
-@end
-
-
-@implementation TestTarget
-
-- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other weaponIdentifier:(const std::string &)weaponIdentifier
-{
-	_hits++;
-	_amount = amount;
-	_from = ent;
-	_becauseOf = other;
-	_weapon = weaponIdentifier;
-}
-
-@end
-
-
-// An effect, for the collision test.
-@interface TestEffect: Entity
-@end
-
-
-@implementation TestEffect
-
-- (BOOL) isEffect	{ return YES; }
-
-@end
+public:
+	bool isEffect() override	{ return true; }
+};
 
 
 extern JSContext *gOOJSMainThreadContext;	// the engine's (OOJavaScriptEngine.mm)
@@ -146,12 +126,11 @@ void SetUp(OOTimeAbsolute time)
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		sUniverse = new TestUniverse();	// never released
 	}
 	sUniverse->_time = time;
 	sUniverse->_removed = nil;
-	[sUniverse->_added release];
+	oo::ReleaseEntity(sUniverse->_added);
 	sUniverse->_added = nil;
 	gSharedUniverse = sUniverse;
 	static TestPlayer *player = nullptr;
@@ -168,13 +147,13 @@ void SetUp(OOTimeAbsolute time)
 
 Entity *Shot(HPVector position, Vector velocity, float energy, OOTimeDelta duration, OOColor *color)
 {
-	return oo::NewEntityFacade(OOPlasmaShotEntity::shotWithPosition(position, velocity, energy, duration, color));
+	return oo::MadeEntity(OOPlasmaShotEntity::shotWithPosition(position, velocity, energy, duration, color));
 }
 
-OOLightParticleEntity *Particle(Entity *shot)	{ return static_cast<OOLightParticleEntity *>(oo::ToCxx(shot)); }	// the root's facade since bead oo-9ht.76
+OOLightParticleEntity *Particle(Entity *shot)	{ return static_cast<OOLightParticleEntity *>(shot); }	// the root's facade
 const GLfloat *ColorComponents(Entity *shot)	{ return Particle(shot)->_colorComponents; }
-void SetColliding(Entity *shot, Entity *other)	{ shot->_cxxEntity->collidingEntities.emplace_back(other); }
-void SetIsShip(Entity *e)						{ e->_cxxEntity->isShip = true; }
+void SetColliding(Entity *shot, Entity *other)	{ shot->collidingEntities.emplace_back(other); }
+void SetIsShip(Entity *e)						{ e->isShip = true; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -189,7 +168,7 @@ Entity *RedShot()
 // (oo::NewEntityFacade, autoreleased as the plain entity was), never set up, marked as a ship.
 Entity *Ship()
 {
-	Entity *ship = oo::NewEntityFacade(oo::makeRef<::ShipEntity>());
+	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
 	SetIsShip(ship);
 	return ship;
 }
@@ -203,14 +182,14 @@ OO_TEST(shotIsMade)
 	{
 		SetUp(10.0);
 		Entity *shot = RedShot();
-		OO_CHECK(shot != nil && dynamic_cast<OOLightParticleEntity *>(oo::ToCxx(shot)) != nullptr);
-		OO_CHECK(HPvector_equal([shot position], make_HPvector(1, 2, 3)));
-		Vector v = [shot velocity];
+		OO_CHECK(shot != nil && dynamic_cast<OOLightParticleEntity *>(shot) != nullptr);
+		OO_CHECK(HPvector_equal(shot->getPosition(), make_HPvector(1, 2, 3)));
+		Vector v = shot->getVelocity();
 		OO_CHECK(v.x == 4 && v.y == 5 && v.z == 6);
-		OO_CHECK([shot energy] == 7.0f && [shot collisionRadius] == 2.0f);
+		OO_CHECK(shot->getEnergy() == 7.0f && shot->collisionRadius() == 2.0f);
 		OO_CHECK(Particle(shot)->diameter() == 12.0f);
-		OO_CHECK([shot status] == STATUS_EFFECT && [shot scanClass] == CLASS_NO_DRAW && [shot isEffect]);
-		OO_CHECK([shot spawnTime] == 10.0f);
+		OO_CHECK(shot->status() == STATUS_EFFECT && shot->getScanClass() == CLASS_NO_DRAW && shot->isEffect());
+		OO_CHECK(shot->getSpawnTime() == 10.0f);
 		const GLfloat *c = ColorComponents(shot);
 		OO_CHECK(c[0] == 1.0f && c[1] == 0.0f && c[2] == 0.0f && c[3] == 1.0f);	// always opaque
 	}
@@ -223,11 +202,11 @@ OO_TEST(activationDelay)
 	{
 		SetUp(10.0);
 		Entity *shot = RedShot();
-		OO_CHECK(![shot canCollide]);
+		OO_CHECK(!shot->canCollide());
 		sUniverse->_time = 10.04;
-		OO_CHECK(![shot canCollide]);
+		OO_CHECK(!shot->canCollide());
 		sUniverse->_time = 10.06;
-		OO_CHECK([shot canCollide]);
+		OO_CHECK(shot->canCollide());
 	}
 }
 
@@ -238,19 +217,19 @@ OO_TEST(collisions)
 	{
 		SetUp(0.0);
 		Entity *shot = RedShot();
-		Entity *plain = [[[Entity alloc] init] autorelease];
-		Entity *effect = [[[TestEffect alloc] init] autorelease];
+		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *effect = oo::MadeEntity(oo::makeRef<TestEffect>());
 
 		// No owner: a plain entity's root ship is nil too.
-		OO_CHECK(![shot checkCloseCollisionWith:plain]);
+		OO_CHECK(!shot->checkCloseCollisionWith(plain));
 
 		Entity *ship = Ship();
-		[shot setOwner:ship];
-		OO_CHECK([shot checkCloseCollisionWith:plain]);
-		OO_CHECK(![shot checkCloseCollisionWith:effect]);
-		OO_CHECK(![shot checkCloseCollisionWith:ship]);	// its own ship
-		OO_CHECK([shot checkCloseCollisionWith:Ship()]);
-		OO_CHECK([shot checkCloseCollisionWith:nil]);
+		shot->setOwner(ship);
+		OO_CHECK(shot->checkCloseCollisionWith(plain));
+		OO_CHECK(!shot->checkCloseCollisionWith(effect));
+		OO_CHECK(!shot->checkCloseCollisionWith(ship));	// its own ship
+		OO_CHECK(shot->checkCloseCollisionWith(Ship()));
+		OO_CHECK(shot->checkCloseCollisionWith(nil));
 	}
 }
 
@@ -262,23 +241,23 @@ OO_TEST(hitDamagesAndBursts)
 		SetUp(0.0);
 		Entity *shot = RedShot();
 		Entity *ship = Ship();
-		[shot setOwner:ship];
+		shot->setOwner(ship);
 
 		// Its own ship is not hit.
 		SetColliding(shot, ship);
 		sUniverse->_time = 0.1;
-		[shot update:0.1];
+		shot->update(0.1);
 		OO_CHECK(sUniverse->_removed == nil && sUniverse->_added == nil);
 
-		TestTarget *target = [[[TestTarget alloc] init] autorelease];
+		TestTarget *target = static_cast<TestTarget *>(oo::MadeEntity(oo::makeRef<TestTarget>()));
 		SetColliding(shot, target);
-		[shot update:0.1];
+		shot->update(0.1);
 		OO_CHECK(target->_hits == 1 && target->_amount == 7.0 && target->_from == shot && target->_becauseOf == ship);
 		OO_CHECK(target->_weapon == "EQ_WEAPON_PLASMA_SHOT");
 		OO_CHECK(sUniverse->_removed == shot);
 		Entity *burst = sUniverse->_added;
-		OO_CHECK(burst != nil && burst != shot && dynamic_cast<OOPlasmaBurstEntity *>(oo::ToCxx(burst)) != nullptr);	// a C++ entity (oo-l2s5)
-		OO_CHECK(HPvector_equal([burst position], [shot position]));
+		OO_CHECK(burst != nil && burst != shot && dynamic_cast<OOPlasmaBurstEntity *>(burst) != nullptr);	// a C++ entity (oo-l2s5)
+		OO_CHECK(HPvector_equal(burst->getPosition(), shot->getPosition()));
 	}
 }
 
@@ -290,10 +269,10 @@ OO_TEST(expires)
 		SetUp(0.0);
 		Entity *shot = RedShot();
 		sUniverse->_time = 1.0;
-		[shot update:1.0];
+		shot->update(1.0);
 		OO_CHECK(sUniverse->_removed == nil);
 		sUniverse->_time = 2.5;
-		[shot update:1.5];
+		shot->update(1.5);
 		OO_CHECK(sUniverse->_removed == shot);
 	}
 }

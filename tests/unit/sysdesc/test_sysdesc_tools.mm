@@ -93,30 +93,24 @@ void OOLogWithFunctionFileAndLine(NSString *cls, const char *fn, const char *fil
 }
 
 
-@implementation ResourceManager
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName
-								  inFolder:(const std::optional<std::string> &)folderName
-								  andMerge:(BOOL)mergeFiles
+// ResourceManager is C++ since its Objective-C facade was deleted.
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> & /*folderName*/, bool /*mergeFiles*/)
 {
 	if (fileName == "sysdesc.plist")  return sSysdesc;
 	if (fileName == "sysdesc_key_table.plist")  return sKeyTable;
 	return oo::PList();
 }
 
-+ (BOOL) cxx_writeDiagnosticData:(const oo::Data &)data toFileNamed:(const std::string &)name
+bool ResourceManager::writeDiagnosticData(const oo::Data &data, const std::string &name)
 {
 	sWritten[name] = data;
 	sLines.push_back(oo::str::format("file %s %zu %016llx", name.c_str(), data.length(), (unsigned long long)FNV1a(data.bytes(), data.length())));
 	return YES;
 }
-@end
 
 
-@implementation Universe
-- (NSDictionary *) descriptions { return oo::ObjectFromPList(sDescriptions); }
-// The C++ form the tools call since oo-3rb.310, over the same data (bead oo-3rb.335: stub-API tracking).
-- (const oo::PList *) cxx_descriptions { return &sDescriptions; }
-@end
+// The C++ universe's member, over the same data as the Objective-C stub's C++ form.
+const oo::PList *Universe::descriptions()  { return &sDescriptions; }
 static Universe *sUniverse;
 Universe *OOGetUniverse(void) { return sUniverse; }
 
@@ -201,7 +195,7 @@ int main(int argc, const char *argv[])
 			fprintf(stderr, "cannot parse %s\n", argv[1]);
 			return 2;
 		}
-		sUniverse = [[Universe alloc] init];
+		sUniverse = new Universe();
 
 		std::vector<std::vector<std::string>> recorded;
 		auto run = [&](void (^body)(void))

@@ -35,21 +35,25 @@ static unsigned sRebinds = 0;
 static std::vector<int> sOrder;	// client tags, in the order they were told, texture rebinds as 0
 
 
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-@end
+#import "ResourceManager.h"
+#import "OOTexture.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { sPathsCalls++; return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-@end
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { sPathsCalls++; return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
 oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
 bool OORegExpMatcher::string(const std::string &, const std::string &)  { return false; }
 OORegExpMatcher::~OORegExpMatcher()  {}
+
+// OOLogging.mm's (it would bring the resource manager into the link); in the debug flavour
+// OOOpenGL.mm's OOGL error check and state dump call them (bead oo-iimku).
+void OOLogIndent(void)  {}
+void OOLogOutdent(void)  {}
 
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
@@ -63,17 +67,12 @@ extern const char *const cxx_kOOLogException;
 const char *const cxx_kOOLogException = "exception";
 
 
-@interface OOTexture: OOObject
-+ (void) rebindAllTextures;
-@end
-
-@implementation OOTexture
-+ (void) rebindAllTextures
+// The C++ OOTexture's static member (bead oo-9ht.99 deleted the Objective-C facade it was a stand-in of).
+void OOTexture::rebindAllTextures()
 {
 	sRebinds++;
 	sOrder.push_back(0);
 }
-@end
 
 
 // A client: counts its resets; may unregister another client, or raise, when told. Reference
@@ -122,7 +121,7 @@ OO_TEST(resetTellsEachClientOnce)
 		OO_CHECK(manager != nullptr);
 		OO_CHECK(OOGraphicsResetManager::sharedManager() == manager);
 
-		(void)cxx::OOOpenGLExtensionManager::sharedManager();
+		(void)OOOpenGLExtensionManager::sharedManager();
 		const unsigned pathsBefore = sPathsCalls;
 
 		OOTestResetClient *a = Client(1), *b = Client(2), *c = Client(3);

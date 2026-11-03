@@ -43,7 +43,7 @@ SOFTWARE.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOTexture, OOTextureLoader;
+class OOTexture;
 
 /*	As OOTexture.h declares them. The loaders do not import OOTexture.h, so a test that stands in
         for the Objective-C OOTexture can still see a C++ generator (bead oo-9ht.135); a file that
@@ -57,25 +57,20 @@ typedef OOPixMapFormat OOTextureDataFormat;
         std::optional where the old code accepted nil; a texture specifier is an oo::PList.
 
         Phase 3 (bead oo-zl36, proposed ADR-0056 amendments oo-whzh, oo-bj8 and oo-zl36): the C++ root
-        of the texture loaders. OOPixMapTextureLoader and the generators are still Objective-C
-        subclasses of the facade (OOTextureLoader+ObjCBridge.h), and read the state below through its
-        _cxxLoader (amendment oo-bj8 items 1-2), so the state is public; the converted
-        OOPNGTextureLoader (bead oo-z889) derives from this class. A loader is a
-        task on the work manager, which holds the Objective-C object.
+        of the texture loaders, and a task on the work manager. Its Objective-C facade was deleted by
+        bead oo-9ht.114 (ADR-0056 amendment oo-9ht.114), which moved the class out of namespace cxx;
+        the state below stayed public (the subclasses read it).
 */
-namespace cxx {
-
-class OOTextureLoader : public oo::RefCounted {
+class OOTextureLoader : public ::OOAsyncWorkTask {
 public:
     OOTextureLoader();
     ~OOTextureLoader() override; // was -dealloc: frees the pixels not handed over
 
     /*	Were +cxx_loaderWithPath:options: and +cxx_loaderWithTextureSpecifier:extraOptions:folder:.
-            The loader they make (the C++ OOPNGTextureLoader, bead oo-z889) is a task of the work
-            manager, which holds its facade, so the facade is answered retained (amendment oo-2en
-            item 2), already queued; null where they answered nil.
+            The loader they make (the C++ OOPNGTextureLoader, bead oo-z889) is answered retained, already
+            queued on the work manager; null where they answered nil.
     */
-    static oo::ObjCRef<::OOTextureLoader*> loaderWithPath(const std::optional<std::string>& path, uint32_t options);
+    static oo::Ref<OOTextureLoader> loaderWithPath(const std::optional<std::string>& path, uint32_t options);
 
     /*	Convenience method to load images not destined for normal texture use.
             Specifier is a string or a dictionary as with textures. ExtraOptions is
@@ -83,7 +78,7 @@ public:
             directory to look in, typically Textures or Images. Options in the
             specifier which are applied at the OOTexture level will be ignored.
     */
-    static oo::ObjCRef<::OOTextureLoader*> loaderWithTextureSpecifier(const oo::PList& specifier, uint32_t extraOptions, const std::optional<std::string>& folder);
+    static oo::Ref<OOTextureLoader> loaderWithTextureSpecifier(const oo::PList& specifier, uint32_t extraOptions, const std::optional<std::string>& folder);
 
     bool isReady();
 
@@ -103,6 +98,14 @@ public:
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h), and the short form's.
     virtual std::optional<std::string> descriptionComponents() const;
     virtual std::optional<std::string> shortDescriptionComponents() const;
+
+    /*	The facade's descriptions (bead oo-9ht.114 deleted it), with the loader's address: "%@" was
+            <CxxClass 0x...>{components} (the C++ class's name), and the short form named the facade's
+            class, OOTextureGenerator for a generator and OOTextureLoader for any other loader.
+    */
+    std::string description() const;
+    std::string shortDescription() const;
+    std::string className() const; // the C++ class's name, as [self class] named it
 
     /*** Subclass interface; do not use on pain of pain. Unless you're subclassing. ***/
 
@@ -127,9 +130,11 @@ public:
     */
     virtual void loadTexture();
 
-    // OOAsyncWorkTask, through the facade: on a work thread, then on the main thread.
-    void performAsyncTask();
-    void completeAsyncTask();
+    // The work manager's task (bead oo-9ht.14; it was the facade): on a work thread, then on the
+    // main thread. The facade implemented -completeAsyncTask, so every loader has a completion.
+    void performAsyncTask() override;
+    bool hasCompleteAsyncTask() const override { return true; }
+    void completeAsyncTask() override;
 
     // The state (were the @protected ivars).
     std::string _path = { };
@@ -162,11 +167,5 @@ private:
     void getDesiredWidth(OOPixMapDimension* outDesiredWidth, OOPixMapDimension* outDesiredHeight);
     void generateMipMapsForCubeMap();
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOTextureLoader, for its callers and the loaders not yet
-// converted. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOTextureLoader+ObjCBridge.h"
 
 #endif // OOTEXTURELOADER_H

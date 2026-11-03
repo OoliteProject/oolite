@@ -120,8 +120,8 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     if (EXPECT_NOT(ship == nil || !(ship != nullptr ? ship->isVisible() : false) || ((ship != nullptr ? ship->getIsPlayer() : false) && (ship != nullptr ? ship->suppressFlightNotifications() : false))))
         return;
 
-    OOTimeAbsolute now = [UNIVERSE getTime];
-    if ([UNIVERSE getTime] > _trackTime + kTimeStep) {
+    OOTimeAbsolute now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
+    if ((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) > _trackTime + kTimeStep) {
         saveToLastFrame();
         _trackTime = now;
     }
@@ -139,7 +139,8 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     Quaternion shipQrotation = (ship != nullptr ? ship->normalOrientation() : Quaternion { });
 
     Frame zero = {
-        .timeframe = [UNIVERSE getTime],
+        .timeframe = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0),
+        .position = { },
         .orientation = shipQrotation,
         .k = (ship != nullptr ? ship->forwardVector() : Vector { })
     };
@@ -403,7 +404,8 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
     OOGL(glDepthMask(GL_FALSE));
     OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
     OOGL(glEnable(GL_TEXTURE_2D));
-    [texture() apply];
+    if (OOTexture* plume = texture())
+        plume->apply(); // a message to nil did nothing
 
     //	OOGL(glDisable(GL_CULL_FACE));		// face culling
     OOGL(glShadeModel(GL_SMOOTH));
@@ -412,7 +414,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
     OOGL(glVertexPointer(3, GL_FLOAT, 0, _glVertices));
     OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
 
-    double intpart, dphase = 1.0 - modf((double)[UNIVERSE getTime] * 2.5, &intpart);
+    double intpart, dphase = 1.0 - modf((double)(UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) * 2.5, &intpart);
     GLfloat phase = (GLfloat)dphase;
 
     GLfloat texCoords[68] = {
@@ -493,7 +495,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
     OOGL(glTexCoordPointer(2, GL_FLOAT, 0, texCoords));
 
     // reduced detail for internal view to avoid rendering artefacts
-    if ([owner() isPlayer] && [UNIVERSE viewDirection] != VIEW_CUSTOM) {
+    if (oo::EntityIsPlayer(owner()) && (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID { }) != VIEW_CUSTOM) {
         OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr1));
         OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr2));
         OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr3));
@@ -559,7 +561,7 @@ void OOExhaustPlumeEntity::saveToLastFrame()
     // so just use the rotation matrix, then translate using HPVectors
     HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), (ship != nullptr ? ship->drawRotationMatrix() : OOMatrix { }));
     framePos = HPvector_add(framePos, (ship != nullptr ? ship->getPosition() : HPVector { }));
-    Frame frame = { [UNIVERSE getTime], framePos, (ship != nullptr ? ship->normalOrientation() : Quaternion { }), (ship != nullptr ? ship->upVector() : Vector { }) };
+    Frame frame = { (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0), framePos, (ship != nullptr ? ship->normalOrientation() : Quaternion { }), (ship != nullptr ? ship->upVector() : Vector { }) };
 
     _track[_nextFrame] = frame;
     _nextFrame = (_nextFrame + 1) % kExhaustFrameCount;
@@ -623,12 +625,12 @@ void OOExhaustPlumeEntity::resetPlume()
 
     // Absolute position of self
     Vector framePos = OOVectorMultiplyMatrix([self position], [ship drawTransformationMatrix]);
-    Frame frame = { [UNIVERSE getTime], framePos, [ship normalOrientation], [ship upVector] };
+    Frame frame = { (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0), framePos, [ship normalOrientation], [ship upVector] };
 
     _track[_nextFrame] = frame;
     _nextFrame = (_nextFrame + 1) % kExhaustFrameCount;*/
     _nextFrame = 0;
-    HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), [owner() drawTransformationMatrix]);
+    HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), (owner() != nullptr ? owner()->drawTransformationMatrix() : OOMatrix { })); // a message to nil's zero matrix
     uint8_t i;
     for (i = 0; i < kExhaustFrameCount; i++) {
         _track[i].timeframe = 0.0;
@@ -649,7 +651,7 @@ void OOExhaustPlumeEntity::rescaleBy(GLfloat /*factor*/, bool /*writeToCache*/)
        implementation requirements */
 }
 
-::OOTexture* OOExhaustPlumeEntity::texture()
+OOTexture* OOExhaustPlumeEntity::texture()
 {
     return OOExhaustPlumeEntity::plumeTexture();
 }
@@ -657,16 +659,12 @@ void OOExhaustPlumeEntity::rescaleBy(GLfloat /*factor*/, bool /*writeToCache*/)
 void OOExhaustPlumeEntity::setUpTexture()
 {
     if (sPlumeTexture == nil) {
-        sPlumeTexture = [[::OOTexture cxx_textureWithName:"oolite-exhaust-blur.png"
-                                                 inFolder:"Textures"
-                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
-                                               anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                  lodBias:0.0] retain];
+        sPlumeTexture = OOTexture::textureWithName("oolite-exhaust-blur.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS, kOOTextureDefaultAnisotropy / 2.0, 0.0).leakRef();
         OOGraphicsResetManager::sharedManager()->registerCxxClient(new PlumeTextureResetClient);
     }
 }
 
-::OOTexture* OOExhaustPlumeEntity::plumeTexture()
+OOTexture* OOExhaustPlumeEntity::plumeTexture()
 {
     if (sPlumeTexture == nil)
         setUpTexture();
@@ -675,8 +673,8 @@ void OOExhaustPlumeEntity::setUpTexture()
 
 void OOExhaustPlumeEntity::resetGraphicsState()
 {
-    [sPlumeTexture release];
-    sPlumeTexture = nil;
+    oo::release(sPlumeTexture);
+    sPlumeTexture = nullptr;
 }
 
 // The binding's bodies (OOJSExhaustPlume.mm), which the facade forwarded to until its deletion.

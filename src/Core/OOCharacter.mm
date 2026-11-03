@@ -51,7 +51,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 int SendIntValue(id object, SEL intValue)
 {
     using IntValueIMP = int (*)(id, SEL);
-    return reinterpret_cast<IntValueIMP>(class_getMethodImplementation(object_getClass(object), intValue))(object, intValue);
+    return reinterpret_cast<IntValueIMP>(reinterpret_cast<void (*)(void)>(class_getMethodImplementation(object_getClass(object), intValue)))(object, intValue);
 }
 
 } // namespace
@@ -143,7 +143,7 @@ oo::Ref<OOCharacter> OOCharacter::characterWithDictionary(const oo::PList& dict)
 std::optional<std::string> OOCharacter::planetOfOrigin()
 {
     // determine the planet of origin
-    const oo::PList originInfo = [UNIVERSE cxx_generateSystemData:planetIDOfOrigin()];
+    const oo::PList originInfo = (UNIVERSE != nullptr ? UNIVERSE->generateSystemData(planetIDOfOrigin()) : oo::PList());
     const oo::PList* name = originInfo.find(std::string(KEY_NAME));
     if (name == nullptr || !name->isString())
         return std::nullopt; // (the value was returned as it stood; it is a string)
@@ -162,14 +162,14 @@ std::optional<std::string> OOCharacter::species()
     int species = genSeed().f & 0x03; // 0-1 native to home system, 2 human colonial, 3 other
     std::optional<std::string> speciesString;
     if (species == 3)
-        speciesString = [UNIVERSE cxx_getSystemInhabitants:genSeed().e plural:NO];
+        speciesString = (UNIVERSE != nullptr ? UNIVERSE->getSystemInhabitants(genSeed().e, NO) : std::optional<std::string>());
     else
-        speciesString = [UNIVERSE cxx_getSystemInhabitants:planetIDOfOrigin() plural:NO];
+        speciesString = (UNIVERSE != nullptr ? UNIVERSE->getSystemInhabitants(planetIDOfOrigin(), NO) : std::optional<std::string>());
 
     if (!speciesString.has_value())
         return std::nullopt;
 
-    if (![UNIVERSE cxx_descriptions]->get<bool>("lowercase_ignore")) {
+    if (!UNIVERSE->descriptions()->get<bool>("lowercase_ignore")) {
         speciesString = oo::str::lowercase(*speciesString);
     }
 
@@ -186,7 +186,7 @@ void OOCharacter::basicSetUp()
     seed_for_planet_description(genSeed);
 
     // determine the planet of origin
-    const oo::PList originInfo = [UNIVERSE cxx_generateSystemData:planetIDOfOrigin()];
+    const oo::PList originInfo = (UNIVERSE != nullptr ? UNIVERSE->generateSystemData(planetIDOfOrigin()) : oo::PList());
     const std::optional<std::string> planet = OptionalStringForKey(originInfo, std::string(KEY_NAME));
     OOGovernmentID government = originInfo.get<int>(std::string(KEY_GOVERNMENT)); // 0 .. 7 (0 anarchic .. 7 most stable)
     int criminalTendency = government ^ 0x07;
@@ -458,7 +458,7 @@ void OOCharacter::setCharacterFromDictionary(const oo::PList& dict)
         // Number or numerical string
         setOriginSystem(originValue);
     } else if (originName != nullptr) {
-        OOSystemID sys = [UNIVERSE cxx_findSystemFromName:*originName];
+        OOSystemID sys = (UNIVERSE != nullptr ? UNIVERSE->findSystemFromName(*originName) : 0);
         if (sys < 0) {
             OO_LOG_ERR("character.load.unknownSystem", "could not find a system named '{}' in this galaxy.", *originName);
             setOriginSystem((ranrot_rand() & 0xff));

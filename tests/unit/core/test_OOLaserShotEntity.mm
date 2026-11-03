@@ -54,7 +54,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -64,16 +64,11 @@ static Entity *sRemoved = nil;
 
 
 // UNIVERSE: never initialised; records what is removed.
-@interface TestUniverse: Universe
-@end
-
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime				{ return 0; }
-- (BOOL) removeEntity:(Entity *)entity	{ sRemoved = entity; return YES; }
-
-@end
+class TestUniverse : public Universe
+{
+public:
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object, as before
+};
 
 
 
@@ -98,8 +93,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([TestUniverse class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		universe = new TestUniverse();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nullptr;
@@ -120,11 +114,11 @@ void SetUp()
 Entity *MakeShip()
 {
 	oo::Ref<::ShipEntity> part = oo::makeRef<::ShipEntity>();
-	Entity *ship = oo::NewEntityFacade(part);
+	Entity *ship = oo::MadeEntity(part);
 	part->isShip = YES;
 	part->flightSpeed = 50.0f;
 	part->weaponRange = 1000.0f;
-	[ship setPosition:make_HPvector(100, 0, 0)];
+	ship->setPosition(make_HPvector(100, 0, 0));
 	return ship;
 }
 
@@ -134,7 +128,7 @@ Entity *MakeShip()
 oo::Ref<OOLaserShotEntity> Shot(Entity *ship, OOWeaponFacing direction, Vector offset)
 {
 	oo::Ref<OOLaserShotEntity> shot = OOLaserShotEntity::laserFromShip(oo::ToShip(ship), direction, offset);
-	oo::NewEntityFacade(shot);
+	oo::MadeEntity(shot);
 	return shot;
 }
 
@@ -166,8 +160,8 @@ OO_TEST(laserFromShip)
 		OO_CHECK(shot->collisionRadius() == 1000.0f);
 		OO_CHECK(shot->status() == STATUS_EFFECT && shot->isEffect() && !shot->canCollide());
 		OO_CHECK(ColorIs(shot.get(), 1.0f / 3.0f, 0.0f, 0.0f, 0.09f));
-		OO_CHECK(oo::DescriptionOf(oo::ToObjC(shot.get())).starts_with("<OOLaserShotEntity 0x"));
-		OO_CHECK(oo::DescriptionOf(oo::ToObjC(shot.get())).find("{ttl: 0.090s - position: (100, 0, 10)") != std::string::npos);
+		OO_CHECK(oo::EntityDescription(shot.get()).starts_with("<OOLaserShotEntity 0x"));
+		OO_CHECK(oo::EntityDescription(shot.get()).find("{ttl: 0.090s - position: (100, 0, 10)") != std::string::npos);
 
 		// The other facings turn the shot about the ship's up axis.
 		oo::Ref<OOLaserShotEntity> aft = Shot(ship, WEAPON_FACING_AFT, kZeroVector);
@@ -216,13 +210,13 @@ OO_TEST(update)
 		OO_CHECK(HPvector_equal(shot->getPosition(), make_HPvector(100, 0, 12.5)));
 		OO_CHECK(sRemoved == nil);
 		shot->update(0.05);
-		OO_CHECK(sRemoved == oo::ToObjC(shot.get()));
+		OO_CHECK(sRemoved == shot.get());
 
 		// The player's shot is put back where its ship's laser is.
 		sRemoved = nil;
-		ship->_cxxEntity->isPlayer = YES;
+		ship->isPlayer = YES;
 		oo::Ref<OOLaserShotEntity> playerShot = Shot(ship, WEAPON_FACING_FORWARD, make_vector(0, 0, 10));
-		[ship setPosition:make_HPvector(200, 0, 0)];
+		ship->setPosition(make_HPvector(200, 0, 0));
 		playerShot->update(0.05);
 		OO_CHECK(HPvector_equal(playerShot->getPosition(), make_HPvector(200, 0, 10)));
 		OO_CHECK(quaternion_equal(playerShot->getOrientation(), kIdentityQuaternion));

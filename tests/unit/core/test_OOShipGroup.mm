@@ -19,7 +19,6 @@
 */
 
 #import "OOShipGroup.h"
-#import "OOWeakReference.h"
 
 #include "oo_test.hpp"
 #include "oofnd/objc/OOException.h"
@@ -45,37 +44,36 @@ std::optional<std::string> OOShipGroup::jsDescription()  { return std::nullopt; 
 	ShipEntity.h declare them (the test imports neither); every object the test makes holds a ship
 	that records what the group asks of it.
 */
-@class Entity;
+@class TestEntityObject;
 
-namespace cxx {
 class Entity : public oo::RefCounted
 {
 public:
 	virtual ~Entity();
 
-	::Entity *_object = nil;	// its object (not retained)
+	::TestEntityObject *_object = nil;	// its object (not retained)
 };
-}	// namespace cxx
 
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
 	void setGroup(::OOShipGroup *group);
-	void setOwner(cxx::Entity *who_owns_entity);
+	void setOwner(Entity *who_owns_entity);
 
 	::OOShipGroup *lastGroup = nullptr;
-	cxx::Entity *lastOwner = nullptr;
+	Entity *lastOwner = nullptr;
 	int setGroupCalls = 0;
 };
 
-@interface Entity: OOWeakRefObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject	// the group holds its ships' C++ parts weakly
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;
+	oo::Ref<Entity> _cxxEntity;
 }
 @end
 
-@implementation Entity
+@implementation TestEntityObject
 
 // Every object the test makes holds its ship.
 - (id) init
@@ -90,7 +88,7 @@ public:
 
 @end
 
-cxx::Entity::~Entity() = default;
+Entity::~Entity() = default;
 
 void ShipEntity::setGroup(::OOShipGroup *group)
 {
@@ -99,42 +97,33 @@ void ShipEntity::setGroup(::OOShipGroup *group)
 }
 
 
-void ShipEntity::setOwner(cxx::Entity *who_owns_entity)
+void ShipEntity::setOwner(Entity *who_owns_entity)
 {
 	lastOwner = who_owns_entity;
 }
 
-namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }	// Entity+ObjCBridge.mm's, which the test does not link
-::Entity *oo::ToObjC(cxx::Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }	// the test's (the game's went with its facade)
+::TestEntityObject *oo::ToObjC(Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
 
-
-// A ship's object that says whether a weak reference to it is still alive: OOWeakRefObject keeps
-// one (weakSelf) while any -weakRetain is unbalanced, and clears it when the reference deallocates.
-@interface WatchedShip: Entity
-- (BOOL) hasLiveWeakReference;
-@end
-
-@implementation WatchedShip
-- (BOOL) hasLiveWeakReference  { return weakSelf != nil; }
-@end
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 
 
 namespace {
 
-ShipEntity *Ship(::Entity *object)  { return static_cast<ShipEntity *>(object->_cxxEntity.get()); }
+ShipEntity *Ship(::TestEntityObject *object)  { return static_cast<ShipEntity *>(object->_cxxEntity.get()); }
 
 
 // A ship, its object autoreleased (as [[[ShipEntity alloc] init] autorelease] was).
 ShipEntity *NewShip()
 {
-	return Ship([[[::Entity alloc] init] autorelease]);
+	return Ship([[[::TestEntityObject alloc] init] autorelease]);
 }
 
 
-bool HasMembers(const std::vector<oo::ObjCRef<::Entity *>> &members, std::vector<ShipEntity *> expected)
+bool HasMembers(const std::vector<oo::EntityHold> &members, std::vector<ShipEntity *> expected)
 {
 	std::vector<ShipEntity *> got;
-	for (const oo::ObjCRef<::Entity *> &object : members)  got.push_back(Ship(object.get()));
+	for (const oo::EntityHold &object : members)  got.push_back(Ship(oo::ToObjC(object.get())));
 	std::sort(got.begin(), got.end());
 	std::sort(expected.begin(), expected.end());
 	return got == expected;
@@ -230,8 +219,8 @@ OO_TEST(deadShipsLeave)
 	{
 		oo::Ref<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);
 		ShipEntity *survivor = NewShip();
-		::Entity *doomedObject = [[::Entity alloc] init];
-		::Entity *doomedLeaderObject = [[::Entity alloc] init];
+		::TestEntityObject *doomedObject = [[::TestEntityObject alloc] init];
+		::TestEntityObject *doomedLeaderObject = [[::TestEntityObject alloc] init];
 		ShipEntity *doomed = Ship(doomedObject);
 		ShipEntity *doomedLeader = Ship(doomedLeaderObject);
 		group->addShip(survivor);
@@ -343,9 +332,11 @@ OO_TEST(dyingGroupReleasesLeaderReference)
 {
 	// The group weak-retains its leader (setLeader) as it does each member (addShip); its
 	// destructor must balance both, or every group that dies with a leader leaks one
-	// OOWeakReference (bead oo-9ht.24).
-	WatchedShip *leaderObject = [[WatchedShip alloc] init];
-	WatchedShip *memberObject = [[WatchedShip alloc] init];
+	// OOWeakReference. The references are oo::WeakRef
+	// members, released with the group; the checks of the objects' OOWeakReference (weakSelf)
+	// retired with it.
+	::TestEntityObject *leaderObject = [[::TestEntityObject alloc] init];
+	::TestEntityObject *memberObject = [[::TestEntityObject alloc] init];
 	ShipEntity *leader = Ship(leaderObject), *member = Ship(memberObject);
 	@autoreleasepool
 	{
@@ -353,10 +344,7 @@ OO_TEST(dyingGroupReleasesLeaderReference)
 		group->addShip(member);
 		group->setLeader(leader);
 		OO_CHECK(group->leader() == leader && group->count() == 2);
-		OO_CHECK([leaderObject hasLiveWeakReference] && [memberObject hasLiveWeakReference]);
 	}
-	OO_CHECK(![memberObject hasLiveWeakReference]);
-	OO_CHECK(![leaderObject hasLiveWeakReference]);
 	[leaderObject release];
 	[memberObject release];
 }

@@ -41,7 +41,8 @@ MA 02110-1301, USA.
         -name / -setName: retired with oo-qps.44); -textureFileName and -setUpPlanetFromTexture: flipped with PlanetEntity (bead oo-3rb.269.1).
 */
 
-@class OOMaterial, OOTexture;
+class OOMaterial;
+class OOTexture;
 class ShipEntity; // C++
 class OOPlanetDrawable; // C++ since bead oo-mw4u (no facade: this class is its one caller)
 
@@ -51,7 +52,7 @@ class OOPlanetDrawable; // C++ since bead oo-mw4u (no facade: this class is its 
         (OOStellarBodyRadius() asks them for an Objective-C object), and the root's facade answers the
         shader binding selectors for a planet only (Entity (OOPlanetShaderBindings), Entity+ObjCBridge.mm).
 */
-class OOPlanetEntity : public cxx::Entity, public ::OOGraphicsResetClient {
+class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
 public:
     ~OOPlanetEntity() override; // unregisters the graphics reset client
 
@@ -79,9 +80,9 @@ public:
     bool setUpPlanetFromTexture(const std::optional<std::string>& fileName); // nullopt: none
 
     // The drawables' materials: Objective-C objects, as the drawables keep them (bead oo-mw4u).
-    ::OOMaterial* material();
-    ::OOMaterial* atmosphereMaterial();
-    ::OOMaterial* atmosphereShaderMaterial();
+    OOMaterial* material();
+    OOMaterial* atmosphereMaterial();
+    OOMaterial* atmosphereShaderMaterial();
 
     bool isFinishedLoading();
 

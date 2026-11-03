@@ -8,6 +8,11 @@ OOMaterial.
 Note: OOTexture is abstract. The factory methods return instances of
 OOConcreteTexture, but special-case implementations are possible.
 
+C++20 since bead oo-whzh (proposed ADR-0056). Its Objective-C facade was deleted by bead oo-9ht.99
+(ADR-0056 amendment oo-9ht.99), which moved the class out of namespace cxx: callers hold
+oo::Ref<OOTexture>, and a texture travels in property lists as its own Object node
+(oo::PListForeign, OOTextureObjectNode()).
+
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39,14 +44,12 @@ SOFTWARE.
 
 #import "OOOpenGL.h"
 #import "OOPixMap.h"
-#import "OOWeakReference.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
-@class OOTexture, OOTextureLoader, OOTextureGenerator;
+class OOTextureGenerator;
 
 enum {
     kOOTextureMinFilterDefault = 0x000000UL,
@@ -120,13 +123,10 @@ typedef OOPixMapFormat OOTextureDataFormat;
         API below (bead oo-x3ni).
 
         Phase 3 (bead oo-whzh, proposed ADR-0056 amendments oo-smy and oo-2en): the C++ root of the
-        textures. OOConcreteTexture and OONullTexture are still Objective-C subclasses of the facade
-        (OOTexture+ObjCBridge.h), so the factories answer the Objective-C texture, retained, and a
-        converted caller that keeps a texture keeps that object (amendment oo-smy item 4).
+        textures. Since bead oo-9ht.99 the factories answer the C++ texture, retained (null where they
+        answered nil), and every texture is C++ (OOConcreteTexture, OONullTexture, OOEnvironmentCubeMap).
 */
-namespace cxx {
-
-class OOTexture : public oo::RefCounted {
+class OOTexture : public oo::PListForeign {
 public:
     OOTexture(); // was -init: every live texture is known, for graphics resets
     ~OOTexture() override;
@@ -139,30 +139,63 @@ public:
             This method may change; textureWithConfiguration() is generally more
             appropriate. Null for no name, or a file that is not found.
     */
-    static oo::ObjCRef<::OOTexture*> textureWithName(const std::optional<std::string>& name,
+    static oo::Ref<OOTexture> textureWithName(const std::optional<std::string>& name,
         const std::optional<std::string>& directory,
         OOTextureFlags options,
         GLfloat anisotropy,
         GLfloat lodBias);
 
     // Default options, anisotropy and LOD bias.
-    static oo::ObjCRef<::OOTexture*> textureWithName(const std::optional<std::string>& name,
+    static oo::Ref<OOTexture> textureWithName(const std::optional<std::string>& name,
         const std::optional<std::string>& directory);
 
     /*	Load a texure, looking in Textures directories, using configuration
             dictionary or name. (That is, configuration may be either a dictionary
-            or a string.) The keys are listed at +cxx_textureWithConfiguration: in
-            OOTexture+ObjCBridge.h.
+            or a string.)
+
+            Supported keys:
+                    name				(string, required)
+                    min_filter			(string, one of "default", "nearest", "linear", "mipmap")
+                    max_filter			(string, one of "default", "nearest", "linear")
+                    noShrink			(boolean)
+                    repeat_s			(boolean)
+                    repeat_t			(boolean)
+                    cube_map			(boolean)
+                    anisotropy			(real)
+                    texture_LOD_bias	(real)
+                    extract_channel		(string, one of "r", "g", "b", "a")
     */
-    static oo::ObjCRef<::OOTexture*> textureWithConfiguration(const oo::PList& configuration);
-    static oo::ObjCRef<::OOTexture*> textureWithConfiguration(const oo::PList& configuration, OOTextureFlags extraOptions);
+    static oo::Ref<OOTexture> textureWithConfiguration(const oo::PList& configuration);
+    static oo::Ref<OOTexture> textureWithConfiguration(const oo::PList& configuration, OOTextureFlags extraOptions);
+
+    /*	Test-only loader hooks (bead oo-9ht.99, ADR-0056 amendment oo-9ht.99): the five-argument
+            textureWithName() and the one-argument textureWithConfiguration() answer through these
+            settable factories, which are the real loaders (loadTextureWithName(),
+            loadTextureWithConfiguration()) unless a test replaces them, as tests replaced the facade's
+            +cxx_textureWithName:inFolder:options:anisotropy:lodBias: and +cxx_textureWithConfiguration:.
+            The game never sets them; the other factories call the real loaders directly.
+    */
+    using NameFactory = oo::Ref<OOTexture> (*)(const std::optional<std::string>& name,
+        const std::optional<std::string>& directory,
+        OOTextureFlags options,
+        GLfloat anisotropy,
+        GLfloat lodBias);
+    using ConfigurationFactory = oo::Ref<OOTexture> (*)(const oo::PList& configuration);
+    static NameFactory nameFactory;
+    static ConfigurationFactory configurationFactory;
+    static oo::Ref<OOTexture> loadTextureWithName(const std::optional<std::string>& name,
+        const std::optional<std::string>& directory,
+        OOTextureFlags options,
+        GLfloat anisotropy,
+        GLfloat lodBias);
+    static oo::Ref<OOTexture> loadTextureWithConfiguration(const oo::PList& configuration);
 
     // The "null texture" (OONullTexture's shared instance).
-    static oo::ObjCRef<::OOTexture*> nullTexture();
+    static oo::Ref<OOTexture> nullTexture();
 
     // Load a texture from a generator, optionally forcing an enqueue.
-    static oo::ObjCRef<::OOTexture*> textureWithGenerator(::OOTextureGenerator* generator);
-    static oo::ObjCRef<::OOTexture*> textureWithGenerator(::OOTextureGenerator* generator, bool enqueue);
+    static oo::Ref<OOTexture> textureWithGenerator(::OOTextureGenerator* generator);
+    static oo::Ref<OOTexture> textureWithGenerator(::OOTextureGenerator* generator, bool enqueue);
 
     // Bind the texture to the current texture unit. This will block until loading is completed.
     virtual void apply();
@@ -192,8 +225,8 @@ public:
     static void rebindAllTextures();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    static std::vector<oo::ObjCRef<::OOTexture*>> cachedTexturesByAge(); // youngest first
-    static std::vector<oo::ObjCRef<::OOTexture*>> allTextures(); // in no particular order
+    static std::vector<oo::Ref<OOTexture>> cachedTexturesByAge(); // youngest first
+    static std::vector<oo::Ref<OOTexture>> allTextures(); // in no particular order
 
     size_t dataSize();
 
@@ -206,6 +239,17 @@ public:
     // form's. None here, as OOObject answered.
     virtual std::optional<std::string> descriptionComponents() const;
     virtual std::optional<std::string> shortDescriptionComponents() const;
+
+    /*	The facade's descriptions (bead oo-9ht.99 deleted it), with the texture's address: "%@" was
+            <CxxClass 0x...>{components} (its -cxx_description override); the short form named the
+            facade's class, <OOTexture 0x...>{short components}, which the emission-map generator puts
+            into its cache key.
+    */
+    std::string description() const override;
+    std::string shortDescription() const;
+
+    // oo::PListForeign: the facade's class, which a property-list writer named.
+    std::string className() const override;
 
     // Internal: OOTextureInternal.h's subclass interface, for the subclasses.
     virtual void forceRebind(); // Subclass responsibility
@@ -222,7 +266,22 @@ private:
     static void checkExtensions();
 };
 
-} // namespace cxx
+/*	A texture carried through plist data as a PList::Object node (proposed ADR-0043 Amendment 2):
+        the texture is the node's foreign object (bead oo-9ht.99; what oo::PListObject() and
+        oo::ObjectIn() did for the facade).
+*/
+inline oo::PList OOTextureObjectNode(OOTexture* texture) // null texture -> null PList
+{
+    if (texture == nullptr)
+        return oo::PList();
+    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(texture)));
+}
+
+inline OOTexture* OOTextureInObjectNode(const oo::PList& plist) // null for any other node
+{
+    const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+    return (node != nullptr) ? dynamic_cast<OOTexture*>(node->get()) : nullptr;
+}
 
 /*	The specifier for object (a string, a dictionary, or null for the default name), or null.
         A dictionary without a string "name" gets defaultName, if given.
@@ -274,9 +333,5 @@ inline constexpr const char* cxx_kOOTextureSpecifierIlluminationModeKey = "illum
 inline constexpr const char* cxx_kOOTextureSpecifierSelfColorKey = "self_color";
 inline constexpr const char* cxx_kOOTextureSpecifierScaleFactorKey = "scale_factor";
 inline constexpr const char* cxx_kOOTextureSpecifierBindingKey = "binding";
-
-// Transitional: the Objective-C OOTexture, for callers and subclasses not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOTexture+ObjCBridge.h"
 
 #endif // OOTEXTURE_H

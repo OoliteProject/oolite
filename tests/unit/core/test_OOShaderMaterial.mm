@@ -22,14 +22,21 @@
 	the overload its comment names); the facade's own case (facade) was retired with it (ADR-0049,
 	standing approval oo-9n5p9), and crossesAsTheBasicMaterialFacade pins what Objective-C sees now:
 	the nearest facade, OOBasicMaterial's.
+
+	Since bead oo-9ht.39.6 the binding target is the C++ entity: the target is a stand-in C++ entity
+	(the test links no entity), its seed answered by the entities' hook as -randomSeedForShaders
+	answered it, and the uniform stand-in records the entity binding where it recorded the object's;
+	every expected value is kept.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOShaderMaterial.h"
 #import "OOShaderUniform.h"
+#import "OOShaderUniformMethodType.h"	// the binding target's hooks (bead oo-9ht.39.6)
 #import "OORegExpMatcher.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODescription.h"
+#import "OOTexture.h"
 #import "OOObjCPList.h"
 #import "legacy_random.h"
 
@@ -77,23 +84,20 @@ std::string Text(const std::optional<std::string> &string)
 static std::map<std::string, std::string> gShaderFiles;
 static std::vector<std::string> gShaderFileRequests;
 
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-+ (std::optional<std::string>) cxx_stringFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-+ (std::optional<std::string>) cxx_stringFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
-	gShaderFileRequests.push_back(folderName + "/" + fileName);
+	gShaderFileRequests.push_back(folderName.value_or("") + "/" + fileName);
 	auto found = gShaderFiles.find(fileName);
 	if (found == gShaderFiles.end())  return std::nullopt;
 	return found->second;
 }
-@end
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
@@ -183,7 +187,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &unifor
 	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("quaternion %g %g %g %g %s", constValue.w, constValue.x, constValue.y, constValue.z, asMatrix ? "matrix" : "vector"));
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &uniformName, OOShaderProgram *, id<OOWeakReferenceSupport>, SEL selector, OOUniformConvertOptions options)
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithEntityTarget(const std::string &uniformName, OOShaderProgram *, Entity *, SEL selector, OOUniformConvertOptions options)
 {
 	OO_TEST_MADE_UNIFORM(uniformName, oo::str::format("binding %s options %u", sel_getName(selector), (unsigned)options));
 }
@@ -193,81 +197,117 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string &unifor
 OOShaderUniform::~OOShaderUniform()  {}
 std::optional<std::string> OOShaderUniform::description()					{ return name; }
 void OOShaderUniform::apply()												{ gUniformApplies++; }
-void OOShaderUniform::setBindingTarget(id<OOWeakReferenceSupport> target)	{ gUniformTargets.push_back(name + (target != nil ? " target" : " nil")); }
+void OOShaderUniform::setEntityBindingTarget(Entity *target)	{ gUniformTargets.push_back(name + (target != nullptr ? " target" : " nil")); }
 
 
 // The textures: "missing" fails to load, and then the null texture stands in.
 static int gTextureApplyNones = 0;
 static int gTexturesDeallocated = 0;
 
-@interface OOTexture: OOObject
+// Since bead oo-9ht.99 deleted the Objective-C facade, the stand-in is C++: the root's static
+// members the material calls, TestTexture (what they answer), and the root's own members.
+class TestTexture final : public OOTexture
 {
-@public
+public:
+	~TestTexture() override					{ gTexturesDeallocated++; }
+	void apply() override					{ _applies++; }
+	void ensureFinishedLoading() override	{ _ensures++; }
+	bool isFinishedLoading() override		{ return _finished; }
+
 	std::string	_name;
-	int			_applies;
-	int			_ensures;
-	BOOL		_finished;
-}
-+ (void) applyNone;
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration;
-+ (id) nullTexture;
-- (void) apply;
-- (void) ensureFinishedLoading;
-- (BOOL) isFinishedLoading;
-@end
+	int			_applies = 0;
+	int			_ensures = 0;
+	BOOL		_finished = NO;
+};
 
-@implementation OOTexture
+static TestTexture *AsTest(const oo::Ref<OOTexture> &texture)  { return static_cast<TestTexture *>(texture.get()); }
 
-+ (void) applyNone	{ gTextureApplyNones++; }
+void OOTexture::applyNone()	{ gTextureApplyNones++; }
 
-+ (id) cxx_textureWithConfiguration:(const oo::PList &)configuration
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList &configuration)
 {
-	if (configuration == oo::PList("missing"))  return nil;
-	OOTexture *texture = [[[OOTexture alloc] init] autorelease];
+	if (configuration == oo::PList("missing"))  return nullptr;
+	oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
 	texture->_name = Text(configuration);
 	texture->_finished = YES;
 	return texture;
 }
 
-+ (id) nullTexture
+oo::Ref<OOTexture> OOTexture::nullTexture()
 {
-	static OOTexture *null = nil;
-	if (null == nil)
+	static TestTexture *null = nullptr;	// never released
+	if (null == nullptr)
 	{
-		null = [[OOTexture alloc] init];
+		null = oo::makeRef<TestTexture>().leakRef();
 		null->_name = "null";
 		null->_finished = YES;
 	}
-	return null;
+	return oo::Ref<OOTexture>(null);
 }
 
-- (void) dealloc						{ gTexturesDeallocated++; [super dealloc]; }
-- (void) apply							{ _applies++; }
-- (void) ensureFinishedLoading			{ _ensures++; }
-- (BOOL) isFinishedLoading				{ return _finished; }
-
-@end
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{}
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::shortDescription() const	{ return description(); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
 
 
 // The binding whitelist, which the game implements elsewhere: everything but "forbidden".
-BOOL OOUniformBindingPermitted(const std::string &propertyName, id bindingTarget)
+BOOL OOUniformBindingPermitted(const std::string &propertyName, Entity * /*bindingTarget*/)
 {
 	return propertyName != "forbidden";
 }
 
 
-// A binding target, with a seed for random uniforms.
-@interface TestTarget: OOWeakRefObject
-@end
+// A binding target, with a seed for random uniforms: a C++ entity since bead oo-9ht.39.6 (the test
+// links no entity, so the class is a stand-in), whose seed the entities' hook answers as the
+// Objective-C target's -randomSeedForShaders did. (Its -someBinding was never called: the uniforms
+// are stand-ins.)
+class Entity {};
+class TestTarget : public Entity {};
 
-@implementation TestTarget
-- (uint32_t) randomSeedForShaders	{ return 12345; }
-- (float) someBinding				{ return 1.0f; }
-@end
+const OOShaderEntityHooks *OOShaderEntityHooksIfSet() noexcept
+{
+	static const OOShaderEntityHooks hooks =
+	{
+		[](Entity *) -> Entity * { return nullptr; },
+		[](Entity *) -> std::string { return "(null)"; },	// its object's class and description (bead oo-dpyk8): nil's
+		[](Entity *) -> std::string { return "(null)"; },
+		[](Entity *, const char *, OOShaderMemberBinding *) -> bool { return false; },
+		[](Entity *, uint32_t *outSeed) -> bool { *outSeed = 12345; return true; },
+	};
+	return &hooks;
+}
 
 
 // UNIVERSE is gSharedUniverse: nil, so not reduced detail and no shaders.
-@class Universe;
+// UNIVERSE stays nil here, so the code under test's guarded calls never reach it; the stand-in only
+// links them (bead oo-ql9rn: they were messages to nil).
+class Universe
+{
+public:
+	bool useShaders();
+};
+bool Universe::useShaders()  { return false; }
+
 Universe *gSharedUniverse = nil;
 
 
@@ -275,7 +315,7 @@ namespace {
 
 GLint TextureUnits()
 {
-	return [[OOOpenGLExtensionManager sharedManager] textureImageUnitCount];
+	return OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount();
 }
 
 
@@ -288,7 +328,7 @@ oo::PList Config(oo::PList::Dict dict)
 const oo::PList kSources = Config({ { "_oo_vertex_shader_source", oo::PList("VS") }, { "_oo_fragment_shader_source", oo::PList("FS") } });
 
 
-oo::Ref<OOShaderMaterial> Make(const oo::PList &configuration, const oo::PList &macros = oo::PList(), id<OOWeakReferenceSupport> target = nil)
+oo::Ref<OOShaderMaterial> Make(const oo::PList &configuration, const oo::PList &macros = oo::PList(), Entity *target = nullptr)
 {
 	gProgramRequests.clear();
 	gUniforms.clear();
@@ -394,7 +434,8 @@ OO_TEST(uniformsFromTheConfiguration)
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		TestTarget *target = [[[TestTarget alloc] init] autorelease];
+		TestTarget targetEntity;
+		TestTarget *target = &targetEntity;
 		const RANROTSeed before = RANROTGetFullSeed();
 		oo::Ref<OOShaderMaterial> m = Make(With(kSources, { { "uniforms", Config({
 			{ "a", oo::PList(1.5) },
@@ -449,7 +490,8 @@ OO_TEST(settingUniforms)
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		TestTarget *target = [[[TestTarget alloc] init] autorelease];
+		TestTarget targetEntity;
+		TestTarget *target = &targetEntity;
 		const oo::Ref<OOShaderMaterial> m = Make(kSources);
 		gUniforms.clear();
 		m->setUniform("i", 7);
@@ -493,14 +535,14 @@ OO_TEST(texturesApplyAndUnapply)
 	{
 		const oo::Ref<OOShaderMaterial> m = Make(With(kSources, { { "textures", oo::PList(oo::PList::Array{ oo::PList("a.png"), oo::PList("missing"), oo::PList("c.png") }) } }));
 #ifndef NDEBUG
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = m->allTextures();
+		const std::vector<oo::Ref<OOTexture>> textures = m->allTextures();
 		OO_CHECK(textures.size() == 3);
-		OO_CHECK(textures[0].get()->_name == "a.png" && textures[1].get() == [OOTexture nullTexture] && textures[2].get()->_name == "c.png");
+		OO_CHECK(AsTest(textures[0])->_name == "a.png" && textures[1].get() == OOTexture::nullTexture().get() && AsTest(textures[2])->_name == "c.png");
 		OO_CHECK(m->isFinishedLoading());
-		textures[2].get()->_finished = NO;
+		AsTest(textures[2])->_finished = NO;
 		OO_CHECK(!m->isFinishedLoading());
 		m->ensureFinishedLoading();
-		OO_CHECK(textures[0].get()->_ensures == 1 && textures[2].get()->_ensures == 1);
+		OO_CHECK(AsTest(textures[0])->_ensures == 1 && AsTest(textures[2])->_ensures == 1);
 #endif
 
 		const int programApplies = gProgramApplies, uniformApplies = gUniformApplies, applyNones = gTextureApplyNones;
@@ -508,7 +550,7 @@ OO_TEST(texturesApplyAndUnapply)
 		OO_CHECK(gProgramApplies == programApplies + 1 && gUniformApplies == uniformApplies + 2);	// uGloss, uGammaCorrect
 		OO_CHECK(gTextureApplyNones == applyNones);	// not exactly a basic material
 #ifndef NDEBUG
-		OO_CHECK(textures[0].get()->_applies == 1 && textures[2].get()->_applies == 1);
+		OO_CHECK(AsTest(textures[0])->_applies == 1 && AsTest(textures[2])->_applies == 1);
 #endif
 		GLint active = 0;
 		glGetIntegerv(GL_ACTIVE_TEXTURE_ARB, &active);
@@ -530,9 +572,10 @@ OO_TEST(texturesApplyAndUnapply)
 		OO_CHECK(gTextureApplyNones == applyNones + 7);
 
 		// Texture objects passed in are used as they are, and win over specifiers.
-		OOTexture *given = [OOTexture cxx_textureWithConfiguration:oo::PList("given.png")];
+		const oo::Ref<OOTexture> givenRef = OOTexture::textureWithConfiguration(oo::PList("given.png"));	// was autoreleased
+		OOTexture *given = givenRef.get();
 		const oo::Ref<OOShaderMaterial> withObjects = Make(With(kSources, {
-			{ "_oo_texture_objects", oo::PList(oo::PList::Array{ oo::PListObject(given) }) },
+			{ "_oo_texture_objects", oo::PList(oo::PList::Array{ OOTextureObjectNode(given) }) },
 			{ "textures", oo::PList(oo::PList::Array{ oo::PList("a.png") }) },
 		}));
 #ifndef NDEBUG
@@ -555,12 +598,12 @@ OO_TEST(lifetimeAndDescription)
 	OO_CHECK(gProgramsDeallocated == programs && gTexturesDeallocated == textures);
 	@autoreleasepool
 	{
-		const std::string text = oo::DescriptionOf(oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())));
+		const std::string text = m->description();
 		OO_CHECK(text.starts_with("<OOShaderMaterial 0x") && text.ends_with(">{\"Shader\"}"));
 		OO_CHECK(m->permitSpecular());
 		m->apply();
-		OO_CHECK(cxx::OOMaterial::current().get() == m.get());
-		cxx::OOMaterial::applyNone();
+		OO_CHECK(OOMaterial::current().get() == m.get());
+		OOMaterial::applyNone();
 	}
 	m = nullptr;
 	OO_CHECK(gProgramsDeallocated == programs + 1 && gTexturesDeallocated == textures + 1);
@@ -602,25 +645,22 @@ OO_TEST(cxxAPI)
 
 		const int programApplies = gProgramApplies;
 		m->apply();
-		OO_CHECK(gProgramApplies == programApplies + 1 && cxx::OOMaterial::current().get() == m.get());
+		OO_CHECK(gProgramApplies == programApplies + 1 && OOMaterial::current().get() == m.get());
 		const int programApplyNones = gProgramApplyNones;
-		cxx::OOMaterial::applyNone();
+		OOMaterial::applyNone();
 		OO_CHECK(gProgramApplyNones == programApplyNones + 1);
 	}
 }
 
 
-// Objective-C sees a shader material as an OOMaterial (beads oo-9ht.46, oo-9ht.33).
-OO_TEST(crossesAsTheBasicMaterialFacade)
+// The description names the C++ class, as the facade's did (beads oo-9ht.46, oo-9ht.8).
+OO_TEST(descriptionNamesTheClass)
 {
 	if (!OOTestGLContext())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
 		const oo::Ref<OOShaderMaterial> m = OOShaderMaterial::shaderMaterialWithName(std::string("Cxx"), kSources, oo::PList(), nil);
-		OOMaterial *facade = oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get()));
-		OO_CHECK([facade isMemberOfClass:[OOMaterial class]]);
-		OO_CHECK(oo::ToCxx(facade) == m.get() && oo::AsObjCMaterial(m.get()) == nullptr);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOShaderMaterial 0x"));
+		OO_CHECK(m->description().starts_with("<OOShaderMaterial 0x"));
 	}
 }
 

@@ -187,7 +187,7 @@ static OOSound* GetNamedSound(const std::string& name)
     if (oo::str::hasPrefix(name, "[") && oo::str::hasSuffix(name, "]")) {
         sound = OOSoundWithCustomSoundKey(name);
     } else {
-        sound = [ResourceManager cxx_ooSoundNamed:name inFolder:"Sounds"];
+        sound = ResourceManager::ooSoundNamed(name, "Sounds");
     }
 
     return sound;

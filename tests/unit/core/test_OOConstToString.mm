@@ -70,29 +70,37 @@ oo::PList Good(std::initializer_list<std::pair<const char *, oo::PList>> entries
 }	// namespace
 
 
-@interface Universe: OOObject
-{
-@public
-	oo::Ref<OOCommodityMarket>	market;
-}
-- (oo::PList) cxx_equipmentData;
-- (oo::PList) cxx_equipmentDataOutfitting;
-- (const oo::PList *) cxx_descriptions;
-- (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key;
-- (OOCommodityMarket *) commodityMarket;
-@end
+#import "UniverseStandIn.h"
 
-@implementation Universe
-- (oo::PList) cxx_equipmentData				{ return EquipmentData(); }
-- (oo::PList) cxx_equipmentDataOutfitting	{ return EquipmentData(); }
-- (const oo::PList *) cxx_descriptions
+// The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
+// the Objective-C facade the test's Objective-C stand-in stood in for), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+class Universe : public oo::RefCounted
 {
-	static const oo::PList descriptions = oo::PList(oo::PList::Dict{});
-	return &descriptions;
-}
-- (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key	{ return std::nullopt; }
-- (OOCommodityMarket *) commodityMarket		{ return market.get(); }
-@end
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
+
+	oo::Ref<OOCommodityMarket>	market;
+
+	oo::PList getEquipmentData();
+	oo::PList getEquipmentDataOutfitting();
+	::OOCommodityMarket *getCommodityMarket();
+};
+
+class StandInUniverse : public Universe
+{
+public:
+	const oo::PList *descriptions() override
+	{
+		static const oo::PList descriptions = oo::PList(oo::PList::Dict{});
+		return &descriptions;
+	}
+	std::optional<std::string> descriptionForKey(const std::string &/*key*/) override	{ return std::nullopt; }
+};
+
+oo::PList Universe::getEquipmentData()	{ return EquipmentData(); }
+oo::PList Universe::getEquipmentDataOutfitting()	{ return EquipmentData(); }
+::OOCommodityMarket *Universe::getCommodityMarket()	{ return market.get(); }
 
 Universe *gSharedUniverse = nil;
 
@@ -108,7 +116,7 @@ std::string cxx_OOLookUpDescriptionPRIV(const std::string &key)
 
 
 // The expander (a whole-game unit); the functions pinned here never expand.
-std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const std::string &string, const oo::PList &overrides, const oo::PList &legacyLocals, const std::optional<std::string> &systemName, OOExpandOptions options)
+std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed /*seed*/, const std::string &string, const oo::PList &/*overrides*/, const oo::PList &/*legacyLocals*/, const std::optional<std::string> &/*systemName*/, OOExpandOptions /*options*/)
 {
 	return string;
 }
@@ -119,19 +127,17 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 }
 
 
-@interface OOCacheManager: OOObject
-+ (OOCacheManager *) sharedCache;
-- (void) cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache;
-@end
+#import "OOCacheManager.h"
 
-@implementation OOCacheManager
-+ (OOCacheManager *) sharedCache
+// The cache manager is C++ since bead oo-9ht.31 deleted its facade: a C++ stand-in with the Objective-C
+// stand-in's answers.
+OOCacheManager *OOCacheManager::sharedCache()
 {
-	static OOCacheManager *cache = [[OOCacheManager alloc] init];
-	return cache;
+	static OOCacheManager *shared = new OOCacheManager;
+	return shared;
 }
-- (void) cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache	{}
-@end
+OOCacheManager::~OOCacheManager()  {}
+void OOCacheManager::setPList(const oo::PList &value, const std::string &key, const std::string &cache)	{ (void)value; (void)key; (void)cache; }
 
 
 #import "OOScript.h"
@@ -144,7 +150,7 @@ std::optional<std::string> OOScript::name()					{ return std::nullopt; }
 std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
 std::optional<std::string> OOScript::version()				{ return std::nullopt; }
 bool OOScript::requiresTickle()								{ return false; }
-void OOScript::runWithTarget(::Entity *)						{}
+void OOScript::runWithTarget(Entity *)						{}
 bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
 std::string OOScript::className() const						{ return "OOScript"; }
 std::string OOScript::description() const						{ return "<OOScript>"; }
@@ -166,24 +172,24 @@ public:
 };
 
 oo::PList PlayerEntity::processKeyCode(const oo::PList &key_def)	{ return key_def; }
-std::optional<std::string> PlayerEntity::validateKey(const std::string &key, const oo::PList &check_keys)	{ return std::nullopt; }
-oo::PList PlayerEntity::missionVariableForKey(const std::string &key)	{ return oo::PList(); }
+std::optional<std::string> PlayerEntity::validateKey(const std::string &/*key*/, const oo::PList &/*check_keys*/)	{ return std::nullopt; }
+oo::PList PlayerEntity::missionVariableForKey(const std::string &/*key*/)	{ return oo::PList(); }
 
 PlayerEntity *gOOPlayer = nullptr;
 
 
-void cxx_OOStandardsDeprecated(const std::string &message)	{}
+void cxx_OOStandardsDeprecated(const std::string &/*message*/)	{}
 
 extern "C" BOOL OOEnforceStandards(void)	{ return NO; }
 
-oo::PList OOSanitizeLegacyScriptConditions(const oo::PList &conditions, const std::optional<std::string> &context)	{ return conditions; }
+oo::PList OOSanitizeLegacyScriptConditions(const oo::PList &conditions, const std::optional<std::string> &/*context*/)	{ return conditions; }
 
 
 namespace {
 
 void LoadEquipment()
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
+	if (gSharedUniverse == nil)  gSharedUniverse = new StandInUniverse();
 	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	OOEquipmentType::loadEquipment();
 }

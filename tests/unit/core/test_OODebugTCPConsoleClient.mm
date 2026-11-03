@@ -17,9 +17,10 @@
 	file's stand-in (proposed ADR-0056, amendment oo-z1s4 item 4): it records the commands and
 	configuration values it is given and answers configuration values from a table. Since the
 	conversion (commit 3dc0fde89 ran these tests on the Objective-C class, against an Objective-C
-	monitor) the stand-in is the C++ monitor's members that the client calls, and the tests drive
-	the client through its facade, which is its forwarding test; cxxClientAndItsFacade adds the C++
-	API and the facade's contract (one facade per client, nil for null).
+	monitor) the stand-in is the C++ monitor's members that the client calls. Bead oo-9ht.81 deleted
+	the client's facade: the tests drive the C++ client through the debugger interface, as they drove
+	the facade, and cxxClientAndItsFacade keeps the C++ API's checks (its facade-contract checks were
+	retired with the facade, standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh test_OODebugTCPConsoleClient
 */
 
@@ -58,35 +59,46 @@ MonitorRecord sMonitor;
 }	// namespace
 
 
-// The C++ monitor's members that the client calls, and the facade crossing its forwarders make.
-cxx::OODebugMonitor *cxx::OODebugMonitor::sharedDebugMonitor()
+// The C++ monitor's members that the client calls.
+// The engine-monitor members, which give the C++ monitor its vtable (they are virtual); never
+// reached here.
+void OODebugMonitor::jsEngine(::OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &, unsigned, unsigned, bool, const std::string &)	{}
+void OODebugMonitor::jsEngine(::OOJavaScriptEngine *, JSContext *, const std::string &, const std::optional<std::string> &)	{}
+// The monitor's JS glue and description, also virtual; never reached here.
+JSValue OODebugMonitor::jsValueInContext(JSContext *)	{ return JS_UNDEFINED; }
+void OODebugMonitor::clearJSSelf(JSValueConst)	{}
+std::string OODebugMonitor::className() const	{ return "OODebugMonitor"; }
+std::string OODebugMonitor::description() const	{ return "<OODebugMonitor>"; }
+
+
+OODebugMonitor *OODebugMonitor::sharedDebugMonitor()
 {
-	static cxx::OODebugMonitor *monitor = nullptr;
-	if (monitor == nullptr)  monitor = oo::makeRef<cxx::OODebugMonitor>().leakRef();
+	static OODebugMonitor *monitor = nullptr;
+	if (monitor == nullptr)  monitor = oo::makeRef<OODebugMonitor>().leakRef();
 	return monitor;
 }
 
 
-bool cxx::OODebugMonitor::TCPIgnoresDroppedPackets()
+bool OODebugMonitor::TCPIgnoresDroppedPackets()
 {
 	return false;
 }
 
 
-void cxx::OODebugMonitor::performJSConsoleCommand(const std::string &command)
+void OODebugMonitor::performJSConsoleCommand(const std::string &command)
 {
 	sMonitor.commands.push_back(command);
 }
 
 
-oo::PList cxx::OODebugMonitor::configurationValueForKey(const std::string &key)
+oo::PList OODebugMonitor::configurationValueForKey(const std::string &key)
 {
 	auto found = sMonitor.configuration.find(key);
 	return (found != sMonitor.configuration.end()) ? found->second : oo::PList();
 }
 
 
-void cxx::OODebugMonitor::setConfigurationValue(const oo::PList &value, const std::string &key)
+void OODebugMonitor::setConfigurationValue(const oo::PList &value, const std::string &key)
 {
 	sMonitor.configurationSets.emplace_back(key, value);
 }
@@ -94,21 +106,13 @@ void cxx::OODebugMonitor::setConfigurationValue(const oo::PList &value, const st
 
 namespace {
 
-// What the debug monitor hands its debugger: here, an object that stands for its facade.
+// What the debug monitor hands its debugger: itself (the C++ monitor).
 OODebugMonitor *Monitor()
 {
-	static OOObject *facade = nil;
-	if (facade == nil)  facade = [[OOObject alloc] init];
-	return (OODebugMonitor *)facade;
+	return OODebugMonitor::sharedDebugMonitor();
 }
 
 }	// namespace
-
-
-cxx::OODebugMonitor *oo::ToCxx(OODebugMonitor *monitor)
-{
-	return (monitor == Monitor()) ? cxx::OODebugMonitor::sharedDebugMonitor() : nullptr;
-}
 
 
 // MARK: The console's end ------------------------------------------------------------------------
@@ -221,15 +225,15 @@ struct Session
 {
 	SOCKET listener = INVALID_SOCKET;
 	SOCKET console = INVALID_SOCKET;
-	OODebugTCPConsoleClient *client = nil;
+	oo::Ref<OODebugTCPConsoleClient> client;
 	oo::PList request;
 
 	Session()
 	{
 		uint16_t port = 0;
 		listener = Listen(&port);
-		client = [[OODebugTCPConsoleClient alloc] initWithAddress:std::string("127.0.0.1") port:port];
-		if (client != nil)
+		client = OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"), port);
+		if (client != nullptr)
 		{
 			console = Accept(listener);
 			request = ReadPacket(console);
@@ -238,7 +242,7 @@ struct Session
 
 	~Session()
 	{
-		[client release];
+		client = oo::Ref<OODebugTCPConsoleClient>();
 		if (console != INVALID_SOCKET)  closesocket(console);
 		closesocket(listener);
 	}
@@ -256,13 +260,13 @@ OO_TEST(connectsAndRequestsTheConnection)
 	@autoreleasepool
 	{
 		Session session;
-		OO_CHECK(session.client != nil);
+		OO_CHECK(session.client != nullptr);
 		OO_CHECK(TypeOf(session.request) == "Request Connection");
 		const oo::PList *version = Value(session.request, "protocol version");
 		OO_CHECK(Same(version, oo::PList(static_cast<std::int64_t>(kOOTCPProtocolVersion_1_1_0))));
 
 		std::optional<std::string> message;
-		OO_CHECK([session.client connectDebugMonitor:Monitor() errorMessage:&message]);
+		OO_CHECK(session.client->connectDebugMonitor(Monitor(), &message));
 		OO_CHECK(!message.has_value());
 		OO_CHECK(OODebugTCPConsoleIsWaitingForInput());
 
@@ -278,42 +282,42 @@ OO_TEST(sendsTheMonitorsOutput)
 	@autoreleasepool
 	{
 		Session session;
-		OO_CHECK([session.client connectDebugMonitor:Monitor() errorMessage:NULL]);
+		OO_CHECK(session.client->connectDebugMonitor(Monitor(), NULL));
 		SendPacket(session.console, "Approve Connection");
 
-		[session.client debugMonitor:Monitor() jsConsoleOutput:"hello" colorKey:std::nullopt emphasisRange:NSMakeRange(1, 2)];
+		session.client->debugMonitor(Monitor(), "hello", std::nullopt, NSMakeRange(1, 2));
 		oo::PList packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Console Output");
 		OO_CHECK(Same(Value(packet, "message"), oo::PList(std::string("hello"))));
 		OO_CHECK(Same(Value(packet, "color key"), oo::PList(std::string("general"))));
 		OO_CHECK(Same(Value(packet, "emphasis ranges"), oo::PList(oo::PList::Array{ oo::PList(1), oo::PList(2) })));
 
-		[session.client debugMonitor:Monitor() jsConsoleOutput:"oops" colorKey:std::string("error") emphasisRange:NSMakeRange(0, 0)];
+		session.client->debugMonitor(Monitor(), "oops", std::string("error"), NSMakeRange(0, 0));
 		packet = ReadPacket(session.console);
 		OO_CHECK(Same(Value(packet, "color key"), oo::PList(std::string("error"))));
 		OO_CHECK(Value(packet, "emphasis ranges") == nullptr);
 
-		[session.client debugMonitorClearConsole:Monitor()];
+		session.client->debugMonitorClearConsole(Monitor());
 		packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Clear Console" && packet.getIf<oo::PList::Dict>()->size() == 1);
 
-		[session.client debugMonitorShowConsole:Monitor()];
+		session.client->debugMonitorShowConsole(Monitor());
 		OO_CHECK(TypeOf(ReadPacket(session.console)) == "Show Console");
 
 		oo::PList::Dict configuration;
 		configuration["font-size"] = oo::PList(12);
-		[session.client debugMonitor:Monitor() noteConfiguration:oo::PList(configuration)];
+		session.client->debugMonitor(Monitor(), oo::PList(configuration));
 		packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Note Configuration");
 		OO_CHECK(Same(Value(packet, "configuration"), oo::PList(configuration)));
 
-		[session.client debugMonitor:Monitor() noteChangedConfigrationValue:oo::PList(14) forKey:"font-size"];
+		session.client->debugMonitor(Monitor(), oo::PList(14), std::string("font-size"));
 		packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Note Configuration");
 		configuration["font-size"] = oo::PList(14);
 		OO_CHECK(Same(Value(packet, "configuration"), oo::PList(configuration)));
 
-		[session.client debugMonitor:Monitor() noteChangedConfigrationValue:oo::PList() forKey:"font-size"];
+		session.client->debugMonitor(Monitor(), oo::PList(), std::string("font-size"));
 		packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Note Configuration");
 		OO_CHECK(Value(packet, "configuration") == nullptr);
@@ -329,7 +333,7 @@ OO_TEST(handlesTheConsolesPackets)
 	@autoreleasepool
 	{
 		Session session;
-		OO_CHECK([session.client connectDebugMonitor:Monitor() errorMessage:NULL]);
+		OO_CHECK(session.client->connectDebugMonitor(Monitor(), NULL));
 		SendPacket(session.console, "Approve Connection");
 
 		SendPacket(session.console, "Ping", { { "message", oo::PList(std::string("p1")) } });
@@ -392,10 +396,10 @@ OO_TEST(disconnectsFromTheConsole)
 	@autoreleasepool
 	{
 		Session session;
-		OO_CHECK([session.client connectDebugMonitor:Monitor() errorMessage:NULL]);
+		OO_CHECK(session.client->connectDebugMonitor(Monitor(), NULL));
 		SendPacket(session.console, "Approve Connection");
 
-		[session.client disconnectDebugMonitor:Monitor() message:std::string("bye")];
+		session.client->disconnectDebugMonitor(Monitor(), std::string("bye"));
 		oo::PList packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Close Connection");
 		OO_CHECK(Same(Value(packet, "message"), oo::PList(std::string("bye"))));
@@ -404,11 +408,11 @@ OO_TEST(disconnectsFromTheConsole)
 		OO_CHECK(!OODebugTCPConsoleIsWaitingForInput());
 
 		std::optional<std::string> message;
-		OO_CHECK(![session.client connectDebugMonitor:Monitor() errorMessage:&message]);
+		OO_CHECK(!session.client->connectDebugMonitor(Monitor(), &message));
 		OO_CHECK(message == std::optional<std::string>("Cannot reconnect after disconnecting."));
 
 		// Disconnecting again sends nothing: the socket is already closed.
-		[session.client disconnectDebugMonitor:Monitor() message:std::nullopt];
+		session.client->disconnectDebugMonitor(Monitor(), std::nullopt);
 	}
 }
 
@@ -419,7 +423,7 @@ OO_TEST(disconnectsWithoutAMessage)
 	@autoreleasepool
 	{
 		Session session;
-		[session.client disconnectDebugMonitor:Monitor() message:std::nullopt];
+		session.client->disconnectDebugMonitor(Monitor(), std::nullopt);
 		oo::PList packet = ReadPacket(session.console);
 		OO_CHECK(TypeOf(packet) == "Close Connection" && packet.getIf<oo::PList::Dict>()->size() == 1);
 	}
@@ -438,7 +442,7 @@ OO_TEST(theConsoleRefuses)
 		OO_CHECK(recv(session.console, &byte, 1, 0) == 0);
 
 		std::optional<std::string> message;
-		OO_CHECK(![session.client connectDebugMonitor:Monitor() errorMessage:&message]);
+		OO_CHECK(!session.client->connectDebugMonitor(Monitor(), &message));
 		OO_CHECK(message == std::optional<std::string>("Connection refused."));
 	}
 }
@@ -450,17 +454,17 @@ OO_TEST(theConsoleCloses)
 	@autoreleasepool
 	{
 		Session session;
-		OO_CHECK([session.client connectDebugMonitor:Monitor() errorMessage:NULL]);
+		OO_CHECK(session.client->connectDebugMonitor(Monitor(), NULL));
 		SendPacket(session.console, "Approve Connection");
 		SendPacket(session.console, "Close Connection");
 		OO_CHECK(!OODebugTCPConsoleIsWaitingForInput());
 
 		std::optional<std::string> message;
-		OO_CHECK(![session.client connectDebugMonitor:Monitor() errorMessage:&message]);
+		OO_CHECK(!session.client->connectDebugMonitor(Monitor(), &message));
 		OO_CHECK(message == std::optional<std::string>("Cannot reconnect after disconnecting."));
 
 		// Nothing more is sent.
-		[session.client debugMonitorShowConsole:Monitor()];
+		session.client->debugMonitorShowConsole(Monitor());
 		OO_CHECK(!OODebugTCPConsoleIsWaitingForInput());
 	}
 }
@@ -490,28 +494,24 @@ OO_TEST(nobodyAnswers)
 		SOCKET listener = Listen(&port);
 		closesocket(listener);
 
-		OODebugTCPConsoleClient *client = [[OODebugTCPConsoleClient alloc] initWithAddress:std::string("127.0.0.1") port:port];
-		OO_CHECK(client == nil);
+		oo::Ref<OODebugTCPConsoleClient> client = OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"), port);
+		OO_CHECK(client == nullptr);
 		OO_CHECK(!OODebugTCPConsoleIsWaitingForInput());
 	}
 }
 
 
-// The C++ client and its facade: a client made by the facade's initialiser is that facade's, the
-// crossing keeps one facade per client, and null and nil cross as each other.
+// The C++ client (its facade, and the facade-contract checks, are retired).
 OO_TEST(cxxClientAndItsFacade)
 {
 	@autoreleasepool
 	{
 		Session session;
-		cxx::OODebugTCPConsoleClient *client = oo::ToCxx(session.client);
+		OODebugTCPConsoleClient *client = session.client.get();
 		OO_CHECK(client != nullptr);
-		OO_CHECK(oo::ToObjC(client) == session.client);
-		OO_CHECK(oo::ToCxx((OODebugTCPConsoleClient *)nil) == nullptr);
-		OO_CHECK(oo::ToObjC((cxx::OODebugTCPConsoleClient *)nullptr) == nil);
 
-		OO_CHECK(client->connectDebugMonitor(cxx::OODebugMonitor::sharedDebugMonitor(), nullptr));
-		client->debugMonitorShowConsole(cxx::OODebugMonitor::sharedDebugMonitor());
+		OO_CHECK(client->connectDebugMonitor(OODebugMonitor::sharedDebugMonitor(), nullptr));
+		client->debugMonitorShowConsole(OODebugMonitor::sharedDebugMonitor());
 		OO_CHECK(TypeOf(ReadPacket(session.console)) == "Show Console");
 	}
 
@@ -519,19 +519,17 @@ OO_TEST(cxxClientAndItsFacade)
 	{
 		uint16_t port = 0;
 		SOCKET listener = Listen(&port);
-		oo::Ref<cxx::OODebugTCPConsoleClient> client = cxx::OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"), port);
+		oo::Ref<OODebugTCPConsoleClient> client = OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"), port);
 		OO_CHECK(client.get() != nullptr);
 		SOCKET console = Accept(listener);
 		OO_CHECK(TypeOf(ReadPacket(console)) == "Request Connection");
 
-		OODebugTCPConsoleClient *facade = oo::ToObjC(client.get());
-		OO_CHECK(facade != nil && oo::ToObjC(client.get()) == facade && oo::ToCxx(facade) == client.get());
-		[facade debugMonitorClearConsole:Monitor()];
+		client->debugMonitorClearConsole(Monitor());
 		OO_CHECK(TypeOf(ReadPacket(console)) == "Clear Console");
 
-		client = oo::Ref<cxx::OODebugTCPConsoleClient>();	// the facade still holds it
-		[facade debugMonitorShowConsole:Monitor()];
+		client->debugMonitorShowConsole(Monitor());
 		OO_CHECK(TypeOf(ReadPacket(console)) == "Show Console");
+		client = oo::Ref<OODebugTCPConsoleClient>();
 		closesocket(console);
 		closesocket(listener);
 	}
@@ -539,7 +537,7 @@ OO_TEST(cxxClientAndItsFacade)
 	uint16_t port = 0;
 	SOCKET listener = Listen(&port);
 	closesocket(listener);
-	OO_CHECK(cxx::OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"), port).get() == nullptr);
+	OO_CHECK(OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"), port).get() == nullptr);
 }
 
 

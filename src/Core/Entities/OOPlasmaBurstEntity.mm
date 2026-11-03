@@ -60,6 +60,8 @@ void OOPlasmaBurstEntity::update(OOTimeDelta delta_t)
 
     _colorComponents[3] = attenuation;
 
-    if (lifeTime > kPlasmaBurstDuration)
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+    if (lifeTime > kPlasmaBurstDuration) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
+    }
 }

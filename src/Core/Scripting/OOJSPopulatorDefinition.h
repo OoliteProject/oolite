@@ -60,7 +60,7 @@ private:
 
     JSValue _callback = JS_UNDEFINED; // Owned.
     JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was the facade's weak reference proxy)
 };
 
 // A PList::Object node holding the definition (strongly), as the settings' callbackObj.

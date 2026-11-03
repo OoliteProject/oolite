@@ -44,23 +44,18 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 #include "OOOXPVerifierTestDouble.h"
 
 
-@interface ResourceManager: OOObject
-
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-
-@end
+#import "ResourceManager.h"
 
 
-@implementation ResourceManager
-
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	(void)fileName;
 	(void)folderName;
 	return std::nullopt;
 }
 
-@end
 
 
 namespace {

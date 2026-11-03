@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
 #if OO_SHADERS
 #import "OOShaderProgram.h"
@@ -42,10 +41,10 @@ MA 02110-1301, USA.
 
 /*	C++ only (its Objective-C facade is deleted): the universe makes it with oo::makeRef<DustEntity>() and init(), hands it to
         Objective-C with oo::NewEntityFacade, and finds it with dynamic_cast. It is its own graphics
-        reset client (OOGraphicsResetClient), and the dust shader's uniforms are bound, by
-        selector, to a file-local Objective-C object in DustEntity.mm that forwards to it.
+        reset client (OOGraphicsResetClient), and the dust shader's uniforms are bound to its members
+        (OOShaderUniform's C++ target binding).
 */
-class DustEntity : public cxx::Entity, public OOGraphicsResetClient {
+class DustEntity : public Entity, public OOGraphicsResetClient {
 public:
     DustEntity() = default;
     ~DustEntity() override;
@@ -64,9 +63,9 @@ public:
 
 #if OO_SHADERS
     OOShaderProgram* getShader();
-    Vector offsetPlayerPosition(); // bound to the dust shader by selector, through the binding object
+    Vector offsetPlayerPosition(); // the dust shader's uOffsetPlayerPosition
 #endif
-    Vector warpVector(); // bound to the dust shader by selector, through the binding object
+    Vector warpVector(); // the dust shader's uWarp
 
     void drawImmediate(bool immediate, bool translucent) override;
 
@@ -86,7 +85,7 @@ private:
     Vector vertices[DUST_N_PARTICLES * 2] = { };
     GLushort indices[DUST_N_PARTICLES * 2] = { };
     GLfloat color_fv[4] = { };
-    oo::ObjCRef<::OOTexture*> texture;
+    oo::Ref<OOTexture> texture;
     bool hasPointSprites = { };
     bool drawDust = { };
 
@@ -94,7 +93,6 @@ private:
     GLfloat warpinessAttr[DUST_N_PARTICLES * 2] = { };
     oo::Ref<OOShaderProgram> shader;
     std::vector<oo::Ref<OOShaderUniform>> uniforms;
-    oo::ObjCRef<id> shaderBinding; // what the uniforms are bound to (DustEntity.mm)
     uint8_t shaderMode = { };
 #endif
 };

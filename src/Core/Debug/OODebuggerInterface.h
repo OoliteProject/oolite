@@ -2,7 +2,9 @@
 
 OODebuggerInterface.h
 
-Protocols for communication between OODebugMonitor and OODebuggerInterface.
+Interfaces for communication between OODebugMonitor and its debugger. The debugger's was the
+Objective-C protocol OODebuggerInterface; it is a C++ interface, with the same messages as
+members taking the C++ monitor.
 
 
 Oolite Debug Support
@@ -33,48 +35,57 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-@class OODebugMonitor;
+#ifndef OODEBUGGERINTERFACE_H
+#define OODEBUGGERINTERFACE_H
 
+#import "OOFoundation.h" // NSRange
 #include "oofnd/PList.hpp"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/Ref.hpp"
 #include <optional>
 #include <string>
 
-// Interface for debugger.
+class OODebugMonitor;
 
-@protocol OODebuggerInterface <OOObject>
+// Interface for debugger. Reference counted: the monitor keeps its debugger (oo::Ref).
 
-// Configuration and console text use oo::PList / std::string (proposed ADR-0043).
+class OODebuggerInterface : public oo::RefCounted {
+public:
+    // Configuration and console text use oo::PList / std::string (proposed ADR-0043).
 
-// Sent to establish connection. *message: error text when the connect fails.
-- (BOOL)connectDebugMonitor:(OODebugMonitor*)debugMonitor
-               errorMessage:(std::optional<std::string>*)message;
+    // Sent to establish connection. *message: error text when the connect fails.
+    virtual bool connectDebugMonitor(OODebugMonitor* debugMonitor,
+        std::optional<std::string>* message) = 0;
 
-// Sent to close connection. message: nullopt when none.
-- (void)disconnectDebugMonitor:(OODebugMonitor*)debugMonitor
-                       message:(const std::optional<std::string>&)message;
+    // Sent to close connection. message: nullopt when none.
+    virtual void disconnectDebugMonitor(OODebugMonitor* debugMonitor,
+        const std::optional<std::string>& message) = 0;
 
-// Sent to print to the JavaScript console.
-// colorKey is intended to be used to look up a foreground/background colour pair
-// in the configuration. EmphasisRange is to specify a bold section of text.
-- (void)debugMonitor:(OODebugMonitor*)debugMonitor
-     jsConsoleOutput:(const std::string&)output
-            colorKey:(const std::optional<std::string>&)colorKey
-       emphasisRange:(NSRange)emphasisRange;
+    // Sent to print to the JavaScript console.
+    // colorKey is intended to be used to look up a foreground/background colour pair
+    // in the configuration. EmphasisRange is to specify a bold section of text.
+    virtual void debugMonitor(OODebugMonitor* debugMonitor,
+        const std::string& output,
+        const std::optional<std::string>& colorKey,
+        NSRange emphasisRange) = 0;
 
-// Sent to clear the JavaScript console.
-- (void)debugMonitorClearConsole:(OODebugMonitor*)debugMonitor;
+    // Sent to clear the JavaScript console.
+    virtual void debugMonitorClearConsole(OODebugMonitor* debugMonitor) = 0;
 
-// Sent to show the console, for instance in response to a warning or error message.
-- (void)debugMonitorShowConsole:(OODebugMonitor*)debugMonitor;
+    // Sent to show the console, for instance in response to a warning or error message.
+    virtual void debugMonitorShowConsole(OODebugMonitor* debugMonitor) = 0;
 
-// Sent once when the debugger is connected.
-- (void)debugMonitor:(OODebugMonitor*)debugMonitor
-    noteConfiguration:(const oo::PList&)configuration;
+    // Sent once when the debugger is connected.
+    virtual void debugMonitor(OODebugMonitor* debugMonitor,
+        const oo::PList& configuration) = 0;
 
-// Sent when configuration changes. newValue null = was nil.
-- (void)debugMonitor:(OODebugMonitor*)debugMonitor
-    noteChangedConfigrationValue:(const oo::PList&)newValue
-                          forKey:(const std::string&)key;
+    // Sent when configuration changes. newValue null = was nil.
+    virtual void debugMonitor(OODebugMonitor* debugMonitor,
+        const oo::PList& newValue,
+        const std::string& key) = 0;
 
-@end
+    // What the monitor's log lines print for the debugger ("%@" of the Objective-C object was
+    // <ClassName 0x...>).
+    virtual std::string description() const = 0;
+};
+
+#endif // OODEBUGGERINTERFACE_H

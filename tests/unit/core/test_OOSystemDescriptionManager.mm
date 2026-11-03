@@ -35,13 +35,16 @@
 static OOSystemID gCurrentSystem = 7;
 static OOGalaxyID gGalaxy = 0;
 
-@interface Universe: OOObject
-- (OOSystemID) currentSystemID;
-@end
+// The universe as the code under test sees it: a stand-in for the C++ class (the
+// deleted Objective-C facade this stood in for), with the header's names and signatures.
+class Universe
+{
+public:
+	OOSystemID currentSystemID();
+};
 
-@implementation Universe
-- (OOSystemID) currentSystemID  { return gCurrentSystem; }
-@end
+OOSystemID Universe::currentSystemID()	{ return gCurrentSystem; }
+
 
 Universe *gSharedUniverse = nil;
 
@@ -61,17 +64,16 @@ PlayerEntity *gOOPlayer = nullptr;
 
 
 // ResourceManager: one installed OXP, org.test.installed.
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_manifestForIdentifier:(const std::string &)identifier;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (oo::PList) cxx_manifestForIdentifier:(const std::string &)identifier
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::manifestForIdentifier(const std::string &identifier)
 {
 	if (identifier != "org.test.installed")  return oo::PList();
 	return oo::PList(oo::PList::Dict{ { "identifier", oo::PList(identifier) } });
 }
-@end
+
 
 
 /*	OOStringParsing.mm reaches the JavaScript engine, so it is not linked. Its two parsers are
@@ -97,7 +99,7 @@ namespace {
 
 void Fake()
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = [[Universe alloc] init];
+	if (gSharedUniverse == nil)  gSharedUniverse = new Universe();
 	if (gOOPlayer == nullptr)  gOOPlayer = new PlayerEntity;	// never deleted
 	gCurrentSystem = 7;
 	gGalaxy = 0;

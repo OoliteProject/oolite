@@ -137,7 +137,7 @@ oo::Ref<OOMesh> Mesh(const std::string &name, float scale = 1.0f, BOOL cacheWrit
 
 oo::PList CachedPList(const std::string &key, const std::string &cache)
 {
-	return [[OOCacheManager sharedCache] cxx_pListForKey:key inCache:cache];
+	return OOCacheManager::sharedCache()->pListForKey(key, cache);
 }
 
 
@@ -297,7 +297,7 @@ OO_TEST(placeholderMaterial)
 	SetUp();
 	@autoreleasepool
 	{
-		const oo::Ref<cxx::OOMaterial> placeholder = OOMesh::placeholderMaterial();
+		const oo::Ref<OOMaterial> placeholder = OOMesh::placeholderMaterial();
 		OO_CHECK(placeholder != nullptr);
 		OO_CHECK(dynamic_cast<OOBasicMaterial *>(placeholder.get()) != nullptr);
 		OO_CHECK_EQ(placeholder->name().value_or("<none>"), "/placeholder/");
@@ -305,7 +305,7 @@ OO_TEST(placeholderMaterial)
 	}
 	@autoreleasepool
 	{
-		const oo::Ref<cxx::OOMaterial> again = OOMesh::placeholderMaterial();
+		const oo::Ref<OOMaterial> again = OOMesh::placeholderMaterial();
 		OO_CHECK(again != nullptr);
 		OO_CHECK_EQ(again->name().value_or("<none>"), "/placeholder/");
 	}
@@ -552,13 +552,13 @@ OO_TEST(renderingMembers)
 		drawable->renderOpaqueParts();
 		OO_CHECK_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
 
-		// The materials: the placeholder's facade (the one live facade of the C++ material), rebound;
+		// The materials: the placeholder (bead oo-9ht.8 deleted the facade the member held), rebound;
 		// a reset.
 		cxxMesh->rebindMaterials();
-		OO_CHECK(oo::ToCxx(cxxMesh->materials[0]) == OOMesh::placeholderMaterial().get());
+		OO_CHECK(cxxMesh->materials[0] == OOMesh::placeholderMaterial().get());
 		cxxMesh->resetGraphicsState();
 		OO_CHECK(!cxxMesh->listsReady);
-		OO_CHECK(oo::ToCxx(cxxMesh->materials[0]) == OOMesh::placeholderMaterial().get());
+		OO_CHECK(cxxMesh->materials[0] == OOMesh::placeholderMaterial().get());
 
 		// The buffers: a renamed key, and bytes kept by key.
 		cxxMesh->renameTexturesFrom("_oo_placeholder_material", "_oo_placeholder_material");

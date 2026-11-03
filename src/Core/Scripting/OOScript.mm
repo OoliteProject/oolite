@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/objc/OOObjCRef.h" // oo::AutoreleaseInObjCPool
 #include <cstdlib>
 #include <cxxabi.h>
 #include <typeinfo>
@@ -145,7 +146,7 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::worldScriptsAtPath(const
 std::optional<std::vector<oo::Ref<OOScript>>> OOScript::scriptsFromFileNamed(const std::string& fileName)
 {
     std::optional<std::vector<oo::Ref<OOScript>>> result;
-    std::optional<std::string> path = [::ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
+    std::optional<std::string> path = ResourceManager::pathForFileNamed(fileName, "Scripts");
     if (path.has_value()) {
         result = scriptsFromFileAtPath(*path);
     }
@@ -208,7 +209,7 @@ oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string& fileName, c
 
     extension = oo::str::lowercase(oo::str::pathExtension(fileName));
     if (extension == "js" || extension == "es") {
-        path = [::ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
+        path = ResourceManager::pathForFileNamed(fileName, "Scripts");
         if (!path.has_value()) {
             OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nullptr;
@@ -233,7 +234,7 @@ oo::Ref<OOScript> OOScript::jsAIScriptFromFileNamed(const std::string& fileName,
 
     extension = oo::str::lowercase(oo::str::pathExtension(fileName));
     if (extension == "js" || extension == "es") {
-        path = [::ResourceManager cxx_pathForFileNamed:fileName inFolder:"AIs"];
+        path = ResourceManager::pathForFileNamed(fileName, "AIs");
         if (!path.has_value()) {
             OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nullptr;
@@ -287,7 +288,7 @@ bool OOScript::requiresTickle()
     return false;
 }
 
-void OOScript::runWithTarget(::Entity*)
+void OOScript::runWithTarget(Entity*)
 {
     OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
 }
@@ -329,33 +330,12 @@ void OOScript::clearJSSelf(JSValueConst)
 {
 }
 
-/*	OOScriptAutorelease()'s keeper: an autoreleased Objective-C object that holds the script, so the
-        pool's drain releases it as it released the facade. Private to this file; nothing messages it.
+/*	OOScriptAutorelease(): the script goes to the Objective-C autorelease pool, whose drain releases it
+        where the keeper object that held it was released (oo::AutoreleaseInObjCPool).
 */
-@interface OOScriptAutoreleaseKeeper : OOObject {
-@private
-    oo::Ref<OOScript> _script;
-}
-
-- (id)initWithScript:(oo::Ref<OOScript>)script;
-
-@end
-
-@implementation OOScriptAutoreleaseKeeper
-
-- (id)initWithScript:(oo::Ref<OOScript>)script
-{
-    self = [super init];
-    if (self != nil)
-        _script = std::move(script);
-    return self;
-}
-
-@end
-
 void OOScriptAutorelease(oo::Ref<OOScript> script)
 {
     if (script == nullptr)
         return;
-    [[[OOScriptAutoreleaseKeeper alloc] initWithScript:std::move(script)] autorelease];
+    oo::AutoreleaseInObjCPool(std::move(script));
 }

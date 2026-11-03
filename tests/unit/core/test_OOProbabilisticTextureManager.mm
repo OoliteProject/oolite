@@ -25,6 +25,8 @@
 #import "OOProbabilisticTextureManager.h"
 #import "OODescription.h"
 #import "OOTypes.h"
+#import "OOTexture.h"
+#include "oofnd/String.hpp"
 
 #include "oo_test.hpp"
 
@@ -39,43 +41,64 @@ static oo::PList gConfig;
 static std::vector<std::string> gLog;
 
 
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_arrayFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName andMerge:(BOOL)mergeFiles;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (oo::PList) cxx_arrayFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName andMerge:(BOOL)mergeFiles
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::arrayFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles)
 {
 	gLog.push_back("config " + fileName + " in " + folderName.value_or("(nil)") + (mergeFiles ? " merged" : " unmerged"));
 	return gConfig;
 }
-@end
+
 
 
 // Every texture loads, but for "missing.png".
-@interface OOTexture: OOObject
+// Since the Objective-C facade was deleted, the stand-in is C++: the factory the manager
+// calls, the root's own members (a texture needs them), and TestTexture, which the factory answers.
+class TestTexture final : public OOTexture
 {
-@public
-	std::string		_name;
-	unsigned		_loaded;
-}
-+ (id) cxx_textureWithName:(const std::optional<std::string> &)name inFolder:(const std::optional<std::string> &)directory options:(uint32_t)options anisotropy:(GLfloat)anisotropy lodBias:(GLfloat)lodBias;
-- (void) ensureFinishedLoading;
-@end
+public:
+	void ensureFinishedLoading() override  { _loaded++; }
 
-@implementation OOTexture
-+ (id) cxx_textureWithName:(const std::optional<std::string> &)name inFolder:(const std::optional<std::string> &)directory options:(uint32_t)options anisotropy:(GLfloat)anisotropy lodBias:(GLfloat)lodBias
+	std::string		_name;
+	unsigned		_loaded = 0;
+};
+
+oo::Ref<OOTexture> OOTexture::textureWithName(const std::optional<std::string> &name, const std::optional<std::string> &directory, OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias)
 {
 	char args[128];
 	std::snprintf(args, sizeof args, " options=%#x anisotropy=%g lodBias=%g", options, anisotropy, lodBias);
 	gLog.push_back("texture " + name.value_or("(nil)") + " in " + directory.value_or("(nil)") + args);
-	if (name == "missing.png")  return nil;
-	OOTexture *texture = [[[OOTexture alloc] init] autorelease];
+	if (name == "missing.png")  return nullptr;
+	oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
 	texture->_name = *name;
 	return texture;
 }
-- (void) ensureFinishedLoading  { _loaded++; }
-@end
+
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{}
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::shortDescription() const	{ return description(); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
 
 
 static OOGalaxyID gGalaxy = 0;
@@ -136,7 +159,7 @@ std::string Picks(const oo::Ref<OOProbabilisticTextureManager> &manager, int cou
 	std::string picks;
 	for (int i = 0; i < count; i++)
 	{
-		OOTexture *texture = manager->selectTexture();
+		TestTexture *texture = static_cast<TestTexture *>(manager->selectTexture());
 		picks += (texture != nil ? texture->_name.substr(0, 1) : std::string("-"));
 	}
 	return picks;
@@ -265,7 +288,7 @@ OO_TEST(picks)
 
 OO_TEST(texturesAreLoadedAndKept)
 {
-	std::vector<OOTexture *> textures;
+	std::vector<TestTexture *> textures;
 	oo::Ref<OOProbabilisticTextureManager> manager;
 	@autoreleasepool
 	{
@@ -276,26 +299,26 @@ OO_TEST(texturesAreLoadedAndKept)
 			gGalaxy = galaxy;
 			for (int i = 0; i < 200; i++)
 			{
-				OOTexture *texture = manager->selectTexture();
+				TestTexture *texture = static_cast<TestTexture *>(manager->selectTexture());
 				bool seen = false;
-				for (OOTexture *t : textures)  seen = seen || t == texture;
-				if (!seen)  textures.push_back([texture retain]);
+				for (TestTexture *t : textures)  seen = seen || t == texture;
+				if (!seen)  textures.push_back(oo::Ref<TestTexture>(texture).leakRef());	// the test's reference
 			}
 		}
 	}
 	OO_CHECK(textures.size() == 4);
 	manager->ensureTexturesLoaded();
 	manager->ensureTexturesLoaded();
-	for (OOTexture *texture : textures)
+	for (TestTexture *texture : textures)
 	{
 		OO_CHECK(texture->_loaded == 2);
-		OO_CHECK([texture retainCount] == 2);	// the test's and the manager's
+		OO_CHECK(texture->retainCount() == 2);	// the test's and the manager's
 	}
 	manager = nullptr;
-	for (OOTexture *texture : textures)
+	for (TestTexture *texture : textures)
 	{
-		OO_CHECK([texture retainCount] == 1);
-		[texture release];
+		OO_CHECK(texture->retainCount() == 1);
+		oo::release(texture);
 	}
 }
 

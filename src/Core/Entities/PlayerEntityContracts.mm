@@ -99,14 +99,14 @@ std::optional<std::string> PlayerEntity::processEscapePods() // removes pods fro
     std::string result;
     std::vector<oo::Ref<OOCharacter>> rescuees;
     // -intValue of the system's government: a string's leading integer, a number truncated, nil 0
-    const oo::PList systemData = [UNIVERSE cxx_currentSystemData];
+    const oo::PList systemData = (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList());
     const oo::PList* governmentValue = systemData.find(KEY_GOVERNMENT);
     OOGovernmentID government = 0;
     if (governmentValue != nullptr && governmentValue->isString())
         government = oo::str::intValue(*governmentValue->getIf<std::string>());
     else if (governmentValue != nullptr)
         government = static_cast<int>(governmentValue->int64Value());
-    if ([UNIVERSE inInterstellarSpace])
+    if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false))
         government = 1; // equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 
     // step through the cargo removing crew from any escape pods
@@ -186,7 +186,7 @@ std::optional<std::string> PlayerEntity::processEscapePods() // removes pods fro
 
 std::optional<std::string> PlayerEntity::checkPassengerContracts() // returns messages from any passengers whose status have changed
 {
-    if (dockedStation() != [UNIVERSE station]) // only drop off passengers or fulfil contracts at main station
+    if (dockedStation() != (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) // only drop off passengers or fulfil contracts at main station
         return std::nullopt;
 
     // check escape pods...
@@ -201,7 +201,7 @@ std::optional<std::string> PlayerEntity::checkPassengerContracts() // returns me
         const std::optional<std::string> passenger_name = OptionalStringForKey(passenger_info, std::string(PASSENGER_KEY_NAME));
         int dest = passenger_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
         // the system name can change via script
-        const std::optional<std::string> passenger_dest_name = [UNIVERSE cxx_getSystemName:dest];
+        const std::optional<std::string> passenger_dest_name = (UNIVERSE != nullptr ? UNIVERSE->getSystemName(dest) : std::optional<std::string>());
         int dest_eta = passenger_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
 
         if (system_id == dest) {
@@ -899,7 +899,7 @@ bool PlayerEntity::awardContract(unsigned qty, const std::string& type, unsigned
 
     std::string cargo_ID = oo::str::format("%06x-%06x", sr1, sr2);
 
-    if (!([UNIVERSE commodities] != nullptr ? [UNIVERSE commodities]->goodDefined(type) : false))
+    if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr ? UNIVERSE->getCommodities()->goodDefined(type) : false))
         return NO;
     if (qty < 1)
         return NO;
@@ -915,7 +915,7 @@ bool PlayerEntity::awardContract(unsigned qty, const std::string& type, unsigned
         { std::string(CARGO_KEY_ID), oo::PList(cargo_ID) },
         { std::string(CARGO_KEY_TYPE), oo::PList(type) },
         { std::string(CARGO_KEY_AMOUNT), oo::PList::signedInteger(static_cast<int>(qty)) },
-        { std::string(CARGO_KEY_DESCRIPTION), oo::PList([UNIVERSE cxx_describeCommodity:type amount:qty].value_or(std::string())) },
+        { std::string(CARGO_KEY_DESCRIPTION), oo::PList((UNIVERSE != nullptr ? UNIVERSE->describeCommodity(type, qty) : std::optional<std::string>()).value_or(std::string())) },
         { std::string(CONTRACT_KEY_START), oo::PList::signedInteger(static_cast<int>(start)) },
         { std::string(CONTRACT_KEY_DESTINATION), oo::PList::signedInteger(static_cast<int>(Destination)) },
         { std::string(CONTRACT_KEY_DEPARTURE_TIME), oo::PList((PLAYER != nullptr ? PLAYER->clockTime() : 0.0)) },
@@ -964,7 +964,7 @@ bool PlayerEntity::removeContract(const std::string& type, unsigned dest) // rem
     if (contracts.empty() || dest > 255)
         return NO;
 
-    if (!([UNIVERSE commodities] != nullptr ? [UNIVERSE commodities]->goodDefined(type) : false))
+    if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr ? UNIVERSE->getCommodities()->goodDefined(type) : false))
         return NO;
 
     unsigned i;
@@ -1011,9 +1011,9 @@ std::vector<std::string> PlayerEntity::contractsListFromEntries(const oo::PList:
         const oo::PList& contract_info = contracts_array[i];
         const std::optional<std::string> label = OptionalStringForKey(contract_info, forCargo ? std::string(CARGO_KEY_DESCRIPTION) : std::string(PASSENGER_KEY_NAME));
         // the system name can change via script. The following PASSENGER_KEYs are identical to the corresponding CONTRACT_KEYs
-        const std::optional<std::string> destination = [UNIVERSE cxx_getSystemName:contract_info.get<int>(std::string(CONTRACT_KEY_DESTINATION))];
+        const std::optional<std::string> destination = (UNIVERSE != nullptr ? UNIVERSE->getSystemName(contract_info.get<int>(std::string(CONTRACT_KEY_DESTINATION))) : std::optional<std::string>());
         int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
-        const std::optional<std::string> deadline = [UNIVERSE cxx_shortTimeDescription:dest_eta];
+        const std::optional<std::string> deadline = (UNIVERSE != nullptr ? UNIVERSE->shortTimeDescription(dest_eta) : std::optional<std::string>());
 
         OOCreditsQuantity fee = contract_info.get<int>(std::string(CONTRACT_KEY_FEE));
         const std::optional<std::string> feeDesc = std::optional<std::string>(cxx_OOIntCredits(fee));
@@ -1042,7 +1042,7 @@ void PlayerEntity::setGuiToManifestScreen()
 {
     OOGUIScreenID oldScreen = gui_screen;
 
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     gui_screen = GUI_SCREEN_MANIFEST;
     BOOL guiChanged = (oldScreen != gui_screen);
     if (guiChanged) {
@@ -1216,7 +1216,8 @@ void PlayerEntity::setGuiToManifestScreen()
     lastTextKey.reset();
 
     setShowDemoShips(NO);
-    [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->enterGUIViewModeWithMouseInteraction(NO);
 
     if (guiChanged) {
         gui->setForegroundTextureKey(std::optional<std::string>(status() == STATUS_DOCKED ? "docked_overlay" : "overlay"));
@@ -1232,7 +1233,7 @@ void PlayerEntity::setManifestScreenRow(const oo::PList& object, ::OOColor* colo
         return;
     if (multi)
         disp_row++;
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     if (const std::string* text = object.getIf<std::string>()) {
         gui->setText(*text, disp_row);
     } else if (const oo::PList::Array* elements = object.getIf<oo::PList::Array>()) {
@@ -1249,7 +1250,7 @@ void PlayerEntity::setManifestScreenRow(const oo::PList& object, ::OOColor* colo
 
 void PlayerEntity::setGuiToDockingReportScreen()
 {
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
 
     OOGUIScreenID oldScreen = gui_screen;
     gui_screen = GUI_SCREEN_REPORT;
@@ -1297,16 +1298,17 @@ void PlayerEntity::setGuiToDockingReportScreen()
     lastTextKey.reset();
 
     setShowDemoShips(NO);
-    [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->enterGUIViewModeWithMouseInteraction(NO);
 
     if (guiChanged) {
         gui->setForegroundTextureKey(std::string("docked_overlay")); // has to be docked!
 
-        oo::PList bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"report"];
+        oo::PList bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("report") : oo::PList());
         if (bgDescriptor.isNull())
-            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"status_docked"];
+            bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("status_docked") : oo::PList());
         if (bgDescriptor.isNull())
-            bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"status"];
+            bgDescriptor = (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey("status") : oo::PList());
         gui->setBackgroundTextureDescriptor(bgDescriptor);
         noteGUIDidChangeFrom(oldScreen, gui_screen);
     }
@@ -1374,7 +1376,7 @@ void PlayerEntity::setGuiToShipyardScreen(NSUInteger skip)
 {
     OOGUIScreenID oldScreen = gui_screen;
 
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     gui_screen = GUI_SCREEN_SHIPYARD;
     BOOL guiChanged = (oldScreen != gui_screen);
 
@@ -1387,7 +1389,7 @@ void PlayerEntity::setGuiToShipyardScreen(NSUInteger skip)
     if (station != nil) {
         stationTechLevel = (station != nullptr ? station->getEquivalentTechLevel() : 0);
     } else {
-        station = [UNIVERSE station];
+        station = (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr);
         stationTechLevel = NSNotFound;
     }
     if ((station != nullptr ? station->getLocalShipyard() : (std::vector<oo::PList>*)nullptr) == nullptr) {
@@ -1417,7 +1419,7 @@ void PlayerEntity::setGuiToShipyardScreen(NSUInteger skip)
     // GUI stuff
     {
         gui->clearAndKeepBackground(!guiChanged);
-        const std::optional<std::string> systemName = [UNIVERSE cxx_getSystemName:system_id];
+        const std::optional<std::string> systemName = (UNIVERSE != nullptr ? UNIVERSE->getSystemName(system_id) : std::optional<std::string>());
         gui->setTitle(ExpandKey("shipyard-title", { { "system", systemName.has_value() ? oo::PList(*systemName) : oo::PList() } }));
 
         OOGUITabSettings tab_stops;
@@ -1494,7 +1496,8 @@ void PlayerEntity::setGuiToShipyardScreen(NSUInteger skip)
     // the following are necessary...
 
     setShowDemoShips((shipCount > 0));
-    [UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->enterGUIViewModeWithMouseInteraction(YES);
 
     if (guiChanged) {
         gui->setForegroundTextureKey("docked_overlay");
@@ -1505,7 +1508,7 @@ void PlayerEntity::setGuiToShipyardScreen(NSUInteger skip)
 void PlayerEntity::showShipyardInfoForSelection()
 {
     NSUInteger i;
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     OOGUIRow sel_row = gui->getSelectedRow();
 
     if (sel_row <= 0)
@@ -1522,7 +1525,8 @@ void PlayerEntity::showShipyardInfoForSelection()
         gui->setText("", i);
         gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor, OOColor::greenColor().get()).get(), i);
     }
-    [UNIVERSE removeDemoShips];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->removeDemoShips();
 
     if (!info.isNull()) {
         // the key is a particular ship - show the details
@@ -1571,7 +1575,7 @@ void PlayerEntity::showShipyardInfoForSelection()
 
 void PlayerEntity::showTradeInInformationFooter()
 {
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     OOCreditsQuantity tradeIn = tradeInValue();
     OOCreditsQuantity total = tradeIn + credits;
     const oo::PList shipType = oo::PList(getDisplayName().value_or(""));
@@ -1610,7 +1614,7 @@ OOCreditsQuantity PlayerEntity::tradeInValue()
             for-sale ships.
             -- Ahruman 20070707, fix applied 20070708
     */
-    unsigned long long value = [UNIVERSE cxx_tradeInValueForCommanderDictionary:commanderDataDictionary()];
+    unsigned long long value = (UNIVERSE != nullptr ? UNIVERSE->tradeInValueForCommanderDictionary(commanderDataDictionary()) : 0);
     value -= value * 0.006 * missingSubEntitiesAdjustment(); // TODO: 0.006 might need rethinking.
     const unsigned long long rounded = ((value * 75 * ship_trade_in_factor) + 5000) / 10000; // Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
     value = cunningFee(rounded, 0.005);
@@ -1619,7 +1623,7 @@ OOCreditsQuantity PlayerEntity::tradeInValue()
 
 bool PlayerEntity::buySelectedShip()
 {
-    ::GuiDisplayGen* gui = [UNIVERSE gui];
+    ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     OOGUIRow selectedRow = gui->getSelectedRow();
 
     if (selectedRow <= 0)
@@ -1634,11 +1638,11 @@ bool PlayerEntity::buySelectedShip()
             fromShip = 0;
 
         setGuiToShipyardScreen(fromShip);
-        if ([UNIVERSE gui]->getSelectedRow() < 0) {
-            [UNIVERSE gui]->setSelectedRow(GUI_ROW_SHIPYARD_START);
+        if (UNIVERSE->getGui()->getSelectedRow() < 0) {
+            UNIVERSE->getGui()->setSelectedRow(GUI_ROW_SHIPYARD_START);
         }
         if (fromShip == 0) {
-            [UNIVERSE gui]->setSelectedRow(GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1);
+            UNIVERSE->getGui()->setSelectedRow(GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1);
         }
         // next bit or the first ship on the list gets wrongly previewed
         // clean up the display
@@ -1651,7 +1655,8 @@ bool PlayerEntity::buySelectedShip()
             gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor, OOColor::greenColor().get()).get(), i);
         }
         gui->setArray(row_info, GUI_ROW_SHIPYARD_LABELS);
-        [UNIVERSE removeDemoShips];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeDemoShips();
         return YES;
     }
 
@@ -1731,8 +1736,10 @@ bool PlayerEntity::buySelectedShip()
     // finally we can get full hock if we sell it back
     ship_trade_in_factor = 100;
 
-    if ([UNIVERSE autoSave])
-        [UNIVERSE setAutoSaveNow:YES];
+    if ((UNIVERSE != nullptr ? UNIVERSE->getAutoSave() : false)) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->setAutoSaveNow(YES);
+    }
 
     return YES;
 }
@@ -1740,9 +1747,9 @@ bool PlayerEntity::buySelectedShip()
 bool PlayerEntity::replaceShipWithNamedShip(const std::string& shipKey)
 {
 
-    const oo::PList ship_info = [[::OOShipRegistry sharedRegistry] cxx_shipyardInfoForKey:shipKey];
+    const oo::PList ship_info = OOShipRegistry::sharedRegistry()->shipyardInfoForKey(shipKey);
 
-    const oo::PList ship_base_dict = [[::OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipKey];
+    const oo::PList ship_base_dict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipKey);
 
     if (ship_info.isNull() || ship_base_dict.isNull()) {
         return NO;
@@ -1829,7 +1836,7 @@ void PlayerEntity::newShipCommonSetup(const std::string& shipKey, const oo::PLis
     weapons_online = 1;
 
     // get basic max_cargo
-    max_cargo = [UNIVERSE cxx_maxCargoForShip:shipDataKey().value_or(std::string())];
+    max_cargo = (UNIVERSE != nullptr ? UNIVERSE->maxCargoForShip(shipDataKey().value_or(std::string())) : 0);
 
     // ensure all missiles are tidied up and start at pylon 0
     tidyMissilePylons();

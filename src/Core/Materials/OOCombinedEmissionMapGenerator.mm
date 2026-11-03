@@ -91,7 +91,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
     OOColor* emissionColor,
-    ::OOTexture* diffuseMap,
+    OOTexture* diffuseMap,
     OOColor* diffuseColor,
     const oo::PList& illuminationMapSpec,
     OOColor* illuminationColor,
@@ -111,7 +111,7 @@ oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generato
 }
 
 oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(const oo::PList& emissionAndIlluminationMapSpec,
-    ::OOTexture* diffuseMap,
+    OOTexture* diffuseMap,
     OOColor* diffuseColor,
     OOColor* emissionColor,
     OOColor* illuminationColor,
@@ -133,7 +133,7 @@ oo::Ref<OOCombinedEmissionMapGenerator> OOCombinedEmissionMapGenerator::generato
 // Was the private designated initialiser; false where it answered nil.
 bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
     OOColor* emissionColor,
-    ::OOTexture* diffuseMap,
+    OOTexture* diffuseMap,
     OOColor* diffuseColor,
     const oo::PList& illuminationMapSpec,
     OOColor* illuminationColor,
@@ -172,7 +172,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
         _emissionSpec = SpecWithExtraShrink(emissionMapSpec);
         _illuminationSpec = SpecWithExtraShrink(illuminationMapSpec);
 
-        _diffuseMap = oo::ObjCRef<::OOTexture*>(diffuseMap);
+        _diffuseMap = oo::Ref<OOTexture>(diffuseMap);
 
         _emissionColor = oo::Ref<OOColor>(emissionColor);
         _illuminationColor = oo::Ref<OOColor>(illuminationColor);
@@ -184,15 +184,15 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
 
         _cacheKey = constructCacheKey();
 
-        if (cxx::OOTexture::existingTextureForKey(_cacheKey) == nullptr) {
+        if (OOTexture::existingTextureForKey(_cacheKey) == nullptr) {
             /*	Extract pixmap from diffuse map. This must be done in the main
                     thread even if scheduling is fixed, because it might involve
                     reading back pixels from OpenGL.
             */
             if (diffuseMap != nil) {
-                _diffusePx = oo::ToCxx(diffuseMap)->copyPixMapRepresentation();
+                _diffusePx = diffuseMap->copyPixMapRepresentation();
 #ifndef NDEBUG
-                _diffuseDesc = oo::ShortDescriptionOf(diffuseMap);
+                _diffuseDesc = diffuseMap->shortDescription();
 #endif
             }
 
@@ -202,23 +202,23 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(const oo::PList& em
             */
             OOTextureDataFormat format;
             if (!_emissionSpec.isNull()) {
-                const oo::ObjCRef<::OOTextureLoader*> emissionMapLoader = cxx::OOTextureLoader::loaderWithTextureSpecifier(_emissionSpec,
+                const oo::Ref<OOTextureLoader> emissionMapLoader = OOTextureLoader::loaderWithTextureSpecifier(_emissionSpec,
                     0,
                     std::string("Textures"));
                 if (emissionMapLoader)
-                    oo::ToCxx(emissionMapLoader.get())->getResult(&_emissionPx, &format, NULL, NULL);
+                    emissionMapLoader->getResult(&_emissionPx, &format, NULL, NULL);
 #ifndef NDEBUG
-                _emissionDesc = (emissionMapLoader ? oo::ShortDescriptionOf(emissionMapLoader.get()) : std::string());
+                _emissionDesc = (emissionMapLoader ? emissionMapLoader->shortDescription() : std::string());
 #endif
             }
             if (!_illuminationSpec.isNull()) {
-                const oo::ObjCRef<::OOTextureLoader*> illuminationMapLoader = cxx::OOTextureLoader::loaderWithTextureSpecifier(_illuminationSpec,
+                const oo::Ref<OOTextureLoader> illuminationMapLoader = OOTextureLoader::loaderWithTextureSpecifier(_illuminationSpec,
                     0,
                     std::string("Textures"));
                 if (illuminationMapLoader)
-                    oo::ToCxx(illuminationMapLoader.get())->getResult(&_illuminationPx, &format, NULL, NULL);
+                    illuminationMapLoader->getResult(&_illuminationPx, &format, NULL, NULL);
 #ifndef NDEBUG
-                _illuminationDesc = (illuminationMapLoader ? oo::ShortDescriptionOf(illuminationMapLoader.get()) : std::string());
+                _illuminationDesc = (illuminationMapLoader ? illuminationMapLoader->shortDescription() : std::string());
 #endif
             }
         }
@@ -260,7 +260,7 @@ std::string OOCombinedEmissionMapGenerator::constructCacheKey()
     }
 
     if (!illuminationDesc.empty()) {
-        cacheKey += oo::str::format("illumination:{%s}*{%s}", illuminationDesc.c_str(), (_diffuseMap ? oo::ToCxx(_diffuseMap.get())->cacheKey() : std::nullopt).value_or("").c_str());
+        cacheKey += oo::str::format("illumination:{%s}*{%s}", illuminationDesc.c_str(), (_diffuseMap ? _diffuseMap->cacheKey() : std::nullopt).value_or("").c_str());
         if (_illuminationColor) {
             const std::optional<std::string> rgba = _illuminationColor->rgbaDescription();
             cacheKey += oo::str::format("*%s", rgba ? rgba->c_str() : "");
@@ -436,6 +436,6 @@ void OOCombinedEmissionMapGenerator::loadTexture()
         _emissionPx.pixels = NULL; // So it won't be freed by the destructor.
     }
     if (_data == NULL) {
-        OO_LOG_ERR("texture.combinedEmissionMap.error", "Unknown error loading {}", oo::DescriptionOf(oo::ToObjC(this)));
+        OO_LOG_ERR("texture.combinedEmissionMap.error", "Unknown error loading {}", description());
     }
 }

@@ -100,7 +100,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
 
 // *** Predefined message classes.
 /*	These are general coding error types. Generally a subclass should be used
-        for each instance -- for instance, -[Entity warnAboutHostiles] uses
+        for each instance -- for instance, Entity::warnAboutHostiles() uses
         @"general.error.subclassResponsibility.Entity-warnAboutHostiles".
 */
 

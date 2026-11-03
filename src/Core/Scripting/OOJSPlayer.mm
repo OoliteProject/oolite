@@ -370,7 +370,8 @@ static JSValue PlayerCommsMessage(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [UNIVERSE cxx_addCommsMessage:*message forCount:time];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->addCommsMessage(message, time);
     if (PLAYER != nullptr)
         PLAYER->ShipEntity::doScriptEvent(OOJSID("commsMessageReceived"), { oo::PList(*message), oo::PList() }); // qualified: the final overrider, so the binding test stands in for it
     OOJS_RETURN_VOID;
@@ -396,7 +397,8 @@ static JSValue PlayerConsoleMessage(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [UNIVERSE cxx_addMessage:*message forCount:time];
+    if (UNIVERSE != nullptr)
+        UNIVERSE->addMessage(message, time);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -529,8 +531,10 @@ static JSValue PlayerAudioMessage(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    if ((player != nullptr ? player->getIsSpeechOn() : OOSpeechSettings { }) >= OOSPEECHSETTINGS_COMMS)
-        [UNIVERSE cxx_startSpeakingString:*audioMessage];
+    if ((player != nullptr ? player->getIsSpeechOn() : OOSpeechSettings { }) >= OOSPEECHSETTINGS_COMMS) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->startSpeakingString(*audioMessage);
+    }
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -570,11 +574,13 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS)
     }
 
     if (success) {
+        // The player's entity node, as the next event's: its JS value is the C++ player's, which its
+        // object's -oo_jsValueInContext: answered; qualified: the final overrider, so the binding test stands in for it.
         if (player != nullptr)
-            player->doScriptEvent(OOJSID("playerReplacedShip"), oo::ToObjC(player));
+            player->ShipEntity::doScriptEvent(OOJSID("playerReplacedShip"), { oo::EntityObjectNode(player) });
         // slightly misnamed world event now - to be deprecated
         if (player != nullptr)
-            player->ShipEntity::doScriptEvent(OOJSID("playerBoughtNewShip"), { oo::PListObject(oo::ToObjC(player)), oo::PList::signedInteger(0) }); // qualified: the final overrider, so the binding test stands in for it
+            player->ShipEntity::doScriptEvent(OOJSID("playerBoughtNewShip"), { oo::EntityObjectNode(player), oo::PList::signedInteger(0) }); // qualified: the final overrider, so the binding test stands in for it
     }
 
     OOJS_RETURN_BOOL(success);
@@ -598,15 +604,16 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 
     if (argc == 1) {
         destValue = cxx_OOJSPListFromJSValue(context, OOJS_ARGV[0]);
-        id destObject = oo::ObjectIn(destValue);
+        Entity* destEntity = oo::EntityIn(destValue); // the entity node's
 
         if (destValue.isNull()) {
             if (player != nullptr)
                 player->setDockTarget(NULL);
             OK = true;
-        } else if ((oo::ToShip(destObject) != nullptr) && [destObject isStation]) {
+        } else if ((oo::ToShip(destEntity) != nullptr) && destEntity->getIsStation()) // what -isStation forwarded to
+        {
             if (player != nullptr)
-                player->setDockTarget(oo::ToShip(destObject));
+                player->setDockTarget(oo::ToShip(destEntity));
             OK = true;
         } else if (const std::string* destString = destValue.getIf<std::string>()) {
             if (*destString == "NEARBY_SYSTEM") {
@@ -615,11 +622,11 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
                     player->setDockTarget(NULL);
 
                 double rescueRange = MAX_JUMP_RANGE; // reach at least 1 other system!
-                if ([UNIVERSE inInterstellarSpace]) {
+                if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false)) {
                     // Set 3.5 ly as the limit, enough to reach at least 2 systems!
                     rescueRange = MAX_JUMP_RANGE / 2.0;
                 }
-                oo::PList destinations = [UNIVERSE cxx_nearbyDestinationsWithinRange:rescueRange];
+                oo::PList destinations = (UNIVERSE != nullptr ? UNIVERSE->nearbyDestinationsWithinRange(rescueRange) : oo::PList());
                 oo::PList::Array sDests;
                 if (const oo::PList::Array* array = destinations.getIf<oo::PList::Array>())
                     sDests = *array;
@@ -705,8 +712,10 @@ static JSValue PlayerSetPlayerRole(OOJS_NATIVE_ARGS)
 static JSValue PlayerStopAudioMessage(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
-    if ([UNIVERSE isSpeaking])
-        [UNIVERSE stopSpeaking];
+    if ((UNIVERSE != nullptr ? UNIVERSE->isSpeaking() : false)) {
+        if (UNIVERSE != nullptr)
+            UNIVERSE->stopSpeaking();
+    }
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT

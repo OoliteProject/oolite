@@ -462,6 +462,72 @@ OO_TEST(weakRefOnlyComparisonCreatesNoControl)
 	OO_CHECK(oo::detail::WeakAccess::existingControl(b.get()) == nullptr);
 }
 
+// dropWeakReferences(): an object whose identity dies before its count does
+// (an entity's C++ part, when its Objective-C object starts -dealloc) zeroes its weak refs early,
+// as -weakRefDrop did; the object lives on, and a WeakRef made afterwards is a new identity, as a
+// -weakRetain after -weakRefDrop was a new proxy.
+class Droppable : public Thing
+{
+public:
+	explicit Droppable(std::string name) : Thing(std::move(name)) {}
+	using oo::RefCounted::dropWeakReferences;
+};
+
+OO_TEST(dropWeakReferencesZeroesThemWhileTheObjectLives)
+{
+	oo::Ref<Droppable> a = oo::makeRef<Droppable>("a");
+	oo::WeakRef<Thing> w = a.get();
+	OO_CHECK(w.get() == a.get());
+	a->dropWeakReferences();
+	OO_CHECK(w.get() == nullptr && w.expired());
+	OO_CHECK(a->retainCount() == 1 && a->name() == "a");
+	oo::WeakRef<Thing> again = a.get();
+	OO_CHECK(again.get() == a.get());
+	OO_CHECK(!(again == w) && !(w == a.get()) && again == a.get());
+	a->dropWeakReferences();
+	a->dropWeakReferences();                       // nothing to drop: harmless
+	OO_CHECK(again.get() == nullptr);
+	a.reset();                                     // dies without weak refs (ASan: no double free)
+	OO_CHECK(w.get() == nullptr && again.get() == nullptr);
+}
+
+// willDispose(): the last release runs it once, with the object whole (its weak
+// references still read it), before the weak references are zeroed and the destructor runs; a
+// balanced retain and release inside it do not dispose again.
+class Disposing : public Thing
+{
+public:
+	explicit Disposing(std::string name, std::vector<std::string> *log) : Thing(std::move(name)), _log(log) {}
+	~Disposing() override  { _log->push_back("destructor"); }
+	oo::WeakRef<Thing> watcher;
+
+protected:
+	void willDispose() noexcept override
+	{
+		_log->push_back(std::string("willDispose, weak ") + (watcher.get() == this ? "live" : "dead") + ", count " + std::to_string(retainCount()));
+		retain();
+		release();   // balanced: no second dispose
+		_log->push_back("after balanced pair");
+	}
+
+private:
+	std::vector<std::string> *_log;
+};
+
+OO_TEST(willDisposeRunsOnceWithTheObjectWhole)
+{
+	std::vector<std::string> log;
+	oo::Ref<Disposing> d = oo::makeRef<Disposing>("d", &log);
+	d->watcher = d.get();
+	oo::WeakRef<Thing> outside = d.get();
+	d->retain();
+	d->release();
+	OO_CHECK(log.empty());
+	d.reset();
+	OO_CHECK((log == std::vector<std::string>{ "willDispose, weak live, count 1", "after balanced pair", "destructor" }));
+	OO_CHECK(outside.get() == nullptr);
+}
+
 // --- AutoreleaseScope: the autorelease pool ----------------------------------------------------
 
 OO_TEST(autoreleaseReleasesAtScopeEnd)

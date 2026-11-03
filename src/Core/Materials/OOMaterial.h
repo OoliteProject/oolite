@@ -11,9 +11,9 @@ Currently, only shader materials are supported. Direct use of textures should
 also be replaced with an OOMaterial subclass.
 
 C++20 since bead oo-smy, the Materials module exemplar (proposed ADR-0056, amendment oo-smy).
-The class is cxx::OOMaterial while OOMaterial+ObjCBridge.h, imported at the end of this header,
-keeps the Objective-C OOMaterial that its callers message and its unconverted subclasses derive
-from; the bridge's deletion bead moves it out of namespace cxx.
+Its Objective-C facade (the material bridge) was deleted by bead oo-9ht.8 (ADR-0056 amendment
+oo-9ht.8), which moved the class out of namespace cxx: the current material is held as an
+oo::Ref<OOMaterial>.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -44,8 +44,8 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOWeakReference.h"
 #import "oofnd/objc/OOObject.h"
+class Entity; // Entity.h: the shader binding target (bead oo-9ht.39.6)
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
@@ -53,9 +53,7 @@ SOFTWARE.
 #include "oofnd/objc/OOObjCRef.h"
 #include <vector>
 
-@class OOTexture;
-
-namespace cxx {
+#include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class (bead oo-9ht.99)
 
 class OOMaterial : public oo::RefCounted {
 public:
@@ -66,6 +64,13 @@ public:
 
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h): the quoted name.
     virtual std::optional<std::string> descriptionComponents() const;
+
+    // The facade's -cxx_description (bead oo-9ht.8 deleted it): <Class 0x...>{components}, the C++
+    // class's name, as [self class] named it, and the material's address.
+    std::string description() const;
+
+    // The object's own size, for the debug sizes (was the facade's instance size; bead oo-9ht.8).
+    virtual size_t objectSize() const { return sizeof *this; }
 
     // Make this the current material. Virtual since bead oo-lh0x: OOMultiTextureMaterial overrides it.
     virtual void apply();
@@ -86,7 +91,7 @@ public:
     virtual bool isFinishedLoading();
 
     // Only used by shader material, but defined for all materials for convenience.
-    virtual void setBindingTarget(id<OOWeakReferenceSupport> target);
+    virtual void setBindingTarget(Entity* target);
 
     // True if material wants three-component cube map texture coordinates.
     virtual bool wantsNormalsAsTextureCoordinates();
@@ -97,7 +102,7 @@ public:
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    virtual std::vector<oo::ObjCRef<::OOTexture*>> allTextures();
+    virtual std::vector<oo::Ref<OOTexture>> allTextures();
 #endif
 
     // Subclass interface (was the OOSubclassInterface category).
@@ -106,9 +111,10 @@ public:
     virtual bool doApply(); // Override instead of apply()
     virtual void unapplyWithNext(OOMaterial* next);
 
-    /*	Call at top of an Objective-C subclass's -dealloc. A C++ material is not destroyed while it
-            is current (the current-material slot retains it), so no destructor calls this; the root's -dealloc body
-            that did is the facade's (proposed ADR-0056, amendment oo-smy).
+    /*	Was called at the top of an Objective-C subclass's -dealloc. A C++ material is not destroyed
+            while it is current (the current-material slot retains it), so no destructor calls this
+            (proposed ADR-0056, amendments oo-smy and oo-9ht.8): if it is current, it is unapplied and the
+            slot's reference is detached, not released.
     */
     void willDealloc();
 
@@ -126,7 +132,7 @@ public:
         const std::optional<std::string>& cacheKey,
         const oo::PList& configuration,
         const oo::PList& macros,
-        id<OOWeakReferenceSupport> object,
+        Entity* object,
         bool smooth);
 
     /*	Select an appropriate material description (based on availability of
@@ -138,7 +144,7 @@ public:
         const oo::PList& materialDict,
         const oo::PList& shadersDict,
         const oo::PList& macros,
-        id<OOWeakReferenceSupport> object,
+        Entity* object,
         bool smooth);
 
 private:
@@ -150,13 +156,14 @@ private:
         const std::optional<std::string>& cacheKey,
         const oo::PList& configuration,
         const oo::PList& macros,
-        id<OOWeakReferenceSupport> target);
+        Entity* target);
 };
 
-} // namespace cxx
-
-// Transitional: the Objective-C OOMaterial, for callers and subclasses not yet converted.
-// Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOMaterial+ObjCBridge.h"
+/*	[material autorelease], which the deleted facade answered (bead oo-9ht.8): keeps the material
+        until the current autorelease pool drains, so a material a drawable replaces lives exactly as
+        long as its autoreleased object did, as OODrawableAutorelease() does for drawables. Nothing for
+        null.
+*/
+void OOMaterialAutorelease(oo::Ref<OOMaterial> material);
 
 #endif // OOMATERIAL_H

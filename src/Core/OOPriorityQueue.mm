@@ -99,7 +99,7 @@ OOINLINE OOComparisonResult PQCompare(id a, id b, SEL comparator)
     OOComparisonResult result;
 
     // This is equivalent to [a performSelector:comparator withObject:b], except the resulting value isn't an object.
-    compare = (CompareIMP)[a methodForSelector:comparator];
+    compare = (CompareIMP)(void (*)(void))[a methodForSelector:comparator];
     result = compare(a, comparator, b);
     return result;
 }

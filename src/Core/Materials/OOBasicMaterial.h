@@ -41,7 +41,7 @@ SOFTWARE.
 
 #include "oofnd/StdLib.hpp"
 
-class OOBasicMaterial : public cxx::OOMaterial {
+class OOBasicMaterial : public OOMaterial {
 public:
     /*	A new material, initialised by the initialiser of the same arguments (below). They were
             [[OOBasicMaterial alloc] cxx_initWithName:] and [[OOBasicMaterial alloc] initWithName:configuration:].
@@ -78,8 +78,9 @@ public:
     std::optional<std::string> name() override;
     bool doApply() override;
     void unapplyWithNext(OOMaterial* next) override;
+    size_t objectSize() const override { return sizeof *this; }
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
     oo::Ref<OOColor> diffuseColor();
@@ -112,7 +113,7 @@ public:
     void setShininess(uint8_t value); // Clamped to [0, 128]
 
     /*	For subclasses: return true to permit specular settings, false to deny
-            them. By default, this is ![UNIVERSE reducedDetail].
+            them. By default, this is !(UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false).
     */
     virtual bool permitSpecular();
 

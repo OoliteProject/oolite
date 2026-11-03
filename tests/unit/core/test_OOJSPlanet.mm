@@ -32,10 +32,8 @@
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
 
-@class Universe;
-@class Entity;
-
-namespace cxx {
+class Universe;
+@class TestEntityObject;
 
 // The C++ root, as far as the binding and the root's JS category reach it. _object stands in for the
 // game's peer table (oo::ToObjC, below).
@@ -46,17 +44,16 @@ public:
 	virtual JSClassID jsClassID();
 	virtual std::optional<std::string> jsClassName();
 	virtual bool isVisibleToScripts();
+	Quaternion normalOrientation();	// the game's is virtual; the binding calls the root's
 
-	::Entity *_object = nil;
+	::TestEntityObject *_object = nil;
 };
-
-}	// namespace cxx
 
 
 /*	A planet whose radius is 99 raises from radius(), one whose radius is 98 throws a C++ exception,
 	so the test sees what an exception under a native becomes.
 */
-class OOPlanetEntity : public cxx::Entity
+class OOPlanetEntity : public Entity
 {
 public:
 	OOStellarBodyType planetType();
@@ -78,6 +75,7 @@ public:
 	void setRotationalVelocity(double v);
 	Vector terminatorThresholdVector();
 	void setTerminatorThresholdVector(Vector newTerminatorThresholdVector);
+	void setOrientation(Quaternion quat);	// the game's overrides the root's virtual; the binding calls it qualified
 
 	JSClassID jsClassID() override;
 	std::optional<std::string> jsClassName() override;
@@ -98,30 +96,46 @@ public:
 };
 
 
-// The root's facade: the planet's object (the C++ part first, where oo::ToCxx reads it); its
-// orientation is the root's selectors', which the binding sends.
-@interface Entity: OOObject
+// The root's facade: the planet's object (the C++ part first, where oo::ToCxx reads it); it holds the
+// orientation, which the C++ members answer (the root's selectors, which the binding sent before).
+// What an entity's JS object holds: a weak reference to the C++ entity.
+#include "OOJSEntityHolder.h"
+
+
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;	// the planet's C++ part (oo::ToCxx reads it)
+	oo::Ref<Entity> _cxxEntity;	// the planet's C++ part (oo::ToCxx reads it)
 	Quaternion _orientation;
 }
 - (id) weakRefUnderlyingObject;
-- (Quaternion) normalOrientation;
-- (void) setOrientation:(Quaternion)quat;
 @end
 
 // The universe, as far as the binding asks it anything: its main planet (the C++ planet since bead
 // oo-9ht.129).
-@interface FakeUniverse: OOObject
-{
-@public
-	OOPlanetEntity *_planet;
-}
-- (OOPlanetEntity *) planet;
-@end
+#import "UniverseStandIn.h"
 
-@interface Entity (OOJavaScriptExtensions)
+// The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C
+// facade the test's FakeUniverse stood in for is deleted), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and FakeUniverse overrides them.
+class Universe : public oo::RefCounted
+{
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
+
+	OOPlanetEntity *_planet;
+
+
+};
+
+class FakeUniverse : public Universe
+{
+public:
+	::OOPlanetEntity *planet() override	{ return _planet; }
+};
+
+@interface TestEntityObject (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID;
 - (std::optional<std::string>) cxx_oo_jsClassName;
 - (BOOL) isVisibleToScripts;
@@ -141,18 +155,16 @@ public:
 #include <vector>
 
 
-@implementation Entity
+@implementation TestEntityObject
 
 - (id) weakRefUnderlyingObject  { return self; }
-- (Quaternion) normalOrientation  { return _orientation; }
-- (void) setOrientation:(Quaternion)quat  { _orientation = quat; }
 
 @end
 
 
 // The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm,
 // bead oo-9ht.107): the engine sends these selectors to the wrapped object.
-@implementation Entity (OOJavaScriptExtensions)
+@implementation TestEntityObject (OOJavaScriptExtensions)
 - (JSClassID) oo_jsClassID  { return _cxxEntity->jsClassID(); }
 - (std::optional<std::string>) cxx_oo_jsClassName  { return _cxxEntity->jsClassName(); }
 - (BOOL) isVisibleToScripts  { return _cxxEntity->isVisibleToScripts(); }
@@ -161,14 +173,17 @@ public:
 
 // oo::ToObjC (Entity+ObjCBridge.mm): the object of a C++ entity, nil for null.
 namespace oo {
-::Entity *ToObjC(cxx::Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
+::TestEntityObject *ToObjC(Entity *entity)  { return entity != nullptr ? entity->_object : nil; }
 }
 
 
-cxx::Entity::~Entity()  {}
-JSClassID cxx::Entity::jsClassID()  { return 0; }
-std::optional<std::string> cxx::Entity::jsClassName()  { return std::string("Entity"); }
-bool cxx::Entity::isVisibleToScripts()  { return false; }
+Entity::~Entity()  {}
+JSClassID Entity::jsClassID()  { return 0; }
+std::optional<std::string> Entity::jsClassName()  { return std::string("Entity"); }
+bool Entity::isVisibleToScripts()  { return false; }
+// The orientation the object's -normalOrientation and -setOrientation: answered and set.
+Quaternion Entity::normalOrientation()  { return oo::ToObjC(this)->_orientation; }
+void OOPlanetEntity::setOrientation(Quaternion quat)  { oo::ToObjC(this)->_orientation = quat; }
 
 
 OOStellarBodyType OOPlanetEntity::planetType()  { return _type; }
@@ -216,18 +231,14 @@ bool OOPlanetEntity::isVisibleToScripts()  { return ::OOJSPlanetIsVisibleToScrip
 OOPlanetEntity *NewPlanet()
 {
 	oo::Ref<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
-	Entity *object = [[Entity alloc] init];
+	TestEntityObject *object = [[TestEntityObject alloc] init];
 	object->_cxxEntity = planet;
 	planet->_object = object;
 	return planet.get();
 }
 
 
-@implementation FakeUniverse
 
-- (OOPlanetEntity *) planet  { return _planet; }
-
-@end
 
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
@@ -351,7 +362,7 @@ namespace {
 JSClassID sFakeEntityClassID = 0;
 JSClassDef sFakeEntityClass = {
 	.class_name = "Entity",
-	.finalizer = OOJSObjectWrapperFinalize,
+	.finalizer = OOJSCxxObjectWrapperFinalize,	// the slot holds the entity's holder
 };
 std::map<JSClassID, int> sConverters;
 
@@ -426,25 +437,13 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// The engine's object getter: the JS class must be a subclass of the required one (the class
-// registry's subclass table, OOJSClasses.mm), and the underlying object must be of the required
-// Objective-C class.
-BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char *, id *outObject)
+// The engine's object getter is OOJSPrivateObject.cpp's (linked): the JS class must be a subclass
+// of the required one, and the slot holds the entity's holder.
+
+// The shared toString(), which OOJSCxxObjectWrapperToString() hands a `this` of another class.
+JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
-	{
-		cxx_OOJSReportError(context, "Native method expected %s, got %s.", OOJSClassName(requiredClassID), cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
-		return NO;
-	}
-	JSClassID ignored;
-	*outObject = [(id)JS_GetAnyOpaque(object, &ignored) weakRefUnderlyingObject];
-	if (*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])
-	{
-		cxx_OOJSReportError(context, "Native method expected %s from %s.", class_getName(requiredObjCClass), OOJSClassName(requiredClassID));
-		*outObject = nil;
-		return NO;
-	}
-	return YES;
+	return JS_NewString(context, "[object]");
 }
 
 
@@ -452,12 +451,6 @@ JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSVa
 {
 	cxx_OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
-}
-
-
-// The test's entities live for the whole test; nothing is released when their objects go.
-void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst)
-{
 }
 
 
@@ -489,10 +482,16 @@ void OOJSPauseTimeLimiter(void)  { sLimiterPauses++; }
 void OOJSResumeTimeLimiter(void)  { sLimiterPauses--; }
 
 
-oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
+oo::PList OOJSEntityObjectConverter(JSContext *, JSValueConst)
 {
 	return oo::PList();
 }
+
+
+// The holder's glue is OOJSEntity.mm's, which the test does not link; the binding never asks it.
+JSValue OOJSEntityHolder::jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
+void OOJSEntityHolder::clearJSSelf(JSValueConst)  {}
+std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::nullopt; }
 
 
 // MARK: The context -------------------------------------------------------------------------------
@@ -507,8 +506,9 @@ OOPlanetEntity *sMoon = nil;
 FakeUniverse *sUniverse = nil;
 
 
-// An owned JS object of the class (its prototype the class's), the entity in its private slot.
-JSValue JSValueForObject(JSClassID jsClass, Entity *entity)
+// An owned JS object of the class (its prototype the class's), a holder of the entity's C++ part in
+// its private slot.
+JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
 	if (JS_IsException(object))
@@ -516,14 +516,15 @@ JSValue JSValueForObject(JSClassID jsClass, Entity *entity)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return JS_NULL;
 	}
-	JS_SetOpaque(object, entity);
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get());	// the slot holds the C++ entity
 	return object;
 }
 
 
-// A JS object for an entity, as -[Entity oo_jsValueInContext:] makes it: the class the entity's
-// category names, and the entity in the private slot.
-JSValue JSValueForEntity(Entity *entity)
+// A JS object for an entity, as EntityJSValueInContext() makes it: the class the entity's
+// category names, and a holder of the entity in the private slot.
+JSValue JSValueForEntity(TestEntityObject *entity)
 {
 	return JSValueForObject([entity oo_jsClassID], entity);
 }
@@ -563,12 +564,12 @@ void SetUpContext()
 	sMoon = NewPlanet();
 	sMoon->_type = STELLAR_TYPE_MOON;
 	sMoon->_radius = 1000;
-	sUniverse = [[FakeUniverse alloc] init];
+	sUniverse = new FakeUniverse();
 	sUniverse->_planet = sPlanet;
-	gSharedUniverse = (Universe *)sUniverse;
+	gSharedUniverse = sUniverse;
 	Define("planet", JSValueForEntity(oo::ToObjC(sPlanet)));
 	Define("moon", JSValueForEntity(oo::ToObjC(sMoon)));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, [[Entity alloc] init]));
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, [[TestEntityObject alloc] init]));
 }
 
 

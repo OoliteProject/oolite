@@ -82,12 +82,12 @@ bool OOProbabilisticTextureManager::initWithPListName(const std::string& plistNa
     const oo::PList* entry = nullptr;
     std::optional<std::string> name;
     float probability;
-    OOTexture* texture = nil;
+    oo::Ref<OOTexture> texture;
     int galID = -1;
     const oo::PList* object = nullptr;
 
     if (OK) {
-        config = [ResourceManager cxx_arrayFromFilesNamed:plistName inFolder:"Config" andMerge:YES];
+        config = ResourceManager::arrayFromFilesNamed(plistName, "Config", YES);
         if (!config)
             OK = false;
     }
@@ -129,13 +129,9 @@ bool OOProbabilisticTextureManager::initWithPListName(const std::string& plistNa
             }
 
             if (name.has_value() && 0.0f < probability) {
-                texture = [OOTexture cxx_textureWithName:name
-                                                inFolder:"Textures"
-                                                 options:options
-                                              anisotropy:anisotropy
-                                                 lodBias:lodBias];
-                if (texture != nil) {
-                    _textures[_count] = [texture retain];
+                texture = OOTexture::textureWithName(name, "Textures", options, anisotropy, lodBias);
+                if (texture != nullptr) {
+                    _textures[_count] = oo::Ref<OOTexture>(texture).leakRef(); // released in the destructor
                     _prob[_count] = probability + (galID >= 0 ? _probMaxGal[galID] : _probMax);
                     _galaxy[_count] = (galID >= 0 ? galID : -1);
                     if (galID >= 0) {
@@ -166,7 +162,7 @@ OOProbabilisticTextureManager::~OOProbabilisticTextureManager()
 
     if (_textures != NULL) {
         for (i = 0; i != _count; ++i) {
-            [_textures[i] release];
+            oo::release(_textures[i]);
         }
         free(_textures);
     }
@@ -228,7 +224,7 @@ void OOProbabilisticTextureManager::ensureTexturesLoaded()
     unsigned i;
 
     for (i = 0; i != _count; ++i) {
-        [_textures[i] ensureFinishedLoading];
+        _textures[i]->ensureFinishedLoading();
     }
 }
 

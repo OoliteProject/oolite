@@ -214,7 +214,7 @@ std::optional<std::string> DescriptionStringAt(const oo::PList& strings, std::si
 std::optional<std::string> cxx_OODisplayStringFromGovernmentID(OOGovernmentID government)
 {
     // Only the one sub-array of the descriptions; a missing key reads as the null PList PListFrom(nil) gave.
-    const oo::PList* stringsEntry = [UNIVERSE cxx_descriptions]->find("government");
+    const oo::PList* stringsEntry = UNIVERSE->descriptions()->find("government");
     const oo::PList strings = (stringsEntry != nullptr) ? *stringsEntry : oo::PList();
     if (strings.isArray() && government < strings.count()) {
         if (const std::string* value = strings.at(government)->getIf<std::string>())
@@ -226,7 +226,7 @@ std::optional<std::string> cxx_OODisplayStringFromGovernmentID(OOGovernmentID go
 
 std::optional<std::string> cxx_OODisplayStringFromEconomyID(OOEconomyID economy)
 {
-    const oo::PList* stringsEntry = [UNIVERSE cxx_descriptions]->find("economy");
+    const oo::PList* stringsEntry = UNIVERSE->descriptions()->find("economy");
     const oo::PList strings = (stringsEntry != nullptr) ? *stringsEntry : oo::PList();
     if (strings.isArray() && economy < strings.count()) {
         if (const std::string* value = strings.at(economy)->getIf<std::string>())
@@ -379,7 +379,7 @@ std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(unsigned kills
     };
     unsigned i;
 
-    const oo::PList* ratingNamesEntry = [UNIVERSE cxx_descriptions]->find("rating");
+    const oo::PList* ratingNamesEntry = UNIVERSE->descriptions()->find("rating");
     const oo::PList ratingNames = (ratingNamesEntry != nullptr) ? *ratingNamesEntry : oo::PList();
     for (i = 0; i < kRatingCount - 1; ++i) {
         if (kills < killThresholds[i])
@@ -406,7 +406,7 @@ std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus)
     };
     unsigned i;
 
-    const oo::PList* statusNamesEntry = [UNIVERSE cxx_descriptions]->find("legal_status");
+    const oo::PList* statusNamesEntry = UNIVERSE->descriptions()->find("legal_status");
     const oo::PList statusNames = (statusNamesEntry != nullptr) ? *statusNamesEntry : oo::PList();
     for (i = 0; i != kStatusCount - 1; ++i) {
         if (legalStatus < statusThresholds[i])
@@ -418,7 +418,7 @@ std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus)
 
 std::optional<std::string> cxx_OODisplayStringFromAlertCondition(OOAlertCondition alertCondition)
 {
-    const oo::PList* conditionNamesEntry = [UNIVERSE cxx_descriptions]->find("condition");
+    const oo::PList* conditionNamesEntry = UNIVERSE->descriptions()->find("condition");
     const oo::PList conditionNames = (conditionNamesEntry != nullptr) ? *conditionNamesEntry : oo::PList();
     return DescriptionStringAt(conditionNames, alertCondition);
 }
@@ -465,7 +465,7 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string)
 std::string cxx_CommodityDisplayNameForSymbolicName(const std::string& symbolicName)
 {
     // -descriptionForKey: was NSStringOrNil of -cxx_descriptionForKey:, so nullopt reads as before.
-    const std::optional<std::string> ret = [UNIVERSE cxx_descriptionForKey:"commodity-name " + oo::str::lowercase(symbolicName)];
+    const std::optional<std::string> ret = (UNIVERSE != nullptr ? UNIVERSE->descriptionForKey("commodity-name " + oo::str::lowercase(symbolicName)) : std::optional<std::string>());
     return ret.has_value() ? *ret : symbolicName;
 }
 
@@ -494,7 +494,7 @@ std::optional<std::string> cxx_DisplayStringForMassUnit(OOMassUnit unit)
 std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(const std::string& commodity)
 {
     // No market: -massUnitForGood: sent to nil answered 0, UNITS_TONS.
-    OOCommodityMarket* market = [UNIVERSE commodityMarket];
+    OOCommodityMarket* market = (UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket() : nullptr);
     return cxx_DisplayStringForMassUnit((market != nullptr) ? market->massUnitForGood(commodity) : UNITS_TONS);
 }
 

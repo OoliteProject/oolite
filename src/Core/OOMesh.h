@@ -38,13 +38,13 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOWeakReference.h"
+class Entity; // Entity.h: the shader binding target (bead oo-9ht.39.6)
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-@class OOMaterial;
+class OOMaterial;
 struct VertexFaceRef; // OOMesh.mm: the faces that use one vertex, while loading
 class OOMeshBuffer; // OOMesh.mm: one refcounted buffer (an oo::Data), shared by a mesh and its mutable copies
 
@@ -88,10 +88,6 @@ typedef struct
 
 class Octree;
 
-namespace cxx {
-class OOMaterial;
-}
-
 /*	C++20 since bead oo-dnbf, slice 1 of docs/phases/3-slices/OOMesh.md (proposed ADR-0056,
         amendments oo-smy, oo-pni4 and oo-dnbf): the class shell, its factories, lifecycle and
         accessors. Slices 2, 3 and 4 (loading, geometry and rendering, beads oo-rdwg, oo-9z7x and
@@ -106,7 +102,7 @@ public:
         const oo::PList& shadersDict,
         bool smooth,
         const oo::PList& macros,
-        id<OOWeakReferenceSupport> object);
+        Entity* object);
 
     static oo::Ref<OOMesh> meshWithName(const std::string& name,
         const std::optional<std::string>& cacheKey,
@@ -114,11 +110,11 @@ public:
         const oo::PList& shadersDict,
         bool smooth,
         const oo::PList& macros,
-        id<OOWeakReferenceSupport> object,
+        Entity* object,
         float factor,
         bool cacheWriteable);
 
-    static oo::Ref<cxx::OOMaterial> placeholderMaterial();
+    static oo::Ref<OOMaterial> placeholderMaterial();
 
     OOMesh();
     OOMesh(const OOMesh&) = default; // -mutableCopyWithZone:'s copy: every member, the buffers shared
@@ -139,11 +135,11 @@ public:
     bool hasOpaqueParts() override;
     GLfloat collisionRadius() override;
     GLfloat maxDrawDistance() override;
-    void setBindingTarget(id<OOWeakReferenceSupport> target) override;
+    void setBindingTarget(Entity* target) override;
     std::optional<std::string> descriptionComponents() const override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
     void dumpSelfState() override;
-    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
     size_t totalSize() override;
     size_t objectSize() const override { return sizeof *this; }
 #endif
@@ -189,7 +185,7 @@ public:
 
     NSRange triangle_range[kOOMeshMaxMaterials] = { };
     std::string materialKeys[kOOMeshMaxMaterials];
-    ::OOMaterial* materials[kOOMeshMaxMaterials] = { }; // retained
+    OOMaterial* materials[kOOMeshMaxMaterials] = { }; // retained
     GLuint displayList0 = { };
 
     // (named like the overridden getters, which a C++ member cannot be: amendment oo-rdfh item 1)
@@ -205,7 +201,7 @@ public:
     oo::PList _shadersDict;
     std::optional<std::string> _cacheKey; // nil and @"" differ for OOMaterial
     oo::PList _shaderMacros;
-    id _shaderBindingTarget = { }; // retained (a weak reference)
+    oo::WeakRef<Entity> _shaderBindingTarget = { }; // the entity, held weakly as its object's weak reference was (bead oo-9ht.39.6)
 
     Vector _lastPosition = { };
     OOMatrix _lastRotMatrix = { };
@@ -253,7 +249,7 @@ private:
         const oo::PList& shadersDict,
         bool smooth,
         const oo::PList& macros,
-        id<OOWeakReferenceSupport> target,
+        Entity* target,
         float scale,
         bool cacheWriteable);
     bool loadData(const std::string& filename, float scale);

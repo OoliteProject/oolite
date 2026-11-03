@@ -129,7 +129,7 @@ void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In, const oo::PList
         nebulaCount = nebulaCountMultiplier * SKY_BASIS_BLOBS * (0.5 + randf());
     }
 
-    if ([UNIVERSE reducedDetail]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
         // limit stars and blobs to basis levels, and halve stars again
         if (starCount > SKY_BASIS_STARS) {
             starCount = SKY_BASIS_STARS;
@@ -168,7 +168,8 @@ bool SkyEntity::changeProperty(const std::string& key, const oo::PList& dict)
         oo::Ref<OOColor> col = OOColor::colorWithDescription(ValueForKey(dict, key));
         if (col != nullptr) {
             skyColor = col; // [col copy]: a copy of an immutable colour is the colour itself
-            [UNIVERSE setLighting];
+            if (UNIVERSE != nullptr)
+                UNIVERSE->setLighting();
         }
     } else {
         OO_LOG_WARN("script.warning", "Change to property '{}' not applied, will apply only on leaving and re-entering this system.", key);
@@ -216,12 +217,12 @@ GLfloat SkyEntity::cameraRangeBack()
 
 void SkyEntity::drawImmediate(bool immediate, bool translucent)
 {
-    if ([UNIVERSE breakPatternHide])
+    if ((UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false))
         return;
 
     OOEntityWithDrawable::drawImmediate(immediate, translucent);
 
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SkyEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "SkyEntity after drawing " + oo::EntityDescription(this); });
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

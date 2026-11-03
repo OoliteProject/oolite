@@ -69,8 +69,8 @@ void OOGraphicsResetManager::resetGraphicsState()
     OO_LOG("rendering.reset.start", "{}", "Resetting graphics state.");
     oo::log::indentIf("rendering.reset.start");
 
-    cxx::OOOpenGLExtensionManager::sharedManager()->reset();
-    [::OOTexture rebindAllTextures];
+    OOOpenGLExtensionManager::sharedManager()->reset();
+    OOTexture::rebindAllTextures();
 
     // A copy, so a client may register or unregister during the reset (one unregistered by an
     // earlier client is skipped). Unordered, as the Foundation set was: its order was pointer-hash order,

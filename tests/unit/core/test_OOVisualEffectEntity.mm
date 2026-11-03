@@ -67,7 +67,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -75,21 +75,15 @@ T *NewTestPlayer()
 
 // UNIVERSE: never initialised; makes the standard subentities, an effect with no definition, by
 // key ("missing" has none).
-@interface TestUniverse: Universe
-@end
-
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime	{ return 0; }
-
-- (Entity *) cxx_newVisualEffectWithName:(const std::string &)effectKey
+class TestUniverse : public Universe
 {
-	if (effectKey == "missing")  return nil;
-	return oo::NewVisualEffectObject(effectKey, oo::PList());	// the effect's object since bead oo-9ht.165
-}
-
-@end
+public:
+	Entity *newVisualEffectWithName(const std::string &effectKey) override	// the effect, its object +1
+	{
+		if (effectKey == "missing")  return nullptr;
+		return oo::NewVisualEffect(effectKey, oo::PList());
+	}
+};
 
 
 namespace {
@@ -109,14 +103,13 @@ void SetUp()
 		OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data("{ CFBundleVersion = \"9.9.9-test\"; }", 35), oo::fs::WriteMode::direct).has_value());
 		@autoreleasepool	// the engine autoreleases facades as it starts (as test_OOJSSystem, bead oo-9ht.172; here oo-9ht.174)
 		{
-			(void)[OOJavaScriptEngine sharedEngine];
+			(void)OOJavaScriptEngine::sharedEngine();
 		}
 	}
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([TestUniverse class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz; bead oo-9ht.174)
+		universe = new TestUniverse();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nullptr;
@@ -156,15 +149,16 @@ oo::PList Flasher(double x)
 }
 
 
-// An effect, as the universe makes it (oo::NewVisualEffectObject(), [[OOVisualEffectEntity alloc]
-// cxx_initWithKey:definition:] until bead oo-9ht.165): the C++ effect, its object autoreleased.
+// An effect, as the universe makes it (oo::NewVisualEffect(), [[OOVisualEffectEntity alloc]
+// cxx_initWithKey:definition:] before): the C++ effect, autoreleased (its object was
+// before).
 OOVisualEffectEntity *Effect(const std::string &key, const oo::PList &definition)
 {
-	return oo::ToEffect([oo::NewVisualEffectObject(key, definition) autorelease]);
+	return oo::ToEffect(oo::AutoreleaseEntity(oo::NewVisualEffect(key, definition)));
 }
 
 
-GLfloat NoDrawDistance(cxx::Entity *e)	{ return e->no_draw_distance; }
+GLfloat NoDrawDistance(Entity *e)	{ return e->no_draw_distance; }
 
 }	// namespace
 
@@ -230,30 +224,30 @@ OO_TEST(flasherSubentities)
 	{
 		OOVisualEffectEntity *effect = Effect("lights", Dict({ { "subentities", oo::PList(oo::PList::Array{ Flasher(10), oo::PList(std::string("not a dictionary")) }) } }));
 		OO_CHECK_EQ(effect->subEntityCount(), 1u);	// the string made no subentity
-		std::vector<oo::ObjCRef<Entity *>> flashers = effect->flasherEnumerator();	// the flashers' objects
+		std::vector<oo::EntityHold> flashers = effect->flasherEnumerator();	// the flashers (held C++ entities)
 		OO_CHECK_EQ(flashers.size(), 1u);
 		OO_CHECK(effect->effectSubEntityEnumerator().empty());
 		OO_CHECK(effect->visualEffectSubEntityEnumerator().has_value() && effect->visualEffectSubEntityEnumerator()->empty());
 		if (flashers.size() != 1)  return;
 
-		Entity<OOSubEntity> *flasher = (Entity<OOSubEntity> *)flashers[0].get();
+		Entity *flasher = flashers[0].get();
 		OO_CHECK(effect->subEntities().size() == 1 && effect->subEntities()[0].get() == flasher);
-		OO_CHECK([flasher owner] == oo::ToObjC(effect));
-		OO_CHECK([flasher isSubEntity]);
+		OO_CHECK(flasher->owner() == effect);
+		OO_CHECK(flasher->getIsSubEntity());
 		OO_CHECK(effect->hasSubEntity(flasher));
-		OO_CHECK(Near([flasher position].x, 10.0));
+		OO_CHECK(Near(flasher->getPosition().x, 10.0));
 
 		// The profile radius reaches the flasher's far side: 10 + 2.
 		OO_CHECK(Near(effect->frustumRadius(), 12.0));
 		OO_CHECK(Near(NoDrawDistance(effect), 12.0 * 12.0 * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0));
 
 		// Scaling one axis moves the flasher along it and resizes it by the cube root.
-		const GLfloat flasherRadius = [flasher collisionRadius];
+		const GLfloat flasherRadius = flasher->collisionRadius();
 		effect->setScaleX(2.0f);
 		OO_CHECK(effect->scaleX() == 2.0f);
 		OO_CHECK(effect->scaleMax() == 2.0f);
-		OO_CHECK(Near([flasher position].x, 20.0));
-		OO_CHECK(Near([flasher collisionRadius], flasherRadius * std::pow(2.0, 1.0 / 3.0)));
+		OO_CHECK(Near(flasher->getPosition().x, 20.0));
+		OO_CHECK(Near(flasher->collisionRadius(), flasherRadius * std::pow(2.0, 1.0 / 3.0)));
 		OO_CHECK(Near(effect->frustumRadius(), 24.0));
 		effect->setScaleY(3.0f);
 		OO_CHECK(effect->scaleMax() == 3.0f);
@@ -263,7 +257,7 @@ OO_TEST(flasherSubentities)
 
 		effect->removeSubEntity(flasher);
 		OO_CHECK_EQ(effect->subEntityCount(), 0u);
-		OO_CHECK([flasher owner] == nil);
+		OO_CHECK(flasher->owner() == nil);
 		OO_CHECK(!effect->hasSubEntity(flasher));
 	}
 }
@@ -282,15 +276,15 @@ OO_TEST(standardSubentities)
 		// Made, and the snapshot taken, in a pool of their own: what is left after it drains is what
 		// owns the child (pending autoreleases are not ownership).
 		OOVisualEffectEntity *effect = nullptr;
-		std::vector<oo::ObjCRef<Entity *>> effects;	// the subentities' objects (bead oo-9ht.165)
-		::Entity *effectObject = nil;
+		std::vector<oo::EntityHold> effects;	// the subentities (held C++ entities)
+		Entity *effectObject = nil;
 		@autoreleasepool
 		{
-			effectObject = oo::NewVisualEffectObject("parent", Dict({ { "subentities", oo::PList(std::move(subs)) } }));
+			effectObject = oo::NewVisualEffect("parent", Dict({ { "subentities", oo::PList(std::move(subs)) } }));
 			effect = oo::ToEffect(effectObject);
 			effects = effect->effectSubEntityEnumerator();
 		}
-		[effectObject autorelease];
+		oo::AutoreleaseEntity(effectObject);
 
 		OO_CHECK_EQ(effect->subEntityCount(), 2u);
 		OO_CHECK_EQ(effects.size(), 1u);
@@ -298,16 +292,16 @@ OO_TEST(standardSubentities)
 		OO_CHECK_EQ(effect->flasherEnumerator().size(), 1u);
 		if (effects.size() != 1)  return;
 
-		Entity *childObject = effects[0].get();	// the child's object (bead oo-9ht.165)
+		Entity *childObject = effects[0].get();	// the child (its object before), +0 and not autoreleased
 		OOVisualEffectEntity *child = oo::ToEffect(childObject);
 		OO_CHECK(child->effectKey() == std::optional<std::string>("child"));
 		OO_CHECK(Near(child->getPosition().y, 5.0));
-		OO_CHECK(child->owner() == oo::ToObjC(effect));
+		OO_CHECK(child->owner() == effect);
 		OO_CHECK(child->getIsSubEntity());
-		OO_CHECK([childObject retainCount] == 2);	// the parent's list and the enumerator's snapshot (effects)
-		OO_CHECK(effect->isShipWithSubEntityShip(oo::ToObjC(child)));
-		OO_CHECK((id)child->parentEntity() == oo::ToObjC(effect));
-		OO_CHECK(!child->isShipWithSubEntityShip(oo::ToObjC(effect)));
+		OO_CHECK(childObject->retainCount() == 2);	// the parent's list and the enumerator's snapshot (effects)
+		OO_CHECK(effect->isShipWithSubEntityShip(child));
+		OO_CHECK(child->parentEntity() == effect);
+		OO_CHECK(!child->isShipWithSubEntityShip(effect));
 
 		// Rescaling the whole effect moves and rescales its subentities.
 		effect->rescaleBy(2.0f);
@@ -413,10 +407,9 @@ OO_TEST(beacons)
 		OO_CHECK(effect->prevBeacon() == nil && effect->nextBeacon() == nil);
 
 		OOVisualEffectEntity *other = Effect("other", Dict({}));
-		OOVisualEffectBeaconEntity *otherObject = (OOVisualEffectBeaconEntity *)oo::ToObjC(other);	// the beacon list holds objects
-		effect->setPrevBeacon(otherObject);
-		effect->setNextBeacon(otherObject);
-		OO_CHECK(effect->prevBeacon() == otherObject && effect->nextBeacon() == otherObject);
+		effect->setPrevBeacon(other);	// the C++ entity
+		effect->setNextBeacon(other);
+		OO_CHECK(effect->prevBeacon() == other && effect->nextBeacon() == other);
 		effect->setNextBeacon(nullptr);
 		OO_CHECK(effect->nextBeacon() == nil);
 		effect->setPrevBeacon(nullptr);
@@ -424,7 +417,7 @@ OO_TEST(beacons)
 		// An empty code is none.
 		effect->setBeaconCode(std::optional<std::string>(""));
 		OO_CHECK(!effect->beaconCode().has_value());
-		OO_CHECK(effect->compareBeaconCodeWith(otherObject) == OOOrderedSame);
+		OO_CHECK(effect->compareBeaconCodeWith(other) == OOOrderedSame);
 	}
 }
 
@@ -466,9 +459,9 @@ OO_TEST(facadeContract)
 		OOVisualEffectEntity *effect = Effect("facade", Dict({ { "subentities", oo::PList(oo::PList::Array{ Flasher(1) }) } }));
 		OOVisualEffectEntity *cxxEffect = effect;	// the C++ class since bead oo-9ht.165
 		OO_CHECK(cxxEffect != nullptr);
-		OO_CHECK(oo::ToEffect(oo::ToObjC(cxxEffect)) == effect);
+		OO_CHECK(oo::ToEffect(cxxEffect) == effect);
 		OO_CHECK(oo::ToEffect(static_cast<Entity *>(nil)) == nullptr);
-		OO_CHECK(oo::ToObjC(static_cast<OOVisualEffectEntity *>(nullptr)) == nil);
+		OO_CHECK(static_cast<OOVisualEffectEntity *>(nullptr) == nil);
 
 		OO_CHECK(cxxEffect->effectKey() == effect->effectKey());
 		OO_CHECK(cxxEffect->subEntityCount() == effect->subEntityCount());
@@ -479,8 +472,8 @@ OO_TEST(facadeContract)
 		OO_CHECK(effect->scaleMax() == 5.0f);
 
 		// The flasher's owner is the façade the C++ member handed it.
-		std::vector<oo::ObjCRef<Entity *>> flashers = cxxEffect->flasherEnumerator();
-		OO_CHECK(flashers.size() == 1 && [flashers[0].get() owner] == oo::ToObjC(effect));
+		std::vector<oo::EntityHold> flashers = cxxEffect->flasherEnumerator();
+		OO_CHECK(flashers.size() == 1 && flashers[0].get()->owner() == effect);
 
 		// Slice 2, on the façade, reads the state the class keeps.
 		OO_CHECK(Near(effect->hullHeatLevel(), 60.0 / 256.0));
@@ -535,12 +528,12 @@ OO_TEST(jsExtensions)
 	{
 		OOVisualEffectEntity *effect = Effect("js-effect", Dict({}));
 		RegisterJSClasses(InitOOJSVisualEffect);
-		Entity *object = oo::ToObjC(effect);	// the engine asks the object (the root's category)
-		const JSClassID jsClass = [object oo_jsClassID];
+		Entity *object = effect;	// the engine asks the object (the root's category)
+		const JSClassID jsClass = OOJSEntityJSClassID(object);
 		const JSClassID expectedClass = JSVisualEffectClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK([object cxx_oo_jsClassName] == std::optional<std::string>("VisualEffect"));
-		OO_CHECK([object isVisibleToScripts] == YES);
+		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("VisualEffect"));
+		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == YES);
 	}
 }
 

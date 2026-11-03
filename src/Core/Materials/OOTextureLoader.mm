@@ -42,8 +42,13 @@ SOFTWARE.
 #include "oofnd/objc/OOException.h"
 #include <stdlib.h>
 
+#import "OOTextureGenerator.h"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
+
+#include <cstdlib>
+#include <cxxabi.h>
+#include <typeinfo>
 
 #define DUMP_CONVERTED_CUBE_MAPS 0
 
@@ -62,12 +67,10 @@ static BOOL sReducedDetail;
 static BOOL sHaveNPOTTextures = NO; // TODO: support "true" non-power-of-two textures.
 static BOOL sHaveSetUp = NO;
 
-namespace cxx {
-
-oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithPath(const std::optional<std::string>& inPath, uint32_t options)
+oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(const std::optional<std::string>& inPath, uint32_t options)
 {
     std::string extension;
-    oo::ObjCRef<::OOTextureLoader*> result;
+    oo::Ref<OOTextureLoader> result;
 
     if (EXPECT_NOT(!inPath.has_value()))
         return nullptr;
@@ -75,28 +78,28 @@ oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithPath(const std::optio
         setUp();
 
     // Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial).
-    sReducedDetail = [UNIVERSE reducedDetail];
+    sReducedDetail = (UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false);
 
     // Get a suitable loader. FIXME -- this should sniff the data instead of relying on extensions.
     extension = oo::str::lowercase(oo::str::pathExtension(*inPath));
     if (extension == "png") {
-        // A C++ loader (bead oo-z889); the work manager holds its facade, which owns it.
+        // A C++ loader (bead oo-z889); the work manager retains it while it is queued.
         const oo::Ref<::OOPNGTextureLoader> loader = oo::makeRef<::OOPNGTextureLoader>();
         if (loader->initWithPath(inPath, options))
-            result = oo::ObjCRef<::OOTextureLoader*>(oo::ToObjC(loader.get()));
+            result = loader;
     } else {
         OO_LOG("texture.load.unknownType", "Can't use {} as a texture - extension \"{}\" does not identify a known type.", *inPath, extension);
     }
 
     if (result != nullptr) {
-        if (!cxx::OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(result.get(), kOOAsyncPriorityMedium))
+        if (!OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(result.get(), kOOAsyncPriorityMedium))
             result = nullptr;
     }
 
     return result;
 }
 
-oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithTextureSpecifier(const oo::PList& specifier, uint32_t extraOptions, const std::optional<std::string>& folder)
+oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(const oo::PList& specifier, uint32_t extraOptions, const std::optional<std::string>& folder)
 {
     std::string name;
     std::optional<std::string> path;
@@ -105,7 +108,7 @@ oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithTextureSpecifier(cons
     if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL, NO))
         return nullptr;
     options |= extraOptions;
-    path = [::ResourceManager cxx_pathForFileNamed:name inFolder:folder];
+    path = ResourceManager::pathForFileNamed(name, folder);
     if (!path.has_value()) {
         if (!(options & kOOTextureNoFNFMessage)) {
             OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", name);
@@ -121,8 +124,8 @@ OOTextureLoader::OOTextureLoader()
 {
 }
 
-/*	The part of -cxx_initWithPath:options: after [super init]; the facade releases the receiver
-        where this answers false.
+/*	The part of -cxx_initWithPath:options: after [super init]; false where it released the receiver
+        and answered nil.
 */
 bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath, uint32_t options)
 {
@@ -209,6 +212,41 @@ std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const
     return oo::str::lastPathComponent(_path);
 }
 
+namespace {
+
+std::string DemangledName(const std::type_info& type)
+{
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(type.name(), nullptr, nullptr, &status);
+    std::string result = (status == 0 && demangled != nullptr) ? demangled : type.name();
+    std::free(demangled);
+    return result;
+}
+
+} // namespace
+
+std::string OOTextureLoader::className() const
+{
+    return DemangledName(typeid(*this));
+}
+
+std::string OOTextureLoader::description() const
+{
+    std::string result = oo::str::format("<%s %s>", className().c_str(), oo::str::pointerDescription(this).c_str());
+    if (const std::optional<std::string> components = descriptionComponents())
+        result += "{" + *components + "}";
+    return result;
+}
+
+std::string OOTextureLoader::shortDescription() const
+{
+    const char* facadeClass = (dynamic_cast<const OOTextureGenerator*>(this) != nullptr) ? "OOTextureGenerator" : "OOTextureLoader";
+    std::string result = oo::str::format("<%s %s>", facadeClass, oo::str::pointerDescription(this).c_str());
+    if (const std::optional<std::string> components = shortDescriptionComponents())
+        result += "{" + *components + "}";
+    return result;
+}
+
 std::optional<std::string> OOTextureLoader::path()
 {
     return _path;
@@ -229,8 +267,8 @@ bool OOTextureLoader::getResult(OOPixMap* result,
     BOOL OK = YES;
 
     if (!_ready) {
-        // The work manager knows the task as the Objective-C object.
-        cxx::OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(oo::ToObjC(this));
+        // The work manager knows the task as the C++ loader (bead oo-9ht.14).
+        OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(this);
     }
     if (_data == NULL)
         OK = NO;
@@ -509,5 +547,3 @@ void OOTextureLoader::completeAsyncTask()
 {
     _ready = YES;
 }
-
-} // namespace cxx

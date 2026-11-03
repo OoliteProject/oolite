@@ -84,7 +84,7 @@ namespace {
 
 static JSClassDef sVisualEffectClass = {
     .class_name = "VisualEffect",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
 };
 
 enum {
@@ -160,7 +160,7 @@ void InitOOJSVisualEffect(JSContext* context, JSValueConst global)
         sVisualEffectProperties, OOJS_COUNT(sVisualEffectProperties), sVisualEffectMethods, OOJS_COUNT(sVisualEffectMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sVisualEffectClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sVisualEffectClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sVisualEffectClassID, JSEntityClassID());
 }
 
@@ -174,7 +174,7 @@ static bool JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -206,12 +206,12 @@ bool OOJSVisualEffectIsVisibleToScripts(void)
     return true;
 }
 
-std::vector<oo::ObjCRef<::Entity*>> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect)
+std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect)
 {
     const auto subs = effect->visualEffectSubEntityEnumerator();
     if (!subs.has_value())
         return { };
-    std::vector<oo::ObjCRef<::Entity*>> result;
+    std::vector<oo::EntityHold> result;
     result.reserve(subs->size());
     for (const auto& sub : *subs) {
         result.emplace_back(sub.get());
@@ -300,9 +300,9 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
 
     case kVisualEffect_subEntities: {
         // nil before the first subentity (was [subEntitiesForScript] == nil)
-        const auto subs = (entity != nullptr ? entity->visualEffectSubEntityEnumerator() : std::optional<std::vector<oo::ObjCRef<::Entity*>>>());
+        const auto subs = (entity != nullptr ? entity->visualEffectSubEntityEnumerator() : std::optional<std::vector<oo::EntityHold>>());
         if (subs.has_value())
-            result = oo::PListFromObjects(*subs);
+            result = oo::EntityNodesFrom(*subs);
     } break;
 
     case kVisualEffect_script:
@@ -345,8 +345,9 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (!sValue.has_value() || sValue->empty()) {
             if ((entity != nullptr ? entity->isBeacon() : false)) {
-                [UNIVERSE clearBeacon:(::Entity<OOBeaconEntity>*)oo::ToObjC(entity)];
-                if ((PLAYER != nullptr ? (::Entity<OOBeaconEntity>*)PLAYER->PlayerEntity::nextBeacon() : (::Entity<OOBeaconEntity>*)nullptr) == (::Entity<OOBeaconEntity>*)oo::ToObjC(entity)) // qualified: the final overrider, so the binding test stands in for it
+                if (UNIVERSE != nullptr)
+                    UNIVERSE->clearBeacon(entity); // the C++ entity
+                if ((PLAYER != nullptr ? PLAYER->nextBeaconEntity() : nullptr) == entity) // the C++ entities (not virtual, so the binding test stands in for it)
                 {
                     if (PLAYER != nullptr)
                         PLAYER->PlayerEntity::setCompassMode(COMPASS_MODE_PLANET); // qualified: the final overrider, so the binding test stands in for it
@@ -360,7 +361,8 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
             {
                 if (entity != nullptr)
                     entity->setBeaconCode(sValue);
-                [UNIVERSE setNextBeacon:(::Entity<OOBeaconEntity>*)oo::ToObjC(entity)];
+                if (UNIVERSE != nullptr)
+                    UNIVERSE->setNextBeacon(entity); // the C++ entity
             }
         }
         return JS_UNDEFINED;
@@ -516,12 +518,12 @@ oo::PList MeshShaders(OOVisualEffectEntity* effect)
 }
 } // namespace
 
-#define GET_THIS_EFFECT(THISENT)                                                            \
-    do {                                                                                    \
-        if (EXPECT_NOT(!JSVisualEffectGetVisualEffectEntity(context, OOJS_THIS, &THISENT))) \
-            return OOJSNativeFailure(context); /* Exception */                              \
-        if (OOIsStaleEntity(oo::ToObjC(THISENT)))                                           \
-            OOJS_RETURN_VOID;                                                               \
+#define GET_THIS_EFFECT(THISENT)                                                              \
+    do {                                                                                      \
+        if (EXPECT_NOT(!JSVisualEffectGetVisualEffectEntity(context, OOJS_THIS, &(THISENT)))) \
+            return OOJSNativeFailure(context); /* Exception */                                \
+        if (OOIsStaleEntity(THISENT))                                                         \
+            OOJS_RETURN_VOID; /* the C++ effect's */                                          \
     } while (0)
 
 static JSValue VisualEffectRemove(OOJS_NATIVE_ARGS)
@@ -532,9 +534,9 @@ static JSValue VisualEffectRemove(OOJS_NATIVE_ARGS)
     GET_THIS_EFFECT(thisEnt);
 
     if ((thisEnt != nullptr ? thisEnt->getIsSubEntity() : false)) {
-        OOVisualEffectEntity* parent = oo::ToEffect(static_cast<::Entity*>(thisEnt != nullptr ? thisEnt->owner() : id { }));
+        OOVisualEffectEntity* parent = oo::ToEffect(oo::LiveOwner(thisEnt)); // the owner's C++ entity
         if (parent != nullptr)
-            parent->removeSubEntity((OOVisualEffectSubEntity*)oo::ToObjC(thisEnt));
+            parent->removeSubEntity(thisEnt); // the C++ sub-entity
     } else {
         if (thisEnt != nullptr)
             thisEnt->remove();
@@ -681,7 +683,7 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
     if (model != nullptr && (model->isString() || model->isNumber()))
         modelName = effectDict.get<std::string>("model");
     // The ship-prefix-macros default as the mesh call read it: a dictionary, else nothing.
-    const oo::PList materialDefaults = [ResourceManager cxx_materialDefaults];
+    const oo::PList materialDefaults = ResourceManager::materialDefaults();
     const oo::PList* macros = materialDefaults.get<oo::PList::Dict>("ship-prefix-macros");
     const oo::PList shaderMacros = (macros != nullptr) ? *macros : oo::PList();
 
@@ -692,7 +694,7 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
         shaders,
         effectDict.get<bool>("smooth", false),
         shaderMacros,
-        oo::ToObjC(thisEnt));
+        thisEnt); // the C++ effect
 
     if (mesh != nullptr) {
         if (thisEnt != nullptr)

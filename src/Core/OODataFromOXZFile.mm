@@ -103,7 +103,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
     }
 
     int err = UNZ_OK;
-    unz_file_info64 file_info = { 0 };
+    unz_file_info64 file_info = { };
     err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
     if (err != UNZ_OK) {
         unzClose(uf);
@@ -173,7 +173,7 @@ bool OOOxzFileExistsAtPath(const std::string& path)
     if (unzLocateFile(uf, containedFile.c_str(), 1) != UNZ_OK) {
         result = NO;
     } else {
-        unz_file_info64 file_info = { 0 };
+        unz_file_info64 file_info = { };
         if (unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0) != UNZ_OK) {
             result = NO;
         }

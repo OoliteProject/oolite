@@ -21,6 +21,7 @@
 
 #import "OORegExpMatcher.h"
 #import "OOJSFunction.h"
+#include "OOJSEngineCore.h"	// OOJSValue
 #import "oofnd/objc/OOObject.h"
 
 #include "oo_test.hpp"
@@ -38,7 +39,7 @@ JSContext *gOOJSMainThreadContext = nullptr;
 namespace {
 
 JSValue sGlobal = JS_UNDEFINED;	// owned, for the life of the process
-unsigned sEngineCalls = 0;		// +[OOJavaScriptEngine sharedEngine]
+unsigned sEngineCalls = 0;		// +OOJavaScriptEngine::sharedEngine()
 unsigned sFunctionsMade = 0;	// OOJSFunction inits: one per matcher
 unsigned sRegExpsMade = 0;		// OOJSValue inits: one per RegExp the matcher compiled
 unsigned sEvaluations = 0;		// OOJSFunction evaluations: one per match
@@ -47,13 +48,16 @@ bool sFailCompile = false;		// make the next OOJSFunction init fail, as a compil
 }	// namespace
 
 
-@interface OOJavaScriptEngine: OOObject
-+ (id) sharedEngine;
-@end
+// The engine (OOJavaScriptEngine.h; a C++ class since bead oo-wdqw1 deleted its facade), declared
+// with the header's names and signatures but not its class; the stand-in's answers are kept.
+class OOJavaScriptEngine
+{
+public:
+	static OOJavaScriptEngine *sharedEngine();
+};
 
-@implementation OOJavaScriptEngine
 
-+ (id) sharedEngine
+OOJavaScriptEngine *OOJavaScriptEngine::sharedEngine()
 {
 	sEngineCalls++;
 	if (gOOJSMainThreadContext == nullptr)
@@ -63,10 +67,8 @@ bool sFailCompile = false;		// make the next OOJSFunction init fail, as a compil
 		gOOJSMainThreadContext = JS_NewContext(runtime);
 		sGlobal = JS_GetGlobalObject(gOOJSMainThreadContext);
 	}
-	return nil;
+	return nullptr;
 }
-
-@end
 
 
 // OOJSFunction (src/Core/Scripting/OOJSFunction.h): the members the matcher calls, defined here in
@@ -120,40 +122,27 @@ bool OOJSFunction::evaluateWithContext(JSContext *context, JSValueConst jsThis, 
 }
 
 
-@interface OOJSValue: OOObject
+// The held value (OOJSEngineCore.h; a C++ class since bead oo-wdqw1 deleted its facade): the members
+// the matcher calls, defined here with the stand-in's answers.
+oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext *context)
 {
-@public
-	JSValue _val;	// owned
-}
-- (id) initWithJSValue:(JSValueConst)value inContext:(JSContext *)context;
-@end
-
-@implementation OOJSValue
-
-- (id) initWithJSValue:(JSValueConst)value inContext:(JSContext *)context
-{
-	self = [super init];
-	if (self == nil)  return nil;
+	oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
 	sRegExpsMade++;
-	_val = JS_DupValue(context, value);
-	return self;
+	result->_val = JS_DupValue(context, value);	// owned
+	return result;
 }
 
 
-- (void) dealloc
+OOJSValue::~OOJSValue()
 {
 	JS_FreeValue(gOOJSMainThreadContext, _val);
-	[super dealloc];
 }
-
-@end
 
 
 // Owned, as the engine's.
-JSValue OOJSValueFromNativeObject(JSContext *context, id object)
-{
-	return (object != nil) ? JS_DupValue(context, ((OOJSValue *)object)->_val) : JS_NULL;
-}
+JSValue OOJSValue::jsValueInContext(JSContext *context)  { return JS_DupValue(context, _val); }
+std::string OOJSValue::className() const  { return "OOJSValue"; }
+std::string OOJSValue::description() const  { return "<OOJSValue>"; }
 
 
 // Owned, as the engine's.

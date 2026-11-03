@@ -16,6 +16,10 @@ Semantics:
 
 LIMITATION: fast enumeration and Oolite's foreach() macro are not supported.
 
+No caller: the ships and stations hold their sets as oo::WeakSet<Entity>
+(oofnd/WeakSet.hpp). It stays, built and tested by test_OOWeakSet, until it is deleted with
+OOWeakReference.
+
 
 Written by Jens Ayton in 2012 for Oolite.
 This code is hereby placed in the public domain.

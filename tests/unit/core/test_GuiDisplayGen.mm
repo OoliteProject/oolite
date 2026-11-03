@@ -165,7 +165,7 @@ void StartJavaScript()
 	stdfs::current_path(root);
 	const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
 	OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
-	(void)[OOJavaScriptEngine sharedEngine];
+	(void)OOJavaScriptEngine::sharedEngine();
 }
 
 

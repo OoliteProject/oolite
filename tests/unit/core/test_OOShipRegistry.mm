@@ -11,8 +11,8 @@
 	and +reload, which makes a new registry from the cache the first one filled. The data pipeline
 	itself (OODataLoader, slices 2 and 3) runs as it is; this test only fixes its input. The
 	expectations were written against the unconverted class and run on it first. After the
-	conversion the class is cxx::OOShipRegistry behind an Objective-C facade; the test also checks
-	the facade (one per registry, the same answers from C++).
+	conversion the class sat in namespace cxx behind an Objective-C facade, which was
+	deleted with its facade-contract case; the cases ask the C++ class.
 	Run: bash tools/check-core-tests.sh test_OOShipRegistry
 */
 
@@ -41,13 +41,23 @@
 // reference whose objects would link the game. The paths the test runs never reach the aborting
 // ones: no ship has a condition script, a subentity, a vector or quaternion string, and nothing
 // flushes the cache.
-@class Universe;
+class Universe;
 class PlayerEntity;
 PlayerEntity *gOOPlayer = nullptr;
 #include "OOEntityEnums.h"
-namespace cxx { class Entity { public: OOEntityStatus status(); }; }	// as Entity.h declares it (PLAYER is C++ since bead oo-9ht.177)
-OOEntityStatus cxx::Entity::status()  { std::abort(); }
+class Entity { public: OOEntityStatus status(); };
+OOEntityStatus Entity::status()  { std::abort(); }
 Universe *gSharedUniverse = nil;
+
+// UNIVERSE stays nil here, so the registry's guarded call never reaches it; the stand-in only links
+// it (it was a message to nil).
+class OOScript;
+class Universe
+{
+public:
+	::OOScript *getConditionScript(const std::string &scriptname);
+};
+::OOScript *Universe::getConditionScript(const std::string &)  { return nullptr; }
 JSContext *gOOJSMainThreadContext = nullptr;
 JSAtom OOJSInternAtomPRIVATE(const char *)  { std::abort(); }
 JSValue OOJSValueFromPList(JSContext *, const oo::PList &)  { std::abort(); }
@@ -69,20 +79,13 @@ std::string OOShipLibraryCategoryPlural(const std::string &category)
 	return "";
 }
 
-// OOCacheManager.mm names the asynchronous work manager for its flush, which the test never does.
-@interface OOAsyncWorkManager: OOObject
-@end
-
-@implementation OOAsyncWorkManager
-@end
+// OOCacheManager.mm calls the asynchronous work manager for its flush, which the test never does
+// (a C++ stand-in since the manager became C++; it was an empty Objective-C class).
+OOAsyncWorkManager *OOAsyncWorkManager::sharedAsyncWorkManager()  { std::abort(); }
 
 
 // The stand-in ResourceManager: the files the registry reads, by name; everything else absent.
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache;
-+ (oo::PList) cxx_arrayFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName andMerge:(BOOL)mergeFiles cache:(BOOL)useCache;
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName;
-@end
+#import "ResourceManager.h"
 
 
 namespace {
@@ -139,28 +142,27 @@ oo::PList FileNamed(const std::string &name)
 }	// namespace
 
 
-@implementation ResourceManager
-
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	(void)folderName; (void)mergeMode; (void)useCache;
 	return FileNamed(fileName);
 }
 
 
-+ (oo::PList) cxx_arrayFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName andMerge:(BOOL)mergeFiles cache:(BOOL)useCache
+oo::PList ResourceManager::arrayFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles, bool useCache)
 {
 	(void)folderName; (void)mergeFiles; (void)useCache;
 	return FileNamed(fileName);
 }
 
 
-+ (std::optional<std::string>) cxx_pathForFileNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName
+std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	return folderName.value_or("") + "/" + fileName;
 }
 
-@end
 
 
 namespace {
@@ -191,93 +193,72 @@ bool Pinned(const char *what, const std::string &actual, const std::string &expe
 
 OO_TEST(sharedRegistryLoadsOnce)
 {
-	OOShipRegistry *registry = [OOShipRegistry sharedRegistry];
-	OO_CHECK(registry != nil);
-	OO_CHECK([OOShipRegistry sharedRegistry] == registry);
+	OOShipRegistry *registry = OOShipRegistry::sharedRegistry();
+	OO_CHECK(registry != nullptr);
+	OO_CHECK(OOShipRegistry::sharedRegistry() == registry);
 	Pinned("files", Join(sFilesRead), "shipdata.plist shipdata-overrides.plist shipyard.plist shipyard-overrides.plist effectdata.plist shiplibrary.plist shiplibrary.plist");
 }
 
 
 OO_TEST(looksUpShipsEffectsAndShipyards)
 {
-	OOShipRegistry *registry = [OOShipRegistry sharedRegistry];
-	Pinned("ship keys", Join([registry cxx_shipKeys]), "adder cobra3-player coriolis-station");
-	Pinned("adder", Text([registry cxx_shipInfoForKey:"adder"]), "{\"max_flight_speed\" = 240; model = \"adder.dat\"; name = Adder; roles = \"trader hunter(0.5)\"; }");
-	Pinned("cobra", Text([registry cxx_shipInfoForKey:"cobra3-player"]), "{\"_oo_shipyard\" = {chance = 1; \"optional_equipment\" = (); price = 150000; \"standard_equipment\" = {extras = (); \"forward_weapon_type\" = \"EQ_WEAPON_PULSE_LASER\"; }; techlevel = 1; \"weapon_facings\" = 15; }; \"max_flight_speed\" = 240; model = \"adder.dat\"; name = \"Cobra Mark III\"; roles = \"player trader(2)\"; }");
-	Pinned("unknown", Text([registry cxx_shipInfoForKey:"viper"]), "(null)");
-	Pinned("effect", Text([registry cxx_effectInfoForKey:"puff"]), "{model = \"puff.dat\"; scale = 2; }");
-	Pinned("no effect", Text([registry cxx_effectInfoForKey:"adder"]), "(null)");
-	Pinned("shipyard", Text([registry cxx_shipyardInfoForKey:"cobra3-player"]), "{chance = 1; \"optional_equipment\" = (); price = 150000; \"standard_equipment\" = {extras = (); \"forward_weapon_type\" = \"EQ_WEAPON_PULSE_LASER\"; }; techlevel = 1; \"weapon_facings\" = 15; }");
-	Pinned("no shipyard", Text([registry cxx_shipyardInfoForKey:"adder"]), "(null)");
-	Pinned("player ships", Join([registry cxx_playerShipKeys]), "cobra3-player");
-	Pinned("demo ships", Text([registry cxx_demoShipKeys]), "(({class = ship; name = Adder; ship = adder; }), ({class = station; name = \"Coriolis Station\"; ship = \"coriolis-station\"; }))");
+	OOShipRegistry *registry = OOShipRegistry::sharedRegistry();
+	Pinned("ship keys", Join(registry->shipKeys()), "adder cobra3-player coriolis-station");
+	Pinned("adder", Text(registry->shipInfoForKey("adder")), "{\"max_flight_speed\" = 240; model = \"adder.dat\"; name = Adder; roles = \"trader hunter(0.5)\"; }");
+	Pinned("cobra", Text(registry->shipInfoForKey("cobra3-player")), "{\"_oo_shipyard\" = {chance = 1; \"optional_equipment\" = (); price = 150000; \"standard_equipment\" = {extras = (); \"forward_weapon_type\" = \"EQ_WEAPON_PULSE_LASER\"; }; techlevel = 1; \"weapon_facings\" = 15; }; \"max_flight_speed\" = 240; model = \"adder.dat\"; name = \"Cobra Mark III\"; roles = \"player trader(2)\"; }");
+	Pinned("unknown", Text(registry->shipInfoForKey("viper")), "(null)");
+	Pinned("effect", Text(registry->effectInfoForKey("puff")), "{model = \"puff.dat\"; scale = 2; }");
+	Pinned("no effect", Text(registry->effectInfoForKey("adder")), "(null)");
+	Pinned("shipyard", Text(registry->shipyardInfoForKey("cobra3-player")), "{chance = 1; \"optional_equipment\" = (); price = 150000; \"standard_equipment\" = {extras = (); \"forward_weapon_type\" = \"EQ_WEAPON_PULSE_LASER\"; }; techlevel = 1; \"weapon_facings\" = 15; }");
+	Pinned("no shipyard", Text(registry->shipyardInfoForKey("adder")), "(null)");
+	Pinned("player ships", Join(registry->playerShipKeys()), "cobra3-player");
+	Pinned("demo ships", Text(registry->demoShipKeys()), "(({class = ship; name = Adder; ship = adder; }), ({class = station; name = \"Coriolis Station\"; ship = \"coriolis-station\"; }))");
 }
 
 
 OO_TEST(answersRoles)
 {
-	OOShipRegistry *registry = [OOShipRegistry sharedRegistry];
-	Pinned("roles", Join([registry cxx_shipRoles]), "[adder] [cobra3-player] [coriolis-station] coriolis hunter player station trader");
-	Pinned("traders", Join([registry cxx_shipKeysWithRole:"trader"]), "adder cobra3-player");
-	Pinned("hunters", Join([registry cxx_shipKeysWithRole:"hunter"]), "adder");
-	Pinned("none", Join([registry cxx_shipKeysWithRole:"pirate"]), "");
-	OO_CHECK([registry cxx_probabilitySetForRole:"pirate"] == nullptr);
-	OOProbabilitySet *traders = [registry cxx_probabilitySetForRole:"trader"];
+	OOShipRegistry *registry = OOShipRegistry::sharedRegistry();
+	Pinned("roles", Join(registry->shipRoles()), "[adder] [cobra3-player] [coriolis-station] coriolis hunter player station trader");
+	Pinned("traders", Join(registry->shipKeysWithRole("trader")), "adder cobra3-player");
+	Pinned("hunters", Join(registry->shipKeysWithRole("hunter")), "adder");
+	Pinned("none", Join(registry->shipKeysWithRole("pirate")), "");
+	OO_CHECK(registry->probabilitySetForRole("pirate") == nullptr);
+	OOProbabilitySet *traders = registry->probabilitySetForRole("trader");
 	OO_CHECK(traders != nullptr);
 	if (traders != nullptr)
 	{
 		OO_CHECK_EQ(traders->count(), 2u);
 		Pinned("trader weights", std::to_string(traders->weightForObject(oo::PList("adder"))) + " " + std::to_string(traders->weightForObject(oo::PList("cobra3-player"))), "1.000000 2.000000");
 	}
-	Pinned("random hunter", [registry cxx_randomShipKeyForRole:"hunter"].value_or("(nullopt)"), "adder");
-	Pinned("random pirate", [registry cxx_randomShipKeyForRole:"pirate"].value_or("(nullopt)"), "(nullopt)");
+	Pinned("random hunter", registry->randomShipKeyForRole("hunter").value_or("(nullopt)"), "adder");
+	Pinned("random pirate", registry->randomShipKeyForRole("pirate").value_or("(nullopt)"), "(nullopt)");
 }
 
 
 OO_TEST(replacesAnEntry)
 {
-	OOShipRegistry *registry = [OOShipRegistry sharedRegistry];
-	[registry cxx_setShipInfoForKey:"viper" with:Parse("{ name = Viper; }")];
-	Pinned("viper", Text([registry cxx_shipInfoForKey:"viper"]), "{name = Viper; }");
-	Pinned("ship keys", Join([registry cxx_shipKeys]), "adder cobra3-player coriolis-station viper");
+	OOShipRegistry *registry = OOShipRegistry::sharedRegistry();
+	registry->setShipInfoForKey("viper", Parse("{ name = Viper; }"));
+	Pinned("viper", Text(registry->shipInfoForKey("viper")), "{name = Viper; }");
+	Pinned("ship keys", Join(registry->shipKeys()), "adder cobra3-player coriolis-station viper");
 }
 
 
 OO_TEST(reloadMakesANewRegistryFromTheCache)
 {
-	OOShipRegistry *before = [OOShipRegistry sharedRegistry];
+	OOShipRegistry *before = OOShipRegistry::sharedRegistry();
 	sFilesRead.clear();
-	[OOShipRegistry reload];
-	OOShipRegistry *after = [OOShipRegistry sharedRegistry];
-	OO_CHECK(after != nil);
+	OOShipRegistry::reload();
+	OOShipRegistry *after = OOShipRegistry::sharedRegistry();
+	OO_CHECK(after != nullptr);
 	OO_CHECK(after != before);
 	Pinned("files", Join(sFilesRead), "shiplibrary.plist shiplibrary.plist");
-	Pinned("ship keys", Join([after cxx_shipKeys]), "adder cobra3-player coriolis-station");
-	Pinned("player ships", Join([after cxx_playerShipKeys]), "cobra3-player");
-	Pinned("roles", Join([after cxx_shipRoles]), "[adder] [cobra3-player] [coriolis-station] coriolis hunter player station trader");
+	Pinned("ship keys", Join(after->shipKeys()), "adder cobra3-player coriolis-station");
+	Pinned("player ships", Join(after->playerShipKeys()), "cobra3-player");
+	Pinned("roles", Join(after->shipRoles()), "[adder] [cobra3-player] [coriolis-station] coriolis hunter player station trader");
 	// The old registry was never released (its -release did nothing): it still answers.
-	Pinned("old ship keys", Join([before cxx_shipKeys]), "adder cobra3-player coriolis-station viper");
-}
-
-
-// The facade (after the conversion): one cached facade for the current registry, and the C++
-// registry answers what the facade does.
-OO_TEST(facadeContract)
-{
-	@autoreleasepool
-	{
-		OOShipRegistry *facade = [OOShipRegistry sharedRegistry];
-		cxx::OOShipRegistry *registry = cxx::OOShipRegistry::sharedRegistry();
-		OO_CHECK(oo::ToCxx(facade) == registry);
-		OO_CHECK(oo::ToObjC(registry) == facade);
-		OO_CHECK(oo::ToCxx(static_cast<OOShipRegistry *>(nil)) == nullptr);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOShipRegistry *>(nullptr)) == nil);
-		OO_CHECK(registry->shipKeys() == [facade cxx_shipKeys]);
-		OO_CHECK(registry->playerShipKeys() == [facade cxx_playerShipKeys]);
-		OO_CHECK(registry->probabilitySetForRole("trader") == [facade cxx_probabilitySetForRole:"trader"]);
-		OO_CHECK(registry->shipInfoForKey("adder") == [facade cxx_shipInfoForKey:"adder"]);
-	}
-	OO_CHECK([OOShipRegistry sharedRegistry] == [OOShipRegistry sharedRegistry]);
+	Pinned("old ship keys", Join(before->shipKeys()), "adder cobra3-player coriolis-station viper");
 }
 
 
@@ -287,15 +268,15 @@ OO_TEST(facadeContract)
 OO_TEST(canonicalizesSubentityDeclarations)
 {
 	sSubentityData = true;
-	cxx::OOCacheManager::sharedCache()->clearCache("ship registry");
-	[OOShipRegistry reload];
-	OOShipRegistry *registry = [OOShipRegistry sharedRegistry];
-	Pinned("ship keys", Join([registry cxx_shipKeys]), "cobra3-player dock mothership turret wreck");
-	Pinned("mothership", Text([registry cxx_shipInfoForKey:"mothership"]), "{model = \"adder.dat\"; name = Mothership; roles = trader; subentities = ({\"fire_rate\" = \"0.25\"; orientation = {w = 1; x = 0; y = 0; z = 0; }; position = {x = 1; y = 2; z = 3; }; \"subentity_key\" = turret; type = \"ball_turret\"; \"weapon_energy\" = 100; \"weapon_range\" = \"7200.00048828125\"; }, {\"allow_docking\" = 1; \"allow_launching\" = 0; \"disallowed_docking_collides\" = 0; \"dock_label\" = \"the docking bay\"; \"is_dock\" = 1; orientation = {w = 1; x = 0; y = 0; z = 0; }; position = {x = 0; y = 0; z = 5; }; \"subentity_key\" = dock; type = standard; }, {\"bright_fraction\" = \"0.5\"; colors = ((1, 0, 0, 1)); frequency = 2; \"initially_on\" = 1; phase = 1; position = {x = 0; y = 0; z = 5; }; size = 4; type = flasher; }, {\"bright_fraction\" = \"0.25\"; colors = ((0, 0, 1, 1), (0, 1, 0, 1)); frequency = 2; \"initially_on\" = 0; position = {x = 0; y = 0; z = 0; }; size = 8; type = flasher; }); }");
-	Pinned("turret", Text([registry cxx_shipInfoForKey:"turret"]), "{\"_oo_is_subentity\" = 1; model = \"adder.dat\"; name = Turret; }");
-	Pinned("wreck", Text([registry cxx_shipInfoForKey:"wreck"]), "{frangible = yes; model = \"adder.dat\"; name = Wreck; roles = trader; subentities = ({orientation = {w = 1; x = 0; y = 0; z = 0; }; position = {x = 0; y = 0; z = 0; }; \"subentity_key\" = turret; type = standard; }); }");
-	Pinned("orphan", Text([registry cxx_shipInfoForKey:"orphan"]), "(null)");
-	Pinned("roles", Join([registry cxx_shipRoles]), "[cobra3-player] [dock] [mothership] [turret] [wreck] player trader");
+	OOCacheManager::sharedCache()->clearCache("ship registry");
+	OOShipRegistry::reload();
+	OOShipRegistry *registry = OOShipRegistry::sharedRegistry();
+	Pinned("ship keys", Join(registry->shipKeys()), "cobra3-player dock mothership turret wreck");
+	Pinned("mothership", Text(registry->shipInfoForKey("mothership")), "{model = \"adder.dat\"; name = Mothership; roles = trader; subentities = ({\"fire_rate\" = \"0.25\"; orientation = {w = 1; x = 0; y = 0; z = 0; }; position = {x = 1; y = 2; z = 3; }; \"subentity_key\" = turret; type = \"ball_turret\"; \"weapon_energy\" = 100; \"weapon_range\" = \"7200.00048828125\"; }, {\"allow_docking\" = 1; \"allow_launching\" = 0; \"disallowed_docking_collides\" = 0; \"dock_label\" = \"the docking bay\"; \"is_dock\" = 1; orientation = {w = 1; x = 0; y = 0; z = 0; }; position = {x = 0; y = 0; z = 5; }; \"subentity_key\" = dock; type = standard; }, {\"bright_fraction\" = \"0.5\"; colors = ((1, 0, 0, 1)); frequency = 2; \"initially_on\" = 1; phase = 1; position = {x = 0; y = 0; z = 5; }; size = 4; type = flasher; }, {\"bright_fraction\" = \"0.25\"; colors = ((0, 0, 1, 1), (0, 1, 0, 1)); frequency = 2; \"initially_on\" = 0; position = {x = 0; y = 0; z = 0; }; size = 8; type = flasher; }); }");
+	Pinned("turret", Text(registry->shipInfoForKey("turret")), "{\"_oo_is_subentity\" = 1; model = \"adder.dat\"; name = Turret; }");
+	Pinned("wreck", Text(registry->shipInfoForKey("wreck")), "{frangible = yes; model = \"adder.dat\"; name = Wreck; roles = trader; subentities = ({orientation = {w = 1; x = 0; y = 0; z = 0; }; position = {x = 0; y = 0; z = 0; }; \"subentity_key\" = turret; type = standard; }); }");
+	Pinned("orphan", Text(registry->shipInfoForKey("orphan")), "(null)");
+	Pinned("roles", Join(registry->shipRoles()), "[cobra3-player] [dock] [mothership] [turret] [wreck] player trader");
 	sSubentityData = false;
 }
 

@@ -48,6 +48,7 @@
 
 #include <objc/runtime.h>
 
+#include <Block.h>
 #include <objc/objc-arc.h>
 
 // Objective-C++ game code sees OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
@@ -62,6 +63,8 @@
 #include <functional>
 #include <type_traits>
 #include <utility>
+
+#include "oofnd/Ref.hpp"
 
 namespace oo {
 
@@ -161,6 +164,24 @@ template <class T, class U>
 std::strong_ordering operator<=>(const ObjCRef<T>& a, const ObjCRef<U>& b) noexcept
 {
     return std::compare_three_way { }(static_cast<const void*>(a.get()), static_cast<const void*>(b.get()));
+}
+
+/*	[x autorelease] of a C++ object into the Objective-C autorelease pool.
+        The game's pools are still libobjc2's, so a C++ object whose last reference
+        must go when the current pool drains (the replaced drawable, script, material or AI that was
+        autoreleased before its class was C++) is handed to that pool here: a heap block that holds the
+        reference is autoreleased, so the pool releases it at the same drain and in the same LIFO place
+        as any object autoreleased at this point, and destroying the block releases the reference. It
+        replaces the per-class Objective-C keeper objects. Nothing for null. When the pools become
+        oo::AutoreleaseScope (oo-31u), this is oo::autorelease(ref.leakRef()).
+*/
+template <class T>
+void AutoreleaseInObjCPool(Ref<T> ref)
+{
+    if (ref == nullptr)
+        return;
+    void (^keeper)(void) = ^{ (void)ref; };
+    objc_autorelease((id)_Block_copy(keeper));
 }
 
 } // namespace oo

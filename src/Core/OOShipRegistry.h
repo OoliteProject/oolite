@@ -38,8 +38,6 @@ SOFTWARE.
 class OOProbabilitySet; // C++ since bead oo-489v
 class OOMutableProbabilitySet;
 
-namespace cxx {
-
 class OOShipRegistry : public oo::RefCounted {
 public:
     static OOShipRegistry* sharedRegistry(); // the one instance, made on first use and never released; borrowed
@@ -105,7 +103,3 @@ private:
 
     bool shipIsBallTurretForKey(const std::string& shipKey, const oo::PList& shipData);
 };
-
-} // namespace cxx
-
-#import "OOShipRegistry+ObjCBridge.h"

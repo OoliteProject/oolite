@@ -55,20 +55,24 @@ public:
 	BOOL _throwCxx = {};
 };
 
-@interface Universe: OOObject
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// deleted, was what this stood in for), with the header's names and signatures.
+class Universe
 {
-@public
+public:
 	oo::Ref<OOCommodities> _commodities;
 	oo::Ref<OOCommodityMarket> _market;
-}
-- (OOCommodities *) commodities;
-- (OOCommodityMarket *) commodityMarket;
-- (OOSystemID) currentSystemID;
-@end
 
-@interface ResourceManager: OOObject
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache;
-@end
+	::OOCommodities *getCommodities();
+	::OOCommodityMarket *getCommodityMarket();
+	OOSystemID currentSystemID();
+};
+
+::OOCommodities *Universe::getCommodities()	{ return _commodities.get(); }
+::OOCommodityMarket *Universe::getCommodityMarket()	{ return _market.get(); }
+OOSystemID Universe::currentSystemID()	{ return 7; }
+
+#import "ResourceManager.h"
 
 // A station: C++ since bead oo-9ht.175 deleted the Objective-C station this stood in for; the
 // members the commodities call, declared as StationEntity.h declares them (the test imports no
@@ -147,24 +151,16 @@ std::optional<std::string> PlayerEntity::getSpecialCargo()  { return _specialCar
 ::OOScript * PlayerEntity::commodityScriptNamed(const std::optional<std::string> &script)  { (void)script; return nil; }
 
 
-@implementation Universe
-
-- (OOCommodities *) commodities  { return _commodities.get(); }
-- (OOCommodityMarket *) commodityMarket  { return _market.get(); }
-- (OOSystemID) currentSystemID  { return 7; }
-
-@end
 
 
-@implementation ResourceManager
-
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::optional<std::string> &)folderName mergeMode:(int)mergeMode cache:(BOOL)useCache
+// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	(void)fileName; (void)folderName; (void)mergeMode; (void)useCache;
 	return TradeGoods();
 }
 
-@end
 
 
 oo::PList StationEntity::getMarketDefinition()					{ std::abort(); }
@@ -172,11 +168,6 @@ std::optional<std::string> StationEntity::getMarketScriptName()	{ std::abort(); 
 OOCargoQuantity StationEntity::getMarketCapacity()				{ std::abort(); }
 bool StationEntity::getMarketMonitored()						{ std::abort(); }
 
-// Link stub: a station's Objective-C object, which only a commodity script for a station is given.
-@class Entity;
-namespace cxx { class Entity; }
-namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
-::Entity *oo::ToObjC(cxx::Entity *)	{ std::abort(); }
 
 
 // The expander: "<string>".
@@ -427,7 +418,7 @@ void SetUpContext()
 	gOOJSMainThreadContext = sContext;
 	sGlobal = JS_GetGlobalObject(sContext);
 
-	sUniverse = [[Universe alloc] init];	// kept for the life of the test
+	sUniverse = new Universe();	// kept for the life of the test
 	gSharedUniverse = sUniverse;
 	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;

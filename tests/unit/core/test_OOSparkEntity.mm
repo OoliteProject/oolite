@@ -47,7 +47,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -57,16 +57,11 @@ static Entity *sRemoved = nil;
 
 
 // UNIVERSE: never initialised; records what is removed.
-@interface TestUniverse: Universe
-@end
-
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime				{ return 0; }
-- (BOOL) removeEntity:(Entity *)entity	{ sRemoved = entity; return YES; }
-
-@end
+class TestUniverse : public Universe
+{
+public:
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object, as before
+};
 
 
 namespace {
@@ -75,11 +70,11 @@ namespace {
 
 Entity *MakeSpark(HPVector position, Vector velocity, OOTimeDelta duration, float size, OOColor *color)
 {
-	return oo::NewEntityFacade(OOSparkEntity::sparkWithPosition(position, velocity, duration, size, color));
+	return oo::MadeEntity(OOSparkEntity::sparkWithPosition(position, velocity, duration, size, color));
 }
 
 // The object is the root Entity's facade since bead oo-9ht.76; its C++ part is the particle.
-OOLightParticleEntity *Particle(Entity *e)				{ return static_cast<OOLightParticleEntity *>(oo::ToCxx(e)); }
+OOLightParticleEntity *Particle(Entity *e)				{ return static_cast<OOLightParticleEntity *>(e); }
 const GLfloat *ColorComponents(Entity *e)				{ return Particle(e)->_colorComponents; }
 
 // --------------------------------------------------------------------------------------------------
@@ -90,8 +85,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([TestUniverse class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		universe = new TestUniverse();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nullptr;
@@ -121,13 +115,13 @@ OO_TEST(initWithPosition)
 		oo::Ref<OOColor>	color = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
 		Entity *spark = MakeSpark(make_HPvector(1, 2, 3), make_vector(10, 0, 0), 2.0, 4.0f, color.get());
 		OO_CHECK(spark != nil);
-		OO_CHECK(HPvector_equal([spark position], make_HPvector(1, 2, 3)));
-		OO_CHECK(vector_equal([spark velocity], make_vector(10, 0, 0)));
-		OO_CHECK([spark collisionRadius] == 2.0f && Particle(spark)->diameter() == 4.0f);
-		OO_CHECK([spark status] == STATUS_EFFECT && [spark scanClass] == CLASS_NO_DRAW);
-		OO_CHECK([spark isEffect] && ![spark canCollide]);
+		OO_CHECK(HPvector_equal(spark->getPosition(), make_HPvector(1, 2, 3)));
+		OO_CHECK(vector_equal(spark->getVelocity(), make_vector(10, 0, 0)));
+		OO_CHECK(spark->collisionRadius() == 2.0f && Particle(spark)->diameter() == 4.0f);
+		OO_CHECK(spark->status() == STATUS_EFFECT && spark->getScanClass() == CLASS_NO_DRAW);
+		OO_CHECK(spark->isEffect() && !spark->canCollide());
 		OO_CHECK(ComponentsAre(spark, 0.2f, 0.4f, 0.6f, 0.8f));
-		OO_CHECK(oo::DescriptionOf(spark).starts_with("<OOSparkEntity 0x"));
+		OO_CHECK(oo::EntityDescription(spark).starts_with("<OOSparkEntity 0x"));
 	}
 }
 
@@ -141,13 +135,13 @@ OO_TEST(fadesTowardsRedAndIsRemoved)
 		Entity *spark = MakeSpark(make_HPvector(1, 2, 3), make_vector(10, 0, 0), 2.0, 4.0f, color.get());
 
 		// Half way: half the base colour, plus half red; moved by its velocity.
-		[spark update:1.0];
+		spark->update(1.0);
 		OO_CHECK(ComponentsAre(spark, 0.6f, 0.2f, 0.3f, 0.4f));
-		OO_CHECK(HPvector_equal([spark position], make_HPvector(11, 2, 3)));
+		OO_CHECK(HPvector_equal(spark->getPosition(), make_HPvector(11, 2, 3)));
 		OO_CHECK(sRemoved == nil);
 
 		// Gone: red, transparent, and removed from the universe.
-		[spark update:1.5];
+		spark->update(1.5);
 		OO_CHECK(ComponentsAre(spark, 1.0f, 0.0f, 0.0f, 0.0f));
 		OO_CHECK(sRemoved == spark);
 	}

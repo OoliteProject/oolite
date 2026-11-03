@@ -22,6 +22,7 @@
 */
 
 #import "OOShaderUniform.h"
+#import "OOShaderUniformMethodType.h"
 #import "OORegExpMatcher.h"
 #import "OOColor.h"
 #import "OODescription.h"
@@ -44,15 +45,13 @@ void OOLogOutdent(void)  {}
 
 
 // The extension manager's collaborators, as test_OOOpenGLExtensionManager stubs them.
-@interface ResourceManager: OOObject
-+ (std::vector<std::string>) cxx_paths;
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles;
-@end
+#import "ResourceManager.h"
 
-@implementation ResourceManager
-+ (std::vector<std::string>) cxx_paths  { return {}; }
-+ (oo::PList) cxx_dictionaryFromFilesNamed:(const std::string &)fileName inFolder:(const std::string &)folderName andMerge:(BOOL)mergeFiles  { return oo::PList(oo::PList::Dict{}); }
-@end
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()  { return {}; }
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
+
 
 
 // OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
@@ -136,7 +135,7 @@ bool SetUpProgram()
 {
 	if (gProgram != 0)  return true;
 	if (!OOTestGLContext())  return false;
-	[OOOpenGLExtensionManager sharedManager];	// loads the ARB shader entry points
+	OOOpenGLExtensionManager::sharedManager();	// loads the ARB shader entry points
 	gGetUniformfv = (GetUniformfv)SDL_GL_GetProcAddress("glGetUniformfvARB");
 	gGetUniformiv = (GetUniformiv)SDL_GL_GetProcAddress("glGetUniformivARB");
 	if (gGetUniformfv == nullptr || gGetUniformiv == nullptr)  return false;
@@ -428,6 +427,66 @@ OO_TEST(description)
 		const std::string bound = Description(Bound("uFloat", target, "floatValue"));
 		OO_CHECK(bound.find(": float uFloat = [<TestTarget 0x") != std::string::npos && bound.ends_with("> floatValue];}"));
 		OO_CHECK(Description(Bound("uFloat", target, "nothing")).ends_with(": (null) uFloat = INVALID;}"));
+	}
+}
+
+
+// A uniform bound to a C++ object's member (bead oo-t0e2m: the dust shader's uWarp and
+// uOffsetPlayerPosition, which were bound by selector to an Objective-C object forwarding to the
+// dust): the value is read from the target on every apply, converted as a method's was, and a
+// target that has gone sets nothing.
+namespace {
+
+class CxxTarget : public oo::RefCounted
+{
+public:
+	Vector	vector = kZeroVector;
+};
+
+
+void CxxTargetVector(oo::RefCounted *target, OOShaderBindingValue &outValue)
+{
+	outValue.v = static_cast<CxxTarget *>(target)->vector;
+}
+
+}	// namespace
+
+
+OO_TEST(cxxTargetBindings)
+{
+	if (!SetUpProgram())  { OO_CHECK(false); return; }
+	@autoreleasepool
+	{
+		OO_CHECK(OOShaderUniform::initWithName("uVector", nil, nullptr, "vector", kOOShaderUniformTypeVector, CxxTargetVector, 0) == nullptr);
+		OO_CHECK(OOShaderUniform::initWithName("uMissing", gShaderProgram, nullptr, "vector", kOOShaderUniformTypeVector, CxxTargetVector, 0) == nullptr);
+		OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram, nullptr, "vector", kOOShaderUniformTypeVector, nullptr, 0) == nullptr);
+		OO_CHECK(OOShaderUniform::initWithName("uVector", gShaderProgram, nullptr, "vector", kOOShaderUniformTypeInvalid, CxxTargetVector, 0) == nullptr);
+
+		Reset();
+		oo::Ref<CxxTarget> target = oo::makeRef<CxxTarget>();
+		target->vector = make_vector(3, 0, 4);
+		oo::Ref<OOShaderUniform> u = OOShaderUniform::initWithName("uVector", gShaderProgram, target.get(), "vector", kOOShaderUniformTypeVector, CxxTargetVector, 0);
+		OO_CHECK(u != nullptr);
+		u->apply();
+		OO_CHECK(Near(Floats("uVector", 4), { 3, 0, 4, 1 }));
+		target->vector = make_vector(0, 2, 10);
+		u->apply();
+		OO_CHECK(Near(Floats("uVector", 4), { 0, 2, 10, 1 }));
+		OOShaderUniform::initWithName("uVector", gShaderProgram, target.get(), "vector", kOOShaderUniformTypeVector, CxxTargetVector, kOOUniformConvertNormalize)->apply();
+		OO_CHECK(Near(Floats("uVector", 4), { 0, 0.196116f, 0.980581f, 1 }));
+		OO_CHECK(Description(u).find(": vec4 uVector = [<0x") != std::string::npos && Description(u).ends_with("> vector];}"));
+
+		// The target held weakly: once it has gone, apply sets nothing.
+		target = nullptr;
+		const GLfloat nine[4] = { 9, 9, 9, 9 };
+		glUniform4fvARB(glGetUniformLocationARB(gProgram, "uVector"), 1, nine);
+		u->apply();
+		OO_CHECK(Near(Floats("uVector", 4), { 9, 9, 9, 9 }));
+		OO_CHECK(Description(u).ends_with(": vec4 uVector = 0;}"));
+
+		// No target: nothing set.
+		OOShaderUniform::initWithName("uVector", gShaderProgram, nullptr, "vector", kOOShaderUniformTypeVector, CxxTargetVector, 0)->apply();
+		OO_CHECK(Near(Floats("uVector", 4), { 9, 9, 9, 9 }));
 	}
 }
 

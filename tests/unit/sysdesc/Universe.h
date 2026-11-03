@@ -4,10 +4,12 @@
 #ifndef OO_LOCALIZATION_TOOLS
 #define OO_LOCALIZATION_TOOLS	1
 #endif
-@interface Universe : NSObject
-- (NSDictionary *) descriptions;
-// The C++ form OOConvertSystemDescriptions.mm calls since oo-3rb.310 (bead oo-3rb.335: stub-API tracking).
-- (const oo::PList *) cxx_descriptions;
-@end
+// The universe is C++ since bead oo-ql9rn deleted its Objective-C facade: the tools call the member
+// of the same name (the Objective-C form the stub declared went with the facade).
+class Universe
+{
+public:
+	const oo::PList *descriptions();
+};
 Universe *OOGetUniverse(void);
 #define UNIVERSE OOGetUniverse()

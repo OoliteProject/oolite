@@ -39,7 +39,6 @@ SOFTWARE.
 #import "OOBasicMaterial.h"
 #import "OOMaths.h"
 #import "OOShaderProgram.h"
-#import "OOWeakReference.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
@@ -50,8 +49,9 @@ SOFTWARE.
 
 #if OO_SHADERS
 
-@class OOTexture;
+class OOTexture;
 class OOShaderUniform;
+class Entity; // Entity.h: the binding target (bead oo-9ht.39.6)
 
 enum {
     // Conversion settings for uniform bindings
@@ -99,14 +99,14 @@ public:
     static oo::Ref<OOShaderMaterial> shaderMaterialWithName(const std::optional<std::string>& name,
         const oo::PList& configuration, // null = nil
         const oo::PList& macros, // null = nil
-        id<OOWeakReferenceSupport> target);
+        Entity* target);
 
     // Runs once, right after construction (proposed ADR-0056, amendment oo-vl43); false where the
     // Objective-C initialiser answered nil.
     bool initWithName(const std::optional<std::string>& name,
         const oo::PList& configuration, // null = nil
         const oo::PList& macros, // null = nil
-        id<OOWeakReferenceSupport> target);
+        Entity* target);
 
     /*	Bind a uniform to a property of an object.
 
@@ -132,7 +132,7 @@ public:
             bindSafeUniform() below.
     */
     bool bindUniform(const std::string& uniformName,
-        id<OOWeakReferenceSupport> target,
+        Entity* target,
         SEL selector,
         OOUniformConvertOptions options);
 
@@ -142,7 +142,7 @@ public:
             that it checks against OOUniformBindingPermitted().
     */
     bool bindSafeUniform(const std::string& uniformName,
-        id<OOWeakReferenceSupport> target,
+        Entity* target,
         const std::optional<std::string>& property, // nullopt: no property (not bound)
         OOUniformConvertOptions options);
 
@@ -163,32 +163,31 @@ public:
             any random bindings:
                     - (uint32_t) randomSeedForShaders;
     */
-    void addUniformsFromDictionary(const oo::PList& uniformDefs, id<OOWeakReferenceSupport> target);
+    void addUniformsFromDictionary(const oo::PList& uniformDefs, Entity* target);
 
     bool doApply() override;
     void ensureFinishedLoading() override;
     bool isFinishedLoading() override;
     void unapplyWithNext(OOMaterial* next) override;
-    void setBindingTarget(id<OOWeakReferenceSupport> target) override;
+    size_t objectSize() const override { return sizeof *this; }
+    void setBindingTarget(Entity* target) override;
     bool permitSpecular() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
 private:
     // Convert a "textures" array (texture specifiers) to texture objects.
-    std::vector<oo::ObjCRef<::OOTexture*>> loadTexturesFromArray(const oo::PList& textureSpecs, GLuint max);
+    std::vector<oo::Ref<OOTexture>> loadTexturesFromArray(const oo::PList& textureSpecs, GLuint max);
 
     // Load up an array of texture objects.
-    void addTexturesFromArray(const std::vector<oo::ObjCRef<::OOTexture*>>& textureObjects, GLuint max);
+    void addTexturesFromArray(const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max);
 
     oo::Ref<OOShaderProgram> shaderProgram = { };
     std::map<std::string, oo::Ref<OOShaderUniform>, std::less<>> uniforms = { }; // by uniform name (C++ since bead oo-9ht.55 deleted OOShaderUniform's facade)
 
     uint32_t texCount = { };
-    ::OOTexture** textures = { };
-
-    oo::ObjCRef<::OOWeakReference*> bindingTarget = { };
+    OOTexture** textures = { };
 };
 
 enum {
@@ -205,7 +204,7 @@ enum {
         Predicate determining whether a given property may be used as a binding.
         Client code is responsible for implementing this.
 */
-BOOL OOUniformBindingPermitted(const std::string& propertyName, id bindingTarget);
+BOOL OOUniformBindingPermitted(const std::string& propertyName, Entity* bindingTarget); // the entity (bead oo-9ht.39.6)
 
 // Material specifier dictionary keys.
 inline constexpr const char* kOOVertexShaderSourceKey = "_oo_vertex_shader_source";

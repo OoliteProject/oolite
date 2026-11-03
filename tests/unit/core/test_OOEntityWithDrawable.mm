@@ -54,7 +54,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -70,11 +70,12 @@ public:
 	GLfloat collisionRadius() override								{ return 5.0f; }
 	GLfloat maxDrawDistance() override								{ return _maxDrawDistance; }
 	BoundingBox boundingBox() override								{ return (BoundingBox){ { -1, -2, -3 }, { 1, 2, 3 } }; }
-	void setBindingTarget(id<OOWeakReferenceSupport> target) override	{ _bindingTarget = target; }
+	// The target is the C++ entity; the stand-in records its object, as it recorded the target.
+	void setBindingTarget(Entity *target) override	{ _bindingTarget = target; }
 
 	int		_opaqueRenders = 0;
 	int		_translucentRenders = 0;
-	id		_bindingTarget = nil;
+	Entity	*_bindingTarget = nullptr;
 	GLfloat	_maxDrawDistance = 0.0f;
 };
 
@@ -89,10 +90,10 @@ namespace {
 
 // --- Ivars the game reads directly (ent->no_draw_distance), and nothing else ----------------------
 
-GLfloat NoDrawDistance(Entity *e)					{ return e->_cxxEntity->no_draw_distance; }
-BoundingBox EntityBoundingBox(Entity *e)			{ return [e boundingBox]; }
-void SetSubEntity(Entity *e, bool value)			{ e->_cxxEntity->isSubEntity = value; }
-void SetCamZeroDistance(Entity *e, GLfloat value)	{ e->_cxxEntity->cam_zero_distance = value; }
+GLfloat NoDrawDistance(Entity *e)					{ return e->no_draw_distance; }
+BoundingBox EntityBoundingBox(Entity *e)			{ return e->getBoundingBox(); }
+void SetSubEntity(Entity *e, bool value)			{ e->isSubEntity = value; }
+void SetCamZeroDistance(Entity *e, GLfloat value)	{ e->cam_zero_distance = value; }
 
 // An entity with a drawable and its object, as the game makes a C++ one ([[OOEntityWithDrawable
 // alloc] init] until bead oo-9ht.40 deleted that facade): the root's facade, autoreleased.
@@ -100,7 +101,7 @@ template <class T = OOEntityWithDrawable>
 T *NewWithDrawable(Entity **outObject)
 {
 	const oo::Ref<T> part = oo::makeRef<T>();
-	*outObject = oo::NewEntityFacade(part);
+	*outObject = oo::MadeEntity(part);
 	return part.get();
 }
 
@@ -112,8 +113,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([Universe class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		universe = new Universe();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nullptr;
@@ -132,9 +132,9 @@ OO_TEST(setDrawable)
 		Entity *entity = nil;
 		OOEntityWithDrawable *part = NewWithDrawable(&entity);
 		OO_CHECK(part->getDrawable() == nullptr);
-		OO_CHECK([entity findCollisionRadius] == 0);
+		OO_CHECK(entity->findCollisionRadius() == 0);
 #ifndef NDEBUG
-		OO_CHECK([entity cxx_allTextures].empty());
+		OO_CHECK(entity->allTextures().empty());
 #endif
 
 		const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();
@@ -142,18 +142,18 @@ OO_TEST(setDrawable)
 		part->setDrawable(drawable.get());
 		OO_CHECK(part->getDrawable() == drawable.get());
 		OO_CHECK(drawable->_bindingTarget == entity);
-		OO_CHECK([entity collisionRadius] == 5.0f && [entity findCollisionRadius] == 5.0);
+		OO_CHECK(entity->collisionRadius() == 5.0f && entity->findCollisionRadius() == 5.0);
 		OO_CHECK(NoDrawDistance(entity) == 1000.0f);
 		BoundingBox box = EntityBoundingBox(entity);
 		OO_CHECK(box.min.x == -1 && box.min.y == -2 && box.min.z == -3 && box.max.x == 1 && box.max.y == 2 && box.max.z == 3);
 
 		// Setting the same drawable again changes nothing.
-		[entity setCollisionRadius:1.0f];
+		entity->setCollisionRadius(1.0f);
 		part->setDrawable(drawable.get());
-		OO_CHECK([entity collisionRadius] == 1.0f);
+		OO_CHECK(entity->collisionRadius() == 1.0f);
 
 		part->setDrawable(nullptr);
-		OO_CHECK(part->getDrawable() == nullptr && [entity collisionRadius] == 0 && NoDrawDistance(entity) == 0);
+		OO_CHECK(part->getDrawable() == nullptr && entity->collisionRadius() == 0 && NoDrawDistance(entity) == 0);
 	}
 }
 
@@ -168,29 +168,29 @@ OO_TEST(drawImmediate)
 		const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();
 		drawable->_maxDrawDistance = 1.0e9f;
 		part->setDrawable(drawable.get());
-		[entity setPosition:make_HPvector(0, 0, 100)];
+		entity->setPosition(make_HPvector(0, 0, 100));
 
 		// Near: drawn with no frustum test. (cam_zero_distance is a squared distance, compared with
 		// the draw distance as it is.)
 		SetCamZeroDistance(entity, 500.0f);
-		[entity drawImmediate:false translucent:false];
-		[entity drawImmediate:false translucent:true];
+		entity->drawImmediate(false, false);
+		entity->drawImmediate(false, true);
 		OO_CHECK(drawable->_opaqueRenders == 1 && drawable->_translucentRenders == 1);
 
 		// Far enough away for the frustum test, which a Universe with no planes always passes.
 		SetCamZeroDistance(entity, 2.0e6f);
-		[entity drawImmediate:false translucent:false];
+		entity->drawImmediate(false, false);
 		OO_CHECK(drawable->_opaqueRenders == 2);
 
 		// A subentity takes the other branch.
 		SetSubEntity(entity, true);
-		[entity drawImmediate:true translucent:true];
+		entity->drawImmediate(true, true);
 		OO_CHECK(drawable->_translucentRenders == 2);
 		SetSubEntity(entity, false);
 
 		// Beyond the draw distance: not drawn.
 		SetCamZeroDistance(entity, 2.0e9f);
-		[entity drawImmediate:false translucent:false];
+		entity->drawImmediate(false, false);
 		OO_CHECK(drawable->_opaqueRenders == 2);
 	}
 }
@@ -203,8 +203,8 @@ OO_TEST(description)
 		SetUp();
 		Entity *entity = nil;
 		(void)NewWithDrawable(&entity);
-		OO_CHECK(oo::DescriptionOf(entity).starts_with("<OOEntityWithDrawable 0x"));
-		OO_CHECK(oo::DescriptionOf(entity).ends_with("{position: (0, 0, 0) scanClass: CLASS_NOT_SET status: STATUS_COCKPIT_DISPLAY}"));
+		OO_CHECK(oo::EntityDescription(entity).starts_with("<OOEntityWithDrawable 0x"));
+		OO_CHECK(oo::EntityDescription(entity).ends_with("{position: (0, 0, 0) scanClass: CLASS_NOT_SET status: STATUS_COCKPIT_DISPLAY}"));
 	}
 }
 
@@ -217,18 +217,18 @@ OO_TEST(cxxSubclassFacade)
 	{
 		SetUp();
 		const oo::Ref<TestCxxEntityWithDrawable> entity = oo::makeRef<TestCxxEntityWithDrawable>();
-		Entity *facade = oo::NewEntityFacade(entity);
+		Entity *facade = oo::MadeEntity(entity);
 		OO_CHECK(facade != nil);
-		OO_CHECK(oo::ToCxx(facade) == entity.get() && oo::ToObjC(entity.get()) == facade);
+		OO_CHECK(facade == entity.get() && entity.get() == facade);
 
 		const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();
 		drawable->_maxDrawDistance = 1.0e9f;
 		entity->setDrawable(drawable.get());
 		OO_CHECK(entity->getDrawable() == drawable.get() && drawable->_bindingTarget == facade);
-		OO_CHECK([facade findCollisionRadius] == 5.0 && [facade collisionRadius] == 5.0f);
-		[facade drawImmediate:false translucent:false];
+		OO_CHECK(facade->findCollisionRadius() == 5.0 && facade->collisionRadius() == 5.0f);
+		facade->drawImmediate(false, false);
 		OO_CHECK(drawable->_opaqueRenders == 1);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<TestCxxEntityWithDrawable 0x"));
+		OO_CHECK(oo::EntityDescription(facade).starts_with("<TestCxxEntityWithDrawable 0x"));
 	}
 }
 

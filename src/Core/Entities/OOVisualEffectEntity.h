@@ -51,9 +51,7 @@ class OOFlasherEntity; // C++ only
         array was nil).
 */
 // A subentity, as the class names it from inside namespace cxx (where Entity is the C++ root).
-typedef Entity<OOSubEntity> OOVisualEffectSubEntity;
-typedef Entity<OOBeaconEntity> OOVisualEffectBeaconEntity;
-using OOVisualEffectSubEntities = std::vector<oo::ObjCRef<Entity<OOSubEntity>*>>;
+using OOVisualEffectSubEntities = std::vector<oo::EntityHold>;
 
 /*	A visual effect (bead oo-ukxy8, slice 1 of docs/phases/3-slices/OOVisualEffectEntity.md): the
         class shell, its state and the entity side (construction from the effect definition, the mesh,
@@ -86,16 +84,16 @@ public:
 
     void clearSubEntities();
     bool setUpSubEntities();
-    void removeSubEntity(OOVisualEffectSubEntity* sub);
+    void removeSubEntity(Entity* sub); // the C++ sub-entity (the list holds it)
     void setNoDrawDistance();
-    std::vector<oo::ObjCRef<::Entity*>> subEntities(); // a snapshot; empty before the first subentity (was nil)
+    std::vector<oo::EntityHold> subEntities(); // a snapshot; empty before the first subentity (was nil)
     NSUInteger subEntityCount();
-    std::optional<std::vector<oo::ObjCRef<::Entity*>>> visualEffectSubEntityEnumerator(); // the visual-effect subentities' objects; nullopt where the array was nil
-    bool hasSubEntity(OOVisualEffectSubEntity* sub);
+    std::optional<std::vector<oo::EntityHold>> visualEffectSubEntityEnumerator(); // the visual-effect subentities' objects; nullopt where the array was nil
+    bool hasSubEntity(Entity* sub); // the C++ entity's
 
-    std::vector<oo::ObjCRef<::Entity*>> subEntityEnumerator(); // snapshot, same as subEntities()
-    std::vector<oo::ObjCRef<::Entity*>> effectSubEntityEnumerator(); // the visual-effect subentities' objects
-    std::vector<oo::ObjCRef<::Entity*>> flasherEnumerator(); // flasher subentities' objects (the nearest facade left), a snapshot
+    std::vector<oo::EntityHold> subEntityEnumerator(); // snapshot, same as subEntities()
+    std::vector<oo::EntityHold> effectSubEntityEnumerator(); // the visual-effect subentities' objects
+    std::vector<oo::EntityHold> flasherEnumerator(); // flasher subentities' objects (the nearest facade left), a snapshot
 
     void orientationChanged() override;
     Vector forwardVector();
@@ -121,7 +119,7 @@ public:
     void drawSubEntityImmediate(bool immediate, bool translucent) override;
 
     // Entity (SubEntityRelationship): the root's facade answers it for an effect's part.
-    bool isShipWithSubEntityShip(::Entity* other);
+    bool isShipWithSubEntityShip(Entity* other); // the C++ entity (was its object)
 
     bool isEffect() override;
     bool getIsVisualEffect() override;
@@ -149,17 +147,17 @@ public:
     void remove();
 
     // OOBeaconEntity: the root's facade (Entity (OOWaypointBeacon)) answers it for an effect's part.
-    OOComparisonResult compareBeaconCodeWith(OOVisualEffectBeaconEntity* other);
+    OOComparisonResult compareBeaconCodeWith(Entity* other);
     std::optional<std::string> beaconCode();
     void setBeaconCode(const std::optional<std::string>& bcode);
     std::optional<std::string> beaconLabel();
     void setBeaconLabel(const std::optional<std::string>& blabel);
     bool isBeacon();
     OOHUDBeaconIcon* beaconDrawable(); // borrowed
-    OOVisualEffectBeaconEntity* prevBeacon();
-    OOVisualEffectBeaconEntity* nextBeacon();
-    void setPrevBeacon(OOVisualEffectBeaconEntity* beaconShip);
-    void setNextBeacon(OOVisualEffectBeaconEntity* beaconShip);
+    Entity* prevBeacon(); // the C++ entity (null once its object has gone, as before)
+    Entity* nextBeacon();
+    void setPrevBeacon(Entity* beaconShip);
+    void setNextBeacon(Entity* beaconShip);
     bool isJammingScanning();
 
     // convenience for shaders
@@ -211,8 +209,8 @@ public:
     // beacons
     std::optional<std::string> _beaconCode;
     std::optional<std::string> _beaconLabel;
-    ::OOWeakReference* _prevBeacon = { };
-    ::OOWeakReference* _nextBeacon = { };
+    oo::WeakRef<Entity> _prevBeacon; // the beacons' C++ parts (were their objects' weak references)
+    oo::WeakRef<Entity> _nextBeacon;
     oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
 
     // scaling (were scaleX, scaleY, scaleZ, named like their getters)
@@ -221,7 +219,7 @@ public:
     GLfloat _scaleZ = { };
 
 private:
-    void addSubEntity(OOVisualEffectSubEntity* sub);
+    void addSubEntity(Entity* sub);
     bool setUpOneSubentity(const oo::PList& subentDict);
     bool setUpOneFlasher(const oo::PList& subentDict);
     bool setUpOneStandardSubentity(const oo::PList& subentDict);
@@ -229,16 +227,16 @@ private:
 
 namespace oo {
 
-// An effect's Objective-C object: the root's facade holding a new
-// effect, after the effect's initialiser body (OOVisualEffectEntity::initWithKey()); nil where the
-// body failed, as [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] answered. +1, as +alloc gave.
-::Entity* NewVisualEffectObject(const std::string& key, const oo::PList& dict) OO_RETURNS_RETAINED;
+// A new effect after the effect's initialiser body (OOVisualEffectEntity::initWithKey()),
+// made as its object was (oo::MadeEntityRetained()); null where the body failed, as
+// [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] answered nil. +1, as +alloc gave.
+Entity* NewVisualEffect(const std::string& key, const oo::PList& dict);
 
-// The effect an object holds: nullptr for nil or another entity (what -isKindOfClass:
+// The effect an entity is: nullptr for null or another entity (what -isKindOfClass:
 // [OOVisualEffectEntity class] and the cast after it found).
-inline OOVisualEffectEntity* ToEffect(::Entity* entity)
+inline OOVisualEffectEntity* ToEffect(Entity* entity)
 {
-    return dynamic_cast<OOVisualEffectEntity*>(ToCxx(entity));
+    return dynamic_cast<OOVisualEffectEntity*>(entity);
 }
 
 } // namespace oo

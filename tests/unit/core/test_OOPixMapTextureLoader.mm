@@ -10,8 +10,9 @@
 	['*']), on the hidden GL context of oo_gl_test_context.hpp. The expectations were written against
 	the Objective-C API and run on the unconverted class first (commit ab440895f). Making a loader
 	goes through the helper below, the only lines the conversion ported (amendment oo-bj8 item 11):
-	the class is now a global C++ class with no facade of its own, made by its factory, and its
-	object crosses as an OOTextureGenerator. The last test pins the C++ API.
+	the class is now a global C++ class with no facade of its own, made by its factory (bead
+	oo-9ht.118 deleted the generators' facade it crossed as; its crossing check went with it). The
+	last test pins the C++ API.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -30,6 +31,28 @@ uint32_t gDebugFlags = 0;
 #endif
 
 
+
+// What an autoreleased Objective-C texture was (bead oo-9ht.99 deleted the facade): the C++
+// texture, kept until the current autorelease pool drains.
+@interface TestTextureKeeper: OOObject
+{
+@public
+	oo::Ref<OOTexture>	_texture;
+}
+@end
+
+@implementation TestTextureKeeper
+@end
+
+static OOTexture *Autoreleased(const oo::Ref<OOTexture> &texture)
+{
+	if (texture == nullptr)  return nullptr;
+	TestTextureKeeper *keeper = [[[TestTextureKeeper alloc] init] autorelease];
+	keeper->_texture = texture;
+	return texture.get();
+}
+
+
 namespace {
 
 // The loaders' sizes come from their one-time set-up, which a path with no known extension runs
@@ -38,7 +61,7 @@ void SetUpLoaders()
 {
 	@autoreleasepool
 	{
-		(void)[OOTextureLoader cxx_loaderWithPath:std::string("unknown.type") options:0];
+		(void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
 	}
 }
 
@@ -53,10 +76,21 @@ OOPixMap TestPixMap()
 }
 
 
+// The generators made, kept for the test's life (each was autoreleased in its case's pool).
+std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+
+
+OOTextureGenerator *Kept(oo::Ref<OOTextureGenerator> generator)
+{
+	if (generator != nullptr)  gKeptGenerators.push_back(generator);
+	return generator.get();
+}
+
+
 // Was [[OOPixMapTextureLoader alloc] initWithPixMap:...], autoreleased: the loader as a generator.
 OOTextureGenerator *NewLoader(OOPixMap pixMap, uint32_t options, BOOL freeWhenDone)
 {
-	return oo::ToObjC(OOPixMapTextureLoader::loaderWithPixMap(pixMap, options, freeWhenDone).get());
+	return Kept(OOPixMapTextureLoader::loaderWithPixMap(pixMap, options, freeWhenDone));
 }
 
 
@@ -65,7 +99,7 @@ void ClearCache()
 	@autoreleasepool
 	{
 		oo::AutoreleaseScope scope;
-		[OOTexture clearCache];
+		OOTexture::clearCache();
 	}
 }
 
@@ -79,16 +113,16 @@ OO_TEST(takesThePixMap)
 	@autoreleasepool
 	{
 		OOTextureGenerator *loader = NewLoader(TestPixMap(), kOOTextureMinFilterLinear | kOOTextureRepeatS, YES);
-		OO_CHECK(loader != nil && [loader isKindOfClass:[OOTextureGenerator class]]);
-		OO_CHECK([loader textureOptions] == OOApplyTextureOptionDefaults(kOOTextureMinFilterLinear | kOOTextureRepeatS));
-		OO_CHECK([loader cxx_path].value_or("").starts_with("OOPixMap@"));
-		OO_CHECK(![loader cxx_cacheKey].has_value());	// a generator: not cached
+		OO_CHECK(loader != nullptr && dynamic_cast<OOTextureGenerator *>(loader) != nullptr);
+		OO_CHECK(loader->textureOptions() == OOApplyTextureOptionDefaults(kOOTextureMinFilterLinear | kOOTextureRepeatS));
+		OO_CHECK(loader->path().value_or("").starts_with("OOPixMap@"));
+		OO_CHECK(!loader->cacheKey().has_value());	// a generator: not cached
 
-		OO_CHECK([loader enqueue]);
+		OO_CHECK(loader->enqueue());
 		OOPixMap result = kOONullPixMap;
 		OOTextureDataFormat format = kOOPixMapInvalidFormat;
 		uint32_t width = 0, height = 0;
-		OO_CHECK([loader getResult:&result format:&format originalWidth:&width originalHeight:&height]);
+		OO_CHECK(loader->getResult(&result, &format, &width, &height));
 		OO_CHECK(format == kOOPixMapRGBA && result.width == 8 && result.height == 8 && result.rowBytes == 32);
 		OO_CHECK(width == 8 && height == 8);
 		OO_CHECK(((const uint8_t *)result.pixels)[0] == 1 && ((const uint8_t *)result.pixels)[255] == 0);
@@ -104,12 +138,12 @@ OO_TEST(refusals)
 	@autoreleasepool
 	{
 		// Not a pixmap.
-		OO_CHECK(NewLoader(kOONullPixMap, kOOTextureMinFilterLinear, YES) == nil);
+		OO_CHECK(NewLoader(kOONullPixMap, kOOTextureMinFilterLinear, YES) == nullptr);
 
 		// Not taken over: the initialiser duplicates its own (still empty) pixmap, not the one it was
 		// given, so it answers nil and the caller keeps its pixels. (As it has since 2010; kept.)
 		OOPixMap kept = TestPixMap();
-		OO_CHECK(NewLoader(kept, kOOTextureMinFilterLinear, NO) == nil);
+		OO_CHECK(NewLoader(kept, kOOTextureMinFilterLinear, NO) == nullptr);
 		OO_CHECK(OOIsValidPixMap(kept) && ((const uint8_t *)kept.pixels)[0] == 1);
 		OOFreePixMap(&kept);
 	}
@@ -123,11 +157,11 @@ OO_TEST(loadsWithMipMaps)
 	@autoreleasepool
 	{
 		OOTextureGenerator *loader = NewLoader(TestPixMap(), kOOTextureMinFilterMipMap, YES);
-		OO_CHECK([loader textureOptions] == OOApplyTextureOptionDefaults(kOOTextureMinFilterMipMap));
-		OO_CHECK([loader enqueue]);
+		OO_CHECK(loader->textureOptions() == OOApplyTextureOptionDefaults(kOOTextureMinFilterMipMap));
+		OO_CHECK(loader->enqueue());
 		OOPixMap result = kOONullPixMap;
 		OOTextureDataFormat format = kOOPixMapInvalidFormat;
-		OO_CHECK([loader getResult:&result format:&format originalWidth:NULL originalHeight:NULL]);
+		OO_CHECK(loader->getResult(&result, &format, NULL, NULL));
 		OO_CHECK(result.width == 8 && result.height == 8 && format == kOOPixMapRGBA);
 		OO_CHECK(((const uint8_t *)result.pixels)[0] == 1);	// the base level as given
 		OOFreePixMap(&result);
@@ -142,11 +176,11 @@ OO_TEST(aTextureOfTheGenerator)
 	@autoreleasepool
 	{
 		OOTextureGenerator *loader = NewLoader(TestPixMap(), kOOTextureDefaultOptions | kOOTextureRepeatS, YES);
-		OOTexture *texture = [OOTexture textureWithGenerator:loader];
-		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr));
-		[texture ensureFinishedLoading];
-		OO_CHECK([texture dimensions].width == 8 && [texture dimensions].height == 8);
-		OO_CHECK([texture isFinishedLoading]);
+		OOTexture *texture = Autoreleased(OOTexture::textureWithGenerator(loader));
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(texture) != nullptr));
+		texture->ensureFinishedLoading();
+		OO_CHECK(texture->dimensions().width == 8 && texture->dimensions().height == 8);
+		OO_CHECK(texture->isFinishedLoading());
 	}
 	ClearCache();
 }
@@ -165,11 +199,6 @@ OO_TEST(cxxApi)
 		const oo::Ref<OOPixMapTextureLoader> loader = OOPixMapTextureLoader::loaderWithPixMap(TestPixMap(), kOOTextureMinFilterLinear, true);
 		OO_CHECK(loader && loader->textureOptions() == OOApplyTextureOptionDefaults(kOOTextureMinFilterLinear));
 		OO_CHECK(loader->path().value_or("").starts_with("OOPixMap@") && !loader->cacheKey().has_value());
-
-		// Its facade is an OOTextureGenerator (it has none of its own), the same one each time.
-		OOTextureGenerator *facade = oo::ToObjC(loader.get());
-		OO_CHECK([facade class] == [OOTextureGenerator class] && oo::ToCxx(facade) == loader.get());
-		OO_CHECK(oo::ToObjC(loader.get()) == facade && [facade textureOptions] == loader->textureOptions());
 
 		// Loading hands the pixels over as they are.
 		loader->loadTexture();

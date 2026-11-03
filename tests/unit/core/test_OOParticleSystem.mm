@@ -63,42 +63,33 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
 
 
 // UNIVERSE: never initialised; records what is removed.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	Entity	*_removed;
-}
-@end
+public:
+	Entity	*_removed = {};
+
+	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	{
+		_removed = entity;
+		return YES;
+	}
+};
 
 
-@implementation TestUniverse
-
-- (BOOL) removeEntity:(Entity *)entity
+// An effect, for the collision test (an Objective-C subclass before; a C++ one
+// overriding the member its selector became).
+class TestEffect : public Entity
 {
-	_removed = entity;
-	return YES;
-}
-
-@end
-
-
-// An effect, for the collision test.
-@interface TestEffect: Entity
-@end
-
-
-@implementation TestEffect
-
-- (BOOL) isEffect	{ return YES; }
-
-@end
+public:
+	bool isEffect() override	{ return true; }
+};
 
 
 namespace {
@@ -108,12 +99,13 @@ TestUniverse *sUniverse = nil;
 // The texture loader's stand-in.
 std::optional<std::string> sTextureName;
 bool sTextureFound = true;
-id sTexture = nil;
+OOTexture *sTexture = nullptr;	// never released
 
-id LoadTexture(id, SEL, const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
+// OOTexture::nameFactory, the test-only loader hook, where the facade's class method was replaced.
+oo::Ref<OOTexture> LoadTexture(const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
 {
 	sTextureName = name;
-	return sTextureFound ? sTexture : nil;
+	return oo::Ref<OOTexture>(sTextureFound ? sTexture : nullptr);
 }
 
 
@@ -121,11 +113,9 @@ void SetUp()
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
-		sTexture = [[OOWeakRefObject alloc] init];	// never released
-		Method loader = class_getClassMethod([OOTexture class], @selector(cxx_textureWithName:inFolder:options:anisotropy:lodBias:));
-		method_setImplementation(loader, (IMP)LoadTexture);
+		sUniverse = new TestUniverse();	// never released
+		sTexture = oo::makeRef<OOTexture>().leakRef();	// never released
+		OOTexture::nameFactory = &LoadTexture;
 	}
 	sUniverse->_removed = nil;
 	gSharedUniverse = sUniverse;
@@ -140,20 +130,20 @@ void SetUp()
 
 // --- How the test makes a cloud (ported by the conversion), and nothing else ---------------------
 
-Entity *SmallBurst(Entity *source)	{ return oo::NewEntityFacade(OOSmallFragmentBurstEntity::fragmentBurstFromEntity(source)); }
-Entity *BigBurst(Entity *source)	{ return oo::NewEntityFacade(OOBigFragmentBurstEntity::fragmentBurstFromEntity(source)); }
-Entity *Cloud(Entity *source, const oo::PList &settings)	{ return oo::NewEntityFacade(OOExplosionCloudEntity::explosionCloudFromEntity(source, settings)); }
-Entity *SizedCloud(Entity *source, float size, const oo::PList &settings)	{ return oo::NewEntityFacade(OOExplosionCloudEntity::explosionCloudFromEntity(source, size, settings)); }
+Entity *SmallBurst(Entity *source)	{ return oo::MadeEntity(OOSmallFragmentBurstEntity::fragmentBurstFromEntity(source)); }	// the source's C++ entity
+Entity *BigBurst(Entity *source)	{ return oo::MadeEntity(OOBigFragmentBurstEntity::fragmentBurstFromEntity(source)); }
+Entity *Cloud(Entity *source, const oo::PList &settings)	{ return oo::MadeEntity(OOExplosionCloudEntity::explosionCloudFromEntity(source, settings)); }	// the source's C++ entity
+Entity *SizedCloud(Entity *source, float size, const oo::PList &settings)	{ return oo::MadeEntity(OOExplosionCloudEntity::explosionCloudFromEntity(source, size, settings)); }
 
 // --------------------------------------------------------------------------------------------------
 
 
 Entity *Source(Vector velocity)
 {
-	Entity *source = [[[Entity alloc] init] autorelease];
-	[source setCollisionRadius:10.0f];
-	[source setPosition:make_HPvector(1, 2, 3)];
-	[source setVelocity:velocity];
+	Entity *source = oo::MadeEntity(oo::makeRef<Entity>());
+	source->setCollisionRadius(10.0f);
+	source->setPosition(make_HPvector(1, 2, 3));
+	source->setVelocity(velocity);
 	return source;
 }
 
@@ -173,20 +163,20 @@ bool VectorNear(Vector a, Vector b)
 // What every particle cloud is.
 bool IsParticleEffect(Entity *cloud)
 {
-	return cloud != nil && HPvector_equal([cloud position], make_HPvector(1, 2, 3)) && [cloud status] == STATUS_EFFECT
-		&& [cloud scanClass] == CLASS_NO_DRAW && [cloud isEffect] && ![cloud canCollide] && [cloud collisionRadius] == 0
-		&& [cloud owner] == nil;
+	return cloud != nil && HPvector_equal(cloud->getPosition(), make_HPvector(1, 2, 3)) && cloud->status() == STATUS_EFFECT
+		&& cloud->getScanClass() == CLASS_NO_DRAW && cloud->isEffect() && !cloud->canCollide() && cloud->collisionRadius() == 0
+		&& cloud->owner() == nil;
 }
 
 
 // Grows at the given speed, lives the given time, then removes itself.
 bool GrowsAndExpires(Entity *cloud, double speed, double duration)
 {
-	[cloud update:0.5];
-	bool ok = Near([cloud collisionRadius], 0.5 * speed) && sUniverse->_removed == nil;
-	[cloud update:duration - 0.5];
+	cloud->update(0.5);
+	bool ok = Near(cloud->collisionRadius(), 0.5 * speed) && sUniverse->_removed == nil;
+	cloud->update(duration - 0.5);
 	ok = ok && sUniverse->_removed == nil;
-	[cloud update:0.01];
+	cloud->update(0.01);
 	return ok && sUniverse->_removed == cloud;
 }
 
@@ -200,9 +190,9 @@ OO_TEST(smallFragmentBurst)
 		SetUp();
 		Entity *burst = SmallBurst(Source(make_vector(4, 5, 6)));
 		OO_CHECK(IsParticleEffect(burst));
-		OO_CHECK(VectorNear([burst velocity], make_vector(4, 5, 6)));
-		OO_CHECK(oo::DescriptionOf(burst).starts_with("<OOSmallFragmentBurstEntity 0x"));
-		OO_CHECK(oo::DescriptionOf(burst).ends_with("{ttl: 1.500s}"));
+		OO_CHECK(VectorNear(burst->getVelocity(), make_vector(4, 5, 6)));
+		OO_CHECK(oo::EntityDescription(burst).starts_with("<OOSmallFragmentBurstEntity 0x"));
+		OO_CHECK(oo::EntityDescription(burst).ends_with("{ttl: 1.500s}"));
 		OO_CHECK(GrowsAndExpires(burst, 400, 1.5));
 	}
 }
@@ -215,9 +205,9 @@ OO_TEST(bigFragmentBurst)
 		SetUp();
 		Entity *burst = BigBurst(Source(make_vector(100, 0, 0)));
 		OO_CHECK(IsParticleEffect(burst));
-		OO_CHECK(VectorNear([burst velocity], make_vector(85, 0, 0)));
-		OO_CHECK(oo::DescriptionOf(burst).starts_with("<OOBigFragmentBurstEntity 0x"));
-		OO_CHECK(oo::DescriptionOf(burst).ends_with("{ttl: 1.000s}"));
+		OO_CHECK(VectorNear(burst->getVelocity(), make_vector(85, 0, 0)));
+		OO_CHECK(oo::EntityDescription(burst).starts_with("<OOBigFragmentBurstEntity 0x"));
+		OO_CHECK(oo::EntityDescription(burst).ends_with("{ttl: 1.000s}"));
 		OO_CHECK(GrowsAndExpires(burst, 4.0 * (1.0 + 10.0 * 0.5), 1.0));	// four times 1 + half the radius
 	}
 }
@@ -230,11 +220,11 @@ OO_TEST(collisions)
 		SetUp();
 		Entity *burst = SmallBurst(Source(kZeroVector));
 		Entity *other = Source(kZeroVector);
-		Entity *effect = [[[TestEffect alloc] init] autorelease];
-		OO_CHECK([burst checkCloseCollisionWith:other]);
-		OO_CHECK(![burst checkCloseCollisionWith:effect]);
-		OO_CHECK(![burst checkCloseCollisionWith:nil]);	// nil is its (nil) owner
-		OO_CHECK(![burst checkCloseCollisionWith:BigBurst(other)]);
+		Entity *effect = oo::MadeEntity(oo::makeRef<TestEffect>());
+		OO_CHECK(burst->checkCloseCollisionWith(other));
+		OO_CHECK(!burst->checkCloseCollisionWith(effect));
+		OO_CHECK(!burst->checkCloseCollisionWith(nil));	// nil is its (nil) owner
+		OO_CHECK(!burst->checkCloseCollisionWith(BigBurst(other)));
 	}
 }
 
@@ -247,14 +237,14 @@ OO_TEST(explosionCloudDefaults)
 		Entity *cloud = Cloud(Source(make_vector(0, 3000, 4000)), oo::PList());
 		OO_CHECK(IsParticleEffect(cloud));
 		OO_CHECK(sTextureName == std::optional<std::string>("oolite-particle-cloud2.png"));
-		OO_CHECK(VectorNear([cloud velocity], make_vector(0, 600, 800)));	// capped at 1000
-		OO_CHECK(oo::DescriptionOf(cloud).starts_with("<OOExplosionCloudEntity 0x"));
-		OO_CHECK(oo::DescriptionOf(cloud).ends_with("{ttl: 0.900s}"));
+		OO_CHECK(VectorNear(cloud->getVelocity(), make_vector(0, 600, 800)));	// capped at 1000
+		OO_CHECK(oo::EntityDescription(cloud).starts_with("<OOExplosionCloudEntity 0x"));
+		OO_CHECK(oo::EntityDescription(cloud).ends_with("{ttl: 0.900s}"));
 		// Size 2.5 radii, particles up to 1.2 times as fast.
 		OO_CHECK(GrowsAndExpires(cloud, 10.0 * 2.5 * 1.2, 0.9));
 
 		// A slow source keeps its velocity.
-		OO_CHECK(VectorNear([Cloud(Source(make_vector(0, 30, 40)), oo::PList()) velocity], make_vector(0, 30, 40)));
+		OO_CHECK(VectorNear(Cloud(Source(make_vector(0, 30, 40)), oo::PList())->getVelocity(), make_vector(0, 30, 40)));
 	}
 }
 
@@ -272,7 +262,7 @@ OO_TEST(explosionCloudSettings)
 		Entity *cloud = Cloud(Source(kZeroVector), oo::PList(settings));
 		OO_CHECK(IsParticleEffect(cloud));
 		OO_CHECK(sTextureName == std::optional<std::string>("test-cloud.png"));
-		OO_CHECK(oo::DescriptionOf(cloud).ends_with("{ttl: 2.000s}"));
+		OO_CHECK(oo::EntityDescription(cloud).ends_with("{ttl: 2.000s}"));
 		OO_CHECK(GrowsAndExpires(cloud, 10.0 * 4.0 * 1.2 * 0.5, 2.0));
 
 		// An explicit size wins over the settings' factor.

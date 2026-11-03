@@ -11,9 +11,9 @@ itself (as in the Mac Debug OXP), or provide communications with an external
 debugger (for instance, over Distributed Objects or TCP/IP).
 
 C++20 since bead oo-kq7, the Debug module's pattern seam (proposed ADR-0056, amendment oo-kq7).
-The class is cxx::OODebugMonitor while OODebugMonitor+ObjCBridge.h, imported at the end of this
-header, keeps the Objective-C OODebugMonitor that the debugger, the JavaScript console and the
-game message; the bridge's deletion bead moves it out of namespace cxx.
+Its Objective-C facade (OODebugMonitor+ObjCBridge) was deleted: the console's JS objects hold
+the monitor itself, the console script is handed it as a property-list Object node
+(oo::PListForeign), and the class left namespace cxx.
 
 
 Oolite debug support
@@ -45,7 +45,8 @@ SOFTWARE.
 
 #import "OODebuggerInterface.h"
 #import "OOFoundation.h"
-#import "OOWeakReference.h"
+#include "OOJSPrivateObject.h" // the console's JS glue
+#include "OOJavaScriptEngineMonitor.h" // the engine's monitor, a C++ interface
 #include <quickjs.h>
 
 #include "oofnd/Notification.hpp"
@@ -59,25 +60,23 @@ SOFTWARE.
 #include <string>
 #include <vector>
 
-@class OOJavaScriptEngine;
+class OOJavaScriptEngine;
 #import "OOColor.h" // the colour maps hold oo::Ref<OOColor>
 #include "OOScript.h" // the console script, oo::Ref<OOScript>
 
-namespace cxx {
-
-/*	The one debug monitor (sharedDebugMonitor()). The debugger reaches it through the
-        OODebugMonitorInterface protocol, and the JavaScript engine as its monitor
-        (OOJavaScriptEngineMonitor); both are adopted by the Objective-C facade
-        (OODebugMonitor+ObjCBridge.h), which is what the debugger, the engine and the console script
-        are handed.
+/*	The one debug monitor (sharedDebugMonitor(), made on first use and never released). The
+        debugger reaches it as itself, the JavaScript engine as its monitor (the C++
+        OOJavaScriptEngineMonitor), the console's JS objects hold it in their private slot and the
+        console script is handed it as an Object node (the Objective-C facade and the
+        OODebugMonitorInterface protocol only it adopted are deleted).
 */
-class OODebugMonitor : public oo::RefCounted {
+class OODebugMonitor : public oo::PListForeign, public ::OOJavaScriptEngineMonitor, public ::OOJSPrivateObject {
 public:
     static OODebugMonitor* sharedDebugMonitor();
-    bool setDebugger(id<OODebuggerInterface> debugger);
+    bool setDebugger(OODebuggerInterface* debugger);
 
     // Note: disconnectDebugger() will cause a disconnectDebugMonitor:message: message to be sent to the debugger. The debugger should not send disconnectDebugger:message: in response to disconnectDebugMonitor:message:.
-    void disconnectDebugger(id<OODebuggerInterface> debugger,
+    void disconnectDebugger(OODebuggerInterface* debugger,
         const std::optional<std::string>& message);
 
     // *** JavaScript console support.
@@ -127,14 +126,21 @@ public:
         unsigned line,
         unsigned stackSkip,
         bool showLocation,
-        const std::string& message);
+        const std::string& message) override;
     void jsEngine(::OOJavaScriptEngine* engine,
         JSContext* context,
         const std::string& message,
-        const std::optional<std::string>& messageClass);
+        const std::optional<std::string>& messageClass) override;
 
-    // The console's JavaScript object (the engine sends the facade -oo_jsValueInContext:).
-    JSValue oo_jsValueInContext(JSContext* context); // owned
+    // The console's JS glue (OOJSPrivateObject): its JavaScript object, made on first use and kept
+    // (what the facade's -oo_jsValueInContext: answered); nothing when a wrapper is finalized, as
+    // OOObject's -oo_clearJSSelf: did for the facade.
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    void clearJSSelf(JSValueConst selfVal) override;
+
+    // oo::PListForeign: what the facade answered (its class, and "%@" as <OODebugMonitor 0x...>).
+    std::string className() const override;
+    std::string description() const override;
 
 private:
     struct EntityDumpState;
@@ -143,7 +149,7 @@ private:
 
     void applicationWillTerminate(const oo::Notification& notification);
     void writeMemStat(const std::string& line);
-    void dumpEntity(id entity, EntityDumpState* state, bool parentVisible);
+    void dumpEntity(Entity* entity, EntityDumpState* state, bool parentVisible); // the C++ entity (was its object)
 
     void setUpDebugConsoleScript();
     void javaScriptEngineWillReset(const oo::Notification& notification);
@@ -161,7 +167,7 @@ private:
 
     std::optional<std::vector<std::string>> loadSourceFile(const std::string& filePath); // nullopt: can't be read
 
-    oo::ObjCRef<id<OODebuggerInterface>> _debugger;
+    oo::Ref<OODebuggerInterface> _debugger; // a C++ interface
 
     // JavaScript console support.
     oo::Ref<OOScript> _script; // the console script (an OOJSScript)
@@ -178,11 +184,5 @@ private:
     bool _TCPIgnoresDroppedPackets = { };
     bool _usingPlugInController = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OODebugMonitor, for the debugger, the console and the game,
-// which are not yet converted. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OODebugMonitor+ObjCBridge.h"
 
 #endif // OODEBUGMONITOR_H

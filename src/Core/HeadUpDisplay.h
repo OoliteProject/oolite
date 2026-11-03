@@ -227,7 +227,7 @@ class OOCrosshairs;
 #define OVERALL_ALPHA_KEY "overall_alpha"
 #define NONLINEAR_SCANNER @"nonlinear_scanner"
 
-#define Z1 [(MyOpenGLView*)[[player universe] gameView] display_z]
+#define Z1 (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getDisplay_z() : 0.0f)
 
 #define ONE_EIGHTH 0.125
 
@@ -241,7 +241,7 @@ enum {
     OO_RETICLE_COLOR_WORMHOLE
 };
 
-@class Entity;
+class Entity;
 class PlayerEntity;
 class GuiDisplayGen;
 
@@ -503,14 +503,8 @@ class OOVisualEffectEntity; // C++
         send, the body the send verbatim (in HeadUpDisplay.mm since the HUD's facade was deleted).
         Members keep their sends. Each goes with its class's conversion.
 */
-// +[ResourceManager cxx_dictionaryFromFilesNamed:inFolder:andMerge:] (InitTextEngine()).
-oo::PList HeadUpDisplayDictionaryFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles);
 // -[[UNIVERSE gui] cxx_setGLColorFromSetting:defaultValue:alpha:] (OODrawPlanetInfo()).
 void HeadUpDisplayUniverseGUISetGLColorFromSetting(const std::optional<std::string>& setting, OOColor* defaultValue, GLfloat alpha);
-// [UNIVERSE gameView], -[MyOpenGLView fov:] and -[MyOpenGLView viewSize] (drawScannerGrid()).
-MyOpenGLView* HeadUpDisplayUniverseGameView();
-GLfloat HeadUpDisplayGameViewFov(MyOpenGLView* gameView, bool inFraction);
-NSSize HeadUpDisplayGameViewViewSize(MyOpenGLView* gameView);
 // The player, entities and universe as the reticles and waypoints read them (hudDrawReticleOnTarget(),
 // hudDrawWaypoint(), hudRotateViewpointForVirtualDepth()).
 OOGUIScreenID HeadUpDisplayPlayerGuiScreen(PlayerEntity* player);

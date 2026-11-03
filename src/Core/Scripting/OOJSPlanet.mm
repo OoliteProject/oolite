@@ -68,7 +68,7 @@ namespace {
 
 static JSClassDef sPlanetClass = {
     .class_name = "Planet",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
 };
 
 enum {
@@ -103,17 +103,17 @@ static const JSCFunctionListEntry sPlanetProperties[] = {
     OOJS_PROPERTY_RW("terminatorThresholdVector", PlanetGetProperty, PlanetSetProperty, kPlanet_terminatorThresholdVector),
 };
 
-DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetObject, sPlanetClassID, Entity)
-
 // The planet is C++ behind the root's facade: the getter checks the JS class (a Planet object's
 // private slot holds the planet's Objective-C object, so -isKindOfClass: of the facade class always
 // held) and answers the C++ planet; null for a stale entity, as nil before.
+// The slot holds the C++ entity now (OOJSEntityGetEntityOfClass for the Planet class,
+// DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetObject, sPlanetClassID, Entity) before).
 static bool JSPlanetGetPlanetEntity(JSContext* context, JSValueConst inObject, OOPlanetEntity** outObject)
 {
-    Entity* object = nil;
-    if (!JSPlanetGetPlanetObject(context, inObject, &object))
+    Entity* entity = nullptr;
+    if (!OOJSEntityGetEntityOfClass(context, inObject, sPlanetClassID, &entity))
         return false;
-    *outObject = (object != nil) ? dynamic_cast<OOPlanetEntity*>(oo::ToCxx(object)) : nullptr;
+    *outObject = dynamic_cast<OOPlanetEntity*>(entity);
     return true;
 }
 
@@ -127,7 +127,7 @@ void InitOOJSPlanet(JSContext* context, JSValueConst global)
         sPlanetProperties, OOJS_COUNT(sPlanetProperties), NULL, 0, NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sPlanetClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sPlanetClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sPlanetClassID, JSEntityClassID());
 }
 
@@ -178,7 +178,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromPList(context, NormalizedColorComponents((planet != nullptr ? planet->illuminationColor() : (OOColor*)nullptr)));
 
     case kPlanet_isMainPlanet:
-        return OOJSValueFromBOOL(planet == [UNIVERSE planet]);
+        return OOJSValueFromBOOL(planet == (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr));
 
     case kPlanet_radius:
         return JS_NewNumber(context, (planet != nullptr ? planet->radius() : 0.0));
@@ -197,8 +197,10 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
     }
 
     case kPlanet_orientation:
-        // The root's selector, which reaches the C++ virtual member (as the message did; nil for none).
-        OOJS_RETURN_QUATERNION([oo::ToObjC(planet) normalOrientation]);
+        // The C++ member the root's selector reached, qualified: the final overrider for a
+        // planet (OOPlanetEntity has no subclass and does not override it), so the binding test stands in for
+        // it; zero for none, as the message to nil.
+        OOJS_RETURN_QUATERNION(planet != nullptr ? planet->Entity::normalOrientation() : Quaternion { });
 
     case kPlanet_rotationalVelocity:
         return JS_NewNumber(context, (planet != nullptr ? planet->rotationalVelocity() : 0.0));
@@ -299,7 +301,10 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
     case kPlanet_orientation:
         if (JSValueToQuaternion(context, value, &qValue)) {
             quaternion_normalize(&qValue);
-            [oo::ToObjC(planet) setOrientation:qValue]; // the root's selector, which reaches the C++ virtual member
+            // The C++ member the root's selector reached, qualified: the final overrider
+            // (OOPlanetEntity has no subclass), so the binding test stands in for it; nothing for none.
+            if (planet != nullptr)
+                planet->OOPlanetEntity::setOrientation(qValue);
             return JS_UNDEFINED;
         }
         break;

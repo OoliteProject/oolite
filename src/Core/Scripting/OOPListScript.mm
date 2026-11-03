@@ -48,7 +48,7 @@ constexpr const char* kCacheName = "sanitized legacy scripts";
 
 std::optional<std::vector<oo::Ref<OOScript>>> OOPListScript::scriptsInPListFile(const std::string& filePath)
 {
-    cxx::OOCacheManager* cache = cxx::OOCacheManager::sharedCache();
+    OOCacheManager* cache = OOCacheManager::sharedCache();
     const oo::PList cachedScripts = (cache != nullptr) ? cache->pListForKey(filePath, kCacheName) : oo::PList();
     if (cachedScripts) {
         return loadCachedScripts(cachedScripts);
@@ -96,10 +96,10 @@ bool OOPListScript::requiresTickle()
     return true;
 }
 
-void OOPListScript::runWithTarget(::Entity* target)
+void OOPListScript::runWithTarget(Entity* target)
 {
-    if (target != nil && !(oo::ToShip(target) != nullptr)) {
-        OO_LOG("script.legacy.run.badTarget", "Expected ShipEntity or nil for target, got {}.", oo::DescriptionOf([target class]));
+    if (target != nullptr && !(oo::ToShip(target) != nullptr)) {
+        OO_LOG("script.legacy.run.badTarget", "Expected ShipEntity or nil for target, got {}.", oo::EntityClassName(target)); // its class's name
         return;
     }
 
@@ -144,7 +144,7 @@ std::vector<oo::Ref<OOScript>> OOPListScript::scriptsFromDictionaryOfScripts(con
         }
     }
 
-    if (cxx::OOCacheManager* cache = cxx::OOCacheManager::sharedCache())
+    if (OOCacheManager* cache = OOCacheManager::sharedCache())
         cache->setPList(oo::PList(std::move(cachedScripts)), filePath, kCacheName);
 
     return result;

@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 
 static JSClassID sFlasherClassID;
 
-static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity, Entity** outObject = nullptr);
+static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity);
 
 static JSValue FlasherGetProperty(OOJS_GETTER_ARGS);
 static JSValue FlasherSetProperty(OOJS_SETTER_ARGS);
@@ -71,7 +71,7 @@ namespace {
 
 static JSClassDef sFlasherClass = {
     .class_name = "Flasher",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
 };
 
 enum {
@@ -109,7 +109,7 @@ void InitOOJSFlasher(JSContext* context, JSValueConst global)
         sFlasherProperties, OOJS_COUNT(sFlasherProperties), sFlasherMethods, OOJS_COUNT(sFlasherMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sFlasherClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sFlasherClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sFlasherClassID, JSEntityClassID());
 }
 
@@ -118,12 +118,12 @@ JSClassID JSFlasherClassID(void)
     return sFlasherClassID;
 }
 
-static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity, Entity** outObject)
+static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -134,13 +134,11 @@ static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OO
         return false;
 
     // The object is the nearest facade left (OOLightParticleEntity's): a flasher is its C++ part.
-    OOFlasherEntity* flasher = dynamic_cast<OOFlasherEntity*>(oo::ToCxx(entity));
+    OOFlasherEntity* flasher = dynamic_cast<OOFlasherEntity*>(entity);
     if (flasher == nullptr)
         return false;
 
-    *outEntity = flasher;
-    if (outObject != NULL)
-        *outObject = entity;
+    *outEntity = flasher; // the natives no longer ask its object
     return true;
 
     OOJS_PROFILE_EXIT
@@ -278,12 +276,12 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS)
 
 // *** Methods ***
 
-#define GET_THIS_FLASHER(THISENT, THISOBJECT)                                                      \
-    do {                                                                                           \
-        if (EXPECT_NOT(!JSFlasherGetFlasherEntity(context, OOJS_THIS, &(THISENT), &(THISOBJECT)))) \
-            return OOJSNativeFailure(context); /* Exception */                                     \
-        if (OOIsStaleEntity(THISOBJECT))                                                           \
-            OOJS_RETURN_VOID;                                                                      \
+#define GET_THIS_FLASHER(THISENT)                                                   \
+    do {                                                                            \
+        if (EXPECT_NOT(!JSFlasherGetFlasherEntity(context, OOJS_THIS, &(THISENT)))) \
+            return OOJSNativeFailure(context); /* Exception */                      \
+        if (OOIsStaleEntity(THISENT))                                               \
+            OOJS_RETURN_VOID; /* the C++ flasher's */                               \
     } while (0)
 
 static JSValue FlasherRemove(OOJS_NATIVE_ARGS)
@@ -291,16 +289,15 @@ static JSValue FlasherRemove(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     OOFlasherEntity* thisEnt = nullptr;
-    Entity* thisObject = nil; // its facade
-    GET_THIS_FLASHER(thisEnt, thisObject);
+    GET_THIS_FLASHER(thisEnt);
 
-    Entity* parent = [thisObject owner];
-    if ([parent isShip]) {
+    Entity* parent = thisEnt->owner(); // the C++ member its object's -owner answered
+    if (oo::EntityIsShip(parent)) {
         if (oo::ToShip(parent) != nullptr)
             oo::ToShip(parent)->removeFlasher(thisEnt);
     } else {
         if (OOVisualEffectEntity* effect = oo::ToEffect(parent))
-            effect->removeSubEntity((Entity<OOSubEntity>*)thisObject);
+            effect->removeSubEntity(thisEnt); // the C++ flasher
     }
 
     OOJS_RETURN_VOID;

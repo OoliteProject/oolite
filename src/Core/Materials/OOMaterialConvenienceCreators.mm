@@ -88,8 +88,6 @@ void SynthSpecular(OOMaterialSynthContext* context);
 } // namespace
 #endif
 
-namespace cxx {
-
 #if !USE_NEW_SHADER_SYNTHESIZER
 
 oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(const std::optional<std::string>& name,
@@ -104,6 +102,7 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(const std::optional<s
     OOMaterialSynthContext context = {
         .inConfig = configuration.isNull() ? oo::PList(oo::PList::Dict { }) : configuration,
         .outConfig = oo::PList::Dict { },
+        .texturesUsed = 0,
         .maxTextures = (NSUInteger)OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount(),
 
         .macros = std::move(macrosCopy),
@@ -111,7 +110,7 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(const std::optional<s
         .uniforms = { }
     };
 
-    if ([UNIVERSE reducedDetail]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
         context.maxTextures = 3;
     }
 
@@ -127,7 +126,7 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(const std::optional<s
     SynthNormalMap(&context);
     SynthSpecular(&context);
 
-    if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { }) >= DETAIL_LEVEL_SHADERS) {
         //	Add uniforms required for hull heat glow.
         context.uniforms["uHullHeatLevel"] = oo::PList("hullHeatLevel");
         context.uniforms["uTime"] = oo::PList("timeElapsedSinceSpawn");
@@ -153,10 +152,10 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
     const std::optional<std::string>& cacheKey,
     const oo::PList& configuration,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> target)
+    Entity* target)
 {
     // The cache manager's facade, still messaged (proposed ADR-0056 amendment oo-rmd7 item 3).
-    ::OOCacheManager* cache = nil;
+    ::OOCacheManager* cache = nullptr;
     oo::PList synthesizedConfig;
     oo::Ref<OOMaterial> result;
 
@@ -169,14 +168,14 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
 
     std::string cacheKeyStr;
     if (cacheKey.has_value()) {
-        cache = [::OOCacheManager sharedCache];
+        cache = OOCacheManager::sharedCache();
         // configuration must be in cache key, as otherwise changes in
         // non-diffuse map can end up miscached
         cacheKeyStr = oo::str::format("%s/%s/%s",
             cacheKey->c_str(),
             name.value_or("").c_str(),
             oo::DescriptionOf(configuration).c_str());
-        synthesizedConfig = [cache cxx_pListForKey:cacheKeyStr inCache:"synthesized shader materials"];
+        synthesizedConfig = cache->pListForKey(cacheKeyStr, "synthesized shader materials");
     }
 
     if (synthesizedConfig.isNull()) {
@@ -184,9 +183,7 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
             configuration.isNull() ? oo::PList(oo::PList::Dict { }) : configuration,
             macros);
         if (!synthesizedConfig.isNull() && cacheKey.has_value()) {
-            [cache cxx_setPList:synthesizedConfig
-                         forKey:cacheKeyStr
-                        inCache:"synthesized shader materials"];
+            cache->setPList(synthesizedConfig, cacheKeyStr, "synthesized shader materials");
         }
     }
 
@@ -211,12 +208,12 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
 #ifndef NDEBUG
 namespace {
 
-    // Read once, on first use (was +initialize, sent before the class's first message).
-    bool DumpShaderSource()
-    {
-        static const bool dump = oo::Defaults::standard().boolForKey("dump-synthesized-shaders");
-        return dump;
-    }
+// Read once, on first use (was +initialize, sent before the class's first message).
+bool DumpShaderSource()
+{
+    static const bool dump = oo::Defaults::standard().boolForKey("dump-synthesized-shaders");
+    return dump;
+}
 
 } // namespace
 #endif
@@ -225,7 +222,7 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
     const std::optional<std::string>& cacheKey,
     const oo::PList& configuration,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> target)
+    Entity* target)
 {
     (void)macros;
     std::string vertexShaderSource, fragmentShaderSource;
@@ -255,24 +252,20 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
         const char* nameText = name ? name->c_str() : "(null)";
         std::string dumpPath = oo::str::format("Synthesized Materials/%s/%s", cacheKeyText, nameText);
 
-        [::ResourceManager cxx_writeDiagnosticString:synthesized ? vertexShaderSource : std::string()
-                                         toFileNamed:dumpPath + ".vertex"];
-        [::ResourceManager cxx_writeDiagnosticString:synthesized ? fragmentShaderSource : std::string()
-                                         toFileNamed:dumpPath + ".fragment"];
+                ResourceManager::writeDiagnosticString(synthesized ?, std::string(), dumpPath + ".vertex");
+                ResourceManager::writeDiagnosticString(synthesized ?, std::string(), dumpPath + ".fragment");
 
-        // Hide internal keys in the synthesized config before writing it.
-        oo::PList::Dict humanFriendlyConfig = *synthesizedConfig.getIf<oo::PList::Dict>();
-        humanFriendlyConfig.erase(kOOVertexShaderSourceKey);
-        humanFriendlyConfig.erase(kOOFragmentShaderSourceKey);
-        humanFriendlyConfig.erase(kOOIsSynthesizedMaterialConfigurationKey);
-        humanFriendlyConfig[kOOVertexShaderNameKey] = oo::PList(oo::str::format("%s.vertex", nameText));
-        humanFriendlyConfig[kOOFragmentShaderNameKey] = oo::PList(oo::str::format("%s.fragment", nameText));
+                // Hide internal keys in the synthesized config before writing it.
+                oo::PList::Dict humanFriendlyConfig = *synthesizedConfig.getIf<oo::PList::Dict>();
+                humanFriendlyConfig.erase(kOOVertexShaderSourceKey);
+                humanFriendlyConfig.erase(kOOFragmentShaderSourceKey);
+                humanFriendlyConfig.erase(kOOIsSynthesizedMaterialConfigurationKey);
+                humanFriendlyConfig[kOOVertexShaderNameKey] = oo::PList(oo::str::format("%s.vertex", nameText));
+                humanFriendlyConfig[kOOFragmentShaderNameKey] = oo::PList(oo::str::format("%s.fragment", nameText));
 
-        [::ResourceManager cxx_writeDiagnosticPList:oo::PList(humanFriendlyConfig)
-                                        toFileNamed:dumpPath + ".plist"];
+                ResourceManager::writeDiagnosticPList(oo::PList(humanFriendlyConfig), dumpPath + ".plist");
 
-        [::ResourceManager cxx_writeDiagnosticPList:configuration
-                                        toFileNamed:dumpPath + "-original.plist"];
+                ResourceManager::writeDiagnosticPList(configuration, dumpPath + "-original.plist");
     }
 #endif
 
@@ -290,14 +283,14 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(const std::optional<std::string
     const std::optional<std::string>& cacheKey,
     const oo::PList& configuration,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> object,
+    Entity* object,
     bool smooth) // Internally, this flg really means "force use of shaders".
 {
     oo::Ref<OOMaterial> result;
 
 #if OO_SHADERS
 
-    if ([UNIVERSE useShaders]) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false)) {
         if (OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(configuration)) {
             result = OOShaderMaterial::shaderMaterialWithName(name,
                 configuration,
@@ -306,18 +299,18 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(const std::optional<std::string
         }
 
         // Use default shader if smoothing is on, or shader detail is full, DEBUG_NO_SHADER_FALLBACK is set, or material uses an effect map.
-        if (result == nullptr && (smooth || gDebugFlags & DEBUG_NO_SHADER_FALLBACK || [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS || !cxx_OOMaterialCombinedSpecularMapSpecifier(configuration).isNull() || !cxx_OOMaterialNormalMapSpecifier(configuration).isNull() || !cxx_OOMaterialParallaxMapSpecifier(configuration).isNull() || !cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull() || !cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() || !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull() || !cxx_OOMaterialEmissionAndIlluminationMapSpecifier(configuration).isNull())) {
+        if (result == nullptr && (smooth || gDebugFlags & DEBUG_NO_SHADER_FALLBACK || (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { }) >= DETAIL_LEVEL_SHADERS || !cxx_OOMaterialCombinedSpecularMapSpecifier(configuration).isNull() || !cxx_OOMaterialNormalMapSpecifier(configuration).isNull() || !cxx_OOMaterialParallaxMapSpecifier(configuration).isNull() || !cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull() || !cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() || !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull() || !cxx_OOMaterialEmissionAndIlluminationMapSpecifier(configuration).isNull())) {
             result = defaultShaderMaterialWithName(name,
                 cacheKey,
                 configuration,
                 macros,
-                (id<OOWeakReferenceSupport>)object);
+                object);
         }
     }
 #endif
 
 #if OO_MULTITEXTURE
-    if (result == nullptr /*&& ![UNIVERSE reducedDetail]*/) {
+    if (result == nullptr /*&& !(UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)*/) {
         if (!cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() || !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull() || !cxx_OOMaterialEmissionAndIlluminationMapSpecifier(configuration).isNull()) {
             result = OOMultiTextureMaterial::materialWithName(name,
                 configuration);
@@ -343,14 +336,14 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(const std::optional<std::string
     const oo::PList& materialDict,
     const oo::PList& shadersDict,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> object,
+    Entity* object,
     bool smooth)
 {
     oo::PList configuration;
 
 #if OO_SHADERS
 
-    if ([UNIVERSE useShaders] && name.has_value()) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false) && name.has_value()) {
         if (const oo::PList* found = shadersDict.get<oo::PList::Dict>(*name)) {
             configuration = *found;
         }
@@ -366,9 +359,8 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(const std::optional<std::string
     if (configuration.isNull()) {
         // Use fallback material for non-existent simple texture.
         // Texture caching means this won't be wasted in the general case.
-        ::OOTexture* texture = [::OOTexture cxx_textureWithName:name
-                                                       inFolder:std::optional<std::string>("Textures")];
-        if (texture == nil)
+        oo::Ref<OOTexture> texture = OOTexture::textureWithName(name, std::optional<std::string>("Textures"));
+        if (texture == nullptr)
             return nullptr;
 
         configuration = oo::PList(oo::PList::Dict { });
@@ -381,8 +373,6 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(const std::optional<std::string
         object,
         smooth);
 }
-
-} // namespace cxx
 
 #if !USE_NEW_SHADER_SYNTHESIZER
 namespace {

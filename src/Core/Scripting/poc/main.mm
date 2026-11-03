@@ -162,7 +162,7 @@ int main(int argc, const char* argv[])
 
         // As the game does at startup; an unseeded RANROT returns 0 forever.
         ranrot_srand(static_cast<uint32_t>(time(NULL)));
-        cxx::OOJavaScriptEngine* engine = cxx::OOJavaScriptEngine::sharedEngine();
+        OOJavaScriptEngine* engine = OOJavaScriptEngine::sharedEngine();
 
         // Each group gets its own pool so all scripts are released before shutdown.
         @autoreleasepool {

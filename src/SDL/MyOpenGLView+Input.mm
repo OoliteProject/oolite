@@ -29,16 +29,17 @@ std::string FormattedCharacter(unsigned code)
 
 } // namespace
 
-// The input half of cxx::MyOpenGLView (ADR-0056 amendments oo-o89 item 4, oo-6rb6 item 1; bead oo-0806):
-// the former (Input) category, as members. The facade forwards the ones other classes call.
+// The input half of MyOpenGLView (ADR-0056 amendments oo-o89 item 4, oo-6rb6 item 1; bead oo-0806):
+// the former (Input) category, as members, which other classes call (the facade that forwarded them
+// is gone).
 
-void cxx::MyOpenGLView::initKeyMappingData()
+void MyOpenGLView::initKeyMappingData()
 {
     // load in our keyboard scancode mappings
 #if OOLITE_WINDOWS
-    const oo::PList kmap = [::ResourceManager cxx_dictionaryFromFilesNamed:"keymappings_windows.plist" inFolder:"Config" mergeMode:MERGE_BASIC cache:NO];
+    const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed("keymappings_windows.plist", "Config", MERGE_BASIC, NO);
 #else
-    const oo::PList kmap = [::ResourceManager cxx_dictionaryFromFilesNamed:"keymappings_linux.plist" inFolder:"Config" mergeMode:MERGE_BASIC cache:NO];
+    const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed("keymappings_linux.plist", "Config", MERGE_BASIC, NO);
 #endif
     // get the stored keyboard code from preferences (oo_stringForKey:defaultValue: over the value)
     const oo::PList kbdValue = oo::Defaults::standard().object("keyboard-code");
@@ -50,7 +51,7 @@ void cxx::MyOpenGLView::initKeyMappingData()
     keyMappings_normal = (normal != nullptr) ? *normal : oo::PList();
     keyMappings_shifted = (shifted != nullptr) ? *shifted : oo::PList();
 }
-void cxx::MyOpenGLView::autoShowMouse()
+void MyOpenGLView::autoShowMouse()
 {
     // don't touch the 'please wait...' cursor.
     if (fullScreen) {
@@ -61,69 +62,69 @@ void cxx::MyOpenGLView::autoShowMouse()
             SDL_ShowCursor();
     }
 }
-void cxx::MyOpenGLView::setStringInput(enum StringInput value)
+void MyOpenGLView::setStringInput(enum StringInput value)
 {
     allowingStringInput = value;
 }
-void cxx::MyOpenGLView::allowStringInput(bool value)
+void MyOpenGLView::allowStringInput(bool value)
 {
     if (value)
         allowingStringInput = gvStringInputAlpha;
     else
         allowingStringInput = gvStringInputNo;
 }
-enum StringInput cxx::MyOpenGLView::getAllowingStringInput()
+enum StringInput MyOpenGLView::getAllowingStringInput()
 {
     return allowingStringInput;
 }
-std::optional<std::string> cxx::MyOpenGLView::getTypedString()
+std::optional<std::string> MyOpenGLView::getTypedString()
 {
     return typedString;
 }
-void cxx::MyOpenGLView::resetTypedString()
+void MyOpenGLView::resetTypedString()
 {
     typedString.clear();
 }
-void cxx::MyOpenGLView::setTypedString(const std::string& value)
+void MyOpenGLView::setTypedString(const std::string& value)
 {
     typedString = value;
 }
-void cxx::MyOpenGLView::noteMouseInteractionModeChangedFrom(OOMouseInteractionMode /*oldMode*/, OOMouseInteractionMode newMode)
+void MyOpenGLView::noteMouseInteractionModeChangedFrom(OOMouseInteractionMode /*oldMode*/, OOMouseInteractionMode newMode)
 {
     autoShowMouse();
     setMouseInDeltaMode(OOMouseInteractionModeIsFlightMode(newMode));
 }
-void cxx::MyOpenGLView::setVirtualJoystick(double vmx, double vmy)
+void MyOpenGLView::setVirtualJoystick(double vmx, double vmy)
 {
     virtualJoystickPosition.x = vmx;
     virtualJoystickPosition.y = vmy;
 }
-NSPoint cxx::MyOpenGLView::getVirtualJoystickPosition()
+NSPoint MyOpenGLView::getVirtualJoystickPosition()
 {
     return virtualJoystickPosition;
 }
 
 /////////////////////////////////////////////////////////////
-void cxx::MyOpenGLView::clearKeys()
+void MyOpenGLView::clearKeys()
 {
     int i;
     lastKeyShifted = NO;
     for (i = 0; i < numKeys(); i++)
         keys[i] = NO;
 }
-void cxx::MyOpenGLView::clearMouse()
+void MyOpenGLView::clearMouse()
 {
     keys[gvMouseDoubleClick] = NO;
     keys[gvMouseLeftButton] = NO;
     doubleClick = NO;
 }
-void cxx::MyOpenGLView::clearKey(int theKey)
+void MyOpenGLView::clearKey(int theKey)
 {
     if (theKey >= 0 && theKey < numKeys()) {
         keys[theKey] = NO;
     }
 }
-void cxx::MyOpenGLView::resetMouse()
+void MyOpenGLView::resetMouse()
 {
     setVirtualJoystick(0.0, 0.0);
     if (::PlayerEntity::sharedPlayer()->isMouseControlOn()) {
@@ -135,7 +136,7 @@ void cxx::MyOpenGLView::resetMouse()
         mouseWarped = YES;
     }
 }
-bool cxx::MyOpenGLView::getIsAlphabetKeyDown()
+bool MyOpenGLView::getIsAlphabetKeyDown()
 {
     return isAlphabetKeyDown = NO;
     ;
@@ -145,7 +146,7 @@ bool cxx::MyOpenGLView::getIsAlphabetKeyDown()
 // key down that brought you into the submenu is still registered
 // as down when we're in. This makes isDown return NO until a key up
 // event has been received from SDL.
-void cxx::MyOpenGLView::suppressKeysUntilKeyUp()
+void MyOpenGLView::suppressKeysUntilKeyUp()
 {
     if (keys[gvMouseDoubleClick] == NO) {
         suppressKeys = YES;
@@ -154,7 +155,7 @@ void cxx::MyOpenGLView::suppressKeysUntilKeyUp()
         clearMouse();
     }
 }
-bool cxx::MyOpenGLView::isDown(int key)
+bool MyOpenGLView::isDown(int key)
 {
     if (suppressKeys)
         return NO;
@@ -164,23 +165,23 @@ bool cxx::MyOpenGLView::isDown(int key)
         return NO;
     return keys[key];
 }
-bool cxx::MyOpenGLView::isOptDown()
+bool MyOpenGLView::isOptDown()
 {
     return opt;
 }
-bool cxx::MyOpenGLView::isCtrlDown()
+bool MyOpenGLView::isCtrlDown()
 {
     return ctrl;
 }
-bool cxx::MyOpenGLView::isCommandDown()
+bool MyOpenGLView::isCommandDown()
 {
     return command;
 }
-bool cxx::MyOpenGLView::isShiftDown()
+bool MyOpenGLView::isShiftDown()
 {
     return shift;
 }
-bool cxx::MyOpenGLView::isCapsLockOn()
+bool MyOpenGLView::isCapsLockOn()
 {
     /* Caps Lock state check - This effectively gives us
        an alternate keyboard state to play with and, in
@@ -190,15 +191,15 @@ bool cxx::MyOpenGLView::isCapsLockOn()
     */
     return (SDL_GetModState() & SDL_KMOD_CAPS) == SDL_KMOD_CAPS;
 }
-bool cxx::MyOpenGLView::lastKeyWasShifted()
+bool MyOpenGLView::lastKeyWasShifted()
 {
     return lastKeyShifted;
 }
-int cxx::MyOpenGLView::numKeys()
+int MyOpenGLView::numKeys()
 {
     return NUM_KEYS;
 }
-int cxx::MyOpenGLView::mouseWheelState()
+int MyOpenGLView::mouseWheelState()
 {
     if (_mouseWheelDelta > 0.0f)
         return gvMouseWheelUp;
@@ -207,27 +208,27 @@ int cxx::MyOpenGLView::mouseWheelState()
     else
         return gvMouseWheelNeutral;
 }
-float cxx::MyOpenGLView::mouseWheelDelta()
+float MyOpenGLView::mouseWheelDelta()
 {
     return _mouseWheelDelta / OOMOUSEWHEEL_DELTA;
 }
-void cxx::MyOpenGLView::setMouseWheelDelta(float newWheelDelta)
+void MyOpenGLView::setMouseWheelDelta(float newWheelDelta)
 {
     _mouseWheelDelta = newWheelDelta * OOMOUSEWHEEL_DELTA;
 }
-bool cxx::MyOpenGLView::isCommandQDown()
+bool MyOpenGLView::isCommandQDown()
 {
     return NO;
 }
-bool cxx::MyOpenGLView::isCommandFDown()
+bool MyOpenGLView::isCommandFDown()
 {
     return NO;
 }
-void cxx::MyOpenGLView::clearCommandF()
+void MyOpenGLView::clearCommandF()
 {
     // SDL stub for the mac function.
 }
-void cxx::MyOpenGLView::pollControls()
+void MyOpenGLView::pollControls()
 {
     SDL_Event event;
     SDL_KeyboardEvent* kbd_event;
@@ -252,7 +253,7 @@ void cxx::MyOpenGLView::pollControls()
         case SDL_EVENT_GAMEPAD_BUTTON_UP:
         case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
         case SDL_EVENT_JOYSTICK_HAT_MOTION:
-            [(::OOSDLJoystickManager*)[::OOJoystickManager sharedStickHandler] handleSDLEvent:&event];
+            static_cast<OOSDLJoystickManager*>(OOJoystickManager::sharedStickHandler())->handleSDLEvent(&event); // the registered SDL handler (was a C cast)
             break;
 
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -596,7 +597,8 @@ void cxx::MyOpenGLView::pollControls()
             case SDLK_ESCAPE:
                 if (shift) {
                     SDL_DestroyWindow(window);
-                    [gameController cxx_exitAppWithContext:"Shift-escape pressed"];
+                    if (gameController != nullptr)
+                        gameController->exitAppWithContext("Shift-escape pressed");
                 } else {
                     key_id = 27;
                     special_key = YES;
@@ -833,12 +835,14 @@ void cxx::MyOpenGLView::pollControls()
 
 #if OOLITE_WINDOWS
         case SDL_EVENT_WINDOW_FOCUS_GAINED: {
-            [gameController setEcoQoS:[gameController isGamePaused]];
+            if (gameController != nullptr)
+                gameController->setEcoQoS((gameController != nullptr ? gameController->isGamePaused() : false));
             break;
         }
 
         case SDL_EVENT_WINDOW_FOCUS_LOST: {
-            [gameController setEcoQoS:YES];
+            if (gameController != nullptr)
+                gameController->setEcoQoS(YES);
             break;
         }
 #endif
@@ -846,7 +850,8 @@ void cxx::MyOpenGLView::pollControls()
         // caused by INTR or someone hitting close
         case SDL_EVENT_QUIT: {
             SDL_DestroyWindow(window);
-            [gameController cxx_exitAppWithContext:"SDL_QUIT event received"];
+            if (gameController != nullptr)
+                gameController->exitAppWithContext("SDL_QUIT event received");
         }
         }
     }
@@ -875,7 +880,7 @@ void cxx::MyOpenGLView::pollControls()
 // DJS: String input handler. Since for SDL versions we're also handling
 // freeform typing this has necessarily got more complex than the non-SDL
 // versions.
-void cxx::MyOpenGLView::handleStringInput(SDL_KeyboardEvent* kbd_event, Uint16 key_id)
+void MyOpenGLView::handleStringInput(SDL_KeyboardEvent* kbd_event, Uint16 key_id)
 {
     SDL_Keycode key = kbd_event->key;
 
@@ -912,7 +917,7 @@ void cxx::MyOpenGLView::handleStringInput(SDL_KeyboardEvent* kbd_event, Uint16 k
         }
     }
 }
-void cxx::MyOpenGLView::setMouseInDeltaMode(bool inDelta)
+void MyOpenGLView::setMouseInDeltaMode(bool inDelta)
 {
     mouseInDeltaMode = inDelta;
 }

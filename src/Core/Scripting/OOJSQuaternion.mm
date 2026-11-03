@@ -228,9 +228,7 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj, Quate
 #if !OOJS_POC_HARNESS
     // If it's an entity, use its orientation.
     if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClassID())) {
-        JSClassID ignored;
-        Entity* entity = [(id)JS_GetAnyOpaque(quaternionObj, &ignored) weakRefUnderlyingObject];
-        *outQuaternion = [entity orientation];
+        *outQuaternion = OOJSEntityOrientationOfJSObject(context, quaternionObj); // the C++ entity's
         return true;
     }
 #endif

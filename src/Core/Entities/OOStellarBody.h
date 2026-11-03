@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
-#import "OOWeakReference.h"
+#import "oofnd/objc/OOObject.h"
 
 typedef enum {
     STELLAR_TYPE_SUN,
@@ -41,7 +41,7 @@ typedef enum {
 #define PLANET_MINIATURE_FACTOR 0.00185
 #define MAX_SUBDIVIDE 6
 
-@protocol OOStellarBody <OOObject, OOWeakReferenceSupport>
+@protocol OOStellarBody <OOObject> // (and the weak-reference protocol until the root facade went: nothing adopts it)
 
 - (double)radius;
 - (OOStellarBodyType)planetType;
@@ -56,6 +56,6 @@ typedef enum {
         (their object is the root Entity's facade, which does not answer them); any other body by
         selector, as before. Nil answers 0, as the message to nil did. Defined in OOSunEntity.mm.
 */
-@class Entity;
-double OOStellarBodyRadius(Entity* body);
-OOStellarBodyType OOStellarBodyPlanetType(Entity* body);
+class Entity;
+double OOStellarBodyRadius(Entity* body); // of the C++ entity (the object overloads went with the facade)
+OOStellarBodyType OOStellarBodyPlanetType(Entity* body); // the same

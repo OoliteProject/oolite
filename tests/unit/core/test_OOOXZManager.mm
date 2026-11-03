@@ -39,6 +39,8 @@
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
 #include "oo_test.hpp"
+#import "PlayerEntity.h"	// the stand-in PLAYER
+extern PlayerEntity *gOOPlayer;
 
 #include <chrono>
 #include <cstdio>
@@ -120,10 +122,36 @@ stdfs::path CacheDirectory()
 }
 
 
+// PLAYER: the debug build asserts it is set (OOGetPlayer()), so the manager's GUI page,
+// which asks it to let go of its sounds (Windows), has a player; its viewpoint is the origin. Never released, as the player is not.
+class TestPlayer : public PlayerEntity
+{
+public:
+	HPVector viewpointPosition() override	{ return kZeroHPVector; }
+};
+
+
+void SetUpTestPlayer()
+{
+	static TestPlayer *player = nullptr;
+	if (player == nullptr)
+	{
+		oo::Ref<TestPlayer> made = oo::makeRef<TestPlayer>();
+		@autoreleasepool
+		{
+			oo::RetainEntity(oo::MadeEntity(made));	// +1, as PlayerEntity::sharedPlayer() makes the game's
+		}
+		player = made.get();
+	}
+	gOOPlayer = player;
+}
+
+
 // The scratch home, add-on folders and game folder, and the manifest cache the manager loads,
 // made once, before the singleton exists.
 void SetUp()
 {
+	SetUpTestPlayer();
 	if (!sRoot.empty())  return;
 	sRoot = stdfs::temp_directory_path() / ("oo-test-oxzmanager-" + std::to_string(static_cast<unsigned long>(::_getpid())));
 	stdfs::remove_all(sRoot);
@@ -227,12 +255,12 @@ OO_TEST(paths)
 			OO_CHECK_EQ(additional[2], Generic(sRoot / "More2"));
 		}
 
-		const std::string cacheDirectory = cxx::OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true).value_or("(none)");
+		const std::string cacheDirectory = OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true).value_or("(none)");
 		OO_CHECK_EQ(ManifestPath().value_or("(none)"), oo::str::appendingPathComponent(cacheDirectory, "Oolite-manifests.plist"));
 		OO_CHECK_EQ(DownloadPath().value_or("(none)"), oo::str::appendingPathComponent(cacheDirectory, "Oolite-download.oxz"));
 
 		// The extraction folder: the last user root, the blacklisted characters removed.
-		const std::vector<std::string> roots = [ResourceManager cxx_userRootPaths];
+		const std::vector<std::string> roots = ResourceManager::userRootPaths();
 		OO_CHECK(!roots.empty());
 		if (!roots.empty())
 		{
@@ -355,7 +383,7 @@ OO_TEST(manifestDownload)
 		oo::Defaults::standard().setObject("oxz-index-url", oo::PList(url));
 		OO_CHECK_EQ(DataURL().value_or("(none)"), url);
 
-		const std::string cacheDirectory = cxx::OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true).value_or("(none)");
+		const std::string cacheDirectory = OOCacheManager::sharedCache()->cacheDirectoryPathCreatingIfNecessary(true).value_or("(none)");
 		OO_CHECK(manager->updateManifests());
 		OO_CHECK_EQ(DownloadPath().value_or("(none)"), oo::str::appendingPathComponent(cacheDirectory, "Oolite-download.plist"));
 		// A second request while one is under way is refused.
@@ -586,7 +614,8 @@ OO_TEST(restartAndUpdateAll)
 // Slices 3 and 4 (beads oo-q7r3, oo-qbgo): the GUI pages. A stand-in UNIVERSE (amendment oo-8kx7
 // item 7, as an object put in gSharedUniverse for these cases only, since the test links the real
 // Universe) answers -gui with a recording screen; the manager's sends to it are the page.
-@class Universe;
+#import "Universe.h"	// the real class: the test links the whole game
+#import "MyOpenGLView.h"	// the game view is C++
 extern Universe *gSharedUniverse;
 
 // The page's rows (OOOXZManager.mm's private OXZ_GUI_ROW_* values).
@@ -643,48 +672,42 @@ public:
 };
 
 
-@interface TestGameView: OOObject
+// The game view: a C++ subclass of the game's (the deleted Objective-C facade the
+// test's Objective-C stand-in stood in for), overriding the two members it answered (virtual for it).
+class TestGameView : public MyOpenGLView
 {
-@public
-	int				resets;
+public:
+	int				resets = 0;
 	std::string		clipboard;
-}
-@end
 
-@implementation TestGameView
-- (void) resetTypedString	{ resets++; }
-- (void) cxx_stringToClipboard:(const std::string &)stringToCopy	{ clipboard = stringToCopy; }
-@end
+	void resetTypedString() override	{ resets++; }
+	void stringToClipboard(const std::string &stringToCopy) override	{ clipboard = stringToCopy; }
+};
 
 
-@interface TestUniverse: OOObject
+// The universe the manager sees: a C++ subclass of the game's (the deleted Objective-C
+// facade the test's Objective-C TestUniverse stood in for), overriding the same members. Its
+// descriptions are testDescriptions (the class has a member _descriptions).
+class TestUniverse : public Universe
 {
-@public
-	oo::Ref<TestGui>	gui;
-	TestGameView	*gameView;
-	oo::PList		descriptions;
-}
-@end
+public:
+	oo::Ref<TestGui> testGui = {};
+	TestGameView	*testGameView = nullptr;
+	oo::PList testDescriptions = {};
 
-@implementation TestUniverse
-- (id) init
-{
-	if ((self = [super init]))
+	TestUniverse()
 	{
-		gui = oo::makeRef<TestGui>();
-		gameView = [[TestGameView alloc] init];
-		descriptions = oo::PList(oo::PList::Dict());
+		testGui = oo::makeRef<TestGui>();
+		testGameView = new TestGameView();
+		testDescriptions = oo::PList(oo::PList::Dict());
 	}
-	return self;
-}
-- (void) dealloc	{ [gameView release]; [super dealloc]; }
-- (GuiDisplayGen *) gui	{ return gui.get(); }
-- (id) gameView	{ return gameView; }
-- (std::optional<std::string>) cxx_descriptionForKey:(const std::string &)key	{ (void)key; return std::nullopt; }
-- (const oo::PList *) cxx_descriptions	{ return &descriptions; }
-- (id) systemManager	{ return nil; }
-- (BOOL) reinitAndShowDemo:(BOOL)showDemo	{ (void)showDemo; return YES; }
-@end
+	::GuiDisplayGen *getGui() override	{ return testGui.get(); }
+	::MyOpenGLView *getGameView() override	{ return testGameView; }	// what -gameView answered
+	std::optional<std::string> descriptionForKey(const std::string &key) override	{ (void)key; return std::nullopt; }
+	const oo::PList *descriptions() override	{ return &testDescriptions; }
+	::OOSystemDescriptionManager *getSystemManager() override	{ return nullptr; }
+	bool reinitAndShowDemo(bool showDemo) override	{ (void)showDemo; return YES; }
+};
 
 
 namespace {
@@ -693,13 +716,13 @@ namespace {
 struct StandInUniverse
 {
 	TestUniverse *universe;
-	StandInUniverse()  { universe = [[TestUniverse alloc] init]; gSharedUniverse = (Universe *)universe; }
-	~StandInUniverse()  { gSharedUniverse = nil; [universe release]; }
+	StandInUniverse()  { universe = new TestUniverse(); gSharedUniverse = universe; }
+	~StandInUniverse()  { gSharedUniverse = nil; }	// never released: a universe's teardown (the facade's -dealloc) flushes the caches and the GL objects
 	std::string Page()
 	{
 		std::string page;
-		for (const std::string &line : universe->gui->log)  page += line + "\n";
-		universe->gui->log.clear();
+		for (const std::string &line : universe->testGui->log)  page += line + "\n";
+		universe->testGui->log.clear();
 		return page;
 	}
 };
@@ -745,7 +768,7 @@ OO_TEST(guiPages)
 		m->_offset = 0;
 		m->_item = 0;
 		m->setFilter("*");
-		standIn.universe->gui->selected = 0;
+		standIn.universe->testGui->selected = 0;
 
 		m->_interfaceState = OXZ_STATE_NODATA;
 		m->gui();
@@ -903,7 +926,7 @@ OO_TEST(guiPages)
 		// The list pages (slice 4's options), with the filter line through the string expander.
 		m->_changesMade = false;
 		m->_downloadStatus = OXZ_DOWNLOAD_NONE;
-		standIn.universe->gui->selected = OXZ_GUI_ROW_LISTSTART;
+		standIn.universe->testGui->selected = OXZ_GUI_ROW_LISTSTART;
 		m->_interfaceState = OXZ_STATE_PICK_INSTALL;
 		m->gui();
 		OO_CHECK_PAGE("pick install", standIn.Page(),
@@ -1147,11 +1170,16 @@ OO_TEST(guiPages)
 OO_TEST(guiInput)
 {
 	SetUp();
+	// The manager leaves these pages through the intro screen, which it shows only with no PLAYER
+	// (PLAYER's setGuiToIntroFirstGo()): they run with none, as before, which only a release-style
+	// build can (the debug build asserts PLAYER is set).
+	gOOPlayer = nullptr;
+#if !OO_DEBUG
 	@autoreleasepool
 	{
 		StandInUniverse standIn;
 		OOOXZManager *m = Manager();
-		TestGui *gui = standIn.universe->gui.get();
+		TestGui *gui = standIn.universe->testGui.get();
 
 		// The filter: the key, typed text, its prompt.
 		m->_interfaceState = OXZ_STATE_NODATA;
@@ -1163,7 +1191,7 @@ OO_TEST(guiInput)
 		m->processFilterKey();
 		OO_CHECK(m->_interfaceState == OXZ_STATE_SETFILTER);
 		OO_CHECK(!m->_interfaceShowingOXZDetail);
-		OO_CHECK_EQ(standIn.universe->gameView->resets, 1);
+		OO_CHECK_EQ(standIn.universe->testGameView->resets, 1);
 		OO_CHECK(m->isAcceptingTextInput());
 		OO_CHECK(m->isAcceptingGUIInput());
 		standIn.Page();
@@ -1262,7 +1290,7 @@ OO_TEST(guiInput)
 		OO_CHECK(m->_interfaceShowingOXZDetail);
 		OO_CHECK(!m->isAcceptingGUIInput());
 		OO_CHECK_EQ(m->_item, 1u);
-		OO_CHECK_TEXT(standIn.universe->gameView->clipboard, "");
+		OO_CHECK_TEXT(standIn.universe->testGameView->clipboard, "");
 		OO_CHECK_PAGE("info", standIn.Page(),
 			"clear keep\n"
 			"title oolite-oxzmanager-title-infopage\n"
@@ -1489,10 +1517,13 @@ OO_TEST(guiInput)
 		OO_CHECK(m->isRestarting());
 		OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
 	}
+#endif
 }
 
 
-// Slice 4 (bead oo-qbgo): the install and remove option pages, and their paging.
+// Slice 4: the install and remove option pages, and their paging. Release-style
+// builds only (see the case).
+#if !OO_DEBUG
 namespace {
 
 std::vector<oo::PList> InstallOptions()	{ return Manager()->installOptions(); }
@@ -1510,11 +1541,15 @@ std::string OptionTitles(const std::vector<oo::PList> &options)
 OO_TEST(optionPages)
 {
 	SetUp();
+	// The manager leaves these pages through the intro screen, which it shows only with no PLAYER
+	// (PLAYER's setGuiToIntroFirstGo()): they run with none, as before, which only a release-style
+	// build can (the debug build asserts PLAYER is set).
+	gOOPlayer = nullptr;
 	@autoreleasepool
 	{
 		StandInUniverse standIn;
 		OOOXZManager *m = Manager();
-		TestGui *gui = standIn.universe->gui.get();
+		TestGui *gui = standIn.universe->testGui.get();
 		const oo::PList savedList = m->manifests();
 
 		// Thirteen entries: two pages of ten.
@@ -1760,6 +1795,7 @@ OO_TEST(optionPages)
 		m->_interfaceState = OXZ_STATE_MAIN;
 	}
 }
+#endif
 
 
 // The copy-URL key (upstream OoliteProject #747): on a pick list it copies the selected pack's
@@ -1773,8 +1809,8 @@ OO_TEST(copyUrlKey)
 	{
 		StandInUniverse standIn;
 		OOOXZManager *m = Manager();
-		TestGui *gui = standIn.universe->gui.get();
-		std::string &clipboard = standIn.universe->gameView->clipboard;
+		TestGui *gui = standIn.universe->testGui.get();
+		std::string &clipboard = standIn.universe->testGameView->clipboard;
 
 		oo::PList::Dict withURL = *Manifest("oolite.oxp.test.url", "Url", "1.0", "Ships", nullptr, nullptr, {}, -1, nullptr).getIf<oo::PList::Dict>();
 		withURL[std::string(kOOManifestInformationURL)] = oo::PList("HTTPS://Example.ORG/Pack");

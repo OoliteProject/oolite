@@ -58,10 +58,10 @@ typedef struct OOStandaloneAtmosphereGeneratorInfo {
 
 /*	Phase 3 (bead oo-y3dd, proposed ADR-0056 amendments oo-bj8 item 12, oo-2c6g item 2, oo-novu,
         oo-rr2x item 3 and oo-kvqq): a converted leaf of the texture generators, global, over
-        cxx::OOTextureGenerator, with no facade of its own. Its one caller (OOPlanetEntity) calls the
-        static members; the texture takes its facade, oo::ToObjC(generator), an OOTextureGenerator.
+        OOTextureGenerator, with no facade of its own. Its one caller (OOPlanetEntity) calls the
+        static members; the texture takes the C++ generator (the generators' facade until bead oo-9ht.118).
 */
-class OOStandaloneAtmosphereGenerator : public cxx::OOTextureGenerator {
+class OOStandaloneAtmosphereGenerator : public OOTextureGenerator {
 public:
     /*	planetInfo is the planet's material parameters, a mixed configuration: plist values with the
             colours as PList::Object nodes holding OOColors (proposed ADR-0043 Amendment 2; the
@@ -74,8 +74,8 @@ public:
 
     // Were +planetTextureWithInfo:seed: and +generateAtmosphereTexture:withInfo:seed:; the texture
     // is answered retained (amendment oo-2en item 2).
-    static oo::ObjCRef<::OOTexture*> planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed);
-    static bool generateAtmosphereTexture(oo::ObjCRef<::OOTexture*>* texture, const oo::PList& planetInfo, RANROTSeed seed);
+    static oo::Ref<OOTexture> planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generateAtmosphereTexture(oo::Ref<OOTexture>* texture, const oo::PList& planetInfo, RANROTSeed seed);
 
     std::optional<std::string> descriptionComponents() const override;
     uint32_t textureOptions() override;

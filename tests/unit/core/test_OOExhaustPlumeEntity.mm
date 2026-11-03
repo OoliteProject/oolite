@@ -63,26 +63,18 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
 
 
 // UNIVERSE: never initialised; answers the test's time.
-@interface TestUniverse: Universe
+class TestUniverse : public Universe
 {
-@public
-	OOTimeAbsolute	_time;
-}
-@end
-
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime	{ return _time; }
-
-@end
+public:
+	OOTimeAbsolute &_time = universal_time;	// the universe's own state, which its getter answers
+};
 
 
 /*	The plume's ship: answers what the plume asks a ShipEntity. C++ since bead oo-9ht.144 deleted the
@@ -110,12 +102,13 @@ TestUniverse *sUniverse = nil;
 
 // The texture loader's stand-in.
 std::optional<std::string> sTextureName;
-id sTexture = nil;
+OOTexture *sTexture = nullptr;	// never released
 
-id LoadTexture(id, SEL, const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
+// OOTexture::nameFactory, the test-only loader hook, where the facade's class method was replaced.
+oo::Ref<OOTexture> LoadTexture(const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
 {
 	sTextureName = name;
-	return sTexture;
+	return oo::Ref<OOTexture>(sTexture);
 }
 
 
@@ -123,11 +116,9 @@ void SetUp(OOTimeAbsolute time)
 {
 	if (sUniverse == nil)
 	{
-		sUniverse = (TestUniverse *)class_createInstance([TestUniverse class], 0);	// never released
-		sUniverse->_cxxUniverse = oo::makeRef<cxx::Universe>(sUniverse);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
-		sTexture = [[OOWeakRefObject alloc] init];	// never released
-		Method loader = class_getClassMethod([OOTexture class], @selector(cxx_textureWithName:inFolder:options:anisotropy:lodBias:));
-		method_setImplementation(loader, (IMP)LoadTexture);
+		sUniverse = new TestUniverse();	// never released
+		sTexture = oo::makeRef<OOTexture>().leakRef();	// never released
+		OOTexture::nameFactory = &LoadTexture;
 	}
 	sUniverse->_time = time;
 	gSharedUniverse = sUniverse;
@@ -144,7 +135,7 @@ void SetUp(OOTimeAbsolute time)
 
 // --- Ivars the test sets, and nothing else ---------------------------------------------------------
 
-void SetCollisionRadius(cxx::Entity *e, GLfloat value)	{ e->collision_radius = value; }
+void SetCollisionRadius(Entity *e, GLfloat value)	{ e->collision_radius = value; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -165,7 +156,7 @@ bool VectorIs(Vector v, float x, float y, float z)
 Entity *Ship()
 {
 	oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
-	Entity *object = oo::NewEntityFacade(ship);
+	Entity *object = oo::MadeEntity(ship);
 	ship->isShip = YES;	// a ship (its subentity plume asks it, as a set-up ship answers)
 	ship->_visible = true;
 	ship->setSpeedFactor(1.0f);
@@ -186,7 +177,7 @@ TestShip *Part(Entity *ship)	{ return static_cast<TestShip *>(oo::ToShip(ship));
 // holds it; null for no tokens.
 OOExhaustPlumeEntity *Plume(Entity *ship, std::vector<std::string> tokens, float scale)
 {
-	return static_cast<OOExhaustPlumeEntity *>(oo::ToCxx(oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(ship), tokens, scale))));
+	return static_cast<OOExhaustPlumeEntity *>(oo::MadeEntity(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(ship), tokens, scale)));
 }
 
 }	// namespace
@@ -204,7 +195,7 @@ OO_TEST(made)
 		OO_CHECK(HPvector_equal(plume->getPosition(), make_HPvector(2, 4, 6)));
 		OO_CHECK(VectorIs(plume->scale(), 8, 10, 1.5f));	// z is not scaled
 		// The category -isExhaust went with the facade: callers ask the C++ part.
-		OO_CHECK(plume->isExhaust() && dynamic_cast<OOExhaustPlumeEntity *>(oo::ToCxx(ship)) == nullptr);
+		OO_CHECK(plume->isExhaust() && dynamic_cast<OOExhaustPlumeEntity *>(ship) == nullptr);
 		OO_CHECK(plume->findCollisionRadius() == 0.0);
 
 		OO_CHECK(Plume(ship, {}, 1.0f) == nullptr);
@@ -316,11 +307,10 @@ OO_TEST(facade)
 		SetUp(0.0);
 		// The object is the root's facade, the nearest left, whose C++ part is the plume: a C++
 		// entity (amendment oo-0mxi), not an Objective-C entity's adapter.
-		Entity *object = oo::NewEntityFacade(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(Ship()), { "0", "0", "0", "1", "1", "1" }, 1.0f));
-		OO_CHECK([object class] == [Entity class]);
-		OO_CHECK(dynamic_cast<OOExhaustPlumeEntity *>(oo::ToCxx(object)) != nullptr);
-		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(object)) == nullptr);
-		OO_CHECK(oo::ToObjC(oo::ToCxx(object)) == object);
+		Entity *object = oo::MadeEntity(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(Ship()), { "0", "0", "0", "1", "1", "1" }, 1.0f));
+		// (Its object's class, the root facade, was checked here: retired with the facade, under oo-9n5p9.)
+		OO_CHECK(dynamic_cast<OOExhaustPlumeEntity *>(object) != nullptr);
+		OO_CHECK(object == object);
 	}
 }
 
@@ -347,13 +337,13 @@ OO_TEST(jsExtensions)
 	@autoreleasepool
 	{
 		SetUp(0.0);
-		Entity *plume = oo::ToObjC(Plume(Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f));
+		Entity *plume = Plume(Ship(), { "0", "0", "0", "1", "1", "1" }, 1.0f);
 		RegisterJSClasses(InitOOJSExhaustPlume);
-		const JSClassID jsClass = [plume oo_jsClassID];
+		const JSClassID jsClass = OOJSEntityJSClassID(plume);
 		const JSClassID expectedClass = JSExhaustPlumeClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK([plume cxx_oo_jsClassName] == std::optional<std::string>("ExhaustPlume"));
-		OO_CHECK([plume isVisibleToScripts] == YES);
+		OO_CHECK(OOJSEntityJSClassName(plume) == std::optional<std::string>("ExhaustPlume"));
+		OO_CHECK(OOJSEntityIsVisibleToScripts(plume) == YES);
 	}
 }
 

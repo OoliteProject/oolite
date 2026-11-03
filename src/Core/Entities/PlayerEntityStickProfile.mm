@@ -76,17 +76,17 @@ void PlayerEntity::setGuiToStickProfileScreen(::GuiDisplayGen* gui)
 
 void PlayerEntity::stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    if ([gameView isDown:gvMouseLeftButton]) {
+    if ((gameView != nullptr ? gameView->isDown(gvMouseLeftButton) : false)) {
         NSPoint mouse_position = NSMakePoint(
-            [gameView virtualJoystickPosition].x * gui->size().width,
-            [gameView virtualJoystickPosition].y * gui->size().height);
+            (gameView != nullptr ? gameView->getVirtualJoystickPosition() : NSPoint { }).x * gui->size().width,
+            (gameView != nullptr ? gameView->getVirtualJoystickPosition() : NSPoint { }).y * gui->size().height);
         if (stickProfileScreen != nullptr)
             stickProfileScreen->mouseDown(mouse_position);
     } else {
         if (stickProfileScreen != nullptr)
             stickProfileScreen->mouseUp();
     }
-    if ([gameView isDown:gvDeleteKey]) {
+    if ((gameView != nullptr ? gameView->isDown(gvDeleteKey) : false)) {
         if (stickProfileScreen != nullptr)
             stickProfileScreen->deleteSelected();
     }
@@ -206,7 +206,7 @@ void PlayerEntity::stickProfileGraphAxisProfile(GLfloat alpha, Vector screenAt, 
 */
 StickProfileScreen::StickProfileScreen()
 {
-    stickHandler = oo::ToCxx(static_cast<OOJoystickManager*>([OOJoystickManager sharedStickHandler])); // +sharedStickHandler answers id
+    stickHandler = OOJoystickManager::sharedStickHandler();
     current_axis = AXIS_ROLL;
     // profiles[][] start null (they were set to nil here).
 }
@@ -545,7 +545,8 @@ void StickProfileScreen::showScreen()
     gui->setText(OO_DESC("gui-back"), GUI_ROW_STICKPROFILE_BACK);
     gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_STICKPROFILE_BACK);
     gui->setSelectableRange(NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK));
-    [[UNIVERSE gameView] suppressKeysUntilKeyUp];
+    if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
+        UNIVERSE->getGameView()->suppressKeysUntilKeyUp();
     gui->setForegroundTextureKey(std::string((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
     gui->setBackgroundTextureKey(std::string("settings"));
     return;

@@ -48,7 +48,7 @@ static JSValue WormholeGetProperty(OOJS_GETTER_ARGS);
 
 static JSClassDef sWormholeClass = {
     .class_name = "Wormhole",
-    .finalizer = OOJSObjectWrapperFinalize,
+    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
 };
 
 enum {
@@ -84,7 +84,7 @@ void InitOOJSWormhole(JSContext* context, JSValueConst global)
         sWormholeProperties, OOJS_COUNT(sWormholeProperties), NULL, 0, NULL, 0);
     JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sWormholeClassID, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sWormholeClassID, OOJSEntityObjectConverter);
     OOJSRegisterSubclass(sWormholeClassID, JSEntityClassID());
 }
 
@@ -98,7 +98,7 @@ static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormhol
     OOJS_PROFILE_ENTER
 
     bool result;
-    Entity* entity = nil;
+    Entity* entity = nullptr; // the slot holds the C++ entity
 
     if (outEntity == NULL)
         return false;
@@ -109,7 +109,7 @@ static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormhol
         return false;
 
     // The wormhole is C++ behind the root's facade since bead oo-9ht.112 (-isKindOfClass: before).
-    *outEntity = dynamic_cast<WormholeEntity*>(oo::ToCxx(entity));
+    *outEntity = dynamic_cast<WormholeEntity*>(entity);
     return *outEntity != nullptr;
 
     OOJS_PROFILE_EXIT

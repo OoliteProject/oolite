@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #import "OOCallByName.h"
 #import "OOFoundation.h"
 #import "OOJavaScriptEngine.h"
-#import "OOStringExpander+ObjCBridge.h"
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityScriptMethods.h"
@@ -100,24 +99,27 @@ enum {
         operation, including recursive calls (so it can't contain anything pertaining
         to the specific string being expanded).
 */
-typedef struct
-{
+namespace {
+
+struct OOStringExpansionContext {
     Random_Seed seed;
     OOMaybeUnits systemName;
     oo::PList overrides; // a dictionary of mixed values; null: none (was nil)
     oo::PList legacyLocals; // a dictionary of mixed values; null: none (was nil)
     bool isJavaScript;
     bool convertBackslashN;
-    bool hasPercentR; // Set to indicate we need an ExpandPercentR() pass.
+    bool hasPercentR = false; // Set to indicate we need an ExpandPercentR() pass.
     bool useGoodRNG;
-    bool disallowPercentI;
+    bool disallowPercentI = false;
 
-    OOMaybeUnits systemNameWithIan; // Cache for %I
-    OOMaybeUnits randomNameN; // Cache for %N
-    OOMaybeUnits randomNameR; // Cache for %R
-    oo::PList systemDescriptions; // Cache for system_description (an array), used for numbered keys; null: not loaded.
-    NSUInteger sysDescCount; // Count of systemDescriptions, valid after GetSystemDescriptions() called.
-} OOStringExpansionContext;
+    OOMaybeUnits systemNameWithIan { }; // Cache for %I
+    OOMaybeUnits randomNameN { }; // Cache for %N
+    OOMaybeUnits randomNameR { }; // Cache for %R
+    oo::PList systemDescriptions { }; // Cache for system_description (an array), used for numbered keys; null: not loaded.
+    NSUInteger sysDescCount = 0; // Count of systemDescriptions, valid after GetSystemDescriptions() called.
+};
+
+} // namespace
 
 namespace {
 
@@ -238,7 +240,7 @@ std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const
     }
 
     std::optional<std::string> result;
-    // Was an autorelease-pool block: the bridge's sends (OOStringExpander+ObjCBridge.h) still autorelease.
+    // Was an autorelease-pool block, kept: the expander still calls Objective-C by name (OOCallByName).
     void* pool = objc_autoreleasePoolPush();
     {
         // TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
@@ -282,7 +284,8 @@ std::optional<std::string> cxx_OOGenerateSystemDescription(Random_Seed seed, con
 
 Random_Seed OOStringExpanderDefaultRandomSeed(void)
 {
-    return OOStringExpanderUniverseRandomSeedForCurrentSystem();
+    auto* manager = (UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr); // null: a zero seed, as a message to nil (auto: the expander harness stubs the class)
+    return (manager != nullptr) ? manager->getRandomSeedForCurrentSystem() : Random_Seed { };
 }
 
 // MARK: -
@@ -741,10 +744,11 @@ OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context, const std
 
     SEL selector = LookUpSelector(SpecialSubstitutionSelectors(), key);
     if (selector != NULL) {
-        OOCAssert(OOStringExpanderPlayerRespondsToSelector(selector), "Special string expansion selector %s for [%s] is not implemented.", OOSelectorName(selector), key.c_str());
+        OOCAssert(oo::EntityRespondsToName(PLAYER, OOSelectorName(selector)), "Special string expansion selector %s for [%s] is not implemented.", OOSelectorName(selector), key.c_str());
 
-        // Called by name (ADR-0055 item 5): a string result, as a PList.
-        const oo::PList result = OOCallByName(oo::ToObjC(PLAYER), selector);
+        // Called by name on the player's C++ part: a string
+        // result, as a PList.
+        const oo::PList result = oo::CallEntityByName(PLAYER, OOSelectorName(selector));
         if (!result.isNull()) {
             const std::string* string = result.getIf<std::string>();
             OOCAssert(string != nullptr, "Special string expansion [%s] expanded to %s, but expected a string.", key.c_str(), oo::DescriptionOf(result).c_str());
@@ -765,7 +769,7 @@ OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context, c
     OOCParameterAssert(context != NULL);
     if (HasPrefix(key, u"oolite_key_")) {
         const std::string binding = oo::utf16ToUtf8(key.substr(7));
-        return UnitsFromOptional(OOStringExpanderPlayerKeyBindingDescription2(binding));
+        return UnitsFromOptional((PLAYER != nullptr ? PLAYER->keyBindingDescription2(binding) : std::optional<std::string>()));
     }
     return std::nullopt;
 }
@@ -816,7 +820,7 @@ const OOSelectorTable* SpecialSubstitutionSelectors(void)
 OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context, const std::string& key, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
     // The error log names the value's class as the Foundation object built from it did.
-    const oo::PList* found = OOStringExpanderUniverseDescriptions()->find(key);
+    const oo::PList* found = UNIVERSE->descriptions()->find(key);
     oo::PList value = (found != nullptr) ? *found : oo::PList();
     if (!value.isNull()) {
         if (value.isArray() && value.count() > 0) {
@@ -849,7 +853,7 @@ OOMaybeUnits ExpandStringKeyMissionVariable(OOStringExpansionContext* /* context
         // A string variable expands to its text; an unset one to nothing. A variable that is not a
         // string (an array, from the legacy set-list action) expands as unset: its Objective-C
         // object was sent -length, which it did not answer (bead oo-qps.50).
-        const oo::PList value = OOStringExpanderPlayerMissionVariableForKey(keyString);
+        const oo::PList value = (PLAYER != nullptr ? PLAYER->missionVariableForKey(keyString) : oo::PList());
         const std::string* text = value.getIf<std::string>();
         return UnitsFromOptional((text != nullptr) ? std::optional<std::string>(*text) : std::nullopt);
     }
@@ -904,9 +908,9 @@ OOMaybeUnits ExpandLegacyScriptSelectorKey(OOStringExpansionContext* context, co
     SEL selector = LookUpLegacySelector(key);
 
     if (selector != NULL) {
-        // Called by name (ADR-0055 item 5): "%@" of the result, as [[result description]] gave it
-        // (nil stays nil).
-        const oo::PList result = OOCallByName(oo::ToObjC(PLAYER), selector);
+        // Called by name on the player's C++ part: "%@" of the
+        // result, as [[result description]] gave it (nil stays nil).
+        const oo::PList result = oo::CallEntityByName(PLAYER, OOSelectorName(selector));
         return UnitsFromOptional(!result.isNull() ? std::optional<std::string>(oo::DescriptionOf(result)) : std::nullopt);
     } else {
         return std::nullopt;
@@ -933,7 +937,7 @@ SEL LookUpLegacySelector(const std::string& key)
         static std::map<std::string, std::string, std::less<>>* aliases = nullptr;
         static std::set<std::string, std::less<>>* whitelist = nullptr;
         if (whitelist == nullptr) {
-            const oo::PList whitelistDict = OOStringExpanderResourceManagerWhitelistDictionary();
+            const oo::PList whitelistDict = ResourceManager::whitelistDictionary();
             whitelist = new std::set<std::string, std::less<>>;
             aliases = new std::map<std::string, std::string, std::less<>>;
             const oo::PList* methods = whitelistDict.find("query_methods");
@@ -962,7 +966,7 @@ SEL LookUpLegacySelector(const std::string& key)
                     part of the game and cannot be overriden by OXPs. If there is an
                     invalid selector in the whitelist, it's a game bug.
             */
-            OOCAssert(OOStringExpanderPlayerRespondsToSelector(selector), "Player does not respond to whitelisted query selector %s.", key.c_str());
+            OOCAssert(oo::EntityRespondsToName(PLAYER, selectorName), "Player does not respond to whitelisted query selector %s.", key.c_str());
         }
 
         if (selector != NULL) {
@@ -1180,7 +1184,7 @@ OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context, 
         return std::nullopt;
     }
 
-    return UnitsFromOptional(OOStringExpanderUniverseGetSystemNameForGalaxy(sysID, galID));
+    return UnitsFromOptional((UNIVERSE != nullptr ? UNIVERSE->getSystemName(sysID, galID) : std::optional<std::string>()));
 }
 
 /*	ExpandSystemNameEscape(context, characters, size, idx, replaceLength)
@@ -1218,7 +1222,7 @@ OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context, const cha
         return std::nullopt;
     }
 
-    return UnitsFromOptional(OOStringExpanderUniverseGetSystemName(sysID));
+    return UnitsFromOptional((UNIVERSE != nullptr ? UNIVERSE->getSystemName(sysID) : std::optional<std::string>()));
 }
 
 void AppendCharacters(OOMaybeUnits* result, const char16_t* characters, NSUInteger start, NSUInteger end)
@@ -1242,7 +1246,7 @@ OOMaybeUnits GetSystemName(OOStringExpansionContext* context)
 {
     OOCParameterAssert(context != NULL);
     if (!context->systemName.has_value()) {
-        context->systemName = UnitsFromOptional(OOStringExpanderUniverseGetSystemName(OOStringExpanderPlayerSystemID()));
+        context->systemName = UnitsFromOptional((UNIVERSE != nullptr ? UNIVERSE->getSystemName((PLAYER != nullptr ? PLAYER->systemID() : 0)) : std::optional<std::string>()));
     }
 
     return context->systemName;
@@ -1289,7 +1293,7 @@ const oo::PList& GetSystemDescriptions(OOStringExpansionContext* context)
 
     if (context->systemDescriptions.isNull()) {
         // Looked up once per context (PListView's rule: an array, else none).
-        const oo::PList* found = OOStringExpanderUniverseDescriptions()->find("system_description");
+        const oo::PList* found = UNIVERSE->descriptions()->find("system_description");
         const oo::PList value = (found != nullptr) ? *found : oo::PList();
         if (value.isArray())
             context->systemDescriptions = value;
@@ -1330,7 +1334,7 @@ OOUnits OldRandomDigrams(void)
     /* The only point of using %R is for world generation, so there's
      * no point in checking the context */
     unsigned len = gen_rnd_number() & 3;
-    const oo::PList* digramsEntry = OOStringExpanderUniverseDescriptions()->find("digrams");
+    const oo::PList* digramsEntry = UNIVERSE->descriptions()->find("digrams");
     const std::string* digramsText = (digramsEntry != nullptr) ? digramsEntry->getIf<std::string>() : nullptr;
     const std::optional<std::string> digrams = (digramsText != nullptr) ? std::optional<std::string>(*digramsText) : std::nullopt;
     const OOUnits digramUnits = UnitsFromOptional(digrams).value_or(OOUnits());
@@ -1351,7 +1355,7 @@ OOUnits NewRandomDigrams(OOStringExpansionContext* context)
     unsigned length = (OO_EXPANDER_RANDOM % 4) + 1;
     if ((OO_EXPANDER_RANDOM % 5) < ((length == 1) ? 3 : 1))
         ++length; // Make two-letter names rarer and 10-letter names happen sometimes
-    const oo::PList* digramsEntry = OOStringExpanderUniverseDescriptions()->find("digrams");
+    const oo::PList* digramsEntry = UNIVERSE->descriptions()->find("digrams");
     const std::string* digramsText = (digramsEntry != nullptr) ? digramsEntry->getIf<std::string>() : nullptr;
     const std::optional<std::string> digrams = (digramsText != nullptr) ? std::optional<std::string>(*digramsText) : std::nullopt;
     const OOUnits digramUnits = UnitsFromOptional(digrams).value_or(OOUnits());

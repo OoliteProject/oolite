@@ -28,21 +28,25 @@ SOFTWARE.
 #import "OOMaterial.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
+#include "OOMaterialState.h"
+#include "oofnd/String.hpp"
 
-namespace cxx {
+#include "oofnd/objc/OOObjCRef.h" // oo::AutoreleaseInObjCPool (bead oo-pvhrh)
+#include <cstdlib>
+#include <cxxabi.h>
+#include <typeinfo>
 
 namespace {
 
-    /*	The current material, retained. It holds the Objective-C object (an Objective-C material
-            itself, or a C++ material's facade), because while any subclass is Objective-C that is what
-            owns the whole material: an Objective-C material's C++ part does not retain it (proposed
-            ADR-0056, amendment oo-smy). Never destroyed, as the static pointer was not.
-    */
-    oo::ObjCRef<::OOMaterial*>& ActiveMaterial()
-    {
-        static auto* active = new oo::ObjCRef<::OOMaterial*>;
-        return *active;
-    }
+/*	The current material, retained (proposed ADR-0056, amendments oo-smy item 4 and oo-9ht.8: it
+        held the Objective-C object until the facade was deleted). Never destroyed, as the static
+        pointer was not.
+*/
+oo::Ref<OOMaterial>& ActiveMaterial()
+{
+    static auto* active = new oo::Ref<OOMaterial>;
+    return *active;
+}
 
 } // namespace
 
@@ -57,6 +61,18 @@ std::optional<std::string> OOMaterial::descriptionComponents() const
     return "\"" + const_cast<OOMaterial*>(this)->name().value_or("(null)") + "\""; // "%@" of the name, quoted
 }
 
+std::string OOMaterial::description() const
+{
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
+    const std::string name = (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
+    std::free(demangled);
+    std::string result = oo::str::format("<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+    if (const std::optional<std::string> components = descriptionComponents())
+        result += "{" + *components + "}";
+    return result;
+}
+
 std::optional<std::string> OOMaterial::name()
 {
     OOLogGenericParameterError();
@@ -66,25 +82,43 @@ std::optional<std::string> OOMaterial::name()
 // Make this the current GL shader program.
 void OOMaterial::apply()
 {
-    if (OOMaterial* active = oo::ToCxx(ActiveMaterial().get()))
+    if (OOMaterial* active = ActiveMaterial().get())
         active->unapplyWithNext(this);
     ActiveMaterial() = nullptr;
 
     if (doApply()) {
-        ActiveMaterial() = oo::ObjCRef<::OOMaterial*>(oo::ToObjC(this));
+        ActiveMaterial() = oo::Ref<OOMaterial>(this);
     }
 }
 
 void OOMaterial::applyNone()
 {
-    if (OOMaterial* active = oo::ToCxx(ActiveMaterial().get()))
+    if (OOMaterial* active = ActiveMaterial().get())
         active->unapplyWithNext(nullptr);
     ActiveMaterial() = nullptr;
 }
 
 oo::Ref<OOMaterial> OOMaterial::current()
 {
-    return oo::Ref<OOMaterial>(oo::ToCxx(ActiveMaterial().get()));
+    return ActiveMaterial();
+}
+
+// OOMaterialState.h: the slot for plain C++ translation units (bead oo-9ht.185).
+OOMaterial* OOMaterialRetainCurrent()
+{
+    return OOMaterial::current().leakRef();
+}
+
+void OOMaterialApplyNone()
+{
+    OOMaterial::applyNone();
+}
+
+void OOMaterialApplyAndRelease(OOMaterial* material)
+{
+    if (material != nullptr)
+        material->apply(); // a message to nil did nothing
+    oo::release(material);
 }
 
 void OOMaterial::ensureFinishedLoading()
@@ -96,7 +130,7 @@ bool OOMaterial::isFinishedLoading()
     return true;
 }
 
-void OOMaterial::setBindingTarget(id<OOWeakReferenceSupport> /*target*/)
+void OOMaterial::setBindingTarget(Entity* /*target*/)
 {
 }
 
@@ -113,7 +147,7 @@ NSUInteger OOMaterial::countOfTextureUnitsWithBaseCoordinates()
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOMaterial::allTextures()
+std::vector<oo::Ref<OOTexture>> OOMaterial::allTextures()
 {
     return { };
 }
@@ -132,11 +166,19 @@ void OOMaterial::unapplyWithNext(OOMaterial* /*next*/)
 
 void OOMaterial::willDealloc()
 {
-    if (EXPECT_NOT(oo::ToCxx(ActiveMaterial().get()) == this)) {
+    if (EXPECT_NOT(ActiveMaterial().get() == this)) {
         OO_LOG("shader.dealloc.imbalance", "{}", "***** Material deallocated while active, indicating a retain/release imbalance.");
         unapplyWithNext(nullptr);
         (void)ActiveMaterial().leakRef(); // = nil: not released, it is being deallocated
     }
 }
 
-} // namespace cxx
+/*	OOMaterialAutorelease(): the material goes to the Objective-C autorelease pool, whose drain releases it
+        where the keeper object that held it was released (bead oo-pvhrh; oo::AutoreleaseInObjCPool).
+*/
+void OOMaterialAutorelease(oo::Ref<OOMaterial> material)
+{
+    if (material == nullptr)
+        return;
+    oo::AutoreleaseInObjCPool(std::move(material));
+}

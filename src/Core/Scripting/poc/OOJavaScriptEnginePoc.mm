@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 #define OOJS_TIME_LIMIT (1) // seconds
 
 namespace {
-cxx::OOJavaScriptEngine* sSharedEngine = nullptr; // the one +1 is never released
+OOJavaScriptEngine* sSharedEngine = nullptr; // the one +1 is never released
 }
 
 JSContext* gOOJSMainThreadContext = NULL;
@@ -65,8 +65,6 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
         callbacks, resets, garbage collection hints, the debug console's stack
         dump switches) do nothing.
 */
-namespace cxx {
-
 OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine()
 {
     if (sSharedEngine == nullptr) {
@@ -236,8 +234,6 @@ void OOJavaScriptEngine::enableDebuggerStatement()
     // Not supported by QuickJS; does nothing, as in the full engine.
 }
 #endif
-
-} // namespace cxx
 
 JSAtom cxx_OOJSIDFromString(const std::string& string)
 {
@@ -448,7 +444,7 @@ static void LogProblem(const std::string& severity, const std::string& errorName
 
     std::string file;
     unsigned line = 0;
-    if (cxx::OOJavaScriptEngine::sharedEngine()->showErrorLocations() && GetLocationFromStack(stack, &file, &line)) {
+    if (OOJavaScriptEngine::sharedEngine()->showErrorLocations() && GetLocationFromStack(stack, &file, &line)) {
         OO_LOG(messageClass, "      {}, line {}.", file, line);
     }
 }

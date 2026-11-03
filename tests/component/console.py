@@ -37,6 +37,16 @@ OOLITE_VERSION_KEY = "Oolite version"
 
 IS_WINDOWS = sys.platform == "win32" or os.name == "nt"
 
+# How long evaluate() waits for an answer when the caller names no timeout. 15 s unless
+# OO_CONSOLE_EVAL_TIMEOUT says otherwise: the -O0 AddressSanitizer build answers far more slowly
+# than the test build, and tools/tier-c.sh raises it when its golden stage runs that build.
+DEFAULT_EVAL_TIMEOUT = 15
+
+
+def eval_timeout():
+    return float(os.environ.get("OO_CONSOLE_EVAL_TIMEOUT") or DEFAULT_EVAL_TIMEOUT)
+
+
 
 class ConsoleError(RuntimeError):
     """The game could not be driven: it never connected, never answered, or died."""
@@ -64,6 +74,7 @@ class DebugConsole:
         self._server = None
         self._conn = None
         self._proc = None
+        self._stderr = None
 
     # --- lifecycle ---------------------------------------------------------------------------
 
@@ -117,14 +128,26 @@ class DebugConsole:
         if not os.path.isfile(path):
             raise ConsoleError(f"no Oolite binary at {path}; build it first")
         argv = [path, "--no-splash"]
+        # OO_GAME_EXTRA_ARGS: extra command-line arguments for the game, split on whitespace. A
+        # sanitized run of the golden harness passes --nosound, as tier-c's sanitized launch does
+        # (opening the OpenAL device trips a third-party ASan report that is fatal).
+        argv += os.environ.get("OO_GAME_EXTRA_ARGS", "").split()
         if self.load_save:
             argv += ["-load", self.load_save]
+        # The game's stderr is kept in the output dir when there is one: a sanitized
+        # build reports there, and a game that dies mid-run otherwise leaves no trace of why. Appended,
+        # so a retried start keeps the attempt before it.
+        stderr = subprocess.DEVNULL
+        if self.output_dir:
+            os.makedirs(self.output_dir, exist_ok=True)
+            self._stderr = open(os.path.join(self.output_dir, "game-stderr.txt"), "ab")
+            stderr = self._stderr
         self._proc = subprocess.Popen(
             argv,
             cwd=self.app_dir,
             env=self._env(),
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stderr=stderr,
         )
 
     def _accept(self, timeout):
@@ -192,6 +215,9 @@ class DebugConsole:
                 except subprocess.TimeoutExpired:
                     self._proc.kill()
                     self._proc.wait(timeout=10)
+            if self._stderr is not None:
+                self._stderr.close()
+                self._stderr = None
 
     def __enter__(self):
         return self
@@ -206,7 +232,7 @@ class DebugConsole:
         """Fire a JS string into the game without waiting for output."""
         self._send({PACKET_TYPE_KEY: PERFORM_COMMAND, MESSAGE_KEY: js})
 
-    def evaluate(self, js, timeout=15):
+    def evaluate(self, js, timeout=None):
         """Run a JS expression and return its result as a string.
 
         The console replies to a command with Console Output packets, so the value has to be sent
@@ -235,6 +261,8 @@ class DebugConsole:
             f'"{head}" + "{tail}" + {wrapped} + "{head}" + "{tail}");'
         )
 
+        if timeout is None:
+            timeout = eval_timeout()
         deadline = time.time() + timeout
         while time.time() < deadline:
             if self._proc is not None and self._proc.poll() is not None:
@@ -253,9 +281,9 @@ class DebugConsole:
                 if value.startswith("ERROR: "):
                     raise ConsoleError(f"JS error evaluating {js!r}: {value[7:]}")
                 return value
-        raise ConsoleError(f"no answer to {js!r} within {timeout}s")
+        raise ConsoleError(f"no answer to {js!r} within {timeout:g}s")
 
-    def evaluate_int(self, js, timeout=15):
+    def evaluate_int(self, js, timeout=None):
         value = self.evaluate(js, timeout=timeout).strip()
         try:
             return int(float(value))

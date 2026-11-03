@@ -49,7 +49,7 @@ T *NewTestPlayer()
 	oo::Ref<T> player = oo::makeRef<T>();
 	@autoreleasepool
 	{
-		[oo::NewEntityFacade(player) retain];
+		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
 }
@@ -59,16 +59,11 @@ static Entity *sRemoved = nil;
 
 
 // UNIVERSE: never initialised; records what is removed.
-@interface TestUniverse: Universe
-@end
-
-
-@implementation TestUniverse
-
-- (OOTimeAbsolute) getTime				{ return 0; }
-- (BOOL) removeEntity:(Entity *)entity	{ sRemoved = entity; return YES; }
-
-@end
+class TestUniverse : public Universe
+{
+public:
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object, as before
+};
 
 
 // --- The private vertex arrays, and nothing else ---------------------------------------------------
@@ -93,8 +88,7 @@ void SetUp()
 	static Universe *universe = nil;
 	if (universe == nil)
 	{
-		universe = (Universe *)class_createInstance([TestUniverse class], 0);	// never released
-		universe->_cxxUniverse = oo::makeRef<cxx::Universe>(universe);	// what -initWithGameView: makes first (ADR-0056 amendment oo-riqmz)
+		universe = new TestUniverse();	// never released
 	}
 	gSharedUniverse = universe;
 	static TestPlayer *player = nullptr;
@@ -149,7 +143,7 @@ OO_TEST(flagsAndColors)
 		oo::Ref<OOBreakPatternEntity> ring = OOBreakPatternEntity::breakPatternWithPolygonSides(3, 45.0f, 1.0f);
 		OO_CHECK(ring->status() == STATUS_EFFECT && ring->scanClass == CLASS_NO_DRAW);
 		OO_CHECK(ring->isImmuneToBreakPatternHide && !ring->canCollide());
-		oo::Ref<cxx::Entity> other = oo::makeRef<cxx::Entity>();
+		oo::Ref<Entity> other = oo::makeRef<Entity>();
 		OO_CHECK(dynamic_cast<OOBreakPatternEntity *>(ring.get()) != nullptr && dynamic_cast<OOBreakPatternEntity *>(other.get()) == nullptr);
 
 		// Default: red inside, blue outside.
@@ -173,7 +167,7 @@ OO_TEST(lifetime)
 	{
 		SetUp();
 		oo::Ref<OOBreakPatternEntity> ring = OOBreakPatternEntity::breakPatternWithPolygonSides(4, 0.0f, 1.0f);
-		Entity *facade = oo::NewEntityFacade(ring);	// what removeEntity: is sent
+		Entity *facade = oo::MadeEntity(ring);	// what removeEntity: is sent
 		ring->setStatus(STATUS_EFFECT);
 		ring->setVelocity(make_vector(0, 0, 10));
 		ring->setLifetime(100.0);

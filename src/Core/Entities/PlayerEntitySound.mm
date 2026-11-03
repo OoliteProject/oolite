@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntitySound.h"
 #import "GameController.h"
+#import "OOCallByName.h" // oo::ScheduleEntityCall
 #import "OOEquipmentType.h"
 #import "OOMaths.h"
 #import "OOSound.h"
@@ -142,7 +143,7 @@ void PlayerEntity::setUpSound()
     sMiscSoundPool = OOSoundSourcePool::poolWithCount(kMiscPoolSize, 0.0).leakRef();
 
     // Two sources with the same sound are used to simulate looping.
-    ::OOSound* afterburnerSound = cxx::ResourceManager::ooSoundNamed("afterburner1.ogg", std::string("Sounds"));
+    ::OOSound* afterburnerSound = ResourceManager::ooSoundNamed("afterburner1.ogg", std::string("Sounds"));
     sAfterburnerSources[0] = NewSource(afterburnerSound);
     sAfterburnerSources[0]->setPosition(kAfterburner1Position);
     sAfterburnerSources[1] = NewSource(afterburnerSound);
@@ -460,7 +461,8 @@ void PlayerEntity::updateAfterburnerSound()
             sAfterburnerSources[which]->play();
         which = !which;
 
-        OOScheduleDeferredCall(oo::ToObjC(this), @selector(updateAfterburnerSound), nil, 1.25); // and swap sounds in 1.25s time (by name: the root's facade answers it)
+        // and swap sounds in 1.25s time (a deferred call on the C++ player; by name on its object before)
+        oo::ScheduleEntityCall(this, [](Entity* entity) { if (PlayerEntity *player = dynamic_cast<PlayerEntity *>(entity))  player->updateAfterburnerSound(); }, 1.25);
     }
 }
 

@@ -13,8 +13,9 @@
 	hidden GL context of oo_gl_test_context.hpp. The expectations were written against the
 	Objective-C API and run on the unconverted class first. Making a generator and the class methods
 	go through the helpers below, the only lines the conversion ported (amendment oo-bj8 item 11):
-	the class is now a global C++ class with no facade of its own, and its generators cross as
-	OOTextureGenerators. The last test pins the C++ API.
+	the class is now a global C++ class with no facade of its own (the
+	generators' facade its generators crossed as is deleted; the crossing check went with it). The last test
+	pins the C++ API.
 	Run: bash tools/check-core-tests.sh test_OOPlanetTextureGenerator
 */
 
@@ -38,6 +39,28 @@ uint32_t gDebugFlags = 0;
 #endif
 
 
+
+// What an autoreleased Objective-C texture was (the facade is deleted): the C++
+// texture, kept until the current autorelease pool drains.
+@interface TestTextureKeeper: OOObject
+{
+@public
+	oo::Ref<OOTexture>	_texture;
+}
+@end
+
+@implementation TestTextureKeeper
+@end
+
+static OOTexture *Autoreleased(const oo::Ref<OOTexture> &texture)
+{
+	if (texture == nullptr)  return nullptr;
+	TestTextureKeeper *keeper = [[[TestTextureKeeper alloc] init] autorelease];
+	keeper->_texture = texture;
+	return texture.get();
+}
+
+
 namespace {
 
 // The loaders' sizes come from their one-time set-up, which a path with no known extension runs
@@ -47,7 +70,7 @@ void SetUp()
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		(void)[OOTextureLoader cxx_loaderWithPath:std::string("unknown.type") options:0];
+		(void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
 	}
 }
 
@@ -72,25 +95,31 @@ oo::PList PlanetInfo(bool perlin3d)
 
 // --- The only lines a conversion ports ----------------------------------------------------------
 
+// The generators made, kept for the test's life (each was autoreleased in its case's pool).
+std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+
+
+OOTextureGenerator *Kept(oo::Ref<OOTextureGenerator> generator)
+{
+	if (generator != nullptr)  gKeptGenerators.push_back(generator);
+	return generator.get();
+}
+
+
 // Was [[OOPlanetTextureGenerator alloc] initWithPlanetInfo:seed:], autoreleased, as a generator.
 OOTextureGenerator *NewGenerator(const oo::PList &info, RANROTSeed seed)
 {
-	return oo::ToObjC(OOPlanetTextureGenerator::generatorWithPlanetInfo(info, seed).get());
+	return Kept(OOPlanetTextureGenerator::generatorWithPlanetInfo(info, seed));
 }
 
 
 // Was +planetTextureWithInfo:seed: (autoreleased).
 OOTexture *PlanetTexture(const oo::PList &info, RANROTSeed seed)
 {
-	return [[OOPlanetTextureGenerator::planetTextureWithInfo(info, seed).get() retain] autorelease];
+	return Autoreleased(OOPlanetTextureGenerator::planetTextureWithInfo(info, seed));
 }
 
 
-// The textures the C++ class methods answer retained, autoreleased as the old ones were.
-OOTexture *Autoreleased(const oo::ObjCRef<OOTexture *> &texture)
-{
-	return [[texture.get() retain] autorelease];
-}
 
 
 // The three +generatePlanetTexture:... methods: what they answered, and the textures they wrote.
@@ -104,7 +133,7 @@ struct Textures
 Textures GenerateWithAtmosphere(const oo::PList &info, RANROTSeed seed)
 {
 	Textures t;
-	oo::ObjCRef<OOTexture *> texture, atmosphere;
+	oo::Ref<OOTexture> texture, atmosphere;
 	t.ok = OOPlanetTextureGenerator::generatePlanetTextureAndAtmosphere(&texture, &atmosphere, info, seed);
 	t.texture = Autoreleased(texture);
 	t.atmosphere = Autoreleased(atmosphere);
@@ -115,7 +144,7 @@ Textures GenerateWithAtmosphere(const oo::PList &info, RANROTSeed seed)
 Textures GenerateWithSecondary(const oo::PList &info, RANROTSeed seed, bool secondary)
 {
 	Textures t;
-	oo::ObjCRef<OOTexture *> texture, secondaryTexture;
+	oo::Ref<OOTexture> texture, secondaryTexture;
 	t.ok = OOPlanetTextureGenerator::generatePlanetTexture(&texture, secondary ? &secondaryTexture : NULL, info, seed);
 	t.texture = Autoreleased(texture);
 	t.secondary = Autoreleased(secondaryTexture);
@@ -126,7 +155,7 @@ Textures GenerateWithSecondary(const oo::PList &info, RANROTSeed seed, bool seco
 Textures GenerateAll(const oo::PList &info, RANROTSeed seed, bool secondary)
 {
 	Textures t;
-	oo::ObjCRef<OOTexture *> texture, secondaryTexture, atmosphere;
+	oo::Ref<OOTexture> texture, secondaryTexture, atmosphere;
 	t.ok = OOPlanetTextureGenerator::generatePlanetTexture(&texture, secondary ? &secondaryTexture : NULL, &atmosphere, info, seed);
 	t.texture = Autoreleased(texture);
 	t.secondary = Autoreleased(secondaryTexture);
@@ -152,18 +181,18 @@ struct Generated
 
 void Generate(OOTextureGenerator *generator, Generated &generated)
 {
-	OO_CHECK([generator enqueue]);
-	generated.ok = [generator getResult:&generated.pixMap format:&generated.format originalWidth:NULL originalHeight:NULL];
+	OO_CHECK(generator->enqueue());
+	generated.ok = generator->getResult(&generated.pixMap, &generated.format, NULL, NULL);
 }
 
 
 // A texture loaded: its key starts with the prefix, and it has the size.
 bool Loaded(OOTexture *texture, const std::string &keyPrefix, unsigned width, unsigned height)
 {
-	if (!(dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr))  return false;
-	[texture ensureFinishedLoading];
-	return [texture isFinishedLoading] && [texture cxx_cacheKey].value_or("").starts_with(keyPrefix)
-		&& [texture dimensions].width == width && [texture dimensions].height == height;
+	if (!(dynamic_cast<OOConcreteTexture *>(texture) != nullptr))  return false;
+	texture->ensureFinishedLoading();
+	return texture->isFinishedLoading() && texture->cacheKey().value_or("").starts_with(keyPrefix)
+		&& texture->dimensions().width == width && texture->dimensions().height == height;
 }
 
 
@@ -172,7 +201,7 @@ void ClearCache()
 	@autoreleasepool
 	{
 		oo::AutoreleaseScope scope;
-		[OOTexture clearCache];
+		OOTexture::clearCache();
 	}
 }
 
@@ -185,15 +214,15 @@ OO_TEST(settings)
 	@autoreleasepool
 	{
 		OOTextureGenerator *generator = NewGenerator(PlanetInfo(false), (RANROTSeed){ 12345, 67890 });
-		OO_CHECK(generator != nil && [generator isKindOfClass:[OOTextureGenerator class]]);
-		OO_CHECK([generator textureOptions] == (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink));
-		OO_CHECK([generator cxx_path].value_or("").starts_with("OOPlanetTexture@"));
+		OO_CHECK(generator != nil && (dynamic_cast<OOTextureGenerator *>(generator) != nullptr));
+		OO_CHECK(generator->textureOptions() == (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink));
+		OO_CHECK(generator->path().value_or("").starts_with("OOPlanetTexture@"));
 
 		// Keyed by what it feeds (nothing yet: baked), the scale (512: 2), the size (not known until
 		// it loads), the land fraction, the seed and the colours.
-		const std::string key = [generator cxx_cacheKey].value_or("");
+		const std::string key = generator->cacheKey().value_or("");
 		OO_CHECK(key.starts_with("OOPlanetTextureGenerator-diffuse-baked@2\n0,0/0.25/12345,67890/"));
-		OO_CHECK(oo::DescriptionOf(generator).find("{seed: 12345,67890 land: 0.25}") != std::string::npos);
+		OO_CHECK(generator->description().find("{seed: 12345,67890 land: 0.25}") != std::string::npos);
 	}
 }
 
@@ -286,10 +315,6 @@ OO_TEST(cxxApi)
 		OO_CHECK(generator && generator->textureOptions() == (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink));
 		OO_CHECK(generator->descriptionComponents() == std::optional<std::string>("seed: 12345,67890 land: 0.25"));
 		OO_CHECK(generator->cacheKey().value_or("").starts_with("OOPlanetTextureGenerator-diffuse-baked@2\n"));
-
-		// Its facade is an OOTextureGenerator (it has none of its own), the same one each time.
-		OOTextureGenerator *facade = oo::ToObjC(generator.get());
-		OO_CHECK([facade class] == [OOTextureGenerator class] && oo::ToCxx(facade) == generator.get() && oo::ToObjC(generator.get()) == facade);
 
 		// Loading fills the root's state; the old -getResult:format:width:height: answers the result.
 		generator->loadTexture();

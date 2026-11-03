@@ -27,13 +27,13 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@class OOTexture;
+class OOTexture;
 
 /*	C++ only since bead oo-9ht.76 deleted its Objective-C facade (ADR-0056 amendments oo-9ht.107,
         oo-9ht.23 and oo-9ht.106): a particle is made in C++ and handed to Objective-C with
         oo::NewEntityFacade, whose object is the root Entity's facade.
 */
-class OOLightParticleEntity : public cxx::Entity {
+class OOLightParticleEntity : public Entity {
 public:
     // -initWithDiameter:'s body, run once right after construction (amendment oo-vl43 item 2): it
     // calls members a subclass overrides. A converted subclass's initialiser calls it first.
@@ -50,10 +50,10 @@ public:
             OOLightParticleEntity assumes the texture is twice as big as the nominal
             size of the particle (with a black border for anti-aliasing purposes).
     */
-    virtual ::OOTexture* texture();
+    virtual OOTexture* texture();
 
     static void setUpTexture();
-    static ::OOTexture* defaultParticleTexture();
+    static OOTexture* defaultParticleTexture();
     // Called by the texture's file-local graphics reset client.
     static void resetGraphicsState();
 
@@ -64,7 +64,7 @@ public:
     bool canCollide() override;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
     // @protected in Objective-C: public, as the tests read them.

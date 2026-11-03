@@ -47,15 +47,18 @@ const char *const cxx_kOOLogException = "exception";
 */
 static double gNow = 100.0;
 
-@interface FakeUniverse: OOObject
-- (double) getTime;
-@end
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// which the test's FakeUniverse stood in for, was deleted), with the header's names and signatures.
+class Universe
+{
+public:
+	OOTimeAbsolute getTime();
+};
+typedef Universe FakeUniverse;
 
-@implementation FakeUniverse
-- (double) getTime  { return gNow; }
-@end
+OOTimeAbsolute Universe::getTime()	{ return gNow; }
 
-@class Universe;
+class Universe;
 Universe *gSharedUniverse = nil;
 
 
@@ -90,7 +93,7 @@ namespace {
 
 void SetUp(double now)
 {
-	if (gSharedUniverse == nil)  gSharedUniverse = (Universe *)[[FakeUniverse alloc] init];
+	if (gSharedUniverse == nil)  gSharedUniverse = new FakeUniverse();
 	gNow = now;
 	gFired.clear();
 }

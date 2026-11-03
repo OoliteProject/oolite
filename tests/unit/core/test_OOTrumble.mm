@@ -26,6 +26,7 @@
 #include "oo_test.hpp"
 
 #include "oofnd/objc/OOObjCRef.h"
+#include "OOEntityHold.h"	// the cargo list (bead oo-xn1j1)
 
 #include <objc/runtime.h>
 
@@ -38,25 +39,45 @@
 
 #import "OOTypes.h"
 #import "OOMaths.h"
+#import "OOTexture.h"
+#include "oofnd/String.hpp"
 
 
 // --- The game around the class --------------------------------------------------------------
 
 static std::vector<std::string> gLog;	// what the trumble asked of the game, in order
 
-@interface OOTexture: OOObject
-+ (id) cxx_textureWithName:(const std::optional<std::string> &)name inFolder:(const std::optional<std::string> &)directory options:(uint32_t)options anisotropy:(GLfloat)anisotropy lodBias:(GLfloat)lodBias;
-- (void) apply;
-@end
-
-@implementation OOTexture
-+ (id) cxx_textureWithName:(const std::optional<std::string> &)name inFolder:(const std::optional<std::string> &)directory options:(uint32_t)options anisotropy:(GLfloat)anisotropy lodBias:(GLfloat)lodBias
+// The C++ OOTexture (bead oo-9ht.99 deleted the Objective-C facade this stood in for): the factory
+// the trumble calls, recorded, answering a texture; and the root's own members, which a texture
+// needs (OOTexture.mm links the loaders and the game). The trumble never applies it here.
+oo::Ref<OOTexture> OOTexture::textureWithName(const std::optional<std::string> &name, const std::optional<std::string> &directory, OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias)
 {
 	gLog.push_back("texture " + name.value_or("-") + " in " + directory.value_or("-") + " options " + std::to_string(options) + " anisotropy " + std::to_string(anisotropy) + " lodBias " + std::to_string(lodBias));
-	return [[[OOTexture alloc] init] autorelease];
+	return oo::makeRef<OOTexture>();
 }
-- (void) apply  { std::abort(); }
-@end
+OOTexture::OOTexture()	{}
+OOTexture::~OOTexture()	{}
+void OOTexture::apply()	{ std::abort(); }
+void OOTexture::ensureFinishedLoading()	{}
+bool OOTexture::isFinishedLoading()	{ return true; }
+std::optional<std::string> OOTexture::cacheKey()	{ return std::nullopt; }
+NSSize OOTexture::dimensions()	{ return NSSize{}; }
+NSSize OOTexture::originalDimensions()	{ return dimensions(); }
+bool OOTexture::isMipMapped()	{ return false; }
+OOPixMap OOTexture::copyPixMapRepresentation()	{ return OOPixMap{}; }
+bool OOTexture::isRectangleTexture()	{ return false; }
+bool OOTexture::isCubeMap()	{ return false; }
+NSSize OOTexture::texCoordsScale()	{ return NSSize{1.0, 1.0}; }
+GLint OOTexture::glTextureName()	{ return 0; }
+#ifndef NDEBUG
+std::optional<std::string> OOTexture::name()	{ return std::nullopt; }
+#endif
+std::optional<std::string> OOTexture::descriptionComponents() const	{ return std::nullopt; }
+std::optional<std::string> OOTexture::shortDescriptionComponents() const	{ return std::nullopt; }
+std::string OOTexture::description() const	{ return oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str()); }
+std::string OOTexture::shortDescription() const	{ return description(); }
+std::string OOTexture::className() const	{ return "OOTexture"; }
+void OOTexture::forceRebind()	{}
 
 
 // A sound is its key: the root's members its vtable names (OOALSound.mm is not linked), and the
@@ -105,25 +126,24 @@ void OOSoundSource::playOOSound(OOSound *s)		{ gSourceSound = s; gLog.push_back(
 // held as their objects, the root's (which holds the C++ part, oo::ToCxx reads it, and which
 // oo::ToObjC answers for it), declared as Entity.h and ShipEntity.h declare them (the test imports
 // neither) with the stand-in's answers.
-namespace cxx {
 class Entity : public oo::RefCounted
 {
 public:
 	virtual ~Entity();
 };
-}	// namespace cxx
 
-@interface Entity: OOObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;
+	oo::Ref<Entity> _cxxEntity;
 }
 @end
 
-@implementation Entity
+@implementation TestEntityObject
 @end
 
-cxx::Entity::~Entity() = default;
+Entity::~Entity() = default;
 
 
 // The market: food is loved (1), furs liked (0.5), anything else refused. The C++ market's one
@@ -137,11 +157,11 @@ float OOCommodityMarket::trumbleOpinionForGood(const std::string &good)
 // PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
 // the code under test calls, declared as the game headers declare them (the test imports none
 // that defines the classes), with the stand-in's answers.
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
 	GLfloat hullHeatLevel();
-	std::vector<oo::ObjCRef<::Entity *>> *getCargo();
+	std::vector<oo::EntityHold> *getCargo();
 	std::optional<std::string> commodityType();
 
 	std::string commodity;	// a cargo pod's
@@ -159,14 +179,14 @@ public:
 
 	GLfloat pitch = {}, roll = {}, heat = {};
 	float appetite = {};
-	std::vector<oo::ObjCRef<::Entity *>> cargo;
+	std::vector<oo::EntityHold> cargo;
 	std::vector<OOTrumble *> added, removed;
 };
 
 GLfloat PlayerEntity::dialRoll()  { return roll; }
 GLfloat PlayerEntity::dialPitch()  { return pitch; }
 GLfloat ShipEntity::hullHeatLevel()  { return static_cast<PlayerEntity *>(this)->heat; }
-std::vector<oo::ObjCRef<::Entity *>> *ShipEntity::getCargo()  { return &static_cast<PlayerEntity *>(this)->cargo; }
+std::vector<oo::EntityHold> *ShipEntity::getCargo()  { return &static_cast<PlayerEntity *>(this)->cargo; }
 std::optional<std::string> ShipEntity::commodityType()  { return commodity; }
 float PlayerEntity::trumbleAppetiteAccumulator()  { return appetite; }
 void PlayerEntity::setTrumbleAppetiteAccumulator(float value)  { appetite = value; }
@@ -174,27 +194,32 @@ void PlayerEntity::addTrumble(OOTrumble *t)  { added.push_back(t); }
 void PlayerEntity::removeTrumble(OOTrumble *t)  { removed.push_back(t); }
 
 
-@interface Universe: OOObject
+#import "UniverseStandIn.h"
+
+// The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
+// the Objective-C facade the test's Objective-C stand-in stood in for), with the header's names and signatures.
+// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+class Universe : public oo::RefCounted
 {
-@public
+public:
+	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
+
 	OOViewID view;
 	oo::Ref<OOCommodityMarket> market;
-}
-- (OOViewID) viewDirection;
-- (OOCommodityMarket *) commodityMarket;
-- (std::optional<std::string>) cxx_displayNameForCommodity:(const std::string &)co_type;
-- (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count;
-@end
 
-@implementation Universe
-- (OOViewID) viewDirection	{ return view; }
-- (OOCommodityMarket *) commodityMarket	{ return market.get(); }
-- (std::optional<std::string>) cxx_displayNameForCommodity:(const std::string &)co_type	{ return "Display " + co_type; }
-- (void) cxx_addMessage:(const std::optional<std::string> &)text forCount:(OOTimeDelta)count
+	::OOCommodityMarket *getCommodityMarket();
+	std::optional<std::string> displayNameForCommodity(const std::string &);
+};
+
+class StandInUniverse : public Universe
 {
-	gLog.push_back("message " + text.value_or("-") + " for " + std::to_string(count));
-}
-@end
+public:
+	OOViewID getViewDirection() override	{ return view; }
+	void addMessage(const std::optional<std::string> &text, OOTimeDelta count) override	{ gLog.push_back("message " + text.value_or("-") + " for " + std::to_string(count)); }
+};
+
+::OOCommodityMarket *Universe::getCommodityMarket()	{ return market.get(); }
+std::optional<std::string> Universe::displayNameForCommodity(const std::string &co_type)	{ return "Display " + co_type; }
 
 Universe *gSharedUniverse = nil;
 
@@ -225,6 +250,13 @@ void OOGLPushModelView(void)				{ std::abort(); }
 OOMatrix OOGLPopModelView(void)				{ std::abort(); }
 void OOGLTranslateModelView(Vector)			{ std::abort(); }
 void OOGLMultModelView(OOMatrix)			{ std::abort(); }
+#if OO_CHECK_GL_HEAVY
+// OOGL()/OOGLBEGIN() in the debug flavour (OOOpenGLCheck.h; bead oo-iimku).
+bool cxx_OOCheckOpenGLErrors(const char *, ...)	{ std::abort(); }
+#if OO_GL_STATE_VERIFICATION
+void OOGLNoteCurrentFunction(const char *, unsigned)	{ std::abort(); }
+#endif
+#endif
 
 
 static std::string Colour(const GLfloat *c)
@@ -262,13 +294,13 @@ namespace {
 
 // A cargo pod: a C++ ship under its object (autoreleased, as [[[ShipEntity alloc] init] autorelease]
 // was), carrying the good.
-std::map<cxx::Entity *, ::Entity *> sObjects;	// what oo::ToObjC answers
+std::map<Entity *, ::TestEntityObject *> sObjects;	// what oo::ToObjC answers
 
-::Entity *NewPod(const char *good)
+::TestEntityObject *NewPod(const char *good)
 {
 	oo::Ref<ShipEntity> ship = oo::makeRef<ShipEntity>();
 	ship->commodity = good;
-	::Entity *pod = [[[::Entity alloc] init] autorelease];
+	::TestEntityObject *pod = [[[::TestEntityObject alloc] init] autorelease];
 	pod->_cxxEntity = ship;
 	sObjects[ship.get()] = pod;
 	return pod;
@@ -286,7 +318,7 @@ void Reset()
 {
 	if (gSharedUniverse == nil)
 	{
-		gSharedUniverse = [[Universe alloc] init];
+		gSharedUniverse = new StandInUniverse();
 		gSharedUniverse->market = oo::makeRef<OOCommodityMarket>();
 	}
 	gSharedUniverse->view = VIEW_FORWARD;
@@ -518,9 +550,9 @@ OO_TEST(feedingPopAndSpawn)
 		PlayerEntity *p = Player();
 		for (const char *good : { "gems", "furs", "food" })
 		{
-			p->cargo.push_back(oo::ObjCRef<::Entity *>(NewPod(good)));
+			p->cargo.push_back(oo::EntityHold(NewPod(good)->_cxxEntity.get()));
 		}
-		::Entity *food = p->cargo[2].get();
+		Entity *food = p->cargo[2].get();
 		p->appetite = 9.5f;
 		oo::Ref<OOTrumble> t = Trumble("Zq");
 		oo::PList::Dict state = *t->dictionary().getIf<oo::PList::Dict>();
@@ -581,8 +613,10 @@ OO_TEST(cxxClass)
 
 
 // The pods' objects (Entity+ObjCBridge.mm's, which the test does not link).
-namespace oo { ::Entity *ToObjC(cxx::Entity *entity); }
-::Entity *oo::ToObjC(cxx::Entity *entity)
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }
+#define OO_ENTITY_HELPERS_STAND_IN_NO_DESCRIPTIONS 1	// the test links no OODescription.mm
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects (bead oo-dpyk8)
+::TestEntityObject *oo::ToObjC(Entity *entity)
 {
 	auto found = sObjects.find(entity);
 	return found != sObjects.end() ? found->second : nil;

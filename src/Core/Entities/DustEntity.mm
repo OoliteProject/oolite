@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOMaterial.h" // For kTangentAttributeIndex
 #import "OOShaderProgram.h"
 #import "OOShaderUniform.h"
+#import "OOShaderUniformMethodType.h"
 #endif
 
 #import "PlayerEntity.h"
@@ -55,41 +56,27 @@ enum {
 #endif
 
 #if OO_SHADERS
-/*	What the dust shader's uniforms are bound to, by selector (-warpVector, -offsetPlayerPosition),
-        until the shader binding takes a C++ target: the DustEntity's own, private Objective-C object
-        (the DustEntity facade, now deleted, was bound before). It does not retain
-        the dust; the dust clears it in its destructor.
+/*	The dust shader's two uniforms read the dust's members (the file-local Objective-C object they
+        were bound to by selector is deleted).
+        The uniform holds the dust weakly, as it held that object: once the dust has gone it sets nothing.
 */
-@interface OODustShaderBinding : OOWeakRefObject {
-@public
-    DustEntity* _dust;
-}
+namespace {
 
-- (Vector)warpVector;
-- (Vector)offsetPlayerPosition;
-
-@end
-
-@implementation OODustShaderBinding
-
-- (Vector)warpVector
+void DustWarpVectorBinding(oo::RefCounted* target, OOShaderBindingValue& outValue)
 {
-    return _dust != nullptr ? _dust->warpVector() : kZeroVector;
-}
-- (Vector)offsetPlayerPosition
-{
-    return _dust != nullptr ? _dust->offsetPlayerPosition() : kZeroVector;
+    outValue.v = static_cast<DustEntity*>(target)->warpVector();
 }
 
-@end
+void DustOffsetPlayerPositionBinding(oo::RefCounted* target, OOShaderBindingValue& outValue)
+{
+    outValue.v = static_cast<DustEntity*>(target)->offsetPlayerPosition();
+}
+
+} // namespace
 #endif
 
 DustEntity::~DustEntity()
 {
-#if OO_SHADERS
-    if (shaderBinding.get() != nil)
-        ((OODustShaderBinding*)shaderBinding.get())->_dust = nullptr;
-#endif
     OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
 }
 
@@ -127,14 +114,10 @@ void DustEntity::init()
     dust_color = OOColor::colorWithRed(0.5, 1.0, 1.0, 1.0);
     setStatus(STATUS_ACTIVE);
 
-    hasPointSprites = cxx::OOOpenGLExtensionManager::sharedManager()->haveExtension("GL_ARB_point_sprite");
+    hasPointSprites = OOOpenGLExtensionManager::sharedManager()->haveExtension("GL_ARB_point_sprite");
 
     if (hasPointSprites) {
-        texture = oo::ObjCRef<::OOTexture*>([::OOTexture cxx_textureWithName:"oolite-particle-dust.png"
-                                                                    inFolder:"Textures"
-                                                                     options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                                                  anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                                     lodBias:0.0]);
+        texture = OOTexture::textureWithName("oolite-particle-dust.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask, kOOTextureDefaultAnisotropy / 2.0, 0.0);
     }
 
     collision_radius = DUST_SCALE; // for draw pass calculations
@@ -208,12 +191,6 @@ void DustEntity::update(OOTimeDelta /*delta_t*/)
 OOShaderProgram* DustEntity::getShader()
 {
     if (shader == nullptr) {
-        if (shaderBinding.get() == nil) {
-            OODustShaderBinding* binding = [[OODustShaderBinding alloc] init];
-            binding->_dust = this;
-            shaderBinding = oo::adoptObjC<id>(binding); // what the uniforms are bound to
-        }
-        id self = shaderBinding.get();
         std::string prefix = oo::str::format(
             "#define OODUST_SCALE_MAX    (float(%g))\n"
             "#define OODUST_SCALE_FACTOR (float(%g))\n"
@@ -234,13 +211,17 @@ OOShaderProgram* DustEntity::getShader()
         uniforms.clear();
         oo::Ref<OOShaderUniform> uWarp = OOShaderUniform::initWithName("uWarp",
             shader.get(),
-            self,
-            OOSelectorFromName("warpVector"),
+            this,
+            "warpVector",
+            kOOShaderUniformTypeVector, // -warpVector's return type
+            DustWarpVectorBinding,
             0);
         oo::Ref<OOShaderUniform> uOffsetPlayerPosition = OOShaderUniform::initWithName("uOffsetPlayerPosition",
             shader.get(),
-            self,
-            OOSelectorFromName("offsetPlayerPosition"),
+            this,
+            "offsetPlayerPosition",
+            kOOShaderUniformTypeVector, // -offsetPlayerPosition's return type
+            DustOffsetPlayerPositionBinding,
             0);
 
         uniforms.push_back(uWarp);
@@ -261,8 +242,8 @@ Vector DustEntity::offsetPlayerPosition()
 void DustEntity::checkShaderMode()
 {
     shaderMode = kShaderModeOff;
-    if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS) {
-        if (cxx::OOOpenGLExtensionManager::sharedManager()->useDustShader()) {
+    if ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { }) >= DETAIL_LEVEL_SHADERS) {
+        if (OOOpenGLExtensionManager::sharedManager()->useDustShader()) {
             shaderMode = kShaderModeOn;
         }
     }
@@ -276,7 +257,7 @@ Vector DustEntity::warpVector()
 
 void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
-    if (!drawDust || [UNIVERSE breakPatternHide] || !translucent)
+    if (!drawDust || (UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false) || !translucent)
         return; // DON'T DRAW
 
     ::PlayerEntity* player = PLAYER;
@@ -293,8 +274,8 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     BOOL useShader = (shaderMode == kShaderModeOn);
 #endif
 
-    GLfloat* fogcolor = [UNIVERSE skyClearColor];
-    float idealDustSize = [[UNIVERSE gameView] viewSize].width / 800.0f;
+    GLfloat* fogcolor = (UNIVERSE != nullptr ? UNIVERSE->getSkyClearColor() : nullptr);
+    float idealDustSize = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getViewSize() : NSSize { }).width / 800.0f;
 
     BOOL warp_stars = (player != nullptr ? player->atHyperspeed() : false);
     float dustIntensity;
@@ -330,7 +311,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
         if (player->isSunlit)
             color = color_fv;
         else
-            color = UNIVERSE->_cxxUniverse->stars_ambient;
+            color = UNIVERSE->stars_ambient;
         OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
 
 #if OO_SHADERS
@@ -392,7 +373,8 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
                     OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
                 }
                 OOGL(glEnable(GL_POINT_SPRITE_ARB));
-                [texture.get() apply];
+                if (texture != nullptr)
+                    texture->apply(); // a message to nil did nothing
                 OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
                 OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
                 OOGL(glDisable(GL_POINT_SPRITE_ARB));
@@ -421,7 +403,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "DustEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "DustEntity after drawing " + oo::EntityDescription(this); });
 }
 
 void DustEntity::resetGraphicsState()

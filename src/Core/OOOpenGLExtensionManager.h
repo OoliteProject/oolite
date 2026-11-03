@@ -8,10 +8,8 @@ This is thread safe, except for initialization; that is, sharedManager() should
 be called from the main thread at an early point. The OpenGL context must be
 set up by then.
 
-C++20 since bead oo-z1s4 (proposed ADR-0056). The class is cxx::OOOpenGLExtensionManager while
-OOOpenGLExtensionManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOOpenGLExtensionManager its unconverted callers message; the bridge's deletion bead moves it out
-of namespace cxx.
+C++20 since bead oo-z1s4 (proposed ADR-0056); its Objective-C facade was deleted by bead oo-9ht.13,
+which moved the class out of namespace cxx.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -53,8 +51,6 @@ SOFTWARE.
 #include "OOOpenGLExtensionPointers.h"
 
 #define OOOPENGLEXTMGR_LOCK_SET_ACCESS (!OOLITE_MAC_COCOA_UI)
-
-namespace cxx {
 
 class OOOpenGLExtensionManager : public oo::RefCounted {
 public:
@@ -152,16 +148,10 @@ private:
 #endif
 };
 
-} // namespace cxx
-
 OOINLINE BOOL OOShadersSupported(void) INLINE_PURE_FUNC;
 OOINLINE BOOL OOShadersSupported(void)
 {
-    return cxx::OOOpenGLExtensionManager::sharedManager()->shadersSupported();
+    return OOOpenGLExtensionManager::sharedManager()->shadersSupported();
 }
-
-// Transitional: the Objective-C OOOpenGLExtensionManager, for callers not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "OOOpenGLExtensionManager+ObjCBridge.h"
 
 #endif // OOOPENGLEXTENSIONMANAGER_H

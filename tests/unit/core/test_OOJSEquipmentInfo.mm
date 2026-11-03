@@ -113,32 +113,33 @@ oo::PList EquipmentData()
 }	// namespace
 
 
-@interface Universe: OOObject
-- (oo::PList) cxx_equipmentData;
-- (oo::PList) cxx_equipmentDataOutfitting;
-@end
+// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
+// deleted, was what this stood in for), with the header's names and signatures.
+class Universe
+{
+public:
+	oo::PList getEquipmentData();
+	oo::PList getEquipmentDataOutfitting();
+};
 
-@implementation Universe
-- (oo::PList) cxx_equipmentData				{ return EquipmentData(); }
-- (oo::PList) cxx_equipmentDataOutfitting	{ return EquipmentData(); }
-@end
+oo::PList Universe::getEquipmentData()	{ return EquipmentData(); }
+oo::PList Universe::getEquipmentDataOutfitting()	{ return EquipmentData(); }
+
 
 Universe *gSharedUniverse = nil;
 
 
-@interface OOCacheManager: OOObject
-+ (OOCacheManager *) sharedCache;
-- (void) cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache;
-@end
+#import "OOCacheManager.h"
 
-@implementation OOCacheManager
-+ (OOCacheManager *) sharedCache
+// The cache manager is C++ since its facade was deleted: a C++ stand-in with the Objective-C
+// stand-in's answers.
+OOCacheManager *OOCacheManager::sharedCache()
 {
-	static OOCacheManager *cache = [[OOCacheManager alloc] init];
-	return cache;
+	static OOCacheManager *shared = new OOCacheManager;
+	return shared;
 }
-- (void) cxx_setPList:(const oo::PList &)value forKey:(const std::string &)key inCache:(const std::string &)cache  { (void)value; (void)key; (void)cache; }
-@end
+OOCacheManager::~OOCacheManager()  {}
+void OOCacheManager::setPList(const oo::PList &value, const std::string &key, const std::string &cache)  { (void)value; (void)key; (void)cache; }
 
 
 #import "OOScript.h"
@@ -151,7 +152,7 @@ std::optional<std::string> OOScript::name()					{ return std::nullopt; }
 std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
 std::optional<std::string> OOScript::version()				{ return std::nullopt; }
 bool OOScript::requiresTickle()								{ return false; }
-void OOScript::runWithTarget(::Entity *)						{}
+void OOScript::runWithTarget(Entity *)						{}
 bool OOScript::callMethod(JSAtom, JSContext *, JSValueConst *, int, JSValue *)	{ return false; }
 std::string OOScript::className() const						{ return "OOScript"; }
 std::string OOScript::description() const						{ return "<OOScript>"; }
@@ -173,15 +174,13 @@ oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, c
 // PLAYER: C++ since the Objective-C player this stood in for was deleted: the members the code
 // under test calls, declared as the game headers declare them (the test imports none that defines
 // the classes), with the stand-in's answers. The ship is C++ too.
-namespace cxx {
 class Entity
 {
 public:
 
 };
-}	// namespace cxx
 
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 public:
 	OOFuelQuantity getFuel();
@@ -541,7 +540,7 @@ PlayerEntity *sPlayer = nullptr;
 void SetUpContext()
 {
 	if (sContext != nullptr)  return;
-	gSharedUniverse = [[Universe alloc] init];	// kept for the life of the test
+	gSharedUniverse = new Universe();	// kept for the life of the test
 	sPlayer = new PlayerEntity;
 	sPlayer->_fuel = 30;
 	sPlayer->_fuelChargeRate = 1.5f;

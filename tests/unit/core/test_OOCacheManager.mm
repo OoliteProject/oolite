@@ -11,9 +11,8 @@
 	writing through the asynchronous work manager and a reload reading it back; writes refused
 	while disallowed; a cache from another game version, or one that does not parse, discarded;
 	clearing everything. The expectations were written against the Objective-C API and run on the
-	unconverted class first (commit 079054e79); they now run through the facade, which is its
-	forwarding test (amendment oo-8kx7 item 6). The C++ API and the facade's contract (one facade,
-	identity both ways, nil and null) follow.
+	unconverted class first (commit 079054e79); they ran through the facade until bead oo-9ht.31
+	deleted it with its contract test (standing approval oo-9n5p9), and now ask the C++ class.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -30,67 +29,69 @@
 
 
 /*	The asynchronous work manager (OOAsyncWorkManager.mm) starts worker threads, so it is not
-	linked. A stub of the same name answers the three selectors the cache manager sends
-	(proposed ADR-0056 amendment oo-z1s4 item 4): it keeps each task and runs it when it is waited
-	for, as a worker thread would have run it by then, and counts both.
+	linked. A stand-in answers the three calls the cache manager makes (proposed ADR-0056
+	amendment oo-z1s4 item 4): it keeps each task and runs it when it is waited for, as a worker
+	thread would have run it by then, and counts both. It was an Objective-C stub of the facade
+	until bead oo-9ht.14 made the manager and its tasks C++; its answers are the same.
 */
-@protocol StubAsyncTask
-- (void) performAsyncTask;
-- (void) completeAsyncTask;
-@end
-
-
 static int gTasksAdded = 0;
 static int gTasksPerformed = 0;
+static std::vector<oo::Ref<OOAsyncWorkTask>> gPendingTasks;
 
 
-@interface OOAsyncWorkManager: OOObject
+namespace {
+
+class StubAsyncWorkManager : public OOAsyncWorkManager
 {
-@private
-	std::vector<id>		_pending;
-}
-+ (OOAsyncWorkManager *) sharedAsyncWorkManager;
-- (BOOL) addTask:(id)task priority:(int)priority;
-- (void) waitForTaskToComplete:(id)task;
-@end
+public:
+	StubAsyncWorkManager() = default;
+};
+
+}	// namespace
 
 
-@implementation OOAsyncWorkManager
-
-+ (OOAsyncWorkManager *) sharedAsyncWorkManager
+OOAsyncWorkManager *OOAsyncWorkManager::sharedAsyncWorkManager()
 {
-	static OOAsyncWorkManager *manager = [[OOAsyncWorkManager alloc] init];
+	static OOAsyncWorkManager *manager = new StubAsyncWorkManager;
 	return manager;
 }
 
 
-- (BOOL) addTask:(id)task priority:(int)priority
+OOAsyncWorkManager::~OOAsyncWorkManager()
 {
-	(void)priority;
-	if (task == nil)  return NO;
-	_pending.push_back([task retain]);
-	gTasksAdded++;
-	return YES;
 }
 
 
-- (void) waitForTaskToComplete:(id)task
+bool OOAsyncWorkManager::addTask(OOAsyncWorkTask *task, OOAsyncWorkPriority priority)
 {
-	for (auto it = _pending.begin(); it != _pending.end(); ++it)
+	(void)priority;
+	if (task == nullptr)  return false;
+	gPendingTasks.emplace_back(task);
+	gTasksAdded++;
+	return true;
+}
+
+
+void OOAsyncWorkManager::completePendingTasks()
+{
+}
+
+
+void OOAsyncWorkManager::waitForTaskToComplete(OOAsyncWorkTask *task)
+{
+	for (auto it = gPendingTasks.begin(); it != gPendingTasks.end(); ++it)
 	{
 		if (*it == task)
 		{
-			_pending.erase(it);
-			[(id<StubAsyncTask>)task performAsyncTask];
-			[(id<StubAsyncTask>)task completeAsyncTask];
+			const oo::Ref<OOAsyncWorkTask> pending = *it;
+			gPendingTasks.erase(it);
+			pending->performAsyncTask();
+			pending->completeAsyncTask();
 			gTasksPerformed++;
-			[task release];
 			return;
 		}
 	}
 }
-
-@end
 
 
 namespace {
@@ -154,15 +155,15 @@ OO_TEST(sharedInstanceStartsEmpty)
 	@autoreleasepool
 	{
 		OO_CHECK(!stdfs::exists(CacheFile()));
-		OOCacheManager *cache = [OOCacheManager sharedCache];
-		OO_CHECK(cache != nil);
-		OO_CHECK([OOCacheManager sharedCache] == cache);
-		OO_CHECK([cache cxx_pListForKey:"key" inCache:"cache"].isNull());
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=no"));
+		OOCacheManager *cache = OOCacheManager::sharedCache();
+		OO_CHECK(cache != nullptr);
+		OO_CHECK(OOCacheManager::sharedCache() == cache);
+		OO_CHECK(cache->pListForKey("key", "cache").isNull());
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=no"));
 
 		// Loading made no directory.
 		OO_CHECK(!stdfs::exists(sRoot / "GNUstep"));
-		OO_CHECK(![cache cxx_cacheDirectoryPathCreatingIfNecessary:NO].has_value());
+		OO_CHECK(!cache->cacheDirectoryPathCreatingIfNecessary(false).has_value());
 		OO_CHECK(!stdfs::exists(sRoot / "GNUstep"));
 	}
 }
@@ -173,36 +174,36 @@ OO_TEST(entriesAndCaches)
 	SetUp();
 	@autoreleasepool
 	{
-		OOCacheManager *cache = [OOCacheManager sharedCache];
-		[cache cxx_setPList:Str("one") forKey:"a" inCache:"first"];
-		[cache cxx_setPList:oo::PList(2) forKey:"b" inCache:"first"];
-		[cache cxx_setPList:Str("three") forKey:"a" inCache:"second"];
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=yes"));
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"first"] == Str("one"));
-		OO_CHECK([cache cxx_pListForKey:"b" inCache:"first"] == oo::PList(2));
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"second"] == Str("three"));
-		OO_CHECK([cache cxx_pListForKey:"b" inCache:"second"].isNull());
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"third"].isNull());
+		OOCacheManager *cache = OOCacheManager::sharedCache();
+		cache->setPList(Str("one"), "a", "first");
+		cache->setPList(oo::PList(2), "b", "first");
+		cache->setPList(Str("three"), "a", "second");
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=yes"));
+		OO_CHECK(cache->pListForKey("a", "first") == Str("one"));
+		OO_CHECK(cache->pListForKey("b", "first") == oo::PList(2));
+		OO_CHECK(cache->pListForKey("a", "second") == Str("three"));
+		OO_CHECK(cache->pListForKey("b", "second").isNull());
+		OO_CHECK(cache->pListForKey("a", "third").isNull());
 
 		// Replacing.
-		[cache cxx_setPList:Str("uno") forKey:"a" inCache:"first"];
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"first"] == Str("uno"));
+		cache->setPList(Str("uno"), "a", "first");
+		OO_CHECK(cache->pListForKey("a", "first") == Str("uno"));
 
 		// Removing an entry, and entries or caches that are not there.
-		[cache cxx_removeObjectForKey:"b" inCache:"first"];
-		OO_CHECK([cache cxx_pListForKey:"b" inCache:"first"].isNull());
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"first"] == Str("uno"));
-		[cache cxx_removeObjectForKey:"b" inCache:"first"];
-		[cache cxx_removeObjectForKey:"b" inCache:"none"];
-		[cache cxx_clearCache:"none"];
+		cache->removeObjectForKey("b", "first");
+		OO_CHECK(cache->pListForKey("b", "first").isNull());
+		OO_CHECK(cache->pListForKey("a", "first") == Str("uno"));
+		cache->removeObjectForKey("b", "first");
+		cache->removeObjectForKey("b", "none");
+		cache->clearCache("none");
 
 		// Clearing one cache.
-		[cache cxx_clearCache:"second"];
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"second"].isNull());
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"first"] == Str("uno"));
+		cache->clearCache("second");
+		OO_CHECK(cache->pListForKey("a", "second").isNull());
+		OO_CHECK(cache->pListForKey("a", "first") == Str("uno"));
 
-		[cache cxx_clearCache:"first"];
-		OO_CHECK([cache cxx_pListForKey:"a" inCache:"first"].isNull());
+		cache->clearCache("first");
+		OO_CHECK(cache->pListForKey("a", "first").isNull());
 	}
 }
 
@@ -212,24 +213,24 @@ OO_TEST(flushWritesAndReloadReads)
 	SetUp();
 	@autoreleasepool
 	{
-		OOCacheManager *cache = [OOCacheManager sharedCache];
-		[cache cxx_setPList:Str("kept") forKey:"k" inCache:"flushed"];
+		OOCacheManager *cache = OOCacheManager::sharedCache();
+		cache->setPList(Str("kept"), "k", "flushed");
 		oo::PList::Dict dict;
 		dict.emplace("x", oo::PList(1.5));
 		dict.emplace("y", oo::PList(oo::PList::Array{Str("p"), Str("q")}));
-		[cache cxx_setPList:oo::PList(dict) forKey:"d" inCache:"flushed"];
+		cache->setPList(oo::PList(dict), "d", "flushed");
 
 		gTasksAdded = gTasksPerformed = 0;
-		[cache flush];
+		cache->flush();
 		// The write is one task; flushing marks the manager clean at once.
 		OO_CHECK(gTasksAdded == 1);
 		OO_CHECK(gTasksPerformed == 0);
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=no"));
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=no"));
 		// Nothing to flush while clean.
-		[cache flush];
+		cache->flush();
 		OO_CHECK(gTasksAdded == 1);
 
-		[cache finishOngoingFlush];
+		cache->finishOngoingFlush();
 		OO_CHECK(gTasksPerformed == 1);
 		OO_CHECK(stdfs::exists(CacheFile()));
 		const std::string text = CacheFileText();
@@ -237,21 +238,21 @@ OO_TEST(flushWritesAndReloadReads)
 		OO_CHECK(text.find("9.9.9-test") != std::string::npos);
 		OO_CHECK(text.find("kept") != std::string::npos);
 		// Waiting again, with no write under way, does nothing.
-		[cache finishOngoingFlush];
+		cache->finishOngoingFlush();
 		OO_CHECK(gTasksPerformed == 1);
 
 		// The directory now exists, so it is answered without being made.
-		const std::optional<std::string> directory = [cache cxx_cacheDirectoryPathCreatingIfNecessary:NO];
+		const std::optional<std::string> directory = cache->cacheDirectoryPathCreatingIfNecessary(false);
 		OO_CHECK(directory.has_value());
 		OO_CHECK(directory.has_value() && stdfs::equivalent(oo::fs::pathFromUTF8(*directory), CacheFile().parent_path()));
 
 		// A change after the flush is lost by reloading; what was written comes back.
-		[cache cxx_setPList:Str("unsaved") forKey:"u" inCache:"flushed"];
-		[cache reloadAllCaches];
-		OO_CHECK([cache cxx_pListForKey:"u" inCache:"flushed"].isNull());
-		OO_CHECK([cache cxx_pListForKey:"k" inCache:"flushed"] == Str("kept"));
-		OO_CHECK([cache cxx_pListForKey:"d" inCache:"flushed"] == oo::PList(dict));
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=no"));
+		cache->setPList(Str("unsaved"), "u", "flushed");
+		cache->reloadAllCaches();
+		OO_CHECK(cache->pListForKey("u", "flushed").isNull());
+		OO_CHECK(cache->pListForKey("k", "flushed") == Str("kept"));
+		OO_CHECK(cache->pListForKey("d", "flushed") == oo::PList(dict));
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=no"));
 	}
 }
 
@@ -261,18 +262,18 @@ OO_TEST(writesDisallowed)
 	SetUp();
 	@autoreleasepool
 	{
-		OOCacheManager *cache = [OOCacheManager sharedCache];
-		[cache setAllowCacheWrites:NO];
-		[cache cxx_setPList:Str("never written") forKey:"n" inCache:"flushed"];
+		OOCacheManager *cache = OOCacheManager::sharedCache();
+		cache->setAllowCacheWrites(false);
+		cache->setPList(Str("never written"), "n", "flushed");
 		gTasksAdded = 0;
-		[cache flush];
+		cache->flush();
 		OO_CHECK(gTasksAdded == 0);
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=yes"));
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=yes"));
 
-		[cache setAllowCacheWrites:YES];
-		[cache flush];
+		cache->setAllowCacheWrites(true);
+		cache->flush();
 		OO_CHECK(gTasksAdded == 1);
-		[cache finishOngoingFlush];
+		cache->finishOngoingFlush();
 		OO_CHECK(CacheFileText().find("never written") != std::string::npos);
 	}
 }
@@ -283,25 +284,25 @@ OO_TEST(staleOrBadCacheDiscarded)
 	SetUp();
 	@autoreleasepool
 	{
-		OOCacheManager *cache = [OOCacheManager sharedCache];
-		OO_CHECK([cache cxx_pListForKey:"k" inCache:"flushed"] == Str("kept"));
+		OOCacheManager *cache = OOCacheManager::sharedCache();
+		OO_CHECK(cache->pListForKey("k", "flushed") == Str("kept"));
 
 		// Another game version: the cache is dropped on reload, and the manager is clean.
 		SetGameVersion("1.0-other");
-		[cache reloadAllCaches];
-		OO_CHECK([cache cxx_pListForKey:"k" inCache:"flushed"].isNull());
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=no"));
+		cache->reloadAllCaches();
+		OO_CHECK(cache->pListForKey("k", "flushed").isNull());
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=no"));
 		// It still takes new entries.
-		[cache cxx_setPList:Str("fresh") forKey:"f" inCache:"new"];
-		OO_CHECK([cache cxx_pListForKey:"f" inCache:"new"] == Str("fresh"));
+		cache->setPList(Str("fresh"), "f", "new");
+		OO_CHECK(cache->pListForKey("f", "new") == Str("fresh"));
 
 		// A file that does not parse: no caches, and no crash.
 		SetGameVersion("9.9.9-test");
 		WriteText(CacheFile(), "this is not a property list {");
-		[cache reloadAllCaches];
-		OO_CHECK([cache cxx_pListForKey:"f" inCache:"new"].isNull());
-		[cache cxx_setPList:Str("again") forKey:"g" inCache:"new"];
-		OO_CHECK([cache cxx_pListForKey:"g" inCache:"new"] == Str("again"));
+		cache->reloadAllCaches();
+		OO_CHECK(cache->pListForKey("f", "new").isNull());
+		cache->setPList(Str("again"), "g", "new");
+		OO_CHECK(cache->pListForKey("g", "new") == Str("again"));
 	}
 }
 
@@ -311,9 +312,9 @@ OO_TEST(cxxApi)
 	SetUp();
 	@autoreleasepool
 	{
-		cxx::OOCacheManager *cache = cxx::OOCacheManager::sharedCache();
+		OOCacheManager *cache = OOCacheManager::sharedCache();
 		OO_CHECK(cache != nullptr);
-		OO_CHECK(cxx::OOCacheManager::sharedCache() == cache);
+		OO_CHECK(OOCacheManager::sharedCache() == cache);
 		cache->setPList(Str("c"), "k", "cxx");
 		OO_CHECK(cache->pListForKey("k", "cxx") == Str("c"));
 		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=yes"));
@@ -334,44 +335,22 @@ OO_TEST(cxxApi)
 }
 
 
-OO_TEST(facadeContract)
-{
-	SetUp();
-	@autoreleasepool
-	{
-		OOCacheManager *facade = [OOCacheManager sharedCache];
-		cxx::OOCacheManager *cache = cxx::OOCacheManager::sharedCache();
-		OO_CHECK(oo::ToCxx(facade) == cache);
-		OO_CHECK(oo::ToObjC(cache) == facade);
-		OO_CHECK(oo::ToObjC(nullptr) == nil);
-		OO_CHECK(oo::ToCxx(nil) == nullptr);
-
-		// One store: what either side writes, the other reads.
-		cache->setPList(Str("from C++"), "x", "shared");
-		OO_CHECK([facade cxx_pListForKey:"x" inCache:"shared"] == Str("from C++"));
-		[facade cxx_setPList:Str("from Objective-C") forKey:"y" inCache:"shared"];
-		OO_CHECK(cache->pListForKey("y", "shared") == Str("from Objective-C"));
-		OO_CHECK([facade cxx_descriptionComponents] == cache->descriptionComponents());
-	}
-}
-
-
 OO_TEST(clearAllCaches)
 {
 	SetUp();
 	@autoreleasepool
 	{
-		OOCacheManager *cache = [OOCacheManager sharedCache];
-		[cache cxx_setPList:Str("v") forKey:"k" inCache:"c1"];
-		[cache flush];
-		[cache finishOngoingFlush];
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=no"));
+		OOCacheManager *cache = OOCacheManager::sharedCache();
+		cache->setPList(Str("v"), "k", "c1");
+		cache->flush();
+		cache->finishOngoingFlush();
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=no"));
 
-		[cache clearAllCaches];
-		OO_CHECK([cache cxx_pListForKey:"k" inCache:"c1"].isNull());
-		OO_CHECK([cache cxx_descriptionComponents] == std::optional<std::string>("dirty=yes"));
-		[cache cxx_setPList:Str("w") forKey:"k" inCache:"c1"];
-		OO_CHECK([cache cxx_pListForKey:"k" inCache:"c1"] == Str("w"));
+		cache->clearAllCaches();
+		OO_CHECK(cache->pListForKey("k", "c1").isNull());
+		OO_CHECK(cache->descriptionComponents() == std::optional<std::string>("dirty=yes"));
+		cache->setPList(Str("w"), "k", "c1");
+		OO_CHECK(cache->pListForKey("k", "c1") == Str("w"));
 	}
 	std::error_code ignored;
 	stdfs::current_path(stdfs::temp_directory_path(), ignored);

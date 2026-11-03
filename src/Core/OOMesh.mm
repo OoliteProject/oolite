@@ -38,7 +38,6 @@ MA 02110-1301, USA.
 
 #include <vector>
 #import "Entity.h" // for NO_DRAW_DISTANCE_FACTOR.
-#import "NSObjectOOExtensions.h"
 #import "OOBasicMaterial.h"
 #import "OOCacheManager.h"
 #import "OODebugFlags.h"
@@ -194,7 +193,7 @@ oo::Ref<OOMesh> OOMesh::meshWithName(const std::string& name,
     const oo::PList& shadersDict,
     bool smooth,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> object)
+    Entity* object)
 {
     // [[self alloc] initWithName:...] autoreleased: a new mesh, loaded, or null when it did not load.
     oo::Ref<OOMesh> mesh = oo::makeRef<OOMesh>();
@@ -209,7 +208,7 @@ oo::Ref<OOMesh> OOMesh::meshWithName(const std::string& name,
     const oo::PList& shadersDict,
     bool smooth,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> object,
+    Entity* object,
     float scale,
     bool cacheWriteable)
 {
@@ -219,18 +218,18 @@ oo::Ref<OOMesh> OOMesh::meshWithName(const std::string& name,
     return mesh;
 }
 
-oo::Ref<cxx::OOMaterial> OOMesh::placeholderMaterial()
+oo::Ref<OOMaterial> OOMesh::placeholderMaterial()
 {
     static OOBasicMaterial* placeholderMaterial = nullptr; // never released, as before
 
     if (placeholderMaterial == nullptr) {
         // +cxx_materialDefaults answers a copy: keep it alive while noTextures points into it (bead oo-f4241).
-        const oo::PList materialDefaults = [::ResourceManager cxx_materialDefaults];
+        const oo::PList materialDefaults = ResourceManager::materialDefaults();
         const oo::PList* noTextures = materialDefaults.find("no-textures-material");
         placeholderMaterial = OOBasicMaterial::materialWithName(std::string("/placeholder/"), (noTextures != nullptr ? *noTextures : oo::PList())).leakRef();
     }
 
-    return oo::Ref<cxx::OOMaterial>(placeholderMaterial);
+    return oo::Ref<OOMaterial>(placeholderMaterial);
 }
 
 OOMesh::OOMesh()
@@ -254,12 +253,12 @@ OOMesh::~OOMesh()
     deleteDisplayLists();
 
     for (i = 0; i != kOOMeshMaxMaterials; ++i) {
-        DESTROY(materials[i]);
+        OOMaterial* material = materials[i]; // DESTROY(): cleared before the release
+        materials[i] = nullptr;
+        oo::release(material);
     }
 
     OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
-
-    DESTROY(_shaderBindingTarget);
 
 #if OOMESH_PROFILE
     _stopwatch = nullptr;
@@ -319,7 +318,8 @@ void OOMesh::renderOpaqueParts()
 {
     OO_ENTER_OPENGL();
 
-    BOOL meshBelongsToVisualEffect = [_shaderBindingTarget isVisualEffect];
+    Entity* bindingEntity = _shaderBindingTarget.get(); // a message to a gone target's weak reference answered NO
+    BOOL meshBelongsToVisualEffect = bindingEntity != nullptr && bindingEntity->getIsVisualEffect();
 
     OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 
@@ -335,7 +335,7 @@ void OOMesh::renderOpaqueParts()
     }
 
 #if OO_SHADERS
-    if (cxx::OOOpenGLExtensionManager::sharedManager()->shadersSupported()) {
+    if (OOOpenGLExtensionManager::sharedManager()->shadersSupported()) {
         OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
         OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray));
     }
@@ -355,7 +355,7 @@ void OOMesh::renderOpaqueParts()
     if (_textureUnitCount == NSNotFound) {
         _textureUnitCount = 0;
         for (ti = 0; ti < materialCount; ti++) {
-            NSUInteger count = materials[ti] != nil ? oo::ToCxx(materials[ti])->countOfTextureUnitsWithBaseCoordinates() : 0;
+            NSUInteger count = materials[ti] != nullptr ? materials[ti]->countOfTextureUnitsWithBaseCoordinates() : 0;
             if (_textureUnitCount < count)
                 _textureUnitCount = count;
         }
@@ -368,7 +368,7 @@ void OOMesh::renderOpaqueParts()
         /*	It should not be possible to have multiple texture units if
                 texture combiners are not available.
         */
-        OOCAssert(cxx::OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported(), "Mesh %s uses %zu texture units, but multitexturing is not available.", oo::str::format("<OOMesh %s>", oo::str::pointerDescription(this).c_str()).c_str(), _textureUnitCount);
+        OOCAssert(OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported(), "Mesh %s uses %zu texture units, but multitexturing is not available.", oo::str::format("<OOMesh %s>", oo::str::pointerDescription(this).c_str()).c_str(), _textureUnitCount);
 
         for (unit = 0; unit < _textureUnitCount; unit++) {
             OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
@@ -385,13 +385,13 @@ void OOMesh::renderOpaqueParts()
 
             // Ensure all textures are loaded
             for (ti = 0; ti < materialCount; ti++) {
-                if (materials[ti] != nil)
-                    oo::ToCxx(materials[ti])->ensureFinishedLoading();
+                if (materials[ti] != nullptr)
+                    materials[ti]->ensureFinishedLoading();
             }
         }
 
         for (ti = 0; ti < materialCount; ti++) {
-            BOOL wantsNormalsAsTextureCoordinates = materials[ti] != nil && oo::ToCxx(materials[ti])->wantsNormalsAsTextureCoordinates();
+            BOOL wantsNormalsAsTextureCoordinates = materials[ti] != nullptr && materials[ti]->wantsNormalsAsTextureCoordinates();
             if (ti == 0 || wantsNormalsAsTextureCoordinates != usingNormalsAsTexCoords) {
                 // FIXME: enabling/disabling texturing should be handled by the material.
 #if OO_MULTITEXTURE
@@ -421,8 +421,8 @@ void OOMesh::renderOpaqueParts()
                 usingNormalsAsTexCoords = wantsNormalsAsTextureCoordinates;
             }
 
-            if (materials[ti] != nil)
-                oo::ToCxx(materials[ti])->apply();
+            if (materials[ti] != nullptr)
+                materials[ti]->apply();
             OOGL(glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length));
         }
 
@@ -434,19 +434,21 @@ void OOMesh::renderOpaqueParts()
             OO_LOG(cxx_kOOLogException, "***** {} for {} encountered exception: {} : {} *****", __PRETTY_FUNCTION__, description(), [exception name], [exception reason]);
             brokenInRender = YES;
         }
-        if (strncmp([exception name], "Oolite", 6) == 0)
-            [UNIVERSE handleOoliteException:exception]; // handle these ourself
+        if (strncmp([exception name], "Oolite", 6) == 0) {
+            if (UNIVERSE != nullptr)
+                UNIVERSE->handleOoliteException(exception);
+        } // handle these ourself
         else
             @throw exception; // pass these on
     }
 
 #if OO_SHADERS
-    if (cxx::OOOpenGLExtensionManager::sharedManager()->shadersSupported()) {
+    if (OOOpenGLExtensionManager::sharedManager()->shadersSupported()) {
         OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
     }
 #endif
 
-    cxx::OOMaterial::applyNone();
+    OOMaterial::applyNone();
     cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOMesh after drawing " + description(); });
 
 #if OO_MULTITEXTURE
@@ -484,35 +486,35 @@ void OOMesh::renderOpaqueParts()
 void OOMesh::rebindMaterials()
 {
     OOMeshMaterialCount i;
-    oo::Ref<cxx::OOMaterial> material;
+    oo::Ref<OOMaterial> material;
 
     if (materialCount != 0) {
         for (i = 0; i != materialCount; ++i) {
-            ::OOMaterial* oldMaterial = materials[i];
+            OOMaterial* oldMaterial = materials[i];
 
             if (materialKeys[i] != "_oo_placeholder_material") {
-                material = cxx::OOMaterial::materialWithName(materialKeys[i],
+                material = OOMaterial::materialWithName(materialKeys[i],
                     _cacheKey,
                     _materialDict,
                     _shadersDict,
                     _shaderMacros,
-                    [_shaderBindingTarget weakRefUnderlyingObject], // Windows DEP fix.
+                    _shaderBindingTarget.get(), // Windows DEP fix.
                     IsPerVertexNormalMode((OOMeshNormalMode)_normalMode));
             } else {
                 material = nullptr;
             }
 
-            // The member holds the material's Objective-C object, retained, as before.
+            // The member holds the material, retained, as before.
             if (material != nullptr) {
-                materials[i] = [oo::ToObjC(material.get()) retain];
+                materials[i] = oo::retain(material.get());
             } else {
-                materials[i] = [oo::ToObjC(placeholderMaterial().get()) retain];
+                materials[i] = placeholderMaterial().leakRef();
             }
 
             /*	Release is deferred to here to ensure we don't end up releasing
                     a texture that's not in the recent-cache and then reloading it.
             */
-            [oldMaterial release];
+            oo::release(oldMaterial);
         }
     }
 }
@@ -690,13 +692,13 @@ oo::Ref<OOMesh> OOMesh::meshRescaledBy(GLfloat scaleFactor)
     return result;
 }
 
-void OOMesh::setBindingTarget(id<OOWeakReferenceSupport> target)
+void OOMesh::setBindingTarget(Entity* target)
 {
     unsigned i;
 
     for (i = 0; i != kOOMeshMaxMaterials; ++i) {
         // A nil material did nothing.
-        if (cxx::OOMaterial* material = oo::ToCxx(materials[i]))
+        if (OOMaterial* material = materials[i])
             material->setBindingTarget(target);
     }
 }
@@ -714,17 +716,17 @@ void OOMesh::dumpSelfState()
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::ObjCRef<::OOTexture*>> OOMesh::allTextures()
+std::vector<oo::Ref<OOTexture>> OOMesh::allTextures()
 {
     // Every material's textures; id forwarder NSSetFromObjects drops duplicates as -unionSet: did.
-    std::vector<oo::ObjCRef<::OOTexture*>> result;
+    std::vector<oo::Ref<OOTexture>> result;
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
         // A nil material answered no textures.
-        cxx::OOMaterial* material = oo::ToCxx(materials[i]);
+        OOMaterial* material = materials[i];
         if (material == nullptr)
             continue;
-        for (const oo::ObjCRef<::OOTexture*>& texture : material->allTextures())
+        for (const oo::Ref<OOTexture>& texture : material->allTextures())
             result.push_back(texture);
     }
 
@@ -747,8 +749,9 @@ size_t OOMesh::totalSize()
 
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
-        // -oo_objectSize: its class's instance size (NSObjectOOExtensions.mm), 0 for nil.
-        result += class_getInstanceSize(object_getClass(materials[i]));
+        // The object's own size (was its facade class's instance size), 0 for nil.
+        if (materials[i] != nullptr)
+            result += materials[i]->objectSize();
     }
 
     // A nil octree answered 0.
@@ -774,7 +777,7 @@ bool OOMesh::initWithName(const std::string& name,
     const oo::PList& shadersDict,
     bool smooth,
     const oo::PList& macros,
-    id<OOWeakReferenceSupport> target,
+    Entity* target,
     float scale,
     bool cacheWriteable)
 {
@@ -807,7 +810,7 @@ bool OOMesh::initWithName(const std::string& name,
             _shadersDict = shadersDict;
             _cacheKey = cacheKey;
             _shaderMacros = macros;
-            _shaderBindingTarget = [target weakRetain];
+            _shaderBindingTarget = target;
 
             rebindMaterials();
             PROFILE("finished material setup");
@@ -840,11 +843,10 @@ oo::Ref<OOMesh> OOMesh::mutableCopyWithZone(OOZone* /*zone*/)
     // unused, as on GNUstep.
     oo::Ref<OOMesh> result = oo::makeRef<OOMesh>(*this);
 
-    // The Objective-C members, copied as pointers, get their -retain (the octree is a C++ reference, copied).
-    [result->_shaderBindingTarget retain];
+    // (The binding target is a weak reference since bead oo-9ht.39.6, copied; the octree is a C++ reference, copied.)
 
     for (i = 0; i != kOOMeshMaxMaterials; ++i) {
-        [result->materials[i] retain];
+        oo::retain(result->materials[i]);
     }
 
     // Reset unsharable GL state
@@ -1016,7 +1018,7 @@ bool OOMesh::loadData(const std::string& filename, float scale)
 
         {
             void* pool = objc_autoreleasePoolPush();
-            const std::optional<std::string> dataOpt = [::ResourceManager cxx_stringFromFilesNamed:filename inFolder:"Models" cache:NO];
+            const std::optional<std::string> dataOpt = ResourceManager::stringFromFilesNamed(filename, "Models", NO);
             if (!dataOpt) {
                 // Model not found
                 OO_LOG(kOOLogMeshDataNotFound, "***** ERROR: could not find {}", filename);
@@ -1915,13 +1917,13 @@ namespace {
 
 oo::PList OOCacheManagerMeshDataForName(const std::string& inShipName)
 {
-    return cxx::OOCacheManager::sharedCache()->pListForKey(inShipName, kOOCacheMeshes);
+    return OOCacheManager::sharedCache()->pListForKey(inShipName, kOOCacheMeshes);
 }
 
 void OOCacheManagerSetMeshData(const oo::PList& inData, const std::string& inShipName)
 {
     if (inData) {
-        cxx::OOCacheManager::sharedCache()->setPList(inData, inShipName, kOOCacheMeshes);
+        OOCacheManager::sharedCache()->setPList(inData, inShipName, kOOCacheMeshes);
     }
 }
 
@@ -1934,7 +1936,7 @@ static const char* const kOOCacheOctrees = "octrees";
 oo::Ref<Octree> OOCacheManagerOctreeForModel(const std::string& inKey)
 {
     oo::Ref<Octree> result;
-    cxx::OOCacheManager* cache = cxx::OOCacheManager::sharedCache();
+    OOCacheManager* cache = OOCacheManager::sharedCache();
 
     const oo::PList data = cache->pListForKey(inKey, kOOCacheOctrees); // null: absent
     if (data) {
@@ -1947,7 +1949,7 @@ oo::Ref<Octree> OOCacheManagerOctreeForModel(const std::string& inKey)
 void OOCacheManagerSetOctree(Octree* inOctree, const std::string& inKey)
 {
     if (inOctree != nullptr) {
-        cxx::OOCacheManager::sharedCache()->setPList(inOctree->dictionaryRepresentation(), inKey, kOOCacheOctrees);
+        OOCacheManager::sharedCache()->setPList(inOctree->dictionaryRepresentation(), inKey, kOOCacheOctrees);
     }
 }
 

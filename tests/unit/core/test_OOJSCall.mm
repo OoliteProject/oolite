@@ -5,9 +5,8 @@
 	OOJSCallObjCObjectMethod() implements the debug-build callObjC(): it calls an Objective-C
 	method by name on an object, choosing how by the method's signature, which it matches against
 	the type encodings of a template class's methods. The test runs it in a real QuickJS-ng context
-	and links the game's own objects for the file, its Objective-C template class
-	(OOJSCall+ObjCBridge.mm), the by-name dispatcher (OOCallByName.mm) and the signature reader
-	(OOShaderUniformMethodType.mm). What the rest of the engine would provide is defined below as
+	and links the game's own objects for the file, the by-name dispatcher (OOCallByName.mm) and the
+	signature reader (OOShaderUniformMethodType.mm). What the rest of the engine would provide is defined below as
 	the smallest stand-in that does the same thing (amendment oo-ppc item 6): the error reporter,
 	the string and property-list converters, Vector3D and Quaternion (plain arrays here), and the
 	ship and player classes (the call makes a ship the player's script target). The game's
@@ -19,6 +18,11 @@
 */
 
 #import "OOJSCall.h"
+#import "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped, stood in below
+#import "OOCallByName.h"
+#import "OOShaderUniformMethodType.h"	// OOCallIntegerMethod (the typed call's stand-in)
+#include <objc/runtime.h>
+#include "oofnd/objc/OORuntime.h"
 #import "oofnd/objc/OOObject.h"
 #import "OOMaths.h"
 #include <quickjs.h>
@@ -26,6 +30,7 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #import "OOObjCPList.h"
+#include "EntityPListForeign.h"	// an entity's node
 #import "OODescription.h"
 #include <cstring>
 
@@ -80,6 +85,9 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context,
 }
 
 
+@class TestEntityObject;
+namespace oo { ::TestEntityObject *ToObjC(Entity *entity); }	// below
+
 // A property list as JS: strings, numbers and booleans as themselves; an object node as the
 // string "<object CLASS>", which is enough to see which object came back. Owned by the caller.
 JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
@@ -91,7 +99,13 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 		case oo::PList::Type::Integer:
 		case oo::PList::Type::Real:  return JS_NewNumber(context, plist.doubleValue());
 		case oo::PList::Type::String:  text = *plist.getIf<std::string>();  break;
-		case oo::PList::Type::Object:  text = "<object " + oo::DescriptionOf([oo::ObjectIn(plist) class]) + ">";  break;
+		case oo::PList::Type::Object:
+		{
+			Entity *entity = oo::EntityIn(plist);	// an entity's node: its object
+			id object = entity != nullptr ? (id)oo::ToObjC(entity) : oo::ObjectIn(plist);
+			text = "<object " + oo::DescriptionOf([object class]) + ">";
+			break;
+		}
 		default:  return JS_NULL;
 	}
 	return JS_NewStringLen(context, text.data(), text.size());
@@ -138,38 +152,38 @@ void OOJSProfileExit(OOJSProfileStackFrame *)  {}
 // target. The ship is C++ (the Objective-C ship is deleted): a ship's object is the
 // root's, which holds the C++ part (oo::ToCxx reads it); declared as Entity.h and ShipEntity.h
 // declare them (the test imports neither).
-namespace cxx {
 class Entity : public oo::RefCounted
 {
 public:
 	virtual ~Entity();
 };
-}	// namespace cxx
 
-@interface Entity: OOObject
+__attribute__((objc_runtime_name("Entity")))
+@interface TestEntityObject: OOObject
 {
 @public
-	oo::Ref<cxx::Entity> _cxxEntity;
+	oo::Ref<Entity> _cxxEntity;
 }
 @end
 
-@implementation Entity
+@implementation TestEntityObject
 @end
 
-class ShipEntity : public cxx::Entity
+class ShipEntity : public Entity
 {
 };
 
-cxx::Entity::~Entity() = default;
+Entity::~Entity() = default;
 
 // The player is C++ (its Objective-C class is deleted): the C++ player as far as
 // the call sees it (declared as PlayerEntity.h declares it; the test imports no game header that
 // defines the class) and its Objective-C object, a ship (the ship's facade in the game), which
 // oo::ToObjC answers.
-@interface TestPlayerObject: Entity
+@interface TestPlayerObject: TestEntityObject
 @end
 
 @implementation TestPlayerObject
+- (BOOL) isPlayer  { return YES; }	// a name of callObjC()'s entity table
 @end
 
 class PlayerEntity : public ShipEntity
@@ -185,10 +199,35 @@ void PlayerEntity::setScriptTarget(::ShipEntity *target)  { scriptTarget = targe
 PlayerEntity *gOOPlayer = nullptr;
 TestPlayerObject *sPlayerObject = nil;	// the player's Objective-C object
 
-@class Entity;
-namespace cxx { class Entity; }
+@class TestEntityObject;
+class Entity;
 namespace oo {
-::Entity *ToObjC(cxx::Entity *entity)  { return entity != nullptr ? (::Entity *)sPlayerObject : nil; }	// only the player crosses
+::TestEntityObject *ToObjC(Entity *entity)  { return entity != nullptr ? (::TestEntityObject *)sPlayerObject : nil; }	// only the player crosses
+}
+#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
+
+// OOEntityCalledByName.mm's, which the test does not link: the test's entities
+// have no C++ table, so every name goes to the object by selector, the path callObjC() takes for a
+// name that table does not hold.
+bool oo::EntityRespondsToName(Entity *entity, const std::string &name)
+{
+	::TestEntityObject *object = oo::ToObjC(entity);
+	return object != nil && [object respondsToSelector:OOSelectorFromName(name.c_str())];
+}
+oo::PList oo::CallEntityByName(Entity *entity, const std::string &name)  { return entity != nullptr ? OOCallByName(oo::ToObjC(entity), OOSelectorFromName(name.c_str())) : oo::PList(); }
+oo::PList oo::CallEntityByName(Entity *entity, const std::string &name, const std::string &argument)  { return entity != nullptr ? OOCallByName(oo::ToObjC(entity), OOSelectorFromName(name.c_str()), argument) : oo::PList(); }
+// The typed call on the C++ table, which callObjC() takes for every name of an entity's table (the
+// call no longer has the entity's object): the test's
+// entities have no C++ table, so it answers what the object's method answers, as the selector path
+// read it (an integer result: the only kind the test's entity names have).
+bool oo::CallEntityByNameTyped(Entity *entity, const std::string &name, OOEntityByNameValue &value)
+{
+	::TestEntityObject *object = oo::ToObjC(entity);
+	SEL selector = OOSelectorFromName(name.c_str());
+	if (object == nil || ![object respondsToSelector:selector])  return false;
+	const OOShaderUniformType type = OOShaderUniformTypeFromMethod(class_getInstanceMethod(object_getClass(object), selector));
+	value.integer = OOCallIntegerMethod(object, selector, [object methodForSelector:selector], type);
+	return true;
 }
 
 
@@ -253,7 +292,7 @@ namespace oo {
 @end
 
 
-@interface TestShip: Entity
+@interface TestShip: TestEntityObject
 - (int) answer;
 @end
 
@@ -315,6 +354,28 @@ std::string Call(id object, std::vector<JSValue> argv)
 std::string Call(id object, const char *selector)
 {
 	return Call(object, std::vector<JSValue>{ StringValue(selector) });
+}
+
+
+// The same for an entity, by callObjC()'s entity name table. Frees the arguments.
+std::string CallEntity(Entity *entity, std::vector<JSValue> argv)
+{
+	sLastError.clear();
+	const JSValue marker = StringValue("<unchanged>");	// a marker no call writes
+	JSValue result = marker;
+	bool OK = OOJSCallEntityMethod(Context(), entity, "Test", static_cast<int>(argv.size()), argv.data(), &result);
+	std::string text = OK ? cxx_OOStringFromJSValueEvenIfNull(Context(), result).value_or("<none>") : "error: " + sLastError;
+	// A result the call set is owned here, besides the marker.
+	if (JS_VALUE_GET_TAG(result) != JS_VALUE_GET_TAG(marker) || JS_VALUE_GET_PTR(result) != JS_VALUE_GET_PTR(marker))  JS_FreeValue(Context(), result);
+	JS_FreeValue(Context(), marker);
+	for (JSValue argument : argv)  JS_FreeValue(Context(), argument);
+	return text;
+}
+
+
+std::string CallEntity(Entity *entity, const char *selector)
+{
+	return CallEntity(entity, std::vector<JSValue>{ StringValue(selector) });
 }
 
 }	// namespace
@@ -400,10 +461,31 @@ OO_TEST(shipBecomesScriptTarget)
 		TestShip *ship = [[[TestShip alloc] init] autorelease];
 		gOOPlayer->scriptTarget = nullptr;
 		OO_CHECK_EQ(Call(ship, "answer"), "1");
-		OO_CHECK(gOOPlayer->scriptTarget == ship->_cxxEntity.get());
 		TestTarget *target = [[[TestTarget alloc] init] autorelease];
 		OO_CHECK_EQ(Call(target, "answer"), "42");
-		OO_CHECK(gOOPlayer->scriptTarget == ship->_cxxEntity.get());	// not a ship: unchanged
+		// (That a ship's Objective-C object, called by the object path, made its C++ ship the script
+		// target, and a non-ship left it: retired with the root facade, which was every entity's
+		// object. The entity path's script target is checked below.)
+	}
+}
+
+
+// callObjC() on an entity by its name table: a name of the table that the entity's
+// object answers is called with the table's signature; any other name does not respond, even one
+// the object answers (a root-class or lifetime selector, or one the facade does not define).
+OO_TEST(entityMethodsByTable)
+{
+	@autoreleasepool
+	{
+		Context();
+		gOOPlayer->scriptTarget = nullptr;
+		OO_CHECK_EQ(CallEntity(gOOPlayer, "isPlayer"), "1");
+		OO_CHECK_EQ(Call(sPlayerObject, "isPlayer"), "1");	// what the object's signature gave
+		OO_CHECK(gOOPlayer->scriptTarget == gOOPlayer);	// the player is a ship: its own script target
+		OO_CHECK(CallEntity(gOOPlayer, "retain").find("> does not respond to method retain.") != std::string::npos);
+		OO_CHECK(CallEntity(gOOPlayer, "hash").find("> does not respond to method hash.") != std::string::npos);
+		OO_CHECK(CallEntity(gOOPlayer, "noSuchMethod").find("> does not respond to method noSuchMethod.") != std::string::npos);
+		OO_CHECK_EQ(CallEntity(gOOPlayer, std::vector<JSValue>{}), "error: Test.callObjC(): no selector specified.");
 	}
 }
 

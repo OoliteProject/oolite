@@ -35,19 +35,18 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
+#import "OOAsyncWorkManager.h"
+
 /*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
         std::strings. The cache directory is std::nullopt where it was nil. Every cached value is
         property-list data, held as an oo::PList (proposed ADR-0055 item 2, bead oo-qps.36) and
         written to the cache file as it is; a null PList is "no value".
 */
 /*	C++20 since bead oo-rmd7 (proposed ADR-0056; a singleton, amendments oo-r7m0 and oo-z1s4).
-        OOCacheManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-        OOCacheManager as a facade over this class for the callers that are not converted yet, and
-        holds the write task (OOAsyncCacheWriter), which stays Objective-C while OOAsyncWorkTask is an
-        Objective-C protocol (amendment oo-rmd7). The bridge's deletion bead moves the class out of
-        namespace cxx.
+        Its Objective-C facade was deleted, which moved the class out of namespace cxx and made the
+        write task (OOAsyncCacheWriter) a C++ task (OOAsyncWorkTask).
 */
-namespace cxx {
+class OOAsyncCacheWriter;
 
 class OOCacheManager : public oo::RefCounted {
 public:
@@ -72,11 +71,11 @@ public:
     // What "%@" printed between the braces of <OOCacheManager 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
-    // Private before the conversion; public because the write task (OOAsyncCacheWriter, in
-    // OOCacheManager+ObjCBridge.mm) calls it on a worker thread.
+private:
+    friend class OOAsyncCacheWriter; // calls writeDict() on a work thread
+
     bool writeDict(const oo::PList& inDict);
 
-private:
     void init(); // -init's body, run after the instance is recorded as the singleton
 
     void loadCache();
@@ -96,13 +95,26 @@ private:
 
     // cache name -> key -> cached value; std::nullopt before loading, as nil was.
     std::optional<std::map<std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>> _caches = { };
-    id _scheduledWrite = { }; // the pending OOAsyncCacheWriter, retained
+    oo::Ref<OOAsyncCacheWriter> _scheduledWrite = { }; // the pending write task
     bool _permitWrites = { };
     bool _dirty = { };
 };
 
-} // namespace cxx
+// The write task write() schedules (was the Objective-C OOAsyncCacheWriter in the bridge).
+class OOAsyncCacheWriter : public OOAsyncWorkTask {
+public:
+    // Null for a null contents (-initWithCacheContents: answered nil).
+    static oo::Ref<OOAsyncCacheWriter> writerWithCacheContents(const oo::PList& cacheContents);
 
-// The Objective-C facade (and the write task) for code not converted yet. Deleted, with namespace
-// cxx above, by the bridge's deletion bead.
-#import "OOCacheManager+ObjCBridge.h"
+    void performAsyncTask() override;
+    bool hasCompleteAsyncTask() const override { return true; }
+    void completeAsyncTask() override;
+
+private:
+    explicit OOAsyncCacheWriter(const oo::PList& cacheContents)
+        : _cacheContents(cacheContents)
+    {
+    }
+
+    oo::PList _cacheContents;
+};

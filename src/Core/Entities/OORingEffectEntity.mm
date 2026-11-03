@@ -67,35 +67,35 @@ void OORingEffectEntity::initialize()
     }
 }
 
-// The other entity stays its Objective-C object (amendment oo-bj8 item 4).
-bool OORingEffectEntity::initRingFromEntity(::Entity* sourceEntity)
+// The source is the C++ entity (it was its Objective-C object, amendment oo-bj8 item 4).
+bool OORingEffectEntity::initRingFromEntity(Entity* sourceEntity)
 {
-    if (sourceEntity == nil) {
+    if (sourceEntity == nullptr) {
         return false;
     }
 
     // [super init] could not fail: the object is constructed.
     {
-        GLfloat baseSize = [sourceEntity collisionRadius];
+        GLfloat baseSize = sourceEntity->collisionRadius();
         _innerRadius = baseSize * kInnerRingInitialSizeFactor;
         _outerRadius = baseSize * kOuterRingInitialSizeFactor;
         _innerGrowthRate = baseSize * kInnerRingGrowthRateFactor;
         _outerGrowthRate = baseSize * kOuterRingGrowthRateFactor;
 
-        setPosition([sourceEntity position]);
-        setOrientation([sourceEntity orientation]);
-        setVelocity([sourceEntity velocity]);
+        setPosition(sourceEntity->getPosition());
+        setOrientation(sourceEntity->getOrientation());
+        setVelocity(sourceEntity->getVelocity());
 
         setStatus(STATUS_EFFECT);
         setScanClass(CLASS_NO_DRAW);
 
-        setOwner(oo::ToCxx(sourceEntity));
+        setOwner(sourceEntity);
     }
 
     return true;
 }
 
-oo::Ref<OORingEffectEntity> OORingEffectEntity::ringFromEntity(::Entity* sourceEntity)
+oo::Ref<OORingEffectEntity> OORingEffectEntity::ringFromEntity(Entity* sourceEntity)
 {
     initialize();
     oo::Ref<OORingEffectEntity> result = oo::makeRef<OORingEffectEntity>();
@@ -104,7 +104,7 @@ oo::Ref<OORingEffectEntity> OORingEffectEntity::ringFromEntity(::Entity* sourceE
     return result;
 }
 
-oo::Ref<OORingEffectEntity> OORingEffectEntity::shrinkingRingFromEntity(::Entity* sourceEntity)
+oo::Ref<OORingEffectEntity> OORingEffectEntity::shrinkingRingFromEntity(Entity* sourceEntity)
 {
     oo::Ref<OORingEffectEntity> result = ringFromEntity(sourceEntity);
     if (result != nullptr) {
@@ -128,13 +128,14 @@ void OORingEffectEntity::update(OOTimeDelta delta_t)
     _outerRadius += delta_t * _outerGrowthRate;
 
     if (_timePassed > kRingDuration) {
-        [UNIVERSE removeEntity:oo::ToObjC(this)];
+        if (UNIVERSE != nullptr)
+            UNIVERSE->removeEntity(this);
     }
 }
 
 void OORingEffectEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
-    if (!translucent || [UNIVERSE breakPatternHide])
+    if (!translucent || (UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false))
         return;
 
     OO_ENTER_OPENGL();
@@ -155,7 +156,7 @@ void OORingEffectEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGLEND();
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOQuiriumCascadeEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOQuiriumCascadeEntity after drawing " + oo::EntityDescription(this); });
 }
 
 bool OORingEffectEntity::isEffect()
