@@ -147,9 +147,9 @@ std::string MakeOXP()
 }
 
 
-OOOXPVerifier *MakeVerifier(const std::string &path)
+cxx::OOOXPVerifier *MakeVerifier(const std::string &path)
 {
-	return [[[OOOXPVerifier alloc] initWithPath:path configuration:kConfiguration] autorelease];
+	return OOOXPVerifierTestAccess::Make(path, kConfiguration);
 }
 
 
@@ -158,9 +158,9 @@ const std::vector<std::string> kUnusedName = { "Checking for unused files" };
 
 
 // The registered scanner, as the stages find it (the verifier's -fileScannerStage until bead oo-9ht.7).
-OOFileScannerVerifierStage *ScannerOf(OOOXPVerifier *verifier)
+OOFileScannerVerifierStage *ScannerOf(cxx::OOOXPVerifier *verifier)
 {
-	return dynamic_cast<OOFileScannerVerifierStage *>([verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]);
+	return dynamic_cast<OOFileScannerVerifierStage *>(verifier->stageWithName(OOFileScannerVerifierStage::kName));
 }
 
 }	// namespace
@@ -170,21 +170,21 @@ OO_TEST(fileHandlingStageNamesAndRegistersItsNeighbours)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier("");
+		cxx::OOOXPVerifier *verifier = MakeVerifier("");
 		const oo::Ref<TestFileStage> stage = oo::makeRef<TestFileStage>();
 		stage->setVerifier(verifier);
-		const int before = [verifier registrations];
+		const int before = OOOXPVerifierTestAccess::Registrations();
 
 		OO_CHECK(stage->dependencies() == kScannerName);
 		OO_CHECK(stage->dependents() == kUnusedName);
-		OO_CHECK([verifier registrations] == before + 2);
+		OO_CHECK(OOOXPVerifierTestAccess::Registrations() == before + 2);
 		OO_CHECK(ScannerOf(verifier) != nullptr);
-		OO_CHECK([verifier cxx_stageWithName:"Checking for unused files"] != nullptr);
+		OO_CHECK(verifier->stageWithName("Checking for unused files") != nullptr);
 
 		// Asked again (by another stage), nothing new is registered.
 		OO_CHECK(stage->dependencies() == kScannerName);
 		OO_CHECK(stage->dependents() == kUnusedName);
-		OO_CHECK([verifier registrations] == before + 2);
+		OO_CHECK(OOOXPVerifierTestAccess::Registrations() == before + 2);
 
 		// The rest is the base's.
 		OO_CHECK(stage->name() == std::optional<std::string>("Testing files"));
@@ -210,7 +210,7 @@ OO_TEST(scannerFindsFiles)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		OOOXPVerifier *verifier = MakeVerifier(base);
+		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
 		OO_CHECK(OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier) == std::optional<std::string>("Scanning files"));
 		OOFileScannerVerifierStage *scanner = ScannerOf(verifier);
 		OO_CHECK(scanner != nullptr && scanner->verifier() == verifier);
@@ -264,7 +264,7 @@ OO_TEST(cxxFileStageBehindTheFacade)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier("");
+		cxx::OOOXPVerifier *verifier = MakeVerifier("");
 		const oo::Ref<TestCxxFileStage> stage = oo::makeRef<TestCxxFileStage>();
 		stage->setVerifier(verifier);
 		OO_CHECK(stage->dependencies() == kScannerName);
@@ -287,7 +287,7 @@ OO_TEST(scannerFacade)
 	@autoreleasepool
 	{
 		const std::string base = MakeOXP();
-		OOOXPVerifier *verifier = MakeVerifier(base);
+		cxx::OOOXPVerifier *verifier = MakeVerifier(base);
 		OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
 		OOFileScannerVerifierStage *cxxScanner = ScannerOf(verifier);
 		OO_CHECK(cxxScanner != nullptr);

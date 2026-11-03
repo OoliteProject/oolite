@@ -6,6 +6,12 @@ Entity subclass nominally representing the player's ship, but also
 implementing much of the interaction, menu system etc. Breaking it up into
 ten or so different classes is a perennial to-do item.
 
+The state is C++ since slice 1 of its slice plan (docs/phases/3-slices/PlayerEntity.md):
+cxx::PlayerEntity holds the ivars, as public data members with the same names, while
+PlayerEntity+ObjCBridge.h, imported at the end of this header, keeps the Objective-C PlayerEntity
+and its methods (each moves to cxx::PlayerEntity in its own slice). The bridge's deletion moves
+the class out of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -41,7 +47,7 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-@class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
+@class PlayerEntity, GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource;
 @class OOJoystickManager, OOTexture, OOLaserShotEntity;
 @class OOJSGuiScreenKeyDefinition, OOJSScript;
@@ -320,49 +326,70 @@ inline constexpr std::string_view PLAYER_DOCKING_AI_NAME = "oolite-player-AI.pli
 
 inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destinations";
 
-@interface PlayerEntity : ShipEntity {
-@private
-    OOSystemID system_id;
-    OOSystemID target_system_id;
-    OOSystemID info_system_id;
-    OOSystemID previous_system_id;
+namespace cxx {
 
-    float occlusion_dial;
+/*	The player's state, and the members its slices have moved (docs/phases/3-slices/PlayerEntity.md).
 
-    OOSystemID found_system_id;
-    int ship_trade_in_factor;
+        The ivars are data members with the same names, every one zero-initialised as the runtime
+        zeroed them. The facade's unconverted methods and its categories
+        (PlayerEntityControls.mm and the others) reach them through the facade's _cxxPlayer, by the same
+        names, so each slice gets its bodies back verbatim by deleting
+        "_cxxPlayer->". Pointers to other entities and to Objective-C objects stay what they were,
+        retained by hand where they were.
+*/
+class PlayerEntity : public ShipEntity {
+public:
+#ifndef NDEBUG
+    /*	Names the members the analyser would call unused because only the categories read them
+            (it was a method of the Objective-C class, built only into debug builds).
+    */
+    bool suppressClangStuff() const;
+#endif
 
-    std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>> worldScripts; // in load order (+cxx_loadScripts)
-    std::optional<std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>> worldScriptsRequiringTickle; // PlayerEntityLegacyScriptEngine's cache; nullopt: not built
-    std::map<std::string, oo::ObjCRef<OOScript*>, std::less<>> commodityScripts; // by script file name
+    // @private in Objective-C: private once PlayerEntity is converted; public while the
+    // facade's unconverted methods and categories read them, since an Objective-C class cannot be a
+    // C++ friend.
+    OOSystemID system_id = { };
+    OOSystemID target_system_id = { };
+    OOSystemID info_system_id = { };
+    OOSystemID previous_system_id = { };
+
+    float occlusion_dial = { };
+
+    OOSystemID found_system_id = { };
+    int ship_trade_in_factor = { };
+
+    std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> worldScripts; // in load order (+cxx_loadScripts)
+    std::optional<std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>>> worldScriptsRequiringTickle; // PlayerEntityLegacyScriptEngine's cache; nullopt: not built
+    std::map<std::string, oo::ObjCRef<::OOScript*>, std::less<>> commodityScripts; // by script file name
     oo::PList mission_variables; // a Dict (saved as mission_variables); null before set-up
     std::map<std::string, oo::PList, std::less<>> localVariables; // mission key -> that mission's variables (a Dict)
     std::optional<std::string> _missionTitle; // nullopt: the mission screen falls back on its default
-    NSInteger /*OOGUIRow*/ missionTextRow;
+    NSInteger /*OOGUIRow*/ missionTextRow = { };
     std::optional<std::string> missionChoice;
     std::optional<std::string> missionKeyPress;
-    BOOL _missionWithCallback;
-    BOOL _missionAllowInterrupt;
-    BOOL _missionTextEntry;
-    OOGUIScreenID _missionExitScreen;
+    BOOL _missionWithCallback = { };
+    BOOL _missionAllowInterrupt = { };
+    BOOL _missionTextEntry = { };
+    OOGUIScreenID _missionExitScreen = { };
 
     std::optional<std::string> specialCargo;
 
     std::vector<std::string> commLog; // trimmed by -cxx_commLog
 
-    std::vector<std::pair<std::string, oo::ObjCRef<OOJSScript*>>> eqScripts; // (key, script), in insertion order
+    std::vector<std::pair<std::string, oo::ObjCRef<::OOJSScript*>>> eqScripts; // (key, script), in insertion order
 
     oo::PList _missionOverlayDescriptor; // null = none (was nil)
     oo::PList _missionBackgroundDescriptor;
-    OOGUIBackgroundSpecial _missionBackgroundSpecial;
+    OOGUIBackgroundSpecial _missionBackgroundSpecial = { };
     oo::PList _equipScreenBackgroundDescriptor;
     std::optional<std::string> _missionScreenID;
 
-    BOOL found_equipment;
+    BOOL found_equipment = { };
 
     oo::PList::Dict reputation; // signed integers by key (PlayerEntity (Contracts))
 
-    unsigned max_passengers;
+    unsigned max_passengers = { };
     oo::PList::Array passengers; // Dicts (PlayerEntity (Contracts))
     oo::PList::Dict passenger_record; // arrival time (double) by passenger name
 
@@ -380,118 +407,118 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
     oo::PList::Dict roleWeightFlags;
     std::vector<OOSystemID> roleSystemList; // list of recently visited sysids
 
-    double script_time;
-    double script_time_check;
-    double script_time_interval;
+    double script_time = { };
+    double script_time_check = { };
+    double script_time_interval = { };
     std::optional<std::string> lastTextKey; // nullopt: none
 
-    double ship_clock;
-    double ship_clock_adjust;
+    double ship_clock = { };
+    double ship_clock_adjust = { };
 
-    double escape_pod_rescue_time;
+    double escape_pod_rescue_time = { };
 
-    double fps_check_time;
-    int fps_counter;
-    double last_fps_check_time;
+    double fps_check_time = { };
+    int fps_counter = { };
+    double last_fps_check_time = { };
 
     std::optional<std::string> planetSearchString; // the lower-cased typed prefix; nullopt: no search
 
-    OOMatrix playerRotMatrix;
+    OOMatrix playerRotMatrix = { };
 
-    BOOL showingLongRangeChart;
+    BOOL showingLongRangeChart = { };
 
     // For OO-GUI based save screen
     std::string commanderNameString; // owned; the save screen refreshes it from the typed string each frame
     std::vector<oo::PList> cdrDetailArray; // the load/save screen's entries (PlayerEntity (LoadSave))
-    int currentPage;
-    BOOL pollControls;
+    int currentPage = { };
+    BOOL pollControls = { };
     // ...end save screen
 
-    NSInteger marketOffset;
+    NSInteger marketOffset = { };
     std::optional<std::string> marketSelectedCommodity;
-    OOMarketFilterMode marketFilterMode;
-    OOMarketSorterMode marketSorterMode;
+    OOMarketFilterMode marketFilterMode = { };
+    OOMarketSorterMode marketSorterMode = { };
 
-    OOWeakReference* _dockedStation;
+    ::OOWeakReference* _dockedStation = { };
 
     /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
      * stations. Could possibly overload use of 'dockedStation' instead
      * but that needs futher investigation to ensure it doesn't break anything. */
-    StationEntity* targetDockStation;
+    ::StationEntity* targetDockStation = { };
 
-    HeadUpDisplay* hud;
+    ::HeadUpDisplay* hud = { };
     std::map<std::string, std::string, std::less<>> multiFunctionDisplayText; // MFD key -> text
     std::vector<std::optional<std::string>> multiFunctionDisplaySettings; // one key per MFD; nullopt = inactive (was [OONull null])
-    NSUInteger activeMFD;
+    NSUInteger activeMFD = { };
     oo::PList::Dict customDialSettings; // a mixed configuration (proposed ADR-0043 item 11): whatever scripts set
 
-    GLfloat roll_delta, pitch_delta, yaw_delta;
-    GLfloat launchRoll;
+    GLfloat roll_delta = { }, pitch_delta = { }, yaw_delta = { };
+    GLfloat launchRoll = { };
 
-    GLfloat forward_shield, aft_shield;
-    GLfloat max_forward_shield, max_aft_shield, forward_shield_recharge_rate, aft_shield_recharge_rate;
-    OOTimeDelta forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
+    GLfloat forward_shield = { }, aft_shield = { };
+    GLfloat max_forward_shield = { }, max_aft_shield = { }, forward_shield_recharge_rate = { }, aft_shield_recharge_rate = { };
+    OOTimeDelta forward_shot_time = { }, aft_shot_time = { }, port_shot_time = { }, starboard_shot_time = { };
 
-    OOWeaponFacing chosen_weapon_facing; // for purchasing weapons
+    OOWeaponFacing chosen_weapon_facing = { }; // for purchasing weapons
 
-    double ecm_start_time;
-    double last_ecm_time;
+    double ecm_start_time = { };
+    double last_ecm_time = { };
 
-    OOGUIScreenID gui_screen;
-    OOAlertFlags alertFlags;
-    OOAlertCondition alertCondition;
-    OOAlertCondition lastScriptAlertCondition;
-    OOPlayerFleeingStatus fleeing_status;
-    OOMissileStatus missile_status;
-    NSUInteger activeMissile;
-    NSUInteger primedEquipment;
+    OOGUIScreenID gui_screen = { };
+    OOAlertFlags alertFlags = { };
+    OOAlertCondition alertCondition = { };
+    OOAlertCondition lastScriptAlertCondition = { };
+    OOPlayerFleeingStatus fleeing_status = { };
+    OOMissileStatus missile_status = { };
+    NSUInteger activeMissile = { };
+    NSUInteger primedEquipment = { };
     std::optional<std::string> _fastEquipmentA; // nullopt = never set (was nil)
     std::optional<std::string> _fastEquipmentB;
 
-    OOCargoQuantity current_cargo;
+    OOCargoQuantity current_cargo = { };
 
-    NSPoint cursor_coordinates;
-    NSPoint chart_focus_coordinates;
-    NSPoint chart_centre_coordinates;
-    NSPoint custom_chart_centre_coordinates;
+    NSPoint cursor_coordinates = { };
+    NSPoint chart_focus_coordinates = { };
+    NSPoint chart_centre_coordinates = { };
+    NSPoint custom_chart_centre_coordinates = { };
     // where we want the chart centre to be - used for smooth transitions
-    NSPoint target_chart_centre;
-    NSPoint target_chart_focus;
+    NSPoint target_chart_centre = { };
+    NSPoint target_chart_focus = { };
     // Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
     // is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
-    OOScalar chart_zoom;
-    OOScalar custom_chart_zoom;
-    OOScalar target_chart_zoom;
-    OOScalar saved_chart_zoom;
-    OORouteType ANA_mode;
-    OOTimeDelta witchspaceCountdown;
+    OOScalar chart_zoom = { };
+    OOScalar custom_chart_zoom = { };
+    OOScalar target_chart_zoom = { };
+    OOScalar saved_chart_zoom = { };
+    OORouteType ANA_mode = { };
+    OOTimeDelta witchspaceCountdown = { };
 
     std::optional<std::string> _jumpCause;
 
     // player commander data
     std::optional<std::string> _commanderName;
     std::optional<std::string> _lastsaveName;
-    NSPoint galaxy_coordinates;
+    NSPoint galaxy_coordinates = { };
 
-    OOCreditsQuantity credits;
-    OOGalaxyID galaxy_number;
+    OOCreditsQuantity credits = { };
+    OOGalaxyID galaxy_number = { };
 
-    OOCommodityMarket* shipCommodityData;
+    ::OOCommodityMarket* shipCommodityData = { };
 
-    ShipEntity* missile_entity[PLAYER_MAX_MISSILES]; // holds the actual missile entities or equivalents
-    OOUniversalID _dockTarget; // used by the escape pod code
+    ::ShipEntity* missile_entity[PLAYER_MAX_MISSILES] = { }; // holds the actual missile entities or equivalents
+    OOUniversalID _dockTarget = { }; // used by the escape pod code
 
-    int legalStatus; // legalStatus both is and isn't an OOCreditsQuantity, because of quantum.
-    int market_rnd;
-    unsigned ship_kills;
+    int legalStatus = { }; // legalStatus both is and isn't an OOCreditsQuantity, because of quantum.
+    int market_rnd = { };
+    unsigned ship_kills = { };
 
-    OOCompassMode compassMode;
-    OOWeakReference* compassTarget;
+    OOCompassMode compassMode = { };
+    ::OOWeakReference* compassTarget = { };
 
-    GLfloat fuel_leak_rate;
+    GLfloat fuel_leak_rate = { };
 
 #if OO_VARIABLE_TORUS_SPEED
-    GLfloat hyperspeedFactor;
+    GLfloat hyperspeedFactor = { };
 #endif
 
     // keys!
@@ -656,89 +683,89 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
     // dict to hold extra keys for missions screen.
     std::map<std::string, oo::PList, std::less<>> extraMissionKeys; // key name -> processed key definitions
 
-    std::map<int, std::vector<oo::ObjCRef<OOJSGuiScreenKeyDefinition*>>> extraGuiScreenKeys; // by GUI screen ID
+    std::map<int, std::vector<oo::ObjCRef<::OOJSGuiScreenKeyDefinition*>>> extraGuiScreenKeys; // by GUI screen ID
 
     // save-file
     std::optional<std::string> save_path;
     std::optional<std::string> scenarioKey;
 
     // position of viewports
-    Vector forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
-    Vector _sysInfoLight;
+    Vector forwardViewOffset = { }, aftViewOffset = { }, portViewOffset = { }, starboardViewOffset = { };
+    Vector _sysInfoLight = { };
 
     // trumbles
-    NSUInteger trumbleCount;
-    OOTrumble* trumble[PLAYER_MAX_TRUMBLES];
-    float _trumbleAppetiteAccumulator;
+    NSUInteger trumbleCount = { };
+    ::OOTrumble* trumble[PLAYER_MAX_TRUMBLES] = { };
+    float _trumbleAppetiteAccumulator = { };
 
     // smart zoom
-    GLfloat scanner_zoom_rate;
+    GLfloat scanner_zoom_rate = { };
 
     // target memory
     // TODO: this should use weakrefs
-    std::vector<oo::ObjCRef<OOWeakReference*>> target_memory; // a null ref = an empty slot (was [OONull null])
-    NSUInteger target_memory_index;
+    std::vector<oo::ObjCRef<::OOWeakReference*>> target_memory; // a null ref = an empty slot (was [OONull null])
+    NSUInteger target_memory_index = { };
 
     // custom view points
-    Quaternion customViewQuaternion;
-    OOMatrix customViewMatrix;
-    Vector customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector, customViewRotationCenter;
+    Quaternion customViewQuaternion = { };
+    OOMatrix customViewMatrix = { };
+    Vector customViewOffset = { }, customViewForwardVector = { }, customViewUpVector = { }, customViewRightVector = { }, customViewRotationCenter = { };
     std::optional<std::string> customViewDescription;
 
     // docking reports
     std::string dockingReport;
 
     // Woo, flags.
-    unsigned suppressTargetLost : 1, // smart target lst reports
-        scoopsActive : 1, // smart fuelscoops
+    unsigned suppressTargetLost : 1 = 0, // smart target lst reports
+        scoopsActive : 1 = 0, // smart fuelscoops
 
-        scoopOverride : 1, // scripted to just be on, ignoring normal rules
-        game_over : 1,
-        finished : 1,
-        bomb_detonated : 1,
-        autopilot_engaged : 1,
+        scoopOverride : 1 = 0, // scripted to just be on, ignoring normal rules
+        game_over : 1 = 0,
+                                  finished : 1 = 0,
+                                  bomb_detonated : 1 = 0,
+                                  autopilot_engaged : 1 = 0,
 
-        afterburner_engaged : 1,
-        afterburnerSoundLooping : 1,
+                                  afterburner_engaged : 1 = 0,
+                                  afterburnerSoundLooping : 1 = 0,
 
-        hyperspeed_engaged : 1,
-        travelling_at_hyperspeed : 1,
-        hyperspeed_locked : 1,
+                                  hyperspeed_engaged : 1 = 0,
+                                  travelling_at_hyperspeed : 1 = 0,
+                                  hyperspeed_locked : 1 = 0,
 
-        ident_engaged : 1,
+                                  ident_engaged : 1 = 0,
 
-        galactic_witchjump : 1,
+                                  galactic_witchjump : 1 = 0,
 
-        ecm_in_operation : 1,
+                                  ecm_in_operation : 1 = 0,
 
-        show_info_flag : 1,
+                                  show_info_flag : 1 = 0,
 
-        showDemoShips : 1,
+                                  showDemoShips : 1 = 0,
 
-        rolling, pitching, yawing : 1,
-        using_mining_laser : 1,
+                                  rolling = { }, pitching = { }, yawing : 1 = 0,
+                                  using_mining_laser : 1 = 0,
 
-        mouse_control_on : 1,
+                                  mouse_control_on : 1 = 0,
 
-        keyboardRollOverride : 1, // Handle keyboard roll...
-        keyboardPitchOverride : 1, // ...and pitch override separately - (fix for BUG #17490)
-        keyboardYawOverride : 1,
-        waitingForStickCallback : 1,
+                                  keyboardRollOverride : 1 = 0, // Handle keyboard roll...
+        keyboardPitchOverride : 1 = 0, // ...and pitch override separately - (fix for BUG #17490)
+        keyboardYawOverride : 1 = 0,
+                                  waitingForStickCallback : 1 = 0,
 
-        weapons_online : 1,
+                                  weapons_online : 1 = 0,
 
-        launchingMissile : 1,
-        replacingMissile : 1,
+                                  launchingMissile : 1 = 0,
+                                  replacingMissile : 1 = 0,
 
-        massLockable : 1;
+                                  massLockable : 1 = 0;
 #if OOLITE_ESPEAK
-    unsigned int voice_no;
-    BOOL voice_gender_m;
+    unsigned int voice_no = { };
+    BOOL voice_gender_m = { };
 #endif
-    OOSpeechSettings isSpeechOn;
+    OOSpeechSettings isSpeechOn = { };
 
     // For PlayerEntity (StickMapper)
-    int selFunctionIdx;
+    int selFunctionIdx = { };
     std::vector<oo::PList> stickFunctions; // PlayerEntity (StickMapper)'s function list; empty until built
     std::vector<oo::PList> keyFunctions; // PlayerEntity (KeyMapper)'s function list; empty until built
     std::vector<oo::PList> kbdLayouts; // PlayerEntity (KeyMapper)'s keyboard layouts; empty until built
@@ -746,518 +773,32 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
     std::string keyMod1Text;
     std::string keyMod2Text;
 
-    OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
-    NSPoint galacticHyperspaceFixedCoords;
+    OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour = { };
+    NSPoint galacticHyperspaceFixedCoords = { };
 
-    OOLongRangeChartMode longRangeChartMode;
+    OOLongRangeChartMode longRangeChartMode = { };
 
     std::vector<oo::PList> _customViews; // the ship's custom view Dicts
-    NSUInteger _customViewIndex;
+    NSUInteger _customViewIndex = { };
 
-    OODockingClearanceStatus dockingClearanceStatus;
+    OODockingClearanceStatus dockingClearanceStatus = { };
 
-    std::vector<oo::ObjCRef<WormholeEntity*>> scannedWormholes;
-    WormholeEntity* wormhole;
+    std::vector<oo::ObjCRef<::WormholeEntity*>> scannedWormholes;
+    ::WormholeEntity* wormhole = { };
 
-    ShipEntity* demoShip; // Used while docked to maintain demo ship rotation.
-    std::vector<oo::ObjCRef<OOLaserShotEntity*>> lastShot; // used to correctly position laser shots on first frame of firing
+    ::ShipEntity* demoShip = { }; // Used while docked to maintain demo ship rotation.
+    std::vector<oo::ObjCRef<::OOLaserShotEntity*>> lastShot; // used to correctly position laser shots on first frame of firing
 
-    oo::Ref<StickProfileScreen> stickProfileScreen;
+    oo::Ref<::StickProfileScreen> stickProfileScreen;
 
-    double maxFieldOfView;
-    double fieldOfView;
+    double maxFieldOfView = { };
+    double fieldOfView = { };
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
-    double fov_delta;
+    double fov_delta = { };
 #endif
-}
+};
 
-+ (PlayerEntity*)sharedPlayer;
-- (void)deferredInit;
-
-- (BOOL)setUpAndConfirmOK:(BOOL)stopOnError;
-- (BOOL)setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)loadingGame;
-- (void)completeSetUp;
-- (void)completeSetUpAndSetTarget:(BOOL)setTarget;
-- (void)startUpComplete;
-
-- (std::optional<std::string>)cxx_commanderName;
-- (void)cxx_setCommanderName:(const std::optional<std::string>&)value; // never nullopt
-- (std::optional<std::string>)cxx_lastsaveName;
-- (void)cxx_setLastsaveName:(const std::optional<std::string>&)value; // never nullopt
-
-- (BOOL)isDocked;
-
-- (void)warnAboutHostiles;
-
-- (void)unloadCargoPods;
-- (void)loadCargoPods;
-- (void)unloadAllCargoPodsForType:(const std::string&)type toManifest:(OOCommodityMarket*)manifest;
-- (void)unloadCargoPodsForType:(const std::string&)type amount:(OOCargoQuantity)quantity;
-- (void)loadCargoPodsForType:(const std::string&)type fromManifest:(OOCommodityMarket*)manifest;
-- (void)loadCargoPodsForType:(const std::string&)type amount:(OOCargoQuantity)quantity;
-- (OOCommodityMarket*)shipCommodityData;
-
-- (OOCreditsQuantity)deciCredits;
-
-- (int)random_factor;
-- (void)setRandom_factor:(int)rf;
-- (OOGalaxyID)galaxyNumber;
-- (NSPoint)galaxy_coordinates;
-- (void)setGalaxyCoordinates:(NSPoint)newPosition;
-- (void)setCustomChartCentre:(NSPoint)coords;
-- (NSPoint)cursor_coordinates;
-- (NSPoint)chart_centre_coordinates;
-- (NSPoint)custom_chart_centre_coordinates;
-- (OOScalar)chart_zoom;
-- (OOScalar)custom_chart_zoom;
-- (void)setCustomChartZoom:(OOScalar)zoom;
-- (NSPoint)adjusted_chart_centre;
-- (OORouteType)ANAMode;
-
-- (std::optional<std::string>)cxx_jumpCause;
-- (void)cxx_setJumpCause:(const std::optional<std::string>&)value; // never nullopt
-
-- (OOSystemID)systemID;
-- (void)setSystemID:(OOSystemID)sid;
-- (OOSystemID)targetSystemID;
-- (void)setTargetSystemID:(OOSystemID)sid;
-- (OOSystemID)previousSystemID;
-- (void)setPreviousSystemID:(OOSystemID)sid;
-- (OOSystemID)nextHopTargetSystemID;
-- (OOSystemID)infoSystemID;
-- (void)setInfoSystemID:(OOSystemID)sid moveChart:(BOOL)moveChart;
-- (void)nextInfoSystem;
-- (void)previousInfoSystem;
-- (void)homeInfoSystem;
-- (void)targetInfoSystem;
-- (BOOL)infoSystemOnRoute;
-
-- (oo::PList)cxx_commanderDataDictionary; // a Dict, as saved
-- (BOOL)cxx_setCommanderDataFromDictionary:(const oo::PList&)dict;
-
-- (void)addEquipmentWithScriptToCustomKeyArray:(const std::string&)equipmentKey;
-- (void)validateCustomEquipActivationArray;
-
-- (void)doBookkeeping:(double)delta_t;
-- (BOOL)isValidTarget:(Entity*)target;
-
-- (void)setMassLockable:(BOOL)newValue;
-- (BOOL)massLockable;
-- (BOOL)massLocked;
-- (BOOL)atHyperspeed;
-
-- (float)occlusionLevel;
-- (void)setOcclusionLevel:(float)level;
-
-- (void)setDockedAtMainStation;
-- (StationEntity*)dockedStation;
-// Dumb setter; callers are responsible for sanity.
-- (void)setDockedStation:(StationEntity*)station;
-
-- (void)performDockingRequest:(StationEntity*)stationForDocking;
-- (void)requestDockingClearance:(StationEntity*)stationForDocking;
-- (void)cancelDockingRequest:(StationEntity*)stationForDocking;
-- (BOOL)engageAutopilotToStation:(StationEntity*)stationForDocking;
-- (void)disengageAutopilot;
-
-- (void)resetAutopilotAI;
-
-- (void)setTargetDockStationTo:(StationEntity*)value;
-- (StationEntity*)getTargetDockStation;
-
-- (HeadUpDisplay*)hud;
-- (BOOL)cxx_switchHudTo:(const std::string&)hudFileName;
-- (void)resetHud;
-
-- (float)cxx_dialCustomFloat:(const std::string&)dialKey;
-- (std::string)cxx_dialCustomString:(const std::string&)dialKey;
-- (OOColor*)cxx_dialCustomColor:(const std::string&)dialKey;
-- (void)cxx_setDialCustom:(const oo::PList&)value forKey:(const std::string&)dialKey; // value: any script value, kept as given (live objects as Object nodes)
-
-- (std::vector<std::optional<std::string>>)cxx_multiFunctionDisplayList; // nullopt = inactive MFD
-- (std::optional<std::string>)cxx_multiFunctionText:(NSUInteger)index;
-- (void)cxx_setMultiFunctionText:(const std::optional<std::string>&)text forKey:(const std::optional<std::string>&)key;
-- (BOOL)cxx_setMultiFunctionDisplay:(NSUInteger)index toKey:(const std::optional<std::string>&)key;
-- (void)cycleNextMultiFunctionDisplay:(NSUInteger)index;
-- (void)cyclePreviousMultiFunctionDisplay:(NSUInteger)index;
-- (void)selectNextMultiFunctionDisplay;
-- (void)selectPreviousMultiFunctionDisplay;
-- (NSUInteger)activeMFD;
-
-- (void)setShowDemoShips:(BOOL)value;
-- (BOOL)showDemoShips;
-
-- (GLfloat)forwardShieldLevel;
-- (GLfloat)aftShieldLevel;
-- (GLfloat)baseMass;
-
-- (void)setForwardShieldLevel:(GLfloat)level;
-- (void)setAftShieldLevel:(GLfloat)level;
-
-- (float)forwardShieldRechargeRate;
-- (float)aftShieldRechargeRate;
-
-- (void)setMaxForwardShieldLevel:(float)newValue;
-- (void)setMaxAftShieldLevel:(float)newValue;
-- (void)setForwardShieldRechargeRate:(float)newValue;
-- (void)setAftShieldRechargeRate:(float)newValue;
-
-// return keyconfig.plist settings for scripting
-- (oo::PList)cxx_keyConfig;
-- (BOOL)isMouseControlOn;
-
-- (GLfloat)dialRoll;
-- (GLfloat)dialPitch;
-- (GLfloat)dialYaw;
-- (GLfloat)dialSpeed;
-- (GLfloat)dialHyperSpeed;
-
-- (void)currentWeaponStats;
-
-- (GLfloat)dialForwardShield;
-- (GLfloat)dialAftShield;
-
-- (GLfloat)dialEnergy;
-- (GLfloat)dialMaxEnergy;
-
-- (GLfloat)dialFuel;
-- (GLfloat)dialHyperRange;
-
-- (GLfloat)dialAltitude;
-
-- (unsigned)countMissiles;
-- (OOMissileStatus)dialMissileStatus;
-
-- (OOFuelScoopStatus)dialFuelScoopStatus;
-
-- (float)fuelLeakRate;
-- (void)setFuelLeakRate:(float)value;
-
-#if OO_VARIABLE_TORUS_SPEED
-- (GLfloat)hyperspeedFactor;
-#endif
-- (BOOL)injectorsEngaged;
-- (BOOL)hyperspeedEngaged;
-
-- (std::vector<oo::PList>*)cxx_customEquipmentActivation; // the live entries
-
-- (double)clockTime; // Note that this is not an OOTimeAbsolute
-- (double)clockTimeAdjusted; // Note that this is not an OOTimeAbsolute
-- (BOOL)clockAdjusting;
-- (void)addToAdjustTime:(double)seconds;
-
-- (double)escapePodRescueTime;
-- (void)setEscapePodRescueTime:(double)seconds;
-
-- (std::string)cxx_dial_clock;
-- (std::string)cxx_dial_clock_adjusted;
-- (std::string)cxx_dial_fpsinfo;
-- (std::string)cxx_dial_objinfo;
-
-- (std::vector<std::string>*)cxx_commLog; // the live log, trimmed first (ADR-0043 item 22)
-
-- (Entity*)compassTarget;
-- (void)setCompassTarget:(Entity*)value;
-- (void)validateCompassTarget;
-
-- (std::optional<std::string>)cxx_compassTargetLabel;
-
-- (OOCompassMode)compassMode;
-- (void)setCompassMode:(OOCompassMode)value;
-- (void)setPrevCompassMode;
-- (void)setNextCompassMode;
-
-- (NSUInteger)activeMissile;
-- (void)setActiveMissile:(NSUInteger)value;
-- (NSUInteger)dialMaxMissiles;
-- (BOOL)dialIdentEngaged;
-- (void)setDialIdentEngaged:(BOOL)newValue;
-- (std::optional<std::string>)cxx_specialCargo;
-- (std::optional<std::string>)cxx_dialTargetName;
-- (ShipEntity*)missileForPylon:(NSUInteger)value;
-- (void)safeAllMissiles;
-- (void)selectNextMissile;
-- (void)tidyMissilePylons;
-- (BOOL)removeFromPylon:(NSUInteger)pylon;
-- (BOOL)cxx_assignToActivePylon:(const std::string&)identifierKey;
-
-- (void)clearAlertFlags;
-- (int)alertFlags;
-- (void)setAlertFlag:(int)flag to:(BOOL)value;
-- (OOAlertCondition)alertCondition;
-- (OOPlayerFleeingStatus)fleeingStatus;
-
-- (BOOL)mountMissile:(ShipEntity*)missile;
-- (BOOL)cxx_mountMissileWithRole:(const std::string&)role;
-
-- (OOEnergyUnitType)installedEnergyUnitType;
-- (OOEnergyUnitType)energyUnitType;
-
-- (ShipEntity*)launchMine:(ShipEntity*)mine;
-
-- (BOOL)activateCloakingDevice;
-- (void)deactivateCloakingDevice;
-
-- (double)scannerFuzziness;
-
-- (BOOL)weaponsOnline;
-- (void)setWeaponsOnline:(BOOL)newValue;
-
-- (BOOL)fireMainWeapon;
-
-- (OOWeaponType)weaponForFacing:(OOWeaponFacing)facing;
-- (OOWeaponType)currentWeapon;
-- (std::vector<Vector>)cxx_currentLaserOffset;
-
-- (void)rotateCargo;
-
-- (BOOL)hasSufficientFuelForJump;
-
-- (BOOL)witchJumpChecklist:(BOOL)isGalacticJump;
-- (void)enterGalacticWitchspace;
-- (void)setJumpType:(BOOL)isGalacticJump;
-
-- (BOOL)takeInternalDamage;
-
-- (BOOL)cxx_endScenario:(const std::string&)key;
-
-- (std::vector<std::string>)cxx_roleWeights; // a copy
-- (void)addRoleForAggression:(ShipEntity*)victim;
-- (void)addRoleForMining;
-- (void)cxx_addRoleToPlayer:(const std::string&)role;
-- (void)cxx_addRoleToPlayer:(const std::string&)role inSlot:(NSUInteger)slot;
-- (void)clearRoleFromPlayer:(BOOL)includingLongRange;
-- (void)clearRolesFromPlayer:(float)chance;
-- (NSUInteger)maxPlayerRoles;
-- (void)updateSystemMemory;
-
-- (void)loseTargetStatus;
-
-- (void)docked;
-
-- (void)setGuiToStatusScreen;
-- (std::vector<oo::PList>)cxx_equipmentList; // Each entry is an Array: a string, a bool for availability (false = damaged), then a colour Object (absent for the default colour).
-- (BOOL)cxx_setPrimedEquipment:(const std::string&)eqKey showMessage:(BOOL)showMsg;
-- (std::optional<std::string>)cxx_primedEquipmentName:(NSInteger)offset;
-- (std::string)cxx_currentPrimedEquipment; // "": primed-none
-- (NSUInteger)primedEquipmentCount;
-- (void)activatePrimableEquipment:(NSUInteger)index withMode:(OOPrimedEquipmentMode)mode;
-- (std::optional<std::string>)cxx_fastEquipmentA;
-- (std::optional<std::string>)cxx_fastEquipmentB;
-- (void)cxx_setFastEquipmentA:(const std::optional<std::string>&)eqKey;
-- (void)cxx_setFastEquipmentB:(const std::optional<std::string>&)eqKey;
-
-- (OOCreditsQuantity)cxx_adjustPriceByScriptForEqKey:(const std::string&)eqKey withCurrent:(OOCreditsQuantity)price;
-
-- (std::vector<std::string>)cxx_cargoList;
-- (unsigned)legalStatusOfCargoList;
-
-- (void)setGuiToSystemDataScreen;
-- (void)setGuiToSystemDataScreenRefreshBackground:(BOOL)refreshBackground;
-- (std::optional<std::map<int, std::vector<oo::PList>>>)cxx_markedDestinations; // marker Dicts by system ID, each list in the order the markers were added
-- (void)setGuiToLongRangeChartScreen;
-- (void)setGuiToShortRangeChartScreen;
-- (void)setGuiToChartScreenFrom:(OOGUIScreenID)oldScreen;
-- (void)setGuiToLoadSaveScreen;
-- (void)setGuiToGameOptionsScreen;
-- (OOWeaponFacingSet)availableFacings;
-- (void)cxx_setGuiToEquipShipScreen:(int)skip selectingFacingFor:(const std::optional<std::string>&)eqKeyForSelectFacing; // nullopt: the normal list
-- (void)setGuiToEquipShipScreen:(int)skip;
-
-- (void)setGuiToInterfacesScreen:(int)skip;
-- (void)showInformationForSelectedInterface;
-- (void)activateSelectedInterface;
-
-- (void)highlightEquipShipScreenKey:(const std::string&)key;
-- (void)showInformationForSelectedUpgrade;
-- (void)cxx_showInformationForSelectedUpgradeWithFormatString:(const std::optional<std::string>&)extraString; // a runtime format with one %@
-- (BOOL)setWeaponMount:(OOWeaponFacing)chosen_weapon_facing toWeapon:(const std::string&)eqKey; // flipped with its family (bead oo-3rb.258)
-- (BOOL)cxx_setWeaponMount:(OOWeaponFacing)facing toWeapon:(const std::string&)eqKey inContext:(const std::optional<std::string>&)context;
-
-- (BOOL)changePassengerBerths:(int)addRemove;
-- (OOCargoQuantity)cxx_cargoQuantityForType:(const std::string&)type;
-- (OOCargoQuantity)cxx_setCargoQuantityForType:(const std::string&)type amount:(OOCargoQuantity)amount;
-- (void)calculateCurrentCargo;
-- (void)setGuiToMarketScreen;
-- (void)setGuiToMarketInfoScreen;
-- (std::vector<std::string>)cxx_applyMarketFilter:(const std::vector<std::string>&)goods onMarket:(OOCommodityMarket*)market;
-- (std::vector<std::string>)cxx_applyMarketSorter:(const std::vector<std::string>&)goods onMarket:(OOCommodityMarket*)market;
-- (OOCommodityMarket*)localMarket;
-
-- (void)setupStartScreenGui;
-- (void)setGuiToIntroFirstGo:(BOOL)justCobra;
-- (void)setGuiToOXZManager;
-
-- (void)noteGUIWillChangeTo:(OOGUIScreenID)toScreen;
-- (void)noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen refresh:(BOOL)refresh;
-- (void)noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
-- (void)noteViewDidChangeFrom:(OOViewID)fromView toView:(OOViewID)toView;
-
-- (OOGUIScreenID)guiScreen;
-
-- (void)buySelectedItem;
-
-- (BOOL)cxx_tryBuyingCommodity:(const std::string&)type all:(BOOL)all; // "<<<" / ">>>" page the market
-- (BOOL)cxx_trySellingCommodity:(const std::string&)type all:(BOOL)all;
-
-- (OOSpeechSettings)isSpeechOn;
-
-- (void)addEquipmentFromCollection:(const oo::PList&)equipment; // equipment may be an array, a dictionary whose values are all YES, or a string.
-
-- (void)getFined;
-- (void)adjustTradeInFactorBy:(int)value;
-- (int)tradeInFactor;
-- (double)renovationCosts;
-- (double)renovationFactor;
-
-- (void)setDefaultViewOffsets;
-- (void)setDefaultCustomViews;
-- (Vector)weaponViewOffset;
-
-- (void)setUpTrumbles;
-- (void)addTrumble:(OOTrumble*)papaTrumble;
-- (void)removeTrumble:(OOTrumble*)deadTrumble;
-- (OOTrumble**)trumbleArray;
-- (NSUInteger)trumbleCount;
-// loading and saving trumbleCount
-- (oo::PList)trumbleValue; // [count, hash, trumble records]
-- (void)setTrumbleValueFrom:(const oo::PList&)trumbleValue; // null: none saved
-
-- (float)trumbleAppetiteAccumulator;
-- (void)setTrumbleAppetiteAccumulator:(float)value;
-
-- (void)mungChecksumWithString:(const std::optional<std::string>&)str; // its UTF-16 units; nullopt does nothing
-
-- (std::optional<std::string>)cxx_screenModeStringForWidth:(unsigned)inWidth height:(unsigned)inHeight refreshRate:(float)inRate;
-
-- (void)suppressTargetLost;
-
-- (void)setScoopsActive;
-
-- (void)clearTargetMemory;
-- (std::vector<oo::ObjCRef<OOWeakReference*>>)cxx_targetMemory; // a copy; a null ref is an empty slot
-- (BOOL)moveTargetMemoryBy:(NSInteger)delta;
-
-- (void)printIdentLockedOnForMissile:(BOOL)missile;
-
-- (void)applyYaw:(GLfloat)yaw;
-
-/* GILES custom viewpoints */
-
-// custom view points
-- (Quaternion)customViewQuaternion;
-- (void)setCustomViewQuaternion:(Quaternion)q1;
-- (OOMatrix)customViewMatrix;
-- (Vector)customViewOffset;
-- (void)setCustomViewOffset:(Vector)offset;
-- (Vector)customViewRotationCenter;
-- (void)setCustomViewRotationCenter:(Vector)center;
-- (void)customViewZoomOut:(OOScalar)rate;
-- (void)customViewZoomIn:(OOScalar)rate;
-- (void)customViewRotateLeft:(OOScalar)angle;
-- (void)customViewRotateRight:(OOScalar)angle;
-- (void)customViewRotateUp:(OOScalar)angle;
-- (void)customViewRotateDown:(OOScalar)angle;
-- (void)customViewRollLeft:(OOScalar)angle;
-- (void)customViewRollRight:(OOScalar)angle;
-- (void)customViewPanUp:(OOScalar)angle;
-- (void)customViewPanDown:(OOScalar)angle;
-- (void)customViewPanLeft:(OOScalar)angle;
-- (void)customViewPanRight:(OOScalar)angle;
-- (Vector)customViewForwardVector;
-- (Vector)customViewUpVector;
-- (Vector)customViewRightVector;
-- (std::optional<std::string>)cxx_customViewDescription;
-- (void)resetCustomView;
-- (void)setCustomViewData;
-- (void)cxx_setCustomViewDataFromDictionary:(const oo::PList&)viewDict withScaling:(BOOL)withScaling; // a null viewDict (was nil) resets the matrix and offset only
-- (HPVector)viewpointPosition;
-- (HPVector)breakPatternPosition;
-- (Vector)viewpointOffset;
-- (Vector)viewpointOffsetAft;
-- (Vector)viewpointOffsetForward;
-- (Vector)viewpointOffsetPort;
-- (Vector)viewpointOffsetStarboard;
-
-- (oo::PList)cxx_missionOverlayDescriptor;
-- (oo::PList)cxx_missionOverlayDescriptorOrDefault;
-- (void)cxx_setMissionOverlayDescriptor:(const oo::PList&)descriptor;
-
-- (oo::PList)cxx_missionBackgroundDescriptor;
-- (oo::PList)cxx_missionBackgroundDescriptorOrDefault;
-- (void)cxx_setMissionBackgroundDescriptor:(const oo::PList&)descriptor;
-- (OOGUIBackgroundSpecial)missionBackgroundSpecial;
-- (void)cxx_setMissionBackgroundSpecial:(const std::string&)special; // "" (was nil) = none
-- (void)setMissionExitScreen:(OOGUIScreenID)screen;
-- (OOGUIScreenID)missionExitScreen;
-- (void)clearExtraMissionKeys;
-- (void)cxx_setExtraMissionKeys:(const oo::PList&)keys; // a Dict of key name -> key definitions
-
-- (void)cxx_clearExtraGuiScreenKeys:(OOGUIScreenID)gui key:(const std::string&)key;
-- (BOOL)setExtraGuiScreenKeys:(OOGUIScreenID)gui definition:(OOJSGuiScreenKeyDefinition*)definition;
-
-// Nasty hack to keep background textures around while on equip screens.
-- (oo::PList)cxx_equipScreenBackgroundDescriptor;
-- (void)cxx_setEquipScreenBackgroundDescriptor:(const oo::PList&)descriptor;
-
-- (BOOL)scriptsLoaded;
-- (std::vector<std::string>)cxx_worldScriptNames; // in load order
-- (std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>)cxx_worldScriptsByName; // in load order
-
-- (OOScript*)cxx_commodityScriptNamed:(const std::optional<std::string>&)script; // nullopt: nil
-
-// *** World script events.
-// In general, script events should be sent through doScriptEvent:..., which
-// will forward to the world scripts.
-- (BOOL)doWorldEventUntilMissionScreen:(OOJSPropID)message;
-// argv is borrowed: the caller remains responsible for freeing the values.
-- (void)doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(JSValue*)argv count:(int)argc timeLimit:(OOTimeDelta)limit;
-
-- (BOOL)showInfoFlag;
-
-- (void)setGalacticHyperspaceBehaviour:(OOGalacticHyperspaceBehaviour)galacticHyperspaceBehaviour;
-- (OOGalacticHyperspaceBehaviour)galacticHyperspaceBehaviour;
-- (void)setGalacticHyperspaceFixedCoords:(NSPoint)point;
-- (void)setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
-- (NSPoint)galacticHyperspaceFixedCoords;
-- (void)setWitchspaceCountdown:(int)spin_time;
-
-- (OOLongRangeChartMode)longRangeChartMode;
-- (void)setLongRangeChartMode:(OOLongRangeChartMode)mode;
-
-- (BOOL)scoopOverride;
-- (void)setScoopOverride:(BOOL)newValue;
-- (void)setDockTarget:(ShipEntity*)entity;
-
-- (BOOL)clearedToDock;
-- (void)setDockingClearanceStatus:(OODockingClearanceStatus)newValue;
-- (OODockingClearanceStatus)getDockingClearanceStatus;
-- (void)penaltyForUnauthorizedDocking;
-
-- (std::vector<oo::ObjCRef<WormholeEntity*>>)cxx_scannedWormholes;
-
-- (WormholeEntity*)wormhole;
-- (void)setWormhole:(WormholeEntity*)newWormhole;
-- (void)addScannedWormhole:(WormholeEntity*)wormhole;
-
-- (void)initialiseMissionDestinations:(const oo::PList&)destinations andLegacy:(const oo::PList&)legacy; // used only if a Dict / an Array
-- (std::optional<std::string>)markerKey:(const oo::PList&)marker;
-- (void)cxx_addMissionDestinationMarker:(const oo::PList&)marker;
-- (BOOL)cxx_removeMissionDestinationMarker:(const oo::PList&)marker;
-- (oo::PList)cxx_getMissionDestinations; // a snapshot Dict
-
-- (oo::PList::Dict*)cxx_shipyardRecord;
-
-- (void)cxx_setLastShot:(const std::vector<oo::ObjCRef<OOLaserShotEntity*>>&)shot;
-
-- (void)cxx_showShipModelWithKey:(const std::string&)shipKey shipData:(const oo::PList&)shipData personality:(uint16_t)personality factorX:(GLfloat)factorX factorY:(GLfloat)factorY factorZ:(GLfloat)factorZ inContext:(const std::optional<std::string>&)context; // null shipData: the registry's
-
-/* Fractional expression of amount of entry inside a planet's atmosphere. 0.0f is out of atmosphere,
-   1.0f is fully in and is normally associated with the point of ship destruct due to altitude.
-*/
-- (GLfloat)insideAtmosphereFraction;
-
-@end
+} // namespace cxx
 
 /*	Use PLAYER to refer to the shared player object in cases where it is
         assumed to exist (i.e., except during early initialization).
@@ -1290,3 +831,7 @@ std::string cxx_OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBeha
 std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(unsigned kills);
 std::string cxx_KillCountToRatingAndKillString(unsigned kills);
 std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus);
+
+// Transitional: the Objective-C PlayerEntity, for its unconverted methods, its categories and its
+// callers. Deleted, with namespace cxx above, when the bridge is.
+#import "PlayerEntity+ObjCBridge.h"

@@ -1,5 +1,5 @@
 /*	test_OOTextureSprite.mm
-	Unit tests for cxx::OOTextureSprite (src/Core/OOTextureSprite.h) and its Objective-C facade: bead oo-ljhc (Phase 3, house
+	Unit tests for OOTextureSprite (src/Core/OOTextureSprite.h): bead oo-ljhc (Phase 3, house
 	style of proposed ADR-0056).
 
 	A texture sprite is a texture and a size; its only output is the textured quad it hands to
@@ -11,9 +11,9 @@
 	The sprite's texture is a stand-in OOTexture defined here (amendment oo-z1s4 item 4), which
 	answers its original dimensions and counts -apply; the extension manager runs with its
 	collaborators stubbed as in test_OOOpenGLStateManager. The expectations were written against
-	the Objective-C API and run on the unconverted class first; that API is now the facade
-	(OOTextureSprite+ObjCBridge.h), so they run through it, and the last tests pin the C++ API
-	(cxx::OOTextureSprite) and the facade's contract.
+	the Objective-C API and run on the unconverted class first, then through the Objective-C
+	facade; bead oo-9ht.71 deleted the facade (its contract cases went with it, ADR-0049 approval
+	oo-9n5p9), and they now call the C++ class with every expectation kept.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -212,8 +212,8 @@ OO_TEST(noTextureNoSprite)
 {
 	@autoreleasepool
 	{
-		OO_CHECK([[OOTextureSprite alloc] initWithTexture:nil] == nil);
-		OO_CHECK([[OOTextureSprite alloc] initWithTexture:nil size:NSMakeSize(4, 4)] == nil);
+		OO_CHECK(OOTextureSprite::initWithTexture(nil).get() == nullptr);
+		OO_CHECK(OOTextureSprite::initWithTexture(nil, NSMakeSize(4, 4)).get() == nullptr);
 	}
 }
 
@@ -222,28 +222,28 @@ OO_TEST(sizeIsTheTexturesOrGiven)
 {
 	@autoreleasepool
 	{
-		OOTextureSprite *sprite = [[[OOTextureSprite alloc] initWithTexture:Texture(64, 32)] autorelease];
-		OO_CHECK(sprite != nil);
-		OO_CHECK([sprite size].width == 64 && [sprite size].height == 32);
+		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(Texture(64, 32));
+		OO_CHECK(sprite != nullptr);
+		OO_CHECK(sprite->getSize().width == 64 && sprite->getSize().height == 32);
 
-		sprite = [[[OOTextureSprite alloc] initWithTexture:Texture(64, 32) size:NSMakeSize(10, 20)] autorelease];
-		OO_CHECK([sprite size].width == 10 && [sprite size].height == 20);
+		sprite = OOTextureSprite::initWithTexture(Texture(64, 32), NSMakeSize(10, 20));
+		OO_CHECK(sprite->getSize().width == 10 && sprite->getSize().height == 20);
 	}
 }
 
 
 OO_TEST(spriteKeepsItsTexture)
 {
-	OOTextureSprite *sprite = nil;
+	oo::Ref<OOTextureSprite> sprite;
 	OOTexture *texture = nil;
 	@autoreleasepool
 	{
 		texture = Texture(8, 8);
-		sprite = [[OOTextureSprite alloc] initWithTexture:texture];
+		sprite = OOTextureSprite::initWithTexture(texture);
 		[texture retain];
 	}
 	OO_CHECK([texture retainCount] == 2);	// the test's and the sprite's
-	[sprite release];
+	sprite = nullptr;
 	OO_CHECK([texture retainCount] == 1);
 	[texture release];
 }
@@ -255,9 +255,9 @@ OO_TEST(blitDrawsTheTexturedQuad)
 	@autoreleasepool
 	{
 		OOTexture *texture = Texture(64, 32);
-		OOTextureSprite *sprite = [[[OOTextureSprite alloc] initWithTexture:texture size:NSMakeSize(100, 50)] autorelease];
+		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture, NSMakeSize(100, 50));
 
-		std::vector<Vertex> quad = Feedback([&] { [sprite blitToX:10 Y:-20 Z:30 alpha:0.25f]; });
+		std::vector<Vertex> quad = Feedback([&] { sprite->blitToX(10, -20, 30, 0.25f); });
 		OO_CHECK(IsQuad(quad, 10, -20, 30, 100, 50, 0.25));
 		OO_CHECK(texture->_applied == 1);
 		OO_CHECK(!glIsEnabled(GL_TEXTURE_2D));
@@ -265,8 +265,8 @@ OO_TEST(blitDrawsTheTexturedQuad)
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 
 		// The alpha is clamped to [0, 1].
-		OO_CHECK(IsQuad(Feedback([&] { [sprite blitToX:0 Y:0 Z:0 alpha:1.5f]; }), 0, 0, 0, 100, 50, 1.0));
-		OO_CHECK(IsQuad(Feedback([&] { [sprite blitToX:0 Y:0 Z:0 alpha:-1.0f]; }), 0, 0, 0, 100, 50, 0.0));
+		OO_CHECK(IsQuad(Feedback([&] { sprite->blitToX(0, 0, 0, 1.5f); }), 0, 0, 0, 100, 50, 1.0));
+		OO_CHECK(IsQuad(Feedback([&] { sprite->blitToX(0, 0, 0, -1.0f); }), 0, 0, 0, 100, 50, 0.0));
 		OO_CHECK(texture->_applied == 3);
 	}
 }
@@ -278,68 +278,43 @@ OO_TEST(centredBlits)
 	@autoreleasepool
 	{
 		OOTexture *texture = Texture(64, 32);
-		OOTextureSprite *sprite = [[[OOTextureSprite alloc] initWithTexture:texture size:NSMakeSize(1.5, 0.75)] autorelease];
+		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture, NSMakeSize(1.5, 0.75));
 
-		OO_CHECK(IsQuad(Feedback([&] { [sprite blitCentredToX:100 Y:200 Z:-5 alpha:0.5f]; }), 100 - 0.75, 200 - 0.375, -5, 1.5, 0.75, 0.5));
+		OO_CHECK(IsQuad(Feedback([&] { sprite->blitCentredToX(100, 200, -5, 0.5f); }), 100 - 0.75, 200 - 0.375, -5, 1.5, 0.75, 0.5));
 
 		// The background blit scales the size and z by 512 (so that it is behind the ships), and
 		// puts the size back afterwards.
-		OO_CHECK(IsQuad(Feedback([&] { [sprite blitBackgroundCentredToX:1 Y:-2 Z:3 alpha:1.0f]; }), 1 - 384, -2 - 192, 3 * 512, 768, 384, 1.0));
-		OO_CHECK([sprite size].width == 1.5 && [sprite size].height == 0.75);
+		OO_CHECK(IsQuad(Feedback([&] { sprite->blitBackgroundCentredToX(1, -2, 3, 1.0f); }), 1 - 384, -2 - 192, 3 * 512, 768, 384, 1.0));
+		OO_CHECK(sprite->getSize().width == 1.5 && sprite->getSize().height == 0.75);
 		OO_CHECK(texture->_applied == 2);
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 	}
 }
 
 
-// --- The C++ class and the facade's contract (after the conversion) ------------------------------
+// --- The C++ class (after the conversion) ---------------------------------------------------------
 
 OO_TEST(cxxSprite)
 {
 	OO_CHECK(GLReady());
 	@autoreleasepool
 	{
-		OO_CHECK(cxx::OOTextureSprite::initWithTexture(nil).get() == nullptr);
-		OO_CHECK(cxx::OOTextureSprite::initWithTexture(nil, NSMakeSize(4, 4)).get() == nullptr);
+		OO_CHECK(OOTextureSprite::initWithTexture(nil).get() == nullptr);
+		OO_CHECK(OOTextureSprite::initWithTexture(nil, NSMakeSize(4, 4)).get() == nullptr);
 
 		OOTexture *texture = Texture(64, 32);
-		oo::Ref<cxx::OOTextureSprite> sprite = cxx::OOTextureSprite::initWithTexture(texture);
+		oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture);
 		OO_CHECK(sprite.get() != nullptr && sprite->getSize().width == 64 && sprite->getSize().height == 32);
 
-		sprite = cxx::OOTextureSprite::initWithTexture(texture, NSMakeSize(100, 50));
+		sprite = OOTextureSprite::initWithTexture(texture, NSMakeSize(100, 50));
 		OO_CHECK(IsQuad(Feedback([&] { sprite->blitToX(10, -20, 30, 0.25f); }), 10, -20, 30, 100, 50, 0.25));
 		OO_CHECK(IsQuad(Feedback([&] { sprite->blitCentredToX(0, 0, 0, 1.0f); }), -50, -25, 0, 100, 50, 1.0));
 		OO_CHECK(sprite->getSize().width == 100 && sprite->getSize().height == 50);
 
-		sprite = cxx::OOTextureSprite::initWithTexture(texture, NSMakeSize(1.5, 0.75));
+		sprite = OOTextureSprite::initWithTexture(texture, NSMakeSize(1.5, 0.75));
 		OO_CHECK(IsQuad(Feedback([&] { sprite->blitBackgroundCentredToX(1, -2, 3, 1.0f); }), 1 - 384, -2 - 192, 3 * 512, 768, 384, 1.0));
 		OO_CHECK(sprite->getSize().width == 1.5 && sprite->getSize().height == 0.75);
 		OO_CHECK(texture->_applied == 3);
-	}
-}
-
-
-OO_TEST(facadeNilStaysNil)
-{
-	OOTextureSprite *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOTextureSprite *>(nullptr)) == nil);
-	[none blitToX:0 Y:0 Z:0 alpha:1.0f];	// nothing, as a message to nil did
-}
-
-
-OO_TEST(facadeIdentity)
-{
-	@autoreleasepool
-	{
-		OOTextureSprite *made = [[[OOTextureSprite alloc] initWithTexture:Texture(8, 8)] autorelease];
-		OO_CHECK(oo::ToCxx(made) != nullptr && oo::ToObjC(oo::ToCxx(made)) == made);
-
-		oo::Ref<cxx::OOTextureSprite> sprite = cxx::OOTextureSprite::initWithTexture(Texture(8, 4));
-		OOTextureSprite *facade = oo::ToObjC(sprite);
-		OO_CHECK(facade != nil && facade == oo::ToObjC(sprite.get()));
-		OO_CHECK(oo::ToCxx(facade) == sprite.get());
-		OO_CHECK([facade size].width == 8 && [facade size].height == 4);
 	}
 }
 

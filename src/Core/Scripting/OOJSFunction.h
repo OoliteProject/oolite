@@ -4,11 +4,9 @@ OOJSFunction.h
 
 Object encapsulating a runnable JavaScript function.
 
-C++20 since bead oo-3smy (proposed ADR-0056, the OOColor house style). The class is
-cxx::OOJSFunction while OOJSFunction+ObjCBridge.h, imported at the end of this header, keeps the
-Objective-C OOJSFunction that ShipEntityAI (alloc/init and -evaluatePredicateWithContext:...) and
-OORegExpMatcher (which names it ::OOJSFunction) message; the bridge's deletion bead moves it out
-of namespace cxx.
+C++20 since bead oo-3smy (proposed ADR-0056, the OOColor house style). The Objective-C facade
+was deleted once ShipEntityAI and OORegExpMatcher held the C++ object, and the class moved out of
+namespace cxx.
 
 
 JavaScript support for Oolite
@@ -43,8 +41,6 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 #include <vector>
-
-namespace cxx {
 
 class OOJSFunction : public oo::RefCounted {
 public:
@@ -100,11 +96,5 @@ private:
     JSValue _function = JS_NULL; // Owned; JS_NULL when invalid.
     std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOJSFunction, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOJSFunction+ObjCBridge.h"
 
 #endif // OOJSFUNCTION_H

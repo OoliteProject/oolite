@@ -159,13 +159,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 reward = insurance - reward;
                 [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withPListArguments:{ oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("insurance"), [rescuee infoForScripting] }];
             }
-            credits += reward;
+            _cxxPlayer->credits += reward;
             added_entry = YES;
         } else if ([rescuee insuranceCredits]) {
             // claim insurance reward
             result += oo::str::formatRuntime(OO_DESC("rescue-reward-for-@@-@-credits"),
                 { [rescuee cxx_name].value_or("(null)"), oo::ShortDescriptionOf(rescuee), cxx_OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO) });
-            credits += 10 * [rescuee insuranceCredits];
+            _cxxPlayer->credits += 10 * [rescuee insuranceCredits];
             [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withPListArguments:{ oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * [rescuee insuranceCredits])), oo::PList("insurance"), [rescuee infoForScripting] }];
 
             added_entry = YES;
@@ -174,12 +174,12 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             float reward = (5.0 + government) * [rescuee legalStatus];
             result += oo::str::formatRuntime(OO_DESC("capture-reward-for-@@-@-credits"),
                 { [rescuee cxx_name].value_or("(null)"), oo::ShortDescriptionOf(rescuee), cxx_OOStringFromDeciCredits(reward, YES, NO) });
-            credits += reward;
+            _cxxPlayer->credits += reward;
             [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withPListArguments:{ oo::PList::unsignedInteger(static_cast<NSUInteger>(reward)), oo::PList("bounty"), [rescuee infoForScripting] }];
             added_entry = YES;
         } else {
             // sell as slave - increase no. of slaves in manifest
-            [shipCommodityData cxx_addQuantity:1 forGood:"slaves"];
+            [_cxxPlayer->shipCommodityData cxx_addQuantity:1 forGood:"slaves"];
             [self cxx_doScriptEvent:OOJSID("playerRescuedEscapePod") withPListArguments:{ oo::PList::unsignedInteger(0), oo::PList("slave"), [rescuee infoForScripting] }];
         }
         if ((i < rescuees.size() - 1) && added_entry)
@@ -204,15 +204,15 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     unsigned i;
 
     // check passenger contracts
-    for (i = 0; i < passengers.size(); i++) {
-        const oo::PList passenger_info = passengers[i]; // a copy: the entry may be removed below (it was retained)
+    for (i = 0; i < _cxxPlayer->passengers.size(); i++) {
+        const oo::PList passenger_info = _cxxPlayer->passengers[i]; // a copy: the entry may be removed below (it was retained)
         const std::optional<std::string> passenger_name = OptionalStringForKey(passenger_info, std::string(PASSENGER_KEY_NAME));
         int dest = passenger_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
         // the system name can change via script
         const std::optional<std::string> passenger_dest_name = [UNIVERSE cxx_getSystemName:dest];
-        int dest_eta = passenger_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        int dest_eta = passenger_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - _cxxPlayer->ship_clock;
 
-        if (system_id == dest) {
+        if (_cxxPlayer->system_id == dest) {
             // we've arrived in system!
             if (dest_eta > 0) {
                 // and in good time
@@ -223,7 +223,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                     fee /= 100;
                     dest_eta *= 0.5;
                 }
-                credits += 10 * fee;
+                _cxxPlayer->credits += 10 * fee;
 
                 result += oo::str::formatRuntime(OO_DESC("passenger-delivered-okay-@-@-@"), { TextArg(passenger_name), cxx_OOIntCredits(fee), TextArg(passenger_dest_name) }) + "\n";
                 if (passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
@@ -231,21 +231,21 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 }
 
                 [self increasePassengerReputation:RepForRisk(passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
-                passengers.erase(passengers.begin() + i--);
+                _cxxPlayer->passengers.erase(_cxxPlayer->passengers.begin() + i--);
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("passenger"), oo::PList("success"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), passenger_info }];
             } else {
                 // but we're late!
                 long long fee = passenger_info.get<long long>(std::string(CONTRACT_KEY_FEE)) / 2; // halve fare
                 while (randf() < 0.5) // maybe halve fare a few times!
                     fee /= 2;
-                credits += 10 * fee;
+                _cxxPlayer->credits += 10 * fee;
 
                 result += oo::str::formatRuntime(OO_DESC("passenger-delivered-late-@-@-@"), { TextArg(passenger_name), cxx_OOIntCredits(fee), TextArg(passenger_dest_name) }) + "\n";
                 if (passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
                     [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
 
-                passengers.erase(passengers.begin() + i--);
+                _cxxPlayer->passengers.erase(_cxxPlayer->passengers.begin() + i--);
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("passenger"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), passenger_info }];
             }
         } else {
@@ -254,20 +254,20 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 result += oo::str::formatRuntime(OO_DESC("passenger-failed-@"), { TextArg(passenger_name) }) + "\n";
 
                 [self decreasePassengerReputation:RepForRisk(passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
-                passengers.erase(passengers.begin() + i--);
+                _cxxPlayer->passengers.erase(_cxxPlayer->passengers.begin() + i--);
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("passenger"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), passenger_info }];
             }
         }
     }
 
     // check parcel contracts
-    for (i = 0; i < parcels.size(); i++) {
-        const oo::PList parcel_info = parcels[i]; // a copy: the entry may be removed below (it was retained)
+    for (i = 0; i < _cxxPlayer->parcels.size(); i++) {
+        const oo::PList parcel_info = _cxxPlayer->parcels[i]; // a copy: the entry may be removed below (it was retained)
         const std::optional<std::string> parcel_name = OptionalStringForKey(parcel_info, std::string(PASSENGER_KEY_NAME));
         int dest = parcel_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
-        int dest_eta = parcel_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        int dest_eta = parcel_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - _cxxPlayer->ship_clock;
 
-        if (system_id == dest) {
+        if (_cxxPlayer->system_id == dest) {
             // we've arrived in system!
             if (dest_eta > 0) {
                 // and in good time
@@ -279,13 +279,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                     fee /= 100;
                     dest_eta *= 0.5;
                 }
-                credits += 10 * fee;
+                _cxxPlayer->credits += 10 * fee;
 
                 result += oo::str::formatRuntime(OO_DESC("parcel-delivered-okay-@-@"), { TextArg(parcel_name), cxx_OOIntCredits(fee) }) + "\n";
 
                 [self increaseParcelReputation:RepForRisk(parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
 
-                parcels.erase(parcels.begin() + i--);
+                _cxxPlayer->parcels.erase(_cxxPlayer->parcels.begin() + i--);
                 if (parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
                     [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
@@ -296,13 +296,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 long long fee = parcel_info.get<long long>(std::string(CONTRACT_KEY_FEE)) / 2; // halve fare
                 while (randf() < 0.5) // maybe halve fare a few times!
                     fee /= 2;
-                credits += 10 * fee;
+                _cxxPlayer->credits += 10 * fee;
 
                 result += oo::str::formatRuntime(OO_DESC("parcel-delivered-late-@-@"), { TextArg(parcel_name), cxx_OOIntCredits(fee) }) + "\n";
                 if (parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) > 0) {
                     [self cxx_addRoleToPlayer:"trader-courier+"];
                 }
-                parcels.erase(parcels.begin() + i--);
+                _cxxPlayer->parcels.erase(_cxxPlayer->parcels.begin() + i--);
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("parcel"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(10 * fee)), parcel_info }];
             }
         } else {
@@ -311,20 +311,20 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 result += oo::str::formatRuntime(OO_DESC("parcel-failed-@"), { TextArg(parcel_name) }) + "\n";
 
                 [self decreaseParcelReputation:RepForRisk(parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0))];
-                parcels.erase(parcels.begin() + i--);
+                _cxxPlayer->parcels.erase(_cxxPlayer->parcels.begin() + i--);
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("parcel"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), parcel_info }];
             }
         }
     }
 
     // check cargo contracts
-    for (i = 0; i < contracts.size(); i++) {
-        const oo::PList contract_info = contracts[i]; // a copy: the entry may be removed below (it was retained)
+    for (i = 0; i < _cxxPlayer->contracts.size(); i++) {
+        const oo::PList contract_info = _cxxPlayer->contracts[i]; // a copy: the entry may be removed below (it was retained)
         const std::optional<std::string> contract_cargo_desc = OptionalStringForKey(contract_info, std::string(CARGO_KEY_DESCRIPTION));
         int dest = contract_info.get<int>(std::string(CONTRACT_KEY_DESTINATION));
-        int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - _cxxPlayer->ship_clock;
 
-        if (system_id == dest) {
+        if (_cxxPlayer->system_id == dest) {
             // no longer needed
             // int premium = 10 * oo::PListView(contract_info).get<float>(CONTRACT_KEY_PREMIUM);
             int fee = 10 * contract_info.get<float>(std::string(CONTRACT_KEY_FEE));
@@ -332,7 +332,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
             const std::string contract_cargo_type = contract_info.get<std::string>(std::string(CARGO_KEY_TYPE)); // a missing type was nil, which the market read as ""
             int contract_amount = contract_info.get<int>(std::string(CARGO_KEY_AMOUNT));
 
-            int quantity_on_hand = [shipCommodityData cxx_quantityForGood:contract_cargo_type];
+            int quantity_on_hand = [_cxxPlayer->shipCommodityData cxx_quantityForGood:contract_cargo_type];
 
             // we've arrived in system!
             if (dest_eta > 0) {
@@ -341,23 +341,23 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                     // with the goods too!
 
                     // remove the goods...
-                    [shipCommodityData cxx_removeQuantity:contract_amount forGood:contract_cargo_type];
+                    [_cxxPlayer->shipCommodityData cxx_removeQuantity:contract_amount forGood:contract_cargo_type];
 
                     // pay the premium and fee
                     // credits += fee + premium;
                     // not any more: all contracts initially awarded by JS, so fee
                     // is now all that needs to be paid - CIM
 
-                    if ([shipCommodityData cxx_exportLegalityForGood:contract_cargo_type] > 0) {
+                    if ([_cxxPlayer->shipCommodityData cxx_exportLegalityForGood:contract_cargo_type] > 0) {
                         [self cxx_addRoleToPlayer:"trader-smuggler"];
                     } else {
                         [self cxx_addRoleToPlayer:"trader"];
                     }
 
-                    credits += fee;
+                    _cxxPlayer->credits += fee;
                     result += oo::str::formatRuntime(OO_DESC("cargo-delivered-okay-@-@"), { TextArg(contract_cargo_desc), cxx_OOCredits(fee) }) + "\n";
 
-                    contracts.erase(contracts.begin() + i--);
+                    _cxxPlayer->contracts.erase(_cxxPlayer->contracts.begin() + i--);
                     // repute++
                     // +10 as cargo contracts don't have risk modifiers
                     [self increaseContractReputation:10];
@@ -367,18 +367,18 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                     // see if the amount of goods delivered is acceptable
 
                     float percent_delivered = 100.0 * (float)quantity_on_hand / (float)contract_amount;
-                    float acceptable_ratio = 100.0 - 10.0 * system_id / 256.0; // down to 90%
+                    float acceptable_ratio = 100.0 - 10.0 * _cxxPlayer->system_id / 256.0; // down to 90%
 
                     if (percent_delivered >= acceptable_ratio) {
                         // remove the goods...
-                        [shipCommodityData cxx_setQuantity:0 forGood:contract_cargo_type];
+                        [_cxxPlayer->shipCommodityData cxx_setQuantity:0 forGood:contract_cargo_type];
 
                         // pay the fee
                         int shortfall = 100 - percent_delivered;
                         int payment = percent_delivered * (fee) / 100.0;
-                        credits += payment;
+                        _cxxPlayer->credits += payment;
 
-                        if ([shipCommodityData cxx_exportLegalityForGood:contract_cargo_type] > 0) {
+                        if ([_cxxPlayer->shipCommodityData cxx_exportLegalityForGood:contract_cargo_type] > 0) {
                             [self cxx_addRoleToPlayer:"trader-smuggler"];
                         } else {
                             [self cxx_addRoleToPlayer:"trader"];
@@ -386,7 +386,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
                         result += oo::str::formatRuntime(OO_DESC("cargo-delivered-short-@-@-d"), { TextArg(contract_cargo_desc), cxx_OOCredits(payment), shortfall }) + "\n";
 
-                        contracts.erase(contracts.begin() + i--);
+                        _cxxPlayer->contracts.erase(_cxxPlayer->contracts.begin() + i--);
                         // repute unchanged
                         [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("cargo"), oo::PList("short"), oo::PList::unsignedInteger(static_cast<NSUInteger>(payment)), contract_info }];
 
@@ -399,7 +399,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 // but we're late!
                 result += oo::str::formatRuntime(OO_DESC("cargo-delivered-late-@"), { TextArg(contract_cargo_desc) }) + "\n";
 
-                contracts.erase(contracts.begin() + i--);
+                _cxxPlayer->contracts.erase(_cxxPlayer->contracts.begin() + i--);
                 // repute--
                 [self decreaseContractReputation:10];
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("cargo"), oo::PList("late"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), contract_info }];
@@ -409,7 +409,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 // we've run out of time!
                 result += oo::str::formatRuntime(OO_DESC("cargo-failed-@"), { TextArg(contract_cargo_desc) }) + "\n";
 
-                contracts.erase(contracts.begin() + i--);
+                _cxxPlayer->contracts.erase(_cxxPlayer->contracts.begin() + i--);
                 // repute--
                 [self decreaseContractReputation:10];
                 [self cxx_doScriptEvent:OOJSID("playerCompletedContract") withPListArguments:{ oo::PList("cargo"), oo::PList("failed"), oo::PList::unsignedInteger(static_cast<NSUInteger>(0)), contract_info }];
@@ -419,44 +419,44 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
     // check passenger_record for expired contracts (only deletes: the key order does not matter)
     std::vector<std::string> names;
-    for (const auto& record : passenger_record)
+    for (const auto& record : _cxxPlayer->passenger_record)
         names.push_back(record.first);
     for (i = 0; i < names.size(); i++) {
-        double dest_eta = DoubleForKey(passenger_record, names[i]) - ship_clock;
+        double dest_eta = DoubleForKey(_cxxPlayer->passenger_record, names[i]) - _cxxPlayer->ship_clock;
         if (dest_eta < 0) {
             // check they're not STILL on board
             BOOL on_board = NO;
             unsigned j;
-            for (j = 0; j < passengers.size(); j++) {
-                const oo::PList* passenger_name = passengers[j].find(std::string(PASSENGER_KEY_NAME)); // -isEqual: to the record's key
+            for (j = 0; j < _cxxPlayer->passengers.size(); j++) {
+                const oo::PList* passenger_name = _cxxPlayer->passengers[j].find(std::string(PASSENGER_KEY_NAME)); // -isEqual: to the record's key
                 if (passenger_name != nullptr && passenger_name->isString() && *passenger_name->getIf<std::string>() == names[i])
                     on_board = YES;
             }
             if (!on_board) {
-                passenger_record.erase(names[i]);
+                _cxxPlayer->passenger_record.erase(names[i]);
             }
         }
     }
 
     // check contract_record for expired contracts (only deletes: the key order does not matter)
     std::vector<std::string> ids;
-    for (const auto& record : contract_record)
+    for (const auto& record : _cxxPlayer->contract_record)
         ids.push_back(record.first);
     for (i = 0; i < ids.size(); i++) {
-        double dest_eta = DoubleForKey(contract_record, ids[i]) - ship_clock; // -doubleValue
+        double dest_eta = DoubleForKey(_cxxPlayer->contract_record, ids[i]) - _cxxPlayer->ship_clock; // -doubleValue
         if (dest_eta < 0) {
-            contract_record.erase(ids[i]);
+            _cxxPlayer->contract_record.erase(ids[i]);
         }
     }
 
     // check parcel_record for expired deliveries (only deletes: the key order does not matter)
     std::vector<std::string> parcel_ids;
-    for (const auto& record : parcel_record)
+    for (const auto& record : _cxxPlayer->parcel_record)
         parcel_ids.push_back(record.first);
     for (i = 0; i < parcel_ids.size(); i++) {
-        double dest_eta = DoubleForKey(parcel_record, parcel_ids[i]) - ship_clock; // -doubleValue
+        double dest_eta = DoubleForKey(_cxxPlayer->parcel_record, parcel_ids[i]) - _cxxPlayer->ship_clock; // -doubleValue
         if (dest_eta < 0) {
-            parcel_record.erase(parcel_ids[i]);
+            _cxxPlayer->parcel_record.erase(parcel_ids[i]);
         }
     }
 
@@ -473,8 +473,8 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 - (OOCargoQuantity)cxx_contractedVolumeForGood:(const std::string&)good
 {
     OOCargoQuantity total = 0;
-    for (unsigned i = 0; i < contracts.size(); i++) {
-        const oo::PList& contract_info = contracts[i];
+    for (unsigned i = 0; i < _cxxPlayer->contracts.size(); i++) {
+        const oo::PList& contract_info = _cxxPlayer->contracts[i];
         if (OptionalStringForKey(contract_info, std::string(CARGO_KEY_TYPE)) == good) {
             total += contract_info.get<NSUInteger>(std::string(CARGO_KEY_AMOUNT));
         }
@@ -485,26 +485,26 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 - (void)cxx_addMessageToReport:(const std::string&)report
 {
     if (!report.empty()) {
-        if (dockingReport.empty())
-            dockingReport += report;
+        if (_cxxPlayer->dockingReport.empty())
+            _cxxPlayer->dockingReport += report;
         else
-            dockingReport += "\n\n" + report; // @"\n\n%@"
+            _cxxPlayer->dockingReport += "\n\n" + report; // @"\n\n%@"
     }
 }
 
 - (oo::PList)reputation
 {
-    return oo::PList(reputation);
+    return oo::PList(_cxxPlayer->reputation);
 }
 
 - (int)passengerReputation
 {
-    int good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY));
 
     if (unknown > 0)
-        unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
+        unknown = MAX_CONTRACT_REP - (((2 * unknown) + (_cxxPlayer->market_rnd % unknown)) / 3);
     else
         unknown = MAX_CONTRACT_REP;
 
@@ -513,9 +513,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)increasePassengerReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -531,16 +531,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 good++;
         }
     }
-    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), good);
-    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), bad);
-    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY), good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY), bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY), unknown);
 }
 
 - (void)decreasePassengerReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -556,19 +556,19 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 bad++;
         }
     }
-    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), good);
-    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), bad);
-    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY), good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY), bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY), unknown);
 }
 
 - (int)parcelReputation
 {
-    int good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     if (unknown > 0)
-        unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
+        unknown = MAX_CONTRACT_REP - (((2 * unknown) + (_cxxPlayer->market_rnd % unknown)) / 3);
     else
         unknown = MAX_CONTRACT_REP;
 
@@ -577,9 +577,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)increaseParcelReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -595,16 +595,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 good++;
         }
     }
-    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), good);
-    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), bad);
-    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY), good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY), bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY), unknown);
 }
 
 - (void)decreaseParcelReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -620,19 +620,19 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 bad++;
         }
     }
-    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), good);
-    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), bad);
-    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY), good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY), bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY), unknown);
 }
 
 - (int)contractReputation
 {
-    int good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY));
 
     if (unknown > 0)
-        unknown = MAX_CONTRACT_REP - (((2 * unknown) + (market_rnd % unknown)) / 3);
+        unknown = MAX_CONTRACT_REP - (((2 * unknown) + (_cxxPlayer->market_rnd % unknown)) / 3);
     else
         unknown = MAX_CONTRACT_REP;
 
@@ -641,9 +641,9 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)increaseContractReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (bad > 0) {
@@ -659,16 +659,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 good++;
         }
     }
-    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), good);
-    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), bad);
-    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY), good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY), bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY), unknown);
 }
 
 - (void)decreaseContractReputation:(unsigned)amount
 {
-    int good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
-    int bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
-    int unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int good = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY));
+    int bad = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY));
+    int unknown = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY));
 
     for (unsigned i = 0; i < amount; i++) {
         if (good > 0) {
@@ -684,22 +684,22 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
                 bad++;
         }
     }
-    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), good);
-    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), bad);
-    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY), good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY), bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY), unknown);
 }
 
 - (void)erodeReputation
 {
-    int c_good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
-    int c_bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
-    int c_unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
-    int p_good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
-    int p_bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
-    int p_unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
-    int pl_good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
-    int pl_bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
-    int pl_unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
+    int c_good = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY));
+    int c_bad = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY));
+    int c_unknown = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int p_good = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY));
+    int p_bad = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY));
+    int p_unknown = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int pl_good = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY));
+    int pl_bad = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY));
+    int pl_unknown = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     if (c_unknown < MAX_CONTRACT_REP) {
         if (c_bad > 0)
@@ -731,29 +731,29 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         pl_unknown++;
     }
 
-    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), c_good);
-    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), c_bad);
-    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), c_unknown);
-    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), p_good);
-    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), p_bad);
-    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), p_unknown);
-    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), pl_good);
-    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), pl_bad);
-    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), pl_unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY), c_good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY), c_bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY), c_unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY), p_good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY), p_bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY), p_unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY), pl_good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY), pl_bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY), pl_unknown);
 }
 
 /* Update reputation levels in case of change in MAX_CONTRACT_REP */
 - (void)normaliseReputation
 {
-    int c_good = ReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY));
-    int c_bad = ReputationValue(reputation, std::string(CONTRACTS_BAD_KEY));
-    int c_unknown = ReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY));
-    int p_good = ReputationValue(reputation, std::string(PASSAGE_GOOD_KEY));
-    int p_bad = ReputationValue(reputation, std::string(PASSAGE_BAD_KEY));
-    int p_unknown = ReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY));
-    int pl_good = ReputationValue(reputation, std::string(PARCEL_GOOD_KEY));
-    int pl_bad = ReputationValue(reputation, std::string(PARCEL_BAD_KEY));
-    int pl_unknown = ReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY));
+    int c_good = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY));
+    int c_bad = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY));
+    int c_unknown = ReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY));
+    int p_good = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY));
+    int p_bad = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY));
+    int p_unknown = ReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY));
+    int pl_good = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY));
+    int pl_bad = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY));
+    int pl_unknown = ReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY));
 
     int c = c_good + c_bad + c_unknown;
     if (c == 0) {
@@ -782,15 +782,15 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         pl_unknown = MAX_CONTRACT_REP - pl_good - pl_bad;
     }
 
-    SetReputationValue(reputation, std::string(CONTRACTS_GOOD_KEY), c_good);
-    SetReputationValue(reputation, std::string(CONTRACTS_BAD_KEY), c_bad);
-    SetReputationValue(reputation, std::string(CONTRACTS_UNKNOWN_KEY), c_unknown);
-    SetReputationValue(reputation, std::string(PASSAGE_GOOD_KEY), p_good);
-    SetReputationValue(reputation, std::string(PASSAGE_BAD_KEY), p_bad);
-    SetReputationValue(reputation, std::string(PASSAGE_UNKNOWN_KEY), p_unknown);
-    SetReputationValue(reputation, std::string(PARCEL_GOOD_KEY), pl_good);
-    SetReputationValue(reputation, std::string(PARCEL_BAD_KEY), pl_bad);
-    SetReputationValue(reputation, std::string(PARCEL_UNKNOWN_KEY), pl_unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_GOOD_KEY), c_good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_BAD_KEY), c_bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(CONTRACTS_UNKNOWN_KEY), c_unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_GOOD_KEY), p_good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_BAD_KEY), p_bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PASSAGE_UNKNOWN_KEY), p_unknown);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_GOOD_KEY), pl_good);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_BAD_KEY), pl_bad);
+    SetReputationValue(_cxxPlayer->reputation, std::string(PARCEL_UNKNOWN_KEY), pl_unknown);
 }
 
 - (BOOL)cxx_addPassenger:(const std::string&)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee advance:(double)advance risk:(unsigned)risk
@@ -808,15 +808,15 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     });
 
     // extra checks, just in case.
-    if (passengers.size() >= max_passengers || passenger_record.find(Name) != passenger_record.end())
+    if (_cxxPlayer->passengers.size() >= _cxxPlayer->max_passengers || _cxxPlayer->passenger_record.find(Name) != _cxxPlayer->passenger_record.end())
         return NO;
 
     if (risk > 1) {
         [self cxx_addRoleToPlayer:"trader-courier+"];
     }
 
-    passengers.push_back(passenger_info);
-    passenger_record[Name] = oo::PList(eta); // +numberWithDouble:
+    _cxxPlayer->passengers.push_back(passenger_info);
+    _cxxPlayer->passenger_record[Name] = oo::PList(eta); // +numberWithDouble:
 
     [self cxx_doScriptEvent:OOJSID("playerEnteredContract") withPListArguments:{ oo::PList("passenger"), passenger_info }];
 
@@ -826,17 +826,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 - (BOOL)cxx_removePassenger:(const std::string&)Name // removes the first passenger that answers to Name, returns NO if none found
 {
     // extra check, just in case.
-    if (passengers.empty())
+    if (_cxxPlayer->passengers.empty())
         return NO;
 
     unsigned i;
 
-    for (i = 0; i < passengers.size(); i++) {
-        const std::optional<std::string> this_name = OptionalStringForKey(passengers[i], std::string(PASSENGER_KEY_NAME));
+    for (i = 0; i < _cxxPlayer->passengers.size(); i++) {
+        const std::optional<std::string> this_name = OptionalStringForKey(_cxxPlayer->passengers[i], std::string(PASSENGER_KEY_NAME));
 
         if (this_name == Name) {
-            passengers.erase(passengers.begin() + i);
-            passenger_record.erase(Name);
+            _cxxPlayer->passengers.erase(_cxxPlayer->passengers.begin() + i);
+            _cxxPlayer->passenger_record.erase(Name);
             return YES;
         }
     }
@@ -868,8 +868,8 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         [self cxx_addRoleToPlayer:"trader-courier+"];
     }
 
-    parcels.push_back(parcel_info);
-    parcel_record[Name] = oo::PList(eta); // +numberWithDouble:
+    _cxxPlayer->parcels.push_back(parcel_info);
+    _cxxPlayer->parcel_record[Name] = oo::PList(eta); // +numberWithDouble:
 
     [self cxx_doScriptEvent:OOJSID("playerEnteredContract") withPListArguments:{ oo::PList("parcel"), parcel_info }];
 
@@ -879,17 +879,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 - (BOOL)cxx_removeParcel:(const std::string&)Name // removes the first parcel that answers to Name, returns NO if none found
 {
     // extra check, just in case.
-    if (parcels.empty())
+    if (_cxxPlayer->parcels.empty())
         return NO;
 
     unsigned i;
 
-    for (i = 0; i < parcels.size(); i++) {
-        const std::optional<std::string> this_name = OptionalStringForKey(parcels[i], std::string(PASSENGER_KEY_NAME));
+    for (i = 0; i < _cxxPlayer->parcels.size(); i++) {
+        const std::optional<std::string> this_name = OptionalStringForKey(_cxxPlayer->parcels[i], std::string(PASSENGER_KEY_NAME));
 
         if (this_name == Name) {
-            parcels.erase(parcels.begin() + i);
-            parcel_record.erase(Name);
+            _cxxPlayer->parcels.erase(_cxxPlayer->parcels.begin() + i);
+            _cxxPlayer->parcel_record.erase(Name);
             return YES;
         }
     }
@@ -915,7 +915,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         return NO;
 
     // avoid duplicate cargo_IDs
-    while (contract_record.find(cargo_ID) != contract_record.end()) {
+    while (_cxxPlayer->contract_record.find(cargo_ID) != _cxxPlayer->contract_record.end()) {
         sr2++;
         cargo_ID = oo::str::format("%06x-%06x", sr1, sr2);
     }
@@ -937,7 +937,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     // check available space
 
     OOCargoQuantity cargoSpaceRequired = qty;
-    OOMassUnit contractCargoUnits = [shipCommodityData massUnitForGood:type]; // shared selector (OOCommodities): an Objective-C string
+    OOMassUnit contractCargoUnits = [_cxxPlayer->shipCommodityData massUnitForGood:type]; // shared selector (OOCommodities): an Objective-C string
 
     if (contractCargoUnits == UNITS_KILOGRAMS)
         cargoSpaceRequired /= 1000;
@@ -947,21 +947,21 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     if (cargoSpaceRequired > [self availableCargoSpace])
         return NO;
 
-    [shipCommodityData cxx_addQuantity:qty forGood:type];
+    [_cxxPlayer->shipCommodityData cxx_addQuantity:qty forGood:type];
 
-    current_cargo = [self cargoQuantityOnBoard];
+    _cxxPlayer->current_cargo = [self cargoQuantityOnBoard];
 
     // roleWeightFlags entries are signed integers, as +numberWithInt: was
-    if ([shipCommodityData cxx_exportLegalityForGood:type] > 0) {
+    if ([_cxxPlayer->shipCommodityData cxx_exportLegalityForGood:type] > 0) {
         [self cxx_addRoleToPlayer:"trader-smuggler"];
-        roleWeightFlags.insert_or_assign("bought-illegal", oo::PList::signedInteger(1));
+        _cxxPlayer->roleWeightFlags.insert_or_assign("bought-illegal", oo::PList::signedInteger(1));
     } else {
         [self cxx_addRoleToPlayer:"trader"];
-        roleWeightFlags.insert_or_assign("bought-legal", oo::PList::signedInteger(1));
+        _cxxPlayer->roleWeightFlags.insert_or_assign("bought-legal", oo::PList::signedInteger(1));
     }
 
-    contracts.push_back(cargo_info);
-    contract_record[cargo_ID] = oo::PList(eta); // +numberWithDouble:
+    _cxxPlayer->contracts.push_back(cargo_info);
+    _cxxPlayer->contract_record[cargo_ID] = oo::PList(eta); // +numberWithDouble:
 
     [self cxx_doScriptEvent:OOJSID("playerEnteredContract") withPListArguments:{ oo::PList("cargo"), cargo_info }];
 
@@ -970,7 +970,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (BOOL)cxx_removeContract:(const std::string&)type destination:(unsigned)dest // removes the first match found, returns NO if none found
 {
-    if (contracts.empty() || dest > 255)
+    if (_cxxPlayer->contracts.empty() || dest > 255)
         return NO;
 
     if (![[UNIVERSE commodities] cxx_goodDefined:type])
@@ -978,16 +978,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
     unsigned i;
 
-    for (i = 0; i < contracts.size(); i++) {
-        const oo::PList& contractInfo = contracts[i];
+    for (i = 0; i < _cxxPlayer->contracts.size(); i++) {
+        const oo::PList& contractInfo = _cxxPlayer->contracts[i];
         unsigned cargoDest = contractInfo.get<int>(std::string(CONTRACT_KEY_DESTINATION));
         const std::optional<std::string> cargoType = OptionalStringForKey(contractInfo, std::string(CARGO_KEY_TYPE));
 
         if (cargoType == type && cargoDest == dest) {
             const std::optional<std::string> cargoID = OptionalStringForKey(contractInfo, std::string(CARGO_KEY_ID));
             if (cargoID)
-                contract_record.erase(*cargoID);
-            contracts.erase(contracts.begin() + i);
+                _cxxPlayer->contract_record.erase(*cargoID);
+            _cxxPlayer->contracts.erase(_cxxPlayer->contracts.begin() + i);
             return YES;
         }
     }
@@ -997,17 +997,17 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (std::vector<std::string>)cxx_passengerList
 {
-    return [self cxx_contractsListFromEntries:passengers forCargo:NO forParcels:NO];
+    return [self cxx_contractsListFromEntries:_cxxPlayer->passengers forCargo:NO forParcels:NO];
 }
 
 - (std::vector<std::string>)cxx_parcelList
 {
-    return [self cxx_contractsListFromEntries:parcels forCargo:NO forParcels:YES];
+    return [self cxx_contractsListFromEntries:_cxxPlayer->parcels forCargo:NO forParcels:YES];
 }
 
 - (std::vector<std::string>)cxx_contractList
 {
-    return [self cxx_contractsListFromEntries:contracts forCargo:YES forParcels:NO];
+    return [self cxx_contractsListFromEntries:_cxxPlayer->contracts forCargo:YES forParcels:NO];
 }
 
 - (std::vector<std::string>)cxx_contractsListFromEntries:(const oo::PList::Array&)contracts_array forCargo:(BOOL)forCargo forParcels:(BOOL)forParcels
@@ -1021,7 +1021,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         const std::optional<std::string> label = OptionalStringForKey(contract_info, forCargo ? std::string(CARGO_KEY_DESCRIPTION) : std::string(PASSENGER_KEY_NAME));
         // the system name can change via script. The following PASSENGER_KEYs are identical to the corresponding CONTRACT_KEYs
         const std::optional<std::string> destination = [UNIVERSE cxx_getSystemName:contract_info.get<int>(std::string(CONTRACT_KEY_DESTINATION))];
-        int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - ship_clock;
+        int dest_eta = contract_info.get<double>(std::string(CONTRACT_KEY_ARRIVAL_TIME)) - _cxxPlayer->ship_clock;
         const std::optional<std::string> deadline = [UNIVERSE cxx_shortTimeDescription:dest_eta];
 
         OOCreditsQuantity fee = contract_info.get<int>(std::string(CONTRACT_KEY_FEE));
@@ -1049,11 +1049,11 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
 - (void)setGuiToManifestScreen
 {
-    OOGUIScreenID oldScreen = gui_screen;
+    OOGUIScreenID oldScreen = _cxxPlayer->gui_screen;
 
     GuiDisplayGen* gui = [UNIVERSE gui];
-    gui_screen = GUI_SCREEN_MANIFEST;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    _cxxPlayer->gui_screen = GUI_SCREEN_MANIFEST;
+    BOOL guiChanged = (oldScreen != _cxxPlayer->gui_screen);
     if (guiChanged) {
         [gui setStatusPage:0]; // need to do this earlier than the rest
     }
@@ -1125,16 +1125,16 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         [gui setTabStops:tab_stops];
 
         // Cargo Manifest
-        current_cargo = [self cargoQuantityOnBoard];
+        _cxxPlayer->current_cargo = [self cargoQuantityOnBoard];
 
         [gui clearAndKeepBackground:!guiChanged];
         [gui cxx_setTitle:OO_DESC("manifest-title")];
 
-        current = current_cargo;
+        current = _cxxPlayer->current_cargo;
         max = [self maxAvailableCargoSpace];
         const std::string cargoString = cxx_OOExpandKey("oolite-manifest-cargo", current, max).value_or(std::string());
         current = [self cxx_passengerList].size();
-        max = max_passengers;
+        max = _cxxPlayer->max_passengers;
         const std::string cabinString = cxx_OOExpandKey("oolite-manifest-cabins", current, max).value_or(std::string());
         const oo::PList manifestHeader(oo::PList::Array { oo::PList(cargoString), oo::PList(cabinString) });
 
@@ -1222,7 +1222,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     }
     /* ends */
 
-    lastTextKey.reset();
+    _cxxPlayer->lastTextKey.reset();
 
     [self setShowDemoShips:NO];
     [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
@@ -1230,7 +1230,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     if (guiChanged) {
         [gui cxx_setForegroundTextureKey:std::optional<std::string>([self status] == STATUS_DOCKED ? "docked_overlay" : "overlay")];
         [gui cxx_setBackgroundTextureKey:"manifest"];
-        [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+        [self noteGUIDidChangeFrom:oldScreen to:_cxxPlayer->gui_screen];
     }
 }
 
@@ -1260,13 +1260,13 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
 
-    OOGUIScreenID oldScreen = gui_screen;
-    gui_screen = GUI_SCREEN_REPORT;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    OOGUIScreenID oldScreen = _cxxPlayer->gui_screen;
+    _cxxPlayer->gui_screen = GUI_SCREEN_REPORT;
+    BOOL guiChanged = (oldScreen != _cxxPlayer->gui_screen);
 
     OOGUIRow i, text_row = 1;
 
-    dockingReport = oo::str::trimWhitespaceAndNewlines(dockingReport);
+    _cxxPlayer->dockingReport = oo::str::trimWhitespaceAndNewlines(_cxxPlayer->dockingReport);
 
     // GUI stuff
     {
@@ -1279,22 +1279,22 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
 
         // dockingReport might be a multi-line message
 
-        while ((!dockingReport.empty()) && (text_row < 18)) {
-            if (dockingReport.find('\n') != std::string::npos) {
-                while ((dockingReport.find('\n') != std::string::npos) && (text_row < 18)) {
-                    const std::size_t line_break = dockingReport.find('\n');
-                    const std::string line = dockingReport.substr(0, line_break);
-                    dockingReport.erase(0, line_break + 1);
+        while ((!_cxxPlayer->dockingReport.empty()) && (text_row < 18)) {
+            if (_cxxPlayer->dockingReport.find('\n') != std::string::npos) {
+                while ((_cxxPlayer->dockingReport.find('\n') != std::string::npos) && (text_row < 18)) {
+                    const std::size_t line_break = _cxxPlayer->dockingReport.find('\n');
+                    const std::string line = _cxxPlayer->dockingReport.substr(0, line_break);
+                    _cxxPlayer->dockingReport.erase(0, line_break + 1);
                     text_row = [gui cxx_addLongText:line startingAtRow:text_row align:GUI_ALIGN_LEFT];
                 }
-                dockingReport = oo::str::trimWhitespaceAndNewlines(dockingReport);
+                _cxxPlayer->dockingReport = oo::str::trimWhitespaceAndNewlines(_cxxPlayer->dockingReport);
             } else {
-                text_row = [gui cxx_addLongText:dockingReport startingAtRow:text_row align:GUI_ALIGN_LEFT];
-                dockingReport.clear();
+                text_row = [gui cxx_addLongText:_cxxPlayer->dockingReport startingAtRow:text_row align:GUI_ALIGN_LEFT];
+                _cxxPlayer->dockingReport.clear();
             }
         }
 
-        [gui cxx_setText:oo::str::formatRuntime(OO_DESC_PLURAL("contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), { cxx_OOCredits(credits), current_cargo, [self maxAvailableCargoSpace], passengers.size(), max_passengers }) forRow:GUI_ROW_MARKET_CASH];
+        [gui cxx_setText:oo::str::formatRuntime(OO_DESC_PLURAL("contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", _cxxPlayer->max_passengers), { cxx_OOCredits(_cxxPlayer->credits), _cxxPlayer->current_cargo, [self maxAvailableCargoSpace], _cxxPlayer->passengers.size(), _cxxPlayer->max_passengers }) forRow:GUI_ROW_MARKET_CASH];
         [gui setColor:[gui cxx_colorFromSetting:std::string(cxx_kGuiDockingSummaryColor) defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
 
         [gui cxx_setText:OO_DESC("press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
@@ -1303,7 +1303,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
     }
     /* ends */
 
-    lastTextKey.reset();
+    _cxxPlayer->lastTextKey.reset();
 
     [self setShowDemoShips:NO];
     [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
@@ -1317,7 +1317,7 @@ void SetReputationValue(oo::PList::Dict& reputation, const std::string& key, int
         if (bgDescriptor.isNull())
             bgDescriptor = [UNIVERSE cxx_screenTextureDescriptorForKey:"status"];
         [gui cxx_setBackgroundTextureDescriptor:bgDescriptor];
-        [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+        [self noteGUIDidChangeFrom:oldScreen to:_cxxPlayer->gui_screen];
     }
 }
 
@@ -1380,11 +1380,11 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
 - (void)setGuiToShipyardScreen:(NSUInteger)skip
 {
-    OOGUIScreenID oldScreen = gui_screen;
+    OOGUIScreenID oldScreen = _cxxPlayer->gui_screen;
 
     GuiDisplayGen* gui = [UNIVERSE gui];
-    gui_screen = GUI_SCREEN_SHIPYARD;
-    BOOL guiChanged = (oldScreen != gui_screen);
+    _cxxPlayer->gui_screen = GUI_SCREEN_SHIPYARD;
+    BOOL guiChanged = (oldScreen != _cxxPlayer->gui_screen);
 
     unsigned i;
 
@@ -1424,7 +1424,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     // GUI stuff
     {
         [gui clearAndKeepBackground:!guiChanged];
-        const std::optional<std::string> systemName = [UNIVERSE cxx_getSystemName:system_id];
+        const std::optional<std::string> systemName = [UNIVERSE cxx_getSystemName:_cxxPlayer->system_id];
         [gui cxx_setTitle:ExpandKey("shipyard-title", { { "system", systemName.has_value() ? oo::PList(*systemName) : oo::PList() } })];
 
         OOGUITabSettings tab_stops;
@@ -1585,13 +1585,13 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 {
     GuiDisplayGen* gui = [UNIVERSE gui];
     OOCreditsQuantity tradeIn = [self tradeInValue];
-    OOCreditsQuantity total = tradeIn + credits;
+    OOCreditsQuantity total = tradeIn + _cxxPlayer->credits;
     const oo::PList shipType = oo::PList([self displayName].value_or(""));
 
     [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH - 1];
     [gui setColor:[gui cxx_colorFromSetting:cxx_kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
     [gui cxx_setText:ExpandKey("shipyard-trade-in-value", { { "shipType", shipType }, { "tradeIn", oo::PList::unsignedInteger(tradeIn) } }) forRow:GUI_ROW_MARKET_CASH - 1];
-    [gui cxx_setText:ExpandKey("shipyard-total-available-with-trade-in", { { "shipType", shipType }, { "total", oo::PList::unsignedInteger(total) }, { "credits", oo::PList::unsignedInteger(credits) }, { "tradeIn", oo::PList::unsignedInteger(tradeIn) } }) forRow:GUI_ROW_MARKET_CASH];
+    [gui cxx_setText:ExpandKey("shipyard-total-available-with-trade-in", { { "shipType", shipType }, { "total", oo::PList::unsignedInteger(total) }, { "credits", oo::PList::unsignedInteger(_cxxPlayer->credits) }, { "tradeIn", oo::PList::unsignedInteger(tradeIn) } }) forRow:GUI_ROW_MARKET_CASH];
 }
 
 - (void)cxx_showShipyardModel:(const std::string&)shipKey shipData:(const oo::PList&)shipData personality:(uint16_t)personality
@@ -1624,7 +1624,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     */
     unsigned long long value = [UNIVERSE cxx_tradeInValueForCommanderDictionary:[self cxx_commanderDataDictionary]];
     value -= value * 0.006 * [self missingSubEntitiesAdjustment]; // TODO: 0.006 might need rethinking.
-    value = cunningFee(((value * 75 * ship_trade_in_factor) + 5000) / 10000, 0.005); // Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
+    value = cunningFee(((value * 75 * _cxxPlayer->ship_trade_in_factor) + 5000) / 10000, 0.005); // Multiply by two percentages, divide by 100*100. The +5000 is to get normal rounding.
     return value * 10;
 }
 
@@ -1671,7 +1671,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     OOCreditsQuantity price = shipInfo.get<unsigned long long>("price"); // SHIPYARD_KEY_PRICE
     OOCreditsQuantity tradeIn = [self tradeInValue];
 
-    if (credits + tradeIn < price * 10)
+    if (_cxxPlayer->credits + tradeIn < price * 10)
         return NO; // you can't afford it!
 
     // from this point, the player is committed to buying - raise a pre-buy script event
@@ -1691,7 +1691,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
          withPListArguments:buyArguments];
 
     // sell all the commodities carried
-    for (const std::string& good : [shipCommodityData goods]) {
+    for (const std::string& good : [_cxxPlayer->shipCommodityData goods]) {
         [self cxx_trySellingCommodity:good all:YES];
     }
     // We tried to sell everything. If there are still items present in our inventory, it
@@ -1699,19 +1699,19 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     // it all. Everything that could not be sold will be lost. -- Nikos 20083012
 
     // pay over the mazoolah
-    credits -= 10 * price - tradeIn;
+    _cxxPlayer->credits -= 10 * price - tradeIn;
 
     const oo::PList* shipDictNode = shipInfo.get<oo::PList::Dict>("ship"); // SHIPYARD_KEY_SHIP
     [self newShipCommonSetup:shipDataKey.value_or("") yardInfo:shipInfo baseInfo:shipDictNode != nullptr ? *shipDictNode : oo::PList()];
 
     // this ship has a clean record
-    legalStatus = 0;
+    _cxxPlayer->legalStatus = 0;
 
     const oo::PList* extras = shipInfo.get<oo::PList::Array>("extras"); // KEY_EQUIPMENT_EXTRAS
     for (std::size_t i = 0; extras != nullptr && i < extras->count(); i++) {
         const std::optional<std::string> eq_key = OptionalStringAt(*extras, i);
         if (eq_key == "EQ_PASSENGER_BERTH") {
-            max_passengers++;
+            _cxxPlayer->max_passengers++;
             _cxxShip->max_cargo -= PASSENGER_BERTH_SPACE;
         } else {
             [self addEquipmentItem:eq_key.value_or(std::string()) withValidation:YES inContext:"newShip"]; // none: "", as nil was
@@ -1722,7 +1722,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     const std::optional<std::string> shipID = OptionalStringForKey(shipInfo, "id"); // SHIPYARD_KEY_ID
     if (shipID) {
         const std::optional<std::string> dataKey = [self cxx_shipDataKey];
-        shipyard_record[*shipID] = dataKey ? oo::PList(*dataKey) : oo::PList(); // (a nil key raised)
+        _cxxPlayer->shipyard_record[*shipID] = dataKey ? oo::PList(*dataKey) : oo::PList(); // (a nil key raised)
     }
 
     // remove the ship from the localShipyard
@@ -1738,10 +1738,10 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     [self setEntityPersonalityInt:shipInfo.get<unsigned short>("personality")]; // SHIPYARD_KEY_PERSONALITY
 
     // adjust the clock forward by an hour
-    ship_clock_adjust += 3600.0;
+    _cxxPlayer->ship_clock_adjust += 3600.0;
 
     // finally we can get full hock if we sell it back
-    ship_trade_in_factor = 100;
+    _cxxPlayer->ship_trade_in_factor = 100;
 
     if ([UNIVERSE autoSave])
         [UNIVERSE setAutoSaveNow:YES];
@@ -1776,7 +1776,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     for (unsigned i = 0; i < extras.count(); i++) {
         const std::optional<std::string> eq_key = OptionalStringAt(extras, i);
         if (eq_key == "EQ_PASSENGER_BERTH") {
-            max_passengers++;
+            _cxxPlayer->max_passengers++;
             _cxxShip->max_cargo -= PASSENGER_BERTH_SPACE;
         } else {
             [self addEquipmentItem:eq_key.value_or(std::string()) withValidation:YES inContext:"newShip"]; // none: "", as nil was
@@ -1791,12 +1791,12 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 - (void)newShipCommonSetup:(const std::string&)shipKey yardInfo:(const oo::PList&)ship_info baseInfo:(const oo::PList&)ship_base_dict
 {
     // Zero out our manifest.
-    [shipCommodityData removeAllGoods];
-    current_cargo = 0;
+    [_cxxPlayer->shipCommodityData removeAllGoods];
+    _cxxPlayer->current_cargo = 0;
 
     // drop all passengers
-    passengers.clear();
-    passenger_record.clear();
+    _cxxPlayer->passengers.clear();
+    _cxxPlayer->passenger_record.clear();
 
     // parcels stay the same; easy to transfer between ships
     // contracts stay the same, so if you default - tough!
@@ -1837,7 +1837,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
         _cxxShip->forward_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
     // new ships start with weapons online
-    weapons_online = 1;
+    _cxxPlayer->weapons_online = 1;
 
     // get basic max_cargo
     _cxxShip->max_cargo = [UNIVERSE cxx_maxCargoForShip:[self cxx_shipDataKey].value_or(std::string())];
@@ -1849,7 +1849,7 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
     _cxxShip->missiles = shipDict.get<unsigned int>("missiles");
 
     // reset max_passengers
-    max_passengers = 0;
+    _cxxPlayer->max_passengers = 0;
 
     // reset and refill extra_equipment then set flags from it
 
@@ -1880,9 +1880,9 @@ std::vector<std::string> ShipyardLabelsRow(GuiDisplayGen* gui)
 
     // new ship, so lose some memory of actions
     // new ship, so lose some memory of player actions
-    if (ship_kills >= 6400) {
+    if (_cxxPlayer->ship_kills >= 6400) {
         [self clearRolesFromPlayer:0.1];
-    } else if (ship_kills >= 2560) {
+    } else if (_cxxPlayer->ship_kills >= 2560) {
         [self clearRolesFromPlayer:0.25];
     } else {
         [self clearRolesFromPlayer:0.5];

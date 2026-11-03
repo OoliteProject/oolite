@@ -244,8 +244,8 @@ void OOOXPVerifier::registerStage(::OOOXPVerifierStage* stage)
     }
 
     // Checks passed, store state.
-    // The stage keeps the Objective-C verifier, unretained: run() keeps it alive while stages work.
-    stage->setVerifier(oo::ToObjC(this));
+    // The stage keeps the verifier, unretained (it kept the Objective-C facade until bead oo-qg71f).
+    stage->setVerifier(this);
     _stagesByName[*name] = oo::Ref<::OOOXPVerifierStage>(stage);
     _waitingStages.push_back(oo::Ref<::OOOXPVerifierStage>(stage));
 }
@@ -347,11 +347,6 @@ bool OOOXPVerifier::initWithPath(const std::optional<std::string>& path)
 
 void OOOXPVerifier::run()
 {
-    /*	The stages keep the Objective-C verifier, unretained (OOOXPVerifierStage's verifier()), and
-            message it; it lived for the whole run when it was the verifier itself. Its facade does now.
-    */
-    const oo::ObjCRef<::OOOXPVerifier*> facade(oo::ToObjC(this));
-
     NoteVerificationStage(_displayName, "");
 
     setUpLogOverrides();

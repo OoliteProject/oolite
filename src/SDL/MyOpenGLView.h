@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
 #include <string_view>
 
@@ -254,10 +255,47 @@ public:
     void dumpRGBAToRGBFileNamed(const std::optional<std::string>& rgbName, const std::optional<std::string>& grayName, uint8_t* bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
 #endif
 
-    /*	Internal: the view's state. The Input category (MyOpenGLView+Input.mm), still an Objective-C
-            category of the facade, reads and writes it through oo::ToCxx(self) (ADR-0056 amendments oo-3bgz
-            and oo-6rb6 item 1); it becomes private when that category converts (bead oo-0806).
-    */
+    // Input (bead oo-0806, MyOpenGLView+Input.mm): the former (Input) category. A getter named like its
+    // member is get<Name> (ADR-0056 amendment oo-862e).
+    void initKeyMappingData();
+    void autoShowMouse();
+    void setStringInput(enum StringInput value);
+    void allowStringInput(bool value);
+    enum StringInput getAllowingStringInput();
+    std::optional<std::string> getTypedString();
+    void resetTypedString();
+    void setTypedString(const std::string& value);
+    void noteMouseInteractionModeChangedFrom(OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
+    void pollControls();
+    void setVirtualJoystick(double vmx, double vmy);
+    NSPoint getVirtualJoystickPosition();
+    void clearKeys();
+    void clearMouse();
+    void clearKey(int theKey);
+    void resetMouse();
+    bool getIsAlphabetKeyDown();
+    void suppressKeysUntilKeyUp(); // DJS
+    bool isDown(int key);
+    bool isOptDown(); // opt == alt key
+    bool isCtrlDown();
+    bool isCommandDown();
+    bool isShiftDown();
+    bool isCapsLockOn();
+    bool lastKeyWasShifted();
+    int numKeys();
+    int mouseWheelState();
+    float mouseWheelDelta();
+    void setMouseWheelDelta(float newWheelDelta);
+    // Command-key combinations need special handling. SDL stubs for these mac functions.
+    bool isCommandQDown();
+    bool isCommandFDown();
+    void clearCommandF();
+    void setMouseInDeltaMode(bool inDelta);
+    // DJS: String input handler. Since for SDL versions we're also handling freeform typing this has
+    // necessarily got more complex than the non-SDL versions.
+    void handleStringInput(SDL_KeyboardEvent* kbd_event, Uint16 key_id);
+
+    /*	Internal: the view's state, read by the members above and by the other slices. */
     ::GameController* gameController = { }; // not retained
     bool keys[NUM_KEYS] = { };
     int scancode2Unicode[NUM_KEYS] = { };
@@ -342,9 +380,6 @@ private:
 } // namespace cxx
 
 // Transitional: the Objective-C MyOpenGLView, for the game controller, the universe, the player and
-// the many callers of [UNIVERSE gameView], and for the Input category, which is not yet converted. Deleted, with namespace cxx above, by the bridge's
+// the many callers of [UNIVERSE gameView], Deleted, with namespace cxx above, by the bridge's
 // deletion bead.
 #import "MyOpenGLView+ObjCBridge.h"
-
-#import "MyOpenGLView+Input.h"
-#include <SDL3/SDL_events.h>

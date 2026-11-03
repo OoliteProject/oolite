@@ -26,16 +26,14 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #include <quickjs.h>
-@class OOExhaustPlumeEntity;
 
 void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 
 JSClassID JSExhaustPlumeClassID(void);
 
 /*	The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the engine reaches by
-        selector. Its methods are one-line forwarders to these on the OOExhaustPlumeEntity facade, in
-        OOExhaustPlumeEntity+ObjCBridge.mm (bead oo-9ht.48), until that facade goes (oo-9ht.110;
-        proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its -oo_jsClassID answers
+        selector through the root's JS members: the C++ OOExhaustPlumeEntity's overrides call these
+        (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its jsClassID() answers
         JSExhaustPlumeClassID().
 */
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void);

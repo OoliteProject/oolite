@@ -25,7 +25,12 @@
 	with the same names and answers, which the verifier makes by name through its test hook
 	(OOOXPVerifierTestAccess, asked where the class lookup was), and the stages hand and compare the
 	C++ stages with -registerStage: and -cxx_stageWithName: (ADR-0049, standing approval oo-9n5p9;
-	no case or expectation changed). Run: bash tools/check-core-tests.sh test_OOOXPVerifier
+	no case or expectation changed).
+	Bead oo-qg71f moved the callers off the verifier's Objective-C facade: the test runs the
+	verification through the static cxx::OOOXPVerifier::runVerificationIfRequested(), as
+	GameController does, and the stages call the C++ verifier they keep (verifier()) where they
+	sent the facade's selectors (ADR-0049, standing approval oo-9n5p9; no case or expectation
+	changed). Run: bash tools/check-core-tests.sh test_OOOXPVerifier
 */
 
 #import "OOOXPVerifier.h"
@@ -131,7 +136,7 @@ void SetUp()
 }
 
 
-// +runVerificationIfRequested with this command line (after the program's name).
+// runVerificationIfRequested() with this command line (after the program's name).
 bool RunWithArguments(std::vector<std::string> arguments)
 {
 	arguments.insert(arguments.begin(), "core_test_OOOXPVerifier");
@@ -139,7 +144,7 @@ bool RunWithArguments(std::vector<std::string> arguments)
 	for (const std::string &argument : arguments)  argv.push_back(argument.c_str());
 	oo::process::setArguments(static_cast<int>(argv.size()), argv.data());
 	gEvents.clear();
-	return [OOOXPVerifier runVerificationIfRequested];
+	return cxx::OOOXPVerifier::runVerificationIfRequested();
 }
 
 }	// namespace
@@ -184,23 +189,23 @@ TEST_STAGE(OOTestStageA, "A")
 void run() override
 {
 	OOTestStage::run();
-	OOOXPVerifier *verifier = this->verifier();
+	cxx::OOOXPVerifier *verifier = this->verifier();
 	gView.seen = (verifier != nil);
-	gView.path = [verifier cxx_oxpPath];
-	gView.displayName = [verifier cxx_oxpDisplayName];
-	gView.value = [verifier configurationValueForKey:"aNumber"];
-	gView.missing = [verifier configurationValueForKey:"noSuchKey"];
-	gView.array = [verifier cxx_configurationArrayForKey:"anArray"];
-	gView.notAnArray = [verifier cxx_configurationArrayForKey:"aString"];
-	gView.dictionary = [verifier cxx_configurationDictionaryForKey:"aDictionary"];
-	gView.notADictionary = [verifier cxx_configurationDictionaryForKey:"anArray"];
-	gView.string = [verifier cxx_configurationStringForKey:"aString"];
-	gView.number = [verifier cxx_configurationStringForKey:"aNumber"];
-	gView.notAString = [verifier cxx_configurationStringForKey:"notAString"];
-	gView.set = [verifier cxx_configurationSetForKey:"anArray"];
-	gView.notASet = [verifier cxx_configurationSetForKey:"aDictionary"];
-	gView.foundA = ([verifier cxx_stageWithName:"A"] == this);
-	gView.foundNothing = ([verifier cxx_stageWithName:"Missing"] == nullptr);
+	gView.path = verifier->oxpPath();
+	gView.displayName = verifier->oxpDisplayName();
+	gView.value = verifier->configurationValueForKey("aNumber");
+	gView.missing = verifier->configurationValueForKey("noSuchKey");
+	gView.array = verifier->configurationArrayForKey("anArray");
+	gView.notAnArray = verifier->configurationArrayForKey("aString");
+	gView.dictionary = verifier->configurationDictionaryForKey("aDictionary");
+	gView.notADictionary = verifier->configurationDictionaryForKey("anArray");
+	gView.string = verifier->configurationStringForKey("aString");
+	gView.number = verifier->configurationStringForKey("aNumber");
+	gView.notAString = verifier->configurationStringForKey("notAString");
+	gView.set = verifier->configurationSetForKey("anArray");
+	gView.notASet = verifier->configurationSetForKey("aDictionary");
+	gView.foundA = (verifier->stageWithName("A") == this);
+	gView.foundNothing = (verifier->stageWithName("Missing") == nullptr);
 }
 };
 
@@ -220,7 +225,7 @@ TEST_STAGE(OOTestStageK, "K")
 std::optional<std::vector<std::string>> dependents() override
 {
 	const oo::Ref<OOTestStageSub> sub = oo::makeRef<OOTestStageSub>();
-	[verifier() registerStage:sub.get()];
+	verifier()->registerStage(sub.get());
 	return std::nullopt;
 }
 };
@@ -232,8 +237,8 @@ void run() override
 {
 	OOTestStage::run();
 	const oo::Ref<OOTestStageLate> late = oo::makeRef<OOTestStageLate>();
-	[verifier() registerStage:late.get()];
-	gEvents.push_back([verifier() cxx_stageWithName:"Late"] == nullptr ? "Late refused" : "Late registered");
+	verifier()->registerStage(late.get());
+	gEvents.push_back(verifier()->stageWithName("Late") == nullptr ? "Late refused" : "Late registered");
 }
 };
 

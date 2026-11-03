@@ -235,10 +235,10 @@ void WriteFile(const std::filesystem::path &path, const char *contents)
 
 
 // The scanner, registered with the verifier and run over its OXP, as the verifier runs it first.
-void RunScanner(OOOXPVerifier *verifier)
+void RunScanner(cxx::OOOXPVerifier *verifier)
 {
 	OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
-	[verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
+	verifier->stageWithName(OOFileScannerVerifierStage::kName)->run();	// was -fileScannerStage (bead oo-9ht.7); the C++ stage since oo-9ht.4
 }
 
 
@@ -249,12 +249,12 @@ const std::filesystem::path kBase = std::filesystem::current_path() / "test_OOCh
 
 
 // An OXP with the given files (path, contents), and its verifier with the scanner run over it.
-OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
+cxx::OOOXPVerifier *MakeVerifier(std::initializer_list<std::pair<const char *, const char *>> files)
 {
 	std::filesystem::remove_all(kBase);
 	std::filesystem::create_directories(kBase);
 	for (const auto &[name, contents] : files)  WriteFile(kBase / name, contents);
-	OOOXPVerifier *verifier = [[[OOOXPVerifier alloc] initWithPath:kBase.generic_string() configuration:kConfiguration] autorelease];
+	cxx::OOOXPVerifier *verifier = OOOXPVerifierTestAccess::Make(kBase.generic_string(), kConfiguration);
 	RunScanner(verifier);
 	StartLog();
 	return verifier;
@@ -284,15 +284,15 @@ OO_TEST(nameAndNeighbours)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier({});
+		cxx::OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<OOCheckShipDataPListVerifierStage> stage = oo::makeRef<OOCheckShipDataPListVerifierStage>();
 		stage->setVerifier(verifier);
 		OO_CHECK(stage->name() == std::optional<std::string>("Checking shipdata.plist"));
 		OO_CHECK(stage->dependencies() == kScannerName);
-		OO_CHECK([verifier cxx_stageWithName:"Testing models"] == nullptr);
+		OO_CHECK(verifier->stageWithName("Testing models") == nullptr);
 		OO_CHECK(stage->dependents() == (std::vector<std::string>{ "Checking for unused files", "Testing textures and images", "Testing models", "Validating AIs" }));
-		OO_CHECK([verifier cxx_stageWithName:"Testing models"] != nullptr);	// asking registers the model stage
-		OO_CHECK([verifier cxx_stageWithName:"Validating AIs"] == nullptr);	// but not the AI stage
+		OO_CHECK(verifier->stageWithName("Testing models") != nullptr);	// asking registers the model stage
+		OO_CHECK(verifier->stageWithName("Validating AIs") == nullptr);	// but not the AI stage
 		OO_CHECK(!stage->shouldRun());
 		stage->run();
 		OO_CHECK(gLog.empty());
@@ -310,7 +310,7 @@ OO_TEST(checksEachShip)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier({
+		cxx::OOOXPVerifier *verifier = MakeVerifier({
 			{ "Models/ship.dat", "model" },
 			{ "AIs/shipAI.plist", "{}" },
 			{ "Config/shipdata.plist",
@@ -327,7 +327,7 @@ OO_TEST(checksEachShip)
 				"}" },
 		});
 		const oo::Ref<OOAIStateMachineVerifierStage> aiStage = oo::makeRef<OOAIStateMachineVerifierStage>();
-		[verifier registerStage:aiStage.get()];
+		verifier->registerStage(aiStage.get());
 		const oo::Ref<OOCheckShipDataPListVerifierStage> stage = oo::makeRef<OOCheckShipDataPListVerifierStage>();
 		stage->setVerifier(verifier);
 		stage->dependents();	// registers the model stage, as the verifier's dependency pass does
@@ -358,7 +358,7 @@ OO_TEST(checksEachShip)
 		OO_CHECK(gLog.front().find("\"both\"") != std::string::npos);
 
 		// The models found went to the model stage; the AI (not the JavaScript one) to the AI stage.
-		OO_CHECK([verifier cxx_stageWithName:"Testing models"]->shouldRun());
+		OO_CHECK(verifier->stageWithName("Testing models")->shouldRun());
 		OO_CHECK(aiStage->shouldRun());
 	}
 	std::filesystem::remove_all(kBase);
@@ -371,12 +371,12 @@ OO_TEST(facade)
 {
 	@autoreleasepool
 	{
-		OOOXPVerifier *verifier = MakeVerifier({});
+		cxx::OOOXPVerifier *verifier = MakeVerifier({});
 		const oo::Ref<OOCheckShipDataPListVerifierStage> stage = oo::makeRef<OOCheckShipDataPListVerifierStage>();
 		OO_CHECK(stage->description().starts_with("<OOCheckShipDataPListVerifierStage 0x"));
 
-		[verifier registerStage:stage.get()];
-		OO_CHECK([verifier cxx_stageWithName:"Checking shipdata.plist"] == stage.get());
+		verifier->registerStage(stage.get());
+		OO_CHECK(verifier->stageWithName("Checking shipdata.plist") == stage.get());
 		OO_CHECK(stage->name() == std::optional<std::string>("Checking shipdata.plist"));
 		OO_CHECK(stage->dependencies() == kScannerName);
 		OO_CHECK(stage->dependents() == (std::vector<std::string>{ "Checking for unused files", "Testing textures and images", "Testing models", "Validating AIs" }));

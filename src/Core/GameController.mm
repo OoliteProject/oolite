@@ -538,7 +538,7 @@ void GameController::applicationDidFinishLaunching()
 
 #if OO_OXP_VERIFIER_ENABLED
 
-        if ([::OOOXPVerifier runVerificationIfRequested]) {
+        if (OOOXPVerifier::runVerificationIfRequested()) {
             exitAppWithContext("OXP verifier run");
         } else {
             beginSplashScreen();

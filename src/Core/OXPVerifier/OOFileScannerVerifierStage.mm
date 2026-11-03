@@ -108,12 +108,12 @@ void OOFileScannerVerifierStage::run()
 }
 
 // The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
-std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(::OOOXPVerifier* verifier)
+std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(cxx::OOOXPVerifier* verifier)
 {
-    OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kFileScannerStageName];
+    OOOXPVerifierStage* stage = verifier->stageWithName(kFileScannerStageName);
     if (stage == nullptr) {
         const oo::Ref<OOFileScannerVerifierStage> newStage = oo::makeRef<OOFileScannerVerifierStage>();
-        [verifier registerStage:newStage.get()];
+        verifier->registerStage(newStage.get());
     }
 
     return kFileScannerStageName;
@@ -307,11 +307,11 @@ void OOFileScannerVerifierStage::scanForFiles()
         rootFiles;
     std::set<std::string> readMeNames;
 
-    _basePath = [verifier() cxx_oxpPath].value_or("");
+    _basePath = verifier()->oxpPath().value_or("");
 
-    for (const std::string& junk : [verifier() cxx_configurationSetForKey:"junkFiles"].value_or(std::vector<std::string>()))
+    for (const std::string& junk : verifier()->configurationSetForKey("junkFiles").value_or(std::vector<std::string>()))
         _junkFileNames.insert(junk);
-    for (const std::string& skip : [verifier() cxx_configurationSetForKey:"skipDirectories"].value_or(std::vector<std::string>()))
+    for (const std::string& skip : verifier()->configurationSetForKey("skipDirectories").value_or(std::vector<std::string>()))
         _skipDirectoryNames.insert(skip);
 
     for (const std::string& readMe : constructReadMeNames())
@@ -373,7 +373,7 @@ void OOFileScannerVerifierStage::checkRootFolders()
 {
     std::string lcName;
 
-    for (const std::string& name : StringsFromArray([verifier() cxx_configurationArrayForKey:"knownRootDirectories"])) {
+    for (const std::string& name : StringsFromArray(verifier()->configurationArrayForKey("knownRootDirectories"))) {
         lcName = oo::str::lowercase(name);
         const auto actual = _directoryCases.find(lcName);
         if (actual == _directoryCases.end())
@@ -392,7 +392,7 @@ void OOFileScannerVerifierStage::checkConfigFiles()
     std::optional<std::string> realFileName;
     BOOL inConfigDir;
 
-    for (const std::string& name : StringsFromArray([verifier() cxx_configurationArrayForKey:"knownConfigFiles"])) {
+    for (const std::string& name : StringsFromArray(verifier()->configurationArrayForKey("knownConfigFiles"))) {
         /*	In theory, we could use -fileExists:inFolder:referencedFrom:checkBuiltIn:
         here, but we want a different error message.
         */
@@ -421,7 +421,7 @@ void OOFileScannerVerifierStage::checkKnownFiles()
     BOOL inDirectory;
 
     // Folders in byte order of their names (they were in dictionary order).
-    const oo::PList directories = [verifier() cxx_configurationDictionaryForKey:"knownFiles"];
+    const oo::PList directories = verifier()->configurationDictionaryForKey("knownFiles");
     const oo::PList::Dict* directoryDict = directories.getIf<oo::PList::Dict>();
     if (directoryDict == nullptr)
         return;
@@ -564,7 +564,7 @@ std::vector<std::string> OOFileScannerVerifierStage::constructReadMeNames()
     std::string stem,
         extension;
 
-    const oo::PList dict = [verifier() cxx_configurationDictionaryForKey:"readMeNames"];
+    const oo::PList dict = verifier()->configurationDictionaryForKey("readMeNames");
     const oo::PList* stems = dict.get<oo::PList::Array>("stems");
     const oo::PList* extensions = dict.get<oo::PList::Array>("extensions");
     stemCount = stems != nullptr ? stems->count() : 0;
@@ -609,12 +609,12 @@ void OOListUnusedFilesStage::run()
 }
 
 // The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
-std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(::OOOXPVerifier* verifier)
+std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(cxx::OOOXPVerifier* verifier)
 {
-    OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kUnusedListerStageName];
+    OOOXPVerifierStage* stage = verifier->stageWithName(kUnusedListerStageName);
     if (stage == nullptr) {
         const oo::Ref<OOListUnusedFilesStage> newStage = oo::makeRef<OOListUnusedFilesStage>();
-        [verifier registerStage:newStage.get()];
+        verifier->registerStage(newStage.get());
     }
 
     return kUnusedListerStageName;

@@ -129,7 +129,7 @@ oo::ObjCRef<OOTexture*> TextureForGUITexture(const oo::PList& descriptor, uint32
 /*
         Load a texture sprite given a descriptor. Null where there is no such texture.
 */
-oo::Ref<cxx::OOTextureSprite> NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uint32_t srgbaOption)
+oo::Ref<OOTextureSprite> NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uint32_t srgbaOption)
 {
     oo::ObjCRef<OOTexture*> texture;
     NSSize size;
@@ -166,7 +166,7 @@ oo::Ref<cxx::OOTextureSprite> NewTextureSpriteWithDescriptor(const oo::PList& de
         }
     }
 
-    return cxx::OOTextureSprite::initWithTexture(texture.get(), size);
+    return OOTextureSprite::initWithTexture(texture.get(), size);
 }
 
 } // namespace
@@ -1304,7 +1304,7 @@ int cxx::GuiDisplayGen::drawGUI(GLfloat alpha, bool drawCursor)
     GLfloat z = [[UNIVERSE gameView] display_z];
 
     if (alpha > 0.05f) {
-        PlayerEntity* player = PLAYER;
+        ::PlayerEntity* player = PLAYER;
 
         drawGLDisplay(x - 0.5f * size_in_pixels.width, y - 0.5f * size_in_pixels.height, z, alpha);
 
@@ -1603,7 +1603,7 @@ void cxx::GuiDisplayGen::drawCrossHairsWithSize(GLfloat size, GLfloat x, GLfloat
 
 void cxx::GuiDisplayGen::setStarChartTitle()
 {
-    PlayerEntity* player = PLAYER;
+    ::PlayerEntity* player = PLAYER;
     OOGalaxyID galaxy_number = [player galaxyNumber];
     NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxy:[player galaxyNumber] includingHidden:NO];
 
@@ -1885,7 +1885,7 @@ void cxx::GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z, floa
 
 void cxx::GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha, bool compact)
 {
-    PlayerEntity* player = PLAYER;
+    ::PlayerEntity* player = PLAYER;
 
     if (!player)
         return;

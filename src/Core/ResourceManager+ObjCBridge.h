@@ -114,7 +114,7 @@ MA 02110-1301, USA.
 // nullopt when not found (was nil); folderName nullopt where nil was passed.
 + (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
 + (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache;
-+ (OOMusic*)cxx_ooMusicNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
++ (id)cxx_ooMusicNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
 + (OOSound*)cxx_ooSoundNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
 // nullopt when no file was found (was nil); folderName nullopt where nil was passed.
 + (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;

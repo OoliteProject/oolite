@@ -86,14 +86,15 @@ void OOMusicController::playMusicNamed(const std::string& name, bool loop, float
         return;
 
     if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && name == "OoliteTheme.ogg")) {
-        ::OOMusic* music = [::ResourceManager cxx_ooMusicNamed:name inFolder:"Music"];
-        if (music != nil) {
-            [_current.get() stop];
+        oo::Ref<OOMusic> music = ResourceManager::ooMusicNamed(name, std::string("Music"));
+        if (music) {
+            if (_current)
+                _current->stop();
 
-            [music setMusicGain:OOClamp_0_1_f(gain)];
-            [music playLooped:loop];
+            music->setMusicGain(OOClamp_0_1_f(gain));
+            music->playLooped(loop);
 
-            _current = oo::ObjCRef<::OOMusic*>(music);
+            _current = std::move(music);
         }
     }
 }
@@ -142,7 +143,8 @@ void OOMusicController::playMissionMusic()
 // Stop without switching iTunes to in-flight music.
 void OOMusicController::justStop()
 {
-    [_current.get() stop];
+    if (_current)
+        _current->stop();
     _current = nullptr;
     _special = kSpecialNone;
 }
@@ -195,17 +197,17 @@ void OOMusicController::toggleDockingMusic()
 
 ::OOSoundSource* OOMusicController::soundSource()
 {
-    return [_current.get() musicSoundSource];
+    return _current ? _current->musicSoundSource() : nil;
 }
 
 std::optional<std::string> OOMusicController::playingMusic()
 {
-    return [_current.get() cxx_name];
+    return _current ? _current->name() : std::nullopt;
 }
 
 bool OOMusicController::isPlaying()
 {
-    return [_current.get() isPlaying];
+    return _current && _current->isPlaying();
 }
 
 OOMusicMode OOMusicController::mode()

@@ -237,7 +237,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     if (!drawDust || [UNIVERSE breakPatternHide] || !translucent)
         return; // DON'T DRAW
 
-    PlayerEntity* player = PLAYER;
+    ::PlayerEntity* player = PLAYER;
     assert(player != nil);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

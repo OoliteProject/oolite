@@ -178,6 +178,19 @@ public:
     unsigned currentlyInDockingQueues();
     unsigned currentlyInLaunchingQueues();
 
+    // Slice 4: NPC launchers. Not overrides: cxx::ShipEntity's same-named members are not virtual (the
+    // ship's answer "not a station" through its facade, which the station's facade overrides).
+    oo::PList launchIndependentShip(const std::string& role); // the ship launched, as an Object node (null: none)
+    oo::PList launchPolice(); // the ships launched, as Object nodes
+    ::ShipEntity* launchDefenseShip();
+    ::ShipEntity* launchScavenger();
+    ::ShipEntity* launchMiner();
+    ::ShipEntity* launchPirateShip();
+    ::ShipEntity* launchShuttle();
+    ::ShipEntity* launchEscort();
+    ::ShipEntity* launchPatrol();
+    void launchShipWithRole(const std::string& role);
+
     // @private in Objective-C: private once StationEntity is converted; public while the facade's
     // unconverted methods read them, since an Objective-C class cannot be a C++ friend
     ::OOWeakSet* _shipsOnHold = { };

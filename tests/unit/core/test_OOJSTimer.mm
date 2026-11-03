@@ -5,10 +5,12 @@
 
 	The binding's test runs its JS class in a real QuickJS-ng context, and links the game's own
 	objects for the binding, its base class OOScriptTimer, the priority queue that schedules it,
-	the engine's class registry (OOJSClasses.mm) and its exception translator
-	(OOJSEngineNativeWrappers.mm). What the rest of the engine would provide is defined below as
-	the smallest stand-in that does the same thing (amendment oo-ppc item 6): the error and warning
-	reporters, the object getter and converters, the JS glue that OOObject gets from
+	the engine's class registry (OOJSClasses.mm), its exception translator
+	(OOJSEngineNativeWrappers.mm) and, since the Timer's private slot holds the C++ timer, the
+	engine's C++ private-slot glue (OOJSPrivateObject.cpp: the getter, finalizer and toString()).
+	What the rest of the engine would provide is defined below as the smallest stand-in that does
+	the same thing (amendment oo-ppc item 6): the error and warning reporters, the object getter
+	and converters, the JS glue that OOObject gets from
 	OOJavaScriptEngine.mm, the engine object (which calls the timer's function), the script stack
 	and the universe's clock. The engine's and OOJSScript's headers are not imported, because the
 	test defines those classes (amendment oo-z1s4 item 4). The expectations were written against

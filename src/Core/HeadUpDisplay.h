@@ -240,7 +240,7 @@ enum {
     OO_RETICLE_COLOR_WORMHOLE
 };
 
-@class Entity, PlayerEntity, OOTextureSprite, GuiDisplayGen;
+@class Entity, PlayerEntity, GuiDisplayGen;
 
 /*	The HUD itself (Phase 3, beads oo-engam .. oo-0tx6c: the six slices of
         docs/phases/3-slices/HeadUpDisplay.md). Its callers are still Objective-C and reach it through

@@ -3,11 +3,12 @@
 StationEntity+ObjCBridge.mm
 
 TRANSITIONAL (proposed ADR-0056, amendments oo-60fwo and oo-64ako): the Objective-C StationEntity
-facade (see StationEntity+ObjCBridge.h). Its initialisers and -dealloc are here, in a category
-while the class's @implementation is still StationEntity.mm, because they need the Objective-C
-object as self (amendment oo-bj8 items 6 and 7), and so are the forwarders of slice 1's selectors
-to cxx::StationEntity; the other methods are still in StationEntity.mm until their slices move
-them. Deleted with StationEntity+ObjCBridge.h.
+facade (see StationEntity+ObjCBridge.h). The class's primary @implementation is here, empty:
+every method has moved into cxx::StationEntity (slices 1-4 of docs/phases/3-slices/StationEntity.md,
+the last bead oo-tqem7) and the facade's methods are its categories below, which forward each
+selector to the C++ part. Its initialisers and -dealloc are a category because they need the
+Objective-C object as self (amendment oo-bj8 items 6 and 7). Deleted with
+StationEntity+ObjCBridge.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -35,6 +36,9 @@ MA 02110-1301, USA.
 #import "ShipEntity+ObjCAdapter.h"
 #import "StationEntity.h"
 #include "oofnd/objc/OOAssert.h"
+
+@implementation StationEntity
+@end
 
 @implementation StationEntity (OOObjCBridge)
 
@@ -507,6 +511,52 @@ OOWeakReference* StationEntityWeakReference(StationEntity* station) { return [[s
 - (unsigned)currentlyInLaunchingQueues
 {
     return _cxxStation->currentlyInLaunchingQueues();
+}
+
+@end
+
+// Slice 4 of docs/phases/3-slices/StationEntity.md (bead oo-tqem7).
+@implementation StationEntity (OOSlice4)
+
+- (oo::PList)launchIndependentShip:(const std::string&)role
+{
+    return _cxxStation->launchIndependentShip(role);
+}
+- (oo::PList)launchPolice
+{
+    return _cxxStation->launchPolice();
+}
+- (ShipEntity*)launchDefenseShip
+{
+    return _cxxStation->launchDefenseShip();
+}
+- (ShipEntity*)launchScavenger
+{
+    return _cxxStation->launchScavenger();
+}
+- (ShipEntity*)launchMiner
+{
+    return _cxxStation->launchMiner();
+}
+- (ShipEntity*)launchPirateShip
+{
+    return _cxxStation->launchPirateShip();
+}
+- (ShipEntity*)launchShuttle
+{
+    return _cxxStation->launchShuttle();
+}
+- (ShipEntity*)launchEscort
+{
+    return _cxxStation->launchEscort();
+}
+- (ShipEntity*)launchPatrol
+{
+    return _cxxStation->launchPatrol();
+}
+- (void)launchShipWithRole:(const std::string&)role
+{
+    _cxxStation->launchShipWithRole(role);
 }
 
 @end

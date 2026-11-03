@@ -59,7 +59,7 @@ public:
     static const char* const kName;
 
     // Returns name to be used in dependents() by other stages; also registers stage.
-    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
+    static std::string nameForReverseDependencyForVerifier(cxx::OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
 
     std::optional<std::string> name() override;
     bool shouldRun() override;

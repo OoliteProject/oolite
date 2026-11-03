@@ -80,22 +80,22 @@ NSInteger IntegerValueOf(const oo::PList* value)
 
 - (unsigned)score
 {
-    return ship_kills;
+    return _cxxPlayer->ship_kills;
 }
 
 - (void)setScore:(unsigned)value
 {
-    ship_kills = value;
+    _cxxPlayer->ship_kills = value;
 }
 
 - (double)creditBalance
 {
-    return 0.1 * credits;
+    return 0.1 * _cxxPlayer->credits;
 }
 
 - (void)setCreditBalance:(double)value
 {
-    credits = OODeciCreditsFromDouble(value * 10.0);
+    _cxxPlayer->credits = OODeciCreditsFromDouble(value * 10.0);
 }
 
 - (std::optional<std::string>)cxx_dockedStationName
@@ -123,15 +123,15 @@ NSInteger IntegerValueOf(const oo::PList* value)
 
     OO_LOG("script.debug.note.awardCargo", "Going to award cargo: {} x '{}'", static_cast<int>(amount), type);
 
-    unit = [shipCommodityData massUnitForGood:type];
+    unit = [_cxxPlayer->shipCommodityData massUnitForGood:type];
 
     if ([self status] != STATUS_DOCKED) {
         // in-flight
         while (amount) {
             if (unit != UNITS_TONS) {
-                if (specialCargo) {
+                if (_cxxPlayer->specialCargo) {
                     // is this correct behaviour?
-                    [shipCommodityData cxx_addQuantity:amount forGood:type];
+                    [_cxxPlayer->shipCommodityData cxx_addQuantity:amount forGood:type];
                 } else {
                     int amount_per_container = (unit == UNITS_KILOGRAMS) ? 1000 : 1000000;
                     while (amount > 0) {
@@ -151,7 +151,7 @@ NSInteger IntegerValueOf(const oo::PList* value)
                         amount -= smaller_quantity;
                     }
                 }
-            } else if (!specialCargo)
+            } else if (!_cxxPlayer->specialCargo)
             // no adding TCs while special cargo in hold
             {
                 // put each ton in a separate container
@@ -174,26 +174,26 @@ NSInteger IntegerValueOf(const oo::PList* value)
         }
     } else { // docked
         // like purchasing a commodity
-        int manifest_quantity = [shipCommodityData cxx_quantityForGood:type];
-        while ((amount) && (current_cargo < [self maxAvailableCargoSpace])) {
+        int manifest_quantity = [_cxxPlayer->shipCommodityData cxx_quantityForGood:type];
+        while ((amount) && (_cxxPlayer->current_cargo < [self maxAvailableCargoSpace])) {
             manifest_quantity++;
             amount--;
             if (unit == UNITS_TONS)
-                current_cargo++;
+                _cxxPlayer->current_cargo++;
         }
-        [shipCommodityData cxx_setQuantity:manifest_quantity forGood:type];
+        [_cxxPlayer->shipCommodityData cxx_setQuantity:manifest_quantity forGood:type];
     }
     [self calculateCurrentCargo];
 }
 
 - (void)resetScannerZoom
 {
-    scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
+    _cxxPlayer->scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 }
 
 - (OOGalaxyID)currentGalaxyID
 {
-    return galaxy_number;
+    return _cxxPlayer->galaxy_number;
 }
 
 - (OOSystemID)currentSystemID
@@ -220,31 +220,31 @@ NSInteger IntegerValueOf(const oo::PList* value)
 
 - (void)cxx_setMissionChoice:(const std::optional<std::string>&)newChoice keyPress:(const std::optional<std::string>&)keyPress withEvent:(BOOL)withEvent
 {
-    const std::optional<std::string> oldChoice = missionChoice;
+    const std::optional<std::string> oldChoice = _cxxPlayer->missionChoice;
     BOOL equal = newChoice == oldChoice; // Catch both being nil as well
     if (!equal) {
         if (!newChoice.has_value()) {
-            missionChoice.reset();
+            _cxxPlayer->missionChoice.reset();
             if (withEvent)
                 [self cxx_doScriptEvent:OOJSID("missionChoiceWasReset") withPListArguments:{ oldChoice.has_value() ? oo::PList(*oldChoice) : oo::PList() }];
         } else {
-            missionChoice = newChoice;
+            _cxxPlayer->missionChoice = newChoice;
         }
     }
-    equal = keyPress == missionKeyPress;
+    equal = keyPress == _cxxPlayer->missionKeyPress;
     if (!equal) {
-        missionKeyPress = keyPress;
+        _cxxPlayer->missionKeyPress = keyPress;
     }
 }
 
 - (void)allowMissionInterrupt
 {
-    _missionAllowInterrupt = YES;
+    _cxxPlayer->_missionAllowInterrupt = YES;
 }
 
 - (OOTimeDelta)scriptTimer
 {
-    return script_time;
+    return _cxxPlayer->script_time;
 }
 
 /* FIXME: these next three functions seed the RNG when called. That
@@ -373,8 +373,8 @@ NSInteger IntegerValueOf(const oo::PList* value)
 // utilising new keyconfig2.plist data
 - (std::optional<std::string>)cxx_keyBindingDescription2:(const std::string&)binding
 {
-    const auto keyEntry = keyconfig2_settings.find(binding);
-    const oo::PList keyList = (keyEntry != keyconfig2_settings.end()) ? keyEntry->second : oo::PList();
+    const auto keyEntry = _cxxPlayer->keyconfig2_settings.find(binding);
+    const oo::PList keyList = (keyEntry != _cxxPlayer->keyconfig2_settings.end()) ? keyEntry->second : oo::PList();
     if (keyList.isNull()) {
         // no such setting
         return std::nullopt;
@@ -396,11 +396,11 @@ NSInteger IntegerValueOf(const oo::PList* value)
         // 0 = key not set
         if (k_int != 0) {
             if (BoolValueOf(def->find("mod2")) == YES)
-                final += keyMod2Text + "+";
+                final += _cxxPlayer->keyMod2Text + "+";
             if (BoolValueOf(def->find("mod1")) == YES)
-                final += keyMod1Text + "+";
+                final += _cxxPlayer->keyMod1Text + "+";
             if (BoolValueOf(def->find("shift")) == YES)
-                final += keyShiftText + "+";
+                final += _cxxPlayer->keyShiftText + "+";
             final += desc;
         }
     }

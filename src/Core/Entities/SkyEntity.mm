@@ -181,7 +181,7 @@ bool SkyEntity::changeProperty(const std::string& key, const oo::PList& dict)
 
 void SkyEntity::update(OOTimeDelta /*delta_t*/)
 {
-    PlayerEntity* player = PLAYER;
+    ::PlayerEntity* player = PLAYER;
     zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
     cam_zero_distance = zero_distance;
     if (player != nil) {

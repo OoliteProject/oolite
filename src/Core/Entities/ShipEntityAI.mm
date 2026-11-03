@@ -2177,9 +2177,9 @@ void ShipEntity::scanForNearestShipMatchingPredicate(const std::string& predicat
      */
 
     // Created on first use and never destroyed, as the dictionary it replaces (it holds JS functions).
-    static std::map<std::string, oo::ObjCRef<::OOJSFunction*>, std::less<>>* scriptCache = nullptr;
+    static std::map<std::string, oo::Ref<OOJSFunction>, std::less<>>* scriptCache = nullptr;
     std::string key;
-    ::OOJSFunction* function = nil;
+    oo::Ref<OOJSFunction> function;
     JSContext* context = NULL;
 
     context = OOJSAcquireContext();
@@ -2202,36 +2202,35 @@ void ShipEntity::scanForNearestShipMatchingPredicate(const std::string& predicat
     if (scriptCache != nullptr) {
         const auto cached = scriptCache->find(key);
         if (cached != scriptCache->end())
-            function = cached->second.get();
+            function = cached->second;
     }
-    if (function == nil) {
+    if (function == nullptr) {
         const char* argNames[] = { "ship" };
 
         // Stuff expression in a function.
         const std::string predicateCode = "return " + expression + ";";
-        function = [[::OOJSFunction alloc] initWithName:std::string("_oo_AIScanPredicate")
-                                                  scope:JS_UNDEFINED
-                                                   code:predicateCode
-                                          argumentCount:1
-                                          argumentNames:argNames
-                                               fileName:aiName
-                                             lineNumber:0
-                                                context:context];
-        [function autorelease];
+        function = OOJSFunction::initWithName(std::string("_oo_AIScanPredicate"),
+            JS_UNDEFINED,
+            predicateCode,
+            1,
+            argNames,
+            aiName,
+            0,
+            context);
 
         // Cache function.
-        if (function != nil) {
+        if (function != nullptr) {
             if (scriptCache == nullptr)
-                scriptCache = new std::map<std::string, oo::ObjCRef<::OOJSFunction*>, std::less<>>();
-            (*scriptCache)[key] = oo::ObjCRef<::OOJSFunction*>(function);
+                scriptCache = new std::map<std::string, oo::Ref<OOJSFunction>, std::less<>>();
+            (*scriptCache)[key] = function;
         }
     }
 
-    if (function != nil) {
+    if (function != nullptr) {
         JSValue jsThis = OOJSObjectFromNativeObject(context, self); // Owned.
         JSFunctionPredicateParameter param = {
             .context = context,
-            .function = [function function], // Borrowed.
+            .function = function->function(), // Borrowed.
             .jsThis = jsThis
         };
         [self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];

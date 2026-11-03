@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 
 #import "OOColor.h"
 #import "OOFlasherEntity.h"
+#import "OOJSVisualEffect.h"
 #import "OOMesh.h"
 #import "OOVisualEffectEntity.h"
 #import "ShipEntity.h"
@@ -119,7 +120,7 @@ MA 02110-1301, USA.
 {
     return oo::ToCxx(self)->effectSubEntityEnumerator();
 }
-- (std::vector<oo::ObjCRef<OOFlasherEntity*>>)flasherEnumerator
+- (std::vector<oo::ObjCRef<Entity*>>)flasherEnumerator
 {
     return oo::ToCxx(self)->flasherEnumerator();
 }
@@ -343,6 +344,27 @@ MA 02110-1301, USA.
 {
     oo::ToCxx(self)->drawSubEntityImmediate(immediate, translucent);
 }
+
+// The JS side, which the engine asks for by selector (Entity (OOJavaScriptExtensions)): the
+// binding's category, moved here from the binding's bridge file, which it deletes. Each forwards to
+// the OOJSVisualEffect.mm function that holds its old body; they become members of the C++ class
+// with this facade's deletion.
+- (JSClassID)oo_jsClassID
+{
+    return ::JSVisualEffectClassID();
+}
+- (std::optional<std::string>)cxx_oo_jsClassName
+{
+    return ::OOJSVisualEffectJSClassName();
+}
+- (BOOL)isVisibleToScripts
+{
+    return ::OOJSVisualEffectIsVisibleToScripts();
+}
+- (std::vector<oo::ObjCRef<Entity*>>)subEntitiesForScript
+{
+    return ::OOJSVisualEffectSubEntitiesForScript(self);
+} // empty before the first subentity
 
 @end
 

@@ -62,18 +62,18 @@ bool OORegExpMatcher::init()
     [::OOJavaScriptEngine sharedEngine]; // Summon the beast from the Pit.
 
     JSContext* context = OOJSAcquireContext();
-    _tester = [[::OOJSFunction alloc] initWithName:std::string("matchesRegExp")
-                                             scope:JS_UNDEFINED
-                                              code:std::string(code)
-                                     argumentCount:2
-                                     argumentNames:argumentNames
-                                          fileName:oo::str::lastPathComponent(__FILE__)
-                                        lineNumber:codeLine
-                                           context:context];
+    _tester = OOJSFunction::initWithName(std::string("matchesRegExp"),
+        JS_UNDEFINED,
+        std::string(code),
+        2,
+        argumentNames,
+        oo::str::lastPathComponent(__FILE__),
+        codeLine,
+        context);
 
     OOJSRelinquishContext(context);
 
-    if (_tester == nil)
+    if (_tester == nullptr)
         return false; // was DESTROY(self)
 
     return true;
@@ -84,7 +84,7 @@ OORegExpMatcher::~OORegExpMatcher()
     if (sActiveInstance == this)
         sActiveInstance = nullptr;
 
-    DESTROY(_tester);
+    _tester = nullptr;
     DESTROY(_cachedRegExpObject);
 }
 
@@ -142,7 +142,7 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
     argv[0] = OOJSValueFromPList(context, oo::PList(string));
     argv[1] = (_cachedRegExpObject != nil) ? OOJSValueFromNativeObject(context, _cachedRegExpObject) : JSValue {}; // (a message to nil gave the zero value)
     JSValue resultValue = JS_UNDEFINED;
-    bool OK = [_tester evaluateWithContext:context scope:JS_UNDEFINED argc:2 argv:argv result:&resultValue];
+    bool OK = _tester->evaluateWithContext(context, JS_UNDEFINED, 2, argv, &resultValue);
     int matched = 0;
     if (OK) {
         matched = JS_ToBool(context, resultValue);

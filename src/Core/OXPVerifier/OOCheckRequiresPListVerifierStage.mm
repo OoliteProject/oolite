@@ -81,7 +81,7 @@ bool OOCheckRequiresPListVerifierStage::shouldRun()
 {
     OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>(verifier()->stageWithName(OOFileScannerVerifierStage::kName));
     return fileScanner != nullptr && fileScanner->fileExists("requires.plist", "Config", std::nullopt, false);
 }
 
@@ -97,7 +97,7 @@ void OOCheckRequiresPListVerifierStage::run()
     std::optional<std::vector<unsigned>> versionComponents,
         maxVersionComponents;
 
-    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>(verifier()->stageWithName(OOFileScannerVerifierStage::kName));
     if (fileScanner != nullptr)
         requiresPList = fileScanner->plistNamed("requires.plist", "Config", std::nullopt, false);
 
@@ -111,7 +111,7 @@ void OOCheckRequiresPListVerifierStage::run()
     }
 
     // Check that all the keys are known.
-    knownKeys = [verifier() cxx_configurationSetForKey:"requiresPListSupportedKeys"].value_or(std::vector<std::string>());
+    knownKeys = verifier()->configurationSetForKey("requiresPListSupportedKeys").value_or(std::vector<std::string>());
     for (const auto& [key, value] : *requiresPList.getIf<oo::PList::Dict>()) {
         if (std::find(knownKeys.begin(), knownKeys.end(), key) != knownKeys.end())
             continue;

@@ -35,15 +35,16 @@ MA 02110-1301, USA.
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
         OOExhaustPlumeEntity became free functions, and its methods and interface moved to a
-        bridge file of the binding (amendment oo-ykoy), then onto the OOExhaustPlumeEntity facade in
-        OOExhaustPlumeEntity+ObjCBridge.mm (bead oo-9ht.48, amendment oo-6ia4 item 3). Messages to
-        classes that are still Objective-C (OOExhaustPlumeEntity, ShipEntity, Entity) stay as they are,
-        which is why the file is still .mm until Phase 4.
+        bridge file of the binding (amendment oo-ykoy), then onto the OOExhaustPlumeEntity facade (bead
+        oo-9ht.48, amendment oo-6ia4 item 3), and with that facade's deletion into the C++ class's
+        overrides of the root's JS members. The plume is the C++ OOExhaustPlumeEntity, found through
+        its entity's C++ part. Messages to classes that are still Objective-C (ShipEntity, Entity) stay
+        as they are, which is why the file is still .mm until Phase 4.
 */
 
 static JSClassID sExhaustPlumeClassID;
 
-static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity);
+static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity, Entity** outObject = nullptr);
 
 static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS);
 static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS);
@@ -89,7 +90,7 @@ JSClassID JSExhaustPlumeClassID(void)
     return sExhaustPlumeClassID;
 }
 
-static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity)
+static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity, Entity** outObject)
 {
     OOJS_PROFILE_ENTER
 
@@ -98,24 +99,27 @@ static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst
 
     if (outEntity == NULL)
         return false;
-    *outEntity = nil;
+    *outEntity = nullptr;
 
     result = OOJSEntityGetEntity(context, jsobj, &entity);
     if (!result)
         return false;
 
-    if (![entity isKindOfClass:[OOExhaustPlumeEntity class]])
+    // The object is the root's facade: a plume is its C++ part.
+    OOExhaustPlumeEntity* exhaust = dynamic_cast<OOExhaustPlumeEntity*>(oo::ToCxx(entity));
+    if (exhaust == nullptr)
         return false;
 
-    *outEntity = (OOExhaustPlumeEntity*)entity;
+    *outEntity = exhaust;
+    if (outObject != NULL)
+        *outObject = entity;
     return true;
 
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), whose methods are on the
-// OOExhaustPlumeEntity facade, in OOExhaustPlumeEntity+ObjCBridge.mm (bead oo-9ht.48), until that
-// facade goes (oo-9ht.110; proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the C++ class's overrides of
+// the root's JS members call (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void)
 {
     return std::string("ExhaustPlume");
@@ -130,18 +134,18 @@ static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOExhaustPlumeEntity* entity = nil;
+    OOExhaustPlumeEntity* entity = nullptr;
     id result = nil;
 
     if (!JSExhaustPlumeGetExhaustPlumeEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil) {
+    if (entity == nullptr) {
         return JS_UNDEFINED;
     }
 
     switch (magic) {
     case kExhaustPlume_size:
-        OOJS_RETURN_VECTOR([entity scale]);
+        OOJS_RETURN_VECTOR(entity->scale());
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sExhaustPlumeProperties, OOJS_COUNT(sExhaustPlumeProperties));
@@ -157,18 +161,18 @@ static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOExhaustPlumeEntity* entity = nil;
+    OOExhaustPlumeEntity* entity = nullptr;
     Vector vValue;
 
     if (!JSExhaustPlumeGetExhaustPlumeEntity(context, thisObj, &entity))
         return OOJSNativeFailure(context);
-    if (entity == nil)
+    if (entity == nullptr)
         return JS_UNDEFINED;
 
     switch (magic) {
     case kExhaustPlume_size:
         if (JSValueToVector(context, value, &vValue)) {
-            [entity setScale:vValue];
+            entity->setScale(vValue);
             return JS_UNDEFINED;
         }
         break;
@@ -186,22 +190,23 @@ static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS)
 
 // *** Methods ***
 
-#define GET_THIS_EXHAUSTPLUME(THISENT)                                                      \
-    do {                                                                                    \
-        if (EXPECT_NOT(!JSExhaustPlumeGetExhaustPlumeEntity(context, OOJS_THIS, &THISENT))) \
-            return OOJSNativeFailure(context); /* Exception */                              \
-        if (OOIsStaleEntity(THISENT))                                                       \
-            OOJS_RETURN_VOID;                                                               \
+#define GET_THIS_EXHAUSTPLUME(THISENT, THISOBJECT)                                                           \
+    do {                                                                                                     \
+        if (EXPECT_NOT(!JSExhaustPlumeGetExhaustPlumeEntity(context, OOJS_THIS, &(THISENT), &(THISOBJECT)))) \
+            return OOJSNativeFailure(context); /* Exception */                                               \
+        if (OOIsStaleEntity(THISOBJECT))                                                                     \
+            OOJS_RETURN_VOID;                                                                                \
     } while (0)
 
 static JSValue ExhaustPlumeRemove(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOExhaustPlumeEntity* thisEnt = nil;
-    GET_THIS_EXHAUSTPLUME(thisEnt);
+    OOExhaustPlumeEntity* thisEnt = nullptr;
+    Entity* thisObject = nil; // its facade
+    GET_THIS_EXHAUSTPLUME(thisEnt, thisObject);
 
-    ShipEntity* parent = [thisEnt owner];
+    ShipEntity* parent = [thisObject owner];
     [parent removeExhaust:thisEnt];
 
     OOJS_RETURN_VOID;

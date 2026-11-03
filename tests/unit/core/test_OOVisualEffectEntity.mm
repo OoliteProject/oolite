@@ -26,6 +26,9 @@
 #import "ShipEntity.h"
 #import "OOColor.h"
 #import "OOJSPropID.h"
+#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEntity.h"
+#import "OOJSVisualEffect.h"
 
 #include "oofnd/FileSystem.hpp"
 #include "oo_test.hpp"
@@ -213,13 +216,13 @@ OO_TEST(flasherSubentities)
 	{
 		OOVisualEffectEntity *effect = Effect("lights", Dict({ { "subentities", oo::PList(oo::PList::Array{ Flasher(10), oo::PList(std::string("not a dictionary")) }) } }));
 		OO_CHECK_EQ([effect subEntityCount], 1u);	// the string made no subentity
-		std::vector<oo::ObjCRef<OOFlasherEntity *>> flashers = [effect flasherEnumerator];
+		std::vector<oo::ObjCRef<Entity *>> flashers = [effect flasherEnumerator];	// the flashers' objects
 		OO_CHECK_EQ(flashers.size(), 1u);
 		OO_CHECK([effect effectSubEntityEnumerator].empty());
 		OO_CHECK([effect visualEffectSubEntityEnumerator].has_value() && [effect visualEffectSubEntityEnumerator]->empty());
 		if (flashers.size() != 1)  return;
 
-		OOFlasherEntity *flasher = flashers[0].get();
+		Entity<OOSubEntity> *flasher = (Entity<OOSubEntity> *)flashers[0].get();
 		OO_CHECK([effect subEntities].size() == 1 && [effect subEntities][0].get() == flasher);
 		OO_CHECK([flasher owner] == effect);
 		OO_CHECK([flasher isSubEntity]);
@@ -459,7 +462,7 @@ OO_TEST(facadeContract)
 		OO_CHECK([effect scaleMax] == 5.0f);
 
 		// The flasher's owner is the façade the C++ member handed it.
-		std::vector<oo::ObjCRef<OOFlasherEntity *>> flashers = cxxEffect->flasherEnumerator();
+		std::vector<oo::ObjCRef<Entity *>> flashers = cxxEffect->flasherEnumerator();
 		OO_CHECK(flashers.size() == 1 && [flashers[0].get() owner] == effect);
 
 		// Slice 2, on the façade, reads the state the class keeps.
@@ -487,6 +490,39 @@ OO_TEST(slice2Members)
 		OO_CHECK(cxxEffect->script() == [effect script]);
 		OO_CHECK(!cxxEffect->isBeacon() && !cxxEffect->isJammingScanning());
 		OO_CHECK(cxxEffect->scannerDisplayColorForShip(true, cxxEffect->scannerDisplayColor1(), nullptr)[0] == 1.0f);
+	}
+}
+
+
+
+// Registers Entity's JS class and the given class (a child of Entity) in the test's context, as the
+// engine's start does; the context is made here if the test has none yet.
+static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
+{
+	extern JSContext *gOOJSMainThreadContext;
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
+	JSContext *context = OOJSAcquireContext();
+	JSValue global = JS_GetGlobalObject(context);
+	InitOOJSEntity(context, global);
+	initClass(context, global);
+	JS_FreeValue(context, global);
+}
+
+
+// The binding's category, which the facade carries: what the engine asks a OOVisualEffectEntity
+// for by selector is what OOJSVisualEffect.mm answers.
+OO_TEST(jsExtensions)
+{
+	SetUp();
+	@autoreleasepool
+	{
+		OOVisualEffectEntity *effect = Effect("js-effect", Dict({}));
+		RegisterJSClasses(InitOOJSVisualEffect);
+		const JSClassID jsClass = [effect oo_jsClassID];
+		const JSClassID expectedClass = JSVisualEffectClassID();
+		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+		OO_CHECK([effect cxx_oo_jsClassName] == std::optional<std::string>("VisualEffect"));
+		OO_CHECK([effect isVisibleToScripts] == YES);
 	}
 }
 

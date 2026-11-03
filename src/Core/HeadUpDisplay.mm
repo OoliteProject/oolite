@@ -86,11 +86,12 @@ struct CachedInfo {
         same order, filled only while the HUD is initialised.
 */
 struct OOHUDWidget {
-    oo::PList info; // the hud.plist entry (a mixed configuration: a legend's sprite is an Object node)
+    oo::PList info; // the hud.plist entry
     struct CachedInfo cache;
     BOOL hasCache; // NO only for an MFD whose info was not a dictionary (below)
     SEL selector; // dials only
     std::string selectorString; // dials only
+    oo::Ref<OOTextureSprite> sprite; // legends only: the image legend's sprite (the entry held its facade until bead oo-9ht.71)
 };
 
 namespace {
@@ -111,7 +112,7 @@ void GetCurrentCachedInfo(struct CachedInfo* cached)
 
 void AddHUDWidget(std::vector<OOHUDWidget>& widgets, const oo::PList& info, const struct CachedInfo* cache, SEL selector, const std::string& selectorString)
 {
-    widgets.push_back(OOHUDWidget { info, *cache, !info.isNull(), selector, selectorString });
+    widgets.push_back(OOHUDWidget { info, *cache, !info.isNull(), selector, selectorString, { } });
 }
 
 void ReleaseHUDWidgets(std::vector<OOHUDWidget>& widgets)
@@ -684,11 +685,9 @@ void cxx::HeadUpDisplay::addLegend(const oo::PList& info)
 
         legendSprite = OOTextureSprite::initWithTexture(texture.get(), imageSize);
 
-        // a copy of the entry holding the sprite (a mixed configuration: an Object node, the sprite's facade)
-        oo::PList legendInfo = info;
-        (*legendInfo.getIf<oo::PList::Dict>())[SPRITE_KEY] = oo::PListObject(oo::ToObjC(legendSprite));
-        // add info and cache to the list
-        AddHUDWidget(legendArray, legendInfo, &cache, NULL, "");
+        // add info and cache to the list; the widget holds the sprite
+        AddHUDWidget(legendArray, info, &cache, NULL, "");
+        legendArray.back().sprite = legendSprite;
     } else if (OptionalStringIn(info, TEXT_KEY).has_value()) {
         // add info and cache to the list
         AddHUDWidget(legendArray, info, &cache, NULL, "");
@@ -1047,7 +1046,7 @@ void cxx::HeadUpDisplay::drawLegend(const oo::PList& info)
         return;
     }
 
-    ::OOTextureSprite* legendSprite = nil; // the facade the legend's entry holds
+    OOTextureSprite* legendSprite = nullptr; // the sprite the legend's widget holds
     std::optional<std::string> legendText;
     float x, y;
     NSSize size;
@@ -1062,10 +1061,9 @@ void cxx::HeadUpDisplay::drawLegend(const oo::PList& info)
     y = useDefined(cached.y, 0.0f) + [[UNIVERSE gameView] y_offset] * cached.y0;
     alpha *= cached.alpha;
 
-    const oo::PList* spriteNode = info.find(SPRITE_KEY);
-    legendSprite = (spriteNode != nullptr) ? oo::ObjectIn(*spriteNode) : nil;
-    if (legendSprite != nil) {
-        oo::ToCxx(legendSprite)->blitCentredToX(x, y, z1, alpha);
+    legendSprite = sCurrentDrawItem->sprite.get();
+    if (legendSprite != nullptr) {
+        legendSprite->blitCentredToX(x, y, z1, alpha);
     } else {
         legendText = OptionalStringIn(info, TEXT_KEY);
         if (legendText.has_value()) {
@@ -1171,7 +1169,7 @@ void cxx::HeadUpDisplay::drawYellowSurround(const oo::PList& info)
 
 void cxx::HeadUpDisplay::drawMultiFunctionDisplay(const oo::PList& info, const std::string& text, NSUInteger index)
 {
-    PlayerEntity* player1 = PLAYER;
+    ::PlayerEntity* player1 = PLAYER;
     struct CachedInfo cached;
     NSInteger i, x, y;
     NSSize siz, tmpsiz;

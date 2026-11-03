@@ -894,6 +894,21 @@ OO_TEST(reset)
 }
 
 
+// A held value left autoreleased in the thread's own pool (no @autoreleasepool here, as the
+// game's exit(0) leaves the frame's pools open) is freed when libobjc drains that pool at thread
+// detach, after the C++ static destructors; freeing its reference and removing its observer must
+// still find the engine and the notification center. The check is the process exiting 0.
+OO_TEST(aValueLeftInTheThreadPoolAtExit)
+{
+	SetUp();
+	JSContext *context = OOJSAcquireContext();
+	Owned object = Eval(context, "({ leftAtExit: true })");
+	OOJSValue *holder = [OOJSValue valueWithJSValue:object inContext:context];
+	OO_CHECK(holder != nil && IsSameObject(Owned([holder oo_jsValueInContext:context]), object));
+	OOJSRelinquishContext(context);
+}
+
+
 OO_TEST(cleanUp)
 {
 	oo::log::logger().setSink(nullptr);

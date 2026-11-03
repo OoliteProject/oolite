@@ -48,17 +48,17 @@ OOTrumble::OOTrumble()
     }
 }
 
-OOTrumble::OOTrumble(PlayerEntity* p1)
+OOTrumble::OOTrumble(::PlayerEntity* p1)
 {
     setupForPlayer(p1, "a1");
 }
 
-OOTrumble::OOTrumble(PlayerEntity* p1, const std::string& digramString)
+OOTrumble::OOTrumble(::PlayerEntity* p1, const std::string& digramString)
 {
     setupForPlayer(p1, digramString);
 }
 
-void OOTrumble::setupForPlayer(PlayerEntity* p1, const std::string& digramString)
+void OOTrumble::setupForPlayer(::PlayerEntity* p1, const std::string& digramString)
 {
     // set digram (UTF-16 units, as -characterAtIndex: read them; a missing string read as 0s)
     //

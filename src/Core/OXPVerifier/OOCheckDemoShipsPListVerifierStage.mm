@@ -40,7 +40,7 @@ bool OOCheckDemoShipsPListVerifierStage::shouldRun()
 {
     OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>(verifier()->stageWithName(OOFileScannerVerifierStage::kName));
     return fileScanner != nullptr && fileScanner->fileExists("demoships.plist", "Config", std::nullopt, false);
 }
 
@@ -50,7 +50,7 @@ void OOCheckDemoShipsPListVerifierStage::run()
     oo::PList demoshipsPList;
     oo::PList shipdataPList;
 
-    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>(verifier()->stageWithName(OOFileScannerVerifierStage::kName));
     if (fileScanner == nullptr)
         return; // a nil scanner found no plist
 

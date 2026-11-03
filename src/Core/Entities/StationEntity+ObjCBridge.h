@@ -6,9 +6,9 @@ TRANSITIONAL (proposed ADR-0056, amendments oo-60fwo and oo-64ako): the Objectiv
 the facade over the C++ cxx::StationEntity (StationEntity.h) while the class converts slice by
 slice (docs/phases/3-slices/StationEntity.md). Its interface is the one StationEntity.h declared
 before slice 1, copied exactly, but for the selectors slice 1 moved to cxx::StationEntity, which
-are declared by the category StationEntity (OOSlice1) below and forward to the C++ part. Its
-methods of slices 2-4 keep their Objective-C bodies in StationEntity.mm until their slice moves
-them. It has one ivar, _cxxStation: the root's _cxxEntity, typed, borrowed (the root owns the
+are declared by the category StationEntity (OOSlice1) below and forward to the C++ part; so are
+those of slices 2-4, by the categories (OOSlice2) to (OOSlice4). Every method is now a member of
+cxx::StationEntity (bead oo-tqem7). It has one ivar, _cxxStation: the root's _cxxEntity, typed, borrowed (the root owns the
 part), set by the initialiser; unconverted code reads the station's members through it by their
 old names (_cxxStation->alertLevel). Its initialiser makes the station's adapter over
 cxx::StationEntity (oo::ObjCShipEntity<cxx::StationEntity>, ShipEntity+ObjCAdapter.h).
@@ -42,22 +42,6 @@ MA 02110-1301, USA.
 @public
     cxx::StationEntity* _cxxStation; // _cxxEntity, typed; borrowed, set by the initialiser
 }
-
-- (oo::PList)launchIndependentShip:(const std::string&)role; // called by name (ADR-0055 item 5): the ship launched, as an Object node (null: none)
-
-////////////////////////////////////////////////////////////// AI methods...
-
-- (oo::PList)launchPolice; // called by name (ADR-0055 item 5): the ships launched, as Object nodes
-- (ShipEntity*)launchDefenseShip;
-- (ShipEntity*)launchScavenger;
-- (ShipEntity*)launchMiner;
-/**Lazygun** added the following line*/
-- (ShipEntity*)launchPirateShip;
-- (ShipEntity*)launchShuttle;
-- (ShipEntity*)launchEscort;
-- (ShipEntity*)launchPatrol;
-
-- (void)launchShipWithRole:(const std::string&)role; // called by name (ADR-0055 item 5)
 
 @end
 
@@ -177,6 +161,24 @@ OOWeakReference* StationEntityWeakReference(StationEntity* station); // [[statio
 - (std::optional<std::string>)cxx_acceptDockingClearanceRequestFrom:(ShipEntity*)other;
 - (unsigned)currentlyInDockingQueues;
 - (unsigned)currentlyInLaunchingQueues;
+
+@end
+
+// Slice 4 of docs/phases/3-slices/StationEntity.md (bead oo-tqem7): NPC launchers. Members of
+// cxx::StationEntity, forwarded by the category of the same name in StationEntity+ObjCBridge.mm.
+@interface StationEntity (OOSlice4)
+
+- (oo::PList)launchIndependentShip:(const std::string&)role; // called by name (ADR-0055 item 5): the ship launched, as an Object node (null: none)
+- (oo::PList)launchPolice; // called by name (ADR-0055 item 5): the ships launched, as Object nodes
+- (ShipEntity*)launchDefenseShip;
+- (ShipEntity*)launchScavenger;
+- (ShipEntity*)launchMiner;
+/**Lazygun** added the following line*/
+- (ShipEntity*)launchPirateShip;
+- (ShipEntity*)launchShuttle;
+- (ShipEntity*)launchEscort;
+- (ShipEntity*)launchPatrol;
+- (void)launchShipWithRole:(const std::string&)role; // called by name (ADR-0055 item 5)
 
 @end
 

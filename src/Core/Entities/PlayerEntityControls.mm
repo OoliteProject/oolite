@@ -222,7 +222,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 - (void)initControls
 {
     // all entries in this map must be in lowercase
-    keyCodeLookups = {
+    _cxxPlayer->keyCodeLookups = {
         { "arrowleft", gvArrowKeyLeft },
         { "leftarrow", gvArrowKeyLeft },
         { "left", gvArrowKeyLeft },
@@ -295,18 +295,18 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         { "numpadenter", gvNumberPadKeyEnter },
     };
 
-    keyShiftText = OO_DESC("oolite-keyconfig-shift");
-    keyMod1Text = OO_DESC("oolite-keyconfig-mod1");
+    _cxxPlayer->keyShiftText = OO_DESC("oolite-keyconfig-shift");
+    _cxxPlayer->keyMod1Text = OO_DESC("oolite-keyconfig-mod1");
 #if OOLITE_MAC_COCOA_UI
-    keyMod2Text = OO_DESC("oolite-keyconfig-mod2-mac");
+    _cxxPlayer->keyMod2Text = OO_DESC("oolite-keyconfig-mod2-mac");
 #else
-    keyMod2Text = OO_DESC("oolite-keyconfig-mod2-pc");
+    _cxxPlayer->keyMod2Text = OO_DESC("oolite-keyconfig-mod2-pc");
 #endif
 
     [self initKeyConfigSettings];
 
     // Enable polling
-    pollControls = YES;
+    _cxxPlayer->pollControls = YES;
 }
 
 - (void)initKeyConfigSettings
@@ -327,9 +327,9 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     // load custom equipment keys/buttons (the live entries, edited in place)
     const oo::PList savedCustomEquip = defaults.arrayForKey(std::string(KEYCONFIG_CUSTOMEQUIP));
     const oo::PList::Array* customEntries = savedCustomEquip.getIf<oo::PList::Array>();
-    customEquipActivation = (customEntries != nullptr) ? *customEntries : std::vector<oo::PList>();
-    customActivatePressed.assign(customEquipActivation.size(), NO);
-    customModePressed.assign(customEquipActivation.size(), NO);
+    _cxxPlayer->customEquipActivation = (customEntries != nullptr) ? *customEntries : std::vector<oo::PList>();
+    _cxxPlayer->customActivatePressed.assign(_cxxPlayer->customEquipActivation.size(), NO);
+    _cxxPlayer->customModePressed.assign(_cxxPlayer->customEquipActivation.size(), NO);
 
     // update with overrides from defaults file (unprocessed, as before)
     const oo::PList overrides = defaults.object(std::string(KEYCONFIG_OVERRIDES));
@@ -348,7 +348,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 // also, none of the standard key functions utilise "Alt" (mod2), so we're defaulting that setting
 // (the default key definitions were never stored - the array they were added to was nil - so they are not built)
 #define LOAD_KEY_SETTING2(name, default_1, shift_1, mod1_1, default_2, shift_2, mod1_2) \
-    name = keySetting(#name)
+    _cxxPlayer->name = keySetting(#name)
 
     LOAD_KEY_SETTING2(n_key_roll_left, gvArrowKeyLeft, NO, NO, 0, NO, NO);
     LOAD_KEY_SETTING2(n_key_roll_right, gvArrowKeyRight, NO, NO, 0, NO, NO);
@@ -497,7 +497,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     LOAD_KEY_SETTING2(n_key_debug_off, 'n', NO, NO, 0, NO, NO);
 #endif
 
-    keyconfig2_settings = std::move(kdic2);
+    _cxxPlayer->keyconfig2_settings = std::move(kdic2);
 }
 
 - (oo::PList)cxx_processKeyCode:(const oo::PList&)key_def
@@ -533,8 +533,8 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 
             // check for a named lookup
             if (length != 0) {
-                const auto lookup = keyCodeLookups.find(oo::str::lowercase(keystring));
-                int checkVal = lookup != keyCodeLookups.end() ? lookup->second : 0;
+                const auto lookup = _cxxPlayer->keyCodeLookups.find(oo::str::lowercase(keystring));
+                int checkVal = lookup != _cxxPlayer->keyCodeLookups.end() ? lookup->second : 0;
                 if (checkVal > 0) {
                     iValue = checkVal;
 
@@ -705,7 +705,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     BOOL mouse_dbl_click = [gameView isDown:gvMouseDoubleClick];
 
     if (arrow_down) {
-        if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+        if ((!upDownKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
             if ([gui setNextRow:+1]) {
                 result = YES;
             } else {
@@ -718,12 +718,12 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             else
                 [self playMenuNavigationNot];
 
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
         }
     }
 
     if (arrow_up) {
-        if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+        if ((!upDownKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
             if ([gui setNextRow:-1]) {
                 result = YES;
             } else {
@@ -736,7 +736,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             else
                 [self playMenuNavigationNot];
 
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
         }
     }
 
@@ -767,11 +767,11 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
 - (void)targetNewSystem:(int)direction whileTyping:(BOOL)whileTyping
 {
-    target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
-    [self setInfoSystemID:target_system_id moveChart:YES];
-    cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+    _cxxPlayer->target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
+    [self setInfoSystemID:_cxxPlayer->target_system_id moveChart:YES];
+    _cxxPlayer->cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:_cxxPlayer->target_system_id inGalaxy:_cxxPlayer->galaxy_number];
 
-    found_system_id = target_system_id;
+    _cxxPlayer->found_system_id = _cxxPlayer->target_system_id;
     if (!whileTyping) {
         [self clearPlanetSearchString];
     }
@@ -781,7 +781,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 - (void)clearPlanetSearchString
 {
     [[UNIVERSE gameView] resetTypedString];
-    planetSearchString.reset();
+    _cxxPlayer->planetSearchString.reset();
 }
 
 - (void)targetNewSystem:(int)direction
@@ -791,9 +791,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
 - (void)switchToMainView
 {
-    OOGUIScreenID oldScreen = gui_screen;
-    gui_screen = GUI_SCREEN_MAIN;
-    if (showDemoShips) {
+    OOGUIScreenID oldScreen = _cxxPlayer->gui_screen;
+    _cxxPlayer->gui_screen = GUI_SCREEN_MAIN;
+    if (_cxxPlayer->showDemoShips) {
         [self setShowDemoShips:NO];
         [UNIVERSE removeDemoShips];
     }
@@ -801,7 +801,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if ([self isMouseControlOn])
         [[UNIVERSE gameView] resetMouse];
     [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
-    [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+    [self noteGUIDidChangeFrom:oldScreen to:_cxxPlayer->gui_screen];
 }
 
 - (void)noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView
@@ -813,29 +813,29 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 {
     if ([self hasHyperspaceMotor]) {
         if (spin_time == 0) {
-            witchspaceCountdown = _cxxShip->hyperspaceMotorSpinTime;
+            _cxxPlayer->witchspaceCountdown = _cxxShip->hyperspaceMotorSpinTime;
         } else {
 #ifndef OO_DUMP_PLANETINFO
             if (spin_time < 5) {
-                witchspaceCountdown = 5;
+                _cxxPlayer->witchspaceCountdown = 5;
             } else
 #endif
             {
-                witchspaceCountdown = spin_time;
+                _cxxPlayer->witchspaceCountdown = spin_time;
             }
         }
         [self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
         [self playStandardHyperspace];
         // say it!
         [UNIVERSE clearPreviousMessage];
-        int seconds = round(witchspaceCountdown);
+        int seconds = round(_cxxPlayer->witchspaceCountdown);
         const std::string destination = [UNIVERSE cxx_getSystemName:[self nextHopTargetSystemID]].value_or("");
         [UNIVERSE cxx_displayCountdownMessage:ExpandKeyWithArguments("witch-to-x-in-y-seconds",
                                                   { { "seconds", oo::PList::signedInteger(seconds) }, { "destination", oo::PList(destination) } })
                                      forCount:1.0];
         [self cxx_doScriptEvent:OOJSID("playerStartedJumpCountdown")
-             withPListArguments:{ oo::PList("standard"), oo::PList::singleReal(static_cast<float>(witchspaceCountdown)) }];
-        [UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
+             withPListArguments:{ oo::PList("standard"), oo::PList::singleReal(static_cast<float>(_cxxPlayer->witchspaceCountdown)) }];
+        [UNIVERSE preloadPlanetTexturesForSystem:_cxxPlayer->target_system_id];
     }
 }
 
@@ -863,7 +863,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
 - (void)pollApplicationControls
 {
-    if (!pollControls)
+    if (!_cxxPlayer->pollControls)
         return;
 
     const char* exceptionContext = "setup";
@@ -872,7 +872,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GameController* gameController = [UNIVERSE gameController];
 
-    BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE) || (gui_screen == GUI_SCREEN_OXZMANAGER || (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY));
+    BOOL onTextEntryScreen = (_cxxPlayer->gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (_cxxPlayer->gui_screen == GUI_SCREEN_MISSION) || (_cxxPlayer->gui_screen == GUI_SCREEN_SAVE) || (_cxxPlayer->gui_screen == GUI_SCREEN_OXZMANAGER || (_cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_ENTRY));
 
     @try {
 //  command-key controls
@@ -882,9 +882,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             if ([gameView isCommandFDown]) {
                 [gameView clearCommandF];
                 [gameController exitFullScreenMode];
-                if (mouse_control_on) {
+                if (_cxxPlayer->mouse_control_on) {
                     [UNIVERSE cxx_addMessage:OO_DESC("mouse-off") forCount:3.0];
-                    mouse_control_on = NO;
+                    _cxxPlayer->mouse_control_on = NO;
                 }
             }
 
@@ -915,7 +915,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
             default: {
                 // In all other cases we can't handle pause. Unpause immediately.
-                script_time = saved_script_time;
+                _cxxPlayer->script_time = saved_script_time;
                 [gameView allowStringInput:NO];
                 if ([UNIVERSE pauseMessageVisible]) {
                     [UNIVERSE clearPreviousMessage]; // remove the 'paused' message.
@@ -928,7 +928,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         // snapshot
         const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
-        if (([self checkKeyPress:n_key_snapshot] || joyButtonState[BUTTON_SNAPSHOT]) && ([gameView allowingStringInput] <= gvStringInputAlpha) && // not while entering text on the keyboard config screens
+        if (([self checkKeyPress:_cxxPlayer->n_key_snapshot] || joyButtonState[BUTTON_SNAPSHOT]) && ([gameView allowingStringInput] <= gvStringInputAlpha) && // not while entering text on the keyboard config screens
             ![[OOOXZManager sharedManager] isAcceptingTextInput]) //  '*' key but not while filtering inside OXZ Manager
         {
             exceptionContext = "snapshot";
@@ -941,7 +941,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         }
 
         // FPS display
-        if (!onTextEntryScreen && [self checkKeyPress:n_key_show_fps]) //  'F' key
+        if (!onTextEntryScreen && [self checkKeyPress:_cxxPlayer->n_key_show_fps]) //  'F' key
         {
             exceptionContext = "toggle FPS";
             if (!f_key_pressed)
@@ -952,7 +952,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         }
 
         // bloom toggle
-        if ([self checkKeyPress:n_key_bloom_toggle]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_bloom_toggle]) {
             if (!f9_key_pressed) {
                 BOOL oldBloom = [UNIVERSE bloom];
                 [UNIVERSE setBloom:!oldBloom];
@@ -972,11 +972,11 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
         if (allowMouseControl) {
             exceptionContext = "mouse control";
-            if (!onTextEntryScreen && ([self checkKeyPress:n_key_mouse_control_roll] || [self checkKeyPress:n_key_mouse_control_yaw])) //  'M' key
+            if (!onTextEntryScreen && ([self checkKeyPress:_cxxPlayer->n_key_mouse_control_roll] || [self checkKeyPress:_cxxPlayer->n_key_mouse_control_yaw])) //  'M' key
             {
                 if (!m_key_pressed) {
-                    mouse_control_on = !mouse_control_on;
-                    if (mouse_control_on) {
+                    _cxxPlayer->mouse_control_on = !_cxxPlayer->mouse_control_on;
+                    if (_cxxPlayer->mouse_control_on) {
                         [UNIVERSE cxx_addMessage:OO_DESC("mouse-on") forCount:3.0];
                         /*	Ensure the keyboard pitch override (intended to lock
                          out the joystick if the player runs to the keyboard)
@@ -985,10 +985,10 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                         if (oo::Defaults::standard().boolForKey("grab-mouse-on-mouse-control")) {
                             [gameView grabMouseInsideGameWindow:YES];
                         }
-                        mouse_x_axis_map_to_yaw = [self checkKeyPress:n_key_mouse_control_yaw];
-                        keyboardRollOverride = mouse_x_axis_map_to_yaw; // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
-                        keyboardPitchOverride = NO;
-                        keyboardYawOverride = !keyboardRollOverride;
+                        mouse_x_axis_map_to_yaw = [self checkKeyPress:_cxxPlayer->n_key_mouse_control_yaw];
+                        _cxxPlayer->keyboardRollOverride = mouse_x_axis_map_to_yaw; // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
+                        _cxxPlayer->keyboardPitchOverride = NO;
+                        _cxxPlayer->keyboardYawOverride = !_cxxPlayer->keyboardRollOverride;
                     } else {
                         [UNIVERSE cxx_addMessage:OO_DESC("mouse-off") forCount:3.0];
                         [gameView grabMouseInsideGameWindow:NO];
@@ -1002,8 +1002,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 m_key_pressed = NO;
             }
         } else {
-            if (mouse_control_on) {
-                mouse_control_on = NO;
+            if (_cxxPlayer->mouse_control_on) {
+                _cxxPlayer->mouse_control_on = NO;
                 [UNIVERSE cxx_addMessage:OO_DESC("mouse-off") forCount:3.0];
                 [gameView grabMouseInsideGameWindow:NO];
 
@@ -1014,13 +1014,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         }
 
         // HUD toggle
-        if (([self checkKeyPress:n_key_hud_toggle] || joyButtonState[BUTTON_TOGGLEHUD]) && [gameController isGamePaused] && !onTextEntryScreen) // 'o' key while paused
+        if (([self checkKeyPress:_cxxPlayer->n_key_hud_toggle] || joyButtonState[BUTTON_TOGGLEHUD]) && [gameController isGamePaused] && !onTextEntryScreen) // 'o' key while paused
         {
             exceptionContext = "toggle HUD";
             if (!hide_hud_pressed) {
                 HeadUpDisplay* theHUD = [self hud];
                 [theHUD setHidden:![theHUD isHidden]];
-                if (gui_screen == GUI_SCREEN_STATUS) {
+                if (_cxxPlayer->gui_screen == GUI_SCREEN_STATUS) {
                     // ensure refresh of status page screen if looking at it
                     [self setGuiToStatusScreen];
                 }
@@ -1048,7 +1048,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         BOOL paused = [[UNIVERSE gameController] isGamePaused];
         double speed_delta = SHIP_THRUST_FACTOR * _cxxShip->thrust;
 
-        if (!paused && gui_screen == GUI_SCREEN_MISSION) {
+        if (!paused && _cxxPlayer->gui_screen == GUI_SCREEN_MISSION) {
             exceptionContext = "mission screen";
             OOViewID view = VIEW_NONE;
 
@@ -1067,16 +1067,16 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     virtualView.y = 0.0;
             }
 
-            if ([self checkKeyPress:n_key_view_forward] || (virtualView.y < -view_threshold) || joyButtonState[BUTTON_VIEWFORWARD]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_view_forward] || (virtualView.y < -view_threshold) || joyButtonState[BUTTON_VIEWFORWARD]) {
                 view = VIEW_FORWARD;
             }
-            if ([self checkKeyPress:n_key_view_aft] | (virtualView.y > view_threshold) || joyButtonState[BUTTON_VIEWAFT]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_view_aft] | (virtualView.y > view_threshold) || joyButtonState[BUTTON_VIEWAFT]) {
                 view = VIEW_AFT;
             }
-            if ([self checkKeyPress:n_key_view_port] || (virtualView.x < -view_threshold) || joyButtonState[BUTTON_VIEWPORT]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_view_port] || (virtualView.x < -view_threshold) || joyButtonState[BUTTON_VIEWPORT]) {
                 view = VIEW_PORT;
             }
-            if ([self checkKeyPress:n_key_view_starboard] || (virtualView.x > view_threshold) || joyButtonState[BUTTON_VIEWSTARBOARD]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_view_starboard] || (virtualView.x > view_threshold) || joyButtonState[BUTTON_VIEWSTARBOARD]) {
                 view = VIEW_STARBOARD;
             }
             if (view == VIEW_NONE) {
@@ -1085,7 +1085,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             } else {
                 [[UNIVERSE gui] clearBackground];
                 [self switchToThisView:view];
-                if (_missionWithCallback) {
+                if (_cxxPlayer->_missionWithCallback) {
                     [self doMissionCallback];
                 }
                 // notify older scripts, but do not trigger missionScreenOpportunity.
@@ -1104,40 +1104,40 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
             if (OOMouseInteractionModeIsFlightMode([[UNIVERSE gameController] mouseInteractionMode])) {
                 exceptionContext = "afterburner";
-                if ((joyButtonState[BUTTON_FUELINJECT] || [self checkKeyPress:n_key_inject_fuel]) &&
-                    [self hasFuelInjection] && !hyperspeed_engaged) {
-                    if (_cxxShip->fuel > 0 && !afterburner_engaged) {
+                if ((joyButtonState[BUTTON_FUELINJECT] || [self checkKeyPress:_cxxPlayer->n_key_inject_fuel]) &&
+                    [self hasFuelInjection] && !_cxxPlayer->hyperspeed_engaged) {
+                    if (_cxxShip->fuel > 0 && !_cxxPlayer->afterburner_engaged) {
                         [UNIVERSE cxx_addMessage:OO_DESC("fuel-inject-on") forCount:1.5];
-                        afterburner_engaged = YES;
+                        _cxxPlayer->afterburner_engaged = YES;
                         [self startAfterburnerSound];
                     } else {
                         if (_cxxShip->fuel <= 0.0)
                             [UNIVERSE cxx_addMessage:OO_DESC("fuel-out") forCount:1.5];
                     }
-                    afterburner_engaged = (_cxxShip->fuel > 0);
+                    _cxxPlayer->afterburner_engaged = (_cxxShip->fuel > 0);
                 } else
-                    afterburner_engaged = NO;
+                    _cxxPlayer->afterburner_engaged = NO;
 
-                if ((!afterburner_engaged) && (afterburnerSoundLooping))
+                if ((!_cxxPlayer->afterburner_engaged) && (_cxxPlayer->afterburnerSoundLooping))
                     [self stopAfterburnerSound];
 
                 exceptionContext = "thrust";
                 // DJS: Thrust can be an axis or a button. Axis takes precidence.
                 double reqSpeed = [stickHandler getAxisState:AXIS_THRUST];
-                float mouseWheelDeltaFactor = mouse_control_on ? fabs([gameView mouseWheelDelta]) : 1.0f;
+                float mouseWheelDeltaFactor = _cxxPlayer->mouse_control_on ? fabs([gameView mouseWheelDelta]) : 1.0f;
                 if (mouseWheelDeltaFactor == 0.0f)
                     mouseWheelDeltaFactor = 1.0f;
                 // Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
-                if (([self checkKeyPress:n_key_increase_speed] || joyButtonState[BUTTON_INCTHRUST] || ((mouse_control_on) && ([gameView mouseWheelState] == gvMouseWheelUp) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
-                    && (_cxxShip->flightSpeed < _cxxShip->maxFlightSpeed) && (!afterburner_engaged)) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_increase_speed] || joyButtonState[BUTTON_INCTHRUST] || ((_cxxPlayer->mouse_control_on) && ([gameView mouseWheelState] == gvMouseWheelUp) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
+                    && (_cxxShip->flightSpeed < _cxxShip->maxFlightSpeed) && (!_cxxPlayer->afterburner_engaged)) {
                     _cxxShip->flightSpeed += speed_delta * delta_t * mouseWheelDeltaFactor;
                 }
 
-                if (([self checkKeyPress:n_key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST] || ((mouse_control_on) && ([gameView mouseWheelState] == gvMouseWheelDown) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
-                    && (!afterburner_engaged)) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST] || ((_cxxPlayer->mouse_control_on) && ([gameView mouseWheelState] == gvMouseWheelDown) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
+                    && (!_cxxPlayer->afterburner_engaged)) {
                     _cxxShip->flightSpeed -= speed_delta * delta_t * mouseWheelDeltaFactor;
                     // ** tgape ** - decrease obviously means no hyperspeed
-                    hyperspeed_engaged = NO;
+                    _cxxPlayer->hyperspeed_engaged = NO;
                 }
 
                 const oo::PList thrustAxes = [stickHandler axisFunctions];
@@ -1151,24 +1151,24 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     }
                 } // DJS: end joystick thrust axis (Getafix - End code update for fixing BUG #17482)
 
-                if (!afterburner_engaged && ![self atHyperspeed] && !hyperspeed_engaged) {
+                if (!_cxxPlayer->afterburner_engaged && ![self atHyperspeed] && !_cxxPlayer->hyperspeed_engaged) {
                     _cxxShip->flightSpeed = OOClamp_0_max_f(_cxxShip->flightSpeed, _cxxShip->maxFlightSpeed);
                 }
 
                 exceptionContext = "hyperspeed";
                 //  hyperspeed controls
-                if ([self checkKeyPress:n_key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED]) // 'j'
+                if ([self checkKeyPress:_cxxPlayer->n_key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED]) // 'j'
                 {
                     if (!jump_pressed) {
-                        if (!hyperspeed_engaged) {
-                            hyperspeed_locked = [self massLocked];
-                            hyperspeed_engaged = !hyperspeed_locked;
-                            if (hyperspeed_locked) {
+                        if (!_cxxPlayer->hyperspeed_engaged) {
+                            _cxxPlayer->hyperspeed_locked = [self massLocked];
+                            _cxxPlayer->hyperspeed_engaged = !_cxxPlayer->hyperspeed_locked;
+                            if (_cxxPlayer->hyperspeed_locked) {
                                 [self playJumpMassLocked];
                                 [UNIVERSE cxx_addMessage:OO_DESC("jump-mass-locked") forCount:1.5];
                             }
                         } else {
-                            hyperspeed_engaged = NO;
+                            _cxxPlayer->hyperspeed_engaged = NO;
                         }
                     }
                     jump_pressed = YES;
@@ -1178,7 +1178,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "shoot";
                 //  shoot 'a'
-                if ((([self checkNavKeyPress:n_key_fire_lasers]) || ((mouse_control_on) && ([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])) || joyButtonState[BUTTON_FIRE]) && (_cxxShip->shot_time > _cxxShip->weapon_recharge_rate)) {
+                if ((([self checkNavKeyPress:_cxxPlayer->n_key_fire_lasers]) || ((_cxxPlayer->mouse_control_on) && ([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])) || joyButtonState[BUTTON_FIRE]) && (_cxxShip->shot_time > _cxxShip->weapon_recharge_rate)) {
                     if ([self fireMainWeapon]) {
                         [self cxx_playLaserHit:([self shipHitByLaser] != nil) offset:[self cxx_currentLaserOffset].at(0) weaponIdentifier:[[self currentWeapon] cxx_identifier].value_or("")];
                     }
@@ -1186,7 +1186,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "weapons online toggle";
                 // weapons online / offline toggle '_'
-                if (([self checkKeyPress:n_key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE])) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_weapons_online_toggle] || joyButtonState[BUTTON_WEAPONSONLINETOGGLE])) {
                     if (!weaponsOnlineToggle_pressed) {
                         std::string weaponsOnlineToggleMsg;
 
@@ -1206,7 +1206,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "missile fire";
                 //  shoot 'm'   // launch missile
-                if ([self checkKeyPress:n_key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE]) {
                     // launch here
                     if (!fire_missile_pressed) {
                         [self fireMissile];
@@ -1217,8 +1217,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "next missile";
                 //  shoot 'y'   // next missile
-                if ([self checkKeyPress:n_key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE]) {
-                    if (!ident_engaged && !next_missile_pressed && [self weaponsOnline]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE]) {
+                    if (!_cxxPlayer->ident_engaged && !next_missile_pressed && [self weaponsOnline]) {
                         [self playNextMissileSelected];
                         [self selectNextMissile];
                     }
@@ -1228,7 +1228,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "next target";
                 //	'+' // next target
-                if ([self checkKeyPress:n_key_next_target] || joyButtonState[BUTTON_NEXTTARGET]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_next_target] || joyButtonState[BUTTON_NEXTTARGET]) {
                     if ((!next_target_pressed) && ([self cxx_hasEquipmentItemProviding:"EQ_TARGET_MEMORY"])) {
                         [self moveTargetMemoryBy:+1];
                     }
@@ -1238,7 +1238,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "previous target";
                 //	'-' // previous target
-                if ([self checkKeyPress:n_key_previous_target] || joyButtonState[BUTTON_PREVTARGET]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_previous_target] || joyButtonState[BUTTON_PREVTARGET]) {
                     if ((!previous_target_pressed) && ([self cxx_hasEquipmentItemProviding:"EQ_TARGET_MEMORY"])) {
                         [self moveTargetMemoryBy:-1];
                     }
@@ -1248,7 +1248,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "ident R";
                 //  shoot 'r'   // switch on ident system
-                if ([self checkKeyPress:n_key_ident_system] || joyButtonState[BUTTON_ID]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_ident_system] || joyButtonState[BUTTON_ID]) {
                     // ident 'on' here
                     if (!ident_pressed) {
                         [self handleButtonIdent];
@@ -1259,30 +1259,30 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "prime equipment";
                 // prime equipment 'N' - selects equipment to use with keypress
-                if ([self checkKeyPress:n_key_prime_next_equipment] || [self checkKeyPress:n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT] || joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_prime_next_equipment] || [self checkKeyPress:_cxxPlayer->n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT] || joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV]) {
 
                     if (!prime_equipment_pressed) {
 
                         // cycle through all the relevant equipment.
-                        NSUInteger c = eqScripts.size();
+                        NSUInteger c = _cxxPlayer->eqScripts.size();
 
                         // if Ctrl is held down at the same time as the prime equipment key,
                         // cycle relevant equipment in reverse
                         // if (![gameView isCtrlDown])
-                        if (![self checkKeyPress:n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV]) {
-                            primedEquipment++;
-                            if (primedEquipment > c)
-                                primedEquipment = 0;
+                        if (![self checkKeyPress:_cxxPlayer->n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV]) {
+                            _cxxPlayer->primedEquipment++;
+                            if (_cxxPlayer->primedEquipment > c)
+                                _cxxPlayer->primedEquipment = 0;
                         } else {
-                            if (primedEquipment > 0)
-                                primedEquipment--;
+                            if (_cxxPlayer->primedEquipment > 0)
+                                _cxxPlayer->primedEquipment--;
                             else
-                                primedEquipment = c;
+                                _cxxPlayer->primedEquipment = c;
                         }
 
                         std::string eqKey;
 
-                        if (primedEquipment == c) {
+                        if (_cxxPlayer->primedEquipment == c) {
                             if (c > 0) {
                                 [self playNextEquipmentSelected];
                                 [UNIVERSE cxx_addMessage:OO_DESC("equipment-primed-none") forCount:2.0];
@@ -1290,7 +1290,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                                 [UNIVERSE cxx_addMessage:OO_DESC("equipment-primed-none-available") forCount:2.0];
                         } else {
                             [self playNextEquipmentSelected];
-                            eqKey = eqScripts[primedEquipment].first;
+                            eqKey = _cxxPlayer->eqScripts[_cxxPlayer->primedEquipment].first;
                             const std::string equipmentName = [[OOEquipmentType cxx_equipmentTypeWithIdentifier:eqKey] cxx_name].value_or(std::string());
                             [UNIVERSE cxx_addMessage:ExpandKeyWithArguments("equipment-primed", { { "equipmentName", oo::PList(equipmentName) } }) forCount:2.0];
                         }
@@ -1303,9 +1303,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "activate equipment";
                 // activate equipment 'n' - runs the activated() function inside the equipment's script.
-                if ([self checkKeyPress:n_key_activate_equipment] || joyButtonState[BUTTON_ACTIVATEEQUIPMENT]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_activate_equipment] || joyButtonState[BUTTON_ACTIVATEEQUIPMENT]) {
                     if (!activate_equipment_pressed) {
-                        [self activatePrimableEquipment:primedEquipment withMode:OOPRIMEDEQUIP_ACTIVATED];
+                        [self activatePrimableEquipment:_cxxPlayer->primedEquipment withMode:OOPRIMEDEQUIP_ACTIVATED];
                     }
                     activate_equipment_pressed = YES;
                 } else
@@ -1313,16 +1313,16 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "mode equipment";
                 // mode equipment 'b' - runs the mode() function inside the equipment's script.
-                if ([self checkKeyPress:n_key_mode_equipment] || joyButtonState[BUTTON_MODEEQUIPMENT]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_mode_equipment] || joyButtonState[BUTTON_MODEEQUIPMENT]) {
                     if (!mode_equipment_pressed) {
-                        [self activatePrimableEquipment:primedEquipment withMode:OOPRIMEDEQUIP_MODE];
+                        [self activatePrimableEquipment:_cxxPlayer->primedEquipment withMode:OOPRIMEDEQUIP_MODE];
                     }
                     mode_equipment_pressed = YES;
                 } else
                     mode_equipment_pressed = NO;
 
                 exceptionContext = "fast equipment A";
-                if ([self checkKeyPress:n_key_fastactivate_equipment_a] || joyButtonState[BUTTON_CLOAK]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_fastactivate_equipment_a] || joyButtonState[BUTTON_CLOAK]) {
                     if (!fastactivate_a_pressed) {
                         [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:[self cxx_fastEquipmentA].value_or("")] withMode:OOPRIMEDEQUIP_ACTIVATED];
                     }
@@ -1331,7 +1331,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     fastactivate_a_pressed = NO;
 
                 exceptionContext = "fast equipment B";
-                if ([self checkKeyPress:n_key_fastactivate_equipment_b] || joyButtonState[BUTTON_ENERGYBOMB]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_fastactivate_equipment_b] || joyButtonState[BUTTON_ENERGYBOMB]) {
                     if (!fastactivate_b_pressed) {
                         [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:[self cxx_fastEquipmentB].value_or("")] withMode:OOPRIMEDEQUIP_ACTIVATED];
                     }
@@ -1341,8 +1341,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "custom equipment";
                 // loop through all the objects in the customEquipActivation array
-                for (std::size_t i = 0; i < customEquipActivation.size(); i++) {
-                    const oo::PList& item = customEquipActivation[i];
+                for (std::size_t i = 0; i < _cxxPlayer->customEquipActivation.size(); i++) {
+                    const oo::PList& item = _cxxPlayer->customEquipActivation[i];
                     const std::string equipKey = item.get<std::string>(std::string(CUSTOMEQUIP_EQUIPKEY));
                     // check if the player has the equip item installed
                     if ([self cxx_hasOneEquipmentItem:equipKey includeWeapons:NO whileLoading:NO]) {
@@ -1353,29 +1353,29 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                         // if so,
                         // check to see if the key or button was pressed for activate
                         if ((key_act != nullptr && [self checkKeyPress:*key_act]) || (but_act != nullptr && [[OOJoystickManager sharedStickHandler] isButtonDown:but_act->get<int>(std::string(STICK_AXBUT)) stick:but_act->get<int>(std::string(STICK_NUMBER))])) {
-                            if (!customActivatePressed[i]) {
+                            if (!_cxxPlayer->customActivatePressed[i]) {
                                 // initate the activate JS code
                                 [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:equipKey] withMode:OOPRIMEDEQUIP_ACTIVATED];
                             }
-                            customActivatePressed[i] = YES;
+                            _cxxPlayer->customActivatePressed[i] = YES;
                         } else
-                            customActivatePressed[i] = NO;
+                            _cxxPlayer->customActivatePressed[i] = NO;
 
                         // check to see if the key or button was pressed for mode
                         if ((key_mod != nullptr && [self checkKeyPress:*key_mod]) || (but_mod != nullptr && [[OOJoystickManager sharedStickHandler] isButtonDown:but_mod->get<int>(std::string(STICK_AXBUT)) stick:but_mod->get<int>(std::string(STICK_NUMBER))])) {
-                            if (!customModePressed[i]) {
+                            if (!_cxxPlayer->customModePressed[i]) {
                                 // initiate the activate JS code
                                 [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:equipKey] withMode:OOPRIMEDEQUIP_MODE];
                             }
-                            customModePressed[i] = YES;
+                            _cxxPlayer->customModePressed[i] = YES;
                         } else
-                            customModePressed[i] = NO;
+                            _cxxPlayer->customModePressed[i] = NO;
                     }
                 }
 
                 exceptionContext = "incoming missile T";
                 // target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
-                if ([self checkKeyPress:n_key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE]) {
                     if (!target_incoming_missile_pressed) {
                         [self targetNearestIncomingMissile];
                     }
@@ -1385,7 +1385,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "missile T";
                 //  shoot 't'   // switch on missile targeting
-                if (([self checkKeyPress:n_key_target_missile] || joyButtonState[BUTTON_ARMMISSILE]) && (missile_entity[activeMissile])) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_target_missile] || joyButtonState[BUTTON_ARMMISSILE]) && (_cxxPlayer->missile_entity[_cxxPlayer->activeMissile])) {
                     // targeting 'on' here
                     if (!target_missile_pressed) {
                         [self handleButtonTargetMissile];
@@ -1396,21 +1396,21 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "missile U";
                 //  shoot 'u'   // disarm missile targeting
-                if ([self checkKeyPress:n_key_untarget_missile] || joyButtonState[BUTTON_UNARM]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_untarget_missile] || joyButtonState[BUTTON_UNARM]) {
                     if (!safety_pressed) {
                         // targeting off in both cases!
                         if ([self primaryTarget] != nil)
                             [self noteLostTarget];
                         DESTROY(_cxxShip->_primaryTarget);
                         [self safeAllMissiles];
-                        if (!ident_engaged && [self weaponsOnline]) {
+                        if (!_cxxPlayer->ident_engaged && [self weaponsOnline]) {
                             [UNIVERSE cxx_addMessage:OO_DESC("missile-safe") forCount:2.0];
                             [self playMissileSafe];
                         } else {
                             [UNIVERSE cxx_addMessage:OO_DESC("ident-off") forCount:2.0];
                             [self playIdentOff];
                         }
-                        ident_engaged = NO;
+                        _cxxPlayer->ident_engaged = NO;
                     }
                     safety_pressed = YES;
                 } else
@@ -1418,8 +1418,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "ECM";
                 //  shoot 'e'   // ECM
-                if (([self checkKeyPress:n_key_ecm] || joyButtonState[BUTTON_ECM]) && [self hasECM]) {
-                    if (!ecm_in_operation) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_ecm] || joyButtonState[BUTTON_ECM]) && [self hasECM]) {
+                    if (!_cxxPlayer->ecm_in_operation) {
                         if ([self weaponsOnline] && [self fireECM]) {
                             [self playFiredECMSound];
                             [UNIVERSE cxx_addMessage:OO_DESC("ecm-on") forCount:3.0];
@@ -1431,7 +1431,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 //  shoot 'escape'   // Escape pod launch - NOTE: Allowed at all times, but requires double press within a specific time interval.
                 // Double press not available in strict mode or when the "escape-pod-activation-immediate" override is in the
                 // user defaults file.
-                if (([self checkKeyPress:n_key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod]) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod]) {
                     BOOL goodToLaunch = oo::Defaults::standard().boolForKey("escape-pod-activation-immediate");
                     static OOTimeDelta escapePodKeyResetTime;
 
@@ -1441,7 +1441,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                             // first keypress will unregister in KEY_REPEAT_INTERVAL seconds
                             escapePodKeyResetTime = oo::date::monotonicSeconds() + KEY_REPEAT_INTERVAL;
                             //[gameView clearKey:key_launch_escapepod];
-                            [gameView clearKey:[self getFirstKeyCode:n_key_launch_escapepod]];
+                            [gameView clearKey:[self getFirstKeyCode:_cxxPlayer->n_key_launch_escapepod]];
                             if ([stickHandler joystickCount]) {
                                 [stickHandler clearStickButtonState:BUTTON_ESCAPE];
                             }
@@ -1459,13 +1459,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "dump cargo";
                 //  shoot 'd'   // Dump Cargo
-                if (([self checkKeyPress:n_key_dump_cargo] || joyButtonState[BUTTON_JETTISON]) && [self cxx_cargoCount] > 0) {
+                if (([self checkKeyPress:_cxxPlayer->n_key_dump_cargo] || joyButtonState[BUTTON_JETTISON]) && [self cxx_cargoCount] > 0) {
                     [self dumpCargo];
                 }
 
                 exceptionContext = "rotate cargo";
                 //  shoot 'R'   // Rotate Cargo
-                if ([self checkKeyPress:n_key_rotate_cargo] || joyButtonState[BUTTON_ROTATECARGO]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_rotate_cargo] || joyButtonState[BUTTON_ROTATECARGO]) {
                     if ((!rotateCargo_pressed) && ([self cxx_cargoCount] > 0))
                         [self rotateCargo];
                     rotateCargo_pressed = YES;
@@ -1474,7 +1474,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "autopilot C";
                 // autopilot 'c'
-                if ([self checkKeyPress:n_key_autopilot] || joyButtonState[BUTTON_DOCKCPU]) // look for the 'c' key
+                if ([self checkKeyPress:_cxxPlayer->n_key_autopilot] || joyButtonState[BUTTON_DOCKCPU]) // look for the 'c' key
                 {
                     if ([self hasDockingComputer] && (!autopilot_key_pressed)) {
                         [self handleAutopilotOn:false];
@@ -1485,7 +1485,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "autopilot shift-C";
                 // autopilot 'C' - fast-autopilot
-                if ([self checkKeyPress:n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) // look for the 'C' key
+                if ([self checkKeyPress:_cxxPlayer->n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) // look for the 'C' key
                 {
                     if ([self hasDockingComputer] && (!fast_autopilot_key_pressed)) {
                         [self handleAutopilotOn:true];
@@ -1497,7 +1497,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "docking clearance request";
 
-                if ([self checkKeyPress:n_key_docking_clearance_request] || joyButtonState[BUTTON_DOCKINGCLEARANCE]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_docking_clearance_request] || joyButtonState[BUTTON_DOCKINGCLEARANCE]) {
                     if (!docking_clearance_request_key_pressed) {
                         Entity* primeTarget = [self primaryTarget];
                         [self performDockingRequest:(StationEntity*)primeTarget];
@@ -1509,14 +1509,14 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "hyperspace";
                 // hyperspace 'h'
-                if (([self checkKeyPress:n_key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE]) &&
+                if (([self checkKeyPress:_cxxPlayer->n_key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE]) &&
                     [self hasHyperspaceMotor]) // look for the 'h' key
                 {
                     if (!hyperspace_pressed) {
                         if ([self status] == STATUS_WITCHSPACE_COUNTDOWN) {
                             [self cancelWitchspaceCountdown];
-                            if (galactic_witchjump) {
-                                galactic_witchjump = NO;
+                            if (_cxxPlayer->galactic_witchjump) {
+                                _cxxPlayer->galactic_witchjump = NO;
                                 [UNIVERSE cxx_addMessage:OO_DESC("witch-user-galactic-abort") forCount:3.0];
                             } else {
                                 [UNIVERSE cxx_addMessage:OO_DESC("witch-user-abort") forCount:3.0];
@@ -1531,34 +1531,34 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "galactic hyperspace";
                 // Galactic hyperspace 'g'
-                if (([self checkKeyPress:n_key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) && ([self cxx_hasEquipmentItemProviding:"EQ_GAL_DRIVE"])) // look for the 'g' key
+                if (([self checkKeyPress:_cxxPlayer->n_key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) && ([self cxx_hasEquipmentItemProviding:"EQ_GAL_DRIVE"])) // look for the 'g' key
                 {
                     if (!galhyperspace_pressed) {
                         if ([self status] == STATUS_WITCHSPACE_COUNTDOWN) {
                             [self cancelWitchspaceCountdown];
-                            if (galactic_witchjump) {
-                                galactic_witchjump = NO;
+                            if (_cxxPlayer->galactic_witchjump) {
+                                _cxxPlayer->galactic_witchjump = NO;
                                 [UNIVERSE cxx_addMessage:OO_DESC("witch-user-galactic-abort") forCount:3.0];
                             } else {
                                 [UNIVERSE cxx_addMessage:OO_DESC("witch-user-abort") forCount:3.0];
                             }
                         } else {
-                            galactic_witchjump = YES;
+                            _cxxPlayer->galactic_witchjump = YES;
 
                             // even if we don't have a witchspace motor, we can still do a default galactic jump (!)
                             if (EXPECT([self hasHyperspaceMotor]))
-                                witchspaceCountdown = _cxxShip->hyperspaceMotorSpinTime;
+                                _cxxPlayer->witchspaceCountdown = _cxxShip->hyperspaceMotorSpinTime;
                             else
-                                witchspaceCountdown = DEFAULT_HYPERSPACE_SPIN_TIME;
+                                _cxxPlayer->witchspaceCountdown = DEFAULT_HYPERSPACE_SPIN_TIME;
 
                             [self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
                             [self playGalacticHyperspace];
                             // say it!
-                            [UNIVERSE cxx_addMessage:oo::str::formatRuntime(OO_DESC("witch-galactic-in-f-seconds"), { witchspaceCountdown }) forCount:1.0];
+                            [UNIVERSE cxx_addMessage:oo::str::formatRuntime(OO_DESC("witch-galactic-in-f-seconds"), { _cxxPlayer->witchspaceCountdown }) forCount:1.0];
                             // FIXME: how to preload target system for hyperspace jump?
 
                             [self cxx_doScriptEvent:OOJSID("playerStartedJumpCountdown")
-                                 withPListArguments:{ oo::PList("galactic"), oo::PList::singleReal(static_cast<float>(witchspaceCountdown)) }];
+                                 withPListArguments:{ oo::PList("galactic"), oo::PList::singleReal(static_cast<float>(_cxxPlayer->witchspaceCountdown)) }];
                         }
                     }
                     galhyperspace_pressed = YES;
@@ -1569,16 +1569,16 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
             // Field of view controls
             if (![UNIVERSE displayGUI]) {
-                if (([self checkKeyPress:n_key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < MAX_FOV)) {
-                    fieldOfView *= pow(fov_delta, delta_t);
-                    if (fieldOfView > MAX_FOV)
-                        fieldOfView = MAX_FOV;
+                if (([self checkKeyPress:_cxxPlayer->n_key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (_cxxPlayer->fieldOfView < MAX_FOV)) {
+                    _cxxPlayer->fieldOfView *= pow(_cxxPlayer->fov_delta, delta_t);
+                    if (_cxxPlayer->fieldOfView > MAX_FOV)
+                        _cxxPlayer->fieldOfView = MAX_FOV;
                 }
 
-                if (([self checkKeyPress:n_key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]) && (fieldOfView > MIN_FOV)) {
-                    fieldOfView /= pow(fov_delta, delta_t);
-                    if (fieldOfView < MIN_FOV)
-                        fieldOfView = MIN_FOV;
+                if (([self checkKeyPress:_cxxPlayer->n_key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]) && (_cxxPlayer->fieldOfView > MIN_FOV)) {
+                    _cxxPlayer->fieldOfView /= pow(_cxxPlayer->fov_delta, delta_t);
+                    if (_cxxPlayer->fieldOfView < MIN_FOV)
+                        _cxxPlayer->fieldOfView = MIN_FOV;
                 }
 
                 const oo::PList fovAxes = [stickHandler axisFunctions];
@@ -1586,15 +1586,15 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 if ([stickHandler joystickCount] != 0 && functionForFovAxis != nullptr) {
                     // TODO think reqFov through
                     double reqFov = [stickHandler getAxisState:AXIS_FIELD_OF_VIEW];
-                    if (fieldOfView < maxFieldOfView * reqFov) {
-                        fieldOfView *= pow(fov_delta, delta_t);
-                        if (fieldOfView > MAX_FOV)
-                            fieldOfView = MAX_FOV;
+                    if (_cxxPlayer->fieldOfView < _cxxPlayer->maxFieldOfView * reqFov) {
+                        _cxxPlayer->fieldOfView *= pow(_cxxPlayer->fov_delta, delta_t);
+                        if (_cxxPlayer->fieldOfView > MAX_FOV)
+                            _cxxPlayer->fieldOfView = MAX_FOV;
                     }
-                    if (fieldOfView > maxFieldOfView * reqFov) {
-                        fieldOfView /= pow(fov_delta, delta_t);
-                        if (fieldOfView < MIN_FOV)
-                            fieldOfView = MIN_FOV;
+                    if (_cxxPlayer->fieldOfView > _cxxPlayer->maxFieldOfView * reqFov) {
+                        _cxxPlayer->fieldOfView /= pow(_cxxPlayer->fov_delta, delta_t);
+                        if (_cxxPlayer->fieldOfView < MIN_FOV)
+                            _cxxPlayer->fieldOfView = MIN_FOV;
                     }
                 }
             }
@@ -1602,7 +1602,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
             exceptionContext = "dump target state";
-            if ([self checkKeyPress:n_key_dump_target_state]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_dump_target_state]) {
                 if (!dump_target_state_pressed) {
                     dump_target_state_pressed = YES;
                     id target = [self primaryTarget];
@@ -1621,7 +1621,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             // game is paused
             // check options menu request
             exceptionContext = "options menu";
-            if (([self checkKeyPress:n_key_gui_screen_options]) && (gui_screen != GUI_SCREEN_OPTIONS) && ![gameView allowingStringInput]) {
+            if (([self checkKeyPress:_cxxPlayer->n_key_gui_screen_options]) && (_cxxPlayer->gui_screen != GUI_SCREEN_OPTIONS) && ![gameView allowingStringInput]) {
                 [gameView clearKeys];
                 [self setGuiToLoadSaveScreen];
             }
@@ -1630,7 +1630,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             [self pollCustomViewControls]; // allow custom views during pause
 #endif
 
-            if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR || gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT) {
+            if (_cxxPlayer->gui_screen == GUI_SCREEN_OPTIONS || _cxxPlayer->gui_screen == GUI_SCREEN_GAMEOPTIONS || _cxxPlayer->gui_screen == GUI_SCREEN_STICKMAPPER || _cxxPlayer->gui_screen == GUI_SCREEN_STICKPROFILE || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT) {
                 if ([UNIVERSE pauseMessageVisible])
                     [[UNIVERSE messageGUI] leaveLastLine];
                 else
@@ -1645,14 +1645,14 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     time_delta = 0.0;
                 }
 
-                script_time += time_delta;
+                _cxxPlayer->script_time += time_delta;
                 [self pollGuiArrowKeyControls:time_delta];
             }
 
             exceptionContext = "debug keys";
 #ifdef OO_DEBUG_MONITOR_ENABLED
             // look for debugging keys
-            if ([self checkKeyPress:n_key_dump_entity_list] && ![gameView allowingStringInput]) // look for the '0' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_dump_entity_list] && ![gameView allowingStringInput]) // look for the '0' key
             {
                 if (!dump_entity_list_pressed) {
                     [UNIVERSE debugDumpEntities];
@@ -1664,19 +1664,19 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 dump_entity_list_pressed = NO;
 
             // look for debugging keys
-            if ([self checkKeyPress:n_key_debug_full] && ![gameView allowingStringInput]) // look for the 'd' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_debug_full] && ![gameView allowingStringInput]) // look for the 'd' key
             {
                 gDebugFlags = DEBUG_ALL;
                 [UNIVERSE cxx_addMessage:"Full debug ON" forCount:3];
             }
 
-            if ([self checkKeyPress:n_key_debug_collision] && ![gameView allowingStringInput]) // look for the 'b' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_debug_collision] && ![gameView allowingStringInput]) // look for the 'b' key
             {
                 gDebugFlags |= DEBUG_COLLISIONS;
                 [UNIVERSE cxx_addMessage:"Collision debug ON" forCount:3];
             }
 
-            if ([self checkKeyPress:n_key_debug_console_connect] && ![[OODebugMonitor sharedDebugMonitor] usingPlugInController] && ![gameView allowingStringInput]) // look for the 'c' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_debug_console_connect] && ![[OODebugMonitor sharedDebugMonitor] usingPlugInController] && ![gameView allowingStringInput]) // look for the 'c' key
             {
                 // This code is executed only if we're not using the integrated plugin controller
                 if (!autopilot_key_pressed) {
@@ -1693,28 +1693,28 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             } else
                 autopilot_key_pressed = NO;
 
-            if ([self checkKeyPress:n_key_debug_bounding_boxes] && ![gameView allowingStringInput]) // look for the 'x' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_debug_bounding_boxes] && ![gameView allowingStringInput]) // look for the 'x' key
             {
                 gDebugFlags |= DEBUG_BOUNDING_BOXES;
                 [UNIVERSE cxx_addMessage:"Bounding box debug ON" forCount:3];
             }
 
-            if ([self checkKeyPress:n_key_debug_shaders] && ![gameView allowingStringInput]) // look for the 's' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_debug_shaders] && ![gameView allowingStringInput]) // look for the 's' key
             {
                 oo::log::logger().setDisplay("$shaderDebugOn", true);
                 [UNIVERSE cxx_addMessage:"Shader debug ON" forCount:3];
             }
 
-            if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_arrow_right]) && gui_screen != GUI_SCREEN_GAMEOPTIONS && [UNIVERSE displayFPS] && ![gameView allowingStringInput]) {
+            if (([self checkKeyPress:_cxxPlayer->n_key_gui_arrow_left] || [self checkKeyPress:_cxxPlayer->n_key_gui_arrow_right]) && _cxxPlayer->gui_screen != GUI_SCREEN_GAMEOPTIONS && [UNIVERSE displayFPS] && ![gameView allowingStringInput]) {
                 if (!leftRightKeyPressed) {
-                    float newTimeAccelerationFactor = [self checkKeyPress:n_key_gui_arrow_left] ? fmax([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) : fmin([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
+                    float newTimeAccelerationFactor = [self checkKeyPress:_cxxPlayer->n_key_gui_arrow_left] ? fmax([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) : fmin([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
                     [UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
                 }
                 leftRightKeyPressed = YES;
             } else
                 leftRightKeyPressed = NO;
 
-            if ([self checkKeyPress:n_key_debug_off] && ![gameView allowingStringInput]) // look for the 'n' key
+            if ([self checkKeyPress:_cxxPlayer->n_key_debug_off] && ![gameView allowingStringInput]) // look for the 'n' key
             {
                 gDebugFlags = 0;
                 [UNIVERSE cxx_addMessage:"All debug flags OFF" forCount:3];
@@ -1725,11 +1725,11 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
         exceptionContext = "pause";
         // Pause game 'p'
-        if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && ![gameView allowingStringInput]) // look for the 'p' key
+        if (([self checkKeyPress:_cxxPlayer->n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && _cxxPlayer->gui_screen != GUI_SCREEN_LONG_RANGE_CHART && _cxxPlayer->gui_screen != GUI_SCREEN_MISSION && ![gameView allowingStringInput]) // look for the 'p' key
         {
             if (!pause_pressed) {
                 if (paused) {
-                    script_time = saved_script_time;
+                    _cxxPlayer->script_time = saved_script_time;
                     // Reset to correct GUI screen, if we are unpausing from one.
                     // Don't set gui_screen here, use setGuis - they also switch backgrounds.
                     // No gui switching events will be triggered while still paused.
@@ -1754,11 +1754,11 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                         break;
                     case GUI_SCREEN_SYSTEM_DATA:
                         // Do not reset planet rotation if we are already in the system info screen!
-                        if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+                        if (_cxxPlayer->gui_screen != GUI_SCREEN_SYSTEM_DATA)
                             [self setGuiToSystemDataScreen];
                         break;
                     default:
-                        gui_screen = (OOGUIScreenID)saved_gui_screen; // make sure we're back to the right screen
+                        _cxxPlayer->gui_screen = (OOGUIScreenID)saved_gui_screen; // make sure we're back to the right screen
                         break;
                     }
                     [gameView allowStringInput:NO];
@@ -1767,13 +1767,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     _cxxShip->currentWeaponFacing = saved_weapon_facing;
                     // make sure the light comes from the right direction after resuming from pause!
                     if (saved_gui_screen == GUI_SCREEN_SYSTEM_DATA)
-                        [UNIVERSE setMainLightPosition:_sysInfoLight];
+                        [UNIVERSE setMainLightPosition:_cxxPlayer->_sysInfoLight];
                     [[UNIVERSE gui] cxx_setForegroundTextureKey:"overlay"];
                     [[UNIVERSE gameController] setGamePaused:NO];
                 } else {
                     saved_view_direction = [UNIVERSE viewDirection];
-                    saved_script_time = script_time;
-                    saved_gui_screen = gui_screen;
+                    saved_script_time = _cxxPlayer->script_time;
+                    saved_gui_screen = _cxxPlayer->gui_screen;
                     saved_weapon_facing = _cxxShip->currentWeaponFacing;
                     [UNIVERSE pauseGame]; // pause handler
                 }
@@ -1794,25 +1794,25 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     BOOL moving = NO;
     BOOL dragging = NO;
-    double cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0) * chart_zoom;
+    double cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0) * _cxxPlayer->chart_zoom;
     GameController* controller = [UNIVERSE gameController];
     GuiDisplayGen* gui = [UNIVERSE gui];
     GUI_ROW_INIT(gui);
 
     // deal with string inputs as necessary
-    if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) {
+    if (_cxxPlayer->gui_screen == GUI_SCREEN_LONG_RANGE_CHART) {
         [gameView setStringInput:gvStringInputAlpha];
-    } else if (gui_screen == GUI_SCREEN_SAVE) {
+    } else if (_cxxPlayer->gui_screen == GUI_SCREEN_SAVE) {
         [gameView setStringInput:gvStringInputLoadSave];
-    } else if (gui_screen == GUI_SCREEN_MISSION && _missionTextEntry) {
+    } else if (_cxxPlayer->gui_screen == GUI_SCREEN_MISSION && _cxxPlayer->_missionTextEntry) {
         [gameView setStringInput:gvStringInputAll];
-    } else if (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY) {
+    } else if (_cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_ENTRY) {
         [gameView setStringInput:gvStringInputAll];
     }
 #if 0
 	// at the moment this function is never called for GUI_SCREEN_OXZMANAGER
 	// but putting this here in case we do later
-	else if (gui_screen == GUI_SCREEN_OXZMANAGER && [[OOOXZManager sharedManager] isAcceptingTextInput])
+	else if (_cxxPlayer->gui_screen == GUI_SCREEN_OXZMANAGER && [[OOOXZManager sharedManager] isAcceptingTextInput])
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
@@ -1821,36 +1821,36 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         [gameView allowStringInput:NO];
         // If we have entered this screen with the injectors key pressed, make sure
         // that injectors switch off when we release it - Nikos.
-        if (afterburner_engaged && ![self checkKeyPress:n_key_inject_fuel]) {
-            afterburner_engaged = NO;
+        if (_cxxPlayer->afterburner_engaged && ![self checkKeyPress:_cxxPlayer->n_key_inject_fuel]) {
+            _cxxPlayer->afterburner_engaged = NO;
         }
     }
 
-    switch (gui_screen) {
+    switch (_cxxPlayer->gui_screen) {
     case GUI_SCREEN_LONG_RANGE_CHART:
 
         if ([self status] != STATUS_WITCHSPACE_COUNTDOWN) {
             if (oo::str::length([gameView cxx_typedString].value_or("")) > 0) {
-                planetSearchString = oo::str::lowercase(*[gameView cxx_typedString]);
-                NSPoint search_coords = [UNIVERSE cxx_findSystemCoordinatesWithPrefix:*planetSearchString];
+                _cxxPlayer->planetSearchString = oo::str::lowercase(*[gameView cxx_typedString]);
+                NSPoint search_coords = [UNIVERSE cxx_findSystemCoordinatesWithPrefix:*_cxxPlayer->planetSearchString];
                 if ((search_coords.x >= 0.0) && (search_coords.y >= 0.0)) {
                     // always reset the found system index at the beginning of a new search
-                    if (oo::str::length(*planetSearchString) == 1)
+                    if (oo::str::length(*_cxxPlayer->planetSearchString) == 1)
                         [[UNIVERSE gui] targetNextFoundSystem:0];
 
                     // Always select the right one out of 2 overlapping systems.
                     [self targetNewSystem:0 whileTyping:YES];
                 } else {
-                    found_system_id = -1;
+                    _cxxPlayer->found_system_id = -1;
                     [self clearPlanetSearchString];
                 }
             } else {
                 if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
                 {
-                    found_system_id = -1;
+                    _cxxPlayer->found_system_id = -1;
                     [UNIVERSE cxx_findSystemCoordinatesWithPrefix:""];
                 }
-                planetSearchString.reset();
+                _cxxPlayer->planetSearchString.reset();
             }
 
             moving |= (searchStringLength != oo::str::length([gameView cxx_typedString].value_or("")));
@@ -1859,7 +1859,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
     case GUI_SCREEN_SHORT_RANGE_CHART:
 
-        if ([self checkKeyPress:n_key_chart_highlight]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_chart_highlight]) {
             if (!queryPressed) {
                 OOLongRangeChartMode mode = [self longRangeChartMode];
                 if (mode != OOLRC_MODE_TECHLEVEL) {
@@ -1874,9 +1874,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             queryPressed = NO;
         }
 
-        if ([self checkKeyPress:n_key_map_info] && chart_zoom <= CHART_ZOOM_SHOW_LABELS) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_map_info] && _cxxPlayer->chart_zoom <= CHART_ZOOM_SHOW_LABELS) {
             if (!chartInfoPressed) {
-                show_info_flag = !show_info_flag;
+                _cxxPlayer->show_info_flag = !_cxxPlayer->show_info_flag;
                 chartInfoPressed = YES;
             }
         } else {
@@ -1885,35 +1885,35 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
         if ([self status] != STATUS_WITCHSPACE_COUNTDOWN) {
             if ([self cxx_hasEquipmentItemProviding:"EQ_ADVANCED_NAVIGATIONAL_ARRAY"]) {
-                if ([self checkKeyPress:n_key_advanced_nav_array_next] || [self checkKeyPress:n_key_advanced_nav_array_previous]) {
+                if ([self checkKeyPress:_cxxPlayer->n_key_advanced_nav_array_next] || [self checkKeyPress:_cxxPlayer->n_key_advanced_nav_array_previous]) {
                     if (!pling_pressed) {
-                        if ([self checkKeyPress:n_key_advanced_nav_array_previous]) {
-                            switch (ANA_mode) {
+                        if ([self checkKeyPress:_cxxPlayer->n_key_advanced_nav_array_previous]) {
+                            switch (_cxxPlayer->ANA_mode) {
                             case OPTIMIZED_BY_NONE:
-                                ANA_mode = OPTIMIZED_BY_TIME;
+                                _cxxPlayer->ANA_mode = OPTIMIZED_BY_TIME;
                                 break;
                             case OPTIMIZED_BY_TIME:
-                                ANA_mode = OPTIMIZED_BY_JUMPS;
+                                _cxxPlayer->ANA_mode = OPTIMIZED_BY_JUMPS;
                                 break;
                             default:
-                                ANA_mode = OPTIMIZED_BY_NONE;
+                                _cxxPlayer->ANA_mode = OPTIMIZED_BY_NONE;
                                 break;
                             }
                         } else {
-                            switch (ANA_mode) {
+                            switch (_cxxPlayer->ANA_mode) {
                             case OPTIMIZED_BY_NONE:
-                                ANA_mode = OPTIMIZED_BY_JUMPS;
+                                _cxxPlayer->ANA_mode = OPTIMIZED_BY_JUMPS;
                                 break;
                             case OPTIMIZED_BY_JUMPS:
-                                ANA_mode = OPTIMIZED_BY_TIME;
+                                _cxxPlayer->ANA_mode = OPTIMIZED_BY_TIME;
                                 break;
                             default:
-                                ANA_mode = OPTIMIZED_BY_NONE;
+                                _cxxPlayer->ANA_mode = OPTIMIZED_BY_NONE;
                                 break;
                             }
                         }
-                        if (ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute]) {
-                            [self setInfoSystemID:target_system_id moveChart:NO];
+                        if (_cxxPlayer->ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute]) {
+                            [self setInfoSystemID:_cxxPlayer->target_system_id moveChart:NO];
                         }
                     }
                     pling_pressed = YES;
@@ -1921,199 +1921,199 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     pling_pressed = NO;
                 }
             } else {
-                ANA_mode = OPTIMIZED_BY_NONE;
+                _cxxPlayer->ANA_mode = OPTIMIZED_BY_NONE;
             }
 
             if ([gameView isDown:gvMouseDoubleClick]) {
                 [gameView clearMouse];
                 mouse_left_down = NO;
                 [self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
-                showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
+                _cxxPlayer->showingLongRangeChart = (_cxxPlayer->gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
                 [self setGuiToSystemDataScreen];
                 break;
             }
             if ([gameView isDown:gvMouseLeftButton]) {
                 NSPoint maus = [gameView virtualJoystickPosition];
                 double vadjust = MAIN_GUI_PIXEL_HEIGHT / 2.0 - CHART_SCREEN_VERTICAL_CENTRE;
-                double hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
-                double vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
+                double hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * _cxxPlayer->chart_zoom);
+                double vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * _cxxPlayer->chart_zoom);
                 if (mouse_left_down == NO) {
                     NSPoint centre = [self adjusted_chart_centre];
-                    centre_at_mouse_click = chart_centre_coordinates;
+                    centre_at_mouse_click = _cxxPlayer->chart_centre_coordinates;
                     mouse_click_position = maus;
-                    chart_focus_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
-                    chart_focus_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
-                    target_chart_focus = chart_focus_coordinates;
+                    _cxxPlayer->chart_focus_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
+                    _cxxPlayer->chart_focus_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+                    _cxxPlayer->target_chart_focus = _cxxPlayer->chart_focus_coordinates;
                 }
                 if (fabs(maus.x - mouse_click_position.x) * MAIN_GUI_PIXEL_WIDTH > 2 || fabs(maus.y - mouse_click_position.y) * MAIN_GUI_PIXEL_HEIGHT > 2) {
-                    chart_centre_coordinates.x = OOClamp_0_max_f(centre_at_mouse_click.x - (maus.x - mouse_click_position.x) * MAIN_GUI_PIXEL_WIDTH / hscale, 256.0);
-                    chart_centre_coordinates.y = OOClamp_0_max_f(centre_at_mouse_click.y - (maus.y - mouse_click_position.y) * MAIN_GUI_PIXEL_HEIGHT / vscale, 256.0);
-                    target_chart_centre = chart_centre_coordinates;
+                    _cxxPlayer->chart_centre_coordinates.x = OOClamp_0_max_f(centre_at_mouse_click.x - (maus.x - mouse_click_position.x) * MAIN_GUI_PIXEL_WIDTH / hscale, 256.0);
+                    _cxxPlayer->chart_centre_coordinates.y = OOClamp_0_max_f(centre_at_mouse_click.y - (maus.y - mouse_click_position.y) * MAIN_GUI_PIXEL_HEIGHT / vscale, 256.0);
+                    _cxxPlayer->target_chart_centre = _cxxPlayer->chart_centre_coordinates;
                     dragging = YES;
                 }
-                if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
+                if (_cxxPlayer->gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
                     [gameView resetTypedString];
                 mouse_left_down = YES;
             } else if (mouse_left_down == YES) {
                 NSPoint maus = [gameView virtualJoystickPosition];
                 if (fabs(maus.x - mouse_click_position.x) * MAIN_GUI_PIXEL_WIDTH <= 2 && fabs(maus.y - mouse_click_position.y) * MAIN_GUI_PIXEL_HEIGHT <= 2) {
-                    cursor_coordinates = chart_focus_coordinates;
+                    _cxxPlayer->cursor_coordinates = _cxxPlayer->chart_focus_coordinates;
                     moving = YES;
                 } else {
                     dragging = YES;
                 }
                 mouse_left_down = NO;
             }
-            if ([self checkKeyPress:n_key_map_home]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_map_home]) {
                 if ([gameView isOptDown]) {
                     [self homeInfoSystem];
-                    target_chart_focus = galaxy_coordinates;
+                    _cxxPlayer->target_chart_focus = _cxxPlayer->galaxy_coordinates;
                 } else {
                     [gameView resetTypedString];
-                    cursor_coordinates = galaxy_coordinates;
-                    target_chart_focus = cursor_coordinates;
-                    target_chart_centre = galaxy_coordinates;
-                    found_system_id = -1;
+                    _cxxPlayer->cursor_coordinates = _cxxPlayer->galaxy_coordinates;
+                    _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
+                    _cxxPlayer->target_chart_centre = _cxxPlayer->galaxy_coordinates;
+                    _cxxPlayer->found_system_id = -1;
                     [UNIVERSE cxx_findSystemCoordinatesWithPrefix:""];
                     moving = YES;
                 }
             }
-            if ([self checkKeyPress:n_key_map_end]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_map_end]) {
                 [self targetInfoSystem];
-                target_chart_focus = cursor_coordinates;
+                _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
             }
-            if ([self checkKeyPress:n_key_map_zoom_in] || [gameView mouseWheelState] == gvMouseWheelDown) {
-                target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
-                if (target_chart_zoom > CHART_MAX_ZOOM)
-                    target_chart_zoom = CHART_MAX_ZOOM;
-                saved_chart_zoom = target_chart_zoom;
+            if ([self checkKeyPress:_cxxPlayer->n_key_map_zoom_in] || [gameView mouseWheelState] == gvMouseWheelDown) {
+                _cxxPlayer->target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
+                if (_cxxPlayer->target_chart_zoom > CHART_MAX_ZOOM)
+                    _cxxPlayer->target_chart_zoom = CHART_MAX_ZOOM;
+                _cxxPlayer->saved_chart_zoom = _cxxPlayer->target_chart_zoom;
             }
-            if ([self checkKeyPress:n_key_map_zoom_out] || [gameView mouseWheelState] == gvMouseWheelUp) {
-                if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) {
-                    target_chart_zoom = CHART_MAX_ZOOM;
+            if ([self checkKeyPress:_cxxPlayer->n_key_map_zoom_out] || [gameView mouseWheelState] == gvMouseWheelUp) {
+                if (_cxxPlayer->gui_screen == GUI_SCREEN_LONG_RANGE_CHART) {
+                    _cxxPlayer->target_chart_zoom = CHART_MAX_ZOOM;
                     [self setGuiToShortRangeChartScreen];
                 }
-                target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
-                if (target_chart_zoom < 1.0)
-                    target_chart_zoom = 1.0;
-                saved_chart_zoom = target_chart_zoom;
+                _cxxPlayer->target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
+                if (_cxxPlayer->target_chart_zoom < 1.0)
+                    _cxxPlayer->target_chart_zoom = 1.0;
+                _cxxPlayer->saved_chart_zoom = _cxxPlayer->target_chart_zoom;
                 // target_chart_centre = cursor_coordinates;
-                target_chart_focus = target_chart_centre;
+                _cxxPlayer->target_chart_focus = _cxxPlayer->target_chart_centre;
             }
 
             BOOL nextSystem = [gameView isShiftDown];
             BOOL nextSystemOnRoute = [gameView isOptDown];
 
-            if ([self checkNavKeyPress:n_key_gui_arrow_left]) {
+            if ([self checkNavKeyPress:_cxxPlayer->n_key_gui_arrow_left]) {
                 if ((nextSystem || nextSystemOnRoute) && pressedArrow != 1) {
                     if (nextSystem) {
                         [self targetNewSystem:-1];
-                        target_chart_focus = cursor_coordinates;
+                        _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
                     } else {
                         [self clearPlanetSearchString];
                         [self previousInfoSystem];
-                        target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+                        _cxxPlayer->target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:_cxxPlayer->info_system_id inGalaxy:_cxxPlayer->galaxy_number];
                     }
                     pressedArrow = 1;
                 } else if (!nextSystem && !nextSystemOnRoute) {
                     [gameView resetTypedString];
-                    cursor_coordinates.x -= cursor_speed * delta_t;
-                    if (cursor_coordinates.x < 0.0)
-                        cursor_coordinates.x = 0.0;
+                    _cxxPlayer->cursor_coordinates.x -= cursor_speed * delta_t;
+                    if (_cxxPlayer->cursor_coordinates.x < 0.0)
+                        _cxxPlayer->cursor_coordinates.x = 0.0;
                     moving = YES;
-                    target_chart_focus = cursor_coordinates;
+                    _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
                 }
             } else
                 pressedArrow = pressedArrow == 1 ? 0 : pressedArrow;
 
-            if ([self checkNavKeyPress:n_key_gui_arrow_right]) {
+            if ([self checkNavKeyPress:_cxxPlayer->n_key_gui_arrow_right]) {
                 if ((nextSystem || nextSystemOnRoute) && pressedArrow != 2) {
                     if (nextSystem) {
                         [self targetNewSystem:+1];
-                        target_chart_focus = cursor_coordinates;
+                        _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
                     } else {
                         [self clearPlanetSearchString];
                         [self nextInfoSystem];
-                        target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+                        _cxxPlayer->target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:_cxxPlayer->info_system_id inGalaxy:_cxxPlayer->galaxy_number];
                     }
                     pressedArrow = 2;
                 } else if (!nextSystem && !nextSystemOnRoute) {
                     [gameView resetTypedString];
-                    cursor_coordinates.x += cursor_speed * delta_t;
-                    if (cursor_coordinates.x > 256.0)
-                        cursor_coordinates.x = 256.0;
+                    _cxxPlayer->cursor_coordinates.x += cursor_speed * delta_t;
+                    if (_cxxPlayer->cursor_coordinates.x > 256.0)
+                        _cxxPlayer->cursor_coordinates.x = 256.0;
                     moving = YES;
-                    target_chart_focus = cursor_coordinates;
+                    _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
                 }
             } else
                 pressedArrow = pressedArrow == 2 ? 0 : pressedArrow;
 
-            if ([self checkNavKeyPress:n_key_gui_arrow_down]) {
+            if ([self checkNavKeyPress:_cxxPlayer->n_key_gui_arrow_down]) {
                 if (nextSystem && pressedArrow != 3) {
                     [self targetNewSystem:+1];
                     pressedArrow = 3;
                 } else if (!nextSystem) {
                     [gameView resetTypedString];
-                    cursor_coordinates.y += cursor_speed * delta_t * 2.0;
-                    if (cursor_coordinates.y > 256.0)
-                        cursor_coordinates.y = 256.0;
+                    _cxxPlayer->cursor_coordinates.y += cursor_speed * delta_t * 2.0;
+                    if (_cxxPlayer->cursor_coordinates.y > 256.0)
+                        _cxxPlayer->cursor_coordinates.y = 256.0;
                     moving = YES;
                 }
-                target_chart_focus = cursor_coordinates;
+                _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
             } else
                 pressedArrow = pressedArrow == 3 ? 0 : pressedArrow;
 
-            if ([self checkNavKeyPress:n_key_gui_arrow_up]) {
+            if ([self checkNavKeyPress:_cxxPlayer->n_key_gui_arrow_up]) {
                 if (nextSystem && pressedArrow != 4) {
                     [self targetNewSystem:-1];
                     pressedArrow = 4;
                 } else if (!nextSystem) {
                     [gameView resetTypedString];
-                    cursor_coordinates.y -= cursor_speed * delta_t * 2.0;
-                    if (cursor_coordinates.y < 0.0)
-                        cursor_coordinates.y = 0.0;
+                    _cxxPlayer->cursor_coordinates.y -= cursor_speed * delta_t * 2.0;
+                    if (_cxxPlayer->cursor_coordinates.y < 0.0)
+                        _cxxPlayer->cursor_coordinates.y = 0.0;
                     moving = YES;
                 }
-                target_chart_focus = cursor_coordinates;
+                _cxxPlayer->target_chart_focus = _cxxPlayer->cursor_coordinates;
             } else
                 pressedArrow = pressedArrow == 4 ? 0 : pressedArrow;
             if ((cursor_moving) && (!moving)) {
-                if (found_system_id == -1) {
-                    target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
-                    [self setInfoSystemID:target_system_id moveChart:YES];
+                if (_cxxPlayer->found_system_id == -1) {
+                    _cxxPlayer->target_system_id = [UNIVERSE findSystemNumberAtCoords:_cxxPlayer->cursor_coordinates withGalaxy:_cxxPlayer->galaxy_number includingHidden:NO];
+                    [self setInfoSystemID:_cxxPlayer->target_system_id moveChart:YES];
                 } else {
                     // if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5
-                    NSPoint fpos = [[UNIVERSE systemManager] getCoordinatesForSystem:found_system_id inGalaxy:galaxy_number];
-                    if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y) {
-                        target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
-                        [self setInfoSystemID:target_system_id moveChart:YES];
+                    NSPoint fpos = [[UNIVERSE systemManager] getCoordinatesForSystem:_cxxPlayer->found_system_id inGalaxy:_cxxPlayer->galaxy_number];
+                    if (fpos.x != _cxxPlayer->cursor_coordinates.x && fpos.y != _cxxPlayer->cursor_coordinates.y) {
+                        _cxxPlayer->target_system_id = [UNIVERSE findSystemNumberAtCoords:_cxxPlayer->cursor_coordinates withGalaxy:_cxxPlayer->galaxy_number includingHidden:NO];
+                        [self setInfoSystemID:_cxxPlayer->target_system_id moveChart:YES];
                     }
                 }
-                cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+                _cxxPlayer->cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:_cxxPlayer->target_system_id inGalaxy:_cxxPlayer->galaxy_number];
             }
-            if (chart_focus_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X * chart_zoom) {
-                target_chart_centre.x = chart_focus_coordinates.x + CHART_SCROLL_AT_X * chart_zoom;
-            } else if (chart_focus_coordinates.x - target_chart_centre.x >= CHART_SCROLL_AT_X * chart_zoom) {
-                target_chart_centre.x = chart_focus_coordinates.x - CHART_SCROLL_AT_X * chart_zoom;
+            if (_cxxPlayer->chart_focus_coordinates.x - _cxxPlayer->target_chart_centre.x <= -CHART_SCROLL_AT_X * _cxxPlayer->chart_zoom) {
+                _cxxPlayer->target_chart_centre.x = _cxxPlayer->chart_focus_coordinates.x + CHART_SCROLL_AT_X * _cxxPlayer->chart_zoom;
+            } else if (_cxxPlayer->chart_focus_coordinates.x - _cxxPlayer->target_chart_centre.x >= CHART_SCROLL_AT_X * _cxxPlayer->chart_zoom) {
+                _cxxPlayer->target_chart_centre.x = _cxxPlayer->chart_focus_coordinates.x - CHART_SCROLL_AT_X * _cxxPlayer->chart_zoom;
             }
-            if (chart_focus_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y * chart_zoom) {
-                target_chart_centre.y = chart_focus_coordinates.y + CHART_SCROLL_AT_Y * chart_zoom;
-            } else if (chart_focus_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y * chart_zoom) {
-                target_chart_centre.y = chart_focus_coordinates.y - CHART_SCROLL_AT_Y * chart_zoom;
+            if (_cxxPlayer->chart_focus_coordinates.y - _cxxPlayer->target_chart_centre.y <= -CHART_SCROLL_AT_Y * _cxxPlayer->chart_zoom) {
+                _cxxPlayer->target_chart_centre.y = _cxxPlayer->chart_focus_coordinates.y + CHART_SCROLL_AT_Y * _cxxPlayer->chart_zoom;
+            } else if (_cxxPlayer->chart_focus_coordinates.y - _cxxPlayer->target_chart_centre.y >= CHART_SCROLL_AT_Y * _cxxPlayer->chart_zoom) {
+                _cxxPlayer->target_chart_centre.y = _cxxPlayer->chart_focus_coordinates.y - CHART_SCROLL_AT_Y * _cxxPlayer->chart_zoom;
             }
-            chart_centre_coordinates.x = (3.0 * chart_centre_coordinates.x + target_chart_centre.x) / 4.0;
-            chart_centre_coordinates.y = (3.0 * chart_centre_coordinates.y + target_chart_centre.y) / 4.0;
-            chart_zoom = (3.0 * chart_zoom + target_chart_zoom) / 4.0;
-            chart_focus_coordinates.x = (3.0 * chart_focus_coordinates.x + target_chart_focus.x) / 4.0;
-            chart_focus_coordinates.y = (3.0 * chart_focus_coordinates.y + target_chart_focus.y) / 4.0;
+            _cxxPlayer->chart_centre_coordinates.x = (3.0 * _cxxPlayer->chart_centre_coordinates.x + _cxxPlayer->target_chart_centre.x) / 4.0;
+            _cxxPlayer->chart_centre_coordinates.y = (3.0 * _cxxPlayer->chart_centre_coordinates.y + _cxxPlayer->target_chart_centre.y) / 4.0;
+            _cxxPlayer->chart_zoom = (3.0 * _cxxPlayer->chart_zoom + _cxxPlayer->target_chart_zoom) / 4.0;
+            _cxxPlayer->chart_focus_coordinates.x = (3.0 * _cxxPlayer->chart_focus_coordinates.x + _cxxPlayer->target_chart_focus.x) / 4.0;
+            _cxxPlayer->chart_focus_coordinates.y = (3.0 * _cxxPlayer->chart_focus_coordinates.y + _cxxPlayer->target_chart_focus.y) / 4.0;
             if (cursor_moving || dragging)
-                [self setGuiToChartScreenFrom:gui_screen]; // update graphics
+                [self setGuiToChartScreenFrom:_cxxPlayer->gui_screen]; // update graphics
             cursor_moving = moving;
         }
         break;
 
     case GUI_SCREEN_SYSTEM_DATA:
-        if ([self checkKeyPress:n_key_system_next_system]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_system_next_system]) {
             if (!next_planet_info_pressed) {
                 [self nextInfoSystem];
                 next_planet_info_pressed = YES;
@@ -2121,7 +2121,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         } else {
             next_planet_info_pressed = NO;
         }
-        if ([self checkKeyPress:n_key_system_previous_system]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_system_previous_system]) {
             if (!previous_planet_info_pressed) {
                 [self previousInfoSystem];
                 previous_planet_info_pressed = YES;
@@ -2129,7 +2129,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         } else {
             previous_planet_info_pressed = NO;
         }
-        if ([self checkKeyPress:n_key_system_home]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_system_home]) {
             if (!home_info_pressed) {
                 [self homeInfoSystem];
                 home_info_pressed = YES;
@@ -2137,7 +2137,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         } else {
             home_info_pressed = NO;
         }
-        if ([self checkKeyPress:n_key_system_end]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_system_end]) {
             if (!target_info_pressed) {
                 [self targetInfoSystem];
                 target_info_pressed = YES;
@@ -2152,8 +2152,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         const std::optional<std::string> commanderFile = [self commanderSelector];
         if (commanderFile) {
             // also release the demo ship here (see showShipyardModel and noteGUIDidChangeFrom)
-            [demoShip release];
-            demoShip = nil;
+            [_cxxPlayer->demoShip release];
+            _cxxPlayer->demoShip = nil;
 
             [self loadPlayerFromFile:*commanderFile asNew:NO];
         }
@@ -2164,12 +2164,12 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         [self pollGuiScreenControlsWithFKeyAlias:NO];
         /* Only F1 works for launch on this screen, not '1' or
          * whatever it has been bound to */
-        if ([self checkKeyPress:n_key_launch_ship fKey_only:YES])
+        if ([self checkKeyPress:_cxxPlayer->n_key_launch_ship fKey_only:YES])
             [self handleUndockControl];
-        if (gui_screen == GUI_SCREEN_SAVE) {
+        if (_cxxPlayer->gui_screen == GUI_SCREEN_SAVE) {
             [self saveCommanderInputHandler];
         } else
-            pollControls = YES;
+            _cxxPlayer->pollControls = YES;
         break;
 
     case GUI_SCREEN_SAVE_OVERWRITE:
@@ -2349,7 +2349,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
                     [self buySelectedItem];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
@@ -2359,7 +2359,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1];
                     [self buySelectedItem];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
@@ -2389,7 +2389,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_INTERFACES_START];
                     [self activateSelectedInterface];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
@@ -2399,7 +2399,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES - 1];
                     [self activateSelectedInterface];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
@@ -2425,20 +2425,20 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     case GUI_SCREEN_MARKET:
         [self pollMarketScreenControls];
 
-        if ([self checkKeyPress:n_key_market_filter_cycle] || [self checkKeyPress:n_key_market_sorter_cycle]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_market_filter_cycle] || [self checkKeyPress:_cxxPlayer->n_key_market_sorter_cycle]) {
             if (!queryPressed) {
                 queryPressed = YES;
-                if ([self checkKeyPress:n_key_market_filter_cycle]) {
-                    if (marketFilterMode >= MARKET_FILTER_MODE_MAX) {
-                        marketFilterMode = MARKET_FILTER_MODE_OFF;
+                if ([self checkKeyPress:_cxxPlayer->n_key_market_filter_cycle]) {
+                    if (_cxxPlayer->marketFilterMode >= MARKET_FILTER_MODE_MAX) {
+                        _cxxPlayer->marketFilterMode = MARKET_FILTER_MODE_OFF;
                     } else {
-                        marketFilterMode = (OOMarketFilterMode)(marketFilterMode + 1);
+                        _cxxPlayer->marketFilterMode = (OOMarketFilterMode)(_cxxPlayer->marketFilterMode + 1);
                     }
                 } else {
-                    if (marketSorterMode >= MARKET_SORTER_MODE_MAX) {
-                        marketSorterMode = MARKET_SORTER_MODE_OFF;
+                    if (_cxxPlayer->marketSorterMode >= MARKET_SORTER_MODE_MAX) {
+                        _cxxPlayer->marketSorterMode = MARKET_SORTER_MODE_OFF;
                     } else {
-                        marketSorterMode = (OOMarketSorterMode)(marketSorterMode + 1);
+                        _cxxPlayer->marketSorterMode = (OOMarketSorterMode)(_cxxPlayer->marketSorterMode + 1);
                     }
                 }
                 [self playChangedOption];
@@ -2454,7 +2454,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         if ([gameView isDown:32]) // spacebar
         {
             if (!spacePressed) {
-                BOOL reportEnded = dockingReport.empty();
+                BOOL reportEnded = _cxxPlayer->dockingReport.empty();
                 [self playDismissedReportScreen];
                 if (reportEnded) {
                     [self setGuiToStatusScreen];
@@ -2472,19 +2472,19 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         [self handleGUIUpDownArrowKeys];
         if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
 
-            if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+            if ((!leftRightKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if (([gui cxx_keyForRow:STATUS_EQUIPMENT_FIRST_ROW] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW];
                     [self playMenuPagePrevious];
                     [gui setStatusPage:-1];
                     [self setGuiToStatusScreen];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
 
-            if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+            if ((!leftRightKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 NSUInteger maxRows = [[self hud] allowBigGui] ? STATUS_EQUIPMENT_MAX_ROWS + STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS : STATUS_EQUIPMENT_MAX_ROWS;
                 if (([gui cxx_keyForRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows];
@@ -2492,7 +2492,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setStatusPage:+1];
                     [self setGuiToStatusScreen];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
@@ -2517,14 +2517,14 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         [self handleGUIUpDownArrowKeys];
         if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
 
-            if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+            if ((!leftRightKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if (([gui cxx_keyForRow:MANIFEST_SCREEN_ROW_BACK] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:MANIFEST_SCREEN_ROW_BACK];
                     [self playMenuPagePrevious];
                     [gui setStatusPage:-1];
                     [self setGuiToManifestScreen];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
@@ -2532,14 +2532,14 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             if ([[self hud] isHidden] || [[self hud] allowBigGui]) {
                 nextRow += 7;
             }
-            if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+            if ((!leftRightKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 if (([gui cxx_keyForRow:nextRow] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:nextRow];
                     [self playMenuPageNext];
                     [gui setStatusPage:+1];
                     [self setGuiToManifestScreen];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
@@ -2573,7 +2573,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_SHIPYARD_START];
                     [self buySelectedShip];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
@@ -2583,7 +2583,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
                     [self buySelectedShip];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
         }
         leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
@@ -2634,8 +2634,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 
     // check for any extra keys added by scripting
-    const auto screenKeys = extraGuiScreenKeys.find(gui_screen);
-    const std::vector<oo::ObjCRef<OOJSGuiScreenKeyDefinition*>> keys = (screenKeys != extraGuiScreenKeys.end()) ? screenKeys->second : std::vector<oo::ObjCRef<OOJSGuiScreenKeyDefinition*>>();
+    const auto screenKeys = _cxxPlayer->extraGuiScreenKeys.find(_cxxPlayer->gui_screen);
+    const std::vector<oo::ObjCRef<OOJSGuiScreenKeyDefinition*>> keys = (screenKeys != _cxxPlayer->extraGuiScreenKeys.end()) ? screenKeys->second : std::vector<oo::ObjCRef<OOJSGuiScreenKeyDefinition*>>();
     if (!keys.empty()) {
         std::size_t kc = keys.size();
         OOJSGuiScreenKeyDefinition* definition = nil;
@@ -2709,18 +2709,18 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     GuiDisplayGen* gui = [UNIVERSE gui];
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
-    if (gui_screen == GUI_SCREEN_MARKET) {
+    if (_cxxPlayer->gui_screen == GUI_SCREEN_MARKET) {
         [self handleGUIUpDownArrowKeys];
-        marketSelectedCommodity = [gui cxx_selectedRowKey];
+        _cxxPlayer->marketSelectedCommodity = [gui cxx_selectedRowKey];
 
         BOOL page_up = [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUIPAGEUP];
         BOOL page_down = [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIPAGEDOWN];
         if (page_up || page_down) {
-            if ((!pageUpDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+            if ((!pageUpDownKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 OOCommodityMarket* localMarket = [self localMarket];
                 const std::vector<std::string> goods = [self cxx_applyMarketSorter:[self cxx_applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
                 if (goods.size() > 0) {
-                    const std::optional<std::string> selected = marketSelectedCommodity;
+                    const std::optional<std::string> selected = _cxxPlayer->marketSelectedCommodity;
                     const auto found = selected ? std::find(goods.begin(), goods.end(), *selected) : goods.end();
                     NSInteger goodsIndex = (found != goods.end()) ? (found - goods.begin()) : NSNotFound;
                     NSInteger offset1 = 0;
@@ -2755,12 +2755,12 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                         if (goodsIndex > ((NSInteger)goods.size() - 1) || goods.size() <= 17)
                             goodsIndex = (NSInteger)goods.size() - 1;
                     }
-                    marketSelectedCommodity = (goodsIndex >= 0 && goodsIndex < (NSInteger)goods.size()) ? std::optional<std::string>(goods[goodsIndex]) : std::nullopt;
+                    _cxxPlayer->marketSelectedCommodity = (goodsIndex >= 0 && goodsIndex < (NSInteger)goods.size()) ? std::optional<std::string>(goods[goodsIndex]) : std::nullopt;
                     [self setGuiToMarketScreen];
                 }
             }
             pageUpDownKeyPressed = YES;
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
         } else {
             pageUpDownKeyPressed = NO;
         }
@@ -2769,11 +2769,11 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         BOOL arrow_up = [self checkKeyPress:n_key_gui_arrow_up] || joyButtonState[BUTTON_GUIUP];
         BOOL arrow_down = [self checkKeyPress:n_key_gui_arrow_down] || joyButtonState[BUTTON_GUIDOWN];
         if (arrow_up || arrow_down) {
-            if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+            if ((!upDownKeyPressed) || (_cxxPlayer->script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 OOCommodityMarket* localMarket = [self localMarket];
                 const std::vector<std::string> goods = [self cxx_applyMarketSorter:[self cxx_applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
                 if (goods.size() > 0) {
-                    const std::optional<std::string> selected = marketSelectedCommodity;
+                    const std::optional<std::string> selected = _cxxPlayer->marketSelectedCommodity;
                     const auto found = selected ? std::find(goods.begin(), goods.end(), *selected) : goods.end();
                     NSInteger goodsIndex = (found != goods.end()) ? (found - goods.begin()) : NSNotFound;
                     if (arrow_down) {
@@ -2786,12 +2786,12 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     } else if (goodsIndex >= (NSInteger)goods.size()) {
                         goodsIndex = 0;
                     }
-                    marketSelectedCommodity = (goodsIndex >= 0 && goodsIndex < (NSInteger)goods.size()) ? std::optional<std::string>(goods[goodsIndex]) : std::nullopt;
+                    _cxxPlayer->marketSelectedCommodity = (goodsIndex >= 0 && goodsIndex < (NSInteger)goods.size()) ? std::optional<std::string>(goods[goodsIndex]) : std::nullopt;
                     [self setGuiToMarketInfoScreen];
                 }
             }
             upDownKeyPressed = YES;
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
         } else {
             upDownKeyPressed = NO;
         }
@@ -2803,9 +2803,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         if ([self checkNavKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) // -->
         {
             if (!wait_for_key_up) {
-                if (isdocked && [self cxx_tryBuyingCommodity:marketSelectedCommodity.value_or(std::string()) all:[gameView isShiftDown]]) {
+                if (isdocked && [self cxx_tryBuyingCommodity:_cxxPlayer->marketSelectedCommodity.value_or(std::string()) all:[gameView isShiftDown]]) {
                     [self playBuyCommodity];
-                    if (gui_screen == GUI_SCREEN_MARKET) {
+                    if (_cxxPlayer->gui_screen == GUI_SCREEN_MARKET) {
                         [self setGuiToMarketScreen];
                     } else {
                         [self setGuiToMarketInfoScreen];
@@ -2827,9 +2827,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         if ([self checkNavKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) // <--
         {
             if (!wait_for_key_up) {
-                if (isdocked && [self cxx_trySellingCommodity:marketSelectedCommodity.value_or(std::string()) all:[gameView isShiftDown]]) {
+                if (isdocked && [self cxx_trySellingCommodity:_cxxPlayer->marketSelectedCommodity.value_or(std::string()) all:[gameView isShiftDown]]) {
                     [self playSellCommodity];
-                    if (gui_screen == GUI_SCREEN_MARKET) {
+                    if (_cxxPlayer->gui_screen == GUI_SCREEN_MARKET) {
                         [self setGuiToMarketScreen];
                     } else {
                         [self setGuiToMarketInfoScreen];
@@ -2855,8 +2855,8 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 [gameView clearMouse];
             }
             if (!wait_for_key_up) {
-                const std::optional<std::string> item = marketSelectedCommodity; // Amendment 1 item 10
-                OOCargoQuantity yours = [shipCommodityData cxx_quantityForGood:item.value_or("")];
+                const std::optional<std::string> item = _cxxPlayer->marketSelectedCommodity; // Amendment 1 item 10
+                OOCargoQuantity yours = [_cxxPlayer->shipCommodityData cxx_quantityForGood:item.value_or("")];
                 if (item == ">>>") {
                     [self cxx_tryBuyingCommodity:item.value_or("") all:YES];
                     [self setGuiToMarketScreen];
@@ -2866,7 +2866,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 } else if (isdocked && [gameView isShiftDown] && [self cxx_tryBuyingCommodity:item.value_or("") all:YES]) // buy as much as possible (with Shift)
                 {
                     [self playBuyCommodity];
-                    if (gui_screen == GUI_SCREEN_MARKET) {
+                    if (_cxxPlayer->gui_screen == GUI_SCREEN_MARKET) {
                         [self setGuiToMarketScreen];
                     } else {
                         [self setGuiToMarketInfoScreen];
@@ -2874,7 +2874,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 } else if (isdocked && (yours > 0) && [self cxx_trySellingCommodity:item.value_or("") all:YES]) // sell all you can
                 {
                     [self playSellCommodity];
-                    if (gui_screen == GUI_SCREEN_MARKET) {
+                    if (_cxxPlayer->gui_screen == GUI_SCREEN_MARKET) {
                         [self setGuiToMarketScreen];
                     } else {
                         [self setGuiToMarketInfoScreen];
@@ -2882,7 +2882,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 } else if (isdocked && [self cxx_tryBuyingCommodity:item.value_or("") all:YES]) // buy as much as possible
                 {
                     [self playBuyCommodity];
-                    if (gui_screen == GUI_SCREEN_MARKET) {
+                    if (_cxxPlayer->gui_screen == GUI_SCREEN_MARKET) {
                         [self setGuiToMarketScreen];
                     } else {
                         [self setGuiToMarketInfoScreen];
@@ -2912,13 +2912,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         [gameView clearMouse];
 
     if ((guiSelectedRow == GUI_ROW(GAME, STICKMAPPER)) && selectKeyPress) {
-        selFunctionIdx = 0;
+        _cxxPlayer->selFunctionIdx = 0;
         [self resetStickFunctions]; // reset the list of stick functions, so changes in oxp equipment are reflected
         [[OOJoystickManager sharedStickHandler] clearStickStates];
         [self setGuiToStickMapperScreen:0 resetCurrentRow:YES];
     }
     if ((guiSelectedRow == GUI_ROW(GAME, KEYMAPPER)) && selectKeyPress) {
-        selFunctionIdx = 0;
+        _cxxPlayer->selFunctionIdx = 0;
         [self resetKeyFunctions]; // reset the list of key functions, so changes in oxp equipment are reflected
         [[OOJoystickManager sharedStickHandler] clearStickStates];
         [self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
@@ -3029,12 +3029,12 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 speech_settings_pressed = YES;
             } else if (([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) && isSpeechOn > OOSPEECHSETTINGS_OFF) {
                 speech_settings_pressed = YES;
-                isSpeechOn = (OOSpeechSettings)(isSpeechOn - 1);
+                _cxxPlayer->isSpeechOn = (OOSpeechSettings)(_cxxPlayer->isSpeechOn - 1);
                 [self playChangedOption];
             }
             if (speech_settings_pressed) {
                 std::optional<std::string> message; // nullopt = no change (was nil)
-                switch (isSpeechOn) {
+                switch (_cxxPlayer->isSpeechOn) {
                 case OOSPEECHSETTINGS_OFF:
                     message = OO_DESC("gameoptions-spoken-messages-no");
                     break;
@@ -3047,7 +3047,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 }
                 [gui cxx_setText:message forRow:GUI_ROW(GAME, SPEECH) align:GUI_ALIGN_CENTER];
 
-                if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
+                if (_cxxPlayer->isSpeechOn == OOSPEECHSETTINGS_ALL) {
                     [UNIVERSE stopSpeaking];
                     if (message.has_value())
                         [UNIVERSE cxx_startSpeakingString:*message];
@@ -3065,17 +3065,17 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 if ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])
                     voice_no = [UNIVERSE nextVoice:voice_no];
                 else
-                    voice_no = [UNIVERSE prevVoice:voice_no];
-                [UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
-                const std::string voiceName = [UNIVERSE cxx_voiceName:voice_no].value_or("");
+                    _cxxPlayer->voice_no = [UNIVERSE prevVoice:_cxxPlayer->voice_no];
+                [UNIVERSE setVoice:_cxxPlayer->voice_no withGenderM:_cxxPlayer->voice_gender_m];
+                const std::string voiceName = [UNIVERSE cxx_voiceName:_cxxPlayer->voice_no].value_or("");
                 const std::string message = ExpandKeyWithArguments("gameoptions-voice-name", { { "voiceName", oo::PList(voiceName) } });
                 [gui cxx_setText:message forRow:GUI_ROW(GAME, SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
-                if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
+                if (_cxxPlayer->isSpeechOn == OOSPEECHSETTINGS_ALL) {
                     [UNIVERSE stopSpeaking];
-                    if (const std::optional<std::string> spokenVoiceName = [UNIVERSE cxx_voiceName:voice_no])
+                    if (const std::optional<std::string> spokenVoiceName = [UNIVERSE cxx_voiceName:_cxxPlayer->voice_no])
                         [UNIVERSE cxx_startSpeakingString:*spokenVoiceName];
                 }
-                timeLastKeyPress = script_time;
+                timeLastKeyPress = _cxxPlayer->script_time;
             }
             speechVoiceSelectKeyPressed = YES;
         } else
@@ -3092,9 +3092,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
                     const std::string message = OO_DESC(voice_gender_m ? "gameoptions-voice-M" : "gameoptions-voice-F");
                     [gui cxx_setText:message forRow:GUI_ROW(GAME, SPEECH_GENDER) align:GUI_ALIGN_CENTER];
-                    if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
+                    if (_cxxPlayer->isSpeechOn == OOSPEECHSETTINGS_ALL) {
                         [UNIVERSE stopSpeaking];
-                        if (const std::optional<std::string> spokenVoiceName = [UNIVERSE cxx_voiceName:voice_no])
+                        if (const std::optional<std::string> spokenVoiceName = [UNIVERSE cxx_voiceName:_cxxPlayer->voice_no])
                             [UNIVERSE cxx_startSpeakingString:*spokenVoiceName];
                     }
                 }
@@ -3173,7 +3173,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                            align:GUI_ALIGN_CENTER];
             } else
                 [gui cxx_setText:OO_DESC("gameoptions-sound-volume-mute") forRow:GUI_ROW(GAME, VOLUME) align:GUI_ALIGN_CENTER];
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
         }
         volumeControlPressed = YES;
     } else
@@ -3192,7 +3192,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             if (fov < MIN_FOV_DEG)
                 fov = MIN_FOV_DEG;
             [gameView setFov:fov fromFraction:NO];
-            fieldOfView = [gameView fov:YES];
+            _cxxPlayer->fieldOfView = [gameView fov:YES];
             int fovTicks = (int)((fov - MIN_FOV_DEG) / fovStep);
             const std::string fovWordDesc = OO_DESC("gameoptions-fov-value");
             std::string v1_string = "|||||||||||||||||||||||||";
@@ -3202,7 +3202,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             // %c 176 gave U+00B0 (probed on GNUstep base with this toolchain); written as its UTF-8 bytes
             [gui cxx_setText:oo::str::format("%s%s%s (%d%s) ", fovWordDesc.c_str(), v1_string.c_str(), v0_string.c_str(), (int)fov, "\xC2\xB0" /*the degrees symbol*/) forRow:GUI_ROW(GAME, FOV) align:GUI_ALIGN_CENTER];
             oo::Defaults::standard().setFloat("fov-value", [gameView fov:NO]);
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
         }
         fovControlPressed = YES;
     } else
@@ -3299,7 +3299,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             [gui cxx_setText:ExpandKeyWithArguments(shaderEffectsOptionsString.c_str(), { }) forRow:GUI_ROW(GAME, SHADEREFFECTS) align:GUI_ALIGN_CENTER];
             [gui cxx_setKey:std::string(GUI_KEY_OK) forRow:GUI_ROW(GAME, SHADEREFFECTS)];
 
-            timeLastKeyPress = script_time;
+            timeLastKeyPress = _cxxPlayer->script_time;
 
             // changing detail level may result in changes to other settings too
             // (e.g. colorblind mode status), so refresh the page
@@ -3381,10 +3381,10 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         std::optional<std::string> key = [gui cxx_keyForRow:[gui selectedRow]];
-        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_gui_arrow_right] || [self checkKeyPress:_cxxPlayer->n_key_gui_page_down]) {
             key = [gui cxx_keyForRow:GUI_ROW_KC_FUNCEND];
         }
-        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_gui_arrow_left] || [self checkKeyPress:_cxxPlayer->n_key_gui_page_up]) {
             key = [gui cxx_keyForRow:GUI_ROW_KC_FUNCSTART];
         }
         int from_function = 0;
@@ -3459,15 +3459,15 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     MyOpenGLView* gameView = [UNIVERSE gameView];
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
-    if ([self checkKeyPress:n_key_custom_view] || joyButtonState[BUTTON_EXTVIEWCYCLE]) {
-        if (!customView_pressed && !_customViews.empty() && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && ![gameView allowingStringInput]) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_custom_view] || joyButtonState[BUTTON_EXTVIEWCYCLE]) {
+        if (!customView_pressed && !_cxxPlayer->_customViews.empty() && _cxxPlayer->gui_screen != GUI_SCREEN_LONG_RANGE_CHART && ![gameView allowingStringInput]) {
             if ([UNIVERSE viewDirection] == VIEW_CUSTOM) // already in custom view mode
             {
                 // rotate the custom views
-                _customViewIndex = (_customViewIndex + 1) % _customViews.size();
+                _cxxPlayer->_customViewIndex = (_cxxPlayer->_customViewIndex + 1) % _cxxPlayer->_customViews.size();
             }
 
-            const oo::PList customView = (_customViewIndex < _customViews.size()) ? _customViews[_customViewIndex] : oo::PList();
+            const oo::PList customView = (_cxxPlayer->_customViewIndex < _cxxPlayer->_customViews.size()) ? _cxxPlayer->_customViews[_cxxPlayer->_customViewIndex] : oo::PList();
             [self cxx_setCustomViewDataFromDictionary:(customView.isDict() ? customView : oo::PList()) withScaling:YES]; // null unless a Dict
 
             [self switchToThisView:VIEW_CUSTOM andProcessWeaponFacing:NO]; // weapon facing must not change, we just want an external view
@@ -3485,40 +3485,40 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             caps_on = YES;
 
         OOTimeDelta delta_t = this_time - last_time;
-        if (([self checkKeyPress:n_key_custom_view_zoom_out ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_zoom_in ignore_ctrl:YES]) || [gameView mouseWheelState] == gvMouseWheelDown) {
+        if (([self checkKeyPress:_cxxPlayer->n_key_custom_view_zoom_out ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_zoom_in ignore_ctrl:YES]) || [gameView mouseWheelState] == gvMouseWheelDown) {
             [self customViewZoomOut:pow(customViewZoomSpeed, delta_t)];
         }
-        if (([self checkKeyPress:n_key_custom_view_zoom_in ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_zoom_out ignore_ctrl:YES]) || [gameView mouseWheelState] == gvMouseWheelUp) {
+        if (([self checkKeyPress:_cxxPlayer->n_key_custom_view_zoom_in ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_zoom_out ignore_ctrl:YES]) || [gameView mouseWheelState] == gvMouseWheelUp) {
             [self customViewZoomIn:pow(customViewZoomSpeed, delta_t)];
         }
-        if ([self checkKeyPress:n_key_custom_view_roll_left ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_roll_right ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_roll_left ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_roll_right ignore_ctrl:YES]) {
             [self customViewRollLeft:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_pan_left ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_right ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_left ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_right ignore_ctrl:YES]) {
             [self customViewPanLeft:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_roll_right ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_roll_left ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_roll_right ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_roll_left ignore_ctrl:YES]) {
             [self customViewRollRight:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_pan_right ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_left ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_right ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_left ignore_ctrl:YES]) {
             [self customViewPanRight:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_rotate_up ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_down ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_up ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_down ignore_ctrl:YES]) {
             [self customViewRotateUp:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_pan_down ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_up ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_down ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_up ignore_ctrl:YES]) {
             [self customViewPanDown:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_rotate_down ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_up ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_down ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_up ignore_ctrl:YES]) {
             [self customViewRotateDown:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_pan_up ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_down ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_up ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_pan_down ignore_ctrl:YES]) {
             [self customViewPanUp:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_rotate_left ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_right ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_left ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_right ignore_ctrl:YES]) {
             [self customViewRotateLeft:customViewRotateSpeed * delta_t];
         }
-        if ([self checkKeyPress:n_key_custom_view_rotate_right ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_left ignore_ctrl:YES]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_right ignore_ctrl:YES] && ![self checkKeyPress:_cxxPlayer->n_key_custom_view_rotate_left ignore_ctrl:YES]) {
             [self customViewRotateRight:customViewRotateSpeed * delta_t];
         }
         if ([gameView isDown:gvMouseLeftButton]) {
@@ -3568,7 +3568,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
 - (void)pollViewControls
 {
-    if (!pollControls)
+    if (!_cxxPlayer->pollControls)
         return;
 
     MyOpenGLView* gameView = [UNIVERSE gameView];
@@ -3592,31 +3592,31 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     const BOOL* joyButtonState = [stickHandler getAllButtonStates];
 
     //  view keys
-    if (([self checkKeyPress:n_key_view_forward]) || (virtualView.y < -view_threshold) || joyButtonState[BUTTON_VIEWFORWARD] || ((([self checkKeyPress:n_key_hyperspace] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART) || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI])) {
+    if (([self checkKeyPress:_cxxPlayer->n_key_view_forward]) || (virtualView.y < -view_threshold) || joyButtonState[BUTTON_VIEWFORWARD] || ((([self checkKeyPress:_cxxPlayer->n_key_hyperspace] && _cxxPlayer->gui_screen != GUI_SCREEN_LONG_RANGE_CHART) || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI])) {
         [self switchToThisView:VIEW_FORWARD];
     }
-    if (([self checkKeyPress:n_key_view_aft]) || (virtualView.y > view_threshold) || joyButtonState[BUTTON_VIEWAFT]) {
+    if (([self checkKeyPress:_cxxPlayer->n_key_view_aft]) || (virtualView.y > view_threshold) || joyButtonState[BUTTON_VIEWAFT]) {
         [self switchToThisView:VIEW_AFT];
     }
-    if (([self checkKeyPress:n_key_view_port]) || (virtualView.x < -view_threshold) || joyButtonState[BUTTON_VIEWPORT]) {
+    if (([self checkKeyPress:_cxxPlayer->n_key_view_port]) || (virtualView.x < -view_threshold) || joyButtonState[BUTTON_VIEWPORT]) {
         [self switchToThisView:VIEW_PORT];
     }
-    if (([self checkKeyPress:n_key_view_starboard]) || (virtualView.x > view_threshold) || joyButtonState[BUTTON_VIEWSTARBOARD]) {
+    if (([self checkKeyPress:_cxxPlayer->n_key_view_starboard]) || (virtualView.x > view_threshold) || joyButtonState[BUTTON_VIEWSTARBOARD]) {
         [self switchToThisView:VIEW_STARBOARD];
     }
 
     [self pollCustomViewControls];
 
     // Zoom scanner 'z'
-    if (([self checkKeyPress:n_key_scanner_zoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERZOOM]) // look for the 'z' key
+    if (([self checkKeyPress:_cxxPlayer->n_key_scanner_zoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERZOOM]) // look for the 'z' key
     {
-        if (!scanner_zoom_rate) {
-            if ([hud scannerZoom] < 5.0) {
-                if (([hud scannerZoom] > 1.0) || (!zoom_pressed))
-                    scanner_zoom_rate = SCANNER_ZOOM_RATE_UP;
+        if (!_cxxPlayer->scanner_zoom_rate) {
+            if ([_cxxPlayer->hud scannerZoom] < 5.0) {
+                if (([_cxxPlayer->hud scannerZoom] > 1.0) || (!zoom_pressed))
+                    _cxxPlayer->scanner_zoom_rate = SCANNER_ZOOM_RATE_UP;
             } else {
                 if (!zoom_pressed) // must release and re-press zoom to zoom back down..
-                    scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
+                    _cxxPlayer->scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
             }
         }
         zoom_pressed = YES;
@@ -3624,27 +3624,27 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         zoom_pressed = NO;
 
     // Unzoom scanner 'Z'
-    if (([self checkKeyPress:n_key_scanner_unzoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERUNZOOM]) // look for the 'Z' key
+    if (([self checkKeyPress:_cxxPlayer->n_key_scanner_unzoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERUNZOOM]) // look for the 'Z' key
     {
-        if ((!scanner_zoom_rate) && ([hud scannerZoom] > 1.0))
-            scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
+        if ((!_cxxPlayer->scanner_zoom_rate) && ([_cxxPlayer->hud scannerZoom] > 1.0))
+            _cxxPlayer->scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
     }
 
     if (EXPECT([[self hud] isCompassActive])) // only switch compass modes if there is a compass
     {
         // Compass mode '|'
-        if ([self checkKeyPress:n_key_prev_compass_mode] || joyButtonState[BUTTON_COMPASSMODE_PREV]) // look for the '|' key
+        if ([self checkKeyPress:_cxxPlayer->n_key_prev_compass_mode] || joyButtonState[BUTTON_COMPASSMODE_PREV]) // look for the '|' key
         {
-            if ((!prev_compass_mode_pressed) && (compassMode != COMPASS_MODE_BASIC))
+            if ((!prev_compass_mode_pressed) && (_cxxPlayer->compassMode != COMPASS_MODE_BASIC))
                 [self setPrevCompassMode];
             prev_compass_mode_pressed = YES;
         } else {
             prev_compass_mode_pressed = NO;
         }
         // Compass mode '\'
-        if ([self checkKeyPress:n_key_next_compass_mode] || joyButtonState[BUTTON_COMPASSMODE]) // look for the '\' key
+        if ([self checkKeyPress:_cxxPlayer->n_key_next_compass_mode] || joyButtonState[BUTTON_COMPASSMODE]) // look for the '\' key
         {
-            if ((!next_compass_mode_pressed) && (compassMode != COMPASS_MODE_BASIC))
+            if ((!next_compass_mode_pressed) && (_cxxPlayer->compassMode != COMPASS_MODE_BASIC))
                 [self setNextCompassMode];
             next_compass_mode_pressed = YES;
         } else {
@@ -3653,13 +3653,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 
     // ';' // Cycle active MFD
-    if ([self checkKeyPress:n_key_cycle_next_mfd] || [self checkKeyPress:n_key_cycle_previous_mfd] || joyButtonState[BUTTON_MFDCYCLENEXT] || joyButtonState[BUTTON_MFDCYCLEPREV]) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_cycle_next_mfd] || [self checkKeyPress:_cxxPlayer->n_key_cycle_previous_mfd] || joyButtonState[BUTTON_MFDCYCLENEXT] || joyButtonState[BUTTON_MFDCYCLEPREV]) {
         if (!cycleMFD_pressed) {
             // if (![gameView isCtrlDown])
-            if (![self checkKeyPress:n_key_cycle_previous_mfd] || joyButtonState[BUTTON_MFDCYCLEPREV]) {
-                [self cycleNextMultiFunctionDisplay:activeMFD];
+            if (![self checkKeyPress:_cxxPlayer->n_key_cycle_previous_mfd] || joyButtonState[BUTTON_MFDCYCLEPREV]) {
+                [self cycleNextMultiFunctionDisplay:_cxxPlayer->activeMFD];
             } else {
-                [self cyclePreviousMultiFunctionDisplay:activeMFD];
+                [self cyclePreviousMultiFunctionDisplay:_cxxPlayer->activeMFD];
             }
         }
         cycleMFD_pressed = YES;
@@ -3668,11 +3668,11 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 
     //  ':' // Select next MFD
-    if ([self checkKeyPress:n_key_switch_next_mfd] || [self checkKeyPress:n_key_switch_previous_mfd] || joyButtonState[BUTTON_MFDSELECTNEXT] || joyButtonState[BUTTON_MFDSELECTPREV]) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_switch_next_mfd] || [self checkKeyPress:_cxxPlayer->n_key_switch_previous_mfd] || joyButtonState[BUTTON_MFDSELECTNEXT] || joyButtonState[BUTTON_MFDSELECTPREV]) {
         if ([[self hud] mfdCount] > 1) {
             if (!switchMFD_pressed) {
                 // if (![gameView isCtrlDown])
-                if (![self checkKeyPress:n_key_switch_previous_mfd] || joyButtonState[BUTTON_MFDSELECTPREV]) {
+                if (![self checkKeyPress:_cxxPlayer->n_key_switch_previous_mfd] || joyButtonState[BUTTON_MFDSELECTPREV]) {
                     [self selectNextMultiFunctionDisplay];
                 } else {
                     [self selectPreviousMultiFunctionDisplay];
@@ -3685,9 +3685,9 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 
     //  show comms log '`'
-    if ([self checkKeyPress:n_key_comms_log]) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_comms_log]) {
         [UNIVERSE showCommsLog:1.5];
-        [hud refreshLastTransmitter];
+        [_cxxPlayer->hud refreshLastTransmitter];
     }
 }
 
@@ -3703,7 +3703,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
      Mouse control on takes precedence over joysticks.
      We have to assume the player has a reason for switching mouse
      control on if they have a joystick - let them do it. */
-    if (mouse_control_on) {
+    if (_cxxPlayer->mouse_control_on) {
         virtualStick = [gameView virtualJoystickPosition];
         double sensitivity = 2.0;
         virtualStick.x *= sensitivity;
@@ -3717,7 +3717,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             virtualStick.x = 0;
         } else if (virtualStick.x != 0) {
             // cancel keyboard override, stick has been waggled
-            keyboardRollOverride = NO;
+            _cxxPlayer->keyboardRollOverride = NO;
         }
         // handle pitch separately (fix for BUG #17490)
         if (virtualStick.y == STICK_AXISUNASSIGNED) {
@@ -3725,7 +3725,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             virtualStick.y = 0;
         } else if (virtualStick.y != 0) {
             // cancel keyboard override, stick has been waggled
-            keyboardPitchOverride = NO;
+            _cxxPlayer->keyboardPitchOverride = NO;
         }
         // handle yaw separately from pitch/roll
         reqYaw = [stickHandler getAxisState:AXIS_YAW];
@@ -3734,7 +3734,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             reqYaw = 0;
         } else if (reqYaw != 0) {
             // cancel keyboard override, stick has been waggled
-            keyboardYawOverride = NO;
+            _cxxPlayer->keyboardYawOverride = NO;
         }
     }
 
@@ -3752,41 +3752,41 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if (flightArrowKeyPrecisionFactor > 1.0)
         flightArrowKeyPrecisionFactor = 1.0;
 
-    rolling = NO;
+    _cxxPlayer->rolling = NO;
     // if we have yaw on the mouse x-axis, then allow using the keyboard roll keys
-    if (!mouse_control_on || (mouse_control_on && mouse_x_axis_map_to_yaw)) {
-        if ([self checkNavKeyPress:n_key_roll_left] && [self checkNavKeyPress:n_key_roll_right]) {
-            keyboardRollOverride = YES;
+    if (!_cxxPlayer->mouse_control_on || (_cxxPlayer->mouse_control_on && mouse_x_axis_map_to_yaw)) {
+        if ([self checkNavKeyPress:_cxxPlayer->n_key_roll_left] && [self checkNavKeyPress:_cxxPlayer->n_key_roll_right]) {
+            _cxxPlayer->keyboardRollOverride = YES;
             _cxxShip->flightRoll = 0.0;
-        } else if ([self checkNavKeyPress:n_key_roll_left] && !capsLockCustomView) {
-            keyboardRollOverride = YES;
+        } else if ([self checkNavKeyPress:_cxxPlayer->n_key_roll_left] && !capsLockCustomView) {
+            _cxxPlayer->keyboardRollOverride = YES;
             if (_cxxShip->flightRoll > 0.0)
                 _cxxShip->flightRoll = 0.0;
-            [self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner * roll_delta : delta_t * roll_delta];
-            rolling = YES;
-        } else if ([self checkNavKeyPress:n_key_roll_right] && !capsLockCustomView) {
-            keyboardRollOverride = YES;
+            [self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner * _cxxPlayer->roll_delta : delta_t * _cxxPlayer->roll_delta];
+            _cxxPlayer->rolling = YES;
+        } else if ([self checkNavKeyPress:_cxxPlayer->n_key_roll_right] && !capsLockCustomView) {
+            _cxxPlayer->keyboardRollOverride = YES;
             if (_cxxShip->flightRoll < 0.0)
                 _cxxShip->flightRoll = 0.0;
-            [self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner * roll_delta : delta_t * roll_delta];
-            rolling = YES;
+            [self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner * _cxxPlayer->roll_delta : delta_t * _cxxPlayer->roll_delta];
+            _cxxPlayer->rolling = YES;
         }
     }
-    if (((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride && !capsLockCustomView) {
+    if (((_cxxPlayer->mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !_cxxPlayer->keyboardRollOverride && !capsLockCustomView) {
         _cxxShip->stick_roll = _cxxShip->max_flight_roll * virtualStick.x;
         if (_cxxShip->flightRoll < _cxxShip->stick_roll) {
-            [self increase_flight_roll:delta_t * roll_delta];
+            [self increase_flight_roll:delta_t * _cxxPlayer->roll_delta];
             if (_cxxShip->flightRoll > _cxxShip->stick_roll)
                 _cxxShip->flightRoll = _cxxShip->stick_roll;
         }
         if (_cxxShip->flightRoll > _cxxShip->stick_roll) {
-            [self decrease_flight_roll:delta_t * roll_delta];
+            [self decrease_flight_roll:delta_t * _cxxPlayer->roll_delta];
             if (_cxxShip->flightRoll < _cxxShip->stick_roll)
                 _cxxShip->flightRoll = _cxxShip->stick_roll;
         }
-        rolling = (fabs(virtualStick.x) > 0.0);
+        _cxxPlayer->rolling = (fabs(virtualStick.x) > 0.0);
     }
-    if (!rolling) {
+    if (!_cxxPlayer->rolling) {
         if (_cxxShip->flightRoll > 0.0) {
             if (_cxxShip->flightRoll > roll_dampner)
                 [self decrease_flight_roll:roll_dampner];
@@ -3801,41 +3801,41 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         }
     }
 
-    pitching = NO;
+    _cxxPlayer->pitching = NO;
     // we don't care about pitch keyboard overrides when mouse control is on, only when using joystick
-    if (!mouse_control_on) {
-        if ([self checkNavKeyPress:n_key_pitch_back] && [self checkNavKeyPress:n_key_pitch_forward]) {
-            keyboardPitchOverride = YES;
+    if (!_cxxPlayer->mouse_control_on) {
+        if ([self checkNavKeyPress:_cxxPlayer->n_key_pitch_back] && [self checkNavKeyPress:_cxxPlayer->n_key_pitch_forward]) {
+            _cxxPlayer->keyboardPitchOverride = YES;
             _cxxShip->flightPitch = 0.0;
-        } else if ([self checkNavKeyPress:n_key_pitch_back] && !capsLockCustomView) {
-            keyboardPitchOverride = YES;
+        } else if ([self checkNavKeyPress:_cxxPlayer->n_key_pitch_back] && !capsLockCustomView) {
+            _cxxPlayer->keyboardPitchOverride = YES;
             if (_cxxShip->flightPitch < 0.0)
                 _cxxShip->flightPitch = 0.0;
-            [self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner * pitch_delta : delta_t * pitch_delta];
-            pitching = YES;
-        } else if ([self checkNavKeyPress:n_key_pitch_forward] && !capsLockCustomView) {
-            keyboardPitchOverride = YES;
+            [self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner * _cxxPlayer->pitch_delta : delta_t * _cxxPlayer->pitch_delta];
+            _cxxPlayer->pitching = YES;
+        } else if ([self checkNavKeyPress:_cxxPlayer->n_key_pitch_forward] && !capsLockCustomView) {
+            _cxxPlayer->keyboardPitchOverride = YES;
             if (_cxxShip->flightPitch > 0.0)
                 _cxxShip->flightPitch = 0.0;
-            [self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner * pitch_delta : delta_t * pitch_delta];
-            pitching = YES;
+            [self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner * _cxxPlayer->pitch_delta : delta_t * _cxxPlayer->pitch_delta];
+            _cxxPlayer->pitching = YES;
         }
     }
-    if ((mouse_control_on || (numSticks && !keyboardPitchOverride)) && !capsLockCustomView) {
+    if ((_cxxPlayer->mouse_control_on || (numSticks && !_cxxPlayer->keyboardPitchOverride)) && !capsLockCustomView) {
         _cxxShip->stick_pitch = _cxxShip->max_flight_pitch * virtualStick.y;
         if (_cxxShip->flightPitch < _cxxShip->stick_pitch) {
-            [self increase_flight_pitch:delta_t * pitch_delta];
+            [self increase_flight_pitch:delta_t * _cxxPlayer->pitch_delta];
             if (_cxxShip->flightPitch > _cxxShip->stick_pitch)
                 _cxxShip->flightPitch = _cxxShip->stick_pitch;
         }
         if (_cxxShip->flightPitch > _cxxShip->stick_pitch) {
-            [self decrease_flight_pitch:delta_t * pitch_delta];
+            [self decrease_flight_pitch:delta_t * _cxxPlayer->pitch_delta];
             if (_cxxShip->flightPitch < _cxxShip->stick_pitch)
                 _cxxShip->flightPitch = _cxxShip->stick_pitch;
         }
-        pitching = (fabs(virtualStick.y) > 0.0);
+        _cxxPlayer->pitching = (fabs(virtualStick.y) > 0.0);
     }
-    if (!pitching) {
+    if (!_cxxPlayer->pitching) {
         if (_cxxShip->flightPitch > 0.0) {
             if (_cxxShip->flightPitch > pitch_dampner)
                 [self decrease_flight_pitch:pitch_dampner];
@@ -3850,43 +3850,43 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         }
     }
 
-    yawing = NO;
+    _cxxPlayer->yawing = NO;
     // if we have roll on the mouse x-axis, then allow using the keyboard yaw keys
-    if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw)) {
-        if ([self checkNavKeyPress:n_key_yaw_left] && [self checkNavKeyPress:n_key_yaw_right]) {
-            keyboardYawOverride = YES;
+    if (!_cxxPlayer->mouse_control_on || (_cxxPlayer->mouse_control_on && !mouse_x_axis_map_to_yaw)) {
+        if ([self checkNavKeyPress:_cxxPlayer->n_key_yaw_left] && [self checkNavKeyPress:_cxxPlayer->n_key_yaw_right]) {
+            _cxxPlayer->keyboardYawOverride = YES;
             _cxxShip->flightYaw = 0.0;
-        } else if ([self checkNavKeyPress:n_key_yaw_left] && !capsLockCustomView) {
-            keyboardYawOverride = YES;
+        } else if ([self checkNavKeyPress:_cxxPlayer->n_key_yaw_left] && !capsLockCustomView) {
+            _cxxPlayer->keyboardYawOverride = YES;
             if (_cxxShip->flightYaw < 0.0)
                 _cxxShip->flightYaw = 0.0;
-            [self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner * yaw_delta : delta_t * yaw_delta];
-            yawing = YES;
-        } else if ([self checkNavKeyPress:n_key_yaw_right] && !capsLockCustomView) {
-            keyboardYawOverride = YES;
+            [self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner * _cxxPlayer->yaw_delta : delta_t * _cxxPlayer->yaw_delta];
+            _cxxPlayer->yawing = YES;
+        } else if ([self checkNavKeyPress:_cxxPlayer->n_key_yaw_right] && !capsLockCustomView) {
+            _cxxPlayer->keyboardYawOverride = YES;
             if (_cxxShip->flightYaw > 0.0)
                 _cxxShip->flightYaw = 0.0;
-            [self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner * yaw_delta : delta_t * yaw_delta];
-            yawing = YES;
+            [self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner * _cxxPlayer->yaw_delta : delta_t * _cxxPlayer->yaw_delta];
+            _cxxPlayer->yawing = YES;
         }
     }
-    if (((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride && !capsLockCustomView) {
+    if (((_cxxPlayer->mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !_cxxPlayer->keyboardYawOverride && !capsLockCustomView) {
         // I think yaw is handled backwards in the code,
         // which is why the negative sign is here.
         _cxxShip->stick_yaw = _cxxShip->max_flight_yaw * (-reqYaw);
         if (_cxxShip->flightYaw < _cxxShip->stick_yaw) {
-            [self increase_flight_yaw:delta_t * yaw_delta];
+            [self increase_flight_yaw:delta_t * _cxxPlayer->yaw_delta];
             if (_cxxShip->flightYaw > _cxxShip->stick_yaw)
                 _cxxShip->flightYaw = _cxxShip->stick_yaw;
         }
         if (_cxxShip->flightYaw > _cxxShip->stick_yaw) {
-            [self decrease_flight_yaw:delta_t * yaw_delta];
+            [self decrease_flight_yaw:delta_t * _cxxPlayer->yaw_delta];
             if (_cxxShip->flightYaw < _cxxShip->stick_yaw)
                 _cxxShip->flightYaw = _cxxShip->stick_yaw;
         }
-        yawing = (fabs(reqYaw) > 0.0);
+        _cxxPlayer->yawing = (fabs(reqYaw) > 0.0);
     }
-    if (!yawing) {
+    if (!_cxxPlayer->yawing) {
         if (_cxxShip->flightYaw > 0.0) {
             if (_cxxShip->flightYaw > yaw_dampner)
                 [self decrease_flight_yaw:yaw_dampner];
@@ -3909,7 +3909,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
 - (void)pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias
 {
-    if (!pollControls && fKeyAlias) // Still OK to run, if we don't use number keys.
+    if (!_cxxPlayer->pollControls && fKeyAlias) // Still OK to run, if we don't use number keys.
         return;
 
     GuiDisplayGen* gui = [UNIVERSE gui];
@@ -3917,10 +3917,10 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     BOOL docked_okay = ([self status] == STATUS_DOCKED);
 
     //  text displays
-    if ([self checkKeyPress:n_key_gui_screen_status fKey_only:!fKeyAlias]) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_gui_screen_status fKey_only:!fKeyAlias]) {
         if (!switching_status_screens) {
             switching_status_screens = YES;
-            if (gui_screen == GUI_SCREEN_STATUS) {
+            if (_cxxPlayer->gui_screen == GUI_SCREEN_STATUS) {
                 [self noteGUIWillChangeTo:GUI_SCREEN_MANIFEST];
                 [self setGuiToManifestScreen];
             } else
@@ -3931,25 +3931,25 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         switching_status_screens = NO;
     }
 
-    if ([self checkKeyPress:n_key_gui_chart_screens fKey_only:!fKeyAlias]) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_gui_chart_screens fKey_only:!fKeyAlias]) {
         mouse_left_down = NO;
         [gameView clearMouse];
         if (!switching_chart_screens) {
             switching_chart_screens = YES;
             // handles http://aegidian.org/bb/viewtopic.php?p=233189#p233189
-            if (EXPECT_NOT([self status] == STATUS_WITCHSPACE_COUNTDOWN && gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) {
+            if (EXPECT_NOT([self status] == STATUS_WITCHSPACE_COUNTDOWN && _cxxPlayer->gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) {
                 // don't switch to LRC if countdown in progress
                 switching_chart_screens = NO;
-            } else if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart)) {
-                if (target_chart_zoom != CHART_MAX_ZOOM) {
-                    saved_chart_zoom = target_chart_zoom;
+            } else if (_cxxPlayer->gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (_cxxPlayer->gui_screen == GUI_SCREEN_SYSTEM_DATA && _cxxPlayer->showingLongRangeChart)) {
+                if (_cxxPlayer->target_chart_zoom != CHART_MAX_ZOOM) {
+                    _cxxPlayer->saved_chart_zoom = _cxxPlayer->target_chart_zoom;
                 }
-                target_chart_zoom = CHART_MAX_ZOOM;
+                _cxxPlayer->target_chart_zoom = CHART_MAX_ZOOM;
                 [self noteGUIWillChangeTo:GUI_SCREEN_LONG_RANGE_CHART];
                 [self setGuiToLongRangeChartScreen];
             } else {
-                if (target_chart_zoom == CHART_MAX_ZOOM) {
-                    target_chart_zoom = saved_chart_zoom;
+                if (_cxxPlayer->target_chart_zoom == CHART_MAX_ZOOM) {
+                    _cxxPlayer->target_chart_zoom = _cxxPlayer->saved_chart_zoom;
                 }
                 // target_chart_centre = cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
                 [self noteGUIWillChangeTo:GUI_SCREEN_SHORT_RANGE_CHART];
@@ -3960,16 +3960,16 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         switching_chart_screens = NO;
     }
 
-    if ([self checkKeyPress:n_key_gui_system_data fKey_only:!fKeyAlias]) {
-        if (gui_screen != GUI_SCREEN_SYSTEM_DATA) {
-            showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
+    if ([self checkKeyPress:_cxxPlayer->n_key_gui_system_data fKey_only:!fKeyAlias]) {
+        if (_cxxPlayer->gui_screen != GUI_SCREEN_SYSTEM_DATA) {
+            _cxxPlayer->showingLongRangeChart = (_cxxPlayer->gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
             [self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
             [self setGuiToSystemDataScreen];
         }
     }
 
-    if ([self checkKeyPress:n_key_gui_market fKey_only:!fKeyAlias]) {
-        if (gui_screen != GUI_SCREEN_MARKET) {
+    if ([self checkKeyPress:_cxxPlayer->n_key_gui_market fKey_only:!fKeyAlias]) {
+        if (_cxxPlayer->gui_screen != GUI_SCREEN_MARKET) {
             [gameView clearKeys];
             [gui setNoSelectedRow];
             [self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
@@ -3983,18 +3983,18 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 
     if (docked_okay) {
-        if (([self checkKeyPress:n_key_gui_screen_options fKey_only:!fKeyAlias]) && (gui_screen != GUI_SCREEN_OPTIONS)) {
+        if (([self checkKeyPress:_cxxPlayer->n_key_gui_screen_options fKey_only:!fKeyAlias]) && (_cxxPlayer->gui_screen != GUI_SCREEN_OPTIONS)) {
             [gameView clearKeys];
             [self setGuiToLoadSaveScreen];
         }
 
-        if ([self checkKeyPress:n_key_gui_screen_equipship fKey_only:!fKeyAlias]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_gui_screen_equipship fKey_only:!fKeyAlias]) {
             if (!switching_equipship_screens) {
                 if ([self dockedStation] == nil)
                     [self setDockedAtMainStation];
-                OOGUIScreenID oldScreen = gui_screen;
+                OOGUIScreenID oldScreen = _cxxPlayer->gui_screen;
 
-                if ((gui_screen == GUI_SCREEN_EQUIP_SHIP) && [[self dockedStation] hasShipyard]) {
+                if ((_cxxPlayer->gui_screen == GUI_SCREEN_EQUIP_SHIP) && [[self dockedStation] hasShipyard]) {
                     [gameView clearKeys];
                     [self noteGUIWillChangeTo:GUI_SCREEN_SHIPYARD];
                     [gui setNoSelectedRow];
@@ -4009,14 +4009,14 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
                 }
 
-                [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+                [self noteGUIDidChangeFrom:oldScreen to:_cxxPlayer->gui_screen];
             }
             switching_equipship_screens = YES;
         } else {
             switching_equipship_screens = NO;
         }
 
-        if ([self checkKeyPress:n_key_gui_screen_interfaces fKey_only:!fKeyAlias]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_gui_screen_interfaces fKey_only:!fKeyAlias]) {
             if (!switching_interface_screens) {
                 [gui setNoSelectedRow];
                 [self setGuiToInterfacesScreen:0];
@@ -4050,7 +4050,7 @@ static BOOL autopilot_pause;
 - (void)pollAutopilotControls:(double)delta_t
 {
     // don't do anything if we're configuring the keyboard
-    if (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR)
+    if (_cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR)
         return;
 
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
@@ -4066,15 +4066,15 @@ static BOOL autopilot_pause;
         if ([UNIVERSE displayGUI])
             [self pollGuiArrowKeyControls:delta_t];
 
-        if ([self checkKeyPress:n_key_autopilot] || joyButtonState[BUTTON_DOCKCPU]
-            || [self checkKeyPress:n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) // look for the 'c' and 'C' key
+        if ([self checkKeyPress:_cxxPlayer->n_key_autopilot] || joyButtonState[BUTTON_DOCKCPU]
+            || [self checkKeyPress:_cxxPlayer->n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) // look for the 'c' and 'C' key
         {
             if ([self hasDockingComputer] && !autopilot_key_pressed && !fast_autopilot_key_pressed) {
                 [self disengageAutopilot];
                 [UNIVERSE cxx_addMessage:OO_DESC("autopilot-off") forCount:4.5];
             }
             autopilot_key_pressed = YES;
-            if ([self checkKeyPress:n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) {
                 fast_autopilot_key_pressed = YES;
             }
         } else {
@@ -4082,7 +4082,7 @@ static BOOL autopilot_pause;
             fast_autopilot_key_pressed = NO;
         }
 
-        if (([self checkKeyPress:n_key_docking_music] || joyButtonState[BUTTON_DOCKINGMUSIC])) // look for the 's' key
+        if (([self checkKeyPress:_cxxPlayer->n_key_docking_music] || joyButtonState[BUTTON_DOCKINGMUSIC])) // look for the 's' key
         {
             if (!toggling_music) {
                 [[OOMusicController sharedController] toggleDockingMusic];
@@ -4092,7 +4092,7 @@ static BOOL autopilot_pause;
             toggling_music = NO;
         }
         // look for the pause game, 'p' key
-        if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY) {
+        if (([self checkKeyPress:_cxxPlayer->n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && _cxxPlayer->gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && _cxxPlayer->gui_screen != GUI_SCREEN_MISSION && _cxxPlayer->gui_screen != GUI_SCREEN_KEYBOARD_ENTRY) {
             if (!autopilot_pause) {
                 playing_music = [[OOMusicController sharedController] isPlaying];
                 if (playing_music)
@@ -4107,7 +4107,7 @@ static BOOL autopilot_pause;
         }
     } else {
         // paused
-        if ([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) {
+        if ([self checkKeyPress:_cxxPlayer->n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) {
             if (!autopilot_pause) {
                 if (playing_music)
                     [[OOMusicController sharedController] toggleDockingMusic];
@@ -4131,11 +4131,11 @@ static BOOL autopilot_pause;
     @try {
         // Pause game, 'p' key
         exceptionContext = "pause key";
-        if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_REPORT && gui_screen != GUI_SCREEN_SAVE && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)) {
-            BOOL isMissionScreenWithTextEntry = gui_screen == GUI_SCREEN_MISSION && _missionTextEntry;
+        if (([self checkKeyPress:_cxxPlayer->n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && (_cxxPlayer->gui_screen != GUI_SCREEN_LONG_RANGE_CHART && _cxxPlayer->gui_screen != GUI_SCREEN_REPORT && _cxxPlayer->gui_screen != GUI_SCREEN_SAVE && _cxxPlayer->gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)) {
+            BOOL isMissionScreenWithTextEntry = _cxxPlayer->gui_screen == GUI_SCREEN_MISSION && _cxxPlayer->_missionTextEntry;
             if (!pause_pressed) {
                 if ([gameController isGamePaused]) {
-                    script_time = saved_script_time;
+                    _cxxPlayer->script_time = saved_script_time;
                     [gameView allowStringInput:NO];
                     if ([UNIVERSE pauseMessageVisible]) {
                         [UNIVERSE clearPreviousMessage]; // remove the 'paused' message.
@@ -4144,7 +4144,7 @@ static BOOL autopilot_pause;
                     [gameController setGamePaused:NO];
                 } else {
                     if (!isMissionScreenWithTextEntry) {
-                        saved_script_time = script_time;
+                        saved_script_time = _cxxPlayer->script_time;
                         [[UNIVERSE messageGUI] clear];
 
                         [UNIVERSE pauseGame]; // 'paused' handler
@@ -4161,10 +4161,10 @@ static BOOL autopilot_pause;
         if ([gameController isGamePaused])
             return;
 
-        if (pollControls) {
+        if (_cxxPlayer->pollControls) {
             exceptionContext = "undock";
-            if ([self checkKeyPress:n_key_launch_ship]) {
-                if (EXPECT((gui_screen != GUI_SCREEN_MISSION || _missionAllowInterrupt) && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_launch_ship]) {
+                if (EXPECT((_cxxPlayer->gui_screen != GUI_SCREEN_MISSION || _cxxPlayer->_missionAllowInterrupt) && _cxxPlayer->gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)) {
                     [self handleUndockControl];
                 }
             }
@@ -4173,10 +4173,10 @@ static BOOL autopilot_pause;
         //  text displays
         // mission screens
         exceptionContext = "GUI keys";
-        if (gui_screen == GUI_SCREEN_MISSION || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY) {
+        if (_cxxPlayer->gui_screen == GUI_SCREEN_MISSION || _cxxPlayer->gui_screen == GUI_SCREEN_KEYBOARD_ENTRY) {
             [self pollDemoControls:delta_t]; // don't switch away from mission screens
         } else {
-            if (gui_screen != GUI_SCREEN_REPORT)
+            if (_cxxPlayer->gui_screen != GUI_SCREEN_REPORT)
                 [self pollGuiScreenControls]; // don't switch away from report screens
         }
 
@@ -4209,7 +4209,7 @@ static BOOL autopilot_pause;
     OOOXZManager* oxzmanager = [OOOXZManager sharedManager];
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
-    switch (gui_screen) {
+    switch (_cxxPlayer->gui_screen) {
     case GUI_SCREEN_INTRO1:
         [self handleGUIUpDownArrowKeys];
 
@@ -4242,7 +4242,7 @@ static BOOL autopilot_pause;
                 disc_operation_in_progress = NO;
             }
         }
-        selectPressed = [self checkKeyPress:n_key_gui_select];
+        selectPressed = [self checkKeyPress:_cxxPlayer->n_key_gui_select];
         if ([gameView isDown:gvMouseDoubleClick]) {
             [gameView clearMouse];
         }
@@ -4398,19 +4398,19 @@ static BOOL autopilot_pause;
                     [gameView clearMouse];
                 }
             } // endif isAcceptingGUIInput
-            if ([self checkKeyPress:n_key_oxzmanager_setfilter] ||
-                [self checkKeyPress:n_key_oxzmanager_showinfo] ||
-                [self checkKeyPress:n_key_oxzmanager_copyurl] ||
-                [self checkKeyPress:n_key_oxzmanager_extract]) {
+            if ([self checkKeyPress:_cxxPlayer->n_key_oxzmanager_setfilter] ||
+                [self checkKeyPress:_cxxPlayer->n_key_oxzmanager_showinfo] ||
+                [self checkKeyPress:_cxxPlayer->n_key_oxzmanager_copyurl] ||
+                [self checkKeyPress:_cxxPlayer->n_key_oxzmanager_extract]) {
                 if (!oxz_manager_pressed) {
                     oxz_manager_pressed = YES;
-                    if ([self checkKeyPress:n_key_oxzmanager_setfilter]) {
+                    if ([self checkKeyPress:_cxxPlayer->n_key_oxzmanager_setfilter]) {
                         [oxzmanager processFilterKey];
-                    } else if ([self checkKeyPress:n_key_oxzmanager_showinfo]) {
+                    } else if ([self checkKeyPress:_cxxPlayer->n_key_oxzmanager_showinfo]) {
                         [oxzmanager processShowInfoKey];
-                    } else if ([self checkKeyPress:n_key_oxzmanager_copyurl]) {
+                    } else if ([self checkKeyPress:_cxxPlayer->n_key_oxzmanager_copyurl]) {
                         [oxzmanager processCopyUrlKey];
-                    } else if ([self checkKeyPress:n_key_oxzmanager_extract]) {
+                    } else if ([self checkKeyPress:_cxxPlayer->n_key_oxzmanager_extract]) {
                         [oxzmanager processExtractKey];
                     }
                 }
@@ -4424,7 +4424,7 @@ static BOOL autopilot_pause;
         if ([[self hud] allowBigGui]) {
             end_row = 27;
         }
-        if (_missionTextEntry) {
+        if (_cxxPlayer->_missionTextEntry) {
             [self refreshMissionScreenTextEntry];
             if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) //  '<enter/return>' or double click
             {
@@ -4436,9 +4436,9 @@ static BOOL autopilot_pause;
 
                 [self checkScript];
                 selectPressed = YES;
-                pollControls = YES;
+                _cxxPlayer->pollControls = YES;
             } else {
-                pollControls = NO;
+                _cxxPlayer->pollControls = NO;
                 selectPressed = NO;
                 [self pollMissionInterruptControls];
             }
@@ -4458,7 +4458,7 @@ static BOOL autopilot_pause;
             [self handleGUIUpDownArrowKeys];
             std::string extraKey; // "": none
             {
-                for (const auto& [key, keydef] : extraMissionKeys) // ORDER-SENSITIVE: byte order of the keys (was -allKeys hash order)
+                for (const auto& [key, keydef] : _cxxPlayer->extraMissionKeys) // ORDER-SENSITIVE: byte order of the keys (was -allKeys hash order)
                 {
                     if ([self checkKeyPress:keydef]) {
                         if (!extra_key_pressed) {
@@ -4499,8 +4499,8 @@ static BOOL autopilot_pause;
         const std::optional<std::string> commanderFile = [self commanderSelector];
         if (commanderFile) {
             // also release the demo ship here (see showShipyardModel and noteGUIDidChangeFrom)
-            [demoShip release];
-            demoShip = nil;
+            [_cxxPlayer->demoShip release];
+            _cxxPlayer->demoShip = nil;
 
             [self loadPlayerFromFile:*commanderFile asNew:NO];
         }
@@ -4514,14 +4514,14 @@ static BOOL autopilot_pause;
 
 - (void)pollMissionInterruptControls
 {
-    if (_missionAllowInterrupt) {
-        if (gui_screen == GUI_SCREEN_MISSION && _missionTextEntry) {
+    if (_cxxPlayer->_missionAllowInterrupt) {
+        if (_cxxPlayer->gui_screen == GUI_SCREEN_MISSION && _cxxPlayer->_missionTextEntry) {
             [self pollGuiScreenControlsWithFKeyAlias:NO];
         } else {
             [self pollGuiScreenControls];
         }
-        if (gui_screen != GUI_SCREEN_MISSION) {
-            if (gui_screen != GUI_SCREEN_SYSTEM_DATA) {
+        if (_cxxPlayer->gui_screen != GUI_SCREEN_MISSION) {
+            if (_cxxPlayer->gui_screen != GUI_SCREEN_SYSTEM_DATA) {
                 [UNIVERSE removeDemoShips];
             }
             [self endMissionScreenAndNoteOpportunity];
@@ -4539,7 +4539,7 @@ static BOOL autopilot_pause;
     if ([self status] != STATUS_DOCKED)
         [self switchToThisView:VIEW_FORWARD];
 
-    if (_missionWithCallback) {
+    if (_cxxPlayer->_missionWithCallback) {
         [self doMissionCallback];
     }
 
@@ -4548,7 +4548,7 @@ static BOOL autopilot_pause;
         // TODO: This is no longer doing anything because of an 'isDocked' check inside the function. ***** Probably remove it for 1.76
         [self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")]; // no opportunity events.
     } else {
-        if (gui_screen != GUI_SCREEN_MISSION) // did we call a new mission screen inside callback?
+        if (_cxxPlayer->gui_screen != GUI_SCREEN_MISSION) // did we call a new mission screen inside callback?
         {
             // note that this might not be the same end screen as last time...
             [self setGuiToMissionEndScreen]; // if not, update status screen with callback changes, if any.
@@ -4566,7 +4566,7 @@ static BOOL autopilot_pause;
         [self setGuiToStatusScreen];
         return;
     }
-    switch (_missionExitScreen) {
+    switch (_cxxPlayer->_missionExitScreen) {
     case GUI_SCREEN_MANIFEST:
         [self noteGUIWillChangeTo:GUI_SCREEN_MANIFEST];
         [self setGuiToManifestScreen];
@@ -4701,7 +4701,7 @@ static BOOL autopilot_pause;
         // If we found one target, dock with it.
         // If outside the Aegis and we found multiple targets, abort.
 
-        if ([self withinStationAegis] && legalStatus <= 50) {
+        if ([self withinStationAegis] && _cxxPlayer->legalStatus <= 50) {
             target = [UNIVERSE station];
         } else if (nStations != 1) {
             if (nStations == 0) {
@@ -4727,7 +4727,7 @@ static BOOL autopilot_pause;
         message = ExpandKeyWithArguments("autopilot-station-does-not-allow-autodocking", { { "stationName", oo::PList(stationName) } });
     }
     // Deny if station is hostile or player is a fugitive trying to dock at the main station.
-    else if ((legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self]) {
+    else if ((_cxxPlayer->legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self]) {
         [self playAutopilotCannotDockWithTarget];
         message = ExpandKeyWithArguments((ts == [UNIVERSE station]) ? "autopilot-denied" : "autopilot-target-docking-instructions-denied", { { "stationName", oo::PList(stationName) } });
     }
@@ -4742,14 +4742,14 @@ static BOOL autopilot_pause;
             }
         }
 
-        if (legalStatus > 0) {
+        if (_cxxPlayer->legalStatus > 0) {
             // there's a slight chance you'll be fined for your past offences when autodocking
             int fine_chance = ranrot_rand() & 0x03ff; //	0..1023
             int government = 1 + [UNIVERSE cxx_currentSystemData].get<int>(std::string(KEY_GOVERNMENT)); // 1..8
             if ([UNIVERSE inInterstellarSpace])
                 government = 2; // equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
             fine_chance /= government;
-            if (fine_chance < legalStatus) {
+            if (fine_chance < _cxxPlayer->legalStatus) {
                 [self markForFines];
             }
         }
@@ -4757,8 +4757,8 @@ static BOOL autopilot_pause;
         [self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 
         [UNIVERSE forceWitchspaceEntries];
-        ship_clock_adjust += 1200.0; // 20 minutes penalty to enter dock
-        ident_engaged = NO;
+        _cxxPlayer->ship_clock_adjust += 1200.0; // 20 minutes penalty to enter dock
+        _cxxPlayer->ident_engaged = NO;
         [self safeAllMissiles];
         [UNIVERSE setViewDirection:VIEW_FORWARD];
         [self enterDock:ts];
@@ -4778,11 +4778,11 @@ abort:
 - (void)handleButtonIdent
 {
     // Clear current target if we're already in Ident mode
-    if (ident_engaged)
+    if (_cxxPlayer->ident_engaged)
         [self noteLostTarget];
 
     [self safeAllMissiles];
-    ident_engaged = YES;
+    _cxxPlayer->ident_engaged = YES;
     if ([self primaryTarget] == nil) {
         [self playIdentOn];
         [UNIVERSE cxx_addMessage:cxx_OOExpandKey("ident-on") forCount:2.0];
@@ -4800,16 +4800,16 @@ abort:
     }
 
     // Clear current target if we're already in Missile Targeting mode
-    if (missile_status != MISSILE_STATUS_SAFE) {
+    if (_cxxPlayer->missile_status != MISSILE_STATUS_SAFE) {
         [self noteLostTarget];
     }
 
     // Arm missile and check for missile lock
-    missile_status = MISSILE_STATUS_ARMED;
-    if ([missile_entity[activeMissile] isMissile]) {
+    _cxxPlayer->missile_status = MISSILE_STATUS_ARMED;
+    if ([_cxxPlayer->missile_entity[_cxxPlayer->activeMissile] isMissile]) {
         if ([[self primaryTarget] isShip]) {
-            missile_status = MISSILE_STATUS_TARGET_LOCKED;
-            [missile_entity[activeMissile] addTarget:[self primaryTarget]];
+            _cxxPlayer->missile_status = MISSILE_STATUS_TARGET_LOCKED;
+            [_cxxPlayer->missile_entity[_cxxPlayer->activeMissile] addTarget:[self primaryTarget]];
             [self printIdentLockedOnForMissile:YES];
             [self playMissileLockedOn];
         } else {
@@ -4817,17 +4817,17 @@ abort:
             if ([self primaryTarget] != nil) {
                 [self noteLostTarget];
             }
-            [missile_entity[activeMissile] noteLostTarget];
-            const std::string weaponName = [missile_entity[activeMissile] cxx_name].value_or(std::string()); // (nil raised in the expansion)
+            [_cxxPlayer->missile_entity[_cxxPlayer->activeMissile] noteLostTarget];
+            const std::string weaponName = [_cxxPlayer->missile_entity[_cxxPlayer->activeMissile] cxx_name].value_or(std::string()); // (nil raised in the expansion)
             [UNIVERSE cxx_addMessage:ExpandKeyWithArguments("missile-armed", { { "weaponName", oo::PList(weaponName) } }) forCount:2.0];
             [self playMissileArmed];
         }
-    } else if ([missile_entity[activeMissile] isMine]) {
-        const std::string weaponName = [missile_entity[activeMissile] cxx_name].value_or(std::string()); // (nil raised in the expansion)
+    } else if ([_cxxPlayer->missile_entity[_cxxPlayer->activeMissile] isMine]) {
+        const std::string weaponName = [_cxxPlayer->missile_entity[_cxxPlayer->activeMissile] cxx_name].value_or(std::string()); // (nil raised in the expansion)
         [UNIVERSE cxx_addMessage:ExpandKeyWithArguments("mine-armed", { { "weaponName", oo::PList(weaponName) } }) forCount:2.0];
         [self playMineArmed];
     }
-    ident_engaged = NO;
+    _cxxPlayer->ident_engaged = NO;
 }
 
 @end
