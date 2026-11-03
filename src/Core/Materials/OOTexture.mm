@@ -37,12 +37,10 @@
 #import "OOMacroOpenGL.h"
 #import "OOObjCPList.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOPListView.h"
 #import "OOPixMap.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 
-#import "OOFoundationBridge.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/StdLib.hpp"
@@ -343,15 +341,17 @@ const char* sGlobalTraceContext = nullptr;
         sLiveTextureCache->clear();
 
     SET_TRACE_CONTEXT("clearing sRecentTextures");
-    [sRecentTextures autorelease];
-    sRecentTextures = nil;
+    oo::autorelease(sRecentTextures);
+    sRecentTextures = nullptr;
     CLEAR_TRACE_CONTEXT();
 }
 
 + (void)rebindAllTextures
 {
     // Keeping around unused, cached textures is unhelpful at this point.
-    DESTROY(sRecentTextures);
+    OOCache* recentTextures = sRecentTextures; // DESTROY(): cleared before the release
+    sRecentTextures = nullptr;
+    oo::release(recentTextures);
 
     if (sAllLiveTextures == NULL)
         return;
@@ -374,7 +374,7 @@ const char* sGlobalTraceContext = nullptr;
 + (std::vector<oo::ObjCRef<OOTexture*>>)cxx_cachedTexturesByAge
 {
     std::vector<oo::ObjCRef<OOTexture*>> result;
-    for (const oo::PList& texture : [sRecentTextures pListsByAge]) {
+    for (const oo::PList& texture : (sRecentTextures != nullptr) ? sRecentTextures->pListsByAge() : std::vector<oo::PList>()) {
         result.emplace_back((OOTexture*)oo::ObjectIn(texture));
     }
     return result;
@@ -405,11 +405,6 @@ const char* sGlobalTraceContext = nullptr;
     return size;
 }
 
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
-}
-
 - (std::optional<std::string>)cxx_name
 {
     OOLogGenericSubclassResponsibility();
@@ -438,15 +433,15 @@ const char* sGlobalTraceContext = nullptr;
     CLEAR_TRACE_CONTEXT();
 
     // Add self to recent textures cache.
-    if (EXPECT_NOT(sRecentTextures == nil)) {
-        sRecentTextures = [[OOCache alloc] init];
-        [sRecentTextures cxx_setName:std::string("recent textures")];
-        [sRecentTextures setAutoPrune:YES];
-        [sRecentTextures setPruneThreshold:kRecentTexturesCount];
+    if (EXPECT_NOT(sRecentTextures == nullptr)) {
+        sRecentTextures = OOCache::cacheWithPList(oo::PList()).leakRef();
+        sRecentTextures->setName(std::string("recent textures"));
+        sRecentTextures->setAutoPrune(true);
+        sRecentTextures->setPruneThreshold(kRecentTexturesCount);
     }
 
     SET_TRACE_CONTEXT("adding to recent textures cache");
-    [sRecentTextures cxx_setPList:oo::PListObject(self) forKey:*cacheKey];
+    sRecentTextures->setPList(oo::PListObject(self), *cacheKey);
     CLEAR_TRACE_CONTEXT();
 #endif
 }
@@ -460,7 +455,7 @@ const char* sGlobalTraceContext = nullptr;
 
     if (sLiveTextureCache != NULL)
         sLiveTextureCache->erase(*cacheKey);
-    if (EXPECT_NOT(oo::ObjectIn([sRecentTextures cxx_pListForKey:*cacheKey]) == self)) {
+    if (EXPECT_NOT(oo::ObjectIn((sRecentTextures != nullptr) ? sRecentTextures->pListForKey(*cacheKey) : oo::PList()) == self)) {
         /* Experimental for now: I think the recent crash problems may
          * be because if the last reference to a texture is in
          * sRecentTextures, and the texture is regenerated, it
@@ -475,7 +470,7 @@ const char* sGlobalTraceContext = nullptr;
          */
         OOAssert(0, "Texture retain count error for %s; cacheKey is %s.", oo::DescriptionOf(self).c_str(), cacheKey->c_str()); // miscount in autorelease
         // The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-        [sRecentTextures cxx_removePListForKey:*cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+        sRecentTextures->removePListForKey(*cacheKey); // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
     }
 #endif
 }
@@ -726,8 +721,10 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
         lodBias = specifier.get<float>("texture_LOD_bias", kOOTextureDefaultLODBias);
     } else {
         // Bad type
+        // "got" names an object's class, or the property-list type (it was the class of the Foundation
+        // object built for the value, such as GSInlineArray).
         if (!specifier.isNull())
-            OO_LOG(cxx_kOOLogParameterError, "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__, oo::DescriptionOf([oo::ObjectFromPList(specifier) class]));
+            OO_LOG(cxx_kOOLogParameterError, "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__, (specifier.type() == oo::PList::Type::Object) ? oo::DescriptionOf([oo::ObjectIn(specifier) class]) : std::string(oo::typeName(specifier.type())));
         return NO;
     }
 

@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "OOCallByName.h"
 #import "OOPListParsing.h"
-#import "OOPListView.h"
 #import "OOStringParsing.h"
 #import "OOWeakReference.h"
 #import "ResourceManager.h"
@@ -35,8 +34,6 @@ MA 02110-1301, USA.
 #import <objc/runtime.h>
 
 #import "GameController.h"
-#import "OOFoundationBridge.h"
-#import "OOStringBridge.h"
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
 #include "oofnd/objc/OOException.h"
@@ -84,12 +81,22 @@ oo::PList PListDictionaryFromFile(const std::string& path)
     return result.isDict() ? result : oo::PList();
 }
 
-// The state machine's "jsScript" entry as an Objective-C object, nil if it has none (what
-// -objectForKey:@"jsScript" answered).
-id JSScriptObjectOf(const oo::PList& stateMachine)
+// The state machine's "jsScript" entry, a null PList if it has none (where
+// -objectForKey:@"jsScript" answered nil).
+oo::PList JSScriptOf(const oo::PList& stateMachine)
 {
     const oo::PList* script = stateMachine.find("jsScript");
-    return script != nullptr ? oo::ObjectFromPList(*script) : nil;
+    return script != nullptr ? *script : oo::PList();
+}
+
+// The pending messages as -description of an NSSet of them printed them (GNUstep describes a set
+// as the array of its objects), in byte order where that was the set's hash order.
+std::string PendingMessagesDescription(const std::set<std::string>& messages)
+{
+    oo::PList::Array list;
+    for (const std::string& message : messages)
+        list.emplace_back(message);
+    return oo::DescriptionOf(oo::PList(std::move(list)));
 }
 
 } // namespace
@@ -137,7 +144,6 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
                   jsScript:(const std::optional<std::string>&)script;
 
 - (oo::PList)stateMachine;
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string
 - (std::optional<std::string>)cxx_name; // (bead oo-3rb.289.8)
 - (std::optional<std::string>)cxx_state;
 - (std::set<std::string>)pendingMessages;
@@ -203,7 +209,7 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 - (std::optional<std::string>)cxx_shortDescriptionComponents
 {
-    return oo::str::format("%s:%s / %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), oo::DescriptionOf(JSScriptObjectOf(stateMachine)).c_str());
+    return oo::str::format("%s:%s / %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), oo::DescriptionOf(JSScriptOf(stateMachine)).c_str());
 }
 
 - (ShipEntity*)owner
@@ -363,11 +369,6 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
     [self performDeferredCall:@selector(deferredSetState:) withArgument:stateName afterDelay:delay];
 }
 
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
-}
-
 - (std::optional<std::string>)cxx_name
 {
     return stateMachineName;
@@ -375,12 +376,10 @@ id JSScriptObjectOf(const oo::PList& stateMachine)
 
 - (std::optional<std::string>)cxx_associatedJS
 {
-    return oo::OptionalString(JSScriptObjectOf(stateMachine));
-}
-
-- (id)state // shared selector (Foundation declares -state too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_state]);
+    // the entry is the script name loadStateMachine: stored (a string)
+    const oo::PList script = JSScriptOf(stateMachine);
+    const std::string* name = script.getIf<std::string>();
+    return (name != nullptr) ? std::optional<std::string>(*name) : std::nullopt;
 }
 
 - (std::optional<std::string>)cxx_state
@@ -595,7 +594,7 @@ static AIStackElement* sStack = NULL;
 
     if (EXPECT_NOT(pendingMessages.size() > 32)) {
         // Generate the error, but don't crash Oolite! Fixes bug #18055 - Pending message overflow for thargoids, -> crash !
-        OO_LOG_ERR("ai.message.failed.overflow", "AI message \"{}\" received by '{}' AI while pending messages stack full; message discarded. Pending messages:\n{}", ms, ownerDesc.value_or("(null)"), oo::DescriptionOf(oo::NSSetFromStrings([self pendingMessages])));
+        OO_LOG_ERR("ai.message.failed.overflow", "AI message \"{}\" received by '{}' AI while pending messages stack full; message discarded. Pending messages:\n{}", ms, ownerDesc.value_or("(null)"), PendingMessagesDescription(pendingMessages));
     } else {
         pendingMessages.insert(ms);
     }
@@ -755,10 +754,10 @@ static AIStackElement* sStack = NULL;
 
     if (smName != "nullAI.plist") {
         // don't cache nullAI since they're different depending on associated JS AI
-        id cached = [cacheMgr cxx_objectForKey:smName inCache:"AIs"];
-        if (cached != nil && !oo::IsNSDictionary(cached))
+        oo::PList cached = [cacheMgr cxx_pListForKey:smName inCache:"AIs"];
+        if (!cached.isNull() && !cached.isDict())
             return oo::PList(); // catches use of @"nil" to indicate no AI found.
-        newSM = oo::PListFrom(cached);
+        newSM = std::move(cached);
     }
 
     if (newSM.isNull()) {
@@ -774,7 +773,7 @@ static AIStackElement* sStack = NULL;
                 newSM = PListDictionaryFromFile(*aiPath);
             }
             if (newSM.isNull()) {
-                [cacheMgr cxx_setObject:@"nil" forKey:smName inCache:"AIs"];
+                [cacheMgr cxx_setPList:oo::PList("nil") forKey:smName inCache:"AIs"];
                 std::string fromString;
                 const std::optional<std::string> state = [self cxx_state];
                 if (state.has_value()) {
@@ -807,7 +806,7 @@ static AIStackElement* sStack = NULL;
 #endif
 
             // Cache.
-            [cacheMgr cxx_setObject:oo::ObjectFromPList(newSM) forKey:smName inCache:"AIs"];
+            [cacheMgr cxx_setPList:newSM forKey:smName inCache:"AIs"];
         }
         @finally {
             OOLogPopIndent();
@@ -942,11 +941,6 @@ static AIStackElement* sStack = NULL;
 - (oo::PList)stateMachine
 {
     return _stateMachine;
-}
-
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
 }
 
 - (std::optional<std::string>)cxx_name

@@ -2,6 +2,12 @@
 
 OOFileScannerVerifierStage.m
 
+C++20 since bead oo-up4b (proposed ADR-0056 Amendment 1 and amendment oo-up4b): cxx::OOFileScannerVerifierStage,
+OOListUnusedFilesStage (bead oo-cwz) and cxx::OOFileHandlingVerifierStage. Method bodies are the
+Objective-C ones with message sends turned into calls (ADR-0012). The Objective-C facades, and the
+verifier's -fileScannerStage, are in OOFileScannerVerifierStage+ObjCBridge.mm. Still
+Objective-C++ until Phase 4: the verifier and the resource manager are Objective-C objects.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -48,7 +54,6 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOFoundationBridge.h"
 #import "ResourceManager.h"
 
 #include "oofnd/FileSystem.hpp"
@@ -78,39 +83,16 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 } // namespace
 
-@interface OOFileScannerVerifierStage (OOPrivate)
+namespace cxx {
 
-- (void)scanForFiles;
+const char* const OOFileScannerVerifierStage::kName = kFileScannerStageName;
 
-- (void)checkRootFolders;
-- (void)checkKnownFiles;
-
-/*	Given an array of strings, return a dictionary mapping lowercase strings
-        to the canonicial case given in the array. For instance, given
-                (Foo, BAR)
-
-        it will return
-                { foo = Foo; bar = BAR }
-*/
-- (std::optional<std::map<std::string, std::string, std::less<>>>)lowercaseMap:(const std::vector<std::string>&)array;
-
-- (std::optional<std::map<std::string, std::string, std::less<>>>)scanDirectory:(const std::string&)path;
-- (void)checkPListFormat:(oo::PListFormat)format file:(const std::optional<std::string>&)file folder:(const std::optional<std::string>&)folder;
-- (std::vector<std::string>)constructReadMeNames;
-
-// The file name in a folder's listing (the root's is ""), in the case found on disk.
-- (std::optional<std::string>)realNameOf:(const std::string&)lcName inListing:(const std::string&)lcDirName;
-
-@end
-
-@implementation OOFileScannerVerifierStage
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOFileScannerVerifierStage::name()
 {
     return kFileScannerStageName;
 }
 
-- (void)run
+void OOFileScannerVerifierStage::run()
 {
 
     _usedFiles.clear();
@@ -118,39 +100,34 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     _badPLists.clear();
 
     @autoreleasepool {
-        [self scanForFiles];
+        scanForFiles();
     }
 
     @autoreleasepool {
-        [self checkRootFolders];
-        [self checkKnownFiles];
+        checkRootFolders();
+        checkKnownFiles();
     }
 }
 
-+ (std::optional<std::string>)nameForDependencyForVerifier:(OOOXPVerifier*)verifier
+// The verifier holds stages as Objective-C objects until it is converted: a C++ stage is
+// registered through its facade, oo::ToObjC.
+std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(OOOXPVerifier* verifier)
 {
-    OOFileScannerVerifierStage* stage = [verifier cxx_stageWithName:kFileScannerStageName];
+    ::OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kFileScannerStageName];
     if (stage == nil) {
-        stage = [[OOFileScannerVerifierStage alloc] init];
-        [verifier registerStage:stage];
-        [stage release];
+        const oo::Ref<OOFileScannerVerifierStage> newStage = oo::makeRef<OOFileScannerVerifierStage>();
+        [verifier registerStage:oo::ToObjC(newStage.get())];
     }
 
     return kFileScannerStageName;
 }
 
-- (BOOL)cxx_fileExists:(const std::optional<std::string>&)file
-              inFolder:(const std::optional<std::string>&)folder
-        referencedFrom:(const std::optional<std::string>&)context
-          checkBuiltIn:(BOOL)checkBuiltIn
+bool OOFileScannerVerifierStage::fileExists(const std::optional<std::string>& file, const std::optional<std::string>& folder, const std::optional<std::string>& context, bool checkBuiltIn)
 {
-    return [self cxx_pathForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn].has_value();
+    return pathForFile(file, folder, context, checkBuiltIn).has_value();
 }
 
-- (std::optional<std::string>)cxx_pathForFile:(const std::optional<std::string>&)file
-                                     inFolder:(const std::optional<std::string>&)folder
-                               referencedFrom:(const std::optional<std::string>&)context
-                                 checkBuiltIn:(BOOL)checkBuiltIn
+std::optional<std::string> OOFileScannerVerifierStage::pathForFile(const std::optional<std::string>& file, const std::optional<std::string>& folder, const std::optional<std::string>& context, bool checkBuiltIn)
 {
     std::string lcName,
         lcDirName;
@@ -165,7 +142,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
     if (folder.has_value()) {
         lcDirName = oo::str::lowercase(*folder);
-        realFileName = [self realNameOf:lcName inListing:lcDirName];
+        realFileName = realNameOf(lcName, lcDirName);
 
         if (realFileName.has_value()) {
             const auto dirCase = _directoryCases.find(lcDirName);
@@ -177,7 +154,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     }
 
     if (!path.has_value()) {
-        realFileName = [self realNameOf:lcName inListing:""];
+        realFileName = realNameOf(lcName, "");
 
         if (realFileName.has_value()) {
             path = realFileName;
@@ -199,7 +176,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             if (!_caseWarnings.contains(lcName)) {
                 _caseWarnings.insert(lcName);
 
-                expectedPath = [self cxx_displayNameForFile:file andFolder:folder];
+                expectedPath = displayNameForFile(file, folder);
 
                 const std::string contextText = context.has_value() ? " referenced in " + *context : std::string();
 
@@ -222,12 +199,9 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return std::nullopt;
 }
 
-- (oo::Data)dataForFile:(const std::optional<std::string>&)file
-               inFolder:(const std::optional<std::string>&)folder
-         referencedFrom:(const std::optional<std::string>&)context
-           checkBuiltIn:(BOOL)checkBuiltIn
+oo::Data OOFileScannerVerifierStage::dataForFile(const std::optional<std::string>& file, const std::optional<std::string>& folder, const std::optional<std::string>& context, bool checkBuiltIn)
 {
-    const std::optional<std::string> path = [self cxx_pathForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn];
+    const std::optional<std::string> path = pathForFile(file, folder, context, checkBuiltIn);
     if (!path.has_value())
         return oo::Data();
 
@@ -235,10 +209,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return data ? std::move(*data) : oo::Data();
 }
 
-- (oo::PList)cxx_plistNamed:(const std::optional<std::string>&)file
-                   inFolder:(const std::optional<std::string>&)folder
-             referencedFrom:(const std::optional<std::string>&)context
-               checkBuiltIn:(BOOL)checkBuiltIn
+oo::PList OOFileScannerVerifierStage::plistNamed(const std::optional<std::string>& file, const std::optional<std::string>& folder, const std::optional<std::string>& context, bool checkBuiltIn)
 {
     oo::PListFormat format = oo::PListFormat::OpenStep;
     oo::PList plist;
@@ -248,7 +219,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
     // Not -dataForFile:, whose empty result also stands for "no file": an empty file is parsed
     // (and reported), as it was.
-    const std::optional<std::string> path = [self cxx_pathForFile:file inFolder:folder referencedFrom:context checkBuiltIn:checkBuiltIn];
+    const std::optional<std::string> path = pathForFile(file, folder, context, checkBuiltIn);
     if (!path.has_value())
         return oo::PList();
     oo::fs::Result<oo::Data> data = oo::fs::readFile(oo::fs::pathFromUTF8(*path));
@@ -266,13 +237,13 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
         if (!plist.isNull()) {
             // PList is readable; check that it's in an official Oolite format.
-            [self checkPListFormat:format file:file folder:folder];
+            checkPListFormat(format, file, folder);
         } else {
             /*	Couldn't parse plist; report problem.
                     This is complicated somewhat by the need to present a possibly
                     multi-line error description while maintaining our indentation.
             */
-            displayName = [self cxx_displayNameForFile:file andFolder:folder];
+            displayName = displayNameForFile(file, folder);
             errorKey = oo::str::lowercase(*displayName);
             if (!_badPLists.contains(errorKey)) {
                 _badPLists.insert(errorKey);
@@ -294,14 +265,14 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return plist;
 }
 
-- (std::optional<std::string>)cxx_displayNameForFile:(const std::optional<std::string>&)file andFolder:(const std::optional<std::string>&)folder
+std::optional<std::string> OOFileScannerVerifierStage::displayNameForFile(const std::optional<std::string>& file, const std::optional<std::string>& folder)
 {
     if (file.has_value() && folder.has_value())
         return oo::str::appendingPathComponent(*folder, *file);
     return file;
 }
 
-- (std::optional<std::vector<std::string>>)cxx_filesInFolder:(const std::optional<std::string>&)folder
+std::optional<std::vector<std::string>> OOFileScannerVerifierStage::filesInFolder(const std::optional<std::string>& folder)
 {
     if (!folder.has_value())
         return std::nullopt;
@@ -315,11 +286,9 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return result;
 }
 
-@end
+// Private (was the OOPrivate category).
 
-@implementation OOFileScannerVerifierStage (OOPrivate)
-
-- (std::optional<std::string>)realNameOf:(const std::string&)lcName inListing:(const std::string&)lcDirName
+std::optional<std::string> OOFileScannerVerifierStage::realNameOf(const std::string& lcName, const std::string& lcDirName)
 {
     const auto listing = _directoryListings.find(lcDirName);
     if (listing == _directoryListings.end())
@@ -330,7 +299,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return entry->second;
 }
 
-- (void)scanForFiles
+void OOFileScannerVerifierStage::scanForFiles()
 {
     std::string path,
         lcName,
@@ -341,14 +310,14 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
         rootFiles;
     std::set<std::string> readMeNames;
 
-    _basePath = [[self verifier] cxx_oxpPath].value_or("");
+    _basePath = [verifier() cxx_oxpPath].value_or("");
 
-    for (const std::string& junk : [[self verifier] cxx_configurationSetForKey:"junkFiles"].value_or(std::vector<std::string>()))
+    for (const std::string& junk : [verifier() cxx_configurationSetForKey:"junkFiles"].value_or(std::vector<std::string>()))
         _junkFileNames.insert(junk);
-    for (const std::string& skip : [[self verifier] cxx_configurationSetForKey:"skipDirectories"].value_or(std::vector<std::string>()))
+    for (const std::string& skip : [verifier() cxx_configurationSetForKey:"skipDirectories"].value_or(std::vector<std::string>()))
         _skipDirectoryNames.insert(skip);
 
-    for (const std::string& readMe : [self constructReadMeNames])
+    for (const std::string& readMe : constructReadMeNames())
         readMeNames.insert(readMe);
 
     oo::fs::RecursiveDirectoryEnumerator dirEnum(oo::fs::pathFromUTF8(_basePath));
@@ -371,7 +340,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             } else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType)) {
                 OO_LOG("verifyOXP.verbose.listFiles", "- {}/", name);
                 oo::log::indentIf("verifyOXP.verbose.listFiles");
-                directoryListings[lcName] = *[self scanDirectory:path];
+                directoryListings[lcName] = *scanDirectory(path);
                 directoryCases[lcName] = name;
                 oo::log::outdentIf("verifyOXP.verbose.listFiles");
             } else {
@@ -403,11 +372,11 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     _directoryCases = std::move(directoryCases);
 }
 
-- (void)checkRootFolders
+void OOFileScannerVerifierStage::checkRootFolders()
 {
     std::string lcName;
 
-    for (const std::string& name : StringsFromArray([[self verifier] cxx_configurationArrayForKey:"knownRootDirectories"])) {
+    for (const std::string& name : StringsFromArray([verifier() cxx_configurationArrayForKey:"knownRootDirectories"])) {
         lcName = oo::str::lowercase(name);
         const auto actual = _directoryCases.find(lcName);
         if (actual == _directoryCases.end())
@@ -420,22 +389,22 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     }
 }
 
-- (void)checkConfigFiles
+void OOFileScannerVerifierStage::checkConfigFiles()
 {
     std::string lcName;
     std::optional<std::string> realFileName;
     BOOL inConfigDir;
 
-    for (const std::string& name : StringsFromArray([[self verifier] cxx_configurationArrayForKey:"knownConfigFiles"])) {
+    for (const std::string& name : StringsFromArray([verifier() cxx_configurationArrayForKey:"knownConfigFiles"])) {
         /*	In theory, we could use -fileExists:inFolder:referencedFrom:checkBuiltIn:
         here, but we want a different error message.
         */
 
         lcName = oo::str::lowercase(name);
-        realFileName = [self realNameOf:lcName inListing:"config"];
+        realFileName = realNameOf(lcName, "config");
         inConfigDir = realFileName.has_value();
         if (!inConfigDir)
-            realFileName = [self realNameOf:lcName inListing:""];
+            realFileName = realNameOf(lcName, "");
         if (!realFileName.has_value())
             continue;
 
@@ -447,7 +416,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     }
 }
 
-- (void)checkKnownFiles
+void OOFileScannerVerifierStage::checkKnownFiles()
 {
     std::string lcDirectory,
         lcName;
@@ -455,7 +424,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     BOOL inDirectory;
 
     // Folders in byte order of their names (they were in dictionary order).
-    const oo::PList directories = [[self verifier] cxx_configurationDictionaryForKey:"knownFiles"];
+    const oo::PList directories = [verifier() cxx_configurationDictionaryForKey:"knownFiles"];
     const oo::PList::Dict* directoryDict = directories.getIf<oo::PList::Dict>();
     if (directoryDict == nullptr)
         return;
@@ -474,11 +443,11 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             */
 
             lcName = oo::str::lowercase(*name);
-            realFileName = [self realNameOf:lcName inListing:lcDirectory];
+            realFileName = realNameOf(lcName, lcDirectory);
             inDirectory = realFileName.has_value();
             if (!inDirectory) {
                 // Allow for files in root directory of OXP
-                realFileName = [self realNameOf:lcName inListing:""];
+                realFileName = realNameOf(lcName, "");
             }
             if (!realFileName.has_value())
                 continue;
@@ -492,7 +461,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     }
 }
 
-- (std::optional<std::map<std::string, std::string, std::less<>>>)lowercaseMap:(const std::vector<std::string>&)array
+std::optional<std::map<std::string, std::string, std::less<>>> OOFileScannerVerifierStage::lowercaseMap(const std::vector<std::string>& array)
 {
     std::map<std::string, std::string, std::less<>> result;
 
@@ -503,7 +472,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return result;
 }
 
-- (std::optional<std::map<std::string, std::string, std::less<>>>)scanDirectory:(const std::string&)path
+std::optional<std::map<std::string, std::string, std::less<>>> OOFileScannerVerifierStage::scanDirectory(const std::string& path)
 {
     std::map<std::string, std::string, std::less<>> result;
     std::string lcName,
@@ -553,14 +522,14 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return result;
 }
 
-- (void)checkPListFormat:(oo::PListFormat)format file:(const std::optional<std::string>&)file folder:(const std::optional<std::string>&)folder
+void OOFileScannerVerifierStage::checkPListFormat(oo::PListFormat format, const std::optional<std::string>& file, const std::optional<std::string>& folder)
 {
     std::string weirdnessKey;
     std::string formatDesc;
     std::optional<std::string> displayPath;
 
     if (format != oo::PListFormat::OpenStep && format != oo::PListFormat::XML) {
-        displayPath = [self cxx_displayNameForFile:file andFolder:folder];
+        displayPath = displayNameForFile(file, folder);
         weirdnessKey = oo::str::lowercase(*displayPath);
 
         if (!_badPLists.contains(weirdnessKey)) {
@@ -591,14 +560,14 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     }
 }
 
-- (std::vector<std::string>)constructReadMeNames
+std::vector<std::string> OOFileScannerVerifierStage::constructReadMeNames()
 {
     std::vector<std::string> result;
     std::size_t i, j, stemCount, extCount;
     std::string stem,
         extension;
 
-    const oo::PList dict = [[self verifier] cxx_configurationDictionaryForKey:"readMeNames"];
+    const oo::PList dict = [verifier() cxx_configurationDictionaryForKey:"readMeNames"];
     const oo::PList* stems = dict.get<oo::PList::Array>("stems");
     const oo::PList* extensions = dict.get<oo::PList::Array>("extensions");
     stemCount = stems != nullptr ? stems->count() : 0;
@@ -625,61 +594,54 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     return result;
 }
 
-@end
+} // namespace cxx
 
-@implementation OOListUnusedFilesStage : OOOXPVerifierStage
+// OOListUnusedFilesStage: C++ since bead oo-cwz (proposed ADR-0056 Amendment 1).
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOListUnusedFilesStage::name()
 {
     return kUnusedListerStageName;
 }
 
-- (std::optional<std::vector<std::string>>)cxx_dependencies
+std::optional<std::vector<std::string>> OOListUnusedFilesStage::dependencies()
 {
     return std::vector<std::string> { kFileScannerStageName };
 }
 
-- (void)run
+void OOListUnusedFilesStage::run()
 {
     OO_LOG("verifyOXP.unusedFiles.unimplemented", "{}", "TODO: implement unused files check.");
 }
 
-+ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
+// The verifier holds stages as Objective-C objects until it is converted: a C++ stage is
+// registered through its facade, oo::ToObjC.
+std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(OOOXPVerifier* verifier)
 {
-    OOListUnusedFilesStage* stage = [verifier cxx_stageWithName:kUnusedListerStageName];
+    ::OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kUnusedListerStageName];
     if (stage == nil) {
-        stage = [[OOListUnusedFilesStage alloc] init];
-        [verifier registerStage:stage];
-        [stage release];
+        const oo::Ref<OOListUnusedFilesStage> newStage = oo::makeRef<OOListUnusedFilesStage>();
+        [verifier registerStage:oo::ToObjC(newStage.get())];
     }
 
     return kUnusedListerStageName;
 }
 
-@end
+// OOFileHandlingVerifierStage: C++ since bead oo-up4b. Its Objective-C subclasses reach these
+// through their facade (OOFileScannerVerifierStage+ObjCBridge.mm).
 
-@implementation OOOXPVerifier (OOFileScannerVerifierStage)
+namespace cxx {
 
-- (OOFileScannerVerifierStage*)fileScannerStage
+std::optional<std::vector<std::string>> OOFileHandlingVerifierStage::dependencies()
 {
-    return [self cxx_stageWithName:kFileScannerStageName];
+    return std::vector<std::string> { *OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier()) };
 }
 
-@end
-
-@implementation OOFileHandlingVerifierStage
-
-- (std::optional<std::vector<std::string>>)cxx_dependencies
+std::optional<std::vector<std::string>> OOFileHandlingVerifierStage::dependents()
 {
-    return std::vector<std::string> { *[OOFileScannerVerifierStage nameForDependencyForVerifier:[self verifier]] };
+    return std::vector<std::string> { OOListUnusedFilesStage::nameForReverseDependencyForVerifier(verifier()) };
 }
 
-- (std::optional<std::vector<std::string>>)dependents
-{
-    return std::vector<std::string> { [OOListUnusedFilesStage nameForReverseDependencyForVerifier:[self verifier]] };
-}
-
-@end
+} // namespace cxx
 
 namespace {
 

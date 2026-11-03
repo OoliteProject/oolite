@@ -25,12 +25,12 @@ SOFTWARE.
 
 */
 
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
 #import "OOSoundInternal.h"
 
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 namespace {
 // The sources that are playing, each once, retained (a Foundation mutable set before; sources
@@ -200,7 +200,7 @@ std::vector<oo::ObjCRef<OOSoundSource*>>* sPlayingSoundSources = nullptr;
     }
 }
 
-- (void)playSound:(OOSound*)sound
+- (void)playOOSound:(OOSound*)sound
 {
     [self playSound:sound repeatCount:_repeatCount];
 }
@@ -216,7 +216,7 @@ std::vector<oo::ObjCRef<OOSoundSource*>>* sPlayingSoundSources = nullptr;
 - (void)playOrRepeatSound:(OOSound*)sound
 {
     if (_sound != sound)
-        [self playSound:sound];
+        [self playOOSound:sound];
     else
         [self playOrRepeat];
 }

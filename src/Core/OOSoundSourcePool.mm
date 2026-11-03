@@ -27,7 +27,6 @@ SOFTWARE.
 
 #import "OOSoundSourcePool.h"
 #import "OOSound.h"
-#import "OOStringBridge.h"
 #import "Universe.h"
 
 enum {
@@ -137,7 +136,7 @@ typedef struct OOSoundSourcePoolElement {
 
     // Play and store metadata
     [element->source setPosition:position];
-    [element->source playSound:sound];
+    [element->source playOOSound:sound];
     element->expiryTime = absExpiryTime;
     element->priority = priority;
     if (_minRepeat > 0.0) {

@@ -1,7 +1,10 @@
 /*
 
-OOCache.m
+OOCache.mm
 By Jens Ayton
+
+C++20 since bead oo-rdfh (proposed ADR-0056, the OOColor house style). The methods are the
+Objective-C ones with message sends turned into calls; the C functions below are verbatim.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -108,7 +111,6 @@ MA 02110-1301, USA.
 
 #import "OOCache.h"
 #import "OOStringParsing.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/String.hpp"
 #if DEBUG_GRAPHVIZ
@@ -175,151 +177,139 @@ static void CacheCheckIntegrity(OOCacheImpl* cache, const std::string& context);
     } while (0)
 #endif
 
-@interface OOCache (Private)
-
-- (void)loadFromArray:(const oo::PList&)inArray;
-
-@end
-
-@implementation OOCache
-
-- (void)dealloc
+OOCache::~OOCache()
 {
     CHECK_INTEGRITY("dealloc");
     CacheFree(cache);
-
-    [super dealloc];
 }
 
-// OOObject's -description wraps this as "<OOCache 0x...>{...}", which is what this class's own
-// -description printed.
-- (std::optional<std::string>)cxx_descriptionComponents
+// oo::DescriptionOf (OODescription.h) wraps this as "<OOCache 0x...>{...}", which is what this
+// class's own -description printed.
+std::optional<std::string> OOCache::descriptionComponents() const
 {
-    return oo::str::format("\"%s\", %u elements, prune threshold=%u, auto-prune=%s dirty=%s", CacheGetName(cache).value_or("(null)").c_str(), CacheGetCount(cache), pruneThreshold, autoPrune ? "yes" : "no", dirty ? "yes" : "no");
+    return oo::str::format("\"%s\", %u elements, prune threshold=%u, auto-prune=%s dirty=%s", CacheGetName(cache).value_or("(null)").c_str(), CacheGetCount(cache), _pruneThreshold, _autoPrune ? "yes" : "no", _dirty ? "yes" : "no");
 }
 
-- (id)init
+oo::Ref<OOCache> OOCache::cacheWithPList(const oo::PList& pList)
 {
-    return [self cxx_initWithPList:oo::PList()];
+    oo::Ref<OOCache> result = oo::makeRef<OOCache>();
+    if (!result->initWithPList(pList))
+        return nullptr;
+    return result;
 }
 
-- (id)cxx_initWithPList:(const oo::PList&)pList
+bool OOCache::initWithPList(const oo::PList& pList)
 {
-    BOOL OK = YES;
-
-    self = [super init];
-    OK = self != nil;
+    bool OK = true;
 
     if (OK) {
         cache = CacheAllocate();
         if (cache == NULL)
-            OK = NO;
+            OK = false;
     }
 
     if (!pList.isNull()) {
         if (OK)
             OK = pList.isArray();
         if (OK)
-            [self loadFromArray:pList];
+            loadFromArray(pList);
     }
     if (OK) {
-        pruneThreshold = kOOCacheDefaultPruneThreshold;
-        autoPrune = YES;
+        _pruneThreshold = kOOCacheDefaultPruneThreshold;
+        _autoPrune = true;
     }
 
-    if (!OK) {
-        [self release];
-        self = nil;
-    }
-
-    return self;
+    return OK;
 }
 
-- (oo::PList)cxx_pListRepresentation
+oo::PList OOCache::pListRepresentation()
 {
     return CacheArrayOfNodesByAge(cache);
 }
 
-- (oo::PList)cxx_pListForKey:(const std::string&)key
+oo::PList OOCache::pListForKey(const std::string& key)
 {
     oo::PList result;
 
-    CHECK_INTEGRITY("cxx_pListForKey: before");
+    CHECK_INTEGRITY("pListForKey() before");
 
     if (const oo::PList* value = CacheRetrieve(cache, key))
         result = *value;
     // Note: while reordering the age list technically makes the cache dirty, it's not worth rewriting it just for that, so we don't flag it.
 
-    CHECK_INTEGRITY("cxx_pListForKey: after");
+    CHECK_INTEGRITY("pListForKey() after");
 
     return result;
 }
 
-- (void)cxx_setPList:(const oo::PList&)value forKey:(const std::string&)key
+void OOCache::setPList(const oo::PList& value, const std::string& key)
 {
-    CHECK_INTEGRITY("cxx_setPList:forKey: before");
+    CHECK_INTEGRITY("setPList() before");
 
     if (CacheInsert(cache, key, value)) {
-        dirty = YES;
-        if (autoPrune)
-            [self prune];
+        _dirty = true;
+        if (_autoPrune)
+            prune();
     }
 
-    CHECK_INTEGRITY("cxx_setPList:forKey: after");
+    CHECK_INTEGRITY("setPList() after");
 }
 
-- (void)cxx_removePListForKey:(const std::string&)key
+void OOCache::removePListForKey(const std::string& key)
 {
-    CHECK_INTEGRITY("cxx_removePListForKey: before");
+    CHECK_INTEGRITY("removePListForKey() before");
 
     if (CacheRemove(cache, key))
-        dirty = YES;
+        _dirty = true;
 
-    CHECK_INTEGRITY("cxx_removePListForKey: after");
+    CHECK_INTEGRITY("removePListForKey() after");
 }
 
-- (void)setPruneThreshold:(unsigned)threshold
+void OOCache::setPruneThreshold(unsigned threshold)
 {
     threshold = MAX(threshold, (unsigned)kOOCacheMinimumPruneThreshold);
-    if (threshold != pruneThreshold) {
-        pruneThreshold = threshold;
-        if (autoPrune)
-            [self prune];
+    if (threshold != _pruneThreshold) {
+        _pruneThreshold = threshold;
+        if (_autoPrune)
+            prune();
     }
 }
 
-- (unsigned)pruneThreshold
+unsigned OOCache::pruneThreshold()
 {
-    return pruneThreshold;
+    return _pruneThreshold;
 }
 
-- (void)setAutoPrune:(BOOL)flag
+void OOCache::setAutoPrune(bool flag)
 {
-    BOOL prune = (flag != NO);
-    if (prune != autoPrune) {
-        autoPrune = prune;
-        [self prune];
+    bool prune = (flag != false);
+    if (prune != _autoPrune) {
+        _autoPrune = prune;
+        this->prune();
     }
 }
 
-- (BOOL)autoPrune
+bool OOCache::autoPrune()
 {
-    return autoPrune;
+    return _autoPrune;
 }
 
-- (void)prune
+void OOCache::prune()
 {
     unsigned pruneCount;
     unsigned desiredCount;
     unsigned count;
 
     // Order of operations is to ensure rounding down.
-    if (autoPrune)
-        desiredCount = (pruneThreshold * 4) / 5;
+    if (_autoPrune)
+        desiredCount = (_pruneThreshold * 4) / 5;
     else
-        desiredCount = pruneThreshold;
+        desiredCount = _pruneThreshold;
 
-    if (pruneThreshold == kOOCacheNoPrune || (count = CacheGetCount(cache)) <= pruneThreshold)
+    if (_pruneThreshold == kOOCacheNoPrune)
+        return;
+    count = CacheGetCount(cache);
+    if (count <= _pruneThreshold)
         return;
 
     pruneCount = count - desiredCount;
@@ -334,36 +324,34 @@ static void CacheCheckIntegrity(OOCacheImpl* cache, const std::string& context);
     oo::log::outdentIf(logKey);
 }
 
-- (BOOL)dirty
+bool OOCache::dirty()
 {
-    return dirty;
+    return _dirty;
 }
 
-- (void)markClean
+void OOCache::markClean()
 {
-    dirty = NO;
+    _dirty = false;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOCache::name()
 {
     return CacheGetName(cache);
 }
 
-- (void)cxx_setName:(const std::optional<std::string>&)name
+void OOCache::setName(const std::optional<std::string>& name)
 {
     CacheSetName(cache, name);
 }
 
-- (std::vector<oo::PList>)pListsByAge
+std::vector<oo::PList> OOCache::pListsByAge()
 {
     return CacheArrayOfContentsByAge(cache);
 }
 
-@end
+// Private
 
-@implementation OOCache (Private)
-
-- (void)loadFromArray:(const oo::PList&)array
+void OOCache::loadFromArray(const oo::PList& array)
 {
     const oo::PList::Array* entries = array.getIf<oo::PList::Array>();
     if (entries == nullptr)
@@ -374,13 +362,11 @@ static void CacheCheckIntegrity(OOCacheImpl* cache, const std::string& context);
             const oo::PList* key = entry.find(kSerializedEntryKeyKey);
             const oo::PList* value = entry.find(kSerializedEntryKeyValue);
             if (key != nullptr && key->isString() && value != nullptr) {
-                [self cxx_setPList:*value forKey:*key->getIf<std::string>()];
+                setPList(*value, *key->getIf<std::string>());
             }
         }
     }
 }
-
-@end
 
 /***** Most of the implementation. In C. Because I'm inconsistent and slightly m. *****/
 
@@ -933,36 +919,34 @@ static void AgeListCheckIntegrity(OOCacheImpl* cache, const std::string& context
 */
 #define AGE_LIST 0
 
-@implementation OOCache (DebugGraphViz)
-
-- (void)appendNodesFromSubTree:(OOCacheNode*)subTree toString:(std::string&)ioString
+void OOCache::appendNodesFromSubTree(OOCacheNode* subTree, std::string& ioString)
 {
     ioString += oo::str::format("\tn%s [label=\"<f0> | <f1> %s | <f2>\"];\n", oo::str::pointerDescription(subTree).c_str(), cxx_EscapedGraphVizString(subTree->key).c_str());
 
     if (subTree->leftChild != NULL) {
-        [self appendNodesFromSubTree:subTree->leftChild toString:ioString];
+        appendNodesFromSubTree(subTree->leftChild, ioString);
         ioString += oo::str::format("\tn%s:f0 -> n%s:f1;\n", oo::str::pointerDescription(subTree).c_str(), oo::str::pointerDescription(subTree->leftChild).c_str());
     }
     if (subTree->rightChild != NULL) {
-        [self appendNodesFromSubTree:subTree->rightChild toString:ioString];
+        appendNodesFromSubTree(subTree->rightChild, ioString);
         ioString += oo::str::format("\tn%s:f2 -> n%s:f1;\n", oo::str::pointerDescription(subTree).c_str(), oo::str::pointerDescription(subTree->rightChild).c_str());
     }
 }
 
-- (std::optional<std::string>)generateGraphVizBodyWithRootNamed:(const std::string&)rootName
+std::optional<std::string> OOCache::generateGraphVizBodyWithRootNamed(const std::string& rootName)
 {
     std::string result;
 
     // Root node representing cache
     result += oo::str::format("\t%s [label=\"Cache \\\"%s\\\"\" shape=box];\n"
                               "\tnode [shape=record];\n\t\n",
-        rootName.c_str(), ([self cxx_name].has_value() ? cxx_EscapedGraphVizString(*[self cxx_name]) : std::string("(null)")).c_str());
+        rootName.c_str(), (name().has_value() ? cxx_EscapedGraphVizString(*name()) : std::string("(null)")).c_str());
 
     if (cache == NULL)
         return result;
 
     // Cache
-    [self appendNodesFromSubTree:cache->root toString:result];
+    appendNodesFromSubTree(cache->root, result);
 
     // Arc from cache object to root node
     result += "\tedge [color=black constraint=true];\n";
@@ -982,7 +966,7 @@ static void AgeListCheckIntegrity(OOCacheImpl* cache, const std::string& context
     return result;
 }
 
-- (std::string)generateGraphViz
+std::string OOCache::generateGraphViz()
 {
     std::string result;
 
@@ -992,9 +976,9 @@ static void AgeListCheckIntegrity(OOCacheImpl* cache, const std::string& context
         "digraph cache\n"
         "{\n"
         "\tgraph [charset=\"UTF-8\", label=\"OOCache \"%s\" debug dump\", labelloc=t, labeljust=l];\n\t\n",
-        [self cxx_name].value_or("(null)").c_str());
+        name().value_or("(null)").c_str());
 
-    result += [self generateGraphVizBodyWithRootNamed:"cache"].value_or("");
+    result += generateGraphVizBodyWithRootNamed("cache").value_or("");
 
     result += "}\n";
 
@@ -1002,11 +986,9 @@ static void AgeListCheckIntegrity(OOCacheImpl* cache, const std::string& context
 }
 
 // (-writeGraphVizToURL: folded in: its only sender was this method; bead oo-3rb.264)
-- (void)writeGraphVizToPath:(const std::string&)path
+void OOCache::writeGraphVizToPath(const std::string& path)
 {
-    const std::string graphViz = [self generateGraphViz];
+    const std::string graphViz = generateGraphViz();
     (void)oo::fs::writeFile(oo::fs::pathFromUTF8(path), oo::Data(graphViz.data(), graphViz.size()), oo::fs::WriteMode::atomic);
 }
-
-@end
 #endif

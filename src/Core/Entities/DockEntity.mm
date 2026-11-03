@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "DockEntity.h"
 
 #include <vector>
-#import "OOPListView.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "ShipEntityAI.h"
@@ -45,10 +44,10 @@ MA 02110-1301, USA.
 
 #import "OODebugFlags.h"
 #import "OODebugGLDrawing.h"
-#import "OOFoundationBridge.h"
 #import "OOJSScript.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PListWriting.hpp"
+#include "oofnd/String.hpp"
 
 namespace {
 
@@ -115,7 +114,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
             shipsOnApproach.erase(idObj);
             if (ship != nil) {
                 // notify ship if it's alive
-                [ship sendAIMessage:@"DOCKING_ABORTED"];
+                [ship sendAIMessage:"DOCKING_ABORTED"];
                 [ship doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
             }
         }
@@ -139,7 +138,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     for (unsigned short idObj : ShipIDsIn(shipsOnApproach)) {
         ShipEntity* ship = [UNIVERSE entityForUniversalID:idObj];
         if ([ship isShip]) {
-            [ship sendAIMessage:@"DOCKING_ABORTED"];
+            [ship sendAIMessage:"DOCKING_ABORTED"];
             [ship doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
         }
     }

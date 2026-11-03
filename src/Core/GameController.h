@@ -43,7 +43,8 @@ MA 02110-1301, USA.
 #define MINIMUM_ANIMATION_TICK 0.0041667
 // 1.0 / (desired framerate cap)
 
-@class MyOpenGLView, OOFullScreenController;
+@class MyOpenGLView;
+class OOFullScreenController; // C++ since bead oo-bgmb
 
 // TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_COCOA_UI

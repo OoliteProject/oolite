@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenGLMatrixManager.h"
-#import "OOPListView.h"
 #import "OOSound.h"
 #import "PlayerEntityLoadSave.h"
 #import "ResourceManager.h"
@@ -49,8 +48,6 @@ MA 02110-1301, USA.
 #ifndef NDEBUG
 #import "OOJavaScriptEngine.h"
 #endif
-#import "OOFoundationBridge.h"
-#import "OOStringBridge.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
@@ -384,7 +381,7 @@ static GameController* sSharedController = nil;
             OOException* ooException = (OOException*)exception;
             OO_LOG("exception.backtrace", "{} : {}", [ooException name], [ooException reason]);
         } else {
-            OO_LOG("exception.backtrace", "{}", oo::DescriptionOf([exception callStackSymbols]));
+            OO_LOG("exception.backtrace", "{}", oo::DescriptionOf(exception)); // no Foundation exception has -callStackSymbols any more (oo-qps.17)
         }
     }
 
@@ -991,7 +988,8 @@ std::vector<std::string> sMessageStack;
 #endif
     OOLoggingTerminate();
     SDL_Quit();
-    [[OOOpenALController sharedController] shutdown];
+    if (OOOpenALController* controller = OOOpenALController::sharedController())
+        controller->shutdown();
     exit(0);
 }
 

@@ -25,13 +25,12 @@ MA 02110-1301, USA.
 */
 
 #import "OOSystemDescriptionManager.h"
-#import "OOFoundationBridge.h"
-#import "OOPListView.h"
 #import "OOStringParsing.h"
 #import "OOTypes.h"
 #import "PlayerEntity.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 namespace {
@@ -45,23 +44,6 @@ constexpr std::string_view kOOScriptedChangeJoiner = "~|~";
 // likely maximum number of planetinfo properties to be applied to a system
 // just for efficiency - no harm in exceeding it
 #define OO_LIKELY_PROPERTIES_PER_SYSTEM 50
-
-@interface OOSystemDescriptionManager (OOPrivate)
-// Property dictionaries are oo::PList Dicts; a single property value is an oo::PList (null = nil).
-- (void)setProperties:(const oo::PList&)properties inDescription:(OOSystemDescriptionEntry*)desc;
-- (oo::PList)calculatePropertiesForSystemKey:(const std::string&)key;
-- (void)updateCacheEntry:(NSUInteger)i;
-- (void)updateCacheEntry:(NSUInteger)i forProperty:(const std::string&)property;
-- (oo::PList)getProperty:(const std::string&)property forSystemKey:(const std::string&)key withUniversal:(BOOL)universal;
-/* some planetinfo properties have two ways to specify
- * need to get the one with higher layer (if they're both at the same layer,
- * go with property1) */
-- (oo::PList)getProperty:(const std::string&)property1 orProperty:(const std::string&)property2 forSystemKey:(const std::string&)key withUniversal:(BOOL)universal;
-
-// value null = nil (removes the saved change); manifest nullopt = nil (cancels saving it)
-- (void)saveScriptedChangeToProperty:(const std::string&)property forSystemKey:(const std::string&)key andLayer:(OOSystemLayer)layer toValue:(const oo::PList&)value fromManifest:(const std::optional<std::string>&)manifest;
-
-@end
 
 namespace {
 
@@ -105,32 +87,22 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 
 }
 
-@implementation OOSystemDescriptionManager
+namespace cxx {
 
-- (id)init
+OOSystemDescriptionManager::OOSystemDescriptionManager()
 {
-    self = [super init];
-    if (self != nil) {
-        universalProperties = oo::PList(oo::PList::Dict());
-        interstellarSpace = [[OOSystemDescriptionEntry alloc] init];
-        for (NSUInteger i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
-            propertyCache[i] = oo::PList(oo::PList::Dict());
-            // hub count of 24 is considerably higher than occurs in
-            // standard planetinfo
-            neighbourCache[i].reserve(24);
-        }
-        scriptedChanges = oo::PList(oo::PList::Dict());
+    universalProperties = oo::PList(oo::PList::Dict());
+    interstellarSpace = oo::makeRef<OOSystemDescriptionEntry>();
+    for (NSUInteger i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
+        propertyCache[i] = oo::PList(oo::PList::Dict());
+        // hub count of 24 is considerably higher than occurs in
+        // standard planetinfo
+        neighbourCache[i].reserve(24);
     }
-    return self;
+    scriptedChanges = oo::PList(oo::PList::Dict());
 }
 
-- (void)dealloc
-{
-    DESTROY(interstellarSpace);
-    [super dealloc];
-}
-
-- (void)buildRouteCache
+void OOSystemDescriptionManager::buildRouteCache()
 {
     NSUInteger i, j, k, jIndex, kIndex;
     // firstly, cache all coordinates
@@ -155,7 +127,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     }
 }
 
-- (void)cxx_setUniversalProperties:(const oo::PList&)properties
+void OOSystemDescriptionManager::setUniversalProperties(const oo::PList& properties)
 {
     if (const oo::PList::Dict* entries = properties.getIf<oo::PList::Dict>()) {
         oo::PList::Dict& universal = *universalProperties.getIf<oo::PList::Dict>();
@@ -165,23 +137,23 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         }
     }
     for (NSUInteger i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
-        [self updateCacheEntry:i];
+        updateCacheEntry(i);
     }
 }
 
-- (void)cxx_setInterstellarProperties:(const oo::PList&)properties
+void OOSystemDescriptionManager::setInterstellarProperties(const oo::PList& properties)
 {
-    [self setProperties:properties inDescription:interstellarSpace];
+    setProperties(properties, interstellarSpace.get());
 }
 
-- (void)cxx_setProperties:(const oo::PList&)properties forSystemKey:(const std::string&)key
+void OOSystemDescriptionManager::setProperties(const oo::PList& properties, const std::string& key)
 {
-    oo::ObjCRef<OOSystemDescriptionEntry*>& desc = systemDescriptions[key];
-    if (desc.get() == nil) {
+    oo::Ref<OOSystemDescriptionEntry>& desc = systemDescriptions[key];
+    if (desc.get() == nullptr) {
         // create it
-        desc = oo::ObjCRef<OOSystemDescriptionEntry*>::adopt([[OOSystemDescriptionEntry alloc] init]);
+        desc = oo::makeRef<OOSystemDescriptionEntry>();
     }
-    [self setProperties:properties inDescription:desc.get()];
+    setProperties(properties, desc.get());
     if (const oo::PList::Dict* entries = properties.getIf<oo::PList::Dict>()) {
         for (const auto& [property, value] : *entries)
             propertiesInUse.insert(property);
@@ -195,24 +167,24 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system key. This is an internal error. Please report it.", key);
         } else {
-            [self updateCacheEntry:index];
+            updateCacheEntry(index);
         }
     }
 }
 
-- (void)cxx_setProperty:(const std::string&)property forSystemKey:(const std::string&)key andLayer:(OOSystemLayer)layer toValue:(const oo::PList&)value fromManifest:(const std::optional<std::string>&)manifest
+void OOSystemDescriptionManager::setProperty(const std::string& property, const std::string& key, OOSystemLayer layer, const oo::PList& value, const std::optional<std::string>& manifest)
 {
-    oo::ObjCRef<OOSystemDescriptionEntry*>& desc = systemDescriptions[key];
-    if (desc.get() == nil) {
+    oo::Ref<OOSystemDescriptionEntry>& desc = systemDescriptions[key];
+    if (desc.get() == nullptr) {
         // create it
-        desc = oo::ObjCRef<OOSystemDescriptionEntry*>::adopt([[OOSystemDescriptionEntry alloc] init]);
+        desc = oo::makeRef<OOSystemDescriptionEntry>();
     }
-    [desc.get() setProperty:property forLayer:layer toValue:value];
+    desc->setProperty(property, layer, value);
     propertiesInUse.insert(property);
 
     const oo::PList tokens = KeyTokens(key);
     if (tokens.count() == 2 && tokens.at<NSUInteger>(0) < OO_GALAXIES_AVAILABLE && tokens.at<NSUInteger>(1) < OO_SYSTEMS_PER_GALAXY) {
-        [self saveScriptedChangeToProperty:property forSystemKey:key andLayer:layer toValue:value fromManifest:manifest];
+        saveScriptedChangeToProperty(property, key, layer, value, manifest);
 
         OOGalaxyID g = tokens.at<NSUInteger>(0);
         OOSystemID s = tokens.at<NSUInteger>(1);
@@ -220,16 +192,16 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system key. This is an internal error. Please report it.", key);
         } else {
-            [self updateCacheEntry:index forProperty:property];
+            updateCacheEntry(index, property);
         }
     }
     // for interstellar updates, save but don't update cache
     else if (tokens.count() == 4 && tokens.at<NSUInteger>(1) < OO_GALAXIES_AVAILABLE && tokens.at<NSUInteger>(2) < OO_SYSTEMS_PER_GALAXY && tokens.at<NSUInteger>(3) < OO_SYSTEMS_PER_GALAXY) {
-        [self saveScriptedChangeToProperty:property forSystemKey:key andLayer:layer toValue:value fromManifest:manifest];
+        saveScriptedChangeToProperty(property, key, layer, value, manifest);
     }
 }
 
-- (void)saveScriptedChangeToProperty:(const std::string&)property forSystemKey:(const std::string&)key andLayer:(OOSystemLayer)layer toValue:(const oo::PList&)value fromManifest:(const std::optional<std::string>&)manifest
+void OOSystemDescriptionManager::saveScriptedChangeToProperty(const std::string& property, const std::string& key, OOSystemLayer layer, const oo::PList& value, const std::optional<std::string>& manifest)
 {
     // if OXP doesn't have a manifest, cancel saving the change
     if (!manifest.has_value()) {
@@ -253,7 +225,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     }
 }
 
-- (void)cxx_importScriptedChanges:(const oo::PList&)scripted
+void OOSystemDescriptionManager::importScriptedChanges(const oo::PList& scripted)
 {
     const oo::PList::Dict* changes = scripted.getIf<oo::PList::Dict>();
     if (changes == nullptr)
@@ -265,11 +237,11 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
             const std::string& manifest = key[0];
             if (![ResourceManager cxx_manifestForIdentifier:manifest].isNull()) {
                 //				OO_LOG("importing", "{} -> {}", oo::DescriptionOf(keyStr), oo::DescriptionOf([scripted objectForKey:keyStr]));
-                [self cxx_setProperty:key[2]
-                         forSystemKey:key[1]
-                             andLayer:OOSystemLayerFromNumber(static_cast<unsigned int>(oo::str::intValue(key[3])))
-                              toValue:value
-                         fromManifest:manifest];
+                setProperty(key[2],
+                    key[1],
+                    OOSystemLayerFromNumber(static_cast<unsigned int>(oo::str::intValue(key[3]))),
+                    value,
+                    manifest);
                 // and doing this set stores it into the manager's copy
                 // of scripted changes
                 // this means in theory we could import more than one
@@ -282,7 +254,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 }
 
 // import of the old local_planetinfo_overrides dictionary
-- (void)cxx_importLegacyScriptedChanges:(const oo::PList&)scripted
+void OOSystemDescriptionManager::importLegacyScriptedChanges(const oo::PList& scripted)
 {
     const oo::PList::Dict* systems = scripted.getIf<oo::PList::Dict>();
     if (systems == nullptr)
@@ -295,35 +267,35 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
             // then this is a change to import even if we don't know
             // if the OXP is still installed
             for (const auto& [propertyKey, value] : *systemChanges.getIf<oo::PList::Dict>()) {
-                [self cxx_setProperty:propertyKey
-                         forSystemKey:systemKey
-                             andLayer:OO_LAYER_OXP_DYNAMIC
-                              toValue:value
-                         fromManifest:defaultManifest];
+                setProperty(propertyKey,
+                    systemKey,
+                    OO_LAYER_OXP_DYNAMIC,
+                    value,
+                    defaultManifest);
             }
             /* Fix for older savegames not having a larger sun radius
              * property set from the Nova mission. */
             // -floatValue of the value (0 for nil)
-            const oo::PList sr = [self cxx_getProperty:"sun_radius" forSystemKey:systemKey];
+            const oo::PList sr = getProperty("sun_radius", systemKey);
             float sr_num = oo::plist_get::realFrom<float>(&sr, 0.0f);
             if (sr_num < 600000) {
                 // fix sun radius values (a float: written to disk as a single real)
-                [self cxx_setProperty:"sun_radius"
-                         forSystemKey:systemKey
-                             andLayer:OO_LAYER_OXP_DYNAMIC
-                              toValue:oo::PList::singleReal(sr_num + 600000.0f)
-                         fromManifest:defaultManifest];
+                setProperty("sun_radius",
+                    systemKey,
+                    OO_LAYER_OXP_DYNAMIC,
+                    oo::PList::singleReal(sr_num + 600000.0f),
+                    defaultManifest);
             }
         }
     }
 }
 
-- (oo::PList)cxx_exportScriptedChanges
+oo::PList OOSystemDescriptionManager::exportScriptedChanges()
 {
     return scriptedChanges;
 }
 
-- (oo::PList)cxx_getPropertiesForCurrentSystem
+oo::PList OOSystemDescriptionManager::getPropertiesForCurrentSystem()
 {
     OOSystemID s = [UNIVERSE currentSystemID];
     if (s >= 0) {
@@ -340,7 +312,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     }
 }
 
-- (oo::PList)cxx_getPropertiesForSystemKey:(const std::string&)key
+oo::PList OOSystemDescriptionManager::getPropertiesForSystemKey(const std::string& key)
 {
     const oo::PList tokens = KeyTokens(key);
     if (tokens.count() == 2 && tokens.at<NSUInteger>(0) < OO_GALAXIES_AVAILABLE && tokens.at<NSUInteger>(1) < OO_SYSTEMS_PER_GALAXY) {
@@ -354,10 +326,10 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         return propertyCache[index];
     }
     // interstellar spaces aren't cached
-    return [self calculatePropertiesForSystemKey:key];
+    return calculatePropertiesForSystemKey(key);
 }
 
-- (oo::PList)cxx_getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+oo::PList OOSystemDescriptionManager::getPropertiesForSystem(OOSystemID s, OOGalaxyID g)
 {
     NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
@@ -367,12 +339,12 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     return propertyCache[index];
 }
 
-- (oo::PList)cxx_getProperty:(const std::string&)property forSystemKey:(const std::string&)key
+oo::PList OOSystemDescriptionManager::getProperty(const std::string& property, const std::string& key)
 {
-    return [self getProperty:property forSystemKey:key withUniversal:YES];
+    return getProperty(property, key, YES);
 }
 
-- (oo::PList)cxx_getProperty:(const std::string&)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+oo::PList OOSystemDescriptionManager::getProperty(const std::string& property, OOSystemID s, OOGalaxyID g)
 {
     if (s < 0) {
         OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
@@ -386,57 +358,57 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     return ValueForKey(propertyCache[index], property);
 }
 
-- (oo::PList)getProperty:(const std::string&)property forSystemKey:(const std::string&)key withUniversal:(BOOL)universal
+oo::PList OOSystemDescriptionManager::getProperty(const std::string& property, const std::string& key, bool universal)
 {
-    OOSystemDescriptionEntry* desc = nil;
+    OOSystemDescriptionEntry* desc = nullptr;
     if (EXPECT_NOT(key == "interstellar")) {
-        desc = interstellarSpace;
+        desc = interstellarSpace.get();
     } else {
         auto entry = systemDescriptions.find(key);
         if (entry != systemDescriptions.end())
             desc = entry->second.get();
     }
-    if (desc == nil) {
+    if (desc == nullptr) {
         return oo::PList();
     }
-    oo::PList result = [desc getProperty:property forLayer:OO_LAYER_OXP_PRIORITY];
+    oo::PList result = desc->getProperty(property, OO_LAYER_OXP_PRIORITY);
     if (result.isNull()) {
-        result = [desc getProperty:property forLayer:OO_LAYER_OXP_DYNAMIC];
+        result = desc->getProperty(property, OO_LAYER_OXP_DYNAMIC);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property forLayer:OO_LAYER_OXP_STATIC];
+        result = desc->getProperty(property, OO_LAYER_OXP_STATIC);
     }
     if (result.isNull() && universal) {
         result = ValueForKey(universalProperties, property);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property forLayer:OO_LAYER_CORE];
+        result = desc->getProperty(property, OO_LAYER_CORE);
     }
     return result;
 }
 
-- (oo::PList)getProperty:(const std::string&)property1 orProperty:(const std::string&)property2 forSystemKey:(const std::string&)key withUniversal:(BOOL)universal
+oo::PList OOSystemDescriptionManager::getProperty(const std::string& property1, const std::string& property2, const std::string& key, bool universal)
 {
     auto entry = systemDescriptions.find(key);
-    if (entry == systemDescriptions.end() || entry->second.get() == nil) {
+    if (entry == systemDescriptions.end() || entry->second.get() == nullptr) {
         return oo::PList();
     }
     OOSystemDescriptionEntry* desc = entry->second.get();
-    oo::PList result = [desc getProperty:property1 forLayer:OO_LAYER_OXP_PRIORITY];
+    oo::PList result = desc->getProperty(property1, OO_LAYER_OXP_PRIORITY);
     if (result.isNull()) {
-        result = [desc getProperty:property2 forLayer:OO_LAYER_OXP_PRIORITY];
+        result = desc->getProperty(property2, OO_LAYER_OXP_PRIORITY);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property1 forLayer:OO_LAYER_OXP_DYNAMIC];
+        result = desc->getProperty(property1, OO_LAYER_OXP_DYNAMIC);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property2 forLayer:OO_LAYER_OXP_DYNAMIC];
+        result = desc->getProperty(property2, OO_LAYER_OXP_DYNAMIC);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property1 forLayer:OO_LAYER_OXP_STATIC];
+        result = desc->getProperty(property1, OO_LAYER_OXP_STATIC);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property2 forLayer:OO_LAYER_OXP_STATIC];
+        result = desc->getProperty(property2, OO_LAYER_OXP_STATIC);
     }
     if (universal) {
         if (result.isNull()) {
@@ -447,15 +419,15 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
         }
     }
     if (result.isNull()) {
-        result = [desc getProperty:property1 forLayer:OO_LAYER_CORE];
+        result = desc->getProperty(property1, OO_LAYER_CORE);
     }
     if (result.isNull()) {
-        result = [desc getProperty:property2 forLayer:OO_LAYER_CORE];
+        result = desc->getProperty(property2, OO_LAYER_CORE);
     }
     return result;
 }
 
-- (void)setProperties:(const oo::PList&)properties inDescription:(OOSystemDescriptionEntry*)desc
+void OOSystemDescriptionManager::setProperties(const oo::PList& properties, OOSystemDescriptionEntry* desc)
 {
     // Range-checked as the number it is read as, then converted: the enum only ever holds a layer.
     unsigned int layerNumber = properties.get<unsigned int>(kOOSystemLayerProperty, OO_LAYER_OXP_STATIC);
@@ -470,25 +442,25 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     for (const auto& [key, value] : *entries) {
         if (key != kOOSystemLayerProperty) {
             propertiesInUse.insert(key);
-            [desc setProperty:key forLayer:layer toValue:value];
+            desc->setProperty(key, layer, value);
         }
     }
 }
 
-- (oo::PList)calculatePropertiesForSystemKey:(const std::string&)key
+oo::PList OOSystemDescriptionManager::calculatePropertiesForSystemKey(const std::string& key)
 {
     oo::PList::Dict dict;
     BOOL interstellar = oo::str::hasPrefix(key, "interstellar:");
     for (const std::string& property : propertiesInUse) {
         // don't use universal properties on interstellar specific regions
-        oo::PList val = [self getProperty:property forSystemKey:key withUniversal:!interstellar];
+        oo::PList val = getProperty(property, key, !interstellar);
 
         if (!val.isNull()) {
             dict[property] = std::move(val);
         } else if (interstellar) {
             // interstellar is always overridden by specific regions
             // universal properties for interstellar get picked up here
-            val = [self getProperty:property forSystemKey:"interstellar" withUniversal:YES];
+            val = getProperty(property, "interstellar", YES);
             if (!val.isNull()) {
                 dict[property] = std::move(val);
             }
@@ -497,18 +469,18 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     return oo::PList(std::move(dict));
 }
 
-- (void)updateCacheEntry:(NSUInteger)i
+void OOSystemDescriptionManager::updateCacheEntry(NSUInteger i)
 {
-    OOAssert(i < OO_SYSTEM_CACHE_LENGTH, "Invalid cache entry number");
+    OOCAssert(i < static_cast<NSUInteger>(OO_SYSTEM_CACHE_LENGTH), "Invalid cache entry number"); // (the cast: tier-a re-keyed a pre-existing widening finding when OOAssert became OOCAssert)
     const std::string key = oo::str::format("%zu %zu", i / OO_SYSTEMS_PER_GALAXY, i % OO_SYSTEMS_PER_GALAXY);
-    propertyCache[i] = [self calculatePropertiesForSystemKey:key];
+    propertyCache[i] = calculatePropertiesForSystemKey(key);
 }
 
-- (void)updateCacheEntry:(NSUInteger)i forProperty:(const std::string&)property
+void OOSystemDescriptionManager::updateCacheEntry(NSUInteger i, const std::string& property)
 {
-    OOAssert(i < OO_SYSTEM_CACHE_LENGTH, "Invalid cache entry number");
+    OOCAssert(i < static_cast<NSUInteger>(OO_SYSTEM_CACHE_LENGTH), "Invalid cache entry number"); // (the cast: tier-a re-keyed a pre-existing widening finding when OOAssert became OOCAssert)
     const std::string key = oo::str::format("%zu %zu", i / OO_SYSTEMS_PER_GALAXY, i % OO_SYSTEMS_PER_GALAXY);
-    oo::PList current = [self cxx_getProperty:property forSystemKey:key];
+    oo::PList current = getProperty(property, key);
     oo::PList::Dict& cache = *propertyCache[i].getIf<oo::PList::Dict>();
     if (current.isNull()) {
         cache.erase(property);
@@ -517,7 +489,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     }
 }
 
-- (NSPoint)getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+NSPoint OOSystemDescriptionManager::getCoordinatesForSystem(OOSystemID s, OOGalaxyID g)
 {
     if (s < 0) {
         OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
@@ -531,7 +503,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     return coordinatesCache[index];
 }
 
-- (std::vector<OOSystemID>)cxx_getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+std::vector<OOSystemID> OOSystemDescriptionManager::getNeighbourIDsForSystem(OOSystemID s, OOGalaxyID g)
 {
     if (s < 0) {
         OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
@@ -546,7 +518,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     return neighbourCache[index];
 }
 
-- (Random_Seed)getRandomSeedForCurrentSystem
+Random_Seed OOSystemDescriptionManager::getRandomSeedForCurrentSystem()
 {
     if ([UNIVERSE currentSystemID] < 0) {
         return kNilRandomSeed;
@@ -562,7 +534,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     }
 }
 
-- (Random_Seed)getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+Random_Seed OOSystemDescriptionManager::getRandomSeedForSystem(OOSystemID s, OOGalaxyID g)
 {
     if (s < 0) {
         OO_LOG("system.description.error", "'{} {}' is an invalid system key. This is an internal error. Please report it.", static_cast<int>(g), static_cast<int>(s));
@@ -576,34 +548,23 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     return cxx_RandomSeedFromString(StringForKey(propertyCache[index], "random_seed"));
 }
 
-@end
+} // namespace cxx
 
-@interface OOSystemDescriptionEntry (OOPrivate)
-// null = nil (validation failed and could not be recovered)
-- (oo::PList)validateProperty:(const std::string&)property withValue:(const oo::PList&)value;
-@end
-
-@implementation OOSystemDescriptionEntry
-
-- (id)init
+OOSystemDescriptionEntry::OOSystemDescriptionEntry()
 {
-    self = [super init];
-    if (self != nil) {
-        for (NSUInteger i = 0; i < OO_SYSTEM_LAYERS; i++) {
-            layers[i] = oo::PList(oo::PList::Dict());
-        }
+    for (NSUInteger i = 0; i < OO_SYSTEM_LAYERS; i++) {
+        layers[i] = oo::PList(oo::PList::Dict());
     }
-    return self;
 }
 
-- (void)setProperty:(const std::string&)property forLayer:(OOSystemLayer)layer toValue:(const oo::PList&)value
+void OOSystemDescriptionEntry::setProperty(const std::string& property, OOSystemLayer layer, const oo::PList& value)
 {
     oo::PList::Dict& properties = *layers[layer].getIf<oo::PList::Dict>();
     if (value.isNull()) {
         properties.erase(property);
     } else {
         // validate type of object for certain properties
-        oo::PList validated = [self validateProperty:property withValue:value];
+        oo::PList validated = validateProperty(property, value);
         // if it's nil now, validation failed and could not be recovered
         // so don't actually set anything
         if (!validated.isNull()) {
@@ -612,7 +573,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
     }
 }
 
-- (oo::PList)getProperty:(const std::string&)property forLayer:(OOSystemLayer)layer
+oo::PList OOSystemDescriptionEntry::getProperty(const std::string& property, OOSystemLayer layer)
 {
     return ValueForKey(layers[layer], property);
 }
@@ -622,7 +583,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
  * safe methods like get<std::string> - a few things use a direct call
  * to getProperty for various reasons, so need some type validation
  * here instead. */
-- (oo::PList)validateProperty:(const std::string&)property withValue:(const oo::PList&)value
+oo::PList OOSystemDescriptionEntry::validateProperty(const std::string& property, const oo::PList& value)
 {
     // OOLog's %@ of the value: its object, as it was before it became a property list
     if (property == "coordinates") {
@@ -657,5 +618,3 @@ std::optional<std::string> StringForKey(const oo::PList& dict, const char* key)
 
     return value;
 }
-
-@end

@@ -32,6 +32,10 @@
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOStringExpander.h"
+#import "OOFoundationBridge.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
+#include "oofnd/objc/OOException.h"
 #include <objc/objc-arc.h>
 #include <objc/runtime.h>
 #include <stdint.h>
@@ -75,6 +79,20 @@ void OOLogWithPrefix(NSString *cls, const char *fn, const char *file, unsigned l
 }
 void OOLogGenericParameterErrorForFunction(const char *fn) { [sLog addObject:[NSString stringWithFormat:@"parameter error %s", fn]]; }
 void OOLogGenericSubclassResponsibilityForFunction(const char *fn) { [sLog addObject:@"subclass responsibility"]; }
+// The expander logs through oo::log since bead oo-3rb.315: its finished lines ("[class] function:
+// message", the format OOLogWithFunctionFileAndLineAndArguments above records) reach this sink
+// (bead oo-qqz6: harness plumbing; installed in main()). A failed assertion (OOCAssert) now logs
+// here too, in class "gnustep"; NSCAssert's NSLog went to stderr and was never recorded (and the
+// line quotes the temporary copy's path), so it is left out, as it was.
+static void HarnessLogSink(std::string_view line)
+{
+	if (line.starts_with("[gnustep] "))
+	{
+		fprintf(stderr, "%.*s\n", (int)line.size(), line.data());
+		return;
+	}
+	[sLog addObject:MaskPercentLc(oo::NSStringFrom(std::string(line)))];
+}
 void OOLogIndent(void) {}
 void OOLogOutdent(void) {}
 void OOLogPushIndent(void) {}
@@ -85,6 +103,12 @@ void OOJSRelinquishContext(JSContext *context) {}
 void OOJSReportWarningWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString *msg = [[[NSString alloc] initWithFormat:format arguments:args] autorelease];
+	[sLog addObject:[@"JS warning: " stringByAppendingString:MaskPercentLc(msg)]];
+}
+// The C++ form (printf format) the expander calls since bead oo-vp0y.10; the same record.
+void cxx_OOJSReportWarningWithArguments(JSContext *context, const char *format, va_list args)
+{
+	NSString *msg = oo::NSStringFrom(oo::str::vformat(format, args));
 	[sLog addObject:[@"JS warning: " stringByAppendingString:MaskPercentLc(msg)]];
 }
 
@@ -121,16 +145,26 @@ NSString *OOHarnessCredits(OOCreditsQuantity tenths, BOOL decimal)
 - (NSString *) getSystemName:(OOSystemID)sys { return [NSString stringWithFormat:@"Sys%d", (int)sys]; }
 - (NSString *) getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal { return [NSString stringWithFormat:@"G%dSys%d", (int)gal, (int)sys]; }
 - (OOHarnessSystemManager *) systemManager { return [[[OOHarnessSystemManager alloc] init] autorelease]; }
+// The C++ forms (bead oo-qqz6): the same data, converted once / per call.
+- (const oo::PList *) cxx_descriptions
+{
+	static const oo::PList *descriptions = new oo::PList(oo::PListFrom(sDescriptions));
+	return descriptions;
+}
+- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys { return oo::OptionalString([self getSystemName:sys]); }
+- (std::optional<std::string>) cxx_getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gal { return oo::OptionalString([self getSystemName:sys forGalaxy:gal]); }
 @end
 static Universe *sUniverse;
 Universe *OOGetUniverse(void) { return sUniverse; }
 
 // Every whitelisted legacy query method answers with its own name (and is logged, so a call
-// the engine makes or skips shows).
-static id QueryIMP(id self, SEL _cmd)
+// the engine makes or skips shows). Queries are called by name (OOCallByName, ADR-0055 item 5),
+// which reads an oo::PList result: the answer is the same text as a string PList, and the method
+// is added with -harnessQueryTemplate's type encoding (bead oo-qqz6: stub-API tracking).
+static oo::PList QueryIMP(id self, SEL _cmd)
 {
 	[sLog addObject:[NSString stringWithFormat:@"query %s", sel_getName(_cmd)]];
-	return [NSString stringWithFormat:@"q(%s)", sel_getName(_cmd)];
+	return oo::PList(oo::StdString([NSString stringWithFormat:@"q(%s)", sel_getName(_cmd)]));
 }
 
 @implementation PlayerEntity
@@ -140,7 +174,8 @@ static id QueryIMP(id self, SEL _cmd)
 	size_t n = strlen(name);
 	if (n > 0 && name[n - 1] != ':')
 	{
-		class_addMethod(self, sel, (IMP)QueryIMP, "@@:");
+		Method templateMethod = class_getInstanceMethod(self, @selector(harnessQueryTemplate));
+		class_addMethod(self, sel, reinterpret_cast<IMP>(reinterpret_cast<void (*)(void)>(&QueryIMP)), method_getTypeEncoding(templateMethod));
 		return YES;
 	}
 	return [super resolveInstanceMethod:sel];
@@ -152,21 +187,30 @@ static id QueryIMP(id self, SEL _cmd)
 	return [@"mv:" stringByAppendingString:key];
 }
 - (NSString *) keyBindingDescription2:(NSString *)binding { return [@"kb:" stringByAppendingString:binding]; }
-- (NSString *) commanderName_string { return @"Jameson"; }
-- (NSString *) commanderShip_string { return @"Cobra Mark III"; }
-- (NSString *) commanderShipDisplayName_string { return @"Cobra \u00C9"; }
-- (NSString *) commanderRank_string { return @"Harmless"; }
-- (NSString *) commanderKillsAsString { return @"12"; }
-- (NSString *) commanderLegalStatus_string { return @"Clean"; }
-- (NSString *) commanderBountyAsString { return @"0"; }
-- (NSString *) creditsFormattedForSubstitution { return @"1,234.5"; }
-- (NSString *) creditsFormattedForLegacySubstitution { return @"1234.5"; }
+- (oo::PList) harnessQueryTemplate { return oo::PList(); }
+- (oo::PList) commanderName_string { return oo::PList(oo::StdString(@"Jameson")); }
+- (oo::PList) commanderShip_string { return oo::PList(oo::StdString(@"Cobra Mark III")); }
+- (oo::PList) commanderShipDisplayName_string { return oo::PList(oo::StdString(@"Cobra \u00C9")); }
+- (oo::PList) commanderRank_string { return oo::PList(oo::StdString(@"Harmless")); }
+- (oo::PList) commanderKillsAsString { return oo::PList(oo::StdString(@"12")); }
+- (oo::PList) commanderLegalStatus_string { return oo::PList(oo::StdString(@"Clean")); }
+- (oo::PList) commanderBountyAsString { return oo::PList(oo::StdString(@"0")); }
+- (oo::PList) creditsFormattedForSubstitution { return oo::PList(oo::StdString(@"1,234.5")); }
+- (oo::PList) creditsFormattedForLegacySubstitution { return oo::PList(oo::StdString(@"1234.5")); }
+// The C++ forms (bead oo-qqz6): the same answers; a nil mission variable is a null PList.
+- (oo::PList) cxx_missionVariableForKey:(const std::string &)key
+{
+	NSString *value = [self missionVariableForKey:oo::NSStringFrom(key)];
+	return value != nil ? oo::PList(oo::StdString(value)) : oo::PList();
+}
+- (std::optional<std::string>) cxx_keyBindingDescription2:(const std::string &)binding { return oo::OptionalString([self keyBindingDescription2:oo::NSStringFrom(binding)]); }
 @end
 static PlayerEntity *sPlayer;
 PlayerEntity *OOGetPlayer(void) { return sPlayer; }
 
 @implementation ResourceManager
 + (NSDictionary *) whitelistDictionary { return sWhitelist; }
++ (oo::PList) cxx_whitelistDictionary { return oo::PListFrom(sWhitelist); }
 @end
 
 // --- recording -----------------------------------------------------------------------------
@@ -219,6 +263,11 @@ static NSString *Expand(Random_Seed seed, NSString *string, NSString *systemName
 	@try
 	{
 		return OOExpandDescriptionString(seed, string, overrides, locals, systemName, options);
+	}
+	@catch (OOException *e)
+	{
+		// The expander raises OOException since bead oo-3rb.5 (the same name text; bead oo-qqz6).
+		[sLog addObject:[@"EXCEPTION " stringByAppendingString:[NSString stringWithUTF8String:[e name]]]];
 	}
 	@catch (NSException *e)
 	{
@@ -310,6 +359,10 @@ int main(int argc, char **argv)
 	}
 	sPrint = argc > 3 && strcmp(argv[3], "--print") == 0;
 	sLog = [NSMutableArray new];
+	// oo::log as the old stubs above behaved: every class shows, "[class] function: message".
+	oo::log::logger().setSink(&HarnessLogSink);
+	oo::log::logger().setInitialized(true);
+	oo::log::logger().setOptions(oo::log::Options{ .showFunction = true, .showFileAndLine = false, .showClass = true, .showTime = false });
 	sUniverse = [Universe new];
 	sPlayer = [PlayerEntity new];
 	sDescriptions = [[NSDictionary dictionaryWithContentsOfFile:[NSString stringWithUTF8String:argv[1]]] retain];
@@ -366,9 +419,59 @@ int main(int argc, char **argv)
 	}
 	const uint64_t stringsHash = sHash;
 
-	// Captured from the original OOStringExpander.mm (see the banner).
-	const uint64_t kKeysDigest = 0xdaec14b5265fca36ULL, kStringsDigest = 0x07a1e83ff98956ebULL;
-	int failures = 0;
+	// Regression (bead oo-3rb.69): a replacement of "\x7F" eats the character after it. At the end
+	// of the (sub-)string there is none; the upstream engine then asserted in AppendCharacters
+	// (start > end) and raised out of OOExpandDescriptionString. It now eats nothing there.
+	int regressionFailures = 0;
+	{
+		void *inner = objc_autoreleasePoolPush();
+		Random_Seed seed = { 1, 2, 3, 4, 5, 6 };
+		NSDictionary *del = @{ @"del": @"\x7F" };
+		NSString *const cases[][2] =
+		{
+			{ @"a[del]", @"a" },		// at the end: eats nothing (asserted before)
+			{ @"ab[del]", @"ab" },		// at the end: eats nothing (asserted before)
+			{ @"a[del]bc", @"ac" },		// in the middle: eats "b", as always
+			{ @"[del]x", @"" },			// the whole string, as always
+		};
+		for (const auto &c : cases)
+		{
+			NSString *r = nil;
+			@try
+			{
+				r = OOExpandDescriptionString(seed, c[0], del, nil, nil, kOOExpandNoOptions);
+			}
+			@catch (OOException *e)
+			{
+				fprintf(stderr, "test_string_expander: %s raised %s\n", [Units(c[0]) UTF8String], [e name]);
+				regressionFailures++;
+				continue;
+			}
+			@catch (NSException *e)
+			{
+				fprintf(stderr, "test_string_expander: %s raised %s\n", [Units(c[0]) UTF8String], [[e name] UTF8String]);
+				regressionFailures++;
+				continue;
+			}
+			if (![r isEqualToString:c[1]])
+			{
+				fprintf(stderr, "test_string_expander: %s gave %s, expected %s\n", [Units(c[0]) UTF8String], [Units(r) UTF8String], [Units(c[1]) UTF8String]);
+				regressionFailures++;
+			}
+		}
+		[sLog removeAllObjects];
+		objc_autoreleasePoolPop(inner);
+	}
+
+	// Captured from the original OOStringExpander.mm (see the banner). Re-captured with Jon's
+	// approval, 2026-09-29 (bead oo-qqz6; were 0xdaec14b5265fca36 / 0x07a1e83ff98956eb): every
+	// expansion result and RNG draw is unchanged; only log text differs - 7845 lines name a
+	// non-string value by its contents instead of its class (oo-qps.50), and 22 JS warnings end at
+	// an embedded NUL, as the C string the JS engine receives always did (oo-kpxgo).
+	// kStringsDigest re-captured with Jon's approval, 2026-09-29 (bead oo-3rb.69; was
+	// 0xdc8ef7032bfb6797): the \x7F fix changes exactly the 12 records that raised before.
+	const uint64_t kKeysDigest = 0x6349f869900cf779ULL, kStringsDigest = 0xef7448c0016ba2edULL;
+	int failures = regressionFailures;
 	if (keysHash != kKeysDigest)
 	{
 		fprintf(stderr, "test_string_expander: descriptions.plist keys digest 0x%016llx, expected 0x%016llx (%u lines)\n", (unsigned long long)keysHash, (unsigned long long)kKeysDigest, keysLines);

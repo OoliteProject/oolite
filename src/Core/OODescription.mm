@@ -32,34 +32,7 @@ MA 02110-1301, USA.
 
 #include <objc/runtime.h>
 
-/*	TRANSITIONAL (ADR-0055 item 1): the legacy id-typed family (-descriptionComponents,
-        -shortDescriptionComponents, -description, -shortDescription), as the forwarding below sends it
-        to a class that still overrides it and to an object not rooted on OOObject. oo-qps.43 flipped
-        the game's overrides and deleted the legacy root family, so nothing declares those selectors any
-        more: SendLegacy calls them through the IMP. The text object they return answers -UTF8String.
-        oo-qps.72 deletes this.
-*/
-@protocol OOLegacyText
-- (const char*)UTF8String;
-@end
-
 namespace {
-
-// The legacy id-typed <selector> of <object>, which must answer it.
-id SendLegacy(id object, SEL selector)
-{
-    using LegacyMethod = id (*)(id, SEL);
-    return reinterpret_cast<LegacyMethod>(class_getMethodImplementation(object_getClass(object), selector))(object, selector);
-}
-
-// Whether <object>'s class implements the legacy <selector> other than as the root's own default.
-bool HasLegacyOverride(id object, SEL selector)
-{
-    Class cls = object_getClass(object);
-    if (!class_respondsToSelector(cls, selector))
-        return false;
-    return class_getMethodImplementation(cls, selector) != class_getMethodImplementation([OOObject class], selector);
-}
 
 // Whether <object> is rooted on OOObject (so it answers the C++ family).
 bool IsOOObject(id object)
@@ -71,53 +44,27 @@ bool IsOOObject(id object)
     return false;
 }
 
-// "%@" of an object not rooted on OOObject: the text of its -description (a string's is itself,
-// so this reads it rather than describing it again).
-std::string ForeignDescription(id description)
-{
-    if (description == nil)
-        return "(null)";
-    const char* text = [(id<OOLegacyText>)description UTF8String];
-    return text != nullptr ? std::string(text) : std::string();
-}
-
-// A legacy method's text result: nullopt for nil, else "%@" of it (a string prints as itself).
-std::optional<std::string> LegacyText(id text)
-{
-    if (text == nil)
-        return std::nullopt;
-    return oo::DescriptionOf(text);
-}
-
 } // namespace
 
 @implementation OOObject (OODescription)
 
 - (std::optional<std::string>)cxx_descriptionComponents
 {
-    if (HasLegacyOverride(self, @selector(descriptionComponents)))
-        return LegacyText(SendLegacy(self, @selector(descriptionComponents)));
     return std::nullopt;
 }
 
 - (std::optional<std::string>)cxx_shortDescriptionComponents
 {
-    if (HasLegacyOverride(self, @selector(shortDescriptionComponents)))
-        return LegacyText(SendLegacy(self, @selector(shortDescriptionComponents)));
     return std::nullopt;
 }
 
 - (std::optional<std::string>)cxx_description
 {
-    if (HasLegacyOverride(self, @selector(description)))
-        return LegacyText(SendLegacy(self, @selector(description)));
     return oo::DescriptionWithComponents(self, [self cxx_descriptionComponents]);
 }
 
 - (std::optional<std::string>)cxx_shortDescription
 {
-    if (HasLegacyOverride(self, @selector(shortDescription)))
-        return LegacyText(SendLegacy(self, @selector(shortDescription)));
     return oo::DescriptionWithComponents(self, [self cxx_shortDescriptionComponents]);
 }
 
@@ -148,7 +95,9 @@ std::string DescriptionOf(id object)
     if (IsOOObject(object)) {
         return [(OOObject*)object cxx_description].value_or("(null)");
     }
-    return ForeignDescription(SendLegacy(object, @selector(description)));
+    // An object on another root (nothing in the game since oo-3rb.4 made every literal an
+    // OOConstantString and oo-qps.18 unlinked gnustep-base): <ClassName 0xnnnnnnnn>.
+    return DescriptionWithComponents(object, std::nullopt);
 }
 
 std::string ShortDescriptionOf(id object)
@@ -160,11 +109,7 @@ std::string ShortDescriptionOf(id object)
     if (IsOOObject(object)) {
         return [(OOObject*)object cxx_shortDescription].value_or("(null)");
     }
-    // A Foundation value has no -shortDescription since oo-qps.43 deleted the legacy root family,
-    // whose NSObject default printed <ClassName 0xnnnnnnnn>.
-    if (!class_respondsToSelector(object_getClass(object), @selector(shortDescription)))
-        return DescriptionWithComponents(object, std::nullopt);
-    return ForeignDescription(SendLegacy(object, @selector(shortDescription)));
+    return DescriptionWithComponents(object, std::nullopt); // another root, as DescriptionOf
 }
 
 std::string DescriptionWithComponents(id object, const std::optional<std::string>& components)

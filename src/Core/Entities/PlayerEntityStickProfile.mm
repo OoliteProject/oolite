@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickProfile.h"
 #import "HeadUpDisplay.h"
-#import "OOFoundationBridge.h"
 #import "OOJoystickManager.h"
 #import "OOJoystickProfile.h"
 #import "OOMacroOpenGL.h"

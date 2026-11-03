@@ -140,7 +140,7 @@ inline constexpr std::string_view SCENARIO_OXP_DEFINITION_NOPLIST = "exc:";
  */
 + (BOOL)cxx_writeDiagnosticData:(const oo::Data&)data toFileNamed:(const std::string&)name;
 + (BOOL)cxx_writeDiagnosticString:(const std::string&)string toFileNamed:(const std::string&)name;
-+ (BOOL)cxx_writeDiagnosticPList:(id)plist toFileNamed:(const std::string&)name; // plist: a property-list object graph
++ (BOOL)cxx_writeDiagnosticPList:(const oo::PList&)plist toFileNamed:(const std::string&)name;
 
 + (std::optional<std::string>)cxx_diagnosticFileLocation;
 

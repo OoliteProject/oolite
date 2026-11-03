@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFileScannerVerifierStage.h"
-#import "OOFoundationBridge.h"
 #import "OOStringParsing.h"
 
 #include "oofnd/FileSystem.hpp"
@@ -73,24 +72,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 } // namespace
 
-@implementation OOCheckRequiresPListVerifierStage
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOCheckRequiresPListVerifierStage::name()
 {
     return kStageName;
 }
 
-- (BOOL)shouldRun
+bool OOCheckRequiresPListVerifierStage::shouldRun()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    return [fileScanner cxx_fileExists:"requires.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    return fileScanner != nullptr && fileScanner->fileExists("requires.plist", "Config", std::nullopt, false);
 }
 
-- (void)run
+void OOCheckRequiresPListVerifierStage::run()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
     oo::PList requiresPList;
     std::vector<std::string> knownKeys;
     std::string unknownKeys;
@@ -100,8 +97,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     std::optional<std::vector<unsigned>> versionComponents,
         maxVersionComponents;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    requiresPList = [fileScanner cxx_plistNamed:"requires.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner != nullptr)
+        requiresPList = fileScanner->plistNamed("requires.plist", "Config", std::nullopt, false);
 
     if (requiresPList.isNull())
         return;
@@ -113,7 +111,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     // Check that all the keys are known.
-    knownKeys = [[self verifier] cxx_configurationSetForKey:"requiresPListSupportedKeys"].value_or(std::vector<std::string>());
+    knownKeys = [verifier() cxx_configurationSetForKey:"requiresPListSupportedKeys"].value_or(std::vector<std::string>());
     for (const auto& [key, value] : *requiresPList.getIf<oo::PList::Dict>()) {
         if (std::find(knownKeys.begin(), knownKeys.end(), key) != knownKeys.end())
             continue;
@@ -166,7 +164,5 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         }
     }
 }
-
-@end
 
 #endif

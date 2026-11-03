@@ -7,9 +7,9 @@ Probability weights can be 0 - an object may be in the set but not selectable.
 Comes in mutable and immutable variants.
 
 Performance characteristics:
-  *	-randomObject, the primary method, is O(log n) for immutable
+  *	randomObject(), the primary method, is O(log n) for immutable
         OOProbabilitySets and O(n) for mutable ones.
-  *	-containsObject: and -probabilityForObject: are O(n). This could be
+  *	containsObject() and probabilityForObject() are O(n). This could be
         optimized, but there's currently no need.
 
 
@@ -35,50 +35,66 @@ SOFTWARE.
 
 */
 
+#ifndef OOPROBABILITYSET_H
+#define OOPROBABILITYSET_H
+
 #import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 
-@interface OOProbabilitySet : OOObject <OOCopying, OOMutableCopying>
+/*	C++20 since bead oo-489v (proposed ADR-0056, the OOColor house style). The class cluster is a
+        C++ hierarchy: the two abstract classes here, and the four concrete ones private to
+        OOProbabilitySet.mm. Its callers (OOShipRegistry, Universe) were adapted in the same bead, so
+        there is no Objective-C facade and the classes are global.
+*/
+class OOMutableProbabilitySet;
 
-// The elements are oo::PList values (proposed ADR-0055 item 2): ship keys are strings; an
-// Object node (oo::PListObject) carries an Objective-C object. Two elements are the same if they
-// are == or are Object nodes holding the same object or -isEqual: objects.
-+ (id)probabilitySet;
-+ (id)probabilitySetWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count;
-+ (id)probabilitySetWithPropertyListRepresentation:(const oo::PList&)plist;
+class OOProbabilitySet : public oo::RefCounted {
+public:
+    // The elements are oo::PList values (proposed ADR-0055 item 2): ship keys are strings; an
+    // Object node (oo::PListObject) carries an Objective-C object. Two elements are the same if they
+    // are == or are Object nodes holding the same object or -isEqual: objects.
+    // The factories are the class cluster's +alloc/-init...: an immutable set, null where the
+    // initialiser returned nil.
+    static oo::Ref<OOProbabilitySet> probabilitySet(); // the empty set: one shared object
+    static oo::Ref<OOProbabilitySet> probabilitySetWithObjects(const oo::PList* objects, const float* weights, NSUInteger count);
+    static oo::Ref<OOProbabilitySet> probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
-- (id)init;
-- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count;
-- (id)initWithPropertyListRepresentation:(const oo::PList&)plist;
+    // propertyListRepresentation is only valid if objects are property list objects.
+    virtual oo::PList propertyListRepresentation() = 0;
 
-// propertyListRepresentation is only valid if objects are property list objects.
-- (oo::PList)propertyListRepresentation;
+    virtual NSUInteger count() = 0;
+    virtual oo::PList randomObject() = 0; // A null PList for none (an empty set, or every weight zero).
 
-- (NSUInteger)count;
-- (oo::PList)randomObject; // A null PList for none (an empty set, or every weight zero).
+    virtual float weightForObject(const oo::PList& object) = 0; // Returns -1 for unknown objects.
+    virtual float sumOfWeights() = 0;
+    virtual std::vector<oo::PList> allElements() = 0; // the elements, in the same order (-cxx_allObjects is OOWeakSet's family)
 
-- (float)weightForObject:(const oo::PList&)object; // Returns -1 for unknown objects.
-- (float)sumOfWeights;
-- (id)allObjects; // shared selector: an Objective-C array (strings as NSStrings, Object nodes as their objects)
-- (std::vector<oo::PList>)cxx_allElements; // the elements, in the same order (-cxx_allObjects is OOWeakSet's family)
+    // (OOExtendedProbabilitySet)
+    bool containsObject(const oo::PList& object);
+    float probabilityForObject(const oo::PList& object); // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
 
-@end
+    // -copy (an immutable set) and -mutableCopy.
+    virtual oo::Ref<OOProbabilitySet> copy();
+    virtual oo::Ref<OOMutableProbabilitySet> mutableCopy();
 
-@interface OOProbabilitySet (OOExtendedProbabilitySet)
+    // What "%@" printed between the braces of <Class 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+};
 
-- (BOOL)cxx_containsObject:(const oo::PList&)object;
-- (id)objectEnumerator; // shared selector: an enumerator over -allObjects
-- (float)probabilityForObject:(const oo::PList&)object; // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
+class OOMutableProbabilitySet : public OOProbabilitySet {
+public:
+    // The same factories, for a mutable set (+probabilitySet: a new empty one).
+    static oo::Ref<OOMutableProbabilitySet> probabilitySet();
+    static oo::Ref<OOMutableProbabilitySet> probabilitySetWithObjects(const oo::PList* objects, const float* weights, NSUInteger count);
+    static oo::Ref<OOMutableProbabilitySet> probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
-@end
+    virtual void setWeight(float weight, const oo::PList& object) = 0; // Adds object if needed; a null object is ignored.
+    virtual void removeObject(const oo::PList& object) = 0;
 
-@interface OOMutableProbabilitySet : OOProbabilitySet
+    oo::Ref<OOProbabilitySet> copy() override;
+};
 
-- (void)setWeight:(float)weight forObject:(const oo::PList&)object; // Adds object if needed; a null object is ignored.
-- (void)cxx_removeObject:(const oo::PList&)object;
-
-@end
+#endif // OOPROBABILITYSET_H

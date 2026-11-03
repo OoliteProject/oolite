@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOMeshToOctreeConverter.h"
-#import "OOStringBridge.h"
 
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
@@ -222,56 +221,52 @@ OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
     }
 }
 
-@implementation OOMeshToOctreeConverter
+namespace cxx {
 
-- (id)initWithCapacity:(NSUInteger)capacity
+OOMeshToOctreeConverter::OOMeshToOctreeConverter(NSUInteger capacity)
 {
-    OOParameterAssert(capacity < UINT32_MAX);
+    OOCParameterAssert(capacity < UINT32_MAX);
     if (capacity == 0)
         capacity = 1; // Happens for models with no faces.
 
-    if ((self = [super init])) {
+    {
         InitGeometryData(&_data, capacity);
     }
-
-    return self;
 }
 
-- (void)dealloc
+OOMeshToOctreeConverter::~OOMeshToOctreeConverter()
 {
     DestroyGeometryData(&_data);
-
-    [super dealloc];
 }
 
-+ (instancetype)converterWithCapacity:(NSUInteger)capacity
+oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(NSUInteger capacity)
 {
-    return [[[self alloc] initWithCapacity:capacity] autorelease];
+    return oo::makeRef<OOMeshToOctreeConverter>(capacity);
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOMeshToOctreeConverter::descriptionComponents() const
 {
     return oo::str::format("%u triangles", _data.count);
 }
 
-- (void)addTriangle:(Triangle)tri
+void OOMeshToOctreeConverter::addTriangle(Triangle tri)
 {
     if (!OOTriangleIsDegenerate(tri)) {
         AddTriangle(&_data, tri);
     }
 }
 
-- (Octree*)findOctreeToDepth:(NSUInteger)depth
+oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth)
 {
-    OOOctreeBuilder* builder = [[[OOOctreeBuilder alloc] init] autorelease];
+    oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
     OOScalar halfWidth = 0.5f + MaxDimensionFromOrigin(&_data); // pad out from geometry by a half meter
 
-    BuildSubOctree(&_data, builder, halfWidth, depth);
+    BuildSubOctree(&_data, builder.get(), halfWidth, depth);
 
-    return [builder buildOctreeWithRadius:halfWidth];
+    return builder->buildOctreeWithRadius(halfWidth);
 }
 
-@end
+} // namespace cxx
 
 static OOScalar MaxDimensionFromOrigin(GeometryData* data)
 {
@@ -298,13 +293,13 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfW
 
     if (data->count == 0) {
         // No geometry here.
-        [builder writeEmpty];
+        builder->writeEmpty();
         return;
     }
 
     if (halfWidth <= OCTREE_MIN_HALF_WIDTH || depth <= 0) {
         // Maximum resolution reached and not full.
-        [builder writeSolid];
+        builder->writeSolid();
         return;
     }
 
@@ -393,7 +388,7 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfW
     DestroyGeometryData(&g_xx0);
     DestroyGeometryData(&g_xx1);
 
-    [builder beginInnerNode];
+    builder->beginInnerNode();
     depth--;
     BuildSubOctree(&g_000, builder, subHalfWidth, depth);
     BuildSubOctree(&g_001, builder, subHalfWidth, depth);
@@ -403,7 +398,7 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder, OOScalar halfW
     BuildSubOctree(&g_101, builder, subHalfWidth, depth);
     BuildSubOctree(&g_110, builder, subHalfWidth, depth);
     BuildSubOctree(&g_111, builder, subHalfWidth, depth);
-    [builder endInnerNode];
+    builder->endInnerNode();
 
     DestroyGeometryData(&g_000);
     DestroyGeometryData(&g_001);

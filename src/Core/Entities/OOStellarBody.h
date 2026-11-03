@@ -54,9 +54,7 @@ typedef enum {
 - (double)radius;
 - (OOStellarBodyType)planetType;
 
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
 - (std::optional<std::string>)cxx_name; // nullopt: unnamed (bead oo-3rb.289.12)
-- (void)setName:(id)name; // shared selector (Foundation declares -setName: too): -cxx_setName: with an Objective-C string, or nil
 - (void)cxx_setName:(const std::optional<std::string>&)name;
 
 @end

@@ -2,11 +2,10 @@
 
 OOCallByName.mm
 
-See OOCallByName.h (proposed ADR-0055 item 5, bead oo-qps.34). The typed dispatch is
-Foundation-free; only the transitional id branch below bridges, and oo-qps.72 deletes it.
-tests/unit/oofnd/test_objc_call_by_name.mm compiles this file with
-OO_CALL_BY_NAME_FOUNDATION_FREE=1 (no bridge: an id-typed method is logged and not called) and
-links it against libobjc2 alone.
+See OOCallByName.h (proposed ADR-0055 item 5, bead oo-qps.34). Foundation-free: oo-qps.72
+deleted the transitional id branch that bridged an argument to an Objective-C object (a method
+with an object parameter is logged and not called). tests/unit/oofnd/test_objc_call_by_name.mm
+compiles this file and links it against libobjc2 alone.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -38,14 +37,6 @@ MA 02110-1301, USA.
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-
-#ifndef OO_CALL_BY_NAME_FOUNDATION_FREE
-#define OO_CALL_BY_NAME_FOUNDATION_FREE 0
-#endif
-
-#if !OO_CALL_BY_NAME_FOUNDATION_FREE
-#import "OOFoundationBridge.h" // TRANSITIONAL: the id branch (oo-qps.72 deletes it)
-#endif
 
 /*	One method per accepted C++ signature: their type encodings are what a called method's must be
         (the encoding of a C++ class or reference is compiler- and ABI-specific, so it is read, not
@@ -84,7 +75,7 @@ enum class Kind : std::uint8_t {
     Void, // a void result, or a scalar result the dispatcher ignores
     PList, // oo::PList result, or a const oo::PList & argument
     String, // a const std::string & argument
-    Object, // TRANSITIONAL: id (any object pointer)
+    Object, // an object (id or ClassName *): a result, ignored (ADR-0055 Amendment 2)
     Unsupported
 };
 
@@ -223,6 +214,7 @@ oo::PList Call(id target, SEL selector, const Argument& argument)
 
     const bool arityMatches = (argument.kind == Kind::None) == (parameter == Kind::None);
     const bool usable = arityMatches && result != Kind::Unsupported && parameter != Kind::Unsupported
+        && parameter != Kind::Object
         && !(argument.kind == Kind::PList && parameter == Kind::String && plistAsString == nullptr)
         && !(parameter == Kind::PList && result != Kind::Void && result != Kind::Object);
     if (!usable) {
@@ -230,46 +222,23 @@ oo::PList Call(id target, SEL selector, const Argument& argument)
         return oo::PList();
     }
 
-    if (result == Kind::Object || parameter == Kind::Object) {
-#if OO_CALL_BY_NAME_FOUNDATION_FREE
-        LogBadSignature(target, selector, method);
-        return oo::PList();
-#else
-        // TRANSITIONAL (oo-qps.72): the method is still typed id. Only an id parameter may have a
-        // void or PList result here; any other parameter kind came here for an id result.
-        id object = nil;
-        if (parameter == Kind::Object) {
-            object = (argument.kind == Kind::String) ? oo::NSStringFrom(*argument.string) : oo::ObjectFromPList(*argument.plist);
-        }
-        const std::string* string = (argument.kind == Kind::String) ? argument.string : plistAsString;
-        const oo::PList& plist = (argument.kind == Kind::PList) ? *argument.plist : stringAsPList;
-        id returned = nil;
-        oo::PList returnedPList;
+    if (result == Kind::Object) {
+        // An object result (the ship a launch action returns) is ignored, as a scalar is: no
+        // dispatcher reads one (ADR-0055 Amendment 2). OOJSCall calls such a method itself.
         switch (parameter) {
         case Kind::None:
-            returned = As<id (*)(id, SEL)>(imp)(target, selector);
-            break;
-        case Kind::Object:
-            if (result == Kind::Object)
-                returned = As<id (*)(id, SEL, id)>(imp)(target, selector, object);
-            else if (result == Kind::PList)
-                returnedPList = As<oo::PList (*)(id, SEL, id)>(imp)(target, selector, object);
-            else
-                As<void (*)(id, SEL, id)>(imp)(target, selector, object);
+            (void)As<id (*)(id, SEL)>(imp)(target, selector);
             break;
         case Kind::String:
-            returned = As<id (*)(id, SEL, const std::string&)>(imp)(target, selector, *string);
+            (void)As<id (*)(id, SEL, const std::string&)>(imp)(target, selector, (argument.kind == Kind::String) ? *argument.string : *plistAsString);
             break;
         case Kind::PList:
-            returned = As<id (*)(id, SEL, const oo::PList&)>(imp)(target, selector, plist);
+            (void)As<id (*)(id, SEL, const oo::PList&)>(imp)(target, selector, (argument.kind == Kind::PList) ? *argument.plist : stringAsPList);
             break;
         default:
             break;
         }
-        if (result == Kind::Object)
-            return oo::PListFrom(returned);
-        return returnedPList;
-#endif
+        return oo::PList();
     }
 
     switch (parameter) {

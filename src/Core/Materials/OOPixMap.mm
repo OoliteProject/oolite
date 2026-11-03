@@ -26,7 +26,6 @@ SOFTWARE.
 */
 
 #import "OOPixMap.h"
-#import "OOStringBridge.h"
 
 #include "oofnd/String.hpp"
 

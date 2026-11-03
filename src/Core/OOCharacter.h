@@ -4,6 +4,11 @@ OOCharacter.h
 
 Represents an NPC person (as opposed to an NPC ship).
 
+C++20 since bead oo-8kx7 (Phase 3, proposed ADR-0056). The class is cxx::OOCharacter while
+OOCharacter+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOCharacter its
+unconverted callers message (ships' crews, JS); the bridge's deletion bead moves it out of
+namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -24,62 +29,85 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#ifndef OOCHARACTER_H
+#define OOCHARACTER_H
+
 #import "OOJSPropID.h"
 #import "OOTypes.h"
 #import "legacy_random.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 @class OOJSScript;
 
-@interface OOCharacter : OOObject {
-@private
+namespace cxx {
+
+class OOCharacter : public oo::RefCounted {
+public:
+    OOCharacter() = default; // [[OOCharacter alloc] init]: every field zero
+    OOCharacter(const std::string& role, OOSystemID s);
+
+    static oo::Ref<OOCharacter> characterWithRole(const std::string& c_role, OOSystemID s);
+    static oo::Ref<OOCharacter> randomCharacterWithRole(const std::string& c_role, OOSystemID s);
+    static oo::Ref<OOCharacter> characterWithDictionary(const oo::PList& c_dict); // a dictionary (JS crew definitions may hold any object, as an Object node)
+
+    std::optional<std::string> planetOfOrigin();
+    OOSystemID planetIDOfOrigin();
+    std::optional<std::string> species();
+
+    void basicSetUp();
+    bool castInRole(const std::string& role);
+
+    std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.9)
+    void setName(const std::optional<std::string>& value);
+
+    std::optional<std::string> shortDescription();
+    void setShortDescription(const std::optional<std::string>& value); // nullopt: none (bead oo-qps.51)
+
+    int legalStatus();
+    void setLegalStatus(int value);
+
+    OOCreditsQuantity insuranceCredits();
+    void setInsuranceCredits(OOCreditsQuantity value);
+
+    oo::PList legacyScript(); // an array of script actions; null: none
+    void setLegacyScript(const oo::PList& scriptActions);
+    OOJSScript* script();
+    void setCharacterScript(const std::string& scriptName);
+    void doScriptEvent(OOJSPropID message);
+
+    oo::PList infoForScripting(); // a dictionary
+
+    // What "%@" prints between the braces of <OOCharacter 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+    // The JavaScript class of the character's Objective-C object (-oo_jsClassName).
+    std::optional<std::string> oo_jsClassName();
+
+private:
+    OOCharacter(Random_Seed characterSeed, OOSystemID systemSeed); // -initWithGenSeed:andOriginalSystem:
+    void setCharacterFromDictionary(const oo::PList& dict);
+
+    void setOriginSystem(OOSystemID value);
+    Random_Seed genSeed();
+    void setGenSeed(Random_Seed value);
+
     std::optional<std::string> _name;
     std::optional<std::string> _shortDescription;
-    OOSystemID _originSystem;
-    Random_Seed _genSeed;
-    int _legalStatus;
-    OOCreditsQuantity _insuranceCredits;
+    OOSystemID _originSystem = { };
+    Random_Seed _genSeed = { };
+    int _legalStatus = { };
+    OOCreditsQuantity _insuranceCredits = { };
     oo::PList _scriptActions; // an array; null: none
-    OOJSScript* _script;
-}
+    oo::ObjCRef<OOJSScript*> _script;
+};
 
-- (id)initWithRole:(const std::string&)role andOriginalSystem:(OOSystemID)s;
+} // namespace cxx
 
-+ (OOCharacter*)characterWithRole:(const std::string&)c_role andOriginalSystem:(OOSystemID)s;
-+ (OOCharacter*)randomCharacterWithRole:(const std::string&)c_role andOriginalSystem:(OOSystemID)s;
-+ (OOCharacter*)characterWithDictionary:(id)c_dict; // an Objective-C dictionary (JS crew definitions may hold any object)
+// Transitional: the Objective-C OOCharacter, for callers not yet converted. Deleted, with namespace
+// cxx above, by the bridge's deletion bead.
+#import "OOCharacter+ObjCBridge.h"
 
-- (std::optional<std::string>)planetOfOrigin;
-- (OOSystemID)planetIDOfOrigin;
-- (std::optional<std::string>)species;
-
-- (void)basicSetUp;
-- (BOOL)castInRole:(const std::string&)role;
-
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
-- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.9)
-- (void)setName:(id)value; // shared selector (Foundation declares -setName: too): -cxx_setName: with an Objective-C string, or nil
-- (void)cxx_setName:(const std::optional<std::string>&)value;
-
-- (std::optional<std::string>)cxx_shortDescription;
-- (void)setShortDescription:(id)value; // shared selector: an Objective-C string, or nil
-
-- (int)legalStatus;
-- (void)setLegalStatus:(int)value;
-
-- (OOCreditsQuantity)insuranceCredits;
-- (void)setInsuranceCredits:(OOCreditsQuantity)value;
-
-- (oo::PList)legacyScript; // an array of script actions; null: none
-- (void)setLegacyScript:(const oo::PList&)scriptActions;
-- (OOJSScript*)script;
-- (void)setCharacterScript:(const std::string&)scriptName;
-- (void)doScriptEvent:(OOJSPropID)message;
-
-- (oo::PList)infoForScripting; // a dictionary
-
-@end
+#endif // OOCHARACTER_H

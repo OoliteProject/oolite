@@ -1,6 +1,10 @@
 /*
 
-OOColor.m
+OOColor.mm
+
+C++20 since bead oo-11m, the Phase 3 house-style exemplar (proposed ADR-0056). Method bodies
+are the Objective-C ones with message sends turned into calls; the arithmetic is verbatim
+(ADR-0012). Still Objective-C++ until Phase 4: an Object node's colour is an Objective-C object.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -23,19 +27,48 @@ MA 02110-1301, USA.
 */
 
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "OOMaths.h"
 #import "OOObjCPList.h"
-#include "oofnd/objc/OORuntime.h"
 
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-@implementation OOColor
+namespace cxx {
+
+namespace {
+
+    /*	The named colours colorWithDescription() accepts: the class methods whose names end in "Color",
+            which the Objective-C class looked up by selector name and -respondsToSelector:
+            (the Phase 3 recipe's "explicit table" for a selector called by name).
+    */
+    struct NamedColor {
+        std::string_view name;
+        oo::Ref<OOColor> (*make)();
+    };
+
+    const NamedColor kNamedColors[] = {
+        { "blackColor", &OOColor::blackColor },
+        { "darkGrayColor", &OOColor::darkGrayColor },
+        { "lightGrayColor", &OOColor::lightGrayColor },
+        { "whiteColor", &OOColor::whiteColor },
+        { "grayColor", &OOColor::grayColor },
+        { "redColor", &OOColor::redColor },
+        { "greenColor", &OOColor::greenColor },
+        { "blueColor", &OOColor::blueColor },
+        { "cyanColor", &OOColor::cyanColor },
+        { "yellowColor", &OOColor::yellowColor },
+        { "magentaColor", &OOColor::magentaColor },
+        { "orangeColor", &OOColor::orangeColor },
+        { "purpleColor", &OOColor::purpleColor },
+        { "brownColor", &OOColor::brownColor },
+        { "clearColor", &OOColor::clearColor },
+    };
+
+} // namespace
 
 // Set methods are internal, because OOColor is immutable (as seen from outside).
-- (void)setRed:(float)r green:(float)g blue:(float)b alpha:(float)a
+void OOColor::setRed(float r, float g, float b, float a)
 {
     rgba[0] = r;
     rgba[1] = g;
@@ -43,7 +76,7 @@ MA 02110-1301, USA.
     rgba[3] = a;
 }
 
-- (void)setHue:(float)h saturation:(float)s brightness:(float)b alpha:(float)a
+void OOColor::setHue(float h, float s, float b, float a)
 {
     rgba[3] = a;
     if (s == 0.0f) {
@@ -97,72 +130,70 @@ MA 02110-1301, USA.
     }
 }
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOColor> OOColor::colorWithHue(float hue, float saturation, float brightness, float alpha)
 {
-    // Copy is implemented as retain since OOColor is immutable.
-    return [self retain];
+    oo::Ref<OOColor> result = oo::makeRef<OOColor>();
+    result->setHue(360.0f * hue, saturation, brightness, alpha);
+    return result;
 }
 
-+ (OOColor*)colorWithHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha
+oo::Ref<OOColor> OOColor::colorWithRed(float red, float green, float blue, float alpha)
 {
-    OOColor* result = [[OOColor alloc] init];
-    [result setHue:360.0f * hue saturation:saturation brightness:brightness alpha:alpha];
-    return [result autorelease];
+    oo::Ref<OOColor> result = oo::makeRef<OOColor>();
+    result->setRed(red, green, blue, alpha);
+    return result;
 }
 
-+ (OOColor*)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha
+oo::Ref<OOColor> OOColor::colorWithWhite(float white, float alpha)
 {
-    OOColor* result = [[OOColor alloc] init];
-    [result setRed:red green:green blue:blue alpha:alpha];
-    return [result autorelease];
+    return colorWithRed(white, white, white, alpha);
 }
 
-+ (OOColor*)colorWithWhite:(float)white alpha:(float)alpha
+oo::Ref<OOColor> OOColor::colorWithRGBAComponents(OORGBAComponents components)
 {
-    return [OOColor colorWithRed:white green:white blue:white alpha:alpha];
+    return colorWithRed(components.r,
+        components.g,
+        components.b,
+        components.a);
 }
 
-+ (OOColor*)colorWithRGBAComponents:(OORGBAComponents)components
+oo::Ref<OOColor> OOColor::colorWithHSBAComponents(OOHSBAComponents components)
 {
-    return [self colorWithRed:components.r
-                        green:components.g
-                         blue:components.b
-                        alpha:components.a];
+    return colorWithHue(components.h / 360.0f,
+        components.s,
+        components.b,
+        components.a);
 }
 
-+ (OOColor*)colorWithHSBAComponents:(OOHSBAComponents)components
+oo::Ref<OOColor> OOColor::colorWithDescription(const oo::PList& description)
 {
-    return [self colorWithHue:components.h / 360.0f
-                   saturation:components.s
-                   brightness:components.b
-                        alpha:components.a];
+    return colorWithDescription(description, 1.0f);
 }
 
-+ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description
+oo::Ref<OOColor> OOColor::colorWithDescription(const oo::PList& description, float factor)
 {
-    return [self cxx_colorWithDescription:description saturationFactor:1.0f];
-}
-
-+ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description saturationFactor:(float)factor
-{
-    OOColor* result = nil;
+    oo::Ref<OOColor> result;
 
     if (description.isNull())
-        return nil;
+        return nullptr;
 
     if (description.type() == oo::PList::Type::Object) {
+        // While the bridge exists, the colour in an Object node is an Objective-C OOColor.
         id object = oo::ObjectIn(description);
-        if ([object isKindOfClass:[OOColor class]])
-            result = [[object copy] autorelease];
+        if ([object isKindOfClass:[::OOColor class]])
+            result = oo::Ref<OOColor>(oo::ToCxx((::OOColor*)object));
     } else if (const std::string* string = description.getIf<std::string>()) {
         if (string->ends_with("Color")) {
-            // +fooColor selector
-            SEL selector = OOSelectorFromName(string->c_str());
-            if ([self respondsToSelector:selector])
-                result = [self performSelector:selector];
+            // A named colour (kNamedColors)
+            for (const NamedColor& named : kNamedColors) {
+                if (named.name == *string) {
+                    result = named.make();
+                    break;
+                }
+            }
         } else {
             // Some other string
-            result = [self cxx_colorFromString:*string];
+            result = colorFromString(*string);
         }
     } else if (const oo::PList::Array* array = description.getIf<oo::PList::Array>()) {
         // The components' descriptions joined with spaces (-componentsJoinedByString:@" ").
@@ -176,7 +207,7 @@ MA 02110-1301, USA.
             components += oo::DescriptionOf(element);
             first = false;
         }
-        result = [self cxx_colorFromString:components];
+        result = colorFromString(components);
     } else if (description.isDict()) {
         const oo::PList* hue = description.find("hue");
         if (hue != nullptr && !hue->isNull()) {
@@ -191,7 +222,7 @@ MA 02110-1301, USA.
                 a = description.get<float>("opacity", 1.0f);
 
             // Not "result =", because we handle the saturation scaling here to allow oversaturation.
-            return [OOColor colorWithHue:h / 360.0f saturation:s * factor brightness:b alpha:a];
+            return colorWithHue(h / 360.0f, s * factor, b, a);
         } else {
             // Treat as RGB(A) dictionary
             float r = description.get<float>("red");
@@ -201,46 +232,31 @@ MA 02110-1301, USA.
             if (a < 0.0f)
                 a = description.get<float>("opacity", 1.0f);
 
-            result = [OOColor colorWithRed:r green:g blue:b alpha:a];
+            result = colorWithRed(r, g, b, a);
         }
     }
 
-    if (factor != 1.0f && result != nil) {
+    if (factor != 1.0f && result != nullptr) {
         float h, s, b, a;
-        [result getHue:&h saturation:&s brightness:&b alpha:&a];
+        result->getHue(&h, &s, &b, &a);
         h *= 1.0 / 360.0f; // See note in header.
         s *= factor;
-        result = [self colorWithHue:h saturation:s brightness:b alpha:a];
+        result = colorWithHue(h, s, b, a);
     }
 
     return result;
 }
 
-+ (OOColor*)cxx_brightColorWithDescription:(const oo::PList&)description
+oo::Ref<OOColor> OOColor::brightColorWithDescription(const oo::PList& description)
 {
-    OOColor* color = [OOColor cxx_colorWithDescription:description];
-    if (color == nil || 0.5f <= [color brightnessComponent])
+    oo::Ref<OOColor> color = colorWithDescription(description);
+    if (color == nullptr || 0.5f <= color->brightnessComponent())
         return color;
 
-    return [OOColor colorWithHue:[color hueComponent] / 360.0f saturation:[color saturationComponent] brightness:0.5f alpha:1.0f];
+    return colorWithHue(color->hueComponent() / 360.0f, color->saturationComponent(), 0.5f, 1.0f);
 }
 
-+ (OOColor*)colorWithDescription:(id)description
-{
-    return [self cxx_colorWithDescription:oo::PListFrom(description)];
-}
-
-+ (OOColor*)colorWithDescription:(id)description saturationFactor:(float)factor
-{
-    return [self cxx_colorWithDescription:oo::PListFrom(description) saturationFactor:factor];
-}
-
-+ (OOColor*)brightColorWithDescription:(id)description
-{
-    return [self cxx_brightColorWithDescription:oo::PListFrom(description)];
-}
-
-+ (OOColor*)cxx_colorFromString:(const std::string&)colorFloatString
+oo::Ref<OOColor> OOColor::colorFromString(const std::string& colorFloatString)
 {
     float rgbaValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
     oo::str::Scanner scanner(colorFloatString);
@@ -251,7 +267,7 @@ MA 02110-1301, USA.
         if (!scanner.scanFloat(&rgbaValue[i])) {
             // Less than three floats or non-float, can't parse -> quit
             if (i < 3)
-                return nil;
+                return nullptr;
 
             // If we get here, we only got three components. Make sure alpha is at correct scale:
             rgbaValue[3] /= factor;
@@ -260,122 +276,124 @@ MA 02110-1301, USA.
             factor = 1.0f / 255.0f;
     }
 
-    return [OOColor colorWithRed:rgbaValue[0] * factor green:rgbaValue[1] * factor blue:rgbaValue[2] * factor alpha:rgbaValue[3] * factor];
+    return colorWithRed(rgbaValue[0] * factor, rgbaValue[1] * factor, rgbaValue[2] * factor, rgbaValue[3] * factor);
 }
 
-+ (OOColor*)blackColor // 0.0 white
+oo::Ref<OOColor> OOColor::blackColor() // 0.0 white
 {
-    return [OOColor colorWithWhite:0.0f alpha:1.0f];
+    return colorWithWhite(0.0f, 1.0f);
 }
 
-+ (OOColor*)darkGrayColor // 0.333 white
+oo::Ref<OOColor> OOColor::darkGrayColor() // 0.333 white
 {
-    return [OOColor colorWithWhite:1.0f / 3.0f alpha:1.0f];
+    return colorWithWhite(1.0f / 3.0f, 1.0f);
 }
 
-+ (OOColor*)lightGrayColor // 0.667 white
+oo::Ref<OOColor> OOColor::lightGrayColor() // 0.667 white
 {
-    return [OOColor colorWithWhite:2.0f / 3.0f alpha:1.0f];
+    return colorWithWhite(2.0f / 3.0f, 1.0f);
 }
 
-+ (OOColor*)whiteColor // 1.0 white
+oo::Ref<OOColor> OOColor::whiteColor() // 1.0 white
 {
-    return [OOColor colorWithWhite:1.0f alpha:1.0f];
+    return colorWithWhite(1.0f, 1.0f);
 }
 
-+ (OOColor*)grayColor // 0.5 white
+oo::Ref<OOColor> OOColor::grayColor() // 0.5 white
 {
-    return [OOColor colorWithWhite:0.5f alpha:1.0f];
+    return colorWithWhite(0.5f, 1.0f);
 }
 
-+ (OOColor*)redColor // 1.0, 0.0, 0.0 RGB
+oo::Ref<OOColor> OOColor::redColor() // 1.0, 0.0, 0.0 RGB
 {
-    return [OOColor colorWithRed:1.0f green:0.0f blue:0.0f alpha:1.0f];
+    return colorWithRed(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
-+ (OOColor*)greenColor // 0.0, 1.0, 0.0 RGB
+oo::Ref<OOColor> OOColor::greenColor() // 0.0, 1.0, 0.0 RGB
 {
-    return [OOColor colorWithRed:0.0f green:1.0f blue:0.0f alpha:1.0f];
+    return colorWithRed(0.0f, 1.0f, 0.0f, 1.0f);
 }
 
-+ (OOColor*)blueColor // 0.0, 0.0, 1.0 RGB
+oo::Ref<OOColor> OOColor::blueColor() // 0.0, 0.0, 1.0 RGB
 {
-    return [OOColor colorWithRed:0.0f green:0.0f blue:1.0f alpha:1.0f];
+    return colorWithRed(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-+ (OOColor*)cyanColor // 0.0, 1.0, 1.0 RGB
+oo::Ref<OOColor> OOColor::cyanColor() // 0.0, 1.0, 1.0 RGB
 {
-    return [OOColor colorWithRed:0.0f green:1.0f blue:1.0f alpha:1.0f];
+    return colorWithRed(0.0f, 1.0f, 1.0f, 1.0f);
 }
 
-+ (OOColor*)yellowColor // 1.0, 1.0, 0.0 RGB
+oo::Ref<OOColor> OOColor::yellowColor() // 1.0, 1.0, 0.0 RGB
 {
-    return [OOColor colorWithRed:1.0f green:1.0f blue:0.0f alpha:1.0f];
+    return colorWithRed(1.0f, 1.0f, 0.0f, 1.0f);
 }
 
-+ (OOColor*)magentaColor // 1.0, 0.0, 1.0 RGB
+oo::Ref<OOColor> OOColor::magentaColor() // 1.0, 0.0, 1.0 RGB
 {
-    return [OOColor colorWithRed:1.0f green:0.0f blue:1.0f alpha:1.0f];
+    return colorWithRed(1.0f, 0.0f, 1.0f, 1.0f);
 }
 
-+ (OOColor*)orangeColor // 1.0, 0.5, 0.0 RGB
+oo::Ref<OOColor> OOColor::orangeColor() // 1.0, 0.5, 0.0 RGB
 {
-    return [OOColor colorWithRed:1.0f green:0.5f blue:0.0f alpha:1.0f];
+    return colorWithRed(1.0f, 0.5f, 0.0f, 1.0f);
 }
 
-+ (OOColor*)purpleColor // 0.5, 0.0, 0.5 RGB
+oo::Ref<OOColor> OOColor::purpleColor() // 0.5, 0.0, 0.5 RGB
 {
-    return [OOColor colorWithRed:0.5f green:0.0f blue:0.5f alpha:1.0f];
+    return colorWithRed(0.5f, 0.0f, 0.5f, 1.0f);
 }
 
-+ (OOColor*)brownColor // 0.6, 0.4, 0.2 RGB
+oo::Ref<OOColor> OOColor::brownColor() // 0.6, 0.4, 0.2 RGB
 {
-    return [OOColor colorWithRed:0.6f green:0.4f blue:0.2f alpha:1.0f];
+    return colorWithRed(0.6f, 0.4f, 0.2f, 1.0f);
 }
 
-+ (OOColor*)clearColor // 0.0 white, 0.0 alpha
+oo::Ref<OOColor> OOColor::clearColor() // 0.0 white, 0.0 alpha
 {
-    return [OOColor colorWithWhite:0.0f alpha:0.0f];
+    return colorWithWhite(0.0f, 0.0f);
 }
 
-- (OOColor*)blendedColorWithFraction:(float)fraction ofColor:(OOColor*)color
+oo::Ref<OOColor> OOColor::blendedColorWithFraction(float fraction, OOColor* color)
 {
-    float rgba1[4];
-    [color getRed:&rgba1[0] green:&rgba1[1] blue:&rgba1[2] alpha:&rgba1[3]];
+    // A message to nil left rgba1 unwritten (indeterminate); a null colour now blends with zeros.
+    float rgba1[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    if (color != nullptr)
+        color->getRed(&rgba1[0], &rgba1[1], &rgba1[2], &rgba1[3]);
 
-    OOColor* result = [[OOColor alloc] init];
-    [result setRed:OOLerp(rgba[0], rgba1[0], fraction)
-             green:OOLerp(rgba[1], rgba1[1], fraction)
-              blue:OOLerp(rgba[2], rgba1[2], fraction)
-             alpha:OOLerp(rgba[3], rgba1[3], fraction)];
+    oo::Ref<OOColor> result = oo::makeRef<OOColor>();
+    result->setRed(OOLerp(rgba[0], rgba1[0], fraction),
+        OOLerp(rgba[1], rgba1[1], fraction),
+        OOLerp(rgba[2], rgba1[2], fraction),
+        OOLerp(rgba[3], rgba1[3], fraction));
 
-    return [result autorelease];
+    return result;
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOColor::descriptionComponents() const
 {
     return oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
 // Get the red, green, or blue components.
-- (float)redComponent
+float OOColor::redComponent()
 {
     return rgba[0];
 }
 
-- (float)greenComponent
+float OOColor::greenComponent()
 {
     return rgba[1];
 }
 
-- (float)blueComponent
+float OOColor::blueComponent()
 {
     return rgba[2];
 }
 
-- (void)getRed:(float*)red green:(float*)green blue:(float*)blue alpha:(float*)alpha
+void OOColor::getRed(float* red, float* green, float* blue, float* alpha)
 {
-    OOParameterAssert(red != NULL && green != NULL && blue != NULL && alpha != NULL);
+    OOCParameterAssert(red != NULL && green != NULL && blue != NULL && alpha != NULL);
 
     *red = rgba[0];
     *green = rgba[1];
@@ -383,24 +401,24 @@ MA 02110-1301, USA.
     *alpha = rgba[3];
 }
 
-- (OORGBAComponents)rgbaComponents
+OORGBAComponents OOColor::rgbaComponents()
 {
     OORGBAComponents c = { rgba[0], rgba[1], rgba[2], rgba[3] };
     return c;
 }
 
-- (BOOL)isBlack
+bool OOColor::isBlack()
 {
     return rgba[0] == 0.0f && rgba[1] == 0.0f && rgba[2] == 0.0f;
 }
 
-- (BOOL)isWhite
+bool OOColor::isWhite()
 {
     return rgba[0] == 1.0f && rgba[1] == 1.0f && rgba[2] == 1.0f && rgba[3] == 1.0f;
 }
 
 // Get the components as hue, saturation, or brightness.
-- (float)hueComponent
+float OOColor::hueComponent()
 {
     float maxrgb = (rgba[0] > rgba[1]) ? ((rgba[0] > rgba[2]) ? rgba[0] : rgba[2]) : ((rgba[1] > rgba[2]) ? rgba[1] : rgba[2]);
     float minrgb = (rgba[0] < rgba[1]) ? ((rgba[0] < rgba[2]) ? rgba[0] : rgba[2]) : ((rgba[1] < rgba[2]) ? rgba[1] : rgba[2]);
@@ -419,22 +437,22 @@ MA 02110-1301, USA.
     return hue;
 }
 
-- (float)saturationComponent
+float OOColor::saturationComponent()
 {
     float maxrgb = (rgba[0] > rgba[1]) ? ((rgba[0] > rgba[2]) ? rgba[0] : rgba[2]) : ((rgba[1] > rgba[2]) ? rgba[1] : rgba[2]);
     float minrgb = (rgba[0] < rgba[1]) ? ((rgba[0] < rgba[2]) ? rgba[0] : rgba[2]) : ((rgba[1] < rgba[2]) ? rgba[1] : rgba[2]);
     return maxrgb == 0.0f ? 0.0f : (1.0f - (minrgb / maxrgb));
 }
 
-- (float)brightnessComponent
+float OOColor::brightnessComponent()
 {
     float maxrgb = (rgba[0] > rgba[1]) ? ((rgba[0] > rgba[2]) ? rgba[0] : rgba[2]) : ((rgba[1] > rgba[2]) ? rgba[1] : rgba[2]);
     return maxrgb;
 }
 
-- (void)getHue:(float*)hue saturation:(float*)saturation brightness:(float*)brightness alpha:(float*)alpha
+void OOColor::getHue(float* hue, float* saturation, float* brightness, float* alpha)
 {
-    OOParameterAssert(hue != NULL && saturation != NULL && brightness != NULL && alpha != NULL);
+    OOCParameterAssert(hue != NULL && saturation != NULL && brightness != NULL && alpha != NULL);
 
     *alpha = rgba[3];
 
@@ -460,65 +478,65 @@ MA 02110-1301, USA.
     *brightness = maxrgb;
 }
 
-- (OOHSBAComponents)hsbaComponents
+OOHSBAComponents OOColor::hsbaComponents()
 {
     OOHSBAComponents c;
-    [self getHue:&c.h
-        saturation:&c.s
-        brightness:&c.b
-             alpha:&c.a];
+    getHue(&c.h,
+        &c.s,
+        &c.b,
+        &c.a);
     return c;
 }
 
 // Get the alpha component.
-- (float)alphaComponent
+float OOColor::alphaComponent()
 {
     return rgba[3];
 }
 
-- (OOColor*)premultipliedColor
+oo::Ref<OOColor> OOColor::premultipliedColor()
 {
     if (rgba[3] == 1.0f)
-        return [[self retain] autorelease];
-    return [OOColor colorWithRed:rgba[0] * rgba[3]
-                           green:rgba[1] * rgba[3]
-                            blue:rgba[2] * rgba[3]
-                           alpha:1.0f];
+        return oo::Ref<OOColor>(this);
+    return colorWithRed(rgba[0] * rgba[3],
+        rgba[1] * rgba[3],
+        rgba[2] * rgba[3],
+        1.0f);
 }
 
-- (OOColor*)colorWithBrightnessFactor:(float)factor
+oo::Ref<OOColor> OOColor::colorWithBrightnessFactor(float factor)
 {
-    return [OOColor colorWithRed:OOClamp_0_1_f(rgba[0] * factor)
-                           green:OOClamp_0_1_f(rgba[1] * factor)
-                            blue:OOClamp_0_1_f(rgba[2] * factor)
-                           alpha:rgba[3]];
+    return colorWithRed(OOClamp_0_1_f(rgba[0] * factor),
+        OOClamp_0_1_f(rgba[1] * factor),
+        OOClamp_0_1_f(rgba[2] * factor),
+        rgba[3]);
 }
 
-- (std::vector<float>)cxx_normalizedArray
+std::vector<float> OOColor::normalizedArray()
 {
     float r, g, b, a;
-    [self getRed:&r green:&g blue:&b alpha:&a];
+    getRed(&r, &g, &b, &a);
     return { r, g, b, a };
 }
 
-- (std::optional<std::string>)cxx_rgbaDescription
+std::optional<std::string> OOColor::rgbaDescription()
 {
-    return cxx_OORGBAComponentsDescription([self rgbaComponents]);
+    return OORGBAComponentsDescription(rgbaComponents());
 }
 
-- (std::optional<std::string>)cxx_hsbaDescription
+std::optional<std::string> OOColor::hsbaDescription()
 {
-    return cxx_OOHSBAComponentsDescription([self hsbaComponents]);
+    return OOHSBAComponentsDescription(hsbaComponents());
 }
 
-@end
+} // namespace cxx
 
-std::string cxx_OORGBAComponentsDescription(OORGBAComponents components)
+std::string OORGBAComponentsDescription(OORGBAComponents components)
 {
     return oo::str::format("{%.3g, %.3g, %.3g, %.3g}", components.r, components.g, components.b, components.a);
 }
 
-std::string cxx_OOHSBAComponentsDescription(OOHSBAComponents components)
+std::string OOHSBAComponentsDescription(OOHSBAComponents components)
 {
     return oo::str::format("{%i, %.3g, %.3g, %.3g}", (int)components.h, components.s, components.b, components.a);
 }

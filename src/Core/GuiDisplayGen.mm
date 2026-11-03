@@ -27,9 +27,7 @@ MA 02110-1301, USA.
 #include <vector>
 #import "GameController.h"
 #import "HeadUpDisplay.h"
-#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
-#import "OOPListView.h"
 #import "OOSound.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
@@ -44,6 +42,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
+#import "OOObjCPList.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 #include <map>
@@ -310,19 +309,9 @@ static BOOL _refreshStarChart = NO;
     return pixel_row_start;
 }
 
-- (id)title // shared selector (Foundation declares -title too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_title]);
-}
-
 - (std::optional<std::string>)cxx_title
 {
     return title;
-}
-
-- (void)setTitle:(id)str // shared selector (Foundation declares -setTitle: too; retires with oo-qps)
-{
-    [self cxx_setTitle:oo::OptionalString(str)];
 }
 
 - (void)cxx_setTitle:(const std::optional<std::string>&)str
@@ -415,7 +404,7 @@ static BOOL _refreshStarChart = NO;
     OOColor* col = nil;
     if (setting.has_value()) {
         const oo::PList* description = guiUserSettings.find(*setting);
-        col = [OOColor colorWithDescription:(description != nullptr) ? oo::ObjectFromPList(*description) : nil];
+        col = [OOColor cxx_colorWithDescription:(description != nullptr) ? *description : oo::PList()];
     }
     if (col == nil) {
         if (def != nil) {
@@ -466,12 +455,12 @@ static BOOL _refreshStarChart = NO;
         rowColor[row] = oo::ObjCRef<OOColor*>(color);
 }
 
-- (id)objectForRow:(OOGUIRow)row
+- (oo::PList)objectForRow:(OOGUIRow)row
 {
     if (RowInRange(row, rowRange))
-        return oo::ObjectFromPList(rowText[row]); // a string, or an array of column strings
+        return rowText[row]; // a string, or an array of column strings
     else
-        return NULL;
+        return oo::PList(); // null, where this was nil
 }
 
 - (OOGUIRow)cxx_rowForKey:(const std::optional<std::string>&)key
@@ -564,16 +553,16 @@ static BOOL _refreshStarChart = NO;
 - (void)reportSelectedRow:(int)row
 {
     // key, row, text - stopping at the first missing one, as +arrayWithObjects: stopped at nil.
-    std::vector<oo::ObjCRef<id>> arguments;
+    std::vector<oo::PList> arguments;
     const std::optional<std::string> key = [self cxx_keyForRow:row];
     if (key.has_value()) {
-        arguments.emplace_back(oo::NSStringFrom(*key));
-        arguments.emplace_back(oo::ObjectFromPList(oo::PList(row))); // +numberWithInt: (the same JS number)
+        arguments.emplace_back(*key);
+        arguments.emplace_back(row); // +numberWithInt: (the same JS number)
         const std::optional<std::string> text = [self cxx_selectedRowText];
         if (text.has_value())
-            arguments.emplace_back(oo::NSStringFrom(*text));
+            arguments.emplace_back(*text);
     }
-    [PLAYER cxx_doScriptEvent:OOJSID("guiSelectedRowChanged") withArguments:arguments];
+    [PLAYER cxx_doScriptEvent:OOJSID("guiSelectedRowChanged") withPListArguments:arguments];
 }
 
 - (void)setNoSelectedRow
@@ -1959,7 +1948,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
             case OOLRC_MODE_SUNCOLOR:
                 if (EXPECT(noNova)) {
                     r = g = b = 1.0;
-                    OOColor* sunColor = [OOColor colorWithDescription:oo::ObjectFromPList([[UNIVERSE systemManager] cxx_getProperty:"sun_color" forSystem:i inGalaxy:galaxy_id])];
+                    OOColor* sunColor = [OOColor cxx_colorWithDescription:[[UNIVERSE systemManager] cxx_getProperty:"sun_color" forSystem:i inGalaxy:galaxy_id]];
                     if (sunColor != nil) {
                         [sunColor getRed:&r green:&g blue:&b alpha:&alpha];
                         alpha = 1.0; // reset
@@ -2181,7 +2170,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
 - (void)drawSystemMarker:(const oo::PList&)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale
 {
     const std::string colorDesc = marker.get<std::string>("markerColor", "redColor");
-    OORGBAComponents color = [[OOColor colorWithDescription:oo::NSStringFrom(colorDesc)] rgbaComponents];
+    OORGBAComponents color = [[OOColor cxx_colorWithDescription:oo::PList(colorDesc)] rgbaComponents];
 
     OOGL(glColor4f(color.r, color.g, color.b, alpha)); // red
     GLfloat mark_size = marker.get<float>("markerScale", 1.0);
@@ -2355,7 +2344,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
                     glVertex3f(x + star2.x, y + star2.y, z);
 
                 } else {
-                    thisConnectionColor = [OOColor colorWithDescription:oo::ObjectFromPList([systemManager cxx_getProperty:"link_color" forSystemKey:oo::str::format("interstellar: %d %ld %ld", g, (long)i, (long)j)])];
+                    thisConnectionColor = [OOColor cxx_colorWithDescription:[systemManager cxx_getProperty:"link_color" forSystemKey:oo::str::format("interstellar: %d %ld %ld", g, (long)i, (long)j)]];
 
                     if (thisConnectionColor == nil) {
                         thisConnectionColor = defaultConnectionColor;
@@ -2366,7 +2355,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
                     glVertex3f(x + star.x, y + star.y, z);
 
                     // and the other colour for the other end
-                    thatConnectionColor = [OOColor colorWithDescription:oo::ObjectFromPList([systemManager cxx_getProperty:"link_color" forSystemKey:oo::str::format("interstellar: %d %ld %ld", g, (long)j, (long)i)])];
+                    thatConnectionColor = [OOColor cxx_colorWithDescription:[systemManager cxx_getProperty:"link_color" forSystemKey:oo::str::format("interstellar: %d %ld %ld", g, (long)j, (long)i)]];
 
                     if (thatConnectionColor == nil) {
                         thatConnectionColor = thisConnectionColor;

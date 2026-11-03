@@ -60,11 +60,11 @@ static JSClassExoticMethods* sOwnExoticMethods[kOOJSMaxClassID];
 
 JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef)
 {
-    NSCParameterAssert(ioClassID != NULL && classDef != NULL);
+    OOCParameterAssert(ioClassID != NULL && classDef != NULL);
 
     JSRuntime* runtime = JS_GetRuntime(OOJSAcquireContext());
     JSClassID classID = JS_NewClassID(runtime, ioClassID);
-    NSCAssert(classID < kOOJSMaxClassID, @"QuickJS class ID out of range.");
+    OOCAssert(classID < kOOJSMaxClassID, "QuickJS class ID out of range.");
 
     if (!JS_IsRegisteredClass(runtime, classID)) {
         JSClassDef def = *classDef;
@@ -93,8 +93,8 @@ const char* OOJSClassName(JSClassID classID)
 
 void OOJSRegisterSubclass(JSClassID subclass, JSClassID superclass)
 {
-    NSCParameterAssert(subclass != 0 && superclass != 0 && subclass < kOOJSMaxClassID);
-    NSCAssert(sSuperclasses[subclass] == 0 || sSuperclasses[subclass] == superclass, @"A JS class cannot be registered as a subclass of multiple classes.");
+    OOCParameterAssert(subclass != 0 && superclass != 0 && subclass < kOOJSMaxClassID);
+    OOCAssert(sSuperclasses[subclass] == 0 || sSuperclasses[subclass] == superclass, "A JS class cannot be registered as a subclass of multiple classes.");
 
     sSuperclasses[subclass] = superclass;
 }

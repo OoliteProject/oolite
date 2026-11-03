@@ -193,7 +193,9 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine, const std:
 
     if (const oo::PList::Dict* states = stateMachine.getIf<oo::PList::Dict>()) {
         for (const auto& [stateKey, stateValue] : *states) {
-            @autoreleasepool {
+            // Was an autorelease pool per state; since the Foundation sweep nothing here autoreleases
+            // (Phase 3 recipe: the pool becomes the end of the scope; bead oo-5q8h).
+            {
                 graphViz += oo::str::format("\t\n\tsubgraph cluster_%s\n\t{\n\t\tlabel=\"%s\"\n", stateKey.c_str(), cxx_EscapedGraphVizString(stateKey).c_str());
 
                 const oo::PList::Dict* state = stateValue.getIf<oo::PList::Dict>();

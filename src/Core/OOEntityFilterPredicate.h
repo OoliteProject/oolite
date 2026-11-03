@@ -62,7 +62,7 @@ BOOL NORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperatio
 BOOL XORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. XOR operator.
 BOOL NANDPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. NAND operator.
 
-BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: boxed int (responds to -intValue)
+BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: an OOScanClass
 BOOL HasClassPredicate(Entity* entity, void* parameter); // Parameter: Class
 BOOL IsShipPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isShip and !isSubentity.
 BOOL IsStationPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isStation.
@@ -73,8 +73,8 @@ BOOL IsVisualEffectPredicate(Entity* entity, void* parameter); // Parameter: ign
 // These predicates assume their parameter is a ShipEntity.
 BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: a std::string (null: none)
 BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: a std::string (null: none)
-BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: an Objective-C set of role strings
-BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: an Objective-C set of role strings
+BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: a std::vector<std::string> of roles
+BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: a std::vector<std::string> of roles
 BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter); // Parameter: ShipEntity
 
 #ifdef __cplusplus

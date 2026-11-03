@@ -40,15 +40,14 @@ SOFTWARE.
 
 #import "OOCacheManager.h"
 #import "OODebugFlags.h"
-#import "OOFoundationBridge.h"
 #import "OOMultiTextureMaterial.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOPListView.h"
 #import "OOShaderMaterial.h"
 #import "OOSingleTextureMaterial.h"
 #import "OOTexture.h"
 #import "Universe.h"
 #include "oofnd/Defaults.hpp"
+#include "oofnd/PListWriting.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
@@ -176,10 +175,7 @@ void SynthSpecular(OOMaterialSynthContext* context);
             cacheKey->c_str(),
             name.value_or("").c_str(),
             oo::DescriptionOf(configuration).c_str());
-        id cached = [cache cxx_objectForKey:cacheKeyStr inCache:"synthesized shader materials"];
-        if (cached != nil) {
-            synthesizedConfig = oo::PListFrom(cached);
-        }
+        synthesizedConfig = [cache cxx_pListForKey:cacheKeyStr inCache:"synthesized shader materials"];
     }
 
     if (synthesizedConfig.isNull()) {
@@ -187,9 +183,9 @@ void SynthSpecular(OOMaterialSynthContext* context);
                                                          configuration:configuration.isNull() ? oo::PList(oo::PList::Dict { }) : configuration
                                                                 macros:macros];
         if (!synthesizedConfig.isNull() && cacheKey.has_value()) {
-            [cache cxx_setObject:oo::ObjectFromPList(synthesizedConfig)
-                          forKey:cacheKeyStr
-                         inCache:"synthesized shader materials"];
+            [cache cxx_setPList:synthesizedConfig
+                         forKey:cacheKeyStr
+                        inCache:"synthesized shader materials"];
         }
     }
 
@@ -267,10 +263,10 @@ static BOOL sDumpShaderSource = NO;
         humanFriendlyConfig[kOOVertexShaderNameKey] = oo::PList(oo::str::format("%s.vertex", nameText));
         humanFriendlyConfig[kOOFragmentShaderNameKey] = oo::PList(oo::str::format("%s.fragment", nameText));
 
-        [ResourceManager cxx_writeDiagnosticPList:oo::ObjectFromPList(oo::PList(humanFriendlyConfig))
+        [ResourceManager cxx_writeDiagnosticPList:oo::PList(humanFriendlyConfig)
                                       toFileNamed:dumpPath + ".plist"];
 
-        [ResourceManager cxx_writeDiagnosticPList:oo::ObjectFromPList(configuration)
+        [ResourceManager cxx_writeDiagnosticPList:configuration
                                       toFileNamed:dumpPath + "-original.plist"];
     }
 #endif
@@ -318,23 +314,21 @@ static BOOL sDumpShaderSource = NO;
 #if OO_MULTITEXTURE
     if (result == nil /*&& ![UNIVERSE reducedDetail]*/) {
         if (!cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() || !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull() || !cxx_OOMaterialEmissionAndIlluminationMapSpecifier(configuration).isNull()) {
-            result = [[OOMultiTextureMaterial alloc] initWithName:oo::NSStringOrNil(name)
-                                                    configuration:oo::ObjectFromPList(configuration)];
+            result = [[OOMultiTextureMaterial alloc] initWithName:name
+                                                    configuration:configuration];
             [result autorelease];
         }
     }
 #endif
 
     if (result == nil) {
-        id nameObj = oo::NSStringOrNil(name);
-        id configurationObj = oo::ObjectFromPList(configuration);
         if (cxx_OOMaterialDiffuseMapSpecifier(configuration, name).isNull()) {
-            result = [[OOBasicMaterial alloc] initWithName:nameObj configuration:configurationObj];
+            result = [[OOBasicMaterial alloc] initWithName:name configuration:configuration];
         } else {
-            result = [[OOSingleTextureMaterial alloc] initWithName:nameObj configuration:configurationObj];
+            result = [[OOSingleTextureMaterial alloc] initWithName:name configuration:configuration];
         }
         if (result == nil) {
-            result = [[OOBasicMaterial alloc] initWithName:nameObj configuration:configurationObj];
+            result = [[OOBasicMaterial alloc] initWithName:name configuration:configuration];
         }
         [result autorelease];
     }

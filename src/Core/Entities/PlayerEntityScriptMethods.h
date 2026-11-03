@@ -85,10 +85,10 @@ MA 02110-1301, USA.
 - (std::optional<std::string>)cxx_creditsFormattedForLegacySubstitution;
 // OOStringExpander's special substitution table sends these by name: the cxx_ result above as an
 // Objective-C string, or nil.
-- (id)commanderKillsAsString; // called by name (ADR-0043 item 21)
-- (id)commanderBountyAsString; // called by name (ADR-0043 item 21)
-- (id)creditsFormattedForSubstitution; // called by name (ADR-0043 item 21)
-- (id)creditsFormattedForLegacySubstitution; // called by name (ADR-0043 item 21)
+- (oo::PList)commanderKillsAsString; // called by name (ADR-0043 item 21)
+- (oo::PList)commanderBountyAsString; // called by name (ADR-0043 item 21)
+- (oo::PList)creditsFormattedForSubstitution; // called by name (ADR-0043 item 21)
+- (oo::PList)creditsFormattedForLegacySubstitution; // called by name (ADR-0043 item 21)
 
 @end
 

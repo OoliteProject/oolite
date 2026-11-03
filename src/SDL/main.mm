@@ -24,14 +24,19 @@ MA 02110-1301, USA.
 
 #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
 #import "GameController.h"
-#import "OOFoundationBridge.h"
 #import "OOLoggingExtended.h"
-#import "OOStringBridge.h"
 #include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
+#include "oofnd/objc/OOObject.h"
 #import <objc/objc-arc.h>
 #import <objc/runtime.h>
+
+// gnustep-base's GSConfig.h gave these (used by the -help text below).
+#ifndef STRINGIFY
+#define XSTRINGIFY(s) #s
+#define STRINGIFY(s) XSTRINGIFY(s)
+#endif
 
 #if OOLITE_WINDOWS
 #include <SDL3/SDL_main.h>
@@ -77,6 +82,10 @@ uint32_t gDebugFlags = 0;
  */
 int main(int argc, char* argv[])
 {
+    // The Objective-C floor (ADR-0029): OOConstantString's short-literal tag and the forwarding
+    // hooks, before the first message to a literal.
+    OOObjCInstallFloor();
+
     // Foundation's process-info -arguments, now captured here: argv as SDL_main built it (UTF-8 on Windows).
     oo::process::setArguments(argc, argv);
 

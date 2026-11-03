@@ -114,7 +114,7 @@ extern const char* const kSchemaKeyPathErrorKey; // Array specifying key path in
 extern const char* const kExpectedClassErrorKey; // Expected class. Nil for vector and quaternion.
 extern const char* const kExpectedClassNameErrorKey; // String describing expected class. May be more specific (for instance, "boolean" or "positive integer" for a number).
 extern const char* const kUnknownKeyErrorKey; // Unallowed key found in dictionary.
-extern const char* const kMissingRequiredKeysErrorKey; // Set of required keys not present in dictionary
+extern const char* const kMissingRequiredKeysErrorKey; // Array of the required keys not present in dictionary, sorted
 extern const char* const kMissingSubStringErrorKey; // String or array of strings not found for kPListErrorStringPrefixMissing/kPListErrorStringSuffixMissing/kPListErrorStringSubstringMissing.
 extern const char* const kUnnownFilterErrorKey; // Unrecognized filter specifier for kPListErrorSchemaUnknownFilter. Not specified if filter is not a string.
 extern const char* const kErrorsByOptionErrorKey;

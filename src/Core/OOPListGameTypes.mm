@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOPListGameTypes.h"
-#import "OOFoundationBridge.h"
+#import "OOObjCPList.h"
 #import "OOStringParsing.h"
 #import "OOVector.h"
 #import "legacy_random.h"

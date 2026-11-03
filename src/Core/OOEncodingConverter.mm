@@ -28,7 +28,6 @@ SOFTWARE.
 
 #import "OOEncodingConverter.h"
 #import "OOCache.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #include "oofnd/Encoding.hpp"
 #include "oofnd/String.hpp"
@@ -54,79 +53,75 @@ static const NSUInteger kCachePruneThreshold = 200;
 
 // The 5-second profile report was a repeating run-loop timer; it is now a deadline checked on each conversion (proposed ADR-0033).
 static const std::chrono::seconds kProfileInterval { 5 };
-static OOEncodingConverter* sProfiledConverter = nil;
+static OOEncodingConverter* sProfiledConverter = nullptr;
 static std::chrono::steady_clock::time_point sProfileDeadline;
 
 static unsigned sCacheHits = 0;
 static unsigned sCacheMisses = 0;
 #endif
 
-@interface OOEncodingConverter (Private)
+namespace {
 
-- (std::optional<oo::Data>)performConversionForString:(const std::string&)string;
-#if PROFILE_ENCODING_CONVERTER
-- (void)profileFire:(id)junk;
-#endif
-
-@end
-
-@implementation OOEncodingConverter
-
-- (id)initWithEncoding:(std::optional<oo::str::Encoding>)encoding substitutions:(const oo::PList&)substitutions
-{
-    self = [super init];
-    if (self != nil) {
-        _cache = [[OOCache alloc] init];
-        [_cache setPruneThreshold:kCachePruneThreshold];
-        [_cache cxx_setName:std::string("Text encoding")];
-        if (substitutions.isDict()) {
-            // In the order the Foundation dictionary enumerated them (two that overlap give
-            // different results in different orders), which is the order this one enumerates in.
-            id substitutionDictionary = oo::ObjectFromPList(substitutions);
-            for (id key in substitutionDictionary) {
-                _substitutions.emplace_back(oo::StdString(key), oo::StdString([substitutionDictionary objectForKey:key]));
-            }
-        }
-        _encoding = encoding;
-
-#if PROFILE_ENCODING_CONVERTER
-        if (sProfiledConverter == nil) {
-            sProfiledConverter = self;
-            sProfileDeadline = std::chrono::steady_clock::now() + kProfileInterval;
-        }
-#endif
-    }
-
-    return self;
-}
-
-- (id)initWithFontPList:(const oo::PList&)fontPList
+// The substitutions -initWithFontPList: passed on (a null PList: none).
+oo::PList FontSubstitutions(const oo::PList& fontPList)
 {
     const oo::PList* substitutions = fontPList.get<oo::PList::Dict>("substitutions");
-    return [self initWithEncoding:oo::str::encodingFromName(fontPList.get<std::string>("encoding")) substitutions:(substitutions != nullptr) ? *substitutions : oo::PList()];
+    return (substitutions != nullptr) ? *substitutions : oo::PList();
 }
 
-- (void)dealloc
+} // namespace
+
+OOEncodingConverter::OOEncodingConverter(std::optional<oo::str::Encoding> encoding, const oo::PList& substitutions)
 {
-    [_cache release];
+    _cache = OOCache::cacheWithPList(oo::PList());
+    _cache->setPruneThreshold(kCachePruneThreshold);
+    _cache->setName(std::string("Text encoding"));
+    if (const oo::PList::Dict* substitutionDictionary = substitutions.getIf<oo::PList::Dict>()) {
+        // In key order (bead oo-qps.51): the Foundation dictionary this was once
+        // built into enumerated in its hash order. Two substitutions give different results in
+        // different orders only when one's key occurs in another's key or replacement; the
+        // stock oolite-font.plist's keys are distinct single characters that occur in no
+        // replacement, so its result is unchanged. A value that is not a string was an
+        // -length sent to a non-string; it substitutes "" here.
+        for (const auto& [key, value] : *substitutionDictionary) {
+            const std::string* replacement = value.getIf<std::string>();
+            _substitutions.emplace_back(key, (replacement != nullptr) ? *replacement : std::string());
+        }
+    }
+    _encoding = encoding;
+
+#if PROFILE_ENCODING_CONVERTER
+    if (sProfiledConverter == nullptr) {
+        sProfiledConverter = this;
+        sProfileDeadline = std::chrono::steady_clock::now() + kProfileInterval;
+    }
+#endif
+}
+
+OOEncodingConverter::OOEncodingConverter(const oo::PList& fontPList)
+    : OOEncodingConverter(oo::str::encodingFromName(fontPList.get<std::string>("encoding")), FontSubstitutions(fontPList))
+{
+}
+
+OOEncodingConverter::~OOEncodingConverter()
+{
     _substitutions.clear();
 
 #if PROFILE_ENCODING_CONVERTER
-    sProfiledConverter = nil;
+    sProfiledConverter = nullptr;
     sCacheHits = 0;
     sCacheMisses = 0;
 #endif
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+// oo::DescriptionOf (OODescription.h) wraps this as "<OOEncodingConverter 0x...>{...}".
+std::optional<std::string> OOEncodingConverter::descriptionComponents() const
 {
     // (an unknown encoding printed as NSNotFound's low 32 bits, 4294967295)
     return oo::str::format("encoding: %u", _encoding.has_value() ? static_cast<unsigned>(*_encoding) : static_cast<unsigned>(NSNotFound));
 }
 
-- (oo::Data)convertString:(const std::string&)string
+oo::Data OOEncodingConverter::convertString(const std::string& string)
 {
     oo::Data data;
 
@@ -135,12 +130,12 @@ static unsigned sCacheMisses = 0;
 #endif
 
     // The string is the cache key, the bytes its value (PList data).
-    const oo::PList cached = [_cache cxx_pListForKey:string];
+    const oo::PList cached = _cache->pListForKey(string);
     if (cached.isNull()) {
-        const std::optional<oo::Data> converted = [self performConversionForString:string];
+        const std::optional<oo::Data> converted = performConversionForString(string);
         if (converted.has_value()) {
             data = *converted;
-            [_cache cxx_setPList:oo::PList(data) forKey:string];
+            _cache->setPList(oo::PList(data), string);
         }
 
 #if PROFILE_ENCODING_CONVERTER
@@ -155,13 +150,13 @@ static unsigned sCacheMisses = 0;
     }
 
 #if PROFILE_ENCODING_CONVERTER
-    if (self == sProfiledConverter) {
+    if (this == sProfiledConverter) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         if (now >= sProfileDeadline) {
             do
                 sProfileDeadline += kProfileInterval;
             while (sProfileDeadline <= now);
-            [self profileFire:nil];
+            profileFire(nullptr);
         }
     }
 #endif
@@ -169,16 +164,12 @@ static unsigned sCacheMisses = 0;
     return data;
 }
 
-- (std::optional<oo::str::Encoding>)encoding
+std::optional<oo::str::Encoding> OOEncodingConverter::encoding()
 {
     return _encoding;
 }
 
-@end
-
-@implementation OOEncodingConverter (Private)
-
-- (std::optional<oo::Data>)performConversionForString:(const std::string&)string
+std::optional<oo::Data> OOEncodingConverter::performConversionForString(const std::string& string)
 {
     // (an unknown encoding, NSNotFound: the conversion gave nil)
     if (!_encoding.has_value())
@@ -195,15 +186,13 @@ static unsigned sCacheMisses = 0;
       are undesireable.
         * Cache hit ratio is extremely near 100% at most times.
 */
-- (void)profileFire:(id)junk
+void OOEncodingConverter::profileFire(void* junk)
 {
     float ratio = (float)sCacheHits / (float)(sCacheHits + sCacheMisses);
     OO_LOG("strings.encoding.profile", "Cache hits: {}, misses: {}, ratio: {:.2g}", sCacheHits, sCacheMisses, ratio);
     sCacheHits = sCacheMisses = 0;
 }
 #endif
-
-@end
 
 #endif // OOENCODINGCONVERTER_EXCLUDE
 

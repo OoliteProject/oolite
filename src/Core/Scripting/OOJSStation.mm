@@ -34,11 +34,10 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
-#import "OOPListView.h"
 #import "OOShipRegistry.h"
 
-#import "OOFoundationBridge.h"
-#import "OOStringBridge.h"
+#import "OOObjCPList.h"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 
 static JSClassID sStationClassID;
@@ -147,7 +146,7 @@ void InitOOJSStation(JSContext* context, JSValueConst global)
     OOJSRegisterClass(&sStationClassID, &sStationClass);
 
     JSValue parentPrototype = JS_GetClassProto(context, JSShipClassID());
-    NSCAssert(JS_IsObject(parentPrototype), @"Ship must be initialized before Station.");
+    OOCAssert(JS_IsObject(parentPrototype), "Ship must be initialized before Station.");
     OOJSInitClass(context, global, sStationClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
         sStationProperties, OOJS_COUNT(sStationProperties), sStationMethods, OOJS_COUNT(sStationMethods), NULL, 0);
     JS_FreeValue(context, parentPrototype);
@@ -267,7 +266,8 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, [entity alertLevel]);
 
     case kStation_allegiance: {
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([entity cxx_allegiance]));
+        const std::optional<std::string> allegiance = [entity cxx_allegiance];
+        return OOJSValueFromPList(context, allegiance.has_value() ? oo::PList(*allegiance) : oo::PList()); // null for none
     }
 
     case kStation_requiresDockingClearance:
@@ -591,7 +591,7 @@ static JSValue StationLaunchShipWithRole(OOJS_NATIVE_ARGS)
         abortAllDockings = JS_ToBool(context, OOJS_ARGV[1]) > 0;
 
     OOJS_BEGIN_FULL_NATIVE(context)
-    result = [station launchIndependentShip:oo::NSStringOrNil(shipRole)];
+    result = oo::ObjectIn([station launchIndependentShip:*shipRole]);
     if (abortAllDockings)
         [station abortAllDockings];
     OOJS_END_FULL_NATIVE
@@ -718,9 +718,9 @@ static JSValue StationLaunchPolice(OOJS_NATIVE_ARGS)
 
     std::vector<oo::ObjCRef<ShipEntity*>> launched;
     OOJS_BEGIN_FULL_NATIVE(context)
-    launched = oo::ObjCRefsFrom<ShipEntity*>([station launchPolice]);
+    launched = oo::ObjCRefsIn<ShipEntity*>([station launchPolice]);
     OOJS_END_FULL_NATIVE
-    OOJS_RETURN_OBJECT(oo::NSArrayFromObjects(launched));
+    OOJS_RETURN_PLIST(oo::PListFromObjects(launched));
     OOJS_NATIVE_EXIT
 }
 
@@ -1006,15 +1006,18 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS)
 
     oo::PList::Dict result;
     const oo::PList shipyardDefinition = cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0]);
-    id shipyardDefinitionObject = oo::ObjectFromPList(shipyardDefinition);
     // validate each element of the dictionary
-    if (!shipyardDefinitionObject) {
+    if (shipyardDefinition.isNull()) {
         cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard", MIN(argc, 1), OOJS_ARGV, std::nullopt, "valid dictionary object");
         return OOJSNativeFailure(context);
     }
-    // This first test messages the converted object, as it did: a JavaScript array converts to an
-    // array, which raised on -objectForKey:.
-    if (![shipyardDefinitionObject objectForKey:oo::NSStringFrom(KEY_SHORT_DESCRIPTION)]) {
+    // This first test is -objectForKey: on the converted object, as it was: anything but a
+    // dictionary (a JavaScript array converts to an array) raised, which OOJS_NATIVE_EXIT reported.
+    if (!shipyardDefinition.isDict()) {
+        cxx_OOJSReportError(context, "Unidentified native exception");
+        return OOJSNativeFailure(context);
+    }
+    if (shipyardDefinition.find(KEY_SHORT_DESCRIPTION) == nullptr) {
         cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard", MIN(argc, 1), OOJS_ARGV, std::nullopt, "'short_description' in dictionary");
         return OOJSNativeFailure(context);
     }

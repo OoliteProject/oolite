@@ -29,7 +29,6 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
-#import "OOStringBridge.h"
 #include "oofnd/objc/OOException.h"
 #include <stdlib.h>
 

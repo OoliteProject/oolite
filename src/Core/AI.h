@@ -57,10 +57,8 @@ MA 02110-1301, USA.
 + (AI*)currentlyRunningAI;
 + (std::optional<std::string>)cxx_currentlyRunningAIDescription;
 
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string
 - (std::optional<std::string>)cxx_name; // the state machine's name (bead oo-3rb.289.8)
 - (std::optional<std::string>)cxx_associatedJS;
-- (id)state; // shared selector (Foundation declares -state too): -cxx_state as an Objective-C string or nil
 - (std::optional<std::string>)cxx_state; // the current state; nullopt: none (bead oo-3rb.291.2)
 
 - (void)cxx_setStateMachine:(const std::string&)smName withJSScript:(const std::string&)script;

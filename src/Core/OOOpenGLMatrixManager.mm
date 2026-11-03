@@ -1,6 +1,6 @@
 /*
 
-OOOpenGLMatrixManager.m
+OOOpenGLMatrixManager.mm
 
 Manages OpenGL Model, View, etc. matrices.
 
@@ -46,24 +46,14 @@ const char* ooliteStandardMatrixUniforms[] = {
     "ooliteModelViewProjectionInverseTranspose"
 };
 
-@implementation OOOpenGLMatrixStack
+// -init and -dealloc only called super: the implicit constructor and destructor.
 
-- (id)init
-{
-    return [super init];
-}
-
-- (void)dealloc
-{
-    [super dealloc];
-}
-
-- (void)push:(OOMatrix)matrix
+void OOOpenGLMatrixStack::push(OOMatrix matrix)
 {
     stack.push_back(matrix);
 }
 
-- (OOMatrix)pop
+OOMatrix OOOpenGLMatrixStack::pop()
 {
     if (stack.empty()) {
         return kIdentityMatrix;
@@ -73,23 +63,14 @@ const char* ooliteStandardMatrixUniforms[] = {
     return matrix;
 }
 
-- (NSUInteger)stackCount
+NSUInteger OOOpenGLMatrixStack::stackCount()
 {
     return stack.size();
 }
 
-@end
+namespace cxx {
 
-@interface OOOpenGLMatrixManager (Private)
-
-- (void)updateModelView;
-- (void)updateProjection;
-
-@end
-
-@implementation OOOpenGLMatrixManager (Private)
-
-- (void)updateModelView
+void OOOpenGLMatrixManager::updateModelView()
 {
     valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
     valid[OOLITE_GL_MATRIX_NORMAL] = NO;
@@ -104,7 +85,7 @@ const char* ooliteStandardMatrixUniforms[] = {
     valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = NO;
 }
 
-- (void)updateProjection
+void OOOpenGLMatrixManager::updateProjection()
 {
     valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
     valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = NO;
@@ -115,79 +96,67 @@ const char* ooliteStandardMatrixUniforms[] = {
     valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = NO;
 }
 
-@end
-
-@implementation OOOpenGLMatrixManager
-
-- (id)init
+OOOpenGLMatrixManager::OOOpenGLMatrixManager()
 {
-    if ((self = [super init])) {
-        int i;
-        for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
-            switch (i) {
-            case OOLITE_GL_MATRIX_MODELVIEW:
-            case OOLITE_GL_MATRIX_PROJECTION:
-                matrices[i] = kIdentityMatrix;
-                valid[i] = YES;
-                break;
+    int i;
+    for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
+        switch (i) {
+        case OOLITE_GL_MATRIX_MODELVIEW:
+        case OOLITE_GL_MATRIX_PROJECTION:
+            matrices[i] = kIdentityMatrix;
+            valid[i] = YES;
+            break;
 
-            default:
-                valid[i] = NO;
-                break;
-            }
+        default:
+            valid[i] = NO;
+            break;
         }
-        modelViewStack = [[OOOpenGLMatrixStack alloc] init];
-        projectionStack = [[OOOpenGLMatrixStack alloc] init];
     }
-    return self;
+    modelViewStack = oo::makeRef<OOOpenGLMatrixStack>();
+    projectionStack = oo::makeRef<OOOpenGLMatrixStack>();
 }
 
-- (void)dealloc
-{
-    [modelViewStack release];
-    [projectionStack release];
-    [super dealloc];
-}
+// -dealloc released the two stacks: their oo::Ref members do.
 
-- (void)loadModelView:(OOMatrix)matrix
+void OOOpenGLMatrixManager::loadModelView(OOMatrix matrix)
 {
     matrices[OOLITE_GL_MATRIX_MODELVIEW] = matrix;
-    [self updateModelView];
+    updateModelView();
     return;
 }
 
-- (void)resetModelView
+void OOOpenGLMatrixManager::resetModelView()
 {
     matrices[OOLITE_GL_MATRIX_MODELVIEW] = kIdentityMatrix;
-    [self updateModelView];
+    updateModelView();
 }
 
-- (void)multModelView:(OOMatrix)matrix
+void OOOpenGLMatrixManager::multModelView(OOMatrix matrix)
 {
     matrices[OOLITE_GL_MATRIX_MODELVIEW] = OOMatrixMultiply(matrix, matrices[OOLITE_GL_MATRIX_MODELVIEW]);
-    [self updateModelView];
+    updateModelView();
 }
 
-- (void)translateModelView:(Vector)vector
+void OOOpenGLMatrixManager::translateModelView(Vector vector)
 {
     OOMatrix matrix = kIdentityMatrix;
     matrix.m[3][0] = vector.x;
     matrix.m[3][1] = vector.y;
     matrix.m[3][2] = vector.z;
-    [self multModelView:matrix];
+    multModelView(matrix);
 }
 
-- (void)rotateModelView:(GLfloat)angle axis:(Vector)axis
+void OOOpenGLMatrixManager::rotateModelView(GLfloat angle, Vector axis)
 {
-    [self multModelView:OOMatrixForRotation(axis, angle)];
+    multModelView(OOMatrixForRotation(axis, angle));
 }
 
-- (void)scaleModelView:(Vector)scale
+void OOOpenGLMatrixManager::scaleModelView(Vector scale)
 {
-    [self multModelView:OOMatrixForScale(scale.x, scale.y, scale.z)];
+    multModelView(OOMatrixForScale(scale.x, scale.y, scale.z));
 }
 
-- (void)lookAtWithEye:(Vector)eye center:(Vector)center up:(Vector)up
+void OOOpenGLMatrixManager::lookAtWithEye(Vector eye, Vector center, Vector up)
 {
     Vector k = vector_normal(vector_subtract(eye, center));
     Vector i = cross_product(up, k);
@@ -197,138 +166,138 @@ const char* ooliteStandardMatrixUniforms[] = {
         i.y, j.y, k.y, 0.0,
         i.z, j.z, k.z, 0.0,
         -eye.x, -eye.y, -eye.z, 1.0);
-    [self multModelView:m1];
+    multModelView(m1);
     return;
 }
 
-- (void)pushModelView
+void OOOpenGLMatrixManager::pushModelView()
 {
-    [modelViewStack push:matrices[OOLITE_GL_MATRIX_MODELVIEW]];
+    modelViewStack->push(matrices[OOLITE_GL_MATRIX_MODELVIEW]);
 }
 
-- (OOMatrix)popModelView
+OOMatrix OOOpenGLMatrixManager::popModelView()
 {
-    matrices[OOLITE_GL_MATRIX_MODELVIEW] = [modelViewStack pop];
-    [self updateModelView];
+    matrices[OOLITE_GL_MATRIX_MODELVIEW] = modelViewStack->pop();
+    updateModelView();
     return matrices[OOLITE_GL_MATRIX_MODELVIEW];
 }
 
-- (OOMatrix)getModelView
+OOMatrix OOOpenGLMatrixManager::getModelView()
 {
     return matrices[OOLITE_GL_MATRIX_MODELVIEW];
 }
 
-- (NSUInteger)countModelView
+NSUInteger OOOpenGLMatrixManager::countModelView()
 {
-    return [modelViewStack stackCount];
+    return modelViewStack->stackCount();
 }
 
-- (void)syncModelView
+void OOOpenGLMatrixManager::syncModelView()
 {
     OO_ENTER_OPENGL();
     OOGL(glMatrixMode(GL_MODELVIEW));
-    GLLoadOOMatrix([self getModelView]);
+    GLLoadOOMatrix(getModelView());
     return;
 }
 
-- (void)loadProjection:(OOMatrix)matrix
+void OOOpenGLMatrixManager::loadProjection(OOMatrix matrix)
 {
     matrices[OOLITE_GL_MATRIX_PROJECTION] = matrix;
-    [self updateProjection];
+    updateProjection();
     return;
 }
 
-- (void)multProjection:(OOMatrix)matrix
+void OOOpenGLMatrixManager::multProjection(OOMatrix matrix)
 {
     matrices[OOLITE_GL_MATRIX_PROJECTION] = OOMatrixMultiply(matrix, matrices[OOLITE_GL_MATRIX_PROJECTION]);
-    [self updateProjection];
+    updateProjection();
 }
 
-- (void)translateProjection:(Vector)vector
+void OOOpenGLMatrixManager::translateProjection(Vector vector)
 {
     OOMatrix matrix = kIdentityMatrix;
     matrix.m[0][3] = vector.x;
     matrix.m[1][3] = vector.y;
     matrix.m[2][3] = vector.z;
-    [self multProjection:matrix];
+    multProjection(matrix);
 }
 
-- (void)rotateProjection:(GLfloat)angle axis:(Vector)axis
+void OOOpenGLMatrixManager::rotateProjection(GLfloat angle, Vector axis)
 {
-    [self multProjection:OOMatrixForRotation(axis, angle)];
+    multProjection(OOMatrixForRotation(axis, angle));
 }
 
-- (void)scaleProjection:(Vector)scale
+void OOOpenGLMatrixManager::scaleProjection(Vector scale)
 {
-    [self multProjection:OOMatrixForScale(scale.x, scale.y, scale.z)];
+    multProjection(OOMatrixForScale(scale.x, scale.y, scale.z));
 }
 
-- (void)frustumLeft:(double)l right:(double)r bottom:(double)b top:(double)t near:(double)n far:(double)f
+void OOOpenGLMatrixManager::frustumLeft(double l, double r, double b, double t, double n, double f)
 {
     if (l == r || t == b || n == f || n <= 0 || f <= 0)
         return;
-    [self multProjection:OOMatrixConstruct(
-                             2 * n / (r - l), 0.0, 0.0, 0.0,
-                             0.0, 2 * n / (t - b), 0.0, 0.0,
-                             (r + l) / (r - l), (t + b) / (t - b), -(f + n) / (f - n), -1.0,
-                             0.0, 0.0, -2 * f * n / (f - n), 0.0)];
+    multProjection(OOMatrixConstruct(
+        2 * n / (r - l), 0.0, 0.0, 0.0,
+        0.0, 2 * n / (t - b), 0.0, 0.0,
+        (r + l) / (r - l), (t + b) / (t - b), -(f + n) / (f - n), -1.0,
+        0.0, 0.0, -2 * f * n / (f - n), 0.0));
 }
 
-- (void)orthoLeft:(double)l right:(double)r bottom:(double)b top:(double)t near:(double)n far:(double)f
+void OOOpenGLMatrixManager::orthoLeft(double l, double r, double b, double t, double n, double f)
 {
     if (l == r || t == b || n == f)
         return;
-    [self multProjection:OOMatrixConstruct(
-                             2 / (r - l), 0.0, 0.0, 0.0,
-                             0.0, 2 / (t - b), 0.0, 0.0,
-                             0.0, 0.0, 2 / (n - f), 0.0,
-                             (l + r) / (l - r), (b + t) / (b - t), (n + f) / (n - f), 1.0)];
+    multProjection(OOMatrixConstruct(
+        2 / (r - l), 0.0, 0.0, 0.0,
+        0.0, 2 / (t - b), 0.0, 0.0,
+        0.0, 0.0, 2 / (n - f), 0.0,
+        (l + r) / (l - r), (b + t) / (b - t), (n + f) / (n - f), 1.0));
 }
 
-- (void)perspectiveFovy:(double)fovy aspect:(double)aspect zNear:(double)zNear zFar:(double)zFar
+void OOOpenGLMatrixManager::perspectiveFovy(double fovy, double aspect, double zNear, double zFar)
 {
     if (aspect == 0.0 || zNear == zFar)
         return;
     double f = 1.0 / tan(M_PI * fovy / 360);
-    [self multProjection:OOMatrixConstruct(
-                             f / aspect, 0.0, 0.0, 0.0,
-                             0.0, f, 0.0, 0.0,
-                             0.0, 0.0, (zFar + zNear) / (zNear - zFar), -1.0,
-                             0.0, 0.0, 2 * zFar * zNear / (zNear - zFar), 0.0)];
+    multProjection(OOMatrixConstruct(
+        f / aspect, 0.0, 0.0, 0.0,
+        0.0, f, 0.0, 0.0,
+        0.0, 0.0, (zFar + zNear) / (zNear - zFar), -1.0,
+        0.0, 0.0, 2 * zFar * zNear / (zNear - zFar), 0.0));
 }
 
-- (void)resetProjection
+void OOOpenGLMatrixManager::resetProjection()
 {
     matrices[OOLITE_GL_MATRIX_PROJECTION] = kIdentityMatrix;
-    [self updateProjection];
+    updateProjection();
 }
 
-- (void)pushProjection
+void OOOpenGLMatrixManager::pushProjection()
 {
-    [projectionStack push:matrices[OOLITE_GL_MATRIX_PROJECTION]];
+    projectionStack->push(matrices[OOLITE_GL_MATRIX_PROJECTION]);
 }
 
-- (OOMatrix)popProjection
+OOMatrix OOOpenGLMatrixManager::popProjection()
 {
-    matrices[OOLITE_GL_MATRIX_PROJECTION] = [projectionStack pop];
-    [self updateProjection];
+    matrices[OOLITE_GL_MATRIX_PROJECTION] = projectionStack->pop();
+    updateProjection();
     return matrices[OOLITE_GL_MATRIX_PROJECTION];
 }
 
-- (OOMatrix)getProjection
+OOMatrix OOOpenGLMatrixManager::getProjection()
 {
     return matrices[OOLITE_GL_MATRIX_PROJECTION];
 }
 
-- (void)syncProjection
+void OOOpenGLMatrixManager::syncProjection()
 {
     OO_ENTER_OPENGL();
     OOGL(glMatrixMode(GL_PROJECTION));
-    GLLoadOOMatrix([self getProjection]);
+    GLLoadOOMatrix(getProjection());
     return;
 }
 
-- (OOMatrix)getMatrix:(int)which
+OOMatrix OOOpenGLMatrixManager::getMatrix(int which)
 {
     if (which < 0 || which >= OOLITE_GL_MATRIX_END)
         return kIdentityMatrix;
@@ -365,7 +334,7 @@ const char* ooliteStandardMatrixUniforms[] = {
         matrices[which] = OOMatrixInverse(matrices[OOLITE_GL_MATRIX_PROJECTION]);
         break;
     case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE:
-        matrices[which] = OOMatrixInverse([self getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION]);
+        matrices[which] = OOMatrixInverse(getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION));
         break;
     case OOLITE_GL_MATRIX_MODELVIEW_TRANSPOSE:
         matrices[which] = OOMatrixTranspose(matrices[OOLITE_GL_MATRIX_MODELVIEW]);
@@ -374,23 +343,23 @@ const char* ooliteStandardMatrixUniforms[] = {
         matrices[which] = OOMatrixTranspose(matrices[OOLITE_GL_MATRIX_PROJECTION]);
         break;
     case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE:
-        matrices[which] = OOMatrixTranspose([self getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION]);
+        matrices[which] = OOMatrixTranspose(getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION));
         break;
     case OOLITE_GL_MATRIX_MODELVIEW_INVERSE_TRANSPOSE:
-        matrices[which] = OOMatrixTranspose([self getMatrix:OOLITE_GL_MATRIX_MODELVIEW_INVERSE]);
+        matrices[which] = OOMatrixTranspose(getMatrix(OOLITE_GL_MATRIX_MODELVIEW_INVERSE));
         break;
     case OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE:
-        matrices[which] = OOMatrixTranspose([self getMatrix:OOLITE_GL_MATRIX_PROJECTION_INVERSE]);
+        matrices[which] = OOMatrixTranspose(getMatrix(OOLITE_GL_MATRIX_PROJECTION_INVERSE));
         break;
     case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE:
-        matrices[which] = OOMatrixTranspose([self getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE]);
+        matrices[which] = OOMatrixTranspose(getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE));
         break;
     }
     valid[which] = YES;
     return matrices[which];
 }
 
-- (oo::PList)standardMatrixUniformLocations:(GLhandleARB)program
+oo::PList OOOpenGLMatrixManager::standardMatrixUniformLocations(GLhandleARB program)
 {
     GLint location;
     NSUInteger i;
@@ -417,166 +386,216 @@ const char* ooliteStandardMatrixUniforms[] = {
     return oo::PList(std::move(locationSet));
 }
 
-@end
+} // namespace cxx
+
+namespace {
+
+// The game view's manager: [[UNIVERSE gameView] getOpenGLMatrixManager], crossed to C++. Null when
+// there is no universe or view, and each OOGL function below then does what its messages to nil
+// did: nothing, or a zero matrix.
+cxx::OOOpenGLMatrixManager* GameViewMatrixManager()
+{
+    return oo::ToCxx([[UNIVERSE gameView] getOpenGLMatrixManager]);
+}
+
+} // namespace
 
 void OOGLPushModelView()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager pushModelView];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->pushModelView();
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 OOMatrix OOGLPopModelView()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    OOMatrix matrix = [matrixManager popModelView];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOMatrix matrix = matrixManager != nullptr ? matrixManager->popModelView() : kZeroMatrix;
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
     return matrix;
 }
 
 OOMatrix OOGLGetModelView()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    OOMatrix matrix = [matrixManager getModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOMatrix matrix = matrixManager != nullptr ? matrixManager->getModelView() : kZeroMatrix;
     return matrix;
 }
 
 void OOGLResetModelView()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager resetModelView];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->resetModelView();
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLLoadModelView(OOMatrix matrix)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager loadModelView:matrix];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->loadModelView(matrix);
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLMultModelView(OOMatrix matrix)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager multModelView:matrix];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->multModelView(matrix);
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLTranslateModelView(Vector vector)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager translateModelView:vector];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->translateModelView(vector);
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLRotateModelView(GLfloat angle, Vector axis)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager rotateModelView:angle axis:axis];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->rotateModelView(angle, axis);
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLScaleModelView(Vector scale)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager scaleModelView:scale];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->scaleModelView(scale);
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLLookAt(Vector eye, Vector center, Vector up)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager lookAtWithEye:eye center:center up:up];
-    [matrixManager syncModelView];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->lookAtWithEye(eye, center, up);
+    if (matrixManager != nullptr)
+        matrixManager->syncModelView();
 }
 
 void OOGLResetProjection()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager resetProjection];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->resetProjection();
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLPushProjection()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager pushProjection];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->pushProjection();
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 OOMatrix OOGLPopProjection()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    OOMatrix matrix = [matrixManager popProjection];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOMatrix matrix = matrixManager != nullptr ? matrixManager->popProjection() : kZeroMatrix;
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
     return matrix;
 }
 
 OOMatrix OOGLGetProjection()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    OOMatrix matrix = [matrixManager getProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    OOMatrix matrix = matrixManager != nullptr ? matrixManager->getProjection() : kZeroMatrix;
     return matrix;
 }
 
 void OOGLLoadProjection(OOMatrix matrix)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager loadProjection:matrix];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->loadProjection(matrix);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLMultProjection(OOMatrix matrix)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager multProjection:matrix];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->multProjection(matrix);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLTranslateProjection(Vector vector)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager translateProjection:vector];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->translateProjection(vector);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLRotateProjection(GLfloat angle, Vector axis)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager rotateProjection:angle axis:axis];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->rotateProjection(angle, axis);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLScaleProjection(Vector scale)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager scaleProjection:scale];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->scaleProjection(scale);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLFrustum(double frleft, double frright, double frbottom, double frtop, double frnear, double frfar)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager frustumLeft:frleft right:frright bottom:frbottom top:frtop near:frnear far:frfar];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->frustumLeft(frleft, frright, frbottom, frtop, frnear, frfar);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLOrtho(double orleft, double orright, double orbottom, double ortop, double ornear, double orfar)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager orthoLeft:orleft right:orright bottom:orbottom top:ortop near:ornear far:orfar];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->orthoLeft(orleft, orright, orbottom, ortop, ornear, orfar);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar)
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    [matrixManager perspectiveFovy:fovy aspect:aspect zNear:zNear zFar:zFar];
-    [matrixManager syncProjection];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    if (matrixManager != nullptr)
+        matrixManager->perspectiveFovy(fovy, aspect, zNear, zFar);
+    if (matrixManager != nullptr)
+        matrixManager->syncProjection();
 }
 
 OOMatrix OOGLGetModelViewProjection()
 {
-    OOOpenGLMatrixManager* matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-    return [matrixManager getMatrix:OOLITE_GL_MATRIX_MODELVIEW_PROJECTION];
+    cxx::OOOpenGLMatrixManager* matrixManager = GameViewMatrixManager();
+    return matrixManager != nullptr ? matrixManager->getMatrix(OOLITE_GL_MATRIX_MODELVIEW_PROJECTION) : kZeroMatrix;
 }

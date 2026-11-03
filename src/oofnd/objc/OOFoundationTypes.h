@@ -10,7 +10,7 @@
             NSInteger, NSUInteger          intptr_t, uintptr_t (NSObjCRuntime.h)
             NSIntegerMax/Min, NSUIntegerMax INTPTR_MAX/MIN, UINTPTR_MAX
             NSNotFound                     static const NSInteger = NSIntegerMax
-            NSTimeInterval                 double (NSDate.h)
+            NSTimeInterval                 double (Foundation's date header)
             CGFloat                        double on _WIN64 and LP64, else float (CoreFoundation/CFCGTypes.h)
             NSPoint, NSSize, NSRect        struct CGPoint {x, y}, CGSize {width, height},
                                            CGRect {origin, size} (NSGeometry.h)
@@ -20,8 +20,8 @@
             NSMakePoint, NSMakeSize, NSMakeRect, NSEqualPoints, NSEqualSizes, NSEqualRects
 
         One deliberate difference: NSMakeRange with location + length overflowing NSUInteger raised
-        NSRangeException; here it logs and aborts (as OOObject's -doesNotRecognizeSelector: does,
-        ADR-0029). Nothing in Oolite catches it.
+        Foundation's range exception; here it logs and aborts (as OOObject's
+        -doesNotRecognizeSelector: does, ADR-0029). Nothing in Oolite catches it.
 
         Foundation defines every one of these names, so this header refuses to compile beside it: it is
         included by OOFoundation.h only when oo-qps removes the Foundation import. Plain C: usable from C,

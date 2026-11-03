@@ -2,6 +2,12 @@
 
 OOEquipmentType.h
 
+C++20 since bead oo-fg7i (Phase 3, proposed ADR-0056). The class is cxx::OOEquipmentType while
+OOEquipmentType+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
+OOEquipmentType its unconverted callers message (ships, the player, the JS bindings); the bridge's
+deletion bead moves it out of namespace cxx. The registries of types are the class's; the facade
+keeps each registered type's Objective-C object alive while it is registered.
+
 Class representing a type of ship equipment. Exposed to JavaScript as
 EquipmentInfo.
 
@@ -30,10 +36,14 @@ SOFTWARE.
 
 #pragma once
 
+#ifndef OOEQUIPMENTTYPE_H
+#define OOEQUIPMENTTYPE_H
+
+#import "OOColor.h"
 #import "OOFoundation.h"
-#import "OOScript.h"
+#import "OOOpenGL.h"
 #import "OOTypes.h"
-#import "Universe.h"
+#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 #import "oofnd/objc/OOObject.h"
 
@@ -46,35 +56,135 @@ SOFTWARE.
 
 #include "oofnd/PList.hpp"
 
-@interface OOEquipmentType : OOObject <OOCopying> {
-@private
-    OOTechLevelID _techLevel;
-    OOCreditsQuantity _price;
-    std::string _name; // never empty-for-nil: -initWithInfo: fails without all three
+namespace cxx {
+
+class OOEquipmentType : public oo::RefCounted {
+public:
+    static void loadEquipment(); // Load equipment data; called on loading and when changing to/from strict mode.
+    static void addEquipmentWithInfo(const oo::PList& itemInfo); // Used to generate equipment from missile_role entries.
+
+    static std::optional<std::string> getMissileRegistryRoleForShip(const std::string& shipKey); // nullopt: none registered
+    static void setMissileRegistryRole(const std::string& role, const std::string& shipKey);
+
+    static std::vector<oo::Ref<OOEquipmentType>> allEquipmentTypes(); // a snapshot, in equipment.plist order
+    static std::vector<oo::Ref<OOEquipmentType>> allEquipmentTypesOutfitting(); // the outfitting dataset
+
+    static oo::Ref<OOEquipmentType> equipmentTypeWithIdentifier(const std::string& identifier); // null: none
+
+    std::optional<std::string> identifier();
+    std::optional<std::string> damagedIdentifier();
+    std::optional<std::string> name(); // localized (bead oo-3rb.289.10)
+    std::optional<std::string> descriptiveText(); // localized
+    OOTechLevelID techLevel();
+    OOCreditsQuantity price(); // Tenths of credits
+
+    bool isAvailableToAll();
+    bool requiresEmptyPylon();
+    bool requiresMountedPylon();
+    bool requiresCleanLegalRecord();
+    bool requiresNonCleanLegalRecord();
+    bool requiresFreePassengerBerth();
+    bool requiresFullFuel();
+    bool requiresNonFullFuel();
+    bool isPrimaryWeapon();
+    bool isMissileOrMine();
+    bool isPortableBetweenShips();
+
+    bool canCarryMultiple();
+    GLfloat damageProbability();
+    bool canBeDamaged();
+    bool isVisible(); // Visible in UI?
+    bool hideValues();
+    oo::Ref<OOColor> displayColor();
+    void setDisplayColor(OOColor* newColor);
+
+    bool isAvailableToPlayer();
+    bool isAvailableToNPCs();
+
+    OOCargoQuantity requiredCargoSpace();
+    // Equipment identifiers, sorted and de-duplicated; nullopt when not specified.
+    std::optional<std::vector<std::string>> requiresEquipment(); // all items required
+    std::optional<std::vector<std::string>> requiresAnyEquipment(); // any item required
+    std::optional<std::vector<std::string>> incompatibleEquipment(); // all items prohibited
+
+    // FIXME: should have general mechanism to handle scripts or legacy conditions.
+    oo::PList conditions(); // an array; null: none
+
+    std::optional<std::string> conditionScript();
+
+    oo::PList scriptInfo(); // null: none
+    std::optional<std::string> scriptName();
+
+    bool fastAffinityDefensive();
+    bool fastAffinityOffensive();
+
+    oo::PList defaultActivateKey(); // an array; null: none
+    oo::PList defaultModeKey(); // an array; null: none
+
+    NSUInteger installTime();
+    NSUInteger repairTime();
+
+    std::vector<std::string> providesForScripting();
+    bool provides(const std::string& key);
+
+    // weapon properties
+    bool isTurretLaser();
+    bool isMiningLaser();
+    oo::PList weaponInfo(); // a dictionary
+    GLfloat weaponRange();
+    GLfloat weaponEnergyUse();
+    GLfloat weaponDamage();
+    GLfloat weaponRechargeRate();
+    GLfloat weaponShotTemperature();
+    GLfloat weaponThreatAssessment();
+    oo::Ref<OOColor> weaponColor();
+    std::optional<std::string> fxShotMissName();
+    std::optional<std::string> fxShotHitName();
+    std::optional<std::string> fxShieldHitName();
+    std::optional<std::string> fxUnshieldedHitName();
+    std::optional<std::string> fxWeaponLaunchedName();
+
+    // Conveniences
+    OOTechLevelID effectiveTechLevel();
+
+    // What "%@" prints between the braces of <OOEquipmentType 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    OOEquipmentType() = default;
+
+    // -initWithInfo:, which could fail: createWithInfo() runs it on a new object (ADR-0056
+    // amendment oo-fg7i).
+    static oo::Ref<OOEquipmentType> createWithInfo(const oo::PList& info);
+    bool initWithInfo(const oo::PList& info); // an equipment.plist entry (an array)
+
+    OOTechLevelID _techLevel = { };
+    OOCreditsQuantity _price = { };
+    std::string _name; // never empty-for-nil: initWithInfo() fails without all three
     std::string _identifier;
     std::string _description;
-    unsigned _isAvailableToAll : 1,
-        _requiresEmptyPylon : 1,
-        _requiresMountedPylon : 1,
-        _requiresClean : 1,
-        _requiresNotClean : 1,
-        _portableBetweenShips : 1,
-        _requiresFreePassengerBerth : 1,
-        _requiresFullFuel : 1,
-        _requiresNonFullFuel : 1,
-        _isMissileOrMine : 1,
-        _isVisible : 1,
-        _isAvailableToPlayer : 1,
-        _isAvailableToNPCs : 1,
-        _fastAffinityA : 1,
-        _fastAffinityB : 1,
-        _canCarryMultiple : 1,
-        _hideValues : 1;
-    OOColor* _displayColor;
-    NSUInteger _installTime;
-    NSUInteger _repairTime;
-    GLfloat _damageProbability;
-    OOCargoQuantity _requiredCargoSpace;
+    unsigned _isAvailableToAll : 1 = 0,
+                                 _requiresEmptyPylon : 1 = 0,
+                                 _requiresMountedPylon : 1 = 0,
+                                 _requiresClean : 1 = 0,
+                                 _requiresNotClean : 1 = 0,
+                                 _portableBetweenShips : 1 = 0,
+                                 _requiresFreePassengerBerth : 1 = 0,
+                                 _requiresFullFuel : 1 = 0,
+                                 _requiresNonFullFuel : 1 = 0,
+                                 _isMissileOrMine : 1 = 0,
+                                 _isVisible : 1 = 0,
+                                 _isAvailableToPlayer : 1 = 0,
+                                 _isAvailableToNPCs : 1 = 0,
+                                 _fastAffinityA : 1 = 0,
+                                 _fastAffinityB : 1 = 0,
+                                 _canCarryMultiple : 1 = 0,
+                                 _hideValues : 1 = 0;
+    oo::Ref<OOColor> _displayColor;
+    NSUInteger _installTime = { };
+    NSUInteger _repairTime = { };
+    GLfloat _damageProbability = { };
+    OOCargoQuantity _requiredCargoSpace = { };
     // Sorted, de-duplicated equipment keys; nullopt when the key is absent (was nil).
     std::optional<std::vector<std::string>> _requiresEquipment;
     std::optional<std::vector<std::string>> _requiresAnyEquipment;
@@ -87,99 +197,12 @@ SOFTWARE.
     oo::PList _weaponInfo; // a dictionary (empty by default)
     std::optional<std::string> _script;
     std::optional<std::string> _condition_script;
+};
 
-    JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
-}
+} // namespace cxx
 
-+ (void)loadEquipment; // Load equipment data; called on loading and when changing to/from strict mode.
-+ (void)cxx_addEquipmentWithInfo:(const oo::PList&)itemInfo; // Used to generate equipment from missile_role entries.
+// Transitional: the Objective-C OOEquipmentType, for callers not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "OOEquipmentType+ObjCBridge.h"
 
-+ (std::optional<std::string>)cxx_getMissileRegistryRoleForShip:(const std::string&)shipKey; // nullopt: none registered
-+ (void)cxx_setMissileRegistryRole:(const std::string&)role forShip:(const std::string&)shipKey;
-
-+ (std::vector<oo::ObjCRef<OOEquipmentType*>>)cxx_allEquipmentTypes; // a snapshot, in equipment.plist order
-+ (std::vector<oo::ObjCRef<OOEquipmentType*>>)cxx_allEquipmentTypesOutfitting; // the outfitting dataset
-
-+ (OOEquipmentType*)cxx_equipmentTypeWithIdentifier:(const std::string&)identifier; // nil: none
-
-- (std::optional<std::string>)cxx_identifier;
-- (std::optional<std::string>)cxx_damagedIdentifier;
-- (id)name; // localized; shared selector (Foundation declares -name too): -cxx_name as an Objective-C string
-- (std::optional<std::string>)cxx_name; // localized (bead oo-3rb.289.10)
-- (std::optional<std::string>)cxx_descriptiveText; // localized
-- (OOTechLevelID)techLevel;
-- (OOCreditsQuantity)price; // Tenths of credits
-
-- (BOOL)isAvailableToAll;
-- (BOOL)requiresEmptyPylon;
-- (BOOL)requiresMountedPylon;
-- (BOOL)requiresCleanLegalRecord;
-- (BOOL)requiresNonCleanLegalRecord;
-- (BOOL)requiresFreePassengerBerth;
-- (BOOL)requiresFullFuel;
-- (BOOL)requiresNonFullFuel;
-- (BOOL)isPrimaryWeapon;
-- (BOOL)isMissileOrMine;
-- (BOOL)isPortableBetweenShips;
-
-- (BOOL)canCarryMultiple;
-- (GLfloat)damageProbability;
-- (BOOL)canBeDamaged;
-- (BOOL)isVisible; // Visible in UI?
-- (BOOL)hideValues;
-- (OOColor*)displayColor;
-- (void)setDisplayColor:(OOColor*)newColor;
-
-- (BOOL)isAvailableToPlayer;
-- (BOOL)isAvailableToNPCs;
-
-- (OOCargoQuantity)requiredCargoSpace;
-// Equipment identifiers, sorted and de-duplicated; nullopt when not specified.
-- (std::optional<std::vector<std::string>>)cxx_requiresEquipment; // all items required
-- (std::optional<std::vector<std::string>>)cxx_requiresAnyEquipment; // any item required
-- (std::optional<std::vector<std::string>>)cxx_incompatibleEquipment; // all items prohibited
-
-// FIXME: should have general mechanism to handle scripts or legacy conditions.
-- (oo::PList)cxx_conditions; // an array; null: none
-
-- (std::optional<std::string>)cxx_conditionScript;
-
-- (oo::PList)scriptInfo; // flipped with its family (bead oo-3rb.284); null: none
-- (std::optional<std::string>)cxx_scriptName;
-
-- (BOOL)fastAffinityDefensive;
-- (BOOL)fastAffinityOffensive;
-
-- (oo::PList)cxx_defaultActivateKey; // an array; null: none
-- (oo::PList)cxx_defaultModeKey; // an array; null: none
-
-- (NSUInteger)installTime;
-- (NSUInteger)repairTime;
-
-- (std::vector<std::string>)cxx_providesForScripting;
-- (BOOL)cxx_provides:(const std::string&)key;
-
-// weapon properties
-- (BOOL)isTurretLaser;
-- (BOOL)isMiningLaser;
-- (oo::PList)cxx_weaponInfo; // a dictionary
-- (GLfloat)weaponRange;
-- (GLfloat)weaponEnergyUse;
-- (GLfloat)weaponDamage;
-- (GLfloat)weaponRechargeRate;
-- (GLfloat)weaponShotTemperature;
-- (GLfloat)weaponThreatAssessment;
-- (OOColor*)weaponColor;
-- (std::optional<std::string>)cxx_fxShotMissName;
-- (std::optional<std::string>)cxx_fxShotHitName;
-- (std::optional<std::string>)cxx_fxShieldHitName;
-- (std::optional<std::string>)cxx_fxUnshieldedHitName;
-- (std::optional<std::string>)cxx_fxWeaponLaunchedName;
-
-@end
-
-@interface OOEquipmentType (Conveniences)
-
-- (OOTechLevelID)effectiveTechLevel;
-
-@end
+#endif // OOEQUIPMENTTYPE_H

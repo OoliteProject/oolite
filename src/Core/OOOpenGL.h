@@ -309,15 +309,9 @@ enum {
 
 #ifdef __cplusplus
 extern "C++" { // (this header is sometimes reached from inside OOMaths.h's extern "C" block)
-#endif
-#ifdef __cplusplus
-extern "C++" { // (this header is sometimes reached from inside OOMaths.h's extern "C" block)
 std::string OOGLColorToString(GLfloat color[4]);
 std::string OOGLEnumToString(GLenum value);
 std::string OOGLFlagToString(bool value);
-}
-#endif
-#ifdef __cplusplus
 }
 #endif
 

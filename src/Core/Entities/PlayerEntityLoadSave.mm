@@ -30,14 +30,11 @@
 #import "GameController.h"
 #import "OOColor.h"
 #import "OOConstToString.h"
-#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJoystickManager.h"
 #import "OOPListParsing.h"
-#import "OOPListView.h"
 #import "OOShipRegistry.h"
 #import "OOSound.h"
-#import "OOStringBridge.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOTexture.h"
@@ -51,6 +48,7 @@
 #include "oofnd/objc/OOException.h"
 
 #import "OOPListGameTypes.h"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include <algorithm>
 
@@ -732,7 +730,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
     }
     // and initialise markets for the secondary stations
     const oo::PList* stationMarkets = fileDic.get<oo::PList::Array>("station_markets");
-    [UNIVERSE cxx_loadStationMarkets:stationMarkets != nullptr ? oo::PListFrom(oo::ObjectFromPList(*stationMarkets)) : oo::PList()];
+    [UNIVERSE cxx_loadStationMarkets:stationMarkets != nullptr ? *stationMarkets : oo::PList()];
 
     OO_LOG("load.progress", "{}", "Completing JS startup");
     [self startUpComplete];

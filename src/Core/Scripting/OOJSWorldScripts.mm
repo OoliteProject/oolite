@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "PlayerEntity.h"
 
-#import "OOFoundationBridge.h"
 #include <cstring>
 
 /*	SpiderMonkey called the WorldScripts class's getProperty hook for every

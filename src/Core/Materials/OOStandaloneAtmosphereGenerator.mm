@@ -35,9 +35,9 @@
 #define ALBEDO_FACTOR 0.7f // Overall darkening of everything, allowing better contrast for snow and specular highlights.
 
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "OOStandaloneAtmosphereGenerator.h"
 
+#import "OOObjCPList.h"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

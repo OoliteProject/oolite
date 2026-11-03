@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 
 #import "MyOpenGLView.h"
-#import "OOFoundationBridge.h"
 
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"

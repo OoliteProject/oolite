@@ -26,7 +26,6 @@ SOFTWARE.
 */
 
 #import "OOPixMapTextureLoader.h"
-#import "OOFoundationBridge.h"
 #import "OOTextureScaling.h"
 
 #include "oofnd/String.hpp"

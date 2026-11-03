@@ -25,32 +25,55 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOMESHTOOCTREECONVERTER_H
+#define OOMESHTOOCTREECONVERTER_H
+
 #import "OOFoundation.h"
 #import "OOMaths.h"
+#import "Octree.h"
 #import "oofnd/objc/OOObject.h"
 
-@class ShipEntity, Octree;
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
+@class ShipEntity;
 
 enum {
     kOOMeshToOctreeConverterSmallDataCapacity = 16
 };
 
-@interface OOMeshToOctreeConverter : OOObject {
-@private
-    struct OOMeshToOctreeConverterInternalData {
-        Triangle* triangles;
-        uint32_t count;
-        uint32_t capacity;
-        uint32_t pendingCapacity;
-        Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
-    } _data;
-}
+// (declared inside the Objective-C class's ivar block before bead oo-rsk8, which put it at file scope)
+struct OOMeshToOctreeConverterInternalData {
+    Triangle* triangles;
+    uint32_t count;
+    uint32_t capacity;
+    uint32_t pendingCapacity;
+    Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
+};
 
-- (id)initWithCapacity:(NSUInteger)capacity;
-+ (instancetype)converterWithCapacity:(NSUInteger)capacity;
+namespace cxx {
 
-- (void)addTriangle:(Triangle)tri;
+class OOMeshToOctreeConverter : public oo::RefCounted {
+public:
+    explicit OOMeshToOctreeConverter(NSUInteger capacity); // -initWithCapacity:
+    static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(NSUInteger capacity);
+    ~OOMeshToOctreeConverter() override;
 
-- (Octree*)findOctreeToDepth:(NSUInteger)depth;
+    void addTriangle(Triangle tri);
 
-@end
+    oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
+
+    // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    struct OOMeshToOctreeConverterInternalData _data = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOMeshToOctreeConverter, for callers not yet converted. Deleted,
+// with namespace cxx above, by the bridge's deletion bead.
+#import "OOMeshToOctreeConverter+ObjCBridge.h"
+
+#endif // OOMESHTOOCTREECONVERTER_H

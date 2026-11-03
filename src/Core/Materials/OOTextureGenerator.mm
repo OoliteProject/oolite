@@ -27,7 +27,6 @@ SOFTWARE.
 
 #import "OOTextureGenerator.h"
 #import "OOAsyncWorkManager.h"
-#import "OOFoundationBridge.h"
 
 @implementation OOTextureGenerator
 

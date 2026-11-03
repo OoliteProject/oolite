@@ -24,26 +24,37 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSFunction.h"
-#import "OOFoundationBridge.h"
+
+#include <climits>
+#include <vector>
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #include "oofnd/Notification.hpp"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-#include <vector>
+/*	C++20 since bead oo-3smy (proposed ADR-0056): cxx::OOJSFunction. The initialisers answered nil
+        for their input, so they are static factories of the same name (amendment oo-novu item 1); the
+        part of -initWithFunction:context: that cannot fail is the private constructor. The engine,
+        the script stack and the wrapped arguments are Objective-C and are messaged as before.
+*/
 
-@implementation OOJSFunction
+namespace cxx {
 
-- (id)initWithFunction:(JSValueConst)function context:(JSContext*)context
+oo::Ref<OOJSFunction> OOJSFunction::initWithFunction(JSValueConst function, JSContext* context)
 {
-    OOParameterAssert(context != NULL);
+    OOCParameterAssert(context != NULL);
 
     if (!JS_IsFunction(context, function)) {
-        [self release];
-        return nil;
+        return nullptr;
     }
 
-    if ((self = [super init])) {
+    return oo::adopt(new OOJSFunction(function, context));
+}
+
+OOJSFunction::OOJSFunction(JSValueConst function, JSContext* context)
+{
+    {
         _function = JS_DupValue(context, function);
 
         // QuickJS has no JS_GetFunctionId(); use the function's name property.
@@ -57,30 +68,29 @@ MA 02110-1301, USA.
         }
         JS_FreeValue(context, nameValue);
 
-        oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
             [OOJavaScriptEngine sharedEngine],
-            [self](const oo::Notification&) { [self deleteJSValue]; });
+            [this](const oo::Notification&) { deleteJSValue(); });
     }
-
-    return self;
 }
 
-- (id)initWithName:(const std::optional<std::string>&)name
-             scope:(JSValueConst)scope
-              code:(const std::optional<std::string>&)code
-     argumentCount:(NSUInteger)argCount
-     argumentNames:(const char**)argNames
-          fileName:(const std::optional<std::string>&)fileName
-        lineNumber:(NSUInteger)lineNumber
-           context:(JSContext*)context
+oo::Ref<OOJSFunction> OOJSFunction::initWithName(const std::optional<std::string>& name,
+    JSValueConst scope,
+    const std::optional<std::string>& code,
+    NSUInteger argCount,
+    const char** argNames,
+    const std::optional<std::string>& fileName,
+    NSUInteger lineNumber,
+    JSContext* context)
 {
-    BOOL OK = YES;
-    BOOL releaseContext = NO;
+    bool OK = true;
+    bool releaseContext = false;
     JSValue function = JS_UNDEFINED;
+    oo::Ref<OOJSFunction> result;
 
     if (context == NULL) {
         context = OOJSAcquireContext();
-        releaseContext = YES;
+        releaseContext = true;
     }
 
     /*	SpiderMonkey's JS_CompileUCFunction() could compile the function in an
@@ -91,7 +101,7 @@ MA 02110-1301, USA.
     (void)scope;
 
     if (!code.has_value() || (argCount > 0 && argNames == NULL))
-        OK = NO;
+        OK = false;
 
     if (OK) {
         assert(argCount < INT_MAX && lineNumber < INT_MAX);
@@ -120,9 +130,9 @@ MA 02110-1301, USA.
         if (JS_IsException(function)) {
             OOJSReportPendingException(context);
             function = JS_UNDEFINED;
-            OK = NO;
+            OK = false;
         } else if (!JS_IsFunction(context, function)) {
-            OK = NO;
+            OK = false;
         }
     }
 
@@ -132,85 +142,76 @@ MA 02110-1301, USA.
     }
 
     if (OK) {
-        self = [self initWithFunction:function context:context];
-    } else {
-        DESTROY(self);
+        result = initWithFunction(function, context);
     }
     JS_FreeValue(context, function);
 
     if (releaseContext)
         OOJSRelinquishContext(context);
 
-    return self;
+    return result;
 }
 
-- (void)deleteJSValue
+void OOJSFunction::deleteJSValue()
 {
-    // _function is zero-filled (not an object) if never set.
+    // _function is JS_NULL (not an object) if never set.
     if (JS_IsObject(_function)) {
         JSContext* context = OOJSAcquireContext();
         JS_FreeValue(context, _function);
         OOJSRelinquishContext(context);
 
         _function = JS_NULL;
-        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
             [OOJavaScriptEngine sharedEngine]);
     }
 }
 
-- (void)dealloc
+OOJSFunction::~OOJSFunction()
 {
-    [self deleteJSValue];
-
-    [super dealloc];
+    deleteJSValue();
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOJSFunction::descriptionComponents() const
 {
     return oo::str::format("%s()", _name.value_or("<anonymous>").c_str());
 }
 
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
-}
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOJSFunction::name()
 {
     return _name;
 }
 
-- (BOOL)isValid
+bool OOJSFunction::isValid() const
 {
-    // _function is zero-filled (the integer 0) until set, and JS_NULL after reset.
+    // _function is JS_NULL until set, and after reset.
     return JS_IsObject(_function);
 }
 
-- (JSValueConst)function
+JSValueConst OOJSFunction::function()
 {
-    return [self isValid] ? _function : JS_NULL;
+    return isValid() ? _function : JS_NULL;
 }
 
-- (JSValue)functionValue
+JSValue OOJSFunction::functionValue()
 {
-    if (EXPECT([self isValid])) {
+    if (EXPECT(isValid())) {
         return JS_DupValue(OOJSAcquireContext(), _function);
     } else {
         return JS_NULL;
     }
 }
 
-- (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(JSValueConst)jsThis
-                       argc:(int)argc
-                       argv:(JSValueConst*)argv
-                     result:(JSValue*)result
+bool OOJSFunction::evaluateWithContext(JSContext* context,
+    JSValueConst jsThis,
+    int argc,
+    JSValueConst* argv,
+    JSValue* result)
 {
-    OOParameterAssert(result != NULL);
+    OOCParameterAssert(result != NULL);
 
-    if (EXPECT_NOT(![self isValid])) {
+    if (EXPECT_NOT(!isValid())) {
         *result = JS_UNDEFINED;
-        return NO;
+        return false;
     }
 
     // As with JS_CallFunction(), a missing this means the global object.
@@ -230,17 +231,17 @@ MA 02110-1301, USA.
 
     if (JS_IsException(rval)) {
         *result = JS_UNDEFINED;
-        return NO;
+        return false;
     }
     *result = rval;
-    return YES;
+    return true;
 }
 
 // Semi-raw evaluation shared by convenience methods below. *result is owned on success; exceptions are reported.
-- (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(id)jsThis
-                  arguments:(const std::vector<oo::ObjCRef<id>>&)arguments
-                     result:(JSValue*)result
+bool OOJSFunction::evaluateWithContext(JSContext* context,
+    id jsThis,
+    const std::vector<oo::ObjCRef<id>>& arguments,
+    JSValue* result)
 {
     NSUInteger i, argc = arguments.size();
     assert(argc < INT_MAX);
@@ -251,7 +252,7 @@ MA 02110-1301, USA.
     }
 
     JSValue scopeObj = JS_UNDEFINED;
-    BOOL OK = YES;
+    bool OK = true;
     if (jsThis != nil) {
         JSValue thisValue = OOJSValueFromNativeObject(context, jsThis);
         // As with JS_ValueToObject(), null and undefined give no object (the global object is used).
@@ -259,17 +260,17 @@ MA 02110-1301, USA.
             scopeObj = JS_ToObject(context, thisValue);
             if (JS_IsException(scopeObj)) {
                 scopeObj = JS_UNDEFINED;
-                OK = NO;
+                OK = false;
             }
         }
         JS_FreeValue(context, thisValue);
     }
     if (OK)
-        OK = [self evaluateWithContext:context
-                                 scope:scopeObj
-                                  argc:(int)argc
-                                  argv:argv.data()
-                                result:result];
+        OK = evaluateWithContext(context,
+            scopeObj,
+            (int)argc,
+            argv.data(),
+            result);
     if (!OK) {
         /*	SpiderMonkey reported uncaught exceptions automatically when
                 control returned from JS; QuickJS leaves them pending.
@@ -287,25 +288,25 @@ MA 02110-1301, USA.
     return OK;
 }
 
-- (BOOL)evaluatePredicateWithContext:(JSContext*)context
-                               scope:(id)jsThis
-                           arguments:(const std::vector<oo::ObjCRef<id>>&)arguments
+bool OOJSFunction::evaluatePredicateWithContext(JSContext* context,
+    id jsThis,
+    const std::vector<oo::ObjCRef<id>>& arguments)
 {
     JSValue result;
-    BOOL OK = [self evaluateWithContext:context
-                                  scope:jsThis
-                              arguments:arguments
-                                 result:&result];
-    int retval = NO;
+    bool OK = evaluateWithContext(context,
+        jsThis,
+        arguments,
+        &result);
+    int retval = 0;
     if (OK) {
         retval = JS_ToBool(context, result);
         JS_FreeValue(context, result);
         if (retval < 0) {
             OOJSReportPendingException(context);
-            OK = NO;
+            OK = false;
         }
     }
     return OK && retval;
 }
 
-@end
+} // namespace cxx

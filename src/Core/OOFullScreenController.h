@@ -28,9 +28,10 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOMouseInteractionMode.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 #include <string_view>
 
 @class MyOpenGLView;
@@ -52,37 +53,30 @@ inline constexpr std::string_view kOODisplayRefreshRate = "RefreshRate";
 #define DISPLAY_MAX_WIDTH 7680 // 8K gaming, yay!!
 #define DISPLAY_MAX_HEIGHT 4320
 
-@interface OOFullScreenController : OOObject {
-@private
-    MyOpenGLView* _gameView;
-}
+/*	C++20 since bead oo-bgmb (proposed ADR-0056, amendment oo-bgmb). The abstract base of the Mac
+        full-screen controllers, which are Mac-only and not in this tree. Its callers (GameController,
+        under OO_USE_FULLSCREEN_CONTROLLER, which is OOLITE_MAC_OS_X) are never compiled here, so the
+        class has no Objective-C facade and is global. The "subclass responsibility" methods are
+        virtual, so a C++ subclass overrides them; the base's bodies still log and answer the default.
+*/
+class OOFullScreenController : public oo::RefCounted {
+public:
+    explicit OOFullScreenController(MyOpenGLView* view); // -initWithGameView:
 
-- (id)initWithGameView:(MyOpenGLView*)view;
+    MyOpenGLView* gameView();
 
-#if OOLITE_PROPERTY_SYNTAX
+    virtual bool inFullScreenMode();
+    virtual void setFullScreenMode(bool value);
 
-@property (nonatomic, readonly) MyOpenGLView* gameView;
-@property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
-@property (nonatomic, readonly) oo::PList displayModes; // array of mode dictionaries (flipped with its family, bead oo-3rb.273)
-@property (nonatomic, readonly) oo::PList currentDisplayMode; // a mode dictionary
-@property (nonatomic, readonly) NSUInteger indexOfCurrentDisplayMode;
+    virtual oo::PList displayModes(); // array of mode dictionaries (flipped with its family, bead oo-3rb.273)
+    oo::PList currentDisplayMode(); // a mode dictionary
+    virtual NSUInteger indexOfCurrentDisplayMode();
 
-#else
+    virtual bool setDisplayWidth(NSUInteger width, NSUInteger height, NSUInteger refresh);
+    virtual oo::PList findDisplayModeForWidth(NSUInteger width, NSUInteger height, NSUInteger d_refresh); // a mode dictionary; null: none
 
-- (MyOpenGLView*)gameView;
+    virtual void noteMouseInteractionModeChangedFrom(OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
 
-- (BOOL)inFullScreenMode;
-- (void)setFullScreenMode:(BOOL)value;
-
-- (oo::PList)displayModes; // flipped with its family (bead oo-3rb.273)
-- (oo::PList)currentDisplayMode; // a mode dictionary
-- (NSUInteger)indexOfCurrentDisplayMode;
-
-#endif
-
-- (BOOL)setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh;
-- (oo::PList)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh; // a mode dictionary; null: none
-
-- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
-
-@end
+private:
+    oo::ObjCRef<MyOpenGLView*> _gameView = { };
+};

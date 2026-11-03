@@ -38,10 +38,8 @@ SOFTWARE.
 + (void)setMasterVolume:(float)fraction;
 + (float)masterVolume;
 
-- (id)initWithContentsOfFile:(id)path; // path: an Objective-C string. Shared selector (Foundation declares it too): -cxx_initWithContentsOfFile:.
 - (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)path OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
 
-- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
 - (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.3)
 
 + (BOOL)isSoundOK;

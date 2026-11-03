@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOPListParsing.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOStringParsing.h"
 #import "Universe.h"

@@ -29,10 +29,10 @@ MA 02110-1301, USA.
 #import "OOIsNumberLiteral.h"
 #import "OOJavaScriptEngine.h"
 
-#import "OOFoundationBridge.h"
 #import "OOJSPlayer.h"
-#import "OOStringBridge.h"
 #include "oofnd/objc/OOAssert.h"
+
+#include "oofnd/String.hpp"
 
 /*	SpiderMonkey called the MissionVariables class's get, set and delete hooks
         for every property access, and its enumerate hook for for-in. QuickJS
@@ -74,7 +74,7 @@ static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst obje
 static int MissionVariablesSetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst receiver, int flags);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-static id MissionVariablesConverter(JSContext* context, JSValueConst object);
+static oo::PList MissionVariablesConverter(JSContext* context, JSValueConst object);
 #endif
 
 static JSClassExoticMethods sMissionVariablesExoticMethods = {
@@ -109,9 +109,9 @@ void InitOOJSMissionVariables(JSContext* context, JSValueConst global)
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-static id MissionVariablesConverter(JSContext* context, JSValueConst object)
+static oo::PList MissionVariablesConverter(JSContext* /*context*/, JSValueConst /*object*/)
 {
-    return oo::ObjectFromPList([PLAYER cxx_missionVariables]);
+    return [PLAYER cxx_missionVariables];
 }
 #endif
 
@@ -119,19 +119,19 @@ static id MissionVariablesConverter(JSContext* context, JSValueConst object)
 static JSValue ValueForMissionVariable(JSContext* context, const std::string& key)
 {
     PlayerEntity* player = OOPlayerForScripting();
-    id mvar = oo::ObjectFromPList([player cxx_missionVariableForKey:key]);
+    const oo::PList mvar = [player cxx_missionVariableForKey:key];
 
-    if (mvar == nil)
+    if (mvar.isNull())
         return JS_UNDEFINED;
 
-    if (oo::IsNSString(mvar)) // Currently there should only be strings, but we may want to change this.
+    if (const std::string* string = mvar.getIf<std::string>()) // Currently there should only be strings, but we may want to change this.
     {
-        if (OOIsNumberLiteral(oo::StdString(mvar), YES)) {
-            return JS_NewNumber(context, [mvar doubleValue]);
+        if (OOIsNumberLiteral(*string, YES)) {
+            return JS_NewNumber(context, oo::str::doubleValue(*string)); // -[NSString doubleValue]
         }
     }
 
-    return OOJSValueFromNativeObject(context, mvar);
+    return OOJSValueFromPList(context, mvar);
 }
 
 static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID)
@@ -164,8 +164,14 @@ static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescript
 static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnum** outTable, uint32_t* outCount, JSValueConst object)
 {
     @try {
-        // -allKeys implicitly makes a copy, which is good since the enumerating code might mutate.
-        const std::vector<std::string> mvars = oo::StringsFrom([oo::ObjectFromPList([PLAYER cxx_missionVariables]) allKeys]);
+        // A copy of the keys, which is good since the enumerating code might mutate. In key order
+        // (-allKeys gave them in hash order).
+        std::vector<std::string> mvars;
+        const oo::PList missionVariables = [PLAYER cxx_missionVariables];
+        if (const oo::PList::Dict* dict = missionVariables.getIf<oo::PList::Dict>()) {
+            for (const auto& entry : *dict)
+                mvars.push_back(entry.first);
+        }
         NSUInteger count = mvars.size();
         assert(count <= INT32_MAX);
 

@@ -38,7 +38,6 @@ MA 02110-1301, USA.
 #import "OOShaderUniform.h"
 #endif
 
-#import "OOFoundationBridge.h"
 #import "PlayerEntity.h"
 
 #include "oofnd/String.hpp"

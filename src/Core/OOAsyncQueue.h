@@ -30,33 +30,47 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#include "oofnd/StdLib.hpp"
-#import "oofnd/objc/OOObject.h"
+#ifndef OOASYNCQUEUE_H
+#define OOASYNCQUEUE_H
 
-@interface OOAsyncQueue : OOObject {
-@private
+#import "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
+class OOAsyncQueue : public oo::RefCounted {
+public:
+    OOAsyncQueue();
+    ~OOAsyncQueue() override;
+
+    bool enqueue(id object); // Returns false on failure, or if object is nil.
+
+    id dequeue(); // Blocks until the queue is non-empty.
+    id tryDequeue(); // Returns nil if empty.
+
+    // Due to the asynchronous nature of the queue, these values are immediately out of date.
+    bool empty();
+    unsigned count();
+
+    void emptyQueue(); // Releases all elements.
+
+    // What "%@" printed between the braces of <OOAsyncQueue 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    void doEmptyQueueWithAcquiredLock();
+    id doDequeAndUnlockWithAcquiredLock();
+    void recycleElementWithAcquiredLock(struct OOAsyncQueueElement* element);
+
     // The Foundation condition lock as its three parts (bead oo-3rb.7): the lock, the
     // condition value it guards (kCondition* in the .mm), and the broadcast a change makes.
     std::mutex _lock;
     std::condition_variable _conditionChanged;
-    int _condition;
-    struct OOAsyncQueueElement *_head,
-        *_tail,
-        *_pool;
-    unsigned _elemCount,
-        _poolCount;
-}
+    int _condition = { };
+    struct OOAsyncQueueElement *_head = { },
+                               *_tail = { },
+                               *_pool = { };
+    unsigned _elemCount = { },
+             _poolCount = { };
+};
 
-- (BOOL)enqueue:(id)object; // Returns NO on failure, or if object is nil.
-
-- (id)dequeue; // Blocks until the queue is non-empty.
-- (id)tryDequeue; // Returns nil if empty.
-
-// Due to the asynchronous nature of the queue, these values are immediately out of date.
-- (BOOL)empty;
-- (unsigned)count;
-
-- (void)emptyQueue; // Releases all elements.
-
-@end
+#endif // OOASYNCQUEUE_H

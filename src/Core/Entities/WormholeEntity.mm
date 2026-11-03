@@ -31,10 +31,9 @@ MA 02110-1301, USA.
 #import "ShipEntityLoadRestore.h"
 
 #import "AI.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
+#import "OOObjCPList.h"
 #import "OOPListGameTypes.h"
-#import "OOPListView.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
@@ -42,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOSystemDescriptionManager.h"
 #import "Universe.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
 
 #define OO_WORMHOLE_COLOR_BOOST 25.0
 #define OO_WORMHOLE_COLOR_FVEC4 { 0.067, 0.067, 1.0, 0.25 }
@@ -567,7 +567,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (std::optional<std::string>)identFromShip:(ShipEntity*)ship
 {
-    if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]) {
+    if ([ship hasEquipmentItem:oo::PList("EQ_WORMHOLE_SCANNER")]) {
         if ([self scanInfo] >= WH_SCANINFO_DESTINATION) {
             return oo::str::formatRuntime(OO_DESC("wormhole-to-@"), { [UNIVERSE cxx_getSystemName:destination].value_or("(null)") });
         } else {

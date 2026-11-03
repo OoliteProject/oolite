@@ -42,25 +42,15 @@ std::string VectorDescription(Vector vector)
     return oo::str::format("(%g, %g, %g)", vector.x, vector.y, vector.z);
 }
 
-@implementation OONativeVector
-
-- (id)initWithVector:(Vector)vect
+cxx::OONativeVector::OONativeVector(Vector vect)
 {
-    self = [super init];
-    if (EXPECT_NOT(self == nil))
-        return nil;
-
     v = vect;
-
-    return self;
 }
 
-- (Vector)getVector
+Vector cxx::OONativeVector::getVector()
 {
     return v;
 }
-
-@end
 
 #endif
 

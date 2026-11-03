@@ -26,93 +26,103 @@ SOFTWARE.
 */
 
 #import "OOSingleTextureMaterial.h"
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
-#import "OOPListView.h"
 #import "OOTexture.h"
 
-@implementation OOSingleTextureMaterial
+namespace cxx {
 
-- (id)initWithName:(id)name configuration:(id)configuration
+oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(const std::optional<std::string>& name, const oo::PList& configuration)
 {
-    id texSpec = nil;
-
-    if (configuration != nil) {
-        texSpec = oo::PListView(configuration).get<oo::TextureSpecifier>(@"diffuse_map", name);
-    } else {
-        texSpec = name;
-    }
-
-    return [self initWithName:oo::OptionalString(name)
-                      texture:[OOTexture cxx_textureWithConfiguration:oo::PListFrom(texSpec)]
-                configuration:configuration];
+    oo::Ref<OOSingleTextureMaterial> result = oo::makeRef<OOSingleTextureMaterial>();
+    if (!result->initWithName(name, configuration))
+        return nullptr;
+    return result;
 }
 
-- (id)initWithName:(const std::optional<std::string>&)name texture:(OOTexture*)texture configuration:(id)configuration
+oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(const std::optional<std::string>& name, ::OOTexture* texture, const oo::PList& configuration)
+{
+    oo::Ref<OOSingleTextureMaterial> result = oo::makeRef<OOSingleTextureMaterial>();
+    if (!result->initWithName(name, texture, configuration))
+        return nullptr;
+    return result;
+}
+
+bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& name, const oo::PList& configuration)
+{
+    oo::PList texSpec;
+
+    if (!configuration.isNull()) {
+        // -oo_textureSpecifierForKey:@"diffuse_map" defaultName:name.
+        const oo::PList* diffuseMap = configuration.find("diffuse_map");
+        texSpec = cxx_OOTextureSpecFromObject((diffuseMap != nullptr) ? *diffuseMap : oo::PList(), name);
+    } else if (name.has_value()) {
+        texSpec = oo::PList(*name);
+    }
+
+    return initWithName(name,
+        [::OOTexture cxx_textureWithConfiguration:texSpec],
+        configuration);
+}
+
+bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& name, ::OOTexture* texture, const oo::PList& configuration)
 {
     if (name.has_value() && texture != nil) {
-        self = [super initWithName:oo::NSStringOrNil(name) configuration:configuration];
-        if (self != nil) {
-            _texture = [texture retain];
-        }
+        OOBasicMaterial::initWithName(name, configuration);
+        _texture = oo::ObjCRef<::OOTexture*>(texture);
     } else {
-        DESTROY(self);
+        return false; // DESTROY(self): the factory drops the object
     }
 
-    return self;
+    return true;
 }
 
-- (void)dealloc
-{
-    [self willDealloc];
-    [_texture release];
+// -dealloc's [self willDealloc] is the root facade's (proposed ADR-0056, amendment oo-smy item 3),
+// and the texture is released with _texture.
 
-    [super dealloc];
+std::optional<std::string> OOSingleTextureMaterial::descriptionComponents() const
+{
+    return [_texture.get() cxx_description];
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+bool OOSingleTextureMaterial::doApply()
 {
-    return [_texture cxx_description];
+    if (EXPECT_NOT(!OOBasicMaterial::doApply()))
+        return false;
+
+    [_texture.get() apply];
+    return true;
 }
 
-- (BOOL)doApply
+void OOSingleTextureMaterial::unapplyWithNext(OOMaterial* next)
 {
-    if (EXPECT_NOT(![super doApply]))
-        return NO;
-
-    [_texture apply];
-    return YES;
+    // -isKindOfClass: (nil is not one)
+    if (dynamic_cast<OOSingleTextureMaterial*>(next) == nullptr)
+        [::OOTexture applyNone];
+    OOBasicMaterial::unapplyWithNext(next);
 }
 
-- (void)unapplyWithNext:(OOMaterial*)next
+void OOSingleTextureMaterial::ensureFinishedLoading()
 {
-    if (![next isKindOfClass:[OOSingleTextureMaterial class]])
-        [OOTexture applyNone];
-    [super unapplyWithNext:next];
+    [_texture.get() ensureFinishedLoading];
 }
 
-- (void)ensureFinishedLoading
+bool OOSingleTextureMaterial::isFinishedLoading()
 {
-    [_texture ensureFinishedLoading];
+    return [_texture.get() isFinishedLoading];
 }
 
-- (BOOL)isFinishedLoading
+bool OOSingleTextureMaterial::wantsNormalsAsTextureCoordinates()
 {
-    return [_texture isFinishedLoading];
-}
-
-- (BOOL)wantsNormalsAsTextureCoordinates
-{
-    return [_texture isCubeMap];
+    return [_texture.get() isCubeMap];
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
+std::vector<oo::ObjCRef<OOTexture*>> OOSingleTextureMaterial::allTextures()
 {
     std::vector<oo::ObjCRef<OOTexture*>> result;
-    result.emplace_back(_texture);
+    result.emplace_back(_texture.get());
     return result;
 }
 #endif
 
-@end
+} // namespace cxx

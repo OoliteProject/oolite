@@ -34,7 +34,6 @@ SOFTWARE.
 
 #import "OODrawable.h"
 #import "OOEntityFilterPredicate.h"
-#import "OOFoundationBridge.h"
 #import "OOPlanetEntity.h"
 #import "OOSunEntity.h"
 #import "PlayerEntity.h"

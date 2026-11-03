@@ -50,10 +50,11 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 
 #import "MyOpenGLView.h"
-#import "OOFoundationBridge.h"
 #import "OOPListGameTypes.h"
 
+#import "OOObjCPList.h"
 #include "oofnd/PListGet.hpp"
+#include "oofnd/String.hpp"
 
 @interface OOVisualEffectEntity (Private)
 
@@ -68,11 +69,11 @@ MA 02110-1301, USA.
 
 namespace {
 
-// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
-id ObjectForKey(const oo::PList& dict, std::string_view key)
+// -objectForKey: as plist data (a null PList when absent), for +cxx_colorWithDescription:.
+oo::PList ValueForKey(const oo::PList& dict, std::string_view key)
 {
     const oo::PList* value = dict.find(key);
-    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
+    return value != nullptr ? *value : oo::PList();
 }
 
 // get<std::string> where the Foundation code read nil: std::nullopt when the key is absent or its
@@ -599,7 +600,7 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     DESTROY(scanner_display_color1);
 
     if (color == nil)
-        color = [OOColor colorWithDescription:ObjectForKey(effectinfoDictionary, "scanner_display_color1")];
+        color = [OOColor cxx_colorWithDescription:ValueForKey(effectinfoDictionary, "scanner_display_color1")];
     scanner_display_color1 = [color retain];
 }
 
@@ -608,7 +609,7 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     DESTROY(scanner_display_color2);
 
     if (color == nil)
-        color = [OOColor colorWithDescription:ObjectForKey(effectinfoDictionary, "scanner_display_color2")];
+        color = [OOColor cxx_colorWithDescription:ValueForKey(effectinfoDictionary, "scanner_display_color2")];
     scanner_display_color2 = [color retain];
 }
 

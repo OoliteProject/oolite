@@ -28,41 +28,33 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFileScannerVerifierStage.h"
-#import "OOFoundationBridge.h"
 
 static const char* const kStageName = "Checking demoships.plist";
 
-@interface OOCheckDemoShipsPListVerifierStage (OOPrivate)
-
-// demoshipsPList is an Array, shipdataPList a Dict.
-- (void)runCheckWithDemoShips:(const oo::PList&)demoshipsPList shipData:(const oo::PList&)shipdataPList;
-
-@end
-
-@implementation OOCheckDemoShipsPListVerifierStage
-
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOCheckDemoShipsPListVerifierStage::name()
 {
     return kStageName;
 }
 
-- (BOOL)shouldRun
+bool OOCheckDemoShipsPListVerifierStage::shouldRun()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    return [fileScanner cxx_fileExists:"demoships.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    return fileScanner != nullptr && fileScanner->fileExists("demoships.plist", "Config", std::nullopt, false);
 }
 
-- (void)run
+void OOCheckDemoShipsPListVerifierStage::run()
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
     oo::PList demoshipsPList;
     oo::PList shipdataPList;
 
-    fileScanner = [[self verifier] fileScannerStage];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner == nullptr)
+        return; // a nil scanner found no plist
 
-    demoshipsPList = [fileScanner cxx_plistNamed:"demoships.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    demoshipsPList = fileScanner->plistNamed("demoships.plist", "Config", std::nullopt, false);
 
     if (demoshipsPList.isNull())
         return;
@@ -73,7 +65,7 @@ static const char* const kStageName = "Checking demoships.plist";
         return;
     }
 
-    shipdataPList = [fileScanner cxx_plistNamed:"shipdata.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+    shipdataPList = fileScanner->plistNamed("shipdata.plist", "Config", std::nullopt, false);
 
     if (shipdataPList.isNull())
         return;
@@ -84,14 +76,10 @@ static const char* const kStageName = "Checking demoships.plist";
         return;
     }
 
-    [self runCheckWithDemoShips:demoshipsPList shipData:shipdataPList];
+    runCheckWithDemoShips(demoshipsPList, shipdataPList);
 }
 
-@end
-
-@implementation OOCheckDemoShipsPListVerifierStage (OOPrivate)
-
-- (void)runCheckWithDemoShips:(const oo::PList&)demoshipsPList shipData:(const oo::PList&)shipdataPList
+void OOCheckDemoShipsPListVerifierStage::runCheckWithDemoShips(const oo::PList& demoshipsPList, const oo::PList& shipdataPList)
 {
     for (const oo::PList& entry : *demoshipsPList.getIf<oo::PList::Array>()) {
         // An entry that is not a string is no key of shipdata.plist; print the entry description.
@@ -101,7 +89,5 @@ static const char* const kStageName = "Checking demoships.plist";
         }
     }
 }
-
-@end
 
 #endif

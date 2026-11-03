@@ -20,7 +20,6 @@ dep_libs = [
     'ws2_32',
     'winhttp',      # oofnd/Http.hpp, the OXZ manager's downloads (proposed ADR-0044)
     'objc',
-    'gnustep-base',
 ]
 foreach lib : dep_libs
     oolite_dependencies += [cc.find_library(lib, required: true)]

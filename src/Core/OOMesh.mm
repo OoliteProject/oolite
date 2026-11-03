@@ -56,9 +56,7 @@ MA 02110-1301, USA.
 #import <objc/runtime.h>
 
 #import "OODebugStandards.h"
-#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
-#import "OOStringBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
@@ -89,13 +87,13 @@ static const char* const kOOLogMeshDataNotFound = "mesh.load.failed.fileNotFound
 static const char* const kOOLogMeshTooManyMaterials = "mesh.load.failed.tooManyMaterials";
 
 #if OOMESH_PROFILE
-#define PROFILE(tag)                                                       \
-    do {                                                                   \
-        _stopwatchLastTime = Profile(tag, _stopwatch, _stopwatchLastTime); \
+#define PROFILE(tag)                                                             \
+    do {                                                                         \
+        _stopwatchLastTime = Profile(tag, _stopwatch.get(), _stopwatchLastTime); \
     } while (0)
 static OOTimeDelta Profile(const char* tag, OOProfilingStopwatch* stopwatch, OOTimeDelta lastTime)
 {
-    OOTimeDelta now = [stopwatch currentTime];
+    OOTimeDelta now = stopwatch->currentTime();
     OO_LOG("mesh.profile", "Mesh profile: stage {}, {:g} seconds (delta {:g})", tag, now, now - lastTime);
     return now;
 }
@@ -289,7 +287,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 
     if (placeholderMaterial == nil) {
         const oo::PList* noTextures = [ResourceManager cxx_materialDefaults].find("no-textures-material");
-        placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:oo::ObjectFromPList(noTextures != nullptr ? *noTextures : oo::PList())];
+        placeholderMaterial = [[OOBasicMaterial alloc] initWithName:std::string("/placeholder/") configuration:(noTextures != nullptr ? *noTextures : oo::PList())];
     }
 
     return placeholderMaterial;
@@ -332,7 +330,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     DESTROY(_shaderBindingTarget);
 
 #if OOMESH_PROFILE
-    DESTROY(_stopwatch);
+    _stopwatch = nullptr;
 #endif
 
     [super dealloc];
@@ -855,7 +853,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         _cacheWriteable = cacheWriteable;
 
 #if OOMESH_PROFILE
-        _stopwatch = [[OOProfilingStopwatch alloc] init];
+        _stopwatch = oo::makeRef<OOProfilingStopwatch>();
 #endif
 
         if ([self loadData:name scaleFactor:scale]) {
@@ -884,7 +882,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
             self = nil;
         }
 #if OOMESH_PROFILE
-        DESTROY(_stopwatch);
+        _stopwatch = nullptr;
 #endif
 #if OO_MULTITEXTURE
         if (EXPECT(self != nil)) {
@@ -912,8 +910,10 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
     if (result != nil) {
         /*	The C++ ivars were copied bitwise too, so the copy's aliases self's storage: construct
                 each afresh over the copy (never assign, which would free self's buffers), where the
-                Objective-C ivars get their -retain.
+                Objective-C ivars get their -retain. The superclass's C++ part too (proposed ADR-0056,
+                amendment oo-smy).
         */
+        oo::ConstructCxxPartOfCopy(result);
         new (&result->baseFile) std::optional<std::string>(baseFile);
         new (&result->baseFileOctreeCacheRef) std::optional<std::string>(baseFileOctreeCacheRef);
         [result->octree retain];
@@ -1998,13 +1998,13 @@ static const char* const kOOCacheMeshes = "OOMesh";
 
 + (oo::PList)meshDataForName:(const std::string&)inShipName
 {
-    return oo::PListFrom([[self sharedCache] cxx_objectForKey:inShipName inCache:kOOCacheMeshes]);
+    return [[self sharedCache] cxx_pListForKey:inShipName inCache:kOOCacheMeshes];
 }
 
 + (void)setMeshData:(const oo::PList&)inData forName:(const std::string&)inShipName
 {
     if (inData) {
-        [[self sharedCache] cxx_setObject:oo::ObjectFromPList(inData) forKey:inShipName inCache:kOOCacheMeshes];
+        [[self sharedCache] cxx_setPList:inData forKey:inShipName inCache:kOOCacheMeshes];
     }
 }
 
@@ -2019,8 +2019,9 @@ static const char* const kOOCacheOctrees = "octrees";
     Octree* result = nil;
     OOCacheManager* cache = [self sharedCache];
 
-    if ([cache cxx_objectForKey:inKey inCache:kOOCacheOctrees] != nil) {
-        result = [[Octree alloc] cxx_initWithDictionary:oo::PListFrom([cache cxx_objectForKey:inKey inCache:kOOCacheOctrees])];
+    const oo::PList data = [cache cxx_pListForKey:inKey inCache:kOOCacheOctrees]; // null: absent
+    if (data) {
+        result = [[Octree alloc] cxx_initWithDictionary:data];
         [result autorelease];
     }
 
@@ -2030,7 +2031,7 @@ static const char* const kOOCacheOctrees = "octrees";
 + (void)setOctree:(Octree*)inOctree forModel:(const std::string&)inKey
 {
     if (inOctree != nil) {
-        [[self sharedCache] cxx_setObject:oo::ObjectFromPList([inOctree cxx_dictionaryRepresentation]) forKey:inKey inCache:kOOCacheOctrees];
+        [[self sharedCache] cxx_setPList:[inOctree cxx_dictionaryRepresentation] forKey:inKey inCache:kOOCacheOctrees];
     }
 }
 

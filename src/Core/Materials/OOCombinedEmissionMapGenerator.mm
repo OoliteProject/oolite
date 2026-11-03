@@ -28,7 +28,6 @@ SOFTWARE.
 #import "OOCombinedEmissionMapGenerator.h"
 
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "OOMaterialSpecifier.h"
 #import "OOPixMapChannelOperations.h"
 #import "OOTextureInternal.h"

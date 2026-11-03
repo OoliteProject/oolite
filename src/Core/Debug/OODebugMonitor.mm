@@ -30,20 +30,17 @@ SOFTWARE.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OODebugMonitor.h"
-#import "OOPListView.h"
 #import "ResourceManager.h"
 
-#import "OOFoundationBridge.h"
 #import "OOJSConsole.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSScript.h"
 #import "OOJSSpecialFunctions.h"
+#import "OOObjCPList.h"
 
 #import "NSObjectOOExtensions.h"
 #import "OOConcreteTexture.h"
 #import "OODrawable.h"
-#import "OOFoundationBridge.h"
-#import "OOStringBridge.h"
 #import "OOTexture.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Encoding.hpp"
@@ -189,16 +186,14 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     OOJSRelinquishContext(context);
 }
 
-- (void)appendJSConsoleLine:(id)string
+- (void)appendJSConsoleLine:(const std::string&)string
                    colorKey:(const std::optional<std::string>&)colorKey
               emphasisRange:(NSRange)emphasisRange
 {
-    if (string == nil)
-        return;
     OOJSPauseTimeLimiter();
     @try {
         [_debugger debugMonitor:self
-                jsConsoleOutput:oo::StdString(string)
+                jsConsoleOutput:string
                        colorKey:colorKey
                   emphasisRange:emphasisRange];
     }
@@ -208,7 +203,7 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     OOJSResumeTimeLimiter();
 }
 
-- (void)appendJSConsoleLine:(id)string
+- (void)appendJSConsoleLine:(const std::string&)string
                    colorKey:(const std::optional<std::string>&)colorKey
 {
     [self appendJSConsoleLine:string
@@ -242,43 +237,35 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
 
 - (oo::PList)configurationValueForKey:(const std::string&)key
 {
-    return oo::PListFrom([self cxx_configurationValueForKey:key class:Nil defaultValue:nil]);
-}
-
-- (id)cxx_configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value
-{
-    id result = nil;
-
-    // No class given: any stored object will do (nil still falls through).
-    // The stored objects: an Object node gives back the same object, any other node an equal one.
-    const oo::PList* overrideValue = _configOverrides.find(key);
-    result = (overrideValue != nullptr) ? oo::ObjectFromPList(*overrideValue) : nil;
-    if ((result == nil || (klass != Nil && ![result isKindOfClass:klass])) && result != [OONull null]) {
-        const oo::PList* oxpValue = _configFromOXPs.find(key);
-        result = (oxpValue != nullptr) ? oo::ObjectFromPList(*oxpValue) : nil;
-    }
-    if ((result == nil || (klass != Nil && ![result isKindOfClass:klass])) && result != [OONull null])
-        result = [[value retain] autorelease];
-    if (result == [OONull null])
-        result = nil;
-
-    return result;
+    // The override, else (when it is missing or null) the OXPs' value; an OONull in either reads as
+    // null (an OONull override hides the OXPs' value).
+    const auto isNil = [](const oo::PList* v) { return v == nullptr || v->isNull() || (v->type() == oo::PList::Type::Object && oo::ObjectIn(*v) == nil); };
+    const oo::PList* result = _configOverrides.find(key);
+    if (isNil(result))
+        result = _configFromOXPs.find(key);
+    if (isNil(result) || oo::ObjectIn(*result) == [OONull null])
+        return oo::PList();
+    return *result;
 }
 
 - (long long)configurationIntValueForKey:(const std::string&)key defaultValue:(long long)value
 {
-    long long result;
-    id object = nil;
-
-    object = [self cxx_configurationValueForKey:key class:Nil defaultValue:nil];
-    if ([object respondsToSelector:@selector(longLongValue)])
-        result = [object longLongValue];
-    else if ([object respondsToSelector:@selector(intValue)])
-        result = [object intValue];
-    else
-        result = value;
-
-    return result;
+    // -longLongValue of the stored NSString or NSNumber; anything else gives the default.
+    const oo::PList object = [self configurationValueForKey:key];
+    switch (object.type()) {
+    case oo::PList::Type::String:
+        return oo::str::longLongValue(*object.getIf<std::string>());
+    case oo::PList::Type::Bool:
+        return *object.getIf<bool>() ? 1 : 0;
+    case oo::PList::Type::Integer: {
+        const oo::PList::Integer& integer = *object.getIf<oo::PList::Integer>();
+        return integer.isUnsigned ? static_cast<long long>(integer.unsignedValue()) : integer.value;
+    }
+    case oo::PList::Type::Real:
+        return static_cast<long long>(*object.getIf<double>());
+    default:
+        return value;
+    }
 }
 
 - (void)setConfigurationValue:(const oo::PList&)value forKey:(const std::string&)key
@@ -340,7 +327,7 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
 - (void)writeMemStat:(const std::string&)line
 {
     OO_LOG("debug.memStats", "{}", line);
-    [self appendJSConsoleLine:oo::NSStringFrom(line) colorKey:"command-result"];
+    [self appendJSConsoleLine:line colorKey:"command-result"];
 }
 
 namespace {
@@ -450,9 +437,13 @@ struct EntityDumpState {
 #endif
     }
     if ([entity isWormhole]) {
-        for (id shipInfo in oo::ObjectFromPList([entity shipsInTransit])) {
-            ShipEntity* ship = [shipInfo objectForKey:@"ship"];
-            [self dumpEntity:ship withState:state parentVisible:NO];
+        const oo::PList shipsInTransit = [entity shipsInTransit];
+        if (const oo::PList::Array* shipInfos = shipsInTransit.getIf<oo::PList::Array>()) {
+            for (const oo::PList& shipInfo : *shipInfos) {
+                const oo::PList* shipNode = shipInfo.find("ship");
+                ShipEntity* ship = (shipNode != nullptr) ? oo::ObjectIn(*shipNode) : nil;
+                [self dumpEntity:ship withState:state parentVisible:NO];
+            }
         }
     }
     oo::log::outdent();
@@ -767,7 +758,7 @@ FIXME: this works with CRLF and LF, but not CR.
     if (value) {
         if (oo::str::hasSuffix(key, "-color") || oo::str::hasSuffix(key, "-colour")) {
             // OOColor reads the same object; the normalized array holds +numberWithFloat: values.
-            color = [OOColor colorWithDescription:oo::ObjectFromPList(value)];
+            color = [OOColor cxx_colorWithDescription:value];
             if (color == nil)
                 return oo::PList();
             oo::PList::Array components;
@@ -837,7 +828,7 @@ FIXME: this works with CRLF and LF, but not CR.
         formattedMessage += ":\n    " + [self sourceCodeForFile:*filePath line:line];
     }
 
-    [self appendJSConsoleLine:oo::NSStringFrom(formattedMessage)
+    [self appendJSConsoleLine:formattedMessage
                      colorKey:colorKey
                 emphasisRange:emphasisRange];
 
@@ -857,7 +848,7 @@ FIXME: this works with CRLF and LF, but not CR.
       logMessage:(const std::string&)message
          ofClass:(const std::optional<std::string>&)messageClass
 {
-    [self appendJSConsoleLine:oo::NSStringFrom(message) colorKey:"log"];
+    [self appendJSConsoleLine:message colorKey:"log"];
     const oo::PList showValue = [self configurationValueForKey:"show-console-on-log"];
     if (oo::plist_get::boolFrom(&showValue, NO)) // OOBooleanFromObject
     {

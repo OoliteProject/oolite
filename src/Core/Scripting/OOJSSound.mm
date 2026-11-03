@@ -23,11 +23,12 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSSound.h"
-#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
 #import "OOMusicController.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+
+#include "oofnd/String.hpp"
 
 static JSClassID sSoundClassID;
 
@@ -116,8 +117,10 @@ static JSValue SoundGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
 
     switch (magic) {
-    case kSound_name:
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([sound cxx_name]));
+    case kSound_name: {
+        const std::optional<std::string> name = [sound cxx_name];
+        return OOJSValueFromPList(context, name.has_value() ? oo::PList(*name) : oo::PList());
+    }
 
     default:
         OOJSReportBadPropertySelector(context, thisObj, magic, sSoundProperties, OOJS_COUNT(sSoundProperties));

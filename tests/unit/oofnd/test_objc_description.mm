@@ -1,7 +1,9 @@
 /*	test_objc_description.mm
 	Unit tests for the description family on the Objective-C root (Core/OODescription.h, proposed
 	ADR-0055 item 1, bead oo-qps.31): -cxx_description & co., oo::DescriptionOf /
-	ShortDescriptionOf, and the transitional forwarding to a legacy id-typed override.
+	ShortDescriptionOf. (The cases for the transitional forwarding to a legacy id-typed override
+	and for the foreign-root -description fallback were retired with that code by oo-qps.73,
+	ADR-0049, Jon's approval in tools/retire-test-approvals.txt.)
 
 	Core/OODescription.mm is compiled into this executable, which links libobjc2 and NOTHING
 	from gnustep-base (tools/check-oofnd-objc.sh checks the import table): the proof that the
@@ -61,153 +63,6 @@
 @end
 
 
-// Not yet converted: legacy id-typed overrides, which the root's defaults forward to.
-@interface OOTestLegacy : OOObject
-- (id) descriptionComponents;
-- (id) shortDescriptionComponents;
-@end
-
-@implementation OOTestLegacy
-
-- (id) descriptionComponents
-{
-	return @"legacy components";
-}
-
-
-- (id) shortDescriptionComponents
-{
-	return nil;
-}
-
-@end
-
-
-@interface OOTestLegacyWhole : OOObject
-- (id) description;
-- (id) shortDescription;
-@end
-
-@implementation OOTestLegacyWhole
-
-- (id) description
-{
-	return @"the whole text";
-}
-
-
-- (id) shortDescription
-{
-	return @"short text";
-}
-
-@end
-
-
-// A converted subclass of an unconverted class: [super cxx_descriptionComponents] reaches the
-// superclass's legacy override through the root's forwarding.
-@interface OOTestFlippedOverLegacy : OOTestLegacy
-@end
-
-@implementation OOTestFlippedOverLegacy
-
-- (std::optional<std::string>) cxx_descriptionComponents
-{
-	return [super cxx_descriptionComponents].value_or("(null)") + " and more";
-}
-
-@end
-
-
-// An object on another root (a Foundation object, until oo-qps.16): oo::DescriptionOf asks its
-// -description.
-__attribute__((objc_root_class))
-@interface OOTestForeignRoot
-{
-	Class isa;
-}
-+ (id) alloc;
-- (id) init;
-- (Class) class;
-- (id) description;
-- (id) shortDescription;
-@end
-
-@implementation OOTestForeignRoot
-
-+ (id) alloc
-{
-	return class_createInstance(self, 0);
-}
-
-
-- (id) init
-{
-	return self;
-}
-
-
-- (Class) class
-{
-	return object_getClass(self);
-}
-
-
-- (id) description
-{
-	return @"foreign";
-}
-
-
-- (id) shortDescription
-{
-	return @"foreign short";
-}
-
-@end
-
-
-// A string on another root, as a gnustep-base string is: its -description is itself, so the
-// fallback must read its text, not describe it again (that recursed without end).
-__attribute__((objc_root_class))
-@interface OOTestForeignString
-{
-	Class isa;
-}
-+ (id) alloc;
-- (id) init;
-- (id) description;
-- (const char *) UTF8String;
-@end
-
-@implementation OOTestForeignString
-
-+ (id) alloc
-{
-	return class_createInstance(self, 0);
-}
-
-
-- (id) init
-{
-	return self;
-}
-
-
-- (id) description
-{
-	return self;
-}
-
-
-- (const char *) UTF8String
-{
-	return "foreign string";
-}
-
-@end
-
-
 namespace {
 
 std::string Head(id object)
@@ -253,27 +108,6 @@ OO_TEST(components_go_between_braces_and_extend_through_super)
 }
 
 
-OO_TEST(the_root_forwards_to_a_legacy_override)
-{
-	OOTestLegacy *legacy = [[OOTestLegacy alloc] init];
-	OO_CHECK_EQ([legacy cxx_descriptionComponents].value_or(""), std::string("legacy components"));
-	OO_CHECK(![legacy cxx_shortDescriptionComponents].has_value());		// the override returned nil
-	OO_CHECK_EQ(oo::DescriptionOf(legacy), Head(legacy) + "{legacy components}");
-	OO_CHECK_EQ(oo::ShortDescriptionOf(legacy), Head(legacy));
-	[legacy release];
-
-	OOTestLegacyWhole *whole = [[OOTestLegacyWhole alloc] init];
-	OO_CHECK_EQ(oo::DescriptionOf(whole), std::string("the whole text"));
-	OO_CHECK_EQ(oo::ShortDescriptionOf(whole), std::string("short text"));
-	OO_CHECK(![whole cxx_descriptionComponents].has_value());
-	[whole release];
-
-	OOTestFlippedOverLegacy *mixed = [[OOTestFlippedOverLegacy alloc] init];
-	OO_CHECK_EQ(oo::DescriptionOf(mixed), Head(mixed) + "{legacy components and more}");
-	[mixed release];
-}
-
-
 OO_TEST(nil_classes_literals_and_foreign_objects)
 {
 	OOTestPlain *none = nil;
@@ -288,15 +122,6 @@ OO_TEST(nil_classes_literals_and_foreign_objects)
 	OO_CHECK_EQ(oo::DescriptionOf(@"a literal too long for a pointer"), std::string("a literal too long for a pointer"));	// OOConstantString
 	OO_CHECK_EQ(oo::DescriptionOf(@"tiny"), std::string("tiny"));				// OOTinyString
 	OO_CHECK_EQ(oo::ShortDescriptionOf(@"tiny"), std::string("tiny"));
-
-	id foreign = [[OOTestForeignRoot alloc] init];
-	OO_CHECK_EQ(oo::DescriptionOf(foreign), std::string("foreign"));
-	OO_CHECK_EQ(oo::ShortDescriptionOf(foreign), std::string("foreign short"));
-	object_dispose(foreign);
-
-	id string = [[OOTestForeignString alloc] init];
-	OO_CHECK_EQ(oo::DescriptionOf(string), std::string("foreign string"));
-	object_dispose(string);
 }
 
 

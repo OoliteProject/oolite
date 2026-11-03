@@ -68,13 +68,13 @@ SOFTWARE.
                      diffuseColor:(OOColor*)diffuseColor
               illuminationMapSpec:(const oo::PList&)illuminationMapSpec
                 illuminationColor:(OOColor*)illuminationColor
-                 optionsSpecifier:(const oo::PList&)spec;
+                 optionsSpecifier:(const oo::PList&)spec OO_RETURNS_RETAINED;
 
 - (id)cxx_initWithEmissionAndIlluminationMapSpec:(const oo::PList&)emissionAndIlluminationMapSpec
                                       diffuseMap:(OOTexture*)diffuseMap
                                     diffuseColor:(OOColor*)diffuseColor
                                    emissionColor:(OOColor*)emissionColor
                                illuminationColor:(OOColor*)illuminationColor
-                                optionsSpecifier:(const oo::PList&)spec;
+                                optionsSpecifier:(const oo::PList&)spec OO_RETURNS_RETAINED;
 
 @end

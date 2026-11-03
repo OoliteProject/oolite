@@ -27,24 +27,29 @@ MA 02110-1301, USA.
 */
 
 #import "OOJavaScriptEngine.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OOJSScript : NSObject {
+#include <optional>
+#include <string>
+
+@interface OOJSScript : OOObject {
 @private
     JSValue _jsSelf; // Owned; freed in -dealloc.
-    NSString* _name;
-    NSString* _version;
-    NSString* _path;
+    std::optional<std::string> _name;
+    std::optional<std::string> _version;
+    std::string _path;
 }
 
 // Returns nil (after logging) if the script cannot be loaded or its top level throws.
-+ (id)scriptWithPath:(NSString*)path;
-- (id)initWithPath:(NSString*)path;
++ (id)scriptWithPath:(const std::string&)path;
+- (id)initWithPath:(const std::string&)path;
 
 + (OOJSScript*)currentlyRunningScript;
 
-- (NSString*)name;
-- (NSString*)version;
-- (NSString*)displayName;
+// nullopt where the NSString forms returned nil.
+- (std::optional<std::string>)name;
+- (std::optional<std::string>)version;
+- (std::optional<std::string>)displayName;
 
 - (JSValueConst)scriptObject;
 
@@ -52,7 +57,7 @@ MA 02110-1301, USA.
         -[OOJSScript callMethod:...] did. Returns NO if the method does not exist
         or throws. *outResult, if requested, is owned by the caller.
 */
-- (BOOL)callMethodNamed:(NSString*)methodName
+- (BOOL)callMethodNamed:(const std::string&)methodName
           withArguments:(JSValueConst*)argv
                   count:(int)argc
                  result:(JSValue*)outResult;

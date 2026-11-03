@@ -24,9 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOQuiriumCascadeEntity.h"
-#import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
-#import "OOStringBridge.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
 

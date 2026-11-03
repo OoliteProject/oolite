@@ -30,9 +30,9 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
@@ -40,34 +40,69 @@ MA 02110-1301, USA.
         property-list data, held as an oo::PList (proposed ADR-0055 item 2, bead oo-qps.36) and
         written to the cache file as it is; a null PList is "no value".
 */
-@interface OOCacheManager : OOObject {
-@private
+/*	C++20 since bead oo-rmd7 (proposed ADR-0056; a singleton, amendments oo-r7m0 and oo-z1s4).
+        OOCacheManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
+        OOCacheManager as a facade over this class for the callers that are not converted yet, and
+        holds the write task (OOAsyncCacheWriter), which stays Objective-C while OOAsyncWorkTask is an
+        Objective-C protocol (amendment oo-rmd7). The bridge's deletion bead moves the class out of
+        namespace cxx.
+*/
+namespace cxx {
+
+class OOCacheManager : public oo::RefCounted {
+public:
+    static OOCacheManager* sharedCache(); // the one instance, made on first use and never released
+    ~OOCacheManager() override;
+
+    oo::PList pListForKey(const std::string& key, const std::string& cache); // null PList: absent
+    void setPList(const oo::PList& value, const std::string& key, const std::string& cache); // value: not null
+
+    void removeObjectForKey(const std::string& inKey, const std::string& inCacheKey);
+    void clearCache(const std::string& inCacheKey);
+    void clearAllCaches();
+    void reloadAllCaches();
+
+    void setAllowCacheWrites(bool flag);
+
+    std::optional<std::string> cacheDirectoryPathCreatingIfNecessary(bool create);
+
+    void flush();
+    void finishOngoingFlush(); // Wait for flush to complete. Does nothing if async flushing is disabled.
+
+    // What "%@" printed between the braces of <OOCacheManager 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+    // Private before the conversion; public because the write task (OOAsyncCacheWriter, in
+    // OOCacheManager+ObjCBridge.mm) calls it on a worker thread.
+    bool writeDict(const oo::PList& inDict);
+
+private:
+    void init(); // -init's body, run after the instance is recorded as the singleton
+
+    void loadCache();
+    void write();
+    void clear();
+    bool dirty();
+    void markClean();
+
+    oo::PList loadDict(); // null: no cache
+
+    void buildCachesFromDictionary(const oo::PList* inDict); // nullptr: none
+    oo::PList dictionaryOfCaches();
+
+    bool directoryExists(const std::string& inPath, bool inCreate);
+
+    std::optional<std::string> cachePathCreatingIfNecessary(bool create);
+
     // cache name -> key -> cached value; std::nullopt before loading, as nil was.
-    std::optional<std::map<std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>> _caches;
-    id _scheduledWrite;
-    BOOL _permitWrites;
-    BOOL _dirty;
-}
+    std::optional<std::map<std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>> _caches = { };
+    id _scheduledWrite = { }; // the pending OOAsyncCacheWriter, retained
+    bool _permitWrites = { };
+    bool _dirty = { };
+};
 
-+ (OOCacheManager*)sharedCache;
+} // namespace cxx
 
-- (oo::PList)cxx_pListForKey:(const std::string&)key inCache:(const std::string&)cache; // null PList: absent
-- (void)cxx_setPList:(const oo::PList&)value forKey:(const std::string&)key inCache:(const std::string&)cache; // value: not null
-
-// The id forms of the two above (oo::ObjectFromPList / oo::PListFrom of the value), until
-// oo-qps.72 deletes them once their callers have moved.
-- (id)cxx_objectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
-- (void)cxx_setObject:(id)inElement forKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
-- (void)cxx_removeObjectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
-- (void)cxx_clearCache:(const std::string&)inCacheKey;
-- (void)clearAllCaches;
-- (void)reloadAllCaches;
-
-- (void)setAllowCacheWrites:(BOOL)flag;
-
-- (std::optional<std::string>)cxx_cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
-
-- (void)flush;
-- (void)finishOngoingFlush; // Wait for flush to complete. Does nothing if async flushing is disabled.
-
-@end
+// The Objective-C facade (and the write task) for code not converted yet. Deleted, with namespace
+// cxx above, by the bridge's deletion bead.
+#import "OOCacheManager+ObjCBridge.h"

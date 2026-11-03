@@ -29,7 +29,6 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
-#import "OOStringBridge.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/String.hpp"
 

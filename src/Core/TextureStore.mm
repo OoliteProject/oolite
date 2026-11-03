@@ -35,8 +35,6 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #endif
 
-#import "OOStringBridge.h"
-
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
@@ -44,15 +42,16 @@ MA 02110-1301, USA.
 
 static const char* const kOOLogPlanetTextureGen = "texture.planet.generate"; // an OOLog class: oo::NSStringFrom() it
 
-#import "OOFoundationBridge.h"
+#import "OOObjCPList.h"
 #import "OOTextureGenerator.h" // For FloatRGB
 
-static FloatRGB FloatRGBFromDictColor(id dictionary, const char* key) // dictionary: see getPlanetTextureNameFor:
+static FloatRGB FloatRGBFromDictColor(const oo::PList& dictionary, const char* key) // dictionary: see getPlanetTextureNameFor:
 {
-    OOColor* color = [dictionary objectForKey:oo::NSStringFrom(key)];
+    const oo::PList* node = dictionary.find(key);
+    OOColor* color = (node != nullptr) ? oo::ObjectIn(*node) : nil;
     if (color == nil) {
         // could not get a color from the dicitionary, return white color instead of hitting the assert below
-        color = [OOColor colorWithDescription:@"whiteColor"];
+        color = [OOColor cxx_colorWithDescription:oo::PList("whiteColor")];
         OO_LOG("textureStore.FloatRGBFromDictColor.nilColor", "Expected color for key \"{}\" in dictionary {}, got nil. Setting color to {}", key, oo::DescriptionOf(dictionary), [color cxx_rgbaDescription].value_or("(null)"));
     }
     OOCAssert([color isKindOfClass:[OOColor class]], "Expected OOColor, got %s", oo::DescriptionOf([color class]).c_str());
@@ -101,7 +100,7 @@ static void fillSquareImageWithPlanetTex(unsigned char* imageBuffer, int width, 
 
 #define PROC_TEXTURE_SIZE 512
 
-+ (BOOL)getPlanetTextureNameFor:(id)planetInfo intoData:(unsigned char**)textureData width:(GLuint*)textureWidth height:(GLuint*)textureHeight
++ (BOOL)getPlanetTextureNameFor:(const oo::PList&)planetInfo intoData:(unsigned char**)textureData width:(GLuint*)textureWidth height:(GLuint*)textureHeight
 {
     int texture_h = PROC_TEXTURE_SIZE;
     int texture_w = PROC_TEXTURE_SIZE;
@@ -118,7 +117,7 @@ static void fillSquareImageWithPlanetTex(unsigned char* imageBuffer, int width, 
     *textureWidth = texture_w;
     *textureHeight = texture_h;
 
-    float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
+    float land_fraction = planetInfo.get<float>("land_fraction", 0.0f); // a number (-floatValue of it); absent: 0
     float sea_bias = land_fraction - 1.0;
 
     OO_LOG(kOOLogPlanetTextureGen, "genning texture for land_fraction {:.5f}", land_fraction);

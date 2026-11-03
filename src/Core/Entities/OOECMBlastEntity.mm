@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOECMBlastEntity.h"
 #import "OOEntityFilterPredicate.h"
-#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 #import "Universe.h"

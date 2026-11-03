@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOEquipmentType.h"
-#import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOLoggingExtended.h"
@@ -42,7 +41,6 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOScript.h"
 #import "OOSound.h"
-#import "OOStringBridge.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOSunEntity.h"
@@ -59,6 +57,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 #include "oofnd/objc/OORuntime.h"
 
+#import "OOObjCPList.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListWriting.hpp"
@@ -197,6 +196,28 @@ oo::PList TokenArray(const std::vector<std::string>& tokens)
     for (const std::string& token : tokens)
         result.push_back(oo::PList(token));
     return oo::PList(std::move(result));
+}
+
+// A query's string result: a string, or null for none (was nil).
+oo::PList StringOrNull(const std::optional<std::string>& string)
+{
+    return string.has_value() ? oo::PList(*string) : oo::PList();
+}
+
+// The current system's data value for <key>, or null (was -objectForKey: of the Objective-C dictionary).
+oo::PList CurrentSystemDataValue(std::string_view key)
+{
+    const oo::PList data = [UNIVERSE cxx_currentSystemData];
+    const oo::PList* value = data.find(key);
+    return value != nullptr ? *value : oo::PList();
+}
+
+// -intValue of a query's result: a number's C conversion, a string's leading integer, none 0.
+int IntValueOf(const oo::PList& value)
+{
+    if (const std::string* string = value.getIf<std::string>())
+        return oo::str::intValue(*string);
+    return value.isNumber() ? static_cast<int>(value.int64Value()) : 0;
 }
 
 // -componentsJoinedByString:@" " of tokens[from...].
@@ -837,9 +858,9 @@ static BOOL sRunningScript = NO;
 
 /*-----------------------------------------------------*/
 
-- (void)setMissionDescription:(id)textKey // called by name (ADR-0043 item 21)
+- (void)setMissionDescription:(const std::string&)textKey // called by name (ADR-0043 item 21)
 {
-    [self setMissionDescription:oo::StdString(textKey) forMission:sCurrentMissionKey];
+    [self setMissionDescription:textKey forMission:sCurrentMissionKey];
 }
 
 - (void)setMissionDescription:(const std::string&)textKey forMission:(const std::optional<std::string>&)key
@@ -888,238 +909,238 @@ static BOOL sRunningScript = NO;
 
 - (void)clearMissionDescription
 {
-    [self clearMissionDescriptionForMission:oo::NSStringOrNil(sCurrentMissionKey)];
-}
-
-- (void)clearMissionDescriptionForMission:(id)key // called by name (ADR-0043 item 21)
-{
-    if (key == nil) {
+    if (!sCurrentMissionKey.has_value()) {
         OO_LOG_ERR(kOOLogScriptMissionDescNoKey, "in {}, mission key not set", CurrentScriptDescription());
         return;
     }
 
-    [self cxx_setMissionVariable:oo::PList() forKey:oo::StdString(key)]; // (removing an absent key does nothing)
+    [self clearMissionDescriptionForMission:*sCurrentMissionKey];
+}
+
+- (void)clearMissionDescriptionForMission:(const std::string&)key // called by name (ADR-0043 item 21)
+{
+    [self cxx_setMissionVariable:oo::PList() forKey:key]; // (removing an absent key does nothing)
 }
 
 // called by name (ADR-0043 item 21), as are the queries below
-- (id)mission_string
+- (oo::PList)mission_string
 {
-    return oo::NSStringOrNil(sMissionStringValue);
+    return StringOrNull(sMissionStringValue);
 }
 
-- (id)status_string // called by name (ADR-0043 item 21)
+- (oo::PList)status_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringFrom(cxx_OOStringFromEntityStatus([self status]));
+    return oo::PList(cxx_OOStringFromEntityStatus([self status]));
 }
 
-- (id)gui_screen_string // called by name (ADR-0043 item 21)
+- (oo::PList)gui_screen_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringFrom(cxx_OOStringFromGUIScreenID(gui_screen));
+    return oo::PList(cxx_OOStringFromGUIScreenID(gui_screen));
 }
 
-- (id)galaxy_number // called by name (ADR-0043 item 21)
+- (oo::PList)galaxy_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::signedInteger([self currentGalaxyID]));
+    return oo::PList::signedInteger([self currentGalaxyID]);
 }
 
-- (id)planet_number // called by name (ADR-0043 item 21)
+- (oo::PList)planet_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::signedInteger([self currentSystemID]));
+    return oo::PList::signedInteger([self currentSystemID]);
 }
 
-- (id)score_number // called by name (ADR-0043 item 21)
+- (oo::PList)score_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::unsignedInteger([self score]));
+    return oo::PList::unsignedInteger([self score]);
 }
 
-- (id)credits_number // called by name (ADR-0043 item 21)
+- (oo::PList)credits_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList((double)([self creditBalance])));
+    return oo::PList((double)([self creditBalance]));
 }
 
-- (id)scriptTimer_number // called by name (ADR-0043 item 21)
+- (oo::PList)scriptTimer_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList((double)([self scriptTimer])));
+    return oo::PList((double)([self scriptTimer]));
 }
 
 static int shipsFound;
-- (id)shipsFound_number // called by name (ADR-0043 item 21)
+- (oo::PList)shipsFound_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::signedInteger(shipsFound));
+    return oo::PList::signedInteger(shipsFound);
 }
 
-- (id)commanderLegalStatus_number // called by name (ADR-0043 item 21)
+- (oo::PList)commanderLegalStatus_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::signedInteger([self legalStatus]));
+    return oo::PList::signedInteger([self legalStatus]);
 }
 
-- (void)setLegalStatus:(id)valueString // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)setLegalStatus:(const std::string&)valueString // called by name (ADR-0043 item 21)
 {
-    legalStatus = oo::str::intValue(oo::StdString(valueString)); // nil was 0, as "" is
+    legalStatus = oo::str::intValue(valueString);
 }
 
-- (id)commanderLegalStatus_string // called by name (ADR-0043 item 21)
+- (oo::PList)commanderLegalStatus_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil(cxx_OODisplayStringFromLegalStatus(legalStatus));
+    return StringOrNull(cxx_OODisplayStringFromLegalStatus(legalStatus));
 }
 
-- (id)d100_number // called by name (ADR-0043 item 21)
+- (oo::PList)d100_number // called by name (ADR-0043 item 21)
 {
     int d100 = ranrot_rand() % 100;
-    return oo::ObjectFromPList(oo::PList::signedInteger(d100));
+    return oo::PList::signedInteger(d100);
 }
 
-- (id)pseudoFixedD100_number // called by name (ADR-0043 item 21)
+- (oo::PList)pseudoFixedD100_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::signedInteger([self systemPseudoRandom100]));
+    return oo::PList::signedInteger([self systemPseudoRandom100]);
 }
 
-- (id)d256_number // called by name (ADR-0043 item 21)
+- (oo::PList)d256_number // called by name (ADR-0043 item 21)
 {
     int d256 = ranrot_rand() % 256;
-    return oo::ObjectFromPList(oo::PList::signedInteger(d256));
+    return oo::PList::signedInteger(d256);
 }
 
-- (id)pseudoFixedD256_number // called by name (ADR-0043 item 21)
+- (oo::PList)pseudoFixedD256_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::signedInteger([self systemPseudoRandom256]));
+    return oo::PList::signedInteger([self systemPseudoRandom256]);
 }
 
-- (id)clock_number // called by name (ADR-0043 item 21); returns the game time in seconds
+- (oo::PList)clock_number // called by name (ADR-0043 item 21); returns the game time in seconds
 {
-    return oo::ObjectFromPList(oo::PList((double)(ship_clock)));
+    return oo::PList((double)(ship_clock));
 }
 
-- (id)clock_secs_number // called by name (ADR-0043 item 21); returns the game time in seconds
+- (oo::PList)clock_secs_number // called by name (ADR-0043 item 21); returns the game time in seconds
 {
-    return oo::ObjectFromPList(oo::PList::unsignedInteger((unsigned long long)(ship_clock)));
+    return oo::PList::unsignedInteger((unsigned long long)(ship_clock));
 }
 
-- (id)clock_mins_number // called by name (ADR-0043 item 21); returns the game time in minutes
+- (oo::PList)clock_mins_number // called by name (ADR-0043 item 21); returns the game time in minutes
 {
-    return oo::ObjectFromPList(oo::PList::unsignedInteger((unsigned long long)(ship_clock / 60.0)));
+    return oo::PList::unsignedInteger((unsigned long long)(ship_clock / 60.0));
 }
 
-- (id)clock_hours_number // called by name (ADR-0043 item 21); returns the game time in hours
+- (oo::PList)clock_hours_number // called by name (ADR-0043 item 21); returns the game time in hours
 {
-    return oo::ObjectFromPList(oo::PList::unsignedInteger((unsigned long long)(ship_clock / 3600.0)));
+    return oo::PList::unsignedInteger((unsigned long long)(ship_clock / 3600.0));
 }
 
-- (id)clock_days_number // called by name (ADR-0043 item 21); returns the game time in days
+- (oo::PList)clock_days_number // called by name (ADR-0043 item 21); returns the game time in days
 {
-    return oo::ObjectFromPList(oo::PList::unsignedInteger((unsigned long long)(ship_clock / 86400.0)));
+    return oo::PList::unsignedInteger((unsigned long long)(ship_clock / 86400.0));
 }
 
-- (id)fuelLevel_number // called by name (ADR-0043 item 21); returns the fuel level in LY
+- (oo::PList)fuelLevel_number // called by name (ADR-0043 item 21); returns the fuel level in LY
 {
-    return oo::ObjectFromPList(oo::PList::singleReal((float)(floor(0.1 * fuel))));
+    return oo::PList::singleReal((float)(floor(0.1 * fuel)));
 }
 
-- (id)dockedAtMainStation_bool // called by name (ADR-0043 item 21)
+- (oo::PList)dockedAtMainStation_bool // called by name (ADR-0043 item 21)
 {
     if ([self dockedAtMainStation])
-        return @"YES";
+        return oo::PList("YES");
     else
-        return @"NO";
+        return oo::PList("NO");
 }
 
-- (id)foundEquipment_bool // called by name (ADR-0043 item 21)
+- (oo::PList)foundEquipment_bool // called by name (ADR-0043 item 21)
 {
-    return (found_equipment) ? @"YES" : @"NO";
+    return oo::PList((found_equipment) ? "YES" : "NO");
 }
 
-- (id)sunWillGoNova_bool // called by name (ADR-0043 item 21); returns whether the sun is going to go nova
+- (oo::PList)sunWillGoNova_bool // called by name (ADR-0043 item 21); returns whether the sun is going to go nova
 {
-    return ([[UNIVERSE sun] willGoNova]) ? @"YES" : @"NO";
+    return oo::PList(([[UNIVERSE sun] willGoNova]) ? "YES" : "NO");
 }
 
-- (id)sunGoneNova_bool // called by name (ADR-0043 item 21); returns whether the sun has gone nova
+- (oo::PList)sunGoneNova_bool // called by name (ADR-0043 item 21); returns whether the sun has gone nova
 {
-    return ([[UNIVERSE sun] goneNova]) ? @"YES" : @"NO";
+    return oo::PList(([[UNIVERSE sun] goneNova]) ? "YES" : "NO");
 }
 
-- (id)missionChoice_string // called by name (ADR-0043 item 21); returns nil or the key for the chosen option
+- (oo::PList)missionChoice_string // called by name (ADR-0043 item 21); returns nil or the key for the chosen option
 {
-    return oo::NSStringOrNil(missionChoice);
+    return StringOrNull(missionChoice);
 }
 
-- (id)missionKeyPress_string // called by name (ADR-0043 item 21)
+- (oo::PList)missionKeyPress_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil(missionKeyPress);
+    return StringOrNull(missionKeyPress);
 }
 
-- (id)dockedTechLevel_number // called by name (ADR-0043 item 21)
+- (oo::PList)dockedTechLevel_number // called by name (ADR-0043 item 21)
 {
     StationEntity* dockedStation = [self dockedStation];
     if (!dockedStation) {
         return [self systemTechLevel_number];
     }
-    return oo::ObjectFromPList(oo::PList::unsignedInteger([dockedStation equivalentTechLevel]));
+    return oo::PList::unsignedInteger([dockedStation equivalentTechLevel]);
 }
 
-- (id)dockedStationName_string // called by name (ADR-0043 item 21); returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise (?)
+- (oo::PList)dockedStationName_string // called by name (ADR-0043 item 21); returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise (?)
 {
     if ([self status] != STATUS_DOCKED)
-        return @"NONE";
+        return oo::PList("NONE");
 
-    return oo::NSStringFrom([self cxx_dockedStationName].value_or("UNKNOWN"));
+    return oo::PList([self cxx_dockedStationName].value_or("UNKNOWN"));
 }
 
-- (id)systemGovernment_string // called by name (ADR-0043 item 21)
+- (oo::PList)systemGovernment_string // called by name (ADR-0043 item 21)
 {
-    int government = [[self systemGovernment_number] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
-    return oo::NSStringFrom(cxx_OODisplayStringFromGovernmentID(government).value_or("UNKNOWN"));
+    int government = IntValueOf([self systemGovernment_number]); // 0 .. 7 (0 anarchic .. 7 most stable)
+    return oo::PList(cxx_OODisplayStringFromGovernmentID(government).value_or("UNKNOWN"));
 }
 
-- (id)systemGovernment_number // called by name (ADR-0043 item 21)
+- (oo::PList)systemGovernment_number // called by name (ADR-0043 item 21)
 {
-    return [oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_GOVERNMENT)];
+    return CurrentSystemDataValue(KEY_GOVERNMENT);
 }
 
-- (id)systemEconomy_string // called by name (ADR-0043 item 21)
+- (oo::PList)systemEconomy_string // called by name (ADR-0043 item 21)
 {
-    int economy = [[self systemEconomy_number] intValue]; // 0 .. 7 (0 rich industrial .. 7 poor agricultural)
-    return oo::NSStringFrom(cxx_OODisplayStringFromEconomyID(economy).value_or("UNKNOWN"));
+    int economy = IntValueOf([self systemEconomy_number]); // 0 .. 7 (0 rich industrial .. 7 poor agricultural)
+    return oo::PList(cxx_OODisplayStringFromEconomyID(economy).value_or("UNKNOWN"));
 }
 
-- (id)systemEconomy_number // called by name (ADR-0043 item 21)
+- (oo::PList)systemEconomy_number // called by name (ADR-0043 item 21)
 {
-    return [oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_ECONOMY)];
+    return CurrentSystemDataValue(KEY_ECONOMY);
 }
 
-- (id)systemTechLevel_number // called by name (ADR-0043 item 21)
+- (oo::PList)systemTechLevel_number // called by name (ADR-0043 item 21)
 {
-    return [oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_TECHLEVEL)];
+    return CurrentSystemDataValue(KEY_TECHLEVEL);
 }
 
-- (id)systemPopulation_number // called by name (ADR-0043 item 21)
+- (oo::PList)systemPopulation_number // called by name (ADR-0043 item 21)
 {
-    return [oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_POPULATION)];
+    return CurrentSystemDataValue(KEY_POPULATION);
 }
 
-- (id)systemProductivity_number // called by name (ADR-0043 item 21)
+- (oo::PList)systemProductivity_number // called by name (ADR-0043 item 21)
 {
-    return [oo::ObjectFromPList([UNIVERSE cxx_currentSystemData]) objectForKey:oo::NSStringFrom(KEY_PRODUCTIVITY)];
+    return CurrentSystemDataValue(KEY_PRODUCTIVITY);
 }
 
-- (id)commanderName_string // called by name (ADR-0043 item 21)
+- (oo::PList)commanderName_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil([self cxx_commanderName]);
+    return StringOrNull([self cxx_commanderName]);
 }
 
-- (id)commanderRank_string // called by name (ADR-0043 item 21)
+- (oo::PList)commanderRank_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil(cxx_OODisplayRatingStringFromKillCount([self score]));
+    return StringOrNull(cxx_OODisplayRatingStringFromKillCount([self score]));
 }
 
-- (id)commanderShip_string // called by name (ADR-0043 item 21)
+- (oo::PList)commanderShip_string // called by name (ADR-0043 item 21)
 {
-    return [self name];
+    return StringOrNull([self cxx_name]);
 }
 
-- (id)commanderShipDisplayName_string // called by name (ADR-0043 item 21)
+- (oo::PList)commanderShipDisplayName_string // called by name (ADR-0043 item 21)
 {
-    return oo::NSStringOrNil([self displayName]);
+    return StringOrNull([self displayName]);
 }
 
 /*-----------------------------------------------------*/
@@ -1137,30 +1158,30 @@ static int shipsFound;
     return [self replaceVariablesInString:cxx_OOExpand(valueString).value_or(std::string())];
 }
 
-- (void)commsMessage:(id)valueString // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)commsMessage:(const std::string&)valueString // called by name (ADR-0055 item 5); shared selector (proposed ADR-0043)
 {
-    [UNIVERSE cxx_addCommsMessage:[self expandMessage:oo::StdString(valueString)] forCount:4.5];
+    [UNIVERSE cxx_addCommsMessage:[self expandMessage:valueString] forCount:4.5];
 }
 
 // Enabled on 02-May-2008 - Nikos
 // This method does the same as -commsMessage, (which in fact calls), the difference being that scripts can use this
 // method to have unpiloted ship entities sending comms messages.
-- (void)commsMessageByUnpiloted:(id)valueString // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)commsMessageByUnpiloted:(const std::string&)valueString // called by name (ADR-0055 item 5); shared selector (proposed ADR-0043)
 {
     [self commsMessage:valueString];
 }
 
-- (void)consoleMessage3s:(id)valueString // called by name (ADR-0043 item 21)
+- (void)consoleMessage3s:(const std::string&)valueString // called by name (ADR-0043 item 21)
 {
-    [UNIVERSE cxx_addMessage:[self expandMessage:oo::StdString(valueString)] forCount:3];
+    [UNIVERSE cxx_addMessage:[self expandMessage:valueString] forCount:3];
 }
 
-- (void)consoleMessage6s:(id)valueString // called by name (ADR-0043 item 21)
+- (void)consoleMessage6s:(const std::string&)valueString // called by name (ADR-0043 item 21)
 {
-    [UNIVERSE cxx_addMessage:[self expandMessage:oo::StdString(valueString)] forCount:6];
+    [UNIVERSE cxx_addMessage:[self expandMessage:valueString] forCount:6];
 }
 
-- (void)awardCredits:(id)valueString // called by name (ADR-0043 item 21)
+- (void)awardCredits:(const std::string&)valueString // called by name (ADR-0043 item 21)
 {
     if (scriptTarget != self)
         return;
@@ -1169,7 +1190,7 @@ static int shipsFound;
             we don't need to since larger values have never been supported for
             legacy scripts.
     */
-    int64_t award = oo::str::intValue(oo::StdString(valueString));
+    int64_t award = oo::str::intValue(valueString);
     award *= 10;
     if (award < 0 && credits < (OOCreditsQuantity)-award)
         credits = 0;
@@ -1177,27 +1198,27 @@ static int shipsFound;
         credits += award;
 }
 
-- (void)awardShipKills:(id)valueString // called by name (ADR-0043 item 21)
+- (void)awardShipKills:(const std::string&)valueString // called by name (ADR-0043 item 21)
 {
     if (scriptTarget != self)
         return;
 
-    int value = oo::str::intValue(oo::StdString(valueString));
+    int value = oo::str::intValue(valueString);
     if (0 < value)
         ship_kills += value;
 }
 
-- (void)awardEquipment:(id)equipString // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
+- (void)awardEquipment:(const std::string&)equipString // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
 {
     if (scriptTarget != self)
         return;
 
-    const std::string equipKey = oo::StdString(equipString);
+    const std::string equipKey = equipString;
     if (equipKey == "EQ_FUEL") {
         [self setFuel:[self fuelCapacity]];
     }
 
-    OOEquipmentType* eqType = (equipString != nil) ? [OOEquipmentType cxx_equipmentTypeWithIdentifier:equipKey] : nil;
+    OOEquipmentType* eqType = [OOEquipmentType cxx_equipmentTypeWithIdentifier:equipKey];
 
     if ([eqType isMissileOrMine]) {
         [self cxx_mountMissileWithRole:equipKey];
@@ -1205,37 +1226,37 @@ static int shipsFound;
         OO_LOG(kOOLogSyntaxAwardEquipment, "***** SCRIPT ERROR: in {}, CANNOT award undamaged weapon:'{}'. Damaged weapons can be awarded instead.", CurrentScriptDescription(), equipKey);
     }
     // (the "_DAMAGED" suffix is ASCII, so its bytes are its characters)
-    else if (oo::str::hasSuffix(equipKey, "_DAMAGED") && [self hasEquipmentItem:oo::NSStringFrom(equipKey.substr(0, equipKey.size() - 8))]) {
+    else if (oo::str::hasSuffix(equipKey, "_DAMAGED") && [self hasEquipmentItem:oo::PList(equipKey.substr(0, equipKey.size() - 8))]) {
         OO_LOG(kOOLogSyntaxAwardEquipment, "***** SCRIPT ERROR: in {}, CANNOT award damaged equipment:'{}'. Undamaged version already equipped.", CurrentScriptDescription(), equipKey);
-    } else if ([eqType canCarryMultiple] || ![self hasEquipmentItem:equipString]) {
+    } else if ([eqType canCarryMultiple] || ![self hasEquipmentItem:oo::PList(equipKey)]) {
         [self addEquipmentItem:equipKey withValidation:YES inContext:"scripted"];
     }
 }
 
-- (void)removeEquipment:(id)equipString // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
+- (void)removeEquipment:(const std::string&)equipString // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
 {
     if (scriptTarget != self)
         return;
 
-    const std::string equipKey = oo::StdString(equipString);
+    const std::string equipKey = equipString;
     if (equipKey == "EQ_FUEL") {
         fuel = 0;
         return;
     }
 
-    if (equipKey == "EQ_CARGO_BAY" && [self hasEquipmentItem:equipString]
+    if (equipKey == "EQ_CARGO_BAY" && [self hasEquipmentItem:oo::PList(equipKey)]
         && ([self extraCargo] > [self availableCargoSpace])) {
         OO_LOG(kOOLogSyntaxRemoveEquipment, "***** SCRIPT ERROR: in {}, CANNOT remove cargo bay. Too much cargo.", CurrentScriptDescription());
         return;
     }
-    if ([self hasEquipmentItem:equipString] || [self hasEquipmentItem:oo::NSStringFrom(equipKey + "_DAMAGED")]) {
+    if ([self hasEquipmentItem:oo::PList(equipKey)] || [self hasEquipmentItem:oo::PList(equipKey + "_DAMAGED")]) {
         [self removeEquipmentItem:equipKey];
     }
 }
 
-- (void)setPlanetinfo:(id)key_valueString // called by name (ADR-0043 item 21); uses key=value format
+- (void)setPlanetinfo:(const std::string&)key_valueString // called by name (ADR-0043 item 21); uses key=value format
 {
-    const std::string argument = oo::StdString(key_valueString);
+    const std::string argument = key_valueString;
     const std::vector<std::string> tokens = oo::str::split(argument, "=");
 
     if (tokens.size() != 2) {
@@ -1249,12 +1270,12 @@ static int shipsFound;
     /* Legacy script planetinfo settings are now non-persistent over save/load
      * Virtually nothing uses them any more, and expecting them to have a
      * manifest and identifying what it is if so seems unnecessary */
-    [UNIVERSE cxx_setSystemDataKey:keyString value:oo::NSStringFrom(valueString) fromManifest:std::string()];
+    [UNIVERSE cxx_setSystemDataKey:keyString value:oo::PList(valueString) fromManifest:std::string()];
 }
 
-- (void)setSpecificPlanetInfo:(id)key_valueString // called by name (ADR-0043 item 21); uses galaxy#=planet#=key=value
+- (void)setSpecificPlanetInfo:(const std::string&)key_valueString // called by name (ADR-0043 item 21); uses galaxy#=planet#=key=value
 {
-    const std::string argument = oo::StdString(key_valueString);
+    const std::string argument = key_valueString;
     const std::vector<std::string> tokens = oo::str::split(argument, "=");
     int gnum, pnum;
 
@@ -1269,15 +1290,15 @@ static int shipsFound;
     const std::string keyString = TrimWhitespace(tokens[2]);
     const std::string valueString = TrimWhitespace(tokens[3]);
 
-    [UNIVERSE cxx_setSystemDataForGalaxy:gnum planet:pnum key:keyString value:oo::NSStringFrom(valueString) fromManifest:std::string() forLayer:OO_LAYER_OXP_DYNAMIC];
+    [UNIVERSE cxx_setSystemDataForGalaxy:gnum planet:pnum key:keyString value:oo::PList(valueString) fromManifest:std::string() forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
-- (void)awardCargo:(id)amount_typeString // called by name (ADR-0043 item 21)
+- (void)awardCargo:(const std::string&)amount_typeString // called by name (ADR-0043 item 21)
 {
     if (scriptTarget != self)
         return;
 
-    const std::string argument = oo::StdString(amount_typeString);
+    const std::string argument = amount_typeString;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
     OOCargoQuantityDelta amount;
     OOMassUnit unit;
@@ -1350,25 +1371,25 @@ static int shipsFound;
     [self calculateCurrentCargo];
 }
 
-- (void)useSpecialCargo:(id)descriptionString // called by name (ADR-0043 item 21)
+- (void)useSpecialCargo:(const std::string&)descriptionString // called by name (ADR-0043 item 21)
 {
     if (scriptTarget != self)
         return;
 
-    const std::string description = oo::StdString(descriptionString);
+    const std::string description = descriptionString;
     [self removeAllCargo:YES];
     OO_LOG(kOOLogNoteUseSpecialCargo, "Going to useSpecialCargo:'{}'", description);
     specialCargo = cxx_OOExpand(description);
 }
 
-- (void)testForEquipment:(id)equipString // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
+- (void)testForEquipment:(const std::string&)equipString // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
 {
-    found_equipment = [self hasEquipmentItem:equipString];
+    found_equipment = [self hasEquipmentItem:oo::PList(equipString)];
 }
 
-- (void)awardFuel:(id)valueString // called by name (ADR-0043 item 21); add to fuel up to 7.0 LY
+- (void)awardFuel:(const std::string&)valueString // called by name (ADR-0043 item 21); add to fuel up to 7.0 LY
 {
-    int delta = 10 * (float)oo::str::doubleValue(oo::StdString(valueString));
+    int delta = 10 * (float)oo::str::doubleValue(valueString);
     OOFuelQuantity scriptTargetFuelBeforeAward = [scriptTarget fuel];
 
     if (delta < 0 && scriptTargetFuelBeforeAward < (unsigned)-delta)
@@ -1378,9 +1399,9 @@ static int shipsFound;
     }
 }
 
-- (void)messageShipAIs:(id)roles_message // called by name (ADR-0043 item 21)
+- (void)messageShipAIs:(const std::string&)roles_message // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(roles_message);
+    const std::string argument = roles_message;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
 
     if (tokens.size() < 2) {
@@ -1399,16 +1420,16 @@ static int shipsFound;
     }
 }
 
-- (void)ejectItem:(id)itemKey // called by name (ADR-0043 item 21)
+- (void)ejectItem:(const std::string&)itemKey // called by name (ADR-0043 item 21)
 {
     if (scriptTarget == nil)
         scriptTarget = self;
-    [scriptTarget ejectShipOfType:oo::OptionalString(itemKey)];
+    [scriptTarget ejectShipOfType:itemKey];
 }
 
-- (void)addShips:(id)roles_number // called by name (ADR-0043 item 21)
+- (void)addShips:(const std::string&)roles_number // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(roles_number);
+    const std::string argument = roles_number;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
 
     if (tokens.size() != 2) {
@@ -1430,9 +1451,9 @@ static int shipsFound;
         [UNIVERSE cxx_witchspaceShipWithPrimaryRole:roleString];
 }
 
-- (void)addSystemShips:(id)roles_number_position // called by name (ADR-0043 item 21)
+- (void)addSystemShips:(const std::string&)roles_number_position // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(roles_number_position);
+    const std::string argument = roles_number_position;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
 
     if (tokens.size() != 3) {
@@ -1455,9 +1476,9 @@ static int shipsFound;
         [UNIVERSE cxx_addShipWithRole:roleString nearRouteOneAt:posn];
 }
 
-- (void)addShipsAt:(id)roles_number_system_x_y_z // called by name (ADR-0043 item 21)
+- (void)addShipsAt:(const std::string&)roles_number_system_x_y_z // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(roles_number_system_x_y_z);
+    const std::string argument = roles_number_system_x_y_z;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
 
     if (tokens.size() != 6) {
@@ -1483,9 +1504,9 @@ static int shipsFound;
     }
 }
 
-- (void)addShipsAtPrecisely:(id)roles_number_system_x_y_z // called by name (ADR-0043 item 21)
+- (void)addShipsAtPrecisely:(const std::string&)roles_number_system_x_y_z // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(roles_number_system_x_y_z);
+    const std::string argument = roles_number_system_x_y_z;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
 
     if (tokens.size() != 6) {
@@ -1511,9 +1532,9 @@ static int shipsFound;
     }
 }
 
-- (void)addShipsWithinRadius:(id)roles_number_system_x_y_z_r // called by name (ADR-0043 item 21)
+- (void)addShipsWithinRadius:(const std::string&)roles_number_system_x_y_z_r // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(roles_number_system_x_y_z_r);
+    const std::string argument = roles_number_system_x_y_z_r;
     const std::vector<std::string> tokens = oo::str::tokens(argument);
 
     if (tokens.size() != 7) {
@@ -1542,18 +1563,18 @@ static int shipsFound;
     }
 }
 
-- (void)spawnShip:(id)ship_key // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)spawnShip:(const std::string&)ship_key // called by name (ADR-0055 item 5)
 {
-    if ([UNIVERSE spawnShip:ship_key]) {
-        OO_LOG(kOOLogNoteAddShips, "DEBUG: Spawned ship with shipdata key '{}'.", oo::DescriptionOf(ship_key));
+    if ([UNIVERSE cxx_spawnShip:ship_key]) {
+        OO_LOG(kOOLogNoteAddShips, "DEBUG: Spawned ship with shipdata key '{}'.", ship_key);
     } else {
-        OO_LOG(kOOLogScriptAddShipsFailed, "***** SCRIPT ERROR: in {}, could not spawn ship with shipdata key '{}'.", CurrentScriptDescription(), oo::DescriptionOf(ship_key));
+        OO_LOG(kOOLogScriptAddShipsFailed, "***** SCRIPT ERROR: in {}, could not spawn ship with shipdata key '{}'.", CurrentScriptDescription(), ship_key);
     }
 }
 
-- (void)set:(id)missionvariable_value // called by name (ADR-0043 item 21)
+- (void)set:(const std::string&)missionvariable_value // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(missionvariable_value);
+    const std::string argument = missionvariable_value;
     std::vector<std::string> tokens = oo::str::tokens(argument);
     std::string missionVariableString;
     std::string valueString;
@@ -1584,9 +1605,9 @@ static int shipsFound;
     }
 }
 
-- (void)reset:(id)missionvariable // called by name (ADR-0043 item 21)
+- (void)reset:(const std::string&)missionvariable // called by name (ADR-0043 item 21)
 {
-    const std::string missionVariableString = TrimWhitespace(oo::StdString(missionvariable));
+    const std::string missionVariableString = TrimWhitespace(missionvariable);
     BOOL hasMissionPrefix, hasLocalPrefix;
 
     hasMissionPrefix = oo::str::hasPrefix(missionVariableString, "mission_");
@@ -1601,9 +1622,9 @@ static int shipsFound;
     }
 }
 
-- (void)increment:(id)missionVariableObject // called by name (ADR-0043 item 21)
+- (void)increment:(const std::string&)missionVariableObject // called by name (ADR-0043 item 21)
 {
-    const std::string missionVariableString = oo::StdString(missionVariableObject);
+    const std::string missionVariableString = missionVariableObject;
     BOOL hasMissionPrefix, hasLocalPrefix;
     int value = 0;
 
@@ -1623,9 +1644,9 @@ static int shipsFound;
     }
 }
 
-- (void)decrement:(id)missionVariableObject // called by name (ADR-0043 item 21)
+- (void)decrement:(const std::string&)missionVariableObject // called by name (ADR-0043 item 21)
 {
-    const std::string missionVariableString = oo::StdString(missionVariableObject);
+    const std::string missionVariableString = missionVariableObject;
     BOOL hasMissionPrefix, hasLocalPrefix;
     int value = 0;
 
@@ -1645,9 +1666,9 @@ static int shipsFound;
     }
 }
 
-- (void)add:(id)missionVariableString_value // called by name (ADR-0043 item 21)
+- (void)add:(const std::string&)missionVariableString_value // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(missionVariableString_value);
+    const std::string argument = missionVariableString_value;
     std::string missionVariableString;
     std::string valueString;
     double value;
@@ -1678,9 +1699,9 @@ static int shipsFound;
     }
 }
 
-- (void)subtract:(id)missionVariableString_value // called by name (ADR-0043 item 21)
+- (void)subtract:(const std::string&)missionVariableString_value // called by name (ADR-0043 item 21)
 {
-    const std::string argument = oo::StdString(missionVariableString_value);
+    const std::string argument = missionVariableString_value;
     std::string missionVariableString;
     std::string valueString;
     double value;
@@ -1711,9 +1732,9 @@ static int shipsFound;
     }
 }
 
-- (void)checkForShips:(id)roleString // called by name (ADR-0043 item 21)
+- (void)checkForShips:(const std::string&)roleString // called by name (ADR-0043 item 21)
 {
-    shipsFound = (roleString != nil) ? [UNIVERSE cxx_countShipsWithPrimaryRole:oo::StdString(roleString)] : 0; // a nil role counted nothing
+    shipsFound = [UNIVERSE cxx_countShipsWithPrimaryRole:roleString];
 }
 
 - (void)resetScriptTimer
@@ -1723,9 +1744,9 @@ static int shipsFound;
     script_time_interval = SCRIPT_TIMER_INTERVAL;
 }
 
-- (void)addMissionText:(id)textKey // called by name (ADR-0043 item 21)
+- (void)addMissionText:(const std::string&)textKey // called by name (ADR-0043 item 21)
 {
-    const std::optional<std::string> key = oo::OptionalString(textKey);
+    const std::optional<std::string> key = textKey;
 
     if (key.has_value() && key == lastTextKey)
         return; // don't repeatedly add the same text
@@ -1737,17 +1758,17 @@ static int shipsFound;
         return;
     const std::string expanded = cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandBackslashN, *text).value_or(std::string());
 
-    [self addLiteralMissionText:oo::NSStringOrNil([self replaceVariablesInString:expanded])];
+    const std::optional<std::string> literal = [self replaceVariablesInString:expanded];
+    if (literal.has_value())
+        [self addLiteralMissionText:*literal];
 }
 
-- (void)addLiteralMissionText:(id)text // called by name (ADR-0043 item 21)
+- (void)addLiteralMissionText:(const std::string&)text // called by name (ADR-0043 item 21)
 {
-    if (text != nil) {
-        GuiDisplayGen* gui = [UNIVERSE gui];
+    GuiDisplayGen* gui = [UNIVERSE gui];
 
-        for (const std::string& para : oo::str::split(oo::StdString(text), "\n")) {
-            missionTextRow = [gui cxx_addLongText:para startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
-        }
+    for (const std::string& para : oo::str::split(text, "\n")) {
+        missionTextRow = [gui cxx_addLongText:para startingAtRow:missionTextRow align:GUI_ALIGN_LEFT];
     }
 }
 
@@ -1758,10 +1779,10 @@ static int shipsFound;
     [gameView resetTypedString];
 }
 
-- (void)setMissionChoices:(id)choicesKey // called by name (ADR-0043 item 21); choicesKey is a key for a dictionary of
+- (void)setMissionChoices:(const std::string&)choicesKey // called by name (ADR-0043 item 21); choicesKey is a key for a dictionary of
 { // choices/choice phrases in missiontext.plist and also..
     const oo::PList missionText = [UNIVERSE cxx_missiontext];
-    const oo::PList* choicesEntry = missionText.find(oo::StdString(choicesKey));
+    const oo::PList* choicesEntry = missionText.find(choicesKey);
     const oo::PList choicesDict = (choicesEntry != nullptr) ? *choicesEntry : oo::PList();
     if (!choicesDict.isDict() || choicesDict.count() == 0) {
         return;
@@ -1839,7 +1860,7 @@ static int shipsFound;
                 selectable = NO;
             }
             if (colorDesc != nullptr) {
-                rowColor = [OOColor colorWithDescription:oo::ObjectFromPList(*colorDesc)];
+                rowColor = [OOColor cxx_colorWithDescription:*colorDesc];
             } else if (!selectable) // different default
             {
                 rowColor = [OOColor darkGrayColor];
@@ -1894,13 +1915,13 @@ static int shipsFound;
     [self cxx_setMissionBackgroundDescriptor:oo::PList()];
     [self cxx_setMissionBackgroundSpecial:""];
     [self cxx_setMissionTitle:std::nullopt];
-    [self setMissionMusic:nil];
-    [self showShipModel:nil];
+    [self setMissionMusic:std::string()]; // (nil was "none")
+    [self showShipModel:std::string()];
 }
 
-- (void)addMissionDestination:(id)destinations // called by name (ADR-0043 item 21)
+- (void)addMissionDestination:(const std::string&)destinations // called by name (ADR-0043 item 21)
 {
-    for (const std::string& token : oo::str::tokens(oo::StdString(destinations))) {
+    for (const std::string& token : oo::str::tokens(destinations)) {
         const int dest = oo::str::intValue(token); // -oo_intAtIndex: of the token
         if (dest < 0 || dest > 255)
             continue;
@@ -1909,9 +1930,9 @@ static int shipsFound;
     }
 }
 
-- (void)removeMissionDestination:(id)destinations // called by name (ADR-0043 item 21)
+- (void)removeMissionDestination:(const std::string&)destinations // called by name (ADR-0043 item 21)
 {
-    for (const std::string& token : oo::str::tokens(oo::StdString(destinations))) {
+    for (const std::string& token : oo::str::tokens(destinations)) {
         const int dest = oo::str::intValue(token);
         if (dest < 0 || dest > 255)
             continue;
@@ -1920,9 +1941,9 @@ static int shipsFound;
     }
 }
 
-- (void)showShipModel:(id)role // called by name (ADR-0043 item 21)
+- (void)showShipModel:(const std::string&)role // called by name (ADR-0043 item 21)
 {
-    const std::string roleString = oo::StdString(role);
+    const std::string roleString = role;
     if (roleString == "none" || roleString.empty()) {
         [UNIVERSE removeDemoShips];
         return;
@@ -1932,10 +1953,10 @@ static int shipsFound;
     OO_LOG(kOOLogNoteShowShipModel, "::::: showShipModel:'{}' ({}) ({})", roleString, oo::DescriptionOf(ship), [ship cxx_name].value_or("(null)"));
 }
 
-- (void)setMissionMusic:(id)value // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)setMissionMusic:(const std::string&)value // called by name (ADR-0043 item 21)
 {
-    // nil and "none" still pass nil on
-    [[OOMusicController sharedController] setMissionMusic:IsNoneValue(oo::StdString(value)) ? nil : value];
+    // "" (was nil) and "none" clear it
+    [[OOMusicController sharedController] cxx_setMissionMusic:IsNoneValue(value) ? std::nullopt : std::optional<std::string>(value)];
 }
 
 - (std::optional<std::string>)cxx_missionTitle
@@ -1950,9 +1971,9 @@ static int shipsFound;
 }
 
 // Not declared in the header; called by name (setMissionImage: is whitelisted) (ADR-0043 item 21).
-- (void)setMissionImage:(id)value
+- (void)setMissionImage:(const std::string&)value
 {
-    const std::string imageName = oo::StdString(value);
+    const std::string imageName = value;
     if (!IsNoneValue(imageName)) {
         [self cxx_setMissionOverlayDescriptor:oo::PList(oo::PList::Dict { { "name", oo::PList(imageName) } })];
     } else {
@@ -1961,9 +1982,9 @@ static int shipsFound;
 }
 
 // called by name (ADR-0043 item 21)
-- (void)setMissionBackground:(id)value
+- (void)setMissionBackground:(const std::string&)value
 {
-    const std::string backgroundName = oo::StdString(value);
+    const std::string backgroundName = value;
     if (!IsNoneValue(backgroundName)) {
         [self cxx_setMissionBackgroundDescriptor:oo::PList(oo::PList::Dict { { "name", oo::PList(backgroundName) } })];
     } else {
@@ -1971,14 +1992,14 @@ static int shipsFound;
     }
 }
 
-- (void)setFuelLeak:(id)value // called by name (ADR-0043 item 21)
+- (void)setFuelLeak:(const std::string&)value // called by name (ADR-0043 item 21)
 {
     if (scriptTarget != self) {
         [scriptTarget setFuel:0];
         return;
     }
 
-    fuel_leak_rate = oo::str::doubleValue(oo::StdString(value));
+    fuel_leak_rate = oo::str::doubleValue(value);
     if (fuel_leak_rate > 0) {
         [self playFuelLeak];
         [UNIVERSE cxx_addMessage:OO_DESC("danger-fuel-leak") forCount:6];
@@ -1986,14 +2007,14 @@ static int shipsFound;
     }
 }
 
-- (id)fuelLeakRate_number // called by name (ADR-0043 item 21)
+- (oo::PList)fuelLeakRate_number // called by name (ADR-0043 item 21)
 {
-    return oo::ObjectFromPList(oo::PList::singleReal((float)([self fuelLeakRate])));
+    return oo::PList::singleReal((float)([self fuelLeakRate]));
 }
 
-- (void)setSunNovaIn:(id)time_value // called by name (ADR-0043 item 21)
+- (void)setSunNovaIn:(const std::string&)time_value // called by name (ADR-0043 item 21)
 {
-    double time_until_nova = oo::str::doubleValue(oo::StdString(time_value));
+    double time_until_nova = oo::str::doubleValue(time_value);
     [[UNIVERSE sun] setGoingNova:YES inTime:time_until_nova];
 }
 
@@ -2039,11 +2060,11 @@ static int shipsFound;
             {
                 AI* se1AI = [se1 getAI];
                 [se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];
-                [se1 setAITo:@"exitingTraderAI.plist"]; // lets them return to their previous state after the jump
+                [se1 setAITo:"exitingTraderAI.plist"]; // lets them return to their previous state after the jump
                 [se1AI cxx_setState:"EXIT_SYSTEM"];
                 // The following should prevent all ships leaving at once (freezes oolite on slower machines)
                 [se1AI setNextThinkTime:[UNIVERSE getTime] + 3 + (ranrot_rand() & 15)];
-                [se1 setPrimaryRole:@"oolite-none"]; // prevents new ship from appearing at witchpoint when this one leaves!
+                [se1 setPrimaryRole:"oolite-none"]; // prevents new ship from appearing at witchpoint when this one leaves!
             }
         }
     }
@@ -2053,16 +2074,21 @@ static int shipsFound;
     }
 }
 
-- (OOPlanetEntity*)addPlanet:(id)planetKey // called by name (ADR-0043 item 21)
+- (void)addPlanet:(const std::string&)planetKey // called by name (ADR-0043 item 21)
 {
-    OO_LOG(kOOLogNoteAddPlanet, "addPlanet: {}", oo::DescriptionOf(planetKey));
+    [self cxx_addPlanet:planetKey];
+}
+
+- (OOPlanetEntity*)cxx_addPlanet:(const std::string&)planetKey
+{
+    OO_LOG(kOOLogNoteAddPlanet, "addPlanet: {}", planetKey);
 
     if (!UNIVERSE)
         return nil;
     // The system properties, once, as an oo::PList (null when there are none).
-    const oo::PList dict = [[UNIVERSE systemManager] cxx_getPropertiesForSystemKey:oo::StdString(planetKey)];
+    const oo::PList dict = [[UNIVERSE systemManager] cxx_getPropertiesForSystemKey:planetKey];
     if (dict.isNull()) {
-        OO_LOG("script.error.addPlanet.keyNotFound", "***** ERROR: could not find an entry in planetinfo.plist for '{}'", oo::DescriptionOf(planetKey));
+        OO_LOG("script.error.addPlanet.keyNotFound", "***** ERROR: could not find an entry in planetinfo.plist for '{}'", planetKey);
         return nil;
     }
 
@@ -2079,13 +2105,13 @@ static int shipsFound;
 
     const oo::PList* positionValue = dict.find("position");
     if (positionValue == nullptr) {
-        OO_LOG("script.error.addPlanet.noPosition", "***** ERROR: you must specify a position for scripted planet '{}' before it can be created", oo::DescriptionOf(planetKey));
+        OO_LOG("script.error.addPlanet.noPosition", "***** ERROR: you must specify a position for scripted planet '{}' before it can be created", planetKey);
         return nil;
     }
 
     const std::string positionString = ConditionString(*positionValue).value_or(std::string());
     if (oo::str::hasPrefix(positionString, "abs ") && ([UNIVERSE planet] != nil || [UNIVERSE sun] != nil)) {
-        OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "position", "planet", oo::DescriptionOf(planetKey));
+        OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "position", "planet", planetKey);
     }
 
     HPVector posn = [UNIVERSE cxx_coordinatesFromCoordinateSystemString:positionString];
@@ -2101,16 +2127,21 @@ static int shipsFound;
     return planet;
 }
 
-- (OOPlanetEntity*)addMoon:(id)moonKey // called by name (ADR-0043 item 21)
+- (void)addMoon:(const std::string&)moonKey // called by name (ADR-0043 item 21)
 {
-    OO_LOG(kOOLogNoteAddPlanet, "DEBUG: addMoon '{}'", oo::DescriptionOf(moonKey));
+    [self cxx_addMoon:moonKey];
+}
+
+- (OOPlanetEntity*)cxx_addMoon:(const std::string&)moonKey
+{
+    OO_LOG(kOOLogNoteAddPlanet, "DEBUG: addMoon '{}'", moonKey);
 
     if (!UNIVERSE)
         return nil;
     // The system properties, once, as an oo::PList (null when there are none).
-    const oo::PList dict = [[UNIVERSE systemManager] cxx_getPropertiesForSystemKey:oo::StdString(moonKey)];
+    const oo::PList dict = [[UNIVERSE systemManager] cxx_getPropertiesForSystemKey:moonKey];
     if (dict.isNull()) {
-        OO_LOG("script.error.addPlanet.keyNotFound", "***** ERROR: could not find an entry in planetinfo.plist for '{}'", oo::DescriptionOf(moonKey));
+        OO_LOG("script.error.addPlanet.keyNotFound", "***** ERROR: could not find an entry in planetinfo.plist for '{}'", moonKey);
         return nil;
     }
 
@@ -2127,13 +2158,13 @@ static int shipsFound;
 
     const oo::PList* positionValue = dict.find("position");
     if (positionValue == nullptr) {
-        OO_LOG("script.error.addPlanet.noPosition", "***** ERROR: you must specify a position for scripted moon '{}' before it can be created", oo::DescriptionOf(moonKey));
+        OO_LOG("script.error.addPlanet.noPosition", "***** ERROR: you must specify a position for scripted moon '{}' before it can be created", moonKey);
         return nil;
     }
 
     const std::string positionString = ConditionString(*positionValue).value_or(std::string());
     if (oo::str::hasPrefix(positionString, "abs ") && ([UNIVERSE planet] != nil || [UNIVERSE sun] != nil)) {
-        OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "position", "moon", oo::DescriptionOf(moonKey));
+        OO_LOG_WARN("script.deprecated", "setting {} for {} '{}' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.", "position", "moon", moonKey);
     }
 
     HPVector posn = [UNIVERSE cxx_coordinatesFromCoordinateSystemString:positionString];
@@ -2161,14 +2192,14 @@ static int shipsFound;
     oo::log::logger().setDisplay(kOOLogDebugOnMetaClass, false);
 }
 
-- (void)debugMessage:(id)args // called by name (ADR-0043 item 21)
+- (void)debugMessage:(const std::string&)args // called by name (ADR-0043 item 21)
 {
-    OO_LOG(kOOLogDebugMessage, "SCRIPT debugMessage: {}", oo::DescriptionOf(args));
+    OO_LOG(kOOLogDebugMessage, "SCRIPT debugMessage: {}", args);
 }
 
-- (void)playSound:(id)soundName // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)playSound:(const std::string&)soundName // called by name (ADR-0043 item 21)
 {
-    [self playLegacyScriptSound:oo::StdString(soundName)];
+    [self playLegacyScriptSound:soundName];
 }
 
 /*-----------------------------------------------------*/
@@ -2358,7 +2389,7 @@ static int shipsFound;
     const std::string i_key = oo::str::lowercase(i_info[0]);
 
     // ("%@" of the token array: the same description)
-    OO_LOG(kOOLogNoteProcessSceneString, "..... processing {} ({})", oo::DescriptionOf(oo::NSArrayFromStrings(i_info)), i_key);
+    OO_LOG(kOOLogNoteProcessSceneString, "..... processing {} ({})", oo::DescriptionOf(TokenArray(i_info)), i_key);
 
     // tokens [from, from + count) joined by " ", as -subarrayWithRange: then -componentsJoinedByString:@" "
     auto joined = [&i_info](std::size_t from, std::size_t count) {
@@ -2422,7 +2453,7 @@ static int shipsFound;
         [ship setPosition:vectorToHPVector(model_p0)];
         [UNIVERSE setMainLightPosition:(Vector) { DEMO_LIGHT_POSITION }]; // set light origin
         [ship setScanClass:CLASS_NO_DRAW];
-        [ship switchAITo:@"nullAI.plist"];
+        [ship switchAITo:"nullAI.plist"];
         [UNIVERSE addEntity:ship]; // STATUS_IN_FLIGHT, AI state GLOBAL
         [ship setStatus:STATUS_COCKPIT_DISPLAY];
         [ship setRoll:0.0];
@@ -2456,7 +2487,7 @@ static int shipsFound;
         [doppelganger setPosition:vectorToHPVector(model_p0)];
         [UNIVERSE setMainLightPosition:(Vector) { DEMO_LIGHT_POSITION }]; // set light origin
         [doppelganger setScanClass:CLASS_NO_DRAW];
-        [doppelganger switchAITo:@"nullAI.plist"];
+        [doppelganger switchAITo:"nullAI.plist"];
         [UNIVERSE addEntity:doppelganger];
         [doppelganger setStatus:STATUS_COCKPIT_DISPLAY];
         [doppelganger setRoll:0.0];
@@ -2638,20 +2669,20 @@ static int shipsFound;
     }
 }
 
-- (void)setGalacticHyperspaceBehaviourTo:(id)galacticHyperspaceBehaviourString // called by name (ADR-0043 item 21)
+- (void)setGalacticHyperspaceBehaviourTo:(const std::string&)galacticHyperspaceBehaviourString // called by name (ADR-0043 item 21)
 {
-    OOGalacticHyperspaceBehaviour ghBehaviour = cxx_OOGalacticHyperspaceBehaviourFromString(oo::StdString(galacticHyperspaceBehaviourString));
+    OOGalacticHyperspaceBehaviour ghBehaviour = cxx_OOGalacticHyperspaceBehaviourFromString(galacticHyperspaceBehaviourString);
     if (ghBehaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN) {
         OO_LOG("player.setGalacticHyperspaceBehaviour.invalidInput",
-            "setGalacticHyperspaceBehaviourTo: called with unknown behaviour {}.", oo::DescriptionOf(galacticHyperspaceBehaviourString));
+            "setGalacticHyperspaceBehaviourTo: called with unknown behaviour {}.", galacticHyperspaceBehaviourString);
     }
     [self setGalacticHyperspaceBehaviour:ghBehaviour];
 }
 
-- (void)setGalacticHyperspaceFixedCoordsTo:(id)galacticHyperspaceFixedCoordsString // called by name (ADR-0043 item 21)
+- (void)setGalacticHyperspaceFixedCoordsTo:(const std::string&)galacticHyperspaceFixedCoordsString // called by name (ADR-0043 item 21)
 {
-    const oo::PList coord_vals = TokenArray(oo::str::tokens(oo::StdString(galacticHyperspaceFixedCoordsString)));
-    if (coord_vals.count() < 2) // Will be 0 if string is nil
+    const oo::PList coord_vals = TokenArray(oo::str::tokens(galacticHyperspaceFixedCoordsString));
+    if (coord_vals.count() < 2) // Will be 0 if string is empty
     {
         OO_LOG("player.setGalacticHyperspaceFixedCoords.invalidInput", "{}",
             "setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");

@@ -30,13 +30,11 @@ SOFTWARE.
 
 #if OO_SHADERS
 
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOMaths.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOShaderProgram.h"
 #import "OOShaderUniformMethodType.h"
-#import "OOStringBridge.h"
 #include <string.h>
 
 #include "oofnd/String.hpp"
@@ -511,10 +509,9 @@ SOFTWARE.
 
     case kOOShaderUniformTypeObject:
         objVal = ((ObjectReturnMsgSend)value.binding.method)(object, value.binding.selector);
-        if (oo::IsNSNumber(objVal)) {
-            fVal = [objVal floatValue];
-            isFloat = YES;
-        } else if ([objVal isKindOfClass:[OOColor class]]) {
+        // A colour. (The number-object case went with Foundation: no bindable method returns
+        // one - the whitelisted object-valued bindings, laserColor and fogUniform, are OOColors.)
+        if ([objVal isKindOfClass:[OOColor class]]) {
             OOColor* color = objVal;
             expVVal[0] = [color redComponent];
             expVVal[1] = [color greenComponent];

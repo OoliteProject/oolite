@@ -1,6 +1,10 @@
 /*
 
-OOProbabilitySet.m
+OOProbabilitySet.mm
+
+C++20 since bead oo-489v (proposed ADR-0056, the OOColor house style). The class cluster is a C++
+hierarchy; method bodies are the Objective-C ones with message sends turned into calls. Still
+Objective-C++ until Phase 4: an Object node element is an Objective-C object.
 
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -46,8 +50,8 @@ sets that will then be immutablized.
 */
 
 #import "OOProbabilitySet.h"
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
+#import "OOObjCPList.h"
 #import "legacy_random.h"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
@@ -93,113 +97,131 @@ NSUInteger IndexOfObject(const std::vector<oo::PList>& objects, const oo::PList&
     return NSNotFound;
 }
 
-// The shared -allObjects (an id form, until oo-qps.44): the elements as the Objective-C objects the
-// id element API held, a string as an NSString and an Object node as its object.
-id ObjectiveCArray(const std::vector<oo::PList>& elements)
+} // namespace
+
+namespace {
+
+class OOEmptyProbabilitySet final : public OOProbabilitySet {
+public:
+    static OOEmptyProbabilitySet* singleton();
+
+    oo::PList propertyListRepresentation() override;
+    oo::PList randomObject() override;
+    float weightForObject(const oo::PList& object) override;
+    float sumOfWeights() override;
+    NSUInteger count() override;
+    std::vector<oo::PList> allElements() override;
+    oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+};
+
+class OOSingleObjectProbabilitySet final : public OOProbabilitySet {
+public:
+    bool initWithObject(const oo::PList& object, float weight);
+
+    oo::PList propertyListRepresentation() override;
+    oo::PList randomObject() override;
+    float weightForObject(const oo::PList& object) override;
+    float sumOfWeights() override;
+    NSUInteger count() override;
+    std::vector<oo::PList> allElements() override;
+    oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+
+private:
+    oo::PList _object = { };
+    float _weight = { };
+};
+
+class OOConcreteProbabilitySet final : public OOProbabilitySet {
+public:
+    ~OOConcreteProbabilitySet() override;
+
+    bool initWithObjects(const oo::PList* objects, const float* weights, NSUInteger count);
+
+    oo::PList propertyListRepresentation() override;
+    NSUInteger count() override;
+    oo::PList randomObject() override;
+    float weightForObject(const oo::PList& object) override;
+    float sumOfWeights() override;
+    std::vector<oo::PList> allElements() override;
+    oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+
+private:
+    oo::PList privObjectForWeight(float target);
+
+    NSUInteger _count = { };
+    oo::PList* _objects = { };
+    float* _cumulativeWeights = { }; // Each cumulative weight is weight of object at this index + weight of all objects to left.
+    float _sumOfWeights = { };
+};
+
+class OOConcreteMutableProbabilitySet final : public OOMutableProbabilitySet {
+public:
+    // (-initPriv, which leaves the object and weight arrays empty, is the constructor.)
+    void initPrivWithObjectArray(const std::vector<oo::PList>& objects, const std::vector<float>& weights, float sumOfWeights); // For internal use by mutableCopy
+    void initWithObjects(const oo::PList* objects, const float* weights, NSUInteger count);
+    bool initWithPropertyListRepresentation(const oo::PList& plist);
+
+    oo::PList propertyListRepresentation() override;
+    NSUInteger count() override;
+    oo::PList randomObject() override;
+    float weightForObject(const oo::PList& object) override;
+    float sumOfWeights() override;
+    std::vector<oo::PList> allElements() override;
+    void setWeight(float weight, const oo::PList& object) override;
+    void removeObject(const oo::PList& object) override;
+    oo::Ref<OOProbabilitySet> copy() override;
+    oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+
+private:
+    std::vector<oo::PList> _objects = { };
+    std::vector<float> _weights = { };
+    float _sumOfWeights = { };
+};
+
+oo::Ref<OOMutableProbabilitySet> MakeConcreteMutable(const oo::PList* objects, const float* weights, NSUInteger count)
 {
-    std::vector<oo::ObjCRef<id>> objects;
-    for (const oo::PList& element : elements) {
-        const std::string* string = element.getIf<std::string>();
-        objects.emplace_back(string != nullptr ? oo::NSStringOrNil(*string) : oo::ObjectIn(element));
-    }
-    return oo::NSArrayFromObjects(objects);
+    oo::Ref<OOConcreteMutableProbabilitySet> result = oo::makeRef<OOConcreteMutableProbabilitySet>();
+    result->initWithObjects(objects, weights, count);
+    return result;
 }
 
 } // namespace
 
-@interface OOProbabilitySet (OOPrivate)
+// Abstract class just tosses allocations over to concrete class.
 
-// Designated initializer. This must be used by subclasses, since init is overriden for public use.
-- (id)initPriv;
-
-@end
-
-@interface OOEmptyProbabilitySet : OOProbabilitySet
-
-+ (OOEmptyProbabilitySet*)singleton OO_RETURNS_RETAINED;
-
-@end
-
-@interface OOSingleObjectProbabilitySet : OOProbabilitySet {
-@private
-    oo::PList _object;
-    float _weight;
-}
-
-- (id)initWithObject:(const oo::PList&)object weight:(float)weight;
-
-@end
-
-@interface OOConcreteProbabilitySet : OOProbabilitySet {
-@private
-    NSUInteger _count;
-    oo::PList* _objects;
-    float* _cumulativeWeights; // Each cumulative weight is weight of object at this index + weight of all objects to left.
-    float _sumOfWeights;
-}
-@end
-
-@interface OOConcreteMutableProbabilitySet : OOMutableProbabilitySet {
-@private
-    std::vector<oo::PList> _objects;
-    std::vector<float> _weights;
-    float _sumOfWeights;
-}
-
-- (id)initPrivWithObjectArray:(const std::vector<oo::PList>&)objects weightsArray:(const std::vector<float>&)weights sum:(float)sumOfWeights;
-
-@end
-
-static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
-
-@implementation OOProbabilitySet
-
-// Abstract class just tosses allocations over to concrete class, and throws exception if you try to use it directly.
-
-+ (id)probabilitySet
+oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySet()
 {
-    return [[OOEmptyProbabilitySet singleton] autorelease];
+    return oo::Ref<OOProbabilitySet>(OOEmptyProbabilitySet::singleton());
 }
 
-+ (id)probabilitySetWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
+oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithObjects(const oo::PList* objects, const float* weights, NSUInteger count)
 {
-    return [[[self alloc] initWithObjects:objects weights:weights count:count] autorelease];
-}
-
-+ (id)probabilitySetWithPropertyListRepresentation:(const oo::PList&)plist
-{
-    return [[[self alloc] initWithPropertyListRepresentation:plist] autorelease];
-}
-
-- (id)init
-{
-    [self release];
-    return [OOEmptyProbabilitySet singleton];
-}
-
-- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
-{
-    OOZone* zone = [self zone];
-    DESTROY(self);
-
     // Zero objects: return empty-set singleton.
     if (count == 0)
-        return [OOEmptyProbabilitySet singleton];
+        return probabilitySet();
 
     // If count is not zero and one of the paramters is nil, we've got us a programming error.
     if (objects == NULL || weights == NULL) {
         [OOException raise:OOInvalidArgumentException format:"Attempt to create %s with non-zero count but nil objects or weights.", "OOProbabilitySet"];
+        abort(); // unreachable: +raise:format: does not return (the analyser cannot see that through a message)
     }
 
     // Single object: simple one-object set. Expected to be quite common.
-    if (count == 1)
-        return [[OOSingleObjectProbabilitySet allocWithZone:zone] initWithObject:objects[0] weight:weights[0]];
+    if (count == 1) {
+        oo::Ref<OOSingleObjectProbabilitySet> result = oo::makeRef<OOSingleObjectProbabilitySet>();
+        if (!result->initWithObject(objects[0], weights[0]))
+            return nullptr;
+        return result;
+    }
 
     // Otherwise, use general implementation.
-    return [[OOConcreteProbabilitySet allocWithZone:zone] initWithObjects:objects weights:weights count:count];
+    oo::Ref<OOConcreteProbabilitySet> result = oo::makeRef<OOConcreteProbabilitySet>();
+    if (!result->initWithObjects(objects, weights, count))
+        return nullptr;
+    return result;
 }
 
-- (id)initWithPropertyListRepresentation:(const oo::PList&)plist
+oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithPropertyListRepresentation(const oo::PList& plist)
 {
     const oo::PList& representation = plist;
     const oo::PList* objects = representation.find(kObjectsKey);
@@ -210,13 +232,11 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
 
     // Validate
     if (objects == nullptr || !objects->isArray() || weights == nullptr || !weights->isArray()) {
-        [self release];
-        return nil;
+        return nullptr;
     }
     count = objects->count();
     if (count != weights->count()) {
-        [self release];
-        return nil;
+        return nullptr;
     }
 
     // Extract contents.
@@ -233,230 +253,117 @@ static void ThrowAbstractionViolationException(id obj) GCC_ATTR((noreturn));
         rawWeights.push_back(fmax(weights->at<float>(i), 0.0f));
     }
 
-    return [self initWithObjects:rawObjects.data() weights:rawWeights.data() count:count];
+    return probabilitySetWithObjects(rawObjects.data(), rawWeights.data(), count);
 }
 
-- (id)initPriv
-{
-    return [super init];
-}
-
-// -cxx_description (OODescription.h) wraps this as "<Class 0x...>{count=N}", as the legacy
+// oo::DescriptionOf (OODescription.h) wraps this as "<Class 0x...>{count=N}", as the legacy
 // -descriptionComponents did.
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOProbabilitySet::descriptionComponents() const
 {
-    return oo::str::format("count=%zu", [self count]);
+    // (count() is not const; the fixed const signature, ADR-0055 item 1, reaches it through a cast)
+    return oo::str::format("count=%zu", const_cast<OOProbabilitySet*>(this)->count());
 }
 
-- (oo::PList)propertyListRepresentation
+oo::Ref<OOProbabilitySet> OOProbabilitySet::copy()
 {
-    ThrowAbstractionViolationException(self);
+    // Immutable: a copy is the set itself. (-copyWithZone: made a new set through the property
+    // list only for a different zone, which C++ does not have.)
+    return oo::Ref<OOProbabilitySet>(this);
 }
 
-- (oo::PList)randomObject
+oo::Ref<OOMutableProbabilitySet> OOProbabilitySet::mutableCopy()
 {
-    ThrowAbstractionViolationException(self);
+    return OOMutableProbabilitySet::probabilitySetWithPropertyListRepresentation(propertyListRepresentation());
 }
 
-- (float)weightForObject:(const oo::PList&)object
+// (OOExtendedProbabilitySet)
+
+bool OOProbabilitySet::containsObject(const oo::PList& object)
 {
-    ThrowAbstractionViolationException(self);
+    return weightForObject(object) >= 0.0f;
 }
 
-- (float)sumOfWeights
+float OOProbabilitySet::probabilityForObject(const oo::PList& object)
 {
-    ThrowAbstractionViolationException(self);
-}
-
-- (NSUInteger)count
-{
-    ThrowAbstractionViolationException(self);
-}
-
-- (id)allObjects
-{
-    ThrowAbstractionViolationException(self);
-}
-
-- (std::vector<oo::PList>)cxx_allElements
-{
-    ThrowAbstractionViolationException(self);
-}
-
-- (id)copyWithZone:(OOZone*)zone
-{
-    if (zone == [self zone]) {
-        return [self retain];
-    } else {
-        return [[OOProbabilitySet allocWithZone:zone] initWithPropertyListRepresentation:[self propertyListRepresentation]];
-    }
-}
-
-- (id)mutableCopyWithZone:(OOZone*)zone
-{
-    return [[OOMutableProbabilitySet allocWithZone:zone] initWithPropertyListRepresentation:[self propertyListRepresentation]];
-}
-
-@end
-
-@implementation OOProbabilitySet (OOExtendedProbabilitySet)
-
-- (BOOL)cxx_containsObject:(const oo::PList&)object
-{
-    return [self weightForObject:object] >= 0.0f;
-}
-
-- (id)objectEnumerator
-{
-    return [[self allObjects] objectEnumerator];
-}
-
-- (float)probabilityForObject:(const oo::PList&)object
-{
-    float weight = [self weightForObject:object];
+    float weight = weightForObject(object);
     if (weight > 0)
-        weight /= [self sumOfWeights];
+        weight /= sumOfWeights();
 
     return weight;
 }
 
-@end
+namespace {
 
-static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
+OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nullptr; // never released (it was an immortal singleton)
 
-@implementation OOEmptyProbabilitySet : OOProbabilitySet
-
-+ (OOEmptyProbabilitySet*)singleton
+OOEmptyProbabilitySet* OOEmptyProbabilitySet::singleton()
 {
-    if (sOOEmptyProbabilitySetSingleton == nil) {
-        sOOEmptyProbabilitySetSingleton = [[self alloc] init];
+    if (sOOEmptyProbabilitySetSingleton == nullptr) {
+        sOOEmptyProbabilitySetSingleton = new OOEmptyProbabilitySet();
     }
 
     return sOOEmptyProbabilitySetSingleton;
 }
 
-- (oo::PList)propertyListRepresentation
+oo::PList OOEmptyProbabilitySet::propertyListRepresentation()
 {
     return PropertyListRepresentation(NULL, NULL, 0);
 }
 
-- (oo::PList)randomObject
+oo::PList OOEmptyProbabilitySet::randomObject()
 {
     return oo::PList();
 }
 
-- (float)weightForObject:(const oo::PList&)object
+float OOEmptyProbabilitySet::weightForObject(const oo::PList& /*object*/)
 {
     return -1.0f;
 }
 
-- (float)sumOfWeights
+float OOEmptyProbabilitySet::sumOfWeights()
 {
     return 0.0f;
 }
 
-- (NSUInteger)count
+NSUInteger OOEmptyProbabilitySet::count()
 {
     return 0;
 }
 
-- (id)allObjects
-{
-    return ObjectiveCArray([self cxx_allElements]);
-}
-
-- (std::vector<oo::PList>)cxx_allElements
+std::vector<oo::PList> OOEmptyProbabilitySet::allElements()
 {
     return std::vector<oo::PList>();
 }
 
-- (id)mutableCopyWithZone:(OOZone*)zone
+oo::Ref<OOMutableProbabilitySet> OOEmptyProbabilitySet::mutableCopy()
 {
     // A mutable copy of an empty probability set is equivalent to a new empty mutable probability set.
-    return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initPriv];
+    return oo::makeRef<OOConcreteMutableProbabilitySet>();
 }
 
-@end
-
-@implementation OOEmptyProbabilitySet (Singleton)
-
-/*	Canonical singleton boilerplate.
-        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-        See also +singleton above.
-
-        NOTE: assumes single-threaded access.
-*/
-
-+ (id)allocWithZone:(OOZone*)inZone
-{
-    if (sOOEmptyProbabilitySetSingleton == nil) {
-        sOOEmptyProbabilitySetSingleton = [super allocWithZone:inZone];
-        return sOOEmptyProbabilitySetSingleton;
-    }
-    return nil;
-}
-
-- (id)copyWithZone:(OOZone*)inZone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
-@end
-
-@implementation OOSingleObjectProbabilitySet : OOProbabilitySet
-
-- (id)initWithObject:(const oo::PList&)object weight:(float)weight
+bool OOSingleObjectProbabilitySet::initWithObject(const oo::PList& object, float weight)
 {
     if (object.isNull()) {
-        [self release];
-        return nil;
+        return false;
     }
 
-    if ((self = [super initPriv])) {
-        _object = object;
-        _weight = fmax(weight, 0.0f);
-    }
+    _object = object;
+    _weight = fmax(weight, 0.0f);
 
-    return self;
+    return true;
 }
 
-- (void)dealloc
-{
-    _object = oo::PList();
-
-    [super dealloc];
-}
-
-- (oo::PList)propertyListRepresentation
+oo::PList OOSingleObjectProbabilitySet::propertyListRepresentation()
 {
     return PropertyListRepresentation(&_object, &_weight, 1);
 }
 
-- (oo::PList)randomObject
+oo::PList OOSingleObjectProbabilitySet::randomObject()
 {
     return _object;
 }
 
-- (float)weightForObject:(const oo::PList&)object
+float OOSingleObjectProbabilitySet::weightForObject(const oo::PList& object)
 {
     if (SameElement(_object, object))
         return _weight;
@@ -464,71 +371,58 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
         return -1.0f;
 }
 
-- (float)sumOfWeights
+float OOSingleObjectProbabilitySet::sumOfWeights()
 {
     return _weight;
 }
 
-- (NSUInteger)count
+NSUInteger OOSingleObjectProbabilitySet::count()
 {
     return 1;
 }
 
-- (id)allObjects
-{
-    return ObjectiveCArray([self cxx_allElements]);
-}
-
-- (std::vector<oo::PList>)cxx_allElements
+std::vector<oo::PList> OOSingleObjectProbabilitySet::allElements()
 {
     return std::vector<oo::PList> { _object };
 }
 
-- (id)mutableCopyWithZone:(OOZone*)zone
+oo::Ref<OOMutableProbabilitySet> OOSingleObjectProbabilitySet::mutableCopy()
 {
-    return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithObjects:&_object weights:&_weight count:1];
+    return MakeConcreteMutable(&_object, &_weight, 1);
 }
 
-@end
-
-@implementation OOConcreteProbabilitySet
-
-- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
+bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects, const float* weights, NSUInteger count)
 {
     NSUInteger i = 0;
     float cuWeight = 0.0f;
 
     assert(count > 1 && objects != NULL && weights != NULL);
     if (objects == NULL || weights == NULL) {
-        // Unreachable (-[OOProbabilitySet initWithObjects:...] raises first); copying an element
+        // Unreachable (probabilitySetWithObjects() raises first); copying an element
         // forms a reference, where the old -retain of an id element was a message to nil.
-        [self release];
-        return nil;
+        return false;
     }
 
-    if ((self = [super initPriv])) {
-        // Allocate arrays
-        _objects = new oo::PList[count];
-        _cumulativeWeights = (float*)malloc(sizeof *_cumulativeWeights * count);
-        if (_cumulativeWeights == NULL) {
-            [self release];
-            return nil;
-        }
-
-        // Fill in arrays, copy objects, add up weights.
-        for (i = 0; i != count; ++i) {
-            _objects[i] = objects[i];
-            cuWeight += weights[i];
-            _cumulativeWeights[i] = cuWeight;
-        }
-        _count = count;
-        _sumOfWeights = cuWeight;
+    // Allocate arrays
+    _objects = new oo::PList[count];
+    _cumulativeWeights = (float*)malloc(sizeof *_cumulativeWeights * count);
+    if (_cumulativeWeights == NULL) {
+        return false;
     }
 
-    return self;
+    // Fill in arrays, copy objects, add up weights.
+    for (i = 0; i != count; ++i) {
+        _objects[i] = objects[i];
+        cuWeight += weights[i];
+        _cumulativeWeights[i] = cuWeight;
+    }
+    _count = count;
+    _sumOfWeights = cuWeight;
+
+    return true;
 }
 
-- (void)dealloc
+OOConcreteProbabilitySet::~OOConcreteProbabilitySet()
 {
     delete[] _objects;
     _objects = NULL;
@@ -537,11 +431,9 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
         free(_cumulativeWeights);
         _cumulativeWeights = NULL;
     }
-
-    [super dealloc];
 }
 
-- (oo::PList)propertyListRepresentation
+oo::PList OOConcreteProbabilitySet::propertyListRepresentation()
 {
     std::vector<float> weights;
     float cuWeight = 0.0f, sum = 0.0f;
@@ -557,12 +449,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return PropertyListRepresentation(_objects, weights.data(), _count);
 }
 
-- (NSUInteger)count
+NSUInteger OOConcreteProbabilitySet::count()
 {
     return _count;
 }
 
-- (oo::PList)privObjectForWeight:(float)target
+oo::PList OOConcreteProbabilitySet::privObjectForWeight(float target)
 {
     /*	Select an object at random. This is a binary search in the cumulative
             weights array. Since weights of zero are allowed, there may be several
@@ -598,14 +490,14 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return _objects[idx];
 }
 
-- (oo::PList)randomObject
+oo::PList OOConcreteProbabilitySet::randomObject()
 {
     if (_sumOfWeights <= 0.0f)
         return oo::PList();
-    return [self privObjectForWeight:randf() * _sumOfWeights];
+    return privObjectForWeight(randf() * _sumOfWeights);
 }
 
-- (float)weightForObject:(const oo::PList&)object
+float OOConcreteProbabilitySet::weightForObject(const oo::PList& object)
 {
     NSUInteger i;
 
@@ -625,29 +517,19 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return -1.0f;
 }
 
-- (float)sumOfWeights
+float OOConcreteProbabilitySet::sumOfWeights()
 {
     return _sumOfWeights;
 }
 
-- (id)allObjects
-{
-    return ObjectiveCArray([self cxx_allElements]);
-}
-
-- (std::vector<oo::PList>)cxx_allElements
+std::vector<oo::PList> OOConcreteProbabilitySet::allElements()
 {
     return std::vector<oo::PList>(_objects, _objects + _count);
 }
 
-- (id)objectEnumerator
+oo::Ref<OOMutableProbabilitySet> OOConcreteProbabilitySet::mutableCopy()
 {
-    return [[self allObjects] objectEnumerator];
-}
-
-- (id)mutableCopyWithZone:(OOZone*)zone
-{
-    id result = nil;
+    oo::Ref<OOMutableProbabilitySet> result;
     float* weights = NULL;
     NSUInteger i = 0;
     float weight = 0.0f, sum = 0.0f;
@@ -655,7 +537,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     // Convert cumulative weights to "plain" weights.
     weights = (float*)malloc(sizeof *weights * _count);
     if (weights == NULL)
-        return nil;
+        return nullptr;
 
     for (i = 0; i < _count; ++i) {
         weight = _cumulativeWeights[i];
@@ -663,112 +545,72 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
         sum += weights[i];
     }
 
-    result = [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithObjects:_objects weights:weights count:_count];
+    result = MakeConcreteMutable(_objects, weights, _count);
     free(weights);
 
     return result;
 }
 
-@end
+} // namespace
 
-@implementation OOMutableProbabilitySet
-
-+ (id)probabilitySet
+oo::Ref<OOMutableProbabilitySet> OOMutableProbabilitySet::probabilitySet()
 {
-    return [[[OOConcreteMutableProbabilitySet alloc] initPriv] autorelease];
+    return oo::makeRef<OOConcreteMutableProbabilitySet>();
 }
 
-- (id)init
+oo::Ref<OOMutableProbabilitySet> OOMutableProbabilitySet::probabilitySetWithObjects(const oo::PList* objects, const float* weights, NSUInteger count)
 {
-    OOZone* zone = [self zone];
-    [self release];
-    return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initPriv];
+    return MakeConcreteMutable(objects, weights, count);
 }
 
-- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
+oo::Ref<OOMutableProbabilitySet> OOMutableProbabilitySet::probabilitySetWithPropertyListRepresentation(const oo::PList& plist)
 {
-    OOZone* zone = [self zone];
-    [self release];
-    return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithObjects:objects weights:weights count:count];
+    oo::Ref<OOConcreteMutableProbabilitySet> result = oo::makeRef<OOConcreteMutableProbabilitySet>();
+    if (!result->initWithPropertyListRepresentation(plist))
+        return nullptr;
+    return result;
 }
 
-- (id)initWithPropertyListRepresentation:(const oo::PList&)plist
+oo::Ref<OOProbabilitySet> OOMutableProbabilitySet::copy()
 {
-    OOZone* zone = [self zone];
-    [self release];
-    return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithPropertyListRepresentation:plist];
+    return OOProbabilitySet::probabilitySetWithPropertyListRepresentation(propertyListRepresentation());
 }
 
-- (id)copyWithZone:(OOZone*)zone
-{
-    return [[OOProbabilitySet allocWithZone:zone] initWithPropertyListRepresentation:[self propertyListRepresentation]];
-}
-
-- (void)setWeight:(float)weight forObject:(const oo::PList&)object
-{
-    ThrowAbstractionViolationException(self);
-}
-
-- (void)cxx_removeObject:(const oo::PList&)object
-{
-    ThrowAbstractionViolationException(self);
-}
-
-@end
-
-@implementation OOConcreteMutableProbabilitySet
-
-- (id)initPriv
-{
-    self = [super initPriv]; // (the object and weight arrays start empty)
-
-    return self;
-}
+namespace {
 
 // For internal use by mutableCopy
-- (id)initPrivWithObjectArray:(const std::vector<oo::PList>&)objects weightsArray:(const std::vector<float>&)weights sum:(float)sumOfWeights
+void OOConcreteMutableProbabilitySet::initPrivWithObjectArray(const std::vector<oo::PList>& objects, const std::vector<float>& weights, float sumOfWeights)
 {
     assert(objects.size() == weights.size() && sumOfWeights >= 0.0f);
 
-    if ((self = [super initPriv])) {
-        _objects = objects;
-        _weights = weights;
-        _sumOfWeights = sumOfWeights;
-    }
-
-    return self;
+    _objects = objects;
+    _weights = weights;
+    _sumOfWeights = sumOfWeights;
 }
 
-- (id)initWithObjects:(const oo::PList*)objects weights:(const float*)weights count:(NSUInteger)count
+void OOConcreteMutableProbabilitySet::initWithObjects(const oo::PList* objects, const float* weights, NSUInteger count)
 {
     NSUInteger i = 0;
 
     // Validate parameters.
     if (count != 0 && (objects == NULL || weights == NULL)) {
-        [self release];
         [OOException raise:OOInvalidArgumentException format:"Attempt to create %s with non-zero count but nil objects or weights.", "OOMutableProbabilitySet"];
+        abort(); // unreachable: +raise:format: does not return (the analyser cannot see that through a message)
     }
 
     // Set up & go.
-    if ((self = [self initPriv])) {
-        for (i = 0; i != count; ++i) {
-            [self setWeight:fmax(weights[i], 0.0f) forObject:objects[i]];
-        }
+    for (i = 0; i != count; ++i) {
+        setWeight(fmax(weights[i], 0.0f), objects[i]);
     }
-
-    return self;
 }
 
-- (id)initWithPropertyListRepresentation:(const oo::PList&)plist
+bool OOConcreteMutableProbabilitySet::initWithPropertyListRepresentation(const oo::PList& plist)
 {
-    BOOL OK = YES;
+    bool OK = true;
     const oo::PList& representation = plist;
     const oo::PList* objects = nullptr;
     const oo::PList* weights = nullptr;
     NSUInteger i = 0, count = 0;
-
-    if (!(self = [super initPriv]))
-        OK = NO;
 
     if (OK) {
         objects = representation.find(kObjectsKey);
@@ -776,52 +618,39 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
 
         // Validate
         if (objects == nullptr || !objects->isArray() || weights == nullptr || !weights->isArray())
-            OK = NO;
+            OK = false;
         else {
             count = objects->count();
             if (count != weights->count())
-                OK = NO;
+                OK = false;
         }
     }
 
     if (OK) {
         for (i = 0; i < count; ++i) {
-            [self setWeight:weights->at<float>(i) forObject:*objects->at(i)];
+            setWeight(weights->at<float>(i), *objects->at(i));
         }
     }
 
-    if (!OK) {
-        [self release];
-        self = nil;
-    }
-
-    return self;
+    return OK;
 }
 
-- (void)dealloc
-{
-    _objects.clear();
-    _weights.clear();
-
-    [super dealloc];
-}
-
-- (oo::PList)propertyListRepresentation
+oo::PList OOConcreteMutableProbabilitySet::propertyListRepresentation()
 {
     return PropertyListRepresentation(_objects.data(), _weights.data(), _objects.size());
 }
 
-- (NSUInteger)count
+NSUInteger OOConcreteMutableProbabilitySet::count()
 {
     return _objects.size();
 }
 
-- (oo::PList)randomObject
+oo::PList OOConcreteMutableProbabilitySet::randomObject()
 {
     float target = 0.0f, sum = 0.0f, sumOfWeights;
     NSUInteger i = 0, count = 0;
 
-    sumOfWeights = [self sumOfWeights];
+    sumOfWeights = this->sumOfWeights();
     target = randf() * sumOfWeights;
     count = _objects.size();
     if (count == 0 || sumOfWeights <= 0.0f)
@@ -837,7 +666,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return _objects[0];
 }
 
-- (float)weightForObject:(const oo::PList&)object
+float OOConcreteMutableProbabilitySet::weightForObject(const oo::PList& object)
 {
     float result = -1.0f;
 
@@ -852,11 +681,11 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return result;
 }
 
-- (float)sumOfWeights
+float OOConcreteMutableProbabilitySet::sumOfWeights()
 {
     if (_sumOfWeights < 0.0f) {
         NSUInteger i, count;
-        count = [self count];
+        count = this->count();
 
         _sumOfWeights = 0.0f;
         for (i = 0; i < count; ++i) {
@@ -866,22 +695,12 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     return _sumOfWeights;
 }
 
-- (id)allObjects
-{
-    return ObjectiveCArray([self cxx_allElements]);
-}
-
-- (std::vector<oo::PList>)cxx_allElements
+std::vector<oo::PList> OOConcreteMutableProbabilitySet::allElements()
 {
     return _objects;
 }
 
-- (id)objectEnumerator
-{
-    return [[self allObjects] objectEnumerator];
-}
-
-- (void)setWeight:(float)weight forObject:(const oo::PList&)object
+void OOConcreteMutableProbabilitySet::setWeight(float weight, const oo::PList& object)
 {
     if (object.isNull())
         return;
@@ -901,7 +720,7 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     }
 }
 
-- (void)cxx_removeObject:(const oo::PList&)object
+void OOConcreteMutableProbabilitySet::removeObject(const oo::PList& object)
 {
     if (object.isNull())
         return;
@@ -914,29 +733,23 @@ static OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton = nil;
     }
 }
 
-- (id)copyWithZone:(OOZone*)zone
+oo::Ref<OOProbabilitySet> OOConcreteMutableProbabilitySet::copy()
 {
     NSUInteger count = 0;
 
     count = _objects.size();
     if (EXPECT_NOT(count == 0))
-        return [OOEmptyProbabilitySet singleton];
+        return OOProbabilitySet::probabilitySet();
 
-    return [[OOProbabilitySet probabilitySetWithObjects:_objects.data() weights:_weights.data() count:count] retain];
+    return OOProbabilitySet::probabilitySetWithObjects(_objects.data(), _weights.data(), count);
 }
 
-- (id)mutableCopyWithZone:(OOZone*)zone
+oo::Ref<OOMutableProbabilitySet> OOConcreteMutableProbabilitySet::mutableCopy()
 {
-    // (the arrays are copied; zones are unused)
-    return [[OOConcreteMutableProbabilitySet alloc] initPrivWithObjectArray:_objects
-                                                               weightsArray:_weights
-                                                                        sum:_sumOfWeights];
+    // (the arrays are copied)
+    oo::Ref<OOConcreteMutableProbabilitySet> result = oo::makeRef<OOConcreteMutableProbabilitySet>();
+    result->initPrivWithObjectArray(_objects, _weights, _sumOfWeights);
+    return result;
 }
 
-@end
-
-static void ThrowAbstractionViolationException(id obj)
-{
-    [OOException raise:OOGenericException format:"Attempt to use abstract class %s - this indicates an incorrect initialization.", class_getName(object_getClass(obj))];
-    abort(); // unreachable
-}
+} // namespace

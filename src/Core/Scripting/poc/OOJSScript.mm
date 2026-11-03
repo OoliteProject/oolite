@@ -1,6 +1,6 @@
 /*
 
-OOJSScript.m (QuickJS-ng proof of concept)
+OOJSScript.mm (QuickJS-ng proof of concept)
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,6 +24,11 @@ MA 02110-1301, USA.
 
 #import "OOJSScript.h"
 
+#include "oofnd/Data.hpp"
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/String.hpp"
+
 typedef struct RunningStack RunningStack;
 struct RunningStack {
     RunningStack* back;
@@ -38,27 +43,37 @@ static JSClassDef sScriptClass = {
     .class_name = "Script",
 };
 
+// [[path lastPathComponent] stringByDeletingPathExtension]
+static std::string ScriptNameFromPath(const std::string& path)
+{
+    std::string name = oo::str::lastPathComponent(path);
+    const std::size_t dot = name.rfind('.');
+    if (dot != std::string::npos && dot != 0)
+        name.erase(dot);
+    return name;
+}
+
 @interface OOJSScript (Private)
 
 - (BOOL)loadScriptWithContext:(JSContext*)context;
-- (NSString*)stringPropertyNamed:(const char*)name inContext:(JSContext*)context;
+- (std::optional<std::string>)stringPropertyNamed:(const char*)name inContext:(JSContext*)context;
 
 @end
 
 @implementation OOJSScript
 
-+ (id)scriptWithPath:(NSString*)path
++ (id)scriptWithPath:(const std::string&)path
 {
     return [[[self alloc] initWithPath:path] autorelease];
 }
 
-- (id)initWithPath:(NSString*)path
+- (id)initWithPath:(const std::string&)path
 {
     if (!(self = [super init]))
         return nil;
 
     JSContext* context = OOJSAcquireContext();
-    _path = [path copy];
+    _path = path;
 
     /*	The JS object refers back to us without retaining, as the
             SpiderMonkey version did through a weak reference; -dealloc clears it.
@@ -73,7 +88,7 @@ static JSClassDef sScriptClass = {
     JS_SetOpaque(_jsSelf, self);
 
     if (![self loadScriptWithContext:context]) {
-        OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- could not run script", path);
+        OO_LOG("script.javaScript.load.failed", "***** Error loading JavaScript script {} -- could not run script", path);
         [self release];
         self = nil;
     }
@@ -91,10 +106,6 @@ static JSClassDef sScriptClass = {
         OOJSRelinquishContext(context);
     }
 
-    [_name release];
-    [_version release];
-    [_path release];
-
     [super dealloc];
 }
 
@@ -105,20 +116,20 @@ static JSClassDef sScriptClass = {
     return sRunningStack->current;
 }
 
-- (NSString*)name
+- (std::optional<std::string>)name
 {
     return _name;
 }
 
-- (NSString*)version
+- (std::optional<std::string>)version
 {
     return _version;
 }
 
-- (NSString*)displayName
+- (std::optional<std::string>)displayName
 {
-    if (_version != nil)
-        return [NSString stringWithFormat:@"%@ %@", _name, _version];
+    if (_version.has_value())
+        return _name.value_or("(null)") + " " + *_version;
     return _name;
 }
 
@@ -127,7 +138,7 @@ static JSClassDef sScriptClass = {
     return _jsSelf;
 }
 
-- (BOOL)callMethodNamed:(NSString*)methodName
+- (BOOL)callMethodNamed:(const std::string&)methodName
           withArguments:(JSValueConst*)argv
                   count:(int)argc
                  result:(JSValue*)outResult
@@ -135,7 +146,7 @@ static JSClassDef sScriptClass = {
     JSContext* context = OOJSAcquireContext();
     BOOL OK = NO;
 
-    JSValue method = JS_GetPropertyStr(context, _jsSelf, [methodName UTF8String]);
+    JSValue method = JS_GetPropertyStr(context, _jsSelf, methodName.c_str());
     if (JS_IsFunction(context, method)) {
         RunningStack stackElement = {
             .back = sRunningStack,
@@ -165,15 +176,16 @@ static JSClassDef sScriptClass = {
 
 - (BOOL)loadScriptWithContext:(JSContext*)context
 {
-    NSString* source = [NSString stringWithContentsOfFile:_path encoding:NSUTF8StringEncoding error:NULL];
-    if (source == nil) {
-        OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- could not load file", _path);
+    oo::fs::Result<oo::Data> contents = oo::fs::readFile(oo::fs::pathFromUTF8(_path));
+    if (!contents) {
+        OO_LOG("script.javaScript.load.failed", "***** Error loading JavaScript script {} -- could not load file", _path);
         return NO;
     }
+    const std::string source(contents->stringView());
 
     // Initial name, in case of script error during initial run.
-    _name = [[[_path lastPathComponent] stringByDeletingPathExtension] retain];
-    JS_SetPropertyStr(context, _jsSelf, "name", OOJSValueFromNativeObject(context, _name));
+    _name = ScriptNameFromPath(_path);
+    JS_SetPropertyStr(context, _jsSelf, "name", JS_NewStringLen(context, _name->data(), _name->size()));
 
     RunningStack stackElement = {
         .back = sRunningStack,
@@ -181,13 +193,14 @@ static JSClassDef sScriptClass = {
     };
     sRunningStack = &stackElement;
 
-    // Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
-    NSData* wrapped = [OOJSWrapScriptSource(source) dataUsingEncoding:NSUTF8StringEncoding];
-    NSMutableData* terminated = [NSMutableData dataWithData:wrapped];
-    [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
+    /*	Run the script (allowing it to set up the properties we need, as well as
+            setting up those event handlers). JS_Eval requires a terminating NUL,
+            which std::string's c_str() has.
+    */
+    const std::string wrapped = OOJSWrapScriptSource(source);
 
     OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-    JSValue result = JS_EvalThis(context, _jsSelf, [terminated bytes], [wrapped length], [_path UTF8String], JS_EVAL_TYPE_GLOBAL);
+    JSValue result = JS_EvalThis(context, _jsSelf, wrapped.c_str(), wrapped.size(), _path.c_str(), JS_EVAL_TYPE_GLOBAL);
     OOJSStopTimeLimiter();
 
     BOOL OK = !JS_IsException(result);
@@ -200,28 +213,26 @@ static JSClassDef sScriptClass = {
 
     if (OK) {
         // The script can't be renamed after the initial run.
-        NSString* name = [self stringPropertyNamed:"name" inContext:context];
-        if (name != nil) {
-            [_name release];
-            _name = [name retain];
-        }
-        _version = [[self stringPropertyNamed:"version" inContext:context] retain];
+        std::optional<std::string> name = [self stringPropertyNamed:"name" inContext:context];
+        if (name.has_value())
+            _name = name;
+        _version = [self stringPropertyNamed:"version" inContext:context];
     }
 
     return OK;
 }
 
-- (NSString*)stringPropertyNamed:(const char*)name inContext:(JSContext*)context
+- (std::optional<std::string>)stringPropertyNamed:(const char*)name inContext:(JSContext*)context
 {
     JSValue value = JS_GetPropertyStr(context, _jsSelf, name);
-    NSString* result = JS_IsString(value) ? OOStringFromJSValue(context, value) : nil;
+    std::optional<std::string> result = JS_IsString(value) ? cxx_OOStringFromJSValue(context, value) : std::nullopt;
     JS_FreeValue(context, value);
     return result;
 }
 
 @end
 
-void InitOOJSScript(JSContext* context, JSValueConst global)
+void InitOOJSScript(JSContext* context, JSValueConst /*global*/)
 {
     JSRuntime* runtime = JS_GetRuntime(context);
     JS_NewClassID(runtime, &sScriptClassID);

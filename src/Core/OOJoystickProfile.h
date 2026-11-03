@@ -12,6 +12,13 @@ splines between the set of control points - the segment between (0,0)
 and the first control point is linear, the remaining segments
 quadratic with the gradients matching at the control point.
 
+C++20 since bead oo-fn2f (proposed ADR-0056 and its hierarchy amendments oo-cwz/oo-up4b). The
+three profile classes are cxx:: classes, the curve (rawValue) virtual; the spline's segments are
+the private OOJoystickSplineSegment. OOJoystickProfile+ObjCBridge.h, imported at the end of this
+header, keeps the three Objective-C classes (a root facade and two subclass facades) that the
+unconverted joystick manager and stick-profile screen alloc, message and test with
+isKindOfClass:; the bridge's deletion bead moves the classes out of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -36,64 +43,80 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-#include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
+#ifndef OOJOYSTICKPROFILE_H
+#define OOJOYSTICKPROFILE_H
 
-@class OOJoystickSplineSegment;
+#import "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
 #define STICKPROFILE_TYPE_STANDARD 1
 #define STICKPROFILE_TYPE_SPLINE 2
 #define STICKPROFILE_MAX_POWER 10.0
 
-@interface OOJoystickAxisProfile : OOObject <OOCopying> {
-@private
-    double deadzone;
-}
+class OOJoystickSplineSegment; // private to OOJoystickProfile.mm; no facade, so global
 
-- (id)init;
-- (id)copyWithZone:(OOZone*)zone;
-- (double)rawValue:(double)x;
-- (double)value:(double)x;
-- (double)deadzone;
-- (void)setDeadzone:(double)newValue;
+namespace cxx {
 
-@end
+class OOJoystickAxisProfile : public oo::RefCounted {
+public:
+    OOJoystickAxisProfile(); // -init
+    virtual oo::Ref<OOJoystickAxisProfile> copy(); // -copyWithZone:
+    virtual double rawValue(double x);
+    double value(double x);
+    double deadzone();
+    void setDeadzone(double newValue);
 
-@interface OOJoystickStandardAxisProfile : OOJoystickAxisProfile {
-@private
-    double power;
-    double parameter;
-}
+private:
+    double deadzone_ = { }; // the ivar deadzone (amendment oo-z1s4 item 1: it clashes with deadzone())
+};
 
-- (id)init;
-- (id)copyWithZone:(OOZone*)zone;
-- (void)setPower:(double)newValue;
-- (double)power;
-- (void)setParameter:(double)newValue;
-- (double)parameter;
-- (double)rawValue:(double)x;
+class OOJoystickStandardAxisProfile : public OOJoystickAxisProfile {
+public:
+    OOJoystickStandardAxisProfile(); // -init
+    oo::Ref<OOJoystickAxisProfile> copy() override;
+    void setPower(double newValue);
+    double power();
+    void setParameter(double newValue);
+    double parameter();
+    double rawValue(double x) override;
 
-@end
+private:
+    double power_ = { }; // the ivars power and parameter (clash with power(), parameter())
+    double parameter_ = { };
+};
 
-@interface OOJoystickSplineAxisProfile : OOJoystickAxisProfile {
-@private
-    // Was a Foundation mutable array of valueWithPoint: boxes (bead oo-3rb.48).
-    std::vector<NSPoint> controlPoints;
+class OOJoystickSplineAxisProfile : public OOJoystickAxisProfile {
+public:
+    OOJoystickSplineAxisProfile(); // -init
+    ~OOJoystickSplineAxisProfile() override; // -dealloc
+    oo::Ref<OOJoystickAxisProfile> copy() override;
+    int addControl(NSPoint point);
+    NSPoint pointAtIndex(NSInteger index);
+    int countPoints();
+    void removeControl(NSInteger index);
+    void clearControlPoints();
+    void moveControl(NSInteger index, NSPoint point);
+    double rawValue(double x) override;
+    double gradient(double x);
+    std::vector<NSPoint> controlPoints();
+
+private:
+    // Create the segments from the control points.  If there's a problem, e.g. control points not in order or overlapping,
+    // leave segments as they are and return NO.  Otherwise return YES.
+    bool makeSegments();
+
+    // Was a Foundation mutable array of valueWithPoint: boxes (bead oo-3rb.48). The ivar
+    // controlPoints (clashes with controlPoints()).
+    std::vector<NSPoint> controlPoints_ = { };
     // Was a Foundation array of segments (Foundation sweep, proposed ADR-0043, bead oo-r71k).
-    std::vector<oo::ObjCRef<OOJoystickSplineSegment*>> segments;
-}
+    std::vector<oo::Ref<OOJoystickSplineSegment>> segments = { };
+};
 
-- (id)init;
-- (void)dealloc;
-- (id)copyWithZone:(OOZone*)zone;
-- (int)addControl:(NSPoint)point;
-- (NSPoint)pointAtIndex:(NSInteger)index;
-- (int)countPoints;
-- (void)removeControl:(NSInteger)index;
-- (void)clearControlPoints;
-- (void)moveControl:(NSInteger)index point:(NSPoint)point;
-- (double)rawValue:(double)x;
-- (double)gradient:(double)x;
-- (std::vector<NSPoint>)controlPoints;
+} // namespace cxx
 
-@end
+// Transitional: the Objective-C profile classes, for callers not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "OOJoystickProfile+ObjCBridge.h"
+
+#endif // OOJOYSTICKPROFILE_H

@@ -93,17 +93,16 @@ SOFTWARE.
 - (BOOL)setDebugger:(id<OODebuggerInterface>)debugger;
 
 // *** JavaScript console support.
-- (void)appendJSConsoleLine:(id)string
+- (void)appendJSConsoleLine:(const std::string&)string
                    colorKey:(const std::optional<std::string>&)colorKey
               emphasisRange:(NSRange)emphasisRange;
 
-- (void)appendJSConsoleLine:(id)string
+- (void)appendJSConsoleLine:(const std::string&)string
                    colorKey:(const std::optional<std::string>&)colorKey;
 
 - (void)clearJSConsole;
 - (void)showJSConsole;
 
-- (id)cxx_configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value;
 - (long long)configurationIntValueForKey:(const std::string&)key defaultValue:(long long)value;
 
 - (std::vector<std::string>)configurationKeys; // sorted case-insensitively

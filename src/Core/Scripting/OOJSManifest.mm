@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSManifest.h"
-#import "OOFoundationBridge.h"
 #import "OOIsNumberLiteral.h"
 #import "OOJSPlayer.h"
 #import "OOJSPlayerShip.h"
@@ -157,12 +156,12 @@ static JSValue ManifestGetProperty(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    id result = nil;
+    oo::PList result; // null: nil
     PlayerEntity* entity = OOPlayerForScripting();
 
     switch (magic) {
     case kManifest_list:
-        result = oo::ObjectFromPList([entity cargoListForScripting]);
+        result = [entity cargoListForScripting];
         break;
 
     default:
@@ -170,7 +169,7 @@ static JSValue ManifestGetProperty(OOJS_GETTER_ARGS)
         return JS_EXCEPTION;
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }
@@ -224,7 +223,7 @@ static BOOL ManifestSetProperty(JSContext* context, JSValueConst thisObj, const 
         // OOJSReportBadPropertyValue() takes a tinyid; this is the same message for a named property.
         if (JS_HasException(context))
             JS_FreeValue(context, JS_GetException(context));
-        cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", key.c_str(), oo::StdString(OOJSClassNameOfValue(context, thisObj)).c_str(), cxx_OOJSDescribeValue(context, value, YES).c_str());
+        cxx_OOJSReportError(context, "Cannot set property %s of instance of %s to invalid value %s.", key.c_str(), OOJSClassNameOfValue(context, thisObj).c_str(), cxx_OOJSDescribeValue(context, value, YES).c_str());
         return NO;
     }
     return YES;
@@ -255,7 +254,7 @@ static int ManifestSetPropertyExotic(JSContext* context, JSValueConst object, JS
             JS_FreeValue(context, protoDesc.setter);
             if (readOnly) {
                 if (flags & JS_PROP_THROW) {
-                    cxx_OOJSReportError(context, "Cannot set read-only property %s of instance of %s.", key->c_str(), oo::StdString(OOJSClassNameOfValue(context, receiver)).c_str());
+                    cxx_OOJSReportError(context, "Cannot set read-only property %s of instance of %s.", key->c_str(), OOJSClassNameOfValue(context, receiver).c_str());
                     return -1;
                 }
                 return NO;
@@ -312,7 +311,7 @@ static JSValue ManifestComment(OOJS_NATIVE_ARGS)
 
     information = [[PLAYER shipCommodityData] cxx_commentForGood:*good];
 
-    OOJS_RETURN_OBJECT(oo::NSStringOrNil(information));
+    OOJS_RETURN_STRING_OR_NULL(information);
 
     OOJS_NATIVE_EXIT
 }
@@ -358,7 +357,7 @@ static JSValue ManifestShortComment(OOJS_NATIVE_ARGS)
 
     information = [[PLAYER shipCommodityData] cxx_shortCommentForGood:*good];
 
-    OOJS_RETURN_OBJECT(oo::NSStringOrNil(information));
+    OOJS_RETURN_STRING_OR_NULL(information);
 
     OOJS_NATIVE_EXIT
 }

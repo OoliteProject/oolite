@@ -26,12 +26,12 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "GameController.h"
+#import "OOCallByName.h"
 #import "OOCharacter.h"
 
 #import "OOConstToString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOEquipmentType.h"
-#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJSEquipmentInfo.h"
 #import "OOJSPlayer.h"
@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #import "OOJSWormhole.h"
 #import "OOJavaScriptEngine.h"
 #import "OOMesh.h"
-#import "OOPListView.h"
+#import "OOObjCPList.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 #import "ShipEntityScriptMethods.h"
 #import "StationEntity.h"
 #import "WormholeEntity.h"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 namespace {
@@ -612,6 +613,18 @@ oo::PList NormalizedColorComponents(OOColor* color)
     return oo::PList(std::move(components));
 }
 
+// A string, or null for none (what an NSString or nil gave JavaScript).
+oo::PList StringOrNull(const std::optional<std::string>& string)
+{
+    return string.has_value() ? oo::PList(*string) : oo::PList();
+}
+
+// Strings as an array of strings, in order.
+oo::PList StringArray(const std::vector<std::string>& strings)
+{
+    return oo::PList(oo::PList::Array(strings.begin(), strings.end()));
+}
+
 } // namespace
 
 static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
@@ -620,7 +633,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     ShipEntity* entity = nil;
-    id result = nil;
+    oo::PList result; // null maps to null
 
     if (EXPECT_NOT(!JSShipGetShipEntity(context, thisObj, &entity)))
         return OOJSNativeFailure(context);
@@ -630,28 +643,28 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kShip_name:
-        result = oo::NSStringOrNil([entity cxx_name]);
+        result = StringOrNull([entity cxx_name]);
         break;
 
     case kShip_displayName:
-        result = oo::NSStringOrNil([entity displayName]);
+        result = StringOrNull([entity displayName]);
         break;
 
     case kShip_shipUniqueName:
-        result = oo::NSStringOrNil([entity cxx_shipUniqueName]);
+        result = StringOrNull([entity cxx_shipUniqueName]);
         break;
 
     case kShip_shipClassName:
-        result = oo::NSStringOrNil([entity cxx_shipClassName]);
+        result = StringOrNull([entity cxx_shipClassName]);
         break;
 
     case kShip_scanDescription:
-        result = oo::NSStringOrNil([entity cxx_scanDescriptionForScripting]);
+        result = StringOrNull([entity cxx_scanDescriptionForScripting]);
         break;
 
     case kShip_roles: {
         OORoleSet* roleSet = [entity roleSet];
-        result = roleSet != nil ? oo::NSArrayFromStrings([roleSet sortedRoles]) : nil;
+        result = roleSet != nil ? StringArray([roleSet sortedRoles]) : oo::PList();
     } break;
 
     case kShip_roleWeights: {
@@ -661,28 +674,28 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
             for (const auto& [role, weight] : *roleWeights) {
                 weights[role] = oo::PList::singleReal(weight);
             }
-            result = oo::ObjectFromPList(oo::PList(std::move(weights)));
+            result = oo::PList(std::move(weights));
         }
     } break;
 
     case kShip_primaryRole:
-        result = oo::NSStringOrNil([entity cxx_primaryRole]);
+        result = StringOrNull([entity cxx_primaryRole]);
         break;
 
     case kShip_AI:
-        result = oo::NSStringOrNil([[entity getAI] cxx_name]);
+        result = StringOrNull([[entity getAI] cxx_name]);
         break;
 
     case kShip_AIState:
-        result = oo::NSStringOrNil([[entity getAI] cxx_state]);
+        result = StringOrNull([[entity getAI] cxx_state]);
         break;
 
     case kShip_AIFoundTarget:
-        result = [entity foundTarget];
+        result = oo::PListObject([entity foundTarget]);
         break;
 
     case kShip_AIPrimaryAggressor:
-        result = [entity primaryAggressor];
+        result = oo::PListObject([entity primaryAggressor]);
         break;
 
     case kShip_alertCondition:
@@ -707,15 +720,15 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity bounty]);
 
     case kShip_subEntities:
-        result = oo::NSArrayFromObjects([entity subEntitiesForScript]);
+        result = oo::PListFromObjects([entity subEntitiesForScript]);
         break;
 
     case kShip_exhausts:
-        result = oo::NSArrayFromObjects([entity cxx_exhausts]);
+        result = oo::PListFromObjects([entity cxx_exhausts]);
         break;
 
     case kShip_flashers:
-        result = oo::NSArrayFromObjects([entity flasherEnumerator]);
+        result = oo::PListFromObjects([entity flasherEnumerator]);
         break;
 
     case kShip_subEntityCapacity:
@@ -728,7 +741,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([[entity getAI] hasSuspendedStateMachines]);
 
     case kShip_target:
-        result = [entity primaryTarget];
+        result = oo::PListObject([entity primaryTarget]);
         break;
 
     case kShip_defenseTargets: {
@@ -741,7 +754,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
                 break; // the old loop stopped at the first zeroed reference
             targets.emplace_back(target);
         }
-        result = oo::NSArrayFromObjects(targets);
+        result = oo::PListFromObjects(targets);
         break;
     }
 
@@ -749,20 +762,20 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         if ([entity cxx_crew].has_value()) // unpiloted: nil, as before
         {
             const std::vector<oo::PList> entries = [entity cxx_crewForScripting];
-            result = oo::ObjectFromPList(oo::PList(oo::PList::Array(entries.begin(), entries.end())));
+            result = oo::PList(oo::PList::Array(entries.begin(), entries.end()));
         }
         break;
 
     case kShip_escorts:
-        result = ([entity escortGroup] != nil) ? oo::NSArrayFromObjects([[entity escortGroup] cxx_memberArrayExcludingLeader]) : nil;
+        result = ([entity escortGroup] != nil) ? oo::PListFromObjects([[entity escortGroup] cxx_memberArrayExcludingLeader]) : oo::PList();
         break;
 
     case kShip_group:
-        result = [entity group];
+        result = oo::PListObject([entity group]);
         break;
 
     case kShip_escortGroup:
-        result = [entity escortGroup];
+        result = oo::PListObject([entity escortGroup]);
         break;
 
     case kShip_temperature:
@@ -784,11 +797,11 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([entity isBeacon]);
 
     case kShip_beaconCode:
-        result = oo::NSStringOrNil([entity beaconCode]);
+        result = StringOrNull([entity beaconCode]);
         break;
 
     case kShip_beaconLabel:
-        result = oo::NSStringOrNil([entity beaconLabel]);
+        result = StringOrNull([entity beaconLabel]);
         break;
 
     case kShip_isFrangible:
@@ -804,7 +817,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([entity isJammingScanning]);
 
     case kShip_potentialCollider:
-        result = [entity proximityAlert];
+        result = oo::PListObject([entity proximityAlert]);
         break;
 
     case kShip_hasHostileTarget:
@@ -827,20 +840,20 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity weaponFacings]);
 
     case kShip_weaponPositionAft:
-        result = oo::ObjectFromPList(NativeVectorArray([entity cxx_aftWeaponOffset]));
+        result = NativeVectorArray([entity cxx_aftWeaponOffset]);
         break;
 
     case kShip_weaponPositionForward:
-        result = oo::ObjectFromPList(NativeVectorArray([entity cxx_forwardWeaponOffset]));
+        result = NativeVectorArray([entity cxx_forwardWeaponOffset]);
         break;
         //			OOJS_RETURN_VECTOR([entity forwardWeaponOffset]);
 
     case kShip_weaponPositionPort:
-        result = oo::ObjectFromPList(NativeVectorArray([entity cxx_portWeaponOffset]));
+        result = NativeVectorArray([entity cxx_portWeaponOffset]);
         break;
 
     case kShip_weaponPositionStarboard:
-        result = oo::ObjectFromPList(NativeVectorArray([entity cxx_starboardWeaponOffset]));
+        result = NativeVectorArray([entity cxx_starboardWeaponOffset]);
         break;
 
     case kShip_scannerRange:
@@ -865,7 +878,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, [entity availableCargoSpace]);
 
     case kShip_cargoList:
-        result = oo::ObjectFromPList([entity cargoListForScripting]);
+        result = [entity cargoListForScripting];
         break;
 
     case kShip_extraCargo:
@@ -873,7 +886,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
 
     case kShip_commodity:
         if ([entity commodityAmount] > 0) {
-            result = oo::NSStringOrNil([entity cxx_commodityType]);
+            result = StringOrNull([entity cxx_commodityType]);
         }
         break;
 
@@ -881,7 +894,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, [entity commodityAmount]);
 
     case kShip_collisionExceptions:
-        result = oo::NSArrayFromObjects([entity cxx_collisionExceptions]);
+        result = oo::PListFromObjects([entity cxx_collisionExceptions]);
         break;
 
     case kShip_speed:
@@ -891,7 +904,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity cruiseSpeed]);
 
     case kShip_dataKey:
-        result = oo::NSStringOrNil([entity cxx_shipDataKey]);
+        result = StringOrNull([entity cxx_shipDataKey]);
         break;
 
     case kShip_desiredRange:
@@ -928,11 +941,11 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity afterburnerFactor]);
 
     case kShip_script:
-        result = [entity shipScript];
+        result = oo::PListObject([entity shipScript]);
         break;
 
     case kShip_AIScript:
-        result = [entity shipAIScript];
+        result = oo::PListObject([entity shipAIScript]);
         break;
 
     case kShip_AIScriptWakeTime:
@@ -1006,7 +1019,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity scriptedMisjumpRange]);
 
     case kShip_scriptInfo:
-        result = oo::ObjectFromPList([entity scriptInfo]); // empty dict, never null
+        result = [entity scriptInfo]; // empty dict, never null
         break;
 
     case kShip_sunGlareFilter:
@@ -1034,27 +1047,27 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         OOJS_RETURN_HPVECTOR([entity coordinates]);
 
     case kShip_equipment:
-        result = oo::NSArrayFromObjects([entity cxx_equipmentListForScripting]);
+        result = oo::PListFromObjects([entity cxx_equipmentListForScripting]);
         break;
 
     case kShip_currentWeapon:
-        result = [entity weaponTypeForFacing:[entity currentWeaponFacing] strict:YES];
+        result = oo::PListObject([entity weaponTypeForFacing:[entity currentWeaponFacing] strict:YES]);
         break;
 
     case kShip_forwardWeapon:
-        result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD strict:YES];
+        result = oo::PListObject([entity weaponTypeForFacing:WEAPON_FACING_FORWARD strict:YES]);
         break;
 
     case kShip_aftWeapon:
-        result = [entity weaponTypeForFacing:WEAPON_FACING_AFT strict:YES];
+        result = oo::PListObject([entity weaponTypeForFacing:WEAPON_FACING_AFT strict:YES]);
         break;
 
     case kShip_portWeapon:
-        result = [entity weaponTypeForFacing:WEAPON_FACING_PORT strict:YES];
+        result = oo::PListObject([entity weaponTypeForFacing:WEAPON_FACING_PORT strict:YES]);
         break;
 
     case kShip_starboardWeapon:
-        result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD strict:YES];
+        result = oo::PListObject([entity weaponTypeForFacing:WEAPON_FACING_STARBOARD strict:YES]);
         break;
 
     case kShip_laserHeatLevel:
@@ -1073,43 +1086,43 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity laserHeatLevelStarboard]);
 
     case kShip_missiles:
-        result = oo::NSArrayFromObjects([entity missilesList]);
+        result = oo::PListFromObjects([entity missilesList]);
         break;
 
     case kShip_passengers:
-        result = oo::ObjectFromPList([entity passengerListForScripting]);
+        result = [entity passengerListForScripting];
         break;
 
     case kShip_parcels:
-        result = oo::ObjectFromPList([entity parcelListForScripting]);
+        result = [entity parcelListForScripting];
         break;
 
     case kShip_contracts:
-        result = oo::ObjectFromPList([entity contractListForScripting]);
+        result = [entity contractListForScripting];
         break;
 
     case kShip_dockingInstructions:
-        result = oo::ObjectFromPList([entity cxx_dockingInstructions]);
+        result = [entity cxx_dockingInstructions];
         break;
 
     case kShip_scannerDisplayColor1:
-        result = oo::ObjectFromPList(NormalizedColorComponents([entity scannerDisplayColor1]));
+        result = NormalizedColorComponents([entity scannerDisplayColor1]);
         break;
 
     case kShip_scannerDisplayColor2:
-        result = oo::ObjectFromPList(NormalizedColorComponents([entity scannerDisplayColor2]));
+        result = NormalizedColorComponents([entity scannerDisplayColor2]);
         break;
 
     case kShip_scannerHostileDisplayColor1:
-        result = oo::ObjectFromPList(NormalizedColorComponents([entity scannerDisplayColorHostile1]));
+        result = NormalizedColorComponents([entity scannerDisplayColorHostile1]);
         break;
 
     case kShip_scannerHostileDisplayColor2:
-        result = oo::ObjectFromPList(NormalizedColorComponents([entity scannerDisplayColorHostile2]));
+        result = NormalizedColorComponents([entity scannerDisplayColorHostile2]);
         break;
 
     case kShip_exhaustEmissiveColor:
-        result = oo::ObjectFromPList(NormalizedColorComponents([entity exhaustEmissiveColor]));
+        result = NormalizedColorComponents([entity exhaustEmissiveColor]);
         break;
 
     case kShip_maxThrust:
@@ -1163,7 +1176,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return OOJSValueFromNativeObject(context, result);
+    return OOJSValueFromPList(context, result);
 
     OOJS_NATIVE_EXIT
 }
@@ -1244,7 +1257,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
 
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [entity setPrimaryRole:oo::NSStringFrom(*sValue)];
+            [entity setPrimaryRole:*sValue];
             return JS_UNDEFINED;
         }
         break;
@@ -1569,7 +1582,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kShip_scannerDisplayColor1:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setScannerDisplayColor1:colorForScript];
             return JS_UNDEFINED;
@@ -1577,7 +1590,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kShip_scannerDisplayColor2:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setScannerDisplayColor2:colorForScript];
             return JS_UNDEFINED;
@@ -1585,7 +1598,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kShip_scannerHostileDisplayColor1:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setScannerDisplayColorHostile1:colorForScript];
             return JS_UNDEFINED;
@@ -1593,7 +1606,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kShip_scannerHostileDisplayColor2:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setScannerDisplayColorHostile2:colorForScript];
             return JS_UNDEFINED;
@@ -1601,7 +1614,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kShip_exhaustEmissiveColor:
-        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
+        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setExhaustEmissiveColor:colorForScript];
             return JS_UNDEFINED;
@@ -1899,7 +1912,7 @@ static JSValue ShipSetAI(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [thisEnt setAITo:oo::NSStringFrom(*name)];
+    [thisEnt setAITo:*name];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -1925,7 +1938,7 @@ static JSValue ShipSwitchAI(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [thisEnt switchAITo:oo::NSStringFrom(*name)];
+    [thisEnt switchAITo:*name];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -2008,7 +2021,7 @@ static JSValue ShipSendAIMessage(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [thisEnt sendAIMessage:oo::NSStringFrom(*message)];
+    [thisEnt sendAIMessage:*message];
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -2244,7 +2257,7 @@ static JSValue ShipSpawn(OOJS_NATIVE_ARGS)
     result = [thisEnt spawnShipsWithRole:*role count:count];
     OOJS_END_FULL_NATIVE
 
-    OOJS_RETURN_OBJECT(oo::NSArrayFromObjects(result));
+    OOJS_RETURN_PLIST(oo::PListFromObjects(result));
 
     OOJS_NATIVE_EXIT
 }
@@ -2323,7 +2336,7 @@ static JSValue ShipRemove(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [thisEnt doScriptEvent:OOJSID("shipRemoved") withArgument:oo::ObjectFromPList(oo::PList(static_cast<bool>(suppressDeathEvent)))];
+    [thisEnt cxx_doScriptEvent:OOJSID("shipRemoved") withPListArguments: { oo::PList(static_cast<bool>(suppressDeathEvent)) }];
 
     if (suppressDeathEvent) {
         [thisEnt removeScript];
@@ -2504,7 +2517,7 @@ static JSValue ShipAwardEquipment(OOJS_NATIVE_ARGS)
     } else if (identifier == "EQ_FUEL") {
         OK = NO;
     } else {
-        OK = [eqType canCarryMultiple] || ![thisEnt hasEquipmentItem:oo::NSStringFrom(identifier)];
+        OK = [eqType canCarryMultiple] || ![thisEnt hasEquipmentItem:oo::PList(identifier)];
     }
 
     if (OK) {
@@ -2520,10 +2533,10 @@ static JSValue ShipAwardEquipment(OOJS_NATIVE_ARGS)
             } else if (identifier == "EQ_PASSENGER_BERTH_REMOVAL") {
                 OK = [player changePassengerBerths:-1];
             } else {
-                isRepair = [thisEnt hasEquipmentItem:oo::NSStringFrom(identifier + "_DAMAGED")];
+                isRepair = [thisEnt hasEquipmentItem:oo::PList(identifier + "_DAMAGED")];
                 OK = [player addEquipmentItem:identifier withValidation:YES inContext:"scripted"];
                 if (OK && isRepair) {
-                    [player doScriptEvent:OOJSID("equipmentRepaired") withArgument:oo::NSStringFrom(identifier)];
+                    [player cxx_doScriptEvent:OOJSID("equipmentRepaired") withPListArguments: { oo::PList(identifier) }];
                 }
             }
         } else {
@@ -2664,12 +2677,12 @@ static JSValue ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
     }
 
     key = [eqType cxx_identifier].value_or("");
-    hasOK = [thisEnt hasEquipmentItem:oo::NSStringFrom(key)];
+    hasOK = [thisEnt hasEquipmentItem:oo::PList(key)];
     BOOL setOK = *status == "EQUIPMENT_OK";
     BOOL setDamaged = *status == "EQUIPMENT_DAMAGED";
     if ([eqType canBeDamaged]) {
         damagedKey = key + "_DAMAGED";
-        hasDamaged = [thisEnt hasEquipmentItem:oo::NSStringFrom(damagedKey)];
+        hasDamaged = [thisEnt hasEquipmentItem:oo::PList(damagedKey)];
 
         if ((setOK && hasDamaged) || (setDamaged && hasOK)) {
             // the implementation is identical between player and ship.
@@ -2678,9 +2691,9 @@ static JSValue ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
                 // these player methods are different to the ship ones.
                 [(PlayerEntity*)thisEnt addEquipmentItem:setDamaged ? damagedKey : key withValidation:NO inContext:"scripted"];
                 if (setDamaged) {
-                    [(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:oo::NSStringFrom(key)];
+                    [(PlayerEntity*)thisEnt cxx_doScriptEvent:OOJSID("equipmentDamaged") withPListArguments: { oo::PList(key) }];
                 } else if (setOK) {
-                    [(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentRepaired") withArgument:oo::NSStringFrom(key)];
+                    [(PlayerEntity*)thisEnt cxx_doScriptEvent:OOJSID("equipmentRepaired") withPListArguments: { oo::PList(key) }];
                 }
 
                 // if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
@@ -2689,7 +2702,7 @@ static JSValue ShipSetEquipmentStatus(OOJS_NATIVE_ARGS)
             } else {
                 [thisEnt addEquipmentItem:setDamaged ? damagedKey : key withValidation:NO inContext:"scripted"];
                 if (hasOK)
-                    [thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:oo::NSStringFrom(key)];
+                    [thisEnt cxx_doScriptEvent:OOJSID("equipmentDamaged") withPListArguments: { oo::PList(key) }];
             }
         }
     } else {
@@ -2722,7 +2735,7 @@ static JSValue ShipEquipmentStatus(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(!key.has_value())) {
         if (argc > 0 && JS_IsString(OOJS_ARGV[0])) {
             if (asDict) {
-                OOJS_RETURN_OBJECT(oo::ObjectFromPList(oo::PList(oo::PList::Dict { { "EQUIPMENT_UNKNOWN", oo::PList::signedInteger(1) } })));
+                OOJS_RETURN_PLIST(oo::PList(oo::PList::Dict { { "EQUIPMENT_UNKNOWN", oo::PList::signedInteger(1) } }));
             } else {
                 OOJS_RETURN(OOJSSTR("EQUIPMENT_UNKNOWN"));
             }
@@ -2736,11 +2749,11 @@ static JSValue ShipEquipmentStatus(OOJS_NATIVE_ARGS)
         oo::PList::Dict dict;
         dict["EQUIPMENT_OK"] = oo::PList::unsignedInteger([thisEnt cxx_countEquipmentItem:*key]);
         dict["EQUIPMENT_DAMAGED"] = oo::PList::unsignedInteger([thisEnt cxx_countEquipmentItem:*key + "_DAMAGED"]);
-        OOJS_RETURN_OBJECT(oo::ObjectFromPList(oo::PList(std::move(dict))));
+        OOJS_RETURN_PLIST(oo::PList(std::move(dict)));
     } else {
-        if ([thisEnt hasEquipmentItem:oo::NSStringFrom(*key) includeWeapons:YES whileLoading:NO])
+        if ([thisEnt hasEquipmentItem:oo::PList(*key) includeWeapons:YES whileLoading:NO])
             OOJS_RETURN(OOJSSTR("EQUIPMENT_OK"));
-        else if ([thisEnt hasEquipmentItem:oo::NSStringFrom(*key + "_DAMAGED")])
+        else if ([thisEnt hasEquipmentItem:oo::PList(*key + "_DAMAGED")])
             OOJS_RETURN(OOJSSTR("EQUIPMENT_DAMAGED"));
 
         OOJS_RETURN(OOJSSTR("EQUIPMENT_UNAVAILABLE"));
@@ -2760,7 +2773,7 @@ static JSValue ShipSelectNewMissile(OOJS_NATIVE_ARGS)
     // if there's a badly defined missile, selectMissile may return nil
     const std::string result = [[thisEnt selectMissile] cxx_identifier].value_or("EQ_MISSILE");
 
-    OOJS_RETURN_OBJECT(oo::NSStringFrom(result));
+    OOJS_RETURN_PLIST(oo::PList(result));
 
     OOJS_NATIVE_EXIT
 }
@@ -2893,7 +2906,7 @@ static JSValue ShipSetCrew(OOJS_NATIVE_ARGS)
         if (JS_IsNull(OOJS_ARGV[0])) {
             [thisEnt cxx_setCrew:std::nullopt];
         } else {
-            OOCharacter* crew = [OOCharacter characterWithDictionary:oo::ObjectFromPList(cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0]))];
+            OOCharacter* crew = [OOCharacter characterWithDictionary:cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0])];
             std::vector<oo::ObjCRef<OOCharacter*>> members;
             if (crew != nil)
                 members.emplace_back(crew); // a nil character was skipped (an NSArray cannot hold nil)
@@ -3255,7 +3268,7 @@ static JSValue ShipGetMaterials(OOJS_NATIVE_ARGS)
     oo::PList result = [[thisEnt mesh] materials];
     if (result.isNull())
         result = oo::PList(oo::PList::Dict { }); // empty rather than null
-    OOJS_RETURN_OBJECT(oo::ObjectFromPList(result));
+    OOJS_RETURN_PLIST(result);
 
     OOJS_PROFILE_EXIT
 }
@@ -3272,7 +3285,7 @@ static JSValue ShipGetShaders(OOJS_NATIVE_ARGS)
     oo::PList result = [[thisEnt mesh] shaders];
     if (result.isNull())
         result = oo::PList(oo::PList::Dict { }); // empty rather than null
-    OOJS_RETURN_OBJECT(oo::ObjectFromPList(result));
+    OOJS_RETURN_PLIST(result);
 
     OOJS_PROFILE_EXIT
 }
@@ -3638,7 +3651,7 @@ static JSValue ShipRequestDockingInstructions(OOJS_NATIVE_ARGS)
     GET_THIS_SHIP(thisEnt);
     [thisEnt requestDockingCoordinates];
 
-    OOJS_RETURN_OBJECT(oo::ObjectFromPList([thisEnt cxx_dockingInstructions])); // nil maps to null
+    OOJS_RETURN_PLIST([thisEnt cxx_dockingInstructions]); // nil maps to null
 
     OOJS_PROFILE_EXIT
 }
@@ -3651,7 +3664,7 @@ static JSValue ShipRecallDockingInstructions(OOJS_NATIVE_ARGS)
     GET_THIS_SHIP(thisEnt);
     [thisEnt recallDockingInstructions];
 
-    OOJS_RETURN_OBJECT(oo::ObjectFromPList([thisEnt cxx_dockingInstructions])); // nil maps to null
+    OOJS_RETURN_PLIST([thisEnt cxx_dockingInstructions]); // nil maps to null
 
     OOJS_PROFILE_EXIT
 }
@@ -3718,8 +3731,12 @@ static JSValue ShipCheckScanner(OOJS_NATIVE_ARGS)
     }
     ShipEntity** scannedShips = [thisEnt scannedShips];
     unsigned num = [thisEnt numberOfScannedShips];
-    const std::vector<ShipEntity*> scanResult(scannedShips, scannedShips + num);
-    OOJS_RETURN_OBJECT(oo::NSArrayFromObjects(scanResult));
+    oo::PList::Array scanResult;
+    for (unsigned i = 0; i < num; i++) {
+        if (scannedShips[i] != nil)
+            scanResult.push_back(oo::PListObject(scannedShips[i])); // nil skipped, as an NSArray skipped it
+    }
+    OOJS_RETURN_PLIST(oo::PList(std::move(scanResult)));
 
     OOJS_PROFILE_EXIT
 }
@@ -3928,7 +3945,7 @@ static JSValue ShipStaticKeys(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context);
     OOShipRegistry* registry = [OOShipRegistry sharedRegistry];
 
-    OOJS_RETURN_OBJECT(oo::NSArrayFromStrings([registry cxx_shipKeys]));
+    OOJS_RETURN_PLIST(StringArray([registry cxx_shipKeys]));
 
     OOJS_NATIVE_EXIT
 }
@@ -3943,7 +3960,7 @@ static JSValue ShipStaticKeysForRole(OOJS_NATIVE_ARGS)
         // null where there is no probability set for the role, as before
         if ([registry cxx_probabilitySetForRole:role] == nil)
             OOJS_RETURN_NULL;
-        OOJS_RETURN_OBJECT(oo::NSArrayFromStrings([registry cxx_shipKeysWithRole:role]));
+        OOJS_RETURN_PLIST(StringArray([registry cxx_shipKeysWithRole:role]));
     } else {
         cxx_OOJSReportBadArguments(context, "Ship", "shipKeysForRole", MIN(argc, 1), OOJS_ARGV, std::nullopt, "ship role");
         return OOJSNativeFailure(context);
@@ -3974,7 +3991,7 @@ static JSValue ShipStaticRoles(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context);
     OOShipRegistry* registry = [OOShipRegistry sharedRegistry];
 
-    OOJS_RETURN_OBJECT(oo::NSArrayFromStrings([registry cxx_shipRoles]));
+    OOJS_RETURN_PLIST(StringArray([registry cxx_shipRoles]));
 
     OOJS_NATIVE_EXIT
 }
@@ -3988,7 +4005,7 @@ static JSValue ShipStaticShipDataForKey(OOJS_NATIVE_ARGS)
         const std::optional<std::string> key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
         if (!key.has_value())
             OOJS_RETURN_NULL; // a nil key found nothing
-        OOJS_RETURN_OBJECT(oo::ObjectFromPList([registry cxx_shipInfoForKey:*key]));
+        OOJS_RETURN_PLIST([registry cxx_shipInfoForKey:*key]);
     } else {
         cxx_OOJSReportBadArguments(context, "Ship", "shipDataForKey", MIN(argc, 1), OOJS_ARGV, std::nullopt, "key");
         return OOJSNativeFailure(context);

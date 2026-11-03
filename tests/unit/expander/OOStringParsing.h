@@ -7,7 +7,7 @@ static inline NSString *OOIntCredits(OOCreditsQuantity integerCredits) { return 
 // C++ forms the expander calls since bead oo-3rb.147 (oo-1886 chunk 2), over the same harness
 // credits formatter (additive: the lines above are unchanged).
 #ifdef __cplusplus
-#import "OOStringBridge.h"
+#import "OOFoundationBridge.h"	// the harness stub (bead oo-3rb.335): OOStringBridge.h went with oo-qps.16
 static inline std::string cxx_OOCredits(OOCreditsQuantity tenthsOfCredits) { return oo::StdString(OOCredits(tenthsOfCredits)); }
 static inline std::string cxx_OOIntCredits(OOCreditsQuantity integerCredits) { return oo::StdString(OOIntCredits(integerCredits)); }
 #endif

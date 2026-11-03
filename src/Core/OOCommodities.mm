@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "OOCommodities.h"
 #import "OOCommodityMarket.h"
 
-#import "OOFoundationBridge.h"
 #import "OOJSScript.h"
 #import "OOStringExpander.h"
 #import "PlayerEntity.h"
@@ -125,25 +124,9 @@ bool ContainsString(const oo::PList& array, const std::string& string)
 
 } // namespace
 
-@interface OOCommodities (OOPrivate)
+namespace cxx {
 
-- (oo::PList)modifyGood:(const oo::PList&)good withScript:(OOScript*)script atStation:(StationEntity*)station inSystem:(OOSystemID)system localMode:(BOOL)local;
-- (oo::PList)createDefinitionFrom:(const oo::PList&)good price:(OOCreditsQuantity)p andQuantity:(OOCargoQuantity)q forKey:(const std::string&)key atStation:(StationEntity*)station inSystem:(OOSystemID)system;
-
-- (OOCargoQuantity)generateQuantityForGood:(const oo::PList&)good inEconomy:(OOEconomyID)economy;
-- (OOCreditsQuantity)generatePriceForGood:(const oo::PList&)good inEconomy:(OOEconomyID)economy;
-
-- (float)economicBiasForGood:(const oo::PList&)good inEconomy:(OOEconomyID)economy;
-- (oo::PList)firstModifierForGood:(const std::string&)good inClasses:(const oo::PList&)classes fromList:(const oo::PList&)definitions;
-- (OOCreditsQuantity)adjustPrice:(OOCreditsQuantity)price byRule:(const oo::PList&)rule;
-- (OOCargoQuantity)adjustQuantity:(OOCargoQuantity)quantity byRule:(const oo::PList&)rule;
-- (oo::PList)updateInfoFor:(const oo::PList&)good byRule:(const oo::PList&)rule maxCapacity:(OOCargoQuantity)maxCapacity;
-
-@end
-
-@implementation OOCommodities
-
-+ (std::optional<std::string>)cxx_legacyCommodityType:(NSUInteger)i
+std::optional<std::string> OOCommodities::legacyCommodityType(NSUInteger i)
 {
     switch (i) {
     case 0:
@@ -185,30 +168,19 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return "food";
 }
 
-- (id)init
+OOCommodities::OOCommodities()
 {
-    self = [super init];
-    if (self == nil)
-        return nil;
-
     // ResourceManager's dictionary API is not migrated: the merged table arrives through oo::PListFrom.
     // TODO: validation of inputs; convert 't', 'kg', 'g' in quantity_unit to 0, 1, 2 (for now it
     // needs them entering as the ints).
     const oo::PList rawCommodityLists = [ResourceManager cxx_dictionaryFromFilesNamed:"trade-goods.plist" inFolder:"Config" mergeMode:MERGE_SMART cache:YES];
     if (const oo::PList::Dict* entries = rawCommodityLists.getIf<oo::PList::Dict>())
         _commodityLists = *entries;
-
-    return self;
 }
 
-- (void)dealloc
+oo::Ref<OOCommodityMarket> OOCommodities::generateManifestForPlayer()
 {
-    [super dealloc];
-}
-
-- (OOCommodityMarket*)generateManifestForPlayer
-{
-    OOCommodityMarket* market = [[OOCommodityMarket alloc] init];
+    oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
     for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
     {
@@ -220,14 +192,14 @@ bool ContainsString(const oo::PList& array, const std::string& string)
         SetUnsigned(good, kOOCommodityCapacity, UINT32_MAX);
         Set(good, kOOCommodityKey, oo::PList(commodity));
 
-        [market cxx_setGood:commodity withInfo:good];
+        market->setGood(commodity, good);
     }
-    return [market autorelease];
+    return market;
 }
 
-- (OOCommodityMarket*)generateBlankMarket
+oo::Ref<OOCommodityMarket> OOCommodities::generateBlankMarket()
 {
-    OOCommodityMarket* market = [[OOCommodityMarket alloc] init];
+    oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
     for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
     {
@@ -237,12 +209,12 @@ bool ContainsString(const oo::PList& array, const std::string& string)
         SetUnsigned(good, kOOCommodityCapacity, 0);
         Set(good, kOOCommodityKey, oo::PList(commodity));
 
-        [market cxx_setGood:commodity withInfo:good];
+        market->setGood(commodity, good);
     }
-    return [market autorelease];
+    return market;
 }
 
-- (oo::PList)createDefinitionFrom:(const oo::PList&)good price:(OOCreditsQuantity)p andQuantity:(OOCargoQuantity)q forKey:(const std::string&)key atStation:(StationEntity*)station inSystem:(OOSystemID)system
+oo::PList OOCommodities::createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p, OOCargoQuantity q, const std::string& key, StationEntity* station, OOSystemID system)
 {
     oo::PList definition = good;
     SetUnsigned(definition, kOOCommodityPriceCurrent, p);
@@ -262,14 +234,14 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     if (!goodScriptName.has_value()) {
         return definition;
     }
-    OOScript* goodScript = [PLAYER cxx_commodityScriptNamed:*goodScriptName];
+    OOScript* goodScript = [PLAYER cxx_commodityScriptNamed:goodScriptName]; // (has a value: checked above)
     if (goodScript == nil) {
         return definition;
     }
-    return [self modifyGood:definition withScript:goodScript atStation:station inSystem:system localMode:NO];
+    return modifyGood(definition, goodScript, station, system, false);
 }
 
-- (oo::PList)modifyGood:(const oo::PList&)good withScript:(OOScript*)script atStation:(StationEntity*)station inSystem:(OOSystemID)system localMode:(BOOL)localMode
+oo::PList OOCommodities::modifyGood(const oo::PList& good, OOScript* script, StationEntity* station, OOSystemID system, bool localMode)
 {
     JSContext* context = OOJSAcquireContext();
     OOJSVal rval = OOJSUndefinedValue();
@@ -327,44 +299,44 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return result;
 }
 
-- (OOCommodityMarket*)cxx_generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(const std::optional<std::string>&)scriptName
+oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(OOEconomyID economy, const std::optional<std::string>& scriptName)
 {
     OOScript* script = [PLAYER cxx_commodityScriptNamed:scriptName];
 
-    OOCommodityMarket* market = [[OOCommodityMarket alloc] init];
+    oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
     for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
     {
         oo::PList good = info;
-        OOCargoQuantity q = [self generateQuantityForGood:good inEconomy:economy];
+        OOCargoQuantity q = generateQuantityForGood(good, economy);
         // main system market limited to 127 units of each item
         OOCargoQuantity cap = good.get<unsigned int>(kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);
         if (q > cap) {
             q = cap;
         }
-        OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
-        good = [self createDefinitionFrom:good price:p andQuantity:q forKey:commodity atStation:nil inSystem:[UNIVERSE currentSystemID]];
+        OOCreditsQuantity p = generatePriceForGood(good, economy);
+        good = createDefinitionFrom(good, p, q, commodity, nullptr, [UNIVERSE currentSystemID]);
 
         if (script != nil) {
-            good = [self modifyGood:good withScript:script atStation:nil inSystem:[UNIVERSE currentSystemID] localMode:YES];
+            good = modifyGood(good, script, nullptr, [UNIVERSE currentSystemID], true);
         }
-        [market cxx_setGood:commodity withInfo:good];
+        market->setGood(commodity, good);
     }
-    return [market autorelease];
+    return market;
 }
 
-- (OOCommodityMarket*)generateMarketForStation:(StationEntity*)station
+oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(StationEntity* station)
 {
     const oo::PList marketDefinition = [station cxx_marketDefinition];
     OOScript* marketScript = [PLAYER cxx_commodityScriptNamed:[station cxx_marketScriptName]];
     if (!marketDefinition && marketScript == nil) {
-        OOCommodityMarket* market = [self generateBlankMarket];
+        oo::Ref<OOCommodityMarket> market = generateBlankMarket();
         return market;
     }
 
-    OOCommodityMarket* market = [[OOCommodityMarket alloc] init];
+    oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
     OOCargoQuantity capacity = [station marketCapacity];
-    OOCommodityMarket* mainMarket = [UNIVERSE commodityMarket];
+    OOCommodityMarket* mainMarket = oo::ToCxx([UNIVERSE commodityMarket]); // (the Objective-C facade Universe holds)
 
     for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
     {
@@ -375,14 +347,14 @@ bool ContainsString(const oo::PList& array, const std::string& string)
         if (!baseCapacity)
             baseCapacity = MAIN_SYSTEM_MARKET_LIMIT;
 
-        OOCargoQuantity q = [mainMarket cxx_quantityForGood:commodity];
-        OOCreditsQuantity p = [mainMarket cxx_priceForGood:commodity];
+        OOCargoQuantity q = (mainMarket != nullptr) ? mainMarket->quantityForGood(commodity) : 0;
+        OOCreditsQuantity p = (mainMarket != nullptr) ? mainMarket->priceForGood(commodity) : 0;
 
         if (marketScript == nil) {
             const oo::PList* classes = good.get<oo::PList::Array>(kOOCommodityClasses);
-            const oo::PList modifier = [self firstModifierForGood:commodity inClasses:(classes != nullptr) ? *classes : oo::PList() fromList:marketDefinition];
-            good = [self updateInfoFor:good byRule:modifier maxCapacity:capacity];
-            p = [self adjustPrice:p byRule:modifier];
+            const oo::PList modifier = firstModifierForGood(commodity, (classes != nullptr) ? *classes : oo::PList(), marketDefinition);
+            good = updateInfoFor(good, modifier, capacity);
+            p = adjustPrice(p, modifier);
 
             // first, scale to this station's capacity for this good
             OOCargoQuantity localCapacity = good.get<unsigned int>(kOOCommodityCapacity);
@@ -390,7 +362,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
                 localCapacity = capacity;
             }
             q = (q * localCapacity) / baseCapacity;
-            q = [self adjustQuantity:q byRule:modifier];
+            q = adjustQuantity(q, modifier);
             if (q > localCapacity) {
                 q = localCapacity; // cap
             }
@@ -399,22 +371,22 @@ bool ContainsString(const oo::PList& array, const std::string& string)
             q = (q * capacity) / baseCapacity;
         }
 
-        good = [self createDefinitionFrom:good price:p andQuantity:q forKey:commodity atStation:station inSystem:[UNIVERSE currentSystemID]];
+        good = createDefinitionFrom(good, p, q, commodity, station, [UNIVERSE currentSystemID]);
         if (marketScript != nil) {
-            good = [self modifyGood:good withScript:marketScript atStation:station inSystem:[UNIVERSE currentSystemID] localMode:YES];
+            good = modifyGood(good, marketScript, station, [UNIVERSE currentSystemID], true);
         }
 
-        [market cxx_setGood:commodity withInfo:good];
+        market->setGood(commodity, good);
     }
-    return [market autorelease];
+    return market;
 }
 
-- (NSUInteger)count
+NSUInteger OOCommodities::count()
 {
     return _commodityLists.size();
 }
 
-- (std::vector<std::string>)goods
+std::vector<std::string> OOCommodities::goods()
 {
     // key order (was -allKeys, hash order)
     std::vector<std::string> keys;
@@ -423,13 +395,13 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return keys;
 }
 
-- (BOOL)cxx_goodDefined:(const std::string&)key
+bool OOCommodities::goodDefined(const std::string& key)
 {
     const auto entry = _commodityLists.find(key);
     return entry != _commodityLists.end() && entry->second.isDict();
 }
 
-- (std::optional<std::string>)cxx_goodNamed:(const std::string&)name
+std::optional<std::string> OOCommodities::goodNamed(const std::string& name)
 {
     for (const auto& [key, info] : _commodityLists) // key order (was hash order): the first match wins
     {
@@ -442,7 +414,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return std::nullopt;
 }
 
-- (std::string)getRandomCommodity
+std::string OOCommodities::getRandomCommodity()
 {
     // Ranrot() % count indexes the keys in key order (was -allKeys, hash order).
     NSUInteger idx = Ranrot() % _commodityLists.size();
@@ -451,7 +423,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return entry->first;
 }
 
-- (OOMassUnit)massUnitForGood:(const std::string&)good
+OOMassUnit OOCommodities::massUnitForGood(const std::string& good)
 {
     const auto entry = _commodityLists.find(good);
     if (entry == _commodityLists.end() || !entry->second.isDict()) {
@@ -460,9 +432,9 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return OOMassUnitFromNumber(entry->second.get<unsigned int>(kOOCommodityContainer));
 }
 
-- (OOCargoQuantity)generateQuantityForGood:(const oo::PList&)good inEconomy:(OOEconomyID)economy
+OOCargoQuantity OOCommodities::generateQuantityForGood(const oo::PList& good, OOEconomyID economy)
 {
-    float bias = [self economicBiasForGood:good inEconomy:economy];
+    float bias = economicBiasForGood(good, economy);
 
     float base = good.get<float>(kOOCommodityQuantityAverage);
     float econ = base * good.get<float>(kOOCommodityQuantityEconomic) * bias;
@@ -478,9 +450,9 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     }
 }
 
-- (OOCreditsQuantity)generatePriceForGood:(const oo::PList&)good inEconomy:(OOEconomyID)economy
+OOCreditsQuantity OOCommodities::generatePriceForGood(const oo::PList& good, OOEconomyID economy)
 {
-    float bias = [self economicBiasForGood:good inEconomy:economy];
+    float bias = economicBiasForGood(good, economy);
 
     float base = good.get<float>(kOOCommodityPriceAverage);
     float econ = base * good.get<float>(kOOCommodityPriceEconomic) * -bias;
@@ -496,27 +468,27 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     }
 }
 
-- (OOCreditsQuantity)cxx_samplePriceForCommodity:(const std::string&)commodity inEconomy:(OOEconomyID)economy withScript:(const std::optional<std::string>&)scriptName inSystem:(OOSystemID)system
+OOCreditsQuantity OOCommodities::samplePriceForCommodity(const std::string& commodity, OOEconomyID economy, const std::optional<std::string>& scriptName, OOSystemID system)
 {
     const auto entry = _commodityLists.find(commodity);
     if (entry == _commodityLists.end() || !entry->second.isDict()) {
         return 0;
     }
     oo::PList good = entry->second;
-    OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
+    OOCreditsQuantity p = generatePriceForGood(good, economy);
 
-    good = [self createDefinitionFrom:good price:p andQuantity:0 forKey:commodity atStation:nil inSystem:system];
+    good = createDefinitionFrom(good, p, 0, commodity, nullptr, system);
     if (scriptName.has_value()) {
-        OOScript* script = [PLAYER cxx_commodityScriptNamed:*scriptName];
+        OOScript* script = [PLAYER cxx_commodityScriptNamed:scriptName]; // (has a value: checked above)
         if (script != nil) {
-            good = [self modifyGood:good withScript:script atStation:nil inSystem:system localMode:YES];
+            good = modifyGood(good, script, nullptr, system, true);
         }
     }
     return good.get<unsigned long long>(kOOCommodityPriceCurrent);
 }
 
 // positive = exporter; negative = importer; range -1.0 .. +1.0
-- (float)economicBiasForGood:(const oo::PList&)good inEconomy:(OOEconomyID)economy
+float OOCommodities::economicBiasForGood(const oo::PList& good, OOEconomyID economy)
 {
     OOEconomyID exporter = good.get<int>(kOOCommodityPeakExport);
     OOEconomyID importer = good.get<int>(kOOCommodityPeakImport);
@@ -538,7 +510,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     }
 }
 
-- (oo::PList)firstModifierForGood:(const std::string&)good inClasses:(const oo::PList&)classes fromList:(const oo::PList&)definitions
+oo::PList OOCommodities::firstModifierForGood(const std::string& good, const oo::PList& classes, const oo::PList& definitions)
 {
     NSUInteger i;
     for (i = 0; i < definitions.count(); i++) {
@@ -559,7 +531,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return oo::PList(oo::PList::Dict { });
 }
 
-- (OOCreditsQuantity)adjustPrice:(OOCreditsQuantity)price byRule:(const oo::PList&)rule
+OOCreditsQuantity OOCommodities::adjustPrice(OOCreditsQuantity price, const oo::PList& rule)
 {
     float p = (float)price; // work in floats to avoid rounding problems
     float pa = rule.get<float>(kOOCommodityMarketPriceAdder, 0.0);
@@ -579,7 +551,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return (OOCreditsQuantity)p;
 }
 
-- (OOCargoQuantity)adjustQuantity:(OOCargoQuantity)quantity byRule:(const oo::PList&)rule
+OOCargoQuantity OOCommodities::adjustQuantity(OOCargoQuantity quantity, const oo::PList& rule)
 {
     float q = (float)quantity; // work in floats to avoid rounding problems
     float qa = rule.get<float>(kOOCommodityMarketQuantityAdder, 0.0);
@@ -600,7 +572,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return (OOCargoQuantity)q;
 }
 
-- (oo::PList)updateInfoFor:(const oo::PList&)good byRule:(const oo::PList&)rule maxCapacity:(OOCargoQuantity)maxCapacity
+oo::PList OOCommodities::updateInfoFor(const oo::PList& good, const oo::PList& rule, OOCargoQuantity maxCapacity)
 {
     oo::PList tmp = good;
     long long import = rule.get<long long>(kOOCommodityMarketLegalityImport, -1);
@@ -624,4 +596,4 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return tmp;
 }
 
-@end
+} // namespace cxx

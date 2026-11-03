@@ -31,10 +31,8 @@ SOFTWARE.
 #import "OOAsyncQueue.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
-#import "OOStringBridge.h"
 #include <stdlib.h>
 
-#import "OOFoundationBridge.h"
 #include "oofnd/String.hpp"
 
 #ifndef OO_BUGGY_PTHREADS
@@ -77,35 +75,21 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
     free(element);
 }
 
-@interface OOAsyncQueue (OOPrivate)
-
-- (void)doEmptyQueueWithAcquiredLock;
-- (id)doDequeAndUnlockWithAcquiredLock;
-- (void)recycleElementWithAcquiredLock:(OOAsyncQueueElement*)element;
-
-@end
-
-@implementation OOAsyncQueue
-
-- (id)init
+OOAsyncQueue::OOAsyncQueue()
 {
-    self = [super init];
-    if (self != nil) {
-        _condition = kConditionNoData;
-    }
-
-    return self;
+    _condition = kConditionNoData;
 }
 
-- (void)dealloc
+OOAsyncQueue::~OOAsyncQueue()
 {
     OOAsyncQueueElement* element = NULL;
 
     _lock.lock();
 
     if (_elemCount != 0) {
-        OO_LOG_WARN("asyncQueue.nonEmpty", "{} deallocated while non-empty, flushing.", oo::DescriptionOf(self));
-        [self doEmptyQueueWithAcquiredLock];
+        // oo::DescriptionOf(self) was <OOAsyncQueue 0x...>{components} (OODescription.h).
+        OO_LOG_WARN("asyncQueue.nonEmpty", "{} deallocated while non-empty, flushing.", oo::str::format("<OOAsyncQueue %s>{%s}", oo::str::pointerDescription(this).c_str(), descriptionComponents().value_or("").c_str()));
+        doEmptyQueueWithAcquiredLock();
     }
 
     // Free element pool.
@@ -118,25 +102,23 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
     _condition = kConditionDead;
     _conditionChanged.notify_all();
     _lock.unlock();
-
-    [super dealloc];
 }
 
-// OOObject's -description wraps this as "<OOAsyncQueue 0x...>{n elements}", which is what this
+// OOObject's -description wrapped this as "<OOAsyncQueue 0x...>{n elements}", which is what this
 // class's own -description printed.
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOAsyncQueue::descriptionComponents() const
 {
     // Don't bother locking, the value would be out of date immediately anyway.
     return oo::str::format("%u elements", _elemCount);
 }
 
-- (BOOL)enqueue:(id)object
+bool OOAsyncQueue::enqueue(id object)
 {
     OOAsyncQueueElement* element = NULL;
-    BOOL success = NO;
+    bool success = false;
 
     if (EXPECT_NOT(object == nil))
-        return NO;
+        return false;
 
     _lock.lock();
 
@@ -171,7 +153,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
         _tail = element;
         ++_elemCount;
     }
-    success = YES;
+    success = true;
 
 FAIL:
     _condition = kConditionQueuedData;
@@ -180,16 +162,16 @@ FAIL:
     return success;
 }
 
-- (id)dequeue
+id OOAsyncQueue::dequeue()
 {
     std::unique_lock<std::mutex> lock(_lock);
     while (_condition != kConditionQueuedData)
         _conditionChanged.wait(lock);
     lock.release(); // Held until -doDequeAndUnlockWithAcquiredLock, as before.
-    return [self doDequeAndUnlockWithAcquiredLock];
+    return doDequeAndUnlockWithAcquiredLock();
 }
 
-- (id)tryDequeue
+id OOAsyncQueue::tryDequeue()
 {
 #if OO_BUGGY_PTHREADS
     /* pthread_mutex_trylock is buggy on 64-bit windows with the pthread
@@ -211,23 +193,23 @@ FAIL:
         return nil;
     }
 #endif
-    return [self doDequeAndUnlockWithAcquiredLock];
+    return doDequeAndUnlockWithAcquiredLock();
 }
 
-- (BOOL)empty
+bool OOAsyncQueue::empty()
 {
     return _head != NULL;
 }
 
-- (unsigned)count
+unsigned OOAsyncQueue::count()
 {
     return _elemCount;
 }
 
-- (void)emptyQueue
+void OOAsyncQueue::emptyQueue()
 {
     _lock.lock();
-    [self doEmptyQueueWithAcquiredLock];
+    doEmptyQueueWithAcquiredLock();
 
     assert(_head == NULL && _tail == NULL && _elemCount == 0);
     _condition = kConditionNoData;
@@ -235,11 +217,7 @@ FAIL:
     _lock.unlock();
 }
 
-@end
-
-@implementation OOAsyncQueue (OOPrivate)
-
-- (void)doEmptyQueueWithAcquiredLock
+void OOAsyncQueue::doEmptyQueueWithAcquiredLock()
 {
     OOAsyncQueueElement* element = NULL;
 
@@ -254,13 +232,13 @@ FAIL:
         [element->object release];
 
         // Or the element.
-        [self recycleElementWithAcquiredLock:element];
+        recycleElementWithAcquiredLock(element);
     }
 
     _tail = NULL;
 }
 
-- (id)doDequeAndUnlockWithAcquiredLock
+id OOAsyncQueue::doDequeAndUnlockWithAcquiredLock()
 {
     OOAsyncQueueElement* element = NULL;
     id result;
@@ -283,7 +261,7 @@ FAIL:
     result = [element->object autorelease];
 
     // Recycle element.
-    [self recycleElementWithAcquiredLock:element];
+    recycleElementWithAcquiredLock(element);
 
     // Ensure sane status.
     assert((_head == NULL && _tail == NULL && _elemCount == 0) || (_head != NULL && _tail != NULL && _elemCount != 0));
@@ -296,7 +274,7 @@ FAIL:
     return result;
 }
 
-- (void)recycleElementWithAcquiredLock:(OOAsyncQueueElement*)element
+void OOAsyncQueue::recycleElementWithAcquiredLock(OOAsyncQueueElement* element)
 {
     if (_poolCount < kMaxPoolElements) {
         // Add to pool for reuse.
@@ -308,5 +286,3 @@ FAIL:
         FreeElement(element);
     }
 }
-
-@end

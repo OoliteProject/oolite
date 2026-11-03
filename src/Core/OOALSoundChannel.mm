@@ -27,10 +27,8 @@ SOFTWARE.
 
 #import "OOALSoundChannel.h"
 #import "OOALSound.h"
-#import "OOFoundationBridge.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
-#import "OOStringBridge.h"
 
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"

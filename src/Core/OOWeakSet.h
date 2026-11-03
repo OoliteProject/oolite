@@ -22,39 +22,60 @@ This code is hereby placed in the public domain.
 
 */
 
+#ifndef OOWEAKSET_H
+#define OOWEAKSET_H
+
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
 
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@interface OOWeakSet : OOObject <OOCopying, OOMutableCopying> {
-@private
-    std::vector<oo::ObjCRef<OOWeakReference*>> _objects; // each once (identity), in insertion order
-}
+namespace cxx {
 
-- (id)init;
-- (id)initWithCapacity:(NSUInteger)capacity; // As with Foundation collections, capacity is only a hint.
+/*	The members are Objective-C objects conforming to OOWeakReferenceSupport (id). The set holds
+        their weak references' facades, which are the references (ADR-0056 amendment oo-3kqi).
+*/
+class OOWeakSet : public oo::RefCounted {
+public:
+    explicit OOWeakSet(NSUInteger capacity = 0); // As with Foundation collections, capacity is only a hint.
+    ~OOWeakSet() override;
 
-+ (instancetype)set;
-+ (instancetype)setWithCapacity:(NSUInteger)capacity;
+    static oo::Ref<OOWeakSet> set();
+    static oo::Ref<OOWeakSet> setWithCapacity(NSUInteger capacity);
 
-- (NSUInteger)count;
-- (BOOL)containsObject:(id<OOWeakReferenceSupport>)object;
-- (id)objectEnumerator; // shared selector: an enumerator over a snapshot of the live objects
-- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator; // the same snapshot, for C++ iteration
+    NSUInteger count();
+    bool containsObject(id object);
+    std::vector<oo::ObjCRef<id>> objectEnumerator(); // a snapshot of the live objects, for C++ iteration
 
-- (void)addObject:(id<OOWeakReferenceSupport>)object; // Unlike a Foundation set, adding nil fails silently.
-- (void)removeObject:(id<OOWeakReferenceSupport>)object; // Like a Foundation set, does not complain if object is not already a member.
+    void addObject(id object); // Unlike a Foundation set, adding nil fails silently.
+    void removeObject(id object); // Like a Foundation set, does not complain if object is not already a member.
 
-- (void)addObjectsByEnumerating:(id)enumerator; // anything answering -nextObject
+    void makeObjectsPerformSelector(SEL selector);
+    void makeObjectsPerformSelector(SEL selector, id argument);
 
-- (void)makeObjectsPerformSelector:(SEL)selector;
-- (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument;
+    std::vector<oo::ObjCRef<id>> allObjects(); // the live objects, in the set's order
 
-- (id)allObjects; // shared selector: an immutable array of the live objects
-- (std::vector<oo::ObjCRef<id>>)cxx_allObjects; // the live objects, in the set's order
+    void removeAllObjects();
 
-- (void)removeAllObjects;
+    // -copyWithZone: (and -mutableCopyWithZone:, which was the same): a new set of the live members.
+    oo::Ref<OOWeakSet> copyWithZone(OOZone* zone);
+    bool isEqual(OOWeakSet* other); // the same live members; false for null
 
-@end
+    // What "%@" prints: <OOWeakSet 0x...>{each member's short description}.
+    std::optional<std::string> description();
+
+private:
+    void compact(); // Remove any zeroed entries.
+
+    std::vector<oo::ObjCRef<::OOWeakReference*>> _objects = { }; // each once (identity), in insertion order; ::OOWeakReference is the facade
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOWeakSet, for callers not yet converted. Deleted, with namespace
+// cxx above, by the bridge's deletion bead.
+#import "OOWeakSet+ObjCBridge.h"
+
+#endif // OOWEAKSET_H

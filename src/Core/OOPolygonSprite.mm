@@ -42,7 +42,6 @@ SOFTWARE.
 #import "OOPolygonSprite.h"
 
 #include <vector>
-#import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
@@ -60,12 +59,6 @@ SOFTWARE.
 #endif
 
 #define kCosMitreLimit 0.866f // Approximately cos(30 deg)
-
-@interface OOPolygonSprite (Private) <OOGraphicsResetClient>
-
-- (BOOL)loadPolygons:(const oo::PList&)dataArray outlineWidth:(float)outlineWidth;
-
-@end
 
 /*	Contours are std::vector<NSPoint> (arrays of point boxes before; proposed ADR-0043). The
         tesselator is handed a pointer to each vertex, so a contour must not change, or be
@@ -149,56 +142,53 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData);
 // this is needed to maintain compatibility with GCC 14+
 typedef GLvoid (*TessFuncPtr)();
 
-@implementation OOPolygonSprite
+namespace cxx {
 
-- (id)initWithDataArray:(const oo::PList&)dataArray outlineWidth:(GLfloat)outlineWidth name:(const std::string&)name
+// Null where -initWithDataArray:outlineWidth:name: released itself and answered nil.
+oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(const oo::PList& dataArray, GLfloat outlineWidth, const std::string& name)
 {
-    if ((self = [super init])) {
+    oo::Ref<OOPolygonSprite> sprite = oo::adopt(new OOPolygonSprite);
+    {
 #ifndef NDEBUG
-        _name = name;
+        sprite->_name = name;
 #endif
 
         if (dataArray.count() == 0) {
-            [self release];
-            return nil;
+            return nullptr;
         }
 
         // Normalize data to array-of-arrays form.
         const oo::PList* first = dataArray.at(0);
         const bool arrayOfArrays = first != nullptr && first->isArray();
-        if (![self loadPolygons:(arrayOfArrays ? dataArray : oo::PList(oo::PList::Array { dataArray })) outlineWidth:outlineWidth]) {
-            [self release];
-            return nil;
+        if (!sprite->loadPolygons((arrayOfArrays ? dataArray : oo::PList(oo::PList::Array { dataArray })), outlineWidth)) {
+            return nullptr;
         }
 
-        [[OOGraphicsResetManager sharedManager] registerClient:self];
+        // (The Objective-C facade registers with OOGraphicsResetManager, which takes only an id:
+        // ADR-0056 amendment oo-4111.)
     }
 
-    return self;
+    return sprite;
 }
 
-- (void)dealloc
+OOPolygonSprite::~OOPolygonSprite()
 {
-    [[OOGraphicsResetManager sharedManager] unregisterClient:self];
-
     free(_solidData);
     free(_outlineData);
-
-    [super dealloc];
 }
 
 #ifndef NDEBUG
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOPolygonSprite::descriptionComponents() const
 {
     return _name;
 }
 #endif
 
-- (void)drawWithData:(GLfloat*)data count:(size_t)count VBO:(GLuint*)vbo
+void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo)
 {
     if (count == 0)
         return;
-    OOParameterAssert(vbo != NULL && data != NULL);
+    OOCParameterAssert(vbo != NULL && data != NULL);
 
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
@@ -232,32 +222,28 @@ typedef GLvoid (*TessFuncPtr)();
 #endif
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOPolygonSprite after rendering " + oo::DescriptionOf(self); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOPolygonSprite after rendering " + oo::DescriptionOf(oo::ToObjC(this)); });
 }
 
-- (void)drawFilled
+void OOPolygonSprite::drawFilled()
 {
 #if !OO_USE_VBO
     GLuint _solidVBO; // Unusued
 #endif
 
-    [self drawWithData:_solidData
-                 count:_solidCount
-                   VBO:&_solidVBO];
+    drawWithData(_solidData, _solidCount, &_solidVBO);
 }
 
-- (void)drawOutline
+void OOPolygonSprite::drawOutline()
 {
 #if !OO_USE_VBO
     GLuint _outlineVBO; // Unusued
 #endif
 
-    [self drawWithData:_outlineData
-                 count:_outlineCount
-                   VBO:&_outlineVBO];
+    drawWithData(_outlineData, _outlineCount, &_outlineVBO);
 }
 
-- (void)resetGraphicsState
+void OOPolygonSprite::resetGraphicsState()
 {
 #if OO_USE_VBO
     OO_ENTER_OPENGL();
@@ -273,9 +259,9 @@ typedef GLvoid (*TessFuncPtr)();
 }
 
 // FIXME: this method is absolutely horrible.
-- (BOOL)loadPolygons:(const oo::PList&)dataArray outlineWidth:(float)outlineWidth
+bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidth)
 {
-    OOParameterAssert(dataArray);
+    OOCParameterAssert(dataArray);
 
     void* pool = objc_autoreleasePoolPush();
     GLUtesselator* tesselator = NULL;
@@ -414,7 +400,7 @@ END:
     return polygonData.OK;
 }
 
-@end
+} // namespace cxx
 
 namespace {
 

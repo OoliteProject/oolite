@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOExplosionCloudEntity.h"
 #import "OOColor.h"
-#import "OOFoundationBridge.h"
 #import "OOGraphicsResetManager.h"
 #import "OOTexture.h"
 #import "PlayerEntity.h"

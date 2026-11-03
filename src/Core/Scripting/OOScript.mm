@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 #import "OODebugStandards.h"
-#import "OOFoundationBridge.h"
 #import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
 #import "OOLogging.h"
@@ -235,12 +234,7 @@ static std::optional<std::vector<std::string>> StringsFromArrayFile(const std::s
 
 - (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::str::format("\"%s\" version %s", [self cxx_name].value_or("(null)").c_str(), oo::DescriptionOf([self version]).c_str());
-}
-
-- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_name]);
+    return oo::str::format("\"%s\" version %s", [self cxx_name].value_or("(null)").c_str(), [self cxx_version].value_or("(null)").c_str());
 }
 
 - (std::optional<std::string>)cxx_name
@@ -253,11 +247,6 @@ static std::optional<std::vector<std::string>> StringsFromArrayFile(const std::s
 {
     OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
     return std::nullopt;
-}
-
-- (id)version // shared selector (Foundation declares -version too; retires with oo-qps)
-{
-    return oo::NSStringOrNil([self cxx_version]);
 }
 
 - (std::optional<std::string>)cxx_version

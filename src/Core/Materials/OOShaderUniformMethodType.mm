@@ -32,9 +32,12 @@ SOFTWARE.
         in a template class, one method for each supported return type.
 
         The encoding is platform-defined, so to stay implementation-agnostic the
-        template encodings are read from known methods at runtime, through the same
-        call. (Bead oo-3rb.15: this used the method signature object's return type,
-        which on this runtime is the same return-type encoding.)
+        template encodings are the compiler's own, @encode() of each type: what the
+        runtime records for a method returning that type. (Bead oo-3rb.15: this used
+        the method signature object's return type, which on this runtime is the same
+        return-type encoding. Bead oo-41vj: they were read, through the same call,
+        from methods of an Objective-C template class that existed only for this;
+        proposed ADR-0056 amendment oo-41vj.)
 */
 
 #import "OOShaderUniformMethodType.h"
@@ -47,7 +50,6 @@ static BOOL sInited = NO;
 static const char* sTemplates[kOOShaderUniformTypeCount];
 
 static void InitTemplates(void);
-static const char* CopyTemplateForSelector(SEL selector);
 
 OOShaderUniformType OOShaderUniformTypeFromMethod(Method method)
 {
@@ -75,148 +77,33 @@ OOShaderUniformType OOShaderUniformTypeFromMethod(Method method)
     return result;
 }
 
-@interface OOShaderUniformTypeMethodSignatureTemplateClass : OOObject
-
-- (float)floatMethod;
-- (double)doubleMethod;
-- (signed char)signedCharMethod;
-- (unsigned char)unsignedCharMethod;
-- (signed short)signedShortMethod;
-- (unsigned short)unsignedShortMethod;
-- (signed int)signedIntMethod;
-- (unsigned int)unsignedIntMethod;
-- (signed long)signedLongMethod;
-- (unsigned long)unsignedLongMethod;
-- (Vector)vectorMethod;
-- (HPVector)hpvectorMethod;
-- (Quaternion)quaternionMethod;
-- (OOMatrix)matrixMethod;
-- (NSPoint)pointMethod;
-- (id)idMethod;
-
-@end
-
 static void InitTemplates(void)
 {
-#define GET_TEMPLATE(enumValue, sel)                                     \
-    do {                                                                 \
-        sTemplates[enumValue] = CopyTemplateForSelector(@selector(sel)); \
+// Each was the return type of a template method (-signedCharMethod and so on).
+#define GET_TEMPLATE(enumValue, type)          \
+    do {                                       \
+        sTemplates[enumValue] = @encode(type); \
     } while (0)
 
-    GET_TEMPLATE(kOOShaderUniformTypeChar, signedCharMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar, unsignedCharMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeShort, signedShortMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort, unsignedShortMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeInt, signedIntMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt, unsignedIntMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeLong, signedLongMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong, unsignedLongMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeFloat, floatMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeDouble, doubleMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeVector, vectorMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeHPVector, hpvectorMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeQuaternion, quaternionMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeMatrix, matrixMethod);
-    GET_TEMPLATE(kOOShaderUniformTypePoint, pointMethod);
-    GET_TEMPLATE(kOOShaderUniformTypeObject, idMethod);
+    GET_TEMPLATE(kOOShaderUniformTypeChar, signed char);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar, unsigned char);
+    GET_TEMPLATE(kOOShaderUniformTypeShort, signed short);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort, unsigned short);
+    GET_TEMPLATE(kOOShaderUniformTypeInt, signed int);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt, unsigned int);
+    GET_TEMPLATE(kOOShaderUniformTypeLong, signed long);
+    GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong, unsigned long);
+    GET_TEMPLATE(kOOShaderUniformTypeFloat, float);
+    GET_TEMPLATE(kOOShaderUniformTypeDouble, double);
+    GET_TEMPLATE(kOOShaderUniformTypeVector, Vector);
+    GET_TEMPLATE(kOOShaderUniformTypeHPVector, HPVector);
+    GET_TEMPLATE(kOOShaderUniformTypeQuaternion, Quaternion);
+    GET_TEMPLATE(kOOShaderUniformTypeMatrix, OOMatrix);
+    GET_TEMPLATE(kOOShaderUniformTypePoint, NSPoint);
+    GET_TEMPLATE(kOOShaderUniformTypeObject, id);
 
     sInited = YES;
 }
-
-static const char* CopyTemplateForSelector(SEL selector)
-{
-    Method method = class_getInstanceMethod([OOShaderUniformTypeMethodSignatureTemplateClass class], selector);
-
-    // method_copyReturnType() returns a malloc()ed copy, kept for the life of the process.
-    return (method != NULL) ? method_copyReturnType(method) : NULL;
-}
-
-@implementation OOShaderUniformTypeMethodSignatureTemplateClass : OOObject
-
-- (signed char)signedCharMethod
-{
-    return 0;
-}
-
-- (unsigned char)unsignedCharMethod
-{
-    return 0;
-}
-
-- (signed short)signedShortMethod
-{
-    return 0;
-}
-
-- (unsigned short)unsignedShortMethod
-{
-    return 0;
-}
-
-- (signed int)signedIntMethod
-{
-    return 0;
-}
-
-- (unsigned int)unsignedIntMethod
-{
-    return 0;
-}
-
-- (signed long)signedLongMethod
-{
-    return 0;
-}
-
-- (unsigned long)unsignedLongMethod
-{
-    return 0;
-}
-
-- (float)floatMethod
-{
-    return 0.0f;
-}
-
-- (double)doubleMethod
-{
-    return 0.0;
-}
-
-- (Vector)vectorMethod
-{
-    Vector v = { 0 };
-    return v;
-}
-
-- (HPVector)hpvectorMethod
-{
-    HPVector v = { 0 };
-    return v;
-}
-
-- (Quaternion)quaternionMethod
-{
-    Quaternion q = { 0 };
-    return q;
-}
-
-- (OOMatrix)matrixMethod
-{
-    return kZeroMatrix;
-}
-
-- (NSPoint)pointMethod
-{
-    return NSZeroPoint;
-}
-
-- (id)idMethod
-{
-    return nil;
-}
-
-@end
 
 long long OOCallIntegerMethod(id object, SEL selector, IMP method, OOShaderUniformType type)
 {

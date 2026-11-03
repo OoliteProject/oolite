@@ -31,7 +31,6 @@ SOFTWARE.
 #if OO_LOCALIZATION_TOOLS
 
 #import "OOConvertSystemDescriptions.h"
-#import "OOFoundationBridge.h"
 #import "ResourceManager.h"
 #import "Universe.h"
 #include "oofnd/PListWriting.hpp"

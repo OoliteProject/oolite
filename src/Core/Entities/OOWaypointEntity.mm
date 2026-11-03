@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "OOWaypointEntity.h"
 #import "Entity.h"
 #import "HeadUpDisplay.h"
-#import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGL.h"
 #import "OOPListGameTypes.h"
@@ -35,6 +34,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #include "oofnd/PListGet.hpp"
+#include "oofnd/String.hpp"
 
 #define OOWAYPOINT_KEY_POSITION "position"
 #define OOWAYPOINT_KEY_ORIENTATION "orientation"
@@ -47,11 +47,6 @@ MA 02110-1301, USA.
 + (instancetype)waypointWithDictionary:(const oo::PList&)info
 {
     return [[[OOWaypointEntity alloc] cxx_initWithDictionary:info] autorelease];
-}
-
-- (id)initWithDictionary:(id)info // shared selector (Foundation declares it too)
-{
-    return [self cxx_initWithDictionary:oo::PListFrom(info)];
 }
 
 - (id)cxx_initWithDictionary:(const oo::PList&)info

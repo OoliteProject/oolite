@@ -4,6 +4,10 @@ OOTrumble.h
 
 Implements cute, fuzzy trumbles.
 
+C++20 since bead oo-862e (Phase 3, proposed ADR-0056). The class is cxx::OOTrumble while
+OOTrumble+ObjCBridge.h, imported at the end of this header, keeps the Objective-C OOTrumble its
+unconverted callers message; the bridge's deletion bead moves it out of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -24,11 +28,15 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOTRUMBLE_H
+#define OOTRUMBLE_H
+
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
-#import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 @class PlayerEntity, AI, OOSound, OOTexture;
 
@@ -65,97 +73,114 @@ enum trumble_mouth {
     TRUMBLE_MOUTH_NORMAL
 };
 
-@interface OOTrumble : OOObject {
-@private
-    PlayerEntity* player; // owning entity (not retained)
-    //
-    unichar digram[2]; // seed for pseudo-randomly setting up Trumble (pair of characters)
-    //
-    GLfloat colorBase[4]; // color of Trumble
-    GLfloat colorPoint1[4]; // color of Trumble (variation 1)
-    GLfloat colorPoint2[4]; // color of Trumble	(variation 2)
-    GLfloat colorEyes[4]; // color of Trumble (eye color)
-    GLfloat* pointColor[6]; // pointscheme
-    //
-    GLfloat hunger; // behaviour modifier 0.0 (satiated) to 1.0 (starving)
-    GLfloat discomfort; // behaviour modifier 0.0 (very happy) to 1.0 (extremely uncomfortable)
-    //
-    GLfloat size; // 0.0 -> max_size
-    GLfloat max_size; // 0.90 -> 1.25
-    GLfloat growth_rate; // diff to size per sec.
-    //
-    GLfloat rotation; // CW rotation in radians (starts at 0.0)
-    GLfloat rotational_velocity; // +r (radians/sec)
-    //
-    NSPoint position; // x, y onscreen relative to center of screen
-    NSPoint movement; // +x, +y (screen units / sec)
-    //
-    NSPoint eye_position; // current position of eyes relative to their starting position
-    NSPoint mouth_position; // current position of eyes relative to their starting position
-    //
-    double animationTime; // set to 0.0 at start of current animation
-    double animationDuration; // set to 0.0 at start of current animation
-    //
-    enum trumble_animation animation; // current animation sequence
-    enum trumble_animation nextAnimation; // next animation sequence
-    //
-    int animationStage; // sub-sequence within animation
-    //
-    enum trumble_mouth mouthFrame; // which mouth position - determines what part of the texture to display
-    enum trumble_eyes eyeFrame; // which eye position - determines what part of the texture to display
-    //
-    OOTexture* texture;
-    //
-    GLfloat saved_float1, saved_float2;
-    //
-    BOOL readyToSpawn;
-}
+struct OOTrumbleTestAccess; // tests/unit/core/test_OOTrumble.mm
 
-- (id)initForPlayer:(PlayerEntity*)p1;
-- (id)initForPlayer:(PlayerEntity*)p1 digram:(const std::string&)digramString;
+namespace cxx {
 
-- (void)setupForPlayer:(PlayerEntity*)p1 digram:(const std::string&)digramString;
+class OOTrumble : public oo::RefCounted {
+public:
+    OOTrumble(); // -init
+    explicit OOTrumble(PlayerEntity* p1);
+    OOTrumble(PlayerEntity* p1, const std::string& digramString);
 
-- (void)spawnFrom:(OOTrumble*)parentTrumble;
+    void setupForPlayer(PlayerEntity* p1, const std::string& digramString);
 
-- (void)calcGrowthRate;
+    void spawnFrom(OOTrumble* parentTrumble);
 
-- (unichar*)digram;
-- (NSPoint)position;
-- (NSPoint)movement;
-- (GLfloat)rotation;
-- (GLfloat)size;
-- (GLfloat)hunger;
-- (GLfloat)discomfort;
+    void calcGrowthRate();
 
-// AI methods here
-- (void)actionIdle;
-- (void)actionBlink;
-- (void)actionSnarl;
-- (void)actionProot;
-- (void)actionShudder;
-- (void)actionStoned;
-- (void)actionPop;
-- (void)actionSleep;
-- (void)actionSpawn;
+    // The getters of the ivars of the same name (a data member and a member function cannot share
+    // a name; ADR-0056 amendment oo-862e).
+    uint16_t* getDigram();
+    NSPoint getPosition();
+    NSPoint getMovement();
+    GLfloat getRotation();
+    GLfloat getSize();
+    GLfloat getHunger();
+    GLfloat getDiscomfort();
 
-- (void)randomizeMotionX;
-- (void)randomizeMotionY;
+    // AI methods here
+    void actionIdle();
+    void actionBlink();
+    void actionSnarl();
+    void actionProot();
+    void actionShudder();
+    void actionStoned();
+    void actionPop();
+    void actionSleep();
+    void actionSpawn();
 
-- (void)drawTrumble:(double)z;
-- (void)updateTrumble:(double)delta_t;
+    void randomizeMotionX();
+    void randomizeMotionY();
 
-- (void)updateIdle:(double)delta_t;
-- (void)updateBlink:(double)delta_t;
-- (void)updateSnarl:(double)delta_t;
-- (void)updateProot:(double)delta_t;
-- (void)updateShudder:(double)delta_t;
-- (void)updateStoned:(double)delta_t;
-- (void)updatePop:(double)delta_t;
-- (void)updateSleep:(double)delta_t;
-- (void)updateSpawn:(double)delta_t;
+    void drawTrumble(double z);
+    void updateTrumble(double delta_t);
 
-- (oo::PList)dictionary; // the savegame record: a dictionary
-- (void)setFromDictionary:(const oo::PList&)dict;
+    void updateIdle(double delta_t);
+    void updateBlink(double delta_t);
+    void updateSnarl(double delta_t);
+    void updateProot(double delta_t);
+    void updateShudder(double delta_t);
+    void updateStoned(double delta_t);
+    void updatePop(double delta_t);
+    void updateSleep(double delta_t);
+    void updateSpawn(double delta_t);
 
-@end
+    oo::PList dictionary(); // the savegame record: a dictionary
+    void setFromDictionary(const oo::PList& dict);
+
+private:
+    friend struct ::OOTrumbleTestAccess; // the test reads the private state
+
+    PlayerEntity* player = { }; // owning entity (not retained)
+    //
+    uint16_t digram[2] = { }; // seed for pseudo-randomly setting up Trumble (pair of characters)
+    //
+    GLfloat colorBase[4] = { }; // color of Trumble
+    GLfloat colorPoint1[4] = { }; // color of Trumble (variation 1)
+    GLfloat colorPoint2[4] = { }; // color of Trumble	(variation 2)
+    GLfloat colorEyes[4] = { }; // color of Trumble (eye color)
+    GLfloat* pointColor[6] = { }; // pointscheme
+    //
+    GLfloat hunger = { }; // behaviour modifier 0.0 (satiated) to 1.0 (starving)
+    GLfloat discomfort = { }; // behaviour modifier 0.0 (very happy) to 1.0 (extremely uncomfortable)
+    //
+    GLfloat size = { }; // 0.0 -> max_size
+    GLfloat max_size = { }; // 0.90 -> 1.25
+    GLfloat growth_rate = { }; // diff to size per sec.
+    //
+    GLfloat rotation = { }; // CW rotation in radians (starts at 0.0)
+    GLfloat rotational_velocity = { }; // +r (radians/sec)
+    //
+    NSPoint position = { }; // x, y onscreen relative to center of screen
+    NSPoint movement = { }; // +x, +y (screen units / sec)
+    //
+    NSPoint eye_position = { }; // current position of eyes relative to their starting position
+    NSPoint mouth_position = { }; // current position of eyes relative to their starting position
+    //
+    double animationTime = { }; // set to 0.0 at start of current animation
+    double animationDuration = { }; // set to 0.0 at start of current animation
+    //
+    enum trumble_animation animation = { }; // current animation sequence
+    enum trumble_animation nextAnimation = { }; // next animation sequence
+    //
+    int animationStage = { }; // sub-sequence within animation
+    //
+    enum trumble_mouth mouthFrame = { }; // which mouth position - determines what part of the texture to display
+    enum trumble_eyes eyeFrame = { }; // which eye position - determines what part of the texture to display
+    //
+    oo::ObjCRef<OOTexture*> texture;
+    //
+    GLfloat saved_float1 = { }, saved_float2 = { };
+    //
+    bool readyToSpawn = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOTrumble, for callers not yet converted (PlayerEntity keeps its
+// trumbles as Objective-C objects; HeadUpDisplay draws them). Deleted, with namespace cxx above,
+// by the bridge's deletion bead.
+#import "OOTrumble+ObjCBridge.h"
+
+#endif // OOTRUMBLE_H

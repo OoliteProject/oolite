@@ -444,7 +444,7 @@ inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar sp
 - (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system;
 - (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc nearPosition:(HPVector)pos withCoordinateSystem:(const std::string&)system withinRadius:(GLfloat)radius;
 - (BOOL)cxx_addShips:(int)howMany withRole:(const std::string&)desc intoBoundingBox:(BoundingBox)bbox;
-- (BOOL)spawnShip:(id)shipdesc; // shared selector (proposed ADR-0043): an Objective-C string
+- (BOOL)cxx_spawnShip:(const std::string&)shipdesc; // the legacy spawnShip: action's ship key
 - (void)cxx_witchspaceShipWithPrimaryRole:(const std::string&)role;
 - (ShipEntity*)cxx_spawnShipWithRole:(const std::string&)desc near:(Entity*)entity;
 
@@ -635,7 +635,6 @@ inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar sp
 - (void)cxx_displayMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
 - (void)cxx_displayCountdownMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
 - (void)cxx_addDelayedMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count afterDelay:(OOTimeDelta)delay;
-- (void)addDelayedMessage:(id)textdict; // called by name (ADR-0043 item 21): the deferred call's dictionary
 - (void)cxx_addMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
 - (void)cxx_addMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count forceDisplay:(BOOL)forceDisplay;
 - (void)cxx_addCommsMessage:(const std::optional<std::string>&)text forCount:(OOTimeDelta)count;
@@ -686,10 +685,10 @@ inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar sp
 
 - (BOOL)inInterstellarSpace;
 
-// value: a script value (an Objective-C object, nil to remove); manifest nullopt where nil was passed.
-- (void)cxx_setSystemDataKey:(const std::string&)key value:(id)object fromManifest:(const std::optional<std::string>&)manifest;
-- (void)cxx_setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key value:(id)object fromManifest:(const std::optional<std::string>&)manifest forLayer:(OOSystemLayer)layer;
-- (id)cxx_systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key; // a script value
+// value: a script value (a null PList to remove); manifest nullopt where nil was passed.
+- (void)cxx_setSystemDataKey:(const std::string&)key value:(const oo::PList&)value fromManifest:(const std::optional<std::string>&)manifest;
+- (void)cxx_setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key value:(const oo::PList&)value fromManifest:(const std::optional<std::string>&)manifest forLayer:(OOSystemLayer)layer;
+- (oo::PList)cxx_systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(const std::string&)key; // a script value (null: none)
 - (std::vector<std::string>)cxx_systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum; // byte order of the key
 - (std::optional<std::string>)cxx_getSystemName:(OOSystemID)sys;
 - (std::optional<std::string>)cxx_getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gnum;

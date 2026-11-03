@@ -4,6 +4,11 @@ OOMultiTextureMaterial.h
 
 A material that uses multitexturing and texture combiners.
 
+C++20 since bead oo-lh0x (proposed ADR-0056, amendments oo-smy and oo-vl43). The class is
+cxx::OOMultiTextureMaterial while OOMultiTextureMaterial+ObjCBridge.h, imported at the end of this
+header, keeps the Objective-C OOMultiTextureMaterial that its caller makes; the bridge's deletion
+bead moves it out of namespace cxx.
+
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -27,6 +32,9 @@ SOFTWARE.
 
 */
 
+#ifndef OOMULTITEXTUREMATERIAL_H
+#define OOMULTITEXTUREMATERIAL_H
+
 #import "OOOpenGLExtensionManager.h"
 
 #if OO_MULTITEXTURE
@@ -35,18 +43,43 @@ SOFTWARE.
 
 @class OOTexture;
 
-@interface OOMultiTextureMaterial : OOBasicMaterial {
-@private
-    OOTexture* _diffuseMap;
-    OOTexture* _emissionMap;
+namespace cxx {
 
-    NSUInteger _unitsUsed;
-}
+class OOMultiTextureMaterial : public OOBasicMaterial {
+public:
+    /*	A new material, initialised by initWithName() (below); null where it failed (it answered
+            nil: no texture combiners). It was [[OOMultiTextureMaterial alloc] initWithName:configuration:].
+    */
+    static oo::Ref<OOMultiTextureMaterial> materialWithName(const std::optional<std::string>& name, const oo::PList& configuration);
 
-- (id)initWithName:(id)name configuration:(id)configuration; // an Objective-C string and dictionary. Shared selector (proposed ADR-0043).
+    // Runs once, right after construction (proposed ADR-0056, amendment oo-vl43); false where the
+    // Objective-C initialiser answered nil.
+    bool initWithName(const std::optional<std::string>& name, const oo::PList& configuration); // shared with OOBasicMaterial
 
-- (NSUInteger)textureUnitCount;
+    NSUInteger textureUnitCount();
 
-@end
+    std::optional<std::string> descriptionComponents() const override;
+    NSUInteger countOfTextureUnitsWithBaseCoordinates() override;
+    void ensureFinishedLoading() override;
+    void apply() override;
+    void unapplyWithNext(OOMaterial* next) override;
+#ifndef NDEBUG
+    std::vector<oo::ObjCRef<OOTexture*>> allTextures() override;
+#endif
+
+private:
+    oo::ObjCRef<::OOTexture*> _diffuseMap = { };
+    oo::ObjCRef<::OOTexture*> _emissionMap = { };
+
+    NSUInteger _unitsUsed = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOMultiTextureMaterial, for its caller not yet converted.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOMultiTextureMaterial+ObjCBridge.h"
 
 #endif /* OO_MULTITEXTURE */
+
+#endif // OOMULTITEXTUREMATERIAL_H

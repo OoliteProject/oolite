@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #if OOLITE_SDL
 
 #import "MyOpenGLView.h"
-#import "OOFoundationBridge.h"
 #import "OOFullScreenController.h"
 #import "Universe.h"
 #include "oofnd/Defaults.hpp"

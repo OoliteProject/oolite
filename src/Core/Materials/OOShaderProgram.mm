@@ -31,11 +31,9 @@ SOFTWARE.
 
 #import "MyOpenGLView.h"
 #import "OODebugFlags.h"
-#import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
-#import "OOPListView.h"
 #import "OOShaderProgram.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
@@ -467,7 +465,7 @@ BOOL GetShaderSource(const std::optional<std::string>& fileName, const std::stri
         // Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
         if (!oo::str::pathHasExtensionIn(*fileName, extensions)) {
             for (const std::string& extension : extensions) {
-                result = [ResourceManager cxx_stringFromFilesNamed:oo::StdString([oo::NSStringFrom(*fileName) stringByAppendingPathExtension:oo::NSStringFrom(extension)])
+                result = [ResourceManager cxx_stringFromFilesNamed:oo::str::appendingPathExtension(*fileName, extension)
                                                           inFolder:"Shaders"];
                 if (result.has_value())
                     break;

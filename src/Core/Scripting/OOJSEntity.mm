@@ -33,8 +33,6 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "ShipEntity.h"
 
-#import "OOFoundationBridge.h"
-
 static JSClassID sEntityClassID;
 
 static JSValue EntityGetProperty(OOJS_GETTER_ARGS);

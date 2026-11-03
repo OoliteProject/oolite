@@ -26,81 +26,83 @@ SOFTWARE.
 */
 
 #import "OORegExpMatcher.h"
-#import "OOFoundationBridge.h"
 #import "OOJSFunction.h"
 #import "OOJavaScriptEngine.h"
 
+#include "oofnd/String.hpp"
 #include "oofnd/Thread.hpp"
 #include "oofnd/objc/OOAssert.h"
 
+namespace cxx {
+
 // Pseudo-singleton: a single instance exists at a given time, but can be released.
-static OORegExpMatcher* sActiveInstance;
+namespace {
+    static OORegExpMatcher* sActiveInstance;
+} // namespace
 
-@implementation OORegExpMatcher
-
-+ (instancetype)regExpMatcher
+oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()
 {
-    OOAssert(oo::thread::isMainThread(), "OORegExpMatcher may only be used on the main thread.");
+    OOCAssert(oo::thread::isMainThread(), "OORegExpMatcher may only be used on the main thread.");
 
-    if (sActiveInstance == nil) {
-        sActiveInstance = [[[self alloc] init] autorelease];
+    if (sActiveInstance == nullptr) {
+        oo::Ref<OORegExpMatcher> matcher = oo::makeRef<OORegExpMatcher>();
+        if (!matcher->init())
+            return nullptr; // [[[self alloc] init] autorelease] was nil
+        sActiveInstance = matcher.get();
+        return matcher;
     }
 
-    return sActiveInstance;
+    return oo::Ref<OORegExpMatcher>(sActiveInstance);
 }
 
-- (id)init
+bool OORegExpMatcher::init()
 {
-    if ((self = [super init])) {
-        const char* argumentNames[2] = { "string", "regexp" };
-        unsigned codeLine = __LINE__ + 1; // NB: should remain line before code.
-        const char* code = "return regexp.test(string);";
+    const char* argumentNames[2] = { "string", "regexp" };
+    unsigned codeLine = __LINE__ + 1; // NB: should remain line before code.
+    const char* code = "return regexp.test(string);";
 
-        [OOJavaScriptEngine sharedEngine]; // Summon the beast from the Pit.
+    [OOJavaScriptEngine sharedEngine]; // Summon the beast from the Pit.
 
-        JSContext* context = OOJSAcquireContext();
-        _tester = [[OOJSFunction alloc] initWithName:std::string("matchesRegExp")
-                                               scope:JS_UNDEFINED
-                                                code:std::string(code)
-                                       argumentCount:2
-                                       argumentNames:argumentNames
-                                            fileName:oo::str::lastPathComponent(__FILE__)
-                                          lineNumber:codeLine
-                                             context:context];
+    JSContext* context = OOJSAcquireContext();
+    _tester = [[::OOJSFunction alloc] initWithName:std::string("matchesRegExp")
+                                             scope:JS_UNDEFINED
+                                              code:std::string(code)
+                                     argumentCount:2
+                                     argumentNames:argumentNames
+                                          fileName:oo::str::lastPathComponent(__FILE__)
+                                        lineNumber:codeLine
+                                           context:context];
 
-        OOJSRelinquishContext(context);
+    OOJSRelinquishContext(context);
 
-        if (_tester == nil)
-            DESTROY(self);
-    }
+    if (_tester == nil)
+        return false; // was DESTROY(self)
 
-    return self;
+    return true;
 }
 
-- (void)dealloc
+OORegExpMatcher::~OORegExpMatcher()
 {
-    if (sActiveInstance == self)
-        sActiveInstance = nil;
+    if (sActiveInstance == this)
+        sActiveInstance = nullptr;
 
     DESTROY(_tester);
     DESTROY(_cachedRegExpObject);
-
-    [super dealloc];
 }
 
-- (BOOL)string:(const std::string&)string matchesExpression:(const std::string&)regExp
+bool OORegExpMatcher::string(const std::string& string, const std::string& regExp)
 {
-    return [self string:string matchesExpression:regExp flags:0];
+    return this->string(string, regExp, 0);
 }
 
-- (BOOL)string:(const std::string&)string matchesExpression:(const std::string&)regExp flags:(NSUInteger)flags
+bool OORegExpMatcher::string(const std::string& string, const std::string& regExp, NSUInteger flags)
 {
-    OOAssert(oo::thread::isMainThread(), "OORegExpMatcher may only be used on the main thread.");
+    OOCAssert(oo::thread::isMainThread(), "OORegExpMatcher may only be used on the main thread.");
 
     const std::u16string regExpUnits = oo::utf8ToUtf16(regExp);
     size_t expLength = regExpUnits.size();
     if (EXPECT_NOT(expLength == 0))
-        return NO;
+        return false;
 
     JSContext* context = OOJSAcquireContext();
 
@@ -134,13 +136,31 @@ static OORegExpMatcher* sActiveInstance;
         JS_FreeValue(context, global);
     }
 
-    BOOL result = [_tester evaluatePredicateWithContext:context
-                                                  scope:nil
-                                              arguments:oo::ObjCRefsFrom<id>(oo::NSArrayFromObjects(std::vector<id> { oo::NSStringFrom(string), _cachedRegExpObject }))];
+    // The arguments converted as -evaluatePredicateWithContext:scope:arguments: converted them (a JS
+    // string, as the string's Objective-C string gave; the cached RegExp object), owned while the
+    // function runs, and the result converted to a boolean as it did; an uncaught exception, which
+    // QuickJS leaves pending, is reported as it did.
+    JSValue argv[2];
+    argv[0] = OOJSValueFromPList(context, oo::PList(string));
+    argv[1] = (_cachedRegExpObject != nil) ? OOJSValueFromNativeObject(context, _cachedRegExpObject) : JSValue {}; // (a message to nil gave the zero value)
+    JSValue resultValue = JS_UNDEFINED;
+    bool OK = [_tester evaluateWithContext:context scope:JS_UNDEFINED argc:2 argv:argv result:&resultValue];
+    int matched = 0;
+    if (OK) {
+        matched = JS_ToBool(context, resultValue);
+        JS_FreeValue(context, resultValue);
+        if (matched < 0)
+            OK = false;
+    }
+    if (!OK && JS_HasException(context))
+        OOJSReportPendingException(context);
+    JS_FreeValue(context, argv[0]);
+    JS_FreeValue(context, argv[1]);
+    bool result = OK && matched > 0;
 
     OOJSRelinquishContext(context);
 
     return result;
 }
 
-@end
+} // namespace cxx

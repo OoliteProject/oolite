@@ -64,7 +64,7 @@ typedef enum {
 - (void)playDockingMusic;
 - (void)playDockedMusic;
 
-- (void)setMissionMusic:(id)missionMusicName; // shared selector: an Objective-C string, or nil
+- (void)cxx_setMissionMusic:(const std::optional<std::string>&)missionMusicName; // nullopt: none (was the shared selector -setMissionMusic:, bead oo-qps.53)
 - (void)playMissionMusic;
 
 - (void)justStop;

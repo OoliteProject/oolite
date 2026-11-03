@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "OOTrumble.h"
 #import "MyOpenGLView.h"
-#import "OOFoundationBridge.h"
 #import "OOMaths.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
@@ -38,40 +37,28 @@ static void InitTrumbleSounds(void);
 static void PlayTrumbleIdle(void);
 static void PlayTrumbleSqueal(void);
 
-@implementation OOTrumble
+namespace cxx {
 
-- (id)init
+OOTrumble::OOTrumble()
 {
-    self = [super init];
-
     int i;
     for (i = 0; i < 4; i++) {
         colorPoint1[i] = 1.0;
         colorPoint2[i] = 1.0;
     }
-
-    return self;
 }
 
-- (id)initForPlayer:(PlayerEntity*)p1
+OOTrumble::OOTrumble(PlayerEntity* p1)
 {
-    self = [super init];
-
-    [self setupForPlayer:p1 digram:"a1"];
-
-    return self;
+    setupForPlayer(p1, "a1");
 }
 
-- (id)initForPlayer:(PlayerEntity*)p1 digram:(const std::string&)digramString
+OOTrumble::OOTrumble(PlayerEntity* p1, const std::string& digramString)
 {
-    self = [super init];
-
-    [self setupForPlayer:p1 digram:digramString];
-
-    return self;
+    setupForPlayer(p1, digramString);
 }
 
-- (void)setupForPlayer:(PlayerEntity*)p1 digram:(const std::string&)digramString
+void OOTrumble::setupForPlayer(PlayerEntity* p1, const std::string& digramString)
 {
     // set digram (UTF-16 units, as -characterAtIndex: read them; a missing string read as 0s)
     //
@@ -154,8 +141,8 @@ static void PlayTrumbleSqueal(void);
     position.x = (ranrot_rand() & 15) * 28 - 210;
     position.y = (ranrot_rand() & 15) * 28 - 210;
     //
-    [self randomizeMotionX];
-    [self randomizeMotionY];
+    randomizeMotionX();
+    randomizeMotionY();
 
     //	rotation
     //
@@ -183,7 +170,7 @@ static void PlayTrumbleSqueal(void);
     }
     //
     size = 0.5 * (1.0 + randf());
-    [self calcGrowthRate];
+    calcGrowthRate();
     hunger = 0.0;
     discomfort = 0.0;
     //
@@ -198,171 +185,163 @@ static void PlayTrumbleSqueal(void);
     animationTime = 0.0;
     animationDuration = 1.5 + randf() * 3.0; // time until next animation
     //
-    texture = [OOTexture cxx_textureWithName:"trumblekit.png"
-                                    inFolder:"Textures"
-                                     options:kOOTextureDefaultOptions | kOOTextureNoShrink
-                                  anisotropy:0.0f
-                                     lodBias:kOOTextureDefaultLODBias];
-    [texture retain];
+    texture = oo::ObjCRef<OOTexture*>([OOTexture cxx_textureWithName:"trumblekit.png"
+                                                            inFolder:"Textures"
+                                                             options:kOOTextureDefaultOptions | kOOTextureNoShrink
+                                                          anisotropy:0.0f
+                                                             lodBias:kOOTextureDefaultLODBias]);
 
     InitTrumbleSounds();
 
     readyToSpawn = NO;
 }
 
-- (void)dealloc
-{
-    [texture release];
-
-    [super dealloc];
-}
-
-- (void)spawnFrom:(OOTrumble*)parentTrumble
+void OOTrumble::spawnFrom(OOTrumble* parentTrumble)
 {
     if (parentTrumble) {
         // mutate..
-        unichar mutation1 = ranrot_rand() & ranrot_rand() & ranrot_rand() & 0xff; // each bit has a 1/8 chance of being set
-        unichar mutation2 = ranrot_rand() & ranrot_rand() & ranrot_rand() & 0xff; // each bit has a 1/8 chance of being set
-        unichar* parentdigram = [parentTrumble digram];
-        unichar newdigram[2];
+        uint16_t mutation1 = ranrot_rand() & ranrot_rand() & ranrot_rand() & 0xff; // each bit has a 1/8 chance of being set
+        uint16_t mutation2 = ranrot_rand() & ranrot_rand() & ranrot_rand() & 0xff; // each bit has a 1/8 chance of being set
+        uint16_t* parentdigram = parentTrumble->getDigram();
+        uint16_t newdigram[2];
         newdigram[0] = parentdigram[0] ^ mutation1;
         newdigram[1] = parentdigram[1] ^ mutation2;
         //
-        [self setupForPlayer:player digram:oo::utf16ToUtf8(std::u16string(newdigram, newdigram + 2))];
+        setupForPlayer(player, oo::utf16ToUtf8(std::u16string(newdigram, newdigram + 2)));
         //
-        size = [parentTrumble size] * 0.4;
+        size = parentTrumble->getSize() * 0.4;
         if (size < 0.5)
             size = 0.5; // minimum size
-        position = [parentTrumble position];
-        rotation = [parentTrumble rotation];
-        movement = [parentTrumble movement];
+        position = parentTrumble->getPosition();
+        rotation = parentTrumble->getRotation();
+        movement = parentTrumble->getMovement();
         movement.y += 8.0; // emerge!
     } else {
         size = 0.5; // minimum size
         position.x = (ranrot_rand() & 15) * 28 - 210;
         position.y = (ranrot_rand() & 15) * 28 - 210;
-        [self randomizeMotionX];
-        [self randomizeMotionY];
+        randomizeMotionX();
+        randomizeMotionY();
         rotation = TRUMBLE_MAX_ROTATION * (randf() - randf());
         rotational_velocity = TRUMBLE_MAX_ROTATIONAL_VELOCITY * (randf() - randf());
     }
     hunger = 0.25;
-    [self calcGrowthRate];
+    calcGrowthRate();
     discomfort = 0.0;
-    [self actionSleep];
+    actionSleep();
 }
 
-- (void)calcGrowthRate
+void OOTrumble::calcGrowthRate()
 {
     float rsize = size / max_size;
     growth_rate = TRUMBLE_GROWTH_RATE * (1.0 - rsize);
 }
 
-- (unichar*)digram
+uint16_t* OOTrumble::getDigram()
 {
     return digram;
 }
 
-- (NSPoint)position
+NSPoint OOTrumble::getPosition()
 {
     return position;
 }
 
-- (NSPoint)movement
+NSPoint OOTrumble::getMovement()
 {
     return movement;
 }
 
-- (GLfloat)rotation
+GLfloat OOTrumble::getRotation()
 {
     return rotation;
 }
 
-- (GLfloat)size
+GLfloat OOTrumble::getSize()
 {
     return size;
 }
 
-- (GLfloat)hunger
+GLfloat OOTrumble::getHunger()
 {
     return hunger;
 }
 
-- (GLfloat)discomfort
+GLfloat OOTrumble::getDiscomfort()
 {
     return discomfort;
 }
 
 // AI methods here
-- (void)actionIdle
+void OOTrumble::actionIdle()
 {
     nextAnimation = TRUMBLE_ANIM_IDLE;
     animationDuration = 1.5 + 3.0 * randf(); // time until next animation
 }
 
-- (void)actionBlink
+void OOTrumble::actionBlink()
 {
     nextAnimation = TRUMBLE_ANIM_BLINK;
     animationDuration = 0.5 + 0.5 * randf(); // time until next animation
 }
 
-- (void)actionSnarl
+void OOTrumble::actionSnarl()
 {
     nextAnimation = TRUMBLE_ANIM_SNARL;
     animationDuration = 4.0 + 1.0 * randf(); // time until next animation
 }
 
-- (void)actionProot
+void OOTrumble::actionProot()
 {
     nextAnimation = TRUMBLE_ANIM_PROOT;
     animationDuration = 1.5 + 0.5 * randf(); // time until next animation
 }
 
-- (void)actionShudder
+void OOTrumble::actionShudder()
 {
     nextAnimation = TRUMBLE_ANIM_SHUDDER;
     animationDuration = 2.25 + randf() * 1.5; // time until next animation
 }
 
-- (void)actionStoned
+void OOTrumble::actionStoned()
 {
     nextAnimation = TRUMBLE_ANIM_STONED;
     animationDuration = 1.5 + randf() * 3.0; // time until next animation
 }
 
-- (void)actionPop
+void OOTrumble::actionPop()
 {
     nextAnimation = TRUMBLE_ANIM_DIE;
     animationDuration = 1.5 + randf() * 3.0; // time until next animation
 }
 
-- (void)actionSleep
+void OOTrumble::actionSleep()
 {
     nextAnimation = TRUMBLE_ANIM_SLEEP;
     animationDuration = 12.0 + 12.0 * randf(); // time until next animation
 }
 
-- (void)actionSpawn
+void OOTrumble::actionSpawn()
 {
     nextAnimation = TRUMBLE_ANIM_SPAWN;
     animationDuration = 9.0 + 3.0 * randf(); // time until next animation
 }
 
-- (void)randomizeMotionX
+void OOTrumble::randomizeMotionX()
 {
     movement.x = 36 * (randf() - 0.5);
     movement.x += (movement.x > 0) ? 2.0 : -2.0;
     rotational_velocity = TRUMBLE_MAX_ROTATIONAL_VELOCITY * (randf() - randf());
 }
 
-- (void)randomizeMotionY
+void OOTrumble::randomizeMotionY()
 {
     movement.y = 36 * (randf() - 0.5);
     movement.y += (movement.y > 0) ? 2.0 : -2.0;
     rotational_velocity = TRUMBLE_MAX_ROTATIONAL_VELOCITY * (randf() - randf());
 }
 
-- (void)drawTrumble:(double)z
+void OOTrumble::drawTrumble(double z)
 {
     /*
     draws a trumble body as a fan of triangles...
@@ -383,7 +362,7 @@ static void PlayTrumbleSqueal(void);
     OOGLTranslateModelView(make_vector(position.x, position.y, z));
     OOGLMultModelView(OOMatrixForRotationZ(rotation));
 
-    [texture apply];
+    [texture.get() apply];
 
     //
     // Body..
@@ -490,7 +469,7 @@ static void PlayTrumbleSqueal(void);
     OOGL(glDisable(GL_TEXTURE_2D));
 }
 
-- (void)updateTrumble:(double)delta_t
+void OOTrumble::updateTrumble(double delta_t)
 {
     // player movement
     NSPoint p_mov = NSMakePoint(TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialPitch], TRUMBLE_MAX_ROTATIONAL_VELOCITY * [player dialRoll]);
@@ -527,12 +506,12 @@ static void PlayTrumbleSqueal(void);
     position.x += delta_t * movement.x;
     if ((position.x < -bumpx) || (position.x > bumpx)) {
         position.x = (position.x < -bumpx) ? -bumpx : bumpx;
-        [self randomizeMotionX];
+        randomizeMotionX();
     }
     position.y += delta_t * (movement.y + p_mov.x);
     if ((position.y < -bumpy) || (position.y > bumpy)) {
         position.y = (position.y < -bumpy) ? -bumpy : bumpy;
-        [self randomizeMotionY];
+        randomizeMotionY();
     }
 
     // rotation
@@ -557,7 +536,7 @@ static void PlayTrumbleSqueal(void);
         size = max_size;
         growth_rate = 0.0;
     }
-    [self calcGrowthRate];
+    calcGrowthRate();
     if (hunger > 0.75)
         growth_rate = 0.0;
     if (hunger > 1.0)
@@ -623,66 +602,66 @@ static void PlayTrumbleSqueal(void);
     //
     switch (animation) {
     case TRUMBLE_ANIM_SNARL:
-        [self updateSnarl:delta_t];
+        updateSnarl(delta_t);
         break;
     case TRUMBLE_ANIM_SHUDDER:
-        [self updateShudder:delta_t];
+        updateShudder(delta_t);
         break;
     case TRUMBLE_ANIM_STONED:
-        [self updateStoned:delta_t];
+        updateStoned(delta_t);
         break;
     case TRUMBLE_ANIM_DIE:
-        [self updatePop:delta_t];
+        updatePop(delta_t);
         break;
     case TRUMBLE_ANIM_BLINK:
-        [self updateBlink:delta_t];
+        updateBlink(delta_t);
         break;
     case TRUMBLE_ANIM_PROOT:
-        [self updateProot:delta_t];
+        updateProot(delta_t);
         break;
     case TRUMBLE_ANIM_SLEEP:
-        [self updateSleep:delta_t];
+        updateSleep(delta_t);
         break;
     case TRUMBLE_ANIM_SPAWN:
-        [self updateSpawn:delta_t];
+        updateSpawn(delta_t);
         break;
     case TRUMBLE_ANIM_IDLE:
     default:
-        [self updateIdle:delta_t];
+        updateIdle(delta_t);
         break;
     }
 }
 
-- (void)updateIdle:(double)delta_t
+void OOTrumble::updateIdle(double delta_t)
 {
     animationTime += delta_t;
     if (animationTime > animationDuration) {
         // blink or proot or idle and/or change direction
-        [self actionIdle];
+        actionIdle();
         if (randf() < 0.25)
-            [self actionBlink];
+            actionBlink();
         if (randf() < 0.10)
-            [self randomizeMotionX];
+            randomizeMotionX();
         if (randf() < 0.10)
-            [self randomizeMotionY];
+            randomizeMotionY();
         if (randf() < 0.05)
-            [self actionProot];
+            actionProot();
         if (randf() < 0.01)
-            [self actionSleep];
+            actionSleep();
         if (randf() < 0.01)
-            [self actionSnarl];
+            actionSnarl();
         //
         if (readyToSpawn) {
-            [self actionSpawn];
+            actionSpawn();
             readyToSpawn = NO;
         }
         //
         if (discomfort > 0.5 + randf()) {
-            [self actionShudder];
+            actionShudder();
         }
         //
         if (discomfort > 0.96) {
-            [self actionPop];
+            actionPop();
         }
         //
         animation = nextAnimation;
@@ -690,24 +669,24 @@ static void PlayTrumbleSqueal(void);
     }
 }
 
-- (void)updateBlink:(double)delta_t
+void OOTrumble::updateBlink(double delta_t)
 {
     eyeFrame = TRUMBLE_EYES_SHUT;
     animationTime += delta_t;
     if (animationTime > animationDuration) {
         // blink or proot or idle
-        [self actionIdle];
+        actionIdle();
         if (randf() < 0.05)
-            [self actionBlink];
+            actionBlink();
         if (randf() < 0.1)
-            [self actionProot];
+            actionProot();
         animation = nextAnimation;
         animationTime = 0.0;
         eyeFrame = TRUMBLE_EYES_OPEN;
     }
 }
 
-- (void)updateSnarl:(double)delta_t
+void OOTrumble::updateSnarl(double delta_t)
 {
     int pc = 100 * animationTime / animationDuration;
     if (pc < 25) {
@@ -733,9 +712,9 @@ static void PlayTrumbleSqueal(void);
     animationTime += delta_t;
     if (animationTime > animationDuration) {
         // blink or idle
-        [self actionIdle];
+        actionIdle();
         if (randf() < 0.1)
-            [self actionBlink];
+            actionBlink();
         animation = nextAnimation;
         animationTime = 0.0;
         eyeFrame = TRUMBLE_EYES_OPEN;
@@ -743,7 +722,7 @@ static void PlayTrumbleSqueal(void);
     }
 }
 
-- (void)updateProot:(double)delta_t
+void OOTrumble::updateProot(double delta_t)
 {
     if (!animationTime) {
         animationStage = 0;
@@ -766,9 +745,9 @@ static void PlayTrumbleSqueal(void);
     animationTime += delta_t;
     if (animationTime > animationDuration) {
         // blink or idle
-        [self actionIdle];
+        actionIdle();
         if (randf() < 0.1)
-            [self actionBlink];
+            actionBlink();
         animation = nextAnimation;
         animationTime = 0.0;
         eyeFrame = TRUMBLE_EYES_OPEN;
@@ -776,7 +755,7 @@ static void PlayTrumbleSqueal(void);
     }
 }
 
-- (void)updateShudder:(double)delta_t
+void OOTrumble::updateShudder(double delta_t)
 {
     if (!animationTime) {
         eyeFrame = TRUMBLE_EYES_WIDE;
@@ -799,9 +778,9 @@ static void PlayTrumbleSqueal(void);
         // feel better
         discomfort *= 0.9;
         // blink or idle
-        [self actionIdle];
+        actionIdle();
         if (randf() < 0.1)
-            [self actionBlink];
+            actionBlink();
         animation = nextAnimation;
         animationTime = 0.0;
         eyeFrame = TRUMBLE_EYES_OPEN;
@@ -809,11 +788,11 @@ static void PlayTrumbleSqueal(void);
     }
 }
 
-- (void)updateStoned:(double)delta_t
+void OOTrumble::updateStoned(double delta_t)
 {
 }
 
-- (void)updatePop:(double)delta_t
+void OOTrumble::updatePop(double delta_t)
 {
     if (!animationTime) {
         eyeFrame = TRUMBLE_EYES_SHUT;
@@ -847,11 +826,11 @@ static void PlayTrumbleSqueal(void);
     animationTime += delta_t;
     if (animationTime > animationDuration) {
         // kaputnik!
-        [player removeTrumble:self];
+        [player removeTrumble:oo::ToObjC(this)];
     }
 }
 
-- (void)updateSleep:(double)delta_t
+void OOTrumble::updateSleep(double delta_t)
 {
     if (!animationTime) {
         saved_float1 = eye_position.y;
@@ -872,16 +851,16 @@ static void PlayTrumbleSqueal(void);
         // idle or proot
         eye_position.y = saved_float1;
         mouth_position.y = saved_float2;
-        [self actionIdle];
+        actionIdle();
         if (randf() < 0.25)
-            [self actionProot];
+            actionProot();
         animation = nextAnimation;
         animationTime = 0.0;
         eyeFrame = TRUMBLE_EYES_OPEN;
     }
 }
 
-- (void)updateSpawn:(double)delta_t
+void OOTrumble::updateSpawn(double delta_t)
 {
     movement.x *= (1.0 - delta_t);
     movement.y *= (1.0 - delta_t);
@@ -897,17 +876,17 @@ static void PlayTrumbleSqueal(void);
         // proot
         eye_position.y = saved_float1;
         mouth_position.y = saved_float2;
-        [self actionProot];
+        actionProot();
         animation = nextAnimation;
         animationTime = 0.0;
         eyeFrame = TRUMBLE_EYES_OPEN;
         mouthFrame = TRUMBLE_MOUTH_NORMAL;
-        [self randomizeMotionX];
-        [player addTrumble:self];
+        randomizeMotionX();
+        [player addTrumble:oo::ToObjC(this)];
     }
 }
 
-- (oo::PList)dictionary
+oo::PList OOTrumble::dictionary()
 {
     // (the floats are single reals: they come back as +numberWithFloat:, so the save text is unchanged)
     oo::PList::Dict result;
@@ -923,9 +902,9 @@ static void PlayTrumbleSqueal(void);
     return oo::PList(std::move(result));
 }
 
-- (void)setFromDictionary:(const oo::PList&)dict
+void OOTrumble::setFromDictionary(const oo::PList& dict)
 {
-    [self setupForPlayer:player digram:dict.get<std::string>("digram")];
+    setupForPlayer(player, dict.get<std::string>("digram"));
     hunger = dict.get<float>("hunger");
     discomfort = dict.get<float>("discomfort");
     size = dict.get<float>("size");
@@ -936,7 +915,7 @@ static void PlayTrumbleSqueal(void);
     movement = cxx_PointFromString(dict.get<std::string>("movement"));
 }
 
-@end
+} // namespace cxx
 
 static OOSoundSource* sTrumbleSoundSource;
 static OOSound* sTrumbleIdleSound;
@@ -957,7 +936,7 @@ static void PlayTrumbleIdle(void)
     if (![sTrumbleSoundSource isPlaying]) {
         // trumble sound from random direction - where's it gone now?
         [sTrumbleSoundSource setPosition:OORandomUnitVector()];
-        [sTrumbleSoundSource playSound:sTrumbleIdleSound];
+        [sTrumbleSoundSource playOOSound:sTrumbleIdleSound];
     }
 }
 
@@ -967,6 +946,6 @@ static void PlayTrumbleSqueal(void)
     if (![sTrumbleSoundSource isPlaying] || [sTrumbleSoundSource sound] == sTrumbleIdleSound) {
         // trumble sound from random direction - where's it gone now?
         [sTrumbleSoundSource setPosition:OORandomUnitVector()];
-        [sTrumbleSoundSource playSound:sTrumbleSqealSound];
+        [sTrumbleSoundSource playOOSound:sTrumbleSqealSound];
     }
 }

@@ -32,7 +32,8 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-@class OOPListSchemaVerifier, OOAIStateMachineVerifierStage;
+@class OOPListSchemaVerifier;
+class OOAIStateMachineVerifierStage; // C++ since bead oo-94qk
 
 /*	Foundation sweep (proposed ADR-0043, bead oo-v1zb): shipdata.plist and the entry being checked
         are oo::PList; the key and role sets are sorted std::vectors of strings.
@@ -46,7 +47,7 @@ MA 02110-1301, USA.
         _playerKeys,
         _allKeys;
     OOPListSchemaVerifier* _schemaVerifier;
-    OOAIStateMachineVerifierStage* _aiVerifierStage;
+    OOAIStateMachineVerifierStage* _aiVerifierStage; // Not retained (the verifier holds it).
 
     // Info about ship currently being checked.
     std::string _name;
