@@ -28,9 +28,26 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOObjCPeer.h"
 
+#include <cstdlib>
+#include <cxxabi.h>
+#include <typeinfo>
+
 namespace {
+
+// The C++ class's name, as [self class] named an Objective-C script's class ("cxx::" dropped).
+std::string ClassName(cxx::OOScript& script)
+{
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(typeid(script).name(), nullptr, nullptr, &status);
+    std::string result = (status == 0 && demangled != nullptr) ? demangled : typeid(script).name();
+    std::free(demangled);
+    if (result.starts_with("cxx::"))
+        result.erase(0, 5);
+    return result;
+}
 
 // Never destroyed: a facade may be released while the process exits.
 oo::ObjCPeers& Peers()
@@ -185,6 +202,18 @@ cxx::OOScript* oo::ToCxx(::OOScript* script)
     return self;
 }
 
+- (id)initWithCxxRootScript:(cxx::OOScript*)script
+{
+    self = [super init];
+    if (self != nil) {
+        _cxxRootScript = oo::Ref<cxx::OOScript>(script);
+        @autoreleasepool {
+            Peers().peerFor(_cxxRootScript.get(), [self] { return [self retain]; });
+        }
+    }
+    return self;
+}
+
 - (void)dealloc
 {
     if (ObjCScript* objCScript = AsObjCScript(_cxxRootScript.get()))
@@ -202,6 +231,18 @@ cxx::OOScript* oo::ToCxx(::OOScript* script)
 // The methods a subclass overrides. On a subclass's instance these are reached only when it does
 // not override them, or by [super ...]: the base's own member answers. On a C++ script's facade
 // the C++ class's (virtual) member answers.
+
+// A C++ script's facade describes itself with the C++ class's name, as an Objective-C script's
+// -description named its class (bead oo-9ht.57: a plist script's facade is this class now).
+- (std::optional<std::string>)cxx_description
+{
+    if (AsObjCScript(_cxxRootScript.get()) != nullptr)
+        return [super cxx_description];
+    std::string result = oo::str::format("<%s %s>", ClassName(*_cxxRootScript).c_str(), oo::str::pointerDescription(self).c_str());
+    if (const std::optional<std::string> components = [self cxx_descriptionComponents])
+        result += "{" + *components + "}";
+    return result;
+}
 
 - (std::optional<std::string>)cxx_descriptionComponents
 {

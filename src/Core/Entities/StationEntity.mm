@@ -287,7 +287,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
     if (soa == 0) {
         // if all docks have no ships on approach
-        [shipAI message:"DOCKING_COMPLETE"];
+        [_cxxShip->shipAI message:"DOCKING_COMPLETE"];
         [self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
     }
 }
@@ -351,7 +351,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
     [_shipsOnHold removeAllObjects];
 
-    [shipAI message:"DOCKING_COMPLETE"];
+    [_cxxShip->shipAI message:"DOCKING_COMPLETE"];
     [self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
 }
 
@@ -374,7 +374,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
     [self autoDockShipsOnHold];
 
-    [shipAI message:"DOCKING_COMPLETE"];
+    [_cxxShip->shipAI message:"DOCKING_COMPLETE"];
     [self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
 }
 
@@ -429,7 +429,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         return cxx_OOMakeDockingInstructions(self, [ship position], 0, 100, "DOCKING_REFUSED", "[station-docking-refused-to-fugitive]", NO, -1);
     }
 
-    if (magnitude2(_cxxEntity->velocity) > 1.0 || fabs(flightPitch) > 0.01 || fabs(flightYaw) > 0.01) {
+    if (magnitude2(_cxxEntity->velocity) > 1.0 || fabs(_cxxShip->flightPitch) > 0.01 || fabs(_cxxShip->flightYaw) > 0.01) {
         // no docking while station is moving, pitching or yawing
         return [self holdPositionInstructionForShip:ship];
     }
@@ -503,14 +503,14 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     }
 
     // rolling is okay for some
-    if (fabs(flightRoll) > 0.01 && [chosenDock isOffCentre]) {
+    if (fabs(_cxxShip->flightRoll) > 0.01 && [chosenDock isOffCentre]) {
         return [self holdPositionInstructionForShip:ship];
     }
 
     // we made it through holding!
     [_shipsOnHold removeObject:ship];
 
-    [shipAI cxx_reactToMessage:"DOCKING_REQUESTED" context:"requestDockingCoordinates"]; // react to the request
+    [_cxxShip->shipAI cxx_reactToMessage:"DOCKING_REQUESTED" context:"requestDockingCoordinates"]; // react to the request
     [self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:ship];
 
     return [chosenDock dockingInstructionsForShip:ship];
@@ -607,7 +607,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     max_police = dict.get<unsigned int>("max_police", STATION_MAX_POLICE);
     equipmentPriceFactor = dict.get<oo::NonNegative<float>>("equipment_price_factor", 1.0);
     equipmentPriceFactor = fmax(equipmentPriceFactor, 0.5f);
-    hasNPCTraffic = (unsigned char)OOFuzzyBooleanFromPList(dict.find("has_npc_traffic"), (maxFlightSpeed == 0)); // carriers default to NO
+    hasNPCTraffic = (unsigned char)OOFuzzyBooleanFromPList(dict.find("has_npc_traffic"), (_cxxShip->maxFlightSpeed == 0)); // carriers default to NO
     hasPatrolShips = OOFuzzyBooleanFromPList(dict.find("has_patrol_ships"), NO);
     suppress_arrival_reports = (unsigned char)dict.get<bool>("suppress_arrival_reports", NO);
     [self cxx_setAllegiance:OptionalStringValue(dict.find("allegiance"))];
@@ -833,7 +833,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         // begin launch of shuttles, traders, patrols
         if ((docked_shuttles > 0) && (!isRockHermit)) {
             if (unitime > last_shuttle_launch_time + shuttle_launch_interval) {
-                if (([self hasNPCTraffic]) && (aegis_status != AEGIS_NONE)) {
+                if (([self hasNPCTraffic]) && (_cxxShip->aegis_status != AEGIS_NONE)) {
                     [self launchShuttle];
                 }
                 last_shuttle_launch_time = unitime;
@@ -1192,15 +1192,15 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         }
         switch (level) {
         case STATION_ALERT_LEVEL_GREEN:
-            [shipAI cxx_reactToMessage:"GREEN_ALERT" context:std::nullopt];
+            [_cxxShip->shipAI cxx_reactToMessage:"GREEN_ALERT" context:std::nullopt];
             break;
 
         case STATION_ALERT_LEVEL_YELLOW:
-            [shipAI cxx_reactToMessage:"YELLOW_ALERT" context:std::nullopt];
+            [_cxxShip->shipAI cxx_reactToMessage:"YELLOW_ALERT" context:std::nullopt];
             break;
 
         case STATION_ALERT_LEVEL_RED:
-            [shipAI cxx_reactToMessage:"RED_ALERT" context:std::nullopt];
+            [_cxxShip->shipAI cxx_reactToMessage:"RED_ALERT" context:std::nullopt];
             break;
         }
     }
@@ -1386,7 +1386,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         return nil;
     }
 
-    const std::optional<std::string> defense_ship_key = OptionalStringValue(shipinfoDictionary.find("defense_ship")); // -oo_stringForKey:
+    const std::optional<std::string> defense_ship_key = OptionalStringValue(_cxxShip->shipinfoDictionary.find("defense_ship")); // -oo_stringForKey:
     if (defense_ship_key) {
         defense_ship = [UNIVERSE cxx_newShipWithName:*defense_ship_key];
     }
@@ -1395,7 +1395,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     // default object itself otherwise).
     bool shipdataSuppliedRole = false;
     if (!defense_ship) {
-        const std::optional<std::string> defense_ship_role = OptionalStringValue(shipinfoDictionary.find("defense_ship_role"));
+        const std::optional<std::string> defense_ship_role = OptionalStringValue(_cxxShip->shipinfoDictionary.find("defense_ship_role"));
         shipdataSuppliedRole = defense_ship_role.has_value();
         defense_ship = [UNIVERSE cxx_newShipWithRole:defense_ship_role.value_or(default_defense_ship_role)];
     }
@@ -1743,7 +1743,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     {
         // set the role so that we break up into rocks!
         [self setPrimaryRole:"asteroid"];
-        being_mined = YES;
+        _cxxShip->being_mined = YES;
     }
 
     // finally bite the bullet
@@ -1797,7 +1797,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         if ([other isPlayer]) {
             [player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
         }
-        [shipAI cxx_reactToMessage:"DOCKING_REQUESTED" context:std::nullopt]; // react to the request
+        [_cxxShip->shipAI cxx_reactToMessage:"DOCKING_REQUESTED" context:std::nullopt]; // react to the request
         [self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
 
         last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
@@ -1827,7 +1827,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
             result = "DOCKING_CLEARANCE_CANCELLED";
             player_reserved_dock = nil;
             if ([self currentlyInDockingQueues] == 0) {
-                [shipAI message:"DOCKING_COMPLETE"];
+                [_cxxShip->shipAI message:"DOCKING_COMPLETE"];
                 [self doScriptEvent:OOJSID("stationDockingQueuesAreEmpty")];
             }
             break;
@@ -1956,7 +1956,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
         }
 
         result = "DOCKING_CLEARANCE_GRANTED";
-        [shipAI cxx_reactToMessage:"DOCKING_REQUESTED" context:std::nullopt]; // react to the request
+        [_cxxShip->shipAI cxx_reactToMessage:"DOCKING_REQUESTED" context:std::nullopt]; // react to the request
         [self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
     }
     return result;
@@ -2021,10 +2021,10 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
 - (BOOL)isRotatingStation
 {
-    if (shipinfoDictionary.get<bool>("rotating", false))
+    if (_cxxShip->shipinfoDictionary.get<bool>("rotating", false))
         return YES;
     // legacy. -rangeOfString: of the roles string; absent, a message to nil gave a zeroed range, which is not NSNotFound.
-    const oo::PList* roles = shipinfoDictionary.find("roles");
+    const oo::PList* roles = _cxxShip->shipinfoDictionary.find("roles");
     if (roles == nullptr)
         return YES;
     const std::string* rolesString = roles->getIf<std::string>();
@@ -2038,17 +2038,17 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     //				work properly with the various overrides.  The primary role will get
     //				used if either there is no market override, or the market wasn't
     //				defined.
-    return OptionalStringValue(shipinfoDictionary.find("market"));
+    return OptionalStringValue(_cxxShip->shipinfoDictionary.find("market"));
 }
 
 - (BOOL)hasShipyard
 {
     if ([UNIVERSE station] == self)
         return YES;
-    const oo::PList* determinantValue = shipinfoDictionary.find("has_shipyard");
+    const oo::PList* determinantValue = _cxxShip->shipinfoDictionary.find("has_shipyard");
 
     if (determinantValue == nullptr)
-        determinantValue = shipinfoDictionary.find("hasShipyard");
+        determinantValue = _cxxShip->shipinfoDictionary.find("hasShipyard");
 
     // NOTE: non-standard capitalization is documented and entrenched.
     if (determinantValue != nullptr && !determinantValue->isNull()) {
@@ -2111,7 +2111,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
 - (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::str::format("\"%s\" %s", name.value_or("(null)").c_str(), [super cxx_descriptionComponents].value_or("(null)").c_str());
+    return oo::str::format("\"%s\" %s", _cxxShip->name.value_or("(null)").c_str(), [super cxx_descriptionComponents].value_or("(null)").c_str());
 }
 
 - (void)dumpSelfState

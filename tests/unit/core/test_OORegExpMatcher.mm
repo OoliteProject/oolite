@@ -13,8 +13,9 @@
 	run on the unconverted class first: what matches, the flags, the empty pattern, the cache
 	(one compiled RegExp per pattern and flags), and the pseudo-singleton (one matcher per
 	autorelease pool, a new one after the pool drains; nil, and asked again, when the tester does
-	not compile). The C++ tests then pin the same answers through cxx::OORegExpMatcher, and the
-	last test the facade's contract (one facade per matcher, nil stays nil).
+	not compile). The C++ tests then pinned the same answers through the C++ matcher, and the
+	last test the facade's contract (one facade per matcher, nil stays nil). Bead oo-9ht.12 deleted
+	the facade: see the note above the tests.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -185,12 +186,18 @@ void OOJSReportPendingException(JSContext *context)
 
 
 // --- The tests ------------------------------------------------------------------------------------
+// Bead oo-9ht.12 deleted the facade. The cases that asked through its selectors ask the C++ matcher
+// with the same expectations; the facade's own contract (facadeContract) and its autorelease-pool
+// lifetime (oneMatcherPerAutoreleasePool) were retired with it (ADR-0049, standing approval
+// oo-9n5p9). The C++ lifetime is cxxOneMatcherWhileHeld's; matchersHeldAcrossMatches pins what the
+// pool gave a caller that holds its matcher.
 
 namespace {
 
-BOOL Matches(const std::string &string, const std::string &regExp, NSUInteger flags = 0)
+bool Matches(const std::string &string, const std::string &regExp, NSUInteger flags = 0)
 {
-	return [[OORegExpMatcher regExpMatcher] string:string matchesExpression:regExp flags:flags];
+	oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
+	return matcher != nullptr && matcher->string(string, regExp, flags);
 }
 
 }	// namespace
@@ -209,80 +216,69 @@ OO_TEST(matches)
 		OO_CHECK(Matches("one\ntwo", "^two", kOORegExpMultiLine));
 		OO_CHECK(Matches("", "^$"));
 		OO_CHECK(Matches("caf\xC3\xA9", "\xC3\xA9$"));	// UTF-8 in, and UTF-8 to the engine
-		OO_CHECK([[OORegExpMatcher regExpMatcher] string:"abc" matchesExpression:"b"]);	// flags 0
+		OO_CHECK(OORegExpMatcher::regExpMatcher()->string("abc", "b"));	// flags 0
 	}
 }
 
 
 OO_TEST(emptyPatternMatchesNothing)
 {
-	@autoreleasepool
-	{
-		unsigned evaluations = sEvaluations;
-		OO_CHECK(!Matches("abc", ""));
-		OO_CHECK(!Matches("", ""));
-		OO_CHECK(sEvaluations == evaluations);	// returned before running anything
-	}
+	unsigned evaluations = sEvaluations;
+	OO_CHECK(!Matches("abc", ""));
+	OO_CHECK(!Matches("", ""));
+	OO_CHECK(sEvaluations == evaluations);	// returned before running anything
 }
 
 
 OO_TEST(regExpIsCachedByPatternAndFlags)
 {
-	@autoreleasepool
-	{
-		OORegExpMatcher *matcher = [OORegExpMatcher regExpMatcher];
-		unsigned made = sRegExpsMade;
-		OO_CHECK([matcher string:"abc" matchesExpression:"c$" flags:0]);
-		OO_CHECK(sRegExpsMade == made + 1);
-		OO_CHECK(![matcher string:"abd" matchesExpression:"c$" flags:0]);
-		OO_CHECK(sRegExpsMade == made + 1);		// same pattern and flags: cached
-		OO_CHECK([matcher string:"ABC" matchesExpression:"c$" flags:kOORegExpCaseInsensitive]);
-		OO_CHECK(sRegExpsMade == made + 2);		// new flags
-		OO_CHECK([matcher string:"ABD" matchesExpression:"d$" flags:kOORegExpCaseInsensitive]);
-		OO_CHECK(sRegExpsMade == made + 3);		// new pattern
-		OO_CHECK([matcher string:"abd" matchesExpression:"d$" flags:0]);
-		OO_CHECK(sRegExpsMade == made + 4);
-	}
+	oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
+	unsigned made = sRegExpsMade;
+	OO_CHECK(matcher->string("abc", "c$", 0));
+	OO_CHECK(sRegExpsMade == made + 1);
+	OO_CHECK(!matcher->string("abd", "c$", 0));
+	OO_CHECK(sRegExpsMade == made + 1);		// same pattern and flags: cached
+	OO_CHECK(matcher->string("ABC", "c$", kOORegExpCaseInsensitive));
+	OO_CHECK(sRegExpsMade == made + 2);		// new flags
+	OO_CHECK(matcher->string("ABD", "d$", kOORegExpCaseInsensitive));
+	OO_CHECK(sRegExpsMade == made + 3);		// new pattern
+	OO_CHECK(matcher->string("abd", "d$", 0));
+	OO_CHECK(sRegExpsMade == made + 4);
 }
 
 
-OO_TEST(oneMatcherPerAutoreleasePool)
+OO_TEST(matchersHeldAcrossMatches)
 {
 	unsigned made = sFunctionsMade;
 	unsigned engineCalls = sEngineCalls;
-	@autoreleasepool
 	{
-		OORegExpMatcher *first = [OORegExpMatcher regExpMatcher];
-		OO_CHECK(first != nil);
-		OO_CHECK([OORegExpMatcher regExpMatcher] == first);
+		oo::Ref<OORegExpMatcher> first = OORegExpMatcher::regExpMatcher();
+		OO_CHECK(first != nullptr);
+		OO_CHECK(OORegExpMatcher::regExpMatcher() == first);
 		OO_CHECK(Matches("x", "x"));
-		OO_CHECK(sFunctionsMade == made + 1);	// one tester compiled for the pool's matcher
-		OO_CHECK(sEngineCalls == engineCalls + 1);	// the engine summoned once, by -init
+		OO_CHECK(sFunctionsMade == made + 1);	// one tester compiled for the held matcher
+		OO_CHECK(sEngineCalls == engineCalls + 1);	// the engine summoned once, by init()
 	}
-	@autoreleasepool
 	{
-		OO_CHECK([OORegExpMatcher regExpMatcher] != nil);
-		OO_CHECK(sFunctionsMade == made + 2);	// the first matcher went with its pool
+		OO_CHECK(OORegExpMatcher::regExpMatcher() != nullptr);
+		OO_CHECK(sFunctionsMade == made + 2);	// the first matcher went with its last Ref
 	}
 }
 
 
 OO_TEST(failedInitGivesNilAndRetries)
 {
-	@autoreleasepool
-	{
-		sFailCompile = true;
-		OO_CHECK([OORegExpMatcher regExpMatcher] == nil);
-		sFailCompile = false;
-		OO_CHECK([OORegExpMatcher regExpMatcher] != nil);	// nothing was kept: asked again
-		OO_CHECK(Matches("abc", "b"));
-	}
+	sFailCompile = true;
+	OO_CHECK(OORegExpMatcher::regExpMatcher() == nullptr);
+	sFailCompile = false;
+	OO_CHECK(OORegExpMatcher::regExpMatcher() != nullptr);	// nothing was kept: asked again
+	OO_CHECK(Matches("abc", "b"));
 }
 
 
 OO_TEST(cxxMatches)
 {
-	oo::Ref<cxx::OORegExpMatcher> matcher = cxx::OORegExpMatcher::regExpMatcher();
+	oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
 	OO_CHECK(matcher != nullptr);
 	OO_CHECK(matcher->string("GeForce GTX 1080", "^GeForce GTX [0-9]+$"));
 	OO_CHECK(!matcher->string("geforce", "GeForce"));
@@ -296,32 +292,16 @@ OO_TEST(cxxOneMatcherWhileHeld)
 {
 	unsigned made = sFunctionsMade;
 	{
-		oo::Ref<cxx::OORegExpMatcher> first = cxx::OORegExpMatcher::regExpMatcher();
-		OO_CHECK(cxx::OORegExpMatcher::regExpMatcher() == first);
+		oo::Ref<OORegExpMatcher> first = OORegExpMatcher::regExpMatcher();
+		OO_CHECK(OORegExpMatcher::regExpMatcher() == first);
 		OO_CHECK(sFunctionsMade == made + 1);
 	}
-	OO_CHECK(cxx::OORegExpMatcher::regExpMatcher() != nullptr);	// the first was freed with its last Ref
+	OO_CHECK(OORegExpMatcher::regExpMatcher() != nullptr);	// the first was freed with its last Ref
 	OO_CHECK(sFunctionsMade == made + 2);
 
 	sFailCompile = true;
-	OO_CHECK(cxx::OORegExpMatcher::regExpMatcher() == nullptr);
+	OO_CHECK(OORegExpMatcher::regExpMatcher() == nullptr);
 	sFailCompile = false;
-}
-
-
-OO_TEST(facadeContract)
-{
-	OO_CHECK(oo::ToCxx(nil) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OORegExpMatcher *>(nullptr)) == nil);
-	@autoreleasepool
-	{
-		OORegExpMatcher *facade = [OORegExpMatcher regExpMatcher];
-		OO_CHECK([facade isKindOfClass:[OORegExpMatcher class]]);
-		cxx::OORegExpMatcher *matcher = oo::ToCxx(facade);
-		OO_CHECK(matcher != nullptr && matcher == cxx::OORegExpMatcher::regExpMatcher().get());	// the same pseudo-singleton
-		OO_CHECK(oo::ToObjC(matcher) == facade);
-		OO_CHECK([facade string:"abc" matchesExpression:"B" flags:kOORegExpCaseInsensitive] == matcher->string("abc", "B", kOORegExpCaseInsensitive));
-	}
 }
 
 

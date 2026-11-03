@@ -33,11 +33,11 @@ SOFTWARE.
 
 #import "OOTexture.h"
 
-@class OONullTexture;
-
-namespace cxx {
-
-class OONullTexture : public OOTexture {
+/*	C++20 (bead oo-jvm6). Its Objective-C facade was deleted by bead oo-9ht.100 (ADR-0056 amendment
+        "deleting a facade"): the class is global, and Objective-C sees the null texture as an OOTexture
+        facade (the root's oo::ToObjC), which OOTexture's nullTexture() keeps for the process.
+*/
+class OONullTexture : public cxx::OOTexture {
 public:
     /*	The one null texture, made on first use and never released (it was an immortal singleton;
             proposed ADR-0056 amendments oo-r7m0 item 1 and oo-489v item 3). Borrowed.
@@ -53,11 +53,5 @@ public:
     std::optional<std::string> name() override;
 #endif
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OONullTexture, for OOTexture's +nullTexture and the callers that
-// test for the class. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OONullTexture+ObjCBridge.h"
 
 #endif // OONULLTEXTURE_H

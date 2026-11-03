@@ -4,12 +4,11 @@ OOMaterial+ObjCBridge.h
 
 TRANSITIONAL (proposed ADR-0056, amendment oo-smy): the Objective-C OOMaterial, a facade over the
 C++ cxx::OOMaterial (OOMaterial.h), for the callers that message materials and for the materials
-not converted yet (the three under OOBasicMaterial, whose facade derives from this one: bead
-oo-vl43). Its interface is the one OOMaterial.h
+not converted yet (none remain under OOBasicMaterial since bead oo-9ht.33). Its interface is the one OOMaterial.h
 declared before the conversion, copied exactly (same selectors, same types), so they compile and
 behave unchanged. Imported as the last line of OOMaterial.h; do not import it directly.
 
-It is a hierarchy root's facade, as OOOXPVerifierStage+ObjCBridge.h is (ADR-0056 Amendment 1):
+It is a hierarchy root's facade, as the OXP verifier stage facade was until bead oo-9ht.4 (ADR-0056 Amendment 1):
 
         the material is                      its facade is                      virtual calls on the
                                                                                   C++ side reach
@@ -24,7 +23,7 @@ It is a hierarchy root's facade, as OOOXPVerifierStage+ObjCBridge.h is (ADR-0056
 An Objective-C subclass's [super doApply] (and every other overridable method) reaches its nearest
 converted superclass's own member (the adapter's super...() members), not the virtual one, so it
 does what that class did. A C++ material's facade is the Objective-C class named after its C++
-class, or after its nearest base class that has one (OOBasicMaterial for cxx::OOBasicMaterial).
+class, or as an OOMaterial where it has none (OOBasicMaterial's facade was deleted by bead oo-9ht.33).
 
         a caller that is                       holds / passes                   crosses with
         -------------------------------------  -------------------------------  -----------------------
@@ -124,7 +123,7 @@ SOFTWARE.
 @interface OOMaterial (OOObjCBridge)
 
 /*	The facade of a C++ material (oo::ToObjC makes it); or, from an initialiser of a converted
-        intermediate class's facade (OOBasicMaterial, bead oo-vl43), an Objective-C material whose C++
+        intermediate class's facade (OOBasicMaterial until bead oo-9ht.33), an Objective-C material whose C++
         part is material, an oo::ObjCMaterial of that class (ADR-0056 amendment of bead oo-up4b, item
         2). Retains material.
 */
@@ -150,8 +149,8 @@ cxx::OOMaterial* ToCxx(OOMaterial* material);
 /*	The C++ part of an Objective-C material (an unconverted subclass), the adapter: each virtual
         member messages the Objective-C object, so the subclass's override runs, as it did when the
         base class was Objective-C. Base is the C++ class of its nearest converted superclass:
-        cxx::OOMaterial when the root facade's -init makes it, cxx::OOBasicMaterial when that facade's
-        initialisers do (ADR-0056 amendment of bead oo-up4b, item 1). The super...() members are Base's
+        cxx::OOMaterial when the root facade's -init makes it, or another converted class when its
+        facade's initialisers do (ADR-0056 amendment of bead oo-up4b, item 1). The super...() members are Base's
         own, what [super ...] reached; the root facade answers with them when the subclass does not
         override a method, or calls super. The Objective-C object owns the adapter (its _cxxMaterial)
         and is not retained by it; its -dealloc clears the pointer, after which the members answer as a
@@ -189,7 +188,7 @@ protected:
 };
 
 // Not final: an intermediate class's bridge derives from it for the members its class adds
-// (OOBasicMaterial+ObjCBridge.mm's permitSpecular()).
+// (an intermediate class's bridge's added members).
 template <class Base>
 class ObjCMaterial : public Base, public ObjCMaterialLink {
 public:

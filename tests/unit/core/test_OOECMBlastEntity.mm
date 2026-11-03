@@ -11,7 +11,8 @@
 	from nil", which crashed there in the Entity facade's -dealloc of an entity whose -init never
 	ran, bead oo-s6ic6): no blast from nil; a blast is a no-draw effect at the ship's position; four
 	pulses half a second apart, a quarter of the scanner range wider each, then it removes itself;
-	a dead or deallocated ship ends it at once; -isECMBlast answers YES only for a blast. The
+	a dead or deallocated ship ends it at once; it is an ECM blast and the ship is not (-isECMBlast,
+	which nothing sent, went with its bridge in bead oo-9ht.75; the check asks the C++ member). The
 	blasts are made through the one helper below, the only line the conversion ported: the blast is
 	now a C++ entity whose Objective-C object is the Entity facade oo::NewEntityFacade made.
 	Run: bash tools/check-core-tests.sh
@@ -98,6 +99,14 @@ Entity *Ship()
 
 Entity *Blast(Entity *ship)	{ return oo::NewEntityFacade(OOECMBlastEntity::initFromShip((ShipEntity *)ship)); }
 
+
+// What -[Entity isECMBlast] answered, from the C++ member (bead oo-9ht.75 deleted the category).
+bool IsECMBlast(Entity *entity)
+{
+	OOECMBlastEntity *blast = dynamic_cast<OOECMBlastEntity *>(oo::ToCxx(entity));
+	return blast != nullptr && blast->isECMBlast();
+}
+
 // --------------------------------------------------------------------------------------------------
 
 }	// namespace
@@ -124,7 +133,7 @@ OO_TEST(blastAtTheShip)
 		OO_CHECK(HPvector_equal([blast position], make_HPvector(10, 20, 30)));
 		OO_CHECK([blast status] == STATUS_EFFECT && [blast scanClass] == CLASS_NO_DRAW);
 		OO_CHECK([blast owner] == nil);
-		OO_CHECK([blast isECMBlast] && ![ship isECMBlast]);
+		OO_CHECK(IsECMBlast(blast) && !IsECMBlast(ship));
 	}
 }
 

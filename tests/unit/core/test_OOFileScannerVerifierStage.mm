@@ -1,8 +1,7 @@
 /*	test_OOFileScannerVerifierStage.mm
 	Unit tests for OOFileScannerVerifierStage.h/.mm (bead oo-up4b; proposed ADR-0056 Amendment 1
-	and amendment oo-up4b): cxx::OOFileScannerVerifierStage, the intermediate class
-	cxx::OOFileHandlingVerifierStage that seven Objective-C stages still subclass, and their
-	Objective-C facades (OOFileScannerVerifierStage+ObjCBridge.h).
+	and amendment oo-up4b): OOFileScannerVerifierStage and the intermediate class
+	OOFileHandlingVerifierStage that the file-handling stages subclass.
 
 	What the file computed before the conversion is pinned through the Objective-C API the other
 	stages use: the dependency and dependent a file-handling stage names (and registers), [super
@@ -11,11 +10,25 @@
 	lists. Then the crossing: an Objective-C subclass of the intermediate class behind a C++
 	pointer, a C++ subclass of it behind the facade, the scanner's own facade class and identity,
 	and the adapter outliving its owner.
+
+	Bead oo-9ht.7 deleted both classes' Objective-C facades and the verifier's -fileScannerStage
+	(ADR-0056 amendment "deleting a facade"). The cases that asked through their selectors ask the
+	C++ classes with the same expectations (the Objective-C test stages became C++ subclasses, the
+	super call a qualified base call, -fileScannerStage the stage lookup it made, isKindOfClass: a
+	dynamic_cast); the scanner now crosses as the root's facade, as every global stage does. The
+	cases that pinned only the deleted facades (scannerMadeByAllocInit, objCFileStageBehindACxxPointer,
+	the facade half of scannerFacade, nilAndLifetime) were retired with them (ADR-0049, standing
+	approval oo-9n5p9).
+	Bead oo-9ht.4 deleted the root's facade (OOOXPVerifierStage): the verifier answers the C++
+	stage itself, so cxxFileStageBehindTheFacade asks the stage (its description through
+	description(), as scannerFindsFiles does), and the checks that pinned only that facade's
+	crossing (one live facade, oo::ToObjC/oo::ToCxx, its class; the C++-made scanner's half of
+	scannerFacade) were retired with it (ADR-0049, standing approval oo-9n5p9).
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOFileScannerVerifierStage.h"
-#import "OOOXPVerifierStageInternal.h"
+#import "OOOXPVerifierStage.h"
 #import "OODescription.h"
 
 #import "OOLogging.h"
@@ -61,38 +74,30 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 @end
 
 
-// An unconverted file-handling stage, as the seven leaf stages are.
-@interface TestFileStage: OOFileHandlingVerifierStage
-@end
-
-
-@implementation TestFileStage
-
-- (std::optional<std::string>)cxx_name	{ return "Testing files"; }
-
-@end
-
-
-// Extends its superclass's dependents through [super dependents], as OOTextureHandlingStage does.
-@interface TestSuperCallingFileStage: TestFileStage
-@end
-
-
-@implementation TestSuperCallingFileStage
-
-- (std::optional<std::vector<std::string>>)dependents
+// A file-handling stage, as the leaf stages are.
+class TestFileStage : public OOFileHandlingVerifierStage
 {
-	std::vector<std::string> result = [super dependents].value_or(std::vector<std::string>());
-	result.push_back("Extra dependent");
-	return result;
-}
+public:
+	std::optional<std::string> name() override	{ return "Testing files"; }
+};
 
-@end
+
+// Extends its superclass's dependents through the base call, as OOTextureHandlingStage does.
+class TestSuperCallingFileStage : public TestFileStage
+{
+public:
+	std::optional<std::vector<std::string>> dependents() override
+	{
+		std::vector<std::string> result = TestFileStage::dependents().value_or(std::vector<std::string>());
+		result.push_back("Extra dependent");
+		return result;
+	}
+};
 
 
 // A converted file-handling stage: a C++ subclass of the intermediate class. Global, as a leaf
 // stage is once converted, so Objective-C sees it as an OOOXPVerifierStage.
-class TestCxxFileStage : public cxx::OOFileHandlingVerifierStage
+class TestCxxFileStage : public OOFileHandlingVerifierStage
 {
 public:
 	std::optional<std::string> name() override	{ return "Testing files in C++"; }
@@ -151,6 +156,13 @@ OOOXPVerifier *MakeVerifier(const std::string &path)
 const std::vector<std::string> kScannerName = { "Scanning files" };
 const std::vector<std::string> kUnusedName = { "Checking for unused files" };
 
+
+// The registered scanner, as the stages find it (the verifier's -fileScannerStage until bead oo-9ht.7).
+OOFileScannerVerifierStage *ScannerOf(OOOXPVerifier *verifier)
+{
+	return dynamic_cast<OOFileScannerVerifierStage *>([verifier cxx_stageWithName:OOFileScannerVerifierStage::kName]);
+}
+
 }	// namespace
 
 
@@ -159,24 +171,24 @@ OO_TEST(fileHandlingStageNamesAndRegistersItsNeighbours)
 	@autoreleasepool
 	{
 		OOOXPVerifier *verifier = MakeVerifier("");
-		TestFileStage *stage = [[[TestFileStage alloc] init] autorelease];
-		[stage setVerifier:verifier];
+		const oo::Ref<TestFileStage> stage = oo::makeRef<TestFileStage>();
+		stage->setVerifier(verifier);
 		const int before = [verifier registrations];
 
-		OO_CHECK([stage cxx_dependencies] == kScannerName);
-		OO_CHECK([stage dependents] == kUnusedName);
+		OO_CHECK(stage->dependencies() == kScannerName);
+		OO_CHECK(stage->dependents() == kUnusedName);
 		OO_CHECK([verifier registrations] == before + 2);
-		OO_CHECK([[verifier fileScannerStage] isKindOfClass:[OOFileScannerVerifierStage class]]);
-		OO_CHECK([verifier cxx_stageWithName:"Checking for unused files"] != nil);
+		OO_CHECK(ScannerOf(verifier) != nullptr);
+		OO_CHECK([verifier cxx_stageWithName:"Checking for unused files"] != nullptr);
 
 		// Asked again (by another stage), nothing new is registered.
-		OO_CHECK([stage cxx_dependencies] == kScannerName);
-		OO_CHECK([stage dependents] == kUnusedName);
+		OO_CHECK(stage->dependencies() == kScannerName);
+		OO_CHECK(stage->dependents() == kUnusedName);
 		OO_CHECK([verifier registrations] == before + 2);
 
 		// The rest is the base's.
-		OO_CHECK([stage cxx_name] == std::optional<std::string>("Testing files"));
-		OO_CHECK([stage shouldRun]);
+		OO_CHECK(stage->name() == std::optional<std::string>("Testing files"));
+		OO_CHECK(stage->shouldRun());
 	}
 }
 
@@ -185,10 +197,10 @@ OO_TEST(superDependentsReachTheIntermediateClass)
 {
 	@autoreleasepool
 	{
-		TestSuperCallingFileStage *stage = [[[TestSuperCallingFileStage alloc] init] autorelease];
-		[stage setVerifier:MakeVerifier("")];
-		OO_CHECK([stage dependents] == (std::vector<std::string>{ "Checking for unused files", "Extra dependent" }));
-		OO_CHECK([stage cxx_dependencies] == kScannerName);
+		const oo::Ref<TestSuperCallingFileStage> stage = oo::makeRef<TestSuperCallingFileStage>();
+		stage->setVerifier(MakeVerifier(""));
+		OO_CHECK(stage->dependents() == (std::vector<std::string>{ "Checking for unused files", "Extra dependent" }));
+		OO_CHECK(stage->dependencies() == kScannerName);
 	}
 }
 
@@ -199,88 +211,51 @@ OO_TEST(scannerFindsFiles)
 	{
 		const std::string base = MakeOXP();
 		OOOXPVerifier *verifier = MakeVerifier(base);
-		OO_CHECK([OOFileScannerVerifierStage nameForDependencyForVerifier:verifier] == std::optional<std::string>("Scanning files"));
-		OOFileScannerVerifierStage *scanner = [verifier fileScannerStage];
-		OO_CHECK(scanner != nil && [scanner verifier] == verifier);
-		OO_CHECK([scanner cxx_name] == std::optional<std::string>("Scanning files"));
-		OO_CHECK(oo::DescriptionOf(scanner).starts_with("<OOFileScannerVerifierStage 0x"));
-		OO_CHECK(oo::DescriptionOf(scanner).ends_with(">{\"Scanning files\"}"));
-		[scanner run];
+		OO_CHECK(OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier) == std::optional<std::string>("Scanning files"));
+		OOFileScannerVerifierStage *scanner = ScannerOf(verifier);
+		OO_CHECK(scanner != nullptr && scanner->verifier() == verifier);
+		OO_CHECK(scanner->name() == std::optional<std::string>("Scanning files"));
+		OO_CHECK(scanner->description().starts_with("<OOFileScannerVerifierStage 0x"));
+		OO_CHECK(scanner->description().ends_with(">{\"Scanning files\"}"));
+		scanner->run();
 
 		// Case-insensitive, in the folder or bare in the root; the result is the path on disk.
-		OO_CHECK([scanner cxx_fileExists:"foo.png" inFolder:"Textures" referencedFrom:"a test" checkBuiltIn:NO]);
-		OO_CHECK([scanner cxx_pathForFile:"FOO.png" inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:NO] == std::optional<std::string>(base + "/textures/Foo.PNG"));
-		OO_CHECK([scanner cxx_pathForFile:"root.png" inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:NO] == std::optional<std::string>(base + "/Root.png"));
-		OO_CHECK([scanner cxx_pathForFile:"Root.png" inFolder:std::nullopt referencedFrom:std::nullopt checkBuiltIn:NO] == std::optional<std::string>(base + "/Root.png"));
+		OO_CHECK(scanner->fileExists("foo.png", "Textures", "a test", false));
+		OO_CHECK(scanner->pathForFile("FOO.png", "Textures", std::nullopt, false) == std::optional<std::string>(base + "/textures/Foo.PNG"));
+		OO_CHECK(scanner->pathForFile("root.png", "Textures", std::nullopt, false) == std::optional<std::string>(base + "/Root.png"));
+		OO_CHECK(scanner->pathForFile("Root.png", std::nullopt, std::nullopt, false) == std::optional<std::string>(base + "/Root.png"));
 
 		// Not found: the built-in files only when asked; no name is no file.
-		OO_CHECK(![scanner cxx_pathForFile:"builtin.png" inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:NO].has_value());
-		OO_CHECK([scanner cxx_pathForFile:"builtin.png" inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:YES] == std::optional<std::string>("builtin/Textures/builtin.png"));
-		OO_CHECK(![scanner cxx_pathForFile:"missing.png" inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:YES].has_value());
-		OO_CHECK(![scanner cxx_fileExists:std::nullopt inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:YES]);
+		OO_CHECK(!scanner->pathForFile("builtin.png", "Textures", std::nullopt, false).has_value());
+		OO_CHECK(scanner->pathForFile("builtin.png", "Textures", std::nullopt, true) == std::optional<std::string>("builtin/Textures/builtin.png"));
+		OO_CHECK(!scanner->pathForFile("missing.png", "Textures", std::nullopt, true).has_value());
+		OO_CHECK(!scanner->fileExists(std::nullopt, "Textures", std::nullopt, true));
 
 		// Junk, Read Me files and skipped folders are not part of the OXP; a nested folder is ignored.
-		OO_CHECK(![scanner cxx_fileExists:".DS_Store" inFolder:std::nullopt referencedFrom:std::nullopt checkBuiltIn:NO]);
-		OO_CHECK(![scanner cxx_fileExists:"ReadMe.txt" inFolder:std::nullopt referencedFrom:std::nullopt checkBuiltIn:NO]);
-		OO_CHECK(![scanner cxx_filesInFolder:".svn"].has_value());
-		OO_CHECK(![scanner cxx_fileExists:"c.png" inFolder:"Images" referencedFrom:std::nullopt checkBuiltIn:NO]);
+		OO_CHECK(!scanner->fileExists(".DS_Store", std::nullopt, std::nullopt, false));
+		OO_CHECK(!scanner->fileExists("ReadMe.txt", std::nullopt, std::nullopt, false));
+		OO_CHECK(!scanner->filesInFolder(".svn").has_value());
+		OO_CHECK(!scanner->fileExists("c.png", "Images", std::nullopt, false));
 
 		// Listings: in the byte order of the lowercase names; the root's is "".
-		OO_CHECK([scanner cxx_filesInFolder:"IMAGES"] == (std::vector<std::string>{ "A.png", "b.png" }));
-		OO_CHECK([scanner cxx_filesInFolder:""] == std::vector<std::string>{ "Root.png" });
-		OO_CHECK(![scanner cxx_filesInFolder:"Sounds"].has_value());
-		OO_CHECK(![scanner cxx_filesInFolder:std::nullopt].has_value());
+		OO_CHECK(scanner->filesInFolder("IMAGES") == (std::vector<std::string>{ "A.png", "b.png" }));
+		OO_CHECK(scanner->filesInFolder("") == std::vector<std::string>{ "Root.png" });
+		OO_CHECK(!scanner->filesInFolder("Sounds").has_value());
+		OO_CHECK(!scanner->filesInFolder(std::nullopt).has_value());
 
-		OO_CHECK([scanner cxx_displayNameForFile:"f" andFolder:"d"] == std::optional<std::string>("d/f"));
-		OO_CHECK([scanner cxx_displayNameForFile:"f" andFolder:std::nullopt] == std::optional<std::string>("f"));
-		OO_CHECK(![scanner cxx_displayNameForFile:std::nullopt andFolder:"d"].has_value());
+		OO_CHECK(scanner->displayNameForFile("f", "d") == std::optional<std::string>("d/f"));
+		OO_CHECK(scanner->displayNameForFile("f", std::nullopt) == std::optional<std::string>("f"));
+		OO_CHECK(!scanner->displayNameForFile(std::nullopt, "d").has_value());
 
 		// Contents.
-		OO_CHECK([scanner dataForFile:"shipdata.plist" inFolder:"config" referencedFrom:std::nullopt checkBuiltIn:NO].stringView() == "{ a = 1; }");
-		OO_CHECK([scanner dataForFile:"missing.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO].stringView().empty());
-		const oo::PList plist = [scanner cxx_plistNamed:"shipdata.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO];
+		OO_CHECK(scanner->dataForFile("shipdata.plist", "config", std::nullopt, false).stringView() == "{ a = 1; }");
+		OO_CHECK(scanner->dataForFile("missing.plist", "Config", std::nullopt, false).stringView().empty());
+		const oo::PList plist = scanner->plistNamed("shipdata.plist", "Config", std::nullopt, false);
 		OO_CHECK(plist.get<std::string>("a") == "1");
-		OO_CHECK([scanner cxx_plistNamed:"bad.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO].isNull());	// logs the parse error
-		OO_CHECK([scanner cxx_plistNamed:"missing.plist" inFolder:"Config" referencedFrom:std::nullopt checkBuiltIn:NO].isNull());
+		OO_CHECK(scanner->plistNamed("bad.plist", "Config", std::nullopt, false).isNull());	// logs the parse error
+		OO_CHECK(scanner->plistNamed("missing.plist", "Config", std::nullopt, false).isNull());
 
 		std::filesystem::remove_all(base);
-	}
-}
-
-
-OO_TEST(scannerMadeByAllocInit)
-{
-	@autoreleasepool
-	{
-		OOFileScannerVerifierStage *scanner = [[[OOFileScannerVerifierStage alloc] init] autorelease];
-		OO_CHECK([scanner isKindOfClass:[OOFileScannerVerifierStage class]]);
-		OO_CHECK([scanner cxx_name] == std::optional<std::string>("Scanning files"));
-		OO_CHECK(![scanner cxx_filesInFolder:""].has_value());	// nothing scanned yet
-	}
-}
-
-OO_TEST(objCFileStageBehindACxxPointer)
-{
-	@autoreleasepool
-	{
-		OOOXPVerifier *verifier = MakeVerifier("");
-		TestFileStage *stage = [[[TestFileStage alloc] init] autorelease];
-		[stage setVerifier:verifier];
-		cxx::OOOXPVerifierStage *part = oo::ToCxx(stage);
-		OO_CHECK(part != nullptr && oo::ToObjC(part) == stage);	// the object itself
-
-		// Its C++ part derives from the intermediate class, and virtual calls reach the subclass,
-		// or, where it does not override, the intermediate class.
-		OO_CHECK(dynamic_cast<cxx::OOFileHandlingVerifierStage *>(part) != nullptr);
-		OO_CHECK(part->name() == std::optional<std::string>("Testing files"));
-		OO_CHECK(part->dependencies() == kScannerName);
-		OO_CHECK(part->dependents() == kUnusedName);
-		OO_CHECK(part->shouldRun());
-
-		// [super dependents] still reaches the intermediate class, not back to the subclass.
-		TestSuperCallingFileStage *superCalling = [[[TestSuperCallingFileStage alloc] init] autorelease];
-		[superCalling setVerifier:verifier];
-		OO_CHECK(oo::ToCxx(superCalling)->dependents() == (std::vector<std::string>{ "Checking for unused files", "Extra dependent" }));
 	}
 }
 
@@ -294,17 +269,15 @@ OO_TEST(cxxFileStageBehindTheFacade)
 		stage->setVerifier(verifier);
 		OO_CHECK(stage->dependencies() == kScannerName);
 		OO_CHECK(stage->dependents() == kUnusedName);
-		OO_CHECK([[verifier fileScannerStage] isKindOfClass:[OOFileScannerVerifierStage class]]);
+		OO_CHECK(ScannerOf(verifier) != nullptr);
 
-		OOOXPVerifierStage *facade = oo::ToObjC(stage.get());
-		OO_CHECK(facade != nil && facade == oo::ToObjC(stage.get()) && oo::ToCxx(facade) == stage.get());
-		OO_CHECK([facade cxx_name] == std::optional<std::string>("Testing files in C++"));
-		OO_CHECK([facade cxx_dependencies] == kScannerName);
-		OO_CHECK([facade dependents] == kUnusedName);
-		[facade dependencyRegistrationComplete];
-		[facade performRun];
+		OO_CHECK(stage->name() == std::optional<std::string>("Testing files in C++"));
+		OO_CHECK(stage->dependencies() == kScannerName);
+		OO_CHECK(stage->dependents() == kUnusedName);
+		stage->dependencyRegistrationComplete();
+		stage->performRun();
 		OO_CHECK(stage->runs == 1);
-		OO_CHECK(oo::DescriptionOf(facade).starts_with("<TestCxxFileStage 0x"));
+		OO_CHECK(stage->description().starts_with("<TestCxxFileStage 0x"));
 	}
 }
 
@@ -315,49 +288,22 @@ OO_TEST(scannerFacade)
 	{
 		const std::string base = MakeOXP();
 		OOOXPVerifier *verifier = MakeVerifier(base);
-		[OOFileScannerVerifierStage nameForDependencyForVerifier:verifier];
-		OOFileScannerVerifierStage *scanner = [verifier fileScannerStage];
-		cxx::OOFileScannerVerifierStage *cxxScanner = oo::ToCxx(scanner);
+		OOFileScannerVerifierStage::nameForDependencyForVerifier(verifier);
+		OOFileScannerVerifierStage *cxxScanner = ScannerOf(verifier);
 		OO_CHECK(cxxScanner != nullptr);
-		OO_CHECK(oo::ToObjC(cxxScanner) == scanner);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOOXPVerifierStage *>(cxxScanner)) == scanner);
 
-		// The C++ members answer as the facade's methods do.
+		// The C++ members answer.
 		cxxScanner->run();
-		OO_CHECK(cxxScanner->name() == std::optional<std::string>(cxx::OOFileScannerVerifierStage::kName));
-		OO_CHECK(cxxScanner->pathForFile("foo.png", "Textures", std::nullopt, false) == [scanner cxx_pathForFile:"foo.png" inFolder:"Textures" referencedFrom:std::nullopt checkBuiltIn:NO]);
+		OO_CHECK(cxxScanner->name() == std::optional<std::string>(OOFileScannerVerifierStage::kName));
+		OO_CHECK(cxxScanner->pathForFile("foo.png", "Textures", std::nullopt, false) == std::optional<std::string>(base + "/textures/Foo.PNG"));
 		OO_CHECK(cxxScanner->fileExists("A.PNG", "images", "a test", false));
 		OO_CHECK(cxxScanner->filesInFolder("Images") == (std::vector<std::string>{ "A.png", "b.png" }));
 		OO_CHECK(cxxScanner->dataForFile("Root.png", std::nullopt, std::nullopt, false).stringView() == "root");
 		OO_CHECK(cxxScanner->plistNamed("shipdata.plist", "Config", std::nullopt, false).get<std::string>("a") == "1");
 		OO_CHECK(cxxScanner->displayNameForFile("f", "d") == std::optional<std::string>("d/f"));
 		std::filesystem::remove_all(base);
-
-		// A scanner made in C++ crosses as its own facade class, however it is typed.
-		const oo::Ref<cxx::OOFileScannerVerifierStage> made = oo::makeRef<cxx::OOFileScannerVerifierStage>();
-		OOOXPVerifierStage *facade = oo::ToObjC(static_cast<cxx::OOOXPVerifierStage *>(made.get()));
-		OO_CHECK([facade isKindOfClass:[OOFileScannerVerifierStage class]]);
-		OO_CHECK(facade == oo::ToObjC(made.get()));
-		OO_CHECK(oo::ToCxx(oo::ToObjC(made.get())) == made.get());
 	}
 }
 
-
-OO_TEST(nilAndLifetime)
-{
-	OOFileScannerVerifierStage *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOFileScannerVerifierStage *>(nullptr)) == nil);
-
-	// An Objective-C file-handling stage's C++ part, outliving it, answers as a message to nil did.
-	oo::Ref<cxx::OOOXPVerifierStage> part;
-	@autoreleasepool
-	{
-		part = oo::Ref<cxx::OOOXPVerifierStage>(oo::ToCxx([[[TestFileStage alloc] init] autorelease]));
-	}
-	OO_CHECK(!part->name().has_value());
-	OO_CHECK(!part->dependencies().has_value());
-	OO_CHECK(oo::ToObjC(part) == nil);
-}
 
 OO_TEST_MAIN()

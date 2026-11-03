@@ -39,19 +39,16 @@ constexpr const char* kCacheName = "sanitized legacy scripts";
 
 } // namespace
 
-/*	C++20 since bead oo-q9q4 (proposed ADR-0056): cxx::OOPListScript. Its superclass is still
-        Objective-C, so a script object is made by its facade (amendment oo-o89 item 2): the class's
-        own factories below make them with [[::OOPListScript alloc] initWithName:...], as
-        [[self alloc] ...] did, and hand back the Objective-C scripts. A message to self that
-        OOScript implements (-displayName) goes to the facade. The cache manager is C++ and is called
-        directly.
+/*	C++20 since bead oo-q9q4 (proposed ADR-0056), a C++ subclass of cxx::OOScript since bead
+        oo-9ht.57 deleted its facade (amendment oo-o89 item 3): the class's own factories below make
+        the scripts with oo::makeRef, as [[self alloc] ...] did, and hand back their Objective-C
+        objects (the root's facades). -displayName, which OOScript implements, is the inherited
+        member. The cache manager is C++ and is called directly.
 */
-
-namespace cxx {
 
 std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOPListScript::scriptsInPListFile(const std::string& filePath)
 {
-    OOCacheManager* cache = OOCacheManager::sharedCache();
+    cxx::OOCacheManager* cache = cxx::OOCacheManager::sharedCache();
     const oo::PList cachedScripts = (cache != nullptr) ? cache->pListForKey(filePath, kCacheName) : oo::PList();
     if (cachedScripts) {
         return loadCachedScripts(cachedScripts);
@@ -101,17 +98,17 @@ bool OOPListScript::requiresTickle()
 
 void OOPListScript::runWithTarget(::Entity* target)
 {
-    if (target != nil && ![target isKindOfClass:[ShipEntity class]]) {
+    if (target != nil && ![target isKindOfClass:[::ShipEntity class]]) {
         OO_LOG("script.legacy.run.badTarget", "Expected ShipEntity or nil for target, got {}.", oo::DescriptionOf([target class]));
         return;
     }
 
-    OO_LOG("script.legacy.run", "Running script {}", [oo::ToObjC(this) displayName].value_or("(null)"));
+    OO_LOG("script.legacy.run", "Running script {}", displayName().value_or("(null)"));
     oo::log::indentIf("script.legacy.run");
 
     [PLAYER cxx_runScriptActions:_script
                  withContextName:name()
-                       forTarget:(ShipEntity*)target];
+                       forTarget:(::ShipEntity*)target];
 
     oo::log::outdentIf("script.legacy.run");
 }
@@ -121,7 +118,6 @@ std::vector<oo::ObjCRef<::OOScript*>> OOPListScript::scriptsFromDictionaryOfScri
     std::vector<oo::ObjCRef<::OOScript*>> result;
     oo::PList::Dict cachedScripts;
     const oo::PList* metadata = nullptr;
-    ::OOPListScript* script = nil;
 
     result.reserve(dictionary.count());
 
@@ -133,23 +129,23 @@ std::vector<oo::ObjCRef<::OOScript*>> OOPListScript::scriptsFromDictionaryOfScri
         if (unsanitized.isArray() && key != kKeyMetadata) {
             const oo::PList sanitized = OOSanitizeLegacyScript(unsanitized, key, false);
             if (sanitized) {
-                script = [[::OOPListScript alloc] initWithName:key scriptArray:sanitized metadata:metadata];
-                if (script != nil) {
-                    result.emplace_back(script);
+                // [[OOPListScript alloc] initWithName:scriptArray:metadata:], which could not fail: the
+                // new script's facade (the root's), kept by the result.
+                const oo::Ref<OOPListScript> script = oo::makeRef<OOPListScript>(key, sanitized, metadata);
+                {
+                    result.emplace_back(oo::ToObjC(static_cast<cxx::OOScript*>(script.get())));
                     // +dictionaryWithObjectsAndKeys: stopped at a nil metadata.
                     oo::PList::Dict cacheEntry;
                     cacheEntry[kKeyScript] = sanitized;
                     if (metadata != nullptr)
                         cacheEntry[kKeyMetadata] = *metadata;
                     cachedScripts[key] = oo::PList(std::move(cacheEntry));
-
-                    [script release];
                 }
             }
         }
     }
 
-    if (OOCacheManager* cache = OOCacheManager::sharedCache())
+    if (cxx::OOCacheManager* cache = cxx::OOCacheManager::sharedCache())
         cache->setPList(oo::PList(std::move(cachedScripts)), filePath, kCacheName);
 
     return result;
@@ -169,11 +165,8 @@ std::vector<oo::ObjCRef<::OOScript*>> OOPListScript::loadCachedScripts(const oo:
         const oo::PList* cacheValue = entry.isDict() ? &entry : nullptr;
         const oo::PList* scriptArray = (cacheValue != nullptr) ? cacheValue->get<oo::PList::Array>(kKeyScript) : nullptr;
         const oo::PList* metadata = (cacheValue != nullptr) ? cacheValue->get<oo::PList::Dict>(kKeyMetadata) : nullptr;
-        ::OOPListScript* script = [[::OOPListScript alloc] initWithName:key scriptArray:((scriptArray != nullptr) ? *scriptArray : oo::PList()) metadata:metadata];
-        if (script != nil) {
-            result.emplace_back(script);
-            [script release];
-        }
+        const oo::Ref<OOPListScript> script = oo::makeRef<OOPListScript>(key, (scriptArray != nullptr) ? *scriptArray : oo::PList(), metadata);
+        result.emplace_back(oo::ToObjC(static_cast<cxx::OOScript*>(script.get()))); // the root's facade, as the Objective-C script was
     }
 
     return result;
@@ -191,5 +184,3 @@ OOPListScript::OOPListScript(const std::string& name, const oo::PList& script, c
         _metadata = oo::PList(std::move(namedMetadata));
     }
 }
-
-} // namespace cxx

@@ -34,10 +34,11 @@ MA 02110-1301, USA.
         ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
-        OOExhaustPlumeEntity became free functions, and its methods and interface moved to
-        OOJSExhaustPlume+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
-        Objective-C (OOExhaustPlumeEntity, ShipEntity, Entity) stay as they are, which is why the
-        file is still .mm until Phase 4.
+        OOExhaustPlumeEntity became free functions, and its methods and interface moved to a
+        bridge file of the binding (amendment oo-ykoy), then onto the OOExhaustPlumeEntity facade in
+        OOExhaustPlumeEntity+ObjCBridge.mm (bead oo-9ht.48, amendment oo-6ia4 item 3). Messages to
+        classes that are still Objective-C (OOExhaustPlumeEntity, ShipEntity, Entity) stay as they are,
+        which is why the file is still .mm until Phase 4.
 */
 
 static JSClassID sExhaustPlumeClassID;
@@ -112,9 +113,9 @@ static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), whose methods are in
-// OOJSExhaustPlume+ObjCBridge.mm until OOExhaustPlumeEntity converts (proposed ADR-0056 amendments
-// oo-ppc and oo-ykoy).
+// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), whose methods are on the
+// OOExhaustPlumeEntity facade, in OOExhaustPlumeEntity+ObjCBridge.mm (bead oo-9ht.48), until that
+// facade goes (oo-9ht.110; proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void)
 {
     return std::string("ExhaustPlume");

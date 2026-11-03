@@ -54,23 +54,23 @@ class OOShipGroup : public oo::RefCounted {
 public:
     // Null if the member array cannot be allocated (-cxx_initWithName: returned nil).
     static oo::Ref<OOShipGroup> groupWithName(const std::optional<std::string>& name);
-    static oo::Ref<OOShipGroup> groupWithName(const std::optional<std::string>& name, ShipEntity* leader);
+    static oo::Ref<OOShipGroup> groupWithName(const std::optional<std::string>& name, ::ShipEntity* leader);
 
     ~OOShipGroup() override;
 
     std::optional<std::string> name(); // nullopt: unnamed (bead oo-3rb.289.11)
     void setName(const std::optional<std::string>& name);
 
-    ShipEntity* leader();
-    void setLeader(ShipEntity* leader);
+    ::ShipEntity* leader();
+    void setLeader(::ShipEntity* leader);
 
     // The members at the time this is called, even if the group is mutated later.
-    std::vector<oo::ObjCRef<ShipEntity*>> memberArray(); // arbitrary order
-    std::vector<oo::ObjCRef<ShipEntity*>> memberArrayExcludingLeader(); // arbitrary order
+    std::vector<oo::ObjCRef<::ShipEntity*>> memberArray(); // arbitrary order
+    std::vector<oo::ObjCRef<::ShipEntity*>> memberArrayExcludingLeader(); // arbitrary order
 
-    bool containsShip(ShipEntity* ship);
-    bool addShip(ShipEntity* ship);
-    bool removeShip(ShipEntity* ship);
+    bool containsShip(::ShipEntity* ship);
+    bool addShip(::ShipEntity* ship);
+    bool removeShip(::ShipEntity* ship);
 
     NSUInteger count(); // NOTE: this is O(n).
     bool isEmpty();
@@ -118,7 +118,7 @@ public:
     // with it).
     explicit OOShipGroupCursor(OOShipGroup* group);
 
-    ShipEntity* next(); // nil at the end
+    ::ShipEntity* next(); // nil at the end
     NSUInteger index() const { return _index; }
     void setPerformCleanup(BOOL flag) { _considerCleanup = flag; }
 

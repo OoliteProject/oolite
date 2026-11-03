@@ -2,10 +2,10 @@
 
 OOFileScannerVerifierStage.m
 
-C++20 since bead oo-up4b (proposed ADR-0056 Amendment 1 and amendment oo-up4b): cxx::OOFileScannerVerifierStage,
-OOListUnusedFilesStage (bead oo-cwz) and cxx::OOFileHandlingVerifierStage. Method bodies are the
-Objective-C ones with message sends turned into calls (ADR-0012). The Objective-C facades, and the
-verifier's -fileScannerStage, are in OOFileScannerVerifierStage+ObjCBridge.mm. Still
+C++20 since bead oo-up4b (proposed ADR-0056 Amendment 1 and amendment oo-up4b): OOFileScannerVerifierStage,
+OOListUnusedFilesStage (bead oo-cwz) and OOFileHandlingVerifierStage. Method bodies are the
+Objective-C ones with message sends turned into calls (ADR-0012). Their Objective-C facades, and the
+verifier's -fileScannerStage, were deleted by bead oo-9ht.7. Still
 Objective-C++ until Phase 4: the verifier and the resource manager are Objective-C objects.
 
 
@@ -83,8 +83,6 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 } // namespace
 
-namespace cxx {
-
 const char* const OOFileScannerVerifierStage::kName = kFileScannerStageName;
 
 std::optional<std::string> OOFileScannerVerifierStage::name()
@@ -109,14 +107,13 @@ void OOFileScannerVerifierStage::run()
     }
 }
 
-// The verifier holds stages as Objective-C objects until it is converted: a C++ stage is
-// registered through its facade, oo::ToObjC.
-std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(OOOXPVerifier* verifier)
+// The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
+std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(::OOOXPVerifier* verifier)
 {
-    ::OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kFileScannerStageName];
-    if (stage == nil) {
+    OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kFileScannerStageName];
+    if (stage == nullptr) {
         const oo::Ref<OOFileScannerVerifierStage> newStage = oo::makeRef<OOFileScannerVerifierStage>();
-        [verifier registerStage:oo::ToObjC(newStage.get())];
+        [verifier registerStage:newStage.get()];
     }
 
     return kFileScannerStageName;
@@ -194,7 +191,7 @@ std::optional<std::string> OOFileScannerVerifierStage::pathForFile(const std::op
     // If we get here, the file wasn't found in the OXP.
     // FIXME: should check case for built-in files.
     if (checkBuiltIn && file.has_value())
-        return [ResourceManager cxx_pathForFileNamed:*file inFolder:folder]; // a nil name found no path
+        return [::ResourceManager cxx_pathForFileNamed:*file inFolder:folder]; // a nil name found no path
 
     return std::nullopt;
 }
@@ -594,8 +591,6 @@ std::vector<std::string> OOFileScannerVerifierStage::constructReadMeNames()
     return result;
 }
 
-} // namespace cxx
-
 // OOListUnusedFilesStage: C++ since bead oo-cwz (proposed ADR-0056 Amendment 1).
 
 std::optional<std::string> OOListUnusedFilesStage::name()
@@ -613,23 +608,19 @@ void OOListUnusedFilesStage::run()
     OO_LOG("verifyOXP.unusedFiles.unimplemented", "{}", "TODO: implement unused files check.");
 }
 
-// The verifier holds stages as Objective-C objects until it is converted: a C++ stage is
-// registered through its facade, oo::ToObjC.
-std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(OOOXPVerifier* verifier)
+// The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
+std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(::OOOXPVerifier* verifier)
 {
-    ::OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kUnusedListerStageName];
-    if (stage == nil) {
+    OOOXPVerifierStage* stage = [verifier cxx_stageWithName:kUnusedListerStageName];
+    if (stage == nullptr) {
         const oo::Ref<OOListUnusedFilesStage> newStage = oo::makeRef<OOListUnusedFilesStage>();
-        [verifier registerStage:oo::ToObjC(newStage.get())];
+        [verifier registerStage:newStage.get()];
     }
 
     return kUnusedListerStageName;
 }
 
-// OOFileHandlingVerifierStage: C++ since bead oo-up4b. Its Objective-C subclasses reach these
-// through their facade (OOFileScannerVerifierStage+ObjCBridge.mm).
-
-namespace cxx {
+// OOFileHandlingVerifierStage: C++ since bead oo-up4b; global since bead oo-9ht.7 deleted its facade.
 
 std::optional<std::vector<std::string>> OOFileHandlingVerifierStage::dependencies()
 {
@@ -640,8 +631,6 @@ std::optional<std::vector<std::string>> OOFileHandlingVerifierStage::dependents(
 {
     return std::vector<std::string> { OOListUnusedFilesStage::nameForReverseDependencyForVerifier(verifier()) };
 }
-
-} // namespace cxx
 
 namespace {
 

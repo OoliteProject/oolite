@@ -13,11 +13,9 @@ and the first control point is linear, the remaining segments
 quadratic with the gradients matching at the control point.
 
 C++20 since bead oo-fn2f (proposed ADR-0056 and its hierarchy amendments oo-cwz/oo-up4b). The
-three profile classes are cxx:: classes, the curve (rawValue) virtual; the spline's segments are
-the private OOJoystickSplineSegment. OOJoystickProfile+ObjCBridge.h, imported at the end of this
-header, keeps the three Objective-C classes (a root facade and two subclass facades) that the
-unconverted joystick manager and stick-profile screen alloc, message and test with
-isKindOfClass:; the bridge's deletion bead moves the classes out of namespace cxx.
+three profile classes are C++ classes, the curve (rawValue) virtual; the spline's segments are
+the private OOJoystickSplineSegment. Bead oo-9ht.16 deleted their Objective-C facades and moved
+the classes to the global namespace.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -54,9 +52,7 @@ MA 02110-1301, USA.
 #define STICKPROFILE_TYPE_SPLINE 2
 #define STICKPROFILE_MAX_POWER 10.0
 
-class OOJoystickSplineSegment; // private to OOJoystickProfile.mm; no facade, so global
-
-namespace cxx {
+class OOJoystickSplineSegment; // private to OOJoystickProfile.mm
 
 class OOJoystickAxisProfile : public oo::RefCounted {
 public:
@@ -112,11 +108,5 @@ private:
     // Was a Foundation array of segments (Foundation sweep, proposed ADR-0043, bead oo-r71k).
     std::vector<oo::Ref<OOJoystickSplineSegment>> segments = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C profile classes, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOJoystickProfile+ObjCBridge.h"
 
 #endif // OOJOYSTICKPROFILE_H

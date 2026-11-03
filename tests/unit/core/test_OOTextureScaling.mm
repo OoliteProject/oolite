@@ -177,6 +177,25 @@ OO_TEST(keepsUniformImagesUniform)
 }
 
 
+// oo-9ht.115: a uniform grayscale image squeezed vertically by a non-integer factor (8 -> 5, and
+// 8x8 -> 3x5 through both squeezers) stays uniform in every row, the last included. Before the fix
+// SqueezeVertically1() counted the final source row's weight without its value, so the last row of
+// 0x5A came out at 33 and of 0xC3 at 73; SqueezeVertically2/4 were already right.
+OO_TEST(squeezesGrayscaleVerticallyByANonIntegerFactorUniformly)
+{
+	for (uint8_t value : { static_cast<uint8_t>(0x5A), static_cast<uint8_t>(0xC3) })
+	{
+		OOPixMap tall = OOScalePixMap(MakeUniform(8, 8, kOOPixMapGrayscale, value), 8, 5, NO);
+		Pinned("gray 8x8 -> 8x5", tall, 8, 5, std::vector<int>(8 * 5, value));
+		free(tall.pixels);
+
+		OOPixMap both = OOScalePixMap(MakeUniform(8, 8, kOOPixMapGrayscale, value), 3, 5, NO);
+		Pinned("gray 8x8 -> 3x5", both, 3, 5, std::vector<int>(3 * 5, value));
+		free(both.pixels);
+	}
+}
+
+
 // A pixmap with no valid format is refused before any wrapper runs: a null pixmap and one
 // parameter-error log line, as before.
 OO_TEST(refusesAnInvalidPixMap)

@@ -15,6 +15,7 @@
 */
 
 #import "OOOpenGLExtensionManager.h"
+#import "OORegExpMatcher.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"
@@ -59,28 +60,24 @@ static oo::PList sGPUSettings = oo::PList(oo::PList::Dict{});
 @end
 
 
-@interface OORegExpMatcher: OOObject
+// OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12). sMatchersMade counts the
+// matchers asked for: a GPU settings pass takes one and holds it across its matches.
+static unsigned sMatchersMade = 0;
 
-+ (instancetype) regExpMatcher;
-- (BOOL) string:(const std::string &)string matchesExpression:(const std::string &)regExp;
-
-@end
-
-
-@implementation OORegExpMatcher
-
-+ (instancetype) regExpMatcher
+oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()
 {
-	return [[[self alloc] init] autorelease];
+	sMatchersMade++;
+	return oo::makeRef<OORegExpMatcher>();
 }
 
 
-- (BOOL) string:(const std::string &)string matchesExpression:(const std::string &)regExp
+bool OORegExpMatcher::string(const std::string &string, const std::string &regExp)
 {
-	return std::regex_search(string, std::regex(regExp)) ? YES : NO;
+	return std::regex_search(string, std::regex(regExp));
 }
 
-@end
+
+OORegExpMatcher::~OORegExpMatcher()  {}
 
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
@@ -275,6 +272,37 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder)
 		sGPUSettings = oo::PList(oo::PList::Dict{});
 		manager->reset();
 		OO_CHECK(manager->shadersSupported() == shaders);
+	}
+}
+
+
+OO_TEST(gpuSettingsPassTakesOneMatcher)
+{
+	// The Objective-C matcher was autoreleased, so one pass's matches shared it (and its compiled
+	// tester); the C++ pass holds the one it takes (ADR-0056 amendment oo-ct7c item 3, bead
+	// oo-9ht.12). A pass with no regexp takes none, as no message was sent.
+	OO_CHECK(OOTestGLContext());
+	@autoreleasepool
+	{
+		cxx::OOOpenGLExtensionManager *manager = cxx::OOOpenGLExtensionManager::sharedManager();
+
+		sGPUSettings = Dict({
+			{ "a-strict", Dict({ { "precedence", oo::PList(5) },
+				{ "match", Dict({ { "vendor", oo::PList(oo::PList::Array{ oo::PList("."), oo::PList("^no such vendor$") }) } }) } }) },
+			{ "b-any", Dict({ { "precedence", oo::PList(2) },
+				{ "match", Dict({ { "vendor", oo::PList(".") }, { "renderer", oo::PList(".") }, { "version", oo::PList("^[0-9]") } }) } }) },
+		});
+		unsigned made = sMatchersMade;
+		manager->reset();
+		OO_CHECK(sMatchersMade == made + 1);	// several matches, one matcher
+
+		sGPUSettings = Dict({ { "c-any", Dict({ { "match", Dict({}) } }) } });
+		made = sMatchersMade;
+		manager->reset();
+		OO_CHECK(sMatchersMade == made);
+
+		sGPUSettings = oo::PList(oo::PList::Dict{});
+		manager->reset();
 	}
 }
 

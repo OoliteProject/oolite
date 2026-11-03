@@ -31,11 +31,11 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 /*	C++20 since bead oo-uw42 (proposed ADR-0056 Amendment 1, amendment oo-up4b item 6): a leaf of
-        cxx::OOFileHandlingVerifierStage. It is global and has no facade: nothing outside this file
-        names it, the Objective-C verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and
-        holds it as an OOOXPVerifierStage (oo::ToObjC).
+        OOFileHandlingVerifierStage. It is global and has no facade: nothing outside this file
+        names it, the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and holds it
+        (as its OOOXPVerifierStage facade until bead oo-9ht.4).
 */
-class OOCheckRequiresPListVerifierStage : public cxx::OOFileHandlingVerifierStage {
+class OOCheckRequiresPListVerifierStage : public OOFileHandlingVerifierStage {
 public:
     std::optional<std::string> name() override;
     bool shouldRun() override;

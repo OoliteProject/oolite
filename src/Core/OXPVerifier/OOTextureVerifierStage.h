@@ -37,16 +37,16 @@ MA 02110-1301, USA.
         (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
 
         C++20 since bead oo-tuq8 (proposed ADR-0056 Amendment 1, amendment oo-up4b items 2 and 6).
-        OOTextureVerifierStage is a leaf of cxx::OOFileHandlingVerifierStage; it is global and has no
+        OOTextureVerifierStage is a leaf of OOFileHandlingVerifierStage; it is global and has no
         facade, because nothing outside this file messages it (the verifier makes it from its name,
         kCxxStages in OOOXPVerifier.mm). OOTextureHandlingStage is an intermediate class that the ship
-        data and model stages still subclass in Objective-C, so it is cxx::OOTextureHandlingStage and
-        keeps a facade: OOTextureVerifierStage+ObjCBridge.h, imported at the end of this header.
+        data and model stages subclass; its Objective-C facade was deleted by bead oo-9ht.45 once they
+        were C++ (ADR-0056 amendment "deleting a facade"), with the verifier's -textureVerifierStage.
 */
-class OOTextureVerifierStage : public cxx::OOFileHandlingVerifierStage {
+class OOTextureVerifierStage : public OOFileHandlingVerifierStage {
 public:
     // Returns name to be used in dependents() by other stages.
-    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
+    static std::string nameForReverseDependencyForVerifier(::OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
 
     std::optional<std::string> name() override;
     bool shouldRun() override;
@@ -65,18 +65,10 @@ private:
     std::vector<std::string> _usedTextures = { }; // sorted, no duplicates
 };
 
-namespace cxx {
-
 // Convenience base class for stages that need to run before OOTextureHandlingStage.
 class OOTextureHandlingStage : public OOFileHandlingVerifierStage {
 public:
     std::optional<std::vector<std::string>> dependents() override;
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOTextureHandlingStage, and the verifier's -textureVerifierStage,
-// for the stages not yet converted. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOTextureVerifierStage+ObjCBridge.h"
 
 #endif

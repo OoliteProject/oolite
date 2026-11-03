@@ -9,8 +9,15 @@
 	written against the Objective-C API and run on the unconverted class first: one shared
 	instance, what it answers as a texture (no size, not mip-mapped, the root's defaults), that
 	applying it binds no texture, that a graphics reset leaves it alone, and its debug name (commit
-	dc5b2aff6). That API is now the facade (OONullTexture+ObjCBridge.h), so they run through it;
-	the last tests pin the C++ API (cxx::OONullTexture) and the facade's contract.
+	dc5b2aff6). That API then became the facade, and the last tests
+	pinned the C++ API and the facade's contract.
+
+	Bead oo-9ht.100 deleted the facade (ADR-0056 amendment "deleting a facade"). The cases that
+	asked through it ask the same object as Objective-C now gets it: [OOTexture nullTexture], the
+	root's facade of the C++ null texture, which OOTexture keeps for the process as
+	+sharedNullTexture kept its facade; -isKindOfClass: of the deleted class is a dynamic_cast of
+	the C++ texture. The facade's own case (facade) was retired with it (ADR-0049, standing
+	approval oo-9n5p9); nullTextureCrossesAsTheRootFacade pins the crossing now.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -50,15 +57,15 @@ OO_TEST(oneSharedInstance)
 {
 	@autoreleasepool
 	{
-		OONullTexture *shared = [OONullTexture sharedNullTexture];
-		OO_CHECK(shared != nil && shared == [OONullTexture sharedNullTexture]);
-		OO_CHECK(shared == [OOTexture nullTexture]);
-		OO_CHECK([shared isKindOfClass:[OOTexture class]] && [shared isKindOfClass:[OONullTexture class]]);
+		OOTexture *shared = [OOTexture nullTexture];
+		OO_CHECK(shared != nil && shared == [OOTexture nullTexture]);
+		OO_CHECK(shared == cxx::OOTexture::nullTexture().get());
+		OO_CHECK([shared isKindOfClass:[OOTexture class]] && dynamic_cast<OONullTexture *>(oo::ToCxx(shared)) != nullptr);
 	}
 	// It outlives the pools it was handed out in.
 	@autoreleasepool
 	{
-		OO_CHECK([OONullTexture sharedNullTexture] == [OOTexture nullTexture]);
+		OO_CHECK(oo::ToCxx(static_cast<OOTexture *>([OOTexture nullTexture])) == OONullTexture::sharedNullTexture());
 	}
 }
 
@@ -67,7 +74,7 @@ OO_TEST(answersAsAnEmptyTexture)
 {
 	@autoreleasepool
 	{
-		OOTexture *none = [OONullTexture sharedNullTexture];
+		OOTexture *none = [OOTexture nullTexture];
 		OO_CHECK(SameSize([none dimensions], 0, 0) && SameSize([none originalDimensions], 0, 0));
 		OO_CHECK(![none isMipMapped]);
 		OO_CHECK([none isFinishedLoading] && ![none cxx_cacheKey].has_value());
@@ -94,7 +101,7 @@ OO_TEST(applyingBindsNoTexture)
 		glGenTextures(1, &name);
 		glBindTexture(GL_TEXTURE_2D, name);
 		OO_CHECK(BoundTexture() == (GLint)name);
-		[[OONullTexture sharedNullTexture] apply];
+		[[OOTexture nullTexture] apply];
 		OO_CHECK(BoundTexture() == 0);
 		glDeleteTextures(1, &name);
 	}
@@ -106,9 +113,9 @@ OO_TEST(graphicsResetLeavesItAlone)
 	OO_CHECK(OOTestGLContext());
 	@autoreleasepool
 	{
-		OONullTexture *shared = [OONullTexture sharedNullTexture];
+		OOTexture *shared = [OOTexture nullTexture];
 		[OOTexture rebindAllTextures];
-		OO_CHECK([OONullTexture sharedNullTexture] == shared);
+		OO_CHECK([OOTexture nullTexture] == shared);
 		OO_CHECK(SameSize([shared dimensions], 0, 0));
 	}
 }
@@ -119,8 +126,8 @@ OO_TEST(graphicsResetLeavesItAlone)
 OO_TEST(cxxApi)
 {
 	OO_CHECK(OOTestGLContext());
-	cxx::OONullTexture *none = cxx::OONullTexture::sharedNullTexture();
-	OO_CHECK(none != nullptr && none == cxx::OONullTexture::sharedNullTexture());
+	OONullTexture *none = OONullTexture::sharedNullTexture();
+	OO_CHECK(none != nullptr && none == OONullTexture::sharedNullTexture());
 
 	// Through the root's virtual members, as the materials call a texture.
 	cxx::OOTexture *texture = none;
@@ -139,20 +146,17 @@ OO_TEST(cxxApi)
 }
 
 
-OO_TEST(facade)
+// Objective-C sees the null texture as the root's facade of the C++ object (bead oo-9ht.100).
+OO_TEST(nullTextureCrossesAsTheRootFacade)
 {
 	@autoreleasepool
 	{
-		OONullTexture *facade = [OONullTexture sharedNullTexture];
-		OO_CHECK(oo::ToCxx(facade) == cxx::OONullTexture::sharedNullTexture());
-		OO_CHECK(oo::ToObjC(cxx::OONullTexture::sharedNullTexture()) == facade);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOTexture *>(cxx::OONullTexture::sharedNullTexture())) == facade);
-		OO_CHECK(oo::ToCxx(static_cast<OOTexture *>(facade)) == cxx::OONullTexture::sharedNullTexture());
+		OOTexture *facade = [OOTexture nullTexture];
+		OO_CHECK([facade class] == [OOTexture class]);
+		OO_CHECK(oo::ToCxx(facade) == OONullTexture::sharedNullTexture());
+		OO_CHECK(oo::ToObjC(static_cast<cxx::OOTexture *>(OONullTexture::sharedNullTexture())) == facade);
 		OO_CHECK(cxx::OOTexture::nullTexture().get() == facade);
 	}
-	OONullTexture *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OONullTexture *>(nullptr)) == nil);
 }
 
 

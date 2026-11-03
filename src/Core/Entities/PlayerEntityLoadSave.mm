@@ -675,15 +675,15 @@ unsigned char FirstUnitLowByte(const std::string& string)
     if (dockedStation) {
         _cxxEntity->position = [dockedStation position];
         [self setOrientation:kIdentityQuaternion];
-        v_forward = vector_forward_from_quaternion(_cxxEntity->orientation);
-        v_right = vector_right_from_quaternion(_cxxEntity->orientation);
-        v_up = vector_up_from_quaternion(_cxxEntity->orientation);
+        _cxxShip->v_forward = vector_forward_from_quaternion(_cxxEntity->orientation);
+        _cxxShip->v_right = vector_right_from_quaternion(_cxxEntity->orientation);
+        _cxxShip->v_up = vector_up_from_quaternion(_cxxEntity->orientation);
     }
 
-    flightRoll = 0.0;
-    flightPitch = 0.0;
-    flightYaw = 0.0;
-    flightSpeed = 0.0;
+    _cxxShip->flightRoll = 0.0;
+    _cxxShip->flightPitch = 0.0;
+    _cxxShip->flightYaw = 0.0;
+    _cxxShip->flightSpeed = 0.0;
 
     [self setEntityPersonalityInt:PersonalityForCommanderDict(fileDic)];
 

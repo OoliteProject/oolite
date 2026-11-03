@@ -56,97 +56,117 @@ inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYID = "id:";
 inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYTAG = "tag:";
 inline constexpr std::string_view SCENARIO_OXP_DEFINITION_NOPLIST = "exc:";
 
-@interface ResourceManager : OOObject
+namespace cxx {
 
-+ (void)reset;
-+ (void)resetManifestKnowledgeForOXZManager;
+class OOSystemDescriptionManager; // OOSystemDescriptionManager.h (C++ since bead oo-0sr1)
 
-+ (std::vector<std::string>)cxx_rootPaths; // Places add-ons are searched for, not including add-on paths.
-+ (std::vector<std::string>)cxx_userRootPaths; // Places users are expected to place add-ons, not including built-in data or managed add-ons directory.
-+ (std::optional<std::string>)cxx_builtInPath; // Path for built-in data only.
-+ (std::vector<std::string>)cxx_pathsWithAddOns; // Root paths + add-on paths.
-+ (std::vector<std::string>)cxx_paths; // builtInPath or pathsWithAddOns, depending on useAddOns state.
-+ (std::vector<std::string>)cxx_maskUserNameInPathArray:(const std::vector<std::string>&)inputPathArray; // potential privacy concerns
-+ (std::optional<std::string>)cxx_maskUserName:(const std::string&)name inPath:(const std::string&)path;
-+ (std::optional<std::string>)cxx_useAddOns; // nullopt before the first scan (was nil)
-+ (std::vector<std::string>)cxx_OXPsWithMessagesFound;
-+ (void)cxx_setUseAddOns:(const std::string&)useAddOns;
-+ (void)cxx_addExternalPath:(const std::string&)fileName;
+/*	Class methods over file-scope state: the class is never made, and every member is static
+        (ADR-0056 item 3; amendment oo-jfno item 1). All four slices of
+        docs/phases/3-slices/ResourceManager.md are members.
+*/
+class ResourceManager {
+public:
+    ResourceManager() = delete;
 
-// get manifest data for identifier (a null PList when there is none)
-+ (oo::PList)cxx_manifestForIdentifier:(const std::string&)identifier;
-// compatibility checks (a manifest or relation is a Dict; title is nullopt where nil was passed)
-+ (BOOL)cxx_checkVersionCompatibility:(const oo::PList&)manifest forOXP:(const std::optional<std::string>&)title;
-+ (BOOL)cxx_manifestHasConflicts:(const oo::PList&)manifest logErrors:(BOOL)logErrors;
-+ (BOOL)cxx_manifestHasMissingDependencies:(const oo::PList&)manifest logErrors:(BOOL)logErrors;
-+ (BOOL)cxx_manifest:(const oo::PList&)manifest HasUnmetDependency:(const oo::PList&)required logErrors:(BOOL)logErrors;
-+ (BOOL)cxx_matchVersions:(const oo::PList&)rangeDict withVersion:(const std::string&)version;
+    static void reset();
+    static void resetManifestKnowledgeForOXZManager();
 
-// In-out: an array of arrays (the merged files), edited in place.
-+ (void)handleEquipmentListMerging:(oo::PList&)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
-+ (void)handleEquipmentOverrides:(oo::PList&)arrayToProcess;
-+ (void)handleStarNebulaListMerging:(oo::PList&)arrayToProcess;
+    static std::vector<std::string> rootPaths(); // Places add-ons are searched for, not including add-on paths.
+    static std::vector<std::string> userRootPaths(); // Places users are expected to place add-ons, not including built-in data or managed add-ons directory.
+    static std::optional<std::string> builtInPath(); // Path for built-in data only.
+    static std::vector<std::string> pathsWithAddOns(); // Root paths + add-on paths.
+    static std::vector<std::string> paths(); // builtInPath or pathsWithAddOns, depending on useAddOns state.
+    static std::vector<std::string> maskUserNameInPathArray(const std::vector<std::string>& inputPathArray); // potential privacy concerns
+    static std::optional<std::string> maskUserName(const std::string& name, const std::string& path);
+    static std::optional<std::string> useAddOns(); // nullopt before the first scan (was nil)
+    static std::vector<std::string> OXPsWithMessagesFound();
+    static void setUseAddOns(const std::string& useAddOns);
+    static void addExternalPath(const std::string& fileName);
 
-+ (std::optional<std::string>)cxx_errors; // Errors which occurred during path scanning - essentially a list of OXPs whose requires.plist is bad. nullopt when there are none.
+    // get manifest data for identifier (a null PList when there is none)
+    static oo::PList manifestForIdentifier(const std::string& identifier);
 
-// nullopt when not found (was nil); folderName nullopt where nil was passed.
-+ (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
-+ (std::optional<std::string>)cxx_pathForFileNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache;
+    static std::optional<std::string> errors(); // Errors which occurred during path scanning - essentially a list of OXPs whose requires.plist is bad. nullopt when there are none.
 
-+ (BOOL)cxx_corePlist:(const std::string&)fileName excludedAt:(const std::string&)path;
+    // Clear ResourceManager-internal caches (not those handled by OOCacheManager)
+    static void clearCaches();
 
-// A null PList when no file was found; folderName nullopt where nil was passed.
-+ (oo::PList)cxx_dictionaryFromFilesNamed:(const std::string&)fileName
-                                 inFolder:(const std::optional<std::string>&)folderName
-                                 andMerge:(BOOL)mergeFiles;
-+ (oo::PList)cxx_dictionaryFromFilesNamed:(const std::string&)fileName
-                                 inFolder:(const std::optional<std::string>&)folderName
-                                mergeMode:(OOResourceMergeMode)mergeMode
-                                    cache:(BOOL)useCache;
+    static oo::Ref<cxx::OOSystemDescriptionManager> systemDescriptionManager(); // a new manager (C++ since bead oo-0sr1)
+    static oo::PList shaderBindingTypesDictionary();
+    // nullopt when not found (was nil); folderName nullopt where nil was passed.
+    static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName);
+    static std::optional<std::string> pathForFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
+    static ::OOMusic* ooMusicNamed(const std::string& fileName, const std::optional<std::string>& folderName); // autoreleased
+    static ::OOSound* ooSoundNamed(const std::string& fileName, const std::optional<std::string>& folderName); // autoreleased
+    // nullopt when no file was found (was nil); folderName nullopt where nil was passed.
+    static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName);
+    static std::optional<std::string> stringFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool useCache);
+    // World scripts by name, in the order each name was first loaded.
+    static std::vector<std::pair<std::string, oo::ObjCRef<::OOScript*>>> loadScripts();
+    /*	writeDiagnosticData()
+            writeDiagnosticString()
+            writeDiagnosticPList()
 
-+ (oo::PList)cxx_arrayFromFilesNamed:(const std::string&)fileName
-                            inFolder:(const std::optional<std::string>&)folderName
-                            andMerge:(BOOL)mergeFiles;
-+ (oo::PList)cxx_arrayFromFilesNamed:(const std::string&)fileName
-                            inFolder:(const std::optional<std::string>&)folderName
-                            andMerge:(BOOL)mergeFiles
-                               cache:(BOOL)useCache;
+            Write data to the specified path within the log directory. Slashes may be
+            used as path separators in name.
+     */
+    static bool writeDiagnosticData(const oo::Data& data, const std::string& name);
+    static bool writeDiagnosticString(const std::string& string, const std::string& name);
+    static bool writeDiagnosticPList(const oo::PList& plist, const std::string& name);
+    static oo::PList materialDefaults();
+    static std::optional<std::string> diagnosticFileLocation();
 
-// These are deliberately not merged like normal plists for security reasons.
-+ (oo::PList)cxx_whitelistDictionary; // a null PList when the file is missing
-+ (oo::PList)cxx_shaderBindingTypesDictionary;
+    static bool corePlist(const std::string& fileName, const std::string& path); // -cxx_corePlist:excludedAt:
+    // A null PList when no file was found; folderName nullopt where nil was passed.
+    static oo::PList dictionaryFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles);
+    static oo::PList dictionaryFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, OOResourceMergeMode mergeMode, bool cache);
+    static oo::PList arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles);
+    static oo::PList arrayFromFilesNamed(const std::string& fileName, const std::optional<std::string>& folderName, bool mergeFiles, bool useCache);
+    // In-out: an array of arrays (the merged files), edited in place.
+    static void handleEquipmentListMerging(oo::PList& arrayToProcess, unsigned lookupIndex);
+    static void handleEquipmentOverrides(oo::PList& arrayToProcess);
+    static void handleStarNebulaListMerging(oo::PList& arrayToProcess);
+    // These are deliberately not merged like normal plists for security reasons.
+    static oo::PList whitelistDictionary(); // a null PList when the file is missing
+    // These have special merging rules.
+    static oo::PList logControlDictionary();
+    static oo::PList roleCategoriesDictionary(); // category -> array of its roles, each once (a set), in first-seen order
 
-// These have special merging rules.
-+ (oo::PList)cxx_logControlDictionary;
-+ (oo::PList)cxx_roleCategoriesDictionary; // category -> array of its roles, each once (a set), in first-seen order
-+ (OOSystemDescriptionManager*)systemDescriptionManager;
+    // compatibility checks (a manifest or relation is a Dict; title is nullopt where nil was passed)
+    static bool checkVersionCompatibility(const oo::PList& manifest, const std::optional<std::string>& title);
+    static bool manifestHasConflicts(const oo::PList& manifest, bool logErrors);
+    static bool manifestHasMissingDependencies(const oo::PList& manifest, bool logErrors);
+    static bool manifest(const oo::PList& manifest, const oo::PList& required, bool logErrors); // -cxx_manifest:HasUnmetDependency:logErrors:
+    static bool matchVersions(const oo::PList& rangeDict, const std::string& version);
 
-+ (OOSound*)cxx_ooSoundNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
-+ (OOMusic*)cxx_ooMusicNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
+private:
+    // (OOPrivate)
+    static void logPaths();
+    static void preloadFileLists();
+    static void preloadFileListFromOXZ(const std::string& path, const std::vector<std::string>& folders);
+    static void preloadFileListFromFolder(const std::string& path, const std::vector<std::string>& folders);
+    static void preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path);
+    static id retrieveFileNamed(const std::string& fileName, const std::optional<std::string>& folderName, std::map<std::string, oo::ObjCRef<id>, std::less<>>* ioCache, std::optional<std::string> key, Class klass, bool useCache); // klass: the facade class OOSound or OOMusic; autoreleased
+    static bool directoryExists(const std::string& inPath, bool inCreate);
+    static bool checkCacheUpToDateForPaths(const std::vector<std::string>& searchPaths);
+    static void mergeRoleCategories(const oo::PList& catData, oo::PList& categories);
+    static void checkOXPMessagesInPath(const std::string& path);
+    static void checkPotentialPath(const std::string& path, std::vector<std::string>& searchPaths);
+    static bool validateManifest(const oo::PList& manifest, const std::string& path);
+    static bool areRequirementsFulfilled(const oo::PList& requirements, const std::optional<std::string>& path, const std::string& file);
+    static void filterSearchPathsForConflicts(std::vector<std::string>& searchPaths);
+    static bool filterSearchPathsForRequirements(std::vector<std::string>& searchPaths);
+    static void filterSearchPathsToExcludeScenarioOnlyPaths(std::vector<std::string>& searchPaths);
+    static void filterSearchPathsByScenario(std::vector<std::string>& searchPaths);
+    static bool manifestAllowedByScenario(const oo::PList& manifest);
+    static bool manifestAllowedByScenario(const oo::PList& manifest, const std::string& identifier); // withIdentifier:
+    static bool manifestAllowedByScenarioWithTag(const oo::PList& manifest, const std::string& tag); // its own name: the overloads would collide (amendment oo-kyje item 2)
+    static void addErrorWithKey(const std::string& descriptionKey, const std::string& param1, const std::string& param2);
+};
 
-// nullopt when no file was found (was nil); folderName nullopt where nil was passed.
-+ (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName;
-+ (std::optional<std::string>)cxx_stringFromFilesNamed:(const std::string&)fileName inFolder:(const std::optional<std::string>&)folderName cache:(BOOL)useCache;
+} // namespace cxx
 
-// World scripts by name, in the order each name was first loaded.
-+ (std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>)cxx_loadScripts;
-
-/*	+cxx_writeDiagnosticData:toFileNamed:
-        +cxx_writeDiagnosticString:toFileNamed:
-        +cxx_writeDiagnosticPList:toFileNamed:
-
-        Write data to the specified path within the log directory. Slashes may be
-        used as path separators in name.
- */
-+ (BOOL)cxx_writeDiagnosticData:(const oo::Data&)data toFileNamed:(const std::string&)name;
-+ (BOOL)cxx_writeDiagnosticString:(const std::string&)string toFileNamed:(const std::string&)name;
-+ (BOOL)cxx_writeDiagnosticPList:(const oo::PList&)plist toFileNamed:(const std::string&)name;
-
-+ (std::optional<std::string>)cxx_diagnosticFileLocation;
-
-+ (oo::PList)cxx_materialDefaults;
-
-// Clear ResourceManager-internal caches (not those handled by OOCacheManager)
-+ (void)clearCaches;
-
-@end
+// Transitional: the Objective-C ResourceManager, for the game's callers and the methods of this
+// file's slices 2-4, which are not yet converted. Deleted, with namespace cxx above, by the
+// bridge's deletion bead.
+#import "ResourceManager+ObjCBridge.h"

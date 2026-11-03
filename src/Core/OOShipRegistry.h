@@ -36,6 +36,7 @@ SOFTWARE.
 #include "oofnd/objc/OOObjCRef.h"
 
 class OOProbabilitySet; // C++ since bead oo-489v
+class OOMutableProbabilitySet;
 
 namespace cxx {
 
@@ -68,11 +69,10 @@ private:
     std::vector<std::string> _playerShips; // shipyard keys, in shipyard.plist key order
     std::optional<std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>>> _probabilitySets; // role -> ship keys; nullopt: none cached yet
 
-    void init(); // -init's body: run by sharedRegistry() on the new object, which the load stages hand to the facade's (oo::ToObjC(this))
+    void init(); // -init's body: run by sharedRegistry() once sSingleton is set, so that a re-entrant sharedRegistry() answers the registry being loaded (amendment oo-3bgz item 3)
 
     // (OODataLoader) The load stages. The ship dictionary each stage mutates is one property list,
-    // passed through every stage. The rest of the loader (slice 3 of
-    // docs/phases/3-slices/OOShipRegistry.md) is still Objective-C, a category of the facade.
+    // passed through every stage.
     void loadShipData();
     void loadDemoShipConditions();
     void loadDemoShips();
@@ -87,7 +87,23 @@ private:
     bool removeUnusableEntries(oo::PList& ioData, bool shipMode);
     bool sanitizeConditions(oo::PList& ioData);
 
+    bool canonicalizeAndTagSubentities(oo::PList& ioData);
+    bool preloadShipMeshes(oo::PList& ioData); // defined only when OOShipRegistry.mm's PRELOAD is set (it is 0)
+
     oo::PList mergeShip(const oo::PList& child, const oo::PList& parent); // a null PList where the parent was nil
+    void mergeShipRoles(const std::string& roles, const std::string& shipKey, std::map<std::string, oo::Ref<OOMutableProbabilitySet>, std::less<>>& probabilitySets);
+
+    // Declarations and ship data are property lists; a result is a declaration dictionary, or a
+    // null PList where it was nil.
+    oo::PList canonicalizeSubentityDeclaration(const oo::PList& declaration, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError);
+    oo::PList translateOldStyleSubentityDeclaration(const std::string& declaration, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError);
+    oo::PList translateOldStyleFlasherDeclaration(const oo::PList& tokens, const std::string& shipKey, BOOL* outFatalError);
+    oo::PList translateOldStandardBasicSubentityDeclaration(const oo::PList& tokens, const std::string& shipKey, const oo::PList& shipData, BOOL* outFatalError);
+    oo::PList validateNewStyleSubentityDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError);
+    oo::PList validateNewStyleFlasherDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError);
+    oo::PList validateNewStyleStandardSubentityDeclaration(const oo::PList& declaration, const std::string& shipKey, BOOL* outFatalError);
+
+    bool shipIsBallTurretForKey(const std::string& shipKey, const oo::PList& shipData);
 };
 
 } // namespace cxx

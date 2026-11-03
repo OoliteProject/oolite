@@ -5,11 +5,10 @@ OOOXPVerifierStage.h
 Pipeline stage for OXP verification pipeline managed by OOOXPVerifier.
 
 C++20 since bead oo-cwz, the Phase 3 class-HIERARCHY exemplar (proposed ADR-0056, Amendment 1;
-docs/phases/3-cpp-conversion.md, "Converting a class"). The class is cxx::OOOXPVerifierStage and
-its subclass responsibilities are virtual. While Objective-C subclasses and the Objective-C
-OOOXPVerifier remain, OOOXPVerifierStage+ObjCBridge.h, imported at the end of this header, keeps
-the Objective-C OOOXPVerifierStage they subclass and message; the bridge's deletion bead moves
-the class out of namespace cxx.
+docs/phases/3-cpp-conversion.md, "Converting a class"); its subclass responsibilities are virtual.
+Bead oo-9ht.4 deleted its transitional Objective-C facade (the class's bridge files) once the
+verifier and every stage were C++, and moved the class out of namespace cxx (ADR-0056 amendment
+"deleting a facade"): the verifier keeps and drives the C++ stages themselves.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -41,14 +40,12 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-namespace cxx {
-
 /*	Foundation sweep (proposed ADR-0043, bead oo-84h8): the resolved stage sets are vectors of
         retained stages (identity, no duplicates), in registration order.
 */
 class OOOXPVerifierStage : public oo::RefCounted {
 public:
-    OOOXPVerifier* verifier();
+    ::OOOXPVerifier* verifier();
     bool completed();
 
     // Subclass responsibilities:
@@ -87,11 +84,18 @@ public:
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h): the quoted name.
     std::optional<std::string> descriptionComponents() const;
 
-    /*	Internal: the interface between OOOXPVerifierStage and OOOXPVerifier (it was the
-            OOInternal category, OOOXPVerifierStageInternal.h, which the facade still declares for
-            the Objective-C verifier). Nothing else calls these.
+    /*	What "%@" printed for the stage (its facade's -description until bead oo-9ht.4):
+            "<Class 0x...>{"name"}", Class the C++ class's name. className() is that name, as
+            [stage class] named an Objective-C stage's class.
     */
-    void setVerifier(OOOXPVerifier* verifier);
+    std::string description() const;
+    std::string className() const;
+
+    /*	Internal: the interface between OOOXPVerifierStage and OOOXPVerifier (it was the
+            OOInternal category, OOOXPVerifierStageInternal.h, deleted with the facade by bead
+            oo-9ht.4). Nothing else calls these.
+    */
+    void setVerifier(::OOOXPVerifier* verifier);
     bool isDependentOf(OOOXPVerifierStage* stage);
     void registerDependency(OOOXPVerifierStage* dependency);
     void dependencyRegistrationComplete();
@@ -110,17 +114,11 @@ private:
     void dependencyCompleted(OOOXPVerifierStage* dependency);
     void notifyDependents();
 
-    OOOXPVerifier* _verifier = { }; // Not retained.
+    ::OOOXPVerifier* _verifier = { }; // Not retained.
     std::vector<oo::Ref<OOOXPVerifierStage>> _dependencies = { };
     std::vector<oo::Ref<OOOXPVerifierStage>> _incompleteDependencies = { };
     std::vector<oo::Ref<OOOXPVerifierStage>> _dependents = { };
     bool _canRun = { }, _hasRun = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOOXPVerifierStage, for the verifier and the stages not yet
-// converted. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOOXPVerifierStage+ObjCBridge.h"
 
 #endif

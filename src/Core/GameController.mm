@@ -162,6 +162,16 @@ static GameController* sSharedController = nil;
 - (void)setEcoQoS:(BOOL)efficiencyModeRequested
 {
 #if OOLITE_WINDOWS
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    /*	A paused game a debug console is driving is not idle (bug oo-37zzy). Efficiency mode puts
+            the process in IDLE_PRIORITY_CLASS, which runs only when no other thread wants a CPU: on a
+            loaded machine every frame - and so every console command, serviced between frames - then
+            waited seconds per GL call (measured: 15-60 s a frame; 0.04 s once the class was put back
+            to normal). Stay at normal priority while a console is connected.
+    */
+    if (efficiencyModeRequested && OODebugTCPConsoleIsWaitingForInput())
+        return;
+#endif
     if (oo::Defaults::standard().object("ecoqos").isNull() ? YES : oo::Defaults::standard().boolForKey("ecoqos")) {
         BOOL setEfficiencyMode = !!efficiencyModeRequested; // yes or no, not 42
         HANDLE currentProcess = GetCurrentProcess();

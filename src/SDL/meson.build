@@ -3,6 +3,7 @@
 oolite_sources += files(
     'GameController+SDLFullScreen.mm',
     'MyOpenGLView.mm',
+    'MyOpenGLView+ObjCBridge.mm',
     'MyOpenGLView+Input.mm',
     'OOSDLJoystickManager.mm',
     'OOSDLJoystickManager+ObjCBridge.mm',

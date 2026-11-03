@@ -35,9 +35,10 @@ MA 02110-1301, USA.
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
         (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSunEntity
         became two free functions (its -oo_jsClassID answers JSSunClassID()), and its methods moved
-        to OOJSSun+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
-        Objective-C (OOSunEntity, Entity) stay as they are, which is why the file is still .mm
-        until Phase 4.
+        to a bridge file of the binding (amendment oo-ykoy), then onto the OOSunEntity facade in
+        OOSunEntity+ObjCBridge.mm (bead oo-9ht.51, amendment oo-6ia4 item 3). Messages to classes
+        that are still Objective-C (OOSunEntity, Entity) stay as they are, which is why the file is
+        still .mm until Phase 4.
 */
 
 static JSClassID sSunClassID;
@@ -94,8 +95,9 @@ JSClassID JSSunClassID(void)
     return sSunClassID;
 }
 
-// The bodies of OOSunEntity (OOJavaScriptExtensions), whose methods are in OOJSSun+ObjCBridge.mm
-// until OOSunEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+// The bodies of OOSunEntity (OOJavaScriptExtensions), whose methods are on the OOSunEntity facade,
+// in OOSunEntity+ObjCBridge.mm (bead oo-9ht.51), until that facade goes (oo-9ht.111; proposed
+// ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
 bool OOJSSunIsVisibleToScripts(void)
 {
     return true;

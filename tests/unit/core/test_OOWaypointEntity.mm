@@ -20,6 +20,9 @@
 */
 
 #import "OOWaypointEntity.h"
+#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEntity.h"
+#import "OOJSWaypoint.h"
 #import "Universe.h"
 
 #include "oo_test.hpp"
@@ -272,6 +275,38 @@ OO_TEST(facade)
 		OO_CHECK(dynamic_cast<cxx::OOWaypointEntity *>(oo::ToCxx(wp)) != nullptr);
 		OO_CHECK(oo::AsObjCEntity(oo::ToCxx(wp)) == nullptr);
 		OO_CHECK(oo::ToObjC(oo::ToCxx(wp)) == wp);
+	}
+}
+
+
+// Registers Entity's JS class and the given class (a child of Entity) in the test's context, as the
+// engine's start does; the context is made here if the test has none yet.
+static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
+{
+	extern JSContext *gOOJSMainThreadContext;
+	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
+	JSContext *context = OOJSAcquireContext();
+	JSValue global = JS_GetGlobalObject(context);
+	InitOOJSEntity(context, global);
+	initClass(context, global);
+	JS_FreeValue(context, global);
+}
+
+
+// The binding's category, which the facade carries since bead oo-9ht.50: what the engine asks a
+// OOWaypointEntity for by selector is what OOJSWaypoint.mm answers.
+OO_TEST(jsExtensions)
+{
+	@autoreleasepool
+	{
+		SetUp();
+		OOWaypointEntity *wp = Waypoint("W");
+		RegisterJSClasses(InitOOJSWaypoint);
+		const JSClassID jsClass = [wp oo_jsClassID];
+		const JSClassID expectedClass = JSWaypointClassID();
+		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+		OO_CHECK([wp cxx_oo_jsClassName] == std::optional<std::string>("Waypoint"));
+		OO_CHECK([wp isVisibleToScripts] == YES);
 	}
 }
 

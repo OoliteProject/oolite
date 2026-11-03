@@ -272,7 +272,7 @@ void CollisionRegion::findCollisions()
             e1->_cxxEntity->hasCollided = NO;
         }
         if (e1->_cxxEntity->isShip) {
-            [(ShipEntity*)e1 setProximityAlert:nil];
+            [(::ShipEntity*)e1 setProximityAlert:nil];
         }
         e1->_cxxEntity->collider = nil;
     }
@@ -292,7 +292,7 @@ void CollisionRegion::findCollisions()
         while (e2 != nil) {
             checks_this_tick++;
             if (e1->_cxxEntity->isShip && e2->_cxxEntity->isShip &&
-                [(ShipEntity*)e1 collisionExceptedFor:(ShipEntity*)e2]) {
+                [(::ShipEntity*)e1 collisionExceptedFor:(::ShipEntity*)e2]) {
                 // nothing happens
             } else {
 
@@ -311,17 +311,17 @@ void CollisionRegion::findCollisions()
 
                     if (e1->_cxxEntity->isShip && e2->_cxxEntity->isShip) {
                         if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1)) {
-                            [(ShipEntity*)e1 setProximityAlert:(ShipEntity*)e2];
-                            [(ShipEntity*)e2 setProximityAlert:(ShipEntity*)e1];
+                            [(::ShipEntity*)e1 setProximityAlert:(::ShipEntity*)e2];
+                            [(::ShipEntity*)e2 setProximityAlert:(::ShipEntity*)e1];
                         }
 
                         if (dist2 >= min_dist2) {
                             if (e1->_cxxEntity->isStation) {
                                 StationEntity* se1 = (StationEntity*)e1;
-                                [se1 shipIsInDockingCorridor:(ShipEntity*)e2];
+                                [se1 shipIsInDockingCorridor:(::ShipEntity*)e2];
                             } else if (e2->_cxxEntity->isStation) {
                                 StationEntity* se2 = (StationEntity*)e2;
-                                [se2 shipIsInDockingCorridor:(ShipEntity*)e1];
+                                [se2 shipIsInDockingCorridor:(::ShipEntity*)e1];
                             }
                         }
                     }
@@ -330,14 +330,14 @@ void CollisionRegion::findCollisions()
 
                         if (e1->_cxxEntity->isStation) {
                             StationEntity* se1 = (StationEntity*)e1;
-                            if ([se1 shipIsInDockingCorridor:(ShipEntity*)e2]) {
+                            if ([se1 shipIsInDockingCorridor:(::ShipEntity*)e2]) {
                                 collision = NO;
                             } else {
                                 collision = [e1 checkCloseCollisionWith:e2];
                             }
                         } else if (e2->_cxxEntity->isStation) {
                             StationEntity* se2 = (StationEntity*)e2;
-                            if ([se2 shipIsInDockingCorridor:(ShipEntity*)e1]) {
+                            if ([se2 shipIsInDockingCorridor:(::ShipEntity*)e1]) {
                                 collision = NO;
                             } else {
                                 collision = [e2 checkCloseCollisionWith:e1];
@@ -426,7 +426,7 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, ::Entity* e2, 
             // exception: if within the collision radius of the other
             // object, might still be shadowed by it.
             GLfloat bbx = 0.0f, bby = 0.0f, bbz = 0.0f;
-            BoundingBox bb = [(ShipEntity*)e2 totalBoundingBox];
+            BoundingBox bb = [(::ShipEntity*)e2 totalBoundingBox];
             bounding_box_get_dimensions(bb, &bbx, &bby, &bbz);
             float minbb = bbx;
             if (bby < minbb) {

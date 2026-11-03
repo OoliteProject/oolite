@@ -1,10 +1,12 @@
 /*	test_OOJSExhaustPlume.mm
 	Unit tests for the ExhaustPlume JS binding (src/Core/Scripting/OOJSExhaustPlume.h/.mm) and its
-	OOExhaustPlumeEntity category (OOJSExhaustPlume+ObjCBridge.mm): bead oo-utlm, converted the way
-	bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	OOExhaustPlumeEntity category (whose forwarders are on the OOExhaustPlumeEntity facade since
+	bead oo-9ht.48; this test's stand-in OOExhaustPlumeEntity forwards the same way): bead oo-utlm,
+	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and
+	oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
+	QuickJS-ng context, links the game's own objects for the binding, the engine's
 	class registration (OOJSClasses.mm) and the engine's exception translator
 	(OOJSEngineNativeWrappers.mm), and stands in for the entity classes (Entity, ShipEntity,
 	OOExhaustPlumeEntity answer only the selectors the binding sends), for the Vector3D conversions
@@ -67,6 +69,10 @@
 
 
 void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
+// The category's bodies, which the stand-in forwards to as the facade does (declared in OOJSExhaustPlume.h).
+JSClassID JSExhaustPlumeClassID(void);
+std::optional<std::string> OOJSExhaustPlumeJSClassName(void);
+bool OOJSExhaustPlumeIsVisibleToScripts(void);
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"
@@ -103,6 +109,14 @@ void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 }
 
 - (void) setScale:(Vector)scale  { _scale = scale; }
+
+
+// The binding's category, as the OOExhaustPlumeEntity facade forwards it
+// (OOExhaustPlumeEntity+ObjCBridge.mm, bead oo-9ht.48): the engine sends these selectors to the
+// wrapped object.
+- (JSClassID) oo_jsClassID  { return ::JSExhaustPlumeClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSExhaustPlumeJSClassName(); }
+- (BOOL) isVisibleToScripts  { return ::OOJSExhaustPlumeIsVisibleToScripts(); }
 
 @end
 

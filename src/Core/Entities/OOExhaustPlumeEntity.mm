@@ -48,7 +48,7 @@ static OOTexture* sPlumeTexture = nil;
 
 namespace cxx {
 
-oo::Ref<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(ShipEntity* ship, const std::vector<std::string>& definition, float scale)
+oo::Ref<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(::ShipEntity* ship, const std::vector<std::string>& definition, float scale)
 {
     oo::Ref<OOExhaustPlumeEntity> exhaust = oo::makeRef<OOExhaustPlumeEntity>();
     if (!exhaust->initForShip(ship, definition, (float)scale))
@@ -56,7 +56,7 @@ oo::Ref<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(ShipEntity* s
     return exhaust;
 }
 
-bool OOExhaustPlumeEntity::initForShip(ShipEntity* ship, const std::vector<std::string>& tokens, float scaleFactor)
+bool OOExhaustPlumeEntity::initForShip(::ShipEntity* ship, const std::vector<std::string>& tokens, float scaleFactor)
 {
     if (tokens.size() == 0) {
         return false;
@@ -105,7 +105,7 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
     // Profiling: this function and subfunctions are expensive - CIM
 
     // don't draw if there's no ship, or if we're just jumping out of witchspace/docked at a station!
-    ShipEntity* ship = owner();
+    ::ShipEntity* ship = owner();
     // also don't draw if the ship isn't visible
     if (EXPECT_NOT(ship == nil || ![ship isVisible] || ([ship isPlayer] && [ship suppressFlightNotifications])))
         return;
@@ -360,7 +360,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
     if (!translucent)
         return;
 
-    ShipEntity* ship = owner();
+    ::ShipEntity* ship = owner();
     if ([ship speedFactor] <= 0.001f)
         return; // don't draw if not moving according to 'update' calculation
 
@@ -540,7 +540,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool trans
 
 void OOExhaustPlumeEntity::saveToLastFrame()
 {
-    ShipEntity* ship = owner();
+    ::ShipEntity* ship = owner();
 
     // Absolute position of self
     // normally this would use the transformation matrix, but that

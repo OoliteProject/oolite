@@ -217,15 +217,4 @@ cxx::OOSoundSource* oo::ToCxx(OOSoundSource* source)
     _cxxSource->positionRelativeTo(inPoint);
 }
 
-// OOSoundChannelDelegate
-- (void)channel:(OOSoundChannel*)channel didFinishPlayingSound:(OOSound*)sound
-{
-    _cxxSource->channel(channel, sound);
-}
-
-+ (void)channel:(OOSoundChannel*)inChannel didFinishPlayingSound:(OOSound*)inSound
-{
-    cxx::OOSoundSource::channelOfStoppedSource(inChannel, inSound);
-}
-
 @end

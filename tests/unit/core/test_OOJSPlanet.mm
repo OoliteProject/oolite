@@ -1,10 +1,11 @@
 /*	test_OOJSPlanet.mm
 	Unit tests for the Planet JS binding (src/Core/Scripting/OOJSPlanet.h/.mm) and its
-	OOPlanetEntity category (OOJSPlanet+ObjCBridge.mm): bead oo-7ixd, converted the way bead
+	OOPlanetEntity category (whose forwarders are on the OOPlanetEntity facade since bead oo-9ht.92;
+	this test's stand-in OOPlanetEntity forwards the same way): bead oo-7ixd, converted the way bead
 	oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
+	QuickJS-ng context, links the game's own objects for the binding, the engine's
 	class registry (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and
 	OOColor (a converted class, reached through its façade), and stands in for the classes the
 	binding messages (Entity, OOPlanetEntity and the universe answer only the selectors the binding
@@ -153,6 +154,13 @@
 	if (_radius == 98)  throw std::runtime_error("cxx boom");
 	return _radius;
 }
+
+
+// The binding's category, as the OOPlanetEntity facade forwards it (OOPlanetEntity+ObjCBridge.mm,
+// bead oo-9ht.92): the engine sends these selectors to the wrapped object.
+- (JSClassID) oo_jsClassID  { return ::JSPlanetClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSPlanetJSClassName(self); }
+- (BOOL) isVisibleToScripts  { return ::OOJSPlanetIsVisibleToScripts(self); }
 
 @end
 

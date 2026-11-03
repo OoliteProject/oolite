@@ -160,7 +160,7 @@ void Generate(OOTextureGenerator *generator, Generated &generated)
 // A texture loaded: its key starts with the prefix, and it has the size.
 bool Loaded(OOTexture *texture, const std::string &keyPrefix, unsigned width, unsigned height)
 {
-	if (![texture isKindOfClass:[OOConcreteTexture class]])  return false;
+	if (!(dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr))  return false;
 	[texture ensureFinishedLoading];
 	return [texture isFinishedLoading] && [texture cxx_cacheKey].value_or("").starts_with(keyPrefix)
 		&& [texture dimensions].width == width && [texture dimensions].height == height;

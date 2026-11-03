@@ -40,7 +40,7 @@ SOFTWARE.
 
 /*	Phase 3 (bead oo-e6xa, proposed ADR-0056 amendments oo-qa7c, oo-rmd7 item 3 and oo-rr2x): a
         converted leaf of the texture generators, over cxx::OOTextureGenerator. Its caller
-        (cxx::OOMultiTextureMaterial) still makes it through the Objective-C initialisers of its facade
+        (OOMultiTextureMaterial) still makes it through the Objective-C initialisers of its facade
         (OOCombinedEmissionMapGenerator+ObjCBridge.h), because that caller's test stubs the class by
         name; the facade's deletion bead turns those messages into the factories below.
 */

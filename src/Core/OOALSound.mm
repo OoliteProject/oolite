@@ -115,9 +115,13 @@ oo::ObjCRef<::OOSound*> OOSound::initWithContentsOfFile(const std::optional<std:
         return nullptr;
 
     if ([decoder sizeAsBuffer] <= kMaxBufferedSoundSize) {
-        self = [[::OOALBufferedSound alloc] initWithDecoder:decoder];
+        // C++ since oo-9ht.83: the new sound's facade is the root's, made as its subclass facade made it.
+        const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(decoder);
+        self = sound ? [[::OOSound alloc] initWithNewCxxSound:sound] : nil;
     } else {
-        self = [[::OOALStreamedSound alloc] initWithDecoder:decoder];
+        // C++ since oo-9ht.84: as the buffered sound above.
+        const oo::Ref<OOALStreamedSound> sound = OOALStreamedSound::initWithDecoder(decoder);
+        self = sound ? [[::OOSound alloc] initWithNewCxxSound:sound] : nil;
     }
     [decoder release];
 
@@ -140,9 +144,9 @@ std::optional<std::string> OOSound::name()
 
 void OOSound::update()
 {
-    ::OOSoundMixer* mixer = [::OOSoundMixer sharedMixer];
+    ::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer();
     if (sIsSoundOK && mixer)
-        [mixer update];
+        mixer->update();
 }
 
 bool OOSound::isSoundOK()

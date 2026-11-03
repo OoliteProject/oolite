@@ -9,11 +9,10 @@ PlayerEntity's many overloaded functions. The scale of the task was such that
 I've stepped back, and this simply wraps the old plist scripting in
 PlayerEntity.
 
-C++20 since bead oo-q9q4 (proposed ADR-0056, the OOColor house style). Its superclass, OOScript,
-is still Objective-C, so the class is cxx::OOPListScript holding only its own ivars and methods,
-and OOPListScript+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
-OOPListScript : OOScript that makes and owns it (ADR-0056 amendment oo-o89). The bridge's
-deletion bead waits for OOScript's conversion.
+C++20 since bead oo-q9q4 (proposed ADR-0056, the OOColor house style). Bead oo-9ht.57 deleted its
+Objective-C facade once OOScript was C++ (oo-604l; ADR-0056 amendments oo-o89 item 3 and "deleting
+a facade"): the class is global and derives from cxx::OOScript, overriding its members, and
+Objective-C sees a plist script as the root's facade, an OOScript.
 
 
 Oolite
@@ -40,6 +39,7 @@ MA 02110-1301, USA.
 #define OOPLISTSCRIPT_H
 
 #import "OOFoundation.h"
+#import "OOScript.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
@@ -51,24 +51,21 @@ MA 02110-1301, USA.
 
 @class OOScript, Entity;
 
-namespace cxx {
-
-class OOPListScript : public oo::RefCounted {
+class OOPListScript : public cxx::OOScript {
 public:
-    // The old -initWithName:scriptArray:metadata: after [super init]. Made only by the facade
-    // (amendment oo-o89 item 2), until OOScript is C++.
+    // The old -initWithName:scriptArray:metadata: after [super init].
     OOPListScript(const std::string& name, const oo::PList& script, const oo::PList* metadata);
 
-    // The scripts of a legacy script file, each an Objective-C OOPListScript; nullopt when the
-    // file is not a dictionary.
+    // The scripts of a legacy script file, each the root's facade of a new OOPListScript, as the
+    // Objective-C scripts were; nullopt when the file is not a dictionary.
     static std::optional<std::vector<oo::ObjCRef<::OOScript*>>> scriptsInPListFile(const std::string& filePath);
 
-    // OOScript overrides, forwarded by the facade.
-    std::optional<std::string> name();
-    std::optional<std::string> scriptDescription();
-    std::optional<std::string> version();
-    bool requiresTickle();
-    void runWithTarget(::Entity* target);
+    // OOScript overrides.
+    std::optional<std::string> name() override;
+    std::optional<std::string> scriptDescription() override;
+    std::optional<std::string> version() override;
+    bool requiresTickle() override;
+    void runWithTarget(::Entity* target) override;
 
 private:
     static std::vector<oo::ObjCRef<::OOScript*>> scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath);
@@ -77,11 +74,5 @@ private:
     oo::PList _script; // the sanitized script actions (an array)
     oo::PList _metadata; // a dictionary: name, and the file's !metadata! if it had one
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOPListScript, for callers not yet converted. Deleted, with
-// namespace cxx above, by the bridge's deletion bead.
-#import "OOPListScript+ObjCBridge.h"
 
 #endif // OOPLISTSCRIPT_H

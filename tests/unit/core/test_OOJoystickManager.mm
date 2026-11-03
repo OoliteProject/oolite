@@ -250,10 +250,10 @@ OO_TEST(defaultMapping)
 		OO_CHECK(!anyButton);
 
 		// Roll, pitch and yaw have standard profiles; nothing else has one.
-		OO_CHECK([[manager getProfileForAxis:AXIS_ROLL] isKindOfClass:[OOJoystickStandardAxisProfile class]]);
-		OO_CHECK([[manager getProfileForAxis:AXIS_PITCH] isKindOfClass:[OOJoystickStandardAxisProfile class]]);
-		OO_CHECK([[manager getProfileForAxis:AXIS_YAW] isKindOfClass:[OOJoystickStandardAxisProfile class]]);
-		OO_CHECK([manager getProfileForAxis:AXIS_THRUST] == nil);
+		OO_CHECK(dynamic_cast<OOJoystickStandardAxisProfile *>([manager getProfileForAxis:AXIS_ROLL]) != nullptr);
+		OO_CHECK(dynamic_cast<OOJoystickStandardAxisProfile *>([manager getProfileForAxis:AXIS_PITCH]) != nullptr);
+		OO_CHECK(dynamic_cast<OOJoystickStandardAxisProfile *>([manager getProfileForAxis:AXIS_YAW]) != nullptr);
+		OO_CHECK([manager getProfileForAxis:AXIS_THRUST] == nullptr);
 	}
 }
 
@@ -278,7 +278,7 @@ OO_TEST(decodesAxes)
 		SDL_JoyAxisEvent evt = Axis(0, 2, 16384);
 		[manager decodeAxisEvent:&evt];
 		OOJoystickAxisProfile *roll = [manager getProfileForAxis:AXIS_ROLL];
-		const double rollValue = [roll value:0.5];
+		const double rollValue = roll->value(0.5);
 		OO_CHECK(rollValue > 0.0);
 		OO_CHECK([manager getAxisState:AXIS_ROLL] == rollValue);
 		OO_CHECK([manager rollPitchAxis].x == rollValue);
@@ -412,7 +412,7 @@ OO_TEST(callsBackForTheNextStickControl)
 		SDL_JoyAxisEvent evt = Axis(0, 2, AXCBTHRESH);
 		[manager decodeAxisEvent:&evt];
 		OO_CHECK(target->_calls == 0);
-		OO_CHECK([manager getAxisState:AXIS_YAW] == [[manager getProfileForAxis:AXIS_YAW] value:0.0]);	// nor decoded
+		OO_CHECK([manager getAxisState:AXIS_YAW] == [manager getProfileForAxis:AXIS_YAW]->value(0.0));	// nor decoded
 		evt = Axis(1, 2, AXCBTHRESH + 1);
 		[manager decodeAxisEvent:&evt];
 		OO_CHECK(target->_calls == 1);
@@ -422,7 +422,7 @@ OO_TEST(callsBackForTheNextStickControl)
 		evt = Axis(0, 2, 32767);
 		[manager decodeAxisEvent:&evt];
 		OO_CHECK(target->_calls == 1);
-		OO_CHECK([manager getAxisState:AXIS_YAW] == [[manager getProfileForAxis:AXIS_YAW] value:32767.0 / STICK_NORMALDIV]);
+		OO_CHECK([manager getAxisState:AXIS_YAW] == [manager getProfileForAxis:AXIS_YAW]->value(32767.0 / STICK_NORMALDIV));
 
 		// A button callback.
 		[manager setCallback:@selector(stickPicked:) object:target hardware:HW_AXIS | HW_BUTTON];
@@ -452,20 +452,20 @@ OO_TEST(savesAndLoadsSettings)
 		[manager setFunction:AXIS_YAW withDict:StickFn(true, 1, 6)];
 		[manager setFunction:BUTTON_ECM withDict:StickFn(false, 2, 11)];
 
-		OOJoystickStandardAxisProfile *standard = [[[OOJoystickStandardAxisProfile alloc] init] autorelease];
-		[standard setDeadzone:0.0625];
-		[standard setPower:2.5];
-		[standard setParameter:0.75];
-		[manager setProfile:standard forAxis:AXIS_ROLL];
-		OO_CHECK([manager getProfileForAxis:AXIS_ROLL] == standard);
+		oo::Ref<OOJoystickStandardAxisProfile> standard = oo::makeRef<OOJoystickStandardAxisProfile>();
+		standard->setDeadzone(0.0625);
+		standard->setPower(2.5);
+		standard->setParameter(0.75);
+		[manager setProfile:standard.get() forAxis:AXIS_ROLL];
+		OO_CHECK([manager getProfileForAxis:AXIS_ROLL] == standard.get());
 
-		OOJoystickSplineAxisProfile *spline = [[[OOJoystickSplineAxisProfile alloc] init] autorelease];
-		[spline setDeadzone:0.03125];
-		[spline addControl:NSMakePoint(0.25, 0.5)];
-		[spline addControl:NSMakePoint(0.5, 0.625)];
-		[manager setProfile:spline forAxis:AXIS_PITCH];
-		[manager setProfile:spline forAxis:AXIS_THRUST];	// not a profiled axis: ignored
-		OO_CHECK([manager getProfileForAxis:AXIS_THRUST] == nil);
+		oo::Ref<OOJoystickSplineAxisProfile> spline = oo::makeRef<OOJoystickSplineAxisProfile>();
+		spline->setDeadzone(0.03125);
+		spline->addControl(NSMakePoint(0.25, 0.5));
+		spline->addControl(NSMakePoint(0.5, 0.625));
+		[manager setProfile:spline.get() forAxis:AXIS_PITCH];
+		[manager setProfile:spline.get() forAxis:AXIS_THRUST];	// not a profiled axis: ignored
+		OO_CHECK([manager getProfileForAxis:AXIS_THRUST] == nullptr);
 
 		[manager saveStickSettings];
 		OO_CHECK(defaults.object(AXIS_SETTINGS) == [manager axisFunctions]);
@@ -478,7 +478,7 @@ OO_TEST(savesAndLoadsSettings)
 		OO_CHECK(pitch.get<std::string>("Type") == "Spline");
 		OO_CHECK(pitch.get<double>("Deadzone") == 0.03125);
 		const oo::PList *points = pitch.get<oo::PList::Array>("ControlPoints");
-		OO_CHECK(points != nullptr && points->count() == [spline controlPoints].size());
+		OO_CHECK(points != nullptr && points->count() == spline->controlPoints().size());
 		OO_CHECK(defaults.object(STICK_YAW_AXIS_PROFILE_SETTING).get<std::string>("Type") == "Standard");
 
 		// A new manager reads them all back.
@@ -486,18 +486,18 @@ OO_TEST(savesAndLoadsSettings)
 		OO_CHECK([loaded axisFunctions] == [manager axisFunctions]);
 		OO_CHECK([loaded buttonFunctions] == [manager buttonFunctions]);
 		OOJoystickAxisProfile *loadedRoll = [loaded getProfileForAxis:AXIS_ROLL];
-		OO_CHECK([loadedRoll isKindOfClass:[OOJoystickStandardAxisProfile class]]);
-		OO_CHECK([loadedRoll deadzone] == 0.0625);
-		OO_CHECK([(OOJoystickStandardAxisProfile *)loadedRoll power] == 2.5);
-		OO_CHECK([(OOJoystickStandardAxisProfile *)loadedRoll parameter] == 0.75);
+		OO_CHECK(dynamic_cast<OOJoystickStandardAxisProfile *>(loadedRoll) != nullptr);
+		OO_CHECK(loadedRoll->deadzone() == 0.0625);
+		OO_CHECK(static_cast<OOJoystickStandardAxisProfile *>(loadedRoll)->power() == 2.5);
+		OO_CHECK(static_cast<OOJoystickStandardAxisProfile *>(loadedRoll)->parameter() == 0.75);
 		OOJoystickAxisProfile *loadedPitch = [loaded getProfileForAxis:AXIS_PITCH];
-		OO_CHECK([loadedPitch isKindOfClass:[OOJoystickSplineAxisProfile class]]);
-		OO_CHECK([loadedPitch deadzone] == 0.03125);
-		OO_CHECK([(OOJoystickSplineAxisProfile *)loadedPitch controlPoints].size() == [spline controlPoints].size());
-		for (double x : { 0.1, 0.3, 0.6, 0.9 })  OO_CHECK([loadedPitch value:x] == [spline value:x]);
+		OO_CHECK(dynamic_cast<OOJoystickSplineAxisProfile *>(loadedPitch) != nullptr);
+		OO_CHECK(loadedPitch->deadzone() == 0.03125);
+		OO_CHECK(static_cast<OOJoystickSplineAxisProfile *>(loadedPitch)->controlPoints().size() == spline->controlPoints().size());
+		for (double x : { 0.1, 0.3, 0.6, 0.9 })  OO_CHECK(loadedPitch->value(x) == spline->value(x));
 
 		// Saved functions replace the default mapping, buttons included.
-		OO_CHECK([loaded getAxisState:AXIS_YAW] == [[loaded getProfileForAxis:AXIS_YAW] value:0.0]);
+		OO_CHECK([loaded getAxisState:AXIS_YAW] == [loaded getProfileForAxis:AXIS_YAW]->value(0.0));
 		SDL_JoyButtonEvent press = Button(0, 0, true);
 		[loaded decodeButtonEvent:&press];
 		OO_CHECK([loaded getButtonState:BUTTON_FIRE]);	// still saved on stick 0 button 0
@@ -524,7 +524,7 @@ OO_TEST(subclassOverrides)
 		OO_CHECK([manager superNameOfJoystick:1] == std::optional<std::string>("Dummy joystick"));
 
 		[manager setFunction:AXIS_ROLL withDict:StickFn(true, 0, 1)];
-		const double half = [[manager getProfileForAxis:AXIS_ROLL] value:0.5];
+		const double half = [manager getProfileForAxis:AXIS_ROLL]->value(0.5);
 		OO_CHECK([manager getAxisState:AXIS_ROLL] == half);
 		// The default mapping (no buttons were saved) took the thrust's axis for pitch without
 		// unassigning the thrust, so the thrust keeps the value it read.
@@ -574,12 +574,12 @@ OO_TEST(facadeContract)
 		oo::ToCxx(decoding)->decodeButtonEvent(&press);
 		OO_CHECK([decoding getButtonState:BUTTON_FIRE]);
 
-		// Profiles cross with their own facades.
-		OO_CHECK([manager getProfileForAxis:AXIS_ROLL] == oo::ToObjC(cxxManager->getProfileForAxis(AXIS_ROLL)));
-		oo::Ref<cxx::OOJoystickAxisProfile> spline = oo::makeRef<cxx::OOJoystickSplineAxisProfile>();
+		// Profiles are the C++ objects (their facades were deleted by oo-9ht.16).
+		OO_CHECK([manager getProfileForAxis:AXIS_ROLL] == cxxManager->getProfileForAxis(AXIS_ROLL));
+		oo::Ref<OOJoystickAxisProfile> spline = oo::makeRef<OOJoystickSplineAxisProfile>();
 		cxxManager->setProfile(spline.get(), AXIS_YAW);
-		OO_CHECK([[manager getProfileForAxis:AXIS_YAW] isKindOfClass:[OOJoystickSplineAxisProfile class]]);
-		OO_CHECK(oo::ToCxx([manager getProfileForAxis:AXIS_YAW]) == spline.get());
+		OO_CHECK(dynamic_cast<OOJoystickSplineAxisProfile *>([manager getProfileForAxis:AXIS_YAW]) != nullptr);
+		OO_CHECK([manager getProfileForAxis:AXIS_YAW] == spline.get());
 
 		// A C++ manager made by converted code gets one facade, which answers for it.
 		oo::Ref<cxx::OOJoystickManager> bare = oo::makeRef<cxx::OOJoystickManager>();

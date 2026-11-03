@@ -47,10 +47,10 @@ public:
     // definition: the exhaust's tokens (x y z scale_x scale_y scale_z), read as -oo_floatAtIndex: read them.
     // +exhaustForShip:withDefinition:andScale:: a new plume, initialised; null for no tokens. The
     // facade's class method hands it to Objective-C (oo::NewEntityFacade).
-    static oo::Ref<OOExhaustPlumeEntity> exhaustForShip(ShipEntity* ship, const std::vector<std::string>& definition, float scale);
+    static oo::Ref<OOExhaustPlumeEntity> exhaustForShip(::ShipEntity* ship, const std::vector<std::string>& definition, float scale);
     // -initForShip:withDefinition:andScale:'s body, run once right after construction (amendment
     // oo-vl43 item 2): false where the initialiser answered nil.
-    bool initForShip(ShipEntity* ship, const std::vector<std::string>& definition, float scale);
+    bool initForShip(::ShipEntity* ship, const std::vector<std::string>& definition, float scale);
 
     void resetPlume();
 

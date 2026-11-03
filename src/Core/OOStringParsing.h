@@ -31,8 +31,6 @@ MA 02110-1301, USA.
 
 #include "oofnd/StdLib.hpp"
 
-@class Entity;
-
 // Tokens of a string: oo::str::tokens (oofnd/String.hpp).
 
 // Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a null string (nullopt; but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.

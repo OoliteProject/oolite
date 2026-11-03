@@ -34,11 +34,9 @@ SOFTWARE.
 
 namespace {
 
-cxx::OOSoundMixer* sSingleton = nullptr;
+OOSoundMixer* sSingleton = nullptr;
 
 } // namespace
-
-namespace cxx {
 
 /*	The singleton category recorded the mixer in +allocWithZone:, before -init ran (amendment
         oo-z1s4 item 2); it is recorded first here too. -init's failure ([super release], which freed
@@ -63,18 +61,20 @@ bool OOSoundMixer::init()
 {
     bool OK = true;
     uint32_t idx = 0, count = kMixerGeneralChannels;
-    ::OOSoundChannel* channel;
+    oo::Ref<OOSoundChannel> channel;
 
-    if (!OOSound::setUp())
+    if (!cxx::OOSound::setUp())
         OK = false;
 
     if (OK) {
         // Allocate channels
         do {
-            channel = [[::OOSoundChannel alloc] init];
-            if (nil != channel) {
-                _channels[idx++] = channel;
-                pushChannel(channel);
+            channel = oo::makeRef<OOSoundChannel>();
+            if (!channel->init())
+                channel = nullptr; // [[OOSoundChannel alloc] init] answered nil
+            if (nullptr != channel) {
+                pushChannel(channel.get());
+                _channels[idx++] = channel.leakRef(); // the reference alloc/init gave
             }
         } while (--count);
     }
@@ -87,7 +87,9 @@ void OOSoundMixer::shutdown()
 {
     uint32_t i;
     for (i = 0; i < kMixerGeneralChannels; ++i) {
-        DESTROY(_channels[i]);
+        if (_channels[i] != nullptr)
+            oo::release(_channels[i]); // DESTROY
+        _channels[i] = nullptr;
     }
 }
 
@@ -95,28 +97,28 @@ void OOSoundMixer::update()
 {
     uint32_t i;
     for (i = 0; i < kMixerGeneralChannels; ++i) {
-        [_channels[i] update];
+        if (_channels[i] != nullptr)
+            _channels[i]->update();
     }
 }
 
-::OOSoundChannel* OOSoundMixer::popChannel()
+OOSoundChannel* OOSoundMixer::popChannel()
 {
-    ::OOSoundChannel* channel = _freeList;
-    _freeList = [channel next];
-    [channel setNext:nil];
+    OOSoundChannel* channel = _freeList;
+    _freeList = channel != nullptr ? channel->next() : nullptr; // a message to nil answered nil
+    if (channel != nullptr)
+        channel->setNext(nullptr);
 
     return channel;
 }
 
-void OOSoundMixer::pushChannel(::OOSoundChannel* channel)
+void OOSoundMixer::pushChannel(OOSoundChannel* channel)
 {
-    assert(channel != nil);
+    assert(channel != nullptr);
 
-    [channel setNext:_freeList];
+    channel->setNext(_freeList);
     _freeList = channel;
 }
-
-} // namespace cxx
 
 // The singleton category (+allocWithZone:, -retain and the rest) is not translated: the mixer has
 // no other creator and is never released (amendment oo-r7m0 item 1).

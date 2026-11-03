@@ -143,7 +143,7 @@ OO_TEST(aTextureOfTheGenerator)
 	{
 		OOTextureGenerator *loader = NewLoader(TestPixMap(), kOOTextureDefaultOptions | kOOTextureRepeatS, YES);
 		OOTexture *texture = [OOTexture textureWithGenerator:loader];
-		OO_CHECK([texture isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr));
 		[texture ensureFinishedLoading];
 		OO_CHECK([texture dimensions].width == 8 && [texture dimensions].height == 8);
 		OO_CHECK([texture isFinishedLoading]);

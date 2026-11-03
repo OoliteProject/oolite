@@ -29,8 +29,6 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOTexture.h"
 
-namespace cxx {
-
 oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(const std::optional<std::string>& name, const oo::PList& configuration)
 {
     oo::Ref<OOSingleTextureMaterial> result = oo::makeRef<OOSingleTextureMaterial>();
@@ -124,5 +122,3 @@ std::vector<oo::ObjCRef<::OOTexture*>> OOSingleTextureMaterial::allTextures()
     return result;
 }
 #endif
-
-} // namespace cxx

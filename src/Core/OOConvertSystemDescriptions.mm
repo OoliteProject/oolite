@@ -176,17 +176,13 @@ oo::Expected<oo::Data, oo::PListError> WriteSystemDescriptions(const oo::PList& 
 
 void CompileSystemDescriptions(BOOL asXML)
 {
-    const oo::PList sysDescDict = [ResourceManager cxx_dictionaryFromFilesNamed:"sysdesc.plist"
-                                                                       inFolder:std::string("Config")
-                                                                       andMerge:NO];
+    const oo::PList sysDescDict = cxx::ResourceManager::dictionaryFromFilesNamed("sysdesc.plist", std::string("Config"), false);
     if (sysDescDict.isNull()) {
         OO_LOG("sysdesc.compile.failed.fileNotFound", "{}", "Could not load a dictionary from sysdesc.plist, ignoring --compile-sysdesc option.");
         return;
     }
 
-    const oo::PList keyMap = [ResourceManager cxx_dictionaryFromFilesNamed:"sysdesc_key_table.plist"
-                                                                  inFolder:std::string("Config")
-                                                                  andMerge:NO];
+    const oo::PList keyMap = cxx::ResourceManager::dictionaryFromFilesNamed("sysdesc_key_table.plist", std::string("Config"), false);
     // keyMap is optional, so no nil check
 
     oo::PList sysDescArray = OOConvertSystemDescriptionsToArrayFormat(sysDescDict, keyMap);
@@ -200,7 +196,7 @@ void CompileSystemDescriptions(BOOL asXML)
         return;
     }
 
-    if ([ResourceManager cxx_writeDiagnosticData:*data toFileNamed:"sysdesc-compiled.plist"]) {
+    if (cxx::ResourceManager::writeDiagnosticData(*data, "sysdesc-compiled.plist")) {
         OO_LOG("sysdesc.compile.success", "{}", "Wrote translated sysdesc.plist to sysdesc-compiled.plist.");
     } else {
         OO_LOG("sysdesc.compile.failed.writeFailure", "{}", "Could not write translated sysdesc.plist to sysdesc-compiled.plist.");
@@ -212,9 +208,7 @@ void ExportSystemDescriptions(BOOL asXML)
     const oo::PList descriptions = *[UNIVERSE cxx_descriptions];
     const oo::PList* sysDescArray = descriptions.get<oo::PList::Array>("system_description");
 
-    const oo::PList keyMap = [ResourceManager cxx_dictionaryFromFilesNamed:"sysdesc_key_table.plist"
-                                                                  inFolder:std::string("Config")
-                                                                  andMerge:NO];
+    const oo::PList keyMap = cxx::ResourceManager::dictionaryFromFilesNamed("sysdesc_key_table.plist", std::string("Config"), false);
     // keyMap is optional, so no nil check
 
     const oo::PList sysDescDict = OOConvertSystemDescriptionsToDictionaryFormat((sysDescArray != nullptr) ? *sysDescArray : oo::PList(), keyMap);
@@ -230,7 +224,7 @@ void ExportSystemDescriptions(BOOL asXML)
         return;
     }
 
-    if ([ResourceManager cxx_writeDiagnosticData:*data toFileNamed:"sysdesc.plist"]) {
+    if (cxx::ResourceManager::writeDiagnosticData(*data, "sysdesc.plist")) {
         OO_LOG("sysdesc.export.success", "{}", "Wrote translated system_description to sysdesc.plist.");
     } else {
         OO_LOG("sysdesc.export.failed.writeFailure", "{}", "Could not write translated system_description to sysdesc.plist.");

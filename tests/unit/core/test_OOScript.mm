@@ -200,7 +200,7 @@ OO_TEST(scriptsFromFileAtPath)
 		if (scripts.has_value() && scripts->size() == 1)
 		{
 			OO_CHECK((Names(*scripts) == std::vector<std::string>{ "legacy" }));
-			OO_CHECK([(*scripts)[0].get() isKindOfClass:[OOPListScript class]]);
+			OO_CHECK(dynamic_cast<OOPListScript *>(oo::ToCxx((*scripts)[0].get())) != nullptr);	// was -isKindOfClass: of the facade bead oo-9ht.57 deleted
 		}
 	}
 }

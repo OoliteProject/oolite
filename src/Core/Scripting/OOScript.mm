@@ -87,7 +87,7 @@ std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOScript::worldScriptsAtPat
             OO_LOG("script.load.javaScript", "Trying to load JavaScript script {}", filePath);
             oo::log::indentIf("script.load.javaScript");
 
-            script = [OOJSScript scriptWithPath:filePath properties:oo::PList()];
+            script = [::OOJSScript scriptWithPath:filePath properties:oo::PList()];
             if (script != nil) {
                 result = std::vector<oo::ObjCRef<::OOScript*>> { oo::ObjCRef<::OOScript*>(script) };
                 OO_LOG("script.load.parseOK", "Successfully loaded JavaScript script {}", filePath);
@@ -108,7 +108,7 @@ std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOScript::worldScriptsAtPat
                 OO_LOG("script.load.pList", "Trying to load property list script {}", filePath);
                 oo::log::indentIf("script.load.pList");
 
-                result = [::OOPListScript scriptsInPListFile:filePath];
+                result = ::OOPListScript::scriptsInPListFile(filePath);
                 if (result.has_value())
                     OO_LOG("script.load.parseOK", "Successfully loaded property list script {}", filePath);
                 else
@@ -129,7 +129,7 @@ std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOScript::worldScriptsAtPat
 std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOScript::scriptsFromFileNamed(const std::string& fileName)
 {
     std::optional<std::vector<oo::ObjCRef<::OOScript*>>> result;
-    std::optional<std::string> path = [ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
+    std::optional<std::string> path = [::ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
     if (path.has_value()) {
         result = scriptsFromFileAtPath(*path);
     }
@@ -166,7 +166,7 @@ std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOScript::scriptsFromFileAt
 
     if (extension == "js" || extension == "es") {
         std::optional<std::vector<oo::ObjCRef<::OOScript*>>> result;
-        ::OOScript* script = [OOJSScript scriptWithPath:filePath properties:oo::PList()];
+        ::OOScript* script = [::OOJSScript scriptWithPath:filePath properties:oo::PList()];
         if (script != nil)
             result = std::vector<oo::ObjCRef<::OOScript*>> { oo::ObjCRef<::OOScript*>(script) };
         return result;
@@ -175,7 +175,7 @@ std::optional<std::vector<oo::ObjCRef<::OOScript*>>> OOScript::scriptsFromFileAt
         if (OOEnforceStandards()) {
             return std::nullopt;
         }
-        return [::OOPListScript scriptsInPListFile:filePath];
+        return ::OOPListScript::scriptsInPListFile(filePath);
     }
 
     OO_LOG_ERR("script.load.badName", "Don't know how to load a script from {}.", filePath);
@@ -192,12 +192,12 @@ id OOScript::jsScriptFromFileNamed(const std::string& fileName, const oo::PList&
 
     extension = oo::str::lowercase(oo::str::pathExtension(fileName));
     if (extension == "js" || extension == "es") {
-        path = [ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
+        path = [::ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
         if (!path.has_value()) {
             OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nil;
         }
-        return [OOJSScript scriptWithPath:path properties:properties];
+        return [::OOJSScript scriptWithPath:path properties:properties];
     } else if (extension == "plist") {
         OO_LOG_ERR("script.load.badName", "Can't load script named {} - legacy scripts are not supported in this context.", fileName);
         return nil;
@@ -217,12 +217,12 @@ id OOScript::jsAIScriptFromFileNamed(const std::string& fileName, const oo::PLis
 
     extension = oo::str::lowercase(oo::str::pathExtension(fileName));
     if (extension == "js" || extension == "es") {
-        path = [ResourceManager cxx_pathForFileNamed:fileName inFolder:"AIs"];
+        path = [::ResourceManager cxx_pathForFileNamed:fileName inFolder:"AIs"];
         if (!path.has_value()) {
             OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nil;
         }
-        return [OOJSScript scriptWithPath:path properties:properties];
+        return [::OOJSScript scriptWithPath:path properties:properties];
     } else if (extension == "plist") {
         OO_LOG_ERR("script.load.badName", "Can't load script named {} - legacy scripts are not supported in this context.", fileName);
         return nil;

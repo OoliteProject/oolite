@@ -35,7 +35,7 @@ SOFTWARE.
 
 #define kPiF (3.14159265358979323846264338327950288f)
 
-OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, BOOL leaveSpaceForMipMaps)
+OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, bool leaveSpaceForMipMaps)
 {
     if (!OOIsValidPixMap(sourcePixMap) || sourcePixMap.format != kOOPixMapRGBA || sourcePixMap.height != sourcePixMap.width * 6) {
         return kOONullPixMap;

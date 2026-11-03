@@ -8,7 +8,8 @@ C++20 since bead oo-ryhi, a leaf of the Entities seam (proposed ADR-0056, amendm
 12). A global class over cxx::Entity, with no facade: nothing messages it by its own selectors.
 ShipEntity's -fireECM makes it with initFromShip() and hands the universe the Entity facade
 oo::NewEntityFacade makes, which is its Objective-C object from then on. The category of Entity
-the header declared, -isECMBlast, is in OOECMBlastEntity+ObjCBridge.h, imported at the end.
+the header declared, -isECMBlast, which nothing sent, went with its bridge (bead oo-9ht.75): ask
+the C++ part, dynamic_cast<OOECMBlastEntity *>(...)->isECMBlast().
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -51,6 +52,3 @@ private:
     uint8_t _blastsRemaining = { };
     OOWeakReference* _ship = nil; // +1 from -weakRetain, never released (as before)
 };
-
-// Transitional: the category of Entity, for its Objective-C callers. Deleted by its deletion bead.
-#import "OOECMBlastEntity+ObjCBridge.h"

@@ -47,7 +47,7 @@ OOJSPopulatorDefinition::OOJSPopulatorDefinition()
 
     // Stays registered until destruction, so values set after a reset are also released on the next one.
     oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        [OOJavaScriptEngine sharedEngine],
+        [::OOJavaScriptEngine sharedEngine],
         [this](const oo::Notification&) { deleteJSPointers(); });
 }
 
@@ -64,7 +64,7 @@ void OOJSPopulatorDefinition::deleteJSPointers()
 OOJSPopulatorDefinition::~OOJSPopulatorDefinition()
 {
     oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        [OOJavaScriptEngine sharedEngine]);
+        [::OOJavaScriptEngine sharedEngine]);
 
     _owningScript = nullptr;
 
@@ -101,7 +101,7 @@ void OOJSPopulatorDefinition::setCallbackThis(JSValueConst callbackThis)
 
 void OOJSPopulatorDefinition::runPopulatorCallback(HPVector location)
 {
-    OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
+    ::OOJavaScriptEngine* engine = [::OOJavaScriptEngine sharedEngine];
     JSContext* context = OOJSAcquireContext();
     JSValue rval = JS_UNDEFINED;
 

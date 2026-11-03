@@ -31,8 +31,6 @@ SOFTWARE.
 
 #include "oofnd/Log.hpp"
 
-namespace cxx {
-
 OOALBufferedSound::~OOALBufferedSound()
 {
     free(_buffer);
@@ -91,5 +89,3 @@ ALuint OOALBufferedSound::soundBuffer()
         return buffer;
     }
 }
-
-} // namespace cxx

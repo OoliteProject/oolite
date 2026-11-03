@@ -189,12 +189,12 @@ OO_TEST(textures)
 	@autoreleasepool
 	{
 		OOTexture *atmosphere = GenerateAtmosphere(PlanetInfo(1.0f, false), kSeed);
-		OO_CHECK([atmosphere isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(atmosphere)) != nullptr));
 		[atmosphere ensureFinishedLoading];
 		OO_CHECK([atmosphere isFinishedLoading] && [atmosphere dimensions].width == 512 && [atmosphere dimensions].height == 512);
 
 		OOTexture *texture = PlanetTexture(PlanetInfo(1.0f, true), (RANROTSeed){ 3, 4 });
-		OO_CHECK([texture isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture)) != nullptr));
 		[texture ensureFinishedLoading];
 		OO_CHECK([texture dimensions].width == 512 && [texture dimensions].height == 256);
 	}
@@ -228,8 +228,8 @@ OO_TEST(cxxApi)
 		OOFreePixMap(&pixMap);
 
 		oo::ObjCRef<OOTexture *> texture;
-		OO_CHECK(OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(&texture, PlanetInfo(1.0f, false), (RANROTSeed){ 9, 9 }) && [texture.get() isKindOfClass:[OOConcreteTexture class]]);
-		OO_CHECK([OOStandaloneAtmosphereGenerator::planetTextureWithInfo(PlanetInfo(1.0f, false), (RANROTSeed){ 9, 10 }).get() isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK(OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(&texture, PlanetInfo(1.0f, false), (RANROTSeed){ 9, 9 }) && (dynamic_cast<OOConcreteTexture *>(oo::ToCxx(texture.get())) != nullptr));
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(OOStandaloneAtmosphereGenerator::planetTextureWithInfo(PlanetInfo(1.0f, false), (RANROTSeed){ 9, 10 }).get())) != nullptr));
 	}
 	ClearCache();
 }

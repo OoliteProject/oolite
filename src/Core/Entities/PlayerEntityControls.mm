@@ -813,7 +813,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 {
     if ([self hasHyperspaceMotor]) {
         if (spin_time == 0) {
-            witchspaceCountdown = hyperspaceMotorSpinTime;
+            witchspaceCountdown = _cxxShip->hyperspaceMotorSpinTime;
         } else {
 #ifndef OO_DUMP_PLANETINFO
             if (spin_time < 5) {
@@ -842,7 +842,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 - (void)beginWitchspaceCountdown
 {
     if ([self hasHyperspaceMotor]) {
-        [self beginWitchspaceCountdown:hyperspaceMotorSpinTime];
+        [self beginWitchspaceCountdown:_cxxShip->hyperspaceMotorSpinTime];
     }
 }
 
@@ -1046,7 +1046,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
         const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
         BOOL paused = [[UNIVERSE gameController] isGamePaused];
-        double speed_delta = SHIP_THRUST_FACTOR * thrust;
+        double speed_delta = SHIP_THRUST_FACTOR * _cxxShip->thrust;
 
         if (!paused && gui_screen == GUI_SCREEN_MISSION) {
             exceptionContext = "mission screen";
@@ -1106,15 +1106,15 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 exceptionContext = "afterburner";
                 if ((joyButtonState[BUTTON_FUELINJECT] || [self checkKeyPress:n_key_inject_fuel]) &&
                     [self hasFuelInjection] && !hyperspeed_engaged) {
-                    if (fuel > 0 && !afterburner_engaged) {
+                    if (_cxxShip->fuel > 0 && !afterburner_engaged) {
                         [UNIVERSE cxx_addMessage:OO_DESC("fuel-inject-on") forCount:1.5];
                         afterburner_engaged = YES;
                         [self startAfterburnerSound];
                     } else {
-                        if (fuel <= 0.0)
+                        if (_cxxShip->fuel <= 0.0)
                             [UNIVERSE cxx_addMessage:OO_DESC("fuel-out") forCount:1.5];
                     }
-                    afterburner_engaged = (fuel > 0);
+                    afterburner_engaged = (_cxxShip->fuel > 0);
                 } else
                     afterburner_engaged = NO;
 
@@ -1129,13 +1129,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     mouseWheelDeltaFactor = 1.0f;
                 // Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
                 if (([self checkKeyPress:n_key_increase_speed] || joyButtonState[BUTTON_INCTHRUST] || ((mouse_control_on) && ([gameView mouseWheelState] == gvMouseWheelUp) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
-                    && (flightSpeed < maxFlightSpeed) && (!afterburner_engaged)) {
-                    flightSpeed += speed_delta * delta_t * mouseWheelDeltaFactor;
+                    && (_cxxShip->flightSpeed < _cxxShip->maxFlightSpeed) && (!afterburner_engaged)) {
+                    _cxxShip->flightSpeed += speed_delta * delta_t * mouseWheelDeltaFactor;
                 }
 
                 if (([self checkKeyPress:n_key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST] || ((mouse_control_on) && ([gameView mouseWheelState] == gvMouseWheelDown) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
                     && (!afterburner_engaged)) {
-                    flightSpeed -= speed_delta * delta_t * mouseWheelDeltaFactor;
+                    _cxxShip->flightSpeed -= speed_delta * delta_t * mouseWheelDeltaFactor;
                     // ** tgape ** - decrease obviously means no hyperspeed
                     hyperspeed_engaged = NO;
                 }
@@ -1143,16 +1143,16 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                 const oo::PList thrustAxes = [stickHandler axisFunctions];
                 const oo::PList* functionForThrustAxis = thrustAxes.get<oo::PList::Dict>(std::to_string(AXIS_THRUST)); // nil: absent or not a Dict
                 if ([stickHandler joystickCount] != 0 && functionForThrustAxis != nullptr) {
-                    if (flightSpeed < maxFlightSpeed * reqSpeed) {
-                        flightSpeed += speed_delta * delta_t;
+                    if (_cxxShip->flightSpeed < _cxxShip->maxFlightSpeed * reqSpeed) {
+                        _cxxShip->flightSpeed += speed_delta * delta_t;
                     }
-                    if (flightSpeed > maxFlightSpeed * reqSpeed) {
-                        flightSpeed -= speed_delta * delta_t;
+                    if (_cxxShip->flightSpeed > _cxxShip->maxFlightSpeed * reqSpeed) {
+                        _cxxShip->flightSpeed -= speed_delta * delta_t;
                     }
                 } // DJS: end joystick thrust axis (Getafix - End code update for fixing BUG #17482)
 
                 if (!afterburner_engaged && ![self atHyperspeed] && !hyperspeed_engaged) {
-                    flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
+                    _cxxShip->flightSpeed = OOClamp_0_max_f(_cxxShip->flightSpeed, _cxxShip->maxFlightSpeed);
                 }
 
                 exceptionContext = "hyperspeed";
@@ -1178,7 +1178,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                 exceptionContext = "shoot";
                 //  shoot 'a'
-                if ((([self checkNavKeyPress:n_key_fire_lasers]) || ((mouse_control_on) && ([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])) || joyButtonState[BUTTON_FIRE]) && (shot_time > weapon_recharge_rate)) {
+                if ((([self checkNavKeyPress:n_key_fire_lasers]) || ((mouse_control_on) && ([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])) || joyButtonState[BUTTON_FIRE]) && (_cxxShip->shot_time > _cxxShip->weapon_recharge_rate)) {
                     if ([self fireMainWeapon]) {
                         [self cxx_playLaserHit:([self shipHitByLaser] != nil) offset:[self cxx_currentLaserOffset].at(0) weaponIdentifier:[[self currentWeapon] cxx_identifier].value_or("")];
                     }
@@ -1401,7 +1401,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                         // targeting off in both cases!
                         if ([self primaryTarget] != nil)
                             [self noteLostTarget];
-                        DESTROY(_primaryTarget);
+                        DESTROY(_cxxShip->_primaryTarget);
                         [self safeAllMissiles];
                         if (!ident_engaged && [self weaponsOnline]) {
                             [UNIVERSE cxx_addMessage:OO_DESC("missile-safe") forCount:2.0];
@@ -1522,7 +1522,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                                 [UNIVERSE cxx_addMessage:OO_DESC("witch-user-abort") forCount:3.0];
                             }
                         } else if ([self witchJumpChecklist:false]) {
-                            [self beginWitchspaceCountdown:hyperspaceMotorSpinTime];
+                            [self beginWitchspaceCountdown:_cxxShip->hyperspaceMotorSpinTime];
                         }
                     }
                     hyperspace_pressed = YES;
@@ -1547,7 +1547,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
 
                             // even if we don't have a witchspace motor, we can still do a default galactic jump (!)
                             if (EXPECT([self hasHyperspaceMotor]))
-                                witchspaceCountdown = hyperspaceMotorSpinTime;
+                                witchspaceCountdown = _cxxShip->hyperspaceMotorSpinTime;
                             else
                                 witchspaceCountdown = DEFAULT_HYPERSPACE_SPIN_TIME;
 
@@ -1764,7 +1764,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     [gameView allowStringInput:NO];
                     [UNIVERSE clearPreviousMessage];
                     [UNIVERSE setViewDirection:(OOViewID)saved_view_direction];
-                    currentWeaponFacing = saved_weapon_facing;
+                    _cxxShip->currentWeaponFacing = saved_weapon_facing;
                     // make sure the light comes from the right direction after resuming from pause!
                     if (saved_gui_screen == GUI_SCREEN_SYSTEM_DATA)
                         [UNIVERSE setMainLightPosition:_sysInfoLight];
@@ -1774,7 +1774,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
                     saved_view_direction = [UNIVERSE viewDirection];
                     saved_script_time = script_time;
                     saved_gui_screen = gui_screen;
-                    saved_weapon_facing = currentWeaponFacing;
+                    saved_weapon_facing = _cxxShip->currentWeaponFacing;
                     [UNIVERSE pauseGame]; // pause handler
                 }
             }
@@ -2316,13 +2316,13 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
             OOWeaponType weaponType = nil;
 
             if (itemText == FORWARD_FACING_STRING)
-                weaponType = forward_weapon_type;
+                weaponType = _cxxShip->forward_weapon_type;
             if (itemText == AFT_FACING_STRING)
-                weaponType = aft_weapon_type;
+                weaponType = _cxxShip->aft_weapon_type;
             if (itemText == PORT_FACING_STRING)
-                weaponType = port_weapon_type;
+                weaponType = _cxxShip->port_weapon_type;
             if (itemText == STARBOARD_FACING_STRING)
-                weaponType = starboard_weapon_type;
+                weaponType = _cxxShip->starboard_weapon_type;
 
             if (weaponType != nil) {
                 BOOL sameAs = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy([gui cxx_selectedRowKey].value_or("")) == weaponType;
@@ -2665,41 +2665,41 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 
     // damp any rotations we entered with
-    if (flightRoll > 0.0) {
-        if (flightRoll > delta_t)
+    if (_cxxShip->flightRoll > 0.0) {
+        if (_cxxShip->flightRoll > delta_t)
             [self decrease_flight_roll:delta_t];
         else
-            flightRoll = 0.0;
+            _cxxShip->flightRoll = 0.0;
     }
-    if (flightRoll < 0.0) {
-        if (flightRoll < -delta_t)
+    if (_cxxShip->flightRoll < 0.0) {
+        if (_cxxShip->flightRoll < -delta_t)
             [self increase_flight_roll:delta_t];
         else
-            flightRoll = 0.0;
+            _cxxShip->flightRoll = 0.0;
     }
-    if (flightPitch > 0.0) {
-        if (flightPitch > delta_t)
+    if (_cxxShip->flightPitch > 0.0) {
+        if (_cxxShip->flightPitch > delta_t)
             [self decrease_flight_pitch:delta_t];
         else
-            flightPitch = 0.0;
+            _cxxShip->flightPitch = 0.0;
     }
-    if (flightPitch < 0.0) {
-        if (flightPitch < -delta_t)
+    if (_cxxShip->flightPitch < 0.0) {
+        if (_cxxShip->flightPitch < -delta_t)
             [self increase_flight_pitch:delta_t];
         else
-            flightPitch = 0.0;
+            _cxxShip->flightPitch = 0.0;
     }
-    if (flightYaw > 0.0) {
-        if (flightYaw > delta_t)
+    if (_cxxShip->flightYaw > 0.0) {
+        if (_cxxShip->flightYaw > delta_t)
             [self decrease_flight_yaw:delta_t];
         else
-            flightYaw = 0.0;
+            _cxxShip->flightYaw = 0.0;
     }
-    if (flightYaw < 0.0) {
-        if (flightYaw < -delta_t)
+    if (_cxxShip->flightYaw < 0.0) {
+        if (_cxxShip->flightYaw < -delta_t)
             [self increase_flight_yaw:delta_t];
         else
-            flightYaw = 0.0;
+            _cxxShip->flightYaw = 0.0;
     }
 }
 
@@ -3757,47 +3757,47 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if (!mouse_control_on || (mouse_control_on && mouse_x_axis_map_to_yaw)) {
         if ([self checkNavKeyPress:n_key_roll_left] && [self checkNavKeyPress:n_key_roll_right]) {
             keyboardRollOverride = YES;
-            flightRoll = 0.0;
+            _cxxShip->flightRoll = 0.0;
         } else if ([self checkNavKeyPress:n_key_roll_left] && !capsLockCustomView) {
             keyboardRollOverride = YES;
-            if (flightRoll > 0.0)
-                flightRoll = 0.0;
+            if (_cxxShip->flightRoll > 0.0)
+                _cxxShip->flightRoll = 0.0;
             [self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner * roll_delta : delta_t * roll_delta];
             rolling = YES;
         } else if ([self checkNavKeyPress:n_key_roll_right] && !capsLockCustomView) {
             keyboardRollOverride = YES;
-            if (flightRoll < 0.0)
-                flightRoll = 0.0;
+            if (_cxxShip->flightRoll < 0.0)
+                _cxxShip->flightRoll = 0.0;
             [self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor * roll_dampner * roll_delta : delta_t * roll_delta];
             rolling = YES;
         }
     }
     if (((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride && !capsLockCustomView) {
-        stick_roll = max_flight_roll * virtualStick.x;
-        if (flightRoll < stick_roll) {
+        _cxxShip->stick_roll = _cxxShip->max_flight_roll * virtualStick.x;
+        if (_cxxShip->flightRoll < _cxxShip->stick_roll) {
             [self increase_flight_roll:delta_t * roll_delta];
-            if (flightRoll > stick_roll)
-                flightRoll = stick_roll;
+            if (_cxxShip->flightRoll > _cxxShip->stick_roll)
+                _cxxShip->flightRoll = _cxxShip->stick_roll;
         }
-        if (flightRoll > stick_roll) {
+        if (_cxxShip->flightRoll > _cxxShip->stick_roll) {
             [self decrease_flight_roll:delta_t * roll_delta];
-            if (flightRoll < stick_roll)
-                flightRoll = stick_roll;
+            if (_cxxShip->flightRoll < _cxxShip->stick_roll)
+                _cxxShip->flightRoll = _cxxShip->stick_roll;
         }
         rolling = (fabs(virtualStick.x) > 0.0);
     }
     if (!rolling) {
-        if (flightRoll > 0.0) {
-            if (flightRoll > roll_dampner)
+        if (_cxxShip->flightRoll > 0.0) {
+            if (_cxxShip->flightRoll > roll_dampner)
                 [self decrease_flight_roll:roll_dampner];
             else
-                flightRoll = 0.0;
+                _cxxShip->flightRoll = 0.0;
         }
-        if (flightRoll < 0.0) {
-            if (flightRoll < -roll_dampner)
+        if (_cxxShip->flightRoll < 0.0) {
+            if (_cxxShip->flightRoll < -roll_dampner)
                 [self increase_flight_roll:roll_dampner];
             else
-                flightRoll = 0.0;
+                _cxxShip->flightRoll = 0.0;
         }
     }
 
@@ -3806,47 +3806,47 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if (!mouse_control_on) {
         if ([self checkNavKeyPress:n_key_pitch_back] && [self checkNavKeyPress:n_key_pitch_forward]) {
             keyboardPitchOverride = YES;
-            flightPitch = 0.0;
+            _cxxShip->flightPitch = 0.0;
         } else if ([self checkNavKeyPress:n_key_pitch_back] && !capsLockCustomView) {
             keyboardPitchOverride = YES;
-            if (flightPitch < 0.0)
-                flightPitch = 0.0;
+            if (_cxxShip->flightPitch < 0.0)
+                _cxxShip->flightPitch = 0.0;
             [self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner * pitch_delta : delta_t * pitch_delta];
             pitching = YES;
         } else if ([self checkNavKeyPress:n_key_pitch_forward] && !capsLockCustomView) {
             keyboardPitchOverride = YES;
-            if (flightPitch > 0.0)
-                flightPitch = 0.0;
+            if (_cxxShip->flightPitch > 0.0)
+                _cxxShip->flightPitch = 0.0;
             [self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor * pitch_dampner * pitch_delta : delta_t * pitch_delta];
             pitching = YES;
         }
     }
     if ((mouse_control_on || (numSticks && !keyboardPitchOverride)) && !capsLockCustomView) {
-        stick_pitch = max_flight_pitch * virtualStick.y;
-        if (flightPitch < stick_pitch) {
+        _cxxShip->stick_pitch = _cxxShip->max_flight_pitch * virtualStick.y;
+        if (_cxxShip->flightPitch < _cxxShip->stick_pitch) {
             [self increase_flight_pitch:delta_t * pitch_delta];
-            if (flightPitch > stick_pitch)
-                flightPitch = stick_pitch;
+            if (_cxxShip->flightPitch > _cxxShip->stick_pitch)
+                _cxxShip->flightPitch = _cxxShip->stick_pitch;
         }
-        if (flightPitch > stick_pitch) {
+        if (_cxxShip->flightPitch > _cxxShip->stick_pitch) {
             [self decrease_flight_pitch:delta_t * pitch_delta];
-            if (flightPitch < stick_pitch)
-                flightPitch = stick_pitch;
+            if (_cxxShip->flightPitch < _cxxShip->stick_pitch)
+                _cxxShip->flightPitch = _cxxShip->stick_pitch;
         }
         pitching = (fabs(virtualStick.y) > 0.0);
     }
     if (!pitching) {
-        if (flightPitch > 0.0) {
-            if (flightPitch > pitch_dampner)
+        if (_cxxShip->flightPitch > 0.0) {
+            if (_cxxShip->flightPitch > pitch_dampner)
                 [self decrease_flight_pitch:pitch_dampner];
             else
-                flightPitch = 0.0;
+                _cxxShip->flightPitch = 0.0;
         }
-        if (flightPitch < 0.0) {
-            if (flightPitch < -pitch_dampner)
+        if (_cxxShip->flightPitch < 0.0) {
+            if (_cxxShip->flightPitch < -pitch_dampner)
                 [self increase_flight_pitch:pitch_dampner];
             else
-                flightPitch = 0.0;
+                _cxxShip->flightPitch = 0.0;
         }
     }
 
@@ -3855,17 +3855,17 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw)) {
         if ([self checkNavKeyPress:n_key_yaw_left] && [self checkNavKeyPress:n_key_yaw_right]) {
             keyboardYawOverride = YES;
-            flightYaw = 0.0;
+            _cxxShip->flightYaw = 0.0;
         } else if ([self checkNavKeyPress:n_key_yaw_left] && !capsLockCustomView) {
             keyboardYawOverride = YES;
-            if (flightYaw < 0.0)
-                flightYaw = 0.0;
+            if (_cxxShip->flightYaw < 0.0)
+                _cxxShip->flightYaw = 0.0;
             [self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner * yaw_delta : delta_t * yaw_delta];
             yawing = YES;
         } else if ([self checkNavKeyPress:n_key_yaw_right] && !capsLockCustomView) {
             keyboardYawOverride = YES;
-            if (flightYaw > 0.0)
-                flightYaw = 0.0;
+            if (_cxxShip->flightYaw > 0.0)
+                _cxxShip->flightYaw = 0.0;
             [self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor * yaw_dampner * yaw_delta : delta_t * yaw_delta];
             yawing = YES;
         }
@@ -3873,31 +3873,31 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     if (((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride && !capsLockCustomView) {
         // I think yaw is handled backwards in the code,
         // which is why the negative sign is here.
-        stick_yaw = max_flight_yaw * (-reqYaw);
-        if (flightYaw < stick_yaw) {
+        _cxxShip->stick_yaw = _cxxShip->max_flight_yaw * (-reqYaw);
+        if (_cxxShip->flightYaw < _cxxShip->stick_yaw) {
             [self increase_flight_yaw:delta_t * yaw_delta];
-            if (flightYaw > stick_yaw)
-                flightYaw = stick_yaw;
+            if (_cxxShip->flightYaw > _cxxShip->stick_yaw)
+                _cxxShip->flightYaw = _cxxShip->stick_yaw;
         }
-        if (flightYaw > stick_yaw) {
+        if (_cxxShip->flightYaw > _cxxShip->stick_yaw) {
             [self decrease_flight_yaw:delta_t * yaw_delta];
-            if (flightYaw < stick_yaw)
-                flightYaw = stick_yaw;
+            if (_cxxShip->flightYaw < _cxxShip->stick_yaw)
+                _cxxShip->flightYaw = _cxxShip->stick_yaw;
         }
         yawing = (fabs(reqYaw) > 0.0);
     }
     if (!yawing) {
-        if (flightYaw > 0.0) {
-            if (flightYaw > yaw_dampner)
+        if (_cxxShip->flightYaw > 0.0) {
+            if (_cxxShip->flightYaw > yaw_dampner)
                 [self decrease_flight_yaw:yaw_dampner];
             else
-                flightYaw = 0.0;
+                _cxxShip->flightYaw = 0.0;
         }
-        if (flightYaw < 0.0) {
-            if (flightYaw < -yaw_dampner)
+        if (_cxxShip->flightYaw < 0.0) {
+            if (_cxxShip->flightYaw < -yaw_dampner)
                 [self increase_flight_yaw:yaw_dampner];
             else
-                flightYaw = 0.0;
+                _cxxShip->flightYaw = 0.0;
         }
     }
 }
@@ -4036,7 +4036,7 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     {
         if (!spacePressed) {
             [UNIVERSE cxx_displayMessage:"" forCount:1.0];
-            shot_time = INITIAL_SHOT_TIME; // forces immediate restart
+            _cxxShip->shot_time = INITIAL_SHOT_TIME; // forces immediate restart
         }
         spacePressed = YES;
     } else
@@ -4654,7 +4654,7 @@ static BOOL autopilot_pause;
         }
 
         if (facing != WEAPON_FACING_NONE) {
-            currentWeaponFacing = facing;
+            _cxxShip->currentWeaponFacing = facing;
             [self currentWeaponStats];
         } else {
             OO_LOG_ERR(cxx_kOOLogParameterError, "{} called with processWeaponFacing=YES for non-main view {}.", static_cast<const char*>(__FUNCTION__), static_cast<unsigned>(viewDirection));

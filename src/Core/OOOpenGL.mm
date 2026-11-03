@@ -39,13 +39,13 @@ static const char* const kOOLogOpenGLStateDump = "rendering.opengl.stateDump";
 
 static GLfloat sDisplayScaleFactor = 1.0f;
 
-BOOL cxx_OOCheckOpenGLErrors(const char* format, ...)
+bool cxx_OOCheckOpenGLErrors(const char* format, ...)
 {
     va_list args;
 
     va_start(args, format);
     // formatted only when an error is found (a copy of the arguments each time it is)
-    BOOL errorOccurred = cxx_OOCheckOpenGLErrors([format, &args]() -> std::string {
+    bool errorOccurred = cxx_OOCheckOpenGLErrors([format, &args]() -> std::string {
         if (format == nullptr)
             return "<unknown>";
         va_list copy;
@@ -59,7 +59,7 @@ BOOL cxx_OOCheckOpenGLErrors(const char* format, ...)
     return errorOccurred;
 }
 
-BOOL cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context)
+bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context)
 {
     GLenum errCode;
     const GLubyte* errString = NULL;

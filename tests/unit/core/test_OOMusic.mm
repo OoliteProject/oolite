@@ -8,14 +8,18 @@
 	at a time. OpenAL runs on OpenAL Soft's null backend and the user's defaults are a scratch
 	folder's, as in test_OOSound.mm. The sound source is the game's; the mixer and its channels
 	under it are this file's stubs, which record what the source tells them, and so are the
-	decoder and the two concrete sounds that OOALSound.mm names (amendment oo-z1s4 item 4):
-	"missing.ogg" has no decoder. These expectations were written against the Objective-C
+	decoder and the two concrete sounds that OOALSound.mm names (amendment oo-z1s4 item 4; C++
+	stand-ins since beads oo-9ht.83 and oo-9ht.84 deleted their facades): "missing.ogg" has no
+	decoder. These expectations were written against the Objective-C
 	API and ran on the unconverted class first; they now run through the facade, which is its
 	forwarding test. After them come the C++ API (cxx::OOMusic, a subclass of cxx::OOSound) and the
 	facade's contract. Run: bash tools/check-core-tests.sh test_OOMusic
 */
 
 #import "OOALMusic.h"
+#import "OOALBufferedSound.h"
+#import "OOALStreamedSound.h"
+#import "OOALSoundMixer.h"
 #import "OODescription.h"
 
 #include "oo_test.hpp"
@@ -91,146 +95,108 @@ static int gLiveDecoders = 0;
 
 static int gLiveSounds = 0;
 
-@interface OOALBufferedSound: OOSound
+// The buffered sound: a C++ stand-in since bead oo-9ht.83 deleted the Objective-C facade this file
+// stubbed (the members the cluster and the root's facade call). Counts the live ones.
+oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)
 {
-	std::optional<std::string>	_name;
-}
-
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder;
-
-@end
-
-
-@implementation OOALBufferedSound
-
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder
-{
-	self = [super init];
-	if (self != nil)
-	{
-		_name = [inDecoder cxx_name];
-		gLiveSounds++;
-	}
-	return self;
+	oo::Ref<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
+	sound->_name = [inDecoder cxx_name];
+	gLiveSounds++;
+	return sound;
 }
 
 
-- (void)dealloc
+OOALBufferedSound::~OOALBufferedSound()
 {
 	gLiveSounds--;
-	[super dealloc];
 }
 
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOALBufferedSound::name()
 {
 	return _name;
 }
 
-@end
 
-
-@interface OOALStreamedSound: OOSound
-
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder;
-
-@end
-
-
-@implementation OOALStreamedSound
-
-- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder
+ALuint OOALBufferedSound::soundBuffer()
 {
-	(void)inDecoder;
-	[self release];
-	return nil;
+	return cxx::OOSound::soundBuffer();	// the stub did not override it
 }
 
-@end
+
+// The streamed sound: a C++ stand-in since bead oo-9ht.84 deleted the Objective-C facade this
+// file stubbed. It refuses every decoder, as the stub did.
+oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(::OOALSoundDecoder *inDecoder)	{ (void)inDecoder; return nullptr; }
+OOALStreamedSound::~OOALStreamedSound()  {}
+std::optional<std::string> OOALStreamedSound::name()  { return _name; }
+void OOALStreamedSound::rewind()  {}
+bool OOALStreamedSound::soundIncomplete()  { return false; }
+ALuint OOALStreamedSound::soundBuffer()  { return 0; }
 
 
 /*	The mixer and its channels, under the real sound source (OOSoundSource.mm): the mixer hands
 	out channels that record what they are told, in order, and a stopped channel tells its
-	delegate as the real one does.
+	delegate as the real one does. The channel is a C++ stand-in since bead oo-9ht.86 deleted the
+	Objective-C facade this file stubbed (the members the source calls), with its own delegate and
+	sound.
 */
 static std::vector<std::string> gChannelLog;
 
-@interface OOObject (TestChannelDelegate)
-- (void)channel:(id)inChannel didFinishPlayingSound:(OOSound *)inSound;
-@end
-
-@interface OOSoundChannel: OOObject
-{
-@public
-	id			_delegate;
-	OOSound		*_sound;
-}
-@end
+OOSoundChannel::~OOSoundChannel()  {}
+void OOSoundChannel::setDelegate(OOSoundChannelDelegate *delegate)  { _delegate = delegate; }
+void OOSoundChannel::setPosition(Vector position)  { (void)position; }
+void OOSoundChannel::setGain(float gain)  { gChannelLog.push_back("gain " + std::to_string(gain)); }
 
 
-@implementation OOSoundChannel
-
-- (void) setDelegate:(id)delegate		{ _delegate = delegate; }
-- (void) setPosition:(Vector)position	{ (void)position; }
-- (void) setGain:(float)gain			{ gChannelLog.push_back("gain " + std::to_string(gain)); }
-
-
-- (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop
+bool OOSoundChannel::playSound(::OOSound *sound, bool loop)
 {
 	gChannelLog.push_back("play " + [sound cxx_name].value_or("(none)") + (loop ? " looped" : ""));
-	_sound = [sound retain];
-	return YES;
+	_sound = oo::ObjCRef<::OOSound *>(sound);	// [sound retain]
+	return true;
 }
 
 
-- (void) stop
+void OOSoundChannel::stop()
 {
 	gChannelLog.push_back("stop");
-	OOSound *sound = _sound;
-	_sound = nil;
-	[_delegate channel:self didFinishPlayingSound:sound];
-	[sound release];
+	oo::ObjCRef<::OOSound *> sound = std::move(_sound);	// _sound = nil; [sound release] at the end of the scope
+	if (_delegate != nullptr)  _delegate->channel(this, sound.get());
 }
-
-@end
 
 
 static int gChannelsOut = 0;
 
-@interface OOSoundMixer: OOObject
-+ (id) sharedMixer;
-@end
-
-
-@implementation OOSoundMixer
-
-+ (id) sharedMixer
+// The mixer (a C++ stand-in since bead oo-9ht.87 deleted the Objective-C facade this file stubbed):
+// one, never released, handing out a new channel each time.
+OOSoundMixer *OOSoundMixer::sharedMixer()
 {
-	static OOSoundMixer *mixer = nil;
-	if (mixer == nil)  mixer = [[OOSoundMixer alloc] init];
+	static OOSoundMixer *mixer = oo::makeRef<OOSoundMixer>().leakRef();
 	return mixer;
 }
 
 
-- (void) update
+void OOSoundMixer::update()
 {
 }
 
 
-- (OOSoundChannel *) popChannel
+void OOSoundMixer::shutdown()
+{
+}
+
+
+::OOSoundChannel *OOSoundMixer::popChannel()
 {
 	gChannelsOut++;
-	return [[OOSoundChannel alloc] init];	// leaked: a few per run
+	return oo::makeRef<OOSoundChannel>().leakRef();	// leaked: a few per run
 }
 
 
-- (void) pushChannel:(OOSoundChannel *)channel
+void OOSoundMixer::pushChannel(::OOSoundChannel *channel)
 {
 	(void)channel;
 	gChannelsOut--;
 }
-
-@end
 
 
 namespace {

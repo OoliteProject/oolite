@@ -129,12 +129,12 @@ void WormholeEntity::initWithDict(const oo::PList& dict)
                 const oo::PList& currShipDict = *shipDictsArray->at(i);
                 const oo::PList* shipInfo = currShipDict.get<oo::PList::Dict>("ship_info");
                 if (shipInfo != nullptr) {
-                    ShipEntity* ship = [ShipEntity shipRestoredFromDictionary:*shipInfo
-                                                                  useFallback:YES
-                                                                      context:&restoreContext];
+                    ::ShipEntity* ship = [::ShipEntity shipRestoredFromDictionary:*shipInfo
+                                                                      useFallback:YES
+                                                                          context:&restoreContext];
                     if (ship != nil) {
                         // time_delta as stored; it was only ever read with -oo_doubleForKey: (0 when absent)
-                        shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<ShipEntity*>(ship), currShipDict.get<double>("time_delta"), std::nullopt });
+                        shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<::ShipEntity*>(ship), currShipDict.get<double>("time_delta"), std::nullopt });
                     } else {
                         const oo::PList* shipKey = shipInfo->find("ship_key");
                         OO_LOG("wormhole.load.warning", "Wormhole ship \"{}\" failed to initialize - missing OXP or old-style saved wormhole data.", (shipKey != nullptr && (shipKey->isString() || shipKey->isNumber())) ? shipInfo->get<std::string>("ship_key") : std::string("(null)"));
@@ -145,7 +145,7 @@ void WormholeEntity::initWithDict(const oo::PList& dict)
     }
 }
 
-void WormholeEntity::initWormholeTo(OOSystemID s, ShipEntity* ship)
+void WormholeEntity::initWormholeTo(OOSystemID s, ::ShipEntity* ship)
 {
     assert(ship != nil);
 
@@ -238,7 +238,7 @@ GLfloat WormholeEntity::misjumpRange()
     return _misjumpRange;
 }
 
-bool WormholeEntity::suckInShip(ShipEntity* ship)
+bool WormholeEntity::suckInShip(::ShipEntity* ship)
 {
     if (!ship || [ship status] == STATUS_ENTERING_WITCHSPACE) {
         return NO;
@@ -268,7 +268,7 @@ bool WormholeEntity::suckInShip(ShipEntity* ship)
         float shipSpeed = [ship maxFlightSpeed] * afterburnerFactor;
         // MKW 2011.02.27 - calculate speed based on group leader, if any, to
         // try and prevent escorts from entering the wormhole before their mother.
-        ShipEntity* leader = [[ship group] leader];
+        ::ShipEntity* leader = [[ship group] leader];
         if (leader && (leader != ship)) {
             afterburnerFactor = [leader hasFuelInjection] && [leader fuel] > MIN_FUEL ? [leader afterburnerFactor] : 1.0;
             float leaderShipSpeed = [leader maxFlightSpeed] * afterburnerFactor;
@@ -283,7 +283,7 @@ bool WormholeEntity::suckInShip(ShipEntity* ship)
         }
     }
 
-    shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<ShipEntity*>(ship),
+    shipsInTransit.push_back(OOWormholeTransit { oo::ObjCRef<::ShipEntity*>(ship),
         now + travel_time - arrival_time,
         [ship beaconCode] }); // in case a beacon code has been set, nullopt otherwise
     witch_mass += [ship mass];
@@ -327,7 +327,7 @@ void WormholeEntity::disgorgeShips()
 
     const std::vector<OOWormholeTransit> transits = shipsInTransit; // (the array was enumerated as it stood)
     for (const OOWormholeTransit& shipInfo : transits) {
-        ShipEntity* ship = shipInfo.ship.get();
+        ::ShipEntity* ship = shipInfo.ship.get();
         const std::optional<std::string>& shipBeacon = shipInfo.beacon;
         double ship_arrival_time = arrival_time + shipInfo.time;
         double time_passed = now - ship_arrival_time;
@@ -563,7 +563,7 @@ std::optional<std::string> WormholeEntity::descriptionComponents() const
         cxx_ClockToString(arrival_time, false).c_str());
 }
 
-std::optional<std::string> WormholeEntity::identFromShip(ShipEntity* ship)
+std::optional<std::string> WormholeEntity::identFromShip(::ShipEntity* ship)
 {
     if ([ship hasEquipmentItem:oo::PList("EQ_WORMHOLE_SCANNER")]) {
         if (scanInfo() >= WH_SCANINFO_DESTINATION) {
@@ -806,7 +806,7 @@ void WormholeEntity::dumpSelfState()
     OO_LOG("dumpState.wormholeEntity", "Ships                  : {}", shipsInTransit.size());
     unsigned i;
     for (i = 0; i < shipsInTransit.size(); ++i) {
-        ShipEntity* ship = shipsInTransit[i].ship.get();
+        ::ShipEntity* ship = shipsInTransit[i].ship.get();
         double ship_arrival_time = arrival_time + shipsInTransit[i].time;
         OO_LOG("dumpState.wormholeEntity.ships", "Ship {}: {}  mass {:.2f}  arrival time {}", i + 1, oo::DescriptionOf(ship), [ship mass], cxx_ClockToString(ship_arrival_time, false));
     }

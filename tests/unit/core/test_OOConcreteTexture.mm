@@ -9,8 +9,14 @@
 	whole game but main (tests/unit/core/meson.build entry ['*']), on the hidden GL context of
 	oo_gl_test_context.hpp; the generator runs on the game's own work manager. The expectations
 	were written against the Objective-C API and run on the unconverted class first (commit
-	4477d13b5); that API is now the facade (OOConcreteTexture+ObjCBridge.h), so they run through
-	it, and the last tests pin the C++ API (cxx::OOConcreteTexture) and the facade's contract.
+	4477d13b5); that API then became the facade, and the last
+	tests pinned the C++ API and the facade's contract.
+
+	Bead oo-9ht.105 deleted the facade (ADR-0056 amendment "deleting a facade"). The texture is made
+	by the C++ factories, and the cases ask it through the object Objective-C now gets, the root's
+	facade (the OOTexture selectors are the root's), with every expectation kept; the facade's own
+	case (facade) was retired with it (ADR-0049, standing approval oo-9n5p9), and
+	concreteTextureCrossesAsTheRootFacade pins the crossing now.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -92,9 +98,10 @@ TestGenerator *QueuedGenerator(uint32_t options, BOOL empty)
 }
 
 
-OOConcreteTexture *Texture(OOTextureLoader *loader, const std::optional<std::string> &key, uint32_t options)
+// The texture the factory makes, as Objective-C gets it: the C++ texture's one facade (nil for none).
+OOTexture *Texture(OOTextureLoader *loader, const std::optional<std::string> &key, uint32_t options)
 {
-	return [[[OOConcreteTexture alloc] initWithLoader:loader key:key options:options anisotropy:0.5f lodBias:0.0f] autorelease];
+	return oo::ToObjC(static_cast<cxx::OOTexture *>(OOConcreteTexture::initWithLoader(loader, key, options, 0.5f, 0.0f).get()));
 }
 
 
@@ -117,7 +124,7 @@ OO_TEST(noLoaderNoTexture)
 	@autoreleasepool
 	{
 		OO_CHECK(Texture(nil, std::string("test:none"), kOOTextureDefaultOptions) == nil);
-		OO_CHECK([[[OOConcreteTexture alloc] initWithPath:"no-such-loader.type" key:std::string("test:none") options:kOOTextureDefaultOptions anisotropy:0.5f lodBias:0.0f] autorelease] == nil);
+		OO_CHECK(OOConcreteTexture::initWithPath("no-such-loader.type", std::string("test:none"), kOOTextureDefaultOptions, 0.5f, 0.0f) == nullptr);
 		OO_CHECK([OOTexture cxx_existingTextureForKey:std::string("test:none")] == nil);
 	}
 }
@@ -130,7 +137,7 @@ OO_TEST(beforeLoading)
 	@autoreleasepool
 	{
 		const uint32_t options = kOOTextureMinFilterLinear | kOOTextureMagFilterLinear;
-		OOConcreteTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:before"), options);
+		OOTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:before"), options);
 		OO_CHECK([texture isKindOfClass:[OOTexture class]]);
 		OO_CHECK([texture cxx_cacheKey] == std::optional<std::string>("test:before"));
 		OO_CHECK([OOTexture cxx_existingTextureForKey:std::string("test:before")] == texture);
@@ -154,7 +161,7 @@ OO_TEST(loadsAndUploads)
 	@autoreleasepool
 	{
 		const uint32_t options = kOOTextureMinFilterLinear | kOOTextureMagFilterLinear;
-		OOConcreteTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:linear"), options);
+		OOTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:linear"), options);
 		[texture ensureFinishedLoading];
 		OO_CHECK([texture isFinishedLoading]);
 		// The loader scales the 4 x 2 image to 2 x 2; the original size is kept.
@@ -196,7 +203,7 @@ OO_TEST(mipMapped)
 	@autoreleasepool
 	{
 		const uint32_t options = kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear;
-		OOConcreteTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:mip"), options);
+		OOTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:mip"), options);
 		OO_CHECK([texture isMipMapped]);	// waits for loading
 		OO_CHECK(SameSize([texture dimensions], 2, 2));
 		OO_CHECK([texture glTextureName] != 0);
@@ -218,7 +225,7 @@ OO_TEST(failedLoad)
 	SetUpLoaders();
 	@autoreleasepool
 	{
-		OOConcreteTexture *texture = Texture(QueuedGenerator(kOOTextureDefaultOptions, YES), std::string("test:empty"), kOOTextureDefaultOptions);
+		OOTexture *texture = Texture(QueuedGenerator(kOOTextureDefaultOptions, YES), std::string("test:empty"), kOOTextureDefaultOptions);
 		OO_CHECK(SameSize([texture dimensions], 0, 0));
 		OO_CHECK([texture glTextureName] == 0 && [texture isFinishedLoading]);
 		OO_CHECK(oo::DescriptionOf(texture).ends_with(">{test:empty, LOAD ERROR}"));
@@ -237,7 +244,7 @@ OO_TEST(deallocUncaches)
 	@autoreleasepool
 	{
 		const uint32_t options = kOOTextureMinFilterLinear | kOOTextureMagFilterLinear;
-		OOConcreteTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:gone"), options);
+		OOTexture *texture = Texture(QueuedGenerator(options, NO), std::string("test:gone"), options);
 		[texture ensureFinishedLoading];
 		OO_CHECK([OOTexture cxx_existingTextureForKey:std::string("test:gone")] == texture);
 	}
@@ -265,11 +272,11 @@ OO_TEST(cxxApi)
 	SetUpLoaders();
 	@autoreleasepool
 	{
-		OO_CHECK(cxx::OOConcreteTexture::initWithLoader(nil, std::string("test:cxx"), kOOTextureDefaultOptions, 0.5f, 0.0f) == nullptr);
-		OO_CHECK(cxx::OOConcreteTexture::initWithPath("no-such-loader.type", std::string("test:cxx"), kOOTextureDefaultOptions, 0.5f, 0.0f) == nullptr);
+		OO_CHECK(OOConcreteTexture::initWithLoader(nil, std::string("test:cxx"), kOOTextureDefaultOptions, 0.5f, 0.0f) == nullptr);
+		OO_CHECK(OOConcreteTexture::initWithPath("no-such-loader.type", std::string("test:cxx"), kOOTextureDefaultOptions, 0.5f, 0.0f) == nullptr);
 
 		const uint32_t options = kOOTextureMinFilterLinear | kOOTextureMagFilterLinear;
-		const oo::Ref<cxx::OOConcreteTexture> texture = cxx::OOConcreteTexture::initWithLoader(QueuedGenerator(options, NO), std::string("test:cxx"), options, 0.5f, 0.0f);
+		const oo::Ref<OOConcreteTexture> texture = OOConcreteTexture::initWithLoader(QueuedGenerator(options, NO), std::string("test:cxx"), options, 0.5f, 0.0f);
 		OO_CHECK(texture != nullptr && texture->cacheKey() == std::optional<std::string>("test:cxx"));
 		OO_CHECK(cxx::OOTexture::existingTextureForKey(std::string("test:cxx")) == texture.get());
 		OO_CHECK(texture->descriptionComponents() == std::optional<std::string>("test:cxx, loading"));
@@ -293,32 +300,26 @@ OO_TEST(cxxApi)
 }
 
 
-OO_TEST(facade)
+// Objective-C sees a concrete texture as the root's facade of the C++ object (bead oo-9ht.105).
+OO_TEST(concreteTextureCrossesAsTheRootFacade)
 {
 	OO_CHECK(OOTestGLContext());
 	SetUpLoaders();
 	@autoreleasepool
 	{
 		const uint32_t options = kOOTextureMinFilterLinear | kOOTextureMagFilterLinear;
-
-		// What the Objective-C initialiser answers is the C++ texture's one facade, cached.
-		OOConcreteTexture *made = Texture(QueuedGenerator(options, NO), std::string("test:facade"), options);
-		cxx::OOConcreteTexture *texture = oo::ToCxx(made);
-		OO_CHECK(texture != nullptr && oo::ToObjC(texture) == made);
-		OO_CHECK(oo::ToObjC(static_cast<cxx::OOTexture *>(texture)) == made);
+		OOTexture *made = Texture(QueuedGenerator(options, NO), std::string("test:facade"), options);
+		OOConcreteTexture *texture = dynamic_cast<OOConcreteTexture *>(oo::ToCxx(made));
+		OO_CHECK(texture != nullptr && oo::ToObjC(static_cast<cxx::OOTexture *>(texture)) == made);
 		OO_CHECK([OOTexture cxx_existingTextureForKey:std::string("test:facade")] == made);
-		OO_CHECK([made class] == [OOConcreteTexture class]);
+		OO_CHECK([made class] == [OOTexture class]);
 
 		// The factory's textures are concrete C++ textures behind that facade.
 		TestGenerator *generator = [[[TestGenerator alloc] cxx_initWithPath:std::string("test generator") options:options] autorelease];	// the factory queues it
 		OOTexture *generated = [OOTexture textureWithGenerator:generator];
-		OO_CHECK([generated isKindOfClass:[OOConcreteTexture class]]);
-		OO_CHECK(dynamic_cast<cxx::OOConcreteTexture *>(oo::ToCxx(generated)) != nullptr);
+		OO_CHECK(dynamic_cast<OOConcreteTexture *>(oo::ToCxx(generated)) != nullptr);
 	}
 	ClearCache();
-	OOConcreteTexture *none = nil;
-	OO_CHECK(oo::ToCxx(none) == nullptr);
-	OO_CHECK(oo::ToObjC(static_cast<cxx::OOConcreteTexture *>(nullptr)) == nil);
 }
 
 

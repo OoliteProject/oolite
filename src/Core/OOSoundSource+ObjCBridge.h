@@ -4,8 +4,9 @@ OOSoundSource+ObjCBridge.h
 
 TRANSITIONAL (proposed ADR-0056, the Audio module: amendment oo-2en): the Objective-C OOSoundSource,
 a facade over the C++ cxx::OOSoundSource (OOSoundSource.h), for the code that makes and messages
-sound sources and for the channels, which call a playing source back through
--channel:didFinishPlayingSound: (and a stopped one's class through the class method). Its interface
+sound sources. (The channels called a playing source back through -channel:didFinishPlayingSound:,
+and a stopped one's class through the class method, until bead oo-9ht.86 made the delegate C++:
+those two methods went with the channel's facade.) Its interface
 is the one OOSoundSource.h declared before the conversion, copied exactly. A playing source's facade
 is kept alive by the source itself, as the old object kept itself (amendment oo-kdyh item 2). The
 categories in Universe.h (OOCustomSounds) and OOJSSoundSource+ObjCBridge.mm (the JS glue) stay

@@ -38,7 +38,7 @@ const OOPixMap kOONullPixMap = {
     .bufferSize = 0
 };
 
-BOOL OOIsValidPixMap(OOPixMap pixMap)
+bool OOIsValidPixMap(OOPixMap pixMap)
 {
     return pixMap.pixels != NULL && pixMap.width > 0 && pixMap.height > 0 && OOIsValidPixMapFormat(pixMap.format) && pixMap.rowBytes >= pixMap.width * OOPixMapBytesPerPixelForFormat(pixMap.format) && pixMap.bufferSize >= pixMap.rowBytes * pixMap.height;
 }
@@ -105,7 +105,7 @@ OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize)
     return result;
 }
 
-BOOL OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize)
+bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize)
 {
     if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
         return NO;
@@ -124,7 +124,7 @@ BOOL OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize)
     }
 }
 
-BOOL OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize)
+bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize)
 {
     if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
         return NO;
@@ -179,7 +179,7 @@ void OODumpPixMap(OOPixMap pixMap, const std::string& name)
 }
 #endif
 
-BOOL OOIsValidPixMapFormat(OOPixMapFormat format)
+bool OOIsValidPixMapFormat(OOPixMapFormat format)
 {
     switch (format) {
     case kOOPixMapInvalidFormat:
@@ -227,7 +227,7 @@ std::string OOPixMapFormatName(OOPixMapFormat format)
     return oo::str::format("invalid<%i>", (int)format);
 }
 
-BOOL OOPixMapFormatHasAlpha(OOPixMapFormat format)
+bool OOPixMapFormatHasAlpha(OOPixMapFormat format)
 {
     switch (format) {
     case kOOPixMapInvalidFormat:

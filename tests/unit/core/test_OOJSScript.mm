@@ -12,7 +12,8 @@
 	(tests/unit/core/meson.build entry ['*'], amendment oo-44gg), defines gDebugFlags and points the
 	user's directories at a scratch folder (amendment oo-rmd7 item 4). The scripts are written to
 	that folder. The expectations were written against the Objective-C API and run on the
-	unconverted class first.
+	unconverted class first; the crossing test (facade identity, the C++ members, the running stack
+	from both sides, the weak reference) came with the conversion, oo-u61e.4.
 	Run: bash tools/check-core-tests.sh test_OOJSScript
 */
 
@@ -240,6 +241,43 @@ OO_TEST(runningStack)
 }
 
 
+// The crossing, after the conversion (bead oo-u61e.4): the facade is the script's identity.
+OO_TEST(crossing)
+{
+	SetUp();
+	@autoreleasepool
+	{
+		OOJSScript *script = [OOJSScript scriptWithPath:Script("crossing/crossing.js", kNamedScript) properties:oo::PList()];
+		OO_CHECK(script != nil);
+		if (script == nil)  return;
+		cxx::OOJSScript *cxxScript = oo::ToCxx(script);
+		OO_CHECK(cxxScript != nullptr);
+		OO_CHECK(oo::ToObjC(cxxScript) == script);
+		OO_CHECK(oo::ToCxx(static_cast<OOScript *>(script)) == cxxScript);	// through the root's facade too
+		OO_CHECK(oo::ToObjC(static_cast<cxx::OOScript *>(cxxScript)) == script);
+		OO_CHECK(oo::ToCxx(static_cast<OOJSScript *>(nil)) == nullptr);
+
+		// The C++ members answer as the facade does, and the root's members reach the overrides.
+		OO_CHECK_EQ(cxxScript->name().value_or("<none>"), "test-script");
+		OO_CHECK_EQ(cxxScript->displayName().value_or("<none>"), "test-script 1.0");
+		OO_CHECK_EQ(Text(cxxScript->propertyNamed("counter")), "0");
+		OO_CHECK(cxxScript->setProperty(oo::PList(7), "counter"));
+		OO_CHECK_EQ(Text([script cxx_propertyNamed:"counter"]), "7");
+
+		// The running stack holds facades, from either side.
+		cxx::OOJSScript::pushScript(script);
+		OO_CHECK([OOJSScript currentlyRunningScript] == script);
+		OO_CHECK(cxx::OOJSScript::currentlyRunningScript() == script);
+		[OOJSScript popScript:script];
+		OO_CHECK(cxx::OOJSScript::scriptStack().empty());
+
+		// A weak reference is to the facade.
+		OOWeakReference *weak = [[script weakRetain] autorelease];
+		OO_CHECK([weak weakRefUnderlyingObject] == script);
+	}
+}
+
+
 OO_TEST(engineReset)
 {
 	SetUp();
@@ -261,6 +299,27 @@ OO_TEST(engineReset)
 		JS_FreeValue(context, self);
 		OOJSRelinquishContext(context);
 		OO_CHECK_EQ([script cxx_name].value_or("<none>"), "test-script");	// the name was kept
+	}
+}
+
+
+// oo-9ht.142: a file that does not compile is not loaded (nil), its error goes through the
+// engine's error reporter, and the failure path leaves nothing running and nothing dangling: the
+// next script loads and runs as before.
+OO_TEST(broken)
+{
+	SetUp();
+	@autoreleasepool
+	{
+		OO_CHECK([OOJSScript scriptWithPath:Script("broken/broken.js", "\"use strict\";\nthis.name = ;\n") properties:oo::PList()] == nil);
+		OO_CHECK([OOJSScript currentlyRunningScript] == nil);
+		OO_CHECK([OOJSScript scriptStack].empty());
+	}
+	@autoreleasepool
+	{
+		OOJSScript *after = [OOJSScript scriptWithPath:Script("broken/after.js", kNamedScript) properties:oo::PList()];
+		OO_CHECK(after != nil);
+		OO_CHECK_EQ([after cxx_name].value_or("<none>"), "test-script");
 	}
 }
 

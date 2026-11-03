@@ -88,7 +88,8 @@ ALfloat OOOpenALController::masterVolume()
 // is there a better way to handle this?
 void OOOpenALController::shutdown()
 {
-    [[OOSoundMixer sharedMixer] shutdown];
+    if (OOSoundMixer* mixer = OOSoundMixer::sharedMixer())
+        mixer->shutdown();
     OOAL(alcMakeContextCurrent(NULL));
     OOAL(alcDestroyContext(context));
     OOAL(alcCloseDevice(device));

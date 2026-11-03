@@ -240,6 +240,26 @@ MA 02110-1301, USA.
 
 @end
 
+/*	The informal protocols a shader binding target implements, categories of the Objective-C root
+        that the entities implement (Entity's facade, ShipEntity). They are not the material's: they
+        stay Objective-C until the entities convert (ADR-0056 amendment of bead oo-3kqi, item 5), moved
+        here unchanged from the shader material's facade header when bead oo-9ht.46 deleted it.
+*/
+@interface OOObject (ShaderBindingHierarchy)
+
+/*	Informal protocol for objects to "forward" their shader bindings up a
+        hierarchy (for instance, subentities to parent entities).
+*/
+- (id<OOWeakReferenceSupport>)superShaderBindingTarget;
+
+@end
+
+@interface OOObject (OOShaderMaterialTargetOptional)
+
+- (uint32_t)randomSeedForShaders;
+
+@end
+
 namespace oo {
 
 // The entity's Objective-C object: an Objective-C entity itself, else a C++ entity's facade.

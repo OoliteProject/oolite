@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOJSPlayerShip.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "HeadUpDisplay.h"
 #import "OOJSEntity.h"
@@ -43,6 +44,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "OOFunctionAttributes.h"
 #import "OOJSEquipmentInfo.h"
+#import "OOJSPlayerShip+ObjCBridge.h"
 
 #import "OOObjCPList.h"
 #include "oofnd/Notification.hpp"
@@ -60,14 +62,36 @@ static JSClassDef sPlayerShipClass = {
 namespace {
 
     // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(OOColor* color)
+    oo::PList NormalizedColorComponents(cxx::OOColor* color)
     {
-        if (color == nil)
+        if (color == nullptr)
             return oo::PList();
         oo::PList::Array components;
-        for (float component : [color cxx_normalizedArray])
+        for (float component : color->normalizedArray())
             components.push_back(oo::PList::singleReal(component));
         return oo::PList(std::move(components));
+    }
+
+    /*	The player's HUD is converted (cxx::HeadUpDisplay), and the player answers its facade. A
+            player with no HUD answered zero, false, nil or none to every message the getter sent the HUD;
+            so does a null HUD here (ADR-0056 amendments oo-6ia4 item 2, oo-nge8 item 6).
+    */
+    template <typename R>
+    R AskHud(PlayerEntity* player, R (cxx::HeadUpDisplay::*member)())
+    {
+        cxx::HeadUpDisplay* hud = oo::ToCxx(OOJSPlayerShipPlayerHud(player));
+        return (hud != nullptr) ? (hud->*member)() : R();
+    }
+
+    cxx::HeadUpDisplay* HudOf(PlayerEntity* player)
+    {
+        return oo::ToCxx(OOJSPlayerShipPlayerHud(player));
+    }
+
+    oo::Ref<cxx::OOColor> HudReticleColor(PlayerEntity* player, NSUInteger idx)
+    {
+        cxx::HeadUpDisplay* hud = oo::ToCxx(OOJSPlayerShipPlayerHud(player));
+        return (hud != nullptr) ? hud->reticleColorForIndex(idx) : oo::Ref<cxx::OOColor>();
     }
 
     // A string, or null for none (what an NSString or nil gave JavaScript).
@@ -109,7 +133,7 @@ static JSValue PlayerShipHideHUDSelector(OOJS_NATIVE_ARGS);
 static JSValue PlayerShipShowHUDSelector(OOJS_NATIVE_ARGS);
 static JSValue PlayerShipSetCustomHUDDial(OOJS_NATIVE_ARGS);
 
-static BOOL ValidateContracts(JSContext* context, int argc, JSValueConst* argv, BOOL isCargo, OOSystemID* start, OOSystemID* destination, double* eta, double* fee, double* premium, const std::string& functionName, unsigned* risk);
+static bool ValidateContracts(JSContext* context, int argc, JSValueConst* argv, bool isCargo, OOSystemID* start, OOSystemID* destination, double* eta, double* fee, double* premium, const std::string& functionName, unsigned* risk);
 
 enum {
     // Property IDs
@@ -292,17 +316,17 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global)
     OOJSRegisterObjectConverter(sPlayerShipClassID, OOJSBasicPrivateObjectConverter);
     OOJSRegisterSubclass(sPlayerShipClassID, JSShipClassID());
 
-    PlayerEntity* player = [PlayerEntity sharedPlayer]; // NOTE: at time of writing, this creates the player entity. Don't use PLAYER here.
+    PlayerEntity* player = OOJSPlayerShipSharedPlayer(); // NOTE: at time of writing, this creates the player entity. Don't use PLAYER here.
 
     // Create ship object as a property of the player object.
     JSValue playerObject = JS_GetPropertyStr(context, global, "player");
     OOCAssert(JS_IsObject(playerObject), "Player must be initialized before PlayerShip.");
 
     JSValue shipObject = JS_NewObjectClass(context, (int)sPlayerShipClassID);
-    JS_SetOpaque(shipObject, OOConsumeReference([player weakRetain]));
+    JS_SetOpaque(shipObject, OOConsumeReference(OOJSPlayerShipPlayerWeakRetain(player)));
     // The player object's property and the player entity each own a reference.
     JS_DefinePropertyValueStr(context, playerObject, "ship", JS_DupValue(context, shipObject), OOJS_PROP_READONLY);
-    [player setJSSelf:shipObject context:context];
+    OOJSPlayerShipSetJSSelf(player, shipObject, context); // -setJSSelf:context:, the category in this file
 
     JS_FreeValue(context, shipObject);
     JS_FreeValue(context, playerObject);
@@ -324,32 +348,26 @@ JSValue JSPlayerShipObject(void)
     return result;
 }
 
-@implementation PlayerEntity (OOJavaScriptExtensions)
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// PlayerEntity (OOJavaScriptExtensions): the bodies of the category's methods, which the engine
+// and the player send by selector; OOJSPlayerShip+ObjCBridge.mm forwards them (ADR-0056 amendments
+// oo-ppc item 3, oo-ykoy). Its -oo_jsClassID answers JSPlayerShipClassID().
+std::optional<std::string> OOJSPlayerShipJSClassName(void)
 {
     return std::string("PlayerShip");
 }
 
-- (JSClassID)oo_jsClassID
-{
-    return sPlayerShipClassID;
-}
-
-- (void)setJSSelf:(JSValueConst)val context:(JSContext*)context
+void OOJSPlayerShipSetJSSelf(PlayerEntity* player, JSValueConst val, JSContext* context)
 {
     // Drop any previous wrapper (and its reset observer).
-    [self deleteJSSelf];
+    OOJSPlayerShipPlayerDeleteJSSelf(player);
 
     // Released by -deleteJSSelf when the JavaScript engine resets.
-    _cxxEntity->_jsSelf = JS_DupValue(context, val);
+    player->_cxxEntity->_jsSelf = JS_DupValue(context, val);
 
-    oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
-        [OOJavaScriptEngine sharedEngine],
-        [self](const oo::Notification&) { [self deleteJSSelf]; });
+    oo::NotificationCenter::defaultCenter().addObserver(player, kOOJavaScriptEngineWillResetNotificationName,
+        OOJSPlayerShipSharedEngine(),
+        [player](const oo::Notification&) { OOJSPlayerShipPlayerDeleteJSSelf(player); });
 }
-
-@end
 
 static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS)
 {
@@ -368,122 +386,122 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kPlayerShip_activeMissile:
-        return JS_NewNumber(context, [player activeMissile]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerActiveMissile(player));
 
     case kPlayerShip_fuelLeakRate:
-        return JS_NewNumber(context, [player fuelLeakRate]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerFuelLeakRate(player));
 
     case kPlayerShip_docked:
-        return OOJSValueFromBOOL([player isDocked]);
+        return OOJSValueFromBOOL(OOJSPlayerShipPlayerIsDocked(player));
 
     case kPlayerShip_dockedStation:
-        result = oo::PListObject([player dockedStation]);
+        result = oo::PListObject(OOJSPlayerShipPlayerDockedStation(player));
         break;
 
     case kPlayerShip_specialCargo:
-        result = StringOrNull([player cxx_specialCargo]);
+        result = StringOrNull(OOJSPlayerShipPlayerSpecialCargo(player));
         break;
 
     case kPlayerShip_reticleColorTarget:
-        result = NormalizedColorComponents([[player hud] reticleColorForIndex:OO_RETICLE_COLOR_TARGET]);
+        result = NormalizedColorComponents(HudReticleColor(player, OO_RETICLE_COLOR_TARGET).get());
         break;
 
     case kPlayerShip_reticleColorTargetSensitive:
-        result = NormalizedColorComponents([[player hud] reticleColorForIndex:OO_RETICLE_COLOR_TARGET_SENSITIVE]);
+        result = NormalizedColorComponents(HudReticleColor(player, OO_RETICLE_COLOR_TARGET_SENSITIVE).get());
         break;
 
     case kPlayerShip_reticleColorWormhole:
-        result = NormalizedColorComponents([[player hud] reticleColorForIndex:OO_RETICLE_COLOR_WORMHOLE]);
+        result = NormalizedColorComponents(HudReticleColor(player, OO_RETICLE_COLOR_WORMHOLE).get());
         break;
 
     case kPlayerShip_reticleTargetSensitive:
-        return OOJSValueFromBOOL([[player hud] reticleTargetSensitive]);
+        return OOJSValueFromBOOL(AskHud(player, &cxx::HeadUpDisplay::getReticleTargetSensitive));
 
     case kPlayerShip_galacticHyperspaceBehaviour:
-        return OOJSValueFromGalacticHyperspaceBehaviour(context, [player galacticHyperspaceBehaviour]);
+        return OOJSValueFromGalacticHyperspaceBehaviour(context, OOJSPlayerShipPlayerGalacticHyperspaceBehaviour(player));
 
     case kPlayerShip_galacticHyperspaceFixedCoords:
-        OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, [player galacticHyperspaceFixedCoords]);
+        OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, OOJSPlayerShipPlayerGalacticHyperspaceFixedCoords(player));
 
     case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
-        OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal([player galacticHyperspaceFixedCoords]));
+        OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal(OOJSPlayerShipPlayerGalacticHyperspaceFixedCoords(player)));
 
     case kPlayerShip_fastEquipmentA:
-        result = StringOrNull([player cxx_fastEquipmentA]);
+        result = StringOrNull(OOJSPlayerShipPlayerFastEquipmentA(player));
         break;
 
     case kPlayerShip_fastEquipmentB:
-        result = StringOrNull([player cxx_fastEquipmentB]);
+        result = StringOrNull(OOJSPlayerShipPlayerFastEquipmentB(player));
         break;
 
     case kPlayerShip_primedEquipment:
-        result = oo::PList([player cxx_currentPrimedEquipment]);
+        result = oo::PList(OOJSPlayerShipPlayerCurrentPrimedEquipment(player));
         break;
 
     case kPlayerShip_forwardShield:
-        return JS_NewNumber(context, [player forwardShieldLevel]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerForwardShieldLevel(player));
 
     case kPlayerShip_aftShield:
-        return JS_NewNumber(context, [player aftShieldLevel]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerAftShieldLevel(player));
 
     case kPlayerShip_maxForwardShield:
-        return JS_NewNumber(context, [player maxForwardShieldLevel]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerMaxForwardShieldLevel(player));
 
     case kPlayerShip_maxAftShield:
-        return JS_NewNumber(context, [player maxAftShieldLevel]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerMaxAftShieldLevel(player));
 
     case kPlayerShip_forwardShieldRechargeRate:
         // No distinction made internally
-        return JS_NewNumber(context, [player forwardShieldRechargeRate]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerForwardShieldRechargeRate(player));
 
     case kPlayerShip_aftShieldRechargeRate:
         // No distinction made internally
-        return JS_NewNumber(context, [player aftShieldRechargeRate]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerAftShieldRechargeRate(player));
 
     case kPlayerShip_multiFunctionDisplays:
-        return JS_NewNumber(context, [[player hud] mfdCount]);
+        return JS_NewNumber(context, AskHud(player, &cxx::HeadUpDisplay::mfdCount));
 
     case kPlayerShip_multiFunctionDisplayList: {
         oo::PList::Array list; // [OONull null] for an inactive MFD
-        for (const std::optional<std::string>& key : [player cxx_multiFunctionDisplayList]) {
-            list.push_back(key.has_value() ? oo::PList(*key) : oo::PListObject([OONull null]));
+        for (const std::optional<std::string>& key : OOJSPlayerShipPlayerMultiFunctionDisplayList(player)) {
+            list.push_back(key.has_value() ? oo::PList(*key) : oo::PListObject(OOJSPlayerShipNull()));
         }
         result = oo::PList(std::move(list));
     } break;
 
     case kPlayerShip_missilesOnline:
-        return OOJSValueFromBOOL(![player dialIdentEngaged]);
+        return OOJSValueFromBOOL(!OOJSPlayerShipPlayerDialIdentEngaged(player));
 
     case kPlayerShip_chartHightlightMode:
-        result = oo::PList(cxx_OOStringFromLongRangeChartMode([player longRangeChartMode]));
+        result = oo::PList(cxx_OOStringFromLongRangeChartMode(OOJSPlayerShipPlayerLongRangeChartMode(player)));
         break;
 
     case kPlayerShip_galaxyCoordinates:
-        OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, [player galaxy_coordinates]);
+        OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, OOJSPlayerShipPlayerGalaxyCoordinates(player));
 
     case kPlayerShip_galaxyCoordinatesInLY:
-        OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal([player galaxy_coordinates]));
+        OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal(OOJSPlayerShipPlayerGalaxyCoordinates(player)));
 
     case kPlayerShip_cursorCoordinates:
-        OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, [player cursor_coordinates]);
+        OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, OOJSPlayerShipPlayerCursorCoordinates(player));
 
     case kPlayerShip_cursorCoordinatesInLY:
-        OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal([player cursor_coordinates]));
+        OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal(OOJSPlayerShipPlayerCursorCoordinates(player)));
 
     case kPlayerShip_targetSystem:
-        return JS_NewInt32(context, [player targetSystemID]);
+        return JS_NewInt32(context, OOJSPlayerShipPlayerTargetSystemID(player));
 
     case kPlayerShip_nextSystem:
-        return JS_NewInt32(context, [player nextHopTargetSystemID]);
+        return JS_NewInt32(context, OOJSPlayerShipPlayerNextHopTargetSystemID(player));
 
     case kPlayerShip_infoSystem:
-        return JS_NewInt32(context, [player infoSystemID]);
+        return JS_NewInt32(context, OOJSPlayerShipPlayerInfoSystemID(player));
 
     case kPlayerShip_previousSystem:
-        return JS_NewInt32(context, [player previousSystemID]);
+        return JS_NewInt32(context, OOJSPlayerShipPlayerPreviousSystemID(player));
 
     case kPlayerShip_routeMode: {
-        OORouteType route = [player ANAMode];
+        OORouteType route = OOJSPlayerShipPlayerANAMode(player);
         switch (route) {
         case OPTIMIZED_BY_TIME:
             result = oo::PList("OPTIMIZED_BY_TIME");
@@ -499,102 +517,102 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS)
     }
 
     case kPlayerShip_scannerMinimalistic:
-        return OOJSValueFromBOOL([[player hud] minimalisticScanner]);
+        return OOJSValueFromBOOL(AskHud(player, &cxx::HeadUpDisplay::minimalisticScanner));
 
     case kPlayerShip_scannerNonLinear:
-        return OOJSValueFromBOOL([[player hud] nonlinearScanner]);
+        return OOJSValueFromBOOL(AskHud(player, &cxx::HeadUpDisplay::nonlinearScanner));
 
     case kPlayerShip_scannerUltraZoom:
-        return OOJSValueFromBOOL([[player hud] scannerUltraZoom]);
+        return OOJSValueFromBOOL(AskHud(player, &cxx::HeadUpDisplay::scannerUltraZoom));
 
     case kPlayerShip_scoopOverride:
-        return OOJSValueFromBOOL([player scoopOverride]);
+        return OOJSValueFromBOOL(OOJSPlayerShipPlayerScoopOverride(player));
 
     case kPlayerShip_injectorsEngaged:
-        return OOJSValueFromBOOL([player injectorsEngaged]);
+        return OOJSValueFromBOOL(OOJSPlayerShipPlayerInjectorsEngaged(player));
 
     case kPlayerShip_massLockable:
-        return OOJSValueFromBOOL([player massLockable]);
+        return OOJSValueFromBOOL(OOJSPlayerShipPlayerMassLockable(player));
 
     case kPlayerShip_torusEngaged:
-        return OOJSValueFromBOOL([player hyperspeedEngaged]);
+        return OOJSValueFromBOOL(OOJSPlayerShipPlayerHyperspeedEngaged(player));
 
     case kPlayerShip_compassTarget:
-        result = oo::PListObject([player compassTarget]);
+        result = oo::PListObject(OOJSPlayerShipPlayerCompassTarget(player));
         break;
 
     case kPlayerShip_compassType:
-        result = oo::PList((cxx_OOStringFromCompassMode([player compassMode]) == "COMPASS_MODE_BASIC") ? "OO_COMPASSTYPE_BASIC" : "OO_COMPASSTYPE_ADVANCED");
+        result = oo::PList((cxx_OOStringFromCompassMode(OOJSPlayerShipPlayerCompassMode(player)) == "COMPASS_MODE_BASIC") ? "OO_COMPASSTYPE_BASIC" : "OO_COMPASSTYPE_ADVANCED");
         break;
 
     case kPlayerShip_compassMode:
-        return OOJSValueFromCompassMode(context, [player compassMode]);
+        return OOJSValueFromCompassMode(context, OOJSPlayerShipPlayerCompassMode(player));
 
     case kPlayerShip_hud:
-        result = StringOrNull([[player hud] cxx_hudName]);
+        result = StringOrNull(AskHud(player, &cxx::HeadUpDisplay::getHudName));
         break;
 
     case kPlayerShip_crosshairs:
-        result = StringOrNull([[player hud] cxx_crosshairDefinition]);
+        result = StringOrNull(AskHud(player, &cxx::HeadUpDisplay::getCrosshairDefinition));
         break;
 
     case kPlayerShip_hudAllowsBigGui:
-        return OOJSValueFromBOOL([[player hud] allowBigGui]);
+        return OOJSValueFromBOOL(AskHud(player, &cxx::HeadUpDisplay::getAllowBigGui));
 
     case kPlayerShip_hudHidden:
-        return OOJSValueFromBOOL([[player hud] isHidden]);
+        return OOJSValueFromBOOL(AskHud(player, &cxx::HeadUpDisplay::isHidden));
 
     case kPlayerShip_weaponsOnline:
-        return OOJSValueFromBOOL([player weaponsOnline]);
+        return OOJSValueFromBOOL(OOJSPlayerShipPlayerWeaponsOnline(player));
 
     case kPlayerShip_viewDirection:
-        return OOJSValueFromViewID(context, [UNIVERSE viewDirection]);
+        return OOJSValueFromViewID(context, OOJSPlayerShipUniverseViewDirection());
 
     case kPlayerShip_viewPositionAft:
-        OOJS_RETURN_VECTOR([player viewpointOffsetAft]);
+        OOJS_RETURN_VECTOR(OOJSPlayerShipPlayerViewpointOffsetAft(player));
 
     case kPlayerShip_viewPositionForward:
-        OOJS_RETURN_VECTOR([player viewpointOffsetForward]);
+        OOJS_RETURN_VECTOR(OOJSPlayerShipPlayerViewpointOffsetForward(player));
 
     case kPlayerShip_viewPositionPort:
-        OOJS_RETURN_VECTOR([player viewpointOffsetPort]);
+        OOJS_RETURN_VECTOR(OOJSPlayerShipPlayerViewpointOffsetPort(player));
 
     case kPlayerShip_viewPositionStarboard:
-        OOJS_RETURN_VECTOR([player viewpointOffsetStarboard]);
+        OOJS_RETURN_VECTOR(OOJSPlayerShipPlayerViewpointOffsetStarboard(player));
 
     case kPlayerShip_currentWeapon:
-        result = oo::PListObject([player weaponTypeForFacing:[player currentWeaponFacing] strict:NO]);
+        result = oo::PListObject(OOJSPlayerShipPlayerWeaponTypeForFacing(player, OOJSPlayerShipPlayerCurrentWeaponFacing(player), false));
         break;
 
     case kPlayerShip_price:
-        return JS_NewNumber(context, [UNIVERSE cxx_tradeInValueForCommanderDictionary:[player cxx_commanderDataDictionary]]);
+        return JS_NewNumber(context, OOJSPlayerShipUniverseTradeInValueForCommanderDictionary(OOJSPlayerShipPlayerCommanderDataDictionary(player)));
 
     case kPlayerShip_serviceLevel:
-        return JS_NewNumber(context, [player tradeInFactor]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerTradeInFactor(player));
 
     case kPlayerShip_renovationCost:
-        return JS_NewNumber(context, [player renovationCosts]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerRenovationCosts(player));
 
     case kPlayerShip_renovationMultiplier:
-        return JS_NewNumber(context, [player renovationFactor]);
+        return JS_NewNumber(context, OOJSPlayerShipPlayerRenovationFactor(player));
 
         // make roll, pitch, yaw reported to JS use same +/- convention as
         // for NPC ships
     case kPlayerShip_pitch:
-        return JS_NewNumber(context, -[player flightPitch]);
+        return JS_NewNumber(context, -OOJSPlayerShipPlayerFlightPitch(player));
 
     case kPlayerShip_roll:
-        return JS_NewNumber(context, -[player flightRoll]);
+        return JS_NewNumber(context, -OOJSPlayerShipPlayerFlightRoll(player));
 
     case kPlayerShip_yaw:
-        return JS_NewNumber(context, -[player flightYaw]);
+        return JS_NewNumber(context, -OOJSPlayerShipPlayerFlightYaw(player));
 
     case kPlayerShip_messageGuiTextColor:
-        result = NormalizedColorComponents([[UNIVERSE messageGUI] textColor]);
+        result = NormalizedColorComponents(oo::ToCxx(OOJSPlayerShipUniverseMessageGUITextColor()));
         break;
 
     case kPlayerShip_messageGuiTextCommsColor:
-        result = NormalizedColorComponents([[UNIVERSE messageGUI] textCommsColor]);
+        result = NormalizedColorComponents(oo::ToCxx(OOJSPlayerShipUniverseMessageGUITextCommsColor()));
         break;
 
     default:
@@ -621,27 +639,28 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     std::optional<std::string> sValue;
     OOGalacticHyperspaceBehaviour ghBehaviour;
     Vector vValue;
-    OOColor* colorForScript = nil;
+    oo::Ref<cxx::OOColor> colorForScript; // the colours are converted (cxx::OOColor)
     Entity* eValue = nil;
 
     switch (magic) {
     case kPlayerShip_fuelLeakRate:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setFuelLeakRate:fValue];
+            OOJSPlayerShipPlayerSetFuelLeakRate(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_massLockable:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [player setMassLockable:bValue];
+            OOJSPlayerShipPlayerSetMassLockable(player, bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_reticleTargetSensitive:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [[player hud] setReticleTargetSensitive:bValue];
+            if (cxx::HeadUpDisplay* hud = HudOf(player))
+                hud->setReticleTargetSensitive(bValue);
             return JS_UNDEFINED;
         }
         break;
@@ -651,8 +670,8 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         if (sValue.has_value()) {
             OOLongRangeChartMode chartMode = cxx_OOLongRangeChartModeFromString(sValue.value_or(""));
             if (chartMode > OOLRC_MODE_UNKNOWN) {
-                [player setLongRangeChartMode:chartMode];
-                [player cxx_doScriptEvent:OOJSID("chartHighlightModeChanged") withPListArguments: { oo::PList(cxx_OOStringFromLongRangeChartMode([player longRangeChartMode])) }];
+                OOJSPlayerShipPlayerSetLongRangeChartMode(player, chartMode);
+                OOJSPlayerShipPlayerDoScriptEvent(player, OOJSID("chartHighlightModeChanged"), { oo::PList(cxx_OOStringFromLongRangeChartMode(OOJSPlayerShipPlayerLongRangeChartMode(player))) });
                 return JS_UNDEFINED;
             } else {
                 cxx_OOJSReportError(context, "Unknown chart hightlight mode specified - must be either OOLRC_MODE_SUNCOLOR, OOLRC_MODE_ECONOMY, OOLRC_MODE_GOVERNMENT or OOLRC_MODE_TECHLEVEL.");
@@ -665,8 +684,8 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
             OOCompassMode mode = OOCompassModeFromJSValue(context, value);
-            [player setCompassMode:mode];
-            [player validateCompassTarget];
+            OOJSPlayerShipPlayerSetCompassMode(player, mode);
+            OOJSPlayerShipPlayerValidateCompassTarget(player);
             return JS_UNDEFINED;
         }
         break;
@@ -675,12 +694,12 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
             if (*sValue == "OO_COMPASSTYPE_BASIC") {
-                [player setCompassMode:COMPASS_MODE_BASIC];
+                OOJSPlayerShipPlayerSetCompassMode(player, COMPASS_MODE_BASIC);
             } else if (*sValue == "OO_COMPASSTYPE_ADVANCED") {
-                if (![player cxx_hasEquipmentItemProviding:"EQ_ADVANCED_COMPASS"]) {
+                if (!OOJSPlayerShipPlayerHasEquipmentItemProviding(player, "EQ_ADVANCED_COMPASS")) {
                     cxx_OOJSReportWarning(context, "Advanced Compass type requested and set but player ship does not carry the EQ_ADVANCED_COMPASS equipment or has it damaged.");
                 }
-                [player setCompassMode:COMPASS_MODE_PLANET];
+                OOJSPlayerShipPlayerSetCompassMode(player, COMPASS_MODE_PLANET);
             } else {
                 cxx_OOJSReportError(context, "Unknown compass type specified - must be either OO_COMPASSTYPE_BASIC or OO_COMPASSTYPE_ADVANCED.");
                 return OOJSNativeFailure(context);
@@ -691,22 +710,22 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
 
     case kPlayerShip_compassTarget:
         // can't change compass target in basic mode
-        if (![player cxx_hasEquipmentItemProviding:"EQ_ADVANCED_COMPASS"]) {
+        if (!OOJSPlayerShipPlayerHasEquipmentItemProviding(player, "EQ_ADVANCED_COMPASS")) {
             cxx_OOJSReportError(context, "Compass target cannot be set with a basic compass.");
             return OOJSNativeFailure(context);
         }
         // make sure we have a valid entity
         if (!JS_IsNull(value) && JSValueToEntity(context, value, &eValue)) {
-            Entity* current = [player compassTarget];
-            [player setNextCompassMode];
-            [player validateCompassTarget];
+            Entity* current = OOJSPlayerShipPlayerCompassTarget(player);
+            OOJSPlayerShipPlayerSetNextCompassMode(player);
+            OOJSPlayerShipPlayerValidateCompassTarget(player);
             // cycle the targets until we either get back to the start (entity not found) or we find the one we're looking for
-            while ([player compassTarget] != current && [player compassTarget] != eValue) {
-                [player setNextCompassMode];
-                [player validateCompassTarget];
+            while (OOJSPlayerShipPlayerCompassTarget(player) != current && OOJSPlayerShipPlayerCompassTarget(player) != eValue) {
+                OOJSPlayerShipPlayerSetNextCompassMode(player);
+                OOJSPlayerShipPlayerValidateCompassTarget(player);
             }
             // SpiderMonkey returned NO (stopping the script without an error) if the target wasn't found.
-            if ([player compassTarget] == current)
+            if (OOJSPlayerShipPlayerCompassTarget(player) == current)
                 return OOJSNativeFailure(context);
             return JS_UNDEFINED;
         } else {
@@ -718,7 +737,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_galacticHyperspaceBehaviour:
         ghBehaviour = OOGalacticHyperspaceBehaviourFromJSValue(context, value);
         if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN) {
-            [player setGalacticHyperspaceBehaviour:ghBehaviour];
+            OOJSPlayerShipPlayerSetGalacticHyperspaceBehaviour(player, ghBehaviour);
             return JS_UNDEFINED;
         }
         break;
@@ -726,7 +745,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_galacticHyperspaceFixedCoords:
         if (JSValueToVector(context, value, &vValue)) {
             NSPoint coords = { vValue.x, vValue.y };
-            [player setGalacticHyperspaceFixedCoords:coords];
+            OOJSPlayerShipPlayerSetGalacticHyperspaceFixedCoords(player, coords);
             return JS_UNDEFINED;
         }
         break;
@@ -734,7 +753,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
         if (JSValueToVector(context, value, &vValue)) {
             NSPoint coords = OOInternalCoordinatesFromGalactic(vValue);
-            [player setGalacticHyperspaceFixedCoords:coords];
+            OOJSPlayerShipPlayerSetGalacticHyperspaceFixedCoords(player, coords);
             return JS_UNDEFINED;
         }
         break;
@@ -742,7 +761,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_fastEquipmentA:
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [player cxx_setFastEquipmentA:sValue];
+            OOJSPlayerShipPlayerSetFastEquipmentA(player, sValue);
             return JS_UNDEFINED;
         }
         break;
@@ -750,7 +769,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_fastEquipmentB:
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [player cxx_setFastEquipmentB:sValue];
+            OOJSPlayerShipPlayerSetFastEquipmentB(player, sValue);
             return JS_UNDEFINED;
         }
         break;
@@ -759,7 +778,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
             // As before, failure stops the script without an error.
-            if (![player cxx_setPrimedEquipment:*sValue showMessage:NO])
+            if (!OOJSPlayerShipPlayerSetPrimedEquipment(player, *sValue, false))
                 return OOJSNativeFailure(context);
             return JS_UNDEFINED;
         }
@@ -769,7 +788,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (!isnan(fValue)) // guard against undefined
             {
-                [player decrease_flight_pitch:[player flightPitch] + fValue];
+                OOJSPlayerShipPlayerDecreaseFlightPitch(player, OOJSPlayerShipPlayerFlightPitch(player) + fValue);
             }
             return JS_UNDEFINED;
         }
@@ -779,7 +798,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (!isnan(fValue)) // guard against undefined
             {
-                [player decrease_flight_roll:[player flightRoll] + fValue];
+                OOJSPlayerShipPlayerDecreaseFlightRoll(player, OOJSPlayerShipPlayerFlightRoll(player) + fValue);
             }
             return JS_UNDEFINED;
         }
@@ -789,7 +808,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (!isnan(fValue)) // guard against undefined
             {
-                [player decrease_flight_yaw:[player flightYaw] + fValue];
+                OOJSPlayerShipPlayerDecreaseFlightYaw(player, OOJSPlayerShipPlayerFlightYaw(player) + fValue);
             }
             return JS_UNDEFINED;
         }
@@ -797,70 +816,73 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
 
     case kPlayerShip_forwardShield:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setForwardShieldLevel:fValue];
+            OOJSPlayerShipPlayerSetForwardShieldLevel(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_aftShield:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setAftShieldLevel:fValue];
+            OOJSPlayerShipPlayerSetAftShieldLevel(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_maxForwardShield:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setMaxForwardShieldLevel:fValue];
+            OOJSPlayerShipPlayerSetMaxForwardShieldLevel(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_maxAftShield:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setMaxAftShieldLevel:fValue];
+            OOJSPlayerShipPlayerSetMaxAftShieldLevel(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_forwardShieldRechargeRate:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setForwardShieldRechargeRate:fValue];
+            OOJSPlayerShipPlayerSetForwardShieldRechargeRate(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_aftShieldRechargeRate:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
-            [player setAftShieldRechargeRate:fValue];
+            OOJSPlayerShipPlayerSetAftShieldRechargeRate(player, fValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_scannerMinimalistic:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [[player hud] setMinimalisticScanner:bValue];
+            if (cxx::HeadUpDisplay* hud = HudOf(player))
+                hud->setMinimalisticScanner(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_scannerNonLinear:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [[player hud] setNonlinearScanner:bValue];
+            if (cxx::HeadUpDisplay* hud = HudOf(player))
+                hud->setNonlinearScanner(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_scannerUltraZoom:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [[player hud] setScannerUltraZoom:bValue];
+            if (cxx::HeadUpDisplay* hud = HudOf(player))
+                hud->setScannerUltraZoom(bValue);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_scoopOverride:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [player setScoopOverride:bValue];
+            OOJSPlayerShipPlayerSetScoopOverride(player, bValue);
             return JS_UNDEFINED;
         }
         break;
@@ -869,10 +891,10 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
             if (sValue.has_value())
-                [player cxx_switchHudTo:*sValue]; // EMMSTRAN: logged error should be a JS warning.
+                OOJSPlayerShipPlayerSwitchHudTo(player, *sValue); // EMMSTRAN: logged error should be a JS warning.
             return JS_UNDEFINED;
         } else {
-            [player resetHud];
+            OOJSPlayerShipPlayerResetHud(player);
             return JS_UNDEFINED;
         }
         break;
@@ -881,12 +903,12 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         sValue = cxx_OOStringFromJSValue(context, value);
         if (!sValue.has_value()) {
             // reset HUD back to its plist settings
-            std::optional<std::string> hud = [[player hud] cxx_hudName]; // a copy, as the retain kept it
+            std::optional<std::string> hud = AskHud(player, &cxx::HeadUpDisplay::getHudName); // a copy, as the retain kept it
             if (hud.has_value())
-                [player cxx_switchHudTo:*hud];
+                OOJSPlayerShipPlayerSwitchHudTo(player, *hud);
             return JS_UNDEFINED;
         } else {
-            if (![[player hud] cxx_setCrosshairDefinition:sValue.value_or("")]) {
+            if (!(HudOf(player) != nullptr && HudOf(player)->setCrosshairDefinition(sValue.value_or("")))) {
                 cxx_OOJSReportWarning(context, "Crosshair definition file %s not found or invalid", (sValue ? sValue->c_str() : "(null)"));
             }
             return JS_UNDEFINED;
@@ -895,7 +917,8 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
 
     case kPlayerShip_hudHidden:
         if ((bValue = JS_ToBool(context, value)) >= 0) {
-            [[player hud] setHidden:bValue];
+            if (cxx::HeadUpDisplay* hud = HudOf(player))
+                hud->setHidden(bValue);
             return JS_UNDEFINED;
         }
         break;
@@ -903,7 +926,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_serviceLevel:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             int newLevel = (int)fValue;
-            [player adjustTradeInFactorBy:(newLevel - [player tradeInFactor])];
+            OOJSPlayerShipPlayerAdjustTradeInFactorBy(player, (newLevel - OOJSPlayerShipPlayerTradeInFactor(player)));
             return JS_UNDEFINED;
         }
         /*	The SpiderMonkey version fell through to currentWeapon here (which
@@ -913,26 +936,26 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlayerShip_currentWeapon: {
-        BOOL exists = NO;
+        BOOL exists = NO; // JSValueToEquipmentKeyRelaxed() takes a BOOL * (amendment oo-nge8 item 1)
         sValue = JSValueToEquipmentKeyRelaxed(context, value, &exists);
         if (!exists || !sValue.has_value()) {
             sValue = "EQ_WEAPON_NONE";
         }
-        [player cxx_setWeaponMount:[player currentWeaponFacing] toWeapon:sValue.value_or("") inContext:"scripted"];
+        OOJSPlayerShipPlayerSetWeaponMount(player, OOJSPlayerShipPlayerCurrentWeaponFacing(player), sValue.value_or(""), "scripted");
         return JS_UNDEFINED;
     }
 
     case kPlayerShip_targetSystem:
         /* This first check is essential: if removed, it would be
          * possible to make jumps of arbitrary length - CIM */
-        if ([player status] != STATUS_ENTERING_WITCHSPACE) {
+        if (OOJSPlayerShipPlayerStatus(player) != STATUS_ENTERING_WITCHSPACE) {
             /* These checks though similar are less important. The
              * consequences of allowing jump destination to be set in
              * flight are not as severe and do not allow the 7LY limit to
              * be broken. Nevertheless, it is not allowed. - CIM */
             // (except when compiled in debugging mode)
 #ifndef OO_DUMP_PLANETINFO
-            if (EXPECT_NOT([player status] != STATUS_DOCKED && [player status] != STATUS_LAUNCHING)) {
+            if (EXPECT_NOT(OOJSPlayerShipPlayerStatus(player) != STATUS_DOCKED && OOJSPlayerShipPlayerStatus(player) != STATUS_LAUNCHING)) {
                 cxx_OOJSReportError(context, "player.ship.targetSystem is read-only unless called when docked.");
                 return OOJSNativeFailure(context);
             }
@@ -940,7 +963,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
 
             if (OOJSValueToInt32(context, value, &iValue)) {
                 if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY) {
-                    [player setTargetSystemID:iValue];
+                    OOJSPlayerShipPlayerSetTargetSystemID(player, iValue);
                     return JS_UNDEFINED;
                 } else {
                     return OOJSNativeFailure(context);
@@ -959,7 +982,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
     case kPlayerShip_infoSystem:
         if (OOJSValueToInt32(context, value, &iValue)) {
             if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY) {
-                [player setInfoSystemID:iValue moveChart:YES];
+                OOJSPlayerShipPlayerSetInfoSystemID(player, iValue, true);
                 return JS_UNDEFINED;
             } else {
                 return OOJSNativeFailure(context);
@@ -968,43 +991,43 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlayerShip_messageGuiTextColor:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            [[UNIVERSE messageGUI] setTextColor:colorForScript];
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            OOJSPlayerShipUniverseMessageGUISetTextColor(oo::ToObjC(colorForScript));
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_messageGuiTextCommsColor:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            [[UNIVERSE messageGUI] setTextCommsColor:colorForScript];
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            OOJSPlayerShipUniverseMessageGUISetTextCommsColor(oo::ToObjC(colorForScript));
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_reticleColorTarget:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            if (![[player hud] setReticleColorForIndex:OO_RETICLE_COLOR_TARGET toColor:colorForScript])
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            if (!(HudOf(player) != nullptr && HudOf(player)->setReticleColorForIndex(OO_RETICLE_COLOR_TARGET, colorForScript.get())))
                 return OOJSNativeFailure(context);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_reticleColorTargetSensitive:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            if (![[player hud] setReticleColorForIndex:OO_RETICLE_COLOR_TARGET_SENSITIVE toColor:colorForScript])
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            if (!(HudOf(player) != nullptr && HudOf(player)->setReticleColorForIndex(OO_RETICLE_COLOR_TARGET_SENSITIVE, colorForScript.get())))
                 return OOJSNativeFailure(context);
             return JS_UNDEFINED;
         }
         break;
 
     case kPlayerShip_reticleColorWormhole:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            if (![[player hud] setReticleColorForIndex:OO_RETICLE_COLOR_WORMHOLE toColor:colorForScript])
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            if (!(HudOf(player) != nullptr && HudOf(player)->setReticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE, colorForScript.get())))
                 return OOJSNativeFailure(context);
             return JS_UNDEFINED;
         }
@@ -1031,7 +1054,7 @@ static JSValue PlayerShipLaunch(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(OOIsPlayerStale()))
         OOJS_RETURN_VOID;
 
-    [OOPlayerForScripting() launchFromStation];
+    OOJSPlayerShipPlayerLaunchFromStation(OOPlayerForScripting());
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -1047,8 +1070,8 @@ static JSValue PlayerShipRemoveAllCargo(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
 
-    if ([player isDocked]) {
-        [player removeAllCargo];
+    if (OOJSPlayerShipPlayerIsDocked(player)) {
+        OOJSPlayerShipPlayerRemoveAllCargo(player);
         OOJS_RETURN_VOID;
     } else {
         cxx_OOJSReportError(context, "PlayerShip.removeAllCargo only works when docked.");
@@ -1076,7 +1099,7 @@ static JSValue PlayerShipUseSpecialCargo(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    [player useSpecialCargo:cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or(std::string())]; // (nil was "")
+    OOJSPlayerShipPlayerUseSpecialCargo(player, cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or(std::string())); // (nil was "")
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -1094,13 +1117,13 @@ static JSValue PlayerShipEngageAutopilotToStation(OOJS_NATIVE_ARGS)
     StationEntity* stationForDocking = nil;
 
     if (argc > 0)
-        stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+        stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], OOJSPlayerShipStationEntityClass());
     if (stationForDocking == nil) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", "engageAutopilot", MIN(argc, 1), OOJS_ARGV, std::nullopt, "station");
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_BOOL([player engageAutopilotToStation:stationForDocking]);
+    OOJS_RETURN_BOOL(OOJSPlayerShipPlayerEngageAutopilotToStation(player, stationForDocking));
 
     OOJS_NATIVE_EXIT
 }
@@ -1113,7 +1136,7 @@ static JSValue PlayerShipDisengageAutopilot(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(OOIsPlayerStale()))
         OOJS_RETURN_VOID;
 
-    [OOPlayerForScripting() disengageAutopilot];
+    OOJSPlayerShipPlayerDisengageAutopilot(OOPlayerForScripting());
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -1130,13 +1153,13 @@ static JSValue PlayerShipRequestDockingClearance(OOJS_NATIVE_ARGS)
     StationEntity* stationForDocking = nil;
 
     if (argc > 0)
-        stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+        stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], OOJSPlayerShipStationEntityClass());
     if (stationForDocking == nil) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", "requestDockingClearance", MIN(argc, 1), OOJS_ARGV, std::nullopt, "station");
         return OOJSNativeFailure(context);
     }
 
-    [player requestDockingClearance:stationForDocking];
+    OOJSPlayerShipPlayerRequestDockingClearance(player, stationForDocking);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -1153,13 +1176,13 @@ static JSValue PlayerShipCancelDockingRequest(OOJS_NATIVE_ARGS)
     StationEntity* stationForDocking = nil;
 
     if (argc > 0)
-        stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+        stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], OOJSPlayerShipStationEntityClass());
     if (stationForDocking == nil) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", "cancelDockingRequest", MIN(argc, 1), OOJS_ARGV, std::nullopt, "station");
         return OOJSNativeFailure(context);
     }
 
-    [player cancelDockingRequest:stationForDocking];
+    OOJSPlayerShipPlayerCancelDockingRequest(player, stationForDocking);
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
@@ -1175,18 +1198,18 @@ static JSValue PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
     std::optional<std::string> key;
-    OOEquipmentType* eqType = nil;
+    oo::Ref<cxx::OOEquipmentType> eqType; // the equipment types are converted (cxx::OOEquipmentType)
 
     if (argc > 0)
         key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
     if (key.has_value())
-        eqType = [OOEquipmentType cxx_equipmentTypeWithIdentifier:*key];
-    if (EXPECT_NOT(![eqType isMissileOrMine])) {
+        eqType = cxx::OOEquipmentType::equipmentTypeWithIdentifier(*key);
+    if (EXPECT_NOT(!(eqType != nullptr && eqType->isMissileOrMine()))) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", "awardEquipmentToCurrentPylon", MIN(argc, 1), OOJS_ARGV, std::nullopt, "equipment type (external store)");
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_BOOL([player cxx_assignToActivePylon:key.value_or("")]);
+    OOJS_RETURN_BOOL(OOJSPlayerShipPlayerAssignToActivePylon(player, key.value_or("")));
 
     OOJS_NATIVE_EXIT
 }
@@ -1213,14 +1236,14 @@ static JSValue PlayerShipAddPassenger(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    if (!ValidateContracts(context, argc, OOJS_ARGV, NO, &start, &destination, &eta, &fee, &advance, "addPassenger", &risk))
+    if (!ValidateContracts(context, argc, OOJS_ARGV, false, &start, &destination, &eta, &fee, &advance, "addPassenger", &risk))
         return OOJSNativeFailure(context); // always go through validate contracts (passenger)
 
     // Ensure there's space.
-    if ([player passengerCount] >= [player passengerCapacity])
-        OOJS_RETURN_BOOL(NO);
+    if (OOJSPlayerShipPlayerPassengerCount(player) >= OOJSPlayerShipPlayerPassengerCapacity(player))
+        OOJS_RETURN_BOOL(false);
 
-    BOOL OK = [player cxx_addPassenger:name.value_or("") start:start destination:destination eta:eta fee:fee advance:advance risk:risk];
+    bool OK = OOJSPlayerShipPlayerAddPassenger(player, name.value_or(""), start, destination, eta, fee, advance, risk);
     OOJS_RETURN_BOOL(OK);
 
     OOJS_NATIVE_EXIT
@@ -1233,7 +1256,7 @@ static JSValue PlayerShipRemovePassenger(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
     std::optional<std::string> name;
-    BOOL OK = YES;
+    bool OK = true;
 
     if (argc > 0)
         name = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -1242,9 +1265,9 @@ static JSValue PlayerShipRemovePassenger(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OK = [player passengerCount] > 0 && !name->empty();
+    OK = OOJSPlayerShipPlayerPassengerCount(player) > 0 && !name->empty();
     if (OK)
-        OK = [player cxx_removePassenger:name.value_or("")];
+        OK = OOJSPlayerShipPlayerRemovePassenger(player, name.value_or(""));
 
     OOJS_RETURN_BOOL(OK);
 
@@ -1273,12 +1296,12 @@ static JSValue PlayerShipAddParcel(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    if (!ValidateContracts(context, argc, OOJS_ARGV, NO, &start, &destination, &eta, &fee, &premium, "addParcel", &risk))
+    if (!ValidateContracts(context, argc, OOJS_ARGV, false, &start, &destination, &eta, &fee, &premium, "addParcel", &risk))
         return OOJSNativeFailure(context); // always go through validate contracts (passenger/parcel mode)
 
     // Ensure there's space.
 
-    BOOL OK = [player cxx_addParcel:name.value_or("") start:start destination:destination eta:eta fee:fee premium:premium risk:risk];
+    bool OK = OOJSPlayerShipPlayerAddParcel(player, name.value_or(""), start, destination, eta, fee, premium, risk);
     OOJS_RETURN_BOOL(OK);
 
     OOJS_NATIVE_EXIT
@@ -1291,7 +1314,7 @@ static JSValue PlayerShipRemoveParcel(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
     std::optional<std::string> name;
-    BOOL OK = YES;
+    bool OK = true;
 
     if (argc > 0)
         name = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -1300,9 +1323,9 @@ static JSValue PlayerShipRemoveParcel(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OK = [player parcelCount] > 0 && !name->empty();
+    OK = OOJSPlayerShipPlayerParcelCount(player) > 0 && !name->empty();
     if (OK)
-        OK = [player cxx_removeParcel:name.value_or("")];
+        OK = OOJSPlayerShipPlayerRemoveParcel(player, name.value_or(""));
 
     OOJS_RETURN_BOOL(OK);
 
@@ -1336,10 +1359,10 @@ static JSValue PlayerShipAwardContract(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    if (!ValidateContracts(context, argc, OOJS_ARGV, YES, &start, &destination, &eta, &fee, &premium, "awardContract", NULL))
+    if (!ValidateContracts(context, argc, OOJS_ARGV, true, &start, &destination, &eta, &fee, &premium, "awardContract", NULL))
         return OOJSNativeFailure(context); // always go through validate contracts (cargo)
 
-    BOOL OK = [player cxx_awardContract:qty commodity:key.value_or("") start:start destination:destination eta:eta fee:fee premium:premium];
+    bool OK = OOJSPlayerShipPlayerAwardContract(player, qty, key.value_or(""), start, destination, eta, fee, premium);
     OOJS_RETURN_BOOL(OK);
 
     OOJS_NATIVE_EXIT
@@ -1371,7 +1394,7 @@ static JSValue PlayerShipRemoveContract(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    BOOL OK = [player cxx_removeContract:key.value_or("") destination:(unsigned)dest];
+    bool OK = OOJSPlayerShipPlayerRemoveContract(player, key.value_or(""), (unsigned)dest);
     OOJS_RETURN_BOOL(OK);
 
     OOJS_NATIVE_EXIT
@@ -1390,7 +1413,7 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS)
     }
 
     // must be in custom view
-    if ([UNIVERSE viewDirection] != VIEW_CUSTOM) {
+    if (OOJSPlayerShipUniverseViewDirection() != VIEW_CUSTOM) {
         cxx_OOJSReportError(context, "PlayerShip.setCustomView only works when custom view is active.");
         return OOJSNativeFailure(context);
     }
@@ -1398,7 +1421,7 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS)
     oo::PList::Dict viewData;
 
     Vector position = kZeroVector;
-    BOOL gotpos = JSValueToVector(context, OOJS_ARGV[0], &position);
+    bool gotpos = JSValueToVector(context, OOJS_ARGV[0], &position);
     if (!gotpos) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", "setCustomView", argc, OOJS_ARGV, std::nullopt, "position, orientiation, [weapon]");
         return OOJSNativeFailure(context);
@@ -1406,7 +1429,7 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS)
     std::string positionstr = oo::str::format("%f %f %f", position.x, position.y, position.z);
 
     Quaternion orientation = kIdentityQuaternion;
-    BOOL gotquat = JSValueToQuaternion(context, OOJS_ARGV[1], &orientation);
+    bool gotquat = JSValueToQuaternion(context, OOJS_ARGV[1], &orientation);
     if (!gotquat) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", "setCustomView", argc, OOJS_ARGV, std::nullopt, "position, orientiation, [weapon]");
         return OOJSNativeFailure(context);
@@ -1420,14 +1443,14 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS)
         std::optional<std::string> facing = cxx_OOStringFromJSValue(context, OOJS_ARGV[2]);
         // -setObject:forKey: raised on a nil facing (GNUstep 1.31.1's text).
         if (!facing.has_value())
-            [OOException raise:OOInvalidArgumentException format:"Tried to add nil value for key '%s' to dictionary", "weapon_facing"];
+            OORaiseException(OOInvalidArgumentException, "Tried to add nil value for key '%s' to dictionary", "weapon_facing");
         viewData["weapon_facing"] = *facing;
     }
 
-    [player cxx_setCustomViewDataFromDictionary:oo::PList(std::move(viewData)) withScaling:NO];
-    [player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
+    OOJSPlayerShipPlayerSetCustomViewDataFromDictionary(player, oo::PList(std::move(viewData)), false);
+    OOJSPlayerShipPlayerNoteSwitchToView(player, VIEW_CUSTOM, VIEW_CUSTOM);
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
     OOJS_NATIVE_EXIT
 }
 
@@ -1439,15 +1462,15 @@ static JSValue PlayerShipResetCustomView(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
 
     // must be in custom view
-    if ([UNIVERSE viewDirection] != VIEW_CUSTOM) {
+    if (OOJSPlayerShipUniverseViewDirection() != VIEW_CUSTOM) {
         cxx_OOJSReportError(context, "PlayerShip.setCustomView only works when custom view is active.");
         return OOJSNativeFailure(context);
     }
 
-    [player resetCustomView];
-    [player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
+    OOJSPlayerShipPlayerResetCustomView(player);
+    OOJSPlayerShipPlayerNoteSwitchToView(player, VIEW_CUSTOM, VIEW_CUSTOM);
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
     OOJS_NATIVE_EXIT
 }
 
@@ -1458,7 +1481,7 @@ static JSValue PlayerShipResetScannerZoom(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
 
-    [player resetScannerZoom];
+    OOJSPlayerShipPlayerResetScannerZoom(player);
 
     OOJS_RETURN_VOID;
     OOJS_NATIVE_EXIT
@@ -1471,7 +1494,7 @@ static JSValue PlayerShipTakeInternalDamage(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
 
-    BOOL took = [player takeInternalDamage];
+    bool took = OOJSPlayerShipPlayerTakeInternalDamage(player);
 
     OOJS_RETURN_BOOL(took);
     OOJS_NATIVE_EXIT
@@ -1485,7 +1508,7 @@ static JSValue PlayerShipBeginHyperspaceCountdown(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
     int32_t spin_time;
     int32_t witchspaceSpinUpTime = 0;
-    BOOL begun = NO;
+    bool begun = false;
     if (argc < 1) {
         witchspaceSpinUpTime = 0;
 #ifdef OO_DUMP_PLANETINFO
@@ -1503,9 +1526,9 @@ static JSValue PlayerShipBeginHyperspaceCountdown(OOJS_NATIVE_ARGS)
             witchspaceSpinUpTime = spin_time;
         }
     }
-    if ([player hasHyperspaceMotor] && [player status] == STATUS_IN_FLIGHT && [player witchJumpChecklist:false]) {
-        [player beginWitchspaceCountdown:witchspaceSpinUpTime];
-        begun = YES;
+    if (OOJSPlayerShipPlayerHasHyperspaceMotor(player) && OOJSPlayerShipPlayerStatus(player) == STATUS_IN_FLIGHT && OOJSPlayerShipPlayerWitchJumpChecklist(player, false)) {
+        OOJSPlayerShipPlayerBeginWitchspaceCountdown(player, witchspaceSpinUpTime);
+        begun = true;
     }
     OOJS_RETURN_BOOL(begun);
     OOJS_NATIVE_EXIT
@@ -1518,11 +1541,11 @@ static JSValue PlayerShipCancelHyperspaceCountdown(OOJS_NATIVE_ARGS)
 
     PlayerEntity* player = OOPlayerForScripting();
 
-    BOOL cancelled = NO;
-    if ([player hasHyperspaceMotor] && [player status] == STATUS_WITCHSPACE_COUNTDOWN) {
-        [player cancelWitchspaceCountdown];
-        [player setJumpType:false];
-        cancelled = YES;
+    bool cancelled = false;
+    if (OOJSPlayerShipPlayerHasHyperspaceMotor(player) && OOJSPlayerShipPlayerStatus(player) == STATUS_WITCHSPACE_COUNTDOWN) {
+        OOJSPlayerShipPlayerCancelWitchspaceCountdown(player);
+        OOJSPlayerShipPlayerSetJumpType(player, false);
+        cancelled = true;
     }
 
     OOJS_RETURN_BOOL(cancelled);
@@ -1536,7 +1559,7 @@ static JSValue PlayerShipBeginGalacticHyperspaceCountdown(OOJS_NATIVE_ARGS)
     PlayerEntity* player = OOPlayerForScripting();
     int32_t spin_time;
     int32_t witchspaceSpinUpTime = 5;
-    BOOL begun = NO;
+    bool begun = false;
     if (argc == 1) {
 
         if (!OOJSValueToInt32(context, OOJS_ARGV[0], &spin_time) || spin_time < 5 || spin_time > 60) {
@@ -1549,14 +1572,14 @@ static JSValue PlayerShipBeginGalacticHyperspaceCountdown(OOJS_NATIVE_ARGS)
             witchspaceSpinUpTime = spin_time;
         }
     }
-    if ([player cxx_hasEquipmentItemProviding:"EQ_GAL_DRIVE"] && [player status] == STATUS_IN_FLIGHT && [player witchJumpChecklist:true]) {
-        [player setJumpType:YES];
-        [player setWitchspaceCountdown:witchspaceSpinUpTime];
-        [player setStatus:STATUS_WITCHSPACE_COUNTDOWN];
-        [player playGalacticHyperspace];
+    if (OOJSPlayerShipPlayerHasEquipmentItemProviding(player, "EQ_GAL_DRIVE") && OOJSPlayerShipPlayerStatus(player) == STATUS_IN_FLIGHT && OOJSPlayerShipPlayerWitchJumpChecklist(player, true)) {
+        OOJSPlayerShipPlayerSetJumpType(player, true);
+        OOJSPlayerShipPlayerSetWitchspaceCountdown(player, witchspaceSpinUpTime);
+        OOJSPlayerShipPlayerSetStatus(player, STATUS_WITCHSPACE_COUNTDOWN);
+        OOJSPlayerShipPlayerPlayGalacticHyperspace(player);
         // say it!
-        [UNIVERSE cxx_addMessage:oo::str::format(OO_DESC("witch-galactic-in-f-seconds").c_str(), witchspaceSpinUpTime) forCount:1.0];
-        begun = YES;
+        OOJSPlayerShipUniverseAddMessage(oo::str::format(OO_DESC("witch-galactic-in-f-seconds").c_str(), witchspaceSpinUpTime), 1.0);
+        begun = true;
     }
     OOJS_RETURN_BOOL(begun);
     OOJS_NATIVE_EXIT
@@ -1570,7 +1593,7 @@ static JSValue PlayerShipSetMultiFunctionDisplay(OOJS_NATIVE_ARGS)
     std::optional<std::string> key;
     uint32_t index = 0;
     PlayerEntity* player = OOPlayerForScripting();
-    BOOL OK = YES;
+    bool OK = true;
 
     if (argc > 0) {
         if (JS_ToUint32(context, &index, OOJS_ARGV[0]) != 0) {
@@ -1583,7 +1606,7 @@ static JSValue PlayerShipSetMultiFunctionDisplay(OOJS_NATIVE_ARGS)
         key = cxx_OOStringFromJSValue(context, OOJS_ARGV[1]);
     }
 
-    OK = [player cxx_setMultiFunctionDisplay:index toKey:key];
+    OK = OOJSPlayerShipPlayerSetMultiFunctionDisplay(player, index, key);
 
     OOJS_RETURN_BOOL(OK);
 
@@ -1598,7 +1621,7 @@ static JSValue PlayerShipSetMultiFunctionText(OOJS_NATIVE_ARGS)
     std::optional<std::string> key;
     std::optional<std::string> value;
     PlayerEntity* player = OOPlayerForScripting();
-    int reflow = NO;
+    int reflow = false;
 
     if (argc > 0) {
         key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -1616,10 +1639,10 @@ static JSValue PlayerShipSetMultiFunctionText(OOJS_NATIVE_ARGS)
     }
 
     if (!reflow) {
-        [player cxx_setMultiFunctionText:value forKey:key];
+        OOJSPlayerShipPlayerSetMultiFunctionText(player, value, key);
     } else {
-        GuiDisplayGen* gui = [UNIVERSE gui];
-        [player cxx_setMultiFunctionText:[gui cxx_reflowTextForMFD:value] forKey:key];
+        GuiDisplayGen* gui = OOJSPlayerShipUniverseGui();
+        OOJSPlayerShipPlayerSetMultiFunctionText(player, OOJSPlayerShipGuiReflowTextForMFD(gui, value), key);
     }
 
     OOJS_RETURN_VOID;
@@ -1634,7 +1657,7 @@ static JSValue PlayerShipSetPrimedEquipment(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> key;
     PlayerEntity* player = OOPlayerForScripting();
-    int showMsg = YES;
+    int showMsg = true;
 
     if (argc > 0) {
         key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -1648,7 +1671,7 @@ static JSValue PlayerShipSetPrimedEquipment(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_BOOL(key.has_value() ? [player cxx_setPrimedEquipment:*key showMessage:showMsg] : NO);
+    OOJS_RETURN_BOOL(key.has_value() ? OOJSPlayerShipPlayerSetPrimedEquipment(player, *key, showMsg) : false);
 
     OOJS_NATIVE_EXIT
 }
@@ -1675,7 +1698,7 @@ static JSValue PlayerShipSetCustomHUDDial(OOJS_NATIVE_ARGS)
         value = oo::PList(std::string());
     }
 
-    [player cxx_setDialCustom:value forKey:key.value_or("")];
+    OOJSPlayerShipPlayerSetDialCustom(player, value, key.value_or(""));
 
     OOJS_RETURN_VOID;
 
@@ -1696,7 +1719,8 @@ static JSValue PlayerShipHideHUDSelector(OOJS_NATIVE_ARGS)
         cxx_OOJSReportBadArguments(context, "PlayerShip", "hideHUDSelector", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string (selector)");
         return OOJSNativeFailure(context);
     }
-    [[player hud] cxx_setHiddenSelector:key.value_or("") hidden:YES];
+    if (cxx::HeadUpDisplay* hud = HudOf(player))
+        hud->setHiddenSelector(key.value_or(""), true);
 
     OOJS_RETURN_VOID;
 
@@ -1717,14 +1741,15 @@ static JSValue PlayerShipShowHUDSelector(OOJS_NATIVE_ARGS)
         cxx_OOJSReportBadArguments(context, "PlayerShip", "hideHUDSelector", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string (selector)");
         return OOJSNativeFailure(context);
     }
-    [[player hud] cxx_setHiddenSelector:key.value_or("") hidden:NO];
+    if (cxx::HeadUpDisplay* hud = HudOf(player))
+        hud->setHiddenSelector(key.value_or(""), false);
 
     OOJS_RETURN_VOID;
 
     OOJS_NATIVE_EXIT
 }
 
-static BOOL ValidateContracts(JSContext* context, int argc, JSValueConst* argv, BOOL isCargo, OOSystemID* start, OOSystemID* destination, double* eta, double* fee, double* premium, const std::string& functionName, unsigned* risk)
+static bool ValidateContracts(JSContext* context, int argc, JSValueConst* argv, bool isCargo, OOSystemID* start, OOSystemID* destination, double* eta, double* fee, double* premium, const std::string& functionName, unsigned* risk)
 {
     OOJS_PROFILE_ENTER
 
@@ -1737,25 +1762,25 @@ static BOOL ValidateContracts(JSContext* context, int argc, JSValueConst* argv, 
 
     if (!OOJSValueToInt32(context, argv[offset + 0], &iValue) || iValue < 0 || iValue > kOOMaximumSystemID) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", functionName, 1, &argv[offset + 0], std::nullopt, "system ID");
-        return NO;
+        return false;
     }
     *start = iValue;
 
     if (!OOJSValueToInt32(context, argv[offset + 1], &iValue) || iValue < 0 || iValue > kOOMaximumSystemID) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", functionName, 1, &argv[offset + 1], std::nullopt, "system ID");
-        return NO;
+        return false;
     }
     *destination = iValue;
 
-    if (JS_ToFloat64(context, &fValue, argv[offset + 2]) != 0 || !isfinite(fValue) || fValue <= [PLAYER clockTime]) {
+    if (JS_ToFloat64(context, &fValue, argv[offset + 2]) != 0 || !isfinite(fValue) || fValue <= OOJSPlayerShipPlayerClockTime(PLAYER)) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", functionName, 1, &argv[offset + 2], std::nullopt, "number (future time)");
-        return NO;
+        return false;
     }
     *eta = fValue;
 
     if (JS_ToFloat64(context, &fValue, argv[offset + 3]) != 0 || !isfinite(fValue) || fValue < 0.0) {
         cxx_OOJSReportBadArguments(context, "PlayerShip", functionName, 1, &argv[offset + 3], std::nullopt, "number (credits quantity)");
-        return NO;
+        return false;
     }
     *fee = fValue;
 
@@ -1776,7 +1801,7 @@ static BOOL ValidateContracts(JSContext* context, int argc, JSValueConst* argv, 
         }
     }
 
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }

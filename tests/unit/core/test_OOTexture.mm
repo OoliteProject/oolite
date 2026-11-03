@@ -324,7 +324,7 @@ OO_TEST(texturesFromGenerators)
 
 		TestGenerator *generator = MakeGenerator(std::string("test:gen"), YES);
 		OOTexture *first = [OOTexture textureWithGenerator:generator];
-		OO_CHECK([first isKindOfClass:[OOConcreteTexture class]] && generator->_enqueues == 1);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(first)) != nullptr) && generator->_enqueues == 1);
 		OO_CHECK([first cxx_cacheKey] == std::optional<std::string>("test:gen"));
 		OO_CHECK([OOTexture cxx_existingTextureForKey:std::string("test:gen")] == first);
 
@@ -355,7 +355,7 @@ OO_TEST(nullTexture)
 	@autoreleasepool
 	{
 		OOTexture *none = [OOTexture nullTexture];
-		OO_CHECK([none isKindOfClass:[OONullTexture class]] && none == [OOTexture nullTexture]);
+		OO_CHECK(dynamic_cast<OONullTexture *>(oo::ToCxx(none)) != nullptr && none == [OOTexture nullTexture]);	// was -isKindOfClass: of the facade bead oo-9ht.100 deleted
 		OO_CHECK(SameSize([none dimensions], 0, 0) && ![none isMipMapped]);
 #ifndef NDEBUG
 		OO_CHECK([none cxx_name] == std::optional<std::string>("<null texture>"));
@@ -425,10 +425,10 @@ OO_TEST(cxxApi)
 		// The factories answer the Objective-C texture, retained.
 		OO_CHECK(!cxx::OOTexture::textureWithName(std::nullopt, std::string("Textures")));
 		const oo::ObjCRef<OOTexture *> none = cxx::OOTexture::nullTexture();
-		OO_CHECK([none.get() isKindOfClass:[OONullTexture class]] && none.get() == [OOTexture nullTexture]);
+		OO_CHECK(dynamic_cast<OONullTexture *>(oo::ToCxx(none.get())) != nullptr && none.get() == [OOTexture nullTexture]);
 		TestGenerator *generator = MakeGenerator(std::string("test:cxxgen"), YES);
 		const oo::ObjCRef<OOTexture *> generated = cxx::OOTexture::textureWithGenerator(generator);
-		OO_CHECK([generated.get() isKindOfClass:[OOConcreteTexture class]]);
+		OO_CHECK((dynamic_cast<OOConcreteTexture *>(oo::ToCxx(generated.get())) != nullptr));
 		OO_CHECK(cxx::OOTexture::existingTextureForKey(std::string("test:cxxgen")) == oo::ToCxx(generated.get()));
 		OO_CHECK(cxx::OOTexture::textureWithGenerator(generator, false) == generated && generator->_enqueues == 1);
 		OO_CHECK(!cxx::OOTexture::textureWithConfiguration(oo::PList(3.0)));

@@ -162,7 +162,7 @@ int main(int argc, const char* argv[])
 
         // As the game does at startup; an unseeded RANROT returns 0 forever.
         ranrot_srand(static_cast<uint32_t>(time(NULL)));
-        OOJavaScriptEngine* engine = [OOJavaScriptEngine sharedEngine];
+        cxx::OOJavaScriptEngine* engine = cxx::OOJavaScriptEngine::sharedEngine();
 
         // Each group gets its own pool so all scripts are released before shutdown.
         @autoreleasepool {
@@ -174,7 +174,7 @@ int main(int argc, const char* argv[])
             RunPrimitivePropertyTests(testDir);
         }
 
-        NSUInteger leaked = [engine shutDown];
+        NSUInteger leaked = engine->shutDown();
         Check(leaked == 0, oo::str::format("runtime destroyed with no leaked objects (%lu alive)", static_cast<unsigned long>(leaked)));
 
         fprintf(stdout, "\n%u checks, %u failures\n", sChecks, sFailures);

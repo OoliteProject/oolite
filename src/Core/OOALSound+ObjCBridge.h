@@ -24,9 +24,11 @@ an OOALStreamedSound, which cxx::OOSound::initWithContentsOfFile makes); a subcl
 it (OOMusic) still does. A converted caller that keeps a sound while any subclass is Objective-C
 holds oo::ObjCRef<OOSound *>: an Objective-C sound's C++ part does not retain it.
 
-A converted subclass that its callers make by alloc/init (OOALBufferedSound, OOALStreamedSound)
-has a facade of its own, a subclass of this one with no ivars (amendment oo-up4b item 3):
-oo::ToObjC picks the Objective-C class named as the C++ class is, else OOSound.
+A converted subclass that its callers make by alloc/init (OOMusic) has a facade of its own, a
+subclass of this one with no ivars (amendment oo-up4b item 3): oo::ToObjC picks the Objective-C
+class named as the C++ class is, else OOSound. The OOALBufferedSound and OOALStreamedSound facades
+were deleted by beads oo-9ht.83 and oo-9ht.84: their sounds cross as OOSound, which the class
+cluster makes with -initWithNewCxxSound:.
 
 oo::ToObjC(oo::ToCxx(s)) == s for both kinds. Never add to this file; converted code does not
 message the facade. Deleted by its deletion bead once every caller and every sound is C++.
@@ -80,8 +82,8 @@ SOFTWARE.
 
 @interface OOSound (OOObjCBridge)
 
-/*	For the facades of converted subclasses (OOALBufferedSound+ObjCBridge.h): the facade made by
-        alloc and an initialiser of the subclass adopts its new C++ sound and is that sound's peer (the
+/*	For the facades of converted subclasses (OOALMusic+ObjCBridge.h) and the class cluster: the
+        facade made by alloc and an initialiser adopts its new C++ sound and is that sound's peer (the
         one oo::ToObjC answers), as amendment oo-vl43 item 2's -initWithNewCxxMaterial: is.
 */
 - (id)initWithNewCxxSound:(const oo::Ref<cxx::OOSound>&)sound;

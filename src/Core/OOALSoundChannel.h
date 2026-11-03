@@ -7,10 +7,9 @@ A channel for audio playback.
 This class is an implementation detail. Do not use it directly; use an
 OOSoundSource to play an OOSound.
 
-C++20 since bead oo-5vp8 (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
-cxx::OOSoundChannel while OOALSoundChannel+ObjCBridge.h, imported at the end of this header, keeps
-the Objective-C OOSoundChannel that the mixer makes and the sound sources message, and the delegate
-category; the bridge's deletion bead moves it out of namespace cxx.
+C++20 since bead oo-5vp8 (proposed ADR-0056, the Audio module: amendment oo-2en). Its Objective-C
+facade was deleted by bead oo-9ht.86: the mixer makes and keeps the channels (oo::Ref), the sound
+sources hold one borrowed, and the delegate is the C++ interface OOSoundChannelDelegate below.
 
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2006-2013 Jens Ayton
@@ -48,15 +47,27 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOSound, OOSoundChannel;
+@class OOSound;
 struct OOSoundChannelTestAccess;
+class OOSoundChannel;
 
-namespace cxx {
+/*	The channel's delegate: was the informal OOObject (OOSoundChannelDelegate) category, any object
+        answering -channel:didFinishPlayingSound: (bead oo-9ht.86). The channel holds it unretained, as
+        before; a playing sound source and the stopped-source handler implement it.
+*/
+class OOSoundChannelDelegate {
+public:
+    virtual void channel(OOSoundChannel* channel, ::OOSound* sound) = 0;
+
+protected:
+    ~OOSoundChannelDelegate() = default;
+};
 
 class OOSoundChannel : public oo::RefCounted {
 public:
     /*	Was -init, which answered nil when OpenAL would not make a source: false then (amendment
-            oo-r7m0 item 2). The facade's -init runs it right after making the channel.
+            oo-r7m0 item 2). Its maker runs it right after making the channel and drops a channel for
+            which it fails.
     */
     bool init();
 
@@ -64,7 +75,7 @@ public:
 
     void update();
 
-    void setDelegate(id delegate);
+    void setDelegate(OOSoundChannelDelegate* delegate);
 
     // Unretained pointer used to maintain simple stack
     OOSoundChannel* next();
@@ -78,18 +89,16 @@ public:
 
     ::OOSound* sound();
 
-    /*	Was the private -hasStopped, which told the delegate that self had finished. The channel it
-            tells of is the Objective-C one, given here: oo::ToObjC(this), or, from the facade's -dealloc
-            (where -dealloc sent it), the facade itself, which no peer lookup answers any more.
-    */
-    void hasStopped(::OOSoundChannel* channel);
-
 private:
+    // Was the private -hasStopped, which told the delegate that self had finished; -dealloc sent it
+    // too, so the destructor does.
+    void hasStopped();
+
     bool enqueueBuffer(::OOSound* sound);
     void getNextSoundBuffer();
 
     OOSoundChannel* _next = { };
-    id _delegate = { };
+    OOSoundChannelDelegate* _delegate = { };
     oo::ObjCRef<::OOSound*> _sound; // the Objective-C sound, retained as before (amendment oo-smy item 4)
     ALuint _buffer = { };
     ALuint _lastBuffer = { };
@@ -100,11 +109,5 @@ private:
 
     friend struct ::OOSoundChannelTestAccess; // tests only (amendment oo-862e item 2)
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOSoundChannel and its delegate category, for the mixer and the
-// sound sources. Deleted, with namespace cxx above, by the bridge's deletion bead.
-#import "OOALSoundChannel+ObjCBridge.h"
 
 #endif // OOALSOUNDCHANNEL_H

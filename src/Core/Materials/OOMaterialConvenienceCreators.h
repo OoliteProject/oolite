@@ -4,9 +4,8 @@ OOMaterialConvenienceCreators.h
 
 Methods for easy creation of materials.
 
-C++20 since bead oo-9fwb (proposed ADR-0056): the category's class methods are static members of
-cxx::OOMaterial; OOMaterialConvenienceCreators+ObjCBridge.h keeps the category for its Objective-C
-caller.
+C++20 since bead oo-9fwb (proposed ADR-0056): the creators are static members of
+cxx::OOMaterial.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -42,5 +41,4 @@ SOFTWARE.
 
 // The creators are static members of cxx::OOMaterial (materialWithName(), in OOMaterial.h), defined
 // in OOMaterialConvenienceCreators.mm since bead oo-9fwb (proposed ADR-0056 amendment oo-o89 item
-// 4). Transitional: the Objective-C category, for OOMesh; deleted with its bridge.
-#import "OOMaterialConvenienceCreators+ObjCBridge.h"
+// 4). The Objective-C category was deleted by bead oo-9ht.59.

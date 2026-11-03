@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOJSWormhole.h"
 #import "WormholeEntity.h"
 
 @implementation WormholeEntity
@@ -158,6 +159,23 @@ MA 02110-1301, USA.
 - (oo::PList)getDict
 {
     return oo::ToCxx(self)->getDict();
+}
+
+// The JS side, which the engine asks for by selector (Entity (OOJavaScriptExtensions)): the
+// binding's category, moved here from the binding's bridge file, which it deletes (bead oo-9ht.43;
+// ADR-0056 amendment oo-6ia4 item 3). Each forwards to the OOJSWormhole.mm function that holds its
+// old body; they become members of the C++ class with this facade's deletion (oo-9ht.112).
+- (JSClassID)oo_jsClassID
+{
+    return ::JSWormholeClassID();
+}
+- (std::optional<std::string>)cxx_oo_jsClassName
+{
+    return ::OOJSWormholeJSClassName();
+}
+- (BOOL)isVisibleToScripts
+{
+    return ::OOJSWormholeIsVisibleToScripts();
 }
 
 @end

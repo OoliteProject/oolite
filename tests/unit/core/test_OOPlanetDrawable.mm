@@ -104,7 +104,7 @@ float Level(float lod)
 
 OOMaterial *NamedMaterial(const char *name)
 {
-	return [[[OOBasicMaterial alloc] initWithName:std::string(name) configuration:oo::PList()] autorelease];
+	return oo::ToObjC(static_cast<cxx::OOMaterial *>(OOBasicMaterial::materialWithName(std::string(name), oo::PList()).get()));
 }
 
 

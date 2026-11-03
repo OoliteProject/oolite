@@ -1,10 +1,11 @@
 /*	test_OOJSWormhole.mm
 	Unit tests for the Wormhole JS binding (src/Core/Scripting/OOJSWormhole.h/.mm) and its
-	WormholeEntity category (OOJSWormhole+ObjCBridge.mm): bead oo-ykoy, converted the way bead
+	WormholeEntity category (whose forwarders are on the WormholeEntity facade since bead oo-9ht.43;
+	this test's stand-in WormholeEntity forwards the same way): bead oo-ykoy, converted the way bead
 	oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
 
 	It runs the JS class in a real QuickJS-ng context and links the game's own objects for the
-	binding, its bridge, the engine's class registry (OOJSClasses.mm) and its exception translator
+	binding, the engine's class registry (OOJSClasses.mm) and its exception translator
 	(OOJSEngineNativeWrappers.mm). The entity classes it reads are stand-ins of the same names
 	(amendment oo-z1s4, item 4), so the test imports neither their headers nor
 	OOJavaScriptEngine.h (which imports them): Entity and WormholeEntity answer only the selectors
@@ -92,6 +93,13 @@
 - (double) expiryTime  { return _expiryTime; }
 - (OOSystemID) origin  { return _origin; }
 - (OOSystemID) destination  { return _destination; }
+
+
+// The binding's category, as the WormholeEntity facade forwards it (WormholeEntity+ObjCBridge.mm,
+// bead oo-9ht.43): the engine sends these selectors to the wrapped object.
+- (JSClassID) oo_jsClassID  { return ::JSWormholeClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSWormholeJSClassName(); }
+- (BOOL) isVisibleToScripts  { return ::OOJSWormholeIsVisibleToScripts(); }
 
 @end
 

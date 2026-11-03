@@ -38,19 +38,19 @@ std::optional<std::string> OOCheckDemoShipsPListVerifierStage::name()
 
 bool OOCheckDemoShipsPListVerifierStage::shouldRun()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     return fileScanner != nullptr && fileScanner->fileExists("demoships.plist", "Config", std::nullopt, false);
 }
 
 void OOCheckDemoShipsPListVerifierStage::run()
 {
-    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
+    OOFileScannerVerifierStage* fileScanner = nullptr;
     oo::PList demoshipsPList;
     oo::PList shipdataPList;
 
-    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    fileScanner = static_cast<OOFileScannerVerifierStage*>([verifier() cxx_stageWithName:OOFileScannerVerifierStage::kName]);
     if (fileScanner == nullptr)
         return; // a nil scanner found no plist
 

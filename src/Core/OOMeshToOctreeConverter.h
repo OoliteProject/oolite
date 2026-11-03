@@ -51,8 +51,6 @@ struct OOMeshToOctreeConverterInternalData {
     Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
 };
 
-namespace cxx {
-
 class OOMeshToOctreeConverter : public oo::RefCounted {
 public:
     explicit OOMeshToOctreeConverter(NSUInteger capacity); // -initWithCapacity:
@@ -61,7 +59,7 @@ public:
 
     void addTriangle(Triangle tri);
 
-    oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
+    oo::Ref<cxx::Octree> findOctreeToDepth(NSUInteger depth);
 
     // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
@@ -69,11 +67,5 @@ public:
 private:
     struct OOMeshToOctreeConverterInternalData _data = { };
 };
-
-} // namespace cxx
-
-// Transitional: the Objective-C OOMeshToOctreeConverter, for callers not yet converted. Deleted,
-// with namespace cxx above, by the bridge's deletion bead.
-#import "OOMeshToOctreeConverter+ObjCBridge.h"
 
 #endif // OOMESHTOOCTREECONVERTER_H

@@ -533,7 +533,7 @@ id Entity::owner()
     return ownerRef != nil ? oo::ToCxx(ownerRef)->weakRefUnderlyingObject() : nil;
 }
 
-ShipEntity* Entity::parentEntity()
+::ShipEntity* Entity::parentEntity()
 {
     id owner = this->owner();
     if ([owner isShipWithSubEntityShip:oo::ToObjC(this)])
@@ -546,13 +546,13 @@ id<OOWeakReferenceSupport> Entity::superShaderBindingTarget()
     return parentEntity();
 }
 
-ShipEntity* Entity::rootShipEntity()
+::ShipEntity* Entity::rootShipEntity()
 {
-    ShipEntity* parent = parentEntity();
+    ::ShipEntity* parent = parentEntity();
     if (parent != nil)
         return oo::ToCxx(parent)->rootShipEntity();
     if (getIsShip())
-        return (ShipEntity*)oo::ToObjC(this);
+        return (::ShipEntity*)oo::ToObjC(this);
     return nil;
 }
 
@@ -949,7 +949,7 @@ void Entity::dumpSelfState()
     OO_LOG("dumpState.entity", "Collision Test Filter: {}", static_cast<unsigned>(collisionTestFilter));
 }
 
-void Entity::subEntityReallyDied(ShipEntity* sub)
+void Entity::subEntityReallyDied(::ShipEntity* sub)
 {
     OO_LOG("entity.bug", "{} called for non-ship entity {} by {}", __PRETTY_FUNCTION__, oo::str::pointerDescription(oo::ToObjC(this)), oo::str::pointerDescription(sub));
 }

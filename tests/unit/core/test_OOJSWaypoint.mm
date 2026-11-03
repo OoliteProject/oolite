@@ -1,10 +1,11 @@
 /*	test_OOJSWaypoint.mm
 	Unit tests for the Waypoint JS binding (src/Core/Scripting/OOJSWaypoint.h/.mm) and its
-	OOWaypointEntity category (OOJSWaypoint+ObjCBridge.mm): bead oo-mae5, converted the way bead
-	oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	OOWaypointEntity category (whose forwarders are on the OOWaypointEntity facade since bead
+	oo-9ht.50; this test's stand-in OOWaypointEntity forwards the same way): bead oo-mae5, converted
+	the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
 
 	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
+	QuickJS-ng context, links the game's own objects for the binding, the engine's
 	class registration (OOJSClasses.mm) and the engine's exception translator
 	(OOJSEngineNativeWrappers.mm), and stands in for the classes the binding messages (Entity and
 	OOWaypointEntity, and the universe's beacon list and the player's compass, answer only the
@@ -123,6 +124,14 @@
 	if (_size == 98)  throw std::runtime_error("cxx boom");
 	return _size;
 }
+
+
+// The binding's category, as the OOWaypointEntity facade forwards it
+// (OOWaypointEntity+ObjCBridge.mm, bead oo-9ht.50): the engine sends these selectors to the wrapped
+// object.
+- (JSClassID) oo_jsClassID  { return ::JSWaypointClassID(); }
+- (std::optional<std::string>) cxx_oo_jsClassName  { return ::OOJSWaypointJSClassName(); }
+- (BOOL) isVisibleToScripts  { return ::OOJSWaypointIsVisibleToScripts(); }
 
 @end
 

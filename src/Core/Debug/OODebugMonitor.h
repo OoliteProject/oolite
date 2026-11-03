@@ -118,7 +118,7 @@ public:
 
     // The JavaScript engine's monitor (OOJavaScriptEngineMonitor): errors and warnings, and log
     // messages (messageClass nullopt if Log() is used rather than LogWithClass()).
-    void jsEngine(OOJavaScriptEngine* engine,
+    void jsEngine(::OOJavaScriptEngine* engine,
         JSContext* context,
         const std::string& severity,
         const std::optional<std::string>& file,
@@ -126,7 +126,7 @@ public:
         unsigned stackSkip,
         bool showLocation,
         const std::string& message);
-    void jsEngine(OOJavaScriptEngine* engine,
+    void jsEngine(::OOJavaScriptEngine* engine,
         JSContext* context,
         const std::string& message,
         const std::optional<std::string>& messageClass);

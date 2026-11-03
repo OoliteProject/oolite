@@ -33,7 +33,9 @@ MA 02110-1301, USA.
 #import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
+#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOObjCRef.h"
 
 #if !OOJS_POC_HARNESS
 #import "PlayerEntity.h"
@@ -51,132 +53,107 @@ MA 02110-1301, USA.
 @class Entity;
 @protocol OOJavaScriptEngineMonitor;
 
-@interface OOJavaScriptEngine : OOObject {
-@private
-    JSRuntime* _runtime;
-    JSContext* _context;
-    JSValue _globalObject;
-    BOOL _showErrorLocations;
+namespace cxx {
+
+/*	The engine (proposed ADR-0056; docs/phases/3-slices/OOJavaScriptEngine.md): the singleton
+        that owns the JS runtime and the main thread context. The Objective-C OOJavaScriptEngine
+        (OOJavaScriptEngine+ObjCBridge.h) is its facade while anything messages it.
+*/
+class OOJavaScriptEngine : public oo::RefCounted {
+public:
+    // The shared engine, made on first use; borrowed, never released (proposed ADR-0056
+    // amendment oo-r7m0).
+    static OOJavaScriptEngine* sharedEngine();
+
+    ~OOJavaScriptEngine();
+
+    JSContext* context();
+    // The global object, borrowed; invalidated by reset().
+    JSValueConst globalObject();
+
+    void runMissionCallback();
+
+    /*	Tear down context and global object and rebuild them from scratch. This
+            invalidates globalObject() and all prototypes.
+    */
+    bool reset();
+
+    // Call a JS function. *outResult (may be NULL) is owned by the caller. Exceptions are reported and cleared.
+    bool callJSFunction(JSValueConst function, JSValueConst jsThis, int argc, JSValueConst* argv, JSValue* outResult);
+
+    void garbageCollectionOpportunity(bool force);
+
+    bool showErrorLocations();
+    void setShowErrorLocations(bool value);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    BOOL _dumpStackForErrors;
-    BOOL _dumpStackForWarnings;
+    bool dumpStackForErrors();
+    void setDumpStackForErrors(bool value);
+
+    bool dumpStackForWarnings();
+    void setDumpStackForWarnings(bool value);
+
+    // Install handler for JS "debugger" statment. (Not supported by QuickJS; does nothing.)
+    void enableDebuggerStatement();
+#endif
+
+    /*	Destroy the context and runtime. All native objects holding JSValues must
+            have released them first. Returns the number of JS objects still alive
+            after a final garbage collection; if it is non-zero, they are logged
+            and the runtime is abandoned rather than freed.
+    */
+    NSUInteger shutDown();
+
+#if OOJSENGINE_MONITOR_SUPPORT
+    // (OOMonitorSupport)
+    void setMonitor(id<OOJavaScriptEngineMonitor> monitor);
+
+    // (OOMonitorSupportInternal)
+    // file is nullopt when the stack gives no location (a nil file before).
+    void sendMonitorProblem(const std::string& severity, const std::optional<std::string>& file, unsigned line, const std::string& message, JSContext* context);
+    // nullopt is meaningful to the monitor (Log() with a null message; no class for Log()).
+    void sendMonitorLogMessage(const std::optional<std::string>& message, const std::optional<std::string>& messageClass, JSContext* context);
+#endif
+
+private:
+    void init(); // -init's body after [super init]: run by sharedEngine() on the new object
+
+    void createMainThreadContext();
+    void destroyMainThreadContext();
+
+    JSRuntime* _runtime = nullptr;
+    JSContext* _context = nullptr;
+    JSValue _globalObject = JS_UNDEFINED; // owned
+    bool _showErrorLocations = { };
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    bool _dumpStackForErrors = { };
+    bool _dumpStackForWarnings = { };
 #endif
 #if OOJSENGINE_MONITOR_SUPPORT
-    id<OOJavaScriptEngineMonitor> _monitor;
+    oo::ObjCRef<id<OOJavaScriptEngineMonitor>> _monitor;
 #endif
+};
+
+} // namespace cxx
+
+/*	The root-class JS glue for classes rooted on OOObject: the category OOObject (OOJavaScript)
+        (OOJavaScriptEngine+ObjCBridge.h) and the bodies of its default methods, which the category
+        forwards to (amendment oo-ppc item 3). OOObjectJSValueInContext() returns an owned value.
+*/
+JSValue OOObjectJSValueInContext(JSContext* context);
+std::optional<std::string> OOObjectJSClassName();
+std::optional<std::string> OOObjectJSDescription(id object);
+std::optional<std::string> OOObjectJSDescriptionWithClassName(id object, const std::optional<std::string>& className);
+void OOObjectClearJSSelf(JSValueConst selfVal);
+
+// OONativeVector (OOJavaScriptConversion)'s -oo_jsValueInContext:, owned by the caller.
+namespace cxx {
+class OONativeVector;
 }
+JSValue OONativeVectorJSValueInContext(cxx::OONativeVector* vector, JSContext* context);
 
-+ (OOJavaScriptEngine*)sharedEngine;
-
-- (JSContext*)context;
-- (JSValueConst)globalObject;
-
-- (void)runMissionCallback;
-
-/*	Tear down context and global object and rebuild them from scratch. This
-        invalidates -globalObject and all prototypes.
-*/
-- (BOOL)reset;
-
-// Call a JS function. *outResult is owned by the caller. Exceptions are reported and cleared.
-- (BOOL)callJSFunction:(JSValueConst)function
-             forObject:(JSValueConst)jsThis
-                  argc:(int)argc
-                  argv:(JSValueConst*)argv
-                result:(JSValue*)outResult;
-
-- (void)garbageCollectionOpportunity:(BOOL)force;
-
-- (BOOL)showErrorLocations;
-- (void)setShowErrorLocations:(BOOL)value;
-
-#ifdef OO_DEBUG_MONITOR_ENABLED
-- (BOOL)dumpStackForErrors;
-- (void)setDumpStackForErrors:(BOOL)value;
-
-- (BOOL)dumpStackForWarnings;
-- (void)setDumpStackForWarnings:(BOOL)value;
-
-// Install handler for JS "debugger" statment. (Not supported by QuickJS; does nothing.)
-- (void)enableDebuggerStatement;
-#endif
-
-/*	Destroy the context and runtime. All native objects holding JSValues must
-        have released them first. Returns the number of JS objects still alive
-        after a final garbage collection; if it is non-zero, they are logged
-        and the runtime is abandoned rather than freed.
-*/
-- (NSUInteger)shutDown;
-
-@end
-
-#if OOJSENGINE_MONITOR_SUPPORT
-
-/*	Protocol for debugging "monitor" object.
-        The monitor is an object -- in Oolite, or via Distributed Objects -- which
-        is provided with debugging information by the OOJavaScriptEngine.
-
-        QuickJS has no JSErrorReport, so problems are described by severity
-        ("exception" or "warning") and the innermost location on the stack, if
-        any (file is nullopt otherwise).
-*/
-@protocol OOJavaScriptEngineMonitor <OOObject>
-
-// Sent for JS errors or warnings.
-- (void)jsEngine:(OOJavaScriptEngine*)engine
-              context:(JSContext*)context
-    problemOfSeverity:(const std::string&)severity
-               inFile:(const std::optional<std::string>&)file
-                 line:(unsigned)line
-            stackSkip:(unsigned)stackSkip
-      showingLocation:(BOOL)showLocation
-          withMessage:(const std::string&)message;
-
-// Sent for JS log messages. Note: messageClass is nullopt if Log() is used rather than LogWithClass().
-- (void)jsEngine:(OOJavaScriptEngine*)engine
-         context:(JSContext*)context
-      logMessage:(const std::string&)message
-         ofClass:(const std::optional<std::string>&)messageClass;
-
-@end
-
-@interface OOJavaScriptEngine (OOMonitorSupport)
-
-- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)monitor;
-
-@end
-
-#endif
-
-/*	The root-class JS glue for classes rooted on OOObject (ADR-0029). An object on another root
-        has none: OOJSValueFromNativeObject() gives undefined for it (oo-qps.72).
-
-        -oo_jsValueInContext:
-
-        Return the JavaScript value representation of an object, owned by the
-        caller. The default implementation returns JS_UNDEFINED.
-        If the receiver may be nil, use OOJSValueFromNativeObject() instead.
-
-        -cxx_oo_jsDescription
-        -cxx_oo_jsDescriptionWithClassName:
-        -cxx_oo_jsClassName
-
-        They wrap -cxx_descriptionComponents (OODescription.h) as [jsClassName components]. C++ string twins on OOObject.
-
-        oo_clearJSSelf:
-        This is called by OOJSObjectWrapperFinalize() when a JS object wrapper is
-        collected. The default implementation does nothing.
-*/
-@interface OOObject (OOJavaScript)
-
-- (JSValue)oo_jsValueInContext:(JSContext*)context;
-- (std::optional<std::string>)cxx_oo_jsDescription;
-- (std::optional<std::string>)cxx_oo_jsDescriptionWithClassName:(const std::optional<std::string>&)className;
-- (std::optional<std::string>)cxx_oo_jsClassName;
-- (void)oo_clearJSSelf:(JSValueConst)selfVal;
-
-@end
+namespace cxx {
 
 /*	OONull: the placeholder for null inside native collections, which cannot
         hold nil (was Foundation's null singleton, ADR-0029 Decision 5). A JS array
@@ -184,28 +161,21 @@ MA 02110-1301, USA.
         [OONull null] becomes JS null, so JS null round-trips as before. Game code
         uses it where a collection slot is empty (MFD settings, target memory,
         script event arguments). It describes itself as "<null>", as its
-        predecessor did, and -copy returns itself.
+        predecessor did, and -copy returns itself. Its Objective-C facade OONull
+        (OOJavaScriptEngine+ObjCBridge.h) is the object the collections hold.
 */
-@interface OONull : OOObject <OOCopying>
+class OONull : public oo::RefCounted {
+public:
+    // The one null, made on first use; borrowed, never released (amendment oo-r7m0).
+    static OONull* null();
 
-+ (OONull*)null;
+    std::optional<std::string> description(); // "<null>"
+    JSValue jsValueInContext(JSContext* context); // JS null
+};
 
-@end
+} // namespace cxx
 
-/*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
-        This is somewhat useful for putting JavaScript objects in ObjC collections,
-        for instance to pass as properties to script loaders. The value is held
-        (with its own reference) until the OOJSValue is deallocated or the engine
-        is reset.
-*/
-@interface OOJSValue : OOObject {
-    JSValue _val;
-}
-
-+ (id)valueWithJSValue:(JSValueConst)value inContext:(JSContext*)context;
-- (id)initWithJSValue:(JSValueConst)value inContext:(JSContext*)context;
-
-@end
+// cxx::OOJSValue is declared in OOJSEngineCore.h (a plain C++ header, so C++-only bindings can use it).
 
 #if !OOJS_POC_HARNESS
 
@@ -260,3 +230,8 @@ BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter);
 
 // For DEFINE_JS_OBJECT_GETTER()'s use.
 BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char* name, id* outObject);
+
+// Transitional: the Objective-C OOJavaScriptEngine (with its OOJavaScriptEngineMonitor protocol and
+// OOMonitorSupport category), for code not yet converted. Deleted, with namespace cxx above, by
+// the bridge's deletion bead.
+#import "OOJavaScriptEngine+ObjCBridge.h"

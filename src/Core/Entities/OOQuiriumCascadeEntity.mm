@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #define kQuiriumCascadeDuration (20.0) // seconds
 #define kQuiriumCollisionDelay (0.05) // seconds before we start colliding with and damaging things.
 
-bool OOQuiriumCascadeEntity::initQuiriumCascadeFromShip(ShipEntity* ship)
+bool OOQuiriumCascadeEntity::initQuiriumCascadeFromShip(::ShipEntity* ship)
 {
     if (ship == nil) {
         return false; // [self release]; return nil
@@ -56,7 +56,7 @@ bool OOQuiriumCascadeEntity::initQuiriumCascadeFromShip(ShipEntity* ship)
     return true;
 }
 
-oo::Ref<OOQuiriumCascadeEntity> OOQuiriumCascadeEntity::quiriumCascadeFromShip(ShipEntity* ship)
+oo::Ref<OOQuiriumCascadeEntity> OOQuiriumCascadeEntity::quiriumCascadeFromShip(::ShipEntity* ship)
 {
     oo::Ref<OOQuiriumCascadeEntity> cascade = oo::makeRef<OOQuiriumCascadeEntity>();
     if (!cascade->initQuiriumCascadeFromShip(ship))

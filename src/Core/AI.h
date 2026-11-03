@@ -72,8 +72,8 @@ public:
     void setStateMachine(const std::string& smName, NSTimeInterval delay); // -cxx_setStateMachine:afterDelay:
     void setState(const std::string& stateName, NSTimeInterval delay); // -cxx_setState:afterDelay:
 
-    ShipEntity* owner();
-    void setOwner(ShipEntity* ship);
+    ::ShipEntity* owner();
+    void setOwner(::ShipEntity* ship);
 
     void preserveCurrentStateMachine();
 

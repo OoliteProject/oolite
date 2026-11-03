@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "OOSunEntity.h"
 #import "OOWaypointEntity.h"
+#import "ShipEntity.h"
 #import "SkyEntity.h"
 #import "Universe.h"
 #import "WormholeEntity.h"
@@ -109,6 +110,8 @@ oo::ObjCPeers& Peers()
         facadeClass = [::OOFlashEffectEntity class];
     if (dynamic_cast<cxx::OOPlanetEntity*>(entity.get()) != nullptr)
         facadeClass = [::OOPlanetEntity class];
+    if (dynamic_cast<cxx::ShipEntity*>(entity.get()) != nullptr)
+        facadeClass = [::ShipEntity class];
     return [[(::Entity*)[facadeClass alloc] initWithCxxEntity:entity.get()] autorelease];
 }
 

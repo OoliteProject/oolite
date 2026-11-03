@@ -209,13 +209,14 @@ cxx::OOJoystickManager* oo::ToCxx(OOJoystickManager* manager)
     return _cxxJoystickManager->getSensitivity();
 }
 
+// The C++ profile classes since oo-9ht.16 deleted their facades: the profile is borrowed, as the C++ member's.
 - (void)setProfile:(OOJoystickAxisProfile*)profile forAxis:(int)axis
 {
-    _cxxJoystickManager->setProfile(oo::ToCxx(profile), axis);
+    _cxxJoystickManager->setProfile(profile, axis);
 }
 - (OOJoystickAxisProfile*)getProfileForAxis:(int)axis
 {
-    return oo::ToObjC(_cxxJoystickManager->getProfileForAxis(axis));
+    return _cxxJoystickManager->getProfileForAxis(axis);
 }
 - (void)saveProfileForAxis:(int)axis
 {

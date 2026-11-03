@@ -12,13 +12,20 @@
 	-unapplyWithNext: (the units the next material does not use are cleared), the loading question
 	passed to the maps, and the description. The GL context is a hidden window's; the extension
 	manager runs with its collaborators stubbed as in test_OOOpenGLExtensionManager. Those checks
-	ran on the Objective-C class first and now run through the facade. After them: the C++ API
+	ran on the Objective-C class first and then through the facade. After them: the C++ API
 	(apply() is virtual since this bead: the root facade's -apply and C++ callers reach the
 	override), and the facade's class and identity.
+
+	Bead oo-9ht.42 deleted the facade (ADR-0056 amendment "deleting a facade"). The cases that asked
+	through its selectors ask the C++ class with the same expectations (alloc/init is
+	materialWithName(), retain/release a held Ref); the facade's own case (facade) was retired with
+	it (ADR-0049, standing approval oo-9n5p9), and crossesAsTheBasicMaterialFacade pins what
+	Objective-C sees now: the nearest facade, OOBasicMaterial's.
 	Run: bash tools/check-core-tests.sh
 */
 
 #import "OOMultiTextureMaterial.h"
+#import "OORegExpMatcher.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODescription.h"
 
@@ -51,15 +58,10 @@ void OOLogOutdent(void)  {}
 @end
 
 
-@interface OORegExpMatcher: OOObject
-+ (instancetype) regExpMatcher;
-- (BOOL) string:(const std::string &)string matchesExpression:(const std::string &)regExp;
-@end
-
-@implementation OORegExpMatcher
-+ (instancetype) regExpMatcher  { return [[[self alloc] init] autorelease]; }
-- (BOOL) string:(const std::string &)string matchesExpression:(const std::string &)regExp  { return NO; }
-@end
+// OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
+oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
+bool OORegExpMatcher::string(const std::string &, const std::string &)  { return false; }
+OORegExpMatcher::~OORegExpMatcher()  {}
 
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
@@ -206,11 +208,11 @@ bool CombinersSupported()
 }
 
 
-OOMultiTextureMaterial *Make(const char *name, oo::PList::Dict config)
+oo::Ref<OOMultiTextureMaterial> Make(const char *name, oo::PList::Dict config)
 {
 	gTextureConfigurations.clear();
 	gGenerators.clear();
-	return [[[OOMultiTextureMaterial alloc] initWithName:std::string(name) configuration:oo::PList(std::move(config))] autorelease];
+	return OOMultiTextureMaterial::materialWithName(std::string(name), oo::PList(std::move(config)));
 }
 
 
@@ -233,7 +235,7 @@ OO_TEST(combinersRequired)
 	{
 		// On a GL without texture combiners the initialiser answers nil; this context has them.
 		OO_CHECK(CombinersSupported());
-		OO_CHECK(Make("Hull", {}) != nil);
+		OO_CHECK(Make("Hull", {}) != nullptr);
 	}
 }
 
@@ -244,17 +246,17 @@ OO_TEST(mapsFromTheConfiguration)
 	@autoreleasepool
 	{
 		// Only a name: the diffuse map is named after it, and there is no emission map to bake.
-		OOMultiTextureMaterial *m = Make("hull.png", {});
+		oo::Ref<OOMultiTextureMaterial> m = Make("hull.png", {});
 		OO_CHECK(gTextureConfigurations.size() == 1 && gTextureConfigurations[0].first == oo::PList("hull.png") && gTextureConfigurations[0].second == 0);
 		OO_CHECK(gGenerators == std::vector<std::string>{ "emission:- emissionColor:no diffuseMap:yes diffuseColor:no illumination:- illuminationColor:no options:-" });
-		OO_CHECK([m textureUnitCount] == 1 && [m countOfTextureUnitsWithBaseCoordinates] == 1);
+		OO_CHECK(m->textureUnitCount() == 1 && m->countOfTextureUnitsWithBaseCoordinates() == 1);
 
 		// A plain emission map: loaded shrunk, not baked.
 		m = Make("Hull", { { "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } });
 		OO_CHECK(gTextureConfigurations.size() == 2);
 		OO_CHECK(gTextureConfigurations[0].first == oo::PList("d.png") && gTextureConfigurations[0].second == 0);
 		OO_CHECK(gTextureConfigurations[1].first == oo::PList("e.png") && gTextureConfigurations[1].second == kExtraShrink);
-		OO_CHECK(gGenerators.empty() && [m textureUnitCount] == 2);
+		OO_CHECK(gGenerators.empty() && m->textureUnitCount() == 2);
 
 		// An emission map with a modulating colour: baked, and the basic material's emission colour
 		// is dropped from what it is given.
@@ -267,22 +269,22 @@ OO_TEST(mapsFromTheConfiguration)
 		});
 		OO_CHECK(gGenerators == std::vector<std::string>{ "emission:e.png emissionColor:yes diffuseMap:yes diffuseColor:yes illumination:- illuminationColor:no options:e.png" });
 		GLfloat c[4] = {};
-		[m getEmissionComponents:c];
+		m->getEmissionComponents(c);
 		OO_CHECK(c[0] == 0 && c[1] == 0 && c[2] == 0 && c[3] == 1);
-		[m getDiffuseComponents:c];
+		m->getDiffuseComponents(c);
 		OO_CHECK(c[0] == 0 && c[2] == 1);
-		OO_CHECK([m textureUnitCount] == 2);
+		OO_CHECK(m->textureUnitCount() == 2);
 
 		// An illumination map alone: baked, with it as the options specifier; the emission colour stays.
 		m = Make("Hull", { { "illumination_map", oo::PList("i.png") }, { "emission_color", oo::PList("greenColor") } });
 		OO_CHECK(gGenerators == std::vector<std::string>{ "emission:- emissionColor:no diffuseMap:yes diffuseColor:no illumination:i.png illuminationColor:no options:i.png" });
-		[m getEmissionComponents:c];
+		m->getEmissionComponents(c);
 		OO_CHECK(c[1] == 1);
 
 		// The combined map: the other generator.
 		m = Make("Hull", { { "emission_and_illumination_map", oo::PList("ei.png") } });
 		OO_CHECK(gGenerators == std::vector<std::string>{ "emissionAndIllumination:ei.png diffuseMap:yes options:ei.png" });
-		OO_CHECK([m textureUnitCount] == 2);
+		OO_CHECK(m->textureUnitCount() == 2);
 	}
 }
 
@@ -291,37 +293,37 @@ OO_TEST(texturesKeptAndAsked)
 {
 	if (!CombinersSupported())  { OO_CHECK(false); return; }
 	const int deallocated = gTexturesDeallocated;
-	OOMultiTextureMaterial *m = nil;
+	oo::Ref<OOMultiTextureMaterial> m;
 	@autoreleasepool
 	{
-		m = [Make("Hull", { { "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } }) retain];
+		m = Make("Hull", { { "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } });
 	}
 	OO_CHECK(gTexturesDeallocated == deallocated);
 	@autoreleasepool
 	{
-		[m ensureFinishedLoading];
+		m->ensureFinishedLoading();
 #ifndef NDEBUG
-		const std::vector<oo::ObjCRef<OOTexture *>> textures = [m cxx_allTextures];
+		const std::vector<oo::ObjCRef<OOTexture *>> textures = m->allTextures();
 		OO_CHECK(textures.size() == 2 && textures[0].get()->_ensures == 1 && textures[1].get()->_ensures == 1);
 		OO_CHECK(textures[0].get()->_configuration == oo::PList("d.png") && textures[1].get()->_configuration == oo::PList("e.png"));
 #endif
-		const std::string text = oo::DescriptionOf(m);
+		const std::string text = oo::DescriptionOf(oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())));
 		OO_CHECK(text.starts_with("<OOMultiTextureMaterial 0x"));
 		OO_CHECK(text.ends_with(">{\"Hull\" - diffuse map: tex:d.png,emission map: tex:e.png}"));
 	}
-	[m release];
+	m = nullptr;
 	OO_CHECK(gTexturesDeallocated == deallocated + 2);
 
 	@autoreleasepool
 	{
 		// No diffuse map (no name): only the emission map.
 		gTextureConfigurations.clear();
-		OOMultiTextureMaterial *emissive = [[[OOMultiTextureMaterial alloc] initWithName:std::nullopt configuration:oo::PList(oo::PList::Dict{ { "emission_map", oo::PList("e.png") } })] autorelease];
-		OO_CHECK([emissive textureUnitCount] == 1);
+		const oo::Ref<OOMultiTextureMaterial> emissive = OOMultiTextureMaterial::materialWithName(std::nullopt, oo::PList(oo::PList::Dict{ { "emission_map", oo::PList("e.png") } }));
+		OO_CHECK(emissive->textureUnitCount() == 1);
 #ifndef NDEBUG
-		OO_CHECK([emissive cxx_allTextures].size() == 1);
+		OO_CHECK(emissive->allTextures().size() == 1);
 #endif
-		OO_CHECK(oo::DescriptionOf(emissive).ends_with(">{\"(null)\" - emission map: tex:e.png}"));
+		OO_CHECK(oo::DescriptionOf(oo::ToObjC(static_cast<cxx::OOMaterial *>(emissive.get()))).ends_with(">{\"(null)\" - emission map: tex:e.png}"));
 	}
 }
 
@@ -331,14 +333,14 @@ OO_TEST(applyAndUnapply)
 	if (!CombinersSupported())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OOMultiTextureMaterial *two = Make("Two", { { "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } });
-		OOMultiTextureMaterial *one = Make("one.png", {});
+		const oo::Ref<OOMultiTextureMaterial> two = Make("Two", { { "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } });
+		const oo::Ref<OOMultiTextureMaterial> one = Make("one.png", {});
 #ifndef NDEBUG
-		OOTexture *diffuse = [two cxx_allTextures][0].get(), *emission = [two cxx_allTextures][1].get();
+		OOTexture *diffuse = two->allTextures()[0].get(), *emission = two->allTextures()[1].get();
 #endif
 
-		[two apply];
-		OO_CHECK([OOMaterial current] == two);
+		two->apply();
+		OO_CHECK(cxx::OOMaterial::current().get() == two.get());
 #ifndef NDEBUG
 		OO_CHECK(diffuse->_applies == 1 && emission->_applies == 1);
 #endif
@@ -349,18 +351,18 @@ OO_TEST(applyAndUnapply)
 
 		// The next material uses two units: nothing to clear, and it is a basic material.
 		int applyNones = gTextureApplyNones;
-		[two unapplyWithNext:Make("Other", { { "diffuse_map", oo::PList("x.png") }, { "emission_map", oo::PList("y.png") } })];
+		two->unapplyWithNext(Make("Other", { { "diffuse_map", oo::PList("x.png") }, { "emission_map", oo::PList("y.png") } }).get());
 		OO_CHECK(gTextureApplyNones == applyNones);
 
 		// One unit: the second is cleared, back to modulate.
-		[two unapplyWithNext:one];
+		two->unapplyWithNext(one.get());
 		OO_CHECK(gTextureApplyNones == applyNones + 1 && TexEnvMode(GL_TEXTURE1_ARB) == GL_MODULATE);
 
 		// Nothing: the default material (no texture), then both units cleared.
 		applyNones = gTextureApplyNones;
-		[OOMaterial applyNone];
+		cxx::OOMaterial::applyNone();
 		OO_CHECK(gTextureApplyNones == applyNones + 3 && TexEnvMode(GL_TEXTURE0_ARB) == GL_MODULATE);
-		OO_CHECK([OOMaterial current] == nil);
+		OO_CHECK(cxx::OOMaterial::current() == nullptr);
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 	}
 }
@@ -374,7 +376,7 @@ OO_TEST(cxxAPI)
 	@autoreleasepool
 	{
 		gTextureConfigurations.clear();
-		const oo::Ref<cxx::OOMultiTextureMaterial> m = cxx::OOMultiTextureMaterial::materialWithName(std::string("Cxx"), oo::PList(oo::PList::Dict{
+		const oo::Ref<OOMultiTextureMaterial> m = OOMultiTextureMaterial::materialWithName(std::string("Cxx"), oo::PList(oo::PList::Dict{
 			{ "diffuse_map", oo::PList("d.png") }, { "emission_map", oo::PList("e.png") } }));
 		OO_CHECK(m != nullptr && m->textureUnitCount() == 2 && m->countOfTextureUnitsWithBaseCoordinates() == 2);
 		OO_CHECK(m->descriptionComponents() == std::optional<std::string>("\"Cxx\" - diffuse map: tex:d.png,emission map: tex:e.png"));
@@ -389,7 +391,7 @@ OO_TEST(cxxAPI)
 		OO_CHECK(m->allTextures()[0].get()->_applies == 1 && m->allTextures()[1].get()->_applies == 1);
 #endif
 		OO_CHECK(cxx::OOMaterial::current().get() == m.get());
-		[static_cast<OOMaterial *>(oo::ToObjC(m)) apply];
+		[oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())) apply];
 #ifndef NDEBUG
 		OO_CHECK(m->allTextures()[0].get()->_applies == 2);
 #endif
@@ -400,27 +402,17 @@ OO_TEST(cxxAPI)
 }
 
 
-OO_TEST(facade)
+// Objective-C sees a multi-texture material as an OOMaterial (beads oo-9ht.42, oo-9ht.33).
+OO_TEST(crossesAsTheBasicMaterialFacade)
 {
 	if (!CombinersSupported())  { OO_CHECK(false); return; }
 	@autoreleasepool
 	{
-		OOMultiTextureMaterial *made = Make("Made", {});
-		cxx::OOMultiTextureMaterial *part = oo::ToCxx(made);
-		OO_CHECK(part != nullptr && oo::AsObjCMaterial(part) == nullptr && oo::ToObjC(part) == made);
-		OO_CHECK(oo::ToCxx(static_cast<OOBasicMaterial *>(made)) == part);
-
-		const oo::Ref<cxx::OOMultiTextureMaterial> m = cxx::OOMultiTextureMaterial::materialWithName(std::string("Cxx"), oo::PList());
+		const oo::Ref<OOMultiTextureMaterial> m = OOMultiTextureMaterial::materialWithName(std::string("Cxx"), oo::PList());
 		OOMaterial *facade = oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get()));
-		OO_CHECK([facade isMemberOfClass:[OOMultiTextureMaterial class]] && oo::ToObjC(m) == facade);
-		OO_CHECK([oo::ToObjC(m) textureUnitCount] == m->textureUnitCount());
+		OO_CHECK([facade isMemberOfClass:[OOMaterial class]] && oo::ToObjC(static_cast<cxx::OOMaterial *>(m.get())) == facade);
+		OO_CHECK(oo::ToCxx(facade) == m.get() && oo::AsObjCMaterial(m.get()) == nullptr);
 		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOMultiTextureMaterial 0x"));
-
-		OOMultiTextureMaterial *plain = [[[OOMultiTextureMaterial alloc] init] autorelease];
-		OO_CHECK(plain != nil && [plain textureUnitCount] == 0);
-
-		OOMultiTextureMaterial *none = nil;
-		OO_CHECK(oo::ToCxx(none) == nullptr && oo::ToObjC(static_cast<cxx::OOMultiTextureMaterial *>(nullptr)) == nil);
 	}
 }
 

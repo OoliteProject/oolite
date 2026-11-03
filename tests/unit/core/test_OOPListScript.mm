@@ -15,8 +15,15 @@
 	(names in key order, metadata, a missing or ill-typed script array), the file path (no file, a
 	file that is not a dictionary, a dictionary with nothing to sanitize and what it caches), the
 	description and version, the display name, -requiresTickle, and a run with a target that is
-	not a ship (commit 60996db56). They now run through the facade, which is its forwarding test;
-	the facade's contract (the C++ object behind it, ToObjC never making a facade) is checked last.
+	not a ship (commit 60996db56). They then ran through the facade, and the facade's contract was
+	checked last.
+
+	Bead oo-9ht.57 deleted the facade: OOPListScript is a C++ subclass of cxx::OOScript, and the
+	scripts it makes cross as the root's facade, an OOScript, through which the cases above still
+	ask (the OOScript selectors are the root's) with every expectation kept; +scriptsInPListFile:
+	is the C++ member, and -isKindOfClass:[OOPListScript class] a dynamic_cast of the C++ script.
+	The facade's own case (facade) was retired with it (ADR-0049, standing approval oo-9n5p9), and
+	plistScriptCrossesAsTheRootFacade pins the crossing now.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -106,12 +113,12 @@ OO_TEST(cachedScripts)
 				{ "notADict", Str("x") },
 			}) forKey:"cached.plist" inCache:kCacheName];
 
-		const auto scripts = [OOPListScript scriptsInPListFile:"cached.plist"];
+		const auto scripts = OOPListScript::scriptsInPListFile("cached.plist");
 		OO_CHECK(scripts.has_value());
 		if (!scripts.has_value())  return;
 		OO_CHECK_EQ(scripts->size(), 4u);
 		OO_CHECK((Names(*scripts) == std::vector<std::string>{ "alpha", "badScript", "notADict", "zeta" }));	// key order
-		for (const auto &script : *scripts)  OO_CHECK([script.get() isKindOfClass:[OOPListScript class]]);
+		for (const auto &script : *scripts)  OO_CHECK(dynamic_cast<OOPListScript *>(oo::ToCxx(script.get())) != nullptr);
 
 		OOScript *alpha = (*scripts)[0].get();
 		OOScript *zeta = (*scripts)[3].get();
@@ -140,7 +147,7 @@ OO_TEST(metadataTypes)
 		const oo::PList metadata = Dict({ { "description", oo::PList(3) }, { "version", oo::PList(oo::PList::Array{}) } });
 		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "odd", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", metadata } }) } })
 											forKey:"odd.plist" inCache:kCacheName];
-		const auto scripts = [OOPListScript scriptsInPListFile:"odd.plist"];
+		const auto scripts = OOPListScript::scriptsInPListFile("odd.plist");
 		OO_CHECK(scripts.has_value() && scripts->size() == 1);
 		if (!scripts.has_value() || scripts->size() != 1)  return;
 		OOScript *odd = (*scripts)[0].get();
@@ -152,7 +159,7 @@ OO_TEST(metadataTypes)
 		// The metadata's own name does not win over the key.
 		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "key", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "name", Str("other") } }) } }) } })
 											forKey:"named.plist" inCache:kCacheName];
-		const auto named = [OOPListScript scriptsInPListFile:"named.plist"];
+		const auto named = OOPListScript::scriptsInPListFile("named.plist");
 		OO_CHECK(named.has_value() && named->size() == 1 && [(*named)[0].get() cxx_name].value_or("<none>") == "key");
 	}
 }
@@ -164,50 +171,46 @@ OO_TEST(files)
 	@autoreleasepool
 	{
 		// No file (and nothing cached): none.
-		OO_CHECK(![OOPListScript scriptsInPListFile:(sRoot / "missing.plist").string()].has_value());
+		OO_CHECK(!OOPListScript::scriptsInPListFile((sRoot / "missing.plist").string()).has_value());
 
 		// A file that is not a dictionary: none.
 		WriteText(sRoot / "array.plist", "( a, b )");
-		OO_CHECK(![OOPListScript scriptsInPListFile:(sRoot / "array.plist").string()].has_value());
+		OO_CHECK(!OOPListScript::scriptsInPListFile((sRoot / "array.plist").string()).has_value());
 
 		// A dictionary with no script arrays: no scripts, and an empty dictionary is cached for it.
 		const std::string path = (sRoot / "empty.plist").string();
 		WriteText(sRoot / "empty.plist", "{ \"!metadata!\" = { version = \"2\"; }; notAScript = \"text\"; }");
-		const auto scripts = [OOPListScript scriptsInPListFile:path];
+		const auto scripts = OOPListScript::scriptsInPListFile(path);
 		OO_CHECK(scripts.has_value() && scripts->empty());
 		const oo::PList cached = [[OOCacheManager sharedCache] cxx_pListForKey:path inCache:kCacheName];
 		OO_CHECK(cached.isDict() && cached.count() == 0);
 		// The second read comes from the cache (the file is gone).
 		stdfs::remove(sRoot / "empty.plist");
-		const auto again = [OOPListScript scriptsInPListFile:path];
+		const auto again = OOPListScript::scriptsInPListFile(path);
 		OO_CHECK(again.has_value() && again->empty());
 	}
 }
 
 
-OO_TEST(facade)
+// Objective-C sees a plist script as the root's facade of the C++ script (bead oo-9ht.57).
+OO_TEST(plistScriptCrossesAsTheRootFacade)
 {
 	SetUp();
 	@autoreleasepool
 	{
 		[[OOCacheManager sharedCache] cxx_setPList:Dict({ { "one", Dict({ { "script", oo::PList(oo::PList::Array{}) }, { "!metadata!", Dict({ { "version", Str("3") } }) } }) } })
 											forKey:"facade.plist" inCache:kCacheName];
-		const auto scripts = cxx::OOPListScript::scriptsInPListFile("facade.plist");
+		const auto scripts = OOPListScript::scriptsInPListFile("facade.plist");
 		OO_CHECK(scripts.has_value() && scripts->size() == 1);
 		if (!scripts.has_value() || scripts->size() != 1)  return;
-		OOPListScript *facade = static_cast<OOPListScript *>((*scripts)[0].get());
-		cxx::OOPListScript *script = oo::ToCxx(facade);
-		OO_CHECK(script != nullptr);
-		OO_CHECK(oo::ToObjC(script) == facade);
+		OOScript *facade = (*scripts)[0].get();
+		OOPListScript *script = dynamic_cast<OOPListScript *>(oo::ToCxx(facade));
+		OO_CHECK(script != nullptr && [facade class] == [OOScript class]);
+		OO_CHECK(oo::ToObjC(static_cast<cxx::OOScript *>(script)) == facade);
 		OO_CHECK_EQ(script->name().value_or("<none>"), "one");
 		OO_CHECK_EQ(script->version().value_or("<none>"), "3");
 		OO_CHECK(script->requiresTickle());
-		OO_CHECK(oo::ToCxx(static_cast<OOPListScript *>(nil)) == nullptr);
-
-		// ToObjC never makes a facade: a C++ script with none answers nil.
-		const oo::Ref<cxx::OOPListScript> bare = oo::makeRef<cxx::OOPListScript>("bare", oo::PList(oo::PList::Array{}), nullptr);
-		OO_CHECK(oo::ToObjC(bare.get()) == nil);
-		OO_CHECK_EQ(bare->name().value_or("<none>"), "bare");
+		OO_CHECK(oo::DescriptionOf(facade).starts_with("<OOPListScript 0x"));
 	}
 }
 

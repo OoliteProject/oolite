@@ -39,7 +39,7 @@ void OOVerifyOpenGLState_(const char *, unsigned)				{ std::abort(); }
 void OOGLPushModelView(void)									{ std::abort(); }
 OOMatrix OOGLPopModelView(void)									{ std::abort(); }
 void OOGLTranslateModelView(Vector)								{ std::abort(); }
-BOOL cxx_OOCheckOpenGLErrors(const char *, ...)					{ std::abort(); }
+bool cxx_OOCheckOpenGLErrors(const char *, ...)					{ std::abort(); }
 
 
 // The vertex buffer: 12 floats (x, y, r, g, b, a of each endpoint) per line segment.

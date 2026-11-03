@@ -36,6 +36,20 @@ namespace {
 // The sources that are playing, each once, retained (a Foundation mutable set before; sources
 // compare by identity). Created lazily and dropped by +stopAll, as the set was (proposed ADR-0043).
 std::vector<oo::ObjCRef<::OOSoundSource*>>* sPlayingSoundSources = nullptr;
+
+/*	The class as the delegate of a stopped source's channel (+channel:didFinishPlayingSound:, which
+        -stop made the channel's delegate by [_channel setDelegate:[OOSoundSource class]]): it hands
+        the channel back to the mixer (bead oo-9ht.86).
+*/
+class StoppedSourceHandler final : public OOSoundChannelDelegate {
+public:
+    void channel(OOSoundChannel* inChannel, ::OOSound* inSound) override
+    {
+        cxx::OOSoundSource::channelOfStoppedSource(inChannel, inSound);
+    }
+};
+
+StoppedSourceHandler sStoppedSourceHandler;
 }
 
 namespace cxx {
@@ -70,8 +84,10 @@ OOSoundSource::~OOSoundSource()
 */
 std::optional<std::string> OOSoundSource::descriptionComponents() const
 {
-    if (_channel != nil) {
-        return oo::str::format("sound=%s, loop=%s, repeatCount=%u, playing on channel %s", oo::DescriptionOf(_sound.get()).c_str(), _loop ? "YES" : "NO", _repeatCount ? _repeatCount : 1, oo::DescriptionOf(_channel).c_str());
+    if (_channel != nullptr) {
+        // The channel as %@ printed its facade (bead oo-9ht.86 deleted it): <OOSoundChannel 0x...>.
+        const std::string channel = oo::str::format("<OOSoundChannel %s>", oo::str::pointerDescription(_channel).c_str());
+        return oo::str::format("sound=%s, loop=%s, repeatCount=%u, playing on channel %s", oo::DescriptionOf(_sound.get()).c_str(), _loop ? "YES" : "NO", _repeatCount ? _repeatCount : 1, channel.c_str());
     } else {
         return oo::str::format("sound=%s, loop=%s, repeatCount=%u, not playing", oo::DescriptionOf(_sound.get()).c_str(), _loop ? "YES" : "NO", _repeatCount ? _repeatCount : 1);
     }
@@ -113,7 +129,7 @@ void OOSoundSource::setRepeatCount(uint8_t count)
 
 bool OOSoundSource::isPlaying()
 {
-    return _channel != nil;
+    return _channel != nullptr;
 }
 
 /*	[self retain] and [self release] retain the facade, oo::ToObjC(this), which keeps this source
@@ -132,13 +148,14 @@ void OOSoundSource::play()
         stop();
 
     ::OOSoundSource* objCSelf = oo::ToObjC(this);
-    _channel = [[::OOSoundMixer sharedMixer] popChannel];
-    if (nil != _channel) {
+    ::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer();
+    _channel = mixer != nullptr ? mixer->popChannel() : nullptr;
+    if (nullptr != _channel) {
         _remainingCount = repeatCount();
-        [_channel setDelegate:objCSelf];
-        [_channel setPosition:_position];
-        [_channel setGain:_gain];
-        [_channel playSound:sound() looped:loop()];
+        _channel->setDelegate(this);
+        _channel->setPosition(_position);
+        _channel->setGain(_gain);
+        _channel->playSound(sound(), loop());
         objc_retain(objCSelf);
     }
 
@@ -164,11 +181,11 @@ void OOSoundSource::stop()
 {
     OOSoundAcquireLock();
 
-    if (nil != _channel) {
+    if (nullptr != _channel) {
         ::OOSoundSource* objCSelf = oo::ToObjC(this);
-        [_channel setDelegate:[::OOSoundSource class]];
-        [_channel stop];
-        _channel = nil;
+        _channel->setDelegate(&sStoppedSourceHandler);
+        _channel->stop();
+        _channel = nullptr;
 
         if (sPlayingSoundSources != nullptr) {
             auto it = std::find(sPlayingSoundSources->begin(), sPlayingSoundSources->end(), objCSelf);
@@ -245,7 +262,7 @@ void OOSoundSource::setPosition(Vector inPosition)
         _positional = true;
     }
     if (_channel) {
-        [_channel setPosition:_position];
+        _channel->setPosition(_position);
     }
 }
 
@@ -258,7 +275,7 @@ void OOSoundSource::setGain(float gain)
 {
     _gain = gain;
     if (_channel) {
-        [_channel setGain:_gain];
+        _channel->setGain(_gain);
     }
 }
 
@@ -296,12 +313,13 @@ void OOSoundSource::channel(::OOSoundChannel* channel, ::OOSound* /*sound*/)
     OOSoundAcquireLock();
 
     if (--_remainingCount) {
-        [_channel playSound:sound() looped:false];
+        _channel->playSound(sound(), false);
     } else {
         ::OOSoundSource* objCSelf = oo::ToObjC(this);
-        [_channel setDelegate:nil];
-        [[::OOSoundMixer sharedMixer] pushChannel:_channel];
-        _channel = nil;
+        _channel->setDelegate(nullptr);
+        if (::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer())
+            mixer->pushChannel(_channel);
+        _channel = nullptr;
         objc_release(objCSelf);
     }
     OOSoundReleaseLock();
@@ -310,7 +328,8 @@ void OOSoundSource::channel(::OOSoundChannel* channel, ::OOSound* /*sound*/)
 void OOSoundSource::channelOfStoppedSource(::OOSoundChannel* inChannel, ::OOSound* /*inSound*/)
 {
     // This delegate is used for a stopped source
-    [[::OOSoundMixer sharedMixer] pushChannel:inChannel];
+    if (::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer())
+        mixer->pushChannel(inChannel);
 }
 
 } // namespace cxx
