@@ -247,7 +247,7 @@ static BOOL GetThisQuaternion(JSContext* context, JSValueConst quaternionObj, Qu
     if (EXPECT(JSObjectGetQuaternion(context, quaternionObj, outQuaternion)))
         return YES;
 
-    OOJSReportBadArguments(context, @"Quaternion", oo::NSStringFrom(method), 1, &quaternionObj, @"Invalid target object", @"Quaternion");
+    cxx_OOJSReportBadArguments(context, "Quaternion", method, 1, &quaternionObj, "Invalid target object", "Quaternion");
     return NO;
 }
 
@@ -329,9 +329,9 @@ BOOL QuaternionFromArgumentList(JSContext* context, const std::string& scriptCla
     if (QuaternionFromArgumentListNoErrorInternal(context, argc, argv, outQuaternion, outConsumed, NO))
         return YES;
     else {
-        OOJSReportBadArguments(context, oo::NSStringFrom(scriptClass), oo::NSStringFrom(function), argc, argv,
-            @"Could not construct quaternion from parameters",
-            @"Quaternion, Entity or four numbers");
+        cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv,
+            "Could not construct quaternion from parameters",
+            "Quaternion, Entity or four numbers");
         return NO;
     }
 }
@@ -440,9 +440,9 @@ static JSValue QuaternionConstruct(JSContext* context, JSValueConst newTarget, i
 
     if (argc != 0) {
         if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, argv, &quaternion, NULL, YES))) {
-            OOJSReportBadArguments(context, NULL, NULL, argc, argv,
-                @"Could not construct quaternion from parameters",
-                @"Quaternion, Entity or array of four numbers");
+            cxx_OOJSReportBadArguments(context, std::nullopt, std::nullopt, argc, argv,
+                "Could not construct quaternion from parameters",
+                "Quaternion, Entity or array of four numbers");
             return JS_EXCEPTION;
         }
     }
@@ -542,7 +542,7 @@ static JSValue QuaternionRotate(OOJS_NATIVE_ARGS)
     argv += consumed;
     argc -= consumed;
     if (argc > 0) {
-        if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Quaternion", @"rotate", argc, argv, &angle, NULL)))
+        if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(context, "Quaternion", "rotate", argc, argv, &angle, NULL)))
             return JS_EXCEPTION;
         quaternion_rotate_about_axis(&thisq, HPVectorToVector(axis), angle);
     }
@@ -563,7 +563,7 @@ static JSValue QuaternionRotateX(OOJS_NATIVE_ARGS)
 
     if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, "rotateX")))
         return JS_EXCEPTION;
-    if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Quaternion", @"rotateX", argc, OOJS_ARGV, &angle, NULL)))
+    if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(context, "Quaternion", "rotateX", argc, OOJS_ARGV, &angle, NULL)))
         return JS_EXCEPTION;
 
     quaternion_rotate_about_x(&quat, angle);
@@ -583,7 +583,7 @@ static JSValue QuaternionRotateY(OOJS_NATIVE_ARGS)
 
     if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, "rotateY")))
         return JS_EXCEPTION;
-    if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Quaternion", @"rotateY", argc, OOJS_ARGV, &angle, NULL)))
+    if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(context, "Quaternion", "rotateY", argc, OOJS_ARGV, &angle, NULL)))
         return JS_EXCEPTION;
 
     quaternion_rotate_about_y(&quat, angle);
@@ -603,7 +603,7 @@ static JSValue QuaternionRotateZ(OOJS_NATIVE_ARGS)
 
     if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &quat, "rotateZ")))
         return JS_EXCEPTION;
-    if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Quaternion", @"rotateZ", argc, OOJS_ARGV, &angle, NULL)))
+    if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(context, "Quaternion", "rotateZ", argc, OOJS_ARGV, &angle, NULL)))
         return JS_EXCEPTION;
 
     quaternion_rotate_about_z(&quat, angle);

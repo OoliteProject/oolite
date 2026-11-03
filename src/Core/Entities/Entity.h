@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
 
-@class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
+@class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity, OOTexture;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
@@ -220,7 +220,7 @@ enum OOScanClass {
 
 - (double)zeroDistance;
 - (double)camZeroDistance;
-- (NSComparisonResult)compareZeroDistance:(Entity*)otherEntity;
+- (OOComparisonResult)compareZeroDistance:(Entity*)otherEntity;
 
 - (BoundingBox)boundingBox;
 
@@ -271,7 +271,7 @@ enum OOScanClass {
 - (void)applyVelocity:(OOTimeDelta)delta_t;
 - (BOOL)checkCloseCollisionWith:(Entity*)other;
 
-- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(id)weaponIdentifier; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(const std::string&)weaponIdentifier;
 
 - (void)dumpState; // General "describe situtation verbosely in log" command.
 - (void)dumpSelfState; // Subclasses should override this, not -dumpState, and call throught to super first.
@@ -295,9 +295,9 @@ enum OOScanClass {
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 - (std::optional<std::string>)descriptionForObjDumpBasic;
-- (id)descriptionForObjDump; // shared selector (proposed ADR-0043): an Objective-C string
+- (std::optional<std::string>)descriptionForObjDump; // flipped with its family (bead oo-3rb.278)
 
-- (id)allTextures; // shared selector (proposed ADR-0043): an Objective-C set of textures
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 #endif
 
 @end
@@ -307,11 +307,11 @@ enum OOScanClass {
 // Methods that must be supported by entities with beacons, regardless of type.
 @protocol OOBeaconEntity
 
-- (NSComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other;
-- (id)beaconCode; // shared selector (proposed ADR-0043): an Objective-C string
-- (void)setBeaconCode:(id)bcode; // shared selector (proposed ADR-0043)
-- (id)beaconLabel; // shared selector (proposed ADR-0043): an Objective-C string
-- (void)setBeaconLabel:(id)blabel; // shared selector (proposed ADR-0043)
+- (OOComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other;
+- (std::optional<std::string>)beaconCode; // flipped with its family (bead oo-3rb.260)
+- (void)setBeaconCode:(const std::optional<std::string>&)bcode; // flipped with its family (bead oo-3rb.260)
+- (std::optional<std::string>)beaconLabel; // flipped with its family (bead oo-3rb.260)
+- (void)setBeaconLabel:(const std::optional<std::string>&)blabel; // flipped with its family (bead oo-3rb.260)
 - (BOOL)isBeacon;
 - (id<OOHUDBeaconIcon>)beaconDrawable;
 - (Entity<OOBeaconEntity>*)prevBeacon;
@@ -333,15 +333,10 @@ enum {
 
 // C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.161): std::string results
 // (never nil), const std::string & parameters (nil arrived as "" and matched nothing: the defaults).
-// The Foundation forms in Entity+FoundationBridge.h forward to them from OOConstToString+FoundationBridge.mm.
+// Former Foundation forms lived in a transitional bridge (deleted by oo-a8xp).
 std::string cxx_OOStringFromEntityStatus(OOEntityStatus status);
 OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string);
 
 std::string cxx_OOStringFromScanClass(OOScanClass scanClass);
 OOScanClass cxx_OOScanClassFromString(const std::string& string);
 #endif
-
-// TRANSITIONAL (proposed ADR-0043): the Foundation-typed OOStringFromEntityStatus /
-// OOEntityStatusFromString / OOStringFromScanClass / OOScanClassFromString (defined in
-// OOConstToString+FoundationBridge.mm) until their callers are swept. Keep this the last line.
-#import "Entity+FoundationBridge.h"

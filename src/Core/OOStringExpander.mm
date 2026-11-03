@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOStringExpander.h"
+#import "OOCallByName.h"
 #import "OOFoundation.h"
 #import "OOFoundationBridge.h"
 #import "OOJavaScriptEngine.h"
@@ -193,7 +194,7 @@ OOMaybeUnits ApplyOneOperator(const OOMaybeUnits& string, const OOUnits& op, con
         Errors that are not syntax or invalid keys are reported with OO_LOG_ERR().
 */
 void SyntaxIssue(OOStringExpansionContext* context, const char* function, const char* fileName, NSUInteger line, const char* logMessageClass, const char* prefix, const char* format, ...) __attribute__((format(printf, 7, 8)));
-void ReportJavaScriptWarning(JSContext* jsc, id format, ...);
+void ReportJavaScriptWarning(JSContext* jsc, const char* format, ...) __attribute__((format(printf, 2, 3)));
 } // namespace
 
 // OOLOG_WARNING_PREFIX's text, as a C string.
@@ -264,6 +265,26 @@ std::optional<std::string> cxx_OOGenerateSystemDescription(Random_Seed seed, con
     seed_RNG_only_for_planet_description(seed);
     return cxx_OOExpandDescriptionString(seed, "system-description-string", oo::PList(), oo::PList(), name, kOOExpandKey);
 }
+
+/*	The Foundation forms, kept as the expander test's surface (OOStringExpander.h; bead oo-m2nh,
+        proposed ADR-0052). Moved unchanged from the deleted transitional bridge: the overrides and
+        legacy locals once per call with oo::PListFrom (mixed values, Object nodes for anything else),
+        strings with oo::StdString / oo::OptionalString in and oo::NSStringOrNil out (nil for nullopt).
+        Compiled only by tools/check-string-expander.sh (OO_EXPANDER_TEST_SURFACE; bead oo-qps.29).
+*/
+#if OO_EXPANDER_TEST_SURFACE
+NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictionary* overrides, NSDictionary* legacyLocals, NSString* systemName, OOExpandOptions options)
+{
+    if (string == nil)
+        return nil;
+    return oo::NSStringOrNil(cxx_OOExpandDescriptionString(seed, oo::StdString(string), oo::PListFrom(overrides), oo::PListFrom(legacyLocals), oo::OptionalString(systemName), options));
+}
+
+NSString* OOGenerateSystemDescription(Random_Seed seed, NSString* name)
+{
+    return oo::NSStringOrNil(cxx_OOGenerateSystemDescription(seed, oo::OptionalString(name)));
+}
+#endif
 
 Random_Seed OOStringExpanderDefaultRandomSeed(void)
 {
@@ -701,7 +722,7 @@ OOMaybeUnits ExpandStringKeyOverride(OOStringExpansionContext* context, const st
     if (value != nullptr) {
 #if WARNINGS
         if (!value->isString() && !value->isNumber()) {
-            SyntaxWarning(context, "strings.expand.warning.invalidOverride", "String expansion override value %s for [%s] is not a string or number.", oo::StdString([oo::ObjectFromPList(*value) shortDescription]).c_str(), key.c_str());
+            SyntaxWarning(context, "strings.expand.warning.invalidOverride", "String expansion override value %s for [%s] is not a string or number.", oo::ShortDescriptionOf(oo::ObjectFromPList(*value)).c_str(), key.c_str());
         }
 #endif
         return ValueText(*value);
@@ -724,11 +745,13 @@ OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context, const std
     if (selector != NULL) {
         OOCAssert([PLAYER respondsToSelector:selector], "Special string expansion selector %s for [%s] is not implemented.", OOSelectorName(selector), key.c_str());
 
-        // PlayerEntity is not migrated yet: its string result converts here.
-        id result = [PLAYER performSelector:selector];
-        if (result != nil) {
-            OOCAssert(oo::IsNSString(result), "Special string expansion [%s] expanded to %s, but expected a string.", key.c_str(), oo::DescriptionOf([result shortDescription]).c_str());
-            return UnitsFromOptional(oo::OptionalString(result));
+        // Called by name (ADR-0055 item 5): a string result, as a PList.
+        const oo::PList result = OOCallByName(PLAYER, selector);
+        if (!result.isNull()) {
+            const std::string* string = result.getIf<std::string>();
+            OOCAssert(string != nullptr, "Special string expansion [%s] expanded to %s, but expected a string.", key.c_str(), oo::DescriptionOf(result).c_str());
+            if (string != nullptr)
+                return UnitsFromOptional(std::optional<std::string>(*string));
         }
     }
 
@@ -743,9 +766,8 @@ OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context, c
 {
     OOCParameterAssert(context != NULL);
     if (HasPrefix(key, u"oolite_key_")) {
-        // PlayerEntity is not migrated yet: converted at the call.
         const std::string binding = oo::utf16ToUtf8(key.substr(7));
-        return UnitsFromOptional(oo::OptionalString([PLAYER keyBindingDescription2:oo::NSStringFrom(binding)]));
+        return UnitsFromOptional([PLAYER cxx_keyBindingDescription2:binding]);
     }
     return std::nullopt;
 }
@@ -795,22 +817,20 @@ const OOSelectorTable* SpecialSubstitutionSelectors(void)
 */
 OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context, const std::string& key, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
-    // Universe is not migrated yet: only this key's value of -descriptions is converted. The
-    // object itself is kept for the error log, whose text names its class.
-    id object = [[UNIVERSE descriptions] objectForKey:oo::NSStringFrom(key)];
-    oo::PList value = oo::PListFrom(object);
+    // The error log names the value's class as the Foundation object built from it did.
+    const oo::PList* found = [UNIVERSE cxx_descriptions]->find(key);
+    oo::PList value = (found != nullptr) ? *found : oo::PList();
     if (!value.isNull()) {
         if (value.isArray() && value.count() > 0) {
             NSUInteger rnd = OO_EXPANDER_RANDOM % value.count();
             const oo::PList chosen = *value.at(rnd);
             value = chosen;
-            object = [object objectAtIndex:rnd];
         }
 
         const std::string* text = value.getIf<std::string>();
         if (text == nullptr) {
             // This is out of the scope of whatever triggered it, so shouldn't be a JS warning.
-            OO_LOG_ERR("strings.expand.invalidData", "String expansion value {} for [{}] from descriptions.plist is not a string or number.", oo::DescriptionOf([object shortDescription]), key);
+            OO_LOG_ERR("strings.expand.invalidData", "String expansion value {} for [{}] from descriptions.plist is not a string or number.", oo::ShortDescriptionOf(oo::ObjectFromPList(value)), key);
             return std::nullopt;
         }
 
@@ -828,8 +848,7 @@ OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context, 
 OOMaybeUnits ExpandStringKeyMissionVariable(OOStringExpansionContext* /* context */, const OOUnits& key, const std::string& keyString)
 {
     if (HasPrefix(key, u"mission_")) {
-        // PlayerEntity is not migrated yet: converted at the call.
-        return UnitsFromOptional(oo::OptionalString([PLAYER missionVariableForKey:oo::NSStringFrom(keyString)]));
+        return UnitsFromOptional(oo::OptionalString(oo::ObjectFromPList([PLAYER cxx_missionVariableForKey:keyString])));
     }
 
     return std::nullopt;
@@ -866,7 +885,7 @@ OOUnits ValueText(const oo::PList& value)
         return oo::utf8ToUtf16(*text);
     if (value.isNumber())
         return oo::utf8ToUtf16(oo::plist_get::numberStringValue(value));
-    return oo::utf8ToUtf16(oo::DescriptionOf(oo::ObjectFromPList(value)));
+    return oo::utf8ToUtf16(oo::DescriptionOf(value));
 }
 
 /*	ExpandLegacyScriptSelectorKey(context, key)
@@ -882,8 +901,10 @@ OOMaybeUnits ExpandLegacyScriptSelectorKey(OOStringExpansionContext* context, co
     SEL selector = LookUpLegacySelector(key);
 
     if (selector != NULL) {
-        // PlayerEntity is not migrated yet: the result's -description converts here.
-        return UnitsFromOptional(oo::OptionalString([[PLAYER performSelector:selector] description]));
+        // Called by name (ADR-0055 item 5): "%@" of the result, as [[result description]] gave it
+        // (nil stays nil).
+        const oo::PList result = OOCallByName(PLAYER, selector);
+        return UnitsFromOptional(!result.isNull() ? std::optional<std::string>(oo::DescriptionOf(result)) : std::nullopt);
     } else {
         return std::nullopt;
     }
@@ -909,7 +930,7 @@ SEL LookUpLegacySelector(const std::string& key)
         static std::map<std::string, std::string, std::less<>>* aliases = nullptr;
         static std::set<std::string, std::less<>>* whitelist = nullptr;
         if (whitelist == nullptr) {
-            const oo::PList whitelistDict = oo::PListFrom([ResourceManager whitelistDictionary]);
+            const oo::PList whitelistDict = [ResourceManager cxx_whitelistDictionary];
             whitelist = new std::set<std::string, std::less<>>;
             aliases = new std::map<std::string, std::string, std::less<>>;
             const oo::PList* methods = whitelistDict.find("query_methods");
@@ -1156,8 +1177,7 @@ OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context, 
         return std::nullopt;
     }
 
-    // Universe is not migrated yet: converted at the call.
-    return UnitsFromOptional(oo::OptionalString([UNIVERSE getSystemName:sysID forGalaxy:galID]));
+    return UnitsFromOptional([UNIVERSE cxx_getSystemName:sysID forGalaxy:galID]);
 }
 
 /*	ExpandSystemNameEscape(context, characters, size, idx, replaceLength)
@@ -1195,7 +1215,7 @@ OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context, const cha
         return std::nullopt;
     }
 
-    return UnitsFromOptional(oo::OptionalString([UNIVERSE getSystemName:sysID]));
+    return UnitsFromOptional([UNIVERSE cxx_getSystemName:sysID]);
 }
 
 void AppendCharacters(OOMaybeUnits* result, const char16_t* characters, NSUInteger start, NSUInteger end)
@@ -1219,7 +1239,7 @@ OOMaybeUnits GetSystemName(OOStringExpansionContext* context)
 {
     OOCParameterAssert(context != NULL);
     if (!context->systemName.has_value()) {
-        context->systemName = UnitsFromOptional(oo::OptionalString([UNIVERSE getSystemName:[PLAYER systemID]]));
+        context->systemName = UnitsFromOptional([UNIVERSE cxx_getSystemName:[PLAYER systemID]]);
     }
 
     return context->systemName;
@@ -1265,9 +1285,9 @@ const oo::PList& GetSystemDescriptions(OOStringExpansionContext* context)
     OOCParameterAssert(context != NULL);
 
     if (context->systemDescriptions.isNull()) {
-        // Universe is not migrated yet: only this one value of -descriptions is converted, once
-        // per context (PListView's rule: an array, else none).
-        const oo::PList value = oo::PListFrom([[UNIVERSE descriptions] objectForKey:@"system_description"]);
+        // Looked up once per context (PListView's rule: an array, else none).
+        const oo::PList* found = [UNIVERSE cxx_descriptions]->find("system_description");
+        const oo::PList value = (found != nullptr) ? *found : oo::PList();
         if (value.isArray())
             context->systemDescriptions = value;
         context->sysDescCount = context->systemDescriptions.count();
@@ -1305,7 +1325,9 @@ OOUnits OldRandomDigrams(void)
     /* The only point of using %R is for world generation, so there's
      * no point in checking the context */
     unsigned len = gen_rnd_number() & 3;
-    const std::optional<std::string> digrams = oo::OptionalString([[UNIVERSE descriptions] objectForKey:@"digrams"]);
+    const oo::PList* digramsEntry = [UNIVERSE cxx_descriptions]->find("digrams");
+    const std::string* digramsText = (digramsEntry != nullptr) ? digramsEntry->getIf<std::string>() : nullptr;
+    const std::optional<std::string> digrams = (digramsText != nullptr) ? std::optional<std::string>(*digramsText) : std::nullopt;
     const OOUnits digramUnits = UnitsFromOptional(digrams).value_or(OOUnits());
     OOUnits name;
 
@@ -1324,7 +1346,9 @@ OOUnits NewRandomDigrams(OOStringExpansionContext* context)
     unsigned length = (OO_EXPANDER_RANDOM % 4) + 1;
     if ((OO_EXPANDER_RANDOM % 5) < ((length == 1) ? 3 : 1))
         ++length; // Make two-letter names rarer and 10-letter names happen sometimes
-    const std::optional<std::string> digrams = oo::OptionalString([[UNIVERSE descriptions] objectForKey:@"digrams"]);
+    const oo::PList* digramsEntry = [UNIVERSE cxx_descriptions]->find("digrams");
+    const std::string* digramsText = (digramsEntry != nullptr) ? digramsEntry->getIf<std::string>() : nullptr;
+    const std::optional<std::string> digrams = (digramsText != nullptr) ? std::optional<std::string>(*digramsText) : std::nullopt;
     const OOUnits digramUnits = UnitsFromOptional(digrams).value_or(OOUnits());
     NSUInteger count = digramUnits.size() / 2;
     OOUnits name;
@@ -1405,27 +1429,27 @@ void SyntaxIssue(OOStringExpansionContext* context, const char* function, const 
     va_end(args);
 
     // Logging and the JavaScript engine call sites are not migrated here: the formatted text is handed on.
-    if (OOLogWillDisplayMessagesInClass(oo::NSStringFrom(logMessageClass))) {
+    if (oo::log::willDisplay(logMessageClass)) {
         if (context->isJavaScript) {
             /*	NOTE: syntax errors are reported as warnings when called from JS
                     because we don't want to start throwing exceptions when the old
                     expander didn't.
             */
             JSContext* jsc = OOJSAcquireContext();
-            ReportJavaScriptWarning(jsc, @"%@", oo::NSStringFrom(message));
+            ReportJavaScriptWarning(jsc, "%s", message.c_str());
             OOJSRelinquishContext(jsc);
         } else {
-            OOLogWithFunctionFileAndLine(oo::NSStringFrom(logMessageClass), function, fileName, line, @"%@", oo::NSStringFrom(std::string(prefix) + message));
+            oo::log::logger().write(logMessageClass, function, fileName, line, std::string(prefix) + message);
         }
     }
 }
 
-// OOJSReportWarningWithArguments with a %@ format and its argument (the engine's va_list entry).
-void ReportJavaScriptWarning(JSContext* jsc, id format, ...)
+// cxx_OOJSReportWarningWithArguments with a printf format and its arguments (the engine's va_list entry).
+void ReportJavaScriptWarning(JSContext* jsc, const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    OOJSReportWarningWithArguments(jsc, format, args);
+    cxx_OOJSReportWarningWithArguments(jsc, format, args);
     va_end(args);
 }
 

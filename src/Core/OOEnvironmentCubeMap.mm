@@ -104,7 +104,7 @@ SOFTWARE.
 
     OODrawable* sky = [[UNIVERSE nearestEntityMatchingPredicate:HasClassPredicate parameter:[SkyEntity class] relativeToEntity:nil] drawable];
     OOSunEntity* sun = [UNIVERSE sun];
-    const std::vector<oo::ObjCRef<OOPlanetEntity*>> planets = oo::ObjCRefsFrom<OOPlanetEntity*>([UNIVERSE planets]);
+    const std::vector<oo::ObjCRef<OOPlanetEntity*>> planets = [UNIVERSE cxx_planets];
 
     unsigned i;
     Vector centers[6] = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };

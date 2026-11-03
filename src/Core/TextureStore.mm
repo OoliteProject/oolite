@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #endif
 
-#import "OOCollectionExtractors.h"
 #import "OOStringBridge.h"
 
 #include "oofnd/String.hpp"
@@ -54,7 +53,7 @@ static FloatRGB FloatRGBFromDictColor(id dictionary, const char* key) // diction
     if (color == nil) {
         // could not get a color from the dicitionary, return white color instead of hitting the assert below
         color = [OOColor colorWithDescription:@"whiteColor"];
-        OO_LOG("textureStore.FloatRGBFromDictColor.nilColor", "Expected color for key \"{}\" in dictionary {}, got nil. Setting color to {}", key, oo::DescriptionOf(dictionary), oo::DescriptionOf([color rgbaDescription]));
+        OO_LOG("textureStore.FloatRGBFromDictColor.nilColor", "Expected color for key \"{}\" in dictionary {}, got nil. Setting color to {}", key, oo::DescriptionOf(dictionary), [color cxx_rgbaDescription].value_or("(null)"));
     }
     OOCAssert([color isKindOfClass:[OOColor class]], "Expected OOColor, got %s", oo::DescriptionOf([color class]).c_str());
 
@@ -275,11 +274,11 @@ static void fillSquareImageDataWithCloudTexture(unsigned char* imageBuffer, int 
     const std::string name = oo::str::format("atmosphere-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low);
     OO_LOG("planetTex.dump", "Saving generated texture to file {}.", name);
 
-    [[UNIVERSE gameView] dumpRGBAToFileNamed:oo::NSStringFrom(name)
-                                       bytes:imageBuffer
-                                       width:width
-                                      height:width
-                                    rowBytes:width * 4];
+    [[UNIVERSE gameView] cxx_dumpRGBAToFileNamed:name
+                                           bytes:imageBuffer
+                                           width:width
+                                          height:width
+                                        rowBytes:width * 4];
 #endif
 }
 
@@ -332,11 +331,11 @@ static void fillSquareImageWithPlanetTex(unsigned char* imageBuffer, int width, 
 #if DEBUG_DUMP
     OO_LOG("planetTex.dump", "Saving generated texture to file planet-{}-{}-old.", static_cast<unsigned>(sNoiseSeed.high), static_cast<unsigned>(sNoiseSeed.low));
 
-    [[UNIVERSE gameView] dumpRGBAToFileNamed:oo::NSStringFrom(oo::str::format("planet-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low))
-                                       bytes:imageBuffer
-                                       width:width
-                                      height:width
-                                    rowBytes:width * 4];
+    [[UNIVERSE gameView] cxx_dumpRGBAToFileNamed:oo::str::format("planet-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low)
+                                           bytes:imageBuffer
+                                           width:width
+                                          height:width
+                                        rowBytes:width * 4];
 #endif
 }
 

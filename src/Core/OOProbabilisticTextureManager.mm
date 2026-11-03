@@ -81,7 +81,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         OK = NO;
 
     if (OK) {
-        config = oo::PListFrom([ResourceManager arrayFromFilesNamed:oo::NSStringFrom(plistName) inFolder:@"Config" andMerge:YES]);
+        config = [ResourceManager cxx_arrayFromFilesNamed:plistName inFolder:"Config" andMerge:YES];
         if (!config)
             OK = NO;
     }
@@ -123,11 +123,11 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             }
 
             if (name.has_value() && 0.0f < probability) {
-                texture = [OOTexture textureWithName:oo::NSStringFrom(*name)
-                                            inFolder:@"Textures"
-                                             options:options
-                                          anisotropy:anisotropy
-                                             lodBias:lodBias];
+                texture = [OOTexture cxx_textureWithName:*name
+                                                inFolder:"Textures"
+                                                 options:options
+                                              anisotropy:anisotropy
+                                                 lodBias:lodBias];
                 if (texture != nil) {
                     _textures[_count] = [texture retain];
                     _prob[_count] = probability + (galID >= 0 ? _probMaxGal[galID] : _probMax);
@@ -182,9 +182,9 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
 // OOObject's -description wraps this as "<OOProbabilisticTextureManager 0x...>{...}", the text
 // this class's own -description printed. Shared selector (proposed ADR-0043).
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("%u textures, cumulative probability=%g", _count, _probMax));
+    return oo::str::format("%u textures, cumulative probability=%g", _count, _probMax);
 }
 
 - (OOTexture*)selectTexture

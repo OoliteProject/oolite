@@ -247,7 +247,7 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
      search paths here. If we don't, the search path dump ends up in
      the middle of the OpenGL stuff.
      */
-    [ResourceManager paths];
+    [ResourceManager cxx_paths];
 
     OO_LOG("rendering.opengl.version", "OpenGL renderer version: {}.{}.{} (\"{}\"). Vendor: \"{}\". Renderer: \"{}\".", major, minor, release, versionString ? reinterpret_cast<const char*>(versionString) : "(null)", vendor.value_or("(null)"), renderer.value_or("(null)"));
     {
@@ -282,10 +282,10 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
     [self checkShadersSupported];
 
     if (shadersAvailable) {
-        defaultShaderSetting = OOShaderSettingFromString(oo::NSStringFrom(gpuConfig.get<std::string>("default_shader_level",
-            "SHADERS_FULL")));
-        maximumShaderSetting = OOShaderSettingFromString(oo::NSStringFrom(gpuConfig.get<std::string>("maximum_shader_level",
-            "SHADERS_FULL")));
+        defaultShaderSetting = cxx_OOShaderSettingFromString(gpuConfig.get<std::string>("default_shader_level",
+            "SHADERS_FULL"));
+        maximumShaderSetting = cxx_OOShaderSettingFromString(gpuConfig.get<std::string>("maximum_shader_level",
+            "SHADERS_FULL"));
         if (maximumShaderSetting <= SHADERS_OFF) {
             shadersAvailable = NO;
             maximumShaderSetting = SHADERS_NOT_SUPPORTED;
@@ -747,9 +747,9 @@ oo::PList StringForKey(const oo::PList* dict, std::string_view key)
 
 - (oo::PList)lookUpPerGPUSettingsWithVersionString:(const std::optional<std::string>&)versionStr extensionsString:(const std::optional<std::string>&)extensionsStr
 {
-    const oo::PList configurations = oo::PListFrom([ResourceManager dictionaryFromFilesNamed:@"gpu-settings.plist"
-                                                                                    inFolder:@"Config"
-                                                                                    andMerge:YES]);
+    const oo::PList configurations = [ResourceManager cxx_dictionaryFromFilesNamed:"gpu-settings.plist"
+                                                                          inFolder:"Config"
+                                                                          andMerge:YES];
 
     // Highest precedence first, then case-insensitive name order (keys were taken in hash order
     // before sorting; ties between names equal but for case now keep byte order).

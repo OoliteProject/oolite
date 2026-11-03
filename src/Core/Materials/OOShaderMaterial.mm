@@ -30,7 +30,6 @@ SOFTWARE.
 
 #if OO_SHADERS
 
-#import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
@@ -38,6 +37,7 @@ SOFTWARE.
 #import "OOLogging.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOPListGameTypes.h"
 #import "OOShaderProgram.h"
 #import "OOShaderUniform.h"
 #import "OOStringBridge.h"
@@ -234,7 +234,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
                 OO_LOG_ERR("shader.load.failed", "Could not build shader {}/{}.", vsName.value_or("(null)"), fsName.value_or("(null)"));
             }
         } else {
-            OO_LOG("shader.load.noShader", "***** Error: no vertex or fragment shader specified in shader dictionary:\n{}", oo::DescriptionOf(oo::ObjectFromPList(configuration)));
+            OO_LOG("shader.load.noShader", "***** Error: no vertex or fragment shader specified in shader dictionary:\n{}", oo::DescriptionOf(configuration));
         }
 
         OK = (shaderProgram != nil);
@@ -401,7 +401,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
             vecArray[i] = value.at<float>(i, 0.0f); // OOFloatFromObject's conversion
         }
     } else {
-        Vector vec = OOVectorFromObject(oo::ObjectFromPList(value), kZeroVector);
+        Vector vec = OOVectorFromPList(&value, kZeroVector);
         vecArray[0] = vec.x;
         vecArray[1] = vec.y;
         vecArray[2] = vec.z;
@@ -503,16 +503,16 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
             value = oo::PList::singleReal(randf() * scale);
         } else if (type == "randomUnitVector") {
             type = "vector";
-            value = oo::PListFrom(OOPropertyListFromVector(vector_multiply_scalar(OORandomUnitVector(), scale)));
+            value = OOPListFromVector(vector_multiply_scalar(OORandomUnitVector(), scale));
         } else if (type == "randomVectorSpatial") {
             type = "vector";
-            value = oo::PListFrom(OOPropertyListFromVector(OOVectorRandomSpatial(scale)));
+            value = OOPListFromVector(OOVectorRandomSpatial(scale));
         } else if (type == "randomVectorRadial") {
             type = "vector";
-            value = oo::PListFrom(OOPropertyListFromVector(OOVectorRandomRadial(scale)));
+            value = OOPListFromVector(OOVectorRandomRadial(scale));
         } else if (type == "randomQuaternion") {
             type = "quaternion";
-            value = oo::PListFrom(OOPropertyListFromQuaternion(OORandomQuaternion()));
+            value = OOPListFromQuaternion(OORandomQuaternion());
         }
 
         if (type == "float" || type == "real") {
@@ -552,7 +552,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
                 quatAsMatrix = definition.get<bool>("asMatrix", quatAsMatrix);
             }
             [self setUniform:name
-                quaternionValue:OOQuaternionFromObject(oo::ObjectFromPList(value), kIdentityQuaternion)
+                quaternionValue:OOQuaternionFromPList(&value, kIdentityQuaternion)
                        asMatrix:quatAsMatrix];
             gotValue = YES;
         } else if (target != nil && type == "binding") {
@@ -576,7 +576,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
         }
 
         if (!gotValue) {
-            OO_LOG("shader.uniform.badDescription", "----- Warning: could not bind uniform \"{}\" for target {} -- could not interpret definition:\n{}", name, oo::DescriptionOf(target), oo::DescriptionOf(oo::ObjectFromPList(definition)));
+            OO_LOG("shader.uniform.badDescription", "----- Warning: could not bind uniform \"{}\" for target {} -- could not interpret definition:\n{}", name, oo::DescriptionOf(target), oo::DescriptionOf(definition));
         }
     }
 
@@ -677,9 +677,14 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return oo::NSSetFromObjects(std::vector<OOTexture*>(textures, textures + texCount));
+    std::vector<oo::ObjCRef<OOTexture*>> result;
+    result.reserve(texCount);
+    for (uint32_t i = 0; i < texCount; i++) {
+        result.emplace_back(textures[i]);
+    }
+    return result;
 }
 #endif
 
@@ -744,7 +749,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros)
         else if (value.isNumber())
             text = oo::plist_get::numberStringValue(value);
         else
-            text = oo::DescriptionOf(oo::ObjectFromPList(value));
+            text = oo::DescriptionOf(value);
 
         result += "#define " + entry.first + "  " + text + "\n";
     }

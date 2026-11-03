@@ -117,7 +117,7 @@ struct OOWormholeTransit {
 
 - (oo::PList)shipsInTransit; // Dicts: "ship" (an Object node), "time", "shipBeacon" when set
 
-- (id)identFromShip:(ShipEntity*)ship; // shared selector (proposed ADR-0043): an Objective-C string
+- (std::optional<std::string>)identFromShip:(ShipEntity*)ship; // flipped with its family (bead oo-3rb.279)
 
 - (oo::PList)getDict;
 

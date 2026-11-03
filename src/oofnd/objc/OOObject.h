@@ -6,6 +6,7 @@
             NSObject                                  OOObject
             ----------------------------------------  -------------------------------------------------
             @interface Foo : NSObject                 @interface Foo : OOObject
+            @protocol P <NSObject>                    @protocol P <OOObject>
             [[Foo alloc] init], +new, +allocWithZone: the same (class_createInstance; C++ ivars are
                                                       constructed and destroyed, -fobjc-call-cxx-cdtors)
             -retain / -release / -autorelease         the same; the count is libobjc2's own inline
@@ -67,8 +68,38 @@ typedef struct OOZone OOZone;
 - (id)mutableCopyWithZone:(OOZone*)zone;
 @end
 
+/*	Protocol form of the floor (oo-9evb). Protocols that inherited <NSObject>
+        inherit <OOObject> so id<P> can send -retain / -respondsToSelector: and the
+        rest without "method not found in protocol" once gnustep-base is gone.
+        No -description here: that is the Logging seam.
+*/
+@protocol OOObject
+
+- (id)retain;
+- (oneway void)release;
+- (id)autorelease;
+- (uintptr_t)retainCount;
+
+- (id)self;
+- (Class)class;
+- (Class)superclass;
+- (BOOL)isKindOfClass:(Class)aClass;
+- (BOOL)isMemberOfClass:(Class)aClass;
+- (BOOL)respondsToSelector:(SEL)selector;
+- (BOOL)conformsToProtocol:(Protocol*)protocol;
+- (BOOL)isProxy;
+
+- (BOOL)isEqual:(id)other;
+- (uintptr_t)hash;
+
+- (id)performSelector:(SEL)selector;
+- (id)performSelector:(SEL)selector withObject:(id)object;
+- (id)performSelector:(SEL)selector withObject:(id)object1 withObject:(id)object2;
+
+@end
+
 __attribute__((objc_root_class))
-@interface OOObject {
+@interface OOObject<OOObject> {
 @protected
     Class isa;
 }

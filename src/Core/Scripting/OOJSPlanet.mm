@@ -38,6 +38,21 @@ static JSClassID sPlanetClassID;
 static JSValue PlanetGetProperty(OOJS_GETTER_ARGS);
 static JSValue PlanetSetProperty(OOJS_SETTER_ARGS);
 
+namespace {
+
+    // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
+    oo::PList NormalizedColorComponents(OOColor* color)
+    {
+        if (color == nil)
+            return oo::PList();
+        oo::PList::Array components;
+        for (float component : [color cxx_normalizedArray])
+            components.push_back(oo::PList::singleReal(component));
+        return oo::PList(std::move(components));
+    }
+
+} // namespace
+
 static JSClassDef sPlanetClass = {
     .class_name = "Planet",
     .finalizer = OOJSObjectWrapperFinalize,
@@ -109,15 +124,15 @@ JSClassID JSPlanetClassID(void)
     return sPlanetClassID;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
     switch ([self planetType]) {
     case STELLAR_TYPE_NORMAL_PLANET:
-        return @"Planet";
+        return std::string("Planet");
     case STELLAR_TYPE_MOON:
-        return @"Moon";
+        return std::string("Moon");
     default:
-        return @"Unknown";
+        return std::string("Unknown");
     }
 }
 
@@ -133,7 +148,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kPlanet_airColor:
-        return OOJSValueFromNativeObject(context, [[planet airColor] normalizedArray]);
+        return OOJSValueFromPList(context, NormalizedColorComponents([planet airColor]));
 
     case kPlanet_airColorMixRatio:
         return JS_NewNumber(context, [planet airColorMixRatio]);
@@ -142,7 +157,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [planet airDensity]);
 
     case kPlanet_illuminationColor:
-        return OOJSValueFromNativeObject(context, [[planet illuminationColor] normalizedArray]);
+        return OOJSValueFromPList(context, NormalizedColorComponents([planet illuminationColor]));
 
     case kPlanet_isMainPlanet:
         return OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
@@ -153,11 +168,13 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
     case kPlanet_hasAtmosphere:
         return OOJSValueFromBOOL([planet hasAtmosphere]);
 
-    case kPlanet_texture:
-        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([planet textureFileName]));
+    case kPlanet_texture: {
+        const std::optional<std::string> textureName = [planet textureFileName];
+        return OOJSValueFromPList(context, textureName.has_value() ? oo::PList(*textureName) : oo::PList());
+    }
 
     case kPlanet_name:
-        return OOJSValueFromNativeObject(context, [planet name]);
+        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([planet cxx_name]));
 
     case kPlanet_orientation:
         OOJS_RETURN_QUATERNION([planet normalOrientation]);
@@ -192,7 +209,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kPlanet_airColor:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (colorForScript != nil || JS_IsNull(value)) {
             [planet setAirColor:colorForScript];
             return JS_UNDEFINED;
@@ -214,7 +231,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlanet_illuminationColor:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (colorForScript != nil || JS_IsNull(value)) {
             [planet setIlluminationColor:colorForScript];
             return JS_UNDEFINED;
@@ -222,20 +239,20 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlanet_name:
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
-        [planet setName:oo::NSStringOrNil(sValue)];
+        sValue = cxx_OOStringFromJSValue(context, value);
+        [planet cxx_setName:sValue];
         return JS_UNDEFINED;
 
     case kPlanet_texture: {
         BOOL OK = NO;
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
 
 
         OOJSPauseTimeLimiter();
 
         if ([planet isKindOfClass:[OOPlanetEntity class]]) {
             if (!sValue.has_value()) {
-                OOJSReportWarning(context, @"Expected texture string. Value not set.");
+                cxx_OOJSReportWarning(context, "Expected texture string. Value not set.");
             } else {
                 OK = YES;
             }
@@ -244,7 +261,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         if (OK) {
             OK = [planet setUpPlanetFromTexture:sValue]; // has a value here
             if (!OK)
-                OOJSReportWarning(context, @"Cannot find texture \"%@\". Value not set.", oo::NSStringFrom(*sValue));
+                cxx_OOJSReportWarning(context, "Cannot find texture \"%s\". Value not set.", sValue->c_str());
         }
 
         OOJSResumeTimeLimiter();

@@ -196,7 +196,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
 
         _cacheKey = [self constructCacheKey];
 
-        if ([OOTexture existingTextureForKey:oo::NSStringFrom(_cacheKey)] == nil) {
+        if ([OOTexture cxx_existingTextureForKey:_cacheKey] == nil) {
             /*	Extract pixmap from diffuse map. This must be done in the main
                     thread even if scheduling is fixed, because it might involve
                     reading back pixels from OpenGL.
@@ -204,7 +204,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
             if (diffuseMap != nil) {
                 _diffusePx = [diffuseMap copyPixMapRepresentation];
 #ifndef NDEBUG
-                _diffuseDesc = oo::StdString([diffuseMap shortDescription]);
+                _diffuseDesc = oo::ShortDescriptionOf(diffuseMap);
 #endif
             }
 
@@ -219,7 +219,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
                                                                                               folder:std::string("Textures")];
                 [emissionMapLoader getResult:&_emissionPx format:&format originalWidth:NULL originalHeight:NULL];
 #ifndef NDEBUG
-                _emissionDesc = oo::StdString([emissionMapLoader shortDescription]);
+                _emissionDesc = (emissionMapLoader != nil ? oo::ShortDescriptionOf(emissionMapLoader) : std::string());
 #endif
             }
             if (!_illuminationSpec.isNull()) {
@@ -228,7 +228,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
                                                                                                   folder:std::string("Textures")];
                 [illuminationMapLoader getResult:&_illuminationPx format:&format originalWidth:NULL originalHeight:NULL];
 #ifndef NDEBUG
-                _illuminationDesc = oo::StdString([illuminationMapLoader shortDescription]);
+                _illuminationDesc = (illuminationMapLoader != nil ? oo::ShortDescriptionOf(illuminationMapLoader) : std::string());
 #endif
             }
         }
@@ -269,7 +269,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
     }
 
     if (!illuminationDesc.empty()) {
-        cacheKey += oo::str::format("illumination:{%s}*{%s}", illuminationDesc.c_str(), oo::StdString([_diffuseMap cacheKey]).c_str());
+        cacheKey += oo::str::format("illumination:{%s}*{%s}", illuminationDesc.c_str(), [_diffuseMap cxx_cacheKey].value_or("").c_str());
         if (_illuminationColor != nil) {
             const std::optional<std::string> rgba = [_illuminationColor cxx_rgbaDescription];
             cacheKey += oo::str::format("*%s", rgba ? rgba->c_str() : "");
@@ -296,7 +296,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
 }
 
 #ifndef NDEBUG
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     std::string result;
     BOOL haveIllumination = NO;
@@ -334,7 +334,7 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
         }
     }
 
-    return oo::NSStringFrom(result);
+    return result;
 }
 #endif
 
@@ -353,9 +353,9 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB)
     return _lodBias;
 }
 
-- (id)cacheKey
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return oo::NSStringFrom(_cacheKey);
+    return _cacheKey;
 }
 
 - (void)loadTexture

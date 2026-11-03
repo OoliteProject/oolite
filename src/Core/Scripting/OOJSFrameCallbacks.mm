@@ -219,7 +219,7 @@ static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
     // Get callback argument and verify that it's a function.
     JSValueConst callback = OOJS_ARGV[0];
     if (EXPECT_NOT(argc < 1 || !OOJSValueIsFunction(context, callback))) {
-        OOJSReportBadArguments(context, nil, @"addFrameCallback", MIN(argc, 1), OOJS_ARGV, nil, @"function");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "addFrameCallback", MIN(argc, 1), OOJS_ARGV, std::nullopt, "function");
         return JS_EXCEPTION;
     }
 
@@ -231,7 +231,7 @@ static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
         // Add to list immediately.
         std::optional<std::string> errorString;
         if (EXPECT_NOT(!AddCallback(context, callback, trackingID, &errorString))) {
-            OOJSReportError(context, @"%@", oo::NSStringOrNil(errorString));
+            cxx_OOJSReportError(context, "%s", (errorString ? errorString->c_str() : "(null)"));
             return JS_EXCEPTION;
         }
     } else {
@@ -255,14 +255,14 @@ static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(argc < 1 || JS_ToUint32(context, &trackingID, OOJS_ARGV[0]) < 0)) {
         if (JS_HasException(context))
             JS_FreeValue(context, JS_GetException(context));
-        OOJSReportBadArguments(context, nil, @"removeFrameCallback", MIN(argc, 1), OOJS_ARGV, nil, @"frame callback tracking ID");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "removeFrameCallback", MIN(argc, 1), OOJS_ARGV, std::nullopt, "frame callback tracking ID");
         return JS_EXCEPTION;
     }
 
     if (EXPECT(!sRunning)) {
         // Remove it.
         if (EXPECT_NOT(!RemoveCallbackWithTrackingID(context, trackingID))) {
-            OOJSReportWarning(context, @"removeFrameCallback(): invalid tracking ID.");
+            cxx_OOJSReportWarning(context, "removeFrameCallback(): invalid tracking ID.");
         }
     } else {
         // Defer mutations during callback invocation.
@@ -281,7 +281,7 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     if (EXPECT_NOT(argc < 1)) {
-        OOJSReportBadArguments(context, nil, @"isValidFrameCallback", 0, OOJS_ARGV, nil, @"frame callback tracking ID");
+        cxx_OOJSReportBadArguments(context, std::nullopt, "isValidFrameCallback", 0, OOJS_ARGV, std::nullopt, "frame callback tracking ID");
         return JS_EXCEPTION;
     }
 

@@ -24,17 +24,18 @@ MA 02110-1301, USA.
 */
 
 #import "ProxyPlayerEntity.h"
+#import "OOFoundationBridge.h"
 
 @implementation ProxyPlayerEntity
 
-- (id)initWithKey:(id)key definition:(id)dict // shared selector (proposed ADR-0043): an Objective-C string and dictionary
+- (id)cxx_initWithKey:(const std::string&)key definition:(const oo::PList&)dict
 {
-    self = [super initWithKey:key definition:dict];
+    self = [super cxx_initWithKey:key definition:dict];
     if (self != nil) {
         [self setDialForwardShield:1.0f];
         [self setDialAftShield:1.0f];
         [self setDialFuelScoopStatus:[self hasScoop] ? SCOOP_STATUS_OKAY : SCOOP_STATUS_NOT_INSTALLED];
-        [self setCompassMode:[self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
+        [self setCompassMode:[self cxx_hasEquipmentItemProviding:"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
         [self setTradeInFactor:95];
     }
 

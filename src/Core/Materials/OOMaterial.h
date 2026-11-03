@@ -39,12 +39,18 @@ SOFTWARE.
 #import "OOWeakReference.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/objc/OOObjCRef.h"
+#include <vector>
+
+@class OOTexture;
+
 @interface OOMaterial : OOObject
 
 // Called once at startup (by -[Universe init]).
 + (void)setUp;
 
-- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.5)
 
 // Make this the current material.
 - (void)apply;
@@ -76,7 +82,7 @@ SOFTWARE.
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures; // an Objective-C set of textures. Shared selector (proposed ADR-0043).
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 #endif
 
 @end

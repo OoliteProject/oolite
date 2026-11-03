@@ -130,9 +130,9 @@ static OOTexture* sShotTexture2 = nil;
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, oo::DescriptionOf([super descriptionComponents]).c_str(), QuaternionDescription([self orientation]).c_str()));
+    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, [super cxx_descriptionComponents].value_or("(null)").c_str(), QuaternionDescription([self orientation]).c_str());
 }
 
 - (void)setColor:(OOColor*)color
@@ -279,18 +279,18 @@ static const GLfloat kLaserVertices[] = {
 + (void)setUpTexture
 {
     if (sShotTexture == nil) {
-        sShotTexture = [[OOTexture textureWithName:@"oolite-laser-blur.png"
-                                          inFolder:@"Textures"
-                                           options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
-                                        anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                           lodBias:0.0] retain];
+        sShotTexture = [[OOTexture cxx_textureWithName:"oolite-laser-blur.png"
+                                              inFolder:"Textures"
+                                               options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
+                                            anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                               lodBias:0.0] retain];
         [[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOLaserShotEntity class]];
 
-        sShotTexture2 = [[OOTexture textureWithName:@"oolite-laser-blur2.png"
-                                           inFolder:@"Textures"
-                                            options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
-                                         anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                            lodBias:0.0] retain];
+        sShotTexture2 = [[OOTexture cxx_textureWithName:"oolite-laser-blur2.png"
+                                               inFolder:"Textures"
+                                                options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
+                                             anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                                lodBias:0.0] retain];
     }
 }
 

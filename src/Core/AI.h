@@ -24,9 +24,9 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #import "OOTypes.h"
 #import "OOWeakReference.h"
-#import <Foundation/Foundation.h>
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
@@ -57,7 +57,8 @@ MA 02110-1301, USA.
 + (AI*)currentlyRunningAI;
 + (std::optional<std::string>)cxx_currentlyRunningAIDescription;
 
-- (id)name; // shared selector (proposed ADR-0043): the state machine's name, an Objective-C string
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string
+- (std::optional<std::string>)cxx_name; // the state machine's name (bead oo-3rb.289.8)
 - (std::optional<std::string>)cxx_associatedJS;
 - (id)state; // shared selector (Foundation declares -state too): -cxx_state as an Objective-C string or nil
 - (std::optional<std::string>)cxx_state; // the current state; nullopt: none (bead oo-3rb.291.2)
@@ -110,10 +111,3 @@ MA 02110-1301, USA.
 - (void)dumpState;
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before the AI.mm sweep (beads oo-3rb.84-87, oo-gtl8), forwarding to the cxx_ methods
-        above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep
-        beads; the bridge goes in its own bead.
-*/
-#import "AI+FoundationBridge.h"

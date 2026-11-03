@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOCollectionExtractors.h"
 #import "OOFileScannerVerifierStage.h"
 #import "OOFoundationBridge.h"
 #import "Universe.h"
@@ -59,9 +58,9 @@ std::optional<std::string> StringAt(const oo::PList& array, std::size_t index)
 
 @implementation OOCheckEquipmentPListVerifierStage
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (BOOL)shouldRun

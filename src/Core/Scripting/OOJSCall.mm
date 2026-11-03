@@ -27,16 +27,18 @@ MA 02110-1301, USA.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import "OOJSCall.h"
+#import "OOCallByName.h"
 #import "OOJavaScriptEngine.h"
+#import "OOObjCPList.h"
 #include "oofnd/objc/OORuntime.h"
 
-#import "OOCollectionExtractors.h"
 #import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOJSQuaternion.h"
 #import "OOJSVector.h"
 #import "OOShaderUniformMethodType.h"
 #import "ShipEntity.h"
+#include "oofnd/PListGet.hpp"
 
 typedef enum {
     kMethodTypeInvalid = kOOShaderUniformTypeInvalid,
@@ -75,10 +77,10 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
     MethodType type;
     BOOL haveParameter = NO,
          error = NO;
-    id result = nil;
+    oo::PList result; // null for none
 
     if (argc == 0) {
-        OOJSReportError(context, @"%@.callObjC(): no selector specified.", oo::NSStringFrom(oo_jsClassName));
+        cxx_OOJSReportError(context, "%s.callObjC(): no selector specified.", oo_jsClassName.c_str());
         return NO;
     }
 
@@ -86,7 +88,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
         [PLAYER setScriptTarget:object];
     }
 
-    selectorString = oo::OptionalString(OOStringFromJSValue(context, argv[0]));
+    selectorString = cxx_OOStringFromJSValue(context, argv[0]);
 
     // Join all parameters together with spaces.
     if (1 < argc && selectorString.has_value() && oo::str::hasSuffix(*selectorString, ":")) {
@@ -96,7 +98,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
         for (int i = 1; i < argc; i++) {
             if (i > 1)
                 joined += " ";
-            joined += oo::StdString(OOStringFromJSValueEvenIfNull(context, argv[i]));
+            joined += cxx_OOStringFromJSValueEvenIfNull(context, argv[i]).value_or(std::string());
         }
         paramString = joined;
     }
@@ -108,27 +110,36 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
         type = GetMethodType(object, selector);
 
         if (MethodExpectsParameter(type) && !haveParameter) {
-            OOJSReportError(context, @"%@.callObjC(): method %@ requires a parameter.", oo::NSStringFrom(oo_jsClassName), oo::NSStringOrNil(selectorString));
+            cxx_OOJSReportError(context, "%s.callObjC(): method %s requires a parameter.", oo_jsClassName.c_str(), (selectorString ? selectorString->c_str() : "(null)"));
             error = YES;
         } else {
             IMP method = [object methodForSelector:selector];
             switch (type) {
             case kMethodTypeVoidObject:
-                [object performSelector:selector withObject:oo::NSStringOrNil(paramString)];
-                break;
-
             case kMethodTypeObjectObject:
-                result = [object performSelector:selector withObject:oo::NSStringOrNil(paramString)];
+                // Called by name with the joined string (ADR-0055 item 5); a void method gives null.
+                result = OOCallByName(object, selector, *paramString);
                 break;
 
             case kMethodTypeObjectVoid:
-                result = [object performSelector:selector];
-                if (selectorString.has_value() && oo::str::hasSuffix(*selectorString, "_bool"))
-                    result = oo::ObjectFromPList(oo::PList(static_cast<bool>(OOBooleanFromObject(result, NO))));
+                result = OOCallByName(object, selector);
+                if (selectorString.has_value() && oo::str::hasSuffix(*selectorString, "_bool")) {
+                    // OOBooleanFromObject(result, NO): a string or number reads as oo::plist_get::boolFrom
+                    // does (bead oo-2764); any other object answers -boolValue / -intValue if it can.
+                    id resultObject = oo::ObjectIn(result);
+                    bool boolResult = NO;
+                    if (result.type() != oo::PList::Type::Object)
+                        boolResult = oo::plist_get::boolFrom(!result.isNull() ? &result : nullptr, NO);
+                    else if ([resultObject respondsToSelector:@selector(boolValue)])
+                        boolResult = [resultObject boolValue];
+                    else if ([resultObject respondsToSelector:@selector(intValue)])
+                        boolResult = [resultObject intValue] != 0;
+                    result = oo::PList(boolResult);
+                }
                 break;
 
             case kMethodTypeVoidVoid:
-                [object performSelector:selector];
+                OOCallByName(object, selector);
                 break;
 
             case kMethodTypeCharVoid:
@@ -138,16 +149,16 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
             case kMethodTypeIntVoid:
             case kMethodTypeUnsignedIntVoid:
             case kMethodTypeLongVoid:
-                result = oo::ObjectFromPList(oo::PList::signedInteger(OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)));
+                result = oo::PList::signedInteger(OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type));
                 break;
 
             case kMethodTypeUnsignedLongVoid:
-                result = oo::ObjectFromPList(oo::PList::unsignedInteger(OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type)));
+                result = oo::PList::unsignedInteger(OOCallIntegerMethod(object, selector, method, (OOShaderUniformType)type));
                 break;
 
             case kMethodTypeFloatVoid:
             case kMethodTypeDoubleVoid:
-                result = oo::ObjectFromPList(oo::PList(static_cast<double>(OOCallFloatMethod(object, selector, method, (OOShaderUniformType)type))));
+                result = oo::PList(static_cast<double>(OOCallFloatMethod(object, selector, method, (OOShaderUniformType)type)));
                 break;
 
             case kMethodTypeVectorVoid: {
@@ -175,16 +186,16 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& 
             case kMethodTypeMatrixVoid:
             case kMethodTypePointVoid:
             case kMethodTypeInvalid:
-                OOJSReportError(context, @"%@.callObjC(): method %@ cannot be called from JavaScript.", oo::NSStringFrom(oo_jsClassName), oo::NSStringOrNil(selectorString));
+                cxx_OOJSReportError(context, "%s.callObjC(): method %s cannot be called from JavaScript.", oo_jsClassName.c_str(), (selectorString ? selectorString->c_str() : "(null)"));
                 error = YES;
                 break;
             }
-            if (result != nil) {
-                *outResult = [result oo_jsValueInContext:context];
+            if (!result.isNull()) {
+                *outResult = OOJSValueFromPList(context, result); // a Foundation result's PList form, as OOJSValueFromNativeObject gave it (ADR-0051)
             }
         }
     } else {
-        OOJSReportError(context, @"%@.callObjC(): %@ does not respond to method %@.", oo::NSStringFrom(oo_jsClassName), [object shortDescription], oo::NSStringOrNil(selectorString));
+        cxx_OOJSReportError(context, "%s.callObjC(): %s does not respond to method %s.", oo_jsClassName.c_str(), oo::ShortDescriptionOf(object).c_str(), (selectorString ? selectorString->c_str() : "(null)"));
         error = YES;
     }
 

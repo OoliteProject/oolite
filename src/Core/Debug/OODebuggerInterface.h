@@ -35,42 +35,46 @@ SOFTWARE.
 
 @class OODebugMonitor;
 
+#include "oofnd/PList.hpp"
+#import "oofnd/objc/OOObject.h"
+#include <optional>
+#include <string>
+
 // Interface for debugger.
 
-@protocol OODebuggerInterface <NSObject>
+@protocol OODebuggerInterface <OOObject>
 
-// The string and dictionary parameters are typed id: these selectors are shared with the one
-// implementer, OODebugTCPConsoleClient (proposed ADR-0043).
+// Configuration and console text use oo::PList / std::string (proposed ADR-0043).
 
-// Sent to establish connection. *message: a string.
-- (BOOL)connectDebugMonitor:(in OODebugMonitor*)debugMonitor
-               errorMessage:(out id*)message;
+// Sent to establish connection. *message: error text when the connect fails.
+- (BOOL)connectDebugMonitor:(OODebugMonitor*)debugMonitor
+               errorMessage:(std::optional<std::string>*)message;
 
-// Sent to close connection. message: a string or nil.
-- (void)disconnectDebugMonitor:(in OODebugMonitor*)debugMonitor
-                       message:(in id)message;
+// Sent to close connection. message: nullopt when none.
+- (void)disconnectDebugMonitor:(OODebugMonitor*)debugMonitor
+                       message:(const std::optional<std::string>&)message;
 
 // Sent to print to the JavaScript console.
 // colorKey is intended to be used to look up a foreground/background colour pair
 // in the configuration. EmphasisRange is to specify a bold section of text.
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-            jsConsoleOutput:(in id)output
-                   colorKey:(in id)colorKey
-              emphasisRange:(in NSRange)emphasisRange;
+- (void)debugMonitor:(OODebugMonitor*)debugMonitor
+     jsConsoleOutput:(const std::string&)output
+            colorKey:(const std::optional<std::string>&)colorKey
+       emphasisRange:(NSRange)emphasisRange;
 
 // Sent to clear the JavaScript console.
-- (oneway void)debugMonitorClearConsole:(in OODebugMonitor*)debugMonitor;
+- (void)debugMonitorClearConsole:(OODebugMonitor*)debugMonitor;
 
 // Sent to show the console, for instance in response to a warning or error message.
-- (oneway void)debugMonitorShowConsole:(in OODebugMonitor*)debugMonitor;
+- (void)debugMonitorShowConsole:(OODebugMonitor*)debugMonitor;
 
 // Sent once when the debugger is connected.
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-          noteConfiguration:(in id)configuration; // a dictionary
+- (void)debugMonitor:(OODebugMonitor*)debugMonitor
+    noteConfiguration:(const oo::PList&)configuration;
 
-// Sent when configuration changes. newValue may be nil.
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-    noteChangedConfigrationValue:(in id)newValue
-                          forKey:(in id)key;
+// Sent when configuration changes. newValue null = was nil.
+- (void)debugMonitor:(OODebugMonitor*)debugMonitor
+    noteChangedConfigrationValue:(const oo::PList&)newValue
+                          forKey:(const std::string&)key;
 
 @end

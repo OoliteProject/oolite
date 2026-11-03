@@ -42,6 +42,7 @@ This code is hereby placed in the public domain.
 - (NSUInteger)count;
 - (BOOL)containsObject:(id<OOWeakReferenceSupport>)object;
 - (id)objectEnumerator; // shared selector: an enumerator over a snapshot of the live objects
+- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator; // the same snapshot, for C++ iteration
 
 - (void)addObject:(id<OOWeakReferenceSupport>)object; // Unlike a Foundation set, adding nil fails silently.
 - (void)removeObject:(id<OOWeakReferenceSupport>)object; // Like a Foundation set, does not complain if object is not already a member.
@@ -52,6 +53,7 @@ This code is hereby placed in the public domain.
 - (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument;
 
 - (id)allObjects; // shared selector: an immutable array of the live objects
+- (std::vector<oo::ObjCRef<id>>)cxx_allObjects; // the live objects, in the set's order
 
 - (void)removeAllObjects;
 

@@ -124,10 +124,10 @@ OOINLINE void FreeElement(OOAsyncQueueElement* element)
 
 // OOObject's -description wraps this as "<OOAsyncQueue 0x...>{n elements}", which is what this
 // class's own -description printed.
-- (id)descriptionComponents
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     // Don't bother locking, the value would be out of date immediately anyway.
-    return oo::NSStringFrom(oo::str::format("%u elements", _elemCount));
+    return oo::str::format("%u elements", _elemCount);
 }
 
 - (BOOL)enqueue:(id)object

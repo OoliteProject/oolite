@@ -49,6 +49,21 @@ static JSValue VisualEffectRestoreSubEntities(OOJS_NATIVE_ARGS);
 
 static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffectEntity* thisEnt, BOOL fromShaders);
 
+namespace {
+
+    // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
+    oo::PList NormalizedColorComponents(OOColor* color)
+    {
+        if (color == nil)
+            return oo::PList();
+        oo::PList::Array components;
+        for (float component : [color cxx_normalizedArray])
+            components.push_back(oo::PList::singleReal(component));
+        return oo::PList(std::move(components));
+    }
+
+} // namespace
+
 static JSClassDef sVisualEffectClass = {
     .class_name = "VisualEffect",
     .finalizer = OOJSObjectWrapperFinalize,
@@ -167,9 +182,9 @@ static BOOL JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
     return sVisualEffectClassID;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"VisualEffect";
+    return std::string("VisualEffect");
 }
 
 - (BOOL)isVisibleToScripts
@@ -177,10 +192,17 @@ static BOOL JSVisualEffectGetVisualEffectEntity(JSContext* context, JSValueConst
     return YES;
 }
 
-- (id)subEntitiesForScript // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<Entity*>>)subEntitiesForScript
 {
     const auto subs = [self visualEffectSubEntityEnumerator];
-    return subs.has_value() ? oo::NSArrayFromObjects(*subs) : nil; // nil before the first subentity, as before
+    if (!subs.has_value())
+        return { };
+    std::vector<oo::ObjCRef<Entity*>> result;
+    result.reserve(subs->size());
+    for (const auto& sub : *subs) {
+        result.emplace_back(sub.get());
+    }
+    return result;
 }
 
 @end
@@ -200,11 +222,11 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kVisualEffect_beaconCode:
-        result = [entity beaconCode];
+        result = oo::NSStringOrNil([entity beaconCode]);
         break;
 
     case kVisualEffect_beaconLabel:
-        result = [entity beaconLabel];
+        result = oo::NSStringOrNil([entity beaconLabel]);
         break;
 
     case kVisualEffect_dataKey:
@@ -233,11 +255,11 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [entity scaleZ]);
 
     case kVisualEffect_scannerDisplayColor1:
-        result = [[entity scannerDisplayColor1] normalizedArray];
+        result = oo::ObjectFromPList(NormalizedColorComponents([entity scannerDisplayColor1]));
         break;
 
     case kVisualEffect_scannerDisplayColor2:
-        result = [[entity scannerDisplayColor2] normalizedArray];
+        result = oo::ObjectFromPList(NormalizedColorComponents([entity scannerDisplayColor2]));
         break;
 
     case kVisualEffect_hullHeatLevel:
@@ -261,18 +283,18 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS)
     case kVisualEffect_shaderVector2:
         OOJS_RETURN_VECTOR([entity shaderVector2]);
 
-    case kVisualEffect_subEntities:
-        result = [entity subEntitiesForScript];
-        break;
+    case kVisualEffect_subEntities: {
+        // nil before the first subentity (was [subEntitiesForScript] == nil)
+        const auto subs = [entity visualEffectSubEntityEnumerator];
+        result = subs.has_value() ? oo::NSArrayFromObjects(*subs) : nil;
+    } break;
 
     case kVisualEffect_script:
         result = [entity script];
         break;
 
     case kVisualEffect_scriptInfo:
-        result = [entity scriptInfo];
-        if (result == nil)
-            result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // empty rather than null
+        result = oo::ObjectFromPList([entity scriptInfo]); // empty dict, never null
         break;
 
     default:
@@ -304,7 +326,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kVisualEffect_beaconCode:
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (!sValue.has_value() || sValue->empty()) {
             if ([entity isBeacon]) {
                 [UNIVERSE clearBeacon:entity];
@@ -314,10 +336,10 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
             }
         } else {
             if ([entity isBeacon]) {
-                [entity setBeaconCode:oo::NSStringFrom(*sValue)];
+                [entity setBeaconCode:sValue];
             } else // Universe needs to update beacon lists in this case only
             {
-                [entity setBeaconCode:oo::NSStringFrom(*sValue)];
+                [entity setBeaconCode:sValue];
                 [UNIVERSE setNextBeacon:entity];
             }
         }
@@ -325,9 +347,9 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kVisualEffect_beaconLabel:
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
-            [entity setBeaconLabel:oo::NSStringFrom(*sValue)];
+            [entity setBeaconLabel:sValue];
             return JS_UNDEFINED;
         }
         break;
@@ -340,7 +362,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kVisualEffect_scannerDisplayColor1:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setScannerDisplayColor1:colorForScript];
             return JS_UNDEFINED;
@@ -348,7 +370,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kVisualEffect_scannerDisplayColor2:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (colorForScript != nil || JS_IsNull(value)) {
             [entity setScannerDisplayColor2:colorForScript];
             return JS_UNDEFINED;
@@ -476,7 +498,7 @@ static JSValue VisualEffectGetMaterials(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
-    NSObject* result = nil;
+    OOObject* result = nil;
     OOVisualEffectEntity* thisEnt = nil;
 
     GET_THIS_EFFECT(thisEnt);
@@ -494,7 +516,7 @@ static JSValue VisualEffectGetShaders(OOJS_NATIVE_ARGS)
 {
     OOJS_PROFILE_ENTER
 
-    NSObject* result = nil;
+    OOObject* result = nil;
     OOVisualEffectEntity* thisEnt = nil;
 
     GET_THIS_EFFECT(thisEnt);
@@ -515,7 +537,7 @@ static JSValue VisualEffectSetMaterials(OOJS_NATIVE_ARGS)
     OOVisualEffectEntity* thisEnt = nil;
 
     if (argc < 1) {
-        OOJSReportBadArguments(context, @"VisualEffect", @"setMaterials", 0, OOJS_ARGV, nil, @"parameter object");
+        cxx_OOJSReportBadArguments(context, "VisualEffect", "setMaterials", 0, OOJS_ARGV, std::nullopt, "parameter object");
         return OOJSNativeFailure(context);
     }
 
@@ -536,13 +558,13 @@ static JSValue VisualEffectSetShaders(OOJS_NATIVE_ARGS)
     GET_THIS_EFFECT(thisEnt);
 
     if (argc < 1) {
-        OOJSReportBadArguments(context, @"VisualEffect", @"setShaders", 0, OOJS_ARGV, nil, @"parameter object");
+        cxx_OOJSReportBadArguments(context, "VisualEffect", "setShaders", 0, OOJS_ARGV, std::nullopt, "parameter object");
         return OOJSNativeFailure(context);
     }
 
     if (JS_IsNull(OOJS_ARGV[0]) || (!JS_IsNull(OOJS_ARGV[0]) && !JS_IsObject(OOJS_ARGV[0]))) {
         // EMMSTRAN: JS_ValueToObject() and normal error handling here.
-        OOJSReportWarning(context, @"VisualEffect.%@: expected %@ instead of '%@'.", @"setShaders", @"object", OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]));
+        cxx_OOJSReportWarning(context, "VisualEffect.%s: expected %s instead of '%s'.", "setShaders", "object", cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]).value_or("(null)").c_str());
         OOJS_RETURN_BOOL(NO);
     }
 
@@ -571,14 +593,14 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
     GET_THIS_EFFECT(thisEnt);
 
     if (JS_IsNull(OOJS_ARGV[0]) || (!JS_IsNull(OOJS_ARGV[0]) && !JS_IsObject(OOJS_ARGV[0]))) {
-        OOJSReportWarning(context, @"VisualEffect.%@: expected %@ instead of '%@'.", @"setMaterials", @"object", OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]));
+        cxx_OOJSReportWarning(context, "VisualEffect.%s: expected %s instead of '%s'.", "setMaterials", "object", cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0]).value_or("(null)").c_str());
         OOJS_RETURN_BOOL(NO);
     }
 
     if (argc > 1) {
         withShaders = YES;
         if (JS_IsNull(OOJS_ARGV[1]) || (!JS_IsNull(OOJS_ARGV[1]) && !JS_IsObject(OOJS_ARGV[1]))) {
-            OOJSReportWarning(context, @"VisualEffect.%@: expected %@ instead of '%@'.", @"setMaterials", @"object as second parameter", OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[1]));
+            cxx_OOJSReportWarning(context, "VisualEffect.%s: expected %s instead of '%s'.", "setMaterials", "object as second parameter", cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[1]).value_or("(null)").c_str());
             withShaders = NO;
         }
     }
@@ -586,13 +608,13 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
     if (fromShaders) {
         materials = [[thisEnt mesh] materials];
         params = OOJS_ARGV[0];
-        shaders = oo::PListFrom(OOJSNativeObjectFromJSObject(context, params));
+        shaders = cxx_OOJSPListFromJSObject(context, params);
     } else {
         params = OOJS_ARGV[0];
-        materials = oo::PListFrom(OOJSNativeObjectFromJSObject(context, params));
+        materials = cxx_OOJSPListFromJSObject(context, params);
         if (withShaders) {
             params = OOJS_ARGV[1];
-            shaders = oo::PListFrom(OOJSNativeObjectFromJSObject(context, params));
+            shaders = cxx_OOJSPListFromJSObject(context, params);
         } else {
             shaders = [[thisEnt mesh] shaders];
         }
@@ -641,13 +663,13 @@ static JSValue VisualEffectScale(OOJS_NATIVE_ARGS)
     BOOL gotScale;
 
     if (argc < 1) {
-        OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor needed");
+        cxx_OOJSReportBadArguments(context, "VisualEffect", "scale", argc, OOJS_ARGV, std::nullopt, "scale factor needed");
         return OOJSNativeFailure(context);
     }
 
     gotScale = JS_ToFloat64(context, &scale, OOJS_ARGV[0]) == 0;
     if (EXPECT_NOT(scale <= 0.0 || !gotScale)) {
-        OOJSReportBadArguments(context, @"VisualEffect", @"scale", argc, OOJS_ARGV, nil, @"scale factor must be positive");
+        cxx_OOJSReportBadArguments(context, "VisualEffect", "scale", argc, OOJS_ARGV, std::nullopt, "scale factor must be positive");
         return OOJSNativeFailure(context);
     }
 
@@ -670,13 +692,13 @@ static JSValue VisualEffectRestoreSubEntities(OOJS_NATIVE_ARGS)
 
     GET_THIS_EFFECT(thisEnt);
 
-    NSUInteger subCount = [[thisEnt subEntitiesForScript] count];
+    NSUInteger subCount = [thisEnt subEntitiesForScript].size();
 
     [thisEnt clearSubEntities];
     [thisEnt setUpSubEntities];
 
-    if ([[thisEnt subEntitiesForScript] count] - subCount > 0)
-        numSubEntitiesRestored = [[thisEnt subEntitiesForScript] count] - subCount;
+    if ([thisEnt subEntitiesForScript].size() - subCount > 0)
+        numSubEntitiesRestored = [thisEnt subEntitiesForScript].size() - subCount;
 
     OOJS_RETURN_BOOL(numSubEntitiesRestored > 0);
 

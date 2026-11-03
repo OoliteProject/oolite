@@ -28,6 +28,7 @@ Rules that hold for every component:
 | `src/oofnd/PListXML.hpp` | `oo::parseXMLPList` (GNUstep's GSXMLPListParser over GSSloppyXMLParser) and `oo::changeDTDIfApplicable` (OOPListParsing.m), ported quirk-for-quirk |
 | `src/oofnd/PListWriting.hpp` | `oo::writeOldStylePList` (OldSchoolPropertyListWriting.m) and `oo::writeXMLPList` (GNUstep's XML writer), byte-identical output |
 | `src/oofnd/PListParsing.hpp` | `oo::parsePropertyList`: OOPropertyListFromData's DTD change + format detection + dispatch to the two readers |
+| `src/oofnd/PListDescription.hpp` | `oo::describe(plist)`: gnustep-base's `-description` of the Foundation form of a `PList` (what `%@` printed for `ObjectFromPList(plist)`), byte for byte; pinned by rows captured with `tools/captures/plist-description/capture.sh` (ADR-0055 item 1). Game code calls `oo::DescriptionOf(plist)` |
 | `src/oofnd/PListGet.hpp` | `oo::PList::get<T>(key, fallback)` / `at<T>(index, fallback)`: OOCollectionExtractors' `oo_*ForKey:` / `oo_*AtIndex:` with GNUstep's exact conversions ([ADR-0031](../../../../docs/decisions/0031-plist-get-and-the-foundation-bridge.md)); included by `PList.hpp` |
 | `src/Core/OOPListView.h` (game side) | `oo::PListView`: the same `get<T>`/`at<T>` over a Foundation collection, for sweeping `oo_*ForKey` before the containers are `PList`; see below |
 | `src/oofnd/Data.hpp` | `oo::Data`: `NSData` / `NSMutableData` as a value type ([ADR-0028](../../../../docs/decisions/0028-oofnd-filesystem-paths-data.md)) |
@@ -48,7 +49,7 @@ Rules that hold for every component:
 | `src/oofnd/objc/OOObjCRef.h` | `oo::ObjCRef<T *>`: a retaining reference to an Objective-C object for std containers (`objc_retain`/`objc_release`; `Ref<T>`'s API); `test_objc_ref.mm` also pins the nil-message zero-fill the sweep's return types rest on (proposed [ADR-0043](../../../../docs/decisions/0043-foundation-sweep-recipe.md)) |
 | `src/Core/OOFoundationBridge.h` (game side) | the Foundation sweep's boundary helpers: nil-able strings, kind tests, string and object collections, `oo::PList` <-> property-list objects, `%@` text; see "Migrating Foundation usage" |
 | `tools/check-selector-types.py` | which of a header's selectors are shared (keep `id`) and the tree-wide guard against a selector family disagreeing on a C++ type |
-| `src/oofnd/Defaults.hpp` | `oo::Defaults`: `NSUserDefaults` with `NSUserDefaults+Override`/`NSBundle+Override` as the game runs them: same `GNUstep/Defaults/oolite.plist`, same search list and coercions, `oo::writeOpenStepPList` (GNUstep's OpenStep writer, byte-identical) ([ADR-0032](../../../../docs/decisions/0032-oofnd-defaults.md)) |
+| `src/oofnd/Defaults.hpp` | `oo::Defaults`: preferences store matching former `NSUserDefaults`+Override/`NSBundle+Override` behaviour: same `GNUstep/Defaults/oolite.plist`, same search list and coercions, `oo::writeOpenStepPList` (GNUstep's OpenStep writer, byte-identical) ([ADR-0032](../../../../docs/decisions/0032-oofnd-defaults.md)); shim deleted by oo-iobt |
 | `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++, not linked into the game until the reroot bead |
 | `src/oofnd/objc/OOObject.h`, `.mm` | `OOObject`: the Foundation-free Objective-C root class on libobjc2's own refcount and pool; `OOObjCInstallFloor()` ([ADR-0029](../../../../docs/decisions/0029-objc-floor-without-foundation.md)). Objective-C++; linked into the game by bead oo-3rb.2 (exemplar reroot: `Core/OORoleSet`), but `OOObjCInstallFloor()` is not called until the constant-string flip |
 | `src/oofnd/objc/OOConstantString.h`, `.mm` | `OOConstantString`/`OOTinyString`: the classes behind `@"..."` under `-fconstant-string-class=OOConstantString` (ADR-0029) |
@@ -202,8 +203,8 @@ remaining `OOLog` calls, so a converted line reads exactly as it did.
 
 1. **Include** `"oofnd/Log.hpp"` (replacing `#import "OOLogging.h"` if the file imports it).
 2. **Rewrite each call:** `OOLog(@"cls", @"fmt", args)` -> `OO_LOG("cls", "fmt'", args')`, and
-   `OOLogERR`/`OOLogWARN` -> `OO_LOG_ERR`/`OO_LOG_WARN`. The class is a string literal (an
-   `NSString *` constant becomes `oo::StdString(kConstant)`, from `OOStringBridge.h`).
+   `OOLogERR`/`OOLogWARN` -> `OO_LOG_ERR`/`OO_LOG_WARN`. The class is a string literal (a key
+   constant is a `std::string_view` since ADR-0055 item 6, and passes as `std::string(kConstant)`).
    Conversions: `%d %i %ld %lld` -> `{}`; `%u %lu %llu %zu` -> `{}` and `%x` -> `{:x}`, **with the
    argument cast to the unsigned type the conversion read** if it is signed (`printf` reinterprets
    `-1` as `4294967295` / `ffffffff`; std::format prints the argument's own value); `%c` -> `{:c}`
@@ -224,10 +225,8 @@ module; open the one nearest your file and do what it does:
 | Exemplar | Bead | Shows |
 |---|---|---|
 | `src/Core/OOVector.mm` / `.h` | oo-g7k5 | a C function returning a string; a header reached inside `extern "C"`; callers wrapped at the call |
-| `src/Core/OORoleSet.mm` / `.h` | oo-hi38 | collections as std containers, `std::optional` results, unique and shared selectors, `-description` -> `-descriptionComponents`, sorting, four callers adapted |
+| `src/Core/OORoleSet.mm` / `.h` | oo-hi38 | collections as std containers, `std::optional` results, unique and shared selectors, `-description` -> `-cxx_descriptionComponents` (OODescription.h), sorting, four callers adapted |
 | `src/Core/Materials/OOBasicMaterial.mm` / `.h` | oo-ro7q | a class whose every NS-typed selector is shared: `id` at the boundary, a nil-able string ivar |
-| `src/Core/OOColor.mm` / `.h` + `OOColor+FoundationBridge.h/.mm` | oo-tms0 | fan-out over budget (15 caller files): `cxx_` API plus a transitional bridge (step 6) |
-| `src/Core/Materials/OOMaterialSpecifier.mm` / `.h` + `OOMaterialSpecifier+FoundationBridge.h/.mm` | oo-hiis | a category on NSDictionary over mixed configurations -> `cxx_` free functions over `const oo::PList &`, bridged (Amendment 2) |
 | `src/Core/Materials/OOMultiTextureMaterial.mm` / `.h` | oo-vpbt | a mixed configuration as `oo::PList`: read, copied minus two keys, handed on exactly |
 | `src/Core/OOALSoundDecoder.mm` / `.h` | oo-oz2y | path components (`oo::str::pathComponents` & co.), a private dictionary as `std::optional<std::map>`, `-description` with a dictionary |
 
@@ -425,13 +424,13 @@ else. Until then, a caller's sweep bead moves off them with:
 |---|---|
 | `NSString (OOExtensions)`, `(OOUtilities)` | `oo::str` (tables above and in `String.hpp`) |
 | `NSFileManager (OOExtensions)`, `NSData` file reading | `oo::fs` (`oofnd/FileSystem.hpp`) |
-| `NSDictionary` / `NSMutableDictionary (OOExtensions)`, `OOCollectionExtractors` | `oo::PList` / std containers; `get<T>` (the `oo_*ForKey` recipe) |
+| `NSDictionary` / `NSMutableDictionary (OOExtensions)`, `OOCollectionExtractors` | `oo::PList` / std containers; `get<T>` (the `oo_*ForKey` recipe); `OO{Vector,HPVector,Quaternion}FromObject` / `OOPropertyListFrom*` / `OOFuzzyBooleanFromObject` -> `Core/OOPListGameTypes.h` (`get<Vector>(key, fallback)`, `OOVectorFromPList`, `OOPListFromVector`, `OOFuzzyBooleanFromPList`) |
 | `NSNumber (OOExtensions)` | the scalar |
 | `OODeepCopy(x)` | a value copy of the `oo::PList` / std container (already deep) |
 | `[e objectEnumeratorFilteredWithSelector:@selector(isFoo)]` & co. | `for (const auto &r : v) { if (![r.get() isFoo]) continue; ... }` |
 | `[e objectEnumeratorExcludingObject:x]` | `for (const auto &r : v) { if (r.get() == x) continue; ... }` |
 | `foreach` / `foreachkey` / `-objectEnumerator` over a std container | range-for |
-| `NSUserDefaults (Override)` | `oo::Defaults` (ADR-0032); retired with the last `NSUserDefaults` consumer |
+| `NSUserDefaults (Override)` | retired (oo-iobt): use `oo::Defaults` (ADR-0032) |
 
 ### 8. Materials order, chunk beads, C handles (Amendment 2)
 
@@ -463,49 +462,9 @@ After it, `worktree.sh --remove <id>` run from MSYS2 no longer finds the worktre
 
 ### Transitional bridges
 
-Every `X+FoundationBridge` file in the tree, with the bead that made it and the bead that deletes
-it. oo-qps cannot compile any of them.
-
-| Bridge | Made by | Deleted by |
-|---|---|---|
-| `src/Core/OOColor+FoundationBridge.h/.mm` | oo-tms0 | oo-1hvf |
-| `src/Core/Materials/OOMaterialSpecifier+FoundationBridge.h/.mm` (also where the NSDictionary category retires) | oo-hiis | oo-kvlo |
-| `src/Core/Materials/OOTexture+FoundationBridge.h/.mm` (also the NSString `kOOTextureSpecifier*Key` constants) | oo-japz | oo-x3ni ("Delete OOTexture+FoundationBridge") |
-| `src/Core/OOHPVector+FoundationBridge.h/.mm` | oo-dlox | oo-75iu ("Delete OOHPVector+FoundationBridge") |
-| `src/Core/Entities/Entity+FoundationBridge.h` (header only: Entity.h's Foundation-typed C prototypes, defined in OOConstToString.mm) | oo-2qdy | oo-a8xp ("Delete Entity+FoundationBridge") |
-| `src/Core/OOCommodityMarket+FoundationBridge.h/.mm` | oo-rvit | oo-ctac ("Delete OOCommodityMarket+FoundationBridge") |
-| `src/Core/Entities/PlayerEntityScriptMethods+FoundationBridge.h/.mm` (category `PlayerEntity (ScriptMethodsFoundationBridge)`) | oo-8mxr | oo-tj5w ("Delete PlayerEntityScriptMethods+FoundationBridge") |
-| `src/Core/Entities/PlayerEntity+FoundationBridge.h/.mm` (category `PlayerEntity (FoundationBridge)`; PlayerEntity.mm chunks of oo-3rb.75 move their own selectors in) | oo-3rb.164 | oo-c8xj ("Delete PlayerEntity+FoundationBridge") |
-| `src/Core/OOCacheManager+FoundationBridge.h/.mm` | oo-19g0 | oo-5pae ("Delete OOCacheManager+FoundationBridge") |
-| `src/Core/Entities/PlayerEntityControls+FoundationBridge.h/.mm` (category `PlayerEntity (ControlsFoundationBridge)`; chunked: oo-3rb.214 made it; chunks oo-3rb.215-.219 move their own selectors in) | oo-3rb.214 (chunks of oo-3rb.77) | oo-kaap ("Delete PlayerEntityControls+FoundationBridge") |
-| `src/Core/GuiDisplayGen+FoundationBridge.h/.mm` (chunked: oo-3rb.92 made it; chunks oo-3rb.93-.96 move their own selectors in) | oo-3rb.92 (chunks of oo-ol63) | oo-q01b ("Delete GuiDisplayGen+FoundationBridge") |
-| `src/SDL/MyOpenGLView+FoundationBridge.h/.mm` (chunked: oo-3rb.110 made it; the later MyOpenGLView chunks move their own selectors in) | oo-3rb.110 | oo-xrkm ("Delete MyOpenGLView+FoundationBridge") |
-| `src/Core/AI+FoundationBridge.h/.mm` | oo-3rb.84 (AI.mm chunks oo-3rb.84..87) | oo-ag2w ("Delete AI+FoundationBridge") |
-| `src/Core/OOEquipmentType+FoundationBridge.h/.mm` (chunked: oo-3rb.156 made it; chunks oo-3rb.157-.159 move their own selectors in) | oo-3rb.156 (chunks of oo-fvnu) | oo-6nbt ("Delete OOEquipmentType+FoundationBridge") |
-| `src/Core/OOCommodities+FoundationBridge.h/.mm` | oo-3rb.154 (chunk 1 of oo-19d2) | oo-o92r ("Delete OOCommodities+FoundationBridge") |
-| `src/Core/OOConstToString+FoundationBridge.h/.mm` (chunked: oo-3rb.160 made it; chunks oo-3rb.161-.163 move their own functions in; some old prototypes stay in Entity.h / ShipEntity.h / PlayerEntity.h / Universe.h) | oo-3rb.160 (chunks of oo-nts1) | oo-jx3u ("Delete OOConstToString+FoundationBridge") |
-| `src/Core/OXPVerifier/OOFileScannerVerifierStage+FoundationBridge.h/.mm` | oo-56tr | oo-cjel ("Delete OOFileScannerVerifierStage+FoundationBridge") |
-| `src/Core/ResourceManager+FoundationBridge.h/.mm` | oo-3rb.98 (chunks of oo-2wwr) | oo-0f7h ("Delete ResourceManager+FoundationBridge") |
-| `src/Core/OOLogging+FoundationBridge.h/.mm` (the NSString message-class API and kOOLog* constants; the last bridge deleted) | oo-3rb.136 (chunks of oo-lskf) | oo-zcgz ("Delete OOLogging+FoundationBridge") |
-| `src/Core/OOSystemDescriptionManager+FoundationBridge.h/.mm` | oo-3rb.107 (chunks of oo-868e) | oo-caz5 ("Delete OOSystemDescriptionManager+FoundationBridge") |
-| `src/Core/Scripting/OOScript+FoundationBridge.h/.mm` | oo-du83 | oo-eu4j ("Delete OOScript+FoundationBridge") |
-| `src/Core/OOPListParsing+FoundationBridge.h/.mm` | oo-3rb.132 (chunk of oo-crpp) | oo-uq2m ("Delete OOPListParsing+FoundationBridge") |
-| `src/Core/OOStringParsing+FoundationBridge.h/.mm` (also where the NSString (OOUtilities) category retires) | oo-3rb.124 (chunks of oo-1886) | oo-0gzp ("Delete OOStringParsing+FoundationBridge") |
-| `src/Core/OXPVerifier/OOOXPVerifier+FoundationBridge.h/.mm` | oo-hkvv | oo-3rb.168 ("Delete OOOXPVerifier+FoundationBridge") |
-| `src/Core/Entities/PlayerEntityContracts+FoundationBridge.h/.mm` (category `PlayerEntity (ContractsFoundationBridge)`; chunked: oo-3rb.179 made it; chunks oo-3rb.180-.185 move their own selectors in) | oo-3rb.179 (chunks of oo-ldqo) | oo-t8p6 ("Delete PlayerEntityContracts+FoundationBridge") |
-| `src/Core/OOShipRegistry+FoundationBridge.h/.mm` | oo-3rb.114 (chunks of oo-92mj) | oo-b7xq ("Delete OOShipRegistry+FoundationBridge") |
-| `src/Core/OOLogOutputHandler+FoundationBridge.h/.mm` (gnustep-base's NSLog hook, Amendment 2 item 18(a); also the Foundation-typed functions until oo-vors removes them) | oo-vjts | oo-qps (with gnustep-base) |
-| `src/Core/OOShipGroup+FoundationBridge.h/.mm` (also where the NSEnumerator subclass OOShipGroupEnumerator lives on, around an OOShipGroupCursor) | oo-5l4w | oo-1a1v ("Delete OOShipGroup+FoundationBridge") |
-| `src/Core/Entities/PlayerEntitySound+FoundationBridge.h/.mm` (category `PlayerEntity (SoundFoundationBridge)`) | oo-14c5 | oo-qx1l ("Delete PlayerEntitySound+FoundationBridge") |
-| `src/Core/Entities/ShipEntity+FoundationBridge.h/.mm` (chunked: oo-3rb.232 made it; chunks oo-3rb.233-.242 of oo-3rb.73 move their own selectors in) | oo-3rb.232 | oo-pizp ("Delete ShipEntity+FoundationBridge") |
-| `src/Core/OOStringExpander+FoundationBridge.h/.mm` (also the OOExpand* macros and their argument-dictionary / boxing machinery; chunked: oo-3rb.145 made it) | oo-3rb.145 (chunks of oo-3il6) | oo-m2nh ("Delete OOStringExpander+FoundationBridge") |
-| `src/Core/NSUserDefaults+OODefaultsBridge.h/.mm` (backs the game's `+standardUserDefaults` with `oo::Defaults::standard()`: one store; ADR-0032 Amendment 1) | oo-mwo0 | oo-iobt ("Delete NSUserDefaults+OODefaultsBridge") |
-| `src/Core/GameController+FoundationBridge.h/.mm` (chunked: oo-3rb.88 made it; chunks oo-3rb.89-.91 move their own selectors in) | oo-3rb.88 (chunks of oo-m6ej) | oo-6abg ("Delete GameController+FoundationBridge") |
-| `src/Core/HeadUpDisplay+FoundationBridge.h/.mm` (chunked: oo-3rb.209 made it; chunks oo-3rb.210-.213 move their own selectors in; also carries the `NSString (OOHUDBeaconIcon)` category) | oo-3rb.209 (chunks of oo-3rb.81) | oo-f9rf ("Delete HeadUpDisplay+FoundationBridge") |
-| `src/Core/Universe+FoundationBridge.h/.mm` (chunked: oo-3rb.220 made it; chunks oo-3rb.221-.231 move their own selectors in; also the `OOLookUp*DescriptionPRIV` functions behind DESC()) | oo-3rb.220 (chunks of oo-3rb.79) | oo-mr9c ("Delete Universe+FoundationBridge") |
-| `src/Core/Entities/StationEntity+FoundationBridge.h/.mm` (chunked: oo-3rb.172 made it; chunks oo-3rb.173-.175 move their own selectors in) | oo-3rb.172 (chunks of oo-e7ab) | oo-nrkz ("Delete StationEntity+FoundationBridge") |
-| `src/Core/Scripting/OOJavaScriptEngine+FoundationBridge.h/.mm` (chunked: oo-3rb.198 made it; chunks oo-3rb.199-.203 move their own groups in, and the retiring JS-glue categories on Foundation classes, deleted just before oo-qps) | oo-3rb.198 (chunks of oo-rbqc) | oo-vp0y ("Delete OOJavaScriptEngine+FoundationBridge") |
-| `src/Core/Entities/PlayerEntityLegacyScriptEngine+FoundationBridge.h/.mm` (category `PlayerEntity (ScriptingFoundationBridge)`; chunked: oo-3rb.190 made it; chunks oo-3rb.191-.197 move their own selectors in) | oo-3rb.190 (chunks of oo-j924) | oo-53in ("Delete PlayerEntityLegacyScriptEngine+FoundationBridge") |
+None remain. The last, `src/Core/OOLogOutputHandler+FoundationBridge.h/.mm` (gnustep-base's NSLog
+hook, Amendment 2 item 18(a); made by oo-vjts), was deleted by oo-qps.28: whatever gnustep-base
+itself NSLogs goes to stderr instead of Latest.log until oo-qps.18 unlinks it.
 
 ### Stop and report (do not stretch)
 
@@ -522,6 +481,65 @@ it. oo-qps cannot compile any of them.
 
 When a family's last member has been swept, its **family bead** changes every `id` of that selector
 to the C++ type in all declarations and callers at once; the bridges go with gnustep-base (oo-qps).
+
+## The last Foundation boundaries (ADR-0055)
+
+What replaces each bridge helper once gnustep-base leaves the link line. Each seam below is
+Foundation-free and is what Phase 3 keeps (it drops the `cxx_` prefix as it converts each call).
+
+### Describing an object: `Core/OODescription.h` (item 1, oo-qps.31)
+
+Imported by `OOCocoa.h`, so no file includes it. A class describes itself by overriding **one**
+method on the `OOObject` root; the printers wrap it:
+
+| Override | Printed by | As |
+|---|---|---|
+| `- (std::optional<std::string>) cxx_descriptionComponents` | `-cxx_description`, `oo::DescriptionOf(x)`, `-cxx_oo_jsDescription` | `<ClassName 0xnnnnnnnn>{components}`; JS `[jsClassName components]` |
+| `- (std::optional<std::string>) cxx_shortDescriptionComponents` | `-cxx_shortDescription`, `oo::ShortDescriptionOf(x)` | `<ClassName 0xnnnnnnnn>{components}` |
+| `- (std::optional<std::string>) cxx_description` (rare: the whole text) | `oo::DescriptionOf(x)` | whatever it returns |
+
+nullopt means no components (`<ClassName 0xnnnnnnnn>`). A subclass extends its superclass's text with
+`[super cxx_descriptionComponents].value_or("(null)")`. Exemplar: `src/Core/OORoleSet.mm`
+(`-cxx_descriptionComponents`); the idiom table's `%@ of an object` row is unchanged:
+`oo::DescriptionOf(obj)` (`(null)` for nil, a class's name for a class object, the text of a string
+literal). `oo::DescriptionOf([x shortDescription])` is `oo::ShortDescriptionOf(x)`.
+
+Transitional, until oo-qps.43 flips the legacy family tree-wide in one codemod commit
+(`python3 tools/codemods/description-family.py --fix upstream/oolite/src`, then `--check` for the
+hand residue) and deletes the legacy root in `OOCocoa.h/.mm`: the root's `cxx_` defaults forward to a
+legacy `- (id) descriptionComponents` (& co.) override while a class has one, and `oo::DescriptionOf`
+of an object not rooted on `OOObject` asks its `-description` (oo-qps.72 deletes both). Do not flip
+one class's override by hand before oo-qps.43: a converted superclass hides an unconverted
+subclass's override (the exemplar has no subclass). `tests/unit/oofnd/test_objc_description.mm` pins the text and the forwarding,
+linked against libobjc2 alone.
+
+### Describing a property list: `oo::DescriptionOf(const oo::PList &)` (item 1, oo-qps.32)
+
+`oo::DescriptionOf(oo::ObjectFromPList(v))` is `oo::DescriptionOf(v)`: the `OODescription.h` overload
+forwards to `oo::describe` (`oofnd/PListDescription.hpp`), which prints what gnustep-base's
+`-description` printed (`(a, "two words", 1)`, `{key = value; }`, keys by `-compare:`, strings
+quoted and escaped as GNUstep did). Exemplar: `src/Core/Entities/OOVisualEffectEntity.mm`
+(`setUpOneStandardSubentity:`). The text is pinned by `tests/unit/oofnd/test_plist_description.cpp`
+against `plist_description_captured.inc`, captured from GNUstep base 1.31.1; to add a case, add a
+line to `tools/captures/plist-description/cases.txt` and rerun
+`bash tools/captures/plist-description/capture.sh` (needs gnustep-base installed, also after
+oo-qps.18; `--check` compares without writing). Dates print in the local time zone, as NSDate did
+(`oo::date::description`); the capture runs with TZ=UTC and the test describes at offset 0.
+
+### Calling a method by name: `Core/OOCallByName.h` (item 5, oo-qps.34)
+
+A dispatcher that runs a method named in data (an AI action, a legacy-script action or query, a
+HUD dial, a deferred call) calls `OOCallByName(target, selector [, argument])` instead of
+`-performSelector:withObject:`, and the method it names has one of the dispatcher's C++ signatures:
+`- (void|oo::PList) sel`, `- (void|oo::PList) sel:(const std::string &)s`, or
+`- (void) sel:(const oo::PList &)p` (the table is in the header). Exemplar: `src/Core/AI.mm`
+(`-cxx_takeAction:`, the `interpretAIMessage:` message, the deferred-call trampoline and its
+`-deferredSetState:(const std::string &)`). To flip a called-by-name method, give it one of those
+signatures in every declaring class at once (the family rule); `python3 tools/check-selector-types.py --check`
+accepts exactly those and the transitional `id` form, and `--strict-called-by-name` (oo-qps.72)
+rejects the `id` form. Until then OOCallByName bridges an `id`-typed method's argument and result,
+so selectors flip file by file. `tests/unit/oofnd/test_objc_call_by_name.mm` pins the signatures'
+type encodings on this toolchain and the dispatch, linked against libobjc2 alone.
 
 ## Testing
 

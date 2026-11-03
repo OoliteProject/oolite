@@ -89,7 +89,7 @@ SOFTWARE.
 - (id)cxx_stageWithName:(const std::string&)name;
 
 // Read from verifyOXP.plist
-- (id)configurationValueForKey:(id)key; // key: an Objective-C string. Shared selector (proposed ADR-0043).
+- (oo::PList)configurationValueForKey:(const std::string&)key;
 - (oo::PList)cxx_configurationArrayForKey:(const std::string&)key; // an Array, or null (was nil) if absent or not an array
 - (oo::PList)cxx_configurationDictionaryForKey:(const std::string&)key; // a Dict, or null (was nil) if absent or not a dictionary
 - (std::optional<std::string>)cxx_configurationStringForKey:(const std::string&)key; // a string, or a number's text; nullopt (was nil) otherwise

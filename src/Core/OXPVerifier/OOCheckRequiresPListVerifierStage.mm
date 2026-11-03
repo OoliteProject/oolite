@@ -75,9 +75,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 @implementation OOCheckRequiresPListVerifierStage
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (BOOL)shouldRun

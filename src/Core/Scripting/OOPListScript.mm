@@ -62,16 +62,21 @@ id ObjectForKey(const oo::PList& dictionary, const char* key)
     if (cachedScripts) {
         return [self loadCachedScripts:cachedScripts];
     } else {
-        const oo::PList dict = oo::PListFrom(OODictionaryFromFile(oo::NSStringFrom(filePath)));
+        oo::PList dict = cxx_OOPropertyListFromFile(filePath);
+        if (!dict.isDict())
+            dict = oo::PList(); // a dictionary or nothing, as OODictionaryFromFile answered (its plist.wrongType line, which named the Foundation class, is not kept)
         if (!dict)
             return std::nullopt;
         return [self scriptsFromDictionaryOfScripts:dict filePath:filePath];
     }
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return ObjectForKey(_metadata, kMDKeyName);
+    // Always a string: -initWithName:scriptArray:metadata: sets it.
+    const oo::PList* value = _metadata.get<oo::PList>(kMDKeyName);
+    const std::string* string = (value != nullptr) ? value->getIf<std::string>() : nullptr;
+    return (string != nullptr) ? std::optional<std::string>(*string) : std::nullopt;
 }
 
 - (std::optional<std::string>)scriptDescription
@@ -103,12 +108,12 @@ id ObjectForKey(const oo::PList& dictionary, const char* key)
         return;
     }
 
-    OO_LOG("script.legacy.run", "Running script {}", oo::DescriptionOf([self displayName]));
+    OO_LOG("script.legacy.run", "Running script {}", [self displayName].value_or("(null)"));
     oo::log::indentIf("script.legacy.run");
 
-    [PLAYER runScriptActions:oo::ObjectFromPList(_script)
-             withContextName:[self name]
-                   forTarget:(ShipEntity*)target];
+    [PLAYER cxx_runScriptActions:_script
+                 withContextName:oo::OptionalString([self name])
+                       forTarget:(ShipEntity*)target];
 
     oo::log::outdentIf("script.legacy.run");
 }

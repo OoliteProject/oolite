@@ -53,8 +53,7 @@ SOFTWARE.
 /*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp, bead oo-3rb.64, proposed
         ADR-0042): the rotation to Previous.log, the writer thread, CRLF, the 1 GiB saturation and
         the flush are its, byte for byte as OOAsyncLogger did them. What stays here is the glue: the
-        log directory, the logging-echo-to-stderr / stdout switches, the flush deadline of ADR-0033,
-        and, while gnustep-base is linked, the hook that brings its own Foundation log output into the log.
+        log directory, the logging-echo-to-stderr / stdout switches and the flush deadline of ADR-0033.
 */
 
 #if OOLITE_MAC_OS_X
@@ -159,9 +158,6 @@ void OOLogOutputHandlerInit(void)
     } else {
         OO_LOG("logging.nsLogFilter.install.failed", "{}", "Failed to install Foundation log filter; system messages will not be logged in log file.");
     }
-#else
-    // gnustep-base's Foundation log hook lives in the bridge (OOLogOutputHandler+FoundationBridge.mm).
-    OOLogOutputHandlerInstallNSLogHook();
 #endif
 
     atexit(OOLogOutputHandlerClose);
@@ -199,8 +195,6 @@ void OOLogOutputHandlerClose(void)
             _NSSetLogCStringFunction(sDefaultLogCStringFunction);
             sDefaultLogCStringFunction = NULL;
         }
-#else
-        OOLogOutputHandlerRemoveNSLogHook();
 #endif
     }
 }
@@ -364,8 +358,8 @@ static void LoadLogCStringFunctions(void)
 
 static void OONSLogCStringFunction(const char* string, unsigned length, BOOL withSyslogBanner)
 {
-    if (OOLogWillDisplayMessagesInClass(@"system")) {
-        OOLogWithFunctionFileAndLine(@"system", NULL, NULL, 0, @"%s", string);
+    if (oo::log::willDisplay("system")) {
+        oo::log::logger().write("system", NULL, NULL, 0, string != NULL ? string : "(null)");
     }
 }
 

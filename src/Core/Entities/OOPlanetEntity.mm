@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "Universe.h"
 
-#import "OOCollectionExtractors.h" // OOVectorFromObject() (unmigrated callee)
 #import "OOMaths.h"
 #import "OOStringParsing.h"
 #import "OOSystemDescriptionManager.h"
@@ -48,6 +47,7 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOJavaScriptEngine.h" // OONull
 #import "OOOpenGLMatrixManager.h"
+#import "OOPListGameTypes.h"
 #import "OOPlanetTextureGenerator.h"
 #import "OOShaderMaterial.h"
 #import "OOSingleTextureMaterial.h"
@@ -57,6 +57,7 @@ MA 02110-1301, USA.
 #include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 #define OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT (make_vector(0.105, 0.18, 0.28)) // used to be (0.1, 0.105, 0.12);
 
@@ -96,12 +97,12 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return dict.get<std::string>(key);
 }
 
-// get<Vector>: OOVectorFromObject of the value; the zero vector for no dictionary (messaging nil).
+// get<Vector>: OOVectorFromPList of the value; the zero vector for no dictionary (messaging nil).
 Vector VectorForKey(const oo::PList& dict, std::string_view key, Vector fallback)
 {
     if (dict.isNull())
         return kZeroVector;
-    return OOVectorFromObject(ObjectForKey(dict, key), fallback);
+    return OOVectorFromPList(dict.find(key), fallback);
 }
 
 // get<PList::Dict>: the dictionary, or null (nil).
@@ -163,7 +164,7 @@ id MaterialConfigWithTextures(const oo::PList& configuration, std::initializer_l
 // this is exclusively called to initialise the main planet.
 - (id)initAsMainPlanetForSystem:(OOSystemID)s
 {
-    oo::PList planetInfo = oo::PListFrom([UNIVERSE generateSystemData:s]);
+    oo::PList planetInfo = [UNIVERSE cxx_generateSystemData:s];
 
     SetInfo(planetInfo, "mainForLocalSystem", oo::PList(static_cast<bool>(YES)));
     if (s != [PLAYER systemID]) {
@@ -185,7 +186,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
 
     scanClass = CLASS_NO_DRAW;
 
-    oo::PList planetInfo = oo::PListFrom([UNIVERSE generateSystemData:systemID]); // null where it was nil
+    oo::PList planetInfo = [UNIVERSE cxx_generateSystemData:systemID]; // null where it was nil
 
     [self setUpTypeParametersWithSourceInfo:dict targetInfo:planetInfo];
 
@@ -194,7 +195,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     // Load random seed override.
     const std::optional<std::string> seedStr = OptionalStringForKey(dict, "seed");
     if (seedStr.has_value()) {
-        Random_Seed overrideSeed = RandomSeedFromString(oo::NSStringFrom(*seedStr));
+        Random_Seed overrideSeed = cxx_RandomSeedFromString(seedStr);
         if (!is_nil_seed(overrideSeed))
             seed = overrideSeed;
         else
@@ -206,13 +207,13 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
 
     _name.reset();
     // A nil planet info read nil for the name, which then falls back to nothing.
-    const std::optional<std::string> infoName = planetInfo ? std::optional<std::string>(planetInfo.get<std::string>(oo::StdString(KEY_PLANETNAME), "%H")) : std::nullopt;
-    const std::optional<std::string> planetName = infoName.has_value() ? std::optional<std::string>(dict.get<std::string>(oo::StdString(KEY_PLANETNAME), *infoName)) : OptionalStringForKey(dict, oo::StdString(KEY_PLANETNAME));
-    [self setName:OOExpand(oo::NSStringOrNil(planetName))];
+    const std::optional<std::string> infoName = planetInfo ? std::optional<std::string>(planetInfo.get<std::string>(std::string(KEY_PLANETNAME), "%H")) : std::nullopt;
+    const std::optional<std::string> planetName = infoName.has_value() ? std::optional<std::string>(dict.get<std::string>(std::string(KEY_PLANETNAME), *infoName)) : OptionalStringForKey(dict, std::string(KEY_PLANETNAME));
+    [self cxx_setName:planetName.has_value() ? cxx_OOExpand(*planetName) : std::nullopt];
 
-    int radius_km = dict.get<int>(oo::StdString(KEY_RADIUS), planetInfo.get<int>(oo::StdString(KEY_RADIUS)));
+    int radius_km = dict.get<int>(std::string(KEY_RADIUS), planetInfo.get<int>(std::string(KEY_RADIUS)));
     collision_radius = radius_km * 10.0; // Scale down by a factor of 100
-    OOTechLevelID techLevel = dict.get<int>(oo::StdString(KEY_TECHLEVEL), planetInfo.get<int>(oo::StdString(KEY_TECHLEVEL)));
+    OOTechLevelID techLevel = dict.get<int>(std::string(KEY_TECHLEVEL), planetInfo.get<int>(std::string(KEY_TECHLEVEL)));
 
     if (techLevel > 14)
         techLevel = 14;
@@ -313,7 +314,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
     quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * deltaT);
 
 #ifdef OO_DUMP_PLANETINFO
-#define CPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {};", oo::DescriptionOf([(OOColor*)ObjectForKey(planetInfo, #PROP) descriptionComponents]));
+#define CPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {};", [(OOColor*)ObjectForKey(planetInfo, #PROP) cxx_descriptionComponents].value_or("(null)"));
 #define FPROP(PROP) OO_LOG("planetinfo.record", #PROP " = {:f};", planetInfo.get<float>(#PROP));
     CPROP(air_color);
     CPROP(illumination_color);
@@ -424,13 +425,13 @@ static OOColor* ColorWithHSBColor(Vector c)
         if (color != nil)
             landHSB = HSBColorWithColor(color);
         else
-            ScanVectorFromString(oo::NSStringOrNil(OptionalStringForKey(sourceInfo, "land_hsb_color")), &landHSB);
+            cxx_ScanVectorFromString(OptionalStringForKey(sourceInfo, "land_hsb_color"), &landHSB);
 
         color = [OOColor colorWithDescription:ObjectForKey(sourceInfo, "sea_color")];
         if (color != nil)
             seaHSB = HSBColorWithColor(color);
         else
-            ScanVectorFromString(oo::NSStringOrNil(OptionalStringForKey(sourceInfo, "sea_hsb_color")), &seaHSB);
+            cxx_ScanVectorFromString(OptionalStringForKey(sourceInfo, "sea_hsb_color"), &seaHSB);
 
         color = [OOColor colorWithDescription:ObjectForKey(sourceInfo, "illumination_color")];
         if (color != nil)
@@ -438,7 +439,7 @@ static OOColor* ColorWithHSBColor(Vector c)
         else {
             const std::optional<std::string> illumHSBColorString = OptionalStringForKey(sourceInfo, "illumination_hsb_color");
             if (illumHSBColorString.has_value())
-                ScanVectorFromString(oo::NSStringFrom(*illumHSBColorString), &illumHSB);
+                cxx_ScanVectorFromString(illumHSBColorString, &illumHSB);
             else
                 illumHSB = HSBColorWithColor([OOColor colorWithRed:0.8f green:0.8f blue:0.4f alpha:1.0f]);
         }
@@ -562,9 +563,9 @@ static OOColor* ColorWithHSBColor(Vector c)
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("position: %s radius: %g m", cxx_HPVectorDescription([self position]).c_str(), [self radius]));
+    return oo::str::format("position: %s radius: %g m", cxx_HPVectorDescription([self position]).c_str(), [self radius]);
 }
 
 - (void)setOrientation:(Quaternion)quat
@@ -599,7 +600,7 @@ static OOColor* ColorWithHSBColor(Vector c)
     if (EXPECT(!_miniature)) {
         BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS;
         if (EXPECT_NOT(_atmosphereDrawable && cam_zero_distance < _mesopause2)) {
-            NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
+            OOAssert(_airColor != nil, "Expected a non-nil air colour for normal planet. Exiting.");
             double alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere; // the viewpoint altitude
             double trueAlt = (sqrt(zero_distance) - collision_radius) / kMesosphere; // the actual ship altitude
             // if at long distance external view, rotating the camera could potentially end up with it being
@@ -834,10 +835,10 @@ static OOColor* ColorWithHSBColor(Vector c)
     float start_distance = collision_radius + 125.0f;
     HPVector launch_pos = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(vector_forward_from_quaternion(q1), start_distance)));
 
-    ShipEntity* shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"]; // retain count = 1
+    ShipEntity* shuttle_ship = [UNIVERSE cxx_newShipWithRole:"shuttle"]; // retain count = 1
     if (shuttle_ship) {
-        if ([[shuttle_ship crew] count] == 0) {
-            [shuttle_ship setSingleCrewWithRole:@"trader"];
+        if ([shuttle_ship cxx_crew].value_or(std::vector<oo::ObjCRef<OOCharacter*>>()).empty()) {
+            [shuttle_ship cxx_setSingleCrewWithRole:"trader"];
         }
 
         [shuttle_ship setPosition:launch_pos];
@@ -1122,14 +1123,24 @@ static OOColor* ColorWithHSBColor(Vector c)
     return [_atmosphereShaderDrawable material];
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
 {
-    return oo::NSStringOrNil(_name);
+    return oo::NSStringOrNil([self cxx_name]);
 }
 
-- (void)setName:(id)name // shared selector (proposed ADR-0043): an Objective-C string or nil
+- (std::optional<std::string>)cxx_name
 {
-    _name = oo::OptionalString(name);
+    return _name;
+}
+
+- (void)setName:(id)name // shared selector (Foundation declares -setName: too; retires with oo-qps)
+{
+    [self cxx_setName:oo::OptionalString(name)];
+}
+
+- (void)cxx_setName:(const std::optional<std::string>&)name
+{
+    _name = name;
 }
 
 @end

@@ -43,7 +43,6 @@ SOFTWARE.
 #import "OOConcreteTexture.h"
 #import "OODrawable.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOStringBridge.h"
 #import "OOTexture.h"
 #include "oofnd/Defaults.hpp"
@@ -53,6 +52,7 @@ SOFTWARE.
 #include "oofnd/Notification.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOException.h"
 
 static OODebugMonitor* sSingleton = nil;
 
@@ -91,9 +91,9 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
 {
     self = [super init];
     if (self != nil) {
-        _configFromOXPs = [self normalizeConfigDictionary:oo::PListFrom([ResourceManager dictionaryFromFilesNamed:@"debugConfig.plist"
-                                                                                                         inFolder:@"Config"
-                                                                                                         andMerge:YES])];
+        _configFromOXPs = [self normalizeConfigDictionary:[ResourceManager cxx_dictionaryFromFilesNamed:"debugConfig.plist"
+                                                                                               inFolder:"Config"
+                                                                                               andMerge:YES]];
 
         _configOverrides = [self normalizeConfigDictionary:oo::Defaults::standard().dictionaryForKey("debug-settings-override")];
 
@@ -148,7 +148,7 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
 
 - (BOOL)setDebugger:(id<OODebuggerInterface>)newDebugger
 {
-    id error = nil; // the shared -connectDebugMonitor:errorMessage:'s string
+    std::optional<std::string> error; // -connectDebugMonitor:errorMessage:
 
     if (newDebugger != _debugger) {
         // Disconnect existing debugger, if any.
@@ -163,17 +163,14 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
             @try {
                 if ([newDebugger connectDebugMonitor:self errorMessage:&error]) {
                     [newDebugger debugMonitor:self
-                            noteConfiguration:oo::ObjectFromPList([self mergedConfiguration])];
+                            noteConfiguration:[self mergedConfiguration]];
                     _debugger = [newDebugger retain];
                 } else {
-                    OO_LOG("debugMonitor.setDebugger.failed", "Could not connect to debugger {}, because an error occurred: {}", oo::DescriptionOf(newDebugger), oo::DescriptionOf(error));
+                    OO_LOG("debugMonitor.setDebugger.failed", "Could not connect to debugger {}, because an error occurred: {}", oo::DescriptionOf(newDebugger), error.value_or("(null)"));
                 }
             }
             @catch (OOException* exception) {
                 OO_LOG("debugMonitor.setDebugger.failed", "Could not connect to debugger {}, because an exception occurred: {} -- {}", oo::DescriptionOf(newDebugger), [exception name], [exception reason]);
-            }
-            @catch (OOFoundationException* exception) {
-                OO_LOG("debugMonitor.setDebugger.failed", "Could not connect to debugger {}, because an exception occurred: {} -- {}", oo::DescriptionOf(newDebugger), oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
             }
         }
     }
@@ -181,10 +178,10 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     return _debugger == newDebugger;
 }
 
-- (oneway void)performJSConsoleCommand:(in id)command // shared selector (proposed ADR-0043)
+- (void)performJSConsoleCommand:(const std::string&)command
 {
     JSContext* context = OOJSAcquireContext();
-    OOJSVal commandVal = OOJSValueFromNativeObject(context, command);
+    OOJSVal commandVal = OOJSValueFromPList(context, oo::PList(command));
     OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
     [_script callMethod:OOJSID("consolePerformJSCommand") inContext:context withArguments:&commandVal count:1 result:NULL];
     OOJSStopTimeLimiter();
@@ -201,15 +198,12 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     OOJSPauseTimeLimiter();
     @try {
         [_debugger debugMonitor:self
-                jsConsoleOutput:string
-                       colorKey:oo::NSStringOrNil(colorKey)
+                jsConsoleOutput:oo::StdString(string)
+                       colorKey:colorKey
                   emphasisRange:emphasisRange];
     }
     @catch (OOException* exception) {
         OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to send JavaScript console text to debugger: {} -- {}", [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to send JavaScript console text to debugger: {} -- {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
     }
     OOJSResumeTimeLimiter();
 }
@@ -231,9 +225,6 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     @catch (OOException* exception) {
         OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to clear JavaScript console: {} -- {}", [exception name], [exception reason]);
     }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to clear JavaScript console: {} -- {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
-    }
     OOJSResumeTimeLimiter();
 }
 
@@ -246,32 +237,27 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     @catch (OOException* exception) {
         OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to show JavaScript console: {} -- {}", [exception name], [exception reason]);
     }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to show JavaScript console: {} -- {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
-    }
     OOJSResumeTimeLimiter();
 }
 
-- (id)configurationValueForKey:(in id)key // shared selector (proposed ADR-0043)
+- (oo::PList)configurationValueForKey:(const std::string&)key
 {
-    return [self configurationValueForKey:oo::StdString(key) class:Nil defaultValue:nil];
+    return oo::PListFrom([self cxx_configurationValueForKey:key class:Nil defaultValue:nil]);
 }
 
-- (id)configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value
+- (id)cxx_configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value
 {
     id result = nil;
 
-    if (klass == Nil)
-        klass = [NSObject class];
-
+    // No class given: any stored object will do (nil still falls through).
     // The stored objects: an Object node gives back the same object, any other node an equal one.
     const oo::PList* overrideValue = _configOverrides.find(key);
     result = (overrideValue != nullptr) ? oo::ObjectFromPList(*overrideValue) : nil;
-    if (![result isKindOfClass:klass] && result != [OONull null]) {
+    if ((result == nil || (klass != Nil && ![result isKindOfClass:klass])) && result != [OONull null]) {
         const oo::PList* oxpValue = _configFromOXPs.find(key);
         result = (oxpValue != nullptr) ? oo::ObjectFromPList(*oxpValue) : nil;
     }
-    if (![result isKindOfClass:klass] && result != [OONull null])
+    if ((result == nil || (klass != Nil && ![result isKindOfClass:klass])) && result != [OONull null])
         result = [[value retain] autorelease];
     if (result == [OONull null])
         result = nil;
@@ -284,7 +270,7 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     long long result;
     id object = nil;
 
-    object = [self configurationValueForKey:key class:Nil defaultValue:nil];
+    object = [self cxx_configurationValueForKey:key class:Nil defaultValue:nil];
     if ([object respondsToSelector:@selector(longLongValue)])
         result = [object longLongValue];
     else if ([object respondsToSelector:@selector(intValue)])
@@ -295,13 +281,13 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     return result;
 }
 
-- (void)setConfigurationValue:(in id)value forKey:(in id)key // shared selector (proposed ADR-0043)
+- (void)setConfigurationValue:(const oo::PList&)value forKey:(const std::string&)key
 {
-    if (key == nil)
+    if (key.empty())
         return;
 
-    const std::string keyString = oo::StdString(key);
-    const oo::PList normalized = [self normalizeConfigValue:oo::PListFrom(value) forKey:keyString];
+    const std::string keyString = key;
+    const oo::PList normalized = [self normalizeConfigValue:value forKey:keyString];
 
     if (!_configOverrides.isDict())
         _configOverrides = oo::PList(oo::PList::Dict());
@@ -313,22 +299,20 @@ static const char* const kOODebugMonitorApplicationWillTerminateNotificationName
     }
 
     // Send changed value to debugger
+    oo::PList notifyValue;
     if (!normalized) {
-        // Setting a nil value removes an override, and may reveal an underlying OXP-defined value
-        value = [self configurationValueForKey:keyString class:Nil defaultValue:nil];
+        // Setting a null value removes an override, and may reveal an underlying OXP-defined value
+        notifyValue = [self configurationValueForKey:keyString];
     } else {
-        value = oo::ObjectFromPList(normalized);
+        notifyValue = normalized;
     }
     @try {
         [_debugger debugMonitor:self
-            noteChangedConfigrationValue:value
-                                  forKey:key];
+            noteChangedConfigrationValue:notifyValue
+                                  forKey:keyString];
     }
     @catch (OOException* exception) {
         OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to send configuration update to debugger: {} -- {}", [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to send configuration update to debugger: {} -- {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
     }
 }
 
@@ -420,11 +404,10 @@ struct EntityDumpState {
 
     BOOL visible = parentVisible && [entity isVisible];
 
-    // -allTextures is a shared selector (id): read the set it returns with for-in.
-    for (id texture in [entity allTextures]) {
-        state->entityTextures.insert(oo::ObjCRef<id>(texture));
+    for (const oo::ObjCRef<OOTexture*>& texture : [entity cxx_allTextures]) {
+        state->entityTextures.insert(oo::ObjCRef<id>(texture.get()));
         if (visible)
-            state->visibleEntityTextures.insert(oo::ObjCRef<id>(texture));
+            state->visibleEntityTextures.insert(oo::ObjCRef<id>(texture.get()));
     }
 
     std::string extra;
@@ -436,15 +419,15 @@ struct EntityDumpState {
         extra += ", drawable: " + SizeString(drawableSize);
     }
 
-    [self writeMemStat:oo::str::format("%s: %s%s", oo::DescriptionOf([entity shortDescription]).c_str(), SizeString(entitySize).c_str(), extra.c_str())];
+    [self writeMemStat:oo::str::format("%s: %s%s", oo::ShortDescriptionOf(entity).c_str(), SizeString(entitySize).c_str(), extra.c_str())];
 
     state->totalEntityObjSize += entitySize;
     state->totalDrawableSize += drawableSize;
 
     oo::log::indent();
     if ([entity isShip]) {
-        for (id subentity in [entity subEntityEnumerator]) {
-            [self dumpEntity:subentity withState:state parentVisible:visible];
+        for (const auto& subRef : [(ShipEntity*)entity subEntityEnumerator]) {
+            [self dumpEntity:subRef.get() withState:state parentVisible:visible];
         }
 
         if ([entity isPlayer]) {
@@ -496,11 +479,11 @@ struct EntityDumpState {
 
     EntityDumpState entityDumpState;
 
-    for (id entity in [UNIVERSE entityList]) {
-        [self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
+    for (const auto& entity : [UNIVERSE cxx_entityList]) {
+        [self dumpEntity:entity.get() withState:&entityDumpState parentVisible:YES];
     }
-    for (id entity in [PLAYER scannedWormholes]) {
-        [self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
+    for (const oo::ObjCRef<WormholeEntity*>& entityRef : [PLAYER cxx_scannedWormholes]) {
+        [self dumpEntity:entityRef.get() withState:&entityDumpState parentVisible:YES];
     }
 
     oo::log::outdent();
@@ -552,7 +535,7 @@ struct EntityDumpState {
         unsigned refCount = (counted != textureRefCounts.end()) ? (unsigned)counted->second : 0;
 
         [self writeMemStat:oo::str::format("%s: [%u refs%s] %s%s",
-                               oo::DescriptionOf([tex name]).c_str(),
+                               [tex cxx_name].value_or("(null)").c_str(),
                                refCount,
                                usage,
                                SizeString(objSize + dataSize).c_str(),
@@ -624,34 +607,34 @@ struct EntityDumpState {
     return _usingPlugInController;
 }
 
-- (id)sourceCodeForFile:(in id)filePath line:(in unsigned)line // shared selector (proposed ADR-0043)
+- (std::string)sourceCodeForFile:(const std::string&)filePath line:(unsigned)line
 {
-    const std::string path = oo::StdString(filePath);
+    const std::string path = filePath;
     auto cached = _sourceFiles.find(path);
 
     if (cached == _sourceFiles.end()) {
         std::optional<std::vector<std::string>> lines = [self loadSourceFile:path];
         if (!lines.has_value())
-            lines = std::vector<std::string> { oo::str::format("<Can't load file %s>", oo::DescriptionOf(filePath).c_str()) };
+            lines = std::vector<std::string> { oo::str::format("<Can't load file %s>", path.c_str()) };
 
         cached = _sourceFiles.emplace(path, std::move(*lines)).first;
     }
 
     const std::vector<std::string>& linesForFile = cached->second;
     if (linesForFile.size() < line || line == 0)
-        return oo::NSStringFrom("<line out of range!>");
+        return "<line out of range!>";
 
-    return oo::NSStringFrom(linesForFile[line - 1]);
+    return linesForFile[line - 1];
 }
 
-- (void)disconnectDebugger:(in id<OODebuggerInterface>)debugger
-                   message:(in id)message // shared selector (proposed ADR-0043)
+- (void)disconnectDebugger:(id<OODebuggerInterface>)debugger
+                   message:(const std::optional<std::string>&)message
 {
     if (debugger == nil)
         return;
 
     if (debugger == _debugger) {
-        [self disconnectDebuggerWithMessage:oo::OptionalString(message)];
+        [self disconnectDebuggerWithMessage:message];
     } else {
         OO_LOG("debugMonitor.disconnect.ignored", "Attempt to disconnect debugger {}, which is not current debugger; ignoring.", oo::DescriptionOf(debugger));
     }
@@ -721,13 +704,10 @@ struct EntityDumpState {
 - (void)disconnectDebuggerWithMessage:(const std::optional<std::string>&)message
 {
     @try {
-        [_debugger disconnectDebugMonitor:self message:oo::NSStringOrNil(message)];
+        [_debugger disconnectDebugMonitor:self message:message];
     }
     @catch (OOException* exception) {
         OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to disconnect debugger: {} -- {}", [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("debugMonitor.debuggerConnection.exception", "Exception while attempting to disconnect debugger: {} -- {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
     }
 
     id debugger = _debugger;
@@ -795,7 +775,7 @@ FIXME: this works with CRLF and LF, but not CR.
                 components.push_back(oo::PList::singleReal(component));
             return oo::PList(std::move(components));
         } else if (oo::str::hasPrefix(key, "show-console")) {
-            boolValue = OOBooleanFromObject(oo::ObjectFromPList(value), NO);
+            boolValue = oo::plist_get::boolFrom(&value, NO); // OOBooleanFromObject (a null value: NO)
             return oo::PList(static_cast<bool>(boolValue));
         }
     }
@@ -803,14 +783,14 @@ FIXME: this works with CRLF and LF, but not CR.
     return value;
 }
 
-- (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
-                context:(in JSContext*)context
-      problemOfSeverity:(in NSString*)severity
-                 inFile:(in NSString*)filePath
-                   line:(in unsigned)line
-              stackSkip:(in unsigned)stackSkip
-        showingLocation:(in BOOL)showLocation
-            withMessage:(in id)message
+- (void)jsEngine:(OOJavaScriptEngine*)engine
+              context:(JSContext*)context
+    problemOfSeverity:(const std::string&)severity
+               inFile:(const std::optional<std::string>&)filePath
+                 line:(unsigned)line
+            stackSkip:(unsigned)stackSkip
+      showingLocation:(BOOL)showLocation
+          withMessage:(const std::string&)message
 {
     std::string colorKey;
     std::string prefix;
@@ -818,7 +798,7 @@ FIXME: this works with CRLF and LF, but not CR.
     std::string formattedMessage;
     NSRange emphasisRange;
     const char* showKey = nullptr;
-    BOOL isWarning = [severity isEqualToString:@"warning"];
+    BOOL isWarning = (severity == "warning");
 
     if (_debugger == nil)
         return;
@@ -835,29 +815,26 @@ FIXME: this works with CRLF and LF, but not CR.
     // Prefix and subsequent colon should be bold (the prefixes are ASCII, so bytes are UTF-16 units):
     emphasisRange = NSMakeRange(0, prefix.size() + 1);
 
-    formattedMessage = oo::str::format("%s: %s", prefix.c_str(), oo::DescriptionOf(message).c_str());
+    formattedMessage = oo::str::format("%s: %s", prefix.c_str(), message.c_str());
 
     // Note that the "active script" isn't necessarily the one causing the
     // error, since one script can call another's methods.
 
     // avoid windows DEP exceptions!
     OOJSScript* thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
-    scriptLine = oo::OptionalString([[thisScript weakRefUnderlyingObject] displayName]);
+    scriptLine = [[thisScript weakRefUnderlyingObject] displayName];
     [thisScript release];
 
     if (scriptLine.has_value()) {
         formattedMessage += "\n    Active script: " + *scriptLine;
     }
 
-    if (showLocation && stackSkip == 0 && [filePath length] != 0) {
+    if (showLocation && stackSkip == 0 && filePath.has_value() && !filePath->empty()) {
         // Append file name and line
-        formattedMessage += oo::str::format("\n    %s, line %u", oo::str::lastPathComponent(oo::StdString(filePath)).c_str(), line);
+        formattedMessage += oo::str::format("\n    %s, line %u", oo::str::lastPathComponent(*filePath).c_str(), line);
 
-        // Append source code (-sourceCodeForFile:line: is a shared selector: a string in and out)
-        const std::optional<std::string> sourceLine = oo::OptionalString([self sourceCodeForFile:filePath line:line]);
-        if (sourceLine.has_value()) {
-            formattedMessage += ":\n    " + *sourceLine;
-        }
+        // Append source code
+        formattedMessage += ":\n    " + [self sourceCodeForFile:*filePath line:line];
     }
 
     [self appendJSConsoleLine:oo::NSStringFrom(formattedMessage)
@@ -868,18 +845,22 @@ FIXME: this works with CRLF and LF, but not CR.
         showKey = "show-console-on-warning";
     else
         showKey = "show-console-on-error"; // if not a warning, it's a proper error.
-    if (OOBooleanFromObject([self configurationValueForKey:oo::NSStringFrom(showKey)], NO)) {
+    const oo::PList showValue = [self configurationValueForKey:showKey];
+    if (oo::plist_get::boolFrom(&showValue, NO)) // OOBooleanFromObject
+    {
         [self showJSConsole];
     }
 }
 
-- (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
-                context:(in JSContext*)context
-             logMessage:(in id)message
-                ofClass:(in id)messageClass
+- (void)jsEngine:(OOJavaScriptEngine*)engine
+         context:(JSContext*)context
+      logMessage:(const std::string&)message
+         ofClass:(const std::optional<std::string>&)messageClass
 {
-    [self appendJSConsoleLine:message colorKey:"log"];
-    if (OOBooleanFromObject([self configurationValueForKey:oo::NSStringFrom("show-console-on-log")], NO)) {
+    [self appendJSConsoleLine:oo::NSStringFrom(message) colorKey:"log"];
+    const oo::PList showValue = [self configurationValueForKey:"show-console-on-log"];
+    if (oo::plist_get::boolFrom(&showValue, NO)) // OOBooleanFromObject
+    {
         [self showJSConsole];
     }
 }

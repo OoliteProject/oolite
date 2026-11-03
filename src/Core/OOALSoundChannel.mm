@@ -80,10 +80,10 @@ SOFTWARE.
             [self hasStopped];
         } else if ([_sound soundIncomplete]) // streaming and not finished loading
         {
-            OO_LOG("sound.buffer", "Incomplete, trying next for {}", oo::DescriptionOf([_sound name]));
+            OO_LOG("sound.buffer", "Incomplete, trying next for {}", [_sound cxx_name].value_or("(null)"));
             [self getNextSoundBuffer];
         } else if (_loop) {
-            OO_LOG("sound.buffer", "Looping, trying restart for {}", oo::DescriptionOf([_sound name]));
+            OO_LOG("sound.buffer", "Looping, trying restart for {}", [_sound cxx_name].value_or("(null)"));
             // sound is complete, but needs to be looped, so start it again
             [_sound rewind];
             [self getNextSoundBuffer];

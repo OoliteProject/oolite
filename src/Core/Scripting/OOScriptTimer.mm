@@ -25,11 +25,11 @@ MA 02110-1301, USA.
 
 #import "OOScriptTimer.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOLogging.h"
 #import "OOPriorityQueue.h"
 #import "OOStringBridge.h"
 #import "Universe.h"
+#include "oofnd/objc/OOException.h"
 
 static OOPriorityQueue* sTimers;
 
@@ -81,7 +81,7 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     std::string intervalDesc;
 
@@ -90,7 +90,7 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
     else
         intervalDesc = oo::str::format("interval: %g", _interval);
 
-    return oo::NSStringFrom(oo::str::format("nextTime: %g, %s, %srunning", _nextTime, intervalDesc.c_str(), _isScheduled ? "" : "not "));
+    return oo::str::format("nextTime: %g, %s, %srunning", _nextTime, intervalDesc.c_str(), _isScheduled ? "" : "not ");
 }
 
 - (OOTimeAbsolute)nextTime
@@ -235,9 +235,6 @@ static std::vector<oo::ObjCRef<OOScriptTimer*>>* sDeferredTimers;
     }
     @catch (OOException* exception) {
         OO_LOG(cxx_kOOLogException, "\n\n***** Ignoring Timer Exception: {} : {} *****\n\n", [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG(cxx_kOOLogException, "\n\n***** Ignoring Timer Exception: {} : {} *****\n\n", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
     }
 
     if (_nextTime < otherTime)

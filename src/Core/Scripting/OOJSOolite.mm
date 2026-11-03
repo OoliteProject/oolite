@@ -154,7 +154,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
         break;
 
     case kOolite_gameSettings:
-        result = [UNIVERSE gameSettings];
+        result = oo::ObjectFromPList([UNIVERSE cxx_gameSettings]);
         break;
 
     case kOolite_resourcePaths:
@@ -172,7 +172,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
         std::optional<std::string> toneMapperStr = "OOHDR_TONEMAPPER_UNDEFINED";
 #if OOLITE_WINDOWS
         if ([gameView hdrOutput]) {
-            toneMapperStr = oo::OptionalString(OOStringFromHDRToneMapper([gameView hdrToneMapper]));
+            toneMapperStr = cxx_OOStringFromHDRToneMapper([gameView hdrToneMapper]);
         }
 #endif
         result = oo::NSStringOrNil(toneMapperStr);
@@ -182,7 +182,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS)
     case kOolite_sdrToneMapper: {
         std::optional<std::string> toneMapperStr = "OOSDR_TONEMAPPER_UNDEFINED";
         if (![gameView hdrOutput]) {
-            toneMapperStr = oo::OptionalString(OOStringFromSDRToneMapper([gameView sdrToneMapper]));
+            toneMapperStr = cxx_OOStringFromSDRToneMapper([gameView sdrToneMapper]);
         }
         result = oo::NSStringOrNil(toneMapperStr);
         break;
@@ -232,13 +232,13 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
     case kOolite_hdrToneMapper:
         if (!JS_IsString(value))
             break; // non-string is not allowed
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
 #if OOLITE_WINDOWS
             if ([gameView hdrOutput])
-                [gameView setHDRToneMapper:OOHDRToneMapperFromString(oo::NSStringFrom(*sValue))];
+                [gameView setHDRToneMapper:cxx_OOHDRToneMapperFromString(*sValue)];
             else
-                OOJSReportWarning(context, @"hdrToneMapper cannot be set if not running in HDR mode");
+                cxx_OOJSReportWarning(context, "hdrToneMapper cannot be set if not running in HDR mode");
 #endif
             return JS_UNDEFINED;
         }
@@ -247,12 +247,12 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS)
     case kOolite_sdrToneMapper:
         if (!JS_IsString(value))
             break; // non-string is not allowed
-        sValue = oo::OptionalString(OOStringFromJSValue(context, value));
+        sValue = cxx_OOStringFromJSValue(context, value);
         if (sValue.has_value()) {
             if (![gameView hdrOutput])
-                [gameView setSDRToneMapper:OOSDRToneMapperFromString(oo::NSStringFrom(*sValue))];
+                [gameView setSDRToneMapper:cxx_OOSDRToneMapperFromString(*sValue)];
             else
-                OOJSReportWarning(context, @"sdrToneMapper cannot be set if not running in SDR mode");
+                cxx_OOJSReportWarning(context, "sdrToneMapper cannot be set if not running in SDR mode");
             return JS_UNDEFINED;
         }
         break;
@@ -314,18 +314,18 @@ static JSValue OoliteCompareVersion(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    id components = nil;
+    oo::PList components;
     std::optional<std::vector<unsigned>> versionSpec;
 
     if (argc == 0)
         OOJS_RETURN_VOID; // Backwards-compatibility: be overly lenient.
 
-    components = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
-    if (oo::IsNSArray(components)) {
+    components = cxx_OOJSPListFromJSValue(context, OOJS_ARGV[0]);
+    if (const oo::PList::Array* componentArray = components.getIf<oo::PList::Array>()) {
         // Require each element to be a number
         std::vector<unsigned> numbers;
         bool allNumbers = true;
-        for (const oo::PList& component : *oo::PListFrom(components).getIf<oo::PList::Array>()) {
+        for (const oo::PList& component : *componentArray) {
             if (!component.isNumber()) {
                 allNumbers = false;
                 break;
@@ -334,8 +334,8 @@ static JSValue OoliteCompareVersion(OOJS_NATIVE_ARGS)
         }
         if (allNumbers)
             versionSpec = std::move(numbers);
-    } else if (oo::IsNSString(components)) {
-        versionSpec = oo::str::versionComponents(oo::StdString(components));
+    } else if (const std::string* componentString = components.getIf<std::string>()) {
+        versionSpec = oo::str::versionComponents(*componentString);
     }
 
     if (versionSpec.has_value()) {

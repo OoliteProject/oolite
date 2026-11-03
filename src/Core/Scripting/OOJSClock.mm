@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOJSClock.h"
 #import "OODebugStandards.h"
+#import "OOFoundationBridge.h"
 #import "OOJSPlayer.h"
 #import "OOJavaScriptEngine.h"
 #import "OOStringParsing.h"
@@ -132,7 +133,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, floor(clockTime / 86400.0));
 
     case kClock_clockString:
-        return OOJSValueFromNativeObject(context, [player dial_clock]);
+        return OOJSValueFromNativeObject(context, oo::NSStringFrom([player cxx_dial_clock]));
 
     case kClock_isAdjusting:
         return OOJSValueFromBOOL([player clockAdjusting]);
@@ -159,7 +160,7 @@ static JSValue JSClockToString(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    OOJS_RETURN_OBJECT([OOPlayerForScripting() dial_clock]);
+    OOJS_RETURN_OBJECT(oo::NSStringFrom([OOPlayerForScripting() cxx_dial_clock]));
 
     OOJS_NATIVE_EXIT
 }
@@ -177,11 +178,11 @@ static JSValue ClockClockStringForTime(OOJS_NATIVE_ARGS)
         JSValueConst arg = JS_UNDEFINED;
         if (argc > 0)
             arg = OOJS_ARGV[0];
-        OOJSReportBadArguments(context, @"Clock", @"clockStringForTime", 1, &arg, nil, @"number");
+        cxx_OOJSReportBadArguments(context, "Clock", "clockStringForTime", 1, &arg, std::nullopt, "number");
         return JS_EXCEPTION;
     }
 
-    OOJS_RETURN_OBJECT(ClockToString(time, NO));
+    OOJS_RETURN(OOJSValueFromPList(context, oo::PList(cxx_ClockToString(time, NO))));
 
     OOJS_NATIVE_EXIT
 }
@@ -200,7 +201,7 @@ static JSValue ClockAddSeconds(OOJS_NATIVE_ARGS)
         JSValueConst arg = JS_UNDEFINED;
         if (argc > 0)
             arg = OOJS_ARGV[0];
-        OOJSReportBadArguments(context, @"Clock", @"addSeconds", 1, &arg, nil, @"number");
+        cxx_OOJSReportBadArguments(context, "Clock", "addSeconds", 1, &arg, std::nullopt, "number");
         return JS_EXCEPTION;
     }
 

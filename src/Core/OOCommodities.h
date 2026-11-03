@@ -57,16 +57,10 @@ static inline OOMassUnit OOMassUnitFromNumber(unsigned n)
 - (OOCreditsQuantity)cxx_samplePriceForCommodity:(const std::string&)commodity inEconomy:(OOEconomyID)economy withScript:(const std::optional<std::string>&)scriptName inSystem:(OOSystemID)system;
 
 - (NSUInteger)count;
-- (id)goods; // shared selector (proposed ADR-0043): an array of the commodity keys, in key order
+- (std::vector<std::string>)goods; // commodity keys, in key order
 - (BOOL)cxx_goodDefined:(const std::string&)key;
 - (std::optional<std::string>)cxx_goodNamed:(const std::string&)name; // nullopt: no good has that (expanded) name
-- (id)getRandomCommodity; // shared selector: a commodity key string
-- (OOMassUnit)massUnitForGood:(id)good; // shared selector: a commodity key string
+- (std::string)getRandomCommodity; // a commodity key
+- (OOMassUnit)massUnitForGood:(const std::string&)good;
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-3rb.154, forwarding to the cxx_ methods above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "OOCommodities+FoundationBridge.h"

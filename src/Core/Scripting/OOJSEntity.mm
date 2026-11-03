@@ -153,8 +153,8 @@ BOOL EntityFromArgumentList(JSContext* context, const std::optional<std::string>
         // Failed; report bad parameters, if given a class and function.
         if (scriptClass.has_value() && function.has_value()) {
             // The argument described as +stringWithJavaScriptParameters:count:1 described it: "(value)".
-            const std::string parameters = "(" + oo::StdString(OOJSDescribeValue(context, argv[0], NO)) + ")";
-            OOJSReportWarning(context, @"%@.%@(): expected entity, got %@.", oo::NSStringFrom(*scriptClass), oo::NSStringFrom(*function), oo::NSStringFrom(parameters));
+            const std::string parameters = "(" + cxx_OOJSDescribeValue(context, argv[0], NO) + ")";
+            cxx_OOJSReportWarning(context, "%s.%s(): expected entity, got %s.", scriptClass->c_str(), function->c_str(), parameters.c_str());
             return NO;
         }
     }
@@ -319,7 +319,7 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
     case kEntity_maxEnergy:
         if (JS_ToFloat64(context, &fValue, value) == 0) {
             if (fValue <= 0.0) {
-                OOJSReportError(context, @"entity.maxEnergy must be positive.");
+                cxx_OOJSReportError(context, "entity.maxEnergy must be positive.");
                 return JS_EXCEPTION;
             }
             [entity setMaxEnergy:fValue];
@@ -332,13 +332,13 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
         if ([entity isShip] && ![entity isPlayer]) {
             OOScanClass newClass = OOScanClassFromJSValue(context, value);
             if (newClass == CLASS_NOT_SET || newClass == CLASS_NO_DRAW || newClass == CLASS_TARGET || newClass == CLASS_WORMHOLE || newClass == CLASS_PLAYER || newClass == CLASS_VISUAL_EFFECT) {
-                OOJSReportError(context, @"entity.scanClass cannot be set to that value.");
+                cxx_OOJSReportError(context, "entity.scanClass cannot be set to that value.");
                 return JS_EXCEPTION;
             }
             [entity setScanClass:newClass];
             return JS_UNDEFINED;
         } else {
-            OOJSReportError(context, @"entity.scanClass is read-only except on NPC ships.");
+            cxx_OOJSReportError(context, "entity.scanClass is read-only except on NPC ships.");
             return JS_EXCEPTION;
         }
     default:

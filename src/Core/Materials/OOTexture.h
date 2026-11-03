@@ -112,8 +112,8 @@ typedef OOPixMapFormat OOTextureDataFormat;
 /*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-japz): names and folders are UTF-8
         std::strings (std::optional where the old code accepted nil); texture specifiers and
         configurations are oo::PList (a string or a dictionary; null = nil). The Foundation-typed API
-        this header declared moved to OOTexture+FoundationBridge.h (transitional), forwarding to the
-        cxx_ API below.
+        this header declared went through a transitional bridge until its last caller moved to the cxx_
+        API below (bead oo-x3ni).
 */
 @interface OOTexture : OOWeakRefObject {
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -194,7 +194,7 @@ typedef OOPixMapFormat OOTextureDataFormat;
 */
 - (BOOL)isFinishedLoading;
 
-- (id)cacheKey; // an Objective-C string, or nil. Shared selector (proposed ADR-0043).
+- (std::optional<std::string>)cxx_cacheKey; // nullopt: not cacheable
 
 /*	Dimensions in pixels.
         This will block until loading is completed.
@@ -266,7 +266,8 @@ typedef OOPixMapFormat OOTextureDataFormat;
 
 - (size_t)dataSize;
 
-- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.4)
 #endif
 
 @end
@@ -321,9 +322,3 @@ inline constexpr const char* cxx_kOOTextureSpecifierIlluminationModeKey = "illum
 inline constexpr const char* cxx_kOOTextureSpecifierSelfColorKey = "self_color";
 inline constexpr const char* cxx_kOOTextureSpecifierScaleFactorKey = "scale_factor";
 inline constexpr const char* cxx_kOOTextureSpecifierBindingKey = "binding";
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-japz, forwarding to the cxx_ API above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "OOTexture+FoundationBridge.h"

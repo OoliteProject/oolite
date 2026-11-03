@@ -68,7 +68,9 @@
 
 #include "oofnd/PList.hpp"
 
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <limits>
@@ -415,6 +417,104 @@ namespace plist_get {
         // fmax(result, 0) as the game's -O2 build evaluates it (captured): NaN and -0 give +0. (An -O0
         // build's library fmaxf keeps -0; the sign of fmax(-0, +0) is unspecified, so it is spelled out.)
         return (result > F(0)) ? result : F(0);
+    }
+
+    // --- OOCollectionExtractors' game-type forms, without the game (bead oo-9ftb) --------------------
+    //
+    // OOVectorFromObject / OOHPVectorFromObject / OOQuaternionFromObject read N numbers: from an array
+    // of exactly N elements (element i as -oo_floatAtIndex:i / -oo_doubleAtIndex:i did, realFrom with
+    // fallback 0), or from a dictionary that holds at least one of the N keys (each key's value as
+    // get<F>(key, 0.0) did: a missing key is 0, not the default's component). A string is scanned by
+    // the game (Scan*FromString, which logs a malformed one) and an object may be the game's native
+    // vector, so those two are reported, not read; anything else leaves the default. A null element or
+    // value counts as absent, as oo::ObjectFromPList dropped them before the Foundation functions saw
+    // the collection. keys name the components in out's order (x y z; w x y z for a quaternion).
+    enum class TupleSource {
+        none, // keep the default
+        components, // out holds the N components
+        string, // the caller scans the string
+        object // the caller looks at the object (the game's native vector)
+    };
+
+    template <class F, std::size_t N>
+    TupleSource tupleFrom(const PList* v, const std::array<std::string_view, N>& keys, std::array<F, N>& out) noexcept
+    {
+        if (v == nullptr)
+            return TupleSource::none;
+        if (v->isString())
+            return TupleSource::string;
+        if (v->isObject())
+            return TupleSource::object;
+        if (const PList::Array* array = v->getIf<PList::Array>()) {
+            std::array<const PList*, N> elements { };
+            std::size_t count = 0;
+            for (const PList& element : *array) {
+                if (element.isNull())
+                    continue;
+                if (count == N)
+                    return TupleSource::none; // more than N: -count != N
+                elements[count++] = &element;
+            }
+            if (count != N)
+                return TupleSource::none;
+            for (std::size_t i = 0; i < N; ++i)
+                out[i] = realFrom<F>(elements[i], F(0));
+            return TupleSource::components;
+        }
+        if (v->getIf<PList::Dict>() != nullptr) {
+            std::array<const PList*, N> values { };
+            bool any = false;
+            for (std::size_t i = 0; i < N; ++i) {
+                const PList* value = v->find(keys[i]);
+                if (value != nullptr && value->isNull())
+                    value = nullptr;
+                values[i] = value;
+                any = any || value != nullptr;
+            }
+            if (!any)
+                return TupleSource::none;
+            for (std::size_t i = 0; i < N; ++i)
+                out[i] = realFrom<F>(values[i], F(0));
+            return TupleSource::components;
+        }
+        return TupleSource::none;
+    }
+
+    // OOPropertyListFromVector / HPVector / Quaternion: a dictionary of the components under keys,
+    // each +numberWithFloat: (a single-precision real) or +numberWithDouble:.
+    template <class F, std::size_t N>
+    PList tuplePList(const std::array<std::string_view, N>& keys, const std::array<F, N>& values)
+    {
+        static_assert(std::is_same_v<F, float> || std::is_same_v<F, double>);
+        PList::Dict dict;
+        for (std::size_t i = 0; i < N; ++i) {
+            if constexpr (std::is_same_v<F, float>)
+                dict.emplace(std::string(keys[i]), PList::singleReal(values[i]));
+            else
+                dict.emplace(std::string(keys[i]), PList(values[i]));
+        }
+        return PList(std::move(dict));
+    }
+
+    // OOFuzzyBooleanFromObject's probability (the game draws randf() < p). A string: its -floatValue;
+    // when that is 0 for a string that is not a zero string, FuzzyBooleanProbabilityFromString: 1 for
+    // yes/true/on or a non-zero -doubleValue, 0 for no/false/off or a zero string, else the fallback.
+    // Anything else: OOFloatFromObject (realFrom<float>).
+    inline float fuzzyProbabilityFrom(const PList* v, float fallback) noexcept
+    {
+        const std::string* s = (v != nullptr) ? v->getIf<std::string>() : nullptr;
+        if (s == nullptr)
+            return realFrom<float>(v, fallback);
+
+        const std::u16string u = utf8ToUtf16(*s);
+        const float probability = static_cast<float>(doubleValue(u));
+        if (probability != 0.0f || isZeroString(u))
+            return probability;
+        if (equalsIgnoringCase(u, "yes") || equalsIgnoringCase(u, "true") || equalsIgnoringCase(u, "on") || doubleValue(u) != 0.0)
+            return 1.0f;
+        if (equalsIgnoringCase(u, "no") || equalsIgnoringCase(u, "false") || equalsIgnoringCase(u, "off") || isZeroString(u))
+            return 0.0f;
+        return fallback;
     }
 
     // NSNumber -stringValue.

@@ -31,15 +31,16 @@ MA 02110-1301, USA.
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include <string_view>
 
 @class MyOpenGLView;
 
 /*	Display-mode dictionary keys. On Mac OS X they were CoreGraphics' kCGDisplay* constants, whose
         values are these same strings (CFSTR("Width") and so on), so a mode dictionary answers to either.
 */
-#define kOODisplayWidth (@"Width")
-#define kOODisplayHeight (@"Height")
-#define kOODisplayRefreshRate (@"RefreshRate")
+inline constexpr std::string_view kOODisplayWidth = "Width";
+inline constexpr std::string_view kOODisplayHeight = "Height";
+inline constexpr std::string_view kOODisplayRefreshRate = "RefreshRate";
 #if OOLITE_MAC_COCOA_UI
 #define kOODisplayBitsPerPixel (@"BitsPerPixel")
 #define kOODisplayIOFlags (@"IOFlags")
@@ -62,7 +63,7 @@ MA 02110-1301, USA.
 
 @property (nonatomic, readonly) MyOpenGLView* gameView;
 @property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
-@property (nonatomic, readonly) id displayModes; // shared selector: an Objective-C array of mode dictionaries
+@property (nonatomic, readonly) oo::PList displayModes; // array of mode dictionaries (flipped with its family, bead oo-3rb.273)
 @property (nonatomic, readonly) oo::PList currentDisplayMode; // a mode dictionary
 @property (nonatomic, readonly) NSUInteger indexOfCurrentDisplayMode;
 
@@ -73,7 +74,7 @@ MA 02110-1301, USA.
 - (BOOL)inFullScreenMode;
 - (void)setFullScreenMode:(BOOL)value;
 
-- (id)displayModes; // shared selector: an Objective-C array of mode dictionaries
+- (oo::PList)displayModes; // flipped with its family (bead oo-3rb.273)
 - (oo::PList)currentDisplayMode; // a mode dictionary
 - (NSUInteger)indexOfCurrentDisplayMode;
 

@@ -29,8 +29,7 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-
+#import "OOFoundation.h"
 @class OODebugMonitor;
 
 #include <quickjs.h>

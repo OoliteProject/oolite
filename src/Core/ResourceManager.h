@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 */
 
-#import "NSFileManagerOOExtensions.h"
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "oofnd/objc/OOObject.h"
@@ -33,6 +32,7 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
+#include <string_view>
 
 @class OOSound, OOMusic, OOSystemDescriptionManager, OOScript;
 
@@ -50,11 +50,11 @@ typedef enum {
  * different OXP, or it'll never be loaded when on the start-game
  * screen.
  */
-#define SCENARIO_OXP_DEFINITION_ALL @""
-#define SCENARIO_OXP_DEFINITION_NONE @"strict"
-#define SCENARIO_OXP_DEFINITION_BYID @"id:"
-#define SCENARIO_OXP_DEFINITION_BYTAG @"tag:"
-#define SCENARIO_OXP_DEFINITION_NOPLIST @"exc:"
+inline constexpr std::string_view SCENARIO_OXP_DEFINITION_ALL = "";
+inline constexpr std::string_view SCENARIO_OXP_DEFINITION_NONE = "strict";
+inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYID = "id:";
+inline constexpr std::string_view SCENARIO_OXP_DEFINITION_BYTAG = "tag:";
+inline constexpr std::string_view SCENARIO_OXP_DEFINITION_NOPLIST = "exc:";
 
 @interface ResourceManager : OOObject
 
@@ -150,10 +150,3 @@ typedef enum {
 + (void)clearCaches;
 
 @end
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before its sweep (bead oo-2wwr, chunks oo-3rb.98 ff.), forwarding to the cxx_ methods
-        above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep
-        beads; the bridge goes in its own bead.
-*/
-#import "ResourceManager+FoundationBridge.h"

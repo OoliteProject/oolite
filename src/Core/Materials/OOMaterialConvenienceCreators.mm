@@ -51,6 +51,7 @@ SOFTWARE.
 #include "oofnd/Defaults.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 #if !USE_NEW_SHADER_SYNTHESIZER
 namespace {
@@ -174,7 +175,7 @@ void SynthSpecular(OOMaterialSynthContext* context);
         cacheKeyStr = oo::str::format("%s/%s/%s",
             cacheKey->c_str(),
             name.value_or("").c_str(),
-            oo::DescriptionOf(oo::ObjectFromPList(configuration)).c_str());
+            oo::DescriptionOf(configuration).c_str());
         id cached = [cache cxx_objectForKey:cacheKeyStr inCache:"synthesized shader materials"];
         if (cached != nil) {
             synthesizedConfig = oo::PListFrom(cached);
@@ -403,7 +404,7 @@ void SetUniformFloat(OOMaterialSynthContext* context, const std::string& key, fl
 
 void AddTexture(OOMaterialSynthContext* context, const char* uniformName, const char* nonShaderKey, const char* macroName, const oo::PList& specifier)
 {
-    NSCParameterAssert(context->texturesUsed < context->maxTextures);
+    OOCParameterAssert(context->texturesUsed < context->maxTextures);
 
     context->texturesUsed++;
     SetUniform(context->uniforms, uniformName, "texture", oo::PList::unsignedInteger(context->textures.size()));

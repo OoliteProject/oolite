@@ -38,7 +38,7 @@ SOFTWARE.
         PList::Object nodes for the live objects callers put in it (colours, textures); a null PList is
         a nil configuration, and every function then answers as a message to nil did. Specifiers are
         oo::PList dictionaries (null = nil). The Foundation dictionary category these replace, and the
-        Foundation-string key constants, live on in OOMaterialSpecifier+FoundationBridge.h until their callers move.
+        Foundation-string key constants, live on in a transitional bridge (now removed) until their callers move.
 */
 OOColor* cxx_OOMaterialDiffuseColor(const oo::PList& configuration);
 OOColor* cxx_OOMaterialAmbientColor(const oo::PList& configuration);
@@ -96,8 +96,3 @@ inline constexpr const char* cxx_kOOMaterialSpecularExponentLegacyName = "shinin
 inline constexpr const char* cxx_kOOMaterialLightMapsName = "light_map";
 
 #define kOOMaterialDefaultParallaxScale (0.01f)
-
-/*	TRANSITIONAL (proposed ADR-0043 Amendment 1, "Transitional bridges"): the Foundation dictionary
-        category and string key constants this header declared before bead oo-hiis. Deleted by its bridge bead.
-*/
-#import "OOMaterialSpecifier+FoundationBridge.h"

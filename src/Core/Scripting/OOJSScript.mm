@@ -71,8 +71,8 @@ static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* 
 static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled);
 #endif
 
-// [[object description] copy]: nil stays nil.
-static std::optional<std::string> DescriptionOrNil(id object);
+// The value as text (its -description as an object; a string is itself): null stays nullopt.
+static std::optional<std::string> DescriptionOrNil(const oo::PList& value);
 
 // -oo_stringForKey: with its nil; a string value for -setObject:forKey:, which raised on nil.
 static std::optional<std::string> StringForKey(const oo::PList& dictionary, const std::string& key);
@@ -192,16 +192,16 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 
             // Get display attributes from script
             name.reset();
-            name = StrippedName(DescriptionOrNil([self propertyWithID:nameID inContext:context]));
+            name = StrippedName(DescriptionOrNil([self cxx_propertyWithID:nameID inContext:context]));
             if (!name.has_value()) {
                 name = [self scriptNameFromPath:path];
                 [self setProperty:oo::NSStringFrom(*name) withID:nameID inContext:context];
             }
 
-            version = DescriptionOrNil([self propertyWithID:OOJSID("version") inContext:context]);
-            description = DescriptionOrNil([self propertyWithID:OOJSID("description") inContext:context]);
+            version = DescriptionOrNil([self cxx_propertyWithID:OOJSID("version") inContext:context]);
+            description = DescriptionOrNil([self cxx_propertyWithID:OOJSID("description") inContext:context]);
 
-            OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}", oo::DescriptionOf([self displayName]), description.value_or("(no description)"));
+            OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}", [self displayName].value_or("(null)"), description.value_or("(no description)"));
         }
 
         oo::log::outdentIf("script.javaScript.willLoad");
@@ -250,17 +250,17 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     [super dealloc];
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Script";
+    return std::string("Script");
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     if (JS_IsObject(_jsSelf))
-        return [super descriptionComponents];
+        return [super cxx_descriptionComponents];
     else
-        return @"invalid script";
+        return "invalid script";
 }
 
 - (void)javaScriptEngineWillReset:(const oo::Notification&)notification
@@ -300,14 +300,14 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         weakSelf = nil;
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
     // (the property as text: a string is itself, anything else its -description)
     if (!name.has_value())
-        name = DescriptionOrNil([self propertyNamed:"name"]);
+        name = DescriptionOrNil([self cxx_propertyNamed:"name"]);
     if (!name.has_value())
-        return oo::NSStringFrom([self scriptNameFromPath:filePath]); // Special case for parse errors during load.
-    return oo::NSStringFrom(*name);
+        return [self scriptNameFromPath:filePath]; // Special case for parse errors during load.
+    return name;
 }
 
 - (std::optional<std::string>)scriptDescription
@@ -351,7 +351,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
             JS_FreeValue(context, JS_GetException(context));
         }
 
-        OO_LOG("script.javaScript.call", "Calling [{}].{}()", oo::DescriptionOf([self name]), oo::DescriptionOf(OOStringFromJSID(methodID)));
+        OO_LOG("script.javaScript.call", "Calling [{}].{}()", [self cxx_name].value_or("(null)"), (cxx_OOStringFromJSID(methodID)).value_or("(null)"));
         oo::log::indentIf("script.javaScript.call");
 #endif
 
@@ -390,19 +390,19 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return OK;
 }
 
-- (id)propertyWithID:(JSAtom)propID inContext:(JSContext*)context
+- (oo::PList)cxx_propertyWithID:(JSAtom)propID inContext:(JSContext*)context
 {
     OOParameterAssert(context != NULL);
     if (!JS_IsObject(_jsSelf))
-        return nil;
+        return oo::PList();
 
     JSValue jsValue = JS_GetProperty(context, _jsSelf, propID);
     if (JS_IsException(jsValue)) {
         JS_FreeValue(context, JS_GetException(context));
-        return nil;
+        return oo::PList();
     }
 
-    id result = OOJSNativeObjectFromJSValue(context, jsValue);
+    oo::PList result = cxx_OOJSPListFromJSValue(context, jsValue);
     JS_FreeValue(context, jsValue);
     return result;
 }
@@ -427,13 +427,13 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     return JS_DefinePropertyValue(context, _jsSelf, propID, OOJSValueFromNativeObject(context, value), OOJS_PROP_READONLY) >= 0;
 }
 
-- (id)propertyNamed:(const std::string&)propName
+- (oo::PList)cxx_propertyNamed:(const std::string&)propName
 {
     if (!JS_IsObject(_jsSelf))
-        return nil;
+        return oo::PList();
 
     JSContext* context = OOJSAcquireContext();
-    id result = [self propertyWithID:OOJSIDFromString(oo::NSStringFrom(propName)) inContext:context];
+    oo::PList result = [self cxx_propertyWithID:cxx_OOJSIDFromString(propName) inContext:context];
     OOJSRelinquishContext(context);
 
     return result;
@@ -447,7 +447,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         return NO;
 
     JSContext* context = OOJSAcquireContext();
-    BOOL result = [self setProperty:value withID:OOJSIDFromString(oo::NSStringFrom(propName)) inContext:context];
+    BOOL result = [self setProperty:value withID:cxx_OOJSIDFromString(propName) inContext:context];
     OOJSRelinquishContext(context);
 
     return result;
@@ -461,7 +461,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
         return NO;
 
     JSContext* context = OOJSAcquireContext();
-    BOOL result = [self defineProperty:value withID:OOJSIDFromString(oo::NSStringFrom(propName)) inContext:context];
+    BOOL result = [self defineProperty:value withID:cxx_OOJSIDFromString(propName) inContext:context];
     OOJSRelinquishContext(context);
 
     return result;
@@ -554,24 +554,26 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 - (oo::PList::Dict)defaultPropertiesFromPath:(const std::optional<std::string>&)path
 {
     // remove file name, remove OXP subfolder, add manifest.plist (a nil path messaged nil: no manifest)
-    const oo::PList manifest = path.has_value() ? oo::PListFrom(OODictionaryFromFile(oo::NSStringFrom(oo::str::appendingPathComponent(oo::str::deletingLastPathComponent(oo::str::deletingLastPathComponent(*path)), "manifest.plist")))) : oo::PList();
+    oo::PList manifest = path.has_value() ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(oo::str::deletingLastPathComponent(oo::str::deletingLastPathComponent(*path)), "manifest.plist")) : oo::PList();
+    if (!manifest.isDict())
+        manifest = oo::PList(); // a dictionary or nothing, as OODictionaryFromFile answered (its plist.wrongType line, which named the Foundation class, is not kept)
     oo::PList::Dict properties;
     /* __oolite.tmp.* is allocated for OXPs without manifests. Its
      * values are meaningless and shouldn't be used here */
-    const std::optional<std::string> identifier = StringForKey(manifest, oo::StdString(kOOManifestIdentifier));
+    const std::optional<std::string> identifier = StringForKey(manifest, std::string(kOOManifestIdentifier));
     if (manifest && !(identifier.has_value() && oo::str::hasPrefix(*identifier, "__oolite.tmp."))) {
-        if (manifest.get<oo::PList>(oo::StdString(kOOManifestVersion)) != nullptr) {
-            properties["version"] = ValueForKey(StringForKey(manifest, oo::StdString(kOOManifestVersion)), @"version");
+        if (manifest.get<oo::PList>(std::string(kOOManifestVersion)) != nullptr) {
+            properties["version"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestVersion)), @"version");
         }
-        if (manifest.get<oo::PList>(oo::StdString(kOOManifestIdentifier)) != nullptr) {
+        if (manifest.get<oo::PList>(std::string(kOOManifestIdentifier)) != nullptr) {
             // used for system info
             properties[kLocalManifestProperty] = ValueForKey(identifier, oo::NSStringFrom(kLocalManifestProperty));
         }
-        if (manifest.get<oo::PList>(oo::StdString(kOOManifestAuthor)) != nullptr) {
-            properties["author"] = ValueForKey(StringForKey(manifest, oo::StdString(kOOManifestAuthor)), @"author");
+        if (manifest.get<oo::PList>(std::string(kOOManifestAuthor)) != nullptr) {
+            properties["author"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestAuthor)), @"author");
         }
-        if (manifest.get<oo::PList>(oo::StdString(kOOManifestLicense)) != nullptr) {
-            properties["license"] = ValueForKey(StringForKey(manifest, oo::StdString(kOOManifestLicense)), @"license");
+        if (manifest.get<oo::PList>(std::string(kOOManifestLicense)) != nullptr) {
+            properties["license"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestLicense)), @"license");
         }
     }
     return properties;
@@ -588,7 +590,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     if (JS_IsException(tickle)) {
         JS_FreeValue(context, JS_GetException(context));
     } else if (!JS_IsUndefined(tickle)) {
-        OOJSReportWarning(context, @"Script %@ appears to use the tickle() event handler, which is no longer supported.", [self name]);
+        cxx_OOJSReportWarning(context, "Script %s appears to use the tickle() event handler, which is no longer supported.", [self cxx_name].value_or("(null)").c_str());
     }
     JS_FreeValue(context, tickle);
 }
@@ -673,7 +675,7 @@ static BOOL RunScriptWithName(JSContext* context, const std::optional<std::strin
     */
     BOOL modern = HasModernScopeDirective(fileContents);
     if (modern) {
-        OOLog(@"script.javaScript.load.modern", @"Script %@ uses modern scoping.", oo::NSStringOrNil(path));
+        OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.", oo::DescriptionOf(oo::NSStringOrNil(path)));
         NSString* lineEnd = [fileContents hasSuffix:@"\n"] ? @"" : @"\n";
         fileContents = [NSString stringWithFormat:@"(function(){%@%@})", fileContents, lineEnd];
     } else {
@@ -763,7 +765,7 @@ static NSString* SourceHash(NSData* source)
 // Owned compiled script from the cache, or JS_UNDEFINED if there is no usable entry.
 static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source)
 {
-    NSDictionary* entry = [[OOCacheManager sharedCache] objectForKey:path inCache:kCompiledScriptCache];
+    NSDictionary* entry = [[OOCacheManager sharedCache] cxx_objectForKey:oo::StdString(path) inCache:oo::StdString(kCompiledScriptCache)];
     if (![entry isKindOfClass:[NSDictionary class]])
         return JS_UNDEFINED;
 
@@ -772,7 +774,7 @@ static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* 
         || oo::PListView(entry).get<unsigned int>(kCompiledScriptKeyFormat) != kCompiledScriptFormat
         || ![oo::PListView(entry).get<NSString*>(kCompiledScriptKeyEngine) isEqualToString:[NSString stringWithUTF8String:JS_GetVersion()]]
         || ![oo::PListView(entry).get<NSString*>(kCompiledScriptKeyHash) isEqualToString:SourceHash(source)]) {
-        OOLog(@"script.javaScript.cache.stale", @"Compiled script cache entry for %@ is out of date.", path);
+        OO_LOG("script.javaScript.cache.stale", "Compiled script cache entry for {} is out of date.", oo::DescriptionOf(path));
         return JS_UNDEFINED;
     }
 
@@ -780,11 +782,11 @@ static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* 
     JSValue compiled = JS_ReadObject(context, (const uint8_t*)[bytecode bytes], [bytecode length], JS_READ_OBJ_BYTECODE);
     if (JS_IsException(compiled)) {
         JS_FreeValue(context, JS_GetException(context));
-        OOLog(@"script.javaScript.cache.readFailed", @"Could not read compiled script cache entry for %@; compiling instead.", path);
+        OO_LOG("script.javaScript.cache.readFailed", "Could not read compiled script cache entry for {}; compiling instead.", oo::DescriptionOf(path));
         return JS_UNDEFINED;
     }
 
-    OOLog(@"script.javaScript.cache.load", @"Loaded compiled script %@ from cache.", path);
+    OO_LOG("script.javaScript.cache.load", "Loaded compiled script {} from cache.", oo::DescriptionOf(path));
     return compiled;
 }
 
@@ -808,8 +810,8 @@ static void CacheCompiledScript(JSContext* context, NSString* path, NSData* sour
         [NSNumber numberWithUnsignedInt:kCompiledScriptFormat], kCompiledScriptKeyFormat,
         nil];
 
-    [[OOCacheManager sharedCache] setObject:entry forKey:path inCache:kCompiledScriptCache];
-    OOLog(@"script.javaScript.cache.store", @"Cached compiled script %@.", path);
+    [[OOCacheManager sharedCache] cxx_setObject:entry forKey:oo::StdString(path) inCache:oo::StdString(kCompiledScriptCache)];
+    OO_LOG("script.javaScript.cache.store", "Cached compiled script {}.", oo::DescriptionOf(path));
 }
 #endif
 
@@ -947,11 +949,14 @@ static std::optional<std::string> StrippedName(const std::optional<std::string>&
     return string->substr(first, last - first + 1);
 }
 
-static std::optional<std::string> DescriptionOrNil(id object)
+static std::optional<std::string> DescriptionOrNil(const oo::PList& value)
 {
-    if (object == nil)
+    if (value.isNull())
         return std::nullopt;
-    return oo::OptionalString([object description]);
+    if (const std::string* string = value.getIf<std::string>())
+        return *string; // a string's -description is itself
+    // Anything else prints as the object form did (cxx_OOJSPListFromJSValue() is oo::PListFrom() of it).
+    return oo::DescriptionOf(value);
 }
 
 // -oo_stringForKey: with its nil: the string, a number's -stringValue, or nothing.

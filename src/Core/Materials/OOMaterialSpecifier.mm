@@ -45,11 +45,11 @@ OOColor* ColorFor(const oo::PList& configuration, const char* key)
     return [OOColor colorWithDescription:ValueFor(configuration, key)];
 }
 
-// OOTextureSpecFromObject() (OOTexture.mm, not yet migrated) applied to the value for key, as
+// cxx_OOTextureSpecFromObject() applied to the value for key, as
 // -oo_textureSpecifierForKey:defaultName: did.
 oo::PList TextureSpecifierFor(const oo::PList& configuration, const char* key, const std::optional<std::string>& defaultName)
 {
-    return oo::PListFrom(OOTextureSpecFromObject(ValueFor(configuration, key), oo::NSStringOrNil(defaultName)));
+    return cxx_OOTextureSpecFromObject(oo::PListFrom(ValueFor(configuration, key)), defaultName);
 }
 
 // PList dict with extract_channel set (nil stays nil).

@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OODebugFlags.h"
 #import "OODebugSupport.h"
-#import "OOEnumerationShuffle.h"
 #import "OOJSFrameCallbacks.h"
 #import "OOLogOutputHandler.h"
 #import "OOLoggingExtended.h"
@@ -51,15 +50,16 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #endif
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOStringBridge.h"
 #include "oofnd/Date.hpp"
+#include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/Thread.hpp"
+#include "oofnd/objc/OOException.h"
 #include <chrono>
 #include <thread>
 
@@ -105,7 +105,10 @@ static GameController* sSharedController = nil;
         _finishedLaunching = NO;
         last_timeInterval = oo::date::monotonicSeconds(); // the frame clock: intervals only (-doPerformGameTick)
         delta_t = 0.01; // one hundredth of a second
-        _animationTimerInterval = oo::PListView([NSUserDefaults standardUserDefaults]).get<double>(@"animation_timer_interval", MINIMUM_ANIMATION_TICK);
+        {
+            oo::Defaults& prefs = oo::Defaults::standard();
+            _animationTimerInterval = prefs.object("animation_timer_interval").isNull() ? MINIMUM_ANIMATION_TICK : prefs.doubleForKey("animation_timer_interval");
+        }
 
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
@@ -119,15 +122,6 @@ static GameController* sSharedController = nil;
         } else {
             ranrot_srand((uint32_t)oo::date::timeIntervalSince1970()); // reset randomiser with current time
         }
-
-#if OO_DEBUG
-        /*	Force the enumeration shuffle to read its environment here rather than at the
-                first foreach(), so its seed is in the log above every line it could have
-                affected. Returns immediately and logs nothing when OO_SHUFFLE_ENUMERATION is
-                unset, which is the normal case. Debug builds only; see OOEnumerationShuffle.h.
-        */
-        (void)OOEnumerationShuffleEnabled();
-#endif
 
         _splashStart = oo::date::monotonicSeconds();
     }
@@ -276,7 +270,7 @@ static GameController* sSharedController = nil;
         [OOOXZManager sharedManager];
 
         // moved here to try to avoid initialising this before having an Open GL context
-        //[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
+        //[self cxx_logProgress:OO_DESC("Initialising universe")]; // DESC expansions only possible after Universe init
         [[Universe alloc] initWithGameView:gameView];
 
         [self loadPlayerIfRequired];
@@ -292,15 +286,11 @@ static GameController* sSharedController = nil;
         [self cxx_reportUnhandledStartupExceptionName:std::string([exception name]) reason:std::string([exception reason])];
         exit(EXIT_FAILURE);
     }
-    @catch (OOFoundationException* exception) {
-        [self cxx_reportUnhandledStartupExceptionName:oo::StdString([exception name]) reason:oo::OptionalString([exception reason])];
-        exit(EXIT_FAILURE);
-    }
 
     OO_LOG("startup.complete", "========== Loading complete in {:.2f} seconds. ==========", oo::date::monotonicSeconds() - _splashStart);
 
 #if OO_USE_FULLSCREEN_CONTROLLER
-    [self setFullScreenMode:[[NSUserDefaults standardUserDefaults] boolForKey:@"fullscreen"]];
+    [self setFullScreenMode:oo::Defaults::standard().boolForKey("fullscreen")];
 #endif
 
     _finishedLaunching = YES;
@@ -321,7 +311,7 @@ static GameController* sSharedController = nil;
 - (void)loadPlayerIfRequired
 {
     if (playerFileToLoad.has_value()) {
-        [self cxx_logProgress:oo::StdString(DESC(@"loading-player"))];
+        [self cxx_logProgress:OO_DESC("loading-player")];
         // fix problem with non-shader lighting when starting skips
         // the splash screen
         [UNIVERSE useGUILightSource:YES];
@@ -501,11 +491,6 @@ void FireOneDueDeferredCall(void)
                 OO_LOG("unclassified", "*** NSTimer ignoring exception '{}' (reason '{}') raised during posting of timer with target {} and selector 'fire'", [exception name], [exception reason], oo::str::pointerDescription(call.target));
                 return; // target and argument stay retained, as the performer leaked them
             }
-            @catch (OOFoundationException* exception) {
-                // Foundation exceptions: same text as before (was a direct Foundation log call).
-                OO_LOG("unclassified", "*** NSTimer ignoring exception '{}' (reason '{}') raised during posting of timer with target {} and selector 'fire'", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]), oo::str::pointerDescription(call.target));
-                return; // target and argument stay retained, as the performer leaked them
-            }
 
             [call.target release];
             [call.argument release];
@@ -574,13 +559,10 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
 {
     [self fireDueDeadlines];
     FireOneDueDeferredCall();
-    [[NSRunLoop currentRunLoop] limitDateForMode:NSDefaultRunLoopMode];
 }
 
 - (void)runFrameLoop
 {
-    NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
-
     for (;;) {
         @autoreleasepool {
             [self fireDueDeadlines];
@@ -600,11 +582,9 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
 #ifdef OO_DEBUG_MONITOR_ENABLED
             if (OODebugTCPConsoleIsWaitingForInput()) {
                 /*	The debug console's socket is no longer on the run loop (bead oo-3rb.14,
-                        proposed ADR-0041): run the run loop without waiting (its timers and ready
-                        input), then wait on the socket as the run loop waited on the console's
-                        streams, handling what arrives before the next deadline.
+                        proposed ADR-0041): wait on the socket as the run loop waited on the
+                        console's streams, handling what arrives before the next deadline.
                 */
-                [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantPast]];
                 double timeout = -1.0;
                 if (haveWake) {
                     timeout = std::chrono::duration<double>(wake - std::chrono::steady_clock::now()).count();
@@ -615,14 +595,22 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
             } else
 #endif
             {
-                NSDate* limit = [NSDate distantFuture];
+                /*	Nothing else to wait on now that the run-loop pump is gone (bead oo-3rb.58,
+                        ADR-0033): wait until the next deadline, whole milliseconds rounded up as the
+                        run loop's wait was (not std::this_thread: on this toolchain it sleeps in
+                        15.6 ms steps whatever the timer resolution, measured). With no deadline at
+                        all the pass ends at once, as the run loop returned at once with nothing to
+                        wait on.
+                */
                 if (haveWake) {
-                    std::chrono::duration<double> wait = wake - std::chrono::steady_clock::now();
-                    limit = [NSDate dateWithTimeIntervalSinceNow:wait.count()];
-                }
-                if (![runLoop runMode:NSDefaultRunLoopMode beforeDate:limit] && haveWake) {
-                    // Nothing on the run loop to wait for: wait here.
-                    std::this_thread::sleep_until(wake);
+                    const double remaining = std::chrono::duration<double>(wake - std::chrono::steady_clock::now()).count();
+                    if (remaining > 0.0) {
+#if OOLITE_WINDOWS
+                        Sleep((DWORD)ceil(remaining * 1000.0));
+#else
+                        std::this_thread::sleep_for(std::chrono::milliseconds((long long)ceil(remaining * 1000.0)));
+#endif
+                    }
                 }
             }
         }
@@ -649,20 +637,20 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
 }
 
 // Helpers to allow -snapshotsURLCreatingIfNeeded: code to be identical here and in dock tile plug-in.
-// The preferences stay on NSUserDefaults here (the dock tile plug-in reads the same domain).
+// Same domain as the dock tile plug-in: oo::Defaults (backed by the shared store; ADR-0032 / oo-mwo0).
 static id GetPreference(const std::string& key)
 {
-    return [[NSUserDefaults standardUserDefaults] objectForKey:oo::NSStringFrom(key)];
+    return oo::ObjectFromPList(oo::Defaults::standard().object(key));
 }
 
 static void SetPreference(const std::string& key, id value)
 {
-    [[NSUserDefaults standardUserDefaults] setObject:value forKey:oo::NSStringFrom(key)];
+    oo::Defaults::standard().setObject(key, oo::PListFrom(value));
 }
 
 static void RemovePreference(const std::string& key)
 {
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:oo::NSStringFrom(key)];
+    oo::Defaults::standard().removeObject(key);
 }
 
 #define kSnapshotsDirRefKey "snapshots-directory-reference"
@@ -674,7 +662,7 @@ static void RemovePreference(const std::string& key)
     // A JAPersistentFileReference dictionary (not migrated): passed between its functions as is.
     id snapshotDirDict = GetPreference(kSnapshotsDirRefKey);
     NSURL* url = nil;
-    const std::string name = oo::StdString(DESC(@"snapshots-directory-name-mac"));
+    const std::string name = OO_DESC("snapshots-directory-name-mac");
 
     if (!oo::IsNSDictionary(snapshotDirDict))
         snapshotDirDict = nil;
@@ -806,7 +794,7 @@ static void RemovePreference(const std::string& key)
 
     if (action == @selector(showAddOnsAction:)) {
         // Always enabled in unrestricted mode, to allow users to add OXPs more easily.
-        return [ResourceManager useAddOns] != nil;
+        return [ResourceManager cxx_useAddOns].has_value();
     }
 
     if (action == @selector(showSnapshotsAction:)) {
@@ -870,7 +858,7 @@ static void RemovePreference(const std::string& key)
 #else
 - (BOOL)debugMessageTrackingIsOn
 {
-    return OOLogWillDisplayMessagesInClass(@"startup.progress");
+    return oo::log::willDisplay("startup.progress");
 }
 
 - (std::string)cxx_debugMessageCurrentString
@@ -914,7 +902,7 @@ std::vector<std::string> sMessageStack;
 
 - (void)endSplashScreen
 {
-    OOLogSetDisplayMessagesInClass(@"startup.progress", NO);
+    oo::log::logger().setDisplay("startup.progress", false);
 
 #if OOLITE_MAC_COCOA_UI
     // These views will be released when we replace the content view.
@@ -995,7 +983,7 @@ std::vector<std::string> sMessageStack;
         ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
     }
 #endif
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    oo::Defaults::standard().synchronize();
     OO_LOG("gameController.exitApp", "{}", ".GNUstepDefaults synchronized.");
 #ifndef NDEBUG
     // Leak check: tears down the JavaScript runtime and logs any objects still alive.
@@ -1036,9 +1024,8 @@ std::vector<std::string> sMessageStack;
 - (std::optional<std::string>)cxx_playerFileDirectory
 {
     if (!playerFileDirectory.has_value()) {
-        // The defaults stay on NSUserDefaults until its last consumer migrates (ADR-0032): this
-        // process writes save-directory through it below, so it is read through it too.
-        playerFileDirectory = oo::OptionalString([[NSUserDefaults standardUserDefaults] stringForKey:@"save-directory"]);
+        // save-directory via oo::Defaults (ADR-0032 / oo-mwo0 shared store).
+        playerFileDirectory = oo::Defaults::standard().stringForKey("save-directory");
         if (playerFileDirectory.has_value() && !oo::fs::fileExists(oo::fs::pathFromUTF8(*playerFileDirectory))) {
             playerFileDirectory = std::nullopt;
         }
@@ -1074,7 +1061,10 @@ std::vector<std::string> sMessageStack;
     }
 
     playerFileDirectory = directory;
-    [[NSUserDefaults standardUserDefaults] setObject:oo::NSStringOrNil(directory) forKey:@"save-directory"];
+    if (directory.has_value())
+        oo::Defaults::standard().setObject("save-directory", oo::PList(*directory));
+    else
+        oo::Defaults::standard().removeObject("save-directory");
 }
 
 - (void)cxx_reportUnhandledStartupExceptionName:(const std::string&)name reason:(const std::optional<std::string>&)reason

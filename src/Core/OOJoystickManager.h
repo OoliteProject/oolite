@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
+#include <string_view>
 
 // Enums are used here rather than a more complex ObjC object because
 // these are required very frequently (once per frame) so must be light
@@ -159,9 +160,9 @@ enum {
 #define STICK_NUMBER @"stickNum" // Stick number 0 to 4
 #define STICK_AXBUT @"stickAxBt" // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
-#define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
-#define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
-#define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
+inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING = "RollAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING = "PitchAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfile"; // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // a dictionary: a std::string (oofnd/String.hpp)
 #define ENUMKEY(x) oo::str::format("%d", x)

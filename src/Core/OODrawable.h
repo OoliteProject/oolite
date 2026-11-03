@@ -33,6 +33,11 @@ SOFTWARE.
 #import "OOWeakReference.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/objc/OOObjCRef.h"
+#include <vector>
+
+@class OOTexture;
+
 @interface OODrawable : OOObject
 
 - (void)renderOpaqueParts;
@@ -51,7 +56,7 @@ SOFTWARE.
 - (void)dumpSelfState;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures; // an Objective-C set of textures. Shared selector (proposed ADR-0043).
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 - (size_t)totalSize; // Size including dynamic data, not counting textures.
 #endif
 

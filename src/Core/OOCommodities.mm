@@ -194,7 +194,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     // ResourceManager's dictionary API is not migrated: the merged table arrives through oo::PListFrom.
     // TODO: validation of inputs; convert 't', 'kg', 'g' in quantity_unit to 0, 1, 2 (for now it
     // needs them entering as the ints).
-    const oo::PList rawCommodityLists = oo::PListFrom([ResourceManager dictionaryFromFilesNamed:@"trade-goods.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES]);
+    const oo::PList rawCommodityLists = [ResourceManager cxx_dictionaryFromFilesNamed:"trade-goods.plist" inFolder:"Config" mergeMode:MERGE_SMART cache:YES];
     if (const oo::PList::Dict* entries = rawCommodityLists.getIf<oo::PList::Dict>())
         _commodityLists = *entries;
 
@@ -262,8 +262,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     if (!goodScriptName.has_value()) {
         return definition;
     }
-    // -[PlayerEntity commodityScriptNamed:] is not migrated: the name crosses at the call.
-    OOScript* goodScript = [PLAYER commodityScriptNamed:oo::NSStringFrom(*goodScriptName)];
+    OOScript* goodScript = [PLAYER cxx_commodityScriptNamed:*goodScriptName];
     if (goodScript == nil) {
         return definition;
     }
@@ -277,7 +276,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     // The JS boundary takes and gives property-list objects: the info crosses as one, and an
     // accepted result comes back through oo::PListFrom (an exact round trip, Amendment 2 item 11).
     OOJSVal args[] = {
-        OOJSValueFromNativeObject(context, oo::ObjectFromPList(good)),
+        OOJSValueFromPList(context, good),
         OOJSValueFromNativeObject(context, station),
         OOJSValueFromDouble(context, system)
     };
@@ -317,20 +316,20 @@ bool ContainsString(const oo::PList& array, const std::string& string)
         return good;
     }
 
-    id result = OOJSNativeObjectFromJSObject(context, rval);
+    oo::PList result = cxx_OOJSPListFromJSObject(context, rval);
     OOJSFreeValue(context, rval);
     OOJSRelinquishContext(context);
-    if (!oo::IsNSDictionary(result)) {
+    if (result.getIf<oo::PList::Dict>() == nullptr) {
         OO_LOG("script.commodityScript.error", "Could not update {} commodity definition for {} - return value invalid", errorType, StringFor(good, kOOCommodityKey).value_or("(null)"));
         return good;
     }
 
-    return oo::PListFrom(result);
+    return result;
 }
 
 - (OOCommodityMarket*)cxx_generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(const std::optional<std::string>&)scriptName
 {
-    OOScript* script = [PLAYER commodityScriptNamed:oo::NSStringOrNil(scriptName)];
+    OOScript* script = [PLAYER cxx_commodityScriptNamed:scriptName];
 
     OOCommodityMarket* market = [[OOCommodityMarket alloc] init];
 
@@ -357,7 +356,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
 - (OOCommodityMarket*)generateMarketForStation:(StationEntity*)station
 {
     const oo::PList marketDefinition = [station cxx_marketDefinition];
-    OOScript* marketScript = [PLAYER commodityScriptNamed:oo::NSStringOrNil([station cxx_marketScriptName])];
+    OOScript* marketScript = [PLAYER cxx_commodityScriptNamed:[station cxx_marketScriptName]];
     if (!marketDefinition && marketScript == nil) {
         OOCommodityMarket* market = [self generateBlankMarket];
         return market;
@@ -415,13 +414,13 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return _commodityLists.size();
 }
 
-- (id)goods
+- (std::vector<std::string>)goods
 {
     // key order (was -allKeys, hash order)
     std::vector<std::string> keys;
     for (const auto& entry : _commodityLists)
         keys.push_back(entry.first);
-    return oo::NSArrayFromStrings(keys);
+    return keys;
 }
 
 - (BOOL)cxx_goodDefined:(const std::string&)key
@@ -434,8 +433,8 @@ bool ContainsString(const oo::PList& array, const std::string& string)
 {
     for (const auto& [key, info] : _commodityLists) // key order (was hash order): the first match wins
     {
-        // OOExpand (OOStringExpander) is not migrated: the name crosses at the call.
-        const std::optional<std::string> expanded = oo::OptionalString(OOExpand(oo::NSStringOrNil(StringFor(info, kOOCommodityName))));
+        const std::optional<std::string> commodityName = StringFor(info, kOOCommodityName);
+        const std::optional<std::string> expanded = commodityName.has_value() ? cxx_OOExpand(*commodityName) : std::nullopt;
         if (expanded == name) {
             return key;
         }
@@ -443,18 +442,18 @@ bool ContainsString(const oo::PList& array, const std::string& string)
     return std::nullopt;
 }
 
-- (id)getRandomCommodity
+- (std::string)getRandomCommodity
 {
     // Ranrot() % count indexes the keys in key order (was -allKeys, hash order).
     NSUInteger idx = Ranrot() % _commodityLists.size();
     auto entry = _commodityLists.begin();
     std::advance(entry, idx);
-    return oo::NSStringFrom(entry->first);
+    return entry->first;
 }
 
-- (OOMassUnit)massUnitForGood:(id)good
+- (OOMassUnit)massUnitForGood:(const std::string&)good
 {
-    const auto entry = _commodityLists.find(oo::StdString(good));
+    const auto entry = _commodityLists.find(good);
     if (entry == _commodityLists.end() || !entry->second.isDict()) {
         return UNITS_TONS;
     }
@@ -508,7 +507,7 @@ bool ContainsString(const oo::PList& array, const std::string& string)
 
     good = [self createDefinitionFrom:good price:p andQuantity:0 forKey:commodity atStation:nil inSystem:system];
     if (scriptName.has_value()) {
-        OOScript* script = [PLAYER commodityScriptNamed:oo::NSStringFrom(*scriptName)];
+        OOScript* script = [PLAYER cxx_commodityScriptNamed:*scriptName];
         if (script != nil) {
             good = [self modifyGood:good withScript:script atStation:nil inSystem:system localMode:YES];
         }

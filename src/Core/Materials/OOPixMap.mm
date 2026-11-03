@@ -153,28 +153,28 @@ void OODumpPixMap(OOPixMap pixMap, const std::string& name)
         break;
 
     case kOOPixMapGrayscale:
-        [gameView dumpGrayToFileNamed:oo::NSStringFrom(name)
-                                bytes:(uint8_t*)pixMap.pixels
-                                width:pixMap.width
-                               height:pixMap.height
-                             rowBytes:pixMap.rowBytes];
+        [gameView cxx_dumpGrayToFileNamed:name
+                                    bytes:(uint8_t*)pixMap.pixels
+                                    width:pixMap.width
+                                   height:pixMap.height
+                                 rowBytes:pixMap.rowBytes];
         break;
 
     case kOOPixMapGrayscaleAlpha:
-        [gameView dumpGrayAlphaToFileNamed:oo::NSStringFrom(name)
-                                     bytes:(uint8_t*)pixMap.pixels
-                                     width:pixMap.width
-                                    height:pixMap.height
-                                  rowBytes:pixMap.rowBytes];
+        [gameView cxx_dumpGrayAlphaToFileNamed:name
+                                         bytes:(uint8_t*)pixMap.pixels
+                                         width:pixMap.width
+                                        height:pixMap.height
+                                      rowBytes:pixMap.rowBytes];
         break;
 
     case kOOPixMapRGBA:
-        [gameView dumpRGBAToRGBFileNamed:oo::NSStringFrom(name + " rgb")
-                        andGrayFileNamed:oo::NSStringFrom(name + " alpha")
-                                   bytes:(uint8_t*)pixMap.pixels
-                                   width:pixMap.width
-                                  height:pixMap.height
-                                rowBytes:pixMap.rowBytes];
+        [gameView cxx_dumpRGBAToRGBFileNamed:name + " rgb"
+                            andGrayFileNamed:name + " alpha"
+                                       bytes:(uint8_t*)pixMap.pixels
+                                       width:pixMap.width
+                                      height:pixMap.height
+                                    rowBytes:pixMap.rowBytes];
         break;
     }
 }

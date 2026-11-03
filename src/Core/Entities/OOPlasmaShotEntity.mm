@@ -93,7 +93,7 @@ MA 02110-1301, USA.
             [e takeEnergyDamage:[self energy] * attenuation
                             from:self
                        becauseOf:[self owner]
-                weaponIdentifier:@"EQ_WEAPON_PLASMA_SHOT"];
+                weaponIdentifier:"EQ_WEAPON_PLASMA_SHOT"];
             [UNIVERSE removeEntity:self];
 
             // Spawn a plasma burst.

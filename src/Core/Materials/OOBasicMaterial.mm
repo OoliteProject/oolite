@@ -26,7 +26,6 @@ SOFTWARE.
 */
 
 #import "OOBasicMaterial.h"
-#import "OOCollectionExtractors.h"
 #import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
 #import "OOMaterialSpecifier.h"
@@ -39,13 +38,18 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 
 @implementation OOBasicMaterial
 
-- (id)initWithName:(id)name
+- (id)initWithName:(id)name // shared selector (Foundation declares it too; retires with oo-qps)
+{
+    return [self cxx_initWithName:oo::OptionalString(name)];
+}
+
+- (id)cxx_initWithName:(const std::optional<std::string>&)name
 {
     self = [super init];
     if (EXPECT_NOT(self == nil))
         return nil;
 
-    materialName = oo::OptionalString(name);
+    materialName = name;
 
     [self setDiffuseRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
     [self setAmbientRed:1.0f green:1.0f blue:1.0f alpha:1.0f];
@@ -60,7 +64,7 @@ static OOBasicMaterial* sDefaultMaterial = nil;
     id colorDesc = nil;
     int specularExponent;
 
-    self = [self initWithName:name];
+    self = [self cxx_initWithName:oo::OptionalString(name)];
     if (EXPECT_NOT(self == nil))
         return nil;
 
@@ -101,9 +105,9 @@ static OOBasicMaterial* sDefaultMaterial = nil;
     [super dealloc];
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringOrNil(materialName);
+    return materialName;
 }
 
 - (BOOL)doApply
@@ -124,7 +128,7 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 {
     if (![next isKindOfClass:[OOBasicMaterial class]]) {
         if (EXPECT_NOT(sDefaultMaterial == nil))
-            sDefaultMaterial = [[OOBasicMaterial alloc] initWithName:@"<default material>"];
+            sDefaultMaterial = [[OOBasicMaterial alloc] cxx_initWithName:std::string("<default material>")];
         [sDefaultMaterial doApply];
     }
 }
@@ -307,9 +311,9 @@ static OOBasicMaterial* sDefaultMaterial = nil;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return oo::NSSetFromObjects(std::vector<id>()); // an empty set; shared selector (proposed ADR-0043)
+    return { };
 }
 #endif
 

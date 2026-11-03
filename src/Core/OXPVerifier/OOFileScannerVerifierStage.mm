@@ -105,9 +105,9 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 @implementation OOFileScannerVerifierStage
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kFileScannerStageName);
+    return kFileScannerStageName;
 }
 
 - (void)run
@@ -216,8 +216,8 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
     // If we get here, the file wasn't found in the OXP.
     // FIXME: should check case for built-in files.
-    if (checkBuiltIn)
-        return oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringOrNil(file) inFolder:oo::NSStringOrNil(folder)]);
+    if (checkBuiltIn && file.has_value())
+        return [ResourceManager cxx_pathForFileNamed:*file inFolder:folder]; // a nil name found no path
 
     return std::nullopt;
 }
@@ -332,7 +332,6 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 - (void)scanForFiles
 {
-    NSDirectoryEnumerator* dirEnum = nil;
     std::string path,
         lcName,
         existing,
@@ -352,19 +351,19 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
     for (const std::string& readMe : [self constructReadMeNames])
         readMeNames.insert(readMe);
 
-    dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:oo::NSStringFrom(_basePath)];
+    oo::fs::RecursiveDirectoryEnumerator dirEnum(oo::fs::pathFromUTF8(_basePath));
     for (;;) {
-        const std::optional<std::string> nextName = oo::OptionalString([dirEnum nextObject]);
+        const std::optional<std::string> nextName = dirEnum.next();
         if (!nextName.has_value())
             break;
         const std::string& name = *nextName;
 
         path = oo::str::appendingPathComponent(_basePath, name);
-        const std::optional<std::string> type = oo::OptionalString([[dirEnum fileAttributes] fileType]);
+        const oo::fs::FileType type = dirEnum.entryType();
         lcName = oo::str::lowercase(name);
 
-        if (type == oo::StdString(NSFileTypeDirectory)) {
-            [dirEnum skipDescendents];
+        if (type == oo::fs::FileType::directory) {
+            dirEnum.skipDescendents();
 
             if (_skipDirectoryNames.contains(name)) {
                 // Silently skip .svn and CVS
@@ -378,7 +377,7 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             } else {
                 OO_LOG("verifyOXP.scanFiles.overloadedName", "***** ERROR: {} '{}' conflicts with {} named '{}', ignoring. (OXPs must work on case-insensitive file systems!)", "directory", name, existingType, existing);
             }
-        } else if (type == oo::StdString(NSFileTypeRegular)) {
+        } else if (type == oo::fs::FileType::regular) {
             if (_junkFileNames.contains(name)) {
                 OO_LOG("verifyOXP.scanFiles.skipJunk", "NOTE: skipping junk file {}.", name);
             } else if (readMeNames.contains(lcName)) {
@@ -389,10 +388,10 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
             } else {
                 OO_LOG("verifyOXP.scanFiles.overloadedName", "***** ERROR: {} '{}' conflicts with {} named '{}', ignoring. (OXPs must work on case-insensitive file systems!)", "file", name, existingType, existing);
             }
-        } else if (type == oo::StdString(NSFileTypeSymbolicLink)) {
+        } else if (type == oo::fs::FileType::symbolic_link) {
             OO_LOG("verifyOXP.scanFiles.symLink", "----- WARNING: \"{}\" is a symbolic link, ignoring.", name);
         } else {
-            OO_LOG("verifyOXP.scanFiles.nonStandardFile", "----- WARNING: \"{}\" is a non-standard file ({}), ignoring.", name, type.value_or("(null)"));
+            OO_LOG("verifyOXP.scanFiles.nonStandardFile", "----- WARNING: \"{}\" is a non-standard file, ignoring.", name);
         }
     }
 
@@ -506,7 +505,6 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 - (std::optional<std::map<std::string, std::string, std::less<>>>)scanDirectory:(const std::string&)path
 {
-    NSDirectoryEnumerator* dirEnum = nil;
     std::map<std::string, std::string, std::less<>> result;
     std::string lcName,
         dirName,
@@ -514,19 +512,19 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
     dirName = oo::str::lastPathComponent(path);
 
-    dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:oo::NSStringFrom(path)];
+    oo::fs::RecursiveDirectoryEnumerator dirEnum(oo::fs::pathFromUTF8(path));
     for (;;) {
-        const std::optional<std::string> nextName = oo::OptionalString([dirEnum nextObject]);
+        const std::optional<std::string> nextName = dirEnum.next();
         if (!nextName.has_value())
             break;
         const std::string& name = *nextName;
 
-        const std::optional<std::string> type = oo::OptionalString([[dirEnum fileAttributes] fileType]);
+        const oo::fs::FileType type = dirEnum.entryType();
         relativeName = oo::str::appendingPathComponent(dirName, name);
 
         if (_junkFileNames.contains(name)) {
             OO_LOG("verifyOXP.scanFiles.skipJunk", "NOTE: skipping junk file {}/{}.", dirName, name);
-        } else if (type == oo::StdString(NSFileTypeRegular)) {
+        } else if (type == oo::fs::FileType::regular) {
             lcName = oo::str::lowercase(name);
             const auto existing = result.find(lcName);
 
@@ -537,17 +535,17 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
                 OO_LOG("verifyOXP.scanFiles.overloadedName", "***** ERROR: {} '{}' conflicts with {} named '{}', ignoring. (OXPs must work on case-insensitive file systems!)", "file", relativeName, "file", oo::str::appendingPathComponent(dirName, existing->second));
             }
         } else {
-            if (type == oo::StdString(NSFileTypeDirectory)) {
-                [dirEnum skipDescendents];
+            if (type == oo::fs::FileType::directory) {
+                dirEnum.skipDescendents();
                 if (!_skipDirectoryNames.contains(name)) {
                     OO_LOG("verifyOXP.scanFiles.directory", "----- WARNING: \"{}\" is a nested directory, ignoring.", relativeName);
                 } else {
                     OO_LOG("verifyOXP.verbose.listFiles", "- Skipping {}/{}/", dirName, name);
                 }
-            } else if (type == oo::StdString(NSFileTypeSymbolicLink)) {
+            } else if (type == oo::fs::FileType::symbolic_link) {
                 OO_LOG("verifyOXP.scanFiles.symLink", "----- WARNING: \"{}\" is a symbolic link, ignoring.", relativeName);
             } else {
-                OO_LOG("verifyOXP.scanFiles.nonStandardFile", "----- WARNING: \"{}\" is a non-standard file ({}), ignoring.", relativeName, type.value_or("(null)"));
+                OO_LOG("verifyOXP.scanFiles.nonStandardFile", "----- WARNING: \"{}\" is a non-standard file, ignoring.", relativeName);
             }
         }
     }
@@ -631,9 +629,9 @@ BOOL CheckNameConflict(const std::string& lcName, const std::map<std::string, st
 
 @implementation OOListUnusedFilesStage : OOOXPVerifierStage
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kUnusedListerStageName);
+    return kUnusedListerStageName;
 }
 
 - (std::optional<std::vector<std::string>>)cxx_dependencies

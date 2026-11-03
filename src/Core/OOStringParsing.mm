@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 #include <vector>
 #import "HeadUpDisplay.h"
-#import "OOCollectionExtractors.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 #import "PlayerEntity.h"
@@ -220,17 +219,16 @@ std::string cxx_StringFromRandomSeed(Random_Seed seed)
 
 std::string cxx_OOPadStringToEms(const std::string& string, float padEms)
 {
-    // OOStringWidthInEm (HeadUpDisplay) is an unmigrated callee: convert at the calls.
     std::string result = string;
-    float numEms = padEms - OOStringWidthInEm(oo::NSStringFrom(result));
+    float numEms = padEms - cxx_OOStringWidthInEm(result);
     if (numEms > 0) {
-        numEms /= OOStringWidthInEm(@" "); // start with wide space
+        numEms /= cxx_OOStringWidthInEm(" "); // start with wide space
         result = std::string((NSUInteger)numEms, ' ') + result;
     }
     // most of the way there, so switch to narrow space
-    numEms = padEms - OOStringWidthInEm(oo::NSStringFrom(result));
+    numEms = padEms - cxx_OOStringWidthInEm(result);
     if (numEms > 0) {
-        numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space
+        numEms /= cxx_OOStringWidthInEm("\037"); // 037 is narrow space
         result = std::string((NSUInteger)numEms, '\037') + result;
     }
     return result;
@@ -269,8 +267,8 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL 
         if (JS_IsException(rval))
             OOJSReportPendingException(context);
         else
-            // OOStringFromJSValue is an unmigrated callee (nil for null or undefined)
-            result = oo::OptionalString(OOStringFromJSValue(context, rval));
+            // nullopt (was nil) for null or undefined
+            result = cxx_OOStringFromJSValue(context, rval);
         JS_FreeValue(context, rval);
     } else {
         OOJSReportPendingException(context);
@@ -319,9 +317,9 @@ std::string cxx_ClockToString(double clock, BOOL adjusting)
 
     // DESC() (Universe) is unmigrated: convert at the call. The format is read at run time.
     if (adjusting)
-        format = oo::StdString(DESC(@"clock-format-adjusting"));
+        format = OO_DESC("clock-format-adjusting");
     else
-        format = oo::StdString(DESC(@"clock-format"));
+        format = OO_DESC("clock-format");
 
     return oo::str::formatRuntime(format, { days, hrs, mins, secs });
 }

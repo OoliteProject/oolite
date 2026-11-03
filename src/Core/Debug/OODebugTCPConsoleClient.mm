@@ -262,7 +262,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (id)init
 {
-    return [self initWithAddress:nil port:0];
+    return [self initWithAddress:std::nullopt port:0];
 }
 
 - (id)initWithAddress:(const std::optional<std::string>&)hostAddress port:(uint16_t)port
@@ -327,7 +327,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         [self disconnectFromServerWithMessage:std::string("TCP console bridge unexpectedly released while active.")];
     }
     if (_monitor) {
-        [_monitor disconnectDebugger:self message:@"TCP console bridge unexpectedly released while active."];
+        [_monitor disconnectDebugger:self message:"TCP console bridge unexpectedly released while active."];
     }
 
     [self closeConnection];
@@ -338,17 +338,17 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     [super dealloc];
 }
 
-- (BOOL)connectDebugMonitor:(in OODebugMonitor*)debugMonitor
-               errorMessage:(out id*)message // shared selector (OODebuggerInterface; proposed ADR-0043)
+- (BOOL)connectDebugMonitor:(OODebugMonitor*)debugMonitor
+               errorMessage:(std::optional<std::string>*)message
 {
     if (_status == kOOTCPClientConnectionRefused) {
         if (message != NULL)
-            *message = @"Connection refused.";
+            *message = "Connection refused.";
         return NO;
     }
     if (_status == kOOTCPClientDisconnected) {
         if (message != NULL)
-            *message = @"Cannot reconnect after disconnecting.";
+            *message = "Cannot reconnect after disconnecting.";
         return NO;
     }
 
@@ -357,23 +357,21 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     return YES;
 }
 
-- (void)disconnectDebugMonitor:(in OODebugMonitor*)debugMonitor
-                       message:(in id)message // shared selector (OODebuggerInterface; proposed ADR-0043)
+- (void)disconnectDebugMonitor:(OODebugMonitor*)debugMonitor
+                       message:(const std::optional<std::string>&)message
 {
-    [self disconnectFromServerWithMessage:oo::OptionalString(message)];
+    [self disconnectFromServerWithMessage:message];
     _monitor = nil;
 }
 
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-            jsConsoleOutput:(in id)output
-                   colorKey:(in id)colorKey
-              emphasisRange:(in NSRange)emphasisRange // shared selector (OODebuggerInterface; proposed ADR-0043)
+- (void)debugMonitor:(OODebugMonitor*)debugMonitor
+     jsConsoleOutput:(const std::string&)output
+            colorKey:(const std::optional<std::string>&)colorKey
+       emphasisRange:(NSRange)emphasisRange
 {
-    // The shared selector's parameters (id) convert once: the text, the colour key ("general"
-    // when there is none) and the emphasis range as two integers.
     oo::PList::Dict parameters;
-    parameters[ProtocolName(kOOTCPMessage)] = oo::PListFrom(output);
-    parameters[ProtocolName(kOOTCPColorKey)] = (colorKey != nil) ? oo::PListFrom(colorKey) : oo::PList(std::string("general"));
+    parameters[ProtocolName(kOOTCPMessage)] = oo::PList(output);
+    parameters[ProtocolName(kOOTCPColorKey)] = colorKey.has_value() ? oo::PList(*colorKey) : oo::PList(std::string("general"));
     if (emphasisRange.length != 0) {
         parameters[ProtocolName(kOOTCPEmphasisRanges)] = oo::PList(oo::PList::Array {
             oo::PList(static_cast<std::int64_t>(emphasisRange.location)),
@@ -384,40 +382,39 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         withParameters:oo::PList(std::move(parameters))];
 }
 
-- (oneway void)debugMonitorClearConsole:(in OODebugMonitor*)debugMonitor
+- (void)debugMonitorClearConsole:(OODebugMonitor*)debugMonitor
 {
     [self sendPacket:ProtocolName(kOOTCPPacket_ClearConsole)
         withParameters:oo::PList()];
 }
 
-- (oneway void)debugMonitorShowConsole:(in OODebugMonitor*)debugMonitor
+- (void)debugMonitorShowConsole:(OODebugMonitor*)debugMonitor
 {
     [self sendPacket:ProtocolName(kOOTCPPacket_ShowConsole)
         withParameters:oo::PList()];
 }
 
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-          noteConfiguration:(in id)configuration // shared selector (OODebuggerInterface; proposed ADR-0043)
+- (void)debugMonitor:(OODebugMonitor*)debugMonitor
+    noteConfiguration:(const oo::PList&)configuration
 {
     [self sendPacket:ProtocolName(kOOTCPPacket_NoteConfiguration)
-           withValue:oo::PListFrom(configuration)
+           withValue:configuration
         forParameter:ProtocolName(kOOTCPConfiguration)];
 }
 
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-    noteChangedConfigrationValue:(in id)newValue
-                          forKey:(in id)key // shared selector (OODebuggerInterface; proposed ADR-0043)
+- (void)debugMonitor:(OODebugMonitor*)debugMonitor
+    noteChangedConfigrationValue:(const oo::PList&)newValue
+                          forKey:(const std::string&)key
 {
-    // The shared selector's value and key (id) convert once.
-    if (newValue != nil) {
+    if (newValue) {
         oo::PList::Dict change;
-        change[oo::StdString(key)] = oo::PListFrom(newValue);
+        change[key] = newValue;
         [self sendPacket:ProtocolName(kOOTCPPacket_NoteConfiguration)
                withValue:oo::PList(std::move(change))
             forParameter:ProtocolName(kOOTCPConfiguration)];
     } else {
         [self sendPacket:ProtocolName(kOOTCPPacket_NoteConfiguration)
-               withValue:oo::PList(oo::PList::Array { oo::PListFrom(key) })
+               withValue:oo::PList(oo::PList::Array { oo::PList(key) })
             forParameter:ProtocolName(kOOTCPRemovedConfigurationKeys)];
     }
 }
@@ -722,7 +719,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     }
 
     if (!sentOK) {
-        OO_LOG("debugTCP.send.error", "The following packet could not be sent: {}", oo::DescriptionOf(oo::ObjectFromPList(dictionary)));
+        OO_LOG("debugTCP.send.error", "The following packet could not be sent: {}", oo::DescriptionOf(dictionary));
         if (![[OODebugMonitor sharedDebugMonitor] TCPIgnoresDroppedPackets]) {
             [self breakConnectionWithStreamError:(_socket != kNoSocket ? _outError : 0)];
         }
@@ -781,10 +778,10 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         return;
 
     // The packet type names are OODebugTCPConsoleProtocol.h's constants, read as C++ strings.
-#define PACKET_CASE(x)                                      \
-    else if (packetType == oo::StdString(kOOTCPPacket_##x)) \
-    {                                                       \
-        [self handle##x##Packet:packet];                    \
+#define PACKET_CASE(x)                                     \
+    else if (packetType == ProtocolName(kOOTCPPacket_##x)) \
+    {                                                      \
+        [self handle##x##Packet:packet];                   \
     }
 
     if (0) { }
@@ -849,23 +846,22 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     if (_monitor == nil)
         return;
 
-    // -setConfigurationValue:forKey: is a shared selector (id): each value and key is handed on as
-    // an Objective-C object. Keys go in std::map order (was the dictionary's hash order); each
-    // forward can make the monitor send a change packet, so those go in that order too.
-    const oo::PList* configuration = packet.find(oo::StdString(kOOTCPConfiguration));
+    const oo::PList* configuration = packet.find(ProtocolName(kOOTCPConfiguration));
     if (configuration != nullptr && !configuration->isDict())
         configuration = nullptr;
     if (configuration != nullptr) {
         for (const auto& entry : *configuration->getIf<oo::PList::Dict>()) {
-            [_monitor setConfigurationValue:oo::ObjectFromPList(entry.second) forKey:oo::NSStringFrom(entry.first)];
+            [_monitor setConfigurationValue:entry.second forKey:entry.first];
         }
     }
 
     // The removed keys are read from the configuration, as the old code read them.
-    const oo::PList* removed = (configuration != nullptr) ? configuration->find(oo::StdString(kOOTCPRemovedConfigurationKeys)) : nullptr;
+    const oo::PList* removed = (configuration != nullptr) ? configuration->find(ProtocolName(kOOTCPRemovedConfigurationKeys)) : nullptr;
     if (removed != nullptr && removed->isArray()) {
         for (const oo::PList& key : *removed->getIf<oo::PList::Array>()) {
-            [_monitor setConfigurationValue:nil forKey:oo::ObjectFromPList(key)];
+            const std::string* keyStr = key.getIf<std::string>();
+            if (keyStr != nullptr)
+                [_monitor setConfigurationValue:oo::PList() forKey:*keyStr];
         }
     }
 }
@@ -874,18 +870,17 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 {
     const std::optional<std::string> message = PacketString(packet, kOOTCPMessage);
     if (message.has_value())
-        [_monitor performJSConsoleCommand:oo::NSStringFrom(*message)]; // shared selector (id)
+        [_monitor performJSConsoleCommand:*message];
 }
 
 - (void)handleRequestConfigurationValuePacket:(const oo::PList&)packet
 {
     const std::optional<std::string> key = PacketString(packet, kOOTCPConfigurationKey);
     if (key.has_value()) {
-        // Shared selectors (id): the key and value stay Objective-C objects between them.
-        id value = [_monitor configurationValueForKey:oo::NSStringFrom(*key)];
+        const oo::PList value = [_monitor configurationValueForKey:*key];
         [self debugMonitor:_monitor
             noteChangedConfigrationValue:value
-                                  forKey:oo::NSStringFrom(*key)];
+                                  forKey:*key];
     }
 }
 
@@ -930,7 +925,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 #if 0
 	// Disconnecting causes crashiness for reasons I don't understand, and isn't very important anyway.
-	[_monitor disconnectDebugger:self message:oo::NSStringFrom(message)];
+	[_monitor disconnectDebugger:self message:message];
 	_monitor = nil;
 #endif
 }

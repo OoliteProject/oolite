@@ -28,7 +28,6 @@ SOFTWARE.
 #import "OOAsyncWorkManager.h"
 #import "OOAsyncQueue.h"
 #import "OOCPUInfo.h"
-#import "OOCollectionExtractors.h"
 #import "OOFoundationBridge.h"
 #include "oofnd/Thread.hpp"
 #include "oofnd/objc/OOException.h"
@@ -53,6 +52,7 @@ SOFTWARE.
 #if USE_PTHREAD_ONCE
 #include <pthread.h>
 #endif
+#include "oofnd/Defaults.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 static OOAsyncWorkManager* sSingleton = nil;
@@ -396,7 +396,7 @@ static void InitAsyncWorkManager(void)
 
 + (BOOL)canBeUsed
 {
-    return ![[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-work-manager"];
+    return !oo::Defaults::standard().boolForKey("disable-operation-queue-work-manager");
 }
 
 - (id)init

@@ -29,7 +29,6 @@ SOFTWARE.
 #import "OOConvertCubeMapToLatLong.h"
 #import "OODebugStandards.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOFunctionAttributes.h"
 #import "OOMaths.h"
 #import "OOOpenGLExtensionManager.h"
@@ -42,6 +41,7 @@ SOFTWARE.
 #import "Universe.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
+#include "oofnd/objc/OOException.h"
 #include <stdlib.h>
 
 #include "oofnd/String.hpp"
@@ -113,7 +113,7 @@ static BOOL sHaveSetUp = NO;
     if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL, NO))
         return nil;
     options |= extraOptions;
-    path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(name) inFolder:oo::NSStringOrNil(folder)]);
+    path = [ResourceManager cxx_pathForFileNamed:name inFolder:folder];
     if (!path.has_value()) {
         if (!(options & kOOTextureNoFNFMessage)) {
             OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", name);
@@ -192,7 +192,7 @@ static BOOL sHaveSetUp = NO;
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     const char* state = nullptr;
 
@@ -209,12 +209,12 @@ static BOOL sHaveSetUp = NO;
 #endif
     }
 
-    return oo::NSStringFrom(oo::str::format("{%s -- %s}", _path.c_str(), state));
+    return oo::str::format("{%s -- %s}", _path.c_str(), state);
 }
 
-- (id)shortDescriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_shortDescriptionComponents
 {
-    return oo::NSStringFrom(oo::str::lastPathComponent(_path));
+    return oo::str::lastPathComponent(_path);
 }
 
 - (std::optional<std::string>)cxx_path
@@ -261,9 +261,9 @@ static BOOL sHaveSetUp = NO;
     return OK;
 }
 
-- (id)cacheKey // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_cacheKey
 {
-    return oo::NSStringFrom(oo::str::format("%s:0x%.4X", oo::str::lastPathComponent(*[self cxx_path]).c_str(), _options));
+    return oo::str::format("%s:0x%.4X", oo::str::lastPathComponent(*[self cxx_path]).c_str(), _options);
 }
 
 - (void)loadTexture
@@ -315,13 +315,6 @@ static BOOL sHaveSetUp = NO;
     }
     @catch (OOException* exception) {
         OO_LOG("texture.load.asyncLoad.exception", "***** Exception loading texture {}: {} ({}).", _path, [exception name], [exception reason]);
-
-        // Be sure to signal load failure.
-        free(_data);
-        _data = NULL;
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG("texture.load.asyncLoad.exception", "***** Exception loading texture {}: {} ({}).", _path, oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
 
         // Be sure to signal load failure.
         free(_data);

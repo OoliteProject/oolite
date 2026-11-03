@@ -93,7 +93,7 @@ static JSValue SoundSourceConstruct(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {
-        OOJSReportError(context, @"SoundSource() cannot be called as a function, it must be used as a constructor (as in new SoundSource()).");
+        cxx_OOJSReportError(context, "SoundSource() cannot be called as a function, it must be used as a constructor (as in new SoundSource()).");
         return JS_EXCEPTION;
     }
 
@@ -226,7 +226,7 @@ static JSValue SoundSourcePlay(OOJS_NATIVE_ARGS)
     if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, OOJS_THIS, &thisv)))
         return OOJSNativeFailure(context);
     if (argc > 0 && !JS_IsUndefined(OOJS_ARGV[0]) && !OOJSValueToInt32(context, OOJS_ARGV[0], &count)) {
-        OOJSReportBadArguments(context, @"SoundSource", @"play", 1, OOJS_ARGV, nil, @"integer count or no argument");
+        cxx_OOJSReportBadArguments(context, "SoundSource", "play", 1, OOJS_ARGV, std::nullopt, "integer count or no argument");
         return OOJSNativeFailure(context);
     }
 
@@ -297,9 +297,9 @@ static JSValue SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
     return result;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"SoundSource";
+    return std::string("SoundSource");
 }
 
 @end

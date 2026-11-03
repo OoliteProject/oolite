@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOJSSun.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "OOFoundationBridge.h"
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
 #import "OOSunEntity.h"
@@ -95,9 +96,9 @@ JSClassID JSSunClassID(void)
     return sSunClassID;
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"Sun";
+    return std::string("Sun");
 }
 
 @end
@@ -116,7 +117,7 @@ static JSValue SunGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [sun radius]);
 
     case kSun_name:
-        return OOJSValueFromNativeObject(context, [sun name]);
+        return OOJSValueFromNativeObject(context, oo::NSStringOrNil([sun cxx_name]));
 
     case kSun_hasGoneNova:
         return OOJSValueFromBOOL([sun goneNova]);

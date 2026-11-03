@@ -48,7 +48,8 @@ MA 02110-1301, USA.
         lineNumber:(NSUInteger)lineNumber
            context:(JSContext*)context; // may be NULL.
 
-- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: anonymous (bead oo-3rb.289.7)
 // Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
 - (JSValueConst)function;
 // Owned (caller must free). JS_NULL if invalid.
@@ -61,12 +62,7 @@ MA 02110-1301, USA.
                        argv:(JSValueConst*)argv
                      result:(JSValue*)result;
 
-// Object-wrapper evaluation.
-- (id)evaluateWithContext:(JSContext*)context
-                    scope:(id)jsThis
-                arguments:(const std::vector<oo::ObjCRef<id>>&)arguments;
-
-// As above, but converts result to a boolean.
+// Object-wrapper evaluation, converting the result to a boolean.
 - (BOOL)evaluatePredicateWithContext:(JSContext*)context
                                scope:(id)jsThis
                            arguments:(const std::vector<oo::ObjCRef<id>>&)arguments;

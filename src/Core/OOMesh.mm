@@ -57,13 +57,13 @@ MA 02110-1301, USA.
 
 #import "OODebugStandards.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOJavaScriptEngine.h"
 #import "OOStringBridge.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOException.h"
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH 1
@@ -356,10 +356,10 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
 
 } // namespace
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     const std::optional<std::string> modelName = [self modelName];
-    return oo::NSStringFrom(oo::str::format("\"%s\", %zu vertices, %zu faces, radius: %g m normals: %s", modelName ? modelName->c_str() : "(null)", [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription((OOMeshNormalMode)_normalMode)));
+    return oo::str::format("\"%s\", %zu vertices, %zu faces, radius: %g m normals: %s", modelName ? modelName->c_str() : "(null)", [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription((OOMeshNormalMode)_normalMode));
 }
 
 - (id)copyWithZone:(OOZone*)zone
@@ -438,7 +438,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         /*	It should not be possible to have multiple texture units if
                 texture combiners are not available.
         */
-        OOAssert([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], "Mesh %s uses %zu texture units, but multitexturing is not available.", oo::DescriptionOf([self shortDescription]).c_str(), _textureUnitCount);
+        OOAssert([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], "Mesh %s uses %zu texture units, but multitexturing is not available.", oo::ShortDescriptionOf(self).c_str(), _textureUnitCount);
 
         for (unit = 0; unit < _textureUnitCount; unit++) {
             OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
@@ -504,16 +504,6 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
         }
         if (strncmp([exception name], "Oolite", 6) == 0)
             [UNIVERSE handleOoliteException:exception]; // handle these ourself
-        else
-            @throw exception; // pass these on
-    }
-    @catch (OOFoundationException* exception) {
-        if (!brokenInRender) {
-            OO_LOG(cxx_kOOLogException, "***** {} for {} encountered exception: {} : {} *****", __PRETTY_FUNCTION__, oo::DescriptionOf(self), oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
-            brokenInRender = YES;
-        }
-        if ([[exception name] hasPrefix:@"Oolite"])
-            [UNIVERSE handleOoliteException:[OOException exceptionWithName:[[exception name] UTF8String] reason:[[exception reason] UTF8String]]]; // handle these ourself
         else
             @throw exception; // pass these on
     }
@@ -793,17 +783,17 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    // Every material's textures; NSSetFromObjects drops duplicates as -unionSet: did.
-    std::vector<oo::ObjCRef<id>> result;
+    // Every material's textures; id forwarder NSSetFromObjects drops duplicates as -unionSet: did.
+    std::vector<oo::ObjCRef<OOTexture*>> result;
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
-        for (const oo::ObjCRef<id>& texture : oo::ObjCRefsFrom<id>([materials[i] allTextures]))
+        for (const oo::ObjCRef<OOTexture*>& texture : [materials[i] cxx_allTextures])
             result.push_back(texture);
     }
 
-    return oo::NSSetFromObjects(result);
+    return result;
 }
 
 - (size_t)totalSize
@@ -1126,7 +1116,7 @@ const char* NormalModeDescription(OOMeshNormalMode mode)
 
         {
             void* pool = objc_autoreleasePoolPush();
-            const std::optional<std::string> dataOpt = oo::OptionalString([ResourceManager stringFromFilesNamed:oo::NSStringFrom(filename) inFolder:@"Models" cache:NO]);
+            const std::optional<std::string> dataOpt = [ResourceManager cxx_stringFromFilesNamed:filename inFolder:"Models" cache:NO];
             if (!dataOpt) {
                 // Model not found
                 OO_LOG(kOOLogMeshDataNotFound, "***** ERROR: could not find {}", filename);

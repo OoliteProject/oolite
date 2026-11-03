@@ -46,12 +46,8 @@ MA 02110-1301, USA.
 #include "oofnd/PListGet.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
-
-#if !OOLITE_MAC_OS_X
-#define NSIntegerMapKeyCallBacks NSIntMapKeyCallBacks
-#define NSIntegerMapValueCallBacks NSIntMapValueCallBacks
-#endif
 
 // straight C
 static Vector base_vertex_array[MAX_PLANET_VERTICES];
@@ -194,6 +190,16 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
 {
     const oo::PList* value = dict.find(key);
     return value != nullptr ? oo::ObjectFromPList(*value) : nil;
+}
+
+// The string a string-typed reader got from -objectForKey:: the value if it is a string, else
+// std::nullopt (nil and non-string values; a non-string value raised when read as a string).
+std::optional<std::string> StringNodeForKey(const oo::PList& dict, std::string_view key)
+{
+    const oo::PList* value = dict.find(key);
+    if (value == nullptr || !value->isString())
+        return std::nullopt;
+    return *value->getIf<std::string>();
 }
 
 // get<std::string> where the Foundation code read nil: std::nullopt when the key is absent or its
@@ -426,7 +432,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
 
         const std::optional<std::string> seedStr = OptionalStringForKey(dict, "seed");
         if (seedStr.has_value()) {
-            Random_Seed seed = RandomSeedFromString(oo::NSStringFrom(*seedStr));
+            Random_Seed seed = cxx_RandomSeedFromString(seedStr);
             if (!is_nil_seed(seed)) {
                 p_seed = seed;
             } else {
@@ -437,11 +443,11 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
 
     seed_for_planet_description(p_seed);
 
-    oo::PList planetInfo = DictionaryOrEmpty(oo::PListFrom([UNIVERSE generateSystemData:p_seed]));
-    int radius_km = dict.get<int>(oo::StdString(KEY_RADIUS),
-        planetInfo.get<int>(oo::StdString(KEY_RADIUS)));
-    int techlevel = dict.get<int>(oo::StdString(KEY_TECHLEVEL),
-        planetInfo.get<int>(oo::StdString(KEY_TECHLEVEL)));
+    oo::PList planetInfo = DictionaryOrEmpty([UNIVERSE cxx_generateSystemData:p_seed]);
+    int radius_km = dict.get<int>(std::string(KEY_RADIUS),
+        planetInfo.get<int>(std::string(KEY_RADIUS)));
+    int techlevel = dict.get<int>(std::string(KEY_TECHLEVEL),
+        planetInfo.get<int>(std::string(KEY_TECHLEVEL)));
 
     shuttles_on_ground = 1 + floor(techlevel * 0.5);
     last_launch_time = 0.0;
@@ -503,8 +509,8 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
         }
 
         // assign land_hsb and sea_hsb overrides from planetinfo.plist if they're there.
-        ScanVectorFromString(ObjectForKey(dict, "land_hsb_color"), &land_hsb);
-        ScanVectorFromString(ObjectForKey(dict, "sea_hsb_color"), &sea_hsb);
+        cxx_ScanVectorFromString(StringNodeForKey(dict, "land_hsb_color"), &land_hsb);
+        cxx_ScanVectorFromString(StringNodeForKey(dict, "sea_hsb_color"), &sea_hsb);
 
         // polar areas are brighter but have less color (closer to white)
         land_polar_hsb.x = land_hsb.x;
@@ -607,7 +613,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
     const char* typeString;
     switch (planet_type) {
@@ -627,7 +633,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     default:
         typeString = "UNKNOWN";
     }
-    return oo::NSStringFrom(oo::str::format("ID: %u position: %s type: %s radius: %.3fkm", [self universalID], cxx_HPVectorDescription([self position]).c_str(), typeString, 0.001 * [self radius]));
+    return oo::str::format("ID: %u position: %s type: %s radius: %.3fkm", [self universalID], cxx_HPVectorDescription([self position]).c_str(), typeString, 0.001 * [self radius]);
 }
 
 - (BOOL)canCollide
@@ -663,7 +669,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
 #ifndef NDEBUG
         if ([ship reportAIMessages]) {
             HPVector p1 = ship->position;
-            OO_LOG("planet.collide.shipHit", "DEBUG: {} {} collided with planet at ({:.1f},{:.1f},{:.1f})", oo::DescriptionOf([ship name]), [ship universalID], p1.x, p1.y, p1.z);
+            OO_LOG("planet.collide.shipHit", "DEBUG: {} {} collided with planet at ({:.1f},{:.1f},{:.1f})", [ship cxx_name].value_or("(null)"), [ship universalID], p1.x, p1.y, p1.z);
         }
 #endif
     }
@@ -992,9 +998,9 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     // the colour override should only apply to main planets
     if (isMain) {
         if (isLocal)
-            ScanVectorFromString([[UNIVERSE currentSystemData] objectForKey:@"texture_hsb_color"], &land_hsb);
+            cxx_ScanVectorFromString(StringNodeForKey([UNIVERSE cxx_currentSystemData], "texture_hsb_color"), &land_hsb);
         else
-            ScanVectorFromString([[UNIVERSE generateSystemData:[PLAYER target_system_seed]] objectForKey:@"texture_hsb_color"], &land_hsb);
+            cxx_ScanVectorFromString(StringNodeForKey([UNIVERSE cxx_generateSystemData:[PLAYER target_system_seed]], "texture_hsb_color"), &land_hsb);
     }
 
     land_polar_hsb.x = land_hsb.x;
@@ -1137,10 +1143,10 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     launch_pos.y += start_distance * vf.y;
     launch_pos.z += start_distance * vf.z;
 
-    shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"]; // retain count = 1
+    shuttle_ship = [UNIVERSE cxx_newShipWithRole:"shuttle"]; // retain count = 1
     if (shuttle_ship) {
-        if (![shuttle_ship crew]) {
-            [shuttle_ship setSingleCrewWithRole:@"trader"];
+        if (![shuttle_ship cxx_crew].has_value()) {
+            [shuttle_ship cxx_setSingleCrewWithRole:"trader"];
         }
 
         [shuttle_ship setPosition:launch_pos];
@@ -1268,7 +1274,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
         return (unsigned)num - 1;
     } else {
         unsigned vindex = next_free_vertex++;
-        NSCAssert(vindex < sizeof base_vertex_array / sizeof *base_vertex_array, @"Vertex array overflow in planet setup.");
+        OOCAssert(vindex < sizeof base_vertex_array / sizeof *base_vertex_array, "Vertex array overflow in planet setup.");
 
         // calculate position of new vertex
         Vector pos = vector_add(base_vertex_array[va], base_vertex_array[vb]);
@@ -1518,12 +1524,12 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
+    std::vector<oo::ObjCRef<OOTexture*>> result;
     if (_texture != nil)
-        return oo::NSSetFromObjects(std::vector<id> { _texture });
-    else
-        return nil;
+        result.emplace_back(_texture);
+    return result;
 }
 #endif
 

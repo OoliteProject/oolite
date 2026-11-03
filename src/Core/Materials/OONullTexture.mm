@@ -63,9 +63,9 @@ static OONullTexture* sSingleton = nil;
 }
 
 #ifndef NDEBUG
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return @"<null texture>";
+    return std::string("<null texture>");
 }
 #endif
 

@@ -113,9 +113,9 @@ constexpr const char* kOOLogEntityVerificationError = "entity.linkedList.verify.
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("position: %s scanClass: %s status: %s", cxx_HPVectorDescription([self position]).c_str(), oo::DescriptionOf(OOStringFromScanClass([self scanClass])).c_str(), oo::DescriptionOf(OOStringFromEntityStatus([self status])).c_str()));
+    return oo::str::format("position: %s scanClass: %s status: %s", cxx_HPVectorDescription([self position]).c_str(), cxx_OOStringFromScanClass([self scanClass]).c_str(), cxx_OOStringFromEntityStatus([self status]).c_str());
 }
 
 - (NSUInteger)sessionID
@@ -198,7 +198,7 @@ constexpr const char* kOOLogEntityVerificationError = "entity.linkedList.verify.
     NSUInteger mySessionID = [self sessionID];
     NSUInteger currentSessionID = [UNIVERSE sessionID];
     if (EXPECT_NOT(mySessionID != currentSessionID)) {
-        OO_LOG_ERR("entity.invalidSession", "Entity {} from session {} cannot be added to universe in session {}. This is an internal error, please report it.", oo::DescriptionOf([self shortDescription]), static_cast<size_t>(mySessionID), static_cast<size_t>(currentSessionID));
+        OO_LOG_ERR("entity.invalidSession", "Entity {} from session {} cannot be added to universe in session {}. This is an internal error, please report it.", oo::ShortDescriptionOf(self), static_cast<size_t>(mySessionID), static_cast<size_t>(currentSessionID));
         return NO;
     }
 
@@ -656,12 +656,12 @@ constexpr const char* kOOLogEntityVerificationError = "entity.linkedList.verify.
     return cam_zero_distance;
 }
 
-- (NSComparisonResult)compareZeroDistance:(Entity*)otherEntity
+- (OOComparisonResult)compareZeroDistance:(Entity*)otherEntity
 {
     if ((otherEntity) && (zero_distance > otherEntity->zero_distance))
-        return NSOrderedAscending;
+        return OOOrderedAscending;
     else
-        return NSOrderedDescending;
+        return OOOrderedDescending;
 }
 
 - (BoundingBox)boundingBox
@@ -897,7 +897,7 @@ constexpr const char* kOOLogEntityVerificationError = "entity.linkedList.verify.
     OOLogGenericSubclassResponsibility();
 }
 
-- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(id)weaponIdentifier // shared selector (proposed ADR-0043)
+- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(const std::string&)weaponIdentifier
 {
 }
 
@@ -1007,24 +1007,24 @@ constexpr const char* kOOLogEntityVerificationError = "entity.linkedList.verify.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 - (std::optional<std::string>)descriptionForObjDumpBasic
 {
-    id components = [self descriptionComponents];
-    if (components != nil)
-        return oo::str::format("%s %s", OOClassName([self class]), oo::DescriptionOf(components).c_str());
-    return oo::OptionalString([self description]);
+    const std::optional<std::string> components = [self cxx_descriptionComponents];
+    if (components.has_value())
+        return oo::str::format("%s %s", OOClassName([self class]), components->c_str());
+    return [self cxx_description];
 }
 
-- (id)descriptionForObjDump // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)descriptionForObjDump
 {
     const std::optional<std::string> result = [self descriptionForObjDumpBasic];
     if (!result)
-        return nil; // -stringByAppendingFormat: sent to nil
+        return std::nullopt; // -stringByAppendingFormat: sent to nil
 
-    return oo::NSStringFrom(*result + oo::str::format(" range: %g (visible: %s)", HPdistance([self position], [PLAYER position]), [self isVisible] ? "yes" : "no"));
+    return *result + oo::str::format(" range: %g (visible: %s)", HPdistance([self position], [PLAYER position]), [self isVisible] ? "yes" : "no");
 }
 
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return nil;
+    return { };
 }
 #endif
 

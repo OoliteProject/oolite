@@ -24,10 +24,11 @@ MA 02110-1301, USA.
 
 #import "OOWaypointEntity.h"
 #import "Entity.h"
-#import "OOCollectionExtractors.h" // OOHPVectorFromObject() & co. (unmigrated callees)
+#import "HeadUpDisplay.h"
 #import "OOFoundationBridge.h"
 #import "OOMacroOpenGL.h"
 #import "OOOpenGL.h"
+#import "OOPListGameTypes.h"
 #import "OOPolygonSprite.h"
 #import "OOStringExpander.h"
 #import "PlayerEntity.h"
@@ -40,17 +41,6 @@ MA 02110-1301, USA.
 #define OOWAYPOINT_KEY_SIZE "size"
 #define OOWAYPOINT_KEY_CODE "beaconCode"
 #define OOWAYPOINT_KEY_LABEL "beaconLabel"
-
-namespace {
-
-// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
-id ObjectForKey(const oo::PList& dict, std::string_view key)
-{
-    const oo::PList* value = dict.find(key);
-    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
-}
-
-} // namespace
 
 @implementation OOWaypointEntity
 
@@ -72,12 +62,12 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
 
     // A nil dictionary read zero-filled values and nil strings (messaging nil), not the defaults.
     oriented = YES;
-    position = info ? OOHPVectorFromObject(ObjectForKey(info, OOWAYPOINT_KEY_POSITION), kZeroHPVector) : kZeroHPVector;
-    Quaternion q = info ? OOQuaternionFromObject(ObjectForKey(info, OOWAYPOINT_KEY_ORIENTATION), kIdentityQuaternion) : (Quaternion) { 0, 0, 0, 0 };
+    position = info ? OOHPVectorFromPList(info.find(OOWAYPOINT_KEY_POSITION), kZeroHPVector) : kZeroHPVector;
+    Quaternion q = info ? OOQuaternionFromPList(info.find(OOWAYPOINT_KEY_ORIENTATION), kIdentityQuaternion) : (Quaternion) { 0, 0, 0, 0 };
     [self setOrientation:q];
     [self setSize:info.get<oo::NonNegative<float>>(OOWAYPOINT_KEY_SIZE, 1000.0)];
-    [self setBeaconCode:info ? oo::NSStringFrom(info.get<std::string>(OOWAYPOINT_KEY_CODE, "W")) : nil];
-    [self setBeaconLabel:info ? oo::NSStringFrom(info.get<std::string>(OOWAYPOINT_KEY_LABEL, "Waypoint")) : nil];
+    [self setBeaconCode:info ? std::optional<std::string>(info.get<std::string>(OOWAYPOINT_KEY_CODE, "W")) : std::nullopt];
+    [self setBeaconLabel:info ? std::optional<std::string>(info.get<std::string>(OOWAYPOINT_KEY_LABEL, "Waypoint")) : std::nullopt];
 
     [self setStatus:STATUS_EFFECT];
     [self setScanClass:CLASS_NO_DRAW];
@@ -140,7 +130,7 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
         return;
     }
 
-    if (![PLAYER hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"]) {
+    if (![PLAYER cxx_hasEquipmentItemProviding:"EQ_ADVANCED_COMPASS"]) {
         return;
     }
 
@@ -202,21 +192,21 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
 
 /* beacons */
 
-- (NSComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other
+- (OOComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other
 {
-    return [[self beaconCode] compare:[other beaconCode] options:NSCaseInsensitiveSearch];
+    return (OOComparisonResult)oo::str::caseInsensitiveCompare([self beaconCode].value_or(""), [other beaconCode].value_or(""));
 }
 
-- (id)beaconCode // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)beaconCode
 {
-    return oo::NSStringOrNil(_beaconCode);
+    return _beaconCode;
 }
 
-// bcode: an Objective-C string or nil. The Foundation version compared the new string with the
+// bcode: optional string; empty is treated as none. The Foundation version compared the new string with the
 // old by pointer, so any new string (every string this class hands out is new) replaced it.
-- (void)setBeaconCode:(id)bcode // shared selector (proposed ADR-0043)
+- (void)setBeaconCode:(const std::optional<std::string>&)bcode
 {
-    std::optional<std::string> code = oo::OptionalString(bcode);
+    std::optional<std::string> code = bcode;
     if (code.has_value() && code->empty())
         code.reset();
 
@@ -227,29 +217,29 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
     }
     // if not blanking code and label is currently blank, default label to code
     if (code.has_value() && (!_beaconLabel.has_value() || _beaconLabel->empty())) {
-        [self setBeaconLabel:oo::NSStringFrom(*code)];
+        [self setBeaconLabel:code];
     }
 }
 
-- (id)beaconLabel // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)beaconLabel
 {
-    return oo::NSStringOrNil(_beaconLabel);
+    return _beaconLabel;
 }
 
-- (void)setBeaconLabel:(id)blabel // shared selector (proposed ADR-0043): an Objective-C string or nil
+- (void)setBeaconLabel:(const std::optional<std::string>&)blabel
 {
-    std::optional<std::string> label = oo::OptionalString(blabel);
+    std::optional<std::string> label = blabel;
     if (label.has_value() && label->empty())
         label.reset();
 
     if (label.has_value() || _beaconLabel.has_value()) {
-        _beaconLabel = oo::OptionalString(OOExpand(oo::NSStringOrNil(label)));
+        _beaconLabel = label.has_value() ? cxx_OOExpand(*label) : std::nullopt;
     }
 }
 
 - (BOOL)isBeacon
 {
-    return [self beaconCode] != nil;
+    return [self beaconCode].has_value();
 }
 
 - (id<OOHUDBeaconIcon>)beaconDrawable
@@ -259,16 +249,17 @@ id ObjectForKey(const oo::PList& dict, std::string_view key)
         NSUInteger length = beaconCode.size(); // -length: UTF-16 units
 
         if (length > 1) {
-            const oo::PList iconData = oo::PListFrom([[UNIVERSE descriptions] objectForKey:oo::NSStringFrom(*_beaconCode)]);
+            const oo::PList* iconEntry = [UNIVERSE cxx_descriptions]->find(*_beaconCode);
+            const oo::PList iconData = (iconEntry != nullptr) ? *iconEntry : oo::PList();
             if (iconData.isArray())
                 _beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:*_beaconCode];
         }
 
         if (_beaconDrawable == nil) {
             if (length > 0)
-                _beaconDrawable = [oo::NSStringFrom(oo::utf16ToUtf8(beaconCode.substr(0, 1))) retain]; // -substringToIndex:1
+                _beaconDrawable = [[OOHUDBeaconCodeIcon alloc] initWithText:oo::utf16ToUtf8(beaconCode.substr(0, 1))]; // -substringToIndex:1
             else
-                _beaconDrawable = @"";
+                _beaconDrawable = [[OOHUDBeaconCodeIcon alloc] initWithText:std::string()];
         }
     }
 

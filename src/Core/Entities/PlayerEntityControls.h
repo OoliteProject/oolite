@@ -49,7 +49,3 @@ MA 02110-1301, USA.
 - (int)getFirstKeyCode:(const oo::PList&)key_def;
 
 @end
-
-// TRANSITIONAL (proposed ADR-0043): PlayerEntity (Controls)'s Foundation-typed API as it was
-// before its sweep, forwarding to the cxx_ API above. Keep this the last line.
-#import "PlayerEntityControls+FoundationBridge.h"

@@ -37,6 +37,21 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS);
 
 static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS);
 
+namespace {
+
+    // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
+    oo::PList NormalizedColorComponents(OOColor* color)
+    {
+        if (color == nil)
+            return oo::PList();
+        oo::PList::Array components;
+        for (float component : [color cxx_normalizedArray])
+            components.push_back(oo::PList::singleReal(component));
+        return oo::PList(std::move(components));
+    }
+
+} // namespace
+
 // Methods
 static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS);
 
@@ -165,9 +180,9 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value)
         }
     }
 
-    std::optional<std::string> string = oo::OptionalString(OOStringFromJSValue(context, value));
+    std::optional<std::string> string = cxx_OOStringFromJSValue(context, value);
     if (string.has_value())
-        return [OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringFrom(*string)];
+        return [OOEquipmentType cxx_equipmentTypeWithIdentifier:*string];
     return nil;
 
     OOJS_PROFILE_EXIT
@@ -175,7 +190,7 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value)
 
 std::optional<std::string> JSValueToEquipmentKey(JSContext* context, JSValueConst value)
 {
-    return oo::OptionalString([JSValueToEquipmentType(context, value) identifier]);
+    return [JSValueToEquipmentType(context, value) cxx_identifier];
 }
 
 std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, BOOL* outExists)
@@ -184,18 +199,19 @@ std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSVa
 
     std::optional<std::string> result;
     BOOL exists = NO;
-    id objValue = OOJSNativeObjectFromJSValue(context, value);
+    const oo::PList plistValue = cxx_OOJSPListFromJSValue(context, value);
+    id objValue = oo::ObjectIn(plistValue);
 
     if ([objValue isKindOfClass:[OOEquipmentType class]]) {
-        result = oo::OptionalString([objValue identifier]);
+        result = [objValue cxx_identifier];
         exists = YES;
-    } else if (oo::IsNSString(objValue)) {
+    } else if (const std::string* stringValue = plistValue.getIf<std::string>()) {
         /*	To enforce deliberate backwards incompatibility, reject strings
                 ending with _DAMAGED unless someone actually named an equip that
                 way.
          */
-        exists = [OOEquipmentType equipmentTypeWithIdentifier:objValue] != nil;
-        std::string string = oo::StdString(objValue);
+        exists = [OOEquipmentType cxx_equipmentTypeWithIdentifier:*stringValue] != nil;
+        std::string string = *stringValue;
         if (exists || !oo::str::hasSuffix(string, "_DAMAGED")) {
             result = string;
         }
@@ -224,20 +240,20 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kEquipmentInfo_equipmentKey:
-        result = [eqType identifier];
+        result = oo::NSStringOrNil([eqType cxx_identifier]);
         break;
 
     case kEquipmentInfo_name:
-        result = [eqType name];
+        result = oo::NSStringOrNil([eqType cxx_name]);
         break;
 
     case kEquipmentInfo_calculatedPrice:
-        if ([[eqType identifier] isEqual:@"EQ_FUEL"]) {
+        if ([eqType cxx_identifier] == "EQ_FUEL") {
             return JS_NewNumber(context, (PLAYER_MAX_FUEL - [OOPlayerForScripting() fuel]) * [eqType price] * [OOPlayerForScripting() fuelChargeRate]);
-        } else if ([[eqType identifier] isEqual:@"EQ_RENOVATION"]) {
+        } else if ([eqType cxx_identifier] == "EQ_RENOVATION") {
             return JS_NewNumber(context, [OOPlayerForScripting() renovationCosts]);
         } else {
-            return JS_NewNumber(context, [OOPlayerForScripting() adjustPriceByScriptForEqKey:[eqType identifier] withCurrent:[eqType price]]);
+            return JS_NewNumber(context, ([eqType cxx_identifier].has_value() ? [OOPlayerForScripting() cxx_adjustPriceByScriptForEqKey:*[eqType cxx_identifier] withCurrent:[eqType price]] : [eqType price]));
         }
     case kEquipmentInfo_canCarryMultiple:
         return OOJSValueFromBOOL([eqType canCarryMultiple]);
@@ -246,14 +262,14 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([eqType canBeDamaged]);
 
     case kEquipmentInfo_description:
-        result = [eqType descriptiveText];
+        result = oo::NSStringOrNil([eqType cxx_descriptiveText]);
         break;
 
     case kEquipmentInfo_damageProbability:
         return JS_NewNumber(context, [eqType damageProbability]);
 
     case kEquipmentInfo_displayColor:
-        result = [[eqType displayColor] normalizedArray];
+        result = oo::ObjectFromPList(NormalizedColorComponents([eqType displayColor]));
         break;
 
     case kEquipmentInfo_fastAffinityDefensive:
@@ -263,11 +279,11 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL([eqType fastAffinityOffensive]);
 
     case kEquipmentInfo_defaultActivateKey:
-        result = [eqType defaultActivateKey];
+        result = oo::ObjectFromPList([eqType cxx_defaultActivateKey]);
         break;
 
     case kEquipmentInfo_defaultModeKey:
-        result = [eqType defaultModeKey];
+        result = oo::ObjectFromPList([eqType cxx_defaultModeKey]);
         break;
 
     case kEquipmentInfo_techLevel:
@@ -280,7 +296,7 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [eqType price]);
 
     case kEquipmentInfo_provides:
-        result = [eqType providesForScripting];
+        result = oo::NSArrayFromStrings([eqType cxx_providesForScripting]);
         break;
 
     case kEquipmentInfo_installationTime:
@@ -336,31 +352,30 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
         return JS_NewInt32(context, (int32_t)[eqType requiredCargoSpace]);
 
     case kEquipmentInfo_requiresEquipment:
-        result = [[eqType requiresEquipment] allObjects];
+        result = [eqType cxx_requiresEquipment].has_value() ? [oo::NSSetFromStrings(*[eqType cxx_requiresEquipment]) allObjects] : nil;
         break;
 
     case kEquipmentInfo_requiresAnyEquipment:
-        result = [[eqType requiresAnyEquipment] allObjects];
+        result = [eqType cxx_requiresAnyEquipment].has_value() ? [oo::NSSetFromStrings(*[eqType cxx_requiresAnyEquipment]) allObjects] : nil;
         break;
 
     case kEquipmentInfo_incompatibleEquipment:
-        result = [[eqType incompatibleEquipment] allObjects];
+        result = [eqType cxx_incompatibleEquipment].has_value() ? [oo::NSSetFromStrings(*[eqType cxx_incompatibleEquipment]) allObjects] : nil;
         break;
 
-    case kEquipmentInfo_scriptInfo:
-        result = [eqType scriptInfo];
-        if (result == nil)
-            result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // empty rather than null
-        break;
+    case kEquipmentInfo_scriptInfo: {
+        const oo::PList info = [eqType scriptInfo];
+        result = oo::ObjectFromPList(info.isNull() ? oo::PList(oo::PList::Dict { }) : info); // empty rather than null
+    } break;
 
     case kEquipmentInfo_scriptName:
-        result = [eqType scriptName];
+        result = oo::NSStringOrNil([eqType cxx_scriptName]);
         if (result == nil)
             result = @"";
         break;
 
     case kEquipmentInfo_weaponInfo:
-        result = [eqType weaponInfo];
+        result = oo::ObjectFromPList([eqType cxx_weaponInfo]);
         if (result == nil)
             result = oo::ObjectFromPList(oo::PList(oo::PList::Dict { })); // empty rather than null
         break;
@@ -389,19 +404,19 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
 
     switch (magic) {
     case kEquipmentInfo_displayColor:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        colorForScript = [OOColor colorWithDescription:oo::ObjectFromPList(cxx_OOJSPListFromJSValue(context, value))];
         if (colorForScript != nil || JS_IsNull(value)) {
             [eqType setDisplayColor:colorForScript];
             return JS_UNDEFINED;
         }
         break;
     case kEquipmentInfo_effectiveTechLevel:
-        cxx_OOStandardsDeprecated(oo::str::format("TL99 for variable tech level is deprecated for %s", oo::DescriptionOf([eqType identifier]).c_str()));
+        cxx_OOStandardsDeprecated(oo::str::format("TL99 for variable tech level is deprecated for %s", [eqType cxx_identifier].value_or("(null)").c_str()));
         if (!OOEnforceStandards() && [eqType techLevel] == kOOVariableTechLevel) {
             if (JS_IsNull(value)) {
                 // reset mission variable
-                [OOPlayerForScripting() setMissionVariable:nil
-                                                    forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
+                [OOPlayerForScripting() cxx_setMissionVariable:oo::PList()
+                                                        forKey:"mission_TL_FOR_" + [eqType cxx_identifier].value_or("")];
                 return JS_UNDEFINED;
             }
             if (OOJSValueToInt32(context, value, &iValue)) {
@@ -409,12 +424,12 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
                     iValue = 0;
                 if (15 < iValue && iValue != kOOVariableTechLevel)
                     iValue = 15;
-                [OOPlayerForScripting() setMissionVariable:oo::NSStringFrom(oo::str::format("%u", iValue))
-                                                    forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
+                [OOPlayerForScripting() cxx_setMissionVariable:oo::PList(oo::str::format("%u", iValue))
+                                                        forKey:"mission_TL_FOR_" + [eqType cxx_identifier].value_or("")];
                 return JS_UNDEFINED;
             }
         } else {
-            OOJSReportWarning(context, @"Cannot modify effective tech level for %@, because its base tech level is not 99.", [eqType identifier]);
+            cxx_OOJSReportWarning(context, "Cannot modify effective tech level for %s, because its base tech level is not 99.", [eqType cxx_identifier].value_or("(null)").c_str());
             return JS_UNDEFINED;
         }
         break;
@@ -434,7 +449,7 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    return OOJSValueFromNativeObject(context, [OOEquipmentType allEquipmentTypes]);
+    return OOJSValueFromNativeObject(context, oo::NSArrayFromObjects([OOEquipmentType cxx_allEquipmentTypes]));
 
     OOJS_NATIVE_EXIT
 }
@@ -463,9 +478,9 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS)
     return JS_DupValue(context, _jsSelf);
 }
 
-- (id)oo_jsClassName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_oo_jsClassName
 {
-    return @"EquipmentInfo";
+    return std::string("EquipmentInfo");
 }
 
 - (void)oo_clearJSSelf:(JSValueConst)selfVal
@@ -486,13 +501,13 @@ static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
     std::optional<std::string> key;
 
     if (argc > 0)
-        key = oo::OptionalString(OOStringFromJSValue(context, OOJS_ARGV[0]));
+        key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (!key.has_value()) {
-        OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, "EquipmentInfo", "infoForKey", MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
         return OOJSNativeFailure(context);
     }
 
-    OOJS_RETURN_OBJECT([OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringFrom(*key)]);
+    OOJS_RETURN_OBJECT([OOEquipmentType cxx_equipmentTypeWithIdentifier:*key]);
 
     OOJS_NATIVE_EXIT
 }

@@ -69,7 +69,7 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
     [super dealloc];
 }
 
-- (id)description
+- (std::optional<std::string>)cxx_description
 {
     std::string result = oo::str::format("<%s %s>{", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str());
     BOOL first = YES;
@@ -79,14 +79,11 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
         else
             first = NO;
 
-        if ([object.get() respondsToSelector:@selector(shortDescription)])
-            result += oo::DescriptionOf([object.get() shortDescription]);
-        else
-            result += oo::DescriptionOf(object.get());
+        result += oo::ShortDescriptionOf(object.get()); // every object answered -shortDescription
     }
 
     result += "}";
-    return oo::NSStringFrom(result);
+    return result;
 }
 
 // MARK: Protocol conformance
@@ -146,7 +143,12 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
 
 - (id)objectEnumerator
 {
-    return [oo::NSArrayFromObjects(LiveObjects(_objects)) objectEnumerator];
+    return [oo::NSArrayFromObjects([self cxx_objectEnumerator]) objectEnumerator];
+}
+
+- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator
+{
+    return LiveObjects(_objects);
 }
 
 - (void)addObject:(id<OOWeakReferenceSupport>)object
@@ -197,7 +199,12 @@ std::vector<oo::ObjCRef<id>> LiveObjects(const std::vector<oo::ObjCRef<OOWeakRef
 
 - (id)allObjects
 {
-    return oo::NSArrayFromObjects(LiveObjects(_objects));
+    return oo::NSArrayFromObjects([self cxx_allObjects]);
+}
+
+- (std::vector<oo::ObjCRef<id>>)cxx_allObjects
+{
+    return LiveObjects(_objects);
 }
 
 - (void)removeAllObjects

@@ -33,13 +33,25 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Universe.h"
 
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/String.hpp"
+
 namespace {
-// The strings in an array a callee still returns as a Foundation array; nullopt for nil.
-static std::optional<std::vector<std::string>> StringsOrNil(id array)
+// The strings in the array a property-list file holds (other elements skipped); nullopt when the
+// file holds no array (what OOArrayFromFile answered nil for; its plist.wrongType line, which named
+// the Foundation class, is not kept).
+static std::optional<std::vector<std::string>> StringsFromArrayFile(const std::string& path)
 {
-    if (array == nil)
+    const oo::PList list = cxx_OOPropertyListFromFile(path);
+    const oo::PList::Array* array = list.getIf<oo::PList::Array>();
+    if (array == nullptr)
         return std::nullopt;
-    return oo::StringsFrom(array);
+    std::vector<std::string> result;
+    for (const oo::PList& element : *array) {
+        if (const std::string* string = element.getIf<std::string>())
+            result.push_back(*string);
+    }
+    return result;
 }
 } // namespace
 
@@ -47,18 +59,15 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 
 + (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)cxx_worldScriptsAtPath:(const std::string&)path
 {
-    NSFileManager* fmgr = nil;
     std::string filePath;
     std::optional<std::vector<oo::ObjCRef<OOScript*>>> result;
     id script = nil;
     BOOL foundScript = NO;
 
-    fmgr = [NSFileManager defaultManager];
-
     // First, look for world-scripts.plist.
     filePath = oo::str::appendingPathComponent(path, "world-scripts.plist");
     {
-        std::optional<std::vector<std::string>> names = StringsOrNil(OOArrayFromFile(oo::NSStringFrom(filePath)));
+        std::optional<std::vector<std::string>> names = StringsFromArrayFile(filePath);
         if (names.has_value()) {
             foundScript = YES;
             result = [self scriptsFromList:*names];
@@ -68,11 +77,11 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     // Second, try to load a JavaScript.
     if (!result.has_value()) {
         filePath = oo::str::appendingPathComponent(path, "script.js");
-        if ([fmgr oo_oxzFileExistsAtPath:oo::NSStringFrom(filePath)])
+        if (OOOxzFileExistsAtPath(filePath))
             foundScript = YES;
         else {
             filePath = oo::str::appendingPathComponent(path, "script.es");
-            if ([fmgr oo_oxzFileExistsAtPath:oo::NSStringFrom(filePath)])
+            if (OOOxzFileExistsAtPath(filePath))
                 foundScript = YES;
         }
         if (foundScript) {
@@ -93,7 +102,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     // Third, try to load a plist script.
     if (!result.has_value()) {
         filePath = oo::str::appendingPathComponent(path, "script.plist");
-        if ([fmgr oo_oxzFileExistsAtPath:oo::NSStringFrom(filePath)]) {
+        if (OOOxzFileExistsAtPath(filePath)) {
             cxx_OOStandardsDeprecated(oo::str::format("Legacy script %s is deprecated", filePath.c_str()));
             if (!OOEnforceStandards()) {
                 foundScript = YES;
@@ -121,7 +130,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 + (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsFromFileNamed:(const std::string&)fileName
 {
     std::optional<std::vector<oo::ObjCRef<OOScript*>>> result;
-    std::optional<std::string> path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(fileName) inFolder:@"Scripts"]);
+    std::optional<std::string> path = [ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
     if (path.has_value()) {
         result = [self scriptsFromFileAtPath:*path];
     }
@@ -150,8 +159,8 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 
 + (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsFromFileAtPath:(const std::string&)filePath
 {
-    // oo_oxzFile always returns false for directories
-    if (![[NSFileManager defaultManager] oo_oxzFileExistsAtPath:oo::NSStringFrom(filePath)])
+    // OXZ-aware exists is false for directories
+    if (!OOOxzFileExistsAtPath(filePath))
         return std::nullopt;
 
     std::string extension = oo::str::lowercase(oo::str::pathExtension(filePath));
@@ -184,7 +193,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 
     extension = oo::str::lowercase(oo::str::pathExtension(fileName));
     if (extension == "js" || extension == "es") {
-        path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(fileName) inFolder:@"Scripts"]);
+        path = [ResourceManager cxx_pathForFileNamed:fileName inFolder:"Scripts"];
         if (!path.has_value()) {
             OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nil;
@@ -209,7 +218,7 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
 
     extension = oo::str::lowercase(oo::str::pathExtension(fileName));
     if (extension == "js" || extension == "es") {
-        path = oo::OptionalString([ResourceManager pathForFileNamed:oo::NSStringFrom(fileName) inFolder:@"AIs"]);
+        path = [ResourceManager cxx_pathForFileNamed:fileName inFolder:"AIs"];
         if (!path.has_value()) {
             OO_LOG_ERR("script.load.notFound", "Could not find script file {}.", fileName);
             return nil;
@@ -224,15 +233,20 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     return nil;
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("\"%s\" version %s", oo::DescriptionOf([self name]).c_str(), oo::DescriptionOf([self version]).c_str()));
+    return oo::str::format("\"%s\" version %s", [self cxx_name].value_or("(null)").c_str(), oo::DescriptionOf([self version]).c_str());
 }
 
-- (id)name // shared selector (proposed ADR-0043)
+- (id)name // shared selector (Foundation declares -name too; retires with oo-qps)
+{
+    return oo::NSStringOrNil([self cxx_name]);
+}
+
+- (std::optional<std::string>)cxx_name
 {
     OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}", "OOScript should not be used directly!");
-    return nil;
+    return std::nullopt;
 }
 
 - (std::optional<std::string>)scriptDescription
@@ -252,17 +266,15 @@ static std::optional<std::vector<std::string>> StringsOrNil(id array)
     return std::nullopt;
 }
 
-- (id)displayName // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)displayName
 {
-    id name = [self name];
+    const std::optional<std::string> name = [self cxx_name];
     std::optional<std::string> version = [self cxx_version];
 
     if (version.has_value())
-        return oo::NSStringFrom(oo::str::format("%s %s", oo::DescriptionOf(name).c_str(), version->c_str()));
-    else if (name != nil)
-        return oo::NSStringFrom(oo::DescriptionOf(name));
+        return oo::str::format("%s %s", name.value_or("(null)").c_str(), version->c_str());
     else
-        return nil;
+        return name;
 }
 
 - (BOOL)requiresTickle

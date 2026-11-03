@@ -81,14 +81,24 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
     [super dealloc];
 }
 
-- (id)title // shared selector (proposed ADR-0043)
+- (id)title // shared selector (Foundation declares -title too; retires with oo-qps)
 {
-    return oo::NSStringOrNil(_title);
+    return oo::NSStringOrNil([self cxx_title]);
 }
 
-- (void)setTitle:(id)title // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_title
 {
-    _title = oo::OptionalString(title);
+    return _title;
+}
+
+- (void)setTitle:(id)title // shared selector (Foundation declares -setTitle: too; retires with oo-qps)
+{
+    [self cxx_setTitle:oo::OptionalString(title)];
+}
+
+- (void)cxx_setTitle:(const std::optional<std::string>&)title
+{
+    _title = title;
 }
 
 - (std::optional<std::string>)category
@@ -179,7 +189,7 @@ static OOComparisonResult CaseInsensitiveCompare(const std::optional<std::string
 {
     OOComparisonResult byCategory = CaseInsensitiveCompare(_category, [other category]);
     if (byCategory == OOOrderedSame) {
-        return CaseInsensitiveCompare(_title, oo::OptionalString([other title]));
+        return CaseInsensitiveCompare(_title, [other cxx_title]);
     } else {
         return byCategory;
     }

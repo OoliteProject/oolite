@@ -107,8 +107,25 @@ typedef NSUInteger OOExpandOptions;
 
 // C++ form (bead oo-3il6, chunk oo-3rb.145): overrides and legacyLocals are dictionaries of
 // mixed values (oo::PList with Object nodes; null: none); nullopt where the string expanded to
-// nothing. The Foundation form and the OOExpand* macros are in OOStringExpander+FoundationBridge.h.
+// nothing. Game code calls this or the cxx_OOExpand* macros below.
 std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const std::string& string, const oo::PList& overrides, const oo::PList& legacyLocals, const std::optional<std::string>& systemName, OOExpandOptions options);
+#endif
+
+/*	The Foundation form, kept (bead oo-m2nh, proposed ADR-0052): it is the tested surface of the
+        differential expander test (tests/unit/expander/test_string_expander.mm, run by
+        tools/check-string-expander.sh), whose digests were taken through it. Game code does not call
+        it. It forwards to cxx_OOExpandDescriptionString, converting the overrides and legacy locals
+        with oo::PListFrom (nil for none) and the strings unit for unit; nil in, nil out. It goes with
+        the test's Foundation adapter when that leaves Foundation (oo-qps).
+        Fenced out of the game build (bead oo-qps.29, ADR-0054 item 4): only
+        tools/check-string-expander.sh defines OO_EXPANDER_TEST_SURFACE, and it compiles the test as
+        Objective-C++, so the fenced block needs no __cplusplus guard. OOGenerateSystemDescription()
+        below is fenced the same way.
+*/
+#if OO_EXPANDER_TEST_SURFACE
+extern "C" {
+NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictionary* overrides, NSDictionary* legacyLocals, NSString* systemName, OOExpandOptions options);
+}
 #endif
 
 /*
@@ -123,6 +140,11 @@ std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const
 */
 #ifdef __cplusplus
 std::optional<std::string> cxx_OOGenerateSystemDescription(Random_Seed seed, const std::optional<std::string>& name);
+#endif
+
+// The Foundation form, kept (and fenced) as the expander test's surface as OOExpandDescriptionString() is.
+#if OO_EXPANDER_TEST_SURFACE
+NSString* OOGenerateSystemDescription(Random_Seed seed, NSString* name);
 #endif
 
 // Equivalent to [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], without pulling in Universe.h.
@@ -244,10 +266,70 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void);
 #define OOEXPAND_MAP_IMPL_61(F, HEAD, ...) F(HEAD), OOEXPAND_MAP_IMPL_60(F, __VA_ARGS__)
 #define OOEXPAND_MAP_IMPL_62(F, HEAD, ...) F(HEAD), OOEXPAND_MAP_IMPL_61(F, __VA_ARGS__)
 
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before bead oo-3il6 (chunks oo-3rb.145..147) -- OOExpandDescriptionString,
-        OOGenerateSystemDescription and the OOExpand* macros with their boxing machinery -- forwarding
-        to the cxx_ functions above, so unmigrated callers compile unchanged. Callers move to the
-        cxx_ forms in their own sweep beads; the bridge goes in its own bead.
+#ifdef __cplusplus
+/*
+        C++ forms of the OOExpand* macros (bead oo-3rb.294, the seam for oo-m2nh). They take the string
+        or key as a std::string and return cxx_OOExpandDescriptionString's std::optional<std::string>.
+        As with the Foundation macros, each extra argument reaches the expander under its own spelling
+        (#ITEM: OOExpandKey("x-[count]", count) makes [count] refer to the variable), boxed as
+        OO_CAST_PARAMETER boxed it: signed integers (and char, bool and unscoped enums, which promote
+        to int) as PList::signedInteger, unsigned integers as PList::unsignedInteger, float as
+        PList::singleReal, double and long double as a double, strings as strings. A std::nullopt string
+        is left out of the dictionary (the Foundation macro could not hold nil). No arguments passes
+        the null PList, as the macro passed nil.
 */
-#import "OOStringExpander+FoundationBridge.h"
+#define cxx_OOExpand(string, ...) cxx_OOExpandWithSeed(OOStringExpanderDefaultRandomSeed(), string, __VA_ARGS__)
+
+#define cxx_OOExpandKey(key, ...) cxx_OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
+
+#define cxx_OOExpandKeyRandomized(key, ...) cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
+
+#define cxx_OOExpandWithSeed(seed, string, ...) cxx_OOExpandWithOptions(seed, kOOExpandNoOptions, string, __VA_ARGS__)
+
+#define cxx_OOExpandKeyWithSeed(seed, key, ...) cxx_OOExpandWithOptions(seed, kOOExpandKey, key, __VA_ARGS__)
+
+#define cxx_OOExpandWithOptions(seed, options, string, ...) \
+    cxx_OOExpandDescriptionString(seed, string, OOEXPAND_CXX_ARG_DICTIONARY(__VA_ARGS__), oo::PList(), std::nullopt, options)
+
+#define OOEXPAND_CXX_ARG_DICTIONARY(...) cxx_OOExpandArgumentDictionary({ OOEXPAND_MAP(OOEXPAND_CXX_ARG_ENTRY, __VA_ARGS__) })
+#define OOEXPAND_CXX_ARG_ENTRY(ITEM) oo::PList::Dict::value_type(#ITEM, cxx_OOCastParam(ITEM))
+
+// cxx_OOCastParam() is OO_CAST_PARAMETER() for the C++ macros.
+inline oo::PList cxx_OOCastParam(const std::string& value) { return oo::PList(value); }
+inline oo::PList cxx_OOCastParam(const char* value) { return oo::PList(value); }
+inline oo::PList cxx_OOCastParam(const std::optional<std::string>& value) { return value.has_value() ? oo::PList(*value) : oo::PList(); }
+inline oo::PList cxx_OOCastParam(float value) { return oo::PList::singleReal(value); }
+inline oo::PList cxx_OOCastParam(double value) { return oo::PList(value); }
+inline oo::PList cxx_OOCastParam(long double value) { return oo::PList(static_cast<double>(value)); }
+
+template <class I>
+    requires std::integral<I>
+oo::PList cxx_OOCastParam(I value)
+{
+    if constexpr (std::is_unsigned_v<I> && !std::same_as<I, bool>)
+        return oo::PList::unsignedInteger(value);
+    else
+        return oo::PList::signedInteger(value);
+}
+
+template <class E>
+    requires(std::is_enum_v<E> && std::is_convertible_v<E, std::underlying_type_t<E>>)
+oo::PList cxx_OOCastParam(E value)
+{
+    return cxx_OOCastParam(+value); // the integral promotion OOCastParam's overload resolution made
+}
+
+// The argument dictionary: the null PList when there are no arguments; null values left out; a
+// repeated name keeps its last value, as +dictionaryWithObjects:forKeys:count: did.
+inline oo::PList cxx_OOExpandArgumentDictionary(std::initializer_list<oo::PList::Dict::value_type> entries)
+{
+    if (entries.size() == 0)
+        return oo::PList();
+    oo::PList::Dict dictionary;
+    for (const auto& entry : entries) {
+        if (!entry.second.isNull())
+            dictionary.insert_or_assign(entry.first, entry.second);
+    }
+    return oo::PList(std::move(dictionary));
+}
+#endif

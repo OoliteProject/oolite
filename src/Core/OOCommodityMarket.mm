@@ -84,9 +84,9 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
     _sortedKeys.reset(); // reset
 }
 
-- (id)goods
+- (std::vector<std::string>)goods
 {
-    return oo::NSArrayFromStrings([self sortedGoodKeys]);
+    return [self sortedGoodKeys];
 }
 
 - (id)dictionaryForScripting
@@ -165,27 +165,27 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
 {
     const oo::PList* definition = [self definitionPointerForGood:good];
     if (definition == nullptr) {
-        return oo::OptionalString(OOExpand(@"[oolite-unknown-commodity-name]"));
+        return cxx_OOExpand("[oolite-unknown-commodity-name]");
     }
-    return oo::OptionalString(OOExpand(oo::NSStringFrom(definition->get<std::string>(kName, "[oolite-unknown-commodity-name]"))));
+    return cxx_OOExpand(definition->get<std::string>(kName, "[oolite-unknown-commodity-name]"));
 }
 
 - (std::optional<std::string>)cxx_commentForGood:(const std::string&)good
 {
     const oo::PList* definition = [self definitionPointerForGood:good];
     if (definition == nullptr) {
-        return oo::OptionalString(OOExpand(@"[oolite-unknown-commodity-name]"));
+        return cxx_OOExpand("[oolite-unknown-commodity-name]");
     }
-    return oo::OptionalString(OOExpand(oo::NSStringFrom(definition->get<std::string>(kComment, "[oolite-commodity-no-comment]"))));
+    return cxx_OOExpand(definition->get<std::string>(kComment, "[oolite-commodity-no-comment]"));
 }
 
 - (std::optional<std::string>)cxx_shortCommentForGood:(const std::string&)good
 {
     const oo::PList* definition = [self definitionPointerForGood:good];
     if (definition == nullptr) {
-        return oo::OptionalString(OOExpand(@"[oolite-unknown-commodity-name]"));
+        return cxx_OOExpand("[oolite-unknown-commodity-name]");
     }
-    return oo::OptionalString(OOExpand(oo::NSStringFrom(definition->get<std::string>(kShortComment, "[oolite-commodity-no-short-comment]"))));
+    return cxx_OOExpand(definition->get<std::string>(kShortComment, "[oolite-commodity-no-short-comment]"));
 }
 
 - (OOCreditsQuantity)cxx_priceForGood:(const std::string&)good
@@ -206,9 +206,9 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
     return definition->get<unsigned int>(kQuantityCurrent);
 }
 
-- (OOMassUnit)massUnitForGood:(id)good
+- (OOMassUnit)massUnitForGood:(const std::string&)good
 {
-    const oo::PList* definition = [self definitionPointerForGood:oo::StdString(good)];
+    const oo::PList* definition = [self definitionPointerForGood:good];
     if (definition == nullptr) {
         return UNITS_TONS;
     }

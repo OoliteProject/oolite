@@ -49,12 +49,14 @@ typedef enum {
 #define PLANET_MINIATURE_FACTOR 0.00185
 #define MAX_SUBDIVIDE 6
 
-@protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
+@protocol OOStellarBody <OOObject, OOWeakReferenceSupport>
 
 - (double)radius;
 - (OOStellarBodyType)planetType;
 
-- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
-- (void)setName:(id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: unnamed (bead oo-3rb.289.12)
+- (void)setName:(id)name; // shared selector (Foundation declares -setName: too): -cxx_setName: with an Objective-C string, or nil
+- (void)cxx_setName:(const std::optional<std::string>&)name;
 
 @end

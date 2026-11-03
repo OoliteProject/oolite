@@ -34,6 +34,7 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
+#include <string_view>
 
 @class OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript, OOCharacter,
     OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet,
@@ -97,7 +98,7 @@
 
 #define TRACTOR_FORCE 2500.0f
 
-#define AIMS_AGGRESSOR_SWITCHED_TARGET @"AGGRESSOR_SWITCHED_TARGET"
+inline constexpr std::string_view AIMS_AGGRESSOR_SWITCHED_TARGET = "AGGRESSOR_SWITCHED_TARGET";
 
 // number of vessels considered when scanning around
 #define MAX_SCAN_NUMBER 32
@@ -515,12 +516,12 @@ typedef enum {
 - (Vector)upVector;
 - (Vector)rightVector;
 
-- (id)subEntities; // shared selector (proposed ADR-0043): an Objective-C array (a copy; nil when there are none)
+- (std::vector<oo::ObjCRef<Entity*>>)subEntities; // a snapshot; empty when there are none
 - (NSUInteger)subEntityCount;
 - (BOOL)hasSubEntity:(Entity<OOSubEntity>*)sub;
 
-- (id)subEntityEnumerator; // shared selector (proposed ADR-0043): an enumerator over a snapshot
-- (id)flasherEnumerator; // shared selector (proposed ADR-0043): an enumerator over a snapshot
+- (std::vector<oo::ObjCRef<Entity*>>)subEntityEnumerator; // snapshot, same as -subEntities
+- (std::vector<oo::ObjCRef<OOFlasherEntity*>>)flasherEnumerator; // flasher subentities, a snapshot
 // The ship / exhaust subentities, a snapshot in subentity order (empty for a nil receiver).
 - (std::vector<oo::ObjCRef<ShipEntity*>>)cxx_shipSubEntities;
 - (std::vector<oo::ObjCRef<OOExhaustPlumeEntity*>>)cxx_exhausts;
@@ -563,9 +564,9 @@ typedef enum {
 - (void)setUpEscorts;
 - (void)updateEscortFormation;
 
-- (id)initWithKey:(id)key definition:(id)dict; // shared selector (proposed ADR-0043): an Objective-C string and dictionary
+- (id)cxx_initWithKey:(const std::string&)key definition:(const oo::PList&)dict;
 - (BOOL)cxx_setUpFromDictionary:(const oo::PList&)shipDict;
-- (BOOL)setUpShipFromDictionary:(id)shipDict; // shared selector (proposed ADR-0043): an Objective-C dictionary
+- (BOOL)setUpShipFromDictionary:(const oo::PList&)shipDict; // flipped with its family (bead oo-3rb.282)
 - (BOOL)setUpSubEntities;
 - (BOOL)cxx_setUpOneStandardSubentity:(const oo::PList&)subentDict asTurret:(BOOL)asTurret;
 - (GLfloat)frustumRadius;
@@ -597,19 +598,19 @@ typedef enum {
 - (BOOL)cxx_hasEquipmentItemProviding:(const std::string&)equipmentType;
 - (BOOL)hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading; // Like hasEquipmentItem:includeWeapons:, but requires _all_ elements in collection.
 - (BOOL)hasAllEquipment:(id)equipmentKeys; // Short for hasAllEquipment:foo includeWeapons:NO
-- (BOOL)setWeaponMount:(OOWeaponFacing)facing toWeapon:(id)eqKey; // shared selector (proposed ADR-0043): an Objective-C string
-- (BOOL)canAddEquipment:(id)equipmentKey inContext:(id)context; // shared selector (proposed ADR-0043): Objective-C strings. Test ability to add equipment, taking equipment-specific constriants into account.
+- (BOOL)setWeaponMount:(OOWeaponFacing)facing toWeapon:(const std::string&)eqKey; // flipped with its family (bead oo-3rb.258)
+- (BOOL)canAddEquipment:(const std::string&)equipmentKey inContext:(const std::string&)context; // flipped with its family (bead oo-3rb.258). Test ability to add equipment, taking equipment-specific constriants into account.
 - (BOOL)cxx_equipmentValidToAdd:(const std::string&)equipmentKey inContext:(const std::string&)context; // Actual test if equipment satisfies validation criteria.
 - (BOOL)cxx_equipmentValidToAdd:(const std::string&)equipmentKey whileLoading:(BOOL)loading inContext:(const std::string&)context;
-- (BOOL)addEquipmentItem:(id)equipmentKey inContext:(id)context; // shared selector (proposed ADR-0043): Objective-C strings
-- (BOOL)addEquipmentItem:(id)equipmentKey withValidation:(BOOL)validateAddition inContext:(id)context; // shared selector (proposed ADR-0043): Objective-C strings
+- (BOOL)addEquipmentItem:(const std::string&)equipmentKey inContext:(const std::string&)context; // flipped with its family (bead oo-3rb.258)
+- (BOOL)addEquipmentItem:(const std::string&)equipmentKey withValidation:(BOOL)validateAddition inContext:(const std::string&)context; // flipped with its family (bead oo-3rb.258)
 - (BOOL)hasHyperspaceMotor;
 - (float)hyperspaceSpinTime;
 - (void)setHyperspaceSpinTime:(float)newValue;
 
 - (std::vector<std::string>)cxx_equipmentKeys; // a snapshot, in order added
 - (NSUInteger)equipmentCount;
-- (void)removeEquipmentItem:(id)equipmentKey; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)removeEquipmentItem:(const std::string&)equipmentKey; // flipped with its family (bead oo-3rb.258)
 - (void)removeAllEquipment;
 - (OOEquipmentType*)selectMissile;
 - (OOCreditsQuantity)removeMissiles;
@@ -761,20 +762,22 @@ typedef enum {
 
 - (NSUInteger)turretCount;
 
-- (id)name; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.13)
 - (std::optional<std::string>)cxx_shipUniqueName;
 - (std::optional<std::string>)cxx_shipClassName;
-- (id)displayName; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (std::optional<std::string>)displayName; // flipped with its family (bead oo-3rb.267)
 - (std::optional<std::string>)cxx_scanDescription;
 - (std::optional<std::string>)cxx_scanDescriptionForScripting;
-- (void)setName:(id)inName; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (void)setName:(id)inName; // shared selector (Foundation declares -setName: too): -cxx_setName: with an Objective-C string, or nil
+- (void)cxx_setName:(const std::optional<std::string>&)inName; // PlayerEntity blocks it
 - (void)cxx_setShipUniqueName:(const std::optional<std::string>&)inName;
 - (void)cxx_setShipClassName:(const std::optional<std::string>&)inName;
 - (void)cxx_setDisplayName:(const std::optional<std::string>&)inName;
 - (void)cxx_setScanDescription:(const std::optional<std::string>&)inName;
-- (id)identFromShip:(ShipEntity*)otherShip; // shared selector (proposed ADR-0043): an Objective-C string. Name displayed to other ships
+- (std::optional<std::string>)identFromShip:(ShipEntity*)otherShip; // Name displayed to other ships (flipped with its family, bead oo-3rb.279)
 
-- (BOOL)hasRole:(id)role; // shared selector (proposed ADR-0043): an Objective-C string
+- (BOOL)hasRole:(const std::string&)role; // flipped with its family (bead oo-3rb.280)
 - (OORoleSet*)roleSet;
 
 - (void)addRole:(const std::string&)role;
@@ -883,7 +886,7 @@ typedef enum {
  */
 - (void)setBounty:(OOCreditsQuantity)amount;
 - (void)setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason;
-- (void)setBounty:(OOCreditsQuantity)amount withReasonAsString:(id)reason; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)setBounty:(OOCreditsQuantity)amount withReasonAsString:(const std::string&)reason; // flipped with its family (bead oo-3rb.259)
 - (OOCreditsQuantity)bounty;
 
 - (int)legalStatus;
@@ -900,7 +903,7 @@ typedef enum {
 - (OOCargoQuantity)availableCargoSpace;
 - (OOCargoQuantity)cargoQuantityOnBoard;
 - (OOCargoType)cargoType;
-- (id)cargoListForScripting; // shared selector (proposed ADR-0043): an Objective-C array of dictionaries
+- (oo::PList)cargoListForScripting; // flipped with its family (bead oo-3rb.259): an array of dictionaries
 - (std::vector<oo::ObjCRef<ShipEntity*>>*)cxx_cargo; // the live cargo pods (nullptr for a nil receiver)
 - (NSUInteger)cxx_cargoCount; // the number of cargo pods held
 - (void)setCargo:(const std::vector<oo::ObjCRef<ShipEntity*>>&)some_cargo;
@@ -908,13 +911,13 @@ typedef enum {
 - (BOOL)cxx_removeCargo:(const std::string&)commodity amount:(OOCargoQuantity)amount;
 - (BOOL)showScoopMessage;
 
-- (id)passengerListForScripting; // shared selector (proposed ADR-0043): an Objective-C array
-- (id)parcelListForScripting; // shared selector (proposed ADR-0043): an Objective-C array
-- (id)contractListForScripting; // shared selector (proposed ADR-0043): an Objective-C array
+- (oo::PList)passengerListForScripting; // flipped with its family (bead oo-3rb.259): an array
+- (oo::PList)parcelListForScripting; // flipped with its family (bead oo-3rb.259): an array
+- (oo::PList)contractListForScripting; // flipped with its family (bead oo-3rb.259): an array
 - (std::vector<oo::ObjCRef<OOEquipmentType*>>)cxx_equipmentListForScripting;
 - (OOWeaponType)weaponTypeIDForFacing:(OOWeaponFacing)facing strict:(BOOL)strict;
 - (OOEquipmentType*)weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict;
-- (id)missilesList; // shared selector (proposed ADR-0043): an Objective-C array of OOEquipmentType
+- (std::vector<oo::ObjCRef<OOEquipmentType*>>)missilesList; // flipped with its family (bead oo-3rb.259)
 
 - (OOCargoFlag)cargoFlag;
 - (void)setCargoFlag:(OOCargoFlag)flag;
@@ -1189,7 +1192,7 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
 - (void)broadcastAIMessage:(const std::string&)ai_message;
 - (void)broadcastMessage:(const std::string&)message_text withUnpilotedOverride:(BOOL)unpilotedOverride;
 - (void)setCommsMessageColor;
-- (void)receiveCommsMessage:(id)message_text from:(ShipEntity*)other; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)receiveCommsMessage:(const std::string&)message_text from:(ShipEntity*)other; // flipped with its family (bead oo-3rb.259)
 - (void)cxx_commsMessage:(const std::string&)valueString withUnpilotedOverride:(BOOL)unpilotedOverride;
 
 - (BOOL)markedForFines;
@@ -1217,7 +1220,7 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
 #endif
 
 - (OOJSScript*)script;
-- (id)scriptInfo; // shared selector (proposed ADR-0043): an Objective-C dictionary (empty when there is none)
+- (oo::PList)scriptInfo; // flipped with its family (bead oo-3rb.284): empty dict when there is none
 - (void)overrideScriptInfo:(const oo::PList&)override; // Add items from override (a dictionary, or null for none) to scriptInfo, replacing in case of duplicates. Used for subentities.
 
 - (BOOL)scriptedMisjump;
@@ -1239,6 +1242,12 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
 - (void)doScriptEvent:(OOJSPropID)message;
 - (void)doScriptEvent:(OOJSPropID)message withArgument:(id)argument;
 - (void)doScriptEvent:(OOJSPropID)message withArgument:(id)argument1 andArgument:(id)argument2;
+/*	Plist data as event arguments (ADR-0055 item 4): each converted by OOJSValueFromPList, so a
+        string, number or collection gives the JS value the boxed Foundation object gave, and an entity
+        is passed as oo::PListObject(entity). The id forms above stay for OOObject arguments.
+*/
+- (void)cxx_doScriptEvent:(OOJSPropID)message withPListArguments:(const std::vector<oo::PList>&)arguments;
+// TRANSITIONAL (oo-qps.72): Foundation-boxed arguments, each through its PList form.
 - (void)cxx_doScriptEvent:(OOJSPropID)message withArguments:(const std::vector<oo::ObjCRef<id>>&)arguments;
 // argv is borrowed: the caller remains responsible for freeing the values.
 - (void)doScriptEvent:(OOJSPropID)message withArguments:(JSValue*)argv count:(int)argc;
@@ -1303,8 +1312,7 @@ BOOL isWeaponNone(OOWeaponType weapon);
 }
 #endif
 
-// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.161); the Foundation forms
-// in ShipEntity+FoundationBridge.h forward to them from OOConstToString+FoundationBridge.mm.
+// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.161).
 std::string cxx_OOStringFromBehaviour(OOBehaviour behaviour);
 std::string cxx_OOStringFromShipDamageType(OOShipDamageType type);
 
@@ -1316,10 +1324,3 @@ OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(const std::string& st
 std::optional<std::string> cxx_OOStringFromWeaponType(OOWeaponType weapon);
 OOWeaponType cxx_OOWeaponTypeFromString(const std::string& string);
 std::optional<std::string> cxx_OODisplayStringFromAlertCondition(OOAlertCondition alertCondition);
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before the ShipEntity.mm sweep (chunk beads oo-3rb.232-.242 of oo-3rb.73), forwarding
-        to the cxx_ methods above, so unmigrated callers compile unchanged. Callers move to the cxx_ API
-        in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "ShipEntity+FoundationBridge.h"

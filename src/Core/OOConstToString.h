@@ -48,37 +48,32 @@ OOConstToString.mm are declared in the header with the appropriate type
 declaration, each with its C++ (cxx_) form beside it, in particular:
 
         Entity.h:
-        OOStringFromEntityStatus()
-        OOEntityStatusFromString()
-        OOStringFromScanClass()
-        OOScanClassFromString()
+        cxx_OOStringFromEntityStatus()
+        cxx_OOEntityStatusFromString()
+        cxx_OOStringFromScanClass()
+        cxx_OOScanClassFromString()
 
         ShipEntity.h:
-        OOStringFromBehaviour()
-        OOEquipmentIdentifierFromWeaponType()
-        OOWeaponTypeFromEquipmentIdentifierSloppy()
-        OOWeaponTypeFromEquipmentIdentifierStrict()
-        OOStringFromWeaponType()
-        OOWeaponTypeFromString()
-        OODisplayStringFromAlertCondition()
+        cxx_OOStringFromBehaviour()
+        cxx_OOEquipmentIdentifierFromWeaponType()
+        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy()
+        cxx_OOWeaponTypeFromEquipmentIdentifierStrict()
+        cxx_OOStringFromWeaponType()
+        cxx_OOWeaponTypeFromString()
+        cxx_OODisplayStringFromAlertCondition()
 
         PlayerEntity.h:
-        OODisplayRatingStringFromKillCount()
-        KillCountToRatingAndKillString()
-        OODisplayStringFromLegalStatus()
-        OOStringFromGUIScreenID()
-        OOGUIScreenIDFromString()
-        OOGalacticHyperspaceBehaviourFromString()
-        OOStringFromGalacticHyperspaceBehaviour()
+        cxx_OODisplayRatingStringFromKillCount()
+        cxx_KillCountToRatingAndKillString()
+        cxx_OODisplayStringFromLegalStatus()
+        cxx_OOStringFromGUIScreenID()
+        cxx_OOGUIScreenIDFromString()
+        cxx_OOGalacticHyperspaceBehaviourFromString()
+        cxx_OOStringFromGalacticHyperspaceBehaviour()
 
         Universe.h:
-        OODisplayStringFromGovernmentID()
-        OODisplayStringFromEconomyID()
-
-The Foundation-typed forms of the functions this header declares live in
-OOConstToString+FoundationBridge.h (bead oo-nts1); those of the functions above
-stay in the headers named until those headers' own sweeps. All of them are
-defined in OOConstToString+FoundationBridge.mm, forwarding to the cxx_ forms.
+        cxx_OODisplayStringFromGovernmentID()
+        cxx_OODisplayStringFromEconomyID()
 
 */
 
@@ -88,7 +83,6 @@ defined in OOConstToString+FoundationBridge.mm, forwarding to the cxx_ forms.
 
 // C++ forms (bead oo-nts1, chunk oo-3rb.160): std::string results (never nil) and const
 // std::string & parameters (the old nil arrived as "" and matched nothing: the same defaults).
-// The Foundation forms live in OOConstToString+FoundationBridge.h.
 std::string cxx_CargoTypeToString(OOCargoType cargo);
 OOCargoType cxx_StringToCargoType(const std::string& string);
 std::string cxx_EnergyUnitTypeToString(OOEnergyUnitType unit);
@@ -124,9 +118,3 @@ std::string cxx_OOStringFromShaderSetting(OOShaderSetting setting);
 // Localized shader mode strings; nullopt: no description (was nil).
 std::optional<std::string> cxx_OODisplayStringFromShaderSetting(OOShaderSetting setting);
 #endif
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed functions this
-        header declared before bead oo-nts1 (chunks oo-3rb.160..163), forwarding to the cxx_ functions,
-        so unmigrated callers compile unchanged. Callers move to the cxx_ forms in their own sweep beads.
-*/
-#import "OOConstToString+FoundationBridge.h"

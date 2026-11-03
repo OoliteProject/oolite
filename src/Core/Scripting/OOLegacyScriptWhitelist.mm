@@ -232,7 +232,7 @@ static oo::PList SanitizeCondition(const std::string& condition, SanStackElement
             break;
 
         default:
-            OO_LOG("script.debug.syntax.invalidOperator", "***** SCRIPT ERROR: in {} (\"{}\"), comparison operator \"{}\" is not valid for {}.", StringFromStack(stack), condition, oo::DescriptionOf(OOComparisonTypeToString(comparatorValue)), "booleans");
+            OO_LOG("script.debug.syntax.invalidOperator", "***** SCRIPT ERROR: in {} (\"{}\"), comparison operator \"{}\" is not valid for {}.", StringFromStack(stack), condition, cxx_OOComparisonTypeToString(comparatorValue), "booleans");
             return oo::PList();
         }
     }

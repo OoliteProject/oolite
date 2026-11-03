@@ -146,12 +146,18 @@ BOOL IsVisualEffectPredicate(Entity* entity, void* parameter)
 
 BOOL HasRolePredicate(Entity* ship, void* parameter)
 {
-    return [(ShipEntity*)ship hasRole:(id)parameter]; // an Objective-C string; -hasRole: is a shared selector (proposed ADR-0043)
+    const std::string* role = static_cast<const std::string*>(parameter); // a role, as the callers pass it; null for none
+    return role != nullptr && [(ShipEntity*)ship hasRole:*role];
 }
 
 BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter)
 {
-    return [(ShipEntity*)ship hasPrimaryRole:(id)parameter]; // an Objective-C string, as the callers pass it
+    const std::string* role = static_cast<const std::string*>(parameter); // a role, as the callers pass it; null for none
+    if (role == nullptr) {
+        (void)[(ShipEntity*)ship cxx_primaryRole]; // still chooses a primary role if there is none, as before
+        return NO; // -isEqual: nil was NO
+    }
+    return [(ShipEntity*)ship cxx_hasPrimaryRole:*role];
 }
 
 BOOL HasRoleInSetPredicate(Entity* ship, void* parameter)
@@ -163,7 +169,7 @@ BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter)
 {
     // parameter: an Objective-C set of role strings, as the callers pass it; membership by string
     // value, as -containsObject: tested it. A nil primary role is in no set.
-    const std::optional<std::string> primaryRole = oo::OptionalString([(ShipEntity*)ship primaryRole]);
+    const std::optional<std::string> primaryRole = [(ShipEntity*)ship cxx_primaryRole];
     if (!primaryRole.has_value())
         return NO;
     const std::vector<std::string> roles = oo::StringsFrom((id)parameter);

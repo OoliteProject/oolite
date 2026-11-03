@@ -46,12 +46,15 @@ MA 02110-1301, USA.
 }
 
 - (id)init;
-- (id)initWithName:(id)name; // shared selector: an Objective-C string, or nil
+- (id)initWithName:(id)name; // shared selector (Foundation declares -initWithName: too): -cxx_initWithName: with an Objective-C string, or nil
+- (id)cxx_initWithName:(const std::optional<std::string>&)name OO_RETURNS_RETAINED; // (bead oo-3rb.289.11)
 + (instancetype)cxx_groupWithName:(const std::optional<std::string>&)name;
 + (instancetype)cxx_groupWithName:(const std::optional<std::string>&)name leader:(ShipEntity*)leader;
 
-- (id)name; // shared selector: an Objective-C string, or nil
-- (void)setName:(id)name; // shared selector: an Objective-C string, or nil
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: unnamed (bead oo-3rb.289.11)
+- (void)setName:(id)name; // shared selector (Foundation declares -setName: too): -cxx_setName: with an Objective-C string, or nil
+- (void)cxx_setName:(const std::optional<std::string>&)name;
 
 - (ShipEntity*)leader;
 - (void)setLeader:(ShipEntity*)leader;
@@ -87,10 +90,3 @@ public:
     NSUInteger _index = 0, _updateCount = 0;
     BOOL _considerCleanup = YES, _cleanupNeeded = NO;
 };
-
-/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
-        declared before its sweep (bead oo-5l4w), forwarding to the cxx_ methods above, so unmigrated
-        callers compile unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge
-        goes in its own bead.
-*/
-#import "OOShipGroup+FoundationBridge.h"

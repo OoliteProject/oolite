@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 //	Testing toy: cause particle systems to stop after half a second.
 #define FREEZE_PARTICLES 0
@@ -56,7 +57,7 @@ MA 02110-1301, USA.
               duration:(OOTimeDelta)duration
              baseColor:(GLfloat[4])baseColor
 {
-    NSParameterAssert(count <= kFragmentBurstMaxParticles);
+    OOParameterAssert(count <= kFragmentBurstMaxParticles);
 
     if ((self = [super init])) {
         _count = count;
@@ -87,9 +88,9 @@ MA 02110-1301, USA.
     return self;
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return oo::NSStringFrom(oo::str::format("ttl: %.3fs", _duration - _timePassed));
+    return oo::str::format("ttl: %.3fs", _duration - _timePassed);
 }
 
 - (BOOL)canCollide
@@ -236,9 +237,11 @@ MA 02110-1301, USA.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return oo::NSSetFromObjects(std::vector<id> { [OOLightParticleEntity defaultParticleTexture] });
+    std::vector<oo::ObjCRef<OOTexture*>> result;
+    result.emplace_back([OOLightParticleEntity defaultParticleTexture]);
+    return result;
 }
 #endif
 

@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 #import "MyOpenGLView.h"
-#import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOFoundationBridge.h"
 #import "OOFunctionAttributes.h"
@@ -288,11 +287,11 @@ static OOTexture* sBlobTexture = nil;
 + (void)setUpTexture
 {
     if (sBlobTexture == nil) {
-        sBlobTexture = [[OOTexture textureWithName:@"oolite-particle-blur.png"
-                                          inFolder:@"Textures"
-                                           options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-                                        anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                           lodBias:0.0] retain];
+        sBlobTexture = [[OOTexture cxx_textureWithName:"oolite-particle-blur.png"
+                                              inFolder:"Textures"
+                                               options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+                                            anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                               lodBias:0.0] retain];
         [[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOLightParticleEntity class]];
     }
 }
@@ -321,9 +320,11 @@ static OOTexture* sBlobTexture = nil;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return oo::NSSetFromObjects(std::vector<id> { [self texture] });
+    std::vector<oo::ObjCRef<OOTexture*>> result;
+    result.emplace_back([self texture]);
+    return result;
 }
 #endif
 

@@ -81,9 +81,9 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
 
 @implementation OOAIStateMachineVerifierStage
 
-- (id)name // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_name
 {
-    return oo::NSStringFrom(kStageName);
+    return kStageName;
 }
 
 - (BOOL)shouldRun
@@ -94,7 +94,7 @@ std::vector<std::string> SortedCaseInsensitively(std::vector<std::string> string
 - (void)run
 {
     // Build whitelist. Note that we merge in aliases since the distinction doesn't matter when just validating.
-    const oo::PList whitelist = oo::PListFrom([ResourceManager whitelistDictionary]);
+    const oo::PList whitelist = [ResourceManager cxx_whitelistDictionary];
     for (const char* key : { "ai_methods", "ai_and_action_methods" }) {
         if (const oo::PList* methods = whitelist.get<oo::PList::Array>(key)) {
             for (const oo::PList& method : *methods->getIf<oo::PList::Array>()) {

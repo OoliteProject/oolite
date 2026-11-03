@@ -30,14 +30,15 @@ MA 02110-1301, USA.
 
 #import "GuiDisplayGen.h"
 #import "OOCommodityMarket.h"
+#import "OOFoundation.h"
 #import "OOJSPropID.h"
 #import "OOTypes.h"
 #import "ShipEntity.h"
 #import "WormholeEntity.h"
-#import <Foundation/Foundation.h>
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
@@ -69,6 +70,7 @@ typedef enum {
 
 typedef enum {
 #include "OOGalacticHyperspaceBehaviour.tbl"
+#include <string_view>
 
     GALACTIC_HYPERSPACE_MAX = GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES
 } OOGalacticHyperspaceBehaviour;
@@ -116,13 +118,13 @@ typedef enum {
 #endif
 
 // dictionary keys - used in the custom key config for oxp equipment
-#define CUSTOMEQUIP_EQUIPKEY @"equipmentKey"
-#define CUSTOMEQUIP_EQUIPNAME @"equipmentName"
-#define CUSTOMEQUIP_KEYACTIVATE @"keyActivate"
-#define CUSTOMEQUIP_KEYMODE @"keyMode"
-#define CUSTOMEQUIP_BUTTONACTIVATE @"buttonActivate"
-#define CUSTOMEQUIP_BUTTONMODE @"buttonMode"
-#define KEYCONFIG_CUSTOMEQUIP @"CustomEquipActivation" // preferences key (oo::Defaults)
+inline constexpr std::string_view CUSTOMEQUIP_EQUIPKEY = "equipmentKey";
+inline constexpr std::string_view CUSTOMEQUIP_EQUIPNAME = "equipmentName";
+inline constexpr std::string_view CUSTOMEQUIP_KEYACTIVATE = "keyActivate";
+inline constexpr std::string_view CUSTOMEQUIP_KEYMODE = "keyMode";
+inline constexpr std::string_view CUSTOMEQUIP_BUTTONACTIVATE = "buttonActivate";
+inline constexpr std::string_view CUSTOMEQUIP_BUTTONMODE = "buttonMode";
+inline constexpr std::string_view KEYCONFIG_CUSTOMEQUIP = "CustomEquipActivation"; // preferences key (oo::Defaults)
 
 enum {
     GUI_ROW_OPTIONS_QUICKSAVE,
@@ -302,14 +304,14 @@ typedef enum {
 #define HYPERSPEED_FACTOR 32.0
 #endif
 
-#define PLAYER_SHIP_DESC @"cobra3-player"
+inline constexpr std::string_view PLAYER_SHIP_DESC = "cobra3-player";
 
 #define ESCAPE_SEQUENCE_TIME 10.0
 
-#define FORWARD_FACING_STRING DESC(@"forward-facing-string")
-#define AFT_FACING_STRING DESC(@"aft-facing-string")
-#define PORT_FACING_STRING DESC(@"port-facing-string")
-#define STARBOARD_FACING_STRING DESC(@"starboard-facing-string")
+#define FORWARD_FACING_STRING OO_DESC("forward-facing-string")
+#define AFT_FACING_STRING OO_DESC("aft-facing-string")
+#define PORT_FACING_STRING OO_DESC("port-facing-string")
+#define STARBOARD_FACING_STRING OO_DESC("starboard-facing-string")
 
 #define KEY_REPEAT_INTERVAL 0.20
 
@@ -317,15 +319,15 @@ typedef enum {
 // adding or removing a player ship subentity increases or decreases the ship's trade-in factor respectively by this amount
 #define PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE 3
 
-#define CONTRACTS_GOOD_KEY @"contracts_fulfilled"
-#define CONTRACTS_BAD_KEY @"contracts_expired"
-#define CONTRACTS_UNKNOWN_KEY @"contracts_unknown"
-#define PASSAGE_GOOD_KEY @"passage_fulfilled"
-#define PASSAGE_BAD_KEY @"passage_expired"
-#define PASSAGE_UNKNOWN_KEY @"passage_unknown"
-#define PARCEL_GOOD_KEY @"parcels_fulfilled"
-#define PARCEL_BAD_KEY @"parcels_expired"
-#define PARCEL_UNKNOWN_KEY @"parcels_unknown"
+inline constexpr std::string_view CONTRACTS_GOOD_KEY = "contracts_fulfilled";
+inline constexpr std::string_view CONTRACTS_BAD_KEY = "contracts_expired";
+inline constexpr std::string_view CONTRACTS_UNKNOWN_KEY = "contracts_unknown";
+inline constexpr std::string_view PASSAGE_GOOD_KEY = "passage_fulfilled";
+inline constexpr std::string_view PASSAGE_BAD_KEY = "passage_expired";
+inline constexpr std::string_view PASSAGE_UNKNOWN_KEY = "passage_unknown";
+inline constexpr std::string_view PARCEL_GOOD_KEY = "parcels_fulfilled";
+inline constexpr std::string_view PARCEL_BAD_KEY = "parcels_expired";
+inline constexpr std::string_view PARCEL_UNKNOWN_KEY = "parcels_unknown";
 
 #define SCANNER_ZOOM_RATE_UP 2.0
 #define SCANNER_ZOOM_RATE_DOWN -8.0
@@ -333,12 +335,12 @@ typedef enum {
 
 #define PLAYER_INTERNAL_DAMAGE_FACTOR 31
 
-#define PLAYER_DOCKING_AI_NAME @"oolite-player-AI.plist"
+inline constexpr std::string_view PLAYER_DOCKING_AI_NAME = "oolite-player-AI.plist";
 
 #define MANIFEST_SCREEN_ROW_BACK 1
 #define MANIFEST_SCREEN_ROW_NEXT ([[PLAYER hud] isHidden] ? 27 : 20)
 
-#define MISSION_DEST_LEGACY @"__oolite_legacy_destinations"
+inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destinations";
 
 @interface PlayerEntity : ShipEntity {
 @private
@@ -352,11 +354,11 @@ typedef enum {
     OOSystemID found_system_id;
     int ship_trade_in_factor;
 
-    NSDictionary* worldScripts;
-    NSDictionary* worldScriptsRequiringTickle;
-    NSMutableDictionary* commodityScripts;
-    NSMutableDictionary* mission_variables;
-    NSMutableDictionary* localVariables;
+    std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>> worldScripts; // in load order (+cxx_loadScripts)
+    std::optional<std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>> worldScriptsRequiringTickle; // PlayerEntityLegacyScriptEngine's cache; nullopt: not built
+    std::map<std::string, oo::ObjCRef<OOScript*>, std::less<>> commodityScripts; // by script file name
+    oo::PList mission_variables; // a Dict (saved as mission_variables); null before set-up
+    std::map<std::string, oo::PList, std::less<>> localVariables; // mission key -> that mission's variables (a Dict)
     std::optional<std::string> _missionTitle; // nullopt: the mission screen falls back on its default
     NSInteger /*OOGUIRow*/ missionTextRow;
     std::optional<std::string> missionChoice;
@@ -679,8 +681,8 @@ typedef enum {
     std::map<int, std::vector<oo::ObjCRef<OOJSGuiScreenKeyDefinition*>>> extraGuiScreenKeys; // by GUI screen ID
 
     // save-file
-    NSString* save_path;
-    NSString* scenarioKey;
+    std::optional<std::string> save_path;
+    std::optional<std::string> scenarioKey;
 
     // position of viewports
     Vector forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
@@ -852,8 +854,8 @@ typedef enum {
 - (void)targetInfoSystem;
 - (BOOL)infoSystemOnRoute;
 
-- (NSDictionary*)commanderDataDictionary;
-- (BOOL)setCommanderDataFromDictionary:(NSDictionary*)dict;
+- (oo::PList)cxx_commanderDataDictionary; // a Dict, as saved
+- (BOOL)cxx_setCommanderDataFromDictionary:(const oo::PList&)dict;
 
 - (void)addEquipmentWithScriptToCustomKeyArray:(const std::string&)equipmentKey;
 - (void)validateCustomEquipActivationArray;
@@ -1070,7 +1072,6 @@ typedef enum {
 - (OOCreditsQuantity)cxx_adjustPriceByScriptForEqKey:(const std::string&)eqKey withCurrent:(OOCreditsQuantity)price;
 
 - (std::vector<std::string>)cxx_cargoList;
-//- (NSArray *) cargoListForScripting; // now in ShipEntity
 - (unsigned)legalStatusOfCargoList;
 
 - (void)setGuiToSystemDataScreen;
@@ -1092,7 +1093,7 @@ typedef enum {
 - (void)highlightEquipShipScreenKey:(const std::string&)key;
 - (void)showInformationForSelectedUpgrade;
 - (void)cxx_showInformationForSelectedUpgradeWithFormatString:(const std::optional<std::string>&)extraString; // a runtime format with one %@
-- (BOOL)setWeaponMount:(OOWeaponFacing)chosen_weapon_facing toWeapon:(id)eqKey; // shared selector (proposed ADR-0043): an Objective-C string
+- (BOOL)setWeaponMount:(OOWeaponFacing)chosen_weapon_facing toWeapon:(const std::string&)eqKey; // flipped with its family (bead oo-3rb.258)
 - (BOOL)cxx_setWeaponMount:(OOWeaponFacing)facing toWeapon:(const std::string&)eqKey inContext:(const std::optional<std::string>&)context;
 
 - (BOOL)changePassengerBerths:(int)addRemove;
@@ -1142,7 +1143,7 @@ typedef enum {
 - (NSUInteger)trumbleCount;
 // loading and saving trumbleCount
 - (id)trumbleValue;
-- (void)setTrumbleValueFrom:(NSObject*)trumbleValue;
+- (void)setTrumbleValueFrom:(id)trumbleValue;
 
 - (float)trumbleAppetiteAccumulator;
 - (void)setTrumbleAppetiteAccumulator:(float)value;
@@ -1222,10 +1223,10 @@ typedef enum {
 - (void)cxx_setEquipScreenBackgroundDescriptor:(const oo::PList&)descriptor;
 
 - (BOOL)scriptsLoaded;
-- (NSArray*)worldScriptNames;
-- (NSDictionary*)worldScriptsByName;
+- (std::vector<std::string>)cxx_worldScriptNames; // in load order
+- (std::vector<std::pair<std::string, oo::ObjCRef<OOScript*>>>)cxx_worldScriptsByName; // in load order
 
-- (OOScript*)commodityScriptNamed:(NSString*)script;
+- (OOScript*)cxx_commodityScriptNamed:(const std::optional<std::string>&)script; // nullopt: nil
 
 // *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which
@@ -1288,7 +1289,7 @@ OOINLINE PlayerEntity* OOGetPlayer(void)
 {
     extern PlayerEntity* gOOPlayer;
 #if OO_DEBUG
-    NSCAssert(gOOPlayer != nil, @"PLAYER used when [PlayerEntity sharedPlayer] has not been called.");
+    OOCAssert(gOOPlayer != nil, "PLAYER used when [PlayerEntity sharedPlayer] has not been called.");
 #endif
     return gOOPlayer;
 }
@@ -1299,25 +1300,8 @@ OOINLINE PlayerEntity* OOGetPlayer(void)
 #define GRAMS_PER_POD (KILOGRAMS_PER_POD * 1000)
 #define MAX_GRAMS_IN_SAFE ((GRAMS_PER_POD / 2) - 1)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-NSString* OODisplayRatingStringFromKillCount(unsigned kills);
-NSString* KillCountToRatingAndKillString(unsigned kills);
-NSString* OODisplayStringFromLegalStatus(int legalStatus);
-#ifdef __cplusplus
-}
-#endif
-
-NSString* OOStringFromGUIScreenID(OOGUIScreenID screen) CONST_FUNC;
-OOGUIScreenID OOGUIScreenIDFromString(NSString* string) PURE_FUNC;
-
-OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromString(NSString* string) PURE_FUNC;
-NSString* OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour behaviour) CONST_FUNC;
-
 // C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.161): std::string results
 // (never nil), const std::string & parameters (nil arrived as "" and matched nothing: the defaults).
-// The Foundation forms above forward to them from OOConstToString+FoundationBridge.mm.
 std::string cxx_OOStringFromGUIScreenID(OOGUIScreenID screen);
 OOGUIScreenID cxx_OOGUIScreenIDFromString(const std::string& string);
 
@@ -1328,7 +1312,3 @@ std::string cxx_OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBeha
 std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(unsigned kills);
 std::string cxx_KillCountToRatingAndKillString(unsigned kills);
 std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus);
-
-// TRANSITIONAL (proposed ADR-0043): PlayerEntity's Foundation-typed API as it was before its
-// sweep, forwarding to the cxx_ API above. Keep this the last line.
-#import "PlayerEntity+FoundationBridge.h"

@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 */
 
 #import "OOExhaustPlumeEntity.h"
-#import "OOCollectionExtractors.h"
 
 #import "MyOpenGLView.h"
 #import "OOMacroOpenGL.h"
@@ -651,11 +650,11 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 + (void)setUpTexture
 {
     if (sPlumeTexture == nil) {
-        sPlumeTexture = [[OOTexture textureWithName:@"oolite-exhaust-blur.png"
-                                           inFolder:@"Textures"
-                                            options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
-                                         anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                            lodBias:0.0] retain];
+        sPlumeTexture = [[OOTexture cxx_textureWithName:"oolite-exhaust-blur.png"
+                                               inFolder:"Textures"
+                                                options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
+                                             anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                                lodBias:0.0] retain];
         [[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOExhaustPlumeEntity class]];
     }
 }

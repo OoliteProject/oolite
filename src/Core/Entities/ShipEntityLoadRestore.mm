@@ -27,16 +27,17 @@ MA 02110-1301, USA.
 #import "Universe.h"
 
 #import "AI.h"
-#import "OOCollectionExtractors.h" // OOHPVectorFromObject() & co., OOPropertyListFromHPVector() & co. (unmigrated callees)
 #import "OOConstToString.h"
 #import "OOEquipmentType.h"
 #import "OOFoundationBridge.h"
+#import "OOPListGameTypes.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
 #import "ShipEntityAI.h"
 
 #include "oofnd/PListGet.hpp"
+#include "oofnd/objc/OOAssert.h"
 
 #define KEY_SHIP_KEY "ship_key"
 #define KEY_SHIPDATA_OVERRIDES "shipdata_overrides"
@@ -71,7 +72,6 @@ OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context);
 oo::PList::Dict DictFrom(const oo::PList& plist);
 oo::PList ArrayFromStrings(const std::vector<std::string>& strings);
 std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key);
-id ObjectForKey(const oo::PList& dict, std::string_view key);
 } // namespace
 
 @interface ShipEntity (LoadRestoreInternal)
@@ -99,9 +99,9 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
         updatedShipInfo[KEY_ROLES] = *roleString;
     updatedShipInfo[KEY_FUEL] = oo::PList::unsignedInteger(fuel);
     updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(bounty);
-    updatedShipInfo[KEY_FORWARD_WEAPON] = oo::StdString(OOStringFromWeaponType(forward_weapon_type));
-    updatedShipInfo[KEY_AFT_WEAPON] = oo::StdString(OOStringFromWeaponType(aft_weapon_type));
-    updatedShipInfo[KEY_SCAN_CLASS] = oo::StdString(OOStringFromScanClass(scanClass));
+    updatedShipInfo[KEY_FORWARD_WEAPON] = cxx_OOStringFromWeaponType(forward_weapon_type).value_or("");
+    updatedShipInfo[KEY_AFT_WEAPON] = cxx_OOStringFromWeaponType(aft_weapon_type).value_or("");
+    updatedShipInfo[KEY_SCAN_CLASS] = cxx_OOStringFromScanClass(scanClass);
 
     std::vector<std::string> deletes;
     [self simplifyShipdata:updatedShipInfo andGetDeletes:&deletes];
@@ -111,20 +111,20 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
         result[KEY_SHIPDATA_DELETES] = ArrayFromStrings(deletes);
 
     if (!HPvector_equal([self position], kZeroHPVector)) {
-        result[KEY_POSITION] = oo::PListFrom(OOPropertyListFromHPVector([self position]));
+        result[KEY_POSITION] = OOPListFromHPVector([self position]);
     }
     if (!quaternion_equal([self normalOrientation], kIdentityQuaternion)) {
-        result[KEY_ORIENTATION] = oo::PListFrom(OOPropertyListFromQuaternion([self normalOrientation]));
+        result[KEY_ORIENTATION] = OOPListFromQuaternion([self normalOrientation]);
     }
 
     // -oo_setFloat:forKey: stored a double.
     if (energy != maxEnergy)
         result[KEY_ENERGY_LEVEL] = oo::PList(static_cast<double>(energy / maxEnergy));
 
-    result[KEY_PRIMARY_ROLE] = oo::StdString([self primaryRole]);
+    result[KEY_PRIMARY_ROLE] = [self cxx_primaryRole].value_or("");
 
     // Add equipment.
-    const std::vector<std::string> equipment = oo::StringsFrom([self equipmentEnumerator]);
+    const std::vector<std::string> equipment = [self cxx_equipmentKeys];
     if (equipment.size() != 0)
         result[KEY_EQUIPMENT] = ArrayFromStrings(equipment);
 
@@ -133,7 +133,7 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
         std::vector<std::string> missileArray;
         unsigned i;
         for (i = 0; i < missiles; i++) {
-            const std::optional<std::string> missileType = oo::OptionalString([missile_list[i] identifier]);
+            const std::optional<std::string> missileType = [missile_list[i] cxx_identifier];
             if (missileType.has_value())
                 missileArray.push_back(*missileType);
         }
@@ -145,7 +145,7 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
         result[KEY_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group, *context));
         if ([_group leader] == self)
             result[KEY_IS_GROUP_LEADER] = oo::PList(static_cast<bool>(YES));
-        const std::optional<std::string> groupName = oo::OptionalString([_group name]);
+        const std::optional<std::string> groupName = [_group cxx_name];
         if (groupName.has_value()) {
             result[KEY_GROUP_NAME] = *groupName;
         }
@@ -164,13 +164,13 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
     // FIXME: AI.
     // Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
     // Also the AI restarts itself with the GLOBAL state, so no need to store any old state.
-    if (oo::StdString([[self getAI] name]) == "nullAI.plist") {
+    if ([[self getAI] cxx_name].value_or(std::string()) == "nullAI.plist") {
         // might be a JS version (with none, no key: -setObject:forKey: refused nil)
         if (const std::optional<std::string> js = [[self getAI] cxx_associatedJS])
             result[KEY_AI] = *js;
         // if there isn't, loading nullAI.js will load nullAI.plist anyway
     } else {
-        result[KEY_AI] = oo::StdString([[self getAI] name]);
+        result[KEY_AI] = [[self getAI] cxx_name].value_or(std::string());
     }
 
     return oo::PList(std::move(result));
@@ -189,7 +189,7 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
     ShipEntity* ship = nil;
 
     const std::string shipKey = dict.get<std::string>(KEY_SHIP_KEY); // "" finds no ship, as nil did
-    const oo::PList shipData = oo::PListFrom([[OOShipRegistry sharedRegistry] shipInfoForKey:oo::NSStringFrom(shipKey)]);
+    const oo::PList shipData = [[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:shipKey];
 
     if (shipData) {
         oo::PList::Dict mergedData = DictFrom(shipData);
@@ -208,10 +208,9 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
         mergedData["auto_ai"] = oo::PList(static_cast<bool>(NO));
         mergedData["escorts"] = oo::PList::unsignedInteger(0);
 
-        // One Objective-C dictionary for both callees, as before.
-        id definition = oo::ObjectFromPList(oo::PList(std::move(mergedData)));
-        Class shipClass = [UNIVERSE shipClassForShipDictionary:definition];
-        ship = [[[shipClass alloc] initWithKey:oo::NSStringFrom(shipKey) definition:definition] autorelease];
+        const oo::PList mergedPlist(std::move(mergedData));
+        Class shipClass = [UNIVERSE cxx_shipClassForShipDictionary:mergedPlist];
+        ship = [[[shipClass alloc] cxx_initWithKey:shipKey definition:mergedPlist] autorelease];
 
         // FIXME: restore AI.
         [ship setAITo:oo::NSStringFrom(dict.get<std::string>(KEY_AI, "nullAI.plist"))];
@@ -224,14 +223,14 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
         if (!fallback || !shipPrimaryRole.has_value())
             return nil;
 
-        ship = [[UNIVERSE newShipWithRole:oo::NSStringFrom(*shipPrimaryRole)] autorelease];
+        ship = [[UNIVERSE cxx_newShipWithRole:*shipPrimaryRole] autorelease];
         if (ship == nil)
             return nil;
     }
 
     // The following stuff is deliberately set up the same way even if using role fallback.
-    [ship setPosition:OOHPVectorFromObject(ObjectForKey(dict, KEY_POSITION), kZeroHPVector)];
-    [ship setNormalOrientation:OOQuaternionFromObject(ObjectForKey(dict, KEY_ORIENTATION), kIdentityQuaternion)];
+    [ship setPosition:OOHPVectorFromPList(dict.find(KEY_POSITION), kZeroHPVector)];
+    [ship setNormalOrientation:OOQuaternionFromPList(dict.find(KEY_ORIENTATION), kIdentityQuaternion)];
 
     float energyLevel = dict.get<float>(KEY_ENERGY_LEVEL, 1.0f);
     [ship setEnergy:energyLevel * [ship maxEnergy]];
@@ -239,14 +238,14 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
     [ship removeAllEquipment];
     if (const oo::PList* equipment = dict.get<oo::PList::Array>(KEY_EQUIPMENT)) {
         for (const oo::PList& eqKey : *equipment->getIf<oo::PList::Array>()) {
-            [ship addEquipmentItem:oo::ObjectFromPList(eqKey) withValidation:NO inContext:@"loading"];
+            [ship addEquipmentItem:oo::StdString(oo::ObjectFromPList(eqKey)) withValidation:NO inContext:"loading"];
         }
     }
 
     [ship removeMissiles];
     if (const oo::PList* missileList = dict.get<oo::PList::Array>(KEY_MISSILES)) {
         for (const oo::PList& eqKey : *missileList->getIf<oo::PList::Array>()) {
-            [ship addEquipmentItem:oo::ObjectFromPList(eqKey) withValidation:NO inContext:@"loading"];
+            [ship addEquipmentItem:oo::StdString(oo::ObjectFromPList(eqKey)) withValidation:NO inContext:"loading"];
         }
     }
 
@@ -259,8 +258,8 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
             [group setLeader:ship];
         const std::optional<std::string> groupName = OptionalStringForKey(dict, KEY_GROUP_NAME);
         if (groupName.has_value())
-            [group setName:oo::NSStringFrom(*groupName)];
-        if ([ship hasPrimaryRole:@"escort"] && ship != [group leader]) {
+            [group cxx_setName:groupName];
+        if ([ship cxx_hasPrimaryRole:"escort"] && ship != [group leader]) {
             [ship setOwner:[group leader]];
         }
     }
@@ -269,7 +268,7 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
     if (groupID != NSNotFound) {
         OOShipGroup* group = GroupForGroupID(groupID, *context);
         [group setLeader:ship];
-        [group setName:@"escort group"];
+        [group cxx_setName:std::string("escort group")];
         [ship setEscortGroup:group];
     }
 
@@ -278,11 +277,11 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
 
 - (void)simplifyShipdata:(oo::PList::Dict&)data andGetDeletes:(std::vector<std::string>*)deletes
 {
-    NSParameterAssert(deletes != NULL);
+    OOParameterAssert(deletes != NULL);
     deletes->clear();
 
     // Get original ship data.
-    oo::PList::Dict referenceData = DictFrom(oo::PListFrom([[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]]));
+    oo::PList::Dict referenceData = DictFrom([[OOShipRegistry sharedRegistry] cxx_shipInfoForKey:[self cxx_shipDataKey].value_or(std::string())]);
 
     // Discard stuff that we handle separately.
     StripIgnoredKeys(referenceData);
@@ -383,13 +382,6 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     if (value == nullptr || !(value->isString() || value->isNumber()))
         return std::nullopt;
     return dict.get<std::string>(key);
-}
-
-// -objectForKey: for a callee that still takes an Objective-C object (nil when absent).
-id ObjectForKey(const oo::PList& dict, std::string_view key)
-{
-    const oo::PList* value = dict.find(key);
-    return value != nullptr ? oo::ObjectFromPList(*value) : nil;
 }
 
 } // namespace

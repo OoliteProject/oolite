@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 
 #import "OOMesh.h"
 
+#import "HeadUpDisplay.h"
 #import "OOColor.h"
 #import "OOPolygonSprite.h"
 
@@ -49,8 +50,8 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 
 #import "MyOpenGLView.h"
-#import "OOCollectionExtractors.h" // OOHPVectorFromObject() & co. (unmigrated callees)
 #import "OOFoundationBridge.h"
+#import "OOPListGameTypes.h"
 
 #include "oofnd/PListGet.hpp"
 
@@ -59,8 +60,8 @@ MA 02110-1301, USA.
 - (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
 
 - (void)addSubEntity:(Entity<OOSubEntity>*)subent;
-- (BOOL)setUpOneSubentity:(id)subentDict; // shared selector (proposed ADR-0043, ShipEntity): an Objective-C dictionary or nil
-- (BOOL)setUpOneFlasher:(id)subentDict; // shared selector (proposed ADR-0043, ShipEntity): an Objective-C dictionary
+- (BOOL)setUpOneSubentity:(const oo::PList&)subentDict;
+- (BOOL)setUpOneFlasher:(const oo::PList&)subentDict;
 - (BOOL)setUpOneStandardSubentity:(const oo::PList&)subentDict;
 
 @end
@@ -97,7 +98,7 @@ OOVisualEffectSubEntities SubEntitiesOf(const std::optional<OOVisualEffectSubEnt
     return subEntities.value_or(OOVisualEffectSubEntities { });
 }
 
-// The subentities that answer YES to -isVisualEffect (OOFilteringEnumerator's test).
+// The subentities that answer YES to -isVisualEffect.
 std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEffectSubEntities& subEntities)
 {
     std::vector<oo::ObjCRef<OOVisualEffectEntity*>> result;
@@ -115,22 +116,20 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
 
 - (id)init
 {
-    return [self initWithKey:@"" definition:nil];
+    return [self cxx_initWithKey:std::string { } definition:oo::PList()];
 }
 
-- (id)initWithKey:(id)key definition:(id)dict // shared selector (proposed ADR-0043)
+- (id)cxx_initWithKey:(const std::string&)key definition:(const oo::PList&)dict
 {
     OOJS_PROFILE_ENTER
-
-    NSParameterAssert(dict != nil);
 
     self = [super init];
     if (self == nil)
         return nil;
 
-    _effectKey = oo::OptionalString(key);
+    _effectKey = key;
 
-    if (![self setUpVisualEffectFromDictionary:oo::PListFrom(dict)]) {
+    if (![self setUpVisualEffectFromDictionary:dict]) {
         [self release];
         self = nil;
     }
@@ -192,9 +191,9 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     _shaderVector1 = kZeroVector;
     _shaderVector2 = kZeroVector;
 
-    [self setBeaconCode:oo::NSStringOrNil(OptionalStringForKey(effectDict, "beacon"))];
+    [self setBeaconCode:OptionalStringForKey(effectDict, "beacon")];
     const std::optional<std::string> beaconLabel = OptionalStringForKey(effectDict, "beacon_label");
-    [self setBeaconLabel:beaconLabel.has_value() ? oo::NSStringFrom(*beaconLabel) : [self beaconCode]];
+    [self setBeaconLabel:beaconLabel.has_value() ? beaconLabel : [self beaconCode]];
 
     const oo::PList* scriptInfoValue = effectDict.get<oo::PList::Dict>("script_info");
     scriptInfo = scriptInfoValue != nullptr ? *scriptInfoValue : oo::PList();
@@ -276,7 +275,7 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
 
     for (i = 0; subs != nullptr && i < subs->count(); i++) {
         const oo::PList* subentDict = subs->at<oo::PList::Dict>(i); // nil for anything but a dictionary
-        [self setUpOneSubentity:subentDict != nullptr ? oo::ObjectFromPList(*subentDict) : nil];
+        [self setUpOneSubentity:subentDict != nullptr ? *subentDict : oo::PList()];
     }
 
     [self setNoDrawDistance];
@@ -297,22 +296,20 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     no_draw_distance = r * r * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0;
 }
 
-- (BOOL)setUpOneSubentity:(id)subentDictObject // shared selector (proposed ADR-0043)
+- (BOOL)setUpOneSubentity:(const oo::PList&)subentDict
 {
-    const oo::PList subentDict = oo::PListFrom(subentDictObject);
     const std::optional<std::string> type = OptionalStringForKey(subentDict, "type");
     if (type == "flasher") {
-        return [self setUpOneFlasher:subentDictObject];
+        return [self setUpOneFlasher:subentDict];
     } else {
         return [self setUpOneStandardSubentity:subentDict];
     }
 }
 
-- (BOOL)setUpOneFlasher:(id)subentDictObject // shared selector (proposed ADR-0043)
+- (BOOL)setUpOneFlasher:(const oo::PList&)subentDict
 {
-    const oo::PList subentDict = oo::PListFrom(subentDictObject);
     OOFlasherEntity* flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
-    [flasher setPosition:subentDict ? OOHPVectorFromObject(ObjectForKey(subentDict, "position"), kZeroHPVector) : kZeroHPVector];
+    [flasher setPosition:subentDict ? OOHPVectorFromPList(subentDict.find("position"), kZeroHPVector) : kZeroHPVector];
     [self addSubEntity:flasher];
     return YES;
 }
@@ -326,18 +323,18 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
 
     subentKey = OptionalStringForKey(subentDict, "subentity_key");
     if (!subentKey.has_value()) {
-        OO_LOG("setup.visualeffect.badEntry.subentities", "Failed to set up entity - no subentKey in {}", oo::DescriptionOf(oo::ObjectFromPList(subentDict)));
+        OO_LOG("setup.visualeffect.badEntry.subentities", "Failed to set up entity - no subentKey in {}", oo::DescriptionOf(subentDict));
         return NO;
     }
 
-    subentity = [UNIVERSE newVisualEffectWithName:oo::NSStringFrom(*subentKey)];
+    subentity = [UNIVERSE cxx_newVisualEffectWithName:*subentKey];
     if (subentity == nil) {
         OO_LOG("setup.visualeffect.badEntry.subentities", "Failed to set up entity {}", *subentKey);
         return NO;
     }
 
-    subPosition = OOHPVectorFromObject(ObjectForKey(subentDict, "position"), kZeroHPVector);
-    subOrientation = OOQuaternionFromObject(ObjectForKey(subentDict, "orientation"), kIdentityQuaternion);
+    subPosition = OOHPVectorFromPList(subentDict.find("position"), kZeroHPVector);
+    subOrientation = OOQuaternionFromPList(subentDict.find("orientation"), kIdentityQuaternion);
 
     [subentity setPosition:subPosition];
     [subentity setOrientation:subOrientation];
@@ -367,9 +364,16 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     }
 }
 
-- (id)subEntities // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<Entity*>>)subEntities
 {
-    return subEntities.has_value() ? oo::NSArrayFromObjects(*subEntities) : nil;
+    if (!subEntities.has_value())
+        return { };
+    std::vector<oo::ObjCRef<Entity*>> result;
+    result.reserve(subEntities->size());
+    for (const auto& sub : *subEntities) {
+        result.emplace_back(sub.get());
+    }
+    return result;
 }
 
 - (NSUInteger)subEntityCount
@@ -391,9 +395,9 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     return std::find_if(subEntities->begin(), subEntities->end(), [sub](const auto& entry) { return entry.get() == sub; }) != subEntities->end();
 }
 
-- (id)subEntityEnumerator // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<Entity*>>)subEntityEnumerator
 {
-    return [[self subEntities] objectEnumerator];
+    return [self subEntities];
 }
 
 - (std::vector<oo::ObjCRef<OOVisualEffectEntity*>>)effectSubEntityEnumerator
@@ -401,17 +405,17 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     return VisualEffectsIn(SubEntitiesOf(subEntities));
 }
 
-- (id)flasherEnumerator // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOFlasherEntity*>>)flasherEnumerator
 {
+    std::vector<oo::ObjCRef<OOFlasherEntity*>> flashers;
     if (!subEntities.has_value())
-        return nil;
-    std::vector<Entity<OOSubEntity>*> flashers;
+        return flashers;
     for (const auto& sub : *subEntities) {
         if (![sub.get() isFlasher])
             continue;
-        flashers.push_back(sub.get());
+        flashers.emplace_back((OOFlasherEntity*)sub.get());
     }
-    return [oo::NSArrayFromObjects(flashers) objectEnumerator];
+    return flashers;
 }
 
 - (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
@@ -697,13 +701,13 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 };
 {
     oo::PList::Dict propertyList;
     propertyList["visualEffect"] = oo::PListObject(self);
-    id properties = oo::ObjectFromPList(oo::PList(std::move(propertyList)));
+    const oo::PList properties(std::move(propertyList));
 
     [script autorelease];
-    script = [OOScript jsScriptFromFileNamed:oo::NSStringOrNil(script_name) properties:properties];
+    script = [OOScript cxx_jsScriptFromFileNamed:script_name.value_or(std::string()) properties:properties];
     // does not support legacy scripting
     if (script == nil) {
-        script = [OOScript jsScriptFromFileNamed:@"oolite-default-effect-script.js" properties:properties];
+        script = [OOScript cxx_jsScriptFromFileNamed:"oolite-default-effect-script.js" properties:properties];
     }
     [script retain];
 }
@@ -713,9 +717,9 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 };
     return script;
 }
 
-- (id)scriptInfo // shared selector (proposed ADR-0043)
+- (oo::PList)scriptInfo
 {
-    return oo::ObjectFromPList(scriptInfo ? scriptInfo : oo::PList(oo::PList::Dict { }));
+    return scriptInfo ? scriptInfo : oo::PList(oo::PList::Dict { });
 }
 
 // unlikely to need events with arguments
@@ -734,21 +738,21 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 };
 
 /* beacons */
 
-- (NSComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other
+- (OOComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other
 {
-    return [[self beaconCode] compare:[other beaconCode] options:NSCaseInsensitiveSearch];
+    return (OOComparisonResult)oo::str::caseInsensitiveCompare([self beaconCode].value_or(""), [other beaconCode].value_or(""));
 }
 
-- (id)beaconCode // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)beaconCode
 {
-    return oo::NSStringOrNil(_beaconCode);
+    return _beaconCode;
 }
 
-// bcode: an Objective-C string or nil. The Foundation version compared the new string with the
+// bcode: optional string; empty is treated as none. The Foundation version compared the new string with the
 // old by pointer, so any new string (every string this class hands out is new) replaced it.
-- (void)setBeaconCode:(id)bcode // shared selector (proposed ADR-0043)
+- (void)setBeaconCode:(const std::optional<std::string>&)bcode
 {
-    std::optional<std::string> code = oo::OptionalString(bcode);
+    std::optional<std::string> code = bcode;
     if (code.has_value() && code->empty())
         code.reset();
 
@@ -759,29 +763,29 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 };
     }
     // if not blanking code and label is currently blank, default label to code
     if (code.has_value() && (!_beaconLabel.has_value() || _beaconLabel->empty())) {
-        [self setBeaconLabel:oo::NSStringFrom(*code)];
+        [self setBeaconLabel:code];
     }
 }
 
-- (id)beaconLabel // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)beaconLabel
 {
-    return oo::NSStringOrNil(_beaconLabel);
+    return _beaconLabel;
 }
 
-- (void)setBeaconLabel:(id)blabel // shared selector (proposed ADR-0043): an Objective-C string or nil
+- (void)setBeaconLabel:(const std::optional<std::string>&)blabel
 {
-    std::optional<std::string> label = oo::OptionalString(blabel);
+    std::optional<std::string> label = blabel;
     if (label.has_value() && label->empty())
         label.reset();
 
     if (label.has_value() || _beaconLabel.has_value()) {
-        _beaconLabel = oo::OptionalString(OOExpand(oo::NSStringOrNil(label)));
+        _beaconLabel = label.has_value() ? cxx_OOExpand(*label) : std::nullopt;
     }
 }
 
 - (BOOL)isBeacon
 {
-    return [self beaconCode] != nil;
+    return [self beaconCode].has_value();
 }
 
 - (id<OOHUDBeaconIcon>)beaconDrawable
@@ -791,16 +795,17 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 };
         NSUInteger length = beaconCode.size(); // -length: UTF-16 units
 
         if (length > 1) {
-            const oo::PList iconData = oo::PListFrom([[UNIVERSE descriptions] objectForKey:oo::NSStringFrom(*_beaconCode)]);
+            const oo::PList* iconEntry = [UNIVERSE cxx_descriptions]->find(*_beaconCode);
+            const oo::PList iconData = (iconEntry != nullptr) ? *iconEntry : oo::PList();
             if (iconData.isArray())
                 _beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:*_beaconCode];
         }
 
         if (_beaconDrawable == nil) {
             if (length > 0)
-                _beaconDrawable = [oo::NSStringFrom(oo::utf16ToUtf8(beaconCode.substr(0, 1))) retain]; // -substringToIndex:1
+                _beaconDrawable = [[OOHUDBeaconCodeIcon alloc] initWithText:oo::utf16ToUtf8(beaconCode.substr(0, 1))]; // -substringToIndex:1
             else
-                _beaconDrawable = @"";
+                _beaconDrawable = [[OOHUDBeaconCodeIcon alloc] initWithText:std::string()];
         }
     }
 
@@ -930,7 +935,7 @@ static GLfloat scripted_color[4] = { 0.0, 0.0, 0.0, 0.0 };
 #ifndef NDEBUG
     // Sanity check; this should always be true.
     if (![self hasSubEntity:(OOVisualEffectEntity*)other]) {
-        OO_LOG_ERR("visualeffect.subentity.sanityCheck.failed", "{} thinks it's a subentity of {}, but the supposed parent does not agree. {}", oo::DescriptionOf([other shortDescription]), oo::DescriptionOf([self shortDescription]), "This is an internal error, please report it.");
+        OO_LOG_ERR("visualeffect.subentity.sanityCheck.failed", "{} thinks it's a subentity of {}, but the supposed parent does not agree. {}", oo::ShortDescriptionOf(other), oo::ShortDescriptionOf(self), "This is an internal error, please report it.");
         [other setOwner:nil];
         return NO;
     }

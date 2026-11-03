@@ -25,9 +25,9 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
 #import "oofnd/objc/OOObject.h"
-#import <Foundation/Foundation.h>
 
 @interface OOSoundReferencePoint : OOObject
 

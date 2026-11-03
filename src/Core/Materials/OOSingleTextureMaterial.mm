@@ -44,7 +44,7 @@ SOFTWARE.
     }
 
     return [self initWithName:oo::OptionalString(name)
-                      texture:[OOTexture textureWithConfiguration:texSpec]
+                      texture:[OOTexture cxx_textureWithConfiguration:oo::PListFrom(texSpec)]
                 configuration:configuration];
 }
 
@@ -70,9 +70,9 @@ SOFTWARE.
     [super dealloc];
 }
 
-- (id)descriptionComponents // shared selector (proposed ADR-0043)
+- (std::optional<std::string>)cxx_descriptionComponents
 {
-    return [_texture description];
+    return [_texture cxx_description];
 }
 
 - (BOOL)doApply
@@ -107,9 +107,11 @@ SOFTWARE.
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (id)allTextures // shared selector (proposed ADR-0043)
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
-    return oo::NSSetFromObjects(std::vector<id> { _texture });
+    std::vector<oo::ObjCRef<OOTexture*>> result;
+    result.emplace_back(_texture);
+    return result;
 }
 #endif
 

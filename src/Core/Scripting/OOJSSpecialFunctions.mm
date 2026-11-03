@@ -70,12 +70,12 @@ static JSValue SpecialJSWarning(OOJS_NATIVE_ARGS)
 
         if (EXPECT_NOT(argc < 1))
     {
-        OOJSReportBadArguments(context, @"special", @"jsWarning", argc, OOJS_ARGV, nil, @"string");
+        cxx_OOJSReportBadArguments(context, "special", "jsWarning", argc, OOJS_ARGV, std::nullopt, "string");
         return JS_EXCEPTION;
     }
 
     OOJSSetWarningOrErrorStackSkip(1);
-    OOJSReportWarning(context, @"%@", OOStringFromJSValue(context, OOJS_ARGV[0]));
+    cxx_OOJSReportWarning(context, "%s", cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("(null)").c_str());
     OOJSSetWarningOrErrorStackSkip(0);
 
     OOJS_RETURN_VOID;

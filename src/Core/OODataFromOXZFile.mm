@@ -61,7 +61,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
         if (type != oo::fs::FileType::none) {
             if (type != oo::fs::FileType::directory) {
                 if (oo::fs::fileSize(filePath).value_or(0) == 0) {
-                    OOLog(kOOLogFileNotFound, @"Expected file but found empty file at %@", oo::NSStringFrom(path));
+                    OO_LOG(cxx_kOOLogFileNotFound, "Expected file but found empty file at {}", path);
                 } else {
                     auto data = oo::fs::readFile(filePath);
                     if (data)
@@ -69,7 +69,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
                     return std::nullopt;
                 }
             } else {
-                OOLog(kOOLogFileNotFound, @"Expected file but found directory at %@", oo::NSStringFrom(path));
+                OO_LOG(cxx_kOOLogFileNotFound, "Expected file but found directory at {}", path);
             }
         }
         return std::nullopt;
@@ -88,7 +88,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
     if (uf == NULL) {
         // This is not necessarily an error - the OXZ manager tries to
         // do this as a test for the presence of managed OXZs
-        //		OOLog(kOOLogFileNotFound, @"Could not unzip OXZ at %@", zipFile);
+        //		OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}", zipFile);
         return std::nullopt;
     }
     const char* filename = containedFile.c_str();
@@ -99,7 +99,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
          * expectation that the file may not necessarily exist -
          * e.g. on plist merges, config scans, etc. So don't add log
          * entries for this failure mode */
-        //		OOLog(kOOLogFileNotFound, @"Could not find %@ within OXZ at %@", containedFile, zipFile);
+        //		OO_LOG(cxx_kOOLogFileNotFound, "Could not find {} within OXZ at {}", containedFile, zipFile);
         return std::nullopt;
     }
 
@@ -108,14 +108,14 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
     err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
     if (err != UNZ_OK) {
         unzClose(uf);
-        OOLog(kOOLogFileNotFound, @"Could not get properties of %@ within OXZ at %@", oo::NSStringFrom(containedFile), oo::NSStringFrom(zipFile));
+        OO_LOG(cxx_kOOLogFileNotFound, "Could not get properties of {} within OXZ at {}", containedFile, zipFile);
         return std::nullopt;
     }
 
     err = unzOpenCurrentFile(uf);
     if (err != UNZ_OK) {
         unzClose(uf);
-        OOLog(kOOLogFileNotFound, @"Could not read %@ within OXZ at %@", oo::NSStringFrom(containedFile), oo::NSStringFrom(zipFile));
+        OO_LOG(cxx_kOOLogFileNotFound, "Could not read {} within OXZ at {}", containedFile, zipFile);
         return std::nullopt;
     }
 
@@ -124,7 +124,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
     do {
         err = unzReadCurrentFile(uf, buf, ZIP_BUFFER_SIZE);
         if (err < 0) {
-            OOLog(kOOLogFileNotFound, @"Could not read %@ within OXZ at %@ (err %d)", oo::NSStringFrom(containedFile), oo::NSStringFrom(zipFile), err);
+            OO_LOG(cxx_kOOLogFileNotFound, "Could not read {} within OXZ at {} (err {})", containedFile, zipFile, err);
             break;
         }
         if (err == 0) {
@@ -137,10 +137,48 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path)
     err = unzCloseCurrentFile(uf);
     if (err != UNZ_OK) {
         unzClose(uf);
-        OOLog(kOOLogFileNotFound, @"Could not close %@ within OXZ at %@", oo::NSStringFrom(containedFile), oo::NSStringFrom(zipFile));
+        OO_LOG(cxx_kOOLogFileNotFound, "Could not close {} within OXZ at {}", containedFile, zipFile);
         return std::nullopt;
     }
 
     unzClose(uf);
     return tmp;
+}
+
+bool OOOxzFileExistsAtPath(const std::string& path)
+{
+    const std::vector<std::string> components = oo::str::pathComponents(path);
+    std::size_t i, cl = components.size();
+    for (i = 0; i < cl; i++) {
+        if (oo::str::lowercase(oo::str::pathExtension(components[i])) == "oxz") {
+            break;
+        }
+    }
+    // if i == cl then the path is entirely uncompressed
+    if (i == cl) {
+        const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
+        if (type == oo::fs::FileType::directory) {
+            return false;
+        }
+        return type != oo::fs::FileType::none;
+    }
+
+    const std::string zipFile = oo::str::pathWithComponents(std::vector<std::string>(components.begin(), components.begin() + static_cast<std::ptrdiff_t>(i) + 1));
+    const std::string containedFile = oo::str::pathWithComponents(std::vector<std::string>(components.begin() + static_cast<std::ptrdiff_t>(i) + 1, components.end()));
+
+    unzFile uf = unzOpen64(zipFile.c_str());
+    if (uf == NULL) {
+        return false;
+    }
+    BOOL result = YES;
+    if (unzLocateFile(uf, containedFile.c_str(), 1) != UNZ_OK) {
+        result = NO;
+    } else {
+        unz_file_info64 file_info = { 0 };
+        if (unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0) != UNZ_OK) {
+            result = NO;
+        }
+    }
+    unzClose(uf);
+    return static_cast<bool>(result);
 }

@@ -25,11 +25,11 @@ MA 02110-1301, USA.
 #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
 #import "GameController.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOLoggingExtended.h"
 #import "OOStringBridge.h"
 #include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
+#include "oofnd/objc/OOException.h"
 #import <objc/objc-arc.h>
 #import <objc/runtime.h>
 
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
             // argv is UTF-8 (SDL_main); an argument past the end reads as nothing, as nil did.
             const std::string argument = (i < argc) ? argv[i] : "";
             if (i < argc && oo::str::hasSuffix(oo::str::lowercase(argument), ".oolite-save")) {
-                [controller setPlayerFileToLoad:oo::NSStringFrom(argument)];
+                [controller cxx_setPlayerFileToLoad:argument];
             }
 
             if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i])) {
@@ -251,10 +251,6 @@ int main(int argc, char* argv[])
     }
     @catch (OOException* exception) {
         OO_LOG_ERR(cxx_kOOLogException, "Root exception handler hit - terminating. This is an internal error, please report it. Exception name: {}, reason: {}", [exception name], [exception reason]);
-        return EXIT_FAILURE;
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG_ERR(cxx_kOOLogException, "Root exception handler hit - terminating. This is an internal error, please report it. Exception name: {}, reason: {}", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
         return EXIT_FAILURE;
     }
 #endif

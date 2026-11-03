@@ -30,7 +30,9 @@ SOFTWARE.
 #endif
 
 #import "OOCollectionExtractors.h"
+#import "OOFoundationBridge.h"
 #import "OOMaths.h"
+#import "OOPListGameTypes.h"
 #import "OOPListView.h"
 #include <limits.h>
 
@@ -360,28 +362,6 @@ static NSString* StringForObject(id object, NSString* defaultValue);
 
 @end
 
-@implementation NSUserDefaults (OOExtractor)
-
-- (id)oo_objectOfClass:(Class)klass forKey:(id)key defaultValue:(id)value
-{
-    id objVal = [self objectForKey:key];
-    id result;
-
-    if ([objVal isKindOfClass:klass])
-        result = objVal;
-    else
-        result = value;
-
-    return result;
-}
-
-- (id)oo_objectOfClass:(Class)klass forKey:(id)key
-{
-    return [self oo_objectOfClass:klass forKey:key defaultValue:nil];
-}
-
-@end
-
 @implementation NSMutableArray (OOInserter)
 
 - (void)oo_addInteger:(long)value
@@ -600,29 +580,15 @@ static BOOL IsZeroString(NSString* string)
 
 static BOOL BooleanFromString(NSString* string, BOOL defaultValue)
 {
-    if (NSOrderedSame == [string caseInsensitiveCompare:@"yes"] || NSOrderedSame == [string caseInsensitiveCompare:@"true"] || NSOrderedSame == [string caseInsensitiveCompare:@"on"] ||
+    if (OOOrderedSame == [string caseInsensitiveCompare:@"yes"] || OOOrderedSame == [string caseInsensitiveCompare:@"true"] || OOOrderedSame == [string caseInsensitiveCompare:@"on"] ||
         [string doubleValue] != 0.0) // Floating point is used so values like @"0.1" are treated as nonzero.
     {
         return YES;
-    } else if (NSOrderedSame == [string caseInsensitiveCompare:@"no"] || NSOrderedSame == [string caseInsensitiveCompare:@"false"] || NSOrderedSame == [string caseInsensitiveCompare:@"off"] || IsZeroString(string)) {
+    } else if (OOOrderedSame == [string caseInsensitiveCompare:@"no"] || OOOrderedSame == [string caseInsensitiveCompare:@"false"] || OOOrderedSame == [string caseInsensitiveCompare:@"off"] || IsZeroString(string)) {
         return NO;
     }
     return defaultValue;
 }
-
-#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-static float FuzzyBooleanProbabilityFromString(NSString* string, float defaultValue)
-{
-    if (NSOrderedSame == [string caseInsensitiveCompare:@"yes"] || NSOrderedSame == [string caseInsensitiveCompare:@"true"] || NSOrderedSame == [string caseInsensitiveCompare:@"on"] ||
-        [string doubleValue] != 0.0) // Floating point is used so values like @"0.1" are treated as nonzero.
-    {
-        return 1.0f;
-    } else if (NSOrderedSame == [string caseInsensitiveCompare:@"no"] || NSOrderedSame == [string caseInsensitiveCompare:@"false"] || NSOrderedSame == [string caseInsensitiveCompare:@"off"] || IsZeroString(string)) {
-        return 0.0f;
-    }
-    return defaultValue;
-}
-#endif
 
 BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 {
@@ -645,25 +611,9 @@ BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 BOOL OOFuzzyBooleanFromObject(id object, float defaultValue)
 {
-    float probability;
-
-    if ([object isKindOfClass:[NSString class]]) {
-        probability = [object floatValue];
-
-        // If our string represents zero, it might be erroneous input or simply yes/no,
-        // true/false or on/off valid boolean strings. Act on it.
-        if (probability == 0.0f && !IsZeroString(object)) {
-            probability = FuzzyBooleanProbabilityFromString(object, defaultValue);
-        }
-    } else {
-        probability = OOFloatFromObject(object, defaultValue);
-    }
-
-    /*	This will always be NO for negative values and YES for values
-            greater than 1, as expected. randf() is always less than 1, so
-            < is the correct operator here.
-    */
-    return randf() < probability;
+    // The routing and conversions live in OOFuzzyBooleanFromPList (bead oo-9ftb).
+    const oo::PList value = oo::PListFrom(object);
+    return OOFuzzyBooleanFromPList((object != nil) ? &value : nullptr, defaultValue);
 }
 #endif
 
@@ -738,119 +688,38 @@ double OONonNegativeDoubleFromObject(id object, double defaultValue)
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 Vector OOVectorFromObject(id object, Vector defaultValue)
 {
-    Vector result = defaultValue;
-    NSDictionary* dict = nil;
-
-    if ([object isKindOfClass:[OONativeVector class]]) {
-        result = [object getVector];
-    } else if ([object isKindOfClass:[NSString class]]) {
-        // This will only write result if a valid vector is found, and will write an error message otherwise.
-        ScanVectorFromString(object, &result);
-    } else if ([object isKindOfClass:[NSArray class]] && [object count] == 3) {
-        result.x = [object oo_floatAtIndex:0];
-        result.y = [object oo_floatAtIndex:1];
-        result.z = [object oo_floatAtIndex:2];
-    } else if ([object isKindOfClass:[NSDictionary class]]) {
-        dict = object;
-        // Require at least one of the keys x, y, or z
-        if ([dict objectForKey:@"x"] != nil ||
-            [dict objectForKey:@"y"] != nil ||
-            [dict objectForKey:@"z"] != nil) {
-            // Note: uses 0 for unknown components rather than components of defaultValue.
-            result.x = oo::PListView(dict).get<float>(@"x", 0.0f);
-            result.y = oo::PListView(dict).get<float>(@"y", 0.0f);
-            result.z = oo::PListView(dict).get<float>(@"z", 0.0f);
-        }
-    }
-
-    return result;
+    // The routing and conversions live in OOVectorFromPList (bead oo-9ftb).
+    const oo::PList value = oo::PListFrom(object);
+    return OOVectorFromPList((object != nil) ? &value : nullptr, defaultValue);
 }
 
 HPVector OOHPVectorFromObject(id object, HPVector defaultValue)
 {
-    HPVector result = defaultValue;
-    NSDictionary* dict = nil;
-
-    if ([object isKindOfClass:[NSString class]]) {
-        // This will only write result if a valid vector is found, and will write an error message otherwise.
-        ScanHPVectorFromString(object, &result);
-    } else if ([object isKindOfClass:[NSArray class]] && [object count] == 3) {
-        result.x = [object oo_doubleAtIndex:0];
-        result.y = [object oo_doubleAtIndex:1];
-        result.z = [object oo_doubleAtIndex:2];
-    } else if ([object isKindOfClass:[NSDictionary class]]) {
-        dict = object;
-        // Require at least one of the keys x, y, or z
-        if ([dict objectForKey:@"x"] != nil ||
-            [dict objectForKey:@"y"] != nil ||
-            [dict objectForKey:@"z"] != nil) {
-            // Note: uses 0 for unknown components rather than components of defaultValue.
-            result.x = oo::PListView(dict).get<double>(@"x", 0.0);
-            result.y = oo::PListView(dict).get<double>(@"y", 0.0);
-            result.z = oo::PListView(dict).get<double>(@"z", 0.0);
-        }
-    }
-
-    return result;
+    // The routing and conversions live in OOHPVectorFromPList (bead oo-9ftb).
+    const oo::PList value = oo::PListFrom(object);
+    return OOHPVectorFromPList((object != nil) ? &value : nullptr, defaultValue);
 }
 
 Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue)
 {
-    Quaternion result = defaultValue;
-    NSDictionary* dict = nil;
-
-    if ([object isKindOfClass:[NSString class]]) {
-        // This will only write result if a valid quaternion is found, and will write an error message otherwise.
-        ScanQuaternionFromString(object, &result);
-    } else if ([object isKindOfClass:[NSArray class]] && [object count] == 4) {
-        result.w = [object oo_floatAtIndex:0];
-        result.x = [object oo_floatAtIndex:1];
-        result.y = [object oo_floatAtIndex:2];
-        result.z = [object oo_floatAtIndex:3];
-    } else if ([object isKindOfClass:[NSDictionary class]]) {
-        dict = object;
-        // Require at least one of the keys w, x, y, or z
-        if ([dict objectForKey:@"w"] != nil ||
-            [dict objectForKey:@"x"] != nil ||
-            [dict objectForKey:@"y"] != nil ||
-            [dict objectForKey:@"z"] != nil) {
-            // Note: uses 0 for unknown components rather than components of defaultValue.
-            result.w = oo::PListView(dict).get<float>(@"w", 0.0f);
-            result.x = oo::PListView(dict).get<float>(@"x", 0.0f);
-            result.y = oo::PListView(dict).get<float>(@"y", 0.0f);
-            result.z = oo::PListView(dict).get<float>(@"z", 0.0f);
-        }
-    }
-
-    return result;
+    // The routing and conversions live in OOQuaternionFromPList (bead oo-9ftb).
+    const oo::PList value = oo::PListFrom(object);
+    return OOQuaternionFromPList((object != nil) ? &value : nullptr, defaultValue);
 }
 
 NSDictionary* OOPropertyListFromVector(Vector value)
 {
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            [NSNumber numberWithFloat:value.x], @"x",
-        [NSNumber numberWithFloat:value.y], @"y",
-        [NSNumber numberWithFloat:value.z], @"z",
-        nil];
+    return oo::ObjectFromPList(OOPListFromVector(value)); // (bead oo-9ftb)
 }
 
 NSDictionary* OOPropertyListFromHPVector(HPVector value)
 {
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            [NSNumber numberWithDouble:value.x], @"x",
-        [NSNumber numberWithDouble:value.y], @"y",
-        [NSNumber numberWithDouble:value.z], @"z",
-        nil];
+    return oo::ObjectFromPList(OOPListFromHPVector(value)); // (bead oo-9ftb)
 }
 
 NSDictionary* OOPropertyListFromQuaternion(Quaternion value)
 {
-    return [NSDictionary dictionaryWithObjectsAndKeys:
-            [NSNumber numberWithFloat:value.w], @"w",
-        [NSNumber numberWithFloat:value.x], @"x",
-        [NSNumber numberWithFloat:value.y], @"y",
-        [NSNumber numberWithFloat:value.z], @"z",
-        nil];
+    return oo::ObjectFromPList(OOPListFromQuaternion(value)); // (bead oo-9ftb)
 }
 #endif
 

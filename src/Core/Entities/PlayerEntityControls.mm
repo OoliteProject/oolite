@@ -65,11 +65,12 @@ MA 02110-1301, USA.
 #import "OODebugMonitor.h"
 #import "OODebugSupport.h"
 #import "OOFoundationBridge.h"
-#import "OOFoundationException.h"
 #import "OOStringBridge.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
+#include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOException.h"
 
 #define CUSTOM_VIEW_ROTATE_SPEED 1.0
 #define CUSTOM_VIEW_ZOOM_SPEED 5.0
@@ -172,12 +173,13 @@ static NSTimeInterval time_last_frame;
 
 namespace {
 
-// OOExpandKey(key, ...) with its arguments as a Dict: ints as PList::signedInteger, strings as
-// std::string (exemplar OOShipLibraryDescriptions.mm ExpandCategoryKey).
+// cxx_OOExpandKey(key, ...) with its arguments as a Dict: ints as PList::signedInteger, strings as
+// std::string (exemplar OOShipLibraryDescriptions.mm ExpandCategoryKey); nothing expanded is "".
 std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 {
-    return oo::StdString(OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), oo::NSStringFrom(key),
-        oo::ObjectFromPList(oo::PList(args)), nil, nil, kOOExpandKey));
+    return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), key,
+        oo::PList(args), oo::PList(), std::nullopt, kOOExpandKey)
+        .value_or(std::string());
 }
 
 } // namespace
@@ -294,12 +296,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         { "numpadenter", gvNumberPadKeyEnter },
     };
 
-    keyShiftText = oo::StdString(DESC(@"oolite-keyconfig-shift"));
-    keyMod1Text = oo::StdString(DESC(@"oolite-keyconfig-mod1"));
+    keyShiftText = OO_DESC("oolite-keyconfig-shift");
+    keyMod1Text = OO_DESC("oolite-keyconfig-mod1");
 #if OOLITE_MAC_COCOA_UI
-    keyMod2Text = oo::StdString(DESC(@"oolite-keyconfig-mod2-mac"));
+    keyMod2Text = OO_DESC("oolite-keyconfig-mod2-mac");
 #else
-    keyMod2Text = oo::StdString(DESC(@"oolite-keyconfig-mod2-pc"));
+    keyMod2Text = OO_DESC("oolite-keyconfig-mod2-pc");
 #endif
 
     [self initKeyConfigSettings];
@@ -324,14 +326,14 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     }
 
     // load custom equipment keys/buttons (the live entries, edited in place)
-    const oo::PList savedCustomEquip = defaults.arrayForKey(oo::StdString(KEYCONFIG_CUSTOMEQUIP));
+    const oo::PList savedCustomEquip = defaults.arrayForKey(std::string(KEYCONFIG_CUSTOMEQUIP));
     const oo::PList::Array* customEntries = savedCustomEquip.getIf<oo::PList::Array>();
     customEquipActivation = (customEntries != nullptr) ? *customEntries : std::vector<oo::PList>();
     customActivatePressed.assign(customEquipActivation.size(), NO);
     customModePressed.assign(customEquipActivation.size(), NO);
 
     // update with overrides from defaults file (unprocessed, as before)
-    const oo::PList overrides = defaults.object(oo::StdString(KEYCONFIG_OVERRIDES));
+    const oo::PList overrides = defaults.object(std::string(KEYCONFIG_OVERRIDES));
     if (const oo::PList::Dict* dict = overrides.getIf<oo::PList::Dict>()) {
         for (const auto& entry : *dict)
             kdic2[entry.first] = entry.second;
@@ -673,9 +675,6 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     @catch (OOException* exception) {
         OO_LOG(cxx_kOOLogException, "***** Exception checking controls [{}]: {} : {}", exceptionContext, [exception name], [exception reason]);
     }
-    @catch (OOFoundationException* exception) {
-        OO_LOG(cxx_kOOLogException, "***** Exception checking controls [{}]: {} : {}", exceptionContext, oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
-    }
 }
 
 // DJS + aegidian: Moved from the big switch/case block in pollGuiArrowKeyControls
@@ -820,12 +819,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         // say it!
         [UNIVERSE clearPreviousMessage];
         int seconds = round(witchspaceCountdown);
-        const std::string destination = oo::StdString([UNIVERSE getSystemName:[self nextHopTargetSystemID]]);
-        [UNIVERSE displayCountdownMessage:oo::NSStringFrom(ExpandKeyWithArguments("witch-to-x-in-y-seconds",
-                                              { { "seconds", oo::PList::signedInteger(seconds) }, { "destination", oo::PList(destination) } }))
-                                 forCount:1.0];
-        [self doScriptEvent:OOJSID("playerStartedJumpCountdown")
-              withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("standard"), oo::PList::singleReal(static_cast<float>(witchspaceCountdown)) }))];
+        const std::string destination = [UNIVERSE cxx_getSystemName:[self nextHopTargetSystemID]].value_or("");
+        [UNIVERSE cxx_displayCountdownMessage:ExpandKeyWithArguments("witch-to-x-in-y-seconds",
+                                                  { { "seconds", oo::PList::signedInteger(seconds) }, { "destination", oo::PList(destination) } })
+                                     forCount:1.0];
+        [self cxx_doScriptEvent:OOJSID("playerStartedJumpCountdown")
+                  withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("standard"), oo::PList::singleReal(static_cast<float>(witchspaceCountdown)) })))];
         [UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
     }
 }
@@ -874,7 +873,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 [gameView clearCommandF];
                 [gameController exitFullScreenMode];
                 if (mouse_control_on) {
-                    [UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+                    [UNIVERSE cxx_addMessage:OO_DESC("mouse-off") forCount:3.0];
                     mouse_control_on = NO;
                 }
             }
@@ -890,7 +889,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             exceptionContext = "error handling mode";
             if ([gameView isDown:113] || [gameView isDown:81] || [gameView isDown:27]) // 'q' | 'Q' | esc
             {
-                [gameController exitAppWithContext:@"Q or escape pressed in error handling mode"];
+                [gameController cxx_exitAppWithContext:"Q or escape pressed in error handling mode"];
             }
         }
 
@@ -968,7 +967,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 if (!m_key_pressed) {
                     mouse_control_on = !mouse_control_on;
                     if (mouse_control_on) {
-                        [UNIVERSE addMessage:DESC(@"mouse-on") forCount:3.0];
+                        [UNIVERSE cxx_addMessage:OO_DESC("mouse-on") forCount:3.0];
                         /*	Ensure the keyboard pitch override (intended to lock
                          out the joystick if the player runs to the keyboard)
                          is reset */
@@ -981,7 +980,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                         keyboardPitchOverride = NO;
                         keyboardYawOverride = !keyboardRollOverride;
                     } else {
-                        [UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+                        [UNIVERSE cxx_addMessage:OO_DESC("mouse-off") forCount:3.0];
                         [gameView grabMouseInsideGameWindow:NO];
                     }
                 }
@@ -995,7 +994,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         } else {
             if (mouse_control_on) {
                 mouse_control_on = NO;
-                [UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+                [UNIVERSE cxx_addMessage:OO_DESC("mouse-off") forCount:3.0];
                 [gameView grabMouseInsideGameWindow:NO];
 
                 if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode])) {
@@ -1023,9 +1022,6 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     }
     @catch (OOException* exception) {
         OO_LOG(cxx_kOOLogException, "***** Exception in pollApplicationControls [{}]: {} : {}", exceptionContext, [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG(cxx_kOOLogException, "***** Exception in pollApplicationControls [{}]: {} : {}", exceptionContext, oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
     }
 }
 
@@ -1101,12 +1097,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 if ((joyButtonState[BUTTON_FUELINJECT] || [self checkKeyPress:n_key_inject_fuel]) &&
                     [self hasFuelInjection] && !hyperspeed_engaged) {
                     if (fuel > 0 && !afterburner_engaged) {
-                        [UNIVERSE addMessage:DESC(@"fuel-inject-on") forCount:1.5];
+                        [UNIVERSE cxx_addMessage:OO_DESC("fuel-inject-on") forCount:1.5];
                         afterburner_engaged = YES;
                         [self startAfterburnerSound];
                     } else {
                         if (fuel <= 0.0)
-                            [UNIVERSE addMessage:DESC(@"fuel-out") forCount:1.5];
+                            [UNIVERSE cxx_addMessage:OO_DESC("fuel-out") forCount:1.5];
                     }
                     afterburner_engaged = (fuel > 0);
                 } else
@@ -1159,7 +1155,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                             hyperspeed_engaged = !hyperspeed_locked;
                             if (hyperspeed_locked) {
                                 [self playJumpMassLocked];
-                                [UNIVERSE addMessage:DESC(@"jump-mass-locked") forCount:1.5];
+                                [UNIVERSE cxx_addMessage:OO_DESC("jump-mass-locked") forCount:1.5];
                             }
                         } else {
                             hyperspeed_engaged = NO;
@@ -1174,7 +1170,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 //  shoot 'a'
                 if ((([self checkNavKeyPress:n_key_fire_lasers]) || ((mouse_control_on) && ([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])) || joyButtonState[BUTTON_FIRE]) && (shot_time > weapon_recharge_rate)) {
                     if ([self fireMainWeapon]) {
-                        [self cxx_playLaserHit:([self shipHitByLaser] != nil) offset:oo::PListView([self currentLaserOffset]).at<Vector>(0) weaponIdentifier:oo::StdString([[self currentWeapon] identifier])];
+                        [self cxx_playLaserHit:([self shipHitByLaser] != nil) offset:[self cxx_currentLaserOffset].at(0) weaponIdentifier:[[self currentWeapon] cxx_identifier].value_or("")];
                     }
                 }
 
@@ -1185,13 +1181,13 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                         std::string weaponsOnlineToggleMsg;
 
                         [self setWeaponsOnline:![self weaponsOnline]];
-                        weaponsOnlineToggleMsg = oo::StdString([self weaponsOnline] ? DESC(@"weapons-systems-online") : DESC(@"weapons-systems-offline"));
+                        weaponsOnlineToggleMsg = ([self weaponsOnline] ? OO_DESC("weapons-systems-online") : OO_DESC("weapons-systems-offline"));
                         if ([self weaponsOnline]) {
                             [self playWeaponsOnline];
                         } else {
                             [self playWeaponsOffline];
                         }
-                        [UNIVERSE addMessage:oo::NSStringFrom(weaponsOnlineToggleMsg) forCount:2.0];
+                        [UNIVERSE cxx_addMessage:weaponsOnlineToggleMsg forCount:2.0];
                         [self doScriptEvent:OOJSID("weaponsSystemsToggled") withArgument:oo::ObjectFromPList(oo::PList(static_cast<bool>([self weaponsOnline])))];
                         weaponsOnlineToggle_pressed = YES;
                     }
@@ -1223,7 +1219,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 exceptionContext = "next target";
                 //	'+' // next target
                 if ([self checkKeyPress:n_key_next_target] || joyButtonState[BUTTON_NEXTTARGET]) {
-                    if ((!next_target_pressed) && ([self hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"])) {
+                    if ((!next_target_pressed) && ([self cxx_hasEquipmentItemProviding:"EQ_TARGET_MEMORY"])) {
                         [self moveTargetMemoryBy:+1];
                     }
                     next_target_pressed = YES;
@@ -1233,7 +1229,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 exceptionContext = "previous target";
                 //	'-' // previous target
                 if ([self checkKeyPress:n_key_previous_target] || joyButtonState[BUTTON_PREVTARGET]) {
-                    if ((!previous_target_pressed) && ([self hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"])) {
+                    if ((!previous_target_pressed) && ([self cxx_hasEquipmentItemProviding:"EQ_TARGET_MEMORY"])) {
                         [self moveTargetMemoryBy:-1];
                     }
                     previous_target_pressed = YES;
@@ -1279,14 +1275,14 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                         if (primedEquipment == c) {
                             if (c > 0) {
                                 [self playNextEquipmentSelected];
-                                [UNIVERSE addMessage:DESC(@"equipment-primed-none") forCount:2.0];
+                                [UNIVERSE cxx_addMessage:OO_DESC("equipment-primed-none") forCount:2.0];
                             } else
-                                [UNIVERSE addMessage:DESC(@"equipment-primed-none-available") forCount:2.0];
+                                [UNIVERSE cxx_addMessage:OO_DESC("equipment-primed-none-available") forCount:2.0];
                         } else {
                             [self playNextEquipmentSelected];
                             eqKey = eqScripts[primedEquipment].first;
-                            const std::string equipmentName = oo::StdString([[OOEquipmentType equipmentTypeWithIdentifier:oo::NSStringFrom(eqKey)] name]);
-                            [UNIVERSE addMessage:oo::NSStringFrom(ExpandKeyWithArguments("equipment-primed", { { "equipmentName", oo::PList(equipmentName) } })) forCount:2.0];
+                            const std::string equipmentName = [[OOEquipmentType cxx_equipmentTypeWithIdentifier:eqKey] cxx_name].value_or(std::string());
+                            [UNIVERSE cxx_addMessage:ExpandKeyWithArguments("equipment-primed", { { "equipmentName", oo::PList(equipmentName) } }) forCount:2.0];
                         }
                         [self doScriptEvent:OOJSID("playerChangedPrimedEquipment") withArgument:oo::NSStringFrom(eqKey)];
                     }
@@ -1318,7 +1314,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 exceptionContext = "fast equipment A";
                 if ([self checkKeyPress:n_key_fastactivate_equipment_a] || joyButtonState[BUTTON_CLOAK]) {
                     if (!fastactivate_a_pressed) {
-                        [self activatePrimableEquipment:[self eqScriptIndexForKey:[self fastEquipmentA]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+                        [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:[self cxx_fastEquipmentA].value_or("")] withMode:OOPRIMEDEQUIP_ACTIVATED];
                     }
                     fastactivate_a_pressed = YES;
                 } else
@@ -1327,7 +1323,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 exceptionContext = "fast equipment B";
                 if ([self checkKeyPress:n_key_fastactivate_equipment_b] || joyButtonState[BUTTON_ENERGYBOMB]) {
                     if (!fastactivate_b_pressed) {
-                        [self activatePrimableEquipment:[self eqScriptIndexForKey:[self fastEquipmentB]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+                        [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:[self cxx_fastEquipmentB].value_or("")] withMode:OOPRIMEDEQUIP_ACTIVATED];
                     }
                     fastactivate_b_pressed = YES;
                 } else
@@ -1337,29 +1333,29 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 // loop through all the objects in the customEquipActivation array
                 for (std::size_t i = 0; i < customEquipActivation.size(); i++) {
                     const oo::PList& item = customEquipActivation[i];
-                    const std::string equipKey = item.get<std::string>(oo::StdString(CUSTOMEQUIP_EQUIPKEY));
+                    const std::string equipKey = item.get<std::string>(std::string(CUSTOMEQUIP_EQUIPKEY));
                     // check if the player has the equip item installed
                     if ([self cxx_hasOneEquipmentItem:equipKey includeWeapons:NO whileLoading:NO]) {
-                        const oo::PList* key_act = item.get<oo::PList::Array>(oo::StdString(CUSTOMEQUIP_KEYACTIVATE));
-                        const oo::PList* key_mod = item.get<oo::PList::Array>(oo::StdString(CUSTOMEQUIP_KEYMODE));
-                        const oo::PList* but_act = item.get<oo::PList::Dict>(oo::StdString(CUSTOMEQUIP_BUTTONACTIVATE));
-                        const oo::PList* but_mod = item.get<oo::PList::Dict>(oo::StdString(CUSTOMEQUIP_BUTTONMODE));
+                        const oo::PList* key_act = item.get<oo::PList::Array>(std::string(CUSTOMEQUIP_KEYACTIVATE));
+                        const oo::PList* key_mod = item.get<oo::PList::Array>(std::string(CUSTOMEQUIP_KEYMODE));
+                        const oo::PList* but_act = item.get<oo::PList::Dict>(std::string(CUSTOMEQUIP_BUTTONACTIVATE));
+                        const oo::PList* but_mod = item.get<oo::PList::Dict>(std::string(CUSTOMEQUIP_BUTTONMODE));
                         // if so,
                         // check to see if the key or button was pressed for activate
-                        if ((key_act != nullptr && [self checkKeyPress:*key_act]) || (but_act != nullptr && [[OOJoystickManager sharedStickHandler] isButtonDown:but_act->get<int>(oo::StdString(STICK_AXBUT)) stick:but_act->get<int>(oo::StdString(STICK_NUMBER))])) {
+                        if ((key_act != nullptr && [self checkKeyPress:*key_act]) || (but_act != nullptr && [[OOJoystickManager sharedStickHandler] isButtonDown:but_act->get<int>(std::string(STICK_AXBUT)) stick:but_act->get<int>(std::string(STICK_NUMBER))])) {
                             if (!customActivatePressed[i]) {
                                 // initate the activate JS code
-                                [self activatePrimableEquipment:[self eqScriptIndexForKey:oo::NSStringFrom(equipKey)] withMode:OOPRIMEDEQUIP_ACTIVATED];
+                                [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:equipKey] withMode:OOPRIMEDEQUIP_ACTIVATED];
                             }
                             customActivatePressed[i] = YES;
                         } else
                             customActivatePressed[i] = NO;
 
                         // check to see if the key or button was pressed for mode
-                        if ((key_mod != nullptr && [self checkKeyPress:*key_mod]) || (but_mod != nullptr && [[OOJoystickManager sharedStickHandler] isButtonDown:but_mod->get<int>(oo::StdString(STICK_AXBUT)) stick:but_mod->get<int>(oo::StdString(STICK_NUMBER))])) {
+                        if ((key_mod != nullptr && [self checkKeyPress:*key_mod]) || (but_mod != nullptr && [[OOJoystickManager sharedStickHandler] isButtonDown:but_mod->get<int>(std::string(STICK_AXBUT)) stick:but_mod->get<int>(std::string(STICK_NUMBER))])) {
                             if (!customModePressed[i]) {
                                 // initiate the activate JS code
-                                [self activatePrimableEquipment:[self eqScriptIndexForKey:oo::NSStringFrom(equipKey)] withMode:OOPRIMEDEQUIP_MODE];
+                                [self activatePrimableEquipment:[self cxx_eqScriptIndexForKey:equipKey] withMode:OOPRIMEDEQUIP_MODE];
                             }
                             customModePressed[i] = YES;
                         } else
@@ -1398,10 +1394,10 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                         DESTROY(_primaryTarget);
                         [self safeAllMissiles];
                         if (!ident_engaged && [self weaponsOnline]) {
-                            [UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];
+                            [UNIVERSE cxx_addMessage:OO_DESC("missile-safe") forCount:2.0];
                             [self playMissileSafe];
                         } else {
-                            [UNIVERSE addMessage:DESC(@"ident-off") forCount:2.0];
+                            [UNIVERSE cxx_addMessage:OO_DESC("ident-off") forCount:2.0];
                             [self playIdentOff];
                         }
                         ident_engaged = NO;
@@ -1416,7 +1412,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     if (!ecm_in_operation) {
                         if ([self weaponsOnline] && [self fireECM]) {
                             [self playFiredECMSound];
-                            [UNIVERSE addMessage:DESC(@"ecm-on") forCount:3.0];
+                            [UNIVERSE cxx_addMessage:OO_DESC("ecm-on") forCount:3.0];
                         }
                     }
                 }
@@ -1511,9 +1507,9 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                             [self cancelWitchspaceCountdown];
                             if (galactic_witchjump) {
                                 galactic_witchjump = NO;
-                                [UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
+                                [UNIVERSE cxx_addMessage:OO_DESC("witch-user-galactic-abort") forCount:3.0];
                             } else {
-                                [UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+                                [UNIVERSE cxx_addMessage:OO_DESC("witch-user-abort") forCount:3.0];
                             }
                         } else if ([self witchJumpChecklist:false]) {
                             [self beginWitchspaceCountdown:hyperspaceMotorSpinTime];
@@ -1525,16 +1521,16 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 
                 exceptionContext = "galactic hyperspace";
                 // Galactic hyperspace 'g'
-                if (([self checkKeyPress:n_key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) && ([self hasEquipmentItemProviding:@"EQ_GAL_DRIVE"])) // look for the 'g' key
+                if (([self checkKeyPress:n_key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) && ([self cxx_hasEquipmentItemProviding:"EQ_GAL_DRIVE"])) // look for the 'g' key
                 {
                     if (!galhyperspace_pressed) {
                         if ([self status] == STATUS_WITCHSPACE_COUNTDOWN) {
                             [self cancelWitchspaceCountdown];
                             if (galactic_witchjump) {
                                 galactic_witchjump = NO;
-                                [UNIVERSE addMessage:DESC(@"witch-user-galactic-abort") forCount:3.0];
+                                [UNIVERSE cxx_addMessage:OO_DESC("witch-user-galactic-abort") forCount:3.0];
                             } else {
-                                [UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+                                [UNIVERSE cxx_addMessage:OO_DESC("witch-user-abort") forCount:3.0];
                             }
                         } else {
                             galactic_witchjump = YES;
@@ -1548,11 +1544,11 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                             [self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
                             [self playGalacticHyperspace];
                             // say it!
-                            [UNIVERSE addMessage:oo::NSStringFrom(oo::str::formatRuntime(oo::StdString(DESC(@"witch-galactic-in-f-seconds")), { witchspaceCountdown })) forCount:1.0];
+                            [UNIVERSE cxx_addMessage:oo::str::formatRuntime(OO_DESC("witch-galactic-in-f-seconds"), { witchspaceCountdown }) forCount:1.0];
                             // FIXME: how to preload target system for hyperspace jump?
 
-                            [self doScriptEvent:OOJSID("playerStartedJumpCountdown")
-                                  withArguments:oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("galactic"), oo::PList::singleReal(static_cast<float>(witchspaceCountdown)) }))];
+                            [self cxx_doScriptEvent:OOJSID("playerStartedJumpCountdown")
+                                      withArguments:oo::ObjCRefsFrom<id>(oo::ObjectFromPList(oo::PList(oo::PList::Array { oo::PList("galactic"), oo::PList::singleReal(static_cast<float>(witchspaceCountdown)) })))];
                         }
                     }
                     galhyperspace_pressed = YES;
@@ -1651,7 +1647,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 if (!dump_entity_list_pressed) {
                     [UNIVERSE debugDumpEntities];
                     gDebugFlags = 0;
-                    [UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
+                    [UNIVERSE cxx_addMessage:"Entity List dumped. Debugging OFF" forCount:3];
                 }
                 dump_entity_list_pressed = YES;
             } else
@@ -1661,13 +1657,13 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             if ([self checkKeyPress:n_key_debug_full] && ![gameView allowingStringInput]) // look for the 'd' key
             {
                 gDebugFlags = DEBUG_ALL;
-                [UNIVERSE addMessage:@"Full debug ON" forCount:3];
+                [UNIVERSE cxx_addMessage:"Full debug ON" forCount:3];
             }
 
             if ([self checkKeyPress:n_key_debug_collision] && ![gameView allowingStringInput]) // look for the 'b' key
             {
                 gDebugFlags |= DEBUG_COLLISIONS;
-                [UNIVERSE addMessage:@"Collision debug ON" forCount:3];
+                [UNIVERSE cxx_addMessage:"Collision debug ON" forCount:3];
             }
 
             if ([self checkKeyPress:n_key_debug_console_connect] && ![[OODebugMonitor sharedDebugMonitor] usingPlugInController] && ![gameView allowingStringInput]) // look for the 'c' key
@@ -1677,10 +1673,10 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     if (![[OODebugMonitor sharedDebugMonitor] debuggerConnected]) {
                         OOInitDebugSupport();
                         if ([[OODebugMonitor sharedDebugMonitor] debuggerConnected])
-                            [UNIVERSE addMessage:@"Connected to debug console." forCount:3];
+                            [UNIVERSE cxx_addMessage:"Connected to debug console." forCount:3];
                     } else {
                         [[OODebugMonitor sharedDebugMonitor] setDebugger:nil];
-                        [UNIVERSE addMessage:@"Disconnected from debug console." forCount:3];
+                        [UNIVERSE cxx_addMessage:"Disconnected from debug console." forCount:3];
                     }
                 }
                 autopilot_key_pressed = YES;
@@ -1690,13 +1686,13 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             if ([self checkKeyPress:n_key_debug_bounding_boxes] && ![gameView allowingStringInput]) // look for the 'x' key
             {
                 gDebugFlags |= DEBUG_BOUNDING_BOXES;
-                [UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
+                [UNIVERSE cxx_addMessage:"Bounding box debug ON" forCount:3];
             }
 
             if ([self checkKeyPress:n_key_debug_shaders] && ![gameView allowingStringInput]) // look for the 's' key
             {
-                OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
-                [UNIVERSE addMessage:@"Shader debug ON" forCount:3];
+                oo::log::logger().setDisplay("$shaderDebugOn", true);
+                [UNIVERSE cxx_addMessage:"Shader debug ON" forCount:3];
             }
 
             if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_arrow_right]) && gui_screen != GUI_SCREEN_GAMEOPTIONS && [UNIVERSE displayFPS] && ![gameView allowingStringInput]) {
@@ -1711,8 +1707,8 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             if ([self checkKeyPress:n_key_debug_off] && ![gameView allowingStringInput]) // look for the 'n' key
             {
                 gDebugFlags = 0;
-                [UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
-                OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
+                [UNIVERSE cxx_addMessage:"All debug flags OFF" forCount:3];
+                oo::log::logger().setDisplay("$shaderDebugOn", false);
             }
 #endif
         }
@@ -1780,9 +1776,6 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     @catch (OOException* exception) {
         OO_LOG(cxx_kOOLogException, "***** Exception in pollFlightControls [{}]: {} : {}", exceptionContext, [exception name], [exception reason]);
     }
-    @catch (OOFoundationException* exception) {
-        OO_LOG(cxx_kOOLogException, "***** Exception in pollFlightControls [{}]: {} : {}", exceptionContext, oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
-    }
 }
 
 - (void)pollGuiArrowKeyControls:(double)delta_t
@@ -1829,7 +1822,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if ([self status] != STATUS_WITCHSPACE_COUNTDOWN) {
             if (oo::str::length([gameView cxx_typedString].value_or("")) > 0) {
                 planetSearchString = oo::str::lowercase(*[gameView cxx_typedString]);
-                NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:oo::NSStringFrom(*planetSearchString)];
+                NSPoint search_coords = [UNIVERSE cxx_findSystemCoordinatesWithPrefix:*planetSearchString];
                 if ((search_coords.x >= 0.0) && (search_coords.y >= 0.0)) {
                     // always reset the found system index at the beginning of a new search
                     if (oo::str::length(*planetSearchString) == 1)
@@ -1845,7 +1838,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
                 {
                     found_system_id = -1;
-                    [UNIVERSE findSystemCoordinatesWithPrefix:@""];
+                    [UNIVERSE cxx_findSystemCoordinatesWithPrefix:""];
                 }
                 planetSearchString.reset();
             }
@@ -1864,7 +1857,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 } else {
                     [self setLongRangeChartMode:OOLRC_MODE_SUNCOLOR];
                 }
-                [self doScriptEvent:OOJSID("chartHighlightModeChanged") withArgument:OOStringFromLongRangeChartMode([self longRangeChartMode])];
+                [self doScriptEvent:OOJSID("chartHighlightModeChanged") withArgument:oo::NSStringFrom(cxx_OOStringFromLongRangeChartMode([self longRangeChartMode]))];
             }
             queryPressed = YES;
         } else {
@@ -1881,7 +1874,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         }
 
         if ([self status] != STATUS_WITCHSPACE_COUNTDOWN) {
-            if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"]) {
+            if ([self cxx_hasEquipmentItemProviding:"EQ_ADVANCED_NAVIGATIONAL_ARRAY"]) {
                 if ([self checkKeyPress:n_key_advanced_nav_array_next] || [self checkKeyPress:n_key_advanced_nav_array_previous]) {
                     if (!pling_pressed) {
                         if ([self checkKeyPress:n_key_advanced_nav_array_previous]) {
@@ -1971,7 +1964,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     target_chart_focus = cursor_coordinates;
                     target_chart_centre = galaxy_coordinates;
                     found_system_id = -1;
-                    [UNIVERSE findSystemCoordinatesWithPrefix:@""];
+                    [UNIVERSE cxx_findSystemCoordinatesWithPrefix:""];
                     moving = YES;
                 }
             }
@@ -2267,19 +2260,6 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                         @throw exception;
                     }
                 }
-                @catch (OOFoundationException* exception) {
-                    OO_LOG(cxx_kOOLogException, "\n\n***** Handling exception: {} : {} *****\n\n", oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
-                    if ([[exception name] isEqual:@"GameNotSavedException"]) // try saving game instead
-                    {
-                        OO_LOG(cxx_kOOLogException, "{}", "\n\n***** Trying a normal save instead *****\n\n");
-                        if ([controller inFullScreenMode])
-                            [controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
-                        else
-                            [self savePlayer];
-                    } else {
-                        @throw exception;
-                    }
-                }
             }
             if ((guiSelectedRow == GUI_ROW(, SAVE)) && (!disc_operation_in_progress)) {
                 disc_operation_in_progress = YES;
@@ -2295,7 +2275,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 
             if ((guiSelectedRow == GUI_ROW(, BEGIN_NEW)) && (!disc_operation_in_progress)) {
                 disc_operation_in_progress = YES;
-                [UNIVERSE setUseAddOns:SCENARIO_OXP_DEFINITION_ALL fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
+                [UNIVERSE cxx_setUseAddOns:std::string(SCENARIO_OXP_DEFINITION_ALL) fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
             }
 
             if ([gameView isDown:gvMouseDoubleClick])
@@ -2309,7 +2289,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         // used to Cmd-Q equivs. Same goes for window
         // vs fullscreen.
         if ((guiSelectedRow == GUI_ROW(, QUIT)) && selectKeyPress) {
-            [[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on options screen"];
+            [[UNIVERSE gameController] cxx_exitAppWithContext:"Exit Game selected on options screen"];
         }
 #endif
 
@@ -2325,29 +2305,29 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             std::optional<std::string> itemText = [gui cxx_selectedRowText]; // nil compares unequal, as -isEqual: on nil
             OOWeaponType weaponType = nil;
 
-            if (itemText == oo::StdString(FORWARD_FACING_STRING))
+            if (itemText == FORWARD_FACING_STRING)
                 weaponType = forward_weapon_type;
-            if (itemText == oo::StdString(AFT_FACING_STRING))
+            if (itemText == AFT_FACING_STRING)
                 weaponType = aft_weapon_type;
-            if (itemText == oo::StdString(PORT_FACING_STRING))
+            if (itemText == PORT_FACING_STRING)
                 weaponType = port_weapon_type;
-            if (itemText == oo::StdString(STARBOARD_FACING_STRING))
+            if (itemText == STARBOARD_FACING_STRING)
                 weaponType = starboard_weapon_type;
 
             if (weaponType != nil) {
-                BOOL sameAs = OOWeaponTypeFromEquipmentIdentifierSloppy(oo::NSStringOrNil([gui cxx_selectedRowKey])) == weaponType;
+                BOOL sameAs = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy([gui cxx_selectedRowKey].value_or("")) == weaponType;
                 // override showInformation _completely_ with itemText
-                if ([[weaponType identifier] isEqualToString:@"EQ_WEAPON_NONE"])
-                    itemText = oo::StdString(DESC(@"no-weapon-enter-to-install"));
+                if ([weaponType cxx_identifier] == "EQ_WEAPON_NONE")
+                    itemText = OO_DESC("no-weapon-enter-to-install");
                 else {
-                    const std::string weaponName = oo::StdString([[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)] name]);
+                    const std::string weaponName = [[OOEquipmentType cxx_equipmentTypeWithIdentifier:cxx_OOEquipmentIdentifierFromWeaponType(weaponType).value_or("")] cxx_name].value_or(std::string());
                     if (sameAs)
-                        itemText = oo::str::formatRuntime(oo::StdString(DESC(@"weapon-installed-@")), { weaponName });
+                        itemText = oo::str::formatRuntime(OO_DESC("weapon-installed-@"), { weaponName });
                     else
-                        itemText = oo::str::formatRuntime(oo::StdString(DESC(@"weapon-@-enter-to-replace")), { weaponName });
+                        itemText = oo::str::formatRuntime(OO_DESC("weapon-@-enter-to-replace"), { weaponName });
                 }
 
-                [self showInformationForSelectedUpgradeWithFormatString:oo::NSStringOrNil(itemText)];
+                [self cxx_showInformationForSelectedUpgradeWithFormatString:itemText];
             } else
                 [self showInformationForSelectedUpgrade];
         }
@@ -2483,7 +2463,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
 
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-                if (([gui cxx_keyForRow:STATUS_EQUIPMENT_FIRST_ROW] == oo::StdString(GUI_KEY_OK))) {
+                if (([gui cxx_keyForRow:STATUS_EQUIPMENT_FIRST_ROW] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW];
                     [self playMenuPagePrevious];
                     [gui setStatusPage:-1];
@@ -2496,7 +2476,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 NSUInteger maxRows = [[self hud] allowBigGui] ? STATUS_EQUIPMENT_MAX_ROWS + STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS : STATUS_EQUIPMENT_MAX_ROWS;
-                if (([gui cxx_keyForRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows] == oo::StdString(GUI_KEY_OK))) {
+                if (([gui cxx_keyForRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows];
                     [self playMenuPageNext];
                     [gui setStatusPage:+1];
@@ -2528,7 +2508,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
 
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-                if (([gui cxx_keyForRow:MANIFEST_SCREEN_ROW_BACK] == oo::StdString(GUI_KEY_OK))) {
+                if (([gui cxx_keyForRow:MANIFEST_SCREEN_ROW_BACK] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:MANIFEST_SCREEN_ROW_BACK];
                     [self playMenuPagePrevious];
                     [gui setStatusPage:-1];
@@ -2543,7 +2523,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 nextRow += 7;
             }
             if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-                if (([gui cxx_keyForRow:nextRow] == oo::StdString(GUI_KEY_OK))) {
+                if (([gui cxx_keyForRow:nextRow] == std::string(GUI_KEY_OK))) {
                     [gui setSelectedRow:nextRow];
                     [self playMenuPageNext];
                     [gui setStatusPage:+1];
@@ -2605,7 +2585,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 const std::optional<std::string> key = [gui cxx_keyForRow:[gui selectedRow]]; // nil compares as ""
                 OOCreditsQuantity shipprice = 0;
                 if (!oo::str::hasPrefix(key.value_or(""), "More:")) {
-                    shipprice = [self priceForShipKey:oo::NSStringOrNil(key)];
+                    shipprice = [self cxx_priceForShipKey:key.value_or("")];
                 }
 
                 if ([self buySelectedShip]) {
@@ -2664,7 +2644,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                             [[UNIVERSE gameView] clearKeys];
                             [definition runCallback:oo::NSStringFrom(key)];
                         } else {
-                            OO_LOG("interface.missingCallback", "Unable to find callback definition for {} using key {}", oo::DescriptionOf([definition name]), key);
+                            OO_LOG("interface.missingCallback", "Unable to find callback definition for {} using key {}", [definition cxx_name].value_or("(null)"), key);
                         }
                     }
                     extra_gui_key_pressed = YES;
@@ -2728,7 +2708,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if (page_up || page_down) {
             if ((!pageUpDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 OOCommodityMarket* localMarket = [self localMarket];
-                const std::vector<std::string> goods = oo::StringsFrom([self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket]);
+                const std::vector<std::string> goods = [self cxx_applyMarketSorter:[self cxx_applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
                 if (goods.size() > 0) {
                     const std::optional<std::string> selected = marketSelectedCommodity;
                     const auto found = selected ? std::find(goods.begin(), goods.end(), *selected) : goods.end();
@@ -2781,7 +2761,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if (arrow_up || arrow_down) {
             if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
                 OOCommodityMarket* localMarket = [self localMarket];
-                const std::vector<std::string> goods = oo::StringsFrom([self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket]);
+                const std::vector<std::string> goods = [self cxx_applyMarketSorter:[self cxx_applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
                 if (goods.size() > 0) {
                     const std::optional<std::string> selected = marketSelectedCommodity;
                     const auto found = selected ? std::find(goods.begin(), goods.end(), *selected) : goods.end();
@@ -2868,12 +2848,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 const std::optional<std::string> item = marketSelectedCommodity; // Amendment 1 item 10
                 OOCargoQuantity yours = [shipCommodityData cxx_quantityForGood:item.value_or("")];
                 if (item == ">>>") {
-                    [self tryBuyingCommodity:oo::NSStringOrNil(item) all:YES];
+                    [self cxx_tryBuyingCommodity:item.value_or("") all:YES];
                     [self setGuiToMarketScreen];
                 } else if (item == "<<<") {
-                    [self trySellingCommodity:oo::NSStringOrNil(item) all:YES];
+                    [self cxx_trySellingCommodity:item.value_or("") all:YES];
                     [self setGuiToMarketScreen];
-                } else if (isdocked && [gameView isShiftDown] && [self tryBuyingCommodity:oo::NSStringOrNil(item) all:YES]) // buy as much as possible (with Shift)
+                } else if (isdocked && [gameView isShiftDown] && [self cxx_tryBuyingCommodity:item.value_or("") all:YES]) // buy as much as possible (with Shift)
                 {
                     [self playBuyCommodity];
                     if (gui_screen == GUI_SCREEN_MARKET) {
@@ -2881,7 +2861,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     } else {
                         [self setGuiToMarketInfoScreen];
                     }
-                } else if (isdocked && (yours > 0) && [self trySellingCommodity:oo::NSStringOrNil(item) all:YES]) // sell all you can
+                } else if (isdocked && (yours > 0) && [self cxx_trySellingCommodity:item.value_or("") all:YES]) // sell all you can
                 {
                     [self playSellCommodity];
                     if (gui_screen == GUI_SCREEN_MARKET) {
@@ -2889,7 +2869,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     } else {
                         [self setGuiToMarketInfoScreen];
                     }
-                } else if (isdocked && [self tryBuyingCommodity:oo::NSStringOrNil(item) all:YES]) // buy as much as possible
+                } else if (isdocked && [self cxx_tryBuyingCommodity:item.value_or("") all:YES]) // buy as much as possible
                 {
                     [self playBuyCommodity];
                     if (gui_screen == GUI_SCREEN_MARKET) {
@@ -2974,7 +2954,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     brightnessValue = direction == 1 ? MIN_HDR_MAXBRIGHTNESS : MAX_HDR_MAXBRIGHTNESS;
 
                 [gameView setHDRMaxBrightness:(float)brightnessValue];
-                const std::string maxBrightnessString = oo::StdString(OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue));
+                const std::string maxBrightnessString = cxx_OOExpandKey("gameoptions-hdr-maxbrightness", brightnessValue).value_or(std::string());
 
                 [gui cxx_setText:maxBrightnessString forRow:GUI_ROW(GAME, HDRMAXBRIGHTNESS) align:GUI_ALIGN_CENTER];
 
@@ -2990,7 +2970,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         GameController* controller = [UNIVERSE gameController];
         int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
         NSInteger displayModeIndex = [controller indexOfCurrentDisplayMode];
-        const oo::PList modes = oo::PListFrom([controller displayModes]);
+        const oo::PList modes = [controller displayModes];
 
         if (displayModeIndex == (NSInteger)NSNotFound) {
             OO_LOG_WARN("graphics.mode.notFound", "{}", "couldn't find current fullscreen setting, switching to default.");
@@ -3006,12 +2986,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 
         const oo::PList* modeEntry = modes.at(static_cast<std::size_t>(displayModeIndex));
         const oo::PList mode = (modeEntry != nullptr) ? *modeEntry : oo::PList();
-        int modeWidth = mode.get<int>(oo::StdString(kOODisplayWidth));
-        int modeHeight = mode.get<int>(oo::StdString(kOODisplayHeight));
-        int modeRefresh = mode.get<int>(oo::StdString(kOODisplayRefreshRate));
+        int modeWidth = mode.get<int>(std::string(kOODisplayWidth));
+        int modeHeight = mode.get<int>(std::string(kOODisplayHeight));
+        int modeRefresh = mode.get<int>(std::string(kOODisplayRefreshRate));
         [controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
 
-        const std::string displayModeString = oo::StdString([self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh]);
+        const std::string displayModeString = [self cxx_screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh].value_or("");
 
         [self playChangedOption];
         [gui cxx_setText:displayModeString forRow:GUI_ROW(GAME, DISPLAY) align:GUI_ALIGN_CENTER];
@@ -3046,20 +3026,21 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 std::optional<std::string> message; // nullopt = no change (was nil)
                 switch (isSpeechOn) {
                 case OOSPEECHSETTINGS_OFF:
-                    message = oo::StdString(DESC(@"gameoptions-spoken-messages-no"));
+                    message = OO_DESC("gameoptions-spoken-messages-no");
                     break;
                 case OOSPEECHSETTINGS_COMMS:
-                    message = oo::StdString(DESC(@"gameoptions-spoken-messages-comms"));
+                    message = OO_DESC("gameoptions-spoken-messages-comms");
                     break;
                 case OOSPEECHSETTINGS_ALL:
-                    message = oo::StdString(DESC(@"gameoptions-spoken-messages-yes"));
+                    message = OO_DESC("gameoptions-spoken-messages-yes");
                     break;
                 }
                 [gui cxx_setText:message forRow:GUI_ROW(GAME, SPEECH) align:GUI_ALIGN_CENTER];
 
                 if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
                     [UNIVERSE stopSpeaking];
-                    [UNIVERSE startSpeakingString:oo::NSStringOrNil(message)];
+                    if (message.has_value())
+                        [UNIVERSE cxx_startSpeakingString:*message];
                 }
             }
         }
@@ -3076,12 +3057,13 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 else
                     voice_no = [UNIVERSE prevVoice:voice_no];
                 [UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
-                const std::string voiceName = oo::StdString([UNIVERSE voiceName:voice_no]);
+                const std::string voiceName = [UNIVERSE cxx_voiceName:voice_no].value_or("");
                 const std::string message = ExpandKeyWithArguments("gameoptions-voice-name", { { "voiceName", oo::PList(voiceName) } });
                 [gui cxx_setText:message forRow:GUI_ROW(GAME, SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
                 if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
                     [UNIVERSE stopSpeaking];
-                    [UNIVERSE startSpeakingString:[UNIVERSE voiceName:voice_no]];
+                    if (const std::optional<std::string> spokenVoiceName = [UNIVERSE cxx_voiceName:voice_no])
+                        [UNIVERSE cxx_startSpeakingString:*spokenVoiceName];
                 }
                 timeLastKeyPress = script_time;
             }
@@ -3098,11 +3080,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 if (m != voice_gender_m) {
                     voice_gender_m = m;
                     [UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
-                    const std::string message = oo::StdString(DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F"));
+                    const std::string message = OO_DESC(voice_gender_m ? "gameoptions-voice-M" : "gameoptions-voice-F");
                     [gui cxx_setText:message forRow:GUI_ROW(GAME, SPEECH_GENDER) align:GUI_ALIGN_CENTER];
                     if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
                         [UNIVERSE stopSpeaking];
-                        [UNIVERSE startSpeakingString:[UNIVERSE voiceName:voice_no]];
+                        if (const std::optional<std::string> spokenVoiceName = [UNIVERSE cxx_voiceName:voice_no])
+                            [UNIVERSE cxx_startSpeakingString:*spokenVoiceName];
                     }
                 }
             }
@@ -3128,7 +3111,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
 
             if ((int)[musicController mode] != initialMode) {
                 [self playChangedOption];
-                const std::string musicMode = oo::StdString([UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]]);
+                const std::string musicMode = [UNIVERSE cxx_descriptionForArrayKey:"music-mode" index:[[OOMusicController sharedController] mode]].value_or("");
                 const std::string message = ExpandKeyWithArguments("gameoptions-music-mode", { { "musicMode", oo::PList(musicMode) } });
                 [gui cxx_setText:message forRow:GUI_ROW(GAME, MUSIC) align:GUI_ALIGN_CENTER];
             }
@@ -3144,10 +3127,10 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if ([UNIVERSE autoSave]) {
             // if just enabled, we want to autosave immediately
             [UNIVERSE setAutoSaveNow:YES];
-            [gui cxx_setText:oo::StdString(DESC(@"gameoptions-autosave-yes")) forRow:GUI_ROW(GAME, AUTOSAVE) align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("gameoptions-autosave-yes") forRow:GUI_ROW(GAME, AUTOSAVE) align:GUI_ALIGN_CENTER];
         } else {
             [UNIVERSE setAutoSaveNow:NO];
-            [gui cxx_setText:oo::StdString(DESC(@"gameoptions-autosave-no")) forRow:GUI_ROW(GAME, AUTOSAVE) align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("gameoptions-autosave-no") forRow:GUI_ROW(GAME, AUTOSAVE) align:GUI_ALIGN_CENTER];
         }
     }
 
@@ -3170,7 +3153,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             espeak_SetParameter(espeakVOLUME, vol * 5, 0);
 #endif
             if (vol > 0) {
-                const std::string soundVolumeWordDesc = oo::StdString(DESC(@"gameoptions-sound-volume"));
+                const std::string soundVolumeWordDesc = OO_DESC("gameoptions-sound-volume");
                 std::string v1_string = "|||||||||||||||||||||||||";
                 std::string v0_string = ".........................";
                 v1_string = v1_string.substr(0, static_cast<std::size_t>(vol));
@@ -3179,7 +3162,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                           forRow:GUI_ROW(GAME, VOLUME)
                            align:GUI_ALIGN_CENTER];
             } else
-                [gui cxx_setText:oo::StdString(DESC(@"gameoptions-sound-volume-mute")) forRow:GUI_ROW(GAME, VOLUME) align:GUI_ALIGN_CENTER];
+                [gui cxx_setText:OO_DESC("gameoptions-sound-volume-mute") forRow:GUI_ROW(GAME, VOLUME) align:GUI_ALIGN_CENTER];
             timeLastKeyPress = script_time;
         }
         volumeControlPressed = YES;
@@ -3201,7 +3184,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             [gameView setFov:fov fromFraction:NO];
             fieldOfView = [gameView fov:YES];
             int fovTicks = (int)((fov - MIN_FOV_DEG) / fovStep);
-            const std::string fovWordDesc = oo::StdString(DESC(@"gameoptions-fov-value"));
+            const std::string fovWordDesc = OO_DESC("gameoptions-fov-value");
             std::string v1_string = "|||||||||||||||||||||||||";
             std::string v0_string = ".........................";
             v1_string = v1_string.substr(0, static_cast<std::size_t>(fovTicks));
@@ -3225,8 +3208,8 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 [UNIVERSE setCurrentPostFX:[UNIVERSE prevColorblindMode:colorblindMode]];
             }
             colorblindMode = [UNIVERSE colorblindMode]; // get the updated value
-            const oo::PList colorblindModes = oo::PListFrom([[UNIVERSE descriptions] objectForKey:@"colorblind_mode"]);
-            const std::string colorblindModeDesc = colorblindModes.isArray() ? colorblindModes.at<std::string>(static_cast<std::size_t>([UNIVERSE useShaders] ? colorblindMode : 0)) : std::string();
+            const oo::PList* colorblindModes = [UNIVERSE cxx_descriptions]->find("colorblind_mode");
+            const std::string colorblindModeDesc = (colorblindModes != nullptr && colorblindModes->isArray()) ? colorblindModes->at<std::string>(static_cast<std::size_t>([UNIVERSE useShaders] ? colorblindMode : 0)) : std::string();
             const std::string colorblindModeMsg = ExpandKeyWithArguments("gameoptions-colorblind-mode", { { "colorblindModeDesc", oo::PList(colorblindModeDesc) } });
             [gui cxx_setText:colorblindModeMsg forRow:GUI_ROW(GAME, COLORBLINDMODE) align:GUI_ALIGN_CENTER];
         }
@@ -3240,9 +3223,9 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                 [self playChangedOption];
             [UNIVERSE setWireframeGraphics:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
             if ([UNIVERSE wireframeGraphics])
-                [gui cxx_setText:oo::StdString(DESC(@"gameoptions-wireframe-graphics-yes")) forRow:GUI_ROW(GAME, WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
+                [gui cxx_setText:OO_DESC("gameoptions-wireframe-graphics-yes") forRow:GUI_ROW(GAME, WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
             else
-                [gui cxx_setText:oo::StdString(DESC(@"gameoptions-wireframe-graphics-no")) forRow:GUI_ROW(GAME, WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
+                [gui cxx_setText:OO_DESC("gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME, WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
         }
     }
 #if OOLITE_WINDOWS
@@ -3260,7 +3243,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
                     paperWhite = MIN_HDR_PAPERWHITE;
                 [gameView setHDRPaperWhiteBrightness:paperWhite];
                 int paperWhiteNorm = (int)((paperWhite - MIN_HDR_PAPERWHITE) * 20 / (MAX_HDR_PAPERWHITE - MIN_HDR_PAPERWHITE));
-                const std::string paperWhiteWordDesc = oo::StdString(DESC(@"gameoptions-hdr-paperwhite"));
+                const std::string paperWhiteWordDesc = OO_DESC("gameoptions-hdr-paperwhite");
                 std::string v1_string = "|||||||||||||||||||||||||";
                 std::string v0_string = ".........................";
                 v1_string = v1_string.substr(0, static_cast<std::size_t>(paperWhiteNorm));
@@ -3283,9 +3266,9 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             }
         }
         if ([UNIVERSE doProcedurallyTexturedPlanets])
-            [gui cxx_setText:oo::StdString(DESC(@"gameoptions-procedurally-textured-planets-yes")) forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
         else
-            [gui cxx_setText:oo::StdString(DESC(@"gameoptions-procedurally-textured-planets-no")) forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("gameoptions-procedurally-textured-planets-no") forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
     }
 #endif
 
@@ -3318,9 +3301,9 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             [UNIVERSE setDetailLevel:detailLevel];
             detailLevel = [UNIVERSE detailLevel];
 
-            const std::string shaderEffectsOptionsString = oo::StdString(OOExpand(@"gameoptions-detaillevel-[detailLevel]", detailLevel));
+            const std::string shaderEffectsOptionsString = cxx_OOExpand("gameoptions-detaillevel-[detailLevel]", detailLevel).value_or(std::string());
             [gui cxx_setText:ExpandKeyWithArguments(shaderEffectsOptionsString.c_str(), { }) forRow:GUI_ROW(GAME, SHADEREFFECTS) align:GUI_ALIGN_CENTER];
-            [gui cxx_setKey:oo::StdString(GUI_KEY_OK) forRow:GUI_ROW(GAME, SHADEREFFECTS)];
+            [gui cxx_setKey:std::string(GUI_KEY_OK) forRow:GUI_ROW(GAME, SHADEREFFECTS)];
 
             timeLastKeyPress = script_time;
 
@@ -3346,9 +3329,9 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
             [self playChangedOption];
         [UNIVERSE setDockingClearanceProtocolActive:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
         if ([UNIVERSE dockingClearanceProtocolActive])
-            [gui cxx_setText:oo::StdString(DESC(@"gameoptions-docking-clearance-yes")) forRow:GUI_ROW(GAME, DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("gameoptions-docking-clearance-yes") forRow:GUI_ROW(GAME, DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
         else
-            [gui cxx_setText:oo::StdString(DESC(@"gameoptions-docking-clearance-no")) forRow:GUI_ROW(GAME, DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
+            [gui cxx_setText:OO_DESC("gameoptions-docking-clearance-no") forRow:GUI_ROW(GAME, DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
     }
 
     if ((guiSelectedRow == GUI_ROW(GAME, BACK)) && selectKeyPress) {
@@ -4058,7 +4041,7 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     if ([gameView isDown:32]) // look for the spacebar
     {
         if (!spacePressed) {
-            [UNIVERSE displayMessage:@"" forCount:1.0];
+            [UNIVERSE cxx_displayMessage:"" forCount:1.0];
             shot_time = INITIAL_SHOT_TIME; // forces immediate restart
         }
         spacePressed = YES;
@@ -4094,7 +4077,7 @@ static BOOL autopilot_pause;
         {
             if ([self hasDockingComputer] && !autopilot_key_pressed && !fast_autopilot_key_pressed) {
                 [self disengageAutopilot];
-                [UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
+                [UNIVERSE cxx_addMessage:OO_DESC("autopilot-off") forCount:4.5];
             }
             autopilot_key_pressed = YES;
             if ([self checkKeyPress:n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST]) {
@@ -4207,9 +4190,6 @@ static BOOL autopilot_pause;
     }
     @catch (OOException* exception) {
         OO_LOG(cxx_kOOLogException, "***** Exception in pollDockedControls [{}]: {} : {}", exceptionContext, [exception name], [exception reason]);
-    }
-    @catch (OOFoundationException* exception) {
-        OO_LOG(cxx_kOOLogException, "***** Exception in pollDockedControls [{}]: {} : {}", exceptionContext, oo::DescriptionOf([exception name]), oo::DescriptionOf([exception reason]));
     }
 }
 
@@ -4704,7 +4684,7 @@ static BOOL autopilot_pause;
     // -- but only for fast docking
     if (fastDocking && ([self alertCondition] == ALERT_CONDITION_RED)) {
         [self playAutopilotCannotDockWithTarget];
-        message = oo::OptionalString(OOExpandKey(@"autopilot-red-alert"));
+        message = cxx_OOExpandKey("autopilot-red-alert");
         goto abort;
     }
 
@@ -4732,20 +4712,20 @@ static BOOL autopilot_pause;
         } else if (nStations != 1) {
             if (nStations == 0) {
                 [self playAutopilotOutOfRange];
-                message = oo::OptionalString(OOExpandKey(@"autopilot-out-of-range"));
+                message = cxx_OOExpandKey("autopilot-out-of-range");
             } else {
                 [self playAutopilotCannotDockWithTarget];
-                message = oo::OptionalString(OOExpandKey(@"autopilot-multiple-targets"));
+                message = cxx_OOExpandKey("autopilot-multiple-targets");
             }
             goto abort;
         }
     }
 
     // We found a dockable, check whether we can dock with it
-    // NSAssert([target isKindOfClass:[StationEntity class]], @"Expected entity with isStation flag set to be a station.");		// no need for asserts. Tested enough already.
+    // OOAssert([target isKindOfClass:[StationEntity class]], "Expected entity with isStation flag set to be a station.");		// no need for asserts. Tested enough already.
     StationEntity* ts;
     ts = (StationEntity*)target;
-    stationName = oo::StdString([ts displayName]); // (nil raised in the expansion)
+    stationName = [ts displayName].value_or(""); // (nil raised in the expansion)
 
     // If station is not transmitting docking instructions, we cannot use autopilot.
     if (![ts allowsAutoDocking]) {
@@ -4771,7 +4751,7 @@ static BOOL autopilot_pause;
         if (legalStatus > 0) {
             // there's a slight chance you'll be fined for your past offences when autodocking
             int fine_chance = ranrot_rand() & 0x03ff; //	0..1023
-            int government = 1 + oo::PListView([UNIVERSE currentSystemData]).get<int>(KEY_GOVERNMENT); // 1..8
+            int government = 1 + [UNIVERSE cxx_currentSystemData].get<int>(std::string(KEY_GOVERNMENT)); // 1..8
             if ([UNIVERSE inInterstellarSpace])
                 government = 2; // equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
             fine_chance /= government;
@@ -4791,13 +4771,13 @@ static BOOL autopilot_pause;
     } else {
         // Standard docking - engage autopilot
         [self engageAutopilotToStation:ts];
-        message = oo::OptionalString(OOExpandKey(@"autopilot-on"));
+        message = cxx_OOExpandKey("autopilot-on");
     }
 
 abort:
     // Clean-up code
     if (message.has_value())
-        [UNIVERSE addMessage:oo::NSStringFrom(*message) forCount:4.5];
+        [UNIVERSE cxx_addMessage:*message forCount:4.5];
     return;
 }
 
@@ -4811,7 +4791,7 @@ abort:
     ident_engaged = YES;
     if ([self primaryTarget] == nil) {
         [self playIdentOn];
-        [UNIVERSE addMessage:OOExpandKey(@"ident-on") forCount:2.0];
+        [UNIVERSE cxx_addMessage:cxx_OOExpandKey("ident-on") forCount:2.0];
     } else {
         [self playIdentLockedOn];
         [self printIdentLockedOnForMissile:NO];
@@ -4844,13 +4824,13 @@ abort:
                 [self noteLostTarget];
             }
             [missile_entity[activeMissile] noteLostTarget];
-            const std::string weaponName = oo::StdString([missile_entity[activeMissile] name]); // (nil raised in the expansion)
-            [UNIVERSE addMessage:oo::NSStringFrom(ExpandKeyWithArguments("missile-armed", { { "weaponName", oo::PList(weaponName) } })) forCount:2.0];
+            const std::string weaponName = [missile_entity[activeMissile] cxx_name].value_or(std::string()); // (nil raised in the expansion)
+            [UNIVERSE cxx_addMessage:ExpandKeyWithArguments("missile-armed", { { "weaponName", oo::PList(weaponName) } }) forCount:2.0];
             [self playMissileArmed];
         }
     } else if ([missile_entity[activeMissile] isMine]) {
-        const std::string weaponName = oo::StdString([missile_entity[activeMissile] name]); // (nil raised in the expansion)
-        [UNIVERSE addMessage:oo::NSStringFrom(ExpandKeyWithArguments("mine-armed", { { "weaponName", oo::PList(weaponName) } })) forCount:2.0];
+        const std::string weaponName = [missile_entity[activeMissile] cxx_name].value_or(std::string()); // (nil raised in the expansion)
+        [UNIVERSE cxx_addMessage:ExpandKeyWithArguments("mine-armed", { { "weaponName", oo::PList(weaponName) } }) forCount:2.0];
         [self playMineArmed];
     }
     ident_engaged = NO;

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 #include <SDL3/SDL_video.h>
+#include <string_view>
 
 #define WINDOW_SIZE_DEFAULT_WIDTH 1280
 #define WINDOW_SIZE_DEFAULT_HEIGHT 720
@@ -64,8 +65,8 @@ MA 02110-1301, USA.
 #define OOMOUSEWHEEL_DELTA 120 // Same as Windows WHEEL_DELTA
 
 #define SNAPSHOTS_PNG_FORMAT 1
-#define SNAPSHOTHDR_EXTENSION_EXR @".exr"
-#define SNAPSHOTHDR_EXTENSION_HDR @".hdr"
+inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_EXR = ".exr";
+inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_HDR = ".hdr";
 #define SNAPSHOTHDR_EXTENSION_DEFAULT SNAPSHOTHDR_EXTENSION_EXR
 
 @class Entity, GameController, OpenGLSprite;
@@ -312,8 +313,8 @@ extern int debug;
 - (void)saveWindowSize:(NSSize)windowSize;
 - (NSSize)loadWindowSize;
 - (int)loadFullscreenSettings;
-- (int)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height
-                       Refresh:(unsigned int)d_refresh;
+- (int)indexOfDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height
+                          Refresh:(unsigned int)d_refresh;
 - (NSSize)currentScreenSize;
 - (oo::PList)currentScreenMode; // null: no mode
 
@@ -365,9 +366,3 @@ extern int debug;
 
 #import "MyOpenGLView+Input.h"
 #include <SDL3/SDL_events.h>
-
-/*	TRANSITIONAL (proposed ADR-0043 Amendment 1): MyOpenGLView's Foundation-typed API as it was
-        declared before bead oo-3rb.110, forwarding to the cxx_ methods above, so unmigrated callers compile
-        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
-*/
-#import "MyOpenGLView+FoundationBridge.h"
