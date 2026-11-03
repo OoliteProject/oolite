@@ -1321,6 +1321,19 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
     _refreshStarChart = YES;
 }
 
+- (int)rowAtVirtualJoystickPosition:(NSPoint)vjpos
+{
+    // The cursor maths of -drawGUI:drawCursor: (which calls this), y only: the row does not depend
+    // on x. Bead oo-3rb.348.
+    double cursor_y = -size_in_pixels.height * vjpos.y;
+    if (cursor_y < -size_in_pixels.height * 0.5)
+        cursor_y = -size_in_pixels.height * 0.5f;
+    if (cursor_y > size_in_pixels.height * 0.5)
+        cursor_y = size_in_pixels.height * 0.5f;
+
+    return 1 + (float)floor((0.5f * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
+}
+
 - (int)drawGUI:(GLfloat)alpha drawCursor:(BOOL)drawCursor
 {
     GLfloat x = drawPosition.x;
@@ -1377,7 +1390,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
         if (cursor_y > size_in_pixels.height * 0.5)
             cursor_y = size_in_pixels.height * 0.5f;
 
-        cursor_row = 1 + (float)floor((0.5f * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
+        cursor_row = [self rowAtVirtualJoystickPosition:vjpos];
 
         GLfloat h1 = 3.0f;
         GLfloat h3 = 9.0f;

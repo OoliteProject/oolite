@@ -29,9 +29,20 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 
+/*
+        C++20 since bead oo-utlm, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
+        OOExhaustPlumeEntity became free functions, and its methods and interface moved to
+        OOJSExhaustPlume+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
+        Objective-C (OOExhaustPlumeEntity, ShipEntity, Entity) stay as they are, which is why the
+        file is still .mm until Phase 4.
+*/
+
 static JSClassID sExhaustPlumeClassID;
 
-static BOOL JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity);
+static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity);
 
 static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS);
 static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS);
@@ -77,48 +88,42 @@ JSClassID JSExhaustPlumeClassID(void)
     return sExhaustPlumeClassID;
 }
 
-static BOOL JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity)
+static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, jsobj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[OOExhaustPlumeEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (OOExhaustPlumeEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-@implementation OOExhaustPlumeEntity (OOJavaScriptExtensions)
-
-- (JSClassID)oo_jsClassID
-{
-    return sExhaustPlumeClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), whose methods are in
+// OOJSExhaustPlume+ObjCBridge.mm until OOExhaustPlumeEntity converts (proposed ADR-0056 amendments
+// oo-ppc and oo-ykoy).
+std::optional<std::string> OOJSExhaustPlumeJSClassName(void)
 {
     return std::string("ExhaustPlume");
 }
 
-- (BOOL)isVisibleToScripts
+bool OOJSExhaustPlumeIsVisibleToScripts(void)
 {
-    return YES;
+    return true;
 }
-
-@end
 
 static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS)
 {

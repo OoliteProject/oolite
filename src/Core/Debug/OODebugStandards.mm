@@ -37,7 +37,7 @@ SOFTWARE.
 // in release mode, stubs
 void cxx_OOStandardsDeprecated(const std::string& message) { }
 void cxx_OOStandardsError(const std::string& message) { }
-BOOL OOEnforceStandards() { return NO; }
+bool OOEnforceStandards() { return false; }
 void OOSetStandardsForOXPVerifierMode() { }
 
 #else
@@ -49,7 +49,11 @@ void OOStandardsInternal(const std::string& type, const std::string& message);
 
 } // namespace
 
-static BOOL sSetup = NO;
+namespace {
+
+bool sSetup = false;
+
+} // namespace
 
 typedef enum {
     // do nothing (equivalent to release build)
@@ -116,7 +120,7 @@ void cxx_OOStandardsError(const std::string& message)
     OOStandardsInternal("oxp-standards.error", message);
 }
 
-BOOL OOEnforceStandards()
+bool OOEnforceStandards()
 {
     OOStandardsSetup();
     return sEnforcement >= STANDARDS_ENFORCEMENT_ENFORCE;
@@ -125,7 +129,7 @@ BOOL OOEnforceStandards()
 void OOSetStandardsForOXPVerifierMode()
 {
     sEnforcement = STANDARDS_ENFORCEMENT_WARN;
-    sSetup = YES;
+    sSetup = true;
 }
 
 #endif

@@ -60,9 +60,11 @@ SOFTWARE.
 #import "OOCheckJSSyntaxVerifierStage.h"
 #import "OOCheckPListSyntaxVerifierStage.h"
 #import "OOCheckRequiresPListVerifierStage.h"
+#import "OOCheckShipDataPListVerifierStage.h"
 #import "OODebugStandards.h"
 #import "OOLoggingExtended.h"
 #import "OOOXPVerifierStageInternal.h"
+#import "OOTextureVerifierStage.h"
 #import "ResourceManager.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
@@ -129,6 +131,8 @@ constexpr CxxStage kCxxStages[] = {
     { "OOCheckDemoShipsPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckDemoShipsPListVerifierStage>()); } },
     { "OOCheckRequiresPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckRequiresPListVerifierStage>()); } },
     { "OOCheckEquipmentPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckEquipmentPListVerifierStage>()); } },
+    { "OOTextureVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOTextureVerifierStage>()); } },
+    { "OOCheckShipDataPListVerifierStage", [] { return oo::Ref<cxx::OOOXPVerifierStage>(oo::makeRef<OOCheckShipDataPListVerifierStage>()); } },
 };
 
 }

@@ -75,7 +75,7 @@ public:
 
     oo::PList legacyScript(); // an array of script actions; null: none
     void setLegacyScript(const oo::PList& scriptActions);
-    OOJSScript* script();
+    ::OOJSScript* script();
     void setCharacterScript(const std::string& scriptName);
     void doScriptEvent(OOJSPropID message);
 
@@ -101,7 +101,7 @@ private:
     int _legalStatus = { };
     OOCreditsQuantity _insuranceCredits = { };
     oo::PList _scriptActions; // an array; null: none
-    oo::ObjCRef<OOJSScript*> _script;
+    oo::ObjCRef<::OOJSScript*> _script;
 };
 
 } // namespace cxx

@@ -48,31 +48,14 @@ enum {
     kStackLimiter = 32 // setAITo: stack overflow
 };
 
-typedef struct
-{
-    AI* ai;
-    SEL selector;
-    std::string parameter; // the by-name call's string argument (OOCallByName.h)
-} OOAIDeferredCallTrampolineInfo;
-
-/*	Carries the trampoline info through OOScheduleDeferredCall(),
-        which retains it until the call fires, as it did the value box that held the
-        struct before (bead oo-3rb.48).
-*/
-@interface OOAIDeferredCallTrampolineInfoHolder : OOObject {
-@public
-    OOAIDeferredCallTrampolineInfo info;
-}
-@end
-
-@implementation OOAIDeferredCallTrampolineInfoHolder
-@end
-
-static AI* sCurrentlyRunningAI = nil;
+// OOAIDeferredCallTrampolineInfo and its holder class, which OOScheduleDeferredCall() retains, are
+// in AI+ObjCBridge.h: the holder is an Objective-C object (amendment oo-rmd7 item 1).
 
 namespace {
 
-// OODictionaryFromFile (OOPListParsing's bridge) as a property list: the file's
+cxx::AI* sCurrentlyRunningAI = nullptr;
+
+// OODictionaryFromFile(OOPListParsing's bridge) as a property list: the file's
 // property list when it is a dictionary, a null PList otherwise (its plist.wrongType log line,
 // which named the Foundation class, is not kept).
 oo::PList PListDictionaryFromFile(const std::string& path)
@@ -101,142 +84,111 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
 
 } // namespace
 
-@interface AI (OOPrivate)
-
-// Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs. <selector> is called by
-// name with <argument> (OOCallByName.h).
-- (void)performDeferredCall:(SEL)selector withArgument:(const std::string&)argument afterDelay:(NSTimeInterval)delay;
-+ (void)deferredCallTrampolineWithInfo:(OOAIDeferredCallTrampolineInfoHolder*)info;
-// The target of -cxx_setState:afterDelay:'s deferred call (called by name).
-- (void)deferredSetState:(const std::string&)stateName;
-
-- (void)refreshOwnerDesc;
-
-// Set state machine and state without side effects. A nullopt state is no state (nil).
-- (void)directSetStateMachine:(const oo::PList&)newSM name:(const std::string&)name;
-- (void)directSetState:(const std::optional<std::string>&)state;
-
-// Loading/whitelisting. A null result is no state machine (nil).
-- (oo::PList)loadStateMachine:(const std::string&)smName jsName:(const std::string&)script;
-- (oo::PList)cleanHandlers:(const oo::PList&)handlers forState:(const std::string&)stateKey stateMachine:(const std::string&)smName;
-- (oo::PList)cleanActions:(const oo::PList&)actions forHandler:(const std::string&)handlerKey state:(const std::string&)stateKey stateMachine:(const std::string&)smName;
-
-@end
-
 #if DEBUG_GRAPHVIZ
 #import "AIGraphViz.h"
 #include "oofnd/Defaults.hpp"
 #endif
 
-@interface OOPreservedAIStateMachine : OOObject {
-@private
-    oo::PList _stateMachine;
-    std::string _name;
-    std::optional<std::string> _state;
-    std::set<std::string> _pendingMessages;
-    std::optional<std::string> _jsScript;
-}
+class OOPreservedAIStateMachine : public oo::RefCounted {
+public:
+    OOPreservedAIStateMachine(const oo::PList& stateMachine,
+        const std::string& name,
+        const std::optional<std::string>& state,
+        const std::set<std::string>& pendingMessages,
+        const std::optional<std::string>& script);
 
-- (id)initWithStateMachine:(const oo::PList&)stateMachine
-                      name:(const std::string&)name
-                     state:(const std::optional<std::string>&)state
-           pendingMessages:(const std::set<std::string>&)pendingMessages
-                  jsScript:(const std::optional<std::string>&)script;
+    oo::PList stateMachine();
+    std::optional<std::string> name(); // (bead oo-3rb.289.8)
+    std::optional<std::string> state();
+    std::set<std::string> pendingMessages();
+    std::optional<std::string> jsScript();
 
-- (oo::PList)stateMachine;
-- (std::optional<std::string>)cxx_name; // (bead oo-3rb.289.8)
-- (std::optional<std::string>)cxx_state;
-- (std::set<std::string>)pendingMessages;
-- (std::optional<std::string>)jsScript;
+private:
+    oo::PList _stateMachine = { };
+    std::string _name = { };
+    std::optional<std::string> _state = { };
+    std::set<std::string> _pendingMessages = { };
+    std::optional<std::string> _jsScript = { };
+};
 
-@end
+namespace cxx {
 
-@implementation AI
-
-+ (AI*)currentlyRunningAI
+AI* AI::currentlyRunningAI()
 {
     return sCurrentlyRunningAI;
 }
 
-+ (std::optional<std::string>)cxx_currentlyRunningAIDescription
+std::optional<std::string> AI::currentlyRunningAIDescription()
 {
-    if (sCurrentlyRunningAI != nil) {
-        return oo::str::format("%s in state %s", [sCurrentlyRunningAI cxx_name].value_or("(null)").c_str(), [sCurrentlyRunningAI cxx_state].value_or("(null)").c_str());
+    if (sCurrentlyRunningAI != nullptr) {
+        return oo::str::format("%s in state %s", sCurrentlyRunningAI->name().value_or("(null)").c_str(), sCurrentlyRunningAI->state().value_or("(null)").c_str());
     } else {
         return "<no AI running>";
     }
 }
 
-- (id)init
+AI::AI()
 {
-    if ((self = [super init])) {
+    {
         nextThinkTime = INFINITY; // don't think for a while
         thinkTimeInterval = AI_THINK_INTERVAL;
 
         stateMachineName = "<no AI>"; // no initial brain
     }
-
-    return self;
 }
 
-- (id)cxx_initWithStateMachine:(const std::optional<std::string>&)smName andState:(const std::optional<std::string>&)stateName
+void AI::initWithStateMachine(const std::optional<std::string>& smName, const std::optional<std::string>& stateName)
 {
-    if ((self = [self init])) {
+    {
         if (smName.has_value())
-            [self cxx_setStateMachine:*smName withJSScript:"oolite-nullAI.js"];
+            setStateMachine(*smName, "oolite-nullAI.js");
         if (stateName.has_value())
             currentState = *stateName;
     }
-
-    return self;
 }
 
-- (void)dealloc
+AI::~AI()
 {
-    if (sCurrentlyRunningAI == self) {
-        sCurrentlyRunningAI = nil;
+    if (sCurrentlyRunningAI == this) {
+        sCurrentlyRunningAI = nullptr;
     }
 
-    DESTROY(_owner);
-
-    [super dealloc];
+    _owner = nullptr;
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> AI::descriptionComponents() const
 {
     return oo::str::format("\"%s\" in state: \"%s\" for %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), ownerDesc.value_or("(null)").c_str());
 }
 
-- (std::optional<std::string>)cxx_shortDescriptionComponents
+std::optional<std::string> AI::shortDescriptionComponents() const
 {
     return oo::str::format("%s:%s / %s", stateMachineName.c_str(), currentState.value_or("(null)").c_str(), oo::DescriptionOf(JSScriptOf(stateMachine)).c_str());
 }
 
-- (ShipEntity*)owner
+ShipEntity* AI::owner()
 {
-    ShipEntity* owner = [_owner weakRefUnderlyingObject];
+    ShipEntity* owner = [_owner.get() weakRefUnderlyingObject];
     if (owner == nil) {
-        [_owner release];
-        _owner = nil;
+        _owner = nullptr;
     }
 
     return owner;
 }
 
-- (void)setOwner:(ShipEntity*)ship
+void AI::setOwner(ShipEntity* ship)
 {
-    [_owner release];
-    _owner = [ship weakRetain];
-    [self refreshOwnerDesc];
+    _owner = oo::adoptObjC([ship weakRetain]);
+    refreshOwnerDesc();
 }
 
-- (void)reportStackOverflow
+void AI::reportStackOverflow()
 {
     if (oo::log::willDisplay("ai.error.stackOverflow")) {
         BOOL stackDump = oo::log::willDisplay("ai.error.stackOverflow.dump");
 
         const char* trailer = stackDump ? " -- stack:" : ".";
-        OO_LOG_ERR("ai.error.stackOverflow", "AI stack overflow for {} in {}: {}{}\n", oo::ShortDescriptionOf(_owner), stateMachineName, currentState.value_or("(null)"), trailer);
+        OO_LOG_ERR("ai.error.stackOverflow", "AI stack overflow for {} in {}: {}{}\n", oo::ShortDescriptionOf(_owner.get()), stateMachineName, currentState.value_or("(null)"), trailer);
 
         if (stackDump) {
             OOLogIndent();
@@ -244,7 +196,7 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
             std::size_t count = aiStack.size();
             while (count--) {
                 OOPreservedAIStateMachine* preservedMachine = aiStack[count].get();
-                OO_LOG("ai.error.stackOverflow.dump", "{}: {}: {}", count, [preservedMachine cxx_name].value_or("(null)"), [preservedMachine cxx_state].value_or("(null)"));
+                OO_LOG("ai.error.stackOverflow.dump", "{}: {}: {}", count, preservedMachine->name().value_or("(null)"), preservedMachine->state().value_or("(null)"));
             }
 
             OOLogOutdent();
@@ -252,80 +204,80 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
     }
 }
 
-- (void)preserveCurrentStateMachine
+void AI::preserveCurrentStateMachine()
 {
     if (stateMachine.isNull())
         return;
 
     if (aiStack.size() >= kStackLimiter) {
-        [self reportStackOverflow];
+        reportStackOverflow();
 
         [OOException raise:"OoliteException"
-                    format:"AI stack overflow for %s", oo::DescriptionOf(_owner).c_str()];
+                    format:"AI stack overflow for %s", oo::DescriptionOf(_owner.get()).c_str()];
     }
 
     const oo::PList* script = stateMachine.find("jsScript");
-    oo::ObjCRef<OOPreservedAIStateMachine*> preservedMachine = oo::adoptObjC([[OOPreservedAIStateMachine alloc]
-        initWithStateMachine:stateMachine
-                        name:stateMachineName
-                       state:currentState
-             pendingMessages:pendingMessages
-                    jsScript:(script != nullptr && script->isString()) ? std::optional<std::string>(*script->getIf<std::string>()) : std::nullopt]);
+    oo::Ref<OOPreservedAIStateMachine> preservedMachine = oo::makeRef<OOPreservedAIStateMachine>(
+        stateMachine,
+        stateMachineName,
+        currentState,
+        pendingMessages,
+        (script != nullptr && script->isString()) ? std::optional<std::string>(*script->getIf<std::string>()) : std::nullopt);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([[self owner] reportAIMessages])
-        OO_LOG("ai.stack.push", "Pushing state machine for {}", oo::DescriptionOf(self));
+    if ([owner() reportAIMessages])
+        OO_LOG("ai.stack.push", "Pushing state machine for {}", oo::DescriptionOf(oo::ToObjC(this)));
 #endif
 
     aiStack.push_back(std::move(preservedMachine)); // PUSH
 }
 
-- (void)restorePreviousStateMachine
+void AI::restorePreviousStateMachine()
 {
     if (aiStack.empty())
         return;
 
-    const oo::ObjCRef<OOPreservedAIStateMachine*> preservedMachine = aiStack.back();
+    const oo::Ref<OOPreservedAIStateMachine> preservedMachine = aiStack.back();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([[self owner] reportAIMessages])
-        OO_LOG("ai.stack.pop", "Popping previous state machine for {}", oo::DescriptionOf(self));
+    if ([owner() reportAIMessages])
+        OO_LOG("ai.stack.pop", "Popping previous state machine for {}", oo::DescriptionOf(oo::ToObjC(this)));
 #endif
 
-    [self directSetStateMachine:[preservedMachine.get() stateMachine]
-                           name:[preservedMachine.get() cxx_name].value_or(std::string())];
+    directSetStateMachine(preservedMachine->stateMachine(),
+        preservedMachine->name().value_or(std::string()));
 
-    [self directSetState:[preservedMachine.get() cxx_state]];
+    directSetState(preservedMachine->state());
 
     // restore JS script
-    [[self owner] setAIScript:[preservedMachine.get() jsScript].value_or("")];
+    [owner() setAIScript:preservedMachine->jsScript().value_or("")];
 
-    pendingMessages = [preservedMachine.get() pendingMessages];
+    pendingMessages = preservedMachine->pendingMessages();
 
     aiStack.pop_back(); //  POP
 }
 
-- (BOOL)hasSuspendedStateMachines
+bool AI::hasSuspendedStateMachines()
 {
     return !aiStack.empty();
 }
 
-- (void)cxx_exitStateMachineWithMessage:(const std::optional<std::string>&)message
+void AI::exitStateMachineWithMessage(const std::optional<std::string>& message)
 {
     if (!aiStack.empty()) {
-        [self restorePreviousStateMachine];
-        [self cxx_reactToMessage:message.value_or("RESTARTED") context:"suspended AI restart"];
+        restorePreviousStateMachine();
+        reactToMessage(message.value_or("RESTARTED"), "suspended AI restart");
     }
 }
 
-- (void)cxx_setStateMachine:(const std::string&)smName withJSScript:(const std::string&)script
+void AI::setStateMachine(const std::string& smName, const std::string& script)
 {
-    const oo::PList newSM = [self loadStateMachine:smName jsName:script];
+    const oo::PList newSM = loadStateMachine(smName, script);
 
     if (!newSM.isNull()) {
-        [self preserveCurrentStateMachine];
-        [self directSetStateMachine:newSM name:smName];
-        [self directSetState:"GLOBAL"];
+        preserveCurrentStateMachine();
+        directSetStateMachine(newSM, smName);
+        directSetState("GLOBAL");
 
         nextThinkTime = 0.0; // think at next tick
 
@@ -336,14 +288,14 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
                 Attempted fix: new delayed dispatch with trampoline, see -[AI setStateMachine:afterDelay:].
                  -- Ahruman, 20070706
         */
-        [self cxx_reactToMessage:"ENTER" context:"changing AI"];
+        reactToMessage("ENTER", "changing AI");
 
         // refresh name
-        [self refreshOwnerDesc];
+        refreshOwnerDesc();
     }
 }
 
-- (void)cxx_setState:(const std::string&)stateName
+void AI::setState(const std::string& stateName)
 {
     if (stateMachine.find(stateName) != nullptr) {
         /*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"EXIT"] (1.69, OS X/x86).
@@ -353,28 +305,28 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
                 Attempted fix: new delayed dispatch with trampoline, see -[AI setState:afterDelay:].
                  -- Ahruman, 20070706
         */
-        [self cxx_reactToMessage:"EXIT" context:"changing state"];
-        [self directSetState:stateName];
-        [self cxx_reactToMessage:"ENTER" context:"changing state"];
+        reactToMessage("EXIT", "changing state");
+        directSetState(stateName);
+        reactToMessage("ENTER", "changing state");
     }
 }
 
-- (void)cxx_setStateMachine:(const std::string&)smName afterDelay:(NSTimeInterval)delay
+void AI::setStateMachine(const std::string& smName, NSTimeInterval delay)
 {
-    [self performDeferredCall:@selector(setStateMachine:) withArgument:smName afterDelay:delay];
+    performDeferredCall(OOSelectorFromName("setStateMachine:"), smName, delay);
 }
 
-- (void)cxx_setState:(const std::string&)stateName afterDelay:(NSTimeInterval)delay
+void AI::setState(const std::string& stateName, NSTimeInterval delay)
 {
-    [self performDeferredCall:@selector(deferredSetState:) withArgument:stateName afterDelay:delay];
+    performDeferredCall(OOSelectorFromName("deferredSetState:"), stateName, delay);
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> AI::name()
 {
     return stateMachineName;
 }
 
-- (std::optional<std::string>)cxx_associatedJS
+std::optional<std::string> AI::associatedJS()
 {
     // the entry is the script name loadStateMachine: stored (a string)
     const oo::PList script = JSScriptOf(stateMachine);
@@ -382,12 +334,12 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
     return (name != nullptr) ? std::optional<std::string>(*name) : std::nullopt;
 }
 
-- (std::optional<std::string>)cxx_state
+std::optional<std::string> AI::state()
 {
     return currentState;
 }
 
-- (NSUInteger)stackDepth
+NSUInteger AI::stackDepth()
 {
     return aiStack.size();
 }
@@ -406,10 +358,10 @@ struct AIStackElement {
 static AIStackElement* sStack = NULL;
 #endif
 
-- (void)cxx_reactToMessage:(const std::string&)message context:(const std::optional<std::string>&)debugContextArgument
+void AI::reactToMessage(const std::string& message, const std::optional<std::string>& debugContextArgument)
 {
     std::size_t i;
-    ShipEntity* owner = [self owner];
+    ShipEntity* owner = this->owner();
     static unsigned recursionLimiter = 0;
     AI* previousRunning = sCurrentlyRunningAI;
 
@@ -483,12 +435,12 @@ static AIStackElement* sStack = NULL;
     const oo::PList* actionList = messagesForState->find(message);
     const oo::PList actions = actionList != nullptr ? *actionList : oo::PList();
 
-    sCurrentlyRunningAI = self;
+    sCurrentlyRunningAI = this;
     if (actions.count() > 0) {
         ++recursionLimiter;
         @try {
             for (i = 0; i < actions.count(); i++) {
-                [self cxx_takeAction:actions.at<std::string>(i)];
+                takeAction(actions.at<std::string>(i));
             }
         }
         @catch (OOException* exception) {
@@ -498,8 +450,8 @@ static AIStackElement* sStack = NULL;
         --recursionLimiter;
     } else {
         if (currentState.has_value()) {
-            if ([owner respondsToSelector:@selector(interpretAIMessage:)]) {
-                OOCallByName(owner, @selector(interpretAIMessage:), message);
+            if ([owner respondsToSelector:OOSelectorFromName("interpretAIMessage:")]) {
+                OOCallByName(owner, OOSelectorFromName("interpretAIMessage:"), message);
             }
         }
     }
@@ -512,12 +464,12 @@ static AIStackElement* sStack = NULL;
 #endif
 }
 
-- (void)cxx_takeAction:(const std::string&)action
+void AI::takeAction(const std::string& action)
 {
-    ShipEntity* owner = [self owner];
+    ShipEntity* owner = this->owner();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    BOOL report = [owner reportAIMessages];
+    bool report = [owner reportAIMessages];
     if (report) {
         OO_LOG("ai.takeAction", "{} to take action {}", ownerDesc.value_or("(null)"), action);
         OOLogIndent();
@@ -571,25 +523,25 @@ static AIStackElement* sStack = NULL;
 #endif
 }
 
-- (void)think
+void AI::think()
 {
-    if ([[self owner] universalID] == NO_TARGET || stateMachine.isNull())
+    if ([owner() universalID] == NO_TARGET || stateMachine.isNull())
         return; // don't think until launched
 
-    [self cxx_reactToMessage:"UPDATE" context:"periodic update"];
+    reactToMessage("UPDATE", "periodic update");
 
     // In byte order of the message (the set's hash order before).
     const std::vector<std::string> ms_list(pendingMessages.begin(), pendingMessages.end());
     pendingMessages.clear();
 
     for (const std::string& ms : ms_list) {
-        [self cxx_reactToMessage:ms context:"handling deferred message"];
+        reactToMessage(ms, "handling deferred message");
     }
 }
 
-- (void)message:(const std::string&)ms
+void AI::message(const std::string& ms)
 {
-    if ([[self owner] universalID] == NO_TARGET)
+    if ([owner() universalID] == NO_TARGET)
         return; // don't think until launched
 
     if (EXPECT_NOT(pendingMessages.size() > 32)) {
@@ -600,17 +552,17 @@ static AIStackElement* sStack = NULL;
     }
 }
 
-- (void)cxx_dropMessage:(const std::string&)ms
+void AI::dropMessage(const std::string& ms)
 {
     pendingMessages.erase(ms);
 }
 
-- (std::set<std::string>)pendingMessages
+std::set<std::string> AI::getPendingMessages()
 {
     return pendingMessages;
 }
 
-- (void)debugDumpPendingMessages
+void AI::debugDumpPendingMessages()
 {
     std::string displayMessages;
 
@@ -630,15 +582,15 @@ static AIStackElement* sStack = NULL;
         displayMessages = "none";
     }
 
-    OO_LOG("ai.debug.pendingMessages", "Pending messages for AI {}: {}", [self cxx_descriptionComponents].value_or("(null)"), displayMessages);
+    OO_LOG("ai.debug.pendingMessages", "Pending messages for AI {}: {}", descriptionComponents().value_or("(null)"), displayMessages);
 }
 
-- (void)setNextThinkTime:(OOTimeAbsolute)ntt
+void AI::setNextThinkTime(OOTimeAbsolute ntt)
 {
     nextThinkTime = ntt;
 }
 
-- (OOTimeAbsolute)nextThinkTime
+OOTimeAbsolute AI::getNextThinkTime()
 {
     if (stateMachine.isNull())
         return INFINITY;
@@ -646,22 +598,22 @@ static AIStackElement* sStack = NULL;
     return nextThinkTime;
 }
 
-- (void)setThinkTimeInterval:(OOTimeDelta)tti
+void AI::setThinkTimeInterval(OOTimeDelta tti)
 {
     thinkTimeInterval = tti;
 }
 
-- (OOTimeDelta)thinkTimeInterval
+OOTimeDelta AI::getThinkTimeInterval()
 {
     return thinkTimeInterval;
 }
 
-- (void)clearStack
+void AI::clearStack()
 {
     aiStack.clear();
 }
 
-- (void)clearAllData
+void AI::clearAllData()
 {
     aiStack.clear();
     pendingMessages.clear();
@@ -669,7 +621,7 @@ static AIStackElement* sStack = NULL;
     nextThinkTime += 36000.0; // should dealloc in under ten hours!
 }
 
-- (void)dumpState
+void AI::dumpState()
 {
     OO_LOG("dumpState.ai", "State machine name: {}", stateMachineName);
     OO_LOG("dumpState.ai", "Current state: {}", currentState.value_or("(null)"));
@@ -677,55 +629,40 @@ static AIStackElement* sStack = NULL;
     OO_LOG("dumpState.ai", "Next think interval: {:g}", thinkTimeInterval);
 }
 
-@end
-
-/*	This is an attempt to fix the bugs referred to above regarding calls from
+/*	This is an attemptto fix the bugs referred to above regarding calls from
         __NSFireDelayedPerform with a corrupt self. I'm not certain whether this
         will fix the issue or merely cause a less weird crash in
         +deferredCallTrampolineWithInfo:.
         -- Ahruman 20070706
 */
-@implementation AI (OOPrivate)
-
-- (void)performDeferredCall:(SEL)selector withArgument:(const std::string&)argument afterDelay:(NSTimeInterval)delay
+void AI::performDeferredCall(SEL selector, const std::string& argument, NSTimeInterval delay)
 {
     OOAIDeferredCallTrampolineInfo infoStruct;
     OOAIDeferredCallTrampolineInfoHolder* info = nil;
 
     if (selector != NULL) {
-        infoStruct.ai = [self retain];
+        infoStruct.ai = [oo::ToObjC(this) retain];
         infoStruct.selector = selector;
         infoStruct.parameter = argument;
 
         info = [[OOAIDeferredCallTrampolineInfoHolder alloc] init];
         info->info = infoStruct;
 
-        OOScheduleDeferredCall([AI class], @selector(deferredCallTrampolineWithInfo:), info, delay);
+        OOScheduleDeferredCall([::AI class], OOSelectorFromName("deferredCallTrampolineWithInfo:"), info, delay);
         [info release];
     }
 }
 
-- (void)deferredSetState:(const std::string&)stateName
+void AI::deferredSetState(const std::string& stateName)
 {
-    [self cxx_setState:stateName];
+    setState(stateName);
 }
 
-+ (void)deferredCallTrampolineWithInfo:(OOAIDeferredCallTrampolineInfoHolder*)info
+// +deferredCallTrampolineWithInfo:, the deferred call's target, is the facade's (AI+ObjCBridge.mm).
+
+void AI::refreshOwnerDesc()
 {
-    OOAIDeferredCallTrampolineInfo infoStruct;
-
-    if (info != nil) {
-        infoStruct = info->info;
-
-        OOCallByName(infoStruct.ai, infoStruct.selector, infoStruct.parameter);
-
-        [infoStruct.ai release];
-    }
-}
-
-- (void)refreshOwnerDesc
-{
-    ShipEntity* owner = [self owner];
+    ShipEntity* owner = this->owner();
     if ([owner isPlayer]) {
         ownerDesc = "player autopilot";
     } else if (owner != nil) {
@@ -735,21 +672,21 @@ static AIStackElement* sStack = NULL;
     }
 }
 
-- (void)directSetStateMachine:(const oo::PList&)newSM name:(const std::string&)name
+void AI::directSetStateMachine(const oo::PList& newSM, const std::string& name)
 {
     stateMachine = newSM;
     stateMachineName = name;
 }
 
-- (void)directSetState:(const std::optional<std::string>&)state
+void AI::directSetState(const std::optional<std::string>& state)
 {
     currentState = state;
 }
 
-- (oo::PList)loadStateMachine:(const std::string&)smName jsName:(const std::string&)script
+oo::PList AI::loadStateMachine(const std::string& smName, const std::string& script)
 {
     oo::PList newSM;
-    OOCacheManager* cacheMgr = [OOCacheManager sharedCache];
+    ::OOCacheManager* cacheMgr = [::OOCacheManager sharedCache];
     void* pool = NULL;
 
     if (smName != "nullAI.plist") {
@@ -775,11 +712,11 @@ static AIStackElement* sStack = NULL;
             if (newSM.isNull()) {
                 [cacheMgr cxx_setPList:oo::PList("nil") forKey:smName inCache:"AIs"];
                 std::string fromString;
-                const std::optional<std::string> state = [self cxx_state];
+                const std::optional<std::string> state = this->state();
                 if (state.has_value()) {
-                    fromString = oo::str::format(" from %s:%s", [self cxx_name].value_or("(null)").c_str(), state->c_str());
+                    fromString = oo::str::format(" from %s:%s", name().value_or("(null)").c_str(), state->c_str());
                 }
-                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::ShortDescriptionOf([self owner]), fromString, smName);
+                OO_LOG("ai.load.failed.unknownAI", "Can't switch AI for {}{} to \"{}\" - could not load file.", oo::ShortDescriptionOf(owner()), fromString, smName);
                 return oo::PList();
             }
 
@@ -793,7 +730,7 @@ static AIStackElement* sStack = NULL;
                     continue;
                 }
 
-                cleanSM[stateKey] = [self cleanHandlers:stateHandlers forState:stateKey stateMachine:smName];
+                cleanSM[stateKey] = cleanHandlers(stateHandlers, stateKey, smName);
             }
             cleanSM["jsScript"] = oo::PList(script);
 
@@ -818,7 +755,7 @@ static AIStackElement* sStack = NULL;
     return newSM;
 }
 
-- (oo::PList)cleanHandlers:(const oo::PList&)handlers forState:(const std::string&)stateKey stateMachine:(const std::string&)smName
+oo::PList AI::cleanHandlers(const oo::PList& handlers, const std::string& stateKey, const std::string& smName)
 {
     oo::PList::Dict result;
 
@@ -830,13 +767,13 @@ static AIStackElement* sStack = NULL;
             continue;
         }
 
-        result[handlerKey] = [self cleanActions:handlerActions forHandler:handlerKey state:stateKey stateMachine:smName];
+        result[handlerKey] = cleanActions(handlerActions, handlerKey, stateKey, smName);
     }
 
     return oo::PList(std::move(result));
 }
 
-- (oo::PList)cleanActions:(const oo::PList&)actions forHandler:(const std::string&)handlerKey state:(const std::string&)stateKey stateMachine:(const std::string&)smName
+oo::PList AI::cleanActions(const oo::PList& actions, const std::string& handlerKey, const std::string& stateKey, const std::string& smName)
 {
     oo::PList::Array result;
     static std::optional<std::set<std::string>> whitelist;
@@ -917,50 +854,44 @@ static AIStackElement* sStack = NULL;
     return oo::PList(std::move(result));
 }
 
-@end
+} // namespace cxx
 
-@implementation OOPreservedAIStateMachine
-
-- (id)initWithStateMachine:(const oo::PList&)stateMachine
-                      name:(const std::string&)name
-                     state:(const std::optional<std::string>&)state
-           pendingMessages:(const std::set<std::string>&)pendingMessages
-                  jsScript:(const std::optional<std::string>&)script
+OOPreservedAIStateMachine::OOPreservedAIStateMachine(const oo::PList& stateMachine,
+    const std::string& name,
+    const std::optional<std::string>& state,
+    const std::set<std::string>& pendingMessages,
+    const std::optional<std::string>& script)
 {
-    if ((self = [super init])) {
+    {
         _stateMachine = stateMachine;
         _name = name;
         _state = state;
         _pendingMessages = pendingMessages;
         _jsScript = script;
     }
-
-    return self;
 }
 
-- (oo::PList)stateMachine
+oo::PList OOPreservedAIStateMachine::stateMachine()
 {
     return _stateMachine;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOPreservedAIStateMachine::name()
 {
     return _name;
 }
 
-- (std::optional<std::string>)cxx_state
+std::optional<std::string> OOPreservedAIStateMachine::state()
 {
     return _state;
 }
 
-- (std::set<std::string>)pendingMessages
+std::set<std::string> OOPreservedAIStateMachine::pendingMessages()
 {
     return _pendingMessages;
 }
 
-- (std::optional<std::string>)jsScript
+std::optional<std::string> OOPreservedAIStateMachine::jsScript()
 {
     return _jsScript;
 }
-
-@end

@@ -45,27 +45,38 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
 } // namespace
 
-@implementation OOProbabilisticTextureManager
-
-- (id)initWithPListName:(const std::string&)plistName
-                options:(uint32_t)options
-             anisotropy:(GLfloat)anisotropy
-                lodBias:(GLfloat)lodBias
+oo::Ref<OOProbabilisticTextureManager> OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
+    uint32_t options,
+    GLfloat anisotropy,
+    GLfloat lodBias)
 {
-    return [self initWithPListName:plistName
-                           options:options
-                        anisotropy:anisotropy
-                           lodBias:lodBias
-                              seed:RANROTGetFullSeed()];
+    return createWithPListName(plistName,
+        options,
+        anisotropy,
+        lodBias,
+        RANROTGetFullSeed());
 }
 
-- (id)initWithPListName:(const std::string&)plistName
-                options:(uint32_t)options
-             anisotropy:(GLfloat)anisotropy
-                lodBias:(GLfloat)lodBias
-                   seed:(RANROTSeed)seed
+// -initWithPListName:...seed: on a new object; null where it answered nil (amendment oo-fg7i item 1).
+oo::Ref<OOProbabilisticTextureManager> OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
+    uint32_t options,
+    GLfloat anisotropy,
+    GLfloat lodBias,
+    RANROTSeed seed)
 {
-    BOOL OK = YES;
+    oo::Ref<OOProbabilisticTextureManager> manager = oo::adopt(new OOProbabilisticTextureManager);
+    if (!manager->initWithPListName(plistName, options, anisotropy, lodBias, seed))
+        return nullptr;
+    return manager;
+}
+
+bool OOProbabilisticTextureManager::initWithPListName(const std::string& plistName,
+    uint32_t options,
+    GLfloat anisotropy,
+    GLfloat lodBias,
+    RANROTSeed seed)
+{
+    bool OK = true;
     oo::PList config;
     NSUInteger i, count, j;
     const oo::PList* entry = nullptr;
@@ -75,14 +86,10 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     int galID = -1;
     const oo::PList* object = nullptr;
 
-    self = [super init];
-    if (self == nil)
-        OK = NO;
-
     if (OK) {
         config = [ResourceManager cxx_arrayFromFilesNamed:plistName inFolder:"Config" andMerge:YES];
         if (!config)
-            OK = NO;
+            OK = false;
     }
 
     if (OK) {
@@ -94,7 +101,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         _probMaxGal = (float*)malloc(sizeof *_probMaxGal * (kOOMaximumGalaxyID + 1));
 
         if (_textures == NULL || _prob == NULL || _galaxy == NULL)
-            OK = NO;
+            OK = false;
     }
 
     if (OK) {
@@ -122,7 +129,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
             }
 
             if (name.has_value() && 0.0f < probability) {
-                texture = [OOTexture cxx_textureWithName:*name
+                texture = [OOTexture cxx_textureWithName:name
                                                 inFolder:"Textures"
                                                  options:options
                                               anisotropy:anisotropy
@@ -144,21 +151,16 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         }
 
         if (_count == 0)
-            OK = NO;
+            OK = false;
     }
 
     if (OK)
         _seed = seed;
 
-    if (!OK) {
-        [self release];
-        self = nil;
-    }
-
-    return self;
+    return OK;
 }
 
-- (void)dealloc
+OOProbabilisticTextureManager::~OOProbabilisticTextureManager()
 {
     unsigned i;
 
@@ -175,18 +177,16 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         free(_galaxy);
     if (_probMaxGal != NULL)
         free(_probMaxGal);
-
-    [super dealloc];
 }
 
-// OOObject's -description wraps this as "<OOProbabilisticTextureManager 0x...>{...}", the text
-// this class's own -description printed. Shared selector (proposed ADR-0043).
-- (std::optional<std::string>)cxx_descriptionComponents
+// OOObject's -description wrapped this as "<OOProbabilisticTextureManager 0x...>{...}", the text
+// this class's own -description printed (proposed ADR-0043).
+std::optional<std::string> OOProbabilisticTextureManager::descriptionComponents() const
 {
     return oo::str::format("%u textures, cumulative probability=%g", _count, _probMax);
 }
 
-- (OOTexture*)selectTexture
+OOTexture* OOProbabilisticTextureManager::selectTexture()
 {
     float selection;
     unsigned i;
@@ -218,12 +218,12 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     return _textures[_count - 1];
 }
 
-- (unsigned)textureCount
+unsigned OOProbabilisticTextureManager::textureCount()
 {
     return _count;
 }
 
-- (void)ensureTexturesLoaded
+void OOProbabilisticTextureManager::ensureTexturesLoaded()
 {
     unsigned i;
 
@@ -232,14 +232,12 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     }
 }
 
-- (RANROTSeed)seed
+RANROTSeed OOProbabilisticTextureManager::seed()
 {
     return _seed;
 }
 
-- (void)setSeed:(RANROTSeed)seed
+void OOProbabilisticTextureManager::setSeed(RANROTSeed seed)
 {
     _seed = seed;
 }
-
-@end

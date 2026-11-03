@@ -38,6 +38,20 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 #include "oofnd/Notification.hpp"
 
+/*
+        C++20 since bead oo-nge8, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The natives were already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. OOMusicController, which is C++
+        since bead oo-lfkq, is reached as cxx::OOMusicController (amendment oo-ppc, item 4).
+        MissionRunCallback()'s @try/@catch (OOException *) around the callback stays verbatim (amendment
+        oo-puw9 item 4); Phase 4 replaces it with the rest of the Objective-C exception sites.
+        mission.markedSystems kept the destinations it reads in a local: it read them through a pointer
+        into a temporary that had died (bead oo-nge8; the same defect in OOJSSystemInfo.mm is bead
+        oo-f4241). Messages to classes that are still Objective-C (PlayerEntity, Universe,
+        GuiDisplayGen, OOJSScript, OOJavaScriptEngine) stay as they are, which is why the file is still
+        .mm until Phase 4.
+*/
 
 static JSValue MissionGetProperty(OOJS_GETTER_ARGS);
 static JSValue MissionSetProperty(OOJS_SETTER_ARGS);
@@ -50,7 +64,7 @@ static JSValue MissionSetInstructionsKey(OOJS_NATIVE_ARGS);
 static JSValue MissionRunScreen(OOJS_NATIVE_ARGS);
 static JSValue MissionRunShipLibrary(OOJS_NATIVE_ARGS);
 
-static JSValue MissionSetInstructionsInternal(JSContext* context, int argc, JSValueConst* argv, BOOL isKey);
+static JSValue MissionSetInstructionsInternal(JSContext* context, int argc, JSValueConst* argv, bool isKey);
 
 /*	Mission screen callback variables.
         sCallbackFunction and sCallbackThis own their values (they were GC roots
@@ -126,12 +140,12 @@ static void ClearPendingCallback(void)
 
 void InitOOJSMission(JSContext* context, JSValueConst global)
 {
-    static BOOL observing = NO;
+    static bool observing = false;
     if (!observing) {
         oo::NotificationCenter::defaultCenter().addObserver([OOJSMissionResetObserver class], kOOJavaScriptEngineWillResetNotificationName,
             nullptr,
             [](const oo::Notification& notification) { [OOJSMissionResetObserver engineWillReset:notification]; });
-        observing = YES;
+        observing = true;
     }
 
     sCallbackFunction = JS_NULL;
@@ -191,7 +205,7 @@ void MissionRunCallback()
     args[1] = argval2;
 
     // now reset the mission choice silently, before calling the callback script.
-    [player cxx_setMissionChoice:std::nullopt keyPress:"" withEvent:NO];
+    [player cxx_setMissionChoice:std::nullopt keyPress:"" withEvent:false];
 
     // Call the callback.
     @try {
@@ -230,7 +244,10 @@ static JSValue MissionGetProperty(OOJS_GETTER_ARGS)
     case kMission_markedSystems: {
         // The destinations' values, in key order (-allValues gave hash order).
         oo::PList::Array values;
-        if (const oo::PList::Dict* destinations = [player cxx_getMissionDestinations].getIf<oo::PList::Dict>()) {
+        // Kept in a local: getIf() points into it, and the temporary the message answered died
+        // at the end of the if's initialiser (a dangling pointer until bead oo-nge8).
+        const oo::PList missionDestinations = [player cxx_getMissionDestinations];
+        if (const oo::PList::Dict* destinations = missionDestinations.getIf<oo::PList::Dict>()) {
             for (const auto& entry : *destinations) {
                 if (!entry.second.isNull())
                     values.push_back(entry.second);
@@ -284,13 +301,13 @@ static JSValue MissionSetProperty(OOJS_SETTER_ARGS)
 // *** Methods ***
 
 // JS_ValueToInt32() without leaving an exception pending on failure (SpiderMonkey callers cleared it).
-static BOOL ValueToInt32NoError(JSContext* context, JSValueConst value, int32_t* outValue)
+static bool ValueToInt32NoError(JSContext* context, JSValueConst value, int32_t* outValue)
 {
     if (OOJSValueToInt32(context, value, outValue))
-        return YES;
+        return true;
     if (JS_HasException(context))
         JS_FreeValue(context, JS_GetException(context)); // or JS_ValueToInt32 exception crashes JS engine
-    return NO;
+    return false;
 }
 
 // markSystem(integer+)
@@ -352,13 +369,13 @@ static JSValue MissionUnmarkSystem(OOJS_NATIVE_ARGS)
         }
     }
 
-    BOOL result = YES;
+    bool result = true;
     for (i = 0; i < argc; i++) {
         if (ValueToInt32NoError(context, OOJS_ARGV[i], &dest)) {
             cxx_OOStandardsDeprecated("Use of numbers for mission.unmarkSystem is deprecated");
             if (!OOEnforceStandards()) {
                 if (![player cxx_removeMissionDestinationMarker:[player cxx_defaultMarker:dest]]) {
-                    result = NO;
+                    result = false;
                 }
             }
         } else // must be object, from above
@@ -367,7 +384,7 @@ static JSValue MissionUnmarkSystem(OOJS_NATIVE_ARGS)
             OOSystemID system = marker.get<int>("system", -1);
             if (system >= 0) {
                 if (![player cxx_removeMissionDestinationMarker:marker]) {
-                    result = NO;
+                    result = false;
                 }
             }
         }
@@ -404,16 +421,16 @@ static JSValue MissionAddMessageText(OOJS_NATIVE_ARGS)
 // setInstructionsKey(instructionsKey: String [, missionKey : String])
 static JSValue MissionSetInstructionsKey(OOJS_NATIVE_ARGS)
 {
-    return MissionSetInstructionsInternal(context, argc, OOJS_ARGV, YES);
+    return MissionSetInstructionsInternal(context, argc, OOJS_ARGV, true);
 }
 
 // setInstructions(instructions: String [, missionKey : String])
 static JSValue MissionSetInstructions(OOJS_NATIVE_ARGS)
 {
-    return MissionSetInstructionsInternal(context, argc, OOJS_ARGV, NO);
+    return MissionSetInstructionsInternal(context, argc, OOJS_ARGV, false);
 }
 
-static JSValue MissionSetInstructionsInternal(JSContext* context, int argc, JSValueConst* argv, BOOL isKey)
+static JSValue MissionSetInstructionsInternal(JSContext* context, int argc, JSValueConst* argv, bool isKey)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -516,7 +533,7 @@ static oo::PList GetParameterImageDescriptor(JSContext* context, JSValueConst ob
 }
 
 // Get a boolean parameter; *outValue is left unchanged if the parameter is undefined.
-static void GetParameterBool(JSContext* context, JSValueConst object, const char* key, BOOL* outValue)
+static void GetParameterBool(JSContext* context, JSValueConst object, const char* key, bool* outValue)
 {
     JSValue value = GetParameter(context, object, key);
     if (!JS_IsUndefined(value)) {
@@ -543,7 +560,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     if ([player status] == STATUS_START_GAME) {
         // (though no JS should be loaded at this stage, so this
         // check may be obsolete - CIM)
-        OOJS_RETURN_BOOL(NO);
+        OOJS_RETURN_BOOL(false);
     }
 
     // Validate arguments.
@@ -609,7 +626,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     }
     JS_FreeValue(context, value);
 
-    [[OOMusicController sharedController] cxx_setMissionMusic:GetParameterString(context, params, "music")];
+    cxx::OOMusicController::sharedController()->setMissionMusic(GetParameterString(context, params, "music"));
     [player cxx_setMissionOverlayDescriptor:GetParameterImageDescriptor(context, params, "overlay")];
     [player cxx_setMissionBackgroundDescriptor:GetParameterImageDescriptor(context, params, "background")];
     [player cxx_setMissionBackgroundSpecial:GetParameterString(context, params, "backgroundSpecial").value_or("")];
@@ -666,7 +683,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
         } else {
             std::optional<std::string> role = cxx_OOStringFromJSValue(context, value);
 
-            BOOL spinning = YES;
+            bool spinning = true;
             GetParameterBool(context, params, "spinModel", &spinning);
 
             //	[player showShipModel:oo::NSStringOrNil(cxx_OOStringFromJSValue(context, value))];
@@ -696,10 +713,10 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
         }
     }
 
-    BOOL allowInterrupt = NO;
+    bool allowInterrupt = false;
     // force the allowInterrupt to be YES while in flight
     if ([player status] == STATUS_IN_FLIGHT) {
-        allowInterrupt = YES;
+        allowInterrupt = true;
     } else {
         GetParameterBool(context, params, "allowInterrupt", &allowInterrupt);
     }
@@ -727,12 +744,12 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
     }
     JS_FreeValue(context, value);
 
-    BOOL textEntry = NO;
+    bool textEntry = false;
     GetParameterBool(context, params, "textEntry", &textEntry);
     if (textEntry) {
-        [player setMissionChoiceByTextEntry:YES];
+        [player setMissionChoiceByTextEntry:true];
     } else {
-        [player setMissionChoiceByTextEntry:NO];
+        [player setMissionChoiceByTextEntry:false];
     }
 
     // Start the mission screen.
@@ -779,7 +796,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
 
     OOJSResumeTimeLimiter();
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }
@@ -789,12 +806,12 @@ static JSValue MissionRunShipLibrary(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_ENTER(context)
 
     PlayerEntity* player = OOPlayerForScripting();
-    BOOL OK = YES;
+    bool OK = true;
     if ([player status] != STATUS_DOCKED) {
         cxx_OOJSReportWarning(context, "Mission.runShipLibrary: must be docked.");
-        OK = NO;
+        OK = false;
     } else {
-        [PLAYER setGuiToIntroFirstGo:NO];
+        [PLAYER setGuiToIntroFirstGo:false];
     }
 
     OOJS_RETURN_BOOL(OK);

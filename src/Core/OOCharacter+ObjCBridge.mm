@@ -41,6 +41,17 @@ oo::ObjCPeers& Peers()
 
 } // namespace
 
+// -intValue as Foundation's number and string classes declared it (an Object node's object may answer
+// it; no Foundation header declares it since oo-qps.17).
+@protocol OOCharacterIntValue
+- (int)intValue;
+@end
+
+int oo::SendIntValue(id object)
+{
+    return [(id<OOCharacterIntValue>)object intValue];
+}
+
 @interface OOCharacter (OOObjCBridgePrivate)
 
 - (id)initWithCxxCharacter:(cxx::OOCharacter*)character;

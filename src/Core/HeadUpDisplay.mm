@@ -1263,12 +1263,12 @@ void prefetchData(const oo::PList& info, struct CachedInfo* data)
                 if (emptyDial)
                     continue;
 
-                if (isnan(scannedEntity->zero_distance))
+                if (isnan(scannedEntity->_cxxEntity->zero_distance))
                     continue;
 
                 // exit if it's too far away
-                GLfloat act_dist = sqrt(scannedEntity->zero_distance);
-                GLfloat lim_dist = act_dist - scannedEntity->collision_radius;
+                GLfloat act_dist = sqrt(scannedEntity->_cxxEntity->zero_distance);
+                GLfloat lim_dist = act_dist - scannedEntity->_cxxEntity->collision_radius;
 
                 // for efficiency, assume no scannable entity > 10km radius
                 if (act_dist > max_zoomed_range + 10000.0)
@@ -1350,7 +1350,7 @@ void prefetchData(const oo::PList& info, struct CachedInfo* data)
 
                 if ([scannedEntity isShip]) {
                     ShipEntity* ship = (ShipEntity*)scannedEntity;
-                    if ((!nonlinear_scanner && ship->collision_radius * upscale > 4.5) || (nonlinear_scanner && nonlinearScannerFunc(act_dist, zoom, siz.width) - nonlinearScannerFunc(lim_dist, zoom, siz.width) > 4.5)) {
+                    if ((!nonlinear_scanner && ship->_cxxEntity->collision_radius * upscale > 4.5) || (nonlinear_scanner && nonlinearScannerFunc(act_dist, zoom, siz.width) - nonlinearScannerFunc(lim_dist, zoom, siz.width) > 4.5)) {
                         Vector bounds[6];
                         BoundingBox bb = ship->totalBoundingBox;
                         bounds[0] = ship->v_forward;
@@ -1401,9 +1401,9 @@ void prefetchData(const oo::PList& info, struct CachedInfo* data)
                 }
                 if ([scannedEntity isCascadeWeapon]) {
                     if (nonlinear_scanner) {
-                        GLDrawNonlinearCascadeWeapon(scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->collision_radius, zoom, alpha);
+                        GLDrawNonlinearCascadeWeapon(scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->_cxxEntity->collision_radius, zoom, alpha);
                     } else {
-                        GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
+                        GLfloat r1 = 2.5 + scannedEntity->_cxxEntity->collision_radius * upscale;
                         GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
                         GLfloat r0 = (l2 > 0) ? sqrt(l2) : 0;
                         if (r0 > 0) {
@@ -1498,7 +1498,7 @@ void prefetchData(const oo::PList& info, struct CachedInfo* data)
 - (void)refreshLastTransmitter
 {
     Entity* lt = [UNIVERSE entityForUniversalID:last_transmitter];
-    if ((lt == nil) || (!(lt->isShip)))
+    if ((lt == nil) || (!(lt->_cxxEntity->isShip)))
         return;
     ShipEntity* st = (ShipEntity*)lt;
     if ([st messageTime] <= 0.0)
@@ -3386,7 +3386,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
     hudRotateViewpointForVirtualDepth(player1, p1);
 
     // draw the reticle
-    float range = sqrt(target->zero_distance) - target->collision_radius;
+    float range = sqrt(target->_cxxEntity->zero_distance) - target->_cxxEntity->collision_radius;
 
     int flash = (int)([UNIVERSE getTime] * 4);
     flash &= 1;

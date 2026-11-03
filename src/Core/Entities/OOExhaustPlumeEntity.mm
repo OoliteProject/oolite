@@ -46,47 +46,43 @@ MA 02110-1301, USA.
 
 static OOTexture* sPlumeTexture = nil;
 
-@interface OOExhaustPlumeEntity (Private)
+namespace cxx {
 
-- (void)saveToLastFrame;
-- (Frame)frameAtTime:(double)t_frame fromFrame:(Frame)frame_zero; // t_frame is relative to now ie. -0.5 = half a second ago.
-
-@end
-
-@implementation OOExhaustPlumeEntity
-
-+ (id)exhaustForShip:(ShipEntity*)ship withDefinition:(const std::vector<std::string>&)definition andScale:(float)scale
+oo::Ref<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(ShipEntity* ship, const std::vector<std::string>& definition, float scale)
 {
-    return [[[self alloc] initForShip:ship withDefinition:definition andScale:(float)scale] autorelease];
+    oo::Ref<OOExhaustPlumeEntity> exhaust = oo::makeRef<OOExhaustPlumeEntity>();
+    if (!exhaust->initForShip(ship, definition, (float)scale))
+        return nullptr;
+    return exhaust;
 }
 
-- (id)initForShip:(ShipEntity*)ship withDefinition:(const std::vector<std::string>&)tokens andScale:(float)scaleFactor
+bool OOExhaustPlumeEntity::initForShip(ShipEntity* ship, const std::vector<std::string>& tokens, float scaleFactor)
 {
     if (tokens.size() == 0) {
-        [self release];
-        return nil;
+        return false;
     }
 
-    if ((self = [super init])) {
-        [self setOwner:ship];
+    // [super init] could not fail: the constructor ran Entity's -init body.
+    {
+        setOwner(oo::ToCxx(ship));
         oo::PList::Array tokenList(tokens.begin(), tokens.end());
         const oo::PList definition(std::move(tokenList)); // at<float>: the conversion -oo_floatAtIndex: made
         HPVector pos = { definition.at<float>(0) * scaleFactor, definition.at<float>(1) * scaleFactor, definition.at<float>(2) * scaleFactor };
-        [self setPosition:pos];
+        setPosition(pos);
         // scale.z is special and *not* multiplied by scaleFactor
         Vector scale = { definition.at<float>(3) * scaleFactor, definition.at<float>(4) * scaleFactor, definition.at<float>(5) };
-        [self setScale:scale];
+        setScale(scale);
     }
 
-    return self;
+    return true;
 }
 
-- (Vector)scale
+Vector OOExhaustPlumeEntity::scale()
 {
     return _exhaustScale;
 }
 
-- (void)setScale:(Vector)scale
+void OOExhaustPlumeEntity::setScale(Vector scale)
 {
     _exhaustScale = scale;
     if (scale.z < 0.5 || scale.z > 2.0) {
@@ -94,29 +90,29 @@ static OOTexture* sPlumeTexture = nil;
     }
 }
 
-- (BOOL)isExhaust
+bool OOExhaustPlumeEntity::isExhaust()
 {
     return YES;
 }
 
-- (double)findCollisionRadius
+double OOExhaustPlumeEntity::findCollisionRadius()
 {
     return collision_radius;
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/)
 {
     // Profiling: this function and subfunctions are expensive - CIM
 
     // don't draw if there's no ship, or if we're just jumping out of witchspace/docked at a station!
-    ShipEntity* ship = [self owner];
+    ShipEntity* ship = owner();
     // also don't draw if the ship isn't visible
     if (EXPECT_NOT(ship == nil || ![ship isVisible] || ([ship isPlayer] && [ship suppressFlightNotifications])))
         return;
 
     OOTimeAbsolute now = [UNIVERSE getTime];
     if ([UNIVERSE getTime] > _trackTime + kTimeStep) {
-        [self saveToLastFrame];
+        saveToLastFrame();
         _trackTime = now;
     }
 
@@ -161,7 +157,7 @@ static OOTexture* sPlumeTexture = nil;
     if ((int)(ranrot_rand() % 25) < dam - 75)
         flare_factor = 0.0;
 
-    HPVector currentPos = ship->position;
+    HPVector currentPos = ship->_cxxEntity->position;
     Vector vfwd = [ship forwardVector];
     GLfloat spd = 0.5f * [ship flightSpeed];
     vfwd = vector_multiply_scalar(vfwd, spd);
@@ -190,15 +186,15 @@ static OOTexture* sPlumeTexture = nil;
     GLfloat r03 = 1.0f - q03;
     GLfloat r06 = 1.0f - q06;
     GLfloat r08 = 1.0f - q08;
-    Frame f01 = [self frameAtTime:i01 fromFrame:zero];
+    Frame f01 = frameAtTime(i01, zero);
     Vector b01 = make_vector(r01 * i01 * vfwd.x, r01 * i01 * vfwd.y, r01 * i01 * vfwd.z);
-    Frame f03 = [self frameAtTime:i03 fromFrame:zero];
+    Frame f03 = frameAtTime(i03, zero);
     Vector b03 = make_vector(r03 * i03 * vfwd.x, r03 * i03 * vfwd.y, r03 * i03 * vfwd.z);
-    Frame f06 = [self frameAtTime:i06 fromFrame:zero];
+    Frame f06 = frameAtTime(i06, zero);
     Vector b06 = make_vector(r06 * i06 * vfwd.x, r06 * i06 * vfwd.y, r06 * i06 * vfwd.z);
-    Frame f08 = [self frameAtTime:i08 fromFrame:zero];
+    Frame f08 = frameAtTime(i08, zero);
     Vector b08 = make_vector(r08 * i08 * vfwd.x, r08 * i08 * vfwd.y, r08 * i08 * vfwd.z);
-    Frame f10 = [self frameAtTime:i10 fromFrame:zero];
+    Frame f10 = frameAtTime(i10, zero);
 
     int ci = 0;
     int iv = 0;
@@ -359,12 +355,12 @@ static GLuint afttstr4[4] = { 4, 8, 28, 32 };
 
 static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
+void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/, bool translucent)
 {
     if (!translucent)
         return;
 
-    ShipEntity* ship = [self owner];
+    ShipEntity* ship = owner();
     if ([ship speedFactor] <= 0.001f)
         return; // don't draw if not moving according to 'update' calculation
 
@@ -396,7 +392,7 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     OOGL(glDepthMask(GL_FALSE));
     OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
     OOGL(glEnable(GL_TEXTURE_2D));
-    [[self texture] apply];
+    [texture() apply];
 
     //	OOGL(glDisable(GL_CULL_FACE));		// face culling
     OOGL(glShadeModel(GL_SMOOTH));
@@ -486,7 +482,7 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     OOGL(glTexCoordPointer(2, GL_FLOAT, 0, texCoords));
 
     // reduced detail for internal view to avoid rendering artefacts
-    if ([[self owner] isPlayer] && [UNIVERSE viewDirection] != VIEW_CUSTOM) {
+    if ([owner() isPlayer] && [UNIVERSE viewDirection] != VIEW_CUSTOM) {
         OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr1));
         OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr2));
         OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr3));
@@ -542,15 +538,15 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 #define PREV(n) ((n + kExhaustFrameCount - 1) % kExhaustFrameCount)
 #define NEXT(n) ((n + 1) % kExhaustFrameCount)
 
-- (void)saveToLastFrame
+void OOExhaustPlumeEntity::saveToLastFrame()
 {
-    ShipEntity* ship = [self owner];
+    ShipEntity* ship = owner();
 
     // Absolute position of self
     // normally this would use the transformation matrix, but that
     // introduces inaccuracies
     // so just use the rotation matrix, then translate using HPVectors
-    HPVector framePos = OOHPVectorMultiplyMatrix([self position], [ship drawRotationMatrix]);
+    HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), [ship drawRotationMatrix]);
     framePos = HPvector_add(framePos, [ship position]);
     Frame frame = { [UNIVERSE getTime], framePos, [ship normalOrientation], [ship upVector] };
 
@@ -558,7 +554,7 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     _nextFrame = (_nextFrame + 1) % kExhaustFrameCount;
 }
 
-- (Frame)frameAtTime:(double)t_frame fromFrame:(Frame)frame_zero // t_frame is relative to now ie. -0.5 = half a second ago.
+Frame OOExhaustPlumeEntity::frameAtTime(double t_frame, Frame frame_zero) // t_frame is relative to now ie. -0.5 = half a second ago.
 {
     if (t_frame >= 0.0)
         return frame_zero;
@@ -610,7 +606,7 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     return result;
 }
 
-- (void)resetPlume
+void OOExhaustPlumeEntity::resetPlume()
 {
     /*ShipEntity *ship = [self owner];
 
@@ -621,7 +617,7 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     _track[_nextFrame] = frame;
     _nextFrame = (_nextFrame + 1) % kExhaustFrameCount;*/
     _nextFrame = 0;
-    HPVector framePos = OOHPVectorMultiplyMatrix([self position], [[self owner] drawTransformationMatrix]);
+    HPVector framePos = OOHPVectorMultiplyMatrix(getPosition(), [owner() drawTransformationMatrix]);
     uint8_t i;
     for (i = 0; i < kExhaustFrameCount; i++) {
         _track[i].timeframe = 0.0;
@@ -631,54 +627,45 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
     }
 }
 
-- (void)rescaleBy:(GLfloat)factor
+void OOExhaustPlumeEntity::rescaleBy(GLfloat factor)
 {
     _exhaustScale = vector_multiply_scalar(_exhaustScale, factor);
 }
 
-- (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+void OOExhaustPlumeEntity::rescaleBy(GLfloat /*factor*/, bool /*writeToCache*/)
 {
     /* Do nothing; this is only needed because of OOEntityWithDrawable
        implementation requirements */
 }
 
-- (OOTexture*)texture
+::OOTexture* OOExhaustPlumeEntity::texture()
 {
-    return [OOExhaustPlumeEntity plumeTexture];
+    return OOExhaustPlumeEntity::plumeTexture();
 }
 
-+ (void)setUpTexture
+void OOExhaustPlumeEntity::setUpTexture()
 {
     if (sPlumeTexture == nil) {
-        sPlumeTexture = [[OOTexture cxx_textureWithName:"oolite-exhaust-blur.png"
-                                               inFolder:"Textures"
-                                                options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
-                                             anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                lodBias:0.0] retain];
-        [[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOExhaustPlumeEntity class]];
+        sPlumeTexture = [[::OOTexture cxx_textureWithName:"oolite-exhaust-blur.png"
+                                                 inFolder:"Textures"
+                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS
+                                               anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                                  lodBias:0.0] retain];
+        OOGraphicsResetManager::sharedManager()->registerClient([::OOExhaustPlumeEntity class]); // the facade class answers +resetGraphicsState
     }
 }
 
-+ (OOTexture*)plumeTexture
+::OOTexture* OOExhaustPlumeEntity::plumeTexture()
 {
     if (sPlumeTexture == nil)
-        [self setUpTexture];
+        setUpTexture();
     return sPlumeTexture;
 }
 
-+ (void)resetGraphicsState
+void OOExhaustPlumeEntity::resetGraphicsState()
 {
     [sPlumeTexture release];
     sPlumeTexture = nil;
 }
 
-@end
-
-@implementation Entity (OOExhaustPlume)
-
-- (BOOL)isExhaust
-{
-    return NO;
-}
-
-@end
+} // namespace cxx

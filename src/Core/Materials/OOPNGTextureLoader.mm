@@ -1,6 +1,6 @@
 /*
 
-OOPNGTextureLoader.m
+OOPNGTextureLoader.mm
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -34,20 +34,15 @@ SOFTWARE.
 
 // void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
 
-static void PNGError(png_structp png, png_const_charp message);
-static void PNGWarning(png_structp png, png_const_charp message);
-static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
+namespace {
 
-@interface OOPNGTextureLoader (OOPrivate)
+void PNGError(png_structp png, png_const_charp message);
+void PNGWarning(png_structp png, png_const_charp message);
+void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 
-- (void)doLoadTexture;
-- (void)readBytes:(png_bytep)bytes count:(png_size_t)count;
+} // namespace
 
-@end
-
-@implementation OOPNGTextureLoader
-
-- (void)loadTexture
+void OOPNGTextureLoader::loadTexture()
 {
     // Get data from file
     fileData = OODataFromOXZFile(_path);
@@ -55,26 +50,20 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
         return;
     length = fileData->length();
 
-    [self doLoadTexture];
+    doLoadTexture();
 
     fileData.reset();
 }
 
-- (void)dealloc
+OOPNGTextureLoader::~OOPNGTextureLoader()
 {
     fileData.reset();
     if (png != NULL) {
         png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
     }
-
-    [super dealloc];
 }
 
-@end
-
-@implementation OOPNGTextureLoader (OOPrivate)
-
-- (void)doLoadTexture
+void OOPNGTextureLoader::doLoadTexture()
 {
     png_bytepp rows = NULL;
     png_uint_32 pngWidth,
@@ -84,7 +73,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
     uint32_t i;
 
     // Set up PNG decoding
-    png = png_create_read_struct(PNG_LIBPNG_VER_STRING, self, PNGError, PNGWarning);
+    png = png_create_read_struct(PNG_LIBPNG_VER_STRING, this, PNGError, PNGWarning);
     if (png != NULL)
         pngInfo = png_create_info_struct(png);
     if (pngInfo != NULL)
@@ -103,7 +92,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
         goto FAIL;
     }
 
-    png_set_read_fn(png, self, PNGRead);
+    png_set_read_fn(png, this, PNGRead);
 
     png_read_info(png, pngInfo);
     // Read header, get format info and check that it meets our expectations.
@@ -147,7 +136,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
     _data = malloc(_rowBytes * _height);
     if (EXPECT_NOT(rows == NULL || _data == NULL)) {
         if (rows != NULL) {
-            free(rows);
+            free(static_cast<void*>(rows));
             rows = NULL;
         }
         if (_data != NULL) {
@@ -165,11 +154,11 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
     png_read_end(png, pngEndInfo);
 
 FAIL:
-    free(rows);
+    free(static_cast<void*>(rows));
     png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
 }
 
-- (void)readBytes:(png_bytep)bytes count:(png_size_t)count
+void OOPNGTextureLoader::readBytes(png_bytep bytes, png_size_t count)
 {
     // Check that we're within the file's bounds
     if (EXPECT_NOT(length - offset < count)) {
@@ -186,8 +175,6 @@ FAIL:
     offset += count;
 }
 
-@end
-
 /*	Minor detail: libpng 1.4.0 removed trailing .s from error and warning
         messages. It's also binary-incompatible with 1.2 and earlier, so it's
         reasonable to make this test at build time.
@@ -198,10 +185,19 @@ FAIL:
 #define MSG_TERMINATOR ""
 #endif
 
-static void PNGError(png_structp png, png_const_charp message)
+namespace {
+
+// The path in a message, as [loader cxx_path] printed it: "(null)" before libpng has the loader as
+// its I/O pointer (errors while it is set up).
+std::string LoaderPath(OOPNGTextureLoader* loader)
 {
-    OOPNGTextureLoader* loader = (OOPNGTextureLoader*)png_get_io_ptr(png);
-    OO_LOG("texture.load.png.error", "***** A PNG loading error occurred for {}: {}" MSG_TERMINATOR, [loader cxx_path].value_or("(null)"), message);
+    return loader != nullptr ? loader->path().value_or("(null)") : std::string("(null)");
+}
+
+void PNGError(png_structp png, png_const_charp message)
+{
+    OOPNGTextureLoader* loader = static_cast<OOPNGTextureLoader*>(png_get_io_ptr(png));
+    OO_LOG("texture.load.png.error", "***** A PNG loading error occurred for {}: {}" MSG_TERMINATOR, LoaderPath(loader), message);
 
 #if PNG_LIBPNG_VER >= 10500
     png_longjmp(png, 1);
@@ -210,14 +206,17 @@ static void PNGError(png_structp png, png_const_charp message)
 #endif
 }
 
-static void PNGWarning(png_structp png, png_const_charp message)
+void PNGWarning(png_structp png, png_const_charp message)
 {
-    OOPNGTextureLoader* loader = (OOPNGTextureLoader*)png_get_io_ptr(png);
-    OO_LOG("texture.load.png.warning", "----- A PNG loading warning occurred for {}: {}" MSG_TERMINATOR, [loader cxx_path].value_or("(null)"), message);
+    OOPNGTextureLoader* loader = static_cast<OOPNGTextureLoader*>(png_get_io_ptr(png));
+    OO_LOG("texture.load.png.warning", "----- A PNG loading warning occurred for {}: {}" MSG_TERMINATOR, LoaderPath(loader), message);
 }
 
-static void PNGRead(png_structp png, png_bytep bytes, png_size_t size)
+void PNGRead(png_structp png, png_bytep bytes, png_size_t size)
 {
-    OOPNGTextureLoader* loader = (OOPNGTextureLoader*)png_get_io_ptr(png);
-    [loader readBytes:bytes count:size];
+    OOPNGTextureLoader* loader = static_cast<OOPNGTextureLoader*>(png_get_io_ptr(png));
+    if (loader != nullptr)
+        loader->readBytes(bytes, size); // a nil loader read nothing
 }
+
+} // namespace

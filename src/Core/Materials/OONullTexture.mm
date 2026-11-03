@@ -29,88 +29,54 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOTextureInternal.h"
 
-static OONullTexture* sSingleton = nil;
+namespace {
 
-@implementation OONullTexture
+cxx::OONullTexture* sSingleton = nullptr;
 
-+ (OONullTexture*)sharedNullTexture
+} // namespace
+
+namespace cxx {
+
+OONullTexture* OONullTexture::sharedNullTexture()
 {
     // NOTE: assumes single-threaded access.
-    if (sSingleton == nil) {
-        sSingleton = [[self alloc] init];
+    if (sSingleton == nullptr) {
+        sSingleton = oo::makeRef<OONullTexture>().leakRef();
     }
 
     return sSingleton;
 }
 
-- (void)apply
+void OONullTexture::apply()
 {
-    [OOTexture applyNone];
+    OOTexture::applyNone();
 }
 
-- (NSSize)dimensions
+NSSize OONullTexture::dimensions()
 {
     return NSZeroSize;
 }
 
-- (BOOL)isMipMapped
+bool OONullTexture::isMipMapped()
 {
-    return NO;
+    return false;
 }
 
-- (void)forceRebind
+void OONullTexture::forceRebind()
 {
 }
 
 #ifndef NDEBUG
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OONullTexture::name()
 {
     return std::string("<null texture>");
 }
 #endif
 
-@end
-
-@implementation OONullTexture (Singleton)
-
-/*	Canonical singleton boilerplate.
-        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-        See also +nullTexture above.
-
-        NOTE: assumes single-threaded access.
+/*	The (Singleton) category's canonical singleton boilerplate (+allocWithZone: answering nil after
+        the first, -copyWithZone: answering self, and -retain/-release/-autorelease doing nothing) is
+        not translated: nothing but sharedNullTexture() makes the object, and the one reference it
+        keeps is never released (amendment oo-r7m0 item 1).
 */
 
-+ (id)allocWithZone:(OOZone*)inZone
-{
-    if (sSingleton == nil) {
-        sSingleton = [super allocWithZone:inZone];
-        return sSingleton;
-    }
-    return nil;
-}
-
-- (id)copyWithZone:(OOZone*)inZone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
-@end
+} // namespace cxx

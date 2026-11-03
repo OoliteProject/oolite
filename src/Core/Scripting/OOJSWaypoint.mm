@@ -29,9 +29,20 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOWaypointEntity.h"
 
+/*
+        C++20 since bead oo-mae5, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
+        OOWaypointEntity became free functions, and its methods and interface moved to
+        OOJSWaypoint+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
+        Objective-C (OOWaypointEntity, Entity, Universe, PlayerEntity) stay as they are, which is
+        why the file is still .mm until Phase 4.
+*/
+
 static JSClassID sWaypointClassID;
 
-static BOOL JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity);
+static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity);
 
 static JSValue WaypointGetProperty(OOJS_GETTER_ARGS);
 static JSValue WaypointSetProperty(OOJS_SETTER_ARGS);
@@ -78,48 +89,42 @@ JSClassID JSWaypointClassID(void)
     return sWaypointClassID;
 }
 
-static BOOL JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity)
+static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypointObj, OOWaypointEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, waypointObj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[OOWaypointEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (OOWaypointEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-@implementation OOWaypointEntity (OOJavaScriptExtensions)
-
-- (JSClassID)oo_jsClassID
-{
-    return sWaypointClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// The bodies of OOWaypointEntity (OOJavaScriptExtensions), whose methods are in
+// OOJSWaypoint+ObjCBridge.mm until OOWaypointEntity converts (proposed ADR-0056 amendments oo-ppc
+// and oo-ykoy).
+std::optional<std::string> OOJSWaypointJSClassName(void)
 {
     return std::string("Waypoint");
 }
 
-- (BOOL)isVisibleToScripts
+bool OOJSWaypointIsVisibleToScripts(void)
 {
-    return YES;
+    return true;
 }
-
-@end
 
 static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
 {

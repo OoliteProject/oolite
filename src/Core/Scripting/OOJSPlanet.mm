@@ -32,6 +32,18 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #include "oofnd/objc/OOAssert.h"
 
+/*
+        C++20 since bead oo-7ixd, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOPlanetEntity
+        became two free functions, and its methods moved to OOJSPlanet+ObjCBridge.mm (amendment
+        oo-ykoy); its -oo_jsClassID answers JSPlanetClassID(). OOColor, which is C++ since bead
+        oo-11m, is reached as cxx::OOColor through oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4).
+        Messages to classes that are still Objective-C (OOPlanetEntity, Universe) stay as they are,
+        which is why the file is still .mm until Phase 4.
+*/
+
 static JSClassID sPlanetClassID;
 
 static JSValue PlanetGetProperty(OOJS_GETTER_ARGS);
@@ -40,12 +52,12 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS);
 namespace {
 
     // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(OOColor* color)
+    oo::PList NormalizedColorComponents(cxx::OOColor* color)
     {
-        if (color == nil)
+        if (color == nullptr)
             return oo::PList();
         oo::PList::Array components;
-        for (float component : [color cxx_normalizedArray])
+        for (float component : color->normalizedArray())
             components.push_back(oo::PList::singleReal(component));
         return oo::PList(std::move(components));
     }
@@ -110,22 +122,18 @@ JSClassID JSPlanetClassID(void)
     return sPlanetClassID;
 }
 
-@implementation OOPlanetEntity (OOJavaScriptExtensions)
-
-- (BOOL)isVisibleToScripts
+// The bodies of OOPlanetEntity (OOJavaScriptExtensions), whose methods are in
+// OOJSPlanet+ObjCBridge.mm until OOPlanetEntity converts (proposed ADR-0056 amendments oo-ppc and
+// oo-ykoy).
+bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet)
 {
-    OOStellarBodyType type = [self planetType];
+    OOStellarBodyType type = [planet planetType];
     return type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON;
 }
 
-- (JSClassID)oo_jsClassID
+std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet)
 {
-    return sPlanetClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
-{
-    switch ([self planetType]) {
+    switch ([planet planetType]) {
     case STELLAR_TYPE_NORMAL_PLANET:
         return std::string("Planet");
     case STELLAR_TYPE_MOON:
@@ -134,8 +142,6 @@ JSClassID JSPlanetClassID(void)
         return std::string("Unknown");
     }
 }
-
-@end
 
 static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
 {
@@ -147,7 +153,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kPlanet_airColor:
-        return OOJSValueFromPList(context, NormalizedColorComponents([planet airColor]));
+        return OOJSValueFromPList(context, NormalizedColorComponents(oo::ToCxx([planet airColor])));
 
     case kPlanet_airColorMixRatio:
         return JS_NewNumber(context, [planet airColorMixRatio]);
@@ -156,7 +162,7 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
         return JS_NewNumber(context, [planet airDensity]);
 
     case kPlanet_illuminationColor:
-        return OOJSValueFromPList(context, NormalizedColorComponents([planet illuminationColor]));
+        return OOJSValueFromPList(context, NormalizedColorComponents(oo::ToCxx([planet illuminationColor])));
 
     case kPlanet_isMainPlanet:
         return OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
@@ -203,16 +209,16 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
     Quaternion qValue;
     Vector vValue;
     double dValue;
-    OOColor* colorForScript = nil;
+    oo::Ref<cxx::OOColor> colorForScript;
 
     if (!JSPlanetGetPlanetEntity(context, thisObj, &planet))
         return OOJSNativeFailure(context);
 
     switch (magic) {
     case kPlanet_airColor:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            [planet setAirColor:colorForScript];
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            [planet setAirColor:oo::ToObjC(colorForScript.get())];
             return JS_UNDEFINED;
         }
         break;
@@ -232,9 +238,9 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlanet_illuminationColor:
-        colorForScript = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (colorForScript != nil || JS_IsNull(value)) {
-            [planet setIlluminationColor:colorForScript];
+        colorForScript = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (colorForScript != nullptr || JS_IsNull(value)) {
+            [planet setIlluminationColor:oo::ToObjC(colorForScript.get())];
             return JS_UNDEFINED;
         }
         break;
@@ -245,7 +251,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
         return JS_UNDEFINED;
 
     case kPlanet_texture: {
-        BOOL OK = NO;
+        bool OK = false;
         sValue = cxx_OOStringFromJSValue(context, value);
 
 
@@ -255,7 +261,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
             if (!sValue.has_value()) {
                 cxx_OOJSReportWarning(context, "Expected texture string. Value not set.");
             } else {
-                OK = YES;
+                OK = true;
             }
         }
 

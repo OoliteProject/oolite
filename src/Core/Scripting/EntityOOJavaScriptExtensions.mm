@@ -2,6 +2,13 @@
 
 EntityOOJavaScriptExtensions.m (QuickJS-ng)
 
+C++20 since bead oo-g223 (proposed ADR-0056, amendments oo-ppc and oo-ykoy): the bodies of the
+categories Entity (OOJavaScriptExtensions) and ShipEntity (OOJavaScriptExtensions) as free
+functions (EntityOOJavaScriptExtensions.h). A method that used self takes the object as its first
+parameter, and its messages to the object stay messages: the categories are overridden by
+subclasses that are still Objective-C. The categories' forwarders are in
+EntityOOJavaScriptExtensions+ObjCBridge.mm.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -34,93 +41,91 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #include "oofnd/Notification.hpp"
 
-@implementation Entity (OOJavaScriptExtensions)
+// MARK: Entity (OOJavaScriptExtensions)
 
-- (BOOL)isVisibleToScripts
+bool EntityJSIsVisibleToScripts(void)
 {
-    return NO;
+    return false;
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> EntityJSClassName(void)
 {
     return std::string("Entity");
 }
 
-- (JSValue)oo_jsValueInContext:(JSContext*)context
+JSValue EntityJSValueInContext(Entity* entity, JSContext* context)
 {
-    if (!JS_IsObject(_jsSelf) && [self isVisibleToScripts]) {
+    if (!JS_IsObject(entity->_cxxEntity->_jsSelf) && [entity isVisibleToScripts]) {
         // Create JS object. The entity keeps a reference to it for as long as the entity exists.
-        _jsSelf = JS_NewObjectClass(context, (int)[self oo_jsClassID]);
-        if (JS_IsException(_jsSelf)) {
+        entity->_cxxEntity->_jsSelf = JS_NewObjectClass(context, (int)[entity oo_jsClassID]);
+        if (JS_IsException(entity->_cxxEntity->_jsSelf)) {
             JS_FreeValue(context, JS_GetException(context));
-            _jsSelf = JS_UNDEFINED;
+            entity->_cxxEntity->_jsSelf = JS_UNDEFINED;
         } else {
-            JS_SetOpaque(_jsSelf, OOConsumeReference([self weakRetain]));
+            JS_SetOpaque(entity->_cxxEntity->_jsSelf, OOConsumeReference([entity weakRetain]));
 
-            oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+            oo::NotificationCenter::defaultCenter().addObserver(entity, kOOJavaScriptEngineWillResetNotificationName,
                 [OOJavaScriptEngine sharedEngine],
-                [self](const oo::Notification&) { [self deleteJSSelf]; });
+                [entity](const oo::Notification&) { [entity deleteJSSelf]; });
         }
     }
 
-    if (JS_IsObject(_jsSelf))
-        return JS_DupValue(context, _jsSelf);
+    if (JS_IsObject(entity->_cxxEntity->_jsSelf))
+        return JS_DupValue(context, entity->_cxxEntity->_jsSelf);
 
     return JS_NULL;
     // Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
 
-- (JSClassID)oo_jsClassID
+JSClassID EntityJSClassID(void)
 {
     return JSEntityClassID();
 }
 
-- (void)deleteJSSelf
+void EntityJSDeleteJSSelf(Entity* entity)
 {
-    if (JS_IsObject(_jsSelf)) {
+    if (JS_IsObject(entity->_cxxEntity->_jsSelf)) {
         /*	Scripts may still hold the JS object. Its private data is a weak
                 reference, so it becomes stale (isValid false) when the entity is
                 deallocated.
         */
-        JS_FreeValue(OOJSAcquireContext(), _jsSelf);
-        _jsSelf = JS_UNDEFINED;
+        JS_FreeValue(OOJSAcquireContext(), entity->_cxxEntity->_jsSelf);
+        entity->_cxxEntity->_jsSelf = JS_UNDEFINED;
 
-        oo::NotificationCenter::defaultCenter().removeObserver(self, kOOJavaScriptEngineWillResetNotificationName,
+        oo::NotificationCenter::defaultCenter().removeObserver(entity, kOOJavaScriptEngineWillResetNotificationName,
             [OOJavaScriptEngine sharedEngine]);
     }
 }
 
-@end
+// MARK: ShipEntity (OOJavaScriptExtensions)
 
-@implementation ShipEntity (OOJavaScriptExtensions)
-
-- (BOOL)isVisibleToScripts
+bool ShipEntityJSIsVisibleToScripts(void)
 {
-    return YES;
+    return true;
 }
 
-- (JSClassID)oo_jsClassID
+JSClassID ShipEntityJSClassID(void)
 {
     return JSShipClassID();
 }
 
-- (std::optional<std::string>)cxx_oo_jsClassName
+std::optional<std::string> ShipEntityJSClassName(void)
 {
     return std::string("Ship");
 }
 
-- (std::vector<oo::ObjCRef<Entity*>>)subEntitiesForScript
+std::vector<oo::ObjCRef<Entity*>> ShipEntityJSSubEntitiesForScript(ShipEntity* ship)
 {
     std::vector<oo::ObjCRef<Entity*>> result;
-    for (const auto& sub : [self cxx_shipSubEntities]) {
+    for (const auto& sub : [ship cxx_shipSubEntities]) {
         result.emplace_back(sub.get());
     }
     return result;
 }
 
-- (void)setTargetForScript:(ShipEntity*)target
+void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target)
 {
-    ShipEntity* me = self;
+    ShipEntity* me = ship;
 
     // Ensure coherence by not fiddling with subentities.
     while ([me isSubEntity]) {
@@ -140,5 +145,3 @@ MA 02110-1301, USA.
     } else
         [me removeTarget:[me primaryTarget]];
 }
-
-@end

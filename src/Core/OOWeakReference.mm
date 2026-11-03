@@ -39,12 +39,6 @@ This code is hereby placed in the public domain.
         a set of weak references (OOWeakSet) keeps its iteration order.
 */
 
-// -className as the GNUstep bridge declared it (the object may answer it; nothing declares it since
-// oo-3rb.4 deleted OOObjectGNUstepBridge). The Objective-C -className forwarded it unchanged.
-@protocol OOWeakReferenceClassName
-- (id)className;
-@end
-
 namespace cxx {
 
 // *** Core functionality.
@@ -148,7 +142,7 @@ std::optional<std::string> OOWeakReference::shortDescriptionComponents()
 
 id OOWeakReference::className()
 {
-    return [(id<OOWeakReferenceClassName>)_object className];
+    return oo::SendClassName(_object); // the message send is the bridge's (bead oo-9ht.66)
 }
 
 size_t OOWeakReference::oo_objectSize()

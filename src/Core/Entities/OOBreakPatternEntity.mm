@@ -30,19 +30,14 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 
-@interface OOBreakPatternEntity (Private)
+namespace cxx {
 
-- (void)setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2;
-
-@end
-
-@implementation OOBreakPatternEntity
-
-- (id)initWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
+void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio)
 {
     sides = MIN(MAX((NSUInteger)3, sides), (NSUInteger)kOOBreakPatternMaxSides);
 
-    if ((self = [super init])) {
+    // [super init] could not fail: the constructor ran Entity's -init body.
+    {
         _vertexCount = (sides + 1) * 2;
         float angle = startAngleDegrees * M_PI / 180.0f;
         float deltaAngle = M_PI * 2.0f / sides;
@@ -63,32 +58,35 @@ MA 02110-1301, USA.
         _vertexPosition[vi++] = _vertexPosition[0];
         _vertexPosition[vi++] = _vertexPosition[1];
 
-        [self setInnerColorComponents:(GLfloat[]) { 1.0f, 0.0f, 0.0f, 0.5f }
-                 outerColorComponents:(GLfloat[]) { 0.0f, 0.0f, 1.0f, 0.25f }];
+        setInnerColorComponents((GLfloat[]) { 1.0f, 0.0f, 0.0f, 0.5f },
+            (GLfloat[]) { 0.0f, 0.0f, 1.0f, 0.25f });
 
-        [self setStatus:STATUS_EFFECT];
-        [self setScanClass:CLASS_NO_DRAW];
+        setStatus(STATUS_EFFECT);
+        setScanClass(CLASS_NO_DRAW);
 
         isImmuneToBreakPatternHide = YES;
     }
-
-    return self;
 }
 
-+ (instancetype)breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio
+oo::Ref<OOBreakPatternEntity> OOBreakPatternEntity::breakPatternWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio)
 {
-    return [[[self alloc] initWithPolygonSides:sides startAngle:startAngleDegrees aspectRatio:aspectRatio] autorelease];
+    const oo::Ref<OOBreakPatternEntity> ring = oo::makeRef<OOBreakPatternEntity>();
+    ring->initWithPolygonSides(sides, startAngleDegrees, aspectRatio);
+    return ring;
 }
 
-- (void)setInnerColor:(OOColor*)color1 outerColor:(OOColor*)color2
+void OOBreakPatternEntity::setInnerColor(OOColor* color1, OOColor* color2)
 {
+    // Messages to a nil colour did nothing: those components stay uninitialised, as they did.
     GLfloat inner[4], outer[4];
-    [color1 getRed:&inner[0] green:&inner[1] blue:&inner[2] alpha:&inner[3]];
-    [color2 getRed:&outer[0] green:&outer[1] blue:&outer[2] alpha:&outer[3]];
-    [self setInnerColorComponents:inner outerColorComponents:outer];
+    if (color1 != nullptr)
+        color1->getRed(&inner[0], &inner[1], &inner[2], &inner[3]);
+    if (color2 != nullptr)
+        color2->getRed(&outer[0], &outer[1], &outer[2], &outer[3]);
+    setInnerColorComponents(inner, outer);
 }
 
-- (void)setInnerColorComponents:(GLfloat[4])color1 outerColorComponents:(GLfloat[4])color2
+void OOBreakPatternEntity::setInnerColorComponents(GLfloat color1[4], GLfloat color2[4])
 {
     GLfloat* colors[2] = { color1, color2 };
 
@@ -98,22 +96,22 @@ MA 02110-1301, USA.
     }
 }
 
-- (void)setLifetime:(double)lifetime
+void OOBreakPatternEntity::setLifetime(double lifetime)
 {
     _lifetime = lifetime;
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOBreakPatternEntity::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
+    Entity::update(delta_t);
 
     _lifetime -= BREAK_PATTERN_RING_SPEED * delta_t;
     if (_lifetime < 0.0) {
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
     }
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OOBreakPatternEntity::drawImmediate(bool immediate, bool translucent)
 {
     // check if has been hidden.
     if (!isImmuneToBreakPatternHide)
@@ -143,27 +141,18 @@ MA 02110-1301, USA.
         OOGL(glDisableClientState(GL_COLOR_ARRAY));
 
         OOVerifyOpenGLState();
-        cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOBreakPatternEntity after drawing " + oo::DescriptionOf(self); });
+        cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOBreakPatternEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
     }
 }
 
-- (BOOL)canCollide
+bool OOBreakPatternEntity::canCollide()
 {
     return NO;
 }
 
-- (BOOL)isBreakPattern
+bool OOBreakPatternEntity::isBreakPattern()
 {
     return YES;
 }
 
-@end
-
-@implementation Entity (OOBreakPatternEntity)
-
-- (BOOL)isBreakPattern
-{
-    return NO;
-}
-
-@end
+} // namespace cxx

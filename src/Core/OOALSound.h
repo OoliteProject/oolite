@@ -4,6 +4,12 @@ OOALSound.h
 
 OOALSound - OpenAL sound implementation for Oolite.
 
+C++20 since bead oo-2en, the Audio module's pattern seam (proposed ADR-0056, amendment oo-2en).
+The class is cxx::OOSound while OOALSound+ObjCBridge.h, imported at the end of this header, keeps
+the Objective-C OOSound that its callers message and its unconverted subclasses
+(OOALBufferedSound, OOALStreamedSound, OOMusic) derive from; the bridge's deletion bead moves it
+out of namespace cxx.
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -24,28 +30,57 @@ SOFTWARE.
 
 */
 
+#ifndef OOALSOUND_H
+#define OOALSOUND_H
+
 #import "OOFoundation.h"
 #import "OOOpenALController.h"
 #import "oofnd/objc/OOObject.h"
 
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
-@interface OOSound : OOObject
+@class OOSound;
 
-+ (BOOL)setUp;
-+ (void)update;
+namespace cxx {
 
-+ (void)setMasterVolume:(float)fraction;
-+ (float)masterVolume;
+class OOSound : public oo::RefCounted {
+public:
+    OOSound();
 
-- (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)path OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
+    static bool setUp();
+    static void update();
 
-- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.3)
+    static void setMasterVolume(float fraction);
+    static float masterVolume();
 
-+ (BOOL)isSoundOK;
+    /*	Was -cxx_initWithContentsOfFile:, a class cluster's initialiser: it answered, in place of
+            the receiver, an OOALBufferedSound for up to 1 MB of decoded data, else an
+            OOALStreamedSound. Those are Objective-C subclasses, so the result is the Objective-C
+            object, retained (proposed ADR-0056, amendment oo-smy item 4: an Objective-C sound's C++
+            part does not retain it). Null where it answered nil: sound not OK, no decoder for the
+            path, or the concrete sound refused.
+    */
+    static oo::ObjCRef<::OOSound*> initWithContentsOfFile(const std::optional<std::string>& path); // nullopt: null (bead oo-3rb.292.2)
 
-- (ALuint)soundBuffer;
-- (BOOL)soundIncomplete;
-- (void)rewind;
+    virtual std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.3)
 
-@end
+    static bool isSoundOK();
+
+    virtual ALuint soundBuffer();
+    virtual bool soundIncomplete();
+    virtual void rewind();
+
+    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
+    // OOObject answered.
+    virtual std::optional<std::string> descriptionComponents() const;
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOSound, for callers and subclasses not yet converted.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOALSound+ObjCBridge.h"
+
+#endif // OOALSOUND_H

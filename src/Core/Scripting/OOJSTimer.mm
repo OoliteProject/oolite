@@ -112,7 +112,7 @@ bool OOJSTimer::initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSCont
             return false;
         }
 
-        _owningScript = oo::adoptObjC(static_cast<OOJSScript*>([[OOJSScript currentlyRunningScript] weakRetain]));
+        _owningScript = oo::adoptObjC(static_cast<::OOJSScript*>([[::OOJSScript currentlyRunningScript] weakRetain]));
 
         oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
             [OOJavaScriptEngine sharedEngine],

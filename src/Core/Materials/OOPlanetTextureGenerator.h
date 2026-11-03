@@ -25,11 +25,15 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOPLANETTEXTUREGENERATOR_H
+#define OOPLANETTEXTUREGENERATOR_H
+
 #import "OOMaths.h"
 #import "OOTextureGenerator.h"
 #include "oofnd/PList.hpp"
 
-@class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
+class OOPlanetNormalMapGenerator; // private to OOPlanetTextureGenerator.mm
+class OOPlanetAtmosphereGenerator;
 
 typedef struct OOPlanetTextureGeneratorInfo {
     RANROTSeed seed;
@@ -71,24 +75,58 @@ typedef struct OOPlanetTextureGeneratorInfo {
     BOOL perlin3d;
 } OOPlanetTextureGeneratorInfo;
 
-@interface OOPlanetTextureGenerator : OOTextureGenerator {
-@private
-    OOPlanetTextureGeneratorInfo _info;
-    unsigned _planetScale;
-
-    OOPlanetNormalMapGenerator* _nMapGenerator;
-    OOPlanetAtmosphereGenerator* _atmoGenerator;
-}
-
-/*	planetInfo is the planet's material parameters, a mixed configuration: plist values with the
-        colours as PList::Object nodes holding OOColors (proposed ADR-0043 Amendment 2; the
-        selector-family flip oo-3rb.269.2, which ended the id boundary of beads oo-lzk6 / oo-2pmp).
+/*	Phase 3 (bead oo-kyje, proposed ADR-0056 amendments oo-bj8 item 12, oo-fn2f, oo-novu, oo-rr2x
+        item 3, oo-kvqq and oo-y3dd): a converted leaf of the texture generators, global, over
+        cxx::OOTextureGenerator, with no facade of its own; so are the two helper generators private to
+        its file. Its one caller (OOPlanetEntity) calls the static members; a texture takes a
+        generator's facade, oo::ToObjC(generator), an OOTextureGenerator.
 */
-- (id)initWithPlanetInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
+class OOPlanetTextureGenerator : public cxx::OOTextureGenerator {
+public:
+    ~OOPlanetTextureGenerator() override; // was -dealloc
 
-+ (OOTexture*)planetTextureWithInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed;
+    /*	planetInfo is the planet's material parameters, a mixed configuration: plist values with the
+            colours as PList::Object nodes holding OOColors (proposed ADR-0043 Amendment 2; the
+            selector-family flip oo-3rb.269.2, which ended the id boundary of beads oo-lzk6 / oo-2pmp).
+            Was [[OOPlanetTextureGenerator alloc] initWithPlanetInfo:seed:]; null where that answered
+            nil (amendment oo-novu).
+    */
+    static oo::Ref<OOPlanetTextureGenerator> generatorWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed);
+    bool initWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed); // false where it answered nil
 
-@end
+    /*	Were +planetTextureWithInfo:seed: and the three +generatePlanetTexture:...; the textures are
+            answered retained (amendment oo-2en item 2). The one that took a texture and an atmosphere
+            (+generatePlanetTexture:andAtmosphere:withInfo:seed:) has its own name: its arguments have
+            the types of the one that took a texture and a secondary texture.
+    */
+    static oo::ObjCRef<::OOTexture*> planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generatePlanetTextureAndAtmosphere(oo::ObjCRef<::OOTexture*>* texture, oo::ObjCRef<::OOTexture*>* atmosphere, const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generatePlanetTexture(oo::ObjCRef<::OOTexture*>* texture, oo::ObjCRef<::OOTexture*>* secondaryTexture, const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generatePlanetTexture(oo::ObjCRef<::OOTexture*>* texture, oo::ObjCRef<::OOTexture*>* secondaryTexture, oo::ObjCRef<::OOTexture*>* atmosphere, const oo::PList& planetInfo, RANROTSeed seed);
+
+    std::optional<std::string> descriptionComponents() const override;
+    uint32_t textureOptions() override;
+    std::optional<std::string> cacheKey() override;
+
+    /*	Was -getResult:format:width:height:, whose keywords are not the root's
+            -getResult:format:originalWidth:originalHeight:, so it never overrode it and nothing sends it;
+            kept, under a name that does not override getResult() either (amendment oo-y3dd).
+    */
+    bool getResultFormatWidthHeight(OOPixMap* outData, OOTextureDataFormat* outFormat, uint32_t* outWidth, uint32_t* outHeight);
+
+    void loadTexture() override;
+
+private:
+    std::optional<std::string> cacheKeyForType(const std::string& type);
+    OOPlanetNormalMapGenerator* normalMapGenerator(); // Must be called before generator is enqueued for rendering.
+    OOPlanetAtmosphereGenerator* atmosphereGenerator(); // Must be called before generator is enqueued for rendering.
+    void dumpNoiseBuffer(float* noise); // defined where the .mm's DEBUG_DUMP_RAW is set
+
+    OOPlanetTextureGeneratorInfo _info = { };
+    unsigned _planetScale = { };
+
+    oo::Ref<OOPlanetNormalMapGenerator> _nMapGenerator;
+    oo::Ref<OOPlanetAtmosphereGenerator> _atmoGenerator;
+};
+
+#endif // OOPLANETTEXTUREGENERATOR_H

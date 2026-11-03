@@ -286,7 +286,9 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
     static OOBasicMaterial* placeholderMaterial = nil;
 
     if (placeholderMaterial == nil) {
-        const oo::PList* noTextures = [ResourceManager cxx_materialDefaults].find("no-textures-material");
+        // +cxx_materialDefaults answers a copy: keep it alive while noTextures points into it (bead oo-f4241).
+        const oo::PList materialDefaults = [ResourceManager cxx_materialDefaults];
+        const oo::PList* noTextures = materialDefaults.find("no-textures-material");
         placeholderMaterial = [[OOBasicMaterial alloc] initWithName:std::string("/placeholder/") configuration:(noTextures != nullptr ? *noTextures : oo::PList())];
     }
 

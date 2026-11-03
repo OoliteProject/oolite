@@ -64,6 +64,18 @@ void OOGraphicsResetManager::unregisterClient(id client)
     clients.erase(client);
 }
 
+void OOGraphicsResetManager::registerCxxClient(OOGraphicsResetClient* client)
+{
+    if (client != nullptr) {
+        cxxClients.insert(client);
+    }
+}
+
+void OOGraphicsResetManager::unregisterCxxClient(OOGraphicsResetClient* client)
+{
+    cxxClients.erase(client);
+}
+
 void OOGraphicsResetManager::resetGraphicsState()
 {
     OOGL(glFinish());
@@ -72,7 +84,7 @@ void OOGraphicsResetManager::resetGraphicsState()
     oo::log::indentIf("rendering.reset.start");
 
     OOOpenGLExtensionManager::sharedManager()->reset();
-    [OOTexture rebindAllTextures];
+    [::OOTexture rebindAllTextures];
 
     // A copy, so a client may register or unregister during the reset (one unregistered by an
     // earlier client is skipped). Unordered, as the Foundation set was: its order was pointer-hash order,
@@ -83,6 +95,19 @@ void OOGraphicsResetManager::resetGraphicsState()
             continue;
         @try {
             [client resetGraphicsState];
+        }
+        @catch (OOException* exception) {
+            OO_LOG(cxx_kOOLogException, "***** EXCEPTION -- {} : {} -- ignored during graphics reset.", [exception name], [exception reason]);
+        }
+    }
+
+    // Then the C++ clients, the same way (bead oo-4jjl).
+    const std::vector<OOGraphicsResetClient*> cxxSnapshot(cxxClients.begin(), cxxClients.end());
+    for (OOGraphicsResetClient* client : cxxSnapshot) {
+        if (cxxClients.find(client) == cxxClients.end())
+            continue;
+        @try {
+            client->resetGraphicsState();
         }
         @catch (OOException* exception) {
             OO_LOG(cxx_kOOLogException, "***** EXCEPTION -- {} : {} -- ignored during graphics reset.", [exception name], [exception reason]);

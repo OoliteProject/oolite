@@ -77,6 +77,26 @@ ROLE_SHIP_KEY = {
 # fineThreshold() == 50).
 PIRATE_BOUNTY = 100
 
+# Emptying the system is a clear-then-count, and a live universe keeps adding ships between the
+# two (bug oo-hmnbb). Measured sources, all present on phase-1 too: a ship removed mid-way
+# through a pirate pay-off keeps ejecting cargo pods for up to 48 s, because Ship.dumpCargo(n)
+# queues n-1 deferred -dumpCargo calls 0.75 s apart (OOJSShip.mm ShipDumpCargo) and a deferred
+# call outlives the ship's removal; stations launch shuttles; the populator repopulates every
+# ~20 s (Universe.h SYSTEM_REPOPULATION_INTERVAL). A single clear therefore occasionally counts a
+# pod that was ejected between the two console commands. So the clear is repeated until one
+# clear-then-count sees only the player - a wait for a condition, not a longer sleep - and the
+# assertion below it is unchanged: if the system cannot be emptied, setup still fails.
+CLEAR_ATTEMPTS = 10
+CLEAR_RETRY_SECONDS = 0.5
+CLEAR_NON_PLAYER_SHIPS_JS = (
+    "(function(){"
+    " var ships = system.allShips, n = 0;"
+    " for (var i = 0; i < ships.length; i++) {"
+    "   if (!ships[i].isPlayer) { ships[i].remove(); n++; }"
+    " }"
+    " return n; })()"
+)
+
 # Where an unpositioned spawn goes. Left to itself addShips scatters ships anywhere in the system
 # - measured 415 km apart - so nothing ever meets anything. Scenarios spawn around one locus.
 SPAWN_RADIUS_M = 5000
@@ -129,20 +149,30 @@ def universe_seeded_with(world, seed):
     # Let the launch settle so the player is clear of the station before the system is emptied.
     time.sleep(2)
 
-    removed = world.console.evaluate_int(
-        "(function(){"
-        " var ships = system.allShips, n = 0;"
-        " for (var i = 0; i < ships.length; i++) {"
-        "   if (!ships[i].isPlayer) { ships[i].remove(); n++; }"
-        " }"
-        " return n; })()"
-    )
-    remaining = world.console.evaluate_int("system.allShips.length")
+    removed, remaining = _clear_to_player(world.console)
     if remaining > 1:
         raise AssertionError(
             f"cleared {removed} ships but {remaining} remain; the scenario would be measuring "
             "the ambient population rather than what it spawned"
         )
+
+
+def _clear_to_player(console):
+    """Remove every non-player ship until a clear is followed by a count of just the player.
+
+    Returns ``(removed, remaining)``: the total removed over all passes, and the count after the
+    last pass. See CLEAR_ATTEMPTS for why one pass is not enough.
+    """
+    removed = 0
+    remaining = None
+    for attempt in range(CLEAR_ATTEMPTS):
+        if attempt:
+            time.sleep(CLEAR_RETRY_SECONDS)
+        removed += console.evaluate_int(CLEAR_NON_PLAYER_SHIPS_JS)
+        remaining = console.evaluate_int("system.allShips.length")
+        if remaining <= 1:
+            break
+    return removed, remaining
 
 
 # --- When ----------------------------------------------------------------------------------

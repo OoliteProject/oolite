@@ -2,6 +2,9 @@
 
 OOECMBlastEntity.m
 
+C++20 since bead oo-ryhi (see OOECMBlastEntity.h). The bodies are the Objective-C ones: a message
+to self is a member call, and the universe and the scripts are handed the entity's Objective-C
+object, oo::ToObjC(this). The ship stays its Objective-C object (amendment oo-bj8 item 4).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -40,28 +43,31 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #endif
 
-@implementation OOECMBlastEntity
-
-- (id)initFromShip:(ShipEntity*)ship
+// The part of -initFromShip: that could not fail. Virtual members are called as the base's own
+// during construction (amendment oo-bj8 item 6).
+OOECMBlastEntity::OOECMBlastEntity(ShipEntity* ship)
 {
-    if (ship == nil) {
-        DESTROY(self);
-    } else if ((self = [super init])) {
-        _blastsRemaining = ECM_PULSE_COUNT;
-        _nextBlast = ECM_PULSE_INTERVAL;
-        _ship = [ship weakRetain];
+    _blastsRemaining = ECM_PULSE_COUNT;
+    _nextBlast = ECM_PULSE_INTERVAL;
+    _ship = [ship weakRetain];
 
-        [self setPosition:[ship position]];
+    Entity::setPosition([ship position]);
 
-        [self setStatus:STATUS_EFFECT];
-        [self setScanClass:CLASS_NO_DRAW];
-    }
-
-    return self;
+    Entity::setStatus(STATUS_EFFECT);
+    setScanClass(CLASS_NO_DRAW);
 }
 
-- (void)update:(OOTimeDelta)delta_t
+oo::Ref<OOECMBlastEntity> OOECMBlastEntity::initFromShip(ShipEntity* ship)
 {
+    if (ship == nil) {
+        return nullptr;
+    }
+    return oo::adopt(new OOECMBlastEntity(ship));
+}
+
+void OOECMBlastEntity::update(OOTimeDelta delta_t)
+{
+    ::Entity* self = oo::ToObjC(this);
     _nextBlast -= delta_t;
     ShipEntity* ship = [_ship weakRefUnderlyingObject];
     BOOL validShip = (ship != nil) && ([ship status] != STATUS_DEAD);
@@ -72,10 +78,10 @@ MA 02110-1301, USA.
         radius *= SCANNER_MAX_RANGE;
         _blastsRemaining--;
 
-        const std::vector<oo::ObjCRef<Entity*>> targets = [UNIVERSE cxx_findEntitiesMatchingPredicate:IsShipPredicate
-                                                                                            parameter:NULL
-                                                                                              inRange:radius
-                                                                                             ofEntity:self];
+        const std::vector<oo::ObjCRef<::Entity*>> targets = [UNIVERSE cxx_findEntitiesMatchingPredicate:IsShipPredicate
+                                                                                              parameter:NULL
+                                                                                                inRange:radius
+                                                                                               ofEntity:self];
         NSUInteger i, count = targets.size();
         if (count > 0) {
             JSContext* context = OOJSAcquireContext();
@@ -99,7 +105,7 @@ MA 02110-1301, USA.
         [UNIVERSE removeEntity:self];
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OOECMBlastEntity::drawImmediate(bool /*immediate*/, bool /*translucent*/)
 {
 #if ECM_DEBUG_DRAW && OO_DEBUG
     OODebugDrawPoint(kZeroVector, [OOColor cyanColor]);
@@ -107,18 +113,7 @@ MA 02110-1301, USA.
     // Else do nothing, we're invisible!
 }
 
-- (BOOL)isECMBlast
+bool OOECMBlastEntity::isECMBlast()
 {
-    return YES;
+    return true;
 }
-
-@end
-
-@implementation Entity (OOECMBlastEntity)
-
-- (BOOL)isECMBlast
-{
-    return NO;
-}
-
-@end

@@ -136,8 +136,7 @@ OOINLINE void SqueezeVertically(OOPixMap pixMap, OOPixMapDimension dstHeight)
     }
 
 #ifndef NDEBUG
-    [OOException raise:OOInternalInconsistencyException
-                format:"Unsupported pixmap format in scaler: %s", OOPixMapFormatName(pixMap.format).c_str()];
+    OORaiseException(OOInternalInconsistencyException, "Unsupported pixmap format in scaler: %s", OOPixMapFormatName(pixMap.format).c_str());
 #else
     abort();
 #endif
@@ -165,8 +164,7 @@ OOINLINE void StretchHorizontally(OOPixMap srcPx, OOPixMap dstPx)
     }
 
 #ifndef NDEBUG
-    [OOException raise:OOInternalInconsistencyException
-                format:"Unsupported pixmap format in scaler: %s", OOPixMapFormatName(srcPx.format).c_str()];
+    OORaiseException(OOInternalInconsistencyException, "Unsupported pixmap format in scaler: %s", OOPixMapFormatName(srcPx.format).c_str());
 #else
     abort();
 #endif
@@ -192,8 +190,7 @@ OOINLINE void SqueezeHorizontally(OOPixMap pixMap, OOPixMapDimension dstHeight)
     }
 
 #ifndef NDEBUG
-    [OOException raise:OOInternalInconsistencyException
-                format:"Unsupported pixmap format in scaler: %s", OOPixMapFormatName(pixMap.format).c_str()];
+    OORaiseException(OOInternalInconsistencyException, "Unsupported pixmap format in scaler: %s", OOPixMapFormatName(pixMap.format).c_str());
 #else
     abort();
 #endif

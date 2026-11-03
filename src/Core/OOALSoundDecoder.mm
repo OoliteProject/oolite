@@ -43,89 +43,126 @@ static int OOCloseOXZVorbis(void* datasource);
 // static int OOSeekOXZVorbis  (void *datasource, ogg_int64_t offset, int whence);
 // static long OOTellOXZVorbis (void *datasource);
 
-@interface OOALSoundVorbisCodec : OOALSoundDecoder {
-    OggVorbis_File _vf;
+namespace {
+
+// The class cluster's one concrete decoder, private to this file (proposed ADR-0056, amendment
+// oo-x2wy item 3).
+class OOALSoundVorbisCodec final : public cxx::OOALSoundDecoder {
+public:
+    // Was [[OOALSoundVorbisCodec alloc] cxx_initWithPath:]: null where it answered nil.
+    static oo::Ref<cxx::OOALSoundDecoder> createWithPath(const std::optional<std::string>& path);
+
+    ~OOALSoundVorbisCodec() override;
+
+    std::optional<std::map<std::string, std::string>> comments();
+
+    bool readCreatingBuffer(char** outBuffer, size_t* outSize) override;
+    size_t streamToBuffer(char* buffer) override;
+    size_t sizeAsBuffer() override;
+    bool isStereo() override;
+    std::optional<std::string> descriptionComponents() const override;
+    long sampleRate() override;
+    void reset() override;
+    std::optional<std::string> name() override;
+
+private:
+    OOALSoundVorbisCodec() = default;
+    bool initWithPath(const std::optional<std::string>& path);
+
+    OggVorbis_File _vf = { };
     std::optional<std::string> _name; // nil when the path was nil
-    BOOL _readStarted;
-    BOOL _seekableStream;
-@public
-    unzFile uf;
-}
+    bool _readStarted = { };
+    bool _seekableStream = { };
+    unzFile uf = { }; // @public before, for the OXZ read callback, now its friend
 
-- (std::optional<std::map<std::string, std::string>>)comments;
+    friend size_t(::OOReadOXZVorbis)(void* ptr, size_t size, size_t nmemb, void* datasource);
+};
 
-@end
+} // namespace
 
-@implementation OOALSoundDecoder
+namespace cxx {
 
-- (id)cxx_initWithPath:(const std::optional<std::string>&)inPath
+oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(const std::optional<std::string>& inPath)
 {
-    [self release];
-    self = nil;
+    oo::Ref<OOALSoundDecoder> self;
 
     if (oo::str::pathExtension(inPath.value_or(std::string())) == "ogg") {
-        self = [[OOALSoundVorbisCodec alloc] cxx_initWithPath:inPath];
+        self = OOALSoundVorbisCodec::createWithPath(inPath);
     }
 
     return self;
 }
 
-+ (OOALSoundDecoder*)codecWithPath:(const std::string&)inPath
+oo::Ref<OOALSoundDecoder> OOALSoundDecoder::codecWithPath(const std::string& inPath)
 {
     if (oo::str::pathExtension(inPath) == "ogg") {
-        return [[[OOALSoundVorbisCodec alloc] cxx_initWithPath:inPath] autorelease];
+        return OOALSoundVorbisCodec::createWithPath(inPath);
     }
-    return nil;
+    return nullptr;
 }
 
-- (size_t)streamToBuffer:(char*)ioBuffer
+size_t OOALSoundDecoder::streamToBuffer(char* /*ioBuffer*/)
 {
     return 0;
 }
 
-- (BOOL)readCreatingBuffer:(char**)outBuffer withFrameCount:(size_t*)outSize
+bool OOALSoundDecoder::readCreatingBuffer(char** outBuffer, size_t* outSize)
 {
     if (NULL != outBuffer)
         *outBuffer = NULL;
     if (NULL != outSize)
         *outSize = 0;
 
-    return NO;
+    return false;
 }
 
-- (size_t)sizeAsBuffer
+size_t OOALSoundDecoder::sizeAsBuffer()
 {
     return 0;
 }
 
-- (BOOL)isStereo
+bool OOALSoundDecoder::isStereo()
 {
-    return NO;
+    return false;
 }
 
-- (long)sampleRate
+long OOALSoundDecoder::sampleRate()
 {
     return 0;
 }
 
-- (void)reset
+void OOALSoundDecoder::reset()
 {
     // nothing
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOALSoundDecoder::name()
 {
     return std::string();
 }
 
-@end
-
-@implementation OOALSoundVorbisCodec
-
-- (id)cxx_initWithPath:(const std::optional<std::string>&)path
+std::optional<std::string> OOALSoundDecoder::descriptionComponents() const
 {
-    if ((self = [super init])) {
-        BOOL OK = NO;
+    return std::nullopt;
+}
+
+} // namespace cxx
+
+oo::Ref<cxx::OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(const std::optional<std::string>& path)
+{
+    oo::Ref<OOALSoundVorbisCodec> codec = oo::adopt(new OOALSoundVorbisCodec);
+    if (!codec->initWithPath(path))
+        return nullptr;
+    return codec;
+}
+
+/*	The body of -cxx_initWithPath:. [super init] could not fail, so its block stays as it was; each
+        "[self release]; self = nil;" is return false (the factory drops the object, as the release did).
+*/
+bool OOALSoundVorbisCodec::initWithPath(const std::optional<std::string>& path)
+{
+    {
+        bool OK = false;
 
         const std::string pathString = path.value_or(std::string());
         if (path.has_value())
@@ -146,25 +183,24 @@ static int OOCloseOXZVorbis(void* datasource);
             int err;
             FILE* file;
 
-            _seekableStream = YES;
+            _seekableStream = true;
 
             if (path.has_value()) {
                 file = fopen(path->c_str(), "rb");
                 if (NULL != file) {
                     err = ov_open_callbacks(file, &_vf, NULL, 0, OV_CALLBACKS_DEFAULT);
                     if (0 == err) {
-                        OK = YES;
+                        OK = true;
                     }
                 }
             }
 
             if (!OK) {
-                [self release];
-                self = nil;
+                return false;
             }
 
         } else {
-            _seekableStream = NO;
+            _seekableStream = false;
 
             const std::string zipFile = oo::str::pathWithComponents(std::vector<std::string>(components.begin(), components.begin() + i + 1));
             const std::string containedFile = oo::str::pathWithComponents(std::vector<std::string>(components.begin() + i + 1, components.end()));
@@ -172,15 +208,13 @@ static int OOCloseOXZVorbis(void* datasource);
             uf = unzOpen64(zipFile.c_str());
             if (uf == NULL) {
                 OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}", zipFile);
-                [self release];
-                self = nil;
+                return false;
             } else {
                 const char* filename = containedFile.c_str();
                 // unzLocateFile(*, *, 1) = case-sensitive extract
                 if (unzLocateFile(uf, filename, 1) != UNZ_OK) {
                     unzClose(uf);
-                    [self release];
-                    self = nil;
+                    return false;
                 } else {
                     int err = UNZ_OK;
                     unz_file_info64 file_info = { 0 };
@@ -188,15 +222,13 @@ static int OOCloseOXZVorbis(void* datasource);
                     if (err != UNZ_OK) {
                         unzClose(uf);
                         OO_LOG(cxx_kOOLogFileNotFound, "Could not get properties of {} within OXZ at {}", containedFile, zipFile);
-                        [self release];
-                        self = nil;
+                        return false;
                     } else {
                         err = unzOpenCurrentFile(uf);
                         if (err != UNZ_OK) {
                             unzClose(uf);
                             OO_LOG(cxx_kOOLogFileNotFound, "Could not read {} within OXZ at {}", containedFile, zipFile);
-                            [self release];
-                            self = nil;
+                            return false;
                         } else {
                             ov_callbacks _callbacks = {
                                 OOReadOXZVorbis, // read sequentially
@@ -204,15 +236,14 @@ static int OOCloseOXZVorbis(void* datasource);
                                 OOCloseOXZVorbis, // close file
                                 NULL, // no tell
                             };
-                            err = ov_open_callbacks(self, &_vf, NULL, 0, _callbacks);
+                            err = ov_open_callbacks(this, &_vf, NULL, 0, _callbacks);
                             if (0 == err) {
-                                OK = YES;
-                                _readStarted = NO;
+                                OK = true;
+                                _readStarted = false;
                             }
                             if (!OK) {
                                 unzClose(uf);
-                                [self release];
-                                self = nil;
+                                return false;
                             }
                         }
                     }
@@ -221,28 +252,26 @@ static int OOCloseOXZVorbis(void* datasource);
         }
     }
 #ifdef OOLITE_DEBUG_SOUND_FILE_OPENING
-    if (self != nil) {
+    {
         OO_LOG("sound.retain", "{}", _name.value_or("(null)"));
     }
 #endif
-    return self;
+    return true;
 }
 
-- (void)dealloc
+OOALSoundVorbisCodec::~OOALSoundVorbisCodec()
 {
 #ifdef OOLITE_DEBUG_SOUND_FILE_OPENING
-    if (self != nil) {
+    {
         OO_LOG("sound.release", "{}", _name.value_or("(null)"));
     }
 #endif
 
     ov_clear(&_vf);
     unzClose(uf);
-
-    [super dealloc];
 }
 
-- (std::optional<std::map<std::string, std::string>>)comments
+std::optional<std::map<std::string, std::string>> OOALSoundVorbisCodec::comments()
 {
     vorbis_comment* comments;
     unsigned i, count;
@@ -268,23 +297,23 @@ static int OOCloseOXZVorbis(void* datasource);
     return result;
 }
 
-- (BOOL)readCreatingBuffer:(char**)outBuffer withFrameCount:(size_t*)outSize
+bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer, size_t* outSize)
 {
     char *buffer = NULL, *dst;
     size_t sizeInFrames = 0;
     int remaining;
     long framesRead;
     // 16-bit samples, either two or one track
-    int frameSize = [self isStereo] ? 4 : 2;
+    int frameSize = isStereo() ? 4 : 2;
     ogg_int64_t totalSizeInFrames;
-    BOOL OK = YES;
+    bool OK = true;
 
     if (NULL != outBuffer)
         *outBuffer = NULL;
     if (NULL != outSize)
         *outSize = 0;
     if (NULL == outBuffer || NULL == outSize)
-        OK = NO;
+        OK = false;
 
     if (OK) {
         totalSizeInFrames = ov_pcm_total(&_vf, -1);
@@ -295,7 +324,7 @@ static int OOCloseOXZVorbis(void* datasource);
     if (OK) {
         buffer = (char*)malloc(sizeof(char) * frameSize * sizeInFrames);
         if (!buffer)
-            OK = NO;
+            OK = false;
     }
 
     if (OK && sizeInFrames) {
@@ -336,7 +365,7 @@ static int OOCloseOXZVorbis(void* datasource);
     return OK;
 }
 
-- (size_t)streamToBuffer:(char*)buffer
+size_t OOALSoundVorbisCodec::streamToBuffer(char* buffer)
 {
 
     int remaining = OOAL_STREAM_CHUNK_SIZE;
@@ -345,7 +374,7 @@ static int OOCloseOXZVorbis(void* datasource);
 
     char* dst = buffer;
     char pcmout[4096];
-    _readStarted = YES;
+    _readStarted = true;
     do {
         int toRead = sizeof(pcmout);
         if (remaining < toRead) {
@@ -367,27 +396,28 @@ static int OOCloseOXZVorbis(void* datasource);
     return streamed;
 }
 
-- (size_t)sizeAsBuffer
+size_t OOALSoundVorbisCodec::sizeAsBuffer()
 {
     ogg_int64_t size;
     size = ov_pcm_total(&_vf, -1);
-    size *= sizeof(char) * ([self isStereo] ? 4 : 2);
+    size *= sizeof(char) * (isStereo() ? 4 : 2);
     if ((uint64_t)SIZE_MAX < (uint64_t)size)
         size = (ogg_int64_t)SIZE_MAX;
     return (size_t)size;
 }
 
-- (BOOL)isStereo
+bool OOALSoundVorbisCodec::isStereo()
 {
     return 1 < ov_info(&_vf, -1)->channels;
 }
 
-// OOObject's -description wraps this as "<OOALSoundVorbisCodec 0x...>{...}", which is what this
-// class's own -description printed.
-- (std::optional<std::string>)cxx_descriptionComponents
+// The facade's -description wraps this as "<OOALSoundVorbisCodec 0x...>{...}", which is what this
+// class's own -description printed. comments() reads the file through a non-const pointer, so
+// it is reached through const_cast (as amendment oo-bhb9 item 5 does).
+std::optional<std::string> OOALSoundVorbisCodec::descriptionComponents() const
 {
     oo::PList commentList;
-    if (const auto comments = [self comments]) {
+    if (const auto comments = const_cast<OOALSoundVorbisCodec*>(this)->comments()) {
         oo::PList::Dict dict;
         for (const auto& [key, value] : *comments)
             dict.emplace(key, oo::PList(value));
@@ -396,12 +426,12 @@ static int OOCloseOXZVorbis(void* datasource);
     return oo::str::format("\"%s\", comments=%s", _name.value_or("(null)").c_str(), oo::DescriptionOf(commentList).c_str());
 }
 
-- (long)sampleRate
+long OOALSoundVorbisCodec::sampleRate()
 {
     return ov_info(&_vf, -1)->rate;
 }
 
-- (void)reset
+void OOALSoundVorbisCodec::reset()
 {
     if (!_readStarted) {
         return; // don't need to do anything
@@ -420,16 +450,14 @@ static int OOCloseOXZVorbis(void* datasource);
         OOCloseOXZVorbis, // close file
         NULL, // no tell
     };
-    ov_open_callbacks(self, &_vf, NULL, 0, _callbacks);
-    _readStarted = NO;
+    ov_open_callbacks(this, &_vf, NULL, 0, _callbacks);
+    _readStarted = false;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOALSoundVorbisCodec::name()
 {
     return _name;
 }
-
-@end
 
 static size_t OOReadOXZVorbis(void* ptr, size_t size, size_t nmemb, void* datasource)
 {

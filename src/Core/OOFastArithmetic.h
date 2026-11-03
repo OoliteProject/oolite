@@ -37,15 +37,25 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
 OOINLINE double OOLerpd(double v0, double v1, double fraction) INLINE_CONST_FUNC;
 
-/* Round integer up to nearest power of 2. NOTE: these return 0 if the high bit of value is set. */
+/* Round integer up to nearest power of 2.
+   The expression has no defined value for 1 (__builtin_clz(0)) nor for 0 and values above the
+   high bit (a shift by -1). Those inputs return what the optimised x86-64 build has always
+   returned for them, so debug and release agree (bead oo-lglaq): 2 for 1, and 1 for 0 and for
+   values above the high bit (not 0, as an older note here said). */
 OOINLINE INLINE_CONST_FUNC uint32_t OORoundUpToPowerOf2_32(uint32_t value)
 {
-    return 0x80000000U >> (__builtin_clz(value - 1) - 1);
+    if (value == 1)
+        return 2;
+    int zeros = __builtin_clz(value - 1);
+    return (zeros == 0) ? 1 : 0x80000000U >> (zeros - 1);
 }
 
 OOINLINE INLINE_CONST_FUNC uint64_t OORoundUpToPowerOf2_64(uint64_t value)
 {
-    return 0x8000000000000000ULL >> (__builtin_clzll(value - 1) - 1);
+    if (value == 1)
+        return 2;
+    int zeros = __builtin_clzll(value - 1);
+    return (zeros == 0) ? 1 : 0x8000000000000000ULL >> (zeros - 1);
 }
 
 #if __OBJC__

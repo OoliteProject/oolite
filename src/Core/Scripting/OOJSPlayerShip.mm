@@ -342,7 +342,7 @@ JSValue JSPlayerShipObject(void)
     [self deleteJSSelf];
 
     // Released by -deleteJSSelf when the JavaScript engine resets.
-    _jsSelf = JS_DupValue(context, val);
+    _cxxEntity->_jsSelf = JS_DupValue(context, val);
 
     oo::NotificationCenter::defaultCenter().addObserver(self, kOOJavaScriptEngineWillResetNotificationName,
         [OOJavaScriptEngine sharedEngine],

@@ -14,6 +14,17 @@ representation and a property-list dictionary (for loading/saving user defaults
 and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
 
+C++20 since bead oo-6bux (proposed ADR-0056, Amendment 1 of bead oo-cwz: a hierarchy root). The
+manager is cxx::OOJoystickManager. Its one subclass, the SDL manager's facade
+(OOSDLJoystickManager+ObjCBridge.h), is still Objective-C, as are the callers, so the Objective-C
+OOJoystickManager in OOJoystickManager+ObjCBridge.h (imported at the end of this header) is both
+their facade and the subclass's superclass. The methods a subclass overrides (joystickCount,
+nameOfJoystick, getAxisWithStick) are virtual; an Objective-C subclass's C++ part is an adapter
+whose overrides message it. -init's body is init(), run after construction because it reaches
+those virtual members (amendment oo-vl43 item 2). The event decoders are the SDL manager's
+(upstream #742): they read and set this class's state, which cxx::OOSDLJoystickManager, until it
+derives from this class, reaches as a friend in its facade's C++ part.
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -41,6 +52,7 @@ MA 02110-1301, USA.
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include <string_view>
 
@@ -183,19 +195,18 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfi
 
     // Handle callbacks - the object, selector to call
     // the desired function, and the hardware (axis or button etc.)
-    id cbObject;
-    SEL cbSelector;
-    char cbHardware;
-    BOOL invertPitch;
+    id cbObject = { }; // not retained, as before
+    SEL cbSelector = { };
+    char cbHardware = { };
+    bool invertPitch = { };
 
-@private
-    OOJoystickAxisProfile* roll_profile;
-    OOJoystickAxisProfile* pitch_profile;
-    OOJoystickAxisProfile* yaw_profile;
-}
+private:
+    oo::Ref<OOJoystickAxisProfile> roll_profile = { };
+    oo::Ref<OOJoystickAxisProfile> pitch_profile = { };
+    oo::Ref<OOJoystickAxisProfile> yaw_profile = { };
+};
 
-+ (id)sharedStickHandler;
-+ (BOOL)setStickHandlerClass:(Class)aClass;
+} // namespace cxx
 
 // General.
 // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we

@@ -34,15 +34,23 @@
 #ifndef OOFND_OBJC_OOASSERT_H
 #define OOFND_OBJC_OOASSERT_H
 
+#ifdef __OBJC__
+/*	The method forms raise through OOException and name self/_cmd; a plain C or C++ translation
+        unit (bead oo-9ht.64: OOConstToJSString) gets only the function forms, OOCAssert and
+        OOCParameterAssert, which need no Objective-C type.
+*/
 #include "oofnd/objc/OOException.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Log and raise; never return. Called by the macros below, not directly.
+#ifdef __OBJC__
 void OOAssertFailedInMethod(id object, SEL selector, const char* file, long line, const char* format, ...)
     __attribute__((format(printf, 5, 6), noreturn));
+#endif
 void OOAssertFailedInFunction(const char* function, const char* file, long line, const char* format, ...)
     __attribute__((format(printf, 4, 5), noreturn));
 

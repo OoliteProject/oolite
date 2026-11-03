@@ -34,47 +34,43 @@ MA 02110-1301, USA.
 
 static const char* const kStageName = "Testing textures and images";
 
-@interface OOTextureVerifierStage (OOPrivate)
-
-- (void)checkTextureNamed:(const std::string&)name inFolder:(const std::string&)folder;
-
-@end
-
-@implementation OOTextureVerifierStage
-
-+ (std::string)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier
+std::string OOTextureVerifierStage::nameForReverseDependencyForVerifier(OOOXPVerifier*)
 {
     return kStageName;
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOTextureVerifierStage::name()
 {
     return kStageName;
 }
 
-- (BOOL)shouldRun
+bool OOTextureVerifierStage::shouldRun()
 {
-    return !_usedTextures.empty() || [[[self verifier] fileScannerStage] cxx_filesInFolder:"Images"].has_value();
+    cxx::OOFileScannerVerifierStage* fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    return !_usedTextures.empty() || (fileScanner != nullptr && fileScanner->filesInFolder("Images").has_value());
 }
 
-- (void)run
+void OOTextureVerifierStage::run()
 {
     for (const std::string& name : _usedTextures) {
         @autoreleasepool {
-            [self checkTextureNamed:name inFolder:"Textures"];
+            checkTextureNamed(name, "Textures");
         }
     }
     _usedTextures.clear();
 
     // All "images" are considered used, since we don't have a reasonable way to look for images referenced in JavaScript scripts.
-    for (const std::string& name : [[[self verifier] fileScannerStage] cxx_filesInFolder:"Images"].value_or(std::vector<std::string> { })) {
-        [self checkTextureNamed:name inFolder:"Images"];
+    cxx::OOFileScannerVerifierStage* fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner == nullptr)
+        return; // a nil scanner listed no images
+    for (const std::string& name : fileScanner->filesInFolder("Images").value_or(std::vector<std::string> { })) {
+        checkTextureNamed(name, "Images");
     }
 }
 
-- (void)textureNamed:(const std::string&)name usedInContext:(const std::string&)context
+void OOTextureVerifierStage::textureNamed(const std::string& name, const std::string& context)
 {
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
 
     if (name.empty())
         return;
@@ -83,29 +79,26 @@ static const char* const kStageName = "Testing textures and images";
         return;
     _usedTextures.insert(where, name);
 
-    fileScanner = [[self verifier] fileScannerStage];
-    if (![fileScanner cxx_fileExists:name inFolder:"Textures" referencedFrom:context checkBuiltIn:YES]) {
-        OO_LOG("verifyOXP.texture.notFound", "----- WARNING: texture \"{}\" referenced in {} could not be found in {} or in Oolite.", name, context, [[self verifier] cxx_oxpDisplayName].value_or("(null)"));
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner == nullptr || !fileScanner->fileExists(name, "Textures", context, true)) {
+        OO_LOG("verifyOXP.texture.notFound", "----- WARNING: texture \"{}\" referenced in {} could not be found in {} or in Oolite.", name, context, [verifier() cxx_oxpDisplayName].value_or("(null)"));
     }
 }
 
-@end
-
-@implementation OOTextureVerifierStage (OOPrivate)
-
-- (void)checkTextureNamed:(const std::string&)name inFolder:(const std::string&)folder
+void OOTextureVerifierStage::checkTextureNamed(const std::string& name, const std::string& folder)
 {
     OOTextureLoader* loader = nil;
     std::optional<std::string> path;
-    OOFileScannerVerifierStage* fileScanner = nil;
+    cxx::OOFileScannerVerifierStage* fileScanner = nullptr;
     std::optional<std::string> displayName;
     OOPixMapDimension rWidth, rHeight;
-    BOOL success;
+    bool success;
     OOPixMap pixmap;
     OOTextureDataFormat format;
 
-    fileScanner = [[self verifier] fileScannerStage];
-    path = [fileScanner cxx_pathForFile:name inFolder:folder referencedFrom:std::nullopt checkBuiltIn:NO];
+    fileScanner = oo::ToCxx([verifier() fileScannerStage]);
+    if (fileScanner != nullptr)
+        path = fileScanner->pathForFile(name, folder, std::nullopt, false);
 
     if (!path.has_value())
         return;
@@ -114,7 +107,7 @@ static const char* const kStageName = "Testing textures and images";
                                          options:kOOTextureMinFilterNearest | kOOTextureMinFilterNearest | kOOTextureNoShrink | kOOTextureNoFNFMessage |
         kOOTextureNeverScale];
 
-    displayName = [fileScanner cxx_displayNameForFile:name andFolder:folder];
+    displayName = fileScanner->displayNameForFile(name, folder);
     if (loader == nil) {
         OO_LOG("verifyOXP.texture.failed", "***** ERROR: image {} could not be read.", displayName.value_or("(null)"));
     } else {
@@ -136,28 +129,20 @@ static const char* const kStageName = "Testing textures and images";
     }
 }
 
-@end
+// OOTextureHandlingStage: C++ since bead oo-tuq8. Its Objective-C subclasses reach this through
+// their facade (OOTextureVerifierStage+ObjCBridge.mm).
 
-@implementation OOTextureHandlingStage
+namespace cxx {
 
-- (std::optional<std::vector<std::string>>)dependents
+std::optional<std::vector<std::string>> OOTextureHandlingStage::dependents()
 {
-    std::vector<std::string> result = [super dependents].value_or(std::vector<std::string>());
-    const std::string reverse = [OOTextureVerifierStage nameForReverseDependencyForVerifier:[self verifier]];
+    std::vector<std::string> result = OOFileHandlingVerifierStage::dependents().value_or(std::vector<std::string>());
+    const std::string reverse = ::OOTextureVerifierStage::nameForReverseDependencyForVerifier(verifier());
     if (std::find(result.begin(), result.end(), reverse) == result.end())
         result.push_back(reverse);
     return result;
 }
 
-@end
-
-@implementation OOOXPVerifier (OOTextureVerifierStage)
-
-- (OOTextureVerifierStage*)textureVerifierStage
-{
-    return [self cxx_stageWithName:kStageName];
-}
-
-@end
+} // namespace cxx
 
 #endif

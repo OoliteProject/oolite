@@ -2,6 +2,11 @@
 
 OOTextureSprite.h
 
+C++20 since bead oo-ljhc (Phase 3, proposed ADR-0056). The class is cxx::OOTextureSprite while
+OOTextureSprite+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
+OOTextureSprite its unconverted callers make and message; the bridge's deletion bead moves it out
+of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -22,28 +27,48 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOTEXTURESPRITE_H
+#define OOTEXTURESPRITE_H
+
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "oofnd/objc/OOObject.h"
+
+#include "oofnd/Ref.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 @class OOTexture;
 
 #define OPEN_GL_SPRITE_MIN_WIDTH 64.0
 #define OPEN_GL_SPRITE_MIN_HEIGHT 64.0
 
-@interface OOTextureSprite : OOObject {
-@private
-    OOTexture* texture;
-    NSSize size;
-}
+namespace cxx {
 
-- (id)initWithTexture:(OOTexture*)texture;
-- (id)initWithTexture:(OOTexture*)texture size:(NSSize)spriteSize;
+class OOTextureSprite : public oo::RefCounted {
+public:
+    // Null for a nil texture (-initWithTexture:... answered nil). The first is the texture's
+    // original dimensions.
+    static oo::Ref<OOTextureSprite> initWithTexture(::OOTexture* texture);
+    static oo::Ref<OOTextureSprite> initWithTexture(::OOTexture* texture, NSSize spriteSize);
 
-- (NSSize)size;
+    NSSize getSize(); // -size (the ivar keeps its name: amendment oo-862e item 1)
 
-- (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
-- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
-- (void)blitBackgroundCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a;
+    void blitToX(float x, float y, float z, float a);
+    void blitCentredToX(float x, float y, float z, float a);
+    void blitBackgroundCentredToX(float x, float y, float z, float a);
 
-@end
+private:
+    OOTextureSprite(::OOTexture* inTexture, NSSize spriteSize); // initWithTexture() checks the texture
+
+    oo::ObjCRef<::OOTexture*> texture;
+    NSSize size = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOTextureSprite, for callers not yet converted (GuiDisplayGen and
+// HeadUpDisplay make and blit sprites). Deleted, with namespace cxx above, by the bridge's
+// deletion bead.
+#import "OOTextureSprite+ObjCBridge.h"
+
+#endif // OOTEXTURESPRITE_H

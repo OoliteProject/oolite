@@ -156,6 +156,25 @@ OO_TEST(tableDoesNotKeepPeerAlive)
 }
 
 
+OO_TEST(livePeerIsUnretained)
+{
+	oo::Ref<Thing> thing = oo::makeRef<Thing>();
+	OO_CHECK(Peers().livePeer(thing.get()) == nil);		// none made yet, and it makes none
+	OO_CHECK(Peers().livePeer(nullptr) == nil);
+	OOPeerTestFacade *facade = nil;
+	@autoreleasepool
+	{
+		facade = [ToObjC(thing.get()) retain];
+	}
+	const int deallocated = gFacadesDeallocated;
+	OO_CHECK(Peers().livePeer(thing.get()) == facade);	// outside any pool: nothing autoreleased
+	[facade release];
+	OO_CHECK_EQ(gFacadesDeallocated, deallocated + 1);	// so this release was the last
+	OO_CHECK(Peers().livePeer(thing.get()) == nil);
+	OO_CHECK_EQ(Peers().count(), 0u);
+}
+
+
 OO_TEST(forgetKeepsANewerLivePeer)
 {
 	// A peer made for the object while an older one is dying keeps its entry: forget() of the

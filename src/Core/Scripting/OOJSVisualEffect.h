@@ -28,20 +28,21 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOVisualEffectEntity.h"
+#include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
+#include <vector>
 
-@class OOVisualEffectEntity;
+@class Entity, OOVisualEffectEntity;
 
 void InitOOJSVisualEffect(JSContext* context, JSValueConst global);
 
 JSClassID JSVisualEffectClassID(void);
 
-@interface OOVisualEffectEntity (OOJavaScriptExtensions)
-
-// Replaces SpiderMonkey's -getJSClass:andPrototype:.
-- (JSClassID)oo_jsClassID;
-- (std::optional<std::string>)cxx_oo_jsClassName;
-- (BOOL)isVisibleToScripts;
-- (std::vector<oo::ObjCRef<Entity*>>)subEntitiesForScript; // empty before the first subentity; JS nil via visualEffectSubEntityEnumerator
-
-@end
+/*	The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), which the engine reaches by
+        selector. Its methods are one-line forwarders to these in OOJSVisualEffect+ObjCBridge.mm
+        until OOVisualEffectEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). Its
+        -oo_jsClassID answers JSVisualEffectClassID().
+*/
+std::optional<std::string> OOJSVisualEffectJSClassName(void);
+bool OOJSVisualEffectIsVisibleToScripts(void);
+std::vector<oo::ObjCRef<Entity*>> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect);

@@ -4,6 +4,10 @@ OOMaterialConvenienceCreators.h
 
 Methods for easy creation of materials.
 
+C++20 since bead oo-9fwb (proposed ADR-0056): the category's class methods are static members of
+cxx::OOMaterial; OOMaterialConvenienceCreators+ObjCBridge.h keeps the category for its Objective-C
+caller.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -36,32 +40,7 @@ SOFTWARE.
 
 @class OOColor;
 
-@interface OOMaterial (OOConvenienceCreators)
-
-/*	Get a material based on configuration. The result will be an
-        OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
-        only if shaders are available). cacheKey is used for caching of synthesized
-        shader materials; nullopt may be passed for no caching.
-        Unique selectors (ADR-0043): name/cacheKey are optional UTF-8 strings;
-        configuration and macros are oo::PList (null = nil).
-*/
-+ (OOMaterial*)materialWithName:(const std::optional<std::string>&)name
-                       cacheKey:(const std::optional<std::string>&)cacheKey
-                  configuration:(const oo::PList&)configuration
-                         macros:(const oo::PList&)macros
-                  bindingTarget:(id<OOWeakReferenceSupport>)object
-                forSmoothedMesh:(BOOL)smooth;
-
-/*	Select an appropriate material description (based on availability of
-        shaders and content of dictionaries, which may be null) and call
-        +materialWithName:cacheKey:configuration:macros:bindingTarget:forSmoothedMesh:.
-*/
-+ (OOMaterial*)materialWithName:(const std::optional<std::string>&)name
-                       cacheKey:(const std::optional<std::string>&)cacheKey
-             materialDictionary:(const oo::PList&)materialDict
-              shadersDictionary:(const oo::PList&)shadersDict
-                         macros:(const oo::PList&)macros
-                  bindingTarget:(id<OOWeakReferenceSupport>)object
-                forSmoothedMesh:(BOOL)smooth;
-
-@end
+// The creators are static members of cxx::OOMaterial (materialWithName(), in OOMaterial.h), defined
+// in OOMaterialConvenienceCreators.mm since bead oo-9fwb (proposed ADR-0056 amendment oo-o89 item
+// 4). Transitional: the Objective-C category, for OOMesh; deleted with its bridge.
+#import "OOMaterialConvenienceCreators+ObjCBridge.h"

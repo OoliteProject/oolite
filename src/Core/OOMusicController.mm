@@ -29,14 +29,11 @@ MA 02110-1301, USA.
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Log.hpp"
 
-static id sSingleton = nil;
+namespace {
 
-@interface OOMusicController (Private)
+cxx::OOMusicController* sSingleton = nullptr;
 
-- (void)playiTunesPlaylist:(const char*)playlistName;
-- (void)pauseiTunes;
-
-@end
+} // namespace
 
 // Values for _special
 enum {
@@ -47,21 +44,21 @@ enum {
     kSpecialMission
 };
 
-@implementation OOMusicController
+namespace cxx {
 
-+ (OOMusicController*)sharedController
+OOMusicController* OOMusicController::sharedController()
 {
-    if (sSingleton == nil) {
-        sSingleton = [[self alloc] init];
+    if (sSingleton == nullptr) {
+        sSingleton = oo::makeRef<OOMusicController>().leakRef();
     }
 
     return sSingleton;
 }
 
-- (id)init
+// The body of -init after [super init], which could not fail.
+OOMusicController::OOMusicController()
 {
-    self = [super init];
-    if (self != nil) {
+    {
         const std::optional<std::string> modeString = oo::Defaults::standard().stringForKey("music mode");
         if (modeString == "off")
             _mode = kOOMusicOff;
@@ -76,179 +73,175 @@ enum {
 
         _missionMusic = "OoliteTheme.ogg";
     }
-
-    return self;
 }
 
-- (void)playMusicNamed:(const std::string&)name loop:(BOOL)loop
+void OOMusicController::playMusicNamed(const std::string& name, bool loop)
 {
-    [self playMusicNamed:name loop:loop gain:OO_DEFAULT_SOUNDSOURCE_GAIN];
+    playMusicNamed(name, loop, OO_DEFAULT_SOUNDSOURCE_GAIN);
 }
 
-- (void)playMusicNamed:(const std::string&)name loop:(BOOL)loop gain:(float)gain
+void OOMusicController::playMusicNamed(const std::string& name, bool loop, float gain)
 {
-    if ([self isPlaying] && name == [self playingMusic])
+    if (isPlaying() && name == playingMusic())
         return;
 
     if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && name == "OoliteTheme.ogg")) {
-        OOMusic* music = [ResourceManager cxx_ooMusicNamed:name inFolder:"Music"];
+        ::OOMusic* music = [ResourceManager cxx_ooMusicNamed:name inFolder:"Music"];
         if (music != nil) {
-            [_current stop];
+            [_current.get() stop];
 
             [music setMusicGain:OOClamp_0_1_f(gain)];
             [music playLooped:loop];
 
-            [_current release];
-            _current = [music retain];
+            _current = oo::ObjCRef<::OOMusic*>(music);
         }
     }
 }
 
-- (void)playThemeMusic
+void OOMusicController::playThemeMusic()
 {
     _special = kSpecialTheme;
-    [self playMusicNamed:"OoliteTheme.ogg" loop:YES];
+    playMusicNamed("OoliteTheme.ogg", true);
 }
 
-- (void)playDockingMusic
+void OOMusicController::playDockingMusic()
 {
     _special = kSpecialDocking;
 
     if (_mode == kOOMusicITunes) {
-        [self playiTunesPlaylist:"Oolite-Docking"];
+        playiTunesPlaylist("Oolite-Docking");
     } else {
-        [self playMusicNamed:"BlueDanube.ogg" loop:YES];
+        playMusicNamed("BlueDanube.ogg", true);
     }
 }
 
-- (void)playDockedMusic
+void OOMusicController::playDockedMusic()
 {
     _special = kSpecialDocked;
 
     if (_mode == kOOMusicITunes) {
-        [self playiTunesPlaylist:"Oolite-Docked"];
+        playiTunesPlaylist("Oolite-Docked");
     } else {
-        [self playMusicNamed:"OoliteDocked.ogg" loop:NO];
+        playMusicNamed("OoliteDocked.ogg", false);
     }
 }
 
-- (void)cxx_setMissionMusic:(const std::optional<std::string>&)missionMusicName
+void OOMusicController::setMissionMusic(const std::optional<std::string>& missionMusicName)
 {
     _missionMusic = missionMusicName;
 }
 
-- (void)playMissionMusic
+void OOMusicController::playMissionMusic()
 {
     if (_missionMusic.has_value()) {
         _special = kSpecialMission;
-        [self playMusicNamed:*_missionMusic loop:NO];
+        playMusicNamed(*_missionMusic, false);
     }
 }
 
 // Stop without switching iTunes to in-flight music.
-- (void)justStop
+void OOMusicController::justStop()
 {
-    [_current stop];
-    [_current release];
-    _current = nil;
+    [_current.get() stop];
+    _current = nullptr;
     _special = kSpecialNone;
 }
 
-- (void)stop
+void OOMusicController::stop()
 {
-    [self justStop];
+    justStop();
 
     if (_mode == kOOMusicITunes) {
-        [self playiTunesPlaylist:"Oolite-Inflight"];
+        playiTunesPlaylist("Oolite-Inflight");
     }
 }
 
-- (void)stopMusicNamed:(const std::string&)name
+void OOMusicController::stopMusicNamed(const std::string& name)
 {
-    if (name == [self playingMusic])
-        [self stop];
+    if (name == playingMusic())
+        stop();
 }
 
-- (void)stopThemeMusic
+void OOMusicController::stopThemeMusic()
 {
     if (_special == kSpecialTheme) {
-        [self justStop];
-        [self playDockedMusic];
+        justStop();
+        playDockedMusic();
     }
 }
 
-- (void)stopDockingMusic
+void OOMusicController::stopDockingMusic()
 {
     if (_special == kSpecialDocking)
-        [self stop];
+        stop();
 }
 
-- (void)stopMissionMusic
+void OOMusicController::stopMissionMusic()
 {
     if (_special == kSpecialMission)
-        [self stop];
+        stop();
 }
 
-- (void)toggleDockingMusic
+void OOMusicController::toggleDockingMusic()
 {
     if (_mode != kOOMusicOn)
         return;
 
-    if (![self isPlaying])
-        [self playDockingMusic];
+    if (!isPlaying())
+        playDockingMusic();
     else if (_special == kSpecialDocking)
-        [self stop];
+        stop();
 }
 
-- (OOSoundSource*)soundSource
+::OOSoundSource* OOMusicController::soundSource()
 {
-    return [_current musicSoundSource];
+    return [_current.get() musicSoundSource];
 }
 
-- (std::optional<std::string>)playingMusic
+std::optional<std::string> OOMusicController::playingMusic()
 {
-    return [_current cxx_name];
+    return [_current.get() cxx_name];
 }
 
-- (BOOL)isPlaying
+bool OOMusicController::isPlaying()
 {
-    return [_current isPlaying];
+    return [_current.get() isPlaying];
 }
 
-- (OOMusicMode)mode
+OOMusicMode OOMusicController::mode()
 {
     return _mode;
 }
 
-- (void)setMode:(OOMusicMode)mode
+void OOMusicController::setMode(OOMusicMode mode)
 {
     if (mode <= kOOMusicModeMax && _mode != mode) {
         if (_mode == kOOMusicITunes)
-            [self pauseiTunes];
+            pauseiTunes();
         _mode = mode;
 
         if (_mode == kOOMusicOff)
-            [self stop];
+            stop();
         else
             switch (_special) {
             case kSpecialNone:
-                [self stop];
+                stop();
                 break;
 
             case kSpecialTheme:
-                [self playThemeMusic];
+                playThemeMusic();
                 break;
 
             case kSpecialDocked:
-                [self playDockedMusic];
+                playDockedMusic();
                 break;
 
             case kSpecialDocking:
-                [self playDockingMusic];
+                playDockingMusic();
                 break;
 
             case kSpecialMission:
-                [self playMissionMusic];
+                playMissionMusic();
                 break;
             }
 
@@ -268,56 +261,12 @@ enum {
     }
 }
 
-@end
+// The singleton category (+allocWithZone:, -retain and the rest) is not translated: the controller
+// has no other creator and is never released (amendment oo-r7m0 item 1).
 
-@implementation OOMusicController (Singleton)
-
-/*	Canonical singleton boilerplate.
-        See Cocoa Fundamentals Guide: Creating a Singleton Instance.
-        See also +sharedController above.
-
-        NOTE: assumes single-threaded access.
-*/
-
-+ (id)allocWithZone:(OOZone*)inZone
-{
-    if (sSingleton == nil) {
-        sSingleton = [super allocWithZone:inZone];
-        return sSingleton;
-    }
-    return nil;
-}
-
-- (id)copyWithZone:(OOZone*)inZone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
-@end
-
-@implementation OOMusicController (Private)
-
+// The private category: the iTunes integration, compiled for the Mac only (amendment oo-bgmb item 2).
 #if OOLITE_MAC_OS_X
-- (void)playiTunesPlaylist:(const char*)playlistNameUTF8
+void OOMusicController::playiTunesPlaylist(const char* playlistNameUTF8)
 {
     NSString* playlistName = oo::NSStringFrom(playlistNameUTF8);
     NSString* ootunesScriptString =
@@ -340,7 +289,7 @@ enum {
         OO_LOG("sound.music.iTunesIntegration.failed", "ootunes returned :{}", oo::DescriptionOf(errDict));
 }
 
-- (void)pauseiTunes
+void OOMusicController::pauseiTunes()
 {
     NSString* ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring\nend try"];
     NSAppleScript* ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
@@ -351,12 +300,8 @@ enum {
     [ootunesScript release];
 }
 #else
-- (void)playiTunesPlaylist:(const char*)playlistName
-{
-}
-- (void)pauseiTunes
-{
-}
+void OOMusicController::playiTunesPlaylist(const char* /*playlistName*/) { }
+void OOMusicController::pauseiTunes() { }
 #endif
 
-@end
+} // namespace cxx

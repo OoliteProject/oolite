@@ -95,6 +95,10 @@ inline OOCharacter* ToObjC(const Ref<cxx::OOCharacter>& character) { return ToOb
 // The C++ character behind a facade, borrowed (the facade retains it); null for nil.
 cxx::OOCharacter* ToCxx(OOCharacter* character);
 
+// [object intValue], for cxx::OOCharacter's origin lookup: the send needs a declaration of
+// -intValue, which only Objective-C can write (ADR-0056 amendment oo-9ht.66).
+int SendIntValue(id object);
+
 } // namespace oo
 
 #endif // OOCHARACTER_OBJCBRIDGE_H

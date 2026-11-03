@@ -30,6 +30,17 @@ oo::ObjCPeers& Peers()
 
 } // namespace
 
+// -className as the GNUstep bridge declared it (the object may answer it; nothing declares it since
+// oo-3rb.4 deleted OOObjectGNUstepBridge). The Objective-C -className forwarded it unchanged.
+@protocol OOWeakReferenceClassName
+- (id)className;
+@end
+
+id oo::SendClassName(id object)
+{
+    return [(id<OOWeakReferenceClassName>)object className];
+}
+
 @interface OOWeakReference (OOObjCBridgePrivate)
 
 - (id)initWithObject:(id<OOWeakReferenceSupport>)object;

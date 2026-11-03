@@ -36,35 +36,8 @@ SOFTWARE.
 #import "oofnd/objc/OOObject.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-
-@interface OOPListSchemaVerifier : OOObject {
-@private
-    oo::PList _schema;
-    oo::PList _definitions; // the schema's $definitions (null if none)
-
-    id _delegate;
-    uint32_t _badDelegateWarning : 1;
-}
-
-+ (instancetype)verifierWithSchema:(const oo::PList&)schema; // nil for a null schema
-- (id)initWithSchema:(const oo::PList&)schema;
-
-- (void)setDelegate:(id)delegate;
-- (id)delegate;
-
-- (BOOL)verifyPropertyList:(const oo::PList&)plist named:(const std::string&)name;
-
-/*	Convert a key path (such as provided to the delegate method
-        -verifier:withPropertyList:failedForProperty:atPath:expectedType:) to a
-        human-readable string. Strings are separated by dots and numbers are give
-        brackets. For instance, the key path ( "adder-player", "custom_views", 0,
-        "view_description" ) is transfomed to
-        "adder-player.custom_views[0].view_description".
-*/
-+ (std::optional<std::string>)descriptionForKeyPath:(const oo::PList&)keyPath; // a null or empty path is "root"; nullopt for a component that is neither string nor number
-
-@end
 
 /*	A schema verifier error (ADR-0029 decision 5, bead oo-3rb.16): what the Foundation error object
         carried. domain is kOOPListSchemaVerifierErrorDomain, code an OOPListSchemaVerifierErrorCode,
@@ -79,30 +52,58 @@ struct OOPListSchemaVerifierError {
     oo::PList userInfo;
 };
 
-@interface OOObject (OOPListSchemaVerifierDelegate)
-
-// Handle "delegated types". Return YES for valid, NO for invalid.
-// name: a string; keyPath: an array of strings and numbers; typeKey: a string.
-- (BOOL)verifier:(OOPListSchemaVerifier*)verifier
-    withPropertyList:(const oo::PList&)rootPList
-               named:(const std::string&)name
-        testProperty:(const oo::PList&)subPList
-              atPath:(const oo::PList&)keyPath
-         againstType:(const oo::PList&)typeKey
-               error:(std::optional<OOPListSchemaVerifierError>*)outError; // flipped with its family (bead oo-3rb.275)
-
-/*	Method notifying of verification failure.
-        Return YES to continue verifying, NO to stop.
+/*	The key path the verification core hands down, one link per level (a dictionary key, an array
+        index, or neither for the root). Private to OOPListSchemaVerifier.mm until slice 1 of its
+        Phase 3 conversion (bead oo-pni4): the verification core's members below take it, so its
+        definition is here. Not for other callers.
 */
-// name: a string; localSchema: the schema type specifier (a string or a dictionary).
-- (BOOL)verifier:(OOPListSchemaVerifier*)verifier
-     withPropertyList:(const oo::PList&)rootPList
-                named:(const std::string&)name
-    failedForProperty:(const oo::PList&)subPList
-            withError:(const OOPListSchemaVerifierError&)error
-         expectedType:(const oo::PList&)localSchema; // flipped with its family (bead oo-3rb.275)
+typedef struct BackLinkChain BackLinkChain;
+struct BackLinkChain {
+    BackLinkChain* link;
+    const std::string* key; // a dictionary key (the caller keeps it alive), or
+    NSUInteger index; // an array index when isIndex; neither for the root
+    bool isIndex;
+};
 
-@end
+namespace cxx {
+
+class OOPListSchemaVerifier : public oo::RefCounted {
+public:
+    static oo::Ref<OOPListSchemaVerifier> verifierWithSchema(const oo::PList& schema); // null for a null schema
+    static oo::Ref<OOPListSchemaVerifier> initWithSchema(const oo::PList& schema); // -initWithSchema:; null for a null schema
+
+    void setDelegate(id delegate);
+    id delegate();
+
+    bool verifyPropertyList(const oo::PList& plist, const std::string& name);
+
+    /*	Convert a key path (such as provided to the delegate method
+            -verifier:withPropertyList:failedForProperty:atPath:expectedType:) to a
+            human-readable string. Strings are separated by dots and numbers are give
+            brackets. For instance, the key path ( "adder-player", "custom_views", 0,
+            "view_description" ) is transfomed to
+            "adder-player.custom_views[0].view_description".
+    */
+    static std::optional<std::string> descriptionForKeyPath(const oo::PList& keyPath); // a null or empty path is "root"; nullopt for a component that is neither string nor number
+
+    // Internal (the OOPrivate category): the verification core and the delegate calls, which the
+    // type verifiers in OOPListSchemaVerifier.mm (file-static functions) call directly.
+    bool delegateVerifierWithPropertyList(const oo::PList& rootPList, const std::string& name, const oo::PList& subPList, BackLinkChain keyPath, const oo::PList& typeKey, std::optional<OOPListSchemaVerifierError>* outError);
+    bool delegateVerifierWithPropertyList(const oo::PList& rootPList, const std::string& name, const oo::PList& subPList, const OOPListSchemaVerifierError& error, const oo::PList& localSchema);
+    bool verifyPList(const oo::PList& rootPList, const std::string& name, const oo::PList& subProperty, const oo::PList& subSchema, BackLinkChain keyPath, bool tentative, std::optional<OOPListSchemaVerifierError>* outError, BOOL* outStop);
+    oo::PList resolveSchemaType(const oo::PList& specifier, BackLinkChain keyPath, std::optional<OOPListSchemaVerifierError>* outError); // null: not resolved (*outError says why)
+
+private:
+    explicit OOPListSchemaVerifier(const oo::PList& schema); // -initWithSchema:, less its failure
+
+    oo::PList _schema;
+    oo::PList _definitions; // the schema's $definitions (null if none)
+
+    id _delegate = { };
+    uint32_t _badDelegateWarning : 1 = 0;
+};
+
+} // namespace cxx
 
 // Error domain and codes used to report schema verifier errors (UTF-8; the error's domain and
 // userInfo keys are these texts).
@@ -167,5 +168,7 @@ OOINLINE BOOL OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error)
 {
     return kPListErrorStartOfSchemaErrors < error && error < kPListErrorLastErrorCode;
 }
+
+#import "OOPListSchemaVerifier+ObjCBridge.h"
 
 #endif // OO_OXP_VERIFIER_ENABLED

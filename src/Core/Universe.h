@@ -339,9 +339,7 @@ inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar sp
     oo::PList speechArray; // [original, replacement(, espeak replacement)] pairs
 #endif
 
-#if NEW_PLANETS
     std::vector<oo::ObjCRef<OOMaterial*>> _preloadingPlanetMaterials;
-#endif
     BOOL doProcedurallyTexturedPlanets;
 
     GLfloat frustum[6][4];

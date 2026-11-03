@@ -4,6 +4,10 @@ OOJSCall.h
 
 Basic JavaScript-to-ObjC bridge implementation.
 
+Converted in bead oo-81hy (proposed ADR-0056 amendment oo-ppc; no class of its own): bool for BOOL.
+The Objective-C it needs to read method signatures (the template class and the scalar-value
+protocol) is in OOJSCall+ObjCBridge.h/.mm, imported at the end of this header.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -45,11 +49,14 @@ MA 02110-1301, USA.
         -oo_jsValueInContext: (owned by the caller). Otherwise, it will be left
         unchanged, so the caller should initialize it (normally to JS_UNDEFINED).
 
-        If it returns NO, an error has been reported and the caller (a native)
+        If it returns false, an error has been reported and the caller (a native)
         should return JS_EXCEPTION.
 
         argv is assumed to contain at least one value.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
+bool OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
+
+// Transitional: the Objective-C helpers of the call. Deleted by the bridge's deletion bead.
+#import "OOJSCall+ObjCBridge.h"
 
 #endif

@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 
+#import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityScriptMethods.h"
@@ -39,6 +40,15 @@ MA 02110-1301, USA.
 
 #import "OOObjCPList.h"
 
+
+/*
+        C++20 since bead oo-5rva, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. Nothing else in the file was
+        Objective-C: the player (PlayerEntity), the universe and ShipEntity, which are not converted,
+        are still messaged, which is why the file is still .mm until Phase 4.
+*/
 
 static JSClassID sPlayerClassID;
 
@@ -343,7 +353,7 @@ static JSValue PlayerCommsMessage(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> message;
     double time = 4.5;
-    BOOL gotTime = YES;
+    bool gotTime = true;
 
     if (argc > 0)
         message = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -368,7 +378,7 @@ static JSValue PlayerConsoleMessage(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> message;
     double time = 3.0;
-    BOOL gotTime = YES;
+    bool gotTime = true;
 
     if (argc > 0)
         message = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
@@ -519,7 +529,7 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> shipKey;
     PlayerEntity* player = OOPlayerForScripting();
-    BOOL success = NO;
+    bool success = false;
     int32_t personality = 0;
 
     if (argc > 0)
@@ -565,7 +575,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    BOOL OK = NO;
+    bool OK = false;
     oo::PList destValue;
     PlayerEntity* player = OOPlayerForScripting();
 
@@ -575,10 +585,10 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 
         if (destValue.isNull()) {
             [player setDockTarget:NULL];
-            OK = YES;
+            OK = true;
         } else if ([destObject isKindOfClass:[ShipEntity class]] && [destObject isStation]) {
             [player setDockTarget:destObject];
-            OK = YES;
+            OK = true;
         } else if (const std::string* destString = destValue.getIf<std::string>()) {
             if (*destString == "NEARBY_SYSTEM") {
                 // find the nearest system with a main station, or die in the attempt!
@@ -617,18 +627,18 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
                     // at the end of the docking sequence we'll check if the target system is the same as the system we're in...
                     [player setTargetSystemID:i];
                 }
-                OK = YES;
+                OK = true;
             }
         } else {
             int bValue = JS_ToBool(context, OOJS_ARGV[0]);
             if (bValue == 0) {
                 [player setDockTarget:NULL];
-                OK = YES;
+                OK = true;
             }
         }
     }
 
-    if (OK == NO) {
+    if (OK == false) {
         cxx_OOJSReportBadArguments(context, "Player", "setEscapePodDestination", argc, OOJS_ARGV, std::nullopt, "a valid station, null, or 'NEARBY_SYSTEM'");
         return OOJSNativeFailure(context);
     }

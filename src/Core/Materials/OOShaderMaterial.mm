@@ -71,53 +71,46 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 
 } // namespace
 
-@interface OOShaderMaterial (OOPrivate)
+namespace cxx {
 
-// Convert a "textures" array (texture specifiers) to texture objects.
-- (std::vector<oo::ObjCRef<OOTexture*>>)loadTexturesFromArray:(const oo::PList&)textureSpecs unitCount:(GLuint)max;
-
-// Load up an array of texture objects.
-- (void)addTexturesFromArray:(const std::vector<oo::ObjCRef<OOTexture*>>&)textureObjects unitCount:(GLuint)max;
-
-@end
-
-@implementation OOShaderMaterial
-
-+ (BOOL)configurationDictionarySpecifiesShaderMaterial:(const oo::PList&)configuration
+bool OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(const oo::PList& configuration)
 {
     if (configuration.isNull())
-        return NO;
+        return false;
 
     if (StringForKey(configuration, kOOVertexShaderSourceKey).has_value())
-        return YES;
+        return true;
     if (StringForKey(configuration, kOOFragmentShaderSourceKey).has_value())
-        return YES;
+        return true;
     if (StringForKey(configuration, kOOVertexShaderNameKey).has_value())
-        return YES;
+        return true;
     if (StringForKey(configuration, kOOVertexShaderNameKey).has_value())
-        return YES;
+        return true;
 
-    return NO;
+    return false;
 }
 
-+ (instancetype)shaderMaterialWithName:(const std::optional<std::string>&)name
-                         configuration:(const oo::PList&)configuration
-                                macros:(const oo::PList&)macros
-                         bindingTarget:(id<OOWeakReferenceSupport>)target
+oo::Ref<OOShaderMaterial> OOShaderMaterial::shaderMaterialWithName(const std::optional<std::string>& name,
+    const oo::PList& configuration,
+    const oo::PList& macros,
+    id<OOWeakReferenceSupport> target)
 {
-    return [[[self alloc] initWithName:name configuration:configuration macros:macros bindingTarget:target] autorelease];
+    oo::Ref<OOShaderMaterial> result = oo::makeRef<OOShaderMaterial>();
+    if (!result->initWithName(name, configuration, macros, target))
+        return nullptr;
+    return result;
 }
 
-- (id)initWithName:(const std::optional<std::string>&)name
-     configuration:(const oo::PList&)configuration
-            macros:(const oo::PList&)macros
-     bindingTarget:(id<OOWeakReferenceSupport>)target
+bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
+    const oo::PList& configuration,
+    const oo::PList& macros,
+    id<OOWeakReferenceSupport> target)
 {
-    BOOL OK = YES;
+    bool OK = true;
     std::optional<std::string> macroString;
     std::optional<std::string> vertexShader;
     std::optional<std::string> fragmentShader;
-    GLint textureUnits = [[OOOpenGLExtensionManager sharedManager] textureImageUnitCount];
+    GLint textureUnits = OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount();
     oo::PList modifiedMacros;
     std::optional<std::string> vsName = "<synthesized>";
     std::optional<std::string> fsName = "<synthesized>";
@@ -125,11 +118,10 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     std::optional<std::string> fsCacheKey;
 
     if (configuration.isNull())
-        OK = NO;
+        OK = false;
 
-    self = [super initWithName:name configuration:configuration];
-    if (self == nil)
-        OK = NO;
+    // [super initWithName:configuration:], which cannot fail (its self == nil test is gone).
+    OOBasicMaterial::initWithName(name, configuration);
 
     if (OK) {
         // A copy of the macros (an empty one for nil, as +dictionary / -mutableCopy gave).
@@ -147,7 +139,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
             vsCacheKey = vsName;
             if (vsName.has_value()) {
                 if (!GetShaderSource(vsName, "vertex", macroString, &vertexShader))
-                    OK = NO;
+                    OK = false;
             }
         } else {
             vsCacheKey = vertexShader;
@@ -161,7 +153,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
             fsCacheKey = fsName;
             if (fsName.has_value()) {
                 if (!GetShaderSource(fsName, "fragment", macroString, &fragmentShader))
-                    OK = NO;
+                    OK = false;
             }
         } else {
             fsCacheKey = fragmentShader;
@@ -184,13 +176,14 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
                 macroString.has_value() ? macroString->c_str() : "(null)");
 
             OOLogIndent();
-            shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:vertexShader
-                                                            fragmentShader:fragmentShader
-                                                          vertexShaderName:vsName
-                                                        fragmentShaderName:fsName
-                                                                    prefix:macroString
-                                                         attributeBindings:attributeBindings
-                                                                  cacheKey:cacheKey];
+            // Retained here (the ivar is an oo::ObjCRef), where the old code retained it once OK.
+            shaderProgram = oo::ObjCRef<::OOShaderProgram*>([::OOShaderProgram shaderProgramWithVertexShader:vertexShader
+                                                                                              fragmentShader:fragmentShader
+                                                                                            vertexShaderName:vsName
+                                                                                          fragmentShaderName:fsName
+                                                                                                      prefix:macroString
+                                                                                           attributeBindings:attributeBindings
+                                                                                                    cacheKey:cacheKey]);
             OOLogOutdent();
 
 // no reduced complexity mode now
@@ -205,13 +198,13 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 				if (canFallBack)
 				{
 					OO_LOG_WARN("shader.load.fullModeFailed", "Could not build shader {}/{} in full complexity mode, trying simple mode.", vsName.value_or("(null)"), fsName.value_or("(null)"));
-					
+
 					(*modifiedMacros.getIf<oo::PList::Dict>())["OO_REDUCED_COMPLEXITY"] = oo::PList::signedInteger(1);
 					macroString = MacrosToString(modifiedMacros);
 					cacheKey = *cacheKey + "\n$SIMPLIFIED FALLBACK\n";
-					
+
 					OOLogIndent();
-					shaderProgram = [OOShaderProgram shaderProgramWithVertexShader:vertexShader
+					shaderProgram = [::OOShaderProgram shaderProgramWithVertexShader:vertexShader
 																	fragmentShader:fragmentShader
 																  vertexShaderName:vsName
 																fragmentShaderName:fsName
@@ -219,7 +212,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 																 attributeBindings:attributeBindings
 																		  cacheKey:cacheKey];
 					OOLogOutdent();
-					
+
 					if (shaderProgram != nil)
 					{
 						OO_LOG("shader.load.fallbackSuccess", "{}", "Simple mode fallback successful.");
@@ -228,16 +221,14 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 			}
 #endif
 
-            if (shaderProgram == nil) {
+            if (shaderProgram.get() == nil) {
                 OO_LOG_ERR("shader.load.failed", "Could not build shader {}/{}.", vsName.value_or("(null)"), fsName.value_or("(null)"));
             }
         } else {
             OO_LOG("shader.load.noShader", "***** Error: no vertex or fragment shader specified in shader dictionary:\n{}", oo::DescriptionOf(configuration));
         }
 
-        OK = (shaderProgram != nil);
-        if (OK)
-            [shaderProgram retain];
+        OK = (shaderProgram.get() != nil);
     }
 
     if (OK) {
@@ -245,17 +236,17 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
         const oo::PList* uniformDefs = configuration.find(kOOUniformsKey);
 
         // Texture objects from the configuration (Object nodes), else texture specifiers loaded.
-        std::vector<oo::ObjCRef<OOTexture*>> textureObjects;
+        std::vector<oo::ObjCRef<::OOTexture*>> textureObjects;
         if (const oo::PList* textureArray = configuration.get<oo::PList::Array>(kOOTextureObjectsKey)) {
             for (const oo::PList& entry : *textureArray->getIf<oo::PList::Array>()) {
-                textureObjects.push_back(oo::ObjCRef<OOTexture*>(oo::ObjectIn(entry)));
+                textureObjects.push_back(oo::ObjCRef<::OOTexture*>(oo::ObjectIn(entry)));
             }
         } else if (const oo::PList* textureSpecs = configuration.get<oo::PList::Array>(kOOTexturesKey)) {
-            textureObjects = [self loadTexturesFromArray:*textureSpecs unitCount:textureUnits];
+            textureObjects = loadTexturesFromArray(*textureSpecs, textureUnits);
         }
 
-        [self addUniformsFromDictionary:uniformDefs != nullptr ? *uniformDefs : oo::PList() withBindingTarget:target];
-        [self addTexturesFromArray:textureObjects unitCount:textureUnits];
+        addUniformsFromDictionary(uniformDefs != nullptr ? *uniformDefs : oo::PList(), target);
+        addTexturesFromArray(textureObjects, textureUnits);
     }
 
     if (OK) {
@@ -263,29 +254,24 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 
         if (uniforms.find("uGloss") == uniforms.end()) {
             float gloss = OOClamp_0_1_f(configuration.get<float>("gloss", 0.5f));
-            [self setUniform:"uGloss" floatValue:gloss];
+            setUniform("uGloss", gloss);
         }
 
         if (uniforms.find("uGammaCorrect") == uniforms.end()) {
             BOOL gammaCorrect = configuration.get<bool>("gamma_correct", !oo::Defaults::standard().boolForKey("no-gamma-correct"));
-            [self setUniform:"uGammaCorrect" floatValue:(float)gammaCorrect];
+            setUniform("uGammaCorrect", (float)gammaCorrect);
         }
     }
 
-    if (!OK) {
-        [self release];
-        self = nil;
-    }
-    return self;
+    // [self release]; self = nil where !OK: the factory drops the object.
+    return OK;
 }
 
-- (void)dealloc
+// -dealloc's body, but for its first line ([self willDealloc], the root facade's: proposed ADR-0056,
+// amendment oo-smy item 3); the shader program and the binding target are oo::ObjCRefs.
+OOShaderMaterial::~OOShaderMaterial()
 {
     uint32_t i;
-
-    [self willDealloc];
-
-    [shaderProgram release];
 
     if (textures != NULL) {
         for (i = 0; i != texCount; ++i) {
@@ -293,105 +279,101 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
         }
         free(textures);
     }
-
-    [bindingTarget release];
-
-    [super dealloc];
 }
 
-- (BOOL)bindUniform:(const std::string&)uniformName
-           toObject:(id<OOWeakReferenceSupport>)source
-           property:(SEL)selector
-     convertOptions:(OOUniformConvertOptions)options
+bool OOShaderMaterial::bindUniform(const std::string& uniformName,
+    id<OOWeakReferenceSupport> source,
+    SEL selector,
+    OOUniformConvertOptions options)
 {
-    OOShaderUniform* uniform = nil;
+    ::OOShaderUniform* uniform = nil;
 
-    uniform = [[OOShaderUniform alloc] initWithName:uniformName
-                                      shaderProgram:shaderProgram
-                                      boundToObject:source
-                                           property:selector
-                                     convertOptions:options];
+    uniform = [[::OOShaderUniform alloc] initWithName:uniformName
+                                        shaderProgram:shaderProgram.get()
+                                        boundToObject:source
+                                             property:selector
+                                       convertOptions:options];
     if (uniform != nil) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", oo::DescriptionOf(uniform));
-        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
-        return YES;
+        uniforms[uniformName] = oo::ObjCRef<::OOShaderUniform*>::adopt(uniform);
+        return true;
     } else {
         OO_LOG("shader.uniform.unSet", "Did not set uniform \"{}\"", uniformName);
         uniforms.erase(uniformName);
-        return NO;
+        return false;
     }
 }
 
-- (BOOL)bindSafeUniform:(const std::string&)uniformName
-               toObject:(id<OOWeakReferenceSupport>)target
-          propertyNamed:(const std::optional<std::string>&)property
-         convertOptions:(OOUniformConvertOptions)options
+bool OOShaderMaterial::bindSafeUniform(const std::string& uniformName,
+    id<OOWeakReferenceSupport> target,
+    const std::optional<std::string>& property,
+    OOUniformConvertOptions options)
 {
     SEL selector = NULL;
 
     selector = OOSelectorFromName(property.has_value() ? property->c_str() : nullptr);
 
     if (selector != NULL && OOUniformBindingPermitted(*property, target)) {
-        return [self bindUniform:uniformName
-                        toObject:target
-                        property:selector
-                  convertOptions:options];
+        return bindUniform(uniformName,
+            target,
+            selector,
+            options);
     } else {
         OO_LOG("shader.uniform.unpermittedMethod", "Did not bind uniform \"{}\" to property -[{} {}] - unpermitted method.", uniformName, oo::DescriptionOf([target class]), property.value_or("(null)"));
     }
 
-    return NO;
+    return false;
 }
 
-- (void)setUniform:(const std::string&)uniformName intValue:(int)value
+void OOShaderMaterial::setUniform(const std::string& uniformName, int value)
 {
-    OOShaderUniform* uniform = nil;
+    ::OOShaderUniform* uniform = nil;
 
-    uniform = [[OOShaderUniform alloc] initWithName:uniformName
-                                      shaderProgram:shaderProgram
-                                           intValue:value];
+    uniform = [[::OOShaderUniform alloc] initWithName:uniformName
+                                        shaderProgram:shaderProgram.get()
+                                             intValue:value];
     if (uniform != nil) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", oo::DescriptionOf(uniform));
-        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
+        uniforms[uniformName] = oo::ObjCRef<::OOShaderUniform*>::adopt(uniform);
     } else {
         OO_LOG("shader.uniform.unSet", "Did not set uniform \"{}\"", uniformName);
         uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(const std::string&)uniformName floatValue:(float)value
+void OOShaderMaterial::setUniform(const std::string& uniformName, float value)
 {
-    OOShaderUniform* uniform = nil;
+    ::OOShaderUniform* uniform = nil;
 
-    uniform = [[OOShaderUniform alloc] initWithName:uniformName
-                                      shaderProgram:shaderProgram
-                                         floatValue:value];
+    uniform = [[::OOShaderUniform alloc] initWithName:uniformName
+                                        shaderProgram:shaderProgram.get()
+                                           floatValue:value];
     if (uniform != nil) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", oo::DescriptionOf(uniform));
-        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
+        uniforms[uniformName] = oo::ObjCRef<::OOShaderUniform*>::adopt(uniform);
     } else {
         OO_LOG("shader.uniform.unSet", "Did not set uniform \"{}\"", uniformName);
         uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(const std::string&)uniformName vectorValue:(GLfloat[4])value
+void OOShaderMaterial::setUniform(const std::string& uniformName, GLfloat value[4])
 {
-    OOShaderUniform* uniform = nil;
+    ::OOShaderUniform* uniform = nil;
 
-    uniform = [[OOShaderUniform alloc] initWithName:uniformName
-                                      shaderProgram:shaderProgram
-                                        vectorValue:value];
+    uniform = [[::OOShaderUniform alloc] initWithName:uniformName
+                                        shaderProgram:shaderProgram.get()
+                                          vectorValue:value];
     if (uniform != nil) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", oo::DescriptionOf(uniform));
-        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
+        uniforms[uniformName] = oo::ObjCRef<::OOShaderUniform*>::adopt(uniform);
     } else {
         OO_LOG("shader.uniform.unSet", "Did not set uniform \"{}\"", uniformName);
         uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(const std::string&)uniformName vectorObjectValue:(const oo::PList&)value
+void OOShaderMaterial::setUniform(const std::string& uniformName, const oo::PList& value)
 {
     GLfloat vecArray[4];
     if (value.isArray() && value.count() == 4) {
@@ -406,36 +388,36 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
         vecArray[3] = 1.0;
     }
 
-    OOShaderUniform* uniform = [[OOShaderUniform alloc] initWithName:uniformName
-                                                       shaderProgram:shaderProgram
-                                                         vectorValue:vecArray];
+    ::OOShaderUniform* uniform = [[::OOShaderUniform alloc] initWithName:uniformName
+                                                           shaderProgram:shaderProgram.get()
+                                                             vectorValue:vecArray];
     if (uniform != nil) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", oo::DescriptionOf(uniform));
-        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
+        uniforms[uniformName] = oo::ObjCRef<::OOShaderUniform*>::adopt(uniform);
     } else {
         OO_LOG("shader.uniform.unSet", "Did not set uniform \"{}\"", uniformName);
         uniforms.erase(uniformName);
     }
 }
 
-- (void)setUniform:(const std::string&)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix
+void OOShaderMaterial::setUniform(const std::string& uniformName, Quaternion value, bool asMatrix)
 {
-    OOShaderUniform* uniform = nil;
+    ::OOShaderUniform* uniform = nil;
 
-    uniform = [[OOShaderUniform alloc] initWithName:uniformName
-                                      shaderProgram:shaderProgram
-                                    quaternionValue:value
-                                           asMatrix:asMatrix];
+    uniform = [[::OOShaderUniform alloc] initWithName:uniformName
+                                        shaderProgram:shaderProgram.get()
+                                      quaternionValue:value
+                                             asMatrix:asMatrix];
     if (uniform != nil) {
         OO_LOG("shader.uniform.set", "Set up uniform {}", oo::DescriptionOf(uniform));
-        uniforms[uniformName] = oo::ObjCRef<OOShaderUniform*>::adopt(uniform);
+        uniforms[uniformName] = oo::ObjCRef<::OOShaderUniform*>::adopt(uniform);
     } else {
         OO_LOG("shader.uniform.unSet", "Did not set uniform \"{}\"", uniformName);
         uniforms.erase(uniformName);
     }
 }
 
-- (void)addUniformsFromDictionary:(const oo::PList&)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target
+void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs, id<OOWeakReferenceSupport> target)
 {
     oo::PList value;
     std::optional<std::string> binding;
@@ -448,10 +430,11 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     uint32_t randomSeed;
     RANROTSeed savedSeed;
 
-    if ([target respondsToSelector:@selector(randomSeedForShaders)]) {
+    if ([target respondsToSelector:OOSelectorFromName("randomSeedForShaders")]) {
         randomSeed = [(id)target randomSeedForShaders];
     } else {
-        randomSeed = (uint32_t)(uintptr_t)self;
+        // The material's address, as (uint32_t)(uintptr_t)self was: now the C++ object's.
+        randomSeed = (uint32_t)(uintptr_t)this;
     }
     savedSeed = RANROTGetFullSeed();
     ranrot_srand(randomSeed);
@@ -524,7 +507,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
                 gotValue = NO;
 
             if (gotValue) {
-                [self setUniform:name floatValue:floatValue];
+                setUniform(name, floatValue);
             }
         } else if (type == "int" || type == "integer" || type == "texture") {
             /*	"texture" is allowed as a synonym for "int" because shader
@@ -536,22 +519,22 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
             */
             // -intValue: only a number or a string answers it.
             if (value.isNumber()) {
-                [self setUniform:name intValue:(int)value.int64Value()];
+                setUniform(name, (int)value.int64Value());
                 gotValue = YES;
             } else if (const std::string* string = value.getIf<std::string>()) {
-                [self setUniform:name intValue:oo::str::intValue(*string)];
+                setUniform(name, (int)oo::str::intValue(*string));
                 gotValue = YES;
             }
         } else if (type == "vector") {
-            [self setUniform:name vectorObjectValue:value];
+            setUniform(name, value);
             gotValue = YES;
         } else if (type == "quaternion") {
             if (definition.isDict()) {
                 quatAsMatrix = definition.get<bool>("asMatrix", quatAsMatrix);
             }
-            [self setUniform:name
-                quaternionValue:OOQuaternionFromPList(&value, kIdentityQuaternion)
-                       asMatrix:quatAsMatrix];
+            setUniform(name,
+                OOQuaternionFromPList(&value, kIdentityQuaternion),
+                quatAsMatrix);
             gotValue = YES;
         } else if (target != nil && type == "binding") {
             if (definition.isDict()) {
@@ -569,7 +552,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
                 convertOptions = kOOUniformConvertDefaults;
             }
 
-            [self bindSafeUniform:name toObject:target propertyNamed:binding convertOptions:convertOptions];
+            bindSafeUniform(name, target, binding, convertOptions);
             gotValue = YES;
         }
 
@@ -581,14 +564,14 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     RANROTSetFullSeed(savedSeed);
 }
 
-- (BOOL)doApply
+bool OOShaderMaterial::doApply()
 {
     uint32_t i;
 
     OO_ENTER_OPENGL();
 
-    [super doApply];
-    [shaderProgram apply];
+    OOBasicMaterial::doApply();
+    [shaderProgram.get() apply];
 
     for (i = 0; i != texCount; ++i) {
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
@@ -597,18 +580,21 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     if (texCount > 1)
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 
-    @try {
+    // @try / @catch (id): a C++ catch (...) catches an Objective-C exception (ADR-0056 amendment oo-ppc).
+    try {
         for (const auto& [name, uniform] : uniforms) {
             [uniform.get() apply];
         }
-    }
-    @catch (id exception) {
+    } catch (...) {
+        // @catch (id exception) {}: the uniforms after the one that raised are not applied, and the
+        // material still applies.
+        return true;
     }
 
-    return YES;
+    return true;
 }
 
-- (void)ensureFinishedLoading
+void OOShaderMaterial::ensureFinishedLoading()
 {
     uint32_t i;
 
@@ -619,28 +605,28 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     }
 }
 
-- (BOOL)isFinishedLoading
+bool OOShaderMaterial::isFinishedLoading()
 {
     uint32_t i;
 
     if (textures != NULL) {
         for (i = 0; i != texCount; ++i) {
             if (![textures[i] isFinishedLoading])
-                return NO;
+                return false;
         }
     }
 
-    return YES;
+    return true;
 }
 
-- (void)unapplyWithNext:(OOMaterial*)next
+void OOShaderMaterial::unapplyWithNext(OOMaterial* next)
 {
     uint32_t i, count;
 
-    if (![next isKindOfClass:[OOShaderMaterial class]]) // Avoid redundant state change
+    if (dynamic_cast<OOShaderMaterial*>(next) == nullptr) // Avoid redundant state change (-isKindOfClass:; nil is not one)
     {
         OO_ENTER_OPENGL();
-        [OOShaderProgram applyNone];
+        [::OOShaderProgram applyNone];
 
         /*	BUG: unapplyWithNext: was failing to clear texture state. If a
                 shader material was followed by a basic material (with no texture),
@@ -653,31 +639,30 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
         count = texCount ? texCount : 1;
         for (i = 0; i != count; ++i) {
             OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
-            [OOTexture applyNone];
+            [::OOTexture applyNone];
         }
         if (count != 1)
             OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
     }
 }
 
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+void OOShaderMaterial::setBindingTarget(id<OOWeakReferenceSupport> target)
 {
     for (const auto& [name, uniform] : uniforms) {
         [uniform.get() setBindingTarget:target];
     }
-    [bindingTarget release];
-    bindingTarget = [target weakRetain];
+    bindingTarget = oo::ObjCRef<::OOWeakReference*>::adopt([target weakRetain]);
 }
 
-- (BOOL)permitSpecular
+bool OOShaderMaterial::permitSpecular()
 {
-    return YES;
+    return true;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
+std::vector<oo::ObjCRef<::OOTexture*>> OOShaderMaterial::allTextures()
 {
-    std::vector<oo::ObjCRef<OOTexture*>> result;
+    std::vector<oo::ObjCRef<::OOTexture*>> result;
     result.reserve(texCount);
     for (uint32_t i = 0; i < texCount; i++) {
         result.emplace_back(textures[i]);
@@ -686,34 +671,30 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 }
 #endif
 
-@end
-
-@implementation OOShaderMaterial (OOPrivate)
-
-- (std::vector<oo::ObjCRef<OOTexture*>>)loadTexturesFromArray:(const oo::PList&)textureSpecs unitCount:(GLuint)max
+std::vector<oo::ObjCRef<::OOTexture*>> OOShaderMaterial::loadTexturesFromArray(const oo::PList& textureSpecs, GLuint max)
 {
     GLuint i, count = (GLuint)MIN(textureSpecs.count(), (size_t)max);
-    std::vector<oo::ObjCRef<OOTexture*>> result;
+    std::vector<oo::ObjCRef<::OOTexture*>> result;
     result.reserve(count);
 
     for (i = 0; i < count; i++) {
-        OOTexture* texture = [OOTexture cxx_textureWithConfiguration:*textureSpecs.at(i)];
+        ::OOTexture* texture = [::OOTexture cxx_textureWithConfiguration:*textureSpecs.at(i)];
         if (texture == nil)
-            texture = [OOTexture nullTexture];
-        result.push_back(oo::ObjCRef<OOTexture*>(texture));
+            texture = [::OOTexture nullTexture];
+        result.push_back(oo::ObjCRef<::OOTexture*>(texture));
     }
 
     return result;
 }
 
-- (void)addTexturesFromArray:(const std::vector<oo::ObjCRef<OOTexture*>>&)textureObjects unitCount:(GLuint)max
+void OOShaderMaterial::addTexturesFromArray(const std::vector<oo::ObjCRef<::OOTexture*>>& textureObjects, GLuint max)
 {
     // Allocate space for texture object name array
     texCount = (uint32_t)MIN(textureObjects.size(), (size_t)max);
     if (texCount == 0)
         return;
 
-    textures = (OOTexture**)malloc(texCount * sizeof *textures);
+    textures = (::OOTexture**)malloc(texCount * sizeof *textures);
     if (textures == NULL) {
         texCount = 0;
         return;
@@ -727,7 +708,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
     }
 }
 
-@end
+} // namespace cxx
 
 namespace {
 

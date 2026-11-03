@@ -27,20 +27,38 @@ SOFTWARE.
 
 */
 
+#ifndef OOPNGTEXTURELOADER_H
+#define OOPNGTEXTURELOADER_H
+
 #import "OOTextureLoader.h"
 #import "png.h"
 
 #include "oofnd/Data.hpp"
 #include "oofnd/StdLib.hpp"
 
-@interface OOPNGTextureLoader : OOTextureLoader {
-@private
-    png_structp png;
-    png_infop pngInfo;
-    png_infop pngEndInfo;
-    std::optional<oo::Data> fileData;
-    size_t length;
-    size_t offset;
-}
+/*	Phase 3 (bead oo-z889, proposed ADR-0056 amendments oo-bj8 item 12, oo-vl43 item 4 and oo-zl36):
+        a converted leaf, global, over cxx::OOTextureLoader, with no facade of its own. Only the loaders'
+        factory (cxx::OOTextureLoader::loaderWithPath) makes one, and hands the work manager its facade,
+        whose object is an OOTextureLoader.
+*/
+class OOPNGTextureLoader : public cxx::OOTextureLoader {
+public:
+    ~OOPNGTextureLoader() override; // was -dealloc
 
-@end
+    void loadTexture() override;
+
+    // Internal: for libpng's read callback (was the private -readBytes:count:).
+    void readBytes(png_bytep bytes, png_size_t count);
+
+private:
+    void doLoadTexture();
+
+    png_structp png = { };
+    png_infop pngInfo = { };
+    png_infop pngEndInfo = { };
+    std::optional<oo::Data> fileData;
+    size_t length = { };
+    size_t offset = { };
+};
+
+#endif // OOPNGTEXTURELOADER_H

@@ -6,9 +6,9 @@
 
 	Expected values. The component conversions are realFrom<F>, the rows of test_plist_get.cpp's
 	kCaptured (GNUstep base 1.31.1, captured). What this file pins on top is the routing the
-	Foundation functions did around those conversions, read from OOCollectionExtractors.mm: an
-	NSArray of exactly N (-oo_floatAtIndex:/-oo_doubleAtIndex:, fallback 0), an NSDictionary with at
-	least one of the keys (missing keys 0, not the default's component), an NSString or the native
+	Foundation functions did around those conversions, read from OOCollectionExtractors.mm: a
+	Foundation array of exactly N (-oo_floatAtIndex:/-oo_doubleAtIndex:, fallback 0), a Foundation dictionary with at
+	least one of the keys (missing keys 0, not the default's component), a Foundation string or the native
 	vector handed to the game, anything else the default; +numberWithFloat: / +numberWithDouble: for
 	the writers; FuzzyBooleanProbabilityFromString for a string whose -floatValue is 0. The game's
 	own OO*FromObject forward to these functions (the goldens run every former caller through them).

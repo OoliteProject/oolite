@@ -27,41 +27,35 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOTexture.h"
 
-@implementation OOTextureSprite
+namespace cxx {
 
-- (id)initWithTexture:(OOTexture*)inTexture
+oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(::OOTexture* inTexture)
 {
-    return [self initWithTexture:inTexture size:[inTexture originalDimensions]];
+    return initWithTexture(inTexture, [inTexture originalDimensions]);
 }
 
-- (id)initWithTexture:(OOTexture*)inTexture size:(NSSize)spriteSize
+// -initWithTexture:size:'s failure test, then the object (amendment oo-novu item 1).
+oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(::OOTexture* inTexture, NSSize spriteSize)
 {
     if (inTexture == nil) {
-        [self release];
-        return nil;
+        return nullptr;
     }
 
-    self = [super init];
-    if (self != nil) {
-        texture = [inTexture retain];
-        size = spriteSize;
-    }
-    return self;
+    return oo::adopt(new OOTextureSprite(inTexture, spriteSize));
 }
 
-- (void)dealloc
+OOTextureSprite::OOTextureSprite(::OOTexture* inTexture, NSSize spriteSize)
 {
-    [texture release];
-
-    [super dealloc];
+    texture = oo::ObjCRef<::OOTexture*>(inTexture);
+    size = spriteSize;
 }
 
-- (NSSize)size
+NSSize OOTextureSprite::getSize()
 {
     return size;
 }
 
-- (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+void OOTextureSprite::blitToX(float x, float y, float z, float a)
 {
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
@@ -72,7 +66,7 @@ MA 02110-1301, USA.
 
     // Note that the textured Quad is drawn ACW from the top left.
 
-    [texture apply];
+    [texture.get() apply];
     OOGLBEGIN(GL_QUADS);
     glTexCoord2f(0.0, 0.0);
     glVertex3f(x, y + size.height, z);
@@ -92,14 +86,14 @@ MA 02110-1301, USA.
     OOVerifyOpenGLState();
 }
 
-- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+void OOTextureSprite::blitCentredToX(float x, float y, float z, float a)
 {
     float xs = x - size.width / 2.0;
     float ys = y - size.height / 2.0;
-    [self blitToX:xs Y:ys Z:z alpha:a];
+    blitToX(xs, ys, z, a);
 }
 
-- (void)blitBackgroundCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+void OOTextureSprite::blitBackgroundCentredToX(float x, float y, float z, float a)
 {
     // Without distance, coriolis stations would be rendered behind the background image.
     // Set an arbitrary value for distance, might not be sufficient for really huge ships.
@@ -107,9 +101,9 @@ MA 02110-1301, USA.
 
     size.width *= distance;
     size.height *= distance;
-    [self blitCentredToX:x Y:y Z:z * distance alpha:a];
+    blitCentredToX(x, y, z * distance, a);
     size.width /= distance;
     size.height /= distance;
 }
 
-@end
+} // namespace cxx

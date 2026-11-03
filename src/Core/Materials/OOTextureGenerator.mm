@@ -28,31 +28,31 @@ SOFTWARE.
 #import "OOTextureGenerator.h"
 #import "OOAsyncWorkManager.h"
 
-@implementation OOTextureGenerator
+namespace cxx {
 
-- (uint32_t)textureOptions
+uint32_t OOTextureGenerator::textureOptions()
 {
     return kOOTextureDefaultOptions;
 }
 
-- (GLfloat)anisotropy
+GLfloat OOTextureGenerator::anisotropy()
 {
     return kOOTextureDefaultAnisotropy;
 }
 
-- (GLfloat)lodBias
+GLfloat OOTextureGenerator::lodBias()
 {
     return kOOTextureDefaultLODBias;
 }
 
-- (std::optional<std::string>)cxx_cacheKey
+std::optional<std::string> OOTextureGenerator::cacheKey()
 {
     return std::nullopt;
 }
 
-- (BOOL)enqueue
+bool OOTextureGenerator::enqueue()
 {
-    return [[OOAsyncWorkManager sharedAsyncWorkManager] addTask:self priority:kOOAsyncPriorityMedium];
+    return cxx::OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(oo::ToObjC(this), kOOAsyncPriorityMedium);
 }
 
-@end
+} // namespace cxx

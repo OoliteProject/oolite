@@ -1,0 +1,602 @@
+/*	test_OOJSShipGroup.mm
+	Unit tests for the ShipGroup JS binding (src/Core/Scripting/OOJSShipGroup.h/.mm) and its
+	OOShipGroup category (OOJSShipGroup+ObjCBridge.mm): bead oo-n64m, converted the way bead oo-ppc
+	converted OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+
+	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
+	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
+	class registry (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and
+	OOShipGroup (a converted class, reached through its façade,
+	as test_OOShipGroup.mm links it), and stands in for ShipEntity (a weakly referenced object
+	answering only the selectors the binding and the group send, with a JS object of its own),
+	OONull, and the engine functions the binding links against, with the engine headers' linkage.
+	The engine's native-object conversion asks the object for its JS value, as the engine does, so
+	a group's JS object is the one the category makes. The expectations were written against the
+	Objective-C file and run on it first; they pin the JS-visible behaviour (the constructor, the
+	four properties both ways, addShip() with its escort rules, removeShip(), containsShip(), a
+	non-group, a native's exception) and what the category answers the engine (one JS object per
+	group until the engine clears it). Run: bash tools/check-core-tests.sh
+*/
+
+#import "OOShipGroup.h"
+#import "OOWeakReference.h"
+#include <objc/runtime.h>
+#include <quickjs.h>
+#include "oofnd/objc/OOException.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/String.hpp"
+#import "OODescription.h"
+#import "OOObjCPList.h"
+
+
+// MARK: The classes, as far as the binding sees them ----------------------------------------------
+
+/*	A ship: the group it is in, the group it leads as escorts, and whether it takes an escort. A
+	ship named "boom" raises from -acceptAsEscort:, so the test sees what an exception under a
+	native becomes. It holds one reference to its JS object, which lives as long as it does; the
+	JS object's slot holds the ship (not retained).
+*/
+@interface ShipEntity: OOWeakRefObject
+{
+@public
+	std::string _name;
+	OOShipGroup *_group;
+	OOShipGroup *_escortGroup;
+	BOOL _acceptsEscorts;
+	int _accepted;
+	JSValue _jsSelf;	// Zero-filled (not an object) until made; owned.
+}
+- (OOShipGroup *) group;
+- (void) setGroup:(OOShipGroup *)group;
+- (void) setOwner:(id)owner;
+- (OOShipGroup *) escortGroup;
+- (BOOL) acceptAsEscort:(ShipEntity *)other_ship;
+@end
+
+@interface OONull: OOObject
++ (OONull *) null;
+@end
+
+@interface OOObject (OOJSTestGlue)
+- (JSValue) oo_jsValueInContext:(JSContext *)context;	// owned by the caller
+- (void) oo_clearJSSelf:(JSValueConst)selfVal;
+@end
+
+
+#import "OOJSShipGroup.h"
+#include "OOJSEngineCore.h"
+
+#include "oo_test.hpp"
+
+#include <cstdarg>
+#include <cstdint>
+#include <cstring>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+
+namespace {
+JSContext *sContext;
+JSClassID sFakeShipClassID = 0;
+}
+
+
+@implementation ShipEntity
+
+- (OOShipGroup *) group  { return _group; }
+- (void) setGroup:(OOShipGroup *)group  { _group = group; }
+- (void) setOwner:(id)owner  { (void)owner; }
+- (OOShipGroup *) escortGroup  { return _escortGroup; }
+
+- (BOOL) acceptAsEscort:(ShipEntity *)other_ship
+{
+	if (other_ship->_name == "boom")  [OOException raise:OOInvalidArgumentException format:"escort %s", "boom"];
+	if (!_acceptsEscorts)  return NO;
+	_accepted++;
+	return YES;
+}
+
+- (std::optional<std::string>) cxx_descriptionComponents  { return _name; }
+
+- (JSValue) oo_jsValueInContext:(JSContext *)context
+{
+	if (!JS_IsObject(_jsSelf))
+	{
+		_jsSelf = JS_NewObjectClass(context, static_cast<int>(sFakeShipClassID));
+		JS_SetOpaque(_jsSelf, self);
+	}
+	return JS_DupValue(context, _jsSelf);
+}
+
+@end
+
+
+@implementation OONull
+
++ (OONull *) null
+{
+	static OONull *null = [[OONull alloc] init];
+	return null;
+}
+
+@end
+
+
+// MARK: What the rest of the engine provides ------------------------------------------------------
+
+JSContext *gOOJSMainThreadContext = nullptr;
+
+
+void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+{
+	std::string msg = oo::str::vformat(format, args);
+	JS_ThrowPlainError(context, "%s", msg.c_str());
+}
+
+
+void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	cxx_OOJSReportErrorWithArguments(context, format, args);
+	va_end(args);
+}
+
+
+namespace {
+std::string sLastWarning;
+}
+
+void cxx_OOJSReportWarningForCaller(JSContext *, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	sLastWarning = scriptClass.value_or("-") + "." + function.value_or("-") + ": " + oo::str::vformat(format, args);
+	va_end(args);
+}
+
+
+void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+{
+	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+}
+
+
+std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+{
+	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
+	std::size_t length = 0;
+	const char *chars = JS_ToCStringLen(context, &length, value);
+	if (chars == nullptr)
+	{
+		JS_FreeValue(context, JS_GetException(context));
+		return std::nullopt;
+	}
+	std::string result(chars, length);
+	JS_FreeCString(context, chars);
+	return result;
+}
+
+
+std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
+{
+	if (JS_IsNull(value))  return std::string("null");
+	if (JS_IsUndefined(value))  return std::string("undefined");
+	return cxx_OOStringFromJSValue(context, value);
+}
+
+
+// The atom cache and the pending-exception reporter, which the class registry calls.
+JSAtom cxx_OOJSIDFromString(const std::string &string)
+{
+	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
+}
+
+
+void OOJSReportPendingException(JSContext *context)
+{
+	JS_FreeValue(context, JS_GetException(context));
+}
+
+
+// As the engine's: the pending exception, else an uncatchable error that stops the script.
+JSValue OOJSNativeFailure(JSContext *context)
+{
+	if (JS_HasException(context))  return JS_EXCEPTION;
+	JSValue error = JS_NewError(context);
+	JS_SetUncatchableError(context, error);
+	return JS_Throw(context, error);
+}
+
+
+namespace {
+
+// The private object of a JS object of one of the registered classes (the fake Ship class or
+// ShipGroup); nil for any other value.
+id PrivateOf(JSValueConst value)
+{
+	if (!JS_IsObject(value))  return nil;
+	JSClassID classID = JS_GetClassID(value);
+	if (OOJSClassName(classID) == nullptr)  return nil;
+	return (id)JS_GetOpaque(value, classID);
+}
+
+} // namespace
+
+
+// A property list as JavaScript, as far as the binding hands one over: null, a string, a number,
+// an object (its JS value; OONull is null), or an array of those. Owned by the caller.
+JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
+{
+	if (const std::string *str = plist.getIf<std::string>())  return JS_NewStringLen(context, str->data(), str->size());
+	if (plist.isNumber())  return JS_NewNumber(context, plist.doubleValue());
+	if (id object = oo::ObjectIn(plist))  return OOJSValueFromNativeObject(context, object);
+	if (const oo::PList::Array *array = plist.getIf<oo::PList::Array>())
+	{
+		JSValue result = JS_NewArray(context);
+		uint32_t index = 0;
+		for (const oo::PList &element : *array)  JS_SetPropertyUint32(context, result, index++, OOJSValueFromPList(context, element));
+		return result;
+	}
+	return JS_NULL;
+}
+
+
+namespace {
+std::map<JSClassID, int> sConverters;
+} // namespace
+
+
+void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
+{
+	cxx_OOJSReportError(context, "bad property selector");
+}
+
+
+void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
+{
+	cxx_OOJSReportError(context, "bad property value");
+}
+
+
+void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
+{
+	sConverters[classID]++;
+}
+
+
+// The engine's object getter: the JS class must be the required one, and the private object
+// must be of the required Objective-C class.
+BOOL OOJSObjectGetterImplPRIVATE(JSContext *context, JSValueConst object, JSClassID requiredClassID, Class requiredObjCClass, const char *, id *outObject)
+{
+	if (!JS_IsObject(object) || !OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
+	{
+		cxx_OOJSReportError(context, "Native method expected %s, got %s.", OOJSClassName(requiredClassID), cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
+		return NO;
+	}
+	*outObject = (id)JS_GetOpaque(object, JS_GetClassID(object));
+	if (*outObject != nil && ![*outObject isKindOfClass:requiredObjCClass])
+	{
+		cxx_OOJSReportError(context, "Native method expected %s from %s.", class_getName(requiredObjCClass), OOJSClassName(requiredClassID));
+		*outObject = nil;
+		return NO;
+	}
+	return YES;
+}
+
+
+// The engine's conversion asks the object for its JS value; nil and OONull are null.
+JSValue OOJSValueFromNativeObject(JSContext *context, id object)
+{
+	if (object == nil || [object isKindOfClass:[OONull class]])  return JS_NULL;
+	return [object oo_jsValueInContext:context];
+}
+
+
+// The private object of a JS object, if it is of the class.
+id OOJSNativeObjectOfClassFromJSValue(JSContext *, JSValueConst value, Class requiredClass)
+{
+	id object = PrivateOf(value);
+	return [object isKindOfClass:requiredClass] ? object : nil;
+}
+
+
+JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst thisObj, int, JSValueConst *)
+{
+	id object = PrivateOf(thisObj);
+	std::string text = "[" + oo::DescriptionOf(object) + "]";
+	return JS_NewStringLen(context, text.data(), text.size());
+}
+
+
+// The engine's wrapper finalizer: the object forgets its JS self, and the wrapper's retain goes.
+void OOJSObjectWrapperFinalize(JSRuntime *, JSValueConst thisObj)
+{
+	id native = (id)JS_GetOpaque(thisObj, JS_GetClassID(thisObj));
+	if (native != nil)
+	{
+		[native oo_clearJSSelf:thisObj];
+		[native release];
+	}
+}
+
+
+int sLimiterPauses = 0;
+int sProfileDepth = 0;
+
+void OOJSProfileEnter(OOJSProfileStackFrame *, const char *)  { sProfileDepth++; }
+void OOJSProfileExit(OOJSProfileStackFrame *)  { sProfileDepth--; }
+
+void OOJSPauseTimeLimiter(void)  { sLimiterPauses++; }
+void OOJSResumeTimeLimiter(void)  { sLimiterPauses--; }
+
+
+#ifndef NDEBUG
+void OOJSUnreachable(const char *function, const char *, unsigned)
+{
+	std::printf("unreachable reached in %s\n", function);
+	abort();
+}
+#endif
+
+
+oo::PList OOJSBasicPrivateObjectConverter(JSContext *, JSValueConst)
+{
+	return oo::PList();
+}
+
+
+// The game's Ship class's toString(): the fake Ship class names its JS class, as the façade's
+// Symbol.toStringTag made Object.prototype.toString() do (QuickJS-ng and #768 tag no class).
+namespace {
+JSValue FakeShipToString(JSContext *context, JSValueConst, int, JSValueConst *)
+{
+	return JS_NewString(context, "[object Ship]");
+}
+} // namespace
+
+
+// MARK: The context -------------------------------------------------------------------------------
+
+namespace {
+
+JSClassDef sFakeShipClass = { .class_name = "Ship" };
+const JSCFunctionListEntry sFakeShipMethods[] = {
+	JS_CFUNC_DEF("toString", 0, FakeShipToString),
+};
+
+JSRuntime *sRuntime;
+JSValue sGlobal;
+
+
+// Defines a global; takes value (owned).
+void Define(const char *name, JSValue value)
+{
+	JS_SetPropertyStr(sContext, sGlobal, name, value);
+}
+
+
+ShipEntity *NewShip(const char *name)
+{
+	ShipEntity *ship = [[ShipEntity alloc] init];	// kept for the life of the test
+	ship->_name = name;
+	Define(name, [ship oo_jsValueInContext:sContext]);
+	return ship;
+}
+
+
+void SetUpContext()
+{
+	if (sContext != nullptr)  return;
+	sRuntime = JS_NewRuntime();
+	JS_SetMemoryLimit(sRuntime, 8u * 1024u * 1024u);
+	sContext = JS_NewContext(sRuntime);
+	gOOJSMainThreadContext = sContext;
+	sGlobal = JS_GetGlobalObject(sContext);
+	OOJSRegisterClass(&sFakeShipClassID, &sFakeShipClass);
+	OOJSInitClass(sContext, sGlobal, sFakeShipClassID, JS_UNDEFINED, nullptr, 0, nullptr, 0, sFakeShipMethods, OOJS_COUNT(sFakeShipMethods), nullptr, 0);
+	InitOOJSShipGroup(sContext, sGlobal);
+}
+
+
+// Evaluates src and gives its result as a string ("undefined", "null", ...), or "threw: <message>".
+std::string Eval(const char *src)
+{
+	SetUpContext();
+	std::string wrapped = std::string("(function () { try { return String(") + src + "); } catch (e) { return 'threw: ' + (e && e.message !== undefined ? e.message : e); } })()";
+	JSValue result = JS_Eval(sContext, wrapped.c_str(), wrapped.size(), "test.js", JS_EVAL_TYPE_GLOBAL);
+	if (JS_IsException(result))
+	{
+		JS_FreeValue(sContext, JS_GetException(sContext));
+		return "<evaluation failed>";
+	}
+	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	JS_FreeValue(sContext, result);
+	return text;
+}
+
+
+// Eval, and print what came back when it is not what the check expects.
+std::string EvalShown(const char *src, const char *expected)
+{
+	std::string result = Eval(src);
+	if (result != expected)  std::printf("    %s\n    gave: %s\n", src, result.c_str());
+	return result;
+}
+#define OO_CHECK_EVAL(src, expected)  OO_CHECK_EQ(EvalShown(src, expected), expected)
+
+}	// namespace
+
+
+// MARK: Tests -------------------------------------------------------------------------------------
+
+OO_TEST(registration)
+{
+	SetUpContext();
+	OO_CHECK_EQ(sConverters.size(), 1u);
+	OO_CHECK_EVAL("typeof ShipGroup", "function");
+	OO_CHECK_EVAL("Object.keys(ShipGroup.prototype).join()", "count,leader,name,ships");
+	OO_CHECK_EVAL("ShipGroup()", "threw: ShipGroup() cannot be called as a function, it must be used as a constructor (as in new ShipGroup(...)).");
+	OO_CHECK_EVAL("new ShipGroup() instanceof ShipGroup", "true");
+}
+
+
+OO_TEST(category)
+{
+	SetUpContext();
+	// One JS object per group, made on first use; the engine's finalizer clears it.
+	OOShipGroup *group = [OOShipGroup cxx_groupWithName:std::string("cat")];
+	JSValue first = [group oo_jsValueInContext:sContext];
+	OO_CHECK(JS_IsObject(first));
+	JSValue again = [group oo_jsValueInContext:sContext];
+	OO_CHECK(JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first));
+	JS_FreeValue(sContext, again);
+	OO_CHECK((id)JS_GetOpaque(first, JS_GetClassID(first)) == group);
+	Define("catGroup", first);	// the global holds it from here on
+	OO_CHECK_EVAL("catGroup.name", "cat");
+	// Clearing with another object leaves it; clearing with its own makes the next one new.
+	[group oo_clearJSSelf:JS_NULL];
+	again = [group oo_jsValueInContext:sContext];
+	OO_CHECK(JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first));
+	JS_FreeValue(sContext, again);
+	[group oo_clearJSSelf:first];
+	JSValue second = [group oo_jsValueInContext:sContext];
+	OO_CHECK(JS_IsObject(second) && JS_VALUE_GET_PTR(second) != JS_VALUE_GET_PTR(first));
+	JS_FreeValue(sContext, second);
+}
+
+
+OO_TEST(constructor)
+{
+	SetUpContext();
+	NewShip("alpha");
+	OO_CHECK_EVAL("new ShipGroup().name", "null");
+	OO_CHECK_EVAL("new ShipGroup().count", "0");
+	OO_CHECK_EVAL("new ShipGroup('wing').name", "wing");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('wing', alpha); return g.leader === alpha && g.count === 1 && g.ships[0] === alpha; })()", "true");
+	OO_CHECK_EVAL("new ShipGroup('wing', null).leader", "null");
+	OO_CHECK_EVAL("new ShipGroup(5)", "threw: bad arguments: -.ShipGroup()(1) Could not create ShipGroup / group name");
+	OO_CHECK_EVAL("new ShipGroup('wing', {})", "threw: bad arguments: -.ShipGroup()(1) Could not create ShipGroup / ship");
+	OO_CHECK_EVAL("String(new ShipGroup('wing')).replace(/0x[0-9a-f]+/, 'ADDR')", "[<OOShipGroup ADDR>{\"wing\", 0 ships}]");
+}
+
+
+OO_TEST(properties)
+{
+	SetUpContext();
+	NewShip("beta");
+	NewShip("gamma");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.name = 'h'; return g.name; })()", "h");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.name = null; return g.name; })()", "null");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.name = 3; return g.name; })()", "3");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.leader = beta; return g.leader === beta && g.count; })()", "1");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g', beta); g.leader = null; return String(g.leader) + ' ' + g.count; })()", "null 1");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.leader = 'x'; return g.leader; })()", "threw: bad property value");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.addShip(beta); g.addShip(gamma); return g.ships.length + ' ' + g.count; })()", "2 2");
+	// Read-only.
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.count = 5; return g.count; })()", "0");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('g'); g.ships = [beta]; return g.ships.length; })()", "0");
+}
+
+
+OO_TEST(membership)
+{
+	SetUpContext();
+	NewShip("delta");
+	NewShip("epsilon");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('m'); return [g.addShip(delta), g.containsShip(delta), g.containsShip(epsilon), g.count].join(); })()", "true,true,false,1");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('m'); g.addShip(delta); return [g.addShip(delta), g.count].join(); })()", ",1");	// already there: nothing to do
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('m'); g.addShip(delta); return [g.removeShip(delta), g.containsShip(delta), g.count].join(); })()", "true,false,0");
+	OO_CHECK_EVAL("(function () { var g = new ShipGroup('m'); return g.removeShip(epsilon); })()", "false");
+	// null is accepted and does nothing; anything else is an error.
+	OO_CHECK_EVAL("new ShipGroup('m').addShip(null)", "undefined");
+	OO_CHECK_EVAL("new ShipGroup('m').removeShip(null)", "undefined");
+	OO_CHECK_EVAL("new ShipGroup('m').containsShip(null)", "false");
+	OO_CHECK_EVAL("new ShipGroup('m').addShip()", "threw: bad arguments: ShipGroup.addShip(0) - / ship");
+	OO_CHECK_EVAL("new ShipGroup('m').removeShip({})", "threw: bad arguments: ShipGroup.removeShip(1) - / ship");
+	OO_CHECK_EVAL("new ShipGroup('m').containsShip('x')", "threw: bad arguments: ShipGroup.containsShip(1) - / ship");
+}
+
+
+OO_TEST(escorts)
+{
+	SetUpContext();
+	ShipEntity *leader = NewShip("leader");
+	ShipEntity *escort = NewShip("escort");
+	ShipEntity *other = NewShip("otherLeader");
+	ShipEntity *taken = NewShip("taken");
+	// The leader's escort group with escorts already: the new ship must be accepted as an escort.
+	OOShipGroup *escorts = [OOShipGroup cxx_groupWithName:std::string("escorts") leader:leader];
+	[escorts addShip:NewShip("first")];
+	leader->_escortGroup = escorts;
+	leader->_group = escorts;
+	Define("escorts", [escorts oo_jsValueInContext:sContext]);
+	leader->_acceptsEscorts = NO;
+	OO_CHECK_EVAL("[escorts.addShip(escort), escorts.containsShip(escort)].join()", "false,false");
+	leader->_acceptsEscorts = YES;
+	OO_CHECK_EVAL("[escorts.addShip(escort), escorts.containsShip(escort)].join()", "true,true");
+	OO_CHECK_EQ(leader->_accepted, 1);
+	// A ship that already escorts someone else is refused, with a warning.
+	OOShipGroup *otherEscorts = [OOShipGroup cxx_groupWithName:std::string("other") leader:other];
+	[otherEscorts addShip:taken];
+	other->_escortGroup = otherEscorts;
+	taken->_group = otherEscorts;
+	sLastWarning.clear();
+	OO_CHECK_EVAL("escorts.addShip(taken)", "false");
+	OO_CHECK_EQ(sLastWarning, "ShipGroup.addShip: Ship " + oo::DescriptionOf(taken) + " cannot be assigned to two escort groups, ignoring.");
+	OO_CHECK(oo::DescriptionOf(taken).find("{taken}") != std::string::npos);
+	// A lone leader whose escort group is its own group gets a new group, and the ship joins that.
+	ShipEntity *lone = NewShip("lone");
+	OOShipGroup *loneGroup = [OOShipGroup cxx_groupWithName:std::string("alone") leader:lone];
+	lone->_escortGroup = loneGroup;
+	lone->_group = loneGroup;
+	Define("loneGroup", [loneGroup oo_jsValueInContext:sContext]);
+	OO_CHECK_EVAL("[loneGroup.addShip(escort), loneGroup.containsShip(escort)].join()", "true,false");
+	OO_CHECK(lone->_group != loneGroup && [lone->_group containsShip:escort]);
+	OO_CHECK([lone->_group cxx_name] == std::optional<std::string>("ship group"));
+	// A lone leader with a group of its own: it is asked to accept the escort.
+	ShipEntity *custom = NewShip("custom");
+	OOShipGroup *customGroup = [OOShipGroup cxx_groupWithName:std::string("custom") leader:custom];
+	custom->_escortGroup = customGroup;
+	custom->_group = [OOShipGroup cxx_groupWithName:std::string("elsewhere")];
+	Define("customGroup", [customGroup oo_jsValueInContext:sContext]);
+	custom->_acceptsEscorts = NO;
+	OO_CHECK_EVAL("customGroup.addShip(escort)", "false");
+	custom->_acceptsEscorts = YES;
+	OO_CHECK_EVAL("customGroup.addShip(escort)", "true");
+	OO_CHECK_EQ(custom->_accepted, 1);
+}
+
+
+OO_TEST(otherObjects)
+{
+	SetUpContext();
+	NewShip("zeta");
+	OO_CHECK_EVAL("ShipGroup.prototype.addShip.call(zeta, zeta)", "threw: Native method expected ShipGroup, got [object Ship].");
+	OO_CHECK_EVAL("Object.getOwnPropertyDescriptor(ShipGroup.prototype, 'count').get.call({})", "threw: Native method expected ShipGroup, got [object Object].");
+	OO_CHECK_EVAL("ShipGroup.prototype.count", "0");	// the prototype has no group: a message to nil
+	OO_CHECK_EVAL("ShipGroup.prototype.ships.length", "0");
+	OO_CHECK_EVAL("ShipGroup.prototype.name", "null");
+}
+
+
+OO_TEST(nativeExceptions)
+{
+	SetUpContext();
+	ShipEntity *chief = NewShip("chief");
+	NewShip("boom");
+	OOShipGroup *group = [OOShipGroup cxx_groupWithName:std::string("ex") leader:chief];
+	[group addShip:NewShip("wingman")];
+	chief->_escortGroup = group;
+	chief->_group = group;
+	Define("exGroup", [group oo_jsValueInContext:sContext]);
+	OO_CHECK_EVAL("exGroup.addShip(boom)", "threw: Native exception: escort boom");
+	OO_CHECK_EVAL("exGroup.count", "2");
+	OO_CHECK_EQ(sLimiterPauses, 0);
+	OO_CHECK_EQ(sProfileDepth, 0);
+}
+
+
+OO_TEST_MAIN()

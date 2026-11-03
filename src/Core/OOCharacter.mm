@@ -47,12 +47,6 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
 
 } // namespace
 
-// -intValue as Foundation's number and string classes declared it (an Object node's object may answer
-// it; no Foundation header declares it since oo-qps.17).
-@protocol OOCharacterIntValue
-- (int)intValue;
-@end
-
 namespace cxx {
 
 std::optional<std::string> OOCharacter::descriptionComponents() const
@@ -407,7 +401,7 @@ void OOCharacter::setLegacyScript(const oo::PList& some_actions)
     _scriptActions = some_actions;
 }
 
-OOJSScript* OOCharacter::script()
+::OOJSScript* OOCharacter::script()
 {
     return _script.get();
 }
@@ -415,8 +409,8 @@ OOJSScript* OOCharacter::script()
 void OOCharacter::setCharacterScript(const std::string& scriptName)
 {
     // (the script's "character" is this character's Objective-C facade, as it was self)
-    _script = oo::ObjCRef<OOJSScript*>([OOScript cxx_jsScriptFromFileNamed:scriptName
-                                                                properties:oo::PList(oo::PList::Dict { { "character", oo::PListObject(oo::ToObjC(this)) } })]);
+    _script = oo::ObjCRef<::OOJSScript*>([::OOScript cxx_jsScriptFromFileNamed:scriptName
+                                                                    properties:oo::PList(oo::PList::Dict { { "character", oo::PListObject(oo::ToObjC(this)) } })]);
 }
 
 void OOCharacter::doScriptEvent(OOJSPropID message)
@@ -436,7 +430,7 @@ void OOCharacter::setCharacterFromDictionary(const oo::PList& dict)
     const std::string* originName = (origin != nullptr) ? origin->getIf<std::string>() : nullptr;
     id originObject = (origin != nullptr) ? oo::ObjectIn(*origin) : nil;
     const SEL intValue = OOSelectorFromName("intValue");
-    const int originValue = (originObject != nil) ? ([originObject respondsToSelector:intValue] ? [(id<OOCharacterIntValue>)originObject intValue] : 0) : dict.get<int>("origin");
+    const int originValue = (originObject != nil) ? ([originObject respondsToSelector:intValue] ? oo::SendIntValue(originObject) : 0) : dict.get<int>("origin");
     if ((origin != nullptr && origin->isNumber()) || (((originName != nullptr) || [originObject respondsToSelector:intValue]) && (originValue != 0 || (originName != nullptr && *originName == "0")))) {
         // Number or numerical string
         setOriginSystem(originValue);

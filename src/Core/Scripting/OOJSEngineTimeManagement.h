@@ -4,6 +4,12 @@ OOJSEngineTimeManagement.h
 
 Functionality related to time limiting and profiling of JavaScript code.
 
+C++20 since bead oo-cn4o (proposed ADR-0056; amendment oo-ppc for the scripting files): the
+profile classes are cxx::OOTimeProfile and cxx::OOTimeProfileEntry, and
+OOJSEngineTimeManagement+ObjCBridge.h, imported at the end of this header, keeps their
+Objective-C facades, which the debug console holds and the engine converts to JavaScript
+(-oo_jsValueInContext:).
+
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -28,8 +34,13 @@ SOFTWARE.
 */
 
 #import "OOJavaScriptEngine.h"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
+
+#include <optional>
+#include <string>
+#include <vector>
 
 /*	Time Limiter
 
@@ -88,63 +99,88 @@ SOFTWARE.
 
 @class OOTimeProfile, OOTimeProfileEntry;
 
-void OOJSBeginProfiling(BOOL trace);
-OOTimeProfile* OOJSEndProfiling(void);
-BOOL OOJSIsProfiling(void);
+void OOJSBeginProfiling(bool trace);
+OOTimeProfile* OOJSEndProfiling(void); // autoreleased: the facade of the profile
+bool OOJSIsProfiling(void);
 
 void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
 
-@class OOTimeProfileEntry;
+namespace cxx {
 
-@interface OOTimeProfile : OOObject {
-@private
-    double _totalTime;
-    double _nativeTime;
-    double _extensionTime;
-    double _profilerOverhead;
+class OOTimeProfileEntry;
 
-    std::vector<oo::ObjCRef<OOTimeProfileEntry*>> _profileEntries;
-}
+class OOTimeProfile : public oo::RefCounted {
+public:
+    std::optional<std::string> description();
 
-- (double)totalTime;
-- (double)javaScriptTime;
-- (double)nativeTime;
-- (double)extensionTime;
-- (double)nonExtensionTime;
-- (double)profilerOverhead;
+    double totalTime();
+    double javaScriptTime();
+    double nativeTime();
+    double extensionTime();
+    double nonExtensionTime();
+    double profilerOverhead();
 
-- (std::vector<oo::ObjCRef<OOTimeProfileEntry*>>)profileEntries; // sorted by self time, longest first
+    std::vector<oo::Ref<OOTimeProfileEntry>> profileEntries(); // sorted by self time, longest first
 
-@end
+    JSValue oo_jsValueInContext(JSContext* context);
 
-@interface OOTimeProfileEntry : OOObject {
-@private
+    // Set by OOJSEndProfiling() (the old private category).
+    void setTotalTime(double value);
+    void setNativeTime(double value);
+    void setProfilerOverhead(double value);
+    void setExtensionTime(double value);
+    void setProfileEntries(const std::vector<oo::Ref<OOTimeProfileEntry>>& value);
+
+private:
+    oo::PList propertyListRepresentation();
+
+    double _totalTime = { };
+    double _nativeTime = { };
+    double _extensionTime = { };
+    double _profilerOverhead = { };
+
+    std::vector<oo::Ref<OOTimeProfileEntry>> _profileEntries;
+};
+
+class OOTimeProfileEntry : public oo::RefCounted {
+public:
+    // The profiler's (the old private category): only while profiling.
+    explicit OOTimeProfileEntry(const char* name);
+
+    void addSampleWithTotalTime(OOTimeDelta totalTime, OOTimeDelta selfTime);
+
+    std::optional<std::string> description();
+
+    std::optional<std::string> function(); // nullopt: none (bead oo-3rb.291.3)
+    NSUInteger hitCount();
+    double totalTimeSum();
+    double selfTimeSum();
+    double totalTimeAverage();
+    double selfTimeAverage();
+    double totalTimeMax();
+    double selfTimeMax();
+    bool isJavaScriptFrame();
+
+    OOComparisonResult compareByTotalTime(OOTimeProfileEntry* other);
+    OOComparisonResult compareByTotalTimeReverse(OOTimeProfileEntry* other);
+    OOComparisonResult compareBySelfTime(OOTimeProfileEntry* other);
+    OOComparisonResult compareBySelfTimeReverse(OOTimeProfileEntry* other);
+
+    JSValue oo_jsValueInContext(JSContext* context);
+
+private:
+    friend class OOTimeProfile; // its "profiles" list holds each entry's property list
+    oo::PList propertyListRepresentation();
+
     std::optional<std::string> _function; // nullopt when created without a name
-    unsigned long _hitCount;
-    double _totalTimeSum;
-    double _selfTimeSum;
-    double _totalTimeMax;
-    double _selfTimeMax;
-}
+    unsigned long _hitCount = { };
+    double _totalTimeSum = { };
+    double _selfTimeSum = { };
+    double _totalTimeMax = { };
+    double _selfTimeMax = { };
+};
 
-- (std::optional<std::string>)cxx_description;
-
-- (std::optional<std::string>)cxx_function; // nullopt: none (bead oo-3rb.291.3)
-- (NSUInteger)hitCount;
-- (double)totalTimeSum;
-- (double)selfTimeSum;
-- (double)totalTimeAverage;
-- (double)selfTimeAverage;
-- (double)totalTimeMax;
-- (double)selfTimeMax;
-- (BOOL)isJavaScriptFrame;
-
-- (OOComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other;
-- (OOComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other;
-- (OOComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other;
-- (OOComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other;
-
-@end
+} // namespace cxx
 
 #endif
 
@@ -155,3 +191,7 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
         does nothing; it is kept for source compatibility.
 */
 void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime);
+
+// Transitional: the Objective-C OOTimeProfile and OOTimeProfileEntry, for callers not yet converted.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOJSEngineTimeManagement+ObjCBridge.h"

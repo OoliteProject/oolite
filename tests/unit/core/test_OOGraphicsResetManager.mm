@@ -203,6 +203,50 @@ OO_TEST(clientsAreNotRetained)
 }
 
 
+// A converted client (bead oo-4jjl, amendment oo-jpd8 item 3): told once per reset, after the
+// textures, like an Objective-C one; null is never registered; unregistered, it is not told.
+namespace {
+
+struct TestCxxClient : cxx::OOGraphicsResetClient
+{
+	unsigned resets = 0;
+	void resetGraphicsState() override  { resets++; sOrder.push_back(100); }
+};
+
+}	// namespace
+
+
+OO_TEST(cxxClients)
+{
+	OO_CHECK(OOTestGLContext());
+	@autoreleasepool
+	{
+		cxx::OOGraphicsResetManager *manager = cxx::OOGraphicsResetManager::sharedManager();
+		TestCxxClient c1, c2;
+		OOTestResetClient *objc = Client(40);
+		manager->registerCxxClient(&c1);
+		manager->registerCxxClient(&c1);	// a set: told once
+		manager->registerCxxClient(&c2);
+		manager->registerCxxClient(nullptr);
+		manager->registerClient(objc);
+		manager->unregisterCxxClient(&c2);
+		manager->unregisterCxxClient(nullptr);
+
+		sOrder.clear();
+		const unsigned rebinds = sRebinds;
+		manager->resetGraphicsState();
+		OO_CHECK(sRebinds == rebinds + 1);
+		OO_CHECK(c1.resets == 1 && c2.resets == 0 && objc->resets == 1);
+		OO_CHECK(sOrder.size() == 3 && sOrder[0] == 0);	// textures first
+
+		manager->unregisterCxxClient(&c1);
+		manager->unregisterClient(objc);
+		manager->resetGraphicsState();
+		OO_CHECK(c1.resets == 1 && objc->resets == 1);
+	}
+}
+
+
 // After the conversion: one facade for the process, forwarding to the C++ manager.
 OO_TEST(facadeContract)
 {

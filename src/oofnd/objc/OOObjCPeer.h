@@ -14,6 +14,7 @@
             Peers().peerFor(cxx, [&] { return [[X alloc] ...]; }) the live peer, else the one make() gives
                                                                   (+1, adopted); autoreleased; nil for null
             Peers().forget(cxx) in the facade's -dealloc          drops the entry once no peer is alive
+            Peers().livePeer(cxx)                                 the live peer, +0 and not autoreleased, or nil
 
         SEMANTICS
           * The table holds each peer WEAKLY (libobjc2's zeroing weak references, objc_initWeak and
@@ -82,6 +83,24 @@ public:
         return objc_autorelease(peer);
     }
 
+    // The live peer of object, unretained and not autoreleased (+0), or nil when it has none: for
+    // a facade method that answered an object it did not own, which may be sent outside any
+    // autorelease pool (bead oo-qa7c). It never makes a peer. The caller must not let the peer's
+    // other owners go while it uses the result (the table's weak slot does not keep it).
+    id livePeer(const void* object)
+    {
+        if (object == nullptr)
+            return nil;
+        id peer = nil;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto found = peers_.find(object);
+            if (found != peers_.end())
+                peer = objc_loadWeakRetained(&found->second);
+        }
+        objc_release(peer); // outside the lock; a live peer has other owners, so it stays alive
+        return peer;
+    }
     // Called from the peer's -dealloc: forgets object's entry unless a newer peer is alive.
     void forget(const void* object)
     {

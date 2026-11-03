@@ -24,19 +24,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOExhaustPlumeEntity.h"
 #import "OOFoundation.h"
 #include <quickjs.h>
+@class OOExhaustPlumeEntity;
 
 void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 
 JSClassID JSExhaustPlumeClassID(void);
 
-@interface OOExhaustPlumeEntity (OOJavaScriptExtensions)
-
-// Replaces SpiderMonkey's -getJSClass:andPrototype:.
-- (JSClassID)oo_jsClassID;
-- (std::optional<std::string>)cxx_oo_jsClassName;
-- (BOOL)isVisibleToScripts;
-
-@end
+/*	The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the engine reaches by
+        selector. Its methods are one-line forwarders to these in OOJSExhaustPlume+ObjCBridge.mm
+        until OOExhaustPlumeEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). Its
+        -oo_jsClassID answers JSExhaustPlumeClassID().
+*/
+std::optional<std::string> OOJSExhaustPlumeJSClassName(void);
+bool OOJSExhaustPlumeIsVisibleToScripts(void);

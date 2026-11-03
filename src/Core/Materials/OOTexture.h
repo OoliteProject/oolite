@@ -32,6 +32,9 @@ SOFTWARE.
 
 #pragma once
 
+#ifndef OOTEXTURE_H
+#define OOTEXTURE_H
+
 #import "OOFoundation.h"
 
 #import "OOOpenGL.h"
@@ -39,10 +42,11 @@ SOFTWARE.
 #import "OOWeakReference.h"
 
 #include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObjCRef.h"
 
-@class OOTextureLoader, OOTextureGenerator;
+@class OOTexture, OOTextureLoader, OOTextureGenerator;
 
 enum {
     kOOTextureMinFilterDefault = 0x000000UL,
@@ -114,162 +118,111 @@ typedef OOPixMapFormat OOTextureDataFormat;
         configurations are oo::PList (a string or a dictionary; null = nil). The Foundation-typed API
         this header declared went through a transitional bridge until its last caller moved to the cxx_
         API below (bead oo-x3ni).
+
+        Phase 3 (bead oo-whzh, proposed ADR-0056 amendments oo-smy and oo-2en): the C++ root of the
+        textures. OOConcreteTexture and OONullTexture are still Objective-C subclasses of the facade
+        (OOTexture+ObjCBridge.h), so the factories answer the Objective-C texture, retained, and a
+        converted caller that keeps a texture keeps that object (amendment oo-smy item 4).
 */
-@interface OOTexture : OOWeakRefObject {
-#ifdef OO_DEBUG_MONITOR_ENABLED
-@protected
-    BOOL _trace;
-#endif
-}
+namespace cxx {
 
-/*	Load a texture, looking in Textures directories.
+class OOTexture : public oo::RefCounted {
+public:
+    OOTexture(); // was -init: every live texture is known, for graphics resets
+    ~OOTexture() override;
 
-        NOTE: anisotropy is normalized to the range [0, 1]. 1 means as high an
-        anisotropy setting as the hardware supports.
+    /*	Load a texture, looking in Textures directories.
 
-        This method may change; +textureWithConfiguration is generally more
-        appropriate.
-*/
-+ (id)cxx_textureWithName:(const std::optional<std::string>&)name
-                 inFolder:(const std::optional<std::string>&)directory
-                  options:(OOTextureFlags)options
-               anisotropy:(GLfloat)anisotropy
-                  lodBias:(GLfloat)lodBias;
+            NOTE: anisotropy is normalized to the range [0, 1]. 1 means as high an
+            anisotropy setting as the hardware supports.
 
-/*	Equivalent to cxx_textureWithName:name
-                                                         inFolder:directory
-                                                          options:kOOTextureDefaultOptions
-                                                   anisotropy:kOOTextureDefaultAnisotropy
-                                                          lodBias:kOOTextureDefaultLODBias
-*/
-+ (id)cxx_textureWithName:(const std::optional<std::string>&)name
-                 inFolder:(const std::optional<std::string>&)directory;
+            This method may change; textureWithConfiguration() is generally more
+            appropriate. Null for no name, or a file that is not found.
+    */
+    static oo::ObjCRef<::OOTexture*> textureWithName(const std::optional<std::string>& name,
+        const std::optional<std::string>& directory,
+        OOTextureFlags options,
+        GLfloat anisotropy,
+        GLfloat lodBias);
 
-/*	Load a texure, looking in Textures directories, using configuration
-        dictionary or name. (That is, configuration may be either a dictionary
-        or a string.)
+    // Default options, anisotropy and LOD bias.
+    static oo::ObjCRef<::OOTexture*> textureWithName(const std::optional<std::string>& name,
+        const std::optional<std::string>& directory);
 
-        Supported keys:
-                name				(string, required)
-                min_filter			(string, one of "default", "nearest", "linear", "mipmap")
-                max_filter			(string, one of "default", "nearest", "linear")
-                noShrink			(boolean)
-                repeat_s			(boolean)
-                repeat_t			(boolean)
-                cube_map			(boolean)
-                anisotropy			(real)
-                texture_LOD_bias	(real)
-                extract_channel		(string, one of "r", "g", "b", "a")
- */
-+ (id)cxx_textureWithConfiguration:(const oo::PList&)configuration;
-+ (id)cxx_textureWithConfiguration:(const oo::PList&)configuration extraOptions:(OOTextureFlags)extraOptions;
+    /*	Load a texure, looking in Textures directories, using configuration
+            dictionary or name. (That is, configuration may be either a dictionary
+            or a string.) The keys are listed at +cxx_textureWithConfiguration: in
+            OOTexture+ObjCBridge.h.
+    */
+    static oo::ObjCRef<::OOTexture*> textureWithConfiguration(const oo::PList& configuration);
+    static oo::ObjCRef<::OOTexture*> textureWithConfiguration(const oo::PList& configuration, OOTextureFlags extraOptions);
 
-/*	Return the "null texture", a texture object representing an empty texture.
-        Applying the null texture is equivalent to calling [OOTexture applyNone].
-*/
-+ (id)nullTexture;
+    // The "null texture" (OONullTexture's shared instance).
+    static oo::ObjCRef<::OOTexture*> nullTexture();
 
-/*	Load a texture from a generator.
- */
-+ (id)textureWithGenerator:(OOTextureGenerator*)generator;
+    // Load a texture from a generator, optionally forcing an enqueue.
+    static oo::ObjCRef<::OOTexture*> textureWithGenerator(::OOTextureGenerator* generator);
+    static oo::ObjCRef<::OOTexture*> textureWithGenerator(::OOTextureGenerator* generator, bool enqueue);
 
-//	Load a texture from a generator with option to force an enqueue
-+ (id)textureWithGenerator:(OOTextureGenerator*)generator enqueue:(BOOL)enqueue;
+    // Bind the texture to the current texture unit. This will block until loading is completed.
+    virtual void apply();
 
-/*	Bind the texture to the current texture unit.
-        This will block until loading is completed.
-*/
-- (void)apply;
+    static void applyNone();
 
-+ (void)applyNone;
+    virtual void ensureFinishedLoading(); // Default: does nothing
+    virtual bool isFinishedLoading(); // Default: true
+    virtual std::optional<std::string> cacheKey(); // nullopt: not cacheable (the default)
 
-/*	Ensure texture is loaded. This is required because setting up textures
-        inside display lists isn't allowed.
-*/
-- (void)ensureFinishedLoading;
+    virtual NSSize dimensions(); // Subclass responsibility
+    virtual NSSize originalDimensions(); // Default: dimensions()
+    virtual bool isMipMapped(); // Subclass responsibility
 
-/*	Check whether a texture has loaded. NOTE: this does not do the setup that
-        -ensureFinishedLoading does, so -ensureFinishedLoading is still required
-        before using the texture in a display list.
-*/
-- (BOOL)isFinishedLoading;
+    // A new pixmap with a copy of the texture data; the caller free()s it. Default: kOONullPixMap.
+    virtual OOPixMap copyPixMapRepresentation();
 
-- (std::optional<std::string>)cxx_cacheKey; // nullopt: not cacheable
+    virtual bool isRectangleTexture(); // Default: false
+    virtual bool isCubeMap(); // Default: false
+    virtual NSSize texCoordsScale(); // Default: 1, 1
+    virtual GLint glTextureName(); // Subclass responsibility
 
-/*	Dimensions in pixels.
-        This will block until loading is completed.
-*/
-- (NSSize)dimensions;
+    // Forget all cached textures so new texture objects will reload.
+    static void clearCache();
 
-/*	Original file dimensions in pixels.
-        This will block until loading is completed.
-*/
-- (NSSize)originalDimensions;
-
-/*	Check whether texture is mip-mapped.
-        This will block until loading is completed.
-*/
-- (BOOL)isMipMapped;
-
-/*	Create a new pixmap with a copy of the texture data. The caller is
-        responsible for free()ing the resulting buffer.
-*/
-- (OOPixMap)copyPixMapRepresentation;
-
-/*	Identify special texture types.
- */
-- (BOOL)isRectangleTexture;
-- (BOOL)isCubeMap;
-
-/*	Dimensions in texture coordinates.
-
-        If kOOTextureAllowRectTexture is set, and GL_EXT_texture_rectangle is
-        available, textures whose dimensions are not powers of two will be loaded
-        as rectangle textures. Rectangle textures use unnormalized co-ordinates;
-        that is, co-oridinates range from 0 to the actual size of the texture
-        rather than 0 to 1. Thus, for rectangle textures, -texCoordsScale returns
-        -dimensions (with the required wait for loading) for a rectangle texture.
-        For non-rectangle textures, (1, 1) is returned without delay. If the
-        texture has power-of-two dimensions, it will be loaded as a normal
-        texture.
-
-        Rectangle textures have additional limitations: kOOTextureMinFilterMipMap
-        is not supported (kOOTextureMinFilterLinear will be used instead), and
-        kOOTextureRepeatS/kOOTextureRepeatT will be ignored.
-
-        Note that 'rectangle texture' is a misnomer; non-rectangle textures may
-        be rectangular, as long as their sides are powers of two. Non-power-of-two
-        textures would be more descriptive, but this phrase is used for the
-        extension that allows 'normal' textures to have non-power-of-two sides
-        without additional restrictions. It is intended that OOTexture should
-        support this in future, but this shouldn’t affect the interface, only
-        avoid the scaling-to-power-of-two stage.
-*/
-- (NSSize)texCoordsScale;
-
-/*	OpenGL texture name.
-        Not reccomended, but required for legacy TextureStore.
-*/
-- (GLint)glTextureName;
-
-//	Forget all cached textures so new texture objects will reload.
-+ (void)clearCache;
-
-// Called by OOGraphicsResetManager as necessary.
-+ (void)rebindAllTextures;
+    // Called by OOGraphicsResetManager as necessary.
+    static void rebindAllTextures();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (void)setTrace:(BOOL)trace;
+    static std::vector<oo::ObjCRef<::OOTexture*>> cachedTexturesByAge(); // youngest first
+    static std::vector<oo::ObjCRef<::OOTexture*>> allTextures(); // in no particular order
 
-+ (std::vector<oo::ObjCRef<OOTexture*>>)cxx_cachedTexturesByAge; // youngest first
-+ (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures; // in no particular order
+    size_t dataSize();
 
-- (size_t)dataSize;
+    virtual std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.4)
 
-- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.4)
+    void setTrace(bool trace);
 #endif
 
-@end
+    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h), and the short
+    // form's. None here, as OOObject answered.
+    virtual std::optional<std::string> descriptionComponents() const;
+    virtual std::optional<std::string> shortDescriptionComponents() const;
+
+    // Internal: OOTextureInternal.h's subclass interface, for the subclasses.
+    virtual void forceRebind(); // Subclass responsibility
+    void addToCaches();
+    void removeFromCaches(); // Must be called on destruction (while cacheKey() is still valid) for cacheable textures.
+    static OOTexture* existingTextureForKey(const std::optional<std::string>& key); // borrowed; null for nullopt
+
+protected:
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    bool _trace = { }; // was the facade's @protected ivar; the subclasses read it (bead oo-qa7c)
+#endif
+
+private:
+    static void checkExtensions();
+};
+
+} // namespace cxx
 
 /*	The specifier for object (a string, a dictionary, or null for the default name), or null.
         A dictionary without a string "name" gets defaultName, if given.
@@ -321,3 +274,9 @@ inline constexpr const char* cxx_kOOTextureSpecifierIlluminationModeKey = "illum
 inline constexpr const char* cxx_kOOTextureSpecifierSelfColorKey = "self_color";
 inline constexpr const char* cxx_kOOTextureSpecifierScaleFactorKey = "scale_factor";
 inline constexpr const char* cxx_kOOTextureSpecifierBindingKey = "binding";
+
+// Transitional: the Objective-C OOTexture, for callers and subclasses not yet converted.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOTexture+ObjCBridge.h"
+
+#endif // OOTEXTURE_H

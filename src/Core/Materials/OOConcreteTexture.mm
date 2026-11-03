@@ -51,43 +51,17 @@
 #error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
 
-@interface OOConcreteTexture (Private)
-
-- (void)setUpTexture;
-- (void)uploadTexture;
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#if OO_TEXTURE_CUBE_MAP
-- (void)uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#endif
-
-- (GLenum)glTextureTarget;
-
-#if OOTEXTURE_RELOADABLE
-- (BOOL)isReloadable;
-#endif
-
-@end
-
 static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType);
 
-@implementation OOConcreteTexture
+namespace cxx {
 
-- (id)initWithLoader:(OOTextureLoader*)loader
-                 key:(const std::optional<std::string>&)key
-             options:(uint32_t)options
-          anisotropy:(GLfloat)anisotropy
-             lodBias:(GLfloat)lodBias
+OOConcreteTexture::OOConcreteTexture(::OOTextureLoader* loader,
+    const std::optional<std::string>& key,
+    uint32_t options,
+    GLfloat anisotropy,
+    GLfloat lodBias)
 {
-    if (loader == nil) {
-        [self release];
-        return nil;
-    }
-
-    self = [super init];
-    if (EXPECT_NOT(self == nil))
-        return nil;
-
-    _loader = [loader retain];
+    _loader = oo::ObjCRef<::OOTextureLoader*>(loader);
     _options = options;
 
 #if GL_EXT_texture_filter_anisotropic
@@ -98,43 +72,57 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    if ([loader isKindOfClass:[OOTextureGenerator class]]) {
+    if ([loader isKindOfClass:[::OOTextureGenerator class]]) {
         _name = "<" + oo::DescriptionOf([loader class]) + ">";
     }
 #endif
 
     _key = key;
+}
 
-    [self addToCaches];
+oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(::OOTextureLoader* loader,
+    const std::optional<std::string>& key,
+    uint32_t options,
+    GLfloat anisotropy,
+    GLfloat lodBias)
+{
+    if (loader == nil) {
+        return nullptr;
+    }
+
+    oo::Ref<OOConcreteTexture> self = oo::adopt(new OOConcreteTexture(loader, key, options, anisotropy, lodBias));
+
+    self->addToCaches();
 
     return self;
 }
 
-- (id)initWithPath:(const std::string&)path
-               key:(const std::optional<std::string>&)key
-           options:(uint32_t)options
-        anisotropy:(float)anisotropy
-           lodBias:(GLfloat)lodBias
+oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(const std::string& path,
+    const std::optional<std::string>& key,
+    uint32_t options,
+    float anisotropy,
+    GLfloat lodBias)
 {
-    OOTextureLoader* loader = [OOTextureLoader cxx_loaderWithPath:path options:options];
+    ::OOTextureLoader* loader = [::OOTextureLoader cxx_loaderWithPath:path options:options];
     if (loader == nil) {
-        [self release];
-        return nil;
+        return nullptr;
     }
 
-    if ((self = [self initWithLoader:loader key:key options:options anisotropy:anisotropy lodBias:lodBias])) {
+    oo::Ref<OOConcreteTexture> self = initWithLoader(loader, key, options, anisotropy, lodBias);
+    if (self != nullptr) {
 #if OOTEXTURE_RELOADABLE
-        _path = path;
+        self->_path = path;
 #endif
     }
 
     return self;
 }
 
-- (void)dealloc
+OOConcreteTexture::~OOConcreteTexture()
 {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    OO_LOG(_trace ? "texture.allocTrace.dealloc" : "texture.dealloc", "Deallocating and uncaching texture {}", oo::str::pointerDescription(self));
+    // The Objective-C object has gone: the C++ object's address is the one printed.
+    OO_LOG(_trace ? "texture.allocTrace.dealloc" : "texture.dealloc", "Deallocating and uncaching texture {}", oo::str::pointerDescription(this));
 #endif
 
 #if OOTEXTURE_RELOADABLE
@@ -152,20 +140,18 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     }
 
 #ifndef OOTEXTURE_NO_CACHE
-    [self removeFromCaches];
+    removeFromCaches();
     _key = std::nullopt;
 #endif
 
-    DESTROY(_loader);
+    _loader = nullptr;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     _name = std::nullopt;
 #endif
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOConcreteTexture::descriptionComponents() const
 {
     std::string stateDesc;
 
@@ -182,13 +168,13 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     return _key.value_or("(null)") + ", " + stateDesc; // "%@, %@": nil printed (null)
 }
 
-- (std::optional<std::string>)cxx_shortDescriptionComponents
+std::optional<std::string> OOConcreteTexture::shortDescriptionComponents() const
 {
     return _key;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOConcreteTexture::name()
 {
     if (_name.has_value())
         return _name;
@@ -199,7 +185,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         return std::nullopt;
     std::string name = oo::str::lastPathComponent(*_path);
 #else
-    const std::optional<std::string> key = [self cxx_cacheKey];
+    const std::optional<std::string> key = cacheKey();
     if (!key.has_value())
         return std::nullopt;
     const std::string::size_type colon = key->find(':');
@@ -233,16 +219,16 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 }
 #endif
 
-- (void)apply
+void OOConcreteTexture::apply()
 {
     OO_ENTER_OPENGL();
 
     if (EXPECT_NOT(!_loaded))
-        [self setUpTexture];
+        setUpTexture();
     else if (EXPECT_NOT(!_uploaded))
-        [self uploadTexture];
+        uploadTexture();
     else
-        OOGL(glBindTexture([self glTextureTarget], _textureName));
+        OOGL(glBindTexture(glTextureTarget(), _textureName));
 
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
@@ -250,46 +236,46 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 #endif
 }
 
-- (void)ensureFinishedLoading
+void OOConcreteTexture::ensureFinishedLoading()
 {
     if (!_loaded)
-        [self setUpTexture];
+        setUpTexture();
 }
 
-- (BOOL)isFinishedLoading
+bool OOConcreteTexture::isFinishedLoading()
 {
-    return _loaded || [_loader isReady];
+    return _loaded || [_loader.get() isReady];
 }
 
-- (std::optional<std::string>)cxx_cacheKey
+std::optional<std::string> OOConcreteTexture::cacheKey()
 {
     return _key;
 }
 
-- (NSSize)dimensions
+NSSize OOConcreteTexture::dimensions()
 {
-    [self ensureFinishedLoading];
+    ensureFinishedLoading();
 
     return NSMakeSize(_width, _height);
 }
 
-- (NSSize)originalDimensions
+NSSize OOConcreteTexture::originalDimensions()
 {
-    [self ensureFinishedLoading];
+    ensureFinishedLoading();
 
     return NSMakeSize(_originalWidth, _originalHeight);
 }
 
-- (BOOL)isMipMapped
+bool OOConcreteTexture::isMipMapped()
 {
-    [self ensureFinishedLoading];
+    ensureFinishedLoading();
 
     return _mipLevels != 0;
 }
 
-- (struct OOPixMap)copyPixMapRepresentation
+OOPixMap OOConcreteTexture::copyPixMapRepresentation()
 {
-    [self ensureFinishedLoading];
+    ensureFinishedLoading();
 
     OOPixMap px = kOONullPixMap;
 
@@ -308,7 +294,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
             return kOONullPixMap;
         }
 
-        if (![self isCubeMap]) {
+        if (!isCubeMap()) {
 
             px = OOAllocatePixMap(_width, _height, _format, 0, 0);
             if (!OOIsValidPixMap(px))
@@ -336,25 +322,25 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     return px;
 }
 
-- (BOOL)isRectangleTexture
+bool OOConcreteTexture::isRectangleTexture()
 {
 #if GL_EXT_texture_rectangle
     return _isRectTexture;
 #else
-    return NO;
+    return false;
 #endif
 }
 
-- (BOOL)isCubeMap
+bool OOConcreteTexture::isCubeMap()
 {
 #if OO_TEXTURE_CUBE_MAP
     return _isCubeMap;
 #else
-    return NO;
+    return false;
 #endif
 }
 
-- (NSSize)texCoordsScale
+NSSize OOConcreteTexture::texCoordsScale()
 {
 #if GL_EXT_texture_rectangle
     if (_loaded) {
@@ -369,8 +355,8 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
             return NSMakeSize(1.0f, 1.0f);
         } else {
             // Finishing may clear the rectangle texture flag (if the texture turns out to be POT)
-            [self ensureFinishedLoading];
-            return [self texCoordsScale];
+            ensureFinishedLoading();
+            return texCoordsScale();
         }
     }
 #else
@@ -378,23 +364,21 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 #endif
 }
 
-- (GLint)glTextureName
+GLint OOConcreteTexture::glTextureName()
 {
-    [self ensureFinishedLoading];
+    ensureFinishedLoading();
 
     return _textureName;
 }
 
-@end
+// Private (was the (Private) category).
 
-@implementation OOConcreteTexture (Private)
-
-- (void)setUpTexture
+void OOConcreteTexture::setUpTexture()
 {
     OOPixMap pm;
 
     // This will block until loading is completed, if necessary.
-    if ([_loader getResult:&pm format:&_format originalWidth:&_originalWidth originalHeight:&_originalHeight]) {
+    if ([_loader.get() getResult:&pm format:&_format originalWidth:&_originalWidth originalHeight:&_originalHeight]) {
         _bytes = pm.pixels;
         _width = pm.width;
         _height = pm.height;
@@ -408,13 +392,13 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 #if defined(OO_DEBUG_MONITOR_ENABLED) && OOTEXTURE_RELOADABLE
         if (_trace) {
             static unsigned dumpID = 0;
-            const std::string name = oo::str::format("tex dump %u \"", ++dumpID) + [self cxx_name].value_or("(null)") + "\"";
-            OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'", oo::DescriptionOf(self), name);
+            const std::string name = oo::str::format("tex dump %u \"", ++dumpID) + this->name().value_or("(null)") + "\"";
+            OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'", oo::DescriptionOf(oo::ToObjC(this)), name);
             OODumpPixMap(pm, name);
         }
 #endif
 
-        [self uploadTexture];
+        uploadTexture();
     } else {
         _textureName = 0;
         _valid = NO;
@@ -423,10 +407,10 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 
     _loaded = YES;
 
-    DESTROY(_loader);
+    _loader = nullptr;
 }
 
-- (void)uploadTexture
+void OOConcreteTexture::uploadTexture()
 {
     GLint filter;
     BOOL mipMap = NO;
@@ -434,7 +418,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     OO_ENTER_OPENGL();
 
     if (!_uploaded) {
-        GLenum texTarget = [self glTextureTarget];
+        GLenum texTarget = glTextureTarget();
 
         OOGL(glGenTextures(1, &_textureName));
         OOGL(glBindTexture(texTarget, _textureName));
@@ -482,12 +466,12 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         //	if (gOOTextureInfo.clientStorageAvailable)  EnableClientStorage();
 
         if (texTarget == GL_TEXTURE_2D) {
-            [self uploadTextureDataWithMipMap:mipMap format:_format];
+            uploadTextureDataWithMipMap(mipMap, _format);
             OO_LOG("texture.upload", "Uploaded texture {} ({}x{} pixels, {})", _textureName, _width, _height, _key.value_or("(null)"));
         }
 #if OO_TEXTURE_CUBE_MAP
         else if (texTarget == GL_TEXTURE_CUBE_MAP) {
-            [self uploadTextureCubeMapDataWithMipMap:mipMap format:_format];
+            uploadTextureCubeMapDataWithMipMap(mipMap, _format);
             OO_LOG("texture.upload", "Uploaded cube map texture {} ({}x{}x6 pixels, {})", _textureName, _width, _width, _key.value_or("(null)"));
         }
 #endif
@@ -499,7 +483,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         _uploaded = YES;
 
 #if OOTEXTURE_RELOADABLE
-        if ([self isReloadable]) {
+        if (isReloadable()) {
             free(_bytes);
             _bytes = NULL;
         }
@@ -507,7 +491,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     }
 }
 
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
+void OOConcreteTexture::uploadTextureDataWithMipMap(bool mipMap, OOTextureDataFormat format)
 {
     GLenum glFormat = 0, internalFormat = 0, type = 0;
     unsigned w = _width,
@@ -536,7 +520,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 }
 
 #if OO_TEXTURE_CUBE_MAP
-- (void)uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
+void OOConcreteTexture::uploadTextureCubeMapDataWithMipMap(bool mipMap, OOTextureDataFormat format)
 {
     OO_ENTER_OPENGL();
 
@@ -570,7 +554,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 }
 #endif
 
-- (GLenum)glTextureTarget
+GLenum OOConcreteTexture::glTextureTarget()
 {
     GLenum texTarget = GL_TEXTURE_2D;
 #if OO_TEXTURE_CUBE_MAP
@@ -581,7 +565,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
     return texTarget;
 }
 
-- (void)forceRebind
+void OOConcreteTexture::forceRebind()
 {
     if (_loaded && _uploaded && _valid) {
         OO_ENTER_OPENGL();
@@ -591,8 +575,8 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         _textureName = 0;
 
 #if OOTEXTURE_RELOADABLE
-        if ([self isReloadable]) {
-            OO_LOG("texture.reload", "Reloading texture {}", oo::DescriptionOf(self));
+        if (isReloadable()) {
+            OO_LOG("texture.reload", "Reloading texture {}", oo::DescriptionOf(oo::ToObjC(this)));
 
             free(_bytes);
             _bytes = NULL;
@@ -600,7 +584,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
             _uploaded = NO;
             _valid = NO;
 
-            _loader = [[OOTextureLoader cxx_loaderWithPath:_path options:_options] retain];
+            _loader = oo::ObjCRef<::OOTextureLoader*>([::OOTextureLoader cxx_loaderWithPath:_path options:_options]);
         }
 #endif
     }
@@ -608,14 +592,14 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
 
 #if OOTEXTURE_RELOADABLE
 
-- (BOOL)isReloadable
+bool OOConcreteTexture::isReloadable()
 {
     return _path.has_value();
 }
 
 #endif
 
-@end
+} // namespace cxx
 
 static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType)
 {

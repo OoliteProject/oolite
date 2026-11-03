@@ -39,119 +39,123 @@ SOFTWARE.
 
 #include "oofnd/String.hpp"
 
-@interface OOShaderUniform (OOPrivate)
+namespace cxx {
 
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram;
+// The public initialisers, each [[self alloc] init...] of the old (self is result): a new uniform
+// whose initialiser answered nil is dropped (null) instead of released.
 
-- (void)applySimple;
-- (void)applyBinding;
-
-@end
-
-@implementation OOShaderUniform
-
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram intValue:(GLint)constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLint constValue)
 {
-    self = [self initWithName:uniformName shaderProgram:shaderProgram];
-    if (self != nil) {
-        type = kOOShaderUniformTypeInt;
-        value.constInt = constValue;
+    oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+    if (!result->initWithName(uniformName, shaderProgram))
+        return nullptr;
+    {
+        result->type = kOOShaderUniformTypeInt;
+        result->value.constInt = constValue;
     }
 
-    return self;
+    return result;
 }
 
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram floatValue:(GLfloat)constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue)
 {
-    self = [self initWithName:uniformName shaderProgram:shaderProgram];
-    if (self != nil) {
-        type = kOOShaderUniformTypeFloat;
-        value.constFloat = constValue;
+    oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+    if (!result->initWithName(uniformName, shaderProgram))
+        return nullptr;
+    {
+        result->type = kOOShaderUniformTypeFloat;
+        result->value.constFloat = constValue;
     }
 
-    return self;
+    return result;
 }
 
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram vectorValue:(GLfloat[4])constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue[4])
 {
-    self = [self initWithName:uniformName shaderProgram:shaderProgram];
-    if (self != nil) {
-        type = kOOShaderUniformTypeVector;
-        memcpy(value.constVector, constValue, sizeof value.constVector);
+    oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+    if (!result->initWithName(uniformName, shaderProgram))
+        return nullptr;
+    {
+        result->type = kOOShaderUniformTypeVector;
+        memcpy(result->value.constVector, constValue, sizeof result->value.constVector);
     }
 
-    return self;
+    return result;
 }
 
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram colorValue:(OOColor*)constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, OOColor* constValue)
 {
-    if (EXPECT_NOT(constValue == nil)) {
-        [self release];
-        return nil;
+    if (EXPECT_NOT(constValue == nullptr)) {
+        return nullptr;
     }
 
-    self = [self initWithName:uniformName shaderProgram:shaderProgram];
-    if (self != nil) {
-        type = kOOShaderUniformTypeVector;
-        value.constVector[0] = [constValue redComponent];
-        value.constVector[1] = [constValue greenComponent];
-        value.constVector[2] = [constValue blueComponent];
-        value.constVector[3] = [constValue alphaComponent];
+    oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+    if (!result->initWithName(uniformName, shaderProgram))
+        return nullptr;
+    {
+        result->type = kOOShaderUniformTypeVector;
+        result->value.constVector[0] = constValue->redComponent();
+        result->value.constVector[1] = constValue->greenComponent();
+        result->value.constVector[2] = constValue->blueComponent();
+        result->value.constVector[3] = constValue->alphaComponent();
     }
 
-    return self;
+    return result;
 }
 
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram quaternionValue:(Quaternion)constValue asMatrix:(BOOL)asMatrix
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, Quaternion constValue, bool asMatrix)
 {
-    self = [self initWithName:uniformName shaderProgram:shaderProgram];
-    if (self != nil) {
+    oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+    if (!result->initWithName(uniformName, shaderProgram))
+        return nullptr;
+    {
         if (asMatrix) {
-            type = kOOShaderUniformTypeMatrix;
-            value.constMatrix = OOMatrixForQuaternionRotation(constValue);
+            result->type = kOOShaderUniformTypeMatrix;
+            result->value.constMatrix = OOMatrixForQuaternionRotation(constValue);
         } else {
-            type = kOOShaderUniformTypeVector;
-            value.constVector[0] = constValue.x;
-            value.constVector[1] = constValue.y;
-            value.constVector[2] = constValue.z;
-            value.constVector[3] = constValue.w;
+            result->type = kOOShaderUniformTypeVector;
+            result->value.constVector[0] = constValue.x;
+            result->value.constVector[1] = constValue.y;
+            result->value.constVector[2] = constValue.z;
+            result->value.constVector[3] = constValue.w;
         }
     }
 
-    return self;
+    return result;
 }
 
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram matrixValue:(OOMatrix)constValue
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, OOMatrix constValue)
 {
-    self = [self initWithName:uniformName shaderProgram:shaderProgram];
-    if (self != nil) {
-        type = kOOShaderUniformTypeMatrix;
-        value.constMatrix = constValue;
+    oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+    if (!result->initWithName(uniformName, shaderProgram))
+        return nullptr;
+    {
+        result->type = kOOShaderUniformTypeMatrix;
+        result->value.constMatrix = constValue;
     }
 
-    return self;
+    return result;
 }
 
-- (id)initWithName:(const std::string&)uniformName
-     shaderProgram:(OOShaderProgram*)shaderProgram
-     boundToObject:(id<OOWeakReferenceSupport>)target
-          property:(SEL)selector
-    convertOptions:(OOUniformConvertOptions)options
+oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(const std::string& uniformName,
+    ::OOShaderProgram* shaderProgram,
+    id<OOWeakReferenceSupport> target,
+    SEL selector,
+    OOUniformConvertOptions options)
 {
     BOOL OK = YES;
+    oo::Ref<OOShaderUniform> result;
 
     if (EXPECT_NOT(shaderProgram == NULL || selector == NULL))
         OK = NO;
 
     if (OK) {
-        self = [super init];
-        if (self == nil)
-            OK = NO;
+        result = oo::adopt(new OOShaderUniform());
     }
 
     if (OK) {
-        location = glGetUniformLocationARB([shaderProgram program], uniformName.c_str());
-        if (location == -1) {
+        result->location = glGetUniformLocationARB([shaderProgram program], uniformName.c_str());
+        if (result->location == -1) {
             OK = NO;
             OO_LOG("shader.uniform.bind.failed", "Could not bind uniform \"{}\" to -[{} {}] (no uniform of that name could be found).", uniformName, oo::DescriptionOf([target class]), OOSelectorName(selector));
         }
@@ -159,35 +163,32 @@ SOFTWARE.
 
     // If we're still OK, it's a bindable method.
     if (OK) {
-        name = uniformName;
-        isBinding = YES;
-        value.binding.selector = selector;
+        result->name = uniformName;
+        result->isBinding = YES;
+        result->value.binding.selector = selector;
 
-        convertClamp = (options & kOOUniformConvertClamp) != 0;
-        convertNormalize = (options & kOOUniformConvertNormalize) != 0;
-        convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
-        bindToSuper = (options & kOOUniformBindToSuperTarget) != 0;
+        result->convertClamp = (options & kOOUniformConvertClamp) != 0;
+        result->convertNormalize = (options & kOOUniformConvertNormalize) != 0;
+        result->convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
+        result->bindToSuper = (options & kOOUniformBindToSuperTarget) != 0;
 
         if (target != nil)
-            [self setBindingTarget:target];
+            result->setBindingTarget(target);
     }
 
     if (!OK) {
-        [self release];
-        self = nil;
+        return nullptr; // [self release]; self = nil
     }
-    return self;
+    return result;
 }
 
-- (void)dealloc
+OOShaderUniform::~OOShaderUniform()
 {
     if (isBinding)
         [value.binding.object release];
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_description
+std::optional<std::string> OOShaderUniform::description()
 {
     std::optional<std::string> valueDesc;
     const char* valueType = nullptr;
@@ -267,21 +268,23 @@ SOFTWARE.
     /*	Examples:
                     <OOShaderUniform 0xf00>{1: int tex1 = 1;}
                     <OOShaderUniform 0xf00>{3: float laser_heat_level = [<ShipEntity 0xba8> laserHeatLevel];}
+            The class is named as a literal and the address is the facade's, as [self class] and self
+            were (amendments oo-3lj8 item 4 and oo-bhb9 item 6).
     */
-    return oo::str::format("<%s %s>{%i: %s %s = %s;}", oo::DescriptionOf([self class]).c_str(), oo::str::pointerDescription(self).c_str(), location, valueType != nullptr ? valueType : "(null)", name.c_str(), valueDesc->c_str());
+    return oo::str::format("<%s %s>{%i: %s %s = %s;}", "OOShaderUniform", oo::str::pointerDescription(oo::ToObjC(this)).c_str(), location, valueType != nullptr ? valueType : "(null)", name.c_str(), valueDesc->c_str());
 }
 
-- (void)apply
+void OOShaderUniform::apply()
 {
 
     if (isBinding) {
         if (isActiveBinding)
-            [self applyBinding];
+            applyBinding();
     } else
-        [self applySimple];
+        applySimple();
 }
 
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
+void OOShaderUniform::setBindingTarget(id<OOWeakReferenceSupport> target)
 {
     BOOL OK = YES;
     Method method = NULL;
@@ -295,7 +298,7 @@ SOFTWARE.
     // Resolve "supertarget" if applicable
     if (bindToSuper) {
         for (;;) {
-            if (![target respondsToSelector:@selector(superShaderBindingTarget)])
+            if (![target respondsToSelector:OOSelectorFromName("superShaderBindingTarget")])
                 break;
 
             superCandidate = [(id)target superShaderBindingTarget];
@@ -360,23 +363,15 @@ SOFTWARE.
         OO_LOG("shader.uniform.bind.failed", "Shader could not bind uniform \"{}\" to -[{} {}] ({}).", name, oo::DescriptionOf([target class]), OOSelectorName(value.binding.selector), methodProblem);
 }
 
-@end
-
-@implementation OOShaderUniform (OOPrivate)
-
 // Designated initializer.
-- (id)initWithName:(const std::string&)uniformName shaderProgram:(OOShaderProgram*)shaderProgram
+bool OOShaderUniform::initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram)
 {
     BOOL OK = YES;
 
     if (EXPECT_NOT(shaderProgram == NULL))
         OK = NO;
 
-    if (OK) {
-        self = [super init];
-        if (self == nil)
-            OK = NO;
-    }
+    // ([super init] could not fail: the object is already constructed.)
 
     if (OK) {
         location = glGetUniformLocationARB([shaderProgram program], uniformName.c_str());
@@ -388,14 +383,11 @@ SOFTWARE.
         name = uniformName;
     }
 
-    if (!OK) {
-        [self release];
-        self = nil;
-    }
-    return self;
+    // [self release]; self = nil where !OK: the factory drops the object.
+    return OK;
 }
 
-- (void)applySimple
+void OOShaderUniform::applySimple()
 {
     switch (type) {
     case kOOShaderUniformTypeInt:
@@ -415,7 +407,7 @@ SOFTWARE.
     }
 }
 
-- (void)applyBinding
+void OOShaderUniform::applyBinding()
 {
 
     id object = nil;
@@ -511,8 +503,8 @@ SOFTWARE.
         objVal = ((ObjectReturnMsgSend)value.binding.method)(object, value.binding.selector);
         // A colour. (The number-object case went with Foundation: no bindable method returns
         // one - the whitelisted object-valued bindings, laserColor and fogUniform, are OOColors.)
-        if ([objVal isKindOfClass:[OOColor class]]) {
-            OOColor* color = objVal;
+        if ([objVal isKindOfClass:[::OOColor class]]) {
+            ::OOColor* color = objVal;
             expVVal[0] = [color redComponent];
             expVVal[1] = [color greenComponent];
             expVVal[2] = [color blueComponent];
@@ -540,6 +532,6 @@ SOFTWARE.
     }
 }
 
-@end
+} // namespace cxx
 
 #endif // OO_SHADERS

@@ -43,18 +43,25 @@ MA 02110-1301, USA.
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
-#if OOJSENGINE_MONITOR_SUPPORT
+/*
+        C++20 since bead oo-3dj2, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The natives were already C++ on QuickJS-ng;
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category interface
+        OOJavaScriptEngine (OOMonitorSupportInternal), which this file declared to type its one send of
+        -sendMonitorLogMessage:withMessageClass:inContext:, moved with that send to
+        OOJSGlobal+ObjCBridge.mm as OOJSGlobalSendMonitorLogMessage() (amendments oo-9ht.66 and oo-6ia4
+        item 6). OOColor and OOJSGuiScreenKeyDefinition, which are C++ since beads oo-11m and oo-xg7g,
+        are reached as cxx:: classes through oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4); the key
+        definition is still made as its façade, which the player keeps (amendment oo-q9q4 item 1).
+        Messages to classes that are still Objective-C (PlayerEntity, Universe, GuiDisplayGen,
+        MyOpenGLView, ResourceManager) stay as they are, which is why the file is still .mm until Phase
+        4.
+*/
 
-@interface OOJavaScriptEngine (OOMonitorSupportInternal)
-
-// Implemented in OOJavaScriptEngine.mm (types from bead oo-3rb.203).
-- (void)sendMonitorLogMessage:(const std::optional<std::string>&)message
-             withMessageClass:(const std::optional<std::string>&)messageClass
-                    inContext:(JSContext*)context;
-
-@end
-
-#endif
+// OOJavaScriptEngine (OOMonitorSupportInternal), declared here to type the one send of
+// -sendMonitorLogMessage:withMessageClass:inContext:, is in OOJSGlobal+ObjCBridge.mm with that send,
+// as OOJSGlobalSendMonitorLogMessage() (proposed ADR-0056 amendments oo-9ht.66 and oo-6ia4 item 6).
 
 static const char* const kOOLogDebugMessage = "script.debug.message";
 
@@ -243,9 +250,7 @@ static JSValue GlobalLog(OOJS_NATIVE_ARGS)
     OO_LOG(messageClass, "{}", message.value_or("(null)"));
 
 #if OOJSENGINE_MONITOR_SUPPORT
-    [[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
-                                            withMessageClass:std::nullopt
-                                                   inContext:context];
+    OOJSGlobalSendMonitorLogMessage(message, std::nullopt, context);
 #endif
     OOJS_END_FULL_NATIVE
 
@@ -378,7 +383,7 @@ static JSValue GlobalRandomInhabitantsDescription(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> string;
     Random_Seed aSeed;
-    int isPlural = YES;
+    int isPlural = true;
 
     if (argc > 0 && (isPlural = JS_ToBool(context, OOJS_ARGV[0])) < 0) {
         JS_FreeValue(context, JS_GetException(context));
@@ -397,7 +402,7 @@ static JSValue GlobalClearExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
     PlayerEntity* player = OOPlayerForScripting();
 
     if (EXPECT_NOT(argc < 2)) {
@@ -419,7 +424,7 @@ static JSValue GlobalClearExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
 
     [player cxx_clearExtraGuiScreenKeys:gui key:*key];
 
-    result = YES;
+    result = true;
     OOJS_RETURN_BOOL(result);
 
     OOJS_NATIVE_EXIT
@@ -445,7 +450,7 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
     JSValue callback = JS_UNDEFINED;
     JSValue value = JS_UNDEFINED;
     std::optional<std::string> key;
@@ -523,10 +528,13 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
+    // The definition is still made as its façade (its superclass, OOWeakRefObject, is Objective-C:
+    // amendment oo-q9q4 item 1), which the player keeps; its members are reached as C++.
     OOJSGuiScreenKeyDefinition* definition = [[OOJSGuiScreenKeyDefinition alloc] init];
-    [definition cxx_setName:key];
-    [definition setRegisterKeys:keydefs];
-    [definition setCallback:callback]; // Takes its own reference.
+    cxx::OOJSGuiScreenKeyDefinition* cxxDefinition = oo::ToCxx(definition);
+    cxxDefinition->setName(key);
+    cxxDefinition->setRegisterKeys(keydefs);
+    cxxDefinition->setCallback(callback); // Takes its own reference.
     JS_FreeValue(context, callback);
 
     // get callback 'this'
@@ -538,7 +546,7 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
             if (JS_IsException(callbackThis)) {
                 JS_FreeValue(context, JS_GetException(context));
             } else {
-                [definition setCallbackThis:callbackThis];
+                cxxDefinition->setCallbackThis(callbackThis);
             }
             JS_FreeValue(context, callbackThis);
         }
@@ -560,7 +568,7 @@ static JSValue GlobalSetScreenBackground(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
     JSValueConst value = (argc > 0) ? OOJS_ARGV[0] : JS_NULL;
 
     if (EXPECT_NOT(argc == 0)) {
@@ -609,7 +617,7 @@ static JSValue GlobalSetScreenBackgroundForKey(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
 
     if (EXPECT_NOT(argc < 2)) {
         cxx_OOJSReportBadArguments(context, std::nullopt, "setScreenBackgroundDefault", 0, OOJS_ARGV, std::nullopt, "missing arguments");
@@ -627,7 +635,7 @@ static JSValue GlobalSetScreenBackgroundForKey(OOJS_NATIVE_ARGS)
     oo::PList descriptor = [gui cxx_textureDescriptorFromJSValue:value inContext:context callerDescription:std::string("setScreenBackgroundDefault()")];
 
     [UNIVERSE cxx_setScreenTextureDescriptorForKey:*key descriptor:descriptor]; // (its Foundation round trip was the identity for this JavaScript-derived dictionary)
-    result = YES;
+    result = true;
 
     OOJS_RETURN_BOOL(result);
 
@@ -639,7 +647,7 @@ static JSValue GlobalSetScreenOverlay(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
     JSValueConst value = (argc > 0) ? OOJS_ARGV[0] : JS_NULL;
 
     if (EXPECT_NOT(argc == 0)) {
@@ -680,13 +688,14 @@ static JSValue GlobalGetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
     }
 
     GuiDisplayGen* gui = [UNIVERSE gui];
-    OOColor* col = [gui cxx_colorFromSetting:*key defaultValue:nil];
+    cxx::OOColor* col = oo::ToCxx([gui cxx_colorFromSetting:key defaultValue:nil]);
 
     // The components as the colour's -normalizedArray gave them: floats, nil for no colour.
     oo::PList::Array components;
-    for (float component : [col cxx_normalizedArray])
-        components.push_back(oo::PList::singleReal(component));
-    OOJS_RETURN_PLIST(col != nil ? oo::PList(std::move(components)) : oo::PList());
+    if (col != nullptr)
+        for (float component : col->normalizedArray())
+            components.push_back(oo::PList::singleReal(component));
+    OOJS_RETURN_PLIST(col != nullptr ? oo::PList(components) : oo::PList());
 
     OOJS_NATIVE_EXIT
 }
@@ -696,8 +705,8 @@ static JSValue GlobalSetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
-    OOColor* col = nil;
+    bool result = false;
+    oo::Ref<cxx::OOColor> col;
 
     if (EXPECT_NOT(argc != 2)) {
         cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 0, OOJS_ARGV, std::nullopt, "missing arguments");
@@ -716,16 +725,16 @@ static JSValue GlobalSetGuiColorSettingForKey(OOJS_NATIVE_ARGS)
     }
 
     if (!JS_IsNull(value)) {
-        col = [OOColor cxx_colorWithDescription:cxx_OOJSPListFromJSValue(context, value)];
-        if (col == nil) {
+        col = cxx::OOColor::colorWithDescription(cxx_OOJSPListFromJSValue(context, value));
+        if (col == nullptr) {
             cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 1, OOJS_ARGV, std::nullopt, "color descriptor");
             return JS_EXCEPTION;
         }
     }
 
     GuiDisplayGen* gui = [UNIVERSE gui];
-    [gui cxx_setGuiColorSettingFromKey:*key color:col];
-    result = YES;
+    [gui cxx_setGuiColorSettingFromKey:*key color:oo::ToObjC(col.get())];
+    result = true;
 
     OOJS_RETURN_BOOL(result);
 
@@ -740,7 +749,7 @@ static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
 
     std::optional<std::string> value;
     const oo::str::CharacterSet alphanumerics = oo::str::CharacterSet::alphanumeric();
-    BOOL result = NO;
+    bool result = false;
 
     // Allowed: the alphanumeric character set plus "_-", tested per UTF-16 unit as -rangeOfCharacterFromSet: did.
     auto isAllowed = [&alphanumerics](const std::string& name) {
@@ -780,7 +789,7 @@ static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS)
         if (freeSpace < 1073741824) // less than 1 GB free on disk?
         {
             cxx_OOJSReportWarning(context, "takeSnapShot: function disabled when free disk space is less than 1GB.");
-            OOJS_RETURN_BOOL(NO);
+            OOJS_RETURN_BOOL(false);
         }
     }
 
@@ -808,7 +817,7 @@ static JSValue GlobalAutoAIForRole(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    const oo::PList autoAIMap = [ResourceManager cxx_dictionaryFromFilesNamed:"autoAImap.plist" inFolder:"Config" andMerge:YES];
+    const oo::PList autoAIMap = [ResourceManager cxx_dictionaryFromFilesNamed:"autoAImap.plist" inFolder:"Config" andMerge:true];
     std::optional<std::string> autoAI = StringFromPList(autoAIMap.find(*string));
 
     OOJS_RETURN_STRING_OR_NULL(autoAI);
@@ -821,7 +830,7 @@ static JSValue GlobalPauseGame(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
     PlayerEntity* player = PLAYER;
 
     if (player) {
@@ -829,7 +838,7 @@ static JSValue GlobalPauseGame(OOJS_NATIVE_ARGS)
 
         if (guiScreen != GUI_SCREEN_LONG_RANGE_CHART && guiScreen != GUI_SCREEN_MISSION && guiScreen != GUI_SCREEN_REPORT && guiScreen != GUI_SCREEN_KEYBOARD_ENTRY && guiScreen != GUI_SCREEN_SAVE) {
             [UNIVERSE pauseGame];
-            result = YES;
+            result = true;
         }
     }
 
@@ -851,7 +860,7 @@ static JSValue GlobalQuitGame(OOJS_NATIVE_ARGS)
     */
     OOScheduleDeferredCall(UNIVERSE, @selector(quitGame), nil, 0.0);
 
-    OOJS_RETURN_BOOL(YES);
+    OOJS_RETURN_BOOL(true);
 
     OOJS_NATIVE_EXIT
 }

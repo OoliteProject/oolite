@@ -56,26 +56,25 @@ MA 02110-1301, USA.
 static OOTexture* sShotTexture = nil;
 static OOTexture* sShotTexture2 = nil;
 
-@implementation OOLaserShotEntity
+namespace cxx {
 
-- (instancetype)initLaserFromShip:(ShipEntity*)srcEntity direction:(OOWeaponFacing)direction offset:(Vector)offset
+void OOLaserShotEntity::initLaserFromShip(ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset)
 {
-    if (!(self = [super init]))
-        return nil;
+    // [super init] could not fail: the constructor ran Entity's -init body.
 
     ShipEntity* ship = [srcEntity rootShipEntity];
     Vector middle = OOBoundingBoxCenter([srcEntity boundingBox]);
 
     OOCParameterAssert([srcEntity isShip] && [ship isShip]);
 
-    [self setStatus:STATUS_EFFECT];
+    setStatus(STATUS_EFFECT);
 
     if (ship == srcEntity) {
         // main laser offset
-        [self setPosition:HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix])))];
+        setPosition(HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]))));
     } else {
         // subentity laser
-        [self setPosition:[srcEntity absolutePositionForSubentityOffset:vectorToHPVector(middle)]];
+        setPosition([srcEntity absolutePositionForSubentityOffset:vectorToHPVector(middle)]);
     }
 
     Quaternion q = kIdentityQuaternion;
@@ -101,9 +100,9 @@ static OOTexture* sShotTexture2 = nil;
         break;
     }
 
-    [self setOrientation:quaternion_multiply(q, q0)];
-    [self setOwner:ship];
-    [self setRange:[srcEntity weaponRange]];
+    setOrientation(quaternion_multiply(q, q0));
+    setOwner(oo::ToCxx(ship));
+    setRange([srcEntity weaponRange]);
     _lifetime = kLaserDuration;
 
     _color[0] = kLaserRed / 3.0;
@@ -113,46 +112,43 @@ static OOTexture* sShotTexture2 = nil;
 
     _offset = (ship == srcEntity) ? offset : middle;
     _relOrientation = q;
-
-    return self;
 }
 
-+ (instancetype)laserFromShip:(ShipEntity*)ship direction:(OOWeaponFacing)direction offset:(Vector)offset
+oo::Ref<OOLaserShotEntity> OOLaserShotEntity::laserFromShip(ShipEntity* ship, OOWeaponFacing direction, Vector offset)
 {
-    return [[[self alloc] initLaserFromShip:ship direction:direction offset:offset] autorelease];
+    const oo::Ref<OOLaserShotEntity> shot = oo::makeRef<OOLaserShotEntity>();
+    shot->initLaserFromShip(ship, direction, offset);
+    return shot;
 }
 
-- (void)dealloc
-{
-    [self setColor:nil];
+// -dealloc set the colour to nil (zeroing it) on the way out; nothing read it after.
 
-    [super dealloc];
+std::optional<std::string> OOLaserShotEntity::descriptionComponents() const
+{
+    // The getter read this ivar.
+    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, Entity::descriptionComponents().value_or("(null)").c_str(), QuaternionDescription(orientation).c_str());
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+void OOLaserShotEntity::setColor(OOColor* color)
 {
-    return oo::str::format("ttl: %.3fs - %s orientation %s", _lifetime, [super cxx_descriptionComponents].value_or("(null)").c_str(), QuaternionDescription([self orientation]).c_str());
-}
-
-- (void)setColor:(OOColor*)color
-{
-    _color[0] = kLaserBrightness * [color redComponent] / 3.0;
-    _color[1] = kLaserBrightness * [color greenComponent] / 3.0;
-    _color[2] = kLaserBrightness * [color blueComponent] / 3.0;
+    // Messages to a nil colour answered 0.
+    _color[0] = kLaserBrightness * (color != nullptr ? color->redComponent() : 0.0f) / 3.0;
+    _color[1] = kLaserBrightness * (color != nullptr ? color->greenComponent() : 0.0f) / 3.0;
+    _color[2] = kLaserBrightness * (color != nullptr ? color->blueComponent() : 0.0f) / 3.0;
     // Ignore alpha; _color[3] is constant.
 }
 
-- (void)setRange:(GLfloat)range
+void OOLaserShotEntity::setRange(GLfloat range)
 {
     _range = range;
-    [self setCollisionRadius:range];
+    setCollisionRadius(range);
 }
 
-- (void)update:(OOTimeDelta)delta_t
+void OOLaserShotEntity::update(OOTimeDelta delta_t)
 {
-    [super update:delta_t];
+    Entity::update(delta_t);
     _lifetime -= delta_t;
-    ShipEntity* ship = [self owner];
+    ShipEntity* ship = owner();
 
     if ([ship isPlayer]) {
         /*
@@ -160,12 +156,12 @@ static OOTexture* sShotTexture2 = nil;
                 velocity in -[Entity update:], which is considered sufficient for
                 NPC ships.
         */
-        [self setPosition:HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix])))];
-        [self setOrientation:quaternion_multiply(_relOrientation, [ship normalOrientation])];
+        setPosition(HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix]))));
+        setOrientation(quaternion_multiply(_relOrientation, [ship normalOrientation]));
     }
 
     if (_lifetime < 0) {
-        [UNIVERSE removeEntity:self];
+        [UNIVERSE removeEntity:oo::ToObjC(this)];
     }
 }
 
@@ -197,7 +193,7 @@ static const GLfloat kLaserVertices[] = {
     0.0f,
 };
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
     if (!translucent || [UNIVERSE breakPatternHide])
         return;
@@ -214,7 +210,7 @@ static const GLfloat kLaserVertices[] = {
     OOGLPushModelView();
 
     OOGLScaleModelView(make_vector(kLaserHalfWidth, kLaserHalfWidth, _range));
-    [[self texture1] apply];
+    [texture1() apply];
     GLfloat s = sinf([UNIVERSE getTime]);
     GLfloat phase = s * (_range / 200.0f);
     GLfloat phase2 = (1.0f + s) * (_range / 200.0f);
@@ -241,7 +237,7 @@ static const GLfloat kLaserVertices[] = {
     OOGL(glColor4f(kLaserBrightness, kLaserBrightness, kLaserBrightness, 0.9));
     glDrawArrays(GL_QUADS, 0, 8);
 
-    [[self texture2] apply];
+    [texture2() apply];
     OOGLScaleModelView(make_vector(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0));
     OOGL(glColor4f(_color[0], _color[1], _color[2], 0.9));
     glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
@@ -252,62 +248,62 @@ static const GLfloat kLaserVertices[] = {
     OOGL(glDisable(GL_TEXTURE_2D));
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOLaserShotEntity after drawing " + oo::DescriptionOf(self); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOLaserShotEntity after drawing " + oo::DescriptionOf(oo::ToObjC(this)); });
 }
 
-- (BOOL)isEffect
+bool OOLaserShotEntity::isEffect()
 {
     return YES;
 }
 
-- (BOOL)canCollide
+bool OOLaserShotEntity::canCollide()
 {
     return NO;
 }
 
-- (OOTexture*)texture1
+::OOTexture* OOLaserShotEntity::texture1()
 {
-    return [OOLaserShotEntity outerTexture];
+    return OOLaserShotEntity::outerTexture();
 }
 
-- (OOTexture*)texture2
+::OOTexture* OOLaserShotEntity::texture2()
 {
-    return [OOLaserShotEntity innerTexture];
+    return OOLaserShotEntity::innerTexture();
 }
 
-+ (void)setUpTexture
+void OOLaserShotEntity::setUpTexture()
 {
     if (sShotTexture == nil) {
-        sShotTexture = [[OOTexture cxx_textureWithName:"oolite-laser-blur.png"
-                                              inFolder:"Textures"
-                                               options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
-                                            anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                               lodBias:0.0] retain];
-        [[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOLaserShotEntity class]];
+        sShotTexture = [[::OOTexture cxx_textureWithName:"oolite-laser-blur.png"
+                                                inFolder:"Textures"
+                                                 options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
+                                              anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                                 lodBias:0.0] retain];
+        OOGraphicsResetManager::sharedManager()->registerClient([::OOLaserShotEntity class]); // the facade class answers +resetGraphicsState
 
-        sShotTexture2 = [[OOTexture cxx_textureWithName:"oolite-laser-blur2.png"
-                                               inFolder:"Textures"
-                                                options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
-                                             anisotropy:kOOTextureDefaultAnisotropy / 2.0
-                                                lodBias:0.0] retain];
+        sShotTexture2 = [[::OOTexture cxx_textureWithName:"oolite-laser-blur2.png"
+                                                 inFolder:"Textures"
+                                                  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask | kOOTextureRepeatT
+                                               anisotropy:kOOTextureDefaultAnisotropy / 2.0
+                                                  lodBias:0.0] retain];
     }
 }
 
-+ (OOTexture*)innerTexture
+::OOTexture* OOLaserShotEntity::innerTexture()
 {
     if (sShotTexture2 == nil)
-        [self setUpTexture];
+        setUpTexture();
     return sShotTexture2;
 }
 
-+ (OOTexture*)outerTexture
+::OOTexture* OOLaserShotEntity::outerTexture()
 {
     if (sShotTexture == nil)
-        [self setUpTexture];
+        setUpTexture();
     return sShotTexture;
 }
 
-+ (void)resetGraphicsState
+void OOLaserShotEntity::resetGraphicsState()
 {
     [sShotTexture release];
     sShotTexture = nil;
@@ -315,4 +311,4 @@ static const GLfloat kLaserVertices[] = {
     sShotTexture2 = nil;
 }
 
-@end
+} // namespace cxx

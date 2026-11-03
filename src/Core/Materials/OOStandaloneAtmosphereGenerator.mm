@@ -1,5 +1,5 @@
 /*
-        OOStandaloneAtmosphereGenerator.m
+        OOStandaloneAtmosphereGenerator.mm
 
         Generator for atmosphere textures when the planet is using a
         non-generated diffuse map.
@@ -26,8 +26,6 @@
 
 #import "OOFoundation.h"
 #import "OOStellarBody.h"
-
-#if NEW_PLANETS
 
 #define DEBUG_DUMP (0 && OOLITE_DEBUG)
 #define DEBUG_DUMP_RAW (1 && DEBUG_DUMP)
@@ -67,14 +65,6 @@ enum {
     kRandomBufferSize = 128
 };
 
-@interface OOStandaloneAtmosphereGenerator (Private)
-
-#if DEBUG_DUMP_RAW
-- (void)dumpNoiseBuffer:(float*)noise;
-#endif
-
-@end
-
 namespace {
 
 FloatRGB FloatRGBFromDictColor(const oo::PList& dictionary, const std::string& key); // dictionary: the planet info (colours are Object nodes)
@@ -97,16 +87,21 @@ enum {
     kPlanetScaleFullDetail = kPlanetScale1024x1024
 };
 
-@implementation OOStandaloneAtmosphereGenerator
+oo::Ref<OOStandaloneAtmosphereGenerator> OOStandaloneAtmosphereGenerator::generatorWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed)
+{
+    oo::Ref<OOStandaloneAtmosphereGenerator> result = oo::makeRef<OOStandaloneAtmosphereGenerator>();
+    if (!result->initWithPlanetInfo(planetInfo, seed))
+        return { };
+    return result;
+}
 
-- (id)initWithPlanetInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed
+bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed)
 {
     OO_LOG("texture.planet.generate", "{}", "Initialising standalone atmosphere generator");
 
     // AllowCubeMap not used yet but might be in future
-    self = [super cxx_initWithPath:oo::str::format("OOStandaloneAtmosphereTexture@%s", oo::str::pointerDescription(self).c_str()) options:kOOTextureAllowCubeMap];
-    if (self != nil) {
-        OO_LOG("texture.planet.generate", "Extracting parameters for generator {}", oo::DescriptionOf(self));
+    if (initWithPath(oo::str::format("OOStandaloneAtmosphereTexture@%s", oo::str::pointerDescription(this).c_str()), kOOTextureAllowCubeMap)) {
+        OO_LOG("texture.planet.generate", "Extracting parameters for generator {}", oo::DescriptionOf(oo::ToObjC(this)));
         _info.seed = seed; // was a value box under "noise_map_seed" in planetInfo (bead oo-3rb.48)
         OO_LOG("texture.planet.generate", "{}", "Extracting atmosphere parameters");
         // we are an atmosphere:
@@ -129,52 +124,47 @@ enum {
         _info.perlin3d = planetInfo.get<bool>("perlin_3d", detailLevel > DETAIL_LEVEL_SHADERS);
         _info.planetAspectRatio = _info.perlin3d ? 2 : 1;
         _info.planetScaleOffset = 8 - _info.planetAspectRatio;
+        return true;
     }
 
-    return self;
+    return false;
 }
 
-+ (OOTexture*)planetTextureWithInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed
+oo::ObjCRef<::OOTexture*> OOStandaloneAtmosphereGenerator::planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed)
 {
-    OOTexture* result = nil;
-    OOStandaloneAtmosphereGenerator* generator = [[self alloc] initWithPlanetInfo:planetInfo seed:seed];
-    if (generator != nil) {
-        result = [OOTexture textureWithGenerator:generator];
-        [generator release];
+    oo::ObjCRef<::OOTexture*> result;
+    const oo::Ref<OOStandaloneAtmosphereGenerator> generator = generatorWithPlanetInfo(planetInfo, seed);
+    if (generator) {
+        result = cxx::OOTexture::textureWithGenerator(oo::ToObjC(generator.get()));
     }
 
     return result;
 }
 
-+ (BOOL)generateAtmosphereTexture:(OOTexture**)texture withInfo:(const oo::PList&)planetInfo seed:(RANROTSeed)seed
+bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(oo::ObjCRef<::OOTexture*>* texture, const oo::PList& planetInfo, RANROTSeed seed)
 {
-    OOParameterAssert(texture != NULL);
+    OOCParameterAssert(texture != NULL);
 
-    OOStandaloneAtmosphereGenerator* atmoGen = [[[self alloc] initWithPlanetInfo:planetInfo seed:seed] autorelease];
-    if (atmoGen == nil)
-        return NO;
+    const oo::Ref<OOStandaloneAtmosphereGenerator> atmoGen = generatorWithPlanetInfo(planetInfo, seed);
+    if (!atmoGen)
+        return false;
 
-    *texture = [OOTexture textureWithGenerator:atmoGen];
+    *texture = cxx::OOTexture::textureWithGenerator(oo::ToObjC(atmoGen.get()));
 
-    return *texture != nil;
+    return texture->get() != nil;
 }
 
-- (void)dealloc
-{
-    [super dealloc];
-}
-
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOStandaloneAtmosphereGenerator::descriptionComponents() const
 {
     return oo::str::format("seed: %u,%u", _info.seed.high, _info.seed.low);
 }
 
-- (uint32_t)textureOptions
+uint32_t OOStandaloneAtmosphereGenerator::textureOptions()
 {
     return PLANET_TEXTURE_OPTIONS;
 }
 
-- (std::optional<std::string>)cxx_cacheKey
+std::optional<std::string> OOStandaloneAtmosphereGenerator::cacheKey()
 {
     return oo::str::format("OOStandaloneAtmosphereGenerator-@%u\n%u,%u/%u,%u/%f/%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
         _planetScale,
@@ -185,23 +175,20 @@ enum {
         _info.paleCloudColor.r, _info.paleCloudColor.g, _info.paleCloudColor.b);
 }
 
-- (BOOL)getResult:(OOPixMap*)outData
-           format:(OOTextureDataFormat*)outFormat
-            width:(uint32_t*)outWidth
-           height:(uint32_t*)outHeight
+bool OOStandaloneAtmosphereGenerator::getResultFormatWidthHeight(OOPixMap* outData, OOTextureDataFormat* outFormat, uint32_t* outWidth, uint32_t* outHeight)
 {
     BOOL waiting = NO;
-    if (![self isReady]) {
+    if (!isReady()) {
         waiting = true;
-        OO_LOG("texture.planet.generate.wait", "{} generator {}", "Waiting for", oo::DescriptionOf(self));
+        OO_LOG("texture.planet.generate.wait", "{} generator {}", "Waiting for", oo::DescriptionOf(oo::ToObjC(this)));
     }
 
-    BOOL result = [super getResult:outData format:outFormat originalWidth:outWidth originalHeight:outHeight];
+    BOOL result = cxx::OOTextureGenerator::getResult(outData, outFormat, outWidth, outHeight);
 
     if (waiting) {
-        OO_LOG("texture.planet.generate.dequeue", "{} generator {}", result ? "Dequeued" : "Failed to dequeue", oo::DescriptionOf(self));
+        OO_LOG("texture.planet.generate.dequeue", "{} generator {}", result ? "Dequeued" : "Failed to dequeue", oo::DescriptionOf(oo::ToObjC(this)));
     } else {
-        OO_LOG("texture.planet.generate.dequeue", "{} generator {} without waiting.", result ? "Dequeued" : "Failed to dequeue", oo::DescriptionOf(self));
+        OO_LOG("texture.planet.generate.dequeue", "{} generator {} without waiting.", result ? "Dequeued" : "Failed to dequeue", oo::DescriptionOf(oo::ToObjC(this)));
     }
 
     return result;
@@ -209,9 +196,9 @@ enum {
 
 /* TODO: fix duplication between here and OOPlanetTextureGenerator of
  * various noise, interpolation, etc. functions */
-- (void)loadTexture
+void OOStandaloneAtmosphereGenerator::loadTexture()
 {
-    OO_LOG("texture.planet.generate.begin", "Started generator {}", oo::DescriptionOf(self));
+    OO_LOG("texture.planet.generate.begin", "Started generator {}", oo::DescriptionOf(oo::ToObjC(this)));
 
     BOOL success = NO;
 
@@ -228,13 +215,13 @@ enum {
     } while (0)
 #define FAIL_IF_NULL(x) FAIL_IF((x) == NULL)
 
-    aBuffer = (uint8_t*)malloc(4 * _width * _height);
+    aBuffer = (uint8_t*)malloc(4 * static_cast<size_t>(_width) * _height);
     FAIL_IF_NULL(aBuffer);
     apx = aBuffer;
 
     FAIL_IF(!FillFBMBuffer(&_info));
 #if DEBUG_DUMP_RAW
-    [self dumpNoiseBuffer:_info.fbmBuffer];
+    dumpNoiseBuffer(_info.fbmBuffer);
 #endif
     {
 
@@ -275,7 +262,7 @@ END:
         FREE(aBuffer);
     }
 
-    OO_LOG("texture.planet.generate.complete", "Completed generator {} {}successfully", oo::DescriptionOf(self), success ? "" : "un");
+    OO_LOG("texture.planet.generate.complete", "Completed generator {} {}successfully", oo::DescriptionOf(oo::ToObjC(this)), success ? "" : "un");
 
 #if DEBUG_DUMP
     if (success) {
@@ -294,7 +281,7 @@ END:
 
 #if DEBUG_DUMP_RAW
 
-- (void)dumpNoiseBuffer:(float*)noise
+void OOStandaloneAtmosphereGenerator::dumpNoiseBuffer(float* noise)
 {
     const std::string noiseName = oo::str::format("atmosphere-%u-%u-noise-new", _info.seed.high, _info.seed.low);
 
@@ -315,8 +302,6 @@ END:
 }
 
 #endif
-
-@end
 
 OOINLINE float Lerp(float v0, float v1, float fraction)
 {
@@ -766,5 +751,3 @@ static float QFactor(float* accbuffer, int x, int y, unsigned width, float polar
 
     return q;
 }
-
-#endif // NEW_PLANETS

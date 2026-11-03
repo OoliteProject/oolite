@@ -42,45 +42,34 @@ MA 02110-1301, USA.
 #define OOWAYPOINT_KEY_CODE "beaconCode"
 #define OOWAYPOINT_KEY_LABEL "beaconLabel"
 
-@implementation OOWaypointEntity
+namespace cxx {
 
-+ (instancetype)waypointWithDictionary:(const oo::PList&)info
+oo::Ref<OOWaypointEntity> OOWaypointEntity::waypointWithDictionary(const oo::PList& info)
 {
-    return [[[OOWaypointEntity alloc] cxx_initWithDictionary:info] autorelease];
+    const oo::Ref<OOWaypointEntity> waypoint = oo::makeRef<OOWaypointEntity>();
+    waypoint->initWithDictionary(info);
+    return waypoint;
 }
 
-- (id)cxx_initWithDictionary:(const oo::PList&)info
+void OOWaypointEntity::initWithDictionary(const oo::PList& info)
 {
-    self = [super init];
-    if (EXPECT_NOT(self == nil))
-        return nil;
+    // self = [super init]: the constructor ran Entity's -init body.
 
     // A nil dictionary read zero-filled values and nil strings (messaging nil), not the defaults.
     oriented = YES;
     position = info ? OOHPVectorFromPList(info.find(OOWAYPOINT_KEY_POSITION), kZeroHPVector) : kZeroHPVector;
     Quaternion q = info ? OOQuaternionFromPList(info.find(OOWAYPOINT_KEY_ORIENTATION), kIdentityQuaternion) : (Quaternion) { 0, 0, 0, 0 };
-    [self setOrientation:q];
-    [self setSize:info.get<oo::NonNegative<float>>(OOWAYPOINT_KEY_SIZE, 1000.0)];
-    [self setBeaconCode:info ? std::optional<std::string>(info.get<std::string>(OOWAYPOINT_KEY_CODE, "W")) : std::nullopt];
-    [self setBeaconLabel:info ? std::optional<std::string>(info.get<std::string>(OOWAYPOINT_KEY_LABEL, "Waypoint")) : std::nullopt];
+    setOrientation(q);
+    setSize(info.get<oo::NonNegative<float>>(OOWAYPOINT_KEY_SIZE, 1000.0));
+    setBeaconCode(info ? std::optional<std::string>(info.get<std::string>(OOWAYPOINT_KEY_CODE, "W")) : std::nullopt);
+    setBeaconLabel(info ? std::optional<std::string>(info.get<std::string>(OOWAYPOINT_KEY_LABEL, "Waypoint")) : std::nullopt);
 
-    [self setStatus:STATUS_EFFECT];
-    [self setScanClass:CLASS_NO_DRAW];
-
-    return self;
-}
-
-- (void)dealloc
-{
-    DESTROY(_prevBeacon);
-    DESTROY(_nextBeacon);
-    DESTROY(_beaconDrawable);
-
-    [super dealloc];
+    setStatus(STATUS_EFFECT);
+    setScanClass(CLASS_NO_DRAW);
 }
 
 // override
-- (void)setOrientation:(Quaternion)q
+void OOWaypointEntity::setOrientation(Quaternion q)
 {
     if (quaternion_equal(q, kZeroQuaternion)) {
         q = kIdentityQuaternion;
@@ -88,20 +77,20 @@ MA 02110-1301, USA.
     } else {
         oriented = YES;
     }
-    [super setOrientation:q];
+    Entity::setOrientation(q);
 }
 
-- (BOOL)oriented
+bool OOWaypointEntity::getOriented()
 {
     return oriented;
 }
 
-- (OOScalar)size
+OOScalar OOWaypointEntity::size()
 {
     return _size;
 }
 
-- (void)setSize:(OOScalar)newSize
+void OOWaypointEntity::setSize(OOScalar newSize)
 {
     if (newSize > 0) {
         _size = newSize;
@@ -109,17 +98,17 @@ MA 02110-1301, USA.
     }
 }
 
-- (BOOL)isEffect
+bool OOWaypointEntity::isEffect()
 {
     return YES;
 }
 
-- (BOOL)isWaypoint
+bool OOWaypointEntity::isWaypoint()
 {
     return YES;
 }
 
-- (void)drawImmediate:(bool)immediate translucent:(bool)translucent
+void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent)
 {
     if (!translucent || no_draw_distance < cam_zero_distance) {
         return;
@@ -132,7 +121,7 @@ MA 02110-1301, USA.
     int8_t i, j, k;
 
     GLfloat a = 0.75;
-    if ([PLAYER compassTarget] != self) {
+    if ([PLAYER compassTarget] != oo::ToObjC(this)) {
         a *= 0.25;
     }
     if (cam_zero_distance > _size * _size) {
@@ -187,19 +176,19 @@ MA 02110-1301, USA.
 
 /* beacons */
 
-- (OOComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other
+OOComparisonResult OOWaypointEntity::compareBeaconCodeWith(OOBeaconEntityObject* other)
 {
-    return (OOComparisonResult)oo::str::caseInsensitiveCompare([self beaconCode].value_or(""), [other beaconCode].value_or(""));
+    return (OOComparisonResult)oo::str::caseInsensitiveCompare(beaconCode().value_or(""), [other beaconCode].value_or(""));
 }
 
-- (std::optional<std::string>)beaconCode
+std::optional<std::string> OOWaypointEntity::beaconCode()
 {
     return _beaconCode;
 }
 
 // bcode: optional string; empty is treated as none. The Foundation version compared the new string with the
 // old by pointer, so any new string (every string this class hands out is new) replaced it.
-- (void)setBeaconCode:(const std::optional<std::string>&)bcode
+void OOWaypointEntity::setBeaconCode(const std::optional<std::string>& bcode)
 {
     std::optional<std::string> code = bcode;
     if (code.has_value() && code->empty())
@@ -208,20 +197,20 @@ MA 02110-1301, USA.
     if (code.has_value() || _beaconCode.has_value()) {
         _beaconCode = code;
 
-        DESTROY(_beaconDrawable);
+        _beaconDrawable = nullptr;
     }
     // if not blanking code and label is currently blank, default label to code
     if (code.has_value() && (!_beaconLabel.has_value() || _beaconLabel->empty())) {
-        [self setBeaconLabel:code];
+        setBeaconLabel(code);
     }
 }
 
-- (std::optional<std::string>)beaconLabel
+std::optional<std::string> OOWaypointEntity::beaconLabel()
 {
     return _beaconLabel;
 }
 
-- (void)setBeaconLabel:(const std::optional<std::string>&)blabel
+void OOWaypointEntity::setBeaconLabel(const std::optional<std::string>& blabel)
 {
     std::optional<std::string> label = blabel;
     if (label.has_value() && label->empty())
@@ -232,64 +221,65 @@ MA 02110-1301, USA.
     }
 }
 
-- (BOOL)isBeacon
+bool OOWaypointEntity::isBeacon()
 {
-    return [self beaconCode].has_value();
+    return beaconCode().has_value();
 }
 
-- (id<OOHUDBeaconIcon>)beaconDrawable
+id<OOHUDBeaconIcon> OOWaypointEntity::beaconDrawable()
 {
-    if (_beaconDrawable == nil) {
+    if (_beaconDrawable.get() == nil) {
         const std::u16string beaconCode = oo::utf8ToUtf16(_beaconCode.value_or(std::string()));
         NSUInteger length = beaconCode.size(); // -length: UTF-16 units
 
         if (length > 1) {
             const oo::PList* iconEntry = [UNIVERSE cxx_descriptions]->find(*_beaconCode);
             const oo::PList iconData = (iconEntry != nullptr) ? *iconEntry : oo::PList();
+            // The sprite is converted: its facade is the icon (amendment oo-cc8a item 2), nil where it answered nil.
             if (iconData.isArray())
-                _beaconDrawable = [[OOPolygonSprite alloc] initWithDataArray:iconData outlineWidth:0.5 name:*_beaconCode];
+                _beaconDrawable = oo::ObjCRef<id<OOHUDBeaconIcon>>(oo::ToObjC(OOPolygonSprite::initWithDataArray(iconData, 0.5, *_beaconCode)));
         }
 
-        if (_beaconDrawable == nil) {
+        if (_beaconDrawable.get() == nil) {
             if (length > 0)
-                _beaconDrawable = [[OOHUDBeaconCodeIcon alloc] initWithText:oo::utf16ToUtf8(beaconCode.substr(0, 1))]; // -substringToIndex:1
+                _beaconDrawable = oo::adoptObjC<id<OOHUDBeaconIcon>>([[OOHUDBeaconCodeIcon alloc] initWithText:oo::utf16ToUtf8(beaconCode.substr(0, 1))]); // -substringToIndex:1
             else
-                _beaconDrawable = [[OOHUDBeaconCodeIcon alloc] initWithText:std::string()];
+                _beaconDrawable = oo::adoptObjC<id<OOHUDBeaconIcon>>([[OOHUDBeaconCodeIcon alloc] initWithText:std::string()]);
         }
     }
 
-    return _beaconDrawable;
+    return _beaconDrawable.get();
 }
 
-- (Entity<OOBeaconEntity>*)prevBeacon
+OOBeaconEntityObject* OOWaypointEntity::prevBeacon()
 {
-    return [_prevBeacon weakRefUnderlyingObject];
+    ::OOWeakReference* ref = _prevBeacon.get();
+    return ref != nil ? oo::ToCxx(ref)->weakRefUnderlyingObject() : nil;
 }
 
-- (Entity<OOBeaconEntity>*)nextBeacon
+OOBeaconEntityObject* OOWaypointEntity::nextBeacon()
 {
-    return [_nextBeacon weakRefUnderlyingObject];
+    ::OOWeakReference* ref = _nextBeacon.get();
+    return ref != nil ? oo::ToCxx(ref)->weakRefUnderlyingObject() : nil;
 }
 
-- (void)setPrevBeacon:(Entity<OOBeaconEntity>*)beaconShip
+void OOWaypointEntity::setPrevBeacon(OOBeaconEntityObject* beaconShip)
 {
-    if (beaconShip != [self prevBeacon]) {
-        [_prevBeacon release];
-        _prevBeacon = [beaconShip weakRetain];
+    if (beaconShip != prevBeacon()) {
+        _prevBeacon = oo::ObjCRef<::OOWeakReference*>::adopt([beaconShip weakRetain]);
     }
 }
 
-- (void)setNextBeacon:(Entity<OOBeaconEntity>*)beaconShip
+void OOWaypointEntity::setNextBeacon(OOBeaconEntityObject* beaconShip)
 {
-    if (beaconShip != [self nextBeacon]) {
-        [_nextBeacon release];
-        _nextBeacon = [beaconShip weakRetain];
+    if (beaconShip != nextBeacon()) {
+        _nextBeacon = oo::ObjCRef<::OOWeakReference*>::adopt([beaconShip weakRetain]);
     }
 }
 
-- (BOOL)isJammingScanning
+bool OOWaypointEntity::isJammingScanning()
 {
     return NO;
 }
 
-@end
+} // namespace cxx

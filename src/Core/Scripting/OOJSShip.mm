@@ -613,7 +613,7 @@ oo::PList NormalizedColorComponents(OOColor* color)
     return oo::PList(std::move(components));
 }
 
-// A string, or null for none (what an NSString or nil gave JavaScript).
+// A string, or null for none (what a Foundation string or nil gave JavaScript).
 oo::PList StringOrNull(const std::optional<std::string>& string)
 {
     return string.has_value() ? oo::PList(*string) : oo::PList();
@@ -1732,12 +1732,14 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
 #if OO_VARIABLE_TORUS_SPEED
             else if (fValue > MIN_HYPERSPEED_FACTOR) {
                 cxx_OOJSReportError(context, "ship.injectorSpeedFactor cannot be higher than minimum torus speed factor (%f).", MIN_HYPERSPEED_FACTOR);
+                return OOJSNativeFailure(context);
+            }
 #else
             else if (fValue > HYPERSPEED_FACTOR) {
                 cxx_OOJSReportError(context, "ship.injectorSpeedFactor cannot be higher than torus speed factor (%f).", HYPERSPEED_FACTOR);
-#endif
                 return OOJSNativeFailure(context);
             }
+#endif
             [entity setAfterburnerFactor:fValue];
             return JS_UNDEFINED;
         }
@@ -2909,7 +2911,7 @@ static JSValue ShipSetCrew(OOJS_NATIVE_ARGS)
             OOCharacter* crew = [OOCharacter characterWithDictionary:cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0])];
             std::vector<oo::ObjCRef<OOCharacter*>> members;
             if (crew != nil)
-                members.emplace_back(crew); // a nil character was skipped (an NSArray cannot hold nil)
+                members.emplace_back(crew); // a nil character was skipped (a Foundation array cannot hold nil)
             [thisEnt cxx_setCrew:members];
         }
     } else {
@@ -3734,7 +3736,7 @@ static JSValue ShipCheckScanner(OOJS_NATIVE_ARGS)
     oo::PList::Array scanResult;
     for (unsigned i = 0; i < num; i++) {
         if (scannedShips[i] != nil)
-            scanResult.push_back(oo::PListObject(scannedShips[i])); // nil skipped, as an NSArray skipped it
+            scanResult.push_back(oo::PListObject(scannedShips[i])); // nil skipped, as a Foundation array skipped it
     }
     OOJS_RETURN_PLIST(oo::PList(std::move(scanResult)));
 

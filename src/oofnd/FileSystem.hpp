@@ -457,7 +457,7 @@ inline bool synchronizeFile(std::FILE* file) noexcept
 std::optional<oo::Data> OODataFromOXZFile(const std::string& path);
 
 /*	True when the path names an existing non-directory file, including a path that crosses a
-        .oxz zip component (bead oo-1ddr). Same answers as -[NSFileManager oo_oxzFileExistsAtPath:].
+        .oxz zip component (bead oo-1ddr). Same answers as the file manager's -oo_oxzFileExistsAtPath:.
         Defined in Core (OODataFromOXZFile.mm).
 */
 bool OOOxzFileExistsAtPath(const std::string& path);

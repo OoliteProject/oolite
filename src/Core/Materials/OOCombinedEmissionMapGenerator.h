@@ -29,52 +29,97 @@ SOFTWARE.
 
 */
 
-#import "OOTextureGenerator.h"
+#ifndef OOCOMBINEDEMISSIONMAPGENERATOR_H
+#define OOCOMBINEDEMISSIONMAPGENERATOR_H
 
-@class OOColor;
+#import "OOColor.h"
+#import "OOTextureGenerator.h"
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-@interface OOCombinedEmissionMapGenerator : OOTextureGenerator {
-@private
+/*	Phase 3 (bead oo-e6xa, proposed ADR-0056 amendments oo-qa7c, oo-rmd7 item 3 and oo-rr2x): a
+        converted leaf of the texture generators, over cxx::OOTextureGenerator. Its caller
+        (cxx::OOMultiTextureMaterial) still makes it through the Objective-C initialisers of its facade
+        (OOCombinedEmissionMapGenerator+ObjCBridge.h), because that caller's test stubs the class by
+        name; the facade's deletion bead turns those messages into the factories below.
+*/
+namespace cxx {
+
+class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
+public:
+    ~OOCombinedEmissionMapGenerator() override; // was -dealloc
+
+    /*	Were -cxx_initWithEmissionMapSpec:emissionColor:diffuseMap:diffuseColor:illuminationMapSpec:
+            illuminationColor:optionsSpecifier: and -cxx_initWithEmissionAndIlluminationMapSpec:
+            diffuseMap:diffuseColor:emissionColor:illuminationColor:optionsSpecifier:; null where they
+            answered nil (amendment oo-novu).
+    */
+    static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
+        OOColor* emissionColor,
+        ::OOTexture* diffuseMap,
+        OOColor* diffuseColor,
+        const oo::PList& illuminationMapSpec,
+        OOColor* illuminationColor,
+        const oo::PList& spec);
+    static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionAndIlluminationMapSpec(const oo::PList& emissionAndIlluminationMapSpec,
+        ::OOTexture* diffuseMap,
+        OOColor* diffuseColor,
+        OOColor* emissionColor,
+        OOColor* illuminationColor,
+        const oo::PList& spec);
+
+#ifndef NDEBUG
+    std::optional<std::string> descriptionComponents() const override;
+#endif
+
+    uint32_t textureOptions() override;
+    GLfloat anisotropy() override;
+    GLfloat lodBias() override;
+    std::optional<std::string> cacheKey() override;
+
+    void loadTexture() override;
+
+private:
+    bool initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
+        OOColor* emissionColor,
+        ::OOTexture* diffuseMap,
+        OOColor* diffuseColor,
+        const oo::PList& illuminationMapSpec,
+        OOColor* illuminationColor,
+        bool isCombinedMap,
+        const oo::PList& spec);
+
+    std::string constructCacheKey();
+
     std::string _cacheKey;
 
     oo::PList _emissionSpec;
     oo::PList _illuminationSpec;
-    OOTexture* _diffuseMap;
+    oo::ObjCRef<::OOTexture*> _diffuseMap;
 
-    OOPixMap _emissionPx;
-    OOPixMap _diffusePx;
-    OOPixMap _illuminationPx;
-    OOColor* _emissionColor;
-    OOColor* _illuminationColor;
-    BOOL _isCombinedMap;
+    OOPixMap _emissionPx = { };
+    OOPixMap _diffusePx = { };
+    OOPixMap _illuminationPx = { };
+    oo::Ref<OOColor> _emissionColor;
+    oo::Ref<OOColor> _illuminationColor;
+    bool _isCombinedMap = false;
 
-    uint32_t _textureOptions;
-    GLfloat _anisotropy;
-    GLfloat _lodBias;
+    uint32_t _textureOptions = 0;
+    GLfloat _anisotropy = 0;
+    GLfloat _lodBias = 0;
 
 #ifndef NDEBUG
     std::string _emissionDesc;
     std::string _illuminationDesc;
     std::string _diffuseDesc;
 #endif
-}
+};
 
-- (id)cxx_initWithEmissionMapSpec:(const oo::PList&)emissionMapSpec
-                    emissionColor:(OOColor*)emissionColor
-                       diffuseMap:(OOTexture*)diffuseMap
-                     diffuseColor:(OOColor*)diffuseColor
-              illuminationMapSpec:(const oo::PList&)illuminationMapSpec
-                illuminationColor:(OOColor*)illuminationColor
-                 optionsSpecifier:(const oo::PList&)spec OO_RETURNS_RETAINED;
+} // namespace cxx
 
-- (id)cxx_initWithEmissionAndIlluminationMapSpec:(const oo::PList&)emissionAndIlluminationMapSpec
-                                      diffuseMap:(OOTexture*)diffuseMap
-                                    diffuseColor:(OOColor*)diffuseColor
-                                   emissionColor:(OOColor*)emissionColor
-                               illuminationColor:(OOColor*)illuminationColor
-                                optionsSpecifier:(const oo::PList&)spec OO_RETURNS_RETAINED;
+// Transitional: the Objective-C OOCombinedEmissionMapGenerator, for its caller. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "OOCombinedEmissionMapGenerator+ObjCBridge.h"
 
-@end
+#endif // OOCOMBINEDEMISSIONMAPGENERATOR_H

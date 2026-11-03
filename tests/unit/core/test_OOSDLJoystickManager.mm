@@ -203,6 +203,41 @@ OO_TEST(handlesEventsThroughTheSuperclass)
 }
 
 
+// An event of a stick the manager did not open (one hot-plugged after it was made) is refused and
+// leaves the superclass's state alone (bead oo-9ht.3). Its index, -1, used to be stored in the
+// unsigned SDL_JoystickID, so the `which >= 0` guard let it through to the decoder, which indexed
+// its per-stick tables with it.
+OO_TEST(refusesEventsOfAStickItDidNotOpen)
+{
+	VirtualStick &vs = Stick();
+	const SDL_JoystickID stray = vs.id + 100;
+	@autoreleasepool
+	{
+		OOSDLJoystickManager *manager = [[[OOSDLJoystickManager alloc] init] autorelease];
+		OO_CHECK([manager getJoystickIndexFromId:stray] == -1);
+
+		SDL_Event down = ButtonEvent(vs.id, 0, true);
+		OO_CHECK([manager handleSDLEvent:&down]);
+		OO_CHECK([manager isButtonDown:0 stick:0]);
+
+		SDL_Event strayUp = ButtonEvent(stray, 0, false);
+		OO_CHECK(![manager handleSDLEvent:&strayUp]);
+		OO_CHECK([manager isButtonDown:0 stick:0]);
+
+		SDL_Event strayHat = HatEvent(stray, 0, SDL_HAT_UP);
+		OO_CHECK(![manager handleSDLEvent:&strayHat]);
+		OO_CHECK(![manager isButtonDown:MAX_REAL_BUTTONS stick:0]);
+
+		SDL_Event strayAxis = AxisEvent(stray, 0, 100);
+		OO_CHECK(![manager handleSDLEvent:&strayAxis]);
+
+		SDL_Event up = ButtonEvent(vs.id, 0, false);
+		OO_CHECK([manager handleSDLEvent:&up]);
+		OO_CHECK(![manager isButtonDown:0 stick:0]);
+	}
+}
+
+
 // After the conversion: the C++ class answers as the facade did, reaches its superclass through
 // its one facade, and never makes a facade of its own (ADR-0056, amendment oo-o89).
 OO_TEST(facadeContract)

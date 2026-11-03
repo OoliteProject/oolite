@@ -27,16 +27,36 @@ MA 02110-1301, USA.
 
 #import "OOLightParticleEntity.h"
 
-@interface OOFlashEffectEntity : OOLightParticleEntity {
-@private
-    float _duration;
-    float _growthRate;
-    float _alpha;
-}
+namespace cxx {
 
-+ (instancetype)explosionFlashFromEntity:(Entity*)entity;
-+ (instancetype)laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor*)color;
+class OOFlashEffectEntity : public OOLightParticleEntity {
+public:
+    // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a new flash,
+    // initialised. The facade's class methods hand it to Objective-C (oo::NewEntityFacade).
+    static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(::Entity* entity);
+    static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position, Vector vel, OOColor* color);
 
-+ (void)setUpTexture;
+    static void setUpTexture();
+    // The graphics reset client is the facade class, which forwards here.
+    static void resetGraphicsState();
 
-@end
+    void update(OOTimeDelta delta_t) override;
+    ::OOTexture* texture() override;
+
+private:
+    // The initialisers' bodies, run once right after construction (amendment oo-vl43 item 2).
+    void initExplosionFlashWithPosition(HPVector pos, Vector vel, float size);
+    void initLaserFlashWithPosition(HPVector pos, Vector vel, OOColor* color);
+    // Designated initializer.
+    void initWithPosition(HPVector pos, float size, OOColor* color, float duration);
+
+    float _duration = { };
+    float _growthRate = { };
+    float _alpha = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOFlashEffectEntity, for the ship and the universe, which message
+// the class. Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "OOFlashEffectEntity+ObjCBridge.h"

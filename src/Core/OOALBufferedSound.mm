@@ -31,50 +31,50 @@ SOFTWARE.
 
 #include "oofnd/Log.hpp"
 
-@implementation OOALBufferedSound
+namespace cxx {
 
-- (void)dealloc
+OOALBufferedSound::~OOALBufferedSound()
 {
     free(_buffer);
     _buffer = NULL;
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_name
+std::optional<std::string> OOALBufferedSound::name()
 {
     return _name;
 }
 
-- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder
+/*	The body of -initWithDecoder:, with self as the new sound; its [self release]; self = nil; is
+        the null it answers (the object is freed as the release freed it). The decoder is still the
+        Objective-C one, which the root's class cluster makes.
+*/
+oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(::OOALSoundDecoder* inDecoder)
 {
-    BOOL OK = YES;
+    bool OK = true;
+    oo::Ref<OOALBufferedSound> self;
 
-    [OOSound setUp];
-    if (![OOSound isSoundOK] || nil == inDecoder)
-        OK = NO;
+    setUp();
+    if (!isSoundOK() || nil == inDecoder)
+        OK = false;
 
     if (OK) {
-        self = [super init];
-        if (nil == self)
-            OK = NO;
+        self = oo::adopt(new OOALBufferedSound);
     }
 
     if (OK) {
-        _name = [inDecoder cxx_name];
-        _sampleRate = [inDecoder sampleRate];
-        OK = [inDecoder readCreatingBuffer:&_buffer withFrameCount:&_size];
-        _stereo = [inDecoder isStereo];
+        self->_name = [inDecoder cxx_name];
+        self->_sampleRate = [inDecoder sampleRate];
+        OK = [inDecoder readCreatingBuffer:&self->_buffer withFrameCount:&self->_size];
+        self->_stereo = [inDecoder isStereo];
     }
 
     if (!OK) {
-        [self release];
-        self = nil;
+        self = nullptr;
     }
     return self;
 }
 
-- (ALuint)soundBuffer
+ALuint OOALBufferedSound::soundBuffer()
 {
     ALuint buffer;
     ALint error;
@@ -92,4 +92,4 @@ SOFTWARE.
     }
 }
 
-@end
+} // namespace cxx

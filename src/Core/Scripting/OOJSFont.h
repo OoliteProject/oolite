@@ -29,7 +29,6 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
 #include <quickjs.h>
 
 void InitOOJSFont(JSContext* context, JSValueConst global);

@@ -1151,7 +1151,7 @@ static bool IsOOObjectRooted(id object)
     return cls == [OOObject class];
 }
 
-// NSArray's glue (JSArrayFromNSArray) over ObjectFromPList's array: null elements dropped.
+// The Foundation array's glue (JSArrayFromNSArray) over ObjectFromPList's array: null elements dropped.
 // Owned; undefined on failure.
 static JSValue JSArrayValueFromPList(JSContext* context, const oo::PList::Array& array)
 {
@@ -1178,7 +1178,7 @@ static JSValue JSArrayValueFromPList(JSContext* context, const oo::PList::Array&
     return result;
 }
 
-// NSDictionary's glue (JSObjectFromNSDictionary) over ObjectFromPList's dictionary: null and
+// The Foundation dictionary's glue (JSObjectFromNSDictionary) over ObjectFromPList's dictionary: null and
 // undefined values dropped, empty keys skipped, key order. Owned; undefined on failure.
 static JSValue JSObjectValueFromPList(JSContext* context, const oo::PList::Dict& dict)
 {
@@ -1213,7 +1213,7 @@ JSValue OOJSValueFromNativeObject(JSContext* context, id object)
     if (EXPECT(IsOOObjectRooted(object)))
         return [object oo_jsValueInContext:context];
 
-    // An object on another root has no JS glue: undefined, as NSObject's gave. oo-qps.72 deleted
+    // An object on another root has no JS glue: undefined, as the root class's gave. oo-qps.72 deleted
     // the Foundation branch (its property-list form, proposed ADR-0051): plist data is
     // OOJSValueFromPList's.
     return JS_UNDEFINED;
@@ -1230,7 +1230,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
         return JS_NewInt32(context, *plist.getIf<bool>() ? 1 : 0);
 
     case oo::PList::Type::Integer: {
-        // NSNumber's glue: JS_NewNumber() of the integer, an int32 when it is in range.
+        // The Foundation number's glue: JS_NewNumber() of the integer, an int32 when it is in range.
         const oo::PList::Integer& integer = *plist.getIf<oo::PList::Integer>();
         if (integer.isUnsigned) {
             const unsigned long long u = integer.unsignedValue();
@@ -1245,7 +1245,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
     }
 
     case oo::PList::Type::Real: {
-        // NSNumber's glue: a float type is always a double.
+        // The Foundation number's glue: a float type is always a double.
         double d = *plist.getIf<double>();
         if (plist.isSinglePrecision())
             d = static_cast<double>(static_cast<float>(d)); // +numberWithFloat: -doubleValue
@@ -1259,7 +1259,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
 
     case oo::PList::Type::Data:
     case oo::PList::Type::Date:
-        return JS_UNDEFINED; // NSData, NSDate: NSObject's glue
+        return JS_UNDEFINED; // Foundation data and dates: the root class's glue
 
     case oo::PList::Type::Array:
         return JSArrayValueFromPList(context, *plist.getIf<oo::PList::Array>());
@@ -1697,9 +1697,6 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter)
         case STELLAR_TYPE_SUN:
             return YES;
 
-#if !NEW_PLANETS
-        case STELLAR_TYPE_ATMOSPHERE:
-#endif
         case STELLAR_TYPE_MINIATURE:
             return NO;
         }

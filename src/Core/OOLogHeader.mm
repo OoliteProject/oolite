@@ -109,9 +109,7 @@ void OOPrintLogHeader(void)
         "GLSL shaders",
 #endif
 
-#if NEW_PLANETS
         "new planets",
-#endif
 
 // Debug features
 #if OO_CHECK_GL_HEAVY

@@ -186,6 +186,10 @@ inline OOWeakReference* ToObjC(const Ref<cxx::OOWeakReference>& weakRef) { retur
 // The C++ reference behind a facade, borrowed (the facade owns it); null for nil.
 cxx::OOWeakReference* ToCxx(OOWeakReference* weakRef);
 
+// [object className], for cxx::OOWeakReference::className(): the send needs a declaration of
+// -className, which only Objective-C can write (ADR-0056 amendment oo-9ht.66).
+id SendClassName(id object);
+
 } // namespace oo
 
 #endif // OOWEAKREFERENCE_OBJCBRIDGE_H

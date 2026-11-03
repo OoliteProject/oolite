@@ -61,26 +61,17 @@ static BOOL sReducedDetail;
 static BOOL sHaveNPOTTextures = NO; // TODO: support "true" non-power-of-two textures.
 static BOOL sHaveSetUp = NO;
 
-@interface OOTextureLoader (OOPrivate)
+namespace cxx {
 
-+ (void)setUp;
-
-- (void)applySettings;
-- (void)getDesiredWidth:(OOPixMapDimension*)outDesiredWidth andHeight:(OOPixMapDimension*)outDesiredHeight;
-
-@end
-
-@implementation OOTextureLoader
-
-+ (id)cxx_loaderWithPath:(const std::optional<std::string>&)inPath options:(uint32_t)options
+oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithPath(const std::optional<std::string>& inPath, uint32_t options)
 {
     std::string extension;
-    id result = nil;
+    oo::ObjCRef<::OOTextureLoader*> result;
 
     if (EXPECT_NOT(!inPath.has_value()))
-        return nil;
+        return nullptr;
     if (EXPECT_NOT(!sHaveSetUp))
-        [self setUp];
+        setUp();
 
     // Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial).
     sReducedDetail = [UNIVERSE reducedDetail];
@@ -88,27 +79,30 @@ static BOOL sHaveSetUp = NO;
     // Get a suitable loader. FIXME -- this should sniff the data instead of relying on extensions.
     extension = oo::str::lowercase(oo::str::pathExtension(*inPath));
     if (extension == "png") {
-        result = [[[OOPNGTextureLoader alloc] cxx_initWithPath:inPath options:options] autorelease];
+        // A C++ loader (bead oo-z889); the work manager holds its facade, which owns it.
+        const oo::Ref<::OOPNGTextureLoader> loader = oo::makeRef<::OOPNGTextureLoader>();
+        if (loader->initWithPath(inPath, options))
+            result = oo::ObjCRef<::OOTextureLoader*>(oo::ToObjC(loader.get()));
     } else {
         OO_LOG("texture.load.unknownType", "Can't use {} as a texture - extension \"{}\" does not identify a known type.", *inPath, extension);
     }
 
-    if (result != nil) {
-        if (![[OOAsyncWorkManager sharedAsyncWorkManager] addTask:result priority:kOOAsyncPriorityMedium])
-            result = nil;
+    if (result != nullptr) {
+        if (!cxx::OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(result.get(), kOOAsyncPriorityMedium))
+            result = nullptr;
     }
 
     return result;
 }
 
-+ (id)cxx_loaderWithTextureSpecifier:(const oo::PList&)specifier extraOptions:(uint32_t)extraOptions folder:(const std::optional<std::string>&)folder
+oo::ObjCRef<::OOTextureLoader*> OOTextureLoader::loaderWithTextureSpecifier(const oo::PList& specifier, uint32_t extraOptions, const std::optional<std::string>& folder)
 {
     std::string name;
     std::optional<std::string> path;
     uint32_t options = 0;
 
     if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL, NO))
-        return nil;
+        return nullptr;
     options |= extraOptions;
     path = [ResourceManager cxx_pathForFileNamed:name inFolder:folder];
     if (!path.has_value()) {
@@ -116,21 +110,23 @@ static BOOL sHaveSetUp = NO;
             OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", name);
             cxx_OOStandardsError("Texture file not found");
         }
-        return nil;
+        return nullptr;
     }
 
-    return [self cxx_loaderWithPath:path options:options];
+    return loaderWithPath(path, options);
 }
 
-- (id)cxx_initWithPath:(const std::optional<std::string>&)inPath options:(uint32_t)options
+OOTextureLoader::OOTextureLoader()
 {
-    self = [super init];
-    if (self == nil)
-        return nil;
+}
 
+/*	The part of -cxx_initWithPath:options: after [super init]; the facade releases the receiver
+        where this answers false.
+*/
+bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath, uint32_t options)
+{
     if (EXPECT_NOT(!inPath.has_value())) {
-        [self release];
-        return nil;
+        return false;
     }
     _path = *inPath;
 
@@ -178,18 +174,16 @@ static BOOL sHaveSetUp = NO;
         }
     }
 
-    return self;
+    return true;
 }
 
-- (void)dealloc
+OOTextureLoader::~OOTextureLoader()
 {
     free(_data);
     _data = NULL;
-
-    [super dealloc];
 }
 
-- (std::optional<std::string>)cxx_descriptionComponents
+std::optional<std::string> OOTextureLoader::descriptionComponents() const
 {
     const char* state = nullptr;
 
@@ -209,32 +203,33 @@ static BOOL sHaveSetUp = NO;
     return oo::str::format("{%s -- %s}", _path.c_str(), state);
 }
 
-- (std::optional<std::string>)cxx_shortDescriptionComponents
+std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const
 {
     return oo::str::lastPathComponent(_path);
 }
 
-- (std::optional<std::string>)cxx_path
+std::optional<std::string> OOTextureLoader::path()
 {
     return _path;
 }
 
-- (BOOL)isReady
+bool OOTextureLoader::isReady()
 {
     return _ready;
 }
 
-- (BOOL)getResult:(OOPixMap*)result
-            format:(OOTextureDataFormat*)outFormat
-     originalWidth:(uint32_t*)outWidth
-    originalHeight:(uint32_t*)outHeight
+bool OOTextureLoader::getResult(OOPixMap* result,
+    OOTextureDataFormat* outFormat,
+    uint32_t* outWidth,
+    uint32_t* outHeight)
 {
-    OOParameterAssert(result != NULL && outFormat != NULL);
+    OOCParameterAssert(result != NULL && outFormat != NULL);
 
     BOOL OK = YES;
 
     if (!_ready) {
-        [[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:self];
+        // The work manager knows the task as the Objective-C object.
+        cxx::OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(oo::ToObjC(this));
     }
     if (_data == NULL)
         OK = NO;
@@ -258,17 +253,17 @@ static BOOL sHaveSetUp = NO;
     return OK;
 }
 
-- (std::optional<std::string>)cxx_cacheKey
+std::optional<std::string> OOTextureLoader::cacheKey()
 {
-    return oo::str::format("%s:0x%.4X", oo::str::lastPathComponent(*[self cxx_path]).c_str(), _options);
+    return oo::str::format("%s:0x%.4X", oo::str::lastPathComponent(*path()).c_str(), _options);
 }
 
-- (void)loadTexture
+void OOTextureLoader::loadTexture()
 {
     OOLogGenericSubclassResponsibility();
 }
 
-+ (void)setUp
+void OOTextureLoader::setUp()
 {
     // Load two maximum sizes - graphics hardware limit and user-specified limit.
     GLint maxSize;
@@ -291,12 +286,12 @@ static BOOL sHaveSetUp = NO;
 
 /*** Methods performed on the loader thread. ***/
 
-- (void)performAsyncTask
+void OOTextureLoader::performAsyncTask()
 {
     @try {
         OO_LOG("texture.load.asyncLoad", "Loading texture {}", oo::str::lastPathComponent(_path));
 
-        [self loadTexture];
+        loadTexture();
 
         // Catch an error I've seen but not diagnosed yet.
         if (_data != NULL && OOTextureComponentsForFormat(_format) == 0) {
@@ -306,7 +301,7 @@ static BOOL sHaveSetUp = NO;
         }
 
         if (_data != NULL)
-            [self applySettings];
+            applySettings();
 
         OO_LOG("texture.load.asyncLoad.done", "{}", "Loading complete.");
     }
@@ -319,10 +314,10 @@ static BOOL sHaveSetUp = NO;
     }
 }
 
-- (void)generateMipMapsForCubeMap
+void OOTextureLoader::generateMipMapsForCubeMap()
 {
     // Generate mip maps for each cube face.
-    OOParameterAssert(_data != NULL);
+    OOCParameterAssert(_data != NULL);
 
     uint8_t components = OOTextureComponentsForFormat(_format);
     size_t srcSideSize = _width * _width * components; // Space for one side without mip-maps.
@@ -350,7 +345,7 @@ static BOOL sHaveSetUp = NO;
     _data = newData;
 }
 
-- (void)applySettings
+void OOTextureLoader::applySettings()
 {
     OOPixMapDimension desiredWidth, desiredHeight;
     BOOL rescale;
@@ -379,7 +374,7 @@ static BOOL sHaveSetUp = NO;
         }
     }
 
-    [self getDesiredWidth:&desiredWidth andHeight:&desiredHeight];
+    getDesiredWidth(&desiredWidth, &desiredHeight);
 
     if (_isCubeMap && !OOCubeMapsAvailable()) {
         OOPixMapToRGBA(&pixMap);
@@ -428,7 +423,7 @@ static BOOL sHaveSetUp = NO;
 #if OO_TEXTURE_CUBE_MAP
     if (_isCubeMap) {
         if (_generateMipMaps) {
-            [self generateMipMapsForCubeMap];
+            generateMipMapsForCubeMap();
         }
         return;
     }
@@ -454,7 +449,7 @@ static BOOL sHaveSetUp = NO;
     // All done.
 }
 
-- (void)getDesiredWidth:(OOPixMapDimension*)outDesiredWidth andHeight:(OOPixMapDimension*)outDesiredHeight
+void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth, OOPixMapDimension* outDesiredHeight)
 {
     OOPixMapDimension desiredWidth, desiredHeight;
 
@@ -509,9 +504,9 @@ static BOOL sHaveSetUp = NO;
         *outDesiredHeight = desiredHeight;
 }
 
-- (void)completeAsyncTask
+void OOTextureLoader::completeAsyncTask()
 {
     _ready = YES;
 }
 
-@end
+} // namespace cxx

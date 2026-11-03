@@ -26,7 +26,15 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJavaScriptEngine.h"
+/*	Plain includes (bead oo-9ht.64): this header and OOConstToJSString's translation unit are C++,
+        not Objective-C. QuickJS-ng, OOINLINE, NSInteger/NSUInteger and the constant
+        enumerations are all the inlines below need.
+*/
+#include <quickjs.h>
+
+#include "OOEntityEnums.h"
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
 
 void OOConstToJSStringInit(JSContext* context);
 void OOConstToJSStringDestroy(void);

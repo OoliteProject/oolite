@@ -31,10 +31,21 @@ MA 02110-1301, USA.
 
 #import "GameController.h"
 
+/*
+        C++20 since bead oo-zbx3, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on DockEntity
+        became a free function (its -oo_jsClassID answers JSDockClassID()), and its methods moved
+        to OOJSDock+ObjCBridge.mm (amendment oo-ykoy). Messages to classes that are still
+        Objective-C (DockEntity, ShipEntity, Entity) stay as they are, which is why the file is
+        still .mm until Phase 4.
+*/
+
 static JSClassID sDockClassID;
 
-static BOOL JSDockGetDockEntity(JSContext* context, JSValueConst stationObj, DockEntity** outEntity);
-static BOOL JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity);
+static bool JSDockGetDockEntity(JSContext* context, JSValueConst stationObj, DockEntity** outEntity);
+static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity);
 
 static JSValue DockIsQueued(OOJS_NATIVE_ARGS);
 
@@ -88,71 +99,64 @@ JSClassID JSDockClassID(void)
     return sDockClassID;
 }
 
-/*	As in the SpiderMonkey version, these return NO without an exception for
+/*	As in the SpiderMonkey version, these return false without an exception for
         stale references (nil entity) and for entities of the wrong native class;
         OOJSEntityGetEntity() throws if the object is not an Entity at all.
 */
-static BOOL JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEntity** outEntity)
+static bool JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, dockObj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[DockEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (DockEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-static BOOL JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity)
+static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, shipObj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[ShipEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (ShipEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-@implementation DockEntity (OOJavaScriptExtensions)
-
-- (JSClassID)oo_jsClassID
-{
-    return sDockClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// The bodies of DockEntity (OOJavaScriptExtensions), whose methods are in OOJSDock+ObjCBridge.mm
+// until DockEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+std::optional<std::string> OOJSDockJSClassName(void)
 {
     return std::string("Dock");
 }
-
-@end
 
 static JSValue DockGetProperty(OOJS_GETTER_ARGS)
 {
@@ -242,7 +246,7 @@ static JSValue DockIsQueued(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    BOOL result = NO;
+    bool result = false;
     DockEntity* dock = nil;
 
     JSDockGetDockEntity(context, OOJS_THIS, &dock);

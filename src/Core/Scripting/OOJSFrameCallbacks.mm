@@ -31,6 +31,12 @@ SOFTWARE.
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOAssert.h"
 
+/*	Converted in bead oo-n041 (proposed ADR-0056 amendment oo-ppc): a binding with no class of its
+        own. BOOL/YES/NO are bool/true/false; the file statics and functions whose lines that touched
+        are in an anonymous namespace, as the others already were. A deferred add still keeps its
+        callback in an Objective-C OOJSValue, and the universe's time acceleration is still a message.
+*/
+
 /*
         By default, tracking IDs are scrambled to discourage people from trying to
         be clever or making assumptions about them. If DEBUG_FCB_SIMPLE_TRACKING_IDS
@@ -105,7 +111,9 @@ namespace {
 static std::vector<DeferredOperation>* sDeferredOps; // Deferred adds/removes while running.
 } // namespace
 static uint32_t sNextID;
-static BOOL sRunning;
+namespace {
+static bool sRunning;
+} // namespace
 
 // Methods
 static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS);
@@ -114,13 +122,17 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS);
 
 // Internals
 namespace {
-static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString);
-static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* errorString);
+static bool AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString);
+static bool GrowCallbackList(JSContext* context, std::optional<std::string>* errorString);
 } // namespace
 
-static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex);
+namespace {
+static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex);
+} // namespace
 
-static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID);
+namespace {
+static bool RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID);
+} // namespace
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index);
 
 namespace {
@@ -162,7 +174,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
         NSUInteger i;
 
         // Block mutations.
-        sRunning = YES;
+        sRunning = true;
 
         /*
                 The watchdog timer only fires once per second in deployment builds,
@@ -181,7 +193,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
         }
 
         OOJSStopTimeLimiter();
-        sRunning = NO;
+        sRunning = false;
 
         JS_FreeValue(context, global);
         JS_FreeValue(context, deltaVal);
@@ -287,7 +299,7 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
     uint32_t trackingID;
     if (EXPECT_NOT(JS_ToUint32(context, &trackingID, OOJS_ARGV[0]) < 0)) {
         JS_FreeValue(context, JS_GetException(context));
-        OOJS_RETURN_BOOL(NO);
+        OOJS_RETURN_BOOL(false);
     }
 
     NSUInteger index;
@@ -299,7 +311,7 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
 // MARK: Internals
 
 namespace {
-static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString)
+static bool AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, std::optional<std::string>* errorString)
 {
     OOCParameterAssert(context != NULL);
     OOCParameterAssert(errorString != NULL);
@@ -307,7 +319,7 @@ static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trac
 
     if (EXPECT_NOT(sCount == sSpace)) {
         if (!GrowCallbackList(context, errorString))
-            return NO;
+            return false;
     }
 
     FCBLog("script.frameCallback.debug.add", "Adding frame callback with tracking ID {}.", trackingID);
@@ -316,12 +328,12 @@ static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trac
     sCallbacks[sCount].trackingID = trackingID;
     sCount++;
 
-    return YES;
+    return true;
 }
 } // namespace
 
 namespace {
-static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* errorString)
+static bool GrowCallbackList(JSContext* context, std::optional<std::string>* errorString)
 {
     OOCParameterAssert(context != NULL);
     OOCParameterAssert(errorString != NULL);
@@ -331,7 +343,7 @@ static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* err
     CallbackEntry* newCallbacks = (CallbackEntry*)calloc(sizeof(CallbackEntry), newSpace);
     if (newCallbacks == NULL) {
         *errorString = "Failed to allocate space for frame callback.";
-        return NO;
+        return false;
     }
 
     // Move occupied slots; the references move with them.
@@ -343,11 +355,12 @@ static BOOL GrowCallbackList(JSContext* context, std::optional<std::string>* err
     sCallbacks = newCallbacks;
     sSpace = newSpace;
 
-    return YES;
+    return true;
 }
 } // namespace
 
-static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
+namespace {
+static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
 {
     OOCParameterAssert(outIndex != NULL);
 
@@ -360,14 +373,16 @@ static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
     for (i = 0; i < sCount; i++) {
         if (sCallbacks[i].trackingID == trackingID) {
             *outIndex = i;
-            return YES;
+            return true;
         }
     }
 
-    return NO;
+    return false;
 }
+} // namespace
 
-static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID)
+namespace {
+static bool RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID)
 {
     OOCParameterAssert(context != NULL);
     OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
@@ -375,11 +390,12 @@ static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID
     NSUInteger index = 0;
     if (GetIndexForTrackingID(trackingID, &index)) {
         RemoveCallbackAtIndex(context, index);
-        return YES;
+        return true;
     }
 
-    return NO;
+    return false;
 }
+} // namespace
 
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 {

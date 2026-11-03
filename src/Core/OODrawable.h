@@ -73,7 +73,7 @@ public:
     virtual std::optional<std::string> descriptionComponents() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    virtual std::vector<oo::ObjCRef<OOTexture*>> allTextures();
+    virtual std::vector<oo::ObjCRef<::OOTexture*>> allTextures();
     virtual size_t totalSize(); // Size including dynamic data, not counting textures.
 #endif
 };

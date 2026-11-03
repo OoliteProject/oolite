@@ -26,8 +26,10 @@ MA 02110-1301, USA.
 
 #pragma once
 #import "OOFoundation.h"
-#import "OOSound.h"
 #include <quickjs.h>
+
+#include <optional>
+#include <string>
 
 @class OOSound;
 
@@ -39,3 +41,12 @@ void InitOOJSSound(JSContext* context, JSValueConst global);
         string specifying a sound name.
  */
 OOSound* SoundFromJSValue(JSContext* context, JSValueConst value);
+
+/*	The bodies of OOSound (OOJavaScriptExtentions), which the engine reaches by selector. Its
+        methods are one-line forwarders to these in OOJSSound+ObjCBridge.mm until OOSound converts
+        (proposed ADR-0056 amendments oo-ppc and oo-ykoy). OOJSSoundJSValueInContext returns a new
+        Sound object owned by the caller (JS null for none).
+*/
+JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context);
+std::optional<std::string> OOJSSoundJSDescription(OOSound* sound);
+std::optional<std::string> OOJSSoundJSClassName(void);

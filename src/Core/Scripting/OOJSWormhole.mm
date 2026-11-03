@@ -28,9 +28,20 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "WormholeEntity.h"
 
+/*
+        C++20 since bead oo-ykoy, converted the way bead oo-ppc converted OOJSVector.mm (proposed
+        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
+        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
+        WormholeEntity became two free functions (its -oo_jsClassID answers JSWormholeClassID()),
+        and its methods moved to OOJSWormhole+ObjCBridge.mm (amendment oo-ykoy). Messages to
+        classes that are still Objective-C (WormholeEntity, Entity) stay as they are, which is why
+        the file is still .mm until Phase 4.
+*/
+
 static JSClassID sWormholeClassID;
 
-static BOOL JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormholeObj, WormholeEntity** outEntity);
+static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormholeObj, WormholeEntity** outEntity);
 
 static JSValue WormholeGetProperty(OOJS_GETTER_ARGS);
 
@@ -81,48 +92,42 @@ JSClassID JSWormholeClassID(void)
     return sWormholeClassID;
 }
 
-static BOOL JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormholeObj, WormholeEntity** outEntity)
+static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormholeObj, WormholeEntity** outEntity)
 {
     OOJS_PROFILE_ENTER
 
-    BOOL result;
+    bool result;
     Entity* entity = nil;
 
     if (outEntity == NULL)
-        return NO;
+        return false;
     *outEntity = nil;
 
     result = OOJSEntityGetEntity(context, wormholeObj, &entity);
     if (!result)
-        return NO;
+        return false;
 
     if (![entity isKindOfClass:[WormholeEntity class]])
-        return NO;
+        return false;
 
     *outEntity = (WormholeEntity*)entity;
-    return YES;
+    return true;
 
     OOJS_PROFILE_EXIT
 }
 
-@implementation WormholeEntity (OOJavaScriptExtensions)
-
-- (JSClassID)oo_jsClassID
-{
-    return sWormholeClassID;
-}
-
-- (std::optional<std::string>)cxx_oo_jsClassName
+// The bodies of WormholeEntity (OOJavaScriptExtensions), whose methods are in
+// OOJSWormhole+ObjCBridge.mm until WormholeEntity converts (proposed ADR-0056 amendments oo-ppc
+// and oo-ykoy).
+std::optional<std::string> OOJSWormholeJSClassName(void)
 {
     return std::string("Wormhole");
 }
 
-- (BOOL)isVisibleToScripts
+bool OOJSWormholeIsVisibleToScripts(void)
 {
-    return YES;
+    return true;
 }
-
-@end
 
 static JSValue WormholeGetProperty(OOJS_GETTER_ARGS)
 {
