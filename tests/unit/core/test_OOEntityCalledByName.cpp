@@ -24,16 +24,16 @@
 	Run: bash tools/check-core-tests.sh test_OOEntityCalledByName
 */
 
-#import "OOEntityCalledByName.h"
-#import "OOCallByName.h"
-#import "Entity.h"
-#import "ShipEntity.h"
-#import "StationEntity.h"
-#import "DockEntity.h"
-#import "PlayerEntity.h"
-#import "ProxyPlayerEntity.h"
-#import "OOVisualEffectEntity.h"
-#import "OOWaypointEntity.h"
+#include "OOEntityCalledByName.h"
+#include "OOCallByName.h"
+#include "Entity.h"
+#include "ShipEntity.h"
+#include "StationEntity.h"
+#include "DockEntity.h"
+#include "PlayerEntity.h"
+#include "ProxyPlayerEntity.h"
+#include "OOVisualEffectEntity.h"
+#include "OOWaypointEntity.h"
 
 #include "oo_test.hpp"
 #include "oofnd/Log.hpp"

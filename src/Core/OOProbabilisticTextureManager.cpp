@@ -81,7 +81,7 @@ bool OOProbabilisticTextureManager::initWithPListName(const std::string& plistNa
     NSUInteger i, count, j;
     const oo::PList* entry = nullptr;
     std::optional<std::string> name;
-    float probability;
+    float probability = 0.0f; // set wherever name is (GCC -Wmaybe-uninitialized; bead oo-1q4)
     oo::Ref<OOTexture> texture;
     int galID = -1;
     const oo::PList* object = nullptr;

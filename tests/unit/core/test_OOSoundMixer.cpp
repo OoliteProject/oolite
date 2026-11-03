@@ -16,12 +16,12 @@
 	shutdown, which is last, comes the C++ API. Run: bash tools/check-core-tests.sh test_OOSoundMixer
 */
 
-#import "OOALSoundMixer.h"
-#import "OOALSoundChannel.h"
-#import "OOALSound.h"
-#import "OOALSoundDecoder.h"
-#import "OOALBufferedSound.h"
-#import "OOALStreamedSound.h"
+#include "OOALSoundMixer.h"
+#include "OOALSoundChannel.h"
+#include "OOALSound.h"
+#include "OOALSoundDecoder.h"
+#include "OOALBufferedSound.h"
+#include "OOALStreamedSound.h"
 
 #include "oo_test.hpp"
 

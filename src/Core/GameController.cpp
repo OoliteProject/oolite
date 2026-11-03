@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "MyOpenGLView.h"
 #include "OODebugFlags.h"
 #include "OODebugSupport.h"
+#include "OOFoundation.h" // OOLITE_GNUSTEP
 #include "OOJSFrameCallbacks.h"
 #include "OOLogOutputHandler.h"
 #include "OOLoggingExtended.h"

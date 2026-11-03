@@ -77,6 +77,7 @@ MA 02110-1301, USA.
 #include "OOMaths.h"
 #include "Octree.h"
 #include "oofnd/Log.hpp"
+#include <cstring>
 
 // MARK: GeometryData operations.
 

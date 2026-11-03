@@ -20,10 +20,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "EntityOOJavaScriptExtensions.h"
-#import "ShipEntity.h"
-#import "OOJSEntity.h"
-#import "OOJSShip.h"
+#include "EntityOOJavaScriptExtensions.h"
+#include "ShipEntity.h"
+#include "OOJSEntity.h"
+#include "OOJSShip.h"
 
 #include "oo_test.hpp"
 

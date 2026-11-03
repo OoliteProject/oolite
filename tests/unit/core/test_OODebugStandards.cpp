@@ -15,8 +15,8 @@
 	written without synchronize()). Run: bash tools/check-core-tests.sh test_OODebugStandards
 */
 
-#import "OODebugStandards.h"
-#import "GameController.h"
+#include "OODebugStandards.h"
+#include "GameController.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oo_test.hpp"

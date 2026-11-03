@@ -16,9 +16,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOTextureGenerator.h"
-#import "OOConcreteTexture.h"
-#import "OODescription.h"
+#include "OOTextureGenerator.h"
+#include "OOConcreteTexture.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

@@ -51,6 +51,7 @@
 #undef true
 #undef false
 
+#include "oofnd/PrintfFormat.h"
 #include <optional>
 #include <string>
 #include <utility>
@@ -67,7 +68,7 @@ extern const char* const OOMallocException;
 /*	+[OOException raise:name format:...] as a function (Phase 3, proposed ADR-0056 amendment
         oo-dqxj): throws oo::Exception with the name and the printf-formatted reason. Never returns.
 */
-void OORaiseException(const char* name, const char* format, ...) __attribute__((format(printf, 2, 3), noreturn));
+void OORaiseException(const char* name, const char* format, ...) OO_PRINTF_FORMAT(2, 3) __attribute__((noreturn));
 }
 
 namespace oo {

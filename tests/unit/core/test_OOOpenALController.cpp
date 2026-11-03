@@ -14,8 +14,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOOpenALController.h"
-#import "OOALSoundMixer.h"
+#include "OOOpenALController.h"
+#include "OOALSoundMixer.h"
 
 #include "oo_test.hpp"
 #include "oofnd/Process.hpp"

@@ -33,8 +33,8 @@
 	changed). Run: bash tools/check-core-tests.sh test_OOOXPVerifier
 */
 
-#import "OOOXPVerifier.h"
-#import "OOOXPVerifierStage.h"
+#include "OOOXPVerifier.h"
+#include "OOOXPVerifierStage.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Process.hpp"

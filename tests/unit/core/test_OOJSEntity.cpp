@@ -25,7 +25,7 @@
 	for as the Objective-C glue was (the same class check and error, the same toString()).
 */
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
 #include "OOEntityEnums.h"
@@ -34,7 +34,7 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/String.hpp"
-#import "OOConstToJSString.h"
+#include "OOConstToJSString.h"
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -43,7 +43,7 @@
 	One whose mass is 99 raises from -mass, one whose mass is 98 throws a C++ exception, so the test
 	sees what an exception under a native becomes.
 */
-#import "EntityStandIn.h"
+#include "EntityStandIn.h"
 class Entity : public oo::RefCounted, public ::OOJSPrivateObject	// the C++ root, with the game's vtable (bead oo-9ht.39.8.21)
 {
 public:

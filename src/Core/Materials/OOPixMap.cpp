@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #include "OOPixMap.h"
+#include <cstring>
 
 #include "oofnd/String.hpp"
 

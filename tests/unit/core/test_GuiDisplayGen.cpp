@@ -29,10 +29,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "GuiDisplayGen.h"
-#import "OOColor.h"
-#import "OOJavaScriptEngine.h"
-#import "OOJSEngineCore.h"
+#include "GuiDisplayGen.h"
+#include "OOColor.h"
+#include "OOJavaScriptEngine.h"
+#include "OOJSEngineCore.h"
 
 #include "oofnd/Data.hpp"
 #include "oofnd/FileSystem.hpp"

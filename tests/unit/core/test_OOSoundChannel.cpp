@@ -23,12 +23,12 @@
 	Run: bash tools/check-core-tests.sh test_OOSoundChannel
 */
 
-#import "OOALSoundChannel.h"
-#import "OOALSound.h"
-#import "OOALBufferedSound.h"
-#import "OOALStreamedSound.h"
-#import "OOALSoundMixer.h"
-#import "OOALSoundDecoder.h"
+#include "OOALSoundChannel.h"
+#include "OOALSound.h"
+#include "OOALBufferedSound.h"
+#include "OOALStreamedSound.h"
+#include "OOALSoundMixer.h"
+#include "OOALSoundDecoder.h"
 
 #include "oo_test.hpp"
 

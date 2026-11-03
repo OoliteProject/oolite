@@ -15,11 +15,11 @@
 	bash tools/check-core-tests.sh
 */
 
-#import "OOJSVector.h"
-#import "OOJavaScriptEngine.h"
-#import "OOJSQuaternion.h"
-#import "OOJSEntity.h"
-#import "Universe.h"
+#include "OOJSVector.h"
+#include "OOJavaScriptEngine.h"
+#include "OOJSQuaternion.h"
+#include "OOJSEntity.h"
+#include "Universe.h"
 #include "legacy_random.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/String.hpp"

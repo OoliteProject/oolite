@@ -20,16 +20,16 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOJSCall.h"
-#import "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped, stood in below
-#import "OOCallByName.h"
-#import "OOMaths.h"
+#include "OOJSCall.h"
+#include "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped, stood in below
+#include "OOCallByName.h"
+#include "OOMaths.h"
 #include <quickjs.h>
 #include "OOJSEngineCore.h"	// with OOJSEngineNativeWrappers.h, for the profiler frame
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #include "EntityPListForeign.h"	// an entity's node
-#import "OODescription.h"
+#include "OODescription.h"
 #include <cstring>
 
 #include "oo_test.hpp"
@@ -178,7 +178,7 @@ TestPlayerObject *sPlayerObject = nullptr;	// the player's object
 
 ::TestEntityObject *TestObjectOf(Entity *entity)  { return entity != nullptr ? (::TestEntityObject *)sPlayerObject : nullptr; }	// only the player crosses
 #define OO_ENTITY_HELPERS_STAND_IN_CXX 1
-#import "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
+#include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 
 
 JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)

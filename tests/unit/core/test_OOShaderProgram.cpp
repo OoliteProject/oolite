@@ -15,10 +15,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOShaderProgram.h"
-#import "OORegExpMatcher.h"
-#import "OODescription.h"
-#import "MyOpenGLView.h"
+#include "OOShaderProgram.h"
+#include "OORegExpMatcher.h"
+#include "OODescription.h"
+#include "MyOpenGLView.h"
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
@@ -45,7 +45,7 @@ const char *const cxx_kOOLogFileNotFound = "files.notFound";
 static std::map<std::string, std::string> gShaderFiles;
 static std::vector<std::string> gShaderFileRequests;
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

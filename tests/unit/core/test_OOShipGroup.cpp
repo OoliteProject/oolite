@@ -18,7 +18,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOShipGroup.h"
+#include "OOShipGroup.h"
 
 #include "oo_test.hpp"
 #include "oofnd/objc/OOException.h"

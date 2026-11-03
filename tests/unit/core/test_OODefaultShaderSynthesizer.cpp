@@ -24,8 +24,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OODefaultShaderSynthesizer.h"
-#import "OODescription.h"
+#include "OODefaultShaderSynthesizer.h"
+#include "OODescription.h"
 
 #include "oofnd/Log.hpp"
 #include "oo_test.hpp"

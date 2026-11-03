@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
+#include <cinttypes> // PRIu64
 
 namespace {
 
@@ -50,7 +51,7 @@ std::optional<std::string> OOCharacter::descriptionComponents() const
 {
     // ("(null)" is what "%@" printed for a missing name or description; the two getters read
     // _legalStatus and _insuranceCredits, which a const member reads directly)
-    return oo::str::format("%s, %s. bounty: %i insurance: %zu", _name.value_or("(null)").c_str(), _shortDescription.value_or("(null)").c_str(), _legalStatus, _insuranceCredits);
+    return oo::str::format("%s, %s. bounty: %i insurance: %" PRIu64, _name.value_or("(null)").c_str(), _shortDescription.value_or("(null)").c_str(), _legalStatus, _insuranceCredits);
 }
 
 std::optional<std::string> OOCharacter::oo_jsClassName()

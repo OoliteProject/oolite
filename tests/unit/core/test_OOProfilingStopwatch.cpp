@@ -12,7 +12,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOProfilingStopwatch.h"
+#include "OOProfilingStopwatch.h"
 
 #include "oo_test.hpp"
 

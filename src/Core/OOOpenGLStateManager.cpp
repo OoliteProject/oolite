@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #include "OOOpenGLExtensionManager.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOAssert.h"
+#include <cstring>
 
 /*	DESIGN NOTES
 
@@ -273,7 +274,9 @@ static OOOpenGLStateID sCurrentStateID = OPENGL_STATE_INTERNAL_USE_ONLY;
         Applies the differences between sourceState and targetState. It is assumed
         that sourceState accurately reflects the current state.
 */
-static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OOOpenGLState* targetState) NONNULL_FUNC;
+namespace {
+static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OOOpenGLState* targetState); // no NONNULL_FUNC: the body asserts its arguments are non-null, which GCC drops as always true under the attribute (-Wnonnull-compare; bead oo-1q4)
+} // namespace
 
 /*	Accessors
 
@@ -379,7 +382,9 @@ static void GetCurrentOpenGLState(OOOpenGLState* state) NONNULL_FUNC;
 
         Test whether two states are identical.
 */
-static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b) NONNULL_FUNC;
+namespace {
+static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b); // no NONNULL_FUNC: the body asserts its arguments are non-null, which GCC drops as always true under the attribute (-Wnonnull-compare; bead oo-1q4)
+} // namespace
 
 #if OO_CHECK_GL_HEAVY
 /*	OOGLNoteCurrentFunction(function, line)
@@ -479,6 +484,7 @@ static void GetCurrentOpenGLState(OOOpenGLState* state)
 #undef ITEM_INT
 }
 
+namespace {
 static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b)
 {
     OOCParameterAssert(a != NULL && b != NULL);
@@ -513,6 +519,7 @@ static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b)
 
     return true;
 }
+} // namespace
 
 static void VerifyOpenGLStateInternal(const char* caller, const char* nominalCaller, unsigned line)
 {
@@ -586,6 +593,7 @@ void OOSetOpenGLState(OOOpenGLStateID state)
 
 #endif // OO_GL_STATE_VERIFICATION
 
+namespace {
 static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OOOpenGLState* targetState)
 {
     OOCParameterAssert(sourceState != NULL && targetState != NULL);
@@ -631,6 +639,7 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OO
 #undef ITEM_SPECIAL
 #undef ITEM_INT
 }
+} // namespace
 
 void OOResetGLStateVerifier(void)
 {

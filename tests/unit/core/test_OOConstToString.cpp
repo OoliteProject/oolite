@@ -16,10 +16,10 @@
 	Objective-C sends first. Run: bash tools/check-core-tests.sh test_OOConstToString
 */
 
-#import "OOConstToString.h"
-#import "OOEquipmentType.h"
-#import "OOCommodityMarket.h"
-#import "OOStringExpander.h"
+#include "OOConstToString.h"
+#include "OOEquipmentType.h"
+#include "OOCommodityMarket.h"
+#include "OOStringExpander.h"
 
 #include "oo_test.hpp"
 
@@ -70,7 +70,7 @@ oo::PList Good(std::initializer_list<std::pair<const char *, oo::PList>> entries
 }	// namespace
 
 
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
 // the Objective-C facade the test's Objective-C stand-in stood in for), with the header's names and signatures.
@@ -127,7 +127,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 }
 
 
-#import "OOCacheManager.h"
+#include "OOCacheManager.h"
 
 // The cache manager is C++ since bead oo-9ht.31 deleted its facade: a C++ stand-in with the Objective-C
 // stand-in's answers.
@@ -140,7 +140,7 @@ OOCacheManager::~OOCacheManager()  {}
 void OOCacheManager::setPList(const oo::PList &value, const std::string &key, const std::string &cache)	{ (void)value; (void)key; (void)cache; }
 
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until bead

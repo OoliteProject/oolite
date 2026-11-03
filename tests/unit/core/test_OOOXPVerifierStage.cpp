@@ -22,11 +22,11 @@
 	oo-9n5p9). Run: bash tools/check-core-tests.sh
 */
 
-#import "OOOXPVerifierStage.h"
-#import "OODescription.h"
+#include "OOOXPVerifierStage.h"
+#include "OODescription.h"
 #include "oofnd/objc/OOException.h"
 
-#import "OOLogging.h"
+#include "OOLogging.h"
 #include "oo_test.hpp"
 
 

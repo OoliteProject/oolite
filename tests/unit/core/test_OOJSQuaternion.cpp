@@ -15,11 +15,11 @@
 	under a native reaches JS. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOJSQuaternion.h"
-#import "OOJSVector.h"
-#import "OOJavaScriptEngine.h"
-#import "OOJSEntity.h"
-#import "Universe.h"
+#include "OOJSQuaternion.h"
+#include "OOJSVector.h"
+#include "OOJavaScriptEngine.h"
+#include "OOJSEntity.h"
+#include "Universe.h"
 #include "legacy_random.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/String.hpp"

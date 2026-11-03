@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOJavaScriptEngine.h"
+#include "OOFoundation.h" // OOLITE_DEBUG
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSScript.h"
 

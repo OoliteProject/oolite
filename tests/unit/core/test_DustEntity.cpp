@@ -17,11 +17,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "DustEntity.h"
-#import "OOColor.h"
-#import "OODescription.h"
-#import "Universe.h"
-#import "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "DustEntity.h"
+#include "OOColor.h"
+#include "OODescription.h"
+#include "Universe.h"
+#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"

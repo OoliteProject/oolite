@@ -23,8 +23,8 @@
 	engine. Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
-#import "OOColor.h"
+#include "OOFoundation.h"
+#include "OOColor.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"

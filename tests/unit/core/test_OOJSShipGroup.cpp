@@ -21,13 +21,13 @@
 	group until the engine clears it). Run: bash tools/check-core-tests.sh
 */
 
-#import "OOShipGroup.h"
+#include "OOShipGroup.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#import "OODescription.h"
-#import "OOObjCPList.h"
+#include "OODescription.h"
+#include "OOObjCPList.h"
 #include "EntityPListForeign.h"	// an entity's node
 
 
@@ -93,7 +93,7 @@ public:
 };
 
 
-#import "OOJSShipGroup.h"
+#include "OOJSShipGroup.h"
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"

@@ -12,8 +12,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OORoleSet.h"
-#import "OODescription.h"
+#include "OORoleSet.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 

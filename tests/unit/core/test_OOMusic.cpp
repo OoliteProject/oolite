@@ -17,11 +17,11 @@
 	Run: bash tools/check-core-tests.sh test_OOMusic
 */
 
-#import "OOALMusic.h"
-#import "OOALBufferedSound.h"
-#import "OOALStreamedSound.h"
-#import "OOALSoundMixer.h"
-#import "OOALSoundDecoder.h"
+#include "OOALMusic.h"
+#include "OOALBufferedSound.h"
+#include "OOALStreamedSound.h"
+#include "OOALSoundMixer.h"
+#include "OOALSoundDecoder.h"
 
 #include "oo_test.hpp"
 

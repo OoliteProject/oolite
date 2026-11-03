@@ -30,10 +30,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOPListScript.h"
-#import "OOCacheManager.h"
-#import "Entity.h"
-#import "OODescription.h"
+#include "OOPListScript.h"
+#include "OOCacheManager.h"
+#include "Entity.h"
+#include "OODescription.h"
 #include "oofnd/FileSystem.hpp"
 #include "oo_test.hpp"
 

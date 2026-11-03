@@ -17,12 +17,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOAIStateMachineVerifierStage.h"
-#import "OOOXPVerifierStage.h"
-#import "OODescription.h"
+#include "OOAIStateMachineVerifierStage.h"
+#include "OOOXPVerifierStage.h"
+#include "OODescription.h"
 
-#import "OOLogging.h"
-#import "OOPListParsing.h"
+#include "OOLogging.h"
+#include "OOPListParsing.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oo_test.hpp"
@@ -61,7 +61,7 @@ oo::PList cxx_OOPropertyListFromFile(const std::string &path)
 #include "OOOXPVerifierTestDouble.h"
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the

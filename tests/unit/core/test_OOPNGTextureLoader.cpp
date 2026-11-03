@@ -15,9 +15,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOPNGTextureLoader.h"
-#import "OOAsyncWorkManager.h"
-#import "OODescription.h"
+#include "OOPNGTextureLoader.h"
+#include "OOAsyncWorkManager.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

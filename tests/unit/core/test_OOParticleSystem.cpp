@@ -23,13 +23,13 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOParticleSystem.h"
-#import "PlayerEntity.h"	// PLAYER is C++
-#import "OOExplosionCloudEntity.h"
-#import "OOTexture.h"
-#import "OODescription.h"
-#import "Universe.h"
-#import "legacy_random.h"
+#include "OOParticleSystem.h"
+#include "PlayerEntity.h"	// PLAYER is C++
+#include "OOExplosionCloudEntity.h"
+#include "OOTexture.h"
+#include "OODescription.h"
+#include "Universe.h"
+#include "legacy_random.h"
 
 #include "oo_test.hpp"
 #include "oofnd/PList.hpp"

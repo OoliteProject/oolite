@@ -25,12 +25,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOTexture.h"
-#import "OOTextureInternal.h"
-#import "OOTextureGenerator.h"
-#import "OOConcreteTexture.h"
-#import "OONullTexture.h"
-#import "OODescription.h"
+#include "OOTexture.h"
+#include "OOTextureInternal.h"
+#include "OOTextureGenerator.h"
+#include "OOConcreteTexture.h"
+#include "OONullTexture.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

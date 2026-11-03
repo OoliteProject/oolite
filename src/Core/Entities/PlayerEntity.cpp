@@ -4088,8 +4088,10 @@ void PlayerEntity::updateTargeting()
             if (clockTimeAdjusted() > (wh != nullptr ? wh->scanTime() : 0.0) + 4) {
                 if (wh != nullptr)
                     wh->setScanInfo(WH_SCANINFO_ARRIVAL_TIME);
-                if (UNIVERSE != nullptr)
-                    UNIVERSE->addCommsMessage(oo::str::formatRuntime(OO_DESC("wormhole-arrival-time-computed-@"), { cxx_ClockToString((wh != nullptr ? wh->estimatedArrivalTime() : 0.0), NO) }), 5.0);
+                if (UNIVERSE != nullptr) {
+                    const std::string arrivalFormat = OO_DESC("wormhole-arrival-time-computed-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                    UNIVERSE->addCommsMessage(oo::str::formatRuntime(arrivalFormat, { cxx_ClockToString((wh != nullptr ? wh->estimatedArrivalTime() : 0.0), NO) }), 5.0);
+                }
             }
             break;
         case WH_SCANINFO_ARRIVAL_TIME:
@@ -8092,13 +8094,15 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(bool refreshBackgro
                         routeTime = 0.01;
                         routeJumps = 0;
                     }
+                    // don't rely on DESC_PLURAL for routeTime since it is of type double
+                    const std::string hoursText = (routeTime > 1.05 || routeTime < 0.95 ? OO_DESC("sysdata-route-hours%1") : OO_DESC("sysdata-route-hours%0")); // one description per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+                    const std::string jumpsText = OO_DESC_PLURAL("sysdata-route-jumps", routeJumps);
                     distanceInfo = oo::str::format("%.1f ly / %.1f %s / %d %s",
                         routeDistance,
                         routeTime,
-                        // don't rely on DESC_PLURAL for routeTime since it is of type double
-                        (routeTime > 1.05 || routeTime < 0.95 ? OO_DESC("sysdata-route-hours%1") : OO_DESC("sysdata-route-hours%0")).c_str(),
+                        hoursText.c_str(),
                         routeJumps,
-                        OO_DESC_PLURAL("sysdata-route-jumps", routeJumps).c_str());
+                        jumpsText.c_str());
                 }
             }
 
@@ -10210,7 +10214,7 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row, const std::string& goo
     const std::string available = cxx_OOPadStringToEms(((available_units > 0) ? oo::str::format("%d", available_units) : OO_DESC("commodity-quantity-none")), 2.5);
 
     NSUInteger priceDecimal = pricePerUnit % 10;
-    const std::string price = oo::str::format(" %s.%zu ", cxx_OOPadStringToEms(oo::str::format("%zu", (pricePerUnit / 10)), 2.5).c_str(), priceDecimal);
+    const std::string price = oo::str::format(" %s.%zu ", cxx_OOPadStringToEms(oo::str::format("%" PRIu64, (pricePerUnit / 10)), 2.5).c_str(), priceDecimal);
 
     // this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 
@@ -10498,7 +10502,8 @@ void PlayerEntity::setGuiToMarketInfoScreen()
         gui->clearAndKeepBackground(!guiChanged);
 
         const std::string selectedCommodity = *marketSelectedCommodity; // (non-nil here)
-        gui->setTitle(oo::str::formatRuntime(OO_DESC("oolite-commodity-information-@"), { TextArg((shipCommodityData != nullptr ? shipCommodityData->nameForGood(selectedCommodity) : std::optional<std::string>())) }));
+        const std::string informationFormat = OO_DESC("oolite-commodity-information-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+        gui->setTitle(oo::str::formatRuntime(informationFormat, { TextArg((shipCommodityData != nullptr ? shipCommodityData->nameForGood(selectedCommodity) : std::optional<std::string>())) }));
 
         showMarketScreenHeaders();
         showMarketScreenDataLine(GUI_ROW_MARKET_START, selectedCommodity, localMarket, quantityInHold[j]);
@@ -10507,7 +10512,8 @@ void PlayerEntity::setGuiToMarketInfoScreen()
         if (contracted > 0) {
             OOMassUnit unit = (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(selectedCommodity) : UNITS_TONS);
             gui->setColor(gui->colorFromSetting(cxx_kGuiMarketContractedColor, nil).get(), GUI_ROW_MARKET_START + 1);
-            gui->setText(oo::str::formatRuntime(OO_DESC("oolite-commodity-contracted-d-@"), { contracted, cxx_DisplayStringForMassUnit(unit).value_or("(null)") }), GUI_ROW_MARKET_START + 1);
+            const std::string contractedFormat = OO_DESC("oolite-commodity-contracted-d-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+            gui->setText(oo::str::formatRuntime(contractedFormat, { contracted, cxx_DisplayStringForMassUnit(unit).value_or("(null)") }), GUI_ROW_MARKET_START + 1);
         }
 
         const std::optional<std::string> info = (shipCommodityData != nullptr ? shipCommodityData->commentForGood(selectedCommodity) : std::optional<std::string>());

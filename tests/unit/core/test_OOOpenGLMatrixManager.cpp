@@ -14,10 +14,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOOpenGLMatrixManager.h"
-#import "MyOpenGLView.h"
-#import "OORegExpMatcher.h"
-#import "OOOpenGLExtensionManager.h"
+#include "OOOpenGLMatrixManager.h"
+#include "MyOpenGLView.h"
+#include "OORegExpMatcher.h"
+#include "OOOpenGLExtensionManager.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"
@@ -31,7 +31,7 @@
 
 // --- Stubs --------------------------------------------------------------------------------------
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.
@@ -83,7 +83,7 @@ void MyOpenGLView::resetTypedString()  { std::abort(); }
 void MyOpenGLView::stringToClipboard(const std::string &)  { std::abort(); }
 NSSize MyOpenGLView::getViewSize()  { std::abort(); }
 
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (bead oo-ql9rn deleted
 // the Objective-C facade the test's OOTestUniverse stood in for), with the header's names and signatures.

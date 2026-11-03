@@ -20,7 +20,7 @@
 #ifndef ENTITY_HELPERS_STAND_IN_H
 #define ENTITY_HELPERS_STAND_IN_H
 
-#import "OODescription.h"
+#include "OODescription.h"
 
 #include <optional>
 #include <string>

@@ -126,8 +126,8 @@ private:
     std::string _basePath = { };
     std::string _displayName = { };
 
-    std::map<std::string, oo::Ref<::OOOXPVerifierStage>, std::less<>> _stagesByName = { };
-    std::vector<oo::Ref<::OOOXPVerifierStage>> _waitingStages = { };
+    std::map<std::string, oo::Ref<::OOOXPVerifierStage>, std::less<>> _stagesByName; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+    std::vector<oo::Ref<::OOOXPVerifierStage>> _waitingStages; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
 
     bool _openForRegistration = { };
 };

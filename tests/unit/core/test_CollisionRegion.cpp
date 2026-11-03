@@ -14,12 +14,12 @@
 	and the shadow geometry of shadowAtPointOcclusionToValue(). Run: bash tools/check-core-tests.sh
 */
 
-#import "CollisionRegion.h"
-#import "Entity.h"
-#import "OOSunEntity.h"
-#import "PlayerEntity.h"	// the stand-in PLAYER
+#include "CollisionRegion.h"
+#include "Entity.h"
+#include "OOSunEntity.h"
+#include "PlayerEntity.h"	// the stand-in PLAYER
 extern PlayerEntity *gOOPlayer;
-#import "OODescription.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 

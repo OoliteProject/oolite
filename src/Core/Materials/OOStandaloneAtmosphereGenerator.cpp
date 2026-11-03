@@ -34,6 +34,7 @@
 
 #include "OOColor.h"
 #include "OOStandaloneAtmosphereGenerator.h"
+#include <cstring>
 
 #include "OOObjCPList.h"
 #include "oofnd/String.hpp"
@@ -400,7 +401,9 @@ OOINLINE float Hermite(float q)
 OOINLINE int32_t fast_floor(double val)
 {
     val += 68719476736.0 * 1.5;
-    return (((int32_t*)&val)[iman_] >> 16);
+    int32_t words[2]; // the double's two 32-bit halves, read without type-punning (GCC -Wstrict-aliasing; bead oo-1q4)
+    std::memcpy(words, &val, sizeof words);
+    return (words[iman_] >> 16);
 }
 
 static BOOL GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info);

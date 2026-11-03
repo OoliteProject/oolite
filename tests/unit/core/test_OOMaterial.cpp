@@ -16,10 +16,10 @@
 	material alive while C++ holds it. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOMaterial.h"
-#import "OODescription.h"
+#include "OOMaterial.h"
+#include "OODescription.h"
 
-#import "OOLogging.h"
+#include "OOLogging.h"
 #include "oo_test.hpp"
 
 #include <utility>

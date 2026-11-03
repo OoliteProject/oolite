@@ -21,19 +21,19 @@
 	the category answers the engine. Run: bash tools/check-core-tests.sh
 */
 
-#import "OOEquipmentType.h"
-#import "OOColor.h"
+#include "OOEquipmentType.h"
+#include "OOColor.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#import "OOObjCPList.h"
+#include "OOObjCPList.h"
 
 
 
 
 
-#import "OOJSEquipmentInfo.h"
+#include "OOJSEquipmentInfo.h"
 
 #include "oo_test.hpp"
 
@@ -122,7 +122,7 @@ oo::PList Universe::getEquipmentDataOutfitting()	{ return EquipmentData(); }
 Universe *gSharedUniverse = nil;
 
 
-#import "OOCacheManager.h"
+#include "OOCacheManager.h"
 
 // The cache manager is C++ since its facade was deleted: a C++ stand-in with the Objective-C
 // stand-in's answers.
@@ -135,7 +135,7 @@ OOCacheManager::~OOCacheManager()  {}
 void OOCacheManager::setPList(const oo::PList &value, const std::string &key, const std::string &cache)  { (void)value; (void)key; (void)cache; }
 
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 
 // OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until its

@@ -170,13 +170,13 @@ extern const char* const kOOJavaScriptEngineDidResetNotificationName;
         oo::DescriptionOf), formatted by oo::str::vformat. A nullopt function means no caller
         prefix; a nullopt scriptClass prefixes "function: ".
 */
-void cxx_OOJSReportError(JSContext* context, const char* format, ...) __attribute__((format(printf, 2, 3)));
-void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args) __attribute__((format(printf, 2, 0)));
-void cxx_OOJSReportErrorForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...) __attribute__((format(printf, 4, 5)));
+void cxx_OOJSReportError(JSContext* context, const char* format, ...) OO_PRINTF_FORMAT(2, 3);
+void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args) OO_PRINTF_FORMAT(2, 0);
+void cxx_OOJSReportErrorForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...) OO_PRINTF_FORMAT(4, 5);
 
-void cxx_OOJSReportWarning(JSContext* context, const char* format, ...) __attribute__((format(printf, 2, 3)));
-void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, va_list args) __attribute__((format(printf, 2, 0)));
-void cxx_OOJSReportWarningForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...) __attribute__((format(printf, 4, 5)));
+void cxx_OOJSReportWarning(JSContext* context, const char* format, ...) OO_PRINTF_FORMAT(2, 3);
+void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, va_list args) OO_PRINTF_FORMAT(2, 0);
+void cxx_OOJSReportWarningForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...) OO_PRINTF_FORMAT(4, 5);
 
 // Name of the property with the given magic (tinyid) in a property table, for error messages.
 std::string cxx_OOStringFromJSPropertyMagic(int magic, const JSCFunctionListEntry* list, size_t count);

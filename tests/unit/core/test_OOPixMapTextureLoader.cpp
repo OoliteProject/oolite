@@ -16,8 +16,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOPixMapTextureLoader.h"
-#import "OOConcreteTexture.h"
+#include "OOPixMapTextureLoader.h"
+#include "OOConcreteTexture.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

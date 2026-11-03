@@ -22,12 +22,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOALSound.h"
-#import "OOALBufferedSound.h"
-#import "OOALStreamedSound.h"
-#import "OOALSoundDecoder.h"
-#import "OOALSoundMixer.h"
-#import "OOLogging.h"
+#include "OOALSound.h"
+#include "OOALBufferedSound.h"
+#include "OOALStreamedSound.h"
+#include "OOALSoundDecoder.h"
+#include "OOALSoundMixer.h"
+#include "OOLogging.h"
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Log.hpp"

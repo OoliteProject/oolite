@@ -16,18 +16,18 @@
 	Run: bash tools/check-core-tests.sh test_OOShipRegistry
 */
 
-#import "OOShipRegistry.h"
-#import "OOCacheManager.h"
-#import "OOProbabilitySet.h"
-#import "OODescription.h"
+#include "OOShipRegistry.h"
+#include "OOCacheManager.h"
+#include "OOProbabilitySet.h"
+#include "OODescription.h"
 
 #include "oofnd/PListParsing.hpp"
-#import "OOMaths.h"
-#import "OOJSEngineCore.h"
-#import "OOJSPropID.h"
-#import "OODebugStandards.h"
-#import "OOStringParsing.h"
-#import "OOLegacyScriptWhitelist.h"
+#include "OOMaths.h"
+#include "OOJSEngineCore.h"
+#include "OOJSPropID.h"
+#include "OODebugStandards.h"
+#include "OOStringParsing.h"
+#include "OOLegacyScriptWhitelist.h"
 
 #include "oo_test.hpp"
 
@@ -85,7 +85,7 @@ OOAsyncWorkManager *OOAsyncWorkManager::sharedAsyncWorkManager()  { std::abort()
 
 
 // The stand-in ResourceManager: the files the registry reads, by name; everything else absent.
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 namespace {

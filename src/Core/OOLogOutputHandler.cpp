@@ -40,6 +40,7 @@ SOFTWARE.
 #include <SDL3/SDL_stdinc.h>
 #include <atomic>
 #include <chrono>
+#include <cstring>
 #include <memory>
 #include <optional>
 #include <stdio.h>

@@ -13,7 +13,7 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOAsyncWorkManager.h"
+#include "OOAsyncWorkManager.h"
 
 #include "oofnd/objc/OOException.h"	// oo::Exception (bead oo-rskgl.1)
 #include "oo_test.hpp"

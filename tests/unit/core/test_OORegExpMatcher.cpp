@@ -19,10 +19,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OORegExpMatcher.h"
-#import "OOJSFunction.h"
+#include "OORegExpMatcher.h"
+#include "OOJSFunction.h"
 #include "OOJSEngineCore.h"	// OOJSValue
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 
 #include "oo_test.hpp"
 #include "oofnd/PList.hpp"

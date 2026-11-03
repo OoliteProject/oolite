@@ -23,9 +23,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OONullTexture.h"
-#import "OOTextureInternal.h"
-#import "OODescription.h"
+#include "OONullTexture.h"
+#include "OOTextureInternal.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

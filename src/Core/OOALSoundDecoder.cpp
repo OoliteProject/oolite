@@ -29,6 +29,7 @@ SOFTWARE.
 #include "OOALSoundDecoder.h"
 #include "OOLogging.h"
 #include "unzip.h"
+#include <cstring>
 #include <vorbis/vorbisfile.h>
 
 #include "oofnd/String.hpp"

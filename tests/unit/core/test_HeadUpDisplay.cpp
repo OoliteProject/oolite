@@ -21,9 +21,9 @@
 	facade's contract went with the facade, bead oo-mwd58). Run: bash tools/check-core-tests.sh test_HeadUpDisplay
 */
 
-#import "HeadUpDisplay.h"
-#import "OOColor.h"
-#import "ResourceManager.h"
+#include "HeadUpDisplay.h"
+#include "OOColor.h"
+#include "ResourceManager.h"
 
 #include "oo_test.hpp"
 #include "oo_gl_test_context.hpp"

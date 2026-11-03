@@ -51,6 +51,7 @@ SOFTWARE.
 #include "OOMaths.h"
 #include "OOTypeEncodings.h" // @encode()'s measured literals (bead oo-dbz.3); OOColor * the complete class's, as the bindings' own
 #include "oofnd/String.hpp"
+#include <cstring>
 
 static BOOL sInited = NO;
 static const char* sTemplates[kOOShaderUniformTypeCount];

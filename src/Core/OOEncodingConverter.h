@@ -65,7 +65,7 @@ private:
     void profileFire(void* junk); // defined only when the .mm's PROFILE_ENCODING_CONVERTER is on
 
     std::optional<oo::str::Encoding> _encoding = { }; // nullopt: an unknown encoding name (was NSNotFound)
-    oo::Ref<OOCache> _cache = { };
+    oo::Ref<OOCache> _cache; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
     std::vector<std::pair<std::string, std::string>> _substitutions = { }; // in the order they are applied
 };
 

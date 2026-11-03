@@ -15,9 +15,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOPolygonSprite.h"
-#import "OOGraphicsResetManager.h"
-#import "OODescription.h"
+#include "OOPolygonSprite.h"
+#include "OOGraphicsResetManager.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 

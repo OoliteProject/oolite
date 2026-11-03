@@ -17,10 +17,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCommodities.h"
-#import "OOCommodityMarket.h"
-#import "OOStringExpander.h"
-#import "OOJSPropID.h"
+#include "OOCommodities.h"
+#include "OOCommodityMarket.h"
+#include "OOStringExpander.h"
+#include "OOJSPropID.h"
 
 #include "oo_test.hpp"
 
@@ -78,7 +78,7 @@ oo::PList TradeGoods()
 }	// namespace
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

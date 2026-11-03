@@ -13,7 +13,7 @@
 	Run: bash tools/check-core-tests.sh test_OOFastArithmetic (both flavours: test and debug)
 */
 
-#import "OOMaths.h"
+#include "OOMaths.h"
 
 #include "oo_test.hpp"
 

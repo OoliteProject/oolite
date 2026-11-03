@@ -24,12 +24,12 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOMultiTextureMaterial.h"
-#import "OOCombinedEmissionMapGenerator.h"
-#import "OORegExpMatcher.h"
-#import "OOOpenGLExtensionManager.h"
-#import "OODescription.h"
-#import "OOTexture.h"
+#include "OOMultiTextureMaterial.h"
+#include "OOCombinedEmissionMapGenerator.h"
+#include "OORegExpMatcher.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OODescription.h"
+#include "OOTexture.h"
 #include "oofnd/String.hpp"
 
 #include "oo_gl_test_context.hpp"
@@ -50,7 +50,7 @@ void OOLogOutdent(void)  {}
 
 
 // The extension manager's collaborators, as test_OOOpenGLExtensionManager stubs them.
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

@@ -24,10 +24,10 @@
 	Run: bash tools/check-core-tests.sh test_ResourceManager
 */
 
-#import "ResourceManager.h"
-#import "OOALMusic.h"
-#import "OODescription.h"
-#import "OOSystemDescriptionManager.h"
+#include "ResourceManager.h"
+#include "OOALMusic.h"
+#include "OODescription.h"
+#include "OOSystemDescriptionManager.h"
 
 #include "oofnd/Data.hpp"
 #include "oofnd/FileSystem.hpp"

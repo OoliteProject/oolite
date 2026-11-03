@@ -19,8 +19,8 @@
 #ifndef OO_TESTS_UNIT_CORE_OOOXPVERIFIERTESTDOUBLE_H
 #define OO_TESTS_UNIT_CORE_OOOXPVERIFIERTESTDOUBLE_H
 
-#import "OOOXPVerifier.h"
-#import "OOOXPVerifierStage.h"
+#include "OOOXPVerifier.h"
+#include "OOOXPVerifierStage.h"
 #include "oofnd/PListParsing.hpp"
 
 #include <map>

@@ -15,9 +15,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCharacter.h"
-#import "OOStringExpander.h"
-#import "OOObjCPList.h"
+#include "OOCharacter.h"
+#include "OOStringExpander.h"
+#include "OOObjCPList.h"
 
 #include "oo_test.hpp"
 
@@ -31,7 +31,7 @@
 	has government s % 8; even systems are inhabited by " Human Colonials " (padded, capitalised,
 	so trimming and lowercasing show), odd ones by "Furry Felines", and system 9 by nobody.
 */
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
 // deleted, was what the test's Objective-C stand-in stood in for), with the header's names and signatures.
@@ -102,7 +102,7 @@ Random_Seed cxx_RandomSeedFromString(const std::optional<std::string> &abcdefStr
 // Link stubs: character scripts. The test never runs one; a call is a test bug.
 JSContext *gOOJSMainThreadContext = nullptr;
 
-#import "OOScript.h"
+#include "OOScript.h"
 
 // OOScript's loader (an Objective-C OOScript stand-in until bead oo-9ht.133 deleted the facade).
 oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)	{ std::abort(); }

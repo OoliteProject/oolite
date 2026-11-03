@@ -17,9 +17,9 @@
 	Run: bash tools/check-core-tests.sh test_OOSoundSourcePool
 */
 
-#import "OOSoundSourcePool.h"
-#import "OOSoundSource.h"
-#import "OOALSound.h"
+#include "OOSoundSourcePool.h"
+#include "OOSoundSource.h"
+#include "OOALSound.h"
 
 #include "oo_test.hpp"
 

@@ -63,6 +63,7 @@
 
 #include "oofnd/Data.hpp"
 #include "oofnd/PList.hpp" // utf8ToUtf16 / utf16ToUtf8, and PListGet.hpp's GNUstep number readers
+#include "oofnd/PrintfFormat.h"
 
 #include <algorithm>
 #include <charconv>
@@ -586,9 +587,7 @@ inline std::string vformat(const char* fmt, va_list args)
     return out;
 }
 
-#if defined(__GNUC__) || defined(__clang__)
-__attribute__((format(printf, 1, 2)))
-#endif
+OO_PRINTF_FORMAT(1, 2)
 inline std::string format(const char* fmt, ...)
 {
     va_list args;

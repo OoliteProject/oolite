@@ -13,10 +13,10 @@
 	Run: tests/run.sh unit
 */
 
-#import "OOJSClock.h"
-#import "OOJavaScriptEngine.h"
-#import "OOJSPlayer.h"
-#import "Universe.h"
+#include "OOJSClock.h"
+#include "OOJavaScriptEngine.h"
+#include "OOJSPlayer.h"
+#include "Universe.h"
 #include "OODebugStandards.h"
 #include "OOStringParsing.h"
 #include "oofnd/objc/OOException.h"

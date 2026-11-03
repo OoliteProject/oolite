@@ -20,11 +20,11 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOPlasmaShotEntity.h"
-#import "PlayerEntity.h"	// PLAYER is C++
-#import "OOPlasmaBurstEntity.h"
-#import "OOColor.h"
-#import "Universe.h"
+#include "OOPlasmaShotEntity.h"
+#include "PlayerEntity.h"	// PLAYER is C++
+#include "OOPlasmaBurstEntity.h"
+#include "OOColor.h"
+#include "Universe.h"
 
 #include "oo_test.hpp"
 

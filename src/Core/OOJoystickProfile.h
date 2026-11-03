@@ -106,7 +106,7 @@ private:
     // controlPoints (clashes with controlPoints()).
     std::vector<NSPoint> controlPoints_ = { };
     // Was a Foundation array of segments (Foundation sweep, proposed ADR-0043, bead oo-r71k).
-    std::vector<oo::Ref<OOJoystickSplineSegment>> segments = { };
+    std::vector<oo::Ref<OOJoystickSplineSegment>> segments; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
 };
 
 #endif // OOJOYSTICKPROFILE_H

@@ -18,10 +18,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOScriptTimer.h"
-#import "oofnd/objc/OOObject.h"
-#import "OOLogging.h"
-#import "OODescription.h"
+#include "OOScriptTimer.h"
+#include "oofnd/objc/OOObject.h"
+#include "OOLogging.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 

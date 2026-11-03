@@ -11,9 +11,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOMeshToOctreeConverter.h"
-#import "Octree.h"
-#import "OODescription.h"
+#include "OOMeshToOctreeConverter.h"
+#include "Octree.h"
+#include "OODescription.h"
 
 #include "oo_test.hpp"
 

@@ -14,8 +14,8 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOCommodityMarket.h"
-#import "OOStringExpander.h"
+#include "OOCommodityMarket.h"
+#include "OOStringExpander.h"
 
 #include "oo_test.hpp"
 

@@ -16,7 +16,7 @@
 	exception) and what the category answers the engine. Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
@@ -78,7 +78,7 @@ public:
 	oo::Ref<Entity> _cxxEntity;	// the sun's C++ part (oo::ToCxx reads it)
 };
 
-#import "OOJSSun.h"
+#include "OOJSSun.h"
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"

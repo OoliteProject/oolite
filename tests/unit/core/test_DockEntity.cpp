@@ -16,10 +16,10 @@
 	Run: bash tools/check-core-tests.sh test_DockEntity
 */
 
-#import "DockEntity.h"
-#import "StationEntity.h"
-#import "Universe.h"
-#import "PlayerEntity.h"
+#include "DockEntity.h"
+#include "StationEntity.h"
+#include "Universe.h"
+#include "PlayerEntity.h"
 
 #include "oo_test.hpp"
 

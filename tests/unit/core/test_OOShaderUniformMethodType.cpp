@@ -15,9 +15,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOShaderUniformMethodType.h"
-#import "OORegExpMatcher.h"
-#import "OOOpenGLExtensionManager.h"
+#include "OOShaderUniformMethodType.h"
+#include "OORegExpMatcher.h"
+#include "OOOpenGLExtensionManager.h"
 #include "oofnd/PList.hpp"
 #include "OOTypeEncodings.h"	// @encode()'s measured literals (bead oo-dbz.3)
 
@@ -30,7 +30,7 @@
 /*	OOMatrix.mm (the test's matrices) links the extension manager, whose collaborators are stubbed
 	as in test_OOOpenGLExtensionManager; none of them runs here.
 */
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 // ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

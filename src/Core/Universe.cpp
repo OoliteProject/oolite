@@ -1700,8 +1700,12 @@ void Universe::setUpSpace()
     float h2 = h1 + 1.0 / (1.0 + (Ranrot() % 5));
     while (h2 > 1.0)
         h2 -= 1.0;
-    oo::Ref<OOColor> col1 = OOColor::colorWithHue(h1, randf(), 0.5 + randf() / 2.0, 1.0);
-    oo::Ref<OOColor> col2 = OOColor::colorWithHue(h2, 0.5 + randf() / 2.0, 0.5 + randf() / 2.0, 1.0);
+    float s1 = randf(); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+    double b1 = 0.5 + randf() / 2.0;
+    oo::Ref<OOColor> col1 = OOColor::colorWithHue(h1, s1, b1, 1.0);
+    double s2 = 0.5 + randf() / 2.0;
+    double b2 = 0.5 + randf() / 2.0;
+    oo::Ref<OOColor> col2 = OOColor::colorWithHue(h2, s2, b2, 1.0);
 
     {
         // The sky is C++ (bead oo-9ht.109): its object first, retained as +alloc's was, then the body.
@@ -1726,7 +1730,9 @@ void Universe::setUpSpace()
     if (!dict_object.isNull()) {
         bgcolor = OOColor::colorWithDescription(dict_object);
     } else {
-        bgcolor = OOColor::colorWithHue(h1, 0.75 * randf(), 0.65 + randf() / 5.0, 1.0);
+        double saturation = 0.75 * randf(); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+        double brightness = 0.65 + randf() / 5.0;
+        bgcolor = OOColor::colorWithHue(h1, saturation, brightness, 1.0);
     }
 
     pale_bgcolor = (bgcolor != nullptr) ? bgcolor->blendedColorWithFraction(0.5, OOColor::whiteColor().get()) : nullptr; // nil stayed nil
@@ -9315,7 +9321,10 @@ HPVector Universe::getSunSkimEndPositionForShip(::ShipEntity* ship)
         v1 = HPvector_normal(v1);
     else
         v1.z = 1.0;
-    HPVector v2 = make_HPvector(randf() - 0.5, randf() - 0.5, randf() - 0.5); // random vector
+    double rx = randf() - 0.5; // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+    double ry = randf() - 0.5;
+    double rz = randf() - 0.5;
+    HPVector v2 = make_HPvector(rx, ry, rz); // random vector
     if (v2.x || v2.y || v2.z)
         v2 = HPvector_normal(v2);
     else

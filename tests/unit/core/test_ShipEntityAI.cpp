@@ -14,12 +14,12 @@
 	Run: bash tools/check-core-tests.sh test_ShipEntityAI
 */
 
-#import "ShipEntity.h"
-#import "ShipEntityAI.h"
-#import "StationEntity.h"
-#import "Universe.h"
-#import "PlayerEntity.h"
-#import "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName
+#include "ShipEntity.h"
+#include "ShipEntityAI.h"
+#include "StationEntity.h"
+#include "Universe.h"
+#include "PlayerEntity.h"
+#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName
 
 #include "oo_test.hpp"
 

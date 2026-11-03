@@ -24,9 +24,9 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "AI.h"
-#import "GameController.h"	// OOScheduleDeferredCall, stood in below
-#import "OOCallByName.h"	// oo::CallEntityByName, stood in below
+#include "AI.h"
+#include "GameController.h"	// OOScheduleDeferredCall, stood in below
+#include "OOCallByName.h"	// oo::CallEntityByName, stood in below
 
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOException.h"	// oo::Exception (bead oo-rskgl.1)
@@ -51,7 +51,7 @@ std::vector<std::string> gLog;
 }	// namespace
 
 
-#import "ResourceManager.h"
+#include "ResourceManager.h"
 
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
@@ -82,7 +82,7 @@ oo::PList cxx_OOPropertyListFromFile(const std::string &path)
 // stand-in's answers.
 static std::map<std::string, oo::PList>	gCacheEntries;	// "cache/key" -> value
 
-#import "OOCacheManager.h"
+#include "OOCacheManager.h"
 
 OOCacheManager *OOCacheManager::sharedCache()
 {

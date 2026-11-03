@@ -14,10 +14,10 @@
 	Run: bash tools/check-core-tests.sh
 */
 
-#import "OOFullScreenController.h"
-#import "oofnd/objc/OOObject.h"
+#include "OOFullScreenController.h"
+#include "oofnd/objc/OOObject.h"
 
-#import "OOLogging.h"
+#include "OOLogging.h"
 #include "oo_test.hpp"
 
 #include <cstdlib>

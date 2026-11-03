@@ -11,7 +11,7 @@
 	cases went with it). Run: bash tools/check-core-tests.sh
 */
 
-#import "OOColor.h"
+#include "OOColor.h"
 
 #include "oo_test.hpp"
 

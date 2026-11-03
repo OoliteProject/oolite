@@ -20,9 +20,9 @@
 	Run: bash tools/check-core-tests.sh test_OODebugSupport
 */
 
-#import "OODebugSupport.h"
-#import "OODebugMonitor.h"
-#import "OODebugTCPConsoleClient.h"
+#include "OODebugSupport.h"
+#include "OODebugMonitor.h"
+#include "OODebugTCPConsoleClient.h"
 
 #include "oofnd/PList.hpp"
 #include "oo_test.hpp"
@@ -56,7 +56,7 @@ const bool kTrue = (1 == 1);	// a Bool node (OOCocoa.h defines true as 1)
 }	// namespace
 
 
-#import "ResourceManager.h"	// OOResourceMergeMode, as the stand-in declared it
+#include "ResourceManager.h"	// OOResourceMergeMode, as the stand-in declared it
 
 // ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
 // statics the code under test calls, with the Objective-C stand-in's answers.

@@ -19,7 +19,7 @@
 	category answers the engine. Run: tests/run.sh unit
 */
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
 #include <quickjs.h>
@@ -90,7 +90,7 @@ public:
 };
 
 // The universe's beacon list and the player's compass: what the binding tells them.
-#import "UniverseStandIn.h"
+#include "UniverseStandIn.h"
 
 // The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C facade
 // FakeGame stood in for is deleted). It answers virtual members, so it has the game's
@@ -137,7 +137,7 @@ public:
 	FakeGame *_game = nil;
 };
 
-#import "OOJSWaypoint.h"
+#include "OOJSWaypoint.h"
 #include "OOJSEngineCore.h"
 
 #include "oo_test.hpp"

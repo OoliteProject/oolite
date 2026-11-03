@@ -20,12 +20,12 @@
 	Run: bash tools/check-core-tests.sh test_ProxyPlayerEntity
 */
 
-#import "ProxyPlayerEntity.h"
-#import "Universe.h"
-#import "PlayerEntity.h"
-#import "EntityOOJavaScriptExtensions.h"
-#import "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
-#import "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped (bead oo-9ht.39.7.3)
+#include "ProxyPlayerEntity.h"
+#include "Universe.h"
+#include "PlayerEntity.h"
+#include "EntityOOJavaScriptExtensions.h"
+#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
+#include "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped (bead oo-9ht.39.7.3)
 
 #include "oo_test.hpp"
 

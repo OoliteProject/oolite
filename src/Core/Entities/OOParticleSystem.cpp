@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOParticleSystem.h"
+#include "OOVector.h" // make_vector (ADR-0063 item 5 draws on lines of their own)
 
 #include "MyOpenGLView.h"
 #include "OOLightParticleEntity.h"
@@ -69,7 +70,10 @@ void OOParticleSystem::initWithPosition(HPVector pos,
             GLfloat speed = minSpeed + 0.5f * (randf() + randf()) * (maxSpeed - minSpeed); // speed tends toward middle of range
             _particleVelocity[i] = vector_multiply_scalar(OORandomUnitVector(), speed);
 
-            Vector color = make_vector(baseColor[0] * 0.1f * (9.5f + randf()), baseColor[1] * 0.1f * (9.5f + randf()), baseColor[2] * 0.1f * (9.5f + randf()));
+            GLfloat red = baseColor[0] * 0.1f * (9.5f + randf()); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+            GLfloat green = baseColor[1] * 0.1f * (9.5f + randf());
+            GLfloat blue = baseColor[2] * 0.1f * (9.5f + randf());
+            Vector color = make_vector(red, green, blue);
             color = vector_normal(color);
             _particleColor[i][0] = color.x;
             _particleColor[i][1] = color.y;

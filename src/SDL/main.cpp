@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #if OOLITE_WINDOWS
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_stdinc.h>
+#include <cstring>
 #include <locale.h>
 #include <optional>
 // Make sure that a high performance GPU is
@@ -163,7 +164,9 @@ int main(int argc, char* argv[])
     if (last_slash != NULL) {
         *last_slash = '\0'; // Chop off the executable name, leaving just the directory
     }
-    chdir(result);
+    if (chdir(result) != 0) {
+        // As before: if the executable's directory cannot be entered, the game starts where it is.
+    }
 #elif OOLITE_MACOS
     // Run from the folder holding Resources and AddOns: Contents in an app bundle
     // (executable in Contents/MacOS), otherwise the folder holding the executable.
@@ -175,10 +178,14 @@ int main(int argc, char* argv[])
         if (last_slash != NULL) {
             *last_slash = '\0';
         }
-        chdir(resolved);
+        if (chdir(resolved) != 0) {
+            // As on Linux: the game starts where it is.
+        }
         size_t length = strlen(resolved);
         if (length >= 15 && strcmp(resolved + length - 15, "/Contents/MacOS") == 0) {
-            chdir("..");
+            if (chdir("..") != 0) {
+                // The game starts in Contents/MacOS.
+            }
         }
     }
 #endif
