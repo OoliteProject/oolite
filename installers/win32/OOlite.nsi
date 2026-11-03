@@ -250,7 +250,7 @@ File "Privacy.pdf"
 ${If} ${ADDCHANGELOG} == "1"
   File "..\..\Doc\CHANGELOG.TXT"
 ${EndIf}
-File /r /x AddOns /x .git /x .svn /x *~ "${DST}"
+File /r /x AddOns /x .git /x .svn /x *.pdf /x *~ "${DST}"
 
 ; Generate version info
 FileOpen $9 release.txt w ;Opens a Empty File and fills it
