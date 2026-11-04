@@ -4,11 +4,9 @@ Entity.h
 
 Base class for entities, i.e. drawable world objects.
 
-C++20 since bead oo-bj8, the Entities pattern seam (proposed ADR-0056, amendment oo-bj8). The
-Objective-C Entity facade (Entity+ObjCBridge.h) is deleted: the C++ entity is its own identity
-and owns itself (oo::RefCounted; its last release runs what the facade's -dealloc ran,
-willDispose()). EntityHelpers.h, imported at the end of this header, keeps the facade's questions.
-The class has left namespace cxx.
+The C++ entity is its own identity and owns itself (oo::RefCounted; its last
+release runs what the facade's -dealloc ran, willDispose()). EntityHelpers.h,
+imported at the end of this header, keeps the facade's questions.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -49,8 +47,8 @@ MA 02110-1301, USA.
 class Entity;
 class Universe;
 #include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class
-class OOVisualEffectEntity; // C++
-class ShipEntity; // C++
+class OOVisualEffectEntity;
+class ShipEntity;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
@@ -68,16 +66,17 @@ extern size_t gTotalEntityMemory;
 
 #define CLOSE_COLLISION_CHECK_MAX_RANGE2 1000000000.0
 
-// OOEntityStatus, OOScanClass and their defaults (bead oo-9ht.64: plain header).
+// OOEntityStatus, OOScanClass and their defaults (a plain header).
 #include "OOEntityEnums.h"
 
 /*	The base object for ships, stations, anything actually.
 
-        Data members that were @public or @protected ivars are public: the game reads them directly
-        (ent->position), and Objective-C subclasses cannot be granted protected access to a C++
-        class. A getter that had its ivar's name is get + the name (-position is getPosition(),
-        amendment oo-862e), so the bodies, and the subclasses' reads, keep the names. The members
-        that subclasses override are virtual (amendment oo-cwz item 2).
+        Data members that were @public or @protected ivars are public: the game
+   reads them directly (ent->position), and Objective-C subclasses cannot be
+   granted protected access to a C++ class. A getter that had its ivar's name is
+   get + the name (-position is getPosition(), so the bodies, and the
+   subclasses' reads, keep the names. The members that subclasses override are
+   virtual.
 */
 class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
 public:
@@ -250,9 +249,9 @@ public:
     void setAtmosphereFogging(OOColor* fogging);
     oo::Ref<OOColor> fogUniform();
 
-    // The category ShaderBindings (EntityShaderBindings.mm, bead oo-aeev; amendment oo-9fwb): more
-    // values the shader uniforms bind to by name, through the entities' shader binding member table
-    // (EntityShaderBindings.mm) since the category's forwarders were deleted.
+    // The category ShaderBindings (EntityShaderBindings.mm): more values the
+    // shader uniforms bind to by name, through the entities' shader binding
+    // member table (EntityShaderBindings.mm).
     GLfloat clock();
     unsigned pseudoFixedD100();
     unsigned pseudoFixedD256();
@@ -262,33 +261,39 @@ public:
     unsigned systemPopulation();
     unsigned systemProductivity();
 
-    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h).
-    // descriptionComponents(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // What "%@" prints between the braces of <Class 0x...>{...}
+    // (OODescription.h). descriptionComponents(): virtual, in
+    // OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    /*	The class questions the engine asked an entity's object by selector (the deleted category
-            Entity (OOJavaScriptExtensions)): a C++ entity answers for its class by overriding them.
-            The defaults are the category's bodies (EntityOOJavaScriptExtensions.h). The engine asks
-            the C++ entity (OOJSEntityIsVisibleToScripts(), OOJSEntityJSClassName(),
-            OOJSEntityJSClassID()); an Objective-C entity's class that implements the selectors still
-            answers first. oo::ObjCEntity must not forward these: those functions reach them only for
-            an Objective-C entity with no override of its own, and a forwarding adapter would send the
-            selector back.
+    /*	The class questions the engine asked an entity's object by selector (the
+       deleted category Entity (OOJavaScriptExtensions)): a C++ entity answers for
+       its class by overriding them (EntityOOJavaScriptExtensions.h). The defaults
+       are the category's bodies. The engine asks the C++ entity
+            (OOJSEntityIsVisibleToScripts(), OOJSEntityJSClassName(),
+            OOJSEntityJSClassID()); an Objective-C entity's class that implements the
+       selectors still answers first. oo::ObjCEntity must not forward these: those
+       functions reach them only for an Objective-C entity with no override of its
+       own, and a forwarding adapter would send the selector back.
     */
-    // jsClassID(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
-    // jsClassName(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
-    // isVisibleToScripts(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // jsClassID(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
+    // (EntityVirtualMembers.h) jsClassName(): virtual, in
+    // OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h) isVisibleToScripts():
+    // virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     /*	The entity's JS glue (OOJSPrivateObject):
-            what the root facade's -oo_jsValueInContext:, -oo_clearJSSelf: and -cxx_oo_jsDescription
-            answered, so the engine wraps a C++ entity with OOJSValueFromCxxObject(). Its JS object's
-            private slot holds an OOJSEntityHolder (OOJSEntity.h), a weak reference to the entity, as
-            the slot held the facade's weak reference. The bodies are EntityOOJavaScriptExtensions.mm's.
-            deleteJSSelf() is what the deleted -deleteJSSelf forwarded to (the engine's reset; the
-            facade's -dealloc calls it).
+            what the root facade's -oo_jsValueInContext:, -oo_clearJSSelf: and
+       -cxx_oo_jsDescription answered, so the engine wraps a C++ entity with
+       OOJSValueFromCxxObject(). Its JS object's private slot holds an
+       OOJSEntityHolder (OOJSEntity.h), a weak reference to the entity, as the
+       slot held the facade's weak reference. The bodies are
+       EntityOOJavaScriptExtensions.mm's. deleteJSSelf() is what the deleted
+       -deleteJSSelf forwarded to (the engine's reset; the facade's -dealloc calls
+       it).
     */
-    // jsValueInContext(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
-    // clearJSSelf(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
-    // jsDescription(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
+    // jsValueInContext(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
+    // (EntityVirtualMembers.h) clearJSSelf(): virtual, in
+    // OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h) jsDescription():
+    // virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     void deleteJSSelf();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -381,17 +386,17 @@ private:
 
     NSUInteger _sessionID = { };
 
-    oo::WeakRef<Entity> _owner; // the owner's C++ part (was its object's weak reference)
+    oo::WeakRef<Entity> _owner; // the owner's C++ part
     OOEntityStatus _status = { };
 };
 
 namespace cxx {
 
-/*	The protocol OOSubEntity's methods, for a C++ subentity whose own facade is gone: the owner
-        that sent a subentity -rescaleBy: or -drawSubEntityImmediate:translucent: calls these when the
-        subentity's C++ part adopts this interface, and sends the selector otherwise. (Not named
-        OOSubEntity: inside namespace cxx the protocol-qualified type Entity<OOSubEntity> would then
-        name a class as its argument.)
+/*	The protocol OOSubEntity's methods, for a C++ subentity whose own facade is gone: the owner that sent a subentity -rescaleBy: or
+        -drawSubEntityImmediate:translucent: calls these when the subentity's
+   C++ part adopts this interface, and sends the selector otherwise. (Not named
+   OOSubEntity: inside namespace cxx the protocol-qualified type
+   Entity<OOSubEntity> would then name a class as its argument.)
 */
 class OOSubEntityInterface {
 public:
@@ -407,9 +412,9 @@ public:
 #ifdef __cplusplus
 #include "oofnd/StdLib.hpp"
 
-// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.161): std::string results
-// (never nil), const std::string & parameters (nil arrived as "" and matched nothing: the defaults).
-// Former Foundation forms lived in a transitional bridge (deleted by oo-a8xp).
+// C++ forms, defined in OOConstToString.mm: std::string results (never nil),
+// const std::string & parameters (nil arrived as "" and matched nothing: the
+// defaults).
 std::string cxx_OOStringFromEntityStatus(OOEntityStatus status);
 OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string);
 

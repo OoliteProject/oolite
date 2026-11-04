@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #include "OOTypes.h"
 #include "legacy_random.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
@@ -55,21 +54,22 @@ typedef enum {
 // don't bother caching interstellar properties
 #define OO_SYSTEM_CACHE_LENGTH OO_SYSTEMS_AVAILABLE
 
-/*	C++20 since bead oo-0sr1 (proposed ADR-0056). OOSystemDescriptionEntry is used only by the
-        manager. The manager's Objective-C facade was deleted by bead oo-9ht.32 (batch E); the universe
-        holds it as oo::Ref.
+/*	OOSystemDescriptionEntry is used only by the manager. The universe holds
+   the manager as oo::Ref.
 */
 class OOSystemDescriptionEntry : public oo::RefCounted {
 public:
     OOSystemDescriptionEntry(); // -init
 
     // value / result null = nil (setting nil removes the property)
-    void setProperty(const std::string& property, OOSystemLayer layer, const oo::PList& value);
+    void setProperty(const std::string& property, OOSystemLayer layer,
+        const oo::PList& value);
     oo::PList getProperty(const std::string& property, OOSystemLayer layer);
 
 private:
     // null = nil (validation failed and could not be recovered)
-    oo::PList validateProperty(const std::string& property, const oo::PList& value);
+    oo::PList validateProperty(const std::string& property,
+        const oo::PList& value);
 
     oo::PList layers[OO_SYSTEM_LAYERS] = { }; // each a Dict: property -> value
 };
@@ -90,54 +90,72 @@ public:
     // called just after the manager data is loaded.
     void buildRouteCache();
 
-    // Property dictionaries are oo::PList Dicts whose values are the properties' values (any objects:
-    // Object nodes where they are not property-list data); a single value is an oo::PList (null = nil).
+    // Property dictionaries are oo::PList Dicts whose values are the properties'
+    // values (any objects: Object nodes where they are not property-list data); a
+    // single value is an oo::PList (null = nil).
     void setUniversalProperties(const oo::PList& properties);
     void setInterstellarProperties(const oo::PList& properties);
 
     // this is used by planetinfo.plist and has default layer 1
     void setProperties(const oo::PList& properties, const std::string& key);
 
-    // this is used by Javascript property setting (manifest nullopt = nil: the change is not saved)
-    void setProperty(const std::string& property, const std::string& key, OOSystemLayer layer, const oo::PList& value, const std::optional<std::string>& manifest);
+    // this is used by Javascript property setting (manifest nullopt = nil: the
+    // change is not saved)
+    void setProperty(const std::string& property, const std::string& key,
+        OOSystemLayer layer, const oo::PList& value,
+        const std::optional<std::string>& manifest);
 
-    // The save game's scripted overrides: property lists (Dicts) whose values are the properties'
-    // values (any objects: Object nodes where they are not property-list data).
+    // The save game's scripted overrides: property lists (Dicts) whose values are
+    // the properties' values (any objects: Object nodes where they are not
+    // property-list data).
     void importScriptedChanges(const oo::PList& scripted);
     void importLegacyScriptedChanges(const oo::PList& scripted);
     oo::PList exportScriptedChanges(); // a Dict, empty when there are none
 
-    // Property dictionaries (Dicts; empty for an invalid system) and single values (null = nil).
+    // Property dictionaries (Dicts; empty for an invalid system) and single
+    // values (null = nil).
     oo::PList getPropertiesForSystemKey(const std::string& key);
     oo::PList getPropertiesForSystem(OOSystemID s, OOGalaxyID g);
     oo::PList getPropertiesForCurrentSystem();
     oo::PList getProperty(const std::string& property, const std::string& key);
-    oo::PList getProperty(const std::string& property, OOSystemID s, OOGalaxyID g);
+    oo::PList getProperty(const std::string& property, OOSystemID s,
+        OOGalaxyID g);
 
     NSPoint getCoordinatesForSystem(OOSystemID s, OOGalaxyID g);
-    std::vector<OOSystemID> getNeighbourIDsForSystem(OOSystemID s, OOGalaxyID g); // empty for an invalid system
+    std::vector<OOSystemID> getNeighbourIDsForSystem(
+        OOSystemID s, OOGalaxyID g); // empty for an invalid system
 
     Random_Seed getRandomSeedForCurrentSystem();
     Random_Seed getRandomSeedForSystem(OOSystemID s, OOGalaxyID g);
 
 private:
-    // Property dictionaries are oo::PList Dicts; a single property value is an oo::PList (null = nil).
-    void setProperties(const oo::PList& properties, OOSystemDescriptionEntry* desc);
+    // Property dictionaries are oo::PList Dicts; a single property value is an
+    // oo::PList (null = nil).
+    void setProperties(const oo::PList& properties,
+        OOSystemDescriptionEntry* desc);
     oo::PList calculatePropertiesForSystemKey(const std::string& key);
     void updateCacheEntry(NSUInteger i);
     void updateCacheEntry(NSUInteger i, const std::string& property);
-    oo::PList getProperty(const std::string& property, const std::string& key, bool universal);
+    oo::PList getProperty(const std::string& property, const std::string& key,
+        bool universal);
     /* some planetinfo properties have two ways to specify
      * need to get the one with higher layer (if they're both at the same layer,
      * go with property1) */
-    oo::PList getProperty(const std::string& property1, const std::string& property2, const std::string& key, bool universal);
+    oo::PList getProperty(const std::string& property1,
+        const std::string& property2, const std::string& key,
+        bool universal);
 
-    // value null = nil (removes the saved change); manifest nullopt = nil (cancels saving it)
-    void saveScriptedChangeToProperty(const std::string& property, const std::string& key, OOSystemLayer layer, const oo::PList& value, const std::optional<std::string>& manifest);
+    // value null = nil (removes the saved change); manifest nullopt = nil
+    // (cancels saving it)
+    void saveScriptedChangeToProperty(const std::string& property,
+        const std::string& key, OOSystemLayer layer,
+        const oo::PList& value,
+        const std::optional<std::string>& manifest);
 
     oo::PList universalProperties = { }; // a Dict: property -> value
     oo::Ref<OOSystemDescriptionEntry> interstellarSpace = { };
-    std::map<std::string, oo::Ref<OOSystemDescriptionEntry>, std::less<>> systemDescriptions = { };
+    std::map<std::string, oo::Ref<OOSystemDescriptionEntry>, std::less<>>
+        systemDescriptions = { };
     oo::PList propertyCache[OO_SYSTEM_CACHE_LENGTH] = { }; // each a Dict: property -> value
     std::set<std::string> propertiesInUse = { };
     NSPoint coordinatesCache[OO_SYSTEM_CACHE_LENGTH] = { };

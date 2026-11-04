@@ -1,8 +1,8 @@
 """Binds the S6 feature file to the shared step library.
 
-S6 is a smoke scenario (ADR-0020): it proves the scenario's setup runs for the stated tick
+S6 is a smoke scenario: it proves the scenario's setup runs for the stated tick
 budget without error and that a spawned ship survives. It does not prove the FLEE AI
-transition or that range increases, which is deferred to oo-kbqw.
+transition or that range increases, which is deferred.
 """
 
 from pytest_bdd import scenarios

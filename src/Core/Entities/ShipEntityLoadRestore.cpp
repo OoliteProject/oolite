@@ -24,8 +24,6 @@ MA 02110-1301, USA.
 */
 
 #include "ShipEntityLoadRestore.h"
-#include "StationEntity.h"
-#include "Universe.h"
 
 #include "AI.h"
 #include "OOConstToString.h"
@@ -35,7 +33,8 @@ MA 02110-1301, USA.
 #include "OOShipGroup.h"
 #include "OOShipRegistry.h"
 #include "ShipEntityAI.h"
-
+#include "StationEntity.h"
+#include "Universe.h"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/objc/OOAssert.h"
 
@@ -71,18 +70,18 @@ NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context);
 OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context);
 oo::PList::Dict DictFrom(const oo::PList& plist);
 oo::PList ArrayFromStrings(const std::vector<std::string>& strings);
-std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key);
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
+    std::string_view key);
 } // namespace
 
-/*	The category ShipEntity (LoadRestore), bead oo-kw44: members of ShipEntity (ADR-0056
-        amendments oo-o89 item 4 and oo-42dr), forwarded by the category of the same name in
-        ShipEntity+ObjCBridge.mm until bead oo-9ht.144 deleted the facade and its sends became member
-        calls; +shipRestoredFromDictionary:useFallback:context: is a static member, and the private
-        category LoadRestoreInternal's -simplifyShipdata:andGetDeletes: a member with no forwarder (only
-        the members call it).
-*/
+/* The category ShipEntity (LoadRestore): members of ShipEntity;
+ * +shipRestoredFromDictionary:useFallback:context: is a static member, and the
+ * private category LoadRestoreInternal's -simplifyShipdata:andGetDeletes: a
+ * member (only the members call it).
+ */
 
-oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
+oo::PList ShipEntity::savedShipDictionaryWithContext(
+    OOShipSaveContext* context)
 {
     oo::PList::Dict result;
     OOShipSaveContext localContext;
@@ -93,7 +92,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
 
     oo::PList::Dict updatedShipInfo = DictFrom(shipinfoDictionary);
 
-    // A role set without a role string (nil before, which -setObject:forKey: refused) adds no key.
+    // A role set without a role string (nil before, which -setObject:forKey:
+    // refused) adds no key.
     const oo::Ref<OORoleSet> roles = getRoleSet();
     if (const std::optional<std::string> roleString = (roles != nullptr) ? roles->roleString() : std::nullopt)
         updatedShipInfo[KEY_ROLES] = *roleString;
@@ -133,7 +133,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         std::vector<std::string> missileArray;
         unsigned i;
         for (i = 0; i < missiles; i++) {
-            const std::optional<std::string> missileType = (missile_list[i] != nullptr ? missile_list[i]->identifier() : std::optional<std::string>());
+            const std::optional<std::string> missileType = (missile_list[i] != nullptr ? missile_list[i]->identifier()
+                                                                                       : std::optional<std::string>());
             if (missileType.has_value())
                 missileArray.push_back(*missileType);
         }
@@ -151,32 +152,40 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         }
     }
     if (_escortGroup != nil) {
-        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_escortGroup.get(), *context));
+        result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(
+            GroupIDForGroup(_escortGroup.get(), *context));
     }
     /*	Eric:
-            The escortGroup property is removed from the lead ship, on entering witchspace.
-            But it is needed in the save file to correctly restore an escorted group.
+            The escortGroup property is removed from the lead ship, on entering
+       witchspace. But it is needed in the save file to correctly restore an
+       escorted group.
     */
     else if (_group != nil && (_group != nullptr ? _group->leader() : (::ShipEntity*)nil) == this) {
         result[KEY_ESCORT_GROUP_ID] = oo::PList::unsignedInteger(GroupIDForGroup(_group.get(), *context));
     }
 
     // FIXME: AI.
-    // Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
-    // Also the AI restarts itself with the GLOBAL state, so no need to store any old state.
-    if ((getAI() != nullptr ? getAI()->name() : std::optional<std::string>()).value_or(std::string()) == "nullAI.plist") {
+    // Eric: I think storing the AI name should be enough. On entering a wormhole,
+    // the stack is cleared so there are no preserved AI states. Also the AI
+    // restarts itself with the GLOBAL state, so no need to store any old state.
+    if ((getAI() != nullptr ? getAI()->name() : std::optional<std::string>())
+            .value_or(std::string())
+        == "nullAI.plist") {
         // might be a JS version (with none, no key: -setObject:forKey: refused nil)
-        if (const std::optional<std::string> js = (getAI() != nullptr ? getAI()->associatedJS() : std::optional<std::string>()))
+        if (const std::optional<std::string> js = (getAI() != nullptr ? getAI()->associatedJS()
+                                                                      : std::optional<std::string>()))
             result[KEY_AI] = *js;
         // if there isn't, loading nullAI.js will load nullAI.plist anyway
     } else {
-        result[KEY_AI] = (getAI() != nullptr ? getAI()->name() : std::optional<std::string>()).value_or(std::string());
+        result[KEY_AI] = (getAI() != nullptr ? getAI()->name() : std::optional<std::string>())
+                             .value_or(std::string());
     }
 
     return oo::PList(std::move(result));
 }
 
-::ShipEntity* ShipEntity::shipRestoredFromDictionary(const oo::PList& dict, bool fallback, OOShipSaveContext* context)
+::ShipEntity* ShipEntity::shipRestoredFromDictionary(
+    const oo::PList& dict, bool fallback, OOShipSaveContext* context)
 {
     if (dict.isNull())
         return nil;
@@ -207,11 +216,14 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         mergedData["escorts"] = oo::PList::unsignedInteger(0);
 
         const oo::PList mergedPlist(std::move(mergedData));
-        // A station is made in C++ since bead oo-9ht.175 (the universe picked its class).
-        if ((UNIVERSE != nullptr ? UNIVERSE->isStationShipDictionary(mergedPlist) : false))
-            ship = oo::ToShip(oo::AutoreleaseEntity(StationEntity::newStationObject(shipKey, mergedPlist)));
+        // A station is made in C++ (the universe picked its class).
+        if ((UNIVERSE != nullptr ? UNIVERSE->isStationShipDictionary(mergedPlist)
+                                 : false))
+            ship = oo::ToShip(oo::AutoreleaseEntity(
+                StationEntity::newStationObject(shipKey, mergedPlist)));
         else
-            ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<::ShipEntity>(), shipKey, mergedPlist)));
+            ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(
+                oo::makeRef<::ShipEntity>(), shipKey, mergedPlist)));
 
         // FIXME: restore AI.
         if (ship != nullptr)
@@ -230,16 +242,21 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         if (!fallback || !shipPrimaryRole.has_value())
             return nil;
 
-        ship = oo::ToShip(oo::AutoreleaseEntity((UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*shipPrimaryRole) : (::ShipEntity*)nil)));
+        ship = oo::ToShip(oo::AutoreleaseEntity(
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*shipPrimaryRole)
+                                 : (::ShipEntity*)nil)));
         if (ship == nil)
             return nil;
     }
 
-    // The following stuff is deliberately set up the same way even if using role fallback.
+    // The following stuff is deliberately set up the same way even if using role
+    // fallback.
     if (ship != nullptr)
-        ship->setPosition(OOHPVectorFromPList(dict.find(KEY_POSITION), kZeroHPVector));
+        ship->setPosition(
+            OOHPVectorFromPList(dict.find(KEY_POSITION), kZeroHPVector));
     if (ship != nullptr)
-        ship->setNormalOrientation(OOQuaternionFromPList(dict.find(KEY_ORIENTATION), kIdentityQuaternion));
+        ship->setNormalOrientation(
+            OOQuaternionFromPList(dict.find(KEY_ORIENTATION), kIdentityQuaternion));
 
     float energyLevel = dict.get<float>(KEY_ENERGY_LEVEL, 1.0f);
     if (ship != nullptr)
@@ -284,7 +301,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
         }
         if ((ship != nullptr ? ship->hasPrimaryRole("escort") : false) && ship != (group != nullptr ? group->leader() : (::ShipEntity*)nil)) {
             if (ship != nullptr)
-                ship->setOwner((group != nullptr ? group->leader() : (::ShipEntity*)nil));
+                ship->setOwner(
+                    (group != nullptr ? group->leader() : (::ShipEntity*)nil));
         }
     }
 
@@ -302,29 +320,34 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(OOShipSaveContext* context)
     return ship;
 }
 
-void ShipEntity::simplifyShipdata(oo::PList::Dict& data, std::vector<std::string>* deletes)
+void ShipEntity::simplifyShipdata(oo::PList::Dict& data,
+    std::vector<std::string>* deletes)
 {
     OOCParameterAssert(deletes != NULL);
     deletes->clear();
 
     // Get original ship data.
-    oo::PList::Dict referenceData = DictFrom(OOShipRegistry::sharedRegistry()->shipInfoForKey(shipDataKey().value_or(std::string())));
+    oo::PList::Dict referenceData = DictFrom(OOShipRegistry::sharedRegistry()->shipInfoForKey(
+        shipDataKey().value_or(std::string())));
 
     // Discard stuff that we handle separately.
     StripIgnoredKeys(referenceData);
     StripIgnoredKeys(data);
 
-    // Note items that are in referenceData, but not data (in byte order of the key; hash order before).
+    // Note items that are in referenceData, but not data (in byte order of the
+    // key; hash order before).
     for (const auto& [key, value] : referenceData) {
         if (!data.contains(key)) {
             deletes->push_back(key);
         }
     }
 
-    // after rev3010 this loop was using cycles without doing anything - commenting this whole loop out for now. -- kaks 20100207
+    // after rev3010 this loop was using cycles without doing anything -
+    // commenting this whole loop out for now. -- kaks 20100207
     /*
             // Discard anything that hasn't changed.
-            for (enumerator = [data keyEnumerator]; (key = [enumerator nextObject]); )
+            for (enumerator = [data keyEnumerator]; (key = [enumerator
+       nextObject]); )
             {
                     id referenceVal = [referenceData objectForKey:key];
                     id myVal = [data objectForKey:key];
@@ -340,7 +363,23 @@ namespace {
 
 void StripIgnoredKeys(oo::PList::Dict& dict)
 {
-    static const char* const ignoredKeys[] = { "ai_type", "has_ecm", "has_scoop", "has_escape_pod", "has_energy_bomb", "has_fuel_injection", "has_cloaking_device", "has_military_jammer", "has_military_scanner_filter", "has_shield_booster", "has_shield_enhancer", "escorts", "escort_role", "escort-ship", "conditions", "missiles", "auto_ai" };
+    static const char* const ignoredKeys[] = { "ai_type",
+        "has_ecm",
+        "has_scoop",
+        "has_escape_pod",
+        "has_energy_bomb",
+        "has_fuel_injection",
+        "has_cloaking_device",
+        "has_military_jammer",
+        "has_military_scanner_filter",
+        "has_shield_booster",
+        "has_shield_enhancer",
+        "escorts",
+        "escort_role",
+        "escort-ship",
+        "conditions",
+        "missiles",
+        "auto_ai" };
 
     for (const char* key : ignoredKeys) {
         const auto found = dict.find(std::string_view(key));
@@ -382,7 +421,8 @@ OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context)
     return group.get();
 }
 
-// A dictionary's entries; empty for anything else (as +dictionaryWithDictionary: of nil was).
+// A dictionary's entries; empty for anything else (as
+// +dictionaryWithDictionary: of nil was).
 oo::PList::Dict DictFrom(const oo::PList& plist)
 {
     if (const oo::PList::Dict* dict = plist.getIf<oo::PList::Dict>())
@@ -399,9 +439,10 @@ oo::PList ArrayFromStrings(const std::vector<std::string>& strings)
     return oo::PList(std::move(array));
 }
 
-// get<std::string> where the Foundation code read nil: std::nullopt when the key is absent or its
-// value is neither a string nor a number.
-std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key)
+// get<std::string> where the Foundation code read nil: std::nullopt when the
+// key is absent or its value is neither a string nor a number.
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
+    std::string_view key)
 {
     const oo::PList* value = dict.find(key);
     if (value == nullptr || !(value->isString() || value->isNumber()))

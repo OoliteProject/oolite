@@ -59,8 +59,7 @@ static std::optional<std::vector<std::string>> StringsFromArrayFile(const std::s
     return result;
 }
 
-// The C++ class's name, as [self class] named an Objective-C script's class (the deleted facade's
-// -description named it so).
+// The C++ class's name, as [self class] named an Objective-C script's class.
 static std::string ClassName(const OOScript& script)
 {
     int status = 0;

@@ -2,12 +2,8 @@
 
 OOOXPVerifier.mm
 
-OOOXPVerifier (bead oo-tsa4; proposed ADR-0056). The bodies are the Objective-C methods'
-with the message syntax converted: the verifier's own methods are member calls, the stages' are
-calls on the C++ stages, and the cache manager is the C++ one. The stages are kept as the C++
-stages and described with their description() (they were kept, and handed to OO_LOG, as their
-Objective-C objects until bead oo-9ht.4 deleted the stage facade). Global since bead oo-9ht.130
-deleted the verifier's own Objective-C facade.
+OOOXPVerifier. The stages are kept as C++ stages and described with their
+description().
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -114,11 +110,10 @@ std::string ExpandTildeInPath(const std::string& path)
     return result;
 }
 
-/*	The stages verifyOXP.plist names ("stages") that are C++ (proposed ADR-0056 amendment oo-up4b
-        item 5). A converted leaf stage is global and had no Objective-C class, so OOClassFromName found
-        nothing (no name is looked up as a class since bead oo-dbz.2); -registerBaseStages looks here first and registers the stage (its facade until bead
-        oo-9ht.4). Each bead that converts such a stage adds its line. It is the C++ verifier's since
-        oo-tsa4.
+/*	The stages verifyOXP.plist names ("stages") that are C++. A leaf stage
+   has no Objective-C class, so no name is looked up as a class;
+   -registerBaseStages looks here first and registers the stage. A new stage
+   adds its line.
 */
 struct CxxStage {
     std::string_view name;
@@ -202,8 +197,9 @@ void OOOXPVerifier::registerStage(::OOOXPVerifierStage* stage)
     if (stage == nullptr)
         return;
 
-    // A stage is a C++ OOOXPVerifierStage (since bead oo-9ht.4), so the check that it was a
-    // subclass of OOOXPVerifierStage is in registerBaseStages(), for a class found by its name.
+    // A stage is a C++ OOOXPVerifierStage, so the check
+    // that it was a subclass of OOOXPVerifierStage is in registerBaseStages(),
+    // for a class found by its name.
 
     if (!_openForRegistration) {
         OO_LOG("verifyOXP.registration.failed", "Attempt to register verifier stage {} after registration closed, ignoring.", stage->description());
@@ -227,7 +223,7 @@ void OOOXPVerifier::registerStage(::OOOXPVerifierStage* stage)
     }
 
     // Checks passed, store state.
-    // The stage keeps the verifier, unretained (it kept the Objective-C facade until bead oo-qg71f).
+    // The stage keeps the verifier, unretained.
     stage->setVerifier(this);
     _stagesByName[*name] = oo::Ref<::OOOXPVerifierStage>(stage);
     _waitingStages.push_back(oo::Ref<::OOOXPVerifierStage>(stage));
@@ -404,9 +400,8 @@ void OOOXPVerifier::registerBaseStages()
                 }
             }
 
-            /*	No class has the name: every stage is C++ since bead oo-9ht.4, and since bead oo-dbz.2 there
-                    is no Objective-C runtime to find one in (the only classes a name could still find there
-                    were libobjc2's own, logged as "not a subclass of OOOXPVerifierStage").
+            /*	No class has the name: every stage is C++, and there is no
+               Objective-C runtime to find one in.
             */
             OO_LOG("verifyOXP.registration.failed", "Attempt to register unknown class {} as a verifier stage, ignoring.", stageName);
         }
@@ -617,7 +612,8 @@ void OOOXPVerifier::dumpDebugGraphviz()
 {
     using oo::str::FormatArg;
 
-    // The templates are data (verifyOXP.plist), so they are formatted at run time (ADR-0043 item 19).
+    // The templates are data (verifyOXP.plist), so they are formatted at run
+    // time.
     const oo::PList graphVizTemplate = configurationDictionaryForKey("debugGraphvizTempate");
     std::string graphViz = oo::str::formatRuntime(graphVizTemplate.get<std::string>("preamble"), { oo::date::description() });
 
@@ -641,7 +637,10 @@ void OOOXPVerifier::dumpDebugGraphviz()
         const std::vector<oo::Ref<OOOXPVerifierStage>> deps = stage->resolvedDependencies();
         if (!deps.empty()) {
             for (const auto& dep : deps) {
-                graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(dep.get()), FormatArg::pointer(stage) }); // the nodes are the stages (their facades until bead oo-9ht.4)
+                graphViz += oo::str::formatRuntime(
+                    arcTemplate,
+                    { FormatArg::pointer(dep.get()),
+                        FormatArg::pointer(stage) }); // the nodes are the stages
             }
         } else {
             graphViz += oo::str::formatRuntime(startTemplate, { FormatArg::pointer(stage) });
@@ -659,7 +658,10 @@ void OOOXPVerifier::dumpDebugGraphviz()
         const std::vector<oo::Ref<OOOXPVerifierStage>> deps = stage->resolvedDependents();
         if (!deps.empty()) {
             for (const auto& dep : deps) {
-                graphViz += oo::str::formatRuntime(arcTemplate, { FormatArg::pointer(dep.get()), FormatArg::pointer(stage) }); // the nodes are the stages (their facades until bead oo-9ht.4)
+                graphViz += oo::str::formatRuntime(
+                    arcTemplate,
+                    { FormatArg::pointer(dep.get()),
+                        FormatArg::pointer(stage) }); // the nodes are the stages
             }
         } else {
             graphViz += oo::str::formatRuntime(endTemplate, { FormatArg::pointer(stage) });

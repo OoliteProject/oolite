@@ -1,22 +1,19 @@
 /*	test_OODebugSupport.mm
-	Unit tests for the debug support's start-up (src/Core/Debug/OODebugSupport.h): bead oo-vnts, a
-	Debug module file with no class, converted after the pattern seam oo-kq7 (proposed ADR-0056,
-	amendments oo-kq7 and oo-4nhg).
+	Unit tests for the debug support's start-up (src/Core/Debug/OODebugSupport.h), a Debug module
+	file with no class.
 
 	OOInitDebugSupport() reads debugConfig.plist. When the debug OXP's beacon file is installed it
 	makes the TCP console client for console-host (a string, or a number's string value) and
 	console-port, and tells the monitor it is not using a plug-in controller; the console is
 	activated when the client connected, or when always-load-debug-console is set, and then the
 	monitor is given the debugger (nil if none) and the JavaScript engine enables the debugger
-	statement. These expectations were written against the Objective-C file and run on it first
-	(commit 45775d64b), against Objective-C stand-ins of the monitor and the
-	client; since the conversion the stand-ins are those classes' C++ members that the debug support
-	calls (the client is the C++ debugger itself, with no facade).
+	statement. The stand-ins are the monitor's and client's C++ members that the debug support
+	calls (the client is the C++ debugger itself).
 
-	What it reaches would bring the game into the link, so this file stands in for it (proposed
-	ADR-0056, amendment oo-z1s4 item 4): the resource manager (the configuration and the beacon's
-	path), the debug monitor, the TCP console client (which records where it was asked to connect,
-	and can be made to fail) and the JavaScript engine.
+	What it reaches would bring the game into the link, so this file stands in for it: the
+	resource manager (the configuration and the beacon's path), the debug monitor, the TCP console
+	client (which records where it was asked to connect, and can be made to fail) and the
+	JavaScript engine.
 	Run: bash tools/check-core-tests.sh test_OODebugSupport
 */
 
@@ -43,7 +40,7 @@ struct Record
 	std::optional<std::string>					beaconPath;			// DebugOXPLocatorBeacon.magic
 	bool										clientFails = false;
 	std::vector<std::pair<std::optional<std::string>, uint16_t>>	clientsMade;
-	const void									*lastClient = nullptr;	// the client made (no facade)
+	const void									*lastClient = nullptr;	// the client made
 	std::vector<bool>							usingPlugInController;
 	std::vector<const void *>					debuggersSet;
 	int											debuggerStatementsEnabled = 0;
@@ -58,8 +55,8 @@ const bool kTrue = (1 == 1);	// a Bool node (OOCocoa.h defines true as 1)
 
 #include "ResourceManager.h"	// OOResourceMergeMode, as the stand-in declared it
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// C++ definitions of the ResourceManager statics the code under test calls,
+// with the stand-in's answers.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	if (fileName == "debugConfig.plist" && folderName == "Config" && mergeMode == MERGE_BASIC && !useCache)  return sRecord.configuration;
@@ -76,8 +73,8 @@ std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &
 
 
 
-// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared
-// with the header's names and signatures but not its class; the stand-in's answers are kept.
+// The engine (OOJavaScriptEngine.h), declared with the header's names and
+// signatures but not its class; the stand-in's answers are kept.
 class OOJavaScriptEngine
 {
 public:

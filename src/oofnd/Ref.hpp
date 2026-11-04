@@ -1,7 +1,8 @@
 /*	oofnd/Ref.hpp
-        Intrusive reference counting that mirrors Objective-C's retain/release/autorelease 1:1
-        (ADR-0003; docs/architecture.md §3.4-3.5). Replaces NSObject's refcount contract,
-        the Foundation autorelease pool and OOWeakReference; oofnd/WeakSet.hpp replaces OOWeakSet.
+        Intrusive reference counting that mirrors Objective-C's
+   retain/release/autorelease 1:1 (docs/architecture.md §3.4-3.5).
+   Replaces NSObject's refcount contract, the Foundation autorelease pool and
+   OOWeakReference; oofnd/WeakSet.hpp replaces OOWeakSet.
 
             Objective-C (manual retain/release)       oofnd
             ----------------------------------------  -------------------------------------------------
@@ -21,41 +22,50 @@
             pool = [[<autorelease pool> alloc] init] oo::AutoreleaseScope scope;
             [p release] / [p drain]                   end of scope   /  scope.drain()
 
-        SEMANTICS (proposed ADR-0026 records the choices ADR-0003 leaves open):
+        SEMANTICS:
 
-          * The count starts at 1, like +alloc. `new Foo` is an owning +1 pointer; hand it to
-            oo::adopt() or oo::makeRef() (which adopt), never to Ref's retaining constructor, or the
-            object leaks. Ref<T>(T*) RETAINS, like assigning through a retaining setter.
-          * When the count reaches 0 the object's weak references are zeroed FIRST, then it is deleted
-            through its virtual destructor (-dealloc). So no WeakRef can reach an object whose
-            destructor has started: stricter than OOWeakReference, whose proxy kept forwarding until
-            the root class's -dealloc ran (the ARC-weak behaviour, and the only safe one in C++).
-          * CYCLES ARE NOT COLLECTED. Two objects that hold Refs to each other are never freed, exactly
-            as two ObjC objects that retain each other are not. Break cycles with WeakRef, which is
-            what the OOWeakReference edges in today's entity graph already do (ADR-0003).
-          * AutoreleaseScope follows the game's autorelease pool, which on this toolchain is libobjc2's
-            (ADR-0029 measurement 3): per-thread, nested, the innermost scope receives autoreleased
-            objects, draining releases them LAST-IN-FIRST-OUT (ADR-0045, superseding ADR-0026 point 4's
-            insertion order), and an object autoreleased *while* draining is pushed on top and so is
-            released next, before the older objects still pending (libobjc2's emptyPool). oo::autorelease() with no scope
-            on the thread leaks the object (GNUstep's behaviour) and is counted in
-            AutoreleaseScope::leakedWithoutScope(). Scopes must end in LIFO order on the thread that
-            opened them; anything else is a programming error and aborts.
+          * The count starts at 1, like +alloc. `new Foo` is an owning +1
+   pointer; hand it to oo::adopt() or oo::makeRef() (which adopt), never to
+   Ref's retaining constructor, or the object leaks. Ref<T>(T*) RETAINS, like
+   assigning through a retaining setter.
+          * When the count reaches 0 the object's weak references are zeroed
+   FIRST, then it is deleted through its virtual destructor (-dealloc). So no
+   WeakRef can reach an object whose destructor has started: stricter than
+   OOWeakReference, whose proxy kept forwarding until the root class's -dealloc
+   ran (the ARC-weak behaviour, and the only safe one in C++).
+          * CYCLES ARE NOT COLLECTED. Two objects that hold Refs to each other
+   are never freed, exactly as two ObjC objects that retain each other are not.
+   Break cycles with WeakRef, which is what the OOWeakReference edges in today's
+   entity graph already do.
+          * AutoreleaseScope follows the game's autorelease pool, which on this
+   toolchain is libobjc2's: per-thread, nested, the
+   innermost scope receives autoreleased objects, draining releases them
+   LAST-IN-FIRST-OUT, and an object autoreleased *while* draining is pushed on
+   top and so is
+            released next, before the older objects still pending (libobjc2's
+   emptyPool). oo::autorelease() with no scope on the thread leaks the object
+   (GNUstep's behaviour) and is counted in
+            AutoreleaseScope::leakedWithoutScope(). Scopes must end in LIFO
+   order on the thread that opened them; anything else is a programming error
+   and aborts.
 
-        THREAD SAFETY (ADR-0003 makes only the count atomic; this header keeps exactly that):
+        THREAD SAFETY (only the count is atomic; this header keeps exactly
+   that):
 
-          * retain()/release(), and so copying and destroying Ref<T>, are thread-safe (atomic count),
-            as NSObject's are. The final release runs the destructor on whichever thread made it.
-          * WeakRef creation, get(), lock() and expired() on a given object, and every WeakSet, must
-            stay on one thread, which must also be the thread that makes the object's final release -
-            the contract OOWeakReference and OOWeakSet have today (OOWeakSet.h says so). The weak
-            control block's own count is atomic, so a WeakRef handle may be copied or destroyed on any
-            thread; only dereferencing it is confined.
-          * AutoreleaseScope is per-thread by construction (thread_local scope stack).
+          * retain()/release(), and so copying and destroying Ref<T>, are
+   thread-safe (atomic count), as NSObject's are. The final release runs the
+   destructor on whichever thread made it.
+          * WeakRef creation, get(), lock() and expired() on a given object, and
+   every WeakSet, must stay on one thread, which must also be the thread that
+   makes the object's final release - the contract OOWeakReference and OOWeakSet
+   have today (OOWeakSet.h says so). The weak control block's own count is
+   atomic, so a WeakRef handle may be copied or destroyed on any thread; only
+   dereferencing it is confined.
+          * AutoreleaseScope is per-thread by construction (thread_local scope
+   stack).
 */
 
-#ifndef OOFND_REF_HPP
-#define OOFND_REF_HPP
+#pragma once
 
 #include <atomic>
 #include <compare>
@@ -152,11 +162,13 @@ protected:
     // control block, as a -weakRetain after -weakRefDrop got a new proxy.
     void dropWeakReferences() const noexcept { dropWeakControl(); }
 
-    // The part of -dealloc that ran while the object was still whole, before [super dealloc]: called
-    // once, when the count reaches zero, before the weak references are zeroed and the object is
-    // deleted (the entity's facade's -dealloc body). The count reads 1 while it runs,
-    // so a balanced retain and release inside it do not dispose again; a retain it leaves unbalanced
-    // would resurrect an object whose -dealloc has run, a programming error, and aborts.
+    // The part of -dealloc that ran while the object was still whole, before
+    // [super dealloc]: called once, when the count reaches zero, before the weak
+    // references are zeroed and the object is deleted (the entity's
+    // facade's -dealloc body). The count reads 1 while it runs, so a
+    // balanced retain and release inside it do not dispose again; a retain it
+    // leaves unbalanced would resurrect an object whose -dealloc has run, a
+    // programming error, and aborts.
     virtual void willDispose() noexcept { }
 
 private:
@@ -525,10 +537,11 @@ public:
     static void* operator new(std::size_t) = delete;
     static void* operator new[](std::size_t) = delete;
 
-    // Releases everything autoreleased into this scope so far, newest first, including objects
-    // autoreleased by those releases (each lands on top and is released next), exactly as
-    // libobjc2's objc_autoreleasePoolPop does (ADR-0045); the scope stays open. This is the
-    // [pool release]; pool = [[<pool class> alloc] init]; idiom in long loops.
+    // Releases everything autoreleased into this scope so far, newest first,
+    // including objects autoreleased by those releases (each lands on top and is
+    // released next), exactly as libobjc2's objc_autoreleasePoolPop does;
+    // the scope stays open. This is the [pool release]; pool =
+    // [[<pool class> alloc] init]; idiom in long loops.
     void drain() noexcept
     {
         while (!pending_.empty()) {
@@ -576,5 +589,3 @@ template <class T>
 struct std::hash<oo::WeakRef<T>> {
     std::size_t operator()(const oo::WeakRef<T>& ref) const noexcept { return ref.hash(); }
 };
-
-#endif // OOFND_REF_HPP

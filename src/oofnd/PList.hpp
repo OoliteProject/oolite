@@ -24,46 +24,54 @@
             any other object (a colour, a texture, a             PList(PList::Object)    Type::Object
                 placeholder) inside a configuration dictionary
 
-        The last two rows are the Foundation sweep's typed carrier for configuration dictionaries that mix
-        property-list data with live objects (proposed ADR-0043 Amendment 2). No parser produces either;
-        the game side (src/Core/OOObjCPList.h) makes an Object from a live Objective-C object and reads
-        it back. An Object is an oo::Ref to a
-        PListForeign, which oofnd never looks into: it compares by identity and describes itself.
+        The last two rows are the typed carrier for
+   configuration dictionaries that mix property-list data with live objects. No
+   parser produces either; the game side (src/Core/OOObjCPList.h) makes an
+   Object from a live Objective-C object and reads it back. An Object is an
+   oo::Ref to a PListForeign, which oofnd never looks into: it compares by
+   identity and describes itself.
 
-        Representation choices (ADR-0013 decision 4 and proposed ADR-0027):
+        Representation choices:
 
-          * Strings are std::string holding UTF-8. NSString is UTF-16; a lone surrogate (which an
-            old-style "\UD800" escape can produce) is kept as its 3-byte generalised-UTF-8 form
-            (WTF-8), so no parsed value is lost. utf8ToUtf16()/utf16ToUtf8() below convert.
-          * Integers keep NSNumber's signedness: GNUstep stores a non-negative XML <integer> as
-            unsigned long long and a negative one as long long, and the writers print them with
-            %llu / %lld. Integer::value holds the bits; isUnsigned says which reading is meant.
-          * Dict keys are strings only (every plist the game reads has string keys; a parser that
-            meets a non-string key reports an error, see the parsers). Iteration is in byte order of
-            the UTF-8 key, i.e. deterministic; NSDictionary's order was hash order (unspecified).
-            The writers sort keys the way GNUstep does, so output never depends on this order.
-          * Date is NSDate's timeIntervalSinceReferenceDate: seconds since 2001-01-01T00:00:00Z.
-          * Equality (==) is structural and type-strict: PList(1) != PList(1.0) != PList(true),
-            although -[NSNumber isEqual:] would say they are equal. Nothing in the parsers or writers
-            relies on the looser rule.
+          * Strings are std::string holding UTF-8. NSString is UTF-16; a lone
+   surrogate (which an old-style "\UD800" escape can produce) is kept as its
+   3-byte generalised-UTF-8 form (WTF-8), so no parsed value is lost.
+   utf8ToUtf16()/utf16ToUtf8() below convert.
+          * Integers keep NSNumber's signedness: GNUstep stores a non-negative
+   XML <integer> as unsigned long long and a negative one as long long, and the
+   writers print them with %llu / %lld. Integer::value holds the bits;
+   isUnsigned says which reading is meant.
+          * Dict keys are strings only (every plist the game reads has string
+   keys; a parser that meets a non-string key reports an error, see the
+   parsers). Iteration is in byte order of the UTF-8 key, i.e. deterministic;
+   NSDictionary's order was hash order (unspecified). The writers sort keys the
+   way GNUstep does, so output never depends on this order.
+          * Date is NSDate's timeIntervalSinceReferenceDate: seconds since
+   2001-01-01T00:00:00Z.
+          * Equality (==) is structural and type-strict: PList(1) != PList(1.0)
+   != PList(true), although -[NSNumber isEqual:] would say they are equal.
+   Nothing in the parsers or writers relies on the looser rule.
 
-        Accessors mirror std::variant: getIf<T>() returns a pointer to the payload, or nullptr when the
-        value is another type - the shape of Oolite's `ValueIfClass(value, [NSDictionary class])`.
-        T is one of bool, PList::Integer, double, std::string, PList::Data, PList::Date,
-        PList::Array, PList::Dict. The typed, converting accessor that replaces
-        OOCollectionExtractors, get<T>(key, fallback) / at<T>(index, fallback), is declared here and
-        defined in oofnd/PListGet.hpp (included at the end of this header; proposed ADR-0031).
+        Accessors mirror std::variant: getIf<T>() returns a pointer to the
+   payload, or nullptr when the value is another type - the shape of Oolite's
+   `ValueIfClass(value, [NSDictionary class])`. T is one of bool,
+   PList::Integer, double, std::string, PList::Data, PList::Date, PList::Array,
+   PList::Dict. The typed, converting accessor that replaces
+        OOCollectionExtractors, get<T>(key, fallback) / at<T>(index, fallback),
+   is declared here and defined in oofnd/PListGet.hpp (included at the end of
+   this header).
 
-        Also here, shared by the parsers: oo::PListFormat (NSPropertyListFormat) and oo::PListError
-        (the error string GNUstep reports, and the -[NSError description] Oolite logged).
+        Also here, shared by the parsers: oo::PListFormat (NSPropertyListFormat)
+   and oo::PListError (the error string GNUstep reports, and the -[NSError
+   description] Oolite logged).
 */
 
 #ifndef OOFND_PLIST_HPP
 #define OOFND_PLIST_HPP
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; C++20 needs the
-// keywords. Suspend the macros for this header and restore them at its end (as oofnd/Data.hpp
-// does; proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; C++20 needs the keywords. Suspend the macros for this header and restore
+// them at its end (as oofnd/Data.hpp does).
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -94,8 +102,8 @@ namespace oo {
 template <class T>
 struct PListGet;
 
-// A value inside a PList that is not property-list data (proposed ADR-0043 Amendment 2): the game
-// side wraps an Objective-C object in a subclass. Compared by identity.
+// A value inside a PList that is not property-list data: the game side wraps
+// an Objective-C object in a subclass. Compared by identity.
 class PListForeign : public RefCounted {
 public:
     virtual std::string className() const = 0; // for writer errors ("Class X does not support ...")
@@ -371,7 +379,7 @@ enum class PListFormat {
 // Why a parse failed. `message` is GNUstep's own text (the error string of
 // -[NSPropertyListSerialization propertyListWithData:options:format:error:]), e.g.
 // "Parse failed at line 2 (char 17) - unexpected character (wanted '=')"; description() is the
-// -[NSError description] that OOPropertyListFromData logged. ADR-0027 item 9.
+// -[NSError description] that OOPropertyListFromData logged.
 struct PListError {
     std::string message;
 
@@ -413,16 +421,18 @@ inline const char* typeName(PList::Type t) noexcept
 
 namespace plist_detail {
 
-    // -[NSCalendarDate initWithString:calendarFormat:] for the two formats GNUstep's plist parsers
-    // pass it: "%Y-%m-%d %H:%M:%S %z" (old-style <*D...>, and XML <date> in general) and, when
-    // `zulu`, "%Y-%m-%dT%H:%M:%SZ" (XML <date> of exactly 20 characters ending in Z). Ported from
-    // NSCalendarDate.m: each field reads up to its width in digits after optional leading spaces (so
-    // " 2001" reads as 200), a space in the format skips any run of spaces, other literals must match
-    // while input remains, trailing input is ignored, and out-of-range fields roll over (month 13 is
-    // next January; absoluteGregorianDay counts every month past 12 as 31 days). nullopt where GNUstep
-    // returns nil (including a day or month of 0). One deliberate difference (ADR-0027 item 7):
-    // GNUstep reads the "Z" format, and a %z offset beyond 18 hours, in the machine's LOCAL time zone;
-    // oofnd reads them as UTC, which is what the Z says.
+    // -[NSCalendarDate initWithString:calendarFormat:] for the two formats
+    // GNUstep's plist parsers pass it: "%Y-%m-%d %H:%M:%S %z" (old-style <*D...>,
+    // and XML <date> in general) and, when `zulu`, "%Y-%m-%dT%H:%M:%SZ" (XML <date>
+    // of exactly 20 characters ending in Z). Ported from NSCalendarDate.m: each
+    // field reads up to its width in digits after optional leading spaces (so "
+    // 2001" reads as 200), a space in the format skips any run of spaces, other
+    // literals must match while input remains, trailing input is ignored, and
+    // out-of-range fields roll over (month 13 is next January; absoluteGregorianDay
+    // counts every month past 12 as 31 days). nullopt where GNUstep returns nil
+    // (including a day or month of 0). One deliberate difference:
+    // GNUstep reads the "Z" format, and a %z offset beyond 18 hours, in the
+    // machine's LOCAL time zone; oofnd reads them as UTC, which is what the Z says.
     inline std::optional<double> parseCalendarDate(std::string_view s, bool zulu)
     {
         const std::string_view format = zulu ? "%Y-%m-%dT%H:%M:%SZ" : "%Y-%m-%d %H:%M:%S %z";
@@ -499,8 +509,8 @@ namespace plist_detail {
                     src += found;
                     if (found == 2)
                         zone *= 100;
-                    // +timeZoneForSecondsFromGMT: is nil beyond 18 hours, and a nil zone is the
-                    // local one: UTC in oofnd (ADR-0027 item 7).
+                    // +timeZoneForSecondsFromGMT: is nil beyond 18 hours, and a nil zone
+                    // is the local one: UTC in oofnd.
                     const long seconds = ((zone / 100) * 60 + (zone % 100)) * 60;
                     zoneSeconds = seconds > 64800 ? 0 : sign * seconds;
                 }

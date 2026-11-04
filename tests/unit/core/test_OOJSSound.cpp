@@ -1,22 +1,19 @@
 /*	test_OOJSSound.mm
 	Unit tests for the Sound JS binding (src/Core/Scripting/OOJSSound.h/.mm) and the bodies of its
-	OOSound category (the Scripting bridge file until it went with the sound's facade): bead
-	oo-crq2, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments
-	oo-ppc and oo-ykoy).
+	OOSound category.
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's class registry
-	(OOJSClasses.mm), its C++ private-slot glue (OOJSPrivateObject.cpp) and its exception
-	translator (OOJSEngineNativeWrappers.mm), and stands in for the classes the binding calls (the
-	sound, the custom-sound look-up, ResourceManager, OOMusicController, the SoundSource binding
-	and the player answer only what the binding asks) and for the engine functions it links
-	against, with the engine headers' linkage. The expectations were written against the
-	Objective-C file and run on it first; they pin the JS-visible behaviour (name, toString(), the
-	four static methods and their errors, SoundFromJSValue() for a Sound and for a name, a native's
-	exception) and what the category answered the engine. Since the sound's facade was deleted the
-	sound is a C++ stand-in, the category's answers are the functions that held its bodies, and a
-	Sound object's slot holds the binding's holder of the sound, which SoundFromJSValue() answers.
-	Run: tests/run.sh unit
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, the engine's class registry (OOJSClasses.mm), its C++
+	private-slot glue (OOJSPrivateObject.cpp) and its exception translator
+	(OOJSEngineNativeWrappers.mm), and stands in for the classes the binding calls (the sound, the
+	custom-sound look-up, ResourceManager, OOMusicController, the SoundSource binding and the player
+	answer only what the binding asks) and for the engine functions it links against, with the
+	engine headers' linkage. The expectations were written against the Objective-C file and run on
+	it first; they pin the JS-visible behaviour (name, toString(), the four static methods and their
+	errors, SoundFromJSValue() for a Sound and for a name, a native's exception) and what the
+	category answered the engine. The sound is a C++ stand-in, the category's answers are the
+	functions that held its bodies, and a Sound object's slot holds the binding's holder of the
+	sound, which SoundFromJSValue() answers. Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -41,9 +38,10 @@ typedef enum OOEntityStatus
 } OOEntityStatus;
 #undef ENTRY
 
-/*	The sound: a C++ stand-in since its facade was deleted (the root's members its vtable names;
-	OOALSound.mm is not linked). A sound named "raise" raises from name(), one named "throw" throws
-	a C++ exception, so the test sees what an exception under a native becomes.
+/*	The sound: a C++ stand-in (the root's members its vtable names;
+   OOALSound.mm is not linked). A sound named "raise" raises from name(), one
+   named "throw" throws a C++ exception, so the test sees what an exception
+   under a native becomes.
 */
 #include "OOALSound.h"
 #include <stdexcept>
@@ -72,9 +70,10 @@ class OOSoundSource;	// only handed on (OOSoundSource.h)
 
 #include "ResourceManager.h"
 
-/*	The music controller is C++ (its Objective-C facade was deleted): the members the binding
-	calls, declared as OOMusicController.h declares them (that header would bring the real
-	OOSoundSource into this file) and defined below over this file's record of what was asked.
+/*	The music controller: the members the binding calls, declared as
+   OOMusicController.h declares them (that header would bring the real
+   OOSoundSource into this file) and defined below over this file's record of
+   what was asked.
 */
 #include "oofnd/Ref.hpp"
 class OOMusicController : public oo::RefCounted
@@ -96,9 +95,9 @@ struct MusicRecord
 	int _stops = 0;
 };
 
-/*	PLAYER: C++ since the Objective-C player this stood in for was deleted. The binding asks it its
-	status, the root entity's member (declared as Entity.h declares it; the test imports no game
-	header that defines the classes), answered from the test's value.
+/*	PLAYER: The binding asks it its status, the root entity's member
+   (declared as Entity.h declares it; the test imports no game header that
+   defines the classes), answered from the test's value.
 */
 class Entity
 {
@@ -151,8 +150,8 @@ OOSound *OOSoundWithCustomSoundKey(const std::string &key)
 }
 
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// ResourceManager: C++ definitions of the statics the code under test calls,
+// with the Objective-C stand-in's answers.
 OOSound * ResourceManager::ooSoundNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName == "missing.ogg")  return nullptr;

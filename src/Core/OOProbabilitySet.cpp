@@ -2,10 +2,7 @@
 
 OOProbabilitySet.mm
 
-C++20 since bead oo-489v (proposed ADR-0056, the OOColor house style). The class cluster is a C++
-hierarchy; method bodies are the Objective-C ones with message sends turned into calls. Still
-Objective-C++ until Phase 4: an Object node element is an Objective-C object.
-
+The class cluster is a C++ hierarchy.
 
 Copyright (C) 2008-2013 Jens Ayton
 
@@ -77,9 +74,9 @@ oo::PList PropertyListRepresentation(const oo::PList* objects, const float* weig
     return oo::PList(std::move(result));
 }
 
-// -isEqual: of the objects the elements were: == of two values (a string is equal to the same
-// string); an Object node is equal to the same node. (A node holding an Objective-C object, equal to
-// one holding the same or an -isEqual: object, went with bead oo-4aq6a.5: no game object is one.)
+// -isEqual: of the objects the elements were: == of two values (a string is
+// equal to the same string); an Object node is equal to the same node. (No node
+// holds an Objective-C object: no game object is one.)
 bool SameElement(const oo::PList& element, const oo::PList& object)
 {
     return element == object;
@@ -258,8 +255,10 @@ oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithPropertyListRepres
 // -descriptionComponents did.
 std::optional<std::string> OOProbabilitySet::descriptionComponents() const
 {
-    // (count() is not const; the fixed const signature, ADR-0055 item 1, reaches it through a cast)
-    return oo::str::format("count=%zu", const_cast<OOProbabilitySet*>(this)->count());
+    // (count() is not const; the fixed const signature reaches it
+    // through a cast)
+    return oo::str::format("count=%zu",
+        const_cast<OOProbabilitySet*>(this)->count());
 }
 
 oo::Ref<OOProbabilitySet> OOProbabilitySet::copy()

@@ -25,18 +25,19 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef INCLUDED_OOTYPES_h
-#define INCLUDED_OOTYPES_h
+#pragma once
 
 #include "OOFunctionAttributes.h"
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // a game unit, not a plain C++ one
 #include "OOFoundation.h"
 #else
-/*	A plain C or C++ translation unit (bead oo-9ht.64: OOConstToJSString) needs only the C types
-        OOFoundation.h's floor gives (NSInteger, NSUInteger). OOFoundation.h itself declares @interfaces.
+/*	A plain C or C++ translation unit (OOConstToJSString) needs only the C
+   types OOFoundation.h's floor gives (NSInteger, NSUInteger). OOFoundation.h
+   itself declares @interfaces.
 */
-#include "oofnd/objc/OOFoundationTypes.h"
 #include <limits.h>
+
+#include "oofnd/objc/OOFoundationTypes.h"
 #endif
 
 typedef enum {
@@ -84,8 +85,8 @@ enum
 {
         COMMODITY_UNDEFINED		= -1,
 
-        // FIXME: hard-coded commodity types are used in OOJSManifest. Everything else is data-driven.
-        COMMODITY_FOOD,		//	=  0
+        // FIXME: hard-coded commodity types are used in OOJSManifest.
+Everything else is data-driven. COMMODITY_FOOD,		//	=  0
         COMMODITY_TEXTILES,
         COMMODITY_RADIOACTIVES,
         COMMODITY_SLAVES,
@@ -122,7 +123,7 @@ typedef enum {
     UNITS_TONS,
     UNITS_KILOGRAMS,
     UNITS_GRAMS,
-    UNITS_UNKNOWN // a quantity_unit that is none of the above (ADR-0036); displays as "??"
+    UNITS_UNKNOWN // a quantity_unit that is none of the above; displays as "??"
 } OOMassUnit;
 
 typedef enum {
@@ -141,9 +142,7 @@ typedef enum {
 #include "OOCompassMode.tbl"
 } OOCompassMode;
 
-enum {
-    kOOCompassModeDefault = COMPASS_MODE_BASIC
-};
+enum { kOOCompassModeDefault = COMPASS_MODE_BASIC };
 
 #undef ENTRY
 
@@ -182,10 +181,9 @@ enum {
     MAX_ENTITY_UID = MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
 };
 
-enum {
-    kOOVariableTechLevel = 99
-};
-typedef NSUInteger OOTechLevelID; // 0..14, 99 is special. NSNotFound is used, so NSUInteger required.
+enum { kOOVariableTechLevel = 99 };
+typedef NSUInteger OOTechLevelID; // 0..14, 99 is special. NSNotFound is used,
+                                  // so NSUInteger required.
 
 typedef uint8_t OOGovernmentID; // 0..7
 typedef uint8_t OOEconomyID; // 0..7
@@ -214,7 +212,8 @@ typedef enum {
 
 typedef uint8_t OOWeaponFacingSet; // May have multiple bits set.
 
-#define VALID_WEAPON_FACINGS (WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
+#define VALID_WEAPON_FACINGS \
+    (WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
 
 typedef enum {
     DETAIL_LEVEL_MINIMUM = 0,
@@ -224,5 +223,3 @@ typedef enum {
 
     DETAIL_LEVEL_MAXIMUM = 3
 } OOGraphicsDetail;
-
-#endif // INCLUDED_OOTYPES_h

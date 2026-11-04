@@ -244,7 +244,7 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS)
         break;
 
     case kSystem_mainPlanet:
-        result = oo::EntityObjectNode((UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr)); // the planet is C++
+        result = oo::EntityObjectNode((UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr));
         handled = true;
         break;
 
@@ -472,8 +472,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS)
     if (system == -1)
         return JS_UNDEFINED; // Can't change anything else in interstellar space.
 
-    // The running script (C++, its last facade gone): a message to no script
-    // answered null.
+    // The running script: null when no script runs.
     OOJSScript* runningScript = OOJSScript::currentlyRunningScript();
     manifest = (runningScript != nullptr) ? runningScript->propertyNamed(kLocalManifestProperty) : oo::PList();
     // the identifier as -fromManifest: read it: a string, else none
@@ -608,7 +607,7 @@ static JSValue SystemAddPlanet(OOJS_NATIVE_ARGS)
     planet = (player != nullptr ? player->addPlanetEntity(*key) : (OOPlanetEntity*)nullptr);
     OOJS_END_FULL_NATIVE
 
-    OOJS_RETURN(OOJSValueFromCxxObject(context, planet)); // the C++ planet's JS value (its object's until the root Entity facade went)
+    OOJS_RETURN(OOJSValueFromCxxObject(context, planet)); // the C++ planet's JS value
 
     OOJS_NATIVE_EXIT
 }
@@ -633,7 +632,7 @@ static JSValue SystemAddMoon(OOJS_NATIVE_ARGS)
     planet = (player != nullptr ? player->addMoonEntity(*key) : (OOPlanetEntity*)nullptr);
     OOJS_END_FULL_NATIVE
 
-    OOJS_RETURN(OOJSValueFromCxxObject(context, planet)); // the C++ planet's JS value (its object's until the root Entity facade went)
+    OOJS_RETURN(OOJSValueFromCxxObject(context, planet)); // the C++ planet's JS value
 
     OOJS_NATIVE_EXIT
 }
@@ -1254,7 +1253,7 @@ static JSValue SystemAddVisualEffect(OOJS_NATIVE_ARGS)
 
     OOJS_END_FULL_NATIVE
 
-    OOJS_RETURN(OOJSEntityJSValue(result, context)); // what OOJSValueFromNativeObject() gave for its object
+    OOJS_RETURN(OOJSEntityJSValue(result, context));
 
     OOJS_NATIVE_EXIT
 }

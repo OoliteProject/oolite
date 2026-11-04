@@ -6,9 +6,8 @@ Class responsible for converting a sound to a PCM buffer for playback. This
 class is an implementation detail. Do not use it directly; use OOSound to
 load sounds.
 
-C++20 since bead oo-y0gz (proposed ADR-0056, the Audio module: amendment oo-2en). Bead oo-9ht.82
-deleted its Objective-C facade and moved it to the global namespace: the sounds call it directly.
-The Vorbis codec, the class cluster's one concrete decoder, is private to OOALSoundDecoder.mm.
+The sounds call it directly. The Vorbis codec, the class cluster's one
+concrete decoder, is private to OOALSoundDecoder.mm.
 
 
 OOALSound - OpenAL sound implementation for Oolite.
@@ -34,8 +33,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOALSOUNDDECODER_H
-#define OOALSOUNDDECODER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOFunctionAttributes.h"
@@ -52,7 +50,8 @@ public:
             receiver, the Vorbis codec for a path whose extension is "ogg", else nil. Null where it
             answered nil (also when the codec could not open the file).
     */
-    static oo::Ref<OOALSoundDecoder> initWithPath(const std::optional<std::string>& inPath); // nullopt: null (bead oo-3rb.292.2)
+    static oo::Ref<OOALSoundDecoder> initWithPath(
+        const std::optional<std::string>& inPath); // nullopt: null
     static oo::Ref<OOALSoundDecoder> codecWithPath(const std::string& inPath);
 
     // Full-buffer reading.
@@ -71,11 +70,9 @@ public:
     // For streaming
     virtual void reset();
 
-    virtual std::optional<std::string> name(); // (bead oo-3rb.289.2)
+    virtual std::optional<std::string> name();
 
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
     // OOObject answered; the codec prints its name and comments.
     virtual std::optional<std::string> descriptionComponents() const;
 };
-
-#endif // OOALSOUNDDECODER_H

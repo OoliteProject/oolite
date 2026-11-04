@@ -1,7 +1,7 @@
 /*	oofnd/Log.hpp
-        oo::log: Oolite's logging (OOLogging) without Foundation (bead oo-qpb, proposed ADR-0035):
-        message-class switches with inheritance and $metaclasses, per-thread indentation, the exact
-        Latest.log line layout, and a std::format front end.
+        oo::log: Oolite's logging (OOLogging) without Foundation: message-class
+   switches with inheritance and $metaclasses, per-thread indentation, the
+   exact Latest.log line layout, and a std::format front end.
 
             OOLogging (Objective-C)                          oo::log
             -----------------------------------------------  -------------------------------------------
@@ -29,11 +29,10 @@
         nothing here throws.
 */
 
-#ifndef OOFND_LOG_HPP
-#define OOFND_LOG_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
-// this header (proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for this header.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -106,7 +105,7 @@ namespace detail {
     template <class V>
     using StringMap = std::unordered_map<std::string, V, StringHash, std::equal_to<>>;
 
-    // OOLogging's per-thread indentation (thread_local since bead oo-3rb.6).
+    // OOLogging's per-thread indentation (thread_local).
     struct IndentState {
         unsigned level = 0;
         std::vector<unsigned> stack;
@@ -525,5 +524,3 @@ inline constexpr std::string_view kWarningPrefix = "----- WARNING: ";
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_LOG_HPP

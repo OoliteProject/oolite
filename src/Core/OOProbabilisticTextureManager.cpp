@@ -34,8 +34,9 @@ SOFTWARE.
 
 namespace {
 
-// oo_stringForKey: a string, a number's string value, or nil (Foundation sweep, proposed ADR-0043).
-std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::string_view key)
+// oo_stringForKey: a string, a number's string value, or nil.
+std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
+    std::string_view key)
 {
     const oo::PList* value = dict.find(key);
     if (value == nullptr || !(value->isString() || value->isNumber()))
@@ -57,8 +58,9 @@ oo::Ref<OOProbabilisticTextureManager> OOProbabilisticTextureManager::createWith
         RANROTGetFullSeed());
 }
 
-// -initWithPListName:...seed: on a new object; null where it answered nil (amendment oo-fg7i item 1).
-oo::Ref<OOProbabilisticTextureManager> OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
+// -initWithPListName:...seed: on a new object; null where it answered nil.
+oo::Ref<OOProbabilisticTextureManager>
+OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
     uint32_t options,
     GLfloat anisotropy,
     GLfloat lodBias,
@@ -81,7 +83,7 @@ bool OOProbabilisticTextureManager::initWithPListName(const std::string& plistNa
     NSUInteger i, count, j;
     const oo::PList* entry = nullptr;
     std::optional<std::string> name;
-    float probability = 0.0f; // set wherever name is (GCC -Wmaybe-uninitialized; bead oo-1q4)
+    float probability = 0.0f; // set wherever name is (GCC -Wmaybe-uninitialized)
     oo::Ref<OOTexture> texture;
     int galID = -1;
     const oo::PList* object = nullptr;
@@ -175,9 +177,10 @@ OOProbabilisticTextureManager::~OOProbabilisticTextureManager()
         free(_probMaxGal);
 }
 
-// OOObject's -description wrapped this as "<OOProbabilisticTextureManager 0x...>{...}", the text
-// this class's own -description printed (proposed ADR-0043).
-std::optional<std::string> OOProbabilisticTextureManager::descriptionComponents() const
+// OOObject's -description wrapped this as "<OOProbabilisticTextureManager
+// 0x...>{...}", the text this class's own -description printed.
+std::optional<std::string>
+OOProbabilisticTextureManager::descriptionComponents() const
 {
     return oo::str::format("%u textures, cumulative probability=%g", _count, _probMax);
 }
@@ -187,7 +190,9 @@ OOTexture* OOProbabilisticTextureManager::selectTexture()
     float selection;
     unsigned i;
     int hold = -1;
-    int galID = (int)(PLAYER != nullptr ? PLAYER->PlayerEntity::currentGalaxyID() : 0); // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
+    int galID = (int)(PLAYER != nullptr ? PLAYER->PlayerEntity::currentGalaxyID()
+                                        : 0); // qualified: the final overrider, so the
+                                              // binding test stands in for it
 
     selection = randfWithSeed(&_seed);
 

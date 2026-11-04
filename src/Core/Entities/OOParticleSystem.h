@@ -2,11 +2,10 @@
 
 OOParticleSystem.h
 
-C++20 since bead oo-cenx, a leaf of the Entities seam (proposed ADR-0056, amendment oo-bj8 item
-12), converted with all its subclasses (amendment oo-kdyh item 1): the two fragment bursts here
-and OOExplosionCloudEntity. Global classes over Entity, with no facade: nothing messages
-them by their own selectors. Their callers (ShipEntity, Universe) make them with a factory and
-hand the universe the Entity facade oo::NewEntityFacade makes, which is each one's Objective-C
+The two fragment bursts here and OOExplosionCloudEntity are global classes
+over Entity, with no facade: nothing messages them by their own selectors. Their
+callers (ShipEntity, Universe) make them with a factory and hand the universe
+the Entity facade oo::NewEntityFacade makes, which is each one's Objective-C
 object from then on.
 
 Oolite
@@ -88,7 +87,8 @@ protected:
 
 class OOSmallFragmentBurstEntity : public OOParticleSystem {
 public:
-    static oo::Ref<OOSmallFragmentBurstEntity> fragmentBurstFromEntity(Entity* entity); // the C++ entity
+    static oo::Ref<OOSmallFragmentBurstEntity> fragmentBurstFromEntity(
+        Entity* entity); // the C++ entity
 
     void update(OOTimeDelta delta_t) override;
 
@@ -98,7 +98,8 @@ private:
 
 class OOBigFragmentBurstEntity : public OOParticleSystem {
 public:
-    static oo::Ref<OOBigFragmentBurstEntity> fragmentBurstFromEntity(Entity* entity); // the C++ entity
+    static oo::Ref<OOBigFragmentBurstEntity> fragmentBurstFromEntity(
+        Entity* entity); // the C++ entity
 
     void update(double delta_t) override;
 

@@ -39,20 +39,19 @@ class OOSoundSource; // C++: it has no Objective-C facade
 
 void InitOOJSSoundSource(JSContext* context, JSValueConst global);
 
-/*	The bodies of OOSoundSource (OOJavaScriptExtentions), which the engine reached by selector
-        while the source had an Objective-C facade: a new SoundSource object for the source (owned
-        by the caller; JS null for none) and the JS class name. The binding and the Sound binding
-        call them.
+/*	The bodies of OOSoundSource (OOJavaScriptExtentions): a new SoundSource
+   object for the source (owned by the caller; JS null for none) and the JS
+   class name. The binding and the Sound binding call them.
 */
 JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source, JSContext* context);
 std::optional<std::string> OOJSSoundSourceJSClassName(void);
 
-/*	What a SoundSource object's private slot holds (it held the source's facade, retained).
-        -oo_jsValueInContext: made a new SoundSource object each time, so each object has its own
-        holder, which retains the source; the slot retains the holder (OOJSSetCxxPrivate) and the
-        finalizer releases it (OOJSCxxObjectWrapperFinalize). Its toString() is what the facade's
-        -cxx_oo_jsDescription answered (OOObject (OOJavaScriptConversion)): the JS class name and
-        the source's components. Defined in OOJSSoundSource.mm; only the binding makes one.
+/*	What a SoundSource object's private slot holds. Each SoundSource object
+   has its own holder, which retains the source; the slot retains the holder
+   (OOJSSetCxxPrivate) and the finalizer releases it
+   (OOJSCxxObjectWrapperFinalize). Its toString() is the JS class name and the
+   source's components. Defined in OOJSSoundSource.mm; only the binding makes
+   one.
 */
 class OOJSSoundSourceHolder final : public oo::RefCounted, public OOJSPrivateObject {
 public:

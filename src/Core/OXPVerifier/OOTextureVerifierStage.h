@@ -34,21 +34,21 @@ MA 02110-1301, USA.
 
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-0iq2): the used texture names are a sorted
-        std::vector (a set), checked in byte order of the name. nameForReverseDependencyForVerifier() is a shared name
-        (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
+/*	The used texture
+   names are a sorted std::vector (a set), checked in byte order of the name.
+   nameForReverseDependencyForVerifier() is a shared name (the other stages
+   declare it) and returns a std::string.
 
-        C++20 since bead oo-tuq8 (proposed ADR-0056 Amendment 1, amendment oo-up4b items 2 and 6).
-        OOTextureVerifierStage is a leaf of OOFileHandlingVerifierStage; it is global and has no
-        facade, because nothing outside this file messages it (the verifier makes it from its name,
-        kCxxStages in OOOXPVerifier.mm). OOTextureHandlingStage is an intermediate class that the ship
-        data and model stages subclass; its Objective-C facade was deleted by bead oo-9ht.45 once they
-        were C++ (ADR-0056 amendment "deleting a facade"), with the verifier's -textureVerifierStage.
+   OOTextureVerifierStage is a leaf of OOFileHandlingVerifierStage; nothing
+   outside this file messages it (the verifier makes it from its name,
+   kCxxStages in OOOXPVerifier.mm). OOTextureHandlingStage is an intermediate
+   class that the ship data and model stages subclass.
 */
 class OOTextureVerifierStage : public OOFileHandlingVerifierStage {
 public:
     // Returns name to be used in dependents() by other stages.
-    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
+    static std::string nameForReverseDependencyForVerifier(
+        OOOXPVerifier* verifier);
 
     std::optional<std::string> name() override;
     bool shouldRun() override;

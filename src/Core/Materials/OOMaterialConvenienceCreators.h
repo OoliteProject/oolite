@@ -4,8 +4,7 @@ OOMaterialConvenienceCreators.h
 
 Methods for easy creation of materials.
 
-C++20 since bead oo-9fwb (proposed ADR-0056): the creators are static members of
-OOMaterial.
+The creators are static members of OOMaterial.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -41,6 +40,5 @@ SOFTWARE.
 
 class OOColor;
 
-// The creators are static members of OOMaterial (materialWithName(), in OOMaterial.h), defined
-// in OOMaterialConvenienceCreators.mm since bead oo-9fwb (proposed ADR-0056 amendment oo-o89 item
-// 4). The Objective-C category was deleted by bead oo-9ht.59.
+// The creators are static members of OOMaterial (materialWithName(), in
+// OOMaterial.h), defined in OOMaterialConvenienceCreators.mm.

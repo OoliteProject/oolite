@@ -52,8 +52,9 @@
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
-// -oo_stringForKey:'s value without the Foundation type (proposed ADR-0043): a string as is, a
-// number's -stringValue, anything else (or nothing) nullopt, as it gave nil.
+// -oo_stringForKey:'s value without the Foundation type: a
+// string as is, a number's -stringValue, anything else (or nothing) nullopt, as
+// it gave nil.
 namespace {
 
 std::optional<std::string> OptionalStringValue(const oo::PList* value)
@@ -89,12 +90,12 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     return oo::PList(std::move(acc));
 }
 
-// Slice 4 of docs/phases/3-slices/StationEntity.md: NPC launchers. Several are sent
-// by name, which the root's facade answers for a station's part (beads oo-9ht.175,
-// oo-9ht.144).
+// NPC launchers. Several are sent by name, which the root's facade answers for
+// a station's part.
 
 // Exposed to AI
-oo::PList StationEntity::launchIndependentShip(const std::string& role) // called by name (ADR-0055 item 5): the ship launched, as an Object node (null: none)
+oo::PList StationEntity::launchIndependentShip(const std::string& role) // called by name: the ship launched, as an
+                                                                        // Object node (null: none)
 {
     ShipEntity* self = this;
     if (!hasLaunchDock()) {
@@ -188,7 +189,7 @@ oo::PList StationEntity::launchIndependentShip(const std::string& role) // calle
 }
 
 // Exposed to AI
-oo::PList StationEntity::launchPolice() // called by name (ADR-0055 item 5)
+oo::PList StationEntity::launchPolice() // called by name
 {
     std::vector<oo::EntityHold> result; // the police ships' objects, held
     if (!hasLaunchDock()) {
@@ -466,7 +467,8 @@ oo::PList StationEntity::launchPolice() // called by name (ADR-0055 item 5)
     return miner_ship;
 }
 
-/**Lazygun** added the following method. A complete rip-off of launchDefenseShip.
+/**Lazygun** added the following method. A complete rip-off of
+ * launchDefenseShip.
  */
 // Exposed to AI
 ::ShipEntity* StationEntity::launchPirateShip()
@@ -664,7 +666,7 @@ oo::PList StationEntity::launchPolice() // called by name (ADR-0055 item 5)
 }
 
 // Exposed to AI
-void StationEntity::launchShipWithRole(const std::string& role) // called by name (ADR-0055 item 5)
+void StationEntity::launchShipWithRole(const std::string& role) // called by name
 {
     if (!hasLaunchDock()) {
         OO_LOG("station.launchShip.impossible", "Cancelled launch for a ship with role {}, as the {} has no launch docks.",
@@ -692,9 +694,7 @@ void StationEntity::launchShipWithRole(const std::string& role) // called by nam
         oo::ReleaseEntity(ship);
 }
 
-// Slice 1 of docs/phases/3-slices/StationEntity.md (bead oo-64ako): class shell, market and
-// shipyard, flags and accessors. The facade's initialiser and -dealloc are members since bead
-// oo-9ht.175 deleted the facade.
+// Class shell, market and shipyard, flags and accessors.
 
 ::ShipEntity* StationEntity::newStationObject(const std::string& key, const oo::PList& dict)
 {
@@ -723,7 +723,8 @@ void StationEntity::willDealloc()
     //	DESTROY(localContracts);
 }
 
-/* Override ShipEntity: stations of CLASS_ROCK or CLASS_CARGO are not automatically unpiloted. */
+/* Override ShipEntity: stations of CLASS_ROCK or CLASS_CARGO are not
+ * automatically unpiloted. */
 bool StationEntity::isUnpiloted()
 {
     return isExplicitlyUnpiloted() || getIsHulk();
@@ -908,7 +909,7 @@ void StationEntity::setPlanet(::OOPlanetEntity* planet_entity)
 
 ::OOPlanetEntity* StationEntity::getPlanet()
 {
-    // The planet is C++ since bead oo-9ht.129: null for any other entity (and for none, as nil).
+    // Null for any other entity (and for none, as nil).
     return dynamic_cast<::OOPlanetEntity*>((UNIVERSE != nullptr ? UNIVERSE->entityForUniversalID(planet) : nullptr));
 }
 
@@ -1293,8 +1294,7 @@ void StationEntity::dumpSelfState()
     }
 }
 
-// Slice 2 of docs/phases/3-slices/StationEntity.md (bead oo-9j462): docking traffic control and the
-// launch queue.
+// Docking traffic control and the launch queue.
 
 void StationEntity::sanityCheckShipsOnApproach()
 {
@@ -1667,10 +1667,10 @@ void StationEntity::update(OOTimeDelta delta_t)
             ::DockEntity* dock = selectDockForDocking();
             last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
             if (hasMultipleDocks()) {
-                const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-in-@-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-in-@-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws.
                 sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { (dock != nullptr ? dock->getDisplayName() : std::optional<std::string>()).value_or("(null)"), cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), player);
             } else {
-                const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws.
                 sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), player);
             }
             player_reserved_dock = dock;
@@ -1927,8 +1927,7 @@ void StationEntity::addShipToStationCount(::ShipEntity* ship)
     }
 }
 
-// Slice 3 of docs/phases/3-slices/StationEntity.md (bead oo-hjzwk): docking clearance, damage,
-// allegiance and alert level.
+// Docking clearance, damage, allegiance and alert level.
 
 bool StationEntity::collideWithShip(::ShipEntity* other)
 {
@@ -2170,7 +2169,13 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(::Sh
         case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
             if (!no_docking_while_launching) {
                 last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
-                const std::string extendedFormat = OO_DESC("station-docking-clearance-extended-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                const std::string extendedFormat = OO_DESC("station-docking-clearance-extended-until-@"); // the format
+                                                                                                          // first, as Clang
+                                                                                                          // evaluates the
+                                                                                                          // arguments: a
+                                                                                                          // description
+                                                                                                          // that is an
+                                                                                                          // array draws.
                 sendExpandedMessage(oo::str::formatRuntime(extendedFormat, { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
                 if (player != nullptr)
                     player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
@@ -2308,10 +2313,10 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(::Sh
         }
 
         if (hasMultipleDocks() && (other != nullptr ? other->getIsPlayer() : false)) {
-            const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-in-@-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+            const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-in-@-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws.
             sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { (player_reserved_dock != nullptr ? player_reserved_dock->getDisplayName() : std::optional<std::string>()).value_or("(null)"), cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
         } else {
-            const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+            const std::string grantedFormat = OO_DESC("station-docking-clearance-granted-until-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws.
             sendExpandedMessage(oo::str::formatRuntime(grantedFormat, { cxx_ClockToString((player != nullptr ? player->clockTime() : 0.0) + DOCKING_CLEARANCE_WINDOW, NO) }), other);
         }
 

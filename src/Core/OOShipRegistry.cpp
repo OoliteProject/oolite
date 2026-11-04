@@ -885,7 +885,8 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData)
             conditionScripts.push_back(*script);
         }
     };
-    // OOSanitizeLegacyScriptConditions takes and returns oo::PList (bead oo-3rb.205; nil is null).
+    // OOSanitizeLegacyScriptConditions takes and returns oo::PList (nil is
+    // null).
     auto sanitize = [](const oo::PList& unsanitized, const std::string& context) {
         return OOSanitizeLegacyScriptConditions(unsanitized, context);
     };
@@ -1064,7 +1065,7 @@ bool OOShipRegistry::preloadShipMeshes(oo::PList& ioData)
         const oo::PList& shipEntry = ship->second;
         const std::optional<std::string> modelName = StringForKey(&shipEntry, "model");
         {
-            oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
+            oo::AutoreleaseScope pool; // was @autoreleasepool
             [[::GameController sharedController] setProgressBarValue:(float)i++ / (float)count];
 
             // (PRELOAD is 0: this names a -meshWithName: form OOMesh no longer has.)
@@ -1147,8 +1148,8 @@ oo::PList OOShipRegistry::canonicalizeSubentityDeclaration(const oo::PList& decl
         // Validate dictionary-based declaration.
         result = validateNewStyleSubentityDeclaration(declaration, shipKey, outFatalError);
     } else {
-        // The declaration's property-list type ("array", "integer", ...; was the class name of the
-        // Foundation object it converted to, bead oo-qps.50).
+        // The declaration's property-list type ("array", "integer", ...; was the
+        // class name of the Foundation object it converted to).
         OO_LOG_ERR("shipData.load.error.badSubentity", "subentity declaration for ship {} should be string or dictionary, found {}.", shipKey, oo::typeName(declaration.type()));
         *outFatalError = YES;
     }

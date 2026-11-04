@@ -110,11 +110,11 @@ enum {
 
 namespace {
 
-/*	What oo::PListView's string / vector / quaternion readers answered, for a
-        configuration held as an oo::PList (the Foundation sweep, proposed ADR-0043): a string is
-        nullopt when the key is absent or holds neither a string nor a number; vectors and quaternions
-        go through OOCollectionExtractors' readers (unmigrated) with their defaults for a missing key.
-        (Same readers as ShipEntity.mm's.)
+/*	What oo::PListView's string / vector / quaternion readers answered, for
+   a configuration held as an oo::PList: a string is nullopt when the key is
+   absent or holds neither a string nor a number; vectors and quaternions go
+   through OOCollectionExtractors' readers (unmigrated) with their defaults for
+   a missing key. (Same readers as ShipEntity.mm's.)
 */
 std::optional<std::string> StringForKey(const oo::PList& dict, std::string_view key)
 {
@@ -202,10 +202,11 @@ NSUInteger IndexOfGood(const std::vector<std::string>& goods, const std::optiona
     return (found != goods.end()) ? static_cast<NSUInteger>(found - goods.begin()) : NSNotFound;
 }
 
-// The market sorters, as orderings (< 0, 0, > 0 for OOOrderedAscending, Same, Descending) over
-// commodity keys; used with std::stable_sort, as -sortedArrayUsingFunction:context: is a stable
-// sort in GNUstep (probed on gnustep-base: ties keep their order). They read the market's C++ part
-// (slice 23); a null market answers as a nil one did (no name, 0).
+// The market sorters, as orderings (< 0, 0, > 0 for OOOrderedAscending, Same,
+// Descending) over commodity keys; used with std::stable_sort, as
+// -sortedArrayUsingFunction:context: is a stable sort in GNUstep (probed on
+// gnustep-base: ties keep their order). They read the market's C++ part; a null
+// market answers as a nil one did (no name, 0).
 int marketSorterByName(const std::string& a, const std::string& b, OOCommodityMarket* market)
 {
     // (-compare: on a nil name: goods always have names)
@@ -239,8 +240,9 @@ std::vector<oo::PList> CustomViewsFrom(const oo::PList& value)
     return (views != nullptr) ? *views : std::vector<oo::PList>();
 }
 
-// The docked station's interface for <key>, or nil (objectForKey: on a nil dictionary or key). Reads
-// the station's C++ part (slice 21); a null station has none.
+// The docked station's interface for <key>, or nil (objectForKey: on a nil
+// dictionary or key). Reads the station's C++ part; a null
+// station has none.
 OOJSInterfaceDefinition* InterfaceForKey(StationEntity* station, const std::optional<std::string>& key)
 {
     if (station == nullptr || !key.has_value())
@@ -399,21 +401,20 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 
 PlayerEntity* gOOPlayer = nullptr;
 
-/*	The player's life: +sharedPlayer, -init, -deferredInit and the
-        first part of -dealloc, which were the facade's (PlayerEntity+ObjCBridge.mm, deleted). The
-        player's Objective-C object is a ship's (OOEntityWithDrawable's facade).
+/*	The player's life: +sharedPlayer, -init, -deferredInit and the first
+   part of -dealloc, which were the facade's. The player's Objective-C object is
+   a ship's (OOEntityWithDrawable's facade).
 
         Nasty initialization mechanism:
         PlayerEntity is made on demand by sharedPlayer(). This
         initialization doesn't actually set anything up -- apart from the
         assertion, it's like doing a bare alloc. deferredInit() does the work
-        that -init "should" be doing. It assumes that -[ShipEntity cxx_initWithKey:
-        definition:] will not return an object other than self.
-        This is necessary because we need a pointer to the PlayerEntity early in
-        startup, when ship data hasn't been loaded yet. In particular, we need
-        a pointer to the player to set up the JavaScript environment, we need the
-        JavaScript environment to set up OpenGL, and we need OpenGL set up to load
-        ships.
+        that -init "should" be doing. It assumes that -[ShipEntity
+   cxx_initWithKey: definition:] will not return an object other than self. This
+   is necessary because we need a pointer to the PlayerEntity early in startup,
+   when ship data hasn't been loaded yet. In particular, we need a pointer to
+   the player to set up the JavaScript environment, we need the JavaScript
+   environment to set up OpenGL, and we need OpenGL set up to load ships.
 */
 PlayerEntity::PlayerEntity() = default;
 PlayerEntity::~PlayerEntity() = default;
@@ -434,7 +435,7 @@ PlayerEntity* PlayerEntity::sharedPlayer()
     OOCAssert(gOOPlayer == nullptr, "Expected only one PlayerEntity to exist at a time.");
     oo::Ref<PlayerEntity> player = oo::makeRef<PlayerEntity>();
     {
-        oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
+        oo::AutoreleaseScope pool; // was @autoreleasepool
         return oo::ToShip(oo::RetainEntity(oo::MadeEntity(player)));
     }
 }
@@ -519,8 +520,8 @@ void PlayerEntity::suppressTargetLost() { getSuppressTargetLost(); }
 JSClassID PlayerEntity::jsClassID() { return JSPlayerShipClassID(); }
 std::optional<std::string> PlayerEntity::jsClassName() { return OOJSPlayerShipJSClassName(); }
 
-// Slice 2 of docs/phases/3-slices/PlayerEntity.md: cargo pods, commodity data and credits, galaxy and chart coordinates, the current and previous system.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Cargo pods, commodity data and credits, galaxy and chart coordinates, the
+// current and previous system. (Sends to self are member calls.)
 
 void PlayerEntity::setName(const std::optional<std::string>& /*inName*/)
 {
@@ -944,8 +945,8 @@ void PlayerEntity::setPreviousSystemID(OOSystemID sid)
     previous_system_id = sid;
 }
 
-// Slice 3 of docs/phases/3-slices/PlayerEntity.md: target, next-hop and info systems, the wormhole, the commander data dictionary (save).
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Target, next-hop and info systems, the wormhole, the commander data
+// dictionary (save). (Sends to self are member calls.)
 
 OOSystemID PlayerEntity::targetSystemID()
 {
@@ -1105,7 +1106,7 @@ void PlayerEntity::setWormhole(::WormholeEntity* newWormhole)
     // owns it) is what is retained. oo::ToObjC answers it autoreleased: the pool drains that here,
     // so the object's retain count is its holders' alone afterwards, as before.
     {
-        oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
+        oo::AutoreleaseScope pool; // was @autoreleasepool
         wormholeObject = oo::EntityHold(newWormhole); // null for null
         wormhole = newWormhole;
     }
@@ -1115,11 +1116,12 @@ oo::PList PlayerEntity::commanderDataDictionary()
 {
     int i;
 
-    // Built as the old mutable dictionary was; each number keeps its kind (proposed ADR-0043
-    // items 11 and 15): +numberWithInt: / oo_setInteger: (+numberWithLong:) signed,
-    // +numberWithUnsigned*: / oo_setUnsignedInteger: unsigned, +numberWithFloat: a single real,
-    // +numberWithDouble: and oo_setFloat: (+numberWithDouble:) a double, +numberWithBool: a bool.
-    // A nil value (which -setObject:forKey: refused) is left out.
+    // Built as the old mutable dictionary was; each number keeps its kind:
+    // +numberWithInt: / oo_setInteger: (+numberWithLong:) signed,
+    // +numberWithUnsigned*: / oo_setUnsignedInteger: unsigned, +numberWithFloat:
+    // a single real, +numberWithDouble: and oo_setFloat: (+numberWithDouble:) a
+    // double, +numberWithBool: a bool. A nil value (which -setObject:forKey:
+    // refused) is left out.
     oo::PList::Dict result;
 
     if (const std::optional<std::string> version = OoliteInfoString("CFBundleVersion"))
@@ -1407,8 +1409,8 @@ oo::PList PlayerEntity::commanderDataDictionary()
     return oo::PList(std::move(result));
 }
 
-// Slice 4 of docs/phases/3-slices/PlayerEntity.md: setting the commander data from a dictionary (load).
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Setting the commander data from a dictionary (load). (Sends to self are
+// member calls.)
 
 bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict)
 {
@@ -1990,8 +1992,8 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict)
     return YES;
 }
 
-// Slice 5 of docs/phases/3-slices/PlayerEntity.md: set-up and start-up, ship set-up from the dictionary, the session, warning about hostiles.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Set-up and start-up, ship set-up from the dictionary, the session, warning
+// about hostiles. (Sends to self are member calls.)
 
 bool PlayerEntity::setUpAndConfirmOK(bool stopOnError)
 {
@@ -2082,7 +2084,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame)
      * on the OXZ screen and other start screens */
     if (UNIVERSE != nullptr)
         UNIVERSE->preloadSounds();
-    setUpSound(); // the C++ member (by name on the object before)
+    setUpSound(); // the C++ member
     if (saveGame) {
         worldScripts = ResourceManager::loadScripts();
         if (UNIVERSE != nullptr)
@@ -2194,7 +2196,8 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame)
     script_time_check = SCRIPT_TIMER_INTERVAL;
     script_time_interval = SCRIPT_TIMER_INTERVAL;
 
-    // The local hour, minute and second of now, as the calendar date gave them (oofnd/Date.hpp; bead oo-qps.24).
+    // The local hour, minute and second of now, as the calendar date gave them
+    // (oofnd/Date.hpp).
     const oo::date::Clock::time_point now = oo::date::Clock::now();
     long long secondOfDay = (static_cast<long long>(std::chrono::floor<std::chrono::seconds>(now.time_since_epoch()).count()) + static_cast<long long>(oo::date::localUTCOffsetMinutes(now)) * 60) % 86400;
     if (secondOfDay < 0)
@@ -2510,8 +2513,7 @@ bool PlayerEntity::canCollide()
     }
 }
 
-// Slice 6 of docs/phases/3-slices/PlayerEntity.md: sun glare, the atmosphere, update:.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Sun glare, the atmosphere, update:. (Sends to self are member calls.)
 
 OOComparisonResult PlayerEntity::compareZeroDistance(Entity* /*otherEntity*/)
 {
@@ -2545,7 +2547,9 @@ GLfloat PlayerEntity::lookingAtSunWithThresholdAngleCos(GLfloat thresholdAngleCo
                 if (EXPECT(vdir > VIEW_STARBOARD || !oo::EntityIsPlayer(uni_entities[i]))) {
                     float shadow = 1.5f;
                     shadowAtPointOcclusionToValue(viewpointPosition(), 1.0f, uni_entities[i], sun, &shadow);
-                    /* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
+                    /* BUG: if the shadowing entity is not spherical, this gives
+                     * over-shadowing. True elsewhere as well, but not so obvious there.
+                     */
                     if (shadow < 1) {
                         return 0.0f;
                     }
@@ -2691,8 +2695,8 @@ void PlayerEntity::update(OOTimeDelta delta_t)
     STAGE_TRACKING_END
 }
 
-// Slice 7 of docs/phases/3-slices/PlayerEntity.md: the bookkeeping tick (doBookkeeping:), movement flags.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The bookkeeping tick (doBookkeeping:), movement flags. (Sends to self are
+// member calls.)
 
 void PlayerEntity::doBookkeeping(double delta_t)
 {
@@ -3088,7 +3092,7 @@ void PlayerEntity::doBookkeeping(double delta_t)
         UNIVERSE->getGameView()->setFov(fieldOfView, YES);
 
     // scanner sanity check - lose any targets further than maximum scanner range
-    Entity* primeTarget = primaryTarget(); // any entity (a wormhole too; the object was typed ShipEntity)
+    Entity* primeTarget = primaryTarget(); // any entity (a wormhole too)
     if (primeTarget && HPdistance2(primeTarget->getPosition(), getPosition()) > SCANNER_MAX_RANGE2 && !autopilot_engaged) {
         if (UNIVERSE != nullptr)
             UNIVERSE->addMessage(OO_DESC("target-lost"), 3.0);
@@ -3152,8 +3156,8 @@ void PlayerEntity::updateMovementFlags()
     lastOrientation = orientation;
 }
 
-// Slice 8 of docs/phases/3-slices/PlayerEntity.md: alert conditions, mass lock, fuel scoops, clocks, script and trumble ticks, the autopilot and docking requests.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Alert conditions, mass lock, fuel scoops, clocks, script and trumble ticks,
+// the autopilot and docking requests. (Sends to self are member calls.)
 
 void PlayerEntity::updateAlertConditionForNearbyEntities()
 {
@@ -3596,8 +3600,9 @@ void PlayerEntity::disengageAutopilot()
     }
 }
 
-// Slice 9 of docs/phases/3-slices/PlayerEntity.md: the autopilot AI, hyperspeed, in-flight / witchspace / launch / docking / dead updates, game over, the ship model view, targeting.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The autopilot AI, hyperspeed, in-flight / witchspace / launch / docking /
+// dead updates, game over, the ship model view, targeting. (Sends to self are
+// member calls.)
 
 void PlayerEntity::resetAutopilotAI()
 {
@@ -3951,7 +3956,8 @@ void PlayerEntity::showShipModelWithKey(const std::string& shipKey, const oo::PL
         demoShip = nullptr;
     }
 
-    ::ShipEntity* ship = ::ProxyPlayerEntity::newProxyObject(shipKey, shipData); // [[ProxyPlayerEntity alloc] cxx_initWithKey:definition:] once
+    ::ShipEntity* ship = ::ProxyPlayerEntity::newProxyObject(shipKey, shipData); // [[ProxyPlayerEntity alloc]
+                                                                                 // cxx_initWithKey:definition:]
     if (personality != ENTITY_PERSONALITY_INVALID) {
         if (ship != nullptr)
             ship->setEntityPersonalityInt(personality);
@@ -4089,7 +4095,11 @@ void PlayerEntity::updateTargeting()
                 if (wh != nullptr)
                     wh->setScanInfo(WH_SCANINFO_ARRIVAL_TIME);
                 if (UNIVERSE != nullptr) {
-                    const std::string arrivalFormat = OO_DESC("wormhole-arrival-time-computed-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+                    const std::string arrivalFormat = OO_DESC("wormhole-arrival-time-computed-@"); // the format first, as
+                                                                                                   // Clang evaluates the
+                                                                                                   // arguments: a
+                                                                                                   // description that is an
+                                                                                                   // array draws
                     UNIVERSE->addCommsMessage(oo::str::formatRuntime(arrivalFormat, { cxx_ClockToString((wh != nullptr ? wh->estimatedArrivalTime() : 0.0), NO) }), 5.0);
                 }
             }
@@ -4117,8 +4127,9 @@ void PlayerEntity::updateTargeting()
     STAGE_TRACKING_END
 }
 
-// Slice 10 of docs/phases/3-slices/PlayerEntity.md: attitude, view matrices and viewpoints, drawing, mass lock, the docked station, the HUD and its custom dials, shield levels.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Attitude, view matrices and viewpoints, drawing, mass lock, the docked
+// station, the HUD and its custom dials, shield levels. (Sends to self are
+// member calls.)
 
 void PlayerEntity::orientationChanged()
 {
@@ -4162,9 +4173,9 @@ void PlayerEntity::applyRoll(GLfloat roll1, GLfloat climb1)
 }
 
 /*
- * This method should not be necessary, but when I replaced the above with applyRoll:andClimb:andYaw, the
- * ship went crazy. Perhaps applyRoll:andClimb is called from one of the subclasses and that was messing
- * things up.
+ * This method should not be necessary, but when I replaced the above with
+ * applyRoll:andClimb:andYaw, the ship went crazy. Perhaps applyRoll:andClimb is
+ * called from one of the subclasses and that was messing things up.
  */
 void PlayerEntity::applyYaw(GLfloat yaw)
 {
@@ -4581,8 +4592,9 @@ GLfloat PlayerEntity::dialForwardShield()
     return OOClamp_0_1_f(result);
 }
 
-// Slice 11 of docs/phases/3-slices/PlayerEntity.md: the dials (shields, energy, fuel, heat, altitude, clock, missiles, scoop), fuel leak, the comm log, player roles, system memory, the compass target.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The dials (shields, energy, fuel, heat, altitude, clock, missiles, scoop),
+// fuel leak, the comm log, player roles, system memory, the compass target.
+// (Sends to self are member calls.)
 
 GLfloat PlayerEntity::dialAftShield()
 {
@@ -5017,8 +5029,8 @@ std::optional<std::string> PlayerEntity::compassTargetLabel()
     return "";
 }
 
-// Slice 12 of docs/phases/3-slices/PlayerEntity.md: compass mode, missiles and pylons, special cargo, the multi-function displays, alert flags.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Compass mode, missiles and pylons, special cargo, the multi-function
+// displays, alert flags. (Sends to self are member calls.)
 
 OOCompassMode PlayerEntity::getCompassMode()
 {
@@ -5181,11 +5193,11 @@ std::optional<std::string> PlayerEntity::dialTargetName()
         result = OO_DESC("no-target-string");
     }
 
-    // A wormhole answered -identFromShip: through its facade once; it is asked
+    // A wormhole answered -identFromShip: through its facade; it is asked
     // directly now, and any other target that answers the selector as before.
     if (WormholeEntity* wh = dynamic_cast<WormholeEntity*>(target_entity)) {
         result = wh->identFromShip(this);
-    } else if (::ShipEntity* ship = oo::ToShip(target_entity)) // what answered -identFromShip: (a ship's facade)
+    } else if (::ShipEntity* ship = oo::ToShip(target_entity)) // what answered -identFromShip:
     {
         result = ship->identFromShip(this);
     }
@@ -5464,8 +5476,8 @@ OOAlertCondition PlayerEntity::realAlertCondition()
     return getAlertCondition();
 }
 
-// Slice 13 of docs/phases/3-slices/PlayerEntity.md: alert condition, AI messages, mounting and firing missiles and mines, the cloak, ECM, energy units, the main weapons.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Alert condition, AI messages, mounting and firing missiles and mines, the
+// cloak, ECM, energy units, the main weapons. (Sends to self are member calls.)
 
 OOAlertCondition PlayerEntity::getAlertCondition()
 {
@@ -5914,8 +5926,8 @@ OOWeaponType PlayerEntity::currentWeapon()
     return weaponForFacing(currentWeaponFacing);
 }
 
-// Slice 14 of docs/phases/3-slices/PlayerEntity.md: hit testing, damage, the doppelganger, the escape capsule, dumping cargo, bounty.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Hit testing, damage, the doppelganger, the escape capsule, dumping cargo,
+// bounty. (Sends to self are member calls.)
 
 // override ShipEntity definition to ensure that
 // if shields are still up, always hit the main entity and take the damage
@@ -6411,8 +6423,9 @@ void PlayerEntity::setBounty(OOCreditsQuantity amount, const std::string& reason
     OOJSRelinquishContext(context);
 }
 
-// Slice 15 of docs/phases/3-slices/PlayerEntity.md: legal status, offences, bounties collected, internal damage, destruction, ending a scenario, docking and leaving dock.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Legal status, offences, bounties collected, internal damage, destruction,
+// ending a scenario, docking and leaving dock. (Sends to self are member
+// calls.)
 
 OOCreditsQuantity PlayerEntity::getBounty()
 {
@@ -6920,8 +6933,8 @@ void PlayerEntity::leaveDock(::StationEntity* station)
     playLaunchFromStation();
 }
 
-// Slice 16 of docs/phases/3-slices/PlayerEntity.md: witchspace: start, end, checklist, jump type and distance, fuel, galactic and wormhole jumps.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Witchspace: start, end, checklist, jump type and distance, fuel, galactic and
+// wormhole jumps. (Sends to self are member calls.)
 
 void PlayerEntity::witchStart()
 {
@@ -7203,7 +7216,7 @@ void PlayerEntity::enterWormhole(::WormholeEntity* w_hole)
     }
     BOOL misjump = scriptedMisjump() || (w_hole != nullptr ? w_hole->withMisjump() : false) || flightPitch == max_flight_pitch || randf() > 0.995;
     wormholeObject.leak(); // a wormhole held here was dropped without a release, as before
-    wormholeObject = oo::EntityHold(w_hole); // held
+    wormholeObject = oo::EntityHold(w_hole); // held (its Objective-C object)
     wormhole = w_hole;
     addScannedWormhole(wormhole);
     setStatus(STATUS_ENTERING_WITCHSPACE);
@@ -7379,8 +7392,8 @@ void PlayerEntity::witchJumpTo(OOSystemID sTo, bool misjump)
     }
 }
 
-// Slice 17 of docs/phases/3-slices/PlayerEntity.md: leaving witchspace, the status screen, the equipment list, primed and fast equipment, weapon types.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Leaving witchspace, the status screen, the equipment list, primed and fast
+// equipment, weapon types. (Sends to self are member calls.)
 
 void PlayerEntity::leaveWitchspace()
 {
@@ -7845,8 +7858,8 @@ void PlayerEntity::setFastEquipmentB(const std::optional<std::string>& eqKey)
     return weaponType;
 }
 
-// Slice 18 of docs/phases/3-slices/PlayerEntity.md: scripting lists (missiles, cargo, contracts), the system data screen, marked destinations, the chart screens.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Scripting lists (missiles, cargo, contracts), the system data screen, marked
+// destinations, the chart screens. (Sends to self are member calls.)
 
 std::vector<oo::Ref<::OOEquipmentType>> PlayerEntity::missilesList()
 {
@@ -8095,7 +8108,10 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(bool refreshBackgro
                         routeJumps = 0;
                     }
                     // don't rely on DESC_PLURAL for routeTime since it is of type double
-                    const std::string hoursText = (routeTime > 1.05 || routeTime < 0.95 ? OO_DESC("sysdata-route-hours%1") : OO_DESC("sysdata-route-hours%0")); // one description per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+                    const std::string hoursText = (routeTime > 1.05 || routeTime < 0.95 ? OO_DESC("sysdata-route-hours%1") : OO_DESC("sysdata-route-hours%0")); // one description per
+                                                                                                                                                                // local, in the order
+                                                                                                                                                                // Clang evaluates the
+                                                                                                                                                                // arguments
                     const std::string jumpsText = OO_DESC_PLURAL("sysdata-route-jumps", routeJumps);
                     distanceInfo = oo::str::format("%.1f ly / %.1f %s / %d %s",
                         routeDistance,
@@ -8297,8 +8313,8 @@ void PlayerEntity::setGuiToChartScreenFrom(OOGUIScreenID oldScreen)
     }
 }
 
-// Slice 19 of docs/phases/3-slices/PlayerEntity.md: the game options and load / save screens, equip-screen key highlight, available facings.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The game options and load / save screens, equip-screen key highlight,
+// available facings. (Sends to self are member calls.)
 
 void PlayerEntity::setGuiToGameOptionsScreen()
 {
@@ -8422,7 +8438,8 @@ void PlayerEntity::setGuiToGameOptionsScreen()
         float fov = (gameView != nullptr ? gameView->fov(NO) : 0.0f);
         int fovTicks = (int)((fov - MIN_FOV_DEG) * 20 / (MAX_FOV_DEG - MIN_FOV_DEG));
         const std::string fovWordDesc = OO_DESC("gameoptions-fov-value");
-        // %c 176 gave U+00B0 (probed on GNUstep base, oo-3rb.218); written as its UTF-8 bytes
+        // %c 176 gave U+00B0 (probed on GNUstep base); written as its
+        // UTF-8 bytes
         gui->setText(oo::str::format("%s%s (%d%s) ", fovWordDesc.c_str(), SliderString(fovTicks).c_str(), (int)fov, "\xC2\xB0" /*the degrees symbol*/), GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
         gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, FOV));
 
@@ -8687,8 +8704,8 @@ OOWeaponFacingSet PlayerEntity::availableFacings()
     return available_facings & VALID_WEAPON_FACINGS;
 }
 
-// Slice 20 of docs/phases/3-slices/PlayerEntity.md: the equip-ship screen and upgrade information.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The equip-ship screen and upgrade information. (Sends to self are member
+// calls.)
 
 void PlayerEntity::setGuiToEquipShipScreen(int skipParam, const std::optional<std::string>& eqKeyForSelectFacing)
 {
@@ -9082,8 +9099,8 @@ void PlayerEntity::showInformationForSelectedUpgradeWithFormatString(const std::
     }
 }
 
-// Slice 21 of docs/phases/3-slices/PlayerEntity.md: the interfaces screen, the start screen and intro, the OXZ manager, GUI and view change notes.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The interfaces screen, the start screen and intro, the OXZ manager, GUI and
+// view change notes. (Sends to self are member calls.)
 
 void PlayerEntity::setGuiToInterfacesScreen(int skip)
 {
@@ -9522,8 +9539,8 @@ void PlayerEntity::noteViewDidChangeFrom(OOViewID fromView, OOViewID toView)
     noteSwitchToView(toView, fromView);
 }
 
-// Slice 22 of docs/phases/3-slices/PlayerEntity.md: buying equipment, script price adjustment, weapon mounts, passenger berths, removing missiles, trade-in.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Buying equipment, script price adjustment, weapon mounts, passenger berths,
+// removing missiles, trade-in. (Sends to self are member calls.)
 
 void PlayerEntity::buySelectedItem()
 {
@@ -9984,8 +10001,8 @@ void PlayerEntity::doTradeIn(OOCreditsQuantity tradeInValue, double priceFactor)
     }
 }
 
-// Slice 23 of docs/phases/3-slices/PlayerEntity.md: cargo quantities, the local market, market filters and sorters, market screen rows.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Cargo quantities, the local market, market filters and sorters, market screen
+// rows. (Sends to self are member calls.)
 
 OOCargoQuantity PlayerEntity::cargoQuantityForType(const std::string& type)
 {
@@ -10279,8 +10296,8 @@ std::optional<std::string> PlayerEntity::marketScreenTitle()
     }
 }
 
-// Slice 24 of docs/phases/3-slices/PlayerEntity.md: the market screens, buying and selling commodities, mining and speech flags, adding equipment.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// The market screens, buying and selling commodities, mining and speech flags,
+// adding equipment. (Sends to self are member calls.)
 
 void PlayerEntity::setGuiToMarketScreen()
 {
@@ -10360,8 +10377,8 @@ void PlayerEntity::setGuiToMarketScreen()
 
         gui->clearAndKeepBackground(!guiChanged);
 
-        // The docked station (else a targeted station that broadcasts its market) was looked up
-        // here and never read; the dead lookup went with the facade.
+        // The docked station (else a targeted station that broadcasts its market)
+        // was looked up here and never read; the dead lookup went with the facade
 
         gui->setTitle(marketScreenTitle());
 
@@ -10502,7 +10519,10 @@ void PlayerEntity::setGuiToMarketInfoScreen()
         gui->clearAndKeepBackground(!guiChanged);
 
         const std::string selectedCommodity = *marketSelectedCommodity; // (non-nil here)
-        const std::string informationFormat = OO_DESC("oolite-commodity-information-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+        const std::string informationFormat = OO_DESC("oolite-commodity-information-@"); // the format first, as
+                                                                                         // Clang evaluates the
+                                                                                         // arguments: a description
+                                                                                         // that is an array draws
         gui->setTitle(oo::str::formatRuntime(informationFormat, { TextArg((shipCommodityData != nullptr ? shipCommodityData->nameForGood(selectedCommodity) : std::optional<std::string>())) }));
 
         showMarketScreenHeaders();
@@ -10512,7 +10532,10 @@ void PlayerEntity::setGuiToMarketInfoScreen()
         if (contracted > 0) {
             OOMassUnit unit = (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(selectedCommodity) : UNITS_TONS);
             gui->setColor(gui->colorFromSetting(cxx_kGuiMarketContractedColor, nil).get(), GUI_ROW_MARKET_START + 1);
-            const std::string contractedFormat = OO_DESC("oolite-commodity-contracted-d-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
+            const std::string contractedFormat = OO_DESC("oolite-commodity-contracted-d-@"); // the format first, as Clang
+                                                                                             // evaluates the arguments: a
+                                                                                             // description that is an array
+                                                                                             // draws
             gui->setText(oo::str::formatRuntime(contractedFormat, { contracted, cxx_DisplayStringForMassUnit(unit).value_or("(null)") }), GUI_ROW_MARKET_START + 1);
         }
 
@@ -10729,8 +10752,9 @@ bool PlayerEntity::addEquipmentItem(const std::string& equipmentKey, const std::
     return addEquipmentItem(equipmentKey, YES, context);
 }
 
-// Slice 25 of docs/phases/3-slices/PlayerEntity.md: adding / removing / custom-activated equipment, pylons, parcels and passengers, comms, fines, trade-in factor, renovation, view offsets, trumbles.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Adding / removing / custom-activated equipment, pylons, parcels and
+// passengers, comms, fines, trade-in factor, renovation, view offsets,
+// trumbles. (Sends to self are member calls.)
 
 bool PlayerEntity::addEquipmentItem(const std::string& equipmentKey, bool validateAddition, const std::string& context)
 {
@@ -11193,8 +11217,8 @@ NSUInteger PlayerEntity::getTrumbleCount()
     return trumbleCount;
 }
 
-// Slice 26 of docs/phases/3-slices/PlayerEntity.md: trumble values, checksums, screen modes, target memory, missile ident, rotating and panning the custom view.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Trumble values, checksums, screen modes, target memory, missile ident,
+// rotating and panning the custom view. (Sends to self are member calls.)
 
 oo::PList PlayerEntity::trumbleValue()
 {
@@ -11644,8 +11668,9 @@ void PlayerEntity::customViewPanDown(OOScalar angle)
     customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
 }
 
-// Slice 27 of docs/phases/3-slices/PlayerEntity.md: custom view vectors and data, the mission overlay and background, world scripts and script events, galactic hyperspace, jump cause, commander and save names.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Custom view vectors and data, the mission overlay and background, world
+// scripts and script events, galactic hyperspace, jump cause, commander and
+// save names. (Sends to self are member calls.)
 
 void PlayerEntity::customViewPanLeft(OOScalar angle)
 {
@@ -12069,8 +12094,9 @@ void PlayerEntity::setLastsaveName(const std::optional<std::string>& value)
     oo::Defaults::standard().setObject("last_savename", _lastsaveName.has_value() ? oo::PList(*_lastsaveName) : oo::PList());
 }
 
-// Slice 28 of docs/phases/3-slices/PlayerEntity.md: docking clearance, scanned wormholes, mission destinations, the shipyard record, extra mission and GUI-screen keys, the state dump.
-// (Its facade forwarded each selector; sends to self are member calls.)
+// Docking clearance, scanned wormholes, mission destinations, the shipyard
+// record, extra mission and GUI-screen keys, the state dump. (Sends to self are
+// member calls.)
 
 bool PlayerEntity::isDocked()
 {
@@ -12310,9 +12336,9 @@ void PlayerEntity::clearExtraGuiScreenKeys(OOGUIScreenID gui, const std::string&
     std::size_t i = keydefs.size();
     while (i--) {
         ::OOJSGuiScreenKeyDefinition* def = keydefs[i].get();
-        // the old code read "name" from the definition object with PListView, which only reads
-        // dictionaries, so this never matched; kept as it was (the definition was an Object node,
-        // which find() does not look into; the facade it wrapped is deleted)
+        // the old code read "name" from the definition object with PListView, which
+        // only reads dictionaries, so this never matched; kept as it was (the
+        // definition was an Object node, which find() does not look into)
         const oo::PList definitionValue;
         const oo::PList* definitionName = definitionValue.find("name");
         if (def && definitionName != nullptr && definitionName->isString() && *definitionName->getIf<std::string>() == key) {

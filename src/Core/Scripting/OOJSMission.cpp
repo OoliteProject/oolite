@@ -235,8 +235,8 @@ static JSValue MissionGetProperty(OOJS_GETTER_ARGS)
     case kMission_markedSystems: {
         // The destinations' values, in key order (-allValues gave hash order).
         oo::PList::Array values;
-        // Kept in a local: getIf() points into it, and the temporary the message answered died
-        // at the end of the if's initialiser (a dangling pointer until bead oo-nge8).
+        // Kept in a local: getIf() points into it, and a temporary would die at
+        // the end of the if's initialiser (a dangling pointer).
         const oo::PList missionDestinations = (player != nullptr ? player->getMissionDestinations() : oo::PList());
         if (const oo::PList::Dict* destinations = missionDestinations.getIf<oo::PList::Dict>()) {
             for (const auto& entry : *destinations) {
@@ -721,7 +721,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS)
         }
         JS_FreeValue(context, value);
 
-        JSValue demoShipVal = OOJSValueFromCxxObject(context, demoShip); // the C++ ship's JS value (its object's -oo_jsValueInContext: until the root Entity facade went)
+        JSValue demoShipVal = OOJSValueFromCxxObject(context, demoShip); // the C++ ship's JS value
         if (JS_SetPropertyStr(context, sMissionObject, "displayModel", demoShipVal) < 0) {
             OOJSReportPendingException(context);
         }

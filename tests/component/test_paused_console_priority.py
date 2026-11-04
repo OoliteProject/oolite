@@ -1,4 +1,4 @@
-"""Regression test for bug oo-37zzy: pausing a console-driven game must not starve the console.
+"""Regression test: pausing a console-driven game must not starve the console.
 
 On Windows a pause puts the game in efficiency mode (GameController -setEcoQoS:), which was
 IDLE_PRIORITY_CLASS plus EcoQoS throttling. An idle-class process runs only when no other thread
@@ -39,6 +39,6 @@ def test_a_paused_game_with_a_console_keeps_normal_priority(world):
     console = world.start(seed=1, load_save=SCENARIO_SAVE)
     assert console.evaluate("pauseGame()").strip().lower() == "true"
     assert _priority_class(console._proc.pid) != IDLE_PRIORITY_CLASS, (
-        "the paused game went to IDLE_PRIORITY_CLASS with a debug console connected (oo-37zzy)"
+        "the paused game went to IDLE_PRIORITY_CLASS with a debug console connected"
     )
     assert console.evaluate("1 + 1", timeout=60).strip() == "2"

@@ -49,8 +49,8 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
         return false; // [self release]; return nil: the factory drops the object
     }
 
-    // The configuration mixes plist data with live objects (colours): an oo::PList carries both
-    // exactly (proposed ADR-0043 Amendment 2).
+    // The configuration mixes plist data with live objects (colours): an
+    // oo::PList carries both exactly.
     const oo::PList& config = configuration;
     const oo::PList diffuseSpec = cxx_OOMaterialDiffuseMapSpecifier(config, name);
     const oo::PList emissionSpec = cxx_OOMaterialEmissionMapSpecifier(config);
@@ -116,8 +116,8 @@ bool OOMultiTextureMaterial::initWithName(const std::optional<std::string>& name
     return true;
 }
 
-// -dealloc's [self willDealloc] is the root facade's (proposed ADR-0056, amendment oo-smy item 3),
-// and the maps are released with their oo::ObjCRefs.
+// -dealloc's [self willDealloc] is the root facade's, and the maps are released
+// with their oo::ObjCRefs.
 
 std::optional<std::string> OOMultiTextureMaterial::descriptionComponents() const
 {

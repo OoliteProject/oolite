@@ -36,15 +36,9 @@ MA 02110-1301, USA.
 #include "ShipEntity.h"
 
 /*
-        C++20 since bead oo-tq53, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The C API in OOJSEntity.h
-        (JSValueToEntity(), EntityFromArgumentList(), OOIsPlayerStale(), OOIsStaleEntity()) returns bool
-        too; its callers compile unchanged. Nothing else in the file was Objective-C: an entity is still
-        messaged through the Objective-C Entity, the façade every entity is while its subclasses are
-        Objective-C (ShipEntity's own selectors included), as OOJSSun.mm does, which is why the file is
-        still .mm until Phase 4.
+        The Entity class is the shared base for every other entity binding
+        file's OOJSRegisterSubclass() call and entity getter; JSEntityClassID()
+        returns its ID.
 */
 
 static JSClassID sEntityClassID;
@@ -254,8 +248,8 @@ static JSValue EntityGetProperty(OOJS_GETTER_ARGS)
             return JS_UNDEFINED;
     }
 
-    // The C++ members the root facade's selectors called: a virtual one reaches an Objective-C
-    // entity's override as the selector did.
+    // The C++ members the properties call: a virtual one reaches an
+    // Objective-C entity's override.
     switch (magic) {
     case kEntity_collisionRadius:
         return JS_NewFloat64(context, cxxEntity->collisionRadius());
@@ -358,7 +352,7 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS)
         return JS_EXCEPTION;
     if (OOIsStaleEntity(cxxEntity))
         return JS_UNDEFINED;
-    // The C++ members the root facade's selectors called.
+    // The C++ members the properties call.
 
     switch (magic) {
     case kEntity_position:
@@ -434,7 +428,7 @@ static JSValue EntityDumpState(OOJS_NATIVE_ARGS)
     Entity* thisEnt = nullptr;
     OOJSEntityGetEntity(context, OOJS_THIS, &thisEnt);
     if (thisEnt != nullptr)
-        thisEnt->dumpState(); // the C++ member, which the object's -dumpState called
+        thisEnt->dumpState(); // the C++ member
 
     OOJS_RETURN_VOID;
 

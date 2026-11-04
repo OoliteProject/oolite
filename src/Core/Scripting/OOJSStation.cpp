@@ -43,18 +43,8 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 
 /*
-        C++20 since bead oo-3oxq, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on StationEntity
-        became a free function (the station's JS class is JSStationClassID(),
-        StationEntity::jsClassID()), and its methods became StationEntity members. OOCommodities,
-        OOCommodityMarket and OOEquipmentType are C++ and called directly, null-guarded where a
-        message to nil answered; an interface definition is C++ (its façade was deleted), and the
-        station keeps it as oo::Ref. The station is C++ (its façade was deleted): its members are
-        called (its object, a ship's, is the JS object's; the ship is C++). Messages to classes that
-        are still Objective-C (Universe, GameController) stay as they are (the ship registry is C++),
-        which is why the file is still .mm until Phase 4.
+        Station is registered as a Ship subclass and object converter with
+        sStationClassID, the class its instances are made with.
 */
 
 static JSClassID sStationClassID;
@@ -196,8 +186,7 @@ static bool JSStationGetStationEntity(JSContext* context, JSValueConst stationOb
     if (!result)
         return false;
 
-    // A station's object is a ship's: its C++ part says it is a station,
-    // where -isKindOfClass:[StationEntity class] did.
+    // A station's object is a ship's: its C++ part says it is a station.
     StationEntity* station = oo::ToStation(entity);
     if (station == nullptr)
         return false;
@@ -319,7 +308,7 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS)
     case kStation_shipyard: {
         if (!(entity != nullptr ? entity->hasShipyard() : false)) {
             // return null if station has no shipyard
-            return JS_NULL; // OOJSValueFromNativeObject(context, nil)
+            return JS_NULL;
         } else {
             if ((entity != nullptr ? entity->getLocalShipyard() : (std::vector<oo::PList>*)nullptr) == nullptr) {
                 if (entity != nullptr)
@@ -1010,8 +999,9 @@ static std::optional<std::string> StringAtIndex(const oo::PList& array, std::siz
     return array.at<std::string>(index);
 }
 
-// A mutable dictionary's -setObject:forKey: given a nil value raised this (GNUstep 1.31.1's text),
-// and the calling script saw it as "Native exception: <reason>". (Exceptions have their own beads.)
+// A mutable dictionary's -setObject:forKey: given a nil value raised this
+// (GNUstep 1.31.1's text), and the calling script saw it as "Native exception:
+// <reason>".
 static void RaiseNilValueForKey(std::string_view key)
 {
     OORaiseException(OOInvalidArgumentException, "Tried to add nil value for key '%s' to dictionary", std::string(key).c_str());
@@ -1025,8 +1015,7 @@ static std::string ValueForKey(const std::optional<std::string>& value, std::str
     return *value;
 }
 
-// -[OOEquipmentType weaponThreatAssessment] of a weapon, which is C++ since bead oo-fg7i: 0 for no
-// weapon, as a message to nil answered.
+// OOEquipmentType::weaponThreatAssessment() of a weapon: 0 for no weapon.
 static GLfloat WeaponThreatAssessment(OOWeaponType weapon)
 {
     OOEquipmentType* type = weapon;

@@ -4,11 +4,8 @@ OOOXZManager.h
 
 Responsible for installing and uninstalling OXZs
 
-C++20 since bead oo-bwjb, slice 1 of docs/phases/3-slices/OOOXZManager.md (proposed ADR-0056: a
-singleton, amendment oo-r7m0; a class-shell slice, amendment oo-pni4); slices 2 to 4 (beads oo-0hyr,
-oo-q7r3, oo-qbgo) converted the rest of the file. Its Objective-C facade was deleted by bead
-oo-9ht.131: the callers (GameController, PlayerEntity, PlayerEntityControls) call
-OOOXZManager::sharedManager(), and the class left namespace cxx.
+A singleton: the callers (GameController, PlayerEntity, PlayerEntityControls)
+call OOOXZManager::sharedManager().
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -32,20 +29,19 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <cstdio>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "GuiDisplayGen.h"
 #include "OOColor.h"
 #include "OOFoundation.h"
 #include "OOOpenGL.h"
 #include "OOTypes.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-
-#include <cstdio>
-#include <optional>
-#include <string>
-#include <vector>
+#include "oofnd/objc/OOObject.h"
 
 namespace oo::http {
 class Download;
@@ -76,8 +72,7 @@ typedef enum {
     OXZ_STATE_EXTRACTDONE
 } OXZInterfaceState;
 
-// What a manifest's OXZ can do here (installableState()). Moved from OOOXZManager.mm by bead oo-0hyr
-// (a member's result; ADR-0056 amendment oo-pni4 item 2).
+// What a manifest's OXZ can do here (installableState()). (a member's result).
 typedef enum {
     OXZ_INSTALLABLE_OKAY,
     OXZ_INSTALLABLE_UPDATE,
@@ -93,22 +88,25 @@ typedef enum {
 
 class OOOXZManager : public oo::RefCounted {
 public:
-    // The shared manager, made on first use; borrowed, never released (proposed ADR-0056
-    // amendment oo-r7m0).
+    // The shared manager, made on first use; borrowed, never released.
     static OOOXZManager* sharedManager();
 
     ~OOOXZManager();
 
-    std::optional<std::string> installPath(); // oo::ResourcePaths::managedAddOnsDirectory()
-    std::optional<std::string> extractAddOnsPath(); // oo::ResourcePaths::extractAddOnsDirectory()
-    std::vector<std::string> additionalAddOnsPaths(); // oo::ResourcePaths::additionalAddOnsDirectories()
+    std::optional<std::string>
+    installPath(); // oo::ResourcePaths::managedAddOnsDirectory()
+    std::optional<std::string>
+    extractAddOnsPath(); // oo::ResourcePaths::extractAddOnsDirectory()
+    std::vector<std::string>
+    additionalAddOnsPaths(); // oo::ResourcePaths::additionalAddOnsDirectories()
 
     bool updateManifests();
     bool cancelUpdate();
 
-    /*	Deliver the current download's callbacks (response, data, finish, failure), in order,
-            on the main thread: GameController's frame loop calls this where it pumps the run loop,
-            which is where the old URL-connection callbacks were delivered. Proposed ADR-0044.
+    /*	Deliver the current download's callbacks (response, data, finish,
+       failure), in order, on the main thread: GameController's frame loop calls
+       this where it pumps the run loop, which is where the old URL-connection
+       callbacks were delivered.
     */
     void processDownloadEvents();
 
@@ -136,14 +134,18 @@ public:
     void processOptionsPrev();
     void processOptionsNext();
 
-    // Internal (the OOPrivate and OOFilterRules categories): public for the unit test, which calls
-    // them and sets the state below, and for the facade's forwards; private once the facade is
-    // deleted and the test reaches them otherwise.
+    // Internal (the OOPrivate and OOFilterRules categories): public for the unit
+    // test, which calls them and sets the state below, and for the facade's
+    // forwards; private once the facade is deleted and the test reaches them
+    // otherwise.
     std::optional<std::string> manifestPath(); // nullopt: no cache directory
     std::optional<std::string> downloadPath(); // nullopt: no cache directory
-    std::optional<std::string> extractionBasePathForIdentifier(const std::string& identifier, const std::string& version); // nullopt: no user root
+    std::optional<std::string> extractionBasePathForIdentifier(
+        const std::string& identifier,
+        const std::string& version); // nullopt: no user root
     std::optional<std::string> dataURL();
-    std::optional<std::string> humanSize(NSUInteger bytes); // nullopt: the missing-field description is missing
+    std::optional<std::string> humanSize(
+        NSUInteger bytes); // nullopt: the missing-field description is missing
 
     bool ensureInstallPath();
 
@@ -151,10 +153,12 @@ public:
     bool processDownloadedManifests();
     bool processDownloadedOXZ();
 
-    oo::PList installedManifestForIdentifier(const std::string& identifier); // null: not installed
+    oo::PList installedManifestForIdentifier(
+        const std::string& identifier); // null: not installed
     OXZInstallableState installableState(const oo::PList& manifest);
     oo::Ref<OOColor> colorForManifest(const oo::PList& manifest);
-    std::optional<std::string> installStatusForManifest(const oo::PList& manifest); // nullopt: its description is missing
+    std::optional<std::string> installStatusForManifest(
+        const oo::PList& manifest); // nullopt: its description is missing
 
     bool installOXZ(NSUInteger item);
     bool updateAllOXZ();
@@ -170,13 +174,15 @@ public:
     void setOXZList(const oo::PList& list); // an Array (sorted here), or null
     void setFilteredList(const oo::PList& list);
     void setFilter(const std::string& filter);
-    void setOXPURL(const std::optional<std::string>& url); // lowercased; nullopt: none (was nil)
+    void setOXPURL(const std::optional<std::string>&
+            url); // lowercased; nullopt: none (was nil)
     oo::PList applyCurrentFilter(const oo::PList& list); // an Array
 
-    void setCurrentDownload(oo::http::Download* download, const std::string& label);
+    void setCurrentDownload(oo::http::Download* download,
+        const std::string& label);
     void setProgressStatus(const std::string& newValue);
 
-    /* The download's callbacks (HTTP client events until proposed ADR-0044) */
+    /* The download's callbacks (HTTP client events) */
     void downloadDidFailWithError(const std::string& error);
     void downloadDidReceiveResponse(long long expectedContentLength);
     void downloadDidReceiveData(const std::string& data);
@@ -186,17 +192,23 @@ public:
     bool applyFilterByNoFilter(const oo::PList& manifest);
     bool applyFilterByUpdateRequired(const oo::PList& manifest);
     bool applyFilterByInstallable(const oo::PList& manifest);
-    bool applyFilterByKeyword(const oo::PList& manifest, const std::string& keyword);
-    bool applyFilterByAuthor(const oo::PList& manifest, const std::string& author);
+    bool applyFilterByKeyword(const oo::PList& manifest,
+        const std::string& keyword);
+    bool applyFilterByAuthor(const oo::PList& manifest,
+        const std::string& author);
     bool applyFilterByDays(const oo::PList& manifest, const std::string& days);
     bool applyFilterByTag(const oo::PList& manifest, const std::string& tag);
-    bool applyFilterByCategory(const oo::PList& manifest, const std::string& category);
+    bool applyFilterByCategory(const oo::PList& manifest,
+        const std::string& category);
 
-    oo::PList _oxzList; // Array of manifests, sorted; null until a list is loaded
-    oo::PList _managedList; // Array of the managed OXZs' manifests; null: to be rebuilt
+    oo::PList
+        _oxzList; // Array of manifests, sorted; null until a list is loaded
+    oo::PList _managedList; // Array of the managed OXZs' manifests; null: to be
+                            // rebuilt
     oo::PList _filteredList; // Array of the manifests on show
     std::string _currentFilter; // lowercase; "*" initially
-    std::optional<std::string> _currentOXPURL; // lowercase; the info page's URL, nullopt: none (was nil)
+    std::optional<std::string> _currentOXPURL; // lowercase; the info page's URL,
+                                               // nullopt: none (was nil)
 
     OXZInterfaceState _interfaceState = { };
     bool _interfaceShowingOXZDetail = { };
@@ -214,7 +226,8 @@ public:
     NSUInteger _offset = { };
 
     std::string _progressStatus; // "" when there is none
-    // Unique by oo::PList::operator==; "any" is front() (order-sensitive: named in commit).
+    // Unique by oo::PList::operator==; "any" is front() (order-sensitive: named
+    // in commit).
     std::vector<oo::PList> _dependencyStack;
 
 private:

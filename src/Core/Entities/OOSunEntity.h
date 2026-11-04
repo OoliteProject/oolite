@@ -35,9 +35,8 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-hach): the sun's system dictionary is an oo::PList
-        and its name std::optional (nil stays nil): -cxx_name / -cxx_setName: (the id -name / -setName:
-        retired with oo-qps.44).
+/*	The sun's system dictionary is an oo::PList and its name std::optional
+   (nil stays nil).
 */
 
 #define SUN_CORONA_SAMPLES 729 // Samples at half-degree intervals, with a bit of overlap.
@@ -55,14 +54,16 @@ MA 02110-1301, USA.
 #define SUN_GLARE_CORONA_FACTOR 1.5
 #endif
 
-/*	C++ only (its Objective-C facade is deleted): the universe makes it with oo::makeRef<OOSunEntity>(), hands it to Objective-C
-        with oo::NewEntityFacade (its object is the root Entity's facade) and holds it as the C++ class;
-        its OOStellarBody answers are members (OOStellarBodyRadius() asks them for an Objective-C object).
+/*	The universe makes it with
+   oo::makeRef<OOSunEntity>(), hands it to Objective-C with oo::NewEntityFacade
+   (its object is the root Entity's facade) and holds it as the C++ class; its
+   OOStellarBody answers are members (OOStellarBodyRadius() asks them for an
+   Objective-C object).
 */
 class OOSunEntity : public Entity {
 public:
-    /*	-initSunWithColor:andDictionary:'s body after [super init] (the constructor ran Entity's),
-            run on a new sun (the facade ran it once it held this object).
+    /*	-initSunWithColor:andDictionary:'s body after [super init] (the
+       constructor ran Entity's), run on a new sun.
     */
     void initSunWithColor(OOColor* sun_color, const oo::PList& dict);
     bool setSunColor(OOColor* sun_color);

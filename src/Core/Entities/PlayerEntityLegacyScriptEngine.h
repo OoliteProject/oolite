@@ -28,11 +28,9 @@ MA 02110-1301, USA.
 
 #include "PlayerEntity.h"
 
-/*	The category PlayerEntity (Scripting) is members of
-        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityLegacyScriptEngine.mm. Its Objective-C interface,
-        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
-        which PlayerEntity.h imports. This header stays for the files that import it.
-*/
+/* The category PlayerEntity (Scripting) is members of PlayerEntity, declared
+ * in PlayerEntity.h. This header stays for the files that include it.
+ */
 
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"

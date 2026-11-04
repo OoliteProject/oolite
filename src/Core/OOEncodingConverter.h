@@ -39,12 +39,8 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-class OOCache; // C++ since bead oo-rdfh
+class OOCache;
 
-/*	C++20 since bead oo-demz (proposed ADR-0056, the OOColor house style). Its one caller
-        (HeadUpDisplay's text engine) was adapted in the same bead, so there is no Objective-C facade
-        and the class is global.
-*/
 class OOEncodingConverter : public oo::RefCounted {
 public:
     // [[OOEncodingConverter alloc] initWithEncoding:substitutions:] and -initWithFontPList:.
@@ -65,7 +61,8 @@ private:
     void profileFire(void* junk); // defined only when the .mm's PROFILE_ENCODING_CONVERTER is on
 
     std::optional<oo::str::Encoding> _encoding = { }; // nullopt: an unknown encoding name (was NSNotFound)
-    oo::Ref<OOCache> _cache; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+    oo::Ref<OOCache> _cache; // no `= {}`: GCC instantiates ~Ref<T> at a default
+                             // member initializer, and T is incomplete here
     std::vector<std::pair<std::string, std::string>> _substitutions = { }; // in the order they are applied
 };
 
@@ -80,5 +77,6 @@ private:
                 "windows-greek"			windowsCP1253 (code page 1253)
                 "windows-turkish"		windowsCP1254 (code page 1254)
 */
-const char* StringFromEncoding(unsigned encoding); // oo::str::Encoding numeric value; NULL for unknown
-// (EncodingFromString() retired with the Foundation sweep, bead oo-gosz: oo::str::encodingFromName() in oofnd/Encoding.hpp)
+const char* StringFromEncoding(
+    unsigned encoding); // oo::str::Encoding numeric value; NULL for unknown
+// (For the reverse, see oo::str::encodingFromName() in oofnd/Encoding.hpp.)

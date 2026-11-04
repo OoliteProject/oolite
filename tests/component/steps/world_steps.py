@@ -1,5 +1,5 @@
 """The step library. S2-S8 reuse these; adding a NEW step is a new interface, so it is a seam,
-not fleet work - stop and file a bead (ADR-0018 section 5).
+not fleet work - stop and report it.
 
 Every step drives the game through JS that already exists. Nothing here adds a native property:
 assertions are built from countShipsWithRole, system.allShips and the entity/ship properties listed
@@ -36,24 +36,24 @@ ROLE_AI = {
     "shuttle": "oolite-shuttleAI.js",
 }
 
-# oo-sjvz DETERMINISM FIX (S1/S5/S6 flakiness, docs/fleet/LEARNINGS.md oo-qwk5/oo-rkm):
+# DETERMINISM FIX (S1/S5/S6 flakiness):
 # system.addShips(role, ...) draws the ship TYPE at random (Universe.mm:4002 -newShipWithRole: ->
 # :3951 -randomShipKeyForRoleRespectingConditions: -> OOShipRegistry.mm:304
 # [[self probabilitySetForRole:role] randomObject]), so spawning "police" or "pirate" by role
 # hands a component scenario a different ship class - with a different max_energy, weapon
-# loadout and starting bounty - on every run, even at a pinned seed. Measured by oo-qwk5: ~24% of
+# loadout and starting bounty - on every run, even at a pinned seed. Measured: ~24% of
 # role-spawned pirates were not even legally attackable by police, because their random starting
 # bounty fell below policeAI's fineThreshold() gate (oolite-priorityai.js:845,
 # `50 - government*6`). That is what made S1/S5/S6 a coin flip unrelated to the code under test.
 # Pinning fixes the draw, not combat: S6 asserts the police ship survives up to 900 ticks of a
-# real-time 1-v-1 dogfight, which it sometimes loses whatever the hulls (oo-9aq4).
+# real-time 1-v-1 dogfight, which it sometimes loses whatever the hulls.
 #
 # The fix pins the SHIP KEY that addShips is actually asked for, using the literal "[shipKey]"
 # form that OOShipRegistry.mm:1253 registers at probability 1.0 for every ship (no draw),
 # entirely INSIDE the existing spawn steps' implementation - no .feature file changes and no new
 # step text, since a step's WORDING is what every scenario's vocabulary and guardrails' test-unit
 # classifier key off. Choosing which key backs a role is a fact about this test harness, not a
-# new observation surface (ADR-0018 section 4/5): no new native property, no new step.
+# new observation surface: no new native property, no new step.
 # Every key is core game data (Resources/Config/shipdata.plist) and carries the role it backs,
 # so a pinned ship is one the role draw could itself have produced.
 ROLE_SHIP_KEY = {
@@ -78,11 +78,11 @@ ROLE_SHIP_KEY = {
 PIRATE_BOUNTY = 100
 
 # Emptying the system is a clear-then-count, and a live universe keeps adding ships between the
-# two (bug oo-hmnbb). Measured sources, all present on phase-1 too: a ship removed mid-way
-# through a pirate pay-off keeps ejecting cargo pods for up to 48 s, because Ship.dumpCargo(n)
-# queues n-1 deferred -dumpCargo calls 0.75 s apart (OOJSShip.mm ShipDumpCargo) and a deferred
-# call outlives the ship's removal; stations launch shuttles; the populator repopulates every
-# ~20 s (Universe.h SYSTEM_REPOPULATION_INTERVAL). A single clear therefore occasionally counts a
+# two. Measured sources: a ship removed mid-way through a pirate pay-off keeps
+# ejecting cargo pods for up to 48 s, because Ship.dumpCargo(n) queues n-1
+# deferred -dumpCargo calls 0.75 s apart (OOJSShip.mm ShipDumpCargo) and a
+# deferred call outlives the ship's removal; stations launch shuttles; the
+# populator repopulates every ~20 s (Universe.h SYSTEM_REPOPULATION_INTERVAL). A single clear therefore occasionally counts a
 # pod that was ejected between the two console commands. So the clear is repeated until one
 # clear-then-count sees only the player - a wait for a condition, not a longer sleep - and the
 # assertion below it is unchanged: if the system cannot be emptied, setup still fails.
@@ -204,7 +204,7 @@ def _spawn(world, count, role, at_js, radius_m):
 
     ROLE_SHIP_KEY pins the SELECTOR passed to addShips to a literal "[shipKey]" for every role
     this step library knows about, removing OOShipRegistry's random draw between ship types (see
-    the oo-sjvz determinism-fix comment above ROLE_SHIP_KEY). addShips still assigns the KEY
+    the determinism-fix comment above ROLE_SHIP_KEY). addShips still assigns the KEY
     itself as primaryRole (Universe.mm:4017 `[ship setPrimaryRole:role]`, called with the literal
     selector), so every spawned ship's primaryRole is forced back to the scenario's ROLE
     afterwards - otherwise every existing Then step and AI precondition that compares
@@ -286,7 +286,7 @@ def count_with_role(world, role):
 def engages_within(world, ticks, hunter, quarry):
     """Poll until a hunter has the quarry as a hostile target, or the budget runs out.
 
-    Engagement rather than a kill, and measured rather than assumed - see ADR-0019. A GalCop
+    Engagement rather than a kill, and measured rather than assumed. A GalCop
     Viper has 180 max energy against a stock pirate's 706, so it cannot win: observed over 320 s
     the police dropped to 130/180 and regenerated while the pirate never fell below 682/706. They
     simply circle. Engagement, by contrast, is quick and unambiguous: target acquired and

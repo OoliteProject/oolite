@@ -1,8 +1,10 @@
 /*	oofnd/String.hpp
-        oo::str: string utilities over UTF-8 std::string (ADR-0013 decision 4), the C++ shape of the
-        NSString methods Oolite relies on and of its own NSString categories (bead oo-dps, proposed
-        ADR-0034). Every function reproduces what GNUstep base 1.31.1 does, character for character;
-        tests/unit/oofnd/test_string.cpp pins each one against output captured from it.
+        oo::str: string utilities over UTF-8 std::string, the
+   C++ shape of the NSString methods Oolite relies on and of its own NSString
+   categories. Every function reproduces what GNUstep base 1.31.1 does,
+   character for character;
+        tests/unit/oofnd/test_string.cpp pins each one against output captured
+   from it.
 
             Foundation / Oolite category                  oo::str
             --------------------------------------------  ----------------------------------------------
@@ -51,11 +53,10 @@
         Header-only, C++20, compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_STRING_HPP
-#define OOFND_STRING_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
-// this header (proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for this header.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -504,15 +505,18 @@ namespace detail {
 
 } // namespace detail
 
-// +[NSString stringWithContentsOfUnicodeFile:] (NSStringOOExtensions) once the file's bytes are
-// read: UTF-16 if the length is even and the first two bytes are either byte-order mark (the
-// units after it are read little-endian whichever mark it was, as the category did), else UTF-8
-// after an optional UTF-8 BOM, else ISO Latin-1 of the bytes after that BOM. GNUstep's own
-// decoding is reproduced (probed on gnustep-base 1.31.1, tests/unit/oofnd/test_unicode_file.cpp):
-// the UTF-16 path applies -stringWithCharacters:'s mark handling twice, the UTF-8 path drops up
-// to two more leading U+FEFF. The category passed length + 3 instead of length - 3 after a UTF-8
-// BOM, reading past the buffer (bead oo-3rb.62, proposed ADR-0038); this is the corrected length.
-inline std::string decodeUnicodeFile(const std::uint8_t* bytes, std::size_t length)
+// +[NSString stringWithContentsOfUnicodeFile:] (NSStringOOExtensions) once the
+// file's bytes are read: UTF-16 if the length is even and the first two bytes
+// are either byte-order mark (the units after it are read little-endian
+// whichever mark it was, as the category did), else UTF-8 after an optional
+// UTF-8 BOM, else ISO Latin-1 of the bytes after that BOM. GNUstep's own
+// decoding is reproduced (probed on gnustep-base 1.31.1,
+// tests/unit/oofnd/test_unicode_file.cpp): the UTF-16 path applies
+// -stringWithCharacters:'s mark handling twice, the UTF-8 path drops up to two
+// more leading U+FEFF. The category passed length + 3 instead of length - 3
+// after a UTF-8 BOM, reading past the buffer; this is the corrected length.
+inline std::string decodeUnicodeFile(const std::uint8_t* bytes,
+    std::size_t length)
 {
     if (length >= 2 && length % 2 == 0) {
         const unsigned first = (unsigned(bytes[0]) << 8) | bytes[1];
@@ -565,12 +569,14 @@ inline void deleteUnitAt(std::string& s, std::size_t index)
     s = utf16ToUtf8(u);
 }
 
-// +[NSString stringWithFormat:] for formats without %@: vsnprintf into a std::string. GNUstep's
-// formatter gave the same bytes for 2,102 of 2,183 captured (conversion, value) pairs, every
-// conversion the game formats numbers with (test_string.cpp). Where they differ this follows C,
-// deliberately (proposed ADR-0034): %s passes UTF-8 through (GNUstep decoded the bytes as
-// Latin-1), %c / %lc above 0x7F, %p ("0x1234" / "(null)" in GNUstep), %hhd (GNUstep printed it
-// unsigned) and %f of magnitudes from about 1e22 (GNUstep dropped trailing digits).
+// +[NSString stringWithFormat:] for formats without %@: vsnprintf into a
+// std::string. GNUstep's formatter gave the same bytes for 2,102 of 2,183
+// captured (conversion, value) pairs, every conversion the game formats numbers
+// with (test_string.cpp). Where they differ this follows C, deliberately:
+// %s passes UTF-8 through (GNUstep decoded the bytes as
+// Latin-1), %c / %lc above 0x7F, %p ("0x1234" / "(null)" in GNUstep), %hhd
+// (GNUstep printed it unsigned) and %f of magnitudes from about 1e22 (GNUstep
+// dropped trailing digits).
 inline std::string vformat(const char* fmt, va_list args)
 {
     va_list copy;
@@ -1007,19 +1013,24 @@ inline std::vector<std::string> tokens(std::string_view s)
     return result;
 }
 
-// --- path components and pointers (the Foundation sweep, proposed ADR-0043) ------------------
+// --- path components and pointers ------------------
 
-// -pathComponents, +pathWithComponents:, -lastPathComponent, -stringByDeletingLastPathComponent
-// and -stringByAppendingPathComponent: as GNUstep 1.31.1 answers them on Windows, where '/' and
-// '\' both separate. A path may start with a ROOT, kept verbatim as its first component:
-//   "\\host\share\" or "//host/share/" (UNC; the share must be followed by a separator),
-//   a drive "X:" (ASCII letter) and at most one separator after it ("C:", "C:/", "C:\"),
-//   "~user/" / "~/" (a tilde word WITH its separator; "~user" alone is an ordinary component),
-//   or else one leading separator ("/", "\"; further leading separators are skipped).
-// After the root, runs of separators split components; a path that ends in a separator after
-// its root gets a final "/" component. Pinned by tests/unit/oofnd/test_string_sweep.cpp, whose
-// rows are GNUstep's own answers for 71 paths and 33 component lists (captured on this
-// toolchain). appendingPathComponent takes ONE component (no separators in it).
+// -pathComponents, +pathWithComponents:, -lastPathComponent,
+// -stringByDeletingLastPathComponent and -stringByAppendingPathComponent: as
+// GNUstep 1.31.1 answers them on Windows, where '/' and
+// '\' both separate. A path may start with a ROOT, kept verbatim as its first
+// component:
+//   "\\host\share\" or "//host/share/" (UNC; the share must be followed by a
+//   separator), a drive "X:" (ASCII letter) and at most one separator after it
+//   ("C:", "C:/", "C:\"),
+//   "~user/" / "~/" (a tilde word WITH its separator; "~user" alone is an
+//   ordinary component), or else one leading separator ("/", "\"; further
+//   leading separators are skipped).
+// After the root, runs of separators split components; a path that ends in a
+// separator after its root gets a final "/" component. Pinned by
+// tests/unit/oofnd/test_string_sweep.cpp, whose rows are GNUstep's own answers
+// for 71 paths and 33 component lists (captured on this toolchain).
+// appendingPathComponent takes ONE component (no separators in it).
 namespace detail {
 
     enum class PathRoot { none,
@@ -1250,15 +1261,18 @@ inline std::string pointerDescription(const void* pointer)
     return format("%#x", low);
 }
 
-// --- ordering -------------------------------------------------------------------------------
+// --- ordering
+// -------------------------------------------------------------------------------
 
-// -compare: and -caseInsensitiveCompare: as orderings: < 0, 0, > 0 for NSOrderedAscending, Same,
-// Descending (the Foundation sweep, proposed ADR-0043; for sorting and ordered containers).
-// Both walk the UTF-16 units as NSString does; the caseInsensitive form first maps each unit
-// through toLower() (GNUstep folds to LOWER case: "_" sorts before "B", captured). Exact for every
-// ASCII pair (tests/unit/oofnd/test_string_compare.cpp pins digests captured from GNUstep 1.31.1).
-// Not modelled: GNUstep's composed-sequence equivalence between non-ASCII strings ("e" + U+0301
-// equals U+00E9 there, and orders by it); here the units decide.
+// -compare: and -caseInsensitiveCompare: as orderings: < 0, 0, > 0 for
+// NSOrderedAscending, Same, Descending (for sorting and ordered
+// containers). Both walk the UTF-16 units as
+// NSString does; the caseInsensitive form first maps each unit through
+// toLower() (GNUstep folds to LOWER case: "_" sorts before "B", captured).
+// Exact for every ASCII pair (tests/unit/oofnd/test_string_compare.cpp pins
+// digests captured from GNUstep 1.31.1). Not modelled: GNUstep's
+// composed-sequence equivalence between non-ASCII strings ("e" + U+0301 equals
+// U+00E9 there, and orders by it); here the units decide.
 inline int compare(std::string_view a, std::string_view b)
 {
     const std::u16string ua = utf8ToUtf16(a), ub = utf8ToUtf16(b);
@@ -1277,15 +1291,18 @@ inline int caseInsensitiveCompare(std::string_view a, std::string_view b)
     return c < 0 ? -1 : (c > 0 ? 1 : 0);
 }
 
-// -[NSString localizedCompare:] as an ordering (< 0, 0, > 0; bead oo-r4d6). GNUstep hands it to ICU:
-// a collator for [NSLocale currentLocale] -- ICU's default locale, en_US on the fleet machine -- at
-// its default attributes, comparing the strings as ICU does (so "a" < "A" < "b", "_x" < "1.10" <
-// "a", accents after the base letter, "e" + U+0301 equal to U+00E9). Pinned against a table
-// captured from GNUstep 1.31.1 in tests/unit/oofnd/test_localized_compare.cpp. The <locale> form
-// names the locale (the test's, so it does not depend on the machine); the two-argument form
-// uses ICU's default, as GNUstep does. If ICU cannot open a collator the literal order
-// (compare) decides, rather than calling everything equal.
-inline int localizedCompare(std::string_view a, std::string_view b, const char* locale)
+// -[NSString localizedCompare:] as an ordering (< 0, 0, > 0).
+// GNUstep hands it to ICU: a collator for [NSLocale currentLocale] -- ICU's
+// default locale, en_US on the fleet machine -- at its default attributes,
+// comparing the strings as ICU does (so "a" < "A" < "b", "_x" < "1.10" < "a",
+// accents after the base letter, "e" + U+0301 equal to U+00E9). Pinned against
+// a table captured from GNUstep 1.31.1 in
+// tests/unit/oofnd/test_localized_compare.cpp. The <locale> form names the
+// locale (the test's, so it does not depend on the machine); the two-argument
+// form uses ICU's default, as GNUstep does. If ICU cannot open a collator the
+// literal order (compare) decides, rather than calling everything equal.
+inline int localizedCompare(std::string_view a, std::string_view b,
+    const char* locale)
 {
     struct Closer {
         void operator()(UCollator* c) const noexcept { ucol_close(c); }
@@ -1608,16 +1625,20 @@ namespace detail {
 
 } // namespace detail
 
-// [NSString stringWithFormat:fmt, args...] for a format string known only at run time (GNUstep
-// 1.31.1's GSFormat, captured: tests/unit/oofnd/test_string_format_runtime.cpp). Conversions:
-// %@ (width and precision in UTF-16 units), %s, %p (pointerDescription, with width), %d %i %u %x
-// %X %o %c with the length modifiers hh h l ll q z j t (h and hh truncate as C does), %f %F %e %E
-// %g %G (no %a: no runtime string uses it; it is copied like an unknown conversion), %%, flags "-+ #0", widths and precisions including '*', and positional arguments
-// ("%2$@", "%1$5d"). A conversion GNUstep does not know ("%k") and a lone '%' at the end are
-// copied as they are, as GNUstep copies them; %n writes nothing. Where GNUstep reads memory that
-// is not there (too few arguments, a string for %d), oofnd prints what a nil / zero argument
-// prints ("(null)", "0") instead (ADR-0043 Amendment 3).
-inline std::string formatRuntime(std::string_view fmt, std::span<const FormatArg> args)
+// [NSString stringWithFormat:fmt, args...] for a format string known only at
+// run time (GNUstep 1.31.1's GSFormat, captured:
+// tests/unit/oofnd/test_string_format_runtime.cpp). Conversions:
+// %@ (width and precision in UTF-16 units), %s, %p (pointerDescription, with
+// width), %d %i %u %x %X %o %c with the length modifiers hh h l ll q z j t (h
+// and hh truncate as C does), %f %F %e %E %g %G (no %a: no runtime string uses
+// it; it is copied like an unknown conversion), %%, flags "-+ #0", widths and
+// precisions including '*', and positional arguments
+// ("%2$@", "%1$5d"). A conversion GNUstep does not know ("%k") and a lone '%'
+// at the end are copied as they are, as GNUstep copies them; %n writes nothing.
+// Where GNUstep reads memory that is not there (too few arguments, a string for
+// %d), oofnd prints what a nil / zero argument prints ("(null)", "0") instead.
+inline std::string formatRuntime(std::string_view fmt,
+    std::span<const FormatArg> args)
 {
     std::string out;
     std::size_t next = 0; // the next sequential argument
@@ -1788,5 +1809,3 @@ inline std::string formatRuntime(std::string_view fmt)
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_STRING_HPP

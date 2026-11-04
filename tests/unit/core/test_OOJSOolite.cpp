@@ -1,24 +1,23 @@
 /*	test_OOJSOolite.mm
-	Unit tests for the oolite JS binding (src/Core/Scripting/OOJSOolite.h/.mm): bead oo-whvg,
-	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment oo-ppc).
+	Unit tests for the oolite JS binding (src/Core/Scripting/OOJSOolite.h/.mm).
 
-	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
-	context, and links the game's own objects for the binding, the engine's class registry
-	(OOJSClasses.mm) and its exception translator (OOJSEngineNativeWrappers.mm). It stands
-	in for the universe (its game view, settings, post-processing effect and time acceleration), the
-	game view (colour saturation and the tone mappers), the resource manager (its paths), the tone
-	mapper names and the engine functions the binding links against, with the engine headers'
-	linkage. The version comes from the Info-gnustep.plist in the built-in resources directory, so
-	the test makes one in a directory of its own and runs there. The expectations were written
-	against the Objective-C file and run on it first; they pin the JS-visible behaviour: the oolite
-	object and its class, every property both ways, compareVersion() with each kind of argument,
-	the errors, and a native's exception. Run: bash tools/check-core-tests.sh
+	As the other binding tests do, it runs the JS class in a real QuickJS-ng context, and links the
+	game's own objects for the binding, the engine's class registry (OOJSClasses.mm) and its
+	exception translator (OOJSEngineNativeWrappers.mm). It stands in for the universe (its game
+	view, settings, post-processing effect and time acceleration), the game view (colour saturation
+	and the tone mappers), the resource manager (its paths), the tone mapper names and the engine
+	functions the binding links against, with the engine headers' linkage. The version comes from
+	the Info-gnustep.plist in the built-in resources directory, so the test makes one in a directory
+	of its own and runs there. The expectations were written against the Objective-C file and run on
+	it first; they pin the JS-visible behaviour: the oolite object and its class, every property
+	both ways, compareVersion() with each kind of argument, the errors, and a native's exception.
+	Run: bash tools/check-core-tests.sh
 */
 
 #include "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
-#include "oofnd/objc/OOFoundationTypes.h"	// BOOL (from <objc/runtime.h> until bead oo-dbz.4)
+#include "oofnd/objc/OOFoundationTypes.h"	// BOOL
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/String.hpp"
@@ -48,9 +47,8 @@ typedef enum
 } OOSDRToneMapper;
 
 
-// The game view: a stand-in for the C++ class (its Objective-C facade, which the test's
-// Objective-C stand-in stood in for, was deleted), with the header's names and signatures, defined
-// out of line below with the stand-in's answers.
+// The game view: a stand-in for the C++ class, with the header's names and
+// signatures, defined out of line below with the stand-in's answers.
 class MyOpenGLView : public oo::RefCounted
 {
 public:
@@ -76,9 +74,10 @@ public:
 */
 #include "UniverseStandIn.h"
 
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// which the test's Objective-C stand-in stood in for, was deleted), with the header's names and signatures.
-// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures. It answers virtual members, so it
+// has the game's vtable (UniverseStandIn.h) and StandInUniverse
+// overrides them.
 class Universe : public oo::RefCounted
 {
 public:
@@ -157,8 +156,8 @@ double Universe::getTimeAccelerationFactor()	{ return _timeAccelerationFactor; }
 void Universe::setTimeAccelerationFactor(double newTimeAccelerationFactor)	{ _timeAccelerationFactor = newTimeAccelerationFactor; }
 
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// ResourceManager: C++ definitions of the statics the code under test calls,
+// with the Objective-C stand-in's answers.
 std::vector<std::string> ResourceManager::paths()
 {
 	return { "C:/Users/jameson/Oolite/Resources", "C:/Users/jameson/AddOns/one.oxp" };

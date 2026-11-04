@@ -27,6 +27,19 @@ SOFTWARE.
 */
 
 #include "OOLogOutputHandler.h"
+
+#include <SDL3/SDL_stdinc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <atomic>
+#include <chrono>
+#include <cstring>
+#include <memory>
+#include <optional>
+#include <string>
+#include <thread>
+
 #include "OOFoundation.h"
 #include "OOLogging.h"
 #include "oofnd/Date.hpp"
@@ -37,21 +50,12 @@ SOFTWARE.
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/StdLib.hpp"
-#include <SDL3/SDL_stdinc.h>
-#include <atomic>
-#include <chrono>
-#include <cstring>
-#include <memory>
-#include <optional>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <thread>
 
-/*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp, bead oo-3rb.64, proposed
-        ADR-0042): the rotation to Previous.log, the writer thread, CRLF, the 1 GiB saturation and
-        the flush are its, byte for byte as OOAsyncLogger did them. What stays here is the glue: the
-        log directory, the logging-echo-to-stderr / stdout switches and the flush deadline of ADR-0033.
+/*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp): the
+   rotation to Previous.log, the writer thread, CRLF, the 1 GiB saturation and
+   the flush are its, byte for byte as OOAsyncLogger did them. What stays here
+   is the glue: the log directory, the logging-echo-to-stderr / stdout switches
+   and the flush deadline.
 */
 
 #if OOLITE_MAC_OS_X
@@ -62,15 +66,16 @@ SOFTWARE.
 
 #define SET_CRASH_REPORTER_INFO 1
 
-// Function to set "Application Specific Information" field in crash reporter log in Leopard.
-// Extremely unsupported, so not used in release builds.
+// Function to set "Application Specific Information" field in crash reporter
+// log in Leopard. Extremely unsupported, so not used in release builds.
 static void InitCrashReporterInfo(void);
 static void SetCrashReporterInfo(const char* info);
 static BOOL sCrashReporterInfoAvailable = NO;
 
 #endif
 
-typedef void (*LogCStringFunctionProc)(const char* string, unsigned length, BOOL withSyslogBanner);
+typedef void (*LogCStringFunctionProc)(const char* string, unsigned length,
+    BOOL withSyslogBanner);
 typedef LogCStringFunctionProc (*LogCStringFunctionGetterProc)(void);
 typedef void (*LogCStringFunctionSetterProc)(LogCStringFunctionProc);
 
@@ -78,7 +83,8 @@ static LogCStringFunctionGetterProc _NSLogCStringFunction = NULL;
 static LogCStringFunctionSetterProc _NSSetLogCStringFunction = NULL;
 
 static void LoadLogCStringFunctions(void);
-static void OONSLogCStringFunction(const char* string, unsigned length, BOOL withSyslogBanner);
+static void OONSLogCStringFunction(const char* string, unsigned length,
+    BOOL withSyslogBanner);
 
 static std::string GetAppName(void);
 
@@ -99,7 +105,8 @@ void AsyncLogMessage(std::string_view message);
 
 } // namespace
 
-#define kFlushInterval 2.0 // Lower bound on interval between explicit log file flushes.
+#define kFlushInterval \
+    2.0 // Lower bound on interval between explicit log file flushes.
 
 static BOOL sInited = NO;
 static BOOL sWriteToStderr = YES;
@@ -114,17 +121,19 @@ std::string sLogFileName; // empty until first set: kDefaultLogFileName
 
 } // namespace
 
-/*	The pending flush (was a one-shot run-loop timer, proposed ADR-0033): a deadline on
-        std::chrono::steady_clock that the frame loop checks. The timer was
-        scheduled on the logging thread's run loop, and only the main thread's run
-        loop ever runs, so a flush first requested from another thread never fired
-        and blocked later ones; kFlushNever keeps that.
+/*	The pending flush (was a one-shot run-loop timer): a deadline on
+   std::chrono::steady_clock that the frame loop checks. The timer
+   was scheduled on the logging thread's run loop, and only the main thread's
+   run loop ever runs, so a flush first requested from another thread never
+   fired and blocked later ones; kFlushNever keeps that.
 */
 namespace {
 
 const int64_t kFlushNever = INT64_MAX;
 std::atomic<bool> sFlushPending { false };
-std::atomic<int64_t> sFlushDeadline { kFlushNever }; // steady_clock ticks since its epoch
+std::atomic<int64_t> sFlushDeadline {
+    kFlushNever
+}; // steady_clock ticks since its epoch
 std::thread::id sMainThreadID;
 
 } // namespace
@@ -154,7 +163,9 @@ void OOLogOutputHandlerInit(void)
         sDefaultLogCStringFunction = _NSLogCStringFunction();
         _NSSetLogCStringFunction(OONSLogCStringFunction);
     } else {
-        OO_LOG("logging.nsLogFilter.install.failed", "{}", "Failed to install Foundation log filter; system messages will not be logged in log file.");
+        OO_LOG("logging.nsLogFilter.install.failed", "{}",
+            "Failed to install Foundation log filter; system messages will not "
+            "be logged in log file.");
     }
 #endif
 
@@ -197,14 +208,8 @@ void OOLogOutputHandlerClose(void)
     }
 }
 
-void OOLogOutputHandlerStartLoggingToStdout()
-{
-    sWriteToStdout = true;
-}
-void OOLogOutputHandlerStopLoggingToStdout()
-{
-    sWriteToStdout = false;
-}
+void OOLogOutputHandlerStartLoggingToStdout() { sWriteToStdout = true; }
+void OOLogOutputHandlerStopLoggingToStdout() { sWriteToStdout = false; }
 
 void OOLogOutputHandlerFlushIfDue(void)
 {
@@ -251,20 +256,25 @@ void cxx_OOLogOutputHandlerChangeLogFile(const std::string& name)
     if (LogFileName() != name) {
         sLogFileName = name;
         if (sLogger != nullptr) {
-            // -changeFile: end this file (postamble), start the new one (no rotation).
+            // -changeFile: end this file (postamble), start the new one (no
+            // rotation).
             sLogger->end(Postamble());
             std::optional<std::string> path = LogPath();
             if (!path.has_value() || !sLogger->start(oo::fs::pathFromUTF8(*path))) {
                 if (path.has_value())
-                    OO_LOG("unclassified", "Log setup: could not open log at {}, will log to stdout instead.", *path);
+                    OO_LOG("unclassified",
+                        "Log setup: could not open log at {}, will log to stdout "
+                        "instead.",
+                        *path);
                 sWriteToStderr = YES;
             }
         }
     }
 }
 
-/*	-[OOAsyncLogger init] and -startLogging: move an existing log to Previous.log, create the
-        new one and start the writer. nullptr when that fails; the handler then logs to stderr.
+/*	-[OOAsyncLogger init] and -startLogging: move an existing log to
+   Previous.log, create the new one and start the writer. nullptr when that
+   fails; the handler then logs to stderr.
 */
 namespace {
 
@@ -277,13 +287,18 @@ std::unique_ptr<oo::log::FileWriter> StartLogger(void)
     const oo::fs::Path latest = oo::fs::pathFromUTF8(*logPath);
     const oo::fs::Path previous = oo::fs::pathFromUTF8(AppendPathComponent(*LogBasePath(), "Previous.log"));
     if (!oo::log::rotateToPrevious(latest, previous)) {
-        OO_LOG("unclassified", "Log setup: could not move or delete existing log at {}, will log to stdout instead.", *logPath);
+        OO_LOG("unclassified",
+            "Log setup: could not move or delete existing log at {}, will log "
+            "to stdout instead.",
+            *logPath);
         return nullptr;
     }
 
     auto logger = std::make_unique<oo::log::FileWriter>(sSaturated);
     if (!logger->start(latest)) {
-        OO_LOG("unclassified", "Log setup: could not open log at {}, will log to stdout instead.", *logPath);
+        OO_LOG("unclassified",
+            "Log setup: could not open log at {}, will log to stdout instead.",
+            *logPath);
         return nullptr;
     }
     return logger;
@@ -317,24 +332,24 @@ void AsyncLogMessage(std::string_view message)
 
 /*	LoadLogCStringFunctions()
 
-        We wish to make NSLogv() call our custom function OONSLogCStringFunction()
-        rather than printing to stdout, by calling _NSSetLogCStringFunction().
-        Additionally, in order to close the logger cleanly, we wish to be able to
-        restore the standard logger, which requires us to call
-        _NSLogCStringFunction(). These functions are private.
+        We wish to make NSLogv() call our custom function
+   OONSLogCStringFunction() rather than printing to stdout, by calling
+   _NSSetLogCStringFunction(). Additionally, in order to close the logger
+   cleanly, we wish to be able to restore the standard logger, which requires us
+   to call _NSLogCStringFunction(). These functions are private.
         _NSLogCStringFunction() is undocumented. _NSSetLogCStringFunction() is
         documented at http://docs.info.apple.com/article.html?artnum=70081 ,
         with the warning:
 
                 Be aware that this code references private APIs; this is an
-                unsupported workaround and users should use these instructions at
-                their own risk. Apple will not guarantee or provide support for
-                this procedure.
+                unsupported workaround and users should use these instructions
+   at their own risk. Apple will not guarantee or provide support for this
+   procedure.
 
         The approach taken here is to load the functions dynamically. This makes
-        us safe in the case of Apple removing the functions. In the unlikely event
-        that they change the functions' paramters without renaming them, we would
-        have a problem.
+        us safe in the case of Apple removing the functions. In the unlikely
+   event that they change the functions' paramters without renaming them, we
+   would have a problem.
 */
 static void LoadLogCStringFunctions(void)
 {
@@ -354,10 +369,12 @@ static void LoadLogCStringFunctions(void)
     }
 }
 
-static void OONSLogCStringFunction(const char* string, unsigned length, BOOL withSyslogBanner)
+static void OONSLogCStringFunction(const char* string, unsigned length,
+    BOOL withSyslogBanner)
 {
     if (oo::log::willDisplay("system")) {
-        oo::log::logger().write("system", NULL, NULL, 0, string != NULL ? string : "(null)");
+        oo::log::logger().write("system", NULL, NULL, 0,
+            string != NULL ? string : "(null)");
     }
 }
 
@@ -370,7 +387,8 @@ bool DirectoryExistCreatingIfNecessary(const std::string& path)
     const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
 
     if (type != oo::fs::FileType::none && type != oo::fs::FileType::directory) {
-        OO_LOG("unclassified", "Log setup: expected {} to be a folder, but it is a file.", path);
+        OO_LOG("unclassified",
+            "Log setup: expected {} to be a folder, but it is a file.", path);
         return false;
     }
     if (type == oo::fs::FileType::none) {
@@ -388,12 +406,15 @@ bool DirectoryExistCreatingIfNecessary(const std::string& path)
 #if OOLITE_MAC_OS_X
 static void ExcludeFromTimeMachine(const std::string& path)
 {
-    OSStatus (*CSBackupSetItemExcluded)(NSURL* item, Boolean exclude, Boolean excludeByPath) = NULL;
-    CFBundleRef carbonCoreBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreServices.CarbonCore"));
+    OSStatus (*CSBackupSetItemExcluded)(NSURL* item, Boolean exclude,
+        Boolean excludeByPath) = NULL;
+    CFBundleRef carbonCoreBundle = CFBundleGetBundleWithIdentifier(
+        CFSTR("com.apple.CoreServices.CarbonCore"));
     if (carbonCoreBundle) {
         CSBackupSetItemExcluded = (OSStatus (*)(NSURL*, Boolean, Boolean))CFBundleGetFunctionPointerForName(carbonCoreBundle, CFSTR("CSBackupSetItemExcluded"));
         if (CSBackupSetItemExcluded != NULL) {
-            (void)CSBackupSetItemExcluded([NSURL fileURLWithPath:oo::NSStringFrom(path)], YES, NO);
+            (void)CSBackupSetItemExcluded(
+                [NSURL fileURLWithPath:oo::NSStringFrom(path)], YES, NO);
         }
     }
 }
@@ -405,15 +426,18 @@ static std::string GetAppName(void)
     if (!appName.has_value()) {
         const oo::fs::Path plistPath = oo::ResourcePaths::current().builtInResourcesDirectory() / "Info-gnustep.plist";
         oo::PList info;
-        if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath); bytes && !bytes->empty()) {
+        if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath);
+            bytes && !bytes->empty()) {
             if (oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(bytes->stringView());
                 parsed && parsed->isDict())
                 info = std::move(*parsed);
         }
-        if (const oo::PList* name = info.find("CFBundleName"); name && name->isString())
+        if (const oo::PList* name = info.find("CFBundleName");
+            name && name->isString())
             appName = *name->getIf<std::string>();
         if (!appName.has_value()) {
-            if (const oo::PList* ident = info.find("CFBundleIdentifier"); ident && ident->isString())
+            if (const oo::PList* ident = info.find("CFBundleIdentifier");
+                ident && ident->isString())
                 appName = *ident->getIf<std::string>();
         }
         if (!appName.has_value())
@@ -424,14 +448,16 @@ static std::string GetAppName(void)
 }
 #endif
 
-/*	Foundation's -stringByAppendingPathComponent: as GNUstep 1.31.1 answers it on Windows for the
-        paths used here (probed): trailing '/' and '\' of <base> are dropped, except a root's ("/",
-        "C:/"), and one '/' joins; an empty base gives the component, "C:" gives "C:<component>".
-        (A UNC root's separator is not normalised here as GNUstep does; no default path is one.)
+/*	Foundation's -stringByAppendingPathComponent: as GNUstep 1.31.1 answers
+   it on Windows for the paths used here (probed): trailing '/' and '\' of
+   <base> are dropped, except a root's ("/", "C:/"), and one '/' joins; an empty
+   base gives the component, "C:" gives "C:<component>". (A UNC root's separator
+   is not normalised here as GNUstep does; no default path is one.)
 */
 namespace {
 
-std::string AppendPathComponent(std::string base, const std::string& component)
+std::string AppendPathComponent(std::string base,
+    const std::string& component)
 {
     if (base.empty())
         return component;
@@ -448,10 +474,10 @@ std::string AppendPathComponent(std::string base, const std::string& component)
 
 } // namespace
 
-/*	The log directory as a UTF-8 path string, spelled as Foundation's string path methods spelled it:
-        $OO_LOGSDIR as given, else <home>/Logs (Windows) or <home>/.Oolite/Logs (Linux), creating the
-        directories. Cached once found; nullopt (and tried again next time) when a directory cannot
-        be created.
+/*	The log directory as a UTF-8 path string, spelled as Foundation's string
+   path methods spelled it: $OO_LOGSDIR as given, else <home>/Logs (Windows) or
+   <home>/.Oolite/Logs (Linux), creating the directories. Cached once found;
+   nullopt (and tried again next time) when a directory cannot be created.
 */
 namespace {
 
@@ -468,10 +494,13 @@ const std::optional<std::string>& LogBasePath(void)
         } else {
 #if OOLITE_MAC_OS_X
             // ~/Library
-            path = oo::StdString([NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+            path = oo::StdString([NSSearchPathForDirectoriesInDomains(
+                NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
 #elif OOLITE_LINUX
             // ~/.Oolite
-            path = AppendPathComponent(oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()), ".Oolite");
+            path = AppendPathComponent(
+                oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()),
+                ".Oolite");
             if (!DirectoryExistCreatingIfNecessary(path))
                 return basePath;
 #elif OOLITE_WINDOWS
@@ -525,7 +554,8 @@ static char** sCrashReporterInfo = NULL;
 static char* sOldCrashReporterInfo = NULL;
 static std::mutex sCrashReporterInfoLock;
 
-// Evil hackery based on http://www.allocinit.net/blog/2008/01/04/application-specific-information-in-leopard-crash-reports/
+// Evil hackery based on
+// http://www.allocinit.net/blog/2008/01/04/application-specific-information-in-leopard-crash-reports/
 static void InitCrashReporterInfo(void)
 {
     sCrashReporterInfo = (char**)dlsym(RTLD_DEFAULT, "__crashreporter_info__");

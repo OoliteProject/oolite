@@ -29,19 +29,6 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "ShipEntity.h"
 
-/*
-        C++20 since bead oo-utlm, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on
-        OOExhaustPlumeEntity became free functions, and its methods and interface moved to a
-        bridge file of the binding (amendment oo-ykoy), then onto the OOExhaustPlumeEntity facade (bead
-        oo-9ht.48, amendment oo-6ia4 item 3), and with that facade's deletion into the C++ class's
-        overrides of the root's JS members. The plume is the C++ OOExhaustPlumeEntity, found through
-        its entity's C++ part. Messages to classes that are still Objective-C (ShipEntity, Entity) stay
-        as they are, which is why the file is still .mm until Phase 4.
-*/
-
 static JSClassID sExhaustPlumeClassID;
 
 static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst jsobj, OOExhaustPlumeEntity** outEntity);
@@ -105,7 +92,7 @@ static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst
     if (!result)
         return false;
 
-    // A plume is the C++ OOExhaustPlumeEntity; the natives no longer ask its object.
+    // A plume is the C++ OOExhaustPlumeEntity.
     OOExhaustPlumeEntity* exhaust = dynamic_cast<OOExhaustPlumeEntity*>(entity);
     if (exhaust == nullptr)
         return false;
@@ -116,8 +103,8 @@ static bool JSExhaustPlumeGetExhaustPlumeEntity(JSContext* context, JSValueConst
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the C++ class's overrides of
-// the root's JS members call (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+// The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the C++
+// class's overrides of the root's JS members call.
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void)
 {
     return std::string("ExhaustPlume");
@@ -149,7 +136,7 @@ static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return JS_NULL; // what OOJSValueFromNativeObject() gave for the nil result (unreached: every case returns)
+    return JS_NULL; // unreached: every case returns
 
     OOJS_NATIVE_EXIT
 }
@@ -202,7 +189,7 @@ static JSValue ExhaustPlumeRemove(OOJS_NATIVE_ARGS)
     OOExhaustPlumeEntity* thisEnt = nullptr;
     GET_THIS_EXHAUSTPLUME(thisEnt);
 
-    ShipEntity* parent = oo::ToShip(thisEnt->owner()); // the C++ member its object's -owner answered
+    ShipEntity* parent = oo::ToShip(thisEnt->owner()); // the C++ member
     if (parent != nullptr)
         parent->removeExhaust(thisEnt);
 

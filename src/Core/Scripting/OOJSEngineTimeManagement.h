@@ -4,9 +4,8 @@ OOJSEngineTimeManagement.h
 
 Functionality related to time limiting and profiling of JavaScript code.
 
-C++20 since bead oo-cn4o (proposed ADR-0056; amendment oo-ppc for the scripting files): the
-profile classes are OOTimeProfile and OOTimeProfileEntry (no Objective-C facades: the debug console
-holds them and the engine converts them to JavaScript with oo_jsValueInContext()).
+The profile classes are OOTimeProfile and OOTimeProfileEntry: the debug console
+holds them and the engine converts them to JavaScript with oo_jsValueInContext().
 
 
 Copyright (C) 2010-2013 Jens Ayton
@@ -149,7 +148,7 @@ public:
 
     std::optional<std::string> description();
 
-    std::optional<std::string> function(); // nullopt: none (bead oo-3rb.291.3)
+    std::optional<std::string> function(); // nullopt: none
     NSUInteger hitCount();
     double totalTimeSum();
     double selfTimeSum();

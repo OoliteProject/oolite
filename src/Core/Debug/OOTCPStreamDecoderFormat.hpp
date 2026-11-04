@@ -1,7 +1,7 @@
 /*	OOTCPStreamDecoderFormat.hpp
-        The formatter behind OOALStringCreateWithFormatAndArguments() (OOTCPStreamDecoderAbstractionLayer
-        .mm), moved into a header of its own (bead oo-0mxm) so the unit tier can test it: plain C++20,
-        no Foundation, no oofnd.
+        The formatter behind OOALStringCreateWithFormatAndArguments()
+   (OOTCPStreamDecoderAbstractionLayer .mm), moved into a header of its own
+   so the unit tier can test it: plain C++20, no Foundation, no oofnd.
 
         It is -[NSString initWithFormat:arguments:] for the conversions OOTCPStreamDecoder.c uses:
         %u (unsigned), %zu (size_t), %@ (an object handle, written as describe(handle) gives it) and
@@ -10,8 +10,7 @@
         1.31.1 printed for the decoder's own formats.
 */
 
-#ifndef OOTCPSTREAMDECODERFORMAT_HPP
-#define OOTCPSTREAMDECODERFORMAT_HPP
+#pragma once
 
 // (In game code this is included after oofnd/StdLib.hpp, which has already parsed these.)
 #include <cstdarg>
@@ -53,5 +52,3 @@ std::string FormatWithArguments(std::string_view format, va_list args, Describe 
 }
 
 } // namespace OOTCPStreamDecoderFormat
-
-#endif // OOTCPSTREAMDECODERFORMAT_HPP

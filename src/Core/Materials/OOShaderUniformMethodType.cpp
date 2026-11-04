@@ -26,21 +26,16 @@ SOFTWARE.
 */
 
 /*
-        For shader uniform binding to work, it is necessary to be able to tell the
-        return type of a method. This is done by comparing the return type encoding
-        of the method to those of methods in a template class, one method for each
-        supported return type. (Since bead oo-4aq6a.7 the encodings compared are the
-        member tables' rows', @encode() of the member's type: the method read from the
-        runtime went with the Objective-C binding target.)
+        For shader uniform binding to work, it is necessary to be able to tell
+   the return type of a method. This is done by comparing the return type
+   encoding of the method to those of methods in a template class, one method
+   for each supported return type. The encodings compared are the member
+   tables' rows', @encode() of the member's type.
 
         The encoding is platform-defined, so to stay implementation-agnostic the
-        template encodings are the compiler's own, @encode() of each type: what the
-        runtime records for a method returning that type; since bead oo-dbz.3 (no
-        Objective-C) its measured literals, kOOTypeEncoding<> (OOTypeEncodings.h). (Bead oo-3rb.15: this used
-        the method signature object's return type, which on this runtime is the same
-        return-type encoding. Bead oo-41vj: they were read, through the same call,
-        from methods of an Objective-C template class that existed only for this;
-        proposed ADR-0056 amendment oo-41vj.)
+   template encodings are the compiler's own, @encode() of each type: what the
+   runtime records for a method returning that type; its measured literals,
+   kOOTypeEncoding<> (OOTypeEncodings.h).
 */
 
 #include "OOShaderUniformMethodType.h"
@@ -49,7 +44,7 @@ SOFTWARE.
 
 #include "OOColor.h"
 #include "OOMaths.h"
-#include "OOTypeEncodings.h" // @encode()'s measured literals (bead oo-dbz.3); OOColor * the complete class's, as the bindings' own
+#include "OOTypeEncodings.h" // @encode()'s measured literals; OOColor * the complete class's, as the bindings' own
 #include "oofnd/String.hpp"
 #include <cstring>
 
@@ -74,7 +69,7 @@ OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode)
     return kOOShaderUniformTypeInvalid;
 }
 
-// The entities' hooks (bead oo-9ht.39.6): none until the entities register theirs.
+// The entities' hooks: none until the entities register theirs.
 namespace {
 OOShaderEntityHooks sEntityHooks = { };
 bool sEntityHooksSet = false;
@@ -114,8 +109,8 @@ static void InitTemplates(void)
     GET_TEMPLATE(kOOShaderUniformTypeQuaternion, Quaternion);
     GET_TEMPLATE(kOOShaderUniformTypeMatrix, OOMatrix);
     GET_TEMPLATE(kOOShaderUniformTypePoint, NSPoint);
-    // The colour bindings (laserColor, fogUniform) answer the C++ colour since bead oo-9ht.1 deleted
-    // its Objective-C facade; they were the object-valued bindings until then (OOShaderUniform.mm).
+    // The colour bindings (laserColor, fogUniform) answer the C++ colour
+    // (OOShaderUniform.mm).
     GET_TEMPLATE(kOOShaderUniformTypeColor, OOColor*);
     GET_TEMPLATE(kOOShaderUniformTypeObject, OOObjCId); // id's
 

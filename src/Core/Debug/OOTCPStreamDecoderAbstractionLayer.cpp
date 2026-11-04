@@ -1,35 +1,36 @@
 /*	OOTCPStreamDecoderAbstractionLayer.h
 
-        Abstraction layer to allow OOTCPStreamDecoder to work with CoreFoundation/
-        CF-Lite, Cocoa Foundation or GNUstep Foundation.
+        Abstraction layer to allow OOTCPStreamDecoder to work with
+   CoreFoundation/ CF-Lite, Cocoa Foundation or GNUstep Foundation.
 
-        oofnd implementation (proposed ADR-0043 Amendment 2 item 14): each handle is a struct
-        OOALObject holding its value as an oo::PList (a string, a data buffer or the parsed packet).
+        oofnd implementation: each handle is a struct OOALObject holding its
+   value as an oo::PList (a string, a data buffer or the parsed packet).
 */
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #include "OOTCPStreamDecoderAbstractionLayer.h"
+
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp" // oo::AutoreleaseScope (was objc-arc.h's pool functions, oo-31u.8)
-
-#include "oofnd/PListParsing.hpp"
-#include "oofnd/String.hpp"
-
 #include "OOTCPStreamDecoderFormat.hpp"
+#include "oofnd/PListParsing.hpp"
+#include "oofnd/Ref.hpp" // oo::AutoreleaseScope (was objc-arc.h's pool functions)
 #include "oofnd/StdLib.hpp"
+#include "oofnd/String.hpp"
 
 struct OOALObject {
     oo::PList value;
-    // Borrowed handles given out for this object: its dictionary values and its type description.
+    // Borrowed handles given out for this object: its dictionary values and its
+    // type description.
     std::map<std::string, std::unique_ptr<OOALObject>, std::less<>> children;
     std::unique_ptr<OOALObject> typeDescription;
 };
 
 struct OOALAutoreleasePool {
     std::vector<std::unique_ptr<OOALObject>> objects;
-    // Was an Objective-C autorelease pool pushed with this one (oo-31u.8). Declared last so it
-    // drains first, before the objects are freed, as the pool was popped before they were.
+    // Was an Objective-C autorelease pool pushed with this one.
+    // Declared last so it drains first, before the objects are freed, as the pool
+    // was popped before they were.
     oo::AutoreleaseScope deferred;
 };
 
@@ -57,8 +58,10 @@ std::string DescriptionOf(OOALObjectRef object)
 
 } // namespace
 
-// Simulate literal CF/NS strings. Each literal string that is used becomes a single object. Since it uses pointers as keys, it should only be used with literals.
-// Called from OOTCPStreamDecoder.c through OOALSTR(), so it keeps C linkage now that this file is Objective-C++.
+// Simulate literal CF/NS strings. Each literal string that is used becomes a
+// single object. Since it uses pointers as keys, it should only be used with
+// literals. Called from OOTCPStreamDecoder.c through OOALSTR(), so it keeps C
+// linkage now that this file is Objective-C++.
 extern "C" OOALStringRef OOALGetConstantString(const char* string);
 OOALStringRef OOALGetConstantString(const char* string)
 {
@@ -70,47 +73,47 @@ OOALStringRef OOALGetConstantString(const char* string)
 
     std::unique_ptr<OOALObject>& value = (*sStrings)[string];
     if (value == nullptr) {
-        // Note: non-ASCII strings are not permitted, but we don't bother to detect them.
+        // Note: non-ASCII strings are not permitted, but we don't bother to detect
+        // them.
         value.reset(NewObject(oo::PList(std::string(string))));
     }
 
     return value.get();
 }
 
-void OOALRelease(OOALObjectRef object)
-{
-    delete object;
-}
+void OOALRelease(OOALObjectRef object) { delete object; }
 
 OOALStringRef OOTypeDescription(OOALObjectRef object)
 {
-    // What the handle holds: "(null)" for nothing, else the property-list type's name ("string",
-    // "array", ...). It was the class name of the Foundation object built for the value
-    // ([[object class] description], GNUstep's private classes such as GSCInlineString).
+    // What the handle holds: "(null)" for nothing, else the property-list type's
+    // name ("string", "array", ...). It was the class name of the Foundation
+    // object built for the value
+    // ([[object class] description], GNUstep's private classes such as
+    // GSCInlineString).
     auto* mutableObject = const_cast<OOALObject*>(object);
     if (mutableObject->typeDescription == nullptr) {
-        const std::string name = object->value.isNull() ? std::string("(null)") : std::string(oo::typeName(object->value.type()));
+        const std::string name = object->value.isNull()
+            ? std::string("(null)")
+            : std::string(oo::typeName(object->value.type()));
         mutableObject->typeDescription.reset(NewObject(oo::PList(name)));
     }
     return mutableObject->typeDescription.get();
 }
 
-bool OOALIsString(OOALObjectRef object)
+bool OOALIsString(OOALObjectRef object) { return object->value.isString(); }
+
+OOALStringRef OOALStringCreateWithFormatAndArguments(OOALStringRef format,
+    va_list args)
 {
-    return object->value.isString();
+    return NewObject(
+        oo::PList(OOTCPStreamDecoderFormat::FormatWithArguments<OOALObjectRef>(
+            DescriptionOf(format), args, DescriptionOf)));
 }
 
-OOALStringRef OOALStringCreateWithFormatAndArguments(OOALStringRef format, va_list args)
-{
-    return NewObject(oo::PList(OOTCPStreamDecoderFormat::FormatWithArguments<OOALObjectRef>(DescriptionOf(format), args, DescriptionOf)));
-}
+bool OOALIsDictionary(OOALObjectRef object) { return object->value.isDict(); }
 
-bool OOALIsDictionary(OOALObjectRef object)
-{
-    return object->value.isDict();
-}
-
-OOALObjectRef OOALDictionaryGetValue(OOALDictionaryRef dictionary, OOALObjectRef key)
+OOALObjectRef OOALDictionaryGetValue(OOALDictionaryRef dictionary,
+    OOALObjectRef key)
 {
     const std::string* keyString = key->value.getIf<std::string>();
     if (keyString == nullptr)
@@ -126,10 +129,7 @@ OOALObjectRef OOALDictionaryGetValue(OOALDictionaryRef dictionary, OOALObjectRef
     return child.get();
 }
 
-bool OOALIsData(OOALObjectRef object)
-{
-    return object->value.isData();
-}
+bool OOALIsData(OOALObjectRef object) { return object->value.isData(); }
 
 OOALMutableDataRef OOALDataCreateMutable(size_t capacity)
 {
@@ -137,7 +137,8 @@ OOALMutableDataRef OOALDataCreateMutable(size_t capacity)
     return NewObject(oo::PList(oo::Data()));
 }
 
-void OOALMutableDataAppendBytes(OOALMutableDataRef data, const void* bytes, size_t length)
+void OOALMutableDataAppendBytes(OOALMutableDataRef data, const void* bytes,
+    size_t length)
 {
     data->value.getIf<oo::PList::Data>()->append(bytes, length);
 }
@@ -166,12 +167,15 @@ void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool)
     delete pool;
 }
 
-OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr)
+OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data,
+    OOALStringRef* errStr)
 {
     const oo::Data& bytes = *data->value.getIf<oo::PList::Data>();
-    oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(std::string_view(reinterpret_cast<const char*>(bytes.bytes()), bytes.length()));
+    oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(std::string_view(
+        reinterpret_cast<const char*>(bytes.bytes()), bytes.length()));
     if (!parsed || parsed->isNull()) {
-        // The error string is owned by the caller (+1); no error text reads as nil did.
+        // The error string is owned by the caller (+1); no error text reads as nil
+        // did.
         if (errStr != nullptr)
             *errStr = parsed ? nullptr : NewObject(oo::PList(parsed.error().description()));
         return nullptr;
@@ -184,9 +188,6 @@ OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* e
     return result;
 }
 
-const oo::PList& OOALObjectPList(OOALObjectRef object)
-{
-    return object->value;
-}
+const oo::PList& OOALObjectPList(OOALObjectRef object) { return object->value; }
 
 #endif /* OO_DEBUG_MONITOR_ENABLED */

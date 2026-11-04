@@ -5,11 +5,7 @@ OOPListSchemaVerifier.h
 Utility class to verify the structure of a property list based on a schema
 (which is itself a property list).
 
-C++20 since beads oo-pni4 and oo-pgh9 (Phase 3 slice plan docs/phases/3-slices/
-OOPListSchemaVerifier.md). Bead oo-9ht.119 deleted its transitional Objective-C facade (the
-class's bridge files) and moved the class out of namespace cxx (ADR-0056 amendment "deleting a
-facade"); the delegate's informal protocol became the C++ interface OOPListSchemaVerifierDelegate
-(amendment oo-9ht.86 item 1).
+The delegate is the C++ interface OOPListSchemaVerifierDelegate.
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -47,11 +43,13 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	A schema verifier error (ADR-0029 decision 5, bead oo-3rb.16): what the Foundation error object
-        carried. domain is kOOPListSchemaVerifierErrorDomain, code an OOPListSchemaVerifierErrorCode,
-        failureReason the old -localizedFailureReason, and userInfo a Dict of the error keys below
-        (kPListKeyPathErrorKey and the error's own; a nested error is held as a Dict of these four
-        fields). Where the old error could be nil, it is a std::optional.
+/*	A schema verifier error: what the
+   Foundation error object carried. domain is kOOPListSchemaVerifierErrorDomain,
+   code an OOPListSchemaVerifierErrorCode, failureReason the old
+   -localizedFailureReason, and userInfo a Dict of the error keys below
+        (kPListKeyPathErrorKey and the error's own; a nested error is held as a
+   Dict of these four fields). Where the old error could be nil, it is a
+   std::optional.
 */
 struct OOPListSchemaVerifierError {
     std::string domain;
@@ -60,19 +58,20 @@ struct OOPListSchemaVerifierError {
     oo::PList userInfo;
 };
 
-/*	The key path the verification core hands down, one link per level. Defined in
-        OOPListSchemaVerifier.mm, the only file that uses it (it was defined here from bead oo-pni4
-        until bead oo-9ht.119); the verification core's members below take it.
+/*	The key path the verification core hands down, one link per level.
+   Defined in OOPListSchemaVerifier.mm, the only file that uses it; the
+   verification core's members below take it.
 */
 struct BackLinkChain;
 
 class OOPListSchemaVerifier;
 
-/*	The verifier's delegate: was the informal OOObject (OOPListSchemaVerifierDelegate) category, any
-        object answering the two selectors below (bead oo-9ht.119; ADR-0056 amendment oo-9ht.86 item 1).
-        The verifier holds it unretained, as before. Both selectors begin with verifier:, which a
-        verifier stage could not use as a member name (it would hide the stage's verifier()), so each
-        member adds the selector's distinguishing keyword.
+/*	The verifier's delegate: was the informal OOObject
+   (OOPListSchemaVerifierDelegate) category, any object answering the two
+   selectors below. The verifier holds it unretained. Both selectors begin with
+   verifier:, which a verifier stage could not use as a member name (it would
+   hide the stage's verifier()), so each member adds the selector's
+   distinguishing keyword.
 */
 class OOPListSchemaVerifierDelegate {
 public:

@@ -1,7 +1,7 @@
 /*	oofnd/LogFile.hpp
-        oo::log::FileWriter: the Latest.log writer (OOLogOutputHandler's OOAsyncLogger) without
-        Foundation (bead oo-3rb.64, proposed ADR-0042), and the byte conversions it and the console
-        echo applied to a finished line.
+        oo::log::FileWriter: the Latest.log writer (OOLogOutputHandler's
+   OOAsyncLogger) without Foundation, and the byte conversions it and the
+   console echo applied to a finished line.
 
             OOLogOutputHandler (Objective-C, gnustep-base 1.31)      oo::log
             -------------------------------------------------------  -------------------------------------
@@ -34,11 +34,10 @@
         Header-only, C++20, compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_LOGFILE_HPP
-#define OOFND_LOGFILE_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
-// this header (proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for this header.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -292,5 +291,3 @@ private:
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_LOGFILE_HPP

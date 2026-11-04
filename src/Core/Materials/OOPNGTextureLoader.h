@@ -27,23 +27,20 @@ SOFTWARE.
 
 */
 
-#ifndef OOPNGTEXTURELOADER_H
-#define OOPNGTEXTURELOADER_H
+#pragma once
 
-// png.h first, in a block of its own: which header comes first decides whether MinGW's or the
-// UCRT's printf family is used by the files that include this one first.
-#include "png.h"
-
+// png.h first, in a block of its own: which header comes first decides whether
+// MinGW's or the UCRT's printf family is used by the files that include this
+// one first.
 #include "OOTexture.h"
 #include "OOTextureLoader.h"
-
 #include "oofnd/Data.hpp"
 #include "oofnd/StdLib.hpp"
+#include "png.h"
 
-/*	Phase 3 (bead oo-z889, proposed ADR-0056 amendments oo-bj8 item 12, oo-vl43 item 4 and oo-zl36):
-        a converted leaf, global, over OOTextureLoader, with no facade of its own. Only the loaders'
-        factory (OOTextureLoader::loaderWithPath) makes one and queues it on the work manager (the
-        loaders' facade was deleted by bead oo-9ht.114).
+/*	A leaf over OOTextureLoader. Only the loaders' factory
+   (OOTextureLoader::loaderWithPath) makes one and queues it on the work
+   manager.
 */
 class OOPNGTextureLoader : public OOTextureLoader {
 public:
@@ -64,5 +61,3 @@ private:
     size_t length = { };
     size_t offset = { };
 };
-
-#endif // OOPNGTEXTURELOADER_H

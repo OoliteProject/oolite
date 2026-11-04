@@ -30,15 +30,14 @@ MA 02110-1301, USA.
 #include "OOWaypointEntity.h"
 
 /*
-        C++20 since bead oo-mae5, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOWaypointEntity
-        became free functions, and its methods and interface moved to a bridge file of the binding
-        (amendment oo-ykoy), then onto the OOWaypointEntity facade in OOWaypointEntity+ObjCBridge.mm
-        (bead oo-9ht.50, amendment oo-6ia4 item 3). Messages to classes that are still Objective-C
-        (OOWaypointEntity, Entity, Universe, PlayerEntity) stay as they are, which is why the file is
-        still .mm until Phase 4.
+        The class is a static JSClassDef registered with OOJSRegisterClass(),
+        its properties a JSCFunctionListEntry table whose magic is the property
+        ID, as in #768.
+
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and
+        scope guards (OOJSEngineNativeWrappers.h). The category on
+        OOWaypointEntity is free functions; the natives call the C++
+        OOWaypointEntity's members.
 */
 
 static JSClassID sWaypointClassID;
@@ -105,8 +104,8 @@ static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypoin
     if (!result)
         return false;
 
-    // A waypoint is the C++ OOWaypointEntity (a nil or other entity is not, as -isKindOfClass:
-    // answered). The natives call its members, where they messaged its object.
+    // A waypoint is the C++ OOWaypointEntity (a nil or other entity is not). The
+    // natives call its members.
     OOWaypointEntity* waypoint = dynamic_cast<OOWaypointEntity*>(entity);
     if (waypoint == nullptr)
         return false;
@@ -117,8 +116,8 @@ static bool JSWaypointGetWaypointEntity(JSContext* context, JSValueConst waypoin
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the C++ class's overrides of the
-// root's JS members call (the facade that forwarded to them is deleted).
+// The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the C++
+// class's overrides of the root's JS members call.
 std::optional<std::string> OOJSWaypointJSClassName(void)
 {
     return std::string("Waypoint");
@@ -139,7 +138,7 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS)
     Quaternion q = kIdentityQuaternion;
 
     if (!JSWaypointGetWaypointEntity(context, thisObj, &waypoint))
-        return OOJSNativeFailure(context); // not null after this (its object, nil only without a facade, is not asked)
+        return OOJSNativeFailure(context); // not null after this
 
     switch (magic) {
     case kWaypoint_beaconCode:
@@ -192,8 +191,8 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
         if (!sValue.has_value() || sValue->empty()) {
             if (waypoint->isBeacon()) {
                 if (UNIVERSE != nullptr)
-                    UNIVERSE->clearBeacon(waypoint); // the C++ waypoint
-                if ((PLAYER != nullptr ? PLAYER->nextBeaconEntity() : nullptr) == waypoint) // the C++ entities (not virtual, so the binding test stands in for it)
+                    UNIVERSE->clearBeacon(waypoint);
+                if ((PLAYER != nullptr ? PLAYER->nextBeaconEntity() : nullptr) == waypoint) // not virtual, so the binding test stands in for it
                 {
                     if (PLAYER != nullptr)
                         PLAYER->PlayerEntity::setCompassMode(COMPASS_MODE_PLANET); // qualified: the final overrider, so the binding test stands in for it
@@ -206,7 +205,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS)
             {
                 waypoint->setBeaconCode(sValue);
                 if (UNIVERSE != nullptr)
-                    UNIVERSE->setNextBeacon(waypoint); // the C++ waypoint
+                    UNIVERSE->setNextBeacon(waypoint);
             }
         }
         return JS_UNDEFINED;

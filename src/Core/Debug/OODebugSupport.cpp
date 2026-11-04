@@ -43,7 +43,7 @@ void OOInitDebugSupport(void)
     oo::PList debugSettings;
     std::optional<std::string> consoleHost;
     unsigned short consolePort = 0;
-    oo::Ref<OODebuggerInterface> debugger; // a C++ interface
+    oo::Ref<OODebuggerInterface> debugger;
     bool activateDebugConsole = false;
 
     // Load debug settings.
@@ -52,8 +52,9 @@ void OOInitDebugSupport(void)
     // Check that the debug OXP is installed. If not, we don't enable debug support.
     debugOXPPath = ResourceManager::pathForFileNamed("DebugOXPLocatorBeacon.magic", "nil");
     if (debugOXPPath.has_value()) {
-        // The debug plug-in (Mac Contents/PlugIns/Debug.bundle) is never loaded on the platforms
-        // built (the loader answered nil everywhere), so its controller's debugger branch is gone.
+        // The debug plug-in (Mac Contents/PlugIns/Debug.bundle) is never loaded on
+        // the platforms built (the loader answered nil everywhere), so its
+        // controller's debugger branch is gone.
 
         // oo_stringForKey: a string, or a number's string value; nil for anything else.
         const oo::PList* consoleHostValue = debugSettings.get<oo::PList>("console-host");

@@ -1,17 +1,16 @@
 /*	test_OOJSShip.mm
-	Unit tests for the ship JS binding (src/Core/Scripting/OOJSShip.h/.mm), written before each
-	slice of its conversion to C++.
+	Unit tests for the ship JS binding (src/Core/Scripting/OOJSShip.h/.mm).
 
 	The Ship object is made by the real engine for a real ship, so the test links every game object
 	but main's (tests/unit/core/meson.build entry ['*'], as test_OOJSPlayerShip does) and runs the
 	binding in the engine's own context. The ship is a ShipEntity set up by ShipEntity's own
-	-setUpShipFromDictionary: from a definition in the test (PlainShip, as test_ShipEntity.mm's),
-	in a Universe that was never initialised and with a plain entity as PLAYER; the player branches
-	of the getter read the engine's own player, whose class the test swaps for a subclass that
-	answers -availableFacings and -fleeingStatus itself. The expectations
-	were written against the Objective-C file and run on it first; slice 1 pins the property
-	getter (every property) and the weapon offsets and colours its helpers give JavaScript.
-	Run: bash tools/check-core-tests.sh test_OOJSShip
+	-setUpShipFromDictionary: from a definition in the test (PlainShip, as test_ShipEntity.mm's), in
+	a Universe that was never initialised and with a plain entity as PLAYER; the player branches of
+	the getter read the engine's own player, whose class the test swaps for a subclass that answers
+	-availableFacings and -fleeingStatus itself. The expectations were written against the
+	Objective-C file and run on it first; they pin the property getter (every property) and the
+	weapon offsets and colours its helpers give JavaScript. Run: bash tools/check-core-tests.sh
+	test_OOJSShip
 */
 
 #include "OOJavaScriptEngine.h"
@@ -51,20 +50,20 @@ uint32_t gDebugFlags = 0;
 
 namespace {
 
-// What the stand-ins were told, in order (slice 2 on).
+// What the stand-ins were told, in order.
 std::vector<std::string> sLog;
 Entity *sNextBeacon = nil;
-BOOL sPlayerDocked = NO;	// what the engine's player answers -isDocked (slice 3)
+BOOL sPlayerDocked = NO;	// what the engine's player answers -isDocked
 
 }	// namespace
 
 
 // PLAYER while ships are made (test_ShipEntity.mm's), and the beacon the player's compass was on.
-class TestPlayer : public PlayerEntity	// C++: the Objective-C player is deleted
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
-	Entity *nextBeacon() override	{ return sNextBeacon; }	// the C++ entity
+	Entity *nextBeacon() override	{ return sNextBeacon; }
 	void setCompassMode(OOCompassMode value) override	{ sLog.push_back(oo::str::format("setCompassMode %d", static_cast<int>(value))); }
 	void setScriptTarget(::ShipEntity * ship) override	{ sLog.push_back("setScriptTarget " + (ship != nullptr ? ship->getName() : std::optional<std::string>()).value_or("(nil)")); }
 	unsigned score() override	{ return 1000; }
@@ -92,7 +91,7 @@ public:
 		sLog.push_back("role " + role + " isInCategory " + category);
 		return role == "trader";
 	}
-	std::vector<oo::EntityHold> getContainersOfCommodity(const std::string &commodity_name, OOCargoQuantity how_many) override	// held C++ entities
+	std::vector<oo::EntityHold> getContainersOfCommodity(const std::string &commodity_name, OOCargoQuantity how_many) override
 	{
 		sLog.push_back(oo::str::format("getContainersOfCommodity %s %u", commodity_name.c_str(), static_cast<unsigned>(how_many)));
 		return {};
@@ -106,7 +105,7 @@ public:
 
 
 // A ship that keeps ShipEntity's own set-up (test_ShipEntity.mm's).
-class PlainShip : public ShipEntity	// C++: the Objective-C ship is deleted
+class PlainShip : public ShipEntity
 {
 };
 
@@ -120,7 +119,7 @@ OOPlayerFleeingStatus sFleeingStatus = PLAYER_FLEEING_NONE;
 
 
 // The engine's player, with the two answers the getter's player branches ask for set by the test.
-class TestPlayerShip : public PlayerEntity	// C++: the Objective-C player is deleted
+class TestPlayerShip : public PlayerEntity
 {
 public:
 	OOWeaponFacingSet availableFacings() override	{ return sAvailableFacings; }
@@ -155,8 +154,7 @@ namespace stdfs = std::filesystem;
 stdfs::path sRoot;
 PlayerEntity *sRealPlayer = nullptr;
 PlainShip *sShip = nil;
-PlainShip *sOther = nil;	// a second ship, for the setters that take one (slice 2)
-
+PlainShip *sOther = nil;	// a second ship, for the setters that take one
 
 // The definition the test's ship is set up from.
 oo::PList ShipDefinition()
@@ -315,8 +313,8 @@ std::string LogShown(const std::string &expected)
 
 }	// namespace
 
-
-// MARK: Slice 1: the property getter and its helpers -----------------------------
+// MARK: The property getter and its helpers
+// -----------------------------
 
 OO_TEST(registration)
 {
@@ -541,9 +539,11 @@ OO_TEST(getterPlayerBranches)
 }
 
 
-// MARK: Slice 2: the property setter ----------------------------------------------
+// MARK: The property setter
+// -------------------------
 
-// A setter's value read back through the getter: "(ship.<prop> = <value>, ship.<prop>)".
+// A setter's value read back through the getter: "(ship.<prop> = <value>,
+// ship.<prop>)".
 #define SET(prop, value)  "(ship." prop " = " value ", ship." prop ")"
 
 
@@ -720,7 +720,7 @@ OO_TEST(setterPlayerReadOnly)
 }
 
 
-// MARK: Slice 3: AI and script, escorts, roles, cargo, spawn, damage, removal, comms
+// MARK: AI and script, escorts, roles, cargo, spawn, damage, removal, comms
 
 // Whether src threw with the message expected (the message printed when not).
 bool ThrewWith(const std::string &src, const std::string &message)
@@ -829,9 +829,10 @@ OO_TEST(methodsRemoveAndExplode)
 }
 
 
-// MARK: Slice 4: equipment, missiles, bounty, cargo and crew, materials and shaders
+// MARK: Equipment, missiles, bounty, cargo and crew, materials and shaders
 
-// The test's game has no equipment types (no Resources), so the equipment natives see unknown keys.
+// The test's game has no equipment types (no Resources), so the equipment
+// natives see unknown keys.
 OO_TEST(methodsEquipment)
 {
 	SetUp();
@@ -893,7 +894,8 @@ OO_TEST(methodsMaterials)
 }
 
 
-// MARK: Slice 5: exit, escorts, defence targets, collision exceptions, wormholes, docking, course
+// MARK: Exit, escorts, defence targets, collision exceptions, wormholes,
+// docking, course
 
 OO_TEST(methodsExitAndEscorts)
 {
@@ -944,7 +946,8 @@ OO_TEST(methodsWormholesDockingCourse)
 }
 
 
-// MARK: Slice 6: AI behaviours, scanner, cargo adjustment, damage and threat assessment, statics
+// MARK: AI behaviours, scanner, cargo adjustment, damage and threat assessment,
+// statics
 
 OO_TEST(methodsBehaviours)
 {

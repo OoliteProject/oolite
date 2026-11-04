@@ -59,15 +59,6 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 } // namespace
 
-/*
-        C++20 since bead oo-whvg, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The natives were already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. Nothing else in the file was
-        Objective-C: the universe, its game view and the resource manager, which are not converted, are
-        still messaged, which is why the file is still .mm until Phase 4.
-*/
-
 static std::optional<std::string> VersionString(void);
 static std::vector<unsigned> VersionComponents(void);
 static unsigned UnsignedIntValue(const oo::PList& number);

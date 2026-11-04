@@ -4,7 +4,7 @@ These tests are `offline`: no desktop, no built game, no pyautogui. They exist b
 failure they cover is invisible by construction — when the GUI tier skips, every command in the
 DoD path still exits 0, and the only way to notice is to assert on the skip machinery itself.
 
-Bug oo-7by1: `pytest.importorskip("pyautogui")` inside the `game` fixture meant the G1 DoD
+Defect: `pytest.importorskip("pyautogui")` inside the `game` fixture meant the G1 DoD
 command exited 0 green on three separate configurations where G1 never executed (non-Windows;
 Windows without pyautogui; and any machine at all, since nothing installed requirements.txt).
 """
@@ -43,7 +43,7 @@ def test_no_importorskip_anywhere_in_the_tier():
         }
         assert "importorskip" not in called, (
             f"{name} calls pytest.importorskip; a missing hard dependency in this tier must "
-            "fail with the install command, not skip to a silent pass (oo-7by1)"
+            "fail with the install command, not skip to a silent pass"
         )
 
 
@@ -105,7 +105,7 @@ def test_wrong_platform_skip_is_a_failure_when_the_run_demanded_g1(monkeypatch):
     monkeypatch.setattr(conftest, "GUI_REQUIRED", False)
     with pytest.raises(pytest.skip.Exception) as skipped:
         gate()
-    assert "ADR-0017" in str(skipped.value), "the one legitimate skip must say why"
+    assert "runs natively on Windows" in str(skipped.value), "the one legitimate skip must say why"
 
     monkeypatch.setattr(conftest, "GUI_REQUIRED", True)
     with pytest.raises(BaseException) as caught:
@@ -132,7 +132,7 @@ def test_oo_gui_require_is_honoured_by_the_fixture_source():
     assert game_sig.split(",")[0].strip() == "gui_runtime"
 
 
-# --- bug oo-5rsa: the three post-exit hygiene checks must be able to FAIL ----------------------
+# --- the three post-exit hygiene checks must be able to FAIL ----------------------
 #
 # assert_clean_exit promised "no core dump, no ERROR in Latest.log, and a defaults file that still
 # parses", and the story (docs/stories/G1-exit-via-mouse.md:13,46) additionally requires "no
@@ -446,7 +446,7 @@ def test_g1_asserts_on_the_process_table_not_on_returncode():
         ]
         assert not offenders, (
             "line %d re-reads the Popen handle's own returncode, which wait() already reaped; "
-            "that comparison cannot fail. Enumerate the surviving processes instead (oo-5rsa)"
+            "that comparison cannot fail. Enumerate the surviving processes instead"
             % node.lineno
         )
     calls = {
@@ -459,12 +459,12 @@ def test_g1_asserts_on_the_process_table_not_on_returncode():
     assert "oolite.exe" in conftest.GAME_PROCESS_NAMES
 
 
-# --- oo-5rsa attempt 2: "exists and parses" is not "was written by THIS run" ------------------
+# --- second attempt: "exists and parses" is not "was written by THIS run" ------------------
 #
 # The first fix asserted only that a defaults file EXISTS and PARSES. app_dir is the PERSISTENT
 # build tree (oolite-dev/build/meson_test/oolite.app), so a plist left behind by any earlier
 # run satisfied that forever: the game could write nothing at all - or not start - and the check
-# still passed. That is the same "cannot fail" defect class this bead exists to remove, so the
+# still passed. That is the same "cannot fail" defect class this test exists to remove, so the
 # check now compares against a mark taken at LAUNCH, and the tests below construct exactly the
 # stale-file case a reviewer used to falsify the first attempt.
 
@@ -496,7 +496,7 @@ def test_a_stale_defaults_file_fails_even_though_it_parses(tmp_path):
         _clean_exit(out, app, mark)
     message = str(caught.value)
     assert "THIS RUN did not write it" in message, message
-    assert "oo-5rsa" in message
+    assert "Unwritten" in message
 
 
 @pytest.mark.offline
@@ -605,7 +605,7 @@ def test_the_launch_mark_is_taken_before_the_process_starts():
     assert mark_lines, (
         "GameWindow.start() never calls defaults_write_mark; without a launch-time mark the "
         "G9 defaults check cannot distinguish this run's write from an earlier run's leftover "
-        "(oo-5rsa)"
+        ""
     )
     popen_lines = [
         node.lineno
@@ -618,7 +618,7 @@ def test_the_launch_mark_is_taken_before_the_process_starts():
     assert min(mark_lines) < min(popen_lines), (
         "the defaults mark is taken at line %d, AFTER the game is launched at line %d; it "
         "could then already contain the game's own write and the comparison would be vacuous "
-        "(oo-5rsa)" % (min(mark_lines), min(popen_lines))
+        "" % (min(mark_lines), min(popen_lines))
     )
 
 
@@ -642,12 +642,12 @@ def test_g1_passes_the_launch_mark_through_to_the_hygiene_check():
     if len(call.args) == 1:
         assert isinstance(call.args[0], ast.Name) and call.args[0].id == "game", (
             "a single-argument assert_clean_exit must be passed the game fixture itself, "
-            "which carries the launch mark (oo-5rsa)"
+            "which carries the launch mark"
         )
     else:
         assert len(call.args) == 3, (
             "assert_clean_exit needs the output dir, the app dir AND the launch-time defaults "
-            "mark; a two-argument call cannot tell this run's write from a leftover (oo-5rsa)"
+            "mark; a two-argument call cannot tell this run's write from a leftover"
         )
 
 
@@ -655,7 +655,7 @@ def test_g1_passes_the_launch_mark_through_to_the_hygiene_check():
 #
 # surviving_game_processes reaches kernel32 (CreateToolhelp32Snapshot/Process32First/
 # Process32Next/CloseHandle). Their declarations are asserted there, beside the rest of the
-# oo-x2uy guards, because those tests are the ones permitted to name ctypes.windll.
+# ctypes-declaration guards, because those tests are the ones permitted to name ctypes.windll.
 
 
 @pytest.mark.offline
@@ -675,17 +675,17 @@ def test_assert_clean_exit_runs_every_check_unconditionally():
     )
     assert not [n for n in ast.walk(func) if isinstance(n, (ast.If, ast.IfExp))], (
         "assert_clean_exit must run every check unconditionally; an absent Latest.log must "
-        "FAIL, not skip the log check (oo-5rsa)"
+        "FAIL, not skip the log check"
     )
     body = ast.get_source_segment(source, func) or ""
     assert "assert_defaults_file_reparses" in body, (
-        "the promised defaults re-parse must actually be performed (oo-5rsa)"
+        "the promised defaults re-parse must actually be performed"
     )
     assert "crash dump" in body
     assert "Latest.log" in body
 
 
-# --- bug oo-3opg: a click must be aimed a frame BEFORE the button goes down -------------------
+# --- a click must be aimed a frame BEFORE the button goes down ----------------------------
 #
 # The defect these pin is not a timeout and not a screen: it is that Oolite reads the clicked
 # row out of UNIVERSE->cursor_row, which is written only while RENDERING (Universe.m:5343 is the
@@ -749,7 +749,7 @@ def test_every_clicking_helper_aims_before_it_clicks(method_name):
     assert aims, (
         f"{method_name} does not call aim_at_row, so nothing guarantees the game has rendered a "
         "frame with the pointer on the target row. The click will activate UNIVERSE->cursor_row "
-        "from the PREVIOUS frame - the row the pointer was on before - which is bug oo-3opg."
+        "from the PREVIOUS frame - the row the pointer was on before - the wrong row."
     )
     assert min(aims) < min(clicks), (
         f"{method_name} clicks at line {min(clicks)} before aiming at line {min(aims)}"
@@ -816,7 +816,7 @@ def test_the_cursor_settle_budget_covers_a_loaded_frame():
     """
     assert conftest.CURSOR_SETTLE_SECONDS > 0.3, (
         f"CURSOR_SETTLE_SECONDS is {conftest.CURSOR_SETTLE_SECONDS}s. 0.3s was MEASURED "
-        "insufficient (bug oo-3opg: ~1 full-tier run in 3 lost the Expansion Manager return), "
+        "insufficient (about 1 full-tier run in 3 lost the Expansion Manager return), "
         "so a budget at or below it reinstates the race."
     )
     # It is also the tier's cost: two settles per confirmed row, and G5 confirms six.

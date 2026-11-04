@@ -32,14 +32,6 @@ MA 02110-1301, USA.
 #include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
 
-/*
-        C++20 since bead oo-xy5r, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on the QuickJS-ng binding;
-        OOJS_NATIVE_ENTER/EXIT are a C++ try/catch (OOJavaScriptEngine.h) and BOOL/YES/NO are
-        bool/true/false. The file has no category, so there is no bridge. Messages to classes that are
-        still Objective-C (PlayerEntity, Universe) stay as they are, which is why the file is still
-        .mm until Phase 4.
-*/
 static JSValue ClockGetProperty(OOJS_GETTER_ARGS);
 
 // Methods

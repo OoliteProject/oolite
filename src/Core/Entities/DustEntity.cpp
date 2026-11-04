@@ -23,7 +23,6 @@ MA 02110-1301, USA.
 */
 
 #include "DustEntity.h"
-#include "oofnd/Process.hpp"
 
 #include "MyOpenGLView.h"
 #include "OODebugFlags.h"
@@ -31,6 +30,7 @@ MA 02110-1301, USA.
 #include "OOMacroOpenGL.h"
 #include "OOMaths.h"
 #include "Universe.h"
+#include "oofnd/Process.hpp"
 
 #if OO_SHADERS
 #include "OOMaterial.h" // For kTangentAttributeIndex
@@ -39,35 +39,34 @@ MA 02110-1301, USA.
 #include "OOShaderUniformMethodType.h"
 #endif
 
-#include "PlayerEntity.h"
-
-#include "oofnd/String.hpp"
 #include <cstring>
+
+#include "PlayerEntity.h"
+#include "oofnd/String.hpp"
 
 #define FAR_PLANE (DUST_SCALE * 0.50f)
 #define NEAR_PLANE (DUST_SCALE * 0.25f)
 
 #if OO_SHADERS
-enum {
-    kShaderModeOff,
+enum { kShaderModeOff,
     kShaderModeOn,
-    kShaderModeUnknown
-};
+    kShaderModeUnknown };
 #endif
 
 #if OO_SHADERS
-/*	The dust shader's two uniforms read the dust's members (the file-local Objective-C object they
-        were bound to by selector is deleted).
-        The uniform holds the dust weakly, as it held that object: once the dust has gone it sets nothing.
+/*	The dust shader's two uniforms read the dust's members.
+        The uniform holds the dust weakly: once the dust has gone it sets nothing.
 */
 namespace {
 
-void DustWarpVectorBinding(oo::RefCounted* target, OOShaderBindingValue& outValue)
+void DustWarpVectorBinding(oo::RefCounted* target,
+    OOShaderBindingValue& outValue)
 {
     outValue.v = static_cast<DustEntity*>(target)->warpVector();
 }
 
-void DustOffsetPlayerPositionBinding(oo::RefCounted* target, OOShaderBindingValue& outValue)
+void DustOffsetPlayerPositionBinding(oo::RefCounted* target,
+    OOShaderBindingValue& outValue)
 {
     outValue.v = static_cast<DustEntity*>(target)->offsetPlayerPosition();
 }
@@ -85,7 +84,8 @@ void DustEntity::init()
     int vi;
 
     // this should be unnecessary
-    //	ranrot_srand((uint32_t)oo::date::timeIntervalSince1970());	// seed randomiser by time
+    //	ranrot_srand((uint32_t)oo::date::timeIntervalSince1970());	// seed
+    // randomiser by time
 
     // self = [super init]: the constructor ran Entity's -init body.
 
@@ -114,10 +114,14 @@ void DustEntity::init()
     dust_color = OOColor::colorWithRed(0.5, 1.0, 1.0, 1.0);
     setStatus(STATUS_ACTIVE);
 
-    hasPointSprites = OOOpenGLExtensionManager::sharedManager()->haveExtension("GL_ARB_point_sprite");
+    hasPointSprites = OOOpenGLExtensionManager::sharedManager()->haveExtension(
+        "GL_ARB_point_sprite");
 
     if (hasPointSprites) {
-        texture = OOTexture::textureWithName("oolite-particle-dust.png", "Textures", kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask, kOOTextureDefaultAnisotropy / 2.0, 0.0);
+        texture = OOTexture::textureWithName(
+            "oolite-particle-dust.png", "Textures",
+            kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask,
+            kOOTextureDefaultAnisotropy / 2.0, 0.0);
     }
 
     collision_radius = DUST_SCALE; // for draw pass calculations
@@ -125,8 +129,8 @@ void DustEntity::init()
     OOGraphicsResetManager::sharedManager()->registerCxxClient(this);
 }
 
-// The destructor unregisters this from the graphics reset manager. The members release the colour,
-// texture, shader and uniforms.
+// The destructor unregisters this from the graphics reset manager. The members
+// release the colour, texture, shader and uniforms.
 
 void DustEntity::setDustColor(OOColor* color)
 {
@@ -136,20 +140,16 @@ void DustEntity::setDustColor(OOColor* color)
         dust_color->getRed(&color_fv[0], &color_fv[1], &color_fv[2], &color_fv[3]);
 }
 
-OOColor* DustEntity::dustColor()
-{
-    return dust_color.get();
-}
+OOColor* DustEntity::dustColor() { return dust_color.get(); }
 
-bool DustEntity::canCollide()
-{
-    return NO;
-}
+bool DustEntity::canCollide() { return NO; }
 
 void DustEntity::updateCameraRelativePosition()
 {
     HPVector c_pos = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
-    cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x, DUST_SCALE), (OOScalar)-fmod(c_pos.y, DUST_SCALE), (OOScalar)-fmod(c_pos.z, DUST_SCALE));
+    cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x, DUST_SCALE),
+        (OOScalar)-fmod(c_pos.y, DUST_SCALE),
+        (OOScalar)-fmod(c_pos.z, DUST_SCALE));
 }
 
 void DustEntity::update(OOTimeDelta /*delta_t*/)
@@ -195,34 +195,27 @@ OOShaderProgram* DustEntity::getShader()
             "#define OODUST_SCALE_MAX    (float(%g))\n"
             "#define OODUST_SCALE_FACTOR (float(%g))\n"
             "#define OODUST_SIZE         (float(%g))\n",
-            FAR_PLANE / NEAR_PLANE,
-            1.0f / (FAR_PLANE - NEAR_PLANE),
+            FAR_PLANE / NEAR_PLANE, 1.0f / (FAR_PLANE - NEAR_PLANE),
             (float)DUST_SCALE);
 
         // Reuse tangent attribute ID for "warpiness", as we don't need a tangent.
         oo::PList::Dict attributes;
         attributes["aWarpiness"] = oo::PList::signedInteger(kTangentAttributeIndex); // +numberWithInt:
 
-        shader = OOShaderProgram::shaderProgramWithVertexShaderName("oolite-dust.vertex",
-            "oolite-dust.fragment",
+        shader = OOShaderProgram::shaderProgramWithVertexShaderName(
+            "oolite-dust.vertex", "oolite-dust.fragment",
             std::optional<std::string>(std::move(prefix)),
             oo::PList(std::move(attributes)));
 
         uniforms.clear();
-        oo::Ref<OOShaderUniform> uWarp = OOShaderUniform::initWithName("uWarp",
-            shader.get(),
-            this,
-            "warpVector",
+        oo::Ref<OOShaderUniform> uWarp = OOShaderUniform::initWithName(
+            "uWarp", shader.get(), this, "warpVector",
             kOOShaderUniformTypeVector, // -warpVector's return type
-            DustWarpVectorBinding,
-            0);
-        oo::Ref<OOShaderUniform> uOffsetPlayerPosition = OOShaderUniform::initWithName("uOffsetPlayerPosition",
-            shader.get(),
-            this,
-            "offsetPlayerPosition",
+            DustWarpVectorBinding, 0);
+        oo::Ref<OOShaderUniform> uOffsetPlayerPosition = OOShaderUniform::initWithName(
+            "uOffsetPlayerPosition", shader.get(), this, "offsetPlayerPosition",
             kOOShaderUniformTypeVector, // -offsetPlayerPosition's return type
-            DustOffsetPlayerPositionBinding,
-            0);
+            DustOffsetPlayerPositionBinding, 0);
 
         uniforms.push_back(uWarp);
         uniforms.push_back(uOffsetPlayerPosition);
@@ -235,8 +228,12 @@ Vector DustEntity::offsetPlayerPosition()
 {
     // used as shader uniform, so needs to be low precision
     HPVector c_pos = (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector { });
-    Vector offset = make_vector((OOScalar)fmod(c_pos.x, DUST_SCALE), (OOScalar)fmod(c_pos.y, DUST_SCALE), (OOScalar)fmod(c_pos.z, DUST_SCALE));
-    return vector_subtract(offset, make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
+    Vector offset = make_vector((OOScalar)fmod(c_pos.x, DUST_SCALE),
+        (OOScalar)fmod(c_pos.y, DUST_SCALE),
+        (OOScalar)fmod(c_pos.z, DUST_SCALE));
+    return vector_subtract(
+        offset,
+        make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
 
 void DustEntity::checkShaderMode()
@@ -252,7 +249,9 @@ void DustEntity::checkShaderMode()
 
 Vector DustEntity::warpVector()
 {
-    return vector_multiply_scalar((PLAYER != nullptr ? PLAYER->getVelocity() : Vector { }), 1.0f / HYPERSPEED_FACTOR);
+    return vector_multiply_scalar(
+        (PLAYER != nullptr ? PLAYER->getVelocity() : Vector { }),
+        1.0f / HYPERSPEED_FACTOR);
 }
 
 void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
@@ -275,7 +274,11 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
 #endif
 
     GLfloat* fogcolor = (UNIVERSE != nullptr ? UNIVERSE->getSkyClearColor() : nullptr);
-    float idealDustSize = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getViewSize() : NSSize { }).width / 800.0f;
+    float idealDustSize = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
+                                  ? UNIVERSE->getGameView()->getViewSize()
+                                  : NSSize { })
+                              .width
+        / 800.0f;
 
     BOOL warp_stars = (player != nullptr ? player->atHyperspeed() : false);
     float dustIntensity;
@@ -306,7 +309,6 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     }
 
     if (dustIntensity > 0.0) {
-
         float* color = NULL;
         if (player->isSunlit)
             color = color_fv;
@@ -343,7 +345,8 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
 #if OO_SHADERS
             if (useShader) {
                 OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
-                OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 1, GL_FLOAT, GL_FALSE, 0, warpinessAttr));
+                OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 1, GL_FLOAT,
+                    GL_FALSE, 0, warpinessAttr));
             } else
 #endif
             {
@@ -355,7 +358,8 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
             }
 
             OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
-            OOGL(glDrawElements(GL_LINES, DUST_N_PARTICLES * 2, GL_UNSIGNED_SHORT, indices));
+            OOGL(glDrawElements(GL_LINES, DUST_N_PARTICLES * 2, GL_UNSIGNED_SHORT,
+                indices));
 
 #if OO_SHADERS
             if (useShader) {
@@ -403,7 +407,9 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "DustEntity after drawing " + oo::EntityDescription(this); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string {
+        return "DustEntity after drawing " + oo::EntityDescription(this);
+    });
 }
 
 void DustEntity::resetGraphicsState()
@@ -417,7 +423,8 @@ void DustEntity::resetGraphicsState()
     /*	Duplicate vertex data. This is only required if we're switching from
             non-shader mode to a shader mode, but let's KISS.
     */
-    memcpy(vertices + DUST_N_PARTICLES, vertices, sizeof *vertices * DUST_N_PARTICLES);
+    memcpy(vertices + DUST_N_PARTICLES, vertices,
+        sizeof *vertices * DUST_N_PARTICLES);
 #endif
 }
 

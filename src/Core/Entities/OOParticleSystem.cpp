@@ -2,11 +2,11 @@
 
 OOParticleSystem.m
 
-C++20 since bead oo-cenx (see OOParticleSystem.h). The bodies are the Objective-C ones: a
-message to self is a member call, [super ...] the base's member, a superclass initialiser that
-could not fail keeps its guarded statements in a plain block, and the universe is handed the
-entity's Objective-C object, oo::ToObjC(this). Other entities stay their Objective-C objects
-(amendment oo-bj8 item 4).
+See OOParticleSystem.h. The bodies are the Objective-C ones: a message to self
+is a member call, [super ...] the base's member, a superclass initialiser that
+could not fail keeps its guarded statements in a plain block, and the universe
+is handed the entity's Objective-C object, oo::ToObjC(this). Other entities stay
+their Objective-C objects.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -29,15 +29,14 @@ MA 02110-1301, USA.
 */
 
 #include "OOParticleSystem.h"
-#include "OOVector.h" // make_vector (ADR-0063 item 5 draws on lines of their own)
 
 #include "MyOpenGLView.h"
 #include "OOLightParticleEntity.h"
 #include "OOMacroOpenGL.h"
 #include "OOTexture.h"
+#include "OOVector.h" // make_vector
 #include "PlayerEntity.h"
 #include "Universe.h"
-
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
@@ -47,12 +46,9 @@ MA 02110-1301, USA.
 /*	Initialize shared aspects of the fragburst entities.
         Also stashes generated particle speeds in _particleSize[] array.
 */
-void OOParticleSystem::initWithPosition(HPVector pos,
-    Vector vel,
-    unsigned count,
-    float minSpeed,
-    float maxSpeed,
-    OOTimeDelta duration,
+void OOParticleSystem::initWithPosition(HPVector pos, Vector vel,
+    unsigned count, float minSpeed,
+    float maxSpeed, OOTimeDelta duration,
     GLfloat baseColor[4])
 {
     OOCParameterAssert(count <= kFragmentBurstMaxParticles);
@@ -70,7 +66,8 @@ void OOParticleSystem::initWithPosition(HPVector pos,
             GLfloat speed = minSpeed + 0.5f * (randf() + randf()) * (maxSpeed - minSpeed); // speed tends toward middle of range
             _particleVelocity[i] = vector_multiply_scalar(OORandomUnitVector(), speed);
 
-            GLfloat red = baseColor[0] * 0.1f * (9.5f + randf()); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+            GLfloat red = baseColor[0] * 0.1f * (9.5f + randf()); // one draw per local, in the order Clang
+                                                                  // evaluates the arguments
             GLfloat green = baseColor[1] * 0.1f * (9.5f + randf());
             GLfloat blue = baseColor[2] * 0.1f * (9.5f + randf());
             Vector color = make_vector(red, green, blue);
@@ -93,10 +90,7 @@ std::optional<std::string> OOParticleSystem::descriptionComponents() const
     return oo::str::format("ttl: %.3fs", _duration - _timePassed);
 }
 
-bool OOParticleSystem::canCollide()
-{
-    return false;
-}
+bool OOParticleSystem::canCollide() { return false; }
 
 bool OOParticleSystem::checkCloseCollisionWith(Entity* other)
 {
@@ -117,7 +111,8 @@ void OOParticleSystem::update(OOTimeDelta delta_t)
     Vector* particleVelocity = _particleVelocity;
 
     for (i = 0; i < count; i++) {
-        particlePosition[i] = vector_add(particlePosition[i], vector_multiply_scalar(particleVelocity[i], delta_t));
+        particlePosition[i] = vector_add(particlePosition[i],
+            vector_multiply_scalar(particleVelocity[i], delta_t));
     }
 
     // disappear eventually.
@@ -171,13 +166,15 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
         OOGLBEGIN(GL_QUADS);
         for (i = 0; i < count; i++) {
             glColor4fv(particleColor[i]);
-            DrawQuadForView(particlePosition[i].x, particlePosition[i].y, particlePosition[i].z, particleSize[i]);
+            DrawQuadForView(particlePosition[i].x, particlePosition[i].y,
+                particlePosition[i].z, particleSize[i]);
         }
         OOGLEND();
 
         OOGLPopModelView();
     } else {
-        float distanceThreshold = collision_radius * 2.0f; // Distance between player and middle of effect where we start to transition to "non-fast rendering."
+        float distanceThreshold = collision_radius * 2.0f; // Distance between player and middle of effect where we start to
+                                                           // transition to "non-fast rendering."
         float thresholdSq = distanceThreshold * distanceThreshold;
         float distanceSq = cam_zero_distance;
 
@@ -211,7 +208,11 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
             for (i = 0; i < count; i++) {
                 OOGLPushModelView();
                 OOGLTranslateModelView(particlePosition[i]);
-                OOGLMultModelView(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
+                OOGLMultModelView(OOMatrixForBillboard(
+                    HPvector_add(selfPosition,
+                        vectorToHPVector(vector_multiply_scalar(
+                            particlePosition[i], individuality))),
+                    viewPosition));
 
                 glColor4fv(particleColor[i]);
                 OOGLBEGIN(GL_QUADS);
@@ -226,13 +227,12 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent)
     OOGL(glPopAttrib());
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOParticleSystem after drawing " + oo::EntityDescription(this); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string {
+        return "OOParticleSystem after drawing " + oo::EntityDescription(this);
+    });
 }
 
-bool OOParticleSystem::isEffect()
-{
-    return true;
-}
+bool OOParticleSystem::isEffect() { return true; }
 
 OOTexture* OOParticleSystem::texture()
 {
@@ -248,23 +248,25 @@ std::vector<oo::Ref<OOTexture>> OOParticleSystem::allTextures()
 }
 #endif
 
-void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vector fragVelocity, GLfloat size)
+void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition,
+    Vector fragVelocity,
+    GLfloat size)
 {
-    enum {
-        kMinSpeed = 100,
-        kMaxSpeed = 400
-    };
+    enum { kMinSpeed = 100,
+        kMaxSpeed = 400 };
 
     unsigned count = 0.4f * size;
     count = MIN(count | 12, (unsigned)kFragmentBurstMaxParticles);
 
     // Select base colour
-    // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
+    // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green
+    // (0.20)
     oo::Ref<OOColor> hsvColor = OOColor::colorWithHue(0.12f + 0.08f * randf(), 1.0f, 1.0f, 1.0f);
     GLfloat baseColor[4];
     hsvColor->getRed(&baseColor[0], &baseColor[1], &baseColor[2], &baseColor[3]);
 
-    initWithPosition(fragPosition, fragVelocity, count, kMinSpeed, kMaxSpeed, 1.5, baseColor);
+    initWithPosition(fragPosition, fragVelocity, count, kMinSpeed, kMaxSpeed, 1.5,
+        baseColor);
     {
         for (unsigned i = 0; i < count; i++) {
             // Note: initWithPosition:... stashes speeds in _particleSize[].
@@ -273,10 +275,16 @@ void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Ve
     }
 }
 
-oo::Ref<OOSmallFragmentBurstEntity> OOSmallFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity)
+oo::Ref<OOSmallFragmentBurstEntity>
+OOSmallFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity)
 {
     oo::Ref<OOSmallFragmentBurstEntity> result = oo::makeRef<OOSmallFragmentBurstEntity>();
-    result->initFragmentBurstFrom(entity != nullptr ? entity->getPosition() : kZeroHPVector, entity != nullptr ? entity->getVelocity() : kZeroVector, entity != nullptr ? entity->collisionRadius() : 0.0f); // the C++ entity's members; none answers zero, as nil did
+    result->initFragmentBurstFrom(
+        entity != nullptr ? entity->getPosition() : kZeroHPVector,
+        entity != nullptr ? entity->getVelocity() : kZeroVector,
+        entity != nullptr ? entity->collisionRadius()
+                          : 0.0f); // the C++ entity's members; none
+                                   // answers zero, as nil did
     return result;
 }
 
@@ -299,7 +307,9 @@ void OOSmallFragmentBurstEntity::update(OOTimeDelta delta_t)
     }
 }
 
-void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vector fragVelocity, GLfloat size)
+void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition,
+    Vector fragVelocity,
+    GLfloat size)
 {
     float minSpeed = 1.0f + size * 0.5f;
     float maxSpeed = minSpeed * 4.0f;
@@ -310,7 +320,8 @@ void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vect
     GLfloat baseColor[4] = { 1.0f, 1.0f, 0.5f, 1.0f };
 
     size *= 2.0f; // Account for margins in particle texture.
-    initWithPosition(fragPosition, fragVelocity, count, minSpeed, maxSpeed, 1.0, baseColor);
+    initWithPosition(fragPosition, fragVelocity, count, minSpeed, maxSpeed, 1.0,
+        baseColor);
     {
         _baseSize = size;
 
@@ -320,10 +331,16 @@ void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition, Vect
     }
 }
 
-oo::Ref<OOBigFragmentBurstEntity> OOBigFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity)
+oo::Ref<OOBigFragmentBurstEntity>
+OOBigFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity)
 {
     oo::Ref<OOBigFragmentBurstEntity> result = oo::makeRef<OOBigFragmentBurstEntity>();
-    result->initFragmentBurstFrom(entity != nullptr ? entity->getPosition() : kZeroHPVector, vector_multiply_scalar(entity != nullptr ? entity->getVelocity() : kZeroVector, 0.85), entity != nullptr ? entity->collisionRadius() : 0.0f); // the C++ entity's members
+    result->initFragmentBurstFrom(
+        entity != nullptr ? entity->getPosition() : kZeroHPVector,
+        vector_multiply_scalar(
+            entity != nullptr ? entity->getVelocity() : kZeroVector, 0.85),
+        entity != nullptr ? entity->collisionRadius()
+                          : 0.0f); // the C++ entity's members
     return result;
 }
 

@@ -6,9 +6,7 @@ A prority queue is a collection into which objects may be inserted in any
 order, but (primarily) extracted in sorted order. The order is defined by the
 comparison function specified at creation time, which must define a partial
 order on the objects in the priority queue. The behaviour when provided with an
-inconsistent comparison function is undefined. (The Objective-C OOPriorityQueue,
-which ordered Objective-C objects by a comparator selector, was deleted by bead
-oo-4aq6a.3: no game code used it after bead oo-9ht.35.)
+inconsistent comparison function is undefined.
 
 The implementation is the standard one, a binary heap. It is described in
 detail in most algorithm textbooks.
@@ -38,24 +36,22 @@ SOFTWARE.
 
 */
 
-#ifndef OOPRIORITYQUEUE_H
-#define OOPRIORITYQUEUE_H
-
-#include "OOFoundation.h" // OOComparisonResult
-
-#include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
+#pragma once
 
 #include <utility>
 #include <vector>
 
-/*	The queue for C++ elements (bead oo-9ht.35, which deleted the OOScriptTimer facade the
-        timer queue held): the elements are held by oo::Ref and ordered by a comparator function where
-        the Objective-C OOPriorityQueue (deleted by bead oo-4aq6a.3) sent a selector. The heap is the
-        Objective-C queue's, step for step (bubbling up on
-        insertion; on removal the last element takes the removed one's place and bubbles down; the
-        exact-object search goes on past a match), so elements that compare the same come out in the
-        same order. Capacity is the vector's. The element type must be complete where it is used.
+#include "OOFoundation.h" // OOComparisonResult
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	The queue for C++ elements: the elements are held by oo::Ref
+   and ordered by a comparator function. The heap is the standard one, step
+   for step (bubbling up on insertion; on removal the last element
+   takes the removed one's place and bubbles down; the exact-object search goes
+   on past a match), so elements that compare the same come out in the same
+   order. Capacity is the vector's. The element type must be complete where it
+   is used.
 */
 template <typename T>
 class OOPriorityQueueOf {
@@ -75,7 +71,8 @@ public:
         bubbleUpFrom(_heap.size() - 1);
     }
 
-    void removeExactObject(T* object) // pointer comparison; safe from the element's destructor
+    void removeExactObject(
+        T* object) // pointer comparison; safe from the element's destructor
     {
         if (object == nullptr)
             return;
@@ -87,10 +84,13 @@ public:
 
     size_t count() const { return _heap.size(); }
 
-    T* peekAtNextObject() const { return _heap.empty() ? nullptr : _heap[0].get(); }
+    T* peekAtNextObject() const
+    {
+        return _heap.empty() ? nullptr : _heap[0].get();
+    }
 
-    // Removes the next element and answers it (null when empty), so the caller decides how long
-    // it lives (OOPriorityQueue autoreleased it).
+    // Removes the next element and answers it (null when empty), so the caller
+    // decides how long it lives (OOPriorityQueue autoreleased it).
     oo::Ref<T> removeNextObject() { return removeObjectAtIndex(0); }
 
     // The elements in removeNextObject() order; empties the queue.
@@ -126,8 +126,10 @@ private:
         while (LeftChild(i) <= end) {
             const size_t li = LeftChild(i);
             const size_t ri = RightChild(i);
-            // If left child has lower priority than right child, or there is only one child...
-            const size_t next = (li == end || _comparator(_heap[li].get(), _heap[ri].get()) < 0) ? li : ri;
+            // If left child has lower priority than right child, or there is only one
+            // child...
+            const size_t next = (li == end || _comparator(_heap[li].get(), _heap[ri].get()) < 0) ? li
+                                                                                                 : ri;
             if (_comparator(_heap[next].get(), _heap[i].get()) < 0) {
                 // Exchange parent with lowest-priority child
                 std::swap(_heap[i], _heap[next]);
@@ -143,8 +145,8 @@ private:
             return nullptr;
         oo::Ref<T> object = std::move(_heap[i]);
         if (i < _heap.size() - 1) {
-            // Overwrite object with last object in array, then push it down until the tree is
-            // partially ordered.
+            // Overwrite object with last object in array, then push it down until the
+            // tree is partially ordered.
             _heap[i] = std::move(_heap.back());
             _heap.pop_back();
             bubbleDownFrom(i);
@@ -158,5 +160,3 @@ private:
     Comparator _comparator;
     std::vector<oo::Ref<T>> _heap;
 };
-
-#endif // OOPRIORITYQUEUE_H

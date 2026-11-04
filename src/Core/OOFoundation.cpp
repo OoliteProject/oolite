@@ -31,5 +31,3 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 
 #include "oofnd/String.hpp"
-
-// OOConsumeReference() went with libobjc2: it took and gave an Objective-C object.

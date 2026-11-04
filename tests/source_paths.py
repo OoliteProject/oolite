@@ -2,7 +2,7 @@
 
 Tests that pin engine source text (a log format string, a switch case, a single assignment) used
 to open files by their literal name, ``PlayerEntity.m``. The migration renames those files as it
-goes - every ``.m`` became ``.mm`` in one step (bead oo-x7o) and Phase 3 renames them again to
+goes - every ``.m`` became ``.mm`` in one step and they are renamed again to
 ``.cpp`` - and each rename turned a source-text guard into a collection error or, worse, into a
 tree walk that silently found nothing. This module is the one place that knows which suffixes an
 implementation file may carry, so the next rename is a change here and not in every test.

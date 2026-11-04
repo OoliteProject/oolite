@@ -1,6 +1,5 @@
 /*	oofnd/Thread.hpp
-        oo::thread: what Oolite asked of NSThread, on std::thread (bead oo-3rb.6, proposed ADR-0029
-        Decision 5).
+        oo::thread: what Oolite asked of NSThread, on std::thread.
 
             Foundation                                    oofnd
             --------------------------------------------  ----------------------------------------------
@@ -37,11 +36,10 @@
         Header-only, C++20; compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_THREAD_HPP
-#define OOFND_THREAD_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for the
-// standard headers (as oofnd/Data.hpp does, proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for the standard headers (as oofnd/Data.hpp does).
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -152,5 +150,3 @@ inline bool setCurrentPriority(double p)
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_THREAD_HPP

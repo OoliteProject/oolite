@@ -1,5 +1,5 @@
 /*	oofnd/Process.hpp
-        oo::process: what Oolite asked of NSProcessInfo (bead oo-3rb.18, proposed ADR-0029 Decision 5).
+        oo::process: what Oolite asked of NSProcessInfo.
 
             Foundation                                        oofnd
             ------------------------------------------------  --------------------------------------------
@@ -30,11 +30,10 @@
         Header-only, C++20; compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_PROCESS_HPP
-#define OOFND_PROCESS_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for the
-// standard headers (as oofnd/Data.hpp does, proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for the standard headers (as oofnd/Data.hpp does).
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -171,5 +170,3 @@ inline std::optional<std::string> env(const char* name)
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_PROCESS_HPP

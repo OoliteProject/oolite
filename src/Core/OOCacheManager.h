@@ -31,34 +31,35 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOAsyncWorkManager.h"
 #include "OOFoundation.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-#include "OOAsyncWorkManager.h"
-
-/*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
+/*	Cache names and keys are UTF-8
         std::strings. The cache directory is std::nullopt where it was nil. Every cached value is
-        property-list data, held as an oo::PList (proposed ADR-0055 item 2, bead oo-qps.36) and
+        property-list data, held as an oo::PList and
         written to the cache file as it is; a null PList is "no value".
 */
-/*	C++20 since bead oo-rmd7 (proposed ADR-0056; a singleton, amendments oo-r7m0 and oo-z1s4).
-        Its Objective-C facade was deleted, which moved the class out of namespace cxx and made the
-        write task (OOAsyncCacheWriter) a C++ task (OOAsyncWorkTask).
+/*	The cache manager is a singleton. The write task (OOAsyncCacheWriter) is
+   a C++ task (OOAsyncWorkTask).
 */
 class OOAsyncCacheWriter;
 
 class OOCacheManager : public oo::RefCounted {
 public:
-    static OOCacheManager* sharedCache(); // the one instance, made on first use and never released
+    static OOCacheManager*
+    sharedCache(); // the one instance, made on first use and never released
     ~OOCacheManager() override;
 
-    oo::PList pListForKey(const std::string& key, const std::string& cache); // null PList: absent
-    void setPList(const oo::PList& value, const std::string& key, const std::string& cache); // value: not null
+    oo::PList pListForKey(const std::string& key,
+        const std::string& cache); // null PList: absent
+    void setPList(const oo::PList& value, const std::string& key,
+        const std::string& cache); // value: not null
 
-    void removeObjectForKey(const std::string& inKey, const std::string& inCacheKey);
+    void removeObjectForKey(const std::string& inKey,
+        const std::string& inCacheKey);
     void clearCache(const std::string& inCacheKey);
     void clearAllCaches();
     void reloadAllCaches();
@@ -68,9 +69,11 @@ public:
     std::optional<std::string> cacheDirectoryPathCreatingIfNecessary(bool create);
 
     void flush();
-    void finishOngoingFlush(); // Wait for flush to complete. Does nothing if async flushing is disabled.
+    void finishOngoingFlush(); // Wait for flush to complete. Does nothing if
+                               // async flushing is disabled.
 
-    // What "%@" printed between the braces of <OOCacheManager 0x...>{...} (OODescription.h).
+    // What "%@" printed between the braces of <OOCacheManager 0x...>{...}
+    // (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
 private:
@@ -78,7 +81,8 @@ private:
 
     bool writeDict(const oo::PList& inDict);
 
-    void init(); // -init's body, run after the instance is recorded as the singleton
+    void
+    init(); // -init's body, run after the instance is recorded as the singleton
 
     void loadCache();
     void write();
@@ -96,17 +100,21 @@ private:
     std::optional<std::string> cachePathCreatingIfNecessary(bool create);
 
     // cache name -> key -> cached value; std::nullopt before loading, as nil was.
-    std::optional<std::map<std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>> _caches = { };
+    std::optional<std::map<
+        std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>>
+        _caches = { };
     oo::Ref<OOAsyncCacheWriter> _scheduledWrite = { }; // the pending write task
     bool _permitWrites = { };
     bool _dirty = { };
 };
 
-// The write task write() schedules (was the Objective-C OOAsyncCacheWriter in the bridge).
+// The write task write() schedules (was the Objective-C OOAsyncCacheWriter in
+// the bridge).
 class OOAsyncCacheWriter : public OOAsyncWorkTask {
 public:
     // Null for a null contents (-initWithCacheContents: answered nil).
-    static oo::Ref<OOAsyncCacheWriter> writerWithCacheContents(const oo::PList& cacheContents);
+    static oo::Ref<OOAsyncCacheWriter> writerWithCacheContents(
+        const oo::PList& cacheContents);
 
     void performAsyncTask() override;
     bool hasCompleteAsyncTask() const override { return true; }

@@ -27,24 +27,22 @@ SOFTWARE.
 
 */
 
-#ifndef OOPIXMAPTEXTURELOADER_H
-#define OOPIXMAPTEXTURELOADER_H
+#pragma once
 
 #include "OOPixMap.h"
 #include "OOTexture.h"
 #include "OOTextureGenerator.h"
 
-/*	Phase 3 (bead oo-kvqq, proposed ADR-0056 amendments oo-bj8 item 12, oo-2c6g item 2, oo-rr2x
-        and oo-z889): a converted leaf of the texture generators, global, over OOTextureGenerator,
-        with no facade of its own. Its callers (the planets) make it with loaderWithPixMap and hand
-        the texture the C++ loader (the generators' facade until bead oo-9ht.118 deleted it).
+/*	A leaf of the texture generators, over OOTextureGenerator. Its callers
+   (the planets) make it with loaderWithPixMap and hand the texture the C++
+   loader.
 */
 class OOPixMapTextureLoader : public OOTextureGenerator {
 public:
     ~OOPixMapTextureLoader() override; // was -dealloc
 
-    /*	Was [[OOPixMapTextureLoader alloc] initWithPixMap:textureOptions:freeWhenDone:]: null where
-            that answered nil (amendment oo-novu).
+    /*	Was [[OOPixMapTextureLoader alloc]
+       initWithPixMap:textureOptions:freeWhenDone:]: null where that answered nil.
     */
     static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
 
@@ -58,5 +56,3 @@ private:
     OOPixMap _pixMap = { };
     uint32_t _texOptions = { };
 };
-
-#endif // OOPIXMAPTEXTURELOADER_H

@@ -164,10 +164,12 @@ oo::PList StringArray(const std::vector<std::string>& strings)
     return oo::PList(std::move(result));
 }
 
-// -stringByAbbreviatingWithTildeInPath of a search path: the home directory (NSHomeDirectory(),
-// ResourcePaths::homeDirectory()) at its start becomes "~". The search paths are already standard
-// ('/'-separated, absolute, no "." or ".." components: ResourcePaths and the OXP scan build them),
-// so -stringByStandardizingPath left them as they were and is not repeated (bead oo-qps.49).
+// -stringByAbbreviatingWithTildeInPath of a search path: the home directory
+// (NSHomeDirectory(), ResourcePaths::homeDirectory()) at its start becomes "~".
+// The search paths are already standard
+// ('/'-separated, absolute, no "." or ".." components: ResourcePaths and the
+// OXP scan build them), so -stringByStandardizingPath left them as they were
+// and is not repeated.
 std::string AbbreviatedWithTilde(const std::string& path)
 {
     const std::string home = oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory());
@@ -180,12 +182,14 @@ std::string AbbreviatedWithTilde(const std::string& path)
     return "~" + path.substr(home.size());
 }
 
-// -[a isEqual:b] of the Foundation objects two property-list values converted to (bead oo-qps.49
-// replaced the conversion); a missing or null one (nil) is never equal. Numbers (booleans among
-// them) compare by value as NSNumber -compare: did: integers as integers, anything with a real as
-// doubles (PList's type-strict == does not); a number never equals a string. Arrays compare
-// element by element and dictionaries entry by entry, as -isEqualToArray: / -isEqualToDictionary:
-// did; strings, data and dates by value; an Object node's object by -isEqual:.
+// -[a isEqual:b] of the Foundation objects two property-list values converted
+// to; a missing or null one (nil) is
+// never equal. Numbers (booleans among them) compare by value as NSNumber
+// -compare: did: integers as integers, anything with a real as doubles (PList's
+// type-strict == does not); a number never equals a string. Arrays compare
+// element by element and dictionaries entry by entry, as -isEqualToArray: /
+// -isEqualToDictionary: did; strings, data and dates by value; an Object node's
+// object by -isEqual:.
 bool PListIsEqual(const oo::PList* a, const oo::PList* b)
 {
     if (a == nullptr || b == nullptr || a->isNull() || b->isNull())
@@ -223,8 +227,8 @@ bool PListIsEqual(const oo::PList* a, const oo::PList* b)
         }
         return true;
     }
-    // Object nodes: the -isEqual: of the Objective-C objects they held, nil's NO for any other node
-    // (bead oo-4aq6a.5 deleted the Objective-C object's node; no game object was one).
+    // Object nodes: the -isEqual: of the Objective-C objects they held, nil's NO
+    // for any other node (no game object is an Objective-C object).
     if (a->getIf<oo::PList::Object>() != nullptr)
         return false;
     return *a == *b; // strings, data, dates
@@ -393,8 +397,9 @@ std::optional<std::string> ResourceManager::errors()
     for (const ResourceManagerError& error : sErrors) {
         std::optional<std::string> errStr = (UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(error.key) : std::optional<std::string>());
         if (errStr.has_value()) {
-            // The descriptions.plist entry is the format (data, not a literal): ADR-0043 item 19.
-            result.push_back(oo::str::formatRuntime(*errStr, { error.param1, error.param2 }));
+            // The descriptions.plist entry is the format (data, not a literal).
+            result.push_back(
+                oo::str::formatRuntime(*errStr, { error.param1, error.param2 }));
         }
     }
 
@@ -632,7 +637,7 @@ void ResourceManager::preloadFileListFromFolder(const std::string& path, const s
 
 void ResourceManager::preloadFilePathFor(const std::string& fileName, const std::string& subFolder, const std::string& path)
 {
-    OOCacheManager* cache = OOCacheManager::sharedCache(); // C++ since bead oo-rmd7
+    OOCacheManager* cache = OOCacheManager::sharedCache();
     const std::string cacheKey = subFolder + "/" + fileName;
     // if nil, not found in another OXP already
     if (cache->pListForKey(cacheKey, "resolved paths").isNull()) {
@@ -687,7 +692,7 @@ void ResourceManager::setUseAddOns(const std::string& useAddOns)
         clearCaches();
         OOHUDResetTextEngine();
 
-        OOCacheManager* cmgr = OOCacheManager::sharedCache(); // C++ since bead oo-rmd7
+        OOCacheManager* cmgr = OOCacheManager::sharedCache();
         /* only allow cache writes for the "all OXPs" default
          *
          * cache should be less necessary for restricted sets anyway */
@@ -919,9 +924,12 @@ bool ResourceManager::areRequirementsFulfilled(const oo::PList& requirements, co
                 if (oo::str::compareVersions(*ooVersionComponents, oo::str::versionComponents(*requiredString)) < 0)
                     OK = NO;
             } else {
-                // The requirements' property-list type, "dict" (was %@ of [requirements class], the class
-                // name of the Foundation dictionary it converted to: bead oo-qps.49)
-                OO_LOG("requirements.wrongType", "Expected {} entry \"{}\" to be string, but got {} in OXP {}.", file, "version", oo::typeName(requirements.type()), (LastPathComponent(path)).value_or("(null)"));
+                // The requirements' property-list type, "dict" (was %@ of [requirements
+                // class], the class name of the Foundation dictionary it converted to)
+                OO_LOG("requirements.wrongType",
+                    "Expected {} entry \"{}\" to be string, but got {} in OXP {}.",
+                    file, "version", oo::typeName(requirements.type()),
+                    (LastPathComponent(path)).value_or("(null)"));
                 OK = NO;
             }
         }
@@ -1920,11 +1928,12 @@ std::optional<std::string> ResourceManager::pathForFileNamed(const std::string& 
             return cached->second.get();
     }
 
-    // [[[OOSound alloc] cxx_initWithContentsOfFile:path] autorelease], the facade's class cluster
-    // until bead oo-9ht.68: the C++ factory. With no cache the caller is the only user, as the
-    // autoreleased sound lived until the pool drained: oo::autorelease keeps that.
-    // Its one caller, ooSoundNamed(), always passes the cache, so this reaches oo::autorelease only
-    // with nil, as upstream's did (ADR-0056 amendment oo-31u.9).
+    // [[[OOSound alloc] cxx_initWithContentsOfFile:path] autorelease]: the C++
+    // factory. With no cache
+    // the caller is the only user, as the autoreleased sound lived until the pool
+    // drained: oo::autorelease keeps that. Its one caller, ooSoundNamed(), always
+    // passes the cache, so this reaches oo::autorelease only with nil, as
+    // upstream's did.
     const std::optional<std::string> path = pathForFileNamed(fileName, folderName, useCache);
     if (path.has_value())
         result = ::OOSound::initWithContentsOfFile(path);
@@ -1998,7 +2007,7 @@ std::vector<std::pair<std::string, oo::Ref<OOScript>>> ResourceManager::loadScri
         // a problem.
         if (!corePlist("world-scripts.plist", path)) {
             {
-                oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
+                oo::AutoreleaseScope pool; // was @autoreleasepool
                 try {
                     std::optional<std::vector<oo::Ref<OOScript>>> results = OOScript::worldScriptsAtPath(oo::str::appendingPathComponent(path, "Config"));
                     if (!results.has_value())

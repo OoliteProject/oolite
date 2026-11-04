@@ -126,12 +126,15 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 // context is used for error messages.
-// A null oo::PList stands for nil, in and out (bead oo-3rb.205, proposed ADR-0043).
-oo::PList OOSanitizeLegacyScript(const oo::PList& script, const std::optional<std::string>& context, BOOL allowAIMethods);
-oo::PList OOSanitizeLegacyScriptConditions(const oo::PList& conditions, const std::optional<std::string>& context);
+// A null oo::PList stands for nil, in and out.
+oo::PList OOSanitizeLegacyScript(const oo::PList& script,
+    const std::optional<std::string>& context,
+    BOOL allowAIMethods);
+oo::PList OOSanitizeLegacyScriptConditions(
+    const oo::PList& conditions, const std::optional<std::string>& context);
 
-/*	Quick test of whether a conditions array is sanitized. It is assumed that
-        this will only be passed fully-sanitized or fully-unsanitized conditions
+/*	Quick test of whether a conditions array is sanitized. It is assumed
+   that this will only be passed fully-sanitized or fully-unsanitized conditions
         arrays, so the test doesn't need to be exhaustive.
 
         Note that OOLegacyConditionsAreSanitized() is *not* called by

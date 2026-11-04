@@ -2,11 +2,12 @@
 
 OOEntityCalledByName.h
 
-The entities' methods called by name, as a C++ table: the rows tools/gen-entity-by-name-table.py
-generates from the facade's by-name categories (OOEntityCalledByNameTable.h), one per method, with
-the categories' names exactly.
-The callers use oo::CallEntityByName and oo::EntityRespondsToName (OOCallByName.h); the rows are
-here for them and for the test that proves them equal to the facade's selectors.
+The entities' methods called by name, as a C++ table: the rows
+tools/gen-entity-by-name-table.py generates from the facade's by-name categories
+(OOEntityCalledByNameTable.h), one per method, with the categories' names
+exactly. The callers use oo::CallEntityByName and oo::EntityRespondsToName
+(OOCallByName.h); the rows are here for them and for the test that proves them
+equal to the facade's selectors.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -28,8 +29,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOENTITYCALLEDBYNAME_H
-#define OOENTITYCALLEDBYNAME_H
+#pragma once
 
 #include "OOMaths.h"
 #include "oofnd/PList.hpp"
@@ -61,13 +61,13 @@ enum class OOEntityByNameArgument : std::uint8_t {
 // A typed call's result, kept by its type: an integer, enum or BOOL result
 // as a long long (as OOCallIntegerMethod() converted it), a float or double as a double, a vector,
 // a quaternion, an entity, a colour, a property list. callObjC() reads the member its row's type
-// names. (An Objective-C object result, which no row answers, went with bead oo-4aq6a.5.)
+// names. (An Objective-C object result, which no row answers, is not kept.)
 struct OOEntityByNameValue {
     long long integer = 0;
     double real = 0;
     Vector vector { };
     Quaternion quaternion { };
-    Entity* entity = nullptr; // an entity result, borrowed: the C++ entity (its object, in object, before)
+    Entity* entity = nullptr; // an entity result, borrowed: the C++ entity
     OOColor* color = nullptr; // a colour result, borrowed (fogUniform)
     oo::PList plist;
 };
@@ -83,11 +83,12 @@ struct OOEntityByNameRow {
     void (*typed)(Entity* entity, OOEntityByNameValue& value);
 };
 
-/*	The root facade's own selectors that callObjC() lists (OOJSCallEntityMethods.h) and the by-name
-        table does not: a row per name, its
-        answer (null: every entity, as the root facade's -respondsToSelector: answered the facade's methods; the
-        planet's and the beacon's selectors for the parts it answered them for) and, for a name callObjC()
-        can call, the facade method's body on the C++ entity, its result kept by type.
+/*	The root facade's own selectors that callObjC() lists
+   (OOJSCallEntityMethods.h) and the by-name table does not: a row per name, its
+        answer (null: every entity, as the root facade's -respondsToSelector:
+   answered the facade's methods; the planet's and the beacon's selectors for
+   the parts it answered them for) and, for a name callObjC() can call, the
+   facade method's body on the C++ entity, its result kept by type.
 */
 struct OOEntityFacadeRow {
     const char* name;
@@ -95,15 +96,17 @@ struct OOEntityFacadeRow {
     void (*typed)(Entity* entity, OOEntityByNameValue& value);
 };
 
-/*	Every name a C++ entity's Objective-C object (the root's facade) answered outside the by-name
-        table: its own methods, its categories' and
-        its root classes' (the weak-reference root, OOObject and their categories), measured on the facade by the
-        selector path OOCallByName took (OOEntityObjectNamesTable.h). oo::EntityRespondsToName answers
-        each for the entities the object answered it for, and oo::CallEntityByName no longer asks the
-        object: a facade row's method with no argument that OOCallByName could call is the row's body;
-        any other is logged as the call logged it (the method's type encoding, as the object's method had
-        it), and a root-class or lifetime method that the call could call (init, dealloc, retain,
-        release, ...) is answered but never called.
+/*	Every name a C++ entity's Objective-C object (the root's facade)
+   answered outside the by-name table: its own methods, its categories' and its
+   root classes' (the weak-reference root, OOObject and their categories),
+   measured on the facade by the selector path OOCallByName took
+   (OOEntityObjectNamesTable.h). oo::EntityRespondsToName answers each for the
+   entities the object answered it for, and oo::CallEntityByName no longer asks
+   the object: a facade row's method with no argument that OOCallByName could
+   call is the row's body; any other is logged as the call logged it (the
+   method's type encoding, as the object's method had it), and a root-class or
+   lifetime method that the call could call (init, dealloc, retain, release,
+   ...) is answered but never called.
 */
 enum OOEntityObjectNameKind : std::uint8_t {
     kOOEntityObjectSignature, // no signature a by-name call can use: logged
@@ -130,11 +133,10 @@ std::span<const OOEntityByNameRow> EntityByNameRows();
 const OOEntityByNameRow* EntityByNameRowNamed(const std::string& name); // null if not tabled
 bool EntityByNameRowApplies(const OOEntityByNameRow& row, Entity* entity);
 
-// The tabled method with no argument that applies to the entity, called, its result kept by type
-// in value, or the facade row's; false (nothing called)
-// for any other name.
-bool CallEntityByNameTyped(Entity* entity, const std::string& name, OOEntityByNameValue& value);
+// The tabled method with no argument that applies to the entity, called, its
+// result kept by type in value, or the facade row's; false (nothing called) for
+// any other name.
+bool CallEntityByNameTyped(Entity* entity, const std::string& name,
+    OOEntityByNameValue& value);
 
 } // namespace oo
-
-#endif // OOENTITYCALLEDBYNAME_H

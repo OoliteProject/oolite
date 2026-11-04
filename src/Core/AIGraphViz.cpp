@@ -29,10 +29,10 @@ MA 02110-1301, USA.
 #include "ResourceManager.h"
 #include "oofnd/String.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-ndxe): the state machine is an oo::PList and the
-        dump is built as a std::string. States and handlers are visited in key order (byte order; they
-        were in the dictionaries' hash order), and the special nodes are written in sorted order (they
-        were in the set's hash order); the .dot text is a debug dump, not a golden.
+/*	The state machine is an oo::PList and the dump is built as a
+   std::string. States and handlers are visited in key order (byte order), and
+   the special nodes are written in sorted order; the .dot text is a debug dump,
+   not a golden.
 */
 namespace {
 
@@ -193,8 +193,8 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine, const std:
 
     if (const oo::PList::Dict* states = stateMachine.getIf<oo::PList::Dict>()) {
         for (const auto& [stateKey, stateValue] : *states) {
-            // Was an autorelease pool per state; since the Foundation sweep nothing here autoreleases
-            // (Phase 3 recipe: the pool becomes the end of the scope; bead oo-5q8h).
+            // Nothing here autoreleases, so there is no pool per state; the scope
+            // below is what the pool's lifetime was.
             {
                 graphViz += oo::str::format("\t\n\tsubgraph cluster_%s\n\t{\n\t\tlabel=\"%s\"\n", stateKey.c_str(), cxx_EscapedGraphVizString(stateKey).c_str());
 

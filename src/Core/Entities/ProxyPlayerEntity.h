@@ -5,9 +5,9 @@ ProxyPlayerEntity.h
 Ship entity which, in some respects, emulates a PlayerShip. In particular, at
 this time it implements the extra shader bindable methods of PlayerShip.
 
-The class is C++: ProxyPlayerEntity holds the proxy's dials and their accessors. Its Objective-C
-facade is deleted: the universe and the player make it with newProxyObject(), and its object is a
-ship's, whose root facade answers its dials to the shader bindings by selector.
+ProxyPlayerEntity holds the proxy's dials and their accessors. The universe and
+the player make it with newProxyObject(), and its object is a ship's, whose
+root facade answers its dials to the shader bindings by selector.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -33,25 +33,27 @@ MA 02110-1301, USA.
 
 #include "PlayerEntity.h"
 
-/*	The proxy's state and methods. Its ship part is ShipEntity's. C++ only since its Objective-C
-        facade was deleted: newProxyObject() makes it and its object, which answers the proxy's dials to the shaders by name.
+/*	The proxy's state and methods. Its ship part is ShipEntity's.
+        newProxyObject() makes it and its object, which answers the proxy's
+        dials to the shaders by name.
 */
 class ProxyPlayerEntity : public ShipEntity {
 public:
-    /*	[[ProxyPlayerEntity alloc] cxx_initWithKey:definition:] until the facade went: a new proxy,
-            set up from its definition as a ship (oo::NewShipObject), then given the proxy's defaults.
-            Answers the proxy, its object retained (+1) as +alloc/-init's was, or nullptr when the set-up
+    /*	A new proxy, set up from its definition as a ship (oo::NewShipObject),
+            then given the proxy's defaults. Answers the proxy, its object
+            retained (+1) as +alloc/-init's was, or nullptr when the set-up
             fails.
     */
-    static ::ShipEntity* newProxyObject(const std::string& key, const oo::PList& dict);
+    static ::ShipEntity* newProxyObject(const std::string& key,
+        const oo::PList& dict);
 
-    // -cxx_initWithKey:definition:'s body after [super cxx_initWithKey:definition:].
+    // -cxx_initWithKey:definition:'s body after [super
+    // cxx_initWithKey:definition:].
     void initProxyDefaults();
 
     void copyValuesFromPlayer(::PlayerEntity* player);
 
-    // True for PlayerEntity or ProxyPlayerEntity (the category Entity (ProxyPlayer), which went with
-    // the facade).
+    // True for PlayerEntity or ProxyPlayerEntity.
     bool isPlayerLikeShip();
 
     // Default: 0
@@ -78,7 +80,8 @@ public:
     OOMissileStatus dialMissileStatus();
     void setDialMissileStatus(OOMissileStatus value);
 
-    // Default: SCOOP_STATUS_NOT_INSTALLED or SCOOP_STATUS_OKAY depending on equipment.
+    // Default: SCOOP_STATUS_NOT_INSTALLED or SCOOP_STATUS_OKAY depending on
+    // equipment.
     OOFuelScoopStatus dialFuelScoopStatus();
     void setDialFuelScoopStatus(OOFuelScoopStatus value);
 
@@ -111,7 +114,6 @@ private:
     OOAlertCondition _alertCondition = { };
     NSUInteger _trumbleCount = 0;
     int _tradeInFactor = 0;
-    unsigned _massLocked : 1 = 0,
-                           _atHyperspeed : 1 = 0,
+    unsigned _massLocked : 1 = 0, _atHyperspeed : 1 = 0,
                            _dialIdentEngaged : 1 = 0;
 };

@@ -4,37 +4,36 @@
 
         Copyright (C) 2007-2013 Jens Ayton and contributors
 
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
+        Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"), to
+   deal in the Software without restriction, including without limitation the
+   rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+   sell copies of the Software, and to permit persons to whom the Software is
         furnished to do so, subject to the following conditions:
 
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
+        The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
 
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.
 
 */
 
 #include "OOConcreteTexture.h"
-#include "OOTextureInternal.h"
-
-#include "OOTextureGenerator.h"
-#include "OOTextureLoader.h"
 
 #include "OOCPUInfo.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
 #include "OOOpenGLExtensionManager.h"
 #include "OOPixMap.h"
+#include "OOTextureGenerator.h"
+#include "OOTextureInternal.h"
+#include "OOTextureLoader.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Log.hpp"
@@ -54,12 +53,13 @@
 #error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
 
-static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType);
+static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options,
+    GLenum* outFormat, GLenum* outInternalFormat,
+    GLenum* outType);
 
 OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
     const std::optional<std::string>& key,
-    uint32_t options,
-    GLfloat anisotropy,
+    uint32_t options, GLfloat anisotropy,
     GLfloat lodBias)
 {
     _loader = oo::Ref<OOTextureLoader>(loader);
@@ -73,8 +73,7 @@ OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    // "<" + [loader class] + ">" of a generator: the C++ class's name since bead oo-9ht.118 deleted
-    // the generator's facade (ADR-0056 amendment oo-9ht.114 item 4).
+    // "<" + [loader class] + ">" of a generator: the C++ class's name.
     if (dynamic_cast<OOTextureGenerator*>(loader) != nullptr) {
         _name = "<" + loader->className() + ">";
     }
@@ -83,28 +82,25 @@ OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
     _key = key;
 }
 
-oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(OOTextureLoader* loader,
-    const std::optional<std::string>& key,
-    uint32_t options,
-    GLfloat anisotropy,
-    GLfloat lodBias)
+oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(
+    OOTextureLoader* loader, const std::optional<std::string>& key,
+    uint32_t options, GLfloat anisotropy, GLfloat lodBias)
 {
     if (loader == nullptr) {
         return nullptr;
     }
 
-    oo::Ref<OOConcreteTexture> self = oo::adopt(new OOConcreteTexture(loader, key, options, anisotropy, lodBias));
+    oo::Ref<OOConcreteTexture> self = oo::adopt(
+        new OOConcreteTexture(loader, key, options, anisotropy, lodBias));
 
     self->addToCaches();
 
     return self;
 }
 
-oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(const std::string& path,
-    const std::optional<std::string>& key,
-    uint32_t options,
-    float anisotropy,
-    GLfloat lodBias)
+oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(
+    const std::string& path, const std::optional<std::string>& key,
+    uint32_t options, float anisotropy, GLfloat lodBias)
 {
     const oo::Ref<OOTextureLoader> loader = OOTextureLoader::loaderWithPath(path, options);
     if (loader == nullptr) {
@@ -124,8 +120,11 @@ oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(const std::string& pa
 OOConcreteTexture::~OOConcreteTexture()
 {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    // The Objective-C object has gone: the C++ object's address is the one printed.
-    OO_LOG(_trace ? "texture.allocTrace.dealloc" : "texture.dealloc", "Deallocating and uncaching texture {}", oo::str::pointerDescription(this));
+    // The Objective-C object has gone: the C++ object's address is the one
+    // printed.
+    OO_LOG(_trace ? "texture.allocTrace.dealloc" : "texture.dealloc",
+        "Deallocating and uncaching texture {}",
+        oo::str::pointerDescription(this));
 #endif
 
 #if OOTEXTURE_RELOADABLE
@@ -171,7 +170,8 @@ std::optional<std::string> OOConcreteTexture::descriptionComponents() const
     return _key.value_or("(null)") + ", " + stateDesc; // "%@, %@": nil printed (null)
 }
 
-std::optional<std::string> OOConcreteTexture::shortDescriptionComponents() const
+std::optional<std::string> OOConcreteTexture::shortDescriptionComponents()
+    const
 {
     return _key;
 }
@@ -235,7 +235,8 @@ void OOConcreteTexture::apply()
 
 #if GL_EXT_texture_lod_bias
     if (gOOTextureInfo.textureLODBiasAvailable)
-        OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, _lodBias));
+        OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT,
+            _lodBias));
 #endif
 }
 
@@ -250,10 +251,7 @@ bool OOConcreteTexture::isFinishedLoading()
     return _loaded || (_loader != nullptr && _loader->isReady()); // a message to nil answered NO
 }
 
-std::optional<std::string> OOConcreteTexture::cacheKey()
-{
-    return _key;
-}
+std::optional<std::string> OOConcreteTexture::cacheKey() { return _key; }
 
 NSSize OOConcreteTexture::dimensions()
 {
@@ -298,7 +296,6 @@ OOPixMap OOConcreteTexture::copyPixMapRepresentation()
         }
 
         if (!isCubeMap()) {
-
             px = OOAllocatePixMap(_width, _height, _format, 0, 0);
             if (!OOIsValidPixMap(px))
                 return kOONullPixMap;
@@ -314,7 +311,8 @@ OOPixMap OOConcreteTexture::copyPixMapRepresentation()
 
             unsigned i;
             for (i = 0; i < 6; i++) {
-                glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, type, pixels);
+                glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, type,
+                    pixels);
                 pixels += OOPixMapBytesPerPixelForFormat(_format) * _width * _width;
             }
         }
@@ -357,7 +355,8 @@ NSSize OOConcreteTexture::texCoordsScale()
         if (!(_options & kOOTextureAllowRectTexture)) {
             return NSMakeSize(1.0f, 1.0f);
         } else {
-            // Finishing may clear the rectangle texture flag (if the texture turns out to be POT)
+            // Finishing may clear the rectangle texture flag (if the texture turns
+            // out to be POT)
             ensureFinishedLoading();
             return texCoordsScale();
         }
@@ -381,7 +380,8 @@ void OOConcreteTexture::setUpTexture()
     OOPixMap pm;
 
     // This will block until loading is completed, if necessary.
-    if (_loader != nullptr && _loader->getResult(&pm, &_format, &_originalWidth, &_originalHeight)) // a message to nil answered NO
+    if (_loader != nullptr && _loader->getResult(&pm, &_format, &_originalWidth,
+            &_originalHeight)) // a message to nil answered NO
     {
         _bytes = pm.pixels;
         _width = pm.width;
@@ -397,7 +397,8 @@ void OOConcreteTexture::setUpTexture()
         if (_trace) {
             static unsigned dumpID = 0;
             const std::string name = oo::str::format("tex dump %u \"", ++dumpID) + this->name().value_or("(null)") + "\"";
-            OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'", description(), name);
+            OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'",
+                description(), name);
             OODumpPixMap(pm, name);
         }
 #endif
@@ -455,7 +456,8 @@ void OOConcreteTexture::uploadTexture()
 
 #if GL_EXT_texture_filter_anisotropic
         if (gOOTextureInfo.anisotropyAvailable && mipMap && 1.0 < _anisotropy) {
-            OOGL(glTexParameterf(texTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, _anisotropy));
+            OOGL(glTexParameterf(texTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                _anisotropy));
         }
 #endif
 
@@ -471,16 +473,20 @@ void OOConcreteTexture::uploadTexture()
 
         if (texTarget == GL_TEXTURE_2D) {
             uploadTextureDataWithMipMap(mipMap, _format);
-            OO_LOG("texture.upload", "Uploaded texture {} ({}x{} pixels, {})", _textureName, _width, _height, _key.value_or("(null)"));
+            OO_LOG("texture.upload", "Uploaded texture {} ({}x{} pixels, {})",
+                _textureName, _width, _height, _key.value_or("(null)"));
         }
 #if OO_TEXTURE_CUBE_MAP
         else if (texTarget == GL_TEXTURE_CUBE_MAP) {
             uploadTextureCubeMapDataWithMipMap(mipMap, _format);
-            OO_LOG("texture.upload", "Uploaded cube map texture {} ({}x{}x6 pixels, {})", _textureName, _width, _width, _key.value_or("(null)"));
+            OO_LOG("texture.upload",
+                "Uploaded cube map texture {} ({}x{}x6 pixels, {})", _textureName,
+                _width, _width, _key.value_or("(null)"));
         }
 #endif
         else {
-            OORaiseException(OOInternalInconsistencyException, "Unhandled texture target 0x%X.", texTarget);
+            OORaiseException(OOInternalInconsistencyException,
+                "Unhandled texture target 0x%X.", texTarget);
         }
 
         _valid = YES;
@@ -495,12 +501,11 @@ void OOConcreteTexture::uploadTexture()
     }
 }
 
-void OOConcreteTexture::uploadTextureDataWithMipMap(bool mipMap, OOTextureDataFormat format)
+void OOConcreteTexture::uploadTextureDataWithMipMap(
+    bool mipMap, OOTextureDataFormat format)
 {
     GLenum glFormat = 0, internalFormat = 0, type = 0;
-    unsigned w = _width,
-             h = _height,
-             level = 0;
+    unsigned w = _width, h = _height, level = 0;
     char* bytes = (char*)_bytes;
     uint8_t components = OOTextureComponentsForFormat(format);
 
@@ -510,7 +515,8 @@ void OOConcreteTexture::uploadTextureDataWithMipMap(bool mipMap, OOTextureDataFo
         return;
 
     while (0 < w && 0 < h) {
-        OOGL(glTexImage2D(GL_TEXTURE_2D, level++, internalFormat, w, h, 0, glFormat, type, bytes));
+        OOGL(glTexImage2D(GL_TEXTURE_2D, level++, internalFormat, w, h, 0, glFormat,
+            type, bytes));
         if (!mipMap)
             return;
         bytes += w * components * h;
@@ -524,7 +530,8 @@ void OOConcreteTexture::uploadTextureDataWithMipMap(bool mipMap, OOTextureDataFo
 }
 
 #if OO_TEXTURE_CUBE_MAP
-void OOConcreteTexture::uploadTextureCubeMapDataWithMipMap(bool mipMap, OOTextureDataFormat format)
+void OOConcreteTexture::uploadTextureCubeMapDataWithMipMap(
+    bool mipMap, OOTextureDataFormat format)
 {
     OO_ENTER_OPENGL();
 
@@ -548,7 +555,8 @@ void OOConcreteTexture::uploadTextureCubeMapDataWithMipMap(bool mipMap, OOTextur
         unsigned w = _width, level = 0;
 
         while (0 < w) {
-            OOGL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, level++, internalFormat, w, w, 0, glFormat, type, bytes));
+            OOGL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, level++,
+                internalFormat, w, w, 0, glFormat, type, bytes));
             if (!mipMap)
                 break;
             bytes += w * w * components;
@@ -596,14 +604,13 @@ void OOConcreteTexture::forceRebind()
 
 #if OOTEXTURE_RELOADABLE
 
-bool OOConcreteTexture::isReloadable()
-{
-    return _path.has_value();
-}
+bool OOConcreteTexture::isReloadable() { return _path.has_value(); }
 
 #endif
 
-static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* outFormat, GLenum* outInternalFormat, GLenum* outType)
+static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options,
+    GLenum* outFormat, GLenum* outInternalFormat,
+    GLenum* outType)
 {
     OOCParameterAssert(outFormat != NULL && outInternalFormat != NULL && outType != NULL);
 
@@ -632,7 +639,8 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum* o
         return YES;
 
     default:
-        OO_LOG(cxx_kOOLogParameterError, "Unexpected texture format {}.", static_cast<unsigned>(format));
+        OO_LOG(cxx_kOOLogParameterError, "Unexpected texture format {}.",
+            static_cast<unsigned>(format));
         return NO;
     }
 }

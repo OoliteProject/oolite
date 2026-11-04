@@ -6,10 +6,6 @@ Manages a set of textures, specified in a property list, with associated
 probabilities. To avoid interfering with other PRNG-based code, it uses its
 own ranrot state.
 
-C++20 since bead oo-9hdp (Phase 3, proposed ADR-0056). Its one caller, OOSkyDrawable, was
-adapted in the bead, so it has no Objective-C facade and is global (ADR-0056 item 5).
-
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,8 +28,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOPROBABILISTICTEXTUREMANAGER_H
-#define OOPROBABILISTICTEXTUREMANAGER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
@@ -105,5 +100,3 @@ private:
     float* _probMaxGal = { };
     RANROTSeed _seed = { };
 };
-
-#endif // OOPROBABILISTICTEXTUREMANAGER_H

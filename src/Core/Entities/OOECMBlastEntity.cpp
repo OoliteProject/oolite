@@ -2,9 +2,10 @@
 
 OOECMBlastEntity.m
 
-C++20 since bead oo-ryhi (see OOECMBlastEntity.h). The bodies are the Objective-C ones: a message
-to self is a member call, the universe is handed the C++ entity and the scripts the entity's Objective-C
-object, oo::ToObjC(this). The ship stays its Objective-C object (amendment oo-bj8 item 4).
+See OOECMBlastEntity.h. The bodies are the Objective-C ones: a message to self
+is a member call, the universe is handed the C++ entity and the scripts the
+entity's Objective-C object, oo::ToObjC(this). The ship stays its Objective-C
+object.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -43,8 +44,8 @@ MA 02110-1301, USA.
 #include "OODebugGLDrawing.h"
 #endif
 
-// The part of -initFromShip: that could not fail. Virtual members are called as the base's own
-// during construction (amendment oo-bj8 item 6).
+// The part of -initFromShip: that could not fail. Virtual members are called as
+// the base's own during construction.
 OOECMBlastEntity::OOECMBlastEntity(ShipEntity* ship)
 {
     _blastsRemaining = ECM_PULSE_COUNT;

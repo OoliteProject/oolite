@@ -39,9 +39,9 @@ OOJoystickManager* sSharedStickHandler = nullptr; // never released, as before
 
 } // namespace
 
-// +sharedStickHandler and +setStickHandlerClass: (moved from the deleted facade):
-// the class registered is a function that makes the manager; -init's body, init(), runs on the
-// new manager as [[class alloc] init] ran it.
+// +sharedStickHandler and +setStickHandlerClass: the class registered is a
+// function that makes the manager; -init's body, init(), runs on the new
+// manager as [[class alloc] init] ran it.
 OOJoystickManager* OOJoystickManager::sharedStickHandler()
 {
     if (sSharedStickHandler == nullptr) {
@@ -197,8 +197,8 @@ void OOJoystickManager::saveProfileForAxis(int axis)
         points.reserve(controlPoints.size());
         for (i = 0; i < controlPoints.size(); i++) {
             point = controlPoints[i];
-            // +numberWithFloat: as before: single-precision reals, so the defaults file prints them
-            // with %.7g (proposed ADR-0043 Amendment 2).
+            // +numberWithFloat: as before: single-precision reals, so the defaults
+            // file prints them with %.7g.
             points.push_back(oo::PList(oo::PList::Array {
                 oo::PList::singleReal(static_cast<float>(point.x)),
                 oo::PList::singleReal(static_cast<float>(point.y)) }));

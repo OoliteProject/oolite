@@ -1,50 +1,62 @@
 /*	oofnd/Defaults.hpp
-        oo::Defaults: the game's preferences, replacing NSUserDefaults and the two categories that bend
-        GNUstep's to Oolite (Core/NSUserDefaults+Override.m, Core/NSBundle+Override.m); bead oo-32f.
+        oo::Defaults: the game's preferences, replacing NSUserDefaults and the
+   two categories that bend GNUstep's to Oolite (Core/NSUserDefaults+Override.m,
+   Core/NSBundle+Override.m).
 
             today (Objective-C, gnustep-base 1.31)                   oofnd
-            -------------------------------------------------------  ---------------------------------
-            [NSUserDefaults standardUserDefaults]                    oo::Defaults::standard()
-            -objectForKey: / -stringForKey: / -arrayForKey: /        object() / stringForKey() /
-              -dictionaryForKey:                                       arrayForKey() / dictionaryForKey()
-            -boolForKey: / -integerForKey: / -floatForKey: /         boolForKey() / integerForKey() /
-              -doubleForKey:                                           floatForKey() / doubleForKey()
-            -setObject:forKey: -setBool: -setInteger: -setFloat:     setObject() setBool() setInteger()
-              -setDouble: -removeObjectForKey:                         setFloat() setDouble() removeObject()
-            -registerDefaults: / -synchronize                        registerDefaults() / synchronize()
-            NSUserDefaults+Override -writeDictionary:toFile:         writeOpenStepPList() + synchronize()
-            NSBundle+Override -infoDictionary (for the domain name)  applicationDomainName()
+            -------------------------------------------------------
+   --------------------------------- [NSUserDefaults standardUserDefaults]
+   oo::Defaults::standard() -objectForKey: / -stringForKey: / -arrayForKey: /
+   object() / stringForKey() / -dictionaryForKey: arrayForKey() /
+   dictionaryForKey() -boolForKey: / -integerForKey: / -floatForKey: /
+   boolForKey() / integerForKey() / -doubleForKey: floatForKey() /
+   doubleForKey() -setObject:forKey: -setBool: -setInteger: -setFloat:
+   setObject() setBool() setInteger() -setDouble: -removeObjectForKey:
+   setFloat() setDouble() removeObject() -registerDefaults: / -synchronize
+   registerDefaults() / synchronize() NSUserDefaults+Override
+   -writeDictionary:toFile:         writeOpenStepPList() + synchronize()
+            NSBundle+Override -infoDictionary (for the domain name)
+   applicationDomainName()
 
-        Everything below was probed against gnustep-base 1.31 on this toolchain (proposed ADR-0032):
+        Everything below was probed against gnustep-base 1.31 on this toolchain
+  :
 
-          * FILE. <home>/GNUstep/Defaults/<domain>.plist, home as ResourcePaths::homeDirectory()
-            (next to oolite.exe; GNUstep.conf's GNUSTEP_USER_DEFAULTS_DIR, not the environment).
-            <domain> is CFBundleIdentifier from <builtInResources>/Info-gnustep.plist ("oolite"), which
-            is what NSBundle+Override makes -infoDictionary read, else the process name. NSGlobalDomain
-            is read from NSGlobalDomain.plist beside it. On POSIX, OO_GNUSTEPDEFAULTSDIR (what
-            run_oolite.sh writes into GNUstep.conf) overrides the directory.
-          * SEARCH LIST. arguments, application domain, NSGlobalDomain, registration. (GNUstep's
-            GSPrimaryDomain, GSConfigDomain and language domains hold nothing the game reads.)
-          * ARGUMENTS. argv[0] skipped; "-key value" sets key (last wins); the value is parsed as a
-            property list and kept as the raw string if that fails; a "-key" followed by another
-            "-arg" or by nothing sets nothing; a lone "-" and non-dash words are skipped.
-          * WRITING. Only synchronize() writes, never at exit. It re-reads the file, applies this
-            process's changes since the last synchronize on top (another writer's keys survive), and
-            writes only if the result differs from what is on disk; an empty domain deletes the
-            file. The format is NSUserDefaults+Override's: GNUstep's NSPropertyListOpenStepFormat
-            (writeOpenStepPList below), written atomically. An unreadable file reads as empty.
-          * GETTERS. NSUserDefaults' own coercions: strings through GNUstep's -boolValue /
-            -integerValue / -doubleValue (defaults_detail), numbers through NSNumber's, anything
-            else 0/NO; stringForKey only strings. Numbers written come back as strings next run.
+          * FILE. <home>/GNUstep/Defaults/<domain>.plist, home as
+   ResourcePaths::homeDirectory() (next to oolite.exe; GNUstep.conf's
+   GNUSTEP_USER_DEFAULTS_DIR, not the environment). <domain> is
+   CFBundleIdentifier from <builtInResources>/Info-gnustep.plist ("oolite"),
+   which is what NSBundle+Override makes -infoDictionary read, else the process
+   name. NSGlobalDomain is read from NSGlobalDomain.plist beside it. On POSIX,
+   OO_GNUSTEPDEFAULTSDIR (what run_oolite.sh writes into GNUstep.conf) overrides
+   the directory.
+          * SEARCH LIST. arguments, application domain, NSGlobalDomain,
+   registration. (GNUstep's GSPrimaryDomain, GSConfigDomain and language domains
+   hold nothing the game reads.)
+          * ARGUMENTS. argv[0] skipped; "-key value" sets key (last wins); the
+   value is parsed as a property list and kept as the raw string if that fails;
+   a "-key" followed by another
+            "-arg" or by nothing sets nothing; a lone "-" and non-dash words are
+   skipped.
+          * WRITING. Only synchronize() writes, never at exit. It re-reads the
+   file, applies this process's changes since the last synchronize on top
+   (another writer's keys survive), and writes only if the result differs from
+   what is on disk; an empty domain deletes the file. The format is
+   NSUserDefaults+Override's: GNUstep's NSPropertyListOpenStepFormat
+            (writeOpenStepPList below), written atomically. An unreadable file
+   reads as empty.
+          * GETTERS. NSUserDefaults' own coercions: strings through GNUstep's
+   -boolValue / -integerValue / -doubleValue (defaults_detail), numbers through
+   NSNumber's, anything else 0/NO; stringForKey only strings. Numbers written
+   come back as strings next run.
 
-        Header-only, C++20, no exceptions. Thread-safe as NSUserDefaults is (one mutex).
+        Header-only, C++20, no exceptions. Thread-safe as NSUserDefaults is (one
+   mutex).
 */
 
-#ifndef OOFND_DEFAULTS_HPP
-#define OOFND_DEFAULTS_HPP
+#pragma once
 
-// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header (see oofnd/Data.hpp,
-// proposed ADR-0028); restored at the end.
+// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header
+// (see oofnd/Data.hpp); restored at the end.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -628,5 +640,3 @@ private:
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_DEFAULTS_HPP

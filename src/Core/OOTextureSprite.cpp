@@ -32,8 +32,9 @@ oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(OOTexture* inTexture)
     return initWithTexture(inTexture, (inTexture != nullptr) ? inTexture->originalDimensions() : NSSize { }); // a message to nil answered a zero size
 }
 
-// -initWithTexture:size:'s failure test, then the object (amendment oo-novu item 1).
-oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(OOTexture* inTexture, NSSize spriteSize)
+// -initWithTexture:size:'s failure test, then the object.
+oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(OOTexture* inTexture,
+    NSSize spriteSize)
 {
     if (inTexture == nil) {
         return nullptr;

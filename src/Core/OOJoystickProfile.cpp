@@ -54,13 +54,14 @@ public:
     double gradient(double t);
 
 private:
-    // The -initWithData:... initialisers, which could fail (amendment oo-bhb9 item 1).
+    // The -initWithData:... initialisers, which could fail.
     bool initWithData(NSPoint left, NSPoint right);
     bool initWithData(NSPoint left, NSPoint right, double gradientleft);
     bool initWithDataGradientRight(NSPoint left, NSPoint right, double gradientright);
     bool initWithData(NSPoint left, NSPoint right, double gradientleft, double gradientright);
 
-    double start_ = { }; // the ivars start and end (amendment oo-z1s4 item 1: they clash with start(), end())
+    double start_ = { }; // the ivars start and end (they clash
+                         // with start(), end())
     double end_ = { };
     double a[4] = { };
 };

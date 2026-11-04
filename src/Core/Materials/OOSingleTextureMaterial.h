@@ -4,9 +4,7 @@ OOSingleTextureMaterial.h
 
 A material with a single texture (and no shaders).
 
-C++20 since bead oo-zxzb (proposed ADR-0056, amendments oo-smy and oo-vl43). Its Objective-C
-facade was deleted by bead oo-9ht.38 (ADR-0056 amendment "deleting a facade"): the class is global,
-and Objective-C sees one as an OOMaterial (OOBasicMaterial's facade was deleted by bead oo-9ht.33).
+Objective-C sees one as an OOMaterial.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -31,8 +29,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOSINGLETEXTUREMATERIAL_H
-#define OOSINGLETEXTUREMATERIAL_H
+#pragma once
 
 #include "OOBasicMaterial.h"
 
@@ -54,15 +51,18 @@ public:
             If the found OOTexture config dictionary contains a "name" key, it will be
             used in preference to the name parameter.
 
-            The initialisers run once, right after construction (proposed ADR-0056, amendment oo-vl43),
-            and answer false where the Objective-C initialiser answered nil.
+            The initialisers run once, right after construction, and answer false
+       where the Objective-C initialiser answered nil.
     */
-    bool initWithName(const std::optional<std::string>& name, const oo::PList& configuration); // shared with OOBasicMaterial and OOMultiTextureMaterial
+    bool initWithName(
+        const std::optional<std::string>& name,
+        const oo::PList& configuration); // shared with OOBasicMaterial and
+                                         // OOMultiTextureMaterial
 
-    /*	Designated initializer. Foundation sweep (proposed ADR-0043, bead oo-ac2y): the name is
-            nil-able (the initializer fails without one); the configuration is a material configuration
-            dictionary (Object nodes for live objects such as colours; null for none) and goes to
-            OOBasicMaterial unchanged.
+    /*	Designated initializer. The name is nil-able (the initializer fails
+       without one); the configuration is a material configuration dictionary
+       (Object nodes for live objects such as colours; null for none) and goes to
+       OOBasicMaterial unchanged.
     */
     bool initWithName(const std::optional<std::string>& name, OOTexture* texture, const oo::PList& configuration);
 
@@ -80,5 +80,3 @@ public:
 private:
     oo::Ref<OOTexture> _texture = { };
 };
-
-#endif // OOSINGLETEXTUREMATERIAL_H

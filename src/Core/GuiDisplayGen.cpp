@@ -728,8 +728,8 @@ void GuiDisplayGen::setText(const std::optional<std::string>& str, OOGUIRow row,
 
 int GuiDisplayGen::rowAtVirtualJoystickPosition(NSPoint vjpos)
 {
-    // The cursor maths of -drawGUI:drawCursor: (which calls this), y only: the row does not depend
-    // on x. Bead oo-3rb.348.
+    // The cursor maths of -drawGUI:drawCursor: (which calls this), y only: the
+    // row does not depend on x.
     double cursor_y = -size_in_pixels.height * vjpos.y;
     if (cursor_y < -size_in_pixels.height * 0.5)
         cursor_y = -size_in_pixels.height * 0.5f;
@@ -2399,7 +2399,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha
     OOGLEND();
 }
 
-// One-line bridge (amendment oo-9ht.139 item 3), moved from the GUI's deleted facade (bead oo-9ht.143).
+// One-line bridge to the universe.
 bool GuiDisplayGenUniverseUseShaders()
 {
     return (UNIVERSE != nullptr ? UNIVERSE->useShaders() : false);

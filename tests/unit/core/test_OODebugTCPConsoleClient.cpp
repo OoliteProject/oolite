@@ -1,7 +1,6 @@
 /*	test_OODebugTCPConsoleClient.mm
-	Unit tests for the TCP debug console client (src/Core/Debug/OODebugTCPConsoleClient.h): bead
-	oo-4nhg, converted after the Debug module's pattern seam oo-kq7 (proposed ADR-0056, amendment
-	oo-kq7). The client is the debugger the golden harness drives the game through.
+	Unit tests for the TCP debug console client (src/Core/Debug/OODebugTCPConsoleClient.h). The
+	client is the debugger the golden harness drives the game through.
 
 	The client opens a non-blocking socket to the console, sends "Request Connection", and then
 	speaks the console protocol (OODebugTCPConsoleProtocol.h): property-list packets, each behind
@@ -10,17 +9,13 @@
 	console output and configuration packets, ping, commands and configuration changes passed to
 	the monitor, closing from either end, and a connection nobody answers. The frame loop's side
 	(OODebugTCPConsoleIsWaitingForInput / OODebugTCPConsoleServiceInput) delivers the console's
-	packets, as it does in the game. These expectations were written against the Objective-C class
-	and run on it first.
+	packets, as it does in the game.
 
 	The debug monitor would bring the JavaScript engine and the game into the link, so it is this
-	file's stand-in (proposed ADR-0056, amendment oo-z1s4 item 4): it records the commands and
-	configuration values it is given and answers configuration values from a table. Since the
-	conversion (commit 3dc0fde89 ran these tests on the Objective-C class, against an Objective-C
-	monitor) the stand-in is the C++ monitor's members that the client calls. Bead oo-9ht.81 deleted
-	the client's facade: the tests drive the C++ client through the debugger interface, as they drove
-	the facade, and cxxClientAndItsFacade keeps the C++ API's checks (its facade-contract checks were
-	retired with the facade, standing approval oo-9n5p9).
+	file's stand-in: it records the commands and configuration values it is given and answers
+	configuration values from a table. The stand-in is the C++ monitor's members that the client
+	calls. The tests drive the C++ client through the debugger interface, and
+	cxxClientAndItsFacade checks the C++ API.
 	Run: bash tools/check-core-tests.sh test_OODebugTCPConsoleClient
 */
 
@@ -492,7 +487,7 @@ OO_TEST(nobodyAnswers)
 }
 
 
-// The C++ client (its facade, and the facade-contract checks, are retired).
+// The C++ client.
 OO_TEST(cxxClientAndItsFacade)
 {
 	{

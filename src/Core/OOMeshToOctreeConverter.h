@@ -25,24 +25,19 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOMESHTOOCTREECONVERTER_H
-#define OOMESHTOOCTREECONVERTER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "Octree.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
-class ShipEntity; // C++ since bead oo-9ht.144
+class ShipEntity;
 
-enum {
-    kOOMeshToOctreeConverterSmallDataCapacity = 16
-};
+enum { kOOMeshToOctreeConverterSmallDataCapacity = 16 };
 
-// (declared inside the Objective-C class's ivar block before bead oo-rsk8, which put it at file scope)
 struct OOMeshToOctreeConverterInternalData {
     Triangle* triangles;
     uint32_t count;
@@ -54,18 +49,18 @@ struct OOMeshToOctreeConverterInternalData {
 class OOMeshToOctreeConverter : public oo::RefCounted {
 public:
     explicit OOMeshToOctreeConverter(NSUInteger capacity); // -initWithCapacity:
-    static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(NSUInteger capacity);
+    static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(
+        NSUInteger capacity);
     ~OOMeshToOctreeConverter() override;
 
     void addTriangle(Triangle tri);
 
     oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
 
-    // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...} (OODescription.h).
+    // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...}
+    // (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
 private:
     struct OOMeshToOctreeConverterInternalData _data = { };
 };
-
-#endif // OOMESHTOOCTREECONVERTER_H

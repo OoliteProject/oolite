@@ -41,12 +41,12 @@ MA 02110-1301, USA.
 #include "OOObjCPList.h"
 
 /*
-        C++20 since bead oo-5rva, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. Nothing else in the file was
-        Objective-C: the player (PlayerEntity), the universe and ShipEntity, which are not converted,
-        are still messaged, which is why the file is still .mm until Phase 4.
+        The Player class is a static JSClassDef registered with
+        OOJSRegisterClass(); JSPlayerClassID() is its class ID. The global
+        player object has no private data, as before. The global object owns the
+        only reference to it (a read-only, permanent property), so
+        JSPlayerObject() looks it up there instead of keeping a reference that
+        would have to be dropped on engine reset (#768).
 */
 
 static JSClassID sPlayerClassID;
@@ -573,8 +573,9 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS)
     }
 
     if (success) {
-        // The player's entity node, as the next event's: its JS value is the C++ player's, which its
-        // object's -oo_jsValueInContext: answered; qualified: the final overrider, so the binding test stands in for it.
+        // The player's entity node, as the next event's: its JS value is the C++
+        // player's; qualified: the final overrider, so the binding test stands in
+        // for it.
         if (player != nullptr)
             player->ShipEntity::doScriptEvent(OOJSID("playerReplacedShip"), { oo::EntityObjectNode(player) });
         // slightly misnamed world event now - to be deprecated

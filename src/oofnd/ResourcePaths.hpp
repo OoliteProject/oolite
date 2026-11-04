@@ -1,7 +1,8 @@
 /*	oofnd/ResourcePaths.hpp
-        oo::ResourcePaths: where the game finds its built-in Resources, its AddOns roots and its
-        per-user directories (saves, snapshots, logs, caches, managed OXZs). Replaces the NSBundle /
-        NSHomeDirectory() / NSSearchPathForDirectoriesInDomains() lookups (bead oo-i9q).
+        oo::ResourcePaths: where the game finds its built-in Resources, its
+   AddOns roots and its per-user directories (saves, snapshots, logs, caches,
+   managed OXZs). Replaces the NSBundle / NSHomeDirectory() /
+   NSSearchPathForDirectoriesInDomains() lookups.
 
         Every answer reproduces what the game computes TODAY on the SDL platforms (Windows, Linux),
         including the OO_* environment overrides, so a consumer can switch without moving a file:
@@ -23,43 +24,48 @@
               ~/GNUstep/Library/Caches
             [[OOOXZManager sharedManager] installPath]               managedAddOnsDirectory()
               OO_MANAGEDADDONSDIR | <ApplicationSupport>/Oolite/ManagedAddOns
-            [[OOOXZManager sharedManager] extractAddOnsPath]         extractAddOnsDirectory()
-              OO_ADDONSEXTRACTDIR | Windows "../AddOns" (relative, as today) or, when built with
-              OO_GAME_DATA_TO_USER_FOLDER, %LOCALAPPDATA%\Oolite\AddOns | Linux ~/.Oolite/AddOns
-            [[OOOXZManager sharedManager] additionalAddOnsPaths]     additionalAddOnsDirectories()
-              OO_ADDITIONALADDONSDIRS split on ','
-            [ResourceManager builtInPath]                            builtInResourcesDirectory()
-              <cwd>/Resources if it is a directory, else <cwd>/../share/oolite/Resources
-            [ResourceManager userRootPaths]                          userRootDirectories()
-            [ResourceManager rootPaths]                              rootDirectories()
+            [[OOOXZManager sharedManager] extractAddOnsPath]
+   extractAddOnsDirectory() OO_ADDONSEXTRACTDIR | Windows "../AddOns" (relative,
+   as today) or, when built with OO_GAME_DATA_TO_USER_FOLDER,
+   %LOCALAPPDATA%\Oolite\AddOns | Linux ~/.Oolite/AddOns
+            [[OOOXZManager sharedManager] additionalAddOnsPaths]
+   additionalAddOnsDirectories() OO_ADDITIONALADDONSDIRS split on ','
+            [ResourceManager builtInPath] builtInResourcesDirectory()
+              <cwd>/Resources if it is a directory, else
+   <cwd>/../share/oolite/Resources [ResourceManager userRootPaths]
+   userRootDirectories() [ResourceManager rootPaths] rootDirectories()
 
-        "~" is homeDirectory(). On Windows that is GNUstep's rule: %HOMEPATH% (prefixed with
-        %HOMEDRIVE% unless it already starts with a drive letter), else %USERPROFILE%. SDL/main.mm
-        points HOMEPATH at the executable's directory (or %LOCALAPPDATA%\Oolite\oolite.app under
-        OO_GAME_DATA_TO_USER_FOLDER) before anything reads it, which is why saves, Logs and
-        GNUstep/Library all live next to oolite.exe. On Linux it is $HOME. With neither, the current
-        directory. The macOS (Cocoa) layout is not reproduced: that platform is outside ADR-0017.
-        The home and GNUstep/Library rules were probed against gnustep-base 1.31 on this toolchain
-        (HOMEPATH with and without a drive, NSSearchPathForDirectoriesInDomains); the rest transcribe
-        the Objective-C cited above. fs::utf8String() of an answer is the string the Objective-C
-        code produces today, '/' separators included.
+        "~" is homeDirectory(). On Windows that is GNUstep's rule: %HOMEPATH%
+   (prefixed with %HOMEDRIVE% unless it already starts with a drive letter),
+   else %USERPROFILE%. SDL/main.mm points HOMEPATH at the executable's directory
+   (or %LOCALAPPDATA%\Oolite\oolite.app under OO_GAME_DATA_TO_USER_FOLDER)
+   before anything reads it, which is why saves, Logs and GNUstep/Library all
+   live next to oolite.exe. On Linux it is $HOME. With neither, the current
+        directory. The macOS (Cocoa) layout is not reproduced: that platform is
+   not supported. The home and GNUstep/Library rules were probed against
+   gnustep-base 1.31 on this toolchain (HOMEPATH with and without a drive,
+   NSSearchPathForDirectoriesInDomains); the rest transcribe the Objective-C
+   cited above. fs::utf8String() of an answer is the string the Objective-C code
+   produces today, '/' separators included.
 
-        ResourcePaths is a pure function of a PathEnvironment (platform, environment lookup, current
-        directory), so tests drive it with a fake environment; PathEnvironment::process() is the real
-        one. The environment is read through GetEnvironmentVariableW on Windows so that variables set
-        at run time with SetEnvironmentVariable (SDL_setenv_unsafe does) are seen, as GNUstep and SDL
-        see them; the CRT's getenv() copy would miss them. Nothing here creates a directory: creating
-        and falling back is the consumer's job, as it is today (oofnd/FileSystem.hpp).
+        ResourcePaths is a pure function of a PathEnvironment (platform,
+   environment lookup, current directory), so tests drive it with a fake
+   environment; PathEnvironment::process() is the real one. The environment is
+   read through GetEnvironmentVariableW on Windows so that variables set at run
+   time with SetEnvironmentVariable (SDL_setenv_unsafe does) are seen, as
+   GNUstep and SDL see them; the CRT's getenv() copy would miss them. Nothing
+   here creates a directory: creating and falling back is the consumer's job, as
+   it is today (oofnd/FileSystem.hpp).
 
-        Header-only, C++20, compiles with -fno-exceptions. Proposed ADR-0028 records the choices.
+        Header-only, C++20, compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_RESOURCEPATHS_HPP
-#define OOFND_RESOURCEPATHS_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; C++20 needs the
-// keywords (requires-clauses, <=> in the standard headers this pulls in). Suspend the macros for
-// this header and restore them at its end (proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; C++20 needs the keywords (requires-clauses, <=> in the standard headers
+// this pulls in). Suspend the macros for this header and restore them at its
+// end.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -273,5 +279,3 @@ private:
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_RESOURCEPATHS_HPP

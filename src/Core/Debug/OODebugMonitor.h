@@ -10,10 +10,8 @@ formal protocol. This can either be (part of) a debugger loaded into Oolite
 itself (as in the Mac Debug OXP), or provide communications with an external
 debugger (for instance, over Distributed Objects or TCP/IP).
 
-C++20 since bead oo-kq7, the Debug module's pattern seam (proposed ADR-0056, amendment oo-kq7).
-Its Objective-C facade (OODebugMonitor+ObjCBridge) was deleted: the console's JS objects hold
-the monitor itself, the console script is handed it as a property-list Object node
-(oo::PListForeign), and the class left namespace cxx.
+The console's JS objects hold the monitor itself, and the console script is
+handed it as a property-list Object node (oo::PListForeign).
 
 
 Oolite debug support
@@ -40,8 +38,7 @@ SOFTWARE.
 
 */
 
-#ifndef OODEBUGMONITOR_H
-#define OODEBUGMONITOR_H
+#pragma once
 
 #include "OODebuggerInterface.h"
 #include "OOFoundation.h"
@@ -63,11 +60,10 @@ class OOJavaScriptEngine;
 #include "OOColor.h" // the colour maps hold oo::Ref<OOColor>
 #include "OOScript.h" // the console script, oo::Ref<OOScript>
 
-/*	The one debug monitor (sharedDebugMonitor(), made on first use and never released). The
-        debugger reaches it as itself, the JavaScript engine as its monitor (the C++
-        OOJavaScriptEngineMonitor), the console's JS objects hold it in their private slot and the
-        console script is handed it as an Object node (the Objective-C facade and the
-        OODebugMonitorInterface protocol only it adopted are deleted).
+/*	The one debug monitor (sharedDebugMonitor(), made on first use and never
+   released). The debugger reaches it as itself, the JavaScript engine as its
+   monitor (the C++ OOJavaScriptEngineMonitor), the console's JS objects hold it
+   in their private slot and the console script is handed it as an Object node.
 */
 class OODebugMonitor : public oo::PListForeign, public ::OOJavaScriptEngineMonitor, public ::OOJSPrivateObject {
 public:
@@ -148,7 +144,7 @@ private:
 
     void applicationWillTerminate(const oo::Notification& notification);
     void writeMemStat(const std::string& line);
-    void dumpEntity(Entity* entity, EntityDumpState* state, bool parentVisible); // the C++ entity (was its object)
+    void dumpEntity(Entity* entity, EntityDumpState* state, bool parentVisible); // the C++ entity
 
     void setUpDebugConsoleScript();
     void javaScriptEngineWillReset(const oo::Notification& notification);
@@ -183,5 +179,3 @@ private:
     bool _TCPIgnoresDroppedPackets = { };
     bool _usingPlugInController = { };
 };
-
-#endif // OODEBUGMONITOR_H

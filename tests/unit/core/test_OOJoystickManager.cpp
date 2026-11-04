@@ -1,22 +1,19 @@
 /*	test_OOJoystickManager.mm
-	Unit tests for OOJoystickManager (src/Core/OOJoystickManager.h): bead oo-6bux, a Phase 3
-	conversion in the house style of the OOColor exemplar (proposed ADR-0056), as the root of a
-	hierarchy whose one subclass (the SDL manager's facade) is still Objective-C (Amendment 1,
-	bead oo-cwz; the subclass's side is amendment oo-o89).
+	Unit tests for OOJoystickManager (src/Core/OOJoystickManager.h), the root of a hierarchy whose
+	one subclass is the SDL manager.
 
-	The manager keeps the stick-to-function tables, decodes stick events into axis and button
-	states (the SDL manager decodes, upstream #742: the cases that decode use an SDL manager that
-	answers for the hardware as the base does), reports the next moved axis or pressed button to a callback, and loads and saves the
-	tables and the axis profiles in the user defaults. The test points the defaults' home (HOMEPATH)
-	at a scratch folder before they are first read, so nothing of the user's is read or written.
-	The expectations were written against the Objective-C API and run on the unconverted class
-	first; they ran through the facade until beads oo-9ht.69 and oo-9ht.2 deleted it, and now call
-	the same C++ members. They cover: the default mapping; axis decoding (normalised, thrust, view, raw, out of
-	range, the profiles and precision mode); buttons and hats; reassigning and unsetting
-	functions; the callback for both kinds of hardware; saving and reloading the tables and both
-	kinds of profile; a subclass's overrides reached by the base (also from -init) and [super
-	...]; the shared handler of a registered factory.
-	Run: bash tools/check-core-tests.sh
+	The manager keeps the stick-to-function tables, decodes stick events into axis and button states
+	(the SDL manager decodes, upstream #742: the cases that decode use an SDL manager that answers
+	for the hardware as the base does), reports the next moved axis or pressed button to a callback,
+	and loads and saves the tables and the axis profiles in the user defaults. The test points the
+	defaults' home (HOMEPATH) at a scratch folder before they are first read, so nothing of the
+	user's is read or written. The expectations were written against the Objective-C API and run on
+	the unconverted class first; they call the C++ members. They cover: the default mapping; axis
+	decoding (normalised, thrust, view, raw, out of range, the profiles and precision mode); buttons
+	and hats; reassigning and unsetting functions; the callback for both kinds of hardware; saving
+	and reloading the tables and both kinds of profile; a subclass's overrides reached by the base
+	(also from -init) and [super ...]; the shared handler of a registered factory. Run: bash
+	tools/check-core-tests.sh
 */
 
 #include "OOJoystickManager.h"
@@ -32,8 +29,7 @@
 #include <vector>
 
 
-// What the callback reports to (was an Objective-C object whose -stickPicked: was called by name;
-// the callback is a C++ function since bead oo-9ht.69).
+// What the callback reports to (the callback is a C++ function).
 struct StickCallbackTarget
 {
 	oo::PList	_picked;
@@ -52,10 +48,10 @@ struct StickCallbackTarget
 };
 
 
-// A subclass as the platform managers are: two sticks, the second nameless, whose axis 1 reads
-// half way. It does not override listSticks() or the setters, so the base's run on its answers.
-// (An Objective-C subclass of the facade until bead oo-9ht.69.) It is an SDL manager, which decodes
-// the events (upstream #742).
+// A subclass as the platform managers are: two sticks, the second nameless,
+// whose axis 1 reads half way. It does not override listSticks() or the
+// setters, so the base's run on its answers. It is an SDL manager, which
+// decodes the events (upstream #742).
 class TestStickManager : public OOSDLJoystickManager
 {
 public:

@@ -40,10 +40,9 @@ class OOColor;
 class OOSkyQuadSet;
 struct OOSkyQuadDesc;
 
-/*	Phase 3 (bead oo-4jjl, proposed ADR-0056 amendments oo-smy, oo-zffj, oo-mw4u and oo-4jjl): a
-        drawable with no facade. Its one caller, SkyEntity, makes it with oo::makeRef and hands it to
+/*	A drawable. Its one caller, SkyEntity, makes it with oo::makeRef and hands it to
         the entity. It is a graphics reset client through the C++ client
-        interface (amendment oo-jpd8 item 3), which this bead added.
+        interface.
 */
 class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
 public:
@@ -90,14 +89,16 @@ private:
 
     void ensureTexturesLoaded();
 
-    // The unit test's stand-in for setUpStars(), which needs the game's star textures (decision
-    // oo-jsx0h); null in the game.
-    static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, OOColor* color1, OOColor* color2);
+    // The unit test's stand-in for setUpStars(), which needs the game's star
+    // textures; null in the game.
+    static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, OOColor* color1,
+        OOColor* color2);
 
     unsigned _starCount = { };
     unsigned _nebulaCount = { };
 
-    std::vector<oo::Ref<OOSkyQuadSet>> _quadSets; // no `= {}` (GCC, incomplete T; bead oo-1q4);	// one per texture (Foundation sweep, proposed ADR-0043)
+    std::vector<oo::Ref<OOSkyQuadSet>> _quadSets; // no `= {}` (GCC, incomplete
+                                                  // T);	// one per texture
 
     GLint _displayListName = { };
 };

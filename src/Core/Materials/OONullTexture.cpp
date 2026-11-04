@@ -74,5 +74,5 @@ std::optional<std::string> OONullTexture::name()
 /*	The (Singleton) category's canonical singleton boilerplate (+allocWithZone: answering nil after
         the first, -copyWithZone: answering self, and -retain/-release/-autorelease doing nothing) is
         not translated: nothing but sharedNullTexture() makes the object, and the one reference it
-        keeps is never released (amendment oo-r7m0 item 1).
+        keeps is never released.
 */

@@ -55,8 +55,7 @@ MA 02110-1301, USA.
 namespace {
 struct RunningStack {
     RunningStack* back = nullptr;
-    // The running script, held weakly (the stack held its Objective-C object, or
-    // the weak reference proxy a timer or definition pushed); null for a script-less push.
+    // The running script, held weakly; null for a script-less push.
     oo::WeakRef<OOJSScript> current;
     bool scriptless = false; // pushed with no script, which scriptStack() refuses
 };
@@ -89,11 +88,11 @@ static JSValue ScriptToString(OOJS_NATIVE_ARGS);
 static oo::PList ScriptConverter(JSContext* context, JSValueConst object);
 
 namespace {
-/*	A Script object's private slot: a weak reference to its script, as the slot held the weak
-        reference proxy the script's facade gave, so the JS object does not keep the script
-        alive. The slot retains it once; OOJSCxxObjectWrapperFinalize releases it (it has no JS glue of
-        its own: the converter and toString() below ask the script, and answer what a dead reference
-        did once it has gone).
+/*	A Script object's private slot: a weak reference to its script, so the
+   JS object does not keep the script alive. The slot retains it once;
+   OOJSCxxObjectWrapperFinalize releases it (it has no JS glue of its own: the
+   converter and toString() below ask the script, and answer what a dead
+   reference did once it has gone).
 */
 class ScriptPrivate final : public oo::RefCounted {
 public:

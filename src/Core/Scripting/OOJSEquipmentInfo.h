@@ -44,10 +44,10 @@ void InitOOJSEquipmentInfo(JSContext* context, JSValueConst global);
 class OOEquipmentType; // C++ (OOEquipmentType.h)
 
 OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value);
-// C++ results (proposed ADR-0043); nullopt where these returned nil.
+// C++ results; nullopt where there is none
 std::optional<std::string> JSValueToEquipmentKey(JSContext* context, JSValueConst value);
 
-// outExists stays BOOL *: its callers pass the address of a BOOL of their own (bead oo-supk).
+// outExists is BOOL *: its callers pass the address of a BOOL of their own.
 std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, BOOL* outExists);
 
 /*	The JS class name of OOEquipmentType's OOJSPrivateObject members, defined in

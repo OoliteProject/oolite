@@ -116,11 +116,10 @@ static int ConsoleSettingsDefineOwnProperty(JSContext* context, JSValueConst obj
 static JSValue ConsoleSettingsGetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst receiver);
 static int ConsoleSettingsSetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst receiver, int flags);
 
-/*	The console objects' private slot holds the C++ monitor with one retain (OOJSSetCxxPrivate();
-        it held the facade's weak reference), released by the finalizer, which tells the monitor its
-        wrapper is gone (OODebugMonitor::clearJSSelf() does nothing, as OOObject's -oo_clearJSSelf:
-        did for the facade). The monitor is never released, as the facade never was, so the slot
-        keeps nothing alive that would otherwise die.
+/*	The console objects' private slot holds the C++ monitor with one retain
+   (OOJSSetCxxPrivate()), released by the finalizer, which tells the monitor
+   its wrapper is gone (OODebugMonitor::clearJSSelf() does nothing). The monitor
+   is never released, so the slot keeps nothing alive that would otherwise die.
 */
 static JSClassDef sConsoleClass = {
     .class_name = "Console",
@@ -267,8 +266,8 @@ OODebugMonitor* MonitorFromJSObject(JSValueConst object)
 void ReportNotTheMonitor(JSContext* context, JSValueConst object, const char* function)
 {
     const oo::PList node = cxx_OOJSPListFromJSValue(context, object);
-    // An entity's node: the class of its object, the root facade's. Any other node holds no
-    // Objective-C object (that node was deleted): nil's class, described "(null)".
+    // An entity's node: the class of its object, the root facade's. Any other
+    // node holds no Objective-C object: nil's class, described "(null)".
     const std::string className = (oo::EntityIn(node) != nullptr) ? std::string("Entity") : std::string("(null)");
     cxx_OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s", className.c_str(), function, "This is an internal error, please report it.");
 }
@@ -743,17 +742,19 @@ static JSValue ConsoleInspectEntity(OOJS_NATIVE_ARGS)
 #if OO_DEBUG
 namespace {
 
-/*	callObjC()'s names on the console objects: the debug monitor's facade, which they held,
-        answered any selector whose signature callObjC() matched. Its deletion leaves this table:
-        exactly the facade's own selectors without arguments, and the two that take the joined string
-        argument. Each row calls the C++ member the selector forwarded to, with the result the
-        selector's signature gave; a scalar row keeps the @encode() of the facade's return type, so
-        its result (or the "cannot be called" error) is the one the selector path read from the same
-        encoding, and a row whose signature matched nothing (NotCallable) answers that error. Every
-        other name answers "does not respond": the root classes' selectors (the weak-reference
-        root and OOObject: lifetime, weak reference, description), the scalar selectors with arguments, which
-        callObjC() called with the arguments missing, and the facade's other selectors with
-        arguments, whose signatures matched nothing ("cannot be called" until then).
+/*	callObjC()'s names on the console objects: the debug monitor's facade,
+   which they held, answered any selector whose signature callObjC() matched.
+   This table is exactly the facade's own selectors without arguments, and the
+   two that take the joined string argument. Each row calls the C++ member the
+   selector forwarded to, with the result the selector's signature gave; a
+   scalar row keeps the @encode() of the facade's return type, so its result (or
+   the "cannot be called" error) is the one the selector path read from the same
+   encoding, and a row whose signature matched nothing (NotCallable) answers
+   that error. Every other name answers "does not respond": the root classes'
+   selectors (the weak-reference root and OOObject: lifetime, weak reference,
+   description), the scalar selectors with arguments, which callObjC() called
+   with the arguments missing, and the facade's other selectors with arguments,
+   whose signatures matched nothing ("cannot be called" until then).
 */
 enum class MonitorMethodForm { VoidVoid,
     VoidString,
@@ -897,10 +898,9 @@ static JSValue ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
         return result;
     }
 
-    // An entity's `this` converts to its entity node, whose C++ entity this takes and calls by its
-    // name table.
-    // Any other `this` held no Objective-C object since none is made (the object path and its node
-    // were deleted): the error below, as for a plain JS object.
+    // An entity's `this` converts to its entity node, whose C++ entity this takes
+    // and calls by its name table. Any other `this` held no Objective-C object
+    // since none is made: the error below, as for a plain JS object.
     const oo::PList thisNode = cxx_OOJSPListFromJSValue(context, OOJS_THIS);
     Entity* entity = oo::EntityIn(thisNode);
     if (entity == nullptr) {
@@ -1236,7 +1236,7 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
     if (argc > 1)
         thisObj = JS_DupValue(context, argv[1]);
     else {
-        JSValue debugConsole = OODebugMonitor::sharedDebugMonitor()->jsValueInContext(context); // the facade's -oo_jsValueInContext: until it was deleted
+        JSValue debugConsole = OODebugMonitor::sharedDebugMonitor()->jsValueInContext(context); // the facade's -oo_jsValueInContext:
         thisObj = JS_GetPropertyStr(context, debugConsole, "script");
         JS_FreeValue(context, debugConsole);
     }

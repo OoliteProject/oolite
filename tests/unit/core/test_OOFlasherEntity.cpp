@@ -1,29 +1,25 @@
 /*	test_OOFlasherEntity.mm
 	Unit tests for OOFlasherEntity (src/Core/Entities/OOFlasherEntity.h), the blinking lights that
-	ships and visual effects carry as subentities: bead oo-bn5j, a leaf of the Entities seam under
-	OOLightParticleEntity (proposed ADR-0056, amendments oo-bj8 item 12, oo-0otc, oo-0mxi and
-	oo-2c6g).
+	ships and visual effects carry as subentities.
 
 	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
-	uses a Universe that was never initialised and a plain entity as PLAYER. The expectations were
-	written against the Objective-C API and run on the unconverted class first: a flasher reads its
-	size, frequency (doubled), phase, bright fraction, colours and initial state from its
-	dictionary (defaults 1, 1, 0, 0.5, none, on); its accessors; its colour is its current
+	uses a Universe that was never initialised and a plain entity as PLAYER. The tests cover: a
+	flasher reads its size, frequency (doubled), phase, bright fraction, colours and initial state
+	from its dictionary (defaults 1, 1, 0, 0.5, none, on); its accessors; its colour is its current
 	components; -update: cycles its colours on the wave's falling half and sets its brightness, or
 	keeps it opaque at frequency 0; it draws only while active; it is a flasher (and an entity is
 	not); its collision radius is half its diameter; -rescaleBy: scales the diameter and
 	-rescaleBy:writeToCache: does nothing. The colour components, an ivar of OOLightParticleEntity,
 	are read and set through the one block of helpers below. The flashers are made as the callers
-	make them (flasherWithDictionary(), then oo::NewEntityFacade). The Objective-C facade is
-	deleted: the cases ask the C++ class what they asked the facade, with every expectation kept,
-	except the facade's own class check; the facade case pins the crossing instead (the object is
-	OOLightParticleEntity's facade, whose C++ part is the flasher), and jsExtensions pins that the
-	engine's selectors reach the C++ class's overrides through the root.
+	make them (flasherWithDictionary(), then oo::NewEntityFacade). The cases ask the C++ class; the
+	facade case pins the crossing (the object is OOLightParticleEntity's facade, whose C++ part is
+	the flasher), and jsExtensions pins that the engine's selectors reach the C++ class's overrides
+	through the root.
 	Run: bash tools/check-core-tests.sh
 */
 
 #include "OOFlasherEntity.h"
-#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "PlayerEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSFlasher.h"
@@ -45,14 +41,14 @@ extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// the game's, retained (+1) as +alloc's object was.
 template <class T>
 T *NewTestPlayer()
 {
@@ -300,10 +296,10 @@ OO_TEST(isFlasher)
 {
 	{
 		SetUp();
-		// The category -isFlasher went with the facade: callers ask the C++ part.
+		// Callers ask the C++ part.
 		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
 		OO_CHECK(dynamic_cast<OOFlasherEntity *>(plain) == nullptr);
-		const oo::Ref<OOLightParticleEntity> lightParticle = oo::makeRef<OOLightParticleEntity>();	// C++ since bead oo-9ht.76
+		const oo::Ref<OOLightParticleEntity> lightParticle = oo::makeRef<OOLightParticleEntity>();
 		Entity *particle = oo::MadeEntity(lightParticle);
 		lightParticle->initWithDiameter(1.0f);
 		OO_CHECK(dynamic_cast<OOFlasherEntity *>(particle) == nullptr);
@@ -317,8 +313,8 @@ OO_TEST(facade)
 {
 	{
 		SetUp();
-		// The object is the nearest facade left, whose C++ part is the
-		// flasher: a C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
+		// The object is the root's facade, whose C++ part is the flasher: a C++
+    // entity.
 		Entity *object = oo::MadeEntity(OOFlasherEntity::flasherWithDictionary(WhiteBlack(1, 0.5)));
 		OO_CHECK(dynamic_cast<OOFlasherEntity *>(object) != nullptr);
 		OO_CHECK(object == object);
@@ -340,9 +336,8 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carried from bead oo-9ht.49 and the C++ class's overrides
-// of the root's JS members carry since the facade's deletion: what the engine asks a flasher's
-// object for by selector is what OOJSFlasher.mm answers.
+// The C++ class's overrides of the root's JS members: what the engine asks a
+// flasher's object for by selector is what OOJSFlasher.mm answers.
 OO_TEST(jsExtensions)
 {
 	{

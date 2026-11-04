@@ -2,7 +2,7 @@
 
 OOPListGameTypes.mm
 
-See OOPListGameTypes.h (bead oo-9ftb).
+See OOPListGameTypes.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

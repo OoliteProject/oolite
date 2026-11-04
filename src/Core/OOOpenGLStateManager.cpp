@@ -275,7 +275,12 @@ static OOOpenGLStateID sCurrentStateID = OPENGL_STATE_INTERNAL_USE_ONLY;
         that sourceState accurately reflects the current state.
 */
 namespace {
-static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState, const OOOpenGLState* targetState); // no NONNULL_FUNC: the body asserts its arguments are non-null, which GCC drops as always true under the attribute (-Wnonnull-compare; bead oo-1q4)
+static void SwitchOpenGLStateInternal(
+    const OOOpenGLState* sourceState,
+    const OOOpenGLState*
+        targetState); // no NONNULL_FUNC: the body asserts its arguments are
+                      // non-null, which GCC drops as always true under the
+                      // attribute (-Wnonnull-compare)
 } // namespace
 
 /*	Accessors
@@ -383,7 +388,12 @@ static void GetCurrentOpenGLState(OOOpenGLState* state) NONNULL_FUNC;
         Test whether two states are identical.
 */
 namespace {
-static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b); // no NONNULL_FUNC: the body asserts its arguments are non-null, which GCC drops as always true under the attribute (-Wnonnull-compare; bead oo-1q4)
+static bool StatesEqual(
+    const OOOpenGLState* a,
+    const OOOpenGLState*
+        b); // no NONNULL_FUNC: the body asserts its arguments are non-null,
+            // which GCC drops as always true under the attribute
+            // (-Wnonnull-compare)
 } // namespace
 
 #if OO_CHECK_GL_HEAVY

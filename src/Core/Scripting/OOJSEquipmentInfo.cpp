@@ -32,23 +32,6 @@ MA 02110-1301, USA.
 #include "OOObjCPList.h"
 #include "oofnd/String.hpp"
 
-/*
-        C++20 since bead oo-supk, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. OOEquipmentType
-        (OOJavaScriptExtensions), the category on the converted class's façade that owns its _jsSelf
-        ivar, became three free functions that take the façade's ivar by reference, and its methods
-        moved to the façade (OOEquipmentType+ObjCBridge.mm; amendment oo-6ia4 item 3). OOEquipmentType and
-        OOColor, which are C++ since beads oo-fg7i and oo-11m, are reached as cxx:: classes through
-        oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4); the property hooks cross once, and Ask()
-        answers what a message to nil answered for the prototype, which has no type.
-        JSValueToEquipmentType() still answers the façade, and JSValueToEquipmentKeyRelaxed()'s
-        out-parameter stays BOOL *, so their callers compile unchanged. Messages to classes that are
-        still Objective-C (PlayerEntity) stay as they are, which is why the file is still .mm until
-        Phase 4.
-*/
-
 static JSClassID sEquipmentInfoClassID;
 
 static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS);
@@ -206,8 +189,9 @@ bool JSEquipmentInfoGetEquipmentType(JSContext* context, JSValueConst inObject, 
     return OOJSGetCxxPrivate(context, inObject, sEquipmentInfoClassID, outObject);
 }
 
-// OOJSBasicPrivateObjectConverter for the C++ type the slot holds: the type itself as an Object
-// node (it was its facade), for the callers of cxx_OOJSPListFromJSValue (null for the prototype).
+// OOJSBasicPrivateObjectConverter for the C++ type the slot holds: the type
+// itself as an Object node, for the callers of cxx_OOJSPListFromJSValue (null
+// for the prototype).
 oo::PList EquipmentInfoConverter(JSContext* /*context*/, JSValueConst object)
 {
     OOEquipmentType* type = static_cast<OOEquipmentType*>(static_cast<oo::RefCounted*>(JS_GetOpaque(object, sEquipmentInfoClassID)));

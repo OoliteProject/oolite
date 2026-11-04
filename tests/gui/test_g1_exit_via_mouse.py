@@ -7,7 +7,7 @@ input reaches the game, and the menu shutdown path works. Everything else in thi
 
     python3 -m pytest oolite-dev/tests/gui/test_g1_exit_via_mouse.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock
 for the duration.
 """
 
@@ -136,11 +136,11 @@ def test_g1_exit_via_mouse(game):
     # 5. G9 hygiene: no crash dump, no ERROR in the log, and a defaults file THIS RUN wrote and
     #    which re-parses. Passing the fixture itself rather than a directory is deliberate: the
     #    "written by this run" evidence is the launch-time mark GameWindow.start() recorded, and
-    #    a call that could be spelled without it would be a check that cannot fail (oo-5rsa).
+    #    a call that could be spelled without it would be a check that cannot fail.
     assert_clean_exit(game)
 
 
-# --- regression guards for the two defects behind this bug bead ---------------------------------
+# --- regression guards for two defects -------------------------------------------------
 #
 # Both were invisible on the implementer's desktop and fatal on the reviewer's, and neither needs
 # a game to check, so both are marked offline and gate in a clean checkout too.
@@ -425,8 +425,8 @@ def test_an_unusable_desktop_is_reported_distinguishably_from_a_broken_g1():
     AttachThreadInput cannot cross the UIPI/integrity boundary, so while an elevated window owns
     the foreground no retry can ever succeed and the tier is wedged. Measured: an elevated Task
     Manager (integrity 0x3000 against our 0x2000) refused AttachThreadInput with
-    ERROR_ACCESS_DENIED on 11 consecutive runs. The gate must still FAIL - a silent pass is what
-    bead oo-7by1 removed - but it must say which of the two things went wrong, because
+    ERROR_ACCESS_DENIED on 11 consecutive runs. The gate must still FAIL - a silent pass must
+    never be allowed - but it must say which of the two things went wrong, because
     "your desktop is unusable" and "G1 is broken" call for opposite responses.
     """
     import conftest
@@ -444,7 +444,7 @@ def test_an_unusable_desktop_is_reported_distinguishably_from_a_broken_g1():
 
     message = str(caught.value)
     assert not isinstance(caught.value, pytest.skip.Exception), (
-        "an unusable desktop must not SKIP; that is the silent pass oo-7by1 removed"
+        "an unusable desktop must not SKIP; that is the silent pass a skip would be"
     )
     assert DESKTOP_UNUSABLE_MARKER in message, (
         "the failure must carry the precondition marker so it is machine-distinguishable from a "
@@ -483,7 +483,7 @@ def test_double_click_interval_activates_rather_than_selecting_twice():
     SDL_EVENT_MOUSE_BUTTON_UPs is under MOUSE_DOUBLE_CLICK_INTERVAL (0.40s,
     MyOpenGLView.h:59). Left at a library default, a slower pair is two single clicks: the row is
     selected, never activated, and the game runs on until the test times out - the exact symptom
-    this bead was filed for. Pinning the interval is only a fix while it stays under the game's.
+    this guards against. Pinning the interval is only a fix while it stays under the game's.
     """
     assert DOUBLE_CLICK_INTERVAL_SECONDS < MOUSE_DOUBLE_CLICK_INTERVAL, (
         f"confirm_row clicks {DOUBLE_CLICK_INTERVAL_SECONDS}s apart, but the game only counts a "

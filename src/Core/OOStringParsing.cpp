@@ -184,7 +184,7 @@ Random_Seed cxx_RandomSeedFromString(const std::optional<std::string>& abcdefStr
     int abcdef[] = { 0, 0, 0, 0, 0, 0 };
     int i = 0;
     const char* error = nullptr;
-    oo::str::Scanner scanner(abcdefString.value_or("")); // a nil string scans as an empty one (proposed ADR-0039)
+    oo::str::Scanner scanner(abcdefString.value_or("")); // a nil string scans as an empty one
 
     while (!scanner.isAtEnd() && i < 6 && !error) {
         if (!scanner.scanInt(&abcdef[i++]))

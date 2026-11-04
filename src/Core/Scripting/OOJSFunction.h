@@ -4,10 +4,6 @@ OOJSFunction.h
 
 Object encapsulating a runnable JavaScript function.
 
-C++20 since bead oo-3smy (proposed ADR-0056, the OOColor house style). The Objective-C facade
-was deleted once ShipEntityAI and OORegExpMatcher held the C++ object, and the class moved out of
-namespace cxx.
-
 
 JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
@@ -29,8 +25,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSFUNCTION_H
-#define OOJSFUNCTION_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
@@ -43,9 +38,7 @@ MA 02110-1301, USA.
 
 class OOJSFunction : public oo::RefCounted {
 public:
-    // The initialisers' factories (proposed ADR-0056 amendment oo-novu): null where the
-    // initialiser answered nil (not a function; no code, missing argument names, or a compile
-    // error).
+    // The initialisers' factories: null where the initialiser answered nil (not a function; no code, missing argument names, or a compile error).
     // function must be a function value; the OOJSFunction takes its own reference.
     static oo::Ref<OOJSFunction> initWithFunction(JSValueConst function, JSContext* context);
     static oo::Ref<OOJSFunction> initWithName(const std::optional<std::string>& name,
@@ -61,7 +54,7 @@ public:
 
     std::optional<std::string> descriptionComponents() const;
 
-    std::optional<std::string> name(); // nullopt: anonymous (bead oo-3rb.289.7)
+    std::optional<std::string> name(); // nullopt: anonymous
     // Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
     JSValueConst function();
     // Owned (caller must free). JS_NULL if invalid.
@@ -74,10 +67,6 @@ public:
         JSValueConst* argv,
         JSValue* result);
 
-    // (The object-wrapper evaluations, which converted Objective-C arguments and scope -
-    // evaluatePredicateWithContext() and its evaluateWithContext() - had no game caller and went
-    // with OOJSValueFromNativeObject().)
-
 private:
     // The part of -initWithFunction:context: that cannot fail.
     OOJSFunction(JSValueConst function, JSContext* context);
@@ -88,5 +77,3 @@ private:
     JSValue _function = JS_NULL; // Owned; JS_NULL when invalid.
     std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
 };
-
-#endif // OOJSFUNCTION_H

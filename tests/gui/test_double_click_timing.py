@@ -1,7 +1,6 @@
 """Offline guard: the SDL double-click is timed by its events, not by the poll that read them.
 
-Bugs oo-3rb.333 (G5) and oo-3rb.336 (G8), and the same miss seen in G1: every row this tier
-activates is activated by a double-click (``GameWindow.confirm_row``), and the game decides
+Every row this tier activates is activated by a double-click (``GameWindow.confirm_row``), and the game decides
 "double" in ``-pollControls`` (MyOpenGLView+Input) by comparing the time of this left-button
 release with the last one against MOUSE_DOUBLE_CLICK_INTERVAL (0.40 s).
 
@@ -64,7 +63,7 @@ def test_the_click_interval_is_taken_from_the_release_event_timestamp():
     assert "timeNow" not in rhs, (
         "timeBetweenClicks is computed from timeNow again - the poll's start time. Two releases "
         "read by two polls are then timed by the frame between the polls, and one slow frame "
-        "turns a real double-click into two single clicks (oo-3rb.333/oo-3rb.336)"
+        "turns a real double-click into two single clicks"
     )
     stamped = {m.group(1) for m in re.finditer(r"(\w+)\s*=\s*[^;]*mbtn_event->timestamp", body)}
     uses_timestamp = "mbtn_event->timestamp" in rhs or any(

@@ -63,9 +63,10 @@ public:
 private:
     friend struct ::OOLaserShotEntityTestAccess;
 
-    // -initLaserFromShip:direction:offset:'s body, run once right after construction (amendment
-    // oo-vl43 item 2).
-    void initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset);
+    // -initLaserFromShip:direction:offset:'s body, run once right after
+    // construction.
+    void initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction,
+        Vector offset);
 
     GLfloat _color[4] = { };
     OOTimeDelta _lifetime = { };

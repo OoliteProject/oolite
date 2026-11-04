@@ -4,10 +4,8 @@ EntityShaderBindings.m
 
 Extra methods exposed for shader bindings.
 
-C++20 since bead oo-aeev (proposed ADR-0056, amendment oo-9fwb): the category Entity
-(ShaderBindings) is members of Entity (Entity.h), defined here. The shader uniforms bind them
-through the entities' member table; the category's forwarders
-(EntityShaderBindings+ObjCBridge.mm) went with bead oo-9ht.127.
+The category Entity (ShaderBindings) is members of Entity (Entity.h), defined
+here. The shader uniforms bind them through the entities' member table.
 
 
 Oolite
@@ -99,13 +97,15 @@ unsigned Entity::systemProductivity()
 
 #if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
-/*	The entities' shader binding member table, moved here from Entity+ObjCBridge.mm, its rows
-        receiving the C++ entity: one row per name a shader may bind on an entity
-        (shader-uniform-bindings.plist and every other name whitelist.plist permits that the root's
-        facade answered), each with its uniform type (the type encoding of the
-        method it replaces, so the uniform's type is the one the selector path read), whether it applies
-        to this entity (what the root facade's -respondsToSelector: answered for it) and its getter (the method's
-        body, unchanged but for the receiver). laserColor has no method and no row: it fails as before.
+/*	The entities' shader binding member table, its rows receiving the C++
+   entity: one row per name a shader may bind on an entity
+   (shader-uniform-bindings.plist and every other name whitelist.plist permits
+   that the root's facade answered), each
+   with its uniform type (the type encoding of the method it replaces, so the
+   uniform's type is the one the selector path read), whether it applies to this
+   entity (what the root facade's -respondsToSelector: answered for it) and its
+   getter (the method's body, unchanged but for the receiver). laserColor has no
+   method and no row: it fails as before.
 */
 namespace {
 
@@ -369,14 +369,16 @@ bool EntityShaderMemberBindingFor(Entity* entity, const char* property, OOShader
     return true;
 }
 
-/*	What the uniforms and the materials ask of a binding target that is an entity, registered so
-        that the materials link without the entities. Each answers what the entity's object answered:
-        the root facade's methods are the C++ entity's members (the object is deleted).
+/*	What the uniforms and the materials ask of a binding target that is an
+   entity, registered so that the materials link without the entities. Each
+   answers what the entity's object answered: the root facade's methods are the
+   C++ entity's members.
 */
 namespace {
 
-// What the root facade's object answered (it is deleted): the entity's own members, for an
-// entity that has its object; nil's answers for one without.
+// What the root facade's object answered: the
+// entity's own members, for an entity that has its object; nil's answers for
+// one without.
 Entity* ShaderSuperTarget(Entity* entity)
 {
     // The root facade's -superShaderBindingTarget: the parent entity; nil's for an entity without its object.

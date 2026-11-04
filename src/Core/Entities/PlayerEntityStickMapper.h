@@ -28,11 +28,9 @@ MA 02110-1301, USA.
 
 #include "PlayerEntity.h"
 
-/*	The category PlayerEntity (StickMapper) is members of
-        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityStickMapper.mm. Its Objective-C interface,
-        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
-        which PlayerEntity.h imports. This header stays for the files that import it.
-*/
+/* The category PlayerEntity (StickMapper) is members of PlayerEntity, declared
+ * in PlayerEntity.h. This header stays for the files that include it.
+ */
 #include "GuiDisplayGen.h"
 #include "MyOpenGLView.h"
 #include "Universe.h"
@@ -53,7 +51,7 @@ MA 02110-1301, USA.
 #define GUI_ROW_FUNCEND (GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1)
 #define GUI_ROW_INSTRUCT 18
 
-// Dictionary keys (of the oo::PList function entries, proposed ADR-0043 bead oo-u76k)
+// Dictionary keys (of the oo::PList function entries)
 #define KEY_HEADER "header"
 #define KEY_GUIDESC "guiDesc"
 #define KEY_ALLOWABLE "allowable"

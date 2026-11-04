@@ -1,19 +1,17 @@
 /*	test_OOJSFrameCallbacks.mm
-	Unit tests for the frame callbacks (src/Core/Scripting/OOJSFrameCallbacks.h/.mm): bead oo-n041,
-	a Phase 3 scripting file (proposed ADR-0056 amendment oo-ppc).
+	Unit tests for the frame callbacks (src/Core/Scripting/OOJSFrameCallbacks.h/.mm).
 
 	The file defines the global functions addFrameCallback(), removeFrameCallback() and
 	isValidFrameCallback(), and OOJSFrameCallbacksInvoke(), which the game calls every frame. The
-	test runs them in a real QuickJS-ng context and links the game's own objects for the file and the engine's
-	exception translator (OOJSEngineNativeWrappers.mm). What the rest of the engine would provide
-	is defined below as the smallest stand-in that does the same thing (amendment oo-ppc item 6):
-	the error and warning reporters, OOJSValue (a held JS value, which a deferred add keeps), the
-	time limiter and the universe's time acceleration. The engine's header is not imported,
-	because the test defines OOJSValue (amendment oo-z1s4 item 4). The expectations were written
-	against the Objective-C file and run on it first; they pin the three functions and their
-	errors, the delta each callback receives, adds and removes made while the callbacks run
-	(deferred to the end of the frame), a throwing callback, growth past the first 16 slots, and
-	removing all.
+	test runs them in a real QuickJS-ng context and links the game's own objects for the file and
+	the engine's exception translator (OOJSEngineNativeWrappers.mm). What the rest of the engine
+	would provide is defined below as the smallest stand-in that does the same thing: the error and
+	warning reporters, OOJSValue (a held JS value, which a deferred add keeps), the time limiter and
+	the universe's time acceleration. The engine's header is not imported, because the test
+	defines OOJSValue. The expectations were written against the Objective-C file and run on it
+	first; they pin the three functions and their errors, the delta each callback receives, adds
+	and removes made while the callbacks run (deferred to the end of the frame), a throwing
+	callback, growth past the first 16 slots, and removing all.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -102,8 +100,8 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-// A JS value kept alive for C++ (OOJSEngineCore.h; a C++ class since its facade was deleted): the
-// members the deferred add calls, defined here with the stand-in's answers. It owns a reference.
+// A JS value kept alive for C++ (OOJSEngineCore.h): the members the deferred
+// add calls, defined here with the stand-in's answers. It owns a reference.
 oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext *context)
 {
 	oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
@@ -145,8 +143,8 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 
 
 // The universe's time acceleration, which scales each frame's delta.
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// which the test's FakeUniverse stood in for, was deleted), with the header's names and signatures.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures.
 class Universe
 {
 public:

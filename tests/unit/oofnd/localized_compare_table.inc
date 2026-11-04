@@ -1,5 +1,5 @@
 // Captured from GNUstep base 1.31.1 -[NSString localizedCompare:] (ICU collation) with
-// [NSLocale currentLocale] = en_US, by a throwaway probe (bead oo-r4d6). Test data: do not edit.
+// [NSLocale currentLocale] = en_US, by a throwaway probe. Test data: do not edit.
 // kLocalizedCompareSigns[i][j] is [words[i] localizedCompare:words[j]] (-1, 0, 1).
 constexpr const char *kLocalizedCompareLocale = "en_US";
 constexpr const char *kLocalizedCompareWords[] = {

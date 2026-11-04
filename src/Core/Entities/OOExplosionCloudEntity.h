@@ -4,9 +4,9 @@ OOExplosionCloudEntity.h
 
 Cloud effect during explosions
 
-C++20 since bead oo-cenx, with its superclass (see OOParticleSystem.h; bead oo-ui7h's class). A
-global class with no facade: ShipEntity and Universe make it with a factory and hand the universe
-the Entity facade oo::NewEntityFacade makes.
+A global class with no facade (see OOParticleSystem.h): ShipEntity and Universe
+make it with a factory and hand the universe the Entity facade
+oo::NewEntityFacade makes.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -34,8 +34,8 @@ MA 02110-1301, USA.
 
 #include "oofnd/PList.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-8sel): the explosion settings are an oo::PList (a
-        Dict; an empty one where the settings were nil).
+/*	The explosion settings are an oo::PList (a Dict; an empty one where the
+   settings were nil).
 */
 class OOExplosionCloudEntity : public OOParticleSystem {
 public:

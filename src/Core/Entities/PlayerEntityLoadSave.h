@@ -32,11 +32,9 @@ MA 02110-1301, USA.
 
 #include "PlayerEntity.h"
 
-/*	The category PlayerEntity (LoadSave) is members of PlayerEntity, declared in PlayerEntity.h and
-        defined in PlayerEntityLoadSave.mm. Its Objective-C interface, for the callers that remained,
-        was the category of the same name in PlayerEntity+ObjCBridge.h (deleted), which PlayerEntity.h
-        imported. This header stays for the files that import it.
-*/
+/* The category PlayerEntity (LoadSave) is members of PlayerEntity, declared in
+ * PlayerEntity.h. This header stays for the files that include it.
+ */
 #include "GuiDisplayGen.h"
 #include "MyOpenGLView.h"
 #include "Universe.h"
@@ -54,6 +52,11 @@ MA 02110-1301, USA.
 #define SAVE_OVERWRITE_WARN_ROW 5
 #define SAVE_OVERWRITE_YES_ROW 8
 #define SAVE_OVERWRITE_NO_ROW 9
+
+// The load / save macros (USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG,
+// OOLITE_USE_APPKIT_LOAD_SAVE, OO_USE_APPKIT_LOAD_SAVE_ALWAYS,
+// OO_USE_CUSTOM_LOAD_SAVE) are in PlayerEntity.h, whose member declarations of
+// this file's categories they condition.
 
 OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits);
 

@@ -60,25 +60,6 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-/*
-        Converted slice by slice to C++20. A converted native or helper has no
-        Objective-C: BOOL/YES/NO/nil are bool/true/false/nullptr; the ship it wraps is reached as
-        ShipEntity through oo::ToShip (its members an Objective-C subclass overrides are virtual,
-        so dispatch is as before), the converted classes the ship hands out (AI, OORoleSet,
-        OOShipGroup, OOColor, OONativeVector) as C++ classes, null-guarded where a message to nil
-        answered; the player is reached by member calls on the C++ player, and the universe,
-        still Objective-C, by a message at each call.
-        Slice 1: ShipGetProperty() and its helpers. Slice 2: ShipSetProperty(). Slice 3: the AI and
-        script, escort, role, cargo, spawn, damage, removal, legacy-action, comms, ECM and abandon
-        natives. Slice 4: equipment, missiles, nearest station, bounty, cargo, crew,
-        materials and shaders. Slice 5: system exit, escort formation, defence targets,
-        collision exceptions, cascades, group, escort and patrol, wormholes, docking instructions,
-        distress and course. Slice 6: the perform* behaviours, the scanner, cargo
-        adjustment, damage and threat assessment, and the static methods (the ship registry is
-        OOShipRegistry). The file sends the universe its messages directly, as
-        OOJSStation.mm does, until the universe is C++.
-*/
-
 namespace {
 
 // The weapon offsets as the old accessors handed them to JavaScript: an array of OONativeVector
@@ -607,10 +588,9 @@ static const JSCFunctionListEntry sShipStaticMethods[] = {
 
 namespace {
 
-/*	The ship a JS Ship object holds. DEFINE_JS_OBJECT_GETTER's getter answered the ship's object until
-        the ship's facade was deleted (the object is now the drawable's facade, so the getter
-        checks the root's class); this answers its C++ ship, null where the object was nil. The slot
-        holds the C++ entity (OOJSEntityGetEntityOfClass, the same JS class check).
+/*	The ship a JS Ship object holds: its C++ ship, null where there is none.
+   The slot holds the C++ entity (OOJSEntityGetEntityOfClass, with the JS class
+   check).
 */
 BOOL JSShipGetShipEntity(JSContext* context, JSValueConst inObject, ShipEntity** outShip)
 {
@@ -655,8 +635,8 @@ oo::PList NormalizedColorComponents(OOColor* color)
     return oo::PList(std::move(components));
 }
 
-/*	The ship's AI is C++ (AI, without a facade). A ship with no AI
-        answered none or false to what the getter sent the AI; so does a null AI here.
+/*	The ship's AI is C++ (AI). A ship with no AI answers none or false to
+   what the getter sends the AI; so does a null AI here.
 */
 std::optional<std::string> AIName(ShipEntity* ship)
 {
@@ -683,8 +663,8 @@ bool IsShip(Entity* entity)
     return dynamic_cast<ShipEntity*>(entity) != nullptr;
 }
 
-/*	The ship's mesh is C++ (OOMesh). A ship with no mesh answered
-        null to -materials and -shaders; so does a null mesh here.
+/*	The ship's mesh is C++ (OOMesh). A ship with no mesh answers null to
+   -materials and -shaders; so does a null mesh here.
 */
 oo::PList MeshMaterials(ShipEntity* ship)
 {
@@ -830,7 +810,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS)
         return OOJSValueFromBOOL(AIHasSuspendedStateMachines(ship));
 
     case kShip_target:
-        result = oo::EntityObjectNode(ship->primaryTarget()); // the C++ entity's object node or nil (the getter answers the C++ entity)
+        result = oo::EntityObjectNode(ship->primaryTarget()); // the C++ entity's object node or nil
         break;
 
     case kShip_defenseTargets: {
@@ -2338,7 +2318,7 @@ static JSValue ShipDumpCargo(OOJS_NATIVE_ARGS)
         }
 
         for (i = 1; i < count; i++) {
-            // drop 3 canisters per 2 seconds (a deferred call on the C++ ship; by name on its object before)
+            // drop 3 canisters per 2 seconds (a deferred call on the C++ ship)
             oo::ScheduleEntityCall(thisEnt, [](Entity* entity) { if (ShipEntity *ship = dynamic_cast<ShipEntity *>(entity))  ship->dumpCargo(); }, (0.75 * i));
         }
     }
@@ -2543,8 +2523,8 @@ static JSValue ShipFireECM(OOJS_NATIVE_ARGS)
 
     OK = ship->fireECM();
     if (!OK) {
-        // The C++ ship's JS description: what its object's OOObjectJSDescription() made of the same
-        // jsClassName() and descriptionComponents().
+        // The C++ ship's JS description: made of its jsClassName() and
+        // descriptionComponents().
         cxx_OOJSReportWarning(context, "Ship %s was requested to fire ECM burst but does not carry ECM equipment.", EntityJSDescription(thisEnt).value_or("(null)").c_str());
     }
 
@@ -3217,6 +3197,8 @@ JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt, bool fro
     OOJS_PROFILE_EXIT
 }
 }
+
+// namespace
 
 // exitSystem([int systemID])
 static JSValue ShipExitSystem(OOJS_NATIVE_ARGS)

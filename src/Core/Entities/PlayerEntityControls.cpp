@@ -654,13 +654,15 @@ void PlayerEntity::getPollControls(double delta_t)
     }
 }
 
-// The GUI row a mouse click activates (bead oo-3rb.348). UNIVERSE->cursor_row is only recomputed
-// when the GUI is RENDERED, so after a stall the motion events and the click arrive in one tick and
-// cursor_row is still the row of the last render, not the row under the pointer (a click aimed at
-// row 26 activated row 22, which the pointer had crossed on its way). On an interactive GUI screen,
-// ask the GUI for the row under the pointer as it is now, with the same maths the render uses.
-// The universe, its game controller and view, and the GUI are read through their C++ parts (a nil
-// controller or view answered as a message to nil did: no interaction mode, a zero position).
+// The GUI row a mouse click activates. UNIVERSE->cursor_row is only
+// recomputed when the GUI is RENDERED, so after a stall the motion
+// events and the click arrive in one tick and cursor_row is still the row of
+// the last render, not the row under the pointer (a click aimed at row 26
+// activated row 22, which the pointer had crossed on its way). On an
+// interactive GUI screen, ask the GUI for the row under the pointer as it is
+// now, with the same maths the render uses. The universe, its game controller
+// and view, and the GUI are read through their C++ parts (a nil controller or
+// view answered as a message to nil did: no interaction mode, a zero position).
 static int ClickedGUIRow(GuiDisplayGen* gui)
 {
     Universe* universe = UNIVERSE;
@@ -879,7 +881,7 @@ void PlayerEntity::pollApplicationControls()
             }
 
             if ((gameView != nullptr ? gameView->isCommandQDown() : false)) {
-                // The target was the controller's object; the controller is C++, and on SDL the pair is kept, never performed: nil.
+                // On SDL the pair is kept, never performed: nil.
                 if (gameController != nullptr)
                     gameController->pauseFullScreenModeToPerform("exitAppCommandQ", nil);
             }
@@ -1633,7 +1635,7 @@ void PlayerEntity::pollFlightControls(double delta_t)
                     Entity* target = primaryTarget();
                     if (target == nullptr)
                         target = this;
-                    target->dumpState(); // what the facade's -dumpState called
+                    target->dumpState();
                 }
             } else
                 dump_target_state_pressed = NO;
@@ -2329,7 +2331,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t)
                         if ((controller != nullptr ? controller->inFullScreenMode() : false)) {
                             if (controller != nullptr)
                                 controller->pauseFullScreenModeToPerform("savePlayer", nil);
-                        } // no target: the SDL build never performs it, and the entity's object no longer answers -savePlayer
+                        } // no target: the SDL build never performs it
                         else
                             savePlayer();
                     } else {
@@ -2933,7 +2935,7 @@ void PlayerEntity::pollMarketScreenControls()
                     gameView->clearMouse();
             }
             if (!wait_for_key_up) {
-                const std::optional<std::string> item = marketSelectedCommodity; // Amendment 1 item 10
+                const std::optional<std::string> item = marketSelectedCommodity;
                 OOCargoQuantity yours = (shipCommodityData != nullptr ? shipCommodityData->quantityForGood(item.value_or("")) : 0);
                 if (item == ">>>") {
                     tryBuyingCommodity(item.value_or(""), YES);
@@ -4820,8 +4822,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking)
     }
 
     Entity* target;
-    target = primaryTarget(); // the C++ entities
-    // If target isn't dockable, check for nearby stations
+    target = primaryTarget(); // If target isn't dockable, check for nearby stations
     if (!(target != nullptr && target->getIsStation())) {
         ::Universe* uni = UNIVERSE;
         Entity** entities = uni->sortedEntities; // grab the public sorted list
@@ -4873,8 +4874,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking)
         // check whether there are docks that do not accept docking - even one such dock will result in rejection
         for (const auto& sub : (ts != nullptr ? ts->dockSubEntities() : std::vector<oo::EntityHold>())) {
             // TOO_BIG_TO_DOCK issued when docks are scripted to reject docking
-            if ((oo::ToDock(sub.get()) != nullptr ? oo::ToDock(sub.get())->canAcceptShipForDocking(this) : std::optional<std::string>()) == "TOO_BIG_TO_DOCK") // a dock's object is a ship's
-            {
+            if ((oo::ToDock(sub.get()) != nullptr ? oo::ToDock(sub.get())->canAcceptShipForDocking(this) : std::optional<std::string>()) == "TOO_BIG_TO_DOCK") {
                 message = ExpandKeyWithArguments((ts == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) ? "autopilot-denied" : "autopilot-target-docking-instructions-denied", { { "stationName", oo::PList(stationName) } });
                 goto abort;
             }

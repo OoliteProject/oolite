@@ -1,14 +1,13 @@
 /*	oofnd/Exception.cpp
-        OORaiseException(), the exception names and oo::CurrentOOException() (see oofnd/Exception.hpp).
-        Moved from oofnd/objc/OOException.mm when bead oo-4aq6a.1 deleted the Objective-C OOException
-        class; the code is unchanged.
+        OORaiseException(), the exception names and oo::CurrentOOException()
+   (see oofnd/Exception.hpp).
 */
-
-#include "oofnd/Exception.hpp"
 
 #include <cstdarg>
 #include <cstdio>
 #include <string>
+
+#include "oofnd/Exception.hpp"
 
 const char* const OOGenericException = "NSGenericException";
 const char* const OOInvalidArgumentException = "NSInvalidArgumentException";
@@ -45,7 +44,7 @@ void OORaiseException(const char* name, const char* format, ...)
         reason = FormatReason(format, args);
         va_end(args);
     }
-    throw oo::Exception(name, reason.c_str()); // the C++ exception since bead oo-rskgl.1
+    throw oo::Exception(name, reason.c_str());
 }
 
 namespace oo {

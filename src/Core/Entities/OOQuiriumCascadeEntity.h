@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 #include "Entity.h"
 
-/*	A converted leaf: global, over Entity, with no facade of its own.
+/*	A global class over Entity, with no facade of its own.
         Unconverted code makes one with quiriumCascadeFromShip() and hands it to Objective-C with
         oo::NewEntityFacade, whose object is an Entity; OOEntityIsCascadeWeapon() asks it.
 */
@@ -48,14 +48,14 @@ public:
     bool checkCloseCollisionWith(Entity* other) override;
 
 private:
-    // -initQuiriumCascadeFromShip:'s body: false (no cascade) for a nil ship (amendment oo-novu).
+    // -initQuiriumCascadeFromShip:'s body: false (no cascade) for a nil ship.
     bool initQuiriumCascadeFromShip(ShipEntity* ship);
 
     OOTimeDelta _timePassed = { };
     GLfloat _color[4] = { };
 };
 
-// -isCascadeWeapon of the Objective-C Entity's category, deleted: false for null
+// -isCascadeWeapon of the Objective-C Entity's category: false for null
 // and for every entity but a cascade, whose answer it is.
 inline bool OOEntityIsCascadeWeapon(Entity* entity)
 {

@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #include "GameController.h"
 #include "OOLoggingExtended.h"
 #include "oofnd/Process.hpp"
-#include "oofnd/Ref.hpp" // oo::AutoreleaseScope (was objc-arc.h's pool functions, oo-31u.8)
+#include "oofnd/Ref.hpp" // oo::AutoreleaseScope
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/objc/OOObject.h"
@@ -89,10 +89,8 @@ uint32_t gDebugFlags = 0;
  */
 int main(int argc, char* argv[])
 {
-    // (The Objective-C floor's start-up, OOObjCInstallFloor(), went with OOObject and OOConstantString,
-    // bead oo-4aq6a.8: no literal or Objective-C object is made.)
-
-    // Foundation's process-info -arguments, now captured here: argv as SDL_main built it (UTF-8 on Windows).
+    // Foundation's process-info -arguments, now captured here: argv as SDL_main
+    // built it (UTF-8 on Windows).
     oo::process::setArguments(argc, argv);
 
 #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
@@ -198,7 +196,7 @@ int main(int argc, char* argv[])
 
     // Need this because we're not using the default run loop's autorelease
     // pool.
-    // (An Objective-C pool until oo-31u.8; popped below, before applicationDidFinishLaunching.)
+    // (Popped below, before applicationDidFinishLaunching.)
     std::optional<oo::AutoreleaseScope> pool;
     pool.emplace();
     OOLoggingInit();

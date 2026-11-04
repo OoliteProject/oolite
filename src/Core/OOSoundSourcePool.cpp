@@ -34,7 +34,7 @@ enum {
 };
 
 typedef struct OOSoundSourcePoolElement {
-    OOSoundSource* source; // one retain, or null (C++ since bead oo-9ht.88)
+    OOSoundSource* source; // one retain, or null
     OOTimeAbsolute expiryTime;
     float priority;
 } PoolElement;
@@ -82,9 +82,8 @@ OOSoundSourcePool::~OOSoundSourcePool()
     free(_sources);
 }
 
-/*	The sounds and the sources are C++ since beads oo-9ht.68 and oo-9ht.88 deleted their facades:
-        the sound for a key is OOSoundWithCustomSoundKey() (Universe.h) and the pool makes its sources
-        (its test stands in for both; amendment oo-rmd7 item 3).
+/*	The sound for a key is OOSoundWithCustomSoundKey() (Universe.h) and the
+   pool makes its sources (its test stands in for both).
 */
 void OOSoundSourcePool::playSoundWithKey(const std::string& key,
     float priority,

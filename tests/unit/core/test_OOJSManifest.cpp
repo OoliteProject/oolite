@@ -1,20 +1,23 @@
 /*	test_OOJSManifest.mm
-	Unit tests for the Manifest JS binding (src/Core/Scripting/OOJSManifest.h/.mm): bead oo-7nfv,
-	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment oo-ppc).
+        Unit tests for the Manifest JS binding
+   (src/Core/Scripting/OOJSManifest.h/.mm).
 
-	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
-	context, and links the game's own objects for the binding, the class registration
-	(OOJSClasses.mm), the engine's exception translator (OOJSEngineNativeWrappers.mm) and the
-	commodity classes it asks (OOCommodities and OOCommodityMarket, C++ since beads oo-9ht.25 and
-	oo-9ht.21 deleted their façades, as test_OOCommodities.mm links them, reading the trade goods
-	below; the stand-ins hold them as oo::Ref). It
-	stands in for the player (its cargo and its manifest market), the universe (its commodities and
-	its market), the resource manager and string expander the commodity classes call, the player
-	ship's JS object, and the engine functions the binding links against, with the engine headers'
-	linkage. The expectations were written against the Objective-C file and run on it first; they
-	pin the JS-visible behaviour: the Manifest class and its two objects, the list, a commodity's
-	quantity both ways (clamped at zero, refused for tonnage with special cargo, delete), the four
-	comment methods and their errors, and a native's exception. Run: bash tools/check-core-tests.sh
+   As the other binding tests do, it runs the JS class in a real QuickJS-ng
+	context, and links the
+   game's own objects for the binding, the class registration
+	(OOJSClasses.mm), the engine's exception translator
+   (OOJSEngineNativeWrappers.mm) and the commodity classes it asks
+   (OOCommodities and OOCommodityMarket, as test_OOCommodities.mm links them,
+   reading the trade goods below; the stand-ins hold them as oo::Ref). It stands
+   in for the player (its cargo and its manifest market), the universe (its
+   commodities and its market), the resource manager and string expander the
+   commodity classes call, the player ship's JS object, and the engine functions
+   the binding links against, with the engine headers' linkage. The expectations
+   were written against the Objective-C file and run on it first; they pin the
+   JS-visible behaviour: the Manifest class and its two objects, the list, a
+   commodity's quantity both ways (clamped at zero, refused for tonnage with
+   special cargo, delete), the four comment methods and their errors, and a
+   native's exception. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOCommodities.h"
@@ -30,13 +33,14 @@
 
 class StationEntity;
 
-/*	The player: its cargo by good, its special cargo, its list for scripts and its manifest market.
-	Asking for the quantity of "furs" raises, and of "gems" while _throwCxx is set throws a C++
-	exception, so the test sees what an exception under a native becomes.
+/*	The player: its cargo by good, its special cargo, its list for scripts
+   and its manifest market. Asking for the quantity of "furs" raises, and of
+   "gems" while _throwCxx is set throws a C++ exception, so the test sees what
+   an exception under a native becomes.
 */
-// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
-// the code under test calls, declared as the game headers declare them (the test imports none
-// that defines the classes), with the stand-in's answers.
+// PLAYER: the members the code under test calls, declared as the game headers
+// declare them (the test imports none that defines the classes), with the
+// stand-in's answers.
 class PlayerEntity
 {
 public:
@@ -54,8 +58,8 @@ public:
 	BOOL _throwCxx = {};
 };
 
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// deleted, was what this stood in for), with the header's names and signatures.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures.
 class Universe
 {
 public:
@@ -73,9 +77,9 @@ OOSystemID Universe::currentSystemID()	{ return 7; }
 
 #include "ResourceManager.h"
 
-// A station: C++ since bead oo-9ht.175 deleted the Objective-C station this stood in for; the
-// members the commodities call, declared as StationEntity.h declares them (the test imports no
-// game header that defines the class). No case makes a station: link stubs.
+// A station: the members the commodities call, declared as StationEntity.h
+// declares them (the test imports no game header that defines the class). No
+// case makes a station: link stubs.
 class StationEntity
 {
 public:
@@ -152,8 +156,8 @@ std::optional<std::string> PlayerEntity::getSpecialCargo()  { return _specialCar
 
 
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// ResourceManager: C++ definitions of the statics the code under test calls,
+// with the Objective-C stand-in's answers.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	(void)fileName; (void)folderName; (void)mergeMode; (void)useCache;
@@ -302,8 +306,8 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 }
 
 
-// Link stubs (amendment oo-zffj, item 2): what the commodity classes reach for commodity scripts.
-// The player answers no script, so the test never runs one.
+// Link stubs: what the commodity classes reach for
+// commodity scripts. The player answers no script, so the test never runs one.
 oo::PList cxx_OOJSPListFromJSObject(JSContext *, JSValueConst)	{ std::abort(); }
 JSContext *gOOJSMainThreadContext = nullptr;
 
@@ -312,7 +316,7 @@ namespace {
 PlayerEntity *sPlayer = nullptr;
 JSValue sPlayerShip = JS_UNDEFINED;	// owned for the life of the test
 std::map<JSClassID, int> sConverters;
-}
+}  // namespace
 
 PlayerEntity *gOOPlayer = nullptr;
 Universe *gSharedUniverse = nil;

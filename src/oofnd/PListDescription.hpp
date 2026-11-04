@@ -1,8 +1,8 @@
 /*	oofnd/PListDescription.hpp
-        oo::describe(plist): the text gnustep-base's -description gave for the Foundation form of a
-        property list (what "%@" printed for oo::ObjectFromPList(plist)), without Foundation (proposed
-        ADR-0055 item 1, bead oo-qps.32). Game code reaches it as oo::DescriptionOf(const oo::PList &)
-        (src/Core/OODescription.h).
+        oo::describe(plist): the text gnustep-base's -description gave for the
+   Foundation form of a property list (what "%@" printed for
+   oo::ObjectFromPList(plist)), without Foundation. Game code reaches it as
+   oo::DescriptionOf(const oo::PList &) (src/Core/OODescription.h).
 
             value (top level)        text
             -----------------------  ----------------------------------------------------------------
@@ -31,11 +31,10 @@
         Header-only, C++20, compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_PLISTDESCRIPTION_HPP
-#define OOFND_PLISTDESCRIPTION_HPP
+#pragma once
 
-// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header (see oofnd/Data.hpp,
-// proposed ADR-0028); restored at the end.
+// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header
+// (see oofnd/Data.hpp); restored at the end.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -275,5 +274,3 @@ inline std::string describe(const PList& plist, int utcOffsetMinutes)
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_PLISTDESCRIPTION_HPP

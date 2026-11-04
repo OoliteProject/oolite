@@ -39,9 +39,9 @@ void InitOOJSPlanet(JSContext* context, JSValueConst global);
 
 JSClassID JSPlanetClassID(void);
 
-/*	The bodies of OOPlanetEntity (OOJavaScriptExtensions), which the engine reaches through the root
-        Entity's virtual members: the C++ planet's overrides call these (the OOPlanetEntity facade
-        forwarded to them before). Its JS class is JSPlanetClassID().
+/*	The bodies of OOPlanetEntity (OOJavaScriptExtensions), which the engine
+   reaches through the root Entity's virtual members: the C++ planet's overrides
+   call these. Its JS class is JSPlanetClassID().
 */
 bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet);
 std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet);

@@ -62,6 +62,3 @@ add_project_arguments(
     '-DGNUSTEP_BASE_LIBRARY=1',
     language: c_family,
 )
-# The Objective-C and Objective-C++ arguments (the libobjc2 runtime ABI, Objective-C exceptions,
-# blocks) went with the languages, bead oo-dbz.5: every game unit is C++, which has exceptions by
-# default.

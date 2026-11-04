@@ -4,9 +4,7 @@ OOEntityWithDrawable.h
 
 Abstract intermediate class for entities which use an OODrawable to render.
 
-C++20 since bead oo-bj8, with Entity the Entities pattern seam (proposed ADR-0056, amendment
-oo-bj8). The global C++ class, its Objective-C facade (OOEntityWithDrawable+ObjCBridge) deleted:
-the object of a ship, a sky or a visual effect is the root's facade.
+The object of a ship, a sky or a visual effect is the root's facade.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -47,6 +45,6 @@ public:
 #endif
 
 private:
-    // The drawable, held (every drawable is C++).
+    // The drawable, held.
     oo::Ref<OODrawable> drawable;
 };

@@ -35,14 +35,8 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 
 /*
-        C++20 since bead oo-n64m, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on the OOShipGroup
-        façade became two members of the C++ group. The group is C++ and is called directly since its
-        façade was deleted,
-        null-guarded where a message to nil answered. Messages to classes that are still
-        Objective-C (ShipEntity) stay as they are, which is why the file is still .mm until Phase 4.
+        The group is C++ and is called directly, null-guarded where a message to
+        nil answered.
 */
 
 static JSClassID sShipGroupClassID;

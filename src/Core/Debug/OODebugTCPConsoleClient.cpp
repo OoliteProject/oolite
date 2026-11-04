@@ -79,22 +79,26 @@ OOINLINE bool StatusIsSendable(OOTCPClientConnectionStatus status)
 
 } // namespace
 
-/*	The socket (bead oo-3rb.14, proposed ADR-0041). What the Foundation streams did, measured
-        against gnustep-base 1.31 on Windows, and kept here:
+/*	The socket. What the Foundation streams did, measured against
+   gnustep-base 1.31 on Windows, and kept here:
 
-        * The host is looked up by name, IPv4 only; an unknown name logs GNUstep's own
-          "Host '...' not found" line and gives no connection.
-        * The socket is non-blocking. Opening starts the connect; both streams are then
-          "opening" (1), "open" (2) once it completes, and on failure the input stream reports the
-          error first ("error", 7), with the system's text for the error code as its description.
-        * A read that would block leaves the input stream "reading" (3). A read of the peer's close
-          puts the input stream "at end" (5) and returns 0; a connection reset or aborted puts both
-          at end. Writes after the peer's close go on (the first usually succeeds); a send the
-          system aborts puts both streams at end and returns 0, and later writes return 0; a
-          connection reset on send puts the output stream in "error" (7), returns -1 and raises no
-          event. Any other read error is "error" (7) on the input stream and an error event.
-        * Events reach the handlers only through a wait (the frame loop's, the connect wait or the
-          send-retry waits), as stream events reached the delegate only from the run loop.
+        * The host is looked up by name, IPv4 only; an unknown name logs
+   GNUstep's own "Host '...' not found" line and gives no connection.
+        * The socket is non-blocking. Opening starts the connect; both streams
+   are then "opening" (1), "open" (2) once it completes, and on failure the
+   input stream reports the error first ("error", 7), with the system's text for
+   the error code as its description.
+        * A read that would block leaves the input stream "reading" (3). A read
+   of the peer's close puts the input stream "at end" (5) and returns 0; a
+   connection reset or aborted puts both at end. Writes after the peer's close
+   go on (the first usually succeeds); a send the system aborts puts both
+   streams at end and returns 0, and later writes return 0; a connection reset
+   on send puts the output stream in "error" (7), returns -1 and raises no
+          event. Any other read error is "error" (7) on the input stream and an
+   error event.
+        * Events reach the handlers only through a wait (the frame loop's, the
+   connect wait or the send-retry waits), as stream events reached the delegate
+   only from the run loop.
 */
 namespace {
 
@@ -281,10 +285,10 @@ OODebugTCPConsoleClient::~OODebugTCPConsoleClient()
     if (StatusIsSendable(_status)) {
         disconnectFromServerWithMessage(std::string("TCP console bridge unexpectedly released while active."));
     }
-    /*	-dealloc then told a connected monitor (_monitor set) to disconnect it. That never did
-            anything: the monitor retains its debugger (this client's facade) while _monitor is set, so
-            the client could not be released then, and the monitor ignores a debugger that is not its
-            own. Not translated (proposed ADR-0056, amendment oo-kq7 item 3).
+    /*	-dealloc then told a connected monitor (_monitor set) to disconnect it.
+       That never did anything: the monitor retains its debugger (this client's
+       facade) while _monitor is set, so the client could not be released then,
+       and the monitor ignores a debugger that is not its own. Not translated.
     */
 
     closeConnection();
@@ -627,10 +631,11 @@ void OODebugTCPConsoleClient::sendDictionary(const oo::PList& dictionary)
     if (dictionary.isNull() || !StatusIsSendable(_status))
         return;
 
-    /*	GNUstep's XML property-list serialisation, byte for byte (oo::writeXMLPList, ADR-0043 item
-            15). GNUstep reported no error for anything the console is sent (an object that is not
-            property-list data is written as its description, probed); writeXMLPList fails only on a
-            null list, which is not sent. The log keeps GNUstep's fallback text.
+    /*	GNUstep's XML property-list serialisation, byte for byte
+       (oo::writeXMLPList). GNUstep reported no error for
+       anything the console is sent (an object that is not property-list data is
+       written as its description, probed); writeXMLPList fails only on a null
+       list, which is not sent. The log keeps GNUstep's fallback text.
     */
     const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(dictionary);
     if (!data) {
@@ -963,8 +968,9 @@ void OODebugTCPConsoleServiceInput(double timeout)
 
 void OODebugTCPConsoleClient::DecoderPacket(void* cbInfo, OOALObjectRef packetType, OOALObjectRef packet)
 {
-    // The decoder's handles hold property lists (OOTCPStreamDecoderAbstractionLayer, bead oo-x3xy).
-    // A type that is not a string was nil, and no packet was dispatched.
+    // The decoder's handles hold property lists
+    // (OOTCPStreamDecoderAbstractionLayer). A type that is not a string was
+    // nil, and no packet was dispatched.
     const std::string* type = OOALObjectPList(packetType).getIf<std::string>();
     if (type == nullptr)
         return;
@@ -981,7 +987,7 @@ void OODebugTCPConsoleClient::DecoderError(void* cbInfo, OOALObjectRef errorDesc
 #ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
 void LogOOTCPStreamDecoderPacket(OOALObjectRef packetHandle)
 {
-    // GNUstep's XML property-list serialisation, byte for byte (ADR-0043 item 15).
+    // GNUstep's XML property-list serialisation, byte for byte.
     const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(OOALObjectPList(packetHandle));
     const std::string xml = data ? std::string(data->stringView()) : std::string();
     OO_LOG("debugTCP.receive", "Received packet:\n{}", xml);

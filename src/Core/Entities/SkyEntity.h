@@ -31,18 +31,18 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	C++ only (its Objective-C facade is deleted): the universe makes it with oo::makeRef<SkyEntity>(), hands it to Objective-C with
-        oo::NewEntityFacade (its object is the root's facade) and finds it by dynamic_cast.
+/*	The universe makes it with oo::makeRef<SkyEntity>(), hands it to Objective-C with
+        oo::NewEntityFacade and finds it by dynamic_cast.
 */
 class SkyEntity : public OOEntityWithDrawable {
 public:
     /*	-initWithColors::andSystemInfo:'s body after [super init] (the constructor ran Entity's), run
-            on a new sky once its object is made (the facade ran it before).
+            on a new sky once its object is made.
     */
     void initWithColors(OOColor* col1, OOColor* col2, const oo::PList& systemInfo);
     bool changeProperty(const std::string& key, const oo::PList& dict);
 
-    OOColor* getSkyColor(); // -skyColor (amendment oo-862e item 1: the ivar keeps the name)
+    OOColor* getSkyColor(); // -skyColor (the ivar keeps the name)
 
     void update(OOTimeDelta delta_t) override;
     bool isSky() override;

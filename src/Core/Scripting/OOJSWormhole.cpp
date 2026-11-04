@@ -29,15 +29,9 @@ MA 02110-1301, USA.
 #include "WormholeEntity.h"
 
 /*
-        C++20 since bead oo-ykoy, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on WormholeEntity
-        became two free functions (its -oo_jsClassID answers JSWormholeClassID()), and its methods
-        moved to a bridge file of the binding (amendment oo-ykoy), then onto the WormholeEntity
-        facade in WormholeEntity+ObjCBridge.mm (bead oo-9ht.43, amendment oo-6ia4 item 3). Messages
-        to classes that are still Objective-C (WormholeEntity, Entity) stay as they are, which is
-        why the file is still .mm until Phase 4.
+        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and
+        scope guards (OOJSEngineNativeWrappers.h). The category on
+        WormholeEntity is two free functions (OOJSWormhole.h).
 */
 
 static JSClassID sWormholeClassID;
@@ -108,16 +102,15 @@ static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormhol
     if (!result)
         return false;
 
-    // The wormhole is C++ behind the root's facade since bead oo-9ht.112 (-isKindOfClass: before).
+    // The wormhole is C++ behind the root's facade.
     *outEntity = dynamic_cast<WormholeEntity*>(entity);
     return *outEntity != nullptr;
 
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of WormholeEntity (OOJavaScriptExtensions), whose methods are on the WormholeEntity
-// facade, in WormholeEntity+ObjCBridge.mm (bead oo-9ht.43), until that facade goes (oo-9ht.112;
-// proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+// The bodies of WormholeEntity (OOJavaScriptExtensions), whose methods are on
+// the WormholeEntity facade, in WormholeEntity+ObjCBridge.mm.
 std::optional<std::string> OOJSWormholeJSClassName(void)
 {
     return std::string("Wormhole");
@@ -158,7 +151,8 @@ static JSValue WormholeGetProperty(OOJS_GETTER_ARGS)
         return OOJSNativeFailure(context);
     }
 
-    return JS_NULL; // what OOJSValueFromNativeObject() gave for the nil result (unreached: every case returns)
+    return JS_NULL; // what OOJSValueFromNativeObject() gave
+                    // case returns)
 
     OOJS_NATIVE_EXIT
 }

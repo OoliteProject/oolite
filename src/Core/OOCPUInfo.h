@@ -26,9 +26,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <stdint.h>
 
+#include "OOFoundation.h"
 #include "oofnd/StdLib.hpp"
 
 #if OOLITE_LINUX
@@ -37,8 +37,8 @@ MA 02110-1301, USA.
 
 void OOCPUInfoInit(void);
 
-/*	Number of processors (whether they be individual or cores), used to select
-        number of threads to use for things like texture loading.
+/*	Number of processors (whether they be individual or cores), used to
+   select number of threads to use for things like texture loading.
 */
 NSUInteger OOCPUCount(void);
 
@@ -46,11 +46,10 @@ NSUInteger OOCPUCount(void);
         Returns the CPU identifier string. Currently Windows and Linux only.
 */
 #if (OOLITE_WINDOWS || OOLITE_LINUX)
-std::string OOCPUDescription(void); // UTF-8 (Foundation sweep, proposed ADR-0043)
+std::string OOCPUDescription(void); // UTF-8
 void OOCPUID(int CPUInfo[4], int InfoType);
 
-typedef struct
-{
+typedef struct {
     unsigned long long ooPhysicalMemory;
     unsigned long long ooAvailableMemory;
 } OOMemoryStatus;
@@ -58,7 +57,8 @@ OOMemoryStatus OOSystemMemoryStatus(void);
 #endif
 
 #if OOLITE_WINDOWS
-typedef BOOL(WINAPI* IW64PFP)(HANDLE, BOOL*); // for checking for 64/32 bit system
+typedef BOOL(WINAPI* IW64PFP)(HANDLE,
+    BOOL*); // for checking for 64/32 bit system
 BOOL is64BitSystem(void);
 std::string operatingSystemFullVersion(void); // UTF-8
 #endif
@@ -68,8 +68,8 @@ std::string operatingSystemFullVersion(void); // UTF-8
 /*	Set up OOLITE_NATIVE_64_BIT. This is intended for 64-bit optimizations
         (see OOTextureScaling.m). It is not set for systems where 64-bitness may
         be determined at runtime (such as 32-bit OS X binaries), because I can't
-        be bothered to do the set-up required to use switch to a 64-bit code path
-        at runtime while being cross-platform.
+        be bothered to do the set-up required to use switch to a 64-bit code
+   path at runtime while being cross-platform.
         -- Ahruman
 */
 

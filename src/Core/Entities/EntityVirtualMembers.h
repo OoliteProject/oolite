@@ -31,8 +31,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef ENTITY_VIRTUAL_MEMBERS_H
-#define ENTITY_VIRTUAL_MEMBERS_H
+#pragma once
 
 #include <quickjs.h>
 
@@ -79,7 +78,17 @@ class Entity;
     virtual void updateCameraRelativePosition() VOID_BODY \
     virtual OOComparisonResult compareZeroDistance(Entity* /*otherEntity*/) VALUE_BODY \
     virtual void setOrientation(Quaternion /*quat*/) VOID_BODY \
-    /* Historical wart: orientation.w is reversed for player; normalOrientation() corrects this. */ \
+    /* Historical             \
+                                                                             wart:                  \
+                                                                             orientation.w          \
+                                                                             is                     \
+                                                                             reversed               \
+                                                                             for                    \
+                                                                             player;                \
+                                                                             normalOrientation()    \
+                                                                             corrects               \
+                                                                             this.                  \
+                                                                           */ \
     virtual Quaternion normalOrientation() VALUE_BODY \
     virtual void setNormalOrientation(Quaternion /*quat*/) VOID_BODY \
     virtual void orientationChanged() VOID_BODY \
@@ -97,21 +106,37 @@ class Entity;
     virtual void update(OOTimeDelta /*delta_t*/) VOID_BODY \
     virtual bool checkCloseCollisionWith(Entity* /*other*/) VALUE_BODY \
     virtual void takeEnergyDamage(double /*amount*/, Entity* /*ent*/, Entity* /*other*/, const std::string& /*weaponIdentifier*/) VOID_BODY \
-    /* Subclasses should override this, not dumpState(), and call through to the base first. */ \
+    /* Subclasses             \
+                                                                             should                 \
+                                                                             override               \
+                                                                             this,                  \
+                                                                             not                    \
+                                                                             dumpState(),           \
+                                                                             and                    \
+                                                                             call                   \
+                                                                             through                \
+                                                                             to                     \
+                                                                             the                    \
+                                                                             base                   \
+                                                                             first.                 \
+                                                                           */ \
     virtual void dumpSelfState() VOID_BODY \
     virtual void subEntityReallyDied(::ShipEntity* /*sub*/) VOID_BODY \
     /* Subclass responsibilities */ \
     virtual double findCollisionRadius() VALUE_BODY \
     virtual void drawImmediate(bool /*immediate*/, bool /*translucent*/) VOID_BODY \
     virtual bool isVisible() VALUE_BODY \
-    /* What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). */ \
+    /* What "%@" prints between the braces of <Class                     \
+                                  0x...>{...} (OODescription.h). */ \
     virtual std::optional<std::string> descriptionComponents() const VALUE_BODY \
     /* Entity (OOJavaScriptExtensions)'s class questions (Entity.h). */ \
     /* The JS class of the entity's wrapper object (#768's -oo_jsClassID), which subclasses override. */ \
     virtual JSClassID jsClassID() VALUE_BODY \
     virtual std::optional<std::string> jsClassName() VALUE_BODY \
     virtual bool isVisibleToScripts() VALUE_BODY \
-    /* The Mac debug OXP's inspector's -inspect (the console's inspectEntity()): nothing unless overridden. */ \
+    /* The Mac debug OXP's inspector's -inspect (the                     \
+                                  console's inspectEntity()): nothing unless                        \
+                                  overridden. */ \
     virtual void inspect() VOID_BODY \
     /* The entity's JS glue (OOJSPrivateObject; Entity.h). */ \
     JSValue jsValueInContext(JSContext* /*context*/) override VALUE_BODY \
@@ -128,5 +153,3 @@ class Entity;
 #else
 #define OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(VOID_BODY, VALUE_BODY)
 #endif
-
-#endif // ENTITY_VIRTUAL_MEMBERS_H

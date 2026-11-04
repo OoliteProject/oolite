@@ -8,7 +8,7 @@ desktop nor a build marked ``offline`` so it gates in a clean checkout.
 
 WHY THIS FILE IS BOTH A LAUNCHING TEST AND A META-TEST
 ------------------------------------------------------
-Most of G9 already shipped, inside other beads, and a survey of what is actually asserted after
+Most of G9 already shipped, inside other tests, and a survey of what is actually asserted after
 exit today says so:
 
   G1 (test_g1_exit_via_mouse.py)      exit status 0; assert_no_surviving_game_processes(pid);
@@ -31,7 +31,7 @@ the shutdown the log records, and both were MEASURED on this build rather than a
        falsified it: a game killed at the START SCREEN does NOT slip past assert_clean_exit. I
        drove exactly that - a break twin replacing close_window() with proc.kill() - and the
        defaults check caught it, "mtime unchanged since launch ... size 309 vs 309". What it
-       says is "a leftover from an earlier run (oo-5rsa)", i.e. the right verdict for the wrong
+       says is "a leftover from an earlier run", i.e. the right verdict for the wrong
        reason. So the coverage gap is specifically a death AFTER the synchronize, not any kill.
   2. WHY THE GAME EXITED.  -exitAppWithContext: is reached from NINE call sites in this tree
      (PlayerEntityControls.m:958/2658/4981, GameController.m:272/921, Universe.m:1048,
@@ -49,7 +49,7 @@ in this tier including future ones with no test having to remember it.
 Hence both halves. The launching test proves the new assertions hold against a real exit - a
 helper nobody has run against a real shutdown is a hope. The meta-test then locks the contract so
 a future G4/G5 cannot quietly omit it: launching a game and never asking what it left behind is
-the failure mode this bead exists to prevent, and no amount of coverage in THIS file prevents it
+the failure mode this test exists to prevent, and no amount of coverage in THIS file prevents it
 in the NEXT one.
 
 REPORTED, NOT NORMALISED: G7 asserts the prefs file by name and parses it directly, where G1 and
@@ -59,7 +59,7 @@ so a fresh plist in the SHARED build would satisfy it while G7's private pristin
 nothing). It is left exactly as it is; the meta-test below requires the shared baseline and does
 not forbid a test from asserting more.
 
-Needs the desktop for the launching test: a real window, unlocked and logged in (ADR-0017). It
+Needs the desktop for the launching test: a real window, unlocked and logged in. It
 takes tools/gui-lock for the duration via the ``game`` fixture and launches nothing of its own.
 """
 
@@ -133,14 +133,14 @@ def test_g9_post_exit_hygiene_holds_after_a_real_exit(game):
     assert returncode == 0, f"the game exited with {returncode}, not 0"
 
     # 3. Nothing of ours survives in the OS process table. Not proc.poll(), which wait() above
-    #    already reaped and which is therefore true by construction (oo-5rsa).
+    #    already reaped and which is therefore true by construction.
     assert_no_surviving_game_processes(game.proc.pid)
 
     # 4. The established baseline: no dump, no ERROR in the log, a defaults file THIS run wrote
     #    and which re-parses. Passed the fixture so the launch mark travels with it.
     assert_clean_exit(game)
 
-    # 5. THE ASSERTIONS THIS BEAD ADDS. Step 4's evidence is the :906 defaults synchronize, which
+    # 5. THE ASSERTIONS ADDED HERE. Step 4's evidence is the :906 defaults synchronize, which
     #    happens BEFORE OOLoggingTerminate/SDL_Quit/the OpenAL shutdown; the log footer is the
     #    only witness that the code after it ran. And the context must be THIS gesture's: all
     #    nine exit paths in the tree synchronize, close the log and exit 0, so without the
@@ -393,7 +393,7 @@ def test_a_scrambled_exit_trace_fails_on_order(tmp_path):
 
 @pytest.mark.offline
 def test_an_absent_log_fails_rather_than_skipping(tmp_path):
-    """No Latest.log is a FAILURE. A missing witness file is the silent pass oo-7by1 removed."""
+    """No Latest.log is a FAILURE. A missing witness file is the silent pass the tier must never allow."""
     with pytest.raises(AssertionError) as caught:
         assert_shutdown_path_completed(str(tmp_path))
     assert "no Latest.log" in str(caught.value)
@@ -403,13 +403,13 @@ def test_an_absent_log_fails_rather_than_skipping(tmp_path):
 def test_a_start_screen_kill_is_caught_by_the_existing_check_but_for_the_wrong_reason(tmp_path):
     """THE FALSIFIED HYPOTHESIS, kept as a regression test of what is actually true.
 
-    This bead was started on the belief that a game killed at the start screen slips past
+    This test was started on the belief that a game killed at the start screen slips past
     assert_clean_exit. A break twin - close_window() replaced with proc.kill() in the launching
     test - DISPROVED it against the real build: the shared plist's mtime never moves, so the
     defaults check fails with "mtime unchanged since launch ... size 309 vs 309".
 
     So it is caught, and the reportable fact is that it is caught for the WRONG REASON: the
-    message says "a leftover from an earlier run (oo-5rsa)" when what happened is that this run
+    message says "a leftover from an earlier run" when what happened is that this run
     died. assert_shutdown_path_completed says the right thing about the same run. Both halves
     are asserted, so if either message changes the discrepancy is re-examined deliberately.
     """
@@ -431,7 +431,7 @@ def test_a_start_screen_kill_is_caught_by_the_existing_check_but_for_the_wrong_r
     )
     assert "leftover from an earlier run" in str(by_defaults.value), (
         "and it attributes it to a stale file rather than to a run that died - the diagnostic "
-        "defect this bead reports rather than a coverage gap"
+        "defect this test reports rather than a coverage gap"
     )
 
     with pytest.raises(AssertionError) as by_trace:
@@ -543,7 +543,7 @@ def test_the_check_is_not_a_directory_scan_of_the_shared_build(tmp_path):
 
 # --- the meta half: no future GUI test can forget --------------------------------------------
 #
-# AST, never a substring. A sibling bead's `assert "name" in body` was held green by the
+# AST, never a substring. A sibling test's `assert "name" in body` was held green by the
 # function's own docstring after both real assertions had been deleted; every check below reads
 # ast.Call nodes out of the parsed tree, and the break twin two tests down proves it.
 
@@ -639,7 +639,7 @@ def test_the_meta_assertion_fails_when_a_test_omits_a_helper():
         "    assert_clean_exit(game)\n"
     )
     # The realistic omission: the helper's NAME still appears, in a docstring and a comment,
-    # exactly the way a substring guard gets fooled (the sibling-bead defect this avoids).
+    # exactly the way a substring guard gets fooled (the defect this avoids).
     broken = (
         "def test_g4_something(game):\n"
         '    """Exits cleanly; hygiene is assert_clean_exit\'s job."""\n'
@@ -716,7 +716,7 @@ def test_the_fixture_itself_asserts_the_build_was_put_back():
         assert helper in in_finally, (
             f"the game fixture's teardown does not call {helper}(); without it a run that "
             "stranded a software-GL DLL in the SHARED build goes green and the breakage lands "
-            "on the component tier (oo-e75)"
+            "on the component tier"
         )
     assert "kill" in {
         sub.func.attr
@@ -755,10 +755,10 @@ def test_g9_does_not_pretend_to_run_the_game_without_a_desktop():
         )
         assert "skip" not in text, (
             "the launching test carries its own skip marker, which sits outside "
-            "OO_GUI_REQUIRE's control and can hide a run that never happened (oo-7by1). "
+            "OO_GUI_REQUIRE's control and can hide a run that never happened. "
             f"Decorator: {text}"
         )
-    # No conditional-import skip anywhere in this file either (oo-7by1: a hard dependency must
+    # No conditional-import skip anywhere in this file either (a hard dependency must
     # fail, not skip). Asserted off the AST so this guard's own mention of the name in a string
     # cannot be what it finds.
     calls = {
@@ -767,6 +767,6 @@ def test_g9_does_not_pretend_to_run_the_game_without_a_desktop():
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
     }
     assert "importorskip" not in calls, (
-        "no importorskip in this tier: a hard dependency must fail, not skip (oo-7by1)"
+        "no importorskip in this tier: a hard dependency must fail, not skip"
     )
 

@@ -38,10 +38,11 @@ OOSoundMixer* sSingleton = nullptr;
 
 } // namespace
 
-/*	The singleton category recorded the mixer in +allocWithZone:, before -init ran (amendment
-        oo-z1s4 item 2); it is recorded first here too. -init's failure ([super release], which freed
-        the mixer and left sSingleton pointing at it) leaves sSingleton null instead, and the next call
-        asks again (amendment oo-r7m0 item 2): a dangling singleton was undefined behaviour.
+/*	The singleton category recorded the mixer in +allocWithZone:, before
+   -init ran; it is recorded first here too. -init's failure ([super release],
+   which freed the mixer and left sSingleton pointing at it) leaves sSingleton
+   null instead, and the next call asks again: a dangling singleton was
+   undefined behaviour.
 */
 OOSoundMixer* OOSoundMixer::sharedMixer()
 {
@@ -120,5 +121,5 @@ void OOSoundMixer::pushChannel(OOSoundChannel* channel)
     _freeList = channel;
 }
 
-// The singleton category (+allocWithZone:, -retain and the rest) is not translated: the mixer has
-// no other creator and is never released (amendment oo-r7m0 item 1).
+// The singleton category (+allocWithZone:, -retain and the rest) is not
+// translated: the mixer has no other creator and is never released.

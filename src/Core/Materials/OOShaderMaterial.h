@@ -4,11 +4,9 @@ OOShaderMaterial.h
 
 Managers a combination of a shader program, textures and uniforms.
 
-C++20 since bead oo-ja7y (proposed ADR-0056, amendments oo-smy and oo-vl43). Its Objective-C
-facade was deleted by bead oo-9ht.46 (ADR-0056 amendment "deleting a facade"): the class is global,
-and Objective-C sees one as an OOMaterial (OOBasicMaterial's facade was deleted by bead oo-9ht.33). The two informal protocols on
-OOObject that shader binding targets implement (-superShaderBindingTarget, -randomSeedForShaders)
-moved with it to their implementers' header, Entity+ObjCBridge.h.
+Objective-C sees one as an OOMaterial. The two informal protocols on OOObject
+that shader binding targets implement (-superShaderBindingTarget,
+-randomSeedForShaders) are in their implementers' header, Entity+ObjCBridge.h.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -33,8 +31,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOSHADERMATERIAL_H
-#define OOSHADERMATERIAL_H
+#pragma once
 
 #include "OOBasicMaterial.h"
 #include "OOMaths.h"
@@ -50,7 +47,7 @@ SOFTWARE.
 
 class OOTexture;
 class OOShaderUniform;
-class Entity; // Entity.h: the binding target (bead oo-9ht.39.6)
+class Entity; // Entity.h: the binding target
 
 enum {
     // Conversion settings for uniform bindings
@@ -100,8 +97,8 @@ public:
         const oo::PList& macros, // null = nil
         Entity* target);
 
-    // Runs once, right after construction (proposed ADR-0056, amendment oo-vl43); false where the
-    // Objective-C initialiser answered nil.
+    // Runs once, right after construction; false where the Objective-C
+    // initialiser answered nil.
     bool initWithName(const std::optional<std::string>& name,
         const oo::PList& configuration, // null = nil
         const oo::PList& macros, // null = nil
@@ -111,9 +108,9 @@ public:
 
             property should name a method of source which returns the desired
             value; it will be called every time -apply is, assuming uniformName is
-            used in the shader. (If not, OOShaderMaterial will not track the binding.)
-            NULL names none, which binds nothing; it was the method's selector until
-            bead oo-xu228.3.2.
+            used in the shader. (If not, OOShaderMaterial will not track the
+       binding.) NULL names none, which binds nothing; it was the method's
+       selector.
 
             A bound method must not take any parameters, and must return one of the
             following types:
@@ -147,8 +144,8 @@ public:
         const std::optional<std::string>& property, // nullopt: no property (not bound)
         OOUniformConvertOptions options);
 
-    /*	Set a uniform value. The five selectors share their first keyword, so they are overloads
-            (ADR-0056 item 3); the comment names each one's second keyword.
+    /*	Set a uniform value. The five selectors share their first keyword, so
+       they are overloads; the comment names each one's second keyword.
     */
     void setUniform(const std::string& uniformName, int value); // intValue:
     void setUniform(const std::string& uniformName, float value); // floatValue:
@@ -185,7 +182,8 @@ private:
     void addTexturesFromArray(const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max);
 
     oo::Ref<OOShaderProgram> shaderProgram = { };
-    std::map<std::string, oo::Ref<OOShaderUniform>, std::less<>> uniforms; // no `= {}` (GCC, incomplete T; bead oo-1q4); by uniform name (C++ since bead oo-9ht.55 deleted OOShaderUniform's facade)
+    std::map<std::string, oo::Ref<OOShaderUniform>, std::less<>>
+        uniforms; // no `= {}` (GCC, incomplete T); by uniform name
 
     uint32_t texCount = { };
     OOTexture** textures = { };
@@ -205,7 +203,8 @@ enum {
         Predicate determining whether a given property may be used as a binding.
         Client code is responsible for implementing this.
 */
-BOOL OOUniformBindingPermitted(const std::string& propertyName, Entity* bindingTarget); // the entity (bead oo-9ht.39.6)
+BOOL OOUniformBindingPermitted(const std::string& propertyName,
+    Entity* bindingTarget); // the entity
 
 // Material specifier dictionary keys.
 inline constexpr const char* kOOVertexShaderSourceKey = "_oo_vertex_shader_source";
@@ -219,5 +218,3 @@ inline constexpr const char* kOOIsSynthesizedMaterialConfigurationKey = "_oo_is_
 inline constexpr const char* kOOIsSynthesizedMaterialMacrosKey = "_oo_synthesized_material_macros";
 
 #endif // OO_SHADERS
-
-#endif // OOSHADERMATERIAL_H

@@ -11,10 +11,10 @@ inited will cause the timer to fire after the specified interval. A persistent
 timer will remain if the player dies and respawns; non-persistent timers will
 be removed.
 
-C++20 since bead oo-kdyh (proposed ADR-0056, the OOColor house style), converted with its one
-subclass, OOJSTimer (OOJSTimer.h). Global since the Objective-C facade was deleted:
-the timer queue holds the C++ timers (OOPriorityQueueOf), the player calls updateTimers() and
-noteGameReset(), and a timer is its own plist payload (oo::PListForeign), as its facade was.
+The class is global, converted with its one subclass, OOJSTimer (OOJSTimer.h).
+The timer queue holds the C++ timers (OOPriorityQueueOf), the player calls
+updateTimers() and noteGameReset(), and a timer is its own plist payload
+(oo::PListForeign).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -36,8 +36,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOSCRIPTTIMER_H
-#define OOSCRIPTTIMER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOTypes.h"
@@ -61,9 +60,8 @@ public:
 
     virtual std::optional<std::string> descriptionComponents() const;
 
-    // oo::PListForeign: the name the deleted facade's description showed, "OOScriptTimer", or
-    // "OOJSTimer" for a JS timer, and that description, "<name 0x...>{components}"
-    // (the address now the timer's).
+    // oo::PListForeign: the name the description shows, "OOScriptTimer", or
+    // "OOJSTimer" for a JS timer, and that description, "<name 0x...>{components}".
     std::string className() const override { return "OOScriptTimer"; }
     std::string description() const override;
 
@@ -71,8 +69,7 @@ public:
     // ask a subclass for its own (OOJSTimer's finalizer warning).
     std::string descriptionWithComponents(const std::optional<std::string>& components) const;
 
-    // The JS class name of a timer with JS glue (OOJSPrivateObject.h), which the deleted OOJSTimer
-    // facade answered; nullopt for any other timer.
+    // The JS class name of a timer with JS glue (OOJSPrivateObject.h); nullopt for any other timer.
     virtual std::optional<std::string> oo_jsClassName() { return std::nullopt; }
 
     OOTimeAbsolute nextTime();
@@ -97,9 +94,9 @@ public:
 protected:
     OOScriptTimer() = default;
 
-    // The initialisers (-initWithNextTime:interval:, -initOneShotTimerWithDelay:), for the
-    // factories above and a subclass's: false where they answered nil (proposed ADR-0056
-    // amendment oo-bhb9).
+    // The initialisers (-initWithNextTime:interval:,
+    // -initOneShotTimerWithDelay:), for the factories above and a subclass's:
+    // false where they answered nil.
     bool initWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval);
     bool initOneShotTimerWithDelay(OOTimeDelta delay);
 
@@ -109,5 +106,3 @@ private:
     bool _isScheduled = { };
     bool _hasBeenRun = { }; // Needed for one-shot timers.
 };
-
-#endif // OOSCRIPTTIMER_H

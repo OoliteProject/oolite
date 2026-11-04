@@ -45,20 +45,19 @@ void InitOOJSSound(JSContext* context, JSValueConst global);
  */
 OOSound* SoundFromJSValue(JSContext* context, JSValueConst value);
 
-/*	The bodies of OOSound (OOJavaScriptExtentions), which the engine reached by selector while the
-        sound had an Objective-C facade: a new Sound object for the sound (owned by the caller; JS
-        null for none), its toString() text and its JS class name. The binding and the SoundSource
-        binding call them.
+/*	The bodies of OOSound (OOJavaScriptExtentions): a new Sound object for
+   the sound (owned by the caller; JS null for none), its toString() text and
+   its JS class name. The binding and the SoundSource binding call them.
 */
 JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context);
 std::optional<std::string> OOJSSoundJSDescription(OOSound* sound);
 std::optional<std::string> OOJSSoundJSClassName(void);
 
-/*	What a Sound object's private slot holds (it held the sound's facade, retained).
-        -oo_jsValueInContext: made a new Sound object each time, so each object has its own holder,
-        which retains the sound; the slot retains the holder (OOJSSetCxxPrivate) and the finalizer
-        releases it (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
-        OOJSSound.mm; only the binding makes one.
+/*	What a Sound object's private slot holds. Each Sound object has its own
+   holder, which retains the sound; the slot retains the holder
+   (OOJSSetCxxPrivate) and the finalizer releases it
+   (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
+   OOJSSound.mm; only the binding makes one.
 */
 class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
 public:

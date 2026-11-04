@@ -38,10 +38,10 @@ void InitOOJSVisualEffect(JSContext* context, JSValueConst global);
 
 JSClassID JSVisualEffectClassID(void);
 
-/*	The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), which the engine reaches by
-        selector: the effect's facade forwarded to these until it was deleted; the C++ effect's
-        jsClassID()/jsClassName()/isVisibleToScripts() overrides call them now. Its JS class is
-        JSVisualEffectClassID().
+/*	The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), which the
+   engine reaches by selector: the C++ effect's
+   jsClassID()/jsClassName()/isVisibleToScripts() overrides call them. Its JS
+   class is JSVisualEffectClassID().
 */
 std::optional<std::string> OOJSVisualEffectJSClassName(void);
 bool OOJSVisualEffectIsVisibleToScripts(void);

@@ -3,9 +3,9 @@ OOShipGroup.h
 
 A weak-referencing, mutable set of ships. Not thread safe.
 
-C++20 since bead oo-bwrq. Its Objective-C facade was deleted by bead
-oo-9ht.19 (batch F, ADR-0056 amendment oo-9ht.19): a group is its own PList::Object payload
-(oo::PListForeign) and its own JS glue (OOJSPrivateObject); ships hold it as oo::Ref.
+A group is its own PList::Object payload
+(oo::PListForeign) and its own JS glue (OOJSPrivateObject); ships hold it as
+oo::Ref.
 
 
 Oolite
@@ -28,8 +28,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOSHIPGROUP_H
-#define OOSHIPGROUP_H
+#pragma once
 
 #include "OOFoundation.h"
 
@@ -43,9 +42,9 @@ MA 02110-1301, USA.
 
 #include <vector>
 
-class ShipEntity; // C++ since bead oo-9ht.144
-class Entity; // the members are held as weak references to the ships' C++ parts
-class Entity;
+class ShipEntity;
+class Entity; // the members are held as weak references to the ships' C++
+              // parts
 
 class OOShipGroupCursor;
 class OOShipGroupMembers; // OOShipGroup.mm's range-for over the members
@@ -58,7 +57,7 @@ public:
 
     ~OOShipGroup() override;
 
-    std::optional<std::string> name(); // nullopt: unnamed (bead oo-3rb.289.11)
+    std::optional<std::string> name(); // nullopt: unnamed
     void setName(const std::optional<std::string>& name);
 
     ::ShipEntity* leader();
@@ -78,9 +77,9 @@ public:
     // What "%@" prints between the braces of <OOShipGroup 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
 
-    // The JS glue (OOJSPrivateObject), defined in OOJSShipGroup.mm: the ShipGroup object, made on
-    // first use; forgetting it when it is finalized; "[OOShipGroup <components>]" (proposed ADR-0056
-    // amendment oo-6symp).
+    // The JS glue (OOJSPrivateObject), defined in OOJSShipGroup.mm: the ShipGroup
+    // object, made on first use; forgetting it when it is finalized;
+    // "[OOShipGroup <components>]".
     JSValue jsValueInContext(JSContext* context) override; // owned
     void clearJSSelf(JSValueConst selfVal) override;
     std::optional<std::string> jsDescription() override;
@@ -94,7 +93,7 @@ private:
     friend class ::OOShipGroupCursor;
     friend class ::OOShipGroupMembers;
 
-    // -cxx_initWithName:, which could fail (proposed ADR-0056 amendment oo-bhb9 item 1).
+    // -cxx_initWithName:, which could fail.
     bool initWithName(const std::optional<std::string>& name);
 
     bool resizeTo(NSUInteger newCapacity);
@@ -104,19 +103,18 @@ private:
 
     NSUInteger _count = { }, _capacity = { };
     unsigned long _updateCount = { };
-    // Weak references to the ships' C++ parts (the ships' objects' weak-reference
-    // proxies before): each reads null exactly when the object's reference did, since the entity
-    // facade's -dealloc drops its part's weak references. _capacity slots, the first _count in use.
+    // Weak references to the ships' C++ parts: each reads null exactly when the
+    // object's reference did. _capacity slots, the first _count in use.
     std::vector<oo::WeakRef<Entity>> _members = { };
     oo::WeakRef<Entity> _leader = { };
     std::optional<std::string> _name = { };
     JSValue _jsSelf = JS_UNDEFINED; // The JS ShipGroup object proxy for this group; not an object until created (test with JS_IsObject()).
 };
 
-/*	OOShipGroupCursor: steps through a group's live members in its internal order (the former
-        OOShipGroupEnumerator, bead oo-5l4w). It raises if the group is mutated while it is in use,
-        compacts dead references as it passes them, and unless told not to runs the group's clean-up
-        at the end. It keeps the group alive.
+/*	OOShipGroupCursor: steps through a group's live members in its internal
+   order (the former OOShipGroupEnumerator). It raises if the group is mutated
+   while it is in use, compacts dead references as it passes them, and unless
+   told not to runs the group's clean-up at the end. It keeps the group alive.
 */
 class OOShipGroupCursor {
 public:
@@ -132,9 +130,8 @@ public:
     BOOL _considerCleanup = YES, _cleanupNeeded = NO;
 };
 
-/*	A group carried through plist data as a PList::Object node:
-        the group is the node's foreign object (bead oo-9ht.19; what oo::PListObject() and
-        oo::ObjectIn() did for the facade).
+/*	A group carried through plist data as a PList::Object node: the group is
+   the node's foreign object.
 */
 inline oo::PList OOShipGroupObjectNode(OOShipGroup* group) // null group -> null PList
 {
@@ -148,5 +145,3 @@ inline OOShipGroup* OOShipGroupInObjectNode(const oo::PList& plist) // null for 
     const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
     return (node != nullptr) ? dynamic_cast<OOShipGroup*>(node->get()) : nullptr;
 }
-
-#endif // OOSHIPGROUP_H

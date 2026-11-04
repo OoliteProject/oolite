@@ -31,10 +31,9 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-/*	C++20 since bead oo-kdnm (proposed ADR-0056 Amendment 1, amendment oo-up4b item 6): a leaf of
-        OOFileHandlingVerifierStage. It is global and has no facade: nothing outside this file
-        names it, the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and holds it
-        (as its OOOXPVerifierStage facade until bead oo-9ht.4).
+/*	A leaf of OOFileHandlingVerifierStage. Nothing outside this file names
+   it; the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and
+   holds it.
 */
 class OOCheckJSSyntaxVerifierStage : public OOFileHandlingVerifierStage {
 public:

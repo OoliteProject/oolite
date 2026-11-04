@@ -4,9 +4,6 @@ OOOpenALController.h
 
 Singleton controller for Open AL interfaces
 
-C++20 since bead oo-r7m0 (proposed ADR-0056). Every caller was adapted in that bead, so there is
-no Objective-C facade and the class is global.
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -27,16 +24,15 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOOPENALCONTROLLER_H
-#define OOOPENALCONTROLLER_H
+#pragma once
 
 #include "OOOpenAL.h"
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-// Log message classes, UTF-8 (Foundation sweep, proposed ADR-0043): an OOLog call passes
-// oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.
+// Log message classes, UTF-8: an OOLog
+// call passes oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.
 static constexpr const char* kOOLogSoundInitError = "sound.initialization.error";
 static constexpr const char* kOOLogSoundLoadingSuccess = "sound.load.success";
 static constexpr const char* kOOLogSoundLoadingError = "sound.load.error";
@@ -66,5 +62,3 @@ private:
     ALCdevice* device = { };
     ALCcontext* context = { };
 };
-
-#endif // OOOPENALCONTROLLER_H

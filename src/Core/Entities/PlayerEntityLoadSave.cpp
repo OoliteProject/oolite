@@ -39,7 +39,6 @@
 #include "OOStringParsing.h"
 #include "OOTexture.h"
 #include "OOXMLExtensions.h"
-#include "PlayerEntityControls.h"
 #include "ProxyPlayerEntity.h"
 #include "ResourceManager.h"
 #include "ShipEntityAI.h"
@@ -120,10 +119,9 @@ unsigned char FirstUnitLowByte(const std::string& string)
 
 namespace {
 
-/*	Formerly -[MyOpenGLView isCommandModifierKeyDown], the file's category on the view's facade:
-        the view's C++ part answers (no view: NO, as a message to
-        nil did).
-*/
+/* Whether the command modifier key is down: the view answers (no view: NO, as
+ * a message to nil did).
+ */
 bool IsCommandModifierKeyDown(::MyOpenGLView* gameView)
 {
     MyOpenGLView* view = gameView;
@@ -169,8 +167,9 @@ void PlayerEntity::autosavePlayer()
     try {
         writePlayerToPath(savePath);
     } catch (...) {
-        // Suppress exceptions silently. Warning the user about failed autosaves would be pretty unhelpful.
-        // (The game's own, oo::Exception since oo-rskgl.1: what @catch (id) caught; anything else goes on up.)
+        // Suppress exceptions silently. Warning the user about failed autosaves
+        // would be pretty unhelpful. (The game's own oo::Exception: what
+        // @catch (id) caught; anything else goes on up.)
         if (!oo::CurrentOOException())
             throw;
     }
@@ -1183,8 +1182,9 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex)
 
     galNumber = cdr.get<int>("galaxy_number") + 1; // Galaxy numbering starts at 0.
 
-    // %c of a government / economy value 0..23 gives that one UTF-16 unit, U+0000 included (pinned
-    // against gnustep-base's -stringWithFormat:, bead oo-3rb.176); oo::str::format keeps the NUL byte.
+    // %c of a government / economy value 0..23 gives that one UTF-16 unit, U+0000
+    // included (pinned against gnustep-base's -stringWithFormat:);
+    // oo::str::format keeps the NUL byte.
     std::string locationGov;
     std::string locationEco;
     std::string locationTL;

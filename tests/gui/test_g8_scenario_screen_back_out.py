@@ -21,7 +21,7 @@ Written the way the two merged tests closest to it are written, and reusing both
   own echo - it is split in the source and joined at runtime, and the answer is the text between
   the SECOND and third occurrence, hence ``count >= 2``) and the per-frame key sampling are G5's,
   restated here for the same reason G2 restated them: a shared helper added to conftest.py by two
-  concurrent GUI beads is a guaranteed merge conflict, and nothing below is needed by any other
+  concurrent GUI tests is a guaranteed merge conflict, and nothing below is needed by any other
   test.
 
 WHAT "ROW 1" ACTUALLY IS ON THE SCENARIO SCREEN. DERIVED, NOT ASSUMED.
@@ -95,7 +95,7 @@ start screen's ` Exit Game ` row.
 
     python3 -m pytest oolite-dev/tests/gui/test_g8_scenario_screen_back_out.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
 """
 
@@ -223,7 +223,7 @@ class ScreenWitness:
                 self._conn, _ = self._server.accept()
                 # An accepted socket INHERITS the listener's non-blocking mode on Windows, so
                 # _recv_exactly would raise WinError 10035 instead of waiting for the rest of a
-                # packet (oo-8yp). Every read is deadline-guarded by select(), so blocking is safe.
+                # packet. Every read is deadline-guarded by select(), so blocking is safe.
                 self._conn.setblocking(True)
                 self._handshake()
                 return self
@@ -423,7 +423,7 @@ def test_g8_scenario_screen_back_out(screen_witness, game):
 
     # Asked of the OS process table, not of proc.poll() - wait() above already stored that code.
     assert_no_surviving_game_processes(game.proc.pid)
-    # G9 hygiene, with the launch-time defaults mark the fixture recorded (oo-5rsa).
+    # G9 hygiene, with the launch-time defaults mark the fixture recorded.
     assert_clean_exit(game)
     # And the shutdown ran to its last line, for the START-SCREEN ` Exit Game ` row.
     assert_shutdown_path_completed(game, expected_context=EXPECTED_EXIT_CONTEXT)
@@ -437,7 +437,7 @@ def test_g8_asserts_arrival_and_return_as_separate_properties():
     """THE ANTI-DECAY GUARD: two assertions, two messages, and the game asked both times.
 
     Read from this file's own AST, never its text: a docstring or a comment containing
-    "ARRIVAL FAILED" is not an assertion, and a sibling bead's substring guard was held green by
+    "ARRIVAL FAILED" is not an assertion, and a sibling test's substring guard was held green by
     exactly that. Every requirement below is checked against real ``ast.Assert``/``ast.Call``
     nodes inside the launching test.
 

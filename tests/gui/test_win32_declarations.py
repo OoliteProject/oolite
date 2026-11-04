@@ -1,4 +1,4 @@
-"""Every Win32 call in this tier must declare argtypes/restype (bug oo-x2uy).
+"""Every Win32 call in this tier must declare argtypes/restype.
 
 A ctypes foreign function with no ``argtypes`` marshals a Python ``int`` argument as a 32-bit
 C ``int``; with no ``restype`` it decodes the return value as a 32-bit signed ``int``. On
@@ -32,7 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # The libraries whose call sites must be declared. Extend this when the tier starts calling a
 # new one - and then the scan below will demand the signatures too. advapi32 joined when the
 # tier started reading process integrity levels to tell an elevated foreground owner from a
-# broken G1 (bead oo-0p8f).
+# broken G1.
 GUARDED_LIBRARIES = (
     "user32",
     "shcore",
@@ -88,7 +88,7 @@ def test_every_win32_call_site_is_declared():
     assert not undeclared, (
         "these Win32 call sites have no argtypes/restype declaration in "
         "conftest.WIN32_SIGNATURES, so an HWND argument is marshalled as a 32-bit int and "
-        "truncates on 64-bit Windows (oo-x2uy):\n  " + "\n  ".join(undeclared)
+        "truncates on 64-bit Windows:\n  " + "\n  ".join(undeclared)
     )
 
 
@@ -116,7 +116,7 @@ def test_no_call_goes_through_ctypes_windll():
                 offenders.append(f"{name}:{node.lineno}")
     assert not offenders, (
         "ctypes.windll used at " + ", ".join(sorted(set(offenders))) + "; use the tier's own "
-        "WinDLL handle so argtypes are not shared with the rest of the process (oo-x2uy)"
+        "WinDLL handle so argtypes are not shared with the rest of the process"
     )
 
 
@@ -152,7 +152,7 @@ def test_declarations_name_pointer_sized_handle_types():
 def test_the_process_table_calls_are_declared_with_pointer_sized_handles():
     """The Tool Help walk's kernel32 calls carry real HANDLE types, not c_void_p/c_int.
 
-    surviving_game_processes (oo-5rsa) is the OS-level witness that no orphaned oolite.exe
+    surviving_game_processes is the OS-level witness that no orphaned oolite.exe
     survived the exit, and it reads the process table through CreateToolhelp32Snapshot. An
     undeclared restype decodes that pointer-sized HANDLE through a 32-bit signed int; the
     truncated handle then makes Process32First fail, the table comes back empty, and the

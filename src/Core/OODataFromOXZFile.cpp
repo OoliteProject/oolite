@@ -2,7 +2,7 @@
 
 OODataFromOXZFile.mm
 
-OXZ-aware file reader (formerly in NSDataOOExtensions; bead oo-g358).
+OXZ-aware file reader.
 
 
 Copyright (C) 2008-2013 Jens Ayton and contributors

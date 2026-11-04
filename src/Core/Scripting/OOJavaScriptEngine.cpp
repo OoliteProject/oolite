@@ -98,7 +98,7 @@ MA 02110-1301, USA.
 #define OOJS_TIME_LIMIT (1) // seconds
 #endif
 
-static OOJavaScriptEngine* sSharedEngine = nullptr; // the one +1 is never released (amendment oo-r7m0 item 1)
+static OOJavaScriptEngine* sSharedEngine = nullptr; // the one +1 is never released
 
 static unsigned sErrorHandlerStackSkip = 0;
 
@@ -121,9 +121,9 @@ static void LoadCompatibilityScript(JSContext* context);
 OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine()
 {
     if (sSharedEngine == nullptr) {
-        // The one +1, never released (amendment oo-r7m0 item 1). Recorded before init() runs, as
-        // -init recorded self before it made the context, so a re-entrant sharedEngine() answers
-        // the engine being set up (amendment oo-3bgz item 3).
+        // The one +1, never released. Recorded before init() runs, as -init
+        // recorded self before it made the context, so a re-entrant sharedEngine()
+        // answers the engine being set up.
         OOJavaScriptEngine* engine = oo::makeRef<OOJavaScriptEngine>().leakRef();
         sSharedEngine = engine;
         engine->init();
@@ -763,8 +763,8 @@ static void LogProblem(JSContext* context, const std::string& severity, const st
         return;
 
     // avoid windows DEP exceptions!
-    // The running script (null when none runs, or once a script a timer or definition pushed
-    // weakly has gone: a message to nil).
+    // The running script (null when none runs, or once a script a timer or
+    // definition pushed weakly has gone: a message to nil).
     OOJSScript* runningScript = OOJSScript::currentlyRunningScript();
     const std::string activeScript = ((runningScript != nullptr) ? runningScript->displayName() : std::nullopt).value_or("<unidentified script>");
     OO_LOG(messageClass, "{} JavaScript {} ({}): {}", highlight, severity, activeScript, message);
@@ -1053,10 +1053,6 @@ std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID)
 // Native to JS conversion
 //===========================================================================
 
-// (The root-class JS glue for classes rooted on OOObject - OOObjectJSValueInContext(),
-// OOObjectJSClassName(), OOObjectJSDescription(), OOObjectJSDescriptionWithClassName() - went with
-// the root's JS bridges: no game object is an Objective-C object.)
-
 namespace {
 // The Foundation array's glue (JSArrayFromNSArray) over ObjectFromPList's array: null elements dropped.
 // Owned; undefined on failure.
@@ -1112,9 +1108,6 @@ static JSValue JSObjectValueFromPList(JSContext* context, const oo::PList::Dict&
     return result;
 }
 } // namespace
-
-// (OOJSValueFromNativeObject(), the JS value of an Objective-C object - null for nil, the root's JS
-// glue - went with the Objective-C runtime: no game object is an Objective-C object.)
 
 JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
 {
@@ -1180,21 +1173,18 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
                 Entity* entity = weak->entity();
                 return entity != nullptr ? OOJSEntityJSValue(entity, context) : JS_UNDEFINED;
             }
-            // The one null and a held value: their own JS glue, which their facades forwarded to.
+            // The one null and a held value: their own JS glue.
             if (OONull* null = dynamic_cast<OONull*>(node->get()))
                 return null->jsValueInContext(context);
             if (OOJSValue* held = dynamic_cast<OOJSValue*>(node->get()))
                 return held->jsValueInContext(context);
         }
-        // A node that holds no Objective-C object (a C++ one): no JS glue. (The Objective-C object's
-        // node went with the Objective-C runtime: no game object is one.)
+        // A node that holds no Objective-C object (a C++ one): no JS glue.
         return JS_UNDEFINED;
     }
     }
     return JS_UNDEFINED;
 }
-
-// (OOJSObjectFromNativeObject() went with OOJSValueFromNativeObject().)
 
 oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext* context)
 {
@@ -1462,8 +1452,7 @@ std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string)
     return result;
 }
 
-// A vector box's JS value, a Vector3D (was OONativeVector (OOJavaScriptConversion)'s
-// -oo_jsValueInContext:; the box's facade is deleted).
+// A vector box's JS value, a Vector3D.
 JSValue OONativeVectorJSValueInContext(OONativeVector* vector, JSContext* context)
 {
     JSValue value = JS_UNDEFINED;
@@ -1473,7 +1462,7 @@ JSValue OONativeVectorJSValueInContext(OONativeVector* vector, JSContext* contex
 
 OONull* OONull::null()
 {
-    static OONull* sNull = nullptr; // the one +1 is never released (amendment oo-r7m0 item 1)
+    static OONull* sNull = nullptr; // the one +1 is never released
     if (sNull == nullptr)
         sNull = oo::makeRef<OONull>().leakRef();
     return sNull;
@@ -1512,16 +1501,14 @@ JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj, i
     return JS_EXCEPTION;
 }
 
-// The slot holds a C++ object: the C++ finalizer, which tells it its wrapper is gone (clearJSSelf,
-// as -oo_clearJSSelf: was sent), releases the slot's retain and empties the slot.
+// The slot holds a C++ object: the C++ finalizer, which tells it its wrapper is
+// gone (clearJSSelf), releases the slot's retain and empties the slot.
 void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj)
 {
     OOJSCxxObjectWrapperFinalize(runtime, thisObj);
 }
 
-// Only an Objective-C object found through the class's converter described itself (its
-// -cxx_oo_jsDescription, else -description); a C++ node's object never did, and no slot holds an
-// Objective-C object: the JS class names it.
+// No slot holds an Objective-C object, so the JS class names the object.
 JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv)
 {
     OOJS_NATIVE_ENTER(context)
@@ -1579,15 +1566,13 @@ BOOL JSFunctionPredicate(Entity* entity, void* parameter)
 
 namespace {
 
-/*	What the entity predicates ask an entity: C++, moved from OOObject+OOJavaScript.mm, whose
-        one-line bridges they were.
-*/
+/*	What the entity predicates ask an entity. */
 bool OOJavaScriptEngineIsVisibleToScripts(Entity* entity)
 {
-    return OOJSEntityIsVisibleToScripts(entity); // the C++ entity's answer, which the root facade's selector forwarded to
+    return OOJSEntityIsVisibleToScripts(entity);
 }
 
-// The root facade's -isShip, -isSubEntity, -isPlanet and -status forwarded to these members.
+// The entity predicates -isShip, -isSubEntity, -isPlanet and -status.
 bool OOJavaScriptEngineIsShip(Entity* entity)
 {
     return entity != nullptr && entity->getIsShip();
@@ -1676,11 +1661,9 @@ oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object
     }
 
     for (i = 0; i != count; ++i) {
-        /*	An integer-like property is keyed by its decimal text, the name JS itself
-                gives it (proposed ADR-0051). The Foundation converter kept it as a number
-                key no native code could look up (CIM 15/2/13 asked whether the key should be
-                a string), and this function gave a null PList for the whole object.
-        */
+        /*	An integer-like property is keyed by its decimal text, the name
+               JS itself gives it, so native code can look it up by that key.
+            */
         const std::optional<std::string> key = cxx_OOStringFromJSID(properties[i].atom);
         JSValue value = JS_GetProperty(context, object, properties[i].atom);
         if (JS_IsException(value)) {
@@ -1803,8 +1786,8 @@ oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object)
     return converter(context, object);
 }
 
-// The slot holds a C++ object: a node of it when it is a node's foreign object, else none; an empty
-// slot is a null PList, as nil was.
+// The slot holds a C++ object: a node of it when it is a node's foreign
+// object, else none; an empty slot is a null PList.
 oo::PList OOJSBasicPrivateObjectConverter(JSContext* /*context*/, JSValueConst object)
 {
     JSClassID ignored;
@@ -1903,8 +1886,8 @@ static oo::PList JSBooleanConverter(JSContext* context, JSValueConst object)
     return PListFromJSBooleanObject(context, object);
 }
 
-// A plain JS Object: cxx_OOJSDictionaryFromJSObject() (proposed ADR-0051; was the bridge's
-// Foundation converter, which kept an integer-like key as a number).
+// A plain JS Object: cxx_OOJSDictionaryFromJSObject(); an integer-like key is a
+// string.
 static oo::PList PListFromJSPlainObject(JSContext* context, JSValueConst object)
 {
     /*	SpiderMonkey's global object had a class of its own, with no converter,

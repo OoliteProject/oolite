@@ -1,21 +1,18 @@
 /*	test_OOLaserShotEntity.mm
-	Unit tests for OOLaserShotEntity (src/Core/Entities/OOLaserShotEntity.h), the beam a ship's laser
-	draws for one shot: bead oo-5zpq, a leaf of the Entities pattern seam (amendment oo-bj8 item 12).
+	Unit tests for OOLaserShotEntity (src/Core/Entities/OOLaserShotEntity.h), the beam a ship's
+	laser draws for one shot.
 
 	Its object needs the game graph, so the test links the whole game but main (['*']) and uses a
-	Universe that was never initialised, of a test subclass that records what is removed, and a plain
-	entity as PLAYER. The ship that fires is an entity of the test's own that answers the selectors
-	the class sends a ship (its root ship, speed and weapon range); the class asserts that it is a
-	ship, so the test sets that flag. Since bead oo-9ht.144 it is a C++ ship whose fields give the
-	same answers. The expectations were written against the Objective-C API and
-	run on the unconverted class first (bead oo-9ht.78 then deleted the Objective-C facade, ADR-0049
-	and the standing approval oo-9n5p9: the cases ask the C++ class what they asked the facade, with
-	every expectation kept except the facade's own class check, [shot class] == [OOLaserShotEntity
-	class]; the shots are made as the ship makes them, laserFromShip() then oo::NewEntityFacade): where the shot starts and how it is turned for each facing,
-	its velocity, owner, range and status; its colour (default red, a set colour brightened, the
-	alpha constant); the lifetime in its description; following the player's ship; removal when its
-	lifetime has run out. The colour is private; the test reads it through the access struct below,
-	the only lines the conversion ported (amendment oo-862e item 2).
+	Universe that was never initialised, of a test subclass that records what is removed, and a
+	plain entity as PLAYER. The ship that fires is an entity of the test's own that answers the
+	selectors the class sends a ship (its root ship, speed and weapon range); the class asserts that
+	it is a ship, so the test sets that flag. It is a C++ ship whose fields give those answers. The
+	expectations were written against the Objective-C API and run on the unconverted class first;
+	the cases ask the C++ class, and the shots are made as the ship makes them, laserFromShip() then
+	oo::NewEntityFacade. They cover: where the shot starts and how it is turned for each facing, its
+	velocity, owner, range and status; its colour (default red, a set colour brightened, the alpha
+	constant); the lifetime in its description; following the player's ship; removal when its
+	lifetime has run out. The colour is private; the test reads it through the access struct below.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -40,7 +37,7 @@ extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
@@ -66,7 +63,7 @@ static Entity *sRemoved = nil;
 class TestUniverse : public Universe
 {
 public:
-	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object, as before
+	bool removeEntity(Entity *entity) override	{ sRemoved = entity; return YES; }	// the C++ entity; the record is its object
 };
 
 
@@ -98,18 +95,19 @@ void SetUp()
 	static TestPlayer *player = nullptr;
 	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
 	gOOPlayer = player;
-	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
-	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
-	// oo-9ht.144, as test_StationEntity's ships are).
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request
+  // on the main thread's context, so there is one, with nothing in it (the ship
+  // stand-in is C++, as test_StationEntity's ships are).
 	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 	sRemoved = nil;
 }
 
 
-// The ship that fires: what OOLaserShotEntity asks of a ShipEntity (its root ship, itself; its speed
-// and weapon range). C++ since bead oo-9ht.144 deleted the Objective-C ship: the class calls the
-// ship's members, so it is a C++ ship (never set up) under its object (oo::NewEntityFacade,
-// autoreleased as the test's entity was) whose fields give those answers.
+// The ship that fires: what OOLaserShotEntity asks of a ShipEntity (its root
+// ship, itself; its speed and weapon range). The class calls the ship's
+// members, so it is a C++ ship (never set up) under its object
+// (oo::NewEntityFacade, autoreleased as the test's entity was) whose fields
+// give those answers.
 Entity *MakeShip()
 {
 	oo::Ref<::ShipEntity> part = oo::makeRef<::ShipEntity>();

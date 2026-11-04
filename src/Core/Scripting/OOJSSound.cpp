@@ -34,15 +34,9 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 
 /*
-        C++20 since bead oo-crq2, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSound
-        became three free functions, and its methods moved to the Scripting bridge file (amendment oo-
-        ykoy). The sound's facade and that file are gone: the sound is C++, and a Sound object's
-        private slot holds an OOJSSoundHolder of it. Messages to classes that are still Objective-C
-        (ResourceManager, PlayerEntity) stay as they are, which is why the file is still .mm until
-        Phase 4.
+        The Sound class, in the design of upstream #768's OOJSSound.m. OOSound
+        is not a JS glue object itself, so the private slot holds an
+        OOJSSoundHolder (OOJSSound.h), which retains the sound.
 */
 
 static JSClassID sSoundClassID;
@@ -110,9 +104,8 @@ static bool JSSoundGetSound(JSContext* context, JSValueConst object, OOSound** o
     return true;
 }
 
-// The class's converter: the slot held the sound's facade, which OOJSBasicPrivateObjectConverter
-// handed to Objective-C callers of OOJSNativeObjectFromJSValue. No Objective-C object is left to
-// hand over: the sound's own callers ask SoundFromJSValue().
+// The class's converter: no Objective-C object is left to hand over; the
+// sound's own callers ask SoundFromJSValue().
 static oo::PList SoundConverter(JSContext*, JSValueConst)
 {
     return oo::PList();
@@ -305,9 +298,7 @@ static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-// The bodies of OOSound (OOJavaScriptExtentions), whose methods were in the Scripting bridge file
-// while the sound had a facade (proposed ADR-0056 amendments oo-ppc and oo-ykoy). A null sound is
-// JS null, as OOJSValueFromNativeObject() answered nil.
+// The bodies of OOSound (OOJavaScriptExtentions). A null sound is JS null.
 JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context)
 {
     if (sound == nullptr)

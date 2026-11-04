@@ -1,5 +1,5 @@
 /*	test_string_expander.cpp
-	Differential regression test for src/Core/OOStringExpander.mm (bead oo-3rb.61).
+	Differential regression test for src/Core/OOStringExpander.mm.
 
 	The engine of cxx_OOExpandDescriptionString() moved from Foundation strings onto UTF-16 units and oo::str.
 	Before that, this program was built against the ORIGINAL OOStringExpander.mm (gnustep-base
@@ -21,12 +21,9 @@
 	from run to run) keeps only its low byte, and an exception is recorded by name only (its
 	reason quotes a source line number and a C++ signature).
 
-	C++ since bead oo-6e1.2 (std-2026-10-19 item 1): the harness was Objective-C++ on gnustep-base
-	(Foundation string and dictionary records, the Objective-C PlayerEntity stub answering by selector, the
-	expander's Foundation test surface). It now drives cxx_OOExpandDescriptionString and
-	cxx_OOGenerateSystemDescription directly with the same inputs, reads the plists with oofnd's
-	parser (the game's), and builds every recorded line from the same UTF-16 units, so the
-	recorded digests are unchanged.
+	The harness drives cxx_OOExpandDescriptionString and cxx_OOGenerateSystemDescription directly
+	with the same inputs, reads the plists with oofnd's parser (the game's), and builds every
+	recorded line from the same UTF-16 units, so the recorded digests are unchanged.
 
 	Built and run by tools/check-string-expander.sh (it copies OOStringExpander.mm next to these
 	stubs so that its quote-includes find them). Run with --print to see the lines.
@@ -97,10 +94,11 @@ Units MaskPercentLc(Units message)
 	return GSDerived(message);
 }
 
-// The expander logs through oo::log since bead oo-3rb.315: its finished lines ("[class] function:
-// message") reach this sink (installed in main()). A failed assertion (OOCAssert) logs here too, in
-// class "gnustep"; the Foundation assertion's log line went to stderr and was never recorded (and the line quotes the
-// temporary copy's path), so it is left out, as it was.
+// The expander logs through oo::log: its finished lines
+// ("[class] function: message") reach this sink (installed in main()). A failed
+// assertion (OOCAssert) logs here too, in class "gnustep"; the Foundation
+// assertion's log line went to stderr and was never recorded (and the line
+// quotes the temporary copy's path), so it is left out, as it was.
 void HarnessLogSink(std::string_view line)
 {
 	if (line.starts_with("[gnustep] "))
@@ -120,7 +118,7 @@ void OOLogPopIndent(void) {}
 
 JSContext *OOJSAcquireContext(void) { return nullptr; }
 void OOJSRelinquishContext(JSContext *context) { (void)context; }
-// The C++ form (printf format) the expander calls since bead oo-vp0y.10.
+// The C++ form (printf format) the expander calls.
 void cxx_OOJSReportWarningWithArguments(JSContext *context, const char *format, va_list args)
 {
 	(void)context;
@@ -157,9 +155,8 @@ void OOHarnessRecordQuery(const std::string &name)
 static OOHarnessPlayer *sPlayer;
 OOHarnessPlayer *OOHarnessGetPlayer(void) { return sPlayer; }
 
-oo::PList ResourceManager::whitelistDictionary() { return sWhitelist; }	// C++
-
-// --- recording -----------------------------------------------------------------------------
+oo::PList ResourceManager::whitelistDictionary() { return sWhitelist; }	// --- recording
+// -----------------------------------------------------------------------------
 
 namespace {
 
@@ -236,7 +233,7 @@ std::optional<Units> Expand(Random_Seed seed, const Units &string, const std::op
 	{
 		return UnitsOf(cxx_OOExpandDescriptionString(seed, oo::utf16ToUtf8(string), Overrides(), Locals(), systemName, options));
 	}
-	catch (const oo::Exception &e)	// was @catch (OOException *e) (bead oo-rskgl.1)
+	catch (const oo::Exception &e)
 	{
 		sLog.push_back(u"EXCEPTION " + U(e.name()));
 	}
@@ -313,12 +310,14 @@ struct ExpressionCorpus
 	}
 };
 
-/*	+dictionaryWithContentsOfFile: of gnustep-base 1.31.1, through which the recorded
-	digests read both plists: it read an old-style file with no byte-order mark as ISO-8859-1 (each
-	byte one UTF-16 unit; descriptions.plist's UTF-8 "\xE2\x80\x99" became U+00E2 U+0080 U+0099,
-	measured on main a357f5933 with the Objective-C harness's --print), then parsed the text. The
-	bytes are widened the same way here and the text parsed with oofnd's parser. (The game reads
-	the file as UTF-8 since oo-qps; the digests pin the expander, not the file reader.)
+/*	+dictionaryWithContentsOfFile: of gnustep-base 1.31.1, through which the
+   recorded digests read both plists: it read an old-style file with no
+   byte-order mark as ISO-8859-1 (each byte one UTF-16 unit;
+   descriptions.plist's UTF-8 "\xE2\x80\x99" became U+00E2 U+0080 U+0099,
+        measured on main a357f5933 with the Objective-C harness's --print), then
+   parsed the text. The bytes are widened the same way here and the text parsed
+   with oofnd's parser. (The game reads the file as UTF-8; the
+   digests pin the expander, not the file reader.)
 */
 oo::PList DictionaryWithContentsOfFile(const char *path)
 {
@@ -398,9 +397,10 @@ int main(int argc, char **argv)
 	}
 	const uint64_t stringsHash = sHash;
 
-	// Regression (bead oo-3rb.69): a replacement of "\x7F" eats the character after it. At the end
-	// of the (sub-)string there is none; the upstream engine then asserted in AppendCharacters
-	// (start > end) and raised out of OOExpandDescriptionString. It now eats nothing there.
+	// Regression: a replacement of "\x7F" eats the character
+  // after it. At the end of the (sub-)string there is none; the upstream engine
+  // then asserted in AppendCharacters (start > end) and raised out of
+  // OOExpandDescriptionString. It now eats nothing there.
 	int regressionFailures = 0;
 	{
 		Random_Seed seed = { 1, 2, 3, 4, 5, 6 };
@@ -419,7 +419,7 @@ int main(int argc, char **argv)
 			{
 				r = UnitsOf(cxx_OOExpandDescriptionString(seed, oo::utf16ToUtf8(c[0]), del, oo::PList(), std::nullopt, kOOExpandNoOptions));
 			}
-			catch (const oo::Exception &e)	// was @catch (OOException *e) (bead oo-rskgl.1)
+			catch (const oo::Exception &e)
 			{
 				std::fprintf(stderr, "test_string_expander: %s raised %s\n", oo::utf16ToUtf8(Quoted(c[0])).c_str(), e.name());
 				regressionFailures++;
@@ -434,16 +434,18 @@ int main(int argc, char **argv)
 		sLog.clear();
 	}
 
-	// Captured from the original OOStringExpander.mm (see the banner). Re-captured with Jon's
-	// approval, 2026-09-29 (bead oo-qqz6; were 0xdaec14b5265fca36 / 0x07a1e83ff98956eb): every
-	// expansion result and RNG draw is unchanged; only log text differs - 7845 lines name a
-	// non-string value by its contents instead of its class (oo-qps.50), and 22 JS warnings end at
-	// an embedded NUL, as the C string the JS engine receives always did (oo-kpxgo).
-	// kStringsDigest re-captured with Jon's approval, 2026-09-29 (bead oo-3rb.69; was
-	// 0xdc8ef7032bfb6797): the \x7F fix changes exactly the 12 records that raised before.
-	// Both re-captured with Jon's approval, 2026-10-25 (were 0x6349f869900cf779 /
-	// 0xef7448c0016ba2ed): upstream #747 changed descriptions.plist (key_oxzmanager_copyurl, the
-	// OXZ-manager help strings, "Info URL:"); against the pre-sync plist the old digests still match.
+	// Captured from the original OOStringExpander.mm (see the banner).
+  // Re-captured with Jon's approval, 2026-09-29 (were 0xdaec14b5265fca36 /
+  // 0x07a1e83ff98956eb): every expansion result and RNG draw is unchanged; only
+  // log text differs - 7845 lines name a non-string value by its contents
+  // instead of its class, and 22 JS warnings end at an embedded NUL, as the C
+  // string the JS engine receives always did. kStringsDigest re-captured with
+  // Jon's approval, 2026-09-29 (was 0xdc8ef7032bfb6797): the \x7F fix changes
+  // exactly the 12 records that raised before. Both re-captured with Jon's
+  // approval, 2026-10-25 (were 0x6349f869900cf779 / 0xef7448c0016ba2ed):
+  // upstream #747 changed descriptions.plist (key_oxzmanager_copyurl, the
+  // OXZ-manager help strings, "Info URL:"); against the pre-sync plist the old
+  // digests still match.
 	const uint64_t kKeysDigest = 0xea38daecff933503ULL, kStringsDigest = 0x338f336558c7db67ULL;
 	int failures = regressionFailures;
 	if (keysHash != kKeysDigest)

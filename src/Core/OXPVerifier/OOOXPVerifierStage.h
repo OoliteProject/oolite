@@ -4,11 +4,8 @@ OOOXPVerifierStage.h
 
 Pipeline stage for OXP verification pipeline managed by OOOXPVerifier.
 
-C++20 since bead oo-cwz, the Phase 3 class-HIERARCHY exemplar (proposed ADR-0056, Amendment 1;
-docs/phases/3-cpp-conversion.md, "Converting a class"); its subclass responsibilities are virtual.
-Bead oo-9ht.4 deleted its transitional Objective-C facade (the class's bridge files) once the
-verifier and every stage were C++, and moved the class out of namespace cxx (ADR-0056 amendment
-"deleting a facade"): the verifier keeps and drives the C++ stages themselves.
+Its subclass responsibilities are virtual. The verifier keeps and drives the
+C++ stages themselves.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -42,8 +39,9 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-84h8): the resolved stage sets are vectors of
-        retained stages (identity, no duplicates), in registration order.
+/*	The resolved stage
+   sets are vectors of retained stages (identity, no duplicates), in
+   registration order.
 */
 class OOOXPVerifierStage : public oo::RefCounted {
 public:
@@ -56,7 +54,7 @@ public:
             unique. The name should be a phrase describing what will be done, like
             "Scanning files" or "Verifying plist scripts".
     */
-    virtual std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.1)
+    virtual std::optional<std::string> name(); // nullopt: none
 
     /*	Dependencies and dependents:
             dependencies() returns a set of names of stages that must be run before this
@@ -86,16 +84,15 @@ public:
     // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h): the quoted name.
     std::optional<std::string> descriptionComponents() const;
 
-    /*	What "%@" printed for the stage (its facade's -description until bead oo-9ht.4):
-            "<Class 0x...>{"name"}", Class the C++ class's name. className() is that name, as
-            [stage class] named an Objective-C stage's class.
+    /*	What "%@" prints for the stage:
+            "<Class 0x...>{"name"}", Class the C++ class's name. className() is
+       that name.
     */
     std::string description() const;
     std::string className() const;
 
-    /*	Internal: the interface between OOOXPVerifierStage and OOOXPVerifier (it was the
-            OOInternal category, OOOXPVerifierStageInternal.h, deleted with the facade by bead
-            oo-9ht.4). Nothing else calls these.
+    /*	Internal: the interface between OOOXPVerifierStage and OOOXPVerifier
+       Nothing else calls these.
     */
     void setVerifier(OOOXPVerifier* verifier);
     bool isDependentOf(OOOXPVerifierStage* stage);

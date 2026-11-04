@@ -31,8 +31,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOTEXTURELOADER_H
-#define OOTEXTURELOADER_H
+#pragma once
 
 #include "OOAsyncWorkManager.h"
 #include "OOOpenGL.h"
@@ -44,29 +43,28 @@ SOFTWARE.
 
 class OOTexture;
 
-/*	As OOTexture.h declares them. The loaders do not import OOTexture.h, so a test that stands in
-        for the Objective-C OOTexture can still see a C++ generator (bead oo-9ht.135); a file that
-        uses the textures imports OOTexture.h itself.
+/*	As OOTexture.h declares them. The loaders do not import OOTexture.h, so
+   a test that stands in for the Objective-C OOTexture can still see a C++
+   generator; a file that uses the textures imports OOTexture.h itself.
 */
 typedef uint32_t OOTextureFlags;
 typedef OOPixMapFormat OOTextureDataFormat;
 
-/*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-wzti): the path is a UTF-8
-        std::string (never empty once initialised: a nil path failed -init); paths passed in are
-        std::optional where the old code accepted nil; a texture specifier is an oo::PList.
+/*	The path is a UTF-8 std::string (never empty once initialised: a nil
+   path failed -init); paths passed in are std::optional where the old code
+   accepted nil; a texture specifier is an oo::PList.
 
-        Phase 3 (bead oo-zl36, proposed ADR-0056 amendments oo-whzh, oo-bj8 and oo-zl36): the C++ root
-        of the texture loaders, and a task on the work manager. Its Objective-C facade was deleted by
-        bead oo-9ht.114 (ADR-0056 amendment oo-9ht.114), which moved the class out of namespace cxx;
-        the state below stayed public (the subclasses read it).
+        The C++ root of the texture loaders, and a task on the work manager.
+   The state below is public (the subclasses read it).
 */
 class OOTextureLoader : public ::OOAsyncWorkTask {
 public:
     OOTextureLoader();
     ~OOTextureLoader() override; // was -dealloc: frees the pixels not handed over
 
-    /*	Were +cxx_loaderWithPath:options: and +cxx_loaderWithTextureSpecifier:extraOptions:folder:.
-            The loader they make (the C++ OOPNGTextureLoader, bead oo-z889) is answered retained, already
+    /*	Were +cxx_loaderWithPath:options: and
+       +cxx_loaderWithTextureSpecifier:extraOptions:folder:. The loader they make
+       (the C++ OOPNGTextureLoader) is answered retained, already
             queued on the work manager; null where they answered nil.
     */
     static oo::Ref<OOTextureLoader> loaderWithPath(const std::optional<std::string>& path, uint32_t options);
@@ -98,9 +96,10 @@ public:
     virtual std::optional<std::string> descriptionComponents() const;
     virtual std::optional<std::string> shortDescriptionComponents() const;
 
-    /*	The facade's descriptions (bead oo-9ht.114 deleted it), with the loader's address: "%@" was
-            <CxxClass 0x...>{components} (the C++ class's name), and the short form named the facade's
-            class, OOTextureGenerator for a generator and OOTextureLoader for any other loader.
+    /*	The former facade's descriptions, with the
+       loader's address: "%@" was <CxxClass 0x...>{components} (the C++ class's
+       name), and the short form named the facade's class, OOTextureGenerator for
+       a generator and OOTextureLoader for any other loader.
     */
     std::string description() const;
     std::string shortDescription() const;
@@ -129,8 +128,8 @@ public:
     */
     virtual void loadTexture();
 
-    // The work manager's task (bead oo-9ht.14; it was the facade): on a work thread, then on the
-    // main thread. The facade implemented -completeAsyncTask, so every loader has a completion.
+    // The work manager's task: on a work thread, then on the main thread. The
+    // facade implemented -completeAsyncTask, so every loader has a completion.
     void performAsyncTask() override;
     bool hasCompleteAsyncTask() const override { return true; }
     void completeAsyncTask() override;
@@ -166,5 +165,3 @@ private:
     void getDesiredWidth(OOPixMapDimension* outDesiredWidth, OOPixMapDimension* outDesiredHeight);
     void generateMipMapsForCubeMap();
 };
-
-#endif // OOTEXTURELOADER_H

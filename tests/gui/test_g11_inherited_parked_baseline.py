@@ -2,8 +2,8 @@
 
     python3 -m pytest oolite-dev/tests/gui/test_g11_inherited_parked_baseline.py -x -q
 
-THE INCIDENT THIS FILE REPRODUCES (oo-992b)
--------------------------------------------
+THE INCIDENT THIS FILE REPRODUCES
+---------------------------------
 On Sep 16 a GUI run died between ``_park_software_gl`` and ``_restore_software_gl`` and left
 the shared build in this exact state:
 
@@ -15,8 +15,8 @@ It stayed that way for a full day, across dozens of runs by five agents, and eve
 runs was GREEN. The component tier's offscreen rendering was broken on disk the whole time.
 
 WHY EVERY RUN PASSED. ``assert_no_parked_runtime_files`` is scoped to THIS run's own bookkeeping
-(``_parked_ever`` / ``_restore_failures``) and that scoping is CORRECT - oo-e75 measured a naive
-directory scan at teardown failing twice on a concurrent sibling's legitimate in-flight parking.
+(``_parked_ever`` / ``_restore_failures``) and that scoping is CORRECT - a naive
+directory scan at teardown was measured failing twice on a concurrent sibling's legitimate in-flight parking.
 But a check of "did I put back what I moved" is spotless when the answer is "I moved nothing,
 because it was already moved". The guard proves a run is clean; it is structurally incapable of
 seeing a baseline that was dirty before the run began. That is not a bug in that guard, it is a
@@ -219,7 +219,7 @@ def test_atexit_restore_is_idempotent_after_a_normal_restore(tmp_path):
     Otherwise a second rename at interpreter shutdown could clobber a concurrent sibling's
     freshly-parked state - turning a safety net into the very bug it guards against.
 
-    THIS TEST WAS REWRITTEN (oo-992b review) BECAUSE ITS FIRST VERSION WAS VACUOUS. That
+    THIS TEST WAS REWRITTEN BECAUSE ITS FIRST VERSION WAS VACUOUS. That
     version simulated the sibling by ALSO writing a placeholder at the live name
     (``b"MZ-a-sibling-put-something-here"``). A placeholder OCCUPIES the live name, so the
     hook's "parked exists AND live free" condition was false and the hook returned without
@@ -261,7 +261,7 @@ def test_atexit_restore_is_idempotent_after_a_normal_restore(tmp_path):
         "the late atexit hook CLOBBERED a concurrent sibling's freshly-parked DLL. Once our own "
         "teardown has restored, the hook must be DISARMED - being conditional on 'parked exists "
         "and live free' is no protection, because a legitimate park reproduces that state "
-        "exactly (oo-992b)"
+        "exactly"
     )
     assert not (app / dll).is_file(), (
         "the late hook renamed the sibling's parked DLL back to its live name mid-run, silently "
@@ -333,7 +333,7 @@ def test_a_normal_restore_unregisters_its_atexit_hooks(tmp_path):
         window._restore_software_gl()
         assert atexit._ncallbacks() == before, (
             "a normal restore must leave NO atexit hooks of its own behind; they accumulated "
-            "one per park across the whole session (oo-992b)"
+            "one per park across the whole session"
         )
     finally:
         conftest.atexit.unregister = real
@@ -399,7 +399,7 @@ def test_the_guard_appends_a_durable_breadcrumb_naming_the_path_and_mtime(tmp_pa
 
     assert crumb.is_file(), (
         "the guard healed the build and failed, so the incident is now UNREPRODUCIBLE; without "
-        "a durable breadcrumb a CI retry erases it entirely (oo-992b)"
+        "a durable breadcrumb a CI retry erases it entirely"
     )
     text = crumb.read_text(encoding="utf-8")
     assert stranded in text, "the breadcrumb must name the stranded DLL"
@@ -497,7 +497,7 @@ def test_an_unwritable_breadcrumb_does_not_mask_the_incident(tmp_path):
 
 @pytest.mark.offline
 def test_a_killed_process_leaves_a_baseline_the_next_run_repairs(tmp_path):
-    """END TO END, the property that actually closes oo-992b.
+    """END TO END, the property that actually closes the incident above.
 
     Run A parks and is killed dead - no teardown, no atexit, nothing. Run B starts against the
     same shared build. Run B must NOT proceed silently: it must repair the build and fail loudly.

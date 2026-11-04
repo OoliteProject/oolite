@@ -3,8 +3,8 @@
 OOCache.mm
 By Jens Ayton
 
-C++20 since bead oo-rdfh (proposed ADR-0056, the OOColor house style). The methods are the
-Objective-C ones with message sends turned into calls; the C functions below are verbatim.
+The methods are the Objective-C ones with message sends turned into calls; the
+C functions below are verbatim.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -985,7 +985,7 @@ std::string OOCache::generateGraphViz()
     return result;
 }
 
-// (-writeGraphVizToURL: folded in: its only sender was this method; bead oo-3rb.264)
+// (-writeGraphVizToURL: folded in: its only sender was this method.)
 void OOCache::writeGraphVizToPath(const std::string& path)
 {
     const std::string graphViz = generateGraphViz();

@@ -1,5 +1,5 @@
 /*	test_OOCommodities.mm
-	Unit tests for OOCommodities (src/Core/OOCommodities.h): bead oo-fqyw (Phase 3, proposed ADR-0056).
+	Unit tests for OOCommodities (src/Core/OOCommodities.h).
 
 	OOCommodities reads trade-goods.plist and makes markets from it: the player's manifest, a blank
 	market, a main-system market for an economy (quantities and prices from each good's averages,
@@ -7,13 +7,12 @@
 	(the main market scaled to the station's capacity and adjusted by the first matching rule of its
 	market definition), and a sample price. It also names, finds and picks goods.
 
-	The game around it is replaced (ADR-0056 amendments oo-zffj, oo-8kx7): the resource manager
+	The game around it is replaced: the resource manager
 	returns the table below, UNIVERSE and the player answer from fields, stations are fakes, the
 	string expander returns its input in angle brackets, and commodity scripts, which the test does
 	not run, are aborting link stubs. The RNG is the game's own (legacy_random.c), reseeded by each
-	test. The expectations were written against the Objective-C class and run on it first; bead
-	oo-9ht.25 deleted that facade (and oo-9ht.21 the market's), and the same expectations now ask the
-	C++ class, whose markets are oo::Ref<OOCommodityMarket>; the last tests pin the C++ API.
+	test. The tests ask the C++ class, whose markets are oo::Ref<OOCommodityMarket>; the last tests
+	pin the C++ API.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -80,8 +79,8 @@ oo::PList TradeGoods()
 
 #include "ResourceManager.h"
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// C++ definitions of the ResourceManager statics the code under test calls,
+// with the stand-in's answers.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	gLog.push_back("resources " + fileName + " in " + folderName.value_or("-") + " merge " + std::to_string(mergeMode) + " cache " + std::to_string((int)useCache));
@@ -90,9 +89,9 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName,
 
 
 
-// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for; the member
-// OOCommodities.mm calls, declared as PlayerEntity.h declares it (the test imports no game header
-// that defines the class), with the same answer.
+// PLAYER: the member OOCommodities.mm calls, declared as PlayerEntity.h
+// declares it (the test imports no game header that defines the class), with
+// the same answer.
 class OOScript;
 class PlayerEntity
 {
@@ -109,12 +108,12 @@ public:
 PlayerEntity *gOOPlayer = nullptr;
 
 
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// deleted, was what this stood in for), with the header's names and signatures.
+// The universe as the code under test sees it: a stand-in for the C++ class,
+// with the header's names and signatures.
 class Universe
 {
 public:
-	oo::Ref<OOCommodityMarket> mainMarket;	// the C++ market (bead oo-9ht.21 deleted its facade)
+	oo::Ref<OOCommodityMarket> mainMarket;	// the C++ market
 
 	OOSystemID currentSystemID();
 	::OOCommodityMarket *getCommodityMarket();
@@ -127,9 +126,9 @@ OOSystemID Universe::currentSystemID()	{ return 7; }
 Universe *gSharedUniverse = nil;
 
 
-// A station: C++ since bead oo-9ht.175 deleted the Objective-C station this stood in for; the
-// members OOCommodities.mm calls, declared as StationEntity.h declares them (the test imports no
-// game header that defines the class), with the same answers.
+// A station: the members OOCommodities.mm calls, declared as StationEntity.h
+// declares them (the test imports no game header that defines the class), with
+// the same answers.
 class StationEntity
 {
 public:

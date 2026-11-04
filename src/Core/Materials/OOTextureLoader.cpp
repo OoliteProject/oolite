@@ -25,33 +25,34 @@ SOFTWARE.
 
 */
 
-// Kept first, in a block of its own: which header comes first decides whether MinGW's or the UCRT's printf/strtod family is used.
-#include "OOPNGTextureLoader.h"
+// Kept first, in a block of its own: which header comes first decides whether
+// MinGW's or the UCRT's printf/strtod family is used.
+#include "OOTextureLoader.h"
+
+#include <cxxabi.h>
+#include <stdlib.h>
+
+#include <cstdlib>
+#include <cstring>
+#include <typeinfo>
 
 #include "OOConvertCubeMapToLatLong.h"
 #include "OODebugStandards.h"
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
 #include "OOOpenGLExtensionManager.h"
+#include "OOPNGTextureLoader.h"
 #include "OOPixMapChannelOperations.h"
 #include "OOTexture.h"
-#include "OOTextureLoader.h"
+#include "OOTextureGenerator.h"
 #include "OOTextureScaling.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/objc/OOException.h"
-#include <cstring>
-#include <stdlib.h>
-
-#include "OOTextureGenerator.h"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
-
-#include <cstdlib>
-#include <cxxabi.h>
-#include <typeinfo>
+#include "oofnd/objc/OOException.h"
 
 #define DUMP_CONVERTED_CUBE_MAPS 0
 
@@ -70,7 +71,8 @@ static BOOL sReducedDetail;
 static BOOL sHaveNPOTTextures = NO; // TODO: support "true" non-power-of-two textures.
 static BOOL sHaveSetUp = NO;
 
-oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(const std::optional<std::string>& inPath, uint32_t options)
+oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
+    const std::optional<std::string>& inPath, uint32_t options)
 {
     std::string extension;
     oo::Ref<OOTextureLoader> result;
@@ -80,41 +82,52 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(const std::optional<std
     if (EXPECT_NOT(!sHaveSetUp))
         setUp();
 
-    // Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial).
+    // Get reduced detail setting (every time, in case it changes; we don't want
+    // to call through to Universe on the loading thread in case the
+    // implementation becomes non-trivial).
     sReducedDetail = (UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false);
 
-    // Get a suitable loader. FIXME -- this should sniff the data instead of relying on extensions.
+    // Get a suitable loader. FIXME -- this should sniff the data instead of
+    // relying on extensions.
     extension = oo::str::lowercase(oo::str::pathExtension(*inPath));
     if (extension == "png") {
-        // A C++ loader (bead oo-z889); the work manager retains it while it is queued.
+        // A C++ loader; the work manager retains it while it is queued.
         const oo::Ref<::OOPNGTextureLoader> loader = oo::makeRef<::OOPNGTextureLoader>();
         if (loader->initWithPath(inPath, options))
             result = loader;
     } else {
-        OO_LOG("texture.load.unknownType", "Can't use {} as a texture - extension \"{}\" does not identify a known type.", *inPath, extension);
+        OO_LOG("texture.load.unknownType",
+            "Can't use {} as a texture - extension \"{}\" does not identify a "
+            "known type.",
+            *inPath, extension);
     }
 
     if (result != nullptr) {
-        if (!OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(result.get(), kOOAsyncPriorityMedium))
+        if (!OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
+                result.get(), kOOAsyncPriorityMedium))
             result = nullptr;
     }
 
     return result;
 }
 
-oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(const oo::PList& specifier, uint32_t extraOptions, const std::optional<std::string>& folder)
+oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
+    const oo::PList& specifier, uint32_t extraOptions,
+    const std::optional<std::string>& folder)
 {
     std::string name;
     std::optional<std::string> path;
     uint32_t options = 0;
 
-    if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL, NO))
+    if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL,
+            NO))
         return nullptr;
     options |= extraOptions;
     path = ResourceManager::pathForFileNamed(name, folder);
     if (!path.has_value()) {
         if (!(options & kOOTextureNoFNFMessage)) {
-            OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", name);
+            OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".",
+                name);
             cxx_OOStandardsError("Texture file not found");
         }
         return nullptr;
@@ -123,14 +136,13 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(const oo::P
     return loaderWithPath(path, options);
 }
 
-OOTextureLoader::OOTextureLoader()
-{
-}
+OOTextureLoader::OOTextureLoader() { }
 
-/*	The part of -cxx_initWithPath:options: after [super init]; false where it released the receiver
-        and answered nil.
+/*	The part of -cxx_initWithPath:options: after [super init]; false where
+   it released the receiver and answered nil.
 */
-bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath, uint32_t options)
+bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
+    uint32_t options)
 {
     if (EXPECT_NOT(!inPath.has_value())) {
         return false;
@@ -176,7 +188,11 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath, uin
             break;
 
         default:
-            OO_LOG_ERR("texture.load.unknownExtractChannelMask", "Unknown texture extract channel mask (0x{:04X}). This is an internal error, please report it.", static_cast<unsigned>(options & kOOTextureExtractChannelMask));
+            OO_LOG_ERR(
+                "texture.load.unknownExtractChannelMask",
+                "Unknown texture extract channel mask (0x{:04X}). This is an "
+                "internal error, please report it.",
+                static_cast<unsigned>(options & kOOTextureExtractChannelMask));
             _extractChannel = NO;
         }
     }
@@ -235,7 +251,8 @@ std::string OOTextureLoader::className() const
 
 std::string OOTextureLoader::description() const
 {
-    std::string result = oo::str::format("<%s %s>", className().c_str(), oo::str::pointerDescription(this).c_str());
+    std::string result = oo::str::format("<%s %s>", className().c_str(),
+        oo::str::pointerDescription(this).c_str());
     if (const std::optional<std::string> components = descriptionComponents())
         result += "{" + *components + "}";
     return result;
@@ -243,41 +260,39 @@ std::string OOTextureLoader::description() const
 
 std::string OOTextureLoader::shortDescription() const
 {
-    const char* facadeClass = (dynamic_cast<const OOTextureGenerator*>(this) != nullptr) ? "OOTextureGenerator" : "OOTextureLoader";
-    std::string result = oo::str::format("<%s %s>", facadeClass, oo::str::pointerDescription(this).c_str());
+    const char* facadeClass = (dynamic_cast<const OOTextureGenerator*>(this) != nullptr)
+        ? "OOTextureGenerator"
+        : "OOTextureLoader";
+    std::string result = oo::str::format(
+        "<%s %s>", facadeClass, oo::str::pointerDescription(this).c_str());
     if (const std::optional<std::string> components = shortDescriptionComponents())
         result += "{" + *components + "}";
     return result;
 }
 
-std::optional<std::string> OOTextureLoader::path()
-{
-    return _path;
-}
+std::optional<std::string> OOTextureLoader::path() { return _path; }
 
-bool OOTextureLoader::isReady()
-{
-    return _ready;
-}
+bool OOTextureLoader::isReady() { return _ready; }
 
 bool OOTextureLoader::getResult(OOPixMap* result,
     OOTextureDataFormat* outFormat,
-    uint32_t* outWidth,
-    uint32_t* outHeight)
+    uint32_t* outWidth, uint32_t* outHeight)
 {
     OOCParameterAssert(result != NULL && outFormat != NULL);
 
     BOOL OK = YES;
 
     if (!_ready) {
-        // The work manager knows the task as the C++ loader (bead oo-9ht.14).
+        // The work manager knows the task as the C++ loader.
         OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(this);
     }
     if (_data == NULL)
         OK = NO;
 
     if (OK) {
-        *result = OOMakePixMap(_data, _width, _height, (OOPixMapFormat)OOTextureComponentsForFormat(_format), 0, 0);
+        *result = OOMakePixMap(
+            _data, _width, _height,
+            (OOPixMapFormat)OOTextureComponentsForFormat(_format), 0, 0);
         _data = NULL;
         *outFormat = _format;
         OK = OOIsValidPixMap(*result);
@@ -297,13 +312,11 @@ bool OOTextureLoader::getResult(OOPixMap* result,
 
 std::optional<std::string> OOTextureLoader::cacheKey()
 {
-    return oo::str::format("%s:0x%.4X", oo::str::lastPathComponent(*path()).c_str(), _options);
+    return oo::str::format("%s:0x%.4X",
+        oo::str::lastPathComponent(*path()).c_str(), _options);
 }
 
-void OOTextureLoader::loadTexture()
-{
-    OOLogGenericSubclassResponsibility();
-}
+void OOTextureLoader::loadTexture() { OOLogGenericSubclassResponsibility(); }
 
 void OOTextureLoader::setUp()
 {
@@ -311,15 +324,19 @@ void OOTextureLoader::setUp()
     GLint maxSize;
     OOGL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
     sGLMaxSize = MAX(maxSize, 64);
-    OO_LOG("texture.load.rescale.maxSize", "GL maximum texture size: {}", static_cast<unsigned>(sGLMaxSize));
+    OO_LOG("texture.load.rescale.maxSize", "GL maximum texture size: {}",
+        static_cast<unsigned>(sGLMaxSize));
 
-    // Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
+    // Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can
+    // handle.
     {
         const oo::PList maxTex = oo::Defaults::standard().object("max-texture-size");
-        sUserMaxSize = oo::PListGet<unsigned int>::from(maxTex.isNull() ? nullptr : &maxTex, 0x80000000);
+        sUserMaxSize = oo::PListGet<unsigned int>::from(
+            maxTex.isNull() ? nullptr : &maxTex, 0x80000000);
     }
     if (sUserMaxSize < 0x80000000)
-        OO_LOG("texture.load.rescale.maxSize", "User maximum texture size: {}", static_cast<unsigned>(sUserMaxSize));
+        OO_LOG("texture.load.rescale.maxSize", "User maximum texture size: {}",
+            static_cast<unsigned>(sUserMaxSize));
     sUserMaxSize = OORoundUpToPowerOf2_32(sUserMaxSize);
     sUserMaxSize = MAX(sUserMaxSize, 64U);
 
@@ -331,13 +348,17 @@ void OOTextureLoader::setUp()
 void OOTextureLoader::performAsyncTask()
 {
     try {
-        OO_LOG("texture.load.asyncLoad", "Loading texture {}", oo::str::lastPathComponent(_path));
+        OO_LOG("texture.load.asyncLoad", "Loading texture {}",
+            oo::str::lastPathComponent(_path));
 
         loadTexture();
 
         // Catch an error I've seen but not diagnosed yet.
         if (_data != NULL && OOTextureComponentsForFormat(_format) == 0) {
-            OO_LOG("texture.load.failed.internalError", "Texture loader internal error for {}: data is non-null but data format is invalid ({}).", _path, static_cast<unsigned>(_format));
+            OO_LOG("texture.load.failed.internalError",
+                "Texture loader internal error for {}: data is non-null but data "
+                "format is invalid ({}).",
+                _path, static_cast<unsigned>(_format));
             free(_data);
             _data = NULL;
         }
@@ -350,7 +371,9 @@ void OOTextureLoader::performAsyncTask()
         const auto exception = oo::CurrentOOException();
         if (!exception)
             throw; // not an OOException: it goes on up, as before
-        OO_LOG("texture.load.asyncLoad.exception", "***** Exception loading texture {}: {} ({}).", _path, exception->name(), exception->reason());
+        OO_LOG("texture.load.asyncLoad.exception",
+            "***** Exception loading texture {}: {} ({}).", _path,
+            exception->name(), exception->reason());
 
         // Be sure to signal load failure.
         free(_data);
@@ -407,14 +430,17 @@ void OOTextureLoader::applySettings()
     if (_rowBytes == 0)
         _rowBytes = _width * components;
 
-    pixMap = OOMakePixMap(_data, _width, _height, (OOPixMapFormat)components, _rowBytes, 0);
+    pixMap = OOMakePixMap(_data, _width, _height, (OOPixMapFormat)components,
+        _rowBytes, 0);
 
     if (_extractChannel) {
         if (OOExtractPixMapChannel(&pixMap, _extractChannelIndex, NO)) {
             _format = (OOTextureDataFormat)kOOTextureDataGrayscale;
             components = 1;
         } else {
-            OO_LOG_WARN("texture.load.extractChannel.invalid", "Cannot extract channel from texture \"{}\"", oo::str::lastPathComponent(_path));
+            OO_LOG_WARN("texture.load.extractChannel.invalid",
+                "Cannot extract channel from texture \"{}\"",
+                oo::str::lastPathComponent(_path));
         }
     }
 
@@ -433,13 +459,14 @@ void OOTextureLoader::applySettings()
         _isCubeMap = NO;
 
 #if DUMP_CONVERTED_CUBE_MAPS
-        // -stringByDeletingPathExtension of the last path component (probed): cut at its last '.',
-        // unless that starts the name.
+        // -stringByDeletingPathExtension of the last path component (probed): cut
+        // at its last '.', unless that starts the name.
         std::string dumpName = oo::str::lastPathComponent(_path);
         const std::string::size_type dot = dumpName.rfind('.');
         if (dot != std::string::npos && dot != 0)
             dumpName.erase(dot);
-        OODumpPixMap(pixMap, oo::str::format("converted cube map %s", dumpName.c_str()));
+        OODumpPixMap(pixMap,
+            oo::str::format("converted cube map %s", dumpName.c_str()));
 #endif
     }
 
@@ -452,9 +479,16 @@ void OOTextureLoader::applySettings()
             leaveSpaceForMipMaps = NO;
 #endif
 
-        OO_LOG("texture.load.rescale", "Rescaling texture \"{}\" from {} x {} to {} x {}.", oo::str::lastPathComponent(_path), static_cast<unsigned>(pixMap.width), static_cast<unsigned>(pixMap.height), static_cast<unsigned>(desiredWidth), static_cast<unsigned>(desiredHeight));
+        OO_LOG("texture.load.rescale",
+            "Rescaling texture \"{}\" from {} x {} to {} x {}.",
+            oo::str::lastPathComponent(_path),
+            static_cast<unsigned>(pixMap.width),
+            static_cast<unsigned>(pixMap.height),
+            static_cast<unsigned>(desiredWidth),
+            static_cast<unsigned>(desiredHeight));
 
-        pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, leaveSpaceForMipMaps);
+        pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight,
+            leaveSpaceForMipMaps);
         if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))
             return;
 
@@ -493,13 +527,15 @@ void OOTextureLoader::applySettings()
     // All done.
 }
 
-void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth, OOPixMapDimension* outDesiredHeight)
+void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth,
+    OOPixMapDimension* outDesiredHeight)
 {
     OOPixMapDimension desiredWidth, desiredHeight;
 
     // Work out appropriate final size for textures.
     if (!_noScalingWhatsoever) {
-        // Cube maps are six times as high as they are wide, and we need to preserve that.
+        // Cube maps are six times as high as they are wide, and we need to preserve
+        // that.
         if (_allowCubeMap && _height == _width * 6) {
             _isCubeMap = YES;
 
@@ -514,7 +550,8 @@ void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth, OOPixM
             desiredHeight = desiredWidth * 6;
         } else {
             if (!sHaveNPOTTextures) {
-                // Round to nearest power of two. NOTE: this is duplicated in OOTextureVerifierStage.m.
+                // Round to nearest power of two. NOTE: this is duplicated in
+                // OOTextureVerifierStage.m.
                 desiredWidth = OORoundUpToPowerOf2_PixMap((2 * _width) / 3);
                 desiredHeight = OORoundUpToPowerOf2_PixMap((2 * _height) / 3);
             } else {
@@ -548,7 +585,4 @@ void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth, OOPixM
         *outDesiredHeight = desiredHeight;
 }
 
-void OOTextureLoader::completeAsyncTask()
-{
-    _ready = YES;
-}
+void OOTextureLoader::completeAsyncTask() { _ready = YES; }

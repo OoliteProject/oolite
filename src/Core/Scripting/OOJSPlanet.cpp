@@ -32,20 +32,6 @@ MA 02110-1301, USA.
 #include "OOPlanetEntity.h"
 #include "oofnd/objc/OOAssert.h"
 
-/*
-        C++20 since bead oo-7ixd, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOPlanetEntity
-        became two free functions, and its methods moved to a bridge file of the binding (amendment
-        oo-ykoy), then onto the OOPlanetEntity facade in OOPlanetEntity+ObjCBridge.mm (bead oo-9ht.92,
-        amendment oo-6ia4 item 3), then into the C++ planet's overrides when that facade was deleted;
-        the planet is C++ and called directly, null-guarded where the message to nil was harmless. Its
-        JS class is JSPlanetClassID(). OOColor, which is C++ since bead oo-11m, is reached as OOColor
-        through oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4). Messages to classes that are still Objective-C (OOPlanetEntity, Universe) stay as
-        they are, which is why the file is still .mm until Phase 4.
-*/
-
 static JSClassID sPlanetClassID;
 
 static JSValue PlanetGetProperty(OOJS_GETTER_ARGS);
@@ -103,11 +89,9 @@ static const JSCFunctionListEntry sPlanetProperties[] = {
     OOJS_PROPERTY_RW("terminatorThresholdVector", PlanetGetProperty, PlanetSetProperty, kPlanet_terminatorThresholdVector),
 };
 
-// The planet is C++ behind the root's facade: the getter checks the JS class (a Planet object's
-// private slot holds the planet's Objective-C object, so -isKindOfClass: of the facade class always
-// held) and answers the C++ planet; null for a stale entity, as nil before.
-// The slot holds the C++ entity now (OOJSEntityGetEntityOfClass for the Planet class,
-// DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetObject, sPlanetClassID, Entity) before).
+// The getter checks the JS class and answers the C++ planet (the slot holds the
+// C++ entity, read by OOJSEntityGetEntityOfClass for the Planet class); null
+// for a stale entity.
 static bool JSPlanetGetPlanetEntity(JSContext* context, JSValueConst inObject, OOPlanetEntity** outObject)
 {
     Entity* entity = nullptr;
@@ -136,8 +120,8 @@ JSClassID JSPlanetClassID(void)
     return sPlanetClassID;
 }
 
-// The bodies of OOPlanetEntity (OOJavaScriptExtensions), called by the C++ planet's overrides (the
-// OOPlanetEntity facade forwarded to them before).
+// The bodies of OOPlanetEntity (OOJavaScriptExtensions), called by the C++
+// planet's overrides.
 bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet)
 {
     OOStellarBodyType type = (planet != nullptr ? planet->planetType() : (OOStellarBodyType)0);
@@ -197,9 +181,9 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS)
     }
 
     case kPlanet_orientation:
-        // The C++ member the root's selector reached, qualified: the final overrider for a
-        // planet (OOPlanetEntity has no subclass and does not override it), so the binding test stands in for
-        // it; zero for none, as the message to nil.
+        // The C++ member, qualified: the final overrider for a planet
+        // (OOPlanetEntity has no subclass and does not override it), so the
+        // binding test stands in for it; zero for none.
         OOJS_RETURN_QUATERNION(planet != nullptr ? planet->Entity::normalOrientation() : Quaternion { });
 
     case kPlanet_rotationalVelocity:
@@ -300,8 +284,8 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
     case kPlanet_orientation:
         if (JSValueToQuaternion(context, value, &qValue)) {
             quaternion_normalize(&qValue);
-            // The C++ member the root's selector reached, qualified: the final overrider
-            // (OOPlanetEntity has no subclass), so the binding test stands in for it; nothing for none.
+            // The C++ member, qualified: the final overrider (OOPlanetEntity has no
+            // subclass), so the binding test stands in for it; nothing for none.
             if (planet != nullptr)
                 planet->OOPlanetEntity::setOrientation(qValue);
             return JS_UNDEFINED;

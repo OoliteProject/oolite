@@ -17,8 +17,4 @@ shared_roots = [
     '/app'
 ]
 
-# (The LIBOBJC2 block, which found libobjc.so/libobjc.a under build/gnustep or the shared roots for
-# the Objective-C runtime, went with the last Objective-C unit, bead oo-dbz.5.)
-
 # The JavaScript engine is the vendored QuickJS-ng subproject.
-

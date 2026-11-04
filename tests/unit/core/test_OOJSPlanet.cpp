@@ -1,20 +1,17 @@
 /*	test_OOJSPlanet.mm
 	Unit tests for the Planet JS binding (src/Core/Scripting/OOJSPlanet.h/.mm) and its
-	OOPlanetEntity category (whose forwarders were on the OOPlanetEntity facade from bead oo-9ht.92
-	until bead oo-9ht.129 deleted it: the C++ class's overrides answer the engine now, through the
-	root's JS category, and this test's stand-ins are C++ the same way, amendment oo-9ht.107 item 6):
-	bead oo-7ixd, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments
-	oo-ppc and oo-ykoy).
+	OOPlanetEntity category (the C++ class's overrides answer the engine, through the root's JS
+	category, and this test's stand-ins are C++ the same way).
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's
-	class registry (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and
-	OOColor (a converted class, reached through its façade), and stands in for the classes the
-	binding messages (Entity, OOPlanetEntity and the universe answer only the selectors the binding
-	sends), for the Vector and Quaternion conversions (arrays [x, y, z] and [w, x, y, z] here) and
-	for the engine functions the binding links against, with the engine headers' linkage. The expectations were written against the Objective-C file and run
-	on it first; they pin the JS-visible behaviour (the twelve properties, the colours both ways, a
-	texture that loads or does not, a moon, a non-planet, a native's exception) and what the
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, the engine's class registry (OOJSClasses.mm), its exception
+	translator (OOJSEngineNativeWrappers.mm) and OOColor (a converted class, reached through its
+	façade), and stands in for the classes the binding messages (Entity, OOPlanetEntity and the
+	universe answer only the selectors the binding sends), for the Vector and Quaternion conversions
+	(arrays [x, y, z] and [w, x, y, z] here) and for the engine functions the binding links against,
+	with the engine headers' linkage. The expectations were written against the Objective-C file and
+	run on it first; they pin the JS-visible behaviour (the twelve properties, the colours both
+	ways, a texture that loads or does not, a moon, a non-planet, a native's exception) and what the
 	category answers the engine. Run: tests/run.sh unit
 */
 
@@ -94,14 +91,14 @@ public:
 };
 
 
-// The root's facade: the planet's object (the C++ part first, where oo::ToCxx reads it); it holds the
-// orientation, which the C++ members answer (the root's selectors, which the binding sent before).
-// What an entity's JS object holds: a weak reference to the C++ entity.
+// The root's facade: the planet's object (the C++ part first, where oo::ToCxx
+// reads it); it holds the orientation, which the C++ members answer (the root's
+// selectors). What an entity's JS object holds: a weak reference to the C++
+// entity.
 #include "OOJSEntityHolder.h"
 
 
-// C++ since bead oo-4aq6a.11 (it was rooted on the Objective-C root class OOObject, which Phase 4
-// deletes); its category's selectors are members of the same names.
+// Its category's selectors are members of the same names.
 class TestEntityObject final : public oo::RefCounted
 {
 public:
@@ -113,13 +110,13 @@ public:
 	Quaternion _orientation = {};	// zeroed, as the object's ivar was
 };
 
-// The universe, as far as the binding asks it anything: its main planet (the C++ planet since bead
-// oo-9ht.129).
+// The universe, as far as the binding asks it anything: its main planet (the
+// C++ planet).
 #include "UniverseStandIn.h"
 
-// The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C
-// facade the test's FakeUniverse stood in for is deleted), with the header's names and signatures.
-// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and FakeUniverse overrides them.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures. It answers virtual members, so it
+// has the game's vtable (UniverseStandIn.h) and FakeUniverse overrides them.
 class Universe : public oo::RefCounted
 {
 public:
@@ -152,14 +149,14 @@ public:
 
 
 
-// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm,
-// bead oo-9ht.107): the engine sends these selectors to the wrapped object.
+// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions.cpp): the
+// engine sends these selectors to the wrapped object.
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
 std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
 bool TestEntityObject::isVisibleToScripts()  { return _cxxEntity->isVisibleToScripts(); }
 
 
-// oo::ToObjC (Entity+ObjCBridge.mm) until bead oo-4aq6a.11: the object of a C++ entity, null for null.
+// The object of a C++ entity, null for null.
 ::TestEntityObject *TestObjectOf(Entity *entity)  { return entity != nullptr ? entity->_object : nullptr; }
 
 
@@ -206,8 +203,7 @@ double OOPlanetEntity::radius()
 }
 
 
-// The binding's category, as the C++ class's overrides answer it (bead oo-9ht.129; the
-// OOPlanetEntity facade forwarded it from bead oo-9ht.92).
+// The binding's category, as the C++ class's overrides answer it.
 JSClassID OOPlanetEntity::jsClassID()  { return ::JSPlanetClassID(); }
 std::optional<std::string> OOPlanetEntity::jsClassName()  { return ::OOJSPlanetJSClassName(this); }
 bool OOPlanetEntity::isVisibleToScripts()  { return ::OOJSPlanetIsVisibleToScripts(this); }

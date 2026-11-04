@@ -31,20 +31,6 @@ MA 02110-1301, USA.
 #include "OOVisualEffectEntity.h"
 #include "ShipEntity.h"
 
-/*
-        C++20 since bead oo-ub2g, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOFlasherEntity
-        became free functions, and its methods and interface moved to a bridge file of the binding
-        (amendment oo-ykoy), then onto the OOFlasherEntity facade (bead oo-9ht.49, amendment oo-6ia4
-        item 3), and with that facade's deletion into the C++ class's overrides of the root's JS
-        members. OOColor, which is C++ since bead oo-11m, is reached as OOColor through
-        oo::ToCxx/oo::ToObjC (amendment oo-ppc, item 4). The flasher is the C++ OOFlasherEntity, found
-        through its entity's C++ part. Messages to classes that are still Objective-C (ShipEntity,
-        OOVisualEffectEntity, Entity) stay as they are, which is why the file is still .mm until Phase 4.
-*/
-
 static JSClassID sFlasherClassID;
 
 static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OOFlasherEntity** outEntity);
@@ -138,14 +124,14 @@ static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj, OO
     if (flasher == nullptr)
         return false;
 
-    *outEntity = flasher; // the natives no longer ask its object
+    *outEntity = flasher;
     return true;
 
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of OOFlasherEntity (OOJavaScriptExtensions), which the C++ class's overrides of the
-// root's JS members call (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+// The bodies of OOFlasherEntity (OOJavaScriptExtensions), which the C++ class's
+// overrides of the root's JS members call.
 std::optional<std::string> OOJSFlasherJSClassName(void)
 {
     return std::string("Flasher");
@@ -291,7 +277,7 @@ static JSValue FlasherRemove(OOJS_NATIVE_ARGS)
     OOFlasherEntity* thisEnt = nullptr;
     GET_THIS_FLASHER(thisEnt);
 
-    Entity* parent = thisEnt->owner(); // the C++ member its object's -owner answered
+    Entity* parent = thisEnt->owner(); // the C++ member
     if (oo::EntityIsShip(parent)) {
         if (oo::ToShip(parent) != nullptr)
             oo::ToShip(parent)->removeFlasher(thisEnt);

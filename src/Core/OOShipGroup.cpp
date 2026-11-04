@@ -45,11 +45,13 @@ enum {
     kMaxFreeSpace = 128
 };
 
-/*	OOShipGroupMembers: range-for over a group's live members, in _members order, replacing the
-        for-in fast-enumeration conformance (bead oo-3rb.20). It fetches batches of kBatchSize exactly
-        as -countByEnumeratingWithState:objects:count: did under clang's for-in (whose buffer is 16
-        objects): dead references are compacted, and -cleanUp runs, at the same points, so a loop that
-        breaks early leaves the group as it did before.
+/*	OOShipGroupMembers: range-for over a group's live members, in _members
+   order, replacing the for-in fast-enumeration conformance. It
+   fetches batches of kBatchSize exactly as
+   -countByEnumeratingWithState:objects:count: did under clang's for-in (whose
+   buffer is 16 objects): dead references are compacted, and -cleanUp runs, at
+   the same points, so a loop that breaks early leaves the group as it did
+   before.
 
                 for (ShipEntity *ship : OOShipGroupMembers(group)) { ... }
 
@@ -75,7 +77,10 @@ public:
             Fill();
         }
 
-        ::ShipEntity* operator*() const { return oo::ToShip(_buffer[_position].get()); } // the member's ship (the object until the ship's facade went)
+        ::ShipEntity* operator*() const
+        {
+            return oo::ToShip(_buffer[_position].get());
+        } // the member's ship
         Iterator& operator++()
         {
             OOCAssert(_group->updateCount() == _updateCount, "OOShipGroup was mutated while being enumerated.");
@@ -95,7 +100,8 @@ public:
         OOShipGroup* _group;
         NSUInteger _updateCount;
         NSUInteger _index = 0, _batchCount = 0, _position = 0;
-        oo::EntityHold _buffer[kBatchSize]; // held, as the autoreleased objects were
+        oo::EntityHold _buffer[kBatchSize]; // held, as the autoreleased objects
+                                            // were
     };
 
     Iterator begin() const { return Iterator(_group); }
@@ -150,14 +156,13 @@ std::string OOShipGroup::description() const
 
 OOShipGroup::~OOShipGroup()
 {
-    // The members' and the leader's weak references go with the vector and the member (the
-    // release of the leader's included).
+    // The members' and the leader's weak references go with the vector and the member.
     _name.reset();
 }
 
 std::optional<std::string> OOShipGroup::descriptionComponents() const
 {
-    // leader() drops a stale weak reference, so it is not const (amendment oo-bhb9 item 5).
+    // leader() drops a stale weak reference, so it is not const.
     OOShipGroup* mutableThis = const_cast<OOShipGroup*>(this);
     std::string desc = oo::str::format("%zu ships", _count);
     if (_name.has_value()) {
@@ -240,7 +245,8 @@ std::vector<oo::EntityHold> OOShipGroup::memberArrayExcludingLeader()
 bool OOShipGroup::containsShip(::ShipEntity* ship)
 {
     for (::ShipEntity* containedShip : OOShipGroupMembers(this)) {
-        if (ship != nullptr && ship == containedShip) // what -isEqual: of their objects answered (identity)
+        if (ship != nullptr && ship == containedShip) // what -isEqual: of their objects answered
+                                                      // (identity)
         {
             return true;
         }
@@ -284,7 +290,8 @@ bool OOShipGroup::removeShip(::ShipEntity* ship)
     OOShipGroupCursor shipEnum(this);
     shipEnum.setPerformCleanup(NO);
     while ((containedShip = shipEnum.next())) {
-        if (ship != nullptr && ship == containedShip) // what -isEqual: of their objects answered (identity)
+        if (ship != nullptr && ship == containedShip) // what -isEqual: of their objects answered
+                                                      // (identity)
         {
             index = shipEnum.index() - 1;
             _members[index] = _members[--_count];
@@ -294,7 +301,8 @@ bool OOShipGroup::removeShip(::ShipEntity* ship)
             if (ship != nullptr)
                 ship->setGroup(nullptr);
             if (ship != nullptr)
-                ship->ShipEntity::setOwner(ship); // qualified: the final overrider, so the group's test stands in for it
+                ship->ShipEntity::setOwner(ship); // qualified: the final overrider, so
+                                                  // the group's test stands in for it
             cleanUp();
             break;
         }

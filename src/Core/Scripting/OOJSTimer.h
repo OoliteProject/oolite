@@ -4,12 +4,8 @@ OOJSTimer.h
 
 JavaScript timer class.
 
-C++20 since bead oo-kdyh (proposed ADR-0056; amendment oo-ppc for the binding), converted with
-its superclass OOScriptTimer. OOJSTimer has no caller outside OOJSTimer.mm, and a Timer's private
-slot holds it (OOJSPrivateObject.h). Its own facade was deleted: the timer queue and Objective-C
-code hold the root's OOScriptTimer facade, which answers the JS glue selectors
-(-oo_jsValueInContext:, -cxx_oo_jsClassName) for it and describes it as "<OOJSTimer 0x...>"
-(className()).
+OOJSTimer is a subclass of OOScriptTimer and has no caller outside
+OOJSTimer.cpp; a Timer's private slot holds it (OOJSPrivateObject.h).
 
 
 Oolite
@@ -32,8 +28,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSTIMER_H
-#define OOJSTIMER_H
+#pragma once
 
 #include "OOJSPrivateObject.h"
 #include "OOScriptTimer.h"
@@ -96,5 +91,3 @@ private:
 };
 
 void InitOOJSTimer(JSContext* context, JSValueConst global);
-
-#endif // OOJSTIMER_H

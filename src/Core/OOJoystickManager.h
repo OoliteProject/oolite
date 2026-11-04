@@ -14,14 +14,12 @@ representation and a property-list dictionary (for loading/saving user defaults
 and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
 
-C++20 since bead oo-6bux (proposed ADR-0056, Amendment 1 of bead oo-cwz: a hierarchy root). The
-methods a subclass overrides (joystickCount, nameOfJoystick, getAxisWithStick) are virtual;
--init's body is init(), run after construction because it reaches those virtual members. Since
-the Objective-C facades were deleted the class is global, its one subclass is the C++
-OOSDLJoystickManager, the shared handler is made by a registered factory function (was
-+setStickHandlerClass:) and the stick-mapper callback is a C++ function (was a selector and an
-object). The event decoders are the SDL manager's (upstream #742): they read and set this
-class's protected state.
+The methods a subclass overrides (joystickCount, nameOfJoystick,
+getAxisWithStick) are virtual; -init's body is init(), run after construction
+because it reaches those virtual members. Its one subclass is the C++
+OOSDLJoystickManager, the shared handler is made by a registered factory
+function (was +setStickHandlerClass:) and the stick-mapper callback is a C++
+function.
 
 
 Oolite

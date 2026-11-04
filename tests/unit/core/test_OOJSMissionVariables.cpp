@@ -1,19 +1,17 @@
 /*	test_OOJSMissionVariables.mm
-	Unit tests for the missionVariables JS binding (src/Core/Scripting/OOJSMissionVariables.h/.mm):
-	bead oo-s4ns, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment
-	oo-ppc).
+	Unit tests for the missionVariables JS binding (src/Core/Scripting/OOJSMissionVariables.h/.mm).
 
-	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
-	context, and links the game's own objects for the binding, the class registration
-	(OOJSClasses.mm), the engine's exception translator (OOJSEngineNativeWrappers.mm) and the
-	number-literal test it calls (OOIsNumberLiteral.cpp). It stands in for the player (its mission
-	variables, kept in a dictionary) and for the engine functions the binding links against, with
-	the engine headers' linkage. The expectations were written against the Objective-C file and run
-	on it first; they pin the JS-visible behaviour: the missionVariables object, reading a variable
-	(a number literal as a number, any other string as itself, a missing one as null, a name with a
-	leading underscore as nothing), writing one (as its string, null clearing it, a bad name an
-	error), delete, enumeration (only mission_ keys, in key order), and a native's exception.
-	Run: bash tools/check-core-tests.sh
+	As the other binding tests do, it runs the JS class in a real QuickJS-ng context, and links the
+	game's own objects for the binding, the class registration (OOJSClasses.mm), the engine's
+	exception translator (OOJSEngineNativeWrappers.mm) and the number-literal test it calls
+	(OOIsNumberLiteral.cpp). It stands in for the player (its mission variables, kept in a
+	dictionary) and for the engine functions the binding links against, with the engine headers'
+	linkage. The expectations were written against the Objective-C file and run on it first; they
+	pin the JS-visible behaviour: the missionVariables object, reading a variable (a number literal
+	as a number, any other string as itself, a missing one as null, a name with a leading underscore
+	as nothing), writing one (as its string, null clearing it, a bad name an error), delete,
+	enumeration (only mission_ keys, in key order), and a native's exception. Run: bash
+	tools/check-core-tests.sh
 */
 
 #include "oofnd/objc/OOObject.h"
@@ -29,10 +27,10 @@
 	"mission_cxxboom" throws a C++ exception, so the test sees what an exception under a native
 	becomes.
 */
-// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for: the members
-// the code under test calls, declared as the game headers declare them (the test imports none
-// that defines the classes), with the stand-in's answers.
-class ShipEntity;	// C++ since bead oo-9ht.144
+// PLAYER: the members the code under test calls, declared as the game headers
+// declare them (the test imports none that defines the classes), with the
+// stand-in's answers.
+class ShipEntity;
 class PlayerEntity
 {
 public:
@@ -163,7 +161,7 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 namespace {
 PlayerEntity *sPlayer = nullptr;
 std::map<JSClassID, int> sConverters;
-}
+}  // namespace
 
 PlayerEntity *gOOPlayer = nullptr;
 
@@ -337,9 +335,10 @@ OO_TEST(deleting)
 	SetUpContext();
 	ResetVariables();
 	sPlayer->_sets = 0;
-	// A variable the script has set (which the scripting layer keeps as a property of the object, as
-	// test_OOJSManifest.mm sees): delete clears it. (Only variables the object does not report yet:
-	// assigning to one it does report is bead oo-f1yi3, a fault of the backend, not of the binding.)
+	// A variable the script has set (which the scripting layer keeps as a property
+  // of the object, as test_OOJSManifest.mm sees): delete clears it. (Only
+  // variables the object does not report yet: assigning to one it does report
+  // is a fault of the backend, not of the binding.)
 	OO_CHECK_EVAL("(function () { missionVariables.added = 'x'; return delete missionVariables.added; })()", "true");
 	OO_CHECK(sPlayer->_missionVariables.count("mission_added") == 0);
 	OO_CHECK_EVAL("missionVariables.added", "null");
@@ -350,9 +349,10 @@ OO_TEST(deleting)
 }
 
 
-// bead oo-f1yi3: a variable the object already reports (here, after an enumeration listed it) is
-// still written through the class's setter, as SpiderMonkey's assignment did, and is not shadowed
-// by a read-only property; delete on it then clears it.
+// A variable the object already reports (here, after an enumeration listed it)
+// is still written through the class's setter, as SpiderMonkey's assignment
+// did, and is not shadowed by a read-only property; delete on it then clears
+// it.
 OO_TEST(overwritingAReportedVariable)
 {
 	SetUpContext();

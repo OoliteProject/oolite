@@ -1,22 +1,17 @@
 /*	test_OOJSPopulatorDefinition.mm
-	Unit tests for OOJSPopulatorDefinition (src/Core/Scripting/OOJSPopulatorDefinition.h/.mm):
-	bead oo-1h0h, a Phase 3 conversion in the house style of the OOColor exemplar (proposed
-	ADR-0056; amendment oo-o89, as its superclass, the weak-reference root, was still Objective-C).
+	Unit tests for OOJSPopulatorDefinition (src/Core/Scripting/OOJSPopulatorDefinition.h/.mm).
 
-	A populator definition keeps a JS callback and its `this` alive (owned references) for the system
-	populator, remembers the script that made it, and runs the callback with a location. The test
-	runs it in a real QuickJS-ng context and
-	links the game's own objects for the class (its superclass, the weak-reference root, has
-	gone). What the rest of the engine would provide is defined below as the smallest stand-in
-	that does the same thing: the engine object (which calls the function), the script stack
-	(OOJSScript) and Vector3D (a plain array here). The engine's and OOJSScript's headers are not
-	imported, because the test defines those classes (amendment oo-z1s4 item 4); the class's header
-	names OOJSScript with @class for that (amendment oo-fg7i item 5). The expectations were written
-	against the Objective-C class and run on it first (they now run through the facade, its
-	forwarding test; the facade's own contract is checked last); they pin the initial state, the callback
-	and its `this` (kept alive across a garbage collection), the run (its `this`, its location, the
-	owning script pushed and popped), an engine reset, and the weak reference to a definition.
-	Run: bash tools/check-core-tests.sh
+	A populator definition keeps a JS callback and its `this` alive (owned references) for the
+	system populator, remembers the script that made it, and runs the callback with a location. The
+	test runs it in a real QuickJS-ng context and links the game's own objects for the class. What
+	the rest of the engine would provide is defined below as the smallest stand-in that does the
+	same thing: the engine object (which calls the function), the script stack (OOJSScript) and
+	Vector3D (a plain array here). The engine's and OOJSScript's headers are not imported, because
+	the test defines those classes; the class's header names OOJSScript with @class for that. The
+	expectations were written against the Objective-C class and run on it first; they pin the
+	initial state, the callback and its `this` (kept alive across a garbage collection), the run
+	(its `this`, its location, the owning script pushed and popped), an engine reset, and the weak
+	reference to a definition. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOJSPopulatorDefinition.h"
@@ -60,8 +55,8 @@ bool VectorToJSValue(JSContext *context, Vector vector, JSValue *outValue)
 }
 
 
-// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared with the
-// header's names and signatures but not its class; the stand-in's answers are kept.
+// The engine (OOJavaScriptEngine.h), declared with the header's names and
+// signatures but not its class; the stand-in's answers are kept.
 class OOJavaScriptEngine
 {
 public:
@@ -105,9 +100,9 @@ OOJSScript *sRunningScript = nullptr;
 #include "OOScript.h"
 
 
-// OOJSScript (OOJSScript.h), which the code under test calls. A script is the C++ object (the
-// OOScript root's facade was deleted), so the stand-in is a C++ subclass of OOScript declaring the
-// members that code calls.
+// OOJSScript (OOJSScript.h), which the code under test calls. A script is a C++
+// object, so the stand-in is a C++ subclass of OOScript declaring the members
+// that code calls.
 class OOJSScript : public OOScript
 {
 public:

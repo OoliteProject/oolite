@@ -1,22 +1,17 @@
 /*	test_OOJSGuiScreenKeyDefinition.mm
-	Unit tests for OOJSGuiScreenKeyDefinition (src/Core/Scripting/OOJSGuiScreenKeyDefinition.h/.mm):
-	bead oo-xg7g, a Phase 3 conversion in the house style of the OOColor exemplar (proposed
-	ADR-0056; amendment oo-o89, as its superclass, the weak-reference root, was still Objective-C).
+	Unit tests for OOJSGuiScreenKeyDefinition (src/Core/Scripting/OOJSGuiScreenKeyDefinition.h/.mm).
 
 	A GUI screen key definition is a script's extra keys for a GUI screen: a name and the keys it
-	registers, and a JS callback and its `this` that it keeps alive (owned references) and runs with the
-	entry's key, pushing the script that made it. The test runs it in a real QuickJS-ng context
-	and links the game's own objects for the
-	class (the script's weak reference was the weak-reference class). What the rest of the engine would
+	registers, and a JS callback and its `this` that it keeps alive (owned references) and runs
+	with the entry's key, pushing the script that made it. The test runs it in a real QuickJS-ng
+	context and links the game's own objects for the class. What the rest of the engine would
 	provide is defined below as the smallest stand-in that does the same thing: the engine object
 	(which calls the function), the script stack (OOJSScript) and the property-list converter. The
-	engine's and OOJSScript's headers are not imported, because the test defines those classes
-	(amendment oo-z1s4 item 4); the class's header names OOScript with @class for that (amendment
-	oo-fg7i item 5). The expectations were written against the Objective-C class and run on it
-	first; since the façade (a weak-reference root subclass) was deleted they ask the C++ class. They
-	pin the initial state, the name and the keys, the callback and its `this` (kept alive across a
-	garbage collection), the run, the sort order (interfaceCompare(), with its null cases) and an
-	engine reset.
+	engine's and OOJSScript's headers are not imported, because the test defines those classes;
+	the class's header names OOScript with @class for that. The expectations were written against
+	the Objective-C class and run on it first. They pin the initial state, the name and the keys,
+	the callback and its `this` (kept alive across a garbage collection), the run, the sort order
+	(interfaceCompare(), with its null cases) and an engine reset.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -57,8 +52,8 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 }
 
 
-// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared with the
-// header's names and signatures but not its class; the stand-in's answers are kept.
+// The engine (OOJavaScriptEngine.h), declared with the header's names and
+// signatures but not its class; the stand-in's answers are kept.
 class OOJavaScriptEngine
 {
 public:
@@ -102,8 +97,8 @@ OOJSScript *sRunningScript = nullptr;
 #include "OOScript.h"
 
 
-// OOJSScript (OOJSScript.h), which the code under test calls. A script is the C++ object (the
-// OOScript root's facade was deleted), so the stand-in is a C++ subclass of OOScript declaring the
+// OOJSScript (OOJSScript.h), which the code under test calls. A script is a
+// C++ object, so the stand-in is a C++ subclass of OOScript declaring the
 // members that code calls.
 class OOJSScript : public OOScript
 {

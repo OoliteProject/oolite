@@ -12,10 +12,8 @@ splines between the set of control points - the segment between (0,0)
 and the first control point is linear, the remaining segments
 quadratic with the gradients matching at the control point.
 
-C++20 since bead oo-fn2f (proposed ADR-0056 and its hierarchy amendments oo-cwz/oo-up4b). The
-three profile classes are C++ classes, the curve (rawValue) virtual; the spline's segments are
-the private OOJoystickSplineSegment. Bead oo-9ht.16 deleted their Objective-C facades and moved
-the classes to the global namespace.
+The three profile classes are C++ classes, the curve (rawValue) virtual; the
+spline's segments are the private OOJoystickSplineSegment.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -39,11 +37,6 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
-
-#ifndef OOJOYSTICKPROFILE_H
-#define OOJOYSTICKPROFILE_H
-
 #include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
@@ -64,7 +57,7 @@ public:
     void setDeadzone(double newValue);
 
 private:
-    double deadzone_ = { }; // the ivar deadzone (amendment oo-z1s4 item 1: it clashes with deadzone())
+    double deadzone_ = { }; // the ivar deadzone (it clashes with deadzone())
 };
 
 class OOJoystickStandardAxisProfile : public OOJoystickAxisProfile {
@@ -98,15 +91,14 @@ public:
     std::vector<NSPoint> controlPoints();
 
 private:
-    // Create the segments from the control points.  If there's a problem, e.g. control points not in order or overlapping,
-    // leave segments as they are and return NO.  Otherwise return YES.
+    // Create the segments from the control points.  If there's a problem, e.g.
+    // control points not in order or overlapping, leave segments as they are and
+    // return NO.  Otherwise return YES.
     bool makeSegments();
 
-    // Was a Foundation mutable array of valueWithPoint: boxes (bead oo-3rb.48). The ivar
-    // controlPoints (clashes with controlPoints()).
+    // The ivar controlPoints (clashes with controlPoints()).
     std::vector<NSPoint> controlPoints_ = { };
-    // Was a Foundation array of segments (Foundation sweep, proposed ADR-0043, bead oo-r71k).
-    std::vector<oo::Ref<OOJoystickSplineSegment>> segments; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+    std::vector<oo::Ref<OOJoystickSplineSegment>>
+        segments; // no `= {}`: GCC instantiates ~Ref<T> at a default member
+                  // initializer, and T is incomplete here
 };
-
-#endif // OOJOYSTICKPROFILE_H

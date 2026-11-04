@@ -32,8 +32,8 @@ namespace {
 
 OOMusic* sPlayingMusic = nullptr;
 
-// The music's one source, made on first play and never released (bead oo-9ht.88 deleted its
-// Objective-C facade). A message to it while there was none did nothing, so each use checks.
+// The music's one source, made on first play and never released. A message to
+// it while there was none did nothing, so each use checks.
 OOSoundSource* sMusicSource = nullptr;
 
 } // namespace

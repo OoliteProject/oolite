@@ -32,9 +32,9 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 
 /*
-        Foundation sweep (proposed ADR-0043, bead oo-19g0): the caches are std::maps of retained
-        objects; the cache file is read and written as an oo::PList, in XML (proposed ADR-0027 item 3:
-        oofnd does not parse GNUstep's binary format, and an unreadable cache is rebuilt).
+   The caches are std::maps of retained objects; the cache file is read and
+   written as an oo::PList, in XML (oofnd does not parse GNUstep's binary
+   format, and an unreadable cache is rebuilt).
 */
 
 #define WRITE_ASYNC 1
@@ -118,7 +118,7 @@ OOCacheManager* OOCacheManager::sharedCache()
 {
     // NOTE: assumes single-threaded access.
     if (sSingleton == nullptr) {
-        // Recorded before -init's work ran, as +allocWithZone: recorded it (amendment oo-z1s4 item 2).
+        // Recorded before -init's work ran, as +allocWithZone: recorded it.
         sSingleton = oo::makeRef<OOCacheManager>().leakRef();
         sSingleton->init();
     }

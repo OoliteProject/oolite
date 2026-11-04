@@ -28,10 +28,11 @@ SOFTWARE.
 
 /*	Implementation note:
 
-        The polygon data is tesselated (on object creation) using a GLU tesselator.
-        Although GLU produces a mix of triangles, triangle fans and triangle
-        strips, we convert those to a single triangle soup since the polygons are
-        unlikely to be large enough that using multiple primitives would be a win.
+        The polygon data is tesselated (on object creation) using a GLU
+   tesselator. Although GLU produces a mix of triangles, triangle fans and
+   triangle strips, we convert those to a single triangle soup since the
+   polygons are unlikely to be large enough that using multiple primitives would
+   be a win.
 
         Uniquing vertices and using indices, and using the same vertex array for
         outline and filled mode, would in principle be more efficient, but not
@@ -40,11 +41,11 @@ SOFTWARE.
 */
 
 #include "OOPolygonSprite.h"
+
 #include "OOGraphicsResetManager.h"
 #include "OOMacroOpenGL.h"
 #include "OOMaths.h"
 #include "OOPointMaths.h"
-
 #include "oofnd/Defaults.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
@@ -56,23 +57,26 @@ SOFTWARE.
 
 #define kCosMitreLimit 0.866f // Approximately cos(30 deg)
 
-/*	Contours are std::vector<NSPoint> (arrays of point boxes before; proposed ADR-0043). The
-        tesselator is handed a pointer to each vertex, so a contour must not change, or be
-        destroyed, until its polygon has ended (the boxes used to live in the autorelease pool
-        until -loadPolygons: returned).
+/*	Contours are std::vector<NSPoint> (arrays of point boxes before).
+   The tesselator is handed a pointer to each vertex, so a
+   contour must not change, or be destroyed, until its polygon has ended (the
+   boxes used to live in the autorelease pool until -loadPolygons: returned).
 */
 typedef std::vector<NSPoint> OOPolygonContour;
 
-typedef struct
-{
+typedef struct {
     GLfloat* data;
-    size_t count; // Number of vertices in use, i.e. half of number of data elements used.
+    size_t count; // Number of vertices in use, i.e. half of number of data
+                  // elements used.
     size_t capacity; // Half of number of floats there is space for in data.
     GLenum mode; // Current primitive mode.
     size_t vCount; // Number of vertices so far in primitive.
-    NSPoint pending0, pending1; // Used for splitting GL_TRIANGLE_STRIP/GL_TRIANGLE_FAN primitives.
+    NSPoint pending0, pending1; // Used for splitting
+                                // GL_TRIANGLE_STRIP/GL_TRIANGLE_FAN primitives.
     BOOL OK; // Set to false to indicate error.
-    std::vector<std::unique_ptr<NSPoint>> combinedVertices; // made by the combine callback; live until the data goes
+    std::vector<std::unique_ptr<NSPoint>>
+        combinedVertices; // made by the combine callback; live until the data
+                          // goes
 #ifndef NDEBUG
     BOOL generatingOutline;
     unsigned svgID;
@@ -82,13 +86,18 @@ typedef struct
 } TessPolygonData;
 
 namespace {
-std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data, const oo::PList& dataArray);
-OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray, GLfloat width, BOOL inner);
+std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data,
+    const oo::PList& dataArray);
+OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray,
+    GLfloat width, BOOL inner);
 
-void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData, const OOPolygonContour& contour);
-}
+void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData,
+    const OOPolygonContour& contour);
+} // namespace
 
-static BOOL GrowTessPolygonData(TessPolygonData* data, size_t capacityHint); // Returns true if capacity grew by at least one.
+static BOOL GrowTessPolygonData(
+    TessPolygonData* data,
+    size_t capacityHint); // Returns true if capacity grew by at least one.
 static BOOL AppendVertex(TessPolygonData* data, NSPoint vertex);
 
 #ifndef NDEBUG
@@ -99,11 +108,13 @@ void SVGDumpBeginGroup(TessPolygonData* data, const char* name);
 }
 static void SVGDumpEndGroup(TessPolygonData* data);
 namespace {
-void SVGDumpAppendBaseContour(TessPolygonData* data, const OOPolygonContour& points);
+void SVGDumpAppendBaseContour(TessPolygonData* data,
+    const OOPolygonContour& points);
 }
 static void SVGDumpBeginPrimitive(TessPolygonData* data);
 static void SVGDumpEndPrimitive(TessPolygonData* data);
-static void SVGDumpAppendTriangle(TessPolygonData* data, NSPoint v0, NSPoint v1, NSPoint v2);
+static void SVGDumpAppendTriangle(TessPolygonData* data, NSPoint v0, NSPoint v1,
+    NSPoint v2);
 #else
 #define SVGDumpEnd(data) \
     do {                 \
@@ -130,7 +141,9 @@ static void SVGDumpAppendTriangle(TessPolygonData* data, NSPoint v0, NSPoint v1,
 
 static void APIENTRY TessBeginCallback(GLenum type, void* polygonData);
 static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData);
-static void APIENTRY TessCombineCallback(GLdouble coords[3], void* vertexData[4], GLfloat weight[4], void** outData, void* polygonData);
+static void APIENTRY TessCombineCallback(GLdouble coords[3],
+    void* vertexData[4], GLfloat weight[4],
+    void** outData, void* polygonData);
 static void APIENTRY TessEndCallback(void* polygonData);
 
 static void APIENTRY ErrorCallback(GLenum error, void* polygonData);
@@ -138,8 +151,10 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData);
 // this is needed to maintain compatibility with GCC 14+
 typedef GLvoid (*TessFuncPtr)();
 
-// Null where -initWithDataArray:outlineWidth:name: released itself and answered nil.
-oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(const oo::PList& dataArray, GLfloat outlineWidth, const std::string& name)
+// Null where -initWithDataArray:outlineWidth:name: released itself and answered
+// nil.
+oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(
+    const oo::PList& dataArray, GLfloat outlineWidth, const std::string& name)
 {
     oo::Ref<OOPolygonSprite> sprite = oo::adopt(new OOPolygonSprite);
     {
@@ -154,11 +169,14 @@ oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(const oo::PList& dat
         // Normalize data to array-of-arrays form.
         const oo::PList* first = dataArray.at(0);
         const bool arrayOfArrays = first != nullptr && first->isArray();
-        if (!sprite->loadPolygons((arrayOfArrays ? dataArray : oo::PList(oo::PList::Array { dataArray })), outlineWidth)) {
+        if (!sprite->loadPolygons(
+                (arrayOfArrays ? dataArray
+                               : oo::PList(oo::PList::Array { dataArray })),
+                outlineWidth)) {
             return nullptr;
         }
 
-        // -initWithDataArray:... registered the sprite (its facade did until bead oo-9ht.30).
+        // -initWithDataArray:... registered the sprite.
         OOGraphicsResetManager::sharedManager()->registerCxxClient(sprite.get());
     }
 
@@ -181,7 +199,8 @@ std::optional<std::string> OOPolygonSprite::descriptionComponents() const
 
 std::string OOPolygonSprite::description() const
 {
-    std::string result = oo::str::format("<OOPolygonSprite %s>", oo::str::pointerDescription(this).c_str());
+    std::string result = oo::str::format(
+        "<OOPolygonSprite %s>", oo::str::pointerDescription(this).c_str());
 #ifndef NDEBUG
     const std::optional<std::string> components = descriptionComponents();
     if (components.has_value())
@@ -207,7 +226,8 @@ void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo)
             OOGL(glGenBuffersARB(1, vbo));
             if (*vbo != 0) {
                 OOGL(glBindBufferARB(GL_ARRAY_BUFFER, *vbo));
-                OOGL(glBufferDataARB(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 2, data, GL_STATIC_DRAW));
+                OOGL(glBufferDataARB(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 2, data,
+                    GL_STATIC_DRAW));
             }
         } else {
             OOGL(glBindBufferARB(GL_ARRAY_BUFFER, *vbo));
@@ -228,7 +248,9 @@ void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo)
 #endif
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "OOPolygonSprite after rendering " + description(); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string {
+        return "OOPolygonSprite after rendering " + description();
+    });
 }
 
 void OOPolygonSprite::drawFilled()
@@ -265,13 +287,16 @@ void OOPolygonSprite::resetGraphicsState()
 }
 
 // FIXME: this method is absolutely horrible.
-bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidth)
+bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
+    float outlineWidth)
 {
     OOCParameterAssert(dataArray);
 
     GLUtesselator* tesselator = NULL;
-    std::vector<OOPolygonContour> contours; // the tesselator points into these until the end
-    std::vector<OOPolygonContour> outlineContours; // (vectors move their buffers, so the points stay put)
+    std::vector<OOPolygonContour>
+        contours; // the tesselator points into these until the end
+    std::vector<OOPolygonContour>
+        outlineContours; // (vectors move their buffers, so the points stay put)
 
     TessPolygonData polygonData { };
     polygonData.OK = YES;
@@ -281,7 +306,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidt
         SVGDumpBegin(&polygonData);
 #endif
 
-    // For efficiency, grow to more than big enough for most cases to avoid regrowing.
+    // For efficiency, grow to more than big enough for most cases to avoid
+    // regrowing.
     if (!GrowTessPolygonData(&polygonData, 100)) {
         polygonData.OK = NO;
         goto END;
@@ -296,18 +322,22 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidt
     contours = DataArrayToPoints(&polygonData, dataArray);
 
     /*** Tesselate polygon fill ***/
-    gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, (TessFuncPtr)TessBeginCallback);
-    gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, (TessFuncPtr)TessVertexCallback);
+    gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA,
+        (TessFuncPtr)TessBeginCallback);
+    gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA,
+        (TessFuncPtr)TessVertexCallback);
     gluTessCallback(tesselator, GLU_TESS_END_DATA, (TessFuncPtr)TessEndCallback);
     gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, (TessFuncPtr)ErrorCallback);
-    gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, (TessFuncPtr)TessCombineCallback);
+    gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA,
+        (TessFuncPtr)TessCombineCallback);
 
     gluTessBeginPolygon(tesselator, &polygonData);
     SVGDumpBeginGroup(&polygonData, "Fill");
 
     NSUInteger contourCount, contourIndex;
     contourCount = contours.size();
-    for (contourIndex = 0; contourIndex < contourCount && polygonData.OK; contourIndex++) {
+    for (contourIndex = 0; contourIndex < contourCount && polygonData.OK;
+        contourIndex++) {
         SubmitVertices(tesselator, &polygonData, contours[contourIndex]);
     }
 
@@ -318,7 +348,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidt
         _solidCount = polygonData.count;
 
         if (_solidCount != 0) {
-            _solidData = (GLfloat*)realloc(polygonData.data, polygonData.count * sizeof(GLfloat) * 2);
+            _solidData = (GLfloat*)realloc(polygonData.data,
+                polygonData.count * sizeof(GLfloat) * 2);
             if (_solidData != NULL)
                 polygonData.data = NULL; // realloc succeded.
             else {
@@ -353,11 +384,14 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidt
     polygonData.generatingOutline = YES;
 #endif
 
-    gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, (TessFuncPtr)TessBeginCallback);
-    gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, (TessFuncPtr)TessVertexCallback);
+    gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA,
+        (TessFuncPtr)TessBeginCallback);
+    gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA,
+        (TessFuncPtr)TessVertexCallback);
     gluTessCallback(tesselator, GLU_TESS_END_DATA, (TessFuncPtr)TessEndCallback);
     gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, (TessFuncPtr)ErrorCallback);
-    gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, (TessFuncPtr)TessCombineCallback);
+    gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA,
+        (TessFuncPtr)TessCombineCallback);
     gluTessProperty(tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE);
 
     gluTessBeginPolygon(tesselator, &polygonData);
@@ -366,7 +400,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidt
     outlineWidth *= 0.5f; // Half the width in, half the width out.
     contourCount = contours.size();
     outlineContours.reserve(contourCount * 2);
-    for (contourIndex = 0; contourIndex < contourCount && polygonData.OK; contourIndex++) {
+    for (contourIndex = 0; contourIndex < contourCount && polygonData.OK;
+        contourIndex++) {
         const OOPolygonContour& contour = contours[contourIndex];
 
         outlineContours.push_back(BuildOutlineContour(contour, outlineWidth, NO));
@@ -381,7 +416,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray, float outlineWidt
     if (polygonData.OK) {
         if (polygonData.count != 0) {
             _outlineCount = polygonData.count;
-            _outlineData = (GLfloat*)realloc(polygonData.data, polygonData.count * sizeof(GLfloat) * 2);
+            _outlineData = (GLfloat*)realloc(polygonData.data,
+                polygonData.count * sizeof(GLfloat) * 2);
             if (_outlineData != NULL)
                 polygonData.data = NULL; // realloc succeded.
             else {
@@ -406,13 +442,15 @@ END:
 
 namespace {
 
-void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData, const OOPolygonContour& contour)
+void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData,
+    const OOPolygonContour& contour)
 {
     NSUInteger vertexCount = contour.size(), vertexIndex;
     if (vertexCount > 2) {
         gluTessBeginContour(tesselator);
 
-        for (vertexIndex = 0; vertexIndex < vertexCount && polygonData->OK; vertexIndex++) {
+        for (vertexIndex = 0; vertexIndex < vertexCount && polygonData->OK;
+            vertexIndex++) {
             const NSPoint* point = &contour[vertexIndex];
             NSPoint p = *point;
             GLdouble vert[3] = { p.x, p.y, 0.0 };
@@ -424,7 +462,8 @@ void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData, con
     }
 }
 
-std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data, const oo::PList& dataArray)
+std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data,
+    const oo::PList& dataArray)
 {
     /*	This converts an icon definition in the form of an array of array of
             numbers to internal data in the form of a list of contours (lists of
@@ -472,7 +511,8 @@ std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data, const oo:
             newPolyDef.push_back(NSMakePoint(x, y));
         }
 
-        // Eliminate duplicates at ends - the initialization of oldX and oldY will catch one pair, but not extra-silly cases.
+        // Eliminate duplicates at ends - the initialization of oldX and oldY will
+        // catch one pair, but not extra-silly cases.
         while (newPolyDef.size() > 1 && NSEqualPoints(newPolyDef.front(), newPolyDef.back())) {
             newPolyDef.pop_back();
         }
@@ -490,16 +530,17 @@ std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data, const oo:
     return subArrays;
 }
 
-OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray, GLfloat width, BOOL inner)
+OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray,
+    GLfloat width, BOOL inner)
 {
     NSUInteger i, count = dataArray.size();
     if (count < 2)
         return dataArray;
 
     /*
-            Generate inner or outer boundary for a contour, offset by the specified
-            width inwards/outwards from the line. At anticlockwise (convex) corners
-            sharper than acos(kCosMitreLimit), the corner is mitred, i.e. an
+            Generate inner or outer boundary for a contour, offset by the
+       specified width inwards/outwards from the line. At anticlockwise (convex)
+       corners sharper than acos(kCosMitreLimit), the corner is mitred, i.e. an
             additional line segment is generated so the outline doesn't protrude
             arbitratrily far.
 
@@ -508,26 +549,25 @@ OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray, GLfloat 
             vertex and a normalized vector B to the next vertex. (These are always
             defined since the polygons are closed.)
 
-            The dot product of A and B is the cosine of the angle, which we compare
-            to kCosMitreLimit to determine mitreing. If the dot product is exactly
-            1, the vectors are antiparallel and we have a cap; the mitreing case
-            handles this implicitly. (The non-mitreing case would result in a
+            The dot product of A and B is the cosine of the angle, which we
+       compare to kCosMitreLimit to determine mitreing. If the dot product is
+       exactly 1, the vectors are antiparallel and we have a cap; the mitreing
+       case handles this implicitly. (The non-mitreing case would result in a
             divide-by-zero.)
 
             Non-mitreing case:
-                    To position the vertex, we need a vector N normal to the corner.
-                    We observe that A + B is tangent to the corner, and a 90 degree
+                    To position the vertex, we need a vector N normal to the
+       corner. We observe that A + B is tangent to the corner, and a 90 degree
                     rotation in 2D is trivial. The offset along this line is
-                    proportional to the secant of the angle between N and the 90 degree
-                    rotation of A (or B; the angle is by definition the same), or
-                    width / (N dot rA).
-                    Since both N and rA are rotated by ninety degrees in the same
-                    direction, we can cut out both rotations (i.e., using the tangent
-                    and A) and get the same result.
+                    proportional to the secant of the angle between N and the 90
+       degree rotation of A (or B; the angle is by definition the same), or width
+       / (N dot rA). Since both N and rA are rotated by ninety degrees in the same
+                    direction, we can cut out both rotations (i.e., using the
+       tangent and A) and get the same result.
 
             Mitreing case:
-                    The two new vertices are the original vertex offset by scale along
-                    the ninety-degree rotation of A and B respectively.
+                    The two new vertices are the original vertex offset by scale
+       along the ninety-degree rotation of A and B respectively.
     */
 
     NSPoint prev, current, next;
@@ -720,12 +760,16 @@ static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData)
         break;
 
     default:
-        OO_LOG("polygonSprite.tesselate.error", "Unexpected tesselator primitive mode {}.", static_cast<unsigned>(data->mode));
+        OO_LOG("polygonSprite.tesselate.error",
+            "Unexpected tesselator primitive mode {}.",
+            static_cast<unsigned>(data->mode));
         data->OK = NO;
     }
 }
 
-void APIENTRY TessCombineCallback(GLdouble coords[3], void* /*vertexData*/[4], GLfloat /*weight*/[4], void** outData, void* polygonData)
+void APIENTRY TessCombineCallback(GLdouble coords[3], void* /*vertexData*/[4],
+    GLfloat /*weight*/[4], void** outData,
+    void* polygonData)
 {
     TessPolygonData* data = (TessPolygonData*)polygonData;
     NSPoint point = { coords[0], coords[1] };
@@ -756,7 +800,9 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData)
 
     char* errStr = (char*)gluErrorString(error);
 
-    OO_LOG("polygonSprite.tesselate.error", "Error {} ({}) while tesselating polygon{}.", errStr, static_cast<unsigned>(error), name);
+    OO_LOG("polygonSprite.tesselate.error",
+        "Error {} ({}) while tesselating polygon{}.", errStr,
+        static_cast<unsigned>(error), name);
     data->OK = NO;
 }
 
@@ -768,8 +814,10 @@ static void SVGDumpBegin(TessPolygonData* data)
 {
     data->debugSVG = std::string(
         "<?xml version=\"1.0\" standalone=\"no\"?>\n"
-        "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
-        "<svg viewBox=\"-5 -5 10 10\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+        "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "
+        "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+        "<svg viewBox=\"-5 -5 10 10\" version=\"1.1\" "
+        "xmlns=\"http://www.w3.org/2000/svg\">\n"
         "\t<desc>Oolite polygon sprite debug dump.</desc>\n"
         "\t\n");
 }
@@ -780,7 +828,9 @@ static void SVGDumpEnd(TessPolygonData* data)
         return;
 
     *data->debugSVG += "</svg>\n";
-    ResourceManager::writeDiagnosticString(*data->debugSVG, oo::str::format("Polygon Sprites/%s.svg", data->name.c_str()));
+    ResourceManager::writeDiagnosticString(
+        *data->debugSVG,
+        oo::str::format("Polygon Sprites/%s.svg", data->name.c_str()));
     data->debugSVG.reset();
 }
 
@@ -792,7 +842,7 @@ void SVGDumpBeginGroup(TessPolygonData* data, const char* name)
 
     *data->debugSVG += oo::str::format("\t<g id=\"%s %u\">\n", name, data->svgID++);
 }
-}
+} // namespace
 
 static void SVGDumpEndGroup(TessPolygonData* data)
 {
@@ -802,13 +852,17 @@ static void SVGDumpEndGroup(TessPolygonData* data)
 }
 
 namespace {
-void SVGDumpAppendBaseContour(TessPolygonData* data, const OOPolygonContour& points)
+void SVGDumpAppendBaseContour(TessPolygonData* data,
+    const OOPolygonContour& points)
 {
     if (!data->debugSVG.has_value())
         return;
 
     const std::string groupName = oo::str::format("contour %u", data->svgID++);
-    *data->debugSVG += oo::str::format("\t\t<g id=\"%s\" stroke=\"#BBB\" fill=\"none\">\n\t\t<path stroke-width=\"0.05\" d=\"", groupName.c_str());
+    *data->debugSVG += oo::str::format(
+        "\t\t<g id=\"%s\" stroke=\"#BBB\" fill=\"none\">\n\t\t<path "
+        "stroke-width=\"0.05\" d=\"",
+        groupName.c_str());
 
     NSUInteger i, count = points.size();
     for (i = 0; i < count; i++) {
@@ -816,13 +870,19 @@ void SVGDumpAppendBaseContour(TessPolygonData* data, const OOPolygonContour& poi
         *data->debugSVG += oo::str::format("%c %f %f ", (i == 0) ? 'M' : 'L', p.x, -p.y);
     }
 
-    // Close and add a circle at the first vertex. (SVG has support for end markers, but this isn’t reliable across implementations.)
+    // Close and add a circle at the first vertex. (SVG has support for end
+    // markers, but this isn’t reliable across implementations.)
     if (points.empty())
-        OORaiseException(OORangeException, "SVGDumpAppendBaseContour: empty contour"); // -objectAtIndex:0 raised here
+        OORaiseException(OORangeException,
+            "SVGDumpAppendBaseContour: empty contour"); // -objectAtIndex:0
+                                                        // raised here
     NSPoint p = points[0];
-    *data->debugSVG += oo::str::format("z\"/>\n\t\t\t<circle cx=\"%f\" cy=\"%f\" r=\"0.1\" fill=\"#BBB\" stroke=\"none\"/>\n\t\t</g>\n", p.x, -p.y);
+    *data->debugSVG += oo::str::format(
+        "z\"/>\n\t\t\t<circle cx=\"%f\" cy=\"%f\" r=\"0.1\" fill=\"#BBB\" "
+        "stroke=\"none\"/>\n\t\t</g>\n",
+        p.x, -p.y);
 }
-}
+} // namespace
 
 static void SVGDumpBeginPrimitive(TessPolygonData* data)
 {
@@ -855,7 +915,11 @@ static void SVGDumpBeginPrimitive(TessPolygonData* data)
         blue += 0x80;
     }
 
-    *data->debugSVG += oo::str::format("\t\t<g id=\"%s\" fill=\"#%2X%2X%2X\" fill-opacity=\"0.3\" stroke=\"%s\" stroke-width=\"0.01\">\n", groupName.c_str(), red, green, blue, data->generatingOutline ? "#060" : "#008");
+    *data->debugSVG += oo::str::format(
+        "\t\t<g id=\"%s\" fill=\"#%2X%2X%2X\" fill-opacity=\"0.3\" stroke=\"%s\" "
+        "stroke-width=\"0.01\">\n",
+        groupName.c_str(), red, green, blue,
+        data->generatingOutline ? "#060" : "#008");
 }
 
 static void SVGDumpEndPrimitive(TessPolygonData* data)
@@ -865,10 +929,12 @@ static void SVGDumpEndPrimitive(TessPolygonData* data)
     *data->debugSVG += "\t\t</g>\n";
 }
 
-static void SVGDumpAppendTriangle(TessPolygonData* data, NSPoint v0, NSPoint v1, NSPoint v2)
+static void SVGDumpAppendTriangle(TessPolygonData* data, NSPoint v0, NSPoint v1,
+    NSPoint v2)
 {
     if (!data->debugSVG.has_value())
         return;
-    *data->debugSVG += oo::str::format("\t\t\t<path d=\"M %f %f L %f %f L %f %f z\"/>\n", v0.x, -v0.y, v1.x, -v1.y, v2.x, -v2.y);
+    *data->debugSVG += oo::str::format("\t\t\t<path d=\"M %f %f L %f %f L %f %f z\"/>\n", v0.x,
+        -v0.y, v1.x, -v1.y, v2.x, -v2.y);
 }
 #endif

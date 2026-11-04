@@ -40,11 +40,12 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
-/*	The message-class settings, their resolution and cache, per-thread indentation, the line
-        layout and OOLogging's own diagnostics live in oofnd/Log.hpp (oo::log, bead oo-qpb), shared
-        with the std::format call sites (OO_LOG). What stays here is Objective-C: reading
-        logcontrol.plist and the logging-show-* defaults, formatting %@ messages, and the sink that
-        hands finished lines to OOLogOutputHandler.
+/*	The message-class settings, their resolution and cache, per-thread
+   indentation, the line layout and OOLogging's own diagnostics live in
+   oofnd/Log.hpp (oo::log), shared with the std::format call sites
+   (OO_LOG). What stays here is Objective-C: reading logcontrol.plist and the
+   logging-show-* defaults, formatting %@ messages, and the sink that hands
+   finished lines to OOLogOutputHandler.
 */
 
 static BOOL sInited = NO;

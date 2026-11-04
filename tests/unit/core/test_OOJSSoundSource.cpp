@@ -1,23 +1,19 @@
 /*	test_OOJSSoundSource.mm
 	Unit tests for the SoundSource JS binding (src/Core/Scripting/OOJSSoundSource.h/.mm) and the
-	bodies of its OOSoundSource category (the Scripting bridge file until it went with the
-	source's facade): bead oo-cib0, converted the way bead oo-ppc converted OOJSVector (proposed
-	ADR-0056 amendments oo-ppc and oo-ykoy).
+	bodies of its OOSoundSource category.
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's class registry
-	(OOJSClasses.mm) and its exception translator (OOJSEngineNativeWrappers.mm), and stands in for
-	the classes the binding calls (the source and the sound answer only what the binding asks),
-	for the Sound and Vector3D conversions (a vector is the array [x, y, z] here) and for the
-	engine functions it links against, with the engine headers' linkage. The expectations were
-	written against the Objective-C file and run on it first; they pin the JS-visible behaviour
-	(construction, the seven properties and their clamps, play(), stop(), playOrRepeat(), a
-	native's exception) and what the category answered the engine. Since the source's and the
-	sound's facades were deleted the two are C++ stand-ins (their members over a record per
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, the engine's class registry (OOJSClasses.mm) and its
+	exception translator (OOJSEngineNativeWrappers.mm), and stands in for the classes the binding
+	calls (the source and the sound answer only what the binding asks), for the Sound and Vector3D
+	conversions (a vector is the array [x, y, z] here) and for the engine functions it links
+	against, with the engine headers' linkage. The expectations were written against the Objective-C
+	file and run on it first; they pin the JS-visible behaviour (construction, the seven properties
+	and their clamps, play(), stop(), playOrRepeat(), a native's exception) and what the category
+	answered the engine. The source and the sound are C++ stand-ins (their members over a record per
 	object), the category's answers are the functions that held its bodies, and the engine's C++
-	private-slot glue (OOJSPrivateObject.h) is stood in for as its Objective-C getter, finalizer
-	and toString() were.
-	Run: tests/run.sh unit
+	private-slot glue (OOJSPrivateObject.h) is stood in for as its Objective-C getter, finalizer and
+	toString() were. Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -28,8 +24,6 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 
-
-// MARK: The classes, as far as the binding sees them ----------------------------------------------
 
 #include "OOSoundSource.h"
 #include "OOJSPrivateObject.h"
@@ -47,7 +41,7 @@
 
 
 // The sound: an object the binding hands on (the root's members its vtable names; OOALSound.mm is
-// not linked). A C++ stand-in since its facade, which this file stubbed, was deleted.
+// not linked). A C++ stand-in.
 OOSound::OOSound()  {}
 std::optional<std::string> OOSound::name()  { return std::nullopt; }
 ALuint OOSound::soundBuffer()  { return 0; }
@@ -62,10 +56,10 @@ public:
 };
 
 
-/*	The source: a C++ stand-in since its facade, which this file stubbed, was deleted. Its members
-	answer from a record per source (its ivars were the stub's). A source whose gain is 0.99 raises
-	from gain(), one whose gain is 0.98 throws a C++ exception, so the test sees what an exception
-	under a native becomes.
+/*	The source: a C++ stand-in. Its members answer from a record per source
+   (its ivars were the stub's). A source whose gain is 0.99 raises from gain(),
+   one whose gain is 0.98 throws a C++ exception, so the test sees what an
+   exception under a native becomes.
 */
 struct SourceRecord
 {

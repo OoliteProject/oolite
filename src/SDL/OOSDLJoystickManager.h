@@ -13,12 +13,12 @@ representation and a property-list dictionary (for loading/saving user defaults
 and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
 
-C++20 since bead oo-o89, the Phase 3 platform (SDL/) pattern (proposed ADR-0056, amendment oo-o89).
-Since the Objective-C facades were deleted, OOSDLJoystickManager derives from the C++
-OOJoystickManager (the superclass's state is its own; the decoders, decodeAxisEvent() & co.,
-which decode SDL events, upstream #742, are this class's and read and set it) and is made by the
-factory MyOpenGLView registers; the constructor is the old -init's body, which ran before
-[super init], so the superclass's init() runs after it (OOJoystickManager::sharedStickHandler()).
+OOSDLJoystickManager derives from the C++ OOJoystickManager (the superclass's
+state is its own; the decoders, decodeAxisEvent() & co., which decode SDL
+events, upstream #742, are this class's and read and set it) and is made by the
+factory MyOpenGLView registers; the constructor is the old -init's body, which
+ran before [super init], so the superclass's init() runs after it
+(OOJoystickManager::sharedStickHandler()).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -40,8 +40,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOSDLJOYSTICKMANAGER_H
-#define OOSDLJOYSTICKMANAGER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOJoystickManager.h"
@@ -69,9 +68,7 @@ public:
     NSUInteger joystickCount() override;
 
 private:
-    std::map<std::string, int, std::less<>> joystickIdMap = { }; // "%d" of an SDL joystick id -> stick index (proposed ADR-0043)
+    std::map<std::string, int, std::less<>> joystickIdMap = { }; // "%d" of an SDL joystick id -> stick index
     SDL_Joystick* stick[MAX_STICKS] = { };
     int stickCount = { };
 };
-
-#endif // OOSDLJOYSTICKMANAGER_H

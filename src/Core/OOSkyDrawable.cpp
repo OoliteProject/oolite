@@ -56,8 +56,8 @@ BOOL sInited = NO;
 
 /*	Struct used to describe quads initially. This form is optimized for
         reasoning about.
-        The colour is owned (it was autoreleased into the initialiser's pool), so the quads are a
-        std::vector, not malloc()ed (bead oo-4jjl).
+        The colour is owned (it was autoreleased into the initialiser's pool),
+   so the quads are a std::vector, not malloc()ed.
 */
 struct OOSkyQuadDesc {
     Vector corners[4];
@@ -73,15 +73,16 @@ enum : uint8_t {
 
 /*	Class containing a set of quads with the same texture. This form is
         optimized for rendering.
-        A second class in the file with no caller outside it: global, no facade (amendment oo-vt0o
-        item 2).
+        A second class in the file with no caller outside it: global, no facade.
 */
 class OOSkyQuadSet : public oo::RefCounted {
 public:
     static void addQuads(OOSkyQuadDesc* quads, unsigned count, std::vector<oo::Ref<OOSkyQuadSet>>& ioArray);
 
-    // Null where -initWithQuadsWithTexture:inArray:count: answered nil (amendment oo-novu).
-    static oo::Ref<OOSkyQuadSet> initWithQuadsWithTexture(OOTexture* texture, OOSkyQuadDesc* array, unsigned totalCount);
+    // Null where -initWithQuadsWithTexture:inArray:count: answered nil.
+    static oo::Ref<OOSkyQuadSet> initWithQuadsWithTexture(OOTexture* texture,
+        OOSkyQuadDesc* array,
+        unsigned totalCount);
 
     ~OOSkyQuadSet();
 
@@ -136,7 +137,7 @@ OOSkyDrawable::OOSkyDrawable(OOColor* color1,
         }
     }
 
-    // self = [super init]: could not fail (amendment oo-lh0x item 3).
+    // self = [super init]: could not fail.
 
     _starCount = starCount;
     _nebulaCount = nebulaCount;

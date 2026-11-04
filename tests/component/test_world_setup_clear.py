@@ -1,4 +1,4 @@
-"""Offline proof for bug oo-hmnbb: the world setup's clear-then-count survives ambient arrivals.
+"""Offline proof that the world setup's clear-then-count survives ambient arrivals.
 
 "a universe seeded with N" empties the system and then counts ``system.allShips``. A live
 universe keeps adding ships between those two console commands - measured: cargo pods from a ship

@@ -29,37 +29,45 @@ SOFTWARE.
 
 #pragma once
 
+#include "OOColor.h" // the colour readers answer oo::Ref<OOColor>
 #include "OOFoundation.h"
-
 #include "oofnd/PList.hpp"
 
-#include "OOColor.h" // the colour readers answer oo::Ref<OOColor>
-
-/*	Material configuration properties (Foundation sweep, proposed ADR-0043 Amendment 2, bead
-        oo-hiis). A material configuration is an oo::PList dictionary: property-list data plus
-        PList::Object nodes for the live objects callers put in it (colours, textures); a null PList is
-        a nil configuration, and every function then answers as a message to nil did. Specifiers are
-        oo::PList dictionaries (null = nil). The Foundation dictionary category these replace, and the
-        Foundation-string key constants, live on in a transitional bridge (now removed) until their callers move.
+/*	Material configuration properties. A material configuration is an
+   oo::PList dictionary: property-list data plus PList::Object nodes for the
+   live objects callers put in it (colours, textures); a null PList is a nil
+   configuration, and every function then answers as a message to nil did.
+   Specifiers are oo::PList dictionaries (null = nil).
 */
 oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration);
 oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration);
 oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(
+    const oo::PList& configuration);
 oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(
+    const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(
+    const oo::PList& configuration);
 
-oo::PList cxx_OOMaterialDiffuseMapSpecifier(const oo::PList& configuration, const std::optional<std::string>& defaultName);
-oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialSpecularColorMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialSpecularExponentMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialDiffuseMapSpecifier(
+    const oo::PList& configuration,
+    const std::optional<std::string>& defaultName);
+oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(
+    const oo::PList& configuration);
+oo::PList cxx_OOMaterialSpecularColorMapSpecifier(
+    const oo::PList& configuration);
+oo::PList cxx_OOMaterialSpecularExponentMapSpecifier(
+    const oo::PList& configuration);
 oo::PList cxx_OOMaterialNormalMapSpecifier(const oo::PList& configuration);
 oo::PList cxx_OOMaterialParallaxMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialNormalAndParallaxMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialNormalAndParallaxMapSpecifier(
+    const oo::PList& configuration);
 oo::PList cxx_OOMaterialEmissionMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialIlluminationMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialEmissionAndIlluminationMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialIlluminationMapSpecifier(
+    const oo::PList& configuration);
+oo::PList cxx_OOMaterialEmissionAndIlluminationMapSpecifier(
+    const oo::PList& configuration);
 
 float cxx_OOMaterialParallaxScale(const oo::PList& configuration);
 float cxx_OOMaterialParallaxBias(const oo::PList& configuration);
@@ -82,7 +90,8 @@ inline constexpr const char* cxx_kOOMaterialIlluminationModulateColorName = "ill
 inline constexpr const char* cxx_kOOMaterialDiffuseMapName = "diffuse_map";
 inline constexpr const char* cxx_kOOMaterialSpecularColorMapName = "specular_color_map";
 inline constexpr const char* cxx_kOOMaterialSpecularExponentMapName = "specular_exponent_map";
-inline constexpr const char* cxx_kOOMaterialCombinedSpecularMapName = "specular_map"; // Combined specular_color_map and specular_exponent_map (unfortunate name required for backwards-compatibility).
+inline constexpr const char* cxx_kOOMaterialCombinedSpecularMapName = "specular_map"; // Combined specular_color_map and specular_exponent_map
+                                                                                      // (unfortunate name required for backwards-compatibility).
 inline constexpr const char* cxx_kOOMaterialNormalMapName = "normal_map";
 inline constexpr const char* cxx_kOOMaterialParallaxMapName = "parallax_map";
 inline constexpr const char* cxx_kOOMaterialNormalAndParallaxMapName = "normal_and_parallax_map";

@@ -1,25 +1,21 @@
 /*	test_OODebugMonitor.mm
-	Unit tests for OODebugMonitor (src/Core/Debug/OODebugMonitor.h): bead oo-kq7, the Debug module's
-	pattern seam (proposed ADR-0056, amendment oo-kq7); its Objective-C facade is deleted.
+	Unit tests for OODebugMonitor (src/Core/Debug/OODebugMonitor.h).
 
 	OODebugMonitor is the singleton that connects a debugger (the TCP console client the golden
 	harness drives the game through) to the game: it keeps the debug configuration (the OXPs'
-	debugConfig.plist under the user's overrides, normalised), relays the JavaScript console to
-	the debugger, is the JavaScript engine's monitor (errors, warnings and log lines), serves source
-	lines to the console, and dumps memory statistics. These expectations were written against the
-	Objective-C API and run on the unconverted class first.
+	debugConfig.plist under the user's overrides, normalised), relays the JavaScript console to the
+	debugger, is the JavaScript engine's monitor (errors, warnings and log lines), serves source
+	lines to the console, and dumps memory statistics.
 
 	The classes and functions the monitor reaches would bring the whole game into the link, so they
-	are this file's stand-ins (proposed ADR-0056, amendment oo-z1s4 item 4), answering only what the
-	monitor asks and recording it: the resource manager (the OXPs' configuration and the console
-	script's path), the JavaScript engine (the monitor it is given), OOJSScript (the console script
-	it makes, and the command it is asked to run), the console's JS wrapper, the time limiter, the
-	universe and the player (no entities), the texture registry (none). The JS context is a real
-	one (QuickJS-ng), for the heap statistics and the wrapper object. The user's defaults
-	are a scratch folder's (HOMEPATH). The monitor is a singleton, so the tests run in order on one
-	monitor. Since the conversion (commit b86b2b897 ran them on the Objective-C class) they ran
-	through the facade; since its deletion they call the same C++ members, with
-	every expectation kept but the facade's contract checks. Run: bash tools/check-core-tests.sh
+	are this file's stand-ins, answering only what the monitor asks and recording it: the resource
+	manager (the OXPs' configuration and the console script's path), the JavaScript engine (the
+	monitor it is given), OOJSScript (the console script it makes, and the command it is asked to
+	run), the console's JS wrapper, the time limiter, the universe and the player (no entities),
+	the texture registry (none). The JS context is a real one (QuickJS-ng), for the heap statistics
+	and the wrapper object. The user's defaults are a scratch folder's (HOMEPATH). The monitor is a
+	singleton, so the tests run in order on one monitor.
+	Run: bash tools/check-core-tests.sh
 */
 
 #include "OODebugMonitor.h"
@@ -75,13 +71,13 @@ uint32_t gDebugFlags = 0;
 #endif
 uint32_t gLiveEntityCount = 0;
 
-// WormholeEntity.mm's (the wormhole is C++ since bead oo-9ht.112, so the monitor's dump asks it
-// through this function, where it sent -shipsInTransit): the test dumps no entity.
+// WormholeEntity.mm's: the monitor's dump asks it through this function. The
+// test dumps no entity.
 class Entity;
 oo::PList WormholeEntityShipsInTransit(Entity *)  { return oo::PList(); }
 
-// UNIVERSE stays nil here, so the monitor's guarded call never reaches it; the stand-in only links
-// it (it was a message to nil).
+// UNIVERSE stays nil here, so the monitor's guarded call never reaches it; the
+// stand-in only links it.
 class Universe
 {
 public:
@@ -91,11 +87,10 @@ std::vector<oo::EntityHold> Universe::entityList()  { return {}; }
 
 Universe *gSharedUniverse = nil;
 
-// The ship is C++ since bead oo-9ht.144 deleted the Objective-C ship: what the monitor's entity dump
-// links against (a ship's object, the root's, holds its C++ part, which oo::ToCxx reads), declared
-// as Entity.h and ShipEntity.h declare them (the test imports neither). The test dumps no entity,
-// so none is reached. The object is C++ since bead oo-4aq6a.2 (it was rooted on the Objective-C
-// root class OOObject, which Phase 4 deletes).
+// What the monitor's entity dump links against (a ship's object, the root's,
+// holds its C++ part, which oo::ToCxx reads), declared as Entity.h and
+// ShipEntity.h declare them (the test imports neither). The test dumps no
+// entity, so none is reached.
 class Entity : public oo::RefCounted
 {
 public:
@@ -108,7 +103,7 @@ public:
 class TestEntityObject final : public oo::RefCounted
 {
 public:
-	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
+	const char *className() const  { return "Entity"; }
 
 	oo::Ref<Entity> _cxxEntity;
 };
@@ -124,13 +119,13 @@ bool Entity::getIsShip()  { std::abort(); }
 bool Entity::getIsPlayer()  { std::abort(); }
 bool Entity::getIsWormhole()  { std::abort(); }
 std::vector<oo::EntityHold> ShipEntity::subEntityEnumerator()  { std::abort(); }
-::TestEntityObject *TestObjectOf(Entity *)  { std::abort(); }	// oo::ToObjC before
+::TestEntityObject *TestObjectOf(Entity *)  { std::abort(); }
 #define OO_ENTITY_HELPERS_STAND_IN_CXX
 #include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects: never reached either
 
-// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player; the members the monitor calls
-// on it (declared as PlayerEntity.h declares them; the test imports no game header that defines
-// the class). The test has no player, so none is reached.
+// PLAYER: the members the monitor calls on it (declared as PlayerEntity.h
+// declares them; the test imports no game header that defines the class). The
+// test has no player, so none is reached.
 class PlayerEntity
 {
 public:
@@ -155,8 +150,8 @@ const char * const kOOJavaScriptEngineDidResetNotificationName = "org.aegidian.o
 
 #include "ResourceManager.h"
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// C++ definitions of the ResourceManager statics the code under test calls,
+// with the stand-in's answers.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles)
 {
 	if (fileName == "debugConfig.plist" && folderName == "Config" && mergeFiles)  return sOXPConfig;
@@ -172,13 +167,9 @@ std::optional<std::string> ResourceManager::pathForFileNamed(const std::string &
 
 
 
-// The engine's monitor interface is C++ (OOJavaScriptEngineMonitor.h, from OODebugMonitor.h); the
-// stand-in protocol that was here went with the Objective-C one.
-
-
-// The engine and the one null (OOJavaScriptEngine.h; C++ classes since their facades were
-// deleted), declared with the header's names and signatures but not their classes; the null is its
-// own property-list node's foreign object, as in the game.
+// The engine and the one null (OOJavaScriptEngine.h), declared with the
+// header's names and signatures but not their classes; the null is its own
+// property-list node's foreign object, as in the game.
 class OOJavaScriptEngine
 {
 public:
@@ -234,10 +225,9 @@ std::string OONull::description() const	{ return "<null>"; }
 #include "OOTexture.h"
 
 
-// OOJSScript (OOJSScript.h), which the code under test calls. Since bead oo-9ht.133 deleted the
-// OOScript root's facade (a script's object since bead oo-9ht.137) a script is the C++ object, so
-// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
-// The console script: made from its path with the console as a property; runs commands.
+// OOJSScript (OOJSScript.h), which the code under test calls. The stand-in is a
+// C++ subclass of OOScript declaring the members that code calls. The console
+// script: made from its path with the console as a property; runs commands.
 class OOJSScript : public OOScript
 {
 public:
@@ -337,17 +327,17 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string &path)
 }
 
 
-// No textures, so the memory dump lists none; and no entity class is ever an entity.
-// The C++ OOTexture's static members (the Objective-C facade they stood in for is deleted),
-// and the member the dump calls on each texture (there are none: never reached).
+// No textures, so the memory dump lists none; and no entity class is ever an
+// entity. The C++ OOTexture's static members, and the member the dump calls on
+// each texture (there are none: never reached).
 std::vector<oo::Ref<OOTexture>> OOTexture::cachedTexturesByAge()	{ return {}; }
 std::vector<oo::Ref<OOTexture>> OOTexture::allTextures()			{ return {}; }
 size_t OOTexture::dataSize()	{ std::abort(); }
 
 
-// An entity with a drawable: C++ since bead oo-9ht.40 deleted its Objective-C facade, the member
-// the monitor's entity dump calls (declared as OOEntityWithDrawable.h declares it). The test dumps
-// no entity, so none is reached.
+// An entity with a drawable: the member the monitor's entity dump calls
+// (declared as OOEntityWithDrawable.h declares it). The test dumps no entity,
+// so none is reached.
 class OODrawable;
 class OOEntityWithDrawable : public Entity
 {
@@ -358,11 +348,11 @@ public:
 OODrawable *OOEntityWithDrawable::getDrawable()  { std::abort(); }
 
 
-// MARK: The debugger -------------------------------------------------------------------------------
+// MARK: The debugger
+// -------------------------------------------------------------------------------
 
-// Records what the monitor sends it. Refuses to connect, or raises, when told to. A C++
-// OODebuggerInterface (it was an Objective-C object adopting the protocol);
-// the same members, the same records.
+// Records what the monitor sends it. Refuses to connect, or raises, when told
+// to. A C++ OODebuggerInterface.
 namespace {
 
 // The records (the Objective-C class's @public ivars).
@@ -545,7 +535,7 @@ OO_TEST(sharedMonitorIsSetUpOnce)
 		OO_CHECK(OOJavaScriptEngine::sharedEngine()->_monitor == static_cast<OOJavaScriptEngineMonitor *>(monitor));
 
 		OO_CHECK(sConsoleScriptsMade == 1);
-		// The console property is an Object node of the monitor itself (it was the facade's).
+		// The console property is an Object node of the monitor itself.
 		const oo::PList *console = sConsoleScriptProperties.find("console");
 		const oo::PList::Object *consoleNode = (console != nullptr) ? console->getIf<oo::PList::Object>() : nullptr;
 		OO_CHECK(consoleNode != nullptr && consoleNode->get() == monitor);
@@ -844,8 +834,7 @@ OO_TEST(javaScriptValueAndEngineReset)
 }
 
 
-// The one C++ monitor for the life of the process, described as its facade was ("%@"). The facade
-// and its contract checks (one facade, its weak reference, nil crossings) went with it.
+// The one C++ monitor for the life of the process, described as "%@".
 OO_TEST(cxxMonitorAndItsFacade)
 {
 	SetUp();

@@ -30,8 +30,8 @@ MA 02110-1301, USA.
 
 #include "oofnd/StdLib.hpp"
 
-// shiplibrary.plist keys, UTF-8 (Foundation sweep, proposed ADR-0043): a caller that needs an
-// Objective-C key passes oo::NSStringFrom(kOODemoShip...).
+// shiplibrary.plist keys, UTF-8: a caller
+// that needs an Objective-C key passes oo::NSStringFrom(kOODemoShip...).
 
 static constexpr const char* kOODemoShipKey = "ship";
 static constexpr const char* kOODemoShipName = "name"; // set internally only

@@ -199,11 +199,10 @@ void PlayerEntity::stickProfileGraphAxisProfile(GLfloat alpha, Vector screenAt, 
     return;
 }
 
-/*	StickProfileScreen (bead oo-movn): the Objective-C class's methods as members, the message syntax
-        converted. The stick handler and its profiles are C++ (oo-6bux, oo-fn2f); "is kind of" a
-        profile class is a dynamic_cast. GuiDisplayGen, UNIVERSE and PLAYER are still Objective-C and are
-        messaged as before.
-*/
+/* StickProfileScreen's methods. "Is kind of" a profile class is a
+ * dynamic_cast. GuiDisplayGen, UNIVERSE and PLAYER are still Objective-C and
+ * are messaged as before.
+ */
 StickProfileScreen::StickProfileScreen()
 {
     stickHandler = OOJoystickManager::sharedStickHandler();

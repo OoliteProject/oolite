@@ -20,9 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-C++20 since bead oo-mp0d (proposed ADR-0056, amendments oo-bj8 item 12, oo-0mxi and oo-ubjo), a
-leaf of Entity. Its Objective-C facade is deleted: the class is global and its object is the
-root's facade.
+A leaf of Entity. The class is global and its object is the root's facade.
 
 */
 
@@ -499,8 +497,8 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(const oo::PList& sourceI
     SetInfo(targetInfo, "terminator_threshold_vector", oo::str::format("%f %f %f", terminatorThreshold.x, terminatorThreshold.y, terminatorThreshold.z));
 }
 
-// -initAsMiniatureVersionOfPlanet:, run by miniatureVersion() on the object it made (amendment
-// oo-novu): false where the initialiser answered nil.
+// -initAsMiniatureVersionOfPlanet:, run by miniatureVersion() on the object it
+// made: false where the initialiser answered nil.
 bool OOPlanetEntity::initAsMiniatureVersionOfPlanet(OOPlanetEntity* planet)
 {
     // Nasty, nasty. I'd really prefer to have a separate entity class for this.
@@ -1049,7 +1047,7 @@ void OOPlanetEntity::setTextureFileName(const std::optional<std::string>& textur
     if (!isMoon) {
         OO_LOG("texture.planet.generate", "Preparing atmosphere for planet {}", oo::EntityDescription(this));
         /* Generate a standalone atmosphere texture */
-        // (the C++ generator answers it retained: bead oo-y3dd)
+        // (the C++ generator answers it retained)
         oo::Ref<OOTexture> generatedAtmosphere;
         OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(&generatedAtmosphere,
             _materialParameters,

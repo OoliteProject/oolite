@@ -49,8 +49,8 @@ static OOTexture* sPlumeTexture = nil;
 
 namespace {
 
-// The plume texture's graphics reset client, which the facade class was until the facade's
-// deletion: registered once, with the texture, and never destroyed.
+// The plume texture's graphics reset client: registered once, with the
+// texture, and never destroyed.
 class PlumeTextureResetClient : public OOGraphicsResetClient {
 public:
     void resetGraphicsState() override { OOExhaustPlumeEntity::resetGraphicsState(); }
@@ -677,7 +677,7 @@ void OOExhaustPlumeEntity::resetGraphicsState()
     sPlumeTexture = nullptr;
 }
 
-// The binding's bodies (OOJSExhaustPlume.mm), which the facade forwarded to until its deletion.
+// The binding's bodies (OOJSExhaustPlume.mm), which the facade forwarded to.
 JSClassID OOExhaustPlumeEntity::jsClassID()
 {
     return ::JSExhaustPlumeClassID();

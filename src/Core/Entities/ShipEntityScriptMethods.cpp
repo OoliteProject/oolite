@@ -27,11 +27,8 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 
-/*	The category ShipEntity (ScriptMethods), bead oo-42dr: members of ShipEntity (ADR-0056
-        amendments oo-o89 item 4 and oo-9fwb), forwarded by the category of the same name in
-        ShipEntity+ObjCBridge.mm until bead oo-9ht.144 deleted the facade and its sends became member
-        calls.
-*/
+/*	The ShipEntity (ScriptMethods) members.
+ */
 
 ::ShipEntity* ShipEntity::ejectShipOfType(const std::optional<std::string>& shipKey)
 {

@@ -4,11 +4,8 @@ OOPlanetDrawable.h
 
 Draw a ball, such as might be used to represent a planet.
 
-C++20 since bead oo-mw4u (proposed ADR-0056, amendments oo-smy and oo-zffj): a global class
-derived from the converted drawable root OODrawable, with no Objective-C facade, because its
-one caller, OOPlanetEntity, was adapted in the same bead. It keeps its material retained, as the
-ivar did (amendment oo-smy item 4): an oo::Ref<OOMaterial>, the
-material's facade deleted.
+A class derived from the drawable root OODrawable. It keeps its material
+retained, as an oo::Ref<OOMaterial>.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -47,7 +44,7 @@ public:
     // -init's body.
     OOPlanetDrawable();
 
-    // -initAsAtmosphere: a new drawable that draws an atmosphere (amendment oo-peql item 2).
+    // -initAsAtmosphere: a new drawable that draws an atmosphere.
     static oo::Ref<OOPlanetDrawable> initAsAtmosphere();
 
     // -copy (OOCopying's -copyWithZone:): a new drawable with this one's material, kind, radius,
@@ -57,7 +54,7 @@ public:
     OOMaterial* material();
     void setMaterial(OOMaterial* material);
 
-    // The material's name (nullopt when it has none, as nil was). Foundation sweep, proposed ADR-0043.
+    // The material's name (nullopt when it has none, as nil was).
     std::optional<std::string> textureName();
     void setTextureName(const std::string& textureName);
 

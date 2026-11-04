@@ -23,6 +23,9 @@ MA 02110-1301, USA.
 */
 
 #include "Octree.h"
+
+#include <cstring>
+
 #include "Entity.h"
 #include "OODebugFlags.h"
 #include "OODebugGLDrawing.h"
@@ -31,7 +34,6 @@ MA 02110-1301, USA.
 #include "OOOpenGL.h"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
-#include <cstring>
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 #define OctreeDebugLog(format, ...)                         \
@@ -51,13 +53,20 @@ typedef struct Octree_details {
     unsigned char* octree_collision;
 } Octree_details;
 
-static const int change_oct[] = { 0, 1, 2, 4, 3, 5, 6, 7 }; // used to move from nearest to furthest octant
+static const int change_oct[] = {
+    0, 1, 2, 4, 3, 5, 6, 7
+}; // used to move from nearest to furthest octant
 
-static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
-static GLfloat volumeOfOctree(Octree_details octree_details, unsigned depthLimit);
+static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
+    int level, GLfloat rad, Vector v0, Vector v1,
+    Vector off, int face_hit);
+static GLfloat volumeOfOctree(Octree_details octree_details,
+    unsigned depthLimit);
 static Vector randomFullNodeFrom(Octree_details details, Vector offset);
 
-static BOOL isHitByOctree(Octree_details axialDetails, Octree_details otherDetails, Vector delta, Triangle other_ijk);
+static BOOL isHitByOctree(Octree_details axialDetails,
+    Octree_details otherDetails, Vector delta,
+    Triangle other_ijk);
 
 // (-init raised, since octrees are immutable: there is no default constructor.)
 
@@ -78,7 +87,8 @@ Octree::Octree(const oo::Data& data, GLfloat radius)
     }
 }
 
-// Designated initializer: null where -initWithData:radius: released itself and returned nil.
+// Designated initializer: null where -initWithData:radius: released itself and
+// returned nil.
 oo::Ref<Octree> Octree::initWithData(const oo::Data& data, GLfloat radius)
 {
     oo::Ref<Octree> result = oo::adopt(new Octree(data, radius));
@@ -107,23 +117,15 @@ Octree::~Octree()
     free(_collisionOctree);
 }
 
-bool Octree::hasCollision()
-{
-    return _hasCollision;
-}
+bool Octree::hasCollision() { return _hasCollision; }
 
-void Octree::setHasCollision(bool value)
-{
-    _hasCollision = !!value;
-}
+void Octree::setHasCollision(bool value) { _hasCollision = !!value; }
 
 Octree_details Octree::octreeDetails()
 {
-    Octree_details details = {
-        .radius = _radius,
+    Octree_details details = { .radius = _radius,
         .octree = _octree,
-        .octree_collision = _collisionOctree
-    };
+        .octree_collision = _collisionOctree };
     return details;
 }
 
@@ -135,7 +137,9 @@ oo::Ref<Octree> Octree::octreeScaledBy(GLfloat factor)
 
 static Vector offsetForOctant(int oct, GLfloat r)
 {
-    return make_vector((0.5f - (GLfloat)((oct >> 2) & 1)) * r, (0.5f - (GLfloat)((oct >> 1) & 1)) * r, (0.5f - (GLfloat)(oct & 1)) * r);
+    return make_vector((0.5f - (GLfloat)((oct >> 2) & 1)) * r,
+        (0.5f - (GLfloat)((oct >> 1) & 1)) * r,
+        (0.5f - (GLfloat)(oct & 1)) * r);
 }
 
 #ifndef OODEBUGLDRAWING_DISABLE
@@ -155,7 +159,9 @@ void Octree::drawOctree()
     OOGLEND();
 
     OODebugEndWireframe(state);
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "Octree after drawing " + std::format("<Octree {}>", static_cast<const void*>(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string {
+        return "Octree after drawing " + std::format("<Octree {}>", static_cast<const void*>(this));
+    });
 }
 
 #if 0
@@ -166,7 +172,8 @@ void Octree::drawOctree()
     } while (0)
 #endif
 
-void Octree::drawOctreeFromLocation(uint32_t loc, GLfloat scale, Vector offset)
+void Octree::drawOctreeFromLocation(uint32_t loc, GLfloat scale,
+    Vector offset)
 {
     if (_octree[loc] == 0) {
         return;
@@ -209,21 +216,37 @@ void Octree::drawOctreeFromLocation(uint32_t loc, GLfloat scale, Vector offset)
     } else if (_octree[loc] > 0) {
         GLfloat sc = 0.5f * scale;
         OCTREE_COLOR(0.4f, 0.4f, 0.4f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 0, sc, make_vector(offset.x - sc, offset.y - sc, offset.z - sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 0, sc,
+            make_vector(offset.x - sc, offset.y - sc, offset.z - sc));
         OCTREE_COLOR(0.0f, 0.0f, 1.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 1, sc, make_vector(offset.x - sc, offset.y - sc, offset.z + sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 1, sc,
+            make_vector(offset.x - sc, offset.y - sc, offset.z + sc));
         OCTREE_COLOR(0.0f, 1.0f, 0.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 2, sc, make_vector(offset.x - sc, offset.y + sc, offset.z - sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 2, sc,
+            make_vector(offset.x - sc, offset.y + sc, offset.z - sc));
         OCTREE_COLOR(0.0f, 1.0f, 1.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 3, sc, make_vector(offset.x - sc, offset.y + sc, offset.z + sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 3, sc,
+            make_vector(offset.x - sc, offset.y + sc, offset.z + sc));
         OCTREE_COLOR(1.0f, 0.0f, 0.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 4, sc, make_vector(offset.x + sc, offset.y - sc, offset.z - sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 4, sc,
+            make_vector(offset.x + sc, offset.y - sc, offset.z - sc));
         OCTREE_COLOR(1.0f, 0.0f, 1.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 5, sc, make_vector(offset.x + sc, offset.y - sc, offset.z + sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 5, sc,
+            make_vector(offset.x + sc, offset.y - sc, offset.z + sc));
         OCTREE_COLOR(1.0f, 1.0f, 0.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 6, sc, make_vector(offset.x + sc, offset.y + sc, offset.z - sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 6, sc,
+            make_vector(offset.x + sc, offset.y + sc, offset.z - sc));
         OCTREE_COLOR(1.0f, 1.0f, 1.0f, 0.5f);
-        drawOctreeFromLocation(loc + _octree[loc] + 7, sc, make_vector(offset.x + sc, offset.y + sc, offset.z + sc));
+        drawOctreeFromLocation(
+            loc + _octree[loc] + 7, sc,
+            make_vector(offset.x + sc, offset.y + sc, offset.z + sc));
     }
 }
 
@@ -241,10 +264,13 @@ void Octree::drawOctreeCollisions()
     _hasCollision = drawTestForCollisions;
 
     OODebugEndWireframe(state);
-    cxx_OOCheckOpenGLErrors([&]() -> std::string { return "Octree after drawing collisions for " + std::format("<Octree {}>", static_cast<const void*>(this)); });
+    cxx_OOCheckOpenGLErrors([&]() -> std::string {
+        return "Octree after drawing collisions for " + std::format("<Octree {}>", static_cast<const void*>(this));
+    });
 }
 
-void Octree::drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale, Vector offset)
+void Octree::drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale,
+    Vector offset)
 {
     if (_octree[loc] == 0) {
         return;
@@ -299,36 +325,60 @@ void Octree::drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale, Vector
     }
     if (_octree[loc] > 0) {
         GLfloat sc = 0.5f * scale;
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 0, sc, make_vector(offset.x - sc, offset.y - sc, offset.z - sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 1, sc, make_vector(offset.x - sc, offset.y - sc, offset.z + sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 2, sc, make_vector(offset.x - sc, offset.y + sc, offset.z - sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 3, sc, make_vector(offset.x - sc, offset.y + sc, offset.z + sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 4, sc, make_vector(offset.x + sc, offset.y - sc, offset.z - sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 5, sc, make_vector(offset.x + sc, offset.y - sc, offset.z + sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 6, sc, make_vector(offset.x + sc, offset.y + sc, offset.z - sc));
-        drawOctreeCollisionFromLocation(loc + _octree[loc] + 7, sc, make_vector(offset.x + sc, offset.y + sc, offset.z + sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 0, sc,
+            make_vector(offset.x - sc, offset.y - sc, offset.z - sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 1, sc,
+            make_vector(offset.x - sc, offset.y - sc, offset.z + sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 2, sc,
+            make_vector(offset.x - sc, offset.y + sc, offset.z - sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 3, sc,
+            make_vector(offset.x - sc, offset.y + sc, offset.z + sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 4, sc,
+            make_vector(offset.x + sc, offset.y - sc, offset.z - sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 5, sc,
+            make_vector(offset.x + sc, offset.y - sc, offset.z + sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 6, sc,
+            make_vector(offset.x + sc, offset.y + sc, offset.z - sc));
+        drawOctreeCollisionFromLocation(
+            loc + _octree[loc] + 7, sc,
+            make_vector(offset.x + sc, offset.y + sc, offset.z + sc));
     }
 }
 #endif // OODEBUGLDRAWING_DISABLE
 
-static BOOL isHitByLineSub(const int* octbuffer, unsigned char* collbuffer, int nextLevel, GLfloat rad, GLfloat rd2, Vector v0, Vector v1, int octantMask)
+static BOOL isHitByLineSub(const int* octbuffer, unsigned char* collbuffer,
+    int nextLevel, GLfloat rad, GLfloat rd2, Vector v0,
+    Vector v1, int octantMask)
 {
     if (octbuffer[nextLevel + octantMask]) {
         Vector moveLine = offsetForOctant(octantMask, rad);
-        return isHitByLine(octbuffer, collbuffer, nextLevel + octantMask, rd2, v0, v1, moveLine, 0);
+        return isHitByLine(octbuffer, collbuffer, nextLevel + octantMask, rd2, v0,
+            v1, moveLine, 0);
     } else
         return NO;
 }
 
 static BOOL hasCollided = NO;
 static GLfloat hit_dist = 0.0;
-static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit)
+static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer,
+    int level, GLfloat rad, Vector v0, Vector v1,
+    Vector off, int face_hit)
 {
     // displace the line by the offset
     Vector u0 = make_vector(v0.x + off.x, v0.y + off.y, v0.z + off.z);
     Vector u1 = make_vector(v1.x + off.x, v1.y + off.y, v1.z + off.z);
 
-    OctreeDebugLog("DEBUG octant: [{}] radius: {:.2f} vs. line: ({:.2f}, {:.2f}, {:.2f}) - ({:.2f}, {:.2f}, {:.2f})", static_cast<int>(level), rad, u0.x, u0.y, u0.z, u1.x, u1.y, u1.z);
+    OctreeDebugLog(
+        "DEBUG octant: [{}] radius: {:.2f} vs. line: ({:.2f}, {:.2f}, {:.2f}) - "
+        "({:.2f}, {:.2f}, {:.2f})",
+        static_cast<int>(level), rad, u0.x, u0.y, u0.z, u1.x, u1.y, u1.z);
 
     if (octbuffer[level] == 0) {
         OctreeDebugLog("DEBUG Hit an empty octant: [{}]", static_cast<int>(level));
@@ -371,9 +421,14 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer, int lev
         if (CUBE_FACE_BOTTOM & faces)
             octantIntersected = ((vi.x < 0.0) ? 0 : 4) + ((vi.z < 0.0) ? 0 : 1);
 
-        OctreeDebugLog("----> found intersection with face 0x{:2x} of cube of radius {:.2f} at ({:.2f}, {:.2f}, {:.2f}) octant:{}", static_cast<unsigned>(faces), rad, vi.x, vi.y, vi.z, static_cast<int>(octantIntersected));
+        OctreeDebugLog(
+            "----> found intersection with face 0x{:2x} of cube of radius {:.2f} "
+            "at ({:.2f}, {:.2f}, {:.2f}) octant:{}",
+            static_cast<unsigned>(faces), rad, vi.x, vi.y, vi.z,
+            static_cast<int>(octantIntersected));
     } else {
-        OctreeDebugLog("----> inside cube of radius {:.2f} octant:{}", rad, static_cast<int>(octantIntersected));
+        OctreeDebugLog("----> inside cube of radius {:.2f} octant:{}", rad,
+            static_cast<int>(octantIntersected));
     }
 
     hasCollided = YES;
@@ -386,20 +441,25 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer, int lev
 
     GLfloat rd2 = 0.5f * rad;
 
-    // first test the intersected octant, then the three adjacent, then the next three adjacent, the finally the diagonal octant
-    int oct0, oct1, oct2, oct3; // test oct0 then oct1, oct2, oct3 then (7 - oct1), (7 - oct2), (7 - oct3) then (7 - oct0)
+    // first test the intersected octant, then the three adjacent, then the next
+    // three adjacent, the finally the diagonal octant
+    int oct0, oct1, oct2, oct3; // test oct0 then oct1, oct2, oct3 then (7 -
+                                // oct1), (7 - oct2), (7 - oct3) then (7 - oct0)
     oct0 = octantIntersected;
     oct1 = oct0 ^ 0x01; // adjacent x
     oct2 = oct0 ^ 0x02; // adjacent y
     oct3 = oct0 ^ 0x04; // adjacent z
 
-    OctreeDebugLog("----> testing first octant hit [+{}]", static_cast<int>(oct0));
+    OctreeDebugLog("----> testing first octant hit [+{}]",
+        static_cast<int>(oct0));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))
         return YES; // first octant
 
     // test the three adjacent octants
 
-    OctreeDebugLog("----> testing next three octants [+{}] [+{}] [+{}]", static_cast<int>(oct1), static_cast<int>(oct2), static_cast<int>(oct3));
+    OctreeDebugLog("----> testing next three octants [+{}] [+{}] [+{}]",
+        static_cast<int>(oct1), static_cast<int>(oct2),
+        static_cast<int>(oct3));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))
         return YES; // second octant
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))
@@ -414,7 +474,9 @@ static BOOL isHitByLine(const int* octbuffer, unsigned char* collbuffer, int lev
     oct2 ^= 0x07;
     oct3 ^= 0x07;
 
-    OctreeDebugLog("----> testing back three octants [+{}] [+{}] [+{}]", static_cast<int>(oct1), static_cast<int>(oct2), static_cast<int>(oct3));
+    OctreeDebugLog("----> testing back three octants [+{}] [+{}] [+{}]",
+        static_cast<int>(oct1), static_cast<int>(oct2),
+        static_cast<int>(oct3));
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))
         return YES; // fifth octant
     if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))
@@ -435,7 +497,8 @@ GLfloat Octree::isHitByLine(Vector v0, Vector v1)
     memset(_collisionOctree, 0, _nodeCount * sizeof *_collisionOctree);
     hasCollided = NO;
 
-    if (::isHitByLine(_octree, _collisionOctree, 0, _radius, v0, v1, kZeroVector, 0)) {
+    if (::isHitByLine(_octree, _collisionOctree, 0, _radius, v0, v1, kZeroVector,
+            0)) {
         OctreeDebugLog("DEBUG Hit at distance {:.2f}", hit_dist);
         _hasCollision = hasCollided;
         return hit_dist;
@@ -447,7 +510,8 @@ GLfloat Octree::isHitByLine(Vector v0, Vector v1)
 }
 
 static BOOL isHitByOctree(Octree_details axialDetails,
-    Octree_details otherDetails, Vector otherPosition, Triangle other_ijk)
+    Octree_details otherDetails, Vector otherPosition,
+    Triangle other_ijk)
 {
     const int* axialBuffer = axialDetails.octree;
     const int* otherBuffer = otherDetails.octree;
@@ -487,7 +551,8 @@ static BOOL isHitByOctree(Octree_details axialDetails,
         }
     }
 
-    // from here on, this Octree and the other Octree are considered to be intersecting
+    // from here on, this Octree and the other Octree are considered to be
+    // intersecting
     unsigned char* axialCollisionBuffer = axialDetails.octree_collision;
     unsigned char* otherCollisionBuffer = otherDetails.octree_collision;
     if (axialBuffer[0] == -1) {
@@ -527,7 +592,8 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 
                 voff = resolveVectorInIJK(offsetForOctant(oct, otherRadius), other_ijk);
                 nextPosition = vector_subtract(otherPosition, voff);
-                if (isHitByOctree(axialDetails, nextDetails, nextPosition, other_ijk)) // test octant
+                if (isHitByOctree(axialDetails, nextDetails, nextPosition,
+                        other_ijk)) // test octant
                     return YES;
             }
         }
@@ -583,10 +649,13 @@ bool Octree::isHitByOctree(Octree* other, Vector v0, Triangle ijk)
     return hit;
 }
 
-bool Octree::isHitByOctree(Octree* other, Vector v0, Triangle ijk, GLfloat s1, GLfloat s2)
+bool Octree::isHitByOctree(Octree* other, Vector v0, Triangle ijk, GLfloat s1,
+    GLfloat s2)
 {
     Octree_details details1 = octreeDetails();
-    Octree_details details2 = (other != nullptr) ? other->octreeDetails() : Octree_details { }; // nil gave a zeroed struct
+    Octree_details details2 = (other != nullptr)
+        ? other->octreeDetails()
+        : Octree_details { }; // nil gave a zeroed struct
 
     details1.radius *= s1;
     details2.radius *= s2;
@@ -602,14 +671,16 @@ bool Octree::isHitByOctree(Octree* other, Vector v0, Triangle ijk, GLfloat s1, G
 
 oo::PList Octree::dictionaryRepresentation()
 {
-    // (the radius is a single real: it comes back as +numberWithFloat:, so the cache text is unchanged)
+    // (the radius is a single real: it comes back as +numberWithFloat:, so the
+    // cache text is unchanged)
     oo::PList::Dict result;
     result.emplace("octree", oo::PList(_data));
     result.emplace("radius", oo::PList::singleReal(_radius));
     return oo::PList(std::move(result));
 }
 
-static GLfloat volumeOfOctree(Octree_details octree_details, unsigned depthLimit)
+static GLfloat volumeOfOctree(Octree_details octree_details,
+    unsigned depthLimit)
 {
     const int* octBuffer = octree_details.octree;
     GLfloat octRadius = octree_details.radius;
@@ -699,16 +770,17 @@ Vector Octree::randomPoint()
 #ifdef OO_DEBUG_MONITOR_ENABLED
 size_t Octree::totalSize()
 {
-    // (the data object is now a member: its size is sizeof _data where it was the Foundation object's)
-    // (sizeof *this is the object's own size, as the Objective-C instance size was)
+    // (the data object is now a member: its size is sizeof _data where it was the
+    // Foundation object's) (sizeof *this is the object's own size, as the
+    // Objective-C instance size was)
     return sizeof *this + _nodeCount * sizeof _data + _data.length() + _nodeCount * sizeof *_collisionOctree;
 }
 #endif
 
 enum {
     /*
-            Initial capacity of OOOctreeBuilder. 16 KibiEntries is enough to handle
-            all but 2 built-in models; I expect similar results for OXPs, since
+            Initial capacity of OOOctreeBuilder. 16 KibiEntries is enough to
+       handle all but 2 built-in models; I expect similar results for OXPs, since
             geometry detail has limited effect on the octree. Large models with
             higher depth are more likely to need growth.
     */
@@ -716,13 +788,15 @@ enum {
 };
 
 // Extract top of state stack.
-OOINLINE OOOctreeBuilder::OOOctreeBuildState* OOOctreeBuilder::State(OOOctreeBuilder* self)
+OOINLINE OOOctreeBuilder::OOOctreeBuildState* OOOctreeBuilder::State(
+    OOOctreeBuilder* self)
 {
     return &self->_stateStack[self->_level];
 }
 
 // SetNode(): set the value of an entry in _octree, making space if needed.
-OOINLINE void OOOctreeBuilder::SetNode(OOOctreeBuilder* self, uint32_t index, int value)
+OOINLINE void OOOctreeBuilder::SetNode(OOOctreeBuilder* self, uint32_t index,
+    int value)
 {
     if (index < self->_capacity) {
         self->_octree[index] = value;
@@ -731,10 +805,12 @@ OOINLINE void OOOctreeBuilder::SetNode(OOOctreeBuilder* self, uint32_t index, in
     }
 }
 
-// InsertNode(): set the node at the current insertion point, and increment insertion point.
+// InsertNode(): set the node at the current insertion point, and increment
+// insertion point.
 OOINLINE void OOOctreeBuilder::InsertNode(OOOctreeBuilder* self, int value)
 {
-    OOCAssert(State(self)->remaining > 0, "Attempt to add node to a full parent in octree builder.");
+    OOCAssert(State(self)->remaining > 0,
+        "Attempt to add node to a full parent in octree builder.");
     State(self)->remaining--;
 
     SetNode(self, State(self)->insertionPoint++, value);
@@ -746,9 +822,10 @@ OOOctreeBuilder::OOOctreeBuilder()
         _capacity = kMinimumBuilderCapacity;
         _octree = (int*)malloc(_capacity * sizeof *_octree);
         if (_octree == NULL) {
-            // -init released itself and returned nil; a constructor cannot, so it raises what
-            // SetNode_slow() raises (ADR-0056 amendment oo-44gg).
-            OORaiseException(OOMallocException, "Failed to allocate memory for octree.");
+            // -init released itself and returned nil; a constructor cannot, so it
+            // raises what SetNode_slow() raises.
+            OORaiseException(OOMallocException,
+                "Failed to allocate memory for octree.");
         }
 
         /*
@@ -760,14 +837,13 @@ OOOctreeBuilder::OOOctreeBuilder()
     }
 }
 
-OOOctreeBuilder::~OOOctreeBuilder()
-{
-    free(_octree);
-}
+OOOctreeBuilder::~OOOctreeBuilder() { free(_octree); }
 
 oo::Ref<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius)
 {
-    OOCAssert(State(this)->remaining == 0 && _level == 0, "Attempt to produce octree from an octree builder in an incomplete state.");
+    OOCAssert(State(this)->remaining == 0 && _level == 0,
+        "Attempt to produce octree from an octree builder in an incomplete "
+        "state.");
 
     size_t dataSize = _nodeCount * sizeof *_octree;
     int* resized = (int*)realloc(_octree, dataSize);
@@ -787,19 +863,14 @@ oo::Ref<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius)
     return Octree::initWithData(data, radius);
 }
 
-void OOOctreeBuilder::writeSolid()
-{
-    InsertNode(this, -1);
-}
+void OOOctreeBuilder::writeSolid() { InsertNode(this, -1); }
 
-void OOOctreeBuilder::writeEmpty()
-{
-    InsertNode(this, 0);
-}
+void OOOctreeBuilder::writeEmpty() { InsertNode(this, 0); }
 
 void OOOctreeBuilder::beginInnerNode()
 {
-    OOCAssert(_level < kMaxOctreeDepth, "Attempt to build octree exceeding maximum depth.");
+    OOCAssert(_level < kMaxOctreeDepth,
+        "Attempt to build octree exceeding maximum depth.");
 
     // Insert relative offset to next free space.
     uint32_t newInsertionPoint = _nodeCount;
@@ -822,7 +893,9 @@ void OOOctreeBuilder::beginInnerNode()
 
 void OOOctreeBuilder::endInnerNode()
 {
-    OOCAssert(State(this)->remaining == 0, "Attempt to end an inner octree node with fewer than eight children.");
+    OOCAssert(
+        State(this)->remaining == 0,
+        "Attempt to end an inner octree node with fewer than eight children.");
     OOCAssert(_level > 0, "Unbalanced call to %s", __FUNCTION__);
 
     _level--;
@@ -838,7 +911,9 @@ void OOOctreeBuilder::endInnerNode()
             never recurse into an empty subtree.
     */
 
-    OOCAssert(_nodeCount > 8, "After ending an inner node, there must be at least eight nodes in buffer.");
+    OOCAssert(_nodeCount > 8,
+        "After ending an inner node, there must be at least eight nodes in "
+        "buffer.");
     for (uint32_t node = _nodeCount - 8; node < _nodeCount; node++) {
         if (_octree[node] != -1)
             return;
@@ -849,15 +924,18 @@ void OOOctreeBuilder::endInnerNode()
     _nodeCount -= 8;
 }
 
-// Slow path for SetNode() when writing beyond _capacity: expand, then perform set.
-void OOOctreeBuilder::SetNode_slow(OOOctreeBuilder* self, uint32_t index, int value)
+// Slow path for SetNode() when writing beyond _capacity: expand, then perform
+// set.
+void OOOctreeBuilder::SetNode_slow(OOOctreeBuilder* self, uint32_t index,
+    int value)
 {
     uint32_t newCapacity = MAX(self->_capacity * 2, (uint32_t)kMinimumBuilderCapacity);
     newCapacity = MAX(newCapacity, index + 1);
 
     int* newBuffer = (int*)realloc(self->_octree, newCapacity * sizeof *newBuffer);
     if (EXPECT_NOT(newBuffer == NULL)) {
-        OORaiseException(OOMallocException, "Failed to allocate memory for octree.");
+        OORaiseException(OOMallocException,
+            "Failed to allocate memory for octree.");
     }
 
     self->_octree = newBuffer;

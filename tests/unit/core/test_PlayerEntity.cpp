@@ -1,26 +1,20 @@
 /*	test_PlayerEntity.mm
-	Unit tests for PlayerEntity (src/Core/Entities/PlayerEntity.h), the player's ship: slice 1 of
-	its slice plan (docs/phases/3-slices/PlayerEntity.md), the class shell, which moves the
-	player's state into PlayerEntity and keeps the Objective-C PlayerEntity as its facade, a
-	subclass of the ship's.
+	Unit tests for PlayerEntity (src/Core/Entities/PlayerEntity.h), the player's ship: the class
+	shell, which moves the player's state into PlayerEntity (a subclass of the ship's).
 
 	Like the ship's, the player's object needs the game graph, so the test links the whole game but
 	main (['*']) and uses a Universe that was never initialised and an empty JavaScript context for
 	the events the ship sends its scripts. The player is made in two steps, as the game makes it:
 	-init (+sharedPlayer) early in start-up, before there is ship data, and -deferredInit once there
-	is. Setting the player up from shipdata, the session and the controls (slice 5 and
-	PlayerEntityControls) need the game's data, so a subclass stands in for those three and only
-	counts; the cases test the slice's own units: sharedPlayer(), the player made (the ship made
-	the player's way, and the only player), deferredInit() (the ship's initialiser sent again over
-	the same object, and the player's own defaults), and the object's -dealloc (it releases what the
-	player held). The expectations were written against the Objective-C API and run on the
-	unconverted class first.
-	Since bead oo-9ht.177 deleted the Objective-C player (ADR-0056 amendment oo-9ht.177) the player
-	is C++, made as the game makes it (oo::makeRef, its object the ship's facade, oo::NewEntityFacade),
-	and the stand-ins are C++ subclasses overriding the members the Objective-C subclasses
-	overrode; the test reads and sets the members directly. The case after those pins the crossing:
-	the player's object is a ship whose C++ part is the player, and it answers the player's
-	selectors called by name.
+	is. Setting the player up from shipdata, the session and the controls (PlayerEntityControls)
+	need the game's data, so a subclass stands in for those three and only counts; the cases test
+	the class's own units: sharedPlayer(), the player made (the ship made the player's way, and the
+	only player), deferredInit() (the ship's initialiser sent again over the same object, and the
+	player's own defaults), and the object's -dealloc (it releases what the player held). The player
+	is C++, made as the game makes it (oo::makeRef, its object the ship's facade,
+	oo::NewEntityFacade), and the stand-ins are C++ subclasses overriding the members; the test
+	reads and sets the members directly. The case after those pins the crossing: the player's object
+	is a ship whose C++ part is the player, and it answers the player's selectors called by name.
 	Run: bash tools/check-core-tests.sh test_PlayerEntity
 */
 
@@ -38,7 +32,7 @@
 #include "PlayerEntitySound.h"
 #include "PlayerEntityStickMapper.h"
 #include "OOJoystickManager.h"
-#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
+#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName
 
 #include "oo_test.hpp"
 #include "oofnd/Defaults.hpp"
@@ -47,9 +41,9 @@
 #include <string>
 
 
-// The player's data members are private since bead oo-4yscj (they were @private in Objective-C):
-// the test reaches each one it reads or sets through this friend, one accessor per member
-// answering a reference, so every check reads and writes exactly what it did.
+// The player's data members are private: the test reaches each one it reads or sets through
+// this friend, one accessor per member answering a reference, so every check reads and writes
+// exactly what it did.
 #define OO_PLAYER_MEMBER(name)	static auto &name(PlayerEntity *player)	{ return player->name; }
 
 // A one-bit member has no reference: its accessor answers a proxy that reads as the member's value
@@ -161,9 +155,8 @@ int sInitControls = 0;
 
 }	// namespace
 
-
-// A player whose set-up from shipdata, session set-up and controls only count (slice 5's units and
-// PlayerEntityControls', which need the game's data).
+// A player whose set-up from shipdata, session set-up and controls only count
+// (those need the game's data).
 class TestPlayer : public PlayerEntity
 {
 public:
@@ -193,7 +186,7 @@ public:
 
 
 // A ship that stands in for a missile on a pylon.
-class TestMissile : public ShipEntity	// C++ since bead oo-9ht.144 deleted the Objective-C ship
+class TestMissile : public ShipEntity
 {
 public:
 	bool setUpShipFromDictionary(const oo::PList &dict) override	{ (void)dict; return YES; }
@@ -228,7 +221,7 @@ void SetUp()
 void UncountSecondInit(Entity *entity)
 {
 	gLiveEntityCount--;
-	gTotalEntityMemory -= oo::EntityObjectSize(entity);	// its object's size (bead oo-dpyk8)
+	gTotalEntityMemory -= oo::EntityObjectSize(entity);	// its object's size
 }
 #endif
 
@@ -240,7 +233,7 @@ T *NewTestPlayer()
 {
 	oo::Ref<T> player = oo::makeRef<T>();
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
 	return player.get();
@@ -260,7 +253,7 @@ void Release(PlayerEntity *player)
 OO_TEST(initIsTheShipMadeThePlayersWay)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		OO_CHECK(player != nullptr);
@@ -281,7 +274,7 @@ OO_TEST(sharedPlayer)
 {
 	PlayerEntity *player = nullptr;
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		player = PlayerEntity::sharedPlayer();
 		OO_CHECK(player != nullptr && typeid(*player) == typeid(PlayerEntity));
@@ -300,7 +293,7 @@ OO_TEST(sharedPlayer)
 OO_TEST(deferredInit)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		gOOPlayer = player;
@@ -338,15 +331,15 @@ OO_TEST(deferredInit)
 // -dealloc runs after it.
 OO_TEST(deallocReleasesWhatThePlayerHeld)
 {
-	// The missile's object (+1, as +alloc/-init's was):  would autorelease it again
-	// (bead oo-9ht.144, where the missile became a C++ ship).
+	// The missile's object (+1, as +alloc/-init's was); nothing autoreleases it
+  // again.
 	Entity *missile = nil;
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		missile = oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList());
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
-		PlayerEntityTestAccess::missile_entity(player)[2] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::ObjCRef since bead oo-5q11i, oo::EntityHold since bead oo-xn1j1
+		PlayerEntityTestAccess::missile_entity(player)[2] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::EntityHold
 		OO_CHECK(missile->retainCount() == 2);
 		OO_CHECK(PlayerEntityTestAccess::missile_entity(player)[2] == missile);
 		Release(player);
@@ -356,17 +349,16 @@ OO_TEST(deallocReleasesWhatThePlayerHeld)
 }
 
 
-// The crossing (bead oo-9ht.177): the player's object is a ship whose C++ part is the player; the
-// player answers the player's selectors called by name (ADR-0056 amendment oo-9ht.177), which a
-// ship does not (the by-name table's answer since bead oo-9ht.39.7.3, the object's until then).
+// The crossing: the player's object is a ship whose C++ part is the player; the
+// player answers the player's selectors called by name, which a ship does not.
 OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
-		Entity *object = player;	// the drawable's facade since bead oo-9ht.144 (the ship's until then)
-		OO_CHECK(object != nil && oo::ToShip(object) != nullptr);	// a ship's object (-isKindOfClass:[ShipEntity class] until bead oo-9ht.144)
+		Entity *object = player;	// the drawable's facade
+		OO_CHECK(object != nil && oo::ToShip(object) != nullptr);	// a ship's object
 		OO_CHECK(object == player);
 		OO_CHECK(dynamic_cast<PlayerEntity *>(object) == player);
 		OO_CHECK(oo::EntityRespondsToName(player, "commanderName_string"));
@@ -385,7 +377,7 @@ OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 OO_TEST(membersStartZeroed)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntity *part = player;
@@ -398,8 +390,9 @@ OO_TEST(membersStartZeroed)
 }
 
 
-// --- Slice 2: cargo pods, commodity data and credits, galaxy and chart coordinates, the current and
-// previous system (bead oo-m4tfc) ------------------------------------------------------------------
+// --- Cargo pods, commodity data and credits, galaxy and chart
+// coordinates, the current and previous system
+// ------------------------------------------------------------------
 
 namespace {
 
@@ -423,7 +416,7 @@ bool Near(NSPoint a, NSPoint b)	{ return std::fabs(a.x - b.x) < 1e-4 && std::fab
 OO_TEST(slice2NameAndBaseMass)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		const std::optional<std::string> before = player->getName();
@@ -438,7 +431,7 @@ OO_TEST(slice2NameAndBaseMass)
 OO_TEST(slice2Accessors)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -472,7 +465,7 @@ OO_TEST(slice2Accessors)
 OO_TEST(slice2ChartZoomAndCentre)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -503,7 +496,7 @@ OO_TEST(slice2ChartZoomAndCentre)
 OO_TEST(slice2UnloadWithNoPods)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		player->unloadCargoPodsForType("food", 3);
@@ -512,14 +505,16 @@ OO_TEST(slice2UnloadWithNoPods)
 	}
 }
 
-// --- Slice 3: target, next-hop and info systems, the wormhole, the commander data dictionary
-// (bead oo-7pa3t) ---------------------------------------------------------------------------------
+// --- Target, next-hop and info systems, the wormhole, the commander
+// data dictionary
+// ---------------------------------------------------------------------------------
 
-// The target and info systems; with no advanced navigational array the next hop is the target.
+// The target and info systems; with no advanced navigational array the next hop
+// is the target.
 OO_TEST(slice3TargetAndInfoSystems)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -540,11 +535,11 @@ OO_TEST(slice3TargetAndInfoSystems)
 OO_TEST(slice3Wormhole)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->getWormhole() == nil);
-		// A C++ wormhole since bead oo-9ht.112: the player retains its Objective-C object.
+		// A C++ wormhole: the player retains its Objective-C object.
 		oo::Ref<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
@@ -557,14 +552,15 @@ OO_TEST(slice3Wormhole)
 	}
 }
 
-// --- Slice 4: setting the commander data from a dictionary (bead oo-qvnwb) ---------------------
+// --- Setting the commander data from a dictionary
+// ---------------------
 
-// The multi-function displays and dials are reset first; a dictionary without the required keys
-// is refused.
+// The multi-function displays and dials are reset first; a dictionary without
+// the required keys is refused.
 OO_TEST(slice4RefusesADictionaryWithoutTheRequiredKeys)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -577,14 +573,16 @@ OO_TEST(slice4RefusesADictionaryWithoutTheRequiredKeys)
 	}
 }
 
-// --- Slice 5: set-up and start-up, ship set-up from the dictionary, the session, warning about
-// hostiles (bead oo-mmcfq) -----------------------------------------------------------------------
+// --- Set-up and start-up, ship set-up from the dictionary, the
+// session, warning about hostiles
+// -----------------------------------------------------------------------
 
-// The player always belongs to the current session, and collides only in flight.
+// The player always belongs to the current session, and collides only in
+// flight.
 OO_TEST(slice5SessionAndCollisions)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->sessionID() == (UNIVERSE != nullptr ? UNIVERSE->sessionID() : 0));
@@ -599,14 +597,15 @@ OO_TEST(slice5SessionAndCollisions)
 	}
 }
 
-// --- Slice 6: sun glare, the atmosphere, update: (bead oo-vzjco) --------------------------------
+// --- Sun glare, the atmosphere, update
+// --------------------------------
 
-// The player is always the nearest entity and may always be added; outside an atmosphere the
-// fraction inside it is zero.
+// The player is always the nearest entity and may always be added; outside an
+// atmosphere the fraction inside it is zero.
 OO_TEST(slice6NearestValidAndAtmosphere)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->compareZeroDistance(player) == OOOrderedDescending);
@@ -616,14 +615,15 @@ OO_TEST(slice6NearestValidAndAtmosphere)
 	}
 }
 
-// --- Slice 7: the bookkeeping tick, movement flags (bead oo-5c466) ------------------------------
+// --- The bookkeeping tick, movement flags
+// ------------------------------
 
-// The movement flags compare the position and orientation with the last frame's, which they then
-// become.
+// The movement flags compare the position and orientation with the last
+// frame's, which they then become.
 OO_TEST(slice7MovementFlags)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		Entity *entity = player;
@@ -639,15 +639,17 @@ OO_TEST(slice7MovementFlags)
 	}
 }
 
-// --- Slice 8: alert conditions, mass lock, fuel scoops, clocks, script and trumble ticks, the
-// autopilot and docking requests (bead oo-ijf0s) ---------------------------------------------------
+// --- Alert conditions, mass lock, fuel scoops, clocks, script and
+// trumble ticks, the autopilot and docking requests
+// ---------------------------------------------------
 
-// The flight limits also set the player's control rates; without the autopilot engaged or a
-// station, disengaging and cancelling a docking request change nothing.
+// The flight limits also set the player's control rates; without the autopilot
+// engaged or a station, disengaging and cancelling a docking request change
+// nothing.
 OO_TEST(slice8FlightLimitsAndAutopilot)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -665,14 +667,15 @@ OO_TEST(slice8FlightLimitsAndAutopilot)
 	}
 }
 
-// --- Slice 9: the autopilot AI, hyperspeed, the per-status updates, game over, targeting
-// (bead oo-qyjcv) ----------------------------------------------------------------------------------
+// --- The autopilot AI, hyperspeed, the per-status updates, game over,
+// targeting
+// ----------------------------------------------------------------------------------
 
 // The injector and hyperspeed flags and the hyperspeed factor read the members.
 OO_TEST(slice9HyperspeedFlags)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -687,15 +690,17 @@ OO_TEST(slice9HyperspeedFlags)
 	}
 }
 
-// --- Slice 10: attitude, view matrices and viewpoints, drawing, mass lock, the docked station, the
-// HUD and its custom dials, shield levels (bead oo-9u9w6) ----------------------------------------
+// --- Attitude, view matrices and viewpoints, drawing, mass lock, the
+// docked station, the HUD and its custom dials, shield levels
+// ----------------------------------------
 
-// The normal orientation is the orientation with w negated, both ways; the flags and levels read and
-// write the members; the shield level is clamped to its maximum.
+// The normal orientation is the orientation with w negated, both ways; the
+// flags and levels read and write the members; the shield level is clamped to
+// its maximum.
 OO_TEST(slice10OrientationFlagsAndShields)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -729,7 +734,7 @@ OO_TEST(slice10OrientationFlagsAndShields)
 OO_TEST(slice10Dials)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		player->max_flight_roll = 2.0f;
@@ -745,15 +750,16 @@ OO_TEST(slice10Dials)
 	}
 }
 
-// --- Slice 11: the dials, fuel leak, the comm log, player roles, system memory, the compass target
-// (bead oo-zxg1h) ---------------------------------------------------------------------------------
+// --- The dials, fuel leak, the comm log, player roles, system
+// memory, the compass target
+// ---------------------------------------------------------------------------------
 
-// The clock, its adjustment, the rescue time and the fuel leak (never negative) read and write the
-// members; the number of player roles grows with the kills.
+// The clock, its adjustment, the rescue time and the fuel leak (never negative)
+// read and write the members; the number of player roles grows with the kills.
 OO_TEST(slice11ClockFuelLeakAndRoles)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -782,14 +788,14 @@ OO_TEST(slice11CountMissiles)
 {
 	TestMissile *missile = nil;
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		missile = static_cast<TestMissile *>(oo::ToShip(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList())));
 		TestPlayer *player = MakePlayer();
 		player->max_missiles = 4;
 		OO_CHECK(player->countMissiles() == 0);
-		PlayerEntityTestAccess::missile_entity(player)[1] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::ObjCRef since bead oo-5q11i, oo::EntityHold since bead oo-xn1j1
-		PlayerEntityTestAccess::missile_entity(player)[3] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::ObjCRef since bead oo-5q11i, oo::EntityHold since bead oo-xn1j1
+		PlayerEntityTestAccess::missile_entity(player)[1] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::EntityHold
+		PlayerEntityTestAccess::missile_entity(player)[3] = oo::EntityHold::adopt(oo::RetainEntity(missile));	// held by oo::EntityHold
 		OO_CHECK(player->countMissiles() == 2);
 		player->max_missiles = 2;
 		OO_CHECK(player->countMissiles() == 1);
@@ -797,15 +803,16 @@ OO_TEST(slice11CountMissiles)
 	if (missile != nullptr)  oo::ReleaseEntity(missile);
 }
 
-// --- Slice 12: compass mode, missiles and pylons, special cargo, the multi-function displays, alert
-// flags (bead oo-rqcfz) ---------------------------------------------------------------------------
+// --- Compass mode, missiles and pylons, special cargo, the
+// multi-function displays, alert flags
+// ---------------------------------------------------------------------------
 
-// The compass mode, the ident flag, the maximum missiles and the alert flags read and write the
-// members.
+// The compass mode, the ident flag, the maximum missiles and the alert flags
+// read and write the members.
 OO_TEST(slice12CompassIdentAndAlertFlags)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		player->setCompassMode(COMPASS_MODE_TARGET);
@@ -824,14 +831,16 @@ OO_TEST(slice12CompassIdentAndAlertFlags)
 	}
 }
 
-// --- Slice 13: alert condition, AI messages, missiles and mines, the cloak, ECM, energy units, the
-// main weapons (bead oo-30g73) ---------------------------------------------------------------------
+// --- Alert condition, AI messages, missiles and mines, the cloak,
+// ECM, energy units, the main weapons
+// ---------------------------------------------------------------------
 
-// The fleeing status reads the member; taking the weapons offline makes every missile safe.
+// The fleeing status reads the member; taking the weapons offline makes every
+// missile safe.
 OO_TEST(slice13FleeingAndWeaponsOnline)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
@@ -844,7 +853,7 @@ OO_TEST(slice13FleeingAndWeaponsOnline)
 	}
 }
 
-// --- Slices 14-28: a player whose sends to itself are recorded (beads oo-m8x1y ... oo-zn1vy) --------
+// --- A player whose sends to itself are recorded --------
 
 namespace {
 
@@ -862,10 +871,10 @@ Sent sSent;
 
 }	// namespace
 
-
-/*	A player whose calls to itself that lead to the game's data (scripts, the GUI, the market) only
-	record what they were sent, so that a slice's own logic is what the test sees, before and after
-	the slice moves it into PlayerEntity (sends to self stay calls through the virtual members).
+/*	A player whose calls to itself that lead to the game's data (scripts,
+   the GUI, the market) only record what they were sent, so that the class's own
+   logic is what the test sees (sends to self stay calls through the virtual
+   members).
 */
 class RecordingPlayer : public TestPlayer
 {
@@ -968,16 +977,16 @@ bool NearV(Vector a, Vector b)	{ return std::fabs(a.x - b.x) < 1e-4 && std::fabs
 
 }	// namespace
 
+// --- Hit testing, damage, the doppelganger, the escape capsule,
+// dumping cargo, bounty
+// ---------------------------------------------------------------------------------
 
-// --- Slice 14: hit testing, damage, the doppelganger, the escape capsule, dumping cargo, bounty
-// (bead oo-m8x1y) ---------------------------------------------------------------------------------
-
-// Setting the bounty with no reason sends the unknown reason's string; rotating an empty hold does
-// nothing.
+// Setting the bounty with no reason sends the unknown reason's string; rotating
+// an empty hold does nothing.
 OO_TEST(slice14BountyAndRotateCargo)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setBounty(25);
@@ -990,15 +999,16 @@ OO_TEST(slice14BountyAndRotateCargo)
 	}
 }
 
-// --- Slice 15: legal status, offences, bounties collected, internal damage, destruction, ending a
-// scenario, docking and leaving dock (bead oo-2lpiu) ------------------------------------------------
+// --- Legal status, offences, bounties collected, internal damage,
+// destruction, ending a scenario, docking and leaving dock
+// ------------------------------------------------
 
-// The bounty is the legal status; an offence with no reason sends the unknown reason; a scenario
-// ends only with its own key.
+// The bounty is the legal status; an offence with no reason sends the unknown
+// reason; a scenario ends only with its own key.
 OO_TEST(slice15LegalStatusOffenceAndScenario)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntityTestAccess::legalStatusValue(player) = 64;
@@ -1012,14 +1022,16 @@ OO_TEST(slice15LegalStatusOffenceAndScenario)
 	}
 }
 
-// --- Slice 16: witchspace: start, end, checklist, jump type and distance, fuel, galactic and
-// wormhole jumps (bead oo-vqjjb) -------------------------------------------------------------------
+// --- Witchspace: start, end, checklist, jump type and distance,
+// fuel, galactic and wormhole jumps
+// -------------------------------------------------------------------
 
-// The jump type sets the galactic flag; the fuel suffices when it reaches what the jump needs.
+// The jump type sets the galactic flag; the fuel suffices when it reaches what
+// the jump needs.
 OO_TEST(slice16JumpTypeAndFuel)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setJumpType(YES);
@@ -1036,14 +1048,16 @@ OO_TEST(slice16JumpTypeAndFuel)
 	}
 }
 
-// --- Slice 17: leaving witchspace, the status screen, the equipment list, primed and fast
-// equipment, weapon types (bead oo-6tuef) ----------------------------------------------------------
+// --- Leaving witchspace, the status screen, the equipment list,
+// primed and fast equipment, weapon types
+// ----------------------------------------------------------
 
-// With no primable equipment nothing is primed; the fast equipment keys read and write the members.
+// With no primable equipment nothing is primed; the fast equipment keys read
+// and write the members.
 OO_TEST(slice17PrimedAndFastEquipment)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		OO_CHECK(player->primedEquipmentCount() == 0);
@@ -1056,15 +1070,16 @@ OO_TEST(slice17PrimedAndFastEquipment)
 	}
 }
 
-// --- Slice 18: scripting lists, the system data screen, marked destinations, the chart screens
-// (bead oo-3fzv5) ---------------------------------------------------------------------------------
+// --- Scripting lists, the system data screen, marked destinations,
+// the chart screens
+// ---------------------------------------------------------------------------------
 
-// With no passengers, parcels or contracts the scripting lists are empty arrays; the system data
-// screen is shown without refreshing the background.
+// With no passengers, parcels or contracts the scripting lists are empty
+// arrays; the system data screen is shown without refreshing the background.
 OO_TEST(slice18ScriptingListsAndSystemData)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		const oo::PList passengers = player->passengerListForScripting();
@@ -1079,17 +1094,19 @@ OO_TEST(slice18ScriptingListsAndSystemData)
 	}
 }
 
-// Slice 19 (the game options and load / save screens, the equip-screen key highlight, the available
-// facings; bead oo-4tqku) has no unit case: every unit reads the GUI, the ship registry or the
-// game's data, which the goldens cover.
+// The game options and load / save screens, the equip-screen key highlight and
+// the available facings have no unit case: every unit reads the GUI, the ship
+// registry or the game's data, which the goldens cover.
 
-// --- Slice 20: the equip-ship screen and upgrade information (bead oo-dycza) ------------------------
+// --- The equip-ship screen and upgrade information
+// ------------------------
 
-// The short forms send the long ones with no facing selection and no format string.
+// The short forms send the long ones with no facing selection and no format
+// string.
 OO_TEST(slice20EquipShipScreenShortForms)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		sSent.optionalText = std::string("unset");
@@ -1101,15 +1118,16 @@ OO_TEST(slice20EquipShipScreenShortForms)
 	}
 }
 
-// --- Slice 21: the interfaces screen, the start screen and intro, the OXZ manager, GUI and view
-// change notes (bead oo-a602n) ---------------------------------------------------------------------
+// --- The interfaces screen, the start screen and intro, the OXZ
+// manager, GUI and view change notes
+// ---------------------------------------------------------------------
 
-// The short GUI change note sends the long one without a refresh; the view change note is the
-// controls' view switch, arguments swapped.
+// The short GUI change note sends the long one without a refresh; the view
+// change note is the controls' view switch, arguments swapped.
 OO_TEST(slice21ChangeNotes)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		sSent.flag = true;
@@ -1120,14 +1138,16 @@ OO_TEST(slice21ChangeNotes)
 	}
 }
 
-// --- Slice 22: buying equipment, script price adjustment, weapon mounts, passenger berths, removing
-// missiles, trade-in (bead oo-mv49m) ---------------------------------------------------------------
+// --- Buying equipment, script price adjustment, weapon mounts,
+// passenger berths, removing missiles, trade-in
+// ---------------------------------------------------------------
 
-// Mounting a weapon is a purchase; no berth changes by zero, and none is removed when there is none.
+// Mounting a weapon is a purchase; no berth changes by zero, and none is
+// removed when there is none.
 OO_TEST(slice22WeaponMountAndBerths)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		OO_CHECK(player->setWeaponMount(WEAPON_FACING_AFT, "EQ_WEAPON_PULSE_LASER"));
@@ -1140,14 +1160,15 @@ OO_TEST(slice22WeaponMountAndBerths)
 	}
 }
 
-// --- Slice 23: cargo quantities, the local market, market filters and sorters, market screen rows
-// (bead oo-wt5jv) ---------------------------------------------------------------------------------
+// --- Cargo quantities, the local market, market filters and sorters,
+// market screen rows
+// ---------------------------------------------------------------------------------
 
 // The current cargo is what is on board.
 OO_TEST(slice23CalculateCurrentCargo)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntityTestAccess::current_cargo(player) = 0;
@@ -1156,14 +1177,16 @@ OO_TEST(slice23CalculateCurrentCargo)
 	}
 }
 
-// --- Slice 24: the market screens, buying and selling commodities, mining and speech flags, adding
-// equipment (bead oo-bj7u8) ------------------------------------------------------------------------
+// --- The market screens, buying and selling commodities, mining and
+// speech flags, adding equipment
+// ------------------------------------------------------------------------
 
-// The screen, mining and speech flags read the members; adding equipment validates it.
+// The screen, mining and speech flags read the members; adding equipment
+// validates it.
 OO_TEST(slice24FlagsAndAddEquipment)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntity *part = player;
@@ -1180,15 +1203,17 @@ OO_TEST(slice24FlagsAndAddEquipment)
 	}
 }
 
-// --- Slice 25: equipment, pylons, parcels and passengers, comms, fines, trade-in factor, renovation,
-// view offsets, trumbles (bead oo-hu1xk) -----------------------------------------------------------
+// --- Equipment, pylons, parcels and passengers, comms, fines,
+// trade-in factor, renovation, view offsets, trumbles
+// -----------------------------------------------------------
 
-// The counts read the members; the trade-in factor stays within 75..100; the view offsets come from
-// the bounding box, and the weapon view offset follows the facing.
+// The counts read the members; the trade-in factor stays within 75..100; the
+// view offsets come from the bounding box, and the weapon view offset follows
+// the facing.
 OO_TEST(slice25CountsTradeInAndViewOffsets)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntity *part = player;
@@ -1215,16 +1240,17 @@ OO_TEST(slice25CountsTradeInAndViewOffsets)
 	}
 }
 
-// --- Slice 26: trumble values, checksums, screen modes, target memory, missile ident, rotating and
-// panning the custom view (bead oo-cpam5) ----------------------------------------------------------
+// --- Trumble values, checksums, screen modes, target memory, missile
+// ident, rotating and panning the custom view
+// ----------------------------------------------------------
 
-// The appetite and the flags read and write the members; clearing the target memory fills it with
-// empty slots; zooming the custom view out scales its offset about the rotation centre, limited by
-// the collision radius.
+// The appetite and the flags read and write the members; clearing the target
+// memory fills it with empty slots; zooming the custom view out scales its
+// offset about the rotation centre, limited by the collision radius.
 OO_TEST(slice26TargetMemoryAndCustomViewZoom)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntity *part = player;
@@ -1248,16 +1274,17 @@ OO_TEST(slice26TargetMemoryAndCustomViewZoom)
 	}
 }
 
-// --- Slice 27: custom view vectors and data, the mission overlay and background, world scripts and
-// script events, galactic hyperspace, jump cause, names (bead oo-u1e9m) ------------------------------
+// --- Custom view vectors and data, the mission overlay and
+// background, world scripts and script events, galactic hyperspace, jump cause,
+// names ------------------------------
 
-// The custom view data follow the quaternion; the galactic hyperspace behaviour accepts only known
-// values; the fixed coordinates are clamped; scoop override turns the scoops on; the names read and
-// write the members.
+// The custom view data follow the quaternion; the galactic hyperspace behaviour
+// accepts only known values; the fixed coordinates are clamped; scoop override
+// turns the scoops on; the names read and write the members.
 OO_TEST(slice27CustomViewHyperspaceAndNames)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setCustomViewQuaternion(kIdentityQuaternion);
@@ -1284,15 +1311,16 @@ OO_TEST(slice27CustomViewHyperspaceAndNames)
 	}
 }
 
-// --- Slice 28: docking clearance, scanned wormholes, mission destinations, the shipyard record, extra
-// mission and GUI-screen keys, the state dump (bead oo-zn1vy) ---------------------------------------
+// --- Docking clearance, scanned wormholes, mission destinations, the
+// shipyard record, extra mission and GUI-screen keys, the state dump
+// ---------------------------------------
 
-// Cleared to dock once granted or not required; a marker's key is its system and name; the extra
-// mission keys are cleared.
+// Cleared to dock once granted or not required; a marker's key is its system
+// and name; the extra mission keys are cleared.
 OO_TEST(slice28ClearanceMarkerKeyAndExtraKeys)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntity *part = player;
@@ -1313,12 +1341,13 @@ OO_TEST(slice28ClearanceMarkerKeyAndExtraKeys)
 	}
 }
 
-// --- The category files (the Convert-to-C++20 batch, bead oo-lmdi8): PlayerEntitySound.mm,
-// PlayerEntityStickMapper.mm, PlayerEntityControls.mm, PlayerEntityKeyMapper.mm,
-// PlayerEntityLegacyScriptEngine.mm, PlayerEntityContracts.mm, PlayerEntityLoadSave.mm. Each case
-// pins units a player in a never-initialised universe can answer, written against the Objective-C
-// categories and run on them first; the screens, the controls' polling and the load / save panels
-// read the GUI, the keyboard or the game's files, which the goldens cover. ------------------------
+// --- The category files:
+// PlayerEntitySound.mm, PlayerEntityStickMapper.mm, PlayerEntityControls.mm,
+// PlayerEntityKeyMapper.mm, PlayerEntityLegacyScriptEngine.mm,
+// PlayerEntityContracts.mm, PlayerEntityLoadSave.mm. Each case pins units a
+// player in a never-initialised universe can answer; the screens, the controls'
+// polling and the load / save panels read the GUI, the keyboard or the game's
+// files, which the goldens cover. ------------------------
 
 namespace {
 Entity *sCategoryTarget = nil;	// what a CategoryPlayer answers as its primary target (not retained)
@@ -1355,7 +1384,7 @@ public:
 
 	// The target the ident button finds: the unit test's universe has no descriptions to expand the
 	// "ident-on" message with (expanding one exits), so the case keeps a target.
-	Entity *primaryTarget() override	{ return sCategoryTarget; }	// the C++ entity since bead oo-9ht.39.23
+	Entity *primaryTarget() override	{ return sCategoryTarget; }
 };
 
 
@@ -1380,12 +1409,12 @@ CategoryPlayer *MakeCategoryPlayer()
 
 }	// namespace
 
-
-// PlayerEntitySound.mm (bead oo-xowh): with no interface source playing, the player is not beeping.
+// PlayerEntitySound.mm: with no interface source playing, the
+// player is not beeping.
 OO_TEST(soundIsNotBeepingWithNothingPlaying)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		OO_CHECK(!player->isBeeping());
@@ -1393,12 +1422,13 @@ OO_TEST(soundIsNotBeepingWithNothingPlaying)
 }
 
 
-// PlayerEntityStickMapper.mm (bead oo-ibm8): hardware flags as words, and the GUI entries the
-// function list is made of (a long description cut to 28 units and "...", absent functions left out).
+// PlayerEntityStickMapper.mm: hardware flags as words, and the
+// GUI entries the function list is made of (a long description cut to 28 units
+// and "...", absent functions left out).
 OO_TEST(stickMapperHardwareAndGuiDicts)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		// The hardware names come from descriptions.plist (upstream #786), which this universe never
@@ -1424,12 +1454,12 @@ OO_TEST(stickMapperHardwareAndGuiDicts)
 }
 
 
-// PlayerEntityControls.mm slice 1 (bead oo-hsilb): the first key code of a definition (0 for none),
-// and clearing the planet search string.
+// PlayerEntityControls.mm: the first key code of a
+// definition (0 for none), and clearing the planet search string.
 OO_TEST(controlsSlice1FirstKeyCodeAndPlanetSearch)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		const oo::PList keyDef(oo::PList::Array{ oo::PList(oo::PList::Dict{ { "key", oo::PList(65) } }), oo::PList(oo::PList::Dict{ { "key", oo::PList(66) } }) });
@@ -1441,16 +1471,16 @@ OO_TEST(controlsSlice1FirstKeyCodeAndPlanetSearch)
 	}
 }
 
-// PlayerEntityControls.mm slices 2-6 (beads oo-56tmj, oo-4216h, oo-n8wn2, oo-uq8px, oo-fz3l8) have
-// no unit case: every unit polls the keyboard, the joystick or the GUI, which the goldens cover.
+// PlayerEntityControls.mm's other units have no unit case: every unit polls the
+// keyboard, the joystick or the GUI, which the goldens cover.
 
-// PlayerEntityControls.mm slice 7 (bead oo-lmdi8): the ident button safes the missiles, engages
-// ident and, with a target, plays the locked-on sound and prints the lock (not for a missile);
-// pressed again it first drops the target.
+// PlayerEntityControls.mm: the ident button safes the
+// missiles, engages ident and, with a target, plays the locked-on sound and
+// prints the lock (not for a missile); pressed again it first drops the target.
 OO_TEST(controlsSlice7IdentButton)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		CategoryPlayer *player = MakeCategoryPlayer();
 		sCategoryTarget = player;
@@ -1465,12 +1495,12 @@ OO_TEST(controlsSlice7IdentButton)
 }
 
 
-// PlayerEntityKeyMapper.mm slice 1 (bead oo-5uo7): the key-function list's GUI entries (a long
-// description cut to 48 units and "...").
+// PlayerEntityKeyMapper.mm: the key-function list's GUI
+// entries (a long description cut to 48 units and "...").
 OO_TEST(keyMapperSlice1GuiDicts)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		const oo::PList dict = player->makeKeyGuiDict("Fire laser", "key_fire_lasers");
@@ -1485,12 +1515,12 @@ OO_TEST(keyMapperSlice1GuiDicts)
 }
 
 
-// PlayerEntityKeyMapper.mm slice 2 (bead oo-10jz): custom-equipment entries are activate_ and mode_
-// keys, and their key-definition type.
+// PlayerEntityKeyMapper.mm: custom-equipment entries are
+// activate_ and mode_ keys, and their key-definition type.
 OO_TEST(keyMapperSlice2CustomEquipEntries)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		OO_CHECK(player->entryIsCustomEquip("activate_EQ_ECM") && player->entryIsCustomEquip("mode_EQ_ECM"));
@@ -1504,12 +1534,12 @@ OO_TEST(keyMapperSlice2CustomEquipEntries)
 }
 
 
-// PlayerEntityKeyMapper.mm slice 3 (bead oo-mofd): two key entries are the same when the key and
-// the three modifiers are.
+// PlayerEntityKeyMapper.mm: two key entries are the same
+// when the key and the three modifiers are.
 OO_TEST(keyMapperSlice3CompareKeyEntries)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		const oo::PList a(oo::PList::Dict{ { "key", oo::PList(65) }, { "shift", oo::PList(true) } });
@@ -1523,12 +1553,13 @@ OO_TEST(keyMapperSlice3CompareKeyEntries)
 }
 
 
-// PlayerEntityLegacyScriptEngine.mm slice 1 (bead oo-130j): mission variables need the store
-// (nothing is kept before set-up); a null value removes one; local variables are per mission.
+// PlayerEntityLegacyScriptEngine.mm: mission variables
+// need the store (nothing is kept before set-up); a null value removes one;
+// local variables are per mission.
 OO_TEST(legacyScriptSlice1MissionAndLocalVariables)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntityTestAccess::mission_variables(player) = oo::PList();
@@ -1549,11 +1580,12 @@ OO_TEST(legacyScriptSlice1MissionAndLocalVariables)
 }
 
 
-// PlayerEntityLegacyScriptEngine.mm slice 2 (bead oo-ng9h): the credits query answers the balance.
+// PlayerEntityLegacyScriptEngine.mm: the credits query
+// answers the balance.
 OO_TEST(legacyScriptSlice2CreditsQuery)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setCreditBalance(42.5);
@@ -1563,12 +1595,12 @@ OO_TEST(legacyScriptSlice2CreditsQuery)
 }
 
 
-// PlayerEntityLegacyScriptEngine.mm slice 3 (bead oo-z1nv): set:, increment:, decrement: and reset:
-// on a mission variable, and the mission title.
+// PlayerEntityLegacyScriptEngine.mm: set:, increment:,
+// decrement: and reset: on a mission variable, and the mission title.
 OO_TEST(legacyScriptSlice3VariableArithmeticAndTitle)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntityTestAccess::mission_variables(player) = oo::PList(oo::PList::Dict{});
@@ -1591,12 +1623,13 @@ OO_TEST(legacyScriptSlice3VariableArithmeticAndTitle)
 }
 
 
-// PlayerEntityLegacyScriptEngine.mm slice 4 (bead oo-vn3o): the mission screen's identifier, and
-// the index of an equipment script that is not there (the count).
+// PlayerEntityLegacyScriptEngine.mm: the mission
+// screen's identifier, and the index of an equipment script that is not there
+// (the count).
 OO_TEST(legacyScriptSlice4MissionScreenIDAndEqScripts)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setMissionScreenID(std::string("screen-1"));
@@ -1608,16 +1641,18 @@ OO_TEST(legacyScriptSlice4MissionScreenIDAndEqScripts)
 }
 
 
-// PlayerEntityContracts.mm slice 1 (bead oo-6e3h): a passenger is added once (a risky one adds the
-// courier role, and the event is sent with two arguments) and removed by name; contracted volume
-// counts a good's contracts; the docking report joins messages with a blank line.
+// PlayerEntityContracts.mm: a passenger is added once (a
+// risky one adds the courier role, and the event is sent with two arguments)
+// and removed by name; contracted volume counts a good's contracts; the docking
+// report joins messages with a blank line.
 OO_TEST(contractsSlice1PassengersVolumeAndReport)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		CategoryPlayer *player = MakeCategoryPlayer();
-		gOOPlayer = player;	// addPassenger() reads PLAYER's clock, which the debug build asserts is set (bead oo-vdw34)
+		gOOPlayer = player;	// addPassenger() reads PLAYER's clock, which the debug
+                         // build asserts is set
 		PlayerEntityTestAccess::max_passengers(player) = 2;
 		OO_CHECK(player->addPassenger("Ann", 1, 2, 100.0, 10.0, 1.0, 2));
 		OO_CHECK(sSent.count == 2 && sSent.text == "trader-courier+" && sSent.number == 2);
@@ -1638,12 +1673,13 @@ OO_TEST(contractsSlice1PassengersVolumeAndReport)
 }
 
 
-// PlayerEntityContracts.mm slice 2 (bead oo-t2t5): with no record each reputation is the middle of
-// its range (unknown counts as the maximum), and the record is a dictionary.
+// PlayerEntityContracts.mm: with no record each
+// reputation is the middle of its range (unknown counts as the maximum), and
+// the record is a dictionary.
 OO_TEST(contractsSlice2Reputation)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntityTestAccess::reputation(player).clear();
@@ -1655,11 +1691,12 @@ OO_TEST(contractsSlice2Reputation)
 }
 
 
-// PlayerEntityContracts.mm slice 3 (bead oo-oo99): a ship with all its subentities loses nothing.
+// PlayerEntityContracts.mm: a ship with all its
+// subentities loses nothing.
 OO_TEST(contractsSlice3MissingSubEntities)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		OO_CHECK(player->missingSubEntitiesAdjustment() == 0);
@@ -1667,15 +1704,15 @@ OO_TEST(contractsSlice3MissingSubEntities)
 }
 
 
-// PlayerEntityLoadSave.mm slice 1 (bead oo-xmvt) has no unit case: its units read the save files,
-// the scenarios and the GUI, which the goldens cover.
+// PlayerEntityLoadSave.mm's other units read the save files, the scenarios and
+// the GUI, which the goldens cover.
 
-// PlayerEntityLoadSave.mm slice 2 (bead oo-rczn): a commander is found by its save name, else its
-// name; one not in the list is not found.
+// PlayerEntityLoadSave.mm: a commander is found by its
+// save name, else its name; one not in the list is not found.
 OO_TEST(loadSaveSlice2FindCommander)
 {
 	{
-		oo::AutoreleaseScope scope;	// was @autoreleasepool (oo-31u.6)
+		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntityTestAccess::cdrDetailArray(player).clear();

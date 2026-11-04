@@ -25,8 +25,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOPLANETTEXTUREGENERATOR_H
-#define OOPLANETTEXTUREGENERATOR_H
+#pragma once
 
 #include "OOMaths.h"
 #include "OOTextureGenerator.h"
@@ -75,29 +74,31 @@ typedef struct OOPlanetTextureGeneratorInfo {
     BOOL perlin3d;
 } OOPlanetTextureGeneratorInfo;
 
-/*	Phase 3 (bead oo-kyje, proposed ADR-0056 amendments oo-bj8 item 12, oo-fn2f, oo-novu, oo-rr2x
-        item 3, oo-kvqq and oo-y3dd): a converted leaf of the texture generators, global, over
-        OOTextureGenerator, with no facade of its own; so are the two helper generators private to
+/*	A leaf of the texture generators, over
+        OOTextureGenerator; so are the two helper generators private to
         its file. Its one caller (OOPlanetEntity) calls the static members; a texture takes the C++
-        generator (it took the generators' facade before).
+        generator.
 */
 class OOPlanetTextureGenerator : public OOTextureGenerator {
 public:
     ~OOPlanetTextureGenerator() override; // was -dealloc
 
-    /*	planetInfo is the planet's material parameters, a mixed configuration: plist values with the
-            colours as PList::Object nodes holding OOColors (proposed ADR-0043 Amendment 2; the
-            selector-family flip oo-3rb.269.2, which ended the id boundary of beads oo-lzk6 / oo-2pmp).
-            Was [[OOPlanetTextureGenerator alloc] initWithPlanetInfo:seed:]; null where that answered
-            nil (amendment oo-novu).
+    /*	planetInfo is the planet's material parameters, a mixed configuration:
+       plist values with the colours as PList::Object nodes holding OOColors
+       Was [[OOPlanetTextureGenerator alloc] initWithPlanetInfo:seed:]; null
+       where that answered nil.
     */
-    static oo::Ref<OOPlanetTextureGenerator> generatorWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed);
-    bool initWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed); // false where it answered nil
+    static oo::Ref<OOPlanetTextureGenerator> generatorWithPlanetInfo(
+        const oo::PList& planetInfo, RANROTSeed seed);
+    bool initWithPlanetInfo(const oo::PList& planetInfo,
+        RANROTSeed seed); // false where it answered nil
 
-    /*	Were +planetTextureWithInfo:seed: and the three +generatePlanetTexture:...; the textures are
-            answered retained (amendment oo-2en item 2). The one that took a texture and an atmosphere
-            (+generatePlanetTexture:andAtmosphere:withInfo:seed:) has its own name: its arguments have
-            the types of the one that took a texture and a secondary texture.
+    /*	Were +planetTextureWithInfo:seed: and the three
+       +generatePlanetTexture:...; the textures are answered retained. The one
+       that took a texture and an atmosphere
+            (+generatePlanetTexture:andAtmosphere:withInfo:seed:) has its own
+       name: its arguments have the types of the one that took a texture and a
+       secondary texture.
     */
     static oo::Ref<OOTexture> planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed);
     static bool generatePlanetTextureAndAtmosphere(oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* atmosphere, const oo::PList& planetInfo, RANROTSeed seed);
@@ -109,8 +110,9 @@ public:
     std::optional<std::string> cacheKey() override;
 
     /*	Was -getResult:format:width:height:, whose keywords are not the root's
-            -getResult:format:originalWidth:originalHeight:, so it never overrode it and nothing sends it;
-            kept, under a name that does not override getResult() either (amendment oo-y3dd).
+            -getResult:format:originalWidth:originalHeight:, so it never overrode
+       it and nothing sends it; kept, under a name that does not override
+       getResult() either.
     */
     bool getResultFormatWidthHeight(OOPixMap* outData, OOTextureDataFormat* outFormat, uint32_t* outWidth, uint32_t* outHeight);
 
@@ -128,5 +130,3 @@ private:
     oo::Ref<OOPlanetNormalMapGenerator> _nMapGenerator;
     oo::Ref<OOPlanetAtmosphereGenerator> _atmoGenerator;
 };
-
-#endif // OOPLANETTEXTUREGENERATOR_H

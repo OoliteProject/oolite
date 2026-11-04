@@ -1,31 +1,32 @@
 /*	test_ProxyPlayerEntity.mm
-	Unit tests for ProxyPlayerEntity (src/Core/Entities/ProxyPlayerEntity.h), the ship that stands in
-	for the player's ship where only a ship can be shown (the shipyard, the doppelganger) and answers
-	the player's dials to the shaders (bead oo-amwj; proposed ADR-0056, amendment oo-amwj).
+        Unit tests for ProxyPlayerEntity
+   (src/Core/Entities/ProxyPlayerEntity.h), the ship that stands in for the
+   player's ship where only a ship can be shown (the shipyard, the doppelganger)
+   and answers the player's dials to the shaders.
 
-	As test_StationEntity's, the ship needs the game graph, so the test links the whole game but
-	main (['*']) and uses a Universe that was never initialised and a plain entity as PLAYER. The
-	proxy keeps ShipEntity's own set-up from an unpiloted definition. The cases test the class's
-	units through the Objective-C API, written against it and run on the unconverted class first:
-	the initialiser's defaults, each dial's accessors, -copyValuesFromPlayer: from a player whose
-	dials answer fixed values, and -isPlayerLikeShip for the three classes that answer it. The
-	cases after "The crossing" pin the C++ part once it exists. Since bead oo-9ht.183 deleted the
-	Objective-C facade (ADR-0056 amendment oo-9ht.183) the proxy is made by newProxyObject(), its
-	object is the ship's facade, the class's selectors are member calls with every expected value
-	kept, and the dials case pins the dials the ship's facade answers by name for a proxy. The last
-	case pins that the proxy and the player are visible to scripts (bead oo-ak1km). Since bead
-	oo-9ht.144 deleted the ship's facade every ship is C++ and its object is the drawable's facade,
-	whose root category answers the dials by name; the check that the proxy's part was the facade's
-	_cxxShip went with it (standing approval oo-9n5p9).
-	Run: bash tools/check-core-tests.sh test_ProxyPlayerEntity
+        As test_StationEntity's, the ship needs the game graph, so the test
+   links the whole game but main (['*']) and uses a Universe that was never
+   initialised and a plain entity as PLAYER. The proxy keeps ShipEntity's own
+   set-up from an unpiloted definition. The cases test the class's units: the
+   initialiser's defaults, each dial's accessors,
+   -copyValuesFromPlayer: from a player whose dials answer fixed values, and
+   -isPlayerLikeShip for the three classes that answer it. The cases after "The
+   crossing" pin the C++ part. The proxy is made by
+   newProxyObject(), its object is the ship's facade, the class's selectors are
+   member calls, and the dials case pins the
+   dials the ship's facade answers by name for a proxy. The last case pins that
+   the proxy and the player are visible to scripts. Every ship is C++ and its
+   object is the drawable's facade, whose root category answers the dials by
+   name. Run: bash tools/check-core-tests.sh
+   test_ProxyPlayerEntity
 */
 
 #include "ProxyPlayerEntity.h"
 #include "Universe.h"
 #include "PlayerEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
-#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName (bead oo-9ht.39.7.3)
-#include "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped (bead oo-9ht.39.7.3)
+#include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName
+#include "OOEntityCalledByName.h"	// oo::CallEntityByNameTyped
 
 #include "oo_test.hpp"
 
@@ -42,14 +43,14 @@ extern Universe *gSharedUniverse;
 extern JSContext *gOOJSMainThreadContext;
 
 
-class TestProxyPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestProxyPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// [[TestPlayer alloc] init]: a C++ player under the ship's
+// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -63,7 +64,7 @@ T *NewTestPlayer()
 
 // A player whose dials answer fixed values (the real ones read the HUD, the universe and the
 // player's equipment).
-class TestDialPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestDialPlayer : public PlayerEntity
 {
 public:
 	float fuelLeakRate() override	{ return 2.5f; }
@@ -208,8 +209,7 @@ OO_TEST(copyValuesFromPlayer)
 }
 
 
-// -isPlayerLikeShip: YES for the proxy (the category on the other entities went with the facade,
-// bead oo-9ht.183).
+// -isPlayerLikeShip: YES for the proxy.
 OO_TEST(isPlayerLikeShip)
 {
 	{
@@ -219,10 +219,12 @@ OO_TEST(isPlayerLikeShip)
 }
 
 
-// --- The crossing --------------------------------------------------------------------------------
+// --- The crossing
+// --------------------------------------------------------------------------------
 
-// A proxy's C++ part is a ProxyPlayerEntity under its object (bead oo-9ht.183), and the ship
-// itself since bead oo-9ht.144; the ship's virtual alertCondition() answers the proxy's.
+// A proxy's C++ part is a ProxyPlayerEntity under its object, and the ship
+// itself; the ship's virtual
+// alertCondition() answers the proxy's.
 OO_TEST(objCProxyPartIsAProxy)
 {
 	{
@@ -242,10 +244,9 @@ OO_TEST(objCProxyPartIsAProxy)
 }
 
 
-// The proxy's dials by name (bead oo-9ht.183): the shaders bind them to the proxy's object, which
-// answers them for a proxy's part (and a plain ship's object does not); the root's facade since
-// bead oo-9ht.144, the by-name table's rows since bead oo-9ht.39.7.3 (answered and called on the
-// C++ proxy, as the facade's methods answered them).
+// The proxy's dials by name: the shaders bind them to the proxy's object, which
+// answers them for a proxy's part (and a plain ship's object does not); the
+// by-name table's rows are answered and called on the C++ proxy.
 OO_TEST(dialsAnsweredByNameForAProxy)
 {
 	{
@@ -265,10 +266,9 @@ OO_TEST(dialsAnsweredByNameForAProxy)
 	}
 }
 
-// Visible to scripts (bead oo-ak1km): the player and the proxy are ships made in C++ under their
-// objects, which ask their C++ parts; they answer YES, as their deleted facades did (the
-// Objective-C PlayerEntity and ProxyPlayerEntity inherited ShipEntity's answer), and so does a
-// plain ship (C++ since bead oo-9ht.144).
+// Visible to scripts: the player and the proxy are ships made in C++ under
+// their objects, which ask their C++ parts; they answer YES, and so does a
+// plain ship.
 OO_TEST(playerAndProxyAreVisibleToScripts)
 {
 	{

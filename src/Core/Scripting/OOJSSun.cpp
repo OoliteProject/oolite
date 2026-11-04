@@ -29,18 +29,6 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "OOSunEntity.h"
 
-/*
-        C++20 since bead oo-hgfh, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSunEntity
-        became two free functions (its -oo_jsClassID answers JSSunClassID()), and its methods moved
-        to a bridge file of the binding (amendment oo-ykoy), then onto the OOSunEntity facade in
-        OOSunEntity+ObjCBridge.mm (bead oo-9ht.51, amendment oo-6ia4 item 3). Messages to classes
-        that are still Objective-C (OOSunEntity, Entity) stay as they are, which is why the file is
-        still .mm until Phase 4.
-*/
-
 static JSClassID sSunClassID;
 
 static JSValue SunGetProperty(OOJS_GETTER_ARGS);
@@ -75,11 +63,9 @@ static const JSCFunctionListEntry sSunMethods[] = {
 };
 
 namespace {
-// The sun is C++ behind the root's facade: the getter checks the JS class (a Sun object's private
-// slot holds the sun's Objective-C object, so -isKindOfClass: of the facade class always held) and
-// answers the C++ sun; null for a stale entity, as nil before.
-// The slot holds the C++ entity now (OOJSEntityGetEntityOfClass for the Sun class,
-// DEFINE_JS_OBJECT_GETTER(JSSunGetSunObject, sSunClassID, Entity) before).
+// The getter checks the JS class and answers the C++ sun (the slot holds the
+// C++ entity, read by OOJSEntityGetEntityOfClass for the Sun class); null for a
+// stale entity.
 bool JSSunGetSunEntity(JSContext* context, JSValueConst inObject, OOSunEntity** outObject)
 {
     Entity* entity = nullptr;
@@ -109,9 +95,7 @@ JSClassID JSSunClassID(void)
     return sSunClassID;
 }
 
-// The bodies of OOSunEntity (OOJavaScriptExtensions), whose methods are on the OOSunEntity facade,
-// in OOSunEntity+ObjCBridge.mm (bead oo-9ht.51), until that facade goes (oo-9ht.111; proposed
-// ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+// The bodies of OOSunEntity (OOJavaScriptExtensions).
 bool OOJSSunIsVisibleToScripts(void)
 {
     return true;
@@ -154,6 +138,8 @@ static JSValue SunGetProperty(OOJS_GETTER_ARGS)
     OOJS_NATIVE_EXIT
 }
 
+// namespace
+
 // *** Methods ***
 
 // goNova([delay : Number])
@@ -175,6 +161,8 @@ static JSValue SunGoNova(OOJS_NATIVE_ARGS)
 
     OOJS_NATIVE_EXIT
 }
+
+// namespace
 
 // cancelNova()
 static JSValue SunCancelNova(OOJS_NATIVE_ARGS)

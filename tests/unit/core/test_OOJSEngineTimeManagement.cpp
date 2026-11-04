@@ -1,18 +1,15 @@
 /*	test_OOJSEngineTimeManagement.mm
-	Unit tests for the script profiler (src/Core/Scripting/OOJSEngineTimeManagement.h/.mm): bead
-	oo-cn4o, a Phase 3 conversion in the house style of the OOColor exemplar (proposed ADR-0056;
-	amendment oo-ppc for the scripting files).
+	Unit tests for the script profiler (src/Core/Scripting/OOJSEngineTimeManagement.h/.mm).
 
 	The file holds the debug-build profiler, whose results are OOTimeProfile and OOTimeProfileEntry
 	objects. (The time limiter is the engine's, in OOJavaScriptEngine.mm, as #768 has it, on
 	QuickJS-ng's interrupt handler; its cases are in test_OOJSTimeLimiter.mm.) The test links the
-	game's own objects for the file, its Objective-C facades (OOJSEngineTimeManagement+ObjCBridge.mm)
-	and the stopwatch (OOProfilingStopwatch.mm). What the rest of the engine would provide is defined
-	below as the smallest stand-in that does the same thing: the time limiter the profiler reads,
-	pauses and extends, and the property-list converter (recording what it is given). The
-	expectations were written against the Objective-C file and run on it first; they pin the
-	profiler's entries (names, hit counts, the frame kind), the profile's and entries' descriptions
-	and property lists and the comparisons.
+	game's own objects for the file and the stopwatch (OOProfilingStopwatch.mm). What the rest of
+	the engine would provide is defined below as the smallest stand-in that does the same thing:
+	the time limiter the profiler reads, pauses and extends, and the property-list converter
+	(recording what it is given). The expectations were written against the Objective-C file and
+	run on it first; they pin the profiler's entries (names, hit counts, the frame kind), the
+	profile's and entries' descriptions and property lists and the comparisons.
 	Run: bash tools/check-core-tests.sh
 */
 

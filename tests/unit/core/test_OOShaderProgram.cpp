@@ -1,18 +1,16 @@
 /*	test_OOShaderProgram.mm
-	Unit tests for OOShaderProgram (src/Core/Materials/OOShaderProgram.h): bead oo-f9zg.
+	Unit tests for OOShaderProgram (src/Core/Materials/OOShaderProgram.h).
 
 	A linked GLSL program, made from sources or from shader files and shared through a cache keyed
 	by what made it. This pins, through the C++ API its callers use (OOShaderMaterial,
-	OOShaderUniform, DustEntity, Universe), what it did before the conversion, in a hidden GL context: the
-	programs made (the prefix prepended, an empty prefix counting as none, the attribute bindings),
-	the failures (no source, a source that does not compile, a file that is not there), the cache
-	(one program per key while it lives, none without a key, a new one once it has gone), the
-	files asked for, and apply() / applyNone() (the program in use, kept while it is). There is no
-	game view here, so no standard matrix uniforms are bound. Those checks ran on the Objective-C
-	class first, then through its facade; bead oo-9ht.58 deleted the facade (ADR-0049, standing
-	approval oo-9n5p9): the cases ask the C++ class with the same expectations (null for nil, a
-	held Ref for retain/release) and the facade's own case (facade) was retired with it.
-	Run: bash tools/check-core-tests.sh
+	OOShaderUniform, DustEntity, Universe), what it did before the conversion, in a hidden GL
+	context: the programs made (the prefix prepended, an empty prefix counting as none, the
+	attribute bindings), the failures (no source, a source that does not compile, a file that is not
+	there), the cache (one program per key while it lives, none without a key, a new one once it has
+	gone), the files asked for, and apply() / applyNone() (the program in use, kept while it is).
+	There is no game view here, so no standard matrix uniforms are bound. Those checks ran on the
+	Objective-C class first; the cases ask the C++ class with the same expectations (null for nil, a
+	held Ref for retain/release). Run: bash tools/check-core-tests.sh
 */
 
 #include "OOShaderProgram.h"
@@ -47,8 +45,8 @@ static std::vector<std::string> gShaderFileRequests;
 
 #include "ResourceManager.h"
 
-// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
+// ResourceManager: C++ definitions of the statics the code under test calls,
+// with the stand-in's answers.
 std::vector<std::string> ResourceManager::paths()  { return {}; }
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &/*fileName*/, const std::optional<std::string> &/*folderName*/, bool /*mergeFiles*/)  { return oo::PList(oo::PList::Dict{}); }
 std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName)
@@ -61,7 +59,7 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::stri
 
 
 
-// OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12): the stub answers no match.
+// OORegExpMatcher stub: answers no match.
 oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
 bool OORegExpMatcher::string(const std::string &, const std::string &)  { return false; }
 OORegExpMatcher::~OORegExpMatcher()  {}
@@ -73,9 +71,9 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
 }
 
 
-// UNIVERSE is gSharedUniverse: nil, so there is no game view and no matrix manager. The view is
-// C++ (MyOpenGLView; its facade's crossing went with bead oo-9ht.153), and its manager accessor is
-// never reached.
+// UNIVERSE is gSharedUniverse: nil, so there is no game view and no matrix
+// manager. The view is C++ (MyOpenGLView), and its manager accessor is never
+// reached.
 class Universe;
 Universe *gSharedUniverse = nil;
 

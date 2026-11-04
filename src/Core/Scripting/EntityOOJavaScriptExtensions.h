@@ -4,14 +4,11 @@ EntityOOJavaScriptExtensions.h (QuickJS-ng)
 
 JavaScript support methods for entities.
 
-C++20 since bead oo-g223 (proposed ADR-0056, amendments oo-ppc and oo-ykoy): the bodies of the
-categories Entity (OOJavaScriptExtensions) and ShipEntity (OOJavaScriptExtensions), which the
-engine and the bindings reach by selector, are the free functions below, one per method, named
-after the class the category extends and the selector's first keyword. The category Entity
-(OOJavaScriptExtensions) was the root's facade's and is deleted (the engine asks the C++ entity,
-below); ShipEntity's went with the ship's facade and PlayerEntity's with the player's.
-An entity's JS object holds the C++ entity (an OOJSEntityHolder, OOJSEntity.h, in its private
-slot), and the functions that made and dropped it take the C++ entity.
+The Entity and ShipEntity JavaScript extensions are the free functions below,
+one per method, named after the class they extend and the selector's first
+keyword. An entity's JS object holds the C++ entity (an OOJSEntityHolder,
+OOJSEntity.h, in its private slot), and the functions that made and dropped it
+take the C++ entity.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -30,6 +27,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
+
 */
 
 #pragma once
@@ -37,10 +35,8 @@ MA 02110-1301, USA.
 #include "Entity.h"
 #include "OOJavaScriptEngine.h"
 
-class ShipEntity; // C++
-
-// Entity (OOJavaScriptExtensions). The JS object's functions take the C++ entity (Entity's JS glue
-// members call them; the engine asks those members).
+class ShipEntity; // Entity extensions. The JS object's functions take the C++ entity (Entity's
+// JS glue members call them; the engine asks those members).
 bool EntityJSIsVisibleToScripts(void);
 std::optional<std::string> EntityJSClassName(void);
 // The entity's JS object, owned by the caller (JS null for none).
@@ -54,10 +50,10 @@ std::optional<std::string> EntityJSDescription(Entity* entity);
 // Objective-C entity's own override answers first, a C++ entity's virtual member otherwise.
 bool OOJSEntityIsVisibleToScripts(Entity* entity);
 std::optional<std::string> OOJSEntityJSClassName(Entity* entity);
-// The same for the JS class, and for the JS value (the entity's own JS object; null for no entity,
-// as OOJSValueFromNativeObject() gave for nil): what the engine asked an entity's object by
-// -oo_jsClassID and -oo_jsValueInContext:. Entity's own class is EntityJSClassID(), ShipEntity's
-// ShipEntityJSClassID().
+// The same for the JS class, and for the JS value (the entity's own JS object;
+// null for no entity): what the engine asked an entity's object by
+// -oo_jsClassID and -oo_jsValueInContext:. Entity's own class is
+// EntityJSClassID(), ShipEntity's ShipEntityJSClassID().
 JSClassID OOJSEntityJSClassID(Entity* entity);
 // Owned by the caller.
 JSValue OOJSEntityJSValue(Entity* entity, JSContext* context);

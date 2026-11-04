@@ -36,12 +36,14 @@ SOFTWARE.
 #include "oofnd/PListWriting.hpp"
 #include "oofnd/String.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-xh1g): the descriptions are oo::PLists, the lines
-        std::strings scanned in UTF-16 units as -rangeOfString: scanned them. The indices are integers
-        (an index from the key table's -intValue may be negative, as the Foundation number was). Dictionaries are
-        visited in key order (byte order; they were in hash order), which decides the slot an unknown
-        key is given and the order of the "Assigning key" log lines. Where the Foundation code raised on
-        a malformed line (a "[" with no "]" after it), the line is left as it stands.
+/*	The descriptions are
+   oo::PLists, the lines std::strings scanned in UTF-16 units as -rangeOfString:
+   scanned them. The indices are integers (an index from the key table's
+   -intValue may be negative, as the Foundation number was). Dictionaries are
+        visited in key order (byte order; they were in hash order), which
+   decides the slot an unknown key is given and the order of the "Assigning key"
+   log lines. Where the Foundation code raised on a malformed line (a "[" with
+   no "]" after it), the line is left as it stands.
 */
 namespace {
 

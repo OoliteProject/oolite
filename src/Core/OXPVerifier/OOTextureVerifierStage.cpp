@@ -129,7 +129,7 @@ void OOTextureVerifierStage::checkTextureNamed(const std::string& name, const st
     }
 }
 
-// OOTextureHandlingStage: C++ since bead oo-tuq8; global since bead oo-9ht.45 deleted its facade.
+// OOTextureHandlingStage.
 
 std::optional<std::vector<std::string>> OOTextureHandlingStage::dependents()
 {

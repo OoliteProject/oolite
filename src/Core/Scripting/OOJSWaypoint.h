@@ -36,9 +36,9 @@ void InitOOJSWaypoint(JSContext* context, JSValueConst global);
 
 JSClassID JSWaypointClassID(void);
 
-/*	The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the engine reaches through the
-        root's JS members: the C++ class's overrides call these (the OOWaypointEntity facade forwarded
-        to them before). Its JS class is JSWaypointClassID().
+/*	The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the
+   engine reaches through the root's JS members: the C++ class's overrides call
+   these. Its JS class is JSWaypointClassID().
 */
 std::optional<std::string> OOJSWaypointJSClassName(void);
 bool OOJSWaypointIsVisibleToScripts(void);
