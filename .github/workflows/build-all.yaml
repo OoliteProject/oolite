@@ -361,11 +361,11 @@ jobs:
         id: version
         run: |
           set -x          
-          # 1. Check that there are exactly 4 files recursively in the artifacts directory
+          # 1. Check that there are exactly 5 files recursively in the artifacts directory
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [[ "$FILE_COUNT" -ne 4 ]]; then
-            echo "❌ Expected exactly 4 files, but found $FILE_COUNT." >&2
+          if [[ "$FILE_COUNT" -ne 5 ]]; then
+            echo "❌ Expected exactly 5 files, but found $FILE_COUNT." >&2
             exit 1
           fi                    
           # 2. Get the path of the first available AppImage
