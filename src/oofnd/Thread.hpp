@@ -40,7 +40,7 @@
 #ifndef OOFND_THREAD_HPP
 #define OOFND_THREAD_HPP
 
-// Objective-C++ callers see OOCocoa.h's `#define true 1` / `#define false 0`; suspend them for the
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for the
 // standard headers (as oofnd/Data.hpp does, proposed ADR-0028).
 #pragma push_macro("true")
 #pragma push_macro("false")

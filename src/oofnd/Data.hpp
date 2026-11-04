@@ -36,7 +36,7 @@
 #ifndef OOFND_DATA_HPP
 #define OOFND_DATA_HPP
 
-// Objective-C++ callers see OOCocoa.h's `#define true 1` / `#define false 0`; C++20 needs the
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; C++20 needs the
 // keywords (requires-clauses, <=> in the standard headers this pulls in). Suspend the macros for
 // this header and restore them at its end (proposed ADR-0028).
 #pragma push_macro("true")

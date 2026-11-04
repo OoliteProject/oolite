@@ -31,7 +31,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #include "oofnd/Thread.hpp"
 
-// OOCocoa.h defines true/false as macros; the standard headers want the keywords (oofnd/Data.hpp).
+// OOFoundation.h defines true/false as macros; the standard headers want the keywords (oofnd/Data.hpp).
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true

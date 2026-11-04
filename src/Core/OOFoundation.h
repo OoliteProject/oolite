@@ -132,7 +132,7 @@ MA 02110-1301, USA.
         stay exactly as they were (game code keeps its int-typed true/false), but a C++20 standard
         header parsed after them breaks: <optional> has `bool(__x) <=> false`, i.e. bool <=> int.
         So those headers are parsed here first, with the real keywords; their include guards make
-        every later #include of them a no-op. extern "C++" because OOCocoa.h is sometimes reached
+        every later #include of them a no-op. extern "C++" because OOFoundation.h is sometimes reached
         from inside an extern "C" block (OOMaths.h).
 */
 extern "C++" {

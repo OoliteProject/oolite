@@ -24,7 +24,7 @@
         ADR-0029). Nothing in Oolite catches it.
 
         Foundation defines every one of these names, so this header refuses to compile beside it: it is
-        included by OOCocoa.h only when oo-qps removes the Foundation import. Plain C: usable from C,
+        included by OOFoundation.h only when oo-qps removes the Foundation import. Plain C: usable from C,
         C++, Objective-C and Objective-C++.
 */
 

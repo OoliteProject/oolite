@@ -41,7 +41,7 @@ Rules that hold for every component:
 | `src/oofnd/objc/OOConstantString.h`, `.mm` | `OOConstantString`/`OOTinyString`: the classes behind `@"..."` under `-fconstant-string-class=OOConstantString` (ADR-0029) |
 | `src/oofnd/objc/OORuntime.h` | `OOClassFromName`/`OOClassName`/`OOSelectorFromName`/`OOSelectorName`/`OOSelectorsEqual`: `NSClassFromString` & co. on the libobjc2 calls GNUstep makes, UTF-8 in and out; header-only |
 | `src/oofnd/objc/OOException.h`, `.mm` | `OOException`: `NSException` without Foundation; `@try`/`@catch` stay Objective-C (ADR-0029 Decision 4). `+raise:format:` is printf-style; `OOInvalidArgumentException` & co. are `const char *` with Foundation's text |
-| `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`NSInteger`/`NSUInteger`, `NSRange`, `NSNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `NSTimeInterval`, `CGFloat`) with GNUstep's exact definitions and names (ADR-0029 Decision 5); refuses to compile beside Foundation, so OOCocoa.h includes it only from oo-qps. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
+| `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`NSInteger`/`NSUInteger`, `NSRange`, `NSNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `NSTimeInterval`, `CGFloat`) with GNUstep's exact definitions and names (ADR-0029 Decision 5); refuses to compile beside Foundation, so OOFoundation.h includes it only from oo-qps. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
 | `src/oofnd/meson.build` | `oofnd_dep` (include path `src/`, so consumers write `#include "oofnd/X.hpp"`) |
 | `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++20 |
 | `tests/unit/oofnd/oo_test.hpp` | the whole test harness: `OO_TEST`, `OO_CHECK`, `OO_CHECK_EQ`, `OO_TEST_MAIN` |
@@ -135,7 +135,7 @@ cd upstream/oolite && ./mk.sh build test
 meson test -C build/meson_test --suite oofnd
 ```
 
-Objective-C++ game code builds as `gnu++20` and sees OOCocoa.h's `#define true 1` / `#define false 0`:
+Objective-C++ game code builds as `gnu++20` and sees OOFoundation.h's `#define true 1` / `#define false 0`:
 a header that game code includes must suspend them with `#pragma push_macro`/`pop_macro` as
 `Data.hpp` does (ADR-0028; `tests/unit/oofnd/test_cocoa_macros.cpp` checks it).
 
