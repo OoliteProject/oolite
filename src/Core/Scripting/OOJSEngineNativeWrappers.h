@@ -136,5 +136,4 @@ public:
     OOJSFullNativeScope& operator=(const OOJSFullNativeScope&) = delete;
 };
 
-
 #endif // INCLUDED_OOJSENGINENATIVEWRAPPERS_h
