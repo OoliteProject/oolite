@@ -81,8 +81,7 @@ int RandArgument(const std::string& token)
     return parts.size() > 1 ? oo::str::intValue(parts[1]) : 0;
 }
 
-} // Byte-identical façade <-> jsapi view, local to this call site (see
-// OOJSVector.mm).
+} // namespace
 
 // AI category, OOAIPrivate (ship and station) and the station stubs. Members of
 // ShipEntity defined in the category's file.
