@@ -6,7 +6,7 @@ TEMPORARY: oo-qps (libgnustep-base leaves the build) deletes this file.
 
 Classes rerooted from NSObject onto the Foundation-free OOObject (proposed ADR-0029, bead
 oo-3rb.2) lose what NSObject gave them. What the game's own NSObject categories give (the
--description of OOCocoa.h's OODescriptionComponents, JS conversion, weak references, ...) has an
+-description of OOFoundation.h's OODescriptionComponents, JS conversion, weak references, ...) has an
 OOObject twin next to each category. What gnustep-base's NSObject gives is here, until the bead
 that removes each Foundation family replaces it:
 
