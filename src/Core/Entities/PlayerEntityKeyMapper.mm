@@ -153,7 +153,7 @@ std::string KeyMappingsFileName(void)
 #if OOLITE_LINUX
     map = "keymappings_linux.plist";
 #endif
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_COCOA_UI
     map = "keymappings_mac.plist";
 #endif
     return map;

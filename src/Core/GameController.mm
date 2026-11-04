@@ -44,8 +44,10 @@ MA 02110-1301, USA.
 #import "legacy_random.h"
 #import <objc/objc-arc.h>
 #include <stdlib.h>
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 #import "OODebugTCPConsoleClient.h"
+#endif
+#ifndef NDEBUG
 #import "OOJavaScriptEngine.h"
 #endif
 #import "OOFoundationBridge.h"
@@ -595,7 +597,7 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
             // The OXZ download's callbacks, which the run loop delivered (proposed ADR-0044).
             [[OOOXZManager sharedManager] processDownloadEvents];
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
             if (OODebugTCPConsoleIsWaitingForInput()) {
                 /*	The debug console's socket is no longer on the run loop (bead oo-3rb.14,
                         proposed ADR-0041): run the run loop without waiting (its timers and ready

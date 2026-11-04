@@ -319,7 +319,7 @@ directly.
 A header reached inside `extern "C"` (the `OOMaths.h` family) wraps its C++ declarations in
 `extern "C++" { ... }`, as `OOVector.h` does; the same goes for an `#include` of a C++ header (an
 oofnd `.hpp`, `oofnd/StdLib.hpp`) from such a header: `#ifdef __cplusplus` / `extern "C++" {
-#include "..." }` / `#endif`, the idiom `OOCocoa.h` and `OOLogging.h` use.
+#include "..." }` / `#endif`, the idiom `OOFoundation.h` and `OOLogging.h` use.
 
 ### 3. Shared selectors
 
