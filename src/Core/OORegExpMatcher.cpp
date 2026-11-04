@@ -140,7 +140,7 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
     // QuickJS leaves pending, is reported as it did.
     JSValue argv[2];
     argv[0] = OOJSValueFromPList(context, oo::PList(string));
-    argv[1] = (_cachedRegExpObject != nullptr) ? _cachedRegExpObject->jsValueInContext(context) : JSValue {}; // (a message to nil gave the zero value)
+    argv[1] = (_cachedRegExpObject != nullptr) ? _cachedRegExpObject->jsValueInContext(context) : JSValue { }; // (a message to nil gave the zero value)
     JSValue resultValue = JS_UNDEFINED;
     bool OK = _tester->evaluateWithContext(context, JS_UNDEFINED, 2, argv, &resultValue);
     int matched = 0;

@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 #include "OOJSFunction.h"
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSScript.h"
-#include <climits>
 #include "oofnd/Notification.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
+#include <climits>
 
 /*	C++20 since bead oo-3smy (proposed ADR-0056): OOJSFunction. The initialisers answered nil
         for their input, so they are static factories of the same name (amendment oo-novu item 1); the
