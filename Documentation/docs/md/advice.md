@@ -33,7 +33,7 @@ busiest station in the Galactic Cooperative of Worlds.
 ![](./assets/images/dockmaster.png){ width="20%" }
 
 ■ The Transcript has been edited for brevity and relevance. The
-original can be source in the Oolite Central Archives (the Oolite Wiki).
+original can be sourced in the Oolite Central Archives (the Oolite Wiki).
 
 <div class="page-break"></div>
 All right there! You just got your pilot’s ticket. Can I just say that your zip-clip there doesn’t do you justice?
