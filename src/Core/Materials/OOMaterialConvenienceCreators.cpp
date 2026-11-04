@@ -154,7 +154,7 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(const std::optiona
     const oo::PList& macros,
     Entity* target)
 {
-    // The cache manager's facade, still messaged (proposed ADR-0056 amendment oo-rmd7 item 3).
+    // The cache manager's facade, still messaged.
     ::OOCacheManager* cache = nullptr;
     oo::PList synthesizedConfig;
     oo::Ref<OOMaterial> result;

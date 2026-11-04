@@ -60,11 +60,11 @@ offline, and no network state can change its result.
 
     python3 -m pytest oolite-dev/tests/gui/test_g5_screen_round_trips.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
 
 HELPERS LIVE HERE, NOT IN conftest.py, ON PURPOSE. G4 is being written concurrently against the
-same tier; a shared helper added to conftest.py by both beads is a guaranteed merge conflict, and
+same tier; a shared helper added to conftest.py by both tests is a guaranteed merge conflict, and
 nothing below is needed by any other test.
 """
 
@@ -403,7 +403,7 @@ def test_g5_screen_round_trips(screen_witness, game):
 
     # Asked of the OS process table, not of proc.poll() - wait() above already stored that code.
     assert_no_surviving_game_processes(game.proc.pid)
-    # G9 hygiene, with the launch-time defaults mark the fixture recorded (oo-5rsa).
+    # G9 hygiene, with the launch-time defaults mark the fixture recorded.
     assert_clean_exit(game)
 
 
@@ -416,7 +416,7 @@ def test_g5_asserts_arrival_and_return_for_all_three_screens():
 
     The guard that this file cannot decay into "we pressed keys and nothing crashed". It reads
     THIS FILE'S OWN AST - not its text - because a text grep is satisfied by a docstring, which
-    is exactly how a sibling bead's guard stayed green after both of its real assertions were
+    is exactly how a sibling test's guard stayed green after both of its real assertions were
     deleted. Every name below is required to appear in executable code inside the test function.
     """
     with open(os.path.join(HERE, "test_g5_screen_round_trips.py"), "r", encoding="utf-8") as h:
@@ -492,7 +492,7 @@ def test_g5_asserts_arrival_and_return_for_all_three_screens():
 def test_g5_never_touches_expansion_content():
     """G5 opens the Expansion Manager SCREEN and must never read or download expansion content.
 
-    The repository rule is absolute (ADR/story prohibitions), and the manager is the one screen
+    The repository rule is absolute (the story prohibitions), and the manager is the one screen
     from which a careless keystroke could break it. The rows this file confirms are checked by
     AST: only the start-screen rows, the Game Options Back row, and the manager's own ``_EXIT``
     row (OOOXZManager.m:114) may appear. ``OXZ_GUI_ROW_INSTALL``/``_UPDATE`` and friends are not

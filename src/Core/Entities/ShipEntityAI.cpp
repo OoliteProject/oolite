@@ -81,14 +81,13 @@ int RandArgument(const std::string& token)
     return parts.size() > 1 ? oo::str::intValue(parts[1]) : 0;
 }
 
-} // namespace
+} // Byte-identical façade <-> jsapi view, local to this call site (see
+// OOJSVector.mm).
 
-// Slice 1 of docs/phases/3-slices/ShipEntityAI.md (bead oo-iebuz): AI category, OOAIPrivate (ship
-// and station) and the station stubs. Members of ShipEntity defined in the category's file
-//; called directly since bead oo-9ht.144 deleted the facade
-// (amendment oo-9ht.144).
+// AI category, OOAIPrivate (ship and station) and the station stubs. Members of
+// ShipEntity defined in the category's file.
 
-void ShipEntity::setAITo(const std::string& aiString) // called by name (ADR-0055 item 5)
+void ShipEntity::setAITo(const std::string& aiString) // called by name
 {
     std::string ai = aiString;
     // don't try to load real AIs if the game hasn't started yet
@@ -129,7 +128,7 @@ void ShipEntity::setAIScript(const std::string& aiString)
     }
 }
 
-void ShipEntity::switchAITo(const std::string& aiString) // called by name (ADR-0055 item 5)
+void ShipEntity::switchAITo(const std::string& aiString) // called by name
 {
     setAITo(aiString);
     if (getAI() != nullptr)
@@ -138,7 +137,8 @@ void ShipEntity::switchAITo(const std::string& aiString) // called by name (ADR-
 
 void ShipEntity::scanForHostiles()
 {
-    /*-- Locates all the ships in range targeting the receiver and chooses the nearest --*/
+    /*-- Locates all the ships in range targeting the receiver and chooses the
+     * nearest --*/
     _foundTarget = nullptr;
 
     checkScanner();
@@ -426,8 +426,8 @@ void ShipEntity::enterPlayerWormhole()
 
 void ShipEntity::enterTargetWormhole()
 {
-    WormholeEntity* whole = nullptr; // C++ since bead oo-9ht.112
-    Entity* targEnt = primaryTarget(); // any entity: a wormhole is the one sought (the ship's object was typed ShipEntity until the ship's facade went)
+    WormholeEntity* whole = nullptr;
+    Entity* targEnt = primaryTarget(); // any entity: a wormhole is the one sought
     double found_d2 = scannerRange * scannerRange;
 
     if (targEnt && (HPdistance2(position, targEnt->getPosition()) < found_d2)) {
@@ -536,7 +536,8 @@ bool ShipEntity::suggestEscortTo(::ShipEntity* mother)
 
 void ShipEntity::broadcastDistressMessage()
 {
-    /*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
+    /*-- Locates all the stations, bounty hunters and police ships in range and
+     * tells them that you are under attack --*/
     broadcastDistressMessageWithDumping(YES);
 }
 
@@ -687,8 +688,7 @@ bool ShipEntity::performHyperSpaceExitReplace(bool replace, OOSystemID systemID)
     fuel -= 10 * dist;
 
     // create wormhole
-    // +alloc/-initWormholeTo:fromShip:/-autorelease: a new C++ wormhole and its autoreleased
-    // Objective-C object.
+    // A new C++ wormhole and its autoreleased Objective-C object.
     oo::Ref<WormholeEntity> whRef = oo::makeRef<WormholeEntity>();
     Entity* wholeObject = oo::MadeEntity(whRef); // the wormhole, given its object
     whRef->initWormholeTo(targetSystem, this);
@@ -761,7 +761,8 @@ void LogNotAStation(ShipEntity* ship, const char* method)
 void ShipEntity::increaseAlertLevel() { LogNotAStation(this, "increaseAlertLevel"); }
 void ShipEntity::decreaseAlertLevel() { LogNotAStation(this, "decreaseAlertLevel"); }
 
-oo::PList ShipEntity::launchPolice() // called by name (ADR-0055 item 5): StationEntity's returns the ships launched
+oo::PList ShipEntity::launchPolice() // called by name: StationEntity's
+                                     // returns the ships launched
 {
     LogNotAStation(this, "launchPolice");
     return oo::PList();
@@ -781,7 +782,7 @@ bool ShipEntity::launchPatrol()
     return NO;
 }
 
-void ShipEntity::launchShipWithRole(const std::string& /* param */) { LogNotAStation(this, "launchShipWithRole:"); } // called by name (ADR-0055 item 5)
+void ShipEntity::launchShipWithRole(const std::string& /* param */) { LogNotAStation(this, "launchShipWithRole:"); } // called by name
 void ShipEntity::abortAllDockings() { LogNotAStation(this, "abortAllDockings"); }
 
 // The station's unit of the category StationEntity (OOAIPrivate), overriding the ship's.
@@ -798,24 +799,22 @@ void StationEntity::acceptDistressMessageFrom(::ShipEntity* other)
     _primaryTarget = old_target;
 }
 
-// Slice 2 of docs/phases/3-slices/ShipEntityAI.md (bead oo-xurzn): PureAI part 1: state, speed,
-// scans for prey and loot, planets, legal status. Members of ShipEntity defined in the category's
-// file; called directly since bead oo-9ht.144 deleted the facade
-// (amendment oo-9ht.144).
+// PureAI part 1: state, speed, scans for prey and loot, planets, legal status.
+// Members of ShipEntity defined in the category's file.
 
-void ShipEntity::setStateTo(const std::string& state) // called by name (ADR-0055 item 5)
+void ShipEntity::setStateTo(const std::string& state) // called by name
 {
     if (getAI() != nullptr)
         getAI()->setState(state);
 }
 
-void ShipEntity::pauseAI(const std::string& intervalString) // called by name (ADR-0055 item 5)
+void ShipEntity::pauseAI(const std::string& intervalString) // called by name
 {
     if (shipAI != nullptr)
         shipAI->setNextThinkTime((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) + oo::str::doubleValue(intervalString));
 }
 
-void ShipEntity::randomPauseAI(const std::string& intervalString) // called by name (ADR-0055 item 5)
+void ShipEntity::randomPauseAI(const std::string& intervalString) // called by name
 {
     const std::vector<std::string> tokens = oo::str::tokens(intervalString);
     double start, end;
@@ -832,7 +831,7 @@ void ShipEntity::randomPauseAI(const std::string& intervalString) // called by n
         shipAI->setNextThinkTime((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) + (start + (end - start) * randf()));
 }
 
-void ShipEntity::dropMessages(const std::string& messageString) // called by name (ADR-0055 item 5)
+void ShipEntity::dropMessages(const std::string& messageString) // called by name
 {
     for (const std::string& message : oo::str::split(messageString, ",")) {
         if (shipAI != nullptr)
@@ -859,7 +858,7 @@ void ShipEntity::setDestinationToJinkPosition()
     pitching_over = YES; // don't complete roll first, but immediately start with pitching.
 }
 
-void ShipEntity::setDesiredRangeTo(const std::string& rangeString) // called by name (ADR-0055 item 5)
+void ShipEntity::setDesiredRangeTo(const std::string& rangeString) // called by name
 {
     desired_range = oo::str::doubleValue(rangeString);
 }
@@ -869,12 +868,12 @@ void ShipEntity::setDesiredRangeForWaypoint()
     desired_range = fmax(maxFlightSpeed / max_flight_pitch / 6, 50.0); // some ships need a longer range to reach a waypoint.
 }
 
-void ShipEntity::setSpeedTo(const std::string& speedString) // called by name (ADR-0055 item 5)
+void ShipEntity::setSpeedTo(const std::string& speedString) // called by name
 {
     desired_speed = oo::str::doubleValue(speedString);
 }
 
-void ShipEntity::setSpeedFactorTo(const std::string& speedString) // called by name (ADR-0055 item 5)
+void ShipEntity::setSpeedFactorTo(const std::string& speedString) // called by name
 {
     desired_speed = maxFlightSpeed * oo::str::doubleValue(speedString);
 }
@@ -884,7 +883,7 @@ void ShipEntity::setSpeedToCruiseSpeed()
     desired_speed = cruiseSpeed;
 }
 
-void ShipEntity::setThrustFactorTo(const std::string& thrustFactorString) // called by name (ADR-0055 item 5)
+void ShipEntity::setThrustFactorTo(const std::string& thrustFactorString) // called by name
 {
     thrust = OOClamp_0_1_f(oo::str::doubleValue(thrustFactorString)) * max_thrust;
 }
@@ -1041,7 +1040,8 @@ void ShipEntity::scanForLoot()
 
 void ShipEntity::scanForRandomLoot()
 {
-    /*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
+    /*-- Locates the all debris in range and chooses a piece at random from the
+     * first sixteen found --*/
     if (!getIsStation() && !hasCargoScoop()) {
         if (shipAI != nullptr)
             shipAI->message("NOTHING_FOUND"); // can't collect loot if you have no scoop!
@@ -1107,7 +1107,8 @@ void ShipEntity::checkForFullHold()
 
 void ShipEntity::getWitchspaceEntryCoordinates()
 {
-    /*- calculates coordinates from the nearest station it can find, or just fly 10s forward -*/
+    /*- calculates coordinates from the nearest station it can find, or just fly
+     * 10s forward -*/
     if (!UNIVERSE) {
         Vector vr = vector_multiply_scalar(v_forward, maxFlightSpeed * 10.0); // 10 second flying away
         coordinates = HPvector_add(position, vectorToHPVector(vr));
@@ -1224,7 +1225,7 @@ void ShipEntity::setCourseToPlanet()
     ::OOPlanetEntity* the_planet = findNearestPlanetExcludingMoons();
     if (the_planet) {
         double variation = (aegis_status == AEGIS_NONE ? 0.5 : 0.2); // more random deviation when far from planet.
-        HPVector p_pos = the_planet->position; // the planet is C++ since bead oo-9ht.129
+        HPVector p_pos = the_planet->position;
         double p_cr = the_planet->collision_radius; // the surface
         HPVector p1 = HPvector_between(p_pos, position);
         p1 = HPvector_normal(p1); // vector towards ship
@@ -1314,7 +1315,7 @@ void ShipEntity::checkOwnLegalStatus()
         shipAI->message("SELF_CLEAN");
 }
 
-void ShipEntity::exitAIWithMessage(const std::string& message) // called by name (ADR-0055 item 5)
+void ShipEntity::exitAIWithMessage(const std::string& message) // called by name
 {
     if (shipAI != nullptr)
         shipAI->exitStateMachineWithMessage(message.empty() ? std::string("RESTARTED") : message);
@@ -1342,7 +1343,7 @@ void ShipEntity::setDestinationWithinTarget()
 
 void ShipEntity::checkCourseToDestination()
 {
-    Entity* hazard = (UNIVERSE != nullptr ? UNIVERSE->hazardOnRouteFromEntity(this, desired_range, _destination) : nullptr); // the C++ entities; asked what its object answered
+    Entity* hazard = (UNIVERSE != nullptr ? UNIVERSE->hazardOnRouteFromEntity(this, desired_range, _destination) : nullptr);
 
     if (hazard == nullptr || (oo::EntityIsShip(hazard) && HPdistance(position, hazard->getPosition()) > scannerRange) || (oo::EntityIsPlanet(hazard) && aegis_status == AEGIS_NONE)) {
         if (shipAI != nullptr)
@@ -1354,16 +1355,14 @@ void ShipEntity::checkCourseToDestination()
                 shipAI->reactToMessage("HAZARD_CAN_BE_DESTROYED", "checkCourseToDestination");
         }
 
-        _destination = (UNIVERSE != nullptr ? UNIVERSE->getSafeVectorFromEntity(this, desired_range, _destination) : HPVector { }); // the C++ ship
+        _destination = (UNIVERSE != nullptr ? UNIVERSE->getSafeVectorFromEntity(this, desired_range, _destination) : HPVector { });
         if (shipAI != nullptr)
             shipAI->message("WAYPOINT_SET");
     }
 }
 
-// Slice 3 of docs/phases/3-slices/ShipEntityAI.md (bead oo-wc9o3): PureAI part 2: checks, comms,
-// Thargoids, escorts, patrols, target marking. Members of ShipEntity defined in the category's file
-//; called directly since bead oo-9ht.144 deleted the facade
-// (amendment oo-9ht.144).
+// PureAI part 2: checks, comms, Thargoids, escorts, patrols, target marking.
+// Members of ShipEntity defined in the category's file.
 
 void ShipEntity::checkAegis()
 {
@@ -1375,7 +1374,7 @@ void ShipEntity::checkAegis()
         //[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, kept for compatibility with pre-1.72 AI plists.
         return;
     case AEGIS_CLOSE_TO_ANY_PLANET: {
-        Entity* nearest = findNearestStellarBody(); // the C++ entity
+        Entity* nearest = findNearestStellarBody();
 
         if (nearest != nullptr && nearest->isSun()) {
             if (shipAI != nullptr)
@@ -1460,7 +1459,8 @@ void ShipEntity::findNewDefenseTarget()
 
 void ShipEntity::scanForOffenders()
 {
-    /*-- Locates all the ships in range and compares their legal status or bounty against ranrot_rand() & 255 - chooses the worst offender --*/
+    /*-- Locates all the ships in range and compares their legal status or bounty
+     * against ranrot_rand() & 255 - chooses the worst offender --*/
     float gov_factor = 0.4 * (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList()).get<int>(std::string(KEY_GOVERNMENT)); // 0 .. 7 (0 anarchic .. 7 most stable) --> [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
     //
     if ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) == nil)
@@ -1549,12 +1549,12 @@ void ShipEntity::wormholeGroup()
     }
 }
 
-void ShipEntity::commsMessage(const std::string& valueString) // called by name (ADR-0055 item 5)
+void ShipEntity::commsMessage(const std::string& valueString) // called by name
 {
     commsMessage(valueString, NO);
 }
 
-void ShipEntity::commsMessageByUnpiloted(const std::string& valueString) // called by name (ADR-0055 item 5)
+void ShipEntity::commsMessageByUnpiloted(const std::string& valueString) // called by name
 {
     commsMessage(valueString, YES);
 }
@@ -1567,7 +1567,7 @@ void ShipEntity::ejectCargo()
     }
     dumpCargo();
     for (i = 1; i < cargo_to_go; i++) {
-        // drop 3 canisters per 2 seconds (a deferred call on the C++ ship; by name on its object before)
+        // drop 3 canisters per 2 seconds (a deferred call on the ship)
         oo::ScheduleEntityCall(this, [](Entity* entity) { if (ShipEntity *ship = dynamic_cast<ShipEntity *>(entity))  ship->dumpCargo(); }, 0.75 * i);
     }
 }
@@ -1783,7 +1783,7 @@ void ShipEntity::scanForFormationLeader()
     }
 }
 
-void ShipEntity::messageMother(const std::string& msgString) // called by name (ADR-0055 item 5)
+void ShipEntity::messageMother(const std::string& msgString) // called by name
 {
     ::ShipEntity* mother = oo::ToShip(owner());
     if (mother != nil && mother != this) {
@@ -1792,7 +1792,7 @@ void ShipEntity::messageMother(const std::string& msgString) // called by name (
     }
 }
 
-void ShipEntity::messageSelf(const std::string& msgString) // called by name (ADR-0055 item 5)
+void ShipEntity::messageSelf(const std::string& msgString) // called by name
 {
     sendAIMessage(msgString);
 }
@@ -1942,7 +1942,7 @@ void ShipEntity::checkForMotherStation()
         shipAI->message("STATION_FOUND");
 }
 
-void ShipEntity::sendTargetCommsMessage(const std::string& message) // called by name (ADR-0055 item 5)
+void ShipEntity::sendTargetCommsMessage(const std::string& message) // called by name
 {
     ::ShipEntity* ship = oo::ToShip(primaryTarget());
     if ((ship == nil) || ((ship != nullptr ? ship->status() : OOEntityStatus { }) == STATUS_DEAD) || ((ship != nullptr ? ship->status() : OOEntityStatus { }) == STATUS_DOCKED)) {
@@ -1965,7 +1965,7 @@ void ShipEntity::markTargetForFines()
     }
 }
 
-void ShipEntity::markTargetForOffence(const std::string& valueString) // called by name (ADR-0055 item 5)
+void ShipEntity::markTargetForOffence(const std::string& valueString) // called by name
 {
     if ((isStation) || (scanClass == CLASS_POLICE)) {
         ::ShipEntity* ship = oo::ToShip(primaryTarget());
@@ -1990,10 +1990,8 @@ void ShipEntity::storeTarget()
     }
 }
 
-// Slice 4 of docs/phases/3-slices/ShipEntityAI.md (bead oo-lqyhf): PureAI part 3: stored targets,
-// nearest-ship scans, stations, script actions, beacons. Members of ShipEntity defined in the
-// category's file; called directly since bead oo-9ht.144 deleted
-// the facade (amendment oo-9ht.144).
+// PureAI part 3: stored targets, nearest-ship scans, stations, script actions,
+// beacons. Members of ShipEntity defined in the category's file.
 
 void ShipEntity::recallStoredTarget()
 {
@@ -2093,7 +2091,8 @@ void ShipEntity::requestNewTarget()
         return;
     }
 
-    /*-- Locates all the ships in range targeting the mother ship and chooses the nearest/biggest --*/
+    /*-- Locates all the ships in range targeting the mother ship and chooses the
+     * nearest/biggest --*/
     _foundTarget = nullptr;
     checkScanner();
     unsigned i;
@@ -2114,7 +2113,7 @@ void ShipEntity::requestNewTarget()
     checkFoundTarget();
 }
 
-void ShipEntity::rollD(const std::string& die_number) // called by name (ADR-0055 item 5)
+void ShipEntity::rollD(const std::string& die_number) // called by name
 {
     int die_sides = oo::str::intValue(die_number);
     if (die_sides > 0) {
@@ -2126,63 +2125,63 @@ void ShipEntity::rollD(const std::string& die_number) // called by name (ADR-005
     }
 }
 
-void ShipEntity::scanForNearestShipWithPrimaryRole(const std::string& scanRole) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipWithPrimaryRole(const std::string& scanRole) // called by name
 {
     scanForNearestShipWithPredicate(HasPrimaryRolePredicate, const_cast<std::string*>(&scanRole)); // the predicate reads a std::string
 }
 
-void ShipEntity::scanForNearestShipHavingRole(const std::string& scanRole) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipHavingRole(const std::string& scanRole) // called by name
 {
     scanForNearestShipWithPredicate(HasRolePredicate, const_cast<std::string*>(&scanRole)); // the predicate reads a std::string
 }
 
-void ShipEntity::scanForNearestShipWithAnyPrimaryRole(const std::string& scanRoles) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipWithAnyPrimaryRole(const std::string& scanRoles) // called by name
 {
     std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
     scanForNearestShipWithPredicate(HasPrimaryRoleInSetPredicate, &roles);
 }
 
-void ShipEntity::scanForNearestShipHavingAnyRole(const std::string& scanRoles) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipHavingAnyRole(const std::string& scanRoles) // called by name
 {
     std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
     scanForNearestShipWithPredicate(HasRoleInSetPredicate, &roles);
 }
 
-void ShipEntity::scanForNearestShipWithScanClass(const std::string& scanScanClass) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipWithScanClass(const std::string& scanScanClass) // called by name
 {
     OOScanClass wantedClass = cxx_OOScanClassFromString(scanScanClass); // the predicate reads an OOScanClass
     scanForNearestShipWithPredicate(HasScanClassPredicate, &wantedClass);
 }
 
-void ShipEntity::scanForNearestShipWithoutPrimaryRole(const std::string& scanRole) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipWithoutPrimaryRole(const std::string& scanRole) // called by name
 {
     scanForNearestShipWithNegatedPredicate(HasPrimaryRolePredicate, const_cast<std::string*>(&scanRole)); // the predicate reads a std::string
 }
 
-void ShipEntity::scanForNearestShipNotHavingRole(const std::string& scanRole) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipNotHavingRole(const std::string& scanRole) // called by name
 {
     scanForNearestShipWithNegatedPredicate(HasRolePredicate, const_cast<std::string*>(&scanRole)); // the predicate reads a std::string
 }
 
-void ShipEntity::scanForNearestShipWithoutAnyPrimaryRole(const std::string& scanRoles) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipWithoutAnyPrimaryRole(const std::string& scanRoles) // called by name
 {
     std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
     scanForNearestShipWithNegatedPredicate(HasPrimaryRoleInSetPredicate, &roles);
 }
 
-void ShipEntity::scanForNearestShipNotHavingAnyRole(const std::string& scanRoles) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipNotHavingAnyRole(const std::string& scanRoles) // called by name
 {
     std::vector<std::string> roles = oo::str::tokens(scanRoles); // the predicate reads the role strings
     scanForNearestShipWithNegatedPredicate(HasRoleInSetPredicate, &roles);
 }
 
-void ShipEntity::scanForNearestShipWithoutScanClass(const std::string& scanScanClass) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipWithoutScanClass(const std::string& scanScanClass) // called by name
 {
     OOScanClass wantedClass = cxx_OOScanClassFromString(scanScanClass); // the predicate reads an OOScanClass
     scanForNearestShipWithNegatedPredicate(HasScanClassPredicate, &wantedClass);
 }
 
-void ShipEntity::scanForNearestShipMatchingPredicate(const std::string& predicateExpression) // called by name (ADR-0055 item 5)
+void ShipEntity::scanForNearestShipMatchingPredicate(const std::string& predicateExpression) // called by name
 {
     /*	Takes a boolean-valued JS expression where "ship" is the ship being
      evaluated and "this" is our ship's ship script. the expression is
@@ -2250,7 +2249,8 @@ void ShipEntity::scanForNearestShipMatchingPredicate(const std::string& predicat
     }
 
     if (function != nullptr) {
-        JSValue jsThis = OOJSEntityJSValue(this, context); // the ship's JS object, as OOJSObjectFromNativeObject() made of its object. Owned.
+        JSValue jsThis = OOJSEntityJSValue(this, context); // the ship's JS object, as OOJSObjectFromNativeObject() made
+                                                           // of its object
         JSFunctionPredicateParameter param = {
             .context = context,
             .function = function->function(), // Borrowed.
@@ -2278,7 +2278,7 @@ void ShipEntity::scanForNearestShipMatchingPredicate(const std::string& predicat
     OOJSRelinquishContext(context);
 }
 
-void ShipEntity::setCoordinates(const std::string& system_x_y_z) // called by name (ADR-0055 item 5)
+void ShipEntity::setCoordinates(const std::string& system_x_y_z) // called by name
 {
     const std::vector<std::string> tokens = oo::str::tokens(system_x_y_z);
 
@@ -2378,12 +2378,12 @@ void ShipEntity::setTargetToLastStation()
     }
 }
 
-void ShipEntity::addFuel(const std::string& fuel_number) // called by name (ADR-0055 item 5)
+void ShipEntity::addFuel(const std::string& fuel_number) // called by name
 {
     setFuel(getFuel() + oo::str::intValue(fuel_number) * 10);
 }
 
-void ShipEntity::scriptActionOnTarget(const std::string& action) // called by name (ADR-0055 item 5)
+void ShipEntity::scriptActionOnTarget(const std::string& action) // called by name
 {
     ::PlayerEntity* player = PLAYER;
     ::ShipEntity* targEnt = oo::ToShip(primaryTarget());
@@ -2413,7 +2413,7 @@ void ShipEntity::scriptActionOnTarget(const std::string& action) // called by na
     }
 }
 
-void ShipEntity::safeScriptActionOnTarget(const std::string& action) // called by name (ADR-0055 item 5)
+void ShipEntity::safeScriptActionOnTarget(const std::string& action) // called by name
 {
     ::PlayerEntity* player = PLAYER;
     ::ShipEntity* targEnt = oo::ToShip(primaryTarget());
@@ -2431,7 +2431,7 @@ void ShipEntity::safeScriptActionOnTarget(const std::string& action) // called b
 }
 
 // Send own ship script a message.
-void ShipEntity::sendScriptMessage(const std::string& message) // called by name (ADR-0055 item 5)
+void ShipEntity::sendScriptMessage(const std::string& message) // called by name
 {
     const std::vector<std::string> components = oo::str::tokens(message);
 
@@ -2457,7 +2457,7 @@ void ShipEntity::explodeSelf()
     getDestroyedBy(nullptr, kOODamageTypeEnergy);
 }
 
-void ShipEntity::ai_debugMessage(const std::string& message) // called by name (ADR-0055 item 5)
+void ShipEntity::ai_debugMessage(const std::string& message) // called by name
 {
     std::string desc = oo::str::format("%s %d", getName().value_or("(null)").c_str(), getUniversalID());
     if (getIsPlayer())
@@ -2466,7 +2466,7 @@ void ShipEntity::ai_debugMessage(const std::string& message) // called by name (
 }
 
 // racing code TODO
-void ShipEntity::targetFirstBeaconWithCode(const std::string& code) // called by name (ADR-0055 item 5)
+void ShipEntity::targetFirstBeaconWithCode(const std::string& code) // called by name
 {
     const std::vector<oo::EntityHold> all_beacons = (UNIVERSE != nullptr ? UNIVERSE->listBeaconsWithCode(code) : std::vector<oo::EntityHold>()); // held C++ entities
     if (!all_beacons.empty()) {
@@ -2479,7 +2479,7 @@ void ShipEntity::targetFirstBeaconWithCode(const std::string& code) // called by
     }
 }
 
-void ShipEntity::targetNextBeaconWithCode(const std::string& code) // called by name (ADR-0055 item 5)
+void ShipEntity::targetNextBeaconWithCode(const std::string& code) // called by name
 {
     const std::vector<oo::EntityHold> all_beacons = (UNIVERSE != nullptr ? UNIVERSE->listBeaconsWithCode(code) : std::vector<oo::EntityHold>()); // held C++ entities
     ::ShipEntity* current_beacon = oo::ToShip(primaryTarget());

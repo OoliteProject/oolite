@@ -2,9 +2,9 @@
 
 OOJSPopulatorDefinition.h (QuickJS-ng)
 
-C++20 since bead oo-1h0h (proposed ADR-0056, the OOColor house style). An oo::RefCounted in the
-global namespace: OOJSSystem makes it with oo::makeRef and Universe keeps it as a PList::Object
-node (OOJSPopulatorDefinitionToPList / OOJSPopulatorDefinitionIn below).
+An oo::RefCounted: OOJSSystem makes it with oo::makeRef and Universe keeps it
+as a PList::Object node (OOJSPopulatorDefinitionToPList /
+OOJSPopulatorDefinitionIn below).
 
 
 Oolite
@@ -27,8 +27,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSPOPULATORDEFINITION_H
-#define OOJSPOPULATORDEFINITION_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
@@ -67,5 +66,3 @@ private:
 oo::PList OOJSPopulatorDefinitionToPList(oo::Ref<OOJSPopulatorDefinition> definition);
 // The definition inside such a node; nullptr for any other node.
 OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist);
-
-#endif // OOJSPOPULATORDEFINITION_H

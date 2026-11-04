@@ -25,8 +25,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef COLLISIONREGION_H
-#define COLLISIONREGION_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
@@ -41,7 +40,7 @@ MA 02110-1301, USA.
 
 class Entity;
 class Entity; // the regions list the entities' C++ parts
-class OOSunEntity; // C++ since bead oo-9ht.111
+class OOSunEntity;
 
 class CollisionRegion : public oo::RefCounted {
 public:
@@ -62,7 +61,7 @@ public:
     void findShadowedEntities();
 
     // Description for FPS HUD
-    std::string collisionDescription(); // flipped with its family (bead oo-3rb.277)
+    std::string collisionDescription();
 
     std::optional<std::string> debugOut();
 
@@ -87,11 +86,12 @@ private:
     unsigned checks_this_tick = { };
     unsigned checks_within_range = { };
 
-    std::vector<oo::Ref<CollisionRegion>> subregions; // Foundation sweep (proposed ADR-0043, bead oo-a87x)
+    std::vector<oo::Ref<CollisionRegion>> subregions;
 
     bool isPlayerInRegion = { };
 
-    Entity** entity_array = { }; // entities within the region: their C++ parts, borrowed
+    Entity** entity_array = { }; // entities within the region: their C++ parts,
+                                 // borrowed
     unsigned n_entities = { }; // number of entities
     unsigned max_entities = { }; // so storage can be expanded
 
@@ -102,5 +102,3 @@ private:
  * of shadowing cast by e2 from the_sun is recorded in outValue, with
  * >1 = no shadow, <1 = shadow */
 BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity* e2, OOSunEntity* the_sun, float* outValue);
-
-#endif // COLLISIONREGION_H

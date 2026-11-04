@@ -58,9 +58,8 @@ namespace {
 ::OOSoundSource* sAfterburnerSources[2];
 } // namespace
 
-// The pools are C++; each static holds one
-// retain, as the facades did, given up by ReleasePool where the facades were DESTROYed. A message
-// to a nil pool did nothing, so each play checks for none.
+// Each pool static holds one retain, given up by ReleasePool. A message to a
+// nil pool did nothing, so each play checks for none.
 namespace {
 void ReleasePool(OOSoundSourcePool*& pool)
 {
@@ -69,9 +68,9 @@ void ReleasePool(OOSoundSourcePool*& pool)
     pool = nullptr;
 }
 
-// The sources are C++ too: each static holds the
-// retain alloc/init gave it, given up by ReleaseSource where DESTROY released it. A message to a
-// nil source did nothing and -isPlaying answered NO, so each use checks for none.
+// Each source static holds the retain alloc/init gave it, given up by
+// ReleaseSource. A message to a nil source did nothing and -isPlaying answered
+// NO, so each use checks for none.
 ::OOSoundSource* NewSource(::OOSound* sound = nullptr)
 {
     return oo::makeRef<::OOSoundSource>(sound).leakRef();
@@ -461,8 +460,14 @@ void PlayerEntity::updateAfterburnerSound()
             sAfterburnerSources[which]->play();
         which = !which;
 
-        // and swap sounds in 1.25s time (a deferred call on the C++ player; by name on its object before)
-        oo::ScheduleEntityCall(this, [](Entity* entity) { if (PlayerEntity *player = dynamic_cast<PlayerEntity *>(entity))  player->updateAfterburnerSound(); }, 1.25);
+        // and swap sounds in 1.25s time (a deferred call on the player)
+        oo::ScheduleEntityCall(
+            this,
+            [](Entity* entity) {
+                if (PlayerEntity* player = dynamic_cast<PlayerEntity*>(entity))
+                    player->updateAfterburnerSound();
+            },
+            1.25);
     }
 }
 

@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #endif
 
-/*	The plain C++ part of the engine API (bead oo-9ht.72): reporters, converters, argument and
+/*	The plain C++ part of the engine API: reporters, converters, argument and
         return macros, the native wrappers. A binding with no Objective-C includes only that header.
 */
 #include "OOJSEngineCore.h"
@@ -50,17 +50,15 @@ MA 02110-1301, USA.
 #define OOJSENGINE_MONITOR_SUPPORT OO_DEBUG_MONITOR_ENABLED
 
 #if OOJSENGINE_MONITOR_SUPPORT
-#include "OOJavaScriptEngineMonitor.h" // a C++ interface
+#include "OOJavaScriptEngineMonitor.h"
 #endif
 
-/*	The engine (proposed ADR-0056; docs/phases/3-slices/OOJavaScriptEngine.md): the singleton
-        that owns the JS runtime and the main thread context. A global class since the deletion of its
-        Objective-C facade; it is the sender of its reset notifications.
+/*	The engine: the singleton that owns the JS runtime and the main thread
+   context. A global class; it is the sender of its reset notifications.
 */
 class OOJavaScriptEngine : public oo::RefCounted {
 public:
-    // The shared engine, made on first use; borrowed, never released (proposed ADR-0056
-    // amendment oo-r7m0).
+    // The shared engine, made on first use; borrowed, never released.
     static OOJavaScriptEngine* sharedEngine();
 
     ~OOJavaScriptEngine();
@@ -133,28 +131,23 @@ private:
 #endif
 };
 
-/*	(The root-class JS glue for classes rooted on OOObject, the defaults OOObject+OOJavaScript.h's
-        bridges called, went with those bridges: no game object is an Objective-C object.)
-*/
-
-// A vector box's JS value (OOJSValueFromPList, for an Object node that holds one), owned by the
+// A vector box's JS value (OOJSValueFromPList, for an Object node that holds
+// one), owned by the
 // caller.
 class OONativeVector;
 JSValue OONativeVectorJSValueInContext(OONativeVector* vector, JSContext* context);
 
 /*	OONull: the placeholder for null inside native collections, which cannot
-        hold nil (was Foundation's null singleton, ADR-0029 Decision 5). A JS array
-        element that is null or undefined becomes [OONull null] in the native array, and
-        [OONull null] becomes JS null, so JS null round-trips as before. Game code
-        uses it where a collection slot is empty (MFD settings, target memory,
-        script event arguments). It describes itself as "<null>", as its
-        predecessor did, and -copy returns itself. A property list holds it as an
-        Object node whose foreign object it is (OONullObjectNode(); the collections held its
-        Objective-C facade, which is deleted).
+   hold nil. A JS array element that is null or undefined becomes [OONull null]
+   in the native array, and [OONull null] becomes JS null, so JS null
+   round-trips. Game code uses it where a collection slot is empty (MFD
+   settings, target memory, script event arguments). It describes itself as
+   "<null>", and -copy returns itself. A property list holds it as an Object
+   node whose foreign object it is (OONullObjectNode()).
 */
 class OONull : public oo::PListForeign {
 public:
-    // The one null, made on first use; borrowed, never released (amendment oo-r7m0).
+    // The one null, made on first use; borrowed, never released.
     static OONull* null();
 
     JSValue jsValueInContext(JSContext* context); // JS null
@@ -206,11 +199,7 @@ BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter);
 
 #endif
 
-/*	DEFINE_JS_OBJECT_GETTER() and OOJSObjectGetterImplPRIVATE(), which read an Objective-C object
-        from a JS object's private slot with an Objective-C class check, are deleted: every slot holds
-        a C++ object, read by OOJSGetCxxPrivate() (OOJSPrivateObject.h).
+/*	OOJSGetCxxPrivate() (OOJSPrivateObject.h) reads the C++ object every JS
+   object's private slot holds.
 */
-
-// (The root class's JS glue and the engine's one-line sends to Objective-C objects,
-// OOObject+OOJavaScript.h, went with the Objective-C runtime.)
 #include "OOFoundation.h"

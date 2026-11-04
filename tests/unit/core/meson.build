@@ -1,4 +1,4 @@
-# Unit tests of converted game classes (Phase 3; proposed ADR-0056, exemplar bead oo-11m):
+# Unit tests of converted game classes:
 # meson test -C build/meson_<type> --suite core, or bash tools/check-core-tests.sh.
 #
 # One executable per tests/unit/core/test_<Class>.mm. It links the GAME'S OWN objects for the
@@ -130,12 +130,9 @@ core_tests = {
     'test_OOPolygonSprite': ['*'],
     'test_OOVector': ['Core/OOVector.cpp', 'Core/legacy_random.c'],
     'test_OOFastArithmetic': [],
-    # test_OOAsyncQueue retired with its only subject, the Objective-C OOAsyncQueue
     'test_OOProfilingStopwatch': ['Core/OOProfilingStopwatch.cpp'],
     'test_OOAsyncWorkManager': ['Core/OOAsyncWorkManager.cpp', 'Core/OOCPUInfo.cpp'],
     'test_AI': ['Core/AI.cpp'],
-    # test_OOWeakReference retired with its only subject, the weak-reference class (Jon approved 2026-10-19)
-    # test_OOWeakSet retired with its only subject, the Objective-C weak set (Jon approved 2026-10-19)
     'test_OOJSFunction': ['Core/Scripting/OOJSFunction.cpp'],
     'test_OOJSPrivateObject': ['Core/Scripting/OOJSPrivateObject.cpp', 'Core/Scripting/OOJSEngineNativeWrappers.cpp', 'Core/Scripting/OOJSClasses.cpp'],
     'test_OOJSTimer': ['Core/Scripting/OOJSTimer.cpp', 'Core/Scripting/OOJSPrivateObject.cpp', 'Core/Scripting/OOScriptTimer.cpp', 'Core/Scripting/OOJSEngineNativeWrappers.cpp', 'Core/Scripting/OOJSClasses.cpp'],
@@ -203,7 +200,7 @@ foreach name, game_sources : core_tests
         wanted += ['src/' + s]
     endforeach
     # ['*'] is every game object but main's, for a class whose object needs the game graph
-    # (Universe, Entity ivars): proposed ADR-0056 amendment oo-44gg.
+    # (Universe, Entity ivars).
     whole_game = game_sources == ['*']
     sources = []
     foreach f : oolite_sources

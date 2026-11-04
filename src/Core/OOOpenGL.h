@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // a game unit, not a plain C++ one
 #include "OOFoundation.h"
 #endif
 #include "OOOpenGLCheck.h"
@@ -180,7 +180,9 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 /*	GLDrawOval(), GLDrawFilledOval()
         Draw axis-alligned ellipses, as outline and fill respectively.
 */
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__ (bead oo-dbz). NSSize is Foundation's; a plain C++ unit (OODebugGLDrawing.cpp, bead oo-9ht.185) does not see these
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // NSSize is Foundation's; a
+                                                        // plain C++ unit (OODebugGLDrawing.cpp) does
+                                                        // not see these
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 #endif

@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 #define WORMHOLE_LEADER_SPEED_FACTOR 0.25
 
 class Universe;
-class ShipEntity; // C++
+class ShipEntity;
 
 typedef enum {
     WH_SCANINFO_NONE = 0,
@@ -55,10 +55,10 @@ struct OOWormholeTransit {
     std::optional<std::string> beacon; // the ship's beacon code when it entered, if any
 };
 
-/*	C++ only (its Objective-C facade is deleted): the player and the ships make it with oo::makeRef<WormholeEntity>() and an
-        initialiser, hand it to Objective-C with oo::NewEntityFacade (its object is the root Entity's
-        facade), and find it again with dynamic_cast. The universe's and the player's lists keep the
-        objects (held C++ entities).
+/*	The player and the ships make it with oo::makeRef<WormholeEntity>() and
+   an initialiser, hand it to Objective-C with oo::NewEntityFacade (its object
+   is the root Entity's facade), and find it again with dynamic_cast. The
+   universe's and the player's lists keep the objects (held C++ entities).
 */
 class WormholeEntity : public Entity {
 public:
@@ -66,9 +66,9 @@ public:
     // below run it first, as they sent [self init].
     void init();
 
-    /*	-initWithDict: and -initWormholeTo:fromShip:'s bodies, run on a new wormhole (after init(), as
-            the facade ran them once it held this object).
-    */
+    /*	-initWithDict: and -initWormholeTo:fromShip:'s bodies, run on a new
+     * wormhole (after init()).
+     */
     void initWithDict(const oo::PList& dict);
     void initWormholeTo(OOSystemID s, ::ShipEntity* ship);
 
@@ -76,7 +76,7 @@ public:
     void disgorgeShips();
     void setExitPosition(HPVector pos);
 
-    OOSystemID getOrigin(); // -origin (amendment oo-862e item 1: the ivar keeps the name)
+    OOSystemID getOrigin(); // -origin (the ivar keeps the name)
     OOSystemID getDestination(); // -destination
     NSPoint originCoordinates();
     NSPoint destinationCoordinates();
@@ -103,7 +103,7 @@ public:
 
     oo::PList getShipsInTransit(); // -shipsInTransit (the ivar keeps the name). Dicts: "ship" (an Object node), "time", "shipBeacon" when set
 
-    std::optional<std::string> identFromShip(::ShipEntity* ship); // flipped with its family (bead oo-3rb.279)
+    std::optional<std::string> identFromShip(::ShipEntity* ship);
 
     oo::PList getDict();
 
@@ -114,7 +114,7 @@ public:
     void drawImmediate(bool immediate, bool translucent) override;
     void dumpSelfState() override;
 
-    // The binding's bodies (OOJSWormhole.mm), which the facade forwarded to.
+    // The binding's bodies (OOJSWormhole.mm).
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
     bool isVisibleToScripts() override;

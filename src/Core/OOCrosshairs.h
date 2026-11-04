@@ -3,10 +3,6 @@
 OOCrosshairs.h
 Oolite
 
-C++20 since bead oo-zffj (Phase 3, proposed ADR-0056). Its one caller, HeadUpDisplay, was
-adapted in the same bead, so there is no Objective-C facade and the class is global.
-
-
 Copyright (C) 2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,11 +25,9 @@ SOFTWARE.
 
 */
 
-#ifndef OOCROSSHAIRS_H
-#define OOCROSSHAIRS_H
+#pragma once
 
 #include "OOOpenGL.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
@@ -41,22 +35,25 @@ class OOColor;
 
 class OOCrosshairs : public oo::RefCounted {
 public:
-    // points: the crosshair definition, a property-list array of 6-number arrays (proposed ADR-0043).
-    OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color, GLfloat alpha);
+    // points: the crosshair definition, a property-list array of 6-number arrays.
+    OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color,
+        GLfloat alpha);
     ~OOCrosshairs() override;
 
     void render();
 
 private:
-    friend struct OOCrosshairsTestAccess; // tests/unit/core/test_OOCrosshairs.mm reads the vertex buffer
+    friend struct OOCrosshairsTestAccess; // tests/unit/core/test_OOCrosshairs.mm
+                                          // reads the vertex buffer
 
-    void setUpDataWithPoints(const oo::PList& points, GLfloat scale, OOColor* color, GLfloat alpha);
+    void setUpDataWithPoints(const oo::PList& points, GLfloat scale,
+        OOColor* color, GLfloat alpha);
 
     // pointInfo: nullptr for an entry that is not an array (as nil was).
-    void setUpDataForOnePoint(const oo::PList* pointInfo, GLfloat scale, float colorComps[4], GLfloat alpha, GLfloat* ioBuffer);
+    void setUpDataForOnePoint(const oo::PList* pointInfo, GLfloat scale,
+        float colorComps[4], GLfloat alpha,
+        GLfloat* ioBuffer);
 
     NSUInteger _count = { };
     GLfloat* _data = { };
 };
-
-#endif // OOCROSSHAIRS_H

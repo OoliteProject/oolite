@@ -4,56 +4,52 @@
 
         Copyright (C) 2007-2013 Jens Ayton and contributors
 
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
+        Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"), to
+   deal in the Software without restriction, including without limitation the
+   rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+   sell copies of the Software, and to permit persons to whom the Software is
         furnished to do so, subject to the following conditions:
 
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
+        The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
 
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.
 
 */
 
 #include "OOTexture.h"
-// Before OOConcreteTexture.h, in a block of its own: OOTextureInternal.h tests OOTEXTURE_RELOADABLE,
-// which OOConcreteTexture.h defines.
-#include "OOTextureInternal.h"
+// Before OOConcreteTexture.h, in a block of its own: OOTextureInternal.h tests
+// OOTEXTURE_RELOADABLE, which OOConcreteTexture.h defines.
+#include <cxxabi.h>
 
-#include "OOConcreteTexture.h"
-#include "OONullTexture.h"
-
-#include "OOTextureGenerator.h"
-#include "OOTextureLoader.h"
+#include <cstdlib>
+#include <typeinfo>
 
 #include "OOCPUInfo.h"
 #include "OOCache.h"
+#include "OOConcreteTexture.h"
 #include "OOMacroOpenGL.h"
+#include "OONullTexture.h"
 #include "OOObjCPList.h"
 #include "OOOpenGLExtensionManager.h"
 #include "OOPixMap.h"
+#include "OOTextureGenerator.h"
+#include "OOTextureInternal.h"
+#include "OOTextureLoader.h"
 #include "ResourceManager.h"
 #include "Universe.h"
-
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/StdLib.hpp"
-
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
-
-#include <cstdlib>
-#include <cxxabi.h>
-#include <typeinfo>
 
 namespace {
 
@@ -75,9 +71,9 @@ const char* const kOOTextureSpecifierFlagValueInternalKey = "_oo_internal_flags"
         have been used recently, and retains them.
 
         This means that the number of live texture objects will never fall below
-        80% of kRecentTexturesCount (80% comes from the behaviour of OOCache), but
-        old textures will eventually be released. If the number of active textures
-        exceeds kRecentTexturesCount, all of them will be reusable through
+        80% of kRecentTexturesCount (80% comes from the behaviour of OOCache),
+   but old textures will eventually be released. If the number of active
+   textures exceeds kRecentTexturesCount, all of them will be reusable through
         sLiveTextureCache, but only a most-recently-fetched subset will be kept
         around by the cache when the number drops.
 
@@ -85,18 +81,16 @@ const char* const kOOTextureSpecifierFlagValueInternalKey = "_oo_internal_flags"
         sLiveTextureCache, and the textures in sLiveTextureCache are a superset
         of sRecentTextures.
 */
-enum {
-    kRecentTexturesCount = 50
-};
+enum { kRecentTexturesCount = 50 };
 
 namespace {
 
-// Allocated on first use and never freed, so a texture deallocated during exit never finds them
-// destroyed. Were a Foundation mutable dictionary / set of boxed pointers (bead oo-3rb.10).
-// They hold the C++ textures.
+// Allocated on first use and never freed, so a texture deallocated during exit
+// never finds them destroyed. Were a Foundation mutable dictionary / set of
+// boxed pointers. They hold the C++ textures.
 std::unordered_map<std::string, OOTexture*>* sLiveTextureCache;
 std::unordered_set<OOTexture*>* sAllLiveTextures;
-// The textures, retained, as Object nodes (OOTextureObjectNode(); bead oo-9ht.99).
+// The textures, retained, as Object nodes (OOTextureObjectNode()).
 OOCache* sRecentTextures;
 
 } // namespace
@@ -104,8 +98,8 @@ OOCache* sRecentTextures;
 static BOOL sCheckedExtensions;
 OOTextureInfo gOOTextureInfo;
 
-// The ObjC tree kept a trace context here for the debug monitor; nothing in the C++ tree reads
-// it, so the markers are no-ops in every build.
+// The ObjC tree kept a trace context here for the debug monitor; nothing in the
+// C++ tree reads it, so the markers are no-ops in every build.
 #define SET_TRACE_CONTEXT(str) \
     do {                       \
     } while (0)
@@ -114,20 +108,18 @@ OOTextureInfo gOOTextureInfo;
 OOTexture::NameFactory OOTexture::nameFactory = &OOTexture::loadTextureWithName;
 OOTexture::ConfigurationFactory OOTexture::configurationFactory = &OOTexture::loadTextureWithConfiguration;
 
-oo::Ref<OOTexture> OOTexture::textureWithName(const std::optional<std::string>& name,
-    const std::optional<std::string>& directory,
-    OOTextureFlags options,
-    GLfloat anisotropy,
-    GLfloat lodBias)
+oo::Ref<OOTexture> OOTexture::textureWithName(
+    const std::optional<std::string>& name,
+    const std::optional<std::string>& directory, OOTextureFlags options,
+    GLfloat anisotropy, GLfloat lodBias)
 {
     return nameFactory(name, directory, options, anisotropy, lodBias);
 }
 
-oo::Ref<OOTexture> OOTexture::loadTextureWithName(const std::optional<std::string>& name,
-    const std::optional<std::string>& directory,
-    OOTextureFlags options,
-    GLfloat anisotropy,
-    GLfloat lodBias)
+oo::Ref<OOTexture> OOTexture::loadTextureWithName(
+    const std::optional<std::string>& name,
+    const std::optional<std::string>& directory, OOTextureFlags options,
+    GLfloat anisotropy, GLfloat lodBias)
 {
     std::string key;
     oo::Ref<OOTexture> result;
@@ -156,67 +148,75 @@ oo::Ref<OOTexture> OOTexture::loadTextureWithName(const std::optional<std::strin
         path = ResourceManager::pathForFileNamed(*name, directory);
         if (!path.has_value()) {
             if (!noFNF)
-                OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".", *name);
+                OO_LOG_WARN(cxx_kOOLogFileNotFound,
+                    "Could not find texture file \"{}\".", *name);
             return nullptr;
         }
 
         // No existing texture, load texture.
-        result = ::OOConcreteTexture::initWithPath(*path, key, options, anisotropy, lodBias);
+        result = ::OOConcreteTexture::initWithPath(*path, key, options, anisotropy,
+            lodBias);
     }
 
     return result;
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithName(const std::optional<std::string>& name,
+oo::Ref<OOTexture> OOTexture::textureWithName(
+    const std::optional<std::string>& name,
     const std::optional<std::string>& directory)
 {
-    return loadTextureWithName(name,
-        directory,
-        kOOTextureDefaultOptions,
+    return loadTextureWithName(name, directory, kOOTextureDefaultOptions,
         kOOTextureDefaultAnisotropy,
         kOOTextureDefaultLODBias);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList& configuration)
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+    const oo::PList& configuration)
 {
     return configurationFactory(configuration);
 }
 
-oo::Ref<OOTexture> OOTexture::loadTextureWithConfiguration(const oo::PList& configuration)
+oo::Ref<OOTexture> OOTexture::loadTextureWithConfiguration(
+    const oo::PList& configuration)
 {
     return textureWithConfiguration(configuration, 0);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(const oo::PList& configuration, OOTextureFlags extraOptions)
+oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+    const oo::PList& configuration, OOTextureFlags extraOptions)
 {
     std::string name;
     OOTextureFlags options = 0;
     GLfloat anisotropy = 0.0f;
     GLfloat lodBias = 0.0f;
 
-    if (!cxx_OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy, &lodBias, NO))
+    if (!cxx_OOInterpretTextureSpecifier(configuration, &name, &options,
+            &anisotropy, &lodBias, NO))
         return nullptr;
 
-    return loadTextureWithName(name, "Textures", options | extraOptions, anisotropy, lodBias);
+    return loadTextureWithName(name, "Textures", options | extraOptions,
+        anisotropy, lodBias);
 }
 
 oo::Ref<OOTexture> OOTexture::nullTexture()
 {
-    // The shared null texture, which OONullTexture keeps for the life of the process (its facade,
-    // kept here until bead oo-9ht.99, was the same object whenever it was asked).
+    // The shared null texture, which OONullTexture keeps for the life of the
+    // process.
     return oo::Ref<OOTexture>(::OONullTexture::sharedNullTexture());
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithGenerator(::OOTextureGenerator* generator)
+oo::Ref<OOTexture> OOTexture::textureWithGenerator(
+    ::OOTextureGenerator* generator)
 {
     return textureWithGenerator(generator, false);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithGenerator(::OOTextureGenerator* generator, bool enqueue)
+oo::Ref<OOTexture> OOTexture::textureWithGenerator(
+    ::OOTextureGenerator* generator, bool enqueue)
 {
     if (generator == nullptr)
         return nullptr;
-    ::OOTextureGenerator* cxxGenerator = generator; // C++ since bead oo-9ht.118 deleted the generator's facade
+    ::OOTextureGenerator* cxxGenerator = generator;
 
 #ifndef OOTEXTURE_NO_CACHE
     OOTexture* existing = existingTextureForKey(cxxGenerator->cacheKey());
@@ -225,16 +225,17 @@ oo::Ref<OOTexture> OOTexture::textureWithGenerator(::OOTextureGenerator* generat
 #endif
 
     if (!cxxGenerator->enqueue()) {
-        OO_LOG_ERR("texture.generator.queue.failed", "Failed to queue generator {}", generator->description());
+        OO_LOG_ERR("texture.generator.queue.failed", "Failed to queue generator {}",
+            generator->description());
         return nullptr;
     }
-    OO_LOG("texture.generator.queue", "Queued texture generator {}", generator->description());
+    OO_LOG("texture.generator.queue", "Queued texture generator {}",
+        generator->description());
 
-    oo::Ref<OOTexture> result = ::OOConcreteTexture::initWithLoader(generator,
-        cxxGenerator->cacheKey(),
+    oo::Ref<OOTexture> result = ::OOConcreteTexture::initWithLoader(
+        generator, cxxGenerator->cacheKey(),
         OOApplyTextureOptionDefaults(cxxGenerator->textureOptions()),
-        cxxGenerator->anisotropy(),
-        cxxGenerator->lodBias());
+        cxxGenerator->anisotropy(), cxxGenerator->lodBias());
 
     return result;
 }
@@ -252,10 +253,7 @@ OOTexture::~OOTexture()
         sAllLiveTextures->erase(this);
 }
 
-void OOTexture::apply()
-{
-    OOLogGenericSubclassResponsibility();
-}
+void OOTexture::apply() { OOLogGenericSubclassResponsibility(); }
 
 void OOTexture::applyNone()
 {
@@ -272,19 +270,11 @@ void OOTexture::applyNone()
 #endif
 }
 
-void OOTexture::ensureFinishedLoading()
-{
-}
+void OOTexture::ensureFinishedLoading() { }
 
-bool OOTexture::isFinishedLoading()
-{
-    return true;
-}
+bool OOTexture::isFinishedLoading() { return true; }
 
-std::optional<std::string> OOTexture::cacheKey()
-{
-    return std::nullopt;
-}
+std::optional<std::string> OOTexture::cacheKey() { return std::nullopt; }
 
 NSSize OOTexture::dimensions()
 {
@@ -292,10 +282,7 @@ NSSize OOTexture::dimensions()
     return NSZeroSize;
 }
 
-NSSize OOTexture::originalDimensions()
-{
-    return dimensions();
-}
+NSSize OOTexture::originalDimensions() { return dimensions(); }
 
 bool OOTexture::isMipMapped()
 {
@@ -303,25 +290,13 @@ bool OOTexture::isMipMapped()
     return false;
 }
 
-OOPixMap OOTexture::copyPixMapRepresentation()
-{
-    return kOONullPixMap;
-}
+OOPixMap OOTexture::copyPixMapRepresentation() { return kOONullPixMap; }
 
-bool OOTexture::isRectangleTexture()
-{
-    return false;
-}
+bool OOTexture::isRectangleTexture() { return false; }
 
-bool OOTexture::isCubeMap()
-{
-    return false;
-}
+bool OOTexture::isCubeMap() { return false; }
 
-NSSize OOTexture::texCoordsScale()
-{
-    return NSMakeSize(1.0, 1.0);
-}
+NSSize OOTexture::texCoordsScale() { return NSMakeSize(1.0, 1.0); }
 
 GLint OOTexture::glTextureName()
 {
@@ -339,9 +314,10 @@ void OOTexture::clearCache()
         sLiveTextureCache->clear();
 
     SET_TRACE_CONTEXT("clearing sRecentTextures");
-    // [sRecentTextures autorelease]: released at the drain of the nearest oo::AutoreleaseScope, as
-    // upstream's pool did; the only caller, Universe::reinitAndShowDemo(), runs in the frame loop's
-    // or the start-up's scope (ADR-0056 amendment oo-31u.9).
+    // [sRecentTextures autorelease]: released at the drain of the nearest
+    // oo::AutoreleaseScope, as upstream's pool did; the only caller,
+    // Universe::reinitAndShowDemo(), runs in the frame loop's or the start-up's
+    // scope.
     oo::autorelease(sRecentTextures);
     sRecentTextures = nullptr;
     CLEAR_TRACE_CONTEXT();
@@ -356,8 +332,10 @@ void OOTexture::rebindAllTextures()
 
     if (sAllLiveTextures == NULL)
         return;
-    // A copy: the set is unordered (as the Foundation set was) and must not change under the loop.
-    const std::vector<OOTexture*> textures(sAllLiveTextures->begin(), sAllLiveTextures->end());
+    // A copy: the set is unordered (as the Foundation set was) and must not
+    // change under the loop.
+    const std::vector<OOTexture*> textures(sAllLiveTextures->begin(),
+        sAllLiveTextures->end());
     for (OOTexture* texture : textures) {
         texture->forceRebind();
     }
@@ -367,7 +345,9 @@ void OOTexture::rebindAllTextures()
 std::vector<oo::Ref<OOTexture>> OOTexture::cachedTexturesByAge()
 {
     std::vector<oo::Ref<OOTexture>> result;
-    for (const oo::PList& texture : (sRecentTextures != nullptr) ? sRecentTextures->pListsByAge() : std::vector<oo::PList>()) {
+    for (const oo::PList& texture : (sRecentTextures != nullptr)
+            ? sRecentTextures->pListsByAge()
+            : std::vector<oo::PList>()) {
         result.emplace_back(OOTextureInObjectNode(texture));
     }
     return result;
@@ -406,7 +386,9 @@ std::optional<std::string> OOTexture::name()
 void OOTexture::setTrace(bool trace)
 {
     if (trace && !_trace) {
-        OO_LOG("texture.allocTrace.begin", "Started tracing texture {} with retain count {}.", oo::str::pointerDescription(this), retainCount());
+        OO_LOG("texture.allocTrace.begin",
+            "Started tracing texture {} with retain count {}.",
+            oo::str::pointerDescription(this), retainCount());
     }
     _trace = trace;
 }
@@ -429,7 +411,9 @@ std::string ClassName(const OOTexture& texture)
 {
     int status = 0;
     char* demangled = abi::__cxa_demangle(typeid(texture).name(), nullptr, nullptr, &status);
-    std::string result = (status == 0 && demangled != nullptr) ? demangled : typeid(texture).name();
+    std::string result = (status == 0 && demangled != nullptr)
+        ? demangled
+        : typeid(texture).name();
     std::free(demangled);
     return result;
 }
@@ -438,7 +422,8 @@ std::string ClassName(const OOTexture& texture)
 
 std::string OOTexture::description() const
 {
-    std::string result = oo::str::format("<%s %s>", ClassName(*this).c_str(), oo::str::pointerDescription(this).c_str());
+    std::string result = oo::str::format("<%s %s>", ClassName(*this).c_str(),
+        oo::str::pointerDescription(this).c_str());
     if (const std::optional<std::string> components = descriptionComponents())
         result += "{" + *components + "}";
     return result;
@@ -446,21 +431,16 @@ std::string OOTexture::description() const
 
 std::string OOTexture::shortDescription() const
 {
-    std::string result = oo::str::format("<OOTexture %s>", oo::str::pointerDescription(this).c_str());
+    std::string result = oo::str::format(
+        "<OOTexture %s>", oo::str::pointerDescription(this).c_str());
     if (const std::optional<std::string> components = shortDescriptionComponents())
         result += "{" + *components + "}";
     return result;
 }
 
-std::string OOTexture::className() const
-{
-    return "OOTexture";
-}
+std::string OOTexture::className() const { return "OOTexture"; }
 
-void OOTexture::forceRebind()
-{
-    OOLogGenericSubclassResponsibility();
-}
+void OOTexture::forceRebind() { OOLogGenericSubclassResponsibility(); }
 
 void OOTexture::addToCaches()
 {
@@ -469,7 +449,8 @@ void OOTexture::addToCaches()
     if (!cacheKey.has_value())
         return;
 
-    // Add self to in-use textures cache, as a raw pointer so the texture isn't retained by the cache.
+    // Add self to in-use textures cache, as a raw pointer so the texture isn't
+    // retained by the cache.
     if (EXPECT_NOT(sLiveTextureCache == NULL))
         sLiveTextureCache = new std::unordered_map<std::string, OOTexture*>;
 
@@ -500,8 +481,11 @@ void OOTexture::removeFromCaches()
 
     if (sLiveTextureCache != NULL)
         sLiveTextureCache->erase(*cacheKey);
-    // Called from a texture's destructor: the cached texture is compared by address.
-    OOTexture* cached = OOTextureInObjectNode((sRecentTextures != nullptr) ? sRecentTextures->pListForKey(*cacheKey) : oo::PList());
+    // Called from a texture's destructor: the cached texture is compared by
+    // address.
+    OOTexture* cached = OOTextureInObjectNode(
+        (sRecentTextures != nullptr) ? sRecentTextures->pListForKey(*cacheKey)
+                                     : oo::PList());
     if (EXPECT_NOT(cached != nullptr && cached == this)) {
         /* Experimental for now: I think the recent crash problems may
          * be because if the last reference to a texture is in
@@ -515,14 +499,20 @@ void OOTexture::removeFromCaches()
          * needed to generate a planet texture compared with loading a
          * standard one may be why this problem shows up.  - CIM 20140122
          */
-        OOCAssert(0, "Texture retain count error for %s; cacheKey is %s.", cached->description().c_str(), cacheKey->c_str()); // miscount in autorelease
-        // The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-        sRecentTextures->removePListForKey(*cacheKey); // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+        OOCAssert(0, "Texture retain count error for %s; cacheKey is %s.",
+            cached->description().c_str(),
+            cacheKey->c_str()); // miscount in autorelease
+        // The following line is needed in order to avoid crashes when there's a
+        // 'texture retain count error'. Please do not delete. -- Kaks 20091221
+        sRecentTextures->removePListForKey(
+            *cacheKey); // make sure there's no reference left inside
+                        // sRecentTexture ( was a show stopper for 1.73)
     }
 #endif
 }
 
-OOTexture* OOTexture::existingTextureForKey(const std::optional<std::string>& key)
+OOTexture* OOTexture::existingTextureForKey(
+    const std::optional<std::string>& key)
 {
 #ifndef OOTEXTURE_NO_CACHE
     if (key.has_value()) {
@@ -549,10 +539,12 @@ void OOTexture::checkExtensions()
 
 #if GL_EXT_texture_filter_anisotropic
     gOOTextureInfo.anisotropyAvailable = extMgr->haveExtension("GL_EXT_texture_filter_anisotropic") ? 1 : 0;
-    OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gOOTextureInfo.anisotropyScale));
+    OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
+        &gOOTextureInfo.anisotropyScale));
     {
         const oo::PList anisoScale = oo::Defaults::standard().object("texture-anisotropy-scale");
-        gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f(oo::PListGet<float>::from(anisoScale.isNull() ? nullptr : &anisoScale, 0.5f));
+        gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f(oo::PListGet<float>::from(
+            anisoScale.isNull() ? nullptr : &anisoScale, 0.5f));
     }
 #endif
 
@@ -591,7 +583,8 @@ void OOTexture::checkExtensions()
 #endif
 }
 
-oo::PList cxx_OOTextureSpecFromObject(const oo::PList& object, const std::optional<std::string>& defaultName)
+oo::PList cxx_OOTextureSpecFromObject(
+    const oo::PList& object, const std::optional<std::string>& defaultName)
 {
     oo::PList value = object;
     if (value.isNull()) {
@@ -607,12 +600,14 @@ oo::PList cxx_OOTextureSpecFromObject(const oo::PList& object, const std::option
     if (!value.isDict())
         return oo::PList();
 
-    // If we're here, it's a dictionary. (A "name" as the old string extractor read it: a string or a number.)
+    // If we're here, it's a dictionary. (A "name" as the old string extractor
+    // read it: a string or a number.)
     const oo::PList* name = value.find("name");
     if (!defaultName.has_value() || (name != nullptr && (name->isString() || name->isNumber())))
         return value;
 
-    // If we get here, there's no "name" key and there is a default, so we fill it in:
+    // If we get here, there's no "name" key and there is a default, so we fill it
+    // in:
     oo::PList::Dict mutableResult = *value.getIf<oo::PList::Dict>();
     mutableResult["name"] = oo::PList(*defaultName);
     return oo::PList(std::move(mutableResult));
@@ -637,12 +632,13 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format)
     return 0;
 }
 
-BOOL OOCubeMapsAvailable(void)
-{
-    return gOOTextureInfo.cubeMapAvailable;
-}
+BOOL OOCubeMapsAvailable(void) { return gOOTextureInfo.cubeMapAvailable; }
 
-BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* outName, OOTextureFlags* outOptions, float* outAnisotropy, float* outLODBias, BOOL ignoreExtract)
+BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
+    std::string* outName,
+    OOTextureFlags* outOptions,
+    float* outAnisotropy, float* outLODBias,
+    BOOL ignoreExtract)
 {
     std::string name;
     OOTextureFlags options = kOOTextureDefaultOptions;
@@ -652,10 +648,14 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
     if (const std::string* string = specifier.getIf<std::string>()) {
         name = *string;
     } else if (specifier.isDict()) {
-        // The old string extractor gave nil unless the value was a string or a number.
+        // The old string extractor gave nil unless the value was a string or a
+        // number.
         const oo::PList* nameValue = specifier.find(cxx_kOOTextureSpecifierNameKey);
         if (nameValue == nullptr || !(nameValue->isString() || nameValue->isNumber())) {
-            OO_LOG("texture.load.noName", "Invalid texture configuration dictionary (must specify name):\n{}", oo::DescriptionOf(specifier));
+            OO_LOG(
+                "texture.load.noName",
+                "Invalid texture configuration dictionary (must specify name):\n{}",
+                oo::DescriptionOf(specifier));
             return NO;
         }
         name = specifier.get<std::string>(cxx_kOOTextureSpecifierNameKey);
@@ -664,7 +664,8 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
         if (quickFlags != -1) {
             options = quickFlags;
         } else {
-            std::string filterString = specifier.get<std::string>(cxx_kOOTextureSpecifierMinFilterKey, "default");
+            std::string filterString = specifier.get<std::string>(
+                cxx_kOOTextureSpecifierMinFilterKey, "default");
             if (filterString == "nearest")
                 options |= kOOTextureMinFilterNearest;
             else if (filterString == "linear")
@@ -674,7 +675,8 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
             else
                 options |= kOOTextureMinFilterDefault; // Covers "default"
 
-            filterString = specifier.get<std::string>(cxx_kOOTextureSpecifierMagFilterKey, "default");
+            filterString = specifier.get<std::string>(
+                cxx_kOOTextureSpecifierMagFilterKey, "default");
             if (filterString == "nearest")
                 options |= kOOTextureMagFilterNearest;
             else
@@ -704,7 +706,10 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
                     else if (extractChannel == "a")
                         options |= kOOTextureExtractChannelA;
                     else {
-                        OO_LOG_WARN("texture.load.extractChannel.invalid", "Unknown value \"{}\" for extract_channel in specifier \"{}\" (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel, oo::DescriptionOf(specifier));
+                        OO_LOG_WARN("texture.load.extractChannel.invalid",
+                            "Unknown value \"{}\" for extract_channel in specifier "
+                            "\"{}\" (should be \"r\", \"g\", \"b\" or \"a\").",
+                            extractChannel, oo::DescriptionOf(specifier));
                     }
                 }
             }
@@ -713,11 +718,16 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
         lodBias = specifier.get<float>("texture_LOD_bias", kOOTextureDefaultLODBias);
     } else {
         // Bad type
-        // "got" names an object's class, or the property-list type (it was the class of the Foundation
-        // object built for the value, such as GSInlineArray). An Object node held no Objective-C object
-        // (none is made since bead oo-4aq6a.5): nil's class, "(null)", as before.
+        // "got" names an object's class, or the property-list type (it was the
+        // class of the Foundation object built for the value, such as
+        // GSInlineArray). An Object node held no Objective-C object: nil's class,
+        // "(null)", as before.
         if (!specifier.isNull())
-            OO_LOG(cxx_kOOLogParameterError, "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__, (specifier.type() == oo::PList::Type::Object) ? std::string("(null)") : std::string(oo::typeName(specifier.type())));
+            OO_LOG(cxx_kOOLogParameterError,
+                "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__,
+                (specifier.type() == oo::PList::Type::Object)
+                    ? std::string("(null)")
+                    : std::string(oo::typeName(specifier.type())));
         return NO;
     }
 
@@ -736,13 +746,16 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* ou
     return YES;
 }
 
-oo::PList cxx_OOMakeTextureSpecifier(const std::string& name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal)
+oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
+    OOTextureFlags options, float anisotropy,
+    float lodBias, BOOL internal)
 {
     oo::PList::Dict result;
 
     result[cxx_kOOTextureSpecifierNameKey] = oo::PList(name);
 
-    // -oo_setFloat:forKey: stored +numberWithFloat:, -oo_setUnsignedInteger: +numberWithUnsignedInteger:.
+    // -oo_setFloat:forKey: stored +numberWithFloat:, -oo_setUnsignedInteger:
+    // +numberWithUnsignedInteger:.
     if (anisotropy != kOOTextureDefaultAnisotropy)
         result[cxx_kOOTextureSpecifierAnisotropyKey] = oo::PList::singleReal(anisotropy);
     if (lodBias != kOOTextureDefaultLODBias)
@@ -843,7 +856,8 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
     }
 
     if (options & kOOTextureAllowRectTexture) {
-        // Apply rectangle texture restrictions (regardless of whether rectangle textures are available, for consistency)
+        // Apply rectangle texture restrictions (regardless of whether rectangle
+        // textures are available, for consistency)
         options &= kOOTextureFlagsAllowedForRectangleTexture;
         if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap) {
             options = (kOOTextureMinFilterMask & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
@@ -863,7 +877,9 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
     return options;
 }
 
-std::string OOGenerateTextureCacheKey(const std::optional<std::string>& directory, const std::string& name, OOTextureFlags options, float anisotropy, float lodBias)
+std::string OOGenerateTextureCacheKey(
+    const std::optional<std::string>& directory, const std::string& name,
+    OOTextureFlags options, float anisotropy, float lodBias)
 {
     if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap) {
         anisotropy = 0.0f;
@@ -873,17 +889,23 @@ std::string OOGenerateTextureCacheKey(const std::optional<std::string>& director
     }
     options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 
-    return oo::str::format("%s%s%s:0x%.4X/%g/%g", directory.has_value() ? directory->c_str() : "", directory.has_value() ? "/" : "", name.c_str(), options, anisotropy, lodBias);
+    return oo::str::format("%s%s%s:0x%.4X/%g/%g",
+        directory.has_value() ? directory->c_str() : "",
+        directory.has_value() ? "/" : "", name.c_str(),
+        options, anisotropy, lodBias);
 }
 
 std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier)
 {
-    // Left as initialised when the specifier is not understood (they were uninitialised).
+    // Left as initialised when the specifier is not understood (they were
+    // uninitialised).
     std::string name;
     OOTextureFlags options = 0;
     float anisotropy = 0.0f;
     float lodBias = 0.0f;
 
-    cxx_OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias, NO);
-    return OOGenerateTextureCacheKey("Textures", name, options, anisotropy, lodBias);
+    cxx_OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy,
+        &lodBias, NO);
+    return OOGenerateTextureCacheKey("Textures", name, options, anisotropy,
+        lodBias);
 }

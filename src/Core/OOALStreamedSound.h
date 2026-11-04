@@ -4,9 +4,8 @@ OOALStreamedSound.h
 
 OOALStreamedSound - OpenAL sound implementation for Oolite.
 
-C++20 since bead oo-03g7 (proposed ADR-0056, the Audio module: amendment oo-2en): a subclass of
-OOSound. Bead oo-9ht.84 deleted its Objective-C facade and moved it to the global namespace; the root's
-class cluster makes it from the C++ decoder (bead oo-9ht.82).
+A subclass of OOSound; the root's class cluster makes it from the C++
+decoder.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOALSTREAMEDSOUND_H
-#define OOALSTREAMEDSOUND_H
+#pragma once
 
 #include "OOALSound.h"
 #include "OOALSoundDecoder.h"
@@ -51,17 +49,16 @@ public:
     ALuint soundBuffer() override;
 
 private:
-    friend struct OOALStreamedSoundTestAccess; // the stand-ins of tests that stub the sound (bead oo-9ht.84)
+    friend struct OOALStreamedSoundTestAccess; // the stand-ins of tests that
+                                               // stub the sound
 
     OOALStreamedSound() = default;
 
     char* _buffer = { };
     // (The Objective-C class's _size, which nothing read or wrote, is not kept: -Wunused-private-field.)
     double _sampleRate = { };
-    std::optional<std::string> _name; // nil-able, as the name was (proposed ADR-0043)
+    std::optional<std::string> _name; // nil-able, as the name was
     bool _stereo = { };
     oo::Ref<OOALSoundDecoder> decoder; // retained, as the Objective-C decoder was
     bool _reachedEnd = { };
 };
-
-#endif // OOALSTREAMEDSOUND_H

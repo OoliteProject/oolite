@@ -575,9 +575,18 @@ void OOTrumble::updateTrumble(double delta_t)
                 discomfort = 0.0;
             if (trumbleAppetiteAccumulator > 10.0) {
                 // eaten all of this cargo!
-                const std::string eatFormat = OO_DESC("trumbles-eat-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
-                const std::string ms = oo::str::formatRuntime(eatFormat,
-                    { (UNIVERSE != nullptr ? UNIVERSE->displayNameForCommodity((selectedCargopod != nullptr ? selectedCargopod->commodityType() : std::optional<std::string>()).value_or("")) : std::optional<std::string>()).value_or("(null)") });
+                const std::string eatFormat = OO_DESC("trumbles-eat-@"); // the format first, as Clang evaluates
+                                                                         // the arguments: a description that is
+                                                                         // an array draws
+                const std::string ms = oo::str::formatRuntime(
+                    eatFormat,
+                    { (UNIVERSE != nullptr ? UNIVERSE->displayNameForCommodity(
+                                                 (selectedCargopod != nullptr
+                                                         ? selectedCargopod->commodityType()
+                                                         : std::optional<std::string>())
+                                                     .value_or(""))
+                                           : std::optional<std::string>())
+                            .value_or("(null)") });
 
                 if (UNIVERSE != nullptr)
                     UNIVERSE->addMessage(ms, 4.5);
@@ -915,7 +924,6 @@ void OOTrumble::setFromDictionary(const oo::PList& dict)
     movement = cxx_PointFromString(dict.get<std::string>("movement"));
 }
 
-// The source and the sounds are C++ (their facades are deleted).
 // Each static holds one retain for the process, as alloc/init (and -initWithCustomSoundKey:, which
 // answered the cached sound retained) gave it; the source is made the first time, so it is there
 // whenever the sounds are played.

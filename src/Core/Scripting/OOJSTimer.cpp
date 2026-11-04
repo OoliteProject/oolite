@@ -34,17 +34,16 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 
 /*
-        C++20 since bead oo-kdyh (proposed ADR-0056, amendment oo-ppc): the class is OOJSTimer,
-        a C++ subclass of OOScriptTimer (both global since their Objective-C facades were deleted).
-        BOOL/YES/NO are bool/true/false.
+        The class is OOJSTimer, a C++ subclass of OOScriptTimer.
 
-        The JS private slot holds the OOJSTimer itself, retained, which implements
-        OOJSPrivateObject: the natives read it with OOJSGetCxxPrivate (the class check of
-        DEFINE_JS_OBJECT_GETTER), the finalizer is the engine's OOJSCxxObjectWrapperFinalize (which
-        calls clearJSSelf(), where TimerFinalize's warning now is), and toString() is
-        OOJSCxxObjectWrapperToString with the timer's jsDescription(). The converter answers the
-        timer itself as a plist Object node (its Objective-C facade, which it answered before, is
-        deleted), which converts back to the Timer object.
+        The JS private slot holds the OOJSTimer itself, retained, which
+        implements OOJSPrivateObject: the natives read it with OOJSGetCxxPrivate
+        (the class check of DEFINE_JS_OBJECT_GETTER), the finalizer is the
+        engine's OOJSCxxObjectWrapperFinalize (which calls clearJSSelf(), where
+        TimerFinalize's warning now is), and toString() is
+        OOJSCxxObjectWrapperToString with the timer's jsDescription(). The
+        converter answers the timer itself as a plist Object node, which
+        converts back to the Timer object.
 */
 
 // Minimum allowable interval for repeating timers.
@@ -193,11 +192,9 @@ void OOJSTimer::timerFired()
     const oo::PList thisValue = cxx_OOJSPListFromJSObject(context, _jsThis);
     if (oo::EntityIn(thisValue) != nullptr)
         described = true; // an entity's object described itself
-    // (An Objective-C object's node, described by its class's -cxx_oo_jsDescription, is gone: no
-    // game object is one.)
     else {
-        // A plain value (object, array, String/Number/Boolean object): its Foundation form's
-        // -oo_jsDescription was never nil (ADR-0051).
+        // A plain value (object, array, String/Number/Boolean object): its
+        // Foundation form's -oo_jsDescription was never nil.
         described = !thisValue.isNull();
     }
 
@@ -321,8 +318,8 @@ static bool JSTimerGetTimer(JSContext* context, JSValueConst inObject, OOJSTimer
     return OOJSGetCxxPrivate(context, inObject, sTimerClassID, outObject);
 }
 
-// OOJSBasicPrivateObjectConverter for the C++ timer the slot holds: the timer as a plist Object
-// node, where it answered the timer's facade; null for the prototype.
+// OOJSBasicPrivateObjectConverter for the C++ timer the slot holds: the timer
+// as a plist Object node; null for the prototype.
 static oo::PList TimerConverter(JSContext* /*context*/, JSValueConst object)
 {
     OOJSTimer* timer = static_cast<OOJSTimer*>(static_cast<oo::RefCounted*>(JS_GetOpaque(object, sTimerClassID)));

@@ -125,7 +125,7 @@ oo::Ref<OOCharacter> OOCharacter::randomCharacterWithRole(const std::string& rol
 oo::Ref<OOCharacter> OOCharacter::characterWithDictionary(const oo::PList& dict)
 {
     oo::Ref<OOCharacter> character = oo::makeRef<OOCharacter>();
-    // (an oo::PList, which carries any non-plist values exactly: proposed ADR-0043 Amendment 2)
+    // (an oo::PList, which carries any non-plist values exactly)
     character->setCharacterFromDictionary(dict);
 
     return character;
@@ -440,8 +440,7 @@ void OOCharacter::setCharacterFromDictionary(const oo::PList& dict)
     Random_Seed seed;
 
     origin = dict.find("origin");
-    // (a string or a number; another object that answered -intValue, in an Object node, went with
-    // bead oo-4aq6a.5: no game object is one)
+    // (a string or a number; no game object in an Object node answers -intValue)
     const std::string* originName = (origin != nullptr) ? origin->getIf<std::string>() : nullptr;
     const int originValue = dict.get<int>("origin");
     if ((origin != nullptr && origin->isNumber()) || ((originName != nullptr) && (originValue != 0 || *originName == "0"))) {

@@ -37,8 +37,8 @@ MA 02110-1301, USA.
 
 namespace {
 
-// keys in trade-goods.plist (moved from OOCommodities.h by bead oo-3rb.154; sort_order,
-// trumble_opinion, comment and short_comment are read only by OOCommodityMarket.mm)
+// keys in trade-goods.plist (sort_order, trumble_opinion, comment and
+// short_comment are read only by OOCommodityMarket.mm)
 constexpr std::string_view kOOCommodityName = "name";
 constexpr std::string_view kOOCommodityClasses = "classes";
 constexpr std::string_view kOOCommodityContainer = "quantity_unit";
@@ -180,7 +180,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateManifestForPlayer()
 {
     oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
-    for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
+    for (const auto& [commodity, info] : _commodityLists) // key order
     {
         oo::PList good = info.isDict() ? info : oo::PList(oo::PList::Dict { }); // +dictionaryWithDictionary: of the entry
         SetUnsigned(good, kOOCommodityPriceCurrent, 0);
@@ -199,7 +199,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateBlankMarket()
 {
     oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
-    for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
+    for (const auto& [commodity, info] : _commodityLists) // key order
     {
         oo::PList good = info.isDict() ? info : oo::PList(oo::PList::Dict { }); // +dictionaryWithDictionary: of the entry
         SetUnsigned(good, kOOCommodityPriceCurrent, 0);
@@ -243,8 +243,9 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script, :
 {
     JSContext* context = OOJSAcquireContext();
     OOJSVal rval = OOJSUndefinedValue();
-    // The JS boundary takes and gives property-list objects: the info crosses as one, and an
-    // accepted result comes back through oo::PListFrom (an exact round trip, Amendment 2 item 11).
+    // The JS boundary takes and gives property-list objects: the info crosses as
+    // one, and an accepted result comes back through oo::PListFrom (an exact
+    // round trip).
     OOJSVal args[] = {
         OOJSValueFromPList(context, good),
         station != nullptr ? station->jsValueInContext(context) : JS_NULL, // the C++ station's JS value, which OOJSValueFromNativeObject() of its object reached
@@ -295,7 +296,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(OOE
 
     oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
-    for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
+    for (const auto& [commodity, info] : _commodityLists) // key order
     {
         oo::PList good = info;
         OOCargoQuantity q = generateQuantityForGood(good, economy);
@@ -328,7 +329,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(::StationEnti
     OOCargoQuantity capacity = (station != nullptr ? station->getMarketCapacity() : 0);
     OOCommodityMarket* mainMarket = (UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket() : nullptr);
 
-    for (const auto& [commodity, info] : _commodityLists) // key order (bead oo-3rb.154)
+    for (const auto& [commodity, info] : _commodityLists) // key order
     {
         oo::PList good = info;
         OOCargoQuantity baseCapacity = good.get<unsigned int>(kOOCommodityCapacity, MAIN_SYSTEM_MARKET_LIMIT);

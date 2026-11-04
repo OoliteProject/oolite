@@ -103,13 +103,13 @@ std::vector<oo::EntityHold> VisualEffectsIn(const OOVisualEffectSubEntities& sub
 
 } // namespace
 
-// [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] before the effect's facade was
-// deleted: the root's facade holding a new effect (+1, as +alloc gave), then
-// the initialiser's body, which may fail, as the Objective-C one did.
+// [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:]: the root's
+// facade holding a new effect (+1, as +alloc gave), then the initialiser's
+// body, which may fail, as the Objective-C one did.
 Entity* oo::NewVisualEffect(const std::string& key, const oo::PList& dict)
 {
     const Ref<OOVisualEffectEntity> effect = makeRef<OOVisualEffectEntity>();
-    MadeEntityRetained(effect); // +1, as +alloc gave (its object's, before)
+    MadeEntityRetained(effect); // +1, as +alloc gave
     if (!effect->initWithKey(key, dict)) {
         ReleaseEntity(effect.get());
         return nullptr;
@@ -117,9 +117,9 @@ Entity* oo::NewVisualEffect(const std::string& key, const oo::PList& dict)
     return effect.get();
 }
 
-/*	-cxx_initWithKey:definition:'s body after [super init] (the constructor ran Entity's).
-        oo::NewVisualEffect() runs it once the effect is made (amendment oo-0mxi item 2);
-        false where the initialiser released itself and answered nil.
+/*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
+   ran Entity's). oo::NewVisualEffect() runs it once the effect is made; false
+   where the initialiser released itself and answered nil.
 */
 bool OOVisualEffectEntity::initWithKey(const std::string& key, const oo::PList& dict)
 {
@@ -307,7 +307,7 @@ bool OOVisualEffectEntity::setUpOneSubentity(const oo::PList& subentDict)
 
 bool OOVisualEffectEntity::setUpOneFlasher(const oo::PList& subentDict)
 {
-    // C++ now: the flasher's object is the nearest facade left.
+    // The flasher's object is the nearest facade left.
     Entity* flasher = oo::MadeEntity(OOFlasherEntity::flasherWithDictionary(subentDict));
     if (flasher != nullptr)
         flasher->setPosition(subentDict ? OOHPVectorFromPList(subentDict.find("position"), kZeroHPVector) : kZeroHPVector);

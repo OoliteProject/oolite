@@ -31,8 +31,7 @@
         during enumeration raised an exception instead).
 */
 
-#ifndef OOFND_WEAKSET_HPP
-#define OOFND_WEAKSET_HPP
+#pragma once
 
 #include "oofnd/Ref.hpp"
 
@@ -182,5 +181,3 @@ private:
 };
 
 } // namespace oo
-
-#endif // OOFND_WEAKSET_HPP

@@ -4,8 +4,7 @@ OODrawable.h
 
 Abstract base class for objects which can draw themselves.
 
-C++20 since bead oo-smy, with OOMaterial the Materials module exemplar (proposed ADR-0056,
-amendment oo-smy). Global, its Objective-C facade deleted: every drawable (OOMesh,
+Every drawable (OOMesh,
 OOPlanetDrawable, OOSkyDrawable) and every holder is C++.
 
 
@@ -31,8 +30,7 @@ SOFTWARE.
 
 */
 
-#ifndef OODRAWABLE_H
-#define OODRAWABLE_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
@@ -67,24 +65,21 @@ public:
     // OOObject answered; OOMesh and OOSkyDrawable override it.
     virtual std::optional<std::string> descriptionComponents() const;
 
-    // What "%@" printed for the drawable's facade: "<Class 0x...>{components}",
-    // the C++ class's name and the drawable's own address.
+    // "<Class 0x...>{components}": the C++ class's name and the drawable's own address.
     std::string description() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     virtual std::vector<oo::Ref<OOTexture>> allTextures();
     virtual size_t totalSize(); // Size including dynamic data, not counting textures.
 
-    // The object's own size, which totalSize() starts from (the facade's instance size
-    // before): sizeof the dynamic type, each subclass answering its own.
+    // The object's own size, which totalSize() starts from: sizeof the dynamic type, each subclass answering its own.
     virtual size_t objectSize() const { return sizeof *this; }
 #endif
 };
 
-/*	[drawable autorelease], which the deleted facade answered: keeps the drawable
+/*	Keeps the drawable
         until the current autorelease pool drains, so a drawable an entity replaces lives exactly as
-        long as its autoreleased object did. Nothing for null.
+        long as an autoreleased object
+   would. Nothing for null.
 */
 void OODrawableAutorelease(oo::Ref<OODrawable> drawable);
-
-#endif // OODRAWABLE_H

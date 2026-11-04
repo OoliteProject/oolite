@@ -31,13 +31,6 @@ SOFTWARE.
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOAssert.h"
 
-/*	Converted in bead oo-n041 (proposed ADR-0056 amendment oo-ppc): a binding with no class of its
-        own. BOOL/YES/NO are bool/true/false; the file statics and functions whose lines that touched
-        are in an anonymous namespace, as the others already were. A deferred add still keeps its
-        callback in an OOJSValue (a C++ object), and the universe's time acceleration is still a
-        message.
-*/
-
 /*
         By default, tracking IDs are scrambled to discourage people from trying to
         be clever or making assumptions about them. If DEBUG_FCB_SIMPLE_TRACKING_IDS
@@ -100,7 +93,7 @@ typedef struct
 static CallbackEntry* sCallbacks;
 static NSUInteger sCount; // Number of slots in use.
 static NSUInteger sSpace; // Number of slots allocated.
-// A deferred add or remove (proposed ADR-0043: was a Foundation dictionary with the same three entries).
+// A deferred add or remove.
 typedef struct
 {
     std::string operation; // "add" or "remove"

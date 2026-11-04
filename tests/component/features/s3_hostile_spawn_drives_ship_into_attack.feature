@@ -1,11 +1,11 @@
-# SMOKE SCENARIO (ADR-0020). This does NOT prove "a hostile spawn drives a
-# ship into ATTACK via Ship.AIState, independent of whether combat resolves"
+# SMOKE SCENARIO. This does NOT prove "a hostile spawn drives a ship into
+# ATTACK via Ship.AIState, independent of whether combat resolves"
 # — Ship.AIState never leaves GLOBAL in this tier (JS AIs install
 # nullAI.plist, which has exactly one state) and the step library has no
-# step that can distinguish ATTACK from FLEE. That assertion is deferred to
-# seam oo-3cvh. This scenario only proves the setup (spawn the named roles,
-# set their AIs per ADR-0019) runs for the stated ticks without crashing,
-# and that a spawned role survives. "trader" is used as the surviving role,
+# step that can distinguish ATTACK from FLEE, so that assertion is deferred.
+# This scenario only proves the setup (spawn the named roles, set their AIs)
+# runs for the stated ticks without crashing, and that a spawned role
+# survives. "trader" is used as the surviving role,
 # matching the sibling S2 scenario's already-validated, reliable choice.
 
 Feature: Ship-to-ship combat

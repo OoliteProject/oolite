@@ -4,12 +4,9 @@ DockEntity.h
 
 ShipEntity subclass representing a dock.
 
-C++ since its slice plan (docs/phases/3-slices/DockEntity.md; proposed ADR-0056, amendments
-oo-60fwo, oo-64ako and oo-ao2d). Bead oo-9ht.180 deleted its Objective-C facade (amendment
-oo-9ht.180): a dock is made in C++ by DockEntity::newDockObject() and its Objective-C object was the
-ship's facade, which answered the dock's selectors the game can still find by name for a dock's
-C++ part only; since bead oo-9ht.144 (amendment oo-9ht.144) the object is OOEntityWithDrawable's
-facade and the root's facade answers them.
+A dock is made in C++ by DockEntity::newDockObject(). Its Objective-C object is
+OOEntityWithDrawable's facade, and the root's facade answers the dock's
+selectors the game can still find by name for a dock's C++ part only.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -36,19 +33,17 @@ MA 02110-1301, USA.
 #include "ShipEntity.h"
 #include "StationEntity.h" // For MAX_DOCKING_STAGES
 
-/*	The dock's state and members (docs/phases/3-slices/DockEntity.md).
+/*	The dock's state and members.
 
-        The ivars are data members with the same names, every one zero-initialised as the runtime
-        zeroed them (amendment oo-bj8 item 1). Pointers to Objective-C objects stay what they were,
-        retained by hand where they were (amendment oo-bj8 item 4). C++ only since bead oo-9ht.180
-        deleted its Objective-C facade.
+        The ivars are data members with the same names, every one
+   zero-initialised as the runtime zeroed them. Pointers to Objective-C objects
+   stay what they were, retained by hand where they were.
 */
 class DockEntity : public ShipEntity {
 public:
-    /*	[[DockEntity alloc] cxx_initWithKey:definition:] until bead oo-9ht.180: a new dock, set up from
-            its definition as a ship (oo::NewShipObject), then given the dock's defaults. Answers the dock,
-            its object retained (+1) as +alloc/-init's was, or nullptr when the set-up fails (bead
-            oo-9ht.144: the object until then).
+    /*	A new dock, set up from its definition as a ship (oo::NewShipObject),
+       then given the dock's defaults. Answers the dock, its object retained (+1)
+       as +alloc/-init's was, or nullptr when the set-up fails.
     */
     static ::ShipEntity* newDockObject(const std::string& key, const oo::PList& dict);
 
@@ -59,7 +54,7 @@ public:
     // subclass's -dealloc ran before its superclass's.
     void willDealloc();
 
-    // Slice 1: class shell, flags, geometry and lifecycle.
+    // Class shell, flags, geometry and lifecycle.
     void clear();
 
     // Docking
@@ -84,7 +79,7 @@ public:
     void clearIdLocks(::ShipEntity* ship);
     void clearAllIdLocks();
 
-    // Slice 2: docking guidance, the approach queue and docking instructions.
+    // Docking guidance, the approach queue and docking instructions.
     oo::PList dockingInstructionsForShip(::ShipEntity* ship); // a dictionary (the station an Object node); null: none
     std::optional<std::string> canAcceptShipForDocking(::ShipEntity* ship);
     bool shipIsInDockingQueue(::ShipEntity* ship);
@@ -97,7 +92,7 @@ public:
     void addShipToShipsOnApproach(::ShipEntity* ship);
     void pullInShipIfPermitted(::ShipEntity* ship);
 
-    // Slice 3: the docking corridor and launching.
+    // The docking corridor and launching.
     bool shipIsInDockingCorridor(::ShipEntity* ship);
     void abortAllLaunches();
     void addShipToLaunchQueue(::ShipEntity* ship, bool priority);
@@ -112,8 +107,8 @@ public:
     // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSDock.h).
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
-    // The ship's answer (ShipEntity (OOJavaScriptExtensions)), which the facade inherited; a C++ part
-    // is asked since bead oo-9ht.180.
+    // The ship's answer (ShipEntity (OOJavaScriptExtensions)), which the facade
+    // inherited; a C++ part is asked.
     bool isVisibleToScripts() override;
     bool setUpShipFromDictionary(const oo::PList& dict) override;
     void update(OOTimeDelta delta_t) override;
@@ -128,7 +123,7 @@ public:
     double last_launch_time = { };
     //	double					approach_spacing; // not needed now holding pattern changed
 
-    oo::WeakRef<Entity> id_lock[MAX_DOCKING_STAGES]; // weak references to a ship (its C++ part; its object's before)
+    oo::WeakRef<Entity> id_lock[MAX_DOCKING_STAGES]; // weak references to a ship (its C++ part)
 
     Vector port_dimensions = { };
     double port_corridor = { }; // corridor length inside station.
@@ -148,7 +143,7 @@ inline ::DockEntity* ToDock(Entity* entity)
     return dynamic_cast<::DockEntity*>(entity);
 }
 
-// The same question of a C++ ship (a ship is C++ since bead oo-9ht.144): nullptr for null or another ship.
+// The same question of a C++ ship: nullptr for null or another ship.
 inline ::DockEntity* ToDock(::ShipEntity* ship)
 {
     return dynamic_cast<::DockEntity*>(ship);

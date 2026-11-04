@@ -70,9 +70,10 @@ MA 02110-1301, USA.
 #endif
 
 #ifdef GNUSTEP_BASE_LIBRARY
-/*	No Foundation (oo-qps.17, ADR-0055): the C types it gave (NSInteger, NSRange, NSPoint...)
-        come from the floor's header, which #errors beside any Foundation header, so nothing on
-        this path can reach one. GNUSTEP_BASE_LIBRARY is the build's own define (src/meson).
+/*	No Foundation: the C types it gave (NSInteger, NSRange, NSPoint...)
+        come from the floor's header, which #errors beside any Foundation
+   header, so nothing on this path can reach one. GNUSTEP_BASE_LIBRARY is the
+   build's own define (src/meson).
 */
 #if defined(_WIN32)
 /*	What gnustep-base's GSConfig.h gave every file through Foundation: the Windows API
@@ -136,11 +137,12 @@ MA 02110-1301, USA.
 #endif
 
 #if defined(__cplusplus)
-/*	Objective-C++ is built as C++20 (ADR-0011; proposed ADR-0028). The true/false macros below
-        stay exactly as they were (game code keeps its int-typed true/false), but a C++20 standard
-        header parsed after them breaks: <optional> has `bool(__x) <=> false`, i.e. bool <=> int.
-        So those headers are parsed here first, with the real keywords; their include guards make
-        every later #include of them a no-op. extern "C++" because OOFoundation.h is sometimes reached
+/*	Objective-C++ is built as C++20. The true/false macros below
+        stay exactly as they were (game code keeps its int-typed true/false),
+   but a C++20 standard header parsed after them breaks: <optional> has
+   `bool(__x) <=> false`, i.e. bool <=> int. So those headers are parsed here
+   first, with the real keywords; their include guards make every later #include
+   of them a no-op. extern "C++" because OOFoundation.h is sometimes reached
         from inside an extern "C" block (OOMaths.h).
 */
 extern "C++" {
@@ -227,9 +229,9 @@ extern "C++" {
 
 #include "oofnd/objc/OOObject.h"
 
-/*	The description family (-cxx_descriptionComponents & co., oo::DescriptionOf), Foundation-free
-        (proposed ADR-0055 item 1).
-*/
+/*	The description family (-cxx_descriptionComponents & co.,
+ * oo::DescriptionOf), Foundation-free.
+ */
 #include "OODescription.h"
 
 #if OOLITE_MAC_OS_X
@@ -238,10 +240,10 @@ extern "C++" {
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
 #endif
 
-/*	The ordering type and values under Oolite's own names (bead oo-3yh0): game code spells
-        OOComparisonResult / OOOrdered*, never the NS names. Since oo-qps.17 it is Oolite's own
-        NSInteger enum with Foundation's values; the Mac OS X path (Phase 5) keeps AppKit's NSInteger
-        callbacks and Foundation's constants.
+/*	The ordering type and values under Oolite's own names: game code spells
+        OOComparisonResult / OOOrdered*, never the NS names. It is Oolite's own
+   NSInteger enum with Foundation's values; the Mac OS X path keeps AppKit's
+   NSInteger callbacks and Foundation's constants.
 */
 #if OOLITE_MAC_OS_X
 typedef NSInteger OOComparisonResult;

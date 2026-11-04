@@ -43,13 +43,11 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef INCLUDED_OOJSENGINENATIVEWRAPPERS_h
-#define INCLUDED_OOJSENGINENATIVEWRAPPERS_h
+#pragma once
 
-/*	Plain includes (bead oo-9ht.72): this header is reached from C++ binding translation units
-        through OOJSEngineCore.h. OOFoundation.h gave it OOLITE_DEBUG and the function attributes.
-        With QuickJS-ng the macros below were defined in OOJavaScriptEngine.h; they are here, with
-        the rest of the engine API's plain C++ part, since that header was split.
+/*	Plain includes: this header is reached from C++ binding translation units
+        through OOJSEngineCore.h. OOFoundation.h gave it OOLITE_DEBUG and the
+        function attributes.
 */
 #include <quickjs.h>
 
@@ -100,19 +98,15 @@ void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function);
 void OOJSProfileExit(OOJSProfileStackFrame* frame);
 
 /*
-        C++ since bead oo-ppc (the Phase 3 scripting-bindings pattern; proposed ADR-0056 amendment
-        oo-ppc). The pairs below were Objective-C try, catch (id) and finally blocks. They are now a
-        C++ try, a catch (...) and scope guards, so a binding file that uses them contains no
-        Objective-C exception syntax. What each one does is unchanged:
+        The pairs below are a C++ try, a catch (...) and scope guards, so a
+   binding file that uses them contains no Objective-C exception syntax:
           * OOJS_NATIVE_EXIT catches whatever the body throws and hands it to
-            OOJSReportCurrentException() (OOJSEngineNativeWrappers.mm), which reports the game's
-            exception exactly as OOJSReportWrappedException() did (that function went with bead
-            oo-rskgl.1, when the exception became the C++ oo::Exception). It also reports a C++ exception
-            ("Native exception: <what()>"), which the Objective-C catch (id) could not catch: that
-            path ended in std::terminate (ADR-0029 measurement 10). The native then returns
+            OOJSReportCurrentException() (OOJSEngineNativeWrappers.mm), which
+   reports the game's exception (oo::Exception). It also reports a C++
+   exception ("Native exception: <what()>").
+          * The native then returns
             JS_EXCEPTION.
-          * The profiler frame is exited, and the time limiter is resumed, when the scope ends, by
-            return or by exception, as the finally blocks did.
+          * The profiler frame is exited, and the time limiter is resumed, when the scope ends, by return or by exception.
 */
 
 // The scope OOJS_PROFILE_ENTER opens: enters the frame, and exits it however the scope ends.
@@ -203,5 +197,3 @@ public:
     OOJSFullNativeScope(const OOJSFullNativeScope&) = delete;
     OOJSFullNativeScope& operator=(const OOJSFullNativeScope&) = delete;
 };
-
-#endif // INCLUDED_OOJSENGINENATIVEWRAPPERS_h

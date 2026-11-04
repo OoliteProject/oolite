@@ -1,6 +1,6 @@
 """Binds the S4 feature file to the shared step library.
 
-S4 is a smoke scenario (ADR-0020): it proves the setup runs without crashing, not the
+S4 is a smoke scenario: it proves the setup runs without crashing, not the
 missile-kill behaviour named in the story. See the comment at the top of the feature file.
 """
 

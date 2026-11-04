@@ -40,9 +40,8 @@ static OOTexture* sBlobTexture = nil;
 
 namespace {
 
-// The texture's graphics reset client, which the facade class was until bead oo-9ht.23 (ADR-0056
-// amendment oo-jpd8 item 3, as OOLaserShotEntity's): registered once, with the texture, and never
-// destroyed.
+// The texture's graphics reset client (as OOLaserShotEntity's): registered
+// once, with the texture, and never destroyed.
 class BlobTextureResetClient : public OOGraphicsResetClient {
 public:
     void resetGraphicsState() override { OOLightParticleEntity::resetGraphicsState(); }

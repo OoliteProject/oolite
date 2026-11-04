@@ -27,9 +27,10 @@ MA 02110-1301, USA.
 
 #include "OOLightParticleEntity.h"
 
-/*	A converted leaf (amendment oo-bj8 item 12): global, over OOLightParticleEntity, with no
-        facade of its own. Unconverted code makes one with sparkWithPosition() and hands it to
-        Objective-C with oo::NewEntityFacade, whose object is an OOLightParticleEntity.
+/*	A global class over OOLightParticleEntity, with no facade of its own.
+   Unconverted code makes one with sparkWithPosition() and hands it to
+   Objective-C with oo::NewEntityFacade, whose object is an
+   OOLightParticleEntity.
 */
 class OOSparkEntity : public OOLightParticleEntity {
 public:
@@ -40,12 +41,9 @@ public:
         float size,
         OOColor* color);
 
-    // -initWithPosition:...'s body, run once right after construction (amendment oo-vl43 item 2).
-    void initWithPosition(HPVector position,
-        Vector velocity,
-        OOTimeDelta duration,
-        float size,
-        OOColor* color);
+    // -initWithPosition:...'s body, run once right after construction.
+    void initWithPosition(HPVector position, Vector velocity,
+        OOTimeDelta duration, float size, OOColor* color);
 
     void update(OOTimeDelta delta_t) override;
 

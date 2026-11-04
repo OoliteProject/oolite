@@ -27,8 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOTEXTUREGENERATOR_H
-#define OOTEXTUREGENERATOR_H
+#pragma once
 
 #include "OOTextureLoader.h"
 
@@ -42,10 +41,9 @@ typedef struct
     float r, g, b, a;
 } FloatRGBA;
 
-/*	Phase 3 (bead oo-rr2x, proposed ADR-0056 amendments oo-zl36 and oo-vl43): an intermediate C++
-        class of the texture loaders, which OOPixMapTextureLoader and the planet, atmosphere and
-        emission-map generators derive from. Its Objective-C facade was deleted by bead oo-9ht.118
-        (ADR-0056 amendment oo-9ht.114), which moved the class out of namespace cxx.
+/*	An intermediate class of the texture loaders, which
+   OOPixMapTextureLoader and the planet, atmosphere and emission-map generators
+   derive from.
 */
 class OOTextureGenerator : public OOTextureLoader {
 public:
@@ -60,5 +58,3 @@ public:
     // For use by OOTexture: queues the generator on the work manager.
     virtual bool enqueue();
 };
-
-#endif // OOTEXTUREGENERATOR_H

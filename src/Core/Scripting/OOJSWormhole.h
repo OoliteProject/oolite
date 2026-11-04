@@ -38,10 +38,8 @@ void InitOOJSWormhole(JSContext* context, JSValueConst global);
 
 JSClassID JSWormholeClassID(void);
 
-/*	The bodies of WormholeEntity (OOJavaScriptExtensions), which the engine reaches by selector. Its
-        methods are one-line forwarders to these on the WormholeEntity facade, in
-        WormholeEntity+ObjCBridge.mm (bead oo-9ht.43), until that facade goes (oo-9ht.112; proposed
-        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). (-oo_jsClassID answers JSWormholeClassID().)
+/*	The bodies of WormholeEntity (OOJavaScriptExtensions), which the engine
+   reaches by selector. (-oo_jsClassID answers JSWormholeClassID().)
 */
 std::optional<std::string> OOJSWormholeJSClassName(void);
 bool OOJSWormholeIsVisibleToScripts(void);

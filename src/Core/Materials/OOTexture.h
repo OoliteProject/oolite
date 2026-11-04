@@ -8,10 +8,8 @@ OOMaterial.
 Note: OOTexture is abstract. The factory methods return instances of
 OOConcreteTexture, but special-case implementations are possible.
 
-C++20 since bead oo-whzh (proposed ADR-0056). Its Objective-C facade was deleted by bead oo-9ht.99
-(ADR-0056 amendment oo-9ht.99), which moved the class out of namespace cxx: callers hold
-oo::Ref<OOTexture>, and a texture travels in property lists as its own Object node
-(oo::PListForeign, OOTextureObjectNode()).
+Callers hold oo::Ref<OOTexture>, and a texture travels in property lists as its
+own Object node (oo::PListForeign, OOTextureObjectNode()).
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
@@ -37,14 +35,9 @@ SOFTWARE.
 
 #pragma once
 
-#ifndef OOTEXTURE_H
-#define OOTEXTURE_H
-
 #include "OOFoundation.h"
-
 #include "OOOpenGL.h"
 #include "OOPixMap.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
@@ -64,10 +57,16 @@ enum {
     kOOTextureExtraShrink = 0x000020UL,
     kOOTextureRepeatS = 0x000040UL,
     kOOTextureRepeatT = 0x000080UL,
-    kOOTextureAllowRectTexture = 0x000100UL, // Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
+    kOOTextureAllowRectTexture = 0x000100UL, // Indicates that GL_TEXTURE_RECTANGLE_EXT may be used
+                                             // instead of GL_TEXTURE_2D. See -texCoordsScale for a
+                                             // discussion of rectangle textures.
     kOOTextureNoFNFMessage = 0x000200UL, // Don't log file not found error
-    kOOTextureNeverScale = 0x000400UL, // Don't rescale texture, even if rect textures are not available. This *must not* be used for regular textures, but may be passed to OOTextureLoader when being used for other purposes.
-    kOOTextureAlphaMask = 0x000800UL, // Single-channel texture should be GL_ALPHA, not GL_LUMINANCE. No effect for multi-channel textures.
+    kOOTextureNeverScale = 0x000400UL, // Don't rescale texture, even if rect textures are not
+                                       // available. This *must not* be used for regular textures,
+                                       // but may be passed to OOTextureLoader when being used for
+                                       // other purposes.
+    kOOTextureAlphaMask = 0x000800UL, // Single-channel texture should be GL_ALPHA, not
+                                      // GL_LUMINANCE. No effect for multi-channel textures.
     kOOTextureAllowCubeMap = 0x001000UL,
 
     kOOTextureSRGBA = 0x002000UL,
@@ -85,18 +84,7 @@ enum {
 
     kOOTextureDefaultOptions = kOOTextureMinFilterDefault | kOOTextureMagFilterLinear,
 
-    kOOTextureDefinedFlags = kOOTextureMinFilterMask | kOOTextureMagFilterMask
-        | kOOTextureNoShrink
-        | kOOTextureExtraShrink
-        | kOOTextureAllowRectTexture
-        | kOOTextureAllowCubeMap
-        | kOOTextureRepeatS
-        | kOOTextureRepeatT
-        | kOOTextureNoFNFMessage
-        | kOOTextureNeverScale
-        | kOOTextureAlphaMask
-        | kOOTextureSRGBA
-        | kOOTextureExtractChannelMask,
+    kOOTextureDefinedFlags = kOOTextureMinFilterMask | kOOTextureMagFilterMask | kOOTextureNoShrink | kOOTextureExtraShrink | kOOTextureAllowRectTexture | kOOTextureAllowCubeMap | kOOTextureRepeatS | kOOTextureRepeatT | kOOTextureNoFNFMessage | kOOTextureNeverScale | kOOTextureAlphaMask | kOOTextureSRGBA | kOOTextureExtractChannelMask,
 
     kOOTextureFlagsAllowedForRectangleTexture = kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT),
     kOOTextureFlagsAllowedForCubeMap = kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT)
@@ -111,20 +99,19 @@ enum {
     kOOTextureDataInvalid = kOOPixMapInvalidFormat,
 
     kOOTextureDataRGBA = kOOPixMapRGBA, // GL_RGBA
-    kOOTextureDataGrayscale = kOOPixMapGrayscale, // GL_LUMINANCE (or GL_ALPHA with kOOTextureAlphaMask)
+    kOOTextureDataGrayscale = kOOPixMapGrayscale, // GL_LUMINANCE (or GL_ALPHA
+                                                  // with kOOTextureAlphaMask)
     kOOTextureDataGrayscaleAlpha = kOOPixMapGrayscaleAlpha // GL_LUMINANCE_ALPHA
 };
 typedef OOPixMapFormat OOTextureDataFormat;
 
-/*	Foundation sweep (proposed ADR-0043 Amendments 1-2, bead oo-japz): names and folders are UTF-8
-        std::strings (std::optional where the old code accepted nil); texture specifiers and
-        configurations are oo::PList (a string or a dictionary; null = nil). The Foundation-typed API
-        this header declared went through a transitional bridge until its last caller moved to the cxx_
-        API below (bead oo-x3ni).
+/*	Names and folders are UTF-8 std::strings (std::optional where the old
+   code accepted nil); texture specifiers and configurations are oo::PList (a
+   string or a dictionary; null = nil).
 
-        Phase 3 (bead oo-whzh, proposed ADR-0056 amendments oo-smy and oo-2en): the C++ root of the
-        textures. Since bead oo-9ht.99 the factories answer the C++ texture, retained (null where they
-        answered nil), and every texture is C++ (OOConcreteTexture, OONullTexture, OOEnvironmentCubeMap).
+        The C++ root of the textures. The factories answer the C++ texture,
+   retained (null where they answered nil), and every texture is C++
+   (OOConcreteTexture, OONullTexture, OOEnvironmentCubeMap).
 */
 class OOTexture : public oo::PListForeign {
 public:
@@ -139,14 +126,14 @@ public:
             This method may change; textureWithConfiguration() is generally more
             appropriate. Null for no name, or a file that is not found.
     */
-    static oo::Ref<OOTexture> textureWithName(const std::optional<std::string>& name,
-        const std::optional<std::string>& directory,
-        OOTextureFlags options,
-        GLfloat anisotropy,
-        GLfloat lodBias);
+    static oo::Ref<OOTexture> textureWithName(
+        const std::optional<std::string>& name,
+        const std::optional<std::string>& directory, OOTextureFlags options,
+        GLfloat anisotropy, GLfloat lodBias);
 
     // Default options, anisotropy and LOD bias.
-    static oo::Ref<OOTexture> textureWithName(const std::optional<std::string>& name,
+    static oo::Ref<OOTexture> textureWithName(
+        const std::optional<std::string>& name,
         const std::optional<std::string>& directory);
 
     /*	Load a texure, looking in Textures directories, using configuration
@@ -155,62 +142,71 @@ public:
 
             Supported keys:
                     name				(string, required)
-                    min_filter			(string, one of "default", "nearest", "linear", "mipmap")
-                    max_filter			(string, one of "default", "nearest", "linear")
-                    noShrink			(boolean)
+                    min_filter			(string, one of "default",
+       "nearest", "linear", "mipmap") max_filter			(string, one of
+       "default", "nearest", "linear") noShrink			(boolean)
                     repeat_s			(boolean)
                     repeat_t			(boolean)
                     cube_map			(boolean)
                     anisotropy			(real)
                     texture_LOD_bias	(real)
-                    extract_channel		(string, one of "r", "g", "b", "a")
+                    extract_channel		(string, one of "r", "g", "b",
+       "a")
     */
-    static oo::Ref<OOTexture> textureWithConfiguration(const oo::PList& configuration);
-    static oo::Ref<OOTexture> textureWithConfiguration(const oo::PList& configuration, OOTextureFlags extraOptions);
+    static oo::Ref<OOTexture> textureWithConfiguration(
+        const oo::PList& configuration);
+    static oo::Ref<OOTexture> textureWithConfiguration(
+        const oo::PList& configuration, OOTextureFlags extraOptions);
 
-    /*	Test-only loader hooks (bead oo-9ht.99, ADR-0056 amendment oo-9ht.99): the five-argument
-            textureWithName() and the one-argument textureWithConfiguration() answer through these
-            settable factories, which are the real loaders (loadTextureWithName(),
-            loadTextureWithConfiguration()) unless a test replaces them, as tests replaced the facade's
-            +cxx_textureWithName:inFolder:options:anisotropy:lodBias: and +cxx_textureWithConfiguration:.
-            The game never sets them; the other factories call the real loaders directly.
+    /*	Test-only loader hooks: the five-argument
+            textureWithName() and the one-argument textureWithConfiguration()
+       answer through these settable factories, which are the real loaders
+       (loadTextureWithName(), loadTextureWithConfiguration()) unless a test
+       replaces them, as tests replaced the facade's
+            +cxx_textureWithName:inFolder:options:anisotropy:lodBias: and
+       +cxx_textureWithConfiguration:. The game never sets them; the other
+       factories call the real loaders directly.
     */
-    using NameFactory = oo::Ref<OOTexture> (*)(const std::optional<std::string>& name,
-        const std::optional<std::string>& directory,
-        OOTextureFlags options,
-        GLfloat anisotropy,
-        GLfloat lodBias);
+    using NameFactory = oo::Ref<OOTexture> (*)(
+        const std::optional<std::string>& name,
+        const std::optional<std::string>& directory, OOTextureFlags options,
+        GLfloat anisotropy, GLfloat lodBias);
     using ConfigurationFactory = oo::Ref<OOTexture> (*)(const oo::PList& configuration);
     static NameFactory nameFactory;
     static ConfigurationFactory configurationFactory;
-    static oo::Ref<OOTexture> loadTextureWithName(const std::optional<std::string>& name,
-        const std::optional<std::string>& directory,
-        OOTextureFlags options,
-        GLfloat anisotropy,
-        GLfloat lodBias);
-    static oo::Ref<OOTexture> loadTextureWithConfiguration(const oo::PList& configuration);
+    static oo::Ref<OOTexture> loadTextureWithName(
+        const std::optional<std::string>& name,
+        const std::optional<std::string>& directory, OOTextureFlags options,
+        GLfloat anisotropy, GLfloat lodBias);
+    static oo::Ref<OOTexture> loadTextureWithConfiguration(
+        const oo::PList& configuration);
 
     // The "null texture" (OONullTexture's shared instance).
     static oo::Ref<OOTexture> nullTexture();
 
     // Load a texture from a generator, optionally forcing an enqueue.
-    static oo::Ref<OOTexture> textureWithGenerator(::OOTextureGenerator* generator);
-    static oo::Ref<OOTexture> textureWithGenerator(::OOTextureGenerator* generator, bool enqueue);
+    static oo::Ref<OOTexture> textureWithGenerator(
+        ::OOTextureGenerator* generator);
+    static oo::Ref<OOTexture> textureWithGenerator(
+        ::OOTextureGenerator* generator, bool enqueue);
 
-    // Bind the texture to the current texture unit. This will block until loading is completed.
+    // Bind the texture to the current texture unit. This will block until loading
+    // is completed.
     virtual void apply();
 
     static void applyNone();
 
     virtual void ensureFinishedLoading(); // Default: does nothing
     virtual bool isFinishedLoading(); // Default: true
-    virtual std::optional<std::string> cacheKey(); // nullopt: not cacheable (the default)
+    virtual std::optional<std::string>
+    cacheKey(); // nullopt: not cacheable (the default)
 
     virtual NSSize dimensions(); // Subclass responsibility
     virtual NSSize originalDimensions(); // Default: dimensions()
     virtual bool isMipMapped(); // Subclass responsibility
 
-    // A new pixmap with a copy of the texture data; the caller free()s it. Default: kOONullPixMap.
+    // A new pixmap with a copy of the texture data; the caller free()s it.
+    // Default: kOONullPixMap.
     virtual OOPixMap copyPixMapRepresentation();
 
     virtual bool isRectangleTexture(); // Default: false
@@ -225,25 +221,27 @@ public:
     static void rebindAllTextures();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    static std::vector<oo::Ref<OOTexture>> cachedTexturesByAge(); // youngest first
-    static std::vector<oo::Ref<OOTexture>> allTextures(); // in no particular order
+    static std::vector<oo::Ref<OOTexture>>
+    cachedTexturesByAge(); // youngest first
+    static std::vector<oo::Ref<OOTexture>>
+    allTextures(); // in no particular order
 
     size_t dataSize();
 
-    virtual std::optional<std::string> name(); // nullopt: none (bead oo-3rb.289.4)
+    virtual std::optional<std::string> name(); // nullopt: none
 
     void setTrace(bool trace);
 #endif
 
-    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h), and the short
-    // form's. None here, as OOObject answered.
+    // What "%@" prints between the braces of <Class 0x...>{...}
+    // (OODescription.h), and the short form's. None here, as OOObject answered.
     virtual std::optional<std::string> descriptionComponents() const;
     virtual std::optional<std::string> shortDescriptionComponents() const;
 
-    /*	The facade's descriptions (bead oo-9ht.99 deleted it), with the texture's address: "%@" was
-            <CxxClass 0x...>{components} (its -cxx_description override); the short form named the
-            facade's class, <OOTexture 0x...>{short components}, which the emission-map generator puts
-            into its cache key.
+    /*	The former facade's descriptions, with the texture's address: "%@" was
+            <CxxClass 0x...>{components} (its -cxx_description override); the
+       short form named the facade's class, <OOTexture 0x...>{short components},
+       which the emission-map generator puts into its cache key.
     */
     std::string description() const override;
     std::string shortDescription() const;
@@ -254,39 +252,45 @@ public:
     // Internal: OOTextureInternal.h's subclass interface, for the subclasses.
     virtual void forceRebind(); // Subclass responsibility
     void addToCaches();
-    void removeFromCaches(); // Must be called on destruction (while cacheKey() is still valid) for cacheable textures.
-    static OOTexture* existingTextureForKey(const std::optional<std::string>& key); // borrowed; null for nullopt
+    void removeFromCaches(); // Must be called on destruction (while cacheKey()
+                             // is still valid) for cacheable textures.
+    static OOTexture* existingTextureForKey(
+        const std::optional<std::string>& key); // borrowed; null for nullopt
 
 protected:
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    bool _trace = { }; // was the facade's @protected ivar; the subclasses read it (bead oo-qa7c)
+    bool _trace = { }; // was the facade's @protected ivar; the subclasses read it
 #endif
 
 private:
     static void checkExtensions();
 };
 
-/*	A texture carried through plist data as a PList::Object node (proposed ADR-0043 Amendment 2):
-        the texture is the node's foreign object (bead oo-9ht.99; what oo::PListObject() and
-        oo::ObjectIn() did for the facade).
+/*	A texture carried through plist data as a PList::Object node: the
+   texture is the node's foreign object (what oo::PListObject() and
+   oo::ObjectIn() did for the facade).
 */
-inline oo::PList OOTextureObjectNode(OOTexture* texture) // null texture -> null PList
+inline oo::PList OOTextureObjectNode(
+    OOTexture* texture) // null texture -> null PList
 {
     if (texture == nullptr)
         return oo::PList();
     return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(texture)));
 }
 
-inline OOTexture* OOTextureInObjectNode(const oo::PList& plist) // null for any other node
+inline OOTexture* OOTextureInObjectNode(
+    const oo::PList& plist) // null for any other node
 {
     const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
     return (node != nullptr) ? dynamic_cast<OOTexture*>(node->get()) : nullptr;
 }
 
-/*	The specifier for object (a string, a dictionary, or null for the default name), or null.
-        A dictionary without a string "name" gets defaultName, if given.
+/*	The specifier for object (a string, a dictionary, or null for the
+   default name), or null. A dictionary without a string "name" gets
+   defaultName, if given.
 */
-oo::PList cxx_OOTextureSpecFromObject(const oo::PList& object, const std::optional<std::string>& defaultName);
+oo::PList cxx_OOTextureSpecFromObject(
+    const oo::PList& object, const std::optional<std::string>& defaultName);
 
 uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);
 
@@ -297,16 +301,22 @@ BOOL OOCubeMapsAvailable(void);
         Interpret a texture specifier (string or dictionary). All out parameters
         may be NULL.
 */
-BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier, std::string* outName, OOTextureFlags* outOptions, float* outAnisotropy, float* outLODBias, BOOL ignoreExtract);
+BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
+    std::string* outName,
+    OOTextureFlags* outOptions,
+    float* outAnisotropy, float* outLODBias,
+    BOOL ignoreExtract);
 
 /*	cxx_OOMakeTextureSpecifier()
 
         Create a texture specifier (a dictionary).
 
-        If internal is used, an optimized form unsuitable for serialization may be
-        used.
+        If internal is used, an optimized form unsuitable for serialization may
+   be used.
 */
-oo::PList cxx_OOMakeTextureSpecifier(const std::string& name, OOTextureFlags options, float anisotropy, float lodBias, BOOL internal);
+oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
+    OOTextureFlags options, float anisotropy,
+    float lodBias, BOOL internal);
 
 /*	OOApplyTextureOptionDefaults()
 
@@ -327,11 +337,10 @@ inline constexpr const char* cxx_kOOTextureSpecifierCubeMapKey = "cube_map";
 inline constexpr const char* cxx_kOOTextureSpecifierAnisotropyKey = "anisotropy";
 inline constexpr const char* cxx_kOOTextureSpecifierLODBiasKey = "texture_LOD_bias";
 
-// Keys not used in texture setup, but put in specific texture specifiers to simplify plists.
+// Keys not used in texture setup, but put in specific texture specifiers to
+// simplify plists.
 inline constexpr const char* cxx_kOOTextureSpecifierModulateColorKey = "color";
 inline constexpr const char* cxx_kOOTextureSpecifierIlluminationModeKey = "illumination_mode";
 inline constexpr const char* cxx_kOOTextureSpecifierSelfColorKey = "self_color";
 inline constexpr const char* cxx_kOOTextureSpecifierScaleFactorKey = "scale_factor";
 inline constexpr const char* cxx_kOOTextureSpecifierBindingKey = "binding";
-
-#endif // OOTEXTURE_H

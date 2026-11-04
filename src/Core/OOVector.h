@@ -120,16 +120,16 @@ OOINLINE OOScalar triple_product(Vector first, Vector second, Vector third) INLI
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
-/*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-g7k5). */
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // a game unit, not a plain C++ one
+/*	Objective-C++ only: OOMaths.h is included inside extern "C". */
 extern "C++" {
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 std::string VectorDescription(Vector vector); // "(x, y, z)"
 
-/*	For storing vectors in property lists: a PList::Object node holds the box (OOJSShip.mm makes
-        them, OOPListGameTypes.mm and the JavaScript engine read them). Its Objective-C facade was
-        deleted by bead oo-9ht.5; the box is the node's foreign object itself.
+/*	For storing vectors in property lists: a PList::Object node holds the
+   box (OOJSShip.mm makes them, OOPListGameTypes.mm and the JavaScript engine
+   read them). The box is the node's foreign object itself.
 */
 class OONativeVector : public oo::PListForeign {
 public:

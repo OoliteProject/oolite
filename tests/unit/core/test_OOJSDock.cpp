@@ -1,16 +1,15 @@
 /*	test_OOJSDock.mm
 	Unit tests for the Dock JS binding (src/Core/Scripting/OOJSDock.h/.mm) and the DockEntity
-	answers that DockEntity's overrides give the engine: bead oo-zbx3, converted the way bead oo-ppc converted
-	OOJSVector (proposed ADR-0056 amendments oo-ppc and oo-ykoy).
+	answers that DockEntity's overrides give the engine.
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's class
-	registry (OOJSClasses.mm) and its exception translator (OOJSEngineNativeWrappers.mm), and stands
-	in for the entity classes (Entity, ShipEntity, DockEntity answer only the selectors the binding
-	sends) and for the engine functions the binding links against, with the engine header's
-	linkage. The expectations were written against the Objective-C file and run on it first; they
-	pin the JS-visible behaviour (the five properties, the three writable ones, isQueued(), a
-	non-dock, a native's exception) and what the category answers the engine.
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, its bridge, the engine's class registry (OOJSClasses.mm) and
+	its exception translator (OOJSEngineNativeWrappers.mm), and stands in for the entity classes
+	(Entity, ShipEntity, DockEntity answer only the selectors the binding sends) and for the engine
+	functions the binding links against, with the engine header's linkage. The expectations were
+	written against the Objective-C file and run on it first; they pin the JS-visible behaviour
+	(the five properties, the three writable ones, isQueued(), a non-dock, a native's exception)
+	and what the category answers the engine.
 	Run: tests/run.sh unit
 */
 
@@ -33,8 +32,7 @@ public:
 	virtual std::optional<std::string> jsClassName();
 };
 
-// The ship: C++ (its Objective-C class, which this stood in for, was deleted; a ship's part
-// is a plain one, held by its object as a dock's is).
+// The ship (a ship's part is a plain one, held by its object as a dock's is).
 class ShipEntity : public Entity
 {
 };
@@ -44,8 +42,7 @@ class ShipEntity : public Entity
 #include "OOJSEntityHolder.h"
 
 
-// C++ since bead oo-4aq6a.11 (it was rooted on the Objective-C root class OOObject, which Phase 4
-// deletes); its category's two selectors are members of the same names.
+// Its category's two selectors are members of the same names.
 class TestEntityObject final : public oo::RefCounted
 {
 public:
@@ -55,11 +52,12 @@ public:
 	oo::Ref<Entity> _cxxEntity;
 };
 
-/*	A dock: C++ (its Objective-C class, which this stood in for, was deleted; its object is the
-	ship's facade); the members the binding calls, declared as DockEntity.h declares them (the test
-	imports no game header that defines the class), with the stand-in's answers. A dock whose
-	docking queue holds 99 ships raises from countOfShipsInDockingQueue(), one whose queue holds 98
-	throws a C++ exception, so the test sees what an exception under a native becomes.
+/*	A dock (its object is the ship's facade); the members the binding calls,
+   declared as DockEntity.h declares them (the test imports no game header that
+   defines the class), with the stand-in's answers. A dock whose docking queue
+   holds 99 ships raises from countOfShipsInDockingQueue(), one whose queue
+   holds 98 throws a C++ exception, so the test sees what an exception under a
+   native becomes.
 */
 class DockEntity : public ShipEntity
 {

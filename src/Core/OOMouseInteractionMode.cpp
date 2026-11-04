@@ -23,9 +23,9 @@ MA 02110-1301, USA.
 
 */
 
-#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it (bead oo-dbz)
+#define OO_PLAIN_CPP_UNIT \
+    1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOMouseInteractionMode.h"
-
 #include "oofnd/String.hpp"
 
 std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode)

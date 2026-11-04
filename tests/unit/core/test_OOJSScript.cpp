@@ -1,26 +1,21 @@
 /*	test_OOJSScript.mm
-	Unit tests for OOJSScript (src/Core/Scripting/OOJSScript.h/.mm): bead oo-u61e.3, the test-first
-	half of oo-u61e's Phase 3 conversion (proposed ADR-0056, the OOColor house style; the conversion
-	is oo-u61e.4).
+        Unit tests for OOJSScript (src/Core/Scripting/OOJSScript.h/.mm).
 
-	OOJSScript is a JavaScript world or ship script: it compiles a file into a JS object of class
-	Script, sets that object's default properties from the OXP's manifest and the caller's
-	properties, runs the file, and then answers the name, version and description the script set
-	(or a name made from the path), reads and sets the object's properties, calls its methods with
-	itself on the stack of running scripts, and goes invalid when the engine resets. It needs the
-	real engine and the cache, so the test links every game object but main's
-	(tests/unit/core/meson.build entry ['*'], amendment oo-44gg), defines gDebugFlags and points the
-	user's directories at a scratch folder (amendment oo-rmd7 item 4). The scripts are written to
-	that folder. The expectations were written against the Objective-C API and run on the
-	unconverted class first; the crossing test (facade identity, the C++ members, the running stack
-	from both sides, the weak reference) came with the conversion, oo-u61e.4, and changed when the
-	facade was deleted: the script's object was the OOScript root's facade, made by
-	OOJSScript::scriptWithPath(), and the property members were asked of the C++ script. Then the
-	root's facade was deleted: the script is held as oo::Ref<OOJSScript>, every case asks the C++
-	class what it asked through the selectors, with every expectation kept, and the crossing case
-	pins the new identity (the running stack holds the C++ script, the Script object's private slot
-	refers to it weakly).
-	Run: bash tools/check-core-tests.sh test_OOJSScript
+        OOJSScript is a JavaScript world or ship script: it compiles a file into
+   a JS object of class Script, sets that object's default properties from the
+   OXP's manifest and the caller's properties, runs the file, and then answers
+   the name, version and description the script set (or a name made from the
+   path), reads and sets the object's properties, calls its methods with itself
+   on the stack of running scripts, and goes invalid when the engine resets. It
+   needs the real engine and the cache, so the test links every game object but
+   main's (tests/unit/core/meson.build entry ['*']), defines gDebugFlags and
+   points the user's directories at a scratch folder. The scripts are written to
+   that folder. The expectations were written against the Objective-C API and
+   run on the unconverted class first. The script is held as
+   oo::Ref<OOJSScript>, every case asks the C++ class, and the crossing case
+   pins the script's identity (the running stack holds the C++ script, the
+   Script object's private slot refers to it weakly). Run: bash
+   tools/check-core-tests.sh test_OOJSScript
 */
 
 #include "OOJSScript.h"
@@ -81,8 +76,7 @@ std::string Script(const std::string &relativePath, const std::string &source)
 }
 
 
-// The script (its facades, which answered -cxx_propertyNamed: and the property setters, are
-// deleted).
+// The script.
 OOJSScript *JS(const oo::Ref<OOJSScript> &script)
 {
 	return script.get();
@@ -250,9 +244,9 @@ OO_TEST(runningStack)
 }
 
 
-// The crossing, after the facades' deletion (the conversion was oo-u61e.4): the script's identity
-// is the C++ object. The running stack holds it, weakly, and the Script object's private slot
-// refers to it weakly, as it held the facade's weak reference.
+// The crossing: the script's identity is the C++ object. The
+// running stack holds it, weakly, and the Script object's private slot refers
+// to it weakly, as it held the facade's weak reference.
 OO_TEST(crossing)
 {
 	SetUp();
@@ -334,9 +328,9 @@ OO_TEST(engineReset)
 }
 
 
-// oo-9ht.142: a file that does not compile is not loaded (nil), its error goes through the
-// engine's error reporter, and the failure path leaves nothing running and nothing dangling: the
-// next script loads and runs as before.
+// A file that does not compile is not loaded (nil), its error goes
+// through the engine's error reporter, and the failure path leaves nothing
+// running and nothing dangling: the next script loads and runs as before.
 OO_TEST(broken)
 {
 	SetUp();

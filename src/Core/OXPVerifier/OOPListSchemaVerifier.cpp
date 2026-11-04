@@ -134,9 +134,9 @@ typedef enum {
     kTypeDelegatedType
 } SchemaType;
 
-/*	The key path the verification core hands down, one link per level (a dictionary key, an array
-        index, or neither for the root). OOPListSchemaVerifier.h declares it for the core's members;
-        it is defined here again since bead oo-9ht.119 (it was in the header from bead oo-pni4).
+/*	The key path the verification core hands down, one link per level (a
+   dictionary key, an array index, or neither for the root).
+   OOPListSchemaVerifier.h declares it for the core's members.
 */
 struct BackLinkChain {
     BackLinkChain* link;
@@ -338,8 +338,8 @@ bool OOPListSchemaVerifier::delegateVerifierWithPropertyList(const oo::PList& ro
     BOOL result;
     std::optional<OOPListSchemaVerifierError> error;
 
-    // A C++ delegate answers both members; no delegate is what a delegate that did not answer the
-    // selector (or nil) was (bead oo-9ht.119).
+    // A C++ delegate answers both members; no delegate is what a delegate that
+    // did not answer the selector (or nil) was.
     if (_delegate != nullptr) {
         try {
             result = _delegate->verifierTestProperty(this,
@@ -431,7 +431,7 @@ bool OOPListSchemaVerifier::verifyPList(const oo::PList& rootPList,
         if (resolvedSpecifier)
             type = StringToSchemaType(resolvedSpecifier.get<std::string>("type"), &error);
 
-// The type verifiers (slice 2, bead oo-pgh9) take the verifier.
+// The type verifiers take the verifier.
 #define VERIFY_CASE(T)                                                                                          \
     case kType##T:                                                                                              \
         error = Verify_##T(this, subProperty, resolvedSpecifier, rootPList, name, keyPath, tentative, outStop); \
@@ -1435,7 +1435,8 @@ OOPListSchemaVerifierError ErrorTypeMismatch(const char* expectedClassName, cons
         break;
     case oo::PList::Type::Object:
         className = "(null)";
-        break; // any other object: its class's name, nil's for a node with no Objective-C object (none is made since bead oo-4aq6a.5)
+        break; // any other object: its class's name, nil's for a node with no
+               // Objective-C object (none is made)
     }
 
     return ErrorWithDictionary(kPListErrorTypeMismatch, &keyPath, oo::PList(std::move(dict)), "Expected %s, found %s.", expectedClassName, className.c_str());

@@ -39,36 +39,37 @@
 class OOMesh;
 #include "OOScript.h" // oo::Ref<OOScript> members and results
 class OOColor;
-class OOFlasherEntity; // C++ only
-
-/*	Foundation sweep (proposed ADR-0043, bead oo-ensq). The effect definition and script_info are
-        oo::PLists (script_info null where it was nil); the effect key and beacon strings are
-        std::optional (nullopt where they were nil). The subentity list is nullopt until the first
-        subentity is added and again after -clearSubEntities, as the array was nil. -subEntities /
-        -subEntityEnumerator / -flasherEnumerator return std::vector snapshots (empty where the
-        array was nil).
+class OOFlasherEntity; /*	The effect definition and script_info are
+        oo::PLists (script_info null where it was nil); the effect key and
+   beacon strings are std::optional (nullopt where they were nil). The subentity
+   list is nullopt until the first subentity is added and again after
+   -clearSubEntities, as the array was nil. -subEntities / -subEntityEnumerator
+   / -flasherEnumerator return std::vector snapshots (empty where the array was
+   nil).
 */
-// A subentity, as the class names it from inside namespace cxx (where Entity is the C++ root).
+// A subentity, as the class names it from inside namespace cxx (where Entity is
+// the C++ root).
 using OOVisualEffectSubEntities = std::vector<oo::EntityHold>;
 
-/*	A visual effect (bead oo-ukxy8, slice 1 of docs/phases/3-slices/OOVisualEffectEntity.md): the
-        class shell, its state and the entity side (construction from the effect definition, the mesh,
-        subentities and flashers, scaling, orientation vectors, drawing, update, the break pattern flag,
-        the subentity relationship), and its scripted surface (bead oo-xkf6c, slice 2: scanner colours,
-        the script and its events, the beacons and the shader uniforms).
-*/
-/*	A global C++ class, with no Objective-C class of its own: an effect's Objective-C object is
-        the root's facade, made by oo::NewVisualEffectObject(), and the selectors found on it by name
-        are the root's facade's (Entity (OOVisualEffectSelectorsCalledByName)).
+/*	A visual effect: the class shell, its state and the entity side
+   (construction from the effect definition, the mesh, subentities and flashers,
+   scaling, orientation vectors, drawing, update, the break pattern flag, the
+   subentity relationship), and its scripted surface (scanner colours, the
+   script and its events, the beacons and the shader uniforms).
+
+        A global C++ class, with no Objective-C class of its own: an effect's
+   Objective-C object is the root's facade, made by oo::NewVisualEffectObject(),
+   and the selectors found on it by name are the root's facade's (Entity
+   (OOVisualEffectSelectorsCalledByName)).
 */
 class OOVisualEffectEntity : public OOEntityWithDrawable, public cxx::OOSubEntityInterface // <OOSubEntity, OOBeaconEntity>
 {
 public:
     ~OOVisualEffectEntity();
 
-    /*	-cxx_initWithKey:definition:'s body after [super init] (the constructor ran Entity's): false
-            where the initialiser released itself and answered nil. oo::NewVisualEffectObject() runs it
-            once the object holds this effect (amendment oo-0mxi item 2).
+    /*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
+       ran Entity's): false where the initialiser released itself and answered
+       nil. oo::NewVisualEffectObject() runs it once the object holds this effect.
     */
     bool initWithKey(const std::string& key, const oo::PList& dict);
     bool setUpVisualEffectFromDictionary(const oo::PList& effectDict);
@@ -82,7 +83,7 @@ public:
 
     void clearSubEntities();
     bool setUpSubEntities();
-    void removeSubEntity(Entity* sub); // the C++ sub-entity (the list holds it)
+    void removeSubEntity(Entity* sub); // the C++ sub-entity
     void setNoDrawDistance();
     std::vector<oo::EntityHold> subEntities(); // a snapshot; empty before the first subentity (was nil)
     NSUInteger subEntityCount();
@@ -117,7 +118,7 @@ public:
     void drawSubEntityImmediate(bool immediate, bool translucent) override;
 
     // Entity (SubEntityRelationship): the root's facade answers it for an effect's part.
-    bool isShipWithSubEntityShip(Entity* other); // the C++ entity (was its object)
+    bool isShipWithSubEntityShip(Entity* other); // the C++ entity
 
     bool isEffect() override;
     bool getIsVisualEffect() override;
@@ -152,7 +153,7 @@ public:
     void setBeaconLabel(const std::optional<std::string>& blabel);
     bool isBeacon();
     OOHUDBeaconIcon* beaconDrawable(); // borrowed
-    Entity* prevBeacon(); // the C++ entity (null once its object has gone, as before)
+    Entity* prevBeacon(); // the C++ entity (null once its object has gone)
     Entity* nextBeacon();
     void setPrevBeacon(Entity* beaconShip);
     void setNextBeacon(Entity* beaconShip);
@@ -207,7 +208,7 @@ public:
     // beacons
     std::optional<std::string> _beaconCode;
     std::optional<std::string> _beaconLabel;
-    oo::WeakRef<Entity> _prevBeacon; // the beacons' C++ parts (were their objects' weak references)
+    oo::WeakRef<Entity> _prevBeacon; // the beacons' C++ parts
     oo::WeakRef<Entity> _nextBeacon;
     oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
 

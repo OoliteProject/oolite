@@ -4,9 +4,7 @@ OOOpenGLMatrixManager.h
 
 Manages OpenGL Model, View, etc. matrices.
 
-C++20 since bead oo-vt0o (proposed ADR-0056). The Objective-C facade was deleted by bead
-oo-9ht.18, which moved the manager out of namespace cxx. OOOpenGLMatrixStack had no caller outside
-this file, so it never had a facade.
+OOOpenGLMatrixStack has no caller outside this file.
 
 Oolite
 Copyright (C) 2004-2014 Giles C Williams and contributors
@@ -28,8 +26,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOOPENGLMATRIXMANAGER_H
-#define OOOPENGLMATRIXMANAGER_H
+#pragma once
 
 #include "OOMaths.h"
 #include "oofnd/PList.hpp"
@@ -62,7 +59,7 @@ public:
     NSUInteger stackCount();
 
 private:
-    std::vector<OOMatrix> stack = { }; // was a Foundation mutable array of boxed values (bead oo-3rb.10)
+    std::vector<OOMatrix> stack = { };
 };
 
 class OOOpenGLMatrixManager : public oo::RefCounted {
@@ -94,8 +91,8 @@ public:
     OOMatrix getProjection();
     void syncProjection();
     OOMatrix getMatrix(int which);
-    // An array of (location, matrix index, "mat3" / "mat4") triples, as property-list values
-    // (Foundation sweep, proposed ADR-0043).
+    // An array of (location, matrix index, "mat3" / "mat4") triples, as
+    // property-list values.
     oo::PList standardMatrixUniformLocations(GLhandleARB program);
 
 private:
@@ -128,10 +125,10 @@ void OOGLMultProjection(OOMatrix matrix);
 void OOGLTranslateProjection(Vector vector);
 void OOGLRotateProjection(GLfloat angle, Vector axis);
 void OOGLScaleProjection(Vector scale);
-void OOGLFrustum(double left, double right, double bottom, double top, double near, double far);
-void OOGLOrtho(double left, double right, double bottom, double top, double near, double far);
+void OOGLFrustum(double left, double right, double bottom, double top,
+    double near, double far);
+void OOGLOrtho(double left, double right, double bottom, double top,
+    double near, double far);
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);
 
 OOMatrix OOGLGetModelViewProjection(void);
-
-#endif // OOOPENGLMATRIXMANAGER_H

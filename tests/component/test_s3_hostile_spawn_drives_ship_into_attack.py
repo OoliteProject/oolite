@@ -1,6 +1,6 @@
 """Binds the S3 feature file to the shared step library.
 
-S3 is a smoke scenario (ADR-0020): see the comment at the top of the feature file for what it
+S3 is a smoke scenario: see the comment at the top of the feature file for what it
 does not prove. Each scenario gets its own module-level binding so pytest-bdd collects it as a
 test; the steps themselves live in steps/world_steps.py and are reused by S2-S8.
 """

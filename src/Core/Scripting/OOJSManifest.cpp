@@ -34,18 +34,6 @@ MA 02110-1301, USA.
 #include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
 
-/*
-        C++20 since bead oo-7nfv, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. OOManifest, a helper class that
-        nothing made, is gone (see where it stood). OOCommodities and OOCommodityMarket, which are C++
-        since beads oo-fqyw and oo-ih7y, are reached directly (amendment oo-ppc, item 4), as is the
-        player, null-guarded where a message to nil answered. Messages to classes that are
-        still Objective-C (Universe) stay as they are, which is why the file is still .mm
-        until Phase 4.
-*/
-
 static JSValue ManifestComment(OOJS_NATIVE_ARGS);
 static JSValue ManifestSetComment(OOJS_NATIVE_ARGS);
 static JSValue ManifestShortComment(OOJS_NATIVE_ARGS);
@@ -99,9 +87,9 @@ static const JSCFunctionListEntry sManifestMethods[] = {
     JS_CFUNC_DEF("setComment", 2, ManifestSetComment),
 };
 
-// OOManifest, the helper class "wrapped by JS Manifest objects", is gone (bead oo-7nfv): nothing
-// made one. Both Manifest objects are defined with no private object (InitOOJSManifest), and no
-// other file names the class, so its -oo_jsValueInContext: and -cxx_oo_jsClassName were never sent.
+// namespace
+
+// Both Manifest objects are defined with no private object (InitOOJSManifest).
 
 void InitOOJSManifest(JSContext* context, JSValueConst global)
 {

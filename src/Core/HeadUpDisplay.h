@@ -26,24 +26,22 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include "OOOpenGL.h"
-#include "oofnd/objc/OOObject.h"
-
-#include "MyOpenGLView.h"
-#include "OOMaths.h"
-#include "OOPolygonSprite.h" // OOHUDBeaconIcon
-#include "OOTypes.h"
-#include "ShipEntity.h"
-
-#include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
-
 #include <optional>
 #include <set>
 #include <string>
 #include <vector>
+
+#include "MyOpenGLView.h"
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOOpenGL.h"
+#include "OOPolygonSprite.h" // OOHUDBeaconIcon
+#include "OOTypes.h"
+#include "ShipEntity.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
 struct OOHUDWidget; // HeadUpDisplay.mm
 
@@ -228,13 +226,18 @@ class OOCrosshairs;
 #define OVERALL_ALPHA_KEY "overall_alpha"
 #define NONLINEAR_SCANNER "nonlinear_scanner"
 
-#define Z1 (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr ? UNIVERSE->getGameView()->getDisplay_z() : 0.0f)
+#define Z1                                                     \
+    (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr \
+            ? UNIVERSE->getGameView()->getDisplay_z()          \
+            : 0.0f)
 
 #define ONE_EIGHTH 0.125
 
 #define MAX_ACCURACY_RANGE 7000 // 7.000km
-#define ACCURACY_PROBABILITY_DECREASE_FACTOR 0.000035f // for every 1000km decrease by 3.5% the chance of high accuracy
-#define MIN_PROBABILITY_ACCURACY 0.35f // floor value for probability of high accuracy is 35%
+#define ACCURACY_PROBABILITY_DECREASE_FACTOR \
+    0.000035f // for every 1000km decrease by 3.5% the chance of high accuracy
+#define MIN_PROBABILITY_ACCURACY \
+    0.35f // floor value for probability of high accuracy is 35%
 
 enum {
     OO_RETICLE_COLOR_TARGET = 0,
@@ -246,10 +249,9 @@ class Entity;
 class PlayerEntity;
 class GuiDisplayGen;
 
-/*	The HUD itself (Phase 3, beads oo-engam .. oo-0tx6c: the six slices of
-        docs/phases/3-slices/HeadUpDisplay.md). Its Objective-C facade is deleted and the class is out
-        of namespace cxx; the dials are called by name through a table of member pointers
-        (HeadUpDisplay.mm, kDials). Getters named after their state are get + the name.
+/*	The HUD itself. The dials are called by name through a table of member
+        pointers (HeadUpDisplay.mm, kDials). Getters named after their state are
+   get + the name.
 */
 class HeadUpDisplay : public oo::RefCounted {
 public:
@@ -257,12 +259,14 @@ public:
     ~HeadUpDisplay() override;
 
     // -cxx_initWithDictionary:inFile: (callers make the HUD, then run this).
-    void initWithDictionary(const oo::PList& hudinfo, const std::optional<std::string>& hudFileName);
+    void initWithDictionary(const oo::PList& hudinfo,
+        const std::optional<std::string>& hudFileName);
 
     void resetGuis(const oo::PList& info);
 
     std::optional<std::string> getHudName();
-    void setHudName(const std::optional<std::string>& newHudName); // nullopt is ignored, as nil was
+    void setHudName(const std::optional<std::string>&
+            newHudName); // nullopt is ignored, as nil was
 
     GLfloat scannerZoom();
     void setScannerZoom(GLfloat value);
@@ -279,7 +283,8 @@ public:
 
     bool getAllowBigGui();
 
-    bool hasHidden(const std::optional<std::string>& selectorName); // nullopt (was nil): false
+    bool hasHidden(const std::optional<std::string>&
+            selectorName); // nullopt (was nil): false
     void setHiddenSelector(const std::string& selectorName, bool hide);
     void clearHiddenSelectors();
 
@@ -292,7 +297,8 @@ public:
     std::optional<std::string> getCrosshairDefinition();
     bool setCrosshairDefinition(const std::string& newDefinition);
 
-    // Each takes one hud.plist entry; a null PList where the entry was not a dictionary.
+    // Each takes one hud.plist entry; a null PList where the entry was not a
+    // dictionary.
     void addLegend(const oo::PList& info);
     void addDial(const oo::PList& info);
     void addMFD(const oo::PList& info);
@@ -361,7 +367,7 @@ public:
     void drawTrumbles(const oo::PList& info);
 
     // Internal: the state (the old ivars).
-    // Widgets in draw order; were mutable arrays of array tuples (bead oo-3rb.49).
+    // Widgets in draw order; were mutable arrays of array tuples.
     std::vector<OOHUDWidget> legendArray;
     std::vector<OOHUDWidget> dialArray;
     std::vector<OOHUDWidget> mfdArray;
@@ -374,14 +380,21 @@ public:
     GLfloat lineWidth = { };
 
     std::optional<std::string> hudName;
-    std::optional<std::string> deferredHudName; // Usually it will be nullopt. If engaged, then it means that we have a deferred HUD waiting to be drawn This may happen
-                                                // for example when a script handler attempts to switch HUD while it is being rendered. - Nikos 20110628
+    std::optional<std::string>
+        deferredHudName; // Usually it will be nullopt. If engaged, then it means
+                         // that we have a deferred HUD waiting to be drawn This
+                         // may happen for example when a script handler attempts
+                         // to switch HUD while it is being rendered. - Nikos
+                         // 20110628
     bool hudUpdating = { };
 
     GLfloat overallAlpha = { };
 
-    bool reticleTargetSensitive = { }; // TO DO: Move this into the propertiesReticleTargetSensitive structure (Getafix - 2010/08/21)
-    oo::PList propertiesReticleTargetSensitive; // isAccurate (bool), timeLastAccuracyProbabilityCalculation (double)
+    bool reticleTargetSensitive = { }; // TO DO: Move this into the propertiesReticleTargetSensitive
+                                       // structure (Getafix - 2010/08/21)
+    oo::PList propertiesReticleTargetSensitive; // isAccurate (bool),
+                                                // timeLastAccuracyProbabilityCalculation
+                                                // (double)
 
     bool cloakIndicatorOnStatusLight = { };
 
@@ -423,49 +436,64 @@ private:
     void drawLegend(const oo::PList& info);
     void drawHUDItem(const oo::PList& info);
 
-    void drawMultiFunctionDisplay(const oo::PList& info, const std::string& text, NSUInteger index);
+    void drawMultiFunctionDisplay(const oo::PList& info, const std::string& text,
+        NSUInteger index);
 
     void drawSurroundInternal(const oo::PList& info, const GLfloat color[4]);
 
-    void drawCompassPlanetBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
-    void drawCompassStationBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
+    void drawCompassPlanetBlipAt(Vector relativePosition, NSSize siz,
+        GLfloat alpha);
+    void drawCompassStationBlipAt(Vector relativePosition, NSSize siz,
+        GLfloat alpha);
     void drawCompassSunBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
-    void drawCompassTargetBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
-    void drawCompassBeaconBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
+    void drawCompassTargetBlipAt(Vector relativePosition, NSSize siz,
+        GLfloat alpha);
+    void drawCompassBeaconBlipAt(Vector relativePosition, NSSize siz,
+        GLfloat alpha);
 
     void drawSecondaryTargetReticle(const oo::PList& info);
 
-    // status: an OOMissileStatus (PlayerEntity.h, which this header does not import: it would close an import cycle).
-    void drawIconForMissile(::ShipEntity* missile, bool selected, int status, int x, int y, GLfloat width, GLfloat height, GLfloat alpha);
-    void drawIconForEmptyPylonAtX(int x, int y, GLfloat width, GLfloat height, GLfloat alpha);
+    // status: an OOMissileStatus (PlayerEntity.h, which this header does not
+    // import: it would close an import cycle).
+    void drawIconForMissile(::ShipEntity* missile, bool selected, int status,
+        int x, int y, GLfloat width, GLfloat height,
+        GLfloat alpha);
+    void drawIconForEmptyPylonAtX(int x, int y, GLfloat width, GLfloat height,
+        GLfloat alpha);
     void drawDirectionCue(const oo::PList& info);
 
-    oo::PList crosshairDefinitionForWeaponType(OOWeaponType weapon); // a null PList for none
+    oo::PList crosshairDefinitionForWeaponType(
+        OOWeaponType weapon); // a null PList for none
 
     void resetGui(::GuiDisplayGen* gui, const oo::PList& gui_info);
     void resetGuiPosition(::GuiDisplayGen* gui, const oo::PList& gui_info);
 };
 
-/*	The compass icon of a beacon whose code names no icon: the code's first character, drawn as
-        text. It replaces the NSString (OOHUDBeaconIcon) category (bead oo-f9rf) the entities' beacon
-        drawables used; the drawing is the category's. The entities hold it by the C++ OOHUDBeaconIcon
-        interface (OOPolygonSprite.h); its Objective-C facade and the protocol are deleted.
+/*	The compass icon of a beacon whose code names no icon: the code's first
+   character, drawn as text. It replaces the NSString (OOHUDBeaconIcon) category
+   the entities' beacon drawables used; the drawing is the category's. The
+   entities hold it by the C++ OOHUDBeaconIcon interface (OOPolygonSprite.h).
 */
 class OOHUDBeaconCodeIcon : public OOHUDBeaconIcon {
 public:
     explicit OOHUDBeaconCodeIcon(const std::string& text); // -initWithText:
 
-    void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha, GLfloat z) override; // -oo_drawHUDBeaconIconAt:size:alpha:z:
+    void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha, GLfloat z)
+        override; // -oo_drawHUDBeaconIconAt:size:alpha:z:
 
 private:
     std::string _text;
 };
 
-// -[OOPolygonSprite oo_drawHUDBeaconIconAt:size:alpha:z:] (the sprite's OOHUDBeaconIcon category).
-void OOPolygonSpriteDrawHUDBeaconIcon(OOPolygonSprite* sprite, NSPoint where, NSSize size, GLfloat alpha, GLfloat z);
+// -[OOPolygonSprite oo_drawHUDBeaconIconAt:size:alpha:z:] (the sprite's
+// OOHUDBeaconIcon category).
+void OOPolygonSpriteDrawHUDBeaconIcon(OOPolygonSprite* sprite, NSPoint where,
+    NSSize size, GLfloat alpha, GLfloat z);
 
-void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z,
+    NSSize siz);
+void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
+    GLfloat z, NSSize siz, BOOL rightAlign);
 
 /* cxx_OODrawString(Aligned) handles all the string drawing, but because
  * it does texture application and GL_QUADS beginning once per string
@@ -485,33 +513,43 @@ void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y, GLfl
  * - CIM
  */
 void OOStartDrawingStrings(void);
-void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
+    GLfloat z, NSSize siz, BOOL rightAlign);
 void OOStopDrawingStrings(void);
 
-void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y, NSSize siz);
+void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y,
+    GLfloat z, NSSize siz);
+void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
+    GLfloat z, NSSize siz);
+void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
+    GLfloat z, NSSize siz);
+NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
+    NSSize siz);
 
-#include "OOStringWidth.h" // cxx_OOStringWidthInEm() (bead oo-9ht.72: plain header)
+#include "OOStringWidth.h" // cxx_OOStringWidthInEm()
 
 void OOHUDResetTextEngine(void);
 
 #include "WormholeEntity.h" // WORMHOLE_SCANINFO (a send below)
-class OOVisualEffectEntity; // C++
+class OOVisualEffectEntity;
 
-/*	Sends of converted free functions to classes that are still Objective-C, one function per
-        send, the body the send verbatim (in HeadUpDisplay.mm since the HUD's facade was deleted).
-        Members keep their sends. Each goes with its class's conversion.
+/*	Sends of converted free functions to classes that are still Objective-C,
+        one function per send, the body the send verbatim (in HeadUpDisplay.mm).
+   Members keep their sends. Each goes with its class's conversion.
 */
-// -[[UNIVERSE gui] cxx_setGLColorFromSetting:defaultValue:alpha:] (OODrawPlanetInfo()).
-void HeadUpDisplayUniverseGUISetGLColorFromSetting(const std::optional<std::string>& setting, OOColor* defaultValue, GLfloat alpha);
-// The player, entities and universe as the reticles and waypoints read them (hudDrawReticleOnTarget(),
-// hudDrawWaypoint(), hudRotateViewpointForVirtualDepth()).
+// -[[UNIVERSE gui] cxx_setGLColorFromSetting:defaultValue:alpha:]
+// (OODrawPlanetInfo()).
+void HeadUpDisplayUniverseGUISetGLColorFromSetting(
+    const std::optional<std::string>& setting, OOColor* defaultValue,
+    GLfloat alpha);
+// The player, entities and universe as the reticles and waypoints read them
+// (hudDrawReticleOnTarget(), hudDrawWaypoint(),
+// hudRotateViewpointForVirtualDepth()).
 OOGUIScreenID HeadUpDisplayPlayerGuiScreen(PlayerEntity* player);
 HPVector HeadUpDisplayPlayerViewpointPosition(PlayerEntity* player);
 GLfloat HeadUpDisplayPlayerWeaponRange(PlayerEntity* player);
-std::optional<std::string> HeadUpDisplayPlayerDialTargetName(PlayerEntity* player);
+std::optional<std::string> HeadUpDisplayPlayerDialTargetName(
+    PlayerEntity* player);
 double HeadUpDisplayPlayerClockTimeAdjusted(PlayerEntity* player);
 Vector HeadUpDisplayPlayerCustomViewForwardVector(PlayerEntity* player);
 Vector HeadUpDisplayPlayerCustomViewUpVector(PlayerEntity* player);
@@ -526,13 +564,16 @@ Quaternion HeadUpDisplayEntityOrientation(Entity* entity);
 std::optional<std::string> HeadUpDisplayShipScanDescription(ShipEntity* ship);
 bool HeadUpDisplayShipIsCloaked(ShipEntity* ship);
 bool HeadUpDisplayShipIsHostileToPlayer(ShipEntity* ship);
-GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, BOOL isHostile, BOOL flash);
-GLfloat* HeadUpDisplayVisualEffectScannerDisplayColor(OOVisualEffectEntity* vis, BOOL flash);
+GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, BOOL isHostile,
+    BOOL flash);
+GLfloat* HeadUpDisplayVisualEffectScannerDisplayColor(OOVisualEffectEntity* vis,
+    BOOL flash);
 WORMHOLE_SCANINFO HeadUpDisplayWormholeScanInfo(WormholeEntity* wormhole);
 double HeadUpDisplayWormholeEstimatedArrivalTime(WormholeEntity* wormhole);
 double HeadUpDisplayWormholeExpiryTime(WormholeEntity* wormhole);
 OOTimeAbsolute HeadUpDisplayUniverseGetTime();
-const oo::PList* HeadUpDisplayUniverseDescriptions(); // MissileIconDefinition()
+const oo::PList*
+HeadUpDisplayUniverseDescriptions(); // MissileIconDefinition()
 OOViewID HeadUpDisplayUniverseViewDirection();
 Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayer();
 Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayerPrecisely();

@@ -126,8 +126,8 @@ void GLUniformMatrix3(GLint location, OOMatrix M);
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 
 #ifdef __cplusplus
-/*	C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-6283; OOMatrix.cpp
-        since oo-s37k, as OOQuaternion.h does for QuaternionDescription). */
+/*	C++ only: OOMaths.h is included inside extern "C" (as OOQuaternion.h
+   does for QuaternionDescription). */
 extern "C++" {
 #include "oofnd/StdLib.hpp"
 std::string OOMatrixDescription(OOMatrix matrix); // "{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"

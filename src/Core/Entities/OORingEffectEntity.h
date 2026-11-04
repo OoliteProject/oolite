@@ -4,10 +4,10 @@ OORingEffectEntity.h
 
 Entity subclass for expanding-ring effect, used for hyperspace entry and for
 some large explosions.
-C++20 since bead oo-peql, a leaf of the Entities seam (proposed ADR-0056, amendment oo-bj8 item
-12). A global class over Entity, with no facade: nothing messages it by its own selectors.
-Its callers (ShipEntity, Universe) make it with a factory and hand the universe the Entity facade
-oo::NewEntityFacade makes, which is its Objective-C object from then on.
+A global class over Entity, with no facade: nothing
+messages it by its own selectors. Its callers (ShipEntity, Universe) make it
+with a factory and hand the universe the Entity facade oo::NewEntityFacade
+makes, which is its Objective-C object from then on.
 
 
 Oolite

@@ -1,6 +1,5 @@
 /*	test_OOJSCall.cpp
-	Unit tests for OOJSCallEntityMethod() (src/Core/Scripting/OOJSCall.h/.cpp), a Phase 3
-	scripting file.
+	Unit tests for OOJSCallEntityMethod() (src/Core/Scripting/OOJSCall.h/.cpp).
 
 	OOJSCallObjCObjectMethod() implemented the debug-build callObjC(): it called an Objective-C
 	method by name on an object, choosing how by the method's signature. The test runs the call in
@@ -11,12 +10,9 @@
 	classes (the call makes a ship the player's script target). The game's headers for those are
 	not included, because the test defines those classes.
 
-	The Objective-C object path (OOJSCallObjCObjectMethod; the console's callObjC() is given only
-	entities and monitors) is gone: its cases voidAndStringMethods, scalarMethods, objectMethods,
-	errors and shipBecomesScriptTarget, and the object call of entityMethodsByTable, retired with
-	it, after the surviving entity call's signatures, results and errors were pinned
-	(entityResultsByTable). The test's entity objects are C++: its by-name stand-ins answer the
-	names the entity's object answered from a table of the test's own.
+	The console's callObjC() is given only entities and monitors. The test's entity objects are
+	C++: its by-name stand-ins answer the names the entity's object answers from a table of the
+	test's own.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -86,9 +82,10 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context,
 class TestEntityObject;
 ::TestEntityObject *TestObjectOf(Entity *entity);	// below
 
-// A property list as JS: strings, numbers and booleans as themselves; an object node as the
-// string "<object CLASS>", which is enough to see which object came back (an entity's node: its
-// object's class; any other node held no Objective-C object, nil's class "(null)"). Owned by the
+// A property list as JS: strings, numbers and booleans as themselves; an object
+// node as the string "<object CLASS>", which is enough to see which object came
+// back (an entity's node: its object's class; any other node held no
+// Objective-C object, nil's class "(null)"). Owned by the
 // caller.
 JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist);
 
@@ -118,8 +115,9 @@ JSValue JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 }
 
 
-// Link stub (amendment oo-zffj item 2): OOShaderUniformMethodType.mm's matrix reader answers it for
-// a nil object; the test calls no matrix method, and OOMatrix.mm would bring OpenGL.
+// Link stub: OOShaderUniformMethodType.mm's matrix
+// reader answers it for a nil object; the test calls no matrix method, and
+// OOMatrix.mm would bring OpenGL.
 extern "C" const OOMatrix kZeroMatrix = {};
 
 
@@ -137,9 +135,8 @@ public:
 	virtual ~Entity();
 };
 
-// An entity's object, C++ (it was rooted on the Objective-C root class OOObject, which is gone):
-// its class's runtime name, and the names it answered by selector, which the by-name stand-ins
-// below answer from the test's own table.
+// An entity's object: its class's runtime name, and the names it answers by
+// selector, which the by-name stand-ins below answer from the test's own table.
 class TestEntityObject : public oo::RefCounted
 {
 public:
@@ -154,9 +151,9 @@ class ShipEntity : public Entity
 
 Entity::~Entity() = default;
 
-// The player is C++ (its Objective-C class is deleted): the C++ player as far as
-// the call sees it (declared as PlayerEntity.h declares it; the test includes no game header that
-// defines the class) and its object, a ship (the ship's facade in the game).
+// The C++ player as far as the call sees it (declared as PlayerEntity.h
+// declares it; the test includes no game header that defines the class) and its
+// object, a ship (the ship's facade in the game).
 class TestPlayerObject final : public TestEntityObject
 {
 public:
@@ -287,8 +284,9 @@ JSValue StringValue(const char *text)
 }
 
 
-// Calls the name (and arguments) on an entity by callObjC()'s entity name table; gives the result
-// as a string ("<unchanged>" when the call left it alone), or "error: <message>". Frees the
+// Calls the name (and arguments) on an entity by callObjC()'s entity name
+// table; gives the result as a string ("<unchanged>" when the call left it
+// alone), or "error: <message>". Frees the
 // arguments.
 std::string CallEntity(Entity *entity, std::vector<JSValue> argv)
 {
@@ -334,12 +332,12 @@ OO_TEST(entityMethodsByTable)
 }
 
 
-/*	The entity call's signatures, results and errors: what the deleted object path's cases
-	(voidAndStringMethods, scalarMethods, objectMethods, errors) pinned for the forms the entity
-	table uses, through the table: a void method, a string parameter (the parameters joined with
-	spaces), a property-list result (a null one leaves the result), a boolean, a float and a double,
-	a vector and a quaternion, an entity result and a null one, a matrix that cannot be called, a
-	parameter missing, and parameters after a name with no colon.
+/*	The entity call's signatures, results and errors, for the forms the
+   entity table uses, through the table: a void method, a string parameter (the
+   parameters joined with spaces), a property-list result (a null one leaves the
+   result), a boolean, a float and a double, a vector and a quaternion, an
+   entity result and a null one, a matrix that cannot be called, a parameter
+   missing, and parameters after a name with no colon.
 */
 OO_TEST(entityResultsByTable)
 {

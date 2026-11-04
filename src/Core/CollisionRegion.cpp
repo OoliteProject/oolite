@@ -45,7 +45,7 @@ static int crid_counter = 1;
 namespace {
 
 /*	What the root facade's selectors answered for an entity: the C++ member each
-        forwarded to (an Objective-C stand-in was messaged before). -isPlayer, -isShip,
+        forwarded to. -isPlayer, -isShip,
         -isPlanet and -status are oo::EntityIsPlayer() etc. (Entity+ObjCBridge.h).
 */
 bool EntityIsVisible(Entity* entity)
@@ -71,9 +71,11 @@ CollisionRegion::CollisionRegion() // Designated initializer.
         max_entities = COLLISION_MAX_ENTITIES;
         entity_array = (Entity**)malloc(max_entities * sizeof(Entity*));
         if (entity_array == NULL) {
-            // -init released itself and returned nil; a constructor cannot, so it raises what
-            // -addEntity: raises when the list cannot grow (ADR-0056 amendment oo-44gg).
-            OORaiseException(OOMallocException, "Not enough memory to create collision region member list.");
+            // -init released itself and returned nil; a constructor cannot, so it
+            // raises what -addEntity: raises when the list cannot grow.
+            OORaiseException(
+                OOMallocException,
+                "Not enough memory to create collision region member list.");
         }
 
         crid = crid_counter++;

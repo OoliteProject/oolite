@@ -2,11 +2,8 @@
 
 OOFileScannerVerifierStage.m
 
-C++20 since bead oo-up4b (proposed ADR-0056 Amendment 1 and amendment oo-up4b): OOFileScannerVerifierStage,
-OOListUnusedFilesStage (bead oo-cwz) and OOFileHandlingVerifierStage. Method bodies are the
-Objective-C ones with message sends turned into calls (ADR-0012). Their Objective-C facades, and the
-verifier's -fileScannerStage, were deleted by bead oo-9ht.7. Still
-Objective-C++ until Phase 4: the verifier and the resource manager are Objective-C objects.
+OOFileScannerVerifierStage, OOListUnusedFilesStage and
+OOFileHandlingVerifierStage.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -107,8 +104,10 @@ void OOFileScannerVerifierStage::run()
     }
 }
 
-// The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
-std::optional<std::string> OOFileScannerVerifierStage::nameForDependencyForVerifier(OOOXPVerifier* verifier)
+// The verifier holds the C++ stages.
+std::optional<std::string>
+OOFileScannerVerifierStage::nameForDependencyForVerifier(
+    OOOXPVerifier* verifier)
 {
     OOOXPVerifierStage* stage = verifier->stageWithName(kFileScannerStageName);
     if (stage == nullptr) {
@@ -591,7 +590,7 @@ std::vector<std::string> OOFileScannerVerifierStage::constructReadMeNames()
     return result;
 }
 
-// OOListUnusedFilesStage: C++ since bead oo-cwz (proposed ADR-0056 Amendment 1).
+// OOListUnusedFilesStage.
 
 std::optional<std::string> OOListUnusedFilesStage::name()
 {
@@ -608,8 +607,9 @@ void OOListUnusedFilesStage::run()
     OO_LOG("verifyOXP.unusedFiles.unimplemented", "{}", "TODO: implement unused files check.");
 }
 
-// The verifier holds the C++ stages (it held their facades until bead oo-9ht.4).
-std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(OOOXPVerifier* verifier)
+// The verifier holds the C++ stages.
+std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(
+    OOOXPVerifier* verifier)
 {
     OOOXPVerifierStage* stage = verifier->stageWithName(kUnusedListerStageName);
     if (stage == nullptr) {
@@ -620,7 +620,7 @@ std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(OOOXPVer
     return kUnusedListerStageName;
 }
 
-// OOFileHandlingVerifierStage: C++ since bead oo-up4b; global since bead oo-9ht.7 deleted its facade.
+// OOFileHandlingVerifierStage.
 
 std::optional<std::vector<std::string>> OOFileHandlingVerifierStage::dependencies()
 {

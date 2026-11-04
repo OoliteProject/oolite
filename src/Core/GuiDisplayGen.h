@@ -72,7 +72,7 @@ typedef enum {
 inline constexpr std::string_view GUI_KEY_OK = "OK";
 inline constexpr std::string_view GUI_KEY_SKIP = "SKIP-ROW";
 
-// globals: the gui-settings.plist keys (Foundation sweep chunk 3, oo-3rb.94).
+// globals: the gui-settings.plist keys.
 inline constexpr const char* cxx_kGuiDefaultTextColor = "default_text_color";
 inline constexpr const char* cxx_kGuiScreenTitleColor = "screen_title_color";
 inline constexpr const char* cxx_kGuiScreenDividerColor = "screen_divider_color";
@@ -163,7 +163,7 @@ inline constexpr const char* cxx_kGuiDockingContinueColor = "docking_continue_co
 class OOTexture;
 class OOColor;
 class HeadUpDisplay;
-class OOSound; // C++ since bead oo-9ht.68 deleted its facade
+class OOSound;
 
 class OOTextureSprite; // C++ (OOTextureSprite.h)
 
@@ -171,16 +171,15 @@ typedef NSInteger OOGUIRow; // -1 for none
 typedef NSInteger OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
-/*	The members marked virtual are the ones the whole-game unit tests (test_OOOXZManager,
-        test_OOJSPlayerShip) stood in for through the facade; since bead oo-9ht.143 deleted it, their
-        stand-ins are C++ subclasses that override them (proposed ADR-0056 amendment oo-9ht.1). The game
-        makes no subclass.
+/*	The members marked virtual are the ones the whole-game unit tests
+   (test_OOOXZManager, test_OOJSPlayerShip) stand in for with C++ subclasses
+   that override them. The game makes no subclass.
 */
 class GuiDisplayGen : public oo::RefCounted {
 public:
     GuiDisplayGen(); // -init
-    /*	Foundation sweep (proposed ADR-0043, chunk 1 of oo-ol63: bead oo-3rb.92): titles, row texts and
-            row keys are UTF-8 std::strings, std::optional where the old code accepted or returned nil.
+    /*	Titles, row texts and row keys are UTF-8 std::strings, std::optional
+       where the old code accepted or returned nil.
     */
     GuiDisplayGen(NSSize gui_size,
         int gui_cols,
@@ -205,8 +204,8 @@ public:
     unsigned rowHeight();
     int rowStart();
 
-    std::optional<std::string> getTitle(); // nullopt: no title (bead oo-3rb.290)
-    virtual void setTitle(const std::optional<std::string>& str); // empty string means no title (bead oo-3rb.290)
+    std::optional<std::string> getTitle(); // nullopt: no title
+    virtual void setTitle(const std::optional<std::string>& str); // empty string means no title
 
     void setDrawPosition(Vector vector);
     Vector getDrawPosition();
@@ -265,8 +264,8 @@ public:
     virtual void setText(const std::string& str, OOGUIRow row);
     virtual void setText(const std::optional<std::string>& str, OOGUIRow row, OOGUIAlignment alignment); // nullopt: no change
 
-    // Chunk 2 (oo-3rb.93): a nil text or key is std::nullopt (nothing printed / no key set, as before);
-    // text_array, when not nullptr, receives each line printed.
+    // A nil text or key is std::nullopt (nothing printed / no key set, as
+    // before); text_array, when not nullptr, receives each line printed.
     virtual std::optional<std::string> reflowTextForMFD(const std::optional<std::string>& input);
     virtual OOGUIRow addLongText(const std::optional<std::string>& str,
         OOGUIRow row,
@@ -299,9 +298,9 @@ public:
     void setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec, bool withBackground);
 
     /*
-            A background/foreground texture descriptor is a dictionary with a string
-            property keyed "name" and optional number properties keyed "width" and
-            "height". Chunk 4 (oo-3rb.94..95): descriptors are oo::PList (null = nil).
+            A background/foreground texture descriptor is a dictionary with a
+       string property keyed "name" and optional number properties keyed "width"
+       and "height". Descriptors are oo::PList (null = nil).
     */
 
     bool setBackgroundTextureDescriptor(const oo::PList& descriptor);
@@ -329,9 +328,10 @@ public:
     void leaveLastLine();
     oo::PList getLastLines(); // text, colour, fade time (x 2); null with no rows
 
-    // The row under a virtual-joystick (pointer) position: the row -drawGUI:drawCursor:YES returns for
-    // that position, without rendering. A click uses it so that it activates the row under the pointer
-    // NOW, not the row of the last render (bead oo-3rb.348).
+    // The row under a virtual-joystick (pointer) position: the row
+    // -drawGUI:drawCursor:YES returns for that position, without rendering. A
+    // click uses it so that it activates the row under the pointer NOW, not the
+    // row of the last render.
     int rowAtVirtualJoystickPosition(NSPoint vjpos);
     void setStatusPage(NSInteger pageNum);
     NSUInteger getStatusPage();
@@ -369,7 +369,7 @@ private:
 
     std::optional<std::string> title; // none: no title bar
 
-    std::vector<oo::PList> rowText; // each a string, or an array of column strings (chunk 5a, oo-3rb.165)
+    std::vector<oo::PList> rowText; // each a string, or an array of column strings
     std::vector<std::string> rowKey;
     std::vector<oo::Ref<OOColor>> rowColor;
 
@@ -381,7 +381,8 @@ private:
 
     OOGUITabSettings tabStops = { };
 
-    oo::PList guiUserSettings; // a mixed configuration: plist values and OOColors (Amendment 2)
+    // a mixed configuration: plist values and OOColors
+    oo::PList guiUserSettings;
 
     NSRange rowRange = { };
 
@@ -404,7 +405,6 @@ private:
     void drawAdvancedNavArrayAtX(float x, float y, float z, float alpha, const oo::PList& routeInfo, OORouteType optimizeBy, OOScalar zoom);
 };
 
-// One-line bridge (ADR-0056 amendment oo-9ht.139 item 3) for the file-scope helpers of
-// GuiDisplayGen.mm, which may not message the universe themselves (moved from the GUI's deleted
-// facade by bead oo-9ht.143). Deleted with the universe's conversion.
+// One-line bridge for the file-scope helpers of GuiDisplayGen.mm, which may not
+// message the universe themselves. Deleted with the universe's conversion.
 bool GuiDisplayGenUniverseUseShaders();

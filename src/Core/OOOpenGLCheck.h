@@ -28,8 +28,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef INCLUDED_OOOPENGLCHECK_h
-#define INCLUDED_OOOPENGLCHECK_h
+#pragma once
 
 #include "OOOpenGLOnly.h"
 
@@ -136,5 +135,3 @@ extern "C++" {
 #define OOGLEND glEnd
 
 #endif
-
-#endif // INCLUDED_OOOPENGLCHECK_h

@@ -61,8 +61,9 @@ std::vector<unsigned short> ShipIDsIn(const std::map<unsigned short, std::vector
     return shipIDs;
 }
 
-// %@ of the approach queue or a coordinates stack in the error logs (ADR-0043 item 23): the
-// old-style plist text, ship IDs as decimal keys; GNUstep's exact -description is not kept.
+// %@ of the approach queue or a coordinates stack in the error logs: the
+// old-style plist text, ship IDs as decimal keys; GNUstep's exact
+// -description is not kept.
 std::string DescriptionForLog(const oo::PList& plist)
 {
     const auto data = oo::writeOldStylePList(plist);
@@ -89,9 +90,8 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
 } // namespace
 
-// Slice 1 of docs/phases/3-slices/DockEntity.md: class shell, flags, geometry and
-// lifecycle. The facade's initialiser and -dealloc are members since bead oo-9ht.180 deleted the
-// facade.
+// Class shell, flags, geometry and lifecycle. The facade's initialiser and
+// -dealloc are members.
 
 ::ShipEntity* DockEntity::newDockObject(const std::string& key, const oo::PList& dict)
 {
@@ -229,7 +229,8 @@ bool DockEntity::isDock()
     return YES;
 }
 
-// The binding's bodies (OOJSDock.mm), which a category on the facade forwarded to.
+// The binding's bodies (OOJSDock.mm), which a category on the facade forwarded
+// to.
 JSClassID DockEntity::jsClassID()
 {
     return ::JSDockClassID();
@@ -325,8 +326,8 @@ void DockEntity::drawImmediate(bool immediate, bool translucent)
     ShipEntity::drawImmediate(immediate, translucent);
 }
 
-// Slice 2 of docs/phases/3-slices/DockEntity.md: docking guidance, the approach
-// queue and docking instructions. The facade forwards each selector (DockEntity (OOSlice2)).
+// Docking guidance, the approach queue and docking instructions. The facade
+// forwards each selector (DockEntity (OOSlice2)).
 
 NSUInteger DockEntity::pruneAndCountShipsOnApproach()
 {
@@ -717,9 +718,10 @@ void DockEntity::addShipToShipsOnApproach(::ShipEntity* ship)
             //			// docking.debug: Adjusted coordinates by c2/s2/ssize factors
         }
 
-        // add the lenght inside the station to the corridor, except for the final position, inside the dock.
-        // (Upstream added port_corridor to corridor_length here when corridor_distance[i] > 0,
-        // after its last read: a dead store, dropped when slice 1 touched the line.)
+        // add the lenght inside the station to the corridor, except for the final
+        // position, inside the dock. (Upstream added port_corridor to
+        // corridor_length here when corridor_distance[i] > 0, after its last read:
+        // a dead store, dropped.)
 
         // -oo_setInteger: stored a signed integer, -oo_setFloat: a double
         nextCoords["docking_stage"] = oo::PList::signedInteger(corridor_count - i);
@@ -828,8 +830,8 @@ void DockEntity::pullInShipIfPermitted(::ShipEntity* ship)
     }
 }
 
-// Slice 3 of docs/phases/3-slices/DockEntity.md: the docking corridor and
-// launching. The facade forwards each selector (DockEntity (OOSlice3)).
+// The docking corridor and launching. The facade forwards each selector
+// (DockEntity (OOSlice3)).
 
 void DockEntity::abortAllLaunches()
 {

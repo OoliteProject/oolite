@@ -1,21 +1,19 @@
 /*	test_OOJSPlayer.mm
-	Unit tests for the player JS binding (src/Core/Scripting/OOJSPlayer.h/.mm): bead oo-5rva,
-	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment oo-ppc).
+	Unit tests for the player JS binding (src/Core/Scripting/OOJSPlayer.h/.mm).
 
-	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
-	context, and links the game's own objects for the binding, the engine's class registration
-	(OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the random numbers
-	it draws (legacy_random.c). It stands in for the player and a station (PlayerEntity and
-	ShipEntity answer only the selectors the binding sends, and record what they are told; the ship
-	is C++, its stations' objects the root's), the
-	universe (messages, speech, nearby systems), the display strings, the script event names and
-	the engine functions the binding links against, with the engine headers' signatures
-	(OOJSEngineCore.h, upstream #768's QuickJS-ng API; script event names are atoms). The
-	expectations were written against the Objective-C file and run on it first; they pin the
-	JS-visible behaviour: the Player class and the player object, every property both ways, each
-	method with its arguments and errors (messages, reputations, the arrival report, speech,
-	replaceShip(), setEscapePodDestination() in each of its forms, setPlayerRole()), the events
-	the player is sent, and a native's exception. Run: bash tools/check-core-tests.sh
+	As the other binding tests do, it runs the JS class in a real QuickJS-ng context, and links the
+	game's own objects for the binding, the engine's class registration (OOJSClasses.mm), its
+	exception translator (OOJSEngineNativeWrappers.mm) and the random numbers it draws
+	(legacy_random.c). It stands in for the player and a station (PlayerEntity and ShipEntity answer
+	only the selectors the binding sends, and record what they are told; the ship is C++, its
+	stations' objects the root's), the universe (messages, speech, nearby systems), the display
+	strings, the script event names and the engine functions the binding links against, with the
+	engine headers' signatures (OOJSEngineCore.h, upstream #768's QuickJS-ng API; script event names
+	are atoms). The expectations were written against the Objective-C file and run on it first; they
+	pin the JS-visible behaviour: the Player class and the player object, every property both ways,
+	each method with its arguments and errors (messages, reputations, the arrival report, speech,
+	replaceShip(), setEscapePodDestination() in each of its forms, setPlayerRole()), the events the
+	player is sent, and a native's exception. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOFoundation.h"
@@ -62,10 +60,9 @@ enum
 
 class Entity;
 
-// A ship's object: the root's, which holds the C++ part (oo::ToCxx reads it); a station's and the
-// player's were the Objective-C ship's until that was deleted. C++ (it was rooted on the Objective-C
-// root class OOObject, which Phase 4 deletes): its selectors are members of the same names, and
-// className() answers its Objective-C class's name.
+// A ship's object: the root's, which holds the C++ part (oo::ToCxx reads it).
+// Its selectors are members of the same names, and className() answers its
+// Objective-C class's name.
 class TestEntityObject : public oo::RefCounted
 {
 public:
@@ -79,12 +76,13 @@ public:
 };
 
 
-/*	The player. While _raise is set, -score raises, and while _throwCxx is set it throws a C++
-	exception, so the test sees what an exception under a native becomes.
+/*	The player. While _raise is set, -score raises, and while _throwCxx is
+   set it throws a C++ exception, so the test sees what an exception under a
+   native becomes.
 */
-// PLAYER: C++ (the Objective-C player this stood in for was deleted): the members
-// the code under test calls, declared as the game headers declare them (the test imports none
-// that defines the classes), with the stand-in's answers.
+// PLAYER: the members the code under test calls, declared as the game headers
+// declare them (the test imports none that defines the classes), with the
+// stand-in's answers.
 class Entity : public oo::RefCounted
 {
 public:
@@ -93,7 +91,7 @@ public:
 	bool getIsStation();	// what its object's -isStation forwarded to
 };
 
-// The ship: C++ (a station's part is a plain one).
+// The ship (a station's part is a plain one).
 class ShipEntity : public Entity
 {
 public:
@@ -172,9 +170,9 @@ public:
 
 #include "UniverseStandIn.h"
 
-// The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C facade
-// the test's Objective-C stand-in stood in for was deleted), with the header's names and signatures.
-// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures. It answers virtual members, so it has
+// the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
 class Universe : public oo::RefCounted
 {
 public:
@@ -260,10 +258,9 @@ bool TestEntityObject::isStation()  { return _isStation; }
 OOEntityStatus TestEntityObject::status()  { return _status; }
 
 
-// The player's object (in the game the ship's facade over the C++ player), which TestObjectOf answers
-// (oo::ToObjC until the stand-in became C++): a ship whose class is named PlayerEntity, as the game's
-// player object was before its Objective-C class was deleted, so the events name it as they did (a
-// subclass made at run time until the stand-in became C++).
+// The player's object (in the game the ship's facade over the C++ player),
+// which TestObjectOf answers: a ship whose class is named PlayerEntity, so the
+// events name it as they did.
 class TestPlayerObject final : public TestEntityObject
 {
 public:
@@ -584,7 +581,7 @@ JSContext *sContext;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 PlayerEntity *sPlayer = nullptr;
 Universe *sUniverse = nil;
-::TestEntityObject *sStation = nullptr;	// a station's object and a ship's that is not one (C++ ships)
+::TestEntityObject *sStation = nullptr;	// a station's object and a ship's that is not one
 ::TestEntityObject *sNonStation = nullptr;
 ShipEntity *sStationShip = nullptr;
 

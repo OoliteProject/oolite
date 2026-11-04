@@ -169,7 +169,7 @@ typedef enum {
 
 extern int debug;
 
-// The game view: a global class since the Objective-C facade was deleted.
+// The game view.
 class MyOpenGLView : public oo::RefCounted {
 public:
     MyOpenGLView() = default; // the object -init fills; see init()
@@ -180,10 +180,12 @@ public:
 
     /**
      * \ingroup cli
-     * Scans the command line for -nosplash, --nosplash, -splash, --splash- -novsync and --novsync arguments.
+     * Scans the command line for -nosplash, --nosplash, -splash, --splash-
+     * -novsync and --novsync arguments.
      */
-    // -init's body, run on the new view by its maker (GameController::beginSplashScreen()). false
-    // where -init answered nil (SDL could not start).
+    // -init's body, run on the new view by its maker
+    // (GameController::beginSplashScreen()). false where -init answered nil (SDL
+    // could not start).
     bool init();
     std::optional<std::string> getWindowCaption();
     void createWindowWithSize(NSSize size);
@@ -195,8 +197,8 @@ public:
     SDL_DisplayID getDisplayId();
     oo::PList getNativeSize();
 
-    // Slice 2 (bead oo-72cz): accessors, display modes, settings, display / HDR, FOV and MSAA. A getter
-    // named like its member is get<Name> (ADR-0056 amendment oo-862e).
+    // Accessors, display modes, settings, display / HDR, FOV and MSAA. A getter
+    // named like its member is get<Name>.
     NSRect getBounds();
     virtual NSSize getViewSize();
     NSSize backingViewSize();
@@ -245,7 +247,7 @@ public:
     static bool pollShiftKey();
     OOOpenGLMatrixManager* getOpenGLMatrixManager(); // borrowed
 
-    // Slice 3 (bead oo-299r): snapshots and debug image dumps.
+    // Snapshots and debug image dumps.
     bool snapShot(const std::optional<std::string>& filename); // nullopt: auto-numbered "oolite-NNN"
 #ifndef NDEBUG
     // General image-dumping method.
@@ -257,8 +259,8 @@ public:
     void dumpRGBAToRGBFileNamed(const std::optional<std::string>& rgbName, const std::optional<std::string>& grayName, uint8_t* bytes, NSUInteger width, NSUInteger height, NSUInteger rowBytes);
 #endif
 
-    // Input (bead oo-0806, MyOpenGLView+Input.mm): the former (Input) category. A getter named like its
-    // member is get<Name> (ADR-0056 amendment oo-862e).
+    // Input (MyOpenGLView+Input.mm): the former (Input) category. A getter named
+    // like its member is get<Name>.
     void initKeyMappingData();
     void autoShowMouse();
     void setStringInput(enum StringInput value);
@@ -302,9 +304,7 @@ public:
     friend struct MyOpenGLViewTestAccess;
 
 private:
-    /*	Internal: the view's state, read by the members above and by the other slices. Private
-            again since the facade was deleted.
-    */
+    // Internal: the view's state, read by the members above.
     ::GameController* gameController = { }; // not retained
     bool keys[NUM_KEYS] = { };
     int scancode2Unicode[NUM_KEYS] = { };
@@ -376,9 +376,7 @@ private:
 
     NSSize firstScreen = { };
 
-    oo::Ref<OOOpenGLMatrixManager> matrixManager; // C++ since bead oo-vt0o
-
-    // Mouse mode indicator (for mouse movement model)
+    oo::Ref<OOOpenGLMatrixManager> matrixManager; // Mouse mode indicator (for mouse movement model)
     bool mouseInDeltaMode = { };
     float _mouseWheelDelta = { };
 

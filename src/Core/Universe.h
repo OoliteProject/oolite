@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOCharacter.h" // C++ since bead oo-9ht.10: the character pool is oo::Ref
+#include "OOCharacter.h" // the character pool is oo::Ref
 #include "OOColor.h"
 #include "OOCommodities.h"
-#include "OOCommodityMarket.h" // C++ since bead oo-9ht.21: the universe keeps its market (oo::Ref)
+#include "OOCommodityMarket.h" // the universe keeps its market (oo::Ref)
 #include "OOEntityWithDrawable.h"
 #include "OOFoundation.h"
 #include "OOJSPropID.h"
@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #include "OOStellarBody.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOTypes.h"
-#include "UniverseVirtualMembers.h" // the test seams (bead oo-ql9rn)
+#include "UniverseVirtualMembers.h" // the test seams
 #include "legacy_random.h"
 
 #include "oofnd/PList.hpp"
@@ -57,23 +57,23 @@ class OOMaterial;
 class Entity;
 namespace oo {
 class Exception;
-} // handleOoliteException (was @class OOException, bead oo-rskgl.1)
+} // namespace oo
 class GameController;
 class MyOpenGLView;
-class OOVisualEffectEntity; // C++ since bead oo-9ht.165
-class ShipEntity; // C++ since bead oo-9ht.144
+class OOVisualEffectEntity;
+class ShipEntity;
 class DockEntity;
 class StationEntity;
 class OOWaypointEntity;
 class PlayerEntity;
-#include "OOScript.h" // oo::Ref<OOScript> members and results (bead oo-9ht.133)
-class WormholeEntity; // C++ since bead oo-9ht.112
-class OOSunEntity; // C++ since bead oo-9ht.111
-class OOPlanetEntity; // C++ since bead oo-9ht.129
-#include "GuiDisplayGen.h" // C++ since bead oo-9ht.143: the universe keeps its GUIs (oo::Ref)
+#include "OOScript.h" // oo::Ref<OOScript> members and results
+class WormholeEntity;
+class OOSunEntity;
+class OOPlanetEntity;
+#include "GuiDisplayGen.h" // the universe keeps its GUIs (oo::Ref)
 class CollisionRegion;
 
-typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter); // the C++ entity since bead oo-9ht.39.23
+typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter); // the C++ entity
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
@@ -201,13 +201,14 @@ inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar sp
 #define MASS_DEPENDENT_FUEL_PRICES 1
 #endif
 
-/*	The universe (beads oo-riqmz, oo-pas; the Objective-C facade went with bead oo-ql9rn, ADR-0056
-        amendment oo-ql9rn): the old @interface's ivars, by the same names and types, every one
-        zero-initialised as the runtime zeroed them, and its methods as member functions. The game's
-        one universe is gSharedUniverse, UNIVERSE (below), made by newUniverse() and released by the
-        game controller. A message to nil answered zero, so callers that may run without a universe
-        (start-up, tests) guard their calls (UNIVERSE != nullptr ? UNIVERSE->m() : zero).
-        Objective-C classes are named ::X here where a C++ class of the same name is in namespace cxx.
+/*	The universe: the old @interface's ivars, by the same names and types,
+   every one zero-initialised as the runtime zeroed them, and its methods as
+   member functions. The game's one universe is gSharedUniverse, UNIVERSE
+   (below), made by newUniverse() and released by the game controller. A message
+   to nil answered zero, so callers that may run without a universe (start-up,
+   tests) guard their calls (UNIVERSE != nullptr ? UNIVERSE->m() : zero).
+        Objective-C classes are named ::X here where a C++ class of the same
+   name is in namespace cxx.
 */
 class Universe : public oo::RefCounted {
 public:
@@ -220,17 +221,19 @@ public:
     */
     static Universe* newUniverse(::MyOpenGLView* inGameView);
 
-    // -initWithGameView:'s set-up, after [super init] (slice 1).
+    // -initWithGameView:'s set-up, after [super init].
     void initWithGameView(::MyOpenGLView* inGameView);
     // -dealloc's body, run by the destructor (it was the facade's -dealloc before it released this part).
     void dealloc();
 
-    // The test seams (ADR-0056 amendment oo-ql9rn item 4): the members a whole-game test's universe
-    // overrides, declared once in UniverseVirtualMembers.h so that a narrow test's stand-in has the
-    // same vtable. Each is named where it was declared, below.
+    // The test seams: the members a whole-game test's universe
+    // overrides, declared once in UniverseVirtualMembers.h so that a narrow
+    // test's stand-in has the same vtable. Each is named where it was declared,
+    // below.
     OO_UNIVERSE_VIRTUAL_MEMBERS(;, ;)
 
-    // Slice 2: post-processing FX and colour-blind modes, the target framebuffer, start-up flags, add-ons, the entity list.
+    // Post-processing FX and colour-blind modes, the target framebuffer,
+    // start-up flags, add-ons, the entity list.
     bool bloom();
     void setBloom(bool newBloom);
     int currentPostFX();
@@ -261,19 +264,17 @@ public:
 
     // Formerly @public.
     // use a sorted list for drawing and other activities
-    Entity* sortedEntities[UNIVERSE_MAX_ENTITIES + 1] = { }; // One extra for padding; see -doRemoveEntity:. The C++ parts, borrowed (bead oo-9ht.39.4): entities owns their objects.
+    Entity* sortedEntities[UNIVERSE_MAX_ENTITIES + 1] = { }; // One extra for padding; see -doRemoveEntity:. The C++ parts,
+                                                             // borrowed: entities owns their objects.
     unsigned n_entities = 0;
 
     int cursor_row = 0;
 
     // collision optimisation sorted lists
-    Entity *x_list_start = nullptr, *y_list_start = nullptr, *z_list_start = nullptr; // C++ parts, borrowed (bead oo-9ht.39.4)
+    Entity *x_list_start = nullptr, *y_list_start = nullptr, *z_list_start = nullptr; // C++ parts, borrowed
 
     GLfloat stars_ambient[4] = { };
 
-    // Formerly @private: public while the class is half converted, because the facade's
-    // unconverted methods read them (amendment oo-60fwo item 2). Private once Universe is
-    // converted (oo-pas).
     NSUInteger _sessionID = 0;
 
     // colors
@@ -289,13 +290,13 @@ public:
     ::MyOpenGLView* gameView = nil;
 
     int next_universal_id = 0;
-    Entity* entity_for_uid[MAX_ENTITY_UID] = { }; // C++ parts, borrowed (bead oo-9ht.39.4)
+    Entity* entity_for_uid[MAX_ENTITY_UID] = { }; // C++ parts, borrowed
 
-    std::vector<oo::EntityHold> entities; // owning: each entity's object (bead oo-9ht.39.26)
+    std::vector<oo::EntityHold> entities; // owning: each entity's object
 
-    oo::WeakRef<Entity> _firstBeacon, // the beacons' C++ parts (bead oo-9ht.39.5.2; were their objects' weak references)
+    oo::WeakRef<Entity> _firstBeacon, // the beacons' C++ parts
         _lastBeacon;
-    std::map<std::string, oo::EntityHold, std::less<>> waypoints; // by key: the waypoints (their objects held, bead oo-9ht.39.26)
+    std::map<std::string, oo::EntityHold, std::less<>> waypoints; // by key: the waypoints (their objects held)
 
     GLfloat skyClearColor[4] = { };
 
@@ -306,12 +307,13 @@ public:
     oo::Ref<GuiDisplayGen> gui;
     oo::Ref<GuiDisplayGen> message_gui;
     oo::Ref<GuiDisplayGen> comm_log_gui;
-    // The GUIs setUpSettings() replaced, kept until it replaces them again: they were autoreleased,
-    // and a caller may still be using one in the pass that reinitialised the universe (bead oo-9ht.143).
+    // The GUIs setUpSettings() replaced, kept until it replaces them again: they
+    // were autoreleased, and a caller may still be using one in the pass that
+    // reinitialised the universe .
     std::vector<oo::Ref<GuiDisplayGen>> replacedGuis;
-    // The commodities, the system manager and the character pool setUpSettings() and
-    // setUpInitialUniverse() replaced, kept until they replace them again: they were autoreleased
-    // (beads oo-9ht.25, oo-9ht.32 and oo-9ht.10 deleted their facades).
+    // The commodities, the system manager and the character pool setUpSettings()
+    // and setUpInitialUniverse() replaced, kept until they replace them again:
+    // they were autoreleased (their facades are gone).
     oo::Ref<OOCommodities> replacedCommodities;
     oo::Ref<OOSystemDescriptionManager> replacedSystemManager;
     std::vector<oo::Ref<OOCharacter>> replacedCharacterPool;
@@ -379,8 +381,9 @@ public:
     ::StationEntity* cachedStation = nil;
     ::OOPlanetEntity* cachedPlanet = nil;
     ::OOSunEntity* cachedSun = nil;
-    std::vector<oo::EntityHold> allPlanets; // the planets (their objects held, bead oo-9ht.39.26)
-    std::vector<oo::EntityHold> allStations; // the stations (their objects held, bead oo-9ht.39.26), each once, in the order added
+    std::vector<oo::EntityHold> allPlanets; // the planets (their objects held)
+    std::vector<oo::EntityHold> allStations; // the stations (their objects held), each once, in the
+                                             // order added
 
     float ambientLightLevel = 0;
 
@@ -460,7 +463,8 @@ public:
     int _currentPostFX = 0;
     int _colorblindMode = 0;
 
-    // Slice 3: pause and quit, carrying the player on, set-up from station / witchspace / misjump, witchspace and planet set-up.
+    // Pause and quit, carrying the player on, set-up from station /
+    // witchspace / misjump, witchspace and planet set-up.
     void pauseGame();
     void quitGame();
     void carryPlayerOn(::StationEntity* carrier, ::WormholeEntity* wormhole);
@@ -471,7 +475,7 @@ public:
     void setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2);
     ::OOPlanetEntity* setUpPlanet();
 
-    // Slice 4: setUpSpace, populating normal space, the system populator.
+    // SetUpSpace, populating normal space, the system populator.
     void setUpSpace();
     void populateNormalSpace();
     void clearSystemPopulator();
@@ -480,11 +484,13 @@ public:
     bool deterministicPopulation();
     void populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPlanetEntity* planet);
 
-    // Slice 5: locations by code, lighting, adding ships by role, coordinate systems.
-    // locationByCode(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    // setAmbientLightLevel(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    // getAmbientLightLevel(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    // setLighting(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // Locations by code, lighting, adding ships by role, coordinate
+    // systems. locationByCode(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h) setAmbientLightLevel(): virtual, in
+    // OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // getAmbientLightLevel(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h) setLighting(): virtual, in
+    // OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     void forceLightSwitch();
     // setMainLightPosition(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     ::ShipEntity* addShipWithRole(const std::string& desc, HPVector launchPos, GLfloat rfactor);
@@ -492,7 +498,8 @@ public:
     HPVector coordinatesForPosition(HPVector pos, const std::string& system, GLfloat* my_scalar);
     std::optional<std::string> expressPosition(HPVector pos, const std::string& system);
 
-    // Slice 6: legacy positions, adding ships at / near positions and in boxes, spawning, visual effects.
+    // Legacy positions, adding ships at / near positions and in boxes,
+    // spawning, visual effects.
     HPVector legacyPositionFrom(HPVector pos, const std::string& system);
     HPVector coordinatesFromCoordinateSystemString(const std::string& system_x_y_z);
     bool addShipWithRole(const std::string& desc, HPVector pos, const std::string& system);
@@ -502,10 +509,13 @@ public:
     bool addShips(int howMany, const std::string& desc, BoundingBox bbox);
     // spawnShip(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     // witchspaceShipWithPrimaryRole(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    ::ShipEntity* spawnShipWithRole(const std::string& desc, Entity* entity); // the C++ entity since bead oo-9ht.39.23
-    // addVisualEffectAt(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)	// the effect's object (bead oo-9ht.165)
+    ::ShipEntity* spawnShipWithRole(const std::string& desc, Entity* entity); // the C++ entity
+    // addVisualEffectAt(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h)	// the effect's object
 
-    // Slice 7: adding ships within a radius and on routes, role categories, witchspace entries and effects, break patterns, the docking clearance protocol, game over.
+    // Adding ships within a radius and on routes, role categories,
+    // witchspace entries and effects, break patterns, the docking clearance
+    // protocol, game over.
     ::ShipEntity* addShipAt(HPVector pos, const std::string& role, GLfloat radius);
     // addShipsAt(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     // addShipsToRoute(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
@@ -521,7 +531,8 @@ public:
     void setDockingClearanceProtocolActive(bool newValue);
     void handleGameOver();
 
-    // Slice 8: the intro and demo ships, the ship library text, station and planet look-ups.
+    // The intro and demo ships, the ship library text, station and
+    // planet look-ups.
     void setupIntroFirstGo(bool justCobra);
     oo::PList demoShipData();
     void setLibraryTextForDemoShip();
@@ -532,16 +543,20 @@ public:
     // station(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     ::StationEntity* stationWithRole(const std::string& role, HPVector position);
     ::StationEntity* stationFriendlyTo(::ShipEntity* ship);
-    // planet(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    // sun(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    // planets(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)	// the planets' Objective-C objects
-    // stations(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // planet(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h) sun(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h) planets(): virtual, in
+    // OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)	// the planets'
+    // Objective-C objects stations(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h)
 
-    // Slice 9: wormholes, the main station, beacons, waypoints, sky colour, the break pattern, making ships by role and name, default AIs, cargo capacity.
-    // wormholes(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
-    // unMagicMainStation(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // Wormholes, the main station, beacons, waypoints, sky colour, the
+    // break pattern, making ships by role and name, default AIs, cargo capacity.
+    // wormholes(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h) unMagicMainStation(): virtual, in
+    // OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     void resetBeacons();
-    Entity* firstBeacon(); // the C++ entities (bead oo-9ht.39.26)
+    Entity* firstBeacon(); // the C++ entities
     void setFirstBeacon(Entity* beacon);
     Entity* lastBeacon();
     void setLastBeacon(Entity* beacon);
@@ -556,18 +571,20 @@ public:
     bool canInstantiateShip(const std::string& shipKey);
     std::optional<std::string> randomShipKeyForRoleRespectingConditions(const std::string& role);
     ::ShipEntity* newShipWithRole(const std::string& role);
-    // newVisualEffectWithName(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h); the effect's object, +1 (bead oo-9ht.165)
+    // newVisualEffectWithName(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h); the effect's object, +1
     ::ShipEntity* newSubentityWithName(const std::string& shipKey, float scale);
     ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy);
     ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity);
-    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity, float scale); // its object +1 (a C++ ship since bead oo-9ht.144), as -newShipWithName:... was (the proxy is made in C++ since bead oo-9ht.183)
-    ::ShipEntity* newDockWithName(const std::string& shipDataKey, float scale); // the dock, its object +1 (a C++ ship since bead oo-9ht.144)
+    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity, float scale); // its object +1, as -newShipWithName:... was
+    ::ShipEntity* newDockWithName(const std::string& shipDataKey, float scale); // the dock, its object +1
     ::ShipEntity* newShipWithName(const std::string& shipKey);
-    bool isStationShipDictionary(const oo::PList& dict); // -shipClassForShipDictionary: picked StationEntity until bead oo-9ht.175
+    bool isStationShipDictionary(const oo::PList& dict);
     std::optional<std::string> defaultAIForRole(const std::string& role);
     OOCargoQuantity maxCargoForShip(const std::string& desc);
 
-    // Slice 10: equipment prices, commodities and cargo pods, the game view and controller, settings, entity lighting, the active view matrix.
+    // Equipment prices, commodities and cargo pods, the game view and
+    // controller, settings, entity lighting, the active view matrix.
     OOCreditsQuantity getEquipmentPriceForKey(const std::string& eq_key);
     ::OOCommodities* getCommodities();
     ::ShipEntity* reifyCargoPod(::ShipEntity* cargoObj);
@@ -589,18 +606,20 @@ public:
     void getActiveViewMatrix(OOMatrix* outMatrix, Vector* outForward, Vector* outUp);
     OOMatrix activeViewMatrix();
 
-    // Slice 11: the view frustum.
+    // The view frustum.
     void defineFrustum();
     bool viewFrustumIntersectsSphereAt(Vector position, GLfloat radius);
 
-    // Slice 12: drawUniverse, framebuffer preparation, frame counters, the view matrix.
+    // DrawUniverse, framebuffer preparation, frame counters, the view
+    // matrix.
     void drawUniverse();
     void prepareToRenderIntoDefaultFramebuffer();
     int getFramesDoneThisUpdate();
     void resetFramesDoneThisUpdate();
     OOMatrix getViewMatrix();
 
-    // Slice 13: messages and the watermark, entity look-up, the linked lists, adding and removing entities, demo ships.
+    // Messages and the watermark, entity look-up, the linked lists,
+    // adding and removing entities, demo ships.
     void drawMessage();
     void drawWatermarkString(const std::string& watermarkString);
     Entity* entityForUniversalID(OOUniversalID u_id);
@@ -610,7 +629,8 @@ public:
     void removeAllEntitiesExceptPlayer();
     void removeDemoShips();
 
-    // Slice 14: making demo ships, safe vectors, hazards on route, wreckage, laser hits.
+    // Making demo ships, safe vectors, hazards on route, wreckage,
+    // laser hits.
     ::ShipEntity* makeDemoShipWithRole(const std::string& role, bool spinning);
     bool isVectorClearFromEntity(Entity* e1, double dist, HPVector p2);
     // hazardOnRouteFromEntity(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
@@ -619,7 +639,8 @@ public:
     void addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target, float damage, ::OOColor* color);
     ::ShipEntity* firstShipHitByLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset, GLfloat* range_ptr);
 
-    // Slice 15: player targeting, entities in range, counting and finding ships by role and predicate, time, collisions, view direction.
+    // Player targeting, entities in range, counting and finding ships
+    // by role and predicate, time, collisions, view direction.
     Entity* firstEntityTargetedByPlayer();
     Entity* firstEntityTargetedByPlayerPrecisely();
     std::vector<oo::EntityHold> entitiesWithinRange(double range, Entity* entity);
@@ -641,9 +662,11 @@ public:
     void findCollisionsAndShadows();
     std::string collisionDescription();
     void dumpCollisions();
-    // getViewDirection(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // getViewDirection(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h)
 
-    // Slice 16: setting the view direction, GUI view mode, custom sounds, screen textures, messages and comms, delayed messages, repopulating.
+    // Setting the view direction, GUI view mode, custom sounds, screen
+    // textures, messages and comms, delayed messages, repopulating.
     void setViewDirection(OOViewID vd);
     void enterGUIViewModeWithMouseInteraction(bool mouseInteraction);
     std::optional<std::string> soundNameForCustomSoundKey(const std::string& soundKey);
@@ -654,8 +677,9 @@ public:
     void displayMessage(const std::optional<std::string>& text, OOTimeDelta count);
     void displayCountdownMessage(const std::optional<std::string>& text, OOTimeDelta count);
     void addDelayedMessage(const std::optional<std::string>& text, OOTimeDelta count, double delay);
-    void addDelayedMessage(const oo::PList& message); // the deferred call's delivery (bead oo-pvhrh; the holder OOUniverseDelayedMessage's -deliverToUniverse before)
-    // addMessage(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    void addDelayedMessage(const oo::PList& message); // the deferred call's delivery
+    // addMessage(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h)
     void speakWithSubstitutions(const std::optional<std::string>& text);
     void addMessage(const std::optional<std::string>& text, OOTimeDelta count, bool forceDisplay);
     void addCommsMessage(const std::optional<std::string>& text, OOTimeDelta count);
@@ -664,18 +688,19 @@ public:
     void showGUIMessage(const std::optional<std::string>& text, bool scroll, ::OOColor* selectedColor, OOTimeDelta how_long);
     void repopulateSystem();
 
-    // Slice 17: update:, time acceleration, ECM visual effects.
+    // Update:, time acceleration, ECM visual effects.
     void update(OOTimeDelta inDeltaT);
     bool getECMVisualFXEnabled();
     void setECMVisualFXEnabled(bool isEnabled);
     double getTimeAccelerationFactor();
     void setTimeAccelerationFactor(double newTimeAccelerationFactor);
 
-    // Slice 18: filterSortedLists, setGalaxyTo:.
+    // FilterSortedLists, setGalaxyTo:.
     void filterSortedLists();
     void setGalaxyTo(OOGalaxyID g);
 
-    // Slice 19: galaxy and system changes, descriptions, scenarios, characters, mission text, system data and names, finding systems.
+    // Galaxy and system changes, descriptions, scenarios, characters,
+    // mission text, system data and names, finding systems.
     void setGalaxyTo(OOGalaxyID g, bool forced);
     void setSystemTo(OOSystemID s);
     OOSystemID currentSystemID();
@@ -712,7 +737,9 @@ public:
     // findSystemFromName(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     OOSystemID findSystemAtCoords(NSPoint coords, OOGalaxyID g);
 
-    // Slice 20: neighbouring systems, system-name look-up, routes (with RouteElement), planet textures, global and equipment data, the commodity market, time descriptions.
+    // Neighbouring systems, system-name look-up, routes (with
+    // RouteElement), planet textures, global and equipment data, the commodity
+    // market, time descriptions.
     oo::PList nearbyDestinationsWithinRange(double range);
     OOSystemID findNeighbouringSystemToCoords(NSPoint coords, OOGalaxyID g);
     OOSystemID findConnectedSystemAtCoords(NSPoint coords, OOGalaxyID g);
@@ -730,18 +757,20 @@ public:
     ::OOCommodityMarket* getCommodityMarket();
     std::optional<std::string> timeDescription(double interval);
 
-    // Slice 21: short time descriptions, sun skimmers, station markets.
+    // Short time descriptions, sun skimmers, station markets.
     std::optional<std::string> shortTimeDescription(double interval);
     void makeSunSkimmer(::ShipEntity* ship, bool setAI);
     Random_Seed marketSeed();
     void loadStationMarkets(const oo::PList& marketData);
     oo::PList getStationMarkets();
 
-    // Slice 22: ships for sale (cxx_shipsForSaleForSystem:withTL:atTime:).
+    // Ships for sale (cxx_shipsForSaleForSystem:withTL:atTime:).
     oo::PList shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL, OOTimeAbsolute current_time);
 
-    // Slice 23: trade-in value, brochure descriptions, witchspace exit and sun-skim positions, beacons by code, script events to all ships, the GUIs, FPS and autosave.
-    // tradeInValueForCommanderDictionary(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // Trade-in value, brochure descriptions, witchspace exit and
+    // sun-skim positions, beacons by code, script events to all ships, the GUIs,
+    // FPS and autosave. tradeInValueForCommanderDictionary(): virtual, in
+    // OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     std::optional<std::string> brochureDescriptionWithDictionary(const oo::PList& dict, const std::vector<std::string>& extras, const std::vector<std::string>& options);
     // getWitchspaceExitPosition(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
     Quaternion getWitchspaceExitRotation();
@@ -762,7 +791,9 @@ public:
     bool getAutoSave();
     void setAutoSaveNow(bool value);
 
-    // Slice 24: autosave, wireframe and detail levels, shaders, exceptions, air resistance, speech (eSpeak and none), message logs, settings, cargo pods, session IDs.
+    // Autosave, wireframe and detail levels, shaders, exceptions, air
+    // resistance, speech (eSpeak and none), message logs, settings, cargo pods,
+    // session IDs.
     bool getAutoSaveNow();
     void setWireframeGraphics(bool value);
     bool getWireframeGraphics();
@@ -771,7 +802,7 @@ public:
     void setDetailLevel(OOGraphicsDetail value);
     OOGraphicsDetail getDetailLevel();
     bool useShaders();
-    void handleOoliteException(const oo::Exception* exception); // was ::OOException * (bead oo-rskgl.1)
+    void handleOoliteException(const oo::Exception* exception);
     GLfloat getAirResistanceFactor();
     void setAirResistanceFactor(GLfloat newFactor);
     bool pauseMessageVisible();
@@ -788,7 +819,7 @@ public:
     void setUpSettings();
     void setUpCargoPods();
     void verifyEntitySessionIDs();
-#if 1 // every platform's arm is a member since the facade went (bead oo-ql9rn); the Mac's is not built (docs/phases/3-slices/Universe.md "mac-only")
+#if 1 // every platform's arm is a member; the Mac's is not built
     void startSpeakingString(const std::string& text);
     void stopSpeaking();
     bool isSpeaking();
@@ -801,8 +832,10 @@ public:
     unsigned int setVoice(unsigned int index, bool isMale);
 #endif
 
-    // Slice 25: reinitialising and the demo, the initial universe, random positions, removing entities, preloading sounds, wormhole population, graph dumps.
-    // reinitAndShowDemo(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS (UniverseVirtualMembers.h)
+    // Reinitialising and the demo, the initial universe, random
+    // positions, removing entities, preloading sounds, wormhole population, graph
+    // dumps. reinitAndShowDemo(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
+    // (UniverseVirtualMembers.h)
     void setUpInitialUniverse();
     float randomDistanceWithinScanner();
     Vector randomPlaceWithinScannerFrom(Vector pos, Vector route, double offset);
@@ -816,7 +849,9 @@ public:
     void dumpSystemDescriptionGraphViz();
 #endif
 
-    // Slice 26: graph-viz references, localisation tools, planet-material pruning, condition scripts, the custom-sound categories of OOSound and OOSoundSource, description look-ups.
+    // Graph-viz references, localisation tools, planet-material
+    // pruning, condition scripts, the custom-sound categories of OOSound and
+    // OOSoundSource, description look-ups.
 #if OO_LOCALIZATION_TOOLS
     void addNumericRefsInString(const std::string& string, std::string& graphViz, const std::string& fromNode, NSUInteger nodeCount);
     void runLocalizationTools();
@@ -839,9 +874,9 @@ OOINLINE Universe* OOGetUniverse(void)
 }
 #define UNIVERSE OOGetUniverse()
 
-// Only for use with string literals, and only for looking up strings: the description, or the
-// key itself when there is none (proposed ADR-0053). OO_DESC() is deprecated in favour of
-// cxx_OOExpandKey() except in known performance-critical contexts.
+// Only for use with string literals, and only for looking up strings: the
+// description, or the key itself when there is none. OO_DESC() is deprecated in
+// favour of cxx_OOExpandKey() except in known performance-critical contexts.
 #define OO_DESC(key) (cxx_OOLookUpDescriptionPRIV(key ""))
 #define OO_DESC_PLURAL(key, count) (cxx_OOLookUpPluralDescriptionPRIV(key "", count))
 
@@ -850,10 +885,10 @@ OOINLINE Universe* OOGetUniverse(void)
 std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
 std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger count);
 
-/*	The bodies of the custom-sound categories of OOSound and OOSoundSource (slice 26), which went
-        with the two facades (beads oo-9ht.68 and oo-9ht.88): the sound for a customsounds.plist key
-        (borrowed: the resource manager's cache keeps it; null for none), and playing it on a source
-        (nothing for a null source, as a message to nil did).
+/*	The bodies of the custom-sound categories of OOSound and OOSoundSource
+   The sound for a customsounds.plist key (borrowed: the resource
+   manager's cache keeps it; null for none), and playing it on a source (nothing
+   for a null source, as a message to nil did).
 */
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& key);
 void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source, const std::string& key);
@@ -861,16 +896,16 @@ void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source, const std::str
 #ifdef __cplusplus
 #include "oofnd/StdLib.hpp"
 
-// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.162): nullopt where the
+// C++ forms, defined in OOConstToString.mm: nullopt where the
 // old Foundation forms gave nil.
 std::optional<std::string> cxx_OODisplayStringFromGovernmentID(OOGovernmentID government);
 std::optional<std::string> cxx_OODisplayStringFromEconomyID(OOEconomyID economy);
 #endif
 
-/*	The look-ups behind the description and custom-sound keys (slice 26): a call to the universe
-        when there is one, else what the message to nil answered. Inline, so a test that stands in for
-        the universe with a class of its own defines only the members it answers (amendment oo-rmd7
-        item 3; ADR-0056 amendments oo-7jhs5 and oo-ql9rn).
+/*	The look-ups behind the description and custom-sound keys: a
+   call to the universe when there is one, else what the message to nil
+   answered. Inline, so a test that stands in for the universe with a class of
+   its own defines only the members it answers.
 */
 inline std::optional<std::string> OOUniverseDescriptionForKey(const std::string& key) { return UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(key) : std::nullopt; }
 inline const oo::PList* OOUniverseDescriptions() { return UNIVERSE != nullptr ? UNIVERSE->descriptions() : nullptr; }

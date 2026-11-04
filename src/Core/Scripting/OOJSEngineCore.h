@@ -2,12 +2,13 @@
 
 OOJSEngineCore.h
 
-The plain C++ part of the JavaScript engine API, split verbatim out of OOJavaScriptEngine.h (bead
-oo-9ht.72): context acquisition, error reporters, argument helpers, the value/PList/string
-converters, class and converter registration, the time limiter, the native wrappers and the
-OOJS_* property flags and return macros. Nothing here declares an Objective-C class, so a
-binding translation unit that is C++ (not Objective-C++) includes this header instead of
-OOJavaScriptEngine.h, which includes it back. id, Class and BOOL are libobjc2's C types.
+The plain C++ part of the JavaScript engine API, split verbatim out of
+OOJavaScriptEngine.h: context acquisition, error reporters, argument helpers, the
+value/PList/string converters, class and converter registration, the time
+limiter, the native wrappers and the OOJS_* property flags and return macros.
+Nothing here declares an Objective-C class, so a binding translation unit that
+is C++ (not Objective-C++) includes this header instead of OOJavaScriptEngine.h,
+which includes it back. id, Class and BOOL are libobjc2's C types.
 
 OOJavaScriptEngine.h (QuickJS-ng)
 
@@ -154,21 +155,23 @@ JSValueConst OOJSLegacyConstRewriter(void);
 // Report and clear a pending exception, as SpiderMonkey's error reporter did.
 void OOJSReportPendingException(JSContext* context);
 
-/*	Notifications sent when JavaScript engine is reset, on oo::NotificationCenter
-        (oofnd/Notification.hpp, bead oo-3rb.9), posted with the engine as the object: will-reset
-        before the context is destroyed, did-reset after it is recreated.
+/*	Notifications sent when JavaScript engine is reset, on
+   oo::NotificationCenter (oofnd/Notification.hpp), posted with
+   the engine as the object: will-reset before the context is destroyed,
+   did-reset after it is recreated.
 */
 extern const char* const kOOJavaScriptEngineWillResetNotificationName;
 extern const char* const kOOJavaScriptEngineDidResetNotificationName;
 
 /*	Error and warning reporters.
 
-        The error reporters throw an Error. The caller must return JS_EXCEPTION
+        The error reporters throw an Error. The caller
+        must return JS_EXCEPTION
         (or NO from a BOOL helper whose caller returns JS_EXCEPTION).
         Warnings are logged with the current script location and do not throw.
-        The cxx_ forms take printf formats (no %@: pass an object's text as %s with
-        oo::DescriptionOf), formatted by oo::str::vformat. A nullopt function means no caller
-        prefix; a nullopt scriptClass prefixes "function: ".
+        The cxx_ forms take printf formats (no %@: pass an object's text as %s
+   with oo::DescriptionOf), formatted by oo::str::vformat. A nullopt function
+   means no caller prefix; a nullopt scriptClass prefixes "function: ".
 */
 void cxx_OOJSReportError(JSContext* context, const char* format, ...) OO_PRINTF_FORMAT(2, 3);
 void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args) OO_PRINTF_FORMAT(2, 0);
@@ -217,20 +220,17 @@ OOINLINE JSValue OOJSValueFromBOOL(int b)
     return JS_NewBool(NULL, b != 0);
 }
 
-/*	(OOJSValueFromNativeObject(), the JS value of an Objective-C object, and OOJSObjectFromNativeObject()
-        went with the Objective-C runtime: no game object is an Objective-C object. Plist data is
-        OOJSValueFromPList()'s.)
-*/
-
 /*	OOJSValueFromPList()
-        Return the owned JavaScript value representation of a property list,
-        exactly as OOJSValueFromNativeObject(context, oo::ObjectFromPList(plist))
-        gave it (proposed ADR-0051): null for a null PList; a bool as the number 1
-        or 0; an integer as a number; a real as a double (a single-precision one as
-        the double of its float); a string as a string; data and dates undefined;
-        an array as an Array and a dictionary as an Object (null elements and
-        values dropped, empty keys skipped, key order); a PList::Object node as
-        its C++ object's JS glue.
+        Return the owned JavaScript value representation of a property list, exactly
+   as OOJSValueFromNativeObject(context, oo::ObjectFromPList(plist)) gave it:
+        null for a null PList; a bool as the number 1 or 0;
+   an integer as a number; a real as a double (a
+        single-precision one as the double of its float); a string as a string;
+        data and dates undefined; an array as an Array and a dictionary as an
+        Object (null elements and values dropped, empty keys skipped, key
+   order); a PList::Object node as its C++ object's JS glue.
+
+        Requires a request on context.
 */
 JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist);
 
@@ -243,7 +243,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist);
 */
 #define OOJSSTR(str) JS_AtomToString(OOJSAcquireContext(), OOJSID(str))
 
-/*	The JS-to-string converters (proposed ADR-0043). Each returns std::nullopt where the
+/*	The JS-to-string converters. Each returns std::nullopt where the
         Foundation form it replaces returned nil.
 
         Convert an arbitrary JS value to a UTF-8 string, calling its toString method
@@ -272,8 +272,9 @@ std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID);
 // Convert a UTF-8 string to a property ID (interned for the life of the process).
 JSAtom cxx_OOJSIDFromString(const std::string& string);
 
-/*	The string helpers of the retired string category (OOJavaScriptExtensions) (bead oo-3rb.199).
-        Each std::optional result is nullopt where the category method returned nil.
+/*	The string helpers of the retired string category
+   (OOJavaScriptExtensions). Each std::optional result is
+   nullopt where the category method returned nil.
 */
 
 // For diagnostic messages; produces things like "(42, true, "a string", an object description)".
@@ -289,14 +290,16 @@ std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string);
 // Class IDs of the standard classes, looked up when the engine starts.
 extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJSNumberClassID, gOOJSBooleanClassID;
 
-/*	cxx_OOJSPListFromJSValue(context, value) / cxx_OOJSPListFromJSObject(context, object)
-        The oo::PList form of the native-object family: exactly what oo::PListFrom()
-        made of OOJSNativeObjectFromJSValue()'s result (proposed ADR-0051): null for
-        null, undefined or an unconvertible value; int32 -> signed integer, double
-        -> real, boolean -> bool, string -> string; a JS Array -> array (a null or
-        undefined element -> a PList::Object holding [OONull null]); a plain Object
-        -> dictionary (see cxx_OOJSDictionaryFromJSObject()); an object of a class
-        with a registered converter -> oo::PListFrom() of what the converter
+/*	cxx_OOJSPListFromJSValue(context, value) /
+   cxx_OOJSPListFromJSObject(context, object) The oo::PList form of the
+   native-object family: exactly what oo::PListFrom() made of
+   OOJSNativeObjectFromJSValue()'s result: null for null,
+   undefined or an unconvertible value; int32 -> signed integer, double
+        -> real, boolean -> bool, string -> string; a JS Array -> array (a null
+   or undefined element -> a PList::Object holding [OONull null]); a plain
+   Object
+        -> dictionary (see cxx_OOJSDictionaryFromJSObject()); an object of a
+   class with a registered converter -> oo::PListFrom() of what the converter
         returns (a private object -> a PList::Object node holding it). The id
         functions that returned the Objective-C object of such a node
         (OOJSNativeObjectFromJSValue/FromJSObject and their OfClass forms) are
@@ -324,8 +327,8 @@ OOINLINE BOOL OOJSValueIsArray(JSContext* context, JSValueConst value)
         null is left out.
 
         Only enumerable own (i.e., not inherited) properties are included; an
-        integer-like property is keyed by its decimal text, as JS itself names it
-        (proposed ADR-0051). A value that is not an object or cannot be enumerated
+        integer-like property is keyed by its decimal text, as JS itself names
+   it. A value that is not an object or cannot be enumerated
         gives a null PList. This is also how the native-object family converts a
         plain JS Object.
 */
@@ -402,13 +405,13 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global, JSClassID cl
 
 /*	Support for OOJSNativeObjectFromJSValue() family
 
-        OOJSClassConverterCallback specifies the prototype for a callback function
-        which converts a JavaScript object to its property-list form: plist data,
-        or a PList::Object node holding a native object (proposed ADR-0055 item 4).
+        OOJSClassConverterCallback specifies the prototype for a callback
+   function which converts a JavaScript object to its property-list form: plist
+   data, or a PList::Object node holding a native object.
 
         OOJSBasicPrivateObjectConverter() is a OOJSClassConverterCallback which
         returns the JS object's private storage value as an Object node (a null
-        PList for none). The slot holds a C++ object (bead oo-4aq6a.6): a node
+        PList for none). The slot holds a C++ object: a node
         is made of it when it is a PList::Object's foreign object, else none.
 
         OOJSRegisterObjectConverter() registers a callback for a specific JS class.
@@ -438,11 +441,8 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
         This is somewhat useful for putting JavaScript objects in property lists,
         for instance to pass as properties to script loaders. The value is held
         (with its own reference) until the OOJSValue is destroyed or the engine
-        is reset.
-
-        A property list holds it as an Object node: it is its own node's foreign
-        object (OOJSValueObjectNode(); the deletion of its Objective-C facade made it
-        a global class).
+        is reset. A property list holds it as an Object node: it is its own node's
+        foreign object (OOJSValueObjectNode()).
 */
 class OOJSValue : public oo::PListForeign {
 public:
@@ -509,7 +509,7 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
         Implementation of toString() for JS classes whose private storage is an
         object reference: "[object <JS class name>]" ("[object]" for no class).
         Only an Objective-C object found through the class's converter described
-        itself; no slot holds one since bead oo-4aq6a.6.
+        itself; no slot holds one.
 */
 JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
 
@@ -549,16 +549,17 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
 #define OOJS_RETURN_INT(v) OOJS_RETURN(JS_NewInt32(context, (v)))
 #define OOJS_RETURN_DOUBLE(v) OOJS_RETURN(JS_NewFloat64(context, (v)))
 
-/*	PList return slots (proposed ADR-0055 item 4). A native returns C++ values as
-        oo::PList, converted by OOJSValueFromPList() (the same JS value
+/*	PList return slots. A native returns C++
+   values as oo::PList, converted by OOJSValueFromPList() (the same JS value
         OOJSValueFromNativeObject() gave for the Foundation object it replaces):
 
         OOJS_RETURN_PLIST(plist)            the value of <plist> (null for a null PList)
         OOJS_RETURN_STRING_OR_NULL(opt)     a std::optional<std::string>: the string,
                                             or null for nullopt (what nil gave)
 
-        The recipe the chunks followed (OOJS_RETURN_OBJECT, OOJSValueFromNativeObject(), oo::PListFromObjects()
-        and the Foundation bridges are deleted):
+        The recipe the chunks followed (OOJS_RETURN_OBJECT,
+   OOJSValueFromNativeObject(), oo::PListFromObjects() and the Foundation
+   bridges are deleted):
 
         OOJS_RETURN_OBJECT(oo::NSStringFrom(s))           OOJS_RETURN_PLIST(oo::PList(s))
         OOJS_RETURN_OBJECT(oo::NSStringOrNil(o))          OOJS_RETURN_STRING_OR_NULL(o)

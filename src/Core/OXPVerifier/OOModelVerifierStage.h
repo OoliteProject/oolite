@@ -35,16 +35,15 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-asx8): the models to check are a vector of
-        distinct entries, in the order they were reported. Materials and shaders are plist data
-        (oo::PList, null for none). nameForReverseDependencyForVerifier() is a shared name (the
-        other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
+/*	The models to check
+   are a vector of distinct entries, in the order they were reported. Materials
+   and shaders are plist data (oo::PList, null for none).
+   nameForReverseDependencyForVerifier() is a shared name (the other stages
+   declare it) and returns a std::string.
 
-        C++20 since bead oo-5zby (proposed ADR-0056 Amendment 1, amendments oo-up4b and oo-94qk): a
-        subclass of OOTextureHandlingStage. It is global and has no facade: its one caller, the
-        ship data stage, calls these members, and the verifier holds it (as its OOOXPVerifierStage
-        facade until bead oo-9ht.4). The ship data stage finds it by name through the verifier's
-        stage lookup (the verifier's category that answered it went with bead oo-9ht.56).
+   A subclass of OOTextureHandlingStage. Its one caller, the ship data stage,
+   calls these members, and the verifier holds it. The ship data stage finds it
+   by name through the verifier's stage lookup.
 */
 struct OOModelVerifierEntry {
     std::string name;
@@ -60,8 +59,10 @@ public:
     // The stage's name, as name() returns it (the ship data stage looks the stage up by it).
     static const char* const kName;
 
-    // Returns name to be used in dependents() by other stages; also registers stage.
-    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
+    // Returns name to be used in dependents() by other stages; also registers
+    // stage.
+    static std::string nameForReverseDependencyForVerifier(
+        OOOXPVerifier* verifier);
 
     std::optional<std::string> name() override;
     bool shouldRun() override;

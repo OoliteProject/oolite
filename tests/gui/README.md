@@ -15,19 +15,18 @@ missing-`pyautogui` case is the *expected* case — and exports `OO_GUI_REQUIRE=
 
 **A skip is a silent pass.** On Windows, a missing `pyautogui` is a hard `pytest.fail` naming the
 install command, never an `importorskip`. The one legitimate skip is a non-Windows host, where
-this tier genuinely does not apply (ADR-0017); `OO_GUI_REQUIRE=1` turns even that into a failure,
+this tier genuinely does not apply; `OO_GUI_REQUIRE=1` turns even that into a failure,
 so a run that was *supposed* to exercise G1 cannot come back green from the wrong machine.
 `tools/setup-windows.sh` installs `pyautogui` too, for a machine set up once up front.
 
 It needs a **real desktop**: logged in, unlocked, and not doing anything else, because the tier
-takes the desktop exclusively while it runs ([ADR-0017](../../../docs/decisions/0017-native-windows-subtree.md)).
+takes the desktop exclusively while it runs.
 That exclusion is `tools/gui-lock`, taken by the session-scoped `desktop_lock` fixture. It runs
-in Tier C and nightly, **never per bead**. An RDP disconnect takes the desktop with it.
+in the full gate and nightly, **never per change**. An RDP disconnect takes the desktop with it.
 
 ### The lock is not this tier's private business
 
-**Any tool that launches the game on the interactive desktop must take `tools/gui-lock`** (bug
-oo-ccy9). This tier is not the only thing that opens a window: on Windows the console-driven
+**Any tool that launches the game on the interactive desktop must take `tools/gui-lock`**. This tier is not the only thing that opens a window: on Windows the console-driven
 "headless" launchers are not headless either, because `SDL_VIDEODRIVER=offscreen` is deliberately
 left unset there (MSYS2's Mesa ships no EGL, so the offscreen driver cannot create a context — see
 `tests/component/console.py::_env`). A JS-API snapshot run that skipped the lock stole the
@@ -47,7 +46,7 @@ string idiom, so it fails on a new launcher in neither list however that launche
 `tools/desktop-lock-rogue-proof` plants five rogue spellings plus a prose-only negative control and
 asserts the exit code of each.
 
-A hold is reclaimed on **liveness first, age second** (bug oo-c7bu). `tools/gui-lock` records
+A hold is reclaimed on **liveness first, age second**. `tools/gui-lock` records
 `livepid=<host> <pid>` — the long-lived owner process, not the short-lived shell that wrote the
 file — and an acquirer that finds that pid absent from **this host's** process table reclaims the
 lock immediately, with no age requirement at all. A pid on another host, a record with no
@@ -72,7 +71,7 @@ with `--oolite-app <path>` or `OO_APP_DIR`.
 | `OO_GUI_SETTLE` | `5` | Seconds for the start screen to draw once the game reports ready. |
 | `OO_GUI_LOCK_DIR` | `%LOCALAPPDATA%\Temp\oolite-gui-desktop.lock` | Where the desktop mutex lives. Must match `tools/gui-lock`. |
 | `OO_GUI_LOCK_TIMEOUT` | `900` | How long to queue for the desktop. |
-| `OO_GUI_LOCK_STALE` | `600` | Age at which a lock is assumed abandoned and reclaimed. Must stay **below** `OO_GUI_LOCK_TIMEOUT` (oo-c7bu). A provably-dead owner is reclaimed with no age at all. |
+| `OO_GUI_LOCK_STALE` | `600` | Age at which a lock is assumed abandoned and reclaimed. Must stay **below** `OO_GUI_LOCK_TIMEOUT`. A provably-dead owner is reclaimed with no age at all. |
 | `OO_GUI_LOCK_OWNER_PID` | the calling process | The long-lived pid whose life proves the hold is live. |
 | `OO_APP_DIR` | the test build | Which `oolite.app` to drive. |
 
@@ -111,7 +110,7 @@ at the directory holding `oolite.exe`, so this run's user defaults land in
 them as the last act of `-exitAppWithContext:`, which is why "the defaults file still parses" is
 a real post-exit check: a shutdown that died mid-write leaves a truncated file. `conftest.py`
 carries a strict OpenStep parser for exactly this — strict because a lenient one would turn a
-half-written file back into a silent pass (bug oo-5rsa).
+half-written file back into a silent pass.
 
 **5. "The defaults file exists" is not "this run wrote it."** `app_dir` is the *persistent*
 build tree, so a plist left behind by a run last month satisfies "exists and parses" forever —

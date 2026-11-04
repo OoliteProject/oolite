@@ -1,46 +1,57 @@
 /*	oofnd/PListOldStyle.hpp
-        The old-style (OpenStep / GNUstep text) property-list scanner: a port of GNUstep base
-        1.31.1's parsePlItem() and helpers (Source/NSPropertyList.m), which is what
-        +[NSPropertyListSerialization propertyListFromData:...] runs - and so what
-        OOPropertyListFromData runs - on any data that does not start with "<?" (XML) or look binary.
+        The old-style (OpenStep / GNUstep text) property-list scanner: a port of
+  GNUstep base 1.31.1's parsePlItem() and helpers (Source/NSPropertyList.m),
+  which is what
+        +[NSPropertyListSerialization propertyListFromData:...] runs - and so
+  what OOPropertyListFromData runs - on any data that does not start with "<?"
+  (XML) or look binary.
 
-            oo::Expected<oo::PList, oo::PListError> r = oo::parseOldStylePList(bytes);
-            if (!r) OOLog(..., "%s", r.error().description().c_str());
+            oo::Expected<oo::PList, oo::PListError> r =
+  oo::parseOldStylePList(bytes); if (!r) OOLog(..., "%s",
+  r.error().description().c_str());
 
-        It reproduces GNUstep quirk-for-quirk (ADR-0027), including the odd parts:
+        It reproduces GNUstep quirk-for-quirk, including the odd
+  parts:
 
-          * Whitespace is the bytes 0x08-0x0D and space (GNUstep's fixed table: backspace counts).
-            "//" and "/" "*" comments are whitespace; an unterminated one is an error, except after the
-            top-level item, where running off the end is how a plist is supposed to end.
-          * An unquoted string is a run of bytes outside GNUstep's `quotables` table (letters, digits
-            and !#$%&*+-./:?@^_|~); bytes >= 0x80 end it. It may be EMPTY: "=" parses as "" and then
-            fails with "extra data after parsed string".
-          * A quoted string is UTF-8 (strictly: overlong forms and encoded surrogates are errors).
-            Escapes: \a \b \t \r \n \v \f; \ followed by 1-3 octal digits; \U or \u followed by 0-4
-            hex digits (so "\u4x" is U+0004 then 'x', and "\u" alone is U+0000); any other escaped
-            character is itself. An octal or hex escape still open at the closing quote is DROPPED
-            ("a\u12" is "a"). Lone surrogates survive (as WTF-8, see PList.hpp). As in any NSString
-            GNUstep builds from UTF-16 units, a leading U+FEFF is dropped and a leading U+FFFE drops
-            itself and byte-swaps the rest ("\UFFFEx" is U+7800).
-          * Line numbers in error messages count newlines, and a newline that terminates an octal or
-            hex escape is counted twice (GNUstep rescans it); "char" is the byte offset + 1.
+          * Whitespace is the bytes 0x08-0x0D and space (GNUstep's fixed table:
+  backspace counts).
+            "//" and "/" "*" comments are whitespace; an unterminated one is an
+  error, except after the top-level item, where running off the end is how a
+  plist is supposed to end.
+          * An unquoted string is a run of bytes outside GNUstep's `quotables`
+  table (letters, digits and !#$%&*+-./:?@^_|~); bytes >= 0x80 end it. It may be
+  EMPTY: "=" parses as "" and then fails with "extra data after parsed string".
+          * A quoted string is UTF-8 (strictly: overlong forms and encoded
+  surrogates are errors). Escapes: \a \b \t \r \n \v \f; \ followed by 1-3 octal
+  digits; \U or \u followed by 0-4 hex digits (so "\u4x" is U+0004 then 'x', and
+  "\u" alone is U+0000); any other escaped character is itself. An octal or hex
+  escape still open at the closing quote is DROPPED
+            ("a\u12" is "a"). Lone surrogates survive (as WTF-8, see PList.hpp).
+  As in any NSString GNUstep builds from UTF-16 units, a leading U+FEFF is
+  dropped and a leading U+FFFE drops itself and byte-swaps the rest ("\UFFFEx"
+  is U+7800).
+          * Line numbers in error messages count newlines, and a newline that
+  terminates an octal or hex escape is counted twice (GNUstep rescans it);
+  "char" is the byte offset + 1.
           * After the top-level item only whitespace and comments may follow.
   * Arrays "( a, b, )" may end in a comma; ",," is an empty string. Dictionaries
-    "{ k = v; }" may omit the last ';' and keep the last of repeated keys; keys must be strings
-    (ADR-0027 item 2). Data "<0a0b 0c>" allows whitespace and comments between octets.
-  * GNUstep's extensions "<*I12>", "<*R1.5>", "<*BY>", "<*D2001-01-01 00:00:00 +0000>" and
-    "<[base64]>" are read, and make the reported format GNUstep. A <*D> or <[...]> GNUstep cannot
-    decode is nil WITHOUT an error, which makes the whole plist nil: oofnd returns a null PList.
+    "{ k = v; }" may omit the last ';' and keep the last of repeated keys; keys
+  must be strings. Data "<0a0b 0c>" allows whitespace and
+  comments between octets.
+  * GNUstep's extensions "<*I12>", "<*R1.5>", "<*BY>", "<*D2001-01-01 00:00:00
+  +0000>" and
+    "<[base64]>" are read, and make the reported format GNUstep. A <*D> or
+  <[...]> GNUstep cannot decode is nil WITHOUT an error, which makes the whole
+  plist nil: oofnd returns a null PList.
 
-        Error messages are GNUstep's, formatted as its propertyListWithData formats them:
-        "Parse failed at line L (char C) - <reason>".
+        Error messages are GNUstep's, formatted as its propertyListWithData
+  formats them: "Parse failed at line L (char C) - <reason>".
 */
 
-#ifndef OOFND_PLISTOLDSTYLE_HPP
-#define OOFND_PLISTOLDSTYLE_HPP
+#pragma once
 
-// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header (see oofnd/Data.hpp,
-// proposed ADR-0028); restored at the end.
+// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header
+// (see oofnd/Data.hpp); restored at the end.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -533,7 +544,7 @@ namespace plist_detail {
                 if (!key)
                     return std::nullopt;
                 if (!key->isString()) {
-                    // GNUstep accepts any item as a key; oofnd keys are strings (ADR-0027 item 2).
+                    // GNUstep accepts any item as a key; oofnd keys are strings.
                     err_ = "non-string key in dictionary";
                     return std::nullopt;
                 }
@@ -610,8 +621,8 @@ namespace plist_detail {
                 pos_ += 2;
                 (void)skipSpace();
             }
-            // GNUstep reads ptr[pos] even when a comment ran to the end of the input (undefined
-            // behaviour there); oofnd treats the end as "not '>'" (ADR-0027 item 4).
+            // GNUstep reads ptr[pos] even when a comment ran to the end of the input
+            // (undefined behaviour there); oofnd treats the end as "not '>'".
             if (pos_ >= end_ || ptr_[pos_] != '>') {
                 err_ = "unexpected character (wanted '>')";
                 return std::nullopt;
@@ -734,5 +745,3 @@ inline Expected<PList, PListError> parseOldStylePList(std::string_view bytes, PL
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_PLISTOLDSTYLE_HPP

@@ -24,8 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef INCLUDED_OOCPUINFOENDIAN_h
-#define INCLUDED_OOCPUINFOENDIAN_h
+#pragma once
 
 /*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must
         be non-zero. If you're porting Oolite to a middle-endian platform, you'll
@@ -74,6 +73,4 @@ MA 02110-1301, USA.
 // Cause errors where the macros are used
 #define OOLITE_BIG_ENDIAN "BUG"
 #define OOLITE_LITTLE_ENDIAN "BUG"
-#endif
-
 #endif

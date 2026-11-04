@@ -1,6 +1,7 @@
 /*	oofnd/Date.hpp
-        oo::date: the replacement for NSDate (bead oo-3rb.11, ADR-0029 Decision 5), on std::chrono.
-        NSTimeInterval stays a double count of seconds (the Foundation-types header keeps the typedef).
+        oo::date: the replacement for NSDate, on std::chrono. NSTimeInterval
+   stays a double count of seconds (the Foundation-types header keeps the
+   typedef).
 
             Foundation                                      oofnd
             ----------------------------------------------  ------------------------------------------
@@ -27,11 +28,11 @@
             are truncated, not rounded.
 */
 
-#ifndef OOFND_DATE_HPP
-#define OOFND_DATE_HPP
+#pragma once
 
-// Objective-C++ game code includes this after OOFoundation.h, whose `#define true 1` / `#define false 0`
-// break the standard headers' keywords. Suspend the macros here (proposed ADR-0028, Data.hpp).
+// Objective-C++ game code includes this after OOFoundation.h, whose `#define
+// true 1` / `#define false 0` break the standard headers' keywords. Suspend the
+// macros here (see oofnd/Data.hpp).
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -143,5 +144,3 @@ inline std::string description(Clock::time_point t = Clock::now())
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_DATE_HPP

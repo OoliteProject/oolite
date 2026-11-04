@@ -45,7 +45,7 @@ foreach t : oofnd_tests
 endforeach
 
 # oofnd/Http.hpp links WinHTTP on Windows, and its test runs a loopback server on winsock
-# (bead oo-3rb.13, proposed ADR-0044). tools/check-oofnd.sh reads the same libraries from the
+# tools/check-oofnd.sh reads the same libraries from the
 # test's "// oofnd-link-windows:" line.
 oofnd_http_link_args = host_machine.system() == 'windows' ? ['-lwinhttp', '-lws2_32'] : []
 test('test_http',
@@ -87,20 +87,11 @@ foreach t : oofnd_plist_tests
     test(t, exe, suite: ['oofnd', 'oofnd-plist'], timeout: 60)
 endforeach
 
-# Tests of what is left of the Foundation-free floor (oofnd/objc, proposed ADR-0029). Objective-C++
-# on libobjc2 until bead oo-dbz.5; C++ since, linking neither libobjc2 nor gnustep-base, which
-# tools/check-oofnd-objc.sh proves on the import table.
-# test_objc_exception retired with the Objective-C OOException class (bead oo-4aq6a.1, Jon approved 2026-10-19).
+# Tests of what is left of the Foundation-free floor (oofnd/objc), linking neither libobjc2 nor
+# gnustep-base, which tools/check-oofnd-objc.sh proves on the import table.
 oofnd_objc_tests = [
-    # test_objc_floor retired with its only subject, the OOObject root class, OOConstantString and OOObjCInstallFloor() (bead oo-4aq6a.8, std-2026-10-19)
-    # test_objc_runtime retired with its only subject, oofnd/objc/OORuntime.h's libobjc2 class and selector lookups (bead oo-dbz.4, std-2026-10-19)
     'test_objc_assert',
     'test_objc_assert_ndebug', # OOAssert.h under the deployment flavour's NDEBUG
-    # test_objc_ref retired with its only subject, oofnd/objc/OOObjCRef.h's reference to an Objective-C object
-    # test_objc_call_by_name retired with its only subject, src/Core/OOCallByName.mm's call on an Objective-C object
-    # test_objc_description retired with OODescription.mm's OOObject (OODescription) (Jon approved 2026-10-19)
-    # test_objc_plist retired with its only subject, src/Core/OOObjCPList.h's Objective-C object node
-    # test_objc_peer retired with its only subject, oofnd/objc/OOObjCPeer.h
 ]
 
 foreach t : oofnd_objc_tests
@@ -113,7 +104,6 @@ foreach t : oofnd_objc_tests
         'oofnd_' + t,
         t + '.cpp',
         dependencies: oofnd_objc_dep,
-        # (objcpp_args, the floor's -fno-constant-cfstrings, and objcpp_std=c++20 went with libobjc2, bead oo-dbz.5)
         override_options: oofnd_override_options,
         install: false,
     )

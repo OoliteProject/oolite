@@ -1,23 +1,20 @@
 /*	test_OOPlasmaShotEntity.mm
 	Unit tests for OOPlasmaShotEntity (src/Core/Entities/OOPlasmaShotEntity.h), a turret's plasma
-	shot: bead oo-z9md, a leaf of the Entities seam under OOLightParticleEntity (proposed ADR-0056,
-	amendments oo-bj8 item 12 and oo-peql).
+	shot.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
-	uses a Universe that was never initialised, subclassed to answer the time the test sets and to
-	record -addEntity: and -removeEntity:, and a plain entity as PLAYER. The ship that fired is a
-	plain entity marked as a ship (so it is its own root ship entity; a C++ ship under its object,
-	never set up, since bead oo-9ht.144), and the entity hit is an
-	entity subclass that records the damage. The expectations were written against the Objective-C
-	API and run on the unconverted class first: a shot is a no-draw effect of diameter 12 and
-	collision radius 2 with the given position, velocity, energy and colour (always opaque); it
-	cannot collide for its first 0.05 seconds; it collides with anything but an effect or its
-	owner's ship; it damages what it collides with (unless that is its owner's ship), removes
-	itself and leaves a plasma burst where it was; and it removes itself when its time is up. The
-	shots are made, and their colour read, through the one block of helpers below, the only lines
-	the conversion ported: the shot is now a C++ entity whose Objective-C object is the
-	OOLightParticleEntity facade oo::NewEntityFacade made.
-	Run: bash tools/check-core-tests.sh
+	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
+	a Universe that was never initialised, subclassed to answer the time the test sets and to record
+	-addEntity: and -removeEntity:, and a plain entity as PLAYER. The ship that fired is a plain
+	entity marked as a ship (so it is its own root ship entity; a C++ ship under its object, never
+	set up), and the entity hit is an entity subclass that records the damage. The expectations were
+	written against the Objective-C API and run on the unconverted class first: a shot is a no-draw
+	effect of diameter 12 and collision radius 2 with the given position, velocity, energy and
+	colour (always opaque); it cannot collide for its first 0.05 seconds; it collides with anything
+	but an effect or its owner's ship; it damages what it collides with (unless that is its owner's
+	ship), removes itself and leaves a plasma burst where it was; and it removes itself when its
+	time is up. The shots are made, and their colour read, through the one block of helpers below:
+	the shot is a C++ entity whose Objective-C object is the OOLightParticleEntity facade
+	oo::NewEntityFacade made. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOPlasmaShotEntity.h"
@@ -42,7 +39,7 @@ extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
@@ -69,12 +66,12 @@ public:
 	Entity			*_removed = {};
 	Entity			*_added = {};
 
-	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	bool removeEntity(Entity *entity) override	// the C++ entity; the record is its object
 	{
 		_removed = entity;
 		return YES;
 	}
-	bool addEntity(Entity *entity) override	// the C++ entity; the record is its object, as before
+	bool addEntity(Entity *entity) override	// the C++ entity; the record is its object
 	{
 		oo::ReleaseEntity(_added);
 		_added = oo::RetainEntity(entity);
@@ -83,8 +80,8 @@ public:
 };
 
 
-// What the shot hits: records the damage (an Objective-C subclass before; a C++ one
-// overriding the member its selector became, recording the C++ entities).
+// What the shot hits: records the damage (a C++ one overriding the member,
+// recording the C++ entities).
 class TestTarget : public Entity
 {
 public:
@@ -105,7 +102,7 @@ public:
 };
 
 
-// An effect, for the collision test (an Objective-C subclass before).
+// An effect, for the collision test.
 class TestEffect : public Entity
 {
 public:
@@ -135,9 +132,9 @@ void SetUp(OOTimeAbsolute time)
 	static TestPlayer *player = nullptr;
 	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
 	gOOPlayer = player;
-	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
-	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
-	// oo-9ht.144, as test_StationEntity's ships are).
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request
+  // on the main thread's context, so there is one, with nothing in it (the ship
+  // stand-in is C++, as test_StationEntity's ships are).
 	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 }
 
@@ -163,8 +160,9 @@ Entity *RedShot()
 }
 
 
-// A ship: C++ since bead oo-9ht.144 (its root ship entity is the C++ ship), under its object
-// (oo::NewEntityFacade, autoreleased as the plain entity was), never set up, marked as a ship.
+// A ship: C++ (its root ship entity is the C++ ship), under its object
+// (oo::NewEntityFacade, autoreleased as the plain entity was), never set up,
+// marked as a ship.
 Entity *Ship()
 {
 	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
@@ -251,7 +249,7 @@ OO_TEST(hitDamagesAndBursts)
 		OO_CHECK(target->_weapon == "EQ_WEAPON_PLASMA_SHOT");
 		OO_CHECK(sUniverse->_removed == shot);
 		Entity *burst = sUniverse->_added;
-		OO_CHECK(burst != nil && burst != shot && dynamic_cast<OOPlasmaBurstEntity *>(burst) != nullptr);	// a C++ entity (oo-l2s5)
+		OO_CHECK(burst != nil && burst != shot && dynamic_cast<OOPlasmaBurstEntity *>(burst) != nullptr);	// a C++ entity
 		OO_CHECK(HPvector_equal(burst->getPosition(), shot->getPosition()));
 	}
 }

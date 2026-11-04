@@ -126,8 +126,8 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt)
     case SDL_EVENT_GAMEPAD_AXIS_MOTION:
     case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
         SDL_JoyAxisEvent joyEvt = makeJoyAxisEvent((SDL_JoyAxisEvent*)evt);
-        // The index, not joyEvt.which: an unknown stick's -1 is 0xFFFFFFFF in the unsigned
-        // SDL_JoystickID, which passed a `which >= 0` test (bead oo-9ht.3).
+        // The index, not joyEvt.which: an unknown stick's -1 is 0xFFFFFFFF in the
+        // unsigned SDL_JoystickID, which passed a `which >= 0` test).
         if (getJoystickIndexFromId(((SDL_JoyAxisEvent*)evt)->which) >= 0) {
             decodeAxisEvent(&joyEvt);
             rc = true;

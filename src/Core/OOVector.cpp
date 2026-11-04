@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOMaths.h"
-#include "legacy_random.h" // randf (ADR-0063 item 5 draws on lines of their own)
+#include "legacy_random.h" // randf
 #include "oofnd/String.hpp"
 
 const Vector kZeroVector = { 0.0f, 0.0f, 0.0f };
@@ -78,7 +78,7 @@ Vector OORandomUnitVector(void)
     float m;
 
     do {
-        float x = randf() - 0.5f; // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+        float x = randf() - 0.5f; // one draw per local, in the order Clang evaluates the arguments
         float y = randf() - 0.5f;
         float z = randf() - 0.5f;
         v = make_vector(x, y, z);
@@ -94,7 +94,7 @@ Vector OOVectorRandomSpatial(OOScalar maxLength)
     float m;
 
     do {
-        float x = randf() - 0.5f; // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+        float x = randf() - 0.5f; // one draw per local, in the order Clang evaluates the arguments
         float y = randf() - 0.5f;
         float z = randf() - 0.5f;
         v = make_vector(x, y, z);
@@ -106,7 +106,8 @@ Vector OOVectorRandomSpatial(OOScalar maxLength)
 
 Vector OOVectorRandomRadial(OOScalar maxLength)
 {
-    Vector direction = OORandomUnitVector(); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+    Vector direction = OORandomUnitVector(); // one draw per local, in the order
+                                             // Clang evaluates the arguments
     OOScalar length = randf() * maxLength;
     return vector_multiply_scalar(direction, length);
 }

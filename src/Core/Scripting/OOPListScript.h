@@ -9,10 +9,8 @@ PlayerEntity's many overloaded functions. The scale of the task was such that
 I've stepped back, and this simply wraps the old plist scripting in
 PlayerEntity.
 
-C++20 since bead oo-q9q4 (proposed ADR-0056, the OOColor house style). Bead oo-9ht.57 deleted its
-Objective-C facade once OOScript was C++ (oo-604l; ADR-0056 amendments oo-o89 item 3 and "deleting
-a facade"): the class is global and derives from OOScript, overriding its members. The root's facade
-went with bead oo-9ht.133: a plist script is held as oo::Ref<OOScript>.
+The class is global and derives from OOScript, overriding its members. A plist
+script is held as oo::Ref<OOScript>.
 
 
 Oolite
@@ -35,8 +33,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOPLISTSCRIPT_H
-#define OOPLISTSCRIPT_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOScript.h"
@@ -73,5 +70,3 @@ private:
     oo::PList _script; // the sanitized script actions (an array)
     oo::PList _metadata; // a dictionary: name, and the file's !metadata! if it had one
 };
-
-#endif // OOPLISTSCRIPT_H

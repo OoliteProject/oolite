@@ -183,8 +183,8 @@ void OOPrintLogHeader(void)
     OO_LOG("log.header", "{}\n", miscString);
 }
 
-// Foundation sweep (proposed ADR-0043, bead oo-vnsl): a std::string, for OOJSConsole's
-// console.platformDescription; the same "<system> (<cpu><variant>)" text.
+// A std::string, for OOJSConsole's console.platformDescription; the same
+// "<system> (<cpu><variant>)" text.
 std::string OOPlatformDescription(void)
 {
 #if OOLITE_MACOS

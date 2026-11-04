@@ -1,8 +1,9 @@
 /*	oofnd/Scanner.hpp
-        oo::str::CharacterSet and oo::str::Scanner: NSCharacterSet and NSScanner as Oolite uses them
-        (bead oo-3rb.12, ADR-0029 Decision 5, proposed ADR-0039), over UTF-8 std::string with GNUstep base 1.31.1's
-        answers: the character tables probed over the BMP, and NSScanner.m's scanning, skipping and
-        failure rules. tests/unit/oofnd/test_scanner.cpp pins both against captured output.
+        oo::str::CharacterSet and oo::str::Scanner: NSCharacterSet and NSScanner
+   as Oolite uses them, over UTF-8 std::string with GNUstep base 1.31.1's
+   answers: the character tables probed over the BMP, and NSScanner.m's
+   scanning, skipping and failure rules. tests/unit/oofnd/test_scanner.cpp pins
+   both against captured output.
 
             Foundation                                    oo::str
             --------------------------------------------  ----------------------------------------------
@@ -47,11 +48,10 @@
         Header-only, C++20, compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_SCANNER_HPP
-#define OOFND_SCANNER_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
-// this header (proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for this header.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -678,11 +678,14 @@ inline std::size_t findFirstOf(std::string_view s, const CharacterSet& set)
     return std::string_view::npos;
 }
 
-// -rangeOfCharacterFromSet:options:NSLiteralSearch range:NSMakeRange(from, length - from)
-// (.location): the UTF-16 index of the first member at or after <from>, npos if none. GNUstep
-// searches unit by unit here as in the unranged form (bead oo-3rb.67, probed with a throwaway
-// harness over quotes, newlines, backslashes, a combining mark and a surrogate pair).
-inline std::size_t findFirstOf(std::string_view s, const CharacterSet& set, std::size_t from)
+// -rangeOfCharacterFromSet:options:NSLiteralSearch range:NSMakeRange(from,
+// length - from)
+// (.location): the UTF-16 index of the first member at or after <from>, npos if
+// none. GNUstep searches unit by unit here as in the unranged form (probed
+// with a throwaway harness over quotes, newlines, backslashes, a combining
+// mark and a surrogate pair).
+inline std::size_t findFirstOf(std::string_view s, const CharacterSet& set,
+    std::size_t from)
 {
     const std::u16string u = utf8ToUtf16(s);
     for (std::size_t i = from; i < u.size(); ++i) {
@@ -919,5 +922,3 @@ private:
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_SCANNER_HPP

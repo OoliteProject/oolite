@@ -2,9 +2,10 @@
 
 OOStringWidth.h
 
-cxx_OOStringWidthInEm(), moved verbatim out of HeadUpDisplay.h (bead oo-9ht.72) so a plain C++
-translation unit (OOJSFont) can call it without parsing an @interface. HeadUpDisplay.h includes it
-back; the definition stays in HeadUpDisplay.mm. CGFloat is the floor's C type.
+cxx_OOStringWidthInEm(), declared here, not in HeadUpDisplay.h, so a plain C++
+translation unit (OOJSFont) can call it without parsing an @interface.
+HeadUpDisplay.h includes it back; the definition stays in HeadUpDisplay.mm.
+CGFloat is the floor's C type.
 
 
 Oolite
@@ -27,13 +28,10 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef INCLUDED_OOSTRINGWIDTH_h
-#define INCLUDED_OOSTRINGWIDTH_h
-
-#include "oofnd/objc/OOFoundationTypes.h"
+#pragma once
 
 #include <string>
 
-CGFloat cxx_OOStringWidthInEm(const std::string& text);
+#include "oofnd/objc/OOFoundationTypes.h"
 
-#endif // INCLUDED_OOSTRINGWIDTH_h
+CGFloat cxx_OOStringWidthInEm(const std::string& text);

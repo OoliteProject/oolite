@@ -5,11 +5,10 @@ OOJSScript.h (QuickJS-ng)
 JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
 
-C++20 (the OOColor house style), a subclass of OOScript. Its Objective-C facade was deleted, and
-so was the OOScript root's facade, which was then its object: the script's identity is the C++
-object. Holders keep it as oo::Ref (the timers and definitions as oo::WeakRef), the stack of running
-scripts holds it weakly, and the Script JS object's private slot holds a weak reference to it
-(OOJSPrivateObject glue), as it held the facade's weak reference proxy.
+A subclass of OOScript: the script's identity is the C++ object. Holders keep it
+as oo::Ref (the timers and definitions as oo::WeakRef), the stack of running
+scripts holds it weakly, and the Script JS object's private slot holds a weak
+reference to it (OOJSPrivateObject glue).
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,8 +27,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSSCRIPT_H
-#define OOJSSCRIPT_H
+#pragma once
 
 #include "OOJavaScriptEngine.h"
 #include "OOScript.h"
@@ -44,7 +42,7 @@ public:
     // nil (the script is then named after its address); properties may hold live objects.
     static oo::Ref<OOJSScript> scriptWithPath(const std::optional<std::string>& path, const oo::PList& properties);
 
-    // The old -dealloc's body (the facade's, which ran it as willDealloc()).
+    // The old -dealloc's body.
     ~OOJSScript() override;
 
     // The old -initWithPath:properties: after [super init], run by scriptWithPath(); false: the
@@ -113,5 +111,3 @@ private:
 };
 
 void InitOOJSScript(JSContext* context, JSValueConst global);
-
-#endif // OOJSSCRIPT_H

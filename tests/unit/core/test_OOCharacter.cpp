@@ -1,17 +1,16 @@
 /*	test_OOCharacter.mm
-	Unit tests for OOCharacter (src/Core/OOCharacter.h): bead oo-8kx7 (Phase 3, proposed ADR-0056).
+	Unit tests for OOCharacter (src/Core/OOCharacter.h).
 
 	A character is generated from a seed and a home system: its name and description come from the
 	string expander, its species from the home (or another) system's inhabitants, its legal status
 	and insurance from the planet-description RNG and its government, and a role or a dictionary
 	(a ship's pilot, a JS crew definition) adjusts them. The test pins what the class computes from
-	what it is given. The game around it is replaced (ADR-0056 amendment oo-zffj): UNIVERSE is a
+	what it is given. The game around it is replaced: UNIVERSE is a
 	fake Universe below that answers from a table, the string expander and the description lookup
 	return text that records what they were asked, and the JavaScript entry points are link stubs
 	that abort. The RNG is the game's own (legacy_random.c), reseeded by each test.
-	The expectations were written against the Objective-C class and run on it first; bead oo-9ht.10
-	deleted that facade, and the same expectations now ask the C++ class (its factories' oo::Ref
-	held where the autoreleased facade was), with the C++ class's own cases at the end.
+	The tests ask the C++ class (its factories' oo::Ref held), with the C++ class's own cases at
+	the end.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -33,9 +32,9 @@
 */
 #include "UniverseStandIn.h"
 
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// deleted, was what the test's Objective-C stand-in stood in for), with the header's names and signatures.
-// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+// The universe as the code under test sees it: a stand-in for the C++ class,
+// with the header's names and signatures. It answers virtual members, so it has
+// the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
 class Universe : public oo::RefCounted
 {
 public:
@@ -104,7 +103,7 @@ JSContext *gOOJSMainThreadContext = nullptr;
 
 #include "OOScript.h"
 
-// OOScript's loader (an Objective-C OOScript stand-in until bead oo-9ht.133 deleted the facade).
+// OOScript's loader.
 oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)	{ std::abort(); }
 
 
@@ -256,10 +255,8 @@ OO_TEST(dictionaries)
 		OO_CHECK(Same(Describe(FromDictionary({ { "origin", oo::PList("Nowhere") }, { "random_seed", kSeed } })), kFeline + "241>|0|250|241|furry felines"));
 		Fake();
 		OO_CHECK(Same(Describe(FromDictionary({ { "random_seed", kSeed } })), kFeline + "241>|0|250|241|furry felines"));
-		// (An Objective-C origin object answering -intValue, or not, retired with the Object node of an
-		// Objective-C object, bead oo-4aq6a.5: ADR-0062 item 2.)
-
-		// The seed: random when absent, kNilRandomSeed's zeroes when it does not parse.
+		// The seed: random when absent, kNilRandomSeed's zeroes when it does not
+    // parse.
 		Fake();
 		OO_CHECK(Same(Describe(FromDictionary({ { "origin", oo::PList(4) } })), kHuman4 + "|0|125|4|human colonials"));
 		Fake();

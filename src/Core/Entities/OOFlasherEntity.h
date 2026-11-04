@@ -34,14 +34,14 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-5lu6): +flasherWithDictionary: is unique and takes
-        the subentity configuration as an oo::PList, as does the initializer -cxx_initWithDictionary:
-        (bead oo-3rb.292.1; its id twin retired with oo-qps.44).
+/*	+flasherWithDictionary: takes the subentity configuration as an
+   oo::PList, as does the initializer -cxx_initWithDictionary:.
 
-        C++ only since its Objective-C facade was deleted: the ships and the visual effects make it
-        with flasherWithDictionary() and hand it to Objective-C with oo::NewEntityFacade, which wraps it
-        in the nearest facade left (OOLightParticleEntity's). The engine's JS questions reach it through
-        the root's virtual members, and an owner's -rescaleBy: through cxx::OOSubEntityInterface.
+        The ships and the visual effects make it with flasherWithDictionary()
+        and hand it to Objective-C with oo::NewEntityFacade, which wraps it in
+   the nearest facade left (OOLightParticleEntity's). The engine's JS questions
+   reach it through the root's virtual members, and an owner's -rescaleBy:
+   through cxx::OOSubEntityInterface.
 */
 
 class OOFlasherEntity : public OOLightParticleEntity, public cxx::OOSubEntityInterface {
@@ -49,7 +49,7 @@ public:
     // A new flasher, initialised; oo::NewEntityFacade hands it to Objective-C.
     static oo::Ref<OOFlasherEntity> flasherWithDictionary(const oo::PList& dictionary);
 
-    // -cxx_initWithDictionary:'s body, run once right after construction (amendment oo-vl43 item 2).
+    // -cxx_initWithDictionary:'s body, run once right after construction.
     void initWithDictionary(const oo::PList& dictionary);
 
     bool isActive();

@@ -25,7 +25,8 @@ SOFTWARE.
 
 */
 
-#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it (bead oo-dbz)
+#define OO_PLAIN_CPP_UNIT \
+    1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OODebugGLDrawing.h"
 #include "OOMacroOpenGL.h"
 #include "OOMaterialState.h"

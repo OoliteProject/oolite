@@ -36,7 +36,7 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-class OOProbabilitySet; // C++ since bead oo-489v
+class OOProbabilitySet;
 class OOMutableProbabilitySet;
 
 class OOShipRegistry : public oo::RefCounted {
@@ -64,14 +64,19 @@ public:
 private:
     oo::PList _shipData; // ship key -> ship dictionary (null until loaded)
     oo::PList _effectData; // effect key -> effect dictionary (null until loaded)
-    oo::PList _demoShips; // demo ship entries (dictionaries) grouped in arrays by class
-    std::vector<std::string> _playerShips; // shipyard keys, in shipyard.plist key order
-    std::optional<std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>>> _probabilitySets; // role -> ship keys; nullopt: none cached yet
+    oo::PList _demoShips; // demo ship entries (dictionaries) grouped in arrays
+                          // by class
+    std::vector<std::string>
+        _playerShips; // shipyard keys, in shipyard.plist key order
+    std::optional<std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>>>
+        _probabilitySets; // role -> ship keys; nullopt: none cached yet
 
-    void init(); // -init's body: run by sharedRegistry() once sSingleton is set, so that a re-entrant sharedRegistry() answers the registry being loaded (amendment oo-3bgz item 3)
+    void init(); // -init's body: run by sharedRegistry() once sSingleton is set,
+                 // so that a re-entrant sharedRegistry() answers the registry
+                 // being loaded
 
-    // (OODataLoader) The load stages. The ship dictionary each stage mutates is one property list,
-    // passed through every stage.
+    // (OODataLoader) The load stages. The ship dictionary each stage mutates is
+    // one property list, passed through every stage.
     void loadShipData();
     void loadDemoShipConditions();
     void loadDemoShips();

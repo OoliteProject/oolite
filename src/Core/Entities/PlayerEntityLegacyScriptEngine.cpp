@@ -134,9 +134,9 @@ const oo::PList& ElementAt(const oo::PList& array, std::size_t index)
     return element != nullptr ? *element : sNull;
 }
 
-/*	Whitespace without newlines: GNUstep's whitespace-and-newline set (the scanner's
-        oo::str::isWhitespaceOrNewline) without its newlines (U+000A-U+000D, U+0085, U+2028, U+2029).
-        The later chunks of oo-j924 reuse it.
+/*	Whitespace without newlines: GNUstep's whitespace-and-newline set (the
+   scanner's oo::str::isWhitespaceOrNewline) without its newlines
+   (U+000A-U+000D, U+0085, U+2028, U+2029).
 */
 bool IsWhitespaceNotNewline(char16_t c)
 {
@@ -313,15 +313,16 @@ void PerformActionStatment(const oo::PList& statement, Entity* target)
 
     // The target's C++ part answers its methods called by name, the player's
     // for the player only; the planet's shader bindings are never actions
-    Entity* cxxTarget = target; // (oo::ToCxx of its object before)
+    Entity* cxxTarget = target;
     if (cxxTarget == nullptr || !oo::EntityRespondsToName(cxxTarget, selectorString)) {
         cxxTarget = player;
     }
 
     if (argumentString.has_value()) {
-        // Method with argument; substitute [description] expressions. The action is called by
-        // name with the expanded string (ADR-0055 item 5); a failed expansion passes nil, as before.
-        // the player's C++ part answers the mission's locals (no player: none, as a message to nil did)
+        // Method with argument; substitute [description] expressions. The action is
+        // called by name with the expanded string; a failed
+        // expansion passes nil, as before. the player's C++ part answers the
+        // mission's locals (no player: none, as a message to nil did)
         PlayerEntity* cxxPlayer = player;
         const oo::PList locals = (cxxPlayer != nullptr) ? cxxPlayer->localVariablesForMission(sCurrentMissionKey) : oo::PList();
         const std::optional<std::string> expanded = cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), *argumentString, oo::PList(), locals, std::nullopt, kOOExpandNoOptions);
@@ -462,8 +463,7 @@ void PlayerEntity::runScriptActions(const oo::PList& actions, const std::optiona
     std::optional<std::string> oldMissionKey;
 
     {
-        oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
-        // FIXME: does this actually make sense in the context of non-missions?
+        oo::AutoreleaseScope pool; // FIXME: does this actually make sense in the context of non-missions?
         oldMissionKey = sCurrentMissionKey;
         sCurrentMissionKey = contextName;
 
@@ -573,7 +573,7 @@ bool PlayerEntity::scriptTestCondition(const oo::PList& scriptCondition)
     expandedRHS = expandScriptRightHandSide(operandArray).value_or(std::string());
 
     if (opType == OP_STRING) {
-        // The query is called by name and answers a PList (ADR-0055 item 5).
+        // The query is called by name and answers a PList.
         lhsString = ConditionString(oo::CallEntityByName(this, selector));
 
 #define DOUBLEVAL(x) ((x).has_value() ? oo::str::doubleValue(*(x)) : 0.0)
@@ -927,7 +927,7 @@ void PlayerEntity::clearMissionDescriptionForMission(const std::string& key) // 
     setMissionVariable(oo::PList(), key); // (removing an absent key does nothing)
 }
 
-// called by name (ADR-0043 item 21), as are the queries below
+// called by name, as are the queries below
 oo::PList PlayerEntity::mission_string()
 {
     return StringOrNull(sMissionStringValue);
@@ -1319,7 +1319,7 @@ void PlayerEntity::awardCargo(const std::string& amount_typeString) // called by
     }
 
     const oo::PList tokenArray = TokenArray(tokens);
-    const std::string& type = tokens[1]; // the good (Amendment 1 item 10: a std::string)
+    const std::string& type = tokens[1]; // the good (a std::string)
     if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr ? UNIVERSE->getCommodities()->goodDefined(type) : false)) {
         OO_LOG(kOOLogSyntaxAwardCargo, "***** SCRIPT ERROR: in {}, CANNOT awardCargo: '{}' ({})", CurrentScriptDescription(), argument, "unknown type");
         return;
@@ -1987,7 +1987,7 @@ void PlayerEntity::setMissionTitle(const std::optional<std::string>& value)
     _missionTitle = value;
 }
 
-// Not declared in the header; called by name (setMissionImage: is whitelisted) (ADR-0043 item 21).
+// Not declared in the header; called by name (setMissionImage: is whitelisted).
 void PlayerEntity::setMissionImage(const std::string& value)
 {
     const std::string imageName = value;
@@ -1998,7 +1998,7 @@ void PlayerEntity::setMissionImage(const std::string& value)
     }
 }
 
-// called by name (ADR-0043 item 21)
+// called by name
 void PlayerEntity::setMissionBackground(const std::string& value)
 {
     const std::string backgroundName = value;
@@ -2072,7 +2072,7 @@ void PlayerEntity::sendAllShipsAway()
     std::vector<Entity*> my_entities(ent_count);
     int i;
     for (i = 0; i < ent_count; i++)
-        my_entities[i] = oo::RetainEntity(uni_entities[i]); //	retained (its object)
+        my_entities[i] = oo::RetainEntity(uni_entities[i]); //	retained
 
     for (i = 1; i < ent_count; i++) {
         Entity* e1 = my_entities[i];
@@ -2309,7 +2309,7 @@ void PlayerEntity::refreshMissionScreenTextEntry()
         end_row = 27;
     }
 
-    // The DESC entry is the format (data): ADR-0043 item 19.
+    // The DESC entry is the format (data).
     const std::optional<std::string> typed = (gameView != nullptr ? gameView->getTypedString() : std::optional<std::string>());
     gui->setText(oo::str::formatRuntime(OO_DESC("mission-screen-text-prompt-@"), { typed.has_value() ? oo::str::FormatArg(*typed) : oo::str::FormatArg::null() }), end_row, GUI_ALIGN_LEFT);
     gui->setColor(OOColor::cyanColor().get(), end_row);
@@ -2596,8 +2596,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off)
         if (i_key == "local-planet" && (UNIVERSE != nullptr && UNIVERSE->sun() != nullptr)) {
             originalPlanet = (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr);
         } else {
-            // [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:] autorelease]: a new C++ planet, kept by
-            // its autoreleased Objective-C object (its facade is deleted).
+            // A new C++ planet, kept by its autoreleased Objective-C object.
             oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
             oo::MadeEntity(planetRef);
             planetRef->initAsMainPlanetForSystem(info_system_id);
@@ -2657,7 +2656,7 @@ bool PlayerEntity::addEqScriptForKey(const std::string& eq_key)
     if (eqScriptIndexForKey(eq_key) != eqScripts.size())
         return NO;
 
-    // the script's properties: a mixed configuration (Amendment 2)
+    // the script's properties: a mixed configuration
     oo::PList::Dict properties;
     properties["ship"] = oo::EntityObjectNode(this);
     properties["equipmentKey"] = oo::PList(eq_key);

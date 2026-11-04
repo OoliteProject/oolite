@@ -58,12 +58,11 @@ OODebugMonitor* sSingleton = nullptr;
 
 } // namespace
 
-/*	The monitor's private "application will terminate" notification: posted by
-        applicationWillTerminate() (GameControllercalls it on exit) and observed by the monitor
-        itself, on oo::NotificationCenter with no object (bead oo-3rb.40). Was the same text as a
-        Foundation notification name on the Foundation center; on Mac OS X it was AppKit's
-        notification, which oo::NotificationCenter does not receive (that build is not maintained,
-        ADR-0009).
+/*	The monitor's private "application will terminate" notification: posted
+   by applicationWillTerminate() (GameControllercalls it on exit) and observed
+   by the monitor itself, on oo::NotificationCenter with no object. On Mac OS
+   X it was AppKit's notification, which oo::NotificationCenter does not
+   receive (that build is not maintained).
 */
 static const char* const kOODebugMonitorApplicationWillTerminateNotificationName = "ApplicationWillTerminate";
 
@@ -98,15 +97,15 @@ void OODebugMonitor::init()
     }
 }
 
-/*	-dealloc is not translated: it never ran. The singleton boilerplate made -release do nothing,
-        and the one monitor is never released (proposed ADR-0056, amendment oo-kq7).
+/*	-dealloc is not translated: it never ran. The singleton boilerplate made
+   -release do nothing, and the one monitor is never released.
 */
 
 OODebugMonitor* OODebugMonitor::sharedDebugMonitor()
 {
     // NOTE: assumes single-threaded access. The debug monitor is not, on the whole, thread safe.
     if (sSingleton == nullptr) {
-        // Recorded before init(), as +allocWithZone: recorded it before -init ran (amendment oo-z1s4 item 2).
+        // Recorded before init(), as +allocWithZone: recorded it before -init ran.
         sSingleton = oo::makeRef<OODebugMonitor>().leakRef();
         sSingleton->init();
     }
@@ -216,10 +215,10 @@ void OODebugMonitor::showJSConsole()
 
 oo::PList OODebugMonitor::configurationValueForKey(const std::string& key)
 {
-    // The override, else (when it is missing or null) the OXPs' value; an OONull in either reads as
-    // null (an OONull override hides the OXPs' value).
-    // (An Object node held no Objective-C object, which none is since bead oo-4aq6a.5, so any Object
-    // node but the null's read as nil, as it did.)
+    // The override, else (when it is missing or null) the OXPs' value; an OONull
+    // in either reads as null (an OONull override hides the OXPs' value). (An
+    // Object node held no Objective-C object, which none is now, so any Object
+    // node but the null's read as nil.)
     const auto isNil = [](const oo::PList* v) { return v == nullptr || v->isNull() || (v->type() == oo::PList::Type::Object && !OOIsNullObjectNode(*v)); };
     const oo::PList* result = _configOverrides.find(key);
     if (isNil(result))
@@ -366,7 +365,6 @@ void OODebugMonitor::dumpEntity(Entity* entity, EntityDumpState* state, bool par
 
     size_t entitySize = oo::EntityObjectSize(entity); // its object's size, as the root's debug size method answered it
     size_t drawableSize = 0;
-    // -isKindOfClass:[OOEntityWithDrawable class] and -drawable until that facade was deleted
     OOEntityWithDrawable* withDrawable = dynamic_cast<OOEntityWithDrawable*>(entity);
     if (withDrawable != nullptr) {
         OODrawable* drawable = withDrawable->getDrawable();
@@ -483,7 +481,7 @@ void OODebugMonitor::dumpMemoryStatistics()
 
     for (const oo::Ref<OOTexture>& texRef : textures) {
         OOTexture* tex = texRef.get();
-        size_t objSize = sizeof *tex; // the texture root's size (was its facade's instance size)
+        size_t objSize = sizeof *tex; // the texture root's size
         size_t dataSize = tex->dataSize();
 
 #if OOTEXTURE_RELOADABLE
@@ -857,8 +855,9 @@ std::string OODebugMonitor::description() const
     return oo::str::format("<OODebugMonitor %s>", oo::str::pointerDescription(this).c_str());
 }
 
-/*	The canonical singleton boilerplate (the category OODebugMonitor (Singleton)) was the facade's
-        (now deleted): the one monitor is made by sharedDebugMonitor() and never released.
+/*	The canonical singleton boilerplate (the category OODebugMonitor
+   (Singleton)) was the facade's: the one monitor is made by
+   sharedDebugMonitor() and never released.
 */
 
 #endif /* OO_DEBUG_MONITOR_ENABLED */

@@ -93,7 +93,7 @@ void WormholeEntity::initWithDict(const oo::PList& dict)
     // [self init] could not fail.
     {
         {
-            oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
+            oo::AutoreleaseScope pool; // was @autoreleasepool
             // wormholes from pre-1.80 savegames using "origin_seed" and "dest_seed"
             // currently get defaults set; will probably disappear unnoticed
             origin = dict.get<int>("origin_id", 0);
@@ -252,7 +252,10 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship)
     }
     double now = (PLAYER != nullptr ? PLAYER->clockTimeAdjusted() : 0.0);
 
-    /* CIM: removed test. Not valid for wormholes which last longer than their travel time. Most likely for short distances e.g. zero-distance doubles. equal_seeds test above should cover it, with expiry_time test for safety.  */
+    /* CIM: removed test. Not valid for wormholes which last longer than their
+     * travel time. Most likely for short distances e.g. zero-distance doubles.
+     * equal_seeds test above should cover it, with expiry_time test for safety.
+     */
     /*	if (now > arrival_time)
                     return NO;	// far end of the wormhole! */
     if (now > expiry_time)
@@ -834,7 +837,7 @@ void WormholeEntity::dumpSelfState()
     }
 }
 
-// The binding's bodies (OOJSWormhole.mm), which the facade forwarded to.
+// The binding's bodies (OOJSWormhole.mm).
 JSClassID WormholeEntity::jsClassID()
 {
     return ::JSWormholeClassID();
@@ -852,6 +855,6 @@ bool WormholeEntity::isVisibleToScripts()
 
 oo::PList WormholeEntityShipsInTransit(Entity* entity)
 {
-    WormholeEntity* wormhole = dynamic_cast<WormholeEntity*>(entity); // the C++ entity (was its object)
+    WormholeEntity* wormhole = dynamic_cast<WormholeEntity*>(entity); // the C++ entity
     return (wormhole != nullptr) ? wormhole->getShipsInTransit() : oo::PList();
 }

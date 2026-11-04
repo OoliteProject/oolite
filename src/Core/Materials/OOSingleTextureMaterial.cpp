@@ -74,8 +74,8 @@ bool OOSingleTextureMaterial::initWithName(const std::optional<std::string>& nam
     return true;
 }
 
-// -dealloc's [self willDealloc] is the root facade's (proposed ADR-0056, amendment oo-smy item 3),
-// and the texture is released with _texture.
+// -dealloc's [self willDealloc] is the root facade's, and the texture is
+// released with _texture.
 
 std::optional<std::string> OOSingleTextureMaterial::descriptionComponents() const
 {

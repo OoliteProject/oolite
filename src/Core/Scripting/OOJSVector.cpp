@@ -36,13 +36,10 @@ MA 02110-1301, USA.
 #include <cstring>
 
 /*
-        C++20 since bead oo-ppc, the Phase 3 scripting-bindings pattern (proposed ADR-0056 amendment
-        oo-ppc); the other OOJS* binding files follow it. A binding file has no class of its own: its
-        JS class (JSClassDef and JSCFunctionListEntry tables, hooks, natives) is already C++, so the
-        conversion is what is left of Objective-C. OOJS_NATIVE_ENTER/EXIT and
-        OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards (OOJavaScriptEngine.h);
-        BOOL/YES/NO are bool/true/false. Messages to classes that are still Objective-C (Entity,
-        Universe) stay as they are, which is why the file is still .mm until Phase 4.
+        The Vector3D class, in the design of upstream #768's OOJSVector.m: the
+        private slot (QuickJS's opaque pointer) holds a malloced HPVector, freed
+        by the finalizer; the prototype is an instance with no slot, which
+        converts to the zero vector.
 */
 
 static JSClassID sVectorClassID;

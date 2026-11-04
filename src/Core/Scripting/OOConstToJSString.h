@@ -26,9 +26,9 @@ MA 02110-1301, USA.
 
 */
 
-/*	Plain includes (bead oo-9ht.64): this header and OOConstToJSString's translation unit are C++,
-        not Objective-C. QuickJS-ng, OOINLINE, NSInteger/NSUInteger and the constant
-        enumerations are all the inlines below need.
+/*	Plain includes: this header and OOConstToJSString's translation unit are
+   C++. QuickJS-ng, OOINLINE, NSInteger/NSUInteger and the
+   constant enumerations are all the inlines below need.
 */
 #pragma once
 

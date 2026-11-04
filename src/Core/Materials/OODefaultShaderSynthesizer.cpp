@@ -54,9 +54,9 @@ std::string FormatFloat(double value);
         REQUIRE_STAGE(): pull in the required stage. A stage must have a
         zero-parameter member function and a matching _completed_stage member.
 
-        In debug/testrelease builds, this dispatches through performStage() which
-        checks for recursive calls. The stage is named by its text and called through
-        a member-function pointer where it was named by a selector (bead oo-bhxc).
+        In debug/testrelease builds, this dispatches through performStage()
+   which checks for recursive calls. The stage is named by its text and called
+   through a member-function pointer where it was named by a selector.
 */
 #ifndef NDEBUG
 #define REQUIRE_STAGE(NAME)                                     \
@@ -109,8 +109,8 @@ OODefaultShaderSynthesizer::OODefaultShaderSynthesizer(const oo::PList& configur
     // _entityName stays nil: upstream copied it from itself ([_entityName copy]) instead of name.
 }
 
-/*	-dealloc sent -destroyTemporaries, which only empties members that the destructor destroys
-        anyway; the destructor is the implicit one (amendment oo-vt0o item 2).
+/*	-dealloc sent -destroyTemporaries, which only empties members that the
+   destructor destroys anyway; the destructor is the implicit one.
 */
 
 std::string OODefaultShaderSynthesizer::vertexShader()

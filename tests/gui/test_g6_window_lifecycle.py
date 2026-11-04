@@ -89,7 +89,7 @@ PINNED_CLIENT_SIZE - before the game is asked to exit, so nothing this test move
 
     python3 -m pytest oolite-dev/tests/gui/test_g6_window_lifecycle.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
 """
 
@@ -784,7 +784,7 @@ def test_the_launching_test_proves_it_is_on_the_start_screen_before_f12():
     launching test must ESTABLISH that the game is on the start screen at the moment it presses
     F12 - otherwise "the game went fullscreen after F12" could in principle be the other route.
     Read off ast.Call nodes rather than by grep: a docstring naming gui_screen must not satisfy
-    this (the substring-guard defect a sibling bead shipped).
+    this (the substring-guard defect).
     """
     with open(os.path.join(HERE, os.path.basename(__file__)), "r", encoding="utf-8") as handle:
         tree = ast.parse(handle.read())
@@ -950,8 +950,8 @@ def test_the_test_measures_its_own_window_at_every_phase():
 
     Five agents share this desktop and conftest._pin_window parks every instance at (0,0) at the
     same size, so a sibling's window is indistinguishable by geometry alone. AST, never a
-    substring: a docstring naming the helper must not hold this guard green (the defect a
-    sibling bead shipped).
+    substring: a docstring naming the helper must not hold this guard green (the substring-guard
+    defect).
     """
     with open(os.path.join(HERE, os.path.basename(__file__)), "r", encoding="utf-8") as handle:
         tree = ast.parse(handle.read())
@@ -1034,7 +1034,7 @@ def test_g6_does_not_pretend_to_run_the_game_without_a_desktop():
     and report that the window lifecycle had been verified on a machine with no build. It must
     also carry no skip marker of its own: OO_GUI_REQUIRE=1 turns the fixture's legitimate
     platform skip into a failure (conftest.require_gui_platform), and a decorator here would sit
-    outside that mechanism (oo-7by1).
+    outside that mechanism.
     """
     with open(os.path.join(HERE, os.path.basename(__file__)), "r", encoding="utf-8") as handle:
         tree = ast.parse(handle.read())
@@ -1050,7 +1050,7 @@ def test_g6_does_not_pretend_to_run_the_game_without_a_desktop():
             f"the launching test is marked offline; it would pass with no build. {text}"
         )
         assert "skip" not in text, (
-            f"the launching test carries its own skip marker (oo-7by1). {text}"
+            f"the launching test carries its own skip marker. {text}"
         )
     calls = {
         node.func.attr
@@ -1058,5 +1058,5 @@ def test_g6_does_not_pretend_to_run_the_game_without_a_desktop():
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
     }
     assert "importorskip" not in calls, (
-        "no importorskip in this tier: a hard dependency must fail, not skip (oo-7by1)"
+        "no importorskip in this tier: a hard dependency must fail, not skip"
     )

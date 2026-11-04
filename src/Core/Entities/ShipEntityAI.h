@@ -29,12 +29,10 @@ MA 02110-1301, USA.
 
 #include "ShipEntity.h"
 
-class AI; // C++ (AI.h)
+class AI; // AI.h
 class Universe;
-class OOPlanetEntity; // C++ since bead oo-9ht.129
+class OOPlanetEntity;
 
-/*	The category ShipEntity (AI) was declared in ShipEntity+ObjCBridge.h from slice 1 of
-        docs/phases/3-slices/ShipEntityAI.md until bead oo-9ht.144 deleted the facade:
-        its methods are members of ShipEntity, defined in ShipEntityAI.mm.
-        This header stays for the files that import it.
-*/
+/* The category ShipEntity (AI): its methods are members of ShipEntity. This
+ * header stays for the files that include it.
+ */

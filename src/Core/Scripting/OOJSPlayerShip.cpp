@@ -325,8 +325,8 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global)
     OOCAssert(JS_IsObject(playerObject), "Player must be initialized before PlayerShip.");
 
     JSValue shipObject = JS_NewObjectClass(context, (int)sPlayerShipClassID);
-    // The slot holds a weak reference to the C++ player (the player's object's weak reference
-    // before), as every entity's JS object's does.
+    // The slot holds a weak reference to the C++ player, as every entity's JS
+    // object's does.
     OOJSSetCxxPrivate(shipObject, oo::makeRef<OOJSEntityHolder>(player).get());
     // The player object's property and the player entity each own a reference.
     JS_DefinePropertyValueStr(context, playerObject, "ship", JS_DupValue(context, shipObject), OOJS_PROP_READONLY);
@@ -351,9 +351,9 @@ JSValue JSPlayerShipObject(void)
     return result;
 }
 
-// PlayerEntity (OOJavaScriptExtensions): the bodies of the category's methods, which the engine
-// and the player sent by selector; the C++ player calls them. Its JS class is JSPlayerShipClassID()
-// (PlayerEntity::jsClassID()).
+// PlayerEntity (OOJavaScriptExtensions): the bodies of the category's methods,
+// which the engine and the player sent by selector; the C++ player calls them.
+// Its JS class is JSPlayerShipClassID() (PlayerEntity::jsClassID()).
 std::optional<std::string> OOJSPlayerShipJSClassName(void)
 {
     return std::string("PlayerShip");
@@ -970,7 +970,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS)
         break;
 
     case kPlayerShip_currentWeapon: {
-        BOOL exists = NO; // JSValueToEquipmentKeyRelaxed() takes a BOOL * (amendment oo-nge8 item 1)
+        BOOL exists = NO; // JSValueToEquipmentKeyRelaxed() takes a BOOL *
         sValue = JSValueToEquipmentKeyRelaxed(context, value, &exists);
         if (!exists || !sValue.has_value()) {
             sValue = "EQ_WEAPON_NONE";

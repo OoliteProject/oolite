@@ -80,9 +80,9 @@ struct CachedInfo {
 // A dial: a member called by name with its hud.plist entry.
 typedef void (HeadUpDisplay::*OOHUDDial)(const oo::PList& info);
 
-/*	One legend, dial or MFD. Was an array tuple [info, boxed CachedInfo, boxed SEL,
-        selector name] (bead oo-3rb.49); the widget lists are std::vectors of these, in the
-        same order, filled only while the HUD is initialised.
+/*	One legend, dial or MFD. Was an array tuple [info, boxed CachedInfo,
+   boxed SEL, selector name]; the widget lists are std::vectors
+   of these, in the same order, filled only while the HUD is initialised.
 */
 struct OOHUDWidget {
     oo::PList info; // the hud.plist entry
@@ -90,7 +90,7 @@ struct OOHUDWidget {
     BOOL hasCache; // NO only for an MFD whose info was not a dictionary (below)
     OOHUDDial dial; // dials only: the member the selector names (DialNamed())
     std::string selectorString; // dials only
-    oo::Ref<OOTextureSprite> sprite; // legends only: the image legend's sprite (the entry held its facade until bead oo-9ht.71)
+    oo::Ref<OOTextureSprite> sprite; // legends only: the image legend's sprite
 };
 
 namespace {
@@ -114,9 +114,9 @@ void AddHUDWidget(std::vector<OOHUDWidget>& widgets, const oo::PList& info, cons
     widgets.push_back(OOHUDWidget { info, *cache, !info.isNull(), dial, selectorString, { } });
 }
 
-/*	The dials by selector name: exactly the
-        selectors the HUD's Objective-C facade answered (its OODials category, one forwarder per dial
-        member), so a whitelisted name the facade did not answer is still "not implemented".
+/*	The dials by selector name: exactly the selectors the HUD's Objective-C
+   facade answered (its OODials category, one forwarder per dial member), so a
+   whitelisted name the facade did not answer is still "not implemented".
 */
 const struct
 {
@@ -287,8 +287,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     glColor4f(color[0], color[1], color[2], color[3] * alpha);
 }
 //------------------------------------------------------------------------------------//
-//	The class shell (slice 1): HeadUpDisplay's members. The drawing (slices 2-6) follows; the
-//	facade (HeadUpDisplay+ObjCBridge) is deleted.
+//	The class shell: HeadUpDisplay's members. The drawing follows.
 
 HeadUpDisplay::HeadUpDisplay() = default;
 
@@ -828,7 +827,7 @@ bool HeadUpDisplay::checkPlayerInSystemFlight()
 
     return checkPlayerInFlight() // be in the right mode
         && the_sun && the_planet // and be in a system
-        && !the_sun->goneNova(); // C++
+        && !the_sun->goneNova();
 }
 
 bool HeadUpDisplay::minimalisticScanner()
@@ -1165,8 +1164,7 @@ void HeadUpDisplay::drawHUDItem(const oo::PList& info)
         return;
     }
 
-    // use the dial stored during init; the dial is called by name with its configuration
-    // through the dial table.
+    // use the dial stored during init; the dial is called by name with its configuration, through the dial table.
     (this->*(sCurrentDrawItem->dial))(sCurrentDrawItem->info);
     cxx_OOCheckOpenGLErrors([&]() -> std::string { return "HeadUpDisplay after drawHUDItem " + oo::DescriptionOf(sCurrentDrawItem->info); });
 
@@ -1351,7 +1349,8 @@ void HeadUpDisplay::drawScanner(const oo::PList& info)
     // use a non-mutable copy so this can't be changed under us.
     int ent_count = UNIVERSE->n_entities;
     Entity** uni_entities = UNIVERSE->sortedEntities; // grab the public sorted list
-    std::vector<Entity*> my_entities(ent_count); // the C++ entities, their objects retained
+    std::vector<Entity*> my_entities(
+        ent_count); // the C++ entities, their objects retained
     Entity* scannedEntity = nullptr;
 
     for (i = 0; i < ent_count; i++) {
@@ -1374,12 +1373,14 @@ void HeadUpDisplay::drawScanner(const oo::PList& info)
         // to debug the code without the mass slaughter of innocent civillians.
         // if (nonlinear_scanner)
         //{
-        //	Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0), rotMatrix);
-        //	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 5000, zoom, alpha );
-        //	p = OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
-        //	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000, zoom, alpha );
-        //	p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0, 20000.0), rotMatrix);
-        //	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 6000, zoom, alpha );
+        //	Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0),
+        // rotMatrix); 	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy,
+        // z1, siz, p, 5000, zoom, alpha ); 	p =
+        // OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
+        // GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000,
+        // zoom, alpha ); 	p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0,
+        // 20000.0), rotMatrix); 	GLDrawNonlinearCascadeWeapon( scanner_cx,
+        // scanner_cy, z1, siz, p, 6000, zoom, alpha );
         //}
         for (i = 0; i < ent_count; i++) // scanner lollypops
         {
@@ -1458,7 +1459,7 @@ void HeadUpDisplay::drawScanner(const oo::PList& info)
                     col[2] = base_col[2];
                     col[3] = alpha * base_col[3];
                 } else if (scannedEntity->getIsVisualEffect()) {
-                    OOVisualEffectEntity* vis = oo::ToEffect(scannedEntity); // C++
+                    OOVisualEffectEntity* vis = oo::ToEffect(scannedEntity);
                     GLfloat* base_col = (vis != nullptr ? vis->scannerDisplayColorForShip(flash, vis->scannerDisplayColor1(), vis->scannerDisplayColor2()) : (GLfloat*)nullptr);
                     col[0] = base_col[0];
                     col[1] = base_col[1];
@@ -1680,7 +1681,8 @@ void HeadUpDisplay::drawCompass(const oo::PList& info)
 
     if (checkPlayerInSystemFlight() && (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus { }) != STATUS_LAUNCHING) // normal system
     {
-        Entity* reference = (PLAYER != nullptr ? PLAYER->getCompassTargetEntity() : (Entity*)nullptr); // the C++ entity
+        Entity* reference = (PLAYER != nullptr ? PLAYER->getCompassTargetEntity()
+                                               : (Entity*)nullptr); // the C++ entity
 
         // translate and rotate the view
 
@@ -1726,7 +1728,8 @@ void HeadUpDisplay::drawCompass(const oo::PList& info)
         case COMPASS_MODE_BEACONS:
             drawCompassBeaconBlipAt(relativePosition, siz, alpha);
             Entity* beacon = (PLAYER != nullptr ? PLAYER->nextBeacon() : nullptr);
-            OOHUDBeaconIcon* beaconIcon = oo::BeaconDrawable(beacon); // nil beacon or drawable: nothing, as the message to nil
+            OOHUDBeaconIcon* beaconIcon = oo::BeaconDrawable(beacon); // nil beacon or drawable: nothing, as
+                                                                      // the message to nil
             if (beaconIcon != nullptr)
                 beaconIcon->drawHUDBeaconIconAt(NSMakePoint(x, y), siz, alpha, z1);
             break;
@@ -1810,9 +1813,13 @@ void HeadUpDisplay::drawSecondaryTargetReticle(const oo::PList& info)
     if ((player != nullptr ? player->hasEquipmentItemProviding("EQ_TARGET_MEMORY") : false)) {
         // needs target memory to be working in addition to any other equipment
         // this item may be bound to
-        Entity* primary = (player != nullptr ? player->primaryTarget() : (Entity*)nullptr); // the C++ entities: a target may be any entity
+        Entity* primary = (player != nullptr ? player->primaryTarget()
+                                             : (Entity*)nullptr); // the C++ entities: a target
+                                                                  // may be any entity
         for (unsigned i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++) {
-            const oo::WeakRef<Entity> sec_ref = (player != nullptr ? player->targetMemory() : std::vector<oo::WeakRef<Entity>>()).at(i); // an empty slot (was OONull) is an empty ref
+            const oo::WeakRef<Entity> sec_ref = (player != nullptr ? player->targetMemory()
+                                                                   : std::vector<oo::WeakRef<Entity>>())
+                                                    .at(i); // an empty slot (was OONull) is an empty ref
             // isProxy = weakref ; not = OONull (in this case...)
             // can't use isKindOfClass because that throws
             // OOInvalidArgumentException when called on a weakref
@@ -1838,7 +1845,10 @@ void HeadUpDisplay::drawWaypoints(const oo::PList& info)
 
     Entity* compass = (PLAYER != nullptr ? PLAYER->getCompassTargetEntity() : (Entity*)nullptr);
 
-    for (const auto& [waypointKey, waypointRef] : (UNIVERSE != nullptr ? UNIVERSE->currentWaypoints() : std::map<std::string, oo::EntityHold, std::less<>>())) {
+    for (const auto& [waypointKey, waypointRef] :
+        (UNIVERSE != nullptr
+                ? UNIVERSE->currentWaypoints()
+                : std::map<std::string, oo::EntityHold, std::less<>>())) {
         Entity* waypoint = waypointRef.get(); // the universe holds the C++ waypoint
         hudDrawWaypoint(waypoint, PLAYER, z1, alpha, waypoint == compass, scale);
     }
@@ -2714,7 +2724,8 @@ void HeadUpDisplay::drawDirectionCue(const oo::PList& /*info*/)
     if ((UNIVERSE != nullptr ? UNIVERSE->getDisplayGUI() : false))
         return;
 
-    Entity* target = (PLAYER != nullptr ? PLAYER->primaryTarget() : (Entity*)nullptr); // the C++ entity (its object before)
+    Entity* target = (PLAYER != nullptr ? PLAYER->primaryTarget()
+                                        : (Entity*)nullptr); // the C++ entity
     if (target == nullptr)
         return;
 
@@ -3068,7 +3079,8 @@ void HeadUpDisplay::drawStickSensitivityIndicator(const oo::PList& /*info*/)
     NSSize siz;
     GLfloat alpha = overallAlpha;
     BOOL mouse = (PLAYER != nullptr ? PLAYER->isMouseControlOn() : false);
-    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler(); // made by the platform's registered factory
+    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler(); // made by the platform's
+                                                                               // registered factory
     struct CachedInfo cached;
 
     if (stickHandler == nullptr || !stickHandler->joystickCount()) // a message to nil answered 0
@@ -3430,7 +3442,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat /*z1*
                 BOOL isHostile = HeadUpDisplayShipIsHostileToPlayer(ship);
                 GLColorWithOverallAlpha(HeadUpDisplayShipScannerDisplayColor(ship, isHostile, flash), alpha);
             } else if (HeadUpDisplayEntityIsVisualEffect(target)) {
-                OOVisualEffectEntity* vis = oo::ToEffect(target); // C++
+                OOVisualEffectEntity* vis = oo::ToEffect(target);
                 GLColorWithOverallAlpha(HeadUpDisplayVisualEffectScannerDisplayColor(vis, flash), alpha);
             } else {
                 GLColorWithOverallAlpha(green_color, alpha);
@@ -3499,10 +3511,17 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat /*z1*
                 // Rendered above in dialTargetName, so no need to do anything here
                 // unless we want a separate line Destination: XXX ?
             case WH_SCANINFO_ARRIVAL_TIME: {
-                // a format read at run time (ADR-0043 item 19)
-                const std::string etaFormat = OO_DESC("wormhole-ETA-@"); // the format first, as Clang evaluates the arguments: a description that is an array draws (ADR-0063 item 5)
-                std::string wormholeETA = oo::str::formatRuntime(etaFormat, { cxx_ClockToString(HeadUpDisplayWormholeEstimatedArrivalTime(static_cast<WormholeEntity*>(target)), NO) });
-                cxx_OODrawString(wormholeETA, rs0, 0.5 * rs2 - 3 * line_height, 0, textsize);
+                // a format read at run time
+                const std::string etaFormat = OO_DESC("wormhole-ETA-@"); // the format first, as Clang
+                                                                         // evaluates the arguments: a
+                                                                         // description that is an array draws
+                std::string wormholeETA = oo::str::formatRuntime(
+                    etaFormat,
+                    { cxx_ClockToString(HeadUpDisplayWormholeEstimatedArrivalTime(
+                                            static_cast<WormholeEntity*>(target)),
+                        NO) });
+                cxx_OODrawString(wormholeETA, rs0, 0.5 * rs2 - 3 * line_height, 0,
+                    textsize);
             }
             case WH_SCANINFO_COLLAPSE_TIME: {
                 OOTimeDelta timeForCollapsing = HeadUpDisplayWormholeExpiryTime(static_cast<WormholeEntity*>(target)) - HeadUpDisplayPlayerClockTimeAdjusted(player1);
@@ -4181,9 +4200,9 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
     OOGLEND();
 }
 
-/*	The beacon icons (slice 4). OOPolygonSprite's OOHUDBeaconIcon category is a free function on the
+/*	The beacon icons. OOPolygonSprite's OOHUDBeaconIcon category is a free function on the
         converted sprite, which the sprite's
-        OOHUDBeaconIcon member calls (the protocol and the facades are gone; the entities
+        OOHUDBeaconIcon member calls (the entities
         hold their beacon drawables by the C++ interface).
 */
 void OOPolygonSprite::drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha, GLfloat z)
@@ -4264,42 +4283,148 @@ void GetRGBAArrayFromInfo(const oo::PList& info, GLfloat ioColor[4])
 
 } // namespace
 
-// --- One-line sends to classes still behind facades, moved from the HUD's
-// deleted facade.
+// --- One-line sends to classes still behind facades.
 
 void HeadUpDisplayUniverseGUISetGLColorFromSetting(const std::optional<std::string>& setting, OOColor* defaultValue, GLfloat alpha)
 {
     UNIVERSE->getGui()->setGLColorFromSetting(setting, defaultValue, alpha);
 }
 
-// --- Sends of the reticles and waypoints (hudDrawReticleOnTarget(), hudDrawWaypoint(), hudRotateViewpointForVirtualDepth())
+// --- Sends of the reticles and waypoints (hudDrawReticleOnTarget(),
+// hudDrawWaypoint(), hudRotateViewpointForVirtualDepth())
 
-OOGUIScreenID HeadUpDisplayPlayerGuiScreen(PlayerEntity* player) { return (player != nullptr ? player->guiScreen() : OOGUIScreenID { }); }
-HPVector HeadUpDisplayPlayerViewpointPosition(PlayerEntity* player) { return (player != nullptr ? player->viewpointPosition() : HPVector { }); }
-GLfloat HeadUpDisplayPlayerWeaponRange(PlayerEntity* player) { return (player != nullptr ? player->getWeaponRange() : 0.0f); }
-std::optional<std::string> HeadUpDisplayPlayerDialTargetName(PlayerEntity* player) { return (player != nullptr ? player->dialTargetName() : std::optional<std::string>()); }
-double HeadUpDisplayPlayerClockTimeAdjusted(PlayerEntity* player) { return (player != nullptr ? player->clockTimeAdjusted() : 0.0); }
-Vector HeadUpDisplayPlayerCustomViewForwardVector(PlayerEntity* player) { return (player != nullptr ? player->getCustomViewForwardVector() : Vector { }); }
-Vector HeadUpDisplayPlayerCustomViewUpVector(PlayerEntity* player) { return (player != nullptr ? player->getCustomViewUpVector() : Vector { }); }
-Quaternion HeadUpDisplayPlayerCustomViewQuaternion(PlayerEntity* player) { return (player != nullptr ? player->getCustomViewQuaternion() : Quaternion { }); }
-OOMatrix HeadUpDisplayPlayerRotationMatrix(PlayerEntity* player) { return (player != nullptr ? player->rotationMatrix() : OOMatrix { }); }
+OOGUIScreenID HeadUpDisplayPlayerGuiScreen(PlayerEntity* player)
+{
+    return (player != nullptr ? player->guiScreen() : OOGUIScreenID { });
+}
+HPVector HeadUpDisplayPlayerViewpointPosition(PlayerEntity* player)
+{
+    return (player != nullptr ? player->viewpointPosition() : HPVector { });
+}
+GLfloat HeadUpDisplayPlayerWeaponRange(PlayerEntity* player)
+{
+    return (player != nullptr ? player->getWeaponRange() : 0.0f);
+}
+std::optional<std::string> HeadUpDisplayPlayerDialTargetName(
+    PlayerEntity* player)
+{
+    return (player != nullptr ? player->dialTargetName()
+                              : std::optional<std::string>());
+}
+double HeadUpDisplayPlayerClockTimeAdjusted(PlayerEntity* player)
+{
+    return (player != nullptr ? player->clockTimeAdjusted() : 0.0);
+}
+Vector HeadUpDisplayPlayerCustomViewForwardVector(PlayerEntity* player)
+{
+    return (player != nullptr ? player->getCustomViewForwardVector() : Vector { });
+}
+Vector HeadUpDisplayPlayerCustomViewUpVector(PlayerEntity* player)
+{
+    return (player != nullptr ? player->getCustomViewUpVector() : Vector { });
+}
+Quaternion HeadUpDisplayPlayerCustomViewQuaternion(PlayerEntity* player)
+{
+    return (player != nullptr ? player->getCustomViewQuaternion() : Quaternion { });
+}
+OOMatrix HeadUpDisplayPlayerRotationMatrix(PlayerEntity* player)
+{
+    return (player != nullptr ? player->rotationMatrix() : OOMatrix { });
+}
 // The members the facade's selectors forwarded to: nil's answer for none.
-bool HeadUpDisplayEntityIsShip(Entity* entity) { return oo::EntityIsShip(entity); }
-bool HeadUpDisplayEntityIsWormhole(Entity* entity) { return entity != nullptr && entity->getIsWormhole(); }
-bool HeadUpDisplayEntityIsVisualEffect(Entity* entity) { return entity != nullptr && entity->getIsVisualEffect(); }
-HPVector HeadUpDisplayEntityPosition(Entity* entity) { return entity != nullptr ? entity->getPosition() : kZeroHPVector; }
-GLfloat HeadUpDisplayEntityCollisionRadius(Entity* entity) { return entity != nullptr ? entity->collisionRadius() : 0.0f; }
-Quaternion HeadUpDisplayEntityOrientation(Entity* entity) { return entity != nullptr ? entity->getOrientation() : Quaternion { }; }
-std::optional<std::string> HeadUpDisplayShipScanDescription(ShipEntity* ship) { return (ship != nullptr ? ship->scanDescription() : std::optional<std::string>()); }
-bool HeadUpDisplayShipIsCloaked(ShipEntity* ship) { return (ship != nullptr ? ship->isCloaked() : false); }
-bool HeadUpDisplayShipIsHostileToPlayer(ShipEntity* ship) { return (((ship != nullptr ? ship->hasHostileTarget() : false)) && ((ship != nullptr ? ship->primaryTarget() : (Entity*)nullptr) == PLAYER)); }
-GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, BOOL isHostile, BOOL flash) { return (ship != nullptr ? ship->scannerDisplayColorForShip(PLAYER, isHostile, flash, (ship != nullptr ? ship->scannerDisplayColor1() : (OOColor*)nullptr), (ship != nullptr ? ship->scannerDisplayColor2() : (OOColor*)nullptr), (ship != nullptr ? ship->scannerDisplayColorHostile1() : (OOColor*)nullptr), (ship != nullptr ? ship->scannerDisplayColorHostile2() : (OOColor*)nullptr)) : (GLfloat*)nullptr); }
-GLfloat* HeadUpDisplayVisualEffectScannerDisplayColor(OOVisualEffectEntity* vis, BOOL flash) { return (vis != nullptr ? vis->scannerDisplayColorForShip(flash, vis->scannerDisplayColor1(), vis->scannerDisplayColor2()) : (GLfloat*)nullptr); }
-WORMHOLE_SCANINFO HeadUpDisplayWormholeScanInfo(WormholeEntity* wormhole) { return (wormhole != nullptr ? wormhole->scanInfo() : WORMHOLE_SCANINFO { }); }
-double HeadUpDisplayWormholeEstimatedArrivalTime(WormholeEntity* wormhole) { return (wormhole != nullptr ? wormhole->estimatedArrivalTime() : 0.0); }
-double HeadUpDisplayWormholeExpiryTime(WormholeEntity* wormhole) { return (wormhole != nullptr ? wormhole->expiryTime() : 0.0); }
-OOTimeAbsolute HeadUpDisplayUniverseGetTime() { return (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0); }
-const oo::PList* HeadUpDisplayUniverseDescriptions() { return (UNIVERSE != nullptr ? UNIVERSE->descriptions() : nullptr); }
-OOViewID HeadUpDisplayUniverseViewDirection() { return (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID { }); }
-Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayer() { return (UNIVERSE != nullptr ? UNIVERSE->firstEntityTargetedByPlayer() : nullptr); } // its object (the universe answers the C++ entity)
-Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayerPrecisely() { return (UNIVERSE != nullptr ? UNIVERSE->firstEntityTargetedByPlayerPrecisely() : nullptr); }
+bool HeadUpDisplayEntityIsShip(Entity* entity)
+{
+    return oo::EntityIsShip(entity);
+}
+bool HeadUpDisplayEntityIsWormhole(Entity* entity)
+{
+    return entity != nullptr && entity->getIsWormhole();
+}
+bool HeadUpDisplayEntityIsVisualEffect(Entity* entity)
+{
+    return entity != nullptr && entity->getIsVisualEffect();
+}
+HPVector HeadUpDisplayEntityPosition(Entity* entity)
+{
+    return entity != nullptr ? entity->getPosition() : kZeroHPVector;
+}
+GLfloat HeadUpDisplayEntityCollisionRadius(Entity* entity)
+{
+    return entity != nullptr ? entity->collisionRadius() : 0.0f;
+}
+Quaternion HeadUpDisplayEntityOrientation(Entity* entity)
+{
+    return entity != nullptr ? entity->getOrientation() : Quaternion { };
+}
+std::optional<std::string> HeadUpDisplayShipScanDescription(ShipEntity* ship)
+{
+    return (ship != nullptr ? ship->scanDescription()
+                            : std::optional<std::string>());
+}
+bool HeadUpDisplayShipIsCloaked(ShipEntity* ship)
+{
+    return (ship != nullptr ? ship->isCloaked() : false);
+}
+bool HeadUpDisplayShipIsHostileToPlayer(ShipEntity* ship)
+{
+    return (
+        ((ship != nullptr ? ship->hasHostileTarget() : false)) && ((ship != nullptr ? ship->primaryTarget() : (Entity*)nullptr) == PLAYER));
+}
+GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, BOOL isHostile,
+    BOOL flash)
+{
+    return (ship != nullptr
+            ? ship->scannerDisplayColorForShip(
+                  PLAYER, isHostile, flash,
+                  (ship != nullptr ? ship->scannerDisplayColor1()
+                                   : (OOColor*)nullptr),
+                  (ship != nullptr ? ship->scannerDisplayColor2()
+                                   : (OOColor*)nullptr),
+                  (ship != nullptr ? ship->scannerDisplayColorHostile1()
+                                   : (OOColor*)nullptr),
+                  (ship != nullptr ? ship->scannerDisplayColorHostile2()
+                                   : (OOColor*)nullptr))
+            : (GLfloat*)nullptr);
+}
+GLfloat* HeadUpDisplayVisualEffectScannerDisplayColor(OOVisualEffectEntity* vis,
+    BOOL flash)
+{
+    return (vis != nullptr ? vis->scannerDisplayColorForShip(
+                                 flash, vis->scannerDisplayColor1(),
+                                 vis->scannerDisplayColor2())
+                           : (GLfloat*)nullptr);
+}
+WORMHOLE_SCANINFO HeadUpDisplayWormholeScanInfo(WormholeEntity* wormhole)
+{
+    return (wormhole != nullptr ? wormhole->scanInfo() : WORMHOLE_SCANINFO { });
+}
+double HeadUpDisplayWormholeEstimatedArrivalTime(WormholeEntity* wormhole)
+{
+    return (wormhole != nullptr ? wormhole->estimatedArrivalTime() : 0.0);
+}
+double HeadUpDisplayWormholeExpiryTime(WormholeEntity* wormhole)
+{
+    return (wormhole != nullptr ? wormhole->expiryTime() : 0.0);
+}
+OOTimeAbsolute HeadUpDisplayUniverseGetTime()
+{
+    return (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
+}
+const oo::PList* HeadUpDisplayUniverseDescriptions()
+{
+    return (UNIVERSE != nullptr ? UNIVERSE->descriptions() : nullptr);
+}
+OOViewID HeadUpDisplayUniverseViewDirection()
+{
+    return (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID { });
+}
+Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayer()
+{
+    return (UNIVERSE != nullptr ? UNIVERSE->firstEntityTargetedByPlayer()
+                                : nullptr);
+}
+Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayerPrecisely()
+{
+    return (UNIVERSE != nullptr ? UNIVERSE->firstEntityTargetedByPlayerPrecisely()
+                                : nullptr);
+}

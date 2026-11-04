@@ -8,11 +8,10 @@ creating one on the fly. Each sound source can play one sound at a time, and
 has a number of attributes related to positional audio (which is currently
 unimplemented).
 
-C++20 since bead oo-zoj3 (proposed ADR-0056, the Audio module: amendment oo-2en). Bead oo-9ht.88
-deleted its Objective-C facade and moved it to the global namespace: the player, the JS
-SoundSource, the music, the trumbles and the pools hold and call the C++ source. A playing source
-is its channel's delegate (OOSoundChannelDelegate) since bead oo-9ht.86, and keeps itself alive
-while it plays (a retain of its own, as the facade's [self retain] did).
+The player, the JS SoundSource, the music, the trumbles and the pools hold and
+call the C++ source. A playing source is its channel's delegate
+(OOSoundChannelDelegate), and keeps itself alive while it plays (a retain of
+its own).
 
 
 Copyright (C) 2006-2013 Jens Ayton
@@ -36,8 +35,7 @@ OUT OF OR
 
 */
 
-#ifndef OOSOUNDSOURCE_H
-#define OOSOUNDSOURCE_H
+#pragma once
 
 #include "OOALSoundChannel.h"
 #include "OOMaths.h"
@@ -49,7 +47,7 @@ OUT OF OR
 #define OO_DEFAULT_SOUNDSOURCE_GAIN 1.0f
 #endif
 
-class OOSoundReferencePoint; // C++ (OOBasicSoundReferencePoint.h, bead oo-odlx)
+class OOSoundReferencePoint; // C++ (OOBasicSoundReferencePoint.h)
 struct OOSoundSourceTestAccess;
 
 class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
@@ -95,8 +93,7 @@ public:
     void setGainInsideCone(float inInside, float inOutside);
     void positionRelativeTo(OOSoundReferencePoint* inPoint);
 
-    // OOSoundChannelDelegate: was -channel:didFinishPlayingSound:, which the channel sent to the
-    // playing source's facade until bead oo-9ht.86.
+    // OOSoundChannelDelegate: was -channel:didFinishPlayingSound:.
     void channel(::OOSoundChannel* channel, OOSound* sound) override;
 
     /*	Was +channel:didFinishPlayingSound:, the class as the delegate of a stopped source's channel.
@@ -118,7 +115,5 @@ private:
     bool _positional = { };
     float _gain = { };
 
-    friend struct ::OOSoundSourceTestAccess; // tests only (amendment oo-862e item 2)
+    friend struct ::OOSoundSourceTestAccess; // tests only
 };
-
-#endif // OOSOUNDSOURCE_H

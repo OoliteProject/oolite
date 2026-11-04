@@ -1,24 +1,21 @@
 /*	test_OOJSShipGroup.mm
 	Unit tests for the ShipGroup JS binding (src/Core/Scripting/OOJSShipGroup.h/.mm) and the JS glue
-	of OOShipGroup: bead oo-n64m, converted the way bead oo-ppc converted OOJSVector (proposed
-	ADR-0056 amendments oo-ppc and oo-ykoy); the group's façade was deleted, so a
-	group reaches the engine as a PList Object node holding the C++ group, and the stand-in ship
-	holds its groups as oo::Ref where it held the autoreleased façades.
+	of OOShipGroup: a group reaches the engine as a PList Object node holding the C++ group, and the
+	stand-in ship holds its groups as oo::Ref.
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's private-slot
-	glue (OOJSPrivateObject.cpp), its class registry (OOJSClasses.mm), its exception translator
-	(OOJSEngineNativeWrappers.mm) and OOShipGroup (a converted class, as test_OOShipGroup.mm links
-	it), and stands in for ShipEntity (a weakly referenced object
-	answering only the selectors the binding and the group send, with a JS object of its own; a C++
-	ship under a stand-in root object),
-	OONull, and the engine functions the binding links against, with the engine headers' linkage.
-	The engine's native-object conversion asks the object for its JS value, as the engine does, so
-	a group's JS object is the one the category makes. The expectations were written against the
-	Objective-C file and run on it first; they pin the JS-visible behaviour (the constructor, the
-	four properties both ways, addShip() with its escort rules, removeShip(), containsShip(), a
-	non-group, a native's exception) and what the category answers the engine (one JS object per
-	group until the engine clears it). Run: bash tools/check-core-tests.sh
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, the engine's private-slot glue (OOJSPrivateObject.cpp), its
+	class registry (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and
+	OOShipGroup (a converted class, as test_OOShipGroup.mm links it), and stands in for ShipEntity
+	(a weakly referenced object answering only the selectors the binding and the group send, with a
+	JS object of its own; a C++ ship under a stand-in root object), OONull, and the engine functions
+	the binding links against, with the engine headers' linkage. The engine's native-object
+	conversion asks the object for its JS value, as the engine does, so a group's JS object is the
+	one the category makes. The expectations were written against the Objective-C file and run on it
+	first; they pin the JS-visible behaviour (the constructor, the four properties both ways,
+	addShip() with its escort rules, removeShip(), containsShip(), a non-group, a native's
+	exception) and what the category answers the engine (one JS object per group until the engine
+	clears it). Run: bash tools/check-core-tests.sh
 */
 
 #include "OOShipGroup.h"
@@ -35,7 +32,7 @@
 
 /*	A ship: the group it is in, the group it leads as escorts, and whether it takes an escort. A
 	ship named "boom" raises from acceptAsEscort(), so the test sees what an exception under a
-	native becomes. C++ (the Objective-C ship this stood in for was deleted): a ship's object is
+	native becomes. A ship's object is
 	the root's (a weakly referenced object with a JS object of its own), which holds the C++ part
 	(oo::ToCxx reads it) and which TestObjectOf answers for it; declared as Entity.h and ShipEntity.h
 	declare them (the test imports neither). The object holds one reference to its JS object,
@@ -67,9 +64,8 @@ public:
 	int _accepted = 0;
 };
 
-// The ship's object. C++ (it was rooted on the Objective-C root class OOObject, which Phase 4
-// deletes): its selectors are members of the same names; the JS slot holds it (not retained, as it
-// held the Objective-C object).
+// The ship's object. Its selectors are members of the same names; the JS slot
+// holds it (not retained, as it held the Objective-C object).
 class TestEntityObject final : public oo::RefCounted
 {
 public:
@@ -82,8 +78,8 @@ public:
 	JSValue _jsSelf = JS_UNDEFINED;	// Not an object until made; owned.
 };
 
-// The one null (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared
-// with the header's names and signatures but not its class: its own property-list node's object.
+// The one null (OOJavaScriptEngine.h), declared with the header's names and
+// signatures but not its class: its own property-list node's object.
 class OONull : public oo::PListForeign
 {
 public:
@@ -127,7 +123,6 @@ bool ShipEntity::acceptAsEscort(::ShipEntity *other_ship)
 	return YES;
 }
 
-// Entity+ObjCBridge.mm's oo::ToObjC (which the test does not link) until the stand-in became C++.
 ::TestEntityObject *TestObjectOf(Entity *entity)  { return entity != nullptr ? entity->_object : nullptr; }
 #define OO_ENTITY_HELPERS_STAND_IN_CXX
 #include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
@@ -308,9 +303,9 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// (No longer reached for a group, whose toString() is OOJSCxxObjectWrapperToString.)
-// A link stub: unreached, the slot holding the C++ object; it described the slot as an
-// Objective-C object, which oo::DescriptionOf(id) did until libobjc2 went.
+// (No longer reached for a group, whose toString() is
+// OOJSCxxObjectWrapperToString.) A link stub: unreached, the slot holding the
+// C++ object.
 JSValue OOJSObjectWrapperToString(JSContext *, JSValueConst, int, JSValueConst *)
 {
 	std::abort();
@@ -345,14 +340,15 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 #endif
 
 
-// OOJSEntity.mm's (not linked): the C++ entity of an entity's JS object, null for any other value,
-// with no error (OOJSNativeObjectOfClassFromJSValue(context, value, [TestEntityObject class]) before,
-// whose stand-in this was). The test's ships keep their object in the slot, as the game's slot held
-// the object's weak reference before.
+// OOJSEntity.mm's (not linked): the C++ entity of an entity's JS object, null
+// for any other value, with no error
+// (OOJSNativeObjectOfClassFromJSValue(context, value, [TestEntityObject
+// class]), whose stand-in this was). The test's ships keep their object in the
+// slot, as the game's slot held the object's weak reference before.
 Entity *OOJSEntityFromJSValue(JSContext *, JSValueConst value)
 {
-	// The slot holds an oo::RefCounted: a ship's object, or a group (the class check, -isKindOfClass:
-	// until the stand-in became C++, is the C++ one).
+	// The slot holds an oo::RefCounted: a ship's object, or a group (the class
+  // check is the C++ one).
 	TestEntityObject *entity = dynamic_cast<TestEntityObject *>(PrivateOf(value));
 	return entity != nullptr ? entity->_cxxEntity.get() : nullptr;
 }

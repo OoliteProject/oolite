@@ -41,8 +41,10 @@ struct OOBreakPatternEntityTestAccess;
 
 class OOBreakPatternEntity : public Entity {
 public:
-    // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring, initialised.
-    static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio);
+    // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring,
+    // initialised.
+    static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(
+        NSUInteger sides, float startAngleDegrees, float aspectRatio);
 
     void setInnerColor(OOColor* color1, OOColor* color2);
 
@@ -55,9 +57,10 @@ public:
 private:
     friend struct ::OOBreakPatternEntityTestAccess;
 
-    // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after construction
-    // (amendment oo-vl43 item 2).
-    void initWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio);
+    // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after
+    // construction.
+    void initWithPolygonSides(NSUInteger sides, float startAngleDegrees,
+        float aspectRatio);
 
     void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
 

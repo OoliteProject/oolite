@@ -1,26 +1,21 @@
 /*	test_OOJSExhaustPlume.mm
 	Unit tests for the ExhaustPlume JS binding (src/Core/Scripting/OOJSExhaustPlume.h/.mm) and its
-	OOExhaustPlumeEntity category (whose forwarders were on the OOExhaustPlumeEntity facade from
-	bead oo-9ht.48, and are the C++ class's overrides of the root's JS members since that facade's
-	deletion): bead oo-utlm,
-	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendments oo-ppc and
-	oo-ykoy).
+	OOExhaustPlumeEntity category (the C++ class's overrides of the root's JS members).
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's class
-	registration (OOJSClasses.mm) and the engine's exception translator
-	(OOJSEngineNativeWrappers.mm), and stands in for the entity classes (Entity and ShipEntity
-	answer only the selectors the binding sends), for the Vector3D conversions (a vector is the
-	array [x, y, z] here) and for the engine functions the binding links against, with the engine
-	headers' linkage. The plume is the C++ OOExhaustPlumeEntity, which the binding finds through
-	its object's C++ part: the stand-in is that C++ class, declared with the game header's names
-	and signatures but not its class (OOExhaustPlumeEntity.h pulls in the game's classes), as
-	test_OOJSGlobal.mm stands in for the engine, under a stand-in C++ root whose JS members the
-	stand-in root category asks, as the game's does. The binding header is not imported, because
-	until this bead it imported OOExhaustPlumeEntity.h; InitOOJSExhaustPlume is declared here. The
-	expectations were written against the Objective-C file and run on it first; they pin the JS-visible
-	behaviour (size, remove(), a stale plume, a non-plume, a native's exception) and what the
-	category answers the engine. Run: tests/run.sh unit
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, the engine's class registration (OOJSClasses.mm) and the
+	engine's exception translator (OOJSEngineNativeWrappers.mm), and stands in for the entity
+	classes (Entity and ShipEntity answer only the selectors the binding sends), for the Vector3D
+	conversions (a vector is the array [x, y, z] here) and for the engine functions the binding
+	links against, with the engine headers' linkage. The plume is the C++ OOExhaustPlumeEntity,
+	which the binding finds through its object's C++ part: the stand-in is that C++ class, declared
+	with the game header's names and signatures but not its class (OOExhaustPlumeEntity.h pulls in
+	the game's classes), as test_OOJSGlobal.mm stands in for the engine, under a stand-in C++ root
+	whose JS members the stand-in root category asks, as the game's does. The binding header is not
+	imported; InitOOJSExhaustPlume is declared here. The expectations were written against the
+	Objective-C file and run on it first; they pin the JS-visible behaviour (size, remove(), a
+	stale plume, a non-plume, a native's exception) and what the category answers the engine.
+	Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -41,7 +36,7 @@ public:
 	virtual JSClassID jsClassID();
 	virtual std::optional<std::string> jsClassName();
 	virtual bool isVisibleToScripts();
-	Entity *owner();	// the binding calls it (its object's -owner did); the C++ entity
+	Entity *owner();	// the binding calls it (its object's -owner did)
 };
 
 
@@ -66,8 +61,7 @@ public:
 #include "OOJSEntityHolder.h"
 
 
-// C++ since bead oo-4aq6a.11 (it was rooted on the Objective-C root class OOObject, which Phase 4
-// deletes); its category's selectors are members of the same names.
+// Its category's selectors are members of the same names.
 class TestEntityObject final : public oo::RefCounted
 {
 public:
@@ -79,8 +73,8 @@ public:
 	::TestEntityObject *_owner = nullptr;
 };
 
-// A ship: C++ since bead oo-9ht.144 deleted the Objective-C ship this stood in for, the C++ part of
-// its object, with the one member the binding calls (declared as ShipEntity.h declares it).
+// A ship: the C++ part of its object, with the one member the binding calls
+// (declared as ShipEntity.h declares it).
 class ShipEntity : public Entity
 {
 public:
@@ -315,7 +309,7 @@ std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::null
 namespace {
 std::map<Entity *, TestEntityObject *> sObjects;
 }
-::TestEntityObject *TestObjectOf(Entity *entity);	// oo::ToObjC until bead oo-4aq6a.11
+::TestEntityObject *TestObjectOf(Entity *entity);
 ::TestEntityObject *TestObjectOf(Entity *entity)
 {
 	auto found = sObjects.find(entity);
@@ -339,7 +333,7 @@ JSContext *sContext = nullptr;
 JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
 TestEntityObject *sPlume = nullptr;						// the plume's object
 OOExhaustPlumeEntity *sPlumePart = nullptr;	// its C++ part
-TestEntityObject *sShip = nullptr;	// a ship's object and its C++ part (the Objective-C ship until bead oo-9ht.144)
+TestEntityObject *sShip = nullptr;	// a ship's object and its C++ part
 ShipEntity *sShipPart = nullptr;
 
 

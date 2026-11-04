@@ -33,13 +33,10 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 
 /*
-        C++20 since bead oo-cib0, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on OOSoundSource
-        became two free functions, and its methods moved to the Scripting bridge file (amendment
-        oo-ykoy). The source's and the sound's facades and that file are gone: both are C++, and a
-        SoundSource object's private slot holds an OOJSSoundSourceHolder of the source.
+        The SoundSource class, in the design of upstream #768's
+        OOJSSoundSource.m. OOSoundSource is not a JS glue object itself, so the
+        private slot holds an OOJSSoundSourceHolder (OOJSSoundSource.h), which
+        retains the source.
 */
 
 static JSClassID sSoundSourceClassID;
@@ -119,9 +116,8 @@ static bool JSSoundSourceGetSoundSource(JSContext* context, JSValueConst object,
     return true;
 }
 
-// The class's converter: the slot held the source's facade, which OOJSBasicPrivateObjectConverter
-// handed to Objective-C callers of OOJSNativeObjectFromJSValue. No Objective-C object is left to
-// hand over, and nothing asks for one.
+// The class's converter: no Objective-C object is left to hand over, and
+// nothing asks for one.
 static oo::PList SoundSourceConverter(JSContext*, JSValueConst)
 {
     return oo::PList();
@@ -350,9 +346,8 @@ static JSValue SoundSourcePlayOrRepeat(OOJS_NATIVE_ARGS)
     OOJS_NATIVE_EXIT
 }
 
-// The bodies of OOSoundSource (OOJavaScriptExtentions), whose methods were in the Scripting bridge
-// file while the source had a facade (proposed ADR-0056 amendments oo-ppc and oo-ykoy). A null
-// source is JS null, as OOJSValueFromNativeObject() answered nil.
+// The bodies of OOSoundSource (OOJavaScriptExtentions). A null source is JS
+// null.
 JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source, JSContext* context)
 {
     if (source == nullptr)

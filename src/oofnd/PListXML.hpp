@@ -1,44 +1,57 @@
 /*	oofnd/PListXML.hpp
-        The XML property-list reader Oolite runs today, reproduced quirk-for-quirk (ADR-0027):
+        The XML property-list reader Oolite runs today, reproduced
+   quirk-for-quirk:
 
-          * oo::changeDTDIfApplicable() - OOPListParsing.m's ChangeDTDIfApplicable(): when the data
-            starts with exactly <?xml version="1.0" encoding="UTF-8"?> followed (after whitespace) by
-            one of Apple's two plist DOCTYPE lines, that DOCTYPE is replaced by GNUstep's and the
-            whitespace between by a single newline. Anything else is returned unchanged.
-          * oo::parseXMLPList() - the NSPropertyListXMLFormat_v1_0 branch of GNUstep base 1.31.1's
-            +[NSPropertyListSerialization propertyListWithData:...]: the GSXMLPListParser delegate
-            (NSPropertyList.m) driven by GSSloppyXMLParser, GNUstep's own non-validating XML scanner
-            (NSXMLParser.m), ported as written. What that means in practice:
+          * oo::changeDTDIfApplicable() - OOPListParsing.m's
+   ChangeDTDIfApplicable(): when the data starts with exactly <?xml
+   version="1.0" encoding="UTF-8"?> followed (after whitespace) by one of
+   Apple's two plist DOCTYPE lines, that DOCTYPE is replaced by GNUstep's and
+   the whitespace between by a single newline. Anything else is returned
+   unchanged.
+          * oo::parseXMLPList() - the NSPropertyListXMLFormat_v1_0 branch of
+   GNUstep base 1.31.1's
+            +[NSPropertyListSerialization propertyListWithData:...]: the
+   GSXMLPListParser delegate (NSPropertyList.m) driven by GSSloppyXMLParser,
+   GNUstep's own non-validating XML scanner (NSXMLParser.m), ported as written.
+   What that means in practice:
 
-              - The <?xml ...?> declaration must be the very first byte: leading whitespace or a BOM
-                fails the parse. DOCTYPE, comments, processing instructions and attributes are
-                skipped; CDATA sections are DROPPED (GSXMLPListParser has no CDATA callback).
-              - Tags must nest exactly; an unknown element (anything but plist, dict, array, key,
-                string, data, date, integer, real, true, false) fails when it closes.
-              - Text inside key/string/... is kept verbatim (leading and trailing whitespace too).
-                Text between container tags is trimmed and GLUED onto the next key or value:
-                <dict>x<key>k</key>... has the key "xk".
-              - Entities: the five predefined ones and &#ddd; / &#xhh; (6 digits at most); any other
-                entity becomes "". A '&' without a ';' before the next '<' fails the parse.
-              - In <key> and <string>, \Uxxxx (capital U, exactly four hex digits) is a UTF-16 unit.
-              - <integer> is strtoll of the text (so " 12 " is 12, "1.9" is 1, overflow saturates),
-                stored unsigned unless the text starts with '-'; <real> is strtod; <data> is
-                GSMimeDocument's lenient base64; <date> see PList.hpp's parseCalendarDate().
-              - The result is the LAST completed top-level value; an empty <plist/> is nil without an
-                error (a null PList here). A value in a dict without a preceding <key> fails.
-              - Byte-order marks follow NSString (see PList.hpp): an entity or \U escape for U+FEFF
-                or U+FFFE is "", and a text chunk starting with U+FEFF loses it.
-              - The bytes are UTF-8, or ISO-8859-1 when they are not valid UTF-8 or the declaration
-                says so (GNUstep scans the whole document for encoding="..."). UTF-16/32 fail.
+              - The <?xml ...?> declaration must be the very first byte: leading
+   whitespace or a BOM fails the parse. DOCTYPE, comments, processing
+   instructions and attributes are skipped; CDATA sections are DROPPED
+   (GSXMLPListParser has no CDATA callback).
+              - Tags must nest exactly; an unknown element (anything but plist,
+   dict, array, key, string, data, date, integer, real, true, false) fails when
+   it closes.
+              - Text inside key/string/... is kept verbatim (leading and
+   trailing whitespace too). Text between container tags is trimmed and GLUED
+   onto the next key or value: <dict>x<key>k</key>... has the key "xk".
+              - Entities: the five predefined ones and &#ddd; / &#xhh; (6 digits
+   at most); any other entity becomes "". A '&' without a ';' before the next
+   '<' fails the parse.
+              - In <key> and <string>, \Uxxxx (capital U, exactly four hex
+   digits) is a UTF-16 unit.
+              - <integer> is strtoll of the text (so " 12 " is 12, "1.9" is 1,
+   overflow saturates), stored unsigned unless the text starts with '-'; <real>
+   is strtod; <data> is GSMimeDocument's lenient base64; <date> see PList.hpp's
+   parseCalendarDate().
+              - The result is the LAST completed top-level value; an empty
+   <plist/> is nil without an error (a null PList here). A value in a dict
+   without a preceding <key> fails.
+              - Byte-order marks follow NSString (see PList.hpp): an entity or
+   \U escape for U+FEFF or U+FFFE is "", and a text chunk starting with U+FEFF
+   loses it.
+              - The bytes are UTF-8, or ISO-8859-1 when they are not valid UTF-8
+   or the declaration says so (GNUstep scans the whole document for
+   encoding="..."). UTF-16/32 fail.
 
-        Every failure has GNUstep's single message, "failed to parse as XML property list".
+        Every failure has GNUstep's single message, "failed to parse as XML
+   property list".
 */
 
-#ifndef OOFND_PLISTXML_HPP
-#define OOFND_PLISTXML_HPP
+#pragma once
 
-// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header (see oofnd/Data.hpp,
-// proposed ADR-0028); restored at the end.
+// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header
+// (see oofnd/Data.hpp); restored at the end.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -203,8 +216,9 @@ namespace plist_detail {
         return "utf-8";
     }
 
-    // -[NSXMLParser initWithData:]: decode by the declared charset, falling back to ISO-8859-1 when
-    // that fails, and re-encode as UTF-8. nullopt for encodings oofnd does not read (ADR-0027 item 6).
+    // -[NSXMLParser initWithData:]: decode by the declared charset, falling back to
+    // ISO-8859-1 when that fails, and re-encode as UTF-8. nullopt for encodings
+    // oofnd does not read.
     inline std::optional<std::string> xmlDataAsUtf8(std::string_view data)
     {
         const std::string charset = charsetForXml(data);
@@ -554,8 +568,8 @@ namespace plist_detail {
                         n = std::sscanf(buf, "%d;", &d);
                         val = static_cast<unsigned int>(d);
                     }
-                    // (sscanf returning kEOF left GNUstep reading an uninitialised value: treated
-                    // here as not a number, ADR-0027 item 4.)
+                    // (sscanf returning kEOF left GNUstep reading an uninitialised value:
+                    // treated here as not a number.)
                     if (n == 1) {
                         if (val > 0x10FFFF) {
                             abort_ = true; // "invalid numeric entity codepoint"
@@ -703,9 +717,9 @@ namespace plist_detail {
                         while (c != kEOF && !isCSpace(c) && c != '>')
                             c = cget();
                     } else {
-                        // At the end of the data, -_newQarg steps back onto the last byte; unless that
-                        // byte opens a quote, this loop then re-reads it forever and GNUstep never
-                        // returns. oofnd fails the parse instead (ADR-0027 item 4).
+                        // At the end of the data, -_newQarg steps back onto the last byte;
+                        // unless that byte opens a quote, this loop then re-reads it forever
+                        // and GNUstep never returns. oofnd fails the parse instead.
                         if (c == kEOF && bytes_[cend_ - 1] != '"' && bytes_[cend_ - 1] != '\'') {
                             abort_ = true;
                             return;
@@ -824,10 +838,11 @@ namespace plist_detail {
                 }
                 item = PList(decodeMimeBase64(value_));
             } else if (name == "date") {
-                // NSCalendarDate reads [description cString]: GNUstep's default C-string encoding,
-                // ISO-8859-1 in the game's build, up to the first NUL. A character beyond U+00FF
-                // raises NSCharacterConversionException out of the parser; oofnd fails the parse
-                // (ADR-0027 item 7). Found by the GNUstep differential fuzzer (bead oo-g2k).
+                // NSCalendarDate reads [description cString]: GNUstep's default C-string
+                // encoding, ISO-8859-1 in the game's build, up to the first NUL. A
+                // character beyond U+00FF raises NSCharacterConversionException out of
+                // the parser; oofnd fails the parse. Found by the GNUstep
+                // differential fuzzer.
                 const std::u16string units = utf8ToUtf16(value_);
                 std::string latin1;
                 for (char16_t u : units) {
@@ -870,8 +885,9 @@ namespace plist_detail {
                     return;
                 }
                 if (!item) {
-                    // -addObject:nil / -setObject:nil forKey: raise NSInvalidArgumentException out of
-                    // GNUstep's parser; oofnd fails the parse instead (ADR-0027 item 7).
+                    // -addObject:nil / -setObject:nil forKey: raise
+                    // NSInvalidArgumentException out of GNUstep's parser; oofnd fails the
+                    // parse instead.
                     abort_ = true;
                     return;
                 }
@@ -928,5 +944,3 @@ inline Expected<PList, PListError> parseXMLPList(std::string_view bytes)
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_PLISTXML_HPP

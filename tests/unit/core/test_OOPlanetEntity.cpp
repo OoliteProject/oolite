@@ -1,30 +1,25 @@
 /*	test_OOPlanetEntity.mm
-	Unit tests for OOPlanetEntity (src/Core/Entities/OOPlanetEntity.h), a planet or moon: bead
-	oo-mp0d, a leaf of the Entities seam with a facade (proposed ADR-0056, amendments oo-bj8
-	item 12, oo-0mxi and oo-ubjo).
+	Unit tests for OOPlanetEntity (src/Core/Entities/OOPlanetEntity.h), a planet or moon.
 
 	The planet reads the universe, PLAYER and the textures, so the test links the whole game but
 	main (['*']). UNIVERSE is a Universe that was never initialised, subclassed to answer the system
-	data (the planet's name and air density only, so its colours are its own), the time and minimum detail
-	(no shaders); PLAYER is an entity that answers the clock and the nearest planet. Texture
-	loading is replaced (method_setImplementation, as test_OOParticleSystem does) by a stand-in
-	that records the configuration it was given and finds nothing, so the planet stops before it
-	makes materials, as it does in the game when a texture file is missing. The RNG is seeded, and
-	the values that depend on it are given in the planet's dictionary. The expectations were
-	written against the Objective-C API and run on the unconverted class first: a planet's radius,
-	energy, status, orientation and rotation from its dictionary, a moon and a planet with an
-	atmosphere and its air colour, the shader-visible values and their setters, the miniature
-	version, -update: turning the planet, close collisions and the description. The universe and
-	the scripts made planets with alloc/-initFromDictionary:withAtmosphere:andSeed:forSystem:,
-	which the conversion kept on the facade; bead oo-9ht.129 deleted the facade (standing approval
-	oo-9n5p9): the cases make the C++ planet and its Objective-C object (oo::NewEntityFacade) and
-	ask the C++ class, and the facade case pins the new crossing: its object is the root Entity's,
-	which answers the shader binding selectors for a planet only.
-	Run: bash tools/check-core-tests.sh
+	data (the planet's name and air density only, so its colours are its own), the time and minimum
+	detail (no shaders); PLAYER is an entity that answers the clock and the nearest planet. Texture
+	loading is replaced (method_setImplementation, as test_OOParticleSystem does) by a stand-in that
+	records the configuration it was given and finds nothing, so the planet stops before it makes
+	materials, as it does in the game when a texture file is missing. The RNG is seeded, and the
+	values that depend on it are given in the planet's dictionary. The expectations were written
+	against the Objective-C API and run on the unconverted class first: a planet's radius, energy,
+	status, orientation and rotation from its dictionary, a moon and a planet with an atmosphere and
+	its air colour, the shader-visible values and their setters, the miniature version, -update:
+	turning the planet, close collisions and the description. The cases make the C++ planet and its
+	Objective-C object (oo::NewEntityFacade) and ask the C++ class, and the facade case pins the
+	crossing: its object is the root Entity's, which answers the shader binding selectors for a
+	planet only. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOPlanetEntity.h"
-#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "PlayerEntity.h"	// PLAYER is C++
 #include "OOPlanetDrawable.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
@@ -52,11 +47,11 @@ extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	double	_clock = {};
-	OOPlanetEntity	*_nearestPlanet = {};	// the C++ planet since bead oo-9ht.129
+	OOPlanetEntity	*_nearestPlanet = {};	// the C++ planet
 
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 	double clockTimeAdjusted() override	{ return _clock; }
@@ -64,8 +59,8 @@ public:
 	OOSystemID systemID() override	{ return 7; }
 };
 
-// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// the game's, retained (+1) as +alloc's object was.
 template <class T>
 T *NewTestPlayer()
 {
@@ -99,8 +94,8 @@ TestPlayer *sPlayer = nullptr;
 std::vector<std::string> sTexturesAsked;
 
 
-// OOTexture::configurationFactory, the test-only loader hook, where +[OOTexture
-// cxx_textureWithConfiguration:] was replaced: records the name, finds nothing.
+// OOTexture::configurationFactory, the test-only loader hook: records the name,
+// finds nothing.
 oo::Ref<OOTexture> NoTexture(const oo::PList &configuration)
 {
 	sTexturesAsked.push_back(configuration.get<std::string>("name", "?"));
@@ -387,24 +382,20 @@ OO_TEST(description)
 }
 
 
-// The facade was deleted by bead oo-9ht.129 (ADR-0056 amendment oo-9ht.12 item 6): a planet's
-// object is the root Entity's facade, whose C++ part is the planet; that object answers the shader
-// binding selectors (Entity (OOPlanetShaderBindings)) for a planet only.
+// A planet's object is the root Entity's facade, whose C++ part is the planet;
+// that object answers the shader binding selectors (Entity
+// (OOPlanetShaderBindings)) for a planet only.
 OO_TEST(facade)
 {
 	{
 		SetUp();
 		OOPlanetEntity *moon = Planet(NO);
 		Entity *object = moon;
-		OO_CHECK(object != nil);	// (and its object's class, the root facade: retired with the facade, under oo-9n5p9)
-		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
+		OO_CHECK(object != nil);	// A C++ entity, not an Objective-C entity's adapter.
 		OO_CHECK(object == moon);
 		OOPlanetEntity *mini = Miniature(moon);
-		OO_CHECK(mini == mini);	// (and its object's class, the root facade: retired with the facade, under oo-9n5p9)
-
-		// The shader bindings: the planet's values, which its object's selectors forwarded to. (That the
-		// object answered them by selector, and a plain entity's did not, is retired with the facade,
-		// under oo-9n5p9.)
+		OO_CHECK(mini == mini);	// The shader bindings: the planet's values, which its object's selectors
+    // forward to.
 		moon->setAirDensity(0.5f);
 		moon->setTerminatorThresholdVector(make_vector(1, 2, 3));
 		OO_CHECK(moon->airDensity() == 0.5f);
@@ -428,8 +419,8 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carried and the C++ planet's overrides answer now:
-// what the engine asks a planet's object for by selector is what OOJSPlanet.mm answers.
+// The binding's category, which the C++ planet's overrides answer: what the
+// engine asks a planet's object for by selector is what OOJSPlanet.mm answers.
 OO_TEST(jsExtensions)
 {
 	{

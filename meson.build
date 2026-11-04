@@ -1,6 +1,6 @@
 project(
     'oolite',
-    ['c', 'cpp'],	# the Objective-C languages went with libobjc2 (bead oo-dbz.5): every game unit is C++
+    ['c', 'cpp'],
     meson_version: '>= 1.4.0',
     version: run_command(
         'bash',
@@ -122,6 +122,15 @@ endif
 # non-LTO build directory (meson setup with -Ddeployment_unit_tests=true): OOCAssert compiled out
 # under NDEBUG, and with it PlayerEntity's -deferredInit ship set-up, passes every test-flavour
 # suite and breaks the shipped game.
+if host_machine.system() == 'windows'
+    # Tests load the toolchain's libstdc++/libwinpthread, which must win over older copies earlier
+    # on PATH (Git for Windows ships mingw64 ones; a missing symbol surfaces as exit 0xc0000139).
+    toolchain_bin = import('fs').parent(find_program(meson.get_compiler('cpp').cmd_array()[0]).full_path())
+    test_env = environment()
+    test_env.prepend('PATH', toolchain_bin)
+    add_test_setup('default', env: test_env, is_default: true)
+endif
+
 if (not get_option('deployment_release') or get_option('deployment_unit_tests')) and host_machine.system() == 'windows'
     # Unit tests that need no game build (meson test --suite oofnd).
     subdir('tests/unit/oofnd')

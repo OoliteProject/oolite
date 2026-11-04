@@ -1,15 +1,12 @@
 /*	test_OOJSEquipmentInfo.mm
 	Unit tests for the EquipmentInfo JS binding (src/Core/Scripting/OOJSEquipmentInfo.h/.mm) and the
-	JS glue of OOEquipmentType: bead oo-supk, converted the way bead oo-ppc converted OOJSVector
-	(proposed ADR-0056 amendments oo-ppc and oo-6ia4); the type's façade was deleted, so a type
-	reaches the engine as a PList Object node holding the C++ type.
+	JS glue of OOEquipmentType: a type reaches the engine as a PList Object node holding the C++
+	type.
 
-	As test_OOJSShipGroup.mm does (amendment oo-6ia4, item 7), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, its bridge, the engine's
-	class registry (OOJSClasses.mm), the engine's exception translator
-	(OOJSEngineNativeWrappers.mm) and the converted classes it uses (OOEquipmentType and OOColor,
-	reached through their façades before the conversion and as C++ after it), and stands in for
-	what the equipment types reach (the universe's equipment data, as test_OOEquipmentType.mm gives
+	As test_OOJSShipGroup.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, its bridge, the engine's class registry (OOJSClasses.mm),
+	the engine's exception translator (OOJSEngineNativeWrappers.mm) and the converted classes it
+	uses (OOEquipmentType and OOColor, as C++), and stands in for what the equipment types reach (the universe's equipment data, as test_OOEquipmentType.mm gives
 	it, the cache, the script loader, the legacy-condition sanitizer, the standards switches) and
 	for the player and the engine functions the binding links against, with the engine headers'
 	linkage. The engine's native-object conversion asks the object for -oo_jsValueInContext:, as
@@ -105,9 +102,8 @@ oo::PList EquipmentData()
 
 }	// namespace
 
-
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// deleted, was what this stood in for), with the header's names and signatures.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures.
 class Universe
 {
 public:
@@ -124,8 +120,7 @@ Universe *gSharedUniverse = nil;
 
 #include "OOCacheManager.h"
 
-// The cache manager is C++ since its facade was deleted: a C++ stand-in with the Objective-C
-// stand-in's answers.
+// The cache manager: a C++ stand-in with the Objective-C stand-in's answers.
 OOCacheManager *OOCacheManager::sharedCache()
 {
 	static OOCacheManager *shared = new OOCacheManager;
@@ -138,8 +133,8 @@ void OOCacheManager::setPList(const oo::PList &value, const std::string &key, co
 #include "OOScript.h"
 
 
-// OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until its
-// facade was deleted), and the rest of its virtual members, for the vtable.
+// OOScript's members that OOEquipmentType.mm calls, and the rest of its
+// virtual members, for the vtable.
 std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
 std::optional<std::string> OOScript::name()					{ return std::nullopt; }
 std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
@@ -159,14 +154,15 @@ oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, c
 }
 
 
-/*	The player: its fuel and charge rate, renovation costs, the price scripts adjust, and its
-	mission variables (the variable tech levels). Adjusting the price of "EQ_SCOOPER" raises, and of
-	"EQ_MISSILE" while _throwCxx is set throws a C++ exception, so the test sees what an exception
-	under a native becomes.
+/*	The player: its fuel and charge rate, renovation costs, the price
+   scripts adjust, and its mission variables (the variable tech levels).
+   Adjusting the price of "EQ_SCOOPER" raises, and of "EQ_MISSILE" while
+   _throwCxx is set throws a C++ exception, so the test sees what an exception
+        under a native becomes.
 */
-// PLAYER: C++ since the Objective-C player this stood in for was deleted: the members the code
-// under test calls, declared as the game headers declare them (the test imports none that defines
-// the classes), with the stand-in's answers. The ship is C++ too.
+// PLAYER: the members the code under test calls, declared as the game headers
+// declare them (the test imports none that defines the classes), with the
+// stand-in's answers.
 class Entity
 {
 public:
@@ -440,9 +436,9 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 
 
 
-// The JS class check of the engine's C++ getter (OOJSPrivateObject.cpp, linked; its slot holds the
-// C++ equipment type) is the class registry's (OOJSClasses.mm, linked): no subclass of
-// EquipmentInfo is registered.
+// The JS class check of the engine's C++ getter (OOJSPrivateObject.cpp, linked;
+// its slot holds the C++ equipment type) is the class registry's (OOJSClasses.mm, linked): no subclass of EquipmentInfo is
+// registered.
 
 
 JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)

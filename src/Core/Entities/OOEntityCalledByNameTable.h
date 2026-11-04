@@ -11,15 +11,14 @@ python3 tools/gen-entity-by-name-table.py --check (it renders the rows again and
 
 One row per former category method, exactly the categories' names and #if conditions: the name
 sets the root facade's -respondsToSelector: read (the applies-to flags), the encoding of the declared result
-(kOOTypeEncoding<>, @encode()'s measured literal: OOTypeEncodings.h, bead oo-dbz.3),
+(kOOTypeEncoding<>, @encode()'s measured literal: OOTypeEncodings.h),
 the argument kind, the adaptor: the method's body, verbatim, with the entity for the facade's own C++
 entity, and for a method with no argument the typed adaptor (its result by type).
 Included by OOEntityCalledByName.cpp only, after the parts (ShipPart() ...) the bodies read.
 
 */
 
-#ifndef OOENTITYCALLEDBYNAMETABLE_H
-#define OOENTITYCALLEDBYNAMETABLE_H
+#pragma once
 
 namespace {
 
@@ -1510,7 +1509,7 @@ void ByName_701(Entity *entity)
 void ByName_702(Entity *entity, const std::string &key)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->playLegacyScriptSound(key); }
 void ByName_703(Entity *entity)
-{ if (PlayerEntity *player = PlayerEntityPart(entity))  oo::ScheduleEntityCall(player, [](Entity *target) { if (PlayerEntity *part = PlayerEntityPart(target))  part->updateAfterburnerSound(); }, 1.25);	/* the deferred call holds the C++ player */ }
+{ if (PlayerEntity *player = PlayerEntityPart(entity))  oo::ScheduleEntityCall(player, [](Entity *target) { if (PlayerEntity *part = PlayerEntityPart(target))  part->updateAfterburnerSound(); }, 1.25); }
 void ByName_704(Entity *entity)
 { if (PlayerEntity *player = PlayerEntityPart(entity))  player->resetStickFunctions(); }
 void ByName_705(Entity *entity, const oo::PList &hwDict)
@@ -2802,7 +2801,7 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "deleteAllKeySettings",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_747>,	&OOEntityByNameTyped<&ByName_747> },
 	{ "loadKeySettings",	kOOByNamePlayer,	kOOTypeEncoding<oo::PList>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_748>,	&OOEntityByNameTyped<&ByName_748> },
 	{ "reloadPage",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_749>,	&OOEntityByNameTyped<&ByName_749> },
-	{ "scriptTarget",	kOOByNamePlayer,	kOOTypeEncoding<ShipEntity*>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_750>,	&OOEntityByNameTyped<&ByName_750> },
+	{ "scriptTarget",	kOOByNamePlayer,	kOOTypeEncoding<ShipEntity *>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_750>,	&OOEntityByNameTyped<&ByName_750> },
 	{ "checkScript",	kOOByNamePlayer,	kOOTypeEncoding<void>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_751>,	&OOEntityByNameTyped<&ByName_751> },
 	{ "cxx_scriptTestConditions:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_752>,	nullptr },
 	{ "scriptTestCondition:",	kOOByNamePlayer,	kOOTypeEncoding<BOOL>,	OOEntityByNameArgument::PList,	&OOEntityByNameAdaptPList<&ByName_753>,	nullptr },
@@ -3021,5 +3020,3 @@ inline const OOEntityByNameRow kOOEntityByNameRows[] =
 	{ "shaderVector1",	kOOByNameEffect,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_966>,	&OOEntityByNameTyped<&ByName_966> },
 	{ "shaderVector2",	kOOByNameEffect,	kOOTypeEncoding<Vector>,	OOEntityByNameArgument::None,	&OOEntityByNameAdaptNone<&ByName_967>,	&OOEntityByNameTyped<&ByName_967> },
 };
-
-#endif	// OOENTITYCALLEDBYNAMETABLE_H

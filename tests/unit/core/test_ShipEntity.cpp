@@ -1,23 +1,20 @@
 /*	test_ShipEntity.mm
-	Unit tests for ShipEntity (src/Core/Entities/ShipEntity.h), the ship: slice 1 of its slice plan
-	(docs/phases/3-slices/ShipEntity.md, bead oo-60fwo), the class shell, which moves the ship's
-	state into ShipEntity and keeps the Objective-C ShipEntity as its facade (proposed
-	ADR-0056, amendments oo-bj8 and oo-60fwo).
+	Unit tests for ShipEntity (src/Core/Entities/ShipEntity.h), the ship: the class shell, which
+	moves the ship's state into ShipEntity.
 
-	Like Entity's, the ship's object needs the game graph, so the test links the whole game but
-	main (['*']) and uses a Universe that was never initialised, a plain entity as PLAYER
-	(amendment oo-bj8 item 11), and an empty JavaScript context for the events the ship sends its
-	scripts. The ship is a subclass whose -setUpShipFromDictionary: only counts (the set-up from
-	shipdata is slices 2 and 3, and needs the game's data), so the cases test the slice's own units:
-	the initialisers (what -cxx_initWithKey:definition: sets before the set-up, the set-up
-	failing, the top-speed sanity check, -initBypassForPlayer, and -init sent again as
-	PlayerEntity's -deferredInit does), -dealloc (it leaves the ship's groups), and the two
-	SubEntityRelationship categories. The expectations were written against the Objective-C API
-	and run on the unconverted class first. Ivars the game reads directly go through the block of
-	helpers below, the one place that knows where they live. The tests after those pin the
-	crossing: an Objective-C ship's C++ part is a ShipEntity, the facade's _cxxShip is that
-	part, and a ship released before its initialiser ran is deallocated without a C++ part.
-	Run: bash tools/check-core-tests.sh
+	Like Entity's, the ship's object needs the game graph, so the test links the whole game but main
+	(['*']) and uses a Universe that was never initialised, a plain entity as PLAYER, and an empty
+	JavaScript context for the events the ship sends its scripts. The ship is a subclass whose
+	-setUpShipFromDictionary: only counts (the set-up from shipdata needs the game's data), so the
+	cases test the class's own units: the initialisers (what -cxx_initWithKey:definition: sets
+	before the set-up, the set-up failing, the top-speed sanity check, -initBypassForPlayer, and
+	-init sent again as PlayerEntity's -deferredInit does), -dealloc (it leaves the ship's groups),
+	and the two SubEntityRelationship categories. The expectations were written against the
+	Objective-C API and run on the unconverted class first. Ivars the game reads directly go through
+	the block of helpers below, the one place that knows where they live. The tests after those pin
+	the crossing: an Objective-C ship's C++ part is a ShipEntity, the facade's _cxxShip is that
+	part, and a ship released before its initialiser ran is deallocated without a C++ part. Run:
+	bash tools/check-core-tests.sh
 */
 
 #include "ShipEntity.h"
@@ -50,14 +47,14 @@ extern Universe *gSharedUniverse;
 extern JSContext *gOOJSMainThreadContext;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// NewTestPlayer<TestPlayer>(): a C++ player under the ship's
+// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -78,9 +75,8 @@ bool sInfiniteSpeed = false;
 
 }	// namespace
 
-
-// A ship whose set-up from shipdata only counts and records what it was given (a C++ subclass since
-// bead oo-9ht.144 deleted the Objective-C ship).
+// A ship whose set-up from shipdata only counts and records what it was given
+// (a C++ subclass).
 class TestShip : public ShipEntity
 {
 public:
@@ -99,8 +95,8 @@ public:
 
 namespace {
 
-// [[[T alloc] cxx_initWithKey:key definition:dict] autorelease]: a ship made in C++,
-// its object autoreleased; null where the set-up failed (the initialiser answered nil).
+// A ship made in C++, its object autoreleased; null where the
+// set-up failed (the initialiser answered nil).
 template <class T>
 T *MakeShip(const std::string &key, const oo::PList &dict)
 {
@@ -116,8 +112,8 @@ T *NewShip(const std::string &key, const oo::PList &dict)
 
 }	// namespace
 
-
-// --- The members private again in C++ (bead oo-9ht.184.1), and nothing else -------------------------
+// --- The members private in C++, and nothing else
+// -------------------------
 
 struct ShipEntityTestAccess
 {
@@ -271,7 +267,7 @@ OO_TEST(initClampsAnInfiniteTopSpeed)
 
 OO_TEST(deallocLeavesItsGroups)
 {
-	oo::Ref<OOShipGroup> group;	// C++ since bead oo-9ht.19: held where the facades were retained
+	oo::Ref<OOShipGroup> group;
 	oo::Ref<OOShipGroup> escorts;
 	{
 		SetUp();
@@ -299,9 +295,6 @@ OO_TEST(subEntityRelationship)
 
 		// Entity's: never.
 		OO_CHECK(!oo::EntityIsShipWithSubEntityShip(plain, ship));
-		// (Its object's -drawSubEntityImmediate:translucent:, the root facade's category, did nothing: retired
-		// with the facade.)
-
 		// The ship's: a ship that is its subentity, and that it agrees is.
 		OO_CHECK(!(ship != nullptr ? ship->isShipWithSubEntityShip(plain) : false));
 		OO_CHECK(!(ship != nullptr ? ship->isShipWithSubEntityShip(sub) : false));		// not a subentity
@@ -323,7 +316,7 @@ OO_TEST(subEntityRelationship)
 }
 
 
-// --- Slice 2: -cxx_setUpFromDictionary:, the set-up players and NPCs share (bead oo-cvbe3) -------
+// --- -cxx_setUpFromDictionary:, the set-up players and NPCs share -------
 
 namespace {
 
@@ -434,10 +427,10 @@ OO_TEST(setUpFromDictionaryValues)
 }
 
 
-// --- Slice 3: -setUpShipFromDictionary:, subentity serialisation and set-up (bead oo-mvzmb) -----
+// --- -setUpShipFromDictionary:, subentity serialisation and set-up -----
 
 // A ship that keeps ShipEntity's own set-up.
-class PlainShip : public ShipEntity	// C++ since bead oo-9ht.144
+class PlainShip : public ShipEntity
 {
 };
 
@@ -535,7 +528,8 @@ OO_TEST(setUpSubEntitiesAndFrustumRadius)
 }
 
 
-// --- Slice 4: standard subentities, cargo pods, descriptions, mesh, vectors, misjump, lists (oo-ln2m1)
+// --- Standard subentities, cargo pods, descriptions, mesh, vectors,
+// misjump, lists
 
 OO_TEST(cargoTypeAndTemplatePod)
 {
@@ -630,7 +624,8 @@ OO_TEST(subEntityLists)
 }
 
 
-// --- Slice 5: bounding boxes, octree hit tests, universe add / remove, beacons, boulders (oo-ddnn8)
+// --- Bounding boxes, octree hit tests, universe add / remove,
+// beacons, boulders
 
 OO_TEST(octreeAndTractorWithoutAModel)
 {
@@ -702,7 +697,8 @@ OO_TEST(visibilityBouldersAndKills)
 }
 
 
-// --- Slice 6: ship data key, weapon offsets, collision checks, subentity geometry (oo-5z5wd) --------
+// --- Ship data key, weapon offsets, collision checks, subentity
+// geometry --------
 
 OO_TEST(shipDataKeyAndInfo)
 {
@@ -780,9 +776,10 @@ OO_TEST(closeCollisionAndFrame)
 }
 
 
-// --- Slice 7: -update: (bead oo-k2q1f) -------------------------------------------------------------
+// --- -update:
+// -------------------------------------------------------------
 
-// A ship whose -update: only counts: a subentity that a demo ship updates (C++ since bead oo-9ht.144).
+// A ship whose -update: only counts: a subentity that a demo ship updates.
 class CountingShip : public TestShip
 {
 public:
@@ -830,10 +827,10 @@ OO_TEST(updateReachesTheSubclass)
 }
 
 
-// --- Slice 8: behaviour dispatch, attack response, equipment queries (bead oo-vxdsc) ---------------
+// --- Behaviour dispatch, attack response, equipment queries ---------------
 
-// The equipment queries over the ship's equipment keys (no equipment data is loaded, so no type is
-// known: a key provides only itself).
+// The equipment queries over the ship's equipment keys (no equipment data is
+// loaded, so no type is known: a key provides only itself).
 OO_TEST(equipmentQueries)
 {
 	{
@@ -876,7 +873,8 @@ OO_TEST(hyperspaceMotor)
 }
 
 
-// --- Slice 9: equipment validity and adding, weapon mounts, scripting lists (bead oo-ke13m) ---------
+// --- Equipment validity and adding, weapon mounts, scripting lists
+// ---------
 
 OO_TEST(weaponMountsAndLists)
 {
@@ -914,7 +912,8 @@ OO_TEST(equipmentKeysAndUnknownEquipment)
 }
 
 
-// --- Slice 10: equipment removal, missiles, capacities, has-equipment predicates, shields (oo-wvcs2)
+// --- Equipment removal, missiles, capacities, has-equipment
+// predicates, shields
 
 OO_TEST(capacitiesAndPredicates)
 {
@@ -961,7 +960,8 @@ OO_TEST(removeMissiles)
 }
 
 
-// --- Slice 11: thrust and afterburner; idle, tumble, tractored, track, intercept, dogfight (oo-eh955)
+// --- Thrust and afterburner; idle, tumble, tractored, track,
+// intercept, dogfight
 
 OO_TEST(thrustAndAfterburner)
 {
@@ -1026,7 +1026,7 @@ OO_TEST(behavioursWithoutATarget)
 }
 
 
-// --- Slice 12: behaviours: attack target, broadside, close with target (bead oo-0akes) --------------
+// --- Behaviours: attack target, broadside, close with target --------------
 
 // With no target the attack behaviours note the lost target and go idle.
 OO_TEST(attackBehavioursWithoutATarget)
@@ -1077,7 +1077,7 @@ OO_TEST(attackTargetChoiceAndBroadsideSides)
 }
 
 
-// --- Slices 13-15: the behaviours (the expectations were run on the Objective-C methods first) ----
+// --- The behaviours ----
 
 namespace {
 
@@ -1104,8 +1104,8 @@ TestShip *TargetAt(TestShip *ship, double z)
 
 }	// namespace
 
-
-// Slices 13 and 14: an attack behaviour with no target to track notes the lost target and goes idle.
+// An attack behaviour with no target to track notes the lost
+// target and goes idle.
 OO_TEST(attackBehavioursWithoutATargetGoIdle)
 {
 	{
@@ -1137,8 +1137,8 @@ OO_TEST(attackBehavioursWithoutATargetGoIdle)
 }
 
 
-// Slice 13: the sniper closes in to attack inside 15 km, and outside it flies at top speed while
-// out of weapon range.
+// The sniper closes in to attack inside 15 km, and outside it flies
+// at top speed while out of weapon range.
 OO_TEST(sniper)
 {
 	{
@@ -1158,9 +1158,10 @@ OO_TEST(sniper)
 }
 
 
-// Slice 13: a ship already at the point it was heading for vectors in to attack at 0.4 of its top
-// speed (the target is at a standstill); the miner closes on a rock at seven eighths of it; and an
-// attacker inside its weapon range starts its attack run.
+// A ship already at the point it was heading for vectors in to attack
+// at 0.4 of its top speed (the target is at a standstill); the miner closes on
+// a rock at seven eighths of it; and an attacker inside its weapon range starts
+// its attack run.
 OO_TEST(attackApproaches)
 {
 	{
@@ -1187,7 +1188,7 @@ OO_TEST(attackApproaches)
 }
 
 
-// Slice 14: the destination behaviours that only decide.
+// The destination behaviours that only decide.
 OO_TEST(destinationDecisions)
 {
 	{
@@ -1231,7 +1232,8 @@ OO_TEST(destinationDecisions)
 }
 
 
-// Slice 15: arriving, leaving, resuming after a proximity alert, and the navpoints.
+// Arriving, leaving, resuming after a proximity alert, and the
+// navpoints.
 OO_TEST(destinationArrivals)
 {
 	{
@@ -1286,8 +1288,8 @@ OO_TEST(destinationArrivals)
 }
 
 
-// Slice 15: a scripted AI with no ship script reverts to idle; the reaction time, and the target
-// position it leads by.
+// A scripted AI with no ship script reverts to idle; the reaction
+// time, and the target position it leads by.
 OO_TEST(scriptedAIAndReactionTime)
 {
 	{
@@ -1309,8 +1311,8 @@ OO_TEST(scriptedAIAndReactionTime)
 }
 
 
-// Slice 16: the tracking curve through a target that is standing still is that target's position,
-// with or without a reaction time.
+// The tracking curve through a target that is standing still is that
+// target's position, with or without a reaction time.
 OO_TEST(trackingCurve)
 {
 	{
@@ -1332,7 +1334,7 @@ OO_TEST(trackingCurve)
 }
 
 
-// Slice 16: the scanner colours, scripted and by scan class.
+// The scanner colours, scripted and by scan class.
 OO_TEST(scannerColours)
 {
 	{
@@ -1368,7 +1370,7 @@ OO_TEST(scannerColours)
 }
 
 
-// Slice 16: cloaking flags, owner, thrust and orientation.
+// Cloaking flags, owner, thrust and orientation.
 OO_TEST(cloakOwnerThrustAndOrientation)
 {
 	{
@@ -1400,8 +1402,9 @@ OO_TEST(cloakOwnerThrustAndOrientation)
 }
 
 
-// Slice 17: rolling, climbing and yawing turn the ship by the product of the turns, and update its
-// vectors; with no turn and no rotation so far, nothing happens.
+// Rolling, climbing and yawing turn the ship by the product of the
+// turns, and update its vectors; with no turn and no rotation so far, nothing
+// happens.
 OO_TEST(attitude)
 {
 	{
@@ -1433,8 +1436,8 @@ OO_TEST(attitude)
 }
 
 
-// Slice 17: avoiding a collision remembers what the ship was doing and heads for the point between
-// the two ships; resuming restores it.
+// Avoiding a collision remembers what the ship was doing and heads
+// for the point between the two ships; resuming restores it.
 OO_TEST(avoidCollisionAndResume)
 {
 	{
@@ -1476,7 +1479,7 @@ OO_TEST(avoidCollisionAndResume)
 }
 
 
-// Slice 17: message time, groups and escorts.
+// Message time, groups and escorts.
 OO_TEST(groupsAndEscorts)
 {
 	{
@@ -1515,7 +1518,7 @@ OO_TEST(groupsAndEscorts)
 }
 
 
-// Slice 17: the names, and what the ship is called on screen.
+// The names, and what the ship is called on screen.
 OO_TEST(names)
 {
 	{
@@ -1542,8 +1545,8 @@ OO_TEST(names)
 }
 
 
-// Slice 18: roles. A ship has its primary role, its data key's automatic role and the roles of its
-// role set; adding is a no-op for a role it has.
+// Roles. A ship has its primary role, its data key's automatic role
+// and the roles of its role set; adding is a no-op for a role it has.
 OO_TEST(roles)
 {
 	{
@@ -1572,7 +1575,8 @@ OO_TEST(roles)
 }
 
 
-// Slice 18: the ship-type predicates that do not ask the universe, and hostility.
+// The ship-type predicates that do not ask the universe, and
+// hostility.
 OO_TEST(typesAndHostility)
 {
 	{
@@ -1610,7 +1614,7 @@ OO_TEST(typesAndHostility)
 }
 
 
-// Slice 18: the weapon and scanner values, and leaving the aegis.
+// The weapon and scanner values, and leaving the aegis.
 OO_TEST(weaponAndScannerValues)
 {
 	{
@@ -1642,7 +1646,8 @@ OO_TEST(weaponAndScannerValues)
 }
 
 
-// Slice 19: the aegis bookkeeping, the systems, the status and the launch delay.
+// The aegis bookkeeping, the systems, the status and the launch
+// delay.
 OO_TEST(aegisSystemsAndStatus)
 {
 	{
@@ -1675,7 +1680,7 @@ OO_TEST(aegisSystemsAndStatus)
 }
 
 
-// Slice 19: the crew, the AI and the flags read from the definition.
+// The crew, the AI and the flags read from the definition.
 OO_TEST(crewAndAI)
 {
 	{
@@ -1689,7 +1694,7 @@ OO_TEST(crewAndAI)
 		OO_CHECK(!(ship != nullptr ? ship->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>()).has_value());
 
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) == nil && !(ship != nullptr ? ship->hasNewAI() : false));
-		oo::Ref<AI> heldAI = oo::makeRef<AI>();	// [[[AI alloc] init] autorelease]: C++
+		oo::Ref<AI> heldAI = oo::makeRef<AI>();
 		AI *ai = heldAI.get();
 		if (ship != nullptr)  ship->setAI(ai);
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) == ai);
@@ -1702,7 +1707,7 @@ OO_TEST(crewAndAI)
 }
 
 
-// Slice 19: fuel is clamped to the capacity.
+// Fuel is clamped to the capacity.
 OO_TEST(fuel)
 {
 	{
@@ -1717,7 +1722,8 @@ OO_TEST(fuel)
 }
 
 
-// Slice 20: the sticks move the flight rates towards them by a limited step; the rate setters.
+// The sticks move the flight rates towards them by a limited step;
+// the rate setters.
 OO_TEST(sticksAndRates)
 {
 	{
@@ -1749,7 +1755,7 @@ OO_TEST(sticksAndRates)
 }
 
 
-// Slice 20: bounty and legal status.
+// Bounty and legal status.
 OO_TEST(bountyAndLegalStatus)
 {
 	{
@@ -1778,7 +1784,7 @@ OO_TEST(bountyAndLegalStatus)
 }
 
 
-// Slice 20: commodities and cargo.
+// Commodities and cargo.
 OO_TEST(commoditiesAndCargo)
 {
 	{
@@ -1812,7 +1818,7 @@ OO_TEST(commoditiesAndCargo)
 }
 
 
-// Slice 21: the flight controls, clamped to the ship's limits.
+// The flight controls, clamped to the ship's limits.
 OO_TEST(flightControls)
 {
 	{
@@ -1852,7 +1858,7 @@ OO_TEST(flightControls)
 }
 
 
-// Slice 21: temperature, insulation, damage and hulks.
+// Temperature, insulation, damage and hulks.
 OO_TEST(temperatureDamageAndHulks)
 {
 	{
@@ -1884,8 +1890,9 @@ OO_TEST(temperatureDamageAndHulks)
 }
 
 
-// Slice 22: a ship with no model rescales its scale factor and its mass (by the cube), and its
-// subentities' positions; wreckage and the damage flag; a ship with no cargo throws nothing out.
+// A ship with no model rescales its scale factor and its mass (by the
+// cube), and its subentities' positions; wreckage and the damage flag; a ship
+// with no cargo throws nothing out.
 OO_TEST(rescaleWreckageAndDebris)
 {
 	{
@@ -1914,9 +1921,10 @@ OO_TEST(rescaleWreckageAndDebris)
 }
 
 
-// Slice 23: the heat levels, clamped to 0 ... 1; the weapon's recovery; the personality, its shader
-// seed and its range; the explosion flag; the scanner; the alignment offsets in the bounding box;
-// and beacon codes compared without case.
+// The heat levels, clamped to 0 ... 1; the weapon's recovery; the
+// personality, its shader seed and its range; the explosion flag; the scanner;
+// the alignment offsets in the bounding box; and beacon codes compared without
+// case.
 OO_TEST(heatPersonalityAlignmentAndBeacons)
 {
 	{
@@ -1959,14 +1967,13 @@ OO_TEST(heatPersonalityAlignmentAndBeacons)
 }
 
 
-// --- Slice 24: target memory and validity, behaviour and destination accessors, distances, leading
-// the target (bead oo-zd80m). Written against the Objective-C API and run on the unconverted slice
-// first.
+// --- Target memory and validity, behaviour and destination
+// accessors, distances, leading the target.
 
-
-// The later slices' ship: one that scripts cannot see, so that the events it sends with entities as
-// arguments make no JavaScript objects in the test's empty context.
-class LateSliceTestShip : public TestShip	// C++ since bead oo-9ht.144
+// The ship for these later tests: one that scripts cannot see, so that the
+// events it sends with entities as arguments make no JavaScript objects in the
+// test's empty context.
+class LateSliceTestShip : public TestShip
 {
 public:
 	bool isVisibleToScripts() override	{ return false; }
@@ -2231,8 +2238,7 @@ OO_TEST(slice24BallTrackLeadingTarget)
 }
 
 
-// --- Slice 25: evasive jink, primary and side target tracking (bead oo-k6wuw). Written against the
-// Objective-C API and run on the unconverted slice first.
+// --- Evasive jink, primary and side target tracking.
 
 namespace {
 
@@ -2315,8 +2321,8 @@ OO_TEST(slice25TargetOutOfRangeGoesIdle)
 }
 
 
-// --- Slice 26: missile and destination tracking, collision exceptions, defence targets, ranges
-// (bead oo-v92af). Written against the Objective-C API and run on the unconverted slice first.
+// --- Missile and destination tracking, collision exceptions, defence
+// targets, ranges.
 
 namespace {
 
@@ -2444,8 +2450,8 @@ OO_TEST(slice26DefenseTargets)
 }
 
 
-// --- Slice 27: aim tolerance, sun glare, main weapons and turret fire, laser colours (bead
-// oo-pnfyp). Written against the Objective-C API and run on the unconverted slice first.
+// --- Aim tolerance, sun glare, main weapons and turret fire, laser
+// colours.
 
 namespace {
 
@@ -2536,8 +2542,7 @@ OO_TEST(slice27Colours)
 }
 
 
-// --- Slice 28: laser shots, missed shots, sparks, missile launch decision (bead oo-40ocf). Written
-// against the Objective-C API and run on the unconverted slice first.
+// --- Laser shots, missed shots, sparks, missile launch decision.
 
 namespace {
 
@@ -2601,8 +2606,8 @@ OO_TEST(slice28ConsiderFiringMissileWithoutMissiles)
 }
 
 
-// --- Slice 29: missile firing, ECM, cloak, cascade mine, escape capsule, cargo dumping (bead
-// oo-g900k). Written against the Objective-C API and run on the unconverted slice first.
+// --- Missile firing, ECM, cloak, cascade mine, escape capsule, cargo
+// dumping.
 
 namespace {
 
@@ -2658,8 +2663,7 @@ OO_TEST(slice29DumpEmptyHold)
 }
 
 
-// --- Slice 30: collisions, velocity, tractoring and scooping (bead oo-ogoct). Written against the
-// Objective-C API and run on the unconverted slice first.
+// --- Collisions, velocity, tractoring and scooping.
 
 
 namespace {
@@ -2721,9 +2725,8 @@ OO_TEST(slice30ScoopingAndCollisions)
 }
 
 
-// --- Slice 31: cascades, energy / scrape / heat damage, abandoning ship, docks, wormholes,
-// witchspace (bead oo-gx86h). Written against the Objective-C API and run on the unconverted slice
-// first.
+// --- Cascades, energy / scrape / heat damage, abandoning ship,
+// docks, wormholes, witchspace.
 
 namespace {
 
@@ -2797,9 +2800,8 @@ OO_TEST(slice31NoCascadeWithEnergyToSpare)
 }
 
 
-// --- Slice 32: witchspace effects, offences, lights, escort formation and deployment, nearest
-// stations (bead oo-5e0ny). Written against the Objective-C API and run on the unconverted slice
-// first.
+// --- Witchspace effects, offences, lights, escort formation and
+// deployment, nearest stations.
 
 
 namespace {
@@ -2876,9 +2878,8 @@ OO_TEST(slice32PoliceAreNotOffenders)
 }
 
 
-// --- Slice 33: landing, docking abort, broadcasts and comms, fines, AI messages, spawning, close
-// contacts, salvage (bead oo-tz2ra). Written against the Objective-C API and run on the unconverted
-// slice first.
+// --- Landing, docking abort, broadcasts and comms, fines, AI
+// messages, spawning, close contacts, salvage.
 
 
 namespace {
@@ -2947,9 +2948,8 @@ OO_TEST(slice33FindBoundingBoxRelativeTo)
 }
 
 
-// --- Slice 34: salvage pilot, debug dump, script info, demo ship, script events and AI reactions,
-// alert condition, shader helpers (bead oo-nkyn3). Written against the Objective-C API and run on
-// the unconverted slice first.
+// --- Salvage pilot, debug dump, script info, demo ship, script
+// events and AI reactions, alert condition, shader helpers.
 
 #include "OOJSPropID.h"
 
@@ -3042,9 +3042,10 @@ OO_TEST(slice34WeaponHelpers)
 }
 
 
-// --- ShipEntityScriptMethods.mm (bead oo-42dr): the category ShipEntity (ScriptMethods) --------------
-// The cases that do not reach the universe (it was never initialised here): ejecting nothing and
-// spawning none. Ejecting or spawning a real ship needs the game's ship data, which the goldens run.
+// --- ShipEntityScriptMethods.mm: the category ShipEntity
+// (ScriptMethods) -------------- The cases that do not reach the universe (it
+// was never initialised here): ejecting nothing and spawning none. Ejecting or
+// spawning a real ship needs the game's ship data, which the goldens run.
 
 OO_TEST(scriptMethodsEjectAndSpawnNothing)
 {
@@ -3061,9 +3062,10 @@ OO_TEST(scriptMethodsEjectAndSpawnNothing)
 }
 
 
-// --- ShipEntityLoadRestore.mm (bead oo-kw44): the category ShipEntity (LoadRestore) -------------------
-// The cases that reach neither the ship registry nor the universe: restoring from no dictionary.
-// Saving a ship, and restoring one, look its key up in the ship registry, whose data the unit test
+// --- ShipEntityLoadRestore.mm: the category ShipEntity
+// (LoadRestore) ------------------- The cases that reach neither the ship
+// registry nor the universe: restoring from no dictionary. Saving a ship, and
+// restoring one, look its key up in the ship registry, whose data the unit test
 // does not load (it would scan for add-ons); the goldens' wormholes run those.
 
 OO_TEST(loadRestoreFromNothing)

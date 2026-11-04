@@ -29,13 +29,14 @@
 
 #pragma once
 
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // a game unit, not a plain C++ one
 #include "OOFoundation.h"
 #else
-/*	Plain C++ translation unit (OOIsNumberLiteral.cpp, ADR-0012): only BOOL is needed, and OOFoundation.h
-        imports Foundation, which does not compile outside Objective-C.
+/*	Plain C++ translation unit (OOIsNumberLiteral.cpp): only BOOL
+   is needed, and OOFoundation.h imports Foundation, which does not compile
+   outside Objective-C.
 */
-#include "oofnd/objc/OOFoundationTypes.h" // BOOL, which <objc/runtime.h> gave until bead oo-dbz.2
+#include "oofnd/objc/OOFoundationTypes.h" // BOOL
 #endif
 
 #include "oofnd/StdLib.hpp"
@@ -57,7 +58,8 @@
 
         if allowSpaces = NO, the [<whitespace>] terms are excluded.
 */
-/*	Foundation sweep (proposed ADR-0043, bead oo-7zgv): the string is UTF-8. A nil string used to
-        answer NO; callers pass oo::StdString(s), and "" answers NO too (no digits).
+/*	The string is UTF-8.
+   A nil string used to answer NO; callers pass oo::StdString(s), and "" answers
+   NO too (no digits).
 */
 BOOL OOIsNumberLiteral(const std::string& string, BOOL allowSpaces);

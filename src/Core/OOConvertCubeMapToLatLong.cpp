@@ -27,7 +27,8 @@ SOFTWARE.
 
 */
 
-#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it (bead oo-dbz)
+#define OO_PLAIN_CPP_UNIT \
+    1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOConvertCubeMapToLatLong.h"
 #include "OOTextureScaling.h"
 #include "oofnd/objc/OOAssert.h"

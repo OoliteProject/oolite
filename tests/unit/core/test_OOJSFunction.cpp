@@ -1,25 +1,18 @@
 /*	test_OOJSFunction.mm
-	Unit tests for OOJSFunction (src/Core/Scripting/OOJSFunction.h/.mm): bead oo-3smy, a Phase 3
-	conversion in the house style of the OOColor exemplar (proposed ADR-0056; amendment oo-ppc for
-	the scripting files).
+	Unit tests for OOJSFunction (src/Core/Scripting/OOJSFunction.h/.mm).
 
 	OOJSFunction keeps a JS function alive (a reference it owns) for Objective-C code: the AI's scan
 	predicates (ShipEntityAI) and the regular-expression tester (OORegExpMatcher). The test runs it
 	in a real QuickJS-ng context and links the game's own object for the class. What the rest of
-	the engine would provide is defined below as the smallest stand-in that does the same thing
-	(amendment oo-ppc item 6): the engine object (the sender of its reset notification), the script
-	stack, the time limiter, the value converter, the string converter and the pending-exception
-	reporter. The engine's and OOJSScript's headers are not imported, because the test defines
-	those classes (amendment oo-z1s4 item 4). The expectations were written against the
-	Objective-C class and run on it first; they pin: both initialisers (and when they answer nil),
-	the name and the description, the function value, raw and object-wrapper evaluation (the
-	script stack and the time limiter balanced around each call, the arguments converted), the
-	predicate's truthiness, and what an engine reset does (commit 34d0592d1). They ran through the
-	Objective-C facade until it was deleted; they now ask the C++ class with the same
-	expectations. The facade's own contract (its description, identity and nil crossings) went
-	with it. The object-wrapper evaluation (evaluatePredicateWithContext() of Objective-C
-	arguments and scope; no game caller) is gone: the case predicate and cxxAndFacade's predicate
-	check retired with it, with the TestNumber object and the OOJSValueFromNativeObject() stand-in.
+	the engine would provide is defined below as the smallest stand-in that does the same thing:
+	the engine object (the sender of its reset notification), the script stack, the time limiter,
+	the value converter, the string converter and the pending-exception reporter. The engine's and
+	OOJSScript's headers are not imported, because the test defines those classes. The
+	expectations were written against the Objective-C class and run on it first; they pin: both
+	initialisers (and when they answer nil), the name and the description, the function value, raw
+	evaluation (the script stack and the time limiter balanced around each call, the arguments
+	converted), the predicate's truthiness, and what an engine reset does (commit 34d0592d1). They
+	ask the C++ class.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -80,8 +73,8 @@ void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta)  { sLimiterDepth++; sLimiter
 void OOJSStopTimeLimiter(void)  { sLimiterDepth--; }
 
 
-// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared with the
-// header's names and signatures but not its class; the stand-in's answers are kept.
+// The engine (OOJavaScriptEngine.h), declared with the header's names and
+// signatures but not its class; the stand-in's answers are kept.
 class OOJavaScriptEngine
 {
 public:
@@ -99,9 +92,9 @@ OOJavaScriptEngine *OOJavaScriptEngine::sharedEngine()
 #include "OOScript.h"
 
 
-// OOJSScript (OOJSScript.h), which the code under test calls. Since the OOScript root's facade (a
-// script's object once the OOJSScript facade went) is deleted, a script is the C++ object, so
-// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
+// OOJSScript (OOJSScript.h), which the code under test calls. A script is a
+// C++ object, so the stand-in is a C++ subclass of OOScript declaring the
+// members that code calls.
 class OOJSScript : public OOScript
 {
 public:

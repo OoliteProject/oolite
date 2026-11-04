@@ -52,23 +52,19 @@ MA 02110-1301, USA.
 // 1.0 / (desired framerate cap)
 
 class MyOpenGLView;
-class OOFullScreenController; // C++ since bead oo-bgmb
-
-// TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
+class OOFullScreenController; // TEMP: whether to use separate OOFullScreenController object, will hopefully
+// be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_COCOA_UI
 
-/*	The application controller (slice 1 of docs/phases/3-slices/GameController.md):
-        the class shell, its state and accessors; the frame loop and deferred calls (slice 2);
-        start-up, splash and progress messages, exit and the player file (slice 3); the SDL
-        full-screen members (SDL/GameController+SDLFullScreen.mm), the former FullScreen category.
-        The Mac FullScreen category (Core/GameController+FullScreen.mm) went as upstream's did
-        (OoliteProject #737); the Mac category at the end of GameController.mm is not compiled and is
-        left as it was (Phase 5). A global class since the Objective-C facade was deleted.
+/*	The application controller: the class shell, its state and accessors;
+   the frame loop and deferred calls; start-up, splash and progress messages,
+        exit and the player file; the SDL full-screen members
+        (SDL/GameController+SDLFullScreen.mm), the former FullScreen category.
+        The Mac category at the end of GameController.mm is not compiled.
 */
 class GameController : public oo::RefCounted {
 public:
-    // The shared controller, made on first use; borrowed, never released (proposed ADR-0056
-    // amendment oo-r7m0).
+    // The shared controller, made on first use; borrowed, never released.
     static GameController* sharedController();
 
     GameController();
@@ -102,22 +98,21 @@ public:
     bool suppressClangStuff();
 #endif
 
-    // The frame loop (bead oo-hn0fw, slice 2).
+    // The frame loop.
 #if !OOLITE_MAC_COCOA_UI
-    void performGameTick(); // took the unused sender, an Objective-C id, until the runtime went
+    void performGameTick();
 #endif
     void startAnimationTimer();
     void stopAnimationTimer();
 
     /*	Fire whatever is due now, the game tick first, then one deferred call:
-            what the run loop's -limitDateForMode: did for the game while its tick and
-            deferred calls were run-loop timers. For code that must let the game tick
-            while it blocks the frame loop (the OXZ download callback). See proposed
-            ADR-0033 and ADR-0040.
+            what the run loop's -limitDateForMode: did for the game while its tick
+       and deferred calls were run-loop timers. For code that must let the game
+       tick while it blocks the frame loop (the OXZ download callback).
     */
     void fireDueTimers();
 
-    // Start-up, splash and progress messages, exit, player file (bead oo-5ah4k, slice 3).
+    // Start-up, splash and progress messages, exit, player file.
     void applicationDidFinishLaunching();
 
     void exitAppWithContext(const std::string& context);
@@ -157,15 +152,15 @@ public:
     oo::PList findDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh); // a mode dictionary; null: none
     oo::PList getDisplayModes(); // an array of mode dictionaries
     NSUInteger indexOfCurrentDisplayMode();
-    void pauseFullScreenModeToPerform(const char* selectorName, oo::RefCounted* target); // by name since bead oo-xu228.3 (was a SEL); the target C++ since bead oo-4aq6a.4 (was an object on the Objective-C root)
+    void pauseFullScreenModeToPerform(const char* selectorName, oo::RefCounted* target); // by name (was a SEL)
 #endif
 
     // tests/unit/core/test_GameController.mm reads and sets the state below.
     friend struct GameControllerTestAccess;
 
 private:
-    // Internal: the state, read and written by the members above (and by the fenced Mac
-    // categories, not compiled). Private again since the facade was deleted.
+    // Internal: the state, read and written by the members above (and by the
+    // fenced Mac categories, not compiled).
 #if OOLITE_MAC_COCOA_UI
     NSTextField* splashProgressTextField = { };
     NSView* splashView = { };
@@ -189,8 +184,8 @@ private:
 
     NSTimeInterval _splashStart = { }; // oo::date::monotonicSeconds() at start-up
 
-    std::string pauseSelector = { }; // the selector's name (a SEL until bead oo-xu228.3); "" none
-    oo::RefCounted* pauseTarget = { }; // not retained, as before; never performed on SDL (an OOObject * until bead oo-4aq6a.4)
+    std::string pauseSelector = { }; // the selector's name; "" none
+    oo::RefCounted* pauseTarget = { }; // not retained, as before; never performed on SDL
 
     bool gameIsPaused = { };
 
@@ -229,15 +224,16 @@ private:
 #endif
 };
 
-/*	OOScheduleDeferredCall(call, delay): what Foundation's performer-after-delay did, for a C++ call.
-        call() runs on the first frame-loop pass at least delay seconds from now (a delay <= 0 is 0.0001 s),
-        after that pass's tick, and is destroyed after it (what it captures is kept alive until then, as the
-        performer retained its target and argument). Due calls fire in the order they were scheduled, at
-        most two per pass, as the run loop fired its timers. Main thread only: a call scheduled on another
-        thread never fires, as a performer on that thread's never-run run loop did not. An OOException from
-        it is caught and logged as the perform's was, and the call is then never destroyed, as the
-        performer leaked its target. (The Objective-C form, of a target, a selector and an argument, was
-        deleted: no caller was left.)
+/*	OOScheduleDeferredCall(call, delay): what Foundation's
+   performer-after-delay did, for a C++ call. call() runs on the first
+   frame-loop pass at least delay seconds from now (a delay <= 0 is 0.0001 s),
+   after that pass's tick, and is destroyed after it (what it captures is kept
+   alive until then, as the performer retained its target and argument). Due
+   calls fire in the order they were scheduled, at most two per pass, as the run
+   loop fired its timers. Main thread only: a call scheduled on another thread
+        never fires, as a performer on that thread's never-run run loop did not.
+   An OOException from it is caught and logged as the perform's was, and the
+   call is then never destroyed, as the performer leaked its target.
 */
 void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay);
 

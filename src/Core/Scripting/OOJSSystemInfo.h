@@ -4,11 +4,11 @@ OOJSSystemInfo.h (QuickJS-ng)
 
 JavaScript object representing system info overrides.
 
-C++20 since bead oo-6ia4 (proposed ADR-0056; amendment oo-ppc for the binding). OOSystemInfo,
-the object a SystemInfo wraps, was an Objective-C class private to OOJSSystemInfo.mm. Only that
-file makes one. A SystemInfo's private slot holds it directly (OOJSPrivateObject.h), and its
-Objective-C facade is gone: it is a oo::PListForeign, so a PList can carry it (the engine turns
-one back into its JS object with OOJSValueFromCxxObject).
+OOSystemInfo, the object a SystemInfo wraps, is private to OOJSSystemInfo.cpp,
+which is the only file that makes one. A SystemInfo's private slot holds it
+directly (OOJSPrivateObject.h), and it is a oo::PListForeign, so a PList can
+carry it (the engine turns one back into its JS object with
+OOJSValueFromCxxObject).
 
 
 Oolite
@@ -31,8 +31,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSSYSTEMINFO_H
-#define OOJSSYSTEMINFO_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOJSPrivateObject.h"
@@ -51,8 +50,8 @@ MA 02110-1301, USA.
 // The system a SystemInfo stands for, and its data through the universe.
 class OOSystemInfo : public oo::PListForeign, public ::OOJSPrivateObject {
 public:
-    // -initWithGalaxy:system:, as a factory: null for a galaxy or system out of range (it answered
-    // nil; amendment oo-novu item 1).
+    // -initWithGalaxy:system:, as a factory: null for a galaxy or system out of
+    // range.
     static oo::Ref<OOSystemInfo> initWithGalaxy(OOGalaxyID galaxy, OOSystemID system);
 
     std::optional<std::string> descriptionComponents() const;
@@ -98,5 +97,3 @@ void InitOOJSSystemInfo(JSContext* context, JSValueConst global);
 
 // Returns an owned value, or JS_NULL on failure (with a JS warning, but no exception).
 JSValue GetJSSystemInfoForSystem(JSContext* context, OOGalaxyID galaxy, OOSystemID system);
-
-#endif // OOJSSYSTEMINFO_H

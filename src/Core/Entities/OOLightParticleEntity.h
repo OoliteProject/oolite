@@ -31,14 +31,14 @@ MA 02110-1301, USA.
 
 class OOTexture;
 
-/*	C++ only since bead oo-9ht.76 deleted its Objective-C facade (ADR-0056 amendments oo-9ht.107,
-        oo-9ht.23 and oo-9ht.106): a particle is made in C++ and handed to Objective-C with
-        oo::NewEntityFacade, whose object is the root Entity's facade.
+/*	A particle is made in C++ and handed to Objective-C with
+   oo::NewEntityFacade, whose object is the root Entity's facade.
 */
 class OOLightParticleEntity : public Entity {
 public:
-    // -initWithDiameter:'s body, run once right after construction (amendment oo-vl43 item 2): it
-    // calls members a subclass overrides. A converted subclass's initialiser calls it first.
+    // -initWithDiameter:'s body, run once right after construction: it calls
+    // members a subclass overrides. A converted subclass's initialiser calls it
+    // first.
     void initWithDiameter(float diameter);
 
     float diameter();

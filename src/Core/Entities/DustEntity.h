@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 #define DUST_SCALE 2000
 #define DUST_N_PARTICLES 600
 
-/*	C++ only (its Objective-C facade is deleted): the universe makes it with oo::makeRef<DustEntity>() and init(), hands it to
+/*	The universe makes the dust with oo::makeRef<DustEntity>() and init(), hands it to
         Objective-C with oo::NewEntityFacade, and finds it with dynamic_cast. It is its own graphics
         reset client (OOGraphicsResetClient), and the dust shader's uniforms are bound to its members
         (OOShaderUniform's C++ target binding).

@@ -4,10 +4,8 @@ OOJSCall.h
 
 Basic JavaScript-to-ObjC bridge implementation.
 
-Converted in bead oo-81hy (proposed ADR-0056 amendment oo-ppc; no class of its own): bool for BOOL.
-An entity is called through its generated name table (OOJSCallEntityMethods.h) and the signature
-templates of any other object are @encode() strings: no Objective-C class or protocol of its own is
-left (the bridge files are deleted).
+An entity is called through its generated name table (OOJSCallEntityMethods.h)
+and the signature templates of any other object are @encode() strings.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

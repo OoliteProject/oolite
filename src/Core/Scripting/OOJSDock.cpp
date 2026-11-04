@@ -31,16 +31,6 @@ MA 02110-1301, USA.
 
 #include "GameController.h"
 
-/*
-        C++20 since bead oo-zbx3, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The JS class was already C++ on the scripting layer (QuickJS-ng);
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. The category on DockEntity
-        became a free function (the dock's JS class is JSDockClassID(), DockEntity::jsClassID()),
-        and its methods moved to DockEntity. Messages to classes that are still Objective-C
-        (Entity) stay as they are, which is why the file is still .mm until Phase 4.
-*/
-
 static JSClassID sDockClassID;
 
 static bool JSDockGetDockEntity(JSContext* context, JSValueConst stationObj, DockEntity** outEntity);
@@ -117,8 +107,7 @@ static bool JSDockGetDockEntity(JSContext* context, JSValueConst dockObj, DockEn
     if (!result)
         return false;
 
-    // A dock's object is a ship's: its C++ part says it is a dock,
-    // where -isKindOfClass:[DockEntity class] did.
+    // A dock's object is a ship's: its C++ part says it is a dock.
     DockEntity* dock = oo::ToDock(entity);
     if (dock == nullptr)
         return false;
@@ -153,7 +142,8 @@ static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj, ShipEn
     OOJS_PROFILE_EXIT
 }
 
-// The bodies of DockEntity's class questions, which DockEntity's overrides call.
+// The bodies of DockEntity's class questions, which DockEntity's overrides
+// call.
 std::optional<std::string> OOJSDockJSClassName(void)
 {
     return std::string("Dock");

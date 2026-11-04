@@ -1,66 +1,77 @@
 /*	oofnd/PListGet.hpp
-        oo::PList::get<T>(key, fallback) and oo::PList::at<T>(index, fallback): the typed, defaulted
-        accessor that replaces OOCollectionExtractors (`-oo_<type>ForKey:defaultValue:` and
-        `-oo_<type>AtIndex:defaultValue:`), with the SAME conversions. Proposed ADR-0031.
+        oo::PList::get<T>(key, fallback) and oo::PList::at<T>(index, fallback):
+   the typed, defaulted accessor that replaces OOCollectionExtractors
+   (`-oo_<type>ForKey:defaultValue:` and
+        `-oo_<type>AtIndex:defaultValue:`), with the SAME conversions.
 
             Objective-C (OOCollectionExtractors)                  oo::PList
-            ----------------------------------------------------  -------------------------------------------
-            [d oo_floatForKey:@"k" defaultValue:1.0f]             d.get<float>("k", 1.0f)
-            [d oo_floatForKey:@"k"]                               d.get<float>("k")             (fallback 0)
-            [a oo_intAtIndex:3 defaultValue:-1]                   a.at<int>(3, -1)
-            char short int long long long, unsigned ...           the same C++ type (clamped exactly as the
-                                                                  OO<Type>FromObject functions clamp)
-            NSInteger / NSUInteger                                long long / unsigned long long (Windows)
-            oo_boolForKey (BOOL)                                  get<bool>
-            oo_nonNegativeFloatForKey / ...DoubleForKey           get<oo::NonNegative<float>> / <double>
-            oo_stringForKey (NSString *)                          get<std::string>   (fallback "", not nil)
-            oo_objectForKey (id)                                  get<oo::PList>          -> const PList*
-            oo_arrayForKey / oo_dictionaryForKey / oo_dataForKey  get<PList::Array> / <PList::Dict> /
-                                                                  <PList::Data>           -> const PList*
-            oo_setForKey, vector/quaternion, fuzzy boolean        not here: no PList kind (NSSet) or a game
-                                                                  type; the game specialises oo::PListGet<T>
+            ----------------------------------------------------
+   ------------------------------------------- [d oo_floatForKey:@"k"
+   defaultValue:1.0f]             d.get<float>("k", 1.0f) [d
+   oo_floatForKey:@"k"]                               d.get<float>("k")
+   (fallback 0) [a oo_intAtIndex:3 defaultValue:-1] a.at<int>(3, -1) char short
+   int long long long, unsigned ...           the same C++ type (clamped exactly
+   as the OO<Type>FromObject functions clamp) NSInteger / NSUInteger long long /
+   unsigned long long (Windows) oo_boolForKey (BOOL) get<bool>
+            oo_nonNegativeFloatForKey / ...DoubleForKey
+   get<oo::NonNegative<float>> / <double> oo_stringForKey (NSString *)
+   get<std::string>   (fallback "", not nil) oo_objectForKey (id) get<oo::PList>
+   -> const PList* oo_arrayForKey / oo_dictionaryForKey / oo_dataForKey
+   get<PList::Array> / <PList::Dict> / <PList::Data>           -> const PList*
+            oo_setForKey, vector/quaternion, fuzzy boolean        not here: no
+   PList kind (NSSet) or a game type; the game specialises oo::PListGet<T>
 
-        While the game still holds NSDictionary/NSArray, call sites use the zero-copy bridge
-        oo::PListView (src/Core/OOPListView.h) whose get<T>/at<T> have this signature; see
-        src/oofnd/README.md "Migrating oo_*ForKey".
+        While the game still holds NSDictionary/NSArray, call sites use the
+   zero-copy bridge oo::PListView (src/Core/OOPListView.h) whose get<T>/at<T>
+   have this signature; see src/oofnd/README.md "Migrating oo_*ForKey".
 
-        Semantics, each pinned by tests/unit/oofnd/test_plist_get.cpp against values captured from
-        OOCollectionExtractors.mm running on GNUstep base 1.31.1 (the build the game links):
+        Semantics, each pinned by tests/unit/oofnd/test_plist_get.cpp against
+   values captured from OOCollectionExtractors.mm running on GNUstep base 1.31.1
+   (the build the game links):
 
-          * A missing key (or index out of range) gives the fallback. So does a value of a kind the
-            conversion does not accept (a dict where a number is wanted, ...): OO<Type>FromObject asks
-            -respondsToSelector:, and only NSString and NSNumber respond.
-          * `get` on a null PList returns the zero of the result type, NOT the fallback: it is the
-            translation of messaging nil (`[nil oo_floatForKey:k defaultValue:1]` is 0).
-          * Numbers (bool / integer / real) convert as NSNumber does: C casts, with a real outside the
-            int64 range (or NaN) giving INT64_MIN as x86-64's cvttsd2si does, and the unsigned reading
-            of a real reproducing GNUstep's compiled code (see realToUnsigned below).
-          * Strings convert as GNUstep's NSString does: -longLongValue / -intValue read optional ASCII
-            space, a sign and at most 20 sign+digit characters then saturate (strtoll / strtol, so
-            `long` is 32-bit on Windows); -doubleValue is NSScanner's own scanner (Unicode whitespace
-            skipped, 18 significant digits kept, excess integer digits dropped WITHOUT rescaling:
-            "9223372036854775807" reads as 9.2233720368547758e17; an exponent over 511 is no number).
-            The unsigned 64-bit reading of a string is its -intValue, sign-extended ("5000000000" gives
-            2147483647), because NSString answers no unsigned selector.
-          * float/double from a string: a result of zero counts only when the string "is zero" (after
-            spaces and tabs, a '0'); otherwise the fallback ("abc", "-0" and "1e-50"-as-float give the
-            fallback). Non-negative variants skip that test and clamp at +0 (NaN and -0 too, as the
-            game's -O2 fmax does), but return a negative fallback unclamped.
-          * bool from a string: yes/true/on (ASCII, any case) or a non-zero -doubleValue is true;
-            no/false/off or a zero string is false; anything else is the fallback.
-          * string from a number: NSNumber -stringValue ("%lld"/"%llu", reals "%0.16g", bools "1"/"0").
+          * A missing key (or index out of range) gives the fallback. So does a
+   value of a kind the conversion does not accept (a dict where a number is
+   wanted, ...): OO<Type>FromObject asks -respondsToSelector:, and only NSString
+   and NSNumber respond.
+          * `get` on a null PList returns the zero of the result type, NOT the
+   fallback: it is the translation of messaging nil (`[nil oo_floatForKey:k
+   defaultValue:1]` is 0).
+          * Numbers (bool / integer / real) convert as NSNumber does: C casts,
+   with a real outside the int64 range (or NaN) giving INT64_MIN as x86-64's
+   cvttsd2si does, and the unsigned reading of a real reproducing GNUstep's
+   compiled code (see realToUnsigned below).
+          * Strings convert as GNUstep's NSString does: -longLongValue /
+   -intValue read optional ASCII space, a sign and at most 20 sign+digit
+   characters then saturate (strtoll / strtol, so `long` is 32-bit on Windows);
+   -doubleValue is NSScanner's own scanner (Unicode whitespace skipped, 18
+   significant digits kept, excess integer digits dropped WITHOUT rescaling:
+            "9223372036854775807" reads as 9.2233720368547758e17; an exponent
+   over 511 is no number). The unsigned 64-bit reading of a string is its
+   -intValue, sign-extended ("5000000000" gives 2147483647), because NSString
+   answers no unsigned selector.
+          * float/double from a string: a result of zero counts only when the
+   string "is zero" (after spaces and tabs, a '0'); otherwise the fallback
+   ("abc", "-0" and "1e-50"-as-float give the fallback). Non-negative variants
+   skip that test and clamp at +0 (NaN and -0 too, as the game's -O2 fmax does),
+   but return a negative fallback unclamped.
+          * bool from a string: yes/true/on (ASCII, any case) or a non-zero
+   -doubleValue is true; no/false/off or a zero string is false; anything else
+   is the fallback.
+          * string from a number: NSNumber -stringValue ("%lld"/"%llu", reals
+   "%0.16g", bools "1"/"0").
 
-        Integer types dispatch by size and signedness: a 64-bit signed type reads OOLongLongFromObject,
-        a 64-bit unsigned type OOUnsignedLongLongFromObject, and anything narrower clamps the long long
-        reading into its own range. That is exact on Windows (LLP64), the only platform today
-        (ADR-0017). On LP64, Oolite's `unsigned long` accessor aliased the SIGNED reading; revisit when
-        Linux returns (Phase 5).
+        Integer types dispatch by size and signedness: a 64-bit signed type
+   reads OOLongLongFromObject, a 64-bit unsigned type
+   OOUnsignedLongLongFromObject, and anything narrower clamps the long long
+        reading into its own range. That is exact on Windows (LLP64), the only
+   platform today. On LP64, Oolite's `unsigned long` accessor aliased the
+   SIGNED reading; revisit when Linux returns.
 */
 
-#ifndef OOFND_PLISTGET_HPP
-#define OOFND_PLISTGET_HPP
+#pragma once
 
-// OOFoundation.h's `#define true 1` / `#define false 0` are suspended for this header (ADR-0028).
+// OOFoundation.h's `#define true 1` / `#define false 0` are suspended for this
+// header.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
@@ -419,7 +430,8 @@ namespace plist_get {
         return (result > F(0)) ? result : F(0);
     }
 
-    // --- OOCollectionExtractors' game-type forms, without the game (bead oo-9ftb) --------------------
+    // --- OOCollectionExtractors' game-type forms, without the game
+    // ----------------------------------
     //
     // OOVectorFromObject / OOHPVectorFromObject / OOQuaternionFromObject read N numbers: from an array
     // of exactly N elements (element i as -oo_floatAtIndex:i / -oo_doubleAtIndex:i did, realFrom with
@@ -675,5 +687,3 @@ typename PListGet<T>::Result PList::at(std::size_t index) const
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_PLISTGET_HPP

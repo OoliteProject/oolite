@@ -261,10 +261,10 @@ void OOMusicController::setMode(OOMusicMode mode)
     }
 }
 
-// The singleton category (+allocWithZone:, -retain and the rest) is not translated: the controller
-// has no other creator and is never released (amendment oo-r7m0 item 1).
+// The singleton category (+allocWithZone:, -retain and the rest) is not
+// translated: the controller has no other creator and is never released.
 
-// The private category: the iTunes integration, compiled for the Mac only (amendment oo-bgmb item 2).
+// The private category: the iTunes integration, compiled for the Mac only.
 #if OOLITE_MAC_OS_X
 void OOMusicController::playiTunesPlaylist(const char* playlistNameUTF8)
 {

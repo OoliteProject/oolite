@@ -33,10 +33,10 @@ void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 
 JSClassID JSExhaustPlumeClassID(void);
 
-/*	The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the engine reaches by
-        selector through the root's JS members: the C++ OOExhaustPlumeEntity's overrides call these
-        (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its jsClassID() answers
-        JSExhaustPlumeClassID().
+/*	The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the
+   engine reaches by selector through the root's JS members: the C++
+   OOExhaustPlumeEntity's overrides call these. Its jsClassID() answers
+   JSExhaustPlumeClassID().
 */
 std::optional<std::string> OOJSExhaustPlumeJSClassName(void);
 bool OOJSExhaustPlumeIsVisibleToScripts(void);

@@ -41,9 +41,9 @@ std::optional<std::string> OOALStreamedSound::name()
     return _name;
 }
 
-/*	The body of -initWithDecoder:, with self as the new sound; its [self release]; self = nil; is
-        the null it answers. The decoder is the C++ one since bead oo-9ht.82; [inDecoder retain] is the
-        oo::Ref.
+/*	The body of -initWithDecoder:, with self as the new sound; its [self
+   release]; self = nil; is the null it answers. [inDecoder retain] is the
+   oo::Ref.
 */
 oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(OOALSoundDecoder* inDecoder)
 {

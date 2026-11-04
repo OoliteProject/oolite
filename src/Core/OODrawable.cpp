@@ -26,87 +26,62 @@ SOFTWARE.
 */
 
 #include "OODrawable.h"
-#include "oofnd/String.hpp"
+
+#include <cxxabi.h>
 
 #include <cstdlib>
-#include <cxxabi.h>
 #include <typeinfo>
 
-void OODrawable::renderOpaqueParts()
-{
-}
+#include "oofnd/String.hpp"
 
-void OODrawable::renderTranslucentParts()
-{
-}
+void OODrawable::renderOpaqueParts() { }
 
-bool OODrawable::hasOpaqueParts()
-{
-    return false;
-}
+void OODrawable::renderTranslucentParts() { }
 
-bool OODrawable::hasTranslucentParts()
-{
-    return false;
-}
+bool OODrawable::hasOpaqueParts() { return false; }
 
-GLfloat OODrawable::collisionRadius()
-{
-    return 0.0f;
-}
+bool OODrawable::hasTranslucentParts() { return false; }
 
-GLfloat OODrawable::maxDrawDistance()
-{
-    return 0.0f;
-}
+GLfloat OODrawable::collisionRadius() { return 0.0f; }
 
-BoundingBox OODrawable::boundingBox()
-{
-    return kZeroBoundingBox;
-}
+GLfloat OODrawable::maxDrawDistance() { return 0.0f; }
 
-void OODrawable::setBindingTarget(Entity* /*target*/)
-{
-}
+BoundingBox OODrawable::boundingBox() { return kZeroBoundingBox; }
 
-void OODrawable::dumpSelfState()
-{
-}
+void OODrawable::setBindingTarget(Entity* /*target*/) { }
+
+void OODrawable::dumpSelfState() { }
 
 std::optional<std::string> OODrawable::descriptionComponents() const
 {
     return std::nullopt;
 }
 
-// The facade's -cxx_description (the facade is deleted): the C++ class's name, as [self class]
-// named it, and the address, now the drawable's.
+// The C++ class's name and the drawable's own address, with the description
+// components if any.
 std::string OODrawable::description() const
 {
     int status = 0;
     char* demangled = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
     const std::string name = (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
     std::free(demangled);
-    std::string result = oo::str::format("<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+    std::string result = oo::str::format(
+        "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
     if (const std::optional<std::string> components = descriptionComponents())
         result += "{" + *components + "}";
     return result;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OODrawable::allTextures()
-{
-    return { };
-}
+std::vector<oo::Ref<OOTexture>> OODrawable::allTextures() { return { }; }
 
-// The object's own size (was the facade's Objective-C instance size).
-size_t OODrawable::totalSize()
-{
-    return objectSize();
-}
+// The object's own size.
+size_t OODrawable::totalSize() { return objectSize(); }
 #endif
 
-/*	OODrawableAutorelease(): the drawable goes to the innermost oo::AutoreleaseScope, whose drain releases it
-        where the keeper object that held it was released.
+/*	OODrawableAutorelease(): the drawable goes to the innermost
+   oo::AutoreleaseScope, whose drain releases it where the keeper object that
+   held it was released.
 */
 void OODrawableAutorelease(oo::Ref<OODrawable> drawable)
 {

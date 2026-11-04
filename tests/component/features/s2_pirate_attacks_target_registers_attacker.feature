@@ -1,9 +1,9 @@
-# SMOKE SCENARIO (ADR-0020). This does NOT prove "the target registers an
-# attacker" (Ship.AIPrimaryAggressor / Ship.AIFoundTarget) — the step library
-# has no step that reads AI/threat-tracking state. That assertion is
-# deferred to oo-kbqw. This scenario only proves the setup (spawn the named
-# roles, set their AIs per ADR-0019) runs for the stated ticks without
-# crashing, and that a spawned role survives.
+# SMOKE SCENARIO. This does NOT prove "the target registers an attacker"
+# (Ship.AIPrimaryAggressor / Ship.AIFoundTarget) — the step library has no
+# step that reads AI/threat-tracking state, so that assertion is deferred.
+# This scenario only proves the setup (spawn the named roles, set their AIs)
+# runs for the stated ticks without crashing, and that a spawned role
+# survives.
 
 Feature: Ship-to-ship combat
 

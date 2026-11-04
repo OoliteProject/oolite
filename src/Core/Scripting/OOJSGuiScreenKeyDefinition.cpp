@@ -29,10 +29,7 @@ MA 02110-1301, USA.
 #include "oofnd/Notification.hpp"
 #include "oofnd/String.hpp"
 
-/*	C++20 since bead oo-xg7g (proposed ADR-0056 amendment oo-o89): OOJSGuiScreenKeyDefinition. -init after
-        [super init] is the constructor, -dealloc the destructor; the engine, the script stack and the
-        owning script's weak reference are Objective-C and are messaged as before.
-*/
+// namespace
 
 OOJSGuiScreenKeyDefinition::OOJSGuiScreenKeyDefinition()
 {

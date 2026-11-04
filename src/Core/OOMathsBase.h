@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit (an Objective-C++ unit until bead oo-dbz), not a plain C++ one
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // a game unit, not a plain C++ one
 #include "OOFoundation.h"
 #endif
 

@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 
 #include "EntityPListForeign.h" // oo::EntityObjectNode, oo::EntityShortDescription
-#include "OOEntityCalledByName.h" // the entities' by-name methods, on the C++ entity
+#include "OOEntityCalledByName.h" // the entities' by-name methods
 #include "OOFunctionAttributes.h"
 #include "OOJSCallEntityMethods.h" // callObjC()'s names for an entity (generated)
 #include "OOJSQuaternion.h"
@@ -104,14 +104,13 @@ MethodType MethodTypeOfRow(const OOJSCallEntityMethodRow& row)
     return kMethodTypeInvalid;
 }
 
-/*	The call of an entity by the entity table: a name the table does not list does not respond, and
-        a listed one is called with the table's signature. An entity's by-name methods (the generated
-        table OOEntityCalledByNameTable.h) are asked of and called on its C++ part, as the facade
-        answered and called them, and so are the facade's own methods the table lists (its rows in
-        OOEntityCalledByName.mm). Its "does not respond" error still names the entity's object, whose
-        address the text holds. (The call of any Objective-C object by its method's signature,
-        OOJSCallObjCObjectMethod, is gone: the debug console's callObjC() had no such object to call
-        since every `this` it is given is an entity or a monitor.)
+/*	The call of an entity by the entity table: a name the table does not
+   list does not respond, and a listed one is called with the table's signature.
+   An entity's by-name methods (the generated table OOEntityCalledByNameTable.h)
+   are asked of and called on its C++ part, and so are the methods the table
+   lists (its rows in OOEntityCalledByName.mm). Its "does not respond" error
+   names the entity's object, whose address the text holds. The debug console's
+   callObjC() is only given an entity or a monitor as `this`.
 */
 bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult, Entity* entity)
 {
@@ -186,12 +185,12 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
             switch (type) {
             case kMethodTypeVoidObject:
             case kMethodTypeObjectObject:
-                // Called by name with the joined string (ADR-0055 item 5); a void method gives null.
+                // Called by name with the joined string; a void method gives null.
                 result = oo::CallEntityByName(entity, *selectorString, *paramString);
                 break;
 
             case kMethodTypeColorVoid:
-                // A colour result is its PList::Object node, as the colour's facade's was.
+                // A colour result is its PList::Object node.
                 result = OOColorObjectNode(typed.color);
                 if (selectorString.has_value() && oo::str::hasSuffix(*selectorString, "_bool"))
                     result = oo::PList(false); // a colour answered neither -boolValue nor -intValue
@@ -201,16 +200,16 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
             case kMethodTypePListVoid:
                 if (type == kMethodTypePListVoid)
                     result = oo::CallEntityByName(entity, *selectorString);
-                // An entity result is its entity's Object node: the same object, class name,
-                // description and JS value as the object's node. No entity method answers any other object
-                // (the by-name rows' object results are entities), so no result is null, as nil's node was
-                // (the Objective-C object's node is gone).
+                // An entity result is its entity's Object node: the same object,
+                // class name, description and JS value as the object's node. No
+                // entity method answers any other object (the by-name rows' object
+                // results are entities), so no result is null.
                 else if (typed.entity != nullptr)
                     result = oo::EntityObjectNode(typed.entity);
                 if (selectorString.has_value() && oo::str::hasSuffix(*selectorString, "_bool")) {
-                    // OOBooleanFromObject(result, false): a string or number reads as oo::plist_get::boolFrom
-                    // does (bead oo-2764); an entity's node answered neither -boolValue nor -intValue (the
-                    // object path's -boolValue/-intValue of another object went with bead oo-4aq6a.5).
+                    // OOBooleanFromObject(result, false): a string or number reads as
+                    // oo::plist_get::boolFrom does; an entity's node answers neither
+                    // -boolValue nor -intValue.
                     bool boolResult = false;
                     if (result.type() != oo::PList::Type::Object)
                         boolResult = oo::plist_get::boolFrom(!result.isNull() ? &result : nullptr, false);
@@ -271,13 +270,13 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
                 break;
             }
             if (!result.isNull()) {
-                *outResult = OOJSValueFromPList(context, result); // a Foundation result's PList form, as OOJSValueFromNativeObject gave it (ADR-0051)
+                *outResult = OOJSValueFromPList(context, result); // a Foundation result's PList form
             }
         }
     } else {
-        // An entity's text names its object, whose address it holds.
-        // The entity's object's text comes from the facade, byte for byte; no
-        // entity is described as nil was (the console never calls without one).
+        // An entity's text names its object, whose address it holds. The entity's
+        // object's text comes from the facade, byte for byte; no entity is
+        // described as nil (the console never calls without one).
         std::string described = (entity != nullptr) ? oo::EntityShortDescription(entity) : std::string("(null)");
         cxx_OOJSReportError(context, "%s.callObjC(): %s does not respond to method %s.", oo_jsClassName.c_str(), described.c_str(), (selectorString ? selectorString->c_str() : "(null)"));
         error = true;

@@ -31,10 +31,7 @@ MA 02110-1301, USA.
 
 #include "oofnd/Notification.hpp"
 
-/*	C++20 since bead oo-1h0h (proposed ADR-0056 amendment oo-o89): OOJSPopulatorDefinition.
-        -init after [super init] is the constructor, -dealloc the destructor; the engine, the script
-        stack and the owning script's weak reference are Objective-C and are messaged as before.
-*/
+// namespace
 
 OOJSPopulatorDefinition::OOJSPopulatorDefinition()
 {

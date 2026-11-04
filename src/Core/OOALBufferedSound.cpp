@@ -42,9 +42,9 @@ std::optional<std::string> OOALBufferedSound::name()
     return _name;
 }
 
-/*	The body of -initWithDecoder:, with self as the new sound; its [self release]; self = nil; is
-        the null it answers (the object is freed as the release freed it). The decoder is the C++ one
-        since bead oo-9ht.82.
+/*	The body of -initWithDecoder:, with self as the new sound; its [self
+   release]; self = nil; is the null it answers (the object is freed as the
+   release freed it).
 */
 oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(OOALSoundDecoder* inDecoder)
 {

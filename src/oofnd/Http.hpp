@@ -1,56 +1,63 @@
 /*	oofnd/Http.hpp
-        oo::http::Download: one GET on its own thread, its callbacks queued for the main thread to
-        take in order (bead oo-3rb.13, proposed ADR-0044). The OXZ manager's NSURLConnection without
-        Foundation.
+        oo::http::Download: one GET on its own thread, its callbacks queued for
+   the main thread to take in order. The OXZ manager's NSURLConnection without
+   Foundation.
 
             OOOXZManager (Objective-C, gnustep-base 1.31)            oo::http
-            -------------------------------------------------------  -------------------------------------
-            [NSURL URLWithString:] + NSMutableURLRequest             parseUrl(url)
-            User-Agent header, -setHTTPShouldHandleCookies:NO        Download(url, userAgent)
-            NSURLConnection -initWithRequest:delegate:               Download(url, userAgent)
-            delegate callbacks, delivered by the run loop            Download::nextEvent() (main thread)
-            -connection:didReceiveResponse: (expectedContentLength)  Event::Kind::response (expectedLength)
-            -connection:didReceiveData:                              Event::Kind::data (bytes)
-            -connectionDidFinishLoading:                             Event::Kind::finished
-            -connection:didFailWithError:                            Event::Kind::failed (error)
-            -[NSURLConnection cancel]                                Download::cancel()
+            -------------------------------------------------------
+   ------------------------------------- [NSURL URLWithString:] +
+   NSMutableURLRequest             parseUrl(url) User-Agent header,
+   -setHTTPShouldHandleCookies:NO        Download(url, userAgent)
+            NSURLConnection -initWithRequest:delegate: Download(url, userAgent)
+            delegate callbacks, delivered by the run loop Download::nextEvent()
+   (main thread) -connection:didReceiveResponse: (expectedContentLength)
+   Event::Kind::response (expectedLength) -connection:didReceiveData:
+   Event::Kind::data (bytes) -connectionDidFinishLoading: Event::Kind::finished
+            -connection:didFailWithError: Event::Kind::failed (error)
+            -[NSURLConnection cancel] Download::cancel()
 
-        Captured from gnustep-base 1.31.1 against a loopback server (throwaway probe;
-        tests/unit/oofnd/test_http.cpp replays the same exchanges against its own loopback server):
-          * Every status is a response: a 404 or 500 delivers its body and finishes; it is not a
-            failure. Only a transport error (refused, unresolved, reset before the response) fails.
-          * expectedContentLength is the Content-Length header, or -1 without one (chunked, a
-            connection-close body, a 204).
-          * The body is delivered as sent: no Accept-Encoding is sent and a gzip body is not decoded.
-          * The request carries User-Agent and Host and nothing else: no cookies, no Accept, no
-            credentials (user:password@ in the URL is ignored). The fragment is not sent; the query is.
-          * An absolute redirect is followed and only the final response is delivered.
-          * A body cut short by the server closing the connection finishes with what arrived.
+        Captured from gnustep-base 1.31.1 against a loopback server (throwaway
+   probe; tests/unit/oofnd/test_http.cpp replays the same exchanges against its
+   own loopback server):
+          * Every status is a response: a 404 or 500 delivers its body and
+   finishes; it is not a failure. Only a transport error (refused, unresolved,
+   reset before the response) fails.
+          * expectedContentLength is the Content-Length header, or -1 without
+   one (chunked, a connection-close body, a 204).
+          * The body is delivered as sent: no Accept-Encoding is sent and a gzip
+   body is not decoded.
+          * The request carries User-Agent and Host and nothing else: no
+   cookies, no Accept, no credentials (user:password@ in the URL is ignored).
+   The fragment is not sent; the query is.
+          * An absolute redirect is followed and only the final response is
+   delivered.
+          * A body cut short by the server closing the connection finishes with
+   what arrived.
           * file: URLs are read from disk and delivered the same way.
 
-        Deliberate differences, all in paths no well-formed http(s) URL reaches (proposed ADR-0044):
-        a URL NSURL rejected (spaces, non-ASCII, empty) or a scheme other than http, https or file
-        fails at once, where NSURLConnection never called back; an upper-case scheme and a relative
-        redirect work, where it also never called back; an empty or unresolvable host fails, where
-        it connected somewhere else. A failure's text is WinHTTP's, not NSError's description.
+        Deliberate differences, all in paths no well-formed http(s) URL reaches:
+   a URL NSURL rejected (spaces, non-ASCII, empty) or a
+   scheme other than http, https or file fails at once, where NSURLConnection
+   never called back; an upper-case scheme and a relative redirect work, where
+   it also never called back; an empty or unresolvable host fails, where it
+   connected somewhere else. A failure's text is WinHTTP's, not NSError's
+   description.
 
-        Windows: WinHTTP (an OS component; link -lwinhttp). Elsewhere every http(s) download fails
-        with a clear error until the Phase 5 backend (libcurl) lands; file: URLs work everywhere.
+        Windows: WinHTTP (an OS component; link -lwinhttp). Elsewhere every
+   http(s) download fails with a clear error (there is no libcurl backend yet);
+   file: URLs work everywhere.
 
         Header-only, C++20, compiles with -fno-exceptions.
 */
 
-#ifndef OOFND_HTTP_HPP
-#define OOFND_HTTP_HPP
+#pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
-// this header (proposed ADR-0028).
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// 0`; suspend them for this header.
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
 #undef false
-
-#include "oofnd/FileSystem.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -63,21 +70,49 @@
 #include <thread>
 #include <utility>
 
+#include "oofnd/FileSystem.hpp"
+
 #if defined(_WIN32)
-// Declared exactly as <winhttp.h> and <windows.h> declare them (HINTERNET = void *, DWORD =
-// unsigned long, BOOL = int, INTERNET_PORT = unsigned short, DWORD_PTR = unsigned long long), so
-// this header does not pull <windows.h> into Objective-C++ game code.
+// Declared exactly as <winhttp.h> and <windows.h> declare them (HINTERNET =
+// void *, DWORD = unsigned long, BOOL = int, INTERNET_PORT = unsigned short,
+// DWORD_PTR = unsigned long long), so this header does not pull <windows.h>
+// into Objective-C++ game code.
 extern "C" {
-__declspec(dllimport) void* __stdcall WinHttpOpen(const wchar_t* agent, unsigned long accessType, const wchar_t* proxy, const wchar_t* proxyBypass, unsigned long flags);
-__declspec(dllimport) void* __stdcall WinHttpConnect(void* session, const wchar_t* serverName, unsigned short serverPort, unsigned long reserved);
-__declspec(dllimport) void* __stdcall WinHttpOpenRequest(void* connect, const wchar_t* verb, const wchar_t* objectName, const wchar_t* version, const wchar_t* referrer, const wchar_t** acceptTypes, unsigned long flags);
-__declspec(dllimport) int __stdcall WinHttpSetOption(void* handle, unsigned long option, void* buffer, unsigned long bufferLength);
-__declspec(dllimport) int __stdcall WinHttpSetTimeouts(void* handle, int resolveTimeout, int connectTimeout, int sendTimeout, int receiveTimeout);
-__declspec(dllimport) int __stdcall WinHttpSendRequest(void* request, const wchar_t* headers, unsigned long headersLength, void* optional, unsigned long optionalLength, unsigned long totalLength, unsigned long long context);
-__declspec(dllimport) int __stdcall WinHttpReceiveResponse(void* request, void* reserved);
-__declspec(dllimport) int __stdcall WinHttpQueryHeaders(void* request, unsigned long infoLevel, const wchar_t* name, void* buffer, unsigned long* bufferLength, unsigned long* index);
-__declspec(dllimport) int __stdcall WinHttpQueryDataAvailable(void* request, unsigned long* bytesAvailable);
-__declspec(dllimport) int __stdcall WinHttpReadData(void* request, void* buffer, unsigned long bytesToRead, unsigned long* bytesRead);
+__declspec(dllimport) void* __stdcall WinHttpOpen(const wchar_t* agent,
+    unsigned long accessType,
+    const wchar_t* proxy,
+    const wchar_t* proxyBypass,
+    unsigned long flags);
+__declspec(dllimport) void* __stdcall WinHttpConnect(void* session,
+    const wchar_t* serverName,
+    unsigned short serverPort,
+    unsigned long reserved);
+__declspec(dllimport) void* __stdcall WinHttpOpenRequest(
+    void* connect, const wchar_t* verb, const wchar_t* objectName,
+    const wchar_t* version, const wchar_t* referrer,
+    const wchar_t** acceptTypes, unsigned long flags);
+__declspec(dllimport) int __stdcall WinHttpSetOption(
+    void* handle, unsigned long option, void* buffer,
+    unsigned long bufferLength);
+__declspec(dllimport) int __stdcall WinHttpSetTimeouts(void* handle,
+    int resolveTimeout,
+    int connectTimeout,
+    int sendTimeout,
+    int receiveTimeout);
+__declspec(dllimport) int __stdcall WinHttpSendRequest(
+    void* request, const wchar_t* headers, unsigned long headersLength,
+    void* optional, unsigned long optionalLength, unsigned long totalLength,
+    unsigned long long context);
+__declspec(dllimport) int __stdcall WinHttpReceiveResponse(void* request,
+    void* reserved);
+__declspec(dllimport) int __stdcall WinHttpQueryHeaders(
+    void* request, unsigned long infoLevel, const wchar_t* name, void* buffer,
+    unsigned long* bufferLength, unsigned long* index);
+__declspec(dllimport) int __stdcall WinHttpQueryDataAvailable(
+    void* request, unsigned long* bytesAvailable);
+__declspec(dllimport) int __stdcall WinHttpReadData(void* request, void* buffer,
+    unsigned long bytesToRead,
+    unsigned long* bytesRead);
 __declspec(dllimport) int __stdcall WinHttpCloseHandle(void* handle);
 __declspec(dllimport) unsigned long __stdcall GetLastError(void);
 }
@@ -85,9 +120,11 @@ __declspec(dllimport) unsigned long __stdcall GetLastError(void);
 
 namespace oo::http {
 
-// A URL as the download needs it. `target` is the path and query sent in the request line
-// ("/" when the URL has no path); the fragment and any user:password@ are dropped, as
-// NSURLConnection dropped them. For a file: URL, `path` is the file.
+// A URL as the download needs it. `target` is the path and query sent in the
+// request line
+// ("/" when the URL has no path); the fragment and any user:password@ are
+// dropped, as NSURLConnection dropped them. For a file: URL, `path` is the
+// file.
 struct Url {
     enum class Scheme { http,
         https,
@@ -103,8 +140,8 @@ namespace detail {
 
     inline bool isUrlByte(unsigned char c)
     {
-        // What NSURL accepted: printable ASCII other than space and the RFC 2396 "unwise" and
-        // delimiter characters it rejected.
+        // What NSURL accepted: printable ASCII other than space and the RFC 2396
+        // "unwise" and delimiter characters it rejected.
         if (c <= 0x20 || c >= 0x7F)
             return false;
         switch (c) {
@@ -177,8 +214,8 @@ namespace detail {
 
 } // namespace detail
 
-// The URL, or nullopt when the download cannot start: not a URL NSURL accepted, a scheme other
-// than http/https/file, no host, or a bad port.
+// The URL, or nullopt when the download cannot start: not a URL NSURL accepted,
+// a scheme other than http/https/file, no host, or a bad port.
 inline std::optional<Url> parseUrl(std::string_view text)
 {
     if (text.empty())
@@ -268,7 +305,10 @@ inline std::optional<Url> parseUrl(std::string_view text)
             return std::nullopt;
         url.port = static_cast<std::uint16_t>(value);
     }
-    url.target = target.empty() ? std::string("/") : (target.front() == '?' ? "/" + std::string(target) : std::string(target));
+    url.target = target.empty()
+        ? std::string("/")
+        : (target.front() == '?' ? "/" + std::string(target)
+                                 : std::string(target));
     return url;
 }
 
@@ -285,17 +325,19 @@ struct Event {
     std::string error; // failed: a description for the log
 };
 
-// One GET. The constructor starts it on its own thread; the owner takes its events, in order,
-// with nextEvent() on its own thread. cancel() (and the destructor) stop it: nextEvent() answers
-// nothing afterwards, even for events already queued. The destructor waits for the thread,
-// which a cancel interrupts.
+// One GET. The constructor starts it on its own thread; the owner takes its
+// events, in order, with nextEvent() on its own thread. cancel() (and the
+// destructor) stop it: nextEvent() answers nothing afterwards, even for events
+// already queued. The destructor waits for the thread, which a cancel
+// interrupts.
 class Download {
 public:
     Download(std::string url, std::string userAgent)
     {
-        worker_ = std::thread([this, url = std::move(url), userAgent = std::move(userAgent)]() {
-            run(url, userAgent);
-        });
+        worker_ = std::thread(
+            [this, url = std::move(url), userAgent = std::move(userAgent)]() {
+                run(url, userAgent);
+            });
     }
 
     Download(const Download&) = delete;
@@ -374,7 +416,7 @@ private:
         runWinHttp(*url, userAgent);
 #else
         (void)userAgent;
-        push(failure("no HTTP client in this build (proposed ADR-0044: libcurl at Phase 5)"));
+        push(failure("no HTTP client in this build"));
 #endif
     }
 
@@ -463,20 +505,24 @@ private:
 
     void runWinHttp(const Url& url, const std::string& userAgent)
     {
-        void* session = WinHttpOpen(detail::wideFromAscii(userAgent).c_str(), kAccessTypeNoProxy, nullptr, nullptr, 0);
+        void* session = WinHttpOpen(detail::wideFromAscii(userAgent).c_str(),
+            kAccessTypeNoProxy, nullptr, nullptr, 0);
         if (session == nullptr) {
             push(failure(errorText("WinHttpOpen", GetLastError())));
             return;
         }
-        WinHttpSetTimeouts(session, kTimeoutMilliseconds, kTimeoutMilliseconds, kTimeoutMilliseconds, kTimeoutMilliseconds);
-        void* connect = WinHttpConnect(session, detail::wideFromAscii(url.host).c_str(), url.port, 0);
+        WinHttpSetTimeouts(session, kTimeoutMilliseconds, kTimeoutMilliseconds,
+            kTimeoutMilliseconds, kTimeoutMilliseconds);
+        void* connect = WinHttpConnect(
+            session, detail::wideFromAscii(url.host).c_str(), url.port, 0);
         if (connect == nullptr) {
             push(failure(errorText("WinHttpConnect", GetLastError())));
             WinHttpCloseHandle(session);
             return;
         }
-        void* handle = WinHttpOpenRequest(connect, L"GET", detail::wideFromAscii(url.target).c_str(), nullptr, nullptr, nullptr,
-            url.scheme == Url::Scheme::https ? kFlagSecure : 0);
+        void* handle = WinHttpOpenRequest(
+            connect, L"GET", detail::wideFromAscii(url.target).c_str(), nullptr,
+            nullptr, nullptr, url.scheme == Url::Scheme::https ? kFlagSecure : 0);
         if (handle == nullptr) {
             push(failure(errorText("WinHttpOpenRequest", GetLastError())));
             WinHttpCloseHandle(connect);
@@ -524,12 +570,14 @@ private:
         Event response;
         response.kind = Event::Kind::response;
         unsigned long status = 0, size = sizeof status;
-        if (WinHttpQueryHeaders(handle, kQueryStatusCode | kQueryFlagNumber, nullptr, &status, &size, nullptr)) {
+        if (WinHttpQueryHeaders(handle, kQueryStatusCode | kQueryFlagNumber,
+                nullptr, &status, &size, nullptr)) {
             response.status = static_cast<int>(status);
         }
         wchar_t lengthText[32] = { };
         size = sizeof lengthText - sizeof(wchar_t);
-        if (WinHttpQueryHeaders(handle, kQueryContentLength, nullptr, lengthText, &size, nullptr)) {
+        if (WinHttpQueryHeaders(handle, kQueryContentLength, nullptr, lengthText,
+                &size, nullptr)) {
             std::int64_t length = 0;
             bool digits = lengthText[0] != L'\0';
             for (const wchar_t* p = lengthText; *p != L'\0'; p++) {
@@ -549,11 +597,14 @@ private:
             handle = request();
             if (handle == nullptr)
                 return;
-            // Ask what has arrived first: a synchronous read of a full buffer would wait for it.
+            // Ask what has arrived first: a synchronous read of a full buffer would
+            // wait for it.
             unsigned long available = 0, got = 0;
             bool ok = WinHttpQueryDataAvailable(handle, &available) != 0;
             if (ok && available > 0) {
-                const unsigned long want = available < buffer.size() ? available : static_cast<unsigned long>(buffer.size());
+                const unsigned long want = available < buffer.size()
+                    ? available
+                    : static_cast<unsigned long>(buffer.size());
                 ok = WinHttpReadData(handle, buffer.data(), want, &got) != 0;
             }
             if (!ok) {
@@ -591,5 +642,3 @@ private:
 
 #pragma pop_macro("false")
 #pragma pop_macro("true")
-
-#endif // OOFND_HTTP_HPP

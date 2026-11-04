@@ -1,28 +1,23 @@
 /*	test_OOSunEntity.mm
-	Unit tests for OOSunEntity (src/Core/Entities/OOSunEntity.h), a system's star: bead oo-ubjo, a
-	leaf of the Entities seam with a facade (proposed ADR-0056, amendments oo-bj8 item 12 and
-	oo-0mxi).
+	Unit tests for OOSunEntity (src/Core/Entities/OOSunEntity.h), a system's star.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
-	uses a Universe that was never initialised (minimum detail, so the corona never moves),
-	subclassed to record the main light position, the sky colour and the system data the sun sets,
-	and an entity that answers the viewpoint the test sets as PLAYER. The expectations were written
-	against the Objective-C API and run on the unconverted class first: a sun's radius, name and
-	corona come from its dictionary, it is a no-draw, visible, collidable sun; its light colours
-	are its colour blended with white; -changeSunProperty:withDictionary: takes the radius, the
-	name, the corona, and going nova or not, and refuses anything else; a new position moves the
-	main light; going nova counts down, then whitens the sky and records the nova and the growing
-	radius in the system data; and the camera-relative position is pulled in to 1e9 for a far sun.
-	The camera-relative position is read through the one helper below. The universe made the sun
-	with alloc/initSunWithColor:andDictionary:, which the conversion kept on the facade; bead
-	oo-9ht.111 deleted the facade (standing approval oo-9n5p9): the cases make the C++ sun and its
-	Objective-C object (oo::NewEntityFacade) and ask the C++ class, and the facade case pins the new
-	crossing: its object is the root Entity's.
-	Run: bash tools/check-core-tests.sh
+	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
+	a Universe that was never initialised (minimum detail, so the corona never moves), subclassed to
+	record the main light position, the sky colour and the system data the sun sets, and an entity
+	that answers the viewpoint the test sets as PLAYER. The expectations were written against the
+	Objective-C API and run on the unconverted class first: a sun's radius, name and corona come
+	from its dictionary, it is a no-draw, visible, collidable sun; its light colours are its colour
+	blended with white; -changeSunProperty:withDictionary: takes the radius, the name, the corona,
+	and going nova or not, and refuses anything else; a new position moves the main light; going
+	nova counts down, then whitens the sky and records the nova and the growing radius in the system
+	data; and the camera-relative position is pulled in to 1e9 for a far sun. The camera-relative
+	position is read through the one helper below. The cases make the C++ sun and its Objective-C
+	object (oo::NewEntityFacade) and ask the C++ class, and the facade case pins the crossing: its
+	object is the root Entity's. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOSunEntity.h"
-#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "PlayerEntity.h"	// PLAYER is C++
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSSun.h"
@@ -48,7 +43,7 @@ extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector	_viewpoint = {};
@@ -56,8 +51,8 @@ public:
 	HPVector viewpointPosition() override	{ return _viewpoint; }
 };
 
-// [[TestPlayer alloc] init] (bead oo-9ht.177): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// [[TestPlayer alloc] init]: a C++ player under the ship's
+// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -115,9 +110,7 @@ void SetUp()
 
 // --- Ivars the test reads, and nothing else ---------------------------------------------------------
 
-Vector CameraRelativePosition(Entity *e)	{ return e->cameraRelativePosition; }	// the C++ sun
-
-// --------------------------------------------------------------------------------------------------
+Vector CameraRelativePosition(Entity *e)	{ return e->cameraRelativePosition; }	// --------------------------------------------------------------------------------------------------
 
 
 oo::PList Dict(oo::PList::Dict entries)
@@ -310,10 +303,9 @@ OO_TEST(facade)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		// Its Objective-C object is the root's facade since bead oo-9ht.111 (amendment oo-9ht.107).
+		// Its Objective-C object is the root's facade.
 		Entity *object = sun;
-		OO_CHECK(object != nil);	// (and its object's class, the root facade: retired with the facade, under oo-9n5p9)
-		// A C++ entity (amendment oo-0mxi), not an Objective-C entity's adapter.
+		OO_CHECK(object != nil);	// A C++ entity, not an Objective-C entity's adapter.
 		OO_CHECK(dynamic_cast<OOSunEntity *>(object) == sun);
 	}
 }
@@ -333,8 +325,8 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carries since bead oo-9ht.51: what the engine asks a
-// OOSunEntity for by selector is what OOJSSun.mm answers.
+// The binding's category, which the facade carries: what
+// the engine asks a OOSunEntity for by selector is what OOJSSun.mm answers.
 OO_TEST(jsExtensions)
 {
 	{

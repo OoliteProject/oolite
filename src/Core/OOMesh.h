@@ -40,24 +40,24 @@ MA 02110-1301, USA.
 #include "OOGraphicsResetManager.h"
 #include "OOOpenGL.h"
 #include "OOOpenGLExtensionManager.h"
-class Entity; // Entity.h: the shader binding target (bead oo-9ht.39.6)
+class Entity; // Entity.h: the shader binding target
 
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 class OOMaterial;
-struct VertexFaceRef; // OOMesh.mm: the faces that use one vertex, while loading
-class OOMeshBuffer; // OOMesh.mm: one refcounted buffer (an oo::Data), shared by a mesh and its mutable copies
+struct VertexFaceRef; // OOMesh.mm: the faces that use one vertex, while
+                      // loading
+class OOMeshBuffer; // OOMesh.mm: one refcounted buffer (an oo::Data), shared
+                    // by a mesh and its mutable copies
 
 #define OOMESH_PROFILE 0
 #if OOMESH_PROFILE
 #include "OOProfilingStopwatch.h"
 #endif
 
-enum {
-    kOOMeshMaxMaterials = 8
-};
+enum { kOOMeshMaxMaterials = 8 };
 
 typedef uint16_t OOMeshSmoothGroup;
 typedef uint8_t OOMeshMaterialIndex, OOMeshMaterialCount;
@@ -65,8 +65,7 @@ typedef uint32_t OOMeshVertexCount;
 typedef uint32_t OOMeshFaceCount;
 typedef uint8_t OOMeshFaceVertexCount;
 
-typedef struct
-{
+typedef struct {
     OOMeshSmoothGroup smoothGroup;
     OOMeshMaterialIndex materialIndex;
     GLuint vertex[3];
@@ -77,8 +76,7 @@ typedef struct
     GLfloat t[3];
 } OOMeshFace;
 
-typedef struct
-{
+typedef struct {
     GLint* indexArray;
     GLfloat* textureUVArray;
     Vector* vertexArray;
@@ -90,36 +88,27 @@ typedef struct
 
 class Octree;
 
-/*	C++20 since bead oo-dnbf, slice 1 of docs/phases/3-slices/OOMesh.md (proposed ADR-0056,
-        amendments oo-smy, oo-pni4 and oo-dnbf): the class shell, its factories, lifecycle and
-        accessors. Slices 2, 3 and 4 (loading, geometry and rendering, beads oo-rdwg, oo-9z7x and
-        oo-zmix) are C++ too, so OOMesh.mm has no Objective-C class code left. Global since bead
-        oo-9ht.132 deleted the Objective-C OOMesh facade: its callers hold oo::Ref<OOMesh>.
+/*	A mesh: the class shell, its factories, lifecycle and accessors,
+   loading, geometry and rendering. Its callers hold oo::Ref<OOMesh>.
 */
 class OOMesh : public OODrawable, public OOGraphicsResetClient {
 public:
-    static oo::Ref<OOMesh> meshWithName(const std::string& name,
-        const std::optional<std::string>& cacheKey,
-        const oo::PList& materialDict,
-        const oo::PList& shadersDict,
-        bool smooth,
-        const oo::PList& macros,
-        Entity* object);
+    static oo::Ref<OOMesh> meshWithName(
+        const std::string& name, const std::optional<std::string>& cacheKey,
+        const oo::PList& materialDict, const oo::PList& shadersDict, bool smooth,
+        const oo::PList& macros, Entity* object);
 
-    static oo::Ref<OOMesh> meshWithName(const std::string& name,
-        const std::optional<std::string>& cacheKey,
-        const oo::PList& materialDict,
-        const oo::PList& shadersDict,
-        bool smooth,
-        const oo::PList& macros,
-        Entity* object,
-        float factor,
+    static oo::Ref<OOMesh> meshWithName(
+        const std::string& name, const std::optional<std::string>& cacheKey,
+        const oo::PList& materialDict, const oo::PList& shadersDict, bool smooth,
+        const oo::PList& macros, Entity* object, float factor,
         bool cacheWriteable);
 
     static oo::Ref<OOMaterial> placeholderMaterial();
 
     OOMesh();
-    OOMesh(const OOMesh&) = default; // -mutableCopyWithZone:'s copy: every member, the buffers shared
+    OOMesh(const OOMesh&) = default; // -mutableCopyWithZone:'s copy: every
+                                     // member, the buffers shared
     ~OOMesh() override;
 
     oo::Ref<OOMesh> copyWithZone(OOZone* zone);
@@ -127,7 +116,8 @@ public:
 
     std::optional<std::string> modelName();
 
-    oo::PList getMaterials(); // null: none (-materials; the member materials is the materials)
+    oo::PList getMaterials(); // null: none (-materials; the member materials is
+                              // the materials)
     oo::PList shaders();
 
     size_t getVertexCount(); // -vertexCount
@@ -149,8 +139,12 @@ public:
     oo::Ref<Octree> getOctree(); // -octree (the member octree is the octree)
 
     // This needs a better name.
-    BoundingBox findBoundingBoxRelativeToPosition(Vector opv, Vector ri, Vector rj, Vector rk, Vector position, Vector si, Vector sj, Vector sk);
-    BoundingBox findSubentityBoundingBoxWithPosition(Vector position, OOMatrix rotMatrix);
+    BoundingBox findBoundingBoxRelativeToPosition(Vector opv, Vector ri,
+        Vector rj, Vector rk,
+        Vector position, Vector si,
+        Vector sj, Vector sk);
+    BoundingBox findSubentityBoundingBoxWithPosition(Vector position,
+        OOMatrix rotMatrix);
 
     oo::Ref<OOMesh> meshRescaledBy(GLfloat scaleFactor);
 
@@ -160,20 +154,21 @@ public:
 
     void rebindMaterials();
 
-    // OOGraphicsResetClient: the mesh registers itself once loaded, and unregisters when destroyed.
+    // OOGraphicsResetClient: the mesh registers itself once loaded, and
+    // unregisters when destroyed.
     void resetGraphicsState() override;
 
-    // Internal: the state, public while the test reads it (amendment oo-pni4 item 1).
+    // Internal: the state, public while the test reads it.
     // Zero, as class_createInstance left the ivars.
-    uint8_t _normalMode : 2 = 0,
-                          brokenInRender : 1 = 0,
-                          listsReady : 1 = 0;
+    uint8_t _normalMode : 2 = 0, brokenInRender : 1 = 0, listsReady : 1 = 0;
 
     OOMeshMaterialCount materialCount = { };
     OOMeshVertexCount vertexCount = { };
     OOMeshFaceCount faceCount = { };
 
-    std::optional<std::string> baseFile; // "No Model" until loaded; nullopt after -rescaleByFactor: (no octree cache)
+    std::optional<std::string>
+        baseFile; // "No Model" until loaded; nullopt after -rescaleByFactor: (no
+                  // octree cache)
     std::optional<std::string> baseFileOctreeCacheRef;
     bool _cacheWriteable = { };
 
@@ -190,20 +185,21 @@ public:
     OOMaterial* materials[kOOMeshMaxMaterials] = { }; // retained
     GLuint displayList0 = { };
 
-    // (named like the overridden getters, which a C++ member cannot be: amendment oo-rdfh item 1)
+    // (named like the overridden getters, which a C++ member cannot be)
     GLfloat _collisionRadius = { };
     GLfloat _maxDrawDistance = { };
     BoundingBox _boundingBox = { };
 
     oo::Ref<Octree> octree;
 
-    std::map<std::string, oo::Ref<OOMeshBuffer>, std::less<>> _retainedObjects; // the buffers _vertices & co. point into, by key
+    std::map<std::string, oo::Ref<OOMeshBuffer>, std::less<>>
+        _retainedObjects; // the buffers _vertices & co. point into, by key
 
-    oo::PList _materialDict; // mixed configurations (proposed ADR-0043 Amendment 2); null = nil
+    oo::PList _materialDict; // mixed configurations; null = nil
     oo::PList _shadersDict;
     std::optional<std::string> _cacheKey; // nil and @"" differ for OOMaterial
     oo::PList _shaderMacros;
-    oo::WeakRef<Entity> _shaderBindingTarget = { }; // the entity, held weakly as its object's weak reference was (bead oo-9ht.39.6)
+    oo::WeakRef<Entity> _shaderBindingTarget = { }; // the entity, held weakly as its object's weak reference was
 
     Vector _lastPosition = { };
     OOMatrix _lastRotMatrix = { };
@@ -218,22 +214,25 @@ public:
     double _stopwatchLastTime = { };
 #endif
 
-    // Internal: slice 3's geometry, which the loading calls.
+    // Internal: geometry, which the loading calls.
     void checkNormalsAndAdjustWinding();
     void generateFaceTangents();
     void calculateVertexNormalsAndTangentsWithFaceRefs(VertexFaceRef* faceRefs);
     void calculateVertexTangentsWithFaceRefs(VertexFaceRef* faceRefs);
-    void getNormal(Vector* outNormal, Vector* outTangent, OOMeshVertexCount v_index, OOMeshSmoothGroup smoothGroup);
+    void getNormal(Vector* outNormal, Vector* outTangent,
+        OOMeshVertexCount v_index, OOMeshSmoothGroup smoothGroup);
     void calculateBoundingVolumes();
     void rescaleByFactor(GLfloat factor);
 
-    // Internal: slice 4's buffers and display lists, which the loading and the destructor call.
+    // Internal: buffers and display lists, which the loading and the destructor
+    // call.
     void deleteDisplayLists();
     bool setUpVertexArrays();
 
     // Manage the set of refcounted buffers we need to hang on to.
     void setRetainedObject(oo::Data object, const std::string& key);
-    void* allocateBytesWithSize(size_t size, NSUInteger count, const std::string& key);
+    void* allocateBytesWithSize(size_t size, NSUInteger count,
+        const std::string& key);
 
     // Allocate all per-vertex/per-face buffers.
     bool allocateVertexBuffersWithCount(NSUInteger count);
@@ -244,19 +243,16 @@ public:
     void renameTexturesFrom(const std::string& from, const std::string& to);
 
 private:
-    // Slice 2's loading (bead oo-rdwg).
+    // Loading.
     bool initWithName(const std::string& name,
         const std::optional<std::string>& cacheKey,
-        const oo::PList& materialDict,
-        const oo::PList& shadersDict,
-        bool smooth,
-        const oo::PList& macros,
-        Entity* target,
-        float scale,
-        bool cacheWriteable);
+        const oo::PList& materialDict, const oo::PList& shadersDict,
+        bool smooth, const oo::PList& macros, Entity* target,
+        float scale, bool cacheWriteable);
     bool loadData(const std::string& filename, float scale);
     oo::PList modelData(); // null: incomplete
-    bool setModelFromModelData(const oo::PList& dict, const std::string& fileName);
+    bool setModelFromModelData(const oo::PList& dict,
+        const std::string& fileName);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
     void debugDrawNormals();
@@ -265,8 +261,9 @@ private:
     bool suppressClangStuff();
 };
 
-// The OOCacheManager (Octree) category, as free functions next to the cache (the slice plan, bead
-// oo-dnbf). The octree cached for a model key, made afresh from its representation; null when none.
+// The OOCacheManager (Octree) category, as free functions next to the cache.
+// The octree cached for a model key, made afresh from its representation; null
+// when none.
 oo::Ref<Octree> OOCacheManagerOctreeForModel(const std::string& inKey);
 // Caches the octree's representation under the key; a null octree does nothing.
 void OOCacheManagerSetOctree(Octree* inOctree, const std::string& inKey);

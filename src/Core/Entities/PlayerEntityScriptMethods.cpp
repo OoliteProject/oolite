@@ -23,25 +23,23 @@ MA 02110-1301, USA.
 */
 
 #include "PlayerEntityScriptMethods.h"
-#include "PlayerEntityLoadSave.h"
 
 #include "OOCommodities.h"
 #include "OOConstToString.h"
+#include "OOStringExpander.h"
 #include "OOStringParsing.h"
+#include "OOSystemDescriptionManager.h"
+#include "PlayerEntityLoadSave.h"
+#include "StationEntity.h"
 #include "Universe.h"
-
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
-#include "OOStringExpander.h"
-#include "OOSystemDescriptionManager.h"
-
-#include "StationEntity.h"
-
 namespace {
 
-// A contract marker, as the four marker methods built it (the system a +numberWithInt:).
+// A contract marker, as the four marker methods built it (the system a
+// +numberWithInt:).
 oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape)
 {
     oo::PList::Dict marker;
@@ -52,8 +50,9 @@ oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape)
     return oo::PList(std::move(marker));
 }
 
-// What -boolValue / -integerValue of the value an Objective-C dictionary held gave (NO / 0 for none):
-// NSString's and NSNumber's own conversions, as NSUserDefaults -boolForKey: / -integerForKey: read them.
+// What -boolValue / -integerValue of the value an Objective-C dictionary held
+// gave (NO / 0 for none): NSString's and NSNumber's own conversions, as
+// NSUserDefaults -boolForKey: / -integerForKey: read them.
 BOOL BoolValueOf(const oo::PList* value)
 {
     if (value == nullptr)
@@ -77,24 +76,14 @@ NSInteger IntegerValueOf(const oo::PList* value)
 } // namespace
 
 /*	The category PlayerEntity (ScriptMethods): members of PlayerEntity, declared in
-        PlayerEntity.h. The facade's category of the same name forwarded them until it was deleted;
-        sends to self are member calls.
-*/
+        PlayerEntity.h.
+ */
 
-unsigned PlayerEntity::score()
-{
-    return ship_kills;
-}
+unsigned PlayerEntity::score() { return ship_kills; }
 
-void PlayerEntity::setScore(unsigned value)
-{
-    ship_kills = value;
-}
+void PlayerEntity::setScore(unsigned value) { ship_kills = value; }
 
-double PlayerEntity::creditBalance()
-{
-    return 0.1 * credits;
-}
+double PlayerEntity::creditBalance() { return 0.1 * credits; }
 
 void PlayerEntity::setCreditBalance(double value)
 {
@@ -103,12 +92,14 @@ void PlayerEntity::setCreditBalance(double value)
 
 std::optional<std::string> PlayerEntity::dockedStationName()
 {
-    return (dockedStation() != nullptr ? dockedStation()->getName() : std::optional<std::string>());
+    return (dockedStation() != nullptr ? dockedStation()->getName()
+                                       : std::optional<std::string>());
 }
 
 std::optional<std::string> PlayerEntity::dockedStationDisplayName()
 {
-    return (dockedStation() != nullptr ? dockedStation()->getDisplayName() : std::optional<std::string>());
+    return (dockedStation() != nullptr ? dockedStation()->getDisplayName()
+                                       : std::optional<std::string>());
 }
 
 bool PlayerEntity::dockedAtMainStation()
@@ -116,17 +107,22 @@ bool PlayerEntity::dockedAtMainStation()
     return status() == STATUS_DOCKED && dockedStation() == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr);
 }
 
-void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity amount)
+void PlayerEntity::awardCommodityType(const std::string& type,
+    OOCargoQuantity amount)
 {
     OOMassUnit unit;
 
-    if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr ? UNIVERSE->getCommodities()->goodDefined(type) : false)) {
+    if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
+                ? UNIVERSE->getCommodities()->goodDefined(type)
+                : false)) {
         return;
     }
 
-    OO_LOG("script.debug.note.awardCargo", "Going to award cargo: {} x '{}'", static_cast<int>(amount), type);
+    OO_LOG("script.debug.note.awardCargo", "Going to award cargo: {} x '{}'",
+        static_cast<int>(amount), type);
 
-    unit = (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type) : UNITS_TONS);
+    unit = (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type)
+                                         : UNITS_TONS);
 
     if (status() != STATUS_DOCKED) {
         // in-flight
@@ -141,10 +137,13 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
                     while (amount > 0) {
                         int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
                         if (cargo.size() < maxAvailableCargoSpace()) {
-                            ::ShipEntity* container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod") : (::ShipEntity*)nil);
+                            ::ShipEntity* container = (UNIVERSE != nullptr
+                                    ? UNIVERSE->newShipWithRole("1t-cargopod")
+                                    : (::ShipEntity*)nil);
                             if (container) {
-                                // the cargopod ship is just being set up. If ejected,  will call UNIVERSE addEntity
-                                // [container wasAddedToUniverse]; // seems to be not needed anymore for pods
+                                // the cargopod ship is just being set up. If ejected,  will
+                                // call UNIVERSE addEntity [container wasAddedToUniverse]; //
+                                // seems to be not needed anymore for pods
                                 if (container != nullptr)
                                     container->setScanClass(CLASS_CARGO);
                                 if (container != nullptr)
@@ -165,10 +164,12 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
                 // put each ton in a separate container
                 while (amount) {
                     if (cargo.size() < maxAvailableCargoSpace()) {
-                        ::ShipEntity* container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod") : (::ShipEntity*)nil);
+                        ::ShipEntity* container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
+                                                                       : (::ShipEntity*)nil);
                         if (container) {
-                            // the cargopod ship is just being set up. If ejected, will call UNIVERSE addEntity
-                            // [container wasAddedToUniverse]; // seems to be not needed anymore for pods
+                            // the cargopod ship is just being set up. If ejected, will call
+                            // UNIVERSE addEntity [container wasAddedToUniverse]; // seems to
+                            // be not needed anymore for pods
                             if (container != nullptr)
                                 container->setScanClass(CLASS_CARGO);
                             if (container != nullptr)
@@ -186,7 +187,8 @@ void PlayerEntity::awardCommodityType(const std::string& type, OOCargoQuantity a
         }
     } else { // docked
         // like purchasing a commodity
-        int manifest_quantity = (shipCommodityData != nullptr ? shipCommodityData->quantityForGood(type) : 0);
+        int manifest_quantity = (shipCommodityData != nullptr ? shipCommodityData->quantityForGood(type)
+                                                              : 0);
         while ((amount) && (current_cargo < maxAvailableCargoSpace())) {
             manifest_quantity++;
             amount--;
@@ -204,10 +206,7 @@ void PlayerEntity::resetScannerZoom()
     scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 }
 
-OOGalaxyID PlayerEntity::currentGalaxyID()
-{
-    return galaxy_number;
-}
+OOGalaxyID PlayerEntity::currentGalaxyID() { return galaxy_number; }
 
 OOSystemID PlayerEntity::currentSystemID()
 {
@@ -216,22 +215,28 @@ OOSystemID PlayerEntity::currentSystemID()
     return (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
 }
 
-void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice)
+void PlayerEntity::setMissionChoice(
+    const std::optional<std::string>& newChoice)
 {
     setMissionChoice(newChoice, std::string(), true);
 }
 
-void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice, bool withEvent)
+void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice,
+    bool withEvent)
 {
     setMissionChoice(newChoice, std::string(), withEvent);
 }
 
-void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice, const std::optional<std::string>& keyPress)
+void PlayerEntity::setMissionChoice(
+    const std::optional<std::string>& newChoice,
+    const std::optional<std::string>& keyPress)
 {
     setMissionChoice(newChoice, keyPress, true);
 }
 
-void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice, const std::optional<std::string>& keyPress, bool withEvent)
+void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice,
+    const std::optional<std::string>& keyPress,
+    bool withEvent)
 {
     const std::optional<std::string> oldChoice = missionChoice;
     BOOL equal = newChoice == oldChoice; // Catch both being nil as well
@@ -239,7 +244,9 @@ void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice,
         if (!newChoice.has_value()) {
             missionChoice.reset();
             if (withEvent)
-                doScriptEvent(OOJSID("missionChoiceWasReset"), { oldChoice.has_value() ? oo::PList(*oldChoice) : oo::PList() });
+                doScriptEvent(
+                    OOJSID("missionChoiceWasReset"),
+                    { oldChoice.has_value() ? oo::PList(*oldChoice) : oo::PList() });
         } else {
             missionChoice = newChoice;
         }
@@ -250,34 +257,37 @@ void PlayerEntity::setMissionChoice(const std::optional<std::string>& newChoice,
     }
 }
 
-void PlayerEntity::allowMissionInterrupt()
-{
-    _missionAllowInterrupt = YES;
-}
+void PlayerEntity::allowMissionInterrupt() { _missionAllowInterrupt = YES; }
 
-OOTimeDelta PlayerEntity::scriptTimer()
-{
-    return script_time;
-}
+OOTimeDelta PlayerEntity::scriptTimer() { return script_time; }
 
 /* FIXME: these next three functions seed the RNG when called. That
  * could cause unwanted effects - should save its state, and then
  * reset it after generating the number. */
 unsigned PlayerEntity::systemPseudoRandom100()
 {
-    seed_RNG_only_for_planet_description(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()));
+    seed_RNG_only_for_planet_description(
+        ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr
+                ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem()
+                : Random_Seed()));
     return (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 }
 
 unsigned PlayerEntity::systemPseudoRandom256()
 {
-    seed_RNG_only_for_planet_description(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()));
+    seed_RNG_only_for_planet_description(
+        ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr
+                ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem()
+                : Random_Seed()));
     return gen_rnd_number();
 }
 
 double PlayerEntity::systemPseudoRandomFloat()
 {
-    seed_RNG_only_for_planet_description(((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()));
+    seed_RNG_only_for_planet_description(
+        ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr
+                ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem()
+                : Random_Seed()));
     unsigned a = gen_rnd_number();
     unsigned b = gen_rnd_number();
     unsigned c = gen_rnd_number();
@@ -309,7 +319,8 @@ oo::PList PlayerEntity::defaultMarker(OOSystemID system)
 oo::PList PlayerEntity::validatedMarker(const oo::PList& marker)
 {
     if (marker.isNull()) {
-        // Messaging nil read system 0, and the nil name ended +dictionaryWithObjectsAndKeys: after it.
+        // Messaging nil read system 0, and the nil name ended
+        // +dictionaryWithObjectsAndKeys: after it.
         oo::PList::Dict result;
         result["system"] = oo::PList::signedInteger(0);
         return oo::PList(std::move(result));
@@ -326,14 +337,16 @@ oo::PList PlayerEntity::validatedMarker(const oo::PList& marker)
     result["name"] = std::move(group);
     result["markerColor"] = marker.get<std::string>("markerColor", "redColor");
     result["markerShape"] = marker.get<std::string>("markerShape", "MARKER_X");
-    result["markerScale"] = oo::PList::singleReal(marker.get<float>("markerScale", 1.0)); // +numberWithFloat:
+    result["markerScale"] = oo::PList::singleReal(
+        marker.get<float>("markerScale", 1.0)); // +numberWithFloat:
     return oo::PList(std::move(result));
 }
 
 // Implements string expansion code [credits_number].
 std::optional<std::string> PlayerEntity::creditsFormattedForSubstitution()
 {
-    return std::optional<std::string>(cxx_OOStringFromDeciCredits(deciCredits(), YES, NO));
+    return std::optional<std::string>(
+        cxx_OOStringFromDeciCredits(deciCredits(), YES, NO));
 }
 
 /*	Implements string expansion code [_oo_legacy_credits_number].
@@ -342,7 +355,8 @@ std::optional<std::string> PlayerEntity::creditsFormattedForSubstitution()
         [_oo_legacy_credits_number] in the script sanitizer. These are shown
         unlocalized because legacy scripts may use it for arithmetic.
 */
-std::optional<std::string> PlayerEntity::creditsFormattedForLegacySubstitution()
+std::optional<std::string>
+PlayerEntity::creditsFormattedForLegacySubstitution()
 {
     OOCreditsQuantity tenthsOfCredits = deciCredits();
     unsigned long long integerCredits = tenthsOfCredits / 10;
@@ -364,7 +378,8 @@ std::optional<std::string> PlayerEntity::commanderKillsAsString()
 }
 
 // utilising new keyconfig2.plist data
-std::optional<std::string> PlayerEntity::keyBindingDescription2(const std::string& binding)
+std::optional<std::string> PlayerEntity::keyBindingDescription2(
+    const std::string& binding)
 {
     const auto keyEntry = keyconfig2_settings.find(binding);
     const oo::PList keyList = (keyEntry != keyconfig2_settings.end()) ? keyEntry->second : oo::PList();
@@ -375,11 +390,14 @@ std::optional<std::string> PlayerEntity::keyBindingDescription2(const std::strin
     return getKeyBindingDescription(keyList);
 }
 
-std::optional<std::string> PlayerEntity::getKeyBindingDescription(const oo::PList& keyList)
+std::optional<std::string> PlayerEntity::getKeyBindingDescription(
+    const oo::PList& keyList)
 {
     NSUInteger i = 0;
     std::string final;
-    const NSUInteger count = keyList.isArray() ? keyList.count() : 0; // -objectAtIndex: raised on anything else
+    const NSUInteger count = keyList.isArray()
+        ? keyList.count()
+        : 0; // -objectAtIndex: raised on anything else
     for (i = 0; i < count; i++) {
         if (i != 0)
             final += " or ";
@@ -495,11 +513,13 @@ std::optional<std::string> PlayerEntity::keyCodeDescription(OOKeyCode code)
         return OO_DESC("oolite-keycode-numpadenter");
 
     default:
-        return oo::utf16ToUtf8(std::u16string(1, static_cast<char16_t>(code))); // %C
+        return oo::utf16ToUtf8(
+            std::u16string(1, static_cast<char16_t>(code))); // %C
     }
 }
 
-std::optional<std::string> PlayerEntity::keyCodeDescriptionShort(OOKeyCode code)
+std::optional<std::string> PlayerEntity::keyCodeDescriptionShort(
+    OOKeyCode code)
 {
     switch (code) {
     case 0:
@@ -593,16 +613,19 @@ std::optional<std::string> PlayerEntity::keyCodeDescriptionShort(OOKeyCode code)
     case gvNumberPadKeyEnter:
         return OO_DESC("oolite-keycode-short-numpadenter");
     default:
-        return oo::utf16ToUtf8(std::u16string(1, static_cast<char16_t>(code))); // %C
+        return oo::utf16ToUtf8(
+            std::u16string(1, static_cast<char16_t>(code))); // %C
     }
 }
 
 Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates)
 {
-    return (Vector) { (float)internalCoordinates.x * 0.4f, (float)internalCoordinates.y * 0.2f, 0.0f };
+    return (Vector) { (float)internalCoordinates.x * 0.4f,
+        (float)internalCoordinates.y * 0.2f, 0.0f };
 }
 
 NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates)
 {
-    return (NSPoint) { (float)galacticCoordinates.x * 2.5f, (float)galacticCoordinates.y * 5.0f };
+    return (NSPoint) { (float)galacticCoordinates.x * 2.5f,
+        (float)galacticCoordinates.y * 5.0f };
 }

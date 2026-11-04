@@ -28,20 +28,16 @@ SOFTWARE.
 
 */
 
-#ifndef OONULLTEXTURE_H
-#define OONULLTEXTURE_H
+#pragma once
 
 #include "OOTexture.h"
 
-/*	C++20 (bead oo-jvm6). Its Objective-C facade was deleted by bead oo-9ht.100 (ADR-0056 amendment
-        "deleting a facade"): the class is global. Since bead oo-9ht.99 deleted the root's facade too,
-        OOTexture's nullTexture() answers the shared instance itself.
-*/
+/*	OOTexture's nullTexture() answers the shared instance itself.
+ */
 class OONullTexture : public OOTexture {
 public:
-    /*	The one null texture, made on first use and never released (it was an immortal singleton;
-            proposed ADR-0056 amendments oo-r7m0 item 1 and oo-489v item 3). Borrowed.
-            NOTE: assumes single-threaded access.
+    /*	The one null texture, made on first use and never released (it was an
+       immortal singleton). Borrowed. NOTE: assumes single-threaded access.
     */
     static OONullTexture* sharedNullTexture();
 
@@ -53,5 +49,3 @@ public:
     std::optional<std::string> name() override;
 #endif
 };
-
-#endif // OONULLTEXTURE_H

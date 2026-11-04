@@ -44,10 +44,10 @@ typedef enum {
 #define MAX_SUBDIVIDE 6
 
 /*	-radius and -planetType of a stellar body's Objective-C object: the sun and the
-        planet, C++ since their facades were deleted, are asked directly
+        planet are asked directly
         (their object is the root Entity's facade, which does not answer them); any other body by
-        selector, as before. Nil answers 0, as the message to nil did. Defined in OOSunEntity.mm.
+        selector. Nil answers 0, as the message to nil did. Defined in OOSunEntity.mm.
 */
 class Entity;
-double OOStellarBodyRadius(Entity* body); // of the C++ entity (the object overloads went with the facade)
+double OOStellarBodyRadius(Entity* body); // of the C++ entity
 OOStellarBodyType OOStellarBodyPlanetType(Entity* body); // the same

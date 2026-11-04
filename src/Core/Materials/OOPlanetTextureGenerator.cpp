@@ -165,7 +165,7 @@ bool OOPlanetTextureGenerator::initWithPlanetInfo(const oo::PList& planetInfo, R
         _info.seaColor = FloatRGBFromDictColor(planetInfo, "sea_color");
         _info.paleLandColor = FloatRGBFromDictColor(planetInfo, "polar_land_color");
         _info.polarSeaColor = FloatRGBFromDictColor(planetInfo, "polar_sea_color");
-        _info.seed = seed; // was a value box under "noise_map_seed" in planetInfo (bead oo-3rb.48)
+        _info.seed = seed; // was a value box under "noise_map_seed" in planetInfo
         if (planetInfo.find("cloud_alpha") != nullptr) {
             OO_LOG("texture.planet.generate", "{}", "Extracting atmosphere parameters");
             // we have an atmosphere:
@@ -710,8 +710,10 @@ namespace {
 FloatRGB FloatRGBFromDictColor(const oo::PList& dictionary, const std::string& key)
 {
     const oo::PList* value = dictionary.find(key);
-    OOColor* color = (value != nullptr) ? OOColorInObjectNode(*value) : nullptr; // an Object node (Amendment 2)
-    OOCAssert(color != nullptr, "Expected OOColor, got %s", (value != nullptr) ? oo::DescriptionOf(*value).c_str() : "(null)");
+    OOColor* color = (value != nullptr) ? OOColorInObjectNode(*value)
+                                        : nullptr; // an Object node
+    OOCAssert(color != nullptr, "Expected OOColor, got %s",
+        (value != nullptr) ? oo::DescriptionOf(*value).c_str() : "(null)");
 
     if (color == nullptr)
         return (FloatRGB) { 0.0f, 0.0f, 0.0f }; // a nil colour answered zeros (release builds)
@@ -736,7 +738,8 @@ OOINLINE float Hermite(float q)
 OOINLINE int32_t fast_floor(double val)
 {
     val += 68719476736.0 * 1.5;
-    int32_t words[2]; // the double's two 32-bit halves, read without type-punning (GCC -Wstrict-aliasing; bead oo-1q4)
+    int32_t words[2]; // the double's two 32-bit halves, read without
+                      // type-punning (GCC -Wstrict-aliasing)
     std::memcpy(words, &val, sizeof words);
     return (words[iman_] >> 16);
 }

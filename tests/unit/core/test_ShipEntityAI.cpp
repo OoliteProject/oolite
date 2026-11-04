@@ -1,17 +1,14 @@
 /*	test_ShipEntityAI.mm
-	Unit tests for ShipEntityAI.mm, the legacy plist-AI surface of ShipEntity: its slices
-	(docs/phases/3-slices/ShipEntityAI.md, beads oo-iebuz, oo-xurzn, oo-wc9o3, oo-lqyhf) move the
-	categories' methods into ShipEntity members, defined in the category's file, and leave
-	forwarders on the Objective-C ShipEntity facade (proposed ADR-0056, amendments oo-o89 item 4 and
-	oo-mvzmb).
+	Unit tests for ShipEntityAI.mm, the legacy plist-AI surface of ShipEntity: the categories'
+	methods are ShipEntity members, defined in the category's file.
 
 	As test_ShipEntity's, the ship's object needs the game graph, so the test links the whole game
-	but main (['*']) and uses a Universe that was never initialised (no entities, so every scan finds
-	nothing), a plain entity as PLAYER and an empty JavaScript context. Its ships have no AI and are
-	invisible to scripts, so the AI messages and script events the methods send go nowhere. Each
-	slice adds its cases under a comment naming it, written against the Objective-C API and run on
-	the unconverted class first. Ivars go through the helpers below.
-	Run: bash tools/check-core-tests.sh test_ShipEntityAI
+	but main (['*']) and uses a Universe that was never initialised (no entities, so every scan
+	finds nothing), a plain entity as PLAYER and an empty JavaScript context. Its ships have no AI
+	and are invisible to scripts, so the AI messages and script events the methods send go nowhere.
+	Each group of cases sits under a comment naming it, written against the Objective-C API and run
+	on the unconverted class first. Ivars go through the helpers below. Run: bash
+	tools/check-core-tests.sh test_ShipEntityAI
 */
 
 #include "ShipEntity.h"
@@ -38,14 +35,14 @@ extern Universe *gSharedUniverse;
 extern JSContext *gOOJSMainThreadContext;
 
 
-class TestAIPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestAIPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// [[TestPlayer alloc] init]: a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -58,8 +55,7 @@ T *NewTestPlayer()
 
 
 
-// A ship whose set-up from shipdata does nothing, and that scripts cannot see (a C++ subclass since
-// bead oo-9ht.144 deleted the Objective-C ship).
+// A ship whose set-up from shipdata does nothing, and that scripts cannot see.
 class TestAIShip : public ShipEntity
 {
 public:
@@ -68,8 +64,8 @@ public:
 };
 
 
-// A station whose virtual dock is not made (the dock is a shipdata entry), invisible to scripts. A
-// C++ subclass since bead oo-9ht.175 deleted the Objective-C station (amendment oo-9ht.177 item 5).
+// A station whose virtual dock is not made (the dock is a shipdata entry),
+// invisible to scripts.
 class TestAIStation : public StationEntity
 {
 public:
@@ -78,8 +74,8 @@ public:
 };
 
 
-// [[[TestAIStation alloc] cxx_initWithKey:definition:] autorelease] until bead oo-9ht.175: made as
-// StationEntity::newStationObject() makes a station; answers its object (the ship's facade).
+// Made as StationEntity::newStationObject() makes a station; answers its object
+// (the ship's facade).
 namespace {
 
 ShipEntity *NewTestAIStation(const std::string &key, const oo::PList &dict)
@@ -87,7 +83,7 @@ ShipEntity *NewTestAIStation(const std::string &key, const oo::PList &dict)
 	ShipEntity *station = oo::ToShip(oo::NewShipObject(oo::makeRef<TestAIStation>(), key, dict));
 	if (station != nullptr)  static_cast<StationEntity *>(station)->initStationDefaults();
 	oo::AutoreleaseEntity(station);
-	return station;	// the station (its object until bead oo-9ht.144)
+	return station;
 }
 
 }	// namespace
@@ -113,7 +109,7 @@ void SetAccuracy(ShipEntity *s, GLfloat a)		{ s->accuracy = a; }
 void SetNearPlanetSurface(ShipEntity *s, bool v)	{ s->isNearPlanetSurface = v; }
 void SetPrimaryTarget(ShipEntity *s, Entity *target)
 {
-	s->_primaryTarget = oo::WeakRef<Entity>(target);	// the entity's C++ part
+	s->_primaryTarget = oo::WeakRef<Entity>(target);
 }
 
 
@@ -135,17 +131,16 @@ void SetUp()
 
 TestAIShip *MakeShip(const char *key)
 {
-	// [[[TestAIShip alloc] cxx_initWithKey:definition:] autorelease] until bead oo-9ht.144
 	return static_cast<TestAIShip *>(oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<TestAIShip>(), key, oo::PList(oo::PList::Dict{})))));
 }
 
 
-BOOL AlwaysYes(Entity *, void *)	{ return YES; }	// the C++ entity
+BOOL AlwaysYes(Entity *, void *)	{ return YES; }
 
 }	// namespace
 
-
-// --- Slice 1: the AI category, OOAIPrivate (ship and station), the station stubs (bead oo-iebuz) ---
+// --- The AI category, OOAIPrivate (ship and station), the station
+// stubs ---
 
 // The perform* behaviours: each sets its behaviour and resets the frustration.
 OO_TEST(slice1Behaviours)
@@ -355,8 +350,7 @@ OO_TEST(slice1StationStubs)
 	{
 		SetUp();
 		TestAIShip *ship = MakeShip("notastation");
-		// The AI calls them by name: the by-name table's rows (the category
-		// Entity (OOShipSelectorsCalledByName)'s station stubs, sent to the ship's object, until then).
+		// The AI calls them by name, through the by-name table.
 		oo::CallEntityByName(ship, "increaseAlertLevel");
 		oo::CallEntityByName(ship, "decreaseAlertLevel");
 		oo::CallEntityByName(ship, "abortAllDockings");
@@ -392,8 +386,9 @@ OO_TEST(slice1MembersFromCxx)
 }
 
 
-// --- Slice 2: PureAI part 1: state, speed, scans for prey and loot, planets, legal status (bead
-// oo-xurzn) ------------------------------------------------------------------------------------
+// --- PureAI part 1: state, speed, scans for prey and loot, planets,
+// legal status
+// ------------------------------------------------------------------------------------
 
 
 namespace {
@@ -562,8 +557,9 @@ OO_TEST(slice2MembersFromCxx)
 }
 
 
-// --- Slice 3: PureAI part 2: checks, comms, Thargoids, escorts, patrols, target marking (bead
-// oo-wc9o3) ------------------------------------------------------------------------------------
+// --- PureAI part 2: checks, comms, Thargoids, escorts, patrols,
+// target marking
+// ------------------------------------------------------------------------------------
 
 
 namespace {
@@ -718,8 +714,9 @@ OO_TEST(slice3MembersFromCxx)
 }
 
 
-// --- Slice 4: PureAI part 3: stored targets, nearest-ship scans, stations, script actions, beacons
-// (bead oo-lqyhf) ------------------------------------------------------------------------------
+// --- PureAI part 3: stored targets, nearest-ship scans, stations,
+// script actions, beacons
+// ------------------------------------------------------------------------------
 
 
 namespace {

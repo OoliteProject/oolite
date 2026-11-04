@@ -1,7 +1,6 @@
 /*	test_objc_assert.mm
-        Unit tests for OOAssert.h, the Foundation-free assertions (bead
-   oo-diow). Linked against libobjc2 alone, like test_objc_exception.mm, until
-   bead oo-dbz. The expected reasons are gnustep-base 1.31.1's text for NSAssert
+        Unit tests for OOAssert.h, the Foundation-free assertions.
+   The expected reasons are gnustep-base 1.31.1's text for NSAssert
    / NSCAssert / NSParameterAssert, pinned with a throwaway harness when the
         seam was written:
 
@@ -14,7 +13,7 @@
         all raised as NSInternalInconsistencyException. This test builds without
    NDEBUG, so the macros are live. The method forms (OOAssert,
    OOParameterAssert) and their cases (the first three probe lines) went with
-   libobjc2, bead oo-dbz.4: no game code called them; the function forms stay.
+   libobjc2: no game code called them; the function forms stay.
 */
 
 #include <string>
@@ -41,15 +40,12 @@ Outcome Run(F body) {
   Outcome outcome;
   try {
     body();
-  } catch (
-      const oo::Exception& e)  // was @catch (OOException *e) (bead oo-rskgl.1)
-  {
+  } catch (const oo::Exception& e) {
     outcome.raised = true;
     outcome.name = e.name();
     outcome.reason = e.reason();
   }
-  return outcome;  // (an Objective-C autorelease pool was pushed and popped
-                   // around the body until bead oo-dbz.4; it held nothing)
+  return outcome;
 }
 
 std::string At(long line) {

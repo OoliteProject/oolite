@@ -4,10 +4,7 @@ OOMusicController.h
 
 Singleton controller for music playback.
 
-C++20 since bead oo-lfkq (proposed ADR-0056, the Audio module: amendment oo-2en; a singleton:
-amendment oo-r7m0). Its Objective-C facade was deleted by bead oo-9ht.90, and the class left
-namespace cxx.
-
+A singleton.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -29,8 +26,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOMUSICCONTROLLER_H
-#define OOMUSICCONTROLLER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOSoundSource.h"
@@ -57,8 +53,8 @@ typedef enum {
 
 class OOMusicController : public oo::RefCounted {
 public:
-    /*	Was +sharedController (amendment oo-r7m0 item 1): the one controller, made on first use and
-            never released; borrowed.
+    /*	The one controller (was +sharedController),
+       made on first use and never released; borrowed.
     */
     static OOMusicController* sharedController();
 
@@ -83,7 +79,7 @@ public:
 
     void toggleDockingMusic(); // Start docking music if none playing, stop docking music if currently playing docking music.
 
-    ::OOSoundSource* soundSource(); // C++ since bead oo-9ht.88
+    ::OOSoundSource* soundSource();
 
     std::optional<std::string> playingMusic(); // nullopt: nothing playing
     bool isPlaying();
@@ -101,5 +97,3 @@ private:
     oo::Ref<OOMusic> _current;
     uint8_t _special = { };
 };
-
-#endif // OOMUSICCONTROLLER_H

@@ -12,7 +12,7 @@ would be a bug rather than a test. ``src/SDL/main.m:119`` is
     SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir, YES)
 
 where ``currentWorkingDir`` is the directory holding the EXECUTABLE and the trailing ``YES`` is
-SDL's *overwrite* flag (bug oo-pzc1). So:
+SDL's *overwrite* flag. So:
 
 * the prefs root CANNOT be relocated with an environment variable - the game overwrites whatever
   the parent exported; and
@@ -36,14 +36,14 @@ hygiene assert) is conftest.py's, unchanged.
 
 WHY THE ASSERTION CAN FAIL
 --------------------------
-``GameWindow.start()`` records ``defaults_write_mark(app_dir)`` BEFORE Popen (oo-5rsa). On a
+``GameWindow.start()`` records ``defaults_write_mark(app_dir)`` BEFORE Popen. On a
 pristine root every candidate path is absent at launch, so the mark is ``None`` for the prefs
 file and its later EXISTENCE - not a timestamp - is the proof of a write. That is the strongest
 witness this check has, and it is the whole of G7's claim.
 
     python3 -m pytest oolite-dev/tests/gui/test_g7_first_run_creates_defaults.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
 """
 
@@ -148,7 +148,7 @@ def test_g7_first_run_creates_defaults(game):
 
     The three claims in the DoD's order. What makes the middle one falsifiable is that the prefs
     file did not exist when the process started - asserted here directly, and independently
-    recorded by ``GameWindow.start()`` as ``game.defaults_launch_mark`` (oo-5rsa).
+    recorded by ``GameWindow.start()`` as ``game.defaults_launch_mark``.
     """
     prefs_file = os.path.join(game.app_dir, DEFAULTS_RELATIVE_PATH)
 
@@ -198,7 +198,7 @@ def test_g7_first_run_creates_defaults(game):
     )
 
     # 4. No orphaned process. The OS process table, not proc.poll() - wait() above already
-    #    reaped that returncode, so re-reading it is true by construction (oo-5rsa).
+    #    reaped that returncode, so re-reading it is true by construction.
     assert_no_surviving_game_processes(game.proc.pid)
 
     # 5. G9 hygiene, via the fixture so the launch mark travels with it.
@@ -216,7 +216,7 @@ def test_a_pristine_root_marks_the_prefs_file_as_absent_at_launch(tmp_path):
 
     If ``defaults_write_mark`` ever returned a tuple here (or omitted the path), step 1 of the
     test above would pass against a root that already had a plist in it and the "created" half of
-    the DoD would go unfalsifiable - the oo-5rsa defect class, one level up.
+    the DoD would go unfalsifiable - the same defect class, one level up.
     """
     app = str(tmp_path / "oolite.app")
     os.makedirs(app, exist_ok=True)
@@ -225,7 +225,7 @@ def test_a_pristine_root_marks_the_prefs_file_as_absent_at_launch(tmp_path):
     assert prefs_file in mark, "the prefs file must be marked even when it does not exist"
     assert mark[prefs_file] is None, (
         "a path absent at launch must be marked None; its later existence is then the proof of "
-        "a write, which is stronger than any timestamp (oo-5rsa)"
+        "a write, which is stronger than any timestamp"
     )
 
     # ... and once a file is there, the mark is NOT None, so the guard above can fail.
@@ -346,7 +346,7 @@ def test_g7_asserts_on_the_prefs_file_by_name_and_only_after_a_real_launch():
     )
     # NOT a substring search. `body` is the function's raw source INCLUDING its docstring, and
     # the docstring names game.defaults_launch_mark: a text grep here stays green after both
-    # real assertions are deleted, which is the oo-5rsa defect class one level up. Ask the AST
+    # real assertions are deleted, which is the same defect class one level up. Ask the AST
     # instead - the attribute must be REACHED BY AN ``assert`` STATEMENT, so prose cannot
     # satisfy it.
     mark_asserts = [
@@ -362,7 +362,7 @@ def test_g7_asserts_on_the_prefs_file_by_name_and_only_after_a_real_launch():
         "G7 must assert the prefs file was ABSENT at launch, in two steps: that start() recorded "
         "a launch mark at all, and that the mark's entry for prefs_file is None. Found "
         f"{len(mark_asserts)} assert statement(s) referencing .defaults_launch_mark. Without both, "
-        "'it exists afterwards' is satisfied by a leftover and the test cannot fail (oo-5rsa). "
+        "'it exists afterwards' is satisfied by a leftover and the test cannot fail. "
         "Mentioning defaults_launch_mark in the docstring does NOT count."
     )
     calls = {

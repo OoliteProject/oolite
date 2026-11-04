@@ -43,20 +43,6 @@ MA 02110-1301, USA.
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
-/*
-        C++20 since bead oo-3dj2, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The natives were already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. log() calls the C++ engine's
-        monitor member directly (bead oo-9ht.98; amendments oo-9ht.66 and oo-6ia4 item 6). OOColor, which
-        is C++ since bead oo-11m, is reached as a C++ class (amendment oo-ppc, item 4);
-        OOJSGuiScreenKeyDefinition is C++ since bead oo-xg7g and has no facade: the key definition is
-        made with oo::makeRef and the player keeps it.
-        Messages to classes that are still Objective-C (PlayerEntity, Universe, GuiDisplayGen,
-        MyOpenGLView, ResourceManager) stay as they are, which is why the file is still .mm until Phase
-        4.
-*/
-
 static const char* const kOOLogDebugMessage = "script.debug.message";
 
 static JSValue GlobalGetProperty(OOJS_GETTER_ARGS);
@@ -161,7 +147,9 @@ static JSValue GlobalGetProperty(OOJS_GETTER_ARGS)
 
     switch (magic) {
     case kGlobal_galaxyNumber:
-        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::currentGalaxyID() : OOGalaxyID { })); // qualified: the final overrider, so the binding test stands in for it
+        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::currentGalaxyID() : OOGalaxyID { })); // qualified: the final
+                                                                                                                     // overrider so the binding test
+                                                                                                                     // stands in for it
 
     case kGlobal_guiScreen:
         return OOJSValueFromGUIScreenID(context, (player != nullptr ? player->guiScreen() : OOGUIScreenID { }));

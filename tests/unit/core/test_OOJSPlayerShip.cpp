@@ -1,22 +1,21 @@
 /*	test_OOJSPlayerShip.mm
-	Unit tests for the player ship JS binding (src/Core/Scripting/OOJSPlayerShip.h/.mm): the
-	test-first half of its slice beads (oo-ft5n, slice 1 of docs/phases/3-slices/OOJSPlayerShip.md,
-	and the slices after it), converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056,
-	amendments oo-ppc, oo-ykoy and oo-9ht.139).
+        Unit tests for the player ship JS binding
+   (src/Core/Scripting/OOJSPlayerShip.h/.mm).
 
-	The PlayerShip object is made by the real engine (player.ship, with the real player in its
-	private slot), so the test links every game object but main's (tests/unit/core/meson.build entry
-	['*'], as test_OOJSScript does) and runs the binding in the engine's own context. The player the
-	natives read (PLAYER) and the universe are stand-ins of other names (FakePlayer, FakeUniverse,
-	amendment oo-ppc item 6) that answer only the selectors the binding sends and record what they
-	are told; the player's HUD is a real one (made from an empty hud.plist, in a hidden GL context),
-	and the message GUI's colours are real colours (the GUI stand-in is a C++ subclass since bead
-	oo-9ht.143 deleted the GUI's facade). The expectations were written against the
-	Objective-C file and run on it first; they pin the JS-visible behaviour of the property getter
-	(every property), the passenger, parcel and contract methods with their argument checks
-	(ValidateContracts()), and the PlayerEntity category the engine sends (the class name, and the
-	JS object the player keeps until the engine resets).
-	Run: bash tools/check-core-tests.sh test_OOJSPlayerShip
+   The PlayerShip object is made by the real engine (player.ship, with the real
+   player in its private slot), so the test links every game object but main's
+   (tests/unit/core/meson.build entry ['*'], as test_OOJSScript does) and runs
+   the binding in the engine's own context. The player the natives read (PLAYER)
+   and the universe are stand-ins of other names (FakePlayer, FakeUniverse) that
+   answer only the selectors the binding sends and record what they are told;
+   the player's HUD is a real one (made from an empty hud.plist, in a hidden GL
+   context), and the message GUI's colours are real colours (the GUI stand-in is
+   a C++ subclass). The expectations were written against the Objective-C file
+   and run on it first; they pin the JS-visible behaviour of the property getter
+   (every property), the passenger, parcel and contract methods with their
+   argument checks (ValidateContracts()), and the PlayerEntity category the
+   engine sends (the class name, and the JS object the player keeps until the
+   engine resets). Run: bash tools/check-core-tests.sh test_OOJSPlayerShip
 */
 
 #include "OOJavaScriptEngine.h"
@@ -57,10 +56,11 @@ uint32_t gDebugFlags = 0;
 #endif
 
 
-// MARK: The stand-ins -----------------------------------------------------------------------------
+// MARK: The stand-ins
+// -----------------------------------------------------------------------------
 
-// An entity scripts can see; it answers like any Entity otherwise (an Objective-C subclass before;
-// a C++ one overriding the member its selector became).
+// An entity scripts can see; it answers like any Entity otherwise (a C++ one
+// overriding the member its selector became).
 class TestEntity : public Entity
 {
 public:
@@ -68,8 +68,8 @@ public:
 };
 
 
-// The GUI is C++ (its facade was deleted): the stand-in overrides the members the facade
-// stand-in answered, with the same answers.
+// The GUI: the stand-in overrides the members the facade stand-in answered,
+// with the same answers.
 class FakeGui : public GuiDisplayGen
 {
 public:
@@ -106,10 +106,10 @@ public:
 };
 
 
-class FakePlayer : public PlayerEntity	// C++ (the Objective-C player was deleted)
+class FakePlayer : public PlayerEntity
 {
 public:
-	oo::Ref<HeadUpDisplay> _hud;	// C++ since bead oo-mwd58
+	oo::Ref<HeadUpDisplay> _hud;
 	Entity *_dockedStation = {}, *_compassTarget = {};
 	BOOL _docked = {};
 	std::optional<std::string> _specialCargo, _fastA, _fastB;
@@ -128,8 +128,9 @@ public:
 	NSUInteger getActiveMissile() override	{ return 2; }
 	float fuelLeakRate() override	{ return 0.5f; }
 	bool isDocked() override	{ return _docked; }
-	// The station is C++: the stand-in entity's C++ part, which only crosses back to
-	// its Objective-C object (oo::ToObjC) in the code the test runs, as the stub universe's planet does.
+	// The stand-in entity's C++ part, which only crosses back to its
+  // Objective-C object (oo::ToObjC) in the code the test runs, as the stub
+  // universe's planet does.
 	::StationEntity * dockedStation() override	{ return static_cast<::StationEntity *>(_dockedStation); }
 	std::optional<std::string> getSpecialCargo() override	{ return _specialCargo; }
 	::HeadUpDisplay * getHud() override	{ return _hud.get(); }
@@ -591,7 +592,8 @@ OO_TEST(contracts)
 
 
 
-// Slice 2 (bead oo-9t14): the property setter, launch, cargo, autopilot, docking and the pylon.
+// The property setter, launch, cargo, autopilot,
+// docking and the pylon.
 OO_TEST(setterPlayerState)
 {
 	SetUp();
@@ -716,8 +718,9 @@ OO_TEST(slice2Methods)
 }
 
 
-// Slice 3 (bead oo-1qr5): the custom views, scanner zoom, internal damage, the hyperspace
-// countdowns, the MFDs, primed equipment, the HUD dials and selectors.
+// The custom views, scanner zoom, internal damage, the
+// hyperspace countdowns, the MFDs, primed equipment, the HUD dials and
+// selectors.
 OO_TEST(customViews)
 {
 	SetUp();
@@ -825,8 +828,8 @@ static bool SameObject(JSValueConst a, JSValueConst b)
 }
 
 
-// What the engine asks of the player (the category on the Objective-C PlayerEntity until that was
-// deleted; now the ship's facade, which asks the C++ player): the class name, and the JS object.
+// What the engine asks of the player (the ship's facade, which asks the C++
+// player): the class name, and the JS object.
 OO_TEST(playerCategory)
 {
 	SetUp();

@@ -16,7 +16,7 @@ The grid/DPI/foreground guards live with G1 (test_g1_exit_via_mouse.py) and are 
 
     python3 -m pytest oolite-dev/tests/gui/test_g3_exit_via_window_close.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
 """
 
@@ -47,7 +47,7 @@ def test_g3_exit_via_window_close(game):
     """
     assert game.proc.poll() is None, "the game exited before the test could close anything"
     # The window must still be the live foreground one, or the hwnd we are about to post to is
-    # not the window a user would have clicked the X on. assert_focused() self-heals (oo-0p8f).
+    # not the window a user would have clicked the X on. assert_focused() self-heals.
     game.assert_focused()
 
     # 1. Close it, the way the window manager does. game.close_window() posts WM_CLOSE to the
@@ -74,7 +74,7 @@ def test_g3_exit_via_window_close(game):
 
     # 4. G9 hygiene. assert_clean_exit(game) - the fixture, not a directory: the "written by this
     #    run" evidence is the launch-time mark start() recorded, and a spelling that omitted it
-    #    would be a check that cannot fail (oo-5rsa).
+    #    would be a check that cannot fail.
     assert_clean_exit(game)
 
 

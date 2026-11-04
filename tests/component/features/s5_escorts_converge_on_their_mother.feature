@@ -1,9 +1,10 @@
-# SMOKE SCENARIO (ADR-0020, descoping oo-on18): this does NOT prove "group and
-# formation behaviour (OOShipGroup), which no other tier touches" - it only proves the
-# setup for this story runs the stated ticks without crashing, and that a spawned escort
-# is still alive afterwards. The real assertion (escorts closing distance on their mother,
-# via Ship.escortGroup/Ship.escorts) is deferred to oo-bdl0, which needs a step library
-# capability (per-ship identity / numeric sampling, cf. oo-kbqw) that does not exist yet.
+# SMOKE SCENARIO: this does NOT prove "group and formation behaviour
+# (OOShipGroup), which no other tier touches" - it only proves the setup for
+# this story runs the stated ticks without crashing, and that a spawned escort
+# is still alive afterwards. The real assertion (escorts closing distance on
+# their mother, via Ship.escortGroup/Ship.escorts) is deferred: it needs a step
+# library capability (per-ship identity / numeric sampling) that does not
+# exist yet.
 Feature: Escorts converge on their mother
 
   Scenario: A mother ship and her escorts fly without error

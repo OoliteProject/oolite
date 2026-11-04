@@ -1,22 +1,19 @@
 /*	test_OOJSStation.mm
 	Unit tests for the Station JS binding (src/Core/Scripting/OOJSStation.h/.mm) and its
-	StationEntity answers for the class (StationEntity::jsClassID): bead oo-3oxq, converted the way bead oo-ppc
-	converted OOJSVector (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4).
+	StationEntity answers for the class (StationEntity::jsClassID).
 
-	As test_OOJSWormhole.mm does (amendment oo-ykoy, item 4), it runs the JS class in a real
-	QuickJS-ng context, links the game's own objects for the binding, the engine's class registry
-	(OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the converted
-	classes it uses (OOCommodities and OOCommodityMarket, C++ with their façades deleted (held as
-	oo::Ref), OOEquipmentType, and OOJSInterfaceDefinition, C++ with its façade deleted), and
-	stands in for the classes the binding messages (Entity, ShipEntity and StationEntity, the
-	player, the universe, the game controller and the ship registry answer only the selectors the
-	binding sends), for the resource manager and string expander the commodities call, the script
-	engine and running script the interface definitions call, and the engine functions the binding
-	links against, with the engine headers' linkage. The expectations were written against the
-	Objective-C file and run on it first; they pin the JS-visible behaviour (the properties both
-	ways, docking, the alert level, the launches, the interfaces, the market, the shipyard's errors,
-	a non-station, a native's exception) and what the category answers the engine.
-	Run: tests/run.sh unit
+	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
+	game's own objects for the binding, the engine's class registry (OOJSClasses.mm), its exception
+	translator (OOJSEngineNativeWrappers.mm) and the converted classes it uses (OOCommodities and
+	OOCommodityMarket (held as oo::Ref), OOEquipmentType and OOJSInterfaceDefinition), and stands in
+	for the classes the binding messages (Entity, ShipEntity and StationEntity, the player, the
+	universe, the game controller and the ship registry answer only the selectors the binding
+	sends), for the resource manager and string expander the commodities call, the script engine and
+	running script the interface definitions call, and the engine functions the binding links
+	against, with the engine headers' linkage. The expectations were written against the Objective-C
+	file and run on it first; they pin the JS-visible behaviour (the properties both ways, docking,
+	the alert level, the launches, the interfaces, the market, the shipyard's errors, a non-station,
+	a native's exception) and what the category answers the engine. Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -76,8 +73,8 @@ public:
 	void clearJSSelf(JSValueConst selfVal) override;
 };
 
-// The ship's members the binding calls on a station, by their final overrider;
-// the ship is C++ (its Objective-C class was deleted; a ship's part is a plain one).
+// The ship's members the binding calls on a station, by their final overrider
+// (a ship's part is a plain one).
 class ShipEntity : public Entity
 {
 public:
@@ -89,10 +86,10 @@ public:
 // What an entity's JS object holds: a weak reference to the C++ entity.
 #include "OOJSEntityHolder.h"
 
-// The object: the root's, which holds the C++ part (oo::ToCxx reads it) and asks it the JS questions.
-// C++ (it was rooted on the Objective-C root class OOObject, which Phase 4 deletes); its selectors
-// are members of the same names, and what its -respondsToSelector: answered for the category's two
-// is answersJSClass().
+// The object: the root's, which holds the C++ part (oo::ToCxx reads it) and
+// asks it the JS questions. Its selectors are members of the same names, and
+// what its -respondsToSelector: answered for the category's two is
+// answersJSClass().
 class TestEntityObject final : public oo::RefCounted
 {
 public:
@@ -108,11 +105,12 @@ public:
 	JSValue _jsSelf = JS_UNDEFINED;	// owned; not an object until first asked for
 };
 
-/*	A station: C++ (the Objective-C station this stood in for was deleted; its object
-	is the ship's facade); the members the binding calls, declared as StationEntity.h declares them
-	(the test imports no game header that defines the class), with the stand-in's answers. One whose
-	equivalent tech level is 99 raises from getEquivalentTechLevel(), one whose level is 98 throws a
-	C++ exception, so the test sees what an exception under a native becomes.
+/*	A station (its object is the ship's facade); the members the binding
+   calls, declared as StationEntity.h declares them (the test imports no game
+   header that defines the class), with the stand-in's answers. One whose
+        equivalent tech level is 99 raises from getEquivalentTechLevel(), one
+   whose level is 98 throws a C++ exception, so the test sees what an exception
+   under a native becomes.
 */
 class StationEntity : public ShipEntity
 {
@@ -194,9 +192,9 @@ public:
 	::ShipEntity *_launched = nil;
 };
 
-// PLAYER: C++ (the Objective-C player this stood in for was deleted): the members
-// the code under test calls, declared as the game headers declare them (the test imports none
-// that defines the classes), with the stand-in's answers.
+// PLAYER: the members the code under test calls, declared as the game headers
+// declare them (the test imports none that defines the classes), with the
+// stand-in's answers.
 class PlayerEntity
 {
 public:
@@ -223,9 +221,8 @@ public:
 	std::string _name;
 };
 
-// The game controller: a stand-in for the C++ class (the Objective-C facade the test's Objective-C
-// stand-in stood in for was deleted), with the header's names and signatures, defined out of line
-// below with the stand-in's answers.
+// The game controller: a stand-in for the C++ class, with the header's names
+// and signatures, defined out of line below with the stand-in's answers.
 class GameController : public oo::RefCounted
 {
 public:
@@ -237,9 +234,9 @@ public:
 
 #include "UniverseStandIn.h"
 
-// The universe as the code under test sees it: a stand-in for the C++ class (the Objective-C facade
-// the test's Objective-C stand-in stood in for was deleted), with the header's names and signatures.
-// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
+// The universe as the code under test sees it: a stand-in for the C++ class
+// with the header's names and signatures. It answers virtual members, so it has
+// the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
 class Universe : public oo::RefCounted
 {
 public:
@@ -275,8 +272,8 @@ public:
 
 #include "ResourceManager.h"
 
-// The engine (OOJavaScriptEngine.h; a C++ class since its facade was deleted), declared
-// with the header's names and signatures but not its class.
+// The engine (OOJavaScriptEngine.h), declared with the header's names and
+// signatures but not its class.
 class OOJavaScriptEngine
 {
 public:
@@ -307,7 +304,7 @@ JSClassDef sFakeShipClass = { .class_name = "Ship" };
 JSClassID sFakeEntityClassID = 0;
 JSClassID sFakeShipClassID = 0;
 std::map<JSClassID, int> sConverters;
-std::map<Entity *, ::TestEntityObject *> sObjects;	// what TestObjectOf answers (oo::ToObjC until the stand-in became C++): each ship's object
+std::map<Entity *, ::TestEntityObject *> sObjects;	// what TestObjectOf answers: each ship's object
 }
 
 
@@ -341,14 +338,14 @@ JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
 }
 
 
-::TestEntityObject *TestObjectOf(Entity *entity);	// Entity+ObjCBridge.mm's oo::ToObjC until the stand-in became C++, defined below
+::TestEntityObject *TestObjectOf(Entity *entity);	// defined below
 #define OO_ENTITY_HELPERS_STAND_IN_CXX
 #include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 
 namespace {
 
-// A ship's object (the root's, holding a C++ ship; its Objective-C class, which this made, was
-// deleted), kept for the life of the test.
+// A ship's object (the root's, holding a C++ ship), kept for the life of the
+// test.
 ::TestEntityObject *NewShipObject(const char *name, oo::Ref<Entity> ship)
 {
 	::TestEntityObject *object = oo::makeRef<::TestEntityObject>().leakRef();
@@ -364,8 +361,8 @@ namespace {
 Entity::~Entity() = default;
 JSClassID Entity::jsClassID()  { return sFakeEntityClassID; }
 std::optional<std::string> Entity::jsClassName()  { return std::nullopt; }
-// What OOJSValueFromNativeObject made of the entity's object, which the binding returned before:
-// its -oo_jsValueInContext:, null for none.
+// What OOJSValueFromNativeObject made of the entity's object, which the binding
+// returned: its -oo_jsValueInContext:, null for none.
 JSValue Entity::jsValueInContext(JSContext *context)
 {
 	::TestEntityObject *object = TestObjectOf(this);
@@ -508,15 +505,14 @@ Random_Seed Universe::marketSeed()	{ return Random_Seed{}; }
 OOSystemID Universe::currentSystemID()	{ return 7; }
 
 
-// The ship registry is C++: a C++ stand-in with the facade stand-in's answers.
+// The ship registry: a C++ stand-in with the facade stand-in's answers.
 OOShipRegistry *OOShipRegistry::sharedRegistry()  { return nullptr; }	// the test adds no ship to a shipyard
 oo::PList OOShipRegistry::shipInfoForKey(const std::string &key)  { (void)key; return oo::PList(); }
 oo::PList OOShipRegistry::shipyardInfoForKey(const std::string &key)  { (void)key; return oo::PList(); }
 
 
-// ResourceManager is C++ since its Objective-C facade was deleted: C++ definitions of the
-// statics the code under test calls, with the Objective-C stand-in's answers.
-// trade-goods.plist: food and gems.
+// ResourceManager: C++ definitions of the statics the code under test calls,
+// with the Objective-C stand-in's answers. trade-goods.plist: food and gems.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	(void)fileName; (void)folderName; (void)mergeMode; (void)useCache;
@@ -541,9 +537,9 @@ bool OOJavaScriptEngine::callJSFunction(JSValueConst, JSValueConst, int, JSValue
 #include "OOScript.h"
 
 
-// OOJSScript (OOJSScript.h), which the code under test calls. Since the OOScript root's facade
-// was deleted a script is the C++ object, so
-// the stand-in is a C++ subclass of OOScript declaring the members that code calls.
+// OOJSScript (OOJSScript.h), which the code under test calls. A script is a
+// C++ object, so the stand-in is a C++ subclass of OOScript declaring the
+// members that code calls.
 class OOJSScript : public OOScript
 {
 public:
@@ -578,10 +574,11 @@ std::string cxx_OOLookUpDescriptionPRIV(const std::string &key)
 
 #include "OOCacheManager.h"
 
-// Link stubs (amendment oo-zffj item 2): what OOEquipmentType reaches to load equipment, which the
-// test never does (no equipment type is made), and the weapon lookups of addShipToShipyard(), which
-// the test's shipyard items never reach.
-OOCacheManager *OOCacheManager::sharedCache()  { std::abort(); }	// C++ (was an empty Objective-C class)
+// Link stubs: what OOEquipmentType reaches to load
+// equipment, which the test never does (no equipment type is made), and the
+// weapon lookups of addShipToShipyard(), which the test's shipyard items never
+// reach.
+OOCacheManager *OOCacheManager::sharedCache()  { std::abort(); }
 void OOCacheManager::setPList(const oo::PList &, const std::string &, const std::string &)  { std::abort(); }
 
 oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)  { std::abort(); }
@@ -770,11 +767,13 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 }
 
 
-// The engine's object getter is OOJSPrivateObject.cpp's (linked): the JS class must be a
-// subclass of the required one, and the slot holds the entity's holder. Class registration and
+// The engine's object getter is OOJSPrivateObject.cpp's (linked): the JS class
+// must be a subclass of the required one, and the slot holds the entity's
+// holder. Class registration and
 // the subclass table are OOJSClasses.mm's (linked).
 
-// The shared toString(), which OOJSCxxObjectWrapperToString() hands a `this` of another class.
+// The shared toString(), which OOJSCxxObjectWrapperToString() hands a `this` of
+// another class.
 JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
 	return JS_NewString(context, "[object]");
@@ -877,7 +876,8 @@ void SetUpContext()
 	sPlayer->_name = "player";
 	sPlayer->_screen = GUI_SCREEN_STATUS;
 	gOOPlayer = sPlayer;
-	sStationObject = NewShipObject("Coriolis", oo::makeRef<StationEntity>());	// kept for the life of the test; a station's object (the root's)
+	sStationObject = NewShipObject("Coriolis", oo::makeRef<StationEntity>());	// kept for the life of the
+                                                    // test; a station's object
 	sStation = static_cast<StationEntity *>(sStationObject->_cxxEntity.get());
 	sStation->_name = "Coriolis";
 	sStation->_npcTraffic = YES;

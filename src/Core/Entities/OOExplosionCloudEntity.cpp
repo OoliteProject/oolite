@@ -2,8 +2,8 @@
 
 OOExplosionCloudEntity.m
 
-C++20 since bead oo-cenx, with its superclass (see OOParticleSystem.h and OOParticleSystem.mm:
-the bodies are the Objective-C ones, translated the same way).
+See OOParticleSystem.h and OOParticleSystem.mm: the bodies are the Objective-C
+ones, translated the same way.
 
 
 Oolite
@@ -57,8 +57,12 @@ constexpr std::string_view kExplosionTexture = "texture";
 bool OOExplosionCloudEntity::initExplosionCloudWithEntity(Entity* entity, float size, const oo::PList& settings)
 {
     unsigned i;
-    unsigned maxCount = (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { }) <= DETAIL_LEVEL_SHADERS ? 10 : 25;
-    HPVector pos = entity != nullptr ? entity->getPosition() : kZeroHPVector; // the C++ entity; nil answered zero
+    unsigned maxCount = (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail { }) <= DETAIL_LEVEL_SHADERS
+        ? 10
+        : 25;
+    HPVector pos = entity != nullptr ? entity->getPosition()
+                                     : kZeroHPVector; // the C++ entity; nil
+                                                      // answered zero
     Vector vel = entity != nullptr ? entity->getVelocity() : kZeroVector;
 
     if (settings.isNull()) {

@@ -14,11 +14,11 @@ If auto-pruning is on, the cache will pruned to 80% of the prune threshold
 whenever the prune threshold is exceeded. If auto-pruning is off, the cache
 can be pruned to the prune threshold by explicitly calling -prune.
 
-Keys are UTF-8 std::strings and values are oo::PList (proposed ADR-0055 item 2, bead
-oo-qps.36): property-list data, or a PList::Object node (OOObjCPList.h) for a live
-object such as a texture. An OOCache is essentially a string-keyed dictionary with a
-prune limit. A null PList is "no value": it is never stored, and it is what a lookup of
-an absent key returns.
+Keys are UTF-8 std::strings and values are oo::PList: property-list data, or a
+PList::Object node (OOObjCPList.h) for a live object such as a texture. An
+OOCache is essentially a string-keyed dictionary with a prune limit. A null
+PList is "no value": it is never stored, and it is what a lookup of an absent
+key returns.
 
 
 Oolite
@@ -54,10 +54,6 @@ enum {
     kOOCacheNoPrune = 0xFFFFFFFFU
 };
 
-/*	C++20 since bead oo-rdfh (proposed ADR-0056, the OOColor house style). Its two callers
-        (OOTexture, OOEncodingConverter) were adapted in the same bead, so there is no Objective-C
-        facade and the class is global.
-*/
 class OOCache : public oo::RefCounted {
 public:
     // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
@@ -83,7 +79,7 @@ public:
     bool dirty();
     void markClean();
 
-    std::optional<std::string> name(); // nullopt: unnamed (bead oo-3rb.289.9)
+    std::optional<std::string> name(); // nullopt: unnamed
     void setName(const std::optional<std::string>& name);
 
     std::vector<oo::PList> pListsByAge(); // the values, youngest first; empty for an empty cache

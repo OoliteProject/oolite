@@ -81,8 +81,8 @@ GameController* sSharedController = nullptr;
 } // namespace
 
 #if OOLITE_MAC_COCOA_UI
-// Only the fenced Mac category below still sends these; they are GameController members since
-// beads oo-hn0fw and oo-5ah4k (Phase 5 writes the Mac layer again).
+// Only the fenced Mac category below still sends these; they are GameController
+// members.
 @interface GameController (OOPrivate)
 
 - (void)cxx_reportUnhandledStartupExceptionName:(const std::string&)name reason:(const std::optional<std::string>&)reason; // reason nullopt: none (was nil)
@@ -91,25 +91,24 @@ GameController* sSharedController = nullptr;
 @end
 #endif
 
-/*	The frame loop (ADR-0029 Decision 5; proposed ADR-0033).
+/*	The frame loop.
 
-        The game tick was a repeating Foundation timer on the main run loop, which
-        -applicationDidFinishLaunching: then ran for ever. It is now a deadline on
-        std::chrono::steady_clock, created and advanced exactly as GNUstep created
-        and advanced that timer's fire date (measured, see the ADR):
+        The game tick was a repeating Foundation timer on the main run loop,
+   which -applicationDidFinishLaunching: then ran for ever. It is now a deadline
+   on std::chrono::steady_clock, created and advanced exactly as GNUstep created
+        and advanced that timer's fire date:
 
         * start: first deadline = now + interval (an interval <= 0 is 0.0001 s);
         * fire when now >= deadline; before the tick runs, the next deadline is
-          deadline + interval, plus as many further intervals as needed to pass the
-          time sampled just before the tick (a late tick skips, it never bursts);
+          deadline + interval, plus as many further intervals as needed to pass
+   the time sampled just before the tick (a late tick skips, it never bursts);
         * stop/start inside a tick (the save/load critical section) replaces the
           deadline, as a new timer did.
 
         Each pass of the loop fires what is due (the tick first, then the log
-        flush, then up to two deferred calls), then runs the run loop once, up to
-        the next deadline, for what still lives on it (OXZ downloads) until its own
-        bead takes it off; while the debug console's socket is open, the wait is on
-        that socket instead (bead oo-3rb.14).
+        flush, then up to two deferred calls), then runs the run loop once, up
+   to the next deadline, for what still lives on it (OXZ downloads); while the
+   debug console's socket is open, the wait is on that socket instead.
 */
 namespace {
 // Held as steady_clock tick counts, as OOLogOutputHandler's flush deadline is: a static
@@ -125,24 +124,25 @@ TickClock::time_point NextGameTick()
 }
 }
 
-/*	Deferred calls (bead oo-3rb.57, proposed ADR-0040): Foundation's timed
-        performers, which were one-shot timers on the main run loop. Measured
-        against gnustep-base 1.31: a performer's fire date is now + delay (a delay
-        <= 0 is 0.0001 s, the timer clamp); each run-loop pass fires the first due
-        timer in the order the timers were added, twice (-runMode:beforeDate: asks
-        -limitDateForMode:'s timer step once itself and once more before it waits),
-        so due performers fire in scheduling order whatever their fire dates, at
-        most two per pass; one scheduled while firing goes to the back. The
-        performer retained target and argument and released them after the call;
-        an exception from the call was logged by NSTimer and swallowed, and the
-        performer was then never released (it leaked its target and argument).
-        Anything else thrown propagated.
+// namespace
+
+/*	Deferred calls: Foundation's timed performers, which were one-shot
+   timers on the main run loop. As measured against gnustep-base 1.31: a
+   performer's fire date is now + delay (a delay <= 0 is 0.0001 s, the timer
+   clamp); each run-loop pass fires the first due timer in the order the timers
+   were added, twice (-runMode:beforeDate: asks -limitDateForMode:'s timer step
+   once itself and once more before it waits), so due performers fire in
+   scheduling order whatever their fire dates, at most two per pass; one
+   scheduled while firing goes to the back. The performer retained target and
+   argument and released them after the call; an exception from the call was
+   logged by NSTimer and swallowed, and the performer was then never released
+   (it leaked its target and argument). Anything else thrown propagated.
 */
 namespace {
 
 struct OODeferredCall {
     std::chrono::steady_clock::time_point deadline;
-    std::function<void()>* call; // a C++ call (bead oo-pvhrh; the only kind since bead oo-4aq6a.4)
+    std::function<void()>* call; // a C++ call
 };
 
 // call() with the perform's try/catch (below).
@@ -152,10 +152,7 @@ std::vector<OODeferredCall> sDeferredCalls; // in scheduling order
 
 }
 
-/*	The Objective-C form, OOScheduleDeferredCall(target, selector name, argument, delay), which retained
-        target and argument and performed the selector, had no caller in the game left; it was deleted by
-        bead oo-4aq6a.4 with the Objective-C root class (its test's target is a C++ call now).
-*/
+// namespace
 void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay)
 {
     if (!oo::thread::isMainThread() || !call)
@@ -172,10 +169,10 @@ void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay)
 
 namespace {
 
-// The Foundation timer's line for an exception from a deferred call (one line for both kinds, bead oo-pvhrh).
+// The Foundation timer's line for an exception from a deferred call.
 void LogDeferredCallException(const char* exceptionName, const char* exceptionReason, const void* target)
 {
-    // The game's own exceptions (ADR-0037): the same line, name and reason bridged.
+    // The game's own exceptions: the same line, name and reason bridged.
     OO_LOG("unclassified", "*** NSTimer ignoring exception '{}' (reason '{}') raised during posting of timer with target {} and selector 'fire'", exceptionName, exceptionReason, oo::str::pointerDescription(target));
 }
 
@@ -188,7 +185,7 @@ void FireOneDueDeferredCall(void)
             OODeferredCall call = *it;
             sDeferredCalls.erase(it);
 
-            // The call and its handler (ADR-0056 amendment oo-9ht.139 item 3).
+            // The call and its handler.
             const char *exceptionName = NULL, *exceptionReason = NULL;
             if (!DeferredCallRunCatching(*call.call, &exceptionName, &exceptionReason)) {
                 LogDeferredCallException(exceptionName, exceptionReason, call.call);
@@ -213,7 +210,7 @@ bool NextDeferredCallDeadline(std::chrono::steady_clock::time_point* outDeadline
     return found;
 }
 
-}
+} // namespace
 
 GameController* GameController::sharedController()
 {
@@ -294,11 +291,12 @@ void GameController::setEcoQoS(bool efficiencyModeRequested)
 {
 #if OOLITE_WINDOWS
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    /*	A paused game a debug console is driving is not idle (bug oo-37zzy). Efficiency mode puts
-            the process in IDLE_PRIORITY_CLASS, which runs only when no other thread wants a CPU: on a
-            loaded machine every frame - and so every console command, serviced between frames - then
-            waited seconds per GL call (measured: 15-60 s a frame; 0.04 s once the class was put back
-            to normal). Stay at normal priority while a console is connected.
+    /*	A paused game a debug console is driving is not idle.
+       Efficiency mode puts the process in IDLE_PRIORITY_CLASS, which runs only
+       when no other thread wants a CPU: on a loaded machine every frame - and so
+       every console command, serviced between frames - then waited seconds per GL
+       call (measured: 15-60 s a frame; 0.04 s once the class was put back to
+       normal). Stay at normal priority while a console is connected.
     */
     if (efficiencyModeRequested && OODebugTCPConsoleIsWaitingForInput())
         return;
@@ -395,7 +393,7 @@ bool GameController::suppressClangStuff()
 
 void GameController::performGameTick()
 {
-    oo::AutoreleaseScope pool; // was an Objective-C autorelease pool (oo-31u.8)
+    oo::AutoreleaseScope pool; // was an Objective-C autorelease pool
 
     if (_gameView != nullptr)
         _gameView->pollControls();
@@ -426,10 +424,11 @@ void GameController::doPerformGameTick()
         if (!gameIsPaused) {
             OOJSFrameCallbacksInvoke(delta_t);
         }
-    } catch (const oo::Exception& exception) // was @catch (id): the game throws only oo::Exception (bead oo-rskgl.1)
+    } catch (const oo::Exception& exception) // was @catch (id): the game throws
+                                             // only oo::Exception
     {
-        // -callStackSymbols is Foundation's; an OOException did not answer it (sending it raised
-        // out of this handler), so name the exception instead (proposed ADR-0037).
+        // -callStackSymbols is Foundation's; an OOException did not answer it
+        // (sending it raised out of this handler), so name the exception instead.
         OO_LOG("exception.backtrace", "{} : {}", exception.name(), exception.reason());
     }
 
@@ -439,7 +438,7 @@ void GameController::doPerformGameTick()
     } catch (...) {
         if (!oo::CurrentOOException())
             throw;
-    } // was @catch (id exception) {}: the game's exceptions only (oo::Exception since oo-rskgl.1)
+    } // was @catch (id exception) {}: the game's exceptions only
 }
 
 void GameController::startAnimationTimer()
@@ -474,7 +473,7 @@ void GameController::performGameTickIfDue()
         next += sGameTickInterval;
     sNextGameTick = next;
 
-    performGameTick(); // the sender it took (the controller's object until bead oo-9ht.164, nil until oo-dbz.2) was unused
+    performGameTick();
 }
 
 void GameController::fireDueDeadlines()
@@ -493,7 +492,7 @@ void GameController::runFrameLoop()
 {
     for (;;) {
         {
-            oo::AutoreleaseScope pool; // was an autorelease-pool block (an Objective-C pool until oo-31u.8)
+            oo::AutoreleaseScope pool; // was an autorelease-pool block
             fireDueDeadlines();
             FireOneDueDeferredCall();
             FireOneDueDeferredCall();
@@ -505,14 +504,14 @@ void GameController::runFrameLoop()
                 wake = NextGameTick();
                 haveWake = true;
             }
-            // The OXZ download's callbacks, which the run loop delivered (proposed ADR-0044).
+            // The OXZ download's callbacks, which the run loop delivered.
             OOOXZManager::sharedManager()->processDownloadEvents();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
             if (OODebugTCPConsoleIsWaitingForInput()) {
-                /*	The debug console's socket is no longer on the run loop (bead oo-3rb.14,
-                        proposed ADR-0041): wait on the socket as the run loop waited on the
-                        console's streams, handling what arrives before the next deadline.
+                /*	The debug console's socket is not on the run loop: wait on the
+                   socket as the run loop waited on the console's streams, handling
+                   what arrives before the next deadline.
                 */
                 double timeout = -1.0;
                 if (haveWake) {
@@ -524,12 +523,12 @@ void GameController::runFrameLoop()
             } else
 #endif
             {
-                /*	Nothing else to wait on now that the run-loop pump is gone (bead oo-3rb.58,
-                        ADR-0033): wait until the next deadline, whole milliseconds rounded up as the
-                        run loop's wait was (not std::this_thread: on this toolchain it sleeps in
-                        15.6 ms steps whatever the timer resolution, measured). With no deadline at
-                        all the pass ends at once, as the run loop returned at once with nothing to
-                        wait on.
+                /*	Nothing else to wait on, as there is no run-loop pump: wait
+                   until the next deadline, whole milliseconds rounded up as the run
+                   loop's wait was (not std::this_thread: on this toolchain it sleeps
+                   in 15.6 ms steps whatever the timer resolution, measured). With no
+                   deadline at all the pass ends at once, as the run loop returned at
+                   once with nothing to wait on.
                 */
                 if (haveWake) {
                     const double remaining = std::chrono::duration<double>(wake - std::chrono::steady_clock::now()).count();
@@ -548,7 +547,7 @@ void GameController::runFrameLoop()
 
 void GameController::applicationDidFinishLaunching()
 {
-    // Was an Objective-C autorelease pool pushed here and popped below (oo-31u.8).
+    // Was an Objective-C autorelease pool pushed here and popped below.
     std::optional<oo::AutoreleaseScope> pool;
     pool.emplace();
 
@@ -633,9 +632,10 @@ void GameController::loadPlayerIfRequired()
             UNIVERSE->useGUILightSource(YES);
         if (UNIVERSE != nullptr)
             UNIVERSE->useGUILightSource(NO);
-        // A copy: loading resets the add-ons, whose demo screen resets _playerFileToLoad, and a
-        // reference into it would dangle while the load still reads it (oo-hpaeu: an ASan
-        // heap-use-after-free; the Objective-C original passed a retained string object).
+        // A copy: loading resets the add-ons, whose demo screen resets
+        // _playerFileToLoad, and a reference into it would dangle while the load
+        // still reads it (an ASan heap-use-after-free; the Objective-C original
+        // passed a retained string object).
         const std::string fileToLoad = *_playerFileToLoad;
         if (PLAYER != nullptr)
             PLAYER->loadPlayerFromFile(fileToLoad, NO);
@@ -646,9 +646,10 @@ void GameController::beginSplashScreen()
 {
 #if !OOLITE_MAC_COCOA_UI
     if (!_gameView) {
-        /*	[[MyOpenGLView alloc] init], whose answer was not kept: a view whose init() fails (SDL could
-                not start) was released, which left _gameView dangling; it is null now, and the sends
-                below are skipped as messages to nil (ADR-0056 amendment oo-9ht.153 item 2).
+        /*	[[MyOpenGLView alloc] init], whose answer was not kept: a view whose
+           init() fails (SDL could not start) was released, which left _gameView
+           dangling; it is null now, and the sends below are skipped as messages to
+           nil.
         */
         _gameView = new ::MyOpenGLView();
         if (!_gameView->init()) {
@@ -665,8 +666,9 @@ void GameController::beginSplashScreen()
 #endif
 }
 
-// The Mac-only methods are in the GameController (MacOSX) category at the end of the file.
-// -snapshotsURLCreatingIfNeeded: is Mac-only: nothing on SDL called it (bead oo-3rb.13).
+// The Mac-only methods are in the GameController (MacOSX) category at the end
+// of the file. -snapshotsURLCreatingIfNeeded: is Mac-only: nothing on SDL
+// called it.
 #if !OOLITE_MAC_COCOA_UI && !OOLITE_SDL
 #error Unknown environment!
 #endif
@@ -810,7 +812,7 @@ void GameController::setPlayerFileToLoad(const std::string& filename)
 std::optional<std::string> GameController::playerFileDirectory()
 {
     if (!_playerFileDirectory.has_value()) {
-        // save-directory via oo::Defaults (ADR-0032 / oo-mwo0 shared store).
+        // save-directory via oo::Defaults (the shared store).
         _playerFileDirectory = oo::Defaults::standard().stringForKey("save-directory");
         if (_playerFileDirectory.has_value() && !oo::fs::fileExists(oo::fs::pathFromUTF8(*_playerFileDirectory))) {
             _playerFileDirectory = std::nullopt;
@@ -867,13 +869,11 @@ void GameController::reportUnhandledStartupExceptionName(const std::string& name
 
 #if OOLITE_MAC_COCOA_UI
 
-/*	The Mac-only methods, gathered verbatim into one category at the end of the file by bead
-        oo-q9l2w (a behaviour-neutral pre-split for the Phase 3 conversion; the Windows/SDL translation
-        unit is token-for-token unchanged): the menu actions, the snapshots-folder and add-ons helpers,
-        the dock menu, -awakeFromNib, the application-delegate methods, and the Mac arms of
-        -performGameTick:, -cxx_exitAppWithContext: and the two debug-progress accessors. The fleet never
-        compiles this block and does not convert it: Phase 5 writes the Mac layer again (ADR-0009;
-        ADR-0056 amendment oo-bgmb item 2; ADR-0043 item 18(b); docs/phases/3-slices/GameController.md).
+/*	The Mac-only methods, gathered into one category at the end of the file:
+   the menu actions, the snapshots-folder and add-ons helpers, the dock menu,
+   -awakeFromNib, the application-delegate methods, and the Mac arms of
+   -performGameTick:, -cxx_exitAppWithContext: and the two debug-progress
+   accessors. This block is not compiled on other platforms.
 */
 @implementation GameController (MacOSX)
 
@@ -900,8 +900,9 @@ void GameController::reportUnhandledStartupExceptionName(const std::string& name
     [[NSWorkspace sharedWorkspace] openFile:oo::NSStringOrNil(cxx_OOLogHandlerGetLogBasePath())];
 }
 
-// Helpers to allow -snapshotsURLCreatingIfNeeded: code to be identical here and in dock tile plug-in.
-// Same domain as the dock tile plug-in: oo::Defaults (backed by the shared store; ADR-0032 / oo-mwo0).
+// Helpers to allow -snapshotsURLCreatingIfNeeded: code to be identical here and
+// in dock tile plug-in. Same domain as the dock tile plug-in: oo::Defaults
+// (backed by the shared store).
 static id GetPreference(const std::string& key)
 {
     return oo::ObjectFromPList(oo::Defaults::standard().object(key));
@@ -1113,7 +1114,8 @@ static void RemovePreference(const std::string& key)
 }
 
 // delegate methods
-- (BOOL)application:(NSApplication*)theApplication openFile:(id)filename // NSApplicationDelegate's selector, shared with AppKit (proposed ADR-0043): an Objective-C string
+- (BOOL)application:(NSApplication*)theApplication openFile:(id)filename // NSApplicationDelegate's selector, shared
+                                                                         // with AppKit: an Objective-C string
 {
     const std::string path = oo::StdString(filename);
     const std::string extension = oo::str::pathExtension(path);
@@ -1175,9 +1177,10 @@ static void SetUpSparkle(void)
 
 namespace {
 
-/*	The out-pointers below point into the exception's name and reason. The Objective-C OOException
-        was autoreleased, so they stayed valid after the handler; the C++ oo::Exception (bead oo-rskgl.1)
-        dies with its handler, so a copy is kept here until the next one (main thread only).
+/*	The out-pointers below point into the exception's name and reason. The
+   Objective-C OOException was autoreleased, so they stayed valid after the
+   handler; the C++ oo::Exception dies with its handler, so a
+   copy is kept here until the next one (main thread only).
 */
 std::optional<oo::Exception> sLastDeferredCallException;
 
@@ -1197,4 +1200,4 @@ bool DeferredCallRunCatching(const std::function<void()>& call, const char** out
     return true;
 }
 
-}
+} // namespace

@@ -2,16 +2,15 @@
 
 OOJSPrivateObject.h
 
-The engine glue for a JS object whose private slot (QuickJS's opaque pointer) holds a C++ object.
-While the slot held an Objective-C object, the engine reached it by selector: -oo_jsValueInContext:
-to wrap it, -oo_clearJSSelf: when the wrapper was finalized, -cxx_oo_jsDescription for toString().
-A converted class whose JS object holds it directly implements OOJSPrivateObject instead, and its
-JS class uses the functions below in place of DEFINE_JS_OBJECT_GETTER, OOJSObjectWrapperFinalize
-and OOJSObjectWrapperToString. The slot holds the object as an oo::RefCounted * with one retain,
-which the finalizer releases.
+The engine glue for a JS object whose private slot (QuickJS's opaque pointer)
+holds a C++ object. A class whose JS object holds it directly implements
+OOJSPrivateObject, and its JS class uses the functions below in place of
+DEFINE_JS_OBJECT_GETTER, OOJSObjectWrapperFinalize and
+OOJSObjectWrapperToString. The slot holds the object as an oo::RefCounted * with
+one retain, which the finalizer releases.
 
-Ownership follows OOJavaScriptEngine.h's conventions: JSValueConst parameters are borrowed,
-returned JSValues are owned by the caller.
+Ownership follows OOJavaScriptEngine.h's conventions: JSValueConst parameters
+are borrowed, returned JSValues are owned by the caller.
 
 Plain C++: nothing here declares or messages an Objective-C class.
 
@@ -35,8 +34,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJSPRIVATEOBJECT_H
-#define OOJSPRIVATEOBJECT_H
+#pragma once
 
 #include "oofnd/Ref.hpp"
 
@@ -101,5 +99,3 @@ void OOJSCxxObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
         an owned string, or JS_EXCEPTION.
 */
 JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal, JSClassID jsClassID);
-
-#endif // OOJSPRIVATEOBJECT_H

@@ -33,19 +33,19 @@ MA 02110-1301, USA.
 
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-bfgm): the whitelist and the used AI names are
-        sorted std::vectors of strings (sets). nameForReverseDependencyForVerifier() is a shared
-        name (the other stages declare it) and, flipped with the others, returns a std::string (bead oo-3rb.274.2).
+/*	The whitelist and the used AI names are sorted std::vectors of strings
+   (sets). nameForReverseDependencyForVerifier() is a shared name (the other
+   stages declare it) and returns a std::string.
 
-        C++20 since bead oo-94qk (proposed ADR-0056 Amendment 1, amendment oo-up4b item 6): a leaf of
-        OOFileHandlingVerifierStage. It is global and has no facade: its one caller,
-        OOCheckShipDataPListVerifierStage, calls these members, and the verifier holds it (as its
-        OOOXPVerifierStage facade until bead oo-9ht.4) and makes it from its name through a table.
+   A leaf of OOFileHandlingVerifierStage. Its one caller,
+   OOCheckShipDataPListVerifierStage, calls these members, and the verifier
+   holds it and makes it from its name through a table.
 */
 class OOAIStateMachineVerifierStage : public OOFileHandlingVerifierStage {
 public:
     // Returns name to be used in dependents() by other stages.
-    static std::string nameForReverseDependencyForVerifier(OOOXPVerifier* verifier); // flipped with its family (bead oo-3rb.274.2)
+    static std::string nameForReverseDependencyForVerifier(
+        OOOXPVerifier* verifier);
 
     // The caller only reports an AI it has a name for (it tested the name against nil).
     void stateMachineNamed(const std::string& name, const std::string& shipName);

@@ -25,6 +25,13 @@ SOFTWARE.
 */
 
 #include "OOALSound.h"
+
+#include <cxxabi.h>
+
+#include <cstdlib>
+#include <string_view>
+#include <typeinfo>
+
 #include "OOALBufferedSound.h"
 #include "OOALSoundDecoder.h"
 #include "OOALSoundMixer.h"
@@ -34,11 +41,6 @@ SOFTWARE.
 #include "OOOpenALController.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/String.hpp"
-
-#include <cstdlib>
-#include <cxxabi.h>
-#include <string_view>
-#include <typeinfo>
 
 static constexpr std::string_view KEY_VOLUME_CONTROL = "volume_control";
 
@@ -59,7 +61,9 @@ bool OOSound::setUp()
         if (controller != nullptr) {
             sIsSoundOK = true;
             oo::Defaults& prefs = oo::Defaults::standard();
-            float volume = prefs.object(std::string(KEY_VOLUME_CONTROL)).isNull() ? 0.5f : prefs.floatForKey(std::string(KEY_VOLUME_CONTROL));
+            float volume = prefs.object(std::string(KEY_VOLUME_CONTROL)).isNull()
+                ? 0.5f
+                : prefs.floatForKey(std::string(KEY_VOLUME_CONTROL));
             setMasterVolume(volume);
         }
     }
@@ -74,12 +78,15 @@ void OOSound::setMasterVolume(float fraction)
 
     fraction = OOClamp_0_1_f(fraction);
 
-    // A null controller answers 0, as a message to nil did (sound set up but refused).
+    // A null controller answers 0, as a message to nil did (sound set up but
+    // refused).
     OOOpenALController* controller = OOOpenALController::sharedController();
     if (fraction != (controller != nullptr ? controller->masterVolume() : 0.0f)) {
         if (controller != nullptr)
             controller->setMasterVolume(fraction);
-        oo::Defaults::standard().setFloat(std::string(KEY_VOLUME_CONTROL), controller != nullptr ? controller->masterVolume() : 0.0f);
+        oo::Defaults::standard().setFloat(
+            std::string(KEY_VOLUME_CONTROL),
+            controller != nullptr ? controller->masterVolume() : 0.0f);
     }
 }
 
@@ -98,11 +105,12 @@ OOSound::OOSound()
         setUp();
 }
 
-/*	The body of -cxx_initWithContentsOfFile: after the receiver's release (the facade's, until bead
-        oo-9ht.68): the concrete sound it makes. The decoder is released at the end of the scope, as
-        [decoder release] did.
+/*	The body of -cxx_initWithContentsOfFile: after the receiver's release:
+   the concrete sound it makes. The decoder is released at the end of the
+   scope, as [decoder release] did.
 */
-oo::Ref<OOSound> OOSound::initWithContentsOfFile(const std::optional<std::string>& path)
+oo::Ref<OOSound> OOSound::initWithContentsOfFile(
+    const std::optional<std::string>& path)
 {
     if (!sIsSoundOK)
         return nullptr;
@@ -124,10 +132,12 @@ oo::Ref<OOSound> OOSound::initWithContentsOfFile(const std::optional<std::string
 
     if (nullptr != self) {
 #ifndef NDEBUG
-        OO_LOG(kOOLogSoundLoadingSuccess, "Loaded sound {}", path.value_or("(null)"));
+        OO_LOG(kOOLogSoundLoadingSuccess, "Loaded sound {}",
+            path.value_or("(null)"));
 #endif
     } else {
-        OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"", path.value_or("(null)"));
+        OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"",
+            path.value_or("(null)"));
     }
 
     return self;
@@ -146,10 +156,7 @@ void OOSound::update()
         mixer->update();
 }
 
-bool OOSound::isSoundOK()
-{
-    return sIsSoundOK;
-}
+bool OOSound::isSoundOK() { return sIsSoundOK; }
 
 ALuint OOSound::soundBuffer()
 {
@@ -157,10 +164,7 @@ ALuint OOSound::soundBuffer()
     return 0;
 }
 
-bool OOSound::soundIncomplete()
-{
-    return false;
-}
+bool OOSound::soundIncomplete() { return false; }
 
 void OOSound::rewind()
 {
@@ -172,7 +176,7 @@ std::optional<std::string> OOSound::descriptionComponents() const
     return std::nullopt;
 }
 
-// The facade's -cxx_description (bead oo-9ht.68 deleted it): the C++ class's name, without a
+// The former facade's -cxx_description: the C++ class's name, without a
 // namespace, its address and its components.
 std::string OOSound::description() const
 {
@@ -184,7 +188,8 @@ std::string OOSound::description() const
     if (colons != std::string::npos)
         name.erase(0, colons + 2);
 
-    std::string result = oo::str::format("<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+    std::string result = oo::str::format(
+        "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
     if (const std::optional<std::string> components = descriptionComponents())
         result += "{" + *components + "}";
     return result;

@@ -45,11 +45,12 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
-/*	The expansion engine works on UTF-16 code units, as it did on the Objective-C string's
-        characters, held in std::u16string; an empty optional stands for nil (bead oo-3rb.61, proposed
-        ADR-0034 decision 4). Text enters and leaves as UTF-8 (WTF-8, lossless: oo::utf8ToUtf16 /
-        oo::utf16ToUtf8). The unmigrated callees (Universe, PlayerEntity, ResourceManager) and the log
-        and JavaScript reports are converted at the call (bead oo-3il6).
+/*	The expansion engine works on UTF-16 code units, as it did on the
+   Objective-C string's characters, held in std::u16string; an empty optional
+   stands for nil. Text enters
+   and leaves as UTF-8 (WTF-8, lossless: oo::utf8ToUtf16 / oo::utf16ToUtf8). The
+   unmigrated callees (Universe, PlayerEntity, ResourceManager) and the log and
+   JavaScript reports are converted at the call.
 */
 typedef std::u16string OOUnits;
 typedef std::optional<std::u16string> OOMaybeUnits;
@@ -144,10 +145,9 @@ OOMaybeUnits ExpandStringKey(OOStringExpansionContext* context, const OOUnits& k
 OOMaybeUnits ExpandStringKeyOverride(OOStringExpansionContext* context, const std::string& key);
 OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context, const std::string& key);
 OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context, const OOUnits& key);
-/*	Key -> method name tables, keyed by the key's UTF-8 (string equality). Were map tables with
-        object keys and non-owned selector values (bead oo-3rb.20); never iterated. The value is the
-        name the method is called by (oo::CallEntityByName): the selector was only ever read back as
-        its name (bead oo-xu228).
+/*	Key -> method name tables, keyed by the key's UTF-8 (string equality).
+   Never iterated. The value is the name the method is called by
+   (oo::CallEntityByName).
 */
 typedef std::map<std::string, std::string, std::less<>> OOSelectorTable;
 
@@ -244,9 +244,11 @@ std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const
     // Was an autorelease-pool block, kept as the C++ pool: what the expander calls by name may defer
     // a release (OOCallByName).
     {
-        oo::AutoreleaseScope pool; // was an Objective-C autorelease pool (oo-31u.8)
-        // TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
-        // (The context's values are C++ now: nothing is left to release if an exception unwinds.)
+        oo::AutoreleaseScope pool; // was an Objective-C autorelease pool
+        // TODO: profile caching the results. Would need to keep track of whether
+        // we've done something nondeterministic (array selection, %R etc). (The
+        // context's values are C++ now: nothing is left to release if an exception
+        // unwinds.)
         OOMaybeUnits intermediate;
         const OOUnits units = oo::utf8ToUtf16(string);
         if (options & kOOExpandKey) {
@@ -352,9 +354,9 @@ OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string, NSUInte
             /*	If replacement string is "\x7F", eat the following character.
                     This is used in system_description for the one empty string
                     in [22]. At the end of the string there is no following
-                    character, and nothing is eaten (bead oo-3rb.69, approved by
-                    Jon 2026-09-29: upstream tested replaceLength < size, which let
-                    idx + replaceLength pass size there and assert below).
+                    character, and nothing is eaten (upstream tested
+                    replaceLength < size, which let idx + replaceLength pass size
+                    there and assert below).
             */
             if (*replacement == u"\x7F" && replaceLength < size) {
                 if (idx + replaceLength < size)
@@ -714,7 +716,8 @@ OOMaybeUnits ExpandStringKeyOverride(OOStringExpansionContext* context, const st
     if (value != nullptr) {
 #if WARNINGS
         if (!value->isString() && !value->isNumber()) {
-            SyntaxWarning(context, "strings.expand.warning.invalidOverride", "String expansion override value %s for [%s] is not a string or number.", oo::DescriptionOf(*value).c_str(), key.c_str()); // the value (was <ClassName 0x...> of its Foundation object, bead oo-qps.50)
+            SyntaxWarning(context, "strings.expand.warning.invalidOverride", "String expansion override value %s for [%s] is not a string or number.", oo::DescriptionOf(*value).c_str(), key.c_str()); // the value (was <ClassName 0x...> of its
+                                                                                                                                                                                                        // Foundation object)
         }
 #endif
         return ValueText(*value);
@@ -823,7 +826,8 @@ OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context, 
         const std::string* text = value.getIf<std::string>();
         if (text == nullptr) {
             // This is out of the scope of whatever triggered it, so shouldn't be a JS warning.
-            OO_LOG_ERR("strings.expand.invalidData", "String expansion value {} for [{}] from descriptions.plist is not a string or number.", oo::DescriptionOf(value), key); // the value (was <ClassName 0x...> of its Foundation object, bead oo-qps.50)
+            OO_LOG_ERR("strings.expand.invalidData", "String expansion value {} for [{}] from descriptions.plist is not a string or number.", oo::DescriptionOf(value), key); // the value (was <ClassName 0x...> of its Foundation
+                                                                                                                                                                              // object)
             return std::nullopt;
         }
 
@@ -841,9 +845,10 @@ OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context, 
 OOMaybeUnits ExpandStringKeyMissionVariable(OOStringExpansionContext* /* context */, const OOUnits& key, const std::string& keyString)
 {
     if (HasPrefix(key, u"mission_")) {
-        // A string variable expands to its text; an unset one to nothing. A variable that is not a
-        // string (an array, from the legacy set-list action) expands as unset: its Objective-C
-        // object was sent -length, which it did not answer (bead oo-qps.50).
+        // A string variable expands to its text; an unset one to nothing. A
+        // variable that is not a string (an array, from the legacy set-list action)
+        // expands as unset: its Objective-C object was sent -length, which it did
+        // not answer.
         const oo::PList value = (PLAYER != nullptr ? PLAYER->missionVariableForKey(keyString) : oo::PList());
         const std::string* text = value.getIf<std::string>();
         return UnitsFromOptional((text != nullptr) ? std::optional<std::string>(*text) : std::nullopt);

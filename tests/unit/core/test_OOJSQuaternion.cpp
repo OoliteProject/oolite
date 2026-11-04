@@ -1,18 +1,15 @@
 /*	test_OOJSQuaternion.mm
-	Unit tests for the Quaternion JS binding (src/Core/Scripting/OOJSQuaternion.h/.mm): bead
-	oo-hwae, converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment
-	oo-ppc).
+	Unit tests for the Quaternion JS binding (src/Core/Scripting/OOJSQuaternion.h/.mm).
 
 	Like test_OOJSVector.mm, it runs the JS class in a real QuickJS-ng context and links the game's
 	own objects for the binding, the Vector3D binding it hands vectors to, the engine's class
 	registry (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the maths
-	they call. What the rest of the engine would
-	provide (error reporting, the argument and string helpers, the Entity class, the profiler and
-	the time limiter) is defined below as the smallest stand-in that does the same thing. The
-	expectations were written against the Objective-C file and run on it first; they pin the
-	JS-visible behaviour: construction, w/x/y/z, every method and static method, the errors,
-	Quaternion.prototype reading as zero, an entity read as its orientation, and how an exception
-	under a native reaches JS. Run: bash tools/check-core-tests.sh
+	they call. What the rest of the engine would provide (error reporting, the argument and string
+	helpers, the Entity class, the profiler and the time limiter) is defined below as the smallest
+	stand-in that does the same thing. The expectations were written against the Objective-C file
+	and run on it first; they pin the JS-visible behaviour: construction, w/x/y/z, every method and
+	static method, the errors, Quaternion.prototype reading as zero, an entity read as its
+	orientation, and how an exception under a native reaches JS. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOJSQuaternion.h"
@@ -151,10 +148,10 @@ JSClassID JSEntityClassID(void)
 }
 
 
-// OOJSEntity.mm's (not linked): the position and orientation of the entity an Entity JS object
-// holds (it was the object, whose -position/-orientation the conversions sent). The test's
-// fake entities are put in the slot themselves; the orientation is the fake's (below). No case converts
-// an entity to a vector here.
+// OOJSEntity.mm's (not linked): the position and orientation of the entity an
+// Entity JS object holds. The test's fake entities are
+// put in the slot themselves; the orientation is the fake's (below). No case
+// converts an entity to a vector here.
 HPVector OOJSEntityPositionOfJSObject(JSContext *, JSValueConst)  { std::abort(); }
 Quaternion OOJSEntityOrientationOfJSObject(JSContext *context, JSValueConst object);
 
@@ -186,12 +183,11 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 #endif
 
 
-/*	An entity, as far as the conversion sees one: a JS object of the Entity class whose private
-	slot holds something that has an -orientation. A fake entity
-	made with orientation w = -1 raises from -orientation, one made with w = -2 throws a C++
-	exception, so the test sees what an exception under a native becomes. C++ since bead oo-4aq6a.11
-	(it was rooted on the Objective-C root class OOObject, which Phase 4 deletes); its selector is a
-	member of the same name.
+/*	An entity, as far as the conversion sees one: a JS object of the Entity
+   class whose private slot holds something that has an -orientation. A fake
+   entity made with orientation w = -1 raises from -orientation, one made with w
+   = -2 throws a C++ exception, so the test sees what an exception under a
+   native becomes. Its selector is a member of the same name.
 */
 class FakeEntity final : public oo::RefCounted
 {
@@ -220,8 +216,8 @@ Quaternion OOJSEntityOrientationOfJSObject(JSContext *, JSValueConst object)
 
 Universe *gSharedUniverse = nil;	// OOJSVector.mm's coordinate-system methods read it; not called here
 
-// Link stubs, never reached: OOJSVector.mm's coordinate-system methods call them on the universe,
-// which stays nil here (bead oo-ql9rn: they were messages to nil).
+// Link stubs, never reached: OOJSVector.mm's coordinate-system methods call
+// them on the universe, which stays nil here (they were messages to nil).
 HPVector Universe::legacyPositionFrom(HPVector, const std::string &)  { std::abort(); }
 HPVector Universe::coordinatesFromCoordinateSystemString(const std::string &)  { std::abort(); }
 

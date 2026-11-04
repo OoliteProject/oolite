@@ -2,10 +2,9 @@
 
 AIGraphViz.h
 
-GenerateGraphVizForAIStateMachine(), defined in AIGraphViz.mm (DEBUG_GRAPHVIZ builds only). It
-was declared by an extern in AI.mm; the Foundation sweep of AI.mm (bead oo-3rb.87) moved the
-declaration here, next to its definition. AIGraphViz.mm's own sweep (bead oo-ndxe) gave it the
-C++ types AI.mm holds the state machine in.
+GenerateGraphVizForAIStateMachine(), defined in AIGraphViz.mm (DEBUG_GRAPHVIZ
+builds only). It is declared here, next to its definition, and uses the C++
+types AI.mm holds the state machine in.
 
 
 Oolite
@@ -28,8 +27,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef AIGRAPHVIZ_H
-#define AIGRAPHVIZ_H
+#pragma once
 
 #if DEBUG_GRAPHVIZ
 
@@ -39,5 +37,3 @@ MA 02110-1301, USA.
 void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine, const std::string& smName);
 
 #endif // DEBUG_GRAPHVIZ
-
-#endif // AIGRAPHVIZ_H

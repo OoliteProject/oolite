@@ -43,7 +43,7 @@ def _desktop_lock_helper():
 
 @pytest.fixture(scope="session")
 def desktop_lock():
-    """Hold the interactive-desktop mutex for the whole session (bug oo-ccy9).
+    """Hold the interactive-desktop mutex for the whole session.
 
     This tier is "headless" only in the sense that nothing clicks it. On Windows
     ``SDL_VIDEODRIVER=offscreen`` is deliberately left unset (console.py::_env - MSYS2's Mesa
@@ -163,10 +163,10 @@ def world(app_dir, console_port, desktop_lock, tmp_path, request):
     """One game per scenario, killed unconditionally at the end.
 
     ``desktop_lock`` is named here rather than used: depending on it is what makes every scenario
-    in this tier run under the interactive-desktop mutex (bug oo-ccy9).
+    in this tier run under the interactive-desktop mutex.
 
     The timeout is enforced by a watchdog thread rather than a signal: SIGALRM does not exist on
-    Windows, and this tier runs natively on Windows (ADR-0017).
+    Windows, and this tier runs natively on Windows.
     """
     w = World(app_dir, console_port, str(tmp_path))
 

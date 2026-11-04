@@ -24,8 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OCTREE_H
-#define OCTREE_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
@@ -49,9 +48,8 @@ public:
     /*
             initWithDictionary()
 
-            Deserialize an octree from cache representation; null if it is not a valid one.
-            (To make a new octree, build it with OOOctreeBuilder.)
-            (bead oo-3rb.292.1; the id -initWithDictionary: that forwarded to it retired with oo-qps.44.)
+            Deserialize an octree from cache representation; null if it is not a
+       valid one. (To make a new octree, build it with OOOctreeBuilder.)
     */
     static oo::Ref<Octree> initWithDictionary(const oo::PList& dictionary);
 
@@ -111,7 +109,7 @@ enum {
 
 class OOOctreeBuilder : public oo::RefCounted {
 public:
-    OOOctreeBuilder(); // -init; raises OOMallocException if it cannot allocate (ADR-0056 amendment oo-44gg)
+    OOOctreeBuilder(); // -init; raises OOMallocException if it cannot allocate
     ~OOOctreeBuilder() override;
 
     /*
@@ -150,7 +148,7 @@ private:
         uint32_t remaining;
     };
 
-    // The file-static helpers that read the builder's state (ADR-0056 amendment oo-44gg item 4).
+    // The file-static helpers that read the builder's state.
     static OOOctreeBuildState* State(OOOctreeBuilder* self);
     static void SetNode_slow(OOOctreeBuilder* self, uint32_t index, int value) NO_INLINE_FUNC;
     static void SetNode(OOOctreeBuilder* self, uint32_t index, int value);
@@ -161,5 +159,3 @@ private:
     OOOctreeBuildState _stateStack[kMaxOctreeDepth + 1] = { };
     uint8_t _level = { };
 };
-
-#endif // OCTREE_H

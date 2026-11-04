@@ -66,10 +66,10 @@ OOOpenGLMatrixManager* GameViewMatrixManager()
 
 } // namespace
 
-/*	Cache key -> program, not retained: a program removes itself in its destructor. Was an
-        Objective-C mutable dictionary of boxed values (bead oo-3rb.10); keys are the cache keys' UTF-8.
-        Allocated on first use and never freed, as the dictionary was, so a program destroyed
-        during exit never finds it destroyed.
+/*	Cache key -> program, not retained: a program removes itself in its
+   destructor. Was an Objective-C mutable dictionary of boxed values; keys are
+   the cache keys' UTF-8. Allocated on first use and never freed, as the
+   dictionary was, so a program destroyed during exit never finds it destroyed.
 */
 namespace {
 
@@ -90,8 +90,8 @@ void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program)
     (*sShaderCache)[cacheKey] = program;
 }
 
-/*	The program in use, retained (sActiveProgram). Never destroyed, as the static pointer was not
-        (proposed ADR-0056, amendment oo-smy item 3).
+/*	The program in use, retained (sActiveProgram). Never destroyed, as the
+   static pointer was not.
 */
 oo::Ref<OOShaderProgram>& ActiveProgram()
 {
@@ -425,7 +425,7 @@ void OOShaderProgram::bindStandardMatrixUniforms()
 
         OO_ENTER_OPENGL();
 
-        // Null-guarded as messages to nil: nothing synced, and a zero matrix (amendment oo-vt0o item 3).
+        // Null-guarded as messages to nil: nothing synced, and a zero matrix.
         if (matrixManager != nullptr)
             matrixManager->syncModelView();
         for (const oo::PList& pair : *standardMatrixUniformLocations.getIf<oo::PList::Array>()) {

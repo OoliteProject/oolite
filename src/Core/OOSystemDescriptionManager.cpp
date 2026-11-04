@@ -49,12 +49,13 @@ namespace {
 
 constexpr const char* kOOSystemLayerProperty = "layer";
 
-// A layer number read from data, as an OOSystemLayer. 0-3 are the layers themselves; anything
-// else (only a hand-edited saved game gives one) takes the rule -setProperties:inDescription:
-// applies to a bad layer number, OO_LAYER_OXP_PRIORITY, read as the enum's own unsigned
-// underlying type would read it, so a negative number is a large one. Clamping as an integer
-// means the enum is only ever given one of its own values; the bare cast this replaces was
-// undefined for any other value and then indexed past layers[] (bead oo-2eby).
+// A layer number read from data, as an OOSystemLayer. 0-3 are the layers
+// themselves; anything else (only a hand-edited saved game gives one) takes the
+// rule -setProperties:inDescription: applies to a bad layer number,
+// OO_LAYER_OXP_PRIORITY, read as the enum's own unsigned underlying type would
+// read it, so a negative number is a large one. Clamping as an integer means
+// the enum is only ever given one of its own values; the bare cast this
+// replaces was undefined for any other value and then indexed past layers[].
 OOSystemLayer OOSystemLayerFromNumber(unsigned int number)
 {
     return (number > OO_LAYER_OXP_PRIORITY) ? OO_LAYER_OXP_PRIORITY : static_cast<OOSystemLayer>(number);
@@ -297,7 +298,11 @@ oo::PList OOSystemDescriptionManager::getPropertiesForCurrentSystem()
 {
     OOSystemID s = (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
     if (s >= 0) {
-        NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber() : OOGalaxyID { }) * OO_SYSTEMS_PER_GALAXY) + s; // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
+        NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber()
+                                               : OOGalaxyID { })
+                               * OO_SYSTEMS_PER_GALAXY)
+            + s; // qualified: the final overrider, so the binding
+                 // test stands in for it
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));
             return oo::PList(oo::PList::Dict());
@@ -522,7 +527,11 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForCurrentSystem()
         return kNilRandomSeed;
     } else {
         OOSystemID s = (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
-        NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber() : OOGalaxyID { }) * OO_SYSTEMS_PER_GALAXY) + s; // qualified: the final overrider (bead oo-9ht.177), so the binding test stands in for it
+        NSUInteger index = ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber()
+                                               : OOGalaxyID { })
+                               * OO_SYSTEMS_PER_GALAXY)
+            + s; // qualified: the final overrider, so the binding
+                 // test stands in for it
         if (index >= OO_SYSTEM_CACHE_LENGTH) {
             OO_LOG("system.description.error", "'{}' is an invalid system index for the current system. This is an internal error. Please report it.", static_cast<size_t>(index));
             return kNilRandomSeed;

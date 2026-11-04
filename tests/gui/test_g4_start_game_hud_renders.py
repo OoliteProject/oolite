@@ -61,7 +61,7 @@ than passing it.
 
     python3 -m pytest oolite-dev/tests/gui/test_g4_start_game_hud_renders.py -x -q
 
-Needs the desktop: a real window, unlocked and logged in (ADR-0017). It takes tools/gui-lock for
+Needs the desktop: a real window, unlocked and logged in. It takes tools/gui-lock for
 the duration, via the ``game`` fixture - this file launches nothing of its own.
 """
 
@@ -474,7 +474,7 @@ def test_the_row_occupancy_threshold_separates_text_from_the_cursor(tmp_path):
 def test_g4_asserts_the_hud_and_both_screens_and_cannot_be_satisfied_by_liveness():
     """AST, not text: the docstring above names every symbol, so a grep would stay green.
 
-    The defect class is oo-07s/oo-5rsa one level up - a guard a comment can satisfy. Each rule
+    The defect class is a guard a comment can satisfy. Each rule
     below therefore demands an ``assert`` STATEMENT that REACHES the named call.
     """
     with open(os.path.join(HERE, os.path.basename(__file__)), "r", encoding="utf-8") as handle:

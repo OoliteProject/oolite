@@ -1,30 +1,27 @@
 /*	test_OOExhaustPlumeEntity.mm
 	Unit tests for OOExhaustPlumeEntity (src/Core/Entities/OOExhaustPlumeEntity.h), the engine
-	plumes ships carry as subentities: bead oo-y86f, a leaf of the Entities seam with a facade
-	(proposed ADR-0056, amendments oo-bj8 item 12, oo-0mxi and oo-2c6g).
+	plumes ships carry as subentities.
 
 	The entity reads Universe and its ship, so the test links the whole game but main (['*']) and
 	uses a Universe that was never initialised, subclassed to answer the time the test sets, a
 	plain entity as PLAYER, and as the ship an entity that answers the ShipEntity selectors the
-	plume sends (a C++ ship stand-in since bead oo-9ht.144). The RNG is seeded, as the game seeds it, so the plume's random fluctuations repeat.
-	The expectations were written against the Objective-C API and run on the unconverted class
-	first: a plume is made for its ship from six tokens (position and scale, scaled by the ship's
-	scale but for the scale's z, which outside 0.5..2 is 1), and from none is nil; its scale
-	accessors; it is an exhaust (and an entity is not); its collision radius is what -update: last
-	measured; -update: does nothing without a visible ship, measures nothing below a minimal speed,
-	and otherwise measures the plume (the value the Objective-C class computed is pinned);
+	plume sends (a C++ ship stand-in). The RNG is seeded, as the game seeds it, so the plume's
+	random fluctuations repeat. The tests cover: a plume is made for its ship from six tokens
+	(position and scale, scaled by the ship's scale but for the scale's z, which outside 0.5..2 is
+	1), and from none is nil; its scale accessors; it is an exhaust (and an entity is not); its
+	collision radius is what -update: last measured; -update: does nothing without a visible ship,
+	measures nothing below a minimal speed, and otherwise measures the plume (the value is pinned);
 	-rescaleBy: scales it and -rescaleBy:writeToCache: does nothing; and its texture is loaded
 	once, by name (the loader replaced as in test_OOParticleSystem). The collision radius is set
 	through the one helper below. The plumes are made as the ship makes them (exhaustForShip(), then
-	oo::NewEntityFacade). The Objective-C facade is deleted: the cases ask the C++ class what they
-	asked the facade, with every expectation kept, except the facade's own class check; the facade
-	case pins the crossing instead (the object is the root's facade, whose C++ part is the plume),
-	and jsExtensions pins that the engine's selectors reach the C++ class's overrides through the root.
+	oo::NewEntityFacade). The cases ask the C++ class; the facade case pins the crossing (the
+	object is the root's facade, whose C++ part is the plume), and jsExtensions pins that the
+	engine's selectors reach the C++ class's overrides through the root.
 	Run: bash tools/check-core-tests.sh
 */
 
 #include "OOExhaustPlumeEntity.h"
-#include "PlayerEntity.h"	// PLAYER is C++ (bead oo-9ht.177)
+#include "PlayerEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSExhaustPlume.h"
@@ -49,14 +46,14 @@ extern PlayerEntity *gOOPlayer;
 extern Universe *gSharedUniverse;
 
 
-class TestPlayer : public PlayerEntity	// C++ since bead oo-9ht.177 deleted the Objective-C player
+class TestPlayer : public PlayerEntity
 {
 public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>() (bead oo-9ht.177): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// the game's, retained (+1) as +alloc's object was.
 template <class T>
 T *NewTestPlayer()
 {
@@ -76,11 +73,13 @@ public:
 };
 
 
-/*	The plume's ship: answers what the plume asks a ShipEntity. C++ since bead oo-9ht.144 deleted the
-	Objective-C ship: the plume calls the ship's members, so the stand-in is a C++ ship (never set
-	up) that overrides the one virtual member it answered (isVisible()) and whose fields give the
-	same answers from the others (not suppressing notifications, the emissive colour, the three
-	vectors, no damage, the speed factor and the flight speed a hundred times it).
+/*	The plume's ship: answers what the plume asks a ShipEntity. The plume
+   calls the ship's members, so the stand-in is a C++ ship (never set up) that
+   overrides the one
+   virtual member it answered (isVisible()) and whose fields give the same
+   answers from the others (not suppressing notifications, the emissive colour,
+   the three vectors, no damage, the speed factor and the flight speed a hundred
+   times it).
 */
 class TestShip : public ::ShipEntity
 {
@@ -103,7 +102,7 @@ TestUniverse *sUniverse = nil;
 std::optional<std::string> sTextureName;
 OOTexture *sTexture = nullptr;	// never released
 
-// OOTexture::nameFactory, the test-only loader hook, where the facade's class method was replaced.
+// OOTexture::nameFactory, the test-only loader hook.
 oo::Ref<OOTexture> LoadTexture(const std::optional<std::string> &name, const std::optional<std::string> &, OOTextureFlags, GLfloat, GLfloat)
 {
 	sTextureName = name;
@@ -124,9 +123,8 @@ void SetUp(OOTimeAbsolute time)
 	static TestPlayer *player = nullptr;
 	if (player == nullptr)  player = NewTestPlayer<TestPlayer>();
 	gOOPlayer = player;
-	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request on the main
-	// thread's context, so there is one, with nothing in it (the ship stand-in is C++ since bead
-	// oo-9ht.144, as test_StationEntity's ships are).
+	// The ship's -dealloc sends its (absent) scripts entityDestroyed in a request
+  // on the main thread's context, so there is one, with nothing in it.
 	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 	ranrot_srand(12345);
 }
@@ -192,7 +190,7 @@ OO_TEST(made)
 		OO_CHECK(plume->owner() == ship);
 		OO_CHECK(HPvector_equal(plume->getPosition(), make_HPvector(2, 4, 6)));
 		OO_CHECK(VectorIs(plume->scale(), 8, 10, 1.5f));	// z is not scaled
-		// The category -isExhaust went with the facade: callers ask the C++ part.
+    // Callers ask the C++ part.
 		OO_CHECK(plume->isExhaust() && dynamic_cast<OOExhaustPlumeEntity *>(ship) == nullptr);
 		OO_CHECK(plume->findCollisionRadius() == 0.0);
 
@@ -296,10 +294,9 @@ OO_TEST(facade)
 {
 	{
 		SetUp(0.0);
-		// The object is the root's facade, the nearest left, whose C++ part is the plume: a C++
-		// entity (amendment oo-0mxi), not an Objective-C entity's adapter.
+		// The object is the root's facade, whose C++ part is the plume: a C++
+    // entity.
 		Entity *object = oo::MadeEntity(OOExhaustPlumeEntity::exhaustForShip(oo::ToShip(Ship()), { "0", "0", "0", "1", "1", "1" }, 1.0f));
-		// (Its object's class, the root facade, was checked here: retired with the facade, under oo-9n5p9.)
 		OO_CHECK(dynamic_cast<OOExhaustPlumeEntity *>(object) != nullptr);
 		OO_CHECK(object == object);
 	}
@@ -320,9 +317,8 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carried from bead oo-9ht.48 and the C++ class's overrides
-// of the root's JS members carry since the facade's deletion: what the engine asks a plume's object
-// for by selector is what OOJSExhaustPlume.mm answers.
+// The C++ class's overrides of the root's JS members: what the engine asks a
+// plume's object for by selector is what OOJSExhaustPlume.mm answers.
 OO_TEST(jsExtensions)
 {
 	{

@@ -25,19 +25,13 @@ SOFTWARE.
 
 */
 
-#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it (bead oo-dbz)
+#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOJSFont.h"
 #include "OOJSEngineCore.h"
 #include "OOStringWidth.h"
 
 #include <algorithm>
 #include <optional>
-
-/*
-        It is plain C++ (bead oo-ptv5, ADR-0012): it includes the engine's C++ header
-        OOJSEngineCore.h and OOStringWidth.h (oo-9ht.72), and MIN became std::min on the same
-        operands.
-*/
 
 static JSValue FontMeasureString(OOJS_NATIVE_ARGS);
 

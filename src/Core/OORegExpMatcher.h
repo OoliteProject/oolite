@@ -8,10 +8,7 @@ of Objective-C regexp support. Not thread-safe.
 If we had a performance-critical need for regexps, I'd want a real library,
 but this will do for light usage.
 
-C++20 since bead oo-ct7c (proposed ADR-0056). Its Objective-C facade was deleted by bead
-oo-9ht.12 (ADR-0056 amendment "deleting a facade"): the class is global, and a caller that wants
-one matcher across several matches holds the Ref (amendment oo-ct7c item 3).
-
+A caller that wants one matcher across several matches holds the Ref.
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -35,8 +32,7 @@ SOFTWARE.
 
 */
 
-#ifndef OOREGEXPMATCHER_H
-#define OOREGEXPMATCHER_H
+#pragma once
 
 #include "OOFoundation.h"
 #include "OOJSEngineCore.h" // OOJSValue, which the matcher holds
@@ -58,23 +54,23 @@ public:
     */
     static oo::Ref<OORegExpMatcher> regExpMatcher();
 
-    // Strings are UTF-8 (Foundation sweep, proposed ADR-0043). The Objective-C string category
-    // -oo_matchesRegularExpression: was [[OORegExpMatcher regExpMatcher] string:self matchesExpression:regExp];
-    // its callers now send that message themselves.
+    // Strings are UTF-8. The Objective-C string category
+    // -oo_matchesRegularExpression: was [[OORegExpMatcher regExpMatcher]
+    // string:self matchesExpression:regExp]; its callers now send that message
+    // themselves.
     bool string(const std::string& string, const std::string& regExp);
     bool string(const std::string& string, const std::string& regExp, NSUInteger flags);
 
     ~OORegExpMatcher() override;
 
 private:
-    // The old -init, which could fail (proposed ADR-0056 amendment oo-r7m0 item 2): regExpMatcher()
-    // calls it right after making the object, and drops the object when it returns false.
+    // The old -init, which could fail: regExpMatcher()
+    // calls it right after making the object, and drops the object when it
+    // returns false.
     bool init();
 
     oo::Ref<OOJSFunction> _tester = { };
-    std::optional<std::string> _cachedRegExpString = { }; // UTF-8; nullopt: nothing cached (proposed ADR-0043)
+    std::optional<std::string> _cachedRegExpString = { }; // UTF-8; nullopt: nothing cached
     oo::Ref<OOJSValue> _cachedRegExpObject = { };
     NSUInteger _cachedFlags = { };
 };
-
-#endif // OOREGEXPMATCHER_H

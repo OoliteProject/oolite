@@ -1,6 +1,5 @@
 /*	test_OOEquipmentType.mm
-	Unit tests for OOEquipmentType (src/Core/OOEquipmentType.h) and its Objective-C facade:
-	bead oo-fg7i (Phase 3, proposed ADR-0056).
+	Unit tests for OOEquipmentType (src/Core/OOEquipmentType.h).
 
 	An equipment type is read from an equipment.plist entry, [tech level, price, name, key,
 	description, {extra info}]: the implied attributes of missiles, mines, the berth removal and fuel;
@@ -10,13 +9,11 @@
 	missing a name, key or description are refused. The class keeps the registry of types (the main
 	and outfitting data sets, by identifier) and the missile registry.
 
-	The game around it is replaced (ADR-0056 amendments oo-zffj, oo-8kx7): UNIVERSE hands out the
-	equipment data below, the cache manager, script loader and player answer from fields and record
-	what they are asked, and the standards and legacy-condition functions are test replacements.
-	OOColor is the game's own. The expectations were written against the Objective-C class and run
-	on it first; since its facade was deleted (bead oo-9ht.28) they ask the C++ class, and the last
-	tests pin the C++ API and that a registered type outlives the autorelease pool, as ships rely
-	on (the facade-contract cases went with the facade, standing approval oo-9n5p9).
+	The game around it is replaced: UNIVERSE hands out the equipment data below, the cache manager,
+	script loader and player answer from fields and record what they are asked, and the standards
+	and legacy-condition functions are test replacements. OOColor is the game's own. The tests ask
+	the C++ class, and the last tests pin the C++ API and that a registered type outlives the
+	autorelease pool, as ships rely on.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -98,9 +95,8 @@ oo::PList EquipmentData()
 
 }	// namespace
 
-
-// The universe as the code under test sees it: a stand-in for the C++ class (its Objective-C facade,
-// deleted, was what this stood in for), with the header's names and signatures.
+// The universe as the code under test sees it: a stand-in for the C++ class,
+// with the header's names and signatures.
 class Universe
 {
 public:
@@ -117,8 +113,7 @@ Universe *gSharedUniverse = nil;
 
 #include "OOCacheManager.h"
 
-// The cache manager is C++ since its facade was deleted: a C++ stand-in with the Objective-C
-// stand-in's answers.
+// The cache manager: a C++ stand-in.
 OOCacheManager *OOCacheManager::sharedCache()
 {
 	static OOCacheManager *shared = new OOCacheManager;
@@ -136,8 +131,8 @@ void OOCacheManager::setPList(const oo::PList &value, const std::string &key, co
 #include "OOScript.h"
 
 
-// OOScript's members that OOEquipmentType.mm calls (the Objective-C OOScript stand-in until bead
-// oo-9ht.133 deleted the facade), and the rest of its virtual members, for the vtable.
+// OOScript's members that OOEquipmentType.mm calls, and the rest of its
+// virtual members, for the vtable.
 std::optional<std::string> OOScript::descriptionComponents()	{ return std::nullopt; }
 std::optional<std::string> OOScript::name()					{ return std::nullopt; }
 std::optional<std::string> OOScript::scriptDescription()		{ return std::nullopt; }
@@ -159,10 +154,10 @@ oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, c
 }
 
 
-// Keys come back as given; "taken" is in use by "compass"; mission_TL_FOR_EQ_SHIELD_BOOSTER is 7.
-// PLAYER: C++ since bead oo-9ht.177 deleted the Objective-C player this stood in for; the members
-// the code under test calls, declared as PlayerEntity.h declares them (the test imports no game
-// header that defines the class), with the same answers.
+// Keys come back as given; "taken" is in use by "compass";
+// mission_TL_FOR_EQ_SHIELD_BOOSTER is 7. PLAYER: the members the code under
+// test calls, declared as PlayerEntity.h declares them (the test imports no
+// game header that defines the class), with the same answers.
 class PlayerEntity
 {
 public:
@@ -438,8 +433,8 @@ OO_TEST(cxxClass)
 
 OO_TEST(objectNode)
 {
-	// A type is its own PList Object node payload (bead oo-9ht.28), as its facade was the node's
-	// object: the node gives the same type back, and describes it as "%@" printed the facade.
+	// A type is its own PList Object node payload: the node gives the same type
+  // back, and describes it as "%@" printed it.
 	{
 		Reset();
 		OOEquipmentType::loadEquipment();
@@ -459,7 +454,7 @@ OO_TEST(objectNode)
 OO_TEST(facadeIdentity)
 {
 	OOEquipmentType *fuel = nil;
-	oo::Ref<OOColor> blue;	// the C++ colour since bead oo-9ht.1
+	oo::Ref<OOColor> blue;	// the C++ colour
 	{
 		Reset();
 		OOEquipmentType::loadEquipment();
@@ -482,8 +477,8 @@ OO_TEST(facadeIdentity)
 }
 
 
-// The JS glue of OOEquipmentType (OOJSPrivateObject), defined in OOJSEquipmentInfo.mm, which
-// this test does not link (bead oo-6symp.3): the vtable names these.
+// The JS glue of OOEquipmentType (OOJSPrivateObject), defined in
+// OOJSEquipmentInfo.mm, which this test does not link: the vtable names these.
 JSValue OOEquipmentType::jsValueInContext(JSContext *)  { return JS_UNDEFINED; }
 void OOEquipmentType::clearJSSelf(JSValueConst)  {}
 std::optional<std::string> OOEquipmentType::jsDescription()  { return std::nullopt; }

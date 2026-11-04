@@ -2,12 +2,11 @@
 
 OOJavaScriptEngineMonitor.h
 
-The JavaScript engine's debugging "monitor": the object the engine gives its errors, warnings and
-log messages to (in Oolite, the debug monitor). It was the Objective-C protocol
-OOJavaScriptEngineMonitor, adopted by the debug monitor's facade and sent after
--respondsToSelector:; it is a C++ interface, with the same two messages as members. The engine
-borrows its monitor (the debug monitor lives as long as the process; a caller keeps its monitor
-alive while it is set).
+The JavaScript engine's debugging "monitor": the object the engine gives its
+errors, warnings and log messages to (in Oolite, the debug monitor). It is a C++
+interface with two messages as members. The engine borrows its monitor (the
+debug monitor lives as long as the process; a caller keeps its monitor alive
+while it is set).
 
 
 Oolite
@@ -30,8 +29,7 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOJAVASCRIPTENGINEMONITOR_H
-#define OOJAVASCRIPTENGINEMONITOR_H
+#pragma once
 
 #include <quickjs.h>
 
@@ -64,5 +62,3 @@ public:
 protected:
     ~OOJavaScriptEngineMonitor() = default; // never deleted through the interface
 };
-
-#endif // OOJAVASCRIPTENGINEMONITOR_H

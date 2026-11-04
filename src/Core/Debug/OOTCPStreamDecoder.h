@@ -28,8 +28,7 @@ SOFTWARE.
 
 */
 
-#ifndef INCLUDED_OOTCPStreamDecoder_h
-#define INCLUDED_OOTCPStreamDecoder_h
+#pragma once
 
 #include "OOTCPStreamDecoderAbstractionLayer.h"
 
@@ -52,5 +51,3 @@ void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder, const void* b
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* INCLUDED_OOTCPStreamDecoder_h */

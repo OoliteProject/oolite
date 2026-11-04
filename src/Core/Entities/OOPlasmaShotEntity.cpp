@@ -2,7 +2,7 @@
 
 OOPlasmaShotEntity.m
 
-C++20 since bead oo-z9md (see OOPlasmaShotEntity.h). The bodies are the Objective-C ones: a
+See OOPlasmaShotEntity.h. The bodies are the Objective-C ones: a
 message to self is a member call, [super ...] the base's member, and the universe and the entity
 hit are handed the shot (its C++ entity).
 
@@ -79,7 +79,7 @@ bool OOPlasmaShotEntity::canCollide()
     return (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) > getSpawnTime() + kPlasmaShotActivationDelay;
 }
 
-// The other entity's members (its object's until the root facade went); null answers as a message to nil did.
+// The other entity's members; null answers as a message to nil did.
 bool OOPlasmaShotEntity::checkCloseCollisionWith(Entity* otherEntity)
 {
     return ((otherEntity != nullptr ? otherEntity->rootShipEntity() : nullptr) != ownerEntity()) && !(otherEntity != nullptr && otherEntity->isEffect());

@@ -25,27 +25,31 @@ SOFTWARE.
 
 */
 
-#define OO_PLAIN_CPP_UNIT 1 // a plain C++ unit: the shared headers' game-unit parts stay out of it (bead oo-dbz)
+#define OO_PLAIN_CPP_UNIT \
+    1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOPixMapChannelOperations.h"
-#include "OOCPUInfoEndian.h"
-#include "OOFunctionAttributes.h"
-#include "OOPixMap.h"
-#include "oofnd/objc/OOAssert.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 
+#include "OOCPUInfoEndian.h"
+#include "OOFunctionAttributes.h"
+#include "OOPixMap.h"
+#include "oofnd/objc/OOAssert.h"
+
 namespace {
 void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex);
 void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx);
 void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx);
-void ModulateUniform_4(OOPixMap pixMap, uint16_t f0, uint16_t f1, uint16_t f2, uint16_t f3);
+void ModulateUniform_4(OOPixMap pixMap, uint16_t f0, uint16_t f1, uint16_t f2,
+    uint16_t f3);
 void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx);
 void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx);
-}
+} // namespace
 
-bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex, bool compactWhenDone)
+bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex,
+    bool compactWhenDone)
 {
     if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) || ioPixMap->format != kOOPixMapRGBA || channelIndex > 3)) {
         return false;
@@ -85,7 +89,7 @@ void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex)
         } while (--xCount);
     }
 }
-}
+} // namespace
 
 bool OOPixMapToRGBA(OOPixMap* ioPixMap)
 {
@@ -94,7 +98,8 @@ bool OOPixMapToRGBA(OOPixMap* ioPixMap)
     if (ioPixMap->format == kOOPixMapRGBA)
         return true;
 
-    OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height, (OOPixMapFormat)4, 0, 0);
+    OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height,
+        (OOPixMapFormat)4, 0, 0);
     if (EXPECT_NOT(OOIsNullPixMap(temp)))
         return false;
 
@@ -130,7 +135,8 @@ bool OOPixMapToRGBA(OOPixMap* ioPixMap)
 namespace {
 void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
 {
-    OOCParameterAssert(OOPixMapBytesPerPixel(srcPx) == 1 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
+    OOCParameterAssert(
+        OOPixMapBytesPerPixel(srcPx) == 1 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 
     uint8_t* src;
     uint32_t* dst;
@@ -147,12 +153,13 @@ void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
         } while (--xCount);
     }
 }
-}
+} // namespace
 
 namespace {
 void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx)
 {
-    OOCParameterAssert(OOPixMapBytesPerPixel(srcPx) == 2 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
+    OOCParameterAssert(
+        OOPixMapBytesPerPixel(srcPx) == 2 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 
     uint16_t* src;
     uint32_t px;
@@ -177,22 +184,25 @@ void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx)
         } while (--xCount);
     }
 }
-}
+} // namespace
 
-bool OOPixMapModulateUniform(OOPixMap* ioPixMap, float f0, float f1, float f2, float f3)
+bool OOPixMapModulateUniform(OOPixMap* ioPixMap, float f0, float f1, float f2,
+    float f3)
 {
     if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
         return false;
     if (EXPECT_NOT(!OOPixMapToRGBA(ioPixMap)))
         return false;
 
-    ModulateUniform_4(*ioPixMap, f0 * 256.0f, f1 * 256.0f, f2 * 256.0f, f3 * 256.0f);
+    ModulateUniform_4(*ioPixMap, f0 * 256.0f, f1 * 256.0f, f2 * 256.0f,
+        f3 * 256.0f);
 
     return true;
 }
 
 namespace {
-void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1, uint16_t f0)
+void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1,
+    uint16_t f0)
 {
     OOCParameterAssert(OOPixMapBytesPerPixel(pixMap) == 4);
 
@@ -233,7 +243,7 @@ void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1, u
         } while (--xCount);
     }
 }
-}
+} // namespace
 
 bool OOPixMapModulatePixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap)
 {
@@ -293,7 +303,7 @@ void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx)
         } while (--xCount);
     }
 }
-}
+} // namespace
 
 bool OOPixMapAddPixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap)
 {
@@ -350,4 +360,4 @@ void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx)
         } while (--xCount);
     }
 }
-}
+} // namespace

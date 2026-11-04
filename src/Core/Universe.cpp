@@ -51,7 +51,6 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 
 #include "CollisionRegion.h"
-#include "OODebugSupport.h"
 #include "OOEntityFilterPredicate.h"
 #include "OOGraphicsResetManager.h"
 #include "Octree.h"
@@ -80,7 +79,7 @@ MA 02110-1301, USA.
 #include "OOMusicController.h"
 #include "OOObjCPList.h"
 #include "OOOpenGL.h"
-#include "OOPlanetDrawable.h" // oo::makeRef<OOPlanetEntity>() destroys its drawables (bead oo-9ht.129)
+#include "OOPlanetDrawable.h" // oo::makeRef<OOPlanetEntity>() destroys its drawables
 #include "OOPlanetEntity.h"
 #include "OORingEffectEntity.h"
 #include "OOScriptTimer.h"
@@ -147,24 +146,25 @@ const GLuint framebufferQuadIndices[] = {
 Universe* gSharedUniverse = nil;
 
 extern Entity* gOOJSPlayerIfStale;
-Entity* gOOJSPlayerIfStale = nullptr; // the player's C++ entity (bead oo-9ht.39.25)
+Entity* gOOJSPlayerIfStale = nullptr; // the player's C++ entity
 
 static BOOL MaintainLinkedLists(Universe* uni);
 namespace {
 OOINLINE BOOL EntityInRange(HPVector p1, Entity* e2, float range);
-} // (the C++ entity since bead oo-9ht.39.26)
+} // namespace
 
 /* TODO: route calculation is really slow - find a way to safely enable this */
 #undef CACHE_ROUTE_FROM_SYSTEM_RESULTS
 
 namespace {
 
-// The saved detailLevel preference as an OOGraphicsDetail. 0-3 are the levels themselves; any other
-// number becomes DETAIL_LEVEL_MAXIMUM, which is what -setDetailLevelDirectly: made of it: the bare
-// cast this replaces handed the enum (underlying type unsigned int on this toolchain) an
-// out-of-range value, a negative one as a large unsigned number, and the setter clamped anything
-// >= DETAIL_LEVEL_MAXIMUM to it. Clamping as an integer means the enum only ever holds one of its
-// own values (the same idiom as OOSystemLayerFromNumber, bead oo-2eby).
+// The saved detailLevel preference as an OOGraphicsDetail. 0-3 are the levels
+// themselves; any other number becomes DETAIL_LEVEL_MAXIMUM, which is what
+// -setDetailLevelDirectly: made of it: the bare cast this replaces handed the
+// enum (underlying type unsigned int on this toolchain) an out-of-range value,
+// a negative one as a large unsigned number, and the setter clamped anything
+// >= DETAIL_LEVEL_MAXIMUM to it. Clamping as an integer means the enum only
+// ever holds one of its own values (the same idiom as OOSystemLayerFromNumber).
 OOGraphicsDetail OOGraphicsDetailFromNumber(unsigned int number)
 {
     return (number > DETAIL_LEVEL_MAXIMUM) ? DETAIL_LEVEL_MAXIMUM : static_cast<OOGraphicsDetail>(number);
@@ -174,18 +174,19 @@ OOGraphicsDetail OOGraphicsDetailFromNumber(unsigned int number)
 oo::PList PListForKeyIn(const oo::PList& dict, std::string_view key);
 std::string ExpandKeyWith(const std::string& key, const char* name, const oo::PList& value);
 
-// -addObject: on a set of held entities (identity, as Entity keeps NSObject's -isEqual:; bead
-// oo-9ht.39.26): once each, in the order added, the entity's object retained once. (Its form over
-// Objective-C object references had no caller left and went with them, bead oo-dbz.2.)
+// -addObject: on a set of held entities (identity, as Entity keeps NSObject's
+// -isEqual:): once each, in the order added, the entity's
+// object retained once.
 void AddIfAbsent(std::vector<oo::EntityHold>& entities, Entity* entity)
 {
     if (std::find(entities.begin(), entities.end(), entity) == entities.end())
         entities.emplace_back(entity);
 }
 
-// An autoreleased list of held entities (bead oo-9ht.39.26): each hold's reference to the entity's
-// object goes to the autorelease pool (retained, autoreleased, then the hold's own released),
-// which releases it when it drains (the list itself released them then). The list is left empty.
+// An autoreleased list of held entities: each hold's
+// reference to the entity's object goes to the autorelease pool (retained,
+// autoreleased, then the hold's own released), which releases it when it drains
+// (the list itself released them then). The list is left empty.
 void AutoreleaseAll(std::vector<oo::EntityHold>& entities)
 {
     for (const oo::EntityHold& entity : entities)
@@ -247,10 +248,11 @@ bool BeaconCodeMatches(const std::optional<std::string>& beaconCode, const std::
 
 }
 
+// namespace
+
 //------------------------------------------------------------------------------------//
-//	The class (slice 1 of docs/phases/3-slices/Universe.md and the slices after it): Universe's
-//	members. The Objective-C facade's initialiser and -dealloc are newUniverse() and the destructor
-//	(bead oo-ql9rn).
+//	The class: Universe's members. The Objective-C facade's initialiser and
+//-dealloc are newUniverse() and the destructor.
 
 Universe::Universe()
 {
@@ -443,9 +445,9 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView)
     _doingStartUp = NO;
 }
 
-/*	-dealloc's body, run by the destructor (it was the facade's, bead oo-ql9rn deleted the facade,
-        Universe+ObjCBridge.mm): what the universe still owns (the property lists, the names) is released
-        then, as the runtime released the ivars after -dealloc.
+/*	-dealloc's body, run by the destructor: what the universe still
+   owns (the property lists, the names) is released then, as the runtime
+   released the ivars after -dealloc.
 */
 void Universe::dealloc()
 {
@@ -593,10 +595,11 @@ BOOL IsCandidateMainStationPredicate(Entity* entity, void* /*parameter*/)
 
 BOOL IsFriendlyStationPredicate(Entity* entity, void* parameter)
 {
-    return entity->getIsStation() && !oo::ToShip(entity)->isHostileTo(static_cast<Entity*>(parameter)); // the C++ entity since bead oo-9ht.39.26	// [entity isStation], -isHostileTo:
+    return entity->getIsStation() && !oo::ToShip(entity)->isHostileTo(static_cast<Entity*>(parameter)); // the C++ entity //
+                                                                                                        // [entity isStation], -isHostileTo:
 }
 
-} // namespace	(the two predicates joined it when their signatures changed, bead oo-9ht.39.23: misc-use-anonymous-namespace)
+} // namespace
 
 #define PROFILE_SHIP_SELECTION 0
 
@@ -626,7 +629,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
     // DEBUG check for loops and short lists
     if (uni->n_entities > 0) {
         int n;
-        Entity *checkEnt, *last; // C++ parts (bead oo-9ht.39.4)
+        Entity *checkEnt, *last; // C++ parts
 
         last = nil;
 
@@ -1108,15 +1111,13 @@ std::vector<std::string> CachedConditionScripts(const std::string& key)
 
 } // namespace
 
-/*	The custom-sound categories of OOSound and OOSoundSource on converted classes' facades
-        (slice 26 of docs/phases/3-slices/Universe.md, bead oo-32kcu): their bodies are free functions,
-        which the categories forwarded to from Universe+ObjCBridge.mm (ADR-0056 amendments oo-6ia4
-        item 3, oo-9fwb, oo-7jhs5) until beads oo-9ht.68 and oo-9ht.88 deleted the two facades; the
-        callers call them.
+/*	The custom-sound categories of OOSound and OOSoundSource on converted
+   classes' facades: their bodies are free functions, which the callers call.
 */
 
-// +[OOSound cxx_soundWithCustomSoundKey:]: the sound for a customsounds.plist key, borrowed (the
-// resource manager's cache keeps it; was autoreleased); null for none.
+// +[OOSound cxx_soundWithCustomSoundKey:]: the sound for a customsounds.plist
+// key, borrowed (the resource manager's cache keeps it; was autoreleased); null
+// for none.
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& key)
 {
     const std::optional<std::string> fileName = OOUniverseSoundNameForCustomSoundKey(key);
@@ -1236,9 +1237,8 @@ passed:
     return cxx_OOLookUpDescriptionPRIV(oo::str::format("%s%%%ld", key.c_str(), index));
 }
 
-// Slice 3 of docs/phases/3-slices/Universe.md (bead oo-ef6rc): pause and quit, carrying the player
-// on, set-up from station / witchspace / misjump, witchspace and planet set-up. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendment oo-27jxj).
+// Pause and quit, carrying the player on, set-up from station / witchspace /
+// misjump, witchspace and planet set-up.
 
 void Universe::pauseGame()
 {
@@ -1438,7 +1438,7 @@ void Universe::setUpUniverseFromStation()
 void Universe::setUpUniverseFromWitchspace()
 {
     ::PlayerEntity* player;
-    ::ShipEntity* playerObject; // the player's Objective-C object (the ship's facade, bead oo-9ht.177)
+    ::ShipEntity* playerObject; // the player's Objective-C object
 
     //
     // check the player is still around!
@@ -1479,7 +1479,7 @@ void Universe::setUpUniverseFromWitchspace()
 void Universe::setUpUniverseFromMisjump()
 {
     ::PlayerEntity* player;
-    ::ShipEntity* playerObject; // the player's Objective-C object (the ship's facade, bead oo-9ht.177)
+    ::ShipEntity* playerObject; // the player's Objective-C object
 
     //
     // check the player is still around!
@@ -1520,7 +1520,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2)
 {
     // new system is hyper-centric : witchspace exit point is origin
 
-    Entity* thing; // its object retained by hand where +alloc's was (bead oo-9ht.39.26)
+    Entity* thing; // its object retained by hand where +alloc's was
     ::PlayerEntity* player = PLAYER;
     Quaternion randomQ;
 
@@ -1537,7 +1537,8 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2)
     oo::Ref<OOColor> col1 = OOColor::colorWithRed(0.0, 1.0, 0.5, 1.0);
     oo::Ref<OOColor> col2 = OOColor::colorWithRed(0.0, 1.0, 0.0, 1.0);
     {
-        // The sky is C++ (bead oo-9ht.109): its object first, retained as +alloc's was, then the body.
+        // The sky is C++: its object first, retained as +alloc's was, then the
+        // body.
         oo::Ref<::SkyEntity> skyRef = oo::makeRef<::SkyEntity>();
         thing = oo::RetainEntity(oo::MadeEntity(skyRef)); // alloc retains!
         skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
@@ -1598,8 +1599,8 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2)
     (*planetDict.getIf<oo::PList::Dict>())["mainForLocalSystem"] = oo::PList(true);
     ::OOPlanetEntity* a_planet = nullptr;
     {
-        // +alloc/-initFromDictionary:withAtmosphere:andSeed:forSystem:: a new C++ planet and its
-        // Objective-C object, +1 (the facade went with bead oo-9ht.129).
+        // +alloc/-initFromDictionary:withAtmosphere:andSeed:forSystem:: a new C++
+        // planet and its Objective-C object, +1.
         oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
         oo::RetainEntity(oo::MadeEntity(planetRef));
         planetRef->initFromDictionary(planetDict, planetDict.get<bool>("has_atmosphere", YES), systemSeed, systemID);
@@ -1632,18 +1633,16 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2)
     return a_planet;
 }
 
-// Slice 4 of docs/phases/3-slices/Universe.md (bead oo-ni9u8): setUpSpace, populating normal space,
-// the system populator. The facade forwarded each selector (until oo-ql9rn); sends to self
-// were sends (ADR-0056 amendment oo-27jxj).
+// setUpSpace, populating normal space, the system populator.
 
 /* At any time other than game start, any call to this must be followed
  * by populateNormalSpace(). However, at game start, they need to be
  * separated to allow Javascript startUp routines to be run in-between */
 void Universe::setUpSpace()
 {
-    Entity* thing; // its object retained by hand where +alloc's was (bead oo-9ht.39.26)
+    Entity* thing; // its object retained by hand where +alloc's was
     //	ShipEntity			*nav_buoy;
-    ::ShipEntity* stationObject; // the station's object (the ship's facade since bead oo-9ht.175), retained
+    ::ShipEntity* stationObject; // the station's object, retained
     ::StationEntity* a_station;
     ::OOSunEntity* a_sun;
     ::OOPlanetEntity* a_planet;
@@ -1700,7 +1699,8 @@ void Universe::setUpSpace()
     float h2 = h1 + 1.0 / (1.0 + (Ranrot() % 5));
     while (h2 > 1.0)
         h2 -= 1.0;
-    float s1 = randf(); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+    float s1 = randf(); // one draw per local, in the order Clang evaluates the
+                        // arguments
     double b1 = 0.5 + randf() / 2.0;
     oo::Ref<OOColor> col1 = OOColor::colorWithHue(h1, s1, b1, 1.0);
     double s2 = 0.5 + randf() / 2.0;
@@ -1708,7 +1708,8 @@ void Universe::setUpSpace()
     oo::Ref<OOColor> col2 = OOColor::colorWithHue(h2, s2, b2, 1.0);
 
     {
-        // The sky is C++ (bead oo-9ht.109): its object first, retained as +alloc's was, then the body.
+        // The sky is C++: its object first, retained as +alloc's was, then the
+        // body.
         oo::Ref<::SkyEntity> skyRef = oo::makeRef<::SkyEntity>();
         thing = oo::RetainEntity(oo::MadeEntity(skyRef)); // alloc retains!
         skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
@@ -1730,7 +1731,8 @@ void Universe::setUpSpace()
     if (!dict_object.isNull()) {
         bgcolor = OOColor::colorWithDescription(dict_object);
     } else {
-        double saturation = 0.75 * randf(); // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+        double saturation = 0.75 * randf(); // one draw per local, in the order
+                                            // Clang evaluates the arguments
         double brightness = 0.65 + randf() / 5.0;
         bgcolor = OOColor::colorWithHue(h1, saturation, brightness, 1.0);
     }
@@ -1839,8 +1841,8 @@ void Universe::setUpSpace()
     OO_LOG("planetinfo.record", "sun_color = {}", (bgcolor != nullptr ? bgcolor->descriptionComponents() : std::nullopt).value_or("(null)"));
 #endif
     {
-        // +alloc/-initSunWithColor:andDictionary:: a new C++ sun and its Objective-C object, +1 (the
-        // facade went with bead oo-9ht.111).
+        // +alloc/-initSunWithColor:andDictionary:: a new C++ sun and its
+        // Objective-C object, +1.
         oo::Ref<OOSunEntity> sunRef = oo::makeRef<OOSunEntity>();
         oo::RetainEntity(oo::MadeEntity(sunRef)); // alloc retains!
         sunRef->initSunWithColor(bgcolor.get(), sun_dict);
@@ -2119,9 +2121,7 @@ void Universe::populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPla
     deterministic_population = NO;
 }
 
-// Slice 5 of docs/phases/3-slices/Universe.md (bead oo-d0i7y): locations by code, lighting, adding
-// ships by role, coordinate systems. The facade forwarded each selector (until oo-ql9rn);
-// sends to self were sends (ADR-0056 amendment oo-27jxj).
+// Locations by code, lighting, adding ships by role, coordinate systems.
 
 /* Generates a position within one of the named regions:
  *
@@ -2257,7 +2257,7 @@ void Universe::setLighting()
     GLfloat sun_ambient[] = { 0.0, 0.0, 0.0, 1.0 }; // overridden later in code
     int i;
 
-    // The sky is C++ since bead oo-9ht.109: found by its C++ part (it was -isKindOfClass:).
+    // The sky is C++: found by its C++ part.
     for (i = n_entities - 1; i > 0; i--)
         if (sortedEntities[i] != nil)
             if (::SkyEntity* sky = dynamic_cast<::SkyEntity*>(sortedEntities[i]))
@@ -2432,7 +2432,7 @@ HPVector Universe::coordinatesForPosition(HPVector pos, const std::string& syste
         return pos;
     }
     HPVector w_pos = getWitchspaceExitPosition(); // don't reset PRNG
-    HPVector p_pos = the_planet->position; // the planet is C++ since bead oo-9ht.129
+    HPVector p_pos = the_planet->position;
     HPVector s_pos = the_sun->position;
 
     const char* c_sys = l_sys.c_str();
@@ -2532,9 +2532,8 @@ std::optional<std::string> Universe::expressPosition(HPVector pos, const std::st
     return oo::str::format("%s %.2f %.2f %.2f", system.c_str(), result.x, result.y, result.z);
 }
 
-// Slice 6 of docs/phases/3-slices/Universe.md (bead oo-15e3o): legacy positions, adding ships at /
-// near positions and in boxes, spawning, visual effects. The facade forwarded each selector
-// (until oo-ql9rn); sends to self were sends (ADR-0056 amendment oo-27jxj).
+// Legacy positions, adding ships at / near positions and in boxes, spawning,
+// visual effects.
 
 HPVector Universe::legacyPositionFrom(HPVector pos, const std::string& system)
 {
@@ -2547,7 +2546,7 @@ HPVector Universe::legacyPositionFrom(HPVector pos, const std::string& system)
         return pos;
     }
     HPVector w_pos = getWitchspaceExitPosition(); // don't reset PRNG
-    HPVector p_pos = the_planet->position; // the planet is C++ since bead oo-9ht.129
+    HPVector p_pos = the_planet->position;
     HPVector s_pos = the_sun->position;
 
     const char* c_sys = l_sys.c_str();
@@ -2982,7 +2981,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
 
     // minimise the time between creating ship & assigning position.
 
-    Entity* vis = newVisualEffectWithName(key); // is retained (the effect's object, bead oo-9ht.165)
+    Entity* vis = newVisualEffectWithName(key); // is retained (the effect's object)
     BOOL success = NO;
     if (vis != nullptr) {
         vis->setPosition(pos);
@@ -2997,10 +2996,9 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key)
     OOJS_PROFILE_EXIT
 }
 
-// Slice 7 of docs/phases/3-slices/Universe.md (bead oo-49wmm): adding ships within a radius and on
-// routes, role categories, witchspace entries and effects, break patterns, the docking clearance
-// protocol, game over. The facade forwarded each selector (until oo-ql9rn); sends to self
-// were sends (ADR-0056 amendment oo-27jxj).
+// Adding ships within a radius and on routes, role categories, witchspace
+// entries and effects, break patterns, the docking clearance protocol, game
+// over.
 
 ::ShipEntity* Universe::addShipAt(HPVector pos, const std::string& role, GLfloat radius)
 {
@@ -3136,7 +3134,7 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route, 
     std::vector<oo::EntityHold> ships;
     ships.reserve(count);
     ::ShipEntity* ship = nil;
-    Entity* entity = nullptr; // the planet or the sun (bead oo-9ht.39.26)
+    Entity* entity = nullptr; // the planet or the sun
     HPVector pos = kZeroHPVector, direction = kZeroHPVector, point0 = kZeroHPVector, point1 = kZeroHPVector;
     double radius = 0;
 
@@ -3147,26 +3145,26 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route, 
     // which route is it?
     if (route == "wp" || route == "pw") {
         point0 = getWitchspaceExitPosition();
-        entity = planet(); // the planet is C++ since bead oo-9ht.129
+        entity = planet();
         if (entity == nil)
             return { };
         point1 = entity->getPosition();
         radius = OOStellarBodyRadius(entity);
     } else if (route == "ws" || route == "sw") {
         point0 = getWitchspaceExitPosition();
-        entity = sun(); // the sun is C++ since bead oo-9ht.111
+        entity = sun();
         if (entity == nil)
             return { };
         point1 = entity->getPosition();
         radius = OOStellarBodyRadius(entity);
     } else if (route == "sp" || route == "ps") {
-        entity = sun(); // the sun is C++ since bead oo-9ht.111
+        entity = sun();
         if (entity == nil)
             return { };
         point0 = entity->getPosition();
         double radius0 = OOStellarBodyRadius(entity);
 
-        entity = planet(); // the planet is C++ since bead oo-9ht.129
+        entity = planet();
         if (entity == nil)
             return { };
         point1 = entity->getPosition();
@@ -3230,8 +3228,7 @@ void Universe::forceWitchspaceEntries()
         if (sortedEntities[i]->isShip) {
             ::ShipEntity* my_ship = oo::ToShip(sortedEntities[i]);
             Entity* my_target = oo::WithObject((my_ship != nullptr ? my_ship->primaryTarget() : (Entity*)nullptr));
-            if (my_target != nullptr && my_target->getIsWormhole()) // what -isWormhole forwarded to (bead oo-dpyk8)
-            {
+            if (my_target != nullptr && my_target->getIsWormhole()) {
                 if (my_ship != nullptr)
                     my_ship->enterTargetWormhole();
             } else if ((my_ship != nullptr && my_ship->getAI() != nullptr ? my_ship->getAI()->state() : std::optional<std::string>()) == "ENTER_WORMHOLE") {
@@ -3382,9 +3379,7 @@ void Universe::handleGameOver()
     }
 }
 
-// Slice 8 of docs/phases/3-slices/Universe.md (bead oo-m0rz6): the intro and demo ships, the ship
-// library text, station and planet look-ups. The facade forwarded each selector
-// (until oo-ql9rn); sends to self were sends (ADR-0056 amendment oo-27jxj).
+// The intro and demo ships, the ship library text, station and planet look-ups.
 
 void Universe::setupIntroFirstGo(bool justCobra)
 {
@@ -3762,7 +3757,7 @@ void Universe::selectIntro2Next()
 {
     // In interstellar space we select a random friendly carrier as mainStation.
     // No caching: friendly status can change!
-    return oo::ToStation(findOneEntityMatchingPredicate(IsFriendlyStationPredicate, static_cast<Entity*>(ship))); // the C++ entity (bead oo-9ht.39.26)
+    return oo::ToStation(findOneEntityMatchingPredicate(IsFriendlyStationPredicate, static_cast<Entity*>(ship)));
 }
 
 ::OOPlanetEntity* Universe::planet()
@@ -3791,10 +3786,8 @@ std::vector<oo::EntityHold> Universe::stations()
     return allStations;
 }
 
-// Slice 9 of docs/phases/3-slices/Universe.md (bead oo-hkvet): wormholes, the main station,
-// beacons, waypoints, sky colour, the break pattern, making ships by role and name, default AIs,
-// cargo capacity. The facade forwarded each selector (until oo-ql9rn); sends to self were
-// sends (ADR-0056 amendment oo-27jxj).
+// Wormholes, the main station, beacons, waypoints, sky colour, the break
+// pattern, making ships by role and name, default AIs, cargo capacity.
 
 std::vector<oo::EntityHold> Universe::wormholes()
 {
@@ -3822,8 +3815,9 @@ void Universe::unMagicMainStation()
     cachedStation = nil;
 }
 
-// The beacon list holds the C++ entities (bead oo-9ht.39.26): the links are still each beacon's
-// own, set and read through its object's messages (oo::PrevBeacon() and the rest, Entity+ObjCBridge).
+// The beacon list holds the C++ entities: the links are still each beacon's
+// own, set and read through its object's messages (oo::PrevBeacon() and the
+// rest, Entity+ObjCBridge).
 void Universe::resetBeacons()
 {
     Entity *beaconShip = firstBeacon(), *next = nullptr;
@@ -3870,7 +3864,7 @@ void Universe::setLastBeacon(Entity* beacon)
 
 void Universe::setNextBeacon(Entity* beacon)
 {
-    // The C++ entity (beads oo-9ht.39.8.10, oo-9ht.39.26).
+    // The C++ entity.
     if (oo::EntityIsBeacon(beacon)) {
         setLastBeacon(beacon);
         if (firstBeacon() == nullptr)
@@ -3882,7 +3876,7 @@ void Universe::setNextBeacon(Entity* beacon)
 
 void Universe::clearBeacon(Entity* beacon)
 {
-    // The C++ entity (beads oo-9ht.39.8.10, oo-9ht.39.26).
+    // The C++ entity.
     Entity* tmp = nullptr;
 
     if (oo::EntityIsBeacon(beacon)) {
@@ -3898,7 +3892,8 @@ void Universe::clearBeacon(Entity* beacon)
             oo::SetPrevBeacon(oo::NextBeacon(beacon), oo::PrevBeacon(beacon));
             oo::SetNextBeacon(oo::PrevBeacon(beacon), oo::NextBeacon(beacon));
         }
-        oo::SetBeaconCode(beacon, std::nullopt); // not nil: nil built a std::string from a null char* (bead oo-2o5x)
+        oo::SetBeaconCode(beacon, std::nullopt); // not nil: nil built a std::string from a
+                                                 // null char*
     }
 }
 
@@ -3909,7 +3904,7 @@ std::map<std::string, oo::EntityHold, std::less<>> Universe::currentWaypoints()
 
 void Universe::defineWaypoint(const oo::PList& definition, const std::string& key)
 {
-    Entity* waypoint = nullptr; // the C++ waypoint (bead oo-9ht.39.26; its object is the root's facade since bead oo-9ht.108)
+    Entity* waypoint = nullptr; // the C++ waypoint
     BOOL preserveCompass = NO;
     const auto existing = waypoints.find(key);
     if (existing != waypoints.end())
@@ -4123,7 +4118,7 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
     OOJS_PROFILE_ENTER
 
     oo::PList effectDict;
-    Entity* effect = nullptr; // the effect, its object +1 (beads oo-9ht.165, oo-9ht.39.26)
+    Entity* effect = nullptr; // the effect, its object +1
 
     effectDict = OOShipRegistry::sharedRegistry()->effectInfoForKey(effectKey);
     if (effectDict.isNull())
@@ -4172,8 +4167,8 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
     if (shipDict.isNull())
         return nil;
 
-    volatile BOOL makeStation = NO; // a station is made in C++ since bead oo-9ht.175 (it was its class)
-    volatile BOOL makeProxy = NO; // a proxy is made in C++ since bead oo-9ht.183 (it was its class)
+    volatile BOOL makeStation = NO;
+    volatile BOOL makeProxy = NO;
     if (!isSubentity) {
         makeStation = isStationShipDictionary(shipDict);
         if (usePlayerProxy && !makeStation) {
@@ -4183,7 +4178,7 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
 
     try {
         if (scale != 1.0f) {
-            // a copy with the scale, a float as +numberWithFloat: stored it (ADR-0043 item 15)
+            // a copy with the scale, a float as +numberWithFloat: stored it
             (*shipDict.getIf<oo::PList::Dict>())["model_scale_factor"] = oo::PList::singleReal(scale);
         }
         if (makeProxy) {
@@ -4228,10 +4223,10 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey)
 
     try {
         if (scale != 1.0f) {
-            // a copy with the scale, a float as +numberWithFloat: stored it (ADR-0043 item 15)
+            // a copy with the scale, a float as +numberWithFloat: stored it
             (*shipDict.getIf<oo::PList::Dict>())["model_scale_factor"] = oo::PList::singleReal(scale);
         }
-        dock = ::DockEntity::newDockObject(shipDataKey, shipDict); // [[DockEntity alloc] cxx_initWithKey:definition:] until bead oo-9ht.180
+        dock = ::DockEntity::newDockObject(shipDataKey, shipDict);
     } catch (...) {
         const auto exception = oo::CurrentOOException();
         if (!exception)
@@ -4292,10 +4287,8 @@ OOCargoQuantity Universe::maxCargoForShip(const std::string& desc)
     return OOShipRegistry::sharedRegistry()->shipInfoForKey(desc).get<unsigned int>("max_cargo", 0);
 }
 
-// Slice 10 of docs/phases/3-slices/Universe.md (bead oo-e9enf): equipment prices, commodities and
-// cargo pods, the game view and controller, settings, entity lighting, the active view matrix. The
-// facade forwarded each selector (until oo-ql9rn); sends to self were sends (ADR-0056
-// amendment oo-27jxj).
+// Equipment prices, commodities and cargo pods, the game view and controller,
+// settings, entity lighting, the active view matrix.
 
 /*
  * Price for an item expressed in 10ths of credits (divide by 10 to get credits)
@@ -4469,7 +4462,8 @@ OOCargoQuantity Universe::getRandomAmountOfCommodity(const std::string& co_type)
         return 1 + (Ranrot() % 6) + (Ranrot() % 6) + (Ranrot() % 6);
     case 2: // GRAMS
         return 4 + (Ranrot() % 16) + (Ranrot() % 11) + (Ranrot() % 6);
-    case UNITS_UNKNOWN: // not a unit (ADR-0036): warned about below, as any other value was
+    case UNITS_UNKNOWN: // not a unit: warned about below, as any other value
+                        // was
         break;
     }
     OO_LOG("universe.commodityAmount.warning", "Commodity {} has an unrecognised mass unit, assuming tonnes", co_type);
@@ -4710,13 +4704,13 @@ OOMatrix Universe::activeViewMatrix()
     return m;
 }
 
-// Slice 11 of docs/phases/3-slices/Universe.md (bead oo-8rsqz): the view frustum. The facade
-// forwarded each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendment
-// oo-27jxj).
+// The view frustum.
 
-/* Code adapted from http://www.crownandcutlass.com/features/technicaldetails/frustum.html
- * Original license is: "This page and its contents are Copyright 2000 by Mark Morley
- * Unless otherwise noted, you may use any and all code examples provided herein in any way you want."
+/* Code adapted from
+ * http://www.crownandcutlass.com/features/technicaldetails/frustum.html
+ * Original license is: "This page and its contents are Copyright 2000 by Mark
+ * Morley Unless otherwise noted, you may use any and all code examples provided
+ * herein in any way you want."
  */
 
 void Universe::defineFrustum()
@@ -4817,9 +4811,7 @@ bool Universe::viewFrustumIntersectsSphereAt(Vector position, GLfloat radius)
     return YES;
 }
 
-// Slice 12 of docs/phases/3-slices/Universe.md (bead oo-9lucq): drawUniverse, framebuffer
-// preparation, frame counters, the view matrix. The facade forwarded each selector
-// (until oo-ql9rn); sends to self were sends (ADR-0056 amendment oo-27jxj).
+// drawUniverse, framebuffer preparation, frame counters, the view matrix.
 
 void Universe::drawUniverse()
 {
@@ -4847,7 +4839,7 @@ void Universe::drawUniverse()
             Vector view_dir, view_up;
             OOMatrix view_matrix;
             int ent_count = n_entities;
-            std::vector<Entity*> my_entities(ent_count); // each one's object retained and autoreleased (bead oo-9ht.39.26)
+            std::vector<Entity*> my_entities(ent_count); // each one's object retained and autoreleased
             int draw_count = 0;
             ::PlayerEntity* player = PLAYER;
             Entity* drawthing = nullptr;
@@ -5291,9 +5283,8 @@ OOMatrix Universe::getViewMatrix()
     return viewMatrix;
 }
 
-// Slice 13 of docs/phases/3-slices/Universe.md (bead oo-0uz9w): messages and the watermark, entity
-// look-up, the linked lists, adding and removing entities, demo ships. The facade forwarded each
-// selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendment oo-27jxj).
+// Messages and the watermark, entity look-up, the linked lists, adding and
+// removing entities, demo ships.
 
 void Universe::drawMessage()
 {
@@ -5398,7 +5389,7 @@ bool Universe::addEntity(Entity* entity)
             if (oo::EntityIsShip(entity)) {
                 se = oo::ToShip(entity);
                 if ((se != nullptr ? se->isBeacon() : false)) {
-                    setNextBeacon(se); // the C++ ship (bead oo-9ht.39.8.10)
+                    setNextBeacon(se);
                 }
                 if ((se != nullptr ? se->getIsStation() : false)) {
                     // check if it is a proper rotating station (ie. roles contains the word "station")
@@ -5433,10 +5424,10 @@ bool Universe::addEntity(Entity* entity)
             }
         } else {
             entity->setUniversalID(NO_TARGET);
-            if (entity->getIsVisualEffect() || entity->isWaypoint()) // (an effect, else a waypoint: the same, bead oo-9ht.39.26)
+            if (entity->getIsVisualEffect() || entity->isWaypoint()) // (an effect, else a waypoint: the same)
             {
                 if (oo::EntityIsBeacon(entity)) {
-                    setNextBeacon(entity); // the C++ effect or waypoint (bead oo-9ht.39.26)
+                    setNextBeacon(entity); // the C++ effect or waypoint
                 }
             }
         }
@@ -5477,9 +5468,9 @@ bool Universe::addEntity(Entity* entity)
         }
 
         if (entity->getIsWormhole()) {
-            activeWormholes.emplace_back(entity); // the wormhole's Objective-C object (C++ since bead oo-9ht.112)
+            activeWormholes.emplace_back(entity); // the wormhole's Objective-C object
         } else if (oo::EntityIsPlanet(entity)) {
-            allPlanets.emplace_back(entity); // the planet's Objective-C object (C++ since bead oo-9ht.129)
+            allPlanets.emplace_back(entity); // the planet's Objective-C object
         } else if (oo::EntityIsShip(entity)) {
             if (se != nullptr && se->getAI() != nullptr)
                 se->getAI()->setOwner(se);
@@ -5517,8 +5508,8 @@ bool Universe::removeEntity(Entity* entity)
 
 void Universe::ensureEntityReallyRemoved(Entity* entity)
 {
-    // Its log line ("universe.unremovedEntity") is the facade's -dealloc's, which describes the object
-    // before calling this (bead oo-9ht.39.26): the peer map no longer answers the dying object there.
+    // Its log line ("universe.unremovedEntity") describes the object before
+    // calling this: the peer map no longer answers the dying object there.
     if (entity->getUniversalID() != NO_TARGET) {
         doRemoveEntity(entity);
     }
@@ -5585,9 +5576,7 @@ void Universe::removeDemoShips()
     demo_ship = nil;
 }
 
-// Slice 14 of docs/phases/3-slices/Universe.md (bead oo-7jhs5): making demo ships, safe vectors, hazards on route, wreckage, laser hits. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Making demo ships, safe vectors, hazards on route, wreckage, laser hits.
 
 ::ShipEntity* Universe::makeDemoShipWithRole(const std::string& role, bool spinning)
 {
@@ -5656,7 +5645,7 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2)
 
     int i;
     int ent_count = n_entities;
-    std::vector<Entity*> my_entities(ent_count); // each one's object retained (bead oo-9ht.39.26)
+    std::vector<Entity*> my_entities(ent_count); // each one's object retained
     for (i = 0; i < ent_count; i++)
         my_entities[i] = oo::RetainEntity(sortedEntities[i]); //	retained
 
@@ -5701,7 +5690,8 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2)
     return YES;
 }
 
-// The C++ entity, and its hazard's (bead oo-9ht.39.8.6): the list is still walked on the entities' objects.
+// The C++ entity, and its hazard's: the list is still walked on the entities'
+// objects.
 Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist, HPVector p2)
 {
     if (!e1)
@@ -5722,7 +5712,7 @@ Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist, HPVector p2)
     Entity* result = nullptr;
     int i;
     int ent_count = n_entities;
-    std::vector<Entity*> my_entities(ent_count); // each one's object retained (bead oo-9ht.39.26)
+    std::vector<Entity*> my_entities(ent_count); // each one's object retained
     for (i = 0; i < ent_count; i++)
         my_entities[i] = oo::RetainEntity(sortedEntities[i]); //	retained
 
@@ -5764,7 +5754,7 @@ Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist, HPVector p2)
     return result;
 }
 
-// The C++ entity (bead oo-9ht.39.8.6): the list is still walked on the entities' objects.
+// The C++ entity: the list is still walked on the entities' objects.
 HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist, HPVector p2)
 {
     // heuristic three
@@ -5778,7 +5768,7 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist, HPVector p2)
     HPVector result = p2;
     int i;
     int ent_count = n_entities;
-    std::vector<Entity*> my_entities(ent_count); // each one's object retained (bead oo-9ht.39.26)
+    std::vector<Entity*> my_entities(ent_count); // each one's object retained
     for (i = 0; i < ent_count; i++)
         my_entities[i] = oo::RetainEntity(sortedEntities[i]); // retained
     HPVector p1 = e1->position;
@@ -6054,9 +6044,8 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target, float da
     return hit_entity;
 }
 
-// Slice 15 of docs/phases/3-slices/Universe.md (bead oo-dg9d1): player targeting, entities in range, counting and finding ships by role and predicate, time, collisions, view direction. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Player targeting, entities in range, counting and finding ships by role and
+// predicate, time, collisions, view direction.
 
 Entity* Universe::firstEntityTargetedByPlayer()
 {
@@ -6067,7 +6056,7 @@ Entity* Universe::firstEntityTargetedByPlayer()
     int i;
     int ent_count = n_entities;
     int ship_count = 0;
-    std::vector<Entity*> my_entities(ent_count); // each one's object retained (bead oo-9ht.39.26)
+    std::vector<Entity*> my_entities(ent_count); // each one's object retained
 
     for (i = 0; i < ent_count; i++) {
         if ((oo::EntityIsShip(sortedEntities[i]) && !oo::EntityIsPlayer(sortedEntities[i])) || sortedEntities[i]->getIsWormhole()) {
@@ -6179,7 +6168,7 @@ std::vector<oo::EntityHold> Universe::entitiesWithinRange(double range, Entity* 
 }
 
 // The role predicates read a std::string, held here for the call.
-// The reference entity is the C++ entity (bead oo-9ht.39.8.23); the count reads the C++ entities (bead oo-9ht.39.26).
+// The reference entity is the C++ entity; the count reads the C++ entities.
 unsigned Universe::countShipsWithRole(const std::string& role, double range, Entity* entity)
 {
     std::string roleParameter = role;
@@ -6254,10 +6243,11 @@ unsigned Universe::countShipsMatchingPredicate(EntityFilterPredicate predicate, 
     }
 }
 
-// NOTE: OOJSSystem relies on this returning entities in distance-from-player order.
-// This can be easily changed by removing the [reference isPlayer] conditions in FindJSVisibleEntities().
-// The reference entity is the C++ entity (bead oo-9ht.39.8.23): its position is what -position answered, and
-// the entity the list holds for it is skipped, as its object was.
+// NOTE: OOJSSystem relies on this returning entities in distance-from-player
+// order. This can be easily changed by removing the [reference isPlayer]
+// conditions in FindJSVisibleEntities(). The reference entity is the C++
+// entity: its position is what -position answered, and the entity the list
+// holds for it is skipped, as its object was.
 std::vector<oo::EntityHold> Universe::findEntitiesMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, Entity* e1)
 {
     OOJS_PROFILE_ENTER
@@ -6435,9 +6425,8 @@ OOViewID Universe::getViewDirection()
     return viewDirection;
 }
 
-// Slice 16 of docs/phases/3-slices/Universe.md (bead oo-focfo): setting the view direction, GUI view mode, custom sounds, screen textures, messages and comms, delayed messages, repopulating. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Setting the view direction, GUI view mode, custom sounds, screen textures,
+// messages and comms, delayed messages, repopulating.
 
 void Universe::setViewDirection(OOViewID vd)
 {
@@ -6652,8 +6641,7 @@ void Universe::addDelayedMessage(const std::optional<std::string>& text, OOTimeD
     if (text.has_value())
         msgDict["message"] = oo::PList(*text);
     msgDict["duration"] = oo::PList(count);
-    // The call carries the dictionary and hands it to UNIVERSE when it runs (the target was the
-    // facade, bead oo-ql9rn; the Objective-C holder OOUniverseDelayedMessage until bead oo-pvhrh).
+    // The call carries the dictionary and hands it to UNIVERSE when it runs.
     OOScheduleDeferredCall([message = oo::PList(std::move(msgDict))]() { if (UNIVERSE != nullptr)  UNIVERSE->addDelayedMessage(message); }, delay);
 }
 
@@ -6815,9 +6803,7 @@ void Universe::repopulateSystem()
     next_repopulation = SYSTEM_REPOPULATION_INTERVAL;
 }
 
-// Slice 17 of docs/phases/3-slices/Universe.md (bead oo-gr7a2): update:, time acceleration, ECM visual effects. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// update:, time acceleration, ECM visual effects.
 
 void Universe::update(OOTimeDelta inDeltaT)
 {
@@ -6831,7 +6817,7 @@ void Universe::update(OOTimeDelta inDeltaT)
         }
 
         unsigned i, ent_count = n_entities;
-        std::vector<Entity*> my_entities(ent_count); // each one's object retained (bead oo-9ht.39.26)
+        std::vector<Entity*> my_entities(ent_count); // each one's object retained
 
         verifyEntitySessionIDs();
 
@@ -6842,7 +6828,7 @@ void Universe::update(OOTimeDelta inDeltaT)
 
         const char* volatile update_stage = "initialisation";
 #ifndef NDEBUG
-        Entity* volatile update_stage_param = nullptr; // the C++ entity (bead oo-9ht.39.26)
+        Entity* volatile update_stage_param = nullptr; // the C++ entity
 #endif
 
         try {
@@ -7115,9 +7101,7 @@ void Universe::setECMVisualFXEnabled(bool isEnabled)
     ECMVisualFXEnabled = isEnabled;
 }
 
-// Slice 18 of docs/phases/3-slices/Universe.md (bead oo-tail0): filterSortedLists, setGalaxyTo:. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// filterSortedLists, setGalaxyTo:.
 
 void Universe::filterSortedLists()
 {
@@ -7129,7 +7113,7 @@ void Universe::filterSortedLists()
     becomes significant larger. However, almost all of these extra pairs are dealt with by a simple distance check.
     I currently see no noticeable negative effect while playing, but this change might still give some trouble I missed.
     */
-    Entity *e0, *next, *prev; // C++ parts (bead oo-9ht.39.4)
+    Entity *e0, *next, *prev; // C++ parts
     OOHPScalar start, finish, next_start, next_finish, prev_start, prev_finish;
 
     // using the z_list - set or clear collisionTestFilter and clear collision_chain
@@ -7558,9 +7542,8 @@ void Universe::setGalaxyTo(OOGalaxyID g)
     setGalaxyTo(g, NO);
 }
 
-// Slice 19 of docs/phases/3-slices/Universe.md (bead oo-z3u03): galaxy and system changes, descriptions, scenarios, characters, mission text, system data and names, finding systems. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Galaxy and system changes, descriptions, scenarios, characters, mission text,
+// system data and names, finding systems.
 
 void Universe::setGalaxyTo(OOGalaxyID g, bool forced)
 {
@@ -7851,7 +7834,7 @@ void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const st
             ::SkyEntity* the_sky = nullptr;
             int i;
 
-            // The sky is C++ since bead oo-9ht.109: found by its C++ part (it was -isKindOfClass:).
+            // The sky is C++: found by its C++ part.
             for (i = n_entities - 1; i > 0; i--)
                 if (sortedEntities[i] != nil)
                     if (::SkyEntity* sky = dynamic_cast<::SkyEntity*>(sortedEntities[i]))
@@ -7991,9 +7974,8 @@ OOSystemID Universe::findSystemAtCoords(NSPoint coords, OOGalaxyID g)
     return findSystemNumberAtCoords(coords, g, YES);
 }
 
-/*	A node of -cxx_routeFromSystem:toSystem:optimizedBy:'s search (slice 20 of
-        docs/phases/3-slices/Universe.md, bead oo-lftoq): the Objective-C RouteElement as a C++ class,
-        its accessors by the same names (ADR-0056 amendment oo-7jhs5).
+/*	A node of -cxx_routeFromSystem:toSystem:optimizedBy:'s search: the
+   RouteElement as a C++ class, its accessors by the same names.
 */
 namespace {
 
@@ -8036,9 +8018,8 @@ int RouteElement::jumps() { return _jumps; }
 
 } // namespace
 
-// Slice 20 of docs/phases/3-slices/Universe.md (bead oo-lftoq): neighbouring systems, system-name look-up, routes (with RouteElement), planet textures, global and equipment data, the commodity market, time descriptions. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Neighbouring systems, system-name look-up, routes (with RouteElement), planet
+// textures, global and equipment data, the commodity market, time descriptions.
 
 oo::PList Universe::nearbyDestinationsWithinRange(double range)
 {
@@ -8480,9 +8461,7 @@ std::optional<std::string> Universe::timeDescription(double interval)
     return oo::str::trim(result, oo::str::CharacterSet::whitespace());
 }
 
-// Slice 21 of docs/phases/3-slices/Universe.md (bead oo-enek8): short time descriptions, sun skimmers, station markets. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Short time descriptions, sun skimmers, station markets.
 
 std::optional<std::string> Universe::shortTimeDescription(double interval)
 {
@@ -8605,9 +8584,7 @@ oo::PList Universe::getStationMarkets()
     return oo::PList(std::move(markets));
 }
 
-// Slice 22 of docs/phases/3-slices/Universe.md (bead oo-05ow5): ships for sale (cxx_shipsForSaleForSystem:withTL:atTime:). The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Ships for sale (cxx_shipsForSaleForSystem:withTL:atTime:).
 
 oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL, OOTimeAbsolute current_time)
 {
@@ -8745,8 +8722,8 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
             std::string shortExtrasKey = "shipyard-first-extra";
 
             // for testing condition scripts
-            ::ShipEntity* testship = ::ProxyPlayerEntity::newProxyObject(ship_key, shipDict); // [[ProxyPlayerEntity alloc] cxx_initWithKey:definition:] until bead oo-9ht.183
-            // customise the ship (if chance = 1, then ship will get all possible add ons)
+            ::ShipEntity* testship = ::ProxyPlayerEntity::newProxyObject(ship_key, shipDict); // customise the ship (if chance = 1, then ship will get all possible add
+            // ons)
             while ((randf() < chance) && (options.size())) {
                 chance *= chance; // decrease the chance of a further customisation (unless it is 1, which might be a bug)
                 int optionIndex = Ranrot() % options.size();
@@ -8980,9 +8957,9 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
     return oo::PList(std::move(resultArray));
 }
 
-// Slice 23 of docs/phases/3-slices/Universe.md (bead oo-ni1hw): trade-in value, brochure descriptions, witchspace exit and sun-skim positions, beacons by code, script events to all ships, the GUIs, FPS and autosave. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Trade-in value, brochure descriptions, witchspace exit and sun-skim
+// positions, beacons by code, script events to all ships, the GUIs, FPS and
+// autosave.
 
 OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(const oo::PList& dict)
 {
@@ -9321,7 +9298,8 @@ HPVector Universe::getSunSkimEndPositionForShip(::ShipEntity* ship)
         v1 = HPvector_normal(v1);
     else
         v1.z = 1.0;
-    double rx = randf() - 0.5; // one draw per local, in the order Clang evaluates the arguments (ADR-0063 item 5)
+    double rx = randf() - 0.5; // one draw per local, in the order Clang
+                               // evaluates the arguments
     double ry = randf() - 0.5;
     double rz = randf() - 0.5;
     HPVector v2 = make_HPvector(rx, ry, rz); // random vector
@@ -9363,7 +9341,7 @@ HPVector Universe::getSunSkimEndPositionForShip(::ShipEntity* ship)
 
 std::vector<oo::EntityHold> Universe::listBeaconsWithCode(const std::string& code)
 {
-    std::vector<oo::EntityHold> result; // held C++ entities (bead oo-9ht.39.26)
+    std::vector<oo::EntityHold> result; // held C++ entities
     Entity* beacon = firstBeacon();
 
     while (beacon != nullptr) {
@@ -9476,9 +9454,8 @@ void Universe::setAutoSaveNow(bool value)
     autoSaveNow = !!value;
 }
 
-// Slice 24 of docs/phases/3-slices/Universe.md (bead oo-jxitg): autosave, wireframe and detail levels, shaders, exceptions, air resistance, speech (eSpeak and none), message logs, settings, cargo pods, session IDs. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Autosave, wireframe and detail levels, shaders, exceptions, air resistance,
+// speech (eSpeak and none), message logs, settings, cargo pods, session IDs.
 
 bool Universe::getAutoSaveNow()
 {
@@ -9568,9 +9545,7 @@ void Universe::setAirResistanceFactor(GLfloat newFactor)
     airResistanceFactor = OOClamp_0_1_f(newFactor);
 }
 
-// The speech arms. The Mac's moved here from the facade's class body with its deletion (bead
-// oo-ql9rn), bodies verbatim; it is not built (docs/phases/3-slices/Universe.md "mac-only"; Phase 5
-// rewrites the Mac layer).
+// The speech arms. The Mac's is not built.
 #if OOLITE_MAC_COCOA_UI
 
 void Universe::startSpeakingString(const std::string& text)
@@ -9622,8 +9597,9 @@ unsigned int Universe::voiceNumber(const std::string& name)
 {
     const char* const label = name.c_str();
 
-    // clang-tidy's own fixes (bugprone-inc-dec-in-conditions, bugprone-suspicious-string-compare),
-    // as the line changed: the same search from the first voice (ADR-0056 amendment oo-7jhs5).
+    // clang-tidy's own fixes (bugprone-inc-dec-in-conditions,
+    // bugprone-suspicious-string-compare), as the line changed: the same search
+    // from the first voice.
     unsigned int index = 0;
     while (espeak_voices[index] && strcmp(espeak_voices[index]->name, label) != 0)
         ++index;
@@ -9853,9 +9829,8 @@ void Universe::verifyEntitySessionIDs()
 #endif
 }
 
-// Slice 25 of docs/phases/3-slices/Universe.md (bead oo-wmc72): reinitialising and the demo, the initial universe, random positions, removing entities, preloading sounds, wormhole population, graph dumps. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Reinitialising and the demo, the initial universe, random positions, removing
+// entities, preloading sounds, wormhole population, graph dumps.
 
 // FIXME: needs less redundancy?
 bool Universe::reinitAndShowDemo(bool showDemo)
@@ -10114,13 +10089,13 @@ bool Universe::doRemoveEntity(Entity* entity)
 
         if (oo::EntityIsShip(entity)) {
             ::ShipEntity* se = oo::ToShip(entity);
-            clearBeacon(se); // the C++ ship (bead oo-9ht.39.8.10)
+            clearBeacon(se);
         }
         if (entity->isWaypoint()) {
-            clearBeacon(entity); // the C++ waypoint (bead oo-9ht.39.26)
+            clearBeacon(entity);
         }
         if (entity->getIsVisualEffect()) {
-            clearBeacon(entity); // the C++ effect (bead oo-9ht.39.26)
+            clearBeacon(entity);
         }
 
         if (entity->getIsWormhole()) {
@@ -10162,7 +10137,7 @@ void Universe::populateSpaceFromActiveWormholes()
 {
     while (!activeWormholes.empty()) {
         {
-            oo::AutoreleaseScope pool; // was @autoreleasepool (oo-31u.8)
+            oo::AutoreleaseScope pool;
             try {
                 WormholeEntity* whole = static_cast<WormholeEntity*>(activeWormholes[0].get());
                 // If the wormhole has been scanned by the player then the
@@ -10291,11 +10266,12 @@ void Universe::dumpSystemDescriptionGraphViz()
 #endif
 
 #if OO_LOCALIZATION_TOOLS
-// Slice 26 of docs/phases/3-slices/Universe.md (bead oo-32kcu): graph-viz references, localisation tools, planet-material pruning, condition scripts, the custom-sound categories of OOSound and OOSoundSource, description look-ups. The facade forwards
-// each selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendments oo-riqmz,
-// oo-mvzmb).
+// Graph-viz references, localisation tools, planet-material pruning, condition
+// scripts, the custom-sound categories of OOSound and OOSoundSource,
+// description look-ups.
 
-// A missing line is "" here (the old nil receiver answered zeroed ranges and never ended the scan).
+// A missing line is "" here (the old nil receiver answered zeroed ranges and
+// never ended the scan).
 void Universe::addNumericRefsInString(const std::string& string, std::string& graphViz, const std::string& fromNode, NSUInteger nodeCount)
 {
     std::size_t start, end, remaining = 0;
@@ -10407,9 +10383,8 @@ void Universe::addConditionScripts(const std::vector<std::string>& scripts)
     return (found != conditionScripts.end()) ? found->second.get() : nullptr;
 }
 
-// Slice 2 of docs/phases/3-slices/Universe.md (bead oo-27jxj): post-processing FX and colour-blind
-// modes, the target framebuffer, start-up flags, add-ons, the entity list. The facade forwarded each
-// selector (until oo-ql9rn); sends to self were sends (ADR-0056 amendment oo-27jxj).
+// Post-processing FX and colour-blind modes, the target framebuffer, start-up
+// flags, add-ons, the entity list.
 
 bool Universe::bloom()
 {
@@ -10601,14 +10576,17 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize)
     _bloom = getDetailLevel() >= DETAIL_LEVEL_EXTRAS;
     _currentPostFX = _colorblindMode = OO_POSTFX_NONE;
 
-    /* TODO (upstream; OOEnvironmentCubeMap.m was never built and was deleted as dead code, bead oo-v7ob,
-       decision oo-9wpwn - kept for a revival): in OOEnvironmentCubeMap.m call these bind functions not with 0 but with "previousXxxID"s:
+    /* TODO (upstream; OOEnvironmentCubeMap.m was never built and was deleted as
+      dead code - kept for a revival): in
+      OOEnvironmentCubeMap.m call these bind functions not with 0 but with
+      "previousXxxID"s:
       - OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
       - OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
       - OOGL(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0));
     */
 
-    // shader for drawing a textured quad on the passthrough framebuffer and preparing it for bloom using MRT
+    // shader for drawing a textured quad on the passthrough framebuffer and
+    // preparing it for bloom using MRT
     if (!OOOpenGLExtensionManager::sharedManager()->shadersForceDisabled()) {
         textureProgram = OOShaderProgram::shaderProgramWithVertexShaderName("oolite-texture.vertex",
             "oolite-texture.fragment",

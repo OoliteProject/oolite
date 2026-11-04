@@ -5,8 +5,7 @@ OOCommodityMarket.h
 Commodity price and quantity list for a particular station/system
 Also used for the player ship's docked manifest
 
-C++20 since bead oo-ih7y (Phase 3, proposed ADR-0056); it has no Objective-C facade. The
-universe, the player and the stations hold markets as oo::Ref.
+The universe, the player and the stations hold markets as oo::Ref.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -28,21 +27,19 @@ MA 02110-1301, USA.
 
 */
 
-#ifndef OOCOMMODITYMARKET_H
-#define OOCOMMODITYMARKET_H
+#pragma once
 
 #include "OOCommodities.h"
 #include "OOTypes.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-/*	Foundation sweep (proposed ADR-0043, bead oo-rvit): goods are keyed by UTF-8 std::strings
-        (the commodity keys); each good's definition is an oo::PList dictionary (trade-goods.plist
-        data, as OOCommodities and commodity scripts build it). -goods returns std::vector<std::string>;
-        -massUnitForGood: takes const std::string &; -dictionaryForScripting hands JavaScript a
-        PList dictionary.
+/*	Goods are keyed by UTF-8 std::strings
+        (the commodity keys); each good's definition is an oo::PList dictionary
+   (trade-goods.plist data, as OOCommodities and commodity scripts build it).
+   -goods returns std::vector<std::string>; -massUnitForGood: takes const
+   std::string &; -dictionaryForScripting hands JavaScript a PList dictionary.
 */
 class OOCommodityMarket : public oo::RefCounted {
 public:
@@ -51,7 +48,8 @@ public:
     void setGood(const std::string& key, const oo::PList& info);
 
     std::vector<std::string> goods(); // good keys, in sort_order
-    oo::PList dictionaryForScripting(); // a dictionary of the definitions, for JavaScript
+    oo::PList
+    dictionaryForScripting(); // a dictionary of the definitions, for JavaScript
 
     bool setPrice(OOCreditsQuantity price, const std::string& good);
     bool setQuantity(OOCargoQuantity quantity, const std::string& good);
@@ -77,7 +75,8 @@ public:
     oo::PList savePlayerAmounts(); // [[key, quantity], ...] in goods() order
     void loadPlayerAmounts(const oo::PList& amounts);
 
-    oo::PList saveStationAmounts(); // [[key, quantity, price], ...] in goods() order
+    oo::PList
+    saveStationAmounts(); // [[key, quantity, price], ...] in goods() order
     void loadStationAmounts(const oo::PList& amounts);
 
 private:
@@ -86,7 +85,6 @@ private:
     std::vector<std::string> sortedGoodKeys();
 
     std::map<std::string, oo::PList, std::less<>> _commodityList;
-    std::optional<std::vector<std::string>> _sortedKeys; // goods(), built on first use
+    std::optional<std::vector<std::string>>
+        _sortedKeys; // goods(), built on first use
 };
-
-#endif // OOCOMMODITYMARKET_H

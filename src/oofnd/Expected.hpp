@@ -1,8 +1,9 @@
 /*	oofnd/Expected.hpp
         oo::Expected<T, E>: a C++20 polyfill with std::expected's API (C++23, [expected]).
 
-        ADR-0011: conversion targets C++20; std::expected arrives with the Phase 6 upgrade to C++23.
-        Until then every oofnd error path returns oo::Expected, and the Phase 6 swap is a rename:
+        The code base targets C++20; std::expected arrives with the upgrade to
+   C++23. Until then every oofnd error path returns oo::Expected, and the swap
+   is a rename:
 
             oo::Expected           -> std::expected
             oo::Unexpected         -> std::unexpected
@@ -20,13 +21,12 @@
         so the header is usable either way. The strong exception guarantee of assignment and swap is
         implemented as the standard specifies it when exceptions are on.
 
-        Deliberately not provided: anything post-C++23 (e.g. C++26's constraint tweaks). Header-only;
-        no third-party code (ADR-0011 permits either a small in-tree polyfill or tl::expected; this is
-        the former, so nothing is vendored).
+        Deliberately not provided: anything post-C++23 (e.g. C++26's constraint
+   tweaks). Header-only; no third-party code (a small in-tree polyfill rather
+   than tl::expected, so nothing is vendored).
 */
 
-#ifndef OOFND_EXPECTED_HPP
-#define OOFND_EXPECTED_HPP
+#pragma once
 
 #include <cstdlib>
 #include <exception>
@@ -1121,5 +1121,3 @@ private:
 } // namespace oo
 
 #undef OOFND_EXPECTED_EXCEPTIONS
-
-#endif // OOFND_EXPECTED_HPP

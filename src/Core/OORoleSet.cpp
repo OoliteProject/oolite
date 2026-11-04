@@ -2,10 +2,6 @@
 
 OORoleSet.mm
 
-C++20 since bead oo-bhb9 (proposed ADR-0056, the OOColor house style). Method bodies are the
-Objective-C ones with message sends turned into calls. Still Objective-C++ until Phase 4: the
-log line describes the set through its Objective-C facade.
-
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -30,7 +26,6 @@ SOFTWARE.
 */
 
 #include "OORoleSet.h"
-
 #include "OOLogging.h"
 #include "OOMaths.h" // randf()
 
@@ -80,8 +75,9 @@ bool OORoleSet::initWithRole(const std::string& role, float probability)
 // this class's own -description printed.
 std::optional<std::string> OORoleSet::descriptionComponents() const
 {
-    // roleString() builds its cache on first use, which the const signature cannot (ADR-0055 item
-    // 1 fixes it); a set is immutable, so the cache is only ever filled with this same text.
+    // roleString() builds its cache on first use, which the const signature
+    // cannot (the signature is fixed); a set is immutable, so the cache is only
+    // ever filled with this same text.
     return const_cast<OORoleSet*>(this)->roleString();
 }
 

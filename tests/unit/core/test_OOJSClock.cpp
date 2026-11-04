@@ -1,6 +1,5 @@
 /*	test_OOJSClock.mm
-	Unit tests for the clock JS binding (src/Core/Scripting/OOJSClock.h/.mm): bead oo-xy5r,
-	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment oo-ppc).
+	Unit tests for the clock JS binding (src/Core/Scripting/OOJSClock.h/.mm).
 
 	Like test_OOJSVector.mm, it runs the JS class in a real QuickJS-ng context and links the game's
 	own objects for the binding, the class registration (OOJSClasses.mm) and the engine's exception
@@ -147,14 +146,14 @@ std::string cxx_ClockToString(double clock, BOOL adjusting)
 }
 
 
-/*	The player, as far as the clock sees it: the clock selectors. A clock time of -1 makes
-	-clockTime raise, -2 makes it throw a C++ exception, so the test sees what an exception under a
-	native becomes.
+/*	The player, as far as the clock sees it: the clock selectors. A clock
+   time of -1 makes -clockTime raise, -2 makes it throw a C++ exception, so the
+   test sees what an exception under a native becomes.
 */
-/*	PLAYER: C++ (the Objective-C player this stood in for is deleted). The binding
-	calls the members below (PlayerEntity.h, which the engine's header imports, declares them),
-	which answer from the FakePlayer's values; the binding never reads the player's own state, so
-	PLAYER is a FakePlayer's address.
+/*	PLAYER: The binding calls the members below (PlayerEntity.h, which the
+   engine's header imports, declares them), which answer from the FakePlayer's
+   values; the binding never reads the player's own state, so PLAYER is a
+   FakePlayer's address.
 */
 struct FakePlayer
 {
@@ -182,10 +181,11 @@ std::string PlayerEntity::dial_clock()  { return oo::str::format("dial %.1f", sP
 void PlayerEntity::addToAdjustTime(double seconds)  { sPlayer->_added += seconds; }
 
 
-/*	The universe is the C++ class since its Objective-C facade, which the test's FakeUniverse
-	stood in for, was deleted. Universe.h is included (through the headers above) and
-	Universe.mm is not linked, so the test defines the members the code under test calls, with the
-	stand-in's bodies, and UNIVERSE is storage nothing constructs: those members read no state.
+/*	The universe is the C++ class. Universe.h is included (through the
+   headers above) and Universe.mm is not linked, so the
+   test defines the members the code under test calls, with the stand-in's
+   bodies, and UNIVERSE is storage nothing constructs: those members read no
+   state.
 */
 OOTimeAbsolute Universe::getTime()  { return 1234.5; }
 

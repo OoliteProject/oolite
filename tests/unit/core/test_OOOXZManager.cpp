@@ -1,27 +1,21 @@
 /*	test_OOOXZManager.mm
-	Unit tests for OOOXZManager (src/Core/OOOXZManager.h): bead oo-bwjb, slice 1 of the Phase 3
-	slice plan docs/phases/3-slices/OOOXZManager.md (the class shell: state, paths, filters,
-	manifests and the download plumbing), in the house style of the OOColor exemplar (proposed
-	ADR-0056).
+	Unit tests for OOOXZManager (src/Core/OOOXZManager.h): the class shell (state, paths, filters,
+	manifests and the download plumbing).
 
-	The manager is a process-wide singleton (amendment oo-r7m0) that keeps the list of OXZ
-	manifests, the managed OXZs on disk, a filter over the list, and one download. The test points
-	the user's home (HOMEPATH: the caches and the defaults), the managed, extract and additional
-	add-on folders, and the built-in Resources (the current directory) at a scratch folder before
-	the singleton exists, so nothing of the user's is read or written. Every manifest is synthetic,
-	written by the test; no expansion is read. The one download is a file: URL (oofnd/Http.hpp),
-	so no network is used.
+	The manager is a process-wide singleton that keeps the list of OXZ manifests, the managed OXZs
+	on disk, a filter over the list, and one download. The test points the user's home (HOMEPATH:
+	the caches and the defaults), the managed, extract and additional add-on folders, and the
+	built-in Resources (the current directory) at a scratch folder before the singleton exists, so
+	nothing of the user's is read or written. Every manifest is synthetic, written by the test; no
+	expansion is read. The one download is a file: URL (oofnd/Http.hpp), so no network is used.
 
 	It pins what the manager computed before the conversion: the shared instance and the list it
 	loads from the manifest cache, sorted; the paths; the filters and their validation; the human
 	size; the managed OXZs read from disk and matched against the list; a manifest download from
-	start to finish (the list replaced, the cache rewritten, the temporary file removed, the
-	managed list rebuilt), and the requests it then refuses. The expectations were written
-	against the Objective-C API and run on the unconverted class first. Bead oo-9ht.131 deleted the
-	Objective-C facade: every case asks the C++ singleton with every expectation kept, and the
-	facade's contract cases (one facade for the singleton, identity both ways, nil and null, the
-	forwarded private units) retired under the standing approval oo-9n5p9.
-	Run: bash tools/check-core-tests.sh test_OOOXZManager
+	start to finish (the list replaced, the cache rewritten, the temporary file removed, the managed
+	list rebuilt), and the requests it then refuses. The expectations were written against the
+	Objective-C API and run on the unconverted class first. Every case asks the C++ singleton. Run:
+	bash tools/check-core-tests.sh test_OOOXZManager
 */
 
 #include "OOOXZManager.h"
@@ -199,7 +193,8 @@ std::string Titles(const oo::PList &list)
 }
 
 
-// The manager's private API (the units of slice 1 the facade did not declare): its C++ members.
+// The manager's private API (the units the facade did not declare):
+// its C++ members.
 OOOXZManager *Manager()								{ return OOOXZManager::sharedManager(); }
 std::optional<std::string> ManifestPath()					{ return Manager()->manifestPath(); }
 std::optional<std::string> DownloadPath()					{ return Manager()->downloadPath(); }
@@ -352,7 +347,7 @@ OO_TEST(managedOXZs)
 		WriteText(sRoot / "Managed" / "late.oxp" / "manifest.plist", "{ identifier = \"oolite.oxp.test.late\"; title = Late; version = \"1\"; category = Ambience; }");
 		OO_CHECK_TEXT(Titles(OOOXZManager::sharedManager()->managedOXZs()), "Local 3, Alpha 1.0");
 
-		// The installable states (slice 2) decide these, from the managed OXZs.
+		// The installable states decide these, from the managed OXZs.
 		OO_CHECK_TEXT(Filtered("u"), "Alpha 2.0, Alpha 1.5");
 		OO_CHECK_TEXT(Filtered("i"), "Mission 0.1, Alpha 2.0, Alpha 1.5, Zeta 1.0");
 		Manager()->setFilter("*");
@@ -411,7 +406,7 @@ OO_TEST(manifestDownload)
 }
 
 
-// Slice 2 (bead oo-0hyr): installing, updating, removing and extracting OXZs.
+// Installing, updating, removing and extracting OXZs.
 namespace {
 
 // A stored (uncompressed) zip of the named files, written by hand: a synthetic OXZ.
@@ -472,7 +467,7 @@ std::string ColorName(OOColor *c)
 }
 
 
-// The slice 2 units: their C++ members.
+// The installable-state units: their C++ members.
 oo::PList InstalledManifest(const std::string &identifier)		{ return Manager()->installedManifestForIdentifier(identifier); }
 std::string InstallStatus(const oo::PList &manifest)			{ return Manager()->installStatusForManifest(manifest).value_or("(none)"); }
 std::string Color(const oo::PList &manifest)					{ return ColorName(Manager()->colorForManifest(manifest).get()); }
@@ -601,9 +596,9 @@ OO_TEST(restartAndUpdateAll)
 }
 
 
-// Slices 3 and 4 (beads oo-q7r3, oo-qbgo): the GUI pages. A stand-in UNIVERSE (amendment oo-8kx7
-// item 7, as an object put in gSharedUniverse for these cases only, since the test links the real
-// Universe) answers -gui with a recording screen; the manager's sends to it are the page.
+// The GUI pages. A stand-in UNIVERSE (an object put in gSharedUniverse for
+// these cases only, since the test links the real Universe) answers -gui with a
+// recording screen; the manager's sends to it are the page.
 #include "Universe.h"	// the real class: the test links the whole game
 #include "MyOpenGLView.h"	// the game view is C++
 extern Universe *gSharedUniverse;
@@ -621,8 +616,8 @@ enum
 };
 
 
-// The GUI is C++ since bead oo-9ht.143 deleted its facade: the recording screen overrides the
-// members it answered (proposed ADR-0056 amendment oo-9ht.1), recording the same lines.
+// The GUI is C++: the recording screen overrides the members it answers,
+// recording the lines.
 class TestGui : public GuiDisplayGen
 {
 public:
@@ -662,8 +657,8 @@ public:
 };
 
 
-// The game view: a C++ subclass of the game's (the deleted Objective-C facade the
-// test's Objective-C stand-in stood in for), overriding the two members it answered (virtual for it).
+// The game view: a C++ subclass of the game's, overriding the two members it
+// answers (virtual for it).
 class TestGameView : public MyOpenGLView
 {
 public:
@@ -675,9 +670,9 @@ public:
 };
 
 
-// The universe the manager sees: a C++ subclass of the game's (the deleted Objective-C
-// facade the test's Objective-C TestUniverse stood in for), overriding the same members. Its
-// descriptions are testDescriptions (the class has a member _descriptions).
+// The universe the manager sees: a C++ subclass of the game's, overriding the
+// members the manager asks. Its descriptions are testDescriptions (the class
+// has a member _descriptions).
 class TestUniverse : public Universe
 {
 public:
@@ -912,7 +907,8 @@ OO_TEST(guiPages)
 			"range 25+4\n"
 			"select 25\n");
 
-		// The list pages (slice 4's options), with the filter line through the string expander.
+		// The list pages (the options), with the filter line through the
+    // string expander.
 		m->_changesMade = false;
 		m->_downloadStatus = OXZ_DOWNLOAD_NONE;
 		standIn.universe->testGui->selected = OXZ_GUI_ROW_LISTSTART;
@@ -1509,8 +1505,8 @@ OO_TEST(guiInput)
 }
 
 
-// Slice 4: the install and remove option pages, and their paging. Release-style
-// builds only (see the case).
+// The install and remove option pages, and their paging. Release-style builds
+// only (see the case).
 #if !OO_DEBUG
 namespace {
 

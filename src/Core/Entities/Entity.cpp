@@ -102,10 +102,10 @@ void Entity::willDispose() noexcept
         return;
     _disposing = true;
 
-    /*	A ship's -dealloc ran first: its facade was a subclass of the root's until its deletion.
-            The player's, a station's or a dock's part first, as their facades' -dealloc ran before the
-            ship's; then the weak references, dropped before
-            entityDestroyed (see ShipEntity::shipWillDealloc()); then the ship's body.
+    /*	A ship's -dealloc ran first. The player's, a station's or a dock's part
+       first, as their facades' -dealloc ran before the ship's; then the weak
+       references, dropped before entityDestroyed (see
+       ShipEntity::shipWillDealloc()); then the ship's body.
     */
     if (::ShipEntity* ship = dynamic_cast<::ShipEntity*>(this)) {
         if (::PlayerEntity* player = dynamic_cast<::PlayerEntity*>(ship))
@@ -119,8 +119,8 @@ void Entity::willDispose() noexcept
     }
 
     if (UNIVERSE != nullptr) {
-        // The log line describes the entity before it goes (the facade's described its object; the
-        // address is the entity's since the facade's deletion).
+        // The log line describes the entity before it goes (the facade's described
+        // its object; the address is the entity's).
         if (getUniversalID() != NO_TARGET) {
             OO_LOG("universe.unremovedEntity", "Entity {} dealloced without being removed from universe! (This is an internal programming error, please report it.)", oo::EntityOwnDescription(this));
         }
@@ -958,7 +958,8 @@ void Entity::dumpState()
         } catch (...) {
             if (!oo::CurrentOOException())
                 throw;
-        } // was @catch (id exception) {}: the game's exceptions only (oo::Exception since oo-rskgl.1)
+        } // was @catch (id exception) {}: the game's exceptions only
+          // (oo::Exception)
         oo::log::popIndent();
     }
 }
@@ -1018,7 +1019,7 @@ void Entity::inspect()
 
 void Entity::subEntityReallyDied(::ShipEntity* sub)
 {
-    OO_LOG("entity.bug", "{} called for non-ship entity {} by {}", __PRETTY_FUNCTION__, oo::str::pointerDescription(oo::WithObject(this)), oo::str::pointerDescription(sub)); // the entity's address (its object's until the facade's deletion)
+    OO_LOG("entity.bug", "{} called for non-ship entity {} by {}", __PRETTY_FUNCTION__, oo::str::pointerDescription(oo::WithObject(this)), oo::str::pointerDescription(sub)); // the entity's address
 }
 
 NSUInteger Entity::getLastDrawCounter()
