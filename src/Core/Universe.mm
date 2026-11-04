@@ -99,9 +99,10 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "WormholeEntity.h"
 
+#import "OOFoundationBridge.h" // oo::PListFrom, used by every build, not only OO_LOCALIZATION_TOOLS ones
+
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
-#import "OOFoundationBridge.h"
 #endif
 
 enum {
