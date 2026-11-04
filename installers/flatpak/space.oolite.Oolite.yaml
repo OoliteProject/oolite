@@ -3,10 +3,10 @@ runtime: org.freedesktop.Platform
 runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm23
+  - org.freedesktop.Sdk.Extension.llvm22
 build-options:
-  append-path: /usr/lib/sdk/llvm23/bin
-  prepend-ld-library-path: /usr/lib/sdk/llvm23/lib
+  append-path: /usr/lib/sdk/llvm22/bin
+  prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
 command: run_oolite.sh
 finish-args:
   - --socket=wayland

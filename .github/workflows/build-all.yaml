@@ -39,7 +39,7 @@ jobs:
       - name: Update Arch
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed git
+          pacman -S --noconfirm --needed git zip
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,8 +82,18 @@ jobs:
           path: |
             build/Oolite*.AppImage
           retention-days: 5
+      - name: Zip pdfs
+        run: |
+          zip -j ./build/oolite-documentation.zip ./build/documentation/docs/assets/pdfs/*.pdf
+      - name: Archive documentation
+        uses: actions/upload-artifact@v6
+        with:
+          name: oolite-documentation
+          path: |
+            build/oolite-documentation.zip
+          retention-days: 5
 
-  build-documentation:
+  build-ubuntu:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -95,7 +105,7 @@ jobs:
       - name: Update Ubuntu
         run: |
           apt update          
-          apt install -y git curl ca-certificates
+          apt install -y git curl ca-certificates zip
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -131,16 +141,6 @@ jobs:
       - name: Build AppImage
         run: |
           ./mk.sh pkg-appimage dev
-      - name: Zip pdfs
-        run: |
-          zip -j ./build/oolite-documentation.zip ./build/documentation/docs/assets/pdfs/*.pdf
-      - name: Archive documentation
-        uses: actions/upload-artifact@v6
-        with:
-          name: oolite-documentation
-          path: |
-            build/oolite-documentation.zip
-          retention-days: 5
 
   build-fedora:
     runs-on: ubuntu-latest
@@ -340,7 +340,7 @@ jobs:
           retention-days: 5
 
   release:
-    needs: [build-appimage, build-flatpak, build-windows, build-macos, build-documentation]
+    needs: [build-appimage, build-flatpak, build-windows, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # create the release; also needed in forks, where the token is read-only by default
