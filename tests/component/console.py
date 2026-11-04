@@ -122,6 +122,9 @@ class DebugConsole:
     def _spawn(self):
         binary = "oolite.exe" if IS_WINDOWS else "oolite"
         path = os.path.join(self.app_dir, binary)
+        bundled = os.path.join(self.app_dir, "Contents", "MacOS", binary)
+        if not os.path.isfile(path) and os.path.isfile(bundled):
+            path = bundled  # a macOS app bundle
         if not os.path.isfile(path):
             raise ConsoleError(f"no Oolite binary at {path}; build it first")
         argv = [path, "--no-splash"]

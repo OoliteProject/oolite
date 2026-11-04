@@ -405,6 +405,11 @@ def stage_app(app_dir, staged):
         if os.path.isdir(source):
             if name in PRIVATE_SUBDIRS:
                 shutil.copytree(source, target, dirs_exist_ok=True)
+            elif name == "MacOS":
+                # A bundle's executable must sit in a real Contents/MacOS: the game finds its
+                # Resources from the real path of the binary, so a linked directory would resolve
+                # back into the shared build.
+                shutil.copytree(source, target, dirs_exist_ok=True, copy_function=_link_file)
             else:
                 _link_dir(source, target)
         else:
@@ -765,6 +770,11 @@ if __name__ == "__main__":
     if os.path.isfile(target_dir):
         bin_name = os.path.basename(target_dir)
         target_dir = os.path.dirname(target_dir)
+        if os.path.basename(target_dir) == "MacOS" and (
+                os.path.basename(os.path.dirname(target_dir)) == "Contents"):
+            # An app bundle: stage the whole Contents, and run MacOS/oolite from it.
+            bin_name = os.path.join("MacOS", bin_name)
+            target_dir = os.path.dirname(target_dir)
 
     # Resolved before the chdir below, so relative paths mean what the caller meant.
     test_output = os.path.abspath(native_path(args.output))
