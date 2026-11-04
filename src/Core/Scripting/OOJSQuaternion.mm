@@ -36,10 +36,8 @@ MA 02110-1301, USA.
         C++20 since bead oo-hwae, converted the way bead oo-ppc converted OOJSVector.mm (proposed
         ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
         OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJavaScriptEngine.h); BOOL/YES/NO are bool/true/false; the debug-build category on
-        PlayerEntity became two free functions, and its methods moved to OOJSQuaternion+ObjCBridge.mm.
-        Messages to classes that are still Objective-C (Entity) stay as they are, which is why the
-        file is still .mm until Phase 4.
+        (OOJavaScriptEngine.h); BOOL/YES/NO are bool/true/false. Messages to classes that are still
+        Objective-C (Entity) stay as they are, which is why the file is still .mm until Phase 4.
 */
 
 static JSClassID sQuaternionClassID;
@@ -175,63 +173,6 @@ bool JSValueToQuaternion(JSContext* context, JSValueConst value, Quaternion* out
     return JSObjectGetQuaternion(context, value, outQuaternion);
 }
 
-#if OO_DEBUG
-
-typedef struct
-{
-    NSUInteger quatCount;
-    NSUInteger entityCount;
-    NSUInteger arrayCount;
-    NSUInteger protoCount;
-    NSUInteger nullCount;
-    NSUInteger failCount;
-} QuaternionStatistics;
-static QuaternionStatistics sQuaternionConversionStats;
-
-// The bodies of PlayerEntity (JSQuaternionStatistics), whose methods are in
-// OOJSQuaternion+ObjCBridge.mm until PlayerEntity converts (proposed ADR-0056 amendment oo-ppc).
-oo::PList reportJSQuaternionStatistics(void)
-{
-    QuaternionStatistics* stats = &sQuaternionConversionStats;
-
-    NSUInteger sum = stats->quatCount + stats->entityCount + stats->arrayCount + stats->protoCount;
-    double convFac = 100.0 / sum;
-
-    return oo::PList(oo::str::format(
-        "quaternion-to-quaternion conversions: %zu (%g %%)\n"
-        "    entity-to-quaternion conversions: %zu (%g %%)\n"
-        "     array-to-quaternion conversions: %zu (%g %%)\n"
-        "       prototype-to-zero conversions: %zu (%g %%)\n"
-        "                    null conversions: %zu (%g %%)\n"
-        "                  failed conversions: %zu (%g %%)\n"
-        "                               total: %zu",
-        (size_t)stats->quatCount, stats->quatCount * convFac,
-        (size_t)stats->entityCount, stats->entityCount * convFac,
-        (size_t)stats->arrayCount, stats->arrayCount * convFac,
-        (size_t)stats->protoCount, stats->protoCount * convFac,
-        (size_t)stats->nullCount, stats->nullCount * convFac,
-        (size_t)stats->failCount, stats->failCount * convFac,
-        (size_t)sum));
-}
-
-void clearJSQuaternionStatistics(void)
-{
-    memset(&sQuaternionConversionStats, 0, sizeof sQuaternionConversionStats);
-}
-
-#define COUNT(FIELD)                        \
-    do {                                    \
-        sQuaternionConversionStats.FIELD++; \
-    } while (0)
-
-#else
-
-#define COUNT(FIELD) \
-    do {             \
-    } while (0)
-
-#endif
-
 static bool GetArrayElementNumber(JSContext* context, JSValueConst array, uint32_t index, double* outNumber)
 {
     JSValue element = JS_GetPropertyUint32(context, array, index);
@@ -252,14 +193,12 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj, Quate
 
     // quaternionObj can legitimately be null or a primitive.
     if (EXPECT_NOT(!JS_IsObject(quaternionObj))) {
-        COUNT(nullCount);
         return false;
     }
 
     // If this is a (JS) Quaternion...
     priv = (Quaternion*)JS_GetOpaque(quaternionObj, sQuaternionClassID);
     if (EXPECT(priv != NULL)) {
-        COUNT(quatCount);
         *outQuaternion = *priv;
         return true;
     }
@@ -282,7 +221,6 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj, Quate
                 return false;
             outQuaternion->z = dVal;
 
-            COUNT(arrayCount);
             return true;
         }
     }
@@ -290,7 +228,6 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj, Quate
 #if !OOJS_POC_HARNESS
     // If it's an entity, use its orientation.
     if (OOJSIsMemberOfSubclass(context, quaternionObj, JSEntityClassID())) {
-        COUNT(entityCount);
         JSClassID ignored;
         Entity* entity = [(id)JS_GetAnyOpaque(quaternionObj, &ignored) weakRefUnderlyingObject];
         *outQuaternion = [entity orientation];
@@ -306,12 +243,10 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj, Quate
             Quaternions, but it's a rare case which should be kept off the fast path.
     */
     if (JS_GetClassID(quaternionObj) == sQuaternionClassID) {
-        COUNT(protoCount);
         *outQuaternion = kZeroQuaternion;
         return true;
     }
 
-    COUNT(failCount);
     return false;
 
     OOJS_PROFILE_EXIT

@@ -74,14 +74,3 @@ bool VectorFromArgumentList(JSContext* context, const std::string& scriptClass, 
         Like VectorFromArgumentList(), but does not report an error on failure.
 */
 bool VectorFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, HPVector* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 4)));
-
-#if OO_DEBUG
-#include "oofnd/PList.hpp"
-
-/*	The vector-conversion statistics the debug console reads with
-        PS.callObjC("reportJSVectorStatistics"). PlayerEntity (JSVectorStatistics), in
-        OOJSVector+ObjCBridge.mm, forwards its two methods here until PlayerEntity converts.
-*/
-oo::PList reportJSVectorStatistics(void);
-void clearJSVectorStatistics(void);
-#endif

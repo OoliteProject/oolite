@@ -400,28 +400,5 @@ OO_TEST(nativeExceptions)
 }
 
 
-#if OO_DEBUG
-OO_TEST(statistics)
-{
-	clearJSQuaternionStatistics();
-	Eval("new Quaternion(1, 2, 3, 4).multiply(new Quaternion()).multiply([1, 2, 3, 4]).multiply(Quaternion.prototype)");
-	// The report is kept in a local: a pointer into the temporary would dangle once the statement
-	// ends (an ASan stack-use-after-scope).
-	const oo::PList reportNode = reportJSQuaternionStatistics();
-	const std::string *report = reportNode.getIf<std::string>();
-	OO_CHECK(report != nullptr);
-	if (report != nullptr)
-	{
-		OO_CHECK(report->find("quaternion-to-quaternion conversions: ") == 0);
-		OO_CHECK(report->find("     array-to-quaternion conversions: 1 (") != std::string::npos);
-		OO_CHECK(report->find("       prototype-to-zero conversions: 1 (") != std::string::npos);
-	}
-	clearJSQuaternionStatistics();
-	const oo::PList clearedNode = reportJSQuaternionStatistics();
-	report = clearedNode.getIf<std::string>();
-	OO_CHECK(report != nullptr && report->find("total: 0") != std::string::npos);
-}
-#endif
-
 
 OO_TEST_MAIN()

@@ -66,14 +66,3 @@ bool QuaternionFromArgumentList(JSContext* context, const std::string& scriptCla
         Like VectorFromArgumentList(), but does not report an error on failure.
 */
 bool QuaternionFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, Quaternion* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 4)));
-
-#if OO_DEBUG
-#include "oofnd/PList.hpp"
-
-/*	The quaternion-conversion statistics the debug console reads with
-        PS.callObjC("reportJSQuaternionStatistics"). PlayerEntity (JSQuaternionStatistics), in
-        OOJSQuaternion+ObjCBridge.mm, forwards its two methods here until PlayerEntity converts.
-*/
-oo::PList reportJSQuaternionStatistics(void);
-void clearJSQuaternionStatistics(void);
-#endif

@@ -41,10 +41,8 @@ MA 02110-1301, USA.
         JS class (JSClassDef and JSCFunctionListEntry tables, hooks, natives) is already C++, so the
         conversion is what is left of Objective-C. OOJS_NATIVE_ENTER/EXIT and
         OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards (OOJavaScriptEngine.h);
-        BOOL/YES/NO are bool/true/false; the category on PlayerEntity became two free functions, and
-        its methods moved to OOJSVector+ObjCBridge.mm. Messages to classes that are still
-        Objective-C (Entity, Universe) stay as they are, which is why the file is still .mm until
-        Phase 4.
+        BOOL/YES/NO are bool/true/false. Messages to classes that are still Objective-C (Entity,
+        Universe) stay as they are, which is why the file is still .mm until Phase 4.
 */
 
 static JSClassID sVectorClassID;
@@ -227,65 +225,6 @@ bool JSValueToVector(JSContext* context, JSValueConst value, Vector* outVector)
     return result;
 }
 
-#if OO_DEBUG
-
-typedef struct
-{
-    NSUInteger vectorCount;
-    NSUInteger entityCount;
-    NSUInteger arrayCount;
-    NSUInteger protoCount;
-    NSUInteger nullCount;
-    NSUInteger failCount;
-} VectorStatistics;
-static VectorStatistics sVectorConversionStats;
-
-// The bodies of PlayerEntity (JSVectorStatistics), whose methods are in OOJSVector+ObjCBridge.mm
-// until PlayerEntity converts (proposed ADR-0056 amendment oo-ppc).
-oo::PList reportJSVectorStatistics(void)
-{
-    VectorStatistics* stats = &sVectorConversionStats;
-
-    NSUInteger sum = stats->vectorCount + stats->entityCount + stats->arrayCount + stats->protoCount;
-    double convFac = 100.0 / sum;
-    if (sum == 0)
-        convFac = 0;
-
-    return oo::PList(oo::str::format(
-        " vector-to-vector conversions: %zu (%g %%)\n"
-        " entity-to-vector conversions: %zu (%g %%)\n"
-        "  array-to-vector conversions: %zu (%g %%)\n"
-        "prototype-to-zero conversions: %zu (%g %%)\n"
-        "             null conversions: %zu (%g %%)\n"
-        "           failed conversions: %zu (%g %%)\n"
-        "                        total: %zu",
-        (size_t)stats->vectorCount, stats->vectorCount * convFac,
-        (size_t)stats->entityCount, stats->entityCount * convFac,
-        (size_t)stats->arrayCount, stats->arrayCount * convFac,
-        (size_t)stats->protoCount, stats->protoCount * convFac,
-        (size_t)stats->nullCount, stats->nullCount * convFac,
-        (size_t)stats->failCount, stats->failCount * convFac,
-        (size_t)sum));
-}
-
-void clearJSVectorStatistics(void)
-{
-    memset(&sVectorConversionStats, 0, sizeof sVectorConversionStats);
-}
-
-#define COUNT(FIELD)                    \
-    do {                                \
-        sVectorConversionStats.FIELD++; \
-    } while (0)
-
-#else
-
-#define COUNT(FIELD) \
-    do {             \
-    } while (0)
-
-#endif
-
 // Get array element as a number. Like JS_ValueToNumber(), non-numbers give NaN rather than failing.
 static bool GetArrayElementNumber(JSContext* context, JSValueConst array, uint32_t index, double* outNumber)
 {
@@ -307,14 +246,12 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
 
     // vectorObj can legitimately be null or a primitive.
     if (EXPECT_NOT(!JS_IsObject(vectorObj))) {
-        COUNT(nullCount);
         return false;
     }
 
     // If this is a (JS) Vector...
     priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
     if (EXPECT(priv != NULL)) {
-        COUNT(vectorCount);
         *outVector = *priv;
         return true;
     }
@@ -325,7 +262,6 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
         if (JS_GetLength(context, vectorObj, &arrayLength) == 0 && arrayLength == 3) {
             // ...use the three numbers as [x, y, z]
             if (GetArrayElementNumber(context, vectorObj, 0, &x) && GetArrayElementNumber(context, vectorObj, 1, &y) && GetArrayElementNumber(context, vectorObj, 2, &z)) {
-                COUNT(arrayCount);
                 *outVector = make_HPvector(x, y, z);
                 return true;
             }
@@ -335,7 +271,6 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
 #if !OOJS_POC_HARNESS
     // If it's an entity, use its position.
     if (OOJSIsMemberOfSubclass(context, vectorObj, JSEntityClassID())) {
-        COUNT(entityCount);
         JSClassID ignored;
         Entity* entity = [(id)JS_GetAnyOpaque(vectorObj, &ignored) weakRefUnderlyingObject];
         *outVector = [entity position];
@@ -351,12 +286,10 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj, HPVector* out
             Vector3Ds, but it's a rare case which should be kept off the fast path.
     */
     if (JS_GetClassID(vectorObj) == sVectorClassID) {
-        COUNT(protoCount);
         *outVector = kZeroHPVector;
         return true;
     }
 
-    COUNT(failCount);
     return false;
 
     OOJS_PROFILE_EXIT
