@@ -154,7 +154,7 @@ void OOResetGLStateVerifier(void);
         The context is built only when an error is found: a printf format and its
         arguments (a null format reads "<unknown>"), or a function giving the text.
         (C++ linkage: this header is sometimes reached from inside an extern "C"
-        block, OOMaths.h, as OOCocoa.h notes.)
+        block, OOMaths.h, as OOFoundation.h notes.)
 */
 #ifdef __cplusplus
 extern "C++" {

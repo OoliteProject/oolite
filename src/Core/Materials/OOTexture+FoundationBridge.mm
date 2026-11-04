@@ -63,7 +63,7 @@ NSString* const kOOTextureSpecifierBindingKey = @"binding";
     return [self cxx_existingTextureForKey:oo::OptionalString(key)];
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 + (NSArray*)cachedTexturesByAge
 {
     const std::vector<oo::ObjCRef<OOTexture*>> textures = [self cxx_cachedTexturesByAge];

@@ -376,7 +376,7 @@ the two files, the `meson.build` line and the import in `X.h`.
 ### 7. Categories on Foundation classes, and Foundation subclasses: retire, do not sweep
 
 `@interface NSString (OOExtensions)` and its kind (`NSData`, `NSDictionary`, `NSMutableDictionary`,
-`NSNumber`, `NSFileManager`, `OOCollectionExtractors`, `OODeepCopy`, OOCocoa.h's `NSEnumerator`
+`NSNumber`, `NSFileManager`, `OOCollectionExtractors`, `OODeepCopy`, OOFoundation.h's `NSEnumerator`
 category) and subclasses of Foundation classes (`OOFilteringEnumerator`,
 `OOExcludeObjectEnumerator`) cannot stop naming Foundation while they exist. Their beads wait on
 the sweep beads of their callers (the dependency is recorded). The bead is ready when `git grep`

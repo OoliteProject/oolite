@@ -43,7 +43,7 @@ Copyright (C) 2007-2013 Jens Ayton and contributors (OOTexture.h)
 
 + (OOTexture*)existingTextureForKey:(NSString*)key; // (OOTextureInternal.h) -> +cxx_existingTextureForKey:
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 + (NSArray*)cachedTexturesByAge; // -> +cxx_cachedTexturesByAge
 + (NSSet*)allTextures; // -> +cxx_allTextures
 #endif
