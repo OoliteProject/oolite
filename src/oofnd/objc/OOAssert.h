@@ -11,9 +11,14 @@
             NSParameterAssert(cond)                     OOParameterAssert(cond)
             NSCParameterAssert(cond)                    OOCParameterAssert(cond)
 
-        Blocked exactly when Foundation's were: OOCocoa.h defines NS_BLOCK_ASSERTIONS iff NDEBUG, so
-        these test NDEBUG. Blocked, a macro expands to an empty statement and its arguments are not
-        evaluated. Otherwise a false condition logs one line in message class "gnustep" (where the NSLog
+        LIVE IN EVERY FLAVOUR, deployment (NDEBUG) included, because Foundation's were.
+        Upstream's OOFoundation.h defines NS_BLOCK_ASSERTIONS iff NDEBUG, but only AFTER it imports
+        the Foundation umbrella header, and gnustep-base's include-guarded exception header picks the
+        blocked or live assertion macros when it is first parsed, so the define came too late and
+        never blocked anything. Blocking these under NDEBUG skips the side effect in PlayerEntity's
+        -deferredInit assertion (the player's ship set-up), and a deployment build cannot launch.
+        The arguments are always evaluated, and a false condition logs one line in message class
+        "gnustep" (where the NSLog
         hook, OOLogOutputHandler, sent gnustep-base's assertion log; NSLog's own date/process prefix is
         not reproduced) and raises an OOException named OOInternalInconsistencyException (the parameter
         forms too, as in gnustep-base) with Foundation's reason text:
@@ -45,14 +50,7 @@ void OOAssertFailedInFunction(const char* function, const char* file, long line,
 }
 #endif
 
-#ifdef NDEBUG
-#define OOAssert(condition, ...) \
-    do {                         \
-    } while (0)
-#define OOCAssert(condition, ...) \
-    do {                          \
-    } while (0)
-#else
+// Not conditional on NDEBUG: see the head of this file.
 #define OOAssert(condition, ...)                                                 \
     do {                                                                         \
         if (!(condition))                                                        \
@@ -63,7 +61,6 @@ void OOAssertFailedInFunction(const char* function, const char* file, long line,
         if (!(condition))                                                                   \
             OOAssertFailedInFunction(__PRETTY_FUNCTION__, __FILE__, __LINE__, __VA_ARGS__); \
     } while (0)
-#endif
 
 #define OOParameterAssert(condition) OOAssert((condition), "Invalid parameter not satisfying: %s", #condition)
 #define OOCParameterAssert(condition) OOCAssert((condition), "Invalid parameter not satisfying: %s", #condition)

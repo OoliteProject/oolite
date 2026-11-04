@@ -91,10 +91,16 @@ oofnd_objc_tests = [
     'test_objc_runtime',
     'test_objc_exception',
     'test_objc_assert',
+    'test_objc_assert_ndebug', # OOAssert.h under the deployment flavour's NDEBUG
     'test_objc_ref',
 ]
 
 foreach t : oofnd_objc_tests
+    # test_objc_assert refuses NDEBUG by design (#error); test_objc_assert_ndebug is its NDEBUG twin
+    # and is built in every flavour.
+    if t == 'test_objc_assert' and get_option('deployment_release')
+        continue
+    endif
     exe = executable(
         'oofnd_' + t,
         t + '.mm',

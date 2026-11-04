@@ -47,6 +47,10 @@ option('docs', type: 'feature', value: 'auto',
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')
 
+# Flavour coverage
+option('deployment_unit_tests', type: 'boolean', value: false,
+       description: 'Also build the oofnd unit tests when deployment_release is set (off for the shipped deployment build)')
+
 # JavaScript engine (QuickJS-ng)
 option('quickjs_poc', type: 'boolean', value: false,
        description: 'Build the QuickJS-ng proof-of-concept test harness (oojs-quickjs-poc)')

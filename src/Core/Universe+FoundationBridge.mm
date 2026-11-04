@@ -435,7 +435,7 @@ counterpart and converts the result exactly as the old one produced it (nil for 
 
 // Chunk 9 (oo-3rb.228). A nil role counted nothing and a nil role found no station, as before.
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSArray*)entityList
 {
     return oo::NSArrayFromObjects([self cxx_entityList]);

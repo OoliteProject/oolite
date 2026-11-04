@@ -117,7 +117,7 @@ Copyright (C) 2004-2013 Giles C Williams and contributors (Universe.h)
 // Chunk 9 (oo-3rb.228): entity lists, stations, planets, wormholes, waypoints, predicate searches.
 // The lists are snapshots (the old -planets / -wormholes / -currentWaypoints were the live
 // collections; their callers only read them).
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (NSArray*)entityList; // -> -cxx_entityList
 #endif
 - (NSArray*)planets; // Note: does not include sun.	// -> -cxx_planets
