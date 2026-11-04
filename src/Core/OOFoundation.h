@@ -81,7 +81,8 @@ MA 02110-1301, USA.
 #define BOOL WinBOOL
 #define __OBJC_BOOL 1
 #include <winsock2.h>
-
+// <winsock2.h> first: <windows.h> before it would bring in the old <winsock.h> (kept apart so
+// clang-format's include sorting cannot swap them; upstream #748 did the same for its headers).
 #include <windows.h>
 #undef __OBJC_BOOL
 #undef BOOL

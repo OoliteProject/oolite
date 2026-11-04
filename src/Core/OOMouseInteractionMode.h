@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #ifdef __OBJC__
 #import "OOFoundation.h"
 #else
-/*	Plain C++ translation unit (OOMouseInteractionMode.cpp, ADR-0012): only BOOL is needed, and OOCocoa.h
+/*	Plain C++ translation unit (OOMouseInteractionMode.cpp, ADR-0012): only BOOL is needed, and OOFoundation.h
         imports Foundation, which does not compile outside Objective-C.
 */
 #include <objc/runtime.h> // BOOL

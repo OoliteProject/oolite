@@ -30,7 +30,7 @@
 #ifdef __OBJC__
 #import "OOFoundation.h"
 #else
-/*	Plain C++ translation unit (OOIsNumberLiteral.cpp, ADR-0012): only BOOL is needed, and OOCocoa.h
+/*	Plain C++ translation unit (OOIsNumberLiteral.cpp, ADR-0012): only BOOL is needed, and OOFoundation.h
         imports Foundation, which does not compile outside Objective-C.
 */
 #include <objc/runtime.h> // BOOL

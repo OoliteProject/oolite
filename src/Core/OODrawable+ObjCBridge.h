@@ -75,7 +75,7 @@ SOFTWARE.
 
 - (void)dumpSelfState;
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 - (size_t)totalSize; // Size including dynamic data, not counting textures.
 #endif

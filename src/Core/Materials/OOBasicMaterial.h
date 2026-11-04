@@ -82,7 +82,7 @@ public:
     std::optional<std::string> name() override;
     bool doApply() override;
     void unapplyWithNext(OOMaterial* next) override;
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     std::vector<oo::ObjCRef<OOTexture*>> allTextures() override;
 #endif
 
