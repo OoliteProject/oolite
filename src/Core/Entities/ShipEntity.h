@@ -1428,9 +1428,23 @@ public:
         The ship is the C++ ship; a null ship sends nothing, as the message to nil did (moved from the
         deleted facade's header).
 */
-#define ShipScriptEvent(context, ship, event, ...)                                     do {                                                                                   OOJSVal argv[] = { __VA_ARGS__ };                                                  int argc = sizeof argv / sizeof *argv;                                             if (ShipEntity* ooScriptEventShip_ = (ship))                                           ooScriptEventShip_->doScriptEvent(OOJSID(event), context, argv, argc);         for (int oojsArgIndex = 0; oojsArgIndex < argc; oojsArgIndex++) {                      OOJSFreeValue(context, argv[oojsArgIndex]);                                    }                                                                              } while (0)
+#define ShipScriptEvent(context, ship, event, ...)                                 \
+    do {                                                                           \
+        OOJSVal argv[] = { __VA_ARGS__ };                                          \
+        int argc = sizeof argv / sizeof *argv;                                     \
+        if (ShipEntity* ooScriptEventShip_ = (ship))                               \
+            ooScriptEventShip_->doScriptEvent(OOJSID(event), context, argv, argc); \
+        for (int oojsArgIndex = 0; oojsArgIndex < argc; oojsArgIndex++) {          \
+            OOJSFreeValue(context, argv[oojsArgIndex]);                            \
+        }                                                                          \
+    } while (0)
 
-#define ShipScriptEventNoCx(ship, event, ...)                              do {                                                                       JSContext* oojsEventContext = OOJSAcquireContext();                    ShipScriptEvent(oojsEventContext, ship, event, ##__VA_ARGS__);         OOJSRelinquishContext(oojsEventContext);                           } while (0)
+#define ShipScriptEventNoCx(ship, event, ...)                          \
+    do {                                                               \
+        JSContext* oojsEventContext = OOJSAcquireContext();            \
+        ShipScriptEvent(oojsEventContext, ship, event, ##__VA_ARGS__); \
+        OOJSRelinquishContext(oojsEventContext);                       \
+    } while (0)
 
 Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, const std::string& align);
 
