@@ -489,7 +489,7 @@ Foundation-free and is what Phase 3 keeps (it drops the `cxx_` prefix as it conv
 
 ### Describing an object: `Core/OODescription.h` (item 1, oo-qps.31)
 
-Imported by `OOCocoa.h`, so no file includes it. A class describes itself by overriding **one**
+Imported by `OOFoundation.h`, so no file includes it. A class describes itself by overriding **one**
 method on the `OOObject` root; the printers wrap it:
 
 | Override | Printed by | As |
@@ -506,7 +506,7 @@ literal). `oo::DescriptionOf([x shortDescription])` is `oo::ShortDescriptionOf(x
 
 Transitional, until oo-qps.43 flips the legacy family tree-wide in one codemod commit
 (`python3 tools/codemods/description-family.py --fix upstream/oolite/src`, then `--check` for the
-hand residue) and deletes the legacy root in `OOCocoa.h/.mm`: the root's `cxx_` defaults forward to a
+hand residue) and deletes the legacy root in `OOFoundation.h/.mm`: the root's `cxx_` defaults forward to a
 legacy `- (id) descriptionComponents` (& co.) override while a class has one, and `oo::DescriptionOf`
 of an object not rooted on `OOObject` asks its `-description` (oo-qps.72 deletes both). Do not flip
 one class's override by hand before oo-qps.43: a converted superclass hides an unconverted
