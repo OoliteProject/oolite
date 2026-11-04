@@ -60,7 +60,7 @@
 #ifndef OOFND_PLISTGET_HPP
 #define OOFND_PLISTGET_HPP
 
-// OOCocoa.h's `#define true 1` / `#define false 0` are suspended for this header (ADR-0028).
+// OOFoundation.h's `#define true 1` / `#define false 0` are suspended for this header (ADR-0028).
 #pragma push_macro("true")
 #pragma push_macro("false")
 #undef true
