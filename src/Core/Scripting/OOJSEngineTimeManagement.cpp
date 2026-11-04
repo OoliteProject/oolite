@@ -27,9 +27,9 @@ SOFTWARE.
 
 #include "OOJSEngineTimeManagement.h"
 #include "OOObjCPList.h"
-#include "oofnd/String.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 /*	The SpiderMonkey version of this file implemented the time limiter
@@ -360,7 +360,6 @@ OOTimeProfileEntry::OOTimeProfileEntry(const char* name)
         }
     }
 }
-
 
 void OOTimeProfileEntry::addSampleWithTotalTime(OOTimeDelta totalTime, OOTimeDelta selfTime)
 {

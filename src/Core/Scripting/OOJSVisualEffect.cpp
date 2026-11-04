@@ -69,16 +69,16 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
 
 namespace {
 
-    // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(OOColor* color)
-    {
-        if (color == nullptr)
-            return oo::PList();
-        oo::PList::Array components;
-        for (float component : color->normalizedArray())
-            components.push_back(oo::PList::singleReal(component));
-        return oo::PList(std::move(components));
-    }
+// A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
+oo::PList NormalizedColorComponents(OOColor* color)
+{
+    if (color == nullptr)
+        return oo::PList();
+    oo::PList::Array components;
+    for (float component : color->normalizedArray())
+        components.push_back(oo::PList::singleReal(component));
+    return oo::PList(std::move(components));
+}
 
 } // namespace
 

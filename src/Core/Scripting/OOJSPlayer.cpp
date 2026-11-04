@@ -40,7 +40,6 @@ MA 02110-1301, USA.
 
 #include "OOObjCPList.h"
 
-
 /*
         C++20 since bead oo-5rva, converted the way bead oo-ppc converted OOJSVector.mm (proposed
         ADR-0056 amendment oo-ppc). The JS class was already C++ on QuickJS-ng;
@@ -203,38 +202,38 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
         break;
 
     case kPlayer_score:
-        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::score() : unsigned {})); // qualified: the final overrider, so the binding test stands in for it
+        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::score() : unsigned { })); // qualified: the final overrider, so the binding test stands in for it
 
     case kPlayer_credits:
         return JS_NewNumber(context, (player != nullptr ? player->creditBalance() : 0.0));
 
     case kPlayer_rank: {
-        const std::optional<std::string> text = cxx_OODisplayRatingStringFromKillCount((player != nullptr ? player->PlayerEntity::score() : unsigned {})); // qualified: the final overrider, so the binding test stands in for it
+        const std::optional<std::string> text = cxx_OODisplayRatingStringFromKillCount((player != nullptr ? player->PlayerEntity::score() : unsigned { })); // qualified: the final overrider, so the binding test stands in for it
         return OOJSValueFromPList(context, text.has_value() ? oo::PList(*text) : oo::PList());
     }
 
     case kPlayer_legalStatus: {
-        const std::optional<std::string> text = cxx_OODisplayStringFromLegalStatus((player != nullptr ? player->getLegalStatus() : int {}));
+        const std::optional<std::string> text = cxx_OODisplayStringFromLegalStatus((player != nullptr ? player->getLegalStatus() : int { }));
         return OOJSValueFromPList(context, text.has_value() ? oo::PList(*text) : oo::PList());
     }
 
     case kPlayer_alertCondition:
-        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::getAlertCondition() : OOAlertCondition {})); // qualified: the final overrider, so the binding test stands in for it
+        return JS_NewInt32(context, (player != nullptr ? player->PlayerEntity::getAlertCondition() : OOAlertCondition { })); // qualified: the final overrider, so the binding test stands in for it
 
     case kPlayer_alertTemperature:
-        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_TEMP);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int { }) & ALERT_FLAG_TEMP);
 
     case kPlayer_alertMassLocked:
-        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_MASS_LOCK);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int { }) & ALERT_FLAG_MASS_LOCK);
 
     case kPlayer_alertAltitude:
-        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_ALT);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int { }) & ALERT_FLAG_ALT);
 
     case kPlayer_alertEnergy:
-        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_ENERGY);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int { }) & ALERT_FLAG_ENERGY);
 
     case kPlayer_alertHostiles:
-        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int {}) & ALERT_FLAG_HOSTILES);
+        return OOJSValueFromBOOL((player != nullptr ? player->getAlertFlags() : int { }) & ALERT_FLAG_HOSTILES);
 
     case kPlayer_escapePodRescueTime:
         return JS_NewNumber(context, (player != nullptr ? player->escapePodRescueTime() : 0.0));
@@ -245,30 +244,30 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS)
         /* For compatibility with previous versions, these are still on
          * a -7 to +7 scale */
     case kPlayer_contractReputation:
-        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->contractReputation() : int {})) / 10.0));
+        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->contractReputation() : int { })) / 10.0));
 
     case kPlayer_passengerReputation:
-        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->passengerReputation() : int {})) / 10.0));
+        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->passengerReputation() : int { })) / 10.0));
 
     case kPlayer_parcelReputation:
-        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->parcelReputation() : int {})) / 10.0));
+        return JS_NewNumber(context, (int)(((float)(player != nullptr ? player->parcelReputation() : int { })) / 10.0));
 
         /* Full-precision reputations */
     case kPlayer_contractReputationPrecise:
-        return JS_NewNumber(context, ((float)(player != nullptr ? player->contractReputation() : int {})) / 10.0);
+        return JS_NewNumber(context, ((float)(player != nullptr ? player->contractReputation() : int { })) / 10.0);
 
     case kPlayer_passengerReputationPrecise:
-        return JS_NewNumber(context, ((float)(player != nullptr ? player->passengerReputation() : int {})) / 10.0);
+        return JS_NewNumber(context, ((float)(player != nullptr ? player->passengerReputation() : int { })) / 10.0);
 
     case kPlayer_parcelReputationPrecise:
-        return JS_NewNumber(context, ((float)(player != nullptr ? player->parcelReputation() : int {})) / 10.0);
+        return JS_NewNumber(context, ((float)(player != nullptr ? player->parcelReputation() : int { })) / 10.0);
 
     case kPlayer_dockingClearanceStatus:
         // EMMSTRAN: OOConstToJSString-ify this.
-        return OOJSValueFromPList(context, oo::PList(cxx_DockingClearanceStatusToString((player != nullptr ? player->getDockingClearanceStatus() : OODockingClearanceStatus {}))));
+        return OOJSValueFromPList(context, oo::PList(cxx_DockingClearanceStatusToString((player != nullptr ? player->getDockingClearanceStatus() : OODockingClearanceStatus { }))));
 
     case kPlayer_bounty:
-        return JS_NewInt32(context, (player != nullptr ? player->getLegalStatus() : int {}));
+        return JS_NewInt32(context, (player != nullptr ? player->getLegalStatus() : int { }));
 
     case kPlayer_roleWeights: {
         const std::vector<std::string> roleWeights = (player != nullptr ? player->getRoleWeights() : std::vector<std::string>());

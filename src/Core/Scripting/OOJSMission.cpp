@@ -35,8 +35,8 @@ MA 02110-1301, USA.
 #include "OOMusicController.h"
 #include "OOStringExpander.h"
 #include "PlayerEntityScriptMethods.h"
-#include "oofnd/objc/OOException.h"
 #include "oofnd/Notification.hpp"
+#include "oofnd/objc/OOException.h"
 
 /*
         C++20 since bead oo-nge8, converted the way bead oo-ppc converted OOJSVector.mm (proposed

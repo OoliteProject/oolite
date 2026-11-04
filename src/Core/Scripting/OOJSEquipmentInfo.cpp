@@ -58,39 +58,39 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS);
 
 namespace {
 
-    // A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
-    oo::PList NormalizedColorComponents(OOColor* color)
-    {
-        if (color == nullptr)
-            return oo::PList();
-        oo::PList::Array components;
-        for (float component : color->normalizedArray())
-            components.push_back(oo::PList::singleReal(component));
-        return oo::PList(std::move(components));
-    }
+// A colour's components as its -normalizedArray gave them to JavaScript: floats, null for no colour.
+oo::PList NormalizedColorComponents(OOColor* color)
+{
+    if (color == nullptr)
+        return oo::PList();
+    oo::PList::Array components;
+    for (float component : color->normalizedArray())
+        components.push_back(oo::PList::singleReal(component));
+    return oo::PList(std::move(components));
+}
 
-    // What the type answers, or what a message to nil answered (0, false, nullopt, null, an empty
-    // list) when there is no type: the prototype's case (amendment oo-6ia4 item 2).
-    template <typename Result>
-    Result Ask(OOEquipmentType* type, Result (OOEquipmentType::*member)())
-    {
-        return type != nullptr ? (type->*member)() : Result { };
-    }
+// What the type answers, or what a message to nil answered (0, false, nullopt, null, an empty
+// list) when there is no type: the prototype's case (amendment oo-6ia4 item 2).
+template <typename Result>
+Result Ask(OOEquipmentType* type, Result (OOEquipmentType::*member)())
+{
+    return type != nullptr ? (type->*member)() : Result { };
+}
 
-    // A string, or null for none (what a Foundation string or nil gave JavaScript).
-    oo::PList StringOrNull(const std::optional<std::string>& string)
-    {
-        return string.has_value() ? oo::PList(*string) : oo::PList();
-    }
+// A string, or null for none (what a Foundation string or nil gave JavaScript).
+oo::PList StringOrNull(const std::optional<std::string>& string)
+{
+    return string.has_value() ? oo::PList(*string) : oo::PList();
+}
 
-    // Equipment keys as an array of strings; null for none. They are sorted and unique already, so
-    // this is the set they were, in key order (the Foundation set's -allObjects gave hash order).
-    oo::PList KeyArrayOrNull(const std::optional<std::vector<std::string>>& keys)
-    {
-        if (!keys.has_value())
-            return oo::PList();
-        return oo::PList(oo::PList::Array(keys->begin(), keys->end()));
-    }
+// Equipment keys as an array of strings; null for none. They are sorted and unique already, so
+// this is the set they were, in key order (the Foundation set's -allObjects gave hash order).
+oo::PList KeyArrayOrNull(const std::optional<std::vector<std::string>>& keys)
+{
+    if (!keys.has_value())
+        return oo::PList();
+    return oo::PList(oo::PList::Array(keys->begin(), keys->end()));
+}
 
 } // namespace
 
