@@ -532,6 +532,8 @@ void PlayerEntity::overwriteCommanderInputHandler()
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+
     handleGUIUpDownArrowKeys();
 
     // Translation issue: we can't confidently use raw Y and N ascii as shortcuts. It's better to use the load-previous-commander keys.

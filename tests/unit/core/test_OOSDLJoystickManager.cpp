@@ -245,4 +245,39 @@ OO_TEST(refusesEventsOfAStickItDidNotOpen)
 }
 
 
+// Upstream #783: an SDL button or hat event of a button given a GUI function
+// sets that function's state, which the GUI screens read.
+OO_TEST(decodesGuiButtonsFromSDL) {
+  VirtualStick& vs = Stick();
+  {
+    oo::Ref<OOSDLJoystickManager> manager = NewManager();
+    auto buttonFn = [](int button) {
+      oo::PList::Dict fn;
+      fn[std::string(STICK_ISAXIS)] = oo::PList(false);
+      fn[std::string(STICK_NUMBER)] = oo::PList(0);
+      fn[std::string(STICK_AXBUT)] = oo::PList(button);
+      return oo::PList(std::move(fn));
+    };
+    manager->setFunction(BUTTON_GUISELECT, buttonFn(3));
+    manager->setFunction(BUTTON_GUIUP, buttonFn(MAX_REAL_BUTTONS));
+    OO_CHECK(!manager->getButtonState(BUTTON_GUISELECT));
+
+    SDL_Event down = ButtonEvent(vs.id, 3, true);
+    OO_CHECK(manager->handleSDLEvent(&down));
+    OO_CHECK(manager->getButtonState(BUTTON_GUISELECT));
+    OO_CHECK(manager->getAllButtonStates()[BUTTON_GUISELECT]);
+    SDL_Event up = ButtonEvent(vs.id, 3, false);
+    OO_CHECK(manager->handleSDLEvent(&up));
+    OO_CHECK(!manager->getButtonState(BUTTON_GUISELECT));
+
+    SDL_Event hat = HatEvent(vs.id, 0, SDL_HAT_UP);
+    OO_CHECK(manager->handleSDLEvent(&hat));
+    OO_CHECK(manager->getButtonState(BUTTON_GUIUP));
+    SDL_Event centred = HatEvent(vs.id, 0, SDL_HAT_CENTERED);
+    OO_CHECK(manager->handleSDLEvent(&centred));
+    OO_CHECK(!manager->getButtonState(BUTTON_GUIUP));
+  }
+}
+
+
 OO_TEST_MAIN()
