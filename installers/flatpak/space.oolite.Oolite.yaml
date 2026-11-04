@@ -1,12 +1,12 @@
 app-id: space.oolite.Oolite
 runtime: org.freedesktop.Platform
-runtime-version: "25.08"
+runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.llvm22
+  - org.freedesktop.Sdk.Extension.llvm23
 build-options:
-  append-path: /usr/lib/sdk/llvm22/bin
-  prepend-ld-library-path: /usr/lib/sdk/llvm22/lib
+  append-path: /usr/lib/sdk/llvm23/bin
+  prepend-ld-library-path: /usr/lib/sdk/llvm23/lib
 command: run_oolite.sh
 finish-args:
   - --socket=wayland
@@ -79,7 +79,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/gnustep/libobjc2.git
-        commit: aca3916553665f01550832d02462bcf137c94c39
+        commit: a21ae931e4c186312701d7a4a8e85204955965a6
   - name: gnustep-make
     build-options:
       env:
@@ -100,7 +100,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/gnustep/libs-base.git
-        commit: 68f3d75694f0a7edf9fb1c6c7f19582e8cff1b5f
+        commit: 85dedc64bd65492a5c0f0f80516688e2db59d57f
   - name: mozilla-js-static
     buildsystem: simple
     build-commands:

@@ -19,9 +19,9 @@ run_script() {
     # Define libraries and their specific pinned commits
     # Format: ["URL"]="COMMIT_HASH"
     declare -A repos=(
-        ["https://github.com/gnustep/libobjc2.git"]="fab3df291a37fefdcc7b774c507ffb2ad5db6fb8"
+        ["https://github.com/gnustep/libobjc2.git"]="a21ae931e4c186312701d7a4a8e85204955965a6"
         ["https://github.com/gnustep/tools-make.git"]="cafd2c4a73b568b2f0022f15a149963f39c564f3"
-        ["https://github.com/gnustep/libs-base.git"]="9c94e05384c46cec7773b42880c4820b5df82b14"
+        ["https://github.com/gnustep/libs-base.git"]="85dedc64bd65492a5c0f0f80516688e2db59d57f"
     )
 
     for url in "${!repos[@]}"; do
