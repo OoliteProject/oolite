@@ -104,7 +104,7 @@ SOFTWARE.
 - (NSUInteger)countOfTextureUnitsWithBaseCoordinates;
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 #endif
 
@@ -172,7 +172,7 @@ public:
 #if OO_MULTITEXTURE
     virtual NSUInteger superCountOfTextureUnitsWithBaseCoordinates() = 0;
 #endif
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     virtual std::vector<oo::ObjCRef<OOTexture*>> superAllTextures() = 0;
 #endif
     virtual bool superDoApply() = 0;
@@ -208,7 +208,7 @@ public:
 #if OO_MULTITEXTURE
     NSUInteger countOfTextureUnitsWithBaseCoordinates() override { return [_owner countOfTextureUnitsWithBaseCoordinates]; }
 #endif
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     std::vector<oo::ObjCRef<OOTexture*>> allTextures() override { return [_owner cxx_allTextures]; }
 #endif
     bool doApply() override { return [_owner doApply]; }
@@ -224,7 +224,7 @@ public:
 #if OO_MULTITEXTURE
     NSUInteger superCountOfTextureUnitsWithBaseCoordinates() override { return Base::countOfTextureUnitsWithBaseCoordinates(); }
 #endif
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     std::vector<oo::ObjCRef<OOTexture*>> superAllTextures() override { return Base::allTextures(); }
 #endif
     bool superDoApply() override { return Base::doApply(); }

@@ -156,7 +156,7 @@ cxx::Octree* oo::ToCxx(Octree* octree)
     return _cxxOctree->randomPoint();
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (size_t)totalSize
 {
     return _cxxOctree->totalSize();

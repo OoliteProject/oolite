@@ -63,7 +63,7 @@ public:
     void ensureFinishedLoading() override;
     void apply() override;
     void unapplyWithNext(OOMaterial* next) override;
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     std::vector<oo::ObjCRef<OOTexture*>> allTextures() override;
 #endif
 

@@ -260,7 +260,7 @@ cxx::OOMaterial* oo::ToCxx(OOMaterial* material)
 }
 #endif
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
     if (oo::ObjCMaterialLink* objCMaterial = oo::AsObjCMaterial(_cxxMaterial.get()))

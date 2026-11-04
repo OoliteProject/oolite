@@ -470,7 +470,10 @@ int main(int argc, char **argv)
 	// an embedded NUL, as the C string the JS engine receives always did (oo-kpxgo).
 	// kStringsDigest re-captured with Jon's approval, 2026-09-29 (bead oo-3rb.69; was
 	// 0xdc8ef7032bfb6797): the \x7F fix changes exactly the 12 records that raised before.
-	const uint64_t kKeysDigest = 0x6349f869900cf779ULL, kStringsDigest = 0xef7448c0016ba2edULL;
+	// Both re-captured with Jon's approval, 2026-10-25 (were 0x6349f869900cf779 /
+	// 0xef7448c0016ba2ed): upstream #747 changed descriptions.plist (key_oxzmanager_copyurl, the
+	// OXZ-manager help strings, "Info URL:"); against the pre-sync plist the old digests still match.
+	const uint64_t kKeysDigest = 0xea38daecff933503ULL, kStringsDigest = 0x338f336558c7db67ULL;
 	int failures = regressionFailures;
 	if (keysHash != kKeysDigest)
 	{

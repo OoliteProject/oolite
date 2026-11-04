@@ -38,7 +38,7 @@
 
 #include <objc/objc-arc.h>
 
-// Objective-C++ game code sees OOCocoa.h's `#define true 1` / `#define false 0`; suspend them for
+// Objective-C++ game code sees OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
 // the standard headers (as oofnd/Data.hpp does, proposed ADR-0028).
 #pragma push_macro("true")
 #pragma push_macro("false")

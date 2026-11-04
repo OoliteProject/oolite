@@ -75,7 +75,7 @@ public:
     void setBindingTarget(id<OOWeakReferenceSupport> target) override { [_owner setBindingTarget:target]; }
     void dumpSelfState() override { [_owner dumpSelfState]; }
     std::optional<std::string> descriptionComponents() const override { return [_owner cxx_descriptionComponents]; }
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
     std::vector<oo::ObjCRef<OOTexture*>> allTextures() override { return [_owner cxx_allTextures]; }
     size_t totalSize() override { return [_owner totalSize]; }
 #endif
@@ -243,7 +243,7 @@ void oo::ConstructCxxPartOfCopy(OODrawable* copy)
         _cxxDrawable->dumpSelfState();
 }
 
-#ifndef NDEBUG
+#ifdef OO_DEBUG_MONITOR_ENABLED
 - (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures
 {
     if (AsObjCDrawable(_cxxDrawable.get()) != nullptr)
