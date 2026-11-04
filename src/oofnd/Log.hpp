@@ -32,7 +32,7 @@
 #ifndef OOFND_LOG_HPP
 #define OOFND_LOG_HPP
 
-// Objective-C++ callers see OOCocoa.h's `#define true 1` / `#define false 0`; suspend them for
+// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false 0`; suspend them for
 // this header (proposed ADR-0028).
 #pragma push_macro("true")
 #pragma push_macro("false")

@@ -35,7 +35,7 @@ Rules that hold for every component:
 | `src/oofnd/ResourcePaths.hpp` | `oo::ResourcePaths`: the game's Resources/AddOns/saves/logs/caches locations, exactly as computed today on Windows and Linux |
 | `src/oofnd/Notification.hpp` | `oo::NotificationCenter`, `oo::Notification`: `NSNotificationCenter` / `NSNotification` (named, synchronous, registration order; bead oo-3rb.9, ADR-0029 Decision 5) |
 | `src/oofnd/Date.hpp` | `oo::date`: `NSDate` on `std::chrono`: the reference-date (2001) wall clock, a monotonic clock for intervals, NSDate's `-description` (bead oo-3rb.11) |
-| `src/oofnd/StdLib.hpp` | the standard containers and clocks game code uses instead of Foundation collections, `NSValue` boxes and `NSDate`, included under the OOCocoa.h `true`/`false` guard (bead oo-3rb.10); game code includes it rather than `<vector>` etc. |
+| `src/oofnd/StdLib.hpp` | the standard containers and clocks game code uses instead of Foundation collections, `NSValue` boxes and `NSDate`, included under the OOFoundation.h `true`/`false` guard (bead oo-3rb.10); game code includes it rather than `<vector>` etc. |
 | `src/oofnd/Process.hpp` | `oo::process` + `oo::env`: `NSProcessInfo` (arguments captured in `main`, `hasArgument`, `processName`, `processorCount`, `operatingSystemVersionString`) with GNUstep's measured semantics |
 | `src/oofnd/Thread.hpp` | `oo::thread`: `NSThread` on `std::thread`: `detach`, `isMainThread` (id captured at static init), `setCurrentName`, `setCurrentPriority` (GNUstep's measured Windows mapping) |
 | `src/oofnd/String.hpp` | `oo::str`: the `NSString` methods and Oolite `NSString` categories the game uses (`NSStringOOExtensions`, `OOStringParsing`'s `NSString (OOUtilities)`, `ScanTokensFromString`, the version helpers) over UTF-8 `std::string`, GNUstep 1.31.1's answers exactly: case tables, whitespace set, composed-sequence rules, `-pathExtension`, `-replaceOccurrencesOfString:`, `-hasPrefix:`, `-stringWithFormat:` without `%@` ([ADR-0034](../../../../docs/decisions/0034-oofnd-strings.md)) |
@@ -207,7 +207,7 @@ acceptance grep matches (comments included), the whole tree builds, and the game
 
 ### 1. Types
 
-Use `oofnd/StdLib.hpp` for standard containers (never `<vector>` directly: OOCocoa.h's
+Use `oofnd/StdLib.hpp` for standard containers (never `<vector>` directly: OOFoundation.h's
 `true`/`false` macros), `oofnd/String.hpp` for `oo::str`, `oofnd/PList.hpp` for `oo::PList`,
 `oofnd/objc/OOObjCRef.h` for `oo::ObjCRef`, and `#import "OOFoundationBridge.h"` (which brings
 `OOStringBridge.h`) for the boundary helpers.

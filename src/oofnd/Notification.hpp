@@ -42,7 +42,7 @@
 #ifndef OOFND_NOTIFICATION_HPP
 #define OOFND_NOTIFICATION_HPP
 
-// Objective-C++ game code includes this after OOCocoa.h, whose `#define true 1` / `#define false 0`
+// Objective-C++ game code includes this after OOFoundation.h, whose `#define true 1` / `#define false 0`
 // break the standard headers' keywords. Suspend the macros here (proposed ADR-0028, Data.hpp).
 #pragma push_macro("true")
 #pragma push_macro("false")

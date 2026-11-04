@@ -3,7 +3,7 @@
 OOObjectGNUstepBridge.h
 
 TEMPORARY: oo-qps (libgnustep-base leaves the build) deletes this file and its import in
-OOCocoa.h. See OOObjectGNUstepBridge.mm.
+OOFoundation.h. See OOObjectGNUstepBridge.mm.
 
 */
 
