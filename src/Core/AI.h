@@ -42,7 +42,7 @@ class Entity;
 class OOPreservedAIStateMachine; // private to AI.mm; no facade, so global (amendment oo-fn2f item 4)
 
 /*	A ship's AI: C++ only since its Objective-C facade was deleted. Held as oo::Ref<AI>; a ship's shipAI owns it.
-*/
+ */
 class AI : public oo::RefCounted {
 public:
     AI(); // -init
