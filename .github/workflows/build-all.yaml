@@ -361,11 +361,11 @@ jobs:
         id: version
         run: |
           set -x          
-          # 1. Check that there are exactly 5 files recursively in the artifacts directory
+          # 1. Check that there are exactly 6 files recursively in the artifacts directory
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [[ "$FILE_COUNT" -ne 5 ]]; then
-            echo "❌ Expected exactly 5 files, but found $FILE_COUNT." >&2
+          if [[ "$FILE_COUNT" -ne 6 ]]; then
+            echo "❌ Expected exactly 6 files, but found $FILE_COUNT." >&2
             exit 1
           fi                    
           # 2. Get the path of the first available AppImage
@@ -407,7 +407,7 @@ jobs:
           files: |
             artifacts/oolite-windows-nsis-deployment/OoliteInstall-*.exe
             artifacts/oolite-linux-appimage-deployment/*.AppImage
-            artifacts/oolite-linux-flatpak-deployment/*.flatpak
+            artifacts/oolite-linux-flatpak-deployment/space.oolite.Oolite-[0-9]*.flatpak
             artifacts/oolite-macos-dmg-deployment/*.dmg
             artifacts/oolite-documentation/*.zip
 
