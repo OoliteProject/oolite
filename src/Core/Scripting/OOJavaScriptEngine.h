@@ -61,8 +61,8 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOTypes.h"
-#import "oofnd/objc/OOObject.h"
 #include "oofnd/StdLib.hpp"
+#import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
 #if !OOJS_POC_HARNESS
