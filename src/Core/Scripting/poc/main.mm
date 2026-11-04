@@ -132,6 +132,19 @@ static void RunTimeLimiterTests(const std::string& testDir)
     Check(CallForString(script, "ping") == "pong", "engine still usable after termination");
 }
 
+// Upstream #768's QuickJS-ng patch: strict code may create a property on a primitive without a
+// TypeError, as under SpiderMonkey 1.8.5.
+static void RunPrimitivePropertyTests(const std::string& testDir)
+{
+    OOPocClearRecordedLogMessages();
+    OOJSScript* script = [OOJSScript scriptWithPath:oo::str::appendingPathComponent(testDir, "primitive_property.js")];
+    Check(script != nil, "primitive_property.js loads");
+
+    std::optional<std::string> result = CallForString(script, "startUp");
+    Check(result == "undefined|undefined|undefined|text|42|true", "strict code ignores properties created on primitives (got " + Describe(result) + ")");
+    Check(!LogContains("JavaScript exception"), "no TypeError for a property on a primitive");
+}
+
 int main(int argc, const char* argv[])
 {
     if (argc < 2) {
@@ -158,6 +171,7 @@ int main(int argc, const char* argv[])
             RunScopeTests(testDir);
             RunErrorTests(testDir);
             RunTimeLimiterTests(testDir);
+            RunPrimitivePropertyTests(testDir);
         }
 
         NSUInteger leaked = [engine shutDown];
