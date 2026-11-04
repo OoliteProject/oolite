@@ -34,7 +34,7 @@
 #ifndef OOFND_PLISTDESCRIPTION_HPP
 #define OOFND_PLISTDESCRIPTION_HPP
 
-// Suspend OOCocoa.h's `#define true 1` / `#define false 0` for this header (see oofnd/Data.hpp,
+// Suspend OOFoundation.h's `#define true 1` / `#define false 0` for this header (see oofnd/Data.hpp,
 // proposed ADR-0028); restored at the end.
 #pragma push_macro("true")
 #pragma push_macro("false")
