@@ -144,4 +144,8 @@ if not get_option('deployment_release') and host_machine.system() == 'windows'
     test('headers_standalone', find_program('python3'),
         args: [files('tests/check_headers_standalone.py'), meson.project_build_root()],
         suite: 'headers', timeout: 900, is_parallel: false)
+    # Debug-monitor code is guarded by OO_DEBUG_MONITOR_ENABLED, not NDEBUG: the deployment flavour
+    # defines both, and no test flavour notices a guard left on NDEBUG.
+    test('debug_monitor_guards', find_program('python3'),
+        args: [files('tests/check_debug_monitor_guards.py')], suite: 'headers')
 endif
