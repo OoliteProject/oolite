@@ -36,50 +36,54 @@ SOFTWARE.
 #include "OOMaths.h"
 #include "OOOpenGL.h"
 #include "oofnd/objc/OOObject.h"
-class Entity; // Entity.h: the shader binding target
+class Entity;  // Entity.h: the shader binding target
 
-#include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 #include <vector>
 
-#include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class
+#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>, which needs the class
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
 class OODrawable : public oo::RefCounted {
-public:
-    virtual void renderOpaqueParts();
-    virtual void renderTranslucentParts();
-    virtual bool hasOpaqueParts();
-    virtual bool hasTranslucentParts();
+ public:
+  virtual void renderOpaqueParts();
+  virtual void renderTranslucentParts();
+  virtual bool hasOpaqueParts();
+  virtual bool hasTranslucentParts();
 
-    virtual GLfloat collisionRadius();
-    virtual GLfloat maxDrawDistance();
+  virtual GLfloat collisionRadius();
+  virtual GLfloat maxDrawDistance();
 
-    virtual BoundingBox boundingBox();
+  virtual BoundingBox boundingBox();
 
-    // Passed to all materials.
-    virtual void setBindingTarget(Entity* target);
+  // Passed to all materials.
+  virtual void setBindingTarget(Entity* target);
 
-    virtual void dumpSelfState();
+  virtual void dumpSelfState();
 
-    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
-    // OOObject answered; OOMesh and OOSkyDrawable override it.
-    virtual std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <Class 0x...>{...}
+  // (OODescription.h). None here, as OOObject answered; OOMesh and
+  // OOSkyDrawable override it.
+  virtual std::optional<std::string> descriptionComponents() const;
 
-    // "<Class 0x...>{components}": the C++ class's name and the drawable's own address.
-    std::string description() const;
+  // "<Class 0x...>{components}": the C++ class's name and the drawable's own
+  // address.
+  std::string description() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    virtual std::vector<oo::Ref<OOTexture>> allTextures();
-    virtual size_t totalSize(); // Size including dynamic data, not counting textures.
+  virtual std::vector<oo::Ref<OOTexture>> allTextures();
+  virtual size_t
+  totalSize();  // Size including dynamic data, not counting textures.
 
-    // The object's own size, which totalSize() starts from: sizeof the dynamic type, each subclass answering its own.
-    virtual size_t objectSize() const { return sizeof *this; }
+  // The object's own size, which totalSize() starts from: sizeof the dynamic
+  // type, each subclass answering its own.
+  virtual size_t objectSize() const { return sizeof *this; }
 #endif
 };
 
 /*	Keeps the drawable
-        until the current autorelease pool drains, so a drawable an entity replaces lives exactly as
-        long as an autoreleased object
-   would. Nothing for null.
+        until the current autorelease pool drains, so a drawable an entity
+   replaces lives exactly as long as an autoreleased object would. Nothing for
+   null.
 */
 void OODrawableAutorelease(oo::Ref<OODrawable> drawable);

@@ -26,8 +26,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
+
+#include "OOFoundation.h"
 
 void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 

@@ -49,61 +49,69 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 
 enum {
-    kOOCacheMinimumPruneThreshold = 25U,
-    kOOCacheDefaultPruneThreshold = 200U,
-    kOOCacheNoPrune = 0xFFFFFFFFU
+  kOOCacheMinimumPruneThreshold = 25U,
+  kOOCacheDefaultPruneThreshold = 200U,
+  kOOCacheNoPrune = 0xFFFFFFFFU
 };
 
 class OOCache : public oo::RefCounted {
-public:
-    // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
-    // An array of {key = string; value = plist;} entries, oldest first (a null PList: empty); null for
-    // anything else. pListRepresentation() is the same form, null for an empty cache.
-    static oo::Ref<OOCache> cacheWithPList(const oo::PList& pList);
-    oo::PList pListRepresentation();
+ public:
+  // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
+  // An array of {key = string; value = plist;} entries, oldest first (a null
+  // PList: empty); null for anything else. pListRepresentation() is the same
+  // form, null for an empty cache.
+  static oo::Ref<OOCache> cacheWithPList(const oo::PList& pList);
+  oo::PList pListRepresentation();
 
-    ~OOCache() override;
+  ~OOCache() override;
 
-    oo::PList pListForKey(const std::string& key); // null PList: absent
-    void setPList(const oo::PList& value, const std::string& key); // a null value is not stored
-    void removePListForKey(const std::string& key);
+  oo::PList pListForKey(const std::string& key);  // null PList: absent
+  void setPList(const oo::PList& value,
+                const std::string& key);  // a null value is not stored
+  void removePListForKey(const std::string& key);
 
-    void setPruneThreshold(unsigned threshold);
-    unsigned pruneThreshold();
+  void setPruneThreshold(unsigned threshold);
+  unsigned pruneThreshold();
 
-    void setAutoPrune(bool flag);
-    bool autoPrune();
+  void setAutoPrune(bool flag);
+  bool autoPrune();
 
-    void prune();
+  void prune();
 
-    bool dirty();
-    void markClean();
+  bool dirty();
+  void markClean();
 
-    std::optional<std::string> name(); // nullopt: unnamed
-    void setName(const std::optional<std::string>& name);
+  std::optional<std::string> name();  // nullopt: unnamed
+  void setName(const std::optional<std::string>& name);
 
-    std::vector<oo::PList> pListsByAge(); // the values, youngest first; empty for an empty cache
+  std::vector<oo::PList>
+  pListsByAge();  // the values, youngest first; empty for an empty cache
 
-    // What "%@" printed between the braces of <OOCache 0x...>{...} (OODescription.h).
-    std::optional<std::string> descriptionComponents() const;
-
-#if DEBUG_GRAPHVIZ
-    std::optional<std::string> generateGraphVizBodyWithRootNamed(const std::string& rootName);
-    std::string generateGraphViz();
-    void writeGraphVizToPath(const std::string& path);
-#endif
-
-private:
-    bool initWithPList(const oo::PList& pList); // false where -cxx_initWithPList: returned nil
-
-    void loadFromArray(const oo::PList& inArray);
+  // What "%@" printed between the braces of <OOCache 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 
 #if DEBUG_GRAPHVIZ
-    void appendNodesFromSubTree(struct OOCacheNode* subTree, std::string& ioString);
+  std::optional<std::string> generateGraphVizBodyWithRootNamed(
+      const std::string& rootName);
+  std::string generateGraphViz();
+  void writeGraphVizToPath(const std::string& path);
 #endif
 
-    struct OOCacheImpl* cache = { };
-    unsigned _pruneThreshold = { }; // (the ivar was pruneThreshold, now the getter's name)
-    bool _autoPrune = { }; // (autoPrune, likewise)
-    bool _dirty = { }; // (dirty, likewise)
+ private:
+  bool initWithPList(
+      const oo::PList& pList);  // false where -cxx_initWithPList: returned nil
+
+  void loadFromArray(const oo::PList& inArray);
+
+#if DEBUG_GRAPHVIZ
+  void appendNodesFromSubTree(struct OOCacheNode* subTree,
+                              std::string& ioString);
+#endif
+
+  struct OOCacheImpl* cache = {};
+  unsigned _pruneThreshold =
+      {};                // (the ivar was pruneThreshold, now the getter's name)
+  bool _autoPrune = {};  // (autoPrune, likewise)
+  bool _dirty = {};      // (dirty, likewise)
 };

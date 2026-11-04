@@ -36,7 +36,7 @@ void OOInitDebugSupport(void);
 #else
 
 #define OOInitDebugSupport() \
-    do {                     \
-    } while (0)
+  do {                       \
+  } while (0)
 
 #endif

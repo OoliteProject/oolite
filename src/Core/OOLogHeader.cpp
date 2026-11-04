@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #include "OOLogHeader.h"
+
 #include "OOCPUInfo.h"
 #include "OOJavaScriptEngine.h"
 #include "OOLogging.h"
@@ -58,8 +59,7 @@ std::string AdditionalLogHeaderInfo(void);
 #warning TARGET_INCOMING_MISSILES is no longer optional and the macro should no longer be defined.
 #endif
 
-void OOPrintLogHeader(void)
-{
+void OOPrintLogHeader(void) {
 // Bunch of string literal macros which are assembled into a CPU info string.
 #if defined(__ppc__)
 #define CPU_TYPE_STRING "PPC-32"
@@ -84,7 +84,7 @@ void OOPrintLogHeader(void)
 #elif OOLITE_WINDOWS
 #define OS_TYPE_STRING "Windows"
 #elif OOLITE_LINUX
-#define OS_TYPE_STRING "Linux" // Hmm, what about other unices?
+#define OS_TYPE_STRING "Linux"  // Hmm, what about other unices?
 #elif OOLITE_SDL
 #define OS_TYPE_STRING "unknown SDL system"
 #else
@@ -99,101 +99,108 @@ void OOPrintLogHeader(void)
 #define RELEASE_VARIANT_STRING ""
 #endif
 
-    const std::vector<std::string> featureStrings = {
+  const std::vector<std::string> featureStrings = {
 // User features
 #if OOLITE_OPENAL
-        "OpenAL",
+      "OpenAL",
 #endif
 
 #if OO_SHADERS
-        "GLSL shaders",
+      "GLSL shaders",
 #endif
 
-        "new planets",
+      "new planets",
 
 // Debug features
 #if OO_CHECK_GL_HEAVY
-        "heavy OpenGL error checking",
+      "heavy OpenGL error checking",
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-        "JavaScript console support",
+      "JavaScript console support",
 #if OOLITE_MAC_COCOA_UI
-        // Under Mac OS X, Debug.oxp adds more than console support.
-        "Debug plug-in support",
+      // Under Mac OS X, Debug.oxp adds more than console support.
+      "Debug plug-in support",
 #endif
 #endif
 
 #if OO_OXP_VERIFIER_ENABLED
-        "OXP verifier",
+      "OXP verifier",
 #endif
 
 #if OO_LOCALIZATION_TOOLS
-        "localization tools",
+      "localization tools",
 #endif
 
 #if DEBUG_GRAPHVIZ
-        "debug GraphViz support",
+      "debug GraphViz support",
 #endif
 
 #if OOJS_PROFILE
-        "JavaScript native callback profiling",
+      "JavaScript native callback profiling",
 #endif
 
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
-        "FOV in-flight control",
+      "FOV in-flight control",
 #endif
 
-    };
+  };
 
 // systemString: UTF-8 string with system type and possibly version.
 #if (OOLITE_MACOS || !OOLITE_WINDOWS)
-    std::string systemString = oo::str::format(OS_TYPE_STRING " %s", oo::process::operatingSystemVersionString().c_str());
+  std::string systemString =
+      oo::str::format(OS_TYPE_STRING " %s",
+                      oo::process::operatingSystemVersionString().c_str());
 #elif OOLITE_WINDOWS
-    std::string systemString = oo::str::format(OS_TYPE_STRING " %s %s-bit", operatingSystemFullVersion().c_str(), is64BitSystem() ? "64" : "32");
+  std::string systemString = oo::str::format(
+      OS_TYPE_STRING " %s %s-bit", operatingSystemFullVersion().c_str(),
+      is64BitSystem() ? "64" : "32");
 #else
 #define systemString std::string(OS_TYPE_STRING)
 #endif
 
-    std::string versionString;
+  std::string versionString;
 #if (defined(DEV_RELEASE))
-    versionString = "development version " OO_VERSION_FULL;
+  versionString = "development version " OO_VERSION_FULL;
 #else
-    versionString = "version " OO_VERSION_FULL;
+  versionString = "version " OO_VERSION_FULL;
 #endif
-    if (versionString.empty())
-        versionString = "<unknown version>";
+  if (versionString.empty()) versionString = "<unknown version>";
 
-    std::string miscString = oo::str::format("Opening log for Oolite %s by %s (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %s at %s.\n", versionString.c_str(), OO_BUILDER, systemString.c_str(), oo::date::description().c_str());
+  std::string miscString = oo::str::format(
+      "Opening log for Oolite %s by %s (" CPU_TYPE_STRING RELEASE_VARIANT_STRING
+      ") under %s at %s.\n",
+      versionString.c_str(), OO_BUILDER, systemString.c_str(),
+      oo::date::description().c_str());
 
-    miscString += AdditionalLogHeaderInfo();
+  miscString += AdditionalLogHeaderInfo();
 
-    std::string featureDesc;
-    for (const std::string& feature : featureStrings) {
-        if (!featureDesc.empty())
-            featureDesc += ", ";
-        featureDesc += feature;
-    }
-    if (featureDesc.empty())
-        featureDesc = "none";
-    miscString += oo::str::format("\nBuild options: %s.\n", featureDesc.c_str());
+  std::string featureDesc;
+  for (const std::string& feature : featureStrings) {
+    if (!featureDesc.empty()) featureDesc += ", ";
+    featureDesc += feature;
+  }
+  if (featureDesc.empty()) featureDesc = "none";
+  miscString += oo::str::format("\nBuild options: %s.\n", featureDesc.c_str());
 
-    miscString += "\nNote that the contents of the log file can be adjusted by editing logcontrol.plist.";
+  miscString +=
+      "\nNote that the contents of the log file can be adjusted by editing "
+      "logcontrol.plist.";
 
-    OO_LOG("log.header", "{}\n", miscString);
+  OO_LOG("log.header", "{}\n", miscString);
 }
 
 // A std::string, for OOJSConsole's console.platformDescription; the same
 // "<system> (<cpu><variant>)" text.
-std::string OOPlatformDescription(void)
-{
+std::string OOPlatformDescription(void) {
 #if OOLITE_MACOS
-    const std::string platformSystem = OS_TYPE_STRING " " + oo::process::operatingSystemVersionString();
+  const std::string platformSystem =
+      OS_TYPE_STRING " " + oo::process::operatingSystemVersionString();
 #else
-    const std::string platformSystem = OS_TYPE_STRING;
+  const std::string platformSystem = OS_TYPE_STRING;
 #endif
 
-    return platformSystem + " (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ")";
+  return platformSystem + " (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ")";
 }
 
 // System-specific stuff to append to log header.
@@ -206,18 +213,19 @@ static unsigned long long GetSysCtlInt(const char* name);
 static std::string GetCPUDescription(void);
 
 namespace {
-std::string AdditionalLogHeaderInfo(void)
-{
-    std::optional<std::string> sysModel;
-    unsigned long long sysPhysMem;
+std::string AdditionalLogHeaderInfo(void) {
+  std::optional<std::string> sysModel;
+  unsigned long long sysPhysMem;
 
-    sysModel = GetSysCtlString("hw.model");
-    sysPhysMem = GetSysCtlInt("hw.memsize");
+  sysModel = GetSysCtlString("hw.model");
+  sysPhysMem = GetSysCtlInt("hw.memsize");
 
-    // "%@" printed a nil model as "(null)".
-    return oo::str::format("Machine type: %s, %llu MiB memory, %s.", sysModel ? sysModel->c_str() : "(null)", sysPhysMem >> 20, GetCPUDescription().c_str());
+  // "%@" printed a nil model as "(null)".
+  return oo::str::format("Machine type: %s, %llu MiB memory, %s.",
+                         sysModel ? sysModel->c_str() : "(null)",
+                         sysPhysMem >> 20, GetCPUDescription().c_str());
 }
-} // namespace
+}  // namespace
 
 #ifndef CPUFAMILY_INTEL_MEROM
 #define CPUFAMILY_INTEL_MEROM 0x426f69ef
@@ -235,133 +243,131 @@ std::string AdditionalLogHeaderInfo(void)
 #define CPUFAMILY_INTEL_SKYLAKE 0x37fc219f
 #endif
 
-static std::string GetCPUDescription(void)
-{
-    std::optional<std::string> typeStr, subTypeStr;
+static std::string GetCPUDescription(void) {
+  std::optional<std::string> typeStr, subTypeStr;
 
-    unsigned long long sysCPUType = GetSysCtlInt("hw.cputype");
-    unsigned long long sysCPUFamily = GetSysCtlInt("hw.cpufamily");
-    unsigned long long sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
-    unsigned long long sysCPUCount = GetSysCtlInt("hw.physicalcpu");
-    unsigned long long sysLogicalCPUCount = GetSysCtlInt("hw.logicalcpu");
+  unsigned long long sysCPUType = GetSysCtlInt("hw.cputype");
+  unsigned long long sysCPUFamily = GetSysCtlInt("hw.cpufamily");
+  unsigned long long sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
+  unsigned long long sysCPUCount = GetSysCtlInt("hw.physicalcpu");
+  unsigned long long sysLogicalCPUCount = GetSysCtlInt("hw.logicalcpu");
 
-    /*	Note: CPU_TYPE_STRING tells us the build architecture. This gets the
-            physical CPU type. They may differ, for instance, when running under
-            Rosetta. The code is written for flexibility, although ruling out
-            x86 code running on PPC would be entirely reasonable.
-    */
-    switch (sysCPUType) {
+  /*	Note: CPU_TYPE_STRING tells us the build architecture. This gets the
+          physical CPU type. They may differ, for instance, when running under
+          Rosetta. The code is written for flexibility, although ruling out
+          x86 code running on PPC would be entirely reasonable.
+  */
+  switch (sysCPUType) {
     case CPU_TYPE_POWERPC:
-        typeStr = "PowerPC";
-        break;
+      typeStr = "PowerPC";
+      break;
 
     case CPU_TYPE_I386:
-        typeStr = "x86";
-        switch (sysCPUFamily) {
+      typeStr = "x86";
+      switch (sysCPUFamily) {
         case CPUFAMILY_INTEL_MEROM:
-            subTypeStr = " (Core 2/Merom)";
-            break;
+          subTypeStr = " (Core 2/Merom)";
+          break;
 
         case CPUFAMILY_INTEL_PENRYN:
-            subTypeStr = " (Penryn)";
-            break;
+          subTypeStr = " (Penryn)";
+          break;
 
         case CPUFAMILY_INTEL_NEHALEM:
-            subTypeStr = " (Nehalem)";
-            break;
+          subTypeStr = " (Nehalem)";
+          break;
 
         case CPUFAMILY_INTEL_WESTMERE:
-            subTypeStr = " (Westmere)";
-            break;
+          subTypeStr = " (Westmere)";
+          break;
 
         case CPUFAMILY_INTEL_SANDYBRIDGE:
-            subTypeStr = " (Sandy Bridge)";
-            break;
+          subTypeStr = " (Sandy Bridge)";
+          break;
 
         case CPUFAMILY_INTEL_IVYBRIDGE:
-            subTypeStr = " (Ivy Bridge)";
-            break;
+          subTypeStr = " (Ivy Bridge)";
+          break;
 
         case CPUFAMILY_INTEL_HASWELL:
-            subTypeStr = " (Haswell)";
-            break;
+          subTypeStr = " (Haswell)";
+          break;
 
         case CPUFAMILY_INTEL_BROADWELL:
-            subTypeStr = " (Broadwell)";
-            break;
+          subTypeStr = " (Broadwell)";
+          break;
 
         case CPUFAMILY_INTEL_SKYLAKE:
-            subTypeStr = " (Skylake)";
-            break;
+          subTypeStr = " (Skylake)";
+          break;
 
         default:
-            subTypeStr = oo::str::format(" (family 0x%llx)", sysCPUFamily);
-        }
-        break;
+          subTypeStr = oo::str::format(" (family 0x%llx)", sysCPUFamily);
+      }
+      break;
 
     case CPU_TYPE_ARM:
-        typeStr = "ARM";
-    }
+      typeStr = "ARM";
+  }
 
-    if (!typeStr.has_value())
-        typeStr = oo::str::format("CPU type %llu", sysCPUType);
+  if (!typeStr.has_value())
+    typeStr = oo::str::format("CPU type %llu", sysCPUType);
 
-    std::string countStr;
-    if (sysCPUCount == sysLogicalCPUCount)
-        countStr = oo::str::format("%llu", sysCPUCount);
-    else
-        countStr = oo::str::format("%llu (%llu logical)", sysCPUCount, sysLogicalCPUCount);
+  std::string countStr;
+  if (sysCPUCount == sysLogicalCPUCount)
+    countStr = oo::str::format("%llu", sysCPUCount);
+  else
+    countStr =
+        oo::str::format("%llu (%llu logical)", sysCPUCount, sysLogicalCPUCount);
 
-    // "%@" printed a nil sub-type as "(null)".
-    return oo::str::format("%s x %s%s @ %llu MHz", countStr.c_str(), typeStr->c_str(), subTypeStr ? subTypeStr->c_str() : "(null)", (sysCPUFrequency + 500000) / 1000000);
+  // "%@" printed a nil sub-type as "(null)".
+  return oo::str::format("%s x %s%s @ %llu MHz", countStr.c_str(),
+                         typeStr->c_str(),
+                         subTypeStr ? subTypeStr->c_str() : "(null)",
+                         (sysCPUFrequency + 500000) / 1000000);
 }
 
-static std::optional<std::string> GetSysCtlString(const char* name)
-{
-    char* buffer = NULL;
-    size_t size = 0;
+static std::optional<std::string> GetSysCtlString(const char* name) {
+  char* buffer = NULL;
+  size_t size = 0;
 
-    // Get size
-    sysctlbyname(name, NULL, &size, NULL, 0);
-    if (size == 0)
-        return std::nullopt;
+  // Get size
+  sysctlbyname(name, NULL, &size, NULL, 0);
+  if (size == 0) return std::nullopt;
 
-    buffer = static_cast<char*>(alloca(size));
-    if (sysctlbyname(name, buffer, &size, NULL, 0) != 0)
-        return std::nullopt;
-    return std::string(buffer);
+  buffer = static_cast<char*>(alloca(size));
+  if (sysctlbyname(name, buffer, &size, NULL, 0) != 0) return std::nullopt;
+  return std::string(buffer);
 }
 
-static unsigned long long GetSysCtlInt(const char* name)
-{
-    unsigned long long llresult = 0;
-    unsigned int intresult = 0;
-    size_t size;
+static unsigned long long GetSysCtlInt(const char* name) {
+  unsigned long long llresult = 0;
+  unsigned int intresult = 0;
+  size_t size;
 
-    size = sizeof llresult;
-    if (sysctlbyname(name, &llresult, &size, NULL, 0) != 0)
-        return 0;
-    if (size == sizeof llresult)
-        return llresult;
+  size = sizeof llresult;
+  if (sysctlbyname(name, &llresult, &size, NULL, 0) != 0) return 0;
+  if (size == sizeof llresult) return llresult;
 
-    size = sizeof intresult;
-    if (sysctlbyname(name, &intresult, &size, NULL, 0) != 0)
-        return 0;
-    if (size == sizeof intresult)
-        return intresult;
+  size = sizeof intresult;
+  if (sysctlbyname(name, &intresult, &size, NULL, 0) != 0) return 0;
+  if (size == sizeof intresult) return intresult;
 
-    return 0;
+  return 0;
 }
 
 #else
 namespace {
-std::string AdditionalLogHeaderInfo(void)
-{
-    unsigned cpuCount = OOCPUCount();
-    const std::string cpuDescription = OOCPUDescription();
-    OOMemoryStatus systemMemoryStatus = OOSystemMemoryStatus();
+std::string AdditionalLogHeaderInfo(void) {
+  unsigned cpuCount = OOCPUCount();
+  const std::string cpuDescription = OOCPUDescription();
+  OOMemoryStatus systemMemoryStatus = OOSystemMemoryStatus();
 
-    return oo::str::format("%s %u processor%s detected. System RAM: %llu MB (free: %llu MB).", cpuDescription.c_str(), cpuCount, cpuCount != 1 ? "s" : "", systemMemoryStatus.ooPhysicalMemory, systemMemoryStatus.ooAvailableMemory);
+  return oo::str::format(
+      "%s %u processor%s detected. System RAM: %llu MB (free: %llu MB).",
+      cpuDescription.c_str(), cpuCount, cpuCount != 1 ? "s" : "",
+      systemMemoryStatus.ooPhysicalMemory,
+      systemMemoryStatus.ooAvailableMemory);
 }
-} // namespace
+}  // namespace
 #endif

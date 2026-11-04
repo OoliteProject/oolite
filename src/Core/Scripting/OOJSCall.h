@@ -31,26 +31,33 @@ MA 02110-1301, USA.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
+#include <quickjs.h>
+
+#include <string>
+
 #include "OOFoundation.h"
 #include "oofnd/StdLib.hpp"
-#include <quickjs.h>
-#include <string>
 
 /*	OOJSCallEntityMethod()
 
-        Function for implementing JavaScript call() methods on an entity (callObjC()'s `this` is the C++
-        entity), by name table. The argument list is expected to be either a single string (the method's
-        name), or a name ending with a : followed by arbitrary arguments which will be concatenated as a
-        string; argv is assumed to hold at least one value. A result is set in *outResult (owned by the
-        caller); a method without one leaves it unchanged, so the caller should initialize it (normally
-        to JS_UNDEFINED). Only a name of kOOJSCallEntityMethods that the entity answers
-        (its object's per-part -respondsToSelector:) is called, with the table's signature; any other
-        name (a root-class or lifetime selector, one with other arguments) does not respond.
+        Function for implementing JavaScript call() methods on an entity
+   (callObjC()'s `this` is the C++ entity), by name table. The argument list is
+   expected to be either a single string (the method's name), or a name ending
+   with a : followed by arbitrary arguments which will be concatenated as a
+        string; argv is assumed to hold at least one value. A result is set in
+   *outResult (owned by the caller); a method without one leaves it unchanged,
+   so the caller should initialize it (normally to JS_UNDEFINED). Only a name of
+   kOOJSCallEntityMethods that the entity answers (its object's per-part
+   -respondsToSelector:) is called, with the table's signature; any other name
+   (a root-class or lifetime selector, one with other arguments) does not
+   respond.
 
-        If it returns false, an error has been reported and the caller (a native) should return
-        JS_EXCEPTION.
+        If it returns false, an error has been reported and the caller (a
+   native) should return JS_EXCEPTION.
 */
 class Entity;
-bool OOJSCallEntityMethod(JSContext* context, Entity* entity, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
+bool OOJSCallEntityMethod(JSContext* context, Entity* entity,
+                          const std::string& oo_jsClassName, int argc,
+                          JSValueConst* argv, JSValue* outResult);
 
 #endif

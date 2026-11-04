@@ -40,143 +40,143 @@ MA 02110-1301, USA.
 
 class ShipEntity;
 class Entity;
-class OOPreservedAIStateMachine; // private to AI.mm; global
+class OOPreservedAIStateMachine;  // private to AI.mm; global
 
 /*	A ship's AI. Held as oo::Ref<AI>; a ship's shipAI owns it.
  */
 class AI : public oo::RefCounted {
-public:
-    AI(); // -init
-    ~AI() override; // -dealloc
+ public:
+  AI();            // -init
+  ~AI() override;  // -dealloc
 
-    // [[AI alloc] cxx_initWithStateMachine:andState:]: a new AI running the state
-    // machine (nullopt: none) in the state (nullopt: none).
-    static oo::Ref<AI> newWithStateMachine(
-        const std::optional<std::string>& smName,
-        const std::optional<std::string>& stateName);
+  // [[AI alloc] cxx_initWithStateMachine:andState:]: a new AI running the state
+  // machine (nullopt: none) in the state (nullopt: none).
+  static oo::Ref<AI> newWithStateMachine(
+      const std::optional<std::string>& smName,
+      const std::optional<std::string>& stateName);
 
-    // What description() and shortDescription() print: <AI
-    // 0xnnnnnnnn>{components}.
-    std::string description() const;
-    std::string shortDescription() const;
+  // What description() and shortDescription() print: <AI
+  // 0xnnnnnnnn>{components}.
+  std::string description() const;
+  std::string shortDescription() const;
 
-    static AI*
-    currentlyRunningAI(); // borrowed; null: none (+currentlyRunningAI)
-    static std::optional<std::string> currentlyRunningAIDescription();
+  static AI*
+  currentlyRunningAI();  // borrowed; null: none (+currentlyRunningAI)
+  static std::optional<std::string> currentlyRunningAIDescription();
 
-    // -cxx_initWithStateMachine:andState:'s body after its [self init]
-    // (std::nullopt where the Foundation version took nil); newWithStateMachine()
-    // runs it.
-    void initWithStateMachine(const std::optional<std::string>& smName,
-        const std::optional<std::string>& stateName);
+  // -cxx_initWithStateMachine:andState:'s body after its [self init]
+  // (std::nullopt where the Foundation version took nil); newWithStateMachine()
+  // runs it.
+  void initWithStateMachine(const std::optional<std::string>& smName,
+                            const std::optional<std::string>& stateName);
 
-    std::optional<std::string> descriptionComponents() const;
-    std::optional<std::string> shortDescriptionComponents() const;
+  std::optional<std::string> descriptionComponents() const;
+  std::optional<std::string> shortDescriptionComponents() const;
 
-    std::optional<std::string> name(); // the state machine's name
-    std::optional<std::string> associatedJS();
-    std::optional<std::string> state(); // the current state; nullopt: none
+  std::optional<std::string> name();  // the state machine's name
+  std::optional<std::string> associatedJS();
+  std::optional<std::string> state();  // the current state; nullopt: none
 
-    void setStateMachine(
-        const std::string& smName,
-        const std::string& script); // -cxx_setStateMachine:withJSScript:
-    void setState(const std::string& stateName);
+  void setStateMachine(
+      const std::string& smName,
+      const std::string& script);  // -cxx_setStateMachine:withJSScript:
+  void setState(const std::string& stateName);
 
-    void setStateMachine(
-        const std::string& smName,
-        NSTimeInterval delay);
-    void setState(const std::string& stateName,
-        NSTimeInterval delay);
+  void setStateMachine(const std::string& smName, NSTimeInterval delay);
+  void setState(const std::string& stateName, NSTimeInterval delay);
 
-    ::ShipEntity* owner();
-    void setOwner(::ShipEntity* ship);
+  ::ShipEntity* owner();
+  void setOwner(::ShipEntity* ship);
 
-    void preserveCurrentStateMachine();
+  void preserveCurrentStateMachine();
 
-    void restorePreviousStateMachine();
+  void restorePreviousStateMachine();
 
-    bool hasSuspendedStateMachines();
-    void exitStateMachineWithMessage(
-        const std::optional<std::string>& message); // nullopt: "RESTARTED"
+  bool hasSuspendedStateMachines();
+  void exitStateMachineWithMessage(
+      const std::optional<std::string>& message);  // nullopt: "RESTARTED"
 
-    NSUInteger stackDepth();
+  NSUInteger stackDepth();
 
-    // Immediately handle a message. This is the core dispatcher. DebugContext is
-    // a textual hint for diagnostics (std::nullopt where the Foundation version
-    // took nil).
-    void reactToMessage(const std::string& message,
-        const std::optional<std::string>& debugContext);
+  // Immediately handle a message. This is the core dispatcher. DebugContext is
+  // a textual hint for diagnostics (std::nullopt where the Foundation version
+  // took nil).
+  void reactToMessage(const std::string& message,
+                      const std::optional<std::string>& debugContext);
 
-    void takeAction(const std::string& action);
+  void takeAction(const std::string& action);
 
-    void think();
+  void think();
 
-    void message(const std::string& ms);
-    void dropMessage(const std::string& ms);
-    std::set<std::string>
-    getPendingMessages(); // -pendingMessages, in byte order
-    void debugDumpPendingMessages();
+  void message(const std::string& ms);
+  void dropMessage(const std::string& ms);
+  std::set<std::string>
+  getPendingMessages();  // -pendingMessages, in byte order
+  void debugDumpPendingMessages();
 
-    void setNextThinkTime(OOTimeAbsolute ntt);
-    OOTimeAbsolute getNextThinkTime(); // -nextThinkTime
+  void setNextThinkTime(OOTimeAbsolute ntt);
+  OOTimeAbsolute getNextThinkTime();  // -nextThinkTime
 
-    void setThinkTimeInterval(OOTimeDelta tti);
-    OOTimeDelta getThinkTimeInterval(); // -thinkTimeInterval
+  void setThinkTimeInterval(OOTimeDelta tti);
+  OOTimeDelta getThinkTimeInterval();  // -thinkTimeInterval
 
-    void clearStack();
+  void clearStack();
 
-    void clearAllData();
+  void clearAllData();
 
-    void dumpState();
+  void dumpState();
 
-    // The target of setState(stateName, delay)'s deferred call, found in the
-    // deferred calls' name table (AI.cpp).
-    void deferredSetState(const std::string& stateName);
+  // The target of setState(stateName, delay)'s deferred call, found in the
+  // deferred calls' name table (AI.cpp).
+  void deferredSetState(const std::string& stateName);
 
-private:
-    void reportStackOverflow();
+ private:
+  void reportStackOverflow();
 
-    // Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs.
-    // <selectorName> is found in the deferred calls' name table (AI.mm) and
-    // called with <argument>.
-    void performDeferredCall(const char* selectorName,
-        const std::string& argument, NSTimeInterval delay);
+  // Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs.
+  // <selectorName> is found in the deferred calls' name table (AI.mm) and
+  // called with <argument>.
+  void performDeferredCall(const char* selectorName,
+                           const std::string& argument, NSTimeInterval delay);
 
-    void refreshOwnerDesc();
+  void refreshOwnerDesc();
 
-    // Set state machine and state without side effects. A nullopt state is no
-    // state (nil).
-    void directSetStateMachine(const oo::PList& newSM, const std::string& name);
-    void directSetState(const std::optional<std::string>& state);
+  // Set state machine and state without side effects. A nullopt state is no
+  // state (nil).
+  void directSetStateMachine(const oo::PList& newSM, const std::string& name);
+  void directSetState(const std::optional<std::string>& state);
 
-    // Loading/whitelisting. A null result is no state machine (nil).
-    oo::PList loadStateMachine(const std::string& smName,
-        const std::string& script);
-    oo::PList cleanHandlers(const oo::PList& handlers,
-        const std::string& stateKey,
-        const std::string& smName);
-    oo::PList cleanActions(const oo::PList& actions,
-        const std::string& handlerKey,
-        const std::string& stateKey,
-        const std::string& smName);
+  // Loading/whitelisting. A null result is no state machine (nil).
+  oo::PList loadStateMachine(const std::string& smName,
+                             const std::string& script);
+  oo::PList cleanHandlers(const oo::PList& handlers,
+                          const std::string& stateKey,
+                          const std::string& smName);
+  oo::PList cleanActions(const oo::PList& actions,
+                         const std::string& handlerKey,
+                         const std::string& stateKey,
+                         const std::string& smName);
 
-    oo::WeakRef<Entity> _owner = { }; // the ShipEntity this is the AI for, weakly
-    std::optional<std::string> ownerDesc = { }; // describes the object this is the AI for; nullopt until it has an
-                                                // owner
+  oo::WeakRef<Entity> _owner = {};  // the ShipEntity this is the AI for, weakly
+  std::optional<std::string> ownerDesc =
+      {};  // describes the object this is the AI for; nullopt until it has an
+           // owner
 
-    oo::PList stateMachine = { }; // the loaded, whitelisted state machine; null: none (nil)
-    std::string stateMachineName = { };
-    std::optional<std::string> currentState = { }; // nullopt: no state (nil)
-    std::set<std::string> pendingMessages = { }; // in byte order (a Foundation set before)
+  oo::PList stateMachine =
+      {};  // the loaded, whitelisted state machine; null: none (nil)
+  std::string stateMachineName = {};
+  std::optional<std::string> currentState = {};  // nullopt: no state (nil)
+  std::set<std::string> pendingMessages =
+      {};  // in byte order (a Foundation set before)
 
-    std::vector<oo::Ref<OOPreservedAIStateMachine>>
-        aiStack; // no `= {}`: GCC instantiates ~Ref<T> at a default member
-                 // initializer, and T is incomplete here
+  std::vector<oo::Ref<OOPreservedAIStateMachine>>
+      aiStack;  // no `= {}`: GCC instantiates ~Ref<T> at a default member
+                // initializer, and T is incomplete here
 
-    OOTimeAbsolute nextThinkTime = { };
-    OOTimeDelta thinkTimeInterval = { };
+  OOTimeAbsolute nextThinkTime = {};
+  OOTimeDelta thinkTimeInterval = {};
 
-    std::optional<std::string> jsScript = { };
+  std::optional<std::string> jsScript = {};
 };
 
 /*	[ai autorelease]: keeps the AI until the current autorelease pool

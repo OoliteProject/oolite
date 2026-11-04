@@ -42,23 +42,24 @@ MA 02110-1301, USA.
    holds it and makes it from its name through a table.
 */
 class OOAIStateMachineVerifierStage : public OOFileHandlingVerifierStage {
-public:
-    // Returns name to be used in dependents() by other stages.
-    static std::string nameForReverseDependencyForVerifier(
-        OOOXPVerifier* verifier);
+ public:
+  // Returns name to be used in dependents() by other stages.
+  static std::string nameForReverseDependencyForVerifier(
+      OOOXPVerifier* verifier);
 
-    // The caller only reports an AI it has a name for (it tested the name against nil).
-    void stateMachineNamed(const std::string& name, const std::string& shipName);
+  // The caller only reports an AI it has a name for (it tested the name against
+  // nil).
+  void stateMachineNamed(const std::string& name, const std::string& shipName);
 
-    std::optional<std::string> name() override;
-    bool shouldRun() override;
-    void run() override;
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
 
-private:
-    void validateAI(const std::string& aiName);
+ private:
+  void validateAI(const std::string& aiName);
 
-    std::vector<std::string> _whitelist = { }; // sorted, no duplicates
-    std::vector<std::string> _usedAIs = { }; // sorted, no duplicates
+  std::vector<std::string> _whitelist = {};  // sorted, no duplicates
+  std::vector<std::string> _usedAIs = {};    // sorted, no duplicates
 };
 
 #endif

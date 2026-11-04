@@ -32,35 +32,38 @@ SOFTWARE.
 #include "OOPixMap.h"
 
 /*	OOExtractPixMapChannel()
-        Given a 4-channel pixmap, extract one channel, producing a single-channel
-        pixmap. This is done in place, destroying the original data.
+        Given a 4-channel pixmap, extract one channel, producing a
+   single-channel pixmap. This is done in place, destroying the original data.
         ChannelIndex specifies which component to extract. This is a per-pixel
         byte index: 0 means bytes bytes 0, 4, 8 etc. will be used, 2 means bytes
         2, 6, 10 etc. will be used.
         Returns false (without modifying the pixmap) if passed NULL, an invalid
-        pixmap, a pixmap whose channel count is not 4, or a channel index greater
-        than 3.
+        pixmap, a pixmap whose channel count is not 4, or a channel index
+   greater than 3.
 */
-bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex, bool compactWhenDone);
+bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex,
+                            bool compactWhenDone);
 
 /*	OOPixMapToRGBA()
         Convert a pixmap to RGBA format.
-        NOTE: if successful, this will free() the original buffer and replace it.
+        NOTE: if successful, this will free() the original buffer and replace
+   it.
 */
 bool OOPixMapToRGBA(OOPixMap* ioPixMap);
 
 /*	OOPixMapModulateUniform()
-        Multiply all pixels by specified per-component factors. Pixmap must be in
-        RGBA format. The effect of using factors outside the range [0..1] is
+        Multiply all pixels by specified per-component factors. Pixmap must be
+   in RGBA format. The effect of using factors outside the range [0..1] is
         undefined.
         OOPixMapToRGBA() is called on ioPixMap.
 */
-bool OOPixMapModulateUniform(OOPixMap* ioPixMap, float f0, float f1, float f2, float f3);
+bool OOPixMapModulateUniform(OOPixMap* ioPixMap, float f0, float f1, float f2,
+                             float f3);
 
 /*	OOPixMapModulatePixMap()
-        Multiply each pixel of ioDstPixMap by the corresponding pixel of otherPixMap,
-        writing the result to ioDstPixMap.
-        OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must be RGBA.
+        Multiply each pixel of ioDstPixMap by the corresponding pixel of
+   otherPixMap, writing the result to ioDstPixMap. OOPixMapToRGBA() is called on
+   ioDstPixMap; otherPixMap must be RGBA.
 */
 bool OOPixMapModulatePixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap);
 

@@ -48,65 +48,66 @@ SOFTWARE.
    draws them.
 */
 class OOHUDBeaconIcon : public oo::RefCounted {
-public:
-    virtual void drawHUDBeaconIconAt(
-        NSPoint where, NSSize size, GLfloat alpha,
-        GLfloat z) = 0; // -oo_drawHUDBeaconIconAt:size:alpha:z:
+ public:
+  virtual void drawHUDBeaconIconAt(
+      NSPoint where, NSSize size, GLfloat alpha,
+      GLfloat z) = 0;  // -oo_drawHUDBeaconIconAt:size:alpha:z:
 };
 
 class OOPolygonSprite : public OOHUDBeaconIcon, public OOGraphicsResetClient {
-public:
-    /*	DataArray is either an array of pairs of numbers, or an array of such
-            arrays (representing one or more contours), as property-list data.
-            OutlineWidth is the width of the tesselated outline, in the same scale
-       as the vertices. Name is used for debugging only. Null where the data
-       cannot be tesselated (-initWithDataArray:... answered nil).
-    */
-    static oo::Ref<OOPolygonSprite> initWithDataArray(const oo::PList& dataArray,
-        GLfloat outlineWidth,
-        const std::string& name);
+ public:
+  /*	DataArray is either an array of pairs of numbers, or an array of such
+          arrays (representing one or more contours), as property-list data.
+          OutlineWidth is the width of the tesselated outline, in the same scale
+     as the vertices. Name is used for debugging only. Null where the data
+     cannot be tesselated (-initWithDataArray:... answered nil).
+  */
+  static oo::Ref<OOPolygonSprite> initWithDataArray(const oo::PList& dataArray,
+                                                    GLfloat outlineWidth,
+                                                    const std::string& name);
 
-    void drawFilled();
-    void drawOutline();
+  void drawFilled();
+  void drawOutline();
 
-    // OOGraphicsResetClient: a sprite registers itself when made and unregisters
-    // when destroyed, as -initWithDataArray:... and -dealloc did.
-    void resetGraphicsState() override;
+  // OOGraphicsResetClient: a sprite registers itself when made and unregisters
+  // when destroyed, as -initWithDataArray:... and -dealloc did.
+  void resetGraphicsState() override;
 
-    // OOHUDBeaconIcon: the drawing of the sprite's OOHUDBeaconIcon category
-    // (HeadUpDisplay.mm).
-    void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha,
-        GLfloat z) override;
+  // OOHUDBeaconIcon: the drawing of the sprite's OOHUDBeaconIcon category
+  // (HeadUpDisplay.mm).
+  void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha,
+                           GLfloat z) override;
 
-    // What "%@" prints: <OOPolygonSprite 0x...>, with
-    // {components} in debug builds.
-    std::string description() const;
+  // What "%@" prints: <OOPolygonSprite 0x...>, with
+  // {components} in debug builds.
+  std::string description() const;
 
 #ifndef NDEBUG
-    // What "%@" prints between the braces of <OOPolygonSprite 0x...>{...}
-    // (OODescription.h).
-    std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <OOPolygonSprite 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 #endif
 
-    ~OOPolygonSprite() override;
+  ~OOPolygonSprite() override;
 
-private:
-    OOPolygonSprite() = default; // initWithDataArray() does -initWithDataArray:...'s work
+ private:
+  OOPolygonSprite() =
+      default;  // initWithDataArray() does -initWithDataArray:...'s work
 
-    void drawWithData(GLfloat* data, size_t count, GLuint* vbo);
-    bool loadPolygons(const oo::PList& dataArray, float outlineWidth);
+  void drawWithData(GLfloat* data, size_t count, GLuint* vbo);
+  bool loadPolygons(const oo::PList& dataArray, float outlineWidth);
 
-    GLfloat* _solidData = { };
-    size_t _solidCount = { };
-    GLfloat* _outlineData = { };
-    size_t _outlineCount = { };
+  GLfloat* _solidData = {};
+  size_t _solidCount = {};
+  GLfloat* _outlineData = {};
+  size_t _outlineCount = {};
 
 #if OO_USE_VBO
-    GLuint _solidVBO = { };
-    GLuint _outlineVBO = { };
+  GLuint _solidVBO = {};
+  GLuint _outlineVBO = {};
 #endif
 
 #ifndef NDEBUG
-    std::string _name; // for debugging
+  std::string _name;  // for debugging
 #endif
 };

@@ -27,30 +27,33 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
 
+#include "OOFoundation.h"
 #include "oofnd/StdLib.hpp"
 
 void InitOOJSEquipmentInfo(JSContext* context, JSValueConst global);
 
-/*	Given a JSValue representing a string (equipment key) or a JS EquipmentInfo,
-        return the corresponding EquipmentType or key. Note that
+/*	Given a JSValue representing a string (equipment key) or a JS
+   EquipmentInfo, return the corresponding EquipmentType or key. Note that
         JSValueToEquipmentKey() will not return arbitrary strings, only valid
         equipment keys.
         JSValueToEquipmentKeyRelaxed() will return any string that does not end
         with _DAMAGED.
  */
-class OOEquipmentType; // C++ (OOEquipmentType.h)
+class OOEquipmentType;  // C++ (OOEquipmentType.h)
 
 OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value);
 // C++ results; nullopt where there is none
-std::optional<std::string> JSValueToEquipmentKey(JSContext* context, JSValueConst value);
+std::optional<std::string> JSValueToEquipmentKey(JSContext* context,
+                                                 JSValueConst value);
 
 // outExists is bool *: its callers pass the address of a bool of their own.
-std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, bool* outExists);
+std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context,
+                                                        JSValueConst value,
+                                                        bool* outExists);
 
-/*	The JS class name of OOEquipmentType's OOJSPrivateObject members, defined in
-        OOJSEquipmentInfo.mm.
+/*	The JS class name of OOEquipmentType's OOJSPrivateObject members,
+   defined in OOJSEquipmentInfo.mm.
 */
 std::optional<std::string> OOJSEquipmentInfoJSClassName(void);

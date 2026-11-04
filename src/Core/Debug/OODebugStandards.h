@@ -29,7 +29,6 @@ SOFTWARE.
 #pragma once
 
 #include "OOFoundation.h"
-
 #include "oofnd/StdLib.hpp"
 
 // Warn/exit if deprecated functionality used

@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #include "OONullTexture.h"
+
 #include "OOFoundation.h"
 #include "OOTextureInternal.h"
 
@@ -33,46 +34,34 @@ namespace {
 
 OONullTexture* sSingleton = nullptr;
 
-} // namespace
+}  // namespace
 
-OONullTexture* OONullTexture::sharedNullTexture()
-{
-    // NOTE: assumes single-threaded access.
-    if (sSingleton == nullptr) {
-        sSingleton = oo::makeRef<OONullTexture>().leakRef();
-    }
+OONullTexture* OONullTexture::sharedNullTexture() {
+  // NOTE: assumes single-threaded access.
+  if (sSingleton == nullptr) {
+    sSingleton = oo::makeRef<OONullTexture>().leakRef();
+  }
 
-    return sSingleton;
+  return sSingleton;
 }
 
-void OONullTexture::apply()
-{
-    OOTexture::applyNone();
-}
+void OONullTexture::apply() { OOTexture::applyNone(); }
 
-NSSize OONullTexture::dimensions()
-{
-    return NSZeroSize;
-}
+NSSize OONullTexture::dimensions() { return NSZeroSize; }
 
-bool OONullTexture::isMipMapped()
-{
-    return false;
-}
+bool OONullTexture::isMipMapped() { return false; }
 
-void OONullTexture::forceRebind()
-{
-}
+void OONullTexture::forceRebind() {}
 
 #ifndef NDEBUG
-std::optional<std::string> OONullTexture::name()
-{
-    return std::string("<null texture>");
+std::optional<std::string> OONullTexture::name() {
+  return std::string("<null texture>");
 }
 #endif
 
-/*	The (Singleton) category's canonical singleton boilerplate (+allocWithZone: answering nil after
-        the first, -copyWithZone: answering self, and -retain/-release/-autorelease doing nothing) is
-        not translated: nothing but sharedNullTexture() makes the object, and the one reference it
+/*	The (Singleton) category's canonical singleton boilerplate
+   (+allocWithZone: answering nil after the first, -copyWithZone: answering
+   self, and -retain/-release/-autorelease doing nothing) is not translated:
+   nothing but sharedNullTexture() makes the object, and the one reference it
         keeps is never released.
 */

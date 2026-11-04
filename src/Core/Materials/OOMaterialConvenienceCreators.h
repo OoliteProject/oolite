@@ -31,12 +31,11 @@ SOFTWARE.
 
 #pragma once
 
-#include "OOMaterial.h"
-
-#include "oofnd/PList.hpp"
-
 #include <optional>
 #include <string>
+
+#include "OOMaterial.h"
+#include "oofnd/PList.hpp"
 
 class OOColor;
 

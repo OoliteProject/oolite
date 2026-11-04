@@ -29,7 +29,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "OOColor.h" // the colour readers answer oo::Ref<OOColor>
+#include "OOColor.h"  // the colour readers answer oo::Ref<OOColor>
 #include "OOFoundation.h"
 #include "oofnd/PList.hpp"
 
@@ -80,30 +80,46 @@ inline constexpr const char* cxx_kOOMaterialDiffuseColorName = "diffuse_color";
 inline constexpr const char* cxx_kOOMaterialDiffuseColorLegacyName = "diffuse";
 inline constexpr const char* cxx_kOOMaterialAmbientColorName = "ambient_color";
 inline constexpr const char* cxx_kOOMaterialAmbientColorLegacyName = "ambient";
-inline constexpr const char* cxx_kOOMaterialSpecularColorName = "specular_color";
-inline constexpr const char* cxx_kOOMaterialSpecularColorLegacyName = "specular";
-inline constexpr const char* cxx_kOOMaterialSpecularModulateColorName = "specular_modulate_color";
-inline constexpr const char* cxx_kOOMaterialEmissionColorName = "emission_color";
-inline constexpr const char* cxx_kOOMaterialEmissionColorLegacyName = "emission";
-inline constexpr const char* cxx_kOOMaterialEmissionModulateColorName = "emission_modulate_color";
-inline constexpr const char* cxx_kOOMaterialIlluminationModulateColorName = "illumination_modulate_color";
+inline constexpr const char* cxx_kOOMaterialSpecularColorName =
+    "specular_color";
+inline constexpr const char* cxx_kOOMaterialSpecularColorLegacyName =
+    "specular";
+inline constexpr const char* cxx_kOOMaterialSpecularModulateColorName =
+    "specular_modulate_color";
+inline constexpr const char* cxx_kOOMaterialEmissionColorName =
+    "emission_color";
+inline constexpr const char* cxx_kOOMaterialEmissionColorLegacyName =
+    "emission";
+inline constexpr const char* cxx_kOOMaterialEmissionModulateColorName =
+    "emission_modulate_color";
+inline constexpr const char* cxx_kOOMaterialIlluminationModulateColorName =
+    "illumination_modulate_color";
 inline constexpr const char* cxx_kOOMaterialDiffuseMapName = "diffuse_map";
-inline constexpr const char* cxx_kOOMaterialSpecularColorMapName = "specular_color_map";
-inline constexpr const char* cxx_kOOMaterialSpecularExponentMapName = "specular_exponent_map";
-inline constexpr const char* cxx_kOOMaterialCombinedSpecularMapName = "specular_map"; // Combined specular_color_map and specular_exponent_map
-                                                                                      // (unfortunate name required for backwards-compatibility).
+inline constexpr const char* cxx_kOOMaterialSpecularColorMapName =
+    "specular_color_map";
+inline constexpr const char* cxx_kOOMaterialSpecularExponentMapName =
+    "specular_exponent_map";
+inline constexpr const char* cxx_kOOMaterialCombinedSpecularMapName =
+    "specular_map";  // Combined specular_color_map and specular_exponent_map
+                     // (unfortunate name required for backwards-compatibility).
 inline constexpr const char* cxx_kOOMaterialNormalMapName = "normal_map";
 inline constexpr const char* cxx_kOOMaterialParallaxMapName = "parallax_map";
-inline constexpr const char* cxx_kOOMaterialNormalAndParallaxMapName = "normal_and_parallax_map";
+inline constexpr const char* cxx_kOOMaterialNormalAndParallaxMapName =
+    "normal_and_parallax_map";
 inline constexpr const char* cxx_kOOMaterialEmissionMapName = "emission_map";
-inline constexpr const char* cxx_kOOMaterialIlluminationMapName = "illumination_map";
-inline constexpr const char* cxx_kOOMaterialEmissionAndIlluminationMapName = "emission_and_illumination_map";
-inline constexpr const char* cxx_kOOMaterialParallaxScaleName = "parallax_scale";
+inline constexpr const char* cxx_kOOMaterialIlluminationMapName =
+    "illumination_map";
+inline constexpr const char* cxx_kOOMaterialEmissionAndIlluminationMapName =
+    "emission_and_illumination_map";
+inline constexpr const char* cxx_kOOMaterialParallaxScaleName =
+    "parallax_scale";
 inline constexpr const char* cxx_kOOMaterialParallaxBiasName = "parallax_bias";
 inline constexpr const char* cxx_kOOMaterialGammaCorrectName = "gamma_correct";
 inline constexpr const char* cxx_kOOMaterialGlossName = "gloss";
-inline constexpr const char* cxx_kOOMaterialSpecularExponentName = "specular_exponent";
-inline constexpr const char* cxx_kOOMaterialSpecularExponentLegacyName = "shininess";
+inline constexpr const char* cxx_kOOMaterialSpecularExponentName =
+    "specular_exponent";
+inline constexpr const char* cxx_kOOMaterialSpecularExponentLegacyName =
+    "shininess";
 inline constexpr const char* cxx_kOOMaterialLightMapsName = "light_map";
 
 #define kOOMaterialDefaultParallaxScale (0.01f)

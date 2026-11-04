@@ -8,8 +8,8 @@
         A game file or header that needs a standard container includes this
    header instead of <vector> etc. (test_stdlib.cpp checks it).
 
-        Add a standard header here when game code first needs it; do not include standard headers
-        directly from game code.
+        Add a standard header here when game code first needs it; do not include
+   standard headers directly from game code.
 */
 
 #pragma once

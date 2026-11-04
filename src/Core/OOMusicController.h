@@ -28,72 +28,75 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOALMusic.h"
 #include "OOFoundation.h"
 #include "OOSoundSource.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-
-#include "OOALMusic.h"
+#include "oofnd/objc/OOObject.h"
 
 #define OOLITE_ITUNES_SUPPORT OOLITE_MAC_COCOA_UI
 
 typedef enum {
-    kOOMusicOff,
-    kOOMusicOn,
-    kOOMusicITunes,
+  kOOMusicOff,
+  kOOMusicOn,
+  kOOMusicITunes,
 
 #if OOLITE_ITUNES_SUPPORT
-    kOOMusicModeMax = kOOMusicITunes
+  kOOMusicModeMax = kOOMusicITunes
 #else
-    kOOMusicModeMax = kOOMusicOn
+  kOOMusicModeMax = kOOMusicOn
 #endif
 } OOMusicMode;
 
 class OOMusicController : public oo::RefCounted {
-public:
-    /*	The one controller (was +sharedController),
-       made on first use and never released; borrowed.
-    */
-    static OOMusicController* sharedController();
+ public:
+  /*	The one controller (was +sharedController),
+     made on first use and never released; borrowed.
+  */
+  static OOMusicController* sharedController();
 
-    OOMusicController(); // was -init
+  OOMusicController();  // was -init
 
-    void playMusicNamed(const std::string& name, bool loop);
-    void playMusicNamed(const std::string& name, bool loop, float gain);
+  void playMusicNamed(const std::string& name, bool loop);
+  void playMusicNamed(const std::string& name, bool loop, float gain);
 
-    void playThemeMusic();
-    void playDockingMusic();
-    void playDockedMusic();
+  void playThemeMusic();
+  void playDockingMusic();
+  void playDockedMusic();
 
-    void setMissionMusic(const std::optional<std::string>& missionMusicName); // was -cxx_setMissionMusic:; nullopt: none
-    void playMissionMusic();
+  void setMissionMusic(
+      const std::optional<std::string>&
+          missionMusicName);  // was -cxx_setMissionMusic:; nullopt: none
+  void playMissionMusic();
 
-    void justStop();
-    void stop();
-    void stopMusicNamed(const std::string& name); // Stop only if name == playingMusic
-    void stopThemeMusic();
-    void stopDockingMusic();
-    void stopMissionMusic();
+  void justStop();
+  void stop();
+  void stopMusicNamed(
+      const std::string& name);  // Stop only if name == playingMusic
+  void stopThemeMusic();
+  void stopDockingMusic();
+  void stopMissionMusic();
 
-    void toggleDockingMusic(); // Start docking music if none playing, stop docking music if currently playing docking music.
+  void
+  toggleDockingMusic();  // Start docking music if none playing, stop docking
+                         // music if currently playing docking music.
 
-    ::OOSoundSource* soundSource();
+  ::OOSoundSource* soundSource();
 
-    std::optional<std::string> playingMusic(); // nullopt: nothing playing
-    bool isPlaying();
+  std::optional<std::string> playingMusic();  // nullopt: nothing playing
+  bool isPlaying();
 
-    OOMusicMode mode();
-    void setMode(OOMusicMode mode);
+  OOMusicMode mode();
+  void setMode(OOMusicMode mode);
 
-private:
-    // The private category (the iTunes integration, Mac only).
-    void playiTunesPlaylist(const char* playlistName);
-    void pauseiTunes();
+ private:
+  // The private category (the iTunes integration, Mac only).
+  void playiTunesPlaylist(const char* playlistName);
+  void pauseiTunes();
 
-    OOMusicMode _mode = { };
-    std::optional<std::string> _missionMusic;
-    oo::Ref<OOMusic> _current;
-    uint8_t _special = { };
+  OOMusicMode _mode = {};
+  std::optional<std::string> _missionMusic;
+  oo::Ref<OOMusic> _current;
+  uint8_t _special = {};
 };

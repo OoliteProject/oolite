@@ -43,9 +43,8 @@ MA 02110-1301, USA.
 // A trade-goods.plist quantity_unit as an OOMassUnit: 0-2 are the units,
 // anything else is UNITS_UNKNOWN (a bare cast would be undefined for those
 // values).
-static inline OOMassUnit OOMassUnitFromNumber(unsigned n)
-{
-    return (n <= UNITS_GRAMS) ? (OOMassUnit)n : UNITS_UNKNOWN;
+static inline OOMassUnit OOMassUnitFromNumber(unsigned n) {
+  return (n <= UNITS_GRAMS) ? (OOMassUnit)n : UNITS_UNKNOWN;
 }
 
 class StationEntity;
@@ -53,52 +52,53 @@ class OOScript;
 class OOCommodityMarket;
 
 class OOCommodities : public oo::RefCounted {
-public:
-    OOCommodities(); // reads trade-goods.plist
+ public:
+  OOCommodities();  // reads trade-goods.plist
 
-    static std::optional<std::string> legacyCommodityType(
-        NSUInteger i); // always a key (the old method never returned nil)
+  static std::optional<std::string> legacyCommodityType(
+      NSUInteger i);  // always a key (the old method never returned nil)
 
-    oo::Ref<OOCommodityMarket> generateManifestForPlayer();
-    oo::Ref<OOCommodityMarket> generateBlankMarket();
-    oo::Ref<OOCommodityMarket> generateMarketForSystemWithEconomy(
-        OOEconomyID economy, const std::optional<std::string>& scriptName); // nullopt: no script (was nil)
-    oo::Ref<OOCommodityMarket> generateMarketForStation(::StationEntity* station);
+  oo::Ref<OOCommodityMarket> generateManifestForPlayer();
+  oo::Ref<OOCommodityMarket> generateBlankMarket();
+  oo::Ref<OOCommodityMarket> generateMarketForSystemWithEconomy(
+      OOEconomyID economy, const std::optional<std::string>&
+                               scriptName);  // nullopt: no script (was nil)
+  oo::Ref<OOCommodityMarket> generateMarketForStation(::StationEntity* station);
 
-    OOCreditsQuantity samplePriceForCommodity(
-        const std::string& commodity, OOEconomyID economy,
-        const std::optional<std::string>& scriptName, OOSystemID system);
+  OOCreditsQuantity samplePriceForCommodity(
+      const std::string& commodity, OOEconomyID economy,
+      const std::optional<std::string>& scriptName, OOSystemID system);
 
-    NSUInteger count();
-    std::vector<std::string> goods(); // commodity keys, in key order
-    bool goodDefined(const std::string& key);
-    std::optional<std::string> goodNamed(
-        const std::string& name); // nullopt: no good has that (expanded) name
-    std::string getRandomCommodity(); // a commodity key
-    OOMassUnit massUnitForGood(const std::string& good);
+  NSUInteger count();
+  std::vector<std::string> goods();  // commodity keys, in key order
+  bool goodDefined(const std::string& key);
+  std::optional<std::string> goodNamed(
+      const std::string& name);  // nullopt: no good has that (expanded) name
+  std::string getRandomCommodity();  // a commodity key
+  OOMassUnit massUnitForGood(const std::string& good);
 
-private:
-    oo::PList modifyGood(const oo::PList& good, ::OOScript* script,
-        ::StationEntity* station, OOSystemID system, bool local);
-    oo::PList createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p,
-        OOCargoQuantity q, const std::string& key,
-        ::StationEntity* station, OOSystemID system);
+ private:
+  oo::PList modifyGood(const oo::PList& good, ::OOScript* script,
+                       ::StationEntity* station, OOSystemID system, bool local);
+  oo::PList createDefinitionFrom(const oo::PList& good, OOCreditsQuantity p,
+                                 OOCargoQuantity q, const std::string& key,
+                                 ::StationEntity* station, OOSystemID system);
 
-    OOCargoQuantity generateQuantityForGood(const oo::PList& good,
-        OOEconomyID economy);
-    OOCreditsQuantity generatePriceForGood(const oo::PList& good,
-        OOEconomyID economy);
+  OOCargoQuantity generateQuantityForGood(const oo::PList& good,
+                                          OOEconomyID economy);
+  OOCreditsQuantity generatePriceForGood(const oo::PList& good,
+                                         OOEconomyID economy);
 
-    float economicBiasForGood(const oo::PList& good, OOEconomyID economy);
-    oo::PList firstModifierForGood(const std::string& good,
-        const oo::PList& classes,
-        const oo::PList& definitions);
-    OOCreditsQuantity adjustPrice(OOCreditsQuantity price, const oo::PList& rule);
-    OOCargoQuantity adjustQuantity(OOCargoQuantity quantity,
-        const oo::PList& rule);
-    oo::PList updateInfoFor(const oo::PList& good, const oo::PList& rule,
-        OOCargoQuantity maxCapacity);
+  float economicBiasForGood(const oo::PList& good, OOEconomyID economy);
+  oo::PList firstModifierForGood(const std::string& good,
+                                 const oo::PList& classes,
+                                 const oo::PList& definitions);
+  OOCreditsQuantity adjustPrice(OOCreditsQuantity price, const oo::PList& rule);
+  OOCargoQuantity adjustQuantity(OOCargoQuantity quantity,
+                                 const oo::PList& rule);
+  oo::PList updateInfoFor(const oo::PList& good, const oo::PList& rule,
+                          OOCargoQuantity maxCapacity);
 
-    std::map<std::string, oo::PList, std::less<>>
-        _commodityLists; // trade-goods.plist: commodity key -> its info (a Dict)
+  std::map<std::string, oo::PList, std::less<>>
+      _commodityLists;  // trade-goods.plist: commodity key -> its info (a Dict)
 };

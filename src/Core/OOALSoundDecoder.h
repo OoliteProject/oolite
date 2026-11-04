@@ -37,42 +37,43 @@ SOFTWARE.
 
 #include "OOFoundation.h"
 #include "OOFunctionAttributes.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
 class OOALSoundDecoder : public oo::RefCounted {
-public:
-    /*	Was -cxx_initWithPath:, a class cluster's initialiser: it answered, in place of the
-            receiver, the Vorbis codec for a path whose extension is "ogg", else nil. Null where it
-            answered nil (also when the codec could not open the file).
-    */
-    static oo::Ref<OOALSoundDecoder> initWithPath(
-        const std::optional<std::string>& inPath); // nullopt: null
-    static oo::Ref<OOALSoundDecoder> codecWithPath(const std::string& inPath);
+ public:
+  /*	Was -cxx_initWithPath:, a class cluster's initialiser: it answered, in
+     place of the receiver, the Vorbis codec for a path whose extension is
+     "ogg", else nil. Null where it answered nil (also when the codec could not
+     open the file).
+  */
+  static oo::Ref<OOALSoundDecoder> initWithPath(
+      const std::optional<std::string>& inPath);  // nullopt: null
+  static oo::Ref<OOALSoundDecoder> codecWithPath(const std::string& inPath);
 
-    // Full-buffer reading.
-    virtual bool readCreatingBuffer(char** outBuffer, size_t* outSize);
+  // Full-buffer reading.
+  virtual bool readCreatingBuffer(char** outBuffer, size_t* outSize);
 
-    // Stream reading.
-    virtual size_t streamToBuffer(char* buffer);
+  // Stream reading.
+  virtual size_t streamToBuffer(char* buffer);
 
-    // Returns the size of the data readCreatingBuffer() will create.
-    virtual size_t sizeAsBuffer();
+  // Returns the size of the data readCreatingBuffer() will create.
+  virtual size_t sizeAsBuffer();
 
-    virtual bool isStereo();
+  virtual bool isStereo();
 
-    virtual long sampleRate();
+  virtual long sampleRate();
 
-    // For streaming
-    virtual void reset();
+  // For streaming
+  virtual void reset();
 
-    virtual std::optional<std::string> name();
+  virtual std::optional<std::string> name();
 
-    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
-    // OOObject answered; the codec prints its name and comments.
-    virtual std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <Class 0x...>{...}
+  // (OODescription.h). None here, as OOObject answered; the codec prints its
+  // name and comments.
+  virtual std::optional<std::string> descriptionComponents() const;
 };

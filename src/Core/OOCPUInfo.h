@@ -46,12 +46,12 @@ NSUInteger OOCPUCount(void);
         Returns the CPU identifier string. Currently Windows and Linux only.
 */
 #if (OOLITE_WINDOWS || OOLITE_LINUX)
-std::string OOCPUDescription(void); // UTF-8
+std::string OOCPUDescription(void);  // UTF-8
 void OOCPUID(int CPUInfo[4], int InfoType);
 
 typedef struct {
-    unsigned long long ooPhysicalMemory;
-    unsigned long long ooAvailableMemory;
+  unsigned long long ooPhysicalMemory;
+  unsigned long long ooAvailableMemory;
 } OOMemoryStatus;
 OOMemoryStatus OOSystemMemoryStatus(void);
 #endif
@@ -62,7 +62,7 @@ OOMemoryStatus OOSystemMemoryStatus(void);
 // IsWow64Process, to check for a 64/32 bit system: windows.h's BOOL is an int
 typedef BOOL(WINAPI* IW64PFP)(HANDLE, BOOL*);
 bool is64BitSystem(void);
-std::string operatingSystemFullVersion(void); // UTF-8
+std::string operatingSystemFullVersion(void);  // UTF-8
 #endif
 
 #include "OOCPUInfoEndian.h"
@@ -85,10 +85,10 @@ std::string operatingSystemFullVersion(void); // UTF-8
 #elif __x86_64__
 #define OOLITE_NATIVE_64_BIT 1
 #endif
-#endif // _UINT64_T
+#endif  // _UINT64_T
 
 #ifndef OOLITE_NATIVE_64_BIT
 #define OOLITE_NATIVE_64_BIT 0
 #endif
 
-#endif // defined(OOLITE_NATIVE_64_BIT)
+#endif  // defined(OOLITE_NATIVE_64_BIT)

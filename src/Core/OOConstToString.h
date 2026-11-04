@@ -36,11 +36,11 @@ MA 02110-1301, USA.
 #include "OOTypes.h"
 
 enum {
-    // Values used for unknown strings.
-    kOOCargoTypeDefault = CARGO_NOT_CARGO,
-    //	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
-    kOOEnergyUnitTypeDefault = ENERGY_UNIT_NONE,
-    kOORouteTypeDefault = OPTIMIZED_BY_JUMPS
+  // Values used for unknown strings.
+  kOOCargoTypeDefault = CARGO_NOT_CARGO,
+  //	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
+  kOOEnergyUnitTypeDefault = ENERGY_UNIT_NONE,
+  kOORouteTypeDefault = OPTIMIZED_BY_JUMPS
 };
 
 /*
@@ -91,7 +91,8 @@ std::string cxx_EnergyUnitTypeToString(OOEnergyUnitType unit);
 OOEnergyUnitType cxx_StringToEnergyUnitType(const std::string& string);
 std::string cxx_RouteTypeToString(OORouteType routeType);
 OORouteType cxx_StringToRouteType(const std::string& string);
-std::string cxx_DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus);
+std::string cxx_DockingClearanceStatusToString(
+    OODockingClearanceStatus dockingClearanceStatus);
 std::string cxx_OOStringFromGraphicsDetail(OOGraphicsDetail detail);
 OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string& string);
 std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
@@ -105,19 +106,25 @@ OOSDRToneMapper cxx_OOSDRToneMapperFromString(const std::string& string);
 std::string cxx_OOStringFromCompassMode(OOCompassMode mode);
 OOCompassMode cxx_OOCompassModeFromString(const std::string& string);
 std::string cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
-OOLongRangeChartMode cxx_OOLongRangeChartModeFromString(const std::string& string);
+OOLongRangeChartMode cxx_OOLongRangeChartModeFromString(
+    const std::string& string);
 std::string cxx_OOStringFromLegalStatusReason(OOLegalStatusReason reason);
 
 // Commodity display strings. A commodity is named by its
 // identifier string.
-std::string cxx_CommodityDisplayNameForSymbolicName(const std::string& symbolicName);
-std::string cxx_CommodityDisplayNameForCommodityArray(const oo::PList& commodityDefinition); // an array
-std::optional<std::string> cxx_DisplayStringForMassUnit(OOMassUnit unit); // nullopt: no description (was nil)
-std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(const std::string& commodity);
+std::string cxx_CommodityDisplayNameForSymbolicName(
+    const std::string& symbolicName);
+std::string cxx_CommodityDisplayNameForCommodityArray(
+    const oo::PList& commodityDefinition);  // an array
+std::optional<std::string> cxx_DisplayStringForMassUnit(
+    OOMassUnit unit);  // nullopt: no description (was nil)
+std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(
+    const std::string& commodity);
 
 // Shader settings (OOShaderSetting is OOOpenGL.h's).
 // Programmer-readable shader mode strings.
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string);
 std::string cxx_OOStringFromShaderSetting(OOShaderSetting setting);
 // Localized shader mode strings; nullopt: no description (was nil).
-std::optional<std::string> cxx_OODisplayStringFromShaderSetting(OOShaderSetting setting);
+std::optional<std::string> cxx_OODisplayStringFromShaderSetting(
+    OOShaderSetting setting);

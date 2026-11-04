@@ -27,20 +27,16 @@ MA 02110-1301, USA.
 
 #include "OOTexture.h"
 #include "ShipEntity.h"
-
 #include "oofnd/StdLib.hpp"
 
-typedef struct
-{
-    double timeframe; // universal time for this frame
-    HPVector position;
-    Quaternion orientation;
-    Vector k; // direction vectors
+typedef struct {
+  double timeframe;  // universal time for this frame
+  HPVector position;
+  Quaternion orientation;
+  Vector k;  // direction vectors
 } Frame;
 
-enum {
-    kExhaustFrameCount = 16
-};
+enum { kExhaustFrameCount = 16 };
 
 /*	The ships make it with exhaustForShip(). The engine's JS
    questions reach it through the root's virtual members, an owner's
@@ -48,51 +44,57 @@ enum {
    reset manager through a C++ client in OOExhaustPlumeEntity.mm.
 */
 class OOExhaustPlumeEntity : public Entity, public cxx::OOSubEntityInterface {
-public:
-    // definition: the exhaust's tokens (x y z scale_x scale_y scale_z), read as -oo_floatAtIndex: read them.
-    // A new plume, initialised; null for no tokens.
-    static oo::Ref<OOExhaustPlumeEntity> exhaustForShip(::ShipEntity* ship, const std::vector<std::string>& definition, float scale);
-    // The initialiser's body, run once right after
-    // construction: false where it fails.
-    bool initForShip(::ShipEntity* ship, const std::vector<std::string>& definition, float scale);
+ public:
+  // definition: the exhaust's tokens (x y z scale_x scale_y scale_z), read as
+  // -oo_floatAtIndex: read them. A new plume, initialised; null for no tokens.
+  static oo::Ref<OOExhaustPlumeEntity> exhaustForShip(
+      ::ShipEntity* ship, const std::vector<std::string>& definition,
+      float scale);
+  // The initialiser's body, run once right after
+  // construction: false where it fails.
+  bool initForShip(::ShipEntity* ship,
+                   const std::vector<std::string>& definition, float scale);
 
-    void resetPlume();
+  void resetPlume();
 
-    Vector scale();
-    void setScale(Vector scale);
+  Vector scale();
+  void setScale(Vector scale);
 
-    OOTexture* texture();
+  OOTexture* texture();
 
-    static void setUpTexture();
-    static OOTexture* plumeTexture();
-    // What the graphics reset client (OOExhaustPlumeEntity.mm) runs.
-    static void resetGraphicsState();
+  static void setUpTexture();
+  static OOTexture* plumeTexture();
+  // What the graphics reset client (OOExhaustPlumeEntity.mm) runs.
+  static void resetGraphicsState();
 
-    // OOSubEntity.
-    void rescaleBy(GLfloat factor) override;
-    void rescaleBy(GLfloat factor, bool writeToCache) override;
-    void drawSubEntityImmediate(bool immediate, bool translucent) override;
+  // OOSubEntity.
+  void rescaleBy(GLfloat factor) override;
+  void rescaleBy(GLfloat factor, bool writeToCache) override;
+  void drawSubEntityImmediate(bool immediate, bool translucent) override;
 
-    // Entity (OOExhaustPlume)'s answer; callers ask dynamic_cast<OOExhaustPlumeEntity *>.
-    bool isExhaust();
+  // Entity (OOExhaustPlume)'s answer; callers ask
+  // dynamic_cast<OOExhaustPlumeEntity *>.
+  bool isExhaust();
 
-    // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSExhaustPlume.h).
-    JSClassID jsClassID() override;
-    std::optional<std::string> jsClassName() override;
-    bool isVisibleToScripts() override;
+  // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSExhaustPlume.h).
+  JSClassID jsClassID() override;
+  std::optional<std::string> jsClassName() override;
+  bool isVisibleToScripts() override;
 
-    double findCollisionRadius() override;
-    void update(OOTimeDelta delta_t) override;
+  double findCollisionRadius() override;
+  void update(OOTimeDelta delta_t) override;
 
-private:
-    void saveToLastFrame();
-    Frame frameAtTime(double t_frame, Frame frame_zero); // t_frame is relative to now ie. -0.5 = half a second ago.
+ private:
+  void saveToLastFrame();
+  Frame frameAtTime(double t_frame,
+                    Frame frame_zero);  // t_frame is relative to now ie. -0.5 =
+                                        // half a second ago.
 
-    Vector _exhaustScale = { };
-    OOHPScalar _vertices[34 * 3] = { };
-    GLfloat _glVertices[34 * 3] = { };
-    GLfloat _exhaustBaseColors[34 * 4] = { };
-    Frame _track[kExhaustFrameCount] = { };
-    OOTimeAbsolute _trackTime = { };
-    uint8_t _nextFrame = { };
+  Vector _exhaustScale = {};
+  OOHPScalar _vertices[34 * 3] = {};
+  GLfloat _glVertices[34 * 3] = {};
+  GLfloat _exhaustBaseColors[34 * 4] = {};
+  Frame _track[kExhaustFrameCount] = {};
+  OOTimeAbsolute _trackTime = {};
+  uint8_t _nextFrame = {};
 };

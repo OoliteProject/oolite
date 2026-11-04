@@ -34,140 +34,146 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-typedef struct
-{
-    float r, g, b, a;
+typedef struct {
+  float r, g, b, a;
 } OORGBAComponents;
 
-typedef struct
-{
-    float h, s, b, a;
+typedef struct {
+  float h, s, b, a;
 } OOHSBAComponents;
 
 class OOColor : public oo::PListForeign {
-public:
-    static oo::Ref<OOColor> colorWithHue(float hue, float saturation, float brightness, float alpha); // Note: hue in 0..1
-    static oo::Ref<OOColor> colorWithRed(float red, float green, float blue, float alpha);
-    static oo::Ref<OOColor> colorWithWhite(float white, float alpha);
-    static oo::Ref<OOColor> colorWithRGBAComponents(OORGBAComponents components);
-    static oo::Ref<OOColor> colorWithHSBAComponents(
-        OOHSBAComponents components); // Note: hue in 0..360
+ public:
+  static oo::Ref<OOColor> colorWithHue(float hue, float saturation,
+                                       float brightness,
+                                       float alpha);  // Note: hue in 0..1
+  static oo::Ref<OOColor> colorWithRed(float red, float green, float blue,
+                                       float alpha);
+  static oo::Ref<OOColor> colorWithWhite(float white, float alpha);
+  static oo::Ref<OOColor> colorWithRGBAComponents(OORGBAComponents components);
+  static oo::Ref<OOColor> colorWithHSBAComponents(
+      OOHSBAComponents components);  // Note: hue in 0..360
 
-    /*	Flexible color creator: <description> is
-       plist data, one of
-            - a string: the name of one of the named colours below ("redColor" &
-       co.), or components (colorFromString());
-            - an array of components (their descriptions, joined with spaces, as a
-       string);
-            - a dictionary of hue/saturation/brightness (or value)/alpha (or
-       opacity) keys, hue in 0..360, or of red/green/blue/alpha (or opacity) keys;
-            - an Object node holding an OOColor (the colour is the node's foreign
-       object), which is returned as is. Anything else, or a null PList, gives
-       null.
-    */
-    static oo::Ref<OOColor> colorWithDescription(const oo::PList& description);
+  /*	Flexible color creator: <description> is
+     plist data, one of
+          - a string: the name of one of the named colours below ("redColor" &
+     co.), or components (colorFromString());
+          - an array of components (their descriptions, joined with spaces, as a
+     string);
+          - a dictionary of hue/saturation/brightness (or value)/alpha (or
+     opacity) keys, hue in 0..360, or of red/green/blue/alpha (or opacity) keys;
+          - an Object node holding an OOColor (the colour is the node's foreign
+     object), which is returned as is. Anything else, or a null PList, gives
+     null.
+  */
+  static oo::Ref<OOColor> colorWithDescription(const oo::PList& description);
 
-    /*	Like colorWithDescription(), but multiplies saturation by provided factor.
-            If the colour is an HSV dictionary, it may specify a saturation greater
-            than 1.0 to override the scaling.
-    */
-    static oo::Ref<OOColor> colorWithDescription(const oo::PList& description, float factor);
+  /*	Like colorWithDescription(), but multiplies saturation by provided
+     factor. If the colour is an HSV dictionary, it may specify a saturation
+     greater than 1.0 to override the scaling.
+  */
+  static oo::Ref<OOColor> colorWithDescription(const oo::PList& description,
+                                               float factor);
 
-    // Like colorWithDescription(), but forces brightness of at least 0.5.
-    static oo::Ref<OOColor> brightColorWithDescription(const oo::PList& description);
+  // Like colorWithDescription(), but forces brightness of at least 0.5.
+  static oo::Ref<OOColor> brightColorWithDescription(
+      const oo::PList& description);
 
-    // Creates a colour given a string with components.
-    static oo::Ref<OOColor> colorFromString(const std::string& colorFloatString);
+  // Creates a colour given a string with components.
+  static oo::Ref<OOColor> colorFromString(const std::string& colorFloatString);
 
-    static oo::Ref<OOColor> blackColor(); // 0.0 white
-    static oo::Ref<OOColor> darkGrayColor(); // 0.333 white
-    static oo::Ref<OOColor> lightGrayColor(); // 0.667 white
-    static oo::Ref<OOColor> whiteColor(); // 1.0 white
-    static oo::Ref<OOColor> grayColor(); // 0.5 white
-    static oo::Ref<OOColor> redColor(); // 1.0, 0.0, 0.0 RGB
-    static oo::Ref<OOColor> greenColor(); // 0.0, 1.0, 0.0 RGB
-    static oo::Ref<OOColor> blueColor(); // 0.0, 0.0, 1.0 RGB
-    static oo::Ref<OOColor> cyanColor(); // 0.0, 1.0, 1.0 RGB
-    static oo::Ref<OOColor> yellowColor(); // 1.0, 1.0, 0.0 RGB
-    static oo::Ref<OOColor> magentaColor(); // 1.0, 0.0, 1.0 RGB
-    static oo::Ref<OOColor> orangeColor(); // 1.0, 0.5, 0.0 RGB
-    static oo::Ref<OOColor> purpleColor(); // 0.5, 0.0, 0.5 RGB
-    static oo::Ref<OOColor> brownColor(); // 0.6, 0.4, 0.2 RGB
-    static oo::Ref<OOColor> clearColor(); // 0.0 white, 0.0 alpha
+  static oo::Ref<OOColor> blackColor();      // 0.0 white
+  static oo::Ref<OOColor> darkGrayColor();   // 0.333 white
+  static oo::Ref<OOColor> lightGrayColor();  // 0.667 white
+  static oo::Ref<OOColor> whiteColor();      // 1.0 white
+  static oo::Ref<OOColor> grayColor();       // 0.5 white
+  static oo::Ref<OOColor> redColor();        // 1.0, 0.0, 0.0 RGB
+  static oo::Ref<OOColor> greenColor();      // 0.0, 1.0, 0.0 RGB
+  static oo::Ref<OOColor> blueColor();       // 0.0, 0.0, 1.0 RGB
+  static oo::Ref<OOColor> cyanColor();       // 0.0, 1.0, 1.0 RGB
+  static oo::Ref<OOColor> yellowColor();     // 1.0, 1.0, 0.0 RGB
+  static oo::Ref<OOColor> magentaColor();    // 1.0, 0.0, 1.0 RGB
+  static oo::Ref<OOColor> orangeColor();     // 1.0, 0.5, 0.0 RGB
+  static oo::Ref<OOColor> purpleColor();     // 0.5, 0.0, 0.5 RGB
+  static oo::Ref<OOColor> brownColor();      // 0.6, 0.4, 0.2 RGB
+  static oo::Ref<OOColor> clearColor();      // 0.0 white, 0.0 alpha
 
-    //	Linear blend in working colour space (no attempt at gamma correction).
-    oo::Ref<OOColor> blendedColorWithFraction(float fraction, OOColor* color);
+  //	Linear blend in working colour space (no attempt at gamma correction).
+  oo::Ref<OOColor> blendedColorWithFraction(float fraction, OOColor* color);
 
-    //	Get the red, green, or blue components.
-    float redComponent();
-    float greenComponent();
-    float blueComponent();
-    void getRed(float* red, float* green, float* blue, float* alpha);
+  //	Get the red, green, or blue components.
+  float redComponent();
+  float greenComponent();
+  float blueComponent();
+  void getRed(float* red, float* green, float* blue, float* alpha);
 
-    OORGBAComponents rgbaComponents();
+  OORGBAComponents rgbaComponents();
 
-    bool isBlack();
-    bool isWhite();
+  bool isBlack();
+  bool isWhite();
 
-    /*	Get the components as hue, saturation, or brightness.
+  /*	Get the components as hue, saturation, or brightness.
 
-            IMPORTANT: for reasons of bugwards compatibility, these return hue values
-            in the range [0, 360], but colorWithHue() expects values in the
-            range [0, 1].
-    */
-    float hueComponent();
-    float saturationComponent();
-    float brightnessComponent();
-    void getHue(float* hue, float* saturation, float* brightness, float* alpha);
+          IMPORTANT: for reasons of bugwards compatibility, these return hue
+     values in the range [0, 360], but colorWithHue() expects values in the
+          range [0, 1].
+  */
+  float hueComponent();
+  float saturationComponent();
+  float brightnessComponent();
+  void getHue(float* hue, float* saturation, float* brightness, float* alpha);
 
-    OOHSBAComponents hsbaComponents();
+  OOHSBAComponents hsbaComponents();
 
-    // Get the alpha component.
-    float alphaComponent();
+  // Get the alpha component.
+  float alphaComponent();
 
-    /*	Returns the colour, premultiplied by its alpha channel, and with an alpha
-            of 1.0. If the reciever's alpha is 1.0, it will return itself.
-    */
-    oo::Ref<OOColor> premultipliedColor();
+  /*	Returns the colour, premultiplied by its alpha channel, and with an
+     alpha of 1.0. If the reciever's alpha is 1.0, it will return itself.
+  */
+  oo::Ref<OOColor> premultipliedColor();
 
-    // Multiply r, g and b components of a colour by specified factor, clamped to [0..1].
-    oo::Ref<OOColor> colorWithBrightnessFactor(float factor);
+  // Multiply r, g and b components of a colour by specified factor, clamped to
+  // [0..1].
+  oo::Ref<OOColor> colorWithBrightnessFactor(float factor);
 
-    // r,g,b,a array in 0..1 range.
-    std::vector<float> normalizedArray();
+  // r,g,b,a array in 0..1 range.
+  std::vector<float> normalizedArray();
 
-    std::optional<std::string> rgbaDescription();
-    std::optional<std::string> hsbaDescription();
+  std::optional<std::string> rgbaDescription();
+  std::optional<std::string> hsbaDescription();
 
-    // What "%@" prints between the braces of <OOColor 0x...>{...} (OODescription.h).
-    std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <OOColor 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 
-    // oo::PListForeign: the class name, and "%@" as <OOColor 0x...>{...}.
-    std::string className() const override;
-    std::string description() const override;
+  // oo::PListForeign: the class name, and "%@" as <OOColor 0x...>{...}.
+  std::string className() const override;
+  std::string description() const override;
 
-private:
-    // Set methods are internal, because OOColor is immutable (as seen from outside).
-    void setRed(float r, float g, float b, float a);
-    void setHue(float h, float s, float b, float a);
+ private:
+  // Set methods are internal, because OOColor is immutable (as seen from
+  // outside).
+  void setRed(float r, float g, float b, float a);
+  void setHue(float h, float s, float b, float a);
 
-    float rgba[4] = { };
+  float rgba[4] = {};
 };
 
 /*	A colour carried through plist data as a PList::Object node: the colour
    is the node's foreign object (oo::PListObject() and oo::ObjectIn()).
 */
-inline oo::PList OOColorObjectNode(OOColor* color) // null colour -> null PList
+inline oo::PList OOColorObjectNode(OOColor* color)  // null colour -> null PList
 {
-    if (color == nullptr)
-        return oo::PList();
-    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(color)));
+  if (color == nullptr) return oo::PList();
+  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(color)));
 }
 
-inline OOColor* OOColorInObjectNode(const oo::PList& plist) // null for any other node
+inline OOColor* OOColorInObjectNode(
+    const oo::PList& plist)  // null for any other node
 {
-    const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
-    return (node != nullptr) ? dynamic_cast<OOColor*>(node->get()) : nullptr;
+  const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+  return (node != nullptr) ? dynamic_cast<OOColor*>(node->get()) : nullptr;
 }
 
 std::string OORGBAComponentsDescription(OORGBAComponents components);

@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 #include "ShipEntity.h"
 
-class AI; // AI.h
+class AI;  // AI.h
 class Universe;
 class OOPlanetEntity;
 

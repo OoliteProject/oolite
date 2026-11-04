@@ -41,7 +41,7 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
-#include "OOFoundation.h" // OOComparisonResult
+#include "OOFoundation.h"  // OOComparisonResult
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
@@ -55,108 +55,96 @@ SOFTWARE.
 */
 template <typename T>
 class OOPriorityQueueOf {
-public:
-    using Comparator = OOComparisonResult (*)(T* a, T* b);
+ public:
+  using Comparator = OOComparisonResult (*)(T* a, T* b);
 
-    explicit OOPriorityQueueOf(Comparator comparator)
-        : _comparator(comparator)
-    {
+  explicit OOPriorityQueueOf(Comparator comparator) : _comparator(comparator) {}
+
+  void addObject(T* object)  // null is ignored (OOPriorityQueue raised)
+  {
+    if (object == nullptr) return;
+    _heap.emplace_back(object);
+    bubbleUpFrom(_heap.size() - 1);
+  }
+
+  void removeExactObject(
+      T* object)  // pointer comparison; safe from the element's destructor
+  {
+    if (object == nullptr) return;
+    for (size_t i = 0; i < _heap.size(); ++i) {
+      if (object == _heap[i].get()) (void)removeObjectAtIndex(i);
     }
+  }
 
-    void addObject(T* object) // null is ignored (OOPriorityQueue raised)
-    {
-        if (object == nullptr)
-            return;
-        _heap.emplace_back(object);
-        bubbleUpFrom(_heap.size() - 1);
+  size_t count() const { return _heap.size(); }
+
+  T* peekAtNextObject() const {
+    return _heap.empty() ? nullptr : _heap[0].get();
+  }
+
+  // Removes the next element and answers it (null when empty), so the caller
+  // decides how long it lives (OOPriorityQueue autoreleased it).
+  oo::Ref<T> removeNextObject() { return removeObjectAtIndex(0); }
+
+  // The elements in removeNextObject() order; empties the queue.
+  std::vector<oo::Ref<T>> sortedObjects() {
+    std::vector<oo::Ref<T>> result;
+    result.reserve(_heap.size());
+    while (!_heap.empty()) result.push_back(removeNextObject());
+    return result;
+  }
+
+ private:
+  static size_t LeftChild(size_t n) { return (n << 1) + 1; }
+  static size_t RightChild(size_t n) { return (n << 1) + 2; }
+  static size_t Parent(size_t n) { return ((n + 1) >> 1) - 1; }
+
+  void bubbleUpFrom(size_t i) {
+    while (0 < i) {
+      const size_t pi = Parent(i);
+      if (_comparator(_heap[i].get(), _heap[pi].get()) < 0) {
+        std::swap(_heap[i], _heap[pi]);
+        i = pi;
+      } else
+        break;
     }
+  }
 
-    void removeExactObject(
-        T* object) // pointer comparison; safe from the element's destructor
-    {
-        if (object == nullptr)
-            return;
-        for (size_t i = 0; i < _heap.size(); ++i) {
-            if (object == _heap[i].get())
-                (void)removeObjectAtIndex(i);
-        }
+  void bubbleDownFrom(size_t i) {
+    const size_t end = _heap.size() - 1;
+    while (LeftChild(i) <= end) {
+      const size_t li = LeftChild(i);
+      const size_t ri = RightChild(i);
+      // If left child has lower priority than right child, or there is only one
+      // child...
+      const size_t next =
+          (li == end || _comparator(_heap[li].get(), _heap[ri].get()) < 0) ? li
+                                                                           : ri;
+      if (_comparator(_heap[next].get(), _heap[i].get()) < 0) {
+        // Exchange parent with lowest-priority child
+        std::swap(_heap[i], _heap[next]);
+        i = next;
+      } else
+        break;
     }
+  }
 
-    size_t count() const { return _heap.size(); }
-
-    T* peekAtNextObject() const
-    {
-        return _heap.empty() ? nullptr : _heap[0].get();
+  oo::Ref<T> removeObjectAtIndex(size_t i) {
+    if (_heap.size() <= i) return nullptr;
+    oo::Ref<T> object = std::move(_heap[i]);
+    if (i < _heap.size() - 1) {
+      // Overwrite object with last object in array, then push it down until the
+      // tree is partially ordered.
+      _heap[i] = std::move(_heap.back());
+      _heap.pop_back();
+      bubbleDownFrom(i);
+    } else {
+      // Special case: removing last (or only) object. No bubbling needed.
+      _heap.pop_back();
     }
+    return object;
+  }
 
-    // Removes the next element and answers it (null when empty), so the caller
-    // decides how long it lives (OOPriorityQueue autoreleased it).
-    oo::Ref<T> removeNextObject() { return removeObjectAtIndex(0); }
-
-    // The elements in removeNextObject() order; empties the queue.
-    std::vector<oo::Ref<T>> sortedObjects()
-    {
-        std::vector<oo::Ref<T>> result;
-        result.reserve(_heap.size());
-        while (!_heap.empty())
-            result.push_back(removeNextObject());
-        return result;
-    }
-
-private:
-    static size_t LeftChild(size_t n) { return (n << 1) + 1; }
-    static size_t RightChild(size_t n) { return (n << 1) + 2; }
-    static size_t Parent(size_t n) { return ((n + 1) >> 1) - 1; }
-
-    void bubbleUpFrom(size_t i)
-    {
-        while (0 < i) {
-            const size_t pi = Parent(i);
-            if (_comparator(_heap[i].get(), _heap[pi].get()) < 0) {
-                std::swap(_heap[i], _heap[pi]);
-                i = pi;
-            } else
-                break;
-        }
-    }
-
-    void bubbleDownFrom(size_t i)
-    {
-        const size_t end = _heap.size() - 1;
-        while (LeftChild(i) <= end) {
-            const size_t li = LeftChild(i);
-            const size_t ri = RightChild(i);
-            // If left child has lower priority than right child, or there is only one
-            // child...
-            const size_t next = (li == end || _comparator(_heap[li].get(), _heap[ri].get()) < 0) ? li
-                                                                                                 : ri;
-            if (_comparator(_heap[next].get(), _heap[i].get()) < 0) {
-                // Exchange parent with lowest-priority child
-                std::swap(_heap[i], _heap[next]);
-                i = next;
-            } else
-                break;
-        }
-    }
-
-    oo::Ref<T> removeObjectAtIndex(size_t i)
-    {
-        if (_heap.size() <= i)
-            return nullptr;
-        oo::Ref<T> object = std::move(_heap[i]);
-        if (i < _heap.size() - 1) {
-            // Overwrite object with last object in array, then push it down until the
-            // tree is partially ordered.
-            _heap[i] = std::move(_heap.back());
-            _heap.pop_back();
-            bubbleDownFrom(i);
-        } else {
-            // Special case: removing last (or only) object. No bubbling needed.
-            _heap.pop_back();
-        }
-        return object;
-    }
-
-    Comparator _comparator;
-    std::vector<oo::Ref<T>> _heap;
+  Comparator _comparator;
+  std::vector<oo::Ref<T>> _heap;
 };

@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOJSClock.h"
+
 #include "OODebugStandards.h"
 #include "OOJSPlayer.h"
 #include "OOJavaScriptEngine.h"
@@ -45,174 +46,203 @@ static JSClassDef sClockClass = {
 };
 
 enum {
-    // Property IDs
-    kClock_absoluteSeconds, // game real time clock, double, read-only
-    kClock_seconds, // game clock time, double, read-only
-    kClock_minutes, // game clock time minutes (rounded down), integer double, read-only
-    kClock_hours, // game clock time hours (rounded down), integer double, read-only
-    kClock_days, // game clock time days (rounded down), int, read-only
-    kClock_secondsComponent, // second component of game clock time, double, read-only
-    kClock_minutesComponent, // minute component of game clock time (rounded down), int, read-only
-    kClock_hoursComponent, // hour component of game clock time (rounded down), int, read-only
-    kClock_daysComponent, // day component of game clock time (rounded down), int, read-only
-    kClock_clockString, // game clock time as display string, string, read-only
-    kClock_isAdjusting, // clock is adjusting, boolean, read-only
-    kClock_adjustedSeconds, // game clock time, including adjustments, double, read-only
-    kClock_legacy_scriptTimer // legacy scriptTimer_number, double, read-only
+  // Property IDs
+  kClock_absoluteSeconds,  // game real time clock, double, read-only
+  kClock_seconds,          // game clock time, double, read-only
+  kClock_minutes,  // game clock time minutes (rounded down), integer double,
+                   // read-only
+  kClock_hours,    // game clock time hours (rounded down), integer double,
+                   // read-only
+  kClock_days,     // game clock time days (rounded down), int, read-only
+  kClock_secondsComponent,  // second component of game clock time, double,
+                            // read-only
+  kClock_minutesComponent,  // minute component of game clock time (rounded
+                            // down), int, read-only
+  kClock_hoursComponent,    // hour component of game clock time (rounded down),
+                            // int, read-only
+  kClock_daysComponent,     // day component of game clock time (rounded down),
+                            // int, read-only
+  kClock_clockString,  // game clock time as display string, string, read-only
+  kClock_isAdjusting,  // clock is adjusting, boolean, read-only
+  kClock_adjustedSeconds,    // game clock time, including adjustments, double,
+                             // read-only
+  kClock_legacy_scriptTimer  // legacy scriptTimer_number, double, read-only
 };
 
 static const JSCFunctionListEntry sClockProperties[] = {
-    // JS name					Getter				ID
-    OOJS_PROPERTY_RO("absoluteSeconds", ClockGetProperty, kClock_absoluteSeconds),
+    // JS name					Getter ID
+    OOJS_PROPERTY_RO("absoluteSeconds", ClockGetProperty,
+                     kClock_absoluteSeconds),
     OOJS_PROPERTY_RO("seconds", ClockGetProperty, kClock_seconds),
     OOJS_PROPERTY_RO("minutes", ClockGetProperty, kClock_minutes),
     OOJS_PROPERTY_RO("hours", ClockGetProperty, kClock_hours),
     OOJS_PROPERTY_RO("days", ClockGetProperty, kClock_days),
-    OOJS_PROPERTY_RO("secondsComponent", ClockGetProperty, kClock_secondsComponent),
-    OOJS_PROPERTY_RO("minutesComponent", ClockGetProperty, kClock_minutesComponent),
+    OOJS_PROPERTY_RO("secondsComponent", ClockGetProperty,
+                     kClock_secondsComponent),
+    OOJS_PROPERTY_RO("minutesComponent", ClockGetProperty,
+                     kClock_minutesComponent),
     OOJS_PROPERTY_RO("hoursComponent", ClockGetProperty, kClock_hoursComponent),
     OOJS_PROPERTY_RO("daysComponent", ClockGetProperty, kClock_daysComponent),
     OOJS_PROPERTY_RO("clockString", ClockGetProperty, kClock_clockString),
     OOJS_PROPERTY_RO("isAdjusting", ClockGetProperty, kClock_isAdjusting),
-    OOJS_PROPERTY_RO("adjustedSeconds", ClockGetProperty, kClock_adjustedSeconds),
-    OOJS_PROPERTY_RO("legacy_scriptTimer", ClockGetProperty, kClock_legacy_scriptTimer),
+    OOJS_PROPERTY_RO("adjustedSeconds", ClockGetProperty,
+                     kClock_adjustedSeconds),
+    OOJS_PROPERTY_RO("legacy_scriptTimer", ClockGetProperty,
+                     kClock_legacy_scriptTimer),
 };
 
 static const JSCFunctionListEntry sClockMethods[] = {
-    // JS name						Function						min args
+    // JS name						Function
+    // min args
     JS_CFUNC_DEF("toString", 0, JSClockToString),
     JS_CFUNC_DEF("clockStringForTime", 1, ClockClockStringForTime),
     JS_CFUNC_DEF("addSeconds", 1, ClockAddSeconds),
 };
 
-void InitOOJSClock(JSContext* context, JSValueConst global)
-{
-    OOJSRegisterClass(&sClockClassID, &sClockClass);
-    JSValueConst clockPrototype = OOJSInitClass(context, global, sClockClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0,
-        sClockProperties, OOJS_COUNT(sClockProperties), sClockMethods, OOJS_COUNT(sClockMethods), NULL, 0);
-    JS_DefinePropertyValueStr(context, global, "clock", JS_NewObjectProtoClass(context, clockPrototype, sClockClassID), OOJS_PROP_READONLY);
+void InitOOJSClock(JSContext* context, JSValueConst global) {
+  OOJSRegisterClass(&sClockClassID, &sClockClass);
+  JSValueConst clockPrototype =
+      OOJSInitClass(context, global, sClockClassID, JS_UNDEFINED,
+                    OOJSUnconstructableConstruct, 0, sClockProperties,
+                    OOJS_COUNT(sClockProperties), sClockMethods,
+                    OOJS_COUNT(sClockMethods), NULL, 0);
+  JS_DefinePropertyValueStr(
+      context, global, "clock",
+      JS_NewObjectProtoClass(context, clockPrototype, sClockClassID),
+      OOJS_PROP_READONLY);
 }
 
-static JSValue ClockGetProperty(OOJS_GETTER_ARGS)
-{
-    OOJS_NATIVE_ENTER(context)
+static JSValue ClockGetProperty(OOJS_GETTER_ARGS) {
+  OOJS_NATIVE_ENTER(context)
 
-    PlayerEntity* player = OOPlayerForScripting();
-    double clockTime;
+  PlayerEntity* player = OOPlayerForScripting();
+  double clockTime;
 
-    clockTime = (player != nullptr ? player->PlayerEntity::clockTime() : 0.0); // qualified: the final overrider, so the binding test stands in for it
+  clockTime = (player != nullptr ? player->PlayerEntity::clockTime()
+                                 : 0.0);  // qualified: the final overrider, so
+                                          // the binding test stands in for it
 
-    /*	INT_TO_JSVAL() truncated its (double) argument to an integer; JS_NewInt32()
-            does the same through the implicit conversion.
-    */
-    switch (magic) {
+  /*	INT_TO_JSVAL() truncated its (double) argument to an integer;
+     JS_NewInt32() does the same through the implicit conversion.
+  */
+  switch (magic) {
     case kClock_absoluteSeconds:
-        return JS_NewNumber(context, (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0));
+      return JS_NewNumber(context,
+                          (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0));
 
     case kClock_seconds:
-        return JS_NewNumber(context, clockTime);
+      return JS_NewNumber(context, clockTime);
 
     case kClock_minutes:
-        return JS_NewNumber(context, floor(clockTime / 60.0));
+      return JS_NewNumber(context, floor(clockTime / 60.0));
 
     case kClock_hours:
-        return JS_NewNumber(context, floor(clockTime / 3600.0));
+      return JS_NewNumber(context, floor(clockTime / 3600.0));
 
     case kClock_secondsComponent:
-        return JS_NewInt32(context, fmod(clockTime, 60.0));
+      return JS_NewInt32(context, fmod(clockTime, 60.0));
 
     case kClock_minutesComponent:
-        return JS_NewInt32(context, fmod(floor(clockTime / 60.0), 60.0));
+      return JS_NewInt32(context, fmod(floor(clockTime / 60.0), 60.0));
 
     case kClock_hoursComponent:
-        return JS_NewInt32(context, fmod(floor(clockTime / 3600.0), 24.0));
+      return JS_NewInt32(context, fmod(floor(clockTime / 3600.0), 24.0));
 
     case kClock_days:
     case kClock_daysComponent:
-        return JS_NewInt32(context, floor(clockTime / 86400.0));
+      return JS_NewInt32(context, floor(clockTime / 86400.0));
 
     case kClock_clockString:
-        return OOJSValueFromPList(context, oo::PList((player != nullptr ? player->dial_clock() : std::string())));
+      return OOJSValueFromPList(
+          context, oo::PList((player != nullptr ? player->dial_clock()
+                                                : std::string())));
 
     case kClock_isAdjusting:
-        return OOJSValueFromBOOL((player != nullptr ? player->clockAdjusting() : false));
+      return OOJSValueFromBOOL(
+          (player != nullptr ? player->clockAdjusting() : false));
 
     case kClock_adjustedSeconds:
-        return JS_NewNumber(context, (player != nullptr ? player->PlayerEntity::clockTimeAdjusted() : 0.0)); // qualified: the final overrider, so the binding test stands in for it
+      return JS_NewNumber(
+          context,
+          (player != nullptr ? player->PlayerEntity::clockTimeAdjusted()
+                             : 0.0));  // qualified: the final overrider, so the
+                                       // binding test stands in for it
 
     case kClock_legacy_scriptTimer:
-        cxx_OOStandardsDeprecated("The legacy_scriptTimer property is deprecated");
-        return JS_NewNumber(context, (player != nullptr ? player->scriptTimer() : OOTimeDelta { }));
+      cxx_OOStandardsDeprecated(
+          "The legacy_scriptTimer property is deprecated");
+      return JS_NewNumber(
+          context, (player != nullptr ? player->scriptTimer() : OOTimeDelta{}));
 
     default:
-        OOJSReportBadPropertySelector(context, thisObj, magic, sClockProperties, OOJS_COUNT(sClockProperties));
-        return JS_EXCEPTION;
-    }
+      OOJSReportBadPropertySelector(context, thisObj, magic, sClockProperties,
+                                    OOJS_COUNT(sClockProperties));
+      return JS_EXCEPTION;
+  }
 
-    OOJS_NATIVE_EXIT
+  OOJS_NATIVE_EXIT
 }
 
 // *** Methods ***
 
 // toString() : String
-static JSValue JSClockToString(OOJS_NATIVE_ARGS)
-{
-    OOJS_NATIVE_ENTER(context)
+static JSValue JSClockToString(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
 
-    PlayerEntity* player = OOPlayerForScripting();
-    OOJS_RETURN_PLIST(oo::PList(player != nullptr ? player->dial_clock() : std::string()));
+  PlayerEntity* player = OOPlayerForScripting();
+  OOJS_RETURN_PLIST(
+      oo::PList(player != nullptr ? player->dial_clock() : std::string()));
 
-    OOJS_NATIVE_EXIT
+  OOJS_NATIVE_EXIT
 }
 
 // clockStringForTime(time : Number) : String
-static JSValue ClockClockStringForTime(OOJS_NATIVE_ARGS)
-{
-    OOJS_NATIVE_ENTER(context)
+static JSValue ClockClockStringForTime(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
 
-    double time;
+  double time;
 
-    if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &time, OOJS_ARGV[0]) < 0)) {
-        if (JS_HasException(context))
-            JS_FreeValue(context, JS_GetException(context));
-        JSValueConst arg = JS_UNDEFINED;
-        if (argc > 0)
-            arg = OOJS_ARGV[0];
-        cxx_OOJSReportBadArguments(context, "Clock", "clockStringForTime", 1, &arg, std::nullopt, "number");
-        return JS_EXCEPTION;
-    }
+  if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &time, OOJS_ARGV[0]) < 0)) {
+    if (JS_HasException(context))
+      JS_FreeValue(context, JS_GetException(context));
+    JSValueConst arg = JS_UNDEFINED;
+    if (argc > 0) arg = OOJS_ARGV[0];
+    cxx_OOJSReportBadArguments(context, "Clock", "clockStringForTime", 1, &arg,
+                               std::nullopt, "number");
+    return JS_EXCEPTION;
+  }
 
-    OOJS_RETURN(OOJSValueFromPList(context, oo::PList(cxx_ClockToString(time, false))));
+  OOJS_RETURN(
+      OOJSValueFromPList(context, oo::PList(cxx_ClockToString(time, false))));
 
-    OOJS_NATIVE_EXIT
+  OOJS_NATIVE_EXIT
 }
 
 // addSeconds(seconds : Number) : String
-static JSValue ClockAddSeconds(OOJS_NATIVE_ARGS)
-{
-    OOJS_NATIVE_ENTER(context)
+static JSValue ClockAddSeconds(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
 
-    double time;
-    const double kMaxTime = 30.0 * 24.0 * 3600.0; // 30 days
+  double time;
+  const double kMaxTime = 30.0 * 24.0 * 3600.0;  // 30 days
 
-    if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &time, OOJS_ARGV[0]) < 0)) {
-        if (JS_HasException(context))
-            JS_FreeValue(context, JS_GetException(context));
-        JSValueConst arg = JS_UNDEFINED;
-        if (argc > 0)
-            arg = OOJS_ARGV[0];
-        cxx_OOJSReportBadArguments(context, "Clock", "addSeconds", 1, &arg, std::nullopt, "number");
-        return JS_EXCEPTION;
-    }
+  if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &time, OOJS_ARGV[0]) < 0)) {
+    if (JS_HasException(context))
+      JS_FreeValue(context, JS_GetException(context));
+    JSValueConst arg = JS_UNDEFINED;
+    if (argc > 0) arg = OOJS_ARGV[0];
+    cxx_OOJSReportBadArguments(context, "Clock", "addSeconds", 1, &arg,
+                               std::nullopt, "number");
+    return JS_EXCEPTION;
+  }
 
-    if (time > kMaxTime || time < 1.0 || !isfinite(time)) {
-        OOJS_RETURN_BOOL(false);
-    }
+  if (time > kMaxTime || time < 1.0 || !isfinite(time)) {
+    OOJS_RETURN_BOOL(false);
+  }
 
-    if (PlayerEntity* player = OOPlayerForScripting())
-        player->addToAdjustTime(time);
+  if (PlayerEntity* player = OOPlayerForScripting())
+    player->addToAdjustTime(time);
 
-    OOJS_RETURN_BOOL(true);
+  OOJS_RETURN_BOOL(true);
 
-    OOJS_NATIVE_EXIT
+  OOJS_NATIVE_EXIT
 }

@@ -38,7 +38,9 @@
 // of these guards. Included the other way round (this header first),
 // Foundation's own NSNotFound and struct _NSRange collide with these, so the
 // two cannot be mixed silently in either order.
-#if defined(GNUSTEP_BASE_MAJOR_VERSION) || defined(NSINTEGER_DEFINED) || defined(__NSRange_h_GNUSTEP_BASE_INCLUDE) || defined(__NSGeometry_h_GNUSTEP_BASE_INCLUDE)
+#if defined(GNUSTEP_BASE_MAJOR_VERSION) || defined(NSINTEGER_DEFINED) || \
+    defined(__NSRange_h_GNUSTEP_BASE_INCLUDE) ||                         \
+    defined(__NSGeometry_h_GNUSTEP_BASE_INCLUDE)
 #error \
     "oofnd/objc/OOFoundationTypes.h replaces Foundation's C types and cannot be used together with Foundation"
 #endif
@@ -68,109 +70,102 @@ typedef float CGFloat;
 #define CGFLOAT_DEFINED 1
 
 struct CGPoint {
-    CGFloat x;
-    CGFloat y;
+  CGFloat x;
+  CGFloat y;
 };
 typedef struct CGPoint CGPoint;
 typedef struct CGPoint NSPoint;
 
 struct CGSize {
-    CGFloat width;
-    CGFloat height;
+  CGFloat width;
+  CGFloat height;
 };
 typedef struct CGSize CGSize;
 typedef struct CGSize NSSize;
 
 struct CGRect {
-    CGPoint origin;
-    CGSize size;
+  CGPoint origin;
+  CGSize size;
 };
 typedef struct CGRect CGRect;
 typedef struct CGRect NSRect;
 
-static const NSPoint NSZeroPoint = { 0.0, 0.0 };
-static const NSSize NSZeroSize = { 0.0, 0.0 };
-static const NSRect NSZeroRect = { { 0.0, 0.0 }, { 0.0, 0.0 } };
+static const NSPoint NSZeroPoint = {0.0, 0.0};
+static const NSSize NSZeroSize = {0.0, 0.0};
+static const NSRect NSZeroRect = {{0.0, 0.0}, {0.0, 0.0}};
 
 typedef struct _NSRange NSRange;
 struct _NSRange {
-    NSUInteger location;
-    NSUInteger length;
+  NSUInteger location;
+  NSUInteger length;
 };
 
-static inline NSUInteger NSMaxRange(NSRange range)
-{
-    return range.location + range.length;
+static inline NSUInteger NSMaxRange(NSRange range) {
+  return range.location + range.length;
 }
 
-static inline bool NSLocationInRange(NSUInteger location, NSRange range)
-{
-    return (location >= range.location) && (location < NSMaxRange(range));
+static inline bool NSLocationInRange(NSUInteger location, NSRange range) {
+  return (location >= range.location) && (location < NSMaxRange(range));
 }
 
-static inline NSRange NSMakeRange(NSUInteger location, NSUInteger length)
-{
-    NSRange range;
-    NSUInteger end = location + length;
-    if (end < location || end < length) {
-        fprintf(
-            stderr,
-            "oofnd: NSMakeRange(%llu, %llu): range location + length too great\n",
-            (unsigned long long)location, (unsigned long long)length);
-        abort();
-    }
-    range.location = location;
-    range.length = length;
-    return range;
+static inline NSRange NSMakeRange(NSUInteger location, NSUInteger length) {
+  NSRange range;
+  NSUInteger end = location + length;
+  if (end < location || end < length) {
+    fprintf(
+        stderr,
+        "oofnd: NSMakeRange(%llu, %llu): range location + length too great\n",
+        (unsigned long long)location, (unsigned long long)length);
+    abort();
+  }
+  range.location = location;
+  range.length = length;
+  return range;
 }
 
-static inline bool NSEqualRanges(NSRange range1, NSRange range2)
-{
-    return ((range1.location == range2.location) && (range1.length == range2.length));
+static inline bool NSEqualRanges(NSRange range1, NSRange range2) {
+  return ((range1.location == range2.location) &&
+          (range1.length == range2.length));
 }
 
-static inline NSPoint NSMakePoint(CGFloat x, CGFloat y)
-{
-    NSPoint point;
-    point.x = x;
-    point.y = y;
-    return point;
+static inline NSPoint NSMakePoint(CGFloat x, CGFloat y) {
+  NSPoint point;
+  point.x = x;
+  point.y = y;
+  return point;
 }
 
-static inline NSSize NSMakeSize(CGFloat w, CGFloat h)
-{
-    NSSize size;
-    size.width = w;
-    size.height = h;
-    return size;
+static inline NSSize NSMakeSize(CGFloat w, CGFloat h) {
+  NSSize size;
+  size.width = w;
+  size.height = h;
+  return size;
 }
 
-static inline NSRect NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h)
-{
-    NSRect rect;
-    rect.origin.x = x;
-    rect.origin.y = y;
-    rect.size.width = w;
-    rect.size.height = h;
-    return rect;
+static inline NSRect NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h) {
+  NSRect rect;
+  rect.origin.x = x;
+  rect.origin.y = y;
+  rect.size.width = w;
+  rect.size.height = h;
+  return rect;
 }
 
 // GNUstep exports these from NSGeometry.m; the bodies are its (plain ==, so
 // -0.0 equals 0.0 and NaN equals nothing, as recorded by the unit test).
-static inline bool NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
-{
-    return ((aPoint.x == bPoint.x) && (aPoint.y == bPoint.y)) ? true : false;
+static inline bool NSEqualPoints(NSPoint aPoint, NSPoint bPoint) {
+  return ((aPoint.x == bPoint.x) && (aPoint.y == bPoint.y)) ? true : false;
 }
 
-static inline bool NSEqualSizes(NSSize aSize, NSSize bSize)
-{
-    return ((aSize.width == bSize.width) && (aSize.height == bSize.height)) ? true
-                                                                            : false;
+static inline bool NSEqualSizes(NSSize aSize, NSSize bSize) {
+  return ((aSize.width == bSize.width) && (aSize.height == bSize.height))
+             ? true
+             : false;
 }
 
-static inline bool NSEqualRects(NSRect aRect, NSRect bRect)
-{
-    return (NSEqualPoints(aRect.origin, bRect.origin) && NSEqualSizes(aRect.size, bRect.size))
-        ? true
-        : false;
+static inline bool NSEqualRects(NSRect aRect, NSRect bRect) {
+  return (NSEqualPoints(aRect.origin, bRect.origin) &&
+          NSEqualSizes(aRect.size, bRect.size))
+             ? true
+             : false;
 }

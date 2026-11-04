@@ -30,84 +30,79 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "OOEntityHold.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-
-#include <string>
-#include <vector>
 
 class Entity;
 
 namespace oo {
 
 // The entity, where it has its object; else null.
-Entity* WithObject(Entity* entity); // EntityHelpers.mm (out of line: a narrow test's stand-in entity answers it)
+Entity* WithObject(Entity* entity);  // EntityHelpers.mm (out of line: a narrow
+                                     // test's stand-in entity answers it)
 
 /*	An entity carried through plist data as a PList::Object node: the
    node holds the entity, which keeps the entity alive, and answers
    it. Its class name is "Entity", its description the entity's
    (oo::EntityDescription()), its JS value the entity's (OOJSValueFromPList).
 */
-std::string EntityDescription(Entity* entity); // EntityHelpers.mm
+std::string EntityDescription(Entity* entity);  // EntityHelpers.mm
 
 class EntityPListForeign final : public PListForeign {
-public:
-    explicit EntityPListForeign(Entity* entity)
-        : _entity(entity)
-    {
-    }
-    Entity* entity() const noexcept { return _entity.get(); }
-    std::string className() const override { return "Entity"; }
-    std::string description() const override { return EntityDescription(_entity.get()); }
+ public:
+  explicit EntityPListForeign(Entity* entity) : _entity(entity) {}
+  Entity* entity() const noexcept { return _entity.get(); }
+  std::string className() const override { return "Entity"; }
+  std::string description() const override {
+    return EntityDescription(_entity.get());
+  }
 
-private:
-    EntityHold _entity;
+ private:
+  EntityHold _entity;
 };
 
 // The entity's Object node; a null PList for null and for an
 // entity without its object.
-inline PList EntityObjectNode(Entity* entity)
-{
-    if (WithObject(entity) == nullptr)
-        return PList();
-    return PList(PList::Object(makeRef<EntityPListForeign>(entity)));
+inline PList EntityObjectNode(Entity* entity) {
+  if (WithObject(entity) == nullptr) return PList();
+  return PList(PList::Object(makeRef<EntityPListForeign>(entity)));
 }
-inline PList EntityObjectNode(const Ref<Entity>& entity) { return EntityObjectNode(entity.get()); }
+inline PList EntityObjectNode(const Ref<Entity>& entity) {
+  return EntityObjectNode(entity.get());
+}
 
 // The C++ entity of an entity's Object node, borrowed; null for any other node.
-inline Entity* EntityIn(const PList& plist)
-{
-    const PList::Object* node = plist.getIf<PList::Object>();
-    if (node == nullptr)
-        return nullptr;
-    const auto* payload = dynamic_cast<const EntityPListForeign*>(node->get());
-    return payload != nullptr ? payload->entity() : nullptr;
+inline Entity* EntityIn(const PList& plist) {
+  const PList::Object* node = plist.getIf<PList::Object>();
+  if (node == nullptr) return nullptr;
+  const auto* payload = dynamic_cast<const EntityPListForeign*>(node->get());
+  return payload != nullptr ? payload->entity() : nullptr;
 }
 
 // An array of held entities' Object nodes, one per non-null element, in order.
-inline PList EntityNodesFrom(const std::vector<EntityHold>& entities)
-{
-    PList::Array result;
-    result.reserve(entities.size());
-    for (const EntityHold& entity : entities) {
-        if (entity)
-            result.push_back(EntityObjectNode(entity.get()));
-    }
-    return PList(std::move(result));
+inline PList EntityNodesFrom(const std::vector<EntityHold>& entities) {
+  PList::Array result;
+  result.reserve(entities.size());
+  for (const EntityHold& entity : entities) {
+    if (entity) result.push_back(EntityObjectNode(entity.get()));
+  }
+  return PList(std::move(result));
 }
 
-// The C++ entities of an array's entity nodes, borrowed, in order; other elements are skipped.
-inline std::vector<Entity*> EntitiesIn(const PList& plist)
-{
-    std::vector<Entity*> result;
-    if (const PList::Array* array = plist.getIf<PList::Array>()) {
-        for (const PList& element : *array) {
-            if (Entity* entity = EntityIn(element))
-                result.push_back(entity);
-        }
+// The C++ entities of an array's entity nodes, borrowed, in order; other
+// elements are skipped.
+inline std::vector<Entity*> EntitiesIn(const PList& plist) {
+  std::vector<Entity*> result;
+  if (const PList::Array* array = plist.getIf<PList::Array>()) {
+    for (const PList& element : *array) {
+      if (Entity* entity = EntityIn(element)) result.push_back(entity);
     }
-    return result;
+  }
+  return result;
 }
 
-} // namespace oo
+}  // namespace oo

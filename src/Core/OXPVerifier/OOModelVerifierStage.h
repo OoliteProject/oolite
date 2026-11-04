@@ -46,45 +46,45 @@ MA 02110-1301, USA.
    by name through the verifier's stage lookup.
 */
 struct OOModelVerifierEntry {
-    std::string name;
-    std::string context;
-    oo::PList materials;
-    oo::PList shaders;
+  std::string name;
+  std::string context;
+  oo::PList materials;
+  oo::PList shaders;
 
-    friend bool operator==(const OOModelVerifierEntry&, const OOModelVerifierEntry&) = default;
+  friend bool operator==(const OOModelVerifierEntry&,
+                         const OOModelVerifierEntry&) = default;
 };
 
 class OOModelVerifierStage : public OOTextureHandlingStage {
-public:
-    // The stage's name, as name() returns it (the ship data stage looks the stage up by it).
-    static const char* const kName;
+ public:
+  // The stage's name, as name() returns it (the ship data stage looks the stage
+  // up by it).
+  static const char* const kName;
 
-    // Returns name to be used in dependents() by other stages; also registers
-    // stage.
-    static std::string nameForReverseDependencyForVerifier(
-        OOOXPVerifier* verifier);
+  // Returns name to be used in dependents() by other stages; also registers
+  // stage.
+  static std::string nameForReverseDependencyForVerifier(
+      OOOXPVerifier* verifier);
 
-    std::optional<std::string> name() override;
-    bool shouldRun() override;
-    void run() override;
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
 
-    /*	This can be called by other stages *before* the model stage runs.
-            returns true if the model is found, false if it is not. Caller is responsible
-            for complaining if it is not. An empty name is not found, as nil was; entryName may be absent.
-    */
-    bool modelNamed(const std::string& name,
-        const std::optional<std::string>& entryName,
-        const std::string& fileName,
-        const oo::PList& materials,
-        const oo::PList& shaders);
+  /*	This can be called by other stages *before* the model stage runs.
+          returns true if the model is found, false if it is not. Caller is
+     responsible for complaining if it is not. An empty name is not found, as
+     nil was; entryName may be absent.
+  */
+  bool modelNamed(const std::string& name,
+                  const std::optional<std::string>& entryName,
+                  const std::string& fileName, const oo::PList& materials,
+                  const oo::PList& shaders);
 
-private:
-    void checkModel(const std::string& name,
-        const std::string& context,
-        const oo::PList& materials,
-        const oo::PList& shaders);
+ private:
+  void checkModel(const std::string& name, const std::string& context,
+                  const oo::PList& materials, const oo::PList& shaders);
 
-    std::vector<OOModelVerifierEntry> _modelsToCheck = { };
+  std::vector<OOModelVerifierEntry> _modelsToCheck = {};
 };
 
 #endif

@@ -38,45 +38,54 @@ SOFTWARE.
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
-struct OOSoundSourcePoolElement; // OOSoundSourcePool.mm
+struct OOSoundSourcePoolElement;  // OOSoundSourcePool.mm
 
 class OOSoundSourcePool : public oo::RefCounted {
-public:
-    /*	Was +poolWithCount:minRepeatTime:, alloc and -initWithCount:minRepeatTime:, which answered
-            nil when the sources could not be allocated: null then.
-    */
-    static oo::Ref<OOSoundSourcePool> poolWithCount(uint8_t count, OOTimeDelta minRepeat);
+ public:
+  /*	Was +poolWithCount:minRepeatTime:, alloc and
+     -initWithCount:minRepeatTime:, which answered nil when the sources could
+     not be allocated: null then.
+  */
+  static oo::Ref<OOSoundSourcePool> poolWithCount(uint8_t count,
+                                                  OOTimeDelta minRepeat);
 
-    ~OOSoundSourcePool() override;
+  ~OOSoundSourcePool() override;
 
-    /*	The selectors that share playSoundWithKey: are overloads, told apart by
-       the types of their arguments: a priority is a float and an overlap a bool,
-       so a caller passes each with its own type (1.0f, true).
-    */
-    void playSoundWithKey(const std::string& key, float priority, OOTimeDelta expiryTime, bool overlap, Vector position);
-    void playSoundWithKey(const std::string& key, float priority, OOTimeDelta expiryTime);
-    void playSoundWithKey(const std::string& key, float priority); // expiryTime:0.1 +/- 0.5
-    void playSoundWithKey(const std::string& key, float priority, Vector position); // expiryTime:0.1 +/- 0.5
-    void playSoundWithKey(const std::string& key, Vector position); // expiryTime:0.1 +/- 0.5
-    void playSoundWithKey(const std::string& key); // priority: 1.0, expiryTime:0.1 +/- 0.5
-    void playSoundWithKey(const std::string& key, bool overlap); // if overlap == NO it waits for key to finish before playing key again
-    void playSoundWithKey(const std::string& key, bool overlap, Vector position);
+  /*	The selectors that share playSoundWithKey: are overloads, told apart by
+     the types of their arguments: a priority is a float and an overlap a bool,
+     so a caller passes each with its own type (1.0f, true).
+  */
+  void playSoundWithKey(const std::string& key, float priority,
+                        OOTimeDelta expiryTime, bool overlap, Vector position);
+  void playSoundWithKey(const std::string& key, float priority,
+                        OOTimeDelta expiryTime);
+  void playSoundWithKey(const std::string& key,
+                        float priority);  // expiryTime:0.1 +/- 0.5
+  void playSoundWithKey(const std::string& key, float priority,
+                        Vector position);  // expiryTime:0.1 +/- 0.5
+  void playSoundWithKey(const std::string& key,
+                        Vector position);  // expiryTime:0.1 +/- 0.5
+  void playSoundWithKey(
+      const std::string& key);  // priority: 1.0, expiryTime:0.1 +/- 0.5
+  void playSoundWithKey(const std::string& key,
+                        bool overlap);  // if overlap == NO it waits for key to
+                                        // finish before playing key again
+  void playSoundWithKey(const std::string& key, bool overlap, Vector position);
 
-private:
-    bool initWithCount(uint8_t count, OOTimeDelta minRepeat);
-    uint8_t selectSlotForPriority(float priority);
+ private:
+  bool initWithCount(uint8_t count, OOTimeDelta minRepeat);
+  uint8_t selectSlotForPriority(float priority);
 
-    ::OOSoundSourcePoolElement* _sources = { };
-    uint8_t _count = { };
-    uint8_t _latest = { };
-    uint8_t _reserved = { };
-    OOTimeDelta _minRepeat = { };
-    OOTimeAbsolute _nextRepeat = { };
-    std::optional<std::string> _lastKey; // nullopt until a repeat-limited sound
-                                         // plays
+  ::OOSoundSourcePoolElement* _sources = {};
+  uint8_t _count = {};
+  uint8_t _latest = {};
+  uint8_t _reserved = {};
+  OOTimeDelta _minRepeat = {};
+  OOTimeAbsolute _nextRepeat = {};
+  std::optional<std::string> _lastKey;  // nullopt until a repeat-limited sound
+                                        // plays
 };

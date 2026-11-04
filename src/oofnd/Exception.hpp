@@ -71,38 +71,34 @@ void OORaiseException(const char* name, const char* format, ...)
 namespace oo {
 
 class Exception {
-public:
-    Exception(const char* name, const char* reason)
-        : _name(name != nullptr ? name : "")
-        , _reason(reason != nullptr ? reason : "")
-    {
-    }
+ public:
+  Exception(const char* name, const char* reason)
+      : _name(name != nullptr ? name : ""),
+        _reason(reason != nullptr ? reason : "") {}
 
-    // UTF-8, owned by the exception: valid while it is alive.
-    const char* name() const noexcept { return _name.c_str(); }
-    const char* reason() const noexcept { return _reason.c_str(); }
+  // UTF-8, owned by the exception: valid while it is alive.
+  const char* name() const noexcept { return _name.c_str(); }
+  const char* reason() const noexcept { return _reason.c_str(); }
 
-private:
-    std::string _name;
-    std::string _reason;
+ private:
+  std::string _name;
+  std::string _reason;
 };
 
 class CaughtOOException {
-public:
-    explicit CaughtOOException(const Exception* exception)
-        : _exception(exception)
-    {
-    }
+ public:
+  explicit CaughtOOException(const Exception* exception)
+      : _exception(exception) {}
 
-    // [exception name], [exception reason]: UTF-8, valid while the handler runs.
-    const char* name() const { return _exception->name(); }
-    const char* reason() const { return _exception->reason(); }
+  // [exception name], [exception reason]: UTF-8, valid while the handler runs.
+  const char* name() const { return _exception->name(); }
+  const char* reason() const { return _exception->reason(); }
 
-    // The exception itself, for an interface that still takes one.
-    const Exception* object() const { return _exception; }
+  // The exception itself, for an interface that still takes one.
+  const Exception* object() const { return _exception; }
 
-private:
-    const Exception* _exception;
+ private:
+  const Exception* _exception;
 };
 
 // Inside a catch handler only: the exception being handled when it is the
@@ -114,18 +110,15 @@ std::optional<CaughtOOException> CurrentOOException();
 // after the handlers.
 template <typename Body>
 class Finally {
-public:
-    explicit Finally(Body body)
-        : _body(std::move(body))
-    {
-    }
-    ~Finally() noexcept(false) { _body(); }
+ public:
+  explicit Finally(Body body) : _body(std::move(body)) {}
+  ~Finally() noexcept(false) { _body(); }
 
-    Finally(const Finally&) = delete;
-    Finally& operator=(const Finally&) = delete;
+  Finally(const Finally&) = delete;
+  Finally& operator=(const Finally&) = delete;
 
-private:
-    Body _body;
+ private:
+  Body _body;
 };
 
-} // namespace oo
+}  // namespace oo

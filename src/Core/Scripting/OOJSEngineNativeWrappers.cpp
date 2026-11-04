@@ -27,29 +27,28 @@ MA 02110-1301, USA.
 
 */
 
+#include <exception>
+
 #include "OOJavaScriptEngine.h"
 #include "oofnd/objc/OOException.h"
 
-#include <exception>
-
 /*	The game's exception (oo::Exception) is reported by its reason. Any
         other object is "Unidentified native exception", as anything else
-        still is. A C++ exception is reported from its what() in the same words, so
-        a raise site that is a C++ throw reads the same in JS.
+        still is. A C++ exception is reported from its what() in the same words,
+   so a raise site that is a C++ throw reads the same in JS.
 */
-void OOJSReportCurrentException(JSContext* context)
-{
-    try {
-        throw;
-    } catch (const oo::Exception& exception) {
-        if (!JS_HasException(context))
-            cxx_OOJSReportError(context, "Native exception: %s", exception.reason());
-        // Else, let the pending exception propagate.
-    } catch (const std::exception& exception) {
-        if (!JS_HasException(context))
-            cxx_OOJSReportError(context, "Native exception: %s", exception.what());
-    } catch (...) {
-        if (!JS_HasException(context))
-            cxx_OOJSReportError(context, "Unidentified native exception");
-    }
+void OOJSReportCurrentException(JSContext* context) {
+  try {
+    throw;
+  } catch (const oo::Exception& exception) {
+    if (!JS_HasException(context))
+      cxx_OOJSReportError(context, "Native exception: %s", exception.reason());
+    // Else, let the pending exception propagate.
+  } catch (const std::exception& exception) {
+    if (!JS_HasException(context))
+      cxx_OOJSReportError(context, "Native exception: %s", exception.what());
+  } catch (...) {
+    if (!JS_HasException(context))
+      cxx_OOJSReportError(context, "Unidentified native exception");
+  }
 }

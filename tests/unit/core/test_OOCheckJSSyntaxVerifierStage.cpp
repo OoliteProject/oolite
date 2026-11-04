@@ -37,7 +37,8 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
 #include "OOOXPVerifierTestDouble.h"
 #include "ResourceManager.h"
 
-// C++ definitions of the ResourceManager statics the code under test calls, with the stand-in's answers.
+// C++ definitions of the ResourceManager statics the code under test calls,
+// with the stand-in's answers.
 std::optional<std::string> ResourceManager::pathForFileNamed(
     const std::string& fileName, const std::optional<std::string>& folderName) {
   (void)fileName;

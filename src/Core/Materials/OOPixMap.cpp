@@ -26,113 +26,101 @@ SOFTWARE.
 */
 
 #include "OOPixMap.h"
+
 #include <cstring>
 
 #include "oofnd/String.hpp"
 
-const OOPixMap kOONullPixMap = {
-    .pixels = NULL,
-    .width = 0,
-    .height = 0,
-    .format = kOOPixMapInvalidFormat,
-    .rowBytes = 0,
-    .bufferSize = 0
-};
+const OOPixMap kOONullPixMap = {.pixels = NULL,
+                                .width = 0,
+                                .height = 0,
+                                .format = kOOPixMapInvalidFormat,
+                                .rowBytes = 0,
+                                .bufferSize = 0};
 
-bool OOIsValidPixMap(OOPixMap pixMap)
-{
-    return pixMap.pixels != NULL && pixMap.width > 0 && pixMap.height > 0 && OOIsValidPixMapFormat(pixMap.format) && pixMap.rowBytes >= pixMap.width * OOPixMapBytesPerPixelForFormat(pixMap.format) && pixMap.bufferSize >= pixMap.rowBytes * pixMap.height;
+bool OOIsValidPixMap(OOPixMap pixMap) {
+  return pixMap.pixels != NULL && pixMap.width > 0 && pixMap.height > 0 &&
+         OOIsValidPixMapFormat(pixMap.format) &&
+         pixMap.rowBytes >=
+             pixMap.width * OOPixMapBytesPerPixelForFormat(pixMap.format) &&
+         pixMap.bufferSize >= pixMap.rowBytes * pixMap.height;
 }
 
-OOPixMap OOMakePixMap(void* pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize)
-{
-    if (rowBytes == 0)
-        rowBytes = width * OOPixMapBytesPerPixelForFormat(format);
-    if (bufferSize == 0)
-        bufferSize = rowBytes * height;
+OOPixMap OOMakePixMap(void* pixels, OOPixMapDimension width,
+                      OOPixMapDimension height, OOPixMapFormat format,
+                      size_t rowBytes, size_t bufferSize) {
+  if (rowBytes == 0) rowBytes = width * OOPixMapBytesPerPixelForFormat(format);
+  if (bufferSize == 0) bufferSize = rowBytes * height;
 
-    OOPixMap result = {
-        .pixels = pixels,
-        .width = width,
-        .height = height,
-        .format = format,
-        .rowBytes = rowBytes,
-        .bufferSize = bufferSize
-    };
+  OOPixMap result = {.pixels = pixels,
+                     .width = width,
+                     .height = height,
+                     .format = format,
+                     .rowBytes = rowBytes,
+                     .bufferSize = bufferSize};
 
-    if (OOIsValidPixMap(result))
-        return result;
-    else
-        return kOONullPixMap;
-}
-
-OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize)
-{
-    // Create pixmap struct with dummy pixel pointer to test validity.
-    OOPixMap pixMap = OOMakePixMap((void*)-1, width, height, format, rowBytes, bufferSize);
-    if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))
-        return kOONullPixMap;
-
-    pixMap.pixels = malloc(pixMap.bufferSize);
-    if (EXPECT_NOT(pixMap.pixels == NULL))
-        return kOONullPixMap;
-
-    return pixMap;
-}
-
-void OOFreePixMap(OOPixMap* ioPixMap)
-{
-    if (EXPECT_NOT(ioPixMap == NULL))
-        return;
-
-    free(ioPixMap->pixels);
-    *ioPixMap = kOONullPixMap;
-}
-
-OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize)
-{
-    if (EXPECT_NOT(!OOIsValidPixMap(srcPixMap)))
-        return kOONullPixMap;
-
-    size_t minSize = OOMinimumPixMapBufferSize(srcPixMap);
-    if (desiredSize < minSize)
-        desiredSize = minSize;
-
-    OOPixMap result = OOAllocatePixMap(srcPixMap.width, srcPixMap.width, srcPixMap.format, srcPixMap.rowBytes, desiredSize);
-    if (EXPECT_NOT(!OOIsValidPixMap(result)))
-        return kOONullPixMap;
-
-    memcpy(result.pixels, srcPixMap.pixels, minSize);
+  if (OOIsValidPixMap(result))
     return result;
+  else
+    return kOONullPixMap;
 }
 
-bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize)
-{
-    if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
-        return false;
-    if (desiredSize == ioPixMap->bufferSize)
-        return true;
-    if (desiredSize < OOMinimumPixMapBufferSize(*ioPixMap))
-        return false;
+OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
+                          OOPixMapFormat format, size_t rowBytes,
+                          size_t bufferSize) {
+  // Create pixmap struct with dummy pixel pointer to test validity.
+  OOPixMap pixMap =
+      OOMakePixMap((void*)-1, width, height, format, rowBytes, bufferSize);
+  if (EXPECT_NOT(!OOIsValidPixMap(pixMap))) return kOONullPixMap;
 
-    void* newPixels = realloc(ioPixMap->pixels, desiredSize);
-    if (newPixels != NULL) {
-        ioPixMap->pixels = newPixels;
-        ioPixMap->bufferSize = desiredSize;
-        return true;
-    } else {
-        return false;
-    }
+  pixMap.pixels = malloc(pixMap.bufferSize);
+  if (EXPECT_NOT(pixMap.pixels == NULL)) return kOONullPixMap;
+
+  return pixMap;
 }
 
-bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize)
-{
-    if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
-        return false;
-    if (desiredSize <= ioPixMap->bufferSize)
-        return true;
+void OOFreePixMap(OOPixMap* ioPixMap) {
+  if (EXPECT_NOT(ioPixMap == NULL)) return;
 
-    return OOResizePixMap(ioPixMap, desiredSize);
+  free(ioPixMap->pixels);
+  *ioPixMap = kOONullPixMap;
+}
+
+OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize) {
+  if (EXPECT_NOT(!OOIsValidPixMap(srcPixMap))) return kOONullPixMap;
+
+  size_t minSize = OOMinimumPixMapBufferSize(srcPixMap);
+  if (desiredSize < minSize) desiredSize = minSize;
+
+  OOPixMap result =
+      OOAllocatePixMap(srcPixMap.width, srcPixMap.width, srcPixMap.format,
+                       srcPixMap.rowBytes, desiredSize);
+  if (EXPECT_NOT(!OOIsValidPixMap(result))) return kOONullPixMap;
+
+  memcpy(result.pixels, srcPixMap.pixels, minSize);
+  return result;
+}
+
+bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize) {
+  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (desiredSize == ioPixMap->bufferSize) return true;
+  if (desiredSize < OOMinimumPixMapBufferSize(*ioPixMap)) return false;
+
+  void* newPixels = realloc(ioPixMap->pixels, desiredSize);
+  if (newPixels != NULL) {
+    ioPixMap->pixels = newPixels;
+    ioPixMap->bufferSize = desiredSize;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize) {
+  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (desiredSize <= ioPixMap->bufferSize) return true;
+
+  return OOResizePixMap(ioPixMap, desiredSize);
 }
 
 #ifndef NDEBUG
@@ -140,96 +128,96 @@ bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize)
 #include "MyOpenGLView.h"
 #include "Universe.h"
 
-void OODumpPixMap(OOPixMap pixMap, const std::string& name)
-{
-    if (!OOIsValidPixMap(pixMap))
-        return;
+void OODumpPixMap(OOPixMap pixMap, const std::string& name) {
+  if (!OOIsValidPixMap(pixMap)) return;
 
-    MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
+  MyOpenGLView* gameView =
+      (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
 
-    switch (pixMap.format) {
-
+  switch (pixMap.format) {
     case kOOPixMapInvalidFormat:
-        break;
+      break;
 
     case kOOPixMapGrayscale:
-        if (gameView != nullptr)
-            gameView->dumpGrayToFileNamed(name, (uint8_t*)pixMap.pixels, pixMap.width, pixMap.height, pixMap.rowBytes);
-        break;
+      if (gameView != nullptr)
+        gameView->dumpGrayToFileNamed(name, (uint8_t*)pixMap.pixels,
+                                      pixMap.width, pixMap.height,
+                                      pixMap.rowBytes);
+      break;
 
     case kOOPixMapGrayscaleAlpha:
-        if (gameView != nullptr)
-            gameView->dumpGrayAlphaToFileNamed(name, (uint8_t*)pixMap.pixels, pixMap.width, pixMap.height, pixMap.rowBytes);
-        break;
+      if (gameView != nullptr)
+        gameView->dumpGrayAlphaToFileNamed(name, (uint8_t*)pixMap.pixels,
+                                           pixMap.width, pixMap.height,
+                                           pixMap.rowBytes);
+      break;
 
     case kOOPixMapRGBA:
-        if (gameView != nullptr)
-            gameView->dumpRGBAToRGBFileNamed(name + " rgb", name + " alpha", (uint8_t*)pixMap.pixels, pixMap.width, pixMap.height, pixMap.rowBytes);
-        break;
-    }
+      if (gameView != nullptr)
+        gameView->dumpRGBAToRGBFileNamed(name + " rgb", name + " alpha",
+                                         (uint8_t*)pixMap.pixels, pixMap.width,
+                                         pixMap.height, pixMap.rowBytes);
+      break;
+  }
 }
 #endif
 
-bool OOIsValidPixMapFormat(OOPixMapFormat format)
-{
-    switch (format) {
+bool OOIsValidPixMapFormat(OOPixMapFormat format) {
+  switch (format) {
     case kOOPixMapInvalidFormat:
-        return false;
+      return false;
     case kOOPixMapGrayscale:
     case kOOPixMapGrayscaleAlpha:
     case kOOPixMapRGBA:
-        return true;
-    }
+      return true;
+  }
 
-    return false;
+  return false;
 }
 
 #ifndef NDEBUG
-unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
-{
-    switch (format) {
+unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) {
+  switch (format) {
     case kOOPixMapInvalidFormat:
-        return 0;
+      return 0;
     case kOOPixMapGrayscale:
-        return 1;
+      return 1;
     case kOOPixMapGrayscaleAlpha:
-        return 2;
+      return 2;
     case kOOPixMapRGBA:
-        return 4;
-    }
+      return 4;
+  }
 
-    return -1;
+  return -1;
 }
 #endif
 
-std::string OOPixMapFormatName(OOPixMapFormat format)
-{
-    switch (format) {
+std::string OOPixMapFormatName(OOPixMapFormat format) {
+  switch (format) {
     case kOOPixMapInvalidFormat:
-        return "invalid";
+      return "invalid";
     case kOOPixMapGrayscale:
-        return "grayscale";
+      return "grayscale";
     case kOOPixMapGrayscaleAlpha:
-        return "grayscale+alpha";
+      return "grayscale+alpha";
     case kOOPixMapRGBA:
-        return "RGBA";
-    }
+      return "RGBA";
+  }
 
-    return oo::str::format("invalid<%i>", (int)format);
+  return oo::str::format("invalid<%i>", (int)format);
 }
 
-bool OOPixMapFormatHasAlpha(OOPixMapFormat format)
-{
-    switch (format) {
+bool OOPixMapFormatHasAlpha(OOPixMapFormat format) {
+  switch (format) {
     case kOOPixMapInvalidFormat:
-        return false;
+      return false;
     case kOOPixMapGrayscale:
-        return false;
+      return false;
     case kOOPixMapGrayscaleAlpha:
-        return true;
+      return true;
     case kOOPixMapRGBA:
-        return true;
-    }
+      return true;
+  }
 
-    return false;
+  return false;
 }

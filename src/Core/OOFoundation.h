@@ -36,10 +36,11 @@ MA 02110-1301, USA.
 #include <math.h>
 #include <stdbool.h>
 
-/*	Apple's -sortedArrayUsingFunction: and friends take NSInteger (*)(id, id, void*). Oolite's
-        sort functions return NSComparisonResult, which has the same size and calling convention
-        but is a distinct enum type that C++ will not convert implicitly. GNUstep declares them
-        with NSComparisonResult, so there the functions are passed as they are.
+/*	Apple's -sortedArrayUsingFunction: and friends take NSInteger (*)(id,
+   id, void*). Oolite's sort functions return NSComparisonResult, which has the
+   same size and calling convention but is a distinct enum type that C++ will
+   not convert implicitly. GNUstep declares them with NSComparisonResult, so
+   there the functions are passed as they are.
 */
 #ifdef GNUSTEP_BASE_LIBRARY
 #define OOSortFunction(function) (function)
@@ -57,20 +58,23 @@ MA 02110-1301, USA.
 #define NS_BLOCK_ASSERTIONS 1
 #endif
 
-/*	OO_DEBUG is set by the build system for debug builds (meson.build adds -DOO_DEBUG when
-        optimization==0 or debug==true; the deployment/test/dev flavours never do).
+/*	OO_DEBUG is set by the build system for debug builds (meson.build adds
+   -DOO_DEBUG when optimization==0 or debug==true; the deployment/test/dev
+   flavours never do).
 
-        Hoisted here from further down the file because the enumeration macros below have to
-        test it, and a macro cannot be defined in terms of one the preprocessor has not seen
-        yet. Nothing between here and the old site defines it, so the meaning is unchanged.
+        Hoisted here from further down the file because the enumeration macros
+   below have to test it, and a macro cannot be defined in terms of one the
+   preprocessor has not seen yet. Nothing between here and the old site defines
+   it, so the meaning is unchanged.
 */
 #ifndef OO_DEBUG
 // Defined by makefile/Xcode in debug builds.
 #define OO_DEBUG 0
 #endif
 
-#include "oofnd/objc/OOFoundationTypes.h"
 #include <assert.h>
+
+#include "oofnd/objc/OOFoundationTypes.h"
 
 #ifdef __clang__
 #define OOLITE_HAVE_CLANG 1
@@ -79,11 +83,13 @@ MA 02110-1301, USA.
 #endif
 
 #if defined(__GNUC__) && !OOLITE_HAVE_CLANG
-// GCC version; for instance, 40300 for 4.3.0. Deliberately undefined in Clang (which defines fake __GNUC__ macros for compatibility).
-#define OOLITE_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+// GCC version; for instance, 40300 for 4.3.0. Deliberately undefined in Clang
+// (which defines fake __GNUC__ macros for compatibility).
+#define OOLITE_GCC_VERSION \
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-#include <limits.h> // to get UINT_MAX
+#include <limits.h>  // to get UINT_MAX
 #include <stdint.h>
 
 #define OOLITE_SDL 1
@@ -100,11 +106,21 @@ MA 02110-1301, USA.
 #endif
 
 #if !defined(MAX)
-#define MAX(A, B) ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a > __b ? __a : __b; })
+#define MAX(A, B)            \
+  ({                         \
+    __typeof__(A) __a = (A); \
+    __typeof__(B) __b = (B); \
+    __a > __b ? __a : __b;   \
+  })
 #endif
 
 #if !defined(MIN)
-#define MIN(A, B) ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
+#define MIN(A, B)            \
+  ({                         \
+    __typeof__(A) __a = (A); \
+    __typeof__(B) __b = (B); \
+    __a < __b ? __a : __b;   \
+  })
 #endif
 
 #ifdef HAVE_LIBESPEAK
@@ -163,7 +179,6 @@ MA 02110-1301, USA.
 #define OOLITE_PROPERTY_SYNTAX (OOLITE_MAC_OS_X || OOLITE_HAVE_CLANG)
 
 #include "OOLogging.h"
-
 #include "oofnd/objc/OOObject.h"
 
 /*	The description family (-cxx_descriptionComponents & co.,
@@ -189,9 +204,9 @@ inline constexpr OOComparisonResult OOOrderedSame = NSOrderedSame;
 inline constexpr OOComparisonResult OOOrderedDescending = NSOrderedDescending;
 #else
 enum OOComparisonResult : NSInteger {
-    OOOrderedAscending = -1,
-    OOOrderedSame = 0,
-    OOOrderedDescending = 1
+  OOOrderedAscending = -1,
+  OOOrderedSame = 0,
+  OOOrderedDescending = 1
 };
 #endif
 
@@ -213,24 +228,24 @@ enum OOComparisonResult : NSInteger {
 
         the type of [Bar fooWithProperty] is inferred to be Bar *.
 
-        Clang treats methods of type id as instancetype when their names begin with
-        +alloc, +new, -init, -autorelease, -retain, or -self.
+        Clang treats methods of type id as instancetype when their names begin
+   with +alloc, +new, -init, -autorelease, -retain, or -self.
 
         For compilers without instancetype support, id is appropriate but less
         type-safe.
 
-        NOTE: it is not appropriate to use instancetype for a factory method which
-        chooses which publicly-visible subclass to instantiate based on parameters.
-        For instance, calling one of the OOMaterial convenience factory methods on
-        OOShaderMaterial might return an OOSingleTextureMaterial, so the correct
-        return type is either OOMaterial or id.
-        On the other hand, it is appropriate on factory methods which just wrap
-        the corresponding -init and/or -init + configuration through properties.
-        (Such factory methods should be implemented in terms of [[self alloc]
-        init...].)
+        NOTE: it is not appropriate to use instancetype for a factory method
+   which chooses which publicly-visible subclass to instantiate based on
+   parameters. For instance, calling one of the OOMaterial convenience factory
+   methods on OOShaderMaterial might return an OOSingleTextureMaterial, so the
+   correct return type is either OOMaterial or id. On the other hand, it is
+   appropriate on factory methods which just wrap the corresponding -init and/or
+   -init + configuration through properties. (Such factory methods should be
+   implemented in terms of [[self alloc] init...].)
 */
 
-// OO_DEBUG is defined at the top of this file, where the enumeration macros can test it.
+// OO_DEBUG is defined at the top of this file, where the enumeration macros can
+// test it.
 
 #if OOLITE_WINDOWS
 #ifndef OO_GAME_DATA_TO_USER_FOLDER

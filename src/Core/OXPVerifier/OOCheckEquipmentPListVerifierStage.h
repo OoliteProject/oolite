@@ -36,14 +36,14 @@ MA 02110-1301, USA.
    holds it.
 */
 class OOCheckEquipmentPListVerifierStage : public OOFileHandlingVerifierStage {
-public:
-    std::optional<std::string> name() override;
-    bool shouldRun() override;
-    void run() override;
+ public:
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
 
-private:
-    // equipmentPList is an Array.
-    void runCheckWithEquipment(const oo::PList& equipmentPList);
+ private:
+  // equipmentPList is an Array.
+  void runCheckWithEquipment(const oo::PList& equipmentPList);
 };
 
 #endif

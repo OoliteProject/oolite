@@ -41,119 +41,120 @@ SOFTWARE.
 #include "OOOpenGL.h"
 #include "OOOpenGLExtensionManager.h"
 #include "oofnd/objc/OOObject.h"
-class Entity; // Entity.h: the shader binding target
+class Entity;  // Entity.h: the shader binding target
 
 #include <vector>
 
-#include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class
+#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>, which needs the class
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 class OOMaterial : public oo::RefCounted {
-public:
-    // Called once at startup (by Universe's initialiser).
-    static void setUp();
+ public:
+  // Called once at startup (by Universe's initialiser).
+  static void setUp();
 
-    virtual std::optional<std::string> name(); // nullopt: none
+  virtual std::optional<std::string> name();  // nullopt: none
 
-    // What "%@" prints between the braces of <Class 0x...>{...}
-    // (OODescription.h): the quoted name.
-    virtual std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <Class 0x...>{...}
+  // (OODescription.h): the quoted name.
+  virtual std::optional<std::string> descriptionComponents() const;
 
-    // <Class 0x...>{components}: the C++ class's name and the material's address.
-    std::string description() const;
+  // <Class 0x...>{components}: the C++ class's name and the material's address.
+  std::string description() const;
 
-    // The object's own size, for the debug sizes.
-    virtual size_t objectSize() const { return sizeof *this; }
+  // The object's own size, for the debug sizes.
+  virtual size_t objectSize() const { return sizeof *this; }
 
-    // Make this the current material. Virtual: OOMultiTextureMaterial overrides
-    // it.
-    virtual void apply();
+  // Make this the current material. Virtual: OOMultiTextureMaterial overrides
+  // it.
+  virtual void apply();
 
-    /*	Make no material the current material, tearing down anything set up by
-       the current material.
-    */
-    static void applyNone();
+  /*	Make no material the current material, tearing down anything set up by
+     the current material.
+  */
+  static void applyNone();
 
-    /*	Get current material.
-     */
-    static oo::Ref<OOMaterial> current();
+  /*	Get current material.
+   */
+  static oo::Ref<OOMaterial> current();
 
-    /*	Ensure material is ready to be used in a display list. This is not
-            required before using a material directly.
-    */
-    virtual void ensureFinishedLoading();
-    virtual bool isFinishedLoading();
+  /*	Ensure material is ready to be used in a display list. This is not
+          required before using a material directly.
+  */
+  virtual void ensureFinishedLoading();
+  virtual bool isFinishedLoading();
 
-    // Only used by shader material, but defined for all materials for
-    // convenience.
-    virtual void setBindingTarget(Entity* target);
+  // Only used by shader material, but defined for all materials for
+  // convenience.
+  virtual void setBindingTarget(Entity* target);
 
-    // True if material wants three-component cube map texture coordinates.
-    virtual bool wantsNormalsAsTextureCoordinates();
+  // True if material wants three-component cube map texture coordinates.
+  virtual bool wantsNormalsAsTextureCoordinates();
 
 #if OO_MULTITEXTURE
-    // Nasty hack: number of texture units for which the drawable should set its
-    // basic texture coordinates.
-    virtual NSUInteger countOfTextureUnitsWithBaseCoordinates();
+  // Nasty hack: number of texture units for which the drawable should set its
+  // basic texture coordinates.
+  virtual NSUInteger countOfTextureUnitsWithBaseCoordinates();
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    virtual std::vector<oo::Ref<OOTexture>> allTextures();
+  virtual std::vector<oo::Ref<OOTexture>> allTextures();
 #endif
 
-    // Subclass interface (was the OOSubclassInterface category).
+  // Subclass interface (was the OOSubclassInterface category).
 
-    // Subclass responsibilities - don't call directly.
-    virtual bool doApply(); // Override instead of apply()
-    virtual void unapplyWithNext(OOMaterial* next);
+  // Subclass responsibilities - don't call directly.
+  virtual bool doApply();  // Override instead of apply()
+  virtual void unapplyWithNext(OOMaterial* next);
 
-    /*	Called when a material is about to go. A C++
-       material is not destroyed while it is current (the current-material slot
-       retains it), so no destructor calls this: if it is current, it is unapplied
-       and the slot's reference is detached, not released.
-    */
-    void willDealloc();
+  /*	Called when a material is about to go. A C++
+     material is not destroyed while it is current (the current-material slot
+     retains it), so no destructor calls this: if it is current, it is unapplied
+     and the slot's reference is detached, not released.
+  */
+  void willDealloc();
 
-    /*	The convenience creators: static members defined in
-       OOMaterialConvenienceCreators.cpp (OOMaterialConvenienceCreators.h documents
-       them).
+  /*	The convenience creators: static members defined in
+     OOMaterialConvenienceCreators.cpp (OOMaterialConvenienceCreators.h
+     documents them).
 
-            Get a material based on configuration. The result will be an
-            OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the
-       latter only if shaders are available). cacheKey is used for caching of
-       synthesized shader materials; nullopt may be passed for no caching.
-       configuration and macros are oo::PList (null = nil).
-    */
-    static oo::Ref<OOMaterial> materialWithName(
-        const std::optional<std::string>& name,
-        const std::optional<std::string>& cacheKey,
-        const oo::PList& configuration, const oo::PList& macros, Entity* object,
-        bool smooth);
+          Get a material based on configuration. The result will be an
+          OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the
+     latter only if shaders are available). cacheKey is used for caching of
+     synthesized shader materials; nullopt may be passed for no caching.
+     configuration and macros are oo::PList (null = nil).
+  */
+  static oo::Ref<OOMaterial> materialWithName(
+      const std::optional<std::string>& name,
+      const std::optional<std::string>& cacheKey,
+      const oo::PList& configuration, const oo::PList& macros, Entity* object,
+      bool smooth);
 
-    /*	Select an appropriate material description (based on availability of
-            shaders and content of dictionaries, which may be null) and call
-            the one above.
-    */
-    static oo::Ref<OOMaterial> materialWithName(
-        const std::optional<std::string>& name,
-        const std::optional<std::string>& cacheKey, const oo::PList& materialDict,
-        const oo::PList& shadersDict, const oo::PList& macros, Entity* object,
-        bool smooth);
+  /*	Select an appropriate material description (based on availability of
+          shaders and content of dictionaries, which may be null) and call
+          the one above.
+  */
+  static oo::Ref<OOMaterial> materialWithName(
+      const std::optional<std::string>& name,
+      const std::optional<std::string>& cacheKey, const oo::PList& materialDict,
+      const oo::PList& shadersDict, const oo::PList& macros, Entity* object,
+      bool smooth);
 
-private:
-    // The category's own class methods, which only it called.
-    static oo::PList synthesizeMaterialDictionaryWithName(
-        const std::optional<std::string>& name, const oo::PList& configuration,
-        const oo::PList& macros);
-    static oo::Ref<OOMaterial> defaultShaderMaterialWithName(
-        const std::optional<std::string>& name,
-        const std::optional<std::string>& cacheKey,
-        const oo::PList& configuration, const oo::PList& macros, Entity* target);
+ private:
+  // The category's own class methods, which only it called.
+  static oo::PList synthesizeMaterialDictionaryWithName(
+      const std::optional<std::string>& name, const oo::PList& configuration,
+      const oo::PList& macros);
+  static oo::Ref<OOMaterial> defaultShaderMaterialWithName(
+      const std::optional<std::string>& name,
+      const std::optional<std::string>& cacheKey,
+      const oo::PList& configuration, const oo::PList& macros, Entity* target);
 };
 
-/*	Keeps the material until the current autorelease pool drains, so a material a drawable
-   replaces lives that long, as OODrawableAutorelease() does for drawables. Nothing for null.
+/*	Keeps the material until the current autorelease pool drains, so a
+   material a drawable replaces lives that long, as OODrawableAutorelease() does
+   for drawables. Nothing for null.
 */
 void OOMaterialAutorelease(oo::Ref<OOMaterial> material);

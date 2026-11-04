@@ -38,71 +38,79 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "OOFoundation.h"
 #include "OOTypes.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-#include <optional>
-#include <string>
-
 class OOScriptTimer : public oo::PListForeign {
-public:
-    // [[OOScriptTimer alloc] initWithNextTime:interval:]: null where the initialiser answered nil
-    // (a next time in the past, or negative, with no interval).
-    static oo::Ref<OOScriptTimer> timerWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval);
+ public:
+  // [[OOScriptTimer alloc] initWithNextTime:interval:]: null where the
+  // initialiser answered nil (a next time in the past, or negative, with no
+  // interval).
+  static oo::Ref<OOScriptTimer> timerWithNextTime(OOTimeAbsolute nextTime,
+                                                  OOTimeDelta interval);
 
-    // [[OOScriptTimer alloc] initOneShotTimerWithDelay:]: sets nextTime to current time + delay.
-    static oo::Ref<OOScriptTimer> oneShotTimerWithDelay(OOTimeDelta delay);
+  // [[OOScriptTimer alloc] initOneShotTimerWithDelay:]: sets nextTime to
+  // current time + delay.
+  static oo::Ref<OOScriptTimer> oneShotTimerWithDelay(OOTimeDelta delay);
 
-    ~OOScriptTimer() override;
+  ~OOScriptTimer() override;
 
-    virtual std::optional<std::string> descriptionComponents() const;
+  virtual std::optional<std::string> descriptionComponents() const;
 
-    // oo::PListForeign: the name the description shows, "OOScriptTimer", or
-    // "OOJSTimer" for a JS timer, and that description, "<name 0x...>{components}".
-    std::string className() const override { return "OOScriptTimer"; }
-    std::string description() const override;
+  // oo::PListForeign: the name the description shows, "OOScriptTimer", or
+  // "OOJSTimer" for a JS timer, and that description, "<name
+  // 0x...>{components}".
+  std::string className() const override { return "OOScriptTimer"; }
+  std::string description() const override;
 
-    // The description with the given components (none: "<name 0x...>"), for a caller that must not
-    // ask a subclass for its own (OOJSTimer's finalizer warning).
-    std::string descriptionWithComponents(const std::optional<std::string>& components) const;
+  // The description with the given components (none: "<name 0x...>"), for a
+  // caller that must not ask a subclass for its own (OOJSTimer's finalizer
+  // warning).
+  std::string descriptionWithComponents(
+      const std::optional<std::string>& components) const;
 
-    // The JS class name of a timer with JS glue (OOJSPrivateObject.h); nullopt for any other timer.
-    virtual std::optional<std::string> oo_jsClassName() { return std::nullopt; }
+  // The JS class name of a timer with JS glue (OOJSPrivateObject.h); nullopt
+  // for any other timer.
+  virtual std::optional<std::string> oo_jsClassName() { return std::nullopt; }
 
-    OOTimeAbsolute nextTime();
-    bool setNextTime(OOTimeAbsolute nextTime); // Only works when timer is not scheduled.
-    OOTimeDelta interval();
-    void setInterval(OOTimeDelta interval);
+  OOTimeAbsolute nextTime();
+  bool setNextTime(
+      OOTimeAbsolute nextTime);  // Only works when timer is not scheduled.
+  OOTimeDelta interval();
+  void setInterval(OOTimeDelta interval);
 
-    // Subclass responsibility:
-    virtual void timerFired();
+  // Subclass responsibility:
+  virtual void timerFired();
 
-    bool scheduleTimer();
-    void unscheduleTimer();
-    bool isScheduled();
+  bool scheduleTimer();
+  void unscheduleTimer();
+  bool isScheduled();
 
-    static void updateTimers();
-    static void noteGameReset();
+  static void updateTimers();
+  static void noteGameReset();
 
-    bool isValidForScheduling();
+  bool isValidForScheduling();
 
-    OOComparisonResult compareByNextFireTime(OOScriptTimer* other);
+  OOComparisonResult compareByNextFireTime(OOScriptTimer* other);
 
-protected:
-    OOScriptTimer() = default;
+ protected:
+  OOScriptTimer() = default;
 
-    // The initialisers (-initWithNextTime:interval:,
-    // -initOneShotTimerWithDelay:), for the factories above and a subclass's:
-    // false where they answered nil.
-    bool initWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval);
-    bool initOneShotTimerWithDelay(OOTimeDelta delay);
+  // The initialisers (-initWithNextTime:interval:,
+  // -initOneShotTimerWithDelay:), for the factories above and a subclass's:
+  // false where they answered nil.
+  bool initWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval);
+  bool initOneShotTimerWithDelay(OOTimeDelta delay);
 
-private:
-    OOTimeAbsolute _nextTime = { };
-    OOTimeDelta _interval = { };
-    bool _isScheduled = { };
-    bool _hasBeenRun = { }; // Needed for one-shot timers.
+ private:
+  OOTimeAbsolute _nextTime = {};
+  OOTimeDelta _interval = {};
+  bool _isScheduled = {};
+  bool _hasBeenRun = {};  // Needed for one-shot timers.
 };

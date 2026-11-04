@@ -33,13 +33,15 @@ SOFTWARE.
 
 /*	OOConvertCubeMapToLatLong
 
-        Given an RGBA pixmap containing a cube map texture, convert it to a latlong
-        texture of (height * 2) by height pixels. The texture is also flipped, to
-        account for Oolite texture coordianate conventions.
+        Given an RGBA pixmap containing a cube map texture, convert it to a
+   latlong texture of (height * 2) by height pixels. The texture is also
+   flipped, to account for Oolite texture coordianate conventions.
 
         The source pix map must have four components and be six times as high as
         it is wide.
 
         2 x 2 pixel supersampling is used.
 */
-OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, bool leaveSpaceForMipMaps);
+OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap,
+                                   OOPixMapDimension height,
+                                   bool leaveSpaceForMipMaps);

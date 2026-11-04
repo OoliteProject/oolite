@@ -1,6 +1,7 @@
 /*	test_OOFlashEffectEntity.mm
-	Unit tests for OOFlashEffectEntity (src/Core/Entities/OOFlashEffectEntity.h), the white flash
-	of an explosion and the coloured flash where a laser hits.
+        Unit tests for OOFlashEffectEntity
+   (src/Core/Entities/OOFlashEffectEntity.h), the white flash of an explosion
+   and the coloured flash where a laser hits.
 
 	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
 	uses a Universe that was never initialised, subclassed to answer the time the test sets and to
@@ -44,7 +45,8 @@ class TestPlayer : public PlayerEntity {
 };
 
 // A C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
+// object was.
 template <class T>
 T* NewTestPlayer() {
   oo::Ref<T> player = oo::makeRef<T>();

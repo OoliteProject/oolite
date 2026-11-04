@@ -22,6 +22,7 @@ MA 02110-1301, USA.
  */
 
 #include "OOJSWormhole.h"
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSVector.h"
@@ -36,26 +37,29 @@ MA 02110-1301, USA.
 
 static JSClassID sWormholeClassID;
 
-static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormholeObj, WormholeEntity** outEntity);
+static bool JSWormholeGetWormholeEntity(JSContext* context,
+                                        JSValueConst wormholeObj,
+                                        WormholeEntity** outEntity);
 
 static JSValue WormholeGetProperty(OOJS_GETTER_ARGS);
 
 static JSClassDef sWormholeClass = {
     .class_name = "Wormhole",
-    .finalizer = OOJSCxxObjectWrapperFinalize, // the slot holds an OOJSEntityHolder
+    .finalizer =
+        OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
 enum {
-    // Property IDs
-    kWormhole_arrivalTime,
-    kWormhole_destination,
-    kWormhole_expiryTime,
-    kWormhole_origin
+  // Property IDs
+  kWormhole_arrivalTime,
+  kWormhole_destination,
+  kWormhole_expiryTime,
+  kWormhole_origin
 
 };
 
-/*	All Wormhole properties are read-only, so the SpiderMonkey setProperty hook
-        (which only reported a bad property selector) was unreachable for them
+/*	All Wormhole properties are read-only, so the SpiderMonkey setProperty
+   hook (which only reported a bad property selector) was unreachable for them
         and is not ported.
 */
 static const JSCFunctionListEntry sWormholeProperties[] = {
@@ -68,90 +72,88 @@ static const JSCFunctionListEntry sWormholeProperties[] = {
 
 // No Wormhole methods.
 
-void InitOOJSWormhole(JSContext* context, JSValueConst global)
-{
-    OOJSRegisterClass(&sWormholeClassID, &sWormholeClass);
+void InitOOJSWormhole(JSContext* context, JSValueConst global) {
+  OOJSRegisterClass(&sWormholeClassID, &sWormholeClass);
 
-    JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
-    OOCAssert(JS_IsObject(parentPrototype), "Entity must be initialized before Wormhole.");
-    OOJSInitClass(context, global, sWormholeClassID, parentPrototype, OOJSUnconstructableConstruct, 0,
-        sWormholeProperties, OOJS_COUNT(sWormholeProperties), NULL, 0, NULL, 0);
-    JS_FreeValue(context, parentPrototype);
+  JSValue parentPrototype = JS_GetClassProto(context, JSEntityClassID());
+  OOCAssert(JS_IsObject(parentPrototype),
+            "Entity must be initialized before Wormhole.");
+  OOJSInitClass(context, global, sWormholeClassID, parentPrototype,
+                OOJSUnconstructableConstruct, 0, sWormholeProperties,
+                OOJS_COUNT(sWormholeProperties), NULL, 0, NULL, 0);
+  JS_FreeValue(context, parentPrototype);
 
-    OOJSRegisterObjectConverter(sWormholeClassID, OOJSEntityObjectConverter);
-    OOJSRegisterSubclass(sWormholeClassID, JSEntityClassID());
+  OOJSRegisterObjectConverter(sWormholeClassID, OOJSEntityObjectConverter);
+  OOJSRegisterSubclass(sWormholeClassID, JSEntityClassID());
 }
 
-JSClassID JSWormholeClassID(void)
-{
-    return sWormholeClassID;
-}
+JSClassID JSWormholeClassID(void) { return sWormholeClassID; }
 
-static bool JSWormholeGetWormholeEntity(JSContext* context, JSValueConst wormholeObj, WormholeEntity** outEntity)
-{
-    OOJS_PROFILE_ENTER
+static bool JSWormholeGetWormholeEntity(JSContext* context,
+                                        JSValueConst wormholeObj,
+                                        WormholeEntity** outEntity) {
+  OOJS_PROFILE_ENTER
 
-    bool result;
-    Entity* entity = nullptr; // the slot holds the C++ entity
+  bool result;
+  Entity* entity = nullptr;  // the slot holds the C++ entity
 
-    if (outEntity == NULL)
-        return false;
-    *outEntity = nullptr;
+  if (outEntity == NULL) return false;
+  *outEntity = nullptr;
 
-    result = OOJSEntityGetEntity(context, wormholeObj, &entity);
-    if (!result)
-        return false;
+  result = OOJSEntityGetEntity(context, wormholeObj, &entity);
+  if (!result) return false;
 
-    // The wormhole is a WormholeEntity.
-    *outEntity = dynamic_cast<WormholeEntity*>(entity);
-    return *outEntity != nullptr;
+  // The wormhole is a WormholeEntity.
+  *outEntity = dynamic_cast<WormholeEntity*>(entity);
+  return *outEntity != nullptr;
 
-    OOJS_PROFILE_EXIT
+  OOJS_PROFILE_EXIT
 }
 
 // The bodies of WormholeEntity's JS members.
-std::optional<std::string> OOJSWormholeJSClassName(void)
-{
-    return std::string("Wormhole");
+std::optional<std::string> OOJSWormholeJSClassName(void) {
+  return std::string("Wormhole");
 }
 
-bool OOJSWormholeIsVisibleToScripts(void)
-{
-    return true;
-}
+bool OOJSWormholeIsVisibleToScripts(void) { return true; }
 
-static JSValue WormholeGetProperty(OOJS_GETTER_ARGS)
-{
-    OOJS_NATIVE_ENTER(context)
+static JSValue WormholeGetProperty(OOJS_GETTER_ARGS) {
+  OOJS_NATIVE_ENTER(context)
 
-    WormholeEntity* entity = nullptr;
+  WormholeEntity* entity = nullptr;
 
-    if (!JSWormholeGetWormholeEntity(context, thisObj, &entity))
-        return OOJSNativeFailure(context);
-    if (entity == nullptr) {
-        return JS_UNDEFINED;
-    }
+  if (!JSWormholeGetWormholeEntity(context, thisObj, &entity))
+    return OOJSNativeFailure(context);
+  if (entity == nullptr) {
+    return JS_UNDEFINED;
+  }
 
-    switch (magic) {
+  switch (magic) {
     case kWormhole_arrivalTime:
-        return JS_NewNumber(context, (entity != nullptr ? entity->arrivalTime() : 0.0));
+      return JS_NewNumber(context,
+                          (entity != nullptr ? entity->arrivalTime() : 0.0));
 
     case kWormhole_destination:
-        return JS_NewNumber(context, (entity != nullptr ? entity->getDestination() : 0));
+      return JS_NewNumber(context,
+                          (entity != nullptr ? entity->getDestination() : 0));
 
     case kWormhole_expiryTime:
-        return JS_NewNumber(context, (entity != nullptr ? entity->expiryTime() : 0.0));
+      return JS_NewNumber(context,
+                          (entity != nullptr ? entity->expiryTime() : 0.0));
 
     case kWormhole_origin:
-        return JS_NewNumber(context, (entity != nullptr ? entity->getOrigin() : 0));
+      return JS_NewNumber(context,
+                          (entity != nullptr ? entity->getOrigin() : 0));
 
     default:
-        OOJSReportBadPropertySelector(context, thisObj, magic, sWormholeProperties, OOJS_COUNT(sWormholeProperties));
-        return OOJSNativeFailure(context);
-    }
+      OOJSReportBadPropertySelector(context, thisObj, magic,
+                                    sWormholeProperties,
+                                    OOJS_COUNT(sWormholeProperties));
+      return OOJSNativeFailure(context);
+  }
 
-    return JS_NULL; // what OOJSValueFromNativeObject() gave
-                    // case returns)
+  return JS_NULL;  // what OOJSValueFromNativeObject() gave
+                   // case returns)
 
-    OOJS_NATIVE_EXIT
+  OOJS_NATIVE_EXIT
 }

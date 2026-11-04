@@ -36,10 +36,10 @@ MA 02110-1301, USA.
    holds it.
 */
 class OOCheckPListSyntaxVerifierStage : public OOFileHandlingVerifierStage {
-public:
-    std::optional<std::string> name() override;
-    bool shouldRun() override;
-    void run() override;
+ public:
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
 };
 
 #endif

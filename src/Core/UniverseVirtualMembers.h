@@ -3,11 +3,13 @@
 UniverseVirtualMembers.h
 
 The universe's virtual members: the members a whole-game
-test's universe overrides. They are declared once, here, in this order: Universe.h expands
-OO_UNIVERSE_VIRTUAL_MEMBERS(;, ;) at the top of the class, and a narrow test's stand-in for the
-class expands it with default bodies (tests/unit/core/UniverseStandIn.h), so the stand-in's vtable
-has the same slots as the game's and a virtual call from the code under test reaches the test's
-override. Add a member here only as a test seam; never reorder without rebuilding every test.
+test's universe overrides. They are declared once, here, in this order:
+Universe.h expands OO_UNIVERSE_VIRTUAL_MEMBERS(;, ;) at the top of the class,
+and a narrow test's stand-in for the class expands it with default bodies
+(tests/unit/core/UniverseStandIn.h), so the stand-in's vtable has the same slots
+as the game's and a virtual call from the code under test reaches the test's
+override. Add a member here only as a test seam; never reorder without
+rebuilding every test.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -31,18 +33,18 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOEntityEnums.h" // OOScanClass
-#include "OOEntityHold.h" // owning entity references
-#include "OOFoundation.h"
-#include "OOMaths.h"
-#include "OOSystemDescriptionManager.h" // OOSystemLayer
-#include "OOTypes.h"
-#include "oofnd/PList.hpp"
-
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "OOEntityEnums.h"  // OOScanClass
+#include "OOEntityHold.h"   // owning entity references
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOSystemDescriptionManager.h"  // OOSystemLayer
+#include "OOTypes.h"
+#include "oofnd/PList.hpp"
 
 class Entity;
 class MyOpenGLView;
@@ -52,11 +54,12 @@ class OOSunEntity;
 class GuiDisplayGen;
 class Entity;
 typedef bool (*EntityFilterPredicate)(Entity* entity,
-    void* parameter); // the C++ entity
+                                      void* parameter);  // the C++ entity
 
-/*	VOID_BODY ends each member answering nothing, VALUE_BODY each member answering a value: ";"
-        and ";" in the class, "{}" and "{ return {}; }" in a stand-in. The parameters are named in
-        comments, so a stand-in's default bodies use none.
+/*	VOID_BODY ends each member answering nothing, VALUE_BODY each member
+   answering a value: ";" and ";" in the class, "{}" and "{ return {}; }" in a
+   stand-in. The parameters are named in comments, so a stand-in's default
+   bodies use none.
 */
 // clang-format off
 #define OO_UNIVERSE_VIRTUAL_MEMBERS(VOID_BODY, VALUE_BODY)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \

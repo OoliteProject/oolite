@@ -34,9 +34,9 @@ SOFTWARE.
 
 #include "oofnd/String.hpp"
 
-void OODrawable::renderOpaqueParts() { }
+void OODrawable::renderOpaqueParts() {}
 
-void OODrawable::renderTranslucentParts() { }
+void OODrawable::renderTranslucentParts() {}
 
 bool OODrawable::hasOpaqueParts() { return false; }
 
@@ -48,32 +48,32 @@ GLfloat OODrawable::maxDrawDistance() { return 0.0f; }
 
 BoundingBox OODrawable::boundingBox() { return kZeroBoundingBox; }
 
-void OODrawable::setBindingTarget(Entity* /*target*/) { }
+void OODrawable::setBindingTarget(Entity* /*target*/) {}
 
-void OODrawable::dumpSelfState() { }
+void OODrawable::dumpSelfState() {}
 
-std::optional<std::string> OODrawable::descriptionComponents() const
-{
-    return std::nullopt;
+std::optional<std::string> OODrawable::descriptionComponents() const {
+  return std::nullopt;
 }
 
 // The C++ class's name and the drawable's own address, with the description
 // components if any.
-std::string OODrawable::description() const
-{
-    int status = 0;
-    char* demangled = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
-    const std::string name = (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
-    std::free(demangled);
-    std::string result = oo::str::format(
-        "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
-    if (const std::optional<std::string> components = descriptionComponents())
-        result += "{" + *components + "}";
-    return result;
+std::string OODrawable::description() const {
+  int status = 0;
+  char* demangled =
+      abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
+  const std::string name =
+      (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
+  std::free(demangled);
+  std::string result = oo::str::format(
+      "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+  if (const std::optional<std::string> components = descriptionComponents())
+    result += "{" + *components + "}";
+  return result;
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OODrawable::allTextures() { return { }; }
+std::vector<oo::Ref<OOTexture>> OODrawable::allTextures() { return {}; }
 
 // The object's own size.
 size_t OODrawable::totalSize() { return objectSize(); }
@@ -83,9 +83,7 @@ size_t OODrawable::totalSize() { return objectSize(); }
    oo::AutoreleaseScope, whose drain releases it where the keeper object that
    held it was released.
 */
-void OODrawableAutorelease(oo::Ref<OODrawable> drawable)
-{
-    if (drawable == nullptr)
-        return;
-    oo::autorelease(std::move(drawable));
+void OODrawableAutorelease(oo::Ref<OODrawable> drawable) {
+  if (drawable == nullptr) return;
+  oo::autorelease(std::move(drawable));
 }

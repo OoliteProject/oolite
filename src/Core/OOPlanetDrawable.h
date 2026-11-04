@@ -32,70 +32,70 @@ MA 02110-1301, USA.
 #include "OODrawable.h"
 #include "OOMaterial.h"
 #include "OOMaths.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 class OOPlanetDrawable : public OODrawable {
-public:
-    static oo::Ref<OOPlanetDrawable> planetWithTextureName(const std::string& textureName, float radius);
-    static oo::Ref<OOPlanetDrawable> atmosphereWithRadius(float radius);
+ public:
+  static oo::Ref<OOPlanetDrawable> planetWithTextureName(
+      const std::string& textureName, float radius);
+  static oo::Ref<OOPlanetDrawable> atmosphereWithRadius(float radius);
 
-    // -init's body.
-    OOPlanetDrawable();
+  // -init's body.
+  OOPlanetDrawable();
 
-    // -initAsAtmosphere: a new drawable that draws an atmosphere.
-    static oo::Ref<OOPlanetDrawable> initAsAtmosphere();
+  // -initAsAtmosphere: a new drawable that draws an atmosphere.
+  static oo::Ref<OOPlanetDrawable> initAsAtmosphere();
 
-    // -copy (OOCopying's -copyWithZone:): a new drawable with this one's material, kind, radius,
-    // transform and level of detail.
-    oo::Ref<OOPlanetDrawable> copy();
+  // -copy (OOCopying's -copyWithZone:): a new drawable with this one's
+  // material, kind, radius, transform and level of detail.
+  oo::Ref<OOPlanetDrawable> copy();
 
-    OOMaterial* material();
-    void setMaterial(OOMaterial* material);
+  OOMaterial* material();
+  void setMaterial(OOMaterial* material);
 
-    // The material's name (nullopt when it has none, as nil was).
-    std::optional<std::string> textureName();
-    void setTextureName(const std::string& textureName);
+  // The material's name (nullopt when it has none, as nil was).
+  std::optional<std::string> textureName();
+  void setTextureName(const std::string& textureName);
 
-    // Radius, in game metres.
-    float radius();
-    void setRadius(float radius);
+  // Radius, in game metres.
+  float radius();
+  void setRadius(float radius);
 
-    // Level of detail, [0..1]. Granularity is implementation-defined.
-    float levelOfDetail();
-    void setLevelOfDetail(float lod);
-    void calculateLevelOfDetailForViewDistance(float distance);
+  // Level of detail, [0..1]. Granularity is implementation-defined.
+  float levelOfDetail();
+  void setLevelOfDetail(float lod);
+  void calculateLevelOfDetailForViewDistance(float distance);
 
-    // depth-buffer hack
-    void renderTranslucentPartsOnOpaquePass();
+  // depth-buffer hack
+  void renderTranslucentPartsOnOpaquePass();
 
-    void renderOpaqueParts() override;
-    void renderTranslucentParts() override;
-    bool hasOpaqueParts() override;
-    bool hasTranslucentParts() override;
+  void renderOpaqueParts() override;
+  void renderTranslucentParts() override;
+  bool hasOpaqueParts() override;
+  bool hasTranslucentParts() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    size_t objectSize() const override { return sizeof *this; }
+  size_t objectSize() const override { return sizeof *this; }
 #endif
-    GLfloat collisionRadius() override;
-    GLfloat maxDrawDistance() override;
-    BoundingBox boundingBox() override;
-    void setBindingTarget(Entity* target) override;
-    void dumpSelfState() override;
+  GLfloat collisionRadius() override;
+  GLfloat maxDrawDistance() override;
+  BoundingBox boundingBox() override;
+  void setBindingTarget(Entity* target) override;
+  void dumpSelfState() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
-private:
-    void recalculateTransform();
+ private:
+  void recalculateTransform();
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    void debugDrawNormals();
+  void debugDrawNormals();
 #endif
-    void renderCommonParts();
+  void renderCommonParts();
 
-    oo::Ref<OOMaterial> _material;
-    bool _isAtmosphere = false;
-    float _radius = { };
-    OOMatrix _transform = { };
-    unsigned _lod = { };
+  oo::Ref<OOMaterial> _material;
+  bool _isAtmosphere = false;
+  float _radius = {};
+  OOMatrix _transform = {};
+  unsigned _lod = {};
 };

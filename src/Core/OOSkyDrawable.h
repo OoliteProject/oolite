@@ -32,7 +32,6 @@ SOFTWARE.
 #include "OODrawable.h"
 #include "OOGraphicsResetManager.h"
 #include "OOOpenGL.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
@@ -40,65 +39,55 @@ class OOColor;
 class OOSkyQuadSet;
 struct OOSkyQuadDesc;
 
-/*	A drawable. Its one caller, SkyEntity, makes it with oo::makeRef and hands it to
-        the entity. It is a graphics reset client through the C++ client
+/*	A drawable. Its one caller, SkyEntity, makes it with oo::makeRef and
+   hands it to the entity. It is a graphics reset client through the C++ client
         interface.
 */
 class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
-public:
-    // -initWithColor1:Color2:Color3:Color4:starCount:nebulaCount:nebulaHueFix:clusterFactor:alpha:scale:
-    OOSkyDrawable(OOColor* color1,
-        OOColor* color2,
-        OOColor* color3,
-        OOColor* color4,
-        unsigned starCount,
-        unsigned nebulaCount,
-        bool nebulaHueFix,
-        float nebulaClusterFactor,
-        float nebulaAlpha,
-        float nebulaScale);
-    ~OOSkyDrawable() override;
+ public:
+  // -initWithColor1:Color2:Color3:Color4:starCount:nebulaCount:nebulaHueFix:clusterFactor:alpha:scale:
+  OOSkyDrawable(OOColor* color1, OOColor* color2, OOColor* color3,
+                OOColor* color4, unsigned starCount, unsigned nebulaCount,
+                bool nebulaHueFix, float nebulaClusterFactor, float nebulaAlpha,
+                float nebulaScale);
+  ~OOSkyDrawable() override;
 
-    void renderOpaqueParts() override;
-    bool hasOpaqueParts() override;
-    GLfloat maxDrawDistance() override;
+  void renderOpaqueParts() override;
+  bool hasOpaqueParts() override;
+  GLfloat maxDrawDistance() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::Ref<OOTexture>> allTextures() override;
-    size_t totalSize() override;
-    size_t objectSize() const override { return sizeof *this; }
+  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  size_t totalSize() override;
+  size_t objectSize() const override { return sizeof *this; }
 #endif
 
-    // OOGraphicsResetClient
-    void resetGraphicsState() override;
+  // OOGraphicsResetClient
+  void resetGraphicsState() override;
 
-private:
-    friend struct OOSkyDrawableTestAccess;
+ private:
+  friend struct OOSkyDrawableTestAccess;
 
-    void setUpStars(OOColor* color1, OOColor* color2);
-    void setUpNebulae(OOColor* color1,
-        OOColor* color2,
-        float nebulaClusterFactor,
-        bool nebulaHueFix,
-        float nebulaAlpha,
-        float nebulaScale);
+  void setUpStars(OOColor* color1, OOColor* color2);
+  void setUpNebulae(OOColor* color1, OOColor* color2, float nebulaClusterFactor,
+                    bool nebulaHueFix, float nebulaAlpha, float nebulaScale);
 
-    void loadStarTextures();
-    void loadNebulaTextures();
+  void loadStarTextures();
+  void loadNebulaTextures();
 
-    void addQuads(OOSkyQuadDesc* quads, unsigned count);
+  void addQuads(OOSkyQuadDesc* quads, unsigned count);
 
-    void ensureTexturesLoaded();
+  void ensureTexturesLoaded();
 
-    // The unit test's stand-in for setUpStars(), which needs the game's star
-    // textures; null in the game.
-    static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, OOColor* color1,
-        OOColor* color2);
+  // The unit test's stand-in for setUpStars(), which needs the game's star
+  // textures; null in the game.
+  static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, OOColor* color1,
+                                    OOColor* color2);
 
-    unsigned _starCount = { };
-    unsigned _nebulaCount = { };
+  unsigned _starCount = {};
+  unsigned _nebulaCount = {};
 
-    std::vector<oo::Ref<OOSkyQuadSet>> _quadSets; // no `= {}` (GCC, incomplete
-                                                  // T);	// one per texture
+  std::vector<oo::Ref<OOSkyQuadSet>> _quadSets;  // no `= {}` (GCC, incomplete
+                                                 // T);	// one per texture
 
-    GLint _displayListName = { };
+  GLint _displayListName = {};
 };

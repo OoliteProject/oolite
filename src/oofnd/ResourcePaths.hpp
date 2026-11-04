@@ -4,25 +4,26 @@
    managed OXZs). Replaces the NSBundle / NSHomeDirectory() /
    NSSearchPathForDirectoriesInDomains() lookups.
 
-        Every answer reproduces what the game computes TODAY on the SDL platforms (Windows, Linux),
-        including the OO_* environment overrides, so a consumer can switch without moving a file:
+        Every answer reproduces what the game computes TODAY on the SDL
+   platforms (Windows, Linux), including the OO_* environment overrides, so a
+   consumer can switch without moving a file:
 
             today (Objective-C)                                      oofnd
-            -------------------------------------------------------  ---------------------------------
-            NSHomeDirectory()                                        homeDirectory()
-            [fm defaultCommanderPath] (before its mkdir/fallback)    saveDirectory()
+            -------------------------------------------------------
+   --------------------------------- NSHomeDirectory() homeDirectory() [fm
+   defaultCommanderPath] (before its mkdir/fallback)    saveDirectory()
               OO_SAVEDIR | ~/oolite-saves
-            chdirToSnapshotPath's directory                          snapshotDirectory()
-              OO_SNAPSHOTSDIR | ~/oolite-saves/snapshots
-            OOLogHandlerGetLogBasePath()  (before its mkdirs)        logDirectory()
-              OO_LOGSDIR | Windows ~/Logs, Linux ~/.Oolite/Logs
-            NSSearchPathForDirectoriesInDomains(NSLibraryDirectory)  userLibraryDirectory()
+            chdirToSnapshotPath's directory snapshotDirectory() OO_SNAPSHOTSDIR
+   | ~/oolite-saves/snapshots OOLogHandlerGetLogBasePath()  (before its mkdirs)
+   logDirectory() OO_LOGSDIR | Windows ~/Logs, Linux ~/.Oolite/Logs
+            NSSearchPathForDirectoriesInDomains(NSLibraryDirectory)
+   userLibraryDirectory()
               ~/GNUstep/Library   (GNUstep's default user layout)
-            ...(NSApplicationSupportDirectory)                       applicationSupportDirectory()
+            ...(NSApplicationSupportDirectory) applicationSupportDirectory()
               ~/GNUstep/Library/ApplicationSupport
-            ...(NSCachesDirectory)                                   cachesDirectory()
+            ...(NSCachesDirectory) cachesDirectory()
               ~/GNUstep/Library/Caches
-            [[OOOXZManager sharedManager] installPath]               managedAddOnsDirectory()
+            [[OOOXZManager sharedManager] installPath] managedAddOnsDirectory()
               OO_MANAGEDADDONSDIR | <ApplicationSupport>/Oolite/ManagedAddOns
             [[OOOXZManager sharedManager] extractAddOnsPath]
    extractAddOnsDirectory() OO_ADDONSEXTRACTDIR | Windows "../AddOns" (relative,
@@ -62,8 +63,6 @@
 
 #pragma once
 
-#include "oofnd/FileSystem.hpp"
-
 #include <cstdlib>
 #include <functional>
 #include <optional>
@@ -72,198 +71,209 @@
 #include <utility>
 #include <vector>
 
+#include "oofnd/FileSystem.hpp"
+
 #if defined(_WIN32)
-// Declared here rather than by including <windows.h>, which would drag min/max macros and the
-// whole Win32 API into every file that includes oofnd. Identical to the SDK's.
-extern "C" __declspec(dllimport) unsigned long __stdcall GetEnvironmentVariableW(const wchar_t* name, wchar_t* buffer, unsigned long size);
+// Declared here rather than by including <windows.h>, which would drag min/max
+// macros and the whole Win32 API into every file that includes oofnd. Identical
+// to the SDK's.
+extern "C" __declspec(dllimport) unsigned long __stdcall
+GetEnvironmentVariableW(const wchar_t* name, wchar_t* buffer,
+                        unsigned long size);
 #endif
 
 namespace oo {
 
 struct PathEnvironment {
-    enum class Platform {
-        windows,
-        posix, // Linux and the other SDL POSIX builds
-    };
+  enum class Platform {
+    windows,
+    posix,  // Linux and the other SDL POSIX builds
+  };
 
-    using Getenv = std::function<std::optional<std::string>(const std::string& name)>;
+  using Getenv =
+      std::function<std::optional<std::string>(const std::string& name)>;
 
-    Platform platform = Platform::posix;
-    Getenv getenv; // UTF-8 value of a variable, or nullopt when unset
-    fs::Path currentDirectory;
-    bool gameDataToUserFolder = false; // the OO_GAME_DATA_TO_USER_FOLDER build setting
+  Platform platform = Platform::posix;
+  Getenv getenv;  // UTF-8 value of a variable, or nullopt when unset
+  fs::Path currentDirectory;
+  bool gameDataToUserFolder =
+      false;  // the OO_GAME_DATA_TO_USER_FOLDER build setting
 
-    // The running process: its platform, environment and current directory right now.
-    static PathEnvironment process()
-    {
-        PathEnvironment env;
+  // The running process: its platform, environment and current directory right
+  // now.
+  static PathEnvironment process() {
+    PathEnvironment env;
 #if defined(_WIN32)
-        env.platform = Platform::windows;
+    env.platform = Platform::windows;
 #else
-        env.platform = Platform::posix;
+    env.platform = Platform::posix;
 #endif
-        env.getenv = &processGetenv;
-        env.currentDirectory = fs::currentDirectory().value_or(fs::Path());
+    env.getenv = &processGetenv;
+    env.currentDirectory = fs::currentDirectory().value_or(fs::Path());
 #if defined(OO_GAME_DATA_TO_USER_FOLDER) && OO_GAME_DATA_TO_USER_FOLDER
-        env.gameDataToUserFolder = true;
+    env.gameDataToUserFolder = true;
 #endif
-        return env;
-    }
+    return env;
+  }
 
-    static std::optional<std::string> processGetenv(const std::string& name)
-    {
+  static std::optional<std::string> processGetenv(const std::string& name) {
 #if defined(_WIN32)
-        const std::wstring wname = fs::pathFromUTF8(name).native();
-        std::wstring value(256, L'\0');
-        for (;;) {
-            const unsigned long n = ::GetEnvironmentVariableW(wname.c_str(), value.data(), static_cast<unsigned long>(value.size()));
-            if (n == 0)
-                return std::nullopt; // unset (an empty value also reads as unset, as in SDL_getenv)
-            if (n < value.size()) {
-                value.resize(n);
-                return fs::nativeUTF8String(fs::Path(value)); // raw: a variable is not always a path
-            }
-            value.assign(n, L'\0'); // n is the size needed, terminator included
-        }
-#else
-        const char* value = std::getenv(name.c_str());
-        if (value == nullptr)
-            return std::nullopt;
-        return std::string(value);
-#endif
+    const std::wstring wname = fs::pathFromUTF8(name).native();
+    std::wstring value(256, L'\0');
+    for (;;) {
+      const unsigned long n =
+          ::GetEnvironmentVariableW(wname.c_str(), value.data(),
+                                    static_cast<unsigned long>(value.size()));
+      if (n == 0)
+        return std::nullopt;  // unset (an empty value also reads as unset, as
+                              // in SDL_getenv)
+      if (n < value.size()) {
+        value.resize(n);
+        return fs::nativeUTF8String(
+            fs::Path(value));  // raw: a variable is not always a path
+      }
+      value.assign(n, L'\0');  // n is the size needed, terminator included
     }
+#else
+    const char* value = std::getenv(name.c_str());
+    if (value == nullptr) return std::nullopt;
+    return std::string(value);
+#endif
+  }
 };
 
 class ResourcePaths {
-public:
-    explicit ResourcePaths(PathEnvironment env)
-        : env_(std::move(env))
-    {
+ public:
+  explicit ResourcePaths(PathEnvironment env) : env_(std::move(env)) {}
+
+  // For the running process (reads the environment and current directory at
+  // call time).
+  static ResourcePaths current() {
+    return ResourcePaths(PathEnvironment::process());
+  }
+
+  const PathEnvironment& environment() const noexcept { return env_; }
+
+  fs::Path homeDirectory() const {
+    if (windows()) {
+      if (std::optional<std::string> homePath = get("HOMEPATH")) {
+        const bool hasDrive = homePath->size() >= 2 && (*homePath)[1] == ':';
+        if (!hasDrive)
+          *homePath = get("HOMEDRIVE").value_or(std::string()) + *homePath;
+        return fs::pathFromUTF8(*homePath);
+      }
+      if (std::optional<std::string> profile = get("USERPROFILE"))
+        return fs::pathFromUTF8(*profile);
+    } else if (std::optional<std::string> home = get("HOME")) {
+      return fs::pathFromUTF8(*home);
     }
+    return env_.currentDirectory;
+  }
 
-    // For the running process (reads the environment and current directory at call time).
-    static ResourcePaths current() { return ResourcePaths(PathEnvironment::process()); }
+  fs::Path saveDirectory() const {
+    return overridden("OO_SAVEDIR",
+                      [&] { return homeDirectory() / "oolite-saves"; });
+  }
 
-    const PathEnvironment& environment() const noexcept { return env_; }
+  fs::Path snapshotDirectory() const {
+    return overridden("OO_SNAPSHOTSDIR", [&] {
+      return homeDirectory() / "oolite-saves" / "snapshots";
+    });
+  }
 
-    fs::Path homeDirectory() const
-    {
-        if (windows()) {
-            if (std::optional<std::string> homePath = get("HOMEPATH")) {
-                const bool hasDrive = homePath->size() >= 2 && (*homePath)[1] == ':';
-                if (!hasDrive)
-                    *homePath = get("HOMEDRIVE").value_or(std::string()) + *homePath;
-                return fs::pathFromUTF8(*homePath);
-            }
-            if (std::optional<std::string> profile = get("USERPROFILE"))
-                return fs::pathFromUTF8(*profile);
-        } else if (std::optional<std::string> home = get("HOME")) {
-            return fs::pathFromUTF8(*home);
-        }
-        return env_.currentDirectory;
+  fs::Path logDirectory() const {
+    return overridden("OO_LOGSDIR", [&] {
+      return windows() ? homeDirectory() / "Logs"
+                       : homeDirectory() / ".Oolite" / "Logs";
+    });
+  }
+
+  fs::Path userLibraryDirectory() const {
+    return homeDirectory() / "GNUstep" / "Library";
+  }
+  fs::Path applicationSupportDirectory() const {
+    return userLibraryDirectory() / "ApplicationSupport";
+  }
+  fs::Path cachesDirectory() const { return userLibraryDirectory() / "Caches"; }
+
+  fs::Path managedAddOnsDirectory() const {
+    return overridden("OO_MANAGEDADDONSDIR", [&] {
+      return applicationSupportDirectory() / "Oolite" / "ManagedAddOns";
+    });
+  }
+
+  fs::Path extractAddOnsDirectory() const {
+    return overridden("OO_ADDONSEXTRACTDIR", [&] {
+      if (!windows()) return homeDirectory() / ".Oolite" / "AddOns";
+      if (env_.gameDataToUserFolder)
+        return fs::pathFromUTF8(get("LOCALAPPDATA").value_or(std::string())) /
+               "Oolite" / "AddOns";
+      return fs::Path("../AddOns");
+    });
+  }
+
+  std::vector<fs::Path> additionalAddOnsDirectories() const {
+    std::vector<fs::Path> result;
+    const std::optional<std::string> list = get("OO_ADDITIONALADDONSDIRS");
+    if (!list) return result;
+    // componentsSeparatedByString:@"," keeps empty components, and so does
+    // this.
+    std::string_view rest = *list;
+    for (;;) {
+      const std::size_t comma = rest.find(',');
+      result.push_back(fs::pathFromUTF8(rest.substr(0, comma)));
+      if (comma == std::string_view::npos) break;
+      rest.remove_prefix(comma + 1);
     }
+    return result;
+  }
 
-    fs::Path saveDirectory() const
-    {
-        return overridden("OO_SAVEDIR", [&] { return homeDirectory() / "oolite-saves"; });
-    }
+  fs::Path builtInResourcesDirectory() const {
+    const fs::Path primary = env_.currentDirectory / "Resources";
+    if (fs::isDirectory(primary)) return primary;
+    return (env_.currentDirectory.parent_path() / "share" / "oolite" /
+            "Resources")
+        .lexically_normal();
+  }
 
-    fs::Path snapshotDirectory() const
-    {
-        return overridden("OO_SNAPSHOTSDIR", [&] { return homeDirectory() / "oolite-saves" / "snapshots"; });
-    }
+  // Additional AddOns roots, then <cwd>/../share/oolite/AddOns, <cwd>/AddOns,
+  // the extract dir.
+  std::vector<fs::Path> userRootDirectories() const {
+    std::vector<fs::Path> result = additionalAddOnsDirectories();
+    result.push_back(env_.currentDirectory.parent_path() / "share" / "oolite" /
+                     "AddOns");
+    result.push_back(env_.currentDirectory / "AddOns");
+    result.push_back(extractAddOnsDirectory());
+    return result;
+  }
 
-    fs::Path logDirectory() const
-    {
-        return overridden("OO_LOGSDIR", [&] {
-            return windows() ? homeDirectory() / "Logs" : homeDirectory() / ".Oolite" / "Logs";
-        });
-    }
+  // Built-in data, then managed OXZs, then the user roots: ResourceManager's
+  // search order.
+  std::vector<fs::Path> rootDirectories() const {
+    std::vector<fs::Path> result{builtInResourcesDirectory(),
+                                 managedAddOnsDirectory()};
+    for (fs::Path& p : userRootDirectories()) result.push_back(std::move(p));
+    return result;
+  }
 
-    fs::Path userLibraryDirectory() const { return homeDirectory() / "GNUstep" / "Library"; }
-    fs::Path applicationSupportDirectory() const { return userLibraryDirectory() / "ApplicationSupport"; }
-    fs::Path cachesDirectory() const { return userLibraryDirectory() / "Caches"; }
+ private:
+  bool windows() const noexcept {
+    return env_.platform == PathEnvironment::Platform::windows;
+  }
 
-    fs::Path managedAddOnsDirectory() const
-    {
-        return overridden("OO_MANAGEDADDONSDIR", [&] { return applicationSupportDirectory() / "Oolite" / "ManagedAddOns"; });
-    }
+  std::optional<std::string> get(const std::string& name) const {
+    if (!env_.getenv) return std::nullopt;
+    return env_.getenv(name);
+  }
 
-    fs::Path extractAddOnsDirectory() const
-    {
-        return overridden("OO_ADDONSEXTRACTDIR", [&] {
-            if (!windows())
-                return homeDirectory() / ".Oolite" / "AddOns";
-            if (env_.gameDataToUserFolder)
-                return fs::pathFromUTF8(get("LOCALAPPDATA").value_or(std::string())) / "Oolite" / "AddOns";
-            return fs::Path("../AddOns");
-        });
-    }
+  template <class Default>
+  fs::Path overridden(const std::string& variable, Default fallback) const {
+    if (std::optional<std::string> value = get(variable))
+      return fs::pathFromUTF8(*value);
+    return fallback();
+  }
 
-    std::vector<fs::Path> additionalAddOnsDirectories() const
-    {
-        std::vector<fs::Path> result;
-        const std::optional<std::string> list = get("OO_ADDITIONALADDONSDIRS");
-        if (!list)
-            return result;
-        // componentsSeparatedByString:@"," keeps empty components, and so does this.
-        std::string_view rest = *list;
-        for (;;) {
-            const std::size_t comma = rest.find(',');
-            result.push_back(fs::pathFromUTF8(rest.substr(0, comma)));
-            if (comma == std::string_view::npos)
-                break;
-            rest.remove_prefix(comma + 1);
-        }
-        return result;
-    }
-
-    fs::Path builtInResourcesDirectory() const
-    {
-        const fs::Path primary = env_.currentDirectory / "Resources";
-        if (fs::isDirectory(primary))
-            return primary;
-        return (env_.currentDirectory.parent_path() / "share" / "oolite" / "Resources").lexically_normal();
-    }
-
-    // Additional AddOns roots, then <cwd>/../share/oolite/AddOns, <cwd>/AddOns, the extract dir.
-    std::vector<fs::Path> userRootDirectories() const
-    {
-        std::vector<fs::Path> result = additionalAddOnsDirectories();
-        result.push_back(env_.currentDirectory.parent_path() / "share" / "oolite" / "AddOns");
-        result.push_back(env_.currentDirectory / "AddOns");
-        result.push_back(extractAddOnsDirectory());
-        return result;
-    }
-
-    // Built-in data, then managed OXZs, then the user roots: ResourceManager's search order.
-    std::vector<fs::Path> rootDirectories() const
-    {
-        std::vector<fs::Path> result { builtInResourcesDirectory(), managedAddOnsDirectory() };
-        for (fs::Path& p : userRootDirectories())
-            result.push_back(std::move(p));
-        return result;
-    }
-
-private:
-    bool windows() const noexcept { return env_.platform == PathEnvironment::Platform::windows; }
-
-    std::optional<std::string> get(const std::string& name) const
-    {
-        if (!env_.getenv)
-            return std::nullopt;
-        return env_.getenv(name);
-    }
-
-    template <class Default>
-    fs::Path overridden(const std::string& variable, Default fallback) const
-    {
-        if (std::optional<std::string> value = get(variable))
-            return fs::pathFromUTF8(*value);
-        return fallback();
-    }
-
-    PathEnvironment env_;
+  PathEnvironment env_;
 };
 
-} // namespace oo
+}  // namespace oo

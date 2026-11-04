@@ -4,9 +4,9 @@ OOECMBlastEntity.h
 
 Invisible entity which radiates ECM blast energy.
 
-A global class over Entity. ShipEntity::fireECM() makes it with initFromShip() and hands it to
-the universe. To ask whether an entity is an ECM blast, ask the C++ part:
-dynamic_cast<OOECMBlastEntity *>(...)->isECMBlast().
+A global class over Entity. ShipEntity::fireECM() makes it with initFromShip()
+and hands it to the universe. To ask whether an entity is an ECM blast, ask the
+C++ part: dynamic_cast<OOECMBlastEntity *>(...)->isECMBlast().
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -35,19 +35,19 @@ MA 02110-1301, USA.
 class ShipEntity;
 
 class OOECMBlastEntity : public Entity {
-public:
-    // -initFromShip:, which answered nil for a nil ship: null then.
-    static oo::Ref<OOECMBlastEntity> initFromShip(ShipEntity* ship);
+ public:
+  // -initFromShip:, which answered nil for a nil ship: null then.
+  static oo::Ref<OOECMBlastEntity> initFromShip(ShipEntity* ship);
 
-    void update(OOTimeDelta delta_t) override;
-    void drawImmediate(bool immediate, bool translucent) override;
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
 
-    bool isECMBlast();
+  bool isECMBlast();
 
-private:
-    explicit OOECMBlastEntity(ShipEntity* ship);
+ private:
+  explicit OOECMBlastEntity(ShipEntity* ship);
 
-    OOTimeDelta _nextBlast = { };
-    uint8_t _blastsRemaining = { };
-    oo::WeakRef<Entity> _ship; // the ship's C++ part
+  OOTimeDelta _nextBlast = {};
+  uint8_t _blastsRemaining = {};
+  oo::WeakRef<Entity> _ship;  // the ship's C++ part
 };

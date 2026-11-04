@@ -24,12 +24,13 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFunctionAttributes.h"
 #include <quickjs.h>
 
+#include "OOFunctionAttributes.h"
+
 /*	Engine-neutral names for a property ID and a value (jsid and jsval with
-        SpiderMonkey). Declared here, rather than in OOJavaScriptEngine.h, so game
-        headers imported by OOJavaScriptEngine.h can use them.
+        SpiderMonkey). Declared here, rather than in OOJavaScriptEngine.h, so
+   game headers imported by OOJavaScriptEngine.h can use them.
 */
 typedef JSAtom OOJSPropID;
 typedef JSValue OOJSVal;
@@ -39,5 +40,11 @@ typedef JSValue OOJSVal;
         Macro to create a property ID. The string is interned the first time the
         macro is hit, then cached; the atom lives as long as the runtime.
 */
-#define OOJSID(str) ({ static JSAtom idCache = JS_ATOM_NULL; if (EXPECT_NOT(idCache == JS_ATOM_NULL)) idCache = OOJSInternAtomPRIVATE("" str); idCache; })
+#define OOJSID(str)                            \
+  ({                                           \
+    static JSAtom idCache = JS_ATOM_NULL;      \
+    if (EXPECT_NOT(idCache == JS_ATOM_NULL))   \
+      idCache = OOJSInternAtomPRIVATE("" str); \
+    idCache;                                   \
+  })
 JSAtom OOJSInternAtomPRIVATE(const char* name);

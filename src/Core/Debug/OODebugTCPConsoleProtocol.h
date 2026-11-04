@@ -33,26 +33,26 @@ SOFTWARE.
 
 #ifndef OOALSTR
 #ifndef OO_PLAIN_CPP_UNIT
-#include "OOFoundation.h" // (OOALSTR(x) was the literal @"" x: no game unit spells one)
-#else // a plain C++ unit
+#include "OOFoundation.h"  // (OOALSTR(x) was the literal @"" x: no game unit spells one)
+#else                      // a plain C++ unit
 #include <CoreFoundation/CoreFoundation.h>
 #define OOALSTR(x) CFSTR(x)
 #endif
 #endif
 
 enum {
-    kOOTCPConsolePort = 0x002173 /* = 8563 */
+  kOOTCPConsolePort = 0x002173 /* = 8563 */
 };
 
 /*	PROTOCOL OVERVIEW
 
-        The basic unit of the protocol is property lists. Property lists originate
-        with OpenStep and are thus defined in Cocoa and GNUstep, but they're also
-        implemented in CoreFoundation (Mac OS X) and CFLite (cross-platform), with
-        a C interface.
+        The basic unit of the protocol is property lists. Property lists
+   originate with OpenStep and are thus defined in Cocoa and GNUstep, but
+   they're also implemented in CoreFoundation (Mac OS X) and CFLite
+   (cross-platform), with a C interface.
 
-        The protocol uses a TCP stream in each direction. Each stream consists of
-        a series of property lists in the Apple XML encoding. Each property list
+        The protocol uses a TCP stream in each direction. Each stream consists
+   of a series of property lists in the Apple XML encoding. Each property list
         is framed in the simplest possible way: it is preceeded by an unsigned
         32-bit length, in network-endian order. Each length + property list
         combination is referred to as a packet.
@@ -65,8 +65,8 @@ enum {
 /* *** Packet types *** */
 /*	kOOTCPPacket_RequestConnection
         client --> server
-        Message sent from client (Oolite) to server (console) to request a cosole
-        connection.
+        Message sent from client (Oolite) to server (console) to request a
+   cosole connection.
 
         Required values:
                 kOOTCPProtocolVersion
@@ -80,8 +80,8 @@ enum {
 
 /*	kOOTCPPacket_ApproveConnection
         client <-- server
-        Message sent in response to kOOTCPPacket_RequestConnection if connection is
-        established successfully.
+        Message sent in response to kOOTCPPacket_RequestConnection if connection
+   is established successfully.
 
         Optional values:
                 kOOTCPConsoleIdentity
@@ -90,8 +90,8 @@ enum {
 
 /*	kOOTCPPacket_RejectConnection
         client <-- server
-        Message sent in response to kOOTCPPacket_RequestConnection if connection is
-        not established successfully. After this message is sent, the connection
+        Message sent in response to kOOTCPPacket_RequestConnection if connection
+   is not established successfully. After this message is sent, the connection
         is closed with no further traffic.
 
         Optional values:
@@ -132,8 +132,8 @@ enum {
 
 /*	kOOTCPPacket_ShowConsole
         client --> server
-        Message sent by Oolite to request that the cosole makes itself visible and
-        active.
+        Message sent by Oolite to request that the cosole makes itself visible
+   and active.
 */
 #define kOOTCPPacket_ShowConsole OOALSTR("Show Console")
 
@@ -157,14 +157,16 @@ enum {
         removed, they are simply unchanged. Deletions are handled with
         kOOTCPRemovedConfigurationKeys.
 
-        This key is also sent in response to a kOOTCPPacket_RequestConfigurationValue
-        message, even if no configuration value has changed.
+        This key is also sent in response to a
+   kOOTCPPacket_RequestConfigurationValue message, even if no configuration
+   value has changed.
 
         Required values (at least one of):
                 kOOTCPConfiguration
                 kOOTCPRemovedConfigurationKeys
 */
-#define kOOTCPPacket_NoteConfigurationChange OOALSTR("Note Configuration Change")
+#define kOOTCPPacket_NoteConfigurationChange \
+  OOALSTR("Note Configuration Change")
 
 /*	kOOTCPPacket_PerformCommand
         client <-- server
@@ -177,21 +179,23 @@ enum {
 
 /*	kOOTCPPacket_RequestConfigurationValue
         client <-- server
-        Message sent by console to request a configuration value. This will result
-        in a kOOTCPPacket_NoteConfigurationChange message being sent. If the value
-        is nil, the response will contain a kOOTCPRemovedConfigurationKeys value.
+        Message sent by console to request a configuration value. This will
+   result in a kOOTCPPacket_NoteConfigurationChange message being sent. If the
+   value is nil, the response will contain a kOOTCPRemovedConfigurationKeys
+   value.
 
         Required values:
                 kOOTCPConfigurationKey
         Expected response:
                 kOOTCPPacket_NoteConfigurationChange
 */
-#define kOOTCPPacket_RequestConfigurationValue OOALSTR("Request Configuration Value")
+#define kOOTCPPacket_RequestConfigurationValue \
+  OOALSTR("Request Configuration Value")
 
 /*	kOOTCPPacket_Ping
         client <-> server
-        Must be responded to with a kOOTCPPacket_Pong message containing the same
-        kOOTCPMessage, if any.
+        Must be responded to with a kOOTCPPacket_Pong message containing the
+   same kOOTCPMessage, if any.
 
         Optional values:
                 kOOTCPMessage
@@ -203,8 +207,8 @@ enum {
 /*	kOOTCPPacket_Pong
         client <-> server
         Must be sent in response to kOOTCPPacket_Ping. If the kOOTCPPacket_Ping
-        packet had a kOOTCPMessage, the same kOOTCPMessage value must be attached
-        to the kOOTCPPacket_Pong.
+        packet had a kOOTCPMessage, the same kOOTCPMessage value must be
+   attached to the kOOTCPPacket_Pong.
 
         Optional values:
                 kOOTCPMessage (required if included in ping)
@@ -228,8 +232,8 @@ enum {
 #define kOOTCPProtocolVersion OOALSTR("protocol version")
 
 /*	kOOTCPOoliteVersion
-        String indicating the version of Oolite, for example "1.70" or "1.71.1 b2".
-        Consists of two or more integers separated by .s, optionally followed by
+        String indicating the version of Oolite, for example "1.70" or "1.71.1
+   b2". Consists of two or more integers separated by .s, optionally followed by
         a space and additional information in unspecified format. Sent with
         kOOTCPPacket_RequestConnection.
 */
@@ -266,8 +270,8 @@ enum {
 
 /*	kOOTCPEmphasisRanges
         An array containing an even number of integers. Each pair of integers
-        specifies a range (in the form offset, length) which should be emphasized.
-        Sent with kOOTCPPacket_ConsoleOutput.
+        specifies a range (in the form offset, length) which should be
+   emphasized. Sent with kOOTCPPacket_ConsoleOutput.
 */
 #define kOOTCPEmphasisRanges OOALSTR("emphasis ranges")
 
@@ -285,8 +289,8 @@ enum {
 #define kOOTCPRemovedConfigurationKeys OOALSTR("removed configuration keys")
 
 /*	kOOTCPConfigurationKey
-        A string specifying the configuration key for which a value is requested.
-        Sent with kOOTCPPacket_RequestConfigurationValue.
+        A string specifying the configuration key for which a value is
+   requested. Sent with kOOTCPPacket_RequestConfigurationValue.
 */
 #define kOOTCPConfigurationKey OOALSTR("configuration key")
 
@@ -298,20 +302,23 @@ enum {
         minor version will be changed when new non-critical packets are added.
 */
 
-#define OOTCP_ENCODE_VERSION(f, mj, mi) \
-    ((((f) << 16) & kOOTCPProtocolVersionFormatMask) | (((f) << 8) & kOOTCPProtocolVersionMajorMask) | ((mi) & kOOTCPProtocolVersionMinorMask))
+#define OOTCP_ENCODE_VERSION(f, mj, mi)              \
+  ((((f) << 16) & kOOTCPProtocolVersionFormatMask) | \
+   (((f) << 8) & kOOTCPProtocolVersionMajorMask) |   \
+   ((mi) & kOOTCPProtocolVersionMinorMask))
 
 #define OOTCP_VERSION_FORMAT(v) (((v) & kOOTCPProtocolVersionFormatMask) >> 16)
 #define OOTCP_VERSION_MAJOR(v) (((v) & kOOTCPProtocolVersionMajorMask) >> 8)
 #define OOTCP_VERSION_MINOR(v) ((v) & kOOTCPProtocolVersionMinorMask)
 
 enum {
-    kOOTCPProtocolVersionFormatMask = 0x00FF0000,
-    kOOTCPProtocolVersionMajorMask = 0x0000FF00,
-    kOOTCPProtocolVersionMinorMask = 0x000000FF,
+  kOOTCPProtocolVersionFormatMask = 0x00FF0000,
+  kOOTCPProtocolVersionMajorMask = 0x0000FF00,
+  kOOTCPProtocolVersionMinorMask = 0x000000FF,
 
-    kOOTCPProtocolVersionPListFormat = 1,
+  kOOTCPProtocolVersionPListFormat = 1,
 
-    // 1:1.0, first version.
-    kOOTCPProtocolVersion_1_1_0 = OOTCP_ENCODE_VERSION(kOOTCPProtocolVersionPListFormat, 1, 0)
+  // 1:1.0, first version.
+  kOOTCPProtocolVersion_1_1_0 =
+      OOTCP_ENCODE_VERSION(kOOTCPProtocolVersionPListFormat, 1, 0)
 };

@@ -32,65 +32,73 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "OOScript.h"
 #include "OOStringParsing.h"
-
 #include "oofnd/String.hpp"
 
 static const char* const kStageName = "Checking JS Script file syntax";
 
 namespace {
 
-bool Contains(const std::vector<std::string>& strings, std::string_view string)
-{
-    return std::find(strings.begin(), strings.end(), string) != strings.end();
+bool Contains(const std::vector<std::string>& strings,
+              std::string_view string) {
+  return std::find(strings.begin(), strings.end(), string) != strings.end();
 }
 
-} // namespace
+}  // namespace
 
-std::optional<std::string> OOCheckJSSyntaxVerifierStage::name()
-{
-    return kStageName;
+std::optional<std::string> OOCheckJSSyntaxVerifierStage::name() {
+  return kStageName;
 }
 
-bool OOCheckJSSyntaxVerifierStage::shouldRun()
-{
-    OOFileScannerVerifierStage* fileScanner = nullptr;
+bool OOCheckJSSyntaxVerifierStage::shouldRun() {
+  OOFileScannerVerifierStage* fileScanner = nullptr;
 
-    fileScanner = static_cast<OOFileScannerVerifierStage*>(verifier()->stageWithName(OOFileScannerVerifierStage::kName));
-    if (fileScanner == nullptr)
-        return false; // a nil scanner listed no files
-    return (!fileScanner->filesInFolder("Scripts").value_or(std::vector<std::string> { }).empty() || Contains(fileScanner->filesInFolder("Config").value_or(std::vector<std::string> { }), "script.js"));
+  fileScanner = static_cast<OOFileScannerVerifierStage*>(
+      verifier()->stageWithName(OOFileScannerVerifierStage::kName));
+  if (fileScanner == nullptr) return false;  // a nil scanner listed no files
+  return (!fileScanner->filesInFolder("Scripts")
+               .value_or(std::vector<std::string>{})
+               .empty() ||
+          Contains(fileScanner->filesInFolder("Config").value_or(
+                       std::vector<std::string>{}),
+                   "script.js"));
 }
 
-void OOCheckJSSyntaxVerifierStage::run()
-{
-    OOFileScannerVerifierStage* fileScanner = nullptr;
-    std::vector<std::string> scriptFiles;
-    bool scriptsFolder = false;
-    bool configScript = false;
+void OOCheckJSSyntaxVerifierStage::run() {
+  OOFileScannerVerifierStage* fileScanner = nullptr;
+  std::vector<std::string> scriptFiles;
+  bool scriptsFolder = false;
+  bool configScript = false;
 
-    fileScanner = static_cast<OOFileScannerVerifierStage*>(verifier()->stageWithName(OOFileScannerVerifierStage::kName));
-    if (fileScanner == nullptr)
-        return; // a nil scanner listed no files
-    scriptsFolder = fileScanner->filesInFolder("Scripts").has_value();
-    scriptFiles = fileScanner->filesInFolder("Scripts").value_or(std::vector<std::string> { });
-    configScript = Contains(fileScanner->filesInFolder("Config").value_or(std::vector<std::string> { }), "script.js");
+  fileScanner = static_cast<OOFileScannerVerifierStage*>(
+      verifier()->stageWithName(OOFileScannerVerifierStage::kName));
+  if (fileScanner == nullptr) return;  // a nil scanner listed no files
+  scriptsFolder = fileScanner->filesInFolder("Scripts").has_value();
+  scriptFiles = fileScanner->filesInFolder("Scripts").value_or(
+      std::vector<std::string>{});
+  configScript = Contains(
+      fileScanner->filesInFolder("Config").value_or(std::vector<std::string>{}),
+      "script.js");
 
-    if (scriptsFolder == false && configScript == false)
-        return;
+  if (scriptsFolder == false && configScript == false) return;
 
-    OOJavaScriptEngine::sharedEngine()->setShowErrorLocations(true);
+  OOJavaScriptEngine::sharedEngine()->setShowErrorLocations(true);
 
-    for (const std::string& scriptFile : scriptFiles) {
-        const std::string fileExt = oo::str::lowercase(oo::str::pathExtension(scriptFile));
-        if (fileExt == "js" || fileExt == "es") {
-            const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(fileScanner->pathForFile(scriptFile, "Scripts", std::nullopt, false), oo::PList());
-            (void)script;
-        }
+  for (const std::string& scriptFile : scriptFiles) {
+    const std::string fileExt =
+        oo::str::lowercase(oo::str::pathExtension(scriptFile));
+    if (fileExt == "js" || fileExt == "es") {
+      const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+          fileScanner->pathForFile(scriptFile, "Scripts", std::nullopt, false),
+          oo::PList());
+      (void)script;
     }
-    if (configScript == true) {
-        const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(fileScanner->pathForFile("script.js", "Config", std::nullopt, false), oo::PList());
-        (void)script;
-    }
+  }
+  if (configScript == true) {
+    const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+        fileScanner->pathForFile("script.js", "Config", std::nullopt, false),
+        oo::PList());
+    (void)script;
+  }
 }
 
 #endif

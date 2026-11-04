@@ -34,66 +34,75 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "oofnd/Ref.hpp"
-
 #include <quickjs.h>
 
 #include <optional>
 #include <string>
 
-/*	The JS glue of a C++ object, the selectors of OOObject (OOJavaScriptConversion) as virtual
-        members. A class implements it beside oo::RefCounted (class X : public Base, public
-        OOJSPrivateObject); the engine reaches it from the slot's oo::RefCounted * by dynamic_cast.
+#include "oofnd/Ref.hpp"
+
+/*	The JS glue of a C++ object, the selectors of OOObject
+   (OOJavaScriptConversion) as virtual members. A class implements it beside
+   oo::RefCounted (class X : public Base, public OOJSPrivateObject); the engine
+   reaches it from the slot's oo::RefCounted * by dynamic_cast.
 */
 class OOJSPrivateObject {
-public:
-    virtual ~OOJSPrivateObject() = default;
+ public:
+  virtual ~OOJSPrivateObject() = default;
 
-    // -oo_jsValueInContext: the object's JS value, owned by the caller (its wrapper made on first
-    // use); JS_UNDEFINED if it has none.
-    virtual JSValue jsValueInContext(JSContext* context) = 0;
+  // -oo_jsValueInContext: the object's JS value, owned by the caller (its
+  // wrapper made on first use); JS_UNDEFINED if it has none.
+  virtual JSValue jsValueInContext(JSContext* context) = 0;
 
-    // -oo_clearJSSelf: the wrapper selfVal is being finalized; forget it if it is the object's.
-    // selfVal is borrowed and must not be freed.
-    virtual void clearJSSelf(JSValueConst selfVal) = 0;
+  // -oo_clearJSSelf: the wrapper selfVal is being finalized; forget it if it is
+  // the object's. selfVal is borrowed and must not be freed.
+  virtual void clearJSSelf(JSValueConst selfVal) = 0;
 
-    // -cxx_oo_jsDescription: what toString() answers; nullopt for "[object <JS class name>]".
-    virtual std::optional<std::string> jsDescription() { return std::nullopt; }
+  // -cxx_oo_jsDescription: what toString() answers; nullopt for "[object <JS
+  // class name>]".
+  virtual std::optional<std::string> jsDescription() { return std::nullopt; }
 };
 
-// The JS value of object (its virtual jsValueInContext()), owned by the caller; JS null for null,
-// as OOJSValueFromNativeObject() gives for nil.
+// The JS value of object (its virtual jsValueInContext()), owned by the caller;
+// JS null for null, as OOJSValueFromNativeObject() gives for nil.
 JSValue OOJSValueFromCxxObject(JSContext* context, OOJSPrivateObject* object);
 
 // Puts object in jsObject's private slot with one retain, released by
-// OOJSCxxObjectWrapperFinalize(). False, with nothing retained, if the slot cannot be set
-// (jsObject is not an object of a class with a slot).
+// OOJSCxxObjectWrapperFinalize(). False, with nothing retained, if the slot
+// cannot be set (jsObject is not an object of a class with a slot).
 bool OOJSSetCxxPrivate(JSValueConst jsObject, oo::RefCounted* object);
 
-/*	DEFINE_JS_OBJECT_GETTER for a slot that holds a C++ object: false, with the engine's error
-        ("Native method expected <class>, got <object>.") pending, if object is not of
-        requiredClassID or a subclass registered with OOJSRegisterSubclass(); else *outObject is the
-        slot's object, borrowed, or null (a prototype has none).
+/*	DEFINE_JS_OBJECT_GETTER for a slot that holds a C++ object: false, with
+   the engine's error
+        ("Native method expected <class>, got <object>.") pending, if object is
+   not of requiredClassID or a subclass registered with OOJSRegisterSubclass();
+   else *outObject is the slot's object, borrowed, or null (a prototype has
+   none).
 */
-bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object, JSClassID requiredClassID, oo::RefCounted** outObject);
+bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object,
+                           JSClassID requiredClassID,
+                           oo::RefCounted** outObject);
 
 template <class T>
-bool OOJSGetCxxPrivate(JSContext* context, JSValueConst object, JSClassID requiredClassID, T** outObject)
-{
-    oo::RefCounted* held = nullptr;
-    if (!OOJSGetCxxPrivateImpl(context, object, requiredClassID, &held))
-        return false;
-    *outObject = static_cast<T*>(held);
-    return true;
+bool OOJSGetCxxPrivate(JSContext* context, JSValueConst object,
+                       JSClassID requiredClassID, T** outObject) {
+  oo::RefCounted* held = nullptr;
+  if (!OOJSGetCxxPrivateImpl(context, object, requiredClassID, &held))
+    return false;
+  *outObject = static_cast<T*>(held);
+  return true;
 }
 
-// The finalizer (JSClassDef.finalizer) of a JS class whose slot holds a C++ object: tells the
-// object its wrapper is gone (clearJSSelf), releases the slot's retain and empties the slot.
+// The finalizer (JSClassDef.finalizer) of a JS class whose slot holds a C++
+// object: tells the object its wrapper is gone (clearJSSelf), releases the
+// slot's retain and empties the slot.
 void OOJSCxxObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
 
-/*	toString() for such a class, called from a one-line native that names the class: the object's
-        jsDescription(), else "[object <JS class name>]" (also for a prototype, which has no object).
-        A `this` of another class is described as OOJSObjectWrapperToString() describes it. Returns
-        an owned string, or JS_EXCEPTION.
+/*	toString() for such a class, called from a one-line native that names
+   the class: the object's jsDescription(), else "[object <JS class name>]"
+   (also for a prototype, which has no object). A `this` of another class is
+   described as OOJSObjectWrapperToString() describes it. Returns an owned
+   string, or JS_EXCEPTION.
 */
-JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal, JSClassID jsClassID);
+JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal,
+                                     JSClassID jsClassID);

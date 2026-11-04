@@ -27,62 +27,74 @@ MA 02110-1301, USA.
 #endif
 
 #include "OOJSScript.h"
-#include "OOJSEngineTimeManagement.h"
-#include "OOJavaScriptEngine.h"
-#include "oofnd/Notification.hpp"
 
 #include "Entity.h"
 #include "EntityOOJavaScriptExtensions.h"
+#include "OOJSEngineTimeManagement.h"
+#include "OOJavaScriptEngine.h"
+#include "oofnd/Notification.hpp"
 #if OO_CACHE_JS_SCRIPTS
 #include "OOCacheManager.h"
 #endif
+#include <unordered_map>
+
 #include "OOConstToJSString.h"
 #include "OOConstToString.h"
 #include "OODebugStandards.h"
+#include "OOJSPrivateObject.h"
 #include "OOLogging.h"
 #include "OOManifestProperties.h"
 #include "OOPListParsing.h"
 #include "oofnd/Encoding.hpp"
 #include "oofnd/FileSystem.hpp"
+#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
-#include "OOJSPrivateObject.h"
-#include "oofnd/String.hpp"
-
-#include <unordered_map>
-
 namespace {
 struct RunningStack {
-    RunningStack* back = nullptr;
-    // The running script, held weakly; null for a script-less push.
-    oo::WeakRef<OOJSScript> current;
-    bool scriptless = false; // pushed with no script, which scriptStack() refuses
+  RunningStack* back = nullptr;
+  // The running script, held weakly; null for a script-less push.
+  oo::WeakRef<OOJSScript> current;
+  bool scriptless =
+      false;  // pushed with no script, which scriptStack() refuses
 };
-} // namespace
+}  // namespace
 
 static JSClassID sScriptClassID;
 static RunningStack* sRunningStack = NULL;
 
-static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array, RunningStack* stack);
+static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array,
+                                    RunningStack* stack);
 
-static bool RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage);
+static bool RunScriptWithName(JSContext* context,
+                              const std::optional<std::string>& path,
+                              JSValueConst object,
+                              std::optional<std::string>* outErrorMessage);
 
-static std::optional<std::string> StrippedName(const std::optional<std::string>& string);
-static std::string RewriteLegacyConst(JSContext* context, const std::string& source);
+static std::optional<std::string> StrippedName(
+    const std::optional<std::string>& string);
+static std::string RewriteLegacyConst(JSContext* context,
+                                      const std::string& source);
 static bool HasModernScopeDirective(std::string_view source);
 
 #if OO_CACHE_JS_SCRIPTS
-static JSValue CachedCompiledScript(JSContext* context, const std::string& path, std::string_view source);
-static void CacheCompiledScript(JSContext* context, const std::string& path, std::string_view source, JSValueConst compiled);
+static JSValue CachedCompiledScript(JSContext* context, const std::string& path,
+                                    std::string_view source);
+static void CacheCompiledScript(JSContext* context, const std::string& path,
+                                std::string_view source, JSValueConst compiled);
 #endif
 
-// The value as text (its -description as an object; a string is itself): null stays nullopt.
+// The value as text (its -description as an object; a string is itself): null
+// stays nullopt.
 static std::optional<std::string> DescriptionOrNil(const oo::PList& value);
 
-// -oo_stringForKey: with its nil; a string value for -setObject:forKey:, which raised on nil.
-static std::optional<std::string> StringForKey(const oo::PList& dictionary, const std::string& key);
-static std::string ValueForKey(const std::optional<std::string>& value, std::string_view key);
+// -oo_stringForKey: with its nil; a string value for -setObject:forKey:, which
+// raised on nil.
+static std::optional<std::string> StringForKey(const oo::PList& dictionary,
+                                               const std::string& key);
+static std::string ValueForKey(const std::optional<std::string>& value,
+                               std::string_view key);
 
 static JSValue ScriptToString(OOJS_NATIVE_ARGS);
 static oo::PList ScriptConverter(JSContext* context, JSValueConst object);
@@ -95,25 +107,22 @@ namespace {
    reference did once it has gone).
 */
 class ScriptPrivate final : public oo::RefCounted {
-public:
-    explicit ScriptPrivate(OOJSScript* script)
-        : _script(script)
-    {
-    }
+ public:
+  explicit ScriptPrivate(OOJSScript* script) : _script(script) {}
 
-    OOJSScript* script() const { return _script.get(); }
+  OOJSScript* script() const { return _script.get(); }
 
-private:
-    oo::WeakRef<OOJSScript> _script;
+ private:
+  oo::WeakRef<OOJSScript> _script;
 };
-} // namespace
+}  // namespace
 
-// The script a Script object's slot refers to; null for the prototype, an object of another class,
-// or once the script has gone.
-static OOJSScript* ScriptOfJSObject(JSValueConst object)
-{
-    ScriptPrivate* slot = static_cast<ScriptPrivate*>(static_cast<oo::RefCounted*>(JS_GetOpaque(object, sScriptClassID)));
-    return (slot != nullptr) ? slot->script() : nullptr;
+// The script a Script object's slot refers to; null for the prototype, an
+// object of another class, or once the script has gone.
+static OOJSScript* ScriptOfJSObject(JSValueConst object) {
+  ScriptPrivate* slot = static_cast<ScriptPrivate*>(
+      static_cast<oo::RefCounted*>(JS_GetOpaque(object, sScriptClassID)));
+  return (slot != nullptr) ? slot->script() : nullptr;
 }
 
 static JSClassDef sScriptClass = {
@@ -127,418 +136,404 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 };
 
 // A script that cannot be loaded is dropped, which runs the destructor.
-oo::Ref<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::string>& path, const oo::PList& properties)
-{
-    oo::Ref<OOJSScript> script = oo::makeRef<OOJSScript>();
-    if (!script->initWithPath(path, properties))
-        return nullptr;
-    return script;
+oo::Ref<OOJSScript> OOJSScript::scriptWithPath(
+    const std::optional<std::string>& path, const oo::PList& properties) {
+  oo::Ref<OOJSScript> script = oo::makeRef<OOJSScript>();
+  if (!script->initWithPath(path, properties)) return nullptr;
+  return script;
 }
 
-bool OOJSScript::initWithPath(const std::optional<std::string>& path, const oo::PList& properties)
-{
-    JSContext* context = NULL;
-    std::optional<std::string> problem; // Acts as error flag.
+bool OOJSScript::initWithPath(const std::optional<std::string>& path,
+                              const oo::PList& properties) {
+  JSContext* context = NULL;
+  std::optional<std::string> problem;  // Acts as error flag.
 
-    {
-        context = OOJSAcquireContext();
+  {
+    context = OOJSAcquireContext();
 
-        if (JS_HasException(context)) {
-            JS_FreeValue(context, JS_GetException(context));
-            OO_LOG_ERR("script.javaScript.load.waitingException", "Prior to loading script {}, there was a pending JavaScript exception, which has been cleared. This is an internal error, please report it.", path.value_or("(null)"));
-        }
-
-        // Set up JS object
-        if (!problem.has_value()) {
-            _jsSelf = JS_NewObjectClass(context, (int)sScriptClassID);
-            if (JS_IsException(_jsSelf)) {
-                JS_FreeValue(context, JS_GetException(context));
-                _jsSelf = JS_UNDEFINED;
-                problem = "allocation failure";
-            }
-        }
-
-        if (!problem.has_value()) {
-            // (the slot held the script's weak reference proxy, retained)
-            if (!OOJSSetCxxPrivate(_jsSelf, oo::makeRef<ScriptPrivate>(this).get())) {
-                problem = "could not set private backreference";
-            }
-        }
-
-        // Push self on stack of running scripts.
-        RunningStack stackElement = {
-            .back = sRunningStack,
-            .current = oo::WeakRef<OOJSScript>(this)
-        };
-        sRunningStack = &stackElement;
-
-        _filePath = path;
-
-        // Set default properties from manifest.plist
-        // Order-sensitive: the properties are set in key order (they were set in hash order).
-        const oo::PList::Dict defaultProperties = defaultPropertiesFromPath(path);
-        for (const auto& [key, property] : defaultProperties) {
-            if (key == kLocalManifestProperty) {
-                // this must not be editable
-                defineProperty(property, key);
-            } else {
-                // can be overwritten by script itself
-                setProperty(property, key);
-            }
-        }
-
-        // Set properties. (read-only)
-        // Order-sensitive: defined in key order (they were defined in hash order).
-        if (!problem.has_value() && !properties.isNull()) {
-            if (const oo::PList::Dict* propertyDict = properties.getIf<oo::PList::Dict>()) {
-                for (const auto& [key, property] : *propertyDict) {
-                    defineProperty(property, key);
-                }
-            }
-        }
-
-        /*	Set initial name (in case of script error during initial run).
-                The "name" ivar is not set here, so the property can be fetched from JS
-                if we fail during setup. However, the "name" ivar is set later so that
-                the script object can't be renamed after the initial run. This could
-                probably also be achieved by fiddling with JS property attributes.
-        */
-        JSAtom nameID = OOJSID("name");
-        setProperty(oo::PList(scriptNameFromPath(path)), nameID, context);
-
-        // Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
-        if (!problem.has_value()) {
-            OO_LOG("script.javaScript.willLoad", "About to load JavaScript {}", path.value_or("(null)"));
-            oo::log::indentIf("script.javaScript.willLoad");
-
-            if (!RunScriptWithName(context, path, _jsSelf, &problem)) {
-                if (!problem.has_value())
-                    problem = "could not run script";
-            }
-        }
-
-        sRunningStack = stackElement.back;
-
-        if (!problem.has_value()) {
-            checkForTickle(context);
-
-            // Get display attributes from script
-            _name.reset();
-            _name = StrippedName(DescriptionOrNil(propertyWithID(nameID, context)));
-            if (!_name.has_value()) {
-                _name = scriptNameFromPath(path);
-                setProperty(oo::PList(*_name), nameID, context);
-            }
-
-            _version = DescriptionOrNil(propertyWithID(OOJSID("version"), context));
-            _description = DescriptionOrNil(propertyWithID(OOJSID("description"), context));
-
-            OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}", displayName().value_or("(null)"), _description.value_or("(no description)"));
-        }
-
-        oo::log::outdentIf("script.javaScript.willLoad");
-
-        _filePath.reset(); // Only used for error reporting during startup.
+    if (JS_HasException(context)) {
+      JS_FreeValue(context, JS_GetException(context));
+      OO_LOG_ERR("script.javaScript.load.waitingException",
+                 "Prior to loading script {}, there was a pending JavaScript "
+                 "exception, which has been cleared. This is an internal "
+                 "error, please report it.",
+                 path.value_or("(null)"));
     }
 
-    if (problem.has_value()) {
-        OO_LOG("script.javaScript.load.failed", "***** Error loading JavaScript script {} -- {}", path.value_or("(null)"), *problem);
-        if (context != NULL && JS_HasException(context))
-            OOJSReportPendingException(context);
-        // (was DESTROY(self) here: scriptWithPath() drops the script when this answers false, after
-        // the context below is relinquished)
+    // Set up JS object
+    if (!problem.has_value()) {
+      _jsSelf = JS_NewObjectClass(context, (int)sScriptClassID);
+      if (JS_IsException(_jsSelf)) {
+        JS_FreeValue(context, JS_GetException(context));
+        _jsSelf = JS_UNDEFINED;
+        problem = "allocation failure";
+      }
     }
-
-    OOJSRelinquishContext(context);
 
     if (!problem.has_value()) {
-        oo::NotificationCenter::defaultCenter().addObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-            OOJavaScriptEngine::sharedEngine(),
-            [this](const oo::Notification& notification) { javaScriptEngineWillReset(notification); });
+      // (the slot held the script's weak reference proxy, retained)
+      if (!OOJSSetCxxPrivate(_jsSelf, oo::makeRef<ScriptPrivate>(this).get())) {
+        problem = "could not set private backreference";
+      }
     }
 
-    return !problem.has_value();
-}
+    // Push self on stack of running scripts.
+    RunningStack stackElement = {.back = sRunningStack,
+                                 .current = oo::WeakRef<OOJSScript>(this)};
+    sRunningStack = &stackElement;
 
-OOJSScript::~OOJSScript()
-{
-    oo::NotificationCenter::defaultCenter().removeObserver(this, kOOJavaScriptEngineWillResetNotificationName,
-        OOJavaScriptEngine::sharedEngine());
+    _filePath = path;
 
-    if (JS_IsObject(_jsSelf)) {
-        JSContext* context = OOJSAcquireContext();
-
-        // Release weakref to self, as the finalizer would; the JS object may outlive us.
-        OOJSCxxObjectWrapperFinalize(JS_GetRuntime(context), _jsSelf);
-        JS_FreeValue(context, _jsSelf);
-        _jsSelf = JS_UNDEFINED;
-
-        OOJSRelinquishContext(context);
-    }
-}
-
-std::optional<std::string> OOJSScript::jsClassName()
-{
-    return std::string("Script");
-}
-
-std::optional<std::string> OOJSScript::descriptionComponents()
-{
-    if (JS_IsObject(_jsSelf))
-        return OOScript::descriptionComponents();
-    else
-        return "invalid script";
-}
-
-void OOJSScript::javaScriptEngineWillReset(const oo::Notification&)
-{
-    // All scripts become invalid when the JS engine resets.
-    if (JS_IsObject(_jsSelf)) {
-        JS_FreeValue(OOJSAcquireContext(), _jsSelf);
-        _jsSelf = JS_UNDEFINED;
-    }
-}
-
-OOJSScript* OOJSScript::currentlyRunningScript()
-{
-    if (sRunningStack == NULL)
-        return NULL;
-    return sRunningStack->current.get();
-}
-
-std::vector<oo::Ref<OOJSScript>> OOJSScript::scriptStack()
-{
-    std::vector<oo::Ref<OOJSScript>> result;
-
-    AddStackToArrayReversed(result, sRunningStack);
-    return result;
-}
-
-std::optional<std::string> OOJSScript::name()
-{
-    // (the property as text: a string is itself, anything else its -description)
-    if (!_name.has_value())
-        _name = DescriptionOrNil(propertyNamed("name"));
-    if (!_name.has_value())
-        return scriptNameFromPath(_filePath); // Special case for parse errors during load.
-    return _name;
-}
-
-std::optional<std::string> OOJSScript::scriptDescription()
-{
-    return _description;
-}
-
-std::optional<std::string> OOJSScript::version()
-{
-    return _version;
-}
-
-void OOJSScript::runWithTarget(Entity*)
-{
-}
-
-bool OOJSScript::callMethod(JSAtom methodID,
-    JSContext* context,
-    JSValueConst* argv, int argc,
-    JSValue* outResult)
-{
-    OOCParameterAssert(_name.has_value() && (argv != NULL || argc == 0) && context != NULL);
-    if (outResult != NULL)
-        *outResult = JS_UNDEFINED;
-    if (!JS_IsObject(_jsSelf))
-        return false;
-
-    bool OK = false;
-
-    JSValue method = JS_GetProperty(context, _jsSelf, methodID);
-    if (EXPECT_NOT(JS_IsException(method))) {
-        OOJSReportPendingException(context);
-        return false;
+    // Set default properties from manifest.plist
+    // Order-sensitive: the properties are set in key order (they were set in
+    // hash order).
+    const oo::PList::Dict defaultProperties = defaultPropertiesFromPath(path);
+    for (const auto& [key, property] : defaultProperties) {
+      if (key == kLocalManifestProperty) {
+        // this must not be editable
+        defineProperty(property, key);
+      } else {
+        // can be overwritten by script itself
+        setProperty(property, key);
+      }
     }
 
-    if (EXPECT(!JS_IsUndefined(method))) {
-#ifndef NDEBUG
-        if (JS_HasException(context)) {
-            OO_LOG("script.internalBug", "Exception pending on context before calling method in {}, clearing. This is an internal error, please report it.", __PRETTY_FUNCTION__);
-            JS_FreeValue(context, JS_GetException(context));
+    // Set properties. (read-only)
+    // Order-sensitive: defined in key order (they were defined in hash order).
+    if (!problem.has_value() && !properties.isNull()) {
+      if (const oo::PList::Dict* propertyDict =
+              properties.getIf<oo::PList::Dict>()) {
+        for (const auto& [key, property] : *propertyDict) {
+          defineProperty(property, key);
         }
+      }
+    }
 
-        OO_LOG("script.javaScript.call", "Calling [{}].{}()", name().value_or("(null)"), (cxx_OOStringFromJSID(methodID)).value_or("(null)"));
-        oo::log::indentIf("script.javaScript.call");
+    /*	Set initial name (in case of script error during initial run).
+            The "name" ivar is not set here, so the property can be fetched from
+       JS if we fail during setup. However, the "name" ivar is set later so that
+            the script object can't be renamed after the initial run. This could
+            probably also be achieved by fiddling with JS property attributes.
+    */
+    JSAtom nameID = OOJSID("name");
+    setProperty(oo::PList(scriptNameFromPath(path)), nameID, context);
+
+    // Run the script (allowing it to set up the properties we need, as well as
+    // setting up those event handlers)
+    if (!problem.has_value()) {
+      OO_LOG("script.javaScript.willLoad", "About to load JavaScript {}",
+             path.value_or("(null)"));
+      oo::log::indentIf("script.javaScript.willLoad");
+
+      if (!RunScriptWithName(context, path, _jsSelf, &problem)) {
+        if (!problem.has_value()) problem = "could not run script";
+      }
+    }
+
+    sRunningStack = stackElement.back;
+
+    if (!problem.has_value()) {
+      checkForTickle(context);
+
+      // Get display attributes from script
+      _name.reset();
+      _name = StrippedName(DescriptionOrNil(propertyWithID(nameID, context)));
+      if (!_name.has_value()) {
+        _name = scriptNameFromPath(path);
+        setProperty(oo::PList(*_name), nameID, context);
+      }
+
+      _version = DescriptionOrNil(propertyWithID(OOJSID("version"), context));
+      _description =
+          DescriptionOrNil(propertyWithID(OOJSID("description"), context));
+
+      OO_LOG("script.javaScript.load.success", "Loaded JavaScript: {} -- {}",
+             displayName().value_or("(null)"),
+             _description.value_or("(no description)"));
+    }
+
+    oo::log::outdentIf("script.javaScript.willLoad");
+
+    _filePath.reset();  // Only used for error reporting during startup.
+  }
+
+  if (problem.has_value()) {
+    OO_LOG("script.javaScript.load.failed",
+           "***** Error loading JavaScript script {} -- {}",
+           path.value_or("(null)"), *problem);
+    if (context != NULL && JS_HasException(context))
+      OOJSReportPendingException(context);
+    // (was DESTROY(self) here: scriptWithPath() drops the script when this
+    // answers false, after the context below is relinquished)
+  }
+
+  OOJSRelinquishContext(context);
+
+  if (!problem.has_value()) {
+    oo::NotificationCenter::defaultCenter().addObserver(
+        this, kOOJavaScriptEngineWillResetNotificationName,
+        OOJavaScriptEngine::sharedEngine(),
+        [this](const oo::Notification& notification) {
+          javaScriptEngineWillReset(notification);
+        });
+  }
+
+  return !problem.has_value();
+}
+
+OOJSScript::~OOJSScript() {
+  oo::NotificationCenter::defaultCenter().removeObserver(
+      this, kOOJavaScriptEngineWillResetNotificationName,
+      OOJavaScriptEngine::sharedEngine());
+
+  if (JS_IsObject(_jsSelf)) {
+    JSContext* context = OOJSAcquireContext();
+
+    // Release weakref to self, as the finalizer would; the JS object may
+    // outlive us.
+    OOJSCxxObjectWrapperFinalize(JS_GetRuntime(context), _jsSelf);
+    JS_FreeValue(context, _jsSelf);
+    _jsSelf = JS_UNDEFINED;
+
+    OOJSRelinquishContext(context);
+  }
+}
+
+std::optional<std::string> OOJSScript::jsClassName() {
+  return std::string("Script");
+}
+
+std::optional<std::string> OOJSScript::descriptionComponents() {
+  if (JS_IsObject(_jsSelf))
+    return OOScript::descriptionComponents();
+  else
+    return "invalid script";
+}
+
+void OOJSScript::javaScriptEngineWillReset(const oo::Notification&) {
+  // All scripts become invalid when the JS engine resets.
+  if (JS_IsObject(_jsSelf)) {
+    JS_FreeValue(OOJSAcquireContext(), _jsSelf);
+    _jsSelf = JS_UNDEFINED;
+  }
+}
+
+OOJSScript* OOJSScript::currentlyRunningScript() {
+  if (sRunningStack == NULL) return NULL;
+  return sRunningStack->current.get();
+}
+
+std::vector<oo::Ref<OOJSScript>> OOJSScript::scriptStack() {
+  std::vector<oo::Ref<OOJSScript>> result;
+
+  AddStackToArrayReversed(result, sRunningStack);
+  return result;
+}
+
+std::optional<std::string> OOJSScript::name() {
+  // (the property as text: a string is itself, anything else its -description)
+  if (!_name.has_value()) _name = DescriptionOrNil(propertyNamed("name"));
+  if (!_name.has_value())
+    return scriptNameFromPath(
+        _filePath);  // Special case for parse errors during load.
+  return _name;
+}
+
+std::optional<std::string> OOJSScript::scriptDescription() {
+  return _description;
+}
+
+std::optional<std::string> OOJSScript::version() { return _version; }
+
+void OOJSScript::runWithTarget(Entity*) {}
+
+bool OOJSScript::callMethod(JSAtom methodID, JSContext* context,
+                            JSValueConst* argv, int argc, JSValue* outResult) {
+  OOCParameterAssert(_name.has_value() && (argv != NULL || argc == 0) &&
+                     context != NULL);
+  if (outResult != NULL) *outResult = JS_UNDEFINED;
+  if (!JS_IsObject(_jsSelf)) return false;
+
+  bool OK = false;
+
+  JSValue method = JS_GetProperty(context, _jsSelf, methodID);
+  if (EXPECT_NOT(JS_IsException(method))) {
+    OOJSReportPendingException(context);
+    return false;
+  }
+
+  if (EXPECT(!JS_IsUndefined(method))) {
+#ifndef NDEBUG
+    if (JS_HasException(context)) {
+      OO_LOG("script.internalBug",
+             "Exception pending on context before calling method in {}, "
+             "clearing. This is an internal error, please report it.",
+             __PRETTY_FUNCTION__);
+      JS_FreeValue(context, JS_GetException(context));
+    }
+
+    OO_LOG("script.javaScript.call", "Calling [{}].{}()",
+           name().value_or("(null)"),
+           (cxx_OOStringFromJSID(methodID)).value_or("(null)"));
+    oo::log::indentIf("script.javaScript.call");
 #endif
 
-        // Push self on stack of running scripts.
-        RunningStack stackElement = {
-            .back = sRunningStack,
-            .current = oo::WeakRef<OOJSScript>(this)
-        };
-        sRunningStack = &stackElement;
+    // Push self on stack of running scripts.
+    RunningStack stackElement = {.back = sRunningStack,
+                                 .current = oo::WeakRef<OOJSScript>(this)};
+    sRunningStack = &stackElement;
 
-        // Call the method.
-        OOJSStartTimeLimiter();
-        JSValue result = JS_Call(context, method, _jsSelf, argc, argv);
-        OOJSStopTimeLimiter();
+    // Call the method.
+    OOJSStartTimeLimiter();
+    JSValue result = JS_Call(context, method, _jsSelf, argc, argv);
+    OOJSStopTimeLimiter();
 
-        if (JS_IsException(result)) {
-            OOJSReportPendingException(context);
-            OK = false;
-        } else {
-            OK = true;
-            if (outResult != NULL)
-                *outResult = result;
-            else
-                JS_FreeValue(context, result);
-        }
+    if (JS_IsException(result)) {
+      OOJSReportPendingException(context);
+      OK = false;
+    } else {
+      OK = true;
+      if (outResult != NULL)
+        *outResult = result;
+      else
+        JS_FreeValue(context, result);
+    }
 
-        // Pop running scripts stack
-        sRunningStack = stackElement.back;
+    // Pop running scripts stack
+    sRunningStack = stackElement.back;
 
 #ifndef NDEBUG
-        oo::log::outdentIf("script.javaScript.call");
+    oo::log::outdentIf("script.javaScript.call");
 #endif
-    }
+  }
 
-    JS_FreeValue(context, method);
-    return OK;
+  JS_FreeValue(context, method);
+  return OK;
 }
 
-oo::PList OOJSScript::propertyWithID(JSAtom propID, JSContext* context)
-{
-    OOCParameterAssert(context != NULL);
-    if (!JS_IsObject(_jsSelf))
-        return oo::PList();
+oo::PList OOJSScript::propertyWithID(JSAtom propID, JSContext* context) {
+  OOCParameterAssert(context != NULL);
+  if (!JS_IsObject(_jsSelf)) return oo::PList();
 
-    JSValue jsValue = JS_GetProperty(context, _jsSelf, propID);
-    if (JS_IsException(jsValue)) {
-        JS_FreeValue(context, JS_GetException(context));
-        return oo::PList();
-    }
+  JSValue jsValue = JS_GetProperty(context, _jsSelf, propID);
+  if (JS_IsException(jsValue)) {
+    JS_FreeValue(context, JS_GetException(context));
+    return oo::PList();
+  }
 
-    oo::PList result = cxx_OOJSPListFromJSValue(context, jsValue);
-    JS_FreeValue(context, jsValue);
-    return result;
+  oo::PList result = cxx_OOJSPListFromJSValue(context, jsValue);
+  JS_FreeValue(context, jsValue);
+  return result;
 }
 
-bool OOJSScript::setProperty(const oo::PList& value, JSAtom propID, JSContext* context)
-{
-    OOCParameterAssert(context != NULL);
-    if (!JS_IsObject(_jsSelf))
-        return false;
+bool OOJSScript::setProperty(const oo::PList& value, JSAtom propID,
+                             JSContext* context) {
+  OOCParameterAssert(context != NULL);
+  if (!JS_IsObject(_jsSelf)) return false;
 
-    // JS_SetProperty() takes ownership of the value.
-    return JS_SetProperty(context, _jsSelf, propID, OOJSValueFromPList(context, value)) >= 0;
+  // JS_SetProperty() takes ownership of the value.
+  return JS_SetProperty(context, _jsSelf, propID,
+                        OOJSValueFromPList(context, value)) >= 0;
 }
 
-bool OOJSScript::defineProperty(const oo::PList& value, JSAtom propID, JSContext* context)
-{
-    OOCParameterAssert(context != NULL);
-    if (!JS_IsObject(_jsSelf))
-        return false;
+bool OOJSScript::defineProperty(const oo::PList& value, JSAtom propID,
+                                JSContext* context) {
+  OOCParameterAssert(context != NULL);
+  if (!JS_IsObject(_jsSelf)) return false;
 
-    // JS_DefinePropertyValue() takes ownership of the value.
-    return JS_DefinePropertyValue(context, _jsSelf, propID, OOJSValueFromPList(context, value), OOJS_PROP_READONLY) >= 0;
+  // JS_DefinePropertyValue() takes ownership of the value.
+  return JS_DefinePropertyValue(context, _jsSelf, propID,
+                                OOJSValueFromPList(context, value),
+                                OOJS_PROP_READONLY) >= 0;
 }
 
-oo::PList OOJSScript::propertyNamed(const std::string& propName)
-{
-    if (!JS_IsObject(_jsSelf))
-        return oo::PList();
+oo::PList OOJSScript::propertyNamed(const std::string& propName) {
+  if (!JS_IsObject(_jsSelf)) return oo::PList();
 
-    JSContext* context = OOJSAcquireContext();
-    oo::PList result = propertyWithID(cxx_OOJSIDFromString(propName), context);
-    OOJSRelinquishContext(context);
+  JSContext* context = OOJSAcquireContext();
+  oo::PList result = propertyWithID(cxx_OOJSIDFromString(propName), context);
+  OOJSRelinquishContext(context);
 
-    return result;
+  return result;
 }
 
-bool OOJSScript::setProperty(const oo::PList& value, const std::string& propName)
-{
-    if (value.isNull())
-        return false;
-    if (!JS_IsObject(_jsSelf))
-        return false;
+bool OOJSScript::setProperty(const oo::PList& value,
+                             const std::string& propName) {
+  if (value.isNull()) return false;
+  if (!JS_IsObject(_jsSelf)) return false;
 
-    JSContext* context = OOJSAcquireContext();
-    bool result = setProperty(value, cxx_OOJSIDFromString(propName), context);
-    OOJSRelinquishContext(context);
+  JSContext* context = OOJSAcquireContext();
+  bool result = setProperty(value, cxx_OOJSIDFromString(propName), context);
+  OOJSRelinquishContext(context);
 
-    return result;
+  return result;
 }
 
-bool OOJSScript::defineProperty(const oo::PList& value, const std::string& propName)
-{
-    if (value.isNull())
-        return false;
-    if (!JS_IsObject(_jsSelf))
-        return false;
+bool OOJSScript::defineProperty(const oo::PList& value,
+                                const std::string& propName) {
+  if (value.isNull()) return false;
+  if (!JS_IsObject(_jsSelf)) return false;
 
-    JSContext* context = OOJSAcquireContext();
-    bool result = defineProperty(value, cxx_OOJSIDFromString(propName), context);
-    OOJSRelinquishContext(context);
+  JSContext* context = OOJSAcquireContext();
+  bool result = defineProperty(value, cxx_OOJSIDFromString(propName), context);
+  OOJSRelinquishContext(context);
 
-    return result;
+  return result;
 }
 
-JSValue OOJSScript::jsValueInContext(JSContext* context)
-{
-    if (!JS_IsObject(_jsSelf))
-        return JS_UNDEFINED;
-    return JS_DupValue(context, _jsSelf);
+JSValue OOJSScript::jsValueInContext(JSContext* context) {
+  if (!JS_IsObject(_jsSelf)) return JS_UNDEFINED;
+  return JS_DupValue(context, _jsSelf);
 }
 
-// -cxx_oo_jsDescription (OOObjectJSDescription), which toString() answered: "[Script <components>]".
-std::optional<std::string> OOJSScript::jsDescription()
-{
-    const std::string className = jsClassName().value_or("Script");
-    const std::optional<std::string> components = descriptionComponents();
-    if (components.has_value())
-        return oo::str::format("[%s %s]", className.c_str(), components->c_str());
-    return oo::str::format("[object %s]", className.c_str());
+// -cxx_oo_jsDescription (OOObjectJSDescription), which toString() answered:
+// "[Script <components>]".
+std::optional<std::string> OOJSScript::jsDescription() {
+  const std::string className = jsClassName().value_or("Script");
+  const std::optional<std::string> components = descriptionComponents();
+  if (components.has_value())
+    return oo::str::format("[%s %s]", className.c_str(), components->c_str());
+  return oo::str::format("[object %s]", className.c_str());
 }
 
-void OOJSScript::pushScript(OOJSScript* script)
-{
-    RunningStack* element = new (std::nothrow) RunningStack;
-    if (element == NULL)
-        exit(EXIT_FAILURE);
+void OOJSScript::pushScript(OOJSScript* script) {
+  RunningStack* element = new (std::nothrow) RunningStack;
+  if (element == NULL) exit(EXIT_FAILURE);
 
-    element->back = sRunningStack;
-    element->current = script;
-    element->scriptless = (script == nullptr);
-    sRunningStack = element;
+  element->back = sRunningStack;
+  element->current = script;
+  element->scriptless = (script == nullptr);
+  sRunningStack = element;
 }
 
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript>& script)
-{
-    RunningStack* element = new (std::nothrow) RunningStack;
-    if (element == NULL)
-        exit(EXIT_FAILURE);
+void OOJSScript::pushScript(const oo::WeakRef<OOJSScript>& script) {
+  RunningStack* element = new (std::nothrow) RunningStack;
+  if (element == NULL) exit(EXIT_FAILURE);
 
-    element->back = sRunningStack;
-    element->current = script;
-    sRunningStack = element;
+  element->back = sRunningStack;
+  element->current = script;
+  sRunningStack = element;
 }
 
-void OOJSScript::popScript(OOJSScript* script)
-{
-    RunningStack* element = NULL;
+void OOJSScript::popScript(OOJSScript* script) {
+  RunningStack* element = NULL;
 
-    assert(sRunningStack->current.get() == script);
-    (void)script;
+  assert(sRunningStack->current.get() == script);
+  (void)script;
 
-    element = sRunningStack;
-    sRunningStack = sRunningStack->back;
-    delete element;
+  element = sRunningStack;
+  sRunningStack = sRunningStack->back;
+  delete element;
 }
 
-/*	Generate default name for script which doesn't set its name property when
-        first run.
+/*	Generate default name for script which doesn't set its name property
+   when first run.
 
         The generated name is <name>.anon-script, where <name> is selected as
         follows:
         * If path is nil (futureproofing), use the address of the script object.
-        * If the file's name is something other than script.*, use the file name.
+        * If the file's name is something other than script.*, use the file
+   name.
         * If the containing directory is something other than Config, use the
         containing directory's name.
         * Otherwise, use the containing directory's parent (which will generally
@@ -546,67 +541,84 @@ void OOJSScript::popScript(OOJSScript* script)
         * If either of the two previous steps results in an empty string, fall
         back on the full path.
 */
-std::string OOJSScript::scriptNameFromPath(const std::optional<std::string>& path)
-{
-    std::string lastComponent;
-    std::string truncatedPath;
-    std::string theName;
+std::string OOJSScript::scriptNameFromPath(
+    const std::optional<std::string>& path) {
+  std::string lastComponent;
+  std::string truncatedPath;
+  std::string theName;
 
-    if (!path.has_value())
-        theName = oo::str::pointerDescription(this); // (the script's address, as self's was)
+  if (!path.has_value())
+    theName = oo::str::pointerDescription(
+        this);  // (the script's address, as self's was)
+  else {
+    lastComponent = oo::str::lastPathComponent(*path);
+    if (!oo::str::hasPrefix(lastComponent, "script."))
+      theName = lastComponent;
     else {
-        lastComponent = oo::str::lastPathComponent(*path);
-        if (!oo::str::hasPrefix(lastComponent, "script."))
-            theName = lastComponent;
-        else {
-            truncatedPath = oo::str::deletingLastPathComponent(*path);
-            if (0 == oo::str::caseInsensitiveCompare(oo::str::lastPathComponent(truncatedPath), "Config")) {
-                truncatedPath = oo::str::deletingLastPathComponent(truncatedPath);
-            }
-            const std::string extension = oo::str::pathExtension(truncatedPath);
-            if (0 == oo::str::caseInsensitiveCompare(extension, "oxp")) {
-                // -stringByDeletingPathExtension: the ".oxp" at the end goes (the path has no trailing
-                // separator, having just lost a component).
-                truncatedPath.resize(truncatedPath.size() - extension.size() - 1);
-            }
+      truncatedPath = oo::str::deletingLastPathComponent(*path);
+      if (0 == oo::str::caseInsensitiveCompare(
+                   oo::str::lastPathComponent(truncatedPath), "Config")) {
+        truncatedPath = oo::str::deletingLastPathComponent(truncatedPath);
+      }
+      const std::string extension = oo::str::pathExtension(truncatedPath);
+      if (0 == oo::str::caseInsensitiveCompare(extension, "oxp")) {
+        // -stringByDeletingPathExtension: the ".oxp" at the end goes (the path
+        // has no trailing separator, having just lost a component).
+        truncatedPath.resize(truncatedPath.size() - extension.size() - 1);
+      }
 
-            lastComponent = oo::str::lastPathComponent(truncatedPath);
-            theName = lastComponent;
-        }
+      lastComponent = oo::str::lastPathComponent(truncatedPath);
+      theName = lastComponent;
     }
+  }
 
-    if (theName.empty())
-        theName = path.value_or("");
+  if (theName.empty()) theName = path.value_or("");
 
-    return *StrippedName(theName + ".anon-script");
+  return *StrippedName(theName + ".anon-script");
 }
 
-oo::PList::Dict OOJSScript::defaultPropertiesFromPath(const std::optional<std::string>& path)
-{
-    // remove file name, remove OXP subfolder, add manifest.plist (a nil path messaged nil: no manifest)
-    oo::PList manifest = path.has_value() ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(oo::str::deletingLastPathComponent(oo::str::deletingLastPathComponent(*path)), "manifest.plist")) : oo::PList();
-    if (!manifest.isDict())
-        manifest = oo::PList(); // a dictionary or nothing, as OODictionaryFromFile answered (its plist.wrongType line, which named the Foundation class, is not kept)
-    oo::PList::Dict properties;
-    /* __oolite.tmp.* is allocated for OXPs without manifests. Its
-     * values are meaningless and shouldn't be used here */
-    const std::optional<std::string> identifier = StringForKey(manifest, std::string(kOOManifestIdentifier));
-    if (manifest && !(identifier.has_value() && oo::str::hasPrefix(*identifier, "__oolite.tmp."))) {
-        if (manifest.get<oo::PList>(std::string(kOOManifestVersion)) != nullptr) {
-            properties["version"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestVersion)), "version");
-        }
-        if (manifest.get<oo::PList>(std::string(kOOManifestIdentifier)) != nullptr) {
-            // used for system info
-            properties[kLocalManifestProperty] = ValueForKey(identifier, kLocalManifestProperty);
-        }
-        if (manifest.get<oo::PList>(std::string(kOOManifestAuthor)) != nullptr) {
-            properties["author"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestAuthor)), "author");
-        }
-        if (manifest.get<oo::PList>(std::string(kOOManifestLicense)) != nullptr) {
-            properties["license"] = ValueForKey(StringForKey(manifest, std::string(kOOManifestLicense)), "license");
-        }
+oo::PList::Dict OOJSScript::defaultPropertiesFromPath(
+    const std::optional<std::string>& path) {
+  // remove file name, remove OXP subfolder, add manifest.plist (a nil path
+  // messaged nil: no manifest)
+  oo::PList manifest =
+      path.has_value()
+          ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(
+                oo::str::deletingLastPathComponent(
+                    oo::str::deletingLastPathComponent(*path)),
+                "manifest.plist"))
+          : oo::PList();
+  if (!manifest.isDict())
+    manifest = oo::PList();  // a dictionary or nothing, as OODictionaryFromFile
+                             // answered (its plist.wrongType line, which named
+                             // the Foundation class, is not kept)
+  oo::PList::Dict properties;
+  /* __oolite.tmp.* is allocated for OXPs without manifests. Its
+   * values are meaningless and shouldn't be used here */
+  const std::optional<std::string> identifier =
+      StringForKey(manifest, std::string(kOOManifestIdentifier));
+  if (manifest && !(identifier.has_value() &&
+                    oo::str::hasPrefix(*identifier, "__oolite.tmp."))) {
+    if (manifest.get<oo::PList>(std::string(kOOManifestVersion)) != nullptr) {
+      properties["version"] = ValueForKey(
+          StringForKey(manifest, std::string(kOOManifestVersion)), "version");
     }
-    return properties;
+    if (manifest.get<oo::PList>(std::string(kOOManifestIdentifier)) !=
+        nullptr) {
+      // used for system info
+      properties[kLocalManifestProperty] =
+          ValueForKey(identifier, kLocalManifestProperty);
+    }
+    if (manifest.get<oo::PList>(std::string(kOOManifestAuthor)) != nullptr) {
+      properties["author"] = ValueForKey(
+          StringForKey(manifest, std::string(kOOManifestAuthor)), "author");
+    }
+    if (manifest.get<oo::PList>(std::string(kOOManifestLicense)) != nullptr) {
+      properties["license"] = ValueForKey(
+          StringForKey(manifest, std::string(kOOManifestLicense)), "license");
+    }
+  }
+  return properties;
 }
 
 /*	Complain about scripts using the tickle event handler. SpiderMonkey
@@ -614,165 +626,182 @@ oo::PList::Dict OOJSScript::defaultPropertiesFromPath(const std::optional<std::s
         hook, so check once the script's top level has run (which is where
         handlers are normally defined).
 */
-void OOJSScript::checkForTickle(JSContext* context)
-{
-    JSValue tickle = JS_GetPropertyStr(context, _jsSelf, "tickle");
-    if (JS_IsException(tickle)) {
-        JS_FreeValue(context, JS_GetException(context));
-    } else if (!JS_IsUndefined(tickle)) {
-        cxx_OOJSReportWarning(context, "Script %s appears to use the tickle() event handler, which is no longer supported.", name().value_or("(null)").c_str());
-    }
-    JS_FreeValue(context, tickle);
+void OOJSScript::checkForTickle(JSContext* context) {
+  JSValue tickle = JS_GetPropertyStr(context, _jsSelf, "tickle");
+  if (JS_IsException(tickle)) {
+    JS_FreeValue(context, JS_GetException(context));
+  } else if (!JS_IsUndefined(tickle)) {
+    cxx_OOJSReportWarning(context,
+                          "Script %s appears to use the tickle() event "
+                          "handler, which is no longer supported.",
+                          name().value_or("(null)").c_str());
+  }
+  JS_FreeValue(context, tickle);
 }
 
-void InitOOJSScript(JSContext* context, JSValueConst global)
-{
-    OOJSRegisterClass(&sScriptClassID, &sScriptClass);
-    OOJSInitClass(context, global, sScriptClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, NULL, 0, sScriptMethods, OOJS_COUNT(sScriptMethods), NULL, 0);
-    OOJSRegisterObjectConverter(sScriptClassID, ScriptConverter);
+void InitOOJSScript(JSContext* context, JSValueConst global) {
+  OOJSRegisterClass(&sScriptClassID, &sScriptClass);
+  OOJSInitClass(context, global, sScriptClassID, JS_UNDEFINED,
+                OOJSUnconstructableConstruct, 0, NULL, 0, sScriptMethods,
+                OOJS_COUNT(sScriptMethods), NULL, 0);
+  OOJSRegisterObjectConverter(sScriptClassID, ScriptConverter);
 }
 
-// OOJSBasicPrivateObjectConverter for the slot's weak reference: the script's node, null once it
-// has gone (as the dead reference's referent was nil) or for the prototype.
-static oo::PList ScriptConverter(JSContext* /*context*/, JSValueConst object)
-{
-    return OOScriptObjectNode(ScriptOfJSObject(object));
+// OOJSBasicPrivateObjectConverter for the slot's weak reference: the script's
+// node, null once it has gone (as the dead reference's referent was nil) or for
+// the prototype.
+static oo::PList ScriptConverter(JSContext* /*context*/, JSValueConst object) {
+  return OOScriptObjectNode(ScriptOfJSObject(object));
 }
 
-// OOJSObjectWrapperToString for the slot's weak reference, as OOJSCxxObjectWrapperToString answers
-// for a slot that is its own glue: the script's jsDescription(), else "[object Script]" (once it
-// has gone, as for nil, and for the prototype); a `this` of another class as before.
-static JSValue ScriptToString(OOJS_NATIVE_ARGS)
-{
-    OOJS_NATIVE_ENTER(context)
+// OOJSObjectWrapperToString for the slot's weak reference, as
+// OOJSCxxObjectWrapperToString answers for a slot that is its own glue: the
+// script's jsDescription(), else "[object Script]" (once it has gone, as for
+// nil, and for the prototype); a `this` of another class as before.
+static JSValue ScriptToString(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
 
-    if (!OOJSIsMemberOfSubclass(context, OOJS_THIS, sScriptClassID)) {
-        return OOJSObjectWrapperToString(context, OOJS_THIS, argc, OOJS_ARGV);
-    }
+  if (!OOJSIsMemberOfSubclass(context, OOJS_THIS, sScriptClassID)) {
+    return OOJSObjectWrapperToString(context, OOJS_THIS, argc, OOJS_ARGV);
+  }
 
-    OOJSScript* script = ScriptOfJSObject(OOJS_THIS);
-    std::optional<std::string> description = (script != nullptr) ? script->jsDescription() : std::nullopt;
-    if (!description.has_value()) {
-        const char* className = OOJSClassName(JS_GetClassID(OOJS_THIS));
-        description = oo::str::format("[object %s]", className != NULL ? className : "");
-    }
+  OOJSScript* script = ScriptOfJSObject(OOJS_THIS);
+  std::optional<std::string> description =
+      (script != nullptr) ? script->jsDescription() : std::nullopt;
+  if (!description.has_value()) {
+    const char* className = OOJSClassName(JS_GetClassID(OOJS_THIS));
+    description =
+        oo::str::format("[object %s]", className != NULL ? className : "");
+  }
 
-    OOJS_RETURN_STRING_OR_NULL(description);
+  OOJS_RETURN_STRING_OR_NULL(description);
 
-    OOJS_NATIVE_EXIT
+  OOJS_NATIVE_EXIT
 }
 
-static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array, RunningStack* stack)
-{
-    if (stack != NULL) {
-        AddStackToArrayReversed(array, stack->back);
-        // -addObject: raised on the nil a script-less push leaves (GNUstep 1.31.1's text). A weak
-        // push whose script has gone was a dead weak reference proxy, not nil: it is a null entry.
-        if (stack->scriptless)
-            OORaiseException(OOInvalidArgumentException, "Tried to add nil to array");
-        array.emplace_back(stack->current.get());
-    }
+static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array,
+                                    RunningStack* stack) {
+  if (stack != NULL) {
+    AddStackToArrayReversed(array, stack->back);
+    // -addObject: raised on the nil a script-less push leaves (GNUstep 1.31.1's
+    // text). A weak push whose script has gone was a dead weak reference proxy,
+    // not nil: it is a null entry.
+    if (stack->scriptless)
+      OORaiseException(OOInvalidArgumentException, "Tried to add nil to array");
+    array.emplace_back(stack->current.get());
+  }
 }
 
 /*	Compile and run a script file with object as its this and, unless the
         script opts out with the "use oolite modern" directive, at the head of
         its scope chain.
 */
-static bool RunScriptWithName(JSContext* context, const std::optional<std::string>& path, JSValueConst object, std::optional<std::string>* outErrorMessage)
-{
-    std::optional<std::string> utf8Contents;
+static bool RunScriptWithName(JSContext* context,
+                              const std::optional<std::string>& path,
+                              JSValueConst object,
+                              std::optional<std::string>* outErrorMessage) {
+  std::optional<std::string> utf8Contents;
 
-    OOCParameterAssert(outErrorMessage != NULL);
-    outErrorMessage->reset();
+  OOCParameterAssert(outErrorMessage != NULL);
+  outErrorMessage->reset();
 
-    // decodeUnicodeText (it read through .oxz archives)
-    if (path.has_value()) {
-        if (const std::optional<oo::Data> bytes = OODataFromOXZFile(*path))
-            utf8Contents = oo::str::decodeUnicodeText(bytes->stringView());
-    }
-    if (!utf8Contents.has_value()) {
-        *outErrorMessage = "could not load file";
-        return false;
-    }
+  // decodeUnicodeText (it read through .oxz archives)
+  if (path.has_value()) {
+    if (const std::optional<oo::Data> bytes = OODataFromOXZFile(*path))
+      utf8Contents = oo::str::decodeUnicodeText(bytes->stringView());
+  }
+  if (!utf8Contents.has_value()) {
+    *outErrorMessage = "could not load file";
+    return false;
+  }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    /* FIXME: this isn't strictly the right test, since strict
-     * mode can be enabled with this string within a function
-     * definition, but it seems unlikely anyone is actually doing
-     * that here. */
-    if (utf8Contents->find("\"use strict\";") == std::string::npos && utf8Contents->find("'use strict';") == std::string::npos) {
-        cxx_OOStandardsDeprecated("Script " + path.value_or("(null)") + " does not \"use strict\";"); // "%@" of the path
-        if (OOEnforceStandards()) {
-            // prepend it anyway (before wrapping: see OOJSWrapScriptSource())
-            // TODO: some time after 1.82, make this required
-            utf8Contents = "\"use strict\";\n" + *utf8Contents;
-        }
+  /* FIXME: this isn't strictly the right test, since strict
+   * mode can be enabled with this string within a function
+   * definition, but it seems unlikely anyone is actually doing
+   * that here. */
+  if (utf8Contents->find("\"use strict\";") == std::string::npos &&
+      utf8Contents->find("'use strict';") == std::string::npos) {
+    cxx_OOStandardsDeprecated("Script " + path.value_or("(null)") +
+                              " does not \"use strict\";");  // "%@" of the path
+    if (OOEnforceStandards()) {
+      // prepend it anyway (before wrapping: see OOJSWrapScriptSource())
+      // TODO: some time after 1.82, make this required
+      utf8Contents = "\"use strict\";\n" + *utf8Contents;
     }
+  }
 #endif
 
-    /*	Scripts marked with the "use oolite modern" directive (for example by
-            tools/oxp-upgrade) don't rely on SpiderMonkey 1.8.5 scoping, so they
-            run without its emulation: no with(this) and no const rewrite.
-    */
-    std::string wrapped;
-    bool modern = HasModernScopeDirective(*utf8Contents);
-    if (modern) {
-        OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.", path.value_or("(null)"));
-        const char* lineEnd = oo::str::hasSuffix(*utf8Contents, "\n") ? "" : "\n";
-        wrapped = "(function(){" + *utf8Contents + lineEnd + "})";
-    } else {
-        wrapped = "(function(){" + OOJSWrapScriptSource(RewriteLegacyConst(context, *utf8Contents)) + "})";
-    }
+  /*	Scripts marked with the "use oolite modern" directive (for example by
+          tools/oxp-upgrade) don't rely on SpiderMonkey 1.8.5 scoping, so they
+          run without its emulation: no with(this) and no const rewrite.
+  */
+  std::string wrapped;
+  bool modern = HasModernScopeDirective(*utf8Contents);
+  if (modern) {
+    OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.",
+           path.value_or("(null)"));
+    const char* lineEnd = oo::str::hasSuffix(*utf8Contents, "\n") ? "" : "\n";
+    wrapped = "(function(){" + *utf8Contents + lineEnd + "})";
+  } else {
+    wrapped = "(function(){" +
+              OOJSWrapScriptSource(RewriteLegacyConst(context, *utf8Contents)) +
+              "})";
+  }
 
-    /*	QuickJS runs compiled (and cached) code only with the global object as
-            its this (JS_EvalFunction()), so the wrapped script is compiled as a
-            function expression, which is then called with the script object as
-            this. The extra prefix is on the first line, so line numbers are
-            unchanged.
-    */
-    JSValue compiled = JS_UNDEFINED;
+  /*	QuickJS runs compiled (and cached) code only with the global object as
+          its this (JS_EvalFunction()), so the wrapped script is compiled as a
+          function expression, which is then called with the script object as
+          this. The extra prefix is on the first line, so line numbers are
+          unchanged.
+  */
+  JSValue compiled = JS_UNDEFINED;
 #if OO_CACHE_JS_SCRIPTS
-    compiled = CachedCompiledScript(context, path.value_or(""), wrapped); // (a nil path was the key "")
+  compiled = CachedCompiledScript(context, path.value_or(""),
+                                  wrapped);  // (a nil path was the key "")
 #endif
 
-    if (JS_IsUndefined(compiled)) {
-        // JS_Eval requires a terminating NUL, which std::string's c_str() has.
-        compiled = JS_Eval(context, wrapped.c_str(), wrapped.size(), path.has_value() ? path->c_str() : NULL, JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
-        if (JS_IsException(compiled)) {
-            OOJSReportPendingException(context);
-            *outErrorMessage = "compilation failed";
-            return false;
-        }
+  if (JS_IsUndefined(compiled)) {
+    // JS_Eval requires a terminating NUL, which std::string's c_str() has.
+    compiled = JS_Eval(context, wrapped.c_str(), wrapped.size(),
+                       path.has_value() ? path->c_str() : NULL,
+                       JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
+    if (JS_IsException(compiled)) {
+      OOJSReportPendingException(context);
+      *outErrorMessage = "compilation failed";
+      return false;
+    }
 #if OO_CACHE_JS_SCRIPTS
-        CacheCompiledScript(context, path.value_or(""), wrapped, compiled);
+    CacheCompiledScript(context, path.value_or(""), wrapped, compiled);
 #endif
-    }
+  }
 
-    OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-    JSValue result;
-    JSValue function = JS_EvalFunction(context, compiled); // Takes ownership of compiled.
-    if (JS_IsException(function)) {
-        result = function;
-    } else {
-        result = JS_Call(context, function, object, 0, NULL);
-        JS_FreeValue(context, function);
-    }
-    OOJSStopTimeLimiter();
+  OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
+  JSValue result;
+  JSValue function =
+      JS_EvalFunction(context, compiled);  // Takes ownership of compiled.
+  if (JS_IsException(function)) {
+    result = function;
+  } else {
+    result = JS_Call(context, function, object, 0, NULL);
+    JS_FreeValue(context, function);
+  }
+  OOJSStopTimeLimiter();
 
-    if (JS_IsException(result)) {
-        OOJSReportPendingException(context);
-        *outErrorMessage = "could not run script";
-        return false;
-    }
+  if (JS_IsException(result)) {
+    OOJSReportPendingException(context);
+    *outErrorMessage = "could not run script";
+    return false;
+  }
 
-    JS_FreeValue(context, result);
-    return true;
+  JS_FreeValue(context, result);
+  return true;
 }
 
 #if OO_CACHE_JS_SCRIPTS
 /*	Compiled scripts are cached by path, like the SpiderMonkey version's XDR
-        data, but under a different cache name. Each entry also records a hash of
-        the exact text that was compiled (after the const rewrite and wrapping),
+        data, but under a different cache name. Each entry also records a hash
+   of the exact text that was compiled (after the const rewrite and wrapping),
         the QuickJS version and the entry format, and is only used if all three
         match. As before, the whole cache is cleared when the Oolite version or
         the search paths change (see OOCacheManager and ResourceManager).
@@ -783,84 +812,103 @@ static constexpr char kCompiledScriptKeyEngine[] = "engine";
 static constexpr char kCompiledScriptKeyFormat[] = "format";
 static constexpr char kCompiledScriptKeyBytecode[] = "bytecode";
 enum {
-    kCompiledScriptFormat = 1 // Increment when the compiled text or the way it is run changes.
+  kCompiledScriptFormat =
+      1  // Increment when the compiled text or the way it is run changes.
 };
 
-// 64-bit FNV-1a and length. Only needs to detect changed source, not resist tampering.
-static std::string SourceHash(std::string_view source)
-{
-    uint64_t hash = 0xcbf29ce484222325ULL;
-    for (char c : source) {
-        hash ^= static_cast<unsigned char>(c);
-        hash *= 0x100000001b3ULL;
-    }
-    return oo::str::format("%016llx:%lu", (unsigned long long)hash, (unsigned long)source.size());
+// 64-bit FNV-1a and length. Only needs to detect changed source, not resist
+// tampering.
+static std::string SourceHash(std::string_view source) {
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  for (char c : source) {
+    hash ^= static_cast<unsigned char>(c);
+    hash *= 0x100000001b3ULL;
+  }
+  return oo::str::format("%016llx:%lu", (unsigned long long)hash,
+                         (unsigned long)source.size());
 }
 
 // The entry's member, or null.
-static const oo::PList* EntryMember(const oo::PList::Dict& entry, const char* key)
-{
-    auto found = entry.find(key);
-    return (found != entry.end()) ? &found->second : nullptr;
+static const oo::PList* EntryMember(const oo::PList::Dict& entry,
+                                    const char* key) {
+  auto found = entry.find(key);
+  return (found != entry.end()) ? &found->second : nullptr;
 }
 
-// Owned compiled script from the cache, or JS_UNDEFINED if there is no usable entry.
-static JSValue CachedCompiledScript(JSContext* context, const std::string& path, std::string_view source)
-{
-    const oo::PList cached = OOCacheManager::sharedCache()->pListForKey(path, kCompiledScriptCache);
-    const oo::PList::Dict* entry = cached.getIf<oo::PList::Dict>();
-    if (entry == nullptr)
-        return JS_UNDEFINED;
+// Owned compiled script from the cache, or JS_UNDEFINED if there is no usable
+// entry.
+static JSValue CachedCompiledScript(JSContext* context, const std::string& path,
+                                    std::string_view source) {
+  const oo::PList cached =
+      OOCacheManager::sharedCache()->pListForKey(path, kCompiledScriptCache);
+  const oo::PList::Dict* entry = cached.getIf<oo::PList::Dict>();
+  if (entry == nullptr) return JS_UNDEFINED;
 
-    const oo::PList* bytecode = EntryMember(*entry, kCompiledScriptKeyBytecode);
-    const oo::PList* format = EntryMember(*entry, kCompiledScriptKeyFormat);
-    const oo::PList* engine = EntryMember(*entry, kCompiledScriptKeyEngine);
-    const oo::PList* hash = EntryMember(*entry, kCompiledScriptKeyHash);
-    const oo::Data* bytecodeData = (bytecode != nullptr) ? bytecode->getIf<oo::PList::Data>() : nullptr;
-    const oo::PList::Integer* formatNumber = (format != nullptr) ? format->getIf<oo::PList::Integer>() : nullptr;
-    const std::string* engineName = (engine != nullptr) ? engine->getIf<std::string>() : nullptr;
-    const std::string* hashText = (hash != nullptr) ? hash->getIf<std::string>() : nullptr;
-    if (bytecodeData == nullptr
-        || formatNumber == nullptr || formatNumber->value != kCompiledScriptFormat
-        || engineName == nullptr || *engineName != JS_GetVersion()
-        || hashText == nullptr || *hashText != SourceHash(source)) {
-        OO_LOG("script.javaScript.cache.stale", "Compiled script cache entry for {} is out of date.", path);
-        return JS_UNDEFINED;
-    }
+  const oo::PList* bytecode = EntryMember(*entry, kCompiledScriptKeyBytecode);
+  const oo::PList* format = EntryMember(*entry, kCompiledScriptKeyFormat);
+  const oo::PList* engine = EntryMember(*entry, kCompiledScriptKeyEngine);
+  const oo::PList* hash = EntryMember(*entry, kCompiledScriptKeyHash);
+  const oo::Data* bytecodeData =
+      (bytecode != nullptr) ? bytecode->getIf<oo::PList::Data>() : nullptr;
+  const oo::PList::Integer* formatNumber =
+      (format != nullptr) ? format->getIf<oo::PList::Integer>() : nullptr;
+  const std::string* engineName =
+      (engine != nullptr) ? engine->getIf<std::string>() : nullptr;
+  const std::string* hashText =
+      (hash != nullptr) ? hash->getIf<std::string>() : nullptr;
+  if (bytecodeData == nullptr || formatNumber == nullptr ||
+      formatNumber->value != kCompiledScriptFormat || engineName == nullptr ||
+      *engineName != JS_GetVersion() || hashText == nullptr ||
+      *hashText != SourceHash(source)) {
+    OO_LOG("script.javaScript.cache.stale",
+           "Compiled script cache entry for {} is out of date.", path);
+    return JS_UNDEFINED;
+  }
 
-    // Trusted input: the cache is written only by CacheCompiledScript().
-    JSValue compiled = JS_ReadObject(context, bytecodeData->bytes(), bytecodeData->length(), JS_READ_OBJ_BYTECODE);
-    if (JS_IsException(compiled)) {
-        JS_FreeValue(context, JS_GetException(context));
-        OO_LOG("script.javaScript.cache.readFailed", "Could not read compiled script cache entry for {}; compiling instead.", path);
-        return JS_UNDEFINED;
-    }
+  // Trusted input: the cache is written only by CacheCompiledScript().
+  JSValue compiled =
+      JS_ReadObject(context, bytecodeData->bytes(), bytecodeData->length(),
+                    JS_READ_OBJ_BYTECODE);
+  if (JS_IsException(compiled)) {
+    JS_FreeValue(context, JS_GetException(context));
+    OO_LOG(
+        "script.javaScript.cache.readFailed",
+        "Could not read compiled script cache entry for {}; compiling instead.",
+        path);
+    return JS_UNDEFINED;
+  }
 
-    OO_LOG("script.javaScript.cache.load", "Loaded compiled script {} from cache.", path);
-    return compiled;
+  OO_LOG("script.javaScript.cache.load",
+         "Loaded compiled script {} from cache.", path);
+  return compiled;
 }
 
-static void CacheCompiledScript(JSContext* context, const std::string& path, std::string_view source, JSValueConst compiled)
-{
-    size_t length = 0;
-    uint8_t* bytes = JS_WriteObject(context, &length, compiled, JS_WRITE_OBJ_BYTECODE);
-    if (bytes == NULL) {
-        if (JS_HasException(context))
-            JS_FreeValue(context, JS_GetException(context));
-        return;
-    }
+static void CacheCompiledScript(JSContext* context, const std::string& path,
+                                std::string_view source,
+                                JSValueConst compiled) {
+  size_t length = 0;
+  uint8_t* bytes =
+      JS_WriteObject(context, &length, compiled, JS_WRITE_OBJ_BYTECODE);
+  if (bytes == NULL) {
+    if (JS_HasException(context))
+      JS_FreeValue(context, JS_GetException(context));
+    return;
+  }
 
-    oo::Data bytecode(bytes, length);
-    js_free(context, bytes);
+  oo::Data bytecode(bytes, length);
+  js_free(context, bytes);
 
-    oo::PList::Dict entry;
-    entry.emplace(kCompiledScriptKeyBytecode, oo::PList(std::move(bytecode)));
-    entry.emplace(kCompiledScriptKeyHash, oo::PList(SourceHash(source)));
-    entry.emplace(kCompiledScriptKeyEngine, oo::PList(std::string(JS_GetVersion())));
-    entry.emplace(kCompiledScriptKeyFormat, oo::PList::unsignedInteger(kCompiledScriptFormat));
+  oo::PList::Dict entry;
+  entry.emplace(kCompiledScriptKeyBytecode, oo::PList(std::move(bytecode)));
+  entry.emplace(kCompiledScriptKeyHash, oo::PList(SourceHash(source)));
+  entry.emplace(kCompiledScriptKeyEngine,
+                oo::PList(std::string(JS_GetVersion())));
+  entry.emplace(kCompiledScriptKeyFormat,
+                oo::PList::unsignedInteger(kCompiledScriptFormat));
 
-    OOCacheManager::sharedCache()->setPList(oo::PList(std::move(entry)), path, kCompiledScriptCache);
-    OO_LOG("script.javaScript.cache.store", "Cached compiled script {}.", path);
+  OOCacheManager::sharedCache()->setPList(oo::PList(std::move(entry)), path,
+                                          kCompiledScriptCache);
+  OO_LOG("script.javaScript.cache.store", "Cached compiled script {}.", path);
 }
 #endif
 
@@ -869,168 +917,166 @@ static void CacheCompiledScript(JSContext* context, const std::string& path, std
         source is UTF-8; the white space it skips includes U+00A0 and U+FEFF,
         as the UTF-16 scan did.
 */
-static bool HasModernScopeDirective(std::string_view source)
-{
-    const std::size_t length = source.size();
-    std::size_t i = 0;
-    auto byteAt = [&](std::size_t k) { return static_cast<unsigned char>(source[k]); };
-    auto isBOM = [&](std::size_t k) { return k + 2 < length && byteAt(k) == 0xEF && byteAt(k + 1) == 0xBB && byteAt(k + 2) == 0xBF; };
-    auto isNBSP = [&](std::size_t k) { return k + 1 < length && byteAt(k) == 0xC2 && byteAt(k + 1) == 0xA0; };
+static bool HasModernScopeDirective(std::string_view source) {
+  const std::size_t length = source.size();
+  std::size_t i = 0;
+  auto byteAt = [&](std::size_t k) {
+    return static_cast<unsigned char>(source[k]);
+  };
+  auto isBOM = [&](std::size_t k) {
+    return k + 2 < length && byteAt(k) == 0xEF && byteAt(k + 1) == 0xBB &&
+           byteAt(k + 2) == 0xBF;
+  };
+  auto isNBSP = [&](std::size_t k) {
+    return k + 1 < length && byteAt(k) == 0xC2 && byteAt(k + 1) == 0xA0;
+  };
 
-    if (isBOM(0))
-        i = 3;
+  if (isBOM(0)) i = 3;
 
-    for (;;) {
-        // Skip white space and comments.
-        bool skipped = true;
-        while (skipped && i < length) {
-            skipped = false;
-            char c = source[i];
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-                i++;
-                skipped = true;
-            } else if (isNBSP(i)) {
-                i += 2;
-                skipped = true;
-            } else if (isBOM(i)) {
-                i += 3;
-                skipped = true;
-            } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
-                while (i < length && source[i] != '\n')
-                    i++;
-                skipped = true;
-            } else if (c == '/' && i + 1 < length && source[i + 1] == '*') {
-                std::size_t end = source.find("*/", i + 2);
-                if (end == std::string_view::npos)
-                    return false;
-                i = end + 2;
-                skipped = true;
-            }
-        }
-        if (i >= length)
-            return false;
-
-        // A directive: a string literal, followed by ; or a line break.
-        char quote = source[i];
-        if (quote != '"' && quote != '\'')
-            return false;
-        std::size_t start = ++i;
-        bool escaped = false;
-        while (i < length && source[i] != quote) {
-            char c = source[i];
-            if (c == '\\') {
-                escaped = true;
-                i++;
-            }
-            if (c == '\n')
-                return false;
-            i++;
-        }
-        if (i >= length)
-            return false;
-        std::string_view directive = source.substr(start, i - start);
+  for (;;) {
+    // Skip white space and comments.
+    bool skipped = true;
+    while (skipped && i < length) {
+      skipped = false;
+      char c = source[i];
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
         i++;
-
-        bool lineBreak = false;
-        while (i < length) {
-            char c = source[i];
-            if (c == '\n') {
-                lineBreak = true;
-            } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
-                while (i < length && source[i] != '\n')
-                    i++;
-                continue;
-            } else if (c != ' ' && c != '\t' && c != '\r') {
-                break;
-            }
-            i++;
-        }
-        if (i < length && source[i] == ';')
-            i++;
-        else if (!lineBreak && i < length && source[i] != '}')
-            return false; // Part of a larger expression, so not a directive.
-
-        if (!escaped && directive == "use oolite modern")
-            return true;
+        skipped = true;
+      } else if (isNBSP(i)) {
+        i += 2;
+        skipped = true;
+      } else if (isBOM(i)) {
+        i += 3;
+        skipped = true;
+      } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
+        while (i < length && source[i] != '\n') i++;
+        skipped = true;
+      } else if (c == '/' && i + 1 < length && source[i + 1] == '*') {
+        std::size_t end = source.find("*/", i + 2);
+        if (end == std::string_view::npos) return false;
+        i = end + 2;
+        skipped = true;
+      }
     }
+    if (i >= length) return false;
+
+    // A directive: a string literal, followed by ; or a line break.
+    char quote = source[i];
+    if (quote != '"' && quote != '\'') return false;
+    std::size_t start = ++i;
+    bool escaped = false;
+    while (i < length && source[i] != quote) {
+      char c = source[i];
+      if (c == '\\') {
+        escaped = true;
+        i++;
+      }
+      if (c == '\n') return false;
+      i++;
+    }
+    if (i >= length) return false;
+    std::string_view directive = source.substr(start, i - start);
+    i++;
+
+    bool lineBreak = false;
+    while (i < length) {
+      char c = source[i];
+      if (c == '\n') {
+        lineBreak = true;
+      } else if (c == '/' && i + 1 < length && source[i + 1] == '/') {
+        while (i < length && source[i] != '\n') i++;
+        continue;
+      } else if (c != ' ' && c != '\t' && c != '\r') {
+        break;
+      }
+      i++;
+    }
+    if (i < length && source[i] == ';')
+      i++;
+    else if (!lineBreak && i < length && source[i] != '}')
+      return false;  // Part of a larger expression, so not a directive.
+
+    if (!escaped && directive == "use oolite modern") return true;
+  }
 }
 
-/*	In SpiderMonkey 1.8.5, const declarations were function-scoped and usable
-        before the declaration, like var; under ES2015 rules they are
+/*	In SpiderMonkey 1.8.5, const declarations were function-scoped and
+   usable before the declaration, like var; under ES2015 rules they are
         block-scoped with a temporal dead zone, which breaks some OXPs. The
-        compatibility script's const rewriter (OOJSLegacyConstRewriter()) replaces the const
-        keyword with var (keeping line and column positions).
+        compatibility script's const rewriter (OOJSLegacyConstRewriter())
+   replaces the const keyword with var (keeping line and column positions).
 
-        The rewriter is interpreted JavaScript, and a ship script is loaded again
-        for every ship that uses it, so results are kept for the rest of the
+        The rewriter is interpreted JavaScript, and a ship script is loaded
+   again for every ship that uses it, so results are kept for the rest of the
         session, keyed by the source text.
 */
-static std::string RewriteLegacyConst(JSContext* context, const std::string& source)
-{
-    static std::unordered_map<std::string, std::string> sRewritten;
+static std::string RewriteLegacyConst(JSContext* context,
+                                      const std::string& source) {
+  static std::unordered_map<std::string, std::string> sRewritten;
 
-    if (source.find("const") == std::string::npos)
-        return source;
+  if (source.find("const") == std::string::npos) return source;
 
-    const auto cached = sRewritten.find(source);
-    if (cached != sRewritten.end())
-        return cached->second;
+  const auto cached = sRewritten.find(source);
+  if (cached != sRewritten.end()) return cached->second;
 
-    JSValueConst rewriter = OOJSLegacyConstRewriter();
-    std::string result = source;
+  JSValueConst rewriter = OOJSLegacyConstRewriter();
+  std::string result = source;
 
-    if (JS_IsFunction(context, rewriter)) {
-        JSValue argument = JS_NewStringLen(context, source.data(), source.size());
-        JSValue rewritten = JS_Call(context, rewriter, JS_UNDEFINED, 1, (JSValueConst*)&argument);
-        if (JS_IsException(rewritten)) {
-            OOJSReportPendingException(context);
-        } else {
-            result = cxx_OOStringFromJSValue(context, rewritten).value_or(source);
-            sRewritten.emplace(source, result);
-        }
-        JS_FreeValue(context, rewritten);
-        JS_FreeValue(context, argument);
+  if (JS_IsFunction(context, rewriter)) {
+    JSValue argument = JS_NewStringLen(context, source.data(), source.size());
+    JSValue rewritten =
+        JS_Call(context, rewriter, JS_UNDEFINED, 1, (JSValueConst*)&argument);
+    if (JS_IsException(rewritten)) {
+      OOJSReportPendingException(context);
+    } else {
+      result = cxx_OOStringFromJSValue(context, rewritten).value_or(source);
+      sRewritten.emplace(source, result);
     }
+    JS_FreeValue(context, rewritten);
+    JS_FreeValue(context, argument);
+  }
 
-    return result;
+  return result;
 }
 
-// -stringByTrimmingCharactersInSet: of "_", space, tab, LF, CR and VT (all ASCII, so UTF-8 bytes).
-static std::optional<std::string> StrippedName(const std::optional<std::string>& string)
-{
-    if (!string.has_value())
-        return std::nullopt;
-    static constexpr std::string_view kInvalid = "_ \t\n\r\v";
-    const std::size_t first = string->find_first_not_of(kInvalid);
-    if (first == std::string::npos)
-        return std::string();
-    const std::size_t last = string->find_last_not_of(kInvalid);
-    return string->substr(first, last - first + 1);
+// -stringByTrimmingCharactersInSet: of "_", space, tab, LF, CR and VT (all
+// ASCII, so UTF-8 bytes).
+static std::optional<std::string> StrippedName(
+    const std::optional<std::string>& string) {
+  if (!string.has_value()) return std::nullopt;
+  static constexpr std::string_view kInvalid = "_ \t\n\r\v";
+  const std::size_t first = string->find_first_not_of(kInvalid);
+  if (first == std::string::npos) return std::string();
+  const std::size_t last = string->find_last_not_of(kInvalid);
+  return string->substr(first, last - first + 1);
 }
 
-static std::optional<std::string> DescriptionOrNil(const oo::PList& value)
-{
-    if (value.isNull())
-        return std::nullopt;
-    if (const std::string* string = value.getIf<std::string>())
-        return *string; // a string's -description is itself
-    // Anything else prints as the object form did (cxx_OOJSPListFromJSValue() is oo::PListFrom() of it).
-    return oo::DescriptionOf(value);
+static std::optional<std::string> DescriptionOrNil(const oo::PList& value) {
+  if (value.isNull()) return std::nullopt;
+  if (const std::string* string = value.getIf<std::string>())
+    return *string;  // a string's -description is itself
+  // Anything else prints as the object form did (cxx_OOJSPListFromJSValue() is
+  // oo::PListFrom() of it).
+  return oo::DescriptionOf(value);
 }
 
-// -oo_stringForKey: with its nil: the string, a number's -stringValue, or nothing.
-static std::optional<std::string> StringForKey(const oo::PList& dictionary, const std::string& key)
-{
-    const oo::PList* value = dictionary.get<oo::PList>(key);
-    if (value == nullptr || !(value->isString() || value->isNumber()))
-        return std::nullopt;
-    return dictionary.get<std::string>(key);
+// -oo_stringForKey: with its nil: the string, a number's -stringValue, or
+// nothing.
+static std::optional<std::string> StringForKey(const oo::PList& dictionary,
+                                               const std::string& key) {
+  const oo::PList* value = dictionary.get<oo::PList>(key);
+  if (value == nullptr || !(value->isString() || value->isNumber()))
+    return std::nullopt;
+  return dictionary.get<std::string>(key);
 }
 
-// A string value for -setObject:forKey:, which raised on nil (GNUstep 1.31.1's text).
-static std::string ValueForKey(const std::optional<std::string>& value, std::string_view key)
-{
-    if (!value.has_value())
-        OORaiseException(OOInvalidArgumentException, "Tried to add nil value for key '%s' to dictionary", std::string(key).c_str());
-    return *value;
+// A string value for -setObject:forKey:, which raised on nil (GNUstep 1.31.1's
+// text).
+static std::string ValueForKey(const std::optional<std::string>& value,
+                               std::string_view key) {
+  if (!value.has_value())
+    OORaiseException(OOInvalidArgumentException,
+                     "Tried to add nil value for key '%s' to dictionary",
+                     std::string(key).c_str());
+  return *value;
 }

@@ -25,18 +25,19 @@ SOFTWARE.
 
 */
 
+#include "OOALSoundMixer.h"
+
 #include <assert.h>
 
 #include "OOALSound.h"
 #include "OOALSoundChannel.h"
-#include "OOALSoundMixer.h"
 #include "OOFoundation.h"
 
 namespace {
 
 OOSoundMixer* sSingleton = nullptr;
 
-} // namespace
+}  // namespace
 
 /*	The singleton category recorded the mixer in +allocWithZone:, before
    -init ran; it is recorded first here too. -init's failure ([super release],
@@ -44,81 +45,72 @@ OOSoundMixer* sSingleton = nullptr;
    null instead, and the next call asks again: a dangling singleton was
    undefined behaviour.
 */
-OOSoundMixer* OOSoundMixer::sharedMixer()
-{
-    if (nullptr == sSingleton) {
-        sSingleton = oo::makeRef<OOSoundMixer>().leakRef();
-        if (!sSingleton->init()) {
-            OOSoundMixer* failed = sSingleton;
-            sSingleton = nullptr;
-            oo::release(failed);
-        }
+OOSoundMixer* OOSoundMixer::sharedMixer() {
+  if (nullptr == sSingleton) {
+    sSingleton = oo::makeRef<OOSoundMixer>().leakRef();
+    if (!sSingleton->init()) {
+      OOSoundMixer* failed = sSingleton;
+      sSingleton = nullptr;
+      oo::release(failed);
     }
-    return sSingleton;
+  }
+  return sSingleton;
 }
 
 // The body of -init after [super init].
-bool OOSoundMixer::init()
-{
-    bool OK = true;
-    uint32_t idx = 0, count = kMixerGeneralChannels;
-    oo::Ref<OOSoundChannel> channel;
+bool OOSoundMixer::init() {
+  bool OK = true;
+  uint32_t idx = 0, count = kMixerGeneralChannels;
+  oo::Ref<OOSoundChannel> channel;
 
-    if (!OOSound::setUp())
-        OK = false;
+  if (!OOSound::setUp()) OK = false;
 
-    if (OK) {
-        // Allocate channels
-        do {
-            channel = oo::makeRef<OOSoundChannel>();
-            if (!channel->init())
-                channel = nullptr; // [[OOSoundChannel alloc] init] answered nil
-            if (nullptr != channel) {
-                pushChannel(channel.get());
-                _channels[idx++] = channel.leakRef(); // the reference alloc/init gave
-            }
-        } while (--count);
-    }
+  if (OK) {
+    // Allocate channels
+    do {
+      channel = oo::makeRef<OOSoundChannel>();
+      if (!channel->init())
+        channel = nullptr;  // [[OOSoundChannel alloc] init] answered nil
+      if (nullptr != channel) {
+        pushChannel(channel.get());
+        _channels[idx++] = channel.leakRef();  // the reference alloc/init gave
+      }
+    } while (--count);
+  }
 
-    return OK;
+  return OK;
 }
 
 // only to be called at app shutdown by OOOpenALController::shutdown
-void OOSoundMixer::shutdown()
-{
-    uint32_t i;
-    for (i = 0; i < kMixerGeneralChannels; ++i) {
-        if (_channels[i] != nullptr)
-            oo::release(_channels[i]); // DESTROY
-        _channels[i] = nullptr;
-    }
+void OOSoundMixer::shutdown() {
+  uint32_t i;
+  for (i = 0; i < kMixerGeneralChannels; ++i) {
+    if (_channels[i] != nullptr) oo::release(_channels[i]);  // DESTROY
+    _channels[i] = nullptr;
+  }
 }
 
-void OOSoundMixer::update()
-{
-    uint32_t i;
-    for (i = 0; i < kMixerGeneralChannels; ++i) {
-        if (_channels[i] != nullptr)
-            _channels[i]->update();
-    }
+void OOSoundMixer::update() {
+  uint32_t i;
+  for (i = 0; i < kMixerGeneralChannels; ++i) {
+    if (_channels[i] != nullptr) _channels[i]->update();
+  }
 }
 
-OOSoundChannel* OOSoundMixer::popChannel()
-{
-    OOSoundChannel* channel = _freeList;
-    _freeList = channel != nullptr ? channel->next() : nullptr; // a message to nil answered nil
-    if (channel != nullptr)
-        channel->setNext(nullptr);
+OOSoundChannel* OOSoundMixer::popChannel() {
+  OOSoundChannel* channel = _freeList;
+  _freeList = channel != nullptr ? channel->next()
+                                 : nullptr;  // a message to nil answered nil
+  if (channel != nullptr) channel->setNext(nullptr);
 
-    return channel;
+  return channel;
 }
 
-void OOSoundMixer::pushChannel(OOSoundChannel* channel)
-{
-    assert(channel != nullptr);
+void OOSoundMixer::pushChannel(OOSoundChannel* channel) {
+  assert(channel != nullptr);
 
-    channel->setNext(_freeList);
-    _freeList = channel;
+  channel->setNext(_freeList);
+  _freeList = channel;
 }
 
 // The singleton category (+allocWithZone:, -retain and the rest) is not

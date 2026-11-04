@@ -35,7 +35,7 @@ SOFTWARE.
 #include <optional>
 #include <string>
 
-#include "OOFoundation.h" // NSRange
+#include "OOFoundation.h"  // NSRange
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
@@ -45,43 +45,43 @@ class OODebugMonitor;
 // (oo::Ref).
 
 class OODebuggerInterface : public oo::RefCounted {
-public:
-    // Configuration and console text use oo::PList / std::string.
+ public:
+  // Configuration and console text use oo::PList / std::string.
 
-    // Sent to establish connection. *message: error text when the connect fails.
-    virtual bool connectDebugMonitor(OODebugMonitor* debugMonitor,
-        std::optional<std::string>* message) = 0;
+  // Sent to establish connection. *message: error text when the connect fails.
+  virtual bool connectDebugMonitor(OODebugMonitor* debugMonitor,
+                                   std::optional<std::string>* message) = 0;
 
-    // Sent to close connection. message: nullopt when none.
-    virtual void disconnectDebugMonitor(
-        OODebugMonitor* debugMonitor,
-        const std::optional<std::string>& message) = 0;
+  // Sent to close connection. message: nullopt when none.
+  virtual void disconnectDebugMonitor(
+      OODebugMonitor* debugMonitor,
+      const std::optional<std::string>& message) = 0;
 
-    // Sent to print to the JavaScript console.
-    // colorKey is intended to be used to look up a foreground/background colour
-    // pair in the configuration. EmphasisRange is to specify a bold section of
-    // text.
-    virtual void debugMonitor(OODebugMonitor* debugMonitor,
-        const std::string& output,
-        const std::optional<std::string>& colorKey,
-        NSRange emphasisRange) = 0;
+  // Sent to print to the JavaScript console.
+  // colorKey is intended to be used to look up a foreground/background colour
+  // pair in the configuration. EmphasisRange is to specify a bold section of
+  // text.
+  virtual void debugMonitor(OODebugMonitor* debugMonitor,
+                            const std::string& output,
+                            const std::optional<std::string>& colorKey,
+                            NSRange emphasisRange) = 0;
 
-    // Sent to clear the JavaScript console.
-    virtual void debugMonitorClearConsole(OODebugMonitor* debugMonitor) = 0;
+  // Sent to clear the JavaScript console.
+  virtual void debugMonitorClearConsole(OODebugMonitor* debugMonitor) = 0;
 
-    // Sent to show the console, for instance in response to a warning or error
-    // message.
-    virtual void debugMonitorShowConsole(OODebugMonitor* debugMonitor) = 0;
+  // Sent to show the console, for instance in response to a warning or error
+  // message.
+  virtual void debugMonitorShowConsole(OODebugMonitor* debugMonitor) = 0;
 
-    // Sent once when the debugger is connected.
-    virtual void debugMonitor(OODebugMonitor* debugMonitor,
-        const oo::PList& configuration) = 0;
+  // Sent once when the debugger is connected.
+  virtual void debugMonitor(OODebugMonitor* debugMonitor,
+                            const oo::PList& configuration) = 0;
 
-    // Sent when configuration changes. newValue null = was nil.
-    virtual void debugMonitor(OODebugMonitor* debugMonitor,
-        const oo::PList& newValue,
-        const std::string& key) = 0;
+  // Sent when configuration changes. newValue null = was nil.
+  virtual void debugMonitor(OODebugMonitor* debugMonitor,
+                            const oo::PList& newValue,
+                            const std::string& key) = 0;
 
-    // What the monitor's log lines print for the debugger (<ClassName 0x...>).
-    virtual std::string description() const = 0;
+  // What the monitor's log lines print for the debugger (<ClassName 0x...>).
+  virtual std::string description() const = 0;
 };

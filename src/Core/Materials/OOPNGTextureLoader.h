@@ -43,21 +43,21 @@ SOFTWARE.
    manager.
 */
 class OOPNGTextureLoader : public OOTextureLoader {
-public:
-    ~OOPNGTextureLoader() override; // was -dealloc
+ public:
+  ~OOPNGTextureLoader() override;  // was -dealloc
 
-    void loadTexture() override;
+  void loadTexture() override;
 
-    // Internal: for libpng's read callback (was the private -readBytes:count:).
-    void readBytes(png_bytep bytes, png_size_t count);
+  // Internal: for libpng's read callback (was the private -readBytes:count:).
+  void readBytes(png_bytep bytes, png_size_t count);
 
-private:
-    void doLoadTexture();
+ private:
+  void doLoadTexture();
 
-    png_structp png = { };
-    png_infop pngInfo = { };
-    png_infop pngEndInfo = { };
-    std::optional<oo::Data> fileData;
-    size_t length = { };
-    size_t offset = { };
+  png_structp png = {};
+  png_infop pngInfo = {};
+  png_infop pngEndInfo = {};
+  std::optional<oo::Data> fileData;
+  size_t length = {};
+  size_t offset = {};
 };

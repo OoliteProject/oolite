@@ -25,10 +25,11 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
 
-class ShipEntity; // C++
+#include "OOFoundation.h"
+
+class ShipEntity;  // C++
 
 void InitOOJSShip(JSContext* context, JSValueConst global);
 

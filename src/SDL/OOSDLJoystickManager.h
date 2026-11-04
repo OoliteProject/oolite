@@ -42,33 +42,35 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include "OOJoystickManager.h"
 #include <SDL3/SDL_events.h>
 
+#include "OOFoundation.h"
+#include "OOJoystickManager.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 class OOSDLJoystickManager : public OOJoystickManager {
-public:
-    OOSDLJoystickManager(); // opens the sticks SDL reports (at most MAX_STICKS)
+ public:
+  OOSDLJoystickManager();  // opens the sticks SDL reports (at most MAX_STICKS)
 
-    bool handleSDLEvent(SDL_Event* evt);
-    std::optional<std::string> nameOfJoystick(NSUInteger stickNumber) override; // nullopt: the device has no name
-    int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum) override;
-    SDL_JoyAxisEvent makeJoyAxisEvent(SDL_JoyAxisEvent* sdlevt);
-    SDL_JoyButtonEvent makeJoyButtonEvent(SDL_JoyButtonEvent* sdlevt);
-    SDL_JoyHatEvent makeJoyHatEvent(SDL_JoyHatEvent* sdlevt);
-    NSInteger getJoystickIndexFromId(SDL_JoystickID joystickId);
-    void decodeAxisEvent(SDL_JoyAxisEvent* evt);
-    void decodeButtonEvent(SDL_JoyButtonEvent* evt);
-    void decodeHatEvent(SDL_JoyHatEvent* evt);
+  bool handleSDLEvent(SDL_Event* evt);
+  std::optional<std::string> nameOfJoystick(
+      NSUInteger stickNumber) override;  // nullopt: the device has no name
+  int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum) override;
+  SDL_JoyAxisEvent makeJoyAxisEvent(SDL_JoyAxisEvent* sdlevt);
+  SDL_JoyButtonEvent makeJoyButtonEvent(SDL_JoyButtonEvent* sdlevt);
+  SDL_JoyHatEvent makeJoyHatEvent(SDL_JoyHatEvent* sdlevt);
+  NSInteger getJoystickIndexFromId(SDL_JoystickID joystickId);
+  void decodeAxisEvent(SDL_JoyAxisEvent* evt);
+  void decodeButtonEvent(SDL_JoyButtonEvent* evt);
+  void decodeHatEvent(SDL_JoyHatEvent* evt);
 
-    // Overrides of OOJoystickManager.
-    NSUInteger joystickCount() override;
+  // Overrides of OOJoystickManager.
+  NSUInteger joystickCount() override;
 
-private:
-    std::map<std::string, int, std::less<>> joystickIdMap = { }; // "%d" of an SDL joystick id -> stick index
-    SDL_Joystick* stick[MAX_STICKS] = { };
-    int stickCount = { };
+ private:
+  std::map<std::string, int, std::less<>> joystickIdMap =
+      {};  // "%d" of an SDL joystick id -> stick index
+  SDL_Joystick* stick[MAX_STICKS] = {};
+  int stickCount = {};
 };

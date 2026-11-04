@@ -25,16 +25,17 @@ MA 02110-1301, USA.
 
 */
 
+#include <cxxabi.h>
+
+#include <cstdlib>
+#include <typeinfo>
+
 #include "Entity.h"
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"
 #include "ShipEntity.h"
-#include "oofnd/Ref.hpp" // oo::autorelease
+#include "oofnd/Ref.hpp"  // oo::autorelease
 #include "oofnd/String.hpp"
-
-#include <cstdlib>
-#include <cxxabi.h>
-#include <typeinfo>
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 extern uint32_t gLiveEntityCount;
@@ -43,267 +44,246 @@ extern size_t gTotalEntityMemory;
 
 namespace {
 
-// The parts asked for (ShipPart, EffectPart, the waypoint): each is nullptr for any other entity.
-ShipEntity* ShipPart(Entity* entity) { return dynamic_cast<ShipEntity*>(entity); }
-OOVisualEffectEntity* EffectPart(Entity* entity) { return dynamic_cast<OOVisualEffectEntity*>(entity); }
-OOWaypointEntity* WaypointPart(Entity* entity) { return dynamic_cast<OOWaypointEntity*>(entity); }
-
-} // namespace
-
-Entity* oo::WithObject(Entity* entity)
-{
-    return (entity != nullptr && entity->hasObject()) ? entity : nullptr;
+// The parts asked for (ShipPart, EffectPart, the waypoint): each is nullptr for
+// any other entity.
+ShipEntity* ShipPart(Entity* entity) {
+  return dynamic_cast<ShipEntity*>(entity);
+}
+OOVisualEffectEntity* EffectPart(Entity* entity) {
+  return dynamic_cast<OOVisualEffectEntity*>(entity);
+}
+OOWaypointEntity* WaypointPart(Entity* entity) {
+  return dynamic_cast<OOWaypointEntity*>(entity);
 }
 
-// --- Counts (OOEntityHold.h) ----------------------------------------------------------------------
+}  // namespace
 
-bool oo::detail::EntityHasObject(const Entity* entity) noexcept { return entity != nullptr && entity->hasObject(); }
-void oo::detail::EntityRetain(Entity* entity) noexcept
-{
-    if (entity != nullptr)
-        entity->retain();
-}
-void oo::detail::EntityRelease(Entity* entity) noexcept
-{
-    if (entity != nullptr)
-        entity->release();
+Entity* oo::WithObject(Entity* entity) {
+  return (entity != nullptr && entity->hasObject()) ? entity : nullptr;
 }
 
-Entity* oo::RetainEntity(Entity* entity)
-{
-    if (WithObject(entity) != nullptr)
-        entity->retain();
-    return entity;
+// --- Counts (OOEntityHold.h)
+// ----------------------------------------------------------------------
+
+bool oo::detail::EntityHasObject(const Entity* entity) noexcept {
+  return entity != nullptr && entity->hasObject();
+}
+void oo::detail::EntityRetain(Entity* entity) noexcept {
+  if (entity != nullptr) entity->retain();
+}
+void oo::detail::EntityRelease(Entity* entity) noexcept {
+  if (entity != nullptr) entity->release();
 }
 
-void oo::ReleaseEntity(Entity* entity)
-{
-    if (WithObject(entity) != nullptr)
-        entity->release();
+Entity* oo::RetainEntity(Entity* entity) {
+  if (WithObject(entity) != nullptr) entity->retain();
+  return entity;
 }
 
-Entity* oo::AutoreleaseEntity(Entity* entity)
-{
-    // The caller's +1 goes to the innermost oo::AutoreleaseScope, released at the
-    // same drain and in the same order as -autorelease's object.
-    if (WithObject(entity) != nullptr)
-        oo::autorelease(entity);
-    return entity;
+void oo::ReleaseEntity(Entity* entity) {
+  if (WithObject(entity) != nullptr) entity->release();
 }
 
-Entity* oo::MadeEntityRetained(const Ref<Entity>& entity)
-{
-    if (entity == nullptr)
-        return nullptr;
-    // From here the entity has its object, and it is counted.
-    entity->setMadeWithObject();
+Entity* oo::AutoreleaseEntity(Entity* entity) {
+  // The caller's +1 goes to the innermost oo::AutoreleaseScope, released at the
+  // same drain and in the same order as -autorelease's object.
+  if (WithObject(entity) != nullptr) oo::autorelease(entity);
+  return entity;
+}
+
+Entity* oo::MadeEntityRetained(const Ref<Entity>& entity) {
+  if (entity == nullptr) return nullptr;
+  // From here the entity has its object, and it is counted.
+  entity->setMadeWithObject();
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    gLiveEntityCount++;
-    gTotalEntityMemory += EntityObjectSize(entity.get());
+  gLiveEntityCount++;
+  gTotalEntityMemory += EntityObjectSize(entity.get());
 #endif
-    entity->retain(); // +alloc's object
-    return entity.get();
+  entity->retain();  // +alloc's object
+  return entity.get();
 }
 
-Entity* oo::MadeEntity(const Ref<Entity>& entity)
-{
-    return AutoreleaseEntity(MadeEntityRetained(entity)); // [[... alloc] init...] autorelease]
+Entity* oo::MadeEntity(const Ref<Entity>& entity) {
+  return AutoreleaseEntity(
+      MadeEntityRetained(entity));  // [[... alloc] init...] autorelease]
 }
 
-Entity* oo::EntityInitAgain(Entity* entity)
-{
-    entity->init();
+Entity* oo::EntityInitAgain(Entity* entity) {
+  entity->init();
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    gLiveEntityCount++;
-    gTotalEntityMemory += EntityObjectSize(entity);
+  gLiveEntityCount++;
+  gTotalEntityMemory += EntityObjectSize(entity);
 #endif
-    return entity;
+  return entity;
 }
 
-// --- Descriptions ---------------------------------------------------------------------------------
+// --- Descriptions
+// ---------------------------------------------------------------------------------
 
-std::string oo::EntityClassName(Entity* entity)
-{
-    int status = 0;
-    char* demangled = abi::__cxa_demangle(typeid(*entity).name(), nullptr, nullptr, &status);
-    std::string result = (status == 0 && demangled != nullptr) ? demangled : typeid(*entity).name();
-    std::free(demangled);
-    if (result.starts_with("cxx::"))
-        result.erase(0, 5);
-    return result;
+std::string oo::EntityClassName(Entity* entity) {
+  int status = 0;
+  char* demangled =
+      abi::__cxa_demangle(typeid(*entity).name(), nullptr, nullptr, &status);
+  std::string result = (status == 0 && demangled != nullptr)
+                           ? demangled
+                           : typeid(*entity).name();
+  std::free(demangled);
+  if (result.starts_with("cxx::")) result.erase(0, 5);
+  return result;
 }
 
-std::string oo::EntityOwnDescription(Entity* entity)
-{
-    if (entity == nullptr)
-        return "(null)";
-    // The C++ class's name and components.
-    std::string result = str::format("<%s %s>", EntityClassName(entity).c_str(), str::pointerDescription(entity).c_str());
-    if (const std::optional<std::string> components = entity->descriptionComponents())
-        result += "{" + *components + "}";
-    return result;
+std::string oo::EntityOwnDescription(Entity* entity) {
+  if (entity == nullptr) return "(null)";
+  // The C++ class's name and components.
+  std::string result = str::format("<%s %s>", EntityClassName(entity).c_str(),
+                                   str::pointerDescription(entity).c_str());
+  if (const std::optional<std::string> components =
+          entity->descriptionComponents())
+    result += "{" + *components + "}";
+  return result;
 }
 
-std::string oo::EntityDescription(Entity* entity)
-{
-    return EntityOwnDescription(WithObject(entity)); // "(null)", as DescriptionOf(nil), without its object
+std::string oo::EntityDescription(Entity* entity) {
+  return EntityOwnDescription(WithObject(
+      entity));  // "(null)", as DescriptionOf(nil), without its object
 }
 
-std::string oo::EntityShortDescription(Entity* entity)
-{
-    // Its class (Entity) and address, no components.
-    if (WithObject(entity) == nullptr)
-        return "(null)";
-    return str::format("<Entity %s>", str::pointerDescription(entity).c_str());
+std::string oo::EntityShortDescription(Entity* entity) {
+  // Its class (Entity) and address, no components.
+  if (WithObject(entity) == nullptr) return "(null)";
+  return str::format("<Entity %s>", str::pointerDescription(entity).c_str());
 }
 
-void oo::InspectEntity(Entity* entity)
-{
-    if (WithObject(entity) != nullptr)
-        entity->inspect();
+void oo::InspectEntity(Entity* entity) {
+  if (WithObject(entity) != nullptr) entity->inspect();
 }
 
-// --- The categories' questions -------------------------------------------------------------------
+// --- The categories' questions
+// -------------------------------------------------------------------
 
-bool oo::EntityIsShipWithSubEntityShip(Entity* entity, Entity* other)
-{
-    if (ShipEntity* ship = ShipPart(entity))
-        return ship->isShipWithSubEntityShip(other);
-    OOVisualEffectEntity* effect = EffectPart(entity);
-    return effect != nullptr ? effect->isShipWithSubEntityShip(other) : false;
+bool oo::EntityIsShipWithSubEntityShip(Entity* entity, Entity* other) {
+  if (ShipEntity* ship = ShipPart(entity))
+    return ship->isShipWithSubEntityShip(other);
+  OOVisualEffectEntity* effect = EffectPart(entity);
+  return effect != nullptr ? effect->isShipWithSubEntityShip(other) : false;
 }
 
-bool oo::EntityIsBeacon(Entity* entity)
-{
-    if (ShipEntity* ship = ShipPart(entity))
-        return ship->isBeacon();
-    if (OOVisualEffectEntity* effect = EffectPart(entity))
-        return effect->isBeacon();
-    OOWaypointEntity* waypoint = WaypointPart(entity);
-    return waypoint != nullptr ? waypoint->isBeacon() : false;
+bool oo::EntityIsBeacon(Entity* entity) {
+  if (ShipEntity* ship = ShipPart(entity)) return ship->isBeacon();
+  if (OOVisualEffectEntity* effect = EffectPart(entity))
+    return effect->isBeacon();
+  OOWaypointEntity* waypoint = WaypointPart(entity);
+  return waypoint != nullptr ? waypoint->isBeacon() : false;
 }
 
-/*	The beacon category (Entity (OOWaypointBeacon)) answered these for the ship's, the visual
-        effect's and the waypoint's part, and zero for any other entity; a message to an entity without
-        its object answered nil's zero. The links it answered were the linked entities' objects (+0), so
-        an entity without its object is none.
+/*	The beacon category (Entity (OOWaypointBeacon)) answered these for the
+   ship's, the visual effect's and the waypoint's part, and zero for any other
+   entity; a message to an entity without its object answered nil's zero. The
+   links it answered were the linked entities' objects (+0), so an entity
+   without its object is none.
 */
-Entity* oo::PrevBeacon(Entity* beacon)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return WithObject(ship->prevBeacon());
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return WithObject(effect->prevBeacon());
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return WithObject(waypoint->prevBeacon());
-    return nullptr;
+Entity* oo::PrevBeacon(Entity* beacon) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon))
+    return WithObject(ship->prevBeacon());
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return WithObject(effect->prevBeacon());
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return WithObject(waypoint->prevBeacon());
+  return nullptr;
 }
 
-Entity* oo::NextBeacon(Entity* beacon)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return WithObject(ship->nextBeacon());
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return WithObject(effect->nextBeacon());
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return WithObject(waypoint->nextBeacon());
-    return nullptr;
+Entity* oo::NextBeacon(Entity* beacon) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon))
+    return WithObject(ship->nextBeacon());
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return WithObject(effect->nextBeacon());
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return WithObject(waypoint->nextBeacon());
+  return nullptr;
 }
 
-void oo::SetPrevBeacon(Entity* beacon, Entity* other)
-{
-    beacon = WithObject(beacon);
-    other = WithObject(other);
-    if (ShipEntity* ship = ShipPart(beacon))
-        ship->setPrevBeacon(other);
-    else if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        effect->setPrevBeacon(other);
-    else if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        waypoint->setPrevBeacon(other);
+void oo::SetPrevBeacon(Entity* beacon, Entity* other) {
+  beacon = WithObject(beacon);
+  other = WithObject(other);
+  if (ShipEntity* ship = ShipPart(beacon))
+    ship->setPrevBeacon(other);
+  else if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    effect->setPrevBeacon(other);
+  else if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    waypoint->setPrevBeacon(other);
 }
 
-void oo::SetNextBeacon(Entity* beacon, Entity* other)
-{
-    beacon = WithObject(beacon);
-    other = WithObject(other);
-    if (ShipEntity* ship = ShipPart(beacon))
-        ship->setNextBeacon(other);
-    else if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        effect->setNextBeacon(other);
-    else if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        waypoint->setNextBeacon(other);
+void oo::SetNextBeacon(Entity* beacon, Entity* other) {
+  beacon = WithObject(beacon);
+  other = WithObject(other);
+  if (ShipEntity* ship = ShipPart(beacon))
+    ship->setNextBeacon(other);
+  else if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    effect->setNextBeacon(other);
+  else if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    waypoint->setNextBeacon(other);
 }
 
-std::optional<std::string> oo::BeaconCode(Entity* beacon)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return ship->beaconCode();
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return effect->beaconCode();
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return waypoint->beaconCode();
-    return std::nullopt;
+std::optional<std::string> oo::BeaconCode(Entity* beacon) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon)) return ship->beaconCode();
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return effect->beaconCode();
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return waypoint->beaconCode();
+  return std::nullopt;
 }
 
-void oo::SetBeaconCode(Entity* beacon, const std::optional<std::string>& code)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        ship->setBeaconCode(code);
-    else if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        effect->setBeaconCode(code);
-    else if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        waypoint->setBeaconCode(code);
+void oo::SetBeaconCode(Entity* beacon, const std::optional<std::string>& code) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon))
+    ship->setBeaconCode(code);
+  else if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    effect->setBeaconCode(code);
+  else if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    waypoint->setBeaconCode(code);
 }
 
-OOComparisonResult oo::CompareBeaconCodes(Entity* beacon, Entity* other)
-{
-    beacon = WithObject(beacon);
-    other = WithObject(other);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return ship->compareBeaconCodeWith(other);
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return effect->compareBeaconCodeWith(other);
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return waypoint->compareBeaconCodeWith(other);
-    return (OOComparisonResult)0;
+OOComparisonResult oo::CompareBeaconCodes(Entity* beacon, Entity* other) {
+  beacon = WithObject(beacon);
+  other = WithObject(other);
+  if (ShipEntity* ship = ShipPart(beacon))
+    return ship->compareBeaconCodeWith(other);
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return effect->compareBeaconCodeWith(other);
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return waypoint->compareBeaconCodeWith(other);
+  return (OOComparisonResult)0;
 }
 
-bool oo::BeaconIsJammingScanning(Entity* beacon)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return ship->isJammingScanning();
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return effect->isJammingScanning();
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return waypoint->isJammingScanning();
-    return false;
+bool oo::BeaconIsJammingScanning(Entity* beacon) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon)) return ship->isJammingScanning();
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return effect->isJammingScanning();
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return waypoint->isJammingScanning();
+  return false;
 }
 
-OOHUDBeaconIcon* oo::BeaconDrawable(Entity* beacon)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return ship->beaconDrawable();
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return effect->beaconDrawable();
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return waypoint->beaconDrawable();
-    return nullptr;
+OOHUDBeaconIcon* oo::BeaconDrawable(Entity* beacon) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon)) return ship->beaconDrawable();
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return effect->beaconDrawable();
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return waypoint->beaconDrawable();
+  return nullptr;
 }
 
-std::optional<std::string> oo::BeaconLabel(Entity* beacon)
-{
-    beacon = WithObject(beacon);
-    if (ShipEntity* ship = ShipPart(beacon))
-        return ship->beaconLabel();
-    if (OOVisualEffectEntity* effect = EffectPart(beacon))
-        return effect->beaconLabel();
-    if (OOWaypointEntity* waypoint = WaypointPart(beacon))
-        return waypoint->beaconLabel();
-    return std::nullopt;
+std::optional<std::string> oo::BeaconLabel(Entity* beacon) {
+  beacon = WithObject(beacon);
+  if (ShipEntity* ship = ShipPart(beacon)) return ship->beaconLabel();
+  if (OOVisualEffectEntity* effect = EffectPart(beacon))
+    return effect->beaconLabel();
+  if (OOWaypointEntity* waypoint = WaypointPart(beacon))
+    return waypoint->beaconLabel();
+  return std::nullopt;
 }

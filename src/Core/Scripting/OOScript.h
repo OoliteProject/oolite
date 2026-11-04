@@ -57,49 +57,60 @@ MA 02110-1301, USA.
 class Entity;
 
 class OOScript : public oo::PListForeign, public ::OOJSPrivateObject {
-public:
-    /*	Looks for path/world-scripts.plist, path/script.js, then
-       path/script.plist. May return zero or more scripts; nullopt (was nil) when
-       none could be loaded.
-    */
-    static std::optional<std::vector<oo::Ref<OOScript>>> worldScriptsAtPath(const std::string& path);
+ public:
+  /*	Looks for path/world-scripts.plist, path/script.js, then
+     path/script.plist. May return zero or more scripts; nullopt (was nil) when
+     none could be loaded.
+  */
+  static std::optional<std::vector<oo::Ref<OOScript>>> worldScriptsAtPath(
+      const std::string& path);
 
-    //	Load named scripts from Scripts folders. nullopt where these returned nil.
-    static std::optional<std::vector<oo::Ref<OOScript>>> scriptsFromFileNamed(const std::string& fileName);
-    static std::vector<oo::Ref<OOScript>> scriptsFromList(const std::vector<std::string>& fileNames);
+  //	Load named scripts from Scripts folders. nullopt where these returned
+  //nil.
+  static std::optional<std::vector<oo::Ref<OOScript>>> scriptsFromFileNamed(
+      const std::string& fileName);
+  static std::vector<oo::Ref<OOScript>> scriptsFromList(
+      const std::vector<std::string>& fileNames);
 
-    static std::optional<std::vector<oo::Ref<OOScript>>> scriptsFromFileAtPath(const std::string& filePath);
+  static std::optional<std::vector<oo::Ref<OOScript>>> scriptsFromFileAtPath(
+      const std::string& filePath);
 
-    //	Load a single JavaScript script (an OOJSScript; null where it answered nil). The properties may hold live objects (oo::PList Object nodes).
-    static oo::Ref<OOScript> jsScriptFromFileNamed(const std::string& fileName, const oo::PList& properties);
-    //  As above, but load from the "AIs" directory
-    static oo::Ref<OOScript> jsAIScriptFromFileNamed(const std::string& fileName, const oo::PList& properties);
+  //	Load a single JavaScript script (an OOJSScript; null where it answered
+  //nil). The properties may hold live objects (oo::PList Object nodes).
+  static oo::Ref<OOScript> jsScriptFromFileNamed(const std::string& fileName,
+                                                 const oo::PList& properties);
+  //  As above, but load from the "AIs" directory
+  static oo::Ref<OOScript> jsAIScriptFromFileNamed(const std::string& fileName,
+                                                   const oo::PList& properties);
 
-    // The subclass responsibilities. The root's own answer
-    // none, logging an error.
-    virtual std::optional<std::string> descriptionComponents();
-    virtual std::optional<std::string> name(); // nullopt: none
-    virtual std::optional<std::string> scriptDescription(); // nullopt: none
-    virtual std::optional<std::string> version(); // nullopt: none
-    virtual bool requiresTickle();
-    virtual void runWithTarget(Entity* target); // the C++ entity
+  // The subclass responsibilities. The root's own answer
+  // none, logging an error.
+  virtual std::optional<std::string> descriptionComponents();
+  virtual std::optional<std::string> name();               // nullopt: none
+  virtual std::optional<std::string> scriptDescription();  // nullopt: none
+  virtual std::optional<std::string> version();            // nullopt: none
+  virtual bool requiresTickle();
+  virtual void runWithTarget(Entity* target);  // the C++ entity
 
-    std::optional<std::string> displayName(); // "name version" if version is
-                                              // defined, otherwise just "name".
+  std::optional<std::string> displayName();  // "name version" if version is
+                                             // defined, otherwise just "name".
 
-    /*	OOScript (JavaScriptEvents), which every script answered: call a method. For simplicity,
-            calling methods on non-JS scripts works but does nothing (false). outResult may be NULL;
-            if not, it is owned by the caller.
-    */
-    virtual bool callMethod(JSAtom methodID, JSContext* context, JSValueConst* argv, int argc, JSValue* outResult);
+  /*	OOScript (JavaScriptEvents), which every script answered: call a method.
+     For simplicity, calling methods on non-JS scripts works but does nothing
+     (false). outResult may be NULL; if not, it is owned by the caller.
+  */
+  virtual bool callMethod(JSAtom methodID, JSContext* context,
+                          JSValueConst* argv, int argc, JSValue* outResult);
 
-    // oo::PListForeign: the class name, and the description ("<C++ class address>{components}").
-    std::string className() const override;
-    std::string description() const override;
+  // oo::PListForeign: the class name, and the description ("<C++ class
+  // address>{components}").
+  std::string className() const override;
+  std::string description() const override;
 
-    // OOJSPrivateObject: undefined (OOObject's -oo_jsValueInContext:); a JS script answers its Script object.
-    JSValue jsValueInContext(JSContext* context) override; // owned
-    void clearJSSelf(JSValueConst selfVal) override;
+  // OOJSPrivateObject: undefined (OOObject's -oo_jsValueInContext:); a JS
+  // script answers its Script object.
+  JSValue jsValueInContext(JSContext* context) override;  // owned
+  void clearJSSelf(JSValueConst selfVal) override;
 };
 
 /*	OOScriptAutorelease(): keeps the script until the current autorelease
@@ -112,15 +123,16 @@ void OOScriptAutorelease(oo::Ref<OOScript> script);
 /*	A script carried through plist data as a PList::Object node, as
    oo::PListObject() and oo::ObjectIn() carry it.
 */
-inline oo::PList OOScriptObjectNode(OOScript* script) // null script -> null PList
+inline oo::PList OOScriptObjectNode(
+    OOScript* script)  // null script -> null PList
 {
-    if (script == nullptr)
-        return oo::PList();
-    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(script)));
+  if (script == nullptr) return oo::PList();
+  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(script)));
 }
 
-inline OOScript* OOScriptInObjectNode(const oo::PList& plist) // null for any other node
+inline OOScript* OOScriptInObjectNode(
+    const oo::PList& plist)  // null for any other node
 {
-    const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
-    return (node != nullptr) ? dynamic_cast<OOScript*>(node->get()) : nullptr;
+  const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+  return (node != nullptr) ? dynamic_cast<OOScript*>(node->get()) : nullptr;
 }

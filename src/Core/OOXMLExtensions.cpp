@@ -27,22 +27,24 @@ MA 02110-1301, USA.
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListWriting.hpp"
 
-bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path, std::string* outError)
-{
-    const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(plist);
-    if (!data) {
-        if (outError != nullptr) {
-            *outError = "could not convert property list to XML: " + data.error().description();
-        }
-        return false;
+bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path,
+                           std::string* outError) {
+  const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(plist);
+  if (!data) {
+    if (outError != nullptr) {
+      *outError = "could not convert property list to XML: " +
+                  data.error().description();
     }
+    return false;
+  }
 
-    if (!oo::fs::writeFile(oo::fs::pathFromUTF8(path), *data, oo::fs::WriteMode::atomic)) {
-        if (outError != nullptr) {
-            *outError = "could not write data to " + path + ".";
-        }
-        return false;
+  if (!oo::fs::writeFile(oo::fs::pathFromUTF8(path), *data,
+                         oo::fs::WriteMode::atomic)) {
+    if (outError != nullptr) {
+      *outError = "could not write data to " + path + ".";
     }
+    return false;
+  }
 
-    return true;
+  return true;
 }

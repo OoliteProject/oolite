@@ -30,73 +30,68 @@ SOFTWARE.
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOOpenGL.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-
-#include <optional>
-#include <string>
+#include "oofnd/objc/OOObject.h"
 
 class OOTexture;
 
 class OOProbabilisticTextureManager : public oo::RefCounted {
-public:
-    /*	plistName is the name of the property list specifying the actual textures
-            to use. The plist will be loaded from Config directories and merged. It
-            should contain an array of dictionaries; each dictionary must have a
-            "texture" entry specifying the texture file name (in Textures directories)
-            and an optional "probability" entry (default: 1.0). As a convenience, an
-            entry may also be a string, in which case probability will be 1.0.
+ public:
+  /*	plistName is the name of the property list specifying the actual
+     textures to use. The plist will be loaded from Config directories and
+     merged. It should contain an array of dictionaries; each dictionary must
+     have a "texture" entry specifying the texture file name (in Textures
+     directories) and an optional "probability" entry (default: 1.0). As a
+     convenience, an entry may also be a string, in which case probability will
+     be 1.0.
 
-            If no seed is specified, the current seed will be copied.
+          If no seed is specified, the current seed will be copied.
 
-            Null where no texture loads (-initWithPListName:... answered nil).
-    */
-    static oo::Ref<OOProbabilisticTextureManager> createWithPListName(const std::string& plistName,
-        uint32_t options,
-        GLfloat anisotropy,
-        GLfloat lodBias);
+          Null where no texture loads (-initWithPListName:... answered nil).
+  */
+  static oo::Ref<OOProbabilisticTextureManager> createWithPListName(
+      const std::string& plistName, uint32_t options, GLfloat anisotropy,
+      GLfloat lodBias);
 
-    static oo::Ref<OOProbabilisticTextureManager> createWithPListName(const std::string& plistName,
-        uint32_t options,
-        GLfloat anisotropy,
-        GLfloat lodBias,
-        RANROTSeed seed);
+  static oo::Ref<OOProbabilisticTextureManager> createWithPListName(
+      const std::string& plistName, uint32_t options, GLfloat anisotropy,
+      GLfloat lodBias, RANROTSeed seed);
 
-    /*	Select a texture, weighted-randomly.
-     */
-    OOTexture* selectTexture();
+  /*	Select a texture, weighted-randomly.
+   */
+  OOTexture* selectTexture();
 
-    unsigned textureCount();
+  unsigned textureCount();
 
-    void ensureTexturesLoaded();
+  void ensureTexturesLoaded();
 
-    RANROTSeed seed();
-    void setSeed(RANROTSeed seed);
+  RANROTSeed seed();
+  void setSeed(RANROTSeed seed);
 
-    // What OOObject's -description printed between the braces (OODescription.h).
-    std::optional<std::string> descriptionComponents() const;
+  // What OOObject's -description printed between the braces (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 
-    ~OOProbabilisticTextureManager() override;
+  ~OOProbabilisticTextureManager() override;
 
-private:
-    OOProbabilisticTextureManager() = default; // createWithPListName() runs initWithPListName()
+ private:
+  OOProbabilisticTextureManager() =
+      default;  // createWithPListName() runs initWithPListName()
 
-    bool initWithPListName(const std::string& plistName,
-        uint32_t options,
-        GLfloat anisotropy,
-        GLfloat lodBias,
-        RANROTSeed seed);
+  bool initWithPListName(const std::string& plistName, uint32_t options,
+                         GLfloat anisotropy, GLfloat lodBias, RANROTSeed seed);
 
-    unsigned _count = { };
-    OOTexture** _textures = { };
-    float* _prob = { };
-    int* _galaxy = { };
-    float _probMax = { };
-    float* _probMaxGal = { };
-    RANROTSeed _seed = { };
+  unsigned _count = {};
+  OOTexture** _textures = {};
+  float* _prob = {};
+  int* _galaxy = {};
+  float _probMax = {};
+  float* _probMaxGal = {};
+  RANROTSeed _seed = {};
 };

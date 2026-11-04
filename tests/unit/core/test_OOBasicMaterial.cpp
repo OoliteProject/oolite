@@ -68,8 +68,9 @@ Universe* gSharedUniverse = nullptr;
 
 #include "UniverseStandIn.h"
 
-// The universe as the code under test sees it: a stand-in for the C++ class, with the header's names and signatures.
-// It answers virtual members, so it has the game's vtable (UniverseStandIn.h) and TestUniverse overrides them.
+// The universe as the code under test sees it: a stand-in for the C++ class,
+// with the header's names and signatures. It answers virtual members, so it has
+// the game's vtable (UniverseStandIn.h) and TestUniverse overrides them.
 class Universe : public oo::RefCounted {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS

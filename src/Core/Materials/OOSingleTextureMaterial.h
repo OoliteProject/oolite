@@ -34,47 +34,52 @@ SOFTWARE.
 class OOTexture;
 
 class OOSingleTextureMaterial : public OOBasicMaterial {
-public:
-    /*	A new material, initialised by the initialiser of the same arguments (below); null where
-            the initialiser failed (it answered nil). They were [[OOSingleTextureMaterial alloc] initWith...].
-    */
-    static oo::Ref<OOSingleTextureMaterial> materialWithName(const std::optional<std::string>& name, const oo::PList& configuration);
-    static oo::Ref<OOSingleTextureMaterial> materialWithName(const std::optional<std::string>& name, OOTexture* texture, const oo::PList& configuration);
+ public:
+  /*	A new material, initialised by the initialiser of the same arguments
+     (below); null where the initialiser failed (it answered nil). They were
+     [[OOSingleTextureMaterial alloc] initWith...].
+  */
+  static oo::Ref<OOSingleTextureMaterial> materialWithName(
+      const std::optional<std::string>& name, const oo::PList& configuration);
+  static oo::Ref<OOSingleTextureMaterial> materialWithName(
+      const std::optional<std::string>& name, OOTexture* texture,
+      const oo::PList& configuration);
 
-    /*	In addition to OOBasicMateral configuration keys, an OOTexture
-            configuration dictionary may be used. If there is a "texture" entry, it
-            will be used; otherwise, if there is a "textures" array, its first member
-            will be used.
+  /*	In addition to OOBasicMateral configuration keys, an OOTexture
+          configuration dictionary may be used. If there is a "texture" entry,
+     it will be used; otherwise, if there is a "textures" array, its first
+     member will be used.
 
-            If the found OOTexture config dictionary contains a "name" key, it will be
-            used in preference to the name parameter.
+          If the found OOTexture config dictionary contains a "name" key, it
+     will be used in preference to the name parameter.
 
-            The initialisers run once, right after construction, and answer false
-       on failure.
-    */
-    bool initWithName(
-        const std::optional<std::string>& name,
-        const oo::PList& configuration); // shared with OOBasicMaterial and
-                                         // OOMultiTextureMaterial
+          The initialisers run once, right after construction, and answer false
+     on failure.
+  */
+  bool initWithName(
+      const std::optional<std::string>& name,
+      const oo::PList& configuration);  // shared with OOBasicMaterial and
+                                        // OOMultiTextureMaterial
 
-    /*	Designated initializer. The name is nil-able (the initializer fails
-       without one); the configuration is a material configuration dictionary
-       (Object nodes for live objects such as colours; null for none) and goes to
-       OOBasicMaterial unchanged.
-    */
-    bool initWithName(const std::optional<std::string>& name, OOTexture* texture, const oo::PList& configuration);
+  /*	Designated initializer. The name is nil-able (the initializer fails
+     without one); the configuration is a material configuration dictionary
+     (Object nodes for live objects such as colours; null for none) and goes to
+     OOBasicMaterial unchanged.
+  */
+  bool initWithName(const std::optional<std::string>& name, OOTexture* texture,
+                    const oo::PList& configuration);
 
-    std::optional<std::string> descriptionComponents() const override;
-    bool doApply() override;
-    void unapplyWithNext(OOMaterial* next) override;
-    size_t objectSize() const override { return sizeof *this; }
-    void ensureFinishedLoading() override;
-    bool isFinishedLoading() override;
-    bool wantsNormalsAsTextureCoordinates() override;
+  std::optional<std::string> descriptionComponents() const override;
+  bool doApply() override;
+  void unapplyWithNext(OOMaterial* next) override;
+  size_t objectSize() const override { return sizeof *this; }
+  void ensureFinishedLoading() override;
+  bool isFinishedLoading() override;
+  bool wantsNormalsAsTextureCoordinates() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
-private:
-    oo::Ref<OOTexture> _texture = { };
+ private:
+  oo::Ref<OOTexture> _texture = {};
 };

@@ -37,14 +37,15 @@ MA 02110-1301, USA.
    holds it.
 */
 class OOCheckDemoShipsPListVerifierStage : public OOFileHandlingVerifierStage {
-public:
-    std::optional<std::string> name() override;
-    bool shouldRun() override;
-    void run() override;
+ public:
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
 
-private:
-    // demoshipsPList is an Array, shipdataPList a Dict.
-    void runCheckWithDemoShips(const oo::PList& demoshipsPList, const oo::PList& shipdataPList);
+ private:
+  // demoshipsPList is an Array, shipdataPList a Dict.
+  void runCheckWithDemoShips(const oo::PList& demoshipsPList,
+                             const oo::PList& shipdataPList);
 };
 
 #endif

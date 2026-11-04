@@ -27,35 +27,38 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOEntityWithDrawable.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
-// The universe makes it with oo::makeRef<SkyEntity>() and finds it by dynamic_cast.
+// The universe makes it with oo::makeRef<SkyEntity>() and finds it by
+// dynamic_cast.
 class SkyEntity : public OOEntityWithDrawable {
-public:
-    /*	-initWithColors::andSystemInfo:'s body after [super init] (the constructor ran Entity's), run
-            on a new sky once its object is made.
-    */
-    void initWithColors(OOColor* col1, OOColor* col2, const oo::PList& systemInfo);
-    bool changeProperty(const std::string& key, const oo::PList& dict);
+ public:
+  /*	-initWithColors::andSystemInfo:'s body after [super init] (the
+     constructor ran Entity's), run on a new sky once its object is made.
+  */
+  void initWithColors(OOColor* col1, OOColor* col2,
+                      const oo::PList& systemInfo);
+  bool changeProperty(const std::string& key, const oo::PList& dict);
 
-    OOColor* getSkyColor(); // -skyColor (the ivar keeps the name)
+  OOColor* getSkyColor();  // -skyColor (the ivar keeps the name)
 
-    void update(OOTimeDelta delta_t) override;
-    bool isSky() override;
-    bool isVisible() override;
-    bool canCollide() override;
-    GLfloat cameraRangeFront() override;
-    GLfloat cameraRangeBack() override;
-    void drawImmediate(bool immediate, bool translucent) override;
+  void update(OOTimeDelta delta_t) override;
+  bool isSky() override;
+  bool isVisible() override;
+  bool canCollide() override;
+  GLfloat cameraRangeFront() override;
+  GLfloat cameraRangeBack() override;
+  void drawImmediate(bool immediate, bool translucent) override;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::optional<std::string> descriptionForObjDump() override;
+  std::optional<std::string> descriptionForObjDump() override;
 #endif
 
-private:
-    bool readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor2, oo::Ref<OOColor>* ioColor3, oo::Ref<OOColor>* ioColor4, const oo::PList& dictionary);
+ private:
+  bool readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor2,
+                  oo::Ref<OOColor>* ioColor3, oo::Ref<OOColor>* ioColor4,
+                  const oo::PList& dictionary);
 
-    oo::Ref<OOColor> skyColor;
+  oo::Ref<OOColor> skyColor;
 };

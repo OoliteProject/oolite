@@ -30,8 +30,8 @@ MA 02110-1301, USA.
 #include "Entity.h"
 
 enum {
-    kOOBreakPatternMaxSides = 128,
-    kOOBreakPatternMaxVertices = (kOOBreakPatternMaxSides + 1) * 2
+  kOOBreakPatternMaxSides = 128,
+  kOOBreakPatternMaxVertices = (kOOBreakPatternMaxSides + 1) * 2
 };
 
 #define BREAK_PATTERN_RING_SPACING 50.0
@@ -40,32 +40,32 @@ enum {
 struct OOBreakPatternEntityTestAccess;
 
 class OOBreakPatternEntity : public Entity {
-public:
-    // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring,
-    // initialised.
-    static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(
-        NSUInteger sides, float startAngleDegrees, float aspectRatio);
+ public:
+  // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring,
+  // initialised.
+  static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(
+      NSUInteger sides, float startAngleDegrees, float aspectRatio);
 
-    void setInnerColor(OOColor* color1, OOColor* color2);
+  void setInnerColor(OOColor* color1, OOColor* color2);
 
-    void setLifetime(double lifetime);
+  void setLifetime(double lifetime);
 
-    void update(OOTimeDelta delta_t) override;
-    void drawImmediate(bool immediate, bool translucent) override;
-    bool canCollide() override;
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  bool canCollide() override;
 
-private:
-    friend struct ::OOBreakPatternEntityTestAccess;
+ private:
+  friend struct ::OOBreakPatternEntityTestAccess;
 
-    // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after
-    // construction.
-    void initWithPolygonSides(NSUInteger sides, float startAngleDegrees,
-        float aspectRatio);
+  // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after
+  // construction.
+  void initWithPolygonSides(NSUInteger sides, float startAngleDegrees,
+                            float aspectRatio);
 
-    void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
+  void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
 
-    Vector _vertexPosition[kOOBreakPatternMaxVertices] = { };
-    GLfloat _vertexColor[kOOBreakPatternMaxVertices][4] = { };
-    NSUInteger _vertexCount = { };
-    double _lifetime = { };
+  Vector _vertexPosition[kOOBreakPatternMaxVertices] = {};
+  GLfloat _vertexColor[kOOBreakPatternMaxVertices][4] = {};
+  NSUInteger _vertexCount = {};
+  double _lifetime = {};
 };

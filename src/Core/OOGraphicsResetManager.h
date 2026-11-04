@@ -42,25 +42,25 @@ SOFTWARE.
 // A client: the one method, resetGraphicsState(), as a pure virtual. It
 // registers with registerCxxClient().
 class OOGraphicsResetClient {
-public:
-    virtual ~OOGraphicsResetClient() = default;
-    virtual void resetGraphicsState() = 0;
+ public:
+  virtual ~OOGraphicsResetClient() = default;
+  virtual void resetGraphicsState() = 0;
 };
 
 class OOGraphicsResetManager : public oo::RefCounted {
-public:
-    // The shared manager, made on first use; borrowed, never released.
-    static OOGraphicsResetManager* sharedManager();
+ public:
+  // The shared manager, made on first use; borrowed, never released.
+  static OOGraphicsResetManager* sharedManager();
 
-    ~OOGraphicsResetManager();
+  ~OOGraphicsResetManager();
 
-    // Clients are not retained; null is never registered.
-    void registerCxxClient(OOGraphicsResetClient* client);
-    void unregisterCxxClient(OOGraphicsResetClient* client);
+  // Clients are not retained; null is never registered.
+  void registerCxxClient(OOGraphicsResetClient* client);
+  void unregisterCxxClient(OOGraphicsResetClient* client);
 
-    // Forwarded to all clients, after resetting textures.
-    void resetGraphicsState();
+  // Forwarded to all clients, after resetting textures.
+  void resetGraphicsState();
 
-private:
-    std::unordered_set<OOGraphicsResetClient*> cxxClients = { }; // not retained
+ private:
+  std::unordered_set<OOGraphicsResetClient*> cxxClients = {};  // not retained
 };

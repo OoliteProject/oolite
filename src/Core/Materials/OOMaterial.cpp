@@ -35,7 +35,7 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "OOMaterialState.h"
-#include "oofnd/Ref.hpp" // oo::autorelease
+#include "oofnd/Ref.hpp"  // oo::autorelease
 #include "oofnd/String.hpp"
 
 namespace {
@@ -43,86 +43,79 @@ namespace {
 /*	The current material, retained. Never destroyed, as the static pointer
    was not.
 */
-oo::Ref<OOMaterial>& ActiveMaterial()
-{
-    static auto* active = new oo::Ref<OOMaterial>;
-    return *active;
+oo::Ref<OOMaterial>& ActiveMaterial() {
+  static auto* active = new oo::Ref<OOMaterial>;
+  return *active;
 }
 
-} // namespace
+}  // namespace
 
-void OOMaterial::setUp()
-{
-    // I thought we'd need this, but the stuff I needed it for turned out to be
-    // problematic. Maybe in future. -- Ahruman
+void OOMaterial::setUp() {
+  // I thought we'd need this, but the stuff I needed it for turned out to be
+  // problematic. Maybe in future. -- Ahruman
 }
 
 // name() is a subclass's override, so it cannot be const.
-std::optional<std::string> OOMaterial::descriptionComponents() const
-{
-    return "\"" + const_cast<OOMaterial*>(this)->name().value_or("(null)") + "\""; // "%@" of the name, quoted
+std::optional<std::string> OOMaterial::descriptionComponents() const {
+  return "\"" + const_cast<OOMaterial*>(this)->name().value_or("(null)") +
+         "\"";  // "%@" of the name, quoted
 }
 
-std::string OOMaterial::description() const
-{
-    int status = 0;
-    char* demangled = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
-    const std::string name = (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
-    std::free(demangled);
-    std::string result = oo::str::format(
-        "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
-    if (const std::optional<std::string> components = descriptionComponents())
-        result += "{" + *components + "}";
-    return result;
+std::string OOMaterial::description() const {
+  int status = 0;
+  char* demangled =
+      abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
+  const std::string name =
+      (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
+  std::free(demangled);
+  std::string result = oo::str::format(
+      "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+  if (const std::optional<std::string> components = descriptionComponents())
+    result += "{" + *components + "}";
+  return result;
 }
 
-std::optional<std::string> OOMaterial::name()
-{
-    OOLogGenericParameterError();
-    return std::nullopt;
+std::optional<std::string> OOMaterial::name() {
+  OOLogGenericParameterError();
+  return std::nullopt;
 }
 
 // Make this the current GL shader program.
-void OOMaterial::apply()
-{
-    if (OOMaterial* active = ActiveMaterial().get())
-        active->unapplyWithNext(this);
-    ActiveMaterial() = nullptr;
+void OOMaterial::apply() {
+  if (OOMaterial* active = ActiveMaterial().get())
+    active->unapplyWithNext(this);
+  ActiveMaterial() = nullptr;
 
-    if (doApply()) {
-        ActiveMaterial() = oo::Ref<OOMaterial>(this);
-    }
+  if (doApply()) {
+    ActiveMaterial() = oo::Ref<OOMaterial>(this);
+  }
 }
 
-void OOMaterial::applyNone()
-{
-    if (OOMaterial* active = ActiveMaterial().get())
-        active->unapplyWithNext(nullptr);
-    ActiveMaterial() = nullptr;
+void OOMaterial::applyNone() {
+  if (OOMaterial* active = ActiveMaterial().get())
+    active->unapplyWithNext(nullptr);
+  ActiveMaterial() = nullptr;
 }
 
 oo::Ref<OOMaterial> OOMaterial::current() { return ActiveMaterial(); }
 
 // OOMaterialState.h: the slot for plain C++ translation units.
-OOMaterial* OOMaterialRetainCurrent()
-{
-    return OOMaterial::current().leakRef();
+OOMaterial* OOMaterialRetainCurrent() {
+  return OOMaterial::current().leakRef();
 }
 
 void OOMaterialApplyNone() { OOMaterial::applyNone(); }
 
-void OOMaterialApplyAndRelease(OOMaterial* material)
-{
-    if (material != nullptr)
-        material->apply(); // a message to nil did nothing
-    oo::release(material);
+void OOMaterialApplyAndRelease(OOMaterial* material) {
+  if (material != nullptr) material->apply();  // a message to nil did nothing
+  oo::release(material);
 }
 
-void OOMaterial::ensureFinishedLoading() { }
+void OOMaterial::ensureFinishedLoading() {}
 
 bool OOMaterial::isFinishedLoading() { return true; }
 
-void OOMaterial::setBindingTarget(Entity* /*target*/) { }
+void OOMaterial::setBindingTarget(Entity* /*target*/) {}
 
 bool OOMaterial::wantsNormalsAsTextureCoordinates() { return false; }
 
@@ -131,39 +124,34 @@ NSUInteger OOMaterial::countOfTextureUnitsWithBaseCoordinates() { return 1; }
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOMaterial::allTextures() { return { }; }
+std::vector<oo::Ref<OOTexture>> OOMaterial::allTextures() { return {}; }
 #endif
 
-bool OOMaterial::doApply()
-{
-    OOLogGenericSubclassResponsibility();
-    return false;
+bool OOMaterial::doApply() {
+  OOLogGenericSubclassResponsibility();
+  return false;
 }
 
-void OOMaterial::unapplyWithNext(OOMaterial* /*next*/)
-{
-    // Do nothing.
+void OOMaterial::unapplyWithNext(OOMaterial* /*next*/) {
+  // Do nothing.
 }
 
-void OOMaterial::willDealloc()
-{
-    if (EXPECT_NOT(ActiveMaterial().get() == this)) {
-        OO_LOG("shader.dealloc.imbalance", "{}",
-            "***** Material deallocated while active, indicating a "
-            "retain/release imbalance.");
-        unapplyWithNext(nullptr);
-        (void)ActiveMaterial()
-            .leakRef(); // = nil: not released, it is being deallocated
-    }
+void OOMaterial::willDealloc() {
+  if (EXPECT_NOT(ActiveMaterial().get() == this)) {
+    OO_LOG("shader.dealloc.imbalance", "{}",
+           "***** Material deallocated while active, indicating a "
+           "retain/release imbalance.");
+    unapplyWithNext(nullptr);
+    (void)ActiveMaterial()
+        .leakRef();  // = nil: not released, it is being deallocated
+  }
 }
 
 /*	OOMaterialAutorelease(): the material goes to the innermost
    oo::AutoreleaseScope, whose drain releases it where the keeper object that
    held it was released.
 */
-void OOMaterialAutorelease(oo::Ref<OOMaterial> material)
-{
-    if (material == nullptr)
-        return;
-    oo::autorelease(std::move(material));
+void OOMaterialAutorelease(oo::Ref<OOMaterial> material) {
+  if (material == nullptr) return;
+  oo::autorelease(std::move(material));
 }

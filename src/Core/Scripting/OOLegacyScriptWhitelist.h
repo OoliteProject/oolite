@@ -51,44 +51,49 @@ script from Oolite 1.65):
                         );
                         do = (
                                 {
-                                        conditions = ("mission_cloakcounter undefined");
-                                        do = ("set: mission_cloakcounter 0");
+                                        conditions = ("mission_cloakcounter
+undefined"); do = ("set: mission_cloakcounter 0");
                                 },
                                 "increment: mission_cloakcounter",
                                 "checkForShips: asp-cloaked",
                                 {
-                                        conditions = ("shipsFound_number equal 0", "mission_cloakcounter greaterthan 6");
-                                        do = ("addShips: asp-cloaked 1", "addShips: asp-pirate 2");
+                                        conditions = ("shipsFound_number equal
+0", "mission_cloakcounter greaterthan 6"); do = ("addShips: asp-cloaked 1",
+"addShips: asp-pirate 2");
                                 }
                         );
                 }
         )
-the sanitized form (with rawString values replaced with "..." for simplicity) is:
+the sanitized form (with rawString values replaced with "..." for simplicity)
+is:
         (
                 (
                         true,	// This is a conditonal statement
                         (		// conditions
-                                (OP_NUMBER, "...", "galaxy_number", COMPARISON_EQUAL, ((false, "4"))),
-                                (OP_STRING, "...", "status_string", COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))),
-                                (OP_MISSION_VAR, "...", "mission_cloak", COMPARISON_UNDEFINED, ())
+                                (OP_NUMBER, "...", "galaxy_number",
+COMPARISON_EQUAL, ((false, "4"))), (OP_STRING, "...", "status_string",
+COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))), (OP_MISSION_VAR,
+"...", "mission_cloak", COMPARISON_UNDEFINED, ())
                         ),
                         (		// do
                                 (
                                         true,
-                                        ( (OP_MISSION_VAR, "...", "mission_cloakcounter", COMPARISON_UNDEFINED, ()) ),
-                                        ( (false, "set:", "mission_cloakcounter 0") ),
+                                        ( (OP_MISSION_VAR, "...",
+"mission_cloakcounter", COMPARISON_UNDEFINED, ()) ), ( (false, "set:",
+"mission_cloakcounter 0") ),
                                         ()
                                 ),
                                 (false, "increment:", "mission_cloakcounter"),
                                 (false, "checkForShips:", "asp-cloaked"),
                                 (true,
                                         (
-                                                (OP_NUMBER, "...", "shipsFound_number", COMPARISON_EQUAL, ((false, "0"))),
-                                                (OP_MISSION_VAR, "...", "mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
+                                                (OP_NUMBER, "...",
+"shipsFound_number", COMPARISON_EQUAL, ((false, "0"))), (OP_MISSION_VAR, "...",
+"mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
                                         ),
                                         (
-                                                (false, "addShips:", "asp-cloaked 1"),
-                                                (false, "addShips:", "asp-pirate 2"),
+                                                (false, "addShips:",
+"asp-cloaked 1"), (false, "addShips:", "asp-pirate 2"),
                                         ),
                                         ()
                                 )
@@ -121,15 +126,14 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOFoundation.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
 // context is used for error messages.
 // A null oo::PList stands for nil, in and out.
 oo::PList OOSanitizeLegacyScript(const oo::PList& script,
-    const std::optional<std::string>& context,
-    bool allowAIMethods);
+                                 const std::optional<std::string>& context,
+                                 bool allowAIMethods);
 oo::PList OOSanitizeLegacyScriptConditions(
     const oo::PList& conditions, const std::optional<std::string>& context);
 

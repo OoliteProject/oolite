@@ -45,32 +45,36 @@ MA 02110-1301, USA.
    class that the ship data and model stages subclass.
 */
 class OOTextureVerifierStage : public OOFileHandlingVerifierStage {
-public:
-    // Returns name to be used in dependents() by other stages.
-    static std::string nameForReverseDependencyForVerifier(
-        OOOXPVerifier* verifier);
+ public:
+  // Returns name to be used in dependents() by other stages.
+  static std::string nameForReverseDependencyForVerifier(
+      OOOXPVerifier* verifier);
 
-    std::optional<std::string> name() override;
-    bool shouldRun() override;
-    void run() override;
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
 
-    /*	This can be called by other stages *before* the texture stage runs.
-            The context specifies where the texture is used; something like
-            "fooShip.dat" or "shipdata.plist materials dictionary for ship \"foo\"".
-            It should make sense with "Texture \"foo\" referenced in " in front of it.
-    */
-    void textureNamed(const std::string& name, const std::string& context); // an empty name is ignored, as nil was
+  /*	This can be called by other stages *before* the texture stage runs.
+          The context specifies where the texture is used; something like
+          "fooShip.dat" or "shipdata.plist materials dictionary for ship
+     \"foo\"". It should make sense with "Texture \"foo\" referenced in " in
+     front of it.
+  */
+  void textureNamed(
+      const std::string& name,
+      const std::string& context);  // an empty name is ignored, as nil was
 
-private:
-    void checkTextureNamed(const std::string& name, const std::string& folder);
+ private:
+  void checkTextureNamed(const std::string& name, const std::string& folder);
 
-    std::vector<std::string> _usedTextures = { }; // sorted, no duplicates
+  std::vector<std::string> _usedTextures = {};  // sorted, no duplicates
 };
 
-// Convenience base class for stages that need to run before OOTextureHandlingStage.
+// Convenience base class for stages that need to run before
+// OOTextureHandlingStage.
 class OOTextureHandlingStage : public OOFileHandlingVerifierStage {
-public:
-    std::optional<std::vector<std::string>> dependents() override;
+ public:
+  std::optional<std::vector<std::string>> dependents() override;
 };
 
 #endif

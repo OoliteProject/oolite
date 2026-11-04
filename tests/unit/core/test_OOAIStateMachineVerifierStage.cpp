@@ -53,7 +53,8 @@ oo::PList cxx_OOPropertyListFromFile(const std::string& path) {
 #include "OOOXPVerifierTestDouble.h"
 #include "ResourceManager.h"
 
-// C++ definitions of the ResourceManager statics the code under test calls, with the stand-in's answers.
+// C++ definitions of the ResourceManager statics the code under test calls,
+// with the stand-in's answers.
 std::optional<std::string> ResourceManager::pathForFileNamed(
     const std::string& fileName, const std::optional<std::string>& folderName) {
   if (fileName != "builtinAI.plist") return std::nullopt;

@@ -33,10 +33,12 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include <optional>
 #include <quickjs.h>
+
+#include <optional>
 #include <string>
+
+#include "OOFoundation.h"
 
 class PlayerEntity;
 
@@ -57,4 +59,5 @@ JSValue JSPlayerShipObject(void);
         Its JS class is JSPlayerShipClassID() (PlayerEntity::jsClassID()).
 */
 std::optional<std::string> OOJSPlayerShipJSClassName(void);
-void OOJSPlayerShipSetJSSelf(PlayerEntity* player, JSValueConst val, JSContext* context);
+void OOJSPlayerShipSetJSSelf(PlayerEntity* player, JSValueConst val,
+                             JSContext* context);

@@ -35,39 +35,36 @@ SOFTWARE.
 #pragma once
 
 #include "OOFoundation.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
+#include "oofnd/objc/OOObject.h"
 
 class OOSoundChannel;
 
-enum {
-    kMixerGeneralChannels = 32
-};
+enum { kMixerGeneralChannels = 32 };
 
 class OOSoundMixer : public oo::RefCounted {
-public:
-    /*	Singleton accessor: the one mixer, made on
-       first use; borrowed. Null while sound cannot be set up, and then the next
-       call asks again.
-    */
-    static OOSoundMixer* sharedMixer();
+ public:
+  /*	Singleton accessor: the one mixer, made on
+     first use; borrowed. Null while sound cannot be set up, and then the next
+     call asks again.
+  */
+  static OOSoundMixer* sharedMixer();
 
-    void update();
+  void update();
 
-    // Only to be called at app shutdown, by OOOpenALController::shutdown().
-    void shutdown();
+  // Only to be called at app shutdown, by OOOpenALController::shutdown().
+  void shutdown();
 
-    OOSoundChannel* popChannel();
-    void pushChannel(OOSoundChannel* channel);
+  OOSoundChannel* popChannel();
+  void pushChannel(OOSoundChannel* channel);
 
-private:
-    bool init();
+ private:
+  bool init();
 
-    // _channels holds one reference to each channel the mixer made (+1 from
-    // oo::makeRef, released by shutdown(), as alloc/init and DESTROY did: the
-    // mixer is never destroyed, so no oo::Ref member, whose destructor would need
-    // the complete class in every includer); the free list is borrowed.
-    OOSoundChannel* _channels[kMixerGeneralChannels] = { };
-    OOSoundChannel* _freeList = { };
+  // _channels holds one reference to each channel the mixer made (+1 from
+  // oo::makeRef, released by shutdown(), as alloc/init and DESTROY did: the
+  // mixer is never destroyed, so no oo::Ref member, whose destructor would need
+  // the complete class in every includer); the free list is borrowed.
+  OOSoundChannel* _channels[kMixerGeneralChannels] = {};
+  OOSoundChannel* _freeList = {};
 };

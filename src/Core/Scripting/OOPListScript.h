@@ -35,38 +35,43 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "OOFoundation.h"
 #include "OOScript.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-#include <optional>
-#include <string>
-#include <vector>
-
 class Entity;
 
 class OOPListScript : public OOScript {
-public:
-    // The old -initWithName:scriptArray:metadata: after [super init].
-    OOPListScript(const std::string& name, const oo::PList& script, const oo::PList* metadata);
+ public:
+  // The old -initWithName:scriptArray:metadata: after [super init].
+  OOPListScript(const std::string& name, const oo::PList& script,
+                const oo::PList* metadata);
 
-    // The scripts of a legacy script file, each a new OOPListScript; nullopt when the file is not a
-    // dictionary.
-    static std::optional<std::vector<oo::Ref<OOScript>>> scriptsInPListFile(const std::string& filePath);
+  // The scripts of a legacy script file, each a new OOPListScript; nullopt when
+  // the file is not a dictionary.
+  static std::optional<std::vector<oo::Ref<OOScript>>> scriptsInPListFile(
+      const std::string& filePath);
 
-    // OOScript overrides.
-    std::optional<std::string> name() override;
-    std::optional<std::string> scriptDescription() override;
-    std::optional<std::string> version() override;
-    bool requiresTickle() override;
-    void runWithTarget(Entity* target) override;
+  // OOScript overrides.
+  std::optional<std::string> name() override;
+  std::optional<std::string> scriptDescription() override;
+  std::optional<std::string> version() override;
+  bool requiresTickle() override;
+  void runWithTarget(Entity* target) override;
 
-private:
-    static std::vector<oo::Ref<OOScript>> scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath);
-    static std::vector<oo::Ref<OOScript>> loadCachedScripts(const oo::PList& cachedScripts);
+ private:
+  static std::vector<oo::Ref<OOScript>> scriptsFromDictionaryOfScripts(
+      const oo::PList& dictionary, const std::string& filePath);
+  static std::vector<oo::Ref<OOScript>> loadCachedScripts(
+      const oo::PList& cachedScripts);
 
-    oo::PList _script; // the sanitized script actions (an array)
-    oo::PList _metadata; // a dictionary: name, and the file's !metadata! if it had one
+  oo::PList _script;  // the sanitized script actions (an array)
+  oo::PList
+      _metadata;  // a dictionary: name, and the file's !metadata! if it had one
 };
