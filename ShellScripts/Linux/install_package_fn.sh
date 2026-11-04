@@ -46,7 +46,7 @@ install_package() {
 
         "python")
             case "$CURRENT_DISTRO" in
-                debian) pkg_name="python3-pip" ;;
+                debian) pkg_name="python3-pip python3-venv" ;;
                 redhat) pkg_name="python3-pip" ;;
                 arch) pkg_name="python-pip" ;;
             esac ;;
@@ -150,6 +150,21 @@ install_package() {
             esac ;;
 
         "flatpak") pkg_name="flatpak flatpak-builder" ;;
+
+        "doxygen") pkg_name="doxygen graphviz" ;;
+
+        "weasyprint-deps")
+            case "$CURRENT_DISTRO" in
+                debian)
+                    pkg_name="libharfbuzz0b libpango-1.0-0 libpangoft2-1.0-0 shared-mime-info"
+                    ;;
+                redhat)
+                    pkg_name="pango harfbuzz shared-mime-info"
+                    ;;
+                arch)
+                    pkg_name="pango harfbuzz shared-mime-info"
+                    ;;
+            esac ;;
 
         *)
             echo "❌ Could not translate '$generic_name' for $CURRENT_DISTRO!" >&2

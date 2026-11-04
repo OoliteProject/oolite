@@ -23,6 +23,25 @@ cleanup:
   - "*.a"
   - "*.la"
 modules:
+  - name: pandoc
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 bin/pandoc /app/bin/pandoc
+    sources:
+      - type: archive
+        url: https://github.com/jgm/pandoc/releases/download/3.13/pandoc-3.13-linux-amd64.tar.gz
+        sha256: "38aa33b325a2bc96a4c39409631212db55702f564250bcdbead180b3bf646389"
+        strip-components: 1
+  - name: typst
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 typst /app/bin/typst
+    sources:
+      - type: archive
+        url: https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz
+        sha256: "a6d077d0a95eed5a2eba715b2dae06be954f624ccbf85758a03f389ded33118c"
+        strip-components: 1
+  - python-weasyprint.json
   - shared-modules/glu/glu-9.json
   - name: pcaudiolib
     sources:

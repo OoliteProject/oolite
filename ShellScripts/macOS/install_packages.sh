@@ -12,6 +12,8 @@ fi
 packages=(
     # Build tools (bash 4+, GNU coreutils and gitversion are used by the build scripts)
     bash coreutils gitversion jq meson ninja pkgconf
+    # Documentation
+    doxygen graphviz pandoc typst weasyprint
     # Libraries
     sdl3 libpng openal-soft libvorbis nspr espeak-ng
 )

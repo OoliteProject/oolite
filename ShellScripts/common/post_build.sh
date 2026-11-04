@@ -20,6 +20,7 @@ run_script() {
 
     source "generate_manifest_fn.sh"
     cd ../..
+    source Documentation/build_documentation_fn.sh
 
     if [[ "$host_os" == "darwin" ]]; then
         cp() { gcp "$@"; }  # GNU cp from Homebrew coreutils; BSD cp has no -u
@@ -100,7 +101,7 @@ run_script() {
     if [[ "$strip_bin" == "yes" ]]; then
         if [[ "$host_os" == "windows" ]]; then
             # Windows: Standard GNU strip is safest for PE/COFF
-            strip "$progpath"
+            strip "$progpath.exe"
         elif [[ "$host_os" == "darwin" ]]; then
             # macOS: keep symbols in a dSYM bundle next to the app
             dsymutil "$progpath" -o "$progdir.dSYM"
@@ -158,6 +159,20 @@ run_script() {
             awk '{print $3}' | \
             xargs -I {} cp -Lrfu {} "$progdir/"
     fi
+
+    if ! build_documentation "YES" "NO"; then
+        popd
+        return 1
+    fi
+    local docdir="$progdir"
+    if [[ "$host_os" == "darwin" ]]; then
+        # Files in the bundle root break its signature, so the PDFs go next to the app instead
+        # and create_dmg_fn.sh puts them in a Documentation folder on the disk image
+        rm -f "$progdir"/*.pdf
+        docdir="$(dirname "$progdir")/Documentation"
+        mkdir -p "$docdir"
+    fi
+    cp -fu build/documentation/docs/assets/pdfs/* "$docdir"
 
     echo "✅ Oolite post-build completed successfully"
     touch "$appdir/$stamp_file"

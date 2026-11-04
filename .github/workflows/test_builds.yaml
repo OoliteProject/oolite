@@ -37,6 +37,7 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_weasyprint.sh
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -87,6 +88,7 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/Linux/install_packages_root.sh --core
+          ShellScripts/Linux/install_weasyprint.sh
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -131,6 +133,7 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_weasyprint.sh
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system

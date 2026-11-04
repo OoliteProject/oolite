@@ -59,6 +59,7 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_weasyprint.sh
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -106,7 +107,7 @@ jobs:
           echo "Installing gitversion..."
           source ShellScripts/Linux/install_gitversion_fn.sh
           mkdir -p /usr/local/bin
-          install_gitversion "."
+          install_gitversion /usr/local/bin "."
           ./mk.sh pkg-flatpak deployment --github-repository="$GITHUB_REPOSITORY"
       - name: Archive installer
         uses: actions/upload-artifact@v6

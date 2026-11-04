@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# Creates a macOS disk image (.dmg) containing Oolite.app and a link to /Applications,
-# so the app can be installed by dragging it across.
+# Creates a macOS disk image (.dmg) containing Oolite.app, a link to /Applications so the app
+# can be installed by dragging it across, and a Documentation folder with the PDFs.
 
 create_dmg() {
     local build_type="$1"  # Typically one of "deployment", "test", "dev"
@@ -36,6 +36,11 @@ create_dmg() {
     mkdir -p "$staging"
     if ! ditto "$app_path" "$staging/Oolite.app"; then
         echo "❌ Failed to copy '$app_path' to the disk image staging folder!" >&2
+        return 1
+    fi
+    local doc_path="$(dirname "$app_path")/Documentation"
+    if ! ditto "$doc_path" "$staging/Documentation"; then
+        echo "❌ Failed to copy '$doc_path' to the disk image staging folder!" >&2
         return 1
     fi
     ln -s /Applications "$staging/Applications"
