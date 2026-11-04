@@ -25,6 +25,7 @@ core_tests = {
     'test_OOColor': ['Core/OOColor.mm', 'Core/OOColor+ObjCBridge.mm', 'Core/OODescription.mm'],
     'test_OOJoystickProfile': ['Core/OOJoystickProfile.mm', 'Core/OOJoystickProfile+ObjCBridge.mm'],
     'test_OOSDLJoystickManager': ['SDL/OOSDLJoystickManager.mm', 'SDL/OOSDLJoystickManager+ObjCBridge.mm', 'Core/OOJoystickManager.mm', 'Core/OOJoystickManager+ObjCBridge.mm', 'Core/OOJoystickProfile.mm', 'Core/OOJoystickProfile+ObjCBridge.mm', 'Core/OOCallByName.mm', 'Core/OODescription.mm'],
+    'test_OOJoystickDecoding': ['Core/OOJoystickProfile.mm'],	# upstream #742's layout and dead zone
     'test_OOJoystickManager': ['Core/OOJoystickManager.mm', 'Core/OOJoystickManager+ObjCBridge.mm', 'SDL/OOSDLJoystickManager.mm', 'SDL/OOSDLJoystickManager+ObjCBridge.mm', 'Core/OOJoystickProfile.mm', 'Core/OOJoystickProfile+ObjCBridge.mm', 'Core/OOCallByName.mm', 'Core/OODescription.mm'],
     'test_OORegExpMatcher': ['Core/OORegExpMatcher.mm', 'Core/OORegExpMatcher+ObjCBridge.mm'],
     'test_OOFileScannerVerifierStage': ['Core/OXPVerifier/OOFileScannerVerifierStage.mm', 'Core/OXPVerifier/OOFileScannerVerifierStage+ObjCBridge.mm', 'Core/OXPVerifier/OOOXPVerifierStage.mm', 'Core/OXPVerifier/OOOXPVerifierStage+ObjCBridge.mm', 'Core/OODescription.mm'],
