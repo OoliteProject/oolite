@@ -1,18 +1,20 @@
 /*	test_OOPlanetTextureGenerator.mm
-	Unit tests for OOPlanetTextureGenerator (src/Core/Materials/OOPlanetTextureGenerator.h), the
-	texture generator of a planet's surface, with the two helper generators private to its file
-	that hand on the normal map and the atmosphere it makes at the same time.
+        Unit tests for OOPlanetTextureGenerator
+   (src/Core/Materials/OOPlanetTextureGenerator.h), the texture generator of a
+   planet's surface, with the two helper generators private to its file that
+   hand on the normal map and the atmosphere it makes at the same time.
 
-	It reads the planet's parameters (colours as PList::Object nodes holding OOColors), sizes its
-	texture by the detail level (no universe here: the lowest, so 512 x 512, or 512 x 256 with 3D
-	noise), keys it by its parameters and by which helpers it feeds, and fills it from the seed's
-	noise; the class methods make the textures, the surface's last so that it is queued once the
-	helpers are. It links the whole game but main (tests/unit/core/meson.build entry ['*']), on the
-	hidden GL context of oo_gl_test_context.hpp. Making a generator and the class methods
-	go through the helpers below:
-	the class is a global C++ class. The last test
-	pins the C++ API.
-	Run: bash meson test -C build/meson_test test_OOPlanetTextureGenerator
+        It reads the planet's parameters (colours as PList::Object nodes holding
+   OOColors), sizes its texture by the detail level (no universe here: the
+   lowest, so 512 x 512, or 512 x 256 with 3D noise), keys it by its parameters
+   and by which helpers it feeds, and fills it from the seed's noise; the class
+   methods make the textures, the surface's last so that it is queued once the
+        helpers are. It links the whole game but main
+   (tests/unit/core/meson.build entry ['*']), on the hidden GL context of
+   oo_gl_test_context.hpp. Making a generator and the class methods go through
+   the helpers below: the class is a global C++ class. The last test pins the
+   C++ API. Run: bash meson test -C build/meson_test
+   test_OOPlanetTextureGenerator
 */
 
 #include <cstdlib>

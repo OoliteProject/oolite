@@ -3,8 +3,9 @@
 OOEntityCalledByName.h
 
 The entities' methods called by name, as a C++ table: the rows
-(OOEntityCalledByNameTable.h), one per method. The callers use oo::CallEntityByName and
-oo::EntityRespondsToName (OOCallByName.h); the rows are here for them.
+(OOEntityCalledByNameTable.h), one per method. The callers use
+oo::CallEntityByName and oo::EntityRespondsToName (OOCallByName.h); the rows are
+here for them.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -28,56 +29,62 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOMaths.h"
-#include "oofnd/PList.hpp"
-#include "oofnd/objc/OOObject.h"
 #include <cstdint>
 #include <span>
 #include <string>
+
+#include "OOMaths.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/objc/OOObject.h"
 
 class Entity;
 class OOColor;
 
 // The name sets: a row applies to an entity whose C++ part is
-// of a class one of its flags names (a proxy's flag with the player's: the proxy's dials).
+// of a class one of its flags names (a proxy's flag with the player's: the
+// proxy's dials).
 enum : unsigned {
-    kOOByNameShip = 1u << 0,
-    kOOByNamePlayer = 1u << 1,
-    kOOByNameProxy = 1u << 2,
-    kOOByNameStation = 1u << 3,
-    kOOByNameDock = 1u << 4,
-    kOOByNameEffect = 1u << 5,
+  kOOByNameShip = 1u << 0,
+  kOOByNamePlayer = 1u << 1,
+  kOOByNameProxy = 1u << 2,
+  kOOByNameStation = 1u << 3,
+  kOOByNameDock = 1u << 4,
+  kOOByNameEffect = 1u << 5,
 };
 
 enum class OOEntityByNameArgument : std::uint8_t {
-    None, // T name()
-    String, // T name(const std::string &)
-    PList // T name(const oo::PList &)
+  None,    // T name()
+  String,  // T name(const std::string &)
+  PList    // T name(const oo::PList &)
 };
 
 // A typed call's result, kept by its type: an integer, enum or BOOL result
-// as a long long (as OOCallIntegerMethod() converted it), a float or double as a double, a vector,
-// a quaternion, an entity, a colour, a property list. callObjC() reads the member its row's type
-// names. (An object result, which no row answers, is not kept.)
+// as a long long (as OOCallIntegerMethod() converted it), a float or double as
+// a double, a vector, a quaternion, an entity, a colour, a property list.
+// callObjC() reads the member its row's type names. (An object result, which no
+// row answers, is not kept.)
 struct OOEntityByNameValue {
-    long long integer = 0;
-    double real = 0;
-    Vector vector { };
-    Quaternion quaternion { };
-    Entity* entity = nullptr; // an entity result, borrowed: the C++ entity
-    OOColor* color = nullptr; // a colour result, borrowed (fogUniform)
-    oo::PList plist;
+  long long integer = 0;
+  double real = 0;
+  Vector vector{};
+  Quaternion quaternion{};
+  Entity* entity = nullptr;  // an entity result, borrowed: the C++ entity
+  OOColor* color = nullptr;  // a colour result, borrowed (fogUniform)
+  oo::PList plist;
 };
 
 struct OOEntityByNameRow {
-    const char* name; // the selector's name
-    unsigned flags; // kOOByName...
-    const char* result; // @encode() of the declared result type
-    OOEntityByNameArgument argument;
-    // The method's body on the entity, given the argument its kind takes; a PList result, else null.
-    oo::PList (*call)(Entity* entity, const std::string* string, const oo::PList* plist);
-    // A method with no argument: its body on the entity, its result kept by type; else null.
-    void (*typed)(Entity* entity, OOEntityByNameValue& value);
+  const char* name;    // the selector's name
+  unsigned flags;      // kOOByName...
+  const char* result;  // @encode() of the declared result type
+  OOEntityByNameArgument argument;
+  // The method's body on the entity, given the argument its kind takes; a PList
+  // result, else null.
+  oo::PList (*call)(Entity* entity, const std::string* string,
+                    const oo::PList* plist);
+  // A method with no argument: its body on the entity, its result kept by type;
+  // else null.
+  void (*typed)(Entity* entity, OOEntityByNameValue& value);
 };
 
 /*	The root entity's own names that callObjC() lists
@@ -87,48 +94,54 @@ struct OOEntityByNameRow {
    method's body on the C++ entity, its result kept by type.
 */
 struct OOEntityFacadeRow {
-    const char* name;
-    bool (*answers)(Entity* entity);
-    void (*typed)(Entity* entity, OOEntityByNameValue& value);
+  const char* name;
+  bool (*answers)(Entity* entity);
+  void (*typed)(Entity* entity, OOEntityByNameValue& value);
 };
 
-/*	Every name a C++ entity answers outside the by-name table: its own methods,
-   categories' and root classes' (OOEntityObjectNamesTable.h). oo::EntityRespondsToName answers
-   each for the entities that answer it: a root-entity row's method with no argument that
-   OOCallByName could call is the row's body; any other is logged (the
-   method's type encoding), and a root-class or
-   lifetime method that the call could call (init, dealloc, retain, release,
+/*	Every name a C++ entity answers outside the by-name table: its own
+   methods, categories' and root classes' (OOEntityObjectNamesTable.h).
+   oo::EntityRespondsToName answers each for the entities that answer it: a
+   root-entity row's method with no argument that OOCallByName could call is the
+   row's body; any other is logged (the method's type encoding), and a
+   root-class or lifetime method that the call could call (init, dealloc,
+   retain, release,
    ...) is answered but never called.
 */
 enum OOEntityObjectNameKind : std::uint8_t {
-    kOOEntityObjectSignature, // no signature a by-name call can use: logged
-    kOOEntityObjectCalled, // a root-entity row's method with no argument: the row's body, called
-    kOOEntityObjectLifetime // a root-class or lifetime method: answered, logged, never called
+  kOOEntityObjectSignature,  // no signature a by-name call can use: logged
+  kOOEntityObjectCalled,     // a root-entity row's method with no argument: the
+                             // row's body, called
+  kOOEntityObjectLifetime  // a root-class or lifetime method: answered, logged,
+                           // never called
 };
 
 struct OOEntityObjectName {
-    const char* name;
-    bool (*answers)(Entity* entity); // null: every entity
-    OOEntityObjectNameKind kind;
-    const char* encoding; // the object's method's type encoding
+  const char* name;
+  bool (*answers)(Entity* entity);  // null: every entity
+  OOEntityObjectNameKind kind;
+  const char* encoding;  // the object's method's type encoding
 };
 
 namespace oo {
 
 std::span<const OOEntityObjectName> EntityObjectNames();
-const OOEntityObjectName* EntityObjectNameNamed(const std::string& name); // null if the object did not answer it
+const OOEntityObjectName* EntityObjectNameNamed(
+    const std::string& name);  // null if the object did not answer it
 
 std::span<const OOEntityFacadeRow> EntityFacadeRows();
-const OOEntityFacadeRow* EntityFacadeRowNamed(const std::string& name); // null if not a root-entity row
+const OOEntityFacadeRow* EntityFacadeRowNamed(
+    const std::string& name);  // null if not a root-entity row
 
 std::span<const OOEntityByNameRow> EntityByNameRows();
-const OOEntityByNameRow* EntityByNameRowNamed(const std::string& name); // null if not tabled
+const OOEntityByNameRow* EntityByNameRowNamed(
+    const std::string& name);  // null if not tabled
 bool EntityByNameRowApplies(const OOEntityByNameRow& row, Entity* entity);
 
 // The tabled method with no argument that applies to the entity, called, its
-// result kept by type in value, or the root-entity row's; false (nothing called) for
-// any other name.
+// result kept by type in value, or the root-entity row's; false (nothing
+// called) for any other name.
 bool CallEntityByNameTyped(Entity* entity, const std::string& name,
-    OOEntityByNameValue& value);
+                           OOEntityByNameValue& value);
 
-} // namespace oo
+}  // namespace oo

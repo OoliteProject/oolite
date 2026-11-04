@@ -39,7 +39,8 @@ const char* const cxx_kOOLogException = "exception";
  */
 static double gNow = 100.0;
 
-// The universe as the code under test sees it: a stand-in for the C++ class, with the header's names and signatures.
+// The universe as the code under test sees it: a stand-in for the C++ class,
+// with the header's names and signatures.
 class Universe {
  public:
   OOTimeAbsolute getTime();

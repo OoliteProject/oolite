@@ -27,53 +27,56 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 #include <quickjs.h>
 
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
 class OOJSFunction : public oo::RefCounted {
-public:
-    // The initialisers' factories: null where the initialiser answered nil (not a function; no code, missing argument names, or a compile error).
-    // function must be a function value; the OOJSFunction takes its own reference.
-    static oo::Ref<OOJSFunction> initWithFunction(JSValueConst function, JSContext* context);
-    static oo::Ref<OOJSFunction> initWithName(const std::optional<std::string>& name,
-        JSValueConst scope, // Ignored; QuickJS compiles functions in the global scope. Pass JS_UNDEFINED.
-        const std::optional<std::string>& code, // Function body.
-        NSUInteger argCount,
-        const char** argNames,
-        const std::optional<std::string>& fileName,
-        NSUInteger lineNumber,
-        JSContext* context); // may be NULL.
+ public:
+  // The initialisers' factories: null where the initialiser answered nil (not a
+  // function; no code, missing argument names, or a compile error). function
+  // must be a function value; the OOJSFunction takes its own reference.
+  static oo::Ref<OOJSFunction> initWithFunction(JSValueConst function,
+                                                JSContext* context);
+  static oo::Ref<OOJSFunction> initWithName(
+      const std::optional<std::string>& name,
+      JSValueConst scope,  // Ignored; QuickJS compiles functions in the global
+                           // scope. Pass JS_UNDEFINED.
+      const std::optional<std::string>& code,  // Function body.
+      NSUInteger argCount, const char** argNames,
+      const std::optional<std::string>& fileName, NSUInteger lineNumber,
+      JSContext* context);  // may be NULL.
 
-    ~OOJSFunction() override;
+  ~OOJSFunction() override;
 
-    std::optional<std::string> descriptionComponents() const;
+  std::optional<std::string> descriptionComponents() const;
 
-    std::optional<std::string> name(); // nullopt: anonymous
-    // Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
-    JSValueConst function();
-    // Owned (caller must free). JS_NULL if invalid.
-    JSValue functionValue();
+  std::optional<std::string> name();  // nullopt: anonymous
+  // Borrowed; valid while the receiver is alive and the engine is not reset.
+  // JS_NULL if invalid.
+  JSValueConst function();
+  // Owned (caller must free). JS_NULL if invalid.
+  JSValue functionValue();
 
-    // Raw evaluation. *result is owned by the caller on success. On failure, any exception is left pending (not reported).
-    bool evaluateWithContext(JSContext* context,
-        JSValueConst jsThis,
-        int argc,
-        JSValueConst* argv,
-        JSValue* result);
+  // Raw evaluation. *result is owned by the caller on success. On failure, any
+  // exception is left pending (not reported).
+  bool evaluateWithContext(JSContext* context, JSValueConst jsThis, int argc,
+                           JSValueConst* argv, JSValue* result);
 
-private:
-    // The part of -initWithFunction:context: that cannot fail.
-    OOJSFunction(JSValueConst function, JSContext* context);
+ private:
+  // The part of -initWithFunction:context: that cannot fail.
+  OOJSFunction(JSValueConst function, JSContext* context);
 
-    bool isValid() const;
-    void deleteJSValue();
+  bool isValid() const;
+  void deleteJSValue();
 
-    JSValue _function = JS_NULL; // Owned; JS_NULL when invalid.
-    std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
+  JSValue _function = JS_NULL;  // Owned; JS_NULL when invalid.
+  std::optional<std::string>
+      _name;  // nullopt for an anonymous function (was nil)
 };

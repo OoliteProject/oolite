@@ -1,6 +1,7 @@
 /*	test_OOStandaloneAtmosphereGenerator.mm
-	Unit tests for OOStandaloneAtmosphereGenerator (src/Core/Materials/OOStandaloneAtmosphereGenerator.h),
-	the texture generator of a planet's cloud layer when its surface is not generated.
+        Unit tests for OOStandaloneAtmosphereGenerator
+   (src/Core/Materials/OOStandaloneAtmosphereGenerator.h), the texture generator
+   of a planet's cloud layer when its surface is not generated.
 
 	It reads the cloud parameters from the planet's material parameters (colours as PList::Object
 	nodes holding OOColors), sizes its texture by the detail level (no universe here: the lowest,

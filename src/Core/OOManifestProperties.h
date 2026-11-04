@@ -30,8 +30,10 @@ MA 02110-1301, USA.
 
 inline constexpr std::string_view kOOManifestIdentifier = "identifier";
 inline constexpr std::string_view kOOManifestVersion = "version";
-inline constexpr std::string_view kOOManifestRequiredOoliteVersion = "required_oolite_version";
-inline constexpr std::string_view kOOManifestMaximumOoliteVersion = "maximum_oolite_version";
+inline constexpr std::string_view kOOManifestRequiredOoliteVersion =
+    "required_oolite_version";
+inline constexpr std::string_view kOOManifestMaximumOoliteVersion =
+    "maximum_oolite_version";
 inline constexpr std::string_view kOOManifestTitle = "title";
 inline constexpr std::string_view kOOManifestRequiresOXPs = "requires_oxps";
 inline constexpr std::string_view kOOManifestConflictOXPs = "conflict_oxps";
@@ -47,7 +49,8 @@ inline constexpr std::string_view kOOManifestTags = "tags";
    overwritten if they were...) but are calculated by Oolite */
 inline constexpr std::string_view kOOManifestFilePath = "file_path";
 inline constexpr std::string_view kOOManifestRequiredBy = "required_by";
-inline constexpr std::string_view kOOManifestAvailableVersion = "available_version";
+inline constexpr std::string_view kOOManifestAvailableVersion =
+    "available_version";
 /* these properties are not contained in the manifest.plist but are
  * provided by in the manifest*s* list by the API */
 inline constexpr std::string_view kOOManifestUploadDate = "upload_date";
@@ -60,9 +63,12 @@ inline constexpr std::string_view kOOManifestOptionalOXPs			= "optional_oxps";
 // properties for within requires/optional/conflicts entries
 inline constexpr std::string_view kOOManifestRelationIdentifier = "identifier";
 inline constexpr std::string_view kOOManifestRelationVersion = "version";
-inline constexpr std::string_view kOOManifestRelationMaxVersion = "maximum_version";
-inline constexpr std::string_view kOOManifestRelationDescription = "description";
+inline constexpr std::string_view kOOManifestRelationMaxVersion =
+    "maximum_version";
+inline constexpr std::string_view kOOManifestRelationDescription =
+    "description";
 
 // 'magic' value for a tag to exclude an OXP from loading except when
 // required by a scenario
-inline constexpr std::string_view kOOManifestTagScenarioOnly = "oolite-scenario-only";
+inline constexpr std::string_view kOOManifestTagScenarioOnly =
+    "oolite-scenario-only";

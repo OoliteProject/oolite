@@ -8,11 +8,11 @@
 #include "OOALSoundMixer.h"
 
 #define OOSoundAcquireLock() \
-    do {                     \
-    } while (0)
+  do {                       \
+  } while (0)
 #define OOSoundReleaseLock() \
-    do {                     \
-    } while (0)
+  do {                       \
+  } while (0)
 
 #else
 

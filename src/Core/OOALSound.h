@@ -31,43 +31,42 @@ SOFTWARE.
 
 #include "OOFoundation.h"
 #include "OOOpenALController.h"
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
 class OOSound : public oo::RefCounted {
-public:
-    OOSound();
+ public:
+  OOSound();
 
-    static bool setUp();
-    static void update();
+  static bool setUp();
+  static void update();
 
-    static void setMasterVolume(float fraction);
-    static float masterVolume();
+  static void setMasterVolume(float fraction);
+  static float masterVolume();
 
-    /*	Was -cxx_initWithContentsOfFile:, a class cluster's initialiser: it
-       answered, in place of the receiver, an OOALBufferedSound for up to 1 MB of
-       decoded data, else an OOALStreamedSound. Null
-       where it answered nil: sound not OK, no decoder for the path, or the
-       concrete sound refused.
-    */
-    static oo::Ref<OOSound> initWithContentsOfFile(
-        const std::optional<std::string>& path); // nullopt: null
+  /*	Was -cxx_initWithContentsOfFile:, a class cluster's initialiser: it
+     answered, in place of the receiver, an OOALBufferedSound for up to 1 MB of
+     decoded data, else an OOALStreamedSound. Null
+     where it answered nil: sound not OK, no decoder for the path, or the
+     concrete sound refused.
+  */
+  static oo::Ref<OOSound> initWithContentsOfFile(
+      const std::optional<std::string>& path);  // nullopt: null
 
-    virtual std::optional<std::string> name(); // nullopt: none
+  virtual std::optional<std::string> name();  // nullopt: none
 
-    static bool isSoundOK();
+  static bool isSoundOK();
 
-    virtual ALuint soundBuffer();
-    virtual bool soundIncomplete();
-    virtual void rewind();
+  virtual ALuint soundBuffer();
+  virtual bool soundIncomplete();
+  virtual void rewind();
 
-    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
-    // OOObject answered.
-    virtual std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <Class 0x...>{...}
+  // (OODescription.h). None here, as OOObject answered.
+  virtual std::optional<std::string> descriptionComponents() const;
 
-    // What "%@" printed for the sound: <ClassName 0x...>{components}, the C++
-    // class's name.
-    std::string description() const;
+  // What "%@" printed for the sound: <ClassName 0x...>{components}, the C++
+  // class's name.
+  std::string description() const;
 };

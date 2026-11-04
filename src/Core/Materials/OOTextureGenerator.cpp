@@ -26,30 +26,23 @@ SOFTWARE.
 */
 
 #include "OOTextureGenerator.h"
+
 #include "OOAsyncWorkManager.h"
 #include "OOTexture.h"
 
-uint32_t OOTextureGenerator::textureOptions()
-{
-    return kOOTextureDefaultOptions;
+uint32_t OOTextureGenerator::textureOptions() {
+  return kOOTextureDefaultOptions;
 }
 
-GLfloat OOTextureGenerator::anisotropy()
-{
-    return kOOTextureDefaultAnisotropy;
+GLfloat OOTextureGenerator::anisotropy() { return kOOTextureDefaultAnisotropy; }
+
+GLfloat OOTextureGenerator::lodBias() { return kOOTextureDefaultLODBias; }
+
+std::optional<std::string> OOTextureGenerator::cacheKey() {
+  return std::nullopt;
 }
 
-GLfloat OOTextureGenerator::lodBias()
-{
-    return kOOTextureDefaultLODBias;
-}
-
-std::optional<std::string> OOTextureGenerator::cacheKey()
-{
-    return std::nullopt;
-}
-
-bool OOTextureGenerator::enqueue()
-{
-    return OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(this, kOOAsyncPriorityMedium);
+bool OOTextureGenerator::enqueue() {
+  return OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
+      this, kOOAsyncPriorityMedium);
 }

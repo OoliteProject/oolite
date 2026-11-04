@@ -38,36 +38,36 @@ SOFTWARE.
 class OOTexture;
 
 class OOMultiTextureMaterial : public OOBasicMaterial {
-public:
-    /*	A new material, initialised by initWithName() (below); null where it
-       failed (it answered nil: no texture combiners). It was
-       [[OOMultiTextureMaterial alloc] initWithName:configuration:].
-    */
-    static oo::Ref<OOMultiTextureMaterial> materialWithName(
-        const std::optional<std::string>& name, const oo::PList& configuration);
+ public:
+  /*	A new material, initialised by initWithName() (below); null where it
+     failed (it answered nil: no texture combiners). It was
+     [[OOMultiTextureMaterial alloc] initWithName:configuration:].
+  */
+  static oo::Ref<OOMultiTextureMaterial> materialWithName(
+      const std::optional<std::string>& name, const oo::PList& configuration);
 
-    // Runs once, right after construction; false on failure.
-    bool initWithName(
-        const std::optional<std::string>& name,
-        const oo::PList& configuration); // shared with OOBasicMaterial
+  // Runs once, right after construction; false on failure.
+  bool initWithName(
+      const std::optional<std::string>& name,
+      const oo::PList& configuration);  // shared with OOBasicMaterial
 
-    NSUInteger textureUnitCount();
+  NSUInteger textureUnitCount();
 
-    std::optional<std::string> descriptionComponents() const override;
-    NSUInteger countOfTextureUnitsWithBaseCoordinates() override;
-    void ensureFinishedLoading() override;
-    void apply() override;
-    void unapplyWithNext(OOMaterial* next) override;
-    size_t objectSize() const override { return sizeof *this; }
+  std::optional<std::string> descriptionComponents() const override;
+  NSUInteger countOfTextureUnitsWithBaseCoordinates() override;
+  void ensureFinishedLoading() override;
+  void apply() override;
+  void unapplyWithNext(OOMaterial* next) override;
+  size_t objectSize() const override { return sizeof *this; }
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
-private:
-    oo::Ref<OOTexture> _diffuseMap = { };
-    oo::Ref<OOTexture> _emissionMap = { };
+ private:
+  oo::Ref<OOTexture> _diffuseMap = {};
+  oo::Ref<OOTexture> _emissionMap = {};
 
-    NSUInteger _unitsUsed = { };
+  NSUInteger _unitsUsed = {};
 };
 
 #endif /* OO_MULTITEXTURE */

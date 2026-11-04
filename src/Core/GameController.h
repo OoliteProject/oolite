@@ -26,23 +26,22 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include "OOFullScreenController.h"
-#include "OOFunctionAttributes.h"
-#include "OOMouseInteractionMode.h"
-#include "oofnd/objc/OOObject.h"
-
-#include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
-
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "OOFoundation.h"
+#include "OOFullScreenController.h"
+#include "OOFunctionAttributes.h"
+#include "OOMouseInteractionMode.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
+
 #if OOLITE_MAC_COCOA_UI
-#import <Quartz/Quartz.h> // For PDFKit.
+#import <Quartz/Quartz.h>  // For PDFKit.
 #endif
 
 #define MINIMUM_GAME_TICK 0.25
@@ -52,7 +51,8 @@ MA 02110-1301, USA.
 // 1.0 / (desired framerate cap)
 
 class MyOpenGLView;
-class OOFullScreenController; // TEMP: whether to use separate OOFullScreenController object, will hopefully
+class OOFullScreenController;  // TEMP: whether to use separate
+                               // OOFullScreenController object, will hopefully
 // be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_COCOA_UI
 
@@ -63,164 +63,186 @@ class OOFullScreenController; // TEMP: whether to use separate OOFullScreenContr
         The Mac category at the end of GameController.mm is not compiled.
 */
 class GameController : public oo::RefCounted {
-public:
-    // The shared controller, made on first use; borrowed, never released.
-    static GameController* sharedController();
+ public:
+  // The shared controller, made on first use; borrowed, never released.
+  static GameController* sharedController();
 
-    GameController();
-    ~GameController();
+  GameController();
+  ~GameController();
 
-    bool finishedLaunching();
+  bool finishedLaunching();
 
-    bool isGamePaused();
-    void setGamePaused(bool value);
+  bool isGamePaused();
+  void setGamePaused(bool value);
 
-    /*
-      Eco Quality of Service currently implemented only on Windows.
-      It sets the game to low power consumption mode when it loses
-      focus or is paused. When EcoQoS is active:
-      - Windows schedules the appliation on more efficient CPU cores
-      - The CPU is kept at a more efficient clock frequency
+  /*
+    Eco Quality of Service currently implemented only on Windows.
+    It sets the game to low power consumption mode when it loses
+    focus or is paused. When EcoQoS is active:
+    - Windows schedules the appliation on more efficient CPU cores
+    - The CPU is kept at a more efficient clock frequency
 
-      On non-Windows platforms it is a no-op.
-    */
-    void setEcoQoS(bool efficiencyModeRequested);
+    On non-Windows platforms it is a no-op.
+  */
+  void setEcoQoS(bool efficiencyModeRequested);
 
-    OOMouseInteractionMode mouseInteractionMode();
-    void setMouseInteractionMode(OOMouseInteractionMode mode);
-    void setMouseInteractionModeForFlight(); // Chooses mouse control mode appropriately.
-    void setMouseInteractionModeForUIWithMouseInteraction(bool interaction);
+  OOMouseInteractionMode mouseInteractionMode();
+  void setMouseInteractionMode(OOMouseInteractionMode mode);
+  void setMouseInteractionModeForFlight();  // Chooses mouse control mode
+                                            // appropriately.
+  void setMouseInteractionModeForUIWithMouseInteraction(bool interaction);
 
-    ::MyOpenGLView* gameView();
-    void setGameView(::MyOpenGLView* view);
+  ::MyOpenGLView* gameView();
+  void setGameView(::MyOpenGLView* view);
 
 #ifndef NDEBUG
-    bool suppressClangStuff();
+  bool suppressClangStuff();
 #endif
 
-    // The frame loop.
+  // The frame loop.
 #if !OOLITE_MAC_COCOA_UI
-    void performGameTick();
+  void performGameTick();
 #endif
-    void startAnimationTimer();
-    void stopAnimationTimer();
+  void startAnimationTimer();
+  void stopAnimationTimer();
 
-    /*	Fire whatever is due now, the game tick first, then one deferred call:
-            what the run loop's -limitDateForMode: did for the game while its tick
-       and deferred calls were run-loop timers. For code that must let the game
-       tick while it blocks the frame loop (the OXZ download callback).
-    */
-    void fireDueTimers();
+  /*	Fire whatever is due now, the game tick first, then one deferred call:
+          what the run loop's -limitDateForMode: did for the game while its tick
+     and deferred calls were run-loop timers. For code that must let the game
+     tick while it blocks the frame loop (the OXZ download callback).
+  */
+  void fireDueTimers();
 
-    // Start-up, splash and progress messages, exit, player file.
-    void applicationDidFinishLaunching();
+  // Start-up, splash and progress messages, exit, player file.
+  void applicationDidFinishLaunching();
 
-    void exitAppWithContext(const std::string& context);
-    void exitAppCommandQ();
+  void exitAppWithContext(const std::string& context);
+  void exitAppCommandQ();
 
-    // nullopt: no saved game to load (was nil).
-    std::optional<std::string> playerFileToLoad();
-    void setPlayerFileToLoad(const std::string& filename); // kept only for a .oolite-save path
+  // nullopt: no saved game to load (was nil).
+  std::optional<std::string> playerFileToLoad();
+  void setPlayerFileToLoad(
+      const std::string& filename);  // kept only for a .oolite-save path
 
-    // nullopt: no save directory (was nil). A nullopt argument clears it and the save-directory
-    // default, and the next playerFileDirectory() looks it up again (as nil did; "" does not).
-    std::optional<std::string> playerFileDirectory();
-    void setPlayerFileDirectory(const std::optional<std::string>& filename);
+  // nullopt: no save directory (was nil). A nullopt argument clears it and the
+  // save-directory default, and the next playerFileDirectory() looks it up
+  // again (as nil did; "" does not).
+  std::optional<std::string> playerFileDirectory();
+  void setPlayerFileDirectory(const std::optional<std::string>& filename);
 
-    void loadPlayerIfRequired();
+  void loadPlayerIfRequired();
 
-    void beginSplashScreen();
-    void logProgress(const std::string& message);
+  void beginSplashScreen();
+  void logProgress(const std::string& message);
 #if OO_DEBUG
-    // These take the formatted message, as do OO_DEBUG_PROGRESS / OO_DEBUG_PUSH_PROGRESS below.
-    void debugLogProgress(const std::string& message);
-    void debugPushProgressMessage(const std::string& message);
-    void debugPopProgressMessage();
+  // These take the formatted message, as do OO_DEBUG_PROGRESS /
+  // OO_DEBUG_PUSH_PROGRESS below.
+  void debugLogProgress(const std::string& message);
+  void debugPushProgressMessage(const std::string& message);
+  void debugPopProgressMessage();
 #endif
-    void endSplashScreen();
+  void endSplashScreen();
 
-    void windowDidResize();
+  void windowDidResize();
 
 #if OOLITE_SDL
-    // Full screen (SDL/GameController+SDLFullScreen.mm): the former FullScreen category.
-    // -displayModes is getDisplayModes(), as the state has a displayModes.
-    void setUpDisplayModes(); // internal use only
-    void setFullScreenMode(bool fsm);
-    void exitFullScreenMode(); // FIXME: should be setFullScreenMode(false)
-    bool inFullScreenMode();
-    bool setDisplayWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh);
-    oo::PList findDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh); // a mode dictionary; null: none
-    oo::PList getDisplayModes(); // an array of mode dictionaries
-    NSUInteger indexOfCurrentDisplayMode();
-    void pauseFullScreenModeToPerform(const char* selectorName, oo::RefCounted* target); // by name (was a SEL)
+  // Full screen (SDL/GameController+SDLFullScreen.mm): the former FullScreen
+  // category. -displayModes is getDisplayModes(), as the state has a
+  // displayModes.
+  void setUpDisplayModes();  // internal use only
+  void setFullScreenMode(bool fsm);
+  void exitFullScreenMode();  // FIXME: should be setFullScreenMode(false)
+  bool inFullScreenMode();
+  bool setDisplayWidth(unsigned int d_width, unsigned int d_height,
+                       unsigned int d_refresh);
+  oo::PList findDisplayModeForWidth(
+      unsigned int d_width, unsigned int d_height,
+      unsigned int d_refresh);  // a mode dictionary; null: none
+  oo::PList getDisplayModes();  // an array of mode dictionaries
+  NSUInteger indexOfCurrentDisplayMode();
+  void pauseFullScreenModeToPerform(
+      const char* selectorName, oo::RefCounted* target);  // by name (was a SEL)
 #endif
 
-    // tests/unit/core/test_GameController.mm reads and sets the state below.
-    friend struct GameControllerTestAccess;
+  // tests/unit/core/test_GameController.mm reads and sets the state below.
+  friend struct GameControllerTestAccess;
 
-private:
-    // Internal: the state, read and written by the members above (and by the
-    // fenced Mac categories, not compiled).
+ private:
+  // Internal: the state, read and written by the members above (and by the
+  // fenced Mac categories, not compiled).
 #if OOLITE_MAC_COCOA_UI
-    NSTextField* splashProgressTextField = { };
-    NSView* splashView = { };
-    NSWindow* gameWindow = { };
-    PDFView* helpView = { };
-    NSMenu* dockMenu = { };
+  NSTextField* splashProgressTextField = {};
+  NSView* splashView = {};
+  NSWindow* gameWindow = {};
+  PDFView* helpView = {};
+  NSMenu* dockMenu = {};
 #endif
 
-    ::MyOpenGLView* _gameView = { }; // retained; was gameView, named like its getter
+  ::MyOpenGLView* _gameView =
+      {};  // retained; was gameView, named like its getter
 
-    NSTimeInterval last_timeInterval = { };
-    double delta_t = { };
+  NSTimeInterval last_timeInterval = {};
+  double delta_t = {};
 
-    int my_mouse_x = { }, my_mouse_y = { };
+  int my_mouse_x = {}, my_mouse_y = {};
 
-    std::optional<std::string> _playerFileDirectory; // nullopt: not looked up yet, or none (was nil); named so -cxx_playerFileDirectory's member can be playerFileDirectory()
-    std::optional<std::string> _playerFileToLoad; // nullopt: none (was nil); named so -cxx_playerFileToLoad's member can be playerFileToLoad()
-    std::vector<std::string> expansionPathsToInclude; // expansion folders opened with the application (Mac)
+  std::optional<std::string>
+      _playerFileDirectory;  // nullopt: not looked up yet, or none (was nil);
+                             // named so -cxx_playerFileDirectory's member can
+                             // be playerFileDirectory()
+  std::optional<std::string>
+      _playerFileToLoad;  // nullopt: none (was nil); named so
+                          // -cxx_playerFileToLoad's member can be
+                          // playerFileToLoad()
+  std::vector<std::string>
+      expansionPathsToInclude;  // expansion folders opened with the application
+                                // (Mac)
 
-    NSTimeInterval _animationTimerInterval = { };
+  NSTimeInterval _animationTimerInterval = {};
 
-    NSTimeInterval _splashStart = { }; // oo::date::monotonicSeconds() at start-up
+  NSTimeInterval _splashStart = {};  // oo::date::monotonicSeconds() at start-up
 
-    std::string pauseSelector = { }; // the selector's name; "" none
-    oo::RefCounted* pauseTarget = { }; // not retained, as before; never performed on SDL
+  std::string pauseSelector = {};  // the selector's name; "" none
+  oo::RefCounted* pauseTarget =
+      {};  // not retained, as before; never performed on SDL
 
-    bool gameIsPaused = { };
+  bool gameIsPaused = {};
 
-    OOMouseInteractionMode _mouseMode = { };
-    OOMouseInteractionMode _resumeMode = { };
+  OOMouseInteractionMode _mouseMode = {};
+  OOMouseInteractionMode _resumeMode = {};
 
 // Fullscreen mode stuff.
 #if OO_USE_FULLSCREEN_CONTROLLER
-    OOFullScreenController* _fullScreenController = { };
+  OOFullScreenController* _fullScreenController = {};
 #elif OOLITE_SDL
-    NSRect fsGeometry = { };
-    ::MyOpenGLView* switchView = { };
+  NSRect fsGeometry = {};
+  ::MyOpenGLView* switchView = {};
 
-    oo::PList::Array displayModes; // the usable screen modes, each a mode dictionary
+  oo::PList::Array
+      displayModes;  // the usable screen modes, each a mode dictionary
 
-    unsigned int width = { }, height = { };
-    unsigned int refresh = { };
-    bool fullscreen = { };
-    oo::PList originalDisplayMode; // a mode dictionary; null: none (was nil)
-    oo::PList fullscreenDisplayMode; // a mode dictionary; null: none (was nil)
+  unsigned int width = {}, height = {};
+  unsigned int refresh = {};
+  bool fullscreen = {};
+  oo::PList originalDisplayMode;    // a mode dictionary; null: none (was nil)
+  oo::PList fullscreenDisplayMode;  // a mode dictionary; null: none (was nil)
 
-    bool stayInFullScreenMode = { };
-    bool _finishedLaunching = { };
+  bool stayInFullScreenMode = {};
+  bool _finishedLaunching = {};
 #endif
 
-private:
-    void doPerformGameTick();
-    void performGameTickIfDue();
-    void fireDueDeadlines();
-    void runFrameLoop();
+ private:
+  void doPerformGameTick();
+  void performGameTickIfDue();
+  void fireDueDeadlines();
+  void runFrameLoop();
 
-    void reportUnhandledStartupExceptionName(const std::string& name, const std::optional<std::string>& reason); // reason nullopt: none (was nil)
+  void reportUnhandledStartupExceptionName(
+      const std::string& name, const std::optional<std::string>&
+                                   reason);  // reason nullopt: none (was nil)
 #if OO_DEBUG && !OOLITE_MAC_COCOA_UI
-    bool debugMessageTrackingIsOn();
-    std::string debugMessageCurrentString();
+  bool debugMessageTrackingIsOn();
+  std::string debugMessageCurrentString();
 #endif
 };
 
@@ -238,17 +260,20 @@ private:
 void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay);
 
 #if OO_DEBUG
-#define OO_DEBUG_PROGRESS(message) ::GameController::sharedController()->debugLogProgress(message)
-#define OO_DEBUG_PUSH_PROGRESS(message) ::GameController::sharedController()->debugPushProgressMessage(message)
-#define OO_DEBUG_POP_PROGRESS() ::GameController::sharedController()->debugPopProgressMessage()
+#define OO_DEBUG_PROGRESS(message) \
+  ::GameController::sharedController()->debugLogProgress(message)
+#define OO_DEBUG_PUSH_PROGRESS(message) \
+  ::GameController::sharedController()->debugPushProgressMessage(message)
+#define OO_DEBUG_POP_PROGRESS() \
+  ::GameController::sharedController()->debugPopProgressMessage()
 #else
 #define OO_DEBUG_PROGRESS(message) \
-    do {                           \
-    } while (0)
+  do {                             \
+  } while (0)
 #define OO_DEBUG_PUSH_PROGRESS(message) \
-    do {                                \
-    } while (0)
+  do {                                  \
+  } while (0)
 #define OO_DEBUG_POP_PROGRESS() \
-    do {                        \
-    } while (0)
+  do {                          \
+  } while (0)
 #endif

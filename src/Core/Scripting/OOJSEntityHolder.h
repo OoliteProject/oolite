@@ -9,9 +9,9 @@ reads as a stale reference once it has gone. The slot retains the holder
 (OOJSCxxObjectWrapperFinalize). EntityJSValueInContext() makes one per JS
 object.
 
-Include it after Entity's definition (Entity.h; a test's stand-in): oo::WeakRef needs the
-complete class. The JS glue members are defined in OOJSEntity.mm (a narrow test that links a
-binding without it defines them as stand-ins).
+Include it after Entity's definition (Entity.h; a test's stand-in): oo::WeakRef
+needs the complete class. The JS glue members are defined in OOJSEntity.mm (a
+narrow test that links a binding without it defines them as stand-ins).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -39,20 +39,19 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 
 class OOJSEntityHolder final : public oo::RefCounted, public OOJSPrivateObject {
-public:
-    explicit OOJSEntityHolder(Entity* entity)
-        : _entity(entity)
-    {
-    }
+ public:
+  explicit OOJSEntityHolder(Entity* entity) : _entity(entity) {}
 
-    // The entity, borrowed; null once it has gone (what the weak reference proxy's underlying object was: nil).
-    Entity* entity() const { return _entity.get(); }
+  // The entity, borrowed; null once it has gone (what the weak reference
+  // proxy's underlying object was: nil).
+  Entity* entity() const { return _entity.get(); }
 
-    // The entity's own glue: its JS value, nothing on finalization, its description; null, nothing and nullopt once it has gone.
-    JSValue jsValueInContext(JSContext* context) override;
-    void clearJSSelf(JSValueConst selfVal) override;
-    std::optional<std::string> jsDescription() override;
+  // The entity's own glue: its JS value, nothing on finalization, its
+  // description; null, nothing and nullopt once it has gone.
+  JSValue jsValueInContext(JSContext* context) override;
+  void clearJSSelf(JSValueConst selfVal) override;
+  std::optional<std::string> jsDescription() override;
 
-private:
-    oo::WeakRef<Entity> _entity;
+ private:
+  oo::WeakRef<Entity> _entity;
 };

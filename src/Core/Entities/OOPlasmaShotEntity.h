@@ -29,24 +29,25 @@ MA 02110-1301, USA.
 
 #include "OOLightParticleEntity.h"
 
-// A global class over OOLightParticleEntity. ShipEntity makes one with shotWithPosition().
+// A global class over OOLightParticleEntity. ShipEntity makes one with
+// shotWithPosition().
 class OOPlasmaShotEntity : public OOLightParticleEntity {
-public:
-    // [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.
-    static oo::Ref<OOPlasmaShotEntity> shotWithPosition(HPVector position,
-        Vector velocity,
-        float energy,
-        OOTimeDelta duration,
-        OOColor* color);
+ public:
+  // [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.
+  static oo::Ref<OOPlasmaShotEntity> shotWithPosition(HPVector position,
+                                                      Vector velocity,
+                                                      float energy,
+                                                      OOTimeDelta duration,
+                                                      OOColor* color);
 
-    // -initWithPosition:...'s body, run once right after construction.
-    void initWithPosition(HPVector position, Vector velocity, float energy,
-        OOTimeDelta duration, OOColor* color);
+  // -initWithPosition:...'s body, run once right after construction.
+  void initWithPosition(HPVector position, Vector velocity, float energy,
+                        OOTimeDelta duration, OOColor* color);
 
-    bool canCollide() override;
-    bool checkCloseCollisionWith(Entity* other) override;
-    void update(double delta_t) override;
+  bool canCollide() override;
+  bool checkCloseCollisionWith(Entity* other) override;
+  void update(double delta_t) override;
 
-private:
-    OOTimeDelta _duration = { };
+ private:
+  OOTimeDelta _duration = {};
 };

@@ -36,78 +36,69 @@ OOMusic* sPlayingMusic = nullptr;
 // it while there was none did nothing, so each use checks.
 OOSoundSource* sMusicSource = nullptr;
 
-} // namespace
+}  // namespace
 
-OOMusic::~OOMusic()
-{
-    if (sPlayingMusic == this)
-        stop();
+OOMusic::~OOMusic() {
+  if (sPlayingMusic == this) stop();
 }
 
-oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(const std::optional<std::string>& inPath) // OOSound's designated initializer, overridden
+oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(
+    const std::optional<std::string>&
+        inPath)  // OOSound's designated initializer, overridden
 {
-    oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
-    {
-        self->sound = OOSound::initWithContentsOfFile(inPath);
-        if (!self->sound) {
-            self = nullptr;
-        }
+  oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
+  {
+    self->sound = OOSound::initWithContentsOfFile(inPath);
+    if (!self->sound) {
+      self = nullptr;
     }
+  }
 
-    return self;
+  return self;
 }
 
-std::optional<std::string> OOMusic::name()
-{
-    return sound != nullptr ? sound->name() : std::nullopt;
+std::optional<std::string> OOMusic::name() {
+  return sound != nullptr ? sound->name() : std::nullopt;
 }
 
-void OOMusic::setMusicGain(float newValue)
-{
-    if (nullptr != sMusicSource) {
-        sMusicSource->setGain(newValue);
+void OOMusic::setMusicGain(float newValue) {
+  if (nullptr != sMusicSource) {
+    sMusicSource->setGain(newValue);
+  }
+}
+
+float OOMusic::musicGain() {
+  if (nullptr == sMusicSource) return 0.0f;
+  return sMusicSource->gain();
+}
+
+void OOMusic::playLooped(bool inLoop) {
+  if (sPlayingMusic != this) {
+    if (nullptr == sMusicSource) {
+      sMusicSource = oo::makeRef<OOSoundSource>().leakRef();
     }
+    sMusicSource->stop();
+    sMusicSource->setLoop(inLoop);
+    sMusicSource->setSound(sound.get());
+    sMusicSource->play();
+
+    sPlayingMusic = this;
+  }
 }
 
-float OOMusic::musicGain()
-{
-    if (nullptr == sMusicSource)
-        return 0.0f;
-    return sMusicSource->gain();
+OOSoundSource* OOMusic::musicSoundSource() { return sMusicSource; }
+
+bool OOMusic::isPlaying() {
+  return sPlayingMusic == this && sMusicSource != nullptr &&
+         sMusicSource->isPlaying();
 }
 
-void OOMusic::playLooped(bool inLoop)
-{
-    if (sPlayingMusic != this) {
-        if (nullptr == sMusicSource) {
-            sMusicSource = oo::makeRef<OOSoundSource>().leakRef();
-        }
-        sMusicSource->stop();
-        sMusicSource->setLoop(inLoop);
-        sMusicSource->setSound(sound.get());
-        sMusicSource->play();
-
-        sPlayingMusic = this;
+void OOMusic::stop() {
+  if (sPlayingMusic == this) {
+    sPlayingMusic = nullptr;
+    if (sMusicSource != nullptr) {
+      sMusicSource->stop();
+      sMusicSource->setSound(nullptr);
     }
-}
-
-OOSoundSource* OOMusic::musicSoundSource()
-{
-    return sMusicSource;
-}
-
-bool OOMusic::isPlaying()
-{
-    return sPlayingMusic == this && sMusicSource != nullptr && sMusicSource->isPlaying();
-}
-
-void OOMusic::stop()
-{
-    if (sPlayingMusic == this) {
-        sPlayingMusic = nullptr;
-        if (sMusicSource != nullptr) {
-            sMusicSource->stop();
-            sMusicSource->setSound(nullptr);
-        }
-    }
+  }
 }

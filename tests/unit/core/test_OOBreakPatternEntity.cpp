@@ -38,7 +38,8 @@ class TestPlayer : public PlayerEntity {
 };
 
 // A C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
+// object was.
 template <class T>
 T* NewTestPlayer() {
   oo::Ref<T> player = oo::makeRef<T>();

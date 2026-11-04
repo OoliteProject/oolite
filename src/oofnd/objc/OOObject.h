@@ -9,5 +9,6 @@
 
 #include <stdint.h>
 
-// NSZone is a GNUstep-only concept Oolite never uses beyond passing it through; always nil.
+// NSZone is a GNUstep-only concept Oolite never uses beyond passing it through;
+// always nil.
 typedef struct OOZone OOZone;

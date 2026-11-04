@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #include "OOGraphicsResetManager.h"
 #include "OOOpenGLExtensionManager.h"
 #include "OOTexture.h"
-
 #include "oofnd/StdLib.hpp"
 
 #if OO_SHADERS
@@ -41,59 +40,61 @@ MA 02110-1301, USA.
 #define DUST_SCALE 2000
 #define DUST_N_PARTICLES 600
 
-/*	The universe makes the dust with oo::makeRef<DustEntity>() and init(), and finds it with dynamic_cast.
-        It is its own graphics reset client (OOGraphicsResetClient), and the dust shader's uniforms are bound to its members
-        (OOShaderUniform's C++ target binding).
+/*	The universe makes the dust with oo::makeRef<DustEntity>() and init(),
+   and finds it with dynamic_cast. It is its own graphics reset client
+   (OOGraphicsResetClient), and the dust shader's uniforms are bound to its
+   members (OOShaderUniform's C++ target binding).
 */
 class DustEntity : public Entity, public OOGraphicsResetClient {
-public:
-    DustEntity() = default;
-    ~DustEntity() override;
+ public:
+  DustEntity() = default;
+  ~DustEntity() override;
 
-    /*	-init's body after [super init] (the constructor ran Entity's), run once right after
-            construction: it registers this with the graphics reset manager.
-    */
-    void init();
+  /*	-init's body after [super init] (the constructor ran Entity's), run once
+     right after construction: it registers this with the graphics reset
+     manager.
+  */
+  void init();
 
-    void setDustColor(OOColor* color);
-    OOColor* dustColor();
+  void setDustColor(OOColor* color);
+  OOColor* dustColor();
 
-    bool canCollide() override;
-    void updateCameraRelativePosition() override;
-    void update(OOTimeDelta delta_t) override;
+  bool canCollide() override;
+  void updateCameraRelativePosition() override;
+  void update(OOTimeDelta delta_t) override;
 
 #if OO_SHADERS
-    OOShaderProgram* getShader();
-    Vector offsetPlayerPosition(); // the dust shader's uOffsetPlayerPosition
+  OOShaderProgram* getShader();
+  Vector offsetPlayerPosition();  // the dust shader's uOffsetPlayerPosition
 #endif
-    Vector warpVector(); // the dust shader's uWarp
+  Vector warpVector();  // the dust shader's uWarp
 
-    void drawImmediate(bool immediate, bool translucent) override;
+  void drawImmediate(bool immediate, bool translucent) override;
 
-    // OOGraphicsResetClient.
-    void resetGraphicsState() override;
+  // OOGraphicsResetClient.
+  void resetGraphicsState() override;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::optional<std::string> descriptionForObjDump() override;
+  std::optional<std::string> descriptionForObjDump() override;
 #endif
 
-private:
+ private:
 #if OO_SHADERS
-    void checkShaderMode();
+  void checkShaderMode();
 #endif
 
-    oo::Ref<OOColor> dust_color;
-    Vector vertices[DUST_N_PARTICLES * 2] = { };
-    GLushort indices[DUST_N_PARTICLES * 2] = { };
-    GLfloat color_fv[4] = { };
-    oo::Ref<OOTexture> texture;
-    bool hasPointSprites = { };
-    bool drawDust = { };
+  oo::Ref<OOColor> dust_color;
+  Vector vertices[DUST_N_PARTICLES * 2] = {};
+  GLushort indices[DUST_N_PARTICLES * 2] = {};
+  GLfloat color_fv[4] = {};
+  oo::Ref<OOTexture> texture;
+  bool hasPointSprites = {};
+  bool drawDust = {};
 
 #if OO_SHADERS
-    GLfloat warpinessAttr[DUST_N_PARTICLES * 2] = { };
-    oo::Ref<OOShaderProgram> shader;
-    std::vector<oo::Ref<OOShaderUniform>> uniforms;
-    uint8_t shaderMode = { };
+  GLfloat warpinessAttr[DUST_N_PARTICLES * 2] = {};
+  oo::Ref<OOShaderProgram> shader;
+  std::vector<oo::Ref<OOShaderUniform>> uniforms;
+  uint8_t shaderMode = {};
 #endif
 };

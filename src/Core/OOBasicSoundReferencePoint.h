@@ -34,9 +34,9 @@ MA 02110-1301, USA.
    OOSoundSource's no-op -positionRelativeTo:, takes it by (borrowed) pointer.
 */
 class OOSoundReferencePoint : public oo::RefCounted {
-public:
-    // Positional audio attributes are ignored in this implementation
-    void setPosition(Vector inPosition);
-    void setVelocity(Vector inVelocity);
-    void setOrientation(Vector inOrientation);
+ public:
+  // Positional audio attributes are ignored in this implementation
+  void setPosition(Vector inPosition);
+  void setVelocity(Vector inVelocity);
+  void setOrientation(Vector inOrientation);
 };

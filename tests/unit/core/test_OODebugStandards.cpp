@@ -1,17 +1,18 @@
 /*	test_OODebugStandards.mm
-	Unit tests for the OXP standards checks (src/Core/Debug/OODebugStandards.h),
-	a Debug module file with no class.
+        Unit tests for the OXP standards checks
+   (src/Core/Debug/OODebugStandards.h), a Debug module file with no class.
 
-	The checks read "enforce-oxp-standards" from the user's defaults (clamped to off..quit),
-	log a deprecation or an error unless enforcement is off, and ask the game controller to quit
-	in quit mode; OOEnforceStandards() is true from "enforce" up, and the OXP verifier mode is
-	"warn" from then on, when the defaults are no longer read. The tests share that state, so they
-	run in order.
+        The checks read "enforce-oxp-standards" from the user's defaults
+   (clamped to off..quit), log a deprecation or an error unless enforcement is
+   off, and ask the game controller to quit in quit mode; OOEnforceStandards()
+   is true from "enforce" up, and the OXP verifier mode is "warn" from then on,
+   when the defaults are no longer read. The tests share that state, so they run
+   in order.
 
-	The game controller would bring the whole game into the link, so it is this file's stand-in:
-	it answers sharedController() and records the contexts it is asked to exit with. The defaults
-	are set in memory (setObject; nothing is written without synchronize()).
-	Run: tests/run.sh unit
+        The game controller would bring the whole game into the link, so it is
+   this file's stand-in: it answers sharedController() and records the contexts
+   it is asked to exit with. The defaults are set in memory (setObject; nothing
+   is written without synchronize()). Run: tests/run.sh unit
 */
 
 #include <string>
@@ -29,8 +30,9 @@ std::vector<std::string> sExitContexts;
 }  // namespace
 
 // C++ definitions of the
-// two controller members the code under test calls, with the stand-in's answers. The shared controller is
-// storage nothing constructs: exitAppWithContext() reads no state.
+// two controller members the code under test calls, with the stand-in's
+// answers. The shared controller is storage nothing constructs:
+// exitAppWithContext() reads no state.
 alignas(
     GameController) unsigned char sControllerStorage[sizeof(GameController)];
 

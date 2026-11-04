@@ -60,7 +60,7 @@ MA 02110-1301, USA.
 
 OOCreditsQuantity OODeciCreditsFromDouble(double doubleDeciCredits);
 
-/*	Value is either a real or something that can be duck-typed to an integer as
-        oo::plist_get::unsignedLongLongFrom() reads it (nullptr: 0).
+/*	Value is either a real or something that can be duck-typed to an integer
+   as oo::plist_get::unsignedLongLongFrom() reads it (nullptr: 0).
 */
 OOCreditsQuantity OODeciCreditsFromPList(const oo::PList* value);

@@ -28,41 +28,44 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOJavaScriptEngine.h"
-#include "oofnd/Ref.hpp"
-
 #include <optional>
 #include <string>
 
+#include "OOJavaScriptEngine.h"
+#include "oofnd/Ref.hpp"
+
 class OOJSScript : public oo::RefCounted {
-public:
-    // Null (after logging) if the script cannot be loaded or its top level throws.
-    static oo::Ref<OOJSScript> scriptWithPath(const std::string& path);
-    ~OOJSScript() override;
+ public:
+  // Null (after logging) if the script cannot be loaded or its top level
+  // throws.
+  static oo::Ref<OOJSScript> scriptWithPath(const std::string& path);
+  ~OOJSScript() override;
 
-    static OOJSScript* currentlyRunningScript();
+  static OOJSScript* currentlyRunningScript();
 
-    std::optional<std::string> name();
-    std::optional<std::string> version();
-    std::optional<std::string> displayName();
+  std::optional<std::string> name();
+  std::optional<std::string> version();
+  std::optional<std::string> displayName();
 
-    JSValueConst scriptObject();
+  JSValueConst scriptObject();
 
-    /*	Call a method of the script object with the script as this, as the
-            game's OOJSScript::callMethod() does. Returns false if the method does
-            not exist or throws. *outResult, if requested, is owned by the caller.
-    */
-    bool callMethodNamed(const std::string& methodName, JSValueConst* argv, int argc, JSValue* outResult);
+  /*	Call a method of the script object with the script as this, as the
+          game's OOJSScript::callMethod() does. Returns false if the method does
+          not exist or throws. *outResult, if requested, is owned by the caller.
+  */
+  bool callMethodNamed(const std::string& methodName, JSValueConst* argv,
+                       int argc, JSValue* outResult);
 
-private:
-    bool initWithPath(const std::string& path);
-    bool loadScriptWithContext(JSContext* context);
-    std::optional<std::string> stringPropertyNamed(const char* name, JSContext* context);
+ private:
+  bool initWithPath(const std::string& path);
+  bool loadScriptWithContext(JSContext* context);
+  std::optional<std::string> stringPropertyNamed(const char* name,
+                                                 JSContext* context);
 
-    JSValue _jsSelf = JS_UNDEFINED; // Owned; freed in the destructor.
-    std::optional<std::string> _name;
-    std::optional<std::string> _version;
-    std::string _path;
+  JSValue _jsSelf = JS_UNDEFINED;  // Owned; freed in the destructor.
+  std::optional<std::string> _name;
+  std::optional<std::string> _version;
+  std::string _path;
 };
 
 void InitOOJSScript(JSContext* context, JSValueConst global);

@@ -42,49 +42,49 @@ MA 02110-1301, USA.
    std::string &; -dictionaryForScripting hands JavaScript a PList dictionary.
 */
 class OOCommodityMarket : public oo::RefCounted {
-public:
-    NSUInteger count();
+ public:
+  NSUInteger count();
 
-    void setGood(const std::string& key, const oo::PList& info);
+  void setGood(const std::string& key, const oo::PList& info);
 
-    std::vector<std::string> goods(); // good keys, in sort_order
-    oo::PList
-    dictionaryForScripting(); // a dictionary of the definitions, for JavaScript
+  std::vector<std::string> goods();  // good keys, in sort_order
+  oo::PList
+  dictionaryForScripting();  // a dictionary of the definitions, for JavaScript
 
-    bool setPrice(OOCreditsQuantity price, const std::string& good);
-    bool setQuantity(OOCargoQuantity quantity, const std::string& good);
-    bool addQuantity(OOCargoQuantity quantity, const std::string& good);
-    bool removeQuantity(OOCargoQuantity quantity, const std::string& good);
-    void removeAllGoods();
-    bool setComment(const std::string& comment, const std::string& good);
-    bool setShortComment(const std::string& comment, const std::string& good);
+  bool setPrice(OOCreditsQuantity price, const std::string& good);
+  bool setQuantity(OOCargoQuantity quantity, const std::string& good);
+  bool addQuantity(OOCargoQuantity quantity, const std::string& good);
+  bool removeQuantity(OOCargoQuantity quantity, const std::string& good);
+  void removeAllGoods();
+  bool setComment(const std::string& comment, const std::string& good);
+  bool setShortComment(const std::string& comment, const std::string& good);
 
-    std::optional<std::string> nameForGood(const std::string& good);
-    std::optional<std::string> commentForGood(const std::string& good);
-    std::optional<std::string> shortCommentForGood(const std::string& good);
-    OOCreditsQuantity priceForGood(const std::string& good);
-    OOCargoQuantity quantityForGood(const std::string& good);
-    OOMassUnit massUnitForGood(const std::string& good);
-    NSUInteger exportLegalityForGood(const std::string& good);
-    NSUInteger importLegalityForGood(const std::string& good);
-    OOCargoQuantity capacityForGood(const std::string& good);
-    float trumbleOpinionForGood(const std::string& good);
+  std::optional<std::string> nameForGood(const std::string& good);
+  std::optional<std::string> commentForGood(const std::string& good);
+  std::optional<std::string> shortCommentForGood(const std::string& good);
+  OOCreditsQuantity priceForGood(const std::string& good);
+  OOCargoQuantity quantityForGood(const std::string& good);
+  OOMassUnit massUnitForGood(const std::string& good);
+  NSUInteger exportLegalityForGood(const std::string& good);
+  NSUInteger importLegalityForGood(const std::string& good);
+  OOCargoQuantity capacityForGood(const std::string& good);
+  float trumbleOpinionForGood(const std::string& good);
 
-    oo::PList definitionForGood(const std::string& good); // null: no such good
+  oo::PList definitionForGood(const std::string& good);  // null: no such good
 
-    oo::PList savePlayerAmounts(); // [[key, quantity], ...] in goods() order
-    void loadPlayerAmounts(const oo::PList& amounts);
+  oo::PList savePlayerAmounts();  // [[key, quantity], ...] in goods() order
+  void loadPlayerAmounts(const oo::PList& amounts);
 
-    oo::PList
-    saveStationAmounts(); // [[key, quantity, price], ...] in goods() order
-    void loadStationAmounts(const oo::PList& amounts);
+  oo::PList
+  saveStationAmounts();  // [[key, quantity, price], ...] in goods() order
+  void loadStationAmounts(const oo::PList& amounts);
 
-private:
-    // nullptr: no such good (a nil definition).
-    oo::PList* definitionPointerForGood(const std::string& good);
-    std::vector<std::string> sortedGoodKeys();
+ private:
+  // nullptr: no such good (a nil definition).
+  oo::PList* definitionPointerForGood(const std::string& good);
+  std::vector<std::string> sortedGoodKeys();
 
-    std::map<std::string, oo::PList, std::less<>> _commodityList;
-    std::optional<std::vector<std::string>>
-        _sortedKeys; // goods(), built on first use
+  std::map<std::string, oo::PList, std::less<>> _commodityList;
+  std::optional<std::vector<std::string>>
+      _sortedKeys;  // goods(), built on first use
 };

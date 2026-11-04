@@ -26,45 +26,58 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <quickjs.h>
+
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "oofnd/StdLib.hpp"
-#include <quickjs.h>
 
 void InitOOJSQuaternion(JSContext* context, JSValueConst global);
 
 // Return an owned Quaternion object, or JS_EXCEPTION.
-JSValue JSQuaternionWithQuaternion(JSContext* context, Quaternion quaternion) NONNULL_FUNC;
+JSValue JSQuaternionWithQuaternion(JSContext* context,
+                                   Quaternion quaternion) NONNULL_FUNC;
 
 // *outValue is owned by the caller on success.
-bool QuaternionToJSValue(JSContext* context, Quaternion quaternion, JSValue* outValue) NONNULL_FUNC;
-bool JSValueToQuaternion(JSContext* context, JSValueConst value, Quaternion* outQuaternion) NONNULL_FUNC;
+bool QuaternionToJSValue(JSContext* context, Quaternion quaternion,
+                         JSValue* outValue) NONNULL_FUNC;
+bool JSValueToQuaternion(JSContext* context, JSValueConst value,
+                         Quaternion* outQuaternion) NONNULL_FUNC;
 
-/*	Given a JS Quaternion object, get the corresponding Vector struct. Given a
-        JS Entity, get its orientation. Given a JS Array with exactly four
-        elements, all of them numbers, treat them as [w, x, y, z]  components. For
-        anything else, return NO. (Other implicit conversions may be added in
+/*	Given a JS Quaternion object, get the corresponding Vector struct. Given
+   a JS Entity, get its orientation. Given a JS Array with exactly four
+        elements, all of them numbers, treat them as [w, x, y, z]  components.
+   For anything else, return NO. (Other implicit conversions may be added in
         future.)
 */
-bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj, Quaternion* outQuaternion) GCC_ATTR((nonnull(1, 3)));
+bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj,
+                           Quaternion* outQuaternion) GCC_ATTR((nonnull(1, 3)));
 
 //	Set the value of a JS quaternion object.
-bool JSQuaternionSetQuaternion(JSContext* context, JSValueConst quaternionObj, Quaternion quaternion) GCC_ATTR((nonnull(1)));
+bool JSQuaternionSetQuaternion(JSContext* context, JSValueConst quaternionObj,
+                               Quaternion quaternion) GCC_ATTR((nonnull(1)));
 
 /*	QuaternionFromArgumentList()
 
         Construct a quaternion from an argument list which is either a (JS)
-        quaternion, a (JS) entity, four numbers or a JS array of four numbers. The
-        optional outConsumed argument can be used to find out how many parameters
+        quaternion, a (JS) entity, four numbers or a JS array of four numbers.
+   The optional outConsumed argument can be used to find out how many parameters
         were used (currently, this will be 0 on failure, otherwise 1 or 4).
 
         On failure, it will return NO and raise an error. If the caller is a JS
         callback, it must return JS_EXCEPTION to signal an error.
 */
-bool QuaternionFromArgumentList(JSContext* context, const std::string& scriptClass, const std::string& function, int argc, JSValueConst* argv, Quaternion* outQuaternion, int* outConsumed) GCC_ATTR((nonnull(1, 6)));
+bool QuaternionFromArgumentList(JSContext* context,
+                                const std::string& scriptClass,
+                                const std::string& function, int argc,
+                                JSValueConst* argv, Quaternion* outQuaternion,
+                                int* outConsumed) GCC_ATTR((nonnull(1, 6)));
 
 /*	QuaternionFromArgumentList()
 
         Like VectorFromArgumentList(), but does not report an error on failure.
 */
-bool QuaternionFromArgumentListNoError(JSContext* context, int argc, JSValueConst* argv, Quaternion* outVector, int* outConsumed) GCC_ATTR((nonnull(1, 4)));
+bool QuaternionFromArgumentListNoError(JSContext* context, int argc,
+                                       JSValueConst* argv,
+                                       Quaternion* outVector, int* outConsumed)
+    GCC_ATTR((nonnull(1, 4)));

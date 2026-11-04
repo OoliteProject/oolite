@@ -12,32 +12,39 @@ CF-Lite, Cocoa Foundation or GNUstep Foundation.
 
 #if OOTCPSTREAM_USE_COREFOUNDATION
 
-#import "JAAutoreleasePool.h"
 #include <CoreFoundation/CoreFoundation.h>
+
+#import "JAAutoreleasePool.h"
 
 #define OOALRelease(object) CFRelease(object)
 
-#define OOTypeDescription(object) JAAutorelease(CFCopyTypeIDDescription(CFGetTypeID(object)))
+#define OOTypeDescription(object) \
+  JAAutorelease(CFCopyTypeIDDescription(CFGetTypeID(object)))
 
 typedef CFStringRef OOALStringRef;
 #define OOALIsString(object) (CFGetTypeID(object) == CFStringGetTypeID())
 
 #define OOALSTR(str) CFSTR(str)
 
-#define OOALStringCreateWithFormatAndArguments(format, args) CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, NULL, format, args)
+#define OOALStringCreateWithFormatAndArguments(format, args) \
+  CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, NULL, format, args)
 
 typedef CFDictionaryRef OOALDictionaryRef;
-#define OOALIsDictionary(object) (CFGetTypeID(object) == CFDictionaryGetTypeID())
+#define OOALIsDictionary(object) \
+  (CFGetTypeID(object) == CFDictionaryGetTypeID())
 
-#define OOALDictionaryGetValue(dictionary, key) CFDictionaryGetValue(dictionary, key)
+#define OOALDictionaryGetValue(dictionary, key) \
+  CFDictionaryGetValue(dictionary, key)
 
 typedef CFDataRef OOALDataRef;
 typedef CFMutableDataRef OOALMutableDataRef;
 #define OOALIsData(object) (CFGetTypeID(object) == CFDataGetTypeID())
 
-#define OOALDataCreateMutable(capacity) CFDataCreateMutable(kCFAllocatorDefault, capacity)
+#define OOALDataCreateMutable(capacity) \
+  CFDataCreateMutable(kCFAllocatorDefault, capacity)
 
-#define OOALMutableDataAppendBytes(data, bytes, length) CFDataAppendBytes(data, bytes, length)
+#define OOALMutableDataAppendBytes(data, bytes, length) \
+  CFDataAppendBytes(data, bytes, length)
 
 #define OOALDataGetBytePtr(data) CFDataGetBytePtr(data)
 #define OOALDataGetLength(data) CFDataGetLength(data)
@@ -47,7 +54,9 @@ typedef JAAutoreleasePoolRef OOALAutoreleasePoolRef;
 #define OOALCreateAutoreleasePool() JACreateAutoreleasePool()
 #define OOALDestroyAutoreleasePool(pool) JADestroyAutoreleasePool(pool)
 
-#define OOALPropertyListFromData(data, errStr) JAAutorelease(CFPropertyListCreateFromXMLData(kCFAllocatorDefault, data, kCFPropertyListImmutable, errStr))
+#define OOALPropertyListFromData(data, errStr)   \
+  JAAutorelease(CFPropertyListCreateFromXMLData( \
+      kCFAllocatorDefault, data, kCFPropertyListImmutable, errStr))
 
 #else /* !OOTCPSTREAM_USE_COREFOUNDATION */
 
@@ -72,10 +81,12 @@ typedef struct OOALObject* OOALMutableDataRef;
 typedef const struct OOALObject* OOALDictionaryRef;
 typedef struct OOALAutoreleasePool* OOALAutoreleasePoolRef;
 
-OOALStringRef OOALGetConstantString(const char* string); // Should only be used with string literals!
+OOALStringRef OOALGetConstantString(
+    const char* string);  // Should only be used with string literals!
 
-/*	Only the C decoder spells its protocol constants (OODebugTCPConsoleProtocol.h) as handles;
-        OODebugTCPConsoleClient uses plain literals.
+/*	Only the C decoder spells its protocol constants
+   (OODebugTCPConsoleProtocol.h) as handles; OODebugTCPConsoleClient uses plain
+   literals.
 */
 #ifdef OO_PLAIN_CPP_UNIT
 #define OOALSTR(string) OOALGetConstantString("" string "")
@@ -85,24 +96,29 @@ void OOALRelease(OOALObjectRef object);
 OOALStringRef OOTypeDescription(OOALObjectRef object);
 
 bool OOALIsString(OOALObjectRef object);
-OOALStringRef OOALStringCreateWithFormatAndArguments(OOALStringRef format, va_list args);
+OOALStringRef OOALStringCreateWithFormatAndArguments(OOALStringRef format,
+                                                     va_list args);
 
 bool OOALIsDictionary(OOALObjectRef object);
-OOALObjectRef OOALDictionaryGetValue(OOALDictionaryRef dictionary, OOALObjectRef key);
+OOALObjectRef OOALDictionaryGetValue(OOALDictionaryRef dictionary,
+                                     OOALObjectRef key);
 
 bool OOALIsData(OOALObjectRef object);
 OOALMutableDataRef OOALDataCreateMutable(size_t capacity);
-void OOALMutableDataAppendBytes(OOALMutableDataRef data, const void* bytes, size_t length);
+void OOALMutableDataAppendBytes(OOALMutableDataRef data, const void* bytes,
+                                size_t length);
 const void* OOALDataGetBytePtr(OOALDataRef data);
 size_t OOALDataGetLength(OOALDataRef data);
 
 OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void);
 void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool);
 
-OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr);
+OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data,
+                                       OOALStringRef* errStr);
 
 #include "oofnd/PList.hpp"
-// The value a handle holds, as a property list (a string or data handle as a string or data node).
+// The value a handle holds, as a property list (a string or data handle as a
+// string or data node).
 const oo::PList& OOALObjectPList(OOALObjectRef object);
 
 #endif /* OOTCPSTREAM_USE_COREFOUNDATION */

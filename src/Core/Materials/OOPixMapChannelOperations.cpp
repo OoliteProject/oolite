@@ -26,7 +26,7 @@ SOFTWARE.
 */
 
 #define OO_PLAIN_CPP_UNIT \
-    1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
+  1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOPixMapChannelOperations.h"
 
 #include <cstddef>
@@ -43,321 +43,310 @@ void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex);
 void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx);
 void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx);
 void ModulateUniform_4(OOPixMap pixMap, uint16_t f0, uint16_t f1, uint16_t f2,
-    uint16_t f3);
+                       uint16_t f3);
 void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx);
 void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx);
-} // namespace
+}  // namespace
 
 bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex,
-    bool compactWhenDone)
-{
-    if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) || ioPixMap->format != kOOPixMapRGBA || channelIndex > 3)) {
-        return false;
-    }
+                            bool compactWhenDone) {
+  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) ||
+                 ioPixMap->format != kOOPixMapRGBA || channelIndex > 3)) {
+    return false;
+  }
 
-    ExtractChannel_4(ioPixMap, channelIndex);
+  ExtractChannel_4(ioPixMap, channelIndex);
 
-    ioPixMap->format = kOOPixMapGrayscale;
-    ioPixMap->rowBytes = ioPixMap->width;
+  ioPixMap->format = kOOPixMapGrayscale;
+  ioPixMap->rowBytes = ioPixMap->width;
 
-    if (compactWhenDone) {
-        OOCompactPixMap(ioPixMap);
-    }
+  if (compactWhenDone) {
+    OOCompactPixMap(ioPixMap);
+  }
 
-    return true;
+  return true;
 }
 
 namespace {
-void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex)
-{
-    OOCParameterAssert(ioPixMap != NULL);
+void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex) {
+  OOCParameterAssert(ioPixMap != NULL);
 
-    uint32_t* src;
-    uint8_t* dst;
-    uint8_t shift;
-    uint32_t xCount, y;
+  uint32_t* src;
+  uint8_t* dst;
+  uint8_t shift;
+  uint32_t xCount, y;
 
-    dst = (uint8_t*)ioPixMap->pixels;
-    shift = 8 * channelIndex;
+  dst = (uint8_t*)ioPixMap->pixels;
+  shift = 8 * channelIndex;
 
-    for (y = 0; y < ioPixMap->height; y++) {
-        src = (uint32_t*)((char*)ioPixMap->pixels + y * ioPixMap->rowBytes);
-        xCount = ioPixMap->width;
+  for (y = 0; y < ioPixMap->height; y++) {
+    src = (uint32_t*)((char*)ioPixMap->pixels + y * ioPixMap->rowBytes);
+    xCount = ioPixMap->width;
 
-        do {
-            *dst++ = (*src++ >> shift) & 0xFF;
-        } while (--xCount);
-    }
+    do {
+      *dst++ = (*src++ >> shift) & 0xFF;
+    } while (--xCount);
+  }
 }
-} // namespace
+}  // namespace
 
-bool OOPixMapToRGBA(OOPixMap* ioPixMap)
-{
-    if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
-        return false;
-    if (ioPixMap->format == kOOPixMapRGBA)
-        return true;
+bool OOPixMapToRGBA(OOPixMap* ioPixMap) {
+  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (ioPixMap->format == kOOPixMapRGBA) return true;
 
-    OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height,
-        (OOPixMapFormat)4, 0, 0);
-    if (EXPECT_NOT(OOIsNullPixMap(temp)))
-        return false;
+  OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height,
+                                   (OOPixMapFormat)4, 0, 0);
+  if (EXPECT_NOT(OOIsNullPixMap(temp))) return false;
 
-    bool OK = false;
-    switch (ioPixMap->format) {
+  bool OK = false;
+  switch (ioPixMap->format) {
     case kOOPixMapGrayscale:
-        ToRGBA_1(*ioPixMap, temp);
-        OK = true;
-        break;
+      ToRGBA_1(*ioPixMap, temp);
+      OK = true;
+      break;
 
     case kOOPixMapGrayscaleAlpha:
-        ToRGBA_2(*ioPixMap, temp);
-        OK = true;
-        break;
+      ToRGBA_2(*ioPixMap, temp);
+      OK = true;
+      break;
 
     case kOOPixMapRGBA:
     case kOOPixMapInvalidFormat:
-        OK = false;
-        break;
-        // No default, because -Wswitch-enum is our friend.
-    }
+      OK = false;
+      break;
+      // No default, because -Wswitch-enum is our friend.
+  }
 
-    if (OK) {
-        free(ioPixMap->pixels);
-        *ioPixMap = temp;
-    } else {
-        free(temp.pixels);
-    }
+  if (OK) {
+    free(ioPixMap->pixels);
+    *ioPixMap = temp;
+  } else {
+    free(temp.pixels);
+  }
 
-    return OK;
+  return OK;
 }
 
 namespace {
-void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
-{
-    OOCParameterAssert(
-        OOPixMapBytesPerPixel(srcPx) == 1 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
+void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx) {
+  OOCParameterAssert(
+      OOPixMapBytesPerPixel(srcPx) == 1 && dstPx.format == kOOPixMapRGBA &&
+      srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 
-    uint8_t* src;
-    uint32_t* dst;
-    uint32_t xCount, y;
+  uint8_t* src;
+  uint32_t* dst;
+  uint32_t xCount, y;
 
-    dst = (uint32_t*)dstPx.pixels;
+  dst = (uint32_t*)dstPx.pixels;
 
-    for (y = 0; y < srcPx.height; y++) {
-        src = (uint8_t*)((char*)srcPx.pixels + y * srcPx.rowBytes);
-        xCount = srcPx.width;
+  for (y = 0; y < srcPx.height; y++) {
+    src = (uint8_t*)((char*)srcPx.pixels + y * srcPx.rowBytes);
+    xCount = srcPx.width;
 
-        do {
-            *dst++ = (*src++ * 0x00010101) | 0xFF000000;
-        } while (--xCount);
-    }
+    do {
+      *dst++ = (*src++ * 0x00010101) | 0xFF000000;
+    } while (--xCount);
+  }
 }
-} // namespace
+}  // namespace
 
 namespace {
-void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx)
-{
-    OOCParameterAssert(
-        OOPixMapBytesPerPixel(srcPx) == 2 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
+void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx) {
+  OOCParameterAssert(
+      OOPixMapBytesPerPixel(srcPx) == 2 && dstPx.format == kOOPixMapRGBA &&
+      srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 
-    uint16_t* src;
-    uint32_t px;
-    uint32_t* dst;
-    uint32_t xCount, y;
+  uint16_t* src;
+  uint32_t px;
+  uint32_t* dst;
+  uint32_t xCount, y;
 
-    dst = (uint32_t*)dstPx.pixels;
+  dst = (uint32_t*)dstPx.pixels;
 
-    for (y = 0; y < srcPx.height; y++) {
-        src = (uint16_t*)((char*)srcPx.pixels + y * srcPx.rowBytes);
-        xCount = srcPx.width;
+  for (y = 0; y < srcPx.height; y++) {
+    src = (uint16_t*)((char*)srcPx.pixels + y * srcPx.rowBytes);
+    xCount = srcPx.width;
 
-        do {
-            px = *src++;
+    do {
+      px = *src++;
 #if OOLITE_BIG_ENDIAN
-            *dst++ = (((px & 0xFF00) >> 8) * 0x00010101) | ((px & 0x00FF) << 24);
+      *dst++ = (((px & 0xFF00) >> 8) * 0x00010101) | ((px & 0x00FF) << 24);
 #elif OOLITE_LITTLE_ENDIAN
-            *dst++ = ((px & 0x00FF) * 0x00010101) | ((px & 0xFF00) << 16);
+      *dst++ = ((px & 0x00FF) * 0x00010101) | ((px & 0xFF00) << 16);
 #else
 #error Unknown byte order.
 #endif
-        } while (--xCount);
-    }
+    } while (--xCount);
+  }
 }
-} // namespace
+}  // namespace
 
 bool OOPixMapModulateUniform(OOPixMap* ioPixMap, float f0, float f1, float f2,
-    float f3)
-{
-    if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))
-        return false;
-    if (EXPECT_NOT(!OOPixMapToRGBA(ioPixMap)))
-        return false;
+                             float f3) {
+  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (EXPECT_NOT(!OOPixMapToRGBA(ioPixMap))) return false;
 
-    ModulateUniform_4(*ioPixMap, f0 * 256.0f, f1 * 256.0f, f2 * 256.0f,
-        f3 * 256.0f);
+  ModulateUniform_4(*ioPixMap, f0 * 256.0f, f1 * 256.0f, f2 * 256.0f,
+                    f3 * 256.0f);
 
-    return true;
+  return true;
 }
 
 namespace {
 void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1,
-    uint16_t f0)
-{
-    OOCParameterAssert(OOPixMapBytesPerPixel(pixMap) == 4);
+                       uint16_t f0) {
+  OOCParameterAssert(OOPixMapBytesPerPixel(pixMap) == 4);
 
-    uint32_t* curr;
-    uint32_t px;
-    uint32_t p0, p1, p2, p3;
-    uint32_t xCount, y;
+  uint32_t* curr;
+  uint32_t px;
+  uint32_t p0, p1, p2, p3;
+  uint32_t xCount, y;
 
-    for (y = 0; y < pixMap.height; y++) {
-        curr = (uint32_t*)((char*)pixMap.pixels + y * pixMap.rowBytes);
-        xCount = pixMap.width;
+  for (y = 0; y < pixMap.height; y++) {
+    curr = (uint32_t*)((char*)pixMap.pixels + y * pixMap.rowBytes);
+    xCount = pixMap.width;
 
-        do {
-            px = *curr;
+    do {
+      px = *curr;
 
-            /*	Principle of operation:
-                    Each pixel component is in the range 0..0xFF.
-                    Each constant factor component is in the range 0..0x100.
-                    Multiplying them therefore gives us a result in the range
-                    0x0000..0xFF00. The bottom byte is discarded by shifting
-                    and masking.
-            */
+      /*	Principle of operation:
+              Each pixel component is in the range 0..0xFF.
+              Each constant factor component is in the range 0..0x100.
+              Multiplying them therefore gives us a result in the range
+              0x0000..0xFF00. The bottom byte is discarded by shifting
+              and masking.
+      */
 
-            p0 = px & 0xFF000000;
-            p0 = ((p0 >> 8) * f0) & 0xFF000000;
+      p0 = px & 0xFF000000;
+      p0 = ((p0 >> 8) * f0) & 0xFF000000;
 
-            p1 = px & 0x00FF0000;
-            p1 = ((p1 * f1) >> 8) & 0x00FF0000;
+      p1 = px & 0x00FF0000;
+      p1 = ((p1 * f1) >> 8) & 0x00FF0000;
 
-            p2 = px & 0x0000FF00;
-            p2 = ((p2 * f2) >> 8) & 0x0000FF00;
+      p2 = px & 0x0000FF00;
+      p2 = ((p2 * f2) >> 8) & 0x0000FF00;
 
-            p3 = px & 0x000000FF;
-            p3 = ((p3 * f3) >> 8) & 0x000000FF;
+      p3 = px & 0x000000FF;
+      p3 = ((p3 * f3) >> 8) & 0x000000FF;
 
-            px = p0 | p1 | p2 | p3;
-            *curr++ = px;
-        } while (--xCount);
-    }
+      px = p0 | p1 | p2 | p3;
+      *curr++ = px;
+    } while (--xCount);
+  }
 }
-} // namespace
+}  // namespace
 
-bool OOPixMapModulatePixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap)
-{
-    if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))
-        return false;
-    if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) || otherPixMap.format != kOOPixMapRGBA))
-        return false;
-    if (EXPECT_NOT(!OOPixMapToRGBA(ioDstPixMap)))
-        return false;
-    if (EXPECT_NOT(ioDstPixMap->width != otherPixMap.width || ioDstPixMap->height != otherPixMap.height))
-        return false;
+bool OOPixMapModulatePixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap) {
+  if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))
+    return false;
+  if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) ||
+                 otherPixMap.format != kOOPixMapRGBA))
+    return false;
+  if (EXPECT_NOT(!OOPixMapToRGBA(ioDstPixMap))) return false;
+  if (EXPECT_NOT(ioDstPixMap->width != otherPixMap.width ||
+                 ioDstPixMap->height != otherPixMap.height))
+    return false;
 
-    ModulatePixMap_4(*ioDstPixMap, otherPixMap);
+  ModulatePixMap_4(*ioDstPixMap, otherPixMap);
 
-    return true;
-}
-
-namespace {
-void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx)
-{
-    uint32_t *dst, *other;
-    uint32_t px;
-    uint16_t m0, m1, m2, m3;
-    uint16_t o0, o1, o2, o3;
-    uint32_t xCount, y;
-
-    for (y = 0; y < mainPx.height; y++) {
-        dst = (uint32_t*)((char*)mainPx.pixels + y * mainPx.rowBytes);
-        other = (uint32_t*)((char*)otherPx.pixels + y * otherPx.rowBytes);
-        xCount = mainPx.width;
-
-        do {
-            px = *dst;
-            m0 = (px >> 24) & 0xFF;
-            m1 = (px >> 16) & 0xFF;
-            m2 = (px >> 8) & 0xFF;
-            m3 = px & 0xFF;
-
-            px = *other;
-            o0 = (px >> 24) & 0xFF;
-            o1 = (px >> 16) & 0xFF;
-            o2 = (px >> 8) & 0xFF;
-            o3 = px & 0xFF;
-
-            /*	Unlike in ModulateUniform(), neither side here goes to 256, so
-                    we have to divide by 255 rather than shifting. However, the
-                    compiler should be able to optimize this to a multiplication
-                    by a magic number.
-            */
-            m0 = (m0 * o0) / 255;
-            m1 = (m1 * o1) / 255;
-            m2 = (m2 * o2) / 255;
-            m3 = (m3 * o3) / 255;
-
-            *dst++ = (m0 << 24) | (m1 << 16) | (m2 << 8) | m3;
-            other++;
-        } while (--xCount);
-    }
-}
-} // namespace
-
-bool OOPixMapAddPixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap)
-{
-    if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))
-        return false;
-    if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) || otherPixMap.format != kOOPixMapRGBA))
-        return false;
-    if (EXPECT_NOT(!OOPixMapToRGBA(ioDstPixMap)))
-        return false;
-    if (EXPECT_NOT(ioDstPixMap->width != otherPixMap.width || ioDstPixMap->height != otherPixMap.height))
-        return false;
-
-    AddPixMap_4(*ioDstPixMap, otherPixMap);
-
-    return true;
+  return true;
 }
 
 namespace {
-void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx)
-{
-    uint32_t *dst, *other;
-    uint32_t px;
-    uint32_t m02, m13;
-    uint32_t o02, o13;
-    uint32_t xCount, y;
+void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx) {
+  uint32_t *dst, *other;
+  uint32_t px;
+  uint16_t m0, m1, m2, m3;
+  uint16_t o0, o1, o2, o3;
+  uint32_t xCount, y;
 
-    for (y = 0; y < mainPx.height; y++) {
-        dst = (uint32_t*)((char*)mainPx.pixels + y * mainPx.rowBytes);
-        other = (uint32_t*)((char*)otherPx.pixels + y * otherPx.rowBytes);
-        xCount = mainPx.width;
+  for (y = 0; y < mainPx.height; y++) {
+    dst = (uint32_t*)((char*)mainPx.pixels + y * mainPx.rowBytes);
+    other = (uint32_t*)((char*)otherPx.pixels + y * otherPx.rowBytes);
+    xCount = mainPx.width;
 
-        do {
-            px = *dst;
-            m02 = (px & 0xFF00FF00) >> 8;
-            m13 = px & 0x00FF00FF;
+    do {
+      px = *dst;
+      m0 = (px >> 24) & 0xFF;
+      m1 = (px >> 16) & 0xFF;
+      m2 = (px >> 8) & 0xFF;
+      m3 = px & 0xFF;
 
-            px = *other;
-            o02 = (px & 0xFF00FF00) >> 8;
-            o13 = px & 0x00FF00FF;
+      px = *other;
+      o0 = (px >> 24) & 0xFF;
+      o1 = (px >> 16) & 0xFF;
+      o2 = (px >> 8) & 0xFF;
+      o3 = px & 0xFF;
 
-            /*	Saturated adds, two components at a time.
-                    By masking out the overflow bits of each component,
-                    multiplying them by 0xFF and shifting right one byte, we get a
-                    mask that's oxFF for components that overflowed and 0x00 for
-                    components that did not, without any conditionals.
-            */
-            m02 += o02;
-            m02 |= ((m02 & 0x01000100) * 0xFF) >> 8;
-            m13 += o13;
-            m13 |= ((m13 & 0x01000100) * 0xFF) >> 8;
+      /*	Unlike in ModulateUniform(), neither side here goes to 256, so
+              we have to divide by 255 rather than shifting. However, the
+              compiler should be able to optimize this to a multiplication
+              by a magic number.
+      */
+      m0 = (m0 * o0) / 255;
+      m1 = (m1 * o1) / 255;
+      m2 = (m2 * o2) / 255;
+      m3 = (m3 * o3) / 255;
 
-            *dst++ = ((m02 << 8) & 0xFF00FF00) | (m13 & 0x00FF00FF);
-            other++;
-        } while (--xCount);
-    }
+      *dst++ = (m0 << 24) | (m1 << 16) | (m2 << 8) | m3;
+      other++;
+    } while (--xCount);
+  }
 }
-} // namespace
+}  // namespace
+
+bool OOPixMapAddPixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap) {
+  if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))
+    return false;
+  if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) ||
+                 otherPixMap.format != kOOPixMapRGBA))
+    return false;
+  if (EXPECT_NOT(!OOPixMapToRGBA(ioDstPixMap))) return false;
+  if (EXPECT_NOT(ioDstPixMap->width != otherPixMap.width ||
+                 ioDstPixMap->height != otherPixMap.height))
+    return false;
+
+  AddPixMap_4(*ioDstPixMap, otherPixMap);
+
+  return true;
+}
+
+namespace {
+void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx) {
+  uint32_t *dst, *other;
+  uint32_t px;
+  uint32_t m02, m13;
+  uint32_t o02, o13;
+  uint32_t xCount, y;
+
+  for (y = 0; y < mainPx.height; y++) {
+    dst = (uint32_t*)((char*)mainPx.pixels + y * mainPx.rowBytes);
+    other = (uint32_t*)((char*)otherPx.pixels + y * otherPx.rowBytes);
+    xCount = mainPx.width;
+
+    do {
+      px = *dst;
+      m02 = (px & 0xFF00FF00) >> 8;
+      m13 = px & 0x00FF00FF;
+
+      px = *other;
+      o02 = (px & 0xFF00FF00) >> 8;
+      o13 = px & 0x00FF00FF;
+
+      /*	Saturated adds, two components at a time.
+              By masking out the overflow bits of each component,
+              multiplying them by 0xFF and shifting right one byte, we get a
+              mask that's oxFF for components that overflowed and 0x00 for
+              components that did not, without any conditionals.
+      */
+      m02 += o02;
+      m02 |= ((m02 & 0x01000100) * 0xFF) >> 8;
+      m13 += o13;
+      m13 |= ((m13 & 0x01000100) * 0xFF) >> 8;
+
+      *dst++ = ((m02 << 8) & 0xFF00FF00) | (m13 & 0x00FF00FF);
+      other++;
+    } while (--xCount);
+  }
+}
+}  // namespace

@@ -35,17 +35,17 @@ SOFTWARE.
 /*	OOTexture's nullTexture() answers the shared instance itself.
  */
 class OONullTexture : public OOTexture {
-public:
-    /*	The one null texture, made on first use and never released (it was an
-       immortal singleton). Borrowed. NOTE: assumes single-threaded access.
-    */
-    static OONullTexture* sharedNullTexture();
+ public:
+  /*	The one null texture, made on first use and never released (it was an
+     immortal singleton). Borrowed. NOTE: assumes single-threaded access.
+  */
+  static OONullTexture* sharedNullTexture();
 
-    void apply() override;
-    NSSize dimensions() override;
-    bool isMipMapped() override;
-    void forceRebind() override;
+  void apply() override;
+  NSSize dimensions() override;
+  bool isMipMapped() override;
+  void forceRebind() override;
 #ifndef NDEBUG
-    std::optional<std::string> name() override;
+  std::optional<std::string> name() override;
 #endif
 };

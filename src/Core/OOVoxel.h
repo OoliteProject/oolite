@@ -41,5 +41,6 @@ MA 02110-1301, USA.
 #define CUBE_FACE_FRONT 0x10
 #define CUBE_FACE_BACK 0x20
 
-Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask, GLfloat rd) CONST_FUNC;
+Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask,
+                                GLfloat rd) CONST_FUNC;
 int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd) CONST_FUNC;

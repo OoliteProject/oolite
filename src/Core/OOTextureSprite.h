@@ -35,23 +35,23 @@ class OOTexture;
 #define OPEN_GL_SPRITE_MIN_HEIGHT 64.0
 
 class OOTextureSprite : public oo::RefCounted {
-public:
-    // Null for a nil texture (-initWithTexture:... answered nil). The first is
-    // the texture's original dimensions.
-    static oo::Ref<OOTextureSprite> initWithTexture(OOTexture* texture);
-    static oo::Ref<OOTextureSprite> initWithTexture(OOTexture* texture,
-        NSSize spriteSize);
+ public:
+  // Null for a nil texture (-initWithTexture:... answered nil). The first is
+  // the texture's original dimensions.
+  static oo::Ref<OOTextureSprite> initWithTexture(OOTexture* texture);
+  static oo::Ref<OOTextureSprite> initWithTexture(OOTexture* texture,
+                                                  NSSize spriteSize);
 
-    NSSize getSize(); // -size (the ivar keeps its name)
+  NSSize getSize();  // -size (the ivar keeps its name)
 
-    void blitToX(float x, float y, float z, float a);
-    void blitCentredToX(float x, float y, float z, float a);
-    void blitBackgroundCentredToX(float x, float y, float z, float a);
+  void blitToX(float x, float y, float z, float a);
+  void blitCentredToX(float x, float y, float z, float a);
+  void blitBackgroundCentredToX(float x, float y, float z, float a);
 
-private:
-    OOTextureSprite(OOTexture* inTexture,
-        NSSize spriteSize); // initWithTexture() checks the texture
+ private:
+  OOTextureSprite(OOTexture* inTexture,
+                  NSSize spriteSize);  // initWithTexture() checks the texture
 
-    oo::Ref<OOTexture> texture;
-    NSSize size = { };
+  oo::Ref<OOTexture> texture;
+  NSSize size = {};
 };

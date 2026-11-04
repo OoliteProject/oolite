@@ -38,21 +38,24 @@ SOFTWARE.
    loader.
 */
 class OOPixMapTextureLoader : public OOTextureGenerator {
-public:
-    ~OOPixMapTextureLoader() override; // was -dealloc
+ public:
+  ~OOPixMapTextureLoader() override;  // was -dealloc
 
-    /*	Was [[OOPixMapTextureLoader alloc]
-       initWithPixMap:textureOptions:freeWhenDone:]: null where that answered nil.
-    */
-    static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
+  /*	Was [[OOPixMapTextureLoader alloc]
+     initWithPixMap:textureOptions:freeWhenDone:]: null where that answered nil.
+  */
+  static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap,
+                                                         uint32_t options,
+                                                         bool freeWhenDone);
 
-    // Was -initWithPixMap:textureOptions:freeWhenDone:; false where it answered nil.
-    bool initWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
+  // Was -initWithPixMap:textureOptions:freeWhenDone:; false where it answered
+  // nil.
+  bool initWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
 
-    void loadTexture() override;
-    uint32_t textureOptions() override;
+  void loadTexture() override;
+  uint32_t textureOptions() override;
 
-private:
-    OOPixMap _pixMap = { };
-    uint32_t _texOptions = { };
+ private:
+  OOPixMap _pixMap = {};
+  uint32_t _texOptions = {};
 };

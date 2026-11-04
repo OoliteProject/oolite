@@ -28,6 +28,7 @@ SOFTWARE.
 */
 
 #include "OODebugStandards.h"
+
 #include "GameController.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Log.hpp"
@@ -35,10 +36,10 @@ SOFTWARE.
 
 #ifndef OO_DEBUG_MONITOR_ENABLED
 // in release mode, stubs
-void cxx_OOStandardsDeprecated(const std::string& message) { }
-void cxx_OOStandardsError(const std::string& message) { }
+void cxx_OOStandardsDeprecated(const std::string& message) {}
+void cxx_OOStandardsError(const std::string& message) {}
 bool OOEnforceStandards() { return false; }
-void OOSetStandardsForOXPVerifierMode() { }
+void OOSetStandardsForOXPVerifierMode() {}
 
 #else
 
@@ -47,26 +48,27 @@ namespace {
 
 void OOStandardsInternal(const std::string& type, const std::string& message);
 
-} // namespace
+}  // namespace
 
 namespace {
 
 bool sSetup = false;
 
-} // namespace
+}  // namespace
 
 typedef enum {
-    // do nothing (equivalent to release build)
-    STANDARDS_ENFORCEMENT_OFF = 0,
-    // warn in log but otherwise do nothing
-    STANDARDS_ENFORCEMENT_WARN,
-    // warn in log, block use of deprecated or error items
-    STANDARDS_ENFORCEMENT_ENFORCE,
-    // note in log, then exit if deprecated or error condition occurs
-    STANDARDS_ENFORCEMENT_QUIT
+  // do nothing (equivalent to release build)
+  STANDARDS_ENFORCEMENT_OFF = 0,
+  // warn in log but otherwise do nothing
+  STANDARDS_ENFORCEMENT_WARN,
+  // warn in log, block use of deprecated or error items
+  STANDARDS_ENFORCEMENT_ENFORCE,
+  // note in log, then exit if deprecated or error condition occurs
+  STANDARDS_ENFORCEMENT_QUIT
 } OOStandardsEnforcement;
 
-// Deployment builds stay quiet unless an OXP developer opts in with enforce-oxp-standards.
+// Deployment builds stay quiet unless an OXP developer opts in with
+// enforce-oxp-standards.
 #ifdef NDEBUG
 #define STANDARDS_ENFORCEMENT_DEFAULT STANDARDS_ENFORCEMENT_OFF
 #else
@@ -75,61 +77,56 @@ typedef enum {
 
 static OOStandardsEnforcement sEnforcement = STANDARDS_ENFORCEMENT_DEFAULT;
 
-void OOStandardsSetup()
-{
-    if (sSetup) {
-        return;
-    }
-    oo::Defaults& prefs = oo::Defaults::standard();
-    const oo::PList enforce = prefs.object("enforce-oxp-standards");
-    int s = oo::PListGet<int>::from(enforce.isNull() ? nullptr : &enforce, STANDARDS_ENFORCEMENT_DEFAULT);
-    if (s < STANDARDS_ENFORCEMENT_OFF) {
-        s = STANDARDS_ENFORCEMENT_OFF;
-    } else if (s > STANDARDS_ENFORCEMENT_QUIT) {
-        s = STANDARDS_ENFORCEMENT_QUIT;
-    }
-    sEnforcement = (OOStandardsEnforcement)s;
+void OOStandardsSetup() {
+  if (sSetup) {
+    return;
+  }
+  oo::Defaults& prefs = oo::Defaults::standard();
+  const oo::PList enforce = prefs.object("enforce-oxp-standards");
+  int s = oo::PListGet<int>::from(enforce.isNull() ? nullptr : &enforce,
+                                  STANDARDS_ENFORCEMENT_DEFAULT);
+  if (s < STANDARDS_ENFORCEMENT_OFF) {
+    s = STANDARDS_ENFORCEMENT_OFF;
+  } else if (s > STANDARDS_ENFORCEMENT_QUIT) {
+    s = STANDARDS_ENFORCEMENT_QUIT;
+  }
+  sEnforcement = (OOStandardsEnforcement)s;
 }
 
 namespace {
 
-void OOStandardsInternal(const std::string& type, const std::string& message)
-{
-    OOStandardsSetup();
-    if (sEnforcement == STANDARDS_ENFORCEMENT_OFF) {
-        return;
-    }
+void OOStandardsInternal(const std::string& type, const std::string& message) {
+  OOStandardsSetup();
+  if (sEnforcement == STANDARDS_ENFORCEMENT_OFF) {
+    return;
+  }
 
-    OO_LOG(type, "{}", message);
+  OO_LOG(type, "{}", message);
 
-    if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT) {
-        ::GameController::sharedController()->exitAppWithContext(type);
-        // exit
-    }
+  if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT) {
+    ::GameController::sharedController()->exitAppWithContext(type);
+    // exit
+  }
 }
 
-} // namespace
+}  // namespace
 
-void cxx_OOStandardsDeprecated(const std::string& message)
-{
-    OOStandardsInternal("oxp-standards.deprecated", message);
+void cxx_OOStandardsDeprecated(const std::string& message) {
+  OOStandardsInternal("oxp-standards.deprecated", message);
 }
 
-void cxx_OOStandardsError(const std::string& message)
-{
-    OOStandardsInternal("oxp-standards.error", message);
+void cxx_OOStandardsError(const std::string& message) {
+  OOStandardsInternal("oxp-standards.error", message);
 }
 
-bool OOEnforceStandards()
-{
-    OOStandardsSetup();
-    return sEnforcement >= STANDARDS_ENFORCEMENT_ENFORCE;
+bool OOEnforceStandards() {
+  OOStandardsSetup();
+  return sEnforcement >= STANDARDS_ENFORCEMENT_ENFORCE;
 }
 
-void OOSetStandardsForOXPVerifierMode()
-{
-    sEnforcement = STANDARDS_ENFORCEMENT_WARN;
-    sSetup = true;
+void OOSetStandardsForOXPVerifierMode() {
+  sEnforcement = STANDARDS_ENFORCEMENT_WARN;
+  sSetup = true;
 }
 
 #endif

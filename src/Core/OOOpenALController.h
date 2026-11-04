@@ -27,38 +27,39 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOOpenAL.h"
-
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
 // Log message classes, UTF-8: an OOLog
 // call passes oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.
-static constexpr const char* kOOLogSoundInitError = "sound.initialization.error";
+static constexpr const char* kOOLogSoundInitError =
+    "sound.initialization.error";
 static constexpr const char* kOOLogSoundLoadingSuccess = "sound.load.success";
 static constexpr const char* kOOLogSoundLoadingError = "sound.load.error";
 
 class OOOpenALController : public oo::RefCounted {
-public:
-    /*	The shared controller, made on first use; borrowed (it is never released). Null when
-            init() refused it, and then the next call makes and asks a new one.
-    */
-    static OOOpenALController* sharedController();
+ public:
+  /*	The shared controller, made on first use; borrowed (it is never
+     released). Null when init() refused it, and then the next call makes and
+     asks a new one.
+  */
+  static OOOpenALController* sharedController();
 
-    void setMasterVolume(ALfloat fraction);
-    ALfloat masterVolume();
+  void setMasterVolume(ALfloat fraction);
+  ALfloat masterVolume();
 
-    void shutdown();
+  void shutdown();
 
-    /**
-     * \ingroup cli
-     * Scans the command line for -nosound or --nosound arguments.
-     *
-     * @return returns true if sound shall be played and can be played,
-     *         otherwise false (the controller is then discarded)
-     */
-    bool init();
+  /**
+   * \ingroup cli
+   * Scans the command line for -nosound or --nosound arguments.
+   *
+   * @return returns true if sound shall be played and can be played,
+   *         otherwise false (the controller is then discarded)
+   */
+  bool init();
 
-private:
-    ALCdevice* device = { };
-    ALCcontext* context = { };
+ private:
+  ALCdevice* device = {};
+  ALCcontext* context = {};
 };

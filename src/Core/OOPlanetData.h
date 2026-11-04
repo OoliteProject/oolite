@@ -13,12 +13,11 @@
 
 #define kOOPlanetDataLevels 6
 
-typedef struct
-{
-    unsigned vertexCount;
-    unsigned faceCount;
-    GLenum type;
-    const void* indices; // faceCount * 3
+typedef struct {
+  unsigned vertexCount;
+  unsigned faceCount;
+  GLenum type;
+  const void* indices;  // faceCount * 3
 } OOPlanetDataLevel;
 
 extern const OOPlanetDataLevel kPlanetData[kOOPlanetDataLevels];

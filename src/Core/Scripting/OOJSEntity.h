@@ -37,7 +37,8 @@ class Entity;
 void InitOOJSEntity(JSContext* context, JSValueConst global);
 
 // The C++ entity the slot holds, or null for a stale one.
-bool JSValueToEntity(JSContext* context, JSValueConst value, Entity** outEntity);
+bool JSValueToEntity(JSContext* context, JSValueConst value,
+                     Entity** outEntity);
 
 JSClassID JSEntityClassID(void);
 
@@ -47,18 +48,20 @@ JSClassID JSEntityClassID(void);
    the slot holds. A binding's own class (Ship, Planet, Sun) passes its JS
    class.
 */
-OOINLINE bool OOJSEntityGetEntityOfClass(JSContext* context, JSValueConst inObject, JSClassID jsClassID, Entity** outEntity)
-{
-    OOJSEntityHolder* holder = nullptr;
-    if (!OOJSGetCxxPrivate(context, inObject, jsClassID, &holder))
-        return false;
-    *outEntity = (holder != nullptr) ? holder->entity() : nullptr;
-    return true;
+OOINLINE bool OOJSEntityGetEntityOfClass(JSContext* context,
+                                         JSValueConst inObject,
+                                         JSClassID jsClassID,
+                                         Entity** outEntity) {
+  OOJSEntityHolder* holder = nullptr;
+  if (!OOJSGetCxxPrivate(context, inObject, jsClassID, &holder)) return false;
+  *outEntity = (holder != nullptr) ? holder->entity() : nullptr;
+  return true;
 }
 
-OOINLINE bool OOJSEntityGetEntity(JSContext* context, JSValueConst inObject, Entity** outEntity)
-{
-    return OOJSEntityGetEntityOfClass(context, inObject, JSEntityClassID(), outEntity);
+OOINLINE bool OOJSEntityGetEntity(JSContext* context, JSValueConst inObject,
+                                  Entity** outEntity) {
+  return OOJSEntityGetEntityOfClass(context, inObject, JSEntityClassID(),
+                                    outEntity);
 }
 
 /*	OOJSNativeObjectOfClassFromJSValue(context, value, <the root entity
@@ -72,47 +75,53 @@ Entity* OOJSEntityFromJSValue(JSContext* context, JSValueConst value);
 // (OOJSVector, OOJSQuaternion): its getPosition()/getOrientation(). The object
 // must be of the Entity class or a subclass.
 HPVector OOJSEntityPositionOfJSObject(JSContext* context, JSValueConst object);
-Quaternion OOJSEntityOrientationOfJSObject(JSContext* context, JSValueConst object);
+Quaternion OOJSEntityOrientationOfJSObject(JSContext* context,
+                                           JSValueConst object);
 
-// OOJSBasicPrivateObjectConverter for the entity classes (each registers it): the entity's object
-// as an Object node, a null PList
-// once the entity has gone, as the slot's weak reference answered.
+// OOJSBasicPrivateObjectConverter for the entity classes (each registers it):
+// the entity's object as an Object node, a null PList once the entity has gone,
+// as the slot's weak reference answered.
 oo::PList OOJSEntityObjectConverter(JSContext* context, JSValueConst object);
 
-// toString() of the entity classes: OOJSCxxObjectWrapperToString for the Entity class and its
-// subclasses (the entity's jsDescription(), else "[object <JS class name>]").
+// toString() of the entity classes: OOJSCxxObjectWrapperToString for the Entity
+// class and its subclasses (the entity's jsDescription(), else "[object <JS
+// class name>]").
 JSValue OOJSEntityToString(OOJS_NATIVE_ARGS);
 
 /*	EntityFromArgumentList()
 
         Construct a entity from an argument list containing a JS Entity object.
         The optional outConsumed argument can be used to find out how many
-        parameters were used (currently, this will be 0 on failure, otherwise 1).
+        parameters were used (currently, this will be 0 on failure, otherwise
+   1).
 
         On failure, it will return false, annd the entity will be unaltered. If
         scriptClass and function are non-nil, a warning will be reported to the
         log.
 */
 // C++ parameters; nullopt class or function: no warning.
-bool EntityFromArgumentList(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed);
+bool EntityFromArgumentList(JSContext* context,
+                            const std::optional<std::string>& scriptClass,
+                            const std::optional<std::string>& function,
+                            int argc, JSValueConst* argv, Entity** outEntity,
+                            int* outConsumed);
 
 /*
         For scripting purposes, a JS entity object is a stale reference if its
         underlying entity is null, or if it refers to the player and the
-        blockJSPlayerShipProps flag is in effect (i.e., the escape pod sequence is
-        active).
+        blockJSPlayerShipProps flag is in effect (i.e., the escape pod sequence
+   is active).
 */
 // The global holds the player's C++ entity while the flag is in effect, else
 // null.
-OOINLINE bool OOIsPlayerStale(void)
-{
-    extern Entity* gOOJSPlayerIfStale;
-    return gOOJSPlayerIfStale != nullptr;
+OOINLINE bool OOIsPlayerStale(void) {
+  extern Entity* gOOJSPlayerIfStale;
+  return gOOJSPlayerIfStale != nullptr;
 }
 
 // Of the C++ entity a getter answers.
-OOINLINE bool OOIsStaleEntity(Entity* entity)
-{
-    extern Entity* gOOJSPlayerIfStale;
-    return entity == nullptr || (gOOJSPlayerIfStale != nullptr && entity == gOOJSPlayerIfStale);
+OOINLINE bool OOIsStaleEntity(Entity* entity) {
+  extern Entity* gOOJSPlayerIfStale;
+  return entity == nullptr ||
+         (gOOJSPlayerIfStale != nullptr && entity == gOOJSPlayerIfStale);
 }

@@ -29,40 +29,42 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include "OOMaths.h"
 #include <quickjs.h>
 
+#include "OOFoundation.h"
+#include "OOMaths.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
-class OOJSScript; // imported by the .mm, so that a test can stand in for it
+class OOJSScript;  // imported by the .mm, so that a test can stand in for it
 
-/*	The definition owns references to its callback and callbackThis, which are
-        released on destruction and when the JavaScript engine is reset.
+/*	The definition owns references to its callback and callbackThis, which
+   are released on destruction and when the JavaScript engine is reset.
 */
 class OOJSPopulatorDefinition : public oo::RefCounted {
-public:
-    OOJSPopulatorDefinition();
-    ~OOJSPopulatorDefinition() override;
+ public:
+  OOJSPopulatorDefinition();
+  ~OOJSPopulatorDefinition() override;
 
-    // Returned values are owned by the caller.
-    JSValue callback();
-    void setCallback(JSValueConst callback);
-    JSValue callbackThis();
-    void setCallbackThis(JSValueConst callbackthis);
+  // Returned values are owned by the caller.
+  JSValue callback();
+  void setCallback(JSValueConst callback);
+  JSValue callbackThis();
+  void setCallbackThis(JSValueConst callbackthis);
 
-    void runPopulatorCallback(HPVector location);
+  void runPopulatorCallback(HPVector location);
 
-private:
-    void deleteJSPointers();
+ private:
+  void deleteJSPointers();
 
-    JSValue _callback = JS_UNDEFINED; // Owned.
-    JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::WeakRef<OOJSScript> _owningScript; // a weak reference
+  JSValue _callback = JS_UNDEFINED;       // Owned.
+  JSValue _callbackThis = JS_UNDEFINED;   // Owned.
+  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
 };
 
-// A PList::Object node holding the definition (strongly), as the settings' callbackObj.
-oo::PList OOJSPopulatorDefinitionToPList(oo::Ref<OOJSPopulatorDefinition> definition);
+// A PList::Object node holding the definition (strongly), as the settings'
+// callbackObj.
+oo::PList OOJSPopulatorDefinitionToPList(
+    oo::Ref<OOJSPopulatorDefinition> definition);
 // The definition inside such a node; nullptr for any other node.
 OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist);

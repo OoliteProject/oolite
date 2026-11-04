@@ -29,32 +29,35 @@ MA 02110-1301, USA.
 
 #include "Entity.h"
 
-// A global class over Entity, made with quiriumCascadeFromShip(); OOEntityIsCascadeWeapon() asks it.
+// A global class over Entity, made with quiriumCascadeFromShip();
+// OOEntityIsCascadeWeapon() asks it.
 class OOQuiriumCascadeEntity : public Entity {
-public:
-    // +quiriumCascadeFromShip:: a new cascade where the ship is, or null for a nil ship.
-    static oo::Ref<OOQuiriumCascadeEntity> quiriumCascadeFromShip(ShipEntity* ship);
+ public:
+  // +quiriumCascadeFromShip:: a new cascade where the ship is, or null for a
+  // nil ship.
+  static oo::Ref<OOQuiriumCascadeEntity> quiriumCascadeFromShip(
+      ShipEntity* ship);
 
-    std::optional<std::string> descriptionComponents() const override;
+  std::optional<std::string> descriptionComponents() const override;
 
-    void update(OOTimeDelta delta_t) override;
-    void drawImmediate(bool immediate, bool translucent) override;
-    bool isEffect() override;
-    bool isCascadeWeapon();
-    bool canCollide() override;
-    bool checkCloseCollisionWith(Entity* other) override;
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  bool isEffect() override;
+  bool isCascadeWeapon();
+  bool canCollide() override;
+  bool checkCloseCollisionWith(Entity* other) override;
 
-private:
-    // -initQuiriumCascadeFromShip:'s body: false (no cascade) for a nil ship.
-    bool initQuiriumCascadeFromShip(ShipEntity* ship);
+ private:
+  // -initQuiriumCascadeFromShip:'s body: false (no cascade) for a nil ship.
+  bool initQuiriumCascadeFromShip(ShipEntity* ship);
 
-    OOTimeDelta _timePassed = { };
-    GLfloat _color[4] = { };
+  OOTimeDelta _timePassed = {};
+  GLfloat _color[4] = {};
 };
 
 // False for null and for every entity but a cascade, whose answer it is.
-inline bool OOEntityIsCascadeWeapon(Entity* entity)
-{
-    OOQuiriumCascadeEntity* cascade = dynamic_cast<OOQuiriumCascadeEntity*>(entity);
-    return cascade != nullptr ? cascade->isCascadeWeapon() : false;
+inline bool OOEntityIsCascadeWeapon(Entity* entity) {
+  OOQuiriumCascadeEntity* cascade =
+      dynamic_cast<OOQuiriumCascadeEntity*>(entity);
+  return cascade != nullptr ? cascade->isCascadeWeapon() : false;
 }

@@ -26,11 +26,12 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
 
 #include <optional>
 #include <string>
+
+#include "OOFoundation.h"
 
 void InitOOJSWaypoint(JSContext* context, JSValueConst global);
 

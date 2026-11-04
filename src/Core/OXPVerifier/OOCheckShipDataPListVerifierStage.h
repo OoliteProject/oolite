@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#include "OOPListSchemaVerifier.h" // the delegate interface
+#include "OOPListSchemaVerifier.h"  // the delegate interface
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
@@ -48,58 +48,59 @@ class OOAIStateMachineVerifierStage;
 */
 class OOCheckShipDataPListVerifierStage : public OOTextureHandlingStage,
                                           public OOPListSchemaVerifierDelegate {
-public:
-    std::optional<std::string> name() override;
-    std::optional<std::vector<std::string>> dependents() override;
-    bool shouldRun() override;
-    void run() override;
+ public:
+  std::optional<std::string> name() override;
+  std::optional<std::vector<std::string>> dependents() override;
+  bool shouldRun() override;
+  void run() override;
 
-    /*	The schema verifier's delegate (OOPListSchemaVerifierDelegate; formerly
-       an informal protocol's two selectors). Both selectors
-       start with verifier:, which would hide verifier(), so each name adds its
-       distinguishing keyword.
-    */
-    bool verifierTestProperty(
-        OOPListSchemaVerifier* verifier, const oo::PList& rootPList,
-        const std::string& name, const oo::PList& subPList,
-        const oo::PList& keyPath, const oo::PList& typeKey,
-        std::optional<OOPListSchemaVerifierError>* outError) override;
-    bool verifierFailedForProperty(OOPListSchemaVerifier* verifier,
-        const oo::PList& rootPList,
-        const std::string& name,
-        const oo::PList& subPList,
-        const OOPListSchemaVerifierError& error,
-        const oo::PList& localSchema) override;
+  /*	The schema verifier's delegate (OOPListSchemaVerifierDelegate; formerly
+     an informal protocol's two selectors). Both selectors
+     start with verifier:, which would hide verifier(), so each name adds its
+     distinguishing keyword.
+  */
+  bool verifierTestProperty(
+      OOPListSchemaVerifier* verifier, const oo::PList& rootPList,
+      const std::string& name, const oo::PList& subPList,
+      const oo::PList& keyPath, const oo::PList& typeKey,
+      std::optional<OOPListSchemaVerifierError>* outError) override;
+  bool verifierFailedForProperty(OOPListSchemaVerifier* verifier,
+                                 const oo::PList& rootPList,
+                                 const std::string& name,
+                                 const oo::PList& subPList,
+                                 const OOPListSchemaVerifierError& error,
+                                 const oo::PList& localSchema) override;
 
-private:
-    void verifyShipInfo(const oo::PList& info, const std::string& name);
+ private:
+  void verifyShipInfo(const oo::PList& info, const std::string& name);
 
-    void reportMessage(
-        const std::string&
-            message); // formatted by the caller, oo::str::formatRuntime (was
-                      // -message:, renamed so AI's -message: could flip)
-    void verboseMessage(const std::string& message);
+  void reportMessage(
+      const std::string&
+          message);  // formatted by the caller, oo::str::formatRuntime (was
+                     // -message:, renamed so AI's -message: could flip)
+  void verboseMessage(const std::string& message);
 
-    void getRoles();
-    void checkKeys();
-    void checkSchema();
-    void checkModel();
+  void getRoles();
+  void checkKeys();
+  void checkSchema();
+  void checkModel();
 
-    std::vector<std::string> rolesFromString(const std::string& string);
+  std::vector<std::string> rolesFromString(const std::string& string);
 
-    oo::PList _shipdataPList = { };
-    std::vector<std::string> _ooliteShipNames = { };
-    std::vector<std::string> _basicKeys = { }, _stationKeys = { }, _playerKeys = { },
-                             _allKeys = { };
-    oo::Ref<OOPListSchemaVerifier> _schemaVerifier = { }; // Made by run().
-    OOAIStateMachineVerifierStage* _aiVerifierStage = { }; // Not retained (the verifier holds it).
+  oo::PList _shipdataPList = {};
+  std::vector<std::string> _ooliteShipNames = {};
+  std::vector<std::string> _basicKeys = {}, _stationKeys = {}, _playerKeys = {},
+                           _allKeys = {};
+  oo::Ref<OOPListSchemaVerifier> _schemaVerifier = {};  // Made by run().
+  OOAIStateMachineVerifierStage* _aiVerifierStage =
+      {};  // Not retained (the verifier holds it).
 
-    // Info about ship currently being checked.
-    std::string _name = { };
-    oo::PList _info = { };
-    std::vector<std::string> _roles = { };
-    bool _isStation = { }, _isPlayer = { }, _isTemplate = { },
-         _havePrintedMessage = { };
+  // Info about ship currently being checked.
+  std::string _name = {};
+  oo::PList _info = {};
+  std::vector<std::string> _roles = {};
+  bool _isStation = {}, _isPlayer = {}, _isTemplate = {},
+       _havePrintedMessage = {};
 };
 
 #endif

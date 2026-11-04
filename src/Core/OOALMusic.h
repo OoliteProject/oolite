@@ -38,28 +38,29 @@ SOFTWARE.
 #include "OOSoundSource.h"
 
 class OOMusic : public OOSound {
-public:
-    /*	Was -cxx_initWithContentsOfFile:, OOSound's designated initialiser
-       overridden: a music that wraps the sound the root's class cluster loads for
-       the path. Null where it answered nil. It hides the root's factory of the
-       same name.
-    */
-    static oo::Ref<OOMusic> initWithContentsOfFile(const std::optional<std::string>& inPath);
+ public:
+  /*	Was -cxx_initWithContentsOfFile:, OOSound's designated initialiser
+     overridden: a music that wraps the sound the root's class cluster loads for
+     the path. Null where it answered nil. It hides the root's factory of the
+     same name.
+  */
+  static oo::Ref<OOMusic> initWithContentsOfFile(
+      const std::optional<std::string>& inPath);
 
-    ~OOMusic() override;
+  ~OOMusic() override;
 
-    std::optional<std::string> name() override;
+  std::optional<std::string> name() override;
 
-    void playLooped(bool looped);
-    void stop();
-    bool isPlaying();
-    void setMusicGain(float newValue);
-    float musicGain();
-    OOSoundSource* musicSoundSource();
+  void playLooped(bool looped);
+  void stop();
+  bool isPlaying();
+  void setMusicGain(float newValue);
+  float musicGain();
+  OOSoundSource* musicSoundSource();
 
-private:
-    OOMusic() = default;
+ private:
+  OOMusic() = default;
 
-    // The sound the root's cluster made for the path, retained as before.
-    oo::Ref<OOSound> sound;
+  // The sound the root's cluster made for the path, retained as before.
+  oo::Ref<OOSound> sound;
 };

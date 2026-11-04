@@ -26,12 +26,12 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
 
 #include <optional>
 #include <string>
 
+#include "OOFoundation.h"
 #include "OOJSPrivateObject.h"
 #include "oofnd/Ref.hpp"
 
@@ -43,7 +43,8 @@ void InitOOJSSoundSource(JSContext* context, JSValueConst global);
    object for the source (owned by the caller; JS null for none) and the JS
    class name. The binding and the Sound binding call them.
 */
-JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source, JSContext* context);
+JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source,
+                                        JSContext* context);
 std::optional<std::string> OOJSSoundSourceJSClassName(void);
 
 /*	What a SoundSource object's private slot holds. Each SoundSource object
@@ -53,17 +54,18 @@ std::optional<std::string> OOJSSoundSourceJSClassName(void);
    source's components. Defined in OOJSSoundSource.mm; only the binding makes
    one.
 */
-class OOJSSoundSourceHolder final : public oo::RefCounted, public OOJSPrivateObject {
-public:
-    explicit OOJSSoundSourceHolder(OOSoundSource* inSource);
-    ~OOJSSoundSourceHolder() override;
+class OOJSSoundSourceHolder final : public oo::RefCounted,
+                                    public OOJSPrivateObject {
+ public:
+  explicit OOJSSoundSourceHolder(OOSoundSource* inSource);
+  ~OOJSSoundSourceHolder() override;
 
-    OOSoundSource* source() const;
+  OOSoundSource* source() const;
 
-    JSValue jsValueInContext(JSContext* context) override; // owned
-    void clearJSSelf(JSValueConst selfVal) override;
-    std::optional<std::string> jsDescription() override;
+  JSValue jsValueInContext(JSContext* context) override;  // owned
+  void clearJSSelf(JSValueConst selfVal) override;
+  std::optional<std::string> jsDescription() override;
 
-private:
-    oo::Ref<OOSoundSource> _source;
+ private:
+  oo::Ref<OOSoundSource> _source;
 };

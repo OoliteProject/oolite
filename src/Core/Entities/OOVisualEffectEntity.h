@@ -31,13 +31,12 @@
 #include "OOEntityWithDrawable.h"
 #include "OOJSPropID.h"
 #include "OOPlanetEntity.h"
-#include "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
-
+#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is oo::Ref
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
 class OOMesh;
-#include "OOScript.h" // oo::Ref<OOScript> members and results
+#include "OOScript.h"  // oo::Ref<OOScript> members and results
 class OOColor;
 class OOFlasherEntity; /*	The effect definition and script_info are
         oo::PLists (script_info null where it was nil); the effect key and
@@ -57,182 +56,194 @@ using OOVisualEffectSubEntities = std::vector<oo::EntityHold>;
    subentity relationship), and its scripted surface (scanner colours, the
    script and its events, the beacons and the shader uniforms).
 
-        A global C++ class, made by oo::NewVisualEffectObject(); the names found on it by name
-   are in OOEntityCalledByNameTable.h.
+        A global C++ class, made by oo::NewVisualEffectObject(); the names found
+   on it by name are in OOEntityCalledByNameTable.h.
 */
-class OOVisualEffectEntity : public OOEntityWithDrawable, public cxx::OOSubEntityInterface // <OOSubEntity, OOBeaconEntity>
+class OOVisualEffectEntity
+    : public OOEntityWithDrawable,
+      public cxx::OOSubEntityInterface  // <OOSubEntity, OOBeaconEntity>
 {
-public:
-    ~OOVisualEffectEntity();
+ public:
+  ~OOVisualEffectEntity();
 
-    /*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
-       ran Entity's): false where the initialiser released itself and answered
-       nil. oo::NewVisualEffectObject() runs it once the object holds this effect.
-    */
-    bool initWithKey(const std::string& key, const oo::PList& dict);
-    bool setUpVisualEffectFromDictionary(const oo::PList& effectDict);
+  /*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
+     ran Entity's): false where the initialiser released itself and answered
+     nil. oo::NewVisualEffectObject() runs it once the object holds this effect.
+  */
+  bool initWithKey(const std::string& key, const oo::PList& dict);
+  bool setUpVisualEffectFromDictionary(const oo::PList& effectDict);
 
-    ::OOMesh* mesh();
-    void setMesh(::OOMesh* mesh);
+  ::OOMesh* mesh();
+  void setMesh(::OOMesh* mesh);
 
-    std::optional<std::string> effectKey();
+  std::optional<std::string> effectKey();
 
-    GLfloat frustumRadius() override;
+  GLfloat frustumRadius() override;
 
-    void clearSubEntities();
-    bool setUpSubEntities();
-    void removeSubEntity(Entity* sub); // the C++ sub-entity
-    void setNoDrawDistance();
-    std::vector<oo::EntityHold> subEntities(); // a snapshot; empty before the first subentity (was nil)
-    NSUInteger subEntityCount();
-    std::optional<std::vector<oo::EntityHold>> visualEffectSubEntityEnumerator(); // the visual-effect subentities' objects; nullopt where the array was nil
-    bool hasSubEntity(Entity* sub); // the C++ entity's
+  void clearSubEntities();
+  bool setUpSubEntities();
+  void removeSubEntity(Entity* sub);  // the C++ sub-entity
+  void setNoDrawDistance();
+  std::vector<oo::EntityHold>
+  subEntities();  // a snapshot; empty before the first subentity (was nil)
+  NSUInteger subEntityCount();
+  std::optional<std::vector<oo::EntityHold>>
+  visualEffectSubEntityEnumerator();  // the visual-effect subentities' objects;
+                                      // nullopt where the array was nil
+  bool hasSubEntity(Entity* sub);     // the C++ entity's
 
-    std::vector<oo::EntityHold> subEntityEnumerator(); // snapshot, same as subEntities()
-    std::vector<oo::EntityHold> effectSubEntityEnumerator(); // the visual-effect subentities' objects
-    std::vector<oo::EntityHold> flasherEnumerator(); // flasher subentities' objects a snapshot
+  std::vector<oo::EntityHold>
+  subEntityEnumerator();  // snapshot, same as subEntities()
+  std::vector<oo::EntityHold>
+  effectSubEntityEnumerator();  // the visual-effect subentities' objects
+  std::vector<oo::EntityHold>
+  flasherEnumerator();  // flasher subentities' objects a snapshot
 
-    void orientationChanged() override;
-    Vector forwardVector();
-    Vector rightVector();
-    Vector upVector();
+  void orientationChanged() override;
+  Vector forwardVector();
+  Vector rightVector();
+  Vector upVector();
 
-    GLfloat scaleMax(); // used for calculating frustum cull size
-    GLfloat scaleX();
-    void setScaleX(GLfloat factor);
-    GLfloat scaleY();
-    void setScaleY(GLfloat factor);
-    GLfloat scaleZ();
-    void setScaleZ(GLfloat factor);
+  GLfloat scaleMax();  // used for calculating frustum cull size
+  GLfloat scaleX();
+  void setScaleX(GLfloat factor);
+  GLfloat scaleY();
+  void setScaleY(GLfloat factor);
+  GLfloat scaleZ();
+  void setScaleZ(GLfloat factor);
 
-    bool isBreakPattern();
-    void setIsBreakPattern(bool bp);
+  bool isBreakPattern();
+  void setIsBreakPattern(bool bp);
 
-    oo::PList effectInfoDictionary();
+  oo::PList effectInfoDictionary();
 
-    // OOSubEntity: owners call these through cxx::OOSubEntityInterface.
-    void rescaleBy(GLfloat factor) override;
-    void rescaleBy(GLfloat factor, bool writeToCache) override;
-    void drawSubEntityImmediate(bool immediate, bool translucent) override;
+  // OOSubEntity: owners call these through cxx::OOSubEntityInterface.
+  void rescaleBy(GLfloat factor) override;
+  void rescaleBy(GLfloat factor, bool writeToCache) override;
+  void drawSubEntityImmediate(bool immediate, bool translucent) override;
 
-    // The sub-entity relationship, for an effect's part.
-    bool isShipWithSubEntityShip(Entity* other); // the C++ entity
+  // The sub-entity relationship, for an effect's part.
+  bool isShipWithSubEntityShip(Entity* other);  // the C++ entity
 
-    bool isEffect() override;
-    bool getIsVisualEffect() override;
-    bool canCollide() override;
-    GLfloat collisionRadius() override;
-    void drawImmediate(bool immediate, bool translucent) override;
-    void update(OOTimeDelta delta_t) override;
+  bool isEffect() override;
+  bool getIsVisualEffect() override;
+  bool canCollide() override;
+  GLfloat collisionRadius() override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  void update(OOTimeDelta delta_t) override;
 
-    // The JS questions the engine asks the object: the binding's functions (OOJSVisualEffect.h).
-    JSClassID jsClassID() override;
-    std::optional<std::string> jsClassName() override;
-    bool isVisibleToScripts() override;
+  // The JS questions the engine asks the object: the binding's functions
+  // (OOJSVisualEffect.h).
+  JSClassID jsClassID() override;
+  std::optional<std::string> jsClassName() override;
+  bool isVisibleToScripts() override;
 
-    OOColor* scannerDisplayColor1();
-    OOColor* scannerDisplayColor2();
-    void setScannerDisplayColor1(OOColor* color);
-    void setScannerDisplayColor2(OOColor* color);
-    GLfloat* scannerDisplayColorForShip(bool flash, OOColor* scannerDisplayColor1, OOColor* scannerDisplayColor2);
+  OOColor* scannerDisplayColor1();
+  OOColor* scannerDisplayColor2();
+  void setScannerDisplayColor1(OOColor* color);
+  void setScannerDisplayColor2(OOColor* color);
+  GLfloat* scannerDisplayColorForShip(bool flash, OOColor* scannerDisplayColor1,
+                                      OOColor* scannerDisplayColor2);
 
-    void setScript(const std::optional<std::string>& script_name);
-    ::OOScript* script();
-    oo::PList scriptInfo();
-    void doScriptEvent(OOJSPropID message);
-    void remove();
+  void setScript(const std::optional<std::string>& script_name);
+  ::OOScript* script();
+  oo::PList scriptInfo();
+  void doScriptEvent(OOJSPropID message);
+  void remove();
 
-    // OOBeaconEntity, for an effect's part.
-    OOComparisonResult compareBeaconCodeWith(Entity* other);
-    std::optional<std::string> beaconCode();
-    void setBeaconCode(const std::optional<std::string>& bcode);
-    std::optional<std::string> beaconLabel();
-    void setBeaconLabel(const std::optional<std::string>& blabel);
-    bool isBeacon();
-    OOHUDBeaconIcon* beaconDrawable(); // borrowed
-    Entity* prevBeacon(); // the C++ entity (null once its object has gone)
-    Entity* nextBeacon();
-    void setPrevBeacon(Entity* beaconShip);
-    void setNextBeacon(Entity* beaconShip);
-    bool isJammingScanning();
+  // OOBeaconEntity, for an effect's part.
+  OOComparisonResult compareBeaconCodeWith(Entity* other);
+  std::optional<std::string> beaconCode();
+  void setBeaconCode(const std::optional<std::string>& bcode);
+  std::optional<std::string> beaconLabel();
+  void setBeaconLabel(const std::optional<std::string>& blabel);
+  bool isBeacon();
+  OOHUDBeaconIcon* beaconDrawable();  // borrowed
+  Entity* prevBeacon();  // the C++ entity (null once its object has gone)
+  Entity* nextBeacon();
+  void setPrevBeacon(Entity* beaconShip);
+  void setNextBeacon(Entity* beaconShip);
+  bool isJammingScanning();
 
-    // convenience for shaders
-    GLfloat hullHeatLevel();
-    void setHullHeatLevel(GLfloat value);
-    // shader properties
-    GLfloat shaderFloat1();
-    void setShaderFloat1(GLfloat value);
-    GLfloat shaderFloat2();
-    void setShaderFloat2(GLfloat value);
-    int shaderInt1();
-    void setShaderInt1(int value);
-    int shaderInt2();
-    void setShaderInt2(int value);
-    Vector shaderVector1();
-    void setShaderVector1(Vector value);
-    Vector shaderVector2();
-    void setShaderVector2(Vector value);
+  // convenience for shaders
+  GLfloat hullHeatLevel();
+  void setHullHeatLevel(GLfloat value);
+  // shader properties
+  GLfloat shaderFloat1();
+  void setShaderFloat1(GLfloat value);
+  GLfloat shaderFloat2();
+  void setShaderFloat2(GLfloat value);
+  int shaderInt1();
+  void setShaderInt1(int value);
+  int shaderInt2();
+  void setShaderInt2(int value);
+  Vector shaderVector1();
+  void setShaderVector1(Vector value);
+  Vector shaderVector2();
+  void setShaderVector2(Vector value);
 
-    // The state, public as the class shell left it (the test reads some of it).
-    std::optional<OOVisualEffectSubEntities> _subEntities; // was subEntities, named like its getter
+  // The state, public as the class shell left it (the test reads some of it).
+  std::optional<OOVisualEffectSubEntities>
+      _subEntities;  // was subEntities, named like its getter
 
-    oo::PList effectinfoDictionary;
+  oo::PList effectinfoDictionary;
 
-    GLfloat _profileRadius = { }; // for frustum culling
+  GLfloat _profileRadius = {};  // for frustum culling
 
-    oo::Ref<OOColor> scanner_display_color1;
-    oo::Ref<OOColor> scanner_display_color2;
+  oo::Ref<OOColor> scanner_display_color1;
+  oo::Ref<OOColor> scanner_display_color2;
 
-    GLfloat _hullHeatLevel = { };
-    GLfloat _shaderFloat1 = { };
-    GLfloat _shaderFloat2 = { };
-    int _shaderInt1 = { };
-    int _shaderInt2 = { };
-    Vector _shaderVector1 = { };
-    Vector _shaderVector2 = { };
+  GLfloat _hullHeatLevel = {};
+  GLfloat _shaderFloat1 = {};
+  GLfloat _shaderFloat2 = {};
+  int _shaderInt1 = {};
+  int _shaderInt2 = {};
+  Vector _shaderVector1 = {};
+  Vector _shaderVector2 = {};
 
-    Vector _v_forward = { };
-    Vector _v_up = { };
-    Vector _v_right = { };
+  Vector _v_forward = {};
+  Vector _v_up = {};
+  Vector _v_right = {};
 
-    oo::Ref<OOScript> _script; // was script, named like its getter
-    oo::PList _scriptInfo; // was scriptInfo, named like its getter
+  oo::Ref<OOScript> _script;  // was script, named like its getter
+  oo::PList _scriptInfo;      // was scriptInfo, named like its getter
 
-    std::optional<std::string> _effectKey;
+  std::optional<std::string> _effectKey;
 
-    bool _haveExecutedSpawnAction = { };
+  bool _haveExecutedSpawnAction = {};
 
-    // beacons
-    std::optional<std::string> _beaconCode;
-    std::optional<std::string> _beaconLabel;
-    oo::WeakRef<Entity> _prevBeacon; // the beacons' C++ parts
-    oo::WeakRef<Entity> _nextBeacon;
-    oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
+  // beacons
+  std::optional<std::string> _beaconCode;
+  std::optional<std::string> _beaconLabel;
+  oo::WeakRef<Entity> _prevBeacon;  // the beacons' C++ parts
+  oo::WeakRef<Entity> _nextBeacon;
+  oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
 
-    // scaling (were scaleX, scaleY, scaleZ, named like their getters)
-    GLfloat _scaleX = { };
-    GLfloat _scaleY = { };
-    GLfloat _scaleZ = { };
+  // scaling (were scaleX, scaleY, scaleZ, named like their getters)
+  GLfloat _scaleX = {};
+  GLfloat _scaleY = {};
+  GLfloat _scaleZ = {};
 
-private:
-    void addSubEntity(Entity* sub);
-    bool setUpOneSubentity(const oo::PList& subentDict);
-    bool setUpOneFlasher(const oo::PList& subentDict);
-    bool setUpOneStandardSubentity(const oo::PList& subentDict);
+ private:
+  void addSubEntity(Entity* sub);
+  bool setUpOneSubentity(const oo::PList& subentDict);
+  bool setUpOneFlasher(const oo::PList& subentDict);
+  bool setUpOneStandardSubentity(const oo::PList& subentDict);
 };
 
 namespace oo {
 
-// A new effect after the effect's initialiser body (OOVisualEffectEntity::initWithKey()),
-// made as its object was (oo::MadeEntityRetained()); null where the body failed, as
-// [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] answered nil. +1, as +alloc gave.
+// A new effect after the effect's initialiser body
+// (OOVisualEffectEntity::initWithKey()), made as its object was
+// (oo::MadeEntityRetained()); null where the body failed, as
+// [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] answered nil. +1,
+// as +alloc gave.
 Entity* NewVisualEffect(const std::string& key, const oo::PList& dict);
 
-// The effect an entity is: nullptr for null or another entity (what -isKindOfClass:
-// [OOVisualEffectEntity class] and the cast after it found).
-inline OOVisualEffectEntity* ToEffect(Entity* entity)
-{
-    return dynamic_cast<OOVisualEffectEntity*>(entity);
+// The effect an entity is: nullptr for null or another entity (what
+// -isKindOfClass: [OOVisualEffectEntity class] and the cast after it found).
+inline OOVisualEffectEntity* ToEffect(Entity* entity) {
+  return dynamic_cast<OOVisualEffectEntity*>(entity);
 }
 
-} // namespace oo
+}  // namespace oo

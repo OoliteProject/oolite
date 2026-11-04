@@ -70,4 +70,5 @@ inline constexpr std::string_view KEY_KC_DEFINITION = "keyDef";
 inline constexpr std::string_view KEY_KC_HEADER = "header";
 
 // Dictionary keys - used in the defaults file
-inline constexpr std::string_view KEYCONFIG_OVERRIDES = "KeyConfigOverrides"; // preferences key (oo::Defaults)
+inline constexpr std::string_view KEYCONFIG_OVERRIDES =
+    "KeyConfigOverrides";  // preferences key (oo::Defaults)

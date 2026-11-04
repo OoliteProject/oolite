@@ -89,8 +89,9 @@ static std::vector<std::pair<oo::PList, uint32_t>>
     gTextureConfigurations;  // (specifier, extra options)
 
 // The stand-in is C++: the root's static
-// members the material calls, TestTexture (what they answer), and the root's own members; the
-// short description is every texture's here (they are all TestTextures).
+// members the material calls, TestTexture (what they answer), and the root's
+// own members; the short description is every texture's here (they are all
+// TestTextures).
 class TestTexture final : public OOTexture {
  public:
   ~TestTexture() override { gTexturesDeallocated++; }
@@ -163,11 +164,13 @@ std::string OOTexture::shortDescription() const {
   return "tex:" + Str(static_cast<const TestTexture*>(this)->_configuration);
 }
 
-/*	OOCombinedEmissionMapGenerator: records which factory was called and with what. It answers
-	null when it would have nothing to bake (no emission map and no illumination map), as the
-	material's callers never see a generated map for none. It is C++: the stand-in defines the factories, and its own and its bases' other
-	members as no-ops (no texture loader is linked). The material hands the C++ generator to the
-	OOTexture stand-in, which only asks whether it is nil.
+/*	OOCombinedEmissionMapGenerator: records which factory was called and
+   with what. It answers null when it would have nothing to bake (no emission
+   map and no illumination map), as the material's callers never see a generated
+   map for none. It is C++: the stand-in defines the factories, and its own and
+   its bases' other members as no-ops (no texture loader is linked). The
+   material hands the C++ generator to the OOTexture stand-in, which only asks
+   whether it is nil.
 */
 static std::vector<std::string> gGenerators;
 
@@ -248,8 +251,8 @@ oo::PList cxx_OOTextureSpecFromObject(
 }
 
 // UNIVERSE is gSharedUniverse: nil, so not reduced detail and no shaders.
-// UNIVERSE stays nil here, so the code under test's guarded calls never reach it; the stand-in only
-// links them.
+// UNIVERSE stays nil here, so the code under test's guarded calls never reach
+// it; the stand-in only links them.
 class Universe {
  public:
   bool useShaders();

@@ -32,7 +32,8 @@ uint32_t gDebugFlags = 0;
 extern Universe* gSharedUniverse;
 
 // The game view, as far as the drawable asks it.
-// The game view: a C++ subclass of the game's, overriding the one member it answers (virtual for it).
+// The game view: a C++ subclass of the game's, overriding the one member it
+// answers (virtual for it).
 class TestView : public MyOpenGLView {
  public:
   NSSize _size = {};

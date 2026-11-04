@@ -31,31 +31,33 @@ SOFTWARE.
 
 #include "OOALSound.h"
 
-class OOALSoundDecoder; // only named here (OOALSoundDecoder.h)
+class OOALSoundDecoder;  // only named here (OOALSoundDecoder.h)
 
 #include "oofnd/StdLib.hpp"
 
 class OOALBufferedSound : public OOSound {
-public:
-    /*	Was -initWithDecoder:, which decoded the whole sound: null where it answered nil (sound not
-            OK, no decoder, or the decoder could not read the sound).
-    */
-    static oo::Ref<OOALBufferedSound> initWithDecoder(OOALSoundDecoder* inDecoder);
+ public:
+  /*	Was -initWithDecoder:, which decoded the whole sound: null where it
+     answered nil (sound not OK, no decoder, or the decoder could not read the
+     sound).
+  */
+  static oo::Ref<OOALBufferedSound> initWithDecoder(
+      OOALSoundDecoder* inDecoder);
 
-    ~OOALBufferedSound() override;
+  ~OOALBufferedSound() override;
 
-    std::optional<std::string> name() override;
-    ALuint soundBuffer() override;
+  std::optional<std::string> name() override;
+  ALuint soundBuffer() override;
 
-private:
-    friend struct OOALBufferedSoundTestAccess; // the stand-ins of tests that
-                                               // stub the sound
+ private:
+  friend struct OOALBufferedSoundTestAccess;  // the stand-ins of tests that
+                                              // stub the sound
 
-    OOALBufferedSound() = default;
+  OOALBufferedSound() = default;
 
-    char* _buffer = { };
-    size_t _size = { };
-    double _sampleRate = { };
-    std::optional<std::string> _name; // nil-able, as the name was
-    bool _stereo = { };
+  char* _buffer = {};
+  size_t _size = {};
+  double _sampleRate = {};
+  std::optional<std::string> _name;  // nil-able, as the name was
+  bool _stereo = {};
 };

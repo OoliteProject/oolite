@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOPListScript.h"
+
 #include "OOCacheManager.h"
 #include "OOLegacyScriptWhitelist.h"
 #include "OOPListParsing.h"
@@ -37,7 +38,7 @@ constexpr const char* kKeyScript = "script";
 
 constexpr const char* kCacheName = "sanitized legacy scripts";
 
-} // namespace
+}  // namespace
 
 /*	A C++ subclass of OOScript: the class's own factories below make the
    scripts with oo::makeRef and hand them back. -displayName, which OOScript
@@ -45,140 +46,148 @@ constexpr const char* kCacheName = "sanitized legacy scripts";
    directly.
 */
 
-std::optional<std::vector<oo::Ref<OOScript>>> OOPListScript::scriptsInPListFile(const std::string& filePath)
-{
-    OOCacheManager* cache = OOCacheManager::sharedCache();
-    const oo::PList cachedScripts = (cache != nullptr) ? cache->pListForKey(filePath, kCacheName) : oo::PList();
-    if (cachedScripts) {
-        return loadCachedScripts(cachedScripts);
-    } else {
-        oo::PList dict = cxx_OOPropertyListFromFile(filePath);
-        if (!dict.isDict())
-            dict = oo::PList(); // a dictionary or nothing, as OODictionaryFromFile answered (its plist.wrongType line, which named the Foundation class, is not kept)
-        if (!dict)
-            return std::nullopt;
-        return scriptsFromDictionaryOfScripts(dict, filePath);
-    }
+std::optional<std::vector<oo::Ref<OOScript>>> OOPListScript::scriptsInPListFile(
+    const std::string& filePath) {
+  OOCacheManager* cache = OOCacheManager::sharedCache();
+  const oo::PList cachedScripts = (cache != nullptr)
+                                      ? cache->pListForKey(filePath, kCacheName)
+                                      : oo::PList();
+  if (cachedScripts) {
+    return loadCachedScripts(cachedScripts);
+  } else {
+    oo::PList dict = cxx_OOPropertyListFromFile(filePath);
+    if (!dict.isDict())
+      dict = oo::PList();  // a dictionary or nothing, as OODictionaryFromFile
+                           // answered (its plist.wrongType line, which named
+                           // the Foundation class, is not kept)
+    if (!dict) return std::nullopt;
+    return scriptsFromDictionaryOfScripts(dict, filePath);
+  }
 }
 
-std::optional<std::string> OOPListScript::name()
-{
-    // Always a string: -initWithName:scriptArray:metadata: sets it.
-    const oo::PList* value = _metadata.get<oo::PList>(kMDKeyName);
-    const std::string* string = (value != nullptr) ? value->getIf<std::string>() : nullptr;
-    return (string != nullptr) ? std::optional<std::string>(*string) : std::nullopt;
+std::optional<std::string> OOPListScript::name() {
+  // Always a string: -initWithName:scriptArray:metadata: sets it.
+  const oo::PList* value = _metadata.get<oo::PList>(kMDKeyName);
+  const std::string* string =
+      (value != nullptr) ? value->getIf<std::string>() : nullptr;
+  return (string != nullptr) ? std::optional<std::string>(*string)
+                             : std::nullopt;
 }
 
-std::optional<std::string> OOPListScript::scriptDescription()
-{
-    // The metadata's "description" string. A non-string value is nullopt here.
-    const oo::PList* value = _metadata.get<oo::PList>(kMDKeyDescription);
-    if (value == nullptr || !value->isString())
-        return std::nullopt;
-    return *value->getIf<std::string>();
+std::optional<std::string> OOPListScript::scriptDescription() {
+  // The metadata's "description" string. A non-string value is nullopt here.
+  const oo::PList* value = _metadata.get<oo::PList>(kMDKeyDescription);
+  if (value == nullptr || !value->isString()) return std::nullopt;
+  return *value->getIf<std::string>();
 }
 
-std::optional<std::string> OOPListScript::version()
-{
-    // The metadata's "version" string, as -displayName read the id-typed -version. A non-string
-    // value (which -length could not read: an exception) is nullopt here.
-    const oo::PList* value = _metadata.get<oo::PList>(kMDKeyVersion);
-    if (value == nullptr || !value->isString())
-        return std::nullopt;
-    return *value->getIf<std::string>();
+std::optional<std::string> OOPListScript::version() {
+  // The metadata's "version" string, as -displayName read the id-typed
+  // -version. A non-string value (which -length could not read: an exception)
+  // is nullopt here.
+  const oo::PList* value = _metadata.get<oo::PList>(kMDKeyVersion);
+  if (value == nullptr || !value->isString()) return std::nullopt;
+  return *value->getIf<std::string>();
 }
 
-bool OOPListScript::requiresTickle()
-{
-    return true;
+bool OOPListScript::requiresTickle() { return true; }
+
+void OOPListScript::runWithTarget(Entity* target) {
+  if (target != nullptr && !(oo::ToShip(target) != nullptr)) {
+    OO_LOG("script.legacy.run.badTarget",
+           "Expected ShipEntity or nil for target, got {}.",
+           oo::EntityClassName(target));  // its class's name
+    return;
+  }
+
+  OO_LOG("script.legacy.run", "Running script {}",
+         displayName().value_or("(null)"));
+  oo::log::indentIf("script.legacy.run");
+
+  if (PLAYER != nullptr)
+    PLAYER->runScriptActions(_script, name(), oo::ToShip(target));
+
+  oo::log::outdentIf("script.legacy.run");
 }
 
-void OOPListScript::runWithTarget(Entity* target)
-{
-    if (target != nullptr && !(oo::ToShip(target) != nullptr)) {
-        OO_LOG("script.legacy.run.badTarget",
-            "Expected ShipEntity or nil for target, got {}.",
-            oo::EntityClassName(target)); // its class's name
-        return;
-    }
+std::vector<oo::Ref<OOScript>> OOPListScript::scriptsFromDictionaryOfScripts(
+    const oo::PList& dictionary, const std::string& filePath) {
+  std::vector<oo::Ref<OOScript>> result;
+  oo::PList::Dict cachedScripts;
+  const oo::PList* metadata = nullptr;
 
-    OO_LOG("script.legacy.run", "Running script {}", displayName().value_or("(null)"));
-    oo::log::indentIf("script.legacy.run");
+  result.reserve(dictionary.count());
 
-    if (PLAYER != nullptr)
-        PLAYER->runScriptActions(_script, name(), oo::ToShip(target));
+  metadata =
+      dictionary.get<oo::PList::Dict>(kKeyMetadata);  // nil unless a dictionary
 
-    oo::log::outdentIf("script.legacy.run");
-}
-
-std::vector<oo::Ref<OOScript>> OOPListScript::scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath)
-{
-    std::vector<oo::Ref<OOScript>> result;
-    oo::PList::Dict cachedScripts;
-    const oo::PList* metadata = nullptr;
-
-    result.reserve(dictionary.count());
-
-    metadata = dictionary.get<oo::PList::Dict>(kKeyMetadata); // nil unless a dictionary
-
-    // Order-sensitive: the scripts come out in key order (they came out in hash order).
-    for (const auto& [key, unsanitized] : *dictionary.getIf<oo::PList::Dict>()) {
-        // (every key is a string: a dictionary with another key read as no dictionary)
-        if (unsanitized.isArray() && key != kKeyMetadata) {
-            const oo::PList sanitized = OOSanitizeLegacyScript(unsanitized, key, false);
-            if (sanitized) {
-                // [[OOPListScript alloc] initWithName:scriptArray:metadata:], which could not fail: the
-                // new script, kept by the result.
-                const oo::Ref<OOPListScript> script = oo::makeRef<OOPListScript>(key, sanitized, metadata);
-                {
-                    result.emplace_back(script);
-                    // +dictionaryWithObjectsAndKeys: stopped at a nil metadata.
-                    oo::PList::Dict cacheEntry;
-                    cacheEntry[kKeyScript] = sanitized;
-                    if (metadata != nullptr)
-                        cacheEntry[kKeyMetadata] = *metadata;
-                    cachedScripts[key] = oo::PList(std::move(cacheEntry));
-                }
-            }
+  // Order-sensitive: the scripts come out in key order (they came out in hash
+  // order).
+  for (const auto& [key, unsanitized] : *dictionary.getIf<oo::PList::Dict>()) {
+    // (every key is a string: a dictionary with another key read as no
+    // dictionary)
+    if (unsanitized.isArray() && key != kKeyMetadata) {
+      const oo::PList sanitized =
+          OOSanitizeLegacyScript(unsanitized, key, false);
+      if (sanitized) {
+        // [[OOPListScript alloc] initWithName:scriptArray:metadata:], which
+        // could not fail: the new script, kept by the result.
+        const oo::Ref<OOPListScript> script =
+            oo::makeRef<OOPListScript>(key, sanitized, metadata);
+        {
+          result.emplace_back(script);
+          // +dictionaryWithObjectsAndKeys: stopped at a nil metadata.
+          oo::PList::Dict cacheEntry;
+          cacheEntry[kKeyScript] = sanitized;
+          if (metadata != nullptr) cacheEntry[kKeyMetadata] = *metadata;
+          cachedScripts[key] = oo::PList(std::move(cacheEntry));
         }
+      }
     }
+  }
 
-    if (OOCacheManager* cache = OOCacheManager::sharedCache())
-        cache->setPList(oo::PList(std::move(cachedScripts)), filePath, kCacheName);
+  if (OOCacheManager* cache = OOCacheManager::sharedCache())
+    cache->setPList(oo::PList(std::move(cachedScripts)), filePath, kCacheName);
 
-    return result;
+  return result;
 }
 
-std::vector<oo::Ref<OOScript>> OOPListScript::loadCachedScripts(const oo::PList& cachedScripts)
-{
-    std::vector<oo::Ref<OOScript>> result;
-    result.reserve(cachedScripts.count());
+std::vector<oo::Ref<OOScript>> OOPListScript::loadCachedScripts(
+    const oo::PList& cachedScripts) {
+  std::vector<oo::Ref<OOScript>> result;
+  result.reserve(cachedScripts.count());
 
-    const oo::PList::Dict* entries = cachedScripts.getIf<oo::PList::Dict>();
-    if (entries == nullptr)
-        return result;
+  const oo::PList::Dict* entries = cachedScripts.getIf<oo::PList::Dict>();
+  if (entries == nullptr) return result;
 
-    // Order-sensitive: the scripts come out in key order (they came out in hash order).
-    for (const auto& [key, entry] : *entries) {
-        const oo::PList* cacheValue = entry.isDict() ? &entry : nullptr;
-        const oo::PList* scriptArray = (cacheValue != nullptr) ? cacheValue->get<oo::PList::Array>(kKeyScript) : nullptr;
-        const oo::PList* metadata = (cacheValue != nullptr) ? cacheValue->get<oo::PList::Dict>(kKeyMetadata) : nullptr;
-        const oo::Ref<OOPListScript> script = oo::makeRef<OOPListScript>(key, (scriptArray != nullptr) ? *scriptArray : oo::PList(), metadata);
-        result.emplace_back(script);
-    }
+  // Order-sensitive: the scripts come out in key order (they came out in hash
+  // order).
+  for (const auto& [key, entry] : *entries) {
+    const oo::PList* cacheValue = entry.isDict() ? &entry : nullptr;
+    const oo::PList* scriptArray =
+        (cacheValue != nullptr) ? cacheValue->get<oo::PList::Array>(kKeyScript)
+                                : nullptr;
+    const oo::PList* metadata =
+        (cacheValue != nullptr) ? cacheValue->get<oo::PList::Dict>(kKeyMetadata)
+                                : nullptr;
+    const oo::Ref<OOPListScript> script = oo::makeRef<OOPListScript>(
+        key, (scriptArray != nullptr) ? *scriptArray : oo::PList(), metadata);
+    result.emplace_back(script);
+  }
 
-    return result;
+  return result;
 }
 
-OOPListScript::OOPListScript(const std::string& name, const oo::PList& script, const oo::PList* metadata)
-{
-    {
-        _script = script;
-        // (every caller passes a name: the "no name" branch, which kept the metadata as given, is gone)
-        oo::PList::Dict namedMetadata;
-        if (metadata != nullptr)
-            namedMetadata = *metadata->getIf<oo::PList::Dict>();
-        namedMetadata[kMDKeyName] = name;
-        _metadata = oo::PList(std::move(namedMetadata));
-    }
+OOPListScript::OOPListScript(const std::string& name, const oo::PList& script,
+                             const oo::PList* metadata) {
+  {
+    _script = script;
+    // (every caller passes a name: the "no name" branch, which kept the
+    // metadata as given, is gone)
+    oo::PList::Dict namedMetadata;
+    if (metadata != nullptr)
+      namedMetadata = *metadata->getIf<oo::PList::Dict>();
+    namedMetadata[kMDKeyName] = name;
+    _metadata = oo::PList(std::move(namedMetadata));
+  }
 }

@@ -44,95 +44,95 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-#include "oofnd/objc/OOObject.h"
+#include <functional>
+#include <string_view>
 
+#include "OOFoundation.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include <functional>
-#include <string_view>
+#include "oofnd/objc/OOObject.h"
 
 // Enums are used here rather than a more complex object because
 // these are required very frequently (once per frame) so must be light
 // on CPU cycles.
 // Controls that can be an axis
 enum {
-    AXIS_ROLL,
-    AXIS_PITCH,
-    AXIS_YAW,
-    AXIS_PRECISION,
-    AXIS_THRUST,
-    AXIS_VIEWX,
-    AXIS_VIEWY,
+  AXIS_ROLL,
+  AXIS_PITCH,
+  AXIS_YAW,
+  AXIS_PRECISION,
+  AXIS_THRUST,
+  AXIS_VIEWX,
+  AXIS_VIEWY,
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
-    AXIS_FIELD_OF_VIEW,
+  AXIS_FIELD_OF_VIEW,
 #endif
-    AXIS_end
+  AXIS_end
 };
 
 // Controls that can be a button
 enum {
-    BUTTON_INCTHRUST,
-    BUTTON_DECTHRUST,
-    BUTTON_SCANNERZOOM,
-    BUTTON_SCANNERUNZOOM,
-    BUTTON_JETTISON,
-    BUTTON_COMPASSMODE,
-    BUTTON_COMMSLOG,
-    BUTTON_DOCKCPU,
-    BUTTON_DOCKCPUFAST,
-    BUTTON_FUELINJECT,
-    BUTTON_HYPERSPEED,
-    BUTTON_HYPERDRIVE,
-    BUTTON_GALACTICDRIVE,
-    BUTTON_FIRE,
-    BUTTON_ARMMISSILE,
-    BUTTON_LAUNCHMISSILE,
-    BUTTON_PRIMEEQUIPMENT,
-    BUTTON_ACTIVATEEQUIPMENT,
-    BUTTON_UNARM,
-    BUTTON_TARGETINCOMINGMISSILE,
-    BUTTON_CYCLEMISSILE,
-    BUTTON_ENERGYBOMB, // now fast activate B
-    BUTTON_WEAPONSONLINETOGGLE,
-    BUTTON_ID,
-    BUTTON_ECM,
-    BUTTON_ESCAPE,
-    BUTTON_CLOAK, // now fast activate A
-    BUTTON_PRECISION,
-    BUTTON_VIEWFORWARD,
-    BUTTON_VIEWAFT,
-    BUTTON_VIEWPORT,
-    BUTTON_VIEWSTARBOARD,
-    BUTTON_SNAPSHOT,
-    BUTTON_PREVTARGET,
-    BUTTON_NEXTTARGET,
-    BUTTON_MODEEQUIPMENT,
+  BUTTON_INCTHRUST,
+  BUTTON_DECTHRUST,
+  BUTTON_SCANNERZOOM,
+  BUTTON_SCANNERUNZOOM,
+  BUTTON_JETTISON,
+  BUTTON_COMPASSMODE,
+  BUTTON_COMMSLOG,
+  BUTTON_DOCKCPU,
+  BUTTON_DOCKCPUFAST,
+  BUTTON_FUELINJECT,
+  BUTTON_HYPERSPEED,
+  BUTTON_HYPERDRIVE,
+  BUTTON_GALACTICDRIVE,
+  BUTTON_FIRE,
+  BUTTON_ARMMISSILE,
+  BUTTON_LAUNCHMISSILE,
+  BUTTON_PRIMEEQUIPMENT,
+  BUTTON_ACTIVATEEQUIPMENT,
+  BUTTON_UNARM,
+  BUTTON_TARGETINCOMINGMISSILE,
+  BUTTON_CYCLEMISSILE,
+  BUTTON_ENERGYBOMB,  // now fast activate B
+  BUTTON_WEAPONSONLINETOGGLE,
+  BUTTON_ID,
+  BUTTON_ECM,
+  BUTTON_ESCAPE,
+  BUTTON_CLOAK,  // now fast activate A
+  BUTTON_PRECISION,
+  BUTTON_VIEWFORWARD,
+  BUTTON_VIEWAFT,
+  BUTTON_VIEWPORT,
+  BUTTON_VIEWSTARBOARD,
+  BUTTON_SNAPSHOT,
+  BUTTON_PREVTARGET,
+  BUTTON_NEXTTARGET,
+  BUTTON_MODEEQUIPMENT,
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
-    BUTTON_INC_FIELD_OF_VIEW,
-    BUTTON_DEC_FIELD_OF_VIEW,
+  BUTTON_INC_FIELD_OF_VIEW,
+  BUTTON_DEC_FIELD_OF_VIEW,
 #endif
-    BUTTON_DOCKINGCLEARANCE,
-    BUTTON_COMPASSMODE_PREV,
-    BUTTON_PRIMEEQUIPMENT_PREV,
-    BUTTON_ROTATECARGO,
-    BUTTON_MFDSELECTNEXT,
-    BUTTON_MFDSELECTPREV,
-    BUTTON_MFDCYCLENEXT,
-    BUTTON_MFDCYCLEPREV,
-    BUTTON_EXTVIEWCYCLE,
-    BUTTON_DOCKINGMUSIC,
-    BUTTON_PAUSE,
-    BUTTON_TOGGLEHUD,
-    BUTTON_GUILEFT,
-    BUTTON_GUIRIGHT,
-    BUTTON_GUIUP,
-    BUTTON_GUIDOWN,
-    BUTTON_GUIPAGEUP,
-    BUTTON_GUIPAGEDOWN,
-    BUTTON_GUISELECT,
-    BUTTON_end
+  BUTTON_DOCKINGCLEARANCE,
+  BUTTON_COMPASSMODE_PREV,
+  BUTTON_PRIMEEQUIPMENT_PREV,
+  BUTTON_ROTATECARGO,
+  BUTTON_MFDSELECTNEXT,
+  BUTTON_MFDSELECTPREV,
+  BUTTON_MFDCYCLENEXT,
+  BUTTON_MFDCYCLEPREV,
+  BUTTON_EXTVIEWCYCLE,
+  BUTTON_DOCKINGMUSIC,
+  BUTTON_PAUSE,
+  BUTTON_TOGGLEHUD,
+  BUTTON_GUILEFT,
+  BUTTON_GUIRIGHT,
+  BUTTON_GUIUP,
+  BUTTON_GUIDOWN,
+  BUTTON_GUIPAGEUP,
+  BUTTON_GUIPAGEDOWN,
+  BUTTON_GUISELECT,
+  BUTTON_end
 };
 
 // Stick constants
@@ -162,16 +162,25 @@ enum {
 #define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
-inline constexpr std::string_view AXIS_SETTINGS = "JoystickAxes"; // oo::Defaults key
-inline constexpr std::string_view BUTTON_SETTINGS = "JoystickButs"; // oo::Defaults key
-inline constexpr std::string_view GUI_BUTTON_SETTINGS = "GuiJoystickButs"; // oo::Defaults key
-inline constexpr std::string_view STICK_ISAXIS = "isAxis"; // YES=axis NO=button
-inline constexpr std::string_view STICK_NUMBER = "stickNum"; // Stick number 0 to 4
-inline constexpr std::string_view STICK_AXBUT = "stickAxBt"; // Axis or button number
-#define STICK_FUNCTION "stickFunc" // Function of axis/button
-inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING = "RollAxisProfile"; // Joystick Profiles
-inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING = "PitchAxisProfile"; // Joystick Profiles
-inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view AXIS_SETTINGS =
+    "JoystickAxes";  // oo::Defaults key
+inline constexpr std::string_view BUTTON_SETTINGS =
+    "JoystickButs";  // oo::Defaults key
+inline constexpr std::string_view GUI_BUTTON_SETTINGS =
+    "GuiJoystickButs";  // oo::Defaults key
+inline constexpr std::string_view STICK_ISAXIS =
+    "isAxis";  // YES=axis NO=button
+inline constexpr std::string_view STICK_NUMBER =
+    "stickNum";  // Stick number 0 to 4
+inline constexpr std::string_view STICK_AXBUT =
+    "stickAxBt";                    // Axis or button number
+#define STICK_FUNCTION "stickFunc"  // Function of axis/button
+inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING =
+    "RollAxisProfile";  // Joystick Profiles
+inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING =
+    "PitchAxisProfile";  // Joystick Profiles
+inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING =
+    "YawAxisProfile";  // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // a dictionary: a std::string (oofnd/String.hpp)
 #define ENUMKEY(x) oo::str::format("%d", x)
@@ -180,110 +189,116 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfi
 #include "oofnd/String.hpp"
 
 class OOJoystickManager : public oo::RefCounted {
-public:
-    OOJoystickManager() = default;
+ public:
+  OOJoystickManager() = default;
 
-    // The shared handler, made on first use by the registered factory (else a plain manager) and
-    // init()ed; never null, never destroyed. Was +sharedStickHandler.
-    static OOJoystickManager* sharedStickHandler();
-    // Registers the platform's handler, before the first sharedStickHandler(). Was
-    // +setStickHandlerClass: (the class is a function that makes the manager).
-    using StickHandlerFactory = oo::Ref<OOJoystickManager> (*)();
-    static bool setStickHandlerFactory(StickHandlerFactory factory);
+  // The shared handler, made on first use by the registered factory (else a
+  // plain manager) and init()ed; never null, never destroyed. Was
+  // +sharedStickHandler.
+  static OOJoystickManager* sharedStickHandler();
+  // Registers the platform's handler, before the first sharedStickHandler().
+  // Was +setStickHandlerClass: (the class is a function that makes the
+  // manager).
+  using StickHandlerFactory = oo::Ref<OOJoystickManager> (*)();
+  static bool setStickHandlerFactory(StickHandlerFactory factory);
 
-    // General.
-    // Note: handleSDLEvent returns a bool (YES we handled it or NO we
-    // didn't) so in the future when more handler classes are written,
-    // the GameView event loop can just go through an array of handlers
-    // until it finds a handler that handles the event.
-    void init(); // run once, right after construction, by whoever makes the manager
+  // General.
+  // Note: handleSDLEvent returns a bool (YES we handled it or NO we
+  // didn't) so in the future when more handler classes are written,
+  // the GameView event loop can just go through an array of handlers
+  // until it finds a handler that handles the event.
+  void
+  init();  // run once, right after construction, by whoever makes the manager
 
-    // Roll/pitch axis
-    NSPoint rollPitchAxis();
+  // Roll/pitch axis
+  NSPoint rollPitchAxis();
 
-    // View axis
-    NSPoint viewAxis();
+  // View axis
+  NSPoint viewAxis();
 
-    // convert a dictionary into the internal function map
-    void setFunction(int function, const oo::PList& stickFn);
-    void unsetAxisFunction(int function);
-    void unsetButtonFunction(int function);
-    void unsetGuiButtonFunction(int function);
+  // convert a dictionary into the internal function map
+  void setFunction(int function, const oo::PList& stickFn);
+  void unsetAxisFunction(int function);
+  void unsetButtonFunction(int function);
+  void unsetGuiButtonFunction(int function);
 
-    // Accessors and discovery about the hardware.
-    // These work directly on the internal lookup table so to be fast
-    // since they are likely to be called by the game loop.
-    bool isButtonDown(int button, int stickNum);
-    bool getButtonState(int function);
-    double getAxisState(int function);
-    double getSensitivity();
+  // Accessors and discovery about the hardware.
+  // These work directly on the internal lookup table so to be fast
+  // since they are likely to be called by the game loop.
+  bool isButtonDown(int button, int stickNum);
+  bool getButtonState(int function);
+  double getAxisState(int function);
+  double getSensitivity();
 
-    // Axis profile handling
-    void setProfile(OOJoystickAxisProfile* profile, int axis);
-    OOJoystickAxisProfile* getProfileForAxis(int axis); // borrowed; null for an axis with none
-    void saveProfileForAxis(int axis);
-    void loadProfileForAxis(int axis);
+  // Axis profile handling
+  void setProfile(OOJoystickAxisProfile* profile, int axis);
+  OOJoystickAxisProfile* getProfileForAxis(
+      int axis);  // borrowed; null for an axis with none
+  void saveProfileForAxis(int axis);
+  void loadProfileForAxis(int axis);
 
-    // This one just returns a pointer to the entire state array to
-    // allow for multiple lookups with only one call
-    const bool* getAllButtonStates();
+  // This one just returns a pointer to the entire state array to
+  // allow for multiple lookups with only one call
+  const bool* getAllButtonStates();
 
-    // Hardware introspection.
-    std::vector<std::string> listSticks();
+  // Hardware introspection.
+  std::vector<std::string> listSticks();
 
-    // These use property-list dictionaries since they are used outside the game
-    // loop and are needed for loading/saving defaults.
-    oo::PList axisFunctions();
-    oo::PList buttonFunctions();
-    oo::PList guiButtonFunctions();
+  // These use property-list dictionaries since they are used outside the game
+  // loop and are needed for loading/saving defaults.
+  oo::PList axisFunctions();
+  oo::PList buttonFunctions();
+  oo::PList guiButtonFunctions();
 
-    // Set a callback for the next moved axis/pressed button. hwflags
-    // is in the form HW_AXIS | HW_BUTTON (or just one of). The callback is called once, with the
-    // stick function's dictionary (was a selector called by name on an object).
-    using StickCallback = std::function<void(const oo::PList&)>;
-    void setCallback(StickCallback callback, char hwflags);
-    void clearCallback();
+  // Set a callback for the next moved axis/pressed button. hwflags
+  // is in the form HW_AXIS | HW_BUTTON (or just one of). The callback is called
+  // once, with the stick function's dictionary (was a selector called by name
+  // on an object).
+  using StickCallback = std::function<void(const oo::PList&)>;
+  void setCallback(StickCallback callback, char hwflags);
+  void clearCallback();
 
-    // Methods generally only used by this class.
-    void setDefaultMapping();
-    void clearMappings();
-    void clearStickStates();
-    void clearStickButtonState(int stickButton);
-    void saveStickSettings();
-    void loadStickSettings();
+  // Methods generally only used by this class.
+  void setDefaultMapping();
+  void clearMappings();
+  void clearStickStates();
+  void clearStickButtonState(int stickButton);
+  void saveStickSettings();
+  void loadStickSettings();
 
-    // Methods that should be overridden by all subclasses
-    virtual NSUInteger joystickCount();
-    virtual std::optional<std::string> nameOfJoystick(NSUInteger stickNumber); // nullopt: the device has no name
-    virtual int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum);
+  // Methods that should be overridden by all subclasses
+  virtual NSUInteger joystickCount();
+  virtual std::optional<std::string> nameOfJoystick(
+      NSUInteger stickNumber);  // nullopt: the device has no name
+  virtual int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum);
 
-private:
-    // Setting button and axis functions
-    void setFunctionForAxis(int axis, int function, int stickNum);
-    void setFunctionForButton(int button, int function, int stickNum);
-    void setGuiFunctionForButton(int button, int function, int stickNum);
+ private:
+  // Setting button and axis functions
+  void setFunctionForAxis(int axis, int function, int stickNum);
+  void setFunctionForButton(int button, int function, int stickNum);
+  void setGuiFunctionForButton(int button, int function, int stickNum);
 
-protected:
-    // Axis/button mapping arrays (the platform manager's event decoders read
-    // and set them)
-    int8_t axismap[MAX_STICKS][MAX_AXES] = { };
-    int8_t buttonmap[MAX_STICKS][MAX_BUTTONS] = { };
-    int8_t guibuttonmap[MAX_STICKS][MAX_BUTTONS] = { };
-    bool true_butstate[MAX_STICKS][MAX_BUTTONS] = { };
-    double axstate[AXIS_end] = { };
-    bool butstate[BUTTON_end] = { }; // still bool: getAllButtonStates() hands
-                                     // unconverted callers a const bool *
-    uint8_t hatstate[MAX_STICKS][MAX_HATS] = { };
-    bool precisionMode = { };
+ protected:
+  // Axis/button mapping arrays (the platform manager's event decoders read
+  // and set them)
+  int8_t axismap[MAX_STICKS][MAX_AXES] = {};
+  int8_t buttonmap[MAX_STICKS][MAX_BUTTONS] = {};
+  int8_t guibuttonmap[MAX_STICKS][MAX_BUTTONS] = {};
+  bool true_butstate[MAX_STICKS][MAX_BUTTONS] = {};
+  double axstate[AXIS_end] = {};
+  bool butstate[BUTTON_end] = {};  // still bool: getAllButtonStates() hands
+                                   // unconverted callers a const bool *
+  uint8_t hatstate[MAX_STICKS][MAX_HATS] = {};
+  bool precisionMode = {};
 
-    // Handle callbacks - the function to call
-    // and the hardware (axis or button etc.)
-    StickCallback cbCallback = { }; // empty: none (was a nil object)
-    char cbHardware = { };
-    bool invertPitch = { };
+  // Handle callbacks - the function to call
+  // and the hardware (axis or button etc.)
+  StickCallback cbCallback = {};  // empty: none (was a nil object)
+  char cbHardware = {};
+  bool invertPitch = {};
 
-private:
-    oo::Ref<OOJoystickAxisProfile> roll_profile = { };
-    oo::Ref<OOJoystickAxisProfile> pitch_profile = { };
-    oo::Ref<OOJoystickAxisProfile> yaw_profile = { };
+ private:
+  oo::Ref<OOJoystickAxisProfile> roll_profile = {};
+  oo::Ref<OOJoystickAxisProfile> pitch_profile = {};
+  oo::Ref<OOJoystickAxisProfile> yaw_profile = {};
 };

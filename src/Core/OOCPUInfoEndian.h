@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
-/*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must
-        be non-zero. If you're porting Oolite to a middle-endian platform, you'll
-        need to work out what to do with endian-sensitive stuff -- currently, that
-        means texture loading. (The data cache automatically rejects cached data
+/*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one
+   must be non-zero. If you're porting Oolite to a middle-endian platform,
+   you'll need to work out what to do with endian-sensitive stuff -- currently,
+   that means texture loading. (The data cache automatically rejects cached data
         of the wrong byte sex.)
 */
 #if !defined(OOLITE_BIG_ENDIAN) && !defined(OOLITE_LITTLE_ENDIAN)
@@ -53,8 +53,8 @@ MA 02110-1301, USA.
 
 // Do not assume PPC == big endian, it can be either.
 
-#endif // inner none defined
-#endif // outer none defined
+#endif  // inner none defined
+#endif  // outer none defined
 
 #ifndef OOLITE_BIG_ENDIAN
 #define OOLITE_BIG_ENDIAN 0

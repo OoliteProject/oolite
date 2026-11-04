@@ -27,7 +27,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
+
+#include "OOFoundation.h"
 
 void InitOOJSOolite(JSContext* context, JSValueConst global);

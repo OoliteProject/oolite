@@ -173,7 +173,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data);
                 depth: recursion limit.
 */
 void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
-    OOScalar halfWidth, NSUInteger depth);
+                    OOScalar halfWidth, NSUInteger depth);
 
 /*
         SplitGeometry{X|Y|Z}(data, dPlus, dMinus, offset)
@@ -186,630 +186,613 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
    middle of their data sets.
 */
 static void SplitGeometryX(GeometryData* data, GeometryData* dPlus,
-    GeometryData* dMinus, OOScalar x);
+                           GeometryData* dMinus, OOScalar x);
 static void SplitGeometryY(GeometryData* data, GeometryData* dPlus,
-    GeometryData* dMinus, OOScalar y);
+                           GeometryData* dMinus, OOScalar y);
 static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
-    GeometryData* dMinus, OOScalar z);
+                           GeometryData* dMinus, OOScalar z);
 
 // MARK: Inline function bodies.
 
-void InitGeometryData(GeometryData* data, uint32_t capacity)
-{
-    OOCParameterAssert(data != NULL);
+void InitGeometryData(GeometryData* data, uint32_t capacity) {
+  OOCParameterAssert(data != NULL);
 
-    data->count = 0;
-    data->capacity = kOOMeshToOctreeConverterSmallDataCapacity;
-    data->pendingCapacity = capacity;
-    data->triangles = data->smallData;
+  data->count = 0;
+  data->capacity = kOOMeshToOctreeConverterSmallDataCapacity;
+  data->pendingCapacity = capacity;
+  data->triangles = data->smallData;
 }
 
-OOINLINE void DestroyGeometryData(GeometryData* data)
-{
-    OOCParameterAssert(
-        data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
+OOINLINE void DestroyGeometryData(GeometryData* data) {
+  OOCParameterAssert(
+      data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
 
 #if OO_DEBUG
-    Triangle* const kScribbleValue = (Triangle*)-1L;
-    OOCAssert(data->triangles != kScribbleValue,
-        "Attempt to destroy a GeometryData twice.");
+  Triangle* const kScribbleValue = (Triangle*)-1L;
+  OOCAssert(data->triangles != kScribbleValue,
+            "Attempt to destroy a GeometryData twice.");
 #endif
 
-    // If capacity is kOOMeshToOctreeConverterSmallDataCapacity, triangles points
-    // to smallData and heap is empty.
-    std::vector<Triangle>().swap(data->heap);
+  // If capacity is kOOMeshToOctreeConverterSmallDataCapacity, triangles points
+  // to smallData and heap is empty.
+  std::vector<Triangle>().swap(data->heap);
 
 #if OO_DEBUG
-    data->triangles = kScribbleValue;
+  data->triangles = kScribbleValue;
 #endif
 }
 
-OOINLINE void AddTriangle(GeometryData* data, Triangle tri)
-{
-    OOCParameterAssert(data != NULL);
+OOINLINE void AddTriangle(GeometryData* data, Triangle tri) {
+  OOCParameterAssert(data != NULL);
 
-    if (data->count < data->capacity) {
-        data->triangles[data->count++] = tri;
-    } else {
-        AddTriangle_slow(data, tri);
-    }
+  if (data->count < data->capacity) {
+    data->triangles[data->count++] = tri;
+  } else {
+    AddTriangle_slow(data, tri);
+  }
 }
 
-OOMeshToOctreeConverter::OOMeshToOctreeConverter(NSUInteger capacity)
-{
-    OOCParameterAssert(capacity < UINT32_MAX);
-    if (capacity == 0)
-        capacity = 1; // Happens for models with no faces.
+OOMeshToOctreeConverter::OOMeshToOctreeConverter(NSUInteger capacity) {
+  OOCParameterAssert(capacity < UINT32_MAX);
+  if (capacity == 0) capacity = 1;  // Happens for models with no faces.
 
-    {
-        InitGeometryData(&_data, capacity);
-    }
+  {
+    InitGeometryData(&_data, capacity);
+  }
 }
 
-OOMeshToOctreeConverter::~OOMeshToOctreeConverter()
-{
-    DestroyGeometryData(&_data);
+OOMeshToOctreeConverter::~OOMeshToOctreeConverter() {
+  DestroyGeometryData(&_data);
 }
 
 oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(
-    NSUInteger capacity)
-{
-    return oo::makeRef<OOMeshToOctreeConverter>(capacity);
+    NSUInteger capacity) {
+  return oo::makeRef<OOMeshToOctreeConverter>(capacity);
 }
 
 std::optional<std::string> OOMeshToOctreeConverter::descriptionComponents()
-    const
-{
-    return oo::str::format("%u triangles", _data.count);
+    const {
+  return oo::str::format("%u triangles", _data.count);
 }
 
-void OOMeshToOctreeConverter::addTriangle(Triangle tri)
-{
-    if (!OOTriangleIsDegenerate(tri)) {
-        AddTriangle(&_data, tri);
+void OOMeshToOctreeConverter::addTriangle(Triangle tri) {
+  if (!OOTriangleIsDegenerate(tri)) {
+    AddTriangle(&_data, tri);
+  }
+}
+
+oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth) {
+  oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
+  OOScalar halfWidth =
+      0.5f +
+      MaxDimensionFromOrigin(&_data);  // pad out from geometry by a half meter
+
+  BuildSubOctree(&_data, builder.get(), halfWidth, depth);
+
+  return builder->buildOctreeWithRadius(halfWidth);
+}
+
+static OOScalar MaxDimensionFromOrigin(GeometryData* data) {
+  OOCParameterAssert(data != NULL);
+
+  OOScalar result = 0.0f;
+  uint32_t i, j;
+  for (i = 0; i < data->count; i++)
+    for (j = 0; j < 3; j++) {
+      Vector v = data->triangles[i].v[j];
+
+      result = fmax(result, fabs(v.x));
+      result = fmax(result, fabs(v.y));
+      result = fmax(result, fabs(v.z));
     }
-}
-
-oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth)
-{
-    oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
-    OOScalar halfWidth = 0.5f + MaxDimensionFromOrigin(&_data); // pad out from geometry by a half meter
-
-    BuildSubOctree(&_data, builder.get(), halfWidth, depth);
-
-    return builder->buildOctreeWithRadius(halfWidth);
-}
-
-static OOScalar MaxDimensionFromOrigin(GeometryData* data)
-{
-    OOCParameterAssert(data != NULL);
-
-    OOScalar result = 0.0f;
-    uint32_t i, j;
-    for (i = 0; i < data->count; i++)
-        for (j = 0; j < 3; j++) {
-            Vector v = data->triangles[i].v[j];
-
-            result = fmax(result, fabs(v.x));
-            result = fmax(result, fabs(v.y));
-            result = fmax(result, fabs(v.z));
-        }
-    return result;
+  return result;
 }
 
 void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
-    OOScalar halfWidth, NSUInteger depth)
-{
-    OOCParameterAssert(data != NULL);
+                    OOScalar halfWidth, NSUInteger depth) {
+  OOCParameterAssert(data != NULL);
 
-    OOScalar subHalfWidth = 0.5f * halfWidth;
+  OOScalar subHalfWidth = 0.5f * halfWidth;
 
-    if (data->count == 0) {
-        // No geometry here.
-        builder->writeEmpty();
-        return;
-    }
+  if (data->count == 0) {
+    // No geometry here.
+    builder->writeEmpty();
+    return;
+  }
 
-    if (halfWidth <= OCTREE_MIN_HALF_WIDTH || depth <= 0) {
-        // Maximum resolution reached and not full.
-        builder->writeSolid();
-        return;
-    }
+  if (halfWidth <= OCTREE_MIN_HALF_WIDTH || depth <= 0) {
+    // Maximum resolution reached and not full.
+    builder->writeSolid();
+    return;
+  }
 
-    /*
-            To avoid reallocations, we want a reasonably pessimistic estimate of
-            sub-data size.
+  /*
+          To avoid reallocations, we want a reasonably pessimistic estimate of
+          sub-data size.
 
-            This table shows observed performance for several heuristics using
-            vanilla Oolite r5352 (plus instrumentation). Values aren't precisely
-            reproducible, but are reasonably stable.
+          This table shows observed performance for several heuristics using
+          vanilla Oolite r5352 (plus instrumentation). Values aren't precisely
+          reproducible, but are reasonably stable.
 
-            Heuristic: expression used to initialize subCapacity.
+          Heuristic: expression used to initialize subCapacity.
 
-            PER: number of geometries per reallocation; in other words, a realloc
-                     is needed one time per PER geometries.
+          PER: number of geometries per reallocation; in other words, a realloc
+                   is needed one time per PER geometries.
 
-            MEM: high water mark for total memory consumption (triangles arrays
-                     only) across all live Geometries.
+          MEM: high water mark for total memory consumption (triangles arrays
+                   only) across all live Geometries.
 
-            Heuristic                   PER         MEM
-            n_triangles                 3-4         71856
-            n_triangles * 2             100         111384
-            MAX(n_triangles * 2, 16)    300         111384
-            MAX(n_triangles * 2, 21)    500         148512
-            n_triangles * 3             500         165744
-            MAX(n_triangles * 3, 16)    12000       165744
-            MAX(n_triangles * 3, 21)    20000       165744
+          Heuristic                   PER         MEM
+          n_triangles                 3-4         71856
+          n_triangles * 2             100         111384
+          MAX(n_triangles * 2, 16)    300         111384
+          MAX(n_triangles * 2, 21)    500         148512
+          n_triangles * 3             500         165744
+          MAX(n_triangles * 3, 16)    12000       165744
+          MAX(n_triangles * 3, 21)    20000       165744
 
-            The value 21 was chosen for reasons which, on reflection, were
-       entirely wrong. Performance profiling shows no discernible difference
-       between 2,16 and 3,21.
+          The value 21 was chosen for reasons which, on reflection, were
+     entirely wrong. Performance profiling shows no discernible difference
+     between 2,16 and 3,21.
 
-            As of r5374, up to 16 entries are stored on the stack and there is no
-            benefit to specifying a minimum here any longer.
-    */
-    enum { kFactor = 2 };
-    uint32_t subCapacity = data->count * kFactor;
+          As of r5374, up to 16 entries are stored on the stack and there is no
+          benefit to specifying a minimum here any longer.
+  */
+  enum { kFactor = 2 };
+  uint32_t subCapacity = data->count * kFactor;
 
 #define DECL_GEOMETRY(NAME, CAP) \
-    GeometryData NAME;           \
-    InitGeometryData(&NAME, CAP);
+  GeometryData NAME;             \
+  InitGeometryData(&NAME, CAP);
 
-    DECL_GEOMETRY(g_000, subCapacity);
-    DECL_GEOMETRY(g_001, subCapacity);
-    DECL_GEOMETRY(g_010, subCapacity);
-    DECL_GEOMETRY(g_011, subCapacity);
-    DECL_GEOMETRY(g_100, subCapacity);
-    DECL_GEOMETRY(g_101, subCapacity);
-    DECL_GEOMETRY(g_110, subCapacity);
-    DECL_GEOMETRY(g_111, subCapacity);
+  DECL_GEOMETRY(g_000, subCapacity);
+  DECL_GEOMETRY(g_001, subCapacity);
+  DECL_GEOMETRY(g_010, subCapacity);
+  DECL_GEOMETRY(g_011, subCapacity);
+  DECL_GEOMETRY(g_100, subCapacity);
+  DECL_GEOMETRY(g_101, subCapacity);
+  DECL_GEOMETRY(g_110, subCapacity);
+  DECL_GEOMETRY(g_111, subCapacity);
 
-    DECL_GEOMETRY(g_xx1, subCapacity);
-    DECL_GEOMETRY(g_xx0, subCapacity);
+  DECL_GEOMETRY(g_xx1, subCapacity);
+  DECL_GEOMETRY(g_xx0, subCapacity);
 
-    SplitGeometryZ(data, &g_xx1, &g_xx0, subHalfWidth);
-    if (g_xx0.count != 0) {
-        DECL_GEOMETRY(g_x00, subCapacity);
-        DECL_GEOMETRY(g_x10, subCapacity);
+  SplitGeometryZ(data, &g_xx1, &g_xx0, subHalfWidth);
+  if (g_xx0.count != 0) {
+    DECL_GEOMETRY(g_x00, subCapacity);
+    DECL_GEOMETRY(g_x10, subCapacity);
 
-        SplitGeometryY(&g_xx0, &g_x10, &g_x00, subHalfWidth);
-        if (g_x00.count != 0) {
-            SplitGeometryX(&g_x00, &g_100, &g_000, subHalfWidth);
-        }
-        if (g_x10.count != 0) {
-            SplitGeometryX(&g_x10, &g_110, &g_010, subHalfWidth);
-        }
-        DestroyGeometryData(&g_x00);
-        DestroyGeometryData(&g_x10);
+    SplitGeometryY(&g_xx0, &g_x10, &g_x00, subHalfWidth);
+    if (g_x00.count != 0) {
+      SplitGeometryX(&g_x00, &g_100, &g_000, subHalfWidth);
     }
-    if (g_xx1.count != 0) {
-        DECL_GEOMETRY(g_x01, subCapacity);
-        DECL_GEOMETRY(g_x11, subCapacity);
-
-        SplitGeometryY(&g_xx1, &g_x11, &g_x01, subHalfWidth);
-        if (g_x01.count != 0) {
-            SplitGeometryX(&g_x01, &g_101, &g_001, subHalfWidth);
-        }
-        if (g_x11.count != 0) {
-            SplitGeometryX(&g_x11, &g_111, &g_011, subHalfWidth);
-        }
-        DestroyGeometryData(&g_x01);
-        DestroyGeometryData(&g_x11);
+    if (g_x10.count != 0) {
+      SplitGeometryX(&g_x10, &g_110, &g_010, subHalfWidth);
     }
-    DestroyGeometryData(&g_xx0);
-    DestroyGeometryData(&g_xx1);
+    DestroyGeometryData(&g_x00);
+    DestroyGeometryData(&g_x10);
+  }
+  if (g_xx1.count != 0) {
+    DECL_GEOMETRY(g_x01, subCapacity);
+    DECL_GEOMETRY(g_x11, subCapacity);
 
-    builder->beginInnerNode();
-    depth--;
-    BuildSubOctree(&g_000, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_001, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_010, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_011, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_100, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_101, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_110, builder, subHalfWidth, depth);
-    BuildSubOctree(&g_111, builder, subHalfWidth, depth);
-    builder->endInnerNode();
+    SplitGeometryY(&g_xx1, &g_x11, &g_x01, subHalfWidth);
+    if (g_x01.count != 0) {
+      SplitGeometryX(&g_x01, &g_101, &g_001, subHalfWidth);
+    }
+    if (g_x11.count != 0) {
+      SplitGeometryX(&g_x11, &g_111, &g_011, subHalfWidth);
+    }
+    DestroyGeometryData(&g_x01);
+    DestroyGeometryData(&g_x11);
+  }
+  DestroyGeometryData(&g_xx0);
+  DestroyGeometryData(&g_xx1);
 
-    DestroyGeometryData(&g_000);
-    DestroyGeometryData(&g_001);
-    DestroyGeometryData(&g_010);
-    DestroyGeometryData(&g_011);
-    DestroyGeometryData(&g_100);
-    DestroyGeometryData(&g_101);
-    DestroyGeometryData(&g_110);
-    DestroyGeometryData(&g_111);
+  builder->beginInnerNode();
+  depth--;
+  BuildSubOctree(&g_000, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_001, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_010, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_011, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_100, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_101, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_110, builder, subHalfWidth, depth);
+  BuildSubOctree(&g_111, builder, subHalfWidth, depth);
+  builder->endInnerNode();
+
+  DestroyGeometryData(&g_000);
+  DestroyGeometryData(&g_001);
+  DestroyGeometryData(&g_010);
+  DestroyGeometryData(&g_011);
+  DestroyGeometryData(&g_100);
+  DestroyGeometryData(&g_101);
+  DestroyGeometryData(&g_110);
+  DestroyGeometryData(&g_111);
 }
 
-static void TranslateGeometryX(GeometryData* data, OOScalar offset)
-{
-    OOCParameterAssert(data != NULL);
+static void TranslateGeometryX(GeometryData* data, OOScalar offset) {
+  OOCParameterAssert(data != NULL);
 
-    // Optimization note: offset is never zero, so no early return.
+  // Optimization note: offset is never zero, so no early return.
 
-    uint32_t i, count = data->count;
-    for (i = 0; i < count; i++) {
-        data->triangles[i].v[0].x += offset;
-        data->triangles[i].v[1].x += offset;
-        data->triangles[i].v[2].x += offset;
-    }
+  uint32_t i, count = data->count;
+  for (i = 0; i < count; i++) {
+    data->triangles[i].v[0].x += offset;
+    data->triangles[i].v[1].x += offset;
+    data->triangles[i].v[2].x += offset;
+  }
 }
 
-static void TranslateGeometryY(GeometryData* data, OOScalar offset)
-{
-    OOCParameterAssert(data != NULL);
+static void TranslateGeometryY(GeometryData* data, OOScalar offset) {
+  OOCParameterAssert(data != NULL);
 
-    // Optimization note: offset is never zero, so no early return.
+  // Optimization note: offset is never zero, so no early return.
 
-    uint32_t i, count = data->count;
-    for (i = 0; i < count; i++) {
-        data->triangles[i].v[0].y += offset;
-        data->triangles[i].v[1].y += offset;
-        data->triangles[i].v[2].y += offset;
-    }
+  uint32_t i, count = data->count;
+  for (i = 0; i < count; i++) {
+    data->triangles[i].v[0].y += offset;
+    data->triangles[i].v[1].y += offset;
+    data->triangles[i].v[2].y += offset;
+  }
 }
 
-static void TranslateGeometryZ(GeometryData* data, OOScalar offset)
-{
-    OOCParameterAssert(data != NULL);
+static void TranslateGeometryZ(GeometryData* data, OOScalar offset) {
+  OOCParameterAssert(data != NULL);
 
-    // Optimization note: offset is never zero, so no early return.
+  // Optimization note: offset is never zero, so no early return.
 
-    uint32_t i, count = data->count;
-    for (i = 0; i < count; i++) {
-        data->triangles[i].v[0].z += offset;
-        data->triangles[i].v[1].z += offset;
-        data->triangles[i].v[2].z += offset;
-    }
+  uint32_t i, count = data->count;
+  for (i = 0; i < count; i++) {
+    data->triangles[i].v[0].z += offset;
+    data->triangles[i].v[1].z += offset;
+    data->triangles[i].v[2].z += offset;
+  }
 }
 
 static void SplitGeometryX(GeometryData* data, GeometryData* dPlus,
-    GeometryData* dMinus, OOScalar x)
-{
-    OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+                           GeometryData* dMinus, OOScalar x) {
+  OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
-    // test each triangle splitting against x == 0.0
-    uint32_t i, count = data->count;
-    for (i = 0; i < count; i++) {
-        bool done_tri = false;
-        Vector v0 = data->triangles[i].v[0];
-        Vector v1 = data->triangles[i].v[1];
-        Vector v2 = data->triangles[i].v[2];
+  // test each triangle splitting against x == 0.0
+  uint32_t i, count = data->count;
+  for (i = 0; i < count; i++) {
+    bool done_tri = false;
+    Vector v0 = data->triangles[i].v[0];
+    Vector v1 = data->triangles[i].v[1];
+    Vector v2 = data->triangles[i].v[2];
 
-        if (v0.x >= 0.0f && v1.x >= 0.0f && v2.x >= 0.0f) {
-            AddTriangle(dPlus, data->triangles[i]);
-            done_tri = true;
-        } else if (v0.x <= 0.0f && v1.x <= 0.0f && v2.x <= 0.0f) {
-            AddTriangle(dMinus, data->triangles[i]);
-            done_tri = true;
-        }
-        if (!done_tri) // triangle must cross x == 0.0
-        {
-            OOScalar i01, i12, i20;
-            if (v0.x == v1.x)
-                i01 = -1.0f;
-            else
-                i01 = v0.x / (v0.x - v1.x);
-            if (v1.x == v2.x)
-                i12 = -1.0f;
-            else
-                i12 = v1.x / (v1.x - v2.x);
-            if (v2.x == v0.x)
-                i20 = -1.0f;
-            else
-                i20 = v2.x / (v2.x - v0.x);
-
-            Vector v01 = make_vector(0.0f, i01 * (v1.y - v0.y) + v0.y,
-                i01 * (v1.z - v0.z) + v0.z);
-            Vector v12 = make_vector(0.0f, i12 * (v2.y - v1.y) + v1.y,
-                i12 * (v2.z - v1.z) + v1.z);
-            Vector v20 = make_vector(0.0f, i20 * (v0.y - v2.y) + v2.y,
-                i20 * (v0.z - v2.z) + v2.z);
-
-            // cases where a vertex is on the split.
-            if (v0.x == 0.0f) {
-                if (v1.x > 0) {
-                    AddTriangle(dPlus, make_triangle(v0, v1, v12));
-                    AddTriangle(dMinus, make_triangle(v0, v12, v2));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v0, v1, v12));
-                    AddTriangle(dPlus, make_triangle(v0, v12, v2));
-                }
-            }
-            if (v1.x == 0.0f) {
-                if (v2.x > 0) {
-                    AddTriangle(dPlus, make_triangle(v1, v2, v20));
-                    AddTriangle(dMinus, make_triangle(v1, v20, v0));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v1, v2, v20));
-                    AddTriangle(dPlus, make_triangle(v1, v20, v0));
-                }
-            }
-            if (v2.x == 0.0f) {
-                if (v0.x > 0) {
-                    AddTriangle(dPlus, make_triangle(v2, v0, v01));
-                    AddTriangle(dMinus, make_triangle(v2, v01, v1));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v2, v0, v01));
-                    AddTriangle(dPlus, make_triangle(v2, v01, v1));
-                }
-            }
-
-            if (v0.x > 0.0f && v1.x > 0.0f && v2.x < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v0, v12, v20));
-                AddTriangle(dPlus, make_triangle(v0, v1, v12));
-                AddTriangle(dMinus, make_triangle(v20, v12, v2));
-            }
-
-            if (v0.x > 0.0f && v1.x < 0.0f && v2.x > 0.0f) {
-                AddTriangle(dPlus, make_triangle(v2, v01, v12));
-                AddTriangle(dPlus, make_triangle(v2, v0, v01));
-                AddTriangle(dMinus, make_triangle(v12, v01, v1));
-            }
-
-            if (v0.x > 0.0f && v1.x < 0.0f && v2.x < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v20, v0, v01));
-                AddTriangle(dMinus, make_triangle(v2, v20, v1));
-                AddTriangle(dMinus, make_triangle(v20, v01, v1));
-            }
-
-            if (v0.x < 0.0f && v1.x > 0.0f && v2.x > 0.0f) {
-                AddTriangle(dMinus, make_triangle(v01, v20, v0));
-                AddTriangle(dPlus, make_triangle(v1, v20, v01));
-                AddTriangle(dPlus, make_triangle(v1, v2, v20));
-            }
-
-            if (v0.x < 0.0f && v1.x > 0.0f && v2.x < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v01, v1, v12));
-                AddTriangle(dMinus, make_triangle(v0, v01, v2));
-                AddTriangle(dMinus, make_triangle(v01, v12, v2));
-            }
-
-            if (v0.x < 0.0f && v1.x < 0.0f && v2.x > 0.0f) {
-                AddTriangle(dPlus, make_triangle(v12, v2, v20));
-                AddTriangle(dMinus, make_triangle(v1, v12, v0));
-                AddTriangle(dMinus, make_triangle(v12, v20, v0));
-            }
-        }
+    if (v0.x >= 0.0f && v1.x >= 0.0f && v2.x >= 0.0f) {
+      AddTriangle(dPlus, data->triangles[i]);
+      done_tri = true;
+    } else if (v0.x <= 0.0f && v1.x <= 0.0f && v2.x <= 0.0f) {
+      AddTriangle(dMinus, data->triangles[i]);
+      done_tri = true;
     }
-    TranslateGeometryX(dPlus, -x);
-    TranslateGeometryX(dMinus, x);
+    if (!done_tri)  // triangle must cross x == 0.0
+    {
+      OOScalar i01, i12, i20;
+      if (v0.x == v1.x)
+        i01 = -1.0f;
+      else
+        i01 = v0.x / (v0.x - v1.x);
+      if (v1.x == v2.x)
+        i12 = -1.0f;
+      else
+        i12 = v1.x / (v1.x - v2.x);
+      if (v2.x == v0.x)
+        i20 = -1.0f;
+      else
+        i20 = v2.x / (v2.x - v0.x);
+
+      Vector v01 = make_vector(0.0f, i01 * (v1.y - v0.y) + v0.y,
+                               i01 * (v1.z - v0.z) + v0.z);
+      Vector v12 = make_vector(0.0f, i12 * (v2.y - v1.y) + v1.y,
+                               i12 * (v2.z - v1.z) + v1.z);
+      Vector v20 = make_vector(0.0f, i20 * (v0.y - v2.y) + v2.y,
+                               i20 * (v0.z - v2.z) + v2.z);
+
+      // cases where a vertex is on the split.
+      if (v0.x == 0.0f) {
+        if (v1.x > 0) {
+          AddTriangle(dPlus, make_triangle(v0, v1, v12));
+          AddTriangle(dMinus, make_triangle(v0, v12, v2));
+        } else {
+          AddTriangle(dMinus, make_triangle(v0, v1, v12));
+          AddTriangle(dPlus, make_triangle(v0, v12, v2));
+        }
+      }
+      if (v1.x == 0.0f) {
+        if (v2.x > 0) {
+          AddTriangle(dPlus, make_triangle(v1, v2, v20));
+          AddTriangle(dMinus, make_triangle(v1, v20, v0));
+        } else {
+          AddTriangle(dMinus, make_triangle(v1, v2, v20));
+          AddTriangle(dPlus, make_triangle(v1, v20, v0));
+        }
+      }
+      if (v2.x == 0.0f) {
+        if (v0.x > 0) {
+          AddTriangle(dPlus, make_triangle(v2, v0, v01));
+          AddTriangle(dMinus, make_triangle(v2, v01, v1));
+        } else {
+          AddTriangle(dMinus, make_triangle(v2, v0, v01));
+          AddTriangle(dPlus, make_triangle(v2, v01, v1));
+        }
+      }
+
+      if (v0.x > 0.0f && v1.x > 0.0f && v2.x < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v0, v12, v20));
+        AddTriangle(dPlus, make_triangle(v0, v1, v12));
+        AddTriangle(dMinus, make_triangle(v20, v12, v2));
+      }
+
+      if (v0.x > 0.0f && v1.x < 0.0f && v2.x > 0.0f) {
+        AddTriangle(dPlus, make_triangle(v2, v01, v12));
+        AddTriangle(dPlus, make_triangle(v2, v0, v01));
+        AddTriangle(dMinus, make_triangle(v12, v01, v1));
+      }
+
+      if (v0.x > 0.0f && v1.x < 0.0f && v2.x < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v20, v0, v01));
+        AddTriangle(dMinus, make_triangle(v2, v20, v1));
+        AddTriangle(dMinus, make_triangle(v20, v01, v1));
+      }
+
+      if (v0.x < 0.0f && v1.x > 0.0f && v2.x > 0.0f) {
+        AddTriangle(dMinus, make_triangle(v01, v20, v0));
+        AddTriangle(dPlus, make_triangle(v1, v20, v01));
+        AddTriangle(dPlus, make_triangle(v1, v2, v20));
+      }
+
+      if (v0.x < 0.0f && v1.x > 0.0f && v2.x < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v01, v1, v12));
+        AddTriangle(dMinus, make_triangle(v0, v01, v2));
+        AddTriangle(dMinus, make_triangle(v01, v12, v2));
+      }
+
+      if (v0.x < 0.0f && v1.x < 0.0f && v2.x > 0.0f) {
+        AddTriangle(dPlus, make_triangle(v12, v2, v20));
+        AddTriangle(dMinus, make_triangle(v1, v12, v0));
+        AddTriangle(dMinus, make_triangle(v12, v20, v0));
+      }
+    }
+  }
+  TranslateGeometryX(dPlus, -x);
+  TranslateGeometryX(dMinus, x);
 }
 
 static void SplitGeometryY(GeometryData* data, GeometryData* dPlus,
-    GeometryData* dMinus, OOScalar y)
-{
-    OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+                           GeometryData* dMinus, OOScalar y) {
+  OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
-    // test each triangle splitting against y == 0.0
-    uint32_t i, count = data->count;
-    for (i = 0; i < count; i++) {
-        bool done_tri = false;
-        Vector v0 = data->triangles[i].v[0];
-        Vector v1 = data->triangles[i].v[1];
-        Vector v2 = data->triangles[i].v[2];
+  // test each triangle splitting against y == 0.0
+  uint32_t i, count = data->count;
+  for (i = 0; i < count; i++) {
+    bool done_tri = false;
+    Vector v0 = data->triangles[i].v[0];
+    Vector v1 = data->triangles[i].v[1];
+    Vector v2 = data->triangles[i].v[2];
 
-        if (v0.y >= 0.0f && v1.y >= 0.0f && v2.y >= 0.0f) {
-            AddTriangle(dPlus, data->triangles[i]);
-            done_tri = true;
-        }
-        if (v0.y <= 0.0f && v1.y <= 0.0f && v2.y <= 0.0f) {
-            AddTriangle(dMinus, data->triangles[i]);
-            done_tri = true;
-        }
-        if (!done_tri) // triangle must cross y == 0.0
-        {
-            OOScalar i01, i12, i20;
-
-            if (v0.y == v1.y)
-                i01 = -1.0f;
-            else
-                i01 = v0.y / (v0.y - v1.y);
-            if (v1.y == v2.y)
-                i12 = -1.0f;
-            else
-                i12 = v1.y / (v1.y - v2.y);
-            if (v2.y == v0.y)
-                i20 = -1.0f;
-            else
-                i20 = v2.y / (v2.y - v0.y);
-
-            Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0f,
-                i01 * (v1.z - v0.z) + v0.z);
-            Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0f,
-                i12 * (v2.z - v1.z) + v1.z);
-            Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0f,
-                i20 * (v0.z - v2.z) + v2.z);
-
-            // cases where a vertex is on the split.
-            if (v0.y == 0.0f) {
-                if (v1.y > 0) {
-                    AddTriangle(dPlus, make_triangle(v0, v1, v12));
-                    AddTriangle(dMinus, make_triangle(v0, v12, v2));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v0, v1, v12));
-                    AddTriangle(dPlus, make_triangle(v0, v12, v2));
-                }
-            }
-            if (v1.y == 0.0f) {
-                if (v2.y > 0) {
-                    AddTriangle(dPlus, make_triangle(v1, v2, v20));
-                    AddTriangle(dMinus, make_triangle(v1, v20, v0));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v1, v2, v20));
-                    AddTriangle(dPlus, make_triangle(v1, v20, v0));
-                }
-            }
-            if (v2.y == 0.0f) {
-                if (v0.y > 0) {
-                    AddTriangle(dPlus, make_triangle(v2, v0, v01));
-                    AddTriangle(dMinus, make_triangle(v2, v01, v1));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v2, v0, v01));
-                    AddTriangle(dPlus, make_triangle(v2, v01, v1));
-                }
-            }
-
-            if (v0.y > 0.0f && v1.y > 0.0f && v2.y < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v0, v12, v20));
-                AddTriangle(dPlus, make_triangle(v0, v1, v12));
-                AddTriangle(dMinus, make_triangle(v20, v12, v2));
-            }
-
-            if (v0.y > 0.0f && v1.y < 0.0f && v2.y > 0.0f) {
-                AddTriangle(dPlus, make_triangle(v2, v01, v12));
-                AddTriangle(dPlus, make_triangle(v2, v0, v01));
-                AddTriangle(dMinus, make_triangle(v12, v01, v1));
-            }
-
-            if (v0.y > 0.0f && v1.y < 0.0f && v2.y < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v20, v0, v01));
-                AddTriangle(dMinus, make_triangle(v2, v20, v1));
-                AddTriangle(dMinus, make_triangle(v20, v01, v1));
-            }
-
-            if (v0.y < 0.0f && v1.y > 0.0f && v2.y > 0.0f) {
-                AddTriangle(dMinus, make_triangle(v01, v20, v0));
-                AddTriangle(dPlus, make_triangle(v1, v20, v01));
-                AddTriangle(dPlus, make_triangle(v1, v2, v20));
-            }
-
-            if (v0.y < 0.0f && v1.y > 0.0f && v2.y < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v01, v1, v12));
-                AddTriangle(dMinus, make_triangle(v0, v01, v2));
-                AddTriangle(dMinus, make_triangle(v01, v12, v2));
-            }
-
-            if (v0.y < 0.0f && v1.y < 0.0f && v2.y > 0.0f) {
-                AddTriangle(dPlus, make_triangle(v12, v2, v20));
-                AddTriangle(dMinus, make_triangle(v1, v12, v0));
-                AddTriangle(dMinus, make_triangle(v12, v20, v0));
-            }
-        }
+    if (v0.y >= 0.0f && v1.y >= 0.0f && v2.y >= 0.0f) {
+      AddTriangle(dPlus, data->triangles[i]);
+      done_tri = true;
     }
-    TranslateGeometryY(dPlus, -y);
-    TranslateGeometryY(dMinus, y);
+    if (v0.y <= 0.0f && v1.y <= 0.0f && v2.y <= 0.0f) {
+      AddTriangle(dMinus, data->triangles[i]);
+      done_tri = true;
+    }
+    if (!done_tri)  // triangle must cross y == 0.0
+    {
+      OOScalar i01, i12, i20;
+
+      if (v0.y == v1.y)
+        i01 = -1.0f;
+      else
+        i01 = v0.y / (v0.y - v1.y);
+      if (v1.y == v2.y)
+        i12 = -1.0f;
+      else
+        i12 = v1.y / (v1.y - v2.y);
+      if (v2.y == v0.y)
+        i20 = -1.0f;
+      else
+        i20 = v2.y / (v2.y - v0.y);
+
+      Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0f,
+                               i01 * (v1.z - v0.z) + v0.z);
+      Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0f,
+                               i12 * (v2.z - v1.z) + v1.z);
+      Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0f,
+                               i20 * (v0.z - v2.z) + v2.z);
+
+      // cases where a vertex is on the split.
+      if (v0.y == 0.0f) {
+        if (v1.y > 0) {
+          AddTriangle(dPlus, make_triangle(v0, v1, v12));
+          AddTriangle(dMinus, make_triangle(v0, v12, v2));
+        } else {
+          AddTriangle(dMinus, make_triangle(v0, v1, v12));
+          AddTriangle(dPlus, make_triangle(v0, v12, v2));
+        }
+      }
+      if (v1.y == 0.0f) {
+        if (v2.y > 0) {
+          AddTriangle(dPlus, make_triangle(v1, v2, v20));
+          AddTriangle(dMinus, make_triangle(v1, v20, v0));
+        } else {
+          AddTriangle(dMinus, make_triangle(v1, v2, v20));
+          AddTriangle(dPlus, make_triangle(v1, v20, v0));
+        }
+      }
+      if (v2.y == 0.0f) {
+        if (v0.y > 0) {
+          AddTriangle(dPlus, make_triangle(v2, v0, v01));
+          AddTriangle(dMinus, make_triangle(v2, v01, v1));
+        } else {
+          AddTriangle(dMinus, make_triangle(v2, v0, v01));
+          AddTriangle(dPlus, make_triangle(v2, v01, v1));
+        }
+      }
+
+      if (v0.y > 0.0f && v1.y > 0.0f && v2.y < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v0, v12, v20));
+        AddTriangle(dPlus, make_triangle(v0, v1, v12));
+        AddTriangle(dMinus, make_triangle(v20, v12, v2));
+      }
+
+      if (v0.y > 0.0f && v1.y < 0.0f && v2.y > 0.0f) {
+        AddTriangle(dPlus, make_triangle(v2, v01, v12));
+        AddTriangle(dPlus, make_triangle(v2, v0, v01));
+        AddTriangle(dMinus, make_triangle(v12, v01, v1));
+      }
+
+      if (v0.y > 0.0f && v1.y < 0.0f && v2.y < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v20, v0, v01));
+        AddTriangle(dMinus, make_triangle(v2, v20, v1));
+        AddTriangle(dMinus, make_triangle(v20, v01, v1));
+      }
+
+      if (v0.y < 0.0f && v1.y > 0.0f && v2.y > 0.0f) {
+        AddTriangle(dMinus, make_triangle(v01, v20, v0));
+        AddTriangle(dPlus, make_triangle(v1, v20, v01));
+        AddTriangle(dPlus, make_triangle(v1, v2, v20));
+      }
+
+      if (v0.y < 0.0f && v1.y > 0.0f && v2.y < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v01, v1, v12));
+        AddTriangle(dMinus, make_triangle(v0, v01, v2));
+        AddTriangle(dMinus, make_triangle(v01, v12, v2));
+      }
+
+      if (v0.y < 0.0f && v1.y < 0.0f && v2.y > 0.0f) {
+        AddTriangle(dPlus, make_triangle(v12, v2, v20));
+        AddTriangle(dMinus, make_triangle(v1, v12, v0));
+        AddTriangle(dMinus, make_triangle(v12, v20, v0));
+      }
+    }
+  }
+  TranslateGeometryY(dPlus, -y);
+  TranslateGeometryY(dMinus, y);
 }
 
 static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
-    GeometryData* dMinus, OOScalar z)
-{
-    OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+                           GeometryData* dMinus, OOScalar z) {
+  OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
 
-    // test each triangle splitting against z == 0.0
-    uint32_t i, count = data->count;
-    for (i = 0; i < count; i++) {
-        bool done_tri = false;
-        Vector v0 = data->triangles[i].v[0];
-        Vector v1 = data->triangles[i].v[1];
-        Vector v2 = data->triangles[i].v[2];
+  // test each triangle splitting against z == 0.0
+  uint32_t i, count = data->count;
+  for (i = 0; i < count; i++) {
+    bool done_tri = false;
+    Vector v0 = data->triangles[i].v[0];
+    Vector v1 = data->triangles[i].v[1];
+    Vector v2 = data->triangles[i].v[2];
 
-        if (v0.z >= 0.0f && v1.z >= 0.0f && v2.z >= 0.0f) {
-            AddTriangle(dPlus, data->triangles[i]);
-            done_tri = true;
-        } else if (v0.z <= 0.0f && v1.z <= 0.0f && v2.z <= 0.0f) {
-            AddTriangle(dMinus, data->triangles[i]);
-            done_tri = true;
-        }
-        if (!done_tri) // triangle must cross z == 0.0
-        {
-            OOScalar i01, i12, i20;
-
-            if (v0.z == v1.z)
-                i01 = -1.0f;
-            else
-                i01 = v0.z / (v0.z - v1.z);
-            if (v1.z == v2.z)
-                i12 = -1.0f;
-            else
-                i12 = v1.z / (v1.z - v2.z);
-            if (v2.z == v0.z)
-                i20 = -1.0f;
-            else
-                i20 = v2.z / (v2.z - v0.z);
-
-            Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x,
-                i01 * (v1.y - v0.y) + v0.y, 0.0f);
-            Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x,
-                i12 * (v2.y - v1.y) + v1.y, 0.0f);
-            Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x,
-                i20 * (v0.y - v2.y) + v2.y, 0.0f);
-
-            // cases where a vertex is on the split.
-            if (v0.z == 0.0f) {
-                if (v1.z > 0) {
-                    AddTriangle(dPlus, make_triangle(v0, v1, v12));
-                    AddTriangle(dMinus, make_triangle(v0, v12, v2));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v0, v1, v12));
-                    AddTriangle(dPlus, make_triangle(v0, v12, v2));
-                }
-            }
-            if (v1.z == 0.0f) {
-                if (v2.z > 0) {
-                    AddTriangle(dPlus, make_triangle(v1, v2, v20));
-                    AddTriangle(dMinus, make_triangle(v1, v20, v0));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v1, v2, v20));
-                    AddTriangle(dPlus, make_triangle(v1, v20, v0));
-                }
-            }
-            if (v2.z == 0.0f) {
-                if (v0.z > 0) {
-                    AddTriangle(dPlus, make_triangle(v2, v0, v01));
-                    AddTriangle(dMinus, make_triangle(v2, v01, v1));
-                } else {
-                    AddTriangle(dMinus, make_triangle(v2, v0, v01));
-                    AddTriangle(dPlus, make_triangle(v2, v01, v1));
-                }
-            }
-
-            if (v0.z > 0.0f && v1.z > 0.0f && v2.z < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v0, v12, v20));
-                AddTriangle(dPlus, make_triangle(v0, v1, v12));
-                AddTriangle(dMinus, make_triangle(v20, v12, v2));
-            }
-
-            if (v0.z > 0.0f && v1.z < 0.0f && v2.z > 0.0f) {
-                AddTriangle(dPlus, make_triangle(v2, v01, v12));
-                AddTriangle(dPlus, make_triangle(v2, v0, v01));
-                AddTriangle(dMinus, make_triangle(v12, v01, v1));
-            }
-
-            if (v0.z > 0.0f && v1.z < 0.0f && v2.z < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v20, v0, v01));
-                AddTriangle(dMinus, make_triangle(v2, v20, v1));
-                AddTriangle(dMinus, make_triangle(v20, v01, v1));
-            }
-
-            if (v0.z < 0.0f && v1.z > 0.0f && v2.z > 0.0f) {
-                AddTriangle(dMinus, make_triangle(v01, v20, v0));
-                AddTriangle(dPlus, make_triangle(v1, v20, v01));
-                AddTriangle(dPlus, make_triangle(v1, v2, v20));
-            }
-
-            if (v0.z < 0.0f && v1.z > 0.0f && v2.z < 0.0f) {
-                AddTriangle(dPlus, make_triangle(v01, v1, v12));
-                AddTriangle(dMinus, make_triangle(v0, v01, v2));
-                AddTriangle(dMinus, make_triangle(v01, v12, v2));
-            }
-
-            if (v0.z < 0.0f && v1.z < 0.0f && v2.z > 0.0f) {
-                AddTriangle(dPlus, make_triangle(v12, v2, v20));
-                AddTriangle(dMinus, make_triangle(v1, v12, v0));
-                AddTriangle(dMinus, make_triangle(v12, v20, v0));
-            }
-        }
+    if (v0.z >= 0.0f && v1.z >= 0.0f && v2.z >= 0.0f) {
+      AddTriangle(dPlus, data->triangles[i]);
+      done_tri = true;
+    } else if (v0.z <= 0.0f && v1.z <= 0.0f && v2.z <= 0.0f) {
+      AddTriangle(dMinus, data->triangles[i]);
+      done_tri = true;
     }
-    TranslateGeometryZ(dPlus, -z);
-    TranslateGeometryZ(dMinus, z);
+    if (!done_tri)  // triangle must cross z == 0.0
+    {
+      OOScalar i01, i12, i20;
+
+      if (v0.z == v1.z)
+        i01 = -1.0f;
+      else
+        i01 = v0.z / (v0.z - v1.z);
+      if (v1.z == v2.z)
+        i12 = -1.0f;
+      else
+        i12 = v1.z / (v1.z - v2.z);
+      if (v2.z == v0.z)
+        i20 = -1.0f;
+      else
+        i20 = v2.z / (v2.z - v0.z);
+
+      Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x,
+                               i01 * (v1.y - v0.y) + v0.y, 0.0f);
+      Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x,
+                               i12 * (v2.y - v1.y) + v1.y, 0.0f);
+      Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x,
+                               i20 * (v0.y - v2.y) + v2.y, 0.0f);
+
+      // cases where a vertex is on the split.
+      if (v0.z == 0.0f) {
+        if (v1.z > 0) {
+          AddTriangle(dPlus, make_triangle(v0, v1, v12));
+          AddTriangle(dMinus, make_triangle(v0, v12, v2));
+        } else {
+          AddTriangle(dMinus, make_triangle(v0, v1, v12));
+          AddTriangle(dPlus, make_triangle(v0, v12, v2));
+        }
+      }
+      if (v1.z == 0.0f) {
+        if (v2.z > 0) {
+          AddTriangle(dPlus, make_triangle(v1, v2, v20));
+          AddTriangle(dMinus, make_triangle(v1, v20, v0));
+        } else {
+          AddTriangle(dMinus, make_triangle(v1, v2, v20));
+          AddTriangle(dPlus, make_triangle(v1, v20, v0));
+        }
+      }
+      if (v2.z == 0.0f) {
+        if (v0.z > 0) {
+          AddTriangle(dPlus, make_triangle(v2, v0, v01));
+          AddTriangle(dMinus, make_triangle(v2, v01, v1));
+        } else {
+          AddTriangle(dMinus, make_triangle(v2, v0, v01));
+          AddTriangle(dPlus, make_triangle(v2, v01, v1));
+        }
+      }
+
+      if (v0.z > 0.0f && v1.z > 0.0f && v2.z < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v0, v12, v20));
+        AddTriangle(dPlus, make_triangle(v0, v1, v12));
+        AddTriangle(dMinus, make_triangle(v20, v12, v2));
+      }
+
+      if (v0.z > 0.0f && v1.z < 0.0f && v2.z > 0.0f) {
+        AddTriangle(dPlus, make_triangle(v2, v01, v12));
+        AddTriangle(dPlus, make_triangle(v2, v0, v01));
+        AddTriangle(dMinus, make_triangle(v12, v01, v1));
+      }
+
+      if (v0.z > 0.0f && v1.z < 0.0f && v2.z < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v20, v0, v01));
+        AddTriangle(dMinus, make_triangle(v2, v20, v1));
+        AddTriangle(dMinus, make_triangle(v20, v01, v1));
+      }
+
+      if (v0.z < 0.0f && v1.z > 0.0f && v2.z > 0.0f) {
+        AddTriangle(dMinus, make_triangle(v01, v20, v0));
+        AddTriangle(dPlus, make_triangle(v1, v20, v01));
+        AddTriangle(dPlus, make_triangle(v1, v2, v20));
+      }
+
+      if (v0.z < 0.0f && v1.z > 0.0f && v2.z < 0.0f) {
+        AddTriangle(dPlus, make_triangle(v01, v1, v12));
+        AddTriangle(dMinus, make_triangle(v0, v01, v2));
+        AddTriangle(dMinus, make_triangle(v01, v12, v2));
+      }
+
+      if (v0.z < 0.0f && v1.z < 0.0f && v2.z > 0.0f) {
+        AddTriangle(dPlus, make_triangle(v12, v2, v20));
+        AddTriangle(dMinus, make_triangle(v1, v12, v0));
+        AddTriangle(dMinus, make_triangle(v12, v20, v0));
+      }
+    }
+  }
+  TranslateGeometryZ(dPlus, -z);
+  TranslateGeometryZ(dMinus, z);
 }
 
-[[noreturn]] static void OutOfGeometryMemory()
-{
-    OO_LOG("general.error.allocationFailure", "{}",
-        "!!!!! Ran out of memory to allocate more geometry!");
-    exit(EXIT_FAILURE);
+[[noreturn]] static void OutOfGeometryMemory() {
+  OO_LOG("general.error.allocationFailure", "{}",
+         "!!!!! Ran out of memory to allocate more geometry!");
+  exit(EXIT_FAILURE);
 }
 
 /*
@@ -828,31 +811,30 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
         AddTriangles_slow() into AddTriangle() (because it only has one call
    site), making AddTriangle() too heavy to inline.
 */
-static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri)
-{
-    OOCParameterAssert(data != NULL);
-    OOCParameterAssert(data->count == data->capacity);
+static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri) {
+  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data->count == data->capacity);
 
-    if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity) {
-        data->capacity = MAX(
-            data->pendingCapacity,
-            static_cast<uint32_t>(kOOMeshToOctreeConverterSmallDataCapacity * 2));
-        try {
-            data->heap.resize(data->capacity);
-        } catch (const std::bad_alloc&) {
-            OutOfGeometryMemory();
-        }
-        memcpy(data->heap.data(), data->smallData, sizeof data->smallData);
-    } else {
-        // create more space by doubling the capacity of this geometry.
-        data->capacity = 1 + data->capacity * 2;
-        try {
-            data->heap.resize(data->capacity);
-        } catch (const std::bad_alloc&) {
-            OutOfGeometryMemory();
-        }
+  if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity) {
+    data->capacity = MAX(
+        data->pendingCapacity,
+        static_cast<uint32_t>(kOOMeshToOctreeConverterSmallDataCapacity * 2));
+    try {
+      data->heap.resize(data->capacity);
+    } catch (const std::bad_alloc&) {
+      OutOfGeometryMemory();
     }
-    data->triangles = data->heap.data();
+    memcpy(data->heap.data(), data->smallData, sizeof data->smallData);
+  } else {
+    // create more space by doubling the capacity of this geometry.
+    data->capacity = 1 + data->capacity * 2;
+    try {
+      data->heap.resize(data->capacity);
+    } catch (const std::bad_alloc&) {
+      OutOfGeometryMemory();
+    }
+  }
+  data->triangles = data->heap.data();
 
-    data->triangles[data->count++] = tri;
+  data->triangles[data->count++] = tri;
 }

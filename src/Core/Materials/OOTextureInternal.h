@@ -38,20 +38,20 @@ SOFTWARE.
 /*	OOGenerateTextureCacheKey()
         cxx_OOTextureCacheKeyForSpecifier()
 
-        Generate texture cache keys of the form used by normal file-based textures.
+        Generate texture cache keys of the form used by normal file-based
+   textures.
  */
-std::string OOGenerateTextureCacheKey(const std::optional<std::string>& directory, const std::string& name, OOTextureFlags options, float anisotropy, float lodBias);
+std::string OOGenerateTextureCacheKey(
+    const std::optional<std::string>& directory, const std::string& name,
+    OOTextureFlags options, float anisotropy, float lodBias);
 std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier);
 
 typedef struct OOTextureInfo {
-    GLfloat anisotropyScale;
-    unsigned anisotropyAvailable : 1,
-        clampToEdgeAvailable : 1,
-        clientStorageAvailable : 1,
-        textureLODBiasAvailable : 1,
-        rectangleTextureAvailable : 1,
-        cubeMapAvailable : 1,
-        textureMaxLevelAvailable : 1;
+  GLfloat anisotropyScale;
+  unsigned anisotropyAvailable : 1, clampToEdgeAvailable : 1,
+      clientStorageAvailable : 1, textureLODBiasAvailable : 1,
+      rectangleTextureAvailable : 1, cubeMapAvailable : 1,
+      textureMaxLevelAvailable : 1;
 } OOTextureInfo;
 
 extern OOTextureInfo gOOTextureInfo;
@@ -71,12 +71,13 @@ extern OOTextureInfo gOOTextureInfo;
 
 #if defined(GL_APPLE_client_storage) && !OOTEXTURE_RELOADABLE
 #define OO_GL_CLIENT_STORAGE (1)
-#define EnableClientStorage() OOGL(glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE))
+#define EnableClientStorage() \
+  OOGL(glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE))
 #else
 #define OO_GL_CLIENT_STORAGE (0)
 #define EnableClientStorage() \
-    do {                      \
-    } while (0)
+  do {                        \
+  } while (0)
 #endif
 
 #ifndef GL_TEXTURE_MAX_LEVEL

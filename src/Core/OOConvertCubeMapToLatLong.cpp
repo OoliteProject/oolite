@@ -28,122 +28,124 @@ SOFTWARE.
 */
 
 #define OO_PLAIN_CPP_UNIT \
-    1 // a plain C++ unit: the shared headers' game-unit parts stay out of it
+  1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOConvertCubeMapToLatLong.h"
+
 #include "OOTextureScaling.h"
 #include "oofnd/objc/OOAssert.h"
 
 #define kPiF (3.14159265358979323846264338327950288f)
 
-OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, bool leaveSpaceForMipMaps)
-{
-    if (!OOIsValidPixMap(sourcePixMap) || sourcePixMap.format != kOOPixMapRGBA || sourcePixMap.height != sourcePixMap.width * 6) {
-        return kOONullPixMap;
-    }
+OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap,
+                                   OOPixMapDimension height,
+                                   bool leaveSpaceForMipMaps) {
+  if (!OOIsValidPixMap(sourcePixMap) || sourcePixMap.format != kOOPixMapRGBA ||
+      sourcePixMap.height != sourcePixMap.width * 6) {
+    return kOONullPixMap;
+  }
 
-    OOCParameterAssert(height > 0);
+  OOCParameterAssert(height > 0);
 
-    height *= 2;
-    OOPixMapDimension width = height * 2;
-    OOPixMap outPixMap = OOAllocatePixMap(width, height, (OOPixMapFormat)4, 0, 0);
-    if (!OOIsValidPixMap(outPixMap))
-        return kOONullPixMap;
+  height *= 2;
+  OOPixMapDimension width = height * 2;
+  OOPixMap outPixMap = OOAllocatePixMap(width, height, (OOPixMapFormat)4, 0, 0);
+  if (!OOIsValidPixMap(outPixMap)) return kOONullPixMap;
 
-    OOPixMapDimension x, y;
-    uint32_t* pixel = (uint32_t*)outPixMap.pixels;
-    float fheight = height;
-    float rheight = 1.0f / fheight;
+  OOPixMapDimension x, y;
+  uint32_t* pixel = (uint32_t*)outPixMap.pixels;
+  float fheight = height;
+  float rheight = 1.0f / fheight;
 
-    float halfSize = (sourcePixMap.width - 1) * 0.5f;
-    uint8_t* srcBytes = (uint8_t*)sourcePixMap.pixels;
+  float halfSize = (sourcePixMap.width - 1) * 0.5f;
+  uint8_t* srcBytes = (uint8_t*)sourcePixMap.pixels;
 
-    // Build tables of sin/cos of longitude.
-    std::vector<float> sinTable(width);
-    std::vector<float> cosTable(width);
+  // Build tables of sin/cos of longitude.
+  std::vector<float> sinTable(width);
+  std::vector<float> cosTable(width);
+  for (x = 0; x < width; x++) {
+    float lon = ((float)x * rheight) * kPiF;
+    sinTable[x] = sin(lon);
+    cosTable[x] = cos(lon);
+  }
+
+  for (y = 0; y < height; y++) {
+    // Calcuate sin/cos of latitude.
+    /*
+            Clang static analyzer (Xcode 3.2.5 version, through to Xcode 4.4
+            and freestanding checker-268 at least) says:
+            "Assigned value is garbage or undefined."
+            Memsetting sinTable to all-zeros moves this to the cosTable line.
+            Since every value in each of those tables is in fact defined, this
+            is an error in the analyzer.
+            -- Ahruman 2011-01-25/2012-09-14
+    */
+    float cy = -sinTable[width * 3 / 4 - y];
+    float lac = -cosTable[width * 3 / 4 - y];
+    float ay = fabs(cy);
+
     for (x = 0; x < width; x++) {
-        float lon = ((float)x * rheight) * kPiF;
-        sinTable[x] = sin(lon);
-        cosTable[x] = cos(lon);
-    }
+      float cx = sinTable[x] * lac;
+      float cz = cosTable[x] * lac;
 
-    for (y = 0; y < height; y++) {
-        // Calcuate sin/cos of latitude.
-        /*
-                Clang static analyzer (Xcode 3.2.5 version, through to Xcode 4.4
-                and freestanding checker-268 at least) says:
-                "Assigned value is garbage or undefined."
-                Memsetting sinTable to all-zeros moves this to the cosTable line.
-                Since every value in each of those tables is in fact defined, this
-                is an error in the analyzer.
-                -- Ahruman 2011-01-25/2012-09-14
-        */
-        float cy = -sinTable[width * 3 / 4 - y];
-        float lac = -cosTable[width * 3 / 4 - y];
-        float ay = fabs(cy);
+      float ax = fabs(cx);
+      float az = fabs(cz);
 
-        for (x = 0; x < width; x++) {
-            float cx = sinTable[x] * lac;
-            float cz = cosTable[x] * lac;
+      // Y offset of start of this face in image.
+      OOPixMapDimension yOffset;
 
-            float ax = fabs(cx);
-            float az = fabs(cz);
+      // Coordinates within selected face.
+      float x, y, r;
 
-            // Y offset of start of this face in image.
-            OOPixMapDimension yOffset;
+      // Select source face.
+      if (ax >= ay && ax >= az) {
+        x = cz;
+        y = -cy;
+        r = ax;
+        if (0.0f < cx) {
+          yOffset = 0;
+        } else {
+          x = -x;
+          yOffset = 1;
+        }
+      } else if (ay >= ax && ay >= az) {
+        x = cx;
+        y = cz;
+        r = ay;
+        if (0.0f < cy) {
+          y = -y;
+          yOffset = 2;
+        } else {
+          yOffset = 3;
+        }
+      } else {
+        x = cx;
+        y = -cy;
+        r = az;
+        if (0.0f < cz) {
+          x = -x;
+          yOffset = 5;
+        } else {
+          yOffset = 4;
+        }
+      }
 
-            // Coordinates within selected face.
-            float x, y, r;
-
-            // Select source face.
-            if (ax >= ay && ax >= az) {
-                x = cz;
-                y = -cy;
-                r = ax;
-                if (0.0f < cx) {
-                    yOffset = 0;
-                } else {
-                    x = -x;
-                    yOffset = 1;
-                }
-            } else if (ay >= ax && ay >= az) {
-                x = cx;
-                y = cz;
-                r = ay;
-                if (0.0f < cy) {
-                    y = -y;
-                    yOffset = 2;
-                } else {
-                    yOffset = 3;
-                }
-            } else {
-                x = cx;
-                y = -cy;
-                r = az;
-                if (0.0f < cz) {
-                    x = -x;
-                    yOffset = 5;
-                } else {
-                    yOffset = 4;
-                }
-            }
-
-            // Scale coordinates.
-            r = 1.0f / r;
-            OOPixMapDimension ix = (x * r + 1.0f) * halfSize;
-            OOPixMapDimension iy = (y * r + 1.0f) * halfSize;
+      // Scale coordinates.
+      r = 1.0f / r;
+      OOPixMapDimension ix = (x * r + 1.0f) * halfSize;
+      OOPixMapDimension iy = (y * r + 1.0f) * halfSize;
 
 #ifndef NDEBUG
-            assert(ix < sourcePixMap.width && iy < sourcePixMap.width);
+      assert(ix < sourcePixMap.width && iy < sourcePixMap.width);
 #endif
 
-            // Look up pixel.
-            iy += sourcePixMap.width * yOffset;
+      // Look up pixel.
+      iy += sourcePixMap.width * yOffset;
 
-            uint32_t* row = (uint32_t*)(srcBytes + iy * sourcePixMap.rowBytes);
-            *pixel++ = row[ix];
-        }
+      uint32_t* row = (uint32_t*)(srcBytes + iy * sourcePixMap.rowBytes);
+      *pixel++ = row[ix];
     }
+  }
 
-    // Scale to half size for supersamplingness.
-    return OOScalePixMap(outPixMap, width / 2, height / 2, leaveSpaceForMipMaps);
+  // Scale to half size for supersamplingness.
+  return OOScalePixMap(outPixMap, width / 2, height / 2, leaveSpaceForMipMaps);
 }

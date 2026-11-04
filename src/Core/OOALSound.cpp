@@ -44,65 +44,57 @@ SOFTWARE.
 
 static constexpr std::string_view KEY_VOLUME_CONTROL = "volume_control";
 
-static const size_t kMaxBufferedSoundSize = 1 << 20; // 1 MB
+static const size_t kMaxBufferedSoundSize = 1 << 20;  // 1 MB
 
 namespace {
 
 bool sIsSetUp = false;
 bool sIsSoundOK = false;
 
-} // namespace
+}  // namespace
 
-bool OOSound::setUp()
-{
-    if (!sIsSetUp) {
-        sIsSetUp = true;
-        OOOpenALController* controller = OOOpenALController::sharedController();
-        if (controller != nullptr) {
-            sIsSoundOK = true;
-            oo::Defaults& prefs = oo::Defaults::standard();
-            float volume = prefs.object(std::string(KEY_VOLUME_CONTROL)).isNull()
-                ? 0.5f
-                : prefs.floatForKey(std::string(KEY_VOLUME_CONTROL));
-            setMasterVolume(volume);
-        }
-    }
-
-    return sIsSoundOK;
-}
-
-void OOSound::setMasterVolume(float fraction)
-{
-    if (!sIsSetUp && !setUp())
-        return;
-
-    fraction = OOClamp_0_1_f(fraction);
-
-    // A null controller answers 0, as a message to nil did (sound set up but
-    // refused).
+bool OOSound::setUp() {
+  if (!sIsSetUp) {
+    sIsSetUp = true;
     OOOpenALController* controller = OOOpenALController::sharedController();
-    if (fraction != (controller != nullptr ? controller->masterVolume() : 0.0f)) {
-        if (controller != nullptr)
-            controller->setMasterVolume(fraction);
-        oo::Defaults::standard().setFloat(
-            std::string(KEY_VOLUME_CONTROL),
-            controller != nullptr ? controller->masterVolume() : 0.0f);
+    if (controller != nullptr) {
+      sIsSoundOK = true;
+      oo::Defaults& prefs = oo::Defaults::standard();
+      float volume = prefs.object(std::string(KEY_VOLUME_CONTROL)).isNull()
+                         ? 0.5f
+                         : prefs.floatForKey(std::string(KEY_VOLUME_CONTROL));
+      setMasterVolume(volume);
     }
+  }
+
+  return sIsSoundOK;
 }
 
-float OOSound::masterVolume()
-{
-    if (!sIsSetUp && !setUp())
-        return 0.0;
+void OOSound::setMasterVolume(float fraction) {
+  if (!sIsSetUp && !setUp()) return;
 
-    OOOpenALController* controller = OOOpenALController::sharedController();
-    return controller != nullptr ? controller->masterVolume() : 0.0f;
+  fraction = OOClamp_0_1_f(fraction);
+
+  // A null controller answers 0, as a message to nil did (sound set up but
+  // refused).
+  OOOpenALController* controller = OOOpenALController::sharedController();
+  if (fraction != (controller != nullptr ? controller->masterVolume() : 0.0f)) {
+    if (controller != nullptr) controller->setMasterVolume(fraction);
+    oo::Defaults::standard().setFloat(
+        std::string(KEY_VOLUME_CONTROL),
+        controller != nullptr ? controller->masterVolume() : 0.0f);
+  }
 }
 
-OOSound::OOSound()
-{
-    if (!sIsSetUp)
-        setUp();
+float OOSound::masterVolume() {
+  if (!sIsSetUp && !setUp()) return 0.0;
+
+  OOOpenALController* controller = OOOpenALController::sharedController();
+  return controller != nullptr ? controller->masterVolume() : 0.0f;
+}
+
+OOSound::OOSound() {
+  if (!sIsSetUp) setUp();
 }
 
 /*	The body of -cxx_initWithContentsOfFile: after the receiver's release:
@@ -110,86 +102,77 @@ OOSound::OOSound()
    scope, as [decoder release] did.
 */
 oo::Ref<OOSound> OOSound::initWithContentsOfFile(
-    const std::optional<std::string>& path)
-{
-    if (!sIsSoundOK)
-        return nullptr;
+    const std::optional<std::string>& path) {
+  if (!sIsSoundOK) return nullptr;
 
-    if (!sIsSetUp && !setUp())
-        return nullptr;
+  if (!sIsSetUp && !setUp()) return nullptr;
 
-    oo::Ref<OOSound> self;
+  oo::Ref<OOSound> self;
 
-    const oo::Ref<OOALSoundDecoder> decoder = OOALSoundDecoder::initWithPath(path);
-    if (nullptr == decoder)
-        return nullptr;
+  const oo::Ref<OOALSoundDecoder> decoder =
+      OOALSoundDecoder::initWithPath(path);
+  if (nullptr == decoder) return nullptr;
 
-    if (decoder->sizeAsBuffer() <= kMaxBufferedSoundSize) {
-        self = OOALBufferedSound::initWithDecoder(decoder.get());
-    } else {
-        self = OOALStreamedSound::initWithDecoder(decoder.get());
-    }
+  if (decoder->sizeAsBuffer() <= kMaxBufferedSoundSize) {
+    self = OOALBufferedSound::initWithDecoder(decoder.get());
+  } else {
+    self = OOALStreamedSound::initWithDecoder(decoder.get());
+  }
 
-    if (nullptr != self) {
+  if (nullptr != self) {
 #ifndef NDEBUG
-        OO_LOG(kOOLogSoundLoadingSuccess, "Loaded sound {}",
-            path.value_or("(null)"));
+    OO_LOG(kOOLogSoundLoadingSuccess, "Loaded sound {}",
+           path.value_or("(null)"));
 #endif
-    } else {
-        OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"",
-            path.value_or("(null)"));
-    }
+  } else {
+    OO_LOG(kOOLogSoundLoadingError, "Failed to load sound \"{}\"",
+           path.value_or("(null)"));
+  }
 
-    return self;
+  return self;
 }
 
-std::optional<std::string> OOSound::name()
-{
-    OOLogGenericSubclassResponsibility();
-    return std::string();
+std::optional<std::string> OOSound::name() {
+  OOLogGenericSubclassResponsibility();
+  return std::string();
 }
 
-void OOSound::update()
-{
-    ::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer();
-    if (sIsSoundOK && mixer)
-        mixer->update();
+void OOSound::update() {
+  ::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer();
+  if (sIsSoundOK && mixer) mixer->update();
 }
 
 bool OOSound::isSoundOK() { return sIsSoundOK; }
 
-ALuint OOSound::soundBuffer()
-{
-    OOLogGenericSubclassResponsibility();
-    return 0;
+ALuint OOSound::soundBuffer() {
+  OOLogGenericSubclassResponsibility();
+  return 0;
 }
 
 bool OOSound::soundIncomplete() { return false; }
 
-void OOSound::rewind()
-{
-    // doesn't need to do anything on seekable FDs
+void OOSound::rewind() {
+  // doesn't need to do anything on seekable FDs
 }
 
-std::optional<std::string> OOSound::descriptionComponents() const
-{
-    return std::nullopt;
+std::optional<std::string> OOSound::descriptionComponents() const {
+  return std::nullopt;
 }
 
 // The C++ class's name, without a namespace, its address and its components.
-std::string OOSound::description() const
-{
-    int status = 0;
-    char* demangled = abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
-    std::string name = (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
-    std::free(demangled);
-    const std::size_t colons = name.rfind("::");
-    if (colons != std::string::npos)
-        name.erase(0, colons + 2);
+std::string OOSound::description() const {
+  int status = 0;
+  char* demangled =
+      abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
+  std::string name =
+      (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
+  std::free(demangled);
+  const std::size_t colons = name.rfind("::");
+  if (colons != std::string::npos) name.erase(0, colons + 2);
 
-    std::string result = oo::str::format(
-        "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
-    if (const std::optional<std::string> components = descriptionComponents())
-        result += "{" + *components + "}";
-    return result;
+  std::string result = oo::str::format(
+      "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+  if (const std::optional<std::string> components = descriptionComponents())
+    result += "{" + *components + "}";
+  return result;
 }

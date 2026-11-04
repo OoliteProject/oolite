@@ -42,79 +42,75 @@ SOFTWARE.
 
 #if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
+#include <cstring>
+
 #include "OOColor.h"
 #include "OOMaths.h"
-#include "OOTypeEncodings.h" // @encode()'s measured literals; OOColor * the complete class's, as the bindings' own
+#include "OOTypeEncodings.h"  // @encode()'s measured literals; OOColor * the complete class's, as the bindings' own
 #include "oofnd/String.hpp"
-#include <cstring>
 
 static bool sInited = false;
 static const char* sTemplates[kOOShaderUniformTypeCount];
 
 static void InitTemplates(void);
 
-OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode)
-{
-    unsigned i;
+OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode) {
+  unsigned i;
 
-    if (EXPECT_NOT(sInited == false))
-        InitTemplates();
-    if (EXPECT_NOT(typeCode == NULL))
-        return kOOShaderUniformTypeInvalid;
+  if (EXPECT_NOT(sInited == false)) InitTemplates();
+  if (EXPECT_NOT(typeCode == NULL)) return kOOShaderUniformTypeInvalid;
 
-    for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount; ++i) {
-        if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)
-            return (OOShaderUniformType)i;
-    }
-    return kOOShaderUniformTypeInvalid;
+  for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount;
+       ++i) {
+    if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)
+      return (OOShaderUniformType)i;
+  }
+  return kOOShaderUniformTypeInvalid;
 }
 
 // The entities' hooks: none until the entities register theirs.
 namespace {
-OOShaderEntityHooks sEntityHooks = { };
+OOShaderEntityHooks sEntityHooks = {};
 bool sEntityHooksSet = false;
+}  // namespace
+
+void OOSetShaderEntityHooks(const OOShaderEntityHooks& hooks) noexcept {
+  sEntityHooks = hooks;
+  sEntityHooksSet = true;
 }
 
-void OOSetShaderEntityHooks(const OOShaderEntityHooks& hooks) noexcept
-{
-    sEntityHooks = hooks;
-    sEntityHooksSet = true;
+const OOShaderEntityHooks* OOShaderEntityHooksIfSet() noexcept {
+  return sEntityHooksSet ? &sEntityHooks : nullptr;
 }
 
-const OOShaderEntityHooks* OOShaderEntityHooksIfSet() noexcept
-{
-    return sEntityHooksSet ? &sEntityHooks : nullptr;
-}
-
-static void InitTemplates(void)
-{
+static void InitTemplates(void) {
 // Each was the return type of a template method (-signedCharMethod and so on).
-#define GET_TEMPLATE(enumValue, type)                  \
-    do {                                               \
-        sTemplates[enumValue] = kOOTypeEncoding<type>; \
-    } while (0)
+#define GET_TEMPLATE(enumValue, type)              \
+  do {                                             \
+    sTemplates[enumValue] = kOOTypeEncoding<type>; \
+  } while (0)
 
-    GET_TEMPLATE(kOOShaderUniformTypeChar, signed char);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar, unsigned char);
-    GET_TEMPLATE(kOOShaderUniformTypeShort, signed short);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort, unsigned short);
-    GET_TEMPLATE(kOOShaderUniformTypeInt, signed int);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt, unsigned int);
-    GET_TEMPLATE(kOOShaderUniformTypeLong, signed long);
-    GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong, unsigned long);
-    GET_TEMPLATE(kOOShaderUniformTypeFloat, float);
-    GET_TEMPLATE(kOOShaderUniformTypeDouble, double);
-    GET_TEMPLATE(kOOShaderUniformTypeVector, Vector);
-    GET_TEMPLATE(kOOShaderUniformTypeHPVector, HPVector);
-    GET_TEMPLATE(kOOShaderUniformTypeQuaternion, Quaternion);
-    GET_TEMPLATE(kOOShaderUniformTypeMatrix, OOMatrix);
-    GET_TEMPLATE(kOOShaderUniformTypePoint, NSPoint);
-    // The colour bindings (laserColor, fogUniform) answer the C++ colour
-    // (OOShaderUniform.mm).
-    GET_TEMPLATE(kOOShaderUniformTypeColor, OOColor*);
-    GET_TEMPLATE(kOOShaderUniformTypeObject, OOObjCId); // id's
+  GET_TEMPLATE(kOOShaderUniformTypeChar, signed char);
+  GET_TEMPLATE(kOOShaderUniformTypeUnsignedChar, unsigned char);
+  GET_TEMPLATE(kOOShaderUniformTypeShort, signed short);
+  GET_TEMPLATE(kOOShaderUniformTypeUnsignedShort, unsigned short);
+  GET_TEMPLATE(kOOShaderUniformTypeInt, signed int);
+  GET_TEMPLATE(kOOShaderUniformTypeUnsignedInt, unsigned int);
+  GET_TEMPLATE(kOOShaderUniformTypeLong, signed long);
+  GET_TEMPLATE(kOOShaderUniformTypeUnsignedLong, unsigned long);
+  GET_TEMPLATE(kOOShaderUniformTypeFloat, float);
+  GET_TEMPLATE(kOOShaderUniformTypeDouble, double);
+  GET_TEMPLATE(kOOShaderUniformTypeVector, Vector);
+  GET_TEMPLATE(kOOShaderUniformTypeHPVector, HPVector);
+  GET_TEMPLATE(kOOShaderUniformTypeQuaternion, Quaternion);
+  GET_TEMPLATE(kOOShaderUniformTypeMatrix, OOMatrix);
+  GET_TEMPLATE(kOOShaderUniformTypePoint, NSPoint);
+  // The colour bindings (laserColor, fogUniform) answer the C++ colour
+  // (OOShaderUniform.mm).
+  GET_TEMPLATE(kOOShaderUniformTypeColor, OOColor*);
+  GET_TEMPLATE(kOOShaderUniformTypeObject, OOObjCId);  // id's
 
-    sInited = true;
+  sInited = true;
 }
 
-#endif // OO_SHADERS
+#endif  // OO_SHADERS

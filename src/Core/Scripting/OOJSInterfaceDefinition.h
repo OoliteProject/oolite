@@ -26,51 +26,51 @@ MA 02110-1301, USA.
 */
 #pragma once
 
-#include "OOFoundation.h"
 #include <quickjs.h>
 
-#include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
-
-#include "oofnd/Ref.hpp"
 #include <optional>
 #include <string>
 
-class OOJSScript; // imported by the .mm, so that a test can stand in for it
+#include "OOFoundation.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-/*	The definition owns references to its callback and callbackThis, which are
-        released on destruction and when the JavaScript engine is reset.
+class OOJSScript;  // imported by the .mm, so that a test can stand in for it
+
+/*	The definition owns references to its callback and callbackThis, which
+   are released on destruction and when the JavaScript engine is reset.
 */
 class OOJSInterfaceDefinition : public oo::RefCounted {
-public:
-    // The old -init after [super init] (oo::makeRef).
-    OOJSInterfaceDefinition();
-    ~OOJSInterfaceDefinition() override;
+ public:
+  // The old -init after [super init] (oo::makeRef).
+  OOJSInterfaceDefinition();
+  ~OOJSInterfaceDefinition() override;
 
-    std::optional<std::string> title(); // nullopt: none
-    void setTitle(const std::optional<std::string>& title);
-    std::optional<std::string> category();
-    void setCategory(const std::string& category);
-    std::optional<std::string> summary();
-    void setSummary(const std::string& summary);
-    // Returned values are owned by the caller.
-    JSValue callback();
-    void setCallback(JSValueConst callback);
-    JSValue callbackThis();
-    void setCallbackThis(JSValueConst callbackthis);
+  std::optional<std::string> title();  // nullopt: none
+  void setTitle(const std::optional<std::string>& title);
+  std::optional<std::string> category();
+  void setCategory(const std::string& category);
+  std::optional<std::string> summary();
+  void setSummary(const std::string& summary);
+  // Returned values are owned by the caller.
+  JSValue callback();
+  void setCallback(JSValueConst callback);
+  JSValue callbackThis();
+  void setCallbackThis(JSValueConst callbackthis);
 
-    void runCallback(const std::string& key);
+  void runCallback(const std::string& key);
 
-    OOComparisonResult interfaceCompare(OOJSInterfaceDefinition* other);
+  OOComparisonResult interfaceCompare(OOJSInterfaceDefinition* other);
 
-private:
-    void deleteJSPointers();
+ private:
+  void deleteJSPointers();
 
-    JSValue _callback = JS_UNDEFINED; // Owned.
-    JSValue _callbackThis = JS_UNDEFINED; // Owned.
-    oo::WeakRef<OOJSScript> _owningScript; // a weak reference
+  JSValue _callback = JS_UNDEFINED;       // Owned.
+  JSValue _callbackThis = JS_UNDEFINED;   // Owned.
+  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
 
-    std::optional<std::string> _title; // nullopt until set (was nil)
-    std::optional<std::string> _summary;
-    std::optional<std::string> _category;
+  std::optional<std::string> _title;  // nullopt until set (was nil)
+  std::optional<std::string> _summary;
+  std::optional<std::string> _category;
 };

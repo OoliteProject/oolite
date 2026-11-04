@@ -23,97 +23,104 @@ MA 02110-1301, USA.
 */
 
 #include "OOEntityWithDrawable.h"
+
 #include "OODrawable.h"
-#include "OOTexture.h" // allTextures() destroys oo::Ref<OOTexture>s
+#include "OOTexture.h"  // allTextures() destroys oo::Ref<OOTexture>s
 #include "OOVisualEffectEntity.h"
 #include "ShipEntity.h"
 #include "Universe.h"
 
 // The drawable is a member, released with the entity.
 
-OODrawable* OOEntityWithDrawable::getDrawable()
-{
-    return drawable.get();
-}
+OODrawable* OOEntityWithDrawable::getDrawable() { return drawable.get(); }
 
-void OOEntityWithDrawable::setDrawable(OODrawable* inDrawable)
-{
-    if (inDrawable != drawable.get()) {
-        OODrawableAutorelease(std::move(drawable)); // [drawable autorelease]: the old one lives until the pool drains
-        drawable = oo::Ref<OODrawable>(inDrawable);
-        // Messages to a nil drawable did nothing and answered 0.
-        OODrawable* cxxDrawable = drawable.get();
-        if (cxxDrawable != nullptr)
-            cxxDrawable->setBindingTarget(this); // the C++ entity
-
-        collision_radius = cxxDrawable != nullptr ? cxxDrawable->collisionRadius() : 0.0f;
-        no_draw_distance = cxxDrawable != nullptr ? cxxDrawable->maxDrawDistance() : 0.0f;
-        boundingBox = cxxDrawable != nullptr ? cxxDrawable->boundingBox() : kZeroBoundingBox;
-    }
-}
-
-double OOEntityWithDrawable::findCollisionRadius()
-{
+void OOEntityWithDrawable::setDrawable(OODrawable* inDrawable) {
+  if (inDrawable != drawable.get()) {
+    OODrawableAutorelease(
+        std::move(drawable));  // [drawable autorelease]: the old one lives
+                               // until the pool drains
+    drawable = oo::Ref<OODrawable>(inDrawable);
+    // Messages to a nil drawable did nothing and answered 0.
     OODrawable* cxxDrawable = drawable.get();
-    return cxxDrawable != nullptr ? cxxDrawable->collisionRadius() : 0.0f;
+    if (cxxDrawable != nullptr)
+      cxxDrawable->setBindingTarget(this);  // the C++ entity
+
+    collision_radius =
+        cxxDrawable != nullptr ? cxxDrawable->collisionRadius() : 0.0f;
+    no_draw_distance =
+        cxxDrawable != nullptr ? cxxDrawable->maxDrawDistance() : 0.0f;
+    boundingBox =
+        cxxDrawable != nullptr ? cxxDrawable->boundingBox() : kZeroBoundingBox;
+  }
 }
 
-void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent)
-{
-    if (no_draw_distance < cam_zero_distance) {
-        // Don't draw.
-        return;
-    }
+double OOEntityWithDrawable::findCollisionRadius() {
+  OODrawable* cxxDrawable = drawable.get();
+  return cxxDrawable != nullptr ? cxxDrawable->collisionRadius() : 0.0f;
+}
 
-    if (no_draw_distance != INFINITY && !getIsImmuneToBreakPatternHide()) {
-        // (always draw sky, always draw break patterns)
-        if (!getIsSubEntity()) {
-            GLfloat clipradius = collision_radius;
-            if (getIsShip()) {
-                clipradius = frustumRadius(); // [oo::ToShip(self) frustumRadius]
-            } else if (getIsVisualEffect()) {
-                clipradius = frustumRadius(); // [(OOVisualEffectEntity *)self frustumRadius]
-            }
-            // don't bother with frustum culling within/near collision radius, as
-            // potential for problems with floating point inaccuracy causing
-            // unwanted disappearance maybe fix
-            // http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
-            if (cam_zero_distance > (clipradius + 1000) * (clipradius + 1000)) {
-                if (!(UNIVERSE != nullptr ? UNIVERSE->viewFrustumIntersectsSphereAt(cameraRelativePosition, clipradius) : false)) {
-                    return;
-                }
-            }
-        } else // is subentity
-        {
-            // don't bother with frustum culling within 1km, as above - CIM
-            if (cam_zero_distance > (collision_radius + 1000) * (collision_radius + 1000)) {
-                // check correct sub-entity position
-                if (!(UNIVERSE != nullptr ? UNIVERSE->viewFrustumIntersectsSphereAt(cameraRelativePosition, collisionRadius()) : false)) {
-                    return;
-                }
-            }
+void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent) {
+  if (no_draw_distance < cam_zero_distance) {
+    // Don't draw.
+    return;
+  }
+
+  if (no_draw_distance != INFINITY && !getIsImmuneToBreakPatternHide()) {
+    // (always draw sky, always draw break patterns)
+    if (!getIsSubEntity()) {
+      GLfloat clipradius = collision_radius;
+      if (getIsShip()) {
+        clipradius = frustumRadius();  // [oo::ToShip(self) frustumRadius]
+      } else if (getIsVisualEffect()) {
+        clipradius =
+            frustumRadius();  // [(OOVisualEffectEntity *)self frustumRadius]
+      }
+      // don't bother with frustum culling within/near collision radius, as
+      // potential for problems with floating point inaccuracy causing
+      // unwanted disappearance maybe fix
+      // http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
+      if (cam_zero_distance > (clipradius + 1000) * (clipradius + 1000)) {
+        if (!(UNIVERSE != nullptr ? UNIVERSE->viewFrustumIntersectsSphereAt(
+                                        cameraRelativePosition, clipradius)
+                                  : false)) {
+          return;
         }
+      }
+    } else  // is subentity
+    {
+      // don't bother with frustum culling within 1km, as above - CIM
+      if (cam_zero_distance >
+          (collision_radius + 1000) * (collision_radius + 1000)) {
+        // check correct sub-entity position
+        if (!(UNIVERSE != nullptr
+                  ? UNIVERSE->viewFrustumIntersectsSphereAt(
+                        cameraRelativePosition, collisionRadius())
+                  : false)) {
+          return;
+        }
+      }
     }
+  }
 
-    if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
-        OOGLWireframeModeOn();
+  if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
+    OOGLWireframeModeOn();
 
-    OODrawable* cxxDrawable = drawable.get();
-    if (cxxDrawable != nullptr) {
-        if (translucent)
-            cxxDrawable->renderTranslucentParts();
-        else
-            cxxDrawable->renderOpaqueParts();
-    }
+  OODrawable* cxxDrawable = drawable.get();
+  if (cxxDrawable != nullptr) {
+    if (translucent)
+      cxxDrawable->renderTranslucentParts();
+    else
+      cxxDrawable->renderOpaqueParts();
+  }
 
-    if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
-        OOGLWireframeModeOff();
+  if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
+    OOGLWireframeModeOff();
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOEntityWithDrawable::allTextures()
-{
-    OODrawable* cxxDrawable = getDrawable();
-    return cxxDrawable != nullptr ? cxxDrawable->allTextures() : std::vector<oo::Ref<OOTexture>>();
+std::vector<oo::Ref<OOTexture>> OOEntityWithDrawable::allTextures() {
+  OODrawable* cxxDrawable = getDrawable();
+  return cxxDrawable != nullptr ? cxxDrawable->allTextures()
+                                : std::vector<oo::Ref<OOTexture>>();
 }
 #endif

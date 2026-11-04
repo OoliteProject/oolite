@@ -2,14 +2,14 @@
 
 EntityVirtualMembers.h
 
-The root entity's virtual members, as UniverseVirtualMembers.h declares the universe's: the members
-the subclasses override. They are
-declared once, here, in the order Entity.h declared them: Entity.h expands
-OO_ENTITY_VIRTUAL_MEMBERS(;, ;) and OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(;, ;) where its first virtual
-member was, and a narrow test's stand-in for the class expands them with default bodies
-(tests/unit/core/EntityStandIn.h), so the stand-in's vtable has the same slots as the game's and a
-virtual call from the code under test reaches the test's override. Never reorder without rebuilding
-every test.
+The root entity's virtual members, as UniverseVirtualMembers.h declares the
+universe's: the members the subclasses override. They are declared once, here,
+in the order Entity.h declared them: Entity.h expands
+OO_ENTITY_VIRTUAL_MEMBERS(;, ;) and OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(;, ;) where
+its first virtual member was, and a narrow test's stand-in for the class expands
+them with default bodies (tests/unit/core/EntityStandIn.h), so the stand-in's
+vtable has the same slots as the game's and a virtual call from the code under
+test reaches the test's override. Never reorder without rebuilding every test.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -39,20 +39,21 @@ MA 02110-1301, USA.
 #include <string>
 #include <vector>
 
-#include "OOEntityEnums.h" // OOEntityStatus, OOScanClass
+#include "OOEntityEnums.h"  // OOEntityStatus, OOScanClass
 #include "OOFoundation.h"
 #include "OOMaths.h"
-#include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>
+#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>
 #include "OOTypes.h"
 #include "oofnd/Ref.hpp"
 
-class ShipEntity; // C++
+class ShipEntity;  // C++
 class Entity;
 
-/*	VOID_BODY ends each member answering nothing, VALUE_BODY each member answering a value: ";"
-        and ";" in the class, "{}" and "{ return {}; }" in a stand-in. The parameters are named in
-        comments, so a stand-in's default bodies use none. The three overrides of OOJSPrivateObject
-        (the entity's JS glue) keep their place: the class and a stand-in derive from oo::RefCounted
+/*	VOID_BODY ends each member answering nothing, VALUE_BODY each member
+   answering a value: ";" and ";" in the class, "{}" and "{ return {}; }" in a
+   stand-in. The parameters are named in comments, so a stand-in's default
+   bodies use none. The three overrides of OOJSPrivateObject (the entity's JS
+   glue) keep their place: the class and a stand-in derive from oo::RefCounted
         and ::OOJSPrivateObject, in that order.
 */
 // clang-format off

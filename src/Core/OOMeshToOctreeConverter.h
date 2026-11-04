@@ -41,29 +41,29 @@ class ShipEntity;
 enum { kOOMeshToOctreeConverterSmallDataCapacity = 16 };
 
 struct OOMeshToOctreeConverterInternalData {
-    Triangle* triangles;
-    uint32_t count;
-    uint32_t capacity;
-    uint32_t pendingCapacity;
-    Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
-    std::vector<Triangle> heap; // the storage once smallData is outgrown
+  Triangle* triangles;
+  uint32_t count;
+  uint32_t capacity;
+  uint32_t pendingCapacity;
+  Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
+  std::vector<Triangle> heap;  // the storage once smallData is outgrown
 };
 
 class OOMeshToOctreeConverter : public oo::RefCounted {
-public:
-    explicit OOMeshToOctreeConverter(NSUInteger capacity); // -initWithCapacity:
-    static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(
-        NSUInteger capacity);
-    ~OOMeshToOctreeConverter() override;
+ public:
+  explicit OOMeshToOctreeConverter(NSUInteger capacity);  // -initWithCapacity:
+  static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(
+      NSUInteger capacity);
+  ~OOMeshToOctreeConverter() override;
 
-    void addTriangle(Triangle tri);
+  void addTriangle(Triangle tri);
 
-    oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
+  oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
 
-    // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...}
-    // (OODescription.h).
-    std::optional<std::string> descriptionComponents() const;
+  // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 
-private:
-    struct OOMeshToOctreeConverterInternalData _data = { };
+ private:
+  struct OOMeshToOctreeConverterInternalData _data = {};
 };

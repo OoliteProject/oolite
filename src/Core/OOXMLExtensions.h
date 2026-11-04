@@ -32,14 +32,16 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOFoundation.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 
 /*	OOWriteXMLPListToFile()
-        Write a property list to a file as an XML property list, atomically (the retired
-        dictionary category method -writeOOXMLToFile:atomically:errorDescription:, which always
-        wrote atomically). On failure answers false and, when outError is not null, a description:
-        "could not convert property list to XML: <reason>" or "could not write data to <path>."
+        Write a property list to a file as an XML property list, atomically (the
+   retired dictionary category method
+   -writeOOXMLToFile:atomically:errorDescription:, which always wrote
+   atomically). On failure answers false and, when outError is not null, a
+   description: "could not convert property list to XML: <reason>" or "could not
+   write data to <path>."
 */
-bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path, std::string* outError);
+bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path,
+                           std::string* outError);

@@ -30,64 +30,78 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <quickjs.h>
+
 #include "OOJSPrivateObject.h"
 #include "OOScriptTimer.h"
-#include <quickjs.h>
 
 class OOJSScript;
 
 // A Timer JS object's private slot holds the timer.
 class OOJSTimer : public OOScriptTimer, public ::OOJSPrivateObject {
-public:
-    // [[OOJSTimer alloc] initWithDelay:interval:context:function:this:], for the Timer
-    // constructor: null where the initialiser answered nil. function and jsThis are borrowed (the
-    // timer takes its own references); jsThis may be JS null.
-    static oo::Ref<OOJSTimer> timerWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSContext* context, JSValueConst function, JSValueConst jsThis);
+ public:
+  // [[OOJSTimer alloc] initWithDelay:interval:context:function:this:], for the
+  // Timer constructor: null where the initialiser answered nil. function and
+  // jsThis are borrowed (the timer takes its own references); jsThis may be JS
+  // null.
+  static oo::Ref<OOJSTimer> timerWithDelay(OOTimeAbsolute delay,
+                                           OOTimeDelta interval,
+                                           JSContext* context,
+                                           JSValueConst function,
+                                           JSValueConst jsThis);
 
-    ~OOJSTimer() override;
+  ~OOJSTimer() override;
 
-    std::optional<std::string> descriptionComponents() const override;
-    std::string className() const override { return "OOJSTimer"; }
-    std::optional<std::string> oo_jsClassName() override;
+  std::optional<std::string> descriptionComponents() const override;
+  std::string className() const override { return "OOJSTimer"; }
+  std::optional<std::string> oo_jsClassName() override;
 
-    void timerFired() override;
+  void timerFired() override;
 
-    // The JS glue (OOJSPrivateObject): the Timer object, made by the initialiser (owned by the
-    // caller; JS null once it has been finalized); forgetting it when it is finalized, with a
-    // warning if the timer still runs; "[Timer <components>]".
-    JSValue jsValueInContext(JSContext* context) override;
-    void clearJSSelf(JSValueConst selfVal) override;
-    std::optional<std::string> jsDescription() override;
+  // The JS glue (OOJSPrivateObject): the Timer object, made by the initialiser
+  // (owned by the caller; JS null once it has been finalized); forgetting it
+  // when it is finalized, with a warning if the timer still runs; "[Timer
+  // <components>]".
+  JSValue jsValueInContext(JSContext* context) override;
+  void clearJSSelf(JSValueConst selfVal) override;
+  std::optional<std::string> jsDescription() override;
 
-    // A one-shot timer whose callback is running: it is dropped once the callback returns.
-    bool willNotFireAgain();
+  // A one-shot timer whose callback is running: it is dropped once the callback
+  // returns.
+  bool willNotFireAgain();
 
-    /*	The reference created with the JS object by the initialiser belongs to
-            whoever calls this, once (the constructor, which returns it).
-            SpiderMonkey's unrooted _jsSelf pointer added no reference, so this is
-            what lets the JS object be collected (and finalized) as before.
-    */
-    JSValue transferJSSelf();
+  /*	The reference created with the JS object by the initialiser belongs to
+          whoever calls this, once (the constructor, which returns it).
+          SpiderMonkey's unrooted _jsSelf pointer added no reference, so this is
+          what lets the JS object be collected (and finalized) as before.
+  */
+  JSValue transferJSSelf();
 
-private:
-    OOJSTimer() = default;
+ private:
+  OOJSTimer() = default;
 
-    bool initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSContext* context, JSValueConst function, JSValueConst jsThis);
-    // Notification handler: engine reset.
-    void deleteJSPointers();
-    void releaseJSValues();
+  bool initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval,
+                     JSContext* context, JSValueConst function,
+                     JSValueConst jsThis);
+  // Notification handler: engine reset.
+  void deleteJSPointers();
+  void releaseJSValues();
 
-    JSValue _function = JS_UNDEFINED; // Owned; released on engine reset.
-    JSValue _jsThis = JS_UNDEFINED; // The object that is 'this' in the function call. Owned; may be JS_NULL.
+  JSValue _function = JS_UNDEFINED;  // Owned; released on engine reset.
+  JSValue _jsThis = JS_UNDEFINED;  // The object that is 'this' in the function
+                                   // call. Owned; may be JS_NULL.
 
-    oo::WeakRef<OOJSScript> _owningScript; // a weak reference
-    // The function's name, read once: the finalizer's description must not run JS code. nullopt
-    // for an anonymous function.
-    std::optional<std::string> _functionName;
+  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
+  // The function's name, read once: the finalizer's description must not run JS
+  // code. nullopt for an anonymous function.
+  std::optional<std::string> _functionName;
 
-    JSValue _jsSelf = JS_UNDEFINED; // The JS Timer object proxy for this OOJSTimer. Not owned (it owns us); cleared when finalized.
+  JSValue _jsSelf =
+      JS_UNDEFINED;  // The JS Timer object proxy for this OOJSTimer. Not owned
+                     // (it owns us); cleared when finalized.
 
-    bool _firing = false; // In the callback, during which the timer is still scheduled.
+  bool _firing =
+      false;  // In the callback, during which the timer is still scheduled.
 };
 
 void InitOOJSTimer(JSContext* context, JSValueConst global);

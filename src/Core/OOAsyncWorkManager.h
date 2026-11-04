@@ -33,9 +33,9 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 
 typedef enum {
-    kOOAsyncPriorityLow,
-    kOOAsyncPriorityMedium,
-    kOOAsyncPriorityHigh
+  kOOAsyncPriorityLow,
+  kOOAsyncPriorityMedium,
+  kOOAsyncPriorityHigh
 } OOAsyncWorkPriority;
 
 /*	A task: performed on a work thread by performAsyncTask(), then, if it
@@ -44,44 +44,46 @@ typedef enum {
    pending.
 */
 class OOAsyncWorkTask : public oo::RefCounted {
-public:
-    // Called on a work thread. There may be multiple work threads.
-    virtual void performAsyncTask() = 0;
+ public:
+  // Called on a work thread. There may be multiple work threads.
+  virtual void performAsyncTask() = 0;
 
-    // Whether the task has a completion (the protocol's optional method was implemented).
-    virtual bool hasCompleteAsyncTask() const { return false; }
+  // Whether the task has a completion (the protocol's optional method was
+  // implemented).
+  virtual bool hasCompleteAsyncTask() const { return false; }
 
-    // Called on the main thread some time after performAsyncTask() completes.
-    virtual void completeAsyncTask() { }
+  // Called on the main thread some time after performAsyncTask() completes.
+  virtual void completeAsyncTask() {}
 
-protected:
-    OOAsyncWorkTask() = default;
-    ~OOAsyncWorkTask() override = default;
+ protected:
+  OOAsyncWorkTask() = default;
+  ~OOAsyncWorkTask() override = default;
 };
 
 /*	The concrete managers are private to OOAsyncWorkManager.mm.
  */
 class OOAsyncWorkManager : public oo::RefCounted {
-public:
-    // The one manager, made on first use and never destroyed (borrowed).
-    static OOAsyncWorkManager* sharedAsyncWorkManager();
+ public:
+  // The one manager, made on first use and never destroyed (borrowed).
+  static OOAsyncWorkManager* sharedAsyncWorkManager();
 
-    virtual bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority);
+  virtual bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority);
 
-    /*	Complete any tasks whose asynchronous portion is ready, but without waiting.
-     */
-    virtual void completePendingTasks();
+  /*	Complete any tasks whose asynchronous portion is ready, but without
+   * waiting.
+   */
+  virtual void completePendingTasks();
 
-    /*	Wait for a task to complete.
+  /*	Wait for a task to complete.
 
-            WARNING: if task is not an existing task, or does not implement
-            completeAsyncTask(), this will never return.
+          WARNING: if task is not an existing task, or does not implement
+          completeAsyncTask(), this will never return.
 
-            IMPORTANT: May only be called on the main thread.
-    */
-    virtual void waitForTaskToComplete(OOAsyncWorkTask* task);
+          IMPORTANT: May only be called on the main thread.
+  */
+  virtual void waitForTaskToComplete(OOAsyncWorkTask* task);
 
-protected:
-    OOAsyncWorkManager() = default;
-    ~OOAsyncWorkManager() override;
+ protected:
+  OOAsyncWorkManager() = default;
+  ~OOAsyncWorkManager() override;
 };

@@ -51,55 +51,55 @@ class OOSoundChannel;
    implement it.
 */
 class OOSoundChannelDelegate {
-public:
-    virtual void channel(OOSoundChannel* channel, OOSound* sound) = 0;
+ public:
+  virtual void channel(OOSoundChannel* channel, OOSound* sound) = 0;
 
-protected:
-    ~OOSoundChannelDelegate() = default;
+ protected:
+  ~OOSoundChannelDelegate() = default;
 };
 
 class OOSoundChannel : public oo::RefCounted {
-public:
-    /*	Was -init, which answered nil when OpenAL would not make a source: false
-       then. Its maker runs it right after making the
-       channel and drops a channel for which it fails.
-    */
-    bool init();
+ public:
+  /*	Was -init, which answered nil when OpenAL would not make a source: false
+     then. Its maker runs it right after making the
+     channel and drops a channel for which it fails.
+  */
+  bool init();
 
-    ~OOSoundChannel() override;
+  ~OOSoundChannel() override;
 
-    void update();
+  void update();
 
-    void setDelegate(OOSoundChannelDelegate* delegate);
+  void setDelegate(OOSoundChannelDelegate* delegate);
 
-    // Unretained pointer used to maintain simple stack
-    OOSoundChannel* next();
-    void setNext(OOSoundChannel* next);
+  // Unretained pointer used to maintain simple stack
+  OOSoundChannel* next();
+  void setNext(OOSoundChannel* next);
 
-    // set sound position relative to listener
-    void setPosition(Vector vector);
-    void setGain(float gain);
-    bool playSound(OOSound* sound, bool loop);
-    void stop();
+  // set sound position relative to listener
+  void setPosition(Vector vector);
+  void setGain(float gain);
+  bool playSound(OOSound* sound, bool loop);
+  void stop();
 
-    OOSound* sound();
+  OOSound* sound();
 
-private:
-    // Was the private -hasStopped, which told the delegate that self had
-    // finished; -dealloc sent it too, so the destructor does.
-    void hasStopped();
+ private:
+  // Was the private -hasStopped, which told the delegate that self had
+  // finished; -dealloc sent it too, so the destructor does.
+  void hasStopped();
 
-    bool enqueueBuffer(OOSound* sound);
-    void getNextSoundBuffer();
+  bool enqueueBuffer(OOSound* sound);
+  void getNextSoundBuffer();
 
-    OOSoundChannel* _next = { };
-    OOSoundChannelDelegate* _delegate = { };
-    oo::Ref<OOSound> _sound; // retained
-    ALuint _buffer = { };
-    ALuint _lastBuffer = { };
-    bool _bigSound = { };
-    ALuint _source = { };
-    bool _loop = { };
+  OOSoundChannel* _next = {};
+  OOSoundChannelDelegate* _delegate = {};
+  oo::Ref<OOSound> _sound;  // retained
+  ALuint _buffer = {};
+  ALuint _lastBuffer = {};
+  bool _bigSound = {};
+  ALuint _source = {};
+  bool _loop = {};
 
-    friend struct ::OOSoundChannelTestAccess; // tests only
+  friend struct ::OOSoundChannelTestAccess;  // tests only
 };

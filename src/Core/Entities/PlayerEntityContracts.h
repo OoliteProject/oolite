@@ -47,7 +47,8 @@ inline constexpr std::string_view CONTRACT_KEY_START = "start";
 inline constexpr std::string_view CONTRACT_KEY_DESTINATION = "destination";
 #define CONTRACT_KEY_DESTINATION_NAME "destination_name"
 #define CONTRACT_KEY_LONG_DESCRIPTION "long_description"
-inline constexpr std::string_view CONTRACT_KEY_DEPARTURE_TIME = "departure_time";
+inline constexpr std::string_view CONTRACT_KEY_DEPARTURE_TIME =
+    "departure_time";
 inline constexpr std::string_view CONTRACT_KEY_ARRIVAL_TIME = "arrival_time";
 inline constexpr std::string_view CONTRACT_KEY_FEE = "fee";
 inline constexpr std::string_view CONTRACT_KEY_PREMIUM = "premium";

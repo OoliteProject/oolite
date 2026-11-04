@@ -35,41 +35,43 @@ MA 02110-1301, USA.
 struct OOLaserShotEntityTestAccess;
 
 class OOLaserShotEntity : public Entity {
-public:
-    // A new shot, initialised.
-    static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship, OOWeaponFacing direction, Vector offset);
+ public:
+  // A new shot, initialised.
+  static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship,
+                                                  OOWeaponFacing direction,
+                                                  Vector offset);
 
-    std::optional<std::string> descriptionComponents() const override;
+  std::optional<std::string> descriptionComponents() const override;
 
-    void setColor(OOColor* color);
+  void setColor(OOColor* color);
 
-    void setRange(GLfloat range);
+  void setRange(GLfloat range);
 
-    void update(OOTimeDelta delta_t) override;
-    void drawImmediate(bool immediate, bool translucent) override;
-    bool isEffect() override;
-    bool canCollide() override;
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  bool isEffect() override;
+  bool canCollide() override;
 
-    OOTexture* texture1();
-    OOTexture* texture2();
+  OOTexture* texture1();
+  OOTexture* texture2();
 
-    static void setUpTexture();
-    static OOTexture* innerTexture();
-    static OOTexture* outerTexture();
-    // The graphics reset client is a file-local C++ one (OOLaserShotEntity.mm).
-    static void resetGraphicsState();
+  static void setUpTexture();
+  static OOTexture* innerTexture();
+  static OOTexture* outerTexture();
+  // The graphics reset client is a file-local C++ one (OOLaserShotEntity.mm).
+  static void resetGraphicsState();
 
-private:
-    friend struct ::OOLaserShotEntityTestAccess;
+ private:
+  friend struct ::OOLaserShotEntityTestAccess;
 
-    // -initLaserFromShip:direction:offset:'s body, run once right after
-    // construction.
-    void initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction,
-        Vector offset);
+  // -initLaserFromShip:direction:offset:'s body, run once right after
+  // construction.
+  void initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction,
+                         Vector offset);
 
-    GLfloat _color[4] = { };
-    OOTimeDelta _lifetime = { };
-    GLfloat _range = { };
-    Vector _offset = { };
-    Quaternion _relOrientation = { };
+  GLfloat _color[4] = {};
+  OOTimeDelta _lifetime = {};
+  GLfloat _range = {};
+  Vector _offset = {};
+  Quaternion _relOrientation = {};
 };

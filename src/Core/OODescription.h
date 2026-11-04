@@ -7,21 +7,23 @@ gnustep-base.
 
 A class describes itself by overriding one method, and every printer wraps it:
 
-        override                              printed by                          as
-        ------------------------------------  ----------------------------------  ---------------------------------
-        -cxx_descriptionComponents            -cxx_description, oo::DescriptionOf <ClassName 0xnnnnnnnn>{components}
-                                              -cxx_oo_jsDescription (JS)          [jsClassName components]
-        -cxx_shortDescriptionComponents       -cxx_shortDescription,              <ClassName 0xnnnnnnnn>{components}
-                                              oo::ShortDescriptionOf
-        -cxx_description (whole text)         oo::DescriptionOf                   whatever it returns
+        override                              printed by as
+        ------------------------------------  ----------------------------------
+--------------------------------- -cxx_descriptionComponents -cxx_description,
+oo::DescriptionOf <ClassName 0xnnnnnnnn>{components} -cxx_oo_jsDescription (JS)
+[jsClassName components] -cxx_shortDescriptionComponents -cxx_shortDescription,
+<ClassName 0xnnnnnnnn>{components} oo::ShortDescriptionOf -cxx_description
+(whole text)         oo::DescriptionOf                   whatever it returns
 
-Without components (nullopt, the root's default) the text is <ClassName 0xnnnnnnnn>. The pointer
-is oo::str::pointerDescription's (GNUstep's %p: the low 32 bits). A subclass that extends its
-superclass's components calls [super cxx_descriptionComponents] and appends to it.
+Without components (nullopt, the root's default) the text is <ClassName
+0xnnnnnnnn>. The pointer is oo::str::pointerDescription's (GNUstep's %p: the low
+32 bits). A subclass that extends its superclass's components calls [super
+cxx_descriptionComponents] and appends to it.
 
         - (std::optional<std::string>) cxx_descriptionComponents
         {
-                return oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]);
+                return oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1],
+rgba[2], rgba[3]);
         }
 
 All four return std::optional<std::string>, so a message to nil is a valid
@@ -62,19 +64,17 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "oofnd/objc/OOObject.h"
-
 #include "oofnd/PListDescription.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
 namespace oo {
 
 // The text "%@" printed for the property list's object graph
 // (oo::ObjectFromPList of it): oo::describe (oofnd/PListDescription.hpp),
 // GNUstep's -description byte for byte.
-inline std::string DescriptionOf(const oo::PList& plist)
-{
-    return describe(plist);
+inline std::string DescriptionOf(const oo::PList& plist) {
+  return describe(plist);
 }
 
-} // namespace oo
+}  // namespace oo

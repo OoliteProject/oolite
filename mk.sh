@@ -163,6 +163,8 @@ show_help() {  # Script Help Menu
     echo ""
     echo "Global Actions:"
     echo -e "  \033[36mclean-all\033[0m                      Remove generated artifacts for all builds"
+    echo -e "  \033[36mformat\033[0m                         Reformat src/ in place with clang-format (as the CI check expects)"
+    echo -e "  \033[36mformat-check\033[0m                   Report src/ files clang-format would change, without editing"
     echo -e "  \033[36mhelp\033[0m                           Show this breakdown menu"
     echo ""
     echo "Build Types:"
@@ -395,6 +397,35 @@ if [[ "$ACTION" == "clean-all" ]]; then
     trap - ERR
     popd > /dev/null
     echo "✅ Oolite task 'clean-all' completed successfully"
+    exit 0
+fi
+
+# Intercept global actions 'format' and 'format-check', which mirror the CI clang-format check
+if [[ "$ACTION" == "format" || "$ACTION" == "format-check" ]]; then
+    if ! command -v clang-format > /dev/null; then
+        echo "❌ clang-format not found in PATH." >&2
+        exit 1
+    fi
+    # Keep in step with clang-format-version in .github/workflows/build-all.yaml:
+    # other major versions wrap some expressions differently and fail the CI check.
+    ci_clang_format_major=22
+    if [[ "$(clang-format --version)" != *"version $ci_clang_format_major."* ]]; then
+        echo "⚠️  CI uses clang-format $ci_clang_format_major; $(clang-format --version) may format differently." >&2
+    fi
+    format_files=()
+    while IFS= read -r -d '' file; do
+        format_files+=("$file")
+    done < <(git ls-files -z -- 'src/*.h' 'src/*.hpp' 'src/*.c' 'src/*.cpp' 'src/*.m' 'src/*.mm')
+    if [[ "$ACTION" == "format" ]]; then
+        echo "--> Formatting ${#format_files[@]} files with $(clang-format --version)"
+        clang-format -i "${format_files[@]}"
+    else
+        echo "--> Checking ${#format_files[@]} files with $(clang-format --version)"
+        clang-format --dry-run -Werror "${format_files[@]}"
+    fi
+    trap - ERR
+    popd > /dev/null
+    echo "✅ Oolite task '$ACTION' completed successfully"
     exit 0
 fi
 

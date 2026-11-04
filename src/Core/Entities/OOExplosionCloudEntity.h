@@ -30,28 +30,30 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOParticleSystem.h"
-
 #include "oofnd/PList.hpp"
 
 /*	The explosion settings are an oo::PList (a Dict; an empty one where the
    settings were nil).
 */
 class OOExplosionCloudEntity : public OOParticleSystem {
-public:
-    // Null where the texture is not found.
-    static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(Entity* entity, const oo::PList& settings);
-    static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(Entity* entity, float size, const oo::PList& settings);
+ public:
+  // Null where the texture is not found.
+  static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(
+      Entity* entity, const oo::PList& settings);
+  static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(
+      Entity* entity, float size, const oo::PList& settings);
 
-    void update(OOTimeDelta delta_t) override;
-    OOTexture* texture() override;
+  void update(OOTimeDelta delta_t) override;
+  OOTexture* texture() override;
 
-private:
-    bool initExplosionCloudWithEntity(Entity* entity, float size, const oo::PList& settings);
+ private:
+  bool initExplosionCloudWithEntity(Entity* entity, float size,
+                                    const oo::PList& settings);
 
-    float _growthRate = { };
-    OOTimeDelta _cloudDuration = { };
-    float _alpha = { };
-    float _brightnessMult = { };
-    oo::Ref<OOTexture> _texture;
-    oo::PList _settings;
+  float _growthRate = {};
+  OOTimeDelta _cloudDuration = {};
+  float _alpha = {};
+  float _brightnessMult = {};
+  oo::Ref<OOTexture> _texture;
+  oo::PList _settings;
 };

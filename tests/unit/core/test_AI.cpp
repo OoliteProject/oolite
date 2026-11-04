@@ -1,20 +1,22 @@
 /*	test_AI.mm
-	Unit tests for AI (src/Core/AI.h).
+        Unit tests for AI (src/Core/AI.h).
 
-	The AI is a state machine: it loads a state machine (a property list of states, each a
-	dictionary of messages, each an array of actions), whitelists its actions, keeps a stack of
-	suspended machines, queues messages for its next think, and performs an action by sending its
-	owner (a ship) the action's selector, by name. Its collaborators link the whole game, so the
-	test defines them itself: the resource manager (one table of AI files and the whitelist), the
-	cache manager (a map), the property-list reader, the deferred-call scheduler (which keeps the
-	calls until the test fires them) and the log indentation functions (which do what
-	OOLogging.mm's do). The owner is the object of a C++ ship stand-in, which answers what AI asks
-	the ship and records the actions it is sent. The log is captured.
+        The AI is a state machine: it loads a state machine (a property list of
+   states, each a dictionary of messages, each an array of actions), whitelists
+   its actions, keeps a stack of suspended machines, queues messages for its
+   next think, and performs an action by sending its owner (a ship) the action's
+   selector, by name. Its collaborators link the whole game, so the test defines
+   them itself: the resource manager (one table of AI files and the whitelist),
+   the cache manager (a map), the property-list reader, the deferred-call
+   scheduler (which keeps the calls until the test fires them) and the log
+   indentation functions (which do what OOLogging.mm's do). The owner is the
+   object of a C++ ship stand-in, which answers what AI asks the ship and
+   records the actions it is sent. The log is captured.
 
-	The owner stand-in is an object holding the ship, since the AI holds the ship's C++ part weakly
-	(oo::WeakRef): its actions, once found and called by selector, are a table of its members by
-	the same names.
-	Run: bash tests/run.sh unit
+        The owner stand-in is an object holding the ship, since the AI holds the
+   ship's C++ part weakly (oo::WeakRef): its actions, once found and called by
+   selector, are a table of its members by the same names. Run: bash
+   tests/run.sh unit
 */
 
 #include <cmath>

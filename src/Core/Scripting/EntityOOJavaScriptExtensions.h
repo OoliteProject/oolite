@@ -35,13 +35,15 @@ MA 02110-1301, USA.
 #include "Entity.h"
 #include "OOJavaScriptEngine.h"
 
-class ShipEntity; // Entity extensions. The JS object's functions take the C++ entity (Entity's
+class ShipEntity;  // Entity extensions. The JS object's functions take the C++
+                   // entity (Entity's
 // JS glue members call them; the engine asks those members).
 bool EntityJSIsVisibleToScripts(void);
 std::optional<std::string> EntityJSClassName(void);
 // The entity's JS object, owned by the caller (JS null for none).
 JSValue EntityJSValueInContext(Entity* entity, JSContext* context);
-// The JS class of the entity's wrapper object; subclasses override -oo_jsClassID.
+// The JS class of the entity's wrapper object; subclasses override
+// -oo_jsClassID.
 JSClassID EntityJSClassID(void);
 void EntityJSDeleteJSSelf(Entity* entity);
 std::optional<std::string> EntityJSDescription(Entity* entity);

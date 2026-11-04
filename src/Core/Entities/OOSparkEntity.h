@@ -29,23 +29,22 @@ MA 02110-1301, USA.
 
 // A global class over OOLightParticleEntity, made with sparkWithPosition().
 class OOSparkEntity : public OOLightParticleEntity {
-public:
-    // [[OOSparkEntity alloc] initWithPosition:...]: a new spark, initialised.
-    static oo::Ref<OOSparkEntity> sparkWithPosition(HPVector position,
-        Vector velocity,
-        OOTimeDelta duration,
-        float size,
-        OOColor* color);
+ public:
+  // [[OOSparkEntity alloc] initWithPosition:...]: a new spark, initialised.
+  static oo::Ref<OOSparkEntity> sparkWithPosition(HPVector position,
+                                                  Vector velocity,
+                                                  OOTimeDelta duration,
+                                                  float size, OOColor* color);
 
-    // -initWithPosition:...'s body, run once right after construction.
-    void initWithPosition(HPVector position, Vector velocity,
-        OOTimeDelta duration, float size, OOColor* color);
+  // -initWithPosition:...'s body, run once right after construction.
+  void initWithPosition(HPVector position, Vector velocity,
+                        OOTimeDelta duration, float size, OOColor* color);
 
-    void update(OOTimeDelta delta_t) override;
+  void update(OOTimeDelta delta_t) override;
 
-private:
-    void performUpdate(OOTimeDelta delta_t);
+ private:
+  void performUpdate(OOTimeDelta delta_t);
 
-    GLfloat _baseRGBA[4] = { };
-    GLfloat _duration = { }, _timeRemaining = { };
+  GLfloat _baseRGBA[4] = {};
+  GLfloat _duration = {}, _timeRemaining = {};
 };

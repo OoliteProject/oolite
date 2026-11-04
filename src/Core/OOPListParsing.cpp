@@ -23,52 +23,56 @@ MA 02110-1301, USA.
 */
 
 #include "OOPListParsing.h"
+
 #include "OOLogging.h"
 #include "OOStringParsing.h"
 #include "Universe.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
-
 #include "oofnd/PListParsing.hpp"
 
-oo::PList cxx_OOPropertyListFromData(const std::optional<oo::Data>& data, const std::optional<std::string>& whereFrom)
-{
-    oo::PList result;
+oo::PList cxx_OOPropertyListFromData(
+    const std::optional<oo::Data>& data,
+    const std::optional<std::string>& whereFrom) {
+  oo::PList result;
 
-    const std::string source = whereFrom.value_or("<data in memory>");
-    if (UNIVERSE != nullptr) {
-        OO_LOG("plist.information", "Parsing {} as a property list.", source);
+  const std::string source = whereFrom.value_or("<data in memory>");
+  if (UNIVERSE != nullptr) {
+    OO_LOG("plist.information", "Parsing {} as a property list.", source);
+  }
+
+  if (data.has_value()) {
+    // oo::parsePropertyList changes an Apple DTD line first, as
+    // ChangeDTDIfApplicable did.
+    const std::string_view bytes(reinterpret_cast<const char*>(data->bytes()),
+                                 data->length());
+    const oo::Expected<oo::PList, oo::PListError> parsed =
+        oo::parsePropertyList(bytes);
+    if (parsed) result = *parsed;
+    if (result.isNull())  // parser failed
+    {
+      // Ensure we can say something sensible...
+      const std::string error = parsed ? std::string("<no error message>")
+                                       : parsed.error().description();
+
+      OO_LOG("plist.parse.failed", "Failed to parse {} as a property list.\n{}",
+             source, error);
     }
+  }
 
-    if (data.has_value()) {
-        // oo::parsePropertyList changes an Apple DTD line first, as ChangeDTDIfApplicable did.
-        const std::string_view bytes(reinterpret_cast<const char*>(data->bytes()), data->length());
-        const oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(bytes);
-        if (parsed)
-            result = *parsed;
-        if (result.isNull()) // parser failed
-        {
-            // Ensure we can say something sensible...
-            const std::string error = parsed ? std::string("<no error message>") : parsed.error().description();
-
-            OO_LOG("plist.parse.failed", "Failed to parse {} as a property list.\n{}", source, error);
-        }
-    }
-
-    return result;
+  return result;
 }
 
-oo::PList cxx_OOPropertyListFromFile(const std::string& path)
-{
-    oo::PList result;
+oo::PList cxx_OOPropertyListFromFile(const std::string& path) {
+  oo::PList result;
 
-    // Load file, if it exists...
-    const std::optional<oo::Data> data = OODataFromOXZFile(path);
-    if (data.has_value()) {
-        // ...and parse it
-        result = cxx_OOPropertyListFromData(data, path);
-    }
-    // Non-existent file is not an error.
+  // Load file, if it exists...
+  const std::optional<oo::Data> data = OODataFromOXZFile(path);
+  if (data.has_value()) {
+    // ...and parse it
+    result = cxx_OOPropertyListFromData(data, path);
+  }
+  // Non-existent file is not an error.
 
-    return result;
+  return result;
 }

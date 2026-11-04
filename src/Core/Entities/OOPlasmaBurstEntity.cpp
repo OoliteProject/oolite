@@ -24,44 +24,42 @@ MA 02110-1301, USA.
 */
 
 #include "OOPlasmaBurstEntity.h"
+
 #include "Universe.h"
 
 #define kPlasmaBurstInitialSize 64.0f
 #define kPlasmaBurstGrowthRate 64.0f
 #define kPlasmaBurstDuration 2.0f
 
-oo::Ref<OOPlasmaBurstEntity> OOPlasmaBurstEntity::burstWithPosition(HPVector inPosition)
-{
-    const oo::Ref<OOPlasmaBurstEntity> burst = oo::makeRef<OOPlasmaBurstEntity>();
-    burst->initWithPosition(inPosition);
-    return burst;
+oo::Ref<OOPlasmaBurstEntity> OOPlasmaBurstEntity::burstWithPosition(
+    HPVector inPosition) {
+  const oo::Ref<OOPlasmaBurstEntity> burst = oo::makeRef<OOPlasmaBurstEntity>();
+  burst->initWithPosition(inPosition);
+  return burst;
 }
 
-void OOPlasmaBurstEntity::initWithPosition(HPVector inPosition)
-{
-    OOLightParticleEntity::initWithDiameter(kPlasmaBurstInitialSize);
-    // [super initWithDiameter:] could not fail.
-    {
-        setPosition(inPosition);
-        setCollisionRadius(2.0);
+void OOPlasmaBurstEntity::initWithPosition(HPVector inPosition) {
+  OOLightParticleEntity::initWithDiameter(kPlasmaBurstInitialSize);
+  // [super initWithDiameter:] could not fail.
+  {
+    setPosition(inPosition);
+    setCollisionRadius(2.0);
 
-        setColor(OOColor::redColor().get());
-    }
+    setColor(OOColor::redColor().get());
+  }
 }
 
-void OOPlasmaBurstEntity::update(OOTimeDelta delta_t)
-{
-    OOLightParticleEntity::update(delta_t);
+void OOPlasmaBurstEntity::update(OOTimeDelta delta_t) {
+  OOLightParticleEntity::update(delta_t);
 
-    OOTimeDelta lifeTime = timeElapsedSinceSpawn();
-    float attenuation = OOClamp_0_1_f(1.0f - lifeTime / kPlasmaBurstDuration);
+  OOTimeDelta lifeTime = timeElapsedSinceSpawn();
+  float attenuation = OOClamp_0_1_f(1.0f - lifeTime / kPlasmaBurstDuration);
 
-    _diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
+  _diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
 
-    _colorComponents[3] = attenuation;
+  _colorComponents[3] = attenuation;
 
-    if (lifeTime > kPlasmaBurstDuration) {
-        if (UNIVERSE != nullptr)
-            UNIVERSE->removeEntity(this);
-    }
+  if (lifeTime > kPlasmaBurstDuration) {
+    if (UNIVERSE != nullptr) UNIVERSE->removeEntity(this);
+  }
 }

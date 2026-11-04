@@ -48,62 +48,62 @@ SOFTWARE.
 class OOMutableProbabilitySet;
 
 class OOProbabilitySet : public oo::RefCounted {
-public:
-    // The elements are oo::PList values: ship keys are strings; an
-    // Object node (oo::PListObject) carries an object. Two elements
-    // are the same if they are == or are Object nodes holding the same object.
-    // The factories make an immutable set, null where the initialiser fails.
-    static oo::Ref<OOProbabilitySet>
-    probabilitySet(); // the empty set: one shared object
-    static oo::Ref<OOProbabilitySet> probabilitySetWithObjects(
-        const oo::PList* objects, const float* weights, NSUInteger count);
-    static oo::Ref<OOProbabilitySet> probabilitySetWithPropertyListRepresentation(
-        const oo::PList& plist);
+ public:
+  // The elements are oo::PList values: ship keys are strings; an
+  // Object node (oo::PListObject) carries an object. Two elements
+  // are the same if they are == or are Object nodes holding the same object.
+  // The factories make an immutable set, null where the initialiser fails.
+  static oo::Ref<OOProbabilitySet>
+  probabilitySet();  // the empty set: one shared object
+  static oo::Ref<OOProbabilitySet> probabilitySetWithObjects(
+      const oo::PList* objects, const float* weights, NSUInteger count);
+  static oo::Ref<OOProbabilitySet> probabilitySetWithPropertyListRepresentation(
+      const oo::PList& plist);
 
-    // propertyListRepresentation is only valid if objects are property list
-    // objects.
-    virtual oo::PList propertyListRepresentation() = 0;
+  // propertyListRepresentation is only valid if objects are property list
+  // objects.
+  virtual oo::PList propertyListRepresentation() = 0;
 
-    virtual NSUInteger count() = 0;
-    virtual oo::PList randomObject() = 0; // A null PList for none (an empty set,
-                                          // or every weight zero).
+  virtual NSUInteger count() = 0;
+  virtual oo::PList randomObject() = 0;  // A null PList for none (an empty set,
+                                         // or every weight zero).
 
-    virtual float weightForObject(
-        const oo::PList& object) = 0; // Returns -1 for unknown objects.
-    virtual float sumOfWeights() = 0;
-    virtual std::vector<oo::PList>
-    allElements() = 0; // the elements, in the same order (-cxx_allObjects is
-                       // OOWeakSet's family)
+  virtual float weightForObject(
+      const oo::PList& object) = 0;  // Returns -1 for unknown objects.
+  virtual float sumOfWeights() = 0;
+  virtual std::vector<oo::PList>
+  allElements() = 0;  // the elements, in the same order (-cxx_allObjects is
+                      // OOWeakSet's family)
 
-    // (OOExtendedProbabilitySet)
-    bool containsObject(const oo::PList& object);
-    float probabilityForObject(
-        const oo::PList& object); // Returns -1 for unknown objects, or a value
-                                  // from 0 to 1 inclusive for known objects.
+  // (OOExtendedProbabilitySet)
+  bool containsObject(const oo::PList& object);
+  float probabilityForObject(
+      const oo::PList& object);  // Returns -1 for unknown objects, or a value
+                                 // from 0 to 1 inclusive for known objects.
 
-    // -copy (an immutable set) and -mutableCopy.
-    virtual oo::Ref<OOProbabilitySet> copy();
-    virtual oo::Ref<OOMutableProbabilitySet> mutableCopy();
+  // -copy (an immutable set) and -mutableCopy.
+  virtual oo::Ref<OOProbabilitySet> copy();
+  virtual oo::Ref<OOMutableProbabilitySet> mutableCopy();
 
-    // What "%@" printed between the braces of <Class 0x...>{...}
-    // (OODescription.h).
-    std::optional<std::string> descriptionComponents() const;
+  // What "%@" printed between the braces of <Class 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 };
 
 class OOMutableProbabilitySet : public OOProbabilitySet {
-public:
-    // The same factories, for a mutable set (+probabilitySet: a new empty one).
-    static oo::Ref<OOMutableProbabilitySet> probabilitySet();
-    static oo::Ref<OOMutableProbabilitySet> probabilitySetWithObjects(
-        const oo::PList* objects, const float* weights, NSUInteger count);
-    static oo::Ref<OOMutableProbabilitySet>
-    probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
+ public:
+  // The same factories, for a mutable set (+probabilitySet: a new empty one).
+  static oo::Ref<OOMutableProbabilitySet> probabilitySet();
+  static oo::Ref<OOMutableProbabilitySet> probabilitySetWithObjects(
+      const oo::PList* objects, const float* weights, NSUInteger count);
+  static oo::Ref<OOMutableProbabilitySet>
+  probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
-    virtual void setWeight(
-        float weight,
-        const oo::PList&
-            object) = 0; // Adds object if needed; a null object is ignored.
-    virtual void removeObject(const oo::PList& object) = 0;
+  virtual void setWeight(
+      float weight,
+      const oo::PList&
+          object) = 0;  // Adds object if needed; a null object is ignored.
+  virtual void removeObject(const oo::PList& object) = 0;
 
-    oo::Ref<OOProbabilitySet> copy() override;
+  oo::Ref<OOProbabilitySet> copy() override;
 };

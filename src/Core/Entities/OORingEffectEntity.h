@@ -33,24 +33,23 @@ MA 02110-1301, USA.
 #include "Entity.h"
 
 class OORingEffectEntity : public Entity {
-public:
-    // Null for a null source.
-    static oo::Ref<OORingEffectEntity> ringFromEntity(Entity* sourceEntity);
-    static oo::Ref<OORingEffectEntity> shrinkingRingFromEntity(Entity* sourceEntity);
+ public:
+  // Null for a null source.
+  static oo::Ref<OORingEffectEntity> ringFromEntity(Entity* sourceEntity);
+  static oo::Ref<OORingEffectEntity> shrinkingRingFromEntity(
+      Entity* sourceEntity);
 
-    std::optional<std::string> descriptionComponents() const override;
-    void update(OOTimeDelta delta_t) override;
-    void drawImmediate(bool immediate, bool translucent) override;
-    bool isEffect() override;
-    bool canCollide() override;
+  std::optional<std::string> descriptionComponents() const override;
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  bool isEffect() override;
+  bool canCollide() override;
 
-private:
-    static void initialize();
-    bool initRingFromEntity(Entity* sourceEntity);
+ private:
+  static void initialize();
+  bool initRingFromEntity(Entity* sourceEntity);
 
-    GLfloat _timePassed = { };
-    GLfloat _innerRadius = { },
-            _outerRadius = { },
-            _innerGrowthRate = { },
-            _outerGrowthRate = { };
+  GLfloat _timePassed = {};
+  GLfloat _innerRadius = {}, _outerRadius = {}, _innerGrowthRate = {},
+          _outerGrowthRate = {};
 };

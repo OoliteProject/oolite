@@ -32,30 +32,31 @@ MA 02110-1301, USA.
 /*	The ship and the universe call the factories.
  */
 class OOFlashEffectEntity : public OOLightParticleEntity {
-public:
-    // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a
-    // new flash, initialised.
-    static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(
-        Entity* entity); // the C++ entity
-    static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position,
-        Vector vel,
-        OOColor* color);
+ public:
+  // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a
+  // new flash, initialised.
+  static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(
+      Entity* entity);  // the C++ entity
+  static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position,
+                                                             Vector vel,
+                                                             OOColor* color);
 
-    static void setUpTexture();
-    // Called by the texture's file-local graphics reset client.
-    static void resetGraphicsState();
+  static void setUpTexture();
+  // Called by the texture's file-local graphics reset client.
+  static void resetGraphicsState();
 
-    void update(OOTimeDelta delta_t) override;
-    OOTexture* texture() override;
+  void update(OOTimeDelta delta_t) override;
+  OOTexture* texture() override;
 
-private:
-    // The initialisers' bodies, run once right after construction.
-    void initExplosionFlashWithPosition(HPVector pos, Vector vel, float size);
-    void initLaserFlashWithPosition(HPVector pos, Vector vel, OOColor* color);
-    // Designated initializer.
-    void initWithPosition(HPVector pos, float size, OOColor* color, float duration);
+ private:
+  // The initialisers' bodies, run once right after construction.
+  void initExplosionFlashWithPosition(HPVector pos, Vector vel, float size);
+  void initLaserFlashWithPosition(HPVector pos, Vector vel, OOColor* color);
+  // Designated initializer.
+  void initWithPosition(HPVector pos, float size, OOColor* color,
+                        float duration);
 
-    float _duration = { };
-    float _growthRate = { };
-    float _alpha = { };
+  float _duration = {};
+  float _growthRate = {};
+  float _alpha = {};
 };

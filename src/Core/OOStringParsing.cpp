@@ -23,412 +23,386 @@ MA 02110-1301, USA.
 */
 
 #include "OOStringParsing.h"
+
 #include "HeadUpDisplay.h"
 #include "OOFunctionAttributes.h"
+#include "OOJSEngineTimeManagement.h"
+#include "OOJavaScriptEngine.h"
 #include "OOLogging.h"
 #include "PlayerEntity.h"
 #include "PlayerEntityLegacyScriptEngine.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "legacy_random.h"
-
-#include "OOJSEngineTimeManagement.h"
-#include "OOJavaScriptEngine.h"
-
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
 bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
-    Vector* outVector)
-{
-    GLfloat xyz[] = { 0.0, 0.0, 0.0 };
-    int i = 0;
-    const char* error = nullptr;
+                              Vector* outVector) {
+  GLfloat xyz[] = {0.0, 0.0, 0.0};
+  int i = 0;
+  const char* error = nullptr;
 
-    assert(outVector != NULL);
-    if (!xyzString.has_value())
-        return false;
+  assert(outVector != NULL);
+  if (!xyzString.has_value()) return false;
 
-    oo::str::Scanner scanner(*xyzString);
-    while (!scanner.isAtEnd() && i < 3 && !error) {
-        if (!scanner.scanFloat(&xyz[i++]))
-            error = "could not scan a float value.";
-    }
+  oo::str::Scanner scanner(*xyzString);
+  while (!scanner.isAtEnd() && i < 3 && !error) {
+    if (!scanner.scanFloat(&xyz[i++])) error = "could not scan a float value.";
+  }
 
-    if (!error && i < 3)
-        error = "found less than three float values.";
+  if (!error && i < 3) error = "found less than three float values.";
 
-    if (!error) {
-        *outVector = make_vector(xyz[0], xyz[1], xyz[2]);
-        return true;
-    } else {
-        OO_LOG_ERR("strings.conversion.vector", "cannot make vector from '{}': {}", *xyzString, error);
-        return false;
-    }
+  if (!error) {
+    *outVector = make_vector(xyz[0], xyz[1], xyz[2]);
+    return true;
+  } else {
+    OO_LOG_ERR("strings.conversion.vector", "cannot make vector from '{}': {}",
+               *xyzString, error);
+    return false;
+  }
 }
 
 bool cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString,
-    HPVector* outVector)
-{
-    Vector scanVector;
-    assert(outVector != NULL);
-    bool result = cxx_ScanVectorFromString(xyzString, &scanVector);
-    if (!result) {
-        return false;
-    }
-    *outVector = vectorToHPVector(scanVector);
-    return true;
+                                HPVector* outVector) {
+  Vector scanVector;
+  assert(outVector != NULL);
+  bool result = cxx_ScanVectorFromString(xyzString, &scanVector);
+  if (!result) {
+    return false;
+  }
+  *outVector = vectorToHPVector(scanVector);
+  return true;
 }
 
 bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
-    Quaternion* outQuaternion)
-{
-    GLfloat wxyz[] = { 1.0, 0.0, 0.0, 0.0 };
-    int i = 0;
-    const char* error = nullptr;
+                                  Quaternion* outQuaternion) {
+  GLfloat wxyz[] = {1.0, 0.0, 0.0, 0.0};
+  int i = 0;
+  const char* error = nullptr;
 
-    assert(outQuaternion != NULL);
-    if (!wxyzString.has_value())
-        return false;
+  assert(outQuaternion != NULL);
+  if (!wxyzString.has_value()) return false;
 
-    oo::str::Scanner scanner(*wxyzString);
-    while (!scanner.isAtEnd() && i < 4 && !error) {
-        if (!scanner.scanFloat(&wxyz[i++]))
-            error = "could not scan a float value.";
-    }
+  oo::str::Scanner scanner(*wxyzString);
+  while (!scanner.isAtEnd() && i < 4 && !error) {
+    if (!scanner.scanFloat(&wxyz[i++])) error = "could not scan a float value.";
+  }
 
-    if (!error && i < 4)
-        error = "found less than four float values.";
+  if (!error && i < 4) error = "found less than four float values.";
 
-    if (!error) {
-        outQuaternion->w = wxyz[0];
-        outQuaternion->x = wxyz[1];
-        outQuaternion->y = wxyz[2];
-        outQuaternion->z = wxyz[3];
-        quaternion_normalize(outQuaternion);
-        return true;
-    } else {
-        OO_LOG_ERR("strings.conversion.quaternion", "cannot make quaternion from '{}': {}", *wxyzString, error);
-        return false;
-    }
+  if (!error) {
+    outQuaternion->w = wxyz[0];
+    outQuaternion->x = wxyz[1];
+    outQuaternion->y = wxyz[2];
+    outQuaternion->z = wxyz[3];
+    quaternion_normalize(outQuaternion);
+    return true;
+  } else {
+    OO_LOG_ERR("strings.conversion.quaternion",
+               "cannot make quaternion from '{}': {}", *wxyzString, error);
+    return false;
+  }
 }
 
 bool cxx_ScanVectorAndQuaternionFromString(
     const std::optional<std::string>& xyzwxyzString, Vector* outVector,
-    Quaternion* outQuaternion)
-{
-    GLfloat xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 };
-    int i = 0;
-    const char* error = nullptr;
+    Quaternion* outQuaternion) {
+  GLfloat xyzwxyz[] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
+  int i = 0;
+  const char* error = nullptr;
 
-    assert(outVector != NULL && outQuaternion != NULL);
-    if (!xyzwxyzString.has_value())
-        return false;
+  assert(outVector != NULL && outQuaternion != NULL);
+  if (!xyzwxyzString.has_value()) return false;
 
-    oo::str::Scanner scanner(*xyzwxyzString);
-    while (!scanner.isAtEnd() && i < 7 && !error) {
-        if (!scanner.scanFloat(&xyzwxyz[i++]))
-            error = "Could not scan a float value.";
-    }
+  oo::str::Scanner scanner(*xyzwxyzString);
+  while (!scanner.isAtEnd() && i < 7 && !error) {
+    if (!scanner.scanFloat(&xyzwxyz[i++]))
+      error = "Could not scan a float value.";
+  }
 
-    if (!error && i < 7)
-        error = "Found less than seven float values.";
+  if (!error && i < 7) error = "Found less than seven float values.";
 
-    if (error) {
-        OO_LOG_ERR("strings.conversion.quaternion", "cannot make vector and quaternion from '{}': {}", *xyzwxyzString, error);
-        return false;
-    }
+  if (error) {
+    OO_LOG_ERR("strings.conversion.quaternion",
+               "cannot make vector and quaternion from '{}': {}",
+               *xyzwxyzString, error);
+    return false;
+  }
 
-    outVector->x = xyzwxyz[0];
-    outVector->y = xyzwxyz[1];
-    outVector->z = xyzwxyz[2];
-    outQuaternion->w = xyzwxyz[3];
-    outQuaternion->x = xyzwxyz[4];
-    outQuaternion->y = xyzwxyz[5];
-    outQuaternion->z = xyzwxyz[6];
+  outVector->x = xyzwxyz[0];
+  outVector->y = xyzwxyz[1];
+  outVector->z = xyzwxyz[2];
+  outQuaternion->w = xyzwxyz[3];
+  outQuaternion->x = xyzwxyz[4];
+  outQuaternion->y = xyzwxyz[5];
+  outQuaternion->z = xyzwxyz[6];
 
-    return true;
+  return true;
 }
 
-Vector cxx_VectorFromString(const std::optional<std::string>& xyzString, Vector defaultValue)
-{
-    Vector result;
-    if (!cxx_ScanVectorFromString(xyzString, &result))
-        result = defaultValue;
-    return result;
+Vector cxx_VectorFromString(const std::optional<std::string>& xyzString,
+                            Vector defaultValue) {
+  Vector result;
+  if (!cxx_ScanVectorFromString(xyzString, &result)) result = defaultValue;
+  return result;
 }
 
-Quaternion cxx_QuaternionFromString(const std::optional<std::string>& wxyzString, Quaternion defaultValue)
-{
-    Quaternion result;
-    if (!cxx_ScanQuaternionFromString(wxyzString, &result))
-        result = defaultValue;
-    return result;
+Quaternion cxx_QuaternionFromString(
+    const std::optional<std::string>& wxyzString, Quaternion defaultValue) {
+  Quaternion result;
+  if (!cxx_ScanQuaternionFromString(wxyzString, &result)) result = defaultValue;
+  return result;
 }
 
-std::string cxx_StringFromPoint(NSPoint point)
-{
-    return oo::str::format("%f %f", point.x, point.y);
+std::string cxx_StringFromPoint(NSPoint point) {
+  return oo::str::format("%f %f", point.x, point.y);
 }
 
-NSPoint cxx_PointFromString(const std::string& xyString)
-{
-    const std::vector<std::string> tokens = oo::str::tokens(xyString);
-    NSPoint result = NSZeroPoint;
+NSPoint cxx_PointFromString(const std::string& xyString) {
+  const std::vector<std::string> tokens = oo::str::tokens(xyString);
+  NSPoint result = NSZeroPoint;
 
-    if (tokens.size() == 2) {
-        result.x = oo::str::doubleValue(tokens[0]);
-        result.y = oo::str::doubleValue(tokens[1]);
-    }
-    return result;
+  if (tokens.size() == 2) {
+    result.x = oo::str::doubleValue(tokens[0]);
+    result.y = oo::str::doubleValue(tokens[1]);
+  }
+  return result;
 }
 
-Random_Seed cxx_RandomSeedFromString(const std::optional<std::string>& abcdefString)
-{
-    Random_Seed result;
-    int abcdef[] = { 0, 0, 0, 0, 0, 0 };
-    int i = 0;
-    const char* error = nullptr;
-    oo::str::Scanner scanner(abcdefString.value_or("")); // a nil string scans as an empty one
+Random_Seed cxx_RandomSeedFromString(
+    const std::optional<std::string>& abcdefString) {
+  Random_Seed result;
+  int abcdef[] = {0, 0, 0, 0, 0, 0};
+  int i = 0;
+  const char* error = nullptr;
+  oo::str::Scanner scanner(
+      abcdefString.value_or(""));  // a nil string scans as an empty one
 
-    while (!scanner.isAtEnd() && i < 6 && !error) {
-        if (!scanner.scanInt(&abcdef[i++]))
-            error = "could not scan a int value.";
-    }
+  while (!scanner.isAtEnd() && i < 6 && !error) {
+    if (!scanner.scanInt(&abcdef[i++])) error = "could not scan a int value.";
+  }
 
-    if (!error && i < 6)
-        error = "found less than six int values.";
+  if (!error && i < 6) error = "found less than six int values.";
 
-    if (!error) {
-        result.a = abcdef[0];
-        result.b = abcdef[1];
-        result.c = abcdef[2];
-        result.d = abcdef[3];
-        result.e = abcdef[4];
-        result.f = abcdef[5];
-    } else {
-        OO_LOG_ERR("strings.conversion.randomSeed", "cannot make Random_Seed from '{}': {}", abcdefString.value_or("(null)"), error);
-        result = kNilRandomSeed;
-    }
+  if (!error) {
+    result.a = abcdef[0];
+    result.b = abcdef[1];
+    result.c = abcdef[2];
+    result.d = abcdef[3];
+    result.e = abcdef[4];
+    result.f = abcdef[5];
+  } else {
+    OO_LOG_ERR("strings.conversion.randomSeed",
+               "cannot make Random_Seed from '{}': {}",
+               abcdefString.value_or("(null)"), error);
+    result = kNilRandomSeed;
+  }
 
-    return result;
+  return result;
 }
 
-std::string cxx_StringFromRandomSeed(Random_Seed seed)
-{
-    return oo::str::format("%d %d %d %d %d %d", seed.a, seed.b, seed.c, seed.d, seed.e, seed.f);
+std::string cxx_StringFromRandomSeed(Random_Seed seed) {
+  return oo::str::format("%d %d %d %d %d %d", seed.a, seed.b, seed.c, seed.d,
+                         seed.e, seed.f);
 }
 
-std::string cxx_OOPadStringToEms(const std::string& string, float padEms)
-{
-    std::string result = string;
-    float numEms = padEms - cxx_OOStringWidthInEm(result);
-    if (numEms > 0) {
-        numEms /= cxx_OOStringWidthInEm(" "); // start with wide space
-        result = std::string((NSUInteger)numEms, ' ') + result;
-    }
-    // most of the way there, so switch to narrow space
-    numEms = padEms - cxx_OOStringWidthInEm(result);
-    if (numEms > 0) {
-        numEms /= cxx_OOStringWidthInEm("\037"); // 037 is narrow space
-        result = std::string((NSUInteger)numEms, '\037') + result;
-    }
-    return result;
+std::string cxx_OOPadStringToEms(const std::string& string, float padEms) {
+  std::string result = string;
+  float numEms = padEms - cxx_OOStringWidthInEm(result);
+  if (numEms > 0) {
+    numEms /= cxx_OOStringWidthInEm(" ");  // start with wide space
+    result = std::string((NSUInteger)numEms, ' ') + result;
+  }
+  // most of the way there, so switch to narrow space
+  numEms = padEms - cxx_OOStringWidthInEm(result);
+  if (numEms > 0) {
+    numEms /= cxx_OOStringWidthInEm("\037");  // 037 is narrow space
+    result = std::string((NSUInteger)numEms, '\037') + result;
+  }
+  return result;
 }
 
 std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
-    bool includeDecimal,
-    bool includeSymbol)
-{
-    JSContext* context = OOJSAcquireContext();
-    JSValueConst global = OOJavaScriptEngine::sharedEngine()->globalObject();
-    JSValue exception = JS_UNDEFINED;
-    std::optional<std::string> result;
-    bool hadException;
+                                        bool includeDecimal,
+                                        bool includeSymbol) {
+  JSContext* context = OOJSAcquireContext();
+  JSValueConst global = OOJavaScriptEngine::sharedEngine()->globalObject();
+  JSValue exception = JS_UNDEFINED;
+  std::optional<std::string> result;
+  bool hadException;
 
-    /*	Because the |cr etc. formatting operators call this, and the
-            implementation may use string expansion, we need to ensure recursion
-            can't happen.
-    */
-    static bool reentrancyLock;
-    if (reentrancyLock)
-        return oo::str::format("%0.1f", tenthsOfCredits * 0.1);
+  /*	Because the |cr etc. formatting operators call this, and the
+          implementation may use string expansion, we need to ensure recursion
+          can't happen.
+  */
+  static bool reentrancyLock;
+  if (reentrancyLock) return oo::str::format("%0.1f", tenthsOfCredits * 0.1);
 
-    reentrancyLock = true;
+  reentrancyLock = true;
 
-    hadException = JS_HasException(context);
-    if (hadException)
-        exception = JS_GetException(context); // Clears it.
+  hadException = JS_HasException(context);
+  if (hadException) exception = JS_GetException(context);  // Clears it.
 
-    JSValue method = JS_GetProperty(context, global, OOJSID("formatCredits"));
-    if (!JS_IsException(method)) {
-        JSValue args[3] = { JS_NewNumber(context, tenthsOfCredits * 0.1), OOJSValueFromBOOL(includeDecimal), OOJSValueFromBOOL(includeSymbol) };
+  JSValue method = JS_GetProperty(context, global, OOJSID("formatCredits"));
+  if (!JS_IsException(method)) {
+    JSValue args[3] = {JS_NewNumber(context, tenthsOfCredits * 0.1),
+                       OOJSValueFromBOOL(includeDecimal),
+                       OOJSValueFromBOOL(includeSymbol)};
 
-        OOJSStartTimeLimiter();
-        JSValue rval = JS_Call(context, method, global, 3, args);
-        OOJSStopTimeLimiter();
+    OOJSStartTimeLimiter();
+    JSValue rval = JS_Call(context, method, global, 3, args);
+    OOJSStopTimeLimiter();
 
-        if (JS_IsException(rval))
-            OOJSReportPendingException(context);
-        else
-            // nullopt (was nil) for null or undefined
-            result = cxx_OOStringFromJSValue(context, rval);
-        JS_FreeValue(context, rval);
-    } else {
-        OOJSReportPendingException(context);
-    }
-    JS_FreeValue(context, method);
-
-    if (hadException)
-        JS_Throw(context, exception); // Takes ownership.
-
-    OOJSRelinquishContext(context);
-
-    if (EXPECT_NOT(!result.has_value()))
-        result = oo::str::format("%li", (long)(tenthsOfCredits) / 10);
-
-    reentrancyLock = false;
-
-    return *result;
-}
-
-std::vector<unsigned> cxx_ComponentsFromVersionString(const std::string& string)
-{
-    return oo::str::versionComponents(string);
-}
-
-OOComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1, const std::vector<unsigned>& version2)
-{
-    const int order = oo::str::compareVersions(version1, version2);
-    if (order < 0)
-        return OOOrderedAscending;
-    if (order > 0)
-        return OOOrderedDescending;
-    return OOOrderedSame;
-}
-
-std::string cxx_ClockToString(double clock, bool adjusting)
-{
-    int days, hrs, mins, secs;
-    std::string format;
-
-    days = floor(clock / 86400.0);
-    secs = floor(clock - days * 86400.0);
-    hrs = floor(secs / 3600.0);
-    secs %= 3600;
-    mins = floor(secs / 60.0);
-    secs %= 60;
-
-    // DESC() (Universe) is unmigrated: convert at the call. The format is read at run time.
-    if (adjusting)
-        format = OO_DESC("clock-format-adjusting");
+    if (JS_IsException(rval))
+      OOJSReportPendingException(context);
     else
-        format = OO_DESC("clock-format");
+      // nullopt (was nil) for null or undefined
+      result = cxx_OOStringFromJSValue(context, rval);
+    JS_FreeValue(context, rval);
+  } else {
+    OOJSReportPendingException(context);
+  }
+  JS_FreeValue(context, method);
 
-    return oo::str::formatRuntime(format, { days, hrs, mins, secs });
+  if (hadException) JS_Throw(context, exception);  // Takes ownership.
+
+  OOJSRelinquishContext(context);
+
+  if (EXPECT_NOT(!result.has_value()))
+    result = oo::str::format("%li", (long)(tenthsOfCredits) / 10);
+
+  reentrancyLock = false;
+
+  return *result;
+}
+
+std::vector<unsigned> cxx_ComponentsFromVersionString(
+    const std::string& string) {
+  return oo::str::versionComponents(string);
+}
+
+OOComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1,
+                                       const std::vector<unsigned>& version2) {
+  const int order = oo::str::compareVersions(version1, version2);
+  if (order < 0) return OOOrderedAscending;
+  if (order > 0) return OOOrderedDescending;
+  return OOOrderedSame;
+}
+
+std::string cxx_ClockToString(double clock, bool adjusting) {
+  int days, hrs, mins, secs;
+  std::string format;
+
+  days = floor(clock / 86400.0);
+  secs = floor(clock - days * 86400.0);
+  hrs = floor(secs / 3600.0);
+  secs %= 3600;
+  mins = floor(secs / 60.0);
+  secs %= 60;
+
+  // DESC() (Universe) is unmigrated: convert at the call. The format is read at
+  // run time.
+  if (adjusting)
+    format = OO_DESC("clock-format-adjusting");
+  else
+    format = OO_DESC("clock-format");
+
+  return oo::str::formatRuntime(format, {days, hrs, mins, secs});
 }
 
 #if DEBUG_GRAPHVIZ
 
-std::string cxx_EscapedGraphVizString(const std::string& string)
-{
-    const char* const srcStrings[] = {
-        // Note: backslash must be first.
-        "\\", "\"", "\'", "\r", "\n", "\t", nullptr
-    };
-    const char* const subStrings[] = {
-        // Note: must be same order.
-        "\\\\", "\\\"", "\\\'", "\\r", "\\n", "\\t", nullptr
-    };
+std::string cxx_EscapedGraphVizString(const std::string& string) {
+  const char* const srcStrings[] = {
+      // Note: backslash must be first.
+      "\\", "\"", "\'", "\r", "\n", "\t", nullptr};
+  const char* const subStrings[] = {
+      // Note: must be same order.
+      "\\\\", "\\\"", "\\\'", "\\r", "\\n", "\\t", nullptr};
 
-    const char* const* src = srcStrings;
-    const char* const* sub = subStrings;
-    std::string result = string;
+  const char* const* src = srcStrings;
+  const char* const* sub = subStrings;
+  std::string result = string;
 
-    while (*src != nullptr) {
-        // -replaceOccurrencesOfString:withString:options:0 range:(the whole string)
-        result = oo::str::replaceOccurrences(result, *src++, *sub++);
-    }
+  while (*src != nullptr) {
+    // -replaceOccurrencesOfString:withString:options:0 range:(the whole string)
+    result = oo::str::replaceOccurrences(result, *src++, *sub++);
+  }
 
-    return result;
+  return result;
 }
 
 namespace {
 
 // The GraphViz keywords, matched case-insensitively (-lowercaseString).
-constexpr std::string_view kGraphVizKeywords[] = { "node", "edge", "graph", "digraph", "subgraph", "strict" };
+constexpr std::string_view kGraphVizKeywords[] = {
+    "node", "edge", "graph", "digraph", "subgraph", "strict"};
 
 bool NameIsTaken(const std::string& name,
-    const std::set<std::string>* uniqueSet)
-{
-    if (uniqueSet != nullptr && uniqueSet->contains(name))
-        return true;
+                 const std::set<std::string>* uniqueSet) {
+  if (uniqueSet != nullptr && uniqueSet->contains(name)) return true;
 
-    const std::string lowercaseName = oo::str::lowercase(name);
-    for (std::string_view keyword : kGraphVizKeywords) {
-        if (lowercaseName == keyword)
-            return true;
-    }
-    return false;
+  const std::string lowercaseName = oo::str::lowercase(name);
+  for (std::string_view keyword : kGraphVizKeywords) {
+    if (lowercaseName == keyword) return true;
+  }
+  return false;
 }
 
-} // namespace
+}  // namespace
 
-std::string cxx_GraphVizTokenString(const std::string& string, std::set<std::string>* uniqueSet)
-{
-    std::string token;
-    bool lastWasUnderscore = false;
-    // UTF-16 units, as -characterAtIndex: read them
-    const std::u16string units = oo::utf8ToUtf16(string);
-    std::size_t i, length = units.size();
-    std::u16string result;
-    result.reserve(length);
+std::string cxx_GraphVizTokenString(const std::string& string,
+                                    std::set<std::string>* uniqueSet) {
+  std::string token;
+  bool lastWasUnderscore = false;
+  // UTF-16 units, as -characterAtIndex: read them
+  const std::u16string units = oo::utf8ToUtf16(string);
+  std::size_t i, length = units.size();
+  std::u16string result;
+  result.reserve(length);
 
-    if (length > 0) {
-        // Special case for first char - can't be digit.
-        char16_t c = units[0];
-        if (!isalpha(c)) {
-            c = '_';
-            lastWasUnderscore = true;
-        }
-        result.push_back(c);
+  if (length > 0) {
+    // Special case for first char - can't be digit.
+    char16_t c = units[0];
+    if (!isalpha(c)) {
+      c = '_';
+      lastWasUnderscore = true;
+    }
+    result.push_back(c);
 
-        for (i = 1; i < length; i++) {
-            c = units[i];
-            if (!isalnum(c)) {
-                if (lastWasUnderscore)
-                    continue;
-                c = '_';
-                lastWasUnderscore = true;
-            } else {
-                lastWasUnderscore = false;
-            }
+    for (i = 1; i < length; i++) {
+      c = units[i];
+      if (!isalnum(c)) {
+        if (lastWasUnderscore) continue;
+        c = '_';
+        lastWasUnderscore = true;
+      } else {
+        lastWasUnderscore = false;
+      }
 
-            result.push_back(c);
-        }
-
-        token = oo::utf16ToUtf8(result);
-    } else {
-        token = "_";
+      result.push_back(c);
     }
 
-    if (NameIsTaken(token, uniqueSet)) {
-        if (!lastWasUnderscore)
-            token += "_";
-        std::string uniqueToken;
-        unsigned uniqueID = 2;
+    token = oo::utf16ToUtf8(result);
+  } else {
+    token = "_";
+  }
 
-        for (;;) {
-            uniqueToken = oo::str::format("%s%u", token.c_str(), uniqueID);
-            if (!NameIsTaken(uniqueToken, uniqueSet))
-                break;
-        }
-        token = uniqueToken;
+  if (NameIsTaken(token, uniqueSet)) {
+    if (!lastWasUnderscore) token += "_";
+    std::string uniqueToken;
+    unsigned uniqueID = 2;
+
+    for (;;) {
+      uniqueToken = oo::str::format("%s%u", token.c_str(), uniqueID);
+      if (!NameIsTaken(uniqueToken, uniqueSet)) break;
     }
-    if (uniqueSet != nullptr)
-        uniqueSet->insert(token);
+    token = uniqueToken;
+  }
+  if (uniqueSet != nullptr) uniqueSet->insert(token);
 
-    return token;
+  return token;
 }
 
-#endif // DEBUG_GRAPHVIZ
+#endif  // DEBUG_GRAPHVIZ

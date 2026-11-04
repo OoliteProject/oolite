@@ -34,26 +34,26 @@ SOFTWARE.
 class OOColor;
 
 class OOCrosshairs : public oo::RefCounted {
-public:
-    // points: the crosshair definition, a property-list array of 6-number arrays.
-    OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color,
-        GLfloat alpha);
-    ~OOCrosshairs() override;
+ public:
+  // points: the crosshair definition, a property-list array of 6-number arrays.
+  OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color,
+               GLfloat alpha);
+  ~OOCrosshairs() override;
 
-    void render();
+  void render();
 
-private:
-    friend struct OOCrosshairsTestAccess; // tests/unit/core/test_OOCrosshairs.mm
-                                          // reads the vertex buffer
+ private:
+  friend struct OOCrosshairsTestAccess;  // tests/unit/core/test_OOCrosshairs.mm
+                                         // reads the vertex buffer
 
-    void setUpDataWithPoints(const oo::PList& points, GLfloat scale,
-        OOColor* color, GLfloat alpha);
+  void setUpDataWithPoints(const oo::PList& points, GLfloat scale,
+                           OOColor* color, GLfloat alpha);
 
-    // pointInfo: nullptr for an entry that is not an array (as nil was).
-    void setUpDataForOnePoint(const oo::PList* pointInfo, GLfloat scale,
-        float colorComps[4], GLfloat alpha,
-        GLfloat* ioBuffer);
+  // pointInfo: nullptr for an entry that is not an array (as nil was).
+  void setUpDataForOnePoint(const oo::PList* pointInfo, GLfloat scale,
+                            float colorComps[4], GLfloat alpha,
+                            GLfloat* ioBuffer);
 
-    NSUInteger _count = { };
-    GLfloat* _data = { };
+  NSUInteger _count = {};
+  GLfloat* _data = {};
 };

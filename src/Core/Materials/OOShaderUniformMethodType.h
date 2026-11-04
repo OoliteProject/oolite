@@ -39,29 +39,29 @@ SOFTWARE.
 #include "OOMaths.h"
 
 typedef enum {
-    kOOShaderUniformTypeInvalid, // Not valid for bindings or constants
+  kOOShaderUniformTypeInvalid,  // Not valid for bindings or constants
 
-    kOOShaderUniformTypeChar, // Binding only
-    kOOShaderUniformTypeUnsignedChar, // Binding only
-    kOOShaderUniformTypeShort, // Binding only
-    kOOShaderUniformTypeUnsignedShort, // Binding only
-    kOOShaderUniformTypeInt, // Binding or constant
-    kOOShaderUniformTypeUnsignedInt, // Binding only
-    kOOShaderUniformTypeLong, // Binding only
-    kOOShaderUniformTypeUnsignedLong, // Binding only
-    kOOShaderUniformTypeLongLong, // Binding only
-    kOOShaderUniformTypeUnsignedLongLong, // Binding only
-    kOOShaderUniformTypeFloat, // Binding or constant
-    kOOShaderUniformTypeDouble, // Binding only
-    kOOShaderUniformTypeVector, // Binding or constant
-    kOOShaderUniformTypeHPVector, // Binding only
-    kOOShaderUniformTypeQuaternion, // Binding or constant
-    kOOShaderUniformTypeMatrix, // Binding or constant
-    kOOShaderUniformTypePoint, // Binding only
-    kOOShaderUniformTypeColor, // Binding only: the C++ colour (OOColor *)
-    kOOShaderUniformTypeObject, // Binding only
+  kOOShaderUniformTypeChar,              // Binding only
+  kOOShaderUniformTypeUnsignedChar,      // Binding only
+  kOOShaderUniformTypeShort,             // Binding only
+  kOOShaderUniformTypeUnsignedShort,     // Binding only
+  kOOShaderUniformTypeInt,               // Binding or constant
+  kOOShaderUniformTypeUnsignedInt,       // Binding only
+  kOOShaderUniformTypeLong,              // Binding only
+  kOOShaderUniformTypeUnsignedLong,      // Binding only
+  kOOShaderUniformTypeLongLong,          // Binding only
+  kOOShaderUniformTypeUnsignedLongLong,  // Binding only
+  kOOShaderUniformTypeFloat,             // Binding or constant
+  kOOShaderUniformTypeDouble,            // Binding only
+  kOOShaderUniformTypeVector,            // Binding or constant
+  kOOShaderUniformTypeHPVector,          // Binding only
+  kOOShaderUniformTypeQuaternion,        // Binding or constant
+  kOOShaderUniformTypeMatrix,            // Binding or constant
+  kOOShaderUniformTypePoint,             // Binding only
+  kOOShaderUniformTypeColor,   // Binding only: the C++ colour (OOColor *)
+  kOOShaderUniformTypeObject,  // Binding only
 
-    kOOShaderUniformTypeCount // Not valid for bindings or constants
+  kOOShaderUniformTypeCount  // Not valid for bindings or constants
 } OOShaderUniformType;
 
 /*	The uniform type of a return type's encoding (@encode() of the type;
@@ -79,14 +79,14 @@ OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode);
 */
 class OOColor;
 struct OOShaderBindingValue {
-    long long i;
-    double f;
-    Vector v;
-    HPVector hpv;
-    Quaternion q;
-    OOMatrix m;
-    NSPoint p;
-    OOColor* color;
+  long long i;
+  double f;
+  Vector v;
+  HPVector hpv;
+  Quaternion q;
+  OOMatrix m;
+  NSPoint p;
+  OOColor* color;
 };
 
 /*	A row's getter reads the member of the target's C++ object (the rows
@@ -98,13 +98,13 @@ namespace oo {
 class RefCounted;
 }
 typedef void (*OOShaderMemberGetter)(oo::RefCounted* target,
-    OOShaderBindingValue& outValue);
+                                     OOShaderBindingValue& outValue);
 
 struct OOShaderMemberBinding {
-    OOShaderUniformType type;
-    OOShaderMemberGetter get;
-    oo::RefCounted* target; // the C++ object get reads (the entity's part),
-                            // borrowed: the uniform holds it weakly
+  OOShaderUniformType type;
+  OOShaderMemberGetter get;
+  oo::RefCounted* target;  // the C++ object get reads (the entity's part),
+                           // borrowed: the uniform holds it weakly
 };
 
 /*	A material's binding target is the C++ entity. What the uniform and the
@@ -114,22 +114,22 @@ struct OOShaderMemberBinding {
 */
 class Entity;
 struct OOShaderEntityHooks {
-    // -superShaderBindingTarget: the entity a "bind to super" uniform binds to
-    // next, or null.
-    Entity* (*superTarget)(Entity* entity);
-    // What the log lines print for the entity: its class's
-    // name ("Entity"), and its description; "(null)" for an entity without one.
-    std::string (*className)(Entity* entity);
-    std::string (*description)(Entity* entity);
-    // The row of the entities' member table for the name, where it binds this
-    // entity (as the member lookup above).
-    bool (*memberBinding)(Entity* entity, const char* property,
-        OOShaderMemberBinding* outBinding);
-    // -randomSeedForShaders, where the entity's object answers it.
-    bool (*randomSeed)(Entity* entity, uint32_t* outSeed);
+  // -superShaderBindingTarget: the entity a "bind to super" uniform binds to
+  // next, or null.
+  Entity* (*superTarget)(Entity* entity);
+  // What the log lines print for the entity: its class's
+  // name ("Entity"), and its description; "(null)" for an entity without one.
+  std::string (*className)(Entity* entity);
+  std::string (*description)(Entity* entity);
+  // The row of the entities' member table for the name, where it binds this
+  // entity (as the member lookup above).
+  bool (*memberBinding)(Entity* entity, const char* property,
+                        OOShaderMemberBinding* outBinding);
+  // -randomSeedForShaders, where the entity's object answers it.
+  bool (*randomSeed)(Entity* entity, uint32_t* outSeed);
 };
 void OOSetShaderEntityHooks(const OOShaderEntityHooks& hooks) noexcept;
 const OOShaderEntityHooks*
-OOShaderEntityHooksIfSet() noexcept; // null where none is registered
+OOShaderEntityHooksIfSet() noexcept;  // null where none is registered
 
-#endif // OO_SHADERS
+#endif  // OO_SHADERS

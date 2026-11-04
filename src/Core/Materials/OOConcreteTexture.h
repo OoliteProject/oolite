@@ -30,10 +30,9 @@ SOFTWARE.
 
 #pragma once
 
-#include "OOOpenGLExtensionManager.h" // OO_TEXTURE_CUBE_MAP, which the members below test (upstream #748)
+#include "OOOpenGLExtensionManager.h"  // OO_TEXTURE_CUBE_MAP, which the members below test (upstream #748)
 #include "OOTexture.h"
 #include "OOTextureLoader.h"
-
 #include "oofnd/StdLib.hpp"
 
 #define OOTEXTURE_RELOADABLE 1
@@ -45,101 +44,93 @@ SOFTWARE.
    oo::Ref. Callers hold it as an oo::Ref<OOTexture>.
 */
 class OOConcreteTexture : public OOTexture {
-public:
-    /*	Were -initWithLoader:key:options:anisotropy:lodBias: and
-       -initWithPath:..., which answered nil for no loader: null here. The new
-       texture is in the caches.
-    */
-    static oo::Ref<OOConcreteTexture> initWithLoader(OOTextureLoader* loader,
-        const std::optional<std::string>& key,
-        uint32_t options,
-        GLfloat anisotropy,
-        GLfloat lodBias);
+ public:
+  /*	Were -initWithLoader:key:options:anisotropy:lodBias: and
+     -initWithPath:..., which answered nil for no loader: null here. The new
+     texture is in the caches.
+  */
+  static oo::Ref<OOConcreteTexture> initWithLoader(
+      OOTextureLoader* loader, const std::optional<std::string>& key,
+      uint32_t options, GLfloat anisotropy, GLfloat lodBias);
 
-    static oo::Ref<OOConcreteTexture> initWithPath(const std::string& path,
-        const std::optional<std::string>& key,
-        uint32_t options,
-        float anisotropy,
-        GLfloat lodBias);
+  static oo::Ref<OOConcreteTexture> initWithPath(
+      const std::string& path, const std::optional<std::string>& key,
+      uint32_t options, float anisotropy, GLfloat lodBias);
 
-    ~OOConcreteTexture() override;
+  ~OOConcreteTexture() override;
 
-    std::optional<std::string> descriptionComponents() const override;
-    std::optional<std::string> shortDescriptionComponents() const override;
+  std::optional<std::string> descriptionComponents() const override;
+  std::optional<std::string> shortDescriptionComponents() const override;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::optional<std::string> name() override;
+  std::optional<std::string> name() override;
 #endif
 
-    void apply() override;
-    void ensureFinishedLoading() override;
-    bool isFinishedLoading() override;
-    std::optional<std::string> cacheKey() override;
-    NSSize dimensions() override;
-    NSSize originalDimensions() override;
-    bool isMipMapped() override;
-    OOPixMap copyPixMapRepresentation() override;
-    bool isRectangleTexture() override;
-    bool isCubeMap() override;
-    NSSize texCoordsScale() override;
-    GLint glTextureName() override;
-    void forceRebind() override;
+  void apply() override;
+  void ensureFinishedLoading() override;
+  bool isFinishedLoading() override;
+  std::optional<std::string> cacheKey() override;
+  NSSize dimensions() override;
+  NSSize originalDimensions() override;
+  bool isMipMapped() override;
+  OOPixMap copyPixMapRepresentation() override;
+  bool isRectangleTexture() override;
+  bool isCubeMap() override;
+  NSSize texCoordsScale() override;
+  GLint glTextureName() override;
+  void forceRebind() override;
 
-private:
-    // The part of -initWithLoader: that cannot fail; the factory adds the texture to the caches.
-    OOConcreteTexture(OOTextureLoader* loader,
-        const std::optional<std::string>& key,
-        uint32_t options,
-        GLfloat anisotropy,
-        GLfloat lodBias);
+ private:
+  // The part of -initWithLoader: that cannot fail; the factory adds the texture
+  // to the caches.
+  OOConcreteTexture(OOTextureLoader* loader,
+                    const std::optional<std::string>& key, uint32_t options,
+                    GLfloat anisotropy, GLfloat lodBias);
 
-    void setUpTexture();
-    void uploadTexture();
-    void uploadTextureDataWithMipMap(bool mipMap, OOTextureDataFormat format);
+  void setUpTexture();
+  void uploadTexture();
+  void uploadTextureDataWithMipMap(bool mipMap, OOTextureDataFormat format);
 #if OO_TEXTURE_CUBE_MAP
-    void uploadTextureCubeMapDataWithMipMap(bool mipMap, OOTextureDataFormat format);
+  void uploadTextureCubeMapDataWithMipMap(bool mipMap,
+                                          OOTextureDataFormat format);
 #endif
 
-    GLenum glTextureTarget();
-
-#if OOTEXTURE_RELOADABLE
-    bool isReloadable();
-#endif
+  GLenum glTextureTarget();
 
 #if OOTEXTURE_RELOADABLE
-    std::optional<std::string> _path = { };
+  bool isReloadable();
 #endif
-    std::optional<std::string> _key = { };
-    uint8_t _loaded : 1 = 0,
-                      _uploaded : 1 = 0,
+
+#if OOTEXTURE_RELOADABLE
+  std::optional<std::string> _path = {};
+#endif
+  std::optional<std::string> _key = {};
+  uint8_t _loaded : 1 = 0, _uploaded : 1 = 0,
 #if GL_EXT_texture_rectangle
-                      _isRectTexture : 1 = 0,
+                    _isRectTexture : 1 = 0,
 #endif
 #if OO_TEXTURE_CUBE_MAP
-                      _isCubeMap : 1 = 0,
+                    _isCubeMap : 1 = 0,
 #endif
-                      _valid : 1 = 0;
-    uint8_t _mipLevels = { };
+                    _valid : 1 = 0;
+  uint8_t _mipLevels = {};
 
-    oo::Ref<OOTextureLoader> _loader = { };
+  oo::Ref<OOTextureLoader> _loader = {};
 
-    void* _bytes = { };
-    GLuint _textureName = { };
-    uint32_t _width = { },
-             _height = { },
-             _originalWidth = { },
-             _originalHeight = { };
+  void* _bytes = {};
+  GLuint _textureName = {};
+  uint32_t _width = {}, _height = {}, _originalWidth = {}, _originalHeight = {};
 
-    OOTextureDataFormat _format = { };
-    uint32_t _options = { };
+  OOTextureDataFormat _format = {};
+  uint32_t _options = {};
 #if GL_EXT_texture_lod_bias
-    GLfloat _lodBias = { };
+  GLfloat _lodBias = {};
 #endif
 #if GL_EXT_texture_filter_anisotropic
-    float _anisotropy = { };
+  float _anisotropy = {};
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::optional<std::string> _name = { };
+  std::optional<std::string> _name = {};
 #endif
 };

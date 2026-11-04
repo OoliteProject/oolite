@@ -2,12 +2,13 @@
 
 EntityHelpers.h
 
-The questions asked of an entity's object, answered by the C++ entity, and the entity's
-property-list node.
-Imported as the last line of Entity.h; do not import it directly.
+The questions asked of an entity's object, answered by the C++ entity, and the
+entity's property-list node. Imported as the last line of Entity.h; do not
+import it directly.
 
-An entity "has its object" (Entity::hasObject()) from the creator that made it until
-its last release begins. For an entity without one, these answer nil, NO or nothing.
+An entity "has its object" (Entity::hasObject()) from the creator that made it
+until its last release begins. For an entity without one, these answer nil, NO
+or nothing.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -31,16 +32,16 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "Entity.h" // also includes this file at its end; the guard above makes either order work
-#include "EntityPListForeign.h" // the entity's node, and whether it has its object
-#include "OOEntityHold.h"
-#include "oofnd/PList.hpp"
-
 #include <optional>
 #include <string>
 #include <vector>
 
-class OOHUDBeaconIcon; // OOPolygonSprite.h
+#include "Entity.h"  // also includes this file at its end; the guard above makes either order work
+#include "EntityPListForeign.h"  // the entity's node, and whether it has its object
+#include "OOEntityHold.h"
+#include "oofnd/PList.hpp"
+
+class OOHUDBeaconIcon;  // OOPolygonSprite.h
 
 namespace oo {
 
@@ -64,50 +65,47 @@ std::string EntityDescription(Entity* entity);
 // line, which describes itself.
 std::string EntityOwnDescription(Entity* entity);
 
-/*	The size the live-entity memory count and the debug monitor's dump add up
-   for an entity's object: three pointers.
+/*	The size the live-entity memory count and the debug monitor's dump add
+   up for an entity's object: three pointers.
 */
 inline size_t EntityObjectSize(Entity*) { return 3 * sizeof(void*); }
 
-// The live C++ entity a weak reference reads: null once it has gone, and for an entity without its object.
-inline Entity* LiveEntity(const WeakRef<Entity>& ref) { return WithObject(ref.get()); }
+// The live C++ entity a weak reference reads: null once it has gone, and for an
+// entity without its object.
+inline Entity* LiveEntity(const WeakRef<Entity>& ref) {
+  return WithObject(ref.get());
+}
 
 // The entity's owner, null for none or once it has gone (Entity::owner()).
-inline Entity* LiveOwner(Entity* entity)
-{
-    return entity != nullptr ? entity->owner() : nullptr;
+inline Entity* LiveOwner(Entity* entity) {
+  return entity != nullptr ? entity->owner() : nullptr;
 }
 
-// For an initialised entity (PlayerEntity's deferred initialisation): init() runs again over the
-// same entity, which is counted again.
-// Answers the entity.
+// For an initialised entity (PlayerEntity's deferred initialisation): init()
+// runs again over the same entity, which is counted again. Answers the entity.
 Entity* EntityInitAgain(Entity* entity);
 
-// The class name "%@" and the debug dumps print: the C++ class's name ("cxx::" dropped).
+// The class name "%@" and the debug dumps print: the C++ class's name ("cxx::"
+// dropped).
 std::string EntityClassName(Entity* entity);
 
-/*	The ship, sub-entity, player, planet and status questions: the C++ member each
-   forwards to; nil's answer for none.
+/*	The ship, sub-entity, player, planet and status questions: the C++
+   member each forwards to; nil's answer for none.
 */
-inline bool EntityIsShip(Entity* entity)
-{
-    return entity != nullptr && entity->getIsShip();
+inline bool EntityIsShip(Entity* entity) {
+  return entity != nullptr && entity->getIsShip();
 }
-inline bool EntityIsSubEntity(Entity* entity)
-{
-    return entity != nullptr && entity->getIsSubEntity();
+inline bool EntityIsSubEntity(Entity* entity) {
+  return entity != nullptr && entity->getIsSubEntity();
 }
-inline bool EntityIsPlayer(Entity* entity)
-{
-    return entity != nullptr && entity->getIsPlayer();
+inline bool EntityIsPlayer(Entity* entity) {
+  return entity != nullptr && entity->getIsPlayer();
 }
-inline bool EntityIsPlanet(Entity* entity)
-{
-    return entity != nullptr && entity->isPlanet();
+inline bool EntityIsPlanet(Entity* entity) {
+  return entity != nullptr && entity->isPlanet();
 }
-inline OOEntityStatus EntityStatus(Entity* entity)
-{
-    return entity != nullptr ? entity->status() : OOEntityStatus { };
+inline OOEntityStatus EntityStatus(Entity* entity) {
+  return entity != nullptr ? entity->status() : OOEntityStatus{};
 }
 
 // What the category SubEntityRelationship's -isShipWithSubEntityShip: answered:
@@ -119,8 +117,8 @@ bool EntityIsShipWithSubEntityShip(Entity* entity, Entity* other);
 // effect's or waypoint's member, NO for anything else.
 bool EntityIsBeacon(Entity* entity);
 
-/*	The beacon list's links and code: answered with the ship's, the visual effect's or the
-   waypoint's member (asked of those members directly); nil's
+/*	The beacon list's links and code: answered with the ship's, the visual
+   effect's or the waypoint's member (asked of those members directly); nil's
    answer, and nothing, for none, for an entity without its object, and for any
    other entity.
 */
@@ -131,8 +129,8 @@ void SetNextBeacon(Entity* beacon, Entity* other);
 std::optional<std::string> BeaconCode(Entity* beacon);
 void SetBeaconCode(Entity* beacon, const std::optional<std::string>& code);
 OOComparisonResult CompareBeaconCodes(Entity* beacon, Entity* other);
-bool BeaconIsJammingScanning(Entity* beacon); // -isJammingScanning
-OOHUDBeaconIcon* BeaconDrawable(Entity* beacon); // -beaconDrawable
-std::optional<std::string> BeaconLabel(Entity* beacon); // -beaconLabel
+bool BeaconIsJammingScanning(Entity* beacon);            // -isJammingScanning
+OOHUDBeaconIcon* BeaconDrawable(Entity* beacon);         // -beaconDrawable
+std::optional<std::string> BeaconLabel(Entity* beacon);  // -beaconLabel
 
-} // namespace oo
+}  // namespace oo

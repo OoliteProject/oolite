@@ -26,10 +26,12 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <quickjs.h>
+
+#include <vector>
+
 #include "OOEntityHold.h"
 #include "OOFoundation.h"
-#include <quickjs.h>
-#include <vector>
 
 class Entity;
 class OOVisualEffectEntity;
@@ -45,4 +47,5 @@ JSClassID JSVisualEffectClassID(void);
 */
 std::optional<std::string> OOJSVisualEffectJSClassName(void);
 bool OOJSVisualEffectIsVisibleToScripts(void);
-std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect);
+std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(
+    OOVisualEffectEntity* effect);

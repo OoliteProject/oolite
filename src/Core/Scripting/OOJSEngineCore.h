@@ -3,8 +3,8 @@
 OOJSEngineCore.h
 
 The plain C++ part of the JavaScript engine API, split verbatim out of
-OOJavaScriptEngine.h: context acquisition, error reporters, argument helpers, the
-value/PList/string converters, class and converter registration, the time
+OOJavaScriptEngine.h: context acquisition, error reporters, argument helpers,
+the value/PList/string converters, class and converter registration, the time
 limiter, the native wrappers and the OOJS_* property flags and return macros.
 A binding translation unit includes this header instead of OOJavaScriptEngine.h,
 which includes it back. id, Class and BOOL are libobjc2's C types.
@@ -40,16 +40,16 @@ MA 02110-1301, USA.
         either owned (the holder must eventually JS_FreeValue() it, or hand it
         on) or borrowed (JSValueConst; the holder must not free it).
 
-        1. Parameters typed JSValueConst are borrowed. Native callbacks never free
-           their this value or arguments.
+        1. Parameters typed JSValueConst are borrowed. Native callbacks never
+   free their this value or arguments.
         2. JSValues returned from functions, and JSValues stored through out
-           parameters (e.g. VectorToJSValue(context, v, &outValue)), are owned by
-           the caller. This includes -oo_jsValueInContext:,
+           parameters (e.g. VectorToJSValue(context, v, &outValue)), are owned
+   by the caller. This includes -oo_jsValueInContext:,
            OOJSValueFromNativeObject() and OOJSSTR(). On failure the out
            parameter is left as JS_UNDEFINED and need not be freed.
         3. OOJS_RETURN(v) and friends transfer ownership of v to QuickJS.
-        4. A native object that keeps a JSValue (the old JS_Add*Root pattern) owns
-           a reference and must free it when done, and on
+        4. A native object that keeps a JSValue (the old JS_Add*Root pattern)
+   owns a reference and must free it when done, and on
            kOOJavaScriptEngineWillResetNotification. If the JS object can reach
            back to the native object strongly, the reference must also be
            reported from the class gc_mark hook so the cycle collector can see
@@ -88,17 +88,15 @@ MA 02110-1301, USA.
 #define OOJS_COUNT(array) (sizeof(array) / sizeof *(array))
 
 // There is only one context, created on the main thread.
-OOINLINE JSContext* OOJSAcquireContext(void)
-{
-    extern JSContext* gOOJSMainThreadContext;
-    OOCAssert(gOOJSMainThreadContext != NULL, "Attempt to use JavaScript context before JavaScript engine is initialized.");
-    return gOOJSMainThreadContext;
+OOINLINE JSContext* OOJSAcquireContext(void) {
+  extern JSContext* gOOJSMainThreadContext;
+  OOCAssert(gOOJSMainThreadContext != NULL,
+            "Attempt to use JavaScript context before JavaScript engine is "
+            "initialized.");
+  return gOOJSMainThreadContext;
 }
 
-OOINLINE void OOJSRelinquishContext(JSContext* context)
-{
-    (void)context;
-}
+OOINLINE void OOJSRelinquishContext(JSContext* context) { (void)context; }
 
 /*	Engine-neutral names, also defined by the SpiderMonkey header, so code
         outside src/Core/Scripting can be built against either engine.
@@ -106,24 +104,23 @@ OOINLINE void OOJSRelinquishContext(JSContext* context)
 #define OOJSFreeValue(context, value) JS_FreeValue((context), (value))
 #define OOJSUndefinedValue() JS_UNDEFINED
 #define OOJSNullValue() JS_NULL
-OOINLINE bool OOJSValueIsUndefined(JSValueConst value)
-{
-    return JS_IsUndefined(value);
+OOINLINE bool OOJSValueIsUndefined(JSValueConst value) {
+  return JS_IsUndefined(value);
 }
-OOINLINE JSValue OOJSValueFromDouble(JSContext* context, double value)
-{
-    return JS_NewNumber(context, value);
+OOINLINE JSValue OOJSValueFromDouble(JSContext* context, double value) {
+  return JS_NewNumber(context, value);
 }
 // JavaScript truthiness (like JS_ValueToBoolean()); NO if conversion throws.
 bool OOJSValueToBOOL(JSContext* context, JSValueConst value);
 
 /*	OOJSValueToInt32(): replacement for SpiderMonkey's JS_ValueToInt32(),
-        which converted to a number and rounded to nearest, failing with an error
-        if the result was NaN or out of range. (QuickJS's JS_ToInt32() is ECMA
-        ToInt32, which truncates and wraps silently, like JS_ValueToECMAInt32().)
-        On failure an exception is pending.
+        which converted to a number and rounded to nearest, failing with an
+   error if the result was NaN or out of range. (QuickJS's JS_ToInt32() is ECMA
+        ToInt32, which truncates and wraps silently, like
+   JS_ValueToECMAInt32().) On failure an exception is pending.
 */
-bool OOJSValueToInt32(JSContext* context, JSValueConst value, int32_t* outValue);
+bool OOJSValueToInt32(JSContext* context, JSValueConst value,
+                      int32_t* outValue);
 
 /*	Script source wrapping.
 
@@ -172,22 +169,44 @@ extern const char* const kOOJavaScriptEngineDidResetNotificationName;
    with oo::DescriptionOf), formatted by oo::str::vformat. A nullopt function
    means no caller prefix; a nullopt scriptClass prefixes "function: ".
 */
-void cxx_OOJSReportError(JSContext* context, const char* format, ...) OO_PRINTF_FORMAT(2, 3);
-void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va_list args) OO_PRINTF_FORMAT(2, 0);
-void cxx_OOJSReportErrorForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...) OO_PRINTF_FORMAT(4, 5);
+void cxx_OOJSReportError(JSContext* context, const char* format, ...)
+    OO_PRINTF_FORMAT(2, 3);
+void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format,
+                                      va_list args) OO_PRINTF_FORMAT(2, 0);
+void cxx_OOJSReportErrorForCaller(JSContext* context,
+                                  const std::optional<std::string>& scriptClass,
+                                  const std::optional<std::string>& function,
+                                  const char* format, ...)
+    OO_PRINTF_FORMAT(4, 5);
 
-void cxx_OOJSReportWarning(JSContext* context, const char* format, ...) OO_PRINTF_FORMAT(2, 3);
-void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format, va_list args) OO_PRINTF_FORMAT(2, 0);
-void cxx_OOJSReportWarningForCaller(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, const char* format, ...) OO_PRINTF_FORMAT(4, 5);
+void cxx_OOJSReportWarning(JSContext* context, const char* format, ...)
+    OO_PRINTF_FORMAT(2, 3);
+void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format,
+                                        va_list args) OO_PRINTF_FORMAT(2, 0);
+void cxx_OOJSReportWarningForCaller(
+    JSContext* context, const std::optional<std::string>& scriptClass,
+    const std::optional<std::string>& function, const char* format, ...)
+    OO_PRINTF_FORMAT(4, 5);
 
-// Name of the property with the given magic (tinyid) in a property table, for error messages.
-std::string cxx_OOStringFromJSPropertyMagic(int magic, const JSCFunctionListEntry* list, size_t count);
+// Name of the property with the given magic (tinyid) in a property table, for
+// error messages.
+std::string cxx_OOStringFromJSPropertyMagic(int magic,
+                                            const JSCFunctionListEntry* list,
+                                            size_t count);
 
-void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count);
-void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj, int magic, const JSCFunctionListEntry* list, size_t count, JSValueConst value);
+void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj,
+                                   int magic, const JSCFunctionListEntry* list,
+                                   size_t count);
+void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj,
+                                int magic, const JSCFunctionListEntry* list,
+                                size_t count, JSValueConst value);
 // A nullopt message is "Invalid arguments"; a nullopt expectedArgsDescription
 // adds no " -- expected ..." suffix.
-void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, const std::optional<std::string>& message, const std::optional<std::string>& expectedArgsDescription);
+void cxx_OOJSReportBadArguments(
+    JSContext* context, const std::optional<std::string>& scriptClass,
+    const std::optional<std::string>& function, int argc, JSValueConst* argv,
+    const std::optional<std::string>& message,
+    const std::optional<std::string>& expectedArgsDescription);
 
 /*	OOJSNativeFailure()
 
@@ -198,7 +217,8 @@ void cxx_OOJSReportBadArguments(JSContext* context, const std::optional<std::str
                 return OOJSNativeFailure(context);
         which returns the pending exception if there is one, and otherwise
         throws an uncatchable error that is not logged, stopping the script as
-        before. (Directly after cxx_OOJSReportError(), return JS_EXCEPTION is fine.)
+        before. (Directly after cxx_OOJSReportError(), return JS_EXCEPTION is
+   fine.)
 */
 JSValue OOJSNativeFailure(JSContext* context);
 
@@ -209,26 +229,27 @@ JSValue OOJSNativeFailure(JSContext* context);
 */
 void OOJSSetWarningOrErrorStackSkip(unsigned skip);
 
-/*	Get a number from an argument list. NaN is treated as failure, as before.
-        The NoError variant leaves no pending exception.
+/*	Get a number from an argument list. NaN is treated as failure, as
+   before. The NoError variant leaves no pending exception.
 */
-bool cxx_OOJSArgumentListGetNumber(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, double* outNumber, int* outConsumed);
-bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst* argv, double* outNumber, int* outConsumed);
+bool cxx_OOJSArgumentListGetNumber(
+    JSContext* context, const std::optional<std::string>& scriptClass,
+    const std::optional<std::string>& function, int argc, JSValueConst* argv,
+    double* outNumber, int* outConsumed);
+bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc,
+                                      JSValueConst* argv, double* outNumber,
+                                      int* outConsumed);
 
-OOINLINE JSValue OOJSValueFromBOOL(int b)
-{
-    return JS_NewBool(NULL, b != 0);
-}
+OOINLINE JSValue OOJSValueFromBOOL(int b) { return JS_NewBool(NULL, b != 0); }
 
 /*	OOJSValueFromPList()
-        Return the owned JavaScript value representation of a property list, exactly
-   as OOJSValueFromNativeObject(context, oo::ObjectFromPList(plist)) gave it:
-        null for a null PList; a bool as the number 1 or 0;
-   an integer as a number; a real as a double (a
-        single-precision one as the double of its float); a string as a string;
-        data and dates undefined; an array as an Array and a dictionary as an
-        Object (null elements and values dropped, empty keys skipped, key
-   order); a PList::Object node as its C++ object's JS glue.
+        Return the owned JavaScript value representation of a property list,
+   exactly as OOJSValueFromNativeObject(context, oo::ObjectFromPList(plist))
+   gave it: null for a null PList; a bool as the number 1 or 0; an integer as a
+   number; a real as a double (a single-precision one as the double of its
+   float); a string as a string; data and dates undefined; an array as an Array
+   and a dictionary as an Object (null elements and values dropped, empty keys
+   skipped, key order); a PList::Object node as its C++ object's JS glue.
 
         Requires a request on context.
 */
@@ -246,12 +267,15 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist);
 /*	The JS-to-string converters. Each returns std::nullopt where the
         Foundation form it replaces returned nil.
 
-        Convert an arbitrary JS value to a UTF-8 string, calling its toString method
-        if needed. cxx_OOStringFromJSValue() returns nullopt if value is null or
-        undefined, cxx_OOStringFromJSValueEvenIfNull() returns "null" or "undefined".
+        Convert an arbitrary JS value to a UTF-8 string, calling its toString
+   method if needed. cxx_OOStringFromJSValue() returns nullopt if value is null
+   or undefined, cxx_OOStringFromJSValueEvenIfNull() returns "null" or
+   "undefined".
 */
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context, JSValueConst value);
-std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value);
+std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context,
+                                                   JSValueConst value);
+std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(
+    JSContext* context, JSValueConst value);
 
 /*	Describe a value for debugging or error reporting. Strings are quoted,
         escaped and limited in length. Functions are described as "function foo"
@@ -261,7 +285,8 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context,
         "{...}", which may or may not be clearer depending on context. Never
    empty of meaning: the last fallback is "?".
 */
-std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, bool abbreviateObjects);
+std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value,
+                                  bool abbreviateObjects);
 
 // Name of the value's JS class, e.g. "Vector3D", for error messages.
 std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value);
@@ -269,7 +294,8 @@ std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value);
 // Convert a property ID to a UTF-8 string (nullopt if it has no string value).
 std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID);
 
-// Convert a UTF-8 string to a property ID (interned for the life of the process).
+// Convert a UTF-8 string to a property ID (interned for the life of the
+// process).
 JSAtom cxx_OOJSIDFromString(const std::string& string);
 
 /*	The string helpers of the retired string category
@@ -277,19 +303,24 @@ JSAtom cxx_OOJSIDFromString(const std::string& string);
    nullopt where the category method returned nil.
 */
 
-// For diagnostic messages; produces things like "(42, true, "a string", an object description)".
-// nullopt if params is NULL and count is not zero.
-std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(JSValueConst* params, int count, JSContext* context);
+// For diagnostic messages; produces things like "(42, true, "a string", an
+// object description)". nullopt if params is NULL and count is not zero.
+std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(
+    JSValueConst* params, int count, JSContext* context);
 
-// Concatenate sequence of arbitrary JS objects into string (nullopt if count < 1 or values is NULL).
-std::optional<std::string> cxx_OOJSConcatenationOfStringsFromJavaScriptValues(JSValueConst* values, size_t count, const std::string& separator, JSContext* context);
+// Concatenate sequence of arbitrary JS objects into string (nullopt if count <
+// 1 or values is NULL).
+std::optional<std::string> cxx_OOJSConcatenationOfStringsFromJavaScriptValues(
+    JSValueConst* values, size_t count, const std::string& separator,
+    JSContext* context);
 
 // Add escape codes for string so that it's a valid JavaScript literal (if you
 // put "" or '' around it).
 std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string);
 
 // Class IDs of the standard classes, looked up when the engine starts.
-extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJSNumberClassID, gOOJSBooleanClassID;
+extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID,
+    gOOJSNumberClassID, gOOJSBooleanClassID;
 
 /*	cxx_OOJSPListFromJSValue(context, value) /
    cxx_OOJSPListFromJSObject(context, object) The oo::PList form of the
@@ -307,14 +338,12 @@ extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJ
 oo::PList cxx_OOJSPListFromJSValue(JSContext* context, JSValueConst value);
 oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object);
 
-OOINLINE bool OOJSValueIsFunction(JSContext* context, JSValueConst value)
-{
-    return JS_IsFunction(context, value);
+OOINLINE bool OOJSValueIsFunction(JSContext* context, JSValueConst value) {
+  return JS_IsFunction(context, value);
 }
 
-OOINLINE bool OOJSValueIsArray(JSContext* context, JSValueConst value)
-{
-    return JS_IsArray(value);
+OOINLINE bool OOJSValueIsArray(JSContext* context, JSValueConst value) {
+  return JS_IsArray(value);
 }
 
 /*	OOJSDictionaryFromJSValue(context, value)
@@ -332,7 +361,8 @@ OOINLINE bool OOJSValueIsArray(JSContext* context, JSValueConst value)
         plain JS Object.
 */
 oo::PList OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value);
-oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object);
+oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context,
+                                         JSValueConst object);
 
 /*	OOJSDictionaryFromStringTable(context, value)
 
@@ -341,8 +371,8 @@ oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object
         converted to strings. A null PList if the value is null or not an
         object, or cannot be enumerated.
 
-        Only enumerable own (i.e., not inherited) properties with string keys are
-        included.
+        Only enumerable own (i.e., not inherited) properties with string keys
+   are included.
 */
 oo::PList OOJSDictionaryFromStringTable(JSContext* context, JSValueConst value);
 
@@ -353,12 +383,12 @@ oo::PList OOJSDictionaryFromStringTable(JSContext* context, JSValueConst value);
         are created per context by each class's Init function.
 
         Oolite reflects part of its class hierarchy as related JS classes whose
-        prototypes inherit each other. For instance, JS Entity methods work on JS
-        Ships. OOJSRegisterSubclass() records such a relationship, and
+        prototypes inherit each other. For instance, JS Entity methods work on
+   JS Ships. OOJSRegisterSubclass() records such a relationship, and
         OOJSIsSubclass() tests whether putativeSubclass is equal to superclass
         or a registered subclass of it, recursively.
 */
-enum { kOOJSMaxClassID = 1 << 16 }; // QuickJS's limit.
+enum { kOOJSMaxClassID = 1 << 16 };  // QuickJS's limit.
 
 JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef);
 
@@ -368,9 +398,10 @@ const char* OOJSClassName(JSClassID classID);
 
 void OOJSRegisterSubclass(JSClassID subclass, JSClassID superclass);
 bool OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass);
-OOINLINE bool OOJSIsMemberOfSubclass(JSContext* context, JSValueConst object, JSClassID superclass)
-{
-    return JS_IsObject(object) && OOJSIsSubclass(JS_GetClassID(object), superclass);
+OOINLINE bool OOJSIsMemberOfSubclass(JSContext* context, JSValueConst object,
+                                     JSClassID superclass) {
+  return JS_IsObject(object) &&
+         OOJSIsSubclass(JS_GetClassID(object), superclass);
 }
 
 /*	Create the prototype for a class whose instances wrap native objects. As
@@ -387,20 +418,28 @@ OOINLINE bool OOJSIsMemberOfSubclass(JSContext* context, JSValueConst object, JS
         so Object.keys(), hasOwnProperty() and JSON.stringify() saw them; e.g.
         JSON.stringify(new Vector3D(1, 2, 3)) is {"x":1,"y":2,"z":3}. Classes
         registered with OOJSRegisterClass() and no exotic methods of their own
-        reproduce this for the getter/setter properties passed to OOJSInitClass().
-        As in SpiderMonkey, only the object's direct prototype counts: a ship's
-        Ship properties are own properties, its Entity properties are not.
-        Classes with their own exotic methods can call the functions below from
-        theirs to get the same behaviour.
+        reproduce this for the getter/setter properties passed to
+   OOJSInitClass(). As in SpiderMonkey, only the object's direct prototype
+   counts: a ship's Ship properties are own properties, its Entity properties
+   are not. Classes with their own exotic methods can call the functions below
+   from theirs to get the same behaviour.
 */
-int OOJSGetSharedPermanentOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom prop);
-int OOJSGetSharedPermanentOwnPropertyNames(JSContext* context, JSPropertyEnum** ptab, uint32_t* plen, JSValueConst object);
+int OOJSGetSharedPermanentOwnProperty(JSContext* context,
+                                      JSPropertyDescriptor* desc,
+                                      JSValueConst object, JSAtom prop);
+int OOJSGetSharedPermanentOwnPropertyNames(JSContext* context,
+                                           JSPropertyEnum** ptab,
+                                           uint32_t* plen, JSValueConst object);
 
-JSValueConst OOJSInitClass(JSContext* context, JSValueConst global, JSClassID classID, JSValueConst parentPrototype,
-    JSCFunction* constructor, int constructorArgCount,
-    const JSCFunctionListEntry* properties, size_t propertyCount,
-    const JSCFunctionListEntry* methods, size_t methodCount,
-    const JSCFunctionListEntry* staticMethods, size_t staticMethodCount);
+JSValueConst OOJSInitClass(JSContext* context, JSValueConst global,
+                           JSClassID classID, JSValueConst parentPrototype,
+                           JSCFunction* constructor, int constructorArgCount,
+                           const JSCFunctionListEntry* properties,
+                           size_t propertyCount,
+                           const JSCFunctionListEntry* methods,
+                           size_t methodCount,
+                           const JSCFunctionListEntry* staticMethods,
+                           size_t staticMethodCount);
 
 /*	Support for OOJSNativeObjectFromJSValue() family
 
@@ -416,10 +455,13 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global, JSClassID cl
         OOJSRegisterObjectConverter() registers a callback for a specific JS
    class. It is not automatically propagated to subclasses.
 */
-typedef oo::PList (*OOJSClassConverterCallback)(JSContext* context, JSValueConst object);
-oo::PList OOJSBasicPrivateObjectConverter(JSContext* context, JSValueConst object);
+typedef oo::PList (*OOJSClassConverterCallback)(JSContext* context,
+                                                JSValueConst object);
+oo::PList OOJSBasicPrivateObjectConverter(JSContext* context,
+                                          JSValueConst object);
 
-void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback converter);
+void OOJSRegisterObjectConverter(JSClassID classID,
+                                 OOJSClassConverterCallback converter);
 
 // Time limiter. Calls must be balanced, as before; nesting is supported.
 #define kOOJSLongTimeLimit (5.0)
@@ -436,43 +478,44 @@ OOTimeDelta OOJSGetTimeLimiterLimit(void);
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 #endif
 
-/*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
-        This is somewhat useful for putting JavaScript objects in property lists,
-        for instance to pass as properties to script loaders. The value is held
-        (with its own reference) until the OOJSValue is destroyed or the engine
-        is reset. A property list holds it as an Object node: it is its own node's
-        foreign object (OOJSValueObjectNode()).
+/*	OOJSValue: an object whose purpose in life is to hold a JavaScript
+   value. This is somewhat useful for putting JavaScript objects in property
+   lists, for instance to pass as properties to script loaders. The value is
+   held (with its own reference) until the OOJSValue is destroyed or the engine
+        is reset. A property list holds it as an Object node: it is its own
+   node's foreign object (OOJSValueObjectNode()).
 */
 class OOJSValue : public oo::PListForeign {
-public:
-    // context may be NULL (the main thread context is used).
-    static oo::Ref<OOJSValue> valueWithJSValue(JSValueConst value, JSContext* context);
+ public:
+  // context may be NULL (the main thread context is used).
+  static oo::Ref<OOJSValue> valueWithJSValue(JSValueConst value,
+                                             JSContext* context);
 
-    ~OOJSValue();
+  ~OOJSValue();
 
-    // The held value, owned by the caller (a new reference).
-    JSValue jsValueInContext(JSContext* context);
+  // The held value, owned by the caller (a new reference).
+  JSValue jsValueInContext(JSContext* context);
 
-    // oo::PListForeign: the class name, and "%@" as <OOJSValue 0x...>.
-    std::string className() const override;
-    std::string description() const override;
+  // oo::PListForeign: the class name, and "%@" as <OOJSValue 0x...>.
+  std::string className() const override;
+  std::string description() const override;
 
-private:
-    // The initialiser after [super init], which could not fail: run by the factory.
-    void initWithJSValue(JSValueConst value, JSContext* context);
+ private:
+  // The initialiser after [super init], which could not fail: run by the
+  // factory.
+  void initWithJSValue(JSValueConst value, JSContext* context);
 
-    void deleteJSValue();
+  void deleteJSValue();
 
-    JSValue _val = JS_UNDEFINED;
-    const void* _resetSender = { }; // the engine, the sender of its reset notifications, while _val is held
+  JSValue _val = JS_UNDEFINED;
+  const void* _resetSender = {};  // the engine, the sender of its reset
+                                  // notifications, while _val is held
 };
 
 // A held value as a PList::Object node ; null -> null PList.
-inline oo::PList OOJSValueObjectNode(OOJSValue* value)
-{
-    if (value == nullptr)
-        return oo::PList();
-    return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(value)));
+inline oo::PList OOJSValueObjectNode(OOJSValue* value) {
+  if (value == nullptr) return oo::PList();
+  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(value)));
 }
 
 /*	OOJSDumpStack()
@@ -483,8 +526,8 @@ inline oo::PList OOJSValueObjectNode(OOJSValue* value)
 void OOJSDumpStack(JSContext* context);
 #else
 #define OOJSDumpStack(cx) \
-    do {                  \
-    } while (0)
+  do {                    \
+  } while (0)
 #endif
 
 /***** Reusable JS callbacks ****/
@@ -493,13 +536,14 @@ void OOJSDumpStack(JSContext* context);
 
         Constructor callback for pseudo-classes which can't be constructed.
 */
-JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
+JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj,
+                                     int argc, JSValueConst* argv);
 
 /*	OOJSObjectWrapperFinalize
 
         Finalizer for JS classes whose private storage is a retained object
-        reference: OOJSCxxObjectWrapperFinalize() (OOJSPrivateObject.h), since the
-        slot holds only a C++ object.
+        reference: OOJSCxxObjectWrapperFinalize() (OOJSPrivateObject.h), since
+   the slot holds only a C++ object.
 */
 void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
 
@@ -509,7 +553,8 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
         object reference: "[object <JS class name>]" ("[object]" for no class).
         No slot holds an Objective-C object.
 */
-JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
+JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj,
+                                  int argc, JSValueConst* argv);
 
 #include "OOJSEngineNativeWrappers.h"
 
@@ -524,9 +569,11 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
         and switch on magic (the old tinyid). A setter receives its value as
         value and returns JS_UNDEFINED on success.
 */
-#define OOJS_NATIVE_ARGS JSContext *context, JSValueConst oojsThis, int argc, JSValueConst *oojsArgv
+#define OOJS_NATIVE_ARGS \
+  JSContext *context, JSValueConst oojsThis, int argc, JSValueConst *oojsArgv
 #define OOJS_GETTER_ARGS JSContext *context, JSValueConst thisObj, int magic
-#define OOJS_SETTER_ARGS JSContext *context, JSValueConst thisObj, JSValueConst value, int magic
+#define OOJS_SETTER_ARGS \
+  JSContext *context, JSValueConst thisObj, JSValueConst value, int magic
 #define OOJS_THIS oojsThis
 #define OOJS_ARGV oojsArgv
 
@@ -538,9 +585,9 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
 #define OOJS_IS_CONSTRUCTING (!JS_IsUndefined(OOJS_THIS))
 
 #define OOJS_RETURN(v) \
-    do {               \
-        return (v);    \
-    } while (0)
+  do {                 \
+    return (v);        \
+  } while (0)
 #define OOJS_RETURN_VOID OOJS_RETURN(JS_UNDEFINED)
 #define OOJS_RETURN_NULL OOJS_RETURN(JS_NULL)
 #define OOJS_RETURN_BOOL(v) OOJS_RETURN(OOJSValueFromBOOL(v))
@@ -566,30 +613,35 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
         Exemplar: OOJSObjectWrapperToString() in OOJavaScriptEngine.mm.
 */
 #define OOJS_RETURN_PLIST(plist) \
-    OOJS_RETURN(OOJSValueFromPList(context, (plist)))
-#define OOJS_RETURN_STRING_OR_NULL(opt)                                \
-    do {                                                               \
-        const std::optional<std::string>& oojsOptionalString_ = (opt); \
-        OOJS_RETURN_PLIST(oojsOptionalString_.has_value()              \
-                ? oo::PList(*oojsOptionalString_)                      \
-                : oo::PList());                                        \
-    } while (0)
+  OOJS_RETURN(OOJSValueFromPList(context, (plist)))
+#define OOJS_RETURN_STRING_OR_NULL(opt)                            \
+  do {                                                             \
+    const std::optional<std::string>& oojsOptionalString_ = (opt); \
+    OOJS_RETURN_PLIST(oojsOptionalString_.has_value()              \
+                          ? oo::PList(*oojsOptionalString_)        \
+                          : oo::PList());                          \
+  } while (0)
 
-#define OOJS_RETURN_WITH_HELPER(helper, value)    \
-    do {                                          \
-        JSValue oojsRVal;                         \
-        if (!helper(context, (value), &oojsRVal)) \
-            return OOJSNativeFailure(context);    \
-        return oojsRVal;                          \
-    } while (0)
+#define OOJS_RETURN_WITH_HELPER(helper, value) \
+  do {                                         \
+    JSValue oojsRVal;                          \
+    if (!helper(context, (value), &oojsRVal))  \
+      return OOJSNativeFailure(context);       \
+    return oojsRVal;                           \
+  } while (0)
 
-#define OOJS_RETURN_VECTOR(value) OOJS_RETURN_WITH_HELPER(VectorToJSValue, value)
-#define OOJS_RETURN_HPVECTOR(value) OOJS_RETURN_WITH_HELPER(HPVectorToJSValue, value)
-#define OOJS_RETURN_QUATERNION(value) OOJS_RETURN_WITH_HELPER(QuaternionToJSValue, value)
+#define OOJS_RETURN_VECTOR(value) \
+  OOJS_RETURN_WITH_HELPER(VectorToJSValue, value)
+#define OOJS_RETURN_HPVECTOR(value) \
+  OOJS_RETURN_WITH_HELPER(HPVectorToJSValue, value)
+#define OOJS_RETURN_QUATERNION(value) \
+  OOJS_RETURN_WITH_HELPER(QuaternionToJSValue, value)
 
-/***** Property attributes, equivalent to the SpiderMonkey OOJS_PROP_* flags *****/
+/***** Property attributes, equivalent to the SpiderMonkey OOJS_PROP_* flags
+ * *****/
 
-// Callback-based (JS_CGETSET_MAGIC_DEF2). Read-only properties are defined without a setter.
+// Callback-based (JS_CGETSET_MAGIC_DEF2). Read-only properties are defined
+// without a setter.
 #define OOJS_PROP_READWRITE_CB JS_PROP_ENUMERABLE
 #define OOJS_PROP_READONLY_CB JS_PROP_ENUMERABLE
 #define OOJS_PROP_HIDDEN_READWRITE_CB 0
@@ -603,5 +655,7 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
 #define OOJS_METHOD_READONLY OOJS_PROP_HIDDEN_READONLY
 
 // Property definition shorthands for the common cases.
-#define OOJS_PROPERTY_RW(name, getter, setter, magic) JS_CGETSET_MAGIC_DEF2(name, getter, setter, magic, OOJS_PROP_READWRITE_CB)
-#define OOJS_PROPERTY_RO(name, getter, magic) JS_CGETSET_MAGIC_DEF2(name, getter, NULL, magic, OOJS_PROP_READONLY_CB)
+#define OOJS_PROPERTY_RW(name, getter, setter, magic) \
+  JS_CGETSET_MAGIC_DEF2(name, getter, setter, magic, OOJS_PROP_READWRITE_CB)
+#define OOJS_PROPERTY_RO(name, getter, magic) \
+  JS_CGETSET_MAGIC_DEF2(name, getter, NULL, magic, OOJS_PROP_READONLY_CB)

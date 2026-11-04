@@ -30,6 +30,5 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OODescription.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"

@@ -27,13 +27,12 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "ShipEntity.h"
-
 #include "oofnd/StdLib.hpp"
 
 // shiplibrary.plist keys, UTF-8.
 
 static constexpr const char* kOODemoShipKey = "ship";
-static constexpr const char* kOODemoShipName = "name"; // set internally only
+static constexpr const char* kOODemoShipName = "name";  // set internally only
 static constexpr const char* kOODemoShipClass = "class";
 static constexpr const char* kOODemoShipSummary = "summary";
 static constexpr const char* kOODemoShipDescription = "description";

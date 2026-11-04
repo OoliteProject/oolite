@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOOpenGL.h"
-#include "OOPolygonSprite.h" // OOHUDBeaconIcon
+#include "OOPolygonSprite.h"  // OOHUDBeaconIcon
 #include "OOTypes.h"
 #include "ShipEntity.h"
 #include "oofnd/PList.hpp"
@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObject.h"
 
-struct OOHUDWidget; // HeadUpDisplay.mm
+struct OOHUDWidget;  // HeadUpDisplay.mm
 
 class OOColor;
 class OOCrosshairs;
@@ -226,23 +226,23 @@ class OOCrosshairs;
 #define OVERALL_ALPHA_KEY "overall_alpha"
 #define NONLINEAR_SCANNER "nonlinear_scanner"
 
-#define Z1                                                     \
-    (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr \
-            ? UNIVERSE->getGameView()->getDisplay_z()          \
-            : 0.0f)
+#define Z1                                                   \
+  (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr \
+       ? UNIVERSE->getGameView()->getDisplay_z()             \
+       : 0.0f)
 
 #define ONE_EIGHTH 0.125
 
-#define MAX_ACCURACY_RANGE 7000 // 7.000km
+#define MAX_ACCURACY_RANGE 7000  // 7.000km
 #define ACCURACY_PROBABILITY_DECREASE_FACTOR \
-    0.000035f // for every 1000km decrease by 3.5% the chance of high accuracy
+  0.000035f  // for every 1000km decrease by 3.5% the chance of high accuracy
 #define MIN_PROBABILITY_ACCURACY \
-    0.35f // floor value for probability of high accuracy is 35%
+  0.35f  // floor value for probability of high accuracy is 35%
 
 enum {
-    OO_RETICLE_COLOR_TARGET = 0,
-    OO_RETICLE_COLOR_TARGET_SENSITIVE,
-    OO_RETICLE_COLOR_WORMHOLE
+  OO_RETICLE_COLOR_TARGET = 0,
+  OO_RETICLE_COLOR_TARGET_SENSITIVE,
+  OO_RETICLE_COLOR_WORMHOLE
 };
 
 class Entity;
@@ -254,219 +254,221 @@ class GuiDisplayGen;
    get + the name.
 */
 class HeadUpDisplay : public oo::RefCounted {
-public:
-    HeadUpDisplay();
-    ~HeadUpDisplay() override;
+ public:
+  HeadUpDisplay();
+  ~HeadUpDisplay() override;
 
-    // -cxx_initWithDictionary:inFile: (callers make the HUD, then run this).
-    void initWithDictionary(const oo::PList& hudinfo,
-        const std::optional<std::string>& hudFileName);
+  // -cxx_initWithDictionary:inFile: (callers make the HUD, then run this).
+  void initWithDictionary(const oo::PList& hudinfo,
+                          const std::optional<std::string>& hudFileName);
 
-    void resetGuis(const oo::PList& info);
+  void resetGuis(const oo::PList& info);
 
-    std::optional<std::string> getHudName();
-    void setHudName(const std::optional<std::string>&
-            newHudName); // nullopt is ignored, as nil was
+  std::optional<std::string> getHudName();
+  void setHudName(const std::optional<std::string>&
+                      newHudName);  // nullopt is ignored, as nil was
 
-    GLfloat scannerZoom();
-    void setScannerZoom(GLfloat value);
+  GLfloat scannerZoom();
+  void setScannerZoom(GLfloat value);
 
-    GLfloat getOverallAlpha();
-    void setOverallAlpha(GLfloat newAlphaValue);
+  GLfloat getOverallAlpha();
+  void setOverallAlpha(GLfloat newAlphaValue);
 
-    bool getReticleTargetSensitive();
-    void setReticleTargetSensitive(bool newReticleTargetSensitiveValue);
-    oo::PList* getPropertiesReticleTargetSensitive(); // the live dictionary
+  bool getReticleTargetSensitive();
+  void setReticleTargetSensitive(bool newReticleTargetSensitiveValue);
+  oo::PList* getPropertiesReticleTargetSensitive();  // the live dictionary
 
-    bool isHidden();
-    void setHidden(bool newValue);
+  bool isHidden();
+  void setHidden(bool newValue);
 
-    bool getAllowBigGui();
+  bool getAllowBigGui();
 
-    bool hasHidden(const std::optional<std::string>&
-            selectorName); // nullopt (was nil): false
-    void setHiddenSelector(const std::string& selectorName, bool hide);
-    void clearHiddenSelectors();
+  bool hasHidden(const std::optional<std::string>&
+                     selectorName);  // nullopt (was nil): false
+  void setHiddenSelector(const std::string& selectorName, bool hide);
+  void clearHiddenSelectors();
 
-    bool isCompassActive();
-    void setCompassActive(bool newValue);
+  bool isCompassActive();
+  void setCompassActive(bool newValue);
 
-    bool isUpdating();
-    void setDeferredHudName(const std::optional<std::string>& newDeferredHudName);
-    std::optional<std::string> getDeferredHudName();
-    std::optional<std::string> getCrosshairDefinition();
-    bool setCrosshairDefinition(const std::string& newDefinition);
+  bool isUpdating();
+  void setDeferredHudName(const std::optional<std::string>& newDeferredHudName);
+  std::optional<std::string> getDeferredHudName();
+  std::optional<std::string> getCrosshairDefinition();
+  bool setCrosshairDefinition(const std::string& newDefinition);
 
-    // Each takes one hud.plist entry; a null PList where the entry was not a
-    // dictionary.
-    void addLegend(const oo::PList& info);
-    void addDial(const oo::PList& info);
-    void addMFD(const oo::PList& info);
+  // Each takes one hud.plist entry; a null PList where the entry was not a
+  // dictionary.
+  void addLegend(const oo::PList& info);
+  void addDial(const oo::PList& info);
+  void addMFD(const oo::PList& info);
 
-    NSUInteger mfdCount();
+  NSUInteger mfdCount();
 
-    void renderHUD();
+  void renderHUD();
 
-    void refreshLastTransmitter();
+  void refreshLastTransmitter();
 
-    void setLineWidth(GLfloat value);
-    GLfloat getLineWidth();
+  void setLineWidth(GLfloat value);
+  GLfloat getLineWidth();
 
-    bool minimalisticScanner();
-    void setMinimalisticScanner(bool newValue);
+  bool minimalisticScanner();
+  void setMinimalisticScanner(bool newValue);
 
-    static Vector nonlinearScannerScale(Vector V, GLfloat zoom, double scale);
-    bool nonlinearScanner();
-    void setNonlinearScanner(bool newValue);
+  static Vector nonlinearScannerScale(Vector V, GLfloat zoom, double scale);
+  bool nonlinearScanner();
+  void setNonlinearScanner(bool newValue);
 
-    bool scannerUltraZoom();
-    void setScannerUltraZoom(bool newValue);
+  bool scannerUltraZoom();
+  void setScannerUltraZoom(bool newValue);
 
-    oo::Ref<OOColor> reticleColorForIndex(NSUInteger idx);
-    bool setReticleColorForIndex(NSUInteger idx, OOColor* newColor);
+  oo::Ref<OOColor> reticleColorForIndex(NSUInteger idx);
+  bool setReticleColorForIndex(NSUInteger idx, OOColor* newColor);
 
-    bool checkPlayerInFlight();
-    bool checkPlayerInSystemFlight();
+  bool checkPlayerInFlight();
+  bool checkPlayerInSystemFlight();
 
-    // Internal: dials, called by name through the dial table.
-    void drawSurround(const oo::PList& info);
-    void drawGreenSurround(const oo::PList& info);
-    void drawYellowSurround(const oo::PList& info);
-    void drawScanner(const oo::PList& info);
-    void drawScannerZoomIndicator(const oo::PList& info);
-    void drawCompass(const oo::PList& info);
-    void drawAegis(const oo::PList& info);
-    void drawTargetReticle(const oo::PList& info);
-    void drawWaypoints(const oo::PList& info);
-    void drawCustomBar(const oo::PList& info);
-    void drawCustomText(const oo::PList& info);
-    void drawCustomIndicator(const oo::PList& info);
-    void drawCustomLight(const oo::PList& info);
-    void drawCustomImage(const oo::PList& info);
-    void drawSpeedBar(const oo::PList& info);
-    void drawRollBar(const oo::PList& info);
-    void drawPitchBar(const oo::PList& info);
-    void drawYawBar(const oo::PList& info);
-    void drawEnergyGauge(const oo::PList& info);
-    void drawForwardShieldBar(const oo::PList& info);
-    void drawAftShieldBar(const oo::PList& info);
-    void drawFuelBar(const oo::PList& info);
-    void drawWitchspaceDestination(const oo::PList& info);
-    void drawCabinTempBar(const oo::PList& info);
-    void drawWeaponTempBar(const oo::PList& info);
-    void drawAltitudeBar(const oo::PList& info);
-    void drawMissileDisplay(const oo::PList& info);
-    void drawStatusLight(const oo::PList& info);
-    void drawClock(const oo::PList& info);
-    void drawPrimedEquipment(const oo::PList& info);
-    void drawASCTarget(const oo::PList& info);
-    void drawWeaponsOfflineText(const oo::PList& info);
-    void drawFPSInfoCounter(const oo::PList& info);
-    void drawScoopStatus(const oo::PList& info);
-    void drawStickSensitivityIndicator(const oo::PList& info);
-    void drawTrumbles(const oo::PList& info);
+  // Internal: dials, called by name through the dial table.
+  void drawSurround(const oo::PList& info);
+  void drawGreenSurround(const oo::PList& info);
+  void drawYellowSurround(const oo::PList& info);
+  void drawScanner(const oo::PList& info);
+  void drawScannerZoomIndicator(const oo::PList& info);
+  void drawCompass(const oo::PList& info);
+  void drawAegis(const oo::PList& info);
+  void drawTargetReticle(const oo::PList& info);
+  void drawWaypoints(const oo::PList& info);
+  void drawCustomBar(const oo::PList& info);
+  void drawCustomText(const oo::PList& info);
+  void drawCustomIndicator(const oo::PList& info);
+  void drawCustomLight(const oo::PList& info);
+  void drawCustomImage(const oo::PList& info);
+  void drawSpeedBar(const oo::PList& info);
+  void drawRollBar(const oo::PList& info);
+  void drawPitchBar(const oo::PList& info);
+  void drawYawBar(const oo::PList& info);
+  void drawEnergyGauge(const oo::PList& info);
+  void drawForwardShieldBar(const oo::PList& info);
+  void drawAftShieldBar(const oo::PList& info);
+  void drawFuelBar(const oo::PList& info);
+  void drawWitchspaceDestination(const oo::PList& info);
+  void drawCabinTempBar(const oo::PList& info);
+  void drawWeaponTempBar(const oo::PList& info);
+  void drawAltitudeBar(const oo::PList& info);
+  void drawMissileDisplay(const oo::PList& info);
+  void drawStatusLight(const oo::PList& info);
+  void drawClock(const oo::PList& info);
+  void drawPrimedEquipment(const oo::PList& info);
+  void drawASCTarget(const oo::PList& info);
+  void drawWeaponsOfflineText(const oo::PList& info);
+  void drawFPSInfoCounter(const oo::PList& info);
+  void drawScoopStatus(const oo::PList& info);
+  void drawStickSensitivityIndicator(const oo::PList& info);
+  void drawTrumbles(const oo::PList& info);
 
-    // Internal: the state (the old ivars).
-    // Widgets in draw order; were mutable arrays of array tuples.
-    std::vector<OOHUDWidget> legendArray;
-    std::vector<OOHUDWidget> dialArray;
-    std::vector<OOHUDWidget> mfdArray;
+  // Internal: the state (the old ivars).
+  // Widgets in draw order; were mutable arrays of array tuples.
+  std::vector<OOHUDWidget> legendArray;
+  std::vector<OOHUDWidget> dialArray;
+  std::vector<OOHUDWidget> mfdArray;
 
-    // zoom level
-    GLfloat scanner_zoom = { };
+  // zoom level
+  GLfloat scanner_zoom = {};
 
-    // where to draw it
-    GLfloat z1 = { };
-    GLfloat lineWidth = { };
+  // where to draw it
+  GLfloat z1 = {};
+  GLfloat lineWidth = {};
 
-    std::optional<std::string> hudName;
-    std::optional<std::string>
-        deferredHudName; // Usually it will be nullopt. If engaged, then it means
-                         // that we have a deferred HUD waiting to be drawn This
-                         // may happen for example when a script handler attempts
-                         // to switch HUD while it is being rendered. - Nikos
-                         // 20110628
-    bool hudUpdating = { };
+  std::optional<std::string> hudName;
+  std::optional<std::string>
+      deferredHudName;  // Usually it will be nullopt. If engaged, then it means
+                        // that we have a deferred HUD waiting to be drawn This
+                        // may happen for example when a script handler attempts
+                        // to switch HUD while it is being rendered. - Nikos
+                        // 20110628
+  bool hudUpdating = {};
 
-    GLfloat overallAlpha = { };
+  GLfloat overallAlpha = {};
 
-    bool reticleTargetSensitive = { }; // TO DO: Move this into the propertiesReticleTargetSensitive
-                                       // structure (Getafix - 2010/08/21)
-    oo::PList propertiesReticleTargetSensitive; // isAccurate (bool),
-                                                // timeLastAccuracyProbabilityCalculation
-                                                // (double)
+  bool reticleTargetSensitive =
+      {};  // TO DO: Move this into the propertiesReticleTargetSensitive
+           // structure (Getafix - 2010/08/21)
+  oo::PList
+      propertiesReticleTargetSensitive;  // isAccurate (bool),
+                                         // timeLastAccuracyProbabilityCalculation
+                                         // (double)
 
-    bool cloakIndicatorOnStatusLight = { };
+  bool cloakIndicatorOnStatusLight = {};
 
-    bool hudHidden = { };
+  bool hudHidden = {};
 
-    bool allowBigGui = { };
+  bool allowBigGui = {};
 
-    int last_transmitter = { };
+  int last_transmitter = {};
 
-    std::set<std::string> _hiddenSelectors;
+  std::set<std::string> _hiddenSelectors;
 
-    // Crosshairs
-    oo::Ref<OOCrosshairs> _crosshairs;
-    OOWeaponType _lastWeaponType = { };
-    GLfloat _lastOverallAlpha = { };
-    bool _lastWeaponsOnline = { };
-    oo::PList _crosshairOverrides; // null for none
-    oo::Ref<OOColor> _crosshairColor;
-    GLfloat _crosshairScale = { };
-    GLfloat _crosshairWidth = { };
-    std::optional<std::string> crosshairDefinition;
-    bool _compassActive = { };
+  // Crosshairs
+  oo::Ref<OOCrosshairs> _crosshairs;
+  OOWeaponType _lastWeaponType = {};
+  GLfloat _lastOverallAlpha = {};
+  bool _lastWeaponsOnline = {};
+  oo::PList _crosshairOverrides;  // null for none
+  oo::Ref<OOColor> _crosshairColor;
+  GLfloat _crosshairScale = {};
+  GLfloat _crosshairWidth = {};
+  std::optional<std::string> crosshairDefinition;
+  bool _compassActive = {};
 
-    std::vector<oo::Ref<OOColor>> _reticleColors;
+  std::vector<oo::Ref<OOColor>> _reticleColors;
 
-    // essentially scanner without gridlines
-    bool minimalistic_scanner = { };
+  // essentially scanner without gridlines
+  bool minimalistic_scanner = {};
 
-    // Nonlinear scanner
-    bool nonlinear_scanner = { };
-    bool scanner_ultra_zoom = { };
+  // Nonlinear scanner
+  bool nonlinear_scanner = {};
+  bool scanner_ultra_zoom = {};
 
-private:
-    void drawCrosshairs();
-    void drawLegends();
-    void drawDials();
-    void drawMFDs();
+ private:
+  void drawCrosshairs();
+  void drawLegends();
+  void drawDials();
+  void drawMFDs();
 
-    void drawLegend(const oo::PList& info);
-    void drawHUDItem(const oo::PList& info);
+  void drawLegend(const oo::PList& info);
+  void drawHUDItem(const oo::PList& info);
 
-    void drawMultiFunctionDisplay(const oo::PList& info, const std::string& text,
-        NSUInteger index);
+  void drawMultiFunctionDisplay(const oo::PList& info, const std::string& text,
+                                NSUInteger index);
 
-    void drawSurroundInternal(const oo::PList& info, const GLfloat color[4]);
+  void drawSurroundInternal(const oo::PList& info, const GLfloat color[4]);
 
-    void drawCompassPlanetBlipAt(Vector relativePosition, NSSize siz,
-        GLfloat alpha);
-    void drawCompassStationBlipAt(Vector relativePosition, NSSize siz,
-        GLfloat alpha);
-    void drawCompassSunBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
-    void drawCompassTargetBlipAt(Vector relativePosition, NSSize siz,
-        GLfloat alpha);
-    void drawCompassBeaconBlipAt(Vector relativePosition, NSSize siz,
-        GLfloat alpha);
+  void drawCompassPlanetBlipAt(Vector relativePosition, NSSize siz,
+                               GLfloat alpha);
+  void drawCompassStationBlipAt(Vector relativePosition, NSSize siz,
+                                GLfloat alpha);
+  void drawCompassSunBlipAt(Vector relativePosition, NSSize siz, GLfloat alpha);
+  void drawCompassTargetBlipAt(Vector relativePosition, NSSize siz,
+                               GLfloat alpha);
+  void drawCompassBeaconBlipAt(Vector relativePosition, NSSize siz,
+                               GLfloat alpha);
 
-    void drawSecondaryTargetReticle(const oo::PList& info);
+  void drawSecondaryTargetReticle(const oo::PList& info);
 
-    // status: an OOMissileStatus (PlayerEntity.h, which this header does not
-    // import: it would close an import cycle).
-    void drawIconForMissile(::ShipEntity* missile, bool selected, int status,
-        int x, int y, GLfloat width, GLfloat height,
-        GLfloat alpha);
-    void drawIconForEmptyPylonAtX(int x, int y, GLfloat width, GLfloat height,
-        GLfloat alpha);
-    void drawDirectionCue(const oo::PList& info);
+  // status: an OOMissileStatus (PlayerEntity.h, which this header does not
+  // import: it would close an import cycle).
+  void drawIconForMissile(::ShipEntity* missile, bool selected, int status,
+                          int x, int y, GLfloat width, GLfloat height,
+                          GLfloat alpha);
+  void drawIconForEmptyPylonAtX(int x, int y, GLfloat width, GLfloat height,
+                                GLfloat alpha);
+  void drawDirectionCue(const oo::PList& info);
 
-    oo::PList crosshairDefinitionForWeaponType(
-        OOWeaponType weapon); // a null PList for none
+  oo::PList crosshairDefinitionForWeaponType(
+      OOWeaponType weapon);  // a null PList for none
 
-    void resetGui(::GuiDisplayGen* gui, const oo::PList& gui_info);
-    void resetGuiPosition(::GuiDisplayGen* gui, const oo::PList& gui_info);
+  void resetGui(::GuiDisplayGen* gui, const oo::PList& gui_info);
+  void resetGuiPosition(::GuiDisplayGen* gui, const oo::PList& gui_info);
 };
 
 /*	The compass icon of a beacon whose code names no icon: the code's first
@@ -474,24 +476,24 @@ private:
    interface (OOPolygonSprite.h).
 */
 class OOHUDBeaconCodeIcon : public OOHUDBeaconIcon {
-public:
-    explicit OOHUDBeaconCodeIcon(const std::string& text); // -initWithText:
+ public:
+  explicit OOHUDBeaconCodeIcon(const std::string& text);  // -initWithText:
 
-    void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha, GLfloat z)
-        override;
+  void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha,
+                           GLfloat z) override;
 
-private:
-    std::string _text;
+ private:
+  std::string _text;
 };
 
 // Draws the sprite as a beacon icon (the sprite's OOHUDBeaconIcon interface).
 void OOPolygonSpriteDrawHUDBeaconIcon(OOPolygonSprite* sprite, NSPoint where,
-    NSSize size, GLfloat alpha, GLfloat z);
+                                      NSSize size, GLfloat alpha, GLfloat z);
 
 void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z,
-    NSSize siz);
+                      NSSize siz);
 void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz, bool rightAlign);
+                             GLfloat z, NSSize siz, bool rightAlign);
 
 /* cxx_OODrawString(Aligned) handles all the string drawing, but because
  * it does texture application and GL_QUADS beginning once per string
@@ -512,23 +514,23 @@ void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
  */
 void OOStartDrawingStrings(void);
 void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz, bool rightAlign);
+                                  GLfloat z, NSSize siz, bool rightAlign);
 void OOStopDrawingStrings(void);
 
 void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz);
+                               GLfloat z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz);
+                      GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
-    GLfloat z, NSSize siz);
+                               GLfloat z, NSSize siz);
 NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
-    NSSize siz);
+                            NSSize siz);
 
-#include "OOStringWidth.h" // cxx_OOStringWidthInEm()
+#include "OOStringWidth.h"  // cxx_OOStringWidthInEm()
 
 void OOHUDResetTextEngine(void);
 
-#include "WormholeEntity.h" // WORMHOLE_SCANINFO (a send below)
+#include "WormholeEntity.h"  // WORMHOLE_SCANINFO (a send below)
 class OOVisualEffectEntity;
 
 /*	Free functions that forward one call each to other classes' members
@@ -561,15 +563,15 @@ std::optional<std::string> HeadUpDisplayShipScanDescription(ShipEntity* ship);
 bool HeadUpDisplayShipIsCloaked(ShipEntity* ship);
 bool HeadUpDisplayShipIsHostileToPlayer(ShipEntity* ship);
 GLfloat* HeadUpDisplayShipScannerDisplayColor(ShipEntity* ship, bool isHostile,
-    bool flash);
+                                              bool flash);
 GLfloat* HeadUpDisplayVisualEffectScannerDisplayColor(OOVisualEffectEntity* vis,
-    bool flash);
+                                                      bool flash);
 WORMHOLE_SCANINFO HeadUpDisplayWormholeScanInfo(WormholeEntity* wormhole);
 double HeadUpDisplayWormholeEstimatedArrivalTime(WormholeEntity* wormhole);
 double HeadUpDisplayWormholeExpiryTime(WormholeEntity* wormhole);
 OOTimeAbsolute HeadUpDisplayUniverseGetTime();
 const oo::PList*
-HeadUpDisplayUniverseDescriptions(); // MissileIconDefinition()
+HeadUpDisplayUniverseDescriptions();  // MissileIconDefinition()
 OOViewID HeadUpDisplayUniverseViewDirection();
 Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayer();
 Entity* HeadUpDisplayUniverseFirstEntityTargetedByPlayerPrecisely();

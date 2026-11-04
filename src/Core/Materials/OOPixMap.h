@@ -30,46 +30,52 @@ SOFTWARE.
 #pragma once
 
 #include "OOMaths.h"
-
 #include "oofnd/StdLib.hpp"
 
-typedef uint32_t OOPixMapDimension; // Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
+typedef uint32_t OOPixMapDimension;  // Note: dimensions are assumed to be less
+                                     // than 1048576 (2^20) pixels.
 
 #define OORoundUpToPowerOf2_PixMap OORoundUpToPowerOf2_32
 
 typedef enum {
-    kOOPixMapInvalidFormat = 0,
-    kOOPixMapGrayscale = 1,
-    kOOPixMapGrayscaleAlpha = 2,
-    kOOPixMapRGBA = 4
+  kOOPixMapInvalidFormat = 0,
+  kOOPixMapGrayscale = 1,
+  kOOPixMapGrayscaleAlpha = 2,
+  kOOPixMapRGBA = 4
 } OOPixMapFormat;
 
 typedef struct OOPixMap {
-    void* pixels;
-    OOPixMapDimension width, height;
-    OOPixMapFormat format;
-    size_t rowBytes;
-    size_t bufferSize;
+  void* pixels;
+  OOPixMapDimension width, height;
+  OOPixMapFormat format;
+  size_t rowBytes;
+  size_t bufferSize;
 } OOPixMap;
 
 extern const OOPixMap kOONullPixMap;
 
 OOINLINE bool OOIsNullPixMap(OOPixMap pixMap) { return pixMap.pixels == NULL; }
 bool OOIsValidPixMap(OOPixMap pixMap);
-OOINLINE size_t OOMinimumPixMapBufferSize(OOPixMap pixMap) { return pixMap.rowBytes * pixMap.height; }
+OOINLINE size_t OOMinimumPixMapBufferSize(OOPixMap pixMap) {
+  return pixMap.rowBytes * pixMap.height;
+}
 
 /*	OOMakePixMap()
         Stuff an OOPixMap struct. Returns kOONullPixMap if the result would be
-        invalid. If rowBytes or bufferSize are zero, minimum valid values will be
-        used.
+        invalid. If rowBytes or bufferSize are zero, minimum valid values will
+   be used.
 */
-OOPixMap OOMakePixMap(void* pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize);
+OOPixMap OOMakePixMap(void* pixels, OOPixMapDimension width,
+                      OOPixMapDimension height, OOPixMapFormat format,
+                      size_t rowBytes, size_t bufferSize);
 
 /*	OOAllocatePixMap()
-        Create an OOPixMap, allocating storage. If rowBytes or bufferSize are zero,
-        minimum valid values will be used.
+        Create an OOPixMap, allocating storage. If rowBytes or bufferSize are
+   zero, minimum valid values will be used.
 */
-OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize);
+OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
+                          OOPixMapFormat format, size_t rowBytes,
+                          size_t bufferSize);
 
 /*	OOFreePixMap()
         Deallocate a pixmap's buffer (with free()), and clear out the struct.
@@ -79,20 +85,23 @@ void OOFreePixMap(OOPixMap* ioPixMap);
 /*	OODuplicatePixMap()
         Create a pixmap with the same pixel contents as a source pixmap, and
         optional padding. If desiredSize is less than the required space for the
-        pixmap, it will be ignored. The contents of padding bytes are unspecified.
+        pixmap, it will be ignored. The contents of padding bytes are
+   unspecified.
 */
 OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize);
 
 /*	OOResizePixMap()
-        Set the size of a pixmap's buffer. Fails if specified size is smaller than
-        required to fit the current pixels.
+        Set the size of a pixmap's buffer. Fails if specified size is smaller
+   than required to fit the current pixels.
 */
 bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize);
 
 /*	OOCompactPixMap()
         Remove any trailing space in a pixmap's buffer, if possible.
 */
-OOINLINE void OOCompactPixMap(OOPixMap* ioPixMap) { OOResizePixMap(ioPixMap, OOMinimumPixMapBufferSize(*ioPixMap)); }
+OOINLINE void OOCompactPixMap(OOPixMap* ioPixMap) {
+  OOResizePixMap(ioPixMap, OOMinimumPixMapBufferSize(*ioPixMap));
+}
 
 /*	OOExpandPixMap()
         Expand pixmap to at least desiredSize bytes. Returns false on failure.
@@ -103,8 +112,8 @@ bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize);
 void OODumpPixMap(OOPixMap pixMap, const std::string& name);
 #else
 #define OODumpPixMap(p, n) \
-    do {                   \
-    } while (0)
+  do {                     \
+  } while (0)
 #endif
 
 bool OOIsValidPixMapFormat(OOPixMapFormat format);
@@ -112,16 +121,14 @@ bool OOIsValidPixMapFormat(OOPixMapFormat format);
 #ifndef NDEBUG
 unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) PURE_FUNC;
 #else
-OOINLINE unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
-{
-    // Currently, format values are component counts. This is subject to change.
-    return format;
+OOINLINE unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) {
+  // Currently, format values are component counts. This is subject to change.
+  return format;
 }
 #endif
 
-OOINLINE unsigned short OOPixMapBytesPerPixel(OOPixMap pixMap)
-{
-    return OOPixMapBytesPerPixelForFormat(pixMap.format);
+OOINLINE unsigned short OOPixMapBytesPerPixel(OOPixMap pixMap) {
+  return OOPixMapBytesPerPixelForFormat(pixMap.format);
 }
 
 std::string OOPixMapFormatName(OOPixMapFormat format) PURE_FUNC;

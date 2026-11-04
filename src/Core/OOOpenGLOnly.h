@@ -28,14 +28,15 @@ MA 02110-1301, USA.
 #pragma once
 // SDL OpenGL includes...
 
-// GL_GLEXT_PROTOTYPES must be defined for the Linux and macOS builds to use shaders. A .cpp unit
-// that does not include OOFoundation.h has no OOLITE_LINUX, so test the build's LINUX define too.
+// GL_GLEXT_PROTOTYPES must be defined for the Linux and macOS builds to use
+// shaders. A .cpp unit that does not include OOFoundation.h has no
+// OOLITE_LINUX, so test the build's LINUX define too.
 #if OOLITE_LINUX || defined(LINUX) || defined(__APPLE__)
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #define __DEFINED_GL_GLEXT_PROTOTYPES
-#endif // GL_GLEXT_PROTOTYPES
-#endif // OOLITE_LINUX && !OOLITE_WINDOWS
+#endif  // GL_GLEXT_PROTOTYPES
+#endif  // OOLITE_LINUX && !OOLITE_WINDOWS
 
 // the standard SDL_opengl.h
 #include <SDL3/SDL_opengl.h>

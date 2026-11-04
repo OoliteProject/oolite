@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOScriptTimer.h"
+
 #include "OOLogging.h"
 #include "OOPriorityQueue.h"
 #include "Universe.h"
@@ -32,9 +33,8 @@ MA 02110-1301, USA.
 namespace {
 
 // The queue's order.
-OOComparisonResult CompareByNextFireTime(OOScriptTimer* a, OOScriptTimer* b)
-{
-    return a->compareByNextFireTime(b);
+OOComparisonResult CompareByNextFireTime(OOScriptTimer* a, OOScriptTimer* b) {
+  return a->compareByNextFireTime(b);
 }
 
 // The scheduled timers, held.
@@ -44,238 +44,209 @@ OOPriorityQueueOf<OOScriptTimer>* sTimers;
 bool sUpdating;
 std::vector<oo::Ref<OOScriptTimer>>* sDeferredTimers;
 
-} // namespace
+}  // namespace
 
-oo::Ref<OOScriptTimer> OOScriptTimer::timerWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval)
-{
-    oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
-    if (!timer->initWithNextTime(nextTime, interval))
-        return nullptr;
-    return timer;
+oo::Ref<OOScriptTimer> OOScriptTimer::timerWithNextTime(OOTimeAbsolute nextTime,
+                                                        OOTimeDelta interval) {
+  oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+  if (!timer->initWithNextTime(nextTime, interval)) return nullptr;
+  return timer;
 }
 
-oo::Ref<OOScriptTimer> OOScriptTimer::oneShotTimerWithDelay(OOTimeDelta delay)
-{
-    oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
-    if (!timer->initOneShotTimerWithDelay(delay))
-        return nullptr;
-    return timer;
+oo::Ref<OOScriptTimer> OOScriptTimer::oneShotTimerWithDelay(OOTimeDelta delay) {
+  oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+  if (!timer->initOneShotTimerWithDelay(delay)) return nullptr;
+  return timer;
 }
 
-bool OOScriptTimer::initWithNextTime(OOTimeAbsolute nextTime, OOTimeDelta interval)
-{
-    OOTimeAbsolute now;
+bool OOScriptTimer::initWithNextTime(OOTimeAbsolute nextTime,
+                                     OOTimeDelta interval) {
+  OOTimeAbsolute now;
 
-    {
-        if (interval <= 0.0)
-            interval = -1.0;
+  {
+    if (interval <= 0.0) interval = -1.0;
 
-        now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
-        if (nextTime < 0.0)
-            nextTime = now + interval;
-        if (nextTime < now && interval < 0) {
-            // Negative or old nextTime and negative interval = meaningless.
-            return false;
-        } else {
-            _nextTime = nextTime;
-            _interval = interval;
-            _hasBeenRun = false;
-        }
+    now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
+    if (nextTime < 0.0) nextTime = now + interval;
+    if (nextTime < now && interval < 0) {
+      // Negative or old nextTime and negative interval = meaningless.
+      return false;
+    } else {
+      _nextTime = nextTime;
+      _interval = interval;
+      _hasBeenRun = false;
     }
+  }
 
-    return true;
+  return true;
 }
 
 // Sets nextTime to current time + delay.
-bool OOScriptTimer::initOneShotTimerWithDelay(OOTimeDelta delay)
-{
-    return initWithNextTime((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) + delay, -1.0);
+bool OOScriptTimer::initOneShotTimerWithDelay(OOTimeDelta delay) {
+  return initWithNextTime(
+      (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) + delay, -1.0);
 }
 
-OOScriptTimer::~OOScriptTimer()
-{
-    if (_isScheduled)
-        unscheduleTimer();
+OOScriptTimer::~OOScriptTimer() {
+  if (_isScheduled) unscheduleTimer();
 }
 
-std::string OOScriptTimer::description() const
-{
-    return descriptionWithComponents(descriptionComponents());
+std::string OOScriptTimer::description() const {
+  return descriptionWithComponents(descriptionComponents());
 }
 
 // oo::DescriptionWithComponents() of an object
 // of the C++ class's name.
 std::string OOScriptTimer::descriptionWithComponents(
-    const std::optional<std::string>& components) const
-{
-    std::string result = oo::str::format("<%s %s>", className().c_str(), oo::str::pointerDescription(this).c_str());
-    if (components.has_value())
-        result += "{" + *components + "}";
-    return result;
+    const std::optional<std::string>& components) const {
+  std::string result =
+      oo::str::format("<%s %s>", className().c_str(),
+                      oo::str::pointerDescription(this).c_str());
+  if (components.has_value()) result += "{" + *components + "}";
+  return result;
 }
 
-std::optional<std::string> OOScriptTimer::descriptionComponents() const
-{
-    std::string intervalDesc;
+std::optional<std::string> OOScriptTimer::descriptionComponents() const {
+  std::string intervalDesc;
 
-    if (_interval <= 0.0)
-        intervalDesc = "one-shot";
-    else
-        intervalDesc = oo::str::format("interval: %g", _interval);
+  if (_interval <= 0.0)
+    intervalDesc = "one-shot";
+  else
+    intervalDesc = oo::str::format("interval: %g", _interval);
 
-    return oo::str::format("nextTime: %g, %s, %srunning", _nextTime, intervalDesc.c_str(), _isScheduled ? "" : "not ");
+  return oo::str::format("nextTime: %g, %s, %srunning", _nextTime,
+                         intervalDesc.c_str(), _isScheduled ? "" : "not ");
 }
 
-OOTimeAbsolute OOScriptTimer::nextTime()
-{
-    return _nextTime;
+OOTimeAbsolute OOScriptTimer::nextTime() { return _nextTime; }
+
+bool OOScriptTimer::setNextTime(OOTimeAbsolute nextTime) {
+  if (_isScheduled) return false;
+
+  _nextTime = nextTime;
+  return true;
 }
 
-bool OOScriptTimer::setNextTime(OOTimeAbsolute nextTime)
-{
-    if (_isScheduled)
-        return false;
+OOTimeDelta OOScriptTimer::interval() { return _interval; }
 
-    _nextTime = nextTime;
-    return true;
+void OOScriptTimer::setInterval(OOTimeDelta interval) {
+  if (interval <= 0.0) interval = -1.0;
+  _interval = interval;
 }
 
-OOTimeDelta OOScriptTimer::interval()
-{
-    return _interval;
+void OOScriptTimer::timerFired() { OOLogGenericSubclassResponsibility(); }
+
+bool OOScriptTimer::scheduleTimer() {
+  if (_isScheduled) return true;
+  if (!isValidForScheduling()) return false;
+
+  if (EXPECT(!sUpdating)) {
+    if (EXPECT_NOT(sTimers == nullptr))
+      sTimers = new OOPriorityQueueOf<OOScriptTimer>(CompareByNextFireTime);
+    sTimers->addObject(this);  // the queue holds the timer
+  } else {
+    if (sDeferredTimers == NULL)
+      sDeferredTimers = new std::vector<oo::Ref<OOScriptTimer>>;
+    sDeferredTimers->emplace_back(this);
+  }
+
+  _isScheduled = true;
+  return true;
 }
 
-void OOScriptTimer::setInterval(OOTimeDelta interval)
-{
-    if (interval <= 0.0)
-        interval = -1.0;
-    _interval = interval;
+void OOScriptTimer::unscheduleTimer() {
+  // The queue compares pointers, so this is safe from the destructors (a queued
+  // timer is held, so a dying one is not in the queue).
+  if (sTimers != nullptr) sTimers->removeExactObject(this);
+  _isScheduled = false;
+  _hasBeenRun = false;
 }
 
-void OOScriptTimer::timerFired()
-{
-    OOLogGenericSubclassResponsibility();
-}
+bool OOScriptTimer::isScheduled() { return _isScheduled; }
 
-bool OOScriptTimer::scheduleTimer()
-{
-    if (_isScheduled)
-        return true;
-    if (!isValidForScheduling())
-        return false;
+void OOScriptTimer::updateTimers() {
+  OOScriptTimer* next = nullptr;
+  OOTimeAbsolute now;
 
-    if (EXPECT(!sUpdating)) {
-        if (EXPECT_NOT(sTimers == nullptr))
-            sTimers = new OOPriorityQueueOf<OOScriptTimer>(CompareByNextFireTime);
-        sTimers->addObject(this); // the queue holds the timer
-    } else {
-        if (sDeferredTimers == NULL)
-            sDeferredTimers = new std::vector<oo::Ref<OOScriptTimer>>;
-        sDeferredTimers->emplace_back(this);
+  sUpdating = true;
+
+  now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
+  for (;;) {
+    next = (sTimers != nullptr) ? sTimers->peekAtNextObject() : nullptr;
+    if (next == nullptr || now < next->nextTime()) break;
+
+    // Held while it fires and is rescheduled.
+    const oo::Ref<OOScriptTimer> timer = sTimers->removeNextObject();
+
+    // Must fire before rescheduling so that the timer callback can stop itself.
+    // -- Ahruman 2011-01-01
+    timer->timerFired();
+
+    timer->_hasBeenRun = true;
+
+    if (timer->_isScheduled) {
+      timer->_isScheduled = false;
+      timer->scheduleTimer();
     }
+  }
 
-    _isScheduled = true;
-    return true;
+  if (sDeferredTimers != NULL) {
+    for (const auto& deferred : *sDeferredTimers)
+      if (sTimers != nullptr)
+        sTimers->addObject(deferred.get());  // as -addObjects: did, in order
+    delete sDeferredTimers;
+    sDeferredTimers = NULL;
+  }
+
+  sUpdating = false;
 }
 
-void OOScriptTimer::unscheduleTimer()
-{
-    // The queue compares pointers, so this is safe from the destructors (a queued timer is held,
-    // so a dying one is not in the queue).
-    if (sTimers != nullptr)
-        sTimers->removeExactObject(this);
-    _isScheduled = false;
-    _hasBeenRun = false;
+void OOScriptTimer::noteGameReset() {
+  // Intermediate array is required so we don't get stuck in an endless loop
+  // over reinserted timers. Note that -sortedObjects also clears the queue!
+  const std::vector<oo::Ref<OOScriptTimer>> timers =
+      (sTimers != nullptr) ? sTimers->sortedObjects()
+                           : std::vector<oo::Ref<OOScriptTimer>>();
+  for (const auto& timer : timers) {
+    timer->_isScheduled = false;
+  }
 }
 
-bool OOScriptTimer::isScheduled()
-{
-    return _isScheduled;
-}
+bool OOScriptTimer::isValidForScheduling() {
+  OOTimeAbsolute now;
+  double scaled;
 
-void OOScriptTimer::updateTimers()
-{
-    OOScriptTimer* next = nullptr;
-    OOTimeAbsolute now;
+  now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
+  if (_nextTime <= now) {
+    if (_interval <= 0.0 && _hasBeenRun)
+      return false;  // One-shot timer which has expired
 
-    sUpdating = true;
-
-    now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
-    for (;;) {
-        next = (sTimers != nullptr) ? sTimers->peekAtNextObject() : nullptr;
-        if (next == nullptr || now < next->nextTime())
-            break;
-
-        // Held while it fires and is rescheduled.
-        const oo::Ref<OOScriptTimer> timer = sTimers->removeNextObject();
-
-        // Must fire before rescheduling so that the timer callback can stop itself. -- Ahruman 2011-01-01
-        timer->timerFired();
-
-        timer->_hasBeenRun = true;
-
-        if (timer->_isScheduled) {
-            timer->_isScheduled = false;
-            timer->scheduleTimer();
-        }
+    // Move _nextTime to the closest future time that's a multiple of _interval
+    scaled = (now - _nextTime) / _interval;
+    scaled = ceil(scaled);
+    _nextTime += scaled * _interval;
+    if (_nextTime <= now && _hasBeenRun) {
+      // Should only happen if _nextTime is exactly equal to now after previous
+      // stuff
+      _nextTime += _interval;
     }
+  }
 
-    if (sDeferredTimers != NULL) {
-        for (const auto& deferred : *sDeferredTimers)
-            if (sTimers != nullptr)
-                sTimers->addObject(deferred.get()); // as -addObjects: did, in order
-        delete sDeferredTimers;
-        sDeferredTimers = NULL;
-    }
-
-    sUpdating = false;
+  return true;
 }
 
-void OOScriptTimer::noteGameReset()
-{
-    // Intermediate array is required so we don't get stuck in an endless loop over reinserted timers. Note that -sortedObjects also clears the queue!
-    const std::vector<oo::Ref<OOScriptTimer>> timers = (sTimers != nullptr) ? sTimers->sortedObjects() : std::vector<oo::Ref<OOScriptTimer>>();
-    for (const auto& timer : timers) {
-        timer->_isScheduled = false;
-    }
-}
+OOComparisonResult OOScriptTimer::compareByNextFireTime(OOScriptTimer* other) {
+  OOTimeAbsolute otherTime = -INFINITY;
 
-bool OOScriptTimer::isValidForScheduling()
-{
-    OOTimeAbsolute now;
-    double scaled;
+  // The old body read [other nextTime] inside a try block, logging and ignoring
+  // an OOException. It is a plain C++ getter now, which cannot throw, so the
+  // handler is gone.
+  if (other != nullptr) otherTime = other->nextTime();
 
-    now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
-    if (_nextTime <= now) {
-        if (_interval <= 0.0 && _hasBeenRun)
-            return false; // One-shot timer which has expired
-
-        // Move _nextTime to the closest future time that's a multiple of _interval
-        scaled = (now - _nextTime) / _interval;
-        scaled = ceil(scaled);
-        _nextTime += scaled * _interval;
-        if (_nextTime <= now && _hasBeenRun) {
-            // Should only happen if _nextTime is exactly equal to now after previous stuff
-            _nextTime += _interval;
-        }
-    }
-
-    return true;
-}
-
-OOComparisonResult OOScriptTimer::compareByNextFireTime(OOScriptTimer* other)
-{
-    OOTimeAbsolute otherTime = -INFINITY;
-
-    // The old body read [other nextTime] inside a try block, logging and ignoring an OOException. It is a
-    // plain C++ getter now, which cannot throw, so the handler is gone.
-    if (other != nullptr)
-        otherTime = other->nextTime();
-
-    if (_nextTime < otherTime)
-        return OOOrderedAscending;
-    else if (_nextTime > otherTime)
-        return OOOrderedDescending;
-    else
-        return OOOrderedSame;
+  if (_nextTime < otherTime)
+    return OOOrderedAscending;
+  else if (_nextTime > otherTime)
+    return OOOrderedDescending;
+  else
+    return OOOrderedSame;
 }

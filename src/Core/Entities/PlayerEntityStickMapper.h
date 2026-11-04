@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 #include "GuiDisplayGen.h"
 #include "MyOpenGLView.h"
 #include "Universe.h"
-
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 

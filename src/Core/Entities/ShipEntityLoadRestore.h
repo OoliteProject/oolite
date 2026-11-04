@@ -36,12 +36,12 @@ MA 02110-1301, USA.
         pointers, is this struct. Both selectors are unique.
 */
 struct OOShipSaveContext {
-    std::map<OOShipGroup*, unsigned>
-        groupIDs; // not retained, as the pointer-box keys were not
-    unsigned nextGroupID = 0;
-    std::vector<oo::Ref<OOShipGroup>>
-        groups; // keeps the groups alive while they have IDs
-    std::map<NSUInteger, oo::Ref<OOShipGroup>> groupsByID;
+  std::map<OOShipGroup*, unsigned>
+      groupIDs;  // not retained, as the pointer-box keys were not
+  unsigned nextGroupID = 0;
+  std::vector<oo::Ref<OOShipGroup>>
+      groups;  // keeps the groups alive while they have IDs
+  std::map<NSUInteger, oo::Ref<OOShipGroup>> groupsByID;
 };
 
 /*	The ShipEntity (LoadRestore) members are declared in ShipEntity.h and

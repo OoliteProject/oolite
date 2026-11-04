@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "PlayerEntity.h"
-
 #include "oofnd/StdLib.hpp"
 
 /* Weapon identifiers and sound keys are std::strings.

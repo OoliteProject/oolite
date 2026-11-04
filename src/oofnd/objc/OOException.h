@@ -8,4 +8,4 @@
 #pragma once
 
 #include "oofnd/Exception.hpp"
-#include "oofnd/objc/OOObject.h" // what includers of this header have always got with it
+#include "oofnd/objc/OOObject.h"  // what includers of this header have always got with it

@@ -43,31 +43,36 @@ void OOConstToJSStringDestroy(void);
 
 struct ConstTable;
 
-/*	QuickJS has no JSString type, so the SpiderMonkey OOJSStringFromFoo() and
-        OOFooFromJSString() variants are gone; OOJSValueFromFoo() returns an owned
-        string value and OOFooFromJSValue() accepts any value (non-strings give
+/*	QuickJS has no JSString type, so the SpiderMonkey OOJSStringFromFoo()
+   and OOFooFromJSString() variants are gone; OOJSValueFromFoo() returns an
+   owned string value and OOFooFromJSValue() accepts any value (non-strings give
         the default).
 */
 
 // Private functions, don't use directly.
-JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value, struct ConstTable* table);
-NSUInteger OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value, struct ConstTable* table, NSInteger defaultValue);
+JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value,
+                                     struct ConstTable* table);
+NSUInteger OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
+                                        struct ConstTable* table,
+                                        NSInteger defaultValue);
 
 /*	JSValue OOJSValueFromEntityStatus(JSContext *, OOEntityStatus)
         OOEntityStatus OOEntityStatusFromJSValue(JSContext *, JSValueConst)
 
         Convert between JavaScript strings and OOEntityStatus.
 */
-OOINLINE JSValue OOJSValueFromEntityStatus(JSContext* context, OOEntityStatus value)
-{
-    extern struct ConstTable gOOEntityStatusConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOEntityStatusConstTable);
+OOINLINE JSValue OOJSValueFromEntityStatus(JSContext* context,
+                                           OOEntityStatus value) {
+  extern struct ConstTable gOOEntityStatusConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value,
+                                      &gOOEntityStatusConstTable);
 }
 
-OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext* context, JSValueConst value)
-{
-    extern struct ConstTable gOOEntityStatusConstTable;
-    return (OOEntityStatus)OOConstantFromJSValuePRIVATE(context, value, &gOOEntityStatusConstTable, kOOEntityStatusDefault);
+OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext* context,
+                                                  JSValueConst value) {
+  extern struct ConstTable gOOEntityStatusConstTable;
+  return (OOEntityStatus)OOConstantFromJSValuePRIVATE(
+      context, value, &gOOEntityStatusConstTable, kOOEntityStatusDefault);
 }
 
 /*	JSValue OOJSValueFromScanClass(JSContext *, OOScanClass)
@@ -75,16 +80,16 @@ OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext* context, JSValueCon
 
         Convert between JavaScript strings and OOScanClass.
 */
-OOINLINE JSValue OOJSValueFromScanClass(JSContext* context, OOScanClass value)
-{
-    extern struct ConstTable gOOScanClassConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOScanClassConstTable);
+OOINLINE JSValue OOJSValueFromScanClass(JSContext* context, OOScanClass value) {
+  extern struct ConstTable gOOScanClassConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value, &gOOScanClassConstTable);
 }
 
-OOINLINE OOScanClass OOScanClassFromJSValue(JSContext* context, JSValueConst value)
-{
-    extern struct ConstTable gOOScanClassConstTable;
-    return (OOScanClass)OOConstantFromJSValuePRIVATE(context, value, &gOOScanClassConstTable, kOOScanClassDefault);
+OOINLINE OOScanClass OOScanClassFromJSValue(JSContext* context,
+                                            JSValueConst value) {
+  extern struct ConstTable gOOScanClassConstTable;
+  return (OOScanClass)OOConstantFromJSValuePRIVATE(
+      context, value, &gOOScanClassConstTable, kOOScanClassDefault);
 }
 
 /*	JSValue OOJSValueFromCompassMode(JSContext *, OOCompassMode)
@@ -92,16 +97,18 @@ OOINLINE OOScanClass OOScanClassFromJSValue(JSContext* context, JSValueConst val
 
         Convert between JavaScript strings and OOCompassMode.
 */
-OOINLINE JSValue OOJSValueFromCompassMode(JSContext* context, OOCompassMode value)
-{
-    extern struct ConstTable gOOCompassModeConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOCompassModeConstTable);
+OOINLINE JSValue OOJSValueFromCompassMode(JSContext* context,
+                                          OOCompassMode value) {
+  extern struct ConstTable gOOCompassModeConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value,
+                                      &gOOCompassModeConstTable);
 }
 
-OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext* context, JSValueConst value)
-{
-    extern struct ConstTable gOOCompassModeConstTable;
-    return (OOCompassMode)OOConstantFromJSValuePRIVATE(context, value, &gOOCompassModeConstTable, kOOCompassModeDefault);
+OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext* context,
+                                                JSValueConst value) {
+  extern struct ConstTable gOOCompassModeConstTable;
+  return (OOCompassMode)OOConstantFromJSValuePRIVATE(
+      context, value, &gOOCompassModeConstTable, kOOCompassModeDefault);
 }
 
 /*	JSValue OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
@@ -109,33 +116,39 @@ OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext* context, JSValueConst
 
         Convert between JavaScript strings and OOGUIScreenID.
 */
-OOINLINE JSValue OOJSValueFromGUIScreenID(JSContext* context, OOGUIScreenID value)
-{
-    extern struct ConstTable gOOGUIScreenIDConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOGUIScreenIDConstTable);
+OOINLINE JSValue OOJSValueFromGUIScreenID(JSContext* context,
+                                          OOGUIScreenID value) {
+  extern struct ConstTable gOOGUIScreenIDConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value,
+                                      &gOOGUIScreenIDConstTable);
 }
 
-OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext* context, JSValueConst value)
-{
-    extern struct ConstTable gOOGUIScreenIDConstTable;
-    return (OOGUIScreenID)OOConstantFromJSValuePRIVATE(context, value, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
+OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext* context,
+                                                JSValueConst value) {
+  extern struct ConstTable gOOGUIScreenIDConstTable;
+  return (OOGUIScreenID)OOConstantFromJSValuePRIVATE(
+      context, value, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
 }
 
-/*	JSValue OOJSValueFromGalacticHyperspaceBehaviour(JSContext *, OOGalacticHyperspaceBehaviour)
-        OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(JSContext *, JSValueConst)
+/*	JSValue OOJSValueFromGalacticHyperspaceBehaviour(JSContext *,
+   OOGalacticHyperspaceBehaviour) OOGalacticHyperspaceBehaviour
+   OOGalacticHyperspaceBehaviourFromJSValue(JSContext *, JSValueConst)
 
         Convert between JavaScript strings and OOGalacticHyperspaceBehaviour.
 */
-OOINLINE JSValue OOJSValueFromGalacticHyperspaceBehaviour(JSContext* context, OOGalacticHyperspaceBehaviour value)
-{
-    extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable);
+OOINLINE JSValue OOJSValueFromGalacticHyperspaceBehaviour(
+    JSContext* context, OOGalacticHyperspaceBehaviour value) {
+  extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
+  return OOJSValueFromConstantPRIVATE(
+      context, value, &gOOGalacticHyperspaceBehaviourConstTable);
 }
 
-OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(JSContext* context, JSValueConst value)
-{
-    extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
-    return (OOGalacticHyperspaceBehaviour)OOConstantFromJSValuePRIVATE(context, value, &gOOGalacticHyperspaceBehaviourConstTable, kOOGalacticHyperspaceBehaviourDefault);
+OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
+    JSContext* context, JSValueConst value) {
+  extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
+  return (OOGalacticHyperspaceBehaviour)OOConstantFromJSValuePRIVATE(
+      context, value, &gOOGalacticHyperspaceBehaviourConstTable,
+      kOOGalacticHyperspaceBehaviourDefault);
 }
 
 /*	JSValue OOJSValueFromViewID(JSContext *, OOViewID)
@@ -143,34 +156,35 @@ OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
 
         Convert between JavaScript strings and OOViewID.
 */
-OOINLINE JSValue OOJSValueFromViewID(JSContext* context, OOViewID value)
-{
-    extern struct ConstTable gOOViewIDConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOViewIDConstTable);
+OOINLINE JSValue OOJSValueFromViewID(JSContext* context, OOViewID value) {
+  extern struct ConstTable gOOViewIDConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value, &gOOViewIDConstTable);
 }
 
-OOINLINE OOViewID OOViewIDFromJSValue(JSContext* context, JSValueConst value)
-{
-    extern struct ConstTable gOOViewIDConstTable;
-    return (OOViewID)OOConstantFromJSValuePRIVATE(context, value, &gOOViewIDConstTable, kOOViewIDDefault);
+OOINLINE OOViewID OOViewIDFromJSValue(JSContext* context, JSValueConst value) {
+  extern struct ConstTable gOOViewIDConstTable;
+  return (OOViewID)OOConstantFromJSValuePRIVATE(
+      context, value, &gOOViewIDConstTable, kOOViewIDDefault);
 }
 
 /*	JSValue OOJSValueFromShipDamageType(JSContext *, OOShipDamageType)
 
         Convert OOShipDamageType to JavaScript strings.
 */
-OOINLINE JSValue OOJSValueFromShipDamageType(JSContext* context, OOShipDamageType value)
-{
-    extern struct ConstTable gOOShipDamageTypeConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOShipDamageTypeConstTable);
+OOINLINE JSValue OOJSValueFromShipDamageType(JSContext* context,
+                                             OOShipDamageType value) {
+  extern struct ConstTable gOOShipDamageTypeConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value,
+                                      &gOOShipDamageTypeConstTable);
 }
 
 /*	JSValue OOJSValueFromLegalStatusReason(JSContext *, OOLegalStatusReason)
 
         Convert OOLegalStatusReason to JavaScript strings.
 */
-OOINLINE JSValue OOJSValueFromLegalStatusReason(JSContext* context, OOLegalStatusReason value)
-{
-    extern struct ConstTable gOOLegalStatusReasonConstTable;
-    return OOJSValueFromConstantPRIVATE(context, value, &gOOLegalStatusReasonConstTable);
+OOINLINE JSValue OOJSValueFromLegalStatusReason(JSContext* context,
+                                                OOLegalStatusReason value) {
+  extern struct ConstTable gOOLegalStatusReasonConstTable;
+  return OOJSValueFromConstantPRIVATE(context, value,
+                                      &gOOLegalStatusReasonConstTable);
 }
