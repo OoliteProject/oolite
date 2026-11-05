@@ -135,7 +135,7 @@ cd upstream/oolite && ./mk.sh build test
 meson test -C build/meson_test --suite oofnd
 ```
 
-Objective-C++ game code builds as `gnu++20` and sees OOFoundation.h's `#define true 1` / `#define false 0`:
+Objective-C++ game code builds as `c++20` and sees OOFoundation.h's `#define true 1` / `#define false 0`:
 a header that game code includes must suspend them with `#pragma push_macro`/`pop_macro` as
 `Data.hpp` does (ADR-0028; `tests/unit/oofnd/test_cocoa_macros.cpp` checks it).
 
