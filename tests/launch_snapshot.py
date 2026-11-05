@@ -1,11 +1,11 @@
 """Launch Oolite headless, drive it over the debug console, and capture one screenshot.
 
-Everything that used to be a module constant is now an argument or an environment variable, so N
-copies of ``run_test`` can run at once: each picks its own console port and its own artifact
-directory, and nothing is shared between them except the binary. --load hands a saved commander
-to the game's -load argument so a run can start docked instead of on the main-menu demo.
+Everything is an argument or an environment variable, so N copies of ``run_test`` can run at
+once: each picks its own console port and its own artifact directory, and nothing is shared
+between them except the binary. --load hands a saved commander to the game's -load argument so a
+run can start docked instead of on the main-menu demo.
 
-Three things here are not obvious and are the reason the file looks the way it does:
+Three things here are not obvious:
 
 * The PORT is not something this script can simply choose. It is the GAME that dials out to the
   console, and it reads the port from `console-port` in debugConfig.plist (OODebugSupport.m:80,
@@ -14,39 +14,27 @@ Three things here are not obvious and are the reason the file looks the way it d
 
 * Readiness is measured on the GAME's clock, never on this script's. See wait_until_rendering.
 
-* The PREFS ROOT is per-run, by STAGING A PRIVATE oolite.app - not by a lock and not by an
-  environment variable (bug oo-pzc1). ``src/SDL/main.m:119`` does
+* The PREFS ROOT is per-run, by staging a private oolite.app. ``src/SDL/main.m:119`` does
 
       SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir, YES)
 
-  where ``currentWorkingDir`` is the directory holding the EXECUTABLE (QueryFullProcessImageName,
-  main.m:91-95) and the trailing ``YES`` is SDL's *overwrite* flag. So the game OVERWRITES whatever
-  the parent exported: handing each child its own ``GNUSTEP_USERS_ROOT`` in the environment - the
-  first fix anyone reaches for - is inert on Windows, and N instances sharing one oolite.app still
-  race on one ``GNUstep/Defaults/oolite.plist`` (written by ``-exitAppWithContext:``,
-  GameController.m:905-906, as a whole-file read-modify-write, so the last writer wins and the
-  other runs' preferences are silently lost).
+  where ``currentWorkingDir`` is the directory holding the EXECUTABLE and the trailing ``YES`` is
+  SDL's *overwrite* flag. So the game overwrites whatever the parent exported: giving each child
+  its own ``GNUSTEP_USERS_ROOT`` in the environment does nothing on Windows, and instances that
+  share one oolite.app race on one ``GNUstep/Defaults/oolite.plist`` (written by
+  ``-exitAppWithContext:`` as a whole-file read-modify-write, so the last writer wins and the
+  other runs' preferences are lost).
 
-  The only thing the game reads is WHERE ITS OWN BINARY LIVES, so isolation has to be a private
-  directory holding the binary. That is exactly what ``tests/golden/golden_run.py`` does (bug
-  oo-16s) and why it is the desktop-lock exemption: junctions for read-only directories, hard
-  links for files, real copies for the three directories the game WRITES. A lock was the wrong
-  answer here for the same reason it is wrong there - ``run_test`` is the N-concurrent half, and
-  an exclusive mutex inside it would serialise or deadlock the fan-out. The staging code is
-  duplicated rather than imported because this subtree is also pushed to the fork on its own,
-  where ``tests/golden/`` does not exist (same reason ``_desktop_lock_helper`` locates tools/ at
-  runtime).
+  The only thing the game reads is where its own binary lives, so isolation needs a private
+  directory holding the binary. ``stage_app`` builds one: junctions or symlinks for read-only
+  directories, hard links for files, and real copies for the three directories the game writes.
+  A lock would be the wrong tool, because it would serialise the N concurrent runs.
 
-  ``--check-isolation`` and ``--prefs-race`` prove both halves offline, with no built game.
-
-* PATHS FROM THE COMMAND LINE CROSS A BOUNDARY (bug oo-vyey). The repository's shell is MSYS2
-  bash, so the documented way to run this - ``--load "$SAVE"`` with ``$SAVE`` a natural
-  ``/c/Users/...`` path - hands an MSYS path to a NATIVE Windows python. ``os.path.abspath`` then
-  resolves it against the current DRIVE (``/c/Users/x`` becomes ``C:/c/Users/x``, a real directory
-  on this machine, which is how the mistake survives), and the same string would go on to the
-  native game binary's ``-load``. Every path that arrives as an argument is therefore converted at
-  the boundary with ``cygpath -m``, exactly as ``tests/golden/run.sh:124`` and ``tools/gui-lock``
-  do. ``--check-msys-paths`` proves both directions offline.
+* PATHS FROM THE COMMAND LINE CROSS A BOUNDARY on Windows. Under MSYS2 bash, ``--load "$SAVE"``
+  with ``$SAVE`` a natural ``/c/Users/...`` path hands an MSYS path to a NATIVE Windows python.
+  ``os.path.abspath`` then resolves it against the current drive (``/c/Users/x`` becomes
+  ``C:/c/Users/x``), and the same string would go on to the native game binary's ``-load``. Every
+  path that arrives as an argument is therefore converted at the boundary with ``cygpath -m``.
 """
 
 import argparse
@@ -79,15 +67,14 @@ OOLITE_VERSION_KEY = "Oolite version"
 IS_WINDOWS = sys.platform == "win32" or (os.name == "nt")
 
 
-# --- THE MSYS PATH BOUNDARY (bug oo-vyey) ------------------------------------------------------
+# --- THE MSYS PATH BOUNDARY ---------------------------------------------------------------------
 #
-# This script is a NATIVE Windows python invoked from MSYS2 bash, and the two disagree about what
-# a path is. `/c/Users/jon/save.oolite-save` is what the shell means; os.path.abspath resolves it
-# against the CURRENT DRIVE and yields `C:/c/Users/jon/save.oolite-save`, which on this machine is
-# a real directory (C:\c exists), so the mistake does not announce itself - it silently reads the
-# wrong tree, or hands the wrong string to the game's -load. cygpath is the only thing that knows
-# the mapping (it reads /etc/fstab and the MSYS root), so it is what does the conversion, exactly
-# as tests/golden/run.sh:124 and tools/gui-lock:35 already do.
+# This script may be a NATIVE Windows python invoked from MSYS2 bash, and the two disagree about
+# what a path is. `/c/Users/jon/save.oolite-save` is what the shell means; os.path.abspath resolves
+# it against the CURRENT DRIVE and yields `C:/c/Users/jon/save.oolite-save`, which can be a real
+# directory, so the mistake does not announce itself - it silently reads the wrong tree, or hands
+# the wrong string to the game's -load. cygpath is the only thing that knows the mapping (it reads
+# /etc/fstab and the MSYS root), so it does the conversion.
 #
 # Applied ONCE, at the argument boundary, never deeper: a path already in native form is left
 # alone (cygpath -m is idempotent on `C:/...`), and off Windows there is no boundary to cross.
@@ -235,10 +222,10 @@ def run_test(bin_name, test_output):
 
     config_dir = _console_config_dir(host, port)
 
-    # THE PREFS ROOT (bug oo-pzc1). Stage a private oolite.app and run the binary from THERE, so
-    # main.m:119 derives this run's GNUSTEP_USERS_ROOT from a directory nobody else is using. Not
-    # an env var - the game overwrites it (SDL_setenv_unsafe ..., YES) - and not a lock, which
-    # would serialise the N-concurrent fan-out this function exists to support.
+    # THE PREFS ROOT. Stage a private oolite.app and run the binary from THERE, so main.m:119
+    # derives this run's GNUSTEP_USERS_ROOT from a directory nobody else is using. Not an env var -
+    # the game overwrites it (SDL_setenv_unsafe ..., YES) - and not a lock, which would serialise
+    # the concurrent runs this function is meant to support.
     staged_root = tempfile.mkdtemp(prefix=f"oolite-run-{port}-{os.getpid()}-")
     if _bundle_contents(app_dir):
         staged_app = os.path.join(staged_root, "oolite.app", "Contents", BUNDLE_BINARY_DIR)
@@ -270,11 +257,10 @@ def run_test(bin_name, test_output):
         # src/SDL/main.m:167 - the argument after -load is taken as the commander to load, and it
         # must end in .oolite-save for the game to accept it.
         #
-        # Converted HERE too, not only in __main__ (bug oo-vyey): this is the boundary where the
-        # string stops being python's and becomes a NATIVE Windows process's argv, and run_test is
-        # a library function that callers - tests/golden, the component tier - invoke directly
-        # with whatever their own MSYS shell handed them. native_path is a no-op on an
-        # already-native path, so the CLI's conversion is not undone by a second one.
+        # Converted HERE too, not only in __main__: this is where the string stops being python's
+        # and becomes a NATIVE Windows process's argv, and run_test is a library function that
+        # other callers invoke directly with whatever their own MSYS shell handed them.
+        # native_path is a no-op on an already-native path, so converting twice is harmless.
         cmd += ["-load", native_path(load_save)]
 
     print(f"[*] Executing: {' '.join(cmd)}")
@@ -493,7 +479,7 @@ if __name__ == "__main__":
     bin_name = "oolite.exe" if IS_WINDOWS else "oolite"
     original_cwd = os.getcwd()
     # native_path FIRST, then abspath: abspath on an MSYS path silently invents a real-looking
-    # C:/c/... that exists on this machine (bug oo-vyey). The same reasoning applies to --path and
+    # C:/c/... that may exist on this machine. The same reasoning applies to --path and
     # --output, which also arrive from the MSYS shell and also end up in the native game's world
     # (the app dir becomes the staging source and the cwd; the output dir becomes OO_SNAPSHOTSDIR
     # and OO_LOGSDIR, read by the game itself).
