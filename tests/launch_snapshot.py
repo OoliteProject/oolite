@@ -26,6 +26,10 @@ IS_WINDOWS = sys.platform == "win32" or (os.name == "nt")
 PORT = 8563
 HOST = "127.0.0.1"
 MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
+# The macOS CI runner renders with Apple's software renderer and can take
+# 20 seconds or more after startup before the game services the console
+READY_TIMEOUT = 90
+READY_TOKEN = "oolite-test-ready"
 
 
 def send_plist_packet(sock, packet):
@@ -77,6 +81,37 @@ def receive_plist_packet(sock):
         return None
 
 
+def wait_until_ready(sock, timeout):
+    """
+    Sends a harmless command and waits for its result. The game only reads
+    console commands from its main loop, so a reply means it is running.
+    """
+    send_plist_packet(
+        sock, {PACKET_TYPE_KEY: PERFORM_COMMAND, MESSAGE_KEY: f"'{READY_TOKEN}'"}
+    )
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        readable, _, _ = select.select([sock], [], [], 1)
+        if not readable:
+            continue
+        pkt = receive_plist_packet(sock)
+        if pkt is None:
+            return False
+        if (
+            pkt.get(PACKET_TYPE_KEY) == "Console Output"
+            and pkt.get("color key") == "command-result"
+            and pkt.get(MESSAGE_KEY) == READY_TOKEN
+        ):
+            return True
+    return False
+
+
+def sample_process(proc):
+    """Shows where a hung process is stuck (macOS only)."""
+    if sys.platform == "darwin" and proc.poll() is None:
+        subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
+
+
 def run_test(bin_name, test_output):
     # Setup TCP Server
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -125,9 +160,7 @@ def run_test(bin_name, test_output):
 
         if not conn:
             print("[!] Failure: Oolite failed to connect.")
-            if sys.platform == "darwin" and proc.poll() is None:
-                # Show where a hung process is stuck
-                subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
+            sample_process(proc)
             return False
 
         # 2. THE HANDSHAKE
@@ -149,7 +182,15 @@ def run_test(bin_name, test_output):
             print("[!] Handshake failed: Expected 'Request Connection'.")
             return False
 
-        # Allow time for engine state transition
+        # Wait until the game's main loop is servicing the console
+        ready_start = time.time()
+        if not wait_until_ready(conn, READY_TIMEOUT):
+            print(f"[!] Failure: Oolite did not answer the console within {READY_TIMEOUT}s.")
+            sample_process(proc)
+            return False
+        print(f"[*] Oolite ready after {time.time() - ready_start:.1f}s.", flush=True)
+
+        # Allow time for the title screen to render
         time.sleep(5)
 
         # 3. THE COMMAND
@@ -186,6 +227,7 @@ def run_test(bin_name, test_output):
 
         except subprocess.TimeoutExpired:
             print("[!] Error: Oolite ignored the shutdown command.")
+            sample_process(proc)
             return False
 
     finally:
