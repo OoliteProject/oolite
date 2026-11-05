@@ -223,8 +223,10 @@ bool OOJSScript::initWithPath(const std::optional<std::string>& path,
     if (!problem.has_value()) {
       OO_LOG("script.javaScript.willLoad", "About to load JavaScript {}",
              path.value_or("(null)"));
-      oo::log::indentIf("script.javaScript.willLoad");
+    }
+    oo::log::indentIf("script.javaScript.willLoad");
 
+    if (!problem.has_value()) {
       if (!RunScriptWithName(context, path, _jsSelf, &problem)) {
         if (!problem.has_value()) problem = "could not run script";
       }

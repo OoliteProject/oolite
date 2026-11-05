@@ -767,6 +767,10 @@ static std::optional<std::string> StackOfValue(JSContext* context,
                                                JSValueConst value) {
   if (!JS_IsObject(value)) return std::nullopt;
   JSValue stack = JS_GetPropertyStr(context, value, "stack");
+  if (JS_IsException(stack)) {
+    JS_FreeValue(context, JS_GetException(context));
+    return std::nullopt;
+  }
   std::optional<std::string> result = cxx_OOStringFromJSValue(context, stack);
   JS_FreeValue(context, stack);
   return result;
@@ -836,7 +840,11 @@ void OOJSReportPendingException(JSContext* context) {
   std::string errorName = "exception";
   if (JS_IsError(exception)) {
     JSValue name = JS_GetPropertyStr(context, exception, "name");
-    errorName = cxx_OOStringFromJSValue(context, name).value_or(errorName);
+    if (JS_IsException(name)) {
+      JS_FreeValue(context, JS_GetException(context));
+    } else {
+      errorName = cxx_OOStringFromJSValue(context, name).value_or(errorName);
+    }
     JS_FreeValue(context, name);
   }
 
@@ -1325,8 +1333,16 @@ std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value) {
   if (registered != NULL) return registered;
 
   JSValue ctor = JS_GetPropertyStr(context, value, "constructor");
+  if (JS_IsException(ctor)) {
+    JS_FreeValue(context, JS_GetException(context));
+    ctor = JS_UNDEFINED;
+  }
   JSValue name = JS_IsObject(ctor) ? JS_GetPropertyStr(context, ctor, "name")
                                    : JS_UNDEFINED;
+  if (JS_IsException(name)) {
+    JS_FreeValue(context, JS_GetException(context));
+    name = JS_UNDEFINED;
+  }
   std::optional<std::string> result = cxx_OOStringFromJSValue(context, name);
   JS_FreeValue(context, name);
   JS_FreeValue(context, ctor);
@@ -1337,6 +1353,10 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
                                  bool abbreviateObjects, bool recursing) {
   if (JS_IsFunction(context, value)) {
     JSValue nameVal = JS_GetPropertyStr(context, value, "name");
+    if (JS_IsException(nameVal)) {
+      JS_FreeValue(context, JS_GetException(context));
+      nameVal = JS_UNDEFINED;
+    }
     std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
     JS_FreeValue(context, nameVal);
     if (name.has_value() && !name->empty())
@@ -1373,6 +1393,8 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
             itemDesc = DescribeValue(
                 context, item, true /* always abbreviate objects in arrays */,
                 true);
+          } else {
+            JS_FreeValue(context, JS_GetException(context));
           }
           JS_FreeValue(context, item);
           if (i != 0) arrayDesc += ", ";
@@ -1535,6 +1557,10 @@ JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj,
                                      int argc, JSValueConst* argv) {
   // For constructors, this is new.target, i.e. the constructor function itself.
   JSValue nameVal = JS_GetPropertyStr(context, thisObj, "name");
+  if (JS_IsException(nameVal)) {
+    JS_FreeValue(context, JS_GetException(context));
+    nameVal = JS_UNDEFINED;
+  }
   std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
   JS_FreeValue(context, nameVal);
 

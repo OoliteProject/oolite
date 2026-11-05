@@ -635,6 +635,39 @@ OO_TEST(describeValue)
 }
 
 
+// A getter that throws while the engine reads a value's name, constructor, stack or element (for a
+// description, a class name or a report) leaves no exception pending afterwards.
+OO_TEST(throwingAccessorsLeaveNoPendingException)
+{
+	SetUp();
+	{
+		JSContext *context = OOJSAcquireContext();
+
+		Owned noConstructor = Eval(context, "({ get constructor() { throw 1; } })");
+		OO_CHECK_EQ(OOJSClassNameOfValue(context, noConstructor), "Object");
+		OO_CHECK(!JS_HasException(context));
+
+		Owned noName = Eval(context, "({ constructor: Object.defineProperty(function () {}, 'name', { get: function () { throw 2; } }) })");
+		OO_CHECK_EQ(OOJSClassNameOfValue(context, noName), "Object");
+		OO_CHECK(!JS_HasException(context));
+
+		Describe(context, "Object.defineProperty(function f() {}, 'name', { get: function () { throw 3; } })", false);
+		OO_CHECK(!JS_HasException(context));
+
+		OO_CHECK_EQ(Describe(context, "Object.defineProperty([1, 2], 0, { get: function () { throw 4; } })", false), "[?, 2]");
+		OO_CHECK(!JS_HasException(context));
+
+		StartLog();
+		JSValue thrown = EvalIn(context, "var e = new Error('m'); Object.defineProperty(e, 'name', { get: function () { throw 5; } }); "
+		                        "Object.defineProperty(e, 'stack', { get: function () { throw 6; } }); throw e;", "test.js");
+		OO_CHECK(JS_IsException(thrown));
+		OOJSReportPendingException(context);
+		OO_CHECK(!JS_HasException(context));
+
+		OOJSRelinquishContext(context);
+	}
+}
+
 OO_TEST(idAndStringCaches)
 {
 	SetUp();
