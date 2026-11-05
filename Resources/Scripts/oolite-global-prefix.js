@@ -207,3 +207,90 @@ if (global.timeAccelerationFactor === undefined)
 }
 
 })(special);
+
+
+/*	Mozilla extensions that expansions written against SpiderMonkey call and that
+	oolite-quickjs-compat.js does not define: String.prototype.quote(). (toSource() and
+	uneval() are oolite-quickjs-compat.js's.) Installed only where the engine has none.
+*/
+(function ()
+{
+	// quoteString(): a double-quoted, backslash-escaped string literal.
+	function quoteString(s)
+	{
+		var out = "\"";
+		for (var i = 0; i < s.length; i++)
+		{
+			var c = s.charAt(i);
+			var code = s.charCodeAt(i);
+			if (c === "\"" || c === "\\")
+			{
+				out += "\\" + c;
+			}
+			else if (c === "\n")
+			{
+				out += "\\n";
+			}
+			else if (c === "\r")
+			{
+				out += "\\r";
+			}
+			else if (c === "\t")
+			{
+				out += "\\t";
+			}
+			else if (code < 0x20 || code === 0x7f)
+			{
+				var hex = code.toString(16);
+				while (hex.length < 2)  hex = "0" + hex;
+				out += "\\x" + hex;
+			}
+			else
+			{
+				out += c;
+			}
+		}
+		return out + "\"";
+	}
+
+	// String.prototype.quote(): SpiderMonkey-only, removed in Firefox 37.
+	if (typeof String.prototype.quote !== "function")
+	{
+		Object.defineProperty(String.prototype, "quote", {
+			value: function quote()
+			{
+				return quoteString(this.toString());
+			},
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+	}
+}).call(this);
+
+/*	SpiderMonkey's Array and String "generics" (Array.forEach(array, fn), String.replace(string,
+	...)): Mozilla-only statics that call the prototype method with the first argument as `this`.
+	Installed only where the engine lacks them, so they are a no-op under SpiderMonkey 1.8.5.
+*/
+(function ()
+{
+	function installGenerics(ctor, names)
+	{
+		names.forEach(function (name)
+		{
+			var method = ctor.prototype[name];
+			if (typeof method !== "function" || typeof ctor[name] === "function")  return;
+			Object.defineProperty(ctor, name, {
+				value: function (self) { return method.apply(self, Array.prototype.slice.call(arguments, 1)); },
+				writable: true,
+				configurable: true,
+				enumerable: false
+			});
+		});
+	}
+	installGenerics(Array, ["concat", "every", "filter", "forEach", "indexOf", "join", "lastIndexOf", "map", "pop", "push",
+	                        "reduce", "reduceRight", "reverse", "shift", "slice", "some", "sort", "splice", "unshift"]);
+	installGenerics(String, ["charAt", "charCodeAt", "concat", "indexOf", "lastIndexOf", "localeCompare", "match", "replace",
+	                         "search", "slice", "split", "substr", "substring", "toLocaleLowerCase", "toLocaleUpperCase",
+	                         "toLowerCase", "toUpperCase", "trim", "trimLeft", "trimRight"]);
+}).call(this);
