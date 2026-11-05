@@ -9,7 +9,7 @@
 # or run the harness directly to see each check:
 #   build/quickjs-poc/src/Core/Scripting/poc/oojs-quickjs-poc src/Core/Scripting/poc/tests
 #
-# The harness has its own minimal engine core and script loader (in thisObj
+# The harness has its own minimal engine core and script loader (in this
 # directory), since the full ones depend on the rest of the game.
 
 quickjs_dep = dependency(
