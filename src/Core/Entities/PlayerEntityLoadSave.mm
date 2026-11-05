@@ -874,7 +874,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void* context)
         return;
     }
 
-    [cdrDetailArray sortUsingFunction:sortCommanders context:NULL];
+    [cdrDetailArray sortUsingFunction:OOSortFunction(sortCommanders) context:NULL];
 
     // Do we need to highlight a name?
     int highlightRowOnPage = STARTROW;

@@ -312,7 +312,7 @@ static NSString* GetSysCtlString(const char* name)
     if (size == 0)
         return nil;
 
-    buffer = alloca(size);
+    buffer = (char*)alloca(size);
     if (sysctlbyname(name, buffer, &size, NULL, 0) != 0)
         return nil;
     return [NSString stringWithUTF8String:buffer];

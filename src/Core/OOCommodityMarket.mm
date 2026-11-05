@@ -67,7 +67,7 @@ static NSComparisonResult goodsSorter(id a, id b, void* context);
 {
     if (_sortedKeys == nil) {
         NSArray* keys = [_commodityList allKeys];
-        _sortedKeys = [[keys sortedArrayUsingFunction:goodsSorter context:_commodityList] retain];
+        _sortedKeys = [[keys sortedArrayUsingFunction:OOSortFunction(goodsSorter) context:_commodityList] retain];
     }
     return _sortedKeys;
 }

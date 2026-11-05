@@ -6653,7 +6653,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
     if ([planets count] == 0)
         return nil;
 
-    planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
+    planets = [planets sortedArrayUsingFunction:OOSortFunction(ComparePlanetsBySurfaceDistance) context:self];
     result = [planets objectAtIndex:0];
 
     return result;

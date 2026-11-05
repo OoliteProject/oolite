@@ -503,11 +503,11 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     // sort each ship list by name
     NSString* demoClassName = nil;
     foreach (demoClassName, demoList) {
-        [[demoList objectForKey:demoClassName] sortUsingFunction:SortDemoShipsByName context:NULL];
+        [[demoList objectForKey:demoClassName] sortUsingFunction:OOSortFunction(SortDemoShipsByName) context:NULL];
     }
 
     // and then sort the ship list list by class name
-    _demoShips = [[[demoList allValues] sortedArrayUsingFunction:SortDemoCategoriesByName context:NULL] retain];
+    _demoShips = [[[demoList allValues] sortedArrayUsingFunction:OOSortFunction(SortDemoCategoriesByName) context:NULL] retain];
 }
 
 - (void)loadCachedRoleProbabilitySets

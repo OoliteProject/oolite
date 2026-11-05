@@ -1710,7 +1710,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 {
     Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
     NSArray* blocks = [populatorSettings allValues];
-    NSArray* sortedBlocks = [blocks sortedArrayUsingFunction:populatorPrioritySort context:nil];
+    NSArray* sortedBlocks = [blocks sortedArrayUsingFunction:OOSortFunction(populatorPrioritySort) context:nil];
     NSDictionary* populator = nil;
     HPVector location = kZeroHPVector;
     uint32_t i, locationSeed, groupCount, rndvalue;
@@ -9311,8 +9311,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void* context)
     [equipmentData autorelease];
     [equipmentDataOutfitting autorelease];
     NSArray* equipmentTemp = [ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES];
-    equipmentData = [[equipmentTemp sortedArrayUsingFunction:equipmentSort context:NULL] retain];
-    equipmentDataOutfitting = [[equipmentTemp sortedArrayUsingFunction:equipmentSortOutfitting context:NULL] retain];
+    equipmentData = [[equipmentTemp sortedArrayUsingFunction:OOSortFunction(equipmentSort) context:NULL] retain];
+    equipmentDataOutfitting = [[equipmentTemp sortedArrayUsingFunction:OOSortFunction(equipmentSortOutfitting) context:NULL] retain];
 
     [OOEquipmentType loadEquipment];
 
