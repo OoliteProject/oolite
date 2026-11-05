@@ -240,7 +240,10 @@ def run_test(bin_name, test_output):
     # an env var - the game overwrites it (SDL_setenv_unsafe ..., YES) - and not a lock, which
     # would serialise the N-concurrent fan-out this function exists to support.
     staged_root = tempfile.mkdtemp(prefix=f"oolite-run-{port}-{os.getpid()}-")
-    staged_app = os.path.join(staged_root, "app")
+    if _bundle_contents(app_dir):
+        staged_app = os.path.join(staged_root, "oolite.app", "Contents", BUNDLE_BINARY_DIR)
+    else:
+        staged_app = os.path.join(staged_root, "app")
     stage_app(app_dir, staged_app)
     print(f"[*] Private prefs root: {staged_app}")
 
@@ -394,10 +397,11 @@ def run_test(bin_name, test_output):
         else:
             # unstage_app, never rmtree: the staged app is full of junctions INTO THE REAL BUILD.
             unstage_app(staged_app)
-            try:
-                os.rmdir(staged_root)
-            except OSError:
-                pass
+            for leftover in (os.path.join(staged_root, "oolite.app"), staged_root):
+                try:
+                    os.rmdir(leftover)
+                except OSError:
+                    pass
 
 
 def parse_args(argv=None):
