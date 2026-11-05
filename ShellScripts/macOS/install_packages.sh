@@ -15,7 +15,7 @@ packages=(
     # Documentation
     doxygen graphviz typst
     # Libraries
-    sdl3 libpng openal-soft libvorbis espeak-ng
+    sdl3 libpng openal-soft libvorbis icu4c espeak-ng
 )
 
 brew install "${packages[@]}"
