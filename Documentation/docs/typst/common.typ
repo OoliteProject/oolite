@@ -63,7 +63,7 @@
 // Helper functions with their own direct defaults (overrideable on call)
 
 // Styled header helper for our reference sections - centered text
-#let section-header(title, colspan: 2) = table.cell(colspan: colspan, fill: rgb("eeeeee"))[*#title*]
+#let section-header(title, colspan: 2) = table.cell(colspan: colspan, align: center, fill: rgb("eeeeee"))[*#title*]
 
 // Styled helper for subheadings (Services, Crimes, Bounty Hunting, etc.)
 #let sub-header(title, colspan: 2) = table.cell(
