@@ -23,7 +23,7 @@
       align: (left, center, right),
       section-header("Equipment Guide", colspan: 3),
       [*Item*], [*TL*], [*Cost ₢*],
-      [Advanced Navigational Array (ANA)], [7], [2250],
+      text(size: 8.9pt)[Advanced Navigational Array (ANA)], [7], [2250],
       [Advanced Space Compass (ASC)], [8], [650],
       [Beam Laser], [5], [1000],
       [Docking Computers (DC)], [10], [1500],
@@ -39,7 +39,7 @@
       [Large Cargo Bay (LCB)], [2], [400],
       [Maintenance Overhaul], [7], [Varies],
       [Military Laser], [11], [6000],
-      [Military Shield Enhancement (MSE)], [14], [47550],
+      text(size: 8.9pt)[Military Shield Enhancement (MSE)], [14], [47550],
       [Mining Laser], [11], [800],
       [Missile], [2], [30],
       [Multi-Targeting System (MTS)], [6], [325],
@@ -47,16 +47,17 @@
       [Pulse Laser], [4], [400],
       [Quirium Cascade Mine], [7], [2500],
       [Remove Passenger Berth], [2], [100],
-      [Scanner Targeting Enhancement (STE)], [12], [450],
+      text(size: 8.54pt)[Scanner Targeting Enhancement (STE)], [12], [450],
       [Shield Boosters (SB)], [11], [14750],
-      [Target System Memory Expansion (TSME)], [9], [1250],
+      text(size: 8.54pt)[Target System Memory Expansion (TSME)], [9], [1250],
       [Unmount and sell all pylon-mounted weapons], [2], [20],
       [Witchdrive Fuel Injectors (FI)], [11], [600],
       [Wormhole Scanner (WS)], [10], [2395]
     )
-    #v(-0.6em)
-    #text(size: 7.5pt, style: "italic")[
-      Equipment damage can only be repaired in systems of that Tech Level or one lower. The listed prices apply only to GCW station shipyards. Prices may vary in other anchorages. Additional equipment can be obtained by installing mods. See the individual mod documentation for more information on their cost, availability and use.
+    #block(stroke: 0.3pt + rgb("cccccc"), inset: 5pt, radius: 2pt, fill: rgb("fafafa"), width: 100%)[
+      #text(size: 7.5pt, style: "italic")[
+        Equipment damage can only be repaired in systems of that Tech Level or one lower. The listed prices apply only to GCW station shipyards. Prices may vary in other anchorages. Additional equipment can be obtained by installing mods. See the individual mod documentation for more information on their cost, availability and use.
+      ]
     ]
   ],
 
@@ -88,19 +89,20 @@
       [Gem-stones], [15.3], [19.5], [23.8], [g],
       [Alien Items], [21.3], [44.8], [65.7], [t]
     )
-    #v(-0.6em)
-    #text(size: 7.5pt, style: "italic")[
-      [†] Trafficking in these commodities is illegal in all GCW member systems.
-    ]
-    #v(-0.3em)
-    #text(size: 7.5pt, style: "italic")[
-      Note: These prices are indicative only. GalCop regulations expressly forbids the broadcasting of actual prices beyond the current system. Prices may also vary widely at non-GCW stations.
+    #block(stroke: 0.3pt + rgb("cccccc"), inset: 5pt, radius: 2pt, fill: rgb("fafafa"), width: 100%)[
+      #text(size: 7.5pt, style: "italic")[
+        [†] Trafficking in these commodities is illegal in all GCW member systems.
+      ]
+      
+      #text(size: 7.5pt, style: "italic")[
+        Note: These prices are indicative only. GalCop regulations expressly forbids the broadcasting of actual prices beyond the current system. Prices may also vary widely at non-GCW stations.
+      ]
     ]
 
     #table(
-      columns: (1fr, auto),
-      align: (left, right),
-      section-header("Combat Rank"),
+      columns: (1.3fr, 0.7fr),
+      align: (left, left),
+      section-header("Combat Rank", colspan: 2),
       [*Rank*], [*Kills*],
       [Harmless], [0],
       [Mostly Harmless], [8],
@@ -110,7 +112,7 @@
       [Competent], [128],
       [Dangerous], [512],
       [Deadly], [2560],
-      [Elite], [6400]
+      [*Elite*], [*6400*]
     )
   ],
 
@@ -123,33 +125,33 @@
       align: (center, center, left),
       section-header("Government Guide", colspan: 3),
       [*Risk*], [*Icon*], [*Type*],
-      [Negligible], [#box(image("./assets/Pictures/1000000100000051000000759760F827.png", height: 0.4cm, width: 0.27cm))], [Corporate State],
-      [▲ \ Low \ ▼], [#box(image("./assets/Pictures/10000001000000620000007491CB753A.png", height: 0.4cm, width: 0.34cm))], [Democracy],
-      [], [#box(image("./assets/Pictures/10000001000000480000007DA945B054.png", height: 0.4cm, width: 0.229cm))], [Confederacy],
-      [▲ \ Medium \ ▼], [#box(image("./assets/Pictures/10000001000000710000007122FFE589.png", height: 0.4cm, width: 0.4cm))], [Communist],
-      [], [#box(image("./assets/Pictures/10000001000000740000007BD09C1539.png", height: 0.4cm, width: 0.379cm))], [Dictatorship],
-      [▲ \ High \ ▼], [#box(image("./assets/Pictures/100000010000007400000074792CD40E.png", height: 0.4cm, width: 0.4cm))], [Multi-Government],
-      [], [#box(image("./assets/Pictures/10000001000000620000007407B6C1A1.png", height: 0.4cm, width: 0.34cm))], [Feudal],
-      [Extreme], [#box(image("./assets/Pictures/100000010000007400000083C7C5AE78.png", height: 0.4cm, width: 0.349cm))], [Anarchy]
+      [Negligible], [#box(image("./assets/Pictures/1000000100000051000000759760F827.png", height: 0.4cm, width: 0.27cm))], table.cell(fill: black)[#text(fill: rgb("B2FFFF"))[*Corporate State*]],
+      table.cell(rowspan: 2)[▲ \ Low \ ▼], [#box(image("./assets/Pictures/10000001000000620000007491CB753A.png", height: 0.4cm, width: 0.34cm))], table.cell(fill: black)[#text(fill: rgb("B2B2B2"))[*Democracy*]],
+      [#box(image("./assets/Pictures/10000001000000480000007DA945B054.png", height: 0.4cm, width: 0.229cm))], table.cell(fill: black)[#text(fill: rgb("1980E1"))[*Confederacy*]],
+      table.cell(rowspan: 2)[▲ \ Medium \ ▼], [#box(image("./assets/Pictures/10000001000000710000007122FFE589.png", height: 0.4cm, width: 0.4cm))], table.cell(fill: black)[#text(fill: rgb("FF0000"))[*Communist*]],
+      [#box(image("./assets/Pictures/10000001000000740000007BD09C1539.png", height: 0.4cm, width: 0.379cm))], table.cell(fill: black)[#text(fill: rgb("FFCC19"))[*Dictatorship*]],
+      table.cell(rowspan: 2)[▲ \ High \ ▼], [#box(image("./assets/Pictures/100000010000007400000074792CD40E.png", height: 0.4cm, width: 0.4cm))], table.cell(fill: black)[#text(fill: rgb("00FF4C"))[*Multi-Government*]],
+      [#box(image("./assets/Pictures/10000001000000620000007407B6C1A1.png", height: 0.4cm, width: 0.34cm))], table.cell(fill: black)[#text(fill: rgb("B2804C"))[*Feudal*]],
+      [Extreme], [#box(image("./assets/Pictures/100000010000007400000083C7C5AE78.png", height: 0.4cm, width: 0.349cm))], table.cell(fill: black)[#text(fill: rgb("8000B2"))[*Anarchy*]]
     )
 
     #table(
-      columns: (1fr, auto, 1fr),
-      align: (left, center, left),
+      columns: (1.2fr, auto, 1.4fr),
+      align: (center, center, left),
       section-header("Economy Guide", colspan: 3),
       [*Produces*], [*Icon*], [*Type*],
-      [Advanced technology], [#box(image("./assets/Pictures/100000010000008300000077963A92E0.png", height: 0.4cm, width: 0.439cm))], [Rich Industrial],
-      [▲ \ Basic technology and Advance Materials \ ▼], [#box(image("./assets/Pictures/100000010000007100000078FA85F0DF.png", height: 0.4cm, width: 0.379cm))], [Average Industrial],
-      [], [#box(image("./assets/Pictures/1000000100000048000000788DA803FC.png", height: 0.4cm, width: 0.24cm))], [Poor Industrial],
-      [▲ \ Mixture of both \ ▼], [#box(image("./assets/Pictures/100000010000004D00000083607D4C06.png", height: 0.4cm, width: 0.229cm))], [Mainly Industrial],
-      [], [#box(image("./assets/Pictures/10000001000000510000007AFDBB9150.png", height: 0.4cm, width: 0.259cm))], [Mainly Agricultural],
-      [▲ \ Advanced organics and Refined Materials \ ▼], [#box(image("./assets/Pictures/100000010000005F00000087EAEB72C4.png", height: 0.4cm, width: 0.28cm))], [Rich Agricultural],
-      [], [#box(image("./assets/Pictures/10000001000000580000008CA29FCABF.png", height: 0.4cm, width: 0.25cm))], [Average Agricultural],
-      [Basic organics and Raw Materials], [#box(image("./assets/Pictures/100000010000003D0000007ED4693E48.png", height: 0.4cm, width: 0.191cm))], [Poor Agricultural]
+      text(size: 8pt)[Advanced technology], [#box(image("./assets/Pictures/100000010000008300000077963A92E0.png", height: 0.4cm, width: 0.439cm))], table.cell(fill: black)[#text(fill: rgb("FFFF00"))[Rich Industrial]],
+      table.cell(rowspan: 2)[▲ \ #text(size: 8pt)[Basic technology and Advanced Materials] \ ▼], [#box(image("./assets/Pictures/100000010000007100000078FA85F0DF.png", height: 0.4cm, width: 0.379cm))], table.cell(fill: black)[#text(fill: rgb("DFFF00"))[Average Industrial]],
+      [#box(image("./assets/Pictures/1000000100000048000000788DA803FC.png", height: 0.4cm, width: 0.24cm))], table.cell(fill: black)[#text(fill: rgb("BFFF00"))[Poor Industrial]],
+      table.cell(rowspan: 2)[▲ \ #text(size: 8pt)[Mixture of both] \ ▼], [#box(image("./assets/Pictures/100000010000004D00000083607D4C06.png", height: 0.4cm, width: 0.229cm))], table.cell(fill: black)[#text(fill: rgb("9FFF00"))[Mainly Industrial]],
+      [#box(image("./assets/Pictures/10000001000000510000007AFDBB9150.png", height: 0.4cm, width: 0.259cm))], table.cell(fill: black)[#text(fill: rgb("80FF00"))[Mainly Agricultural]],
+      table.cell(rowspan: 2)[▲ \ #text(size: 7.5pt)[Advanced organics and Refined Materials] \ ▼], [#box(image("./assets/Pictures/100000010000005F00000087EAEB72C4.png", height: 0.4cm, width: 0.28cm))], table.cell(fill: black)[#text(fill: rgb("60FF00"))[Rich Agricultural]],
+      [#box(image("./assets/Pictures/10000001000000580000008CA29FCABF.png", height: 0.4cm, width: 0.25cm))], table.cell(fill: black)[#text(fill: rgb("40FF00"))[Average Agricultural]],
+      text(size: 8pt)[Basic organics and Raw Materials], [#box(image("./assets/Pictures/100000010000003D0000007ED4693E48.png", height: 0.4cm, width: 0.191cm))], table.cell(fill: black)[#text(fill: rgb("20FF00"))[Poor Agricultural]]
     )
     #v(-0.6em)
     #text(size: 7.5pt)[
-      On the *F6* chart screen, press the "?" key to cycle the highlighted information between:
+      On the *F6* chart screen, press the "*?*" key to cycle the highlighted information between:
       #v(-0.3em)
       #list(
         tight: true,
@@ -167,12 +169,12 @@
   stack(spacing: 0.5em)[
     #table(
       columns: (auto, 1fr),
-      align: (left, left),
+      align: (center, left),
       section-header("Legal Status"),
       [*Status*], [*The commander can expect*],
-      [Clean \ ▼], [Free travel and access to GCW Stations. Full protection by GalCop Vipers.],
-      [Offender \ ▼], [Free travel and access to GCW Stations. Limited protection by GalCop Vipers, but could also be targeted at law enforcer's discretion. Small bounty on the commander.],
-      [Fugitive], [Limited travel and access to GCW Stations. Actively targeted by GalCop Vipers. Large bounty on the commander.]
+      [*Clean* \ ▼], [Free travel and access to GCW Stations. Full protection by GalCop Vipers.],
+      [*Offender* \ ▼], [Free travel and access to GCW Stations. Limited protection by GalCop Vipers, but could also be targeted at law enforcer's discretion. Small bounty on the commander.],
+      [*Fugitive*], [Limited travel and access to GCW Stations. Actively targeted by GalCop Vipers. Large bounty on the commander.]
     )
     #v(-0.6em)
     #text(size: 7.5pt)[
