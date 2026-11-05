@@ -93,9 +93,9 @@ static GameController* sSharedController = nil;
 
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
-        // OO_RANDOM_SEED pins the seed so a run can be reproduced. Nothing downstream of
-        // RANROT is repeatable without it, which both the goldens (0.4) and the component
-        // tier (0.13b) depend on. Unset - the normal case - keeps wall-clock seeding.
+        // OO_RANDOM_SEED pins the seed so a run can be reproduced.
+        // Downstream component tests depend on it.
+        // Unset to keep wall-clock seeding.
         const char* seedEnv = getenv("OO_RANDOM_SEED");
         if (seedEnv != NULL && *seedEnv != '\0') {
             ranrot_srand((uint32_t)strtoul(seedEnv, NULL, 10));
