@@ -40,8 +40,7 @@ so stop and file a bead rather than adding one inside a conversion story
 ## Writing a scenario that will not flake
 
 Assert **"within N ticks"**, never "at tick N". Assert **"no pirate remains"**, never an exact
-position. A scenario that needs an exact float is a golden, not a component test — it belongs in
-item 0.4.
+position. A scenario that needs an exact float does not belong in this tier.
 
 ## What this tier deliberately cannot see
 
@@ -59,7 +58,7 @@ native-API project.
 
 | File | Role |
 |---|---|
-| `console.py` | Debug-console client: framing, handshake, `perform`/`evaluate`, parameterised port. **Transport only** — the golden harness (item 0.4) is expected to share it, so keep component-tier vocabulary out. |
+| `console.py` | Debug-console client: framing, handshake, `perform`/`evaluate`, parameterised port. **Transport only** — keep component-tier vocabulary out. |
 | `conftest.py` | `world` fixture: one game per scenario, free port, hard timeout with forced kill. |
 | `steps/world_steps.py` | The step library above. |
 | `features/*.feature` | The scenarios. Data, not interface. |

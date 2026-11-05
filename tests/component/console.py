@@ -1,19 +1,17 @@
 """Debug-console client: framing, handshake, and running JS inside a live Oolite.
 
-Transport only. The golden harness (item 0.4) is expected to share this file, so nothing here
-knows anything about the component tier, Gherkin, or pytest - keep assertions and scenario
-vocabulary in steps/world_steps.py.
+Transport only. Nothing here knows anything about the component tier, Gherkin, or pytest -
+keep assertions and scenario vocabulary in steps/world_steps.py.
 
 The protocol is the one tests/launch_snapshot.py speaks: a 4-byte big-endian length followed by an
 XML property list. See src/Core/Debug/OODebugTCPConsoleProtocol.h for the packet types.
 
 NO DESKTOP LOCK here, deliberately (bug oo-ccy9). Every tool that launches the game on the
-interactive desktop must take tools/gui-lock - but this file is the shared TRANSPORT, not a tier,
-and it has two callers with opposite needs: the component tier spawns it once per scenario (and
-holds the lock for its whole session, in its conftest), while the golden harness spawns it N times
-CONCURRENTLY on purpose. An exclusive mutex in here would serialise or outright deadlock the
-harness. The lock therefore belongs to whoever decides how many games run at once, which is the
-caller. tools/check-desktop-lock.sh records this exemption and enforces it.
+interactive desktop must take tools/gui-lock - but this file is the shared TRANSPORT, not a tier.
+The component tier spawns it once per scenario (and holds the lock for its whole session, in
+its conftest). An exclusive mutex in here would serialise or outright deadlock any caller that
+runs several games at once. The lock therefore belongs to whoever decides how many games run at
+once, which is the caller. tools/check-desktop-lock.sh records this exemption and enforces it.
 """
 
 import os
