@@ -1516,7 +1516,7 @@ static NSArray* FindJSVisibleEntities(EntityFilterPredicate predicate, void* par
                                             ofEntity:relativeTo];
 
     if (result != nil && relativeTo != nil && ![relativeTo isPlayer]) {
-        [result sortUsingFunction:CompareEntitiesByDistance context:relativeTo];
+        [result sortUsingFunction:OOSortFunction(CompareEntitiesByDistance) context:relativeTo];
     }
     if (result == nil)
         return [NSArray array];

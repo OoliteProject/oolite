@@ -9615,15 +9615,15 @@ static NSString* last_outfitting_key = nil;
 {
     switch (marketSorterMode) {
     case MARKET_SORTER_MODE_ALPHA:
-        return [goods sortedArrayUsingFunction:marketSorterByName context:market];
+        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByName) context:market];
     case MARKET_SORTER_MODE_PRICE:
-        return [goods sortedArrayUsingFunction:marketSorterByPrice context:market];
+        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByPrice) context:market];
     case MARKET_SORTER_MODE_STOCK:
-        return [goods sortedArrayUsingFunction:marketSorterByQuantity context:market];
+        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByQuantity) context:market];
     case MARKET_SORTER_MODE_HOLD:
-        return [goods sortedArrayUsingFunction:marketSorterByQuantity context:shipCommodityData];
+        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByQuantity) context:shipCommodityData];
     case MARKET_SORTER_MODE_UNIT:
-        return [goods sortedArrayUsingFunction:marketSorterByMassUnit context:market];
+        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByMassUnit) context:market];
     case MARKET_SORTER_MODE_OFF:
         // keep default sort order
         break;

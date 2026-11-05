@@ -733,7 +733,7 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void* context)
                                                                     inFolder:@"Config"
                                                                     andMerge:YES];
 
-    NSArray* keys = [[configurations allKeys] sortedArrayUsingFunction:CompareGPUSettingsByPriority context:configurations];
+    NSArray* keys = [[configurations allKeys] sortedArrayUsingFunction:OOSortFunction(CompareGPUSettingsByPriority) context:configurations];
 
     NSString* key = nil;
     NSDictionary* config = nil;
