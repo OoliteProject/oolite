@@ -54,9 +54,8 @@ def desktop_lock():
     (``console_port`` below), so the tier is a single desktop user from start to finish, and
     taking the lock per scenario would only hand the desktop back and forth mid-run.
 
-    This is deliberately here rather than inside ``console.py``: the golden harness
-    (tests/golden/golden_run.py) drives the SAME DebugConsole class N times concurrently on
-    purpose, and a mutex in the transport would serialise or deadlock it. The lock belongs to
+    This is deliberately here rather than inside ``console.py``: a mutex in the transport
+    would serialise or deadlock any caller that runs several games at once. The lock belongs to
     whoever decides how many games run at once, which is the tier, not the transport.
     """
     helper = _desktop_lock_helper()
@@ -126,9 +125,9 @@ def console_port():
     It is the GAME that dials the console, not the other way round, and it takes the port from
     console-port in debugConfig.plist - defaulting to 8563 (OODebugSupport.m:80,
     OODebugTCPConsoleProtocol.h:46). So a port the test picks freely is a port nothing connects
-    to. console.py still takes the port as an argument, because the golden harness needs to run
-    several games at once and will have to write that plist per process; until something does,
-    scenarios share the default and must run sequentially, which pytest does anyway.
+    to. console.py still takes the port as an argument, so a caller that runs several games at
+    once can write that plist per process; until something does, scenarios share the default
+    and must run sequentially, which pytest does anyway.
     """
     return int(os.environ.get("OO_CONSOLE_PORT", "8563"))
 
