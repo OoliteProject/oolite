@@ -330,6 +330,3 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3) {
   d1 = HPvector_subtract(v3, v2);
   return HPcross_product(d0, d1);
 }
-
-#if __OBJC__
-#endif
