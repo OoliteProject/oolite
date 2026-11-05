@@ -157,7 +157,6 @@ run_script() {
             echo "❌ Failed to create Info.plist!" >&2
             return 1
         fi
-        rm -f "$resourcesdir/Info-gnustep.plist"
         if ! bundle_dylibs "$progpath" "$progdir/Contents/Frameworks"; then
             echo "❌ Failed to bundle libraries!" >&2
             return 1
