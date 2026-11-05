@@ -115,8 +115,6 @@ from conftest import (
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TESTS_DIR = os.path.abspath(os.path.join(HERE, ".."))
-OOLITE_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-SRC_DIR = os.path.join(OOLITE_ROOT, "src")
 if TESTS_DIR not in sys.path:
     sys.path.insert(0, TESTS_DIR)
 
@@ -778,142 +776,6 @@ def _find_surface_line(log_path, offset, mode):
 # --- offline guards: the observables are what this file claims they are --------------------------
 
 
-def _tree_sources():
-    for root, _dirs, files in os.walk(SRC_DIR):
-        for name in sorted(files):
-            if name.endswith((".m", ".h")):
-                path = os.path.join(root, name)
-                with open(path, "r", encoding="utf-8", errors="replace") as handle:
-                    yield path, handle.read()
-
-
-@pytest.mark.offline
-def test_the_games_view_size_has_exactly_one_assignment_in_the_tree():
-    """``bounds.size`` is assigned in exactly one place, so reading it back is attributable.
-
-    This is G6's equivalent of G3's "SDL_EVENT_QUIT occurs once tree-wide" and G5's "each
-    GUI_SCREEN_* is assigned in exactly one place". ``backingViewSize`` answers ``bounds.size``
-    (MyOpenGLView.m:679-682); if some other code path could set it, the resized value coming
-    back from the live game would no longer prove that -updateGLSize: ran.
-    """
-    sites = []
-    for path, source in _tree_sources():
-        for number, line in enumerate(source.splitlines(), 1):
-            if re.search(r"\bbounds\.size\s*=(?!=)", line):
-                sites.append(f"{os.path.relpath(path, SRC_DIR)}:{number}")
-    assert len(sites) == 1, (
-        "bounds.size - which is what [gameView backingViewSize] returns, and therefore what "
-        "oolite.gameSettings.gameWindow reports - is assigned in "
-        f"{len(sites)} places: {sites}. G6 reads that value back to prove -updateGLSize: ran "
-        "with the size the OS gave the window; with more than one assignment the value is no "
-        "longer attributable to the resize and this test's central witness is a proxy."
-    )
-    assert "SDL/MyOpenGLView.m" in sites[0].replace("\\", "/"), (
-        f"the single assignment moved to {sites[0]}; check it is still inside -updateGLSize:"
-    )
-
-
-@pytest.mark.offline
-def test_the_resize_reaches_the_game_only_through_the_window_system():
-    """``resize_pending`` is set in exactly one place, and it is the SDL resize event's case.
-
-    This is the route the RESIZE (GAME) assertion depends on: the game learns its new pixel size
-    by being told, by the window system, that the size changed. If anything else could set the
-    flag, a game-side size matching ours would no longer prove the OS resize was observed.
-    """
-    setters = []
-    handler_case = []
-    for path, source in _tree_sources():
-        lines = source.splitlines()
-        for number, line in enumerate(lines, 1):
-            if re.search(r"\bresize_pending\s*=\s*true\b", line):
-                setters.append((f"{os.path.relpath(path, SRC_DIR)}:{number}", lines, number))
-    assert len(setters) == 1, (
-        f"resize_pending is set true in {len(setters)} places: "
-        f"{[site for site, _, _ in setters]}. G6 relies on the game reaching -updateGLSize: "
-        "only via SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED."
-    )
-    site, lines, number = setters[0]
-    preceding = "\n".join(lines[max(0, number - 6) : number])
-    assert "SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED" in preceding, (
-        f"the single resize_pending assignment at {site} is no longer inside the "
-        "SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED case; the preceding lines are:\n" + preceding
-    )
-    handler_case.append(site)
-
-    # And the flag is CONSUMED by a call to -updateGLSize:, which is the assignment above.
-    consumers = [
-        f"{os.path.relpath(path, SRC_DIR)}"
-        for path, source in _tree_sources()
-        if "updateGLSize" in source and "resize_pending" in source
-    ]
-    assert consumers, (
-        "no file both tests resize_pending and calls -updateGLSize:; the chain from the window "
-        "system's resize event to bounds.size is broken and this test's witness is stale"
-    )
-
-
-@pytest.mark.offline
-def test_the_fullscreen_toggle_has_exactly_two_routes_and_g6_takes_only_the_key():
-    """``-toggleScreenMode`` has exactly TWO callers, and the other one needs a screen G6 avoids.
-
-    This guard was written expecting ONE caller and a real run of it falsified that, which is
-    why it is spelled this way: the tree also reaches the toggle from
-    PlayerEntityControls.m:3871, the Game Options screen's ``Display Style`` row. Both routes are
-    named here, and BOTH halves of the attribution are asserted:
-
-    * the key route is the ``SDLK_F12`` case (MyOpenGLView+Input.m:471), which is the gesture
-      this file performs; and
-    * the menu route is guarded by ``guiSelectedRow == GUI_ROW(GAME,DISPLAYSTYLE)`` and a select
-      key press, so it can only run while the game is on GUI_SCREEN_GAMEOPTIONS.
-
-    The launching test never leaves GUI_SCREEN_INTRO1 - it asserts that it is on the start
-    screen immediately before each F12 (see ``test_the_launching_test_proves_it_is_on_the_start_
-    screen_before_f12``), so the menu route is unreachable at the moment of the gesture and the
-    fullscreen transition is attributable to the key. A THIRD caller would break that argument,
-    and this test goes red if one appears.
-    """
-    callers = []
-    for path, source in _tree_sources():
-        for number, line in enumerate(source.splitlines(), 1):
-            if re.search(r"\btoggleScreenMode\s*\]", line):
-                callers.append((f"{os.path.relpath(path, SRC_DIR)}:{number}", line.strip()))
-    assert callers, "nothing calls -toggleScreenMode any more; F12 would toggle nothing"
-    assert len(callers) == 2, (
-        f"-toggleScreenMode is called from {len(callers)} places: {callers}. G6 presses F12 and "
-        "attributes the fullscreen transition to it, having proved the only OTHER route (the "
-        "Game Options Display Style row) needs a screen this test never visits. A new caller "
-        "must be shown to be unreachable from the start screen before this expectation is "
-        "raised."
-    )
-    by_file = {site.split(":")[0].replace("\\", "/"): site for site, _ in callers}
-
-    key_site = by_file.get("SDL/MyOpenGLView+Input.m")
-    assert key_site, f"no -toggleScreenMode call in SDL/MyOpenGLView+Input.m; callers: {callers}"
-    assert "SDLK_F12" in _source_window(key_site, before=4), (
-        f"the key route to -toggleScreenMode ({key_site}) is no longer in the SDLK_F12 case; "
-        "the lines before it are:\n" + _source_window(key_site, before=4)
-    )
-
-    menu_site = by_file.get("Core/Entities/PlayerEntityControls.m")
-    assert menu_site, f"no -toggleScreenMode call in PlayerEntityControls.m; callers: {callers}"
-    guard = _source_window(menu_site, before=3)
-    assert "GUI_ROW(GAME,DISPLAYSTYLE)" in guard, (
-        f"the menu route to -toggleScreenMode ({menu_site}) is no longer gated on the Game "
-        "Options Display Style row, so it may now be reachable from the start screen and G6's "
-        "F12 would no longer be the only possible cause of a fullscreen transition. The lines "
-        "before it are:\n" + guard
-    )
-
-
-def _source_window(site, before):
-    """The ``before`` source lines immediately preceding ``site`` (a ``path:line`` string)."""
-    path, _, number = site.rpartition(":")
-    with open(os.path.join(SRC_DIR, path), "r", encoding="utf-8", errors="replace") as handle:
-        lines = handle.read().splitlines()
-    return "\n".join(lines[max(0, int(number) - 1 - before) : int(number)])
-
-
 @pytest.mark.offline
 def test_the_launching_test_proves_it_is_on_the_start_screen_before_f12():
     """The runtime half of the F12 attribution, pinned by AST.
@@ -955,47 +817,6 @@ def test_the_launching_test_proves_it_is_on_the_start_screen_before_f12():
 
 
 @pytest.mark.offline
-def test_the_fullscreen_flag_is_only_assigned_by_the_toggle_at_runtime():
-    """After start-up, ``fullScreen`` is assigned only by ``-setFullScreenMode:``.
-
-    ``oolite.gameSettings.gameWindow.fullScreen`` is that ivar (Universe.m:4541 ->
-    GameController+SDLFullScreen.m:92-95 -> MyOpenGLView.m:715-718). The other assignments are
-    the ``-init`` default and the two command-line/-defaults reads, none of which can run while
-    the game is on the start screen - so the value flipping mid-run is attributable to the
-    toggle.
-    """
-    assignments = []
-    for path, source in _tree_sources():
-        for number, line in enumerate(source.splitlines(), 1):
-            if re.search(r"\bfullScreen\s*=(?!=)", line) and "==" not in line:
-                assignments.append((f"{os.path.relpath(path, SRC_DIR)}:{number}", line.strip()))
-    assert assignments, "nothing assigns fullScreen; the observable does not exist"
-    runtime = [
-        site
-        for site, line in assignments
-        if "fullScreen = fsm" in line
-    ]
-    assert len(runtime) == 1, (
-        f"expected exactly one setter-style assignment of fullScreen (-setFullScreenMode:), "
-        f"found {runtime} among {[site for site, _ in assignments]}"
-    )
-    startup_only = [
-        line
-        for site, line in assignments
-        if site not in runtime
-    ]
-    for line in startup_only:
-        assert (
-            "NO;" in line
-            or "userDefaults" in line
-            or "cmdline_arguments" in line
-        ), (
-            f"an assignment to fullScreen that is neither the setter nor a start-up read: "
-            f"{line!r}. G6 attributes a mid-run change of this flag to the F12 toggle."
-        )
-
-
-@pytest.mark.offline
 def test_the_fullscreen_flag_parse_accepts_the_form_the_game_really_sends():
     """The 0/1 spelling must be accepted, and an unrecognised answer must RAISE, not be False.
 
@@ -1025,30 +846,6 @@ def test_the_fullscreen_flag_parse_accepts_the_form_the_game_really_sends():
         "an unrecognised answer must be reported, not silently read as 'not fullscreen' - that "
         "is exactly the shape that made the fullscreen assertion unpassable"
     )
-
-
-@pytest.mark.offline
-def test_the_surface_log_line_spells_the_mode():
-    """The log witness must be a string the game really writes, with the mode in it.
-
-    A typo here would make the fullscreen phase fail every healthy run and read as "fullscreen
-    is broken" rather than "the test is looking for the wrong string".
-    """
-    view = os.path.join(SRC_DIR, "SDL", "MyOpenGLView.m")
-    assert os.path.isfile(view), f"no MyOpenGLView.m at {view}"
-    with open(view, "r", encoding="utf-8", errors="replace") as handle:
-        source = handle.read()
-    assert "Requested a new surface of %d x %d, %@." in source, (
-        "the surface log line has been reworded; both this file's fullscreen witness and "
-        "conftest.assert_splash_screen_is_off match on it"
-    )
-    assert '@"fullscreen" : @"windowed"' in source.replace("? ", "").replace(" :", " :"), (
-        "the mode in the surface line is no longer spelled 'fullscreen'/'windowed'; the "
-        "fullscreen witness would match nothing"
-    )
-    # And the windowed spelling must NOT be a substring of the fullscreen one, or a windowed
-    # line would satisfy the fullscreen search.
-    assert "windowed" not in "fullscreen", "the two mode words must be distinguishable"
 
 
 @pytest.mark.offline

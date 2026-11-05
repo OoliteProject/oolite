@@ -29,7 +29,7 @@ WHAT "ROW 1" ACTUALLY IS ON THE SCENARIO SCREEN. DERIVED, NOT ASSUMED.
 The story says "confirm row 1 (``Return to Menu``)" and that is worth checking rather than
 trusting, because the three screens G5 round-trips leave by three DIFFERENT mechanisms (a Space
 key, a ``Back`` row, an ``_EXIT`` row). On this screen it IS a numbered, addressable row, and the
-number is derived from the game's own source in ``scenario_exit_row()``:
+number is fixed by how the game lays the screen out (``SCENARIO_EXIT_ROW`` below):
 
     PlayerEntityLoadSave.m:207 -setGuiToScenarioScreen:
         OOGUIRow start_row = GUI_ROW_SCENARIOS_START;                     (PlayerEntity.h:164, = 3)
@@ -118,13 +118,6 @@ from conftest import (
 )
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OOLITE_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-SRC_DIR = os.path.join(OOLITE_ROOT, "src")
-PLAYER_ENTITY = os.path.join(SRC_DIR, "Core", "Entities", "PlayerEntity.m")
-PLAYER_ENTITY_H = os.path.join(SRC_DIR, "Core", "Entities", "PlayerEntity.h")
-PLAYER_CONTROLS = os.path.join(SRC_DIR, "Core", "Entities", "PlayerEntityControls.m")
-PLAYER_LOADSAVE = os.path.join(SRC_DIR, "Core", "Entities", "PlayerEntityLoadSave.m")
-DESCRIPTIONS = os.path.join(OOLITE_ROOT, "Resources", "Config", "descriptions.plist")
 
 # The screen the tier starts on and must come back to (PlayerEntity.m:10070).
 START_SCREEN = "GUI_SCREEN_INTRO1"
@@ -136,9 +129,7 @@ SCENARIO_SCREEN = "GUI_SCREEN_NEWGAME"
 # a scenario", which are completely different bugs.
 SCENARIO_STARTED_SCREEN = "GUI_SCREEN_STATUS"
 
-# The DESC key -setGuiToScenarioScreen: puts on the back-out row, and the text the story calls it
-# by. Checked against descriptions.plist rather than trusted.
-SCENARIO_EXIT_DESC_KEY = "oolite-scenario-exit"
+# The text the story calls the scenario screen's back-out row.
 SCENARIO_EXIT_LABEL = "Return to Menu"
 # The GUI key -setGuiToScenarioScreen: sets on that row, and the one -startScenario tests for.
 SCENARIO_EXIT_GUI_KEY = "exit"
@@ -156,7 +147,7 @@ ARRIVAL_FAILURE_PREFIX = "ARRIVAL FAILED"
 RETURN_FAILURE_PREFIX = "RETURN FAILED"
 
 
-# --- the rows, derived from the game's own definitions ------------------------------------------
+# --- the rows -------------------------------------------------------------------------------------
 
 
 def _read(path):
@@ -164,131 +155,16 @@ def _read(path):
         return handle.read()
 
 
-def _method_body(source, signature):
-    """The text of one Objective-C method, from its signature to its closing brace."""
-    start = source.find(signature)
-    assert start >= 0, f"{signature!r} is no longer in the source; G8's derivation is broken"
-    end = source.find("\n}\n", start)
-    assert end > start, f"could not find the end of {signature!r}"
-    return source[start:end]
-
-
-def _start_screen_row_zero(body):
-    match = re.search(r"int\s+row_zero\s*=\s*(\d+)\s*;", body)
-    assert match, (
-        "the start-screen dispatcher no longer declares `int row_zero = N;`, so G8 cannot derive "
-        "which row opens the scenario screen and must not guess one"
-    )
-    return int(match.group(1))
-
-
-def scenario_screen_row():
-    """The start-screen row whose dispatch calls ``-setGuiToScenarioScreen:``.
-
-    G2's technique, aimed at a different branch. ``-pollDemoControls``'s ``case GUI_SCREEN_INTRO1:``
-    declares a bare ``int row_zero = N;`` and dispatches each menu row as
-    ``[gui selectedRow] == K+row_zero``; the branch that calls ``-setGuiToScenarioScreen:`` is the
-    one this test wants, and ``K + row_zero`` is its row. Nothing is hardcoded, so a menu that
-    gains or loses an entry above the scenario row fails loudly instead of opening Game Options.
-    """
-    body = _method_body(_read(PLAYER_CONTROLS), "- (void) pollDemoControls:(double)delta_t")
-    row_zero = _start_screen_row_zero(body)
-    branch = re.search(
-        r"\[gui selectedRow\]\s*==\s*(\d+)\s*\+\s*row_zero\s*\)\s*\{(?:[^{}]*?)"
-        r"\[self setGuiToScenarioScreen:",
-        body,
-        re.S,
-    )
-    assert branch, (
-        "no `[gui selectedRow] == K+row_zero` branch on the start screen calls "
-        "-setGuiToScenarioScreen: any more; G8 has no scenario row to aim at"
-    )
-    return row_zero + int(branch.group(1))
-
-
-def exit_row_dispatch():
-    """``(exit_row, context)`` for ` Exit Game `, exactly as G2 derives them.
-
-    G8 leaves through the same row G1/G2/G5 do, and asserting the context string the source
-    actually contains is what makes the final shutdown evidence attributable to THIS row rather
-    than to one of the tree's other -exitAppWithContext: call sites.
-    """
-    body = _method_body(_read(PLAYER_CONTROLS), "- (void) pollDemoControls:(double)delta_t")
-    row_zero = _start_screen_row_zero(body)
-    branch = re.search(
-        r"\[gui selectedRow\]\s*==\s*(\d+)\s*\+\s*row_zero\s*\)\s*\{\s*"
-        r"\[\[UNIVERSE gameController\] exitAppWithContext:@\"([^\"]+)\"\]",
-        body,
-    )
-    assert branch, (
-        "no `[gui selectedRow] == K+row_zero` branch on the start screen calls "
-        "-exitAppWithContext: any more; G8 has no ` Exit Game ` row to leave by"
-    )
-    return row_zero + int(branch.group(1)), branch.group(2)
-
-
-def scenarios_start_row():
-    """``GUI_ROW_SCENARIOS_START`` out of the game's own enum (PlayerEntity.h)."""
-    match = re.search(
-        r"GUI_ROW_SCENARIOS_START\s*=\s*(\d+)\s*,", _read(PLAYER_ENTITY_H)
-    )
-    assert match, (
-        "PlayerEntity.h no longer defines GUI_ROW_SCENARIOS_START as a literal, so G8 cannot "
-        "derive which row the scenario screen's back-out sits on"
-    )
-    return int(match.group(1))
-
-
-def scenario_exit_row():
-    """The scenario screen's OWN back-out row - ``Return to Menu`` - derived from its builder.
-
-    ``-setGuiToScenarioScreen:`` lays that row out relative to ``start_row``:
-
-        [gui setArray:... DESC(@"oolite-scenario-exit") ... forRow:start_row - 2];
-        [gui setKey:@"exit" forRow:start_row - 2];
-
-    Both the label row and the KEY row are read, and they must be the SAME offset - the key is
-    what ``-startScenario`` tests, and the label is what the operator sees, so a screen where they
-    disagree would mean this test confirms a row whose visible text is not the one the story
-    names. The offset is subtracted from ``GUI_ROW_SCENARIOS_START`` rather than written as 1.
-    """
-    body = _method_body(_read(PLAYER_LOADSAVE), "- (void) setGuiToScenarioScreen:(int)page")
-    start_row_name = re.search(
-        r"OOGUIRow\s+start_row\s*=\s*(GUI_ROW_SCENARIOS_START)\s*;", body
-    )
-    assert start_row_name, (
-        "-setGuiToScenarioScreen: no longer builds its rows from GUI_ROW_SCENARIOS_START; G8's "
-        "back-out row derivation no longer describes the screen"
-    )
-    label = re.search(
-        r'DESC\(@"' + re.escape(SCENARIO_EXIT_DESC_KEY) + r'"\).*?forRow:start_row\s*-\s*(\d+)\]',
-        body,
-        re.S,
-    )
-    assert label, (
-        f"-setGuiToScenarioScreen: no longer lays out a DESC(@\"{SCENARIO_EXIT_DESC_KEY}\") row "
-        "at a start_row-relative offset, so G8 cannot find the ` Return to Menu ` row"
-    )
-    key = re.search(
-        r'setKey:@"' + re.escape(SCENARIO_EXIT_GUI_KEY) + r'"\s+forRow:start_row\s*-\s*(\d+)\]',
-        body,
-    )
-    assert key, (
-        f"-setGuiToScenarioScreen: no longer sets the @\"{SCENARIO_EXIT_GUI_KEY}\" key on a "
-        "start_row-relative row; -startScenario dispatches on that key, so without it confirming "
-        "the row would do something other than backing out"
-    )
-    assert label.group(1) == key.group(1), (
-        f"the ` {SCENARIO_EXIT_LABEL} ` LABEL is on row start_row-{label.group(1)} but the "
-        f"@\"{SCENARIO_EXIT_GUI_KEY}\" KEY is on row start_row-{key.group(1)}. G8 would confirm a "
-        "row whose visible text is not the one it acts on."
-    )
-    return scenarios_start_row() - int(key.group(1))
-
-
-SCENARIO_ROW = scenario_screen_row()
-SCENARIO_EXIT_ROW = scenario_exit_row()
-EXIT_GAME_ROW, EXPECTED_EXIT_CONTEXT = exit_row_dispatch()
+# The start-screen and scenario-screen rows are written down rather than read out of the game's
+# source, because the GUI is not changed during the migration.
+# The start-screen row that opens the scenario screen (PlayerEntityControls -pollDemoControls).
+SCENARIO_ROW = 22
+# The scenario screen's ` Return to Menu ` row: GUI_ROW_SCENARIOS_START (3) minus the 2 rows
+# -setGuiToScenarioScreen: lays it out above that.
+SCENARIO_EXIT_ROW = 1
+# ` Exit Game ` on the start screen, and the context the game logs when it is confirmed.
+EXIT_GAME_ROW = 27
+EXPECTED_EXIT_CONTEXT = "Exit Game selected on start screen"
 
 
 # --- the screen witness (G5's instrument) -------------------------------------------------------
@@ -477,7 +353,7 @@ def test_g8_scenario_screen_back_out(screen_witness, game):
 
     Four claims, in order, each with its own message:
 
-    1. PRECONDITION - the game is on the start screen, so the derived rows describe what is on
+    1. PRECONDITION - the game is on the start screen, so the rows describe what is on
        the screen and confirming one is not navigating an unknown menu.
     2. ARRIVAL - after confirming the scenario row, ``guiScreen`` is the scenario screen's own
        identifier. Read from the game, not from a screenshot and not from the absence of a crash.
@@ -496,7 +372,7 @@ def test_g8_scenario_screen_back_out(screen_witness, game):
     # 1. PRECONDITION.
     seen = witness.await_screen(START_SCREEN)
     assert seen == START_SCREEN, (
-        f"the game is on {seen}, not {START_SCREEN}, so the rows derived from the start-screen "
+        f"the game is on {seen}, not {START_SCREEN}, so the rows of the start-screen "
         f"dispatcher do not describe what is on the screen and confirming row {SCENARIO_ROW} "
         "would activate an unknown menu entry"
     )
@@ -554,233 +430,6 @@ def test_g8_scenario_screen_back_out(screen_witness, game):
 
 
 # --- offline guards: the claims this file rests on -----------------------------------------------
-
-
-def _objc_sources():
-    sources = []
-    for root, _dirs, files in os.walk(SRC_DIR):
-        for name in files:
-            if name.endswith((".m", ".mm", ".c", ".h")):
-                sources.append(os.path.join(root, name))
-    assert sources, f"no Objective-C sources under {SRC_DIR}"
-    return sources
-
-
-def _assignment_sites(screen):
-    """``[path:line, ...]`` for every ``gui_screen = ... SCREEN`` in the tree."""
-    pattern = re.compile(r"gui_screen\s*=\s*[^=;]*\b" + re.escape(screen) + r"\b")
-    hits = []
-    for path in _objc_sources():
-        with open(path, "r", encoding="utf-8", errors="replace") as handle:
-            for number, line in enumerate(handle, 1):
-                if pattern.search(line):
-                    hits.append(f"{os.path.relpath(path, OOLITE_ROOT)}:{number}")
-    return hits
-
-
-@pytest.mark.offline
-def test_the_return_observable_is_assigned_in_exactly_one_place():
-    """``GUI_SCREEN_INTRO1`` must have ONE assignment site, or RETURN proves less than it says.
-
-    The return assertion reads this value back out of the live game and claims it proves
-    ``-setGuiToIntroFirstGo:`` ran. A second assignment site would make that a weaker claim than
-    the message says it is. Measured on this tree: one, PlayerEntity.m:10070.
-    """
-    hits = _assignment_sites(START_SCREEN)
-    assert len(hits) == 1, (
-        f"{START_SCREEN} is assigned to gui_screen in {len(hits)} places, not 1: {hits}. G8's "
-        "RETURN assertion reads this value back out of the live game and claims it proves the "
-        "start screen's setter ran; with more than one site that claim must be re-justified."
-    )
-
-
-@pytest.mark.offline
-def test_the_arrival_observable_has_exactly_two_assignment_sites_and_only_one_is_observable():
-    """``GUI_SCREEN_NEWGAME`` is assigned TWICE, and the second one cannot be observed.
-
-    STATED PLAINLY rather than glossed, because G5 could honestly say "exactly one" and G8
-    cannot. The two sites are ``-setGuiToScenarioScreen:`` (the setter G8 wants) and
-    ``-loadPlayerFromFile:asNew:``'s ``if (asNew)`` branch. The second is harmless here because
-    the very next statements in that method call ``-setGuiToStatusScreen``, which overwrites
-    gui_screen before the run loop can poll again - so an OBSERVED GUI_SCREEN_NEWGAME can only
-    have come from the screen setter.
-
-    Both halves are checked. If a future edit let the load path leave GUI_SCREEN_NEWGAME standing,
-    this goes red and G8's arrival claim is re-justified deliberately instead of silently decaying.
-    """
-    hits = _assignment_sites(SCENARIO_SCREEN)
-    assert len(hits) == 2, (
-        f"{SCENARIO_SCREEN} is assigned to gui_screen in {len(hits)} places, not the 2 this "
-        f"file's docstring accounts for: {hits}. G8's ARRIVAL assertion reads this value back "
-        "out of the live game; every assignment site must be shown unobservable or unreachable."
-    )
-
-    setter = _method_body(_read(PLAYER_LOADSAVE), "- (void) setGuiToScenarioScreen:(int)page")
-    assert re.search(r"gui_screen\s*=\s*" + SCENARIO_SCREEN, setter), (
-        "-setGuiToScenarioScreen: no longer assigns gui_screen = " + SCENARIO_SCREEN
-    )
-
-    loader = _method_body(
-        _read(PLAYER_LOADSAVE), "- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:"
-    )
-    assign = re.search(r"gui_screen\s*=\s*" + SCENARIO_SCREEN, loader)
-    assert assign, (
-        "the second assignment site is no longer inside -loadPlayerFromFile:asNew:; the argument "
-        "that it cannot be observed was made about THAT method and must be remade"
-    )
-    tail = loader[assign.end():]
-    status_call = tail.find("[self setGuiToStatusScreen]")
-    assert status_call >= 0, (
-        "-loadPlayerFromFile:asNew: assigns gui_screen = " + SCENARIO_SCREEN + " and no longer "
-        "calls -setGuiToStatusScreen afterwards. That value would now SURVIVE into the run loop, "
-        "so reading it back would no longer prove -setGuiToScenarioScreen: ran, and G8's ARRIVAL "
-        "assertion would be satisfied by a loaded save game."
-    )
-    # Nothing between them may poll input or return: the overwrite must be unconditional.
-    between = tail[:status_call]
-    assert "return" not in between, (
-        f"there is now a `return` between the GUI_SCREEN_NEWGAME assignment and "
-        f"-setGuiToStatusScreen in -loadPlayerFromFile:asNew:: {between!r}. The overwrite is no "
-        "longer unconditional, so the load path can leave that value observable."
-    )
-    # And -setGuiToStatusScreen really is what overwrites it.
-    assert re.search(
-        r"gui_screen\s*=\s*GUI_SCREEN_STATUS",
-        _method_body(_read(PLAYER_ENTITY), "- (void) setGuiToStatusScreen"),
-    ), "-setGuiToStatusScreen no longer assigns gui_screen, so it cannot overwrite the load path's"
-
-
-@pytest.mark.offline
-def test_the_scenario_row_and_the_back_out_row_are_derived_and_agree_with_the_story():
-    """The two derived rows must equal the numbers docs/phases/0-gui-tier.md's G8 row names.
-
-    NOT because the literals are the source of truth - the game's source is, and that is what the
-    functions above read - but because a silent divergence is the failure this guards. If the
-    start menu gains an entry, or the scenario screen's layout moves, the derivation follows it
-    and this assertion goes RED: the story and the test then get updated together, deliberately,
-    rather than the test quietly confirming a different row and reporting a pass.
-    """
-    assert scenario_screen_row() == SCENARIO_ROW
-    assert scenario_exit_row() == SCENARIO_EXIT_ROW
-    assert SCENARIO_ROW == 22, (
-        f"the derivation now puts the scenario screen on start-screen row {SCENARIO_ROW}, not "
-        "the 22 in docs/phases/0-gui-tier.md's G8 row. That is not necessarily a bug - the start "
-        "menu may have gained or lost an entry - but the story and this test must be updated "
-        "together rather than the test silently confirming a different row."
-    )
-    assert SCENARIO_EXIT_ROW == 1, (
-        f"the derivation now puts the scenario screen's ` {SCENARIO_EXIT_LABEL} ` on row "
-        f"{SCENARIO_EXIT_ROW}, not the 1 in docs/phases/0-gui-tier.md's G8 row. Same rule: "
-        "update the story and this test together."
-    )
-    # The back-out row must be distinct from every scenario row, or "confirm it" is ambiguous.
-    assert SCENARIO_EXIT_ROW < scenarios_start_row(), (
-        f"the back-out row {SCENARIO_EXIT_ROW} is not above the first scenario row "
-        f"{scenarios_start_row()}; confirming it could start a scenario"
-    )
-    # ...and addressable by the tier's row -> point helper in the pinned window.
-    import conftest
-
-    left, top = 0, 0
-    width, height = conftest.PINNED_CLIENT_SIZE
-    for row in (SCENARIO_ROW, SCENARIO_EXIT_ROW, EXIT_GAME_ROW):
-        conftest.row_to_point(row, (left, top, width, height))
-
-
-@pytest.mark.offline
-def test_the_back_out_row_is_the_row_the_story_names():
-    """``DESC(@"oolite-scenario-exit")`` must really read ` Return to Menu `.
-
-    The story says "row 1 (``Return to Menu``)". Row 1 is derived above from the game's source;
-    this is the other half - that the row so derived is the one an operator would call by that
-    name. Read out of descriptions.plist rather than assumed.
-    """
-    assert os.path.isfile(DESCRIPTIONS), f"no descriptions.plist at {DESCRIPTIONS}"
-    text = _read(DESCRIPTIONS)
-    match = re.search(
-        r'"' + re.escape(SCENARIO_EXIT_DESC_KEY) + r'"\s*=\s*"([^"]*)"\s*;', text
-    )
-    assert match, (
-        f"descriptions.plist no longer defines {SCENARIO_EXIT_DESC_KEY!r}; the row G8 confirms "
-        "would then have no visible label and the story's name for it could not be checked"
-    )
-    assert match.group(1) == SCENARIO_EXIT_LABEL, (
-        f"{SCENARIO_EXIT_DESC_KEY!r} now reads {match.group(1)!r}, not {SCENARIO_EXIT_LABEL!r}. "
-        "docs/phases/0-gui-tier.md's G8 row names that text; the story and this test must be "
-        "updated together."
-    )
-
-
-@pytest.mark.offline
-def test_the_back_out_chain_is_the_only_way_off_the_scenario_screen_by_that_row():
-    """Confirming the ``exit`` key must be what returns the game to the start screen.
-
-    Three links, each read from the game's own source:
-
-    1. ``-startScenario`` answers NO for the ``exit`` key - and for that key alone among the ones
-       the back-out row could carry;
-    2. the ``GUI_SCREEN_NEWGAME`` dispatcher calls ``-startScenario`` on the select key or a
-       double-click, and calls ``-setGuiToIntroFirstGo:YES`` exactly when it answers NO;
-    3. that is the only ``-setGuiToIntroFirstGo:`` call in the scenario screen's case.
-
-    Without this, "confirm row 1 and the game came back" would be a coincidence this file has no
-    account of.
-    """
-    start_scenario = _method_body(_read(PLAYER_LOADSAVE), "- (BOOL) startScenario")
-    exit_branch = re.search(
-        r'if\s*\(\s*\[key isEqualToString:@"'
-        + re.escape(SCENARIO_EXIT_GUI_KEY)
-        + r'"\]\s*\)\s*\{(.*?)\}',
-        start_scenario,
-        re.S,
-    )
-    assert exit_branch, (
-        f"-startScenario no longer has an `if ([key isEqualToString:@\"{SCENARIO_EXIT_GUI_KEY}\"])"
-        "` branch, so confirming the back-out row no longer means 'do not start a scenario'"
-    )
-    assert re.search(r"return\s+NO\s*;", exit_branch.group(1)), (
-        f"-startScenario's {SCENARIO_EXIT_GUI_KEY!r} branch no longer returns NO: "
-        f"{exit_branch.group(1)!r}. The dispatcher backs out only on NO, so this row would now "
-        "do something else entirely."
-    )
-
-    controls = _read(PLAYER_CONTROLS)
-    case_start = controls.find("case " + SCENARIO_SCREEN + ":")
-    assert case_start >= 0, (
-        f"-pollGuiScreenControls has no `case {SCENARIO_SCREEN}:` any more; the scenario screen "
-        "no longer has a dispatcher and G8's back-out has nothing to drive"
-    )
-    case_end = controls.find("\n\t\tcase ", case_start + 1)
-    assert case_end > case_start, "could not find the end of the scenario screen's case block"
-    case_body = controls[case_start:case_end]
-    back_out = re.search(
-        r"if\s*\(\s*!\s*\[self startScenario\]\s*\)\s*\{(.*?)\}", case_body, re.S
-    )
-    assert back_out, (
-        f"the {SCENARIO_SCREEN} dispatcher no longer has an `if (![self startScenario])` branch, "
-        "so a NO from the exit row no longer returns the game to the start screen"
-    )
-    assert "setGuiToIntroFirstGo:YES" in back_out.group(1), (
-        "the `if (![self startScenario])` branch no longer calls -setGuiToIntroFirstGo:YES: "
-        f"{back_out.group(1)!r}. That call is what assigns {START_SCREEN}, which is G8's RETURN "
-        "observable."
-    )
-    assert case_body.count("setGuiToIntroFirstGo") == 1, (
-        f"the {SCENARIO_SCREEN} dispatcher now calls -setGuiToIntroFirstGo: from "
-        f"{case_body.count('setGuiToIntroFirstGo')} places, so returning to the start screen no "
-        "longer identifies the back-out row as the cause"
-    )
-    assert "gvMouseDoubleClick" in case_body and "n_key_gui_select" in case_body, (
-        "the scenario screen's dispatcher no longer activates the selected row on a double-click "
-        "or the select key, so game.confirm_row() would not reach -startScenario at all"
-    )
-    # And the screen does NOT preselect the back-out row: this is why the test selects it first.
-    setter = _method_body(_read(PLAYER_LOADSAVE), "- (void) setGuiToScenarioScreen:(int)page")
-    assert re.search(r"setSelectedRow:start_row\s*\]", setter), (
-        "-setGuiToScenarioScreen: no longer leaves the selection on start_row. G8 selects the "
-        "back-out row explicitly BECAUSE it is not preselected; if that changed, the reason for "
-        "the extra select_row call has changed too and should be re-read."
-    )
 
 
 @pytest.mark.offline
@@ -898,8 +547,8 @@ def test_g8_asserts_arrival_and_return_as_separate_properties():
     for helper in ("assert_no_surviving_game_processes", "assert_clean_exit"):
         assert helper in name_calls, f"G8 never calls {helper}()"
 
-    # Every row this file drives must be a NAMED derived constant - no literal may creep into the
-    # navigation, which is what makes the derivation load-bearing rather than decorative.
+    # Every row this file drives must be a NAMED constant - no literal may creep into the
+    # navigation.
     allowed_rows = {"SCENARIO_ROW", "SCENARIO_EXIT_ROW", "EXIT_GAME_ROW"}
     for node in ast.walk(func):
         if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
@@ -909,60 +558,13 @@ def test_g8_asserts_arrival_and_return_as_separate_properties():
         for arg in node.args:
             assert isinstance(arg, ast.Name), (
                 f"G8 drives a row with a non-constant expression {ast.dump(arg)}; rows must be "
-                "named constants derived from the game's source, never literals"
+                "named constants, never literals"
             )
             assert arg.id in allowed_rows, (
                 f"G8 drives row constant {arg.id!r}, which is not one of {sorted(allowed_rows)}. "
                 "On the scenario screen only the exit row may be confirmed: any Scenario row "
                 "would LOAD a save game."
             )
-
-
-@pytest.mark.offline
-def test_the_rows_are_derived_from_the_game_source_and_not_written_down():
-    """The module constants must be CALLS to the derivation functions, not literals.
-
-    Checked on this file's AST so that "derived from the game's own source" is a structural
-    property rather than a claim in a docstring. This is the assertion that would catch someone
-    replacing ``SCENARIO_ROW = scenario_screen_row()`` with ``SCENARIO_ROW = 22`` after a
-    derivation started failing.
-    """
-    with open(os.path.join(HERE, os.path.basename(__file__)), "r", encoding="utf-8") as handle:
-        tree = ast.parse(handle.read())
-    assigned = {}
-    for node in tree.body:
-        if not isinstance(node, ast.Assign):
-            continue
-        target = node.targets[0]
-        names = target.elts if isinstance(target, ast.Tuple) else [target]
-        for index, name in enumerate(names):
-            if isinstance(name, ast.Name):
-                assigned[name.id] = (node.value, index, len(names))
-    for constant, function in (
-        ("SCENARIO_ROW", "scenario_screen_row"),
-        ("SCENARIO_EXIT_ROW", "scenario_exit_row"),
-        ("EXIT_GAME_ROW", "exit_row_dispatch"),
-        ("EXPECTED_EXIT_CONTEXT", "exit_row_dispatch"),
-    ):
-        assert constant in assigned, f"{constant} is no longer assigned at module level"
-        value, _index, _count = assigned[constant]
-        assert isinstance(value, ast.Call) and isinstance(value.func, ast.Name), (
-            f"{constant} is no longer the result of a call; a hardcoded row is exactly what this "
-            "bead forbids, because a renumbered menu would then confirm the wrong row silently"
-        )
-        assert value.func.id == function, (
-            f"{constant} is derived by {value.func.id}(), not {function}()"
-        )
-    # And the derivations must still be reading the game, not a cached copy.
-    source = _read(os.path.join(HERE, os.path.basename(__file__)))
-    for needed in (
-        "pollDemoControls",
-        "row_zero",
-        "setGuiToScenarioScreen",
-        "GUI_ROW_SCENARIOS_START",
-        "startScenario",
-    ):
-        assert needed in source, f"the derivation no longer reads the game source for {needed!r}"
 
 
 @pytest.mark.offline

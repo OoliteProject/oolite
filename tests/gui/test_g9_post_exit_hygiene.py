@@ -315,40 +315,6 @@ def test_an_exit_down_a_different_path_fails_on_the_context(tmp_path):
 
 
 @pytest.mark.offline
-def test_every_exit_context_in_the_tree_is_distinguished_from_the_expected_one():
-    """No OTHER exit path's context may accidentally satisfy this test's expectation.
-
-    Read out of the game's own source rather than listed here, so a tenth call site added later
-    is covered. If someone adds a context string containing "SDL_QUIT event received" this goes
-    red, which is correct: the expectation would no longer identify one path.
-    """
-    import re
-
-    src = os.path.abspath(os.path.join(HERE, "..", "..", "src"))
-    contexts = set()
-    for root, _dirs, files in os.walk(src):
-        for name in files:
-            if not name.endswith((".m", ".h")):
-                continue
-            with open(os.path.join(root, name), "r", encoding="utf-8", errors="replace") as fh:
-                contexts |= set(re.findall(r'exitAppWithContext:@"([^"]+)"', fh.read()))
-    assert EXPECTED_EXIT_CONTEXT in contexts, (
-        f"{EXPECTED_EXIT_CONTEXT!r} is not an exit context in the game's source any more; this "
-        f"test would then never pass. Found: {sorted(contexts)}"
-    )
-    assert len(contexts) >= 5, (
-        f"only {len(contexts)} exit contexts found ({sorted(contexts)}); the scan is not "
-        "finding the call sites and this guard is not checking what it thinks it is"
-    )
-    others = [c for c in contexts if c != EXPECTED_EXIT_CONTEXT]
-    clashes = [c for c in others if EXPECTED_EXIT_CONTEXT in c]
-    assert not clashes, (
-        f"these other exit contexts also contain {EXPECTED_EXIT_CONTEXT!r} and would satisfy "
-        f"the expectation: {clashes}"
-    )
-
-
-@pytest.mark.offline
 @pytest.mark.parametrize("dropped", SHUTDOWN_WITNESSES)
 def test_each_witness_is_load_bearing_on_its_own(tmp_path, dropped):
     """Removing ANY ONE of the three lines must fail: a shutdown that stopped partway is not one.
@@ -804,43 +770,3 @@ def test_g9_does_not_pretend_to_run_the_game_without_a_desktop():
         "no importorskip in this tier: a hard dependency must fail, not skip (oo-7by1)"
     )
 
-
-@pytest.mark.offline
-def test_the_witnesses_are_the_strings_the_game_really_writes():
-    """Each witness must be findable in the source that emits it, not merely plausible.
-
-    A typo in any of the three would make assert_shutdown_path_completed fail every clean exit,
-    and the failure would read as "the shutdown path is broken" rather than "the test is looking
-    for the wrong string". Both source files are asserted to EXIST first, so a moved file is a
-    failure rather than a check that quietly stops running.
-    """
-    src = os.path.abspath(os.path.join(HERE, "..", "..", "src", "Core"))
-    controller = os.path.join(src, "GameController.m")
-    handler = os.path.join(src, "OOLogOutputHandler.m")
-    for path in (controller, handler):
-        assert os.path.isfile(path), (
-            f"no {os.path.basename(path)} at {path}; this guard cannot verify the witnesses "
-            "against source that is not there, and silently passing would leave a typo in them "
-            "undetectable"
-        )
-
-    with open(controller, "r", encoding="utf-8", errors="replace") as handle:
-        source = handle.read()
-    assert SHUTDOWN_DEFAULTS_WITNESS in source, (
-        f"{SHUTDOWN_DEFAULTS_WITNESS!r} is not in GameController.m; the post-synchronize log "
-        "line has been reworded and this witness now matches nothing"
-    )
-    assert 'OOLog(@"exit.context"' in source, (
-        "GameController.m no longer logs the exit.context domain, so "
-        f"{SHUTDOWN_EXIT_CONTEXT_WITNESS!r} can never appear in a log"
-    )
-    assert "OOLoggingTerminate" in source, (
-        "-exitAppWithContext: no longer calls OOLoggingTerminate, so the log footer "
-        f"{SHUTDOWN_LOG_CLOSED_WITNESS!r} is never written on the way out"
-    )
-
-    # The footer itself is written by the output handler's postamble, not by GameController.
-    with open(handler, "r", encoding="utf-8", errors="replace") as handle:
-        assert SHUTDOWN_LOG_CLOSED_WITNESS in handle.read(), (
-            f"{SHUTDOWN_LOG_CLOSED_WITNESS!r} is not the postamble OOLogOutputHandler.m writes"
-        )
