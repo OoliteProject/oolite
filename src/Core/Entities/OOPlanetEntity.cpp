@@ -402,7 +402,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
   OOGraphicsResetManager::sharedManager()->registerCxxClient(this);
 }
 
-static Vector RandomHSBColor(void) {
+static Vector RandomHSBColor() {
   return (Vector){(OOScalar)(gen_rnd_number() / 256.0),
                   (OOScalar)(gen_rnd_number() / 256.0),
                   (OOScalar)(0.5 + gen_rnd_number() / 512.0)};

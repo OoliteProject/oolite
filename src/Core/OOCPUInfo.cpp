@@ -63,7 +63,7 @@ static bool sInited = false;
 
 static NSUInteger sNumberOfCPUs = 0;  // Yes, really 0.
 
-void OOCPUInfoInit(void) {
+void OOCPUInfoInit() {
   if (sInited) return;
 
   // Verify correctness of endian macros
@@ -104,7 +104,7 @@ void OOCPUInfoInit(void) {
   sInited = true;
 }
 
-NSUInteger OOCPUCount(void) {
+NSUInteger OOCPUCount() {
   if (!sInited) OOCPUInfoInit();
   return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }

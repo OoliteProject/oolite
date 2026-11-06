@@ -188,7 +188,7 @@ void InitOOJSVisualEffect(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sVisualEffectClassID, JSEntityClassID());
 }
 
-JSClassID JSVisualEffectClassID(void) { return sVisualEffectClassID; }
+JSClassID JSVisualEffectClassID() { return sVisualEffectClassID; }
 
 static bool JSVisualEffectGetVisualEffectEntity(
     JSContext* context, JSValueConst visualEffectObj,
@@ -214,11 +214,11 @@ static bool JSVisualEffectGetVisualEffectEntity(
 }
 
 // The bodies the C++ effect's overrides call.
-std::optional<std::string> OOJSVisualEffectJSClassName(void) {
+std::optional<std::string> OOJSVisualEffectJSClassName() {
   return std::string("VisualEffect");
 }
 
-bool OOJSVisualEffectIsVisibleToScripts(void) { return true; }
+bool OOJSVisualEffectIsVisibleToScripts() { return true; }
 
 std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(
     OOVisualEffectEntity* effect) {

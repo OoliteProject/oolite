@@ -62,7 +62,7 @@ std::string OONativeVector::description() const {
         normalizing the result) would provide the right result without looping,
    but I don't trust bellf() so I'll go with the simple approach for now.
 */
-Vector OORandomUnitVector(void) {
+Vector OORandomUnitVector() {
   Vector v;
   float m;
 

@@ -287,7 +287,7 @@ static void SwitchOpenGLStateInternal(
         SetState_ acccessors are used in either mode.
 */
 #ifndef NDEBUG
-static inline bool GetState_DEPTH_WRITEMASK(void) {
+static inline bool GetState_DEPTH_WRITEMASK() {
   OO_ENTER_OPENGL();
 
   GLboolean value;
@@ -301,7 +301,7 @@ static inline bool GetState_DEPTH_WRITEMASK(void) {
 #define SetState_SHADE_MODEL(VALUE) OOGL(glShadeModel(VALUE))
 
 #ifndef NDEBUG
-static inline GLenum GetState_TEXTURE_ENV_MODE(void) {
+static inline GLenum GetState_TEXTURE_ENV_MODE() {
   OO_ENTER_OPENGL();
 
   GLint value;
@@ -315,7 +315,7 @@ static inline GLenum GetState_TEXTURE_ENV_MODE(void) {
 
 #if OO_MULTITEXTURE
 #ifndef NDEBUG
-static inline GLenum GetState_ACTIVE_TEXTURE(void) {
+static inline GLenum GetState_ACTIVE_TEXTURE() {
   OO_ENTER_OPENGL();
 
   GLint value;
@@ -327,7 +327,7 @@ static inline GLenum GetState_ACTIVE_TEXTURE(void) {
 #define SetState_ACTIVE_TEXTURE(VALUE) OOGL(glActiveTextureARB(VALUE))
 
 #ifndef NDEBUG
-static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE(void) {
+static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE() {
   OO_ENTER_OPENGL();
 
   GLint value;
@@ -659,7 +659,7 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState,
 }
 }  // namespace
 
-void OOResetGLStateVerifier(void) {
+void OOResetGLStateVerifier() {
   // State has been reset behind our backs, so to speak; don't verify.
   sCurrentStateID = OPENGL_STATE_INTERNAL_USE_ONLY;
 }

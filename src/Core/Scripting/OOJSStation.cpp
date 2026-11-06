@@ -181,7 +181,7 @@ void InitOOJSStation(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sStationClassID, JSShipClassID());
 }
 
-JSClassID JSStationClassID(void) { return sStationClassID; }
+JSClassID JSStationClassID() { return sStationClassID; }
 
 /*	As in the SpiderMonkey version, these return false without an exception
    for stale references (nil entity) and for entities of the wrong native class;
@@ -247,7 +247,7 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj,
 
 // The bodies of StationEntity (OOJavaScriptExtensions), which StationEntity's
 // jsClassName calls.
-std::optional<std::string> OOJSStationJSClassName(void) {
+std::optional<std::string> OOJSStationJSClassName() {
   return std::string("Station");
 }
 

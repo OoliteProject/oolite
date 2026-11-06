@@ -133,7 +133,7 @@ static const JSCFunctionListEntry sEntityMethods[] = {
 #endif
 };
 
-JSClassID JSEntityClassID(void) { return sEntityClassID; }
+JSClassID JSEntityClassID() { return sEntityClassID; }
 
 void InitOOJSEntity(JSContext* context, JSValueConst global) {
   OOJSRegisterClass(&sEntityClassID, &sEntityClass);

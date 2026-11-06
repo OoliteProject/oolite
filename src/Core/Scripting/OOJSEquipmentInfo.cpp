@@ -637,7 +637,7 @@ std::optional<std::string> OOEquipmentType::jsDescription() {
   return oo::str::format("[object %s]", name.c_str());
 }
 
-std::optional<std::string> OOJSEquipmentInfoJSClassName(void) {
+std::optional<std::string> OOJSEquipmentInfoJSClassName() {
   return std::string("EquipmentInfo");
 }
 

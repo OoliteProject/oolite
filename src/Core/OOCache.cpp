@@ -147,7 +147,7 @@ enum { kCountUnknown = -1U };
 constexpr const char* kSerializedEntryKeyKey = "key";
 constexpr const char* kSerializedEntryKeyValue = "value";
 
-static OOCacheImpl* CacheAllocate(void);
+static OOCacheImpl* CacheAllocate();
 static void CacheFree(OOCacheImpl* cache);
 
 static bool CacheInsert(OOCacheImpl* cache, const std::string& key,
@@ -364,7 +364,7 @@ static void AgeListCheckIntegrity(OOCacheImpl* cache,
 
 /***** CacheImpl functions *****/
 
-static OOCacheImpl* CacheAllocate(void) {
+static OOCacheImpl* CacheAllocate() {
   return new OOCacheImpl();  // value-initialised (zeroed), as calloc did; the
                              // name is a C++ member
 }

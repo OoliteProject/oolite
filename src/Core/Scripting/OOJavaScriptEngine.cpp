@@ -625,7 +625,7 @@ static double sLimiterStart;
 static double sLimiterPauseStart;
 static double sLimiterTimeLimit;
 
-static double MonotonicTime(void) {
+static double MonotonicTime() {
 #if OOLITE_WINDOWS
   static LARGE_INTEGER frequency;
   LARGE_INTEGER counter;
@@ -648,7 +648,7 @@ void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit) {
   }
 }
 
-void OOJSStopTimeLimiter(void) {
+void OOJSStopTimeLimiter() {
   if (sLimiterStartDepth == 0) {
     OO_LOG("bug.javaScript.limiterDepth", "{}",
            "Attempt to stop JavaScript time limiter while it is already fully "
@@ -659,19 +659,19 @@ void OOJSStopTimeLimiter(void) {
   if (--sLimiterStartDepth == 0) sLimiterTimeLimit = 0.0;
 }
 
-void OOJSPauseTimeLimiter(void) {
+void OOJSPauseTimeLimiter() {
   if (sLimiterPauseDepth++ == 0) sLimiterPauseStart = MonotonicTime();
 }
 
-void OOJSResumeTimeLimiter(void) {
+void OOJSResumeTimeLimiter() {
   if (--sLimiterPauseDepth == 0)
     sLimiterTimeLimit += MonotonicTime() - sLimiterPauseStart;
 }
 
 #ifndef NDEBUG
-void OOJSResetTimeLimiter(void) { sLimiterStart = MonotonicTime(); }
+void OOJSResetTimeLimiter() { sLimiterStart = MonotonicTime(); }
 
-OOTimeDelta OOJSGetTimeLimiterLimit(void) { return sLimiterTimeLimit; }
+OOTimeDelta OOJSGetTimeLimiterLimit() { return sLimiterTimeLimit; }
 
 void OOJSSetTimeLimiterLimit(OOTimeDelta limit) { sLimiterTimeLimit = limit; }
 #endif

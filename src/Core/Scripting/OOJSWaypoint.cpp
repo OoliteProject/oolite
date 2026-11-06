@@ -93,7 +93,7 @@ void InitOOJSWaypoint(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sWaypointClassID, JSEntityClassID());
 }
 
-JSClassID JSWaypointClassID(void) { return sWaypointClassID; }
+JSClassID JSWaypointClassID() { return sWaypointClassID; }
 
 static bool JSWaypointGetWaypointEntity(JSContext* context,
                                         JSValueConst waypointObj,
@@ -122,11 +122,11 @@ static bool JSWaypointGetWaypointEntity(JSContext* context,
 
 // The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the C++
 // class's overrides of the root's JS members call.
-std::optional<std::string> OOJSWaypointJSClassName(void) {
+std::optional<std::string> OOJSWaypointJSClassName() {
   return std::string("Waypoint");
 }
 
-bool OOJSWaypointIsVisibleToScripts(void) { return true; }
+bool OOJSWaypointIsVisibleToScripts() { return true; }
 
 static JSValue WaypointGetProperty(OOJS_GETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)

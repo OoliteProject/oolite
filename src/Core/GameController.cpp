@@ -165,7 +165,7 @@ void LogDeferredCallException(const char* exceptionName,
 
 // One step of the run loop's timer firing: the first due call in scheduling
 // order.
-void FireOneDueDeferredCall(void) {
+void FireOneDueDeferredCall() {
   const std::chrono::steady_clock::time_point now =
       std::chrono::steady_clock::now();
   for (std::vector<OODeferredCall>::iterator it = sDeferredCalls.begin();

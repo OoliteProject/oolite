@@ -105,7 +105,7 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context) {
   return errorOccurred;
 }
 
-void OOGLWireframeModeOn(void) {
+void OOGLWireframeModeOn() {
   OO_ENTER_OPENGL();
 
   /* Because of where this is called relative to the
@@ -119,7 +119,7 @@ void OOGLWireframeModeOn(void) {
   OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 }
 
-void OOGLWireframeModeOff(void) {
+void OOGLWireframeModeOff() {
   OO_ENTER_OPENGL();
   OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
   //	OOGL(glPopAttrib());
@@ -227,7 +227,7 @@ void GLScaledPointSize(GLfloat size) {
   glPointSize(size * sDisplayScaleFactor);
 }
 
-GLfloat GLGetDisplayScaleFactor(void) { return sDisplayScaleFactor; }
+GLfloat GLGetDisplayScaleFactor() { return sDisplayScaleFactor; }
 
 void GLSetDisplayScaleFactor(GLfloat factor) {
   OOCParameterAssert(factor >= 0.0f && isfinite(factor));
@@ -239,12 +239,12 @@ void GLSetDisplayScaleFactor(GLfloat factor) {
 #ifndef NDEBUG
 
 static void GLDumpLightState(unsigned lightIdx);
-static void GLDumpMaterialState(void);
-static void GLDumpCullingState(void);
-static void GLDumpFogState(void);
-static void GLDumpStateFlags(void);
+static void GLDumpMaterialState();
+static void GLDumpCullingState();
+static void GLDumpFogState();
+static void GLDumpStateFlags();
 
-void LogOpenGLState(void) {
+void LogOpenGLState() {
   unsigned i;
 
   if (!oo::log::willDisplay(kOOLogOpenGLStateDump)) return;
@@ -320,7 +320,7 @@ static void GLDumpLightState(unsigned lightIdx) {
   }
 }
 
-static void GLDumpMaterialState(void) {
+static void GLDumpMaterialState() {
   GLfloat color[4];
   GLfloat shininess;
   GLint shadeModel, blendSrc, blendDst, texMode;
@@ -385,7 +385,7 @@ static void GLDumpMaterialState(void) {
   OOLogOutdent();
 }
 
-static void GLDumpCullingState(void) {
+static void GLDumpCullingState() {
   OO_ENTER_OPENGL();
 
   bool enabled;
@@ -408,7 +408,7 @@ static void GLDumpCullingState(void) {
   }
 }
 
-static void GLDumpFogState(void) {
+static void GLDumpFogState() {
   bool enabled;
   GLint value;
   GLfloat start, end, density, index;
@@ -441,7 +441,7 @@ static void GLDumpFogState(void) {
   }
 }
 
-static void GLDumpStateFlags(void) {
+static void GLDumpStateFlags() {
   OO_ENTER_OPENGL();
 
 #define DUMP_STATE_FLAG(x) \

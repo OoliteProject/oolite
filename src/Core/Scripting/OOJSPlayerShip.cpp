@@ -455,9 +455,9 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global) {
   JS_FreeValue(context, playerObject);
 }
 
-JSClassID JSPlayerShipClassID(void) { return sPlayerShipClassID; }
+JSClassID JSPlayerShipClassID() { return sPlayerShipClassID; }
 
-JSValue JSPlayerShipObject(void) {
+JSValue JSPlayerShipObject() {
   JSContext* context = OOJSAcquireContext();
   JSValue playerObject = JSPlayerObject();
   JSValue result = JS_GetPropertyStr(context, playerObject, "ship");
@@ -469,7 +469,7 @@ JSValue JSPlayerShipObject(void) {
 // PlayerEntity (OOJavaScriptExtensions): the bodies of the category's methods,
 // which the engine and the player sent by selector; the C++ player calls them.
 // Its JS class is JSPlayerShipClassID() (PlayerEntity::jsClassID()).
-std::optional<std::string> OOJSPlayerShipJSClassName(void) {
+std::optional<std::string> OOJSPlayerShipJSClassName() {
   return std::string("PlayerShip");
 }
 

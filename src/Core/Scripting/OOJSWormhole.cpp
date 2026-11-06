@@ -87,7 +87,7 @@ void InitOOJSWormhole(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sWormholeClassID, JSEntityClassID());
 }
 
-JSClassID JSWormholeClassID(void) { return sWormholeClassID; }
+JSClassID JSWormholeClassID() { return sWormholeClassID; }
 
 static bool JSWormholeGetWormholeEntity(JSContext* context,
                                         JSValueConst wormholeObj,
@@ -111,11 +111,11 @@ static bool JSWormholeGetWormholeEntity(JSContext* context,
 }
 
 // The bodies of WormholeEntity's JS members.
-std::optional<std::string> OOJSWormholeJSClassName(void) {
+std::optional<std::string> OOJSWormholeJSClassName() {
   return std::string("Wormhole");
 }
 
-bool OOJSWormholeIsVisibleToScripts(void) { return true; }
+bool OOJSWormholeIsVisibleToScripts() { return true; }
 
 static JSValue WormholeGetProperty(OOJS_GETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)

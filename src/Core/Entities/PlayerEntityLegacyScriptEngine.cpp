@@ -142,7 +142,7 @@ std::string CurrentScriptNameOr(const std::string& alternative) {
   return alternative;
 }
 
-std::string CurrentScriptDescription(void) {
+std::string CurrentScriptDescription() {
   return CurrentScriptNameOr("<anonymous actions>");
 }
 

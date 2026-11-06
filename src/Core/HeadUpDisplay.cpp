@@ -295,7 +295,7 @@ static bool _compassUpdated;
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z,
                                  NSSize siz);
 
-static void InitTextEngine(void);
+static void InitTextEngine();
 
 namespace {
 void prefetchData(const oo::PList& info, struct CachedInfo* data);
@@ -4177,7 +4177,7 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity* player1,
   // draw the waypoint
 }
 
-static void InitTextEngine(void) {
+static void InitTextEngine() {
   oo::PList fontSpec;
   const oo::PList* widths = nullptr;
   std::string texName;
@@ -4216,7 +4216,7 @@ oo::Data ConvertedString(const std::string& text) {
 
 }  // namespace
 
-void OOHUDResetTextEngine(void) {
+void OOHUDResetTextEngine() {
   OOTexture* fontTexture =
       sFontTexture;  // DESTROY(): cleared before the release
   sFontTexture = nullptr;

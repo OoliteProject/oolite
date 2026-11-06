@@ -105,7 +105,7 @@ static void SetOwnedValue(JSContext* context, JSValue* slot,
                                // and JS_FreeValue() ignores them.
 }
 
-static void ClearPendingCallback(void) {
+static void ClearPendingCallback() {
   JSContext* context = OOJSAcquireContext();
   SetOwnedValue(context, &sCallbackFunction, JS_NULL);
   SetOwnedValue(context, &sCallbackThis, JS_NULL);

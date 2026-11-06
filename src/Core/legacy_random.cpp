@@ -78,7 +78,7 @@ double cunningFee(double value, double precision) {
 //
 static RANROTSeed sRANROT;
 
-unsigned Ranrot(void) {
+unsigned Ranrot() {
   sRANROT.high = (sRANROT.high << 16) + (sRANROT.high >> 16);
   sRANROT.high += sRANROT.low;
   sRANROT.low += sRANROT.high;
@@ -118,7 +118,7 @@ RANROTSeed RanrotSeedFromRandomSeed(Random_Seed seed) {
 
 void ranrot_srand(uint32_t seed) { sRANROT = MakeRanrotSeed(seed); }
 
-float randf(void) { return (Ranrot() & 0xffff) * (1.0f / 65536.0f); }
+float randf() { return (Ranrot() & 0xffff) * (1.0f / 65536.0f); }
 
 float randfWithSeed(RANROTSeed* ioSeed) {
   return (RanrotWithSeed(ioSeed) & 0xffff) * (1.0f / 65536.0f);
@@ -137,7 +137,7 @@ float bellf(int n) {
   return total / (1024.0f * n);
 }
 
-RANROTSeed RANROTGetFullSeed(void) { return sRANROT; }
+RANROTSeed RANROTGetFullSeed() { return sRANROT; }
 
 void RANROTSetFullSeed(RANROTSeed seed) { sRANROT = seed; }
 
@@ -153,11 +153,11 @@ void seed_for_planet_description(Random_Seed s_seed) {
   sRANROT = RanrotSeedFromRNGSeed(rnd_seed);
 }
 
-RNG_Seed currentRandomSeed(void) { return rnd_seed; }
+RNG_Seed currentRandomSeed() { return rnd_seed; }
 
 void setRandomSeed(RNG_Seed a_seed) { rnd_seed = a_seed; }
 
-int gen_rnd_number(void) {
+int gen_rnd_number() {
   int a, x;
 
   x = (rnd_seed.a * 2) & 0xFF;
@@ -179,7 +179,7 @@ static bool sReallyRandomInited = false;
 #endif
 static RANROTSeed sReallyRandomSeed;
 
-uint32_t OOReallyRandom(void) {
+uint32_t OOReallyRandom() {
   assert(sReallyRandomInited);
   return RanrotWithSeed(&sReallyRandomSeed);
 }
@@ -195,13 +195,13 @@ void OOInitReallyRandom(uint64_t seed) {
   OOReallyRandom();
 }
 
-void OOSetReallyRandomRANROTSeed(void) {
+void OOSetReallyRandomRANROTSeed() {
   assert(sReallyRandomInited);
   sRANROT = sReallyRandomSeed;
   OOReallyRandom();  // Don't go reusing it.
 }
 
-void OOSetReallyRandomRndSeed(void) {
+void OOSetReallyRandomRndSeed() {
   uint32_t val = OOReallyRandom();
   rnd_seed.a = (val >> 24) & 0xFF;
   rnd_seed.b = (val >> 16) & 0xFF;
@@ -209,12 +209,12 @@ void OOSetReallyRandomRndSeed(void) {
   rnd_seed.d = val & 0xFF;
 }
 
-void OOSetReallyRandomRANROTAndRndSeeds(void) {
+void OOSetReallyRandomRANROTAndRndSeeds() {
   OOSetReallyRandomRANROTSeed();
   OOSetReallyRandomRndSeed();
 }
 
-OORandomState OOSaveRandomState(void) {
+OORandomState OOSaveRandomState() {
   return (OORandomState){.ranrot = sRANROT, .rnd = rnd_seed};
 }
 

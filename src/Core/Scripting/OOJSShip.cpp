@@ -721,7 +721,7 @@ void InitOOJSShip(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sShipClassID, JSEntityClassID());
 }
 
-JSClassID JSShipClassID(void) { return sShipClassID; }
+JSClassID JSShipClassID() { return sShipClassID; }
 
 namespace {
 

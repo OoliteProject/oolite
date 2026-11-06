@@ -141,7 +141,7 @@ void AppendCharacters(OOMaybeUnits* result, const char16_t* characters,
                       NSUInteger start, NSUInteger end);
 
 OOUnits NewRandomDigrams(OOStringExpansionContext* context);
-OOUnits OldRandomDigrams(void);
+OOUnits OldRandomDigrams();
 
 // Various bits of expansion logic, each with a comment of its very own at the
 // implementation.
@@ -181,7 +181,7 @@ const std::string* LookUpSelector(const OOSelectorTable* table,
 // A lookup's text, entering the UTF-16 engine (nullopt stays nullopt).
 OOMaybeUnits UnitsFromOptional(const std::optional<std::string>& string);
 
-const OOSelectorTable* SpecialSubstitutionSelectors(void);
+const OOSelectorTable* SpecialSubstitutionSelectors();
 OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context,
                                              const std::string& key,
                                              NSUInteger sizeLimit,
@@ -328,7 +328,7 @@ std::optional<std::string> cxx_OOGenerateSystemDescription(
                                        kOOExpandKey);
 }
 
-Random_Seed OOStringExpanderDefaultRandomSeed(void) {
+Random_Seed OOStringExpanderDefaultRandomSeed() {
   auto* manager =
       (UNIVERSE != nullptr
            ? UNIVERSE->getSystemManager()
@@ -867,7 +867,7 @@ OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context,
         Retrieve the mapping of special keys for ExpandStringKeySpecial() to
         selectors.
 */
-const OOSelectorTable* SpecialSubstitutionSelectors(void) {
+const OOSelectorTable* SpecialSubstitutionSelectors() {
   static OOSelectorTable* specials = nullptr;
   if (specials != nullptr) return specials;
 
@@ -1473,7 +1473,7 @@ OOUnits Capitalized(const OOUnits& name) {
         (world-generation consistent PRNG), but misses some possibilities. Used
         for "%R" description string for backwards compatibility.
 */
-OOUnits OldRandomDigrams(void) {
+OOUnits OldRandomDigrams() {
   /* The only point of using %R is for world generation, so there's
    * no point in checking the context */
   unsigned len = gen_rnd_number() & 3;

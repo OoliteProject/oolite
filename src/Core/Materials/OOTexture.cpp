@@ -600,7 +600,7 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format) {
   return 0;
 }
 
-bool OOCubeMapsAvailable(void) { return gOOTextureInfo.cubeMapAvailable; }
+bool OOCubeMapsAvailable() { return gOOTextureInfo.cubeMapAvailable; }
 
 bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
                                      std::string* outName,

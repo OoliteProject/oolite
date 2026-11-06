@@ -127,7 +127,7 @@ void InitOOJSPlanet(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sPlanetClassID, JSEntityClassID());
 }
 
-JSClassID JSPlanetClassID(void) { return sPlanetClassID; }
+JSClassID JSPlanetClassID() { return sPlanetClassID; }
 
 // The bodies of OOPlanetEntity (OOJavaScriptExtensions), called by the C++
 // planet's overrides.
