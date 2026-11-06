@@ -49,7 +49,6 @@ static NSArray* camera_keys = nil;
 #define KB_CHAR_HEIGHT 13.0f
 #define KB_LINE_HEIGHT 14.0f
 #define KB_TOP_Y 198.0f
-#define KB_FOOTER_Y -236.0f
 #define KB_GUI_ROW_Y(row) (200.0f - MAIN_GUI_ROW_HEIGHT * (row))
 #define KB_SIDE_MARGIN 16.0f
 #define KB_MIN_COLUMN_WIDTH 230.0f
@@ -1156,12 +1155,10 @@ static GLfloat kb_layout_footer_y = 0.0f;
     return [assignment stringByReplacingOccurrencesOfString:@" or " withString:@" / "];
 }
 
-// The footer is the lowest line drawn. In flight the HUD stays visible, so stop where the
-// status screen's equipment list stops; docked, the list can use the whole screen.
+// The footer is the lowest line drawn. The HUD stays visible, so stop where the status
+// screen's equipment list stops.
 - (GLfloat)keyBindingsFooterY
 {
-    if ([self status] == STATUS_DOCKED)
-        return KB_FOOTER_Y;
     if ([[self hud] allowBigGui])
         return KB_GUI_ROW_Y(STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS + STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS);
     return KB_GUI_ROW_Y(STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS);

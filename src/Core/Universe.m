@@ -4726,11 +4726,6 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 // case GUI_SCREEN_KEYBOARD:
                 //  no HUD rendering on this screen
                 // break;
-                case GUI_SCREEN_KEYBINDINGS:
-                    // docked, the key list uses the whole screen; in flight it stops above the HUD
-                    if (v_status == STATUS_DOCKED)
-                        break;
-                    // fall through
                 default:
                     [theHUD setLineWidth:lineWidth];
                     [theHUD renderHUD];
