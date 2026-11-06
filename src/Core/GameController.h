@@ -40,10 +40,6 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObject.h"
 
-#if OOLITE_MAC_COCOA_UI
-#import <Quartz/Quartz.h>  // For PDFKit.
-#endif
-
 #define MINIMUM_GAME_TICK 0.25
 // * reduced from 0.5s for tgape * //
 
@@ -51,16 +47,11 @@ MA 02110-1301, USA.
 // 1.0 / (desired framerate cap)
 
 class MyOpenGLView;
-class OOFullScreenController;  // TEMP: whether to use separate
-                               // OOFullScreenController object, will hopefully
-// be used for all builds soon.
-#define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_COCOA_UI
 
 /*	The application controller: the class shell, its state and accessors;
    the frame loop and deferred calls; start-up, splash and progress messages,
         exit and the player file; the SDL full-screen members
         (SDL/GameController+SDLFullScreen.mm), the former FullScreen category.
-        The Mac category at the end of GameController.mm is not compiled.
 */
 class GameController : public oo::RefCounted {
  public:
@@ -100,9 +91,7 @@ class GameController : public oo::RefCounted {
 #endif
 
   // The frame loop.
-#if !OOLITE_MAC_COCOA_UI
   void performGameTick();
-#endif
   void startAnimationTimer();
   void stopAnimationTimer();
 
@@ -168,15 +157,7 @@ class GameController : public oo::RefCounted {
   friend struct GameControllerTestAccess;
 
  private:
-  // Internal: the state, read and written by the members above (and by the
-  // fenced Mac categories, not compiled).
-#if OOLITE_MAC_COCOA_UI
-  NSTextField* splashProgressTextField = {};
-  NSView* splashView = {};
-  NSWindow* gameWindow = {};
-  PDFView* helpView = {};
-  NSMenu* dockMenu = {};
-#endif
+  // Internal: the state, read and written by the members above.
 
   ::MyOpenGLView* _gameView =
       {};  // retained; was gameView, named like its getter
@@ -212,9 +193,7 @@ class GameController : public oo::RefCounted {
   OOMouseInteractionMode _resumeMode = {};
 
 // Fullscreen mode stuff.
-#if OO_USE_FULLSCREEN_CONTROLLER
-  OOFullScreenController* _fullScreenController = {};
-#elif OOLITE_SDL
+#if OOLITE_SDL
   NSRect fsGeometry = {};
   ::MyOpenGLView* switchView = {};
 
@@ -240,7 +219,7 @@ class GameController : public oo::RefCounted {
   void reportUnhandledStartupExceptionName(
       const std::string& name, const std::optional<std::string>&
                                    reason);  // reason nullopt: none (was nil)
-#if OO_DEBUG && !OOLITE_MAC_COCOA_UI
+#if OO_DEBUG
   bool debugMessageTrackingIsOn();
   std::string debugMessageCurrentString();
 #endif

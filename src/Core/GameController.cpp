@@ -66,15 +66,7 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_init.h>
 #endif
 
-#if OOLITE_MAC_COCOA_UI
-#import <Sparkle/Sparkle.h>
-
-#import "JAPersistentFileReference.h"
-#import "OOMacJoystickManager.h"
-#import "OoliteApp.h"
-
-static void SetUpSparkle(void);
-#elif (OOLITE_SDL && defined(OO_DEBUG_MONITOR_ENABLED))
+#if (OOLITE_SDL && defined(OO_DEBUG_MONITOR_ENABLED))
 #include "OODebugMonitor.h"
 #endif
 
@@ -83,21 +75,6 @@ namespace {
 GameController* sSharedController = nullptr;
 
 }  // namespace
-
-#if OOLITE_MAC_COCOA_UI
-// Only the fenced Mac category below still sends these; they are GameController
-// members.
-@interface GameController (OOPrivate)
-
-- (void)cxx_reportUnhandledStartupExceptionName:(const std::string&)name
-                                         reason:
-                                             (const std::optional<std::string>&)
-                                                 reason;  // reason nullopt:
-                                                          // none (was nil)
-- (void)doPerformGameTick;
-
-@end
-#endif
 
 /*	The frame loop.
 
@@ -274,10 +251,6 @@ GameController::GameController() {
 }
 
 GameController::~GameController() {
-#if OOLITE_MAC_COCOA_UI
-  [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:UNIVERSE];
-#endif
-
   if (_gameView != nullptr) _gameView->release();
   if (UNIVERSE != nullptr) UNIVERSE->release();
 }
@@ -356,11 +329,6 @@ void GameController::setMouseInteractionMode(OOMouseInteractionMode mode) {
          OOStringFromMouseInteractionMode(oldMode),
          OOStringFromMouseInteractionMode(mode));
 
-#if OO_USE_FULLSCREEN_CONTROLLER
-  if ([oo::ToObjC(this) inFullScreenMode]) {
-    _fullScreenController->noteMouseInteractionModeChangedFrom(oldMode, mode);
-  } else
-#endif
   {
     if (gameView() != nullptr)
       gameView()->noteMouseInteractionModeChangedFrom(oldMode, mode);
@@ -401,17 +369,12 @@ bool GameController::suppressClangStuff() {
 }
 #endif
 
-#if !OOLITE_MAC_COCOA_UI  // the Mac -performGameTick: is in GameController
-                          // (MacOSX) at the end of the file
-
 void GameController::performGameTick() {
   oo::AutoreleaseScope pool;
 
   if (_gameView != nullptr) _gameView->pollControls();
   doPerformGameTick();
 }
-
-#endif
 
 void GameController::doPerformGameTick() {
   try {
@@ -577,11 +540,6 @@ void GameController::applicationDidFinishLaunching() {
     beginSplashScreen();
 #endif
 
-#if OOLITE_MAC_COCOA_UI
-    [OOJoystickManager setStickHandlerClass:[OOMacJoystickManager class]];
-    SetUpSparkle();
-#endif
-
 #if OOLITE_SDL
     setUpDisplayModes();
 #else
@@ -622,19 +580,12 @@ void GameController::applicationDidFinishLaunching() {
          "========== Loading complete in {:.2f} seconds. ==========",
          oo::date::monotonicSeconds() - _splashStart);
 
-#if OO_USE_FULLSCREEN_CONTROLLER
-  [oo::ToObjC(this)
-      setFullScreenMode:oo::Defaults::standard().boolForKey("fullscreen")];
-#endif
-
   _finishedLaunching = true;
 
   // Release anything allocated above that is not required.
   pool.reset();
 
-#if !OOLITE_MAC_COCOA_UI
   runFrameLoop();
-#endif
 }
 
 void GameController::loadPlayerIfRequired() {
@@ -653,7 +604,6 @@ void GameController::loadPlayerIfRequired() {
 }
 
 void GameController::beginSplashScreen() {
-#if !OOLITE_MAC_COCOA_UI
   if (!_gameView) {
     /*	[[MyOpenGLView alloc] init], whose answer was not kept: a view whose
        init() fails (SDL could not start) was released, which left _gameView
@@ -668,25 +618,15 @@ void GameController::beginSplashScreen() {
     if (_gameView != nullptr) _gameView->setGameController(this);
     if (_gameView != nullptr) _gameView->initSplashScreen();
   }
-#else
-  [_gameView updateScreen];
-#endif
 }
 
-// The Mac-only methods are in the GameController (MacOSX) category at the end
-// of the file. -snapshotsURLCreatingIfNeeded: is Mac-only: nothing on SDL
-// called it.
-#if !OOLITE_MAC_COCOA_UI && !OOLITE_SDL
+#if !OOLITE_SDL
 #error Unknown environment!
 #endif
 
 void GameController::logProgress(const std::string& message) {
   if (!(UNIVERSE != nullptr ? UNIVERSE->doingStartUp() : false)) return;
 
-#if OOLITE_MAC_COCOA_UI
-  [splashProgressTextField setStringValue:oo::NSStringFrom(message)];
-  [splashProgressTextField display];
-#endif
   if (!message.empty()) {
     OO_LOG("startup.progress", "===== [{:.2f} s] {}",
            oo::date::monotonicSeconds() - _splashStart, message);
@@ -694,14 +634,12 @@ void GameController::logProgress(const std::string& message) {
 }
 
 #if OO_DEBUG
-#if !OOLITE_MAC_COCOA_UI  // the Mac arms are in GameController (MacOSX) at the
-                          // end of the file
+
 bool GameController::debugMessageTrackingIsOn() {
   return oo::log::willDisplay("startup.progress");
 }
 
 std::string GameController::debugMessageCurrentString() { return ""; }
-#endif
 
 void GameController::debugLogProgress(const std::string& message) {
   logProgress(message);
@@ -735,15 +673,7 @@ void GameController::debugPopProgressMessage() {
 void GameController::endSplashScreen() {
   oo::log::logger().setDisplay("startup.progress", false);
 
-#if OOLITE_MAC_COCOA_UI
-  // These views will be released when we replace the content view.
-  splashProgressTextField = nullptr;
-  splashView = nullptr;
-
-  [gameWindow setAcceptsMouseMovedEvents:true];
-  [gameWindow setContentView:_gameView];
-  [gameWindow makeFirstResponder:_gameView];
-#elif OOLITE_SDL
+#if OOLITE_SDL
   if (_gameView != nullptr) _gameView->endSplashScreen();
 #endif
 }
@@ -776,7 +706,7 @@ void GameController::exitAppWithContext(const std::string& context) {
   exit(0);
 }
 
-#elif !OOLITE_MAC_COCOA_UI
+#else
 #error Unknown environment!
 #endif
 
@@ -860,336 +790,7 @@ void GameController::reportUnhandledStartupExceptionName(
   OO_LOG("startup.exception",
          "***** Unhandled exception during startup: {} ({}).", name,
          reason.value_or("(null)"));
-
-#if OOLITE_MAC_COCOA_UI
-  // Display an error alert.
-  // TODO: provide better information on reporting bugs in the manual, and refer
-  // to it here.
-  NSRunCriticalAlertPanel(
-      @"Oolite failed to start up, because an unhandled exception occurred.",
-      @"An exception of type %@ occurred. If this problem persists, please "
-      @"file a bug report.",
-      @"OK", NULL, NULL, oo::NSStringFrom(name));
-#endif
 }
-
-#if OOLITE_MAC_COCOA_UI
-
-/*	The Mac-only methods, gathered into one category at the end of the file:
-   the menu actions, the snapshots-folder and add-ons helpers, the dock menu,
-   -awakeFromNib, the application-delegate methods, and the Mac arms of
-   -performGameTick:, -cxx_exitAppWithContext: and the two debug-progress
-   accessors. This block is not compiled on other platforms.
-*/
-@implementation GameController (MacOSX)
-
-- (void)performGameTick:(id)sender {
-  [gameView pollControls];
-  [self doPerformGameTick];
-}
-
-- (void)recenterVirtualJoystick {
-  // FIXME: does this really need to be spread across GameController and
-  // MyOpenGLView? -- Ahruman 2011-01-22
-  my_mouse_x = my_mouse_y = 0;  // center mouse
-  [gameView setVirtualJoystick:0.0:0.0];
-}
-
-- (IBAction)showLogAction:sender {
-  [[NSWorkspace sharedWorkspace]
-      openFile:[oo::NSStringOrNil(cxx_OOLogHandlerGetLogBasePath())
-                   stringByAppendingPathComponent:@"Previous.log"]];
-}
-
-- (IBAction)showLogFolderAction:sender {
-  [[NSWorkspace sharedWorkspace]
-      openFile:oo::NSStringOrNil(cxx_OOLogHandlerGetLogBasePath())];
-}
-
-// Helpers to allow -snapshotsURLCreatingIfNeeded: code to be identical here and
-// in dock tile plug-in. Same domain as the dock tile plug-in: oo::Defaults
-// (backed by the shared store).
-static id GetPreference(const std::string& key) {
-  return oo::ObjectFromPList(oo::Defaults::standard().object(key));
-}
-
-static void SetPreference(const std::string& key, id value) {
-  oo::Defaults::standard().setObject(key, oo::PListFrom(value));
-}
-
-static void RemovePreference(const std::string& key) {
-  oo::Defaults::standard().removeObject(key);
-}
-
-#define kSnapshotsDirRefKey "snapshots-directory-reference"
-#define kSnapshotsDirNameKey "snapshots-directory-name"
-
-- (NSURL*)snapshotsURLCreatingIfNeeded:(bool)create {
-  bool stale = false;
-  // A JAPersistentFileReference dictionary (not migrated): passed between its
-  // functions as is.
-  id snapshotDirDict = GetPreference(kSnapshotsDirRefKey);
-  NSURL* url = nullptr;
-  const std::string name = OO_DESC("snapshots-directory-name-mac");
-
-  if (!oo::IsNSDictionary(snapshotDirDict)) snapshotDirDict = nullptr;
-  if (snapshotDirDict != nullptr) {
-    url = JAURLFromPersistentFileReference(
-        snapshotDirDict,
-        kJAPersistentFileReferenceWithoutUI |
-            kJAPersistentFileReferenceWithoutMounting,
-        &stale);
-    if (url != nullptr) {
-      const std::string existingName =
-          oo::str::lastPathComponent(oo::StdString([url path]));
-      if (oo::str::caseInsensitiveCompare(existingName, name) != 0) {
-        // Check name from previous access, because we might have changed
-        // localizations.
-        id originalOldName = GetPreference(kSnapshotsDirNameKey);
-        if (!oo::IsNSString(originalOldName) ||
-            oo::str::caseInsensitiveCompare(
-                existingName, oo::StdString(originalOldName)) != 0) {
-          url = nullptr;
-        }
-      }
-
-      // did we put the old directory in the trash?
-      Boolean inTrash = false;
-      const UInt8* utfPath = (const UInt8*)[[url path] UTF8String];
-
-      OSStatus err = DetermineIfPathIsEnclosedByFolder(
-          kOnAppropriateDisk, kTrashFolderType, utfPath, false, &inTrash);
-      // if so, create a new directory.
-      if (err == noErr && inTrash == true) url = nullptr;
-    }
-  }
-
-  if (url == nullptr) {
-    std::optional<std::string> path;
-    const std::vector<std::string> searchPaths =
-        oo::StringsFrom(NSSearchPathForDirectoriesInDomains(
-            NSDesktopDirectory, NSUserDomainMask, true));
-    if (!searchPaths.empty()) {
-      path = oo::str::appendingPathComponent(searchPaths[0], name);
-    }
-    url = [NSURL fileURLWithPath:oo::NSStringOrNil(path)];
-
-    if (url != nullptr) {
-      stale = true;
-      if (create) {
-        if (!oo::fs::fileExists(oo::fs::pathFromUTF8(*path))) {
-          (void)oo::fs::createDirectories(oo::fs::pathFromUTF8(*path));
-        }
-      }
-    }
-  }
-
-  if (stale) {
-    snapshotDirDict = JAPersistentFileReferenceFromURL(url);
-    if (snapshotDirDict != nullptr) {
-      SetPreference(kSnapshotsDirRefKey, snapshotDirDict);
-      SetPreference(kSnapshotsDirNameKey, [[url path] lastPathComponent]);
-    } else {
-      RemovePreference(kSnapshotsDirRefKey);
-    }
-  }
-
-  return url;
-}
-
-- (IBAction)showSnapshotsAction:sender {
-  [[NSWorkspace sharedWorkspace]
-      openURL:[self snapshotsURLCreatingIfNeeded:true]];
-}
-
-- (IBAction)showAddOnsAction:sender {
-  const std::vector<std::string> paths = ResourceManager::userRootPaths();
-
-  // Look for an AddOns directory that actually contains some AddOns.
-  for (const std::string& path : paths) {
-    if ([self cxx_addOnsExistAtPath:path]) {
-      [self cxx_openPath:path];
-      return;
-    }
-  }
-
-  // If that failed, look for an AddOns directory that actually exists.
-  for (const std::string& path : paths) {
-    if ([self cxx_isDirectoryAtPath:path]) {
-      [self cxx_openPath:path];
-      return;
-    }
-  }
-
-  // None found, create the default path.
-  (void)oo::fs::createDirectories(oo::fs::pathFromUTF8(paths.front()));
-  [self cxx_openPath:paths.front()];
-}
-
-- (bool)cxx_isDirectoryAtPath:(const std::string&)path {
-  return oo::fs::isDirectory(oo::fs::pathFromUTF8(path));
-}
-
-- (bool)cxx_addOnsExistAtPath:(const std::string&)path {
-  if (![self cxx_isDirectoryAtPath:path]) return false;
-
-  NSWorkspace* workspace = NSWorkspace.sharedWorkspace;
-  // Recursive walk in OS enumeration order (first match wins; not sorted), as
-  // the Foundation directory enumerator did.
-  const oo::fs::Path root = oo::fs::pathFromUTF8(path);
-  std::error_code ec;
-  for (std::filesystem::recursive_directory_iterator it(root, ec), end;
-       !ec && it != end; it.increment(ec)) {
-    const std::string fullPath = oo::fs::utf8String(it->path());
-    const std::optional<std::string> type = oo::OptionalString(
-        [workspace typeOfFile:oo::NSStringFrom(fullPath) error:NULL]);
-    if ([workspace type:oo::NSStringOrNil(type)
-            conformsToType:@"org.aegidian.oolite.expansion"])
-      return true;
-  }
-
-  return false;
-}
-
-- (void)cxx_openPath:(const std::string&)path {
-  [NSWorkspace.sharedWorkspace
-      openURL:[NSURL fileURLWithPath:oo::NSStringFrom(path)]];
-}
-
-- (bool)validateMenuItem:(NSMenuItem*)menuItem {
-  SEL action = menuItem.action;
-
-  if (action == @selector(showLogAction:)) {
-    // the first path is always Resources
-    const std::optional<std::string> base = cxx_OOLogHandlerGetLogBasePath();
-    if (!base.has_value()) return false;
-    return oo::fs::fileExists(oo::fs::pathFromUTF8(
-        oo::str::appendingPathComponent(*base, "Previous.log")));
-  }
-
-  if (action == @selector(showAddOnsAction:)) {
-    // Always enabled in unrestricted mode, to allow users to add OXPs more
-    // easily.
-    return ResourceManager::useAddOns().has_value();
-  }
-
-  if (action == @selector(showSnapshotsAction:)) {
-    const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(
-        oo::StdString([self snapshotsURLCreatingIfNeeded:false].path)));
-    if (type == oo::fs::FileType::none) return false;
-    return type == oo::fs::FileType::directory;
-  }
-
-  if (action == @selector(toggleFullScreenAction:)) {
-    if (_fullScreenController.fullScreenMode) {
-      // NOTE: not DESC, because menu titles are not generally localizable.
-      menuItem.title = NSLocalizedString(@"Exit Full Screen", NULL);
-    } else {
-      menuItem.title = NSLocalizedString(@"Enter Full Screen", NULL);
-    }
-  }
-
-  // default
-  return true;
-}
-
-- (NSMenu*)applicationDockMenu:(NSApplication*)sender {
-  return dockMenu;
-}
-
-#if OO_DEBUG
-- (bool)debugMessageTrackingIsOn {
-  return splashProgressTextField != nullptr;
-}
-
-- (std::string)cxx_debugMessageCurrentString {
-  return oo::StdString([splashProgressTextField stringValue]);
-}
-#endif
-
-// NIB methods
-- (void)awakeFromNib {
-  // Set contents of Help window
-  const oo::fs::Path readMePath =
-      oo::ResourcePaths::current().builtInResourcesDirectory() /
-      "OoliteReadMe.pdf";
-  const std::optional<std::string> path =
-      oo::fs::fileExists(readMePath)
-          ? std::optional<std::string>(oo::fs::utf8String(readMePath))
-          : std::nullopt;
-  if (path.has_value()) {
-    PDFDocument* document = [[PDFDocument alloc]
-        initWithURL:[NSURL fileURLWithPath:oo::NSStringFrom(*path)]];
-    [helpView setDocument:document];
-    [document release];
-  }
-  [helpView setBackgroundColor:[NSColor whiteColor]];
-}
-
-// delegate methods
-- (bool)application:(NSApplication*)theApplication
-           openFile:(id)filename  // NSApplicationDelegate's selector, shared
-                                  // with AppKit: an Objective-C string
-{
-  const std::string path = oo::StdString(filename);
-  const std::string extension = oo::str::pathExtension(path);
-  if (extension == "oolite-save") {
-    [self cxx_setPlayerFileToLoad:path];
-    [self cxx_setPlayerFileDirectory:oo::OptionalString(filename)];
-    return true;
-  }
-  if (extension == "oxp") {
-    if (oo::fs::isDirectory(oo::fs::pathFromUTF8(path))) {
-      expansionPathsToInclude.push_back(path);
-      return true;
-    }
-  }
-  return false;
-}
-
-- (void)cxx_exitAppWithContext:(const std::string&)context {
-  [gameView.window orderOut:nullptr];
-  [(OoliteApp*)NSApp setExitContext:oo::NSStringFrom(context)];
-  [NSApp terminate:self];
-}
-
-- (NSApplicationTerminateReply)applicationShouldTerminate:
-    (NSApplication*)sender {
-  OOCacheManager::sharedCache()->finishOngoingFlush();
-  OOLoggingTerminate();
-  return NSTerminateNow;
-}
-
-@end
-
-static void SetUpSparkle(void) {
-#define FEED_URL_BASE "http://www.oolite.org/updates/"
-#define TEST_RELEASE_FEED_NAME "oolite-mac-test-release-appcast.xml"
-#define DEPLOYMENT_FEED_NAME "oolite-mac-appcast.xml"
-
-#define TEST_RELEASE_FEED_URL (@FEED_URL_BASE TEST_RELEASE_FEED_NAME)
-#define DEPLOYMENT_FEED_URL (@FEED_URL_BASE DEPLOYMENT_FEED_NAME)
-
-// Default to test releases in test release or debug builds, and stable releases
-// for deployment builds.
-#ifdef NDEBUG
-#define DEFAULT_TEST_RELEASE 0
-#else
-#define DEFAULT_TEST_RELEASE 1
-#endif
-
-  bool useTestReleases =
-      oo::Defaults::standard().object("use-test-release-updates").isNull()
-          ? DEFAULT_TEST_RELEASE
-          : oo::Defaults::standard().boolForKey("use-test-release-updates");
-
-  SUUpdater* updater = [SUUpdater sharedUpdater];
-  [updater
-      setFeedURL:[NSURL URLWithString:useTestReleases ? TEST_RELEASE_FEED_URL
-                                                      : DEPLOYMENT_FEED_URL]];
-}
-
-#endif
 
 namespace {
 

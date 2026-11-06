@@ -35,18 +35,12 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObject.h"
 
-#define OOLITE_ITUNES_SUPPORT OOLITE_MAC_COCOA_UI
-
 typedef enum {
   kOOMusicOff,
   kOOMusicOn,
   kOOMusicITunes,
 
-#if OOLITE_ITUNES_SUPPORT
-  kOOMusicModeMax = kOOMusicITunes
-#else
   kOOMusicModeMax = kOOMusicOn
-#endif
 } OOMusicMode;
 
 class OOMusicController : public oo::RefCounted {

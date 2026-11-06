@@ -405,17 +405,13 @@ OOOpenGLExtensionManager* OOOpenGLExtensionManager::sharedManager() {
 }
 
 bool OOOpenGLExtensionManager::haveExtension(const std::string& extension) {
-// The Foundation set was documented as thread-safe under OS X, but I'm not sure
-// about GNUstep. -- Ahruman
-#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
+  // The Foundation set was documented as thread-safe under OS X, but I'm not
+  // sure about GNUstep. -- Ahruman
   lock.lock();
-#endif
 
   bool result = extensions.contains(extension) ? true : false;
 
-#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
   lock.unlock();
-#endif
 
   return result;
 }
