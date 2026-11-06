@@ -109,7 +109,7 @@ void InitOOJSFlasher(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sFlasherClassID, JSEntityClassID());
 }
 
-JSClassID JSFlasherClassID(void) { return sFlasherClassID; }
+JSClassID JSFlasherClassID() { return sFlasherClassID; }
 
 static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj,
                                       OOFlasherEntity** outEntity) {
@@ -136,11 +136,11 @@ static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj,
 
 // The bodies of OOFlasherEntity (OOJavaScriptExtensions), which the C++ class's
 // overrides of the root's JS members call.
-std::optional<std::string> OOJSFlasherJSClassName(void) {
+std::optional<std::string> OOJSFlasherJSClassName() {
   return std::string("Flasher");
 }
 
-bool OOJSFlasherIsVisibleToScripts(void) { return true; }
+bool OOJSFlasherIsVisibleToScripts() { return true; }
 
 static JSValue FlasherGetProperty(OOJS_GETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)

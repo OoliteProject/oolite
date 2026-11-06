@@ -92,7 +92,7 @@ void InitOOJSDock(JSContext* context, JSValueConst global) {
   OOJSRegisterSubclass(sDockClassID, JSShipClassID());
 }
 
-JSClassID JSDockClassID(void) { return sDockClassID; }
+JSClassID JSDockClassID() { return sDockClassID; }
 
 /*	As in the SpiderMonkey version, these return false without an exception
    for stale references (nil entity) and for entities of the wrong native class;
@@ -144,9 +144,7 @@ static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj,
 
 // The bodies of DockEntity's class questions, which DockEntity's overrides
 // call.
-std::optional<std::string> OOJSDockJSClassName(void) {
-  return std::string("Dock");
-}
+std::optional<std::string> OOJSDockJSClassName() { return std::string("Dock"); }
 
 static JSValue DockGetProperty(OOJS_GETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)

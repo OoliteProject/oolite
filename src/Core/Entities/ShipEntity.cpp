@@ -14067,7 +14067,7 @@ std::optional<std::string> ShipEntity::descriptionForObjDump() {
    target's class is asked of the runtime, and its kind of entity of the
    entity's C++ part (getIsShip(), getIsVisualEffect()).
 */
-oo::PList OODefaultShipShaderMacros(void) {
+oo::PList OODefaultShipShaderMacros() {
   // "ship-prefix-macros" of the material defaults, read once; an empty
   // dictionary if it is not one.
   static const oo::PList macros = [] {

@@ -54,7 +54,7 @@ std::vector<double> cxx_ArrayFromHPVector(HPVector vec) {
         normalizing the result) would provide the right result without looping,
    but I don't trust bellf() so I'll go with the simple approach for now.
 */
-HPVector OORandomUnitHPVector(void) {
+HPVector OORandomUnitHPVector() {
   HPVector v;
   OOHPScalar m;
 

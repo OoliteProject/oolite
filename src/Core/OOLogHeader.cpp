@@ -40,7 +40,7 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 
 namespace {
-std::string AdditionalLogHeaderInfo(void);
+std::string AdditionalLogHeaderInfo();
 }
 
 #ifdef ALLOW_PROCEDURAL_PLANETS
@@ -59,7 +59,7 @@ std::string AdditionalLogHeaderInfo(void);
 #warning TARGET_INCOMING_MISSILES is no longer optional and the macro should no longer be defined.
 #endif
 
-void OOPrintLogHeader(void) {
+void OOPrintLogHeader() {
 // Bunch of string literal macros which are assembled into a CPU info string.
 #if defined(__ppc__)
 #define CPU_TYPE_STRING "PPC-32"
@@ -188,7 +188,7 @@ void OOPrintLogHeader(void) {
 
 // A std::string, for OOJSConsole's console.platformDescription; the same
 // "<system> (<cpu><variant>)" text.
-std::string OOPlatformDescription(void) {
+std::string OOPlatformDescription() {
 #if OOLITE_MACOS
   const std::string platformSystem =
       OS_TYPE_STRING " " + oo::process::operatingSystemVersionString();
@@ -206,10 +206,10 @@ std::string OOPlatformDescription(void) {
 
 static std::optional<std::string> GetSysCtlString(const char* name);
 static unsigned long long GetSysCtlInt(const char* name);
-static std::string GetCPUDescription(void);
+static std::string GetCPUDescription();
 
 namespace {
-std::string AdditionalLogHeaderInfo(void) {
+std::string AdditionalLogHeaderInfo() {
   std::optional<std::string> sysModel;
   unsigned long long sysPhysMem;
 
@@ -239,7 +239,7 @@ std::string AdditionalLogHeaderInfo(void) {
 #define CPUFAMILY_INTEL_SKYLAKE 0x37fc219f
 #endif
 
-static std::string GetCPUDescription(void) {
+static std::string GetCPUDescription() {
   std::optional<std::string> typeStr, subTypeStr;
 
   unsigned long long sysCPUType = GetSysCtlInt("hw.cputype");

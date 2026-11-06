@@ -169,7 +169,7 @@ OOINLINE BackLinkChain BackLinkIndex(BackLinkChain* link, NSUInteger index) {
   return result;
 }
 
-OOINLINE BackLinkChain BackLinkRoot(void) {
+OOINLINE BackLinkChain BackLinkRoot() {
   BackLinkChain result = {nullptr, nullptr, 0, false};
   return result;
 }
@@ -227,7 +227,7 @@ OOPListSchemaVerifierError ErrorWithDictionaryAndArguments(
 OOPListSchemaVerifierError ErrorTypeMismatch(const char* expectedClassName,
                                              const oo::PList& actual,
                                              BackLinkChain keyPath);
-OOPListSchemaVerifierError ErrorFailureAlreadyReported(void);
+OOPListSchemaVerifierError ErrorFailureAlreadyReported();
 bool IsFailureAlreadyReportedError(const OOPListSchemaVerifierError& error);
 
 }  // namespace
@@ -1670,7 +1670,7 @@ OOPListSchemaVerifierError ErrorTypeMismatch(const char* expectedClassName,
       "Expected %s, found %s.", expectedClassName, className.c_str());
 }
 
-OOPListSchemaVerifierError ErrorFailureAlreadyReported(void) {
+OOPListSchemaVerifierError ErrorFailureAlreadyReported() {
   return OOPListSchemaVerifierError{kOOPListSchemaVerifierErrorDomain,
                                     kPListErrorFailedAndErrorHasBeenReported,
                                     std::nullopt, oo::PList()};

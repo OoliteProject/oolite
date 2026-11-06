@@ -95,10 +95,10 @@ static LogCStringFunctionProc sDefaultLogCStringFunction = NULL;
 namespace {
 
 bool DirectoryExistCreatingIfNecessary(const std::string& path);
-const std::optional<std::string>& LogBasePath(void);
-std::optional<std::string> LogPath(void);
+const std::optional<std::string>& LogBasePath();
+std::optional<std::string> LogPath();
 std::string AppendPathComponent(std::string base, const std::string& component);
-std::unique_ptr<oo::log::FileWriter> StartLogger(void);
+std::unique_ptr<oo::log::FileWriter> StartLogger();
 void AsyncLogMessage(std::string_view message);
 
 }  // namespace
@@ -135,7 +135,7 @@ std::thread::id sMainThreadID;
 
 }  // namespace
 
-void OOLogOutputHandlerInit(void) {
+void OOLogOutputHandlerInit() {
   if (sInited) return;
 
 #if SET_CRASH_REPORTER_INFO
@@ -171,18 +171,18 @@ void OOLogOutputHandlerInit(void) {
 namespace {
 
 // -endLogging's postamble.
-std::string Postamble(void) {
+std::string Postamble() {
   return "\nClosing log at " + oo::date::description() + ".";
 }
 
-const std::string& LogFileName(void) {
+const std::string& LogFileName() {
   if (sLogFileName.empty()) sLogFileName = kDefaultLogFileName;
   return sLogFileName;
 }
 
 }  // namespace
 
-void OOLogOutputHandlerClose(void) {
+void OOLogOutputHandlerClose() {
   if (sInited) {
     sWriteToStderr = true;
     sInited = false;
@@ -203,7 +203,7 @@ void OOLogOutputHandlerClose(void) {
 void OOLogOutputHandlerStartLoggingToStdout() { sWriteToStdout = true; }
 void OOLogOutputHandlerStopLoggingToStdout() { sWriteToStdout = false; }
 
-void OOLogOutputHandlerFlushIfDue(void) {
+void OOLogOutputHandlerFlushIfDue() {
   if (!sFlushPending || sLogger == nullptr) return;
   if (std::chrono::steady_clock::now().time_since_epoch().count() <
       sFlushDeadline)
@@ -234,9 +234,7 @@ void OOLogOutputHandlerPrintLine(std::string_view line) {
   }
 }
 
-std::optional<std::string> cxx_OOLogHandlerGetLogPath(void) {
-  return LogPath();
-}
+std::optional<std::string> cxx_OOLogHandlerGetLogPath() { return LogPath(); }
 
 void cxx_OOLogOutputHandlerChangeLogFile(const std::string& name) {
   if (LogFileName() != name) {
@@ -264,7 +262,7 @@ void cxx_OOLogOutputHandlerChangeLogFile(const std::string& name) {
 */
 namespace {
 
-std::unique_ptr<oo::log::FileWriter> StartLogger(void) {
+std::unique_ptr<oo::log::FileWriter> StartLogger() {
   std::optional<std::string> logPath = LogPath();
   if (!logPath.has_value()) return nullptr;
 
@@ -464,7 +462,7 @@ std::string AppendPathComponent(std::string base,
 */
 namespace {
 
-const std::optional<std::string>& LogBasePath(void) {
+const std::optional<std::string>& LogBasePath() {
   static std::optional<std::string> basePath;
 
   if (!basePath.has_value()) {
@@ -510,13 +508,13 @@ const std::optional<std::string>& LogBasePath(void) {
 
 }  // namespace
 
-std::optional<std::string> cxx_OOLogHandlerGetLogBasePath(void) {
+std::optional<std::string> cxx_OOLogHandlerGetLogBasePath() {
   return LogBasePath();
 }
 
 namespace {
 
-std::optional<std::string> LogPath(void) {
+std::optional<std::string> LogPath() {
   const std::optional<std::string>& base = LogBasePath();
   if (!base.has_value()) return std::nullopt;
   return AppendPathComponent(*base, LogFileName());

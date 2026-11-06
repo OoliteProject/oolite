@@ -74,7 +74,7 @@ static std::optional<std::string> SanitizeActionMethod(
     const std::string& selectorString,
     bool allowAIMethods);  // Checks aliases and whitelist, returns nullopt if
                            // whitelist fails.
-static oo::PList AlwaysFalseConditions(void);
+static oo::PList AlwaysFalseConditions();
 static bool IsAlwaysFalseConditions(const oo::PList& conditions);
 
 static std::string StringFromStack(SanStackElement* topOfStack);
@@ -603,7 +603,7 @@ static std::optional<std::string> SanitizeActionMethod(
 
 //	Return a conditions array that always evaluates as false.
 namespace {
-static oo::PList AlwaysFalseConditions(void) {
+static oo::PList AlwaysFalseConditions() {
   /*	Upstream bug kept: the cache is only
      filled when it is already non-nil, so this always returns nil (a null
      PList). A failed conditions array therefore drops its enclosing conditional

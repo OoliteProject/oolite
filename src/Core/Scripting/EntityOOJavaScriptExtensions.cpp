@@ -45,11 +45,9 @@ MA 02110-1301, USA.
 
 // MARK: Entity (OOJavaScriptExtensions)
 
-bool EntityJSIsVisibleToScripts(void) { return false; }
+bool EntityJSIsVisibleToScripts() { return false; }
 
-std::optional<std::string> EntityJSClassName(void) {
-  return std::string("Entity");
-}
+std::optional<std::string> EntityJSClassName() { return std::string("Entity"); }
 
 /*	The entity's JS object: made on first use for an entity that scripts can
    see, of the class the entity names, its private slot an
@@ -110,7 +108,7 @@ JSValue EntityJSValueInContext(Entity* entity, JSContext* context) {
   return JS_NULL;
 }
 
-JSClassID EntityJSClassID(void) { return JSEntityClassID(); }
+JSClassID EntityJSClassID() { return JSEntityClassID(); }
 
 void EntityJSDeleteJSSelf(Entity* entity) {
   if (JS_IsObject(entity->_jsSelf)) {
@@ -145,11 +143,11 @@ std::optional<std::string> EntityJSDescription(Entity* entity) {
 
 // MARK: ShipEntity (OOJavaScriptExtensions)
 
-bool ShipEntityJSIsVisibleToScripts(void) { return true; }
+bool ShipEntityJSIsVisibleToScripts() { return true; }
 
-JSClassID ShipEntityJSClassID(void) { return JSShipClassID(); }
+JSClassID ShipEntityJSClassID() { return JSShipClassID(); }
 
-std::optional<std::string> ShipEntityJSClassName(void) {
+std::optional<std::string> ShipEntityJSClassName() {
   return std::string("Ship");
 }
 

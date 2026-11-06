@@ -37,7 +37,7 @@ SOFTWARE.
 #include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
 
-void OOInitDebugSupport(void) {
+void OOInitDebugSupport() {
   std::optional<std::string> debugOXPPath;
   oo::PList debugSettings;
   std::optional<std::string> consoleHost;

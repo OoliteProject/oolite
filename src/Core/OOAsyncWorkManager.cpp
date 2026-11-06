@@ -163,7 +163,7 @@ enum { kMaxWorkThreads = 8 };
 
 namespace {
 
-unsigned WorkThreadCount(void) {
+unsigned WorkThreadCount() {
 #if OO_DEBUG
   return kMaxWorkThreads;
 #else
@@ -216,7 +216,7 @@ std::mutex sInitLock;
 /*	The manager is made once, here, and its +1 is never released, so the one
    instance is immortal.
 */
-static void InitAsyncWorkManager(void) {
+static void InitAsyncWorkManager() {
   OOCAssert(sSingleton == nullptr,
             "Async Work Manager singleton not nil in one-time init");
 

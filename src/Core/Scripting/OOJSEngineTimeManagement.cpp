@@ -94,7 +94,7 @@ void OOJSBeginProfiling(bool trace) {
   }
 }
 
-oo::Ref<OOTimeProfile> OOJSEndProfiling(void) {
+oo::Ref<OOTimeProfile> OOJSEndProfiling() {
   // This should be at the top for precision.
   OOHighResTimeValue now = OOGetHighResTime();
   // Time limiter should be as close to outermost as practical.
@@ -140,7 +140,7 @@ oo::Ref<OOTimeProfile> OOJSEndProfiling(void) {
   return result;
 }
 
-bool OOJSIsProfiling(void) { return sProfiling; }
+bool OOJSIsProfiling() { return sProfiling; }
 
 namespace {
 static void UpdateProfileForFrame(OOHighResTimeValue now,

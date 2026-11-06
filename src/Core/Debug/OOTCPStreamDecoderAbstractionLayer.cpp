@@ -135,7 +135,7 @@ size_t OOALDataGetLength(OOALDataRef data) {
   return data->value.getIf<oo::PList::Data>()->length();
 }
 
-OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void) {
+OOALAutoreleasePoolRef OOALCreateAutoreleasePool() {
   auto* pool = new OOALAutoreleasePool;
   sPools.push_back(pool);
   return pool;

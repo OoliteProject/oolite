@@ -82,15 +82,15 @@ std::vector<std::pair<std::string, oo::log::RawSetting>> SettingsFromDictionary(
 
 }  // namespace
 
-static void LoadExplicitSettings(void);
+static void LoadExplicitSettings();
 
-void OOLogPushIndent(void) { oo::log::pushIndent(); }
+void OOLogPushIndent() { oo::log::pushIndent(); }
 
-void OOLogPopIndent(void) { oo::log::popIndent(); }
+void OOLogPopIndent() { oo::log::popIndent(); }
 
-void OOLogIndent(void) { oo::log::indent(); }
+void OOLogIndent() { oo::log::indent(); }
 
-void OOLogOutdent(void) { oo::log::outdent(); }
+void OOLogOutdent() { oo::log::outdent(); }
 
 void OOLogGenericParameterErrorForFunction(const char* inFunction) {
   OO_LOG(cxx_kOOLogParameterError,
@@ -106,9 +106,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
          inFunction != nullptr ? inFunction : "(null)");
 }
 
-bool OOLogShowFunction(void) {
-  return oo::log::logger().options().showFunction;
-}
+bool OOLogShowFunction() { return oo::log::logger().options().showFunction; }
 
 void OOLogSetShowFunction(bool flag) {
   flag = !!flag;  // YES or NO, not 42.
@@ -121,7 +119,7 @@ void OOLogSetShowFunction(bool flag) {
   }
 }
 
-bool OOLogShowFileAndLine(void) {
+bool OOLogShowFileAndLine() {
   return oo::log::logger().options().showFileAndLine;
 }
 
@@ -136,7 +134,7 @@ void OOLogSetShowFileAndLine(bool flag) {
   }
 }
 
-bool OOLogShowTime(void) { return oo::log::logger().options().showTime; }
+bool OOLogShowTime() { return oo::log::logger().options().showTime; }
 
 void OOLogSetShowTime(bool flag) {
   flag = !!flag;  // YES or NO, not 42.
@@ -149,9 +147,7 @@ void OOLogSetShowTime(bool flag) {
   }
 }
 
-bool OOLogShowMessageClass(void) {
-  return oo::log::logger().options().showClass;
-}
+bool OOLogShowMessageClass() { return oo::log::logger().options().showClass; }
 
 void OOLogSetShowMessageClass(bool flag) {
   flag = !!flag;  // YES or NO, not 42.
@@ -168,7 +164,7 @@ void OOLogSetShowMessageClassTemporary(bool flag) {
   oo::log::logger().setShowClassTemporarily(flag);
 }
 
-void OOLoggingInit(void) {
+void OOLoggingInit() {
   if (sInited) return;
 
   {
@@ -183,7 +179,7 @@ void OOLoggingInit(void) {
   }
 }
 
-void OOLoggingTerminate(void) {
+void OOLoggingTerminate() {
   if (!sInited) return;
 
   OOLogOutputHandlerClose();
@@ -195,9 +191,9 @@ void OOLoggingTerminate(void) {
   */
 }
 
-void OOLoggingReloadSettings(void) { LoadExplicitSettings(); }
+void OOLoggingReloadSettings() { LoadExplicitSettings(); }
 
-void OOLogInsertMarker(void) { oo::log::logger().insertMarker(); }
+void OOLogInsertMarker() { oo::log::logger().insertMarker(); }
 
 const char* const cxx_kOOLogSubclassResponsibility =
     "general.error.subclassResponsibility";
@@ -230,7 +226,7 @@ const char* const cxx_kOOLogUnconvertedNSLog = "unclassified";
         Since these generally shouldn't have any effect in strict mode, that's
         fine.
 */
-static void LoadExplicitSettings(void) {
+static void LoadExplicitSettings() {
   // Load display settings.
   oo::Defaults& prefs = oo::Defaults::standard();
   oo::log::Options options;

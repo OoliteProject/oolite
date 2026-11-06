@@ -195,9 +195,9 @@ void InitOOJSPlayer(JSContext* context, JSValueConst global) {
                             OOJS_PROP_READONLY);
 }
 
-JSClassID JSPlayerClassID(void) { return sPlayerClassID; }
+JSClassID JSPlayerClassID() { return sPlayerClassID; }
 
-JSValue JSPlayerObject(void) {
+JSValue JSPlayerObject() {
   JSContext* context = OOJSAcquireContext();
   // Not OOJavaScriptEngine's globalObject(): this is used while the engine is
   // being set up.
@@ -208,7 +208,7 @@ JSValue JSPlayerObject(void) {
   return result;
 }
 
-PlayerEntity* OOPlayerForScripting(void) {
+PlayerEntity* OOPlayerForScripting() {
   PlayerEntity* player = PLAYER;
   if (player != nullptr) player->setScriptTargetToSelf();
 

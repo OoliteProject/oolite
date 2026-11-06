@@ -163,7 +163,7 @@ void OOConstToJSStringInit(JSContext* context) {
   sInited = true;
 }
 
-void OOConstToJSStringDestroy(void) {
+void OOConstToJSStringDestroy() {
   OOCAssert(sInited, "OOConstToJSStringDestroy() called while not inited.");
   sInited = false;
   // The atoms remain valid; they belong to the runtime.

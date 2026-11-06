@@ -43,7 +43,7 @@ void OOSetStandardsForOXPVerifierMode() {}
 
 #else
 
-void OOStandardsSetup(void);
+void OOStandardsSetup();
 namespace {
 
 void OOStandardsInternal(const std::string& type, const std::string& message);

@@ -216,7 +216,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
   }
 }
 
-void OOJSFrameCallbacksRemoveAll(void) {
+void OOJSFrameCallbacksRemoveAll() {
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 

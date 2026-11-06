@@ -155,7 +155,7 @@ std::optional<std::string> SocketErrorDescription(int error) {
 #else
 typedef int OOSocket;
 typedef socklen_t OOSocketLength;
-int LastSocketError(void) { return errno; }
+int LastSocketError() { return errno; }
 bool ErrorIsWouldBlock(int error) {
   return error == EWOULDBLOCK || error == EAGAIN;
 }
@@ -936,7 +936,7 @@ void OODebugTCPConsoleClient::breakConnectionWithStreamError(int error) {
       errorDesc->c_str(), (size_t)_outStatus, (size_t)_inStatus));
 }
 
-bool OODebugTCPConsoleIsWaitingForInput(void) {
+bool OODebugTCPConsoleIsWaitingForInput() {
   for (OODebugTCPConsoleClient* client : sLiveClients) {
     if (client->isWaitingForInput()) return true;
   }

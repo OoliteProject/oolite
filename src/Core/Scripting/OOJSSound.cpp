@@ -329,6 +329,6 @@ std::optional<std::string> OOJSSoundJSDescription(OOSound* sound) {
                              .c_str());
 }
 
-std::optional<std::string> OOJSSoundJSClassName(void) {
+std::optional<std::string> OOJSSoundJSClassName() {
   return std::string("Sound");
 }

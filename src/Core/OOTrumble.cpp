@@ -34,9 +34,9 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/String.hpp"
 
-static void InitTrumbleSounds(void);
-static void PlayTrumbleIdle(void);
-static void PlayTrumbleSqueal(void);
+static void InitTrumbleSounds();
+static void PlayTrumbleIdle();
+static void PlayTrumbleSqueal();
 
 OOTrumble::OOTrumble() {
   int i;
@@ -895,7 +895,7 @@ static OOSoundSource* sTrumbleSoundSource;
 static OOSound* sTrumbleIdleSound;
 static OOSound* sTrumbleSqealSound;
 
-static void InitTrumbleSounds(void) {
+static void InitTrumbleSounds() {
   if (sTrumbleSoundSource == nullptr) {
     sTrumbleSoundSource = oo::makeRef<OOSoundSource>().leakRef();
     sTrumbleIdleSound = oo::retain(OOSoundWithCustomSoundKey("[trumble-idle]"));
@@ -904,7 +904,7 @@ static void InitTrumbleSounds(void) {
   }
 }
 
-static void PlayTrumbleIdle(void) {
+static void PlayTrumbleIdle() {
   if (sTrumbleSoundSource == nullptr) return;  // a message to nil did nothing
   // Only play idle sound if no trumble is making noise.
   if (!sTrumbleSoundSource->isPlaying()) {
@@ -914,7 +914,7 @@ static void PlayTrumbleIdle(void) {
   }
 }
 
-static void PlayTrumbleSqueal(void) {
+static void PlayTrumbleSqueal() {
   if (sTrumbleSoundSource == nullptr) return;  // a message to nil did nothing
   // Play squeal sound if no trumble is currently squealing, but trumping idle
   // sound.

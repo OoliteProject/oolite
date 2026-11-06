@@ -376,6 +376,6 @@ JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source,
   return result;
 }
 
-std::optional<std::string> OOJSSoundSourceJSClassName(void) {
+std::optional<std::string> OOJSSoundSourceJSClassName() {
   return std::string("SoundSource");
 }
