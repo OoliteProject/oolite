@@ -40,12 +40,13 @@
         scheme other than http, https or file fails at once, where NSURLConnection
         never called back; an upper-case scheme and a relative redirect work, where
         it also never called back; an empty or unresolvable host fails, where it
-        connected somewhere else. A failure's text is WinHTTP's, not NSError's
+        connected somewhere else. A failure's text is libcurl's, not NSError's
         description.
 
-        Windows: WinHTTP (an OS component; link -lwinhttp). Elsewhere every
-        http(s) download fails with a clear error (there is no libcurl backend yet);
-        file: URLs work everywhere.
+        http(s) goes through libcurl on every platform (pkg-config libcurl; macOS
+        ships it with the SDK). On Windows the OpenSSL build trusts the Windows
+        certificate store, not a bundle path under the MSYS2 prefix. file: URLs are
+        read from disk and need no libcurl.
 
         Header-only, C++20, compiles with -fno-exceptions.
 */
@@ -53,10 +54,12 @@
 
 #pragma once
 
+#include <curl/curl.h>
+
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <limits>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -65,52 +68,6 @@
 #include <utility>
 
 #include "oofnd/FileSystem.hpp"
-
-#if defined(_WIN32)
-// Declared exactly as <winhttp.h> and <windows.h> declare them (HINTERNET =
-// void *, DWORD = unsigned long, bool = int, INTERNET_PORT = unsigned short,
-// DWORD_PTR = unsigned long long), so this header does not pull <windows.h>
-// into game code.
-extern "C" {
-__declspec(dllimport) void* __stdcall WinHttpOpen(const wchar_t* agent,
-                                                  unsigned long accessType,
-                                                  const wchar_t* proxy,
-                                                  const wchar_t* proxyBypass,
-                                                  unsigned long flags);
-__declspec(dllimport) void* __stdcall WinHttpConnect(void* session,
-                                                     const wchar_t* serverName,
-                                                     unsigned short serverPort,
-                                                     unsigned long reserved);
-__declspec(dllimport) void* __stdcall WinHttpOpenRequest(
-    void* connect, const wchar_t* verb, const wchar_t* objectName,
-    const wchar_t* version, const wchar_t* referrer,
-    const wchar_t** acceptTypes, unsigned long flags);
-__declspec(dllimport) int __stdcall WinHttpSetOption(
-    void* handle, unsigned long option, void* buffer,
-    unsigned long bufferLength);
-__declspec(dllimport) int __stdcall WinHttpSetTimeouts(void* handle,
-                                                       int resolveTimeout,
-                                                       int connectTimeout,
-                                                       int sendTimeout,
-                                                       int receiveTimeout);
-__declspec(dllimport) int __stdcall WinHttpSendRequest(
-    void* request, const wchar_t* headers, unsigned long headersLength,
-    void* optional, unsigned long optionalLength, unsigned long totalLength,
-    unsigned long long context);
-__declspec(dllimport) int __stdcall WinHttpReceiveResponse(void* request,
-                                                           void* reserved);
-__declspec(dllimport) int __stdcall WinHttpQueryHeaders(
-    void* request, unsigned long infoLevel, const wchar_t* name, void* buffer,
-    unsigned long* bufferLength, unsigned long* index);
-__declspec(dllimport) int __stdcall WinHttpQueryDataAvailable(
-    void* request, unsigned long* bytesAvailable);
-__declspec(dllimport) int __stdcall WinHttpReadData(void* request, void* buffer,
-                                                    unsigned long bytesToRead,
-                                                    unsigned long* bytesRead);
-__declspec(dllimport) int __stdcall WinHttpCloseHandle(void* handle);
-__declspec(dllimport) unsigned long __stdcall GetLastError(void);
-}
-#endif
 
 namespace oo::http {
 
@@ -230,10 +187,6 @@ inline std::optional<Url> parseUrl(std::string_view text) {
       return std::nullopt;
     const std::size_t query = target.find('?');
     std::string path = detail::percentDecoded(target.substr(0, query));
-#if defined(_WIN32)
-    // file:///C:/dir/file names C:/dir/file.
-    if (path.size() >= 3 && path[0] == '/' && path[2] == ':') path.erase(0, 1);
-#endif
     if (path.empty()) return std::nullopt;
     url.path = std::move(path);
     return url;
@@ -324,13 +277,6 @@ class Download {
     if (cancelled_) return;
     cancelled_ = true;
     events_.clear();
-#if defined(_WIN32)
-    // Closing the request handle ends a blocking WinHTTP call on the worker.
-    if (request_ != nullptr) {
-      WinHttpCloseHandle(request_);
-      request_ = nullptr;
-    }
-#endif
   }
 
   bool cancelled() const {
@@ -364,12 +310,7 @@ class Download {
       runFile(url->path);
       return;
     }
-#if defined(_WIN32)
-    runWinHttp(*url, userAgent);
-#else
-    (void)userAgent;
-    push(failure("no HTTP client in this build"));
-#endif
+    runCurl(*url, userAgent);
   }
 
   void runFile(const std::string& path) {
@@ -394,202 +335,191 @@ class Download {
     push(std::move(done));
   }
 
-#if defined(_WIN32)
-  static constexpr unsigned long kAccessTypeNoProxy =
-      1;  // WINHTTP_ACCESS_TYPE_NO_PROXY
-  static constexpr unsigned long kFlagSecure =
-      0x00800000;  // WINHTTP_FLAG_SECURE
-  static constexpr unsigned long kOptionDisableFeature =
-      63;  // WINHTTP_OPTION_DISABLE_FEATURE
-  static constexpr unsigned long kDisableCookies =
-      0x1;  // WINHTTP_DISABLE_COOKIES
-  static constexpr unsigned long kOptionRedirectPolicy =
-      88;  // WINHTTP_OPTION_REDIRECT_POLICY
-  static constexpr unsigned long kRedirectPolicyAlways =
-      2;  // ..._REDIRECT_POLICY_ALWAYS
-  static constexpr unsigned long kQueryContentLength =
-      5;  // WINHTTP_QUERY_CONTENT_LENGTH
-  static constexpr unsigned long kQueryStatusCode =
-      19;  // WINHTTP_QUERY_STATUS_CODE
-  static constexpr unsigned long kQueryFlagNumber =
-      0x20000000;  // WINHTTP_QUERY_FLAG_NUMBER
-  static constexpr unsigned long kErrorConnectionError =
-      12030;  // ERROR_WINHTTP_CONNECTION_ERROR
-  static constexpr int kTimeoutMilliseconds = 60000;  // NSURLRequest's 60 s
+  // What the header callback has seen of the response being read.
+  struct Transfer {
+    Download* download = nullptr;
+    int status = 0;
+    std::int64_t length = -1;
+    bool redirect = false;   // this block has a Location header
+    bool responded = false;  // the response event is queued
+  };
 
-  static std::string errorText(const char* step, unsigned long code) {
-    const char* what = nullptr;
-    switch (code) {
-      case 12002:
-        what = "the operation timed out";
-        break;
-      case 12005:
-        what = "the URL is invalid";
-        break;
-      case 12007:
-        what = "the server name could not be resolved";
-        break;
-      case 12017:
-        what = "the operation was cancelled";
-        break;
-      case 12029:
-        what = "could not connect to the server";
-        break;
-      case 12030:
-        what = "the connection with the server was terminated";
-        break;
-      case 12152:
-        what = "the server returned an invalid response";
-        break;
-      case 12156:
-        what = "the redirect failed";
-        break;
-      case 12175:
-        what = "a secure connection could not be established";
-        break;
-      default:
-        break;
-    }
+  // The request URL as the contract sends it: no fragment, no user:password@.
+  static std::string curlUrl(const Url& url) {
     std::string text =
-        std::string(step) + " failed: WinHTTP error " + std::to_string(code);
-    if (what != nullptr) text += std::string(" (") + what + ")";
+        url.scheme == Url::Scheme::https ? "https://" : "http://";
+    text += url.host.find(':') != std::string::npos ? "[" + url.host + "]"
+                                                    : url.host;
+    return text + ":" + std::to_string(url.port) + url.target;
+  }
+
+  static std::string curlErrorText(CURLcode code, const char* detail) {
+    std::string text = std::string("request failed: libcurl error ") +
+                       std::to_string(static_cast<int>(code)) + " (" +
+                       curl_easy_strerror(code) + ")";
+    if (detail != nullptr && detail[0] != '\0')
+      text += std::string(": ") + detail;
     return text;
   }
 
-  // The request handle, or nullptr once cancel() has closed it.
-  void* request() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return request_;
-  }
-
-  void runWinHttp(const Url& url, const std::string& userAgent) {
-    void* session = WinHttpOpen(detail::wideFromAscii(userAgent).c_str(),
-                                kAccessTypeNoProxy, nullptr, nullptr, 0);
-    if (session == nullptr) {
-      push(failure(errorText("WinHttpOpen", GetLastError())));
-      return;
-    }
-    WinHttpSetTimeouts(session, kTimeoutMilliseconds, kTimeoutMilliseconds,
-                       kTimeoutMilliseconds, kTimeoutMilliseconds);
-    void* connect = WinHttpConnect(
-        session, detail::wideFromAscii(url.host).c_str(), url.port, 0);
-    if (connect == nullptr) {
-      push(failure(errorText("WinHttpConnect", GetLastError())));
-      WinHttpCloseHandle(session);
-      return;
-    }
-    void* handle = WinHttpOpenRequest(
-        connect, L"GET", detail::wideFromAscii(url.target).c_str(), nullptr,
-        nullptr, nullptr, url.scheme == Url::Scheme::https ? kFlagSecure : 0);
-    if (handle == nullptr) {
-      push(failure(errorText("WinHttpOpenRequest", GetLastError())));
-      WinHttpCloseHandle(connect);
-      WinHttpCloseHandle(session);
-      return;
-    }
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      if (cancelled_)
-        WinHttpCloseHandle(handle);
-      else
-        request_ = handle;
-    }
-    transfer();
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      if (request_ != nullptr) {
-        WinHttpCloseHandle(request_);
-        request_ = nullptr;
-      }
-    }
-    WinHttpCloseHandle(connect);
-    WinHttpCloseHandle(session);
-  }
-
-  void transfer() {
-    void* handle = request();
-    if (handle == nullptr) return;
-    unsigned long option = kDisableCookies;
-    WinHttpSetOption(handle, kOptionDisableFeature, &option, sizeof option);
-    option = kRedirectPolicyAlways;
-    WinHttpSetOption(handle, kOptionRedirectPolicy, &option, sizeof option);
-
-    if (!WinHttpSendRequest(handle, nullptr, 0, nullptr, 0, 0, 0)) {
-      push(failure(errorText("sending the request", GetLastError())));
-      return;
-    }
-    if (!WinHttpReceiveResponse(handle, nullptr)) {
-      push(failure(errorText("receiving the response", GetLastError())));
-      return;
-    }
-
+  void respond(Transfer& transfer) {
     Event response;
     response.kind = Event::Kind::response;
-    unsigned long status = 0, size = sizeof status;
-    if (WinHttpQueryHeaders(handle, kQueryStatusCode | kQueryFlagNumber,
-                            nullptr, &status, &size, nullptr)) {
-      response.status = static_cast<int>(status);
-    }
-    wchar_t lengthText[32] = {};
-    size = sizeof lengthText - sizeof(wchar_t);
-    if (WinHttpQueryHeaders(handle, kQueryContentLength, nullptr, lengthText,
-                            &size, nullptr)) {
-      std::int64_t length = 0;
-      bool digits = lengthText[0] != L'\0';
-      for (const wchar_t* p = lengthText; *p != L'\0'; p++) {
-        if (*p < L'0' || *p > L'9' ||
-            length > (std::numeric_limits<std::int64_t>::max() - 9) / 10) {
-          digits = false;
-          break;
-        }
-        length = length * 10 + (*p - L'0');
-      }
-      if (digits) response.expectedLength = length;
-    }
+    response.status = transfer.status;
+    response.expectedLength = transfer.length;
     push(std::move(response));
+    transfer.responded = true;
+  }
 
-    std::string buffer(kChunkSize, '\0');
-    for (;;) {
-      handle = request();
-      if (handle == nullptr) return;
-      // Ask what has arrived first: a synchronous read of a full buffer would
-      // wait for it.
-      unsigned long available = 0, got = 0;
-      bool ok = WinHttpQueryDataAvailable(handle, &available) != 0;
-      if (ok && available > 0) {
-        const unsigned long want =
-            available < buffer.size()
-                ? available
-                : static_cast<unsigned long>(buffer.size());
-        ok = WinHttpReadData(handle, buffer.data(), want, &got) != 0;
+  // One header line. A block ends at its blank line; the blocks of an
+  // informational status or of a redirect that is followed are not the
+  // response.
+  static std::size_t onHeader(char* data, std::size_t size, std::size_t count,
+                              void* user) {
+    Transfer& transfer = *static_cast<Transfer*>(user);
+    const std::size_t total = size * count;
+    const std::string_view line(data, total);
+    if (transfer.responded) return total;  // trailers
+    if (line.rfind("HTTP/", 0) == 0) {
+      const std::size_t space = line.find(' ');
+      transfer.status = 0;
+      for (std::size_t i = space == std::string_view::npos ? line.size()
+                                                           : space + 1;
+           i < line.size() && line[i] >= '0' && line[i] <= '9'; i++) {
+        transfer.status = transfer.status * 10 + (line[i] - '0');
       }
-      if (!ok) {
-        const unsigned long code = GetLastError();
-        // A body the server cut short finished with what had arrived.
-        if (code != kErrorConnectionError) {
-          push(failure(errorText("reading the response", code)));
-          return;
+      transfer.length = -1;
+      transfer.redirect = false;
+    } else if (line == "\r\n" || line == "\n") {
+      const bool followed = transfer.status / 100 == 1 ||
+                            (transfer.status / 100 == 3 && transfer.redirect);
+      if (!followed) transfer.download->respond(transfer);
+    } else {
+      const std::size_t colon = line.find(':');
+      if (colon != std::string_view::npos) {
+        const std::string_view name = line.substr(0, colon);
+        if (detail::equalsIgnoringCase(name, "Location")) {
+          transfer.redirect = true;
+        } else if (detail::equalsIgnoringCase(name, "Content-Length")) {
+          std::string_view value = line.substr(colon + 1);
+          while (!value.empty() &&
+                 (value.front() == ' ' || value.front() == '\t'))
+            value.remove_prefix(1);
+          while (!value.empty() &&
+                 (value.back() == '\r' || value.back() == '\n' ||
+                  value.back() == ' ' || value.back() == '\t'))
+            value.remove_suffix(1);
+          std::int64_t length = 0;
+          bool digits = !value.empty();
+          for (const char c : value) {
+            if (c < '0' || c > '9' || length > (INT64_MAX - 9) / 10) {
+              digits = false;
+              break;
+            }
+            length = length * 10 + (c - '0');
+          }
+          if (digits) transfer.length = length;
         }
-        got = 0;
       }
-      if (got == 0) break;
+    }
+    return total;
+  }
+
+  static std::size_t onData(char* data, std::size_t size, std::size_t count,
+                            void* user) {
+    Transfer& transfer = *static_cast<Transfer*>(user);
+    Download& download = *transfer.download;
+    const std::size_t total = size * count;
+    if (download.cancelled()) {
+#if defined(CURL_WRITEFUNC_ERROR)
+      return CURL_WRITEFUNC_ERROR;
+#else
+      return 0;
+#endif
+    }
+    if (!transfer.responded) download.respond(transfer);  // no headers seen
+    for (std::size_t offset = 0; offset < total; offset += kChunkSize) {
       Event chunk;
       chunk.kind = Event::Kind::data;
-      chunk.bytes.assign(buffer.data(), got);
-      push(std::move(chunk));
+      chunk.bytes.assign(data + offset, std::min(kChunkSize, total - offset));
+      download.push(std::move(chunk));
+    }
+    return total;
+  }
+
+  // Called about once a second even when nothing arrives, which is what ends a
+  // stalled transfer after cancel().
+  static int onProgress(void* user, curl_off_t, curl_off_t, curl_off_t,
+                        curl_off_t) {
+    return static_cast<Transfer*>(user)->download->cancelled() ? 1 : 0;
+  }
+
+  void runCurl(const Url& url, const std::string& userAgent) {
+    static const CURLcode initialised = curl_global_init(CURL_GLOBAL_DEFAULT);
+    if (initialised != CURLE_OK) {
+      push(failure(curlErrorText(initialised, "curl_global_init")));
+      return;
+    }
+    CURL* curl = curl_easy_init();
+    if (curl == nullptr) {
+      push(failure("curl_easy_init failed"));
+      return;
+    }
+    // Accept: is removed; curl sends no cookies, no Accept-Encoding and no
+    // credentials unless asked.
+    curl_slist* headers = curl_slist_append(nullptr, "Accept:");
+    char errorBuffer[CURL_ERROR_SIZE] = {};
+    Transfer transfer;
+    transfer.download = this;
+    const std::string target = curlUrl(url);
+
+    curl_easy_setopt(curl, CURLOPT_URL, target.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 20L);
+#if LIBCURL_VERSION_NUM >= 0x075500  // 7.85.0
+    curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
+    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
+#endif
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    // NSURLRequest's 60 s: to connect, and without a byte for that long.
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 60L);
+    curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, static_cast<long>(kChunkSize));
+#if defined(_WIN32) && LIBCURL_VERSION_NUM >= 0x074700  // 7.71.0
+    curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS,
+                     static_cast<long>(CURLSSLOPT_NATIVE_CA));
+#endif
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &Download::onHeader);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &transfer);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &Download::onData);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &transfer);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, &Download::onProgress);
+    curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &transfer);
+
+    const CURLcode code = curl_easy_perform(curl);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+
+    if (cancelled()) return;
+    // A body the server cut short finished with what had arrived.
+    if (code != CURLE_OK &&
+        !(code == CURLE_PARTIAL_FILE && transfer.responded)) {
+      push(failure(curlErrorText(code, errorBuffer)));
+      return;
     }
     Event done;
     done.kind = Event::Kind::finished;
     push(std::move(done));
   }
-#endif
 
   mutable std::mutex mutex_;
   bool cancelled_ = false;    // guarded by mutex_
   std::deque<Event> events_;  // guarded by mutex_
-#if defined(_WIN32)
-  void* request_ = nullptr;  // guarded by mutex_
-#endif
   std::thread worker_;
 };
 

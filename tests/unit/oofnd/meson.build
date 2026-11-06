@@ -44,9 +44,9 @@ foreach t : oofnd_tests
     test(t, exe, suite: 'oofnd', timeout: 60)
 endforeach
 
-# oofnd/Http.hpp links WinHTTP on Windows, and its test runs a loopback server on winsock
-# The same libraries are named in the test's "// oofnd-link-windows:" line.
-oofnd_http_link_args = host_machine.system() == 'windows' ? ['-lwinhttp', '-lws2_32'] : []
+# oofnd/Http.hpp uses libcurl (through oofnd_dep); the test's loopback server uses winsock on Windows.
+# The same library is named in the test's "// oofnd-link-windows:" line.
+oofnd_http_link_args = host_machine.system() == 'windows' ? ['-lws2_32'] : []
 test('test_http',
     executable(
         'oofnd_test_http',
