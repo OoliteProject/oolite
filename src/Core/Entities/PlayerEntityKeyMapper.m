@@ -49,8 +49,8 @@ static NSArray* camera_keys = nil;
 #define KB_CHAR_HEIGHT 13.0f
 #define KB_LINE_HEIGHT 14.0f
 #define KB_TOP_Y 198.0f
-#define KB_BOTTOM_Y -220.0f
 #define KB_FOOTER_Y -236.0f
+#define KB_GUI_ROW_Y(row) (200.0f - MAIN_GUI_ROW_HEIGHT * (row))
 #define KB_SIDE_MARGIN 16.0f
 #define KB_MIN_COLUMN_WIDTH 230.0f
 #define KB_COLUMN_GAP 16.0f
@@ -65,6 +65,7 @@ static NSArray* camera_keys = nil;
 static NSArray* kb_pages = nil;
 static NSUInteger kb_page = 0;
 static GLfloat kb_layout_x_offset = 0.0f;
+static GLfloat kb_layout_footer_y = 0.0f;
 
 @interface PlayerEntity (KeyMapperInternal)
 
@@ -92,6 +93,7 @@ static GLfloat kb_layout_x_offset = 0.0f;
 - (NSDictionary*)loadKeySettings;
 - (void)reloadPage;
 - (void)layoutKeyBindings;
+- (GLfloat)keyBindingsFooterY;
 - (NSString*)keyBindingsAssignmentForEntry:(NSDictionary*)entry;
 
 @end
@@ -1116,8 +1118,8 @@ static GLfloat kb_layout_x_offset = 0.0f;
 
 - (void)drawKeyBindingsList:(GLfloat)alpha screenAt:(Vector)screenAt
 {
-    // the column count depends on the window shape, so lay out again if the window was resized
-    if (kb_layout_x_offset != [[UNIVERSE gameView] x_offset]) {
+    // lay out again if the window was resized, or the HUD now takes up more or less of the screen
+    if (kb_layout_x_offset != [[UNIVERSE gameView] x_offset] || kb_layout_footer_y != [self keyBindingsFooterY]) {
         [self layoutKeyBindings];
         kb_page = MIN(kb_page, [kb_pages count] - 1);
     }
@@ -1154,6 +1156,17 @@ static GLfloat kb_layout_x_offset = 0.0f;
     return [assignment stringByReplacingOccurrencesOfString:@" or " withString:@" / "];
 }
 
+// The footer is the lowest line drawn. In flight the HUD stays visible, so stop where the
+// status screen's equipment list stops; docked, the list can use the whole screen.
+- (GLfloat)keyBindingsFooterY
+{
+    if ([self status] == STATUS_DOCKED)
+        return KB_FOOTER_Y;
+    if ([[self hud] allowBigGui])
+        return KB_GUI_ROW_Y(STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS + STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS);
+    return KB_GUI_ROW_Y(STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS);
+}
+
 static NSString* KeyBindingsTruncate(NSString* text, GLfloat width, NSSize charSize)
 {
     if (OORectFromString(text, 0.0f, 0.0f, charSize).size.width <= width)
@@ -1180,7 +1193,8 @@ static NSString* KeyBindingsTruncate(NSString* text, GLfloat width, NSSize charS
     GLfloat width = 2.0f * kb_layout_x_offset - 2.0f * KB_SIDE_MARGIN;
     NSUInteger n_columns = MAX(2, (NSUInteger)((width + KB_COLUMN_GAP) / (KB_MIN_COLUMN_WIDTH + KB_COLUMN_GAP)));
     GLfloat column_width = (width - KB_COLUMN_GAP * (n_columns - 1)) / n_columns;
-    NSUInteger n_rows = (NSUInteger)((KB_TOP_Y - KB_BOTTOM_Y) / KB_LINE_HEIGHT) + 1;
+    kb_layout_footer_y = [self keyBindingsFooterY];
+    NSUInteger n_rows = (NSUInteger)((KB_TOP_Y - (kb_layout_footer_y + MAIN_GUI_ROW_HEIGHT)) / KB_LINE_HEIGHT) + 1;
 
     // Lines are either a one-element header array or a {function, key} pair.
     // Functions with no key assigned are left out, as are headers with nothing under them.
@@ -1268,7 +1282,7 @@ static NSString* KeyBindingsTruncate(NSString* text, GLfloat width, NSSize charS
             GLfloat footer_width = OORectFromString(footer, 0.0f, 0.0f, charSize).size.width;
             [[pages objectAtIndex:i] addObject:[NSDictionary dictionaryWithObjectsAndKeys:
                                                        footer, KEY_KB_TEXT, [NSNumber numberWithFloat:-0.5f * footer_width], KEY_KB_X,
-                                                   [NSNumber numberWithFloat:KB_FOOTER_Y], KEY_KB_Y, [OOColor greenColor], KEY_KB_COLOR, nil]];
+                                                   [NSNumber numberWithFloat:kb_layout_footer_y], KEY_KB_Y, [OOColor greenColor], KEY_KB_COLOR, nil]];
         }
     }
 
