@@ -434,6 +434,7 @@ NSUInteger OOCommodities::count() { return _commodityLists.size(); }
 std::vector<std::string> OOCommodities::goods() {
   // key order (was -allKeys, hash order)
   std::vector<std::string> keys;
+  keys.reserve(_commodityLists.size());
   for (const auto& entry : _commodityLists) keys.push_back(entry.first);
   return keys;
 }

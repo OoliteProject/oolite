@@ -338,6 +338,7 @@ oo::PList* OOCommodityMarket::definitionPointerForGood(
 std::vector<std::string> OOCommodityMarket::sortedGoodKeys() {
   if (!_sortedKeys.has_value()) {
     std::vector<std::string> keys;
+    keys.reserve(_commodityList.size());
     for (const auto& entry : _commodityList) keys.push_back(entry.first);
     std::stable_sort(
         keys.begin(), keys.end(),
