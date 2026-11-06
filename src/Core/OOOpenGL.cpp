@@ -274,8 +274,9 @@ void LogOpenGLState() {
 }
 
 std::string OOGLColorToString(GLfloat color[4]) {
-#define COLOR_EQUAL(color, r, g, b, a) \
-  (color[0] == (r) && color[1] == (g) && color[2] == (b) && color[3] == (a))
+#define COLOR_EQUAL(color, r, g, b, a)                            \
+  ((color)[0] == (r) && (color)[1] == (g) && (color)[2] == (b) && \
+   (color)[3] == (a))
 #define COLOR_CASE(r, g, b, a, str)                           \
   do {                                                        \
     if (COLOR_EQUAL(color, (r), (g), (b), (a))) return (str); \

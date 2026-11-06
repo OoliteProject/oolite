@@ -58,7 +58,7 @@ using ConstTable = struct ConstTable {
   TableEntry* entries;
 };
 
-#define TABLE(entries) {sizeof entries / sizeof *entries, entries}
+#define TABLE(entries) {sizeof(entries) / sizeof *(entries), entries}
 
 // Unconditional, as upstream's: OOCAssert reads it in every flavour.
 static bool sInited = false;
