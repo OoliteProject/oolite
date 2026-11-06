@@ -33,8 +33,6 @@ left alive when the engine resets or shuts down.
 
 Not yet done:
 
-- The debug console (`src/Core/Debug/OOJSConsole.m`) is excluded from QuickJS
-  builds, and the debug monitor's JavaScript support is disabled.
 - JavaScript profiling (`OOJS_PROFILE`) and stack dumps with local variables:
   QuickJS has no function-call hooks or frame inspection API.
 - The compiled-script cache: SpiderMonkey's XDR bytecode cache is not used.
@@ -98,6 +96,12 @@ Behaviour that needed emulating, all in the engine core:
   context teardown; anything other than zero is a reference counting bug.
 
 ## Known behaviour differences
+
+- Debug console (`src/Core/Debug/QuickJS/OOJSConsole.m`): `pedanticMode` is
+  remembered but has no effect, `dumpNamedRoots()` is gone, `dumpHeap()`
+  writes QuickJS's memory usage summary, and console error reports have no
+  "Error" or "strict mode" variants (QuickJS reports every error as an
+  exception).
 
 - Assigning to a read-only property in strict code throws `TypeError: no setter
   for property` (SpiderMonkey quoted the expression).
