@@ -134,10 +134,9 @@ bool OORegExpMatcher::string(const std::string& string, const std::string& regEx
         JS_FreeValue(context, global);
     }
 
-    // The arguments converted as -evaluatePredicateWithContext:scope:arguments: converted them (a JS
-    // string, as the string's Objective-C string gave; the cached RegExp object), owned while the
-    // function runs, and the result converted to a boolean as it did; an uncaught exception, which
-    // QuickJS leaves pending, is reported as it did.
+    // The arguments (a JS string; the cached RegExp object), owned while the function runs, and
+    // the result converted to a boolean; an uncaught exception, which QuickJS leaves pending, is
+    // reported.
     JSValue argv[2];
     argv[0] = OOJSValueFromPList(context, oo::PList(string));
     argv[1] = (_cachedRegExpObject != nullptr) ? _cachedRegExpObject->jsValueInContext(context) : JSValue { }; // (a message to nil gave the zero value)

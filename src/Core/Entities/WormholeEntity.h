@@ -56,8 +56,7 @@ struct OOWormholeTransit {
 };
 
 /*	The player and the ships make it with oo::makeRef<WormholeEntity>() and
-   an initialiser, hand it to Objective-C with oo::NewEntityFacade (its object
-   is the root Entity's facade), and find it again with dynamic_cast. The
+   an initialiser, and find it again with dynamic_cast. The
    universe's and the player's lists keep the objects (held C++ entities).
 */
 class WormholeEntity : public Entity {
@@ -148,6 +147,6 @@ private:
     bool containsPlayer = { };
 };
 
-// -[WormholeEntity shipsInTransit] of a wormhole's Objective-C object (the root's
-// facade), for the debug monitor's dump; a null PList for nil or another entity.
+// WormholeEntity::shipsInTransit() of a wormhole, for the debug monitor's dump; a null PList
+// for null or another entity.
 oo::PList WormholeEntityShipsInTransit(Entity* entity);

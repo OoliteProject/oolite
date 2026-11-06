@@ -272,7 +272,7 @@ void cxx_OOLogOutputHandlerChangeLogFile(const std::string& name)
     }
 }
 
-/*	-[OOAsyncLogger init] and -startLogging: move an existing log to
+/*	Opening the async logger moves an existing log to
    Previous.log, create the new one and start the writer. nullptr when that
    fails; the handler then logs to stderr.
 */

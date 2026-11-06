@@ -134,10 +134,8 @@ public:
     void processOptionsPrev();
     void processOptionsNext();
 
-    // Internal (the OOPrivate and OOFilterRules categories): public for the unit
-    // test, which calls them and sets the state below, and for the facade's
-    // forwards; private once the facade is deleted and the test reaches them
-    // otherwise.
+    // Internal: public for the unit test, which calls them and sets the state
+    // below.
     std::optional<std::string> manifestPath(); // nullopt: no cache directory
     std::optional<std::string> downloadPath(); // nullopt: no cache directory
     std::optional<std::string> extractionBasePathForIdentifier(

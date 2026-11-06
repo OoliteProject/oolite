@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-A leaf of Entity. The class is global and its object is the root's facade.
+A leaf of Entity. The class is global.
 
 */
 
@@ -175,8 +175,6 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary, bool atmosp
 {
     const oo::PList dict = dictionary.isNull() ? oo::PList(oo::PList::Dict { }) : dictionary;
     RANROTSeed savedRanrotSeed = RANROTGetFullSeed();
-
-    // [self init]: the facade made this object, and the constructor ran Entity's -init.
 
     scanClass = CLASS_NO_DRAW;
 
@@ -1145,7 +1143,7 @@ void OOPlanetEntity::setName(const std::optional<std::string>& name)
     _name = name;
 }
 
-// The binding's bodies (OOJSPlanet.mm), which the facade forwarded to.
+// The binding's bodies (OOJSPlanet.mm).
 JSClassID OOPlanetEntity::jsClassID()
 {
     return ::JSPlanetClassID();

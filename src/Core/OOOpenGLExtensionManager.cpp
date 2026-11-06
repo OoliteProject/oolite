@@ -668,8 +668,7 @@ namespace {
 
 // The regexp test sent to a string that may be nil (a nil string matched
 // nothing). matcher is the one pass's matcher, taken on first use and held by
-// the caller: the autoreleased Objective-C matcher lived until the pool
-// drained, so one pass compiled one tester.
+// the caller, so one pass compiles one tester.
 // A null matcher (the tester did not compile) answers NO and is asked again.
 BOOL MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher, const std::optional<std::string>& string, const std::string& regexp)
 {

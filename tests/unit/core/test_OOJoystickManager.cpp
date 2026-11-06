@@ -7,8 +7,7 @@
 	for the hardware as the base does), reports the next moved axis or pressed button to a callback,
 	and loads and saves the tables and the axis profiles in the user defaults. The test points the
 	defaults' home (HOMEPATH) at a scratch folder before they are first read, so nothing of the
-	user's is read or written. The expectations were written against the Objective-C API and run on
-	the unconverted class first; they call the C++ members. They cover: the default mapping; axis
+	user's is read or written. They call the C++ members. They cover: the default mapping; axis
 	decoding (normalised, thrust, view, raw, out of range, the profiles and precision mode); buttons
 	and hats; reassigning and unsetting functions; the callback for both kinds of hardware; saving
 	and reloading the tables and both kinds of profile; a subclass's overrides reached by the base

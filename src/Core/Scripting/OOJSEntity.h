@@ -75,7 +75,7 @@ HPVector OOJSEntityPositionOfJSObject(JSContext* context, JSValueConst object);
 Quaternion OOJSEntityOrientationOfJSObject(JSContext* context, JSValueConst object);
 
 // OOJSBasicPrivateObjectConverter for the entity classes (each registers it): the entity's object
-// (its facade, which code converting a JS value still expects) as an Object node, a null PList
+// as an Object node, a null PList
 // once the entity has gone, as the slot's weak reference answered.
 oo::PList OOJSEntityObjectConverter(JSContext* context, JSValueConst object);
 
@@ -98,7 +98,7 @@ bool EntityFromArgumentList(JSContext* context, const std::optional<std::string>
 
 /*
         For scripting purposes, a JS entity object is a stale reference if its
-        underlying ObjC object is nil, or if it refers to the player and the
+        underlying entity is null, or if it refers to the player and the
         blockJSPlayerShipProps flag is in effect (i.e., the escape pod sequence is
         active).
 */

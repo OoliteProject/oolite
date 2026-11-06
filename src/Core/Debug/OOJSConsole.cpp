@@ -55,9 +55,8 @@ SOFTWARE.
 
 #include "oofnd/String.hpp"
 
-// The Mac debug OXP's inspector added -inspect to entities (a category on Entity); inspectEntity()
-// sent it to an entity that answered it. Since the root facade's deletion it calls the entity's
-// virtual inspect() (oo::InspectEntity()), which does nothing unless a subclass overrides it.
+// inspectEntity() calls the entity's virtual inspect() (oo::InspectEntity()), which does nothing
+// unless a subclass overrides it.
 
 /*	Differences from the SpiderMonkey version:
         - pedanticMode is remembered but has no effect: SpiderMonkey's
@@ -261,13 +260,12 @@ OODebugMonitor* MonitorFromJSObject(JSValueConst object)
 }
 
 /*	The natives' internal error for a `this` that is not a console object: the class of the object
-        the engine converts it to, as the facade's check described what it got (nil for a plain object).
+        the engine converts it to ("(null)" for a plain object).
 */
 void ReportNotTheMonitor(JSContext* context, JSValueConst object, const char* function)
 {
     const oo::PList node = cxx_OOJSPListFromJSValue(context, object);
-    // An entity's node: the class of its object, the root facade's. Any other
-    // node holds no Objective-C object: nil's class, described "(null)".
+    // An entity's node is described as "Entity"; any other node as "(null)".
     const std::string className = (oo::EntityIn(node) != nullptr) ? std::string("Entity") : std::string("(null)");
     cxx_OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s", className.c_str(), function, "This is an internal error, please report it.");
 }
@@ -282,7 +280,7 @@ OODebugMonitor* MonitorForConsoleObject(JSContext* context, JSValueConst object,
 }
 
 // The console objects' converter: the monitor as an Object node (oo::PListForeign), whose JS value
-// is the console object, as the facade's node's was (OOJSBasicPrivateObjectConverter); null for none.
+// is the console object; null for none.
 oo::PList ConsoleConverter(JSContext* /*context*/, JSValueConst object)
 {
     OODebugMonitor* monitor = MonitorFromJSObject(object);
@@ -653,7 +651,7 @@ static JSValue ConsoleConsoleMessage(OOJS_NATIVE_ARGS)
     OOJSPauseTimeLimiter();
     monitor = MonitorFromJSObject(OOJS_THIS);
     if (monitor == nullptr) {
-        // The facade's class check left nil, so this described nil whatever `this` was.
+        // Whatever `this` was, it is described as "(null)".
         cxx_OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s", "(null)", __PRETTY_FUNCTION__, "This is an internal error, please report it.");
         OOJSResumeTimeLimiter();
         return OOJSNativeFailure(context);
@@ -742,19 +740,11 @@ static JSValue ConsoleInspectEntity(OOJS_NATIVE_ARGS)
 #if OO_DEBUG
 namespace {
 
-/*	callObjC()'s names on the console objects: the debug monitor's facade,
-   which they held, answered any selector whose signature callObjC() matched.
-   This table is exactly the facade's own selectors without arguments, and the
-   two that take the joined string argument. Each row calls the C++ member the
-   selector forwarded to, with the result the selector's signature gave; a
-   scalar row keeps the @encode() of the facade's return type, so its result (or
-   the "cannot be called" error) is the one the selector path read from the same
-   encoding, and a row whose signature matched nothing (NotCallable) answers
-   that error. Every other name answers "does not respond": the root classes'
-   selectors (the weak-reference root and OOObject: lifetime, weak reference,
-   description), the scalar selectors with arguments, which callObjC() called
-   with the arguments missing, and the facade's other selectors with arguments,
-   whose signatures matched nothing ("cannot be called" until then).
+/*	callObjC()'s names on the console objects: the debug monitor's methods without arguments,
+   and the two that take the joined string argument. Each row calls the C++ member of that name.
+   A scalar row keeps the type encoding of the member's return type, which decides its result
+   (or the "cannot be called" error), and a row that cannot be called from JavaScript
+   (NotCallable) answers that error. Every other name answers "does not respond".
 */
 enum class MonitorMethodForm { VoidVoid,
     VoidString,
@@ -769,7 +759,7 @@ struct MonitorMethod {
     void (*voidString)(OODebugMonitor*, const std::string&);
     oo::PList (*pListString)(OODebugMonitor*, const std::string&);
     long long (*scalar)(OODebugMonitor*);
-    const char* encoding; // a Scalar row: @encode() of the facade's return type
+    const char* encoding; // a Scalar row: the type encoding of the return type
 };
 
 const MonitorMethod kMonitorMethods[] = {
@@ -788,13 +778,13 @@ const MonitorMethod kMonitorMethods[] = {
     { "dumpJSMemoryStatistics", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr, [](OODebugMonitor* m) -> long long { return static_cast<long long>(m->dumpJSMemoryStatistics()); }, kOOTypeEncoding<size_t> },
 };
 
-/*	OOJSCallObjCObjectMethod()'s steps for the facade's selectors, on the table above. *outResult
+/*	OOJSCallObjCObjectMethod()'s steps for the monitor's methods, on the table above. *outResult
         (initialised by the caller) is owned by the caller when set; on failure an error has been
         reported.
 */
 bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc, JSValueConst* argv, JSValue* outResult)
 {
-    const std::string className; // the facade's -cxx_oo_jsClassName (OOObject's: none)
+    const std::string className; // none
     if (argc == 0) {
         cxx_OOJSReportError(context, "%s.callObjC(): no selector specified.", className.c_str());
         return false;
@@ -899,8 +889,7 @@ static JSValue ConsoleCallObjCMethod(OOJS_NATIVE_ARGS)
     }
 
     // An entity's `this` converts to its entity node, whose C++ entity this takes
-    // and calls by its name table. Any other `this` held no Objective-C object
-    // since none is made: the error below, as for a plain JS object.
+    // and calls by its name table. Any other `this` gets the error below, as a plain JS object does.
     const oo::PList thisNode = cxx_OOJSPListFromJSValue(context, OOJS_THIS);
     Entity* entity = oo::EntityIn(thisNode);
     if (entity == nullptr) {
@@ -1236,7 +1225,7 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
     if (argc > 1)
         thisObj = JS_DupValue(context, argv[1]);
     else {
-        JSValue debugConsole = OODebugMonitor::sharedDebugMonitor()->jsValueInContext(context); // the facade's -oo_jsValueInContext:
+        JSValue debugConsole = OODebugMonitor::sharedDebugMonitor()->jsValueInContext(context);
         thisObj = JS_GetPropertyStr(context, debugConsole, "script");
         JS_FreeValue(context, debugConsole);
     }

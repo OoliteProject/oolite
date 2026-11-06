@@ -30,7 +30,7 @@
 
 #pragma once
 
-// Objective-C++ game code includes this after OOFoundation.h, whose `#define
+// Game code includes this after OOFoundation.h, whose `#define
 // true 1` / `#define false 0` break the standard headers' keywords. Suspend the
 // macros here (see oofnd/Data.hpp).
 #pragma push_macro("true")

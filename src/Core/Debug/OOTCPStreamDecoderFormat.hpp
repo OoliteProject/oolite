@@ -1,9 +1,9 @@
 /*	OOTCPStreamDecoderFormat.hpp
         The formatter behind OOALStringCreateWithFormatAndArguments()
-   (OOTCPStreamDecoderAbstractionLayer .mm), moved into a header of its own
+   (OOTCPStreamDecoderAbstractionLayer.cpp), moved into a header of its own
    so the unit tier can test it: plain C++20, no Foundation, no oofnd.
 
-        It is -[NSString initWithFormat:arguments:] for the conversions OOTCPStreamDecoder.c uses:
+        It formats as NSString's initWithFormat:arguments: did, for the conversions OOTCPStreamDecoder.c uses:
         %u (unsigned), %zu (size_t), %@ (an object handle, written as describe(handle) gives it) and
         %%; a lone '%' at the end is kept. Anything else is copied as it stands (the decoder uses
         nothing else). tests/unit/oofnd/test_tcp_stream_format.cpp pins it against texts GNUstep

@@ -9,17 +9,15 @@
    answers the viewpoint the test sets as PLAYER. Its drawable, OOSkyDrawable,
    loads star textures from the game's resources, which the test has not; the
         test replaces the drawable's star set-up with a stand-in that records
-   the two colours the sky passed (through OOSkyDrawable's test seam). The
-        expectations were written against the Objective-C API and run on the
-   unconverted class first: the sky colour is the system's sun colour, else the
+   the two colours the sky passed (through OOSkyDrawable's test seam). The sky colour is the
+   system's sun colour, else the
    blend of the two colours; the sky's colours come from "sky_rgb_colors" (six
    numbers) or "sky_color_1"/"sky_color_2" (premultiplied); the star count, the
    drawable, the status and the flags; -update: puts it at the viewpoint with
    the clear depth as its distance; and -changeProperty:withDictionary: takes a
    new sun colour (and relights) and refuses anything else. The distances are
    read through the one helper below. The sky is made as the universe makes it,
-   in C++ with its object (the OOEntityWithDrawable facade) made by
-   oo::NewEntityFacade: the class's own
+   in C++: the class's own
    selectors are member calls, the root's are still sent to the object, and the
    last test pins that the object is a C++ entity's. Run: bash
    tools/check-core-tests.sh
@@ -83,7 +81,7 @@ struct OOSkyDrawableTestAccess {
   }
 };
 
-// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// A C++ player, as PlayerEntity::sharedPlayer() makes
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
@@ -247,8 +245,7 @@ OO_TEST(changeProperty) {
 OO_TEST(facade) {
   {
     SetUp();
-    Entity* sky = Sky(Dict({{"sky_n_stars", oo::PList(0)}}));
-    // A C++ entity, not an Objective-C entity's adapter.
+    Entity* sky = Sky(Dict({{"sky_n_stars", oo::PList(0)}}));    // A C++ entity.
     OO_CHECK(dynamic_cast<SkyEntity*>(sky) != nullptr);
     OO_CHECK(sky == sky);
   }

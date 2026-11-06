@@ -3,7 +3,7 @@
 EntityVirtualMembers.h
 
 The root entity's virtual members, as UniverseVirtualMembers.h declares the universe's: the members
-the converted subclasses (and the Objective-C entities' adapter, oo::ObjCEntity) override. They are
+the subclasses override. They are
 declared once, here, in the order Entity.h declared them: Entity.h expands
 OO_ENTITY_VIRTUAL_MEMBERS(;, ;) and OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(;, ;) where its first virtual
 member was, and a narrow test's stand-in for the class expands them with default bodies

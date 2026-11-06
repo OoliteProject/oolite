@@ -10,8 +10,8 @@
 	universe, the game controller and the ship registry answer only the selectors the binding
 	sends), for the resource manager and string expander the commodities call, the script engine and
 	running script the interface definitions call, and the engine functions the binding links
-	against, with the engine headers' linkage. The expectations were written against the Objective-C
-	file and run on it first; they pin the JS-visible behaviour (the properties both ways, docking,
+	against, with the engine headers' linkage. The expectations pin the JS-visible behaviour (the
+	properties both ways, docking,
 	the alert level, the launches, the interfaces, the market, the shipyard's errors, a non-station,
 	a native's exception) and what the category answers the engine. Run: tests/run.sh unit
 */
@@ -93,7 +93,7 @@ public:
 class TestEntityObject final : public oo::RefCounted
 {
 public:
-	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
+	const char *className() const  { return "Entity"; }	// the class's runtime name
 	std::optional<std::string> cxx_descriptionComponents();
 	bool answersJSClass();
 	JSClassID oo_jsClassID();
@@ -105,7 +105,7 @@ public:
 	JSValue _jsSelf = JS_UNDEFINED;	// owned; not an object until first asked for
 };
 
-/*	A station (its object is the ship's facade); the members the binding
+/*	A station: the members the binding
    calls, declared as StationEntity.h declares them (the test imports no game
    header that defines the class), with the stand-in's answers. One whose
         equivalent tech level is 99 raises from getEquivalentTechLevel(), one
@@ -207,7 +207,7 @@ public:
 	void safeAllMissiles();
 	void enterDock(::StationEntity *station);
 	::OOScript * commodityScriptNamed(const std::optional<std::string> &scriptName);
-	// OOEquipmentType.mm's (linked, never reached by these cases: the Objective-C stand-in had none).
+	// OOEquipmentType.mm's (linked, never reached by these cases).
 	oo::PList processKeyCode(const oo::PList &key_def);
 	std::optional<std::string> validateKey(const std::string &key, const oo::PList &check_keys);
 	oo::PList missionVariableForKey(const std::string &key);
@@ -257,8 +257,7 @@ public:
 	oo::PList getEquipmentDataOutfitting();	// link stub
 };
 
-// Link stubs, never reached: the code under test calls them on paths the test does not take (the
-// Objective-C stand-in did not answer them).
+// Link stubs, never reached: the code under test calls them on paths the test does not take.
 ::OOCommodityMarket *Universe::getCommodityMarket()  { std::abort(); }
 oo::PList Universe::getEquipmentData()  { std::abort(); }
 oo::PList Universe::getEquipmentDataOutfitting()  { std::abort(); }
@@ -315,7 +314,7 @@ bool TestEntityObject::answersJSClass()  { return _cxxEntity != nullptr; }
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
 std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
 
-// As -[TestEntityObject oo_jsValueInContext:] made one: the class the entity's category names (its
+// TestEntityObject::oo_jsValueInContext() makes one: the class the entity's category names (its
 // prototype is the class's), else the Ship class; the entity keeps it, and the caller owns the
 // value returned.
 JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
@@ -505,14 +504,14 @@ Random_Seed Universe::marketSeed()	{ return Random_Seed{}; }
 OOSystemID Universe::currentSystemID()	{ return 7; }
 
 
-// The ship registry: a C++ stand-in with the facade stand-in's answers.
+// The ship registry: a C++ stand-in.
 OOShipRegistry *OOShipRegistry::sharedRegistry()  { return nullptr; }	// the test adds no ship to a shipyard
 oo::PList OOShipRegistry::shipInfoForKey(const std::string &key)  { (void)key; return oo::PList(); }
 oo::PList OOShipRegistry::shipyardInfoForKey(const std::string &key)  { (void)key; return oo::PList(); }
 
 
 // ResourceManager: C++ definitions of the statics the code under test calls,
-// with the Objective-C stand-in's answers. trade-goods.plist: food and gems.
+// with the stand-in's answers. trade-goods.plist: food and gems.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
 	(void)fileName; (void)folderName; (void)mergeMode; (void)useCache;

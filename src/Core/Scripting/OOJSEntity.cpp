@@ -140,8 +140,7 @@ JSValue OOJSEntityHolder::jsValueInContext(JSContext* context)
     return (held != nullptr) ? OOJSValueFromCxxObject(context, held) : JS_NULL;
 }
 
-// OOObject's -oo_clearJSSelf:, which the facade did not override, did nothing (Entity's
-// clearJSSelf() too): the entity keeps its own reference to its JS object while it lives.
+// Does nothing (Entity's clearJSSelf() too): the entity keeps its own reference to its JS object while it lives.
 void OOJSEntityHolder::clearJSSelf(JSValueConst /*selfVal*/)
 {
 }
@@ -248,8 +247,8 @@ static JSValue EntityGetProperty(OOJS_GETTER_ARGS)
             return JS_UNDEFINED;
     }
 
-    // The C++ members the properties call: a virtual one reaches an
-    // Objective-C entity's override.
+    // The C++ members the properties call: a virtual one reaches the
+    // entity's override.
     switch (magic) {
     case kEntity_collisionRadius:
         return JS_NewFloat64(context, cxxEntity->collisionRadius());

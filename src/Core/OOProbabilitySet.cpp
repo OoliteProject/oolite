@@ -58,9 +58,8 @@ namespace {
 constexpr const char* kObjectsKey = "objects";
 constexpr const char* kWeightsKey = "weights";
 
-// The property list representation: the objects (the elements themselves, as oo::PListFrom
-// converted the Objective-C objects they were) and their weights (single reals, as
-// +numberWithFloat: made them).
+// The property list representation: the objects (the elements themselves) and their weights
+// (single reals).
 oo::PList PropertyListRepresentation(const oo::PList* objects, const float* weights, NSUInteger count)
 {
     oo::PList::Array objectList, weightList;
@@ -74,9 +73,8 @@ oo::PList PropertyListRepresentation(const oo::PList* objects, const float* weig
     return oo::PList(std::move(result));
 }
 
-// -isEqual: of the objects the elements were: == of two values (a string is
-// equal to the same string); an Object node is equal to the same node. (No node
-// holds an Objective-C object: no game object is one.)
+// == of two values (a string is equal to the same string); an Object node is
+// equal to the same node.
 bool SameElement(const oo::PList& element, const oo::PList& object)
 {
     return element == object;

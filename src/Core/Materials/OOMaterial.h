@@ -52,7 +52,7 @@ class Entity; // Entity.h: the shader binding target
 
 class OOMaterial : public oo::RefCounted {
 public:
-    // Called once at startup (by -[Universe init]).
+    // Called once at startup (by Universe's initialiser).
     static void setUp();
 
     virtual std::optional<std::string> name(); // nullopt: none
@@ -61,12 +61,10 @@ public:
     // (OODescription.h): the quoted name.
     virtual std::optional<std::string> descriptionComponents() const;
 
-    // The former facade's -cxx_description: <Class 0x...>{components}, the C++
-    // class's name, as [self class] named it, and the material's address.
+    // <Class 0x...>{components}: the C++ class's name and the material's address.
     std::string description() const;
 
-    // The object's own size, for the debug sizes (was the facade's instance
-    // size).
+    // The object's own size, for the debug sizes.
     virtual size_t objectSize() const { return sizeof *this; }
 
     // Make this the current material. Virtual: OOMultiTextureMaterial overrides
@@ -111,16 +109,15 @@ public:
     virtual bool doApply(); // Override instead of apply()
     virtual void unapplyWithNext(OOMaterial* next);
 
-    /*	Was called at the top of an Objective-C subclass's -dealloc. A C++
+    /*	Called when a material is about to go. A C++
        material is not destroyed while it is current (the current-material slot
        retains it), so no destructor calls this: if it is current, it is unapplied
        and the slot's reference is detached, not released.
     */
     void willDealloc();
 
-    /*	The convenience creators: the category OOConvenienceCreators, whose
-       class methods are these static members, defined in
-       OOMaterialConvenienceCreators.mm (OOMaterialConvenienceCreators.h documents
+    /*	The convenience creators: static members defined in
+       OOMaterialConvenienceCreators.cpp (OOMaterialConvenienceCreators.h documents
        them).
 
             Get a material based on configuration. The result will be an
@@ -156,9 +153,7 @@ private:
         const oo::PList& configuration, const oo::PList& macros, Entity* target);
 };
 
-/*	[material autorelease], which the deleted facade answered: keeps the
-   material until the current autorelease pool drains, so a material a drawable
-   replaces lives exactly as long as its autoreleased object did, as
-   OODrawableAutorelease() does for drawables. Nothing for null.
+/*	Keeps the material until the current autorelease pool drains, so a material a drawable
+   replaces lives that long, as OODrawableAutorelease() does for drawables. Nothing for null.
 */
 void OOMaterialAutorelease(oo::Ref<OOMaterial> material);

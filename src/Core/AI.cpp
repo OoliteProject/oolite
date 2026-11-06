@@ -68,9 +68,7 @@ oo::PList JSScriptOf(const oo::PList& stateMachine)
     return script != nullptr ? *script : oo::PList();
 }
 
-// The pending messages as -description of an NSSet of them printed them
-// (GNUstep describes a set as the array of its objects), in byte order where
-// that was the set's hash order.
+// The pending messages described as the array of them, in byte order.
 std::string PendingMessagesDescription(const std::set<std::string>& messages)
 {
     oo::PList::Array list;
@@ -80,10 +78,9 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages)
 }
 
 /*	The AI's methods a deferred call names, by the selector the by-name call
-   (OOCallByName) used: exactly the names the facade answered.
-   setStateMachine(smName, delay) names -setStateMachine:, which the facade did
-   not answer (the ship's selector), so it is not here and its call logs and
-   does nothing, as before.
+   (OOCallByName) used.
+   setStateMachine(smName, delay) names a selector the AI does not answer (the
+   ship's), so it is not here and its call logs and does nothing.
 */
 struct DeferredAIMethod {
     const char* selectorName;
@@ -735,8 +732,7 @@ void AI::performDeferredCall(const char* selectorName,
     NSTimeInterval delay)
 {
     if (selectorName != NULL) {
-        // The call keeps the AI alive until it has run (the holder retained it; it
-        // retained the facade).
+        // The call keeps the AI alive until it has run.
         oo::Ref<AI> ai(this);
         OOScheduleDeferredCall(
             [ai, selectorName, argument]() {

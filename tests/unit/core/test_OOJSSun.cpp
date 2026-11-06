@@ -7,8 +7,8 @@
 	game's own objects for the binding, the engine's class registry (OOJSClasses.mm) and its
 	exception translator (OOJSEngineNativeWrappers.mm), and stands in for the entity classes (Entity
 	and OOSunEntity answer only the selectors the binding sends) and for the engine functions the
-	binding links against, with the engine headers' linkage. The expectations were written against
-	the Objective-C file and run on it first; they pin the JS-visible behaviour (the four
+	binding links against, with the engine headers' linkage. The expectations pin the JS-visible
+	behaviour (the four
 	properties, goNova() and cancelNova(), a non-sun, a native's exception) and what the category
 	answers the engine. Run: tests/run.sh unit
 */

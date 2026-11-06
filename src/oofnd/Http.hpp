@@ -1,7 +1,8 @@
+// clang-format off
 /*	oofnd/Http.hpp
         oo::http::Download: one GET on its own thread, its callbacks queued for
-   the main thread to take in order. The OXZ manager's NSURLConnection without
-   Foundation.
+        the main thread to take in order. The OXZ manager's NSURLConnection
+        without Foundation.
 
             OOOXZManager (Objective-C, gnustep-base 1.31)            oo::http
             -------------------------------------------------------  -------------------------------------
@@ -16,42 +17,43 @@
             -[NSURLConnection cancel]                                Download::cancel()
 
         Captured from gnustep-base 1.31.1 against a loopback server (throwaway
-   probe; tests/unit/oofnd/test_http.cpp replays the same exchanges against its
-   own loopback server):
+        probe; tests/unit/oofnd/test_http.cpp replays the same exchanges against its
+        own loopback server):
           * Every status is a response: a 404 or 500 delivers its body and
-   finishes; it is not a failure. Only a transport error (refused, unresolved,
-   reset before the response) fails.
+            finishes; it is not a failure. Only a transport error (refused, unresolved,
+            reset before the response) fails.
           * expectedContentLength is the Content-Length header, or -1 without
-   one (chunked, a connection-close body, a 204).
+            one (chunked, a connection-close body, a 204).
           * The body is delivered as sent: no Accept-Encoding is sent and a gzip
-   body is not decoded.
+            body is not decoded.
           * The request carries User-Agent and Host and nothing else: no
-   cookies, no Accept, no credentials (user:password@ in the URL is ignored).
-   The fragment is not sent; the query is.
+            cookies, no Accept, no credentials (user:password@ in the URL is ignored).
+            The fragment is not sent; the query is.
           * An absolute redirect is followed and only the final response is
-   delivered.
+            delivered.
           * A body cut short by the server closing the connection finishes with
-   what arrived.
+            what arrived.
           * file: URLs are read from disk and delivered the same way.
 
         Deliberate differences, all in paths no well-formed http(s) URL reaches:
-   a URL NSURL rejected (spaces, non-ASCII, empty) or a
-   scheme other than http, https or file fails at once, where NSURLConnection
-   never called back; an upper-case scheme and a relative redirect work, where
-   it also never called back; an empty or unresolvable host fails, where it
-   connected somewhere else. A failure's text is WinHTTP's, not NSError's
-   description.
+        a URL NSURL rejected (spaces, non-ASCII, empty) or a
+        scheme other than http, https or file fails at once, where NSURLConnection
+        never called back; an upper-case scheme and a relative redirect work, where
+        it also never called back; an empty or unresolvable host fails, where it
+        connected somewhere else. A failure's text is WinHTTP's, not NSError's
+        description.
 
         Windows: WinHTTP (an OS component; link -lwinhttp). Elsewhere every
-   http(s) download fails with a clear error (there is no libcurl backend yet);
-   file: URLs work everywhere.
+        http(s) download fails with a clear error (there is no libcurl backend yet);
+        file: URLs work everywhere.
 
         Header-only, C++20, compiles with -fno-exceptions.
 */
+// clang-format on
 
 #pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// Callers see OOFoundation.h's `#define true 1` / `#define false
 // 0`; suspend them for this header.
 #pragma push_macro("true")
 #pragma push_macro("false")
@@ -75,7 +77,7 @@
 // Declared exactly as <winhttp.h> and <windows.h> declare them (HINTERNET =
 // void *, DWORD = unsigned long, BOOL = int, INTERNET_PORT = unsigned short,
 // DWORD_PTR = unsigned long long), so this header does not pull <windows.h>
-// into Objective-C++ game code.
+// into game code.
 extern "C" {
 __declspec(dllimport) void* __stdcall WinHttpOpen(const wchar_t* agent,
     unsigned long accessType,

@@ -126,9 +126,7 @@ static const JSCFunctionListEntry sScriptMethods[] = {
     JS_CFUNC_DEF("toString", 0, ScriptToString),
 };
 
-// +scriptWithPath:properties: (the facade's -initWithPath:properties: after [super init] is
-// initWithPath()): a script that cannot be loaded is dropped, which runs the destructor, as
-// DESTROY(self) did.
+// A script that cannot be loaded is dropped, which runs the destructor.
 oo::Ref<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::string>& path, const oo::PList& properties)
 {
     oo::Ref<OOJSScript> script = oo::makeRef<OOJSScript>();

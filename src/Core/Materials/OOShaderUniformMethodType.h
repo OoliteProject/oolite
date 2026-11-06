@@ -108,7 +108,7 @@ struct OOShaderMemberBinding {
 };
 
 /*	A material's binding target is the C++ entity. What the uniform and the
-   material asked of the entity's Objective-C object they ask through these,
+   material ask of the entity they ask through these,
    which the entities register (EntityShaderBindings.mm), so the materials still
    link without them; with none registered an entity target binds nothing.
 */
@@ -117,12 +117,12 @@ struct OOShaderEntityHooks {
     // -superShaderBindingTarget: the entity a "bind to super" uniform binds to
     // next, or null.
     Entity* (*superTarget)(Entity* entity);
-    // What the log lines printed for the entity's Objective-C object: its class's
+    // What the log lines print for the entity: its class's
     // name ("Entity"), and its description; "(null)" for an entity without one.
     std::string (*className)(Entity* entity);
     std::string (*description)(Entity* entity);
     // The row of the entities' member table for the name, where it binds this
-    // entity (only for the root facade's own class, as the member lookup above).
+    // entity (as the member lookup above).
     bool (*memberBinding)(Entity* entity, const char* property,
         OOShaderMemberBinding* outBinding);
     // -randomSeedForShaders, where the entity's object answers it.

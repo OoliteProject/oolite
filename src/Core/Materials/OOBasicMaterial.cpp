@@ -40,8 +40,7 @@ SOFTWARE.
 
 namespace {
 
-// Made on first use and never released, as the static Objective-C material was
-// not.
+// Made on first use and never released.
 OOBasicMaterial* sDefaultMaterial = nullptr;
 
 } // namespace
@@ -86,8 +85,7 @@ void OOBasicMaterial::initWithName(const std::optional<std::string>& name,
     const oo::PList config = !configuration.isNull() ? configuration : oo::PList(oo::PList::Dict { });
 
     // The specifier answers the colour; OOColor::colorWithDescription() of its
-    // Object node, which
-    // +[OOColor cxx_colorWithDescription:] answered, was the colour itself.
+    // Object node is the colour itself.
     colorDesc = cxx_OOMaterialDiffuseColor(config);
     if (colorDesc != nullptr)
         setDiffuseColor(colorDesc.get());
@@ -120,8 +118,7 @@ bool OOBasicMaterial::doApply()
     OOGL(glMaterialfv(FACE, GL_AMBIENT, ambient));
     OOGL(glMaterialfv(FACE, GL_EMISSION, emission));
     OOGL(glMateriali(FACE, GL_SHININESS, _shininess));
-    // -isMemberOfClass: (an Objective-C subclass's C++ part is its adapter,
-    // another class)
+    // Exactly this class, not a subclass
     if (typeid(*this) == typeid(OOBasicMaterial)) {
         OOTexture::applyNone();
     }
@@ -131,8 +128,7 @@ bool OOBasicMaterial::doApply()
 
 void OOBasicMaterial::unapplyWithNext(OOMaterial* next)
 {
-    // -isKindOfClass: (an Objective-C subclass's adapter derives from this class;
-    // nil is not one)
+    // This class or a subclass (null is neither)
     if (dynamic_cast<OOBasicMaterial*>(next) == nullptr) {
         if (EXPECT_NOT(sDefaultMaterial == nullptr))
             sDefaultMaterial = materialWithName(std::string("<default material>")).leakRef();

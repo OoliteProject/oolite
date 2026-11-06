@@ -46,8 +46,8 @@ class Entity; // Entity.h: the materials' binding target
 
 /*	A uniform bound to a C++ object's member: the getter reads the member
    into the field its type uses (OOShaderBindingValue), as a member table's row
-   does for an Objective-C target. The target is held weakly: once it has gone,
-   -apply sets nothing, as for an Objective-C target that has gone.
+   does for an entity target. The target is held weakly: once it has gone,
+   -apply sets nothing.
 */
 typedef void (*OOShaderCxxBindingGetter)(oo::RefCounted* target,
     OOShaderBindingValue& outValue);

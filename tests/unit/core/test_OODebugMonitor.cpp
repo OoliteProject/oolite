@@ -1,8 +1,8 @@
 /*	test_OODebugMonitor.mm
 	Unit tests for OODebugMonitor (src/Core/Debug/OODebugMonitor.h).
 
-	OODebugMonitor is the singleton that connects a debugger (the TCP console client the golden
-	harness drives the game through) to the game: it keeps the debug configuration (the OXPs'
+	OODebugMonitor is the singleton that connects a debugger (the TCP console client the integration
+	tests drive the game through) to the game: it keeps the debug configuration (the OXPs'
 	debugConfig.plist under the user's overrides, normalised), relays the JavaScript console to the
 	debugger, is the JavaScript engine's monitor (errors, warnings and log lines), serves source
 	lines to the console, and dumps memory statistics.

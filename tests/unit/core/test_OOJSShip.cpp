@@ -7,8 +7,8 @@
 	-setUpShipFromDictionary: from a definition in the test (PlainShip, as test_ShipEntity.mm's), in
 	a Universe that was never initialised and with a plain entity as PLAYER; the player branches of
 	the getter read the engine's own player, whose class the test swaps for a subclass that answers
-	-availableFacings and -fleeingStatus itself. The expectations were written against the
-	Objective-C file and run on it first; they pin the property getter (every property) and the
+	-availableFacings and -fleeingStatus itself. The expectations pin the property getter (every
+	property) and the
 	weapon offsets and colours its helpers give JavaScript. Run: bash tools/check-core-tests.sh
 	test_OOJSShip
 */
@@ -132,8 +132,8 @@ public:
 	}
 };
 
-// [[TestPlayer alloc] init]: a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// NewTestPlayer<TestPlayer>(): a C++ player, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -214,8 +214,7 @@ void SetUp()
 	OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
 	ResourceManager::setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_NONE));	// strict: the built-in Resources alone
 	// The engine's player is a TestPlayerShip: made first, so InitOOJSPlayerShip()'s
-	// PlayerEntity::sharedPlayer() answers it (the C++ player cannot change class, as
-	// object_setClass() made the Objective-C one a TestPlayerShip).
+	// PlayerEntity::sharedPlayer() answers it (the C++ player cannot change class).
 	gOOPlayer = NewTestPlayer<TestPlayerShip>();
 	(void)OOJavaScriptEngine::sharedEngine();
 
@@ -558,7 +557,7 @@ OO_TEST(setterNames)
 	OO_CHECK_EVAL(SET("scanDescription", "null"), "null");	// can be cleared
 	OO_CHECK_EVAL(SET("primaryRole", "'hunter'"), "hunter");
 	OO_CHECK_EVAL(SET("beaconLabel", "'Label'"), "Label");
-	OO_CHECK_EVAL(SET("AIState", "'ATTACK'"), "null");	// as the Objective-C setter answered
+	OO_CHECK_EVAL(SET("AIState", "'ATTACK'"), "null");
 }
 
 
@@ -591,7 +590,7 @@ OO_TEST(setterNumbers)
 	OO_CHECK(Threw("ship.entityPersonality = -1"));
 	OO_CHECK_EVAL(SET("hyperspaceSpinTime", "12"), "12");
 	OO_CHECK_EVAL(SET("bounty", "-5"), "0");
-	OO_CHECK_EVAL(SET("bounty", "30"), "0");	// as the Objective-C setter answered
+	OO_CHECK_EVAL(SET("bounty", "30"), "0");
 	OO_CHECK_EVAL(SET("cargoSpaceCapacity", "10"), "10");
 	OO_CHECK_EVAL(SET("cargoSpaceCapacity", "-3"), "0");
 	OO_CHECK_EVAL(SET("destinationSystem", "-3"), "0");
@@ -635,7 +634,7 @@ OO_TEST(setterNumbers)
 	OO_CHECK(Threw("ship.energyRechargeRate = -1"));
 	OO_CHECK_EVAL(SET("maxEscorts", "2"), "2");
 	OO_CHECK(Threw("ship.maxEscorts = 20"));
-	OO_CHECK(!Threw("ship.fuel = 'lots'"));	// the Objective-C setter did not throw
+	OO_CHECK(!Threw("ship.fuel = 'lots'"));
 }
 
 
@@ -668,7 +667,7 @@ OO_TEST(setterColours)
 {
 	SetUp();
 	OO_CHECK_EVAL("JSON.stringify(" SET("scannerDisplayColor1", "'blueColor'") ")", "[0,0,1,1]");
-	OO_CHECK_EVAL(SET("scannerDisplayColor1", "null"), "1,0,0,1");	// as the Objective-C setter answered
+	OO_CHECK_EVAL(SET("scannerDisplayColor1", "null"), "1,0,0,1");
 	OO_CHECK_EVAL("JSON.stringify(" SET("scannerDisplayColor2", "[1, 1, 0]") ")", "[1,1,0,1]");
 	OO_CHECK_EVAL("JSON.stringify(" SET("scannerHostileDisplayColor1", "'whiteColor'") ")", "[1,1,1,1]");
 	OO_CHECK_EVAL("JSON.stringify(" SET("scannerHostileDisplayColor2", "'blackColor'") ")", "[0,0,0,1]");
@@ -738,10 +737,10 @@ OO_TEST(methodsAI)
 	OO_CHECK(ThrewWith("player.ship.setScript('a.js')", "Ship.setScript: Not valid for player ship."));
 	OO_CHECK(Threw("ship.setAI()"));
 	OO_CHECK(ThrewWith("player.ship.setAI('nullAI.plist')", "Ship.setAI: Not valid for player ship."));
-	OO_CHECK_EVAL("(ship.setAI('route1patrolAI.plist'), ship.AI)", "<no AI>");	// as the Objective-C natives answered
+	OO_CHECK_EVAL("(ship.setAI('route1patrolAI.plist'), ship.AI)", "<no AI>");
 	OO_CHECK(Threw("ship.switchAI()"));
 	OO_CHECK(ThrewWith("player.ship.switchAI('nullAI.plist')", "Ship.switchAI: Not valid for player ship."));
-	OO_CHECK_EVAL("(ship.switchAI('nullAI.plist'), ship.AI)", "<no AI>");	// as the Objective-C natives answered
+	OO_CHECK_EVAL("(ship.switchAI('nullAI.plist'), ship.AI)", "<no AI>");
 	OO_CHECK(ThrewWith("player.ship.exitAI()", "Ship.exitAI: Not valid for player ship."));
 	OO_CHECK_EVAL("ship.exitAI()", "undefined");	// no suspended machines: a warning only
 	OO_CHECK(Threw("ship.reactToAIMessage()"));
@@ -750,7 +749,7 @@ OO_TEST(methodsAI)
 	OO_CHECK(Threw("ship.sendAIMessage()"));
 	OO_CHECK(ThrewWith("player.ship.sendAIMessage('X')", "Ship.sendAIMessage: Not valid for player ship."));
 	OO_CHECK_EVAL("ship.sendAIMessage('NOTHING_HERE')", "undefined");
-	OO_CHECK_EVAL("ship.AI", "<no AI>");	// as the Objective-C natives answered
+	OO_CHECK_EVAL("ship.AI", "<no AI>");
 }
 
 
@@ -784,7 +783,7 @@ OO_TEST(methodsCargoAndSpawnArguments)
 	sPlayerDocked = NO;
 	OO_CHECK(Threw("ship.addCargoEntity()"));
 	OO_CHECK(Threw("ship.addCargoEntity(7)"));
-	OO_CHECK_EVAL("(function () { try { return ship.addCargoEntity(other); } catch (e) { return 'refused'; } })()", "<evaluation failed>");	// as the Objective-C native answered
+	OO_CHECK_EVAL("(function () { try { return ship.addCargoEntity(other); } catch (e) { return 'refused'; } })()", "<evaluation failed>");
 	OO_CHECK(Threw("ship.dealEnergyDamage(5)"));
 	OO_CHECK(Threw("ship.dealEnergyDamage(-5, 100)"));
 	OO_CHECK(Threw("ship.dealEnergyDamage(5, -100)"));
@@ -854,7 +853,7 @@ OO_TEST(methodsEquipment)
 OO_TEST(methodsMissilesAndStations)
 {
 	SetUp();
-	OO_CHECK_EVAL("ship.selectNewMissile()", "threw: Native exception: Could not load any ship data.");	// as the Objective-C native answered
+	OO_CHECK_EVAL("ship.selectNewMissile()", "threw: Native exception: Could not load any ship data.");
 	OO_CHECK_EVAL("ship.fireMissile()", "null");	// none aboard
 	OO_CHECK_EVAL("ship.findNearestStation()", "null");	// none in the universe
 }
@@ -870,9 +869,10 @@ OO_TEST(methodsBountyCargoCrew)
 	OO_CHECK(Threw("ship.setCargo('food', 0)"));
 	OO_CHECK_EVAL("ship.setCargo('food')", "false");	// the universe has no commodities
 	OO_CHECK(Threw("ship.setCrew()"));
-	// ship.setCrew(7) is not run here: the Objective-C native does not throw but takes the
+	// ship.setCrew(7) is not run here: the native does not throw but takes the
 	// number as an empty character definition, and making that character expands descriptions (its
-	// random name), which ends this test's process, whose universe has none. The goldens cover it.
+	// random name), which ends this test's process, whose universe has none. The integration tests
+	// cover it.
 	OO_CHECK_EVAL("(ship.setCrew(null) + ' ' + ship.crew)", "true null");
 	OO_CHECK(Threw("ship.setCargoType()"));
 	OO_CHECK_EVAL("ship.setCargoType('SCARCE_GOODS')", "true");
@@ -981,11 +981,11 @@ OO_TEST(methodsAssessments)
 {
 	SetUp();
 	OO_CHECK_EVAL("ship.damageAssessment()", "1");	// missile pylons but no missiles
-	OO_CHECK_EVAL("ship.threatAssessment()", "3.850000012665987");	// as the Objective-C native answered
-	OO_CHECK_EVAL("ship.threatAssessment(true)", "1.650000024586916");	// as the Objective-C native answered
-	OO_CHECK_EVAL("player.ship.threatAssessment(true)", "0.1");	// as the Objective-C native answered
+	OO_CHECK_EVAL("ship.threatAssessment()", "3.850000012665987");
+	OO_CHECK_EVAL("ship.threatAssessment(true)", "1.650000024586916");
+	OO_CHECK_EVAL("player.ship.threatAssessment(true)", "0.1");
 	sFleeingStatus = PLAYER_FLEEING_CARGO;
-	OO_CHECK_EVAL("player.ship.threatAssessment()", "0.4199999958276749");	// as the Objective-C native answered
+	OO_CHECK_EVAL("player.ship.threatAssessment()", "0.4199999958276749");
 	sFleeingStatus = PLAYER_FLEEING_NONE;
 }
 

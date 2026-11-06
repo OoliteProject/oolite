@@ -1,16 +1,18 @@
+// clang-format off
 /*	test_http.cpp
         oo::http::parseUrl and oo::http::Download (oofnd/Http.hpp).
 
         The exchanges below are the ones a throwaway probe ran through
-   gnustep-base 1.31.1's NSURLConnection against a loopback server; the expected
-   callbacks are what it delivered (status, expectedContentLength, body, finish
-   or fail), except where the header comment of Http.hpp lists a deliberate
-   difference (the relative redirect, an unparseable URL).
+        gnustep-base 1.31.1's NSURLConnection against a loopback server; the expected
+        callbacks are what it delivered (status, expectedContentLength, body, finish
+        or fail), except where the header comment of Http.hpp lists a deliberate
+        difference (the relative redirect, an unparseable URL).
 
         On Windows the test runs its own HTTP server on 127.0.0.1 (winsock): no
-   network is used. Link: -lwinhttp -lws2_32 (tests/unit/oofnd/meson.build;
-   tools/check-oofnd.sh reads this line:)
+        network is used. Link: -lwinhttp -lws2_32 (tests/unit/oofnd/meson.build;
+        tools/check-oofnd.sh reads this line:)
 */
+// clang-format on
 // oofnd-link-windows: -lwinhttp -lws2_32
 
 // The header must survive OOCocoa.h's true/false macros and hand them back.

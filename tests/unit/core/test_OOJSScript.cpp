@@ -10,8 +10,7 @@
    needs the real engine and the cache, so the test links every game object but
    main's (tests/unit/core/meson.build entry ['*']), defines gDebugFlags and
    points the user's directories at a scratch folder. The scripts are written to
-   that folder. The expectations were written against the Objective-C API and
-   run on the unconverted class first. The script is held as
+   that folder. The script is held as
    oo::Ref<OOJSScript>, every case asks the C++ class, and the crossing case
    pins the script's identity (the running stack holds the C++ script, the
    Script object's private slot refers to it weakly). Run: bash
@@ -246,7 +245,7 @@ OO_TEST(runningStack)
 
 // The crossing: the script's identity is the C++ object. The
 // running stack holds it, weakly, and the Script object's private slot refers
-// to it weakly, as it held the facade's weak reference.
+// to it weakly.
 OO_TEST(crossing)
 {
 	SetUp();

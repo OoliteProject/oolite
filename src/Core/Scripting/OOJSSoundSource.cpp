@@ -116,7 +116,7 @@ static bool JSSoundSourceGetSoundSource(JSContext* context, JSValueConst object,
     return true;
 }
 
-// The class's converter: no Objective-C object is left to hand over, and
+// The class's converter: there is no object to hand over, and
 // nothing asks for one.
 static oo::PList SoundSourceConverter(JSContext*, JSValueConst)
 {

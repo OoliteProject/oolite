@@ -14,8 +14,8 @@
    The cases ask the C++ class (alloc/init and the factory are
    shaderMaterialWithName(), null where the initialiser answered nil, a held
    Ref for retain/release, each -setUniform:...Value: the overload its comment
-   names); crossesAsTheBasicMaterialFacade pins what Objective-C sees: the
-   nearest facade, OOBasicMaterial's.
+   names); crossesAsTheBasicMaterialFacade pins what the root sees: the
+   nearest base, OOBasicMaterial's.
 
         The binding target is a stand-in C++ entity (the test links no entity),
    its seed answered by the entities' hook, and the uniform stand-in records
@@ -747,7 +747,7 @@ OO_TEST(lifetimeAndDescription) {
   }
 }
 
-// --- The C++ class and the facade (after the conversion)
+// --- The C++ class and the root
 // -----------------------------------------
 
 OO_TEST(cxxAPI) {

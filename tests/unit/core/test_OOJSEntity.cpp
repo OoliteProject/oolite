@@ -9,8 +9,7 @@
 	entity still is, and calls a ship's C++ part), for the vector and quaternion conversions (a
 	vector is the array [x, y, z] here, a quaternion [w, x, y, z]) and for the engine functions
 	the binding links against, with the engine headers' signatures (OOJSEngineCore.h, upstream
-	#768's QuickJS-ng API). The expectations were written against the Objective-C file and run on
-	it first; they pin the JS-visible behaviour (every property both ways, the owner, a stale
+	#768's QuickJS-ng API). The tests pin the JS-visible behaviour (every property both ways, the owner, a stale
 	entity and the escape-pod player, the prototype, dumpState(), a native's exception) and the C
 	functions other bindings call (JSValueToEntity(), EntityFromArgumentList()).
 	Run: bash tools/check-core-tests.sh

@@ -17,8 +17,7 @@
    particle's speed, describes its time to live, and removes itself when that
    runs out; the cloud reads its settings (duration, size, spread, texture) and
    is not made without its texture. The clouds are made through the one block of
-   helpers below: each is a C++ entity whose Objective-C object is the Entity
-   facade oo::NewEntityFacade made. Run: bash tools/check-core-tests.sh
+   helpers below: each is a C++ entity. Run: bash tools/check-core-tests.sh
 */
 
 #include <cmath>
@@ -49,7 +48,7 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// NewTestPlayer<TestPlayer>(): a C++ player, as
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
 // object was.
 template <class T>

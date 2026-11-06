@@ -167,7 +167,7 @@ OO_TEST(splineProfileCurve) {
     OO_CHECK(Near(profile->rawValue(0.8), 0.5));
     OO_CHECK(Near(profile->rawValue(1.0), 1.0));
     OO_CHECK(Near(profile->rawValue(-0.5), -0.25));
-    // Pinned from the Objective-C classes: the linear-quadratic-quadratic curve
+    // Pinned: the linear-quadratic-quadratic curve
     // and its slope.
     OO_CHECK(Near(profile->rawValue(0.05), 0.019375) &&
              Near(profile->gradient(0.05), 0.4));

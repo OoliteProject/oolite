@@ -88,9 +88,8 @@ bool OOShaderMaterial::configurationDictionarySpecifiesShaderMaterial(const oo::
     return false;
 }
 
-// What the log lines printed for the binding target's Objective-C object: its
-// class's name and its description; "(null)" for none, or where the entities
-// have registered no hooks, as nil's.
+// What the log lines print for the binding target: its class's name and its
+// description; "(null)" for none, or where the entities have registered no hooks.
 namespace {
 
 std::string TargetClassName(Entity* target)
@@ -272,9 +271,7 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
     return OK;
 }
 
-// -dealloc's body, but for its first line ([self willDealloc], the root
-// facade's); the shader program is an oo::Ref. (The uniforms hold the binding
-// target.)
+// The shader program is an oo::Ref. (The uniforms hold the binding target.)
 OOShaderMaterial::~OOShaderMaterial()
 {
     uint32_t i;
@@ -573,7 +570,6 @@ bool OOShaderMaterial::doApply()
     if (texCount > 1)
         OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 
-    // @try / @catch (id): a C++ catch (...) catches an Objective-C exception.
     try {
         for (const auto& [name, uniform] : uniforms) {
             uniform->apply();

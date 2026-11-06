@@ -512,7 +512,7 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS)
         return JS_EXCEPTION;
     }
 
-    // C++, with no facade; the player keeps it (oo::Ref).
+    // The player keeps it (oo::Ref).
     const oo::Ref<OOJSGuiScreenKeyDefinition> definition = oo::makeRef<OOJSGuiScreenKeyDefinition>();
     OOJSGuiScreenKeyDefinition* cxxDefinition = definition.get();
     cxxDefinition->setName(key);

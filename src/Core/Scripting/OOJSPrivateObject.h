@@ -12,8 +12,6 @@ one retain, which the finalizer releases.
 Ownership follows OOJavaScriptEngine.h's conventions: JSValueConst parameters
 are borrowed, returned JSValues are owned by the caller.
 
-Plain C++: nothing here declares or messages an Objective-C class.
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 

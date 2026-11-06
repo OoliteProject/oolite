@@ -302,7 +302,7 @@ OO_TEST(strongCyclesAreNotCollected) {
     watchB = b;
   }
   // Both external references are gone, and both objects are still alive:
-  // exactly what two ObjC objects that retain each other do. Nothing collects
+  // exactly what two objects that retain each other do. Nothing collects
   // them.
   OO_CHECK_EQ(gLive, 2);
   OO_CHECK(gDeathLog.empty());
@@ -461,10 +461,8 @@ OO_TEST(weakRefOnlyComparisonCreatesNoControl) {
 }
 
 // dropWeakReferences(): an object whose identity dies
-// before its count does (an entity's C++ part, when its Objective-C object
-// starts -dealloc) zeroes its weak refs early, as -weakRefDrop did; the object
-// lives on, and a WeakRef made afterwards is a new identity, as a -weakRetain
-// after -weakRefDrop was a new proxy.
+// before its count does zeroes its weak refs early; the object
+// lives on, and a WeakRef made afterwards is a new identity.
 class Droppable : public Thing {
  public:
   explicit Droppable(std::string name) : Thing(std::move(name)) {}

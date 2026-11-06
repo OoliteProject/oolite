@@ -5,7 +5,7 @@ OOOpenGLExtensionPointers.h
 The OpenGL feature switches (OO_SHADERS, OO_USE_VBO, OO_USE_FBO,
 OO_MULTITEXTURE, OO_TEXTURE_CUBE_MAP) and, on Windows, the function pointers for
 the OpenGL extensions used in the game, which OOOpenGLExtensionManager.h
-includes. This header is plain C/C++ (no Objective-C, no Foundation), so a C++
+includes. This header is plain C/C++ (no Foundation), so a C++
 translation unit that only calls an extension through its pointer (OOMatrix) can
 include it without the extension manager's class.
 
@@ -34,8 +34,8 @@ SOFTWARE.
 
 #pragma once
 
-/*	The platform switch below is set by the Foundation prefix header in an Objective-C translation
-        unit; a plain one sets it the same way (WIN32 is only defined on the GNUstep build), as
+/*	The platform switch below is set by the Foundation prefix header in a game translation
+        unit; a plain one sets it the same way, as
         OOProfilingStopwatch.h does, so both kinds see the same declarations.
 */
 #if defined(WIN32) && !defined(OOLITE_WINDOWS)

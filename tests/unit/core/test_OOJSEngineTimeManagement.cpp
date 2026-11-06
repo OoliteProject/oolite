@@ -7,8 +7,7 @@
 	game's own objects for the file and the stopwatch (OOProfilingStopwatch.mm). What the rest of
 	the engine would provide is defined below as the smallest stand-in that does the same thing:
 	the time limiter the profiler reads, pauses and extends, and the property-list converter
-	(recording what it is given). The expectations were written against the Objective-C file and
-	run on it first; they pin the profiler's entries (names, hit counts, the frame kind), the
+	(recording what it is given). The tests pin the profiler's entries (names, hit counts, the frame kind), the
 	profile's and entries' descriptions and property lists and the comparisons.
 	Run: bash tools/check-core-tests.sh
 */

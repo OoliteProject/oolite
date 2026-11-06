@@ -10,8 +10,7 @@
    answer only the selectors the binding sends and record what they are told;
    the player's HUD is a real one (made from an empty hud.plist, in a hidden GL
    context), and the message GUI's colours are real colours (the GUI stand-in is
-   a C++ subclass). The expectations were written against the Objective-C file
-   and run on it first; they pin the JS-visible behaviour of the property getter
+   a C++ subclass). The tests pin the JS-visible behaviour of the property getter
    (every property), the passenger, parcel and contract methods with their
    argument checks (ValidateContracts()), and the PlayerEntity category the
    engine sends (the class name, and the JS object the player keeps until the

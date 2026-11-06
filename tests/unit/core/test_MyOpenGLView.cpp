@@ -15,7 +15,7 @@
    window (-createWindowWithSize:, -initSplashScreen, -endSplashScreen,
    -initialiseGLWithSize:, -updateScreen) would show a real window on the
    desktop, which a unit test must not do; the
-   goldens launch the game, which runs all of them. The view's
+   integration tests launch the game, which runs all of them. The view's
    -dealloc quits SDL, so one view serves every test and the last one releases
    it. Further tests cover the accessors, the display-mode list and the
    saved window, full-screen and HDR settings, again without a window, and the
@@ -335,7 +335,7 @@ OO_TEST(slice2DisplayModesAndSavedSettings) {
 
 // --- Snapshots and the debug image dumps ---
 // -cxx_snapShot: reads the game window's surface, which a unit test may not
-// open (the goldens' screenshots run it). The dumps write PNGs under
+// open (the GUI tests' screenshots run it). The dumps write PNGs under
 // <home>/oolite-saves/snapshots.
 
 #ifndef NDEBUG

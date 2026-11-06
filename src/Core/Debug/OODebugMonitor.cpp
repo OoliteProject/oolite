@@ -216,9 +216,8 @@ void OODebugMonitor::showJSConsole()
 oo::PList OODebugMonitor::configurationValueForKey(const std::string& key)
 {
     // The override, else (when it is missing or null) the OXPs' value; an OONull
-    // in either reads as null (an OONull override hides the OXPs' value). (An
-    // Object node held no Objective-C object, which none is now, so any Object
-    // node but the null's read as nil.)
+    // in either reads as null (an OONull override hides the OXPs' value). Any Object
+    // node but the null's reads as nil.
     const auto isNil = [](const oo::PList* v) { return v == nullptr || v->isNull() || (v->type() == oo::PList::Type::Object && !OOIsNullObjectNode(*v)); };
     const oo::PList* result = _configOverrides.find(key);
     if (isNil(result))
@@ -638,7 +637,7 @@ void OODebugMonitor::setUpDebugConsoleScript()
     if (path) {
         // Live objects as Object nodes; a nil special-functions wrapper leaves "special" out, as the nil-terminated list did.
         // The console is the monitor itself (oo::PListForeign), whose JS value is the console object
-        // (jsValueInContext()), as the facade's node's was.
+        // (jsValueInContext()).
         oo::PList::Dict jsProps;
         jsProps["console"] = oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(this)));
         JSValue special = JSSpecialFunctionsObjectWrapper(context);
@@ -841,8 +840,7 @@ JSValue OODebugMonitor::jsValueInContext(JSContext* context)
 
 void OODebugMonitor::clearJSSelf(JSValueConst /*selfVal*/)
 {
-    // OOObject's -oo_clearJSSelf:, which the facade did not override: the console object is kept
-    // (owned) until the engine resets.
+    // The console object is kept (owned) until the engine resets.
 }
 
 std::string OODebugMonitor::className() const
@@ -855,9 +853,7 @@ std::string OODebugMonitor::description() const
     return oo::str::format("<OODebugMonitor %s>", oo::str::pointerDescription(this).c_str());
 }
 
-/*	The canonical singleton boilerplate (the category OODebugMonitor
-   (Singleton)) was the facade's: the one monitor is made by
-   sharedDebugMonitor() and never released.
+/*	The one monitor is made by sharedDebugMonitor() and never released.
 */
 
 #endif /* OO_DEBUG_MONITOR_ENABLED */

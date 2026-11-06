@@ -193,8 +193,8 @@ oo::PList StringOrNull(const std::optional<std::string>& string)
     return string.has_value() ? oo::PList(*string) : oo::PList();
 }
 
-// The current system's data value for <key>, or null (was -objectForKey: of the Objective-C dictionary).
-// The universe's C++ part answers (no universe: null, as a message to nil did).
+// The current system's data value for <key>, or null.
+// The universe's C++ part answers (no universe: null).
 oo::PList CurrentSystemDataValue(std::string_view key)
 {
     Universe* universe = UNIVERSE;
@@ -2078,7 +2078,7 @@ void PlayerEntity::sendAllShipsAway()
         Entity* e1 = my_entities[i];
         if (oo::EntityIsShip(e1)) {
             ::ShipEntity* se1 = oo::ToShip(e1);
-            int e_class = e1->getScanClass(); // virtual: an Objective-C entity is still messaged
+            int e_class = e1->getScanClass(); // virtual
             if (((e_class == CLASS_NEUTRAL) || (e_class == CLASS_POLICE) || (e_class == CLASS_MILITARY) || (e_class == CLASS_THARGOID)) && !((se1 != nullptr ? se1->getIsStation() : false) && (se1 != nullptr ? se1->getMaxFlightSpeed() : 0.0f) == 0) && // exclude only stations, not carriers.
                 (se1 != nullptr ? se1->hasHyperspaceMotor() : false)) // exclude non jumping ships. Escorts will still be able to follow a mother.
             {
@@ -2126,8 +2126,7 @@ void PlayerEntity::addPlanet(const std::string& planetKey) // called by name
     OO_LOG(kOOLogDebugAddPlanet, "DEBUG: initPlanetFromDictionary: {}", oo::DescriptionOf(dict));
     ::OOPlanetEntity* planet = nullptr;
     {
-        // [[[OOPlanetEntity alloc] initFromDictionary:...] autorelease]: a new C++ planet, kept by its
-        // autoreleased Objective-C object (its facade is deleted).
+        // A new C++ planet.
         oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
         oo::MadeEntity(planetRef);
         planetRef->initFromDictionary(dict, true, ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()), system_id);
@@ -2190,8 +2189,7 @@ void PlayerEntity::addMoon(const std::string& moonKey) // called by name
     OO_LOG(kOOLogDebugAddPlanet, "DEBUG: initMoonFromDictionary: {}", oo::DescriptionOf(dict));
     ::OOPlanetEntity* planet = nullptr;
     {
-        // [[[OOPlanetEntity alloc] initFromDictionary:...] autorelease]: a new C++ planet, kept by its
-        // autoreleased Objective-C object (its facade is deleted).
+        // A new C++ planet.
         oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
         oo::MadeEntity(planetRef);
         planetRef->initFromDictionary(dict, false, ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr ? UNIVERSE->getSystemManager()->getRandomSeedForCurrentSystem() : Random_Seed()), system_id);
@@ -2596,13 +2594,13 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off)
         if (i_key == "local-planet" && (UNIVERSE != nullptr && UNIVERSE->sun() != nullptr)) {
             originalPlanet = (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr);
         } else {
-            // A new C++ planet, kept by its autoreleased Objective-C object.
+            // A new C++ planet.
             oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
             oo::MadeEntity(planetRef);
             planetRef->initAsMainPlanetForSystem(info_system_id);
             originalPlanet = planetRef.get();
         }
-        // -miniatureVersion: a new C++ planet and its autoreleased Objective-C object; nil for nil.
+        // miniatureVersion(): a new C++ planet; null for null.
         ::OOPlanetEntity* doppelganger = nullptr;
         if (originalPlanet != nullptr) {
             oo::Ref<::OOPlanetEntity> miniature = originalPlanet->miniatureVersion();

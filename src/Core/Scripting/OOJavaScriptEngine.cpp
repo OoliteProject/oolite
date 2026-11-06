@@ -864,8 +864,7 @@ void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format, va
     }
 }
 
-// OOJSReportCurrentException() is in OOJSEngineNativeWrappers.mm (OOJSReportWrappedException() went with the
-// Objective-C exceptions, when the exception became the C++ oo::Exception).
+// OOJSReportCurrentException() is in OOJSEngineNativeWrappers.cpp.
 
 JSValue OOJSNativeFailure(JSContext* context)
 {
@@ -1158,7 +1157,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
         return JSObjectValueFromPList(context, *plist.getIf<oo::PList::Dict>());
 
     case oo::PList::Type::Object: {
-        // A C++ object that is its own JS glue (OOJSPrivateObject.h), else an Objective-C object.
+        // A C++ object that is its own JS glue (OOJSPrivateObject.h), else a foreign object.
         if (const oo::PList::Object* node = plist.getIf<oo::PList::Object>()) {
             if (OOJSPrivateObject* glue = dynamic_cast<OOJSPrivateObject*>(node->get()))
                 return OOJSValueFromCxxObject(context, glue);
@@ -1179,7 +1178,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist)
             if (OOJSValue* held = dynamic_cast<OOJSValue*>(node->get()))
                 return held->jsValueInContext(context);
         }
-        // A node that holds no Objective-C object (a C++ one): no JS glue.
+        // A node that holds no such object: no JS glue.
         return JS_UNDEFINED;
     }
     }
@@ -1301,7 +1300,7 @@ static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL ab
     if (JS_IsString(value) || (classID != JS_INVALID_CLASS_ID && classID == gOOJSStringClassID)) {
         enum { kMaxLength = 200 };
 
-        // Truncated to kMaxLength UTF-16 units, as the NSString was cut.
+        // Truncated to kMaxLength UTF-16 units.
         const std::u16string units = oo::utf8ToUtf16(cxx_OOStringFromJSValueEvenIfNull(context, value).value_or(""));
         const std::string truncated = oo::utf16ToUtf8(std::u16string_view(units.data(), MIN(units.size(), (size_t)kMaxLength)));
         result = "\"" + cxx_OOJSEscapedForJavaScriptLiteral(truncated) + ((units.size() > kMaxLength) ? "..." : "") + "\"";
@@ -1468,7 +1467,7 @@ OONull* OONull::null()
     return sNull;
 }
 
-// (-copyWithZone:, which answered the object itself, was the facade's: the one null is shared by reference.)
+// (The one null is shared by reference.)
 
 std::string OONull::className() const
 {
@@ -1508,7 +1507,7 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj)
     OOJSCxxObjectWrapperFinalize(runtime, thisObj);
 }
 
-// No slot holds an Objective-C object, so the JS class names the object.
+// The JS class names the object.
 JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv)
 {
     OOJS_NATIVE_ENTER(context)

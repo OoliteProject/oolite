@@ -656,8 +656,7 @@ bool AIHasSuspendedStateMachines(ShipEntity* ship)
     return ai != nullptr && ai->hasSuspendedStateMachines();
 }
 
-// Whether an entity is a ship, as -isKindOfClass:[ShipEntity class] answered: a ship's C++ part is a
-// ShipEntity (Entity+ObjCBridge.mm picks the facade class from it). False for none.
+// Whether an entity is a ShipEntity. False for none.
 bool IsShip(Entity* entity)
 {
     return dynamic_cast<ShipEntity*>(entity) != nullptr;
@@ -2728,7 +2727,7 @@ static JSValue ShipRestoreSubEntities(OOJS_NATIVE_ARGS)
     GET_THIS_SHIP(thisEnt);
     ShipEntity* ship = thisEnt; // not null: thisEnt is not
 
-    NSUInteger subCount = ShipEntityJSSubEntitiesForScript(thisEnt).size(); // -subEntitiesForScript
+    NSUInteger subCount = ShipEntityJSSubEntitiesForScript(thisEnt).size();
 
     ship->clearSubEntities();
     ship->setUpSubEntities();

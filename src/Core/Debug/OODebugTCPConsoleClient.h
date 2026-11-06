@@ -100,7 +100,7 @@ public:
     void debugMonitor(OODebugMonitor* debugMonitor, const oo::PList& newValue,
         const std::string& key) override;
     std::string description() const
-        override; // <OODebugTCPConsoleClient 0x...>, as the facade's %@ printed
+        override; // <OODebugTCPConsoleClient 0x...>
 
 private:
     // The frame loop's functions below read the clients' sockets.

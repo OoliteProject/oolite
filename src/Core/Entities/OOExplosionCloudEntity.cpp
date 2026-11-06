@@ -2,8 +2,7 @@
 
 OOExplosionCloudEntity.m
 
-See OOParticleSystem.h and OOParticleSystem.mm: the bodies are the Objective-C
-ones, translated the same way.
+See OOParticleSystem.h and OOParticleSystem.mm.
 
 
 Oolite

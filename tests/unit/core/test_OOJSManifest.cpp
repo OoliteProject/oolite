@@ -12,8 +12,7 @@
    in for the player (its cargo and its manifest market), the universe (its
    commodities and its market), the resource manager and string expander the
    commodity classes call, the player ship's JS object, and the engine functions
-   the binding links against, with the engine headers' linkage. The expectations
-   were written against the Objective-C file and run on it first; they pin the
+   the binding links against, with the engine headers' linkage. The tests pin the
    JS-visible behaviour: the Manifest class and its two objects, the list, a
    commodity's quantity both ways (clamped at zero, refused for tonnage with
    special cargo, delete), the four comment methods and their errors, and a

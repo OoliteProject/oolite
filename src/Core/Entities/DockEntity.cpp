@@ -90,8 +90,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
 
 } // namespace
 
-// Class shell, flags, geometry and lifecycle. The facade's initialiser and
-// -dealloc are members.
+// Class shell, flags, geometry and lifecycle.
 
 ::ShipEntity* DockEntity::newDockObject(const std::string& key, const oo::PList& dict)
 {
@@ -229,8 +228,7 @@ bool DockEntity::isDock()
     return YES;
 }
 
-// The binding's bodies (OOJSDock.mm), which a category on the facade forwarded
-// to.
+// The binding's bodies (OOJSDock.mm).
 JSClassID DockEntity::jsClassID()
 {
     return ::JSDockClassID();
@@ -326,8 +324,7 @@ void DockEntity::drawImmediate(bool immediate, bool translucent)
     ShipEntity::drawImmediate(immediate, translucent);
 }
 
-// Docking guidance, the approach queue and docking instructions. The facade
-// forwards each selector (DockEntity (OOSlice2)).
+// Docking guidance, the approach queue and docking instructions.
 
 NSUInteger DockEntity::pruneAndCountShipsOnApproach()
 {
@@ -830,8 +827,7 @@ void DockEntity::pullInShipIfPermitted(::ShipEntity* ship)
     }
 }
 
-// The docking corridor and launching. The facade forwards each selector
-// (DockEntity (OOSlice3)).
+// The docking corridor and launching.
 
 void DockEntity::abortAllLaunches()
 {

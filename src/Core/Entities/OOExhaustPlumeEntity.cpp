@@ -677,7 +677,7 @@ void OOExhaustPlumeEntity::resetGraphicsState()
     sPlumeTexture = nullptr;
 }
 
-// The binding's bodies (OOJSExhaustPlume.mm), which the facade forwarded to.
+// The binding's bodies (OOJSExhaustPlume.mm).
 JSClassID OOExhaustPlumeEntity::jsClassID()
 {
     return ::JSExhaustPlumeClassID();

@@ -445,7 +445,7 @@ void OOShipRegistry::loadDemoShipConditions()
         }
     }
 
-    oo::PList::Array conditionScriptList; // an array of strings, as the Objective-C array was
+    oo::PList::Array conditionScriptList; // an array of strings
     for (const std::string& conditionScript : conditionScripts)
         conditionScriptList.emplace_back(conditionScript);
     OOCacheManager::sharedCache()->setPList(oo::PList(std::move(conditionScriptList)), "demoship conditions", "condition scripts");
@@ -828,7 +828,7 @@ bool OOShipRegistry::loadAndMergeShipyard(oo::PList& ioData)
     }
 
     _playerShips = std::move(playerShips);
-    oo::PList::Array playerShipList; // an array of strings, as the Objective-C array was
+    oo::PList::Array playerShipList; // an array of strings
     for (const std::string& playerShip : _playerShips)
         playerShipList.emplace_back(playerShip);
     OOCacheManager::sharedCache()->setPList(oo::PList(std::move(playerShipList)), kPlayerShipsCacheKey, kShipRegistryCacheName);
@@ -966,7 +966,7 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData)
         }
     }
 
-    oo::PList::Array conditionScriptList; // an array of strings, as the Objective-C array was
+    oo::PList::Array conditionScriptList; // an array of strings
     for (const std::string& conditionScript : conditionScripts)
         conditionScriptList.emplace_back(conditionScript);
     OOCacheManager::sharedCache()->setPList(oo::PList(std::move(conditionScriptList)), "ship conditions", "condition scripts");

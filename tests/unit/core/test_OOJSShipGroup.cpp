@@ -11,8 +11,8 @@
 	JS object of its own; a C++ ship under a stand-in root object), OONull, and the engine functions
 	the binding links against, with the engine headers' linkage. The engine's native-object
 	conversion asks the object for its JS value, as the engine does, so a group's JS object is the
-	one the category makes. The expectations were written against the Objective-C file and run on it
-	first; they pin the JS-visible behaviour (the constructor, the four properties both ways,
+	one the category makes. The expectations pin the JS-visible behaviour (the constructor, the
+	four properties both ways,
 	addShip() with its escort rules, removeShip(), containsShip(), a non-group, a native's
 	exception) and what the category answers the engine (one JS object per group until the engine
 	clears it). Run: bash tools/check-core-tests.sh
@@ -65,11 +65,11 @@ public:
 };
 
 // The ship's object. Its selectors are members of the same names; the JS slot
-// holds it (not retained, as it held the Objective-C object).
+// holds it (not retained).
 class TestEntityObject final : public oo::RefCounted
 {
 public:
-	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
+	const char *className() const  { return "Entity"; }	// the class's runtime name
 	std::optional<std::string> cxx_descriptionComponents();
 	JSValue oo_jsValueInContext(JSContext *context);	// owned by the caller
 

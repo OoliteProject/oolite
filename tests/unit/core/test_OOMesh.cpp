@@ -145,7 +145,7 @@ oo::Ref<Octree> OctreeForModel(const std::string& key) {
   return OOCacheManagerOctreeForModel(key);
 }
 
-// The mesh's octree (it was -octree, until the Objective-C Octree was retired).
+// The mesh's octree.
 Octree* MeshOctree(OOMesh* mesh) { return mesh->getOctree().get(); }
 
 void SetOctreeForModel(Octree* octree, const std::string& key) {
@@ -578,7 +578,7 @@ OO_TEST(loadingMembers) {
     OO_CHECK(copy->octree == mesh->octree);
     OO_CHECK(!copy->listsReady);
 
-    // Both are registered with no facade alive for either: a reset deletes
+    // Both are registered with no other owner for either: a reset deletes
     // their display lists.
     while (glGetError() != GL_NO_ERROR) {
     }

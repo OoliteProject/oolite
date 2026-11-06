@@ -3,8 +3,8 @@
 OOJSEngineNativeWrappers.mm
 
 The handler behind OOJS_NATIVE_EXIT (OOJSEngineNativeWrappers.h). The macro is
-a C++ catch (...); this file is the one place that tells an Objective-C
-exception from a C++ one, so the binding files need neither.
+a C++ catch (...); this file is the one place that tells the game's exception
+from a C++ one, so the binding files need neither.
 
 
 JavaScript support for Oolite
@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #include <exception>
 
 /*	The game's exception (oo::Exception) is reported by its reason. Any
-        other Objective-C object is "Unidentified native exception", as anything else
+        other object is "Unidentified native exception", as anything else
         still is. A C++ exception is reported from its what() in the same words, so
         a raise site that is a C++ throw reads the same in JS.
 */

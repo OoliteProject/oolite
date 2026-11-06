@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #else
 /*	Plain C++ translation unit (OOMouseInteractionMode.cpp): only
    BOOL is needed, and OOFoundation.h imports Foundation, which does not compile
-   outside Objective-C.
+   in a plain C++ unit.
 */
 #include "oofnd/objc/OOFoundationTypes.h" // BOOL
 #endif

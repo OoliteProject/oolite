@@ -44,9 +44,8 @@ static int crid_counter = 1;
 
 namespace {
 
-/*	What the root facade's selectors answered for an entity: the C++ member each
-        forwarded to. -isPlayer, -isShip,
-        -isPlanet and -status are oo::EntityIsPlayer() etc. (Entity+ObjCBridge.h).
+/*	Entity queries, each forwarding to the C++ member. isPlayer, isShip,
+        isPlanet and status are oo::EntityIsPlayer() etc. (EntityHelpers.h).
 */
 bool EntityIsVisible(Entity* entity)
 {

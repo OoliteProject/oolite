@@ -5,9 +5,8 @@
  Entity subclass representing a ship, or various other flying things like cargo
  pods and stations (a subclass).
 
- A ship's Objective-C object is the root's facade, made by oo::NewShipObject();
- the selectors the game still finds on a ship by name are the root facade's
- category Entity (OOShipSelectorsCalledByName) (Entity+ObjCBridge.mm).
+ A ship is made by oo::NewShipObject(); the names the game finds on a ship by name
+ are in OOEntityCalledByNameTable.h.
 
  Oolite
  Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -201,9 +200,7 @@ struct ShipEntityTestAccess; // the unit tests' reader of the private members
 
 /*	The ship's state and members.
 
-        The ivars are data members with the same names, every one
-   zero-initialised as the runtime zeroed them. Pointers to other entities'
-   Objective-C objects stay what they were, retained by hand where they were.
+        Every data member is zero-initialised.
 */
 class ShipEntity : public OOEntityWithDrawable, public cxx::OOSubEntityInterface // <OOSubEntity>
 {
@@ -221,9 +218,7 @@ public:
     */
     bool initShipSetUp(const std::string& key, const oo::PList& dict);
 
-    /*	The deleted facade's -dealloc body after the subclasses' parts and the weak reference's drop
-            (the root facade's -dealloc runs them first for a ship's part).
-    */
+    // The ship's teardown, run after the subclasses' parts and the weak references' drop.
     void shipWillDealloc();
 
     // The category SubEntityRelationship: other is a ship that is a subentity of this ship, and
@@ -544,7 +539,7 @@ public:
     // transition, nearest planet.
     std::optional<std::string> identFromShip(::ShipEntity* otherShip);
     bool hasRole(const std::string& role);
-    oo::Ref<::OORoleSet> getRoleSet(); // null where the facade's -roleSet was nil
+    oo::Ref<::OORoleSet> getRoleSet(); // null where there is none
     void addRole(const std::string& role);
     void addRole(const std::string& role, float probability);
     void removeRole(const std::string& role);
@@ -566,7 +561,7 @@ public:
     virtual bool isUnpiloted(); // StationEntity overrides
     JSClassID jsClassID() override; // StationEntity overrides
     std::optional<std::string> jsClassName() override; // StationEntity overrides
-    // YES, as the Objective-C ShipEntity answered; StationEntity
+    // YES; StationEntity
     // and DockEntity override with the same answer
     bool isVisibleToScripts() override;
 
@@ -1017,8 +1012,7 @@ public:
     void scanForNearestShipWithPredicate(EntityFilterPredicate predicate, void* parameter);
     void scanForNearestShipWithNegatedPredicate(EntityFilterPredicate predicate, void* parameter);
     virtual void acceptDistressMessageFrom(::ShipEntity* other);
-    // ShipEntityAI.mm: the category OOAIStationStubs (StationEntity's ObjC
-    // methods answer for a station).
+    // ShipEntityAI.mm: stubs that StationEntity's members answer for a station.
     void increaseAlertLevel();
     void decreaseAlertLevel();
     oo::PList launchPolice();
@@ -1145,7 +1139,6 @@ public:
     void setRacepointsFromTarget();
     void performFlyRacepoints();
 
-    // @public in Objective-C
     // derived variables
     OOTimeDelta shot_time = { }; // time elapsed since last shot was fired
 
@@ -1165,7 +1158,6 @@ public:
 
     BoundingBox totalBoundingBox = { }; // records ship configuration
 
-    // @protected in Objective-C: public while Objective-C subclasses read them
     // set-up
     oo::PList shipinfoDictionary; // null: not set up from a dictionary
 
@@ -1403,8 +1395,8 @@ public:
     OOTimeAbsolute trackingCurveTimes[4] = { };
     HPVector trackingCurveCoeffs[3] = { };
 
-    // @private in Objective-C, private again in C++ in declaration
-    // order, so construction and destruction order are unchanged. The
+    // Private, in declaration
+    // order. The
     // unit tests read the ones they need through ShipEntityTestAccess.
     friend struct ::ShipEntityTestAccess;
 

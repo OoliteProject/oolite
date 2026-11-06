@@ -10,8 +10,7 @@
    selectors the binding sends and record what they are told. The entities are
    real Entity objects (a subclass that is visible to scripts), so the engine's
    predicates, its entity wrappers and JSValueToEntity() run unchanged. The
-   expectations were written against the Objective-C file and run on it first;
-   they pin the JS-visible behaviour of the property getter and setter (in a
+   expectations pin the JS-visible behaviour of the property getter and setter (in a
    system and in interstellar space), toString(), addPlanet()/addMoon(),
    sendAllShipsAway(), the counts and the entity searches (filtering, ordering
    by distance, the optional reference entity and range, and their errors) and
@@ -133,9 +132,8 @@ public:
 	}
 };
 
-// [[TestPlayer alloc] init]: a C++ player under the ship's
-// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1) as
-// +alloc's object was.
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
+// retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -326,8 +324,8 @@ Entity *MakeEntity(double x, BOOL visible)
 
 // A ship the fake universe adds: the system asks the C++ ship
 // for its group, so the stand-in that answered -group is a C++ ship under its
-// object (oo::NewEntityFacade, retained and never released, as MakeEntity's),
-// placed as the stand-in was and never set up.
+// object (retained and never released, as MakeEntity's),
+// never set up.
 ::ShipEntity *MakeShip(double x)
 {
 	oo::Ref<::ShipEntity> ship = oo::makeRef<::ShipEntity>();
@@ -358,7 +356,7 @@ void SetUp()
 	stdfs::current_path(sRoot);
 	const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
 	OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
-	{	// the engine autoreleases facades as it starts (as Eval() does)
+	{
 		(void)OOJavaScriptEngine::sharedEngine();
 	}
 
@@ -417,13 +415,6 @@ void SetUp()
 // Evaluates src in the engine's context and gives its result as a string
 // ("undefined", "null",
 // ...), or "threw: <message>".
-// In its own autorelease pool, as the game's frame is: an
-// object the engine or the binding autoreleases is freed here, while the engine
-// is alive. With no pool it went to the main thread's implicit pool, which
-// libobjc drains at thread detach, after the C++ static destructors: an
-// OOJSValue freed there (the special-functions facade the engine makes as it
-// starts, in SetUp()) looked its context up in the scripting layer's state after it was destroyed
-// (heap-use-after-free; the test crashed at exit about 1 run in 6).
 std::string Eval(const std::string &src)
 {
 	SetUp();

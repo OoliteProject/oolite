@@ -11,7 +11,7 @@
 	scales and the radii they scale; its flasher and standard subentities (made from the definition,
 	owned, listed, counted, scaled with it, removed and cleared); its orientation vectors; and the
 	break pattern flag. An effect is the global C++ class, made with oo::NewVisualEffectObject()
-	under OOEntityWithDrawable's facade, and the cases call its members. Run: bash
+	as a C++ entity, and the cases call its members. Run: bash
 	tools/check-core-tests.sh test_OOVisualEffectEntity
 */
 
@@ -53,8 +53,8 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's
-// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
+// retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -94,7 +94,7 @@ void SetUp()
 		OO_CHECK(::_putenv_s("HOMEPATH", root.string().c_str()) == 0);
 		stdfs::current_path(root);
 		OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data("{ CFBundleVersion = \"9.9.9-test\"; }", 35), oo::fs::WriteMode::direct).has_value());
-		{	// the engine autoreleases facades as it starts
+		{
 			(void)OOJavaScriptEngine::sharedEngine();
 		}
 	}
@@ -430,10 +430,8 @@ OO_TEST(shaderUniforms)
 }
 
 
-// The façade: an effect is a C++ entity whose Objective-C
-// object is the OOVisualEffectEntity façade, made by the initialiser the
-// universe sends; the C++ members give the façade's answers, and the
-// selectors still answer on the façade.
+// An effect is a C++ entity made by the initialiser the universe sends; the C++
+// members give its answers, and the selectors still answer on the entity.
 OO_TEST(facadeContract)
 {
 	SetUp();

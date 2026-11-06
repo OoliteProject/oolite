@@ -1,6 +1,6 @@
 """Offline proof that tests/source_paths.py resolves a source by stem and never guesses.
 
-The GUI and golden tiers open engine sources through it, so a resolver that quietly picked one of
+The GUI tests open engine sources through it, so a resolver that quietly picked one of
 two copies, or returned a path that does not exist, would turn every source-text guard that uses
 it into a check against the wrong bytes.
 """

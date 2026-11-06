@@ -2,7 +2,7 @@
 	Unit tests for OOShipRegistry (src/Core/OOShipRegistry.h): the class shell, lifecycle, the
 	lookups, OOConveniences and the singleton.
 
-	It pins what the registry answered before the conversion, through the Objective-C API its
+	It pins what the registry answers, through the API its
 	callers use, over a small ship data set that a stand-in ResourceManager serves: the shared
 	instance, every lookup (ship, effect and shipyard entries, player ships, roles and their
 	probability sets, keys with a role, a random key for a role, demo ships), replacing an entry,

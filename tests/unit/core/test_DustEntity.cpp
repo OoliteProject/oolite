@@ -12,8 +12,8 @@
    position (the viewpoint wrapped to the dust cube), the two vectors the dust
    shader binds by selector (-warpVector, -offsetPlayerPosition), and that the
    universe can still find the dust. The universe makes it with
-   oo::makeRef<DustEntity>() and init() and hands it over with
-   oo::NewEntityFacade, so the test does the same and asks the C++ class.
+   oo::makeRef<DustEntity>() and init() and hands it over
+   to the universe, so the test does the same and asks the C++ class.
    Run: bash tools/check-core-tests.sh
 */
 

@@ -55,9 +55,8 @@ public:
         const std::optional<std::string>& smName,
         const std::optional<std::string>& stateName);
 
-    // What -description and -shortDescription printed: <AI
-    // 0xnnnnnnnn>{components}, the address the C++ object's where it was the
-    // facade's.
+    // What description() and shortDescription() print: <AI
+    // 0xnnnnnnnn>{components}.
     std::string description() const;
     std::string shortDescription() const;
 
@@ -85,9 +84,9 @@ public:
 
     void setStateMachine(
         const std::string& smName,
-        NSTimeInterval delay); // -cxx_setStateMachine:afterDelay:
+        NSTimeInterval delay);
     void setState(const std::string& stateName,
-        NSTimeInterval delay); // -cxx_setState:afterDelay:
+        NSTimeInterval delay);
 
     ::ShipEntity* owner();
     void setOwner(::ShipEntity* ship);
@@ -131,8 +130,7 @@ public:
     void dumpState();
 
     // The target of setState(stateName, delay)'s deferred call, found in the
-    // deferred calls' name table (AI.mm) where the facade's -deferredSetState:
-    // was found by name.
+    // deferred calls' name table (AI.cpp).
     void deferredSetState(const std::string& stateName);
 
 private:

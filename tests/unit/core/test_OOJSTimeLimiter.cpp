@@ -6,8 +6,8 @@
 	These cases were test_OOJSEngineTimeManagement's, when the limiter and its watchdog thread lived
 	in OOJSEngineTimeManagement. The limiter is now the engine's, so the test links every game
 	object but main's (tests/unit/core/meson.build entry ['*']), points the user's directories at a
-	scratch folder and runs the real engine. The expectations are the ones written against the
-	Objective-C file: the limiter's limit through nesting, an extra stop, pause and resume; and the
+	scratch folder and runs the real engine. The expectations cover the limiter's limit through
+	nesting, an extra stop, pause and resume; and the
 	engine stopping an endless script, logging the running script's name, after which scripts run
 	again.
 	Run: bash tools/check-core-tests.sh test_OOJSTimeLimiter

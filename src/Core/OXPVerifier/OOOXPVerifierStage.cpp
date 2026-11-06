@@ -1,9 +1,8 @@
 /*
 
-OOOXPVerifierStage.mm
+OOOXPVerifierStage.cpp
 
-The subclass responsibilities are virtual. The exceptions a stage raises are
-Objective-C objects.
+The subclass responsibilities are virtual.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -74,7 +73,7 @@ std::string OOOXPVerifierStage::description() const
         + descriptionComponents().value_or("") + "}";
 }
 
-// The C++ class's name (the facade's ClassName(): demangled, "cxx::" dropped).
+// The C++ class's name (demangled, "cxx::" dropped).
 std::string OOOXPVerifierStage::className() const
 {
     int status = 0;

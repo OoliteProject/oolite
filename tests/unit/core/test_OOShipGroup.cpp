@@ -5,8 +5,7 @@
 	The group's own objects are linked; ShipEntity, which reaches the whole game, is replaced by a
 	minimal weak-referenceable class of the same name that records what the group asks of it; the
 	ship is C++, so the stand-in is a C++ ship under a stand-in root object, and the cases hold the
-	ships. The expectations were written against the Objective-C API and run on the unconverted
-	class first: naming, adding (no duplicates, growth past the initial capacity), the leader (added
+	ships. Naming, adding (no duplicates, growth past the initial capacity), the leader (added
 	as a member, dropped when it dies), removing (the ship is told to leave), dead members leaving,
 	the two member arrays, the cursor (and its mutation check), and the description text. A dying
 	group lets go of its weak reference to its leader as it does of its members'. The cases ask the
@@ -69,7 +68,7 @@ class TestEntityObject final : public oo::RefCounted
 public:
 	// Every object the test makes holds its ship.
 	TestEntityObject() : _cxxEntity(oo::makeRef<ShipEntity>())  { _cxxEntity->_object = this; }
-	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
+	const char *className() const  { return "Entity"; }	// the class's runtime name
 
 	oo::Ref<Entity> _cxxEntity;
 };

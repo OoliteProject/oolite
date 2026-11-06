@@ -3,9 +3,8 @@
 OOCallByName.h
 
 Calling a method the game names at run time (an AI action, a legacy-script
-action or query, a HUD dial, a deferred call) with C++ arguments. It replaces
--performSelector:withObject:, which could only pass and return Objective-C
-objects. Foundation-free.
+action or query, a HUD dial, a deferred call) with C++ arguments.
+Foundation-free.
 
 A method called by name has one of its dispatcher's signatures; OOCallByName
 reads the method's type encoding and calls it through an IMP of exactly that
@@ -37,7 +36,7 @@ only when it is a string.
 An entity's method is called by its name through oo::CallEntityByName (below):
 the AI's actions and messages and the legacy script engine.
 
-A method with an id parameter that took the argument as an Objective-C object
+A method with an id parameter that takes the argument as an object
 is logged (callByName.badSignature) and not called.
 
 A nil target does nothing (as messaging nil). A target that does not answer
@@ -80,14 +79,12 @@ extern "C++" {
 
 /*	An entity's method called by name: the same call on the entity's C++
    part. A name in the generated table (OOEntityCalledByNameTable.h) is answered
-   by the C++ part it applies to; any other name goes to the entity's
-   Objective-C object (that path logs callByName.unknownSelector /
-   callByName.badSignature). A tabled name that applies but whose signature the
-   call cannot use is logged here (callByName.badSignature, with the type
-   encoding without frame offsets); a tabled name that does not apply still
-   goes to the object, which no longer has the method and logs
-   callByName.unknownSelector. A null entity does nothing. Defined in
-   OOEntityCalledByName.mm.
+   by the C++ part it applies to; any other name is logged
+   (callByName.unknownSelector / callByName.badSignature) and not called. A
+   tabled name that applies but whose signature the call cannot use is logged
+   here (callByName.badSignature, with the type encoding without frame
+   offsets). A null entity does nothing. Defined in
+   OOEntityCalledByName.cpp.
 */
 class Entity;
 
@@ -100,13 +97,11 @@ namespace oo {
     PList CallEntityByName(Entity* entity, const std::string& name,
         const PList& argument);
 
-    /*	An entity's method called after <delay> seconds: what
-       OOScheduleDeferredCall() of the method's selector on the entity's object did
-       (the afterburner sound's update, a ship's cargo dumped a canister at a
-       time). The call holds the entity, as the deferred call retained its object,
-       which held it, and calls <call> with it when it fires; <call> asks for the
-       entity's class, as the facade's method did. A null entity schedules nothing.
-       Defined in OOEntityCalledByName.mm.
+    /*	An entity's method called after <delay> seconds, as
+       OOScheduleDeferredCall() does (the afterburner sound's update, a ship's
+       cargo dumped a canister at a time). The call holds the entity, and calls
+       <call> with it when it fires; <call> asks for the entity's class. A null
+       entity schedules nothing. Defined in OOEntityCalledByName.cpp.
     */
     void ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity), double delay);
 

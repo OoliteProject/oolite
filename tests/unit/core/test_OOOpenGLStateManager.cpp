@@ -2,7 +2,7 @@
         Characterisation tests for the OpenGL state manager
    (src/Core/OOOpenGLStateManager.mm, declared in OOOpenGL.h).
 
-        OOOpenGLStateManager.mm has no @implementation; it is plain C++ over
+        OOOpenGLStateManager.mm is plain C++ over
    OpenGL. This test pins what it does to OpenGL, so that the classes around it
    can be shown not to change the GL state: after OOSetOpenGLState(state), from
    the context's initial state and from every other standard state, each item of

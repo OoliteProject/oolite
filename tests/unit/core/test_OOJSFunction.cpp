@@ -7,8 +7,7 @@
 	the engine would provide is defined below as the smallest stand-in that does the same thing:
 	the engine object (the sender of its reset notification), the script stack, the time limiter,
 	the value converter, the string converter and the pending-exception reporter. The engine's and
-	OOJSScript's headers are not imported, because the test defines those classes. The
-	expectations were written against the Objective-C class and run on it first; they pin: both
+	OOJSScript's headers are not imported, because the test defines those classes. The tests pin: both
 	initialisers (and when they answer nil), the name and the description, the function value, raw
 	evaluation (the script stack and the time limiter balanced around each call, the arguments
 	converted), the predicate's truthiness, and what an engine reset does (commit 34d0592d1). They

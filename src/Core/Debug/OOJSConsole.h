@@ -32,7 +32,7 @@ SOFTWARE.
 #pragma once
 
 #include "OOFoundation.h"
-class OODebugMonitor; // C++: its Objective-C facade is deleted
+class OODebugMonitor;
 
 #include <quickjs.h>
 

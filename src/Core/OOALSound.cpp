@@ -176,8 +176,7 @@ std::optional<std::string> OOSound::descriptionComponents() const
     return std::nullopt;
 }
 
-// The former facade's -cxx_description: the C++ class's name, without a
-// namespace, its address and its components.
+// The C++ class's name, without a namespace, its address and its components.
 std::string OOSound::description() const
 {
     int status = 0;

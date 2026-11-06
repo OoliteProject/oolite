@@ -6,8 +6,7 @@ The plain C++ part of the JavaScript engine API, split verbatim out of
 OOJavaScriptEngine.h: context acquisition, error reporters, argument helpers, the
 value/PList/string converters, class and converter registration, the time
 limiter, the native wrappers and the OOJS_* property flags and return macros.
-Nothing here declares an Objective-C class, so a binding translation unit that
-is C++ (not Objective-C++) includes this header instead of OOJavaScriptEngine.h,
+A binding translation unit includes this header instead of OOJavaScriptEngine.h,
 which includes it back. id, Class and BOOL are libobjc2's C types.
 
 OOJavaScriptEngine.h (QuickJS-ng)
@@ -57,7 +56,7 @@ MA 02110-1301, USA.
            it. Back references from JS to native objects use weak references,
            as before.
         5. Errors: a native that fails throws (OOJSReport*Error) and returns
-           JS_EXCEPTION. Code calling into JS from Objective-C reports a pending
+           JS_EXCEPTION. Code calling into JS reports a pending
            exception with OOJSReportPendingException().
         6. Property IDs (JSAtom) from OOJSID() and OOJSIDFromString() are
            interned for the life of the process and are never freed.
@@ -300,10 +299,8 @@ extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJ
    Object
         -> dictionary (see cxx_OOJSDictionaryFromJSObject()); an object of a
    class with a registered converter -> oo::PListFrom() of what the converter
-        returns (a private object -> a PList::Object node holding it). The id
-        functions that returned the Objective-C object of such a node
-        (OOJSNativeObjectFromJSValue/FromJSObject and their OfClass forms) are
-        deleted: no slot holds an Objective-C object.
+        returns (a private object -> a PList::Object node holding it). No slot
+        holds an Objective-C object.
 */
 oo::PList cxx_OOJSPListFromJSValue(JSContext* context, JSValueConst value);
 oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object);
@@ -454,7 +451,7 @@ public:
     // The held value, owned by the caller (a new reference).
     JSValue jsValueInContext(JSContext* context);
 
-    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOJSValue 0x...>).
+    // oo::PListForeign: the class name, and "%@" as <OOJSValue 0x...>.
     std::string className() const override;
     std::string description() const override;
 
@@ -468,7 +465,7 @@ private:
     const void* _resetSender = { }; // the engine, the sender of its reset notifications, while _val is held
 };
 
-// A held value as a PList::Object node (what oo::PListObject() did for the facade); null -> null PList.
+// A held value as a PList::Object node ; null -> null PList.
 inline oo::PList OOJSValueObjectNode(OOJSValue* value)
 {
     if (value == nullptr)
@@ -508,8 +505,7 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj);
 
         Implementation of toString() for JS classes whose private storage is an
         object reference: "[object <JS class name>]" ("[object]" for no class).
-        Only an Objective-C object found through the class's converter described
-        itself; no slot holds one.
+        No slot holds an Objective-C object.
 */
 JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv);
 

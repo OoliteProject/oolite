@@ -353,8 +353,8 @@ OO_TEST(cxxApi) {
     OO_CHECK(((uint8_t*)pixMap.pixels)[0] == 1);
     OOFreePixMap(&pixMap);
 
-    // The C++ loader's overrides and the root's defaults, as the facade
-    // answered them.
+    // The C++ loader's overrides and the root's defaults, as callers
+    // reach them.
     OO_CHECK(loader->description().starts_with("<TestCxxLoader 0x") &&
              loader->description().ends_with(">{cxx}"));
     OO_CHECK(loader->cacheKey() ==

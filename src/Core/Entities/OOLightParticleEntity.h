@@ -31,9 +31,7 @@ MA 02110-1301, USA.
 
 class OOTexture;
 
-/*	A particle is made in C++ and handed to Objective-C with
-   oo::NewEntityFacade, whose object is the root Entity's facade.
-*/
+// A particle is made in C++.
 class OOLightParticleEntity : public Entity {
 public:
     // -initWithDiameter:'s body, run once right after construction: it calls
@@ -69,7 +67,7 @@ public:
     std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
-    // @protected in Objective-C: public, as the tests read them.
+    // Public, as the tests read them.
     GLfloat _colorComponents[4] = { };
     float _diameter = { };
 };

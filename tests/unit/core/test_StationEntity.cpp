@@ -1,7 +1,7 @@
 /*	test_StationEntity.mm
 	Unit tests for StationEntity (src/Core/Entities/StationEntity.h), the station: the class shell,
 	which holds the station's state and its accessors, market, shipyard, flags and set-up in C++.
-	The station is made in C++ (its object is the ship's facade), the cases call its members, and
+	The station is made in C++ the cases call its members, and
 	the selectors the engine and the AI send by name are sent to its object.
 
 	As test_ShipEntity's, the station's object needs the game graph, so the test links the whole
@@ -9,8 +9,8 @@
 	PLAYER. The station keeps StationEntity's and ShipEntity's own set-up from the definition; only
 	the virtual dock it makes when it has no docks is a stand-in (TestStation, a C++ subclass,
 	records the dock's definition instead of asking the universe for the shipdata entry). The cases
-	test the class's own units, written against the Objective-C API and run on the unconverted class
-	first; the cases after "The crossing" pin the C++ part. Run: bash tools/check-core-tests.sh
+	test the class's own units; the cases after "The crossing" pin the C++ part. Run: bash
+	tools/check-core-tests.sh
 	test_StationEntity
 */
 
@@ -48,7 +48,7 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// A C++ player, as PlayerEntity::sharedPlayer() makes
 // the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
@@ -401,8 +401,7 @@ OO_TEST(objCStationPartIsAStation)
 
 
 // --- Docking traffic control and the launch queue
-// -------------------------- Written against the Objective-C API and run on the
-// unconverted class first. The test's stations have no docks (the virtual dock
+// -------------------------- The test's stations have no docks (the virtual dock
 // is a stand-in), so the cases pin what the station does itself.
 
 // A ship visiting the station: its own set-up, and invisible to scripts.
@@ -531,9 +530,7 @@ OO_TEST(slice2MembersFromCxx)
 
 
 // --- Docking clearance, damage, allegiance and alert level
-// --------------- Written against the Objective-C API and run on the
-// unconverted class first.
-
+// --------------- 
 namespace {
 
 double LastPatrolReport3(StationEntity *s)			{ return s->last_patrol_report_time; }
@@ -643,8 +640,7 @@ OO_TEST(slice3MembersFromCxx)
 
 
 // --- NPC launchers
-// ------------------------------------------------------- Written against the
-// Objective-C API and run on the unconverted class first. The test's station
+// ------------------------------------------------------- The test's station
 // has no docks (its virtual dock is only recorded), so every launcher takes its
 // "no launch docks" path: nothing is made, queued or counted, and the station's
 // universe is never asked for a ship.
@@ -703,7 +699,7 @@ OO_TEST(slice4LaunchersAnswerTheirSelectors)
 }
 
 
-// From C++ (after the conversion): the members, which the facade's selectors forward to.
+// From C++: the members, which the selectors forward to.
 OO_TEST(slice4MembersFromCxx)
 {
 	{
@@ -727,9 +723,8 @@ OO_TEST(slice4MembersFromCxx)
 // ---------------------------------------
 
 // What the engine asks a station by selector: its JS class is the Station
-// class, not the Ship class it inherits, both through the facade and from its
-// C++ part. Written and run on main first (the facade then reached the answer
-// through ShipEntity's category and the C++ virtual).
+// class, not the Ship class it inherits, both through the root and from its
+// C++ part.
 OO_TEST(stationAnswersTheStationJSClass)
 {
 	{

@@ -296,10 +296,8 @@ NSUInteger ShipGroupCursorBatch(OOShipGroupCursor& cursor, ShipEntity** batch)
 
 } // namespace
 
-/*	A ship made in C++ (oo::NewShipObject): the object holding ship, the
-   root's facade (the root's -initWithCxxEntity: stores the part once, so the
-   root's -init body runs once, as [super init] did), then the set-up from the
-   definition. The failing set-up released the object, as the initialiser did.
+/*	A ship made in C++ (oo::NewShipObject): the object holding the ship, then the set-up from the
+   definition. A failing set-up releases the object.
 */
 ShipEntity* oo::NewShipObject(const Ref<ShipEntity>& ship, const std::string& key, const oo::PList& dict)
 {
@@ -313,7 +311,7 @@ ShipEntity* oo::NewShipObject(const Ref<ShipEntity>& ship, const std::string& ke
     return ship.get();
 }
 
-// The deleted facade's -initShipSetUpWithKey:definition:, unchanged but for self.
+// The ship's set-up from its key and definition.
 bool ShipEntity::initShipSetUp(const std::string& key, const oo::PList& dict)
 {
     OOJS_PROFILE_ENTER
@@ -540,7 +538,7 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaterni
    authorities, without messages. Its parameter is the victim's C++ part with
    the two answers the predicate messaged for, read once before the search (both
    are plain reads); the entities' C++ parts answer the rest (getScanClass() is
-   virtual, so an Objective-C subclass's -scanClass still runs).
+   virtual).
 */
 namespace {
 
@@ -571,8 +569,7 @@ BOOL AuthorityPredicate(Entity* entity, void* parameter)
 
 } // namespace
 
-// The category ShipEntity (SubEntityRelationship); Entity's, which answers NO,
-// is the facade's.
+// The sub-entity relationship; Entity's answers NO.
 bool ShipEntity::isShipWithSubEntityShip(Entity* other)
 {
     assert(getIsShip());
@@ -6912,8 +6909,7 @@ std::optional<std::string> ShipEntity::jsClassName()
     return ::ShipEntityJSClassName();
 }
 
-// A ship made in C++ (the player, the proxy) is visible to scripts, as its deleted facade was: the
-// Objective-C PlayerEntity and ProxyPlayerEntity inherited ShipEntity's answer.
+// A ship (the player, the proxy included) is visible to scripts.
 bool ShipEntity::isVisibleToScripts()
 {
     return ::ShipEntityJSIsVisibleToScripts();
@@ -11224,7 +11220,7 @@ Vector ShipEntity::missileLaunchPosition()
     // We don't want real missiles in a group. Missiles could become escorts when the group is also used as escortGroup.
     if ((missile != nullptr ? missile->getScanClass() : OOScanClass { }) == CLASS_THARGOID) {
         if (group() == nullptr)
-            setGroup(OOShipGroup::groupWithName("thargoid group").get()); // the ship keeps it (the autoreleased facade lived to the end of the pass)
+            setGroup(OOShipGroup::groupWithName("thargoid group").get()); // the ship keeps it
 
         ::ShipEntity* thisGroupLeader = (_group != nullptr ? _group->leader() : (::ShipEntity*)nil);
 
@@ -12097,7 +12093,7 @@ void ShipEntity::takeEnergyDamage(double amount, Entity* entPart, Entity* otherP
      * overheating - too easy for missile hits to cause an uncredited
      * death by overheating - CIM */
     if (ship_temperature < SHIP_MAX_CABIN_TEMP) {
-        ship_temperature += amount * (mass > 400000 ? 200000 / mass : 0.5) / heatInsulation(); // SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR, which named the facade's C++ entity
+        ship_temperature += amount * (mass > 400000 ? 200000 / mass : 0.5) / heatInsulation(); // SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR
         if (ship_temperature > SHIP_MAX_CABIN_TEMP) {
             ship_temperature = SHIP_MAX_CABIN_TEMP;
         }
@@ -12422,7 +12418,7 @@ void ShipEntity::enterWormhole(::WormholeEntity* w_hole, bool /* replacing */)
     // MKW 2011.02.27 - Moved here from ShipEntityAI so escorts reliably follow
     //                  mother in all wormhole cases, not just when the ship
     //                  creates the wormhole.
-    addTarget(w_hole); // its Objective-C object
+    addTarget(w_hole);
     setFoundTarget(w_hole);
     if (shipAI != nullptr)
         shipAI->reactToMessage("WITCHSPACE OKAY", "performHyperSpaceExit"); // must be a reaction, the ship is about to disappear
@@ -13259,7 +13255,7 @@ void ShipEntity::setTrackCloseContacts(bool value)
 }
 
 #if OO_SALVAGE_SUPPORT || defined(OO_DEBUG_MONITOR_ENABLED)
-// What oo::DescriptionOf printed for the deleted facade: "(null)" for none, else
+// The role set's description: "(null)" for none, else
 // <OORoleSet 0x...>{roles} (OODescription.h).
 namespace {
 std::string RoleSetDescription(::OORoleSet* roleSet)
@@ -13693,8 +13689,7 @@ std::optional<std::string> ShipEntity::descriptionForObjDump()
 /*	The shader and weapon-range helpers, without messages. The resource
    manager and the equipment types answer through their C++ classes; the binding
    target's class is asked of the runtime, and its kind of entity of the
-   entity's C++ part (getIsShip(), getIsVisualEffect(): the facade's -isShip and
-   -isVisualEffect answer the same).
+   entity's C++ part (getIsShip(), getIsVisualEffect()).
 */
 oo::PList OODefaultShipShaderMacros(void)
 {

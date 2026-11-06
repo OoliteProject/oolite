@@ -4,9 +4,8 @@ OOExplosionCloudEntity.h
 
 Cloud effect during explosions
 
-A global class with no facade (see OOParticleSystem.h): ShipEntity and Universe
-make it with a factory and hand the universe the Entity facade
-oo::NewEntityFacade makes.
+A global class (see OOParticleSystem.h): ShipEntity and Universe
+make it with a factory.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -39,7 +38,7 @@ MA 02110-1301, USA.
 */
 class OOExplosionCloudEntity : public OOParticleSystem {
 public:
-    // Null where the texture is not found (the Objective-C factories answered nil).
+    // Null where the texture is not found.
     static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(Entity* entity, const oo::PList& settings);
     static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(Entity* entity, float size, const oo::PList& settings);
 

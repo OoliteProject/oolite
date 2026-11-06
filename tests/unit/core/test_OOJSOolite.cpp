@@ -8,8 +8,7 @@
 	and the tone mappers), the resource manager (its paths), the tone mapper names and the engine
 	functions the binding links against, with the engine headers' linkage. The version comes from
 	the Info-gnustep.plist in the built-in resources directory, so the test makes one in a directory
-	of its own and runs there. The expectations were written against the Objective-C file and run on
-	it first; they pin the JS-visible behaviour: the oolite object and its class, every property
+	of its own and runs there. The tests pin the JS-visible behaviour: the oolite object and its class, every property
 	both ways, compareVersion() with each kind of argument, the errors, and a native's exception.
 	Run: bash tools/check-core-tests.sh
 */

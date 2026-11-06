@@ -30,7 +30,7 @@ namespace {
 const char kWillReset[] = "org.aegidian.oolite OOJavaScriptEngine will reset";
 const char kDidReset[] = "org.aegidian.oolite OOJavaScriptEngine did reset";
 
-int gEngine = 0;  // stand-ins for Objective-C ids: only their addresses matter
+int gEngine = 0;  // stand-ins for sender objects: only their addresses matter
 int gOtherEngine = 0;
 int gA = 0, gB = 0, gC = 0;
 

@@ -134,7 +134,7 @@ OO_TEST(lineHits) {
         BUILD(2.0f, builder->beginInnerNode(); builder->writeSolid();
               for (int i = 0; i < 7; i++) builder->writeEmpty();
               builder->endInnerNode());
-    // (the values the Objective-C class gave: the line walk offsets octants
+    // (the line walk offsets octants
     // with the opposite sign to isHitByOctree(), so each of these lines finds
     // the solid octant)
     OO_CHECK(corner->isHitByLine(make_vector(-1, -1, 10),

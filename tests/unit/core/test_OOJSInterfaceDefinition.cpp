@@ -8,8 +8,7 @@
 	provide is defined below as the smallest stand-in that does the same thing: the engine object
 	(which calls the function), the script stack (OOJSScript) and the property-list converter. The
 	engine's and OOJSScript's headers are not imported, because the test defines those classes;
-	the class's header names OOScript with @class for that. The expectations were written against
-	the Objective-C class and run on it first. They pin the initial state and the text properties,
+	the class's header names OOScript with @class for that. The tests pin the initial state and the text properties,
 	the callback and its `this` (kept alive across a garbage collection), the run, the sort order
 	(interfaceCompare(), with its null cases) and an engine reset.
 	Run: bash tools/check-core-tests.sh

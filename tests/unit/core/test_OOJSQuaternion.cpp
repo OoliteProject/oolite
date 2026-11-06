@@ -6,8 +6,8 @@
 	registry (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the maths
 	they call. What the rest of the engine would provide (error reporting, the argument and string
 	helpers, the Entity class, the profiler and the time limiter) is defined below as the smallest
-	stand-in that does the same thing. The expectations were written against the Objective-C file
-	and run on it first; they pin the JS-visible behaviour: construction, w/x/y/z, every method and
+	stand-in that does the same thing. The expectations pin the JS-visible behaviour: construction,
+	w/x/y/z, every method and
 	static method, the errors, Quaternion.prototype reading as zero, an entity read as its
 	orientation, and how an exception under a native reaches JS. Run: bash tools/check-core-tests.sh
 */

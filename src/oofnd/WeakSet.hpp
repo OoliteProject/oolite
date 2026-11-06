@@ -24,7 +24,7 @@
 
         One deliberate strengthening: iteration is in insertion order. NSSet's order was unspecified
         (pointer-hash order, so it varied run to run); insertion order is deterministic, which can
-        only help the golden runs.
+        only help the game's integration tests.
 
         forEach() iterates over a retained snapshot, so the callback may add or remove members, or
         drop the last other reference to one, without invalidating the iteration (mutating an NSSet

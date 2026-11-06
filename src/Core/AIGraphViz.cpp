@@ -31,8 +31,7 @@ MA 02110-1301, USA.
 
 /*	The state machine is an oo::PList and the dump is built as a
    std::string. States and handlers are visited in key order (byte order), and
-   the special nodes are written in sorted order; the .dot text is a debug dump,
-   not a golden.
+   the special nodes are written in sorted order; the .dot text is a debug dump.
 */
 namespace {
 

@@ -170,7 +170,7 @@ namespace {
 int sForeignToStrings = 0;
 } // namespace
 
-// The engine's Objective-C toString(), which a `this` of another class falls back to.
+// The engine's toString(), which a `this` of another class falls back to.
 JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValueConst *)
 {
 	sForeignToStrings++;
@@ -368,7 +368,7 @@ OO_TEST(toString)
 	OO_CHECK_EVAL("String(epsilon)", "[object Thing]");
 	OO_CHECK_EVAL("String(zeta)", "[object SubThing]");
 	OO_CHECK_EVAL("String(thingPrototype)", "[object Thing]");
-	// Another class's `this` is described by the engine's Objective-C toString().
+	// Another class's `this` is described by the engine's toString().
 	sForeignToStrings = 0;
 	OO_CHECK_EVAL("thingPrototype.toString.call({})", "foreign");
 	OO_CHECK_EQ(sForeignToStrings, 1);

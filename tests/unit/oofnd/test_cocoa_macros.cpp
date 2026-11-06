@@ -1,9 +1,10 @@
 /*	test_cocoa_macros.cpp
-        Regression test: the oofnd headers Objective-C++ game
-   code includes must compile after Oolite's OOCocoa.h, which does `#define true
-   1` / `#define false 0`, and must hand those macros back unchanged (game code
+        Regression test: the oofnd headers must compile
+   when `true` and `false` are macros, `#define true
+   1` / `#define false 0` (as a Cocoa-compatibility header such as OOCocoa.h defines them),
+   and must hand those macros back unchanged (code
    keeps its int-typed true/false). Here the macros are
-   defined exactly as OOCocoa.h defines them, BEFORE any standard header, so
+   defined that way, BEFORE any standard header, so
         every standard header the oofnd headers pull in is first parsed inside
    their macro guard.
 */

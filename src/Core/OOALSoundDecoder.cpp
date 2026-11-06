@@ -414,8 +414,8 @@ bool OOALSoundVorbisCodec::isStereo()
     return 1 < ov_info(&_vf, -1)->channels;
 }
 
-// The facade's -description wraps this as "<OOALSoundVorbisCodec 0x...>{...}",
-// which is what this class's own -description printed. comments() reads the
+// The description wraps this as "<OOALSoundVorbisCodec 0x...>{...}".
+// comments() reads the
 // file through a non-const pointer, so it is reached through const_cast.
 std::optional<std::string> OOALSoundVorbisCodec::descriptionComponents() const
 {

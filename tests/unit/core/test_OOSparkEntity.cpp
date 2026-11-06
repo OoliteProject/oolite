@@ -8,8 +8,8 @@
    tests pin what the initialiser sets (position, velocity, size, colour,
    status), the fade towards red as it updates, and its removal when it has
    faded. Making a spark and reading its colour components go through the
-   helpers below: a spark is made by its factory and handed to Objective-C as
-   its facade, an OOLightParticleEntity. Run: bash tools/check-core-tests.sh
+   helpers below: a spark is made by its factory as
+   an OOLightParticleEntity. Run: bash tools/check-core-tests.sh
 */
 
 #include <cmath>
@@ -35,7 +35,7 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// NewTestPlayer<TestPlayer>(): a C++ player, as
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
@@ -59,7 +59,7 @@ class TestUniverse : public Universe {
 
 namespace {
 
-// --- How a spark is made, and its colour (a @protected ivar), and nothing else
+// --- How a spark is made, and its colour, and nothing else
 // -------------------
 
 Entity* MakeSpark(HPVector position, Vector velocity, OOTimeDelta duration,

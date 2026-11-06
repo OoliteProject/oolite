@@ -47,7 +47,7 @@ SOFTWARE.
 
 void OOJSTimeManagementInit(OOJavaScriptEngine* /*engine*/, JSRuntime* /*runtime*/)
 {
-    // The interrupt handler is installed by -[OOJavaScriptEngine init].
+    // The interrupt handler is installed by OOJavaScriptEngine's constructor.
 }
 
 #if OOJS_PROFILE

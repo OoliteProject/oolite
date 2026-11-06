@@ -1,5 +1,5 @@
 /*	oofnd/StdLib.hpp
-        The C++ standard library headers that Objective-C++ game code uses in
+        The C++ standard library headers that game code uses in
    place of Foundation containers, clocks and locks
    (NSArray/NSSet/NSDictionary/NSValue boxing -> std containers, NSDate ->
         std::chrono, NSLock/NSConditionLock ->

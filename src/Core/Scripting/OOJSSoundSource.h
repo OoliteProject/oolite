@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #include "OOJSPrivateObject.h"
 #include "oofnd/Ref.hpp"
 
-class OOSoundSource; // C++: it has no Objective-C facade
+class OOSoundSource;
 
 void InitOOJSSoundSource(JSContext* context, JSValueConst global);
 

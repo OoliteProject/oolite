@@ -12,11 +12,11 @@
    -copyValuesFromPlayer: from a player whose dials answer fixed values, and
    -isPlayerLikeShip for the three classes that answer it. The cases after "The
    crossing" pin the C++ part. The proxy is made by
-   newProxyObject(), its object is the ship's facade, the class's selectors are
+   newProxyObject(), the class's selectors are
    member calls, and the dials case pins the
-   dials the ship's facade answers by name for a proxy. The last case pins that
-   the proxy and the player are visible to scripts. Every ship is C++ and its
-   object is the drawable's facade, whose root category answers the dials by
+   dials the ship answers by name for a proxy. The last case pins that
+   the proxy and the player are visible to scripts. Every ship is C++ whose
+   root category answers the dials by
    name. Run: bash tools/check-core-tests.sh
    test_ProxyPlayerEntity
 */
@@ -49,8 +49,8 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// [[TestPlayer alloc] init]: a C++ player under the ship's
-// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
+// retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -104,7 +104,7 @@ void SetUp()
 
 
 // An unpiloted ship (a crewed one would ask the universe for a pilot). The proxy, held by its
-// object (the ship's facade, autoreleased as [[[ProxyPlayerEntity alloc] ...] autorelease] was).
+// ship.
 ProxyPlayerEntity *MakeProxy(Entity **outObject = nullptr)
 {
 	oo::PList::Dict dict{ { "unpiloted", oo::PList(true) } };

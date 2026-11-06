@@ -4,9 +4,9 @@ OOMaterialState.h
 
 The current-material slot of OOMaterial (OOMaterial.h), for plain C++
 translation units.
-OOMaterial.h is Objective-C++ (it imports OOFoundation.h); a .cpp that only
-saves, clears and restores the current material, as OODebugGLDrawing.cpp does
-around its wireframes, includes this instead. Defined in OOMaterial.mm.
+A .cpp that only saves, clears and restores the current material, as
+OODebugGLDrawing.cpp does around its wireframes, includes this instead of
+OOMaterial.h. Defined in OOMaterial.cpp.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors

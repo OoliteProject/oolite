@@ -4,10 +4,8 @@ OOECMBlastEntity.h
 
 Invisible entity which radiates ECM blast energy.
 
-A global class over Entity, with no facade: nothing messages it by its own
-selectors. ShipEntity's -fireECM makes it with initFromShip() and hands the
-universe the Entity facade oo::NewEntityFacade makes, which is its Objective-C
-object from then on. To ask whether an entity is an ECM blast, ask the C++ part:
+A global class over Entity. ShipEntity::fireECM() makes it with initFromShip() and hands it to
+the universe. To ask whether an entity is an ECM blast, ask the C++ part:
 dynamic_cast<OOECMBlastEntity *>(...)->isECMBlast().
 
 Oolite

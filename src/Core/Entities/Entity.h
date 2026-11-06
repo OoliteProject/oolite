@@ -5,8 +5,8 @@ Entity.h
 Base class for entities, i.e. drawable world objects.
 
 The C++ entity is its own identity and owns itself (oo::RefCounted; its last
-release runs what the facade's -dealloc ran, willDispose()). EntityHelpers.h,
-imported at the end of this header, keeps the facade's questions.
+release runs willDispose()). EntityHelpers.h,
+imported at the end of this header, has the questions asked of an entity.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -71,35 +71,30 @@ extern size_t gTotalEntityMemory;
 
 /*	The base object for ships, stations, anything actually.
 
-        Data members that were @public or @protected ivars are public: the game
-   reads them directly (ent->position), and Objective-C subclasses cannot be
-   granted protected access to a C++ class. A getter that had its ivar's name is
-   get + the name (-position is getPosition(), so the bodies, and the
-   subclasses' reads, keep the names. The members that subclasses override are
-   virtual.
+        Data members are public: the game reads them directly (ent->position). A getter
+   with a data member's name is get + the name (position is read with getPosition()).
+   The members that subclasses override are virtual.
 */
 class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
 public:
     Entity();
 
-    // -init's body: the constructor runs it, and the facade runs it again when an initialised
-    // entity is sent -init (PlayerEntity's deferred initialisation). Only then does it re-run.
+    // The constructor runs it, and PlayerEntity's deferred initialisation runs it again.
     void init();
 
-    // The facade's -dealloc zeroed the weak references to the C++ part where it dropped its own
-    // weak reference; willDispose() does so at the same points.
+    // willDispose() zeroes the weak references to the entity.
     using oo::RefCounted::dropWeakReferences;
 
-    /*	The entity's object: it "has" one from the creator that made its facade
-            (oo::MadeEntity(), oo::NewShipObject(), ...) until its last release begins, which is when
-            oo::ToObjC() answered non-nil. Holds, retains, descriptions and nodes of an entity without
-            one answer as nil's did (EntityHelpers.h, OOEntityHold.h).
+    /*	The entity's object: it "has" one from the creator that made it
+            (oo::MadeEntity(), oo::NewShipObject(), ...) until its last release begins. Holds,
+            retains, descriptions and nodes of an entity without one answer as nil (EntityHelpers.h,
+            OOEntityHold.h).
     */
     bool hasObject() const noexcept { return _hasObject && !_disposing; }
     void setMadeWithObject() noexcept { _hasObject = true; } // the creators' (oo::MadeEntity())
 
-    // What the facade's -dealloc ran before the C++ part went, for an entity that
-    // had its object: the last release runs it (oo::RefCounted::willDispose()).
+    // Teardown for an entity that had its object: the last release runs it
+    // (oo::RefCounted::willDispose()).
     void willDispose() noexcept override;
 
     // The virtual members, declared once in EntityVirtualMembers.h in this order,
@@ -149,8 +144,6 @@ public:
     // setOwner(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
     Entity* owner(); // the owner while it has its object, null for none or once it has gone (what -owner answered the object of, +0)
     Entity* ownerEntity(); // the owner's C++ entity, null once it has gone
-    // The objects (a ship's, or a visual effect's for its subentities: the Objective-C ShipEntity the
-    // declarations named was the type, not the answer).
     Entity* parentEntity(); // owner if self is subentity of owner, otherwise null (the C++ entity).
     Entity* rootShipEntity(); // like parentEntity, but recursive.
     Entity* superShaderBindingTarget(); // the parent entity, +0 (what -superShaderBindingTarget answered the object of)
@@ -265,15 +258,10 @@ public:
     // (OODescription.h). descriptionComponents(): virtual, in
     // OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
-    /*	The class questions the engine asked an entity's object by selector (the
-       deleted category Entity (OOJavaScriptExtensions)): a C++ entity answers for
-       its class by overriding them (EntityOOJavaScriptExtensions.h). The defaults
-       are the category's bodies. The engine asks the C++ entity
+    /*	The class questions the engine asks an entity: a C++ entity answers for
+       its class by overriding them (EntityOOJavaScriptExtensions.h). The engine asks the C++ entity
             (OOJSEntityIsVisibleToScripts(), OOJSEntityJSClassName(),
-            OOJSEntityJSClassID()); an Objective-C entity's class that implements the
-       selectors still answers first. oo::ObjCEntity must not forward these: those
-       functions reach them only for an Objective-C entity with no override of its
-       own, and a forwarding adapter would send the selector back.
+            OOJSEntityJSClassID()).
     */
     // jsClassID(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
     // (EntityVirtualMembers.h) jsClassName(): virtual, in
@@ -281,14 +269,11 @@ public:
     // virtual, in OO_ENTITY_VIRTUAL_MEMBERS (EntityVirtualMembers.h)
 
     /*	The entity's JS glue (OOJSPrivateObject):
-            what the root facade's -oo_jsValueInContext:, -oo_clearJSSelf: and
-       -cxx_oo_jsDescription answered, so the engine wraps a C++ entity with
+            the engine wraps a C++ entity with
        OOJSValueFromCxxObject(). Its JS object's private slot holds an
-       OOJSEntityHolder (OOJSEntity.h), a weak reference to the entity, as the
-       slot held the facade's weak reference. The bodies are
-       EntityOOJavaScriptExtensions.mm's. deleteJSSelf() is what the deleted
-       -deleteJSSelf forwarded to (the engine's reset; the facade's -dealloc calls
-       it).
+       OOJSEntityHolder (OOJSEntity.h), a weak reference to the entity. The bodies are
+       EntityOOJavaScriptExtensions.mm's. deleteJSSelf() is the engine's reset; destruction
+       calls it.
     */
     // jsValueInContext(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
     // (EntityVirtualMembers.h) clearJSSelf(): virtual, in
@@ -309,7 +294,7 @@ public:
     // @public variables:
     //
     // we forego encapsulation for some variables in order to
-    // lose the overheads of Obj-C accessor methods...
+    // lose the overheads of accessor methods...
     //
     OOUniversalID universalID = { }; // used to reference the entity
 
@@ -355,7 +340,7 @@ public:
 
     oo::Ref<CollisionRegion> collisionRegion; // initially nil - then maintained
 
-    // @protected in Objective-C: public while Objective-C subclasses read them.
+    // Public: subclasses and the game read them.
     HPVector lastPosition = { };
     Quaternion lastOrientation = { };
 
@@ -381,8 +366,8 @@ public:
 private:
     bool checkLinkedLists();
 
-    bool _hasObject = false; // made by a creator (the facade's -initWithCxxEntity:)
-    bool _disposing = false; // in its last release (-dealloc)
+    bool _hasObject = false; // made by a creator
+    bool _disposing = false; // in its last release
 
     NSUInteger _sessionID = { };
 
@@ -392,11 +377,8 @@ private:
 
 namespace cxx {
 
-/*	The protocol OOSubEntity's methods, for a C++ subentity whose own facade is gone: the owner that sent a subentity -rescaleBy: or
-        -drawSubEntityImmediate:translucent: calls these when the subentity's
-   C++ part adopts this interface, and sends the selector otherwise. (Not named
-   OOSubEntity: inside namespace cxx the protocol-qualified type
-   Entity<OOSubEntity> would then name a class as its argument.)
+/*	The subentity methods an owner calls when the subentity's
+   C++ part adopts this interface: rescaleBy() and drawSubEntityImmediate().
 */
 class OOSubEntityInterface {
 public:
@@ -433,12 +415,10 @@ bool EntityShaderMemberBindingFor(Entity* entity, const char* property, OOShader
 
 namespace oo {
 
-/*	An entity carried WEAKLY through plist data: what oo::PListObject() of the
-        entity's object's weak reference made (the docking instructions' station, the collision-avoidance
+/*	An entity carried WEAKLY through plist data (the docking instructions' station, the collision-avoidance
         condition's primary target). The payload holds a weak reference to the C++ entity, which reads
-        null exactly when the object's weak reference did (the facade's -dealloc drops both at one
-        point), so the node keeps nothing alive, as before. Its JS value is the entity's, undefined
-        once it has gone (OOJSValueFromPList), as the weak reference forwarded.
+        null once the entity is gone, so the node keeps nothing alive. Its JS value is the entity's, undefined
+        once it has gone (OOJSValueFromPList).
 */
 class EntityWeakPListForeign final : public PListForeign {
 public:
@@ -475,5 +455,5 @@ inline Entity* EntityInWeakNode(const PList& plist)
 } // namespace oo
 #endif
 
-// What the deleted facade's header kept for its callers: the questions it answered.
+// The questions asked of an entity.
 #include "EntityHelpers.h"

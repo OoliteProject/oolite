@@ -2,12 +2,12 @@
 
 OOEntityEnums.h
 
-The entity enumerations that used to live inside Objective-C class headers:
+The entity enumerations:
 OOEntityStatus and OOScanClass (Entities/Entity.h), OOGUIScreenID and
 OOGalacticHyperspaceBehaviour (Entities/PlayerEntity.h), OOShipDamageType
 (Entities/ShipEntity.h). They live here so a plain C or
-C++ translation unit (OOConstToJSString) can name them without parsing an
-@interface. Those headers include this one back, so no caller changes.
+C++ translation unit (OOConstToJSString) can name them without including those
+headers. Those headers include this one back.
 
 
 Oolite

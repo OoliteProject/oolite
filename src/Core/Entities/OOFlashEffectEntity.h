@@ -29,15 +29,12 @@ MA 02110-1301, USA.
 
 #include "OOLightParticleEntity.h"
 
-/*	The ship and the universe call the factories and hand the flash to
-   Objective-C with oo::NewEntityFacade, whose object is the root Entity's
-   facade.
+/*	The ship and the universe call the factories.
 */
 class OOFlashEffectEntity : public OOLightParticleEntity {
 public:
     // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a
-    // new flash, initialised. Callers hand it to Objective-C with
-    // oo::NewEntityFacade.
+    // new flash, initialised.
     static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(
         Entity* entity); // the C++ entity
     static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position,

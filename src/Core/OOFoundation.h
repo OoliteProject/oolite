@@ -137,7 +137,7 @@ MA 02110-1301, USA.
 #endif
 
 #if defined(__cplusplus)
-/*	Objective-C++ is built as C++20. The true/false macros below
+/*	The game is built as C++20. The true/false macros below
         stay exactly as they were (game code keeps its int-typed true/false),
    but a C++20 standard header parsed after them breaks: <optional> has
    `bool(__x) <=> false`, i.e. bool <=> int. So those headers are parsed here

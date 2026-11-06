@@ -687,7 +687,7 @@ bool ShipEntity::performHyperSpaceExitReplace(bool replace, OOSystemID systemID)
     fuel -= 10 * dist;
 
     // create wormhole
-    // A new C++ wormhole and its autoreleased Objective-C object.
+    // A new C++ wormhole.
     oo::Ref<WormholeEntity> whRef = oo::makeRef<WormholeEntity>();
     Entity* wholeObject = oo::MadeEntity(whRef); // the wormhole, given its object
     whRef->initWormholeTo(targetSystem, this);

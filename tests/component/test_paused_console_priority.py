@@ -3,7 +3,7 @@
 On Windows a pause puts the game in efficiency mode (GameController -setEcoQoS:), which was
 IDLE_PRIORITY_CLASS plus EcoQoS throttling. An idle-class process runs only when no other thread
 wants a CPU, so on a loaded machine a paused game drew a frame in 15-60 s and answered no console
-command in between - the golden harness pauses before it touches the world, and its scenarios
+command in between - the component tests pause before it touches the world, and its scenarios
 timed out. The game now stays at normal priority while a debug console is connected.
 
 The priority class is read directly, so this fails on the old behaviour however idle the machine

@@ -3,7 +3,7 @@
 
         The three format-dispatch wrappers (SqueezeVertically,
    StretchHorizontally, SqueezeHorizontally) raise
-   +[OOException raise:format:] in their unreachable default arm. They are
+   an OOException in their unreachable default arm. They are
    file-static, so this test reaches them through OOScalePixMap(): each scaling
    direction, for each of the three pixel formats, pinned byte for byte, plus
    uniform images (which every scaler must keep uniform) and the invalid pixmap
@@ -306,7 +306,7 @@ OO_TEST(refusesAnInvalidPixMap) {
 
 // The wrappers' unreachable default arm now raises with OORaiseException(), the
 // function form of
-// +[OOException raise:format:]: the same name and formatted reason (the C++
+// OORaiseException(): the same name and formatted reason (the C++
 // oo::Exception, caught as catch (const oo::Exception &)).
 OO_TEST(raiseExceptionThrowsTheSameException) {
   const char* name = nullptr;
@@ -316,7 +316,7 @@ OO_TEST(raiseExceptionThrowsTheSameException) {
     OORaiseException(OOInternalInconsistencyException,
                      "Unsupported pixmap format in scaler: %s",
                      OOPixMapFormatName(kOOPixMapInvalidFormat).c_str());
-  } catch (const oo::Exception& e)  // was @catch (OOException *e)
+  } catch (const oo::Exception& e)
   {
     kept = e;
     name = kept->name();
@@ -332,7 +332,7 @@ OO_TEST(raiseExceptionThrowsTheSameException) {
     OORaiseException(OOInternalInconsistencyException,
                      "Unsupported pixmap format in scaler: %s",
                      OOPixMapFormatName(kOOPixMapInvalidFormat)
-                         .c_str());  // was +[OOException raise:format:]
+                         .c_str());
   } catch (const oo::Exception& e)   // was @catch (OOException *e)
   {
     messageReason = e.reason();

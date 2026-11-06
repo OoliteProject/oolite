@@ -120,8 +120,7 @@ oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(
 OOConcreteTexture::~OOConcreteTexture()
 {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    // The Objective-C object has gone: the C++ object's address is the one
-    // printed.
+    // The object's address is the one printed.
     OO_LOG(_trace ? "texture.allocTrace.dealloc" : "texture.dealloc",
         "Deallocating and uncaching texture {}",
         oo::str::pointerDescription(this));

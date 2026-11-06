@@ -58,8 +58,7 @@ BOOL OOSynthesizeMaterialShader(const oo::PList& materialConfiguration,
     oo::PList* outTextureSpecs,
     oo::PList* outUniformSpecs);
 
-/*	The synthesizer itself. It was an Objective-C class private to
-        OODefaultShaderSynthesizer.mm; its one caller is
+/*	The synthesizer itself, private to OODefaultShaderSynthesizer.cpp; its one caller is
    OOSynthesizeMaterialShader() above.
 */
 class OODefaultShaderSynthesizer : public oo::RefCounted {

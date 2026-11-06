@@ -63,7 +63,7 @@ oo::PList sWhitelist;
 Units U(std::string_view utf8)  { return oo::utf8ToUtf16(utf8); }
 
 /*	A string gnustep-base 1.31.1's -stringByAppendingString: and -stringByReplacingCharactersInRange:
-	answered (the Objective-C harness built its keys and masked its messages with them): the units,
+	answered: the units,
 	except that a leading U+FEFF was taken as a byte-order mark and dropped, and a leading U+FFFE was
 	dropped and every other unit byte-swapped (measured on main a357f5933: "￾" + "num" gave
 	U+6E00 U+7500 U+6D00, "﻿﻿" + "num" gave U+FEFF "num"). -appendString:,
@@ -314,7 +314,7 @@ struct ExpressionCorpus
    recorded digests read both plists: it read an old-style file with no
    byte-order mark as ISO-8859-1 (each byte one UTF-16 unit;
    descriptions.plist's UTF-8 "\xE2\x80\x99" became U+00E2 U+0080 U+0099,
-        measured on main a357f5933 with the Objective-C harness's --print), then
+        measured on main a357f5933), then
    parsed the text. The bytes are widened the same way here and the text parsed
    with oofnd's parser. (The game reads the file as UTF-8; the
    digests pin the expander, not the file reader.)

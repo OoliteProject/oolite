@@ -17,7 +17,7 @@ SDL's *overwrite* flag. So:
 * the prefs root CANNOT be relocated with an environment variable - the game overwrites whatever
   the parent exported; and
 * the prefs root of the shared build is ``<build>/oolite.app/GNUstep/``, which every other tier,
-  every golden run and every concurrent agent on this machine reads and writes. Deleting it to
+  every other test run and every concurrent agent on this machine reads and writes. Deleting it to
   manufacture a "first run" would corrupt their runs, and would still be racy.
 
 The only lever the game gives us is WHERE ITS BINARY LIVES. So this file does what
@@ -163,7 +163,7 @@ def test_g7_first_run_creates_defaults(game):
     assert game.proc.poll() is None, "the game exited before the test could ask it to"
 
     # 2. Exit cleanly, through the menu, the way G1 does: select ` Exit Game `, then confirm.
-    #    GameController.m:905-906 synchronizes NSUserDefaults on the way out, so the orderly
+    #    GameController synchronizes the defaults on the way out, so the orderly
     #    shutdown path is the one that has to create the prefs directory it never had.
     game.assert_focused()
     game.select_row(EXIT_GAME_ROW)

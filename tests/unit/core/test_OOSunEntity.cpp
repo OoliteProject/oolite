@@ -4,16 +4,15 @@
 	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
 	a Universe that was never initialised (minimum detail, so the corona never moves), subclassed to
 	record the main light position, the sky colour and the system data the sun sets, and an entity
-	that answers the viewpoint the test sets as PLAYER. The expectations were written against the
-	Objective-C API and run on the unconverted class first: a sun's radius, name and corona come
+	that answers the viewpoint the test sets as PLAYER. A sun's radius, name and corona come
 	from its dictionary, it is a no-draw, visible, collidable sun; its light colours are its colour
 	blended with white; -changeSunProperty:withDictionary: takes the radius, the name, the corona,
 	and going nova or not, and refuses anything else; a new position moves the main light; going
 	nova counts down, then whitens the sky and records the nova and the growing radius in the system
 	data; and the camera-relative position is pulled in to 1e9 for a far sun. The camera-relative
-	position is read through the one helper below. The cases make the C++ sun and its Objective-C
-	object (oo::NewEntityFacade) and ask the C++ class, and the facade case pins the crossing: its
-	object is the root Entity's. Run: bash tools/check-core-tests.sh
+	position is read through the one helper below. The cases make the C++ sun and ask the C++
+	class, and the facade case pins the crossing: the
+	sun is the root Entity. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOSunEntity.h"
@@ -51,8 +50,8 @@ public:
 	HPVector viewpointPosition() override	{ return _viewpoint; }
 };
 
-// [[TestPlayer alloc] init]: a C++ player under the ship's
-// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
+// retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -125,8 +124,7 @@ bool Near(double a, double b)
 }
 
 
-// alloc/initSunWithColor:andDictionary:/autorelease: a new C++ sun, owned by its autoreleased
-// Objective-C object.
+// A new C++ sun.
 OOSunEntity *Sun(OOColor *color, double radius)
 {
 	oo::Ref<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
@@ -303,9 +301,8 @@ OO_TEST(facade)
 	{
 		SetUp();
 		OOSunEntity *sun = RedSun();
-		// Its Objective-C object is the root's facade.
 		Entity *object = sun;
-		OO_CHECK(object != nil);	// A C++ entity, not an Objective-C entity's adapter.
+		OO_CHECK(object != nil);	// A C++ entity.
 		OO_CHECK(dynamic_cast<OOSunEntity *>(object) == sun);
 	}
 }
@@ -325,7 +322,7 @@ static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
 }
 
 
-// The binding's category, which the facade carries: what
+// The binding's category: what
 // the engine asks a OOSunEntity for by selector is what OOJSSun.mm answers.
 OO_TEST(jsExtensions)
 {
@@ -333,7 +330,7 @@ OO_TEST(jsExtensions)
 		SetUp();
 		OOSunEntity *sun = RedSun();
 		RegisterJSClasses(InitOOJSSun);
-		Entity *object = sun;	// what the engine asks (the root's facade)
+		Entity *object = sun;	// what the engine asks
 		const JSClassID jsClass = OOJSEntityJSClassID(object);
 		const JSClassID expectedClass = JSSunClassID();
 		OO_CHECK(jsClass != 0 && jsClass == expectedClass);

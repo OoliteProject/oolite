@@ -28,8 +28,8 @@ oolite_dependencies += dependency(
     # LTO objects are archived without a symbol index, so linking fails.
     # Warning level 2 (QuickJS defaults to 3) leaves out -Wpedantic, which
     # clang uses to flag QuickJS's "return f();" in void functions.
-    # QuickJS-ng is part of the game binary, so it is held to the same golden flag policy as
-    # Oolite's own code (meson.build; tests/golden/check_build_flags.py): its dtoa/number code
+    # QuickJS-ng is part of the game binary, so it is held to the same flag policy as
+    # Oolite's own code (meson.build): its dtoa/number code
     # produces floats that land in the dumps. Its own project() defaults to buildtype=release
     # (-O3), which the project-wide optimization=2 does not reach. Pass optimization=2 explicitly
     # so the last -O on each QuickJS compile line is the pinned level; b_ndebug=true keeps release

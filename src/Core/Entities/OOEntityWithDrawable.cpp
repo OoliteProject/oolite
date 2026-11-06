@@ -29,8 +29,7 @@ MA 02110-1301, USA.
 #include "ShipEntity.h"
 #include "Universe.h"
 
-// -dealloc released the drawable; the member does, when the Objective-C object releases its C++
-// part at the end of its -dealloc.
+// The drawable is a member, released with the entity.
 
 OODrawable* OOEntityWithDrawable::getDrawable()
 {

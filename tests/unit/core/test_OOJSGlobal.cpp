@@ -9,8 +9,7 @@
 	tests link them). It stands in for the player, the universe, its GUI (the members the binding
 	calls) and game view, the resource manager, the script engine (its monitor and JS calls), the
 	running script, the deferred call quitGame() schedules, the string expander, the GUI screen
-	names and the commodity names, with the engine headers' linkage. The expectations were written
-	against the Objective-C file and run on it first; they pin the JS-visible behaviour of the
+	names and the commodity names, with the engine headers' linkage. The tests pin the JS-visible behaviour of the
 	three properties and most methods (log and the monitor, the expanders, the screen backgrounds
 	and overlay, the GUI colours, the extra GUI screen keys, autoAIForRole, pauseGame, quitGame)
 	and a native's exception. takeSnapShot(), which reads the disk, is not run.

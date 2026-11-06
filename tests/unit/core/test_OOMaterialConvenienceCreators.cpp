@@ -358,7 +358,7 @@ OO_TEST(withoutShaders) {
     OO_CHECK(IsExactly<OOSingleTextureMaterial>(
         Make("hull.png", {{"diffuse_map", oo::PList("d.png")}})));
     // With no name the single-texture initialiser fails (it needs one), so
-    // basic (observed on the Objective-C category before its conversion).
+    // basic.
     OO_CHECK(IsExactly<OOBasicMaterial>(
         Make(nullptr, {{"diffuse_map", oo::PList("d.png")}})));
     // No diffuse map: basic; one that fails to load: basic too.
@@ -479,8 +479,7 @@ OO_TEST(synthesisTriggersAndLoops) {
        material of the synthesized configuration, which the inner call makes.
        That configuration keeps only the diffuse map outside its shader
        textures, so an emission map is dropped and the material is
-       single-texture, not multitexture (observed on the Objective-C category
-       before its conversion).
+       single-texture, not multitexture.
     */
     gShaderFiles.erase("oolite-default-shader.fragment");
     OO_CHECK(IsExactly<OOSingleTextureMaterial>(Make("hull.png", {}, true)));

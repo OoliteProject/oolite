@@ -48,7 +48,7 @@ public:
         const std::optional<std::string>& name, const oo::PList& configuration);
 
     /*	The initialisers. Each runs once, right after construction: from a
-       factory above, a subclass's initialiser, or the facade's initialisers. Not
+       factory above or a subclass's initialiser. Not
        constructors, because the second asks the virtual permitSpecular(), which
        must reach a subclass's override.
 

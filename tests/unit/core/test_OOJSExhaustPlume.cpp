@@ -12,8 +12,7 @@
 	with the game header's names and signatures but not its class (OOExhaustPlumeEntity.h pulls in
 	the game's classes), as test_OOJSGlobal.mm stands in for the engine, under a stand-in C++ root
 	whose JS members the stand-in root category asks, as the game's does. The binding header is not
-	imported; InitOOJSExhaustPlume is declared here. The expectations were written against the
-	Objective-C file and run on it first; they pin the JS-visible behaviour (size, remove(), a
+	imported; InitOOJSExhaustPlume is declared here. The tests pin the JS-visible behaviour (size, remove(), a
 	stale plume, a non-plume, a native's exception) and what the category answers the engine.
 	Run: tests/run.sh unit
 */
@@ -102,7 +101,7 @@ bool OOJSExhaustPlumeIsVisibleToScripts(void);
 void ShipEntity::removeExhaust(OOExhaustPlumeEntity *exhaust)  { _removed = exhaust; }
 
 
-// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm):
+// The root's JS category, as the game's asks the C++ part:
 // the engine sends these selectors to the wrapped object.
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
 std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
@@ -304,7 +303,7 @@ void OOJSEntityHolder::clearJSSelf(JSValueConst)  {}
 std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::nullopt; }
 
 
-// oo::ToObjC (Entity+ObjCBridge.mm): the object of each C++ part the test wrapped, nil for any
+// oo::ToObjC: the object of each C++ part the test wrapped, nil for any
 // other (the binding asks it where its natives still message the object).
 namespace {
 std::map<Entity *, TestEntityObject *> sObjects;

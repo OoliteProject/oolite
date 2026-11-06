@@ -37,16 +37,14 @@ MA 02110-1301, USA.
 /*	+flasherWithDictionary: takes the subentity configuration as an
    oo::PList, as does the initializer -cxx_initWithDictionary:.
 
-        The ships and the visual effects make it with flasherWithDictionary()
-        and hand it to Objective-C with oo::NewEntityFacade, which wraps it in
-   the nearest facade left (OOLightParticleEntity's). The engine's JS questions
-   reach it through the root's virtual members, and an owner's -rescaleBy:
+        The ships and the visual effects make it with flasherWithDictionary(). The engine's JS
+   questions reach it through the root's virtual members, and an owner's rescaleBy()
    through cxx::OOSubEntityInterface.
 */
 
 class OOFlasherEntity : public OOLightParticleEntity, public cxx::OOSubEntityInterface {
 public:
-    // A new flasher, initialised; oo::NewEntityFacade hands it to Objective-C.
+    // A new flasher, initialised.
     static oo::Ref<OOFlasherEntity> flasherWithDictionary(const oo::PList& dictionary);
 
     // -cxx_initWithDictionary:'s body, run once right after construction.

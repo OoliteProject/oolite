@@ -4,10 +4,8 @@ OORingEffectEntity.h
 
 Entity subclass for expanding-ring effect, used for hyperspace entry and for
 some large explosions.
-A global class over Entity, with no facade: nothing
-messages it by its own selectors. Its callers (ShipEntity, Universe) make it
-with a factory and hand the universe the Entity facade oo::NewEntityFacade
-makes, which is its Objective-C object from then on.
+A global class over Entity. Its callers (ShipEntity, Universe) make it
+with a factory.
 
 
 Oolite
@@ -36,7 +34,7 @@ MA 02110-1301, USA.
 
 class OORingEffectEntity : public Entity {
 public:
-    // Null for a nil source (the Objective-C factories answered nil).
+    // Null for a null source.
     static oo::Ref<OORingEffectEntity> ringFromEntity(Entity* sourceEntity);
     static oo::Ref<OORingEffectEntity> shrinkingRingFromEntity(Entity* sourceEntity);
 

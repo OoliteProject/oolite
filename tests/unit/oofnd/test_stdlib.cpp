@@ -1,7 +1,7 @@
 /*	test_stdlib.cpp
         Regression test: oofnd/StdLib.hpp, the standard
-   containers and clocks Objective-C++ game code uses, must compile after
-   OOCocoa.h's `#define true 1` /
+   containers and clocks game code uses, must compile after
+   a Cocoa-compatibility header's `#define true 1` /
         `#define false 0` and hand those macros back unchanged (see
    test_cocoa_macros.cpp).
 */

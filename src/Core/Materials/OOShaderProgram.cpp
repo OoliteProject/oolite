@@ -67,9 +67,8 @@ OOOpenGLMatrixManager* GameViewMatrixManager()
 } // namespace
 
 /*	Cache key -> program, not retained: a program removes itself in its
-   destructor. Was an Objective-C mutable dictionary of boxed values; keys are
-   the cache keys' UTF-8. Allocated on first use and never freed, as the
-   dictionary was, so a program destroyed during exit never finds it destroyed.
+   destructor. Keys are the cache keys' UTF-8. Allocated on first use and never
+   freed, so a program destroyed during exit never finds it destroyed.
 */
 namespace {
 
@@ -430,7 +429,7 @@ void OOShaderProgram::bindStandardMatrixUniforms()
             matrixManager->syncModelView();
         for (const oo::PList& pair : *standardMatrixUniformLocations.getIf<oo::PList::Array>()) {
             if (pair.isArray()) {
-                // -[nil compare:] answered 0, so an entry without a type string counts as "mat3".
+                // An entry without a type string counts as "mat3".
                 const oo::PList* typeName = pair.at<oo::PList>(2);
                 const bool noTypeName = typeName == nullptr || !(typeName->isString() || typeName->isNumber());
                 if (noTypeName || pair.at<std::string>(2) == "mat3") {

@@ -30,7 +30,7 @@ SOFTWARE.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #include "OODebugTCPConsoleClient.h"
-// The protocol's names as UTF-8 literals (the header would make them Objective-C string objects).
+// The protocol's names as UTF-8 literals (the header's macro would make them string objects).
 #define OOALSTR(x) "" x
 #include "OODebugMonitor.h"
 #include "OODebugTCPConsoleProtocol.h"
@@ -216,7 +216,6 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 } // namespace
 
-// -init (initWithAddress:nullopt port:0) stays in the facade.
 oo::Ref<OODebugTCPConsoleClient> OODebugTCPConsoleClient::clientWithAddress(const std::optional<std::string>& address, uint16_t port)
 {
     oo::Ref<OODebugTCPConsoleClient> client = oo::adopt(new OODebugTCPConsoleClient);
@@ -285,10 +284,9 @@ OODebugTCPConsoleClient::~OODebugTCPConsoleClient()
     if (StatusIsSendable(_status)) {
         disconnectFromServerWithMessage(std::string("TCP console bridge unexpectedly released while active."));
     }
-    /*	-dealloc then told a connected monitor (_monitor set) to disconnect it.
-       That never did anything: the monitor retains its debugger (this client's
-       facade) while _monitor is set, so the client could not be released then,
-       and the monitor ignores a debugger that is not its own. Not translated.
+    /*	A connected monitor (_monitor set) is not told to disconnect: the monitor retains its
+       debugger (this client) while _monitor is set, so the client cannot be released then,
+       and the monitor ignores a debugger that is not its own.
     */
 
     closeConnection();
@@ -343,7 +341,6 @@ void OODebugTCPConsoleClient::debugMonitor(OODebugMonitor* /*debugMonitor*/,
 
 std::string OODebugTCPConsoleClient::description() const
 {
-    // What "%@" printed for the facade (no description components).
     return oo::str::format("<OODebugTCPConsoleClient %s>", oo::str::pointerDescription(this).c_str());
 }
 

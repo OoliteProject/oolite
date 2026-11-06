@@ -88,7 +88,7 @@ public:
 // OOJavaScriptEngineMonitor.
 namespace {
 
-// The records (the Objective-C class's @public ivars).
+// The records.
 struct TestMonitorRecord
 {
 	int							_errors = 0;
@@ -621,7 +621,7 @@ OO_TEST(nativeObjectValues)
 		OO_CHECK(JS_IsNull(Owned(OOJSValueFromPList(context, oo::PList()))));
 		OONull *null = OONull::null();
 		OO_CHECK(null != nullptr && OONull::null() == null);
-		OO_CHECK(OOIsNullObjectNode(OONullObjectNode()) && OONullObjectNode() == OONullObjectNode());	// the one null, shared (the facade's -copy answered itself)
+		OO_CHECK(OOIsNullObjectNode(OONullObjectNode()) && OONullObjectNode() == OONullObjectNode());	// the one null, shared
 		OO_CHECK_EQ(null->description(), "<null>");
 		OO_CHECK(JS_IsNull(Owned(OOJSValueFromPList(context, OONullObjectNode()))));
 		OO_CHECK(JS_IsNull(Owned(null->jsValueInContext(context))));
@@ -670,8 +670,7 @@ OO_TEST(jsValueHolder)
 
 // The generic wrapper's hooks with the C++ object the slot holds: the finalizer
 // tells it its wrapper is gone, releases it and empties the slot; toString
-// names the JS class (only an Objective-C object described itself through the
-// class's converter).
+// names the JS class (only an object with a converter described itself).
 OO_TEST(cxxObjectWrapper)
 {
 	SetUp();

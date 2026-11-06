@@ -6,8 +6,8 @@
 	but main (['*']) and uses a Universe that was never initialised (no entities, so every scan
 	finds nothing), a plain entity as PLAYER and an empty JavaScript context. Its ships have no AI
 	and are invisible to scripts, so the AI messages and script events the methods send go nowhere.
-	Each group of cases sits under a comment naming it, written against the Objective-C API and run
-	on the unconverted class first. Ivars go through the helpers below. Run: bash
+	Each group of cases sits under a comment naming it, Ivars go through the helpers below. Run:
+	bash
 	tools/check-core-tests.sh test_ShipEntityAI
 */
 
@@ -41,7 +41,7 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// A C++ player, as PlayerEntity::sharedPlayer() makes
 // the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
@@ -74,8 +74,7 @@ public:
 };
 
 
-// Made as StationEntity::newStationObject() makes a station; answers its object
-// (the ship's facade).
+// Made as StationEntity::newStationObject() makes a station; answers its object.
 namespace {
 
 ShipEntity *NewTestAIStation(const std::string &key, const oo::PList &dict)

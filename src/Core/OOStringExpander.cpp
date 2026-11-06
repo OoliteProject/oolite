@@ -45,8 +45,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
-/*	The expansion engine works on UTF-16 code units, as it did on the
-   Objective-C string's characters, held in std::u16string; an empty optional
+/*	The expansion engine works on UTF-16 code units, held in std::u16string; an empty optional
    stands for nil. Text enters
    and leaves as UTF-8 (WTF-8, lossless: oo::utf8ToUtf16 / oo::utf16ToUtf8). The
    unmigrated callees (Universe, PlayerEntity, ResourceManager) and the log and
@@ -244,7 +243,7 @@ std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const
     // Was an autorelease-pool block, kept as the C++ pool: what the expander calls by name may defer
     // a release (OOCallByName).
     {
-        oo::AutoreleaseScope pool; // was an Objective-C autorelease pool
+        oo::AutoreleaseScope pool;
         // TODO: profile caching the results. Would need to keep track of whether
         // we've done something nondeterministic (array selection, %R etc). (The
         // context's values are C++ now: nothing is left to release if an exception
@@ -847,8 +846,7 @@ OOMaybeUnits ExpandStringKeyMissionVariable(OOStringExpansionContext* /* context
     if (HasPrefix(key, u"mission_")) {
         // A string variable expands to its text; an unset one to nothing. A
         // variable that is not a string (an array, from the legacy set-list action)
-        // expands as unset: its Objective-C object was sent -length, which it did
-        // not answer.
+        // expands as unset.
         const oo::PList value = (PLAYER != nullptr ? PLAYER->missionVariableForKey(keyString) : oo::PList());
         const std::string* text = value.getIf<std::string>();
         return UnitsFromOptional((text != nullptr) ? std::optional<std::string>(*text) : std::nullopt);
@@ -878,9 +876,8 @@ OOMaybeUnits UnitsFromOptional(const std::optional<std::string>& string)
     return oo::utf8ToUtf16(*string);
 }
 
-/*	A mixed value's -description, as the lookups above inserted it: a string is itself, a number
-        its -stringValue (oo::plist_get::numberStringValue), anything else the Objective-C object's
-        -description.
+/*	A mixed value's description, as the lookups above inserted it: a string is itself, a number
+        its string value (oo::plist_get::numberStringValue), anything else its description.
 */
 OOUnits ValueText(const oo::PList& value)
 {
@@ -1005,7 +1002,7 @@ void ReportWarningForUnknownKey(OOStringExpansionContext* context, const OOUnits
                 %]
 
         In addition, the codes %@, %d and %. are ignored, because they're used
-        with the Objective-C string formatter (%@ / %d) on strings that have
+        with the string formatter (%@ / %d) on strings that have
         already been expanded.
 
         Any other code results in a warning.
@@ -1050,7 +1047,7 @@ OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context, const char16
     case ']':
         return OOUnits(u"]");
 
-        /*	These are Objective-C string formatting specifiers that occur in
+        /*	These are string formatting specifiers that occur in
                 descriptions.plist. The '.' is for floating-point (g and f)
                 specifiers that have field widths specified. No unadorned
                 %f or %g is found in vanilla Oolite descriptions.plist.
@@ -1058,8 +1055,7 @@ OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context, const char16
                 Ideally, these would be replaced with the caller formatting
                 the value and passing it as an override - it would be safer
                 and make descriptions.plist clearer - but it would be a big
-                job and uglify the callers without newfangled Objective-C
-                dictionary literals.
+                job and uglify the callers.
                 -- Ahruman 2012-10-05
         */
     case '@':
@@ -1069,7 +1065,7 @@ OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context, const char16
 
     default:
         // Yay, percent signs!
-        /*	The Objective-C formatter's %lc of a unichar kept only its low byte: the high byte of
+        /*	The old GNUstep formatter's %lc of a unichar kept only its low byte: the high byte of
                 the character it produced was undefined (probed on gnustep-base 1.31.1: U+0041 gave
                 U+DB41, U+0301 gave U+D301 or U+DB01 from run to run; tests/unit/expander masks all
                 but the low byte). The low byte is printed, as the character U+00xx (%c for ASCII,
@@ -1115,7 +1111,7 @@ OOMaybeUnits ExpandPercentR(OOStringExpansionContext* context, const OOMaybeUnit
      * few years yet. - CIM 15/1/2013 */
 
     do {
-        // Every "%R" replaced, unit for unit (it was -replaceOccurrencesOfString: with NSLiteralSearch).
+        // Every "%R" replaced, unit for unit (a literal search).
         OOUnits replaced;
         replaced.reserve(output.size());
         for (NSUInteger i = 0; i < output.size();) {
@@ -1229,8 +1225,7 @@ void AppendCharacters(OOMaybeUnits* result, const char16_t* characters, NSUInteg
     if (start == end)
         return;
 
-    // The segment goes through -initWithCharacters:length:'s byte-order-mark handling, as the
-    // temporary Objective-C string it used to be built as did.
+    // The segment goes through UnitsWithCharacters()'s byte-order-mark handling.
     **result += UnitsWithCharacters(characters + start, end - start);
 }
 
@@ -1295,8 +1290,8 @@ const oo::PList& GetSystemDescriptions(OOStringExpansionContext* context)
     return context->systemDescriptions;
 }
 
-/*	The digram at <location> of descriptions.plist's "digrams" string ([digrams
-        substringWithRange:NSMakeRange(location, 2)], which raises past the end).
+/*	The digram at <location> of descriptions.plist's "digrams" string (two units
+        from <location>; it raises past the end).
 */
 OOUnits Digram(const std::optional<std::string>& digrams, const OOUnits& units, NSUInteger location)
 {
@@ -1384,7 +1379,7 @@ OOUnits UnitsWithCharacters(const char16_t* characters, NSUInteger length)
     return units;
 }
 
-/*	-rangeOfString:<target> options:0 range:<from to end>.location, NSNotFound if absent: literal
+/*	The location of <target> in the range <from to end>, NSNotFound if absent: literal
         units, except that an occurrence a sequence-extending unit follows is inside a longer composed
         sequence and does not count, and that a search starting inside a composed sequence (not at
         the start of the string) cannot match at the first unit after it (oo::str::Scanner has the

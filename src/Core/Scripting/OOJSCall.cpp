@@ -2,7 +2,7 @@
 
 OOJSCall.h
 
-Basic JavaScript-to-ObjC bridge implementation.
+Implementation of the debug console's callObjC().
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -275,7 +275,7 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
         }
     } else {
         // An entity's text names its object, whose address it holds. The entity's
-        // object's text comes from the facade, byte for byte; no entity is
+        // object's text is its short description, byte for byte; no entity is
         // described as nil (the console never calls without one).
         std::string described = (entity != nullptr) ? oo::EntityShortDescription(entity) : std::string("(null)");
         cxx_OOJSReportError(context, "%s.callObjC(): %s does not respond to method %s.", oo_jsClassName.c_str(), described.c_str(), (selectorString ? selectorString->c_str() : "(null)"));

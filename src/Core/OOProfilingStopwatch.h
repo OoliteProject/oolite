@@ -35,9 +35,8 @@ SOFTWARE.
 #include "OOFoundation.h"
 #else
 /*	A plain C++ translation unit (the JS bindings, through
-        OOJSEngineNativeWrappers.h) cannot parse OOFoundation.h's Objective-C class declarations. The one platform switch
-        below that differs from its default on this build is set as OOFoundation.h sets it (WIN32 is only
-        defined on the GNUstep build), so
+        OOJSEngineNativeWrappers.h) cannot parse OOFoundation.h's class declarations. The one platform switch
+        below that differs from its default on this build is set as OOFoundation.h sets it, so
         OOHighResTimeValue is the same type in both kinds of translation unit.
 */
 #if defined(WIN32) && !defined(OOLITE_WINDOWS)
@@ -45,7 +44,7 @@ SOFTWARE.
 #endif
 #if OOLITE_WINDOWS
 // DWORD and timeGetTime(), below, as OOFoundation.h's <windows.h> gives them (with the Windows
-// BOOL renamed, as there, so the floor's BOOL stays BOOL; with no Objective-C compiler, __OBJC_BOOL
+// BOOL renamed, as there, so the floor's BOOL stays BOOL; __OBJC_BOOL
 // keeps <minwindef.h> from declaring its own, as OOFoundation.h does).
 #define BOOL WinBOOL
 #define __OBJC_BOOL 1

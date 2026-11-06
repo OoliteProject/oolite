@@ -1,10 +1,7 @@
 /*
 
-OOCache.mm
+OOCache.cpp
 By Jens Ayton
-
-The methods are the Objective-C ones with message sends turned into calls; the
-C functions below are verbatim.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -38,7 +35,7 @@ MA 02110-1301, USA.
         has no support for pruning - specifically no support for finding the
         least-recently-accessed element. Using standard Foundation containers, it
         would be necessary to use several dictionaries and arrays, which would be
-        quite inefficient since small NSArrays aren’t very good at head insertion
+        quite inefficient since small arrays aren’t very good at head insertion
         or deletion. Alternatively, a standard dictionary whose value objects
         maintain an age-sorted list could be used.
 
@@ -46,7 +43,7 @@ MA 02110-1301, USA.
         parallel data structures: a doubly-linked list sorted by age, and a splay
         tree to implement insertion/deletion. The implementation is largely
         procedural C. Deserialization, pruning and modification tracking is done
-        in the ObjC class; everything else is done in C functions.
+        in the OOCache class; everything else is done in C functions.
 
         A SPLAY TREE is a type of semi-balanced binary search tree with certain
         useful properties:

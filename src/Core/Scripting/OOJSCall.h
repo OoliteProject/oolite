@@ -2,7 +2,7 @@
 
 OOJSCall.h
 
-Basic JavaScript-to-ObjC bridge implementation.
+Declarations for the debug console's callObjC().
 
 An entity is called through its generated name table (OOJSCallEntityMethods.h)
 and the signature templates of any other object are @encode() strings.
@@ -35,10 +35,6 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include <quickjs.h>
 #include <string>
-
-/*	(OOJSCallObjCObjectMethod(), which called any Objective-C object's method by name for callObjC(),
-        is gone: the console's callObjC() is given only entities and monitors.)
-*/
 
 /*	OOJSCallEntityMethod()
 

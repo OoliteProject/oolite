@@ -9,7 +9,7 @@
         accessors and setters (clamping, the hidden selectors, the deferred HUD
    name, nil colours refused), the reticle colours' identity, and
    +nonlinearScannerScale:Zoom:Scale:. Drawing is GL and is pinned by the
-   goldens, not here.
+   integration tests, not here.
 
         The HUD's object references the universe, the player and the GUIs, so
    the test links the whole game but main (tests/unit/core/meson.build entry

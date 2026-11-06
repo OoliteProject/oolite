@@ -195,7 +195,7 @@ OOSystemID SystemOf(OOSystemInfo* info) { return (info != nullptr) ? info->syste
 NSPoint CoordinatesOf(OOSystemInfo* info) { return (info != nullptr) ? info->coordinates() : NSMakePoint(0, 0); }
 oo::PList ValueForKey(OOSystemInfo* info, const std::optional<std::string>& key) { return (info != nullptr) ? info->valueForKey(key) : oo::PList(); }
 
-// -intValue of a system property (an NSNumber or an NSString; 0 for nil).
+// The integer value of a system property (a number or a string; 0 for none).
 int PropertyIntValue(const oo::PList& value)
 {
     if (const std::string* text = value.getIf<std::string>())
@@ -211,8 +211,8 @@ static bool JSSystemInfoGetSystemInfo(JSContext* context, JSValueConst inObject,
     return OOJSGetCxxPrivate(context, inObject, sSystemInfoClassID, outObject);
 }
 
-// The system info of an instance, else null: the prototype, or an object of another class (as
-// the Objective-C class check of OOJSNativeObjectOfClassFromJSObject answered nil).
+// The system info of an instance, else null: the prototype, or an object of another class (it
+// answers null).
 static OOSystemInfo* SystemInfoForObject(JSValueConst obj)
 {
     return static_cast<OOSystemInfo*>(static_cast<oo::RefCounted*>(JS_GetOpaque(obj, sSystemInfoClassID)));
@@ -360,8 +360,7 @@ void OOSystemInfo::clearJSSelf(JSValueConst /*selfVal*/)
     // No wrapper is remembered: each jsValueInContext() makes a new one.
 }
 
-// What the facade's -cxx_oo_jsDescription answered (OOObject (OOJavaScriptConversion)): the JS
-// class name and the components.
+// The JS class name and the components.
 std::string OOSystemInfo::className() const
 {
     return "OOSystemInfo";
@@ -392,7 +391,7 @@ static oo::PList SystemInfoConverter(JSContext* /*context*/, JSValueConst object
     return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(info)));
 }
 
-// +[OOSystemInfo oo_javaScriptEngineWillReset:]: drop the cached SystemInfo object.
+// Drop the cached SystemInfo object.
 static void SystemInfoJavaScriptEngineWillReset()
 {
     JSValue oldCache = sCachedSystemInfo;
@@ -405,7 +404,7 @@ void InitOOJSSystemInfo(JSContext* context, JSValueConst global)
 {
     static bool observing = false;
     if (!observing) {
-        // Process lifetime, as the class registration (the observer was the Objective-C class).
+        // Process lifetime, as the class registration.
         oo::NotificationCenter::defaultCenter().addObserver(nullptr, kOOJavaScriptEngineWillResetNotificationName,
             nullptr,
             [](const oo::Notification&) { SystemInfoJavaScriptEngineWillReset(); });
@@ -527,7 +526,7 @@ static bool SystemInfoGetSystemDataValue(JSContext* context, OOSystemInfo* info,
         return false;
 
     if (propValue.isNumber() || OOIsNumberLiteral(oo::DescriptionOf(propValue), true)) {
-        // -doubleValue: an NSNumber's, or an NSString's (a number literal)
+        // A number's value, or a string's (a number literal)
         const std::string* text = propValue.getIf<std::string>();
         const double number = (text != nullptr) ? oo::plist_get::doubleValue(oo::utf8ToUtf16(*text)) : propValue.doubleValue();
         *outValue = JS_NewNumber(context, number);

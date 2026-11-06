@@ -43,17 +43,16 @@ SOFTWARE.
 #include "oofnd/StdLib.hpp"
 
 /*	The class cluster is a C++ hierarchy: the two abstract classes here, and
-   the four concrete ones private to OOProbabilitySet.mm.
+   the four concrete ones private to OOProbabilitySet.cpp.
 */
 class OOMutableProbabilitySet;
 
 class OOProbabilitySet : public oo::RefCounted {
 public:
     // The elements are oo::PList values: ship keys are strings; an
-    // Object node (oo::PListObject) carries an Objective-C object. Two elements
-    // are the same if they are == or are Object nodes holding the same object or
-    // -isEqual: objects. The factories are the class cluster's +alloc/-init...:
-    // an immutable set, null where the initialiser returned nil.
+    // Object node (oo::PListObject) carries an object. Two elements
+    // are the same if they are == or are Object nodes holding the same object.
+    // The factories make an immutable set, null where the initialiser fails.
     static oo::Ref<OOProbabilitySet>
     probabilitySet(); // the empty set: one shared object
     static oo::Ref<OOProbabilitySet> probabilitySetWithObjects(

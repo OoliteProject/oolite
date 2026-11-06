@@ -90,8 +90,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     return oo::PList(std::move(acc));
 }
 
-// NPC launchers. Several are sent by name, which the root's facade answers for
-// a station's part.
+// NPC launchers. Several are called by name for a station's part.
 
 // Exposed to AI
 oo::PList StationEntity::launchIndependentShip(const std::string& role) // called by name: the ship launched, as an

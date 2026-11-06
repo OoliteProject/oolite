@@ -9,8 +9,8 @@
    and the GL material, the loading and cube-map questions it passes to the
    texture, and the description. The cases ask the C++ class (alloc/init is
    materialWithName(), nil is null, retain/release a held Ref);
-   crossesAsTheBasicMaterialFacade pins what Objective-C sees: the nearest
-   facade, OOBasicMaterial's. Run: bash tools/check-core-tests.sh
+   crossesAsTheBasicMaterialFacade pins what the root sees: the nearest
+   base, OOBasicMaterial's. Run: bash tools/check-core-tests.sh
 */
 
 #include <cstdlib>
@@ -351,7 +351,7 @@ OO_TEST(description) {
   }
 }
 
-// --- The C++ class and the facade (after the conversion)
+// --- The C++ class and the root
 // -----------------------------------------
 
 OO_TEST(cxxAPI) {

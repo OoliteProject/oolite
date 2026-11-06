@@ -10,7 +10,7 @@
    (position, size, red, status), the growth and fade with the time since it was
    spawned, and its removal after two seconds. Making a burst and reading its
    colour components go through the helpers below: a burst is made by its
-   factory and handed to Objective-C as its facade, an OOLightParticleEntity.
+   factory as an OOLightParticleEntity.
    Run: bash tools/check-core-tests.sh
 */
 
@@ -36,7 +36,7 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// NewTestPlayer<TestPlayer>(): a C++ player, as
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
 // object was.
 template <class T>
@@ -69,14 +69,14 @@ Universe* SharedTestUniverse() {
 
 namespace {
 
-// --- How a burst is made, and its colour (a @protected ivar), and nothing else
+// --- How a burst is made, and its colour, and nothing else
 // -------------------
 
 Entity* MakeBurst(HPVector position) {
   return oo::MadeEntity(OOPlasmaBurstEntity::burstWithPosition(position));
 }
 
-// The object is the root Entity's facade; its C++ part is the particle.
+// The entity is the particle.
 OOLightParticleEntity* Particle(Entity* e) {
   return static_cast<OOLightParticleEntity*>(e);
 }

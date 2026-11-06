@@ -470,23 +470,21 @@ private:
 };
 
 /*	The compass icon of a beacon whose code names no icon: the code's first
-   character, drawn as text. It replaces the NSString (OOHUDBeaconIcon) category
-   the entities' beacon drawables used; the drawing is the category's. The
-   entities hold it by the C++ OOHUDBeaconIcon interface (OOPolygonSprite.h).
+   character, drawn as text. The entities hold it by the C++ OOHUDBeaconIcon
+   interface (OOPolygonSprite.h).
 */
 class OOHUDBeaconCodeIcon : public OOHUDBeaconIcon {
 public:
     explicit OOHUDBeaconCodeIcon(const std::string& text); // -initWithText:
 
     void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha, GLfloat z)
-        override; // -oo_drawHUDBeaconIconAt:size:alpha:z:
+        override;
 
 private:
     std::string _text;
 };
 
-// -[OOPolygonSprite oo_drawHUDBeaconIconAt:size:alpha:z:] (the sprite's
-// OOHUDBeaconIcon category).
+// Draws the sprite as a beacon icon (the sprite's OOHUDBeaconIcon interface).
 void OOPolygonSpriteDrawHUDBeaconIcon(OOPolygonSprite* sprite, NSPoint where,
     NSSize size, GLfloat alpha, GLfloat z);
 
@@ -533,12 +531,10 @@ void OOHUDResetTextEngine(void);
 #include "WormholeEntity.h" // WORMHOLE_SCANINFO (a send below)
 class OOVisualEffectEntity;
 
-/*	Sends of converted free functions to classes that are still Objective-C,
-        one function per send, the body the send verbatim (in HeadUpDisplay.mm).
-   Members keep their sends. Each goes with its class's conversion.
+/*	Free functions that forward one call each to other classes' members
+        (HeadUpDisplay.cpp).
 */
-// -[[UNIVERSE gui] cxx_setGLColorFromSetting:defaultValue:alpha:]
-// (OODrawPlanetInfo()).
+// UNIVERSE->getGui()->setGLColorFromSetting() (OODrawPlanetInfo()).
 void HeadUpDisplayUniverseGUISetGLColorFromSetting(
     const std::optional<std::string>& setting, OOColor* defaultValue,
     GLfloat alpha);

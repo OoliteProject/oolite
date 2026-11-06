@@ -10,7 +10,7 @@
 	apart, a quarter of the scanner range wider each, then it removes itself; a dead or
 	deallocated ship ends it at once; it is an ECM blast and the ship is not (the check asks the
 	C++ member). The blasts are made through the one helper below: the blast is a C++ entity whose
-	object is the Entity facade oo::NewEntityFacade made.
+	object is the Entity wrapping it.
 	Run: bash tools/check-core-tests.sh
 */
 
@@ -109,7 +109,7 @@ void SetUp()
 
 
 // A ship (the blast calls its members), under its object
-// (oo::NewEntityFacade, autoreleased), never set up.
+// (autoreleased), never set up.
 Entity *Ship()
 {
 	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());

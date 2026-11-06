@@ -8,13 +8,12 @@
 	loading is replaced (method_setImplementation, as test_OOParticleSystem does) by a stand-in that
 	records the configuration it was given and finds nothing, so the planet stops before it makes
 	materials, as it does in the game when a texture file is missing. The RNG is seeded, and the
-	values that depend on it are given in the planet's dictionary. The expectations were written
-	against the Objective-C API and run on the unconverted class first: a planet's radius, energy,
+	values that depend on it are given in the planet's dictionary. A planet's radius, energy,
 	status, orientation and rotation from its dictionary, a moon and a planet with an atmosphere and
 	its air colour, the shader-visible values and their setters, the miniature version, -update:
-	turning the planet, close collisions and the description. The cases make the C++ planet and its
-	Objective-C object (oo::NewEntityFacade) and ask the C++ class, and the facade case pins the
-	crossing: its object is the root Entity's, which answers the shader binding selectors for a
+	turning the planet, close collisions and the description. The cases make the C++ planet and ask
+	the C++ class, and the facade case pins the
+	crossing: the root Entity answers the shader binding selectors for a
 	planet only. Run: bash tools/check-core-tests.sh
 */
 
@@ -59,8 +58,8 @@ public:
 	OOSystemID systemID() override	{ return 7; }
 };
 
-// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
-// the game's, retained (+1) as +alloc's object was.
+// A C++ player, as PlayerEntity::sharedPlayer() makes
+// the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -157,8 +156,7 @@ oo::PList PlanetDict(int radiusKm)
 }
 
 
-// alloc/initFromDictionary:withAtmosphere:andSeed:forSystem:/autorelease: a new C++ planet, owned by
-// its autoreleased Objective-C object.
+// A new C++ planet.
 OOPlanetEntity *Planet(BOOL atmosphere, int radiusKm = 5000)
 {
 	Random_Seed seed = { 1, 2, 3, 4, 5, 6 };
@@ -169,7 +167,7 @@ OOPlanetEntity *Planet(BOOL atmosphere, int radiusKm = 5000)
 }
 
 
-// -miniatureVersion: a new C++ planet, owned by its autoreleased Objective-C object.
+// The miniature version: a new C++ planet.
 OOPlanetEntity *Miniature(OOPlanetEntity *planet)
 {
 	oo::Ref<OOPlanetEntity> mini = planet->miniatureVersion();
@@ -382,8 +380,7 @@ OO_TEST(description)
 }
 
 
-// A planet's object is the root Entity's facade, whose C++ part is the planet;
-// that object answers the shader binding selectors (Entity
+// A planet is the root Entity; it answers the shader binding selectors (Entity
 // (OOPlanetShaderBindings)) for a planet only.
 OO_TEST(facade)
 {
@@ -391,7 +388,7 @@ OO_TEST(facade)
 		SetUp();
 		OOPlanetEntity *moon = Planet(NO);
 		Entity *object = moon;
-		OO_CHECK(object != nil);	// A C++ entity, not an Objective-C entity's adapter.
+		OO_CHECK(object != nil);	// A C++ entity.
 		OO_CHECK(object == moon);
 		OOPlanetEntity *mini = Miniature(moon);
 		OO_CHECK(mini == mini);	// The shader bindings: the planet's values, which its object's selectors

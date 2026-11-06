@@ -4,9 +4,7 @@ DockEntity.h
 
 ShipEntity subclass representing a dock.
 
-A dock is made in C++ by DockEntity::newDockObject(). Its Objective-C object is
-OOEntityWithDrawable's facade, and the root's facade answers the dock's
-selectors the game can still find by name for a dock's C++ part only.
+A dock is made in C++ by DockEntity::newDockObject().
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -35,9 +33,7 @@ MA 02110-1301, USA.
 
 /*	The dock's state and members.
 
-        The ivars are data members with the same names, every one
-   zero-initialised as the runtime zeroed them. Pointers to Objective-C objects
-   stay what they were, retained by hand where they were.
+        Every data member is zero-initialised.
 */
 class DockEntity : public ShipEntity {
 public:
@@ -50,8 +46,7 @@ public:
     // -cxx_initWithKey:definition:'s body after [super cxx_initWithKey:definition:].
     void initDockDefaults();
 
-    // The facade's -dealloc body, which -[ShipEntity dealloc] calls first for a dock's part, as the
-    // subclass's -dealloc ran before its superclass's.
+    // Run first when a dock is destroyed, before the ship's own teardown.
     void willDealloc();
 
     // Class shell, flags, geometry and lifecycle.
@@ -107,8 +102,7 @@ public:
     // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSDock.h).
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
-    // The ship's answer (ShipEntity (OOJavaScriptExtensions)), which the facade
-    // inherited; a C++ part is asked.
+    // The ship's answer.
     bool isVisibleToScripts() override;
     bool setUpShipFromDictionary(const oo::PList& dict) override;
     void update(OOTimeDelta delta_t) override;
@@ -116,9 +110,8 @@ public:
     void takeEnergyDamage(double amount, Entity* ent, Entity* other, const std::string& weaponIdentifier) override;
     void drawImmediate(bool immediate, bool translucent) override;
 
-    // @private in Objective-C; still public (the tests read them), as the player's were after its
-    // facade went
-    std::map<unsigned short, std::vector<oo::PList>> shipsOnApproach; // coordinate stacks (Dicts) by ship ID (the old +numberWithUnsignedShort: key)
+    // Public so the tests read them.
+    std::map<unsigned short, std::vector<oo::PList>> shipsOnApproach; // coordinate stacks (Dicts) by ship ID
     std::vector<oo::EntityHold> launchQueue; // the ships' objects held
     double last_launch_time = { };
     //	double					approach_spacing; // not needed now holding pattern changed

@@ -9,11 +9,10 @@
 	cases test the class's own units: the initialisers (what -cxx_initWithKey:definition: sets
 	before the set-up, the set-up failing, the top-speed sanity check, -initBypassForPlayer, and
 	-init sent again as PlayerEntity's -deferredInit does), -dealloc (it leaves the ship's groups),
-	and the two SubEntityRelationship categories. The expectations were written against the
-	Objective-C API and run on the unconverted class first. Ivars the game reads directly go through
+	and the two SubEntityRelationship categories. Ivars the game reads directly go through
 	the block of helpers below, the one place that knows where they live. The tests after those pin
-	the crossing: an Objective-C ship's C++ part is a ShipEntity, the facade's _cxxShip is that
-	part, and a ship released before its initialiser ran is deallocated without a C++ part. Run:
+	the crossing: a ship is a ShipEntity, and a ship released before its initialiser ran is
+	deallocated without a C++ part. Run:
 	bash tools/check-core-tests.sh
 */
 
@@ -53,8 +52,8 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's
-// facade, as PlayerEntity::sharedPlayer() makes the game's, retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
+// retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -814,7 +813,7 @@ OO_TEST(updateDemoShip)
 }
 
 
-// From C++, update() reaches an Objective-C subclass's override (the root's adapter line).
+// From C++, update() reaches a subclass's override.
 OO_TEST(updateReachesTheSubclass)
 {
 	{
@@ -1496,7 +1495,7 @@ OO_TEST(groupsAndEscorts)
 		OO_CHECK((ship != nullptr ? ship->hasEscorts() : false) && (ship != nullptr ? ship->escortCount() : uint8_t{}) == 1);
 		OO_CHECK((ship != nullptr ? ship->escorts() : std::vector<oo::EntityHold>()).size() == 1 && (ship != nullptr ? ship->escorts() : std::vector<oo::EntityHold>())[0].get() == wingman && (ship != nullptr ? ship->escortArray() : std::vector<oo::EntityHold>()).size() == 1);
 
-		oo::Ref<OOShipGroup> other = OOShipGroup::groupWithName(std::nullopt);	// -init; held where the autoreleased facade was
+		oo::Ref<OOShipGroup> other = OOShipGroup::groupWithName(std::nullopt);	// held here
 		if (ship != nullptr)  ship->setEscortGroup(other.get());
 		OO_CHECK((ship != nullptr ? ship->escortGroup() : (OOShipGroup *)nullptr) == other.get() && other->leader() == ship);
 
@@ -2151,7 +2150,7 @@ OO_TEST(slice24IsFriendlyTo)
 		if (other != nullptr)  other->setScanClass(CLASS_NEUTRAL);
 		OO_CHECK(!(ship != nullptr ? ship->isFriendlyTo(other) : false));
 
-		oo::Ref<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);	// -init; held where the autoreleased facade was
+		oo::Ref<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);	// held here
 		if (ship != nullptr)  ship->setGroup(group.get());
 		if (other != nullptr)  other->setGroup(group.get());
 		OO_CHECK((ship != nullptr ? ship->isFriendlyTo(other) : false) && (other != nullptr ? other->isFriendlyTo(ship) : false));
@@ -3045,7 +3044,7 @@ OO_TEST(slice34WeaponHelpers)
 // --- ShipEntityScriptMethods.mm: the category ShipEntity
 // (ScriptMethods) -------------- The cases that do not reach the universe (it
 // was never initialised here): ejecting nothing and spawning none. Ejecting or
-// spawning a real ship needs the game's ship data, which the goldens run.
+// spawning a real ship needs the game's ship data, which the integration tests run.
 
 OO_TEST(scriptMethodsEjectAndSpawnNothing)
 {
@@ -3066,7 +3065,7 @@ OO_TEST(scriptMethodsEjectAndSpawnNothing)
 // (LoadRestore) ------------------- The cases that reach neither the ship
 // registry nor the universe: restoring from no dictionary. Saving a ship, and
 // restoring one, look its key up in the ship registry, whose data the unit test
-// does not load (it would scan for add-ons); the goldens' wormholes run those.
+// does not load (it would scan for add-ons); the integration tests' wormholes run those.
 
 OO_TEST(loadRestoreFromNothing)
 {

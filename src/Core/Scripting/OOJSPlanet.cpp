@@ -261,7 +261,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS)
 
         OOJSPauseTimeLimiter();
 
-        if (planet != nullptr) // was -isKindOfClass: of the facade class: false only for nil
+        if (planet != nullptr) // false only for null
         {
             if (!sValue.has_value()) {
                 cxx_OOJSReportWarning(context, "Expected texture string. Value not set.");

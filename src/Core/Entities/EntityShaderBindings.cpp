@@ -99,17 +99,13 @@ unsigned Entity::systemProductivity()
 
 /*	The entities' shader binding member table, its rows receiving the C++
    entity: one row per name a shader may bind on an entity
-   (shader-uniform-bindings.plist and every other name whitelist.plist permits
-   that the root's facade answered), each
-   with its uniform type (the type encoding of the method it replaces, so the
-   uniform's type is the one the selector path read), whether it applies to this
-   entity (what the root facade's -respondsToSelector: answered for it) and its
-   getter (the method's body, unchanged but for the receiver). laserColor has no
-   method and no row: it fails as before.
+   (shader-uniform-bindings.plist and every other name whitelist.plist permits), each
+   with its uniform type, whether it applies to this entity and its
+   getter. laserColor has no method and no row.
 */
 namespace {
 
-// The parts the rows ask for, as the root's facade asks for them (Entity+ObjCBridge.mm).
+// The parts the rows ask for.
 ShipEntity* ShipPart(Entity* entity) { return dynamic_cast<ShipEntity*>(entity); }
 OOVisualEffectEntity* EffectPart(Entity* entity) { return dynamic_cast<OOVisualEffectEntity*>(entity); }
 PlayerEntity* PlayerEntityPart(Entity* entity) { return dynamic_cast<PlayerEntity*>(entity); }
@@ -275,9 +271,9 @@ constexpr EntityShaderBindingRow kEntityShaderBindings[] = {
         [](Entity* part, OOShaderBindingValue& out) { StoreShaderBindingValue(out, [part]() -> OOAlertCondition { ShipEntity *ship = ShipPart(part); return ship != nullptr ? ship->alertCondition() : OOAlertCondition{}; }()); } },
     { "trumbleCount", kOOTypeEncoding<NSUInteger>, [](Entity* part) -> bool { return ProxyPart(part) != nullptr || PlayerEntityPart(part) != nullptr; },
         [](Entity* part, OOShaderBindingValue& out) { StoreShaderBindingValue(out, [part]() -> NSUInteger { if (ProxyPlayerEntity *proxy = ProxyPart(part)) return proxy->trumbleCount(); PlayerEntity *player = PlayerEntityPart(part); return player != nullptr ? player->getTrumbleCount() : NSUInteger{}; }()); } },
-    // The other names whitelist.plist permits that the root's facade answered by selector, each
-    // with its method's return type, the facade's -respondsToSelector: answer and the method's body.
-    // The planet's five (Entity (OOPlanetShaderBindings)):
+    // The other names whitelist.plist permits, each
+    // with its return type, whether it applies and its getter.
+    // The planet's five:
     { "airColorAsVector", kOOTypeEncoding<Vector>, [](Entity* part) -> bool { return dynamic_cast<OOPlanetEntity*>(part) != nullptr; },
         [](Entity* part, OOShaderBindingValue& out) { StoreShaderBindingValue(out, [part]() -> Vector { OOPlanetEntity *planet = dynamic_cast<OOPlanetEntity *>(part); return planet != nullptr ? planet->airColorAsVector() : kZeroVector; }()); } },
     { "illuminationColorAsVector", kOOTypeEncoding<Vector>, [](Entity* part) -> bool { return dynamic_cast<OOPlanetEntity*>(part) != nullptr; },
@@ -312,8 +308,7 @@ constexpr EntityShaderBindingRow kEntityShaderBindings[] = {
         [](Entity* part, OOShaderBindingValue& out) { StoreShaderBindingValue(out, [part]() -> GLfloat { ShipEntity *ship = ShipPart(part); return ship != nullptr ? ship->laserHeatLevelStarboard() : GLfloat{}; }()); } },
     { "tradeInFactor", kOOTypeEncoding<int>, [](Entity* part) -> bool { return ProxyPart(part) != nullptr || PlayerEntityPart(part) != nullptr; },
         [](Entity* part, OOShaderBindingValue& out) { StoreShaderBindingValue(out, [part]() -> int { if (ProxyPlayerEntity *proxy = ProxyPart(part))  return proxy->tradeInFactor(); PlayerEntity *player = PlayerEntityPart(part); return player != nullptr ? player->tradeInFactor() : int{}; }()); } },
-    // The visual effect's, found by name: the root's facade answers these for any entity (its category's
-    // methods; -respondsToSelector: does not restrict them), 0 for any but an effect's part.
+    // The visual effect's, found by name: any entity answers these, 0 for any but an effect's part.
     { "shaderFloat1", kOOTypeEncoding<GLfloat>, [](Entity*) -> bool { return true; },
         [](Entity* part, OOShaderBindingValue& out) { StoreShaderBindingValue(out, [part]() -> GLfloat { OOVisualEffectEntity *effect = EffectPart(part); return effect != nullptr ? effect->shaderFloat1() : GLfloat{}; }()); } },
     { "shaderFloat2", kOOTypeEncoding<GLfloat>, [](Entity*) -> bool { return true; },
@@ -370,25 +365,22 @@ bool EntityShaderMemberBindingFor(Entity* entity, const char* property, OOShader
 }
 
 /*	What the uniforms and the materials ask of a binding target that is an
-   entity, registered so that the materials link without the entities. Each
-   answers what the entity's object answered: the root facade's methods are the
-   C++ entity's members.
+   entity, registered so that the materials link without the entities.
 */
 namespace {
 
-// What the root facade's object answered: the
+// The
 // entity's own members, for an entity that has its object; nil's answers for
 // one without.
 Entity* ShaderSuperTarget(Entity* entity)
 {
-    // The root facade's -superShaderBindingTarget: the parent entity; nil's for an entity without its object.
+    // The parent entity; nil's for an entity without its object.
     return (oo::WithObject(entity) != nullptr) ? entity->parentEntity() : nullptr;
 }
 
 std::string ShaderClassName(Entity* entity)
 {
-    return (oo::WithObject(entity) != nullptr) ? std::string("Entity") : std::string("(null)"); // its object's class, the root facade
-}
+    return (oo::WithObject(entity) != nullptr) ? std::string("Entity") : std::string("(null)");}
 
 std::string ShaderDescription(Entity* entity)
 {
@@ -404,8 +396,7 @@ bool ShaderMemberBinding(Entity* entity, const char* property, OOShaderMemberBin
 
 bool ShaderRandomSeed(Entity* entity, uint32_t* outSeed)
 {
-    // -randomSeedForShaders: the ship family's, found by name (the root's facade answered it for a
-    // ship's part, the by-name table's row), and a ship's part's where there
+    // The ship family's, found by name (the by-name table's row), and a ship's part's where there
     // was no object to ask.
     ShipEntity* ship = ShipPart(entity);
     if (ship == nullptr)

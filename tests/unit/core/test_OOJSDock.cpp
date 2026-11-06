@@ -6,8 +6,7 @@
 	game's own objects for the binding, its bridge, the engine's class registry (OOJSClasses.mm) and
 	its exception translator (OOJSEngineNativeWrappers.mm), and stands in for the entity classes
 	(Entity, ShipEntity, DockEntity answer only the selectors the binding sends) and for the engine
-	functions the binding links against, with the engine header's linkage. The expectations were
-	written against the Objective-C file and run on it first; they pin the JS-visible behaviour
+	functions the binding links against, with the engine header's linkage. The tests pin the JS-visible behaviour
 	(the five properties, the three writable ones, isQueued(), a non-dock, a native's exception)
 	and what the category answers the engine.
 	Run: tests/run.sh unit

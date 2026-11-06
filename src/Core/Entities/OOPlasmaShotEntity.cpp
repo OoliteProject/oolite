@@ -2,9 +2,7 @@
 
 OOPlasmaShotEntity.m
 
-See OOPlasmaShotEntity.h. The bodies are the Objective-C ones: a
-message to self is a member call, [super ...] the base's member, and the universe and the entity
-hit are handed the shot (its C++ entity).
+See OOPlasmaShotEntity.h.
 
 
 Oolite

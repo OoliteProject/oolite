@@ -46,8 +46,7 @@ JSClassID EntityJSClassID(void);
 void EntityJSDeleteJSSelf(Entity* entity);
 std::optional<std::string> EntityJSDescription(Entity* entity);
 
-// The entity's answers to the class questions the engine asked its object by selector: an
-// Objective-C entity's own override answers first, a C++ entity's virtual member otherwise.
+// The entity's answers to the class questions the engine asks about its object.
 bool OOJSEntityIsVisibleToScripts(Entity* entity);
 std::optional<std::string> OOJSEntityJSClassName(Entity* entity);
 // The same for the JS class, and for the JS value (the entity's own JS object;

@@ -157,17 +157,14 @@ protected:
     }
 
     // Zeroes the object's weak references now, while it is still alive: for an object whose
-    // identity dies before its count reaches zero (an entity's C++ part, whose Objective-C object
-    // dropped its weak reference at the start of its -dealloc). A WeakRef made afterwards gets a new
-    // control block, as a -weakRetain after -weakRefDrop got a new proxy.
+    // identity dies before its count reaches zero. A WeakRef made afterwards gets a new
+    // control block.
     void dropWeakReferences() const noexcept { dropWeakControl(); }
 
-    // The part of -dealloc that ran while the object was still whole, before
-    // [super dealloc]: called once, when the count reaches zero, before the weak
-    // references are zeroed and the object is deleted (the entity's
-    // facade's -dealloc body). The count reads 1 while it runs, so a
+    // Called once, when the count reaches zero, while the object is still whole and before the
+    // weak references are zeroed and the object is deleted. The count reads 1 while it runs, so a
     // balanced retain and release inside it do not dispose again; a retain it
-    // leaves unbalanced would resurrect an object whose -dealloc has run, a
+    // leaves unbalanced would resurrect an object that is being destroyed, a
     // programming error, and aborts.
     virtual void willDispose() noexcept { }
 

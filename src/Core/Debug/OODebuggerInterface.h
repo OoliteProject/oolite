@@ -3,8 +3,7 @@
 OODebuggerInterface.h
 
 Interfaces for communication between OODebugMonitor and its debugger. The
-debugger's was the Objective-C protocol OODebuggerInterface; it is a C++
-interface, with the same messages as members taking the C++ monitor.
+debugger is a C++ interface whose members take the C++ monitor.
 
 
 Oolite Debug Support
@@ -83,7 +82,6 @@ public:
         const oo::PList& newValue,
         const std::string& key) = 0;
 
-    // What the monitor's log lines print for the debugger ("%@" of the
-    // Objective-C object was <ClassName 0x...>).
+    // What the monitor's log lines print for the debugger (<ClassName 0x...>).
     virtual std::string description() const = 0;
 };

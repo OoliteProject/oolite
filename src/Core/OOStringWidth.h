@@ -3,8 +3,8 @@
 OOStringWidth.h
 
 cxx_OOStringWidthInEm(), declared here, not in HeadUpDisplay.h, so a plain C++
-translation unit (OOJSFont) can call it without parsing an @interface.
-HeadUpDisplay.h includes it back; the definition stays in HeadUpDisplay.mm.
+translation unit (OOJSFont) can call it without including HeadUpDisplay.h.
+HeadUpDisplay.h includes it back; the definition stays in HeadUpDisplay.cpp.
 CGFloat is the floor's C type.
 
 
