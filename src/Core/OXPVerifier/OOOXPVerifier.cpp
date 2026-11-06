@@ -503,6 +503,7 @@ void OOOXPVerifier::buildDependencyGraph() {
     // Iterate over all stages, resolving dependencies.
     std::vector<std::string> stageKeys;  // Get the keys up front because we may
                                          // need to remove entries from the map.
+    stageKeys.reserve(_stagesByName.size());
     for (const auto& entry : _stagesByName) stageKeys.push_back(entry.first);
 
     for (const std::string& stageKey : stageKeys) {
