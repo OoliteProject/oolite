@@ -123,7 +123,7 @@ class DockEntity : public ShipEntity {
   std::vector<oo::EntityHold> launchQueue;  // the ships' objects held
   double last_launch_time = {};
   //	double					approach_spacing; // not needed
-  //now holding pattern changed
+  // now holding pattern changed
 
   oo::WeakRef<Entity>
       id_lock[MAX_DOCKING_STAGES];  // weak references to a ship (its C++ part)

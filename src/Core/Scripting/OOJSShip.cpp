@@ -1014,7 +1014,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       result = NativeVectorArray(ship->getForwardWeaponOffset());
       break;
       //			OOJS_RETURN_VECTOR([entity
-      //forwardWeaponOffset]);
+      // forwardWeaponOffset]);
 
     case kShip_weaponPositionPort:
       result = NativeVectorArray(ship->getPortWeaponOffset());
@@ -1859,7 +1859,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
 
     case kShip_thrust:
       //			if (EXPECT_NOT(ship->getIsPlayer()))  goto
-      //playerReadOnly;
+      // playerReadOnly;
 
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         ship->setThrust(OOClamp_0_max_f(fValue, ship->maxThrust()));

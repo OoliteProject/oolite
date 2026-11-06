@@ -377,7 +377,7 @@ class Universe : public oo::RefCounted {
                             // initialisation (an array)
   oo::PList equipmentDataOutfitting;
   //	std::set<std::string>	pirateVictimRoles;		// Roles listed
-  //in pirateVictimRoles.plist.
+  // in pirateVictimRoles.plist.
   oo::PList roleCategories;  // Categories for roles from role-categories.plist,
                              // extending the old pirate-victim-roles.plist
                              // (category -> array of roles)

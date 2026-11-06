@@ -453,7 +453,7 @@ void OODebugMonitor::dumpMemoryStatistics() {
   oo::log::indent();
 
   //	Get texture retain counts before the entity dumper starts messing with
-  //them.
+  // them.
   const std::vector<oo::Ref<OOTexture>> allTextures = OOTexture::allTextures();
   std::map<OOTexture*, NSUInteger> textureRefCounts;
 

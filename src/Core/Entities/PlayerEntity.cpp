@@ -1492,8 +1492,8 @@ oo::PList PlayerEntity::commanderDataDictionary() {
   clear_checksum();
   // TODO: should checksum checks be removed?
   //	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);
-  //munge_checksum(galaxy_seed.c); 	munge_checksum(galaxy_seed.d);
-  //munge_checksum(galaxy_seed.e);	munge_checksum(galaxy_seed.f);
+  // munge_checksum(galaxy_seed.c); 	munge_checksum(galaxy_seed.d);
+  // munge_checksum(galaxy_seed.e);	munge_checksum(galaxy_seed.f);
   munge_checksum(galaxy_coordinates.x);
   munge_checksum(galaxy_coordinates.y);
   munge_checksum(credits);
@@ -4547,10 +4547,10 @@ void PlayerEntity::updateTargeting() {
         if (clockTimeAdjusted() > (wh != nullptr ? wh->scanTime() : 0.0) + 2) {
           if (wh != nullptr) wh->setScanInfo(WH_SCANINFO_COLLAPSE_TIME);
           //[UNIVERSE
-          //cxx_addCommsMessage:oo::str::formatRuntime(OO_DESC("wormhole-collapse-time-computed"),
+          // cxx_addCommsMessage:oo::str::formatRuntime(OO_DESC("wormhole-collapse-time-computed"),
           //						   { [UNIVERSE
-          //cxx_getSystemName:[wh destination]].value_or(std::string()) })
-          //forCount:5.0];
+          // cxx_getSystemName:[wh destination]].value_or(std::string()) })
+          // forCount:5.0];
         }
         break;
       case WH_SCANINFO_COLLAPSE_TIME:
@@ -7402,7 +7402,7 @@ void PlayerEntity::witchStart() {
   // set the new market seed now!
   // reseeding the RNG should be completely unnecessary here
   //	ranrot_srand((uint32_t)oo::date::timeIntervalSince1970());	// seed
-  //randomiser by time
+  // randomiser by time
   market_rnd = ranrot_rand() & 255;  // random factor for market values is reset
 }
 
@@ -9043,14 +9043,14 @@ void PlayerEntity::setGuiToChartScreenFrom(OOGUIScreenID oldScreen) {
     // distance-f & est-travel-time-f are identical between short & long range
     // charts in standard Oolite, however can be alterered separately via OXPs
     //[gui cxx_setText:cxx_OOExpandKey("short-range-chart-distance", distance)
-    //forRow:20];
+    // forRow:20];
     // std::string travelTimeRow;
     // if ([self hasHyperspaceMotor] && distance > 0.0 && distance * 10.0 <=
     // fuel)
     //{
     //	double time = estimatedTravelTime;
     //	travelTimeRow = cxx_OOExpandKey("short-range-chart-est-travel-time",
-    //time);
+    // time);
     //}
     //[gui setText:travelTimeRow forRow:21];
     if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) {

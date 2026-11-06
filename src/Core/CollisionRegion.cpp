@@ -444,7 +444,7 @@ bool shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity* e2,
   // tested in construction of e2 list
   //	if (e2->isSunlit == NO)
   //		return NO;	// things already /in/ shade can't shade things
-  //more.
+  // more.
   //
   // check projected sizes of discs
   GLfloat d2_sun = HPdistance2(e1pos, the_sun->position);
@@ -592,7 +592,7 @@ void CollisionRegion::findShadowedEntities() {
                uni_entities[i]->collision_radius >=
                    MINIMUM_SHADOWING_ENTITY_RADIUS) {
         ships[n_ships++] = uni_entities[i];  //	don't bother retaining - nothing
-                                             //will happen to them!
+                                             // will happen to them!
       }
     }
   }

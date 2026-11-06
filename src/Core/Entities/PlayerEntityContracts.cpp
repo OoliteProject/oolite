@@ -1283,8 +1283,8 @@ void PlayerEntity::setGuiToManifestScreen() {
     NSInteger page_offset = 0;
     bool multi_page = false;
     //		NSUInteger total_rows = cargoRowCount +
-    //MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) +
-    //mmRows + MAX(1U,[parcelManifest count]) + 5;
+    // MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) +
+    // mmRows + MAX(1U,[parcelManifest count]) + 5;
     NSUInteger total_rows = cargoRowCount + mmRows + 5;
     if (total_rows > max_rows) {
       max_rows -= 2;

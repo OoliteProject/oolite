@@ -528,7 +528,7 @@ bool ShipEntity::suggestEscortTo(::ShipEntity* mother) {
         //+ extra withReason:kOOLegalStatusReasonAssistingOffender];
         markAsOffender(extra, kOOLegalStatusReasonAssistingOffender);
         //				bounty += extra;	// obviously
-        //we're dodgier than we thought!
+        // we're dodgier than we thought!
       }
 
       setOwner(mother);
@@ -1468,7 +1468,7 @@ void ShipEntity::checkAegis() {
       // It's been a few years since 1.71 - it should be safe enough to comment
       // out the line below for 1.77/1.78 -- Kaks 20120917
       //[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for
-      //main planets, kept for compatibility with pre-1.72 AI plists.
+      // main planets, kept for compatibility with pre-1.72 AI plists.
       return;
     case AEGIS_CLOSE_TO_ANY_PLANET: {
       Entity* nearest = findNearestStellarBody();

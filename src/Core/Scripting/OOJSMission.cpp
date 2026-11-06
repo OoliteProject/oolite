@@ -752,8 +752,8 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
       GetParameterBool(context, params, "spinModel", &spinning);
 
       //	[player
-      //showShipModel:oo::NSStringOrNil(cxx_OOStringFromJSValue(context,
-      //value))];
+      // showShipModel:oo::NSStringOrNil(cxx_OOStringFromJSValue(context,
+      // value))];
       demoShip = (UNIVERSE != nullptr ? UNIVERSE->makeDemoShipWithRole(
                                             role.value_or(""), spinning)
                                       : (::ShipEntity*)nullptr);
