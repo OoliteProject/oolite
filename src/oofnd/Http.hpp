@@ -4,17 +4,16 @@
    Foundation.
 
             OOOXZManager (Objective-C, gnustep-base 1.31)            oo::http
-            -------------------------------------------------------
-   ------------------------------------- [NSURL URLWithString:] +
-   NSMutableURLRequest             parseUrl(url) User-Agent header,
-   -setHTTPShouldHandleCookies:NO        Download(url, userAgent)
-            NSURLConnection -initWithRequest:delegate: Download(url, userAgent)
-            delegate callbacks, delivered by the run loop Download::nextEvent()
-   (main thread) -connection:didReceiveResponse: (expectedContentLength)
-   Event::Kind::response (expectedLength) -connection:didReceiveData:
-   Event::Kind::data (bytes) -connectionDidFinishLoading: Event::Kind::finished
-            -connection:didFailWithError: Event::Kind::failed (error)
-            -[NSURLConnection cancel] Download::cancel()
+            -------------------------------------------------------  -------------------------------------
+            [NSURL URLWithString:] + NSMutableURLRequest             parseUrl(url)
+            User-Agent header, -setHTTPShouldHandleCookies:NO        Download(url, userAgent)
+            NSURLConnection -initWithRequest:delegate:               Download(url, userAgent)
+            delegate callbacks, delivered by the run loop            Download::nextEvent() (main thread)
+            -connection:didReceiveResponse: (expectedContentLength)  Event::Kind::response (expectedLength)
+            -connection:didReceiveData:                              Event::Kind::data (bytes)
+            -connectionDidFinishLoading:                             Event::Kind::finished
+            -connection:didFailWithError:                            Event::Kind::failed (error)
+            -[NSURLConnection cancel]                                Download::cancel()
 
         Captured from gnustep-base 1.31.1 against a loopback server (throwaway
    probe; tests/unit/oofnd/test_http.cpp replays the same exchanges against its
