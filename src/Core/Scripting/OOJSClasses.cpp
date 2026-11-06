@@ -40,11 +40,11 @@ static JSClassID sSuperclasses[kOOJSMaxClassID];
         Ship properties are own properties, but its Entity properties are not
         (checked against SpiderMonkey with tools/js-parity).
 */
-typedef struct {
+using SharedPropertyTable = struct {
   JSAtom* atoms;
   JSAtom* sortedAtoms;
   uint32_t count;
-} SharedPropertyTable;
+};
 
 static SharedPropertyTable sSharedProperties[kOOJSMaxClassID];
 

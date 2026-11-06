@@ -80,11 +80,11 @@ enum {
 #endif
 };
 
-typedef struct {
+using CallbackEntry = struct {
   JSValue callback;  // Owned.
   uint32_t trackingID;
   uint32_t _padding;
-} CallbackEntry;
+};
 
 /*	SpiderMonkey needed each slot to be a GC root. With QuickJS, each
    occupied slot simply owns a reference to its callback, which is freed when
@@ -96,11 +96,11 @@ static CallbackEntry* sCallbacks;
 static NSUInteger sCount;  // Number of slots in use.
 static NSUInteger sSpace;  // Number of slots allocated.
 // A deferred add or remove.
-typedef struct {
+using DeferredOperation = struct {
   std::string operation;  // "add" or "remove"
   uint32_t trackingID;
   oo::Ref<OOJSValue> value;  // the callback, for "add"
-} DeferredOperation;
+};
 
 namespace {
 static std::vector<DeferredOperation>*

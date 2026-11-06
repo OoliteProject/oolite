@@ -62,9 +62,9 @@ SOFTWARE.
    contour must not change, or be destroyed, until its polygon has ended (the
    boxes used to live in the autorelease pool until -loadPolygons: returned).
 */
-typedef std::vector<NSPoint> OOPolygonContour;
+using OOPolygonContour = std::vector<NSPoint>;
 
-typedef struct {
+using TessPolygonData = struct {
   GLfloat* data;
   size_t count;     // Number of vertices in use, i.e. half of number of data
                     // elements used.
@@ -83,7 +83,7 @@ typedef struct {
   std::string name;
   std::optional<std::string> debugSVG;  // nullopt: not dumping
 #endif
-} TessPolygonData;
+};
 
 namespace {
 std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data,
@@ -149,7 +149,7 @@ static void APIENTRY TessEndCallback(void* polygonData);
 static void APIENTRY ErrorCallback(GLenum error, void* polygonData);
 
 // this is needed to maintain compatibility with GCC 14+
-typedef GLvoid (*TessFuncPtr)();
+using TessFuncPtr = GLvoid (*)();
 
 // Null where -initWithDataArray:outlineWidth:name: released itself and answered
 // nil.

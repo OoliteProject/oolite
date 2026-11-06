@@ -55,9 +55,9 @@ MA 02110-1301, USA.
         static const object).
 */
 
-typedef enum { kStateFalse = false, kStateTrue = true, kStateMaybe } StateFlag;
+using StateFlag = enum { kStateFalse = false, kStateTrue = true, kStateMaybe };
 
-typedef struct {
+using OOOpenGLState = struct {
   const char* name;
 
 #define ITEM_STATEFLAG(NAME) StateFlag NAME
@@ -76,7 +76,7 @@ typedef struct {
 #undef ITEM_CLIENTSTATEFLAG
 #undef ITEM_SPECIAL
 #undef ITEM_INT
-} OOOpenGLState;
+};
 
 // The state definitions.
 static const OOOpenGLState kStandardStates[OPENGL_STATE_INTERNAL_USE_ONLY + 1] =

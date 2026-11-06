@@ -128,7 +128,7 @@ const char* const kUnknownTypeErrorKey =
 const char* const kUndefinedMacroErrorKey =
     "org.aegidian.oolite.OOPListSchemaVerifier undefined macro";
 
-typedef enum {
+using SchemaType = enum {
   kTypeUnknown,
   kTypeString,
   kTypeArray,
@@ -144,7 +144,7 @@ typedef enum {
   kTypeVector,
   kTypeQuaternion,
   kTypeDelegatedType
-} SchemaType;
+};
 
 /*	The key path the verification core hands down, one link per level (a
    dictionary key, an array index, or neither for the root).
@@ -178,7 +178,7 @@ OOINLINE BackLinkChain BackLinkRoot() {
 
 namespace {
 
-typedef bool (*StringTest)(const std::string& string, const std::string& test);
+using StringTest = bool (*)(const std::string& string, const std::string& test);
 
 SchemaType StringToSchemaType(
     const std::string& string,

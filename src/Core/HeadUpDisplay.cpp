@@ -81,7 +81,7 @@ struct CachedInfo {
 };
 
 // A dial: a member called by name with its hud.plist entry.
-typedef void (HeadUpDisplay::*OOHUDDial)(const oo::PList& info);
+using OOHUDDial = void (HeadUpDisplay::*)(const oo::PList& info);
 
 /*	One legend, dial or MFD. Was an array tuple [info, boxed CachedInfo,
    boxed SEL, selector name]; the widget lists are std::vectors

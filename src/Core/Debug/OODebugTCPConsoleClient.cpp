@@ -153,8 +153,8 @@ std::optional<std::string> SocketErrorDescription(int error) {
   return result;
 }
 #else
-typedef int OOSocket;
-typedef socklen_t OOSocketLength;
+using OOSocket = int;
+using OOSocketLength = socklen_t;
 int LastSocketError() { return errno; }
 bool ErrorIsWouldBlock(int error) {
   return error == EWOULDBLOCK || error == EAGAIN;

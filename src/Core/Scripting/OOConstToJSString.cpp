@@ -47,16 +47,16 @@ MA 02110-1301, USA.
         -- Ahruman 2011-01-15
 */
 
-typedef struct {
+using TableEntry = struct {
   NSInteger value;
   const char* cString;
   JSAtom atom;
-} TableEntry;
+};
 
-typedef struct ConstTable {
+using ConstTable = struct ConstTable {
   NSUInteger count;
   TableEntry* entries;
-} ConstTable;
+};
 
 #define TABLE(entries) {sizeof entries / sizeof *entries, entries}
 
