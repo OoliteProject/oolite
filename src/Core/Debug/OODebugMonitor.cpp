@@ -267,7 +267,7 @@ void OODebugMonitor::setConfigurationValue(const oo::PList& value,
                                            const std::string& key) {
   if (key.empty()) return;
 
-  const std::string keyString = key;
+  const std::string& keyString = key;
   const oo::PList normalized = normalizeConfigValue(value, keyString);
 
   if (!_configOverrides.isDict())
@@ -610,7 +610,7 @@ bool OODebugMonitor::usingPlugInController() { return _usingPlugInController; }
 
 std::string OODebugMonitor::sourceCodeForFile(const std::string& filePath,
                                               unsigned line) {
-  const std::string path = filePath;
+  const std::string& path = filePath;
   auto cached = _sourceFiles.find(path);
 
   if (cached == _sourceFiles.end()) {
