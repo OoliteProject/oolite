@@ -581,8 +581,8 @@ oo::PList PlayerEntity::processKeyCode(const oo::PList& key_def) {
     }
 
     //	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those
-    //as strings - not numbers 	alphabetical characters and symbols will return
-    //an intValue of 0.
+    // as strings - not numbers 	alphabetical characters and symbols will
+    // return an intValue of 0.
 
     if (value != nullptr && value->isString() && (iValue < 10)) {
       const std::string& keystring = *value->getIf<std::string>();

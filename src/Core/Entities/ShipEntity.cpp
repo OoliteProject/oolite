@@ -1738,7 +1738,7 @@ void ShipEntity::wasAddedToUniverse() {
   }
 
   //	Tell subentities, too (last to first, as -makeObjectsPerformSelector:
-  //went)
+  // went)
   const std::vector<oo::EntityHold> subs = subEntities;
   for (auto sub = subs.rbegin(); sub != subs.rend(); ++sub) {
     if (sub->get() != nullptr) sub->get()->wasAddedToUniverse();
@@ -3480,8 +3480,8 @@ OOWeaponType ShipEntity::weaponTypeIDForFacing(OOWeaponFacing facing,
 ::OOEquipmentType* ShipEntity::weaponTypeForFacing(OOWeaponFacing facing,
                                                    bool strict) {
   //	OOWeaponType weaponType = [self weaponTypeIDForFacing:facing
-  //strict:strict]; 	return [OOEquipmentType
-  //equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
+  // strict:strict]; 	return [OOEquipmentType
+  // equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
   return weaponTypeIDForFacing(facing, strict);
 }
 
@@ -6739,7 +6739,7 @@ void ShipEntity::resumePostProximityAlert() {
   _proximityAlert = nullptr;
 
   //[shipAI message:@"RESTART_DOCKING"];	// if docking, start over, other
-  //AIs will ignore this message
+  // AIs will ignore this message
 }
 
 double ShipEntity::getMessageTime() { return messageTime; }
@@ -7469,7 +7469,7 @@ OOAegisStatus ShipEntity::checkForAegis() {
           // It's been years since 1.71 - it should be safe enough to comment
           // out the line below for 1.77/1.78 -- Kaks 20120917
           //[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	    // fires only for
-          //main planets, kept for compatibility with pre-1.72 AI plists.
+          // main planets, kept for compatibility with pre-1.72 AI plists.
           if (shipAI != nullptr)
             shipAI->message(
                 "AEGIS_CLOSE_TO_MAIN_PLANET");  // fires only for main planet.
@@ -8225,7 +8225,7 @@ void ShipEntity::dealEnergyDamage(GLfloat baseDamage, GLfloat range,
         // but might be negative for other nearby ships which are
         // actually moving further away from the missile
         //				double vMag = vSign > 0.0 ?
-        //magnitude(v2) : -magnitude(v2);
+        // magnitude(v2) : -magnitude(v2);
         double vMag = vSign * magnitude(v2);
         if (vMag > 1000.0) {
           vMag = 1000.0;
@@ -10533,7 +10533,7 @@ GLfloat ShipEntity::currentAimTolerance() {
         // looking towards sun can seriously mess up aim (glareLevel 0..1)
         basic_aim *= (1.0 + glareLevel * 3.0);
         //				OO_LOG("aim.debug", "Sun glare affecting
-        //aim: {:f} for {}", glareLevel, oo::DescriptionOf(self));
+        // aim: {:f} for {}", glareLevel, oo::DescriptionOf(self));
         if (glareLevel > 0.5f) {
           // strong glare makes precise targeting impossible
           best_cos = 0.99999;

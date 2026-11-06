@@ -115,7 +115,7 @@ void OOFlasherEntity::update(OOTimeDelta delta_t) {
         _justSwitched = true;
         ++_activeColor;
         _activeColor %= count;  //_activeColor = ++_activeColor % count; is
-                                //potentially undefined operation
+                                // potentially undefined operation
         setColor(flasherColorAtIndex(_activeColor));
       }
     } else if (_justSwitched) {

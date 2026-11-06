@@ -1520,7 +1520,7 @@ class ShipEntity : public OOEntityWithDrawable,
 
  private:
   oo::WeakRef<Entity> _subEntityTakingDamage;  //	frangible => subEntities
-                                               //can be damaged individually
+                                               // can be damaged individually
 
   std::optional<std::string> _shipKey;  // nullopt: nil
 

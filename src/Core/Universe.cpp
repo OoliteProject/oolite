@@ -248,7 +248,7 @@ bool BeaconCodeMatches(const std::optional<std::string>& beaconCode,
 
 //------------------------------------------------------------------------------------//
 //	The class: Universe's members. Construction is newUniverse() and
-//teardown the 	destructor.
+// teardown the 	destructor.
 
 Universe::Universe() {}
 
@@ -2155,7 +2155,7 @@ void Universe::populateNormalSpace() {
 
   OO_DEBUG_PUSH_PROGRESS("setUpSpace - populate from hyperpoint");
   //	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition:
-  //a_planet->position andSunPosition: a_sun->position];
+  // a_planet->position andSunPosition: a_sun->position];
   clearSystemPopulator();
 
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
@@ -3605,9 +3605,10 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
   oo::Ref<OOColor> col2 =
       OOColor::colorWithRed(0.0, 0.0, 1.0, 0.25);  // standard tunnel colour
 
-  colorDesc = PListForKeyIn(
-      globalSettings, "hyperspace_tunnel_color_1");  // +cxx_colorWithDescription:
-                                                     // takes any description
+  colorDesc =
+      PListForKeyIn(globalSettings,
+                    "hyperspace_tunnel_color_1");  // +cxx_colorWithDescription:
+                                                   // takes any description
   if (!colorDesc.isNull()) {
     color = OOColor::colorWithDescription(colorDesc);
     if (color != nullptr)
@@ -3825,7 +3826,7 @@ void Universe::setupIntroFirstGo(bool justCobra) {
 
   if (!justCobra) {
     //		[gui setText:[demo_ship displayName] forRow:19
-    //align:GUI_ALIGN_CENTER];
+    // align:GUI_ALIGN_CENTER];
     setLibraryTextForDemoShip();
   }
 
@@ -7504,8 +7505,8 @@ void Universe::update(OOTimeDelta inDeltaT) {
                     if (demo_ship != nullptr)
                       demo_ship->setScanClass(CLASS_NO_DRAW);
                     //										[gui
-                    //setText:shipName != nil ? shipName : [demo_ship
-                    //displayName] forRow:19 align:GUI_ALIGN_CENTER];
+                    // setText:shipName != nil ? shipName : [demo_ship
+                    // displayName] forRow:19 align:GUI_ALIGN_CENTER];
 
                     setLibraryTextForDemoShip();
 
