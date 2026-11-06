@@ -133,7 +133,7 @@ void InitOOJSMission(JSContext* context, JSValueConst global) {
       OOJSInitClass(context, global, sMissionClassID, JS_UNDEFINED,
                     OOJSUnconstructableConstruct, 0, sMissionProperties,
                     OOJS_COUNT(sMissionProperties), sMissionMethods,
-                    OOJS_COUNT(sMissionMethods), NULL, 0);
+                    OOJS_COUNT(sMissionMethods), nullptr, 0);
   JSValue missionObject =
       JS_NewObjectProtoClass(context, missionPrototype, sMissionClassID);
   sMissionObject = missionObject;

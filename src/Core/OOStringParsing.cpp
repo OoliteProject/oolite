@@ -43,7 +43,7 @@ bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
   int i = 0;
   const char* error = nullptr;
 
-  assert(outVector != NULL);
+  assert(outVector != nullptr);
   if (!xyzString.has_value()) return false;
 
   oo::str::Scanner scanner(*xyzString);
@@ -66,7 +66,7 @@ bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
 bool cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString,
                                 HPVector* outVector) {
   Vector scanVector;
-  assert(outVector != NULL);
+  assert(outVector != nullptr);
   bool result = cxx_ScanVectorFromString(xyzString, &scanVector);
   if (!result) {
     return false;
@@ -81,7 +81,7 @@ bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
   int i = 0;
   const char* error = nullptr;
 
-  assert(outQuaternion != NULL);
+  assert(outQuaternion != nullptr);
   if (!wxyzString.has_value()) return false;
 
   oo::str::Scanner scanner(*wxyzString);
@@ -112,7 +112,7 @@ bool cxx_ScanVectorAndQuaternionFromString(
   int i = 0;
   const char* error = nullptr;
 
-  assert(outVector != NULL && outQuaternion != NULL);
+  assert(outVector != nullptr && outQuaternion != nullptr);
   if (!xyzwxyzString.has_value()) return false;
 
   oo::str::Scanner scanner(*xyzwxyzString);

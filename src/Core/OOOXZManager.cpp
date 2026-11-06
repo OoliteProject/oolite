@@ -2375,9 +2375,9 @@ std::string OOOXZManager::extractOXZ(NSUInteger item) {
     return extractionLog;
   }
   const char* zipname = oxzfile->c_str();
-  unzFile uf = NULL;
+  unzFile uf = nullptr;
   uf = unzOpen64(zipname);
-  if (uf == NULL) {
+  if (uf == nullptr) {
     OO_LOG("oxz.manager.error", "Could not open .oxz at {} as zip file",
            path.value_or("(null)"));
     extractionLog += OO_DESC("oolite-oxzmanager-extract-log-bad-original");
@@ -2408,8 +2408,8 @@ std::string OOOXZManager::extractOXZ(NSUInteger item) {
   unz_file_info64 file_info = {};
   if (unzGoToFirstFile(uf) == UNZ_OK) {
     do {
-      unzGetCurrentFileInfo64(uf, &file_info, rawComponentName, 512, NULL, 0,
-                              NULL, 0);
+      unzGetCurrentFileInfo64(uf, &file_info, rawComponentName, 512, nullptr, 0,
+                              nullptr, 0);
       const std::string componentName = rawComponentName;
       if (oo::str::hasSuffix(componentName, "/")) {
         const std::string folderPath =
@@ -2482,15 +2482,15 @@ void OOOXZManager::downloadDidReceiveResponse(long long expectedContentLength) {
   OO_LOG("oxz.manager.debug", "{}", "Download receiving");
   _downloadExpected = expectedContentLength;
   _downloadProgress = 0;
-  if (_fileWriter != NULL) {
+  if (_fileWriter != nullptr) {
     fclose(_fileWriter);
-    _fileWriter = NULL;
+    _fileWriter = nullptr;
   }
   const std::optional<std::string> path = downloadPath();
   _fileWriter = path.has_value()
                     ? oo::fs::createFileForWriting(oo::fs::pathFromUTF8(*path))
-                    : NULL;
-  if (_fileWriter == NULL) {
+                    : nullptr;
+  if (_fileWriter == nullptr) {
     // file system is full or read-only or something
     OO_LOG("oxz.manager.error", "{}", "Unable to create download file");
     cancelUpdate();
@@ -2499,7 +2499,7 @@ void OOOXZManager::downloadDidReceiveResponse(long long expectedContentLength) {
 
 void OOOXZManager::downloadDidReceiveData(const std::string& data) {
   OO_LOG("oxz.manager.debug", "Downloaded {} bytes", data.size());
-  if (_fileWriter != NULL) {
+  if (_fileWriter != nullptr) {
     fwrite(data.data(), 1, data.size(), _fileWriter);
   }
   _downloadProgress += data.size();
@@ -2533,10 +2533,10 @@ void OOOXZManager::downloadDidReceiveData(const std::string& data) {
 void OOOXZManager::downloadDidFinishLoading() {
   _downloadStatus = OXZ_DOWNLOAD_COMPLETE;
   OO_LOG("oxz.manager.debug", "{}", "Download complete");
-  if (_fileWriter != NULL) {
+  if (_fileWriter != nullptr) {
     oo::fs::synchronizeFile(_fileWriter);
     fclose(_fileWriter);
-    _fileWriter = NULL;
+    _fileWriter = nullptr;
   }
   delete _currentDownload;
   _currentDownload = nullptr;
@@ -2560,9 +2560,9 @@ void OOOXZManager::downloadDidFinishLoading() {
 void OOOXZManager::downloadDidFailWithError(const std::string& error) {
   _downloadStatus = OXZ_DOWNLOAD_ERROR;
   OO_LOG("oxz.manager.error", "Error downloading file: {}", error);
-  if (_fileWriter != NULL) {
+  if (_fileWriter != nullptr) {
     fclose(_fileWriter);
-    _fileWriter = NULL;
+    _fileWriter = nullptr;
   }
   delete _currentDownload;
   _currentDownload = nullptr;

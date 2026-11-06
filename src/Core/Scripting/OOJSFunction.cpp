@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 
 oo::Ref<OOJSFunction> OOJSFunction::initWithFunction(JSValueConst function,
                                                      JSContext* context) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   if (!JS_IsFunction(context, function)) {
     return nullptr;
@@ -81,7 +81,7 @@ oo::Ref<OOJSFunction> OOJSFunction::initWithName(
   JSValue function = JS_UNDEFINED;
   oo::Ref<OOJSFunction> result;
 
-  if (context == NULL) {
+  if (context == nullptr) {
     context = OOJSAcquireContext();
     releaseContext = true;
   }
@@ -93,7 +93,7 @@ oo::Ref<OOJSFunction> OOJSFunction::initWithName(
   */
   (void)scope;
 
-  if (!code.has_value() || (argCount > 0 && argNames == NULL)) OK = false;
+  if (!code.has_value() || (argCount > 0 && argNames == nullptr)) OK = false;
 
   if (OK) {
     assert(argCount < INT_MAX && lineNumber < INT_MAX);
@@ -186,7 +186,7 @@ JSValue OOJSFunction::functionValue() {
 bool OOJSFunction::evaluateWithContext(JSContext* context, JSValueConst jsThis,
                                        int argc, JSValueConst* argv,
                                        JSValue* result) {
-  OOCParameterAssert(result != NULL);
+  OOCParameterAssert(result != nullptr);
 
   if (EXPECT_NOT(!isValid())) {
     *result = JS_UNDEFINED;

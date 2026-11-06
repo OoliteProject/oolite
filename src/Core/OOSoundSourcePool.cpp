@@ -60,7 +60,7 @@ bool OOSoundSourcePool::initWithCount(uint8_t count, OOTimeDelta minRepeat) {
 
     // Create source pool
     _sources = (PoolElement*)calloc(sizeof(PoolElement), count);
-    if (_sources == NULL) {
+    if (_sources == nullptr) {
       return false;
     }
   }
@@ -84,8 +84,8 @@ void OOSoundSourcePool::playSoundWithKey(const std::string& key, float priority,
                                          Vector position) {
   uint8_t slot;
   OOTimeAbsolute now, absExpiryTime;
-  PoolElement* element = NULL;
-  ::OOSound* sound = NULL;
+  PoolElement* element = nullptr;
+  ::OOSound* sound = nullptr;
 
   // Convert expiry time to absolute
   now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
@@ -169,7 +169,7 @@ void OOSoundSourcePool::playSoundWithKey(const std::string& key, bool overlap,
 uint8_t OOSoundSourcePool::selectSlotForPriority(float priority) {
   uint8_t curr, count, expiredLower = kNoSlot, unexpiredLower = kNoSlot,
                        expiredEqual = kNoSlot;
-  PoolElement* element = NULL;
+  PoolElement* element = nullptr;
   OOTimeAbsolute now = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
 
 #define NEXT(x) (((x) + 1) % _count)

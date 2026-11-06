@@ -76,7 +76,7 @@ std::optional<std::string> IndexToKey(NSUInteger index,
 
 long long KeyToIndex(const std::string& key, KeysToIndices& ioKeysToIndices,
                      UsedIndices& ioUsedIndicies, NSUInteger* ioSlotCache) {
-  assert(ioSlotCache != NULL);
+  assert(ioSlotCache != nullptr);
 
   const auto found = ioKeysToIndices.find(key);
   if (found != ioKeysToIndices.end()) return found->second;

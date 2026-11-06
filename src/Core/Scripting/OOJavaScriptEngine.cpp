@@ -99,7 +99,7 @@ static OOJavaScriptEngine* sSharedEngine =
 
 static unsigned sErrorHandlerStackSkip = 0;
 
-JSContext* gOOJSMainThreadContext = NULL;
+JSContext* gOOJSMainThreadContext = nullptr;
 
 static JSValue sLegacyConstRewriter = JS_UNDEFINED;
 
@@ -153,7 +153,7 @@ void OOJavaScriptEngine::init() {
 #endif
 
   _runtime = JS_NewRuntime();
-  if (_runtime == NULL) {
+  if (_runtime == nullptr) {
     OO_LOG("script.javaScript.init.error", "{}",
            "***** FATAL ERROR: failed to create JavaScript runtime.");
     exit(1);
@@ -165,18 +165,18 @@ void OOJavaScriptEngine::init() {
                               OOJS_RUNTIME_SIZE_MiB));
   JS_SetMemoryLimit(_runtime, jsRuntimeInMiB * 1024L * 1024L);
   JS_SetMaxStackSize(_runtime, OOJS_STACK_SIZE);
-  JS_SetInterruptHandler(_runtime, InterruptHandler, NULL);
+  JS_SetInterruptHandler(_runtime, InterruptHandler, nullptr);
 
   createMainThreadContext();
 }
 
 void OOJavaScriptEngine::createMainThreadContext() {
-  OOCAssert(gOOJSMainThreadContext == NULL,
+  OOCAssert(gOOJSMainThreadContext == nullptr,
             "-[OOJavaScriptEngine createMainThreadContext] called while the "
             "main thread context exists.");
 
   gOOJSMainThreadContext = JS_NewContext(_runtime);
-  if (gOOJSMainThreadContext == NULL) {
+  if (gOOJSMainThreadContext == nullptr) {
     OO_LOG("script.javaScript.init.error", "{}",
            "***** FATAL ERROR: failed to create JavaScript context.");
     exit(1);
@@ -244,7 +244,7 @@ void OOJavaScriptEngine::createMainThreadContext() {
 }
 
 void OOJavaScriptEngine::destroyMainThreadContext() {
-  if (gOOJSMainThreadContext != NULL) {
+  if (gOOJSMainThreadContext != nullptr) {
     OOConstToJSStringDestroy();
 
     JS_FreeValue(_context, sLegacyConstRewriter);
@@ -254,8 +254,8 @@ void OOJavaScriptEngine::destroyMainThreadContext() {
     _globalObject = JS_UNDEFINED;
 
     JS_FreeContext(_context);
-    _context = NULL;
-    gOOJSMainThreadContext = NULL;
+    _context = nullptr;
+    gOOJSMainThreadContext = nullptr;
 
     JS_RunGC(_runtime);
 
@@ -282,7 +282,7 @@ void OOJavaScriptEngine::destroyMainThreadContext() {
 }
 
 bool OOJavaScriptEngine::reset() {
-  OOCAssert(gOOJSMainThreadContext != NULL,
+  OOCAssert(gOOJSMainThreadContext != nullptr,
             "JavaScript engine not active. Can't reset.");
 
   OOJSFrameCallbacksRemoveAll();
@@ -305,7 +305,7 @@ bool OOJavaScriptEngine::reset() {
 // YES if JavaScript code is on the stack (e.g. quitGame() called from a
 // script).
 static bool IsRunningJavaScript(JSContext* context) {
-  if (context == NULL) return false;
+  if (context == nullptr) return false;
   for (int level = 0; level < 16; level++) {
     JSAtom name = JS_GetScriptOrModuleName(context, level);
     if (name != JS_ATOM_NULL) {
@@ -317,7 +317,7 @@ static bool IsRunningJavaScript(JSContext* context) {
 }
 
 NSUInteger OOJavaScriptEngine::shutDown() {
-  if (_runtime == NULL) return 0;
+  if (_runtime == nullptr) return 0;
 
   /*	The game can quit from inside a script (quitGame()). The frames on the
           stack then legitimately hold JS values, and a function keeps its whole
@@ -348,12 +348,12 @@ NSUInteger OOJavaScriptEngine::shutDown() {
            "something is holding a JSValue it does not own, or has not freed "
            "one it does.",
            static_cast<long long>(usage.obj_count));
-    _runtime = NULL;
+    _runtime = nullptr;
     return (NSUInteger)usage.obj_count;
   }
 
   JS_FreeRuntime(_runtime);
-  _runtime = NULL;
+  _runtime = nullptr;
   OO_LOG("script.javaScript.shutDown", "{}",
          "JavaScript runtime shut down with no leaked objects.");
   return 0;
@@ -380,11 +380,11 @@ bool OOJavaScriptEngine::callJSFunction(JSValueConst function,
 
   if (JS_IsException(result)) {
     OOJSReportPendingException(_context);
-    if (outResult != NULL) *outResult = JS_UNDEFINED;
+    if (outResult != nullptr) *outResult = JS_UNDEFINED;
     return false;
   }
 
-  if (outResult != NULL)
+  if (outResult != nullptr)
     *outResult = result;
   else
     JS_FreeValue(_context, result);
@@ -1046,8 +1046,8 @@ bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc,
                                       int* outConsumed) {
   double value;
 
-  OOCParameterAssert(context != NULL && (argv != NULL || argc == 0) &&
-                     outNumber != NULL);
+  OOCParameterAssert(context != nullptr && (argv != nullptr || argc == 0) &&
+                     outNumber != nullptr);
 
   // Get value, if possible.
   if (EXPECT_NOT(argc < 1 || JS_ToFloat64(context, &value, argv[0]) < 0 ||
@@ -1056,13 +1056,13 @@ bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc,
     // exception pending.
     if (JS_HasException(context))
       JS_FreeValue(context, JS_GetException(context));
-    if (outConsumed != NULL) *outConsumed = 0;
+    if (outConsumed != nullptr) *outConsumed = 0;
     return false;
   }
 
   // Success.
   *outNumber = value;
-  if (outConsumed != NULL) *outConsumed = 1;
+  if (outConsumed != nullptr) *outConsumed = 1;
   return true;
 }
 
@@ -1071,7 +1071,7 @@ bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc,
 //===========================================================================
 
 JSAtom OOJSInternAtomPRIVATE(const char* name) {
-  OOCParameterAssert(name != NULL && name[0] != '\0');
+  OOCParameterAssert(name != nullptr && name[0] != '\0');
 
   JSAtom atom = JS_NewAtom(OOJSAcquireContext(), name);
   if (EXPECT_NOT(atom == JS_ATOM_NULL)) {
@@ -1262,7 +1262,7 @@ oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value,
 }
 
 void OOJSValue::initWithJSValue(JSValueConst value, JSContext* context) {
-  if (context == NULL) context = OOJSAcquireContext();
+  if (context == nullptr) context = OOJSAcquireContext();
 
   _val = JS_DupValue(context, value);
   if (!JS_IsUndefined(_val)) {
@@ -1308,7 +1308,7 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(
   size_t length;
   const char* chars = JS_ToCStringLen(
       context, &length, value);  // Calls the value's toString method if needed.
-  if (chars == NULL) {
+  if (chars == nullptr) {
     JS_FreeValue(context, JS_GetException(context));
     return std::nullopt;
   }
@@ -1330,7 +1330,7 @@ std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value) {
   if (!JS_IsObject(value)) return "primitive";
 
   const char* registered = OOJSClassName(JS_GetClassID(value));
-  if (registered != NULL) return registered;
+  if (registered != nullptr) return registered;
 
   JSValue ctor = JS_GetPropertyStr(context, value, "constructor");
   if (JS_IsException(ctor)) {
@@ -1438,7 +1438,7 @@ std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value,
 
 std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(
     JSValueConst* params, int count, JSContext* context) {
-  if (params == NULL && count != 0) return std::nullopt;
+  if (params == nullptr && count != 0) return std::nullopt;
 
   int i;
   std::string result = "(";
@@ -1459,7 +1459,7 @@ std::optional<std::string> cxx_OOJSConcatenationOfStringsFromJavaScriptValues(
   std::optional<std::string> result;
 
   if (count < 1) return std::nullopt;
-  if (values == NULL) return std::nullopt;
+  if (values == nullptr) return std::nullopt;
 
   for (i = 0; i != count; ++i) {
     std::optional<std::string> element =
@@ -1584,7 +1584,7 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj,
   std::optional<std::string> description;
 
   const char* className = OOJSClassName(JS_GetClassID(thisObj));
-  if (className != NULL) {
+  if (className != nullptr) {
     description = oo::str::format("[object %s]", className);
   }
   if (!description.has_value()) description = std::string("[object]");
@@ -1603,8 +1603,8 @@ bool JSFunctionPredicate(Entity* entity, void* parameter) {
       (JSFunctionPredicateParameter*)parameter;
   bool result = false;
 
-  OOCParameterAssert(entity != nullptr && param != NULL);
-  OOCParameterAssert(param->context != NULL);
+  OOCParameterAssert(entity != nullptr && param != nullptr);
+  OOCParameterAssert(param->context != nullptr);
   OOCParameterAssert(OOJSValueIsFunction(param->context, param->function));
 
   if (EXPECT_NOT(param->errorFlag)) return false;
@@ -1713,7 +1713,7 @@ oo::PList OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value) {
 
 oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context,
                                          JSValueConst object) {
-  JSPropertyEnum* properties = NULL;
+  JSPropertyEnum* properties = nullptr;
   uint32_t i, count;
   oo::PList::Dict result;
 
@@ -1748,7 +1748,7 @@ oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context,
 
 oo::PList OOJSDictionaryFromStringTable(JSContext* context,
                                         JSValueConst tableValue) {
-  JSPropertyEnum* properties = NULL;
+  JSPropertyEnum* properties = nullptr;
   uint32_t i, count;
   oo::PList::Dict result;
 
@@ -1846,8 +1846,8 @@ oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object) {
 
   JSClassID classID = JS_GetClassID(object);
   OOJSClassConverterCallback converter =
-      (classID < kOOJSMaxClassID) ? sObjectConverters[classID] : NULL;
-  if (converter == NULL) return oo::PList();
+      (classID < kOOJSMaxClassID) ? sObjectConverters[classID] : nullptr;
+  if (converter == nullptr) return oo::PList();
 
   // The engine's own converters build the PList; a private-object converter
   // gives an Object node.

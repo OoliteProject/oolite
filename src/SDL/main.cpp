@@ -181,9 +181,9 @@ int main(int argc, char* argv[]) {
   uint32_t resultSize = sizeof(result);
   char resolved[PATH_MAX];
   if (_NSGetExecutablePath(result, &resultSize) == 0 &&
-      realpath(result, resolved) != NULL) {
+      realpath(result, resolved) != nullptr) {
     char* last_slash = strrchr(resolved, '/');
-    if (last_slash != NULL) {
+    if (last_slash != nullptr) {
       *last_slash = '\0';
     }
     if (chdir(resolved) != 0) {

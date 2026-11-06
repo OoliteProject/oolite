@@ -705,12 +705,12 @@ bool OOSunEntity::changeSunProperty(const std::string& key,
 OOStellarBodyType OOSunEntity::planetType() { return STELLAR_TYPE_SUN; }
 
 void OOSunEntity::getDiffuseComponents(GLfloat components[4]) {
-  OOCParameterAssert(components != NULL);
+  OOCParameterAssert(components != nullptr);
   memcpy(components, sun_diffuse, sizeof sun_diffuse);
 }
 
 void OOSunEntity::getSpecularComponents(GLfloat components[4]) {
-  OOCParameterAssert(components != NULL);
+  OOCParameterAssert(components != nullptr);
   memcpy(components, sun_specular, sizeof sun_specular);
 }
 

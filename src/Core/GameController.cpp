@@ -175,7 +175,7 @@ void FireOneDueDeferredCall(void) {
       sDeferredCalls.erase(it);
 
       // The call and its handler.
-      const char *exceptionName = NULL, *exceptionReason = NULL;
+      const char *exceptionName = nullptr, *exceptionReason = nullptr;
       if (!DeferredCallRunCatching(*call.call, &exceptionName,
                                    &exceptionReason)) {
         LogDeferredCallException(exceptionName, exceptionReason, call.call);
@@ -237,8 +237,8 @@ GameController::GameController() {
     // Downstream component tests depend on it.
     // Unset to keep wall-clock seeding.
     const char* seedEnv = getenv("OO_RANDOM_SEED");
-    if (seedEnv != NULL && *seedEnv != '\0') {
-      ranrot_srand((uint32_t)strtoul(seedEnv, NULL, 10));
+    if (seedEnv != nullptr && *seedEnv != '\0') {
+      ranrot_srand((uint32_t)strtoul(seedEnv, nullptr, 10));
       OO_LOG("rand.seed", "RANROT seeded from OO_RANDOM_SEED={}", seedEnv);
     } else {
       ranrot_srand(

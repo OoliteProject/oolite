@@ -87,7 +87,7 @@ void InitOOJSSun(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sSunClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sSunProperties,
                 OOJS_COUNT(sSunProperties), sSunMethods,
-                OOJS_COUNT(sSunMethods), NULL, 0);
+                OOJS_COUNT(sSunMethods), nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sSunClassID, OOJSEntityObjectConverter);

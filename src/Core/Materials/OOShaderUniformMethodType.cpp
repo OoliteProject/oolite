@@ -58,11 +58,11 @@ OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode) {
   unsigned i;
 
   if (EXPECT_NOT(sInited == false)) InitTemplates();
-  if (EXPECT_NOT(typeCode == NULL)) return kOOShaderUniformTypeInvalid;
+  if (EXPECT_NOT(typeCode == nullptr)) return kOOShaderUniformTypeInvalid;
 
   for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount;
        ++i) {
-    if (sTemplates[i] != NULL && strcmp(sTemplates[i], typeCode) == 0)
+    if (sTemplates[i] != nullptr && strcmp(sTemplates[i], typeCode) == 0)
       return (OOShaderUniformType)i;
   }
   return kOOShaderUniformTypeInvalid;

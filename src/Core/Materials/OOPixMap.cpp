@@ -31,7 +31,7 @@ SOFTWARE.
 
 #include "oofnd/String.hpp"
 
-const OOPixMap kOONullPixMap = {.pixels = NULL,
+const OOPixMap kOONullPixMap = {.pixels = nullptr,
                                 .width = 0,
                                 .height = 0,
                                 .format = kOOPixMapInvalidFormat,
@@ -39,7 +39,7 @@ const OOPixMap kOONullPixMap = {.pixels = NULL,
                                 .bufferSize = 0};
 
 bool OOIsValidPixMap(OOPixMap pixMap) {
-  return pixMap.pixels != NULL && pixMap.width > 0 && pixMap.height > 0 &&
+  return pixMap.pixels != nullptr && pixMap.width > 0 && pixMap.height > 0 &&
          OOIsValidPixMapFormat(pixMap.format) &&
          pixMap.rowBytes >=
              pixMap.width * OOPixMapBytesPerPixelForFormat(pixMap.format) &&
@@ -74,13 +74,13 @@ OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
   if (EXPECT_NOT(!OOIsValidPixMap(pixMap))) return kOONullPixMap;
 
   pixMap.pixels = malloc(pixMap.bufferSize);
-  if (EXPECT_NOT(pixMap.pixels == NULL)) return kOONullPixMap;
+  if (EXPECT_NOT(pixMap.pixels == nullptr)) return kOONullPixMap;
 
   return pixMap;
 }
 
 void OOFreePixMap(OOPixMap* ioPixMap) {
-  if (EXPECT_NOT(ioPixMap == NULL)) return;
+  if (EXPECT_NOT(ioPixMap == nullptr)) return;
 
   free(ioPixMap->pixels);
   *ioPixMap = kOONullPixMap;
@@ -102,12 +102,13 @@ OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize) {
 }
 
 bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize) {
-  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (EXPECT_NOT(ioPixMap == nullptr || !OOIsValidPixMap(*ioPixMap)))
+    return false;
   if (desiredSize == ioPixMap->bufferSize) return true;
   if (desiredSize < OOMinimumPixMapBufferSize(*ioPixMap)) return false;
 
   void* newPixels = realloc(ioPixMap->pixels, desiredSize);
-  if (newPixels != NULL) {
+  if (newPixels != nullptr) {
     ioPixMap->pixels = newPixels;
     ioPixMap->bufferSize = desiredSize;
     return true;
@@ -117,7 +118,8 @@ bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize) {
 }
 
 bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize) {
-  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (EXPECT_NOT(ioPixMap == nullptr || !OOIsValidPixMap(*ioPixMap)))
+    return false;
   if (desiredSize <= ioPixMap->bufferSize) return true;
 
   return OOResizePixMap(ioPixMap, desiredSize);

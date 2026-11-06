@@ -294,7 +294,7 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 OOShaderMaterial::~OOShaderMaterial() {
   uint32_t i;
 
-  if (textures != NULL) {
+  if (textures != nullptr) {
     for (i = 0; i != texCount; ++i) {
       oo::release(textures[i]);
     }
@@ -329,7 +329,7 @@ bool OOShaderMaterial::bindSafeUniform(
   // none.
   const char* propertyName = property.has_value() ? property->c_str() : nullptr;
 
-  if (propertyName != NULL && OOUniformBindingPermitted(*property, target)) {
+  if (propertyName != nullptr && OOUniformBindingPermitted(*property, target)) {
     return bindUniform(uniformName, target, propertyName, options);
   } else {
     OO_LOG("shader.uniform.unpermittedMethod",
@@ -616,7 +616,7 @@ bool OOShaderMaterial::doApply() {
 void OOShaderMaterial::ensureFinishedLoading() {
   uint32_t i;
 
-  if (textures != NULL) {
+  if (textures != nullptr) {
     for (i = 0; i != texCount; ++i) {
       if (textures[i] != nullptr) textures[i]->ensureFinishedLoading();
     }
@@ -626,7 +626,7 @@ void OOShaderMaterial::ensureFinishedLoading() {
 bool OOShaderMaterial::isFinishedLoading() {
   uint32_t i;
 
-  if (textures != NULL) {
+  if (textures != nullptr) {
     for (i = 0; i != texCount; ++i) {
       if (textures[i] == nullptr || !textures[i]->isFinishedLoading())
         return false;  // nil answered NO
@@ -705,7 +705,7 @@ void OOShaderMaterial::addTexturesFromArray(
   if (texCount == 0) return;
 
   textures = (OOTexture**)malloc(texCount * sizeof *textures);
-  if (textures == NULL) {
+  if (textures == nullptr) {
     texCount = 0;
     return;
   }
@@ -789,7 +789,7 @@ bool GetShaderSource(
     }
   }
 
-  if (outResult != NULL) *outResult = result;
+  if (outResult != nullptr) *outResult = result;
   return true;
 }
 

@@ -60,13 +60,13 @@ void OOPNGTextureLoader::loadTexture() {
 
 OOPNGTextureLoader::~OOPNGTextureLoader() {
   fileData.reset();
-  if (png != NULL) {
+  if (png != nullptr) {
     png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
   }
 }
 
 void OOPNGTextureLoader::doLoadTexture() {
-  png_bytepp rows = NULL;
+  png_bytepp rows = nullptr;
   png_uint_32 pngWidth, pngHeight;
   int depth, colorType;
   uint32_t i;
@@ -74,9 +74,9 @@ void OOPNGTextureLoader::doLoadTexture() {
   // Set up PNG decoding
   png =
       png_create_read_struct(PNG_LIBPNG_VER_STRING, this, PNGError, PNGWarning);
-  if (png != NULL) pngInfo = png_create_info_struct(png);
-  if (pngInfo != NULL) pngEndInfo = png_create_info_struct(png);
-  if (pngEndInfo == NULL) {
+  if (png != nullptr) pngInfo = png_create_info_struct(png);
+  if (pngInfo != nullptr) pngEndInfo = png_create_info_struct(png);
+  if (pngEndInfo == nullptr) {
     OO_LOG("texture.load.png.setup.failed", "***** Error preparing to read {}.",
            _path);
     goto FAIL;
@@ -86,7 +86,7 @@ void OOPNGTextureLoader::doLoadTexture() {
     // libpng will jump here on error.
     if (_data) {
       free(_data);
-      _data = NULL;
+      _data = nullptr;
     }
     goto FAIL;
   }
@@ -96,7 +96,7 @@ void OOPNGTextureLoader::doLoadTexture() {
   png_read_info(png, pngInfo);
   // Read header, get format info and check that it meets our expectations.
   if (EXPECT_NOT(!png_get_IHDR(png, pngInfo, &pngWidth, &pngHeight, &depth,
-                               &colorType, NULL, NULL, NULL))) {
+                               &colorType, nullptr, nullptr, nullptr))) {
     OO_LOG("texture.load.png.failed", "Failed to get metadata from PNG {}",
            _path);
     goto FAIL;
@@ -135,14 +135,14 @@ void OOPNGTextureLoader::doLoadTexture() {
   // png_read_png
   rows = (png_bytepp)malloc(sizeof *rows * _height);
   _data = malloc(_rowBytes * _height);
-  if (EXPECT_NOT(rows == NULL || _data == NULL)) {
-    if (rows != NULL) {
+  if (EXPECT_NOT(rows == nullptr || _data == nullptr)) {
+    if (rows != nullptr) {
       free(static_cast<void*>(rows));
-      rows = NULL;
+      rows = nullptr;
     }
-    if (_data != NULL) {
+    if (_data != nullptr) {
       free(_data);
-      _data = NULL;
+      _data = nullptr;
     }
     OO_LOG(cxx_kOOLogAllocationFailure,
            "Failed to allocate space ({} bytes) for texture {}",
@@ -173,7 +173,7 @@ void OOPNGTextureLoader::readBytes(png_bytep bytes, png_size_t count) {
     png_error(png, message.c_str());  // Will not return
   }
 
-  assert(bytes != NULL);
+  assert(bytes != nullptr);
 
   // Copy bytes
   memcpy(bytes, (const char*)fileData->bytes() + offset, count);

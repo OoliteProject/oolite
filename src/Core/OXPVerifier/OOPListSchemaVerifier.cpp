@@ -170,7 +170,7 @@ OOINLINE BackLinkChain BackLinkIndex(BackLinkChain* link, NSUInteger index) {
 }
 
 OOINLINE BackLinkChain BackLinkRoot(void) {
-  BackLinkChain result = {NULL, nullptr, 0, false};
+  BackLinkChain result = {nullptr, nullptr, 0, false};
   return result;
 }
 
@@ -330,7 +330,7 @@ bool OOPListSchemaVerifier::verifyPropertyList(const oo::PList& plist,
   bool OK;
   bool stop = false;
 
-  OK = verifyPList(plist, name, plist, _schema, BackLinkRoot(), false, NULL,
+  OK = verifyPList(plist, name, plist, _schema, BackLinkRoot(), false, nullptr,
                    &stop);
 
   return OK;
@@ -390,7 +390,7 @@ bool OOPListSchemaVerifier::delegateVerifierWithPropertyList(
       error = std::nullopt;
     }
 
-    if (outError != NULL) {
+    if (outError != nullptr) {
       if (!result || error.has_value()) {
         // Note: Generates an error if delegate returned NO (meaning stop) or if
         // delegate produced an error but did not request a stop.
@@ -457,7 +457,7 @@ bool OOPListSchemaVerifier::verifyPList(
   std::optional<OOPListSchemaVerifierError> error;
   oo::PList resolvedSpecifier;
 
-  assert(outStop != NULL);
+  assert(outStop != nullptr);
 
   DebugDumpPushIndent();
 
@@ -517,7 +517,7 @@ bool OOPListSchemaVerifier::verifyPList(
       *outStop = true;
   }
 
-  if (outError != NULL && error.has_value()) *outError = error;
+  if (outError != nullptr && error.has_value()) *outError = error;
 
   return !error.has_value();
 }
@@ -528,7 +528,7 @@ oo::PList OOPListSchemaVerifier::resolveSchemaType(
   oo::PList current = specifier;
   bool haveTypeValue = false;
 
-  assert(outError != NULL);
+  assert(outError != nullptr);
 
   if (current.isString() || current.isDict()) {
     for (;;) {
@@ -599,15 +599,15 @@ SchemaType StringToSchemaType(
 
   const auto found = typeMap.find(string);
   result = (found != typeMap.end()) ? found->second : kTypeUnknown;
-  if (result == kTypeUnknown && outError != NULL) {
+  if (result == kTypeUnknown && outError != nullptr) {
     if (oo::str::hasPrefix(string, "$")) {
       *outError = ErrorWithProperty(
-          kPListErrorSchemaUnknownType, NULL, kUnknownTypeErrorKey,
+          kPListErrorSchemaUnknownType, nullptr, kUnknownTypeErrorKey,
           oo::PList(string), "Bad schema: unresolved macro reference \"%s\".",
           string.c_str());
     } else {
       *outError =
-          ErrorWithProperty(kPListErrorSchemaUnknownType, NULL,
+          ErrorWithProperty(kPListErrorSchemaUnknownType, nullptr,
                             kUnknownTypeErrorKey, oo::PList(string),
                             "Bad schema: unknown type \"%s\".", string.c_str());
     }
@@ -657,7 +657,7 @@ std::string ApplyStringFilter(
   std::u16string result = oo::utf8ToUtf16(string);
   oo::PList::Array filters;
 
-  assert(outError != NULL);
+  assert(outError != nullptr);
 
   if (!filterSpec) return string;
 
@@ -741,7 +741,7 @@ bool ApplyStringTest(const std::string& string, const oo::PList& test,
                      std::optional<OOPListSchemaVerifierError>* outError) {
   oo::PList::Array tests;
 
-  assert(outError != NULL);
+  assert(outError != nullptr);
 
   if (!test) return true;
 
@@ -776,9 +776,9 @@ namespace {
 
 oo::PList KeyPathToArray(BackLinkChain keyPath) {
   oo::PList::Array result;
-  BackLinkChain* curr = NULL;
+  BackLinkChain* curr = nullptr;
 
-  for (curr = &keyPath; curr != NULL; curr = curr->link) {
+  for (curr = &keyPath; curr != nullptr; curr = curr->link) {
     // Keys as strings, indices as signed integers (+numberWithInteger:).
     if (curr->key != nullptr)
       result.insert(result.begin(), oo::PList(*curr->key));
@@ -885,7 +885,7 @@ std::string StringOrArrayForErrorReport(const oo::PList& value,
     return "\"" + StringForErrorReport(*string) + "\"";
   }
 
-  const std::string prefix = (arrayPrefix != NULL) ? arrayPrefix : "";
+  const std::string prefix = (arrayPrefix != nullptr) ? arrayPrefix : "";
   if (value.isArray()) {
     return prefix + ArrayForErrorReport(value);
   }
@@ -1616,7 +1616,7 @@ OOPListSchemaVerifierError ErrorWithDictionaryAndArguments(
 
   if (const oo::PList::Dict* entries = dict.getIf<oo::PList::Dict>())
     userInfo = *entries;
-  if (keyPath != NULL) {
+  if (keyPath != nullptr) {
     userInfo[kPListKeyPathErrorKey] = KeyPathToArray(*keyPath);
   }
 

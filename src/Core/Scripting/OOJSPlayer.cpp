@@ -181,7 +181,7 @@ void InitOOJSPlayer(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sPlayerClassID, JS_UNDEFINED,
                 OOJSUnconstructableConstruct, 0, sPlayerProperties,
                 OOJS_COUNT(sPlayerProperties), sPlayerMethods,
-                OOJS_COUNT(sPlayerMethods), NULL, 0);
+                OOJS_COUNT(sPlayerMethods), nullptr, 0);
   OOJSRegisterObjectConverter(sPlayerClassID, OOJSBasicPrivateObjectConverter);
 
   /*	Create player object as a property of the global object. As before, it
@@ -700,7 +700,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS) {
     Entity* destEntity = oo::EntityIn(destValue);  // the entity node's
 
     if (destValue.isNull()) {
-      if (player != nullptr) player->setDockTarget(NULL);
+      if (player != nullptr) player->setDockTarget(nullptr);
       OK = true;
     } else if ((oo::ToShip(destEntity) != nullptr) &&
                destEntity->getIsStation())  // what -isStation forwarded to
@@ -710,7 +710,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS) {
     } else if (const std::string* destString = destValue.getIf<std::string>()) {
       if (*destString == "NEARBY_SYSTEM") {
         // find the nearest system with a main station, or die in the attempt!
-        if (player != nullptr) player->setDockTarget(NULL);
+        if (player != nullptr) player->setDockTarget(nullptr);
 
         double rescueRange = MAX_JUMP_RANGE;  // reach at least 1 other system!
         if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false)) {
@@ -761,7 +761,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS) {
     } else {
       int bValue = JS_ToBool(context, OOJS_ARGV[0]);
       if (bValue == 0) {
-        if (player != nullptr) player->setDockTarget(NULL);
+        if (player != nullptr) player->setDockTarget(nullptr);
         OK = true;
       }
     }

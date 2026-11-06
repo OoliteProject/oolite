@@ -423,7 +423,7 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sPlayerShipClassID, shipPrototype,
                 OOJSUnconstructableConstruct, 0, sPlayerShipProperties,
                 OOJS_COUNT(sPlayerShipProperties), sPlayerShipMethods,
-                OOJS_COUNT(sPlayerShipMethods), NULL, 0);
+                OOJS_COUNT(sPlayerShipMethods), nullptr, 0);
   JS_FreeValue(context, shipPrototype);
 
   OOJSRegisterObjectConverter(sPlayerShipClassID, OOJSEntityObjectConverter);
@@ -495,7 +495,7 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
           call) has no private weak reference to the player.
   */
   if (EXPECT_NOT(OOIsPlayerStale() ||
-                 JS_GetOpaque(thisObj, sPlayerShipClassID) == NULL)) {
+                 JS_GetOpaque(thisObj, sPlayerShipClassID) == nullptr)) {
     return JS_UNDEFINED;
   }
 
@@ -1665,7 +1665,7 @@ static JSValue PlayerShipAwardContract(OOJS_NATIVE_ARGS) {
   }
 
   if (!ValidateContracts(context, argc, OOJS_ARGV, true, &start, &destination,
-                         &eta, &fee, &premium, "awardContract", NULL))
+                         &eta, &fee, &premium, "awardContract", nullptr))
     return OOJSNativeFailure(
         context);  // always go through validate contracts (cargo)
 
@@ -2121,8 +2121,9 @@ static bool ValidateContracts(JSContext* context, int argc, JSValueConst* argv,
                               unsigned* risk) {
   OOJS_PROFILE_ENTER
 
-  OOCParameterAssert(context != NULL && argv != NULL && start != NULL &&
-                     destination != NULL && eta != NULL && fee != NULL);
+  OOCParameterAssert(context != nullptr && argv != nullptr &&
+                     start != nullptr && destination != nullptr &&
+                     eta != nullptr && fee != nullptr);
 
   uint32_t uValue;
   int offset = isCargo ? 2 : 1;

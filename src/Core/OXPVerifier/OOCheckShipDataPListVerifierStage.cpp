@@ -245,7 +245,7 @@ void OOCheckShipDataPListVerifierStage::reportMessage(
   }
 
   if (oo::log::willDisplay("verifyOXP.shipData")) {
-    oo::log::logger().write("verifyOXP.shipData", NULL, NULL, 0, message);
+    oo::log::logger().write("verifyOXP.shipData", nullptr, nullptr, 0, message);
   }
 }
 
@@ -259,7 +259,8 @@ void OOCheckShipDataPListVerifierStage::verboseMessage(
     _havePrintedMessage = true;
   }
 
-  oo::log::logger().write("verifyOXP.verbose.shipData", NULL, NULL, 0, message);
+  oo::log::logger().write("verifyOXP.verbose.shipData", nullptr, nullptr, 0,
+                          message);
 }
 
 void OOCheckShipDataPListVerifierStage::getRoles() {

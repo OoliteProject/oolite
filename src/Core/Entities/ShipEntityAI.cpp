@@ -744,7 +744,7 @@ void ShipEntity::scanForNearestShipWithPredicate(
   _foundTarget = nullptr;
   checkScanner();
 
-  if (predicate == NULL) return;
+  if (predicate == nullptr) return;
 
   for (i = 0; i < n_scanned_ships; i++) {
     candidate = scanned_ships[i];
@@ -2366,7 +2366,7 @@ void ShipEntity::scanForNearestShipMatchingPredicate(
       scriptCache = nullptr;
   std::string key;
   oo::Ref<OOJSFunction> function;
-  JSContext* context = NULL;
+  JSContext* context = nullptr;
 
   context = OOJSAcquireContext();
 

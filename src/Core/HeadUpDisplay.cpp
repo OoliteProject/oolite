@@ -4255,7 +4255,7 @@ NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
                             NSSize siz) {
   GLfloat w = 0;
   oo::Data data;
-  const uint8_t* bytes = NULL;
+  const uint8_t* bytes = nullptr;
   NSUInteger i, length;
 
   data = ConvertedString(text);
@@ -4329,7 +4329,7 @@ void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
   GLfloat cx = x;
   NSInteger i, length;
   oo::Data data;
-  const uint8_t* bytes = NULL;
+  const uint8_t* bytes = nullptr;
 
   data = ConvertedString(text);
   length = data.length();

@@ -96,14 +96,14 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction) {
   OO_LOG(cxx_kOOLogParameterError,
          "***** {}: bad parameters. (This is an internal programming error, "
          "please report it.)",
-         inFunction != NULL ? inFunction : "(null)");
+         inFunction != nullptr ? inFunction : "(null)");
 }
 
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
   OO_LOG(cxx_kOOLogSubclassResponsibility,
          "***** {} is a subclass responsibility. (This is an internal "
          "programming error, please report it.)",
-         inFunction != NULL ? inFunction : "(null)");
+         inFunction != nullptr ? inFunction : "(null)");
 }
 
 bool OOLogShowFunction(void) {

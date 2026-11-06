@@ -107,7 +107,7 @@ const char* JSValueToStrDbg(JSValue val) {
   JSContext* context = OOJSAcquireContext();
   const std::optional<std::string> text =
       cxx_OOStringFromJSValueEvenIfNull(context, val);
-  const char* result = text.has_value() ? DebuggerCString(*text) : NULL;
+  const char* result = text.has_value() ? DebuggerCString(*text) : nullptr;
   OOJSRelinquishContext(context);
 
   return result;
@@ -149,7 +149,7 @@ const char* JSValueTypeDbg(JSValue val) {
       return "magic (function bytecode)";
     case JS_TAG_OBJECT: {
       const char* className = OOJSClassName(JS_GetClassID(val));
-      return (className != NULL) ? className : "object";
+      return (className != nullptr) ? className : "object";
     }
   }
   return "unknown";
@@ -178,7 +178,7 @@ const char* JSValueToStrSafeDbg(JSValue val) {
       JSContext* context = OOJSAcquireContext();
       size_t length;
       const char* chars = JS_ToCStringLen(context, &length, val);
-      if (chars != NULL) {
+      if (chars != nullptr) {
         formatted = std::string(chars, length);
         JS_FreeCString(context, chars);
       } else {
@@ -212,7 +212,7 @@ const char* JSIDToStrSafeDbg(JSAtom anID) {
   JSContext* context = OOJSAcquireContext();
   std::string formatted;
   const char* chars = JS_AtomToCString(context, anID);
-  if (chars != NULL) {
+  if (chars != nullptr) {
     formatted = chars;
     JS_FreeCString(context, chars);
   } else {

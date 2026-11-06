@@ -696,7 +696,7 @@ namespace {
 */
 bool JSShipGetShipEntity(JSContext* context, JSValueConst inObject,
                          ShipEntity** outShip) {
-  OOCParameterAssert(outShip != NULL);
+  OOCParameterAssert(outShip != nullptr);
   Entity* entity = nullptr;
   if (EXPECT_NOT(!OOJSEntityGetEntityOfClass(context, inObject, sShipClassID,
                                              &entity)))

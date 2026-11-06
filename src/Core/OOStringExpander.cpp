@@ -173,7 +173,7 @@ typedef std::map<std::string, std::string, std::less<>> OOSelectorTable;
 
 const std::string* LookUpSelector(const OOSelectorTable* table,
                                   const std::string& key) {
-  if (table == NULL) return nullptr;
+  if (table == nullptr) return nullptr;
   auto found = table->find(key);
   return (found != table->end()) ? &found->second : nullptr;
 }
@@ -355,7 +355,7 @@ namespace {
 */
 OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string,
                NSUInteger sizeLimit, NSUInteger recursionLimit) {
-  OOCParameterAssert(context != NULL && sizeLimit <= kStackAllocationLimit);
+  OOCParameterAssert(context != nullptr && sizeLimit <= kStackAllocationLimit);
 
   const NSUInteger size = string.size();
 
@@ -469,8 +469,8 @@ OOMaybeUnits ExpandKey(OOStringExpansionContext* context,
                        const char16_t* characters, NSUInteger size,
                        NSUInteger idx, NSUInteger* replaceLength,
                        NSUInteger sizeLimit, NSUInteger recursionLimit) {
-  OOCParameterAssert(context != NULL && characters != NULL &&
-                     replaceLength != NULL);
+  OOCParameterAssert(context != nullptr && characters != nullptr &&
+                     replaceLength != nullptr);
   OOCParameterAssert(characters[idx] == '[');
 
   // Find the balancing close bracket.
@@ -661,7 +661,7 @@ OOMaybeUnits ExpandDigitKey(OOStringExpansionContext* context,
                             const char16_t* characters, NSUInteger keyStart,
                             NSUInteger keyLength, NSUInteger sizeLimit,
                             NSUInteger recursionLimit) {
-  OOCParameterAssert(context != NULL && characters != NULL);
+  OOCParameterAssert(context != nullptr && characters != nullptr);
 
   NSUInteger keyValue = 0, idx;
   for (idx = keyStart; idx < (keyStart + keyLength); idx++) {
@@ -738,7 +738,7 @@ OOMaybeUnits ExpandDigitKey(OOStringExpansionContext* context,
 OOMaybeUnits ExpandStringKey(OOStringExpansionContext* context,
                              const OOUnits& key, NSUInteger sizeLimit,
                              NSUInteger recursionLimit) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   // The lookups are keyed by the key's UTF-8 (WTF-8: lossless, as the string
   // object the engine built).
@@ -791,7 +791,7 @@ OOMaybeUnits ExpandStringKey(OOStringExpansionContext* context,
 */
 OOMaybeUnits ExpandStringKeyOverride(OOStringExpansionContext* context,
                                      const std::string& key) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   const oo::PList* value = context->overrides.find(key);
   if (value != nullptr) {
@@ -819,7 +819,7 @@ OOMaybeUnits ExpandStringKeyOverride(OOStringExpansionContext* context,
 */
 OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context,
                                     const std::string& key) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   const std::string* selector =
       LookUpSelector(SpecialSubstitutionSelectors(), key);
@@ -852,7 +852,7 @@ OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context,
 */
 OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context,
                                             const OOUnits& key) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
   if (HasPrefix(key, u"oolite_key_")) {
     const std::string binding = oo::utf16ToUtf8(key.substr(7));
     return UnitsFromOptional((PLAYER != nullptr
@@ -868,8 +868,8 @@ OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context,
         selectors.
 */
 const OOSelectorTable* SpecialSubstitutionSelectors(void) {
-  static OOSelectorTable* specials = NULL;
-  if (specials != NULL) return specials;
+  static OOSelectorTable* specials = nullptr;
+  if (specials != nullptr) return specials;
 
   struct {
     const char* key;
@@ -997,7 +997,7 @@ OOUnits ValueText(const oo::PList& value) {
 */
 OOMaybeUnits ExpandLegacyScriptSelectorKey(OOStringExpansionContext* context,
                                            const std::string& key) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   const std::string* selector = LookUpLegacySelector(key);
 
@@ -1020,7 +1020,7 @@ OOMaybeUnits ExpandLegacyScriptSelectorKey(OOStringExpansionContext* context,
 */
 const std::string* LookUpLegacySelector(const std::string& key) {
   const std::string* selector = nullptr;
-  static OOSelectorTable* selectorCache = NULL;
+  static OOSelectorTable* selectorCache = nullptr;
 
   // Try cache lookup.
   selector = LookUpSelector(selectorCache, key);
@@ -1067,7 +1067,7 @@ const std::string* LookUpLegacySelector(const std::string& key) {
                 key.c_str());
 
       // Add it to cache (the name; a map's element does not move).
-      if (selectorCache == NULL) {
+      if (selectorCache == nullptr) {
         selectorCache = new OOSelectorTable;
       }
       selector = &selectorCache->emplace(key, selectorName).first->second;
@@ -1122,8 +1122,8 @@ void ReportWarningForUnknownKey(OOStringExpansionContext* context,
 OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context,
                                  const char16_t* characters, NSUInteger size,
                                  NSUInteger idx, NSUInteger* replaceLength) {
-  OOCParameterAssert(context != NULL && characters != NULL &&
-                     replaceLength != NULL);
+  OOCParameterAssert(context != nullptr && characters != nullptr &&
+                     replaceLength != nullptr);
   OOCParameterAssert(characters[idx] == '%');
 
   // All %-escapes except %J and %G are 2 characters.
@@ -1263,8 +1263,8 @@ OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context,
                                              const char16_t* characters,
                                              NSUInteger size, NSUInteger idx,
                                              NSUInteger* replaceLength) {
-  OOCParameterAssert(context != NULL && characters != NULL &&
-                     replaceLength != NULL);
+  OOCParameterAssert(context != nullptr && characters != nullptr &&
+                     replaceLength != nullptr);
   OOCParameterAssert(characters[idx + 1] == 'G');
 
   // A valid %G escape is always eight characters including the six digits.
@@ -1326,8 +1326,8 @@ OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context,
 OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context,
                                     const char16_t* characters, NSUInteger size,
                                     NSUInteger idx, NSUInteger* replaceLength) {
-  OOCParameterAssert(context != NULL && characters != NULL &&
-                     replaceLength != NULL);
+  OOCParameterAssert(context != nullptr && characters != nullptr &&
+                     replaceLength != nullptr);
   OOCParameterAssert(characters[idx + 1] == 'J');
 
   // A valid %J escape is always five characters including the three digits.
@@ -1369,7 +1369,8 @@ OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context,
 
 void AppendCharacters(OOMaybeUnits* result, const char16_t* characters,
                       NSUInteger start, NSUInteger end) {
-  OOCParameterAssert(result != NULL && characters != NULL && start <= end);
+  OOCParameterAssert(result != nullptr && characters != nullptr &&
+                     start <= end);
 
   if (!result->has_value()) {
     // Ensure there is a string. We want this even if the range is empty.
@@ -1383,7 +1384,7 @@ void AppendCharacters(OOMaybeUnits* result, const char16_t* characters,
 }
 
 OOMaybeUnits GetSystemName(OOStringExpansionContext* context) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
   if (!context->systemName.has_value()) {
     context->systemName = UnitsFromOptional(
         (UNIVERSE != nullptr ? UNIVERSE->getSystemName(
@@ -1395,7 +1396,7 @@ OOMaybeUnits GetSystemName(OOStringExpansionContext* context) {
 }
 
 OOMaybeUnits GetSystemNameIan(OOStringExpansionContext* context) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   if (!context->systemNameWithIan.has_value()) {
     const std::optional<std::string> name = cxx_OOExpandDescriptionString(
@@ -1409,7 +1410,7 @@ OOMaybeUnits GetSystemNameIan(OOStringExpansionContext* context) {
 }
 
 OOMaybeUnits GetRandomNameN(OOStringExpansionContext* context) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   if (!context->randomNameN.has_value()) {
     context->randomNameN = NewRandomDigrams(context);
@@ -1419,7 +1420,7 @@ OOMaybeUnits GetRandomNameN(OOStringExpansionContext* context) {
 }
 
 OOMaybeUnits GetRandomNameR(OOStringExpansionContext* context) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   if (!context->randomNameR.has_value()) {
     context->randomNameR = OldRandomDigrams();
@@ -1429,7 +1430,7 @@ OOMaybeUnits GetRandomNameR(OOStringExpansionContext* context) {
 }
 
 const oo::PList& GetSystemDescriptions(OOStringExpansionContext* context) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   if (context->systemDescriptions.isNull()) {
     // Looked up once per context (PListView's rule: an array, else none).
@@ -1583,7 +1584,7 @@ void SyntaxIssue(OOStringExpansionContext* context, const char* function,
                  const char* fileName, NSUInteger line,
                  const char* logMessageClass, const char* prefix,
                  const char* format, ...) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
 
   va_list args;
   va_start(args, format);

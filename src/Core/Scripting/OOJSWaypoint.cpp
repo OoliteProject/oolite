@@ -86,7 +86,7 @@ void InitOOJSWaypoint(JSContext* context, JSValueConst global) {
             "Entity must be initialized before Waypoint.");
   OOJSInitClass(context, global, sWaypointClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sWaypointProperties,
-                OOJS_COUNT(sWaypointProperties), NULL, 0, NULL, 0);
+                OOJS_COUNT(sWaypointProperties), nullptr, 0, nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sWaypointClassID, OOJSEntityObjectConverter);
@@ -103,7 +103,7 @@ static bool JSWaypointGetWaypointEntity(JSContext* context,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, waypointObj, &entity);

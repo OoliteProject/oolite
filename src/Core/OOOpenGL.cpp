@@ -61,7 +61,7 @@ bool cxx_OOCheckOpenGLErrors(const char* format, ...) {
 
 bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context) {
   GLenum errCode;
-  const GLubyte* errString = NULL;
+  const GLubyte* errString = nullptr;
   bool errorOccurred = false;
   static bool noReenter;
 
@@ -85,8 +85,8 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context) {
       // gluErrorString can answer NULL, which %s printed as (null).
       OO_LOG("rendering.opengl.error",
              "OpenGL error: \"{}\" ({:#x}), context: {}",
-             errString != NULL ? reinterpret_cast<const char*>(errString)
-                               : "(null)",
+             errString != nullptr ? reinterpret_cast<const char*>(errString)
+                                  : "(null)",
              errCode, *contextText);
     }
   }

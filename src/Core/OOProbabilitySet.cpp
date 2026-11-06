@@ -204,7 +204,7 @@ oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithObjects(
 
   // If count is not zero and one of the paramters is nil, we've got us a
   // programming error.
-  if (objects == NULL || weights == NULL) {
+  if (objects == nullptr || weights == nullptr) {
     OORaiseException(
         OOInvalidArgumentException,
         "Attempt to create %s with non-zero count but nil objects or weights.",
@@ -312,7 +312,7 @@ OOEmptyProbabilitySet* OOEmptyProbabilitySet::singleton() {
 }
 
 oo::PList OOEmptyProbabilitySet::propertyListRepresentation() {
-  return PropertyListRepresentation(NULL, NULL, 0);
+  return PropertyListRepresentation(nullptr, nullptr, 0);
 }
 
 oo::PList OOEmptyProbabilitySet::randomObject() { return oo::PList(); }
@@ -378,8 +378,8 @@ bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
   NSUInteger i = 0;
   float cuWeight = 0.0f;
 
-  assert(count > 1 && objects != NULL && weights != NULL);
-  if (objects == NULL || weights == NULL) {
+  assert(count > 1 && objects != nullptr && weights != nullptr);
+  if (objects == nullptr || weights == nullptr) {
     // Unreachable (probabilitySetWithObjects() raises first); copying an
     // element forms a reference, where the old -retain of an id element was a
     // message to nil.
@@ -389,7 +389,7 @@ bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
   // Allocate arrays
   _objects = new oo::PList[count];
   _cumulativeWeights = (float*)malloc(sizeof *_cumulativeWeights * count);
-  if (_cumulativeWeights == NULL) {
+  if (_cumulativeWeights == nullptr) {
     return false;
   }
 
@@ -407,11 +407,11 @@ bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
 
 OOConcreteProbabilitySet::~OOConcreteProbabilitySet() {
   delete[] _objects;
-  _objects = NULL;
+  _objects = nullptr;
 
-  if (_cumulativeWeights != NULL) {
+  if (_cumulativeWeights != nullptr) {
     free(_cumulativeWeights);
-    _cumulativeWeights = NULL;
+    _cumulativeWeights = nullptr;
   }
 }
 
@@ -496,13 +496,13 @@ std::vector<oo::PList> OOConcreteProbabilitySet::allElements() {
 
 oo::Ref<OOMutableProbabilitySet> OOConcreteProbabilitySet::mutableCopy() {
   oo::Ref<OOMutableProbabilitySet> result;
-  float* weights = NULL;
+  float* weights = nullptr;
   NSUInteger i = 0;
   float weight = 0.0f, sum = 0.0f;
 
   // Convert cumulative weights to "plain" weights.
   weights = (float*)malloc(sizeof *weights * _count);
-  if (weights == NULL) return nullptr;
+  if (weights == nullptr) return nullptr;
 
   for (i = 0; i < _count; ++i) {
     weight = _cumulativeWeights[i];
@@ -562,7 +562,7 @@ void OOConcreteMutableProbabilitySet::initWithObjects(const oo::PList* objects,
   NSUInteger i = 0;
 
   // Validate parameters.
-  if (count != 0 && (objects == NULL || weights == NULL)) {
+  if (count != 0 && (objects == nullptr || weights == nullptr)) {
     OORaiseException(
         OOInvalidArgumentException,
         "Attempt to create %s with non-zero count but nil objects or weights.",

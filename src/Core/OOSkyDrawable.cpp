@@ -253,7 +253,7 @@ void OOSkyDrawable::setUpStars(OOColor* color1, OOColor* color2) {
   }
 
   std::vector<OOSkyQuadDesc> quads;
-  OOSkyQuadDesc* currQuad = NULL;
+  OOSkyQuadDesc* currQuad = nullptr;
   unsigned i;
   Quaternion q;
   Vector vi, vj, vk;
@@ -310,7 +310,7 @@ void OOSkyDrawable::setUpNebulae(OOColor* color1, OOColor* color2,
                                  float nebulaClusterFactor, bool nebulaHueFix,
                                  float nebulaAlpha, float nebulaScale) {
   std::vector<OOSkyQuadDesc> quads;
-  OOSkyQuadDesc* currQuad = NULL;
+  OOSkyQuadDesc* currQuad = nullptr;
   unsigned i, actualCount = 0;
   oo::Ref<OOColor> color;
   Quaternion q;
@@ -523,8 +523,8 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
     self->_texCoords = (GLfloat*)malloc(tcSize);
     self->_colors = (GLfloat*)malloc(colSize);
 
-    if (self->_positions == NULL || self->_texCoords == NULL ||
-        self->_colors == NULL)
+    if (self->_positions == nullptr || self->_texCoords == nullptr ||
+        self->_colors == nullptr)
       OK = false;
 
     pos = self->_positions;
@@ -603,9 +603,9 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
 OOSkyQuadSet::~OOSkyQuadSet() {
   // -dealloc's [_texture release] is the member's destructor.
 
-  if (_positions != NULL) free(_positions);
-  if (_texCoords != NULL) free(_texCoords);
-  if (_colors != NULL) free(_colors);
+  if (_positions != nullptr) free(_positions);
+  if (_texCoords != nullptr) free(_texCoords);
+  if (_colors != nullptr) free(_colors);
 }
 
 std::optional<std::string> OOSkyQuadSet::descriptionComponents() const {

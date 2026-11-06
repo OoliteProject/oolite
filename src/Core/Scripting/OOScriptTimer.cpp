@@ -145,7 +145,7 @@ bool OOScriptTimer::scheduleTimer() {
       sTimers = new OOPriorityQueueOf<OOScriptTimer>(CompareByNextFireTime);
     sTimers->addObject(this);  // the queue holds the timer
   } else {
-    if (sDeferredTimers == NULL)
+    if (sDeferredTimers == nullptr)
       sDeferredTimers = new std::vector<oo::Ref<OOScriptTimer>>;
     sDeferredTimers->emplace_back(this);
   }
@@ -190,12 +190,12 @@ void OOScriptTimer::updateTimers() {
     }
   }
 
-  if (sDeferredTimers != NULL) {
+  if (sDeferredTimers != nullptr) {
     for (const auto& deferred : *sDeferredTimers)
       if (sTimers != nullptr)
         sTimers->addObject(deferred.get());  // as -addObjects: did, in order
     delete sDeferredTimers;
-    sDeferredTimers = NULL;
+    sDeferredTimers = nullptr;
   }
 
   sUpdating = false;

@@ -166,7 +166,7 @@ static int MissionVariablesGetOwnProperty(JSContext* context,
     JSValue value = ValueForMissionVariable(context, *key);
     if (JS_IsUndefined(value)) return false;
 
-    if (desc != NULL) {
+    if (desc != nullptr) {
       desc->flags = JS_PROP_C_W_E;
       desc->value = value;
       desc->getter = JS_UNDEFINED;
@@ -201,7 +201,7 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context,
 
     JSPropertyEnum* table = (JSPropertyEnum*)js_malloc(
         context, sizeof *table * MAX(count, (NSUInteger)1));
-    if (table == NULL) return -1;
+    if (table == nullptr) return -1;
 
     uint32_t used = 0;
     for (std::string next : mvars) {

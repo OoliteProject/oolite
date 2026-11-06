@@ -589,7 +589,7 @@ void GuiDisplayGen::setSelectableRange(NSRange range) {
 }
 
 void GuiDisplayGen::setTabStops(OOGUITabSettings stops) {
-  if (stops != NULL) memmove(tabStops, stops, sizeof tabStops);
+  if (stops != nullptr) memmove(tabStops, stops, sizeof tabStops);
 }
 
 void GuiDisplayGen::overrideTabs(OOGUITabSettings stops,
@@ -597,7 +597,7 @@ void GuiDisplayGen::overrideTabs(OOGUITabSettings stops,
   const oo::PList* override =
       guiUserSettings.get<oo::PList::Array>(setting, nullptr);
   NSUInteger i;
-  if (stops != NULL && override != nullptr) {
+  if (stops != nullptr && override != nullptr) {
     if (len > GUI_MAX_COLUMNS) {
       len = GUI_MAX_COLUMNS;
     }

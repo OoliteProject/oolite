@@ -65,15 +65,15 @@ OOTCPStreamDecoderRef OOTCPStreamDecoderCreate(
     OOTCPStreamDecoderPacketCallback packetCB,
     OOTCPStreamDecoderErrorCallback errorCB,
     OOTCPStreamDecoderFinalizeCallback finalizeCB, void* cbInfo) {
-  OOTCPStreamDecoderRef decoder = NULL;
+  OOTCPStreamDecoderRef decoder = nullptr;
 
-  if (packetCB == NULL) return NULL;
+  if (packetCB == nullptr) return nullptr;
 
   decoder = static_cast<OOTCPStreamDecoderRef>(malloc(sizeof *decoder));
-  if (decoder == NULL) return NULL;
+  if (decoder == nullptr) return nullptr;
 
   decoder->headerSpaceUsed = 0;
-  decoder->nextPacketData = NULL;
+  decoder->nextPacketData = nullptr;
   decoder->nextSize = 0;
   decoder->Packet = packetCB;
   decoder->Error = errorCB;
@@ -84,15 +84,15 @@ OOTCPStreamDecoderRef OOTCPStreamDecoderCreate(
 }
 
 void OOTCPStreamDecoderDestroy(OOTCPStreamDecoderRef decoder) {
-  if (decoder == NULL) return;
+  if (decoder == nullptr) return;
 
-  if (decoder->Finalize != NULL) {
+  if (decoder->Finalize != nullptr) {
     decoder->Finalize(decoder->cbInfo);
   }
 
-  if (decoder->nextPacketData != NULL) {
+  if (decoder->nextPacketData != nullptr) {
     OOALRelease(decoder->nextPacketData);
-    decoder->nextPacketData = NULL;
+    decoder->nextPacketData = nullptr;
   }
 
   free(decoder);
@@ -100,7 +100,7 @@ void OOTCPStreamDecoderDestroy(OOTCPStreamDecoderRef decoder) {
 
 void OOTCPStreamDecoderReceiveData(OOTCPStreamDecoderRef decoder,
                                    OOALDataRef data) {
-  if (decoder == NULL || data == NULL) return;
+  if (decoder == nullptr || data == nullptr) return;
 
   OOTCPStreamDecoderReceiveBytes(decoder, OOALDataGetBytePtr(data),
                                  OOALDataGetLength(data));
@@ -108,24 +108,24 @@ void OOTCPStreamDecoderReceiveData(OOTCPStreamDecoderRef decoder,
 
 void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder,
                                     const void* inBytes, size_t length) {
-  const unsigned char* bytes = NULL;
+  const unsigned char* bytes = nullptr;
   size_t remaining;
   size_t bytesToAdd;
-  OOALAutoreleasePoolRef pool = NULL;
+  OOALAutoreleasePoolRef pool = nullptr;
 
-  if (decoder == NULL) return;
+  if (decoder == nullptr) return;
 
   bytes = static_cast<const unsigned char*>(inBytes);
   remaining = length;
 
-  if (bytes == NULL && remaining != 0) {
+  if (bytes == nullptr && remaining != 0) {
     Error(decoder, OOALSTR("Invalid data -- NULL bytes but %u byte count."),
           remaining);
     return;
   }
 
   while (remaining != 0) {
-    if (decoder->nextPacketData != NULL) {
+    if (decoder->nextPacketData != nullptr) {
       // More data expected
       bytesToAdd = remaining;
       if (decoder->nextSize < bytesToAdd) bytesToAdd = decoder->nextSize;
@@ -141,10 +141,10 @@ void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder,
         pool = OOALCreateAutoreleasePool();
         PacketReady(decoder);
         OOALDestroyAutoreleasePool(pool);
-        pool = NULL;
+        pool = nullptr;
 
         OOALRelease(decoder->nextPacketData);
-        decoder->nextPacketData = NULL;
+        decoder->nextPacketData = nullptr;
       }
     } else if (decoder->headerSpaceUsed < 4) {
       // Read bytes for packet header
@@ -172,14 +172,14 @@ void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder,
 }
 
 static void PacketReady(OOTCPStreamDecoderRef decoder) {
-  OOALDictionaryRef packet = NULL;
-  OOALStringRef errorString = NULL;
-  OOALStringRef packetType = NULL;
+  OOALDictionaryRef packet = nullptr;
+  OOALStringRef errorString = nullptr;
+  OOALStringRef packetType = nullptr;
 
   packet = OOALPropertyListFromData(decoder->nextPacketData, &errorString);
 
   // Ensure that it's a property list.
-  if (packet == NULL) {
+  if (packet == nullptr) {
     Error(decoder,
           OOALSTR("Protocol error: packet is not property list (property list "
                   "error: %@)."),
@@ -199,7 +199,7 @@ static void PacketReady(OOTCPStreamDecoderRef decoder) {
 
   // Get packet type (and ensure that there is one).
   packetType = OOALDictionaryGetValue(packet, kOOTCPPacketType);
-  if (packetType == NULL) {
+  if (packetType == nullptr) {
     Error(decoder, OOALSTR("Protocol error: packet contains no packet type."));
     return;
   }
@@ -216,15 +216,16 @@ static void PacketReady(OOTCPStreamDecoderRef decoder) {
 
 static void Error(OOTCPStreamDecoderRef decoder, OOALStringRef format, ...) {
   va_list args;
-  OOALStringRef string = NULL;
+  OOALStringRef string = nullptr;
 
-  if (decoder == NULL || decoder->Error == NULL || format == NULL) return;
+  if (decoder == nullptr || decoder->Error == nullptr || format == nullptr)
+    return;
 
   va_start(args, format);
   string = OOALStringCreateWithFormatAndArguments(format, args);
   va_end(args);
 
-  if (string != NULL) {
+  if (string != nullptr) {
     decoder->Error(decoder->cbInfo, string);
     OOALRelease(string);
   }

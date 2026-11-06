@@ -39,7 +39,7 @@ bool NOPredicate(Entity* /*entity*/, void* /*parameter*/) { return false; }
 bool NOTPredicate(Entity* entity, void* parameter) {
   ChainedEntityPredicateParameter* param =
       (ChainedEntityPredicateParameter*)parameter;
-  if (param == NULL || param->predicate == NULL) return false;
+  if (param == nullptr || param->predicate == nullptr) return false;
 
   return !param->predicate(entity, param->parameter);
 }

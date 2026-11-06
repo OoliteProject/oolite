@@ -147,7 +147,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
      type is the method's return type it replaced. A target that is itself a
      C++ object has no super target.
   */
-  if (EXPECT_NOT(shaderProgram == NULL || get == NULL)) return nullptr;
+  if (EXPECT_NOT(shaderProgram == nullptr || get == nullptr)) return nullptr;
   if (EXPECT_NOT(boundType == kOOShaderUniformTypeInvalid ||
                  boundType >= kOOShaderUniformTypeCount))
     return nullptr;
@@ -184,7 +184,8 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithEntityTarget(
   // same checks and log line, which names the class of the entity's object as
   // -[{} {}] did. The property is kept by name, where its selector was looked
   // up (a NULL name gave a NULL selector).
-  if (EXPECT_NOT(shaderProgram == NULL || property == NULL)) return nullptr;
+  if (EXPECT_NOT(shaderProgram == nullptr || property == nullptr))
+    return nullptr;
 
   oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   result->location =
@@ -360,7 +361,7 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target) {
      object answered), so the binding failed and was logged; with no object (or
      no hooks) nothing was bound or logged.
   */
-  value.binding.cxxGet = NULL;
+  value.binding.cxxGet = nullptr;
   cxxTarget = nullptr;
   isActiveBinding = false;
   if (target != nullptr && hooks != nullptr &&
@@ -377,7 +378,7 @@ bool OOShaderUniform::initWithName(const std::string& uniformName,
                                    OOShaderProgram* shaderProgram) {
   bool OK = true;
 
-  if (EXPECT_NOT(shaderProgram == NULL)) OK = false;
+  if (EXPECT_NOT(shaderProgram == nullptr)) OK = false;
 
   // ([super init] could not fail: the object is already constructed.)
 
@@ -438,7 +439,7 @@ void OOShaderUniform::applyBinding() {
   // its type uses. Nothing else is bound.
   OOShaderBindingValue member = {};
   if (!cxxTargetOnly && !entityMember) return;
-  if (value.binding.cxxGet == NULL) return;
+  if (value.binding.cxxGet == nullptr) return;
   {
     // The C++ target (the entity, or the C++ object), held weakly: once it has
     // gone, nothing is set.

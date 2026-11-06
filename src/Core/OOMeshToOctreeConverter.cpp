@@ -195,7 +195,7 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
 // MARK: Inline function bodies.
 
 void InitGeometryData(GeometryData* data, uint32_t capacity) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   data->count = 0;
   data->capacity = kOOMeshToOctreeConverterSmallDataCapacity;
@@ -204,8 +204,9 @@ void InitGeometryData(GeometryData* data, uint32_t capacity) {
 }
 
 OOINLINE void DestroyGeometryData(GeometryData* data) {
-  OOCParameterAssert(
-      data != 0 && data->capacity >= kOOMeshToOctreeConverterSmallDataCapacity);
+  OOCParameterAssert(data != nullptr &&
+                     data->capacity >=
+                         kOOMeshToOctreeConverterSmallDataCapacity);
 
 #if OO_DEBUG
   Triangle* const kScribbleValue = (Triangle*)-1L;
@@ -223,7 +224,7 @@ OOINLINE void DestroyGeometryData(GeometryData* data) {
 }
 
 OOINLINE void AddTriangle(GeometryData* data, Triangle tri) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   if (data->count < data->capacity) {
     data->triangles[data->count++] = tri;
@@ -273,7 +274,7 @@ oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth) {
 }
 
 static OOScalar MaxDimensionFromOrigin(GeometryData* data) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   OOScalar result = 0.0f;
   uint32_t i, j;
@@ -290,7 +291,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data) {
 
 void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
                     OOScalar halfWidth, NSUInteger depth) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   OOScalar subHalfWidth = 0.5f * halfWidth;
 
@@ -412,7 +413,7 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
 }
 
 static void TranslateGeometryX(GeometryData* data, OOScalar offset) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   // Optimization note: offset is never zero, so no early return.
 
@@ -425,7 +426,7 @@ static void TranslateGeometryX(GeometryData* data, OOScalar offset) {
 }
 
 static void TranslateGeometryY(GeometryData* data, OOScalar offset) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   // Optimization note: offset is never zero, so no early return.
 
@@ -438,7 +439,7 @@ static void TranslateGeometryY(GeometryData* data, OOScalar offset) {
 }
 
 static void TranslateGeometryZ(GeometryData* data, OOScalar offset) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   // Optimization note: offset is never zero, so no early return.
 
@@ -452,7 +453,7 @@ static void TranslateGeometryZ(GeometryData* data, OOScalar offset) {
 
 static void SplitGeometryX(GeometryData* data, GeometryData* dPlus,
                            GeometryData* dMinus, OOScalar x) {
-  OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+  OOCParameterAssert(data != nullptr && dPlus != nullptr && dMinus != nullptr);
 
   // test each triangle splitting against x == 0.0
   uint32_t i, count = data->count;
@@ -564,7 +565,7 @@ static void SplitGeometryX(GeometryData* data, GeometryData* dPlus,
 
 static void SplitGeometryY(GeometryData* data, GeometryData* dPlus,
                            GeometryData* dMinus, OOScalar y) {
-  OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+  OOCParameterAssert(data != nullptr && dPlus != nullptr && dMinus != nullptr);
 
   // test each triangle splitting against y == 0.0
   uint32_t i, count = data->count;
@@ -678,7 +679,7 @@ static void SplitGeometryY(GeometryData* data, GeometryData* dPlus,
 
 static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
                            GeometryData* dMinus, OOScalar z) {
-  OOCParameterAssert(data != NULL && dPlus != NULL && dMinus != NULL);
+  OOCParameterAssert(data != nullptr && dPlus != nullptr && dMinus != nullptr);
 
   // test each triangle splitting against z == 0.0
   uint32_t i, count = data->count;
@@ -812,7 +813,7 @@ static void SplitGeometryZ(GeometryData* data, GeometryData* dPlus,
    site), making AddTriangle() too heavy to inline.
 */
 static NO_INLINE_FUNC void AddTriangle_slow(GeometryData* data, Triangle tri) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
   OOCParameterAssert(data->count == data->capacity);
 
   if (data->capacity == kOOMeshToOctreeConverterSmallDataCapacity) {

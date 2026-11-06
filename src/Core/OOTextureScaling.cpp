@@ -347,7 +347,7 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
 
   // Avoid a potential double free (if the realloc in EnsureCorrectDataSize()
   // relocates the block).
-  if (srcPx.pixels == dstPx.pixels) srcPx.pixels = NULL;
+  if (srcPx.pixels == dstPx.pixels) srcPx.pixels = nullptr;
 
   // dstPx is now the result.
   OK = EnsureCorrectDataSize(&dstPx, leaveSpaceForMipMaps);
@@ -359,7 +359,7 @@ FAIL:
   }
   if (!OK) {
     free(dstPx.pixels);
-    dstPx.pixels = NULL;
+    dstPx.pixels = nullptr;
   }
 
   return OK ? dstPx : kOONullPixMap;
@@ -377,7 +377,7 @@ bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width,
            __PRETTY_FUNCTION__);
     return false;
   }
-  if (EXPECT_NOT(textureBytes == NULL)) {
+  if (EXPECT_NOT(textureBytes == nullptr)) {
     OO_LOG(cxx_kOOLogParameterError, "{}",
            "NULL texture pointer passed to GenerateMipMaps().");
     return false;
@@ -1663,7 +1663,7 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight) {
 
 static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps) {
   size_t correctSize;
-  void* bytes = NULL;
+  void* bytes = nullptr;
 
   correctSize = pixMap->rowBytes * pixMap->height;
 
@@ -1683,7 +1683,7 @@ static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps) {
   if (leaveSpaceForMipMaps) correctSize = correctSize * 4 / 3;
   if (correctSize != pixMap->bufferSize) {
     bytes = realloc(pixMap->pixels, correctSize);
-    if (EXPECT_NOT(bytes == NULL)) free(pixMap->pixels);
+    if (EXPECT_NOT(bytes == nullptr)) free(pixMap->pixels);
     pixMap->pixels = bytes;
     pixMap->bufferSize = correctSize;
   }

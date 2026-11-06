@@ -80,7 +80,7 @@ void OOECMBlastEntity::update(OOTimeDelta delta_t) {
 
     const std::vector<oo::EntityHold> targets =
         (UNIVERSE != nullptr ? UNIVERSE->findEntitiesMatchingPredicate(
-                                   IsShipPredicate, NULL, radius, this)
+                                   IsShipPredicate, nullptr, radius, this)
                              : std::vector<oo::EntityHold>());
     NSUInteger i, count = targets.size();
     if (count > 0) {

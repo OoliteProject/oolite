@@ -167,15 +167,15 @@ enum {
 
 static const JSCFunctionListEntry sSystemInfoProperties[] = {
     // JS name, getter, setter, ID, flags (hidden: see comment at top of file)
-    JS_CGETSET_MAGIC_DEF2("coordinates", SystemInfoGetProperty, NULL,
+    JS_CGETSET_MAGIC_DEF2("coordinates", SystemInfoGetProperty, nullptr,
                           kSystemInfo_coordinates,
                           OOJS_PROP_HIDDEN_READONLY_CB),
-    JS_CGETSET_MAGIC_DEF2("internalCoordinates", SystemInfoGetProperty, NULL,
+    JS_CGETSET_MAGIC_DEF2("internalCoordinates", SystemInfoGetProperty, nullptr,
                           kSystemInfo_internalCoordinates,
                           OOJS_PROP_HIDDEN_READONLY_CB),
-    JS_CGETSET_MAGIC_DEF2("galaxyID", SystemInfoGetProperty, NULL,
+    JS_CGETSET_MAGIC_DEF2("galaxyID", SystemInfoGetProperty, nullptr,
                           kSystemInfo_galaxyID, OOJS_PROP_HIDDEN_READONLY_CB),
-    JS_CGETSET_MAGIC_DEF2("systemID", SystemInfoGetProperty, NULL,
+    JS_CGETSET_MAGIC_DEF2("systemID", SystemInfoGetProperty, nullptr,
                           kSystemInfo_systemID, OOJS_PROP_HIDDEN_READONLY_CB),
 };
 
@@ -650,7 +650,7 @@ static int SystemInfoExoticGetOwnProperty(JSContext* context,
   */
   int shared = OOJSGetSharedPermanentOwnProperty(context, desc, obj, prop);
   if (shared != 0) {
-    if (shared > 0 && desc != NULL && key.has_value()) {
+    if (shared > 0 && desc != nullptr && key.has_value()) {
       if (SystemInfoGetSystemDataValue(context, info, *key, &value)) {
         if (JS_IsException(value)) {
           JS_FreeValue(context, desc->getter);
@@ -675,14 +675,14 @@ static int SystemInfoExoticGetOwnProperty(JSContext* context,
           answer accordingly. (The in operator and for..in ask
           SystemInfoExoticHasProperty() instead.)
   */
-  if (desc == NULL) return false;
+  if (desc == nullptr) return false;
 
   if (!SystemInfoGetSystemDataValue(context, info, *key, &value)) {
     return false;
   }
   if (JS_IsException(value)) return -1;
 
-  if (desc != NULL) {
+  if (desc != nullptr) {
     desc->flags = JS_PROP_C_W_E;
     desc->value = value;
     desc->getter = JS_UNDEFINED;
@@ -701,7 +701,7 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context,
                                                JSValueConst obj) {
   OOJS_EXOTIC_ENTER
 
-  *ptab = NULL;
+  *ptab = nullptr;
   *plen = 0;
 
   OOSystemInfo* info = SystemInfoForObject(obj);
@@ -714,7 +714,7 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context,
 
   JSPropertyEnum* tab =
       (JSPropertyEnum*)js_mallocz(context, sizeof *tab * (count + 1));
-  if (tab == NULL) return -1;
+  if (tab == nullptr) return -1;
 
   // System data keys (all enumerable; the SpiderMonkey enumerate hook listed
   // exactly these).
@@ -761,7 +761,7 @@ static int SystemInfoExoticHasProperty(JSContext* context, JSValueConst obj,
   OOJS_EXOTIC_ENTER
 
   // Ordinary own properties (the prototype's methods), then the exotic hook.
-  int own = JS_GetOwnProperty(context, NULL, obj, prop);
+  int own = JS_GetOwnProperty(context, nullptr, obj, prop);
   if (own != 0) return own;
 
   OOSystemInfo* info = SystemInfoForObject(obj);
@@ -805,7 +805,7 @@ static JSValue SystemInfoExoticGetProperty(JSContext* context, JSValueConst obj,
         JSValue result = JS_UNDEFINED;
         JS_FreeValue(context, desc.setter);
         if (JS_IsFunction(context, desc.getter)) {
-          result = JS_Call(context, desc.getter, receiver, 0, NULL);
+          result = JS_Call(context, desc.getter, receiver, 0, nullptr);
         }
         JS_FreeValue(context, desc.getter);
         return result;

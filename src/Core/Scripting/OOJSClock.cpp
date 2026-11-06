@@ -105,7 +105,7 @@ void InitOOJSClock(JSContext* context, JSValueConst global) {
       OOJSInitClass(context, global, sClockClassID, JS_UNDEFINED,
                     OOJSUnconstructableConstruct, 0, sClockProperties,
                     OOJS_COUNT(sClockProperties), sClockMethods,
-                    OOJS_COUNT(sClockMethods), NULL, 0);
+                    OOJS_COUNT(sClockMethods), nullptr, 0);
   JS_DefinePropertyValueStr(
       context, global, "clock",
       JS_NewObjectProtoClass(context, clockPrototype, sClockClassID),

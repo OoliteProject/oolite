@@ -58,7 +58,7 @@ static SharedPropertyTable sSharedProperties[kOOJSMaxClassID];
 static JSClassExoticMethods* sOwnExoticMethods[kOOJSMaxClassID];
 
 JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef) {
-  OOCParameterAssert(ioClassID != NULL && classDef != NULL);
+  OOCParameterAssert(ioClassID != nullptr && classDef != nullptr);
 
   JSRuntime* runtime = JS_GetRuntime(OOJSAcquireContext());
   JSClassID classID = JS_NewClassID(runtime, ioClassID);
@@ -66,7 +66,7 @@ JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef) {
 
   if (!JS_IsRegisteredClass(runtime, classID)) {
     JSClassDef def = *classDef;
-    if (def.exotic == NULL) {
+    if (def.exotic == nullptr) {
       sOwnExoticMethods[classID] =
           (JSClassExoticMethods*)calloc(1, sizeof(JSClassExoticMethods));
       def.exotic = sOwnExoticMethods[classID];
@@ -85,7 +85,7 @@ JSValue OOJSObjectPrototype(JSContext* context) {
 }
 
 const char* OOJSClassName(JSClassID classID) {
-  return (classID < kOOJSMaxClassID) ? sClassNames[classID] : NULL;
+  return (classID < kOOJSMaxClassID) ? sClassNames[classID] : nullptr;
 }
 
 void OOJSRegisterSubclass(JSClassID subclass, JSClassID superclass) {
@@ -117,7 +117,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID,
                                    const JSCFunctionListEntry* properties,
                                    size_t count) {
   SharedPropertyTable* table = &sSharedProperties[classID];
-  if (table->atoms != NULL || properties == NULL) return;
+  if (table->atoms != nullptr || properties == nullptr) return;
 
   table->atoms = (JSAtom*)malloc(sizeof(JSAtom) * (count ? count : 1));
   table->sortedAtoms = (JSAtom*)malloc(sizeof(JSAtom) * (count ? count : 1));
@@ -138,7 +138,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID,
   qsort(table->sortedAtoms, table->count, sizeof(JSAtom), CompareAtoms);
 
   JSClassExoticMethods* exotic = sOwnExoticMethods[classID];
-  if (exotic != NULL && table->count != 0) {
+  if (exotic != nullptr && table->count != 0) {
     exotic->get_own_property = OOJSGetSharedPermanentOwnProperty;
     exotic->get_own_property_names = OOJSGetSharedPermanentOwnPropertyNames;
   }
@@ -146,7 +146,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID,
 
 static bool TableContainsAtom(const SharedPropertyTable* table, JSAtom atom) {
   return table->count != 0 && bsearch(&atom, table->sortedAtoms, table->count,
-                                      sizeof(JSAtom), CompareAtoms) != NULL;
+                                      sizeof(JSAtom), CompareAtoms) != nullptr;
 }
 
 /*	A property is a shared permanent property of an object if its class
@@ -180,8 +180,8 @@ int OOJSGetSharedPermanentOwnPropertyNames(JSContext* context,
   JSClassID classID = JS_GetClassID(object);
   const SharedPropertyTable* table = (classID != 0 && classID < kOOJSMaxClassID)
                                          ? &sSharedProperties[classID]
-                                         : NULL;
-  uint32_t count = (table != NULL) ? table->count : 0;
+                                         : nullptr;
+  uint32_t count = (table != nullptr) ? table->count : 0;
 
   // A class's own prototype gets its properties from its shape, not from here.
   JSValue prototype =
@@ -191,7 +191,7 @@ int OOJSGetSharedPermanentOwnPropertyNames(JSContext* context,
 
   JSPropertyEnum* tab = (JSPropertyEnum*)js_malloc(
       context, sizeof(JSPropertyEnum) * (count ? count : 1));
-  if (tab == NULL) return -1;
+  if (tab == nullptr) return -1;
 
   for (uint32_t i = 0; i < count; i++) {
     tab[i].atom = JS_DupAtom(context, table->atoms[i]);
@@ -222,21 +222,21 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global,
     prototype = JS_NewObjectProtoClass(context, parentPrototype, classID);
   }
 
-  if (properties != NULL) {
+  if (properties != nullptr) {
     JS_SetPropertyFunctionList(context, prototype, properties,
                                (int)propertyCount);
     RecordSharedProperties(context, classID, properties, propertyCount);
   }
-  if (methods != NULL)
+  if (methods != nullptr)
     JS_SetPropertyFunctionList(context, prototype, methods, (int)methodCount);
 
-  if (constructor != NULL) {
+  if (constructor != nullptr) {
     const char* name = OOJSClassName(classID);
     JSValue ctor =
         JS_NewCFunction2(context, constructor, name, constructorArgCount,
                          JS_CFUNC_constructor_or_func, 0);
     JS_SetConstructor(context, ctor, prototype);
-    if (staticMethods != NULL)
+    if (staticMethods != nullptr)
       JS_SetPropertyFunctionList(context, ctor, staticMethods,
                                  (int)staticMethodCount);
     JS_DefinePropertyValueStr(context, global, name, ctor,

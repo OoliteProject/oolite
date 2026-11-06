@@ -96,7 +96,8 @@ bool OOProbabilisticTextureManager::initWithPListName(
     _probMaxGal =
         (float*)malloc(sizeof *_probMaxGal * (kOOMaximumGalaxyID + 1));
 
-    if (_textures == NULL || _prob == NULL || _galaxy == NULL) OK = false;
+    if (_textures == nullptr || _prob == nullptr || _galaxy == nullptr)
+      OK = false;
   }
 
   if (OK) {
@@ -156,16 +157,16 @@ bool OOProbabilisticTextureManager::initWithPListName(
 OOProbabilisticTextureManager::~OOProbabilisticTextureManager() {
   unsigned i;
 
-  if (_textures != NULL) {
+  if (_textures != nullptr) {
     for (i = 0; i != _count; ++i) {
       oo::release(_textures[i]);
     }
     free(_textures);
   }
 
-  if (_prob != NULL) free(_prob);
-  if (_galaxy != NULL) free(_galaxy);
-  if (_probMaxGal != NULL) free(_probMaxGal);
+  if (_prob != nullptr) free(_prob);
+  if (_galaxy != nullptr) free(_galaxy);
+  if (_probMaxGal != nullptr) free(_probMaxGal);
 }
 
 // OOObject's -description wrapped this as "<OOProbabilisticTextureManager

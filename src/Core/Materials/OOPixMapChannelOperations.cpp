@@ -50,7 +50,7 @@ void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx);
 
 bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex,
                             bool compactWhenDone) {
-  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) ||
+  if (EXPECT_NOT(ioPixMap == nullptr || !OOIsValidPixMap(*ioPixMap) ||
                  ioPixMap->format != kOOPixMapRGBA || channelIndex > 3)) {
     return false;
   }
@@ -69,7 +69,7 @@ bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex,
 
 namespace {
 void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex) {
-  OOCParameterAssert(ioPixMap != NULL);
+  OOCParameterAssert(ioPixMap != nullptr);
 
   uint32_t* src;
   uint8_t* dst;
@@ -91,7 +91,8 @@ void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex) {
 }  // namespace
 
 bool OOPixMapToRGBA(OOPixMap* ioPixMap) {
-  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (EXPECT_NOT(ioPixMap == nullptr || !OOIsValidPixMap(*ioPixMap)))
+    return false;
   if (ioPixMap->format == kOOPixMapRGBA) return true;
 
   OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height,
@@ -183,7 +184,8 @@ void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx) {
 
 bool OOPixMapModulateUniform(OOPixMap* ioPixMap, float f0, float f1, float f2,
                              float f3) {
-  if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap))) return false;
+  if (EXPECT_NOT(ioPixMap == nullptr || !OOIsValidPixMap(*ioPixMap)))
+    return false;
   if (EXPECT_NOT(!OOPixMapToRGBA(ioPixMap))) return false;
 
   ModulateUniform_4(*ioPixMap, f0 * 256.0f, f1 * 256.0f, f2 * 256.0f,
@@ -237,7 +239,7 @@ void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1,
 }  // namespace
 
 bool OOPixMapModulatePixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap) {
-  if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))
+  if (EXPECT_NOT(ioDstPixMap == nullptr || !OOIsValidPixMap(*ioDstPixMap)))
     return false;
   if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) ||
                  otherPixMap.format != kOOPixMapRGBA))
@@ -296,7 +298,7 @@ void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx) {
 }  // namespace
 
 bool OOPixMapAddPixMap(OOPixMap* ioDstPixMap, OOPixMap otherPixMap) {
-  if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))
+  if (EXPECT_NOT(ioDstPixMap == nullptr || !OOIsValidPixMap(*ioDstPixMap)))
     return false;
   if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) ||
                  otherPixMap.format != kOOPixMapRGBA))

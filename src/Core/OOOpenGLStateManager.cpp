@@ -468,7 +468,7 @@ void OOVerifyOpenGLState_(const char* function, unsigned line) {
 static void GetCurrentOpenGLState(OOOpenGLState* state) {
   static const char* name = "<current state>";
 
-  OOCParameterAssert(state != NULL);
+  OOCParameterAssert(state != nullptr);
   OO_ENTER_OPENGL();
   memset(state, 0, sizeof *state);
   state->name = name;
@@ -492,7 +492,7 @@ static void GetCurrentOpenGLState(OOOpenGLState* state) {
 
 namespace {
 static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b) {
-  OOCParameterAssert(a != NULL && b != NULL);
+  OOCParameterAssert(a != nullptr && b != nullptr);
 
 #define ITEM_STATEFLAG(NAME)                            \
   do {                                                  \
@@ -612,7 +612,7 @@ void OOSetOpenGLState(OOOpenGLStateID state) {
 namespace {
 static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState,
                                       const OOOpenGLState* targetState) {
-  OOCParameterAssert(sourceState != NULL && targetState != NULL);
+  OOCParameterAssert(sourceState != nullptr && targetState != nullptr);
   OO_ENTER_OPENGL();
 
 #define ITEM_STATEFLAG(NAME)                                                  \

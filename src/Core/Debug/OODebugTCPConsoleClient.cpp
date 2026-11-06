@@ -266,10 +266,10 @@ bool OODebugTCPConsoleClient::initWithAddress(
       }
 
       _decoder =
-          OOTCPStreamDecoderCreate(DecoderPacket, DecoderError, NULL, this);
+          OOTCPStreamDecoderCreate(DecoderPacket, DecoderError, nullptr, this);
     }
 
-    if (_decoder != NULL) {
+    if (_decoder != nullptr) {
       OK = true;
       _status = kOOTCPClientStartedConnectionStage1;
 
@@ -320,17 +320,17 @@ OODebugTCPConsoleClient::~OODebugTCPConsoleClient() {
   closeConnection();
 
   OOTCPStreamDecoderDestroy(_decoder);
-  _decoder = NULL;
+  _decoder = nullptr;
 }
 
 bool OODebugTCPConsoleClient::connectDebugMonitor(
     OODebugMonitor* debugMonitor, std::optional<std::string>* message) {
   if (_status == kOOTCPClientConnectionRefused) {
-    if (message != NULL) *message = "Connection refused.";
+    if (message != nullptr) *message = "Connection refused.";
     return false;
   }
   if (_status == kOOTCPClientDisconnected) {
-    if (message != NULL) *message = "Cannot reconnect after disconnecting.";
+    if (message != nullptr) *message = "Cannot reconnect after disconnecting.";
     return false;
   }
 
@@ -417,7 +417,7 @@ void OODebugTCPConsoleClient::closeConnection() {
 
 bool OODebugTCPConsoleClient::openSocketToHost(const std::string& address,
                                                uint16_t port) {
-  struct addrinfo hints, *found = NULL;
+  struct addrinfo hints, *found = nullptr;
   struct sockaddr_in host;
   OOSocket s;
 
@@ -434,8 +434,8 @@ bool OODebugTCPConsoleClient::openSocketToHost(const std::string& address,
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
-  if (getaddrinfo(address.c_str(), NULL, &hints, &found) != 0 ||
-      found == NULL) {
+  if (getaddrinfo(address.c_str(), nullptr, &hints, &found) != 0 ||
+      found == nullptr) {
     // Same text as gnustep-base's unknown-host message, via OO_LOG.
     OO_LOG("unclassified",
            "Host '{}' not found - perhaps the hostname is wrong or networking "
@@ -603,7 +603,7 @@ void OODebugTCPConsoleClient::serviceSocketFor(double seconds) {
 }
 
 bool OODebugTCPConsoleClient::sendBytes(const void* bytes, size_t count) {
-  if (bytes == NULL || count == 0) return true;
+  if (bytes == nullptr || count == 0) return true;
   if (!StatusIsSendable(_status) || _socket == kNoSocket) return false;
 
   do {
@@ -637,7 +637,7 @@ bool OODebugTCPConsoleClient::sendBytes(const void* bytes, size_t count) {
 
 void OODebugTCPConsoleClient::sendDictionary(const oo::PList& dictionary) {
   size_t count;
-  const uint8_t* bytes = NULL;
+  const uint8_t* bytes = nullptr;
   uint32_t header;
   bool sentOK = true;
 
@@ -945,7 +945,7 @@ bool OODebugTCPConsoleIsWaitingForInput(void) {
 
 void OODebugTCPConsoleServiceInput(double timeout) {
   fd_set readSet, writeSet, exceptSet;
-  struct timeval limit, *limitPtr = NULL;
+  struct timeval limit, *limitPtr = nullptr;
   int highest = -1;
 
   // An error event already raised is delivered without waiting.

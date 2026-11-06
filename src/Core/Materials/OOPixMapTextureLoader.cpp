@@ -81,7 +81,7 @@ void OOPixMapTextureLoader::loadTexture() {
   _format = _pixMap.format;
 
   //	Explicitly do not free pixels - ownership passes to texture.
-  _pixMap.pixels = NULL;
+  _pixMap.pixels = nullptr;
 }
 
 uint32_t OOPixMapTextureLoader::textureOptions() { return _texOptions; }

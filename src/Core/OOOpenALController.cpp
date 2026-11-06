@@ -55,12 +55,12 @@ bool OOOpenALController::init() {
   }
 
   ALuint error = AL_NO_ERROR;
-  device = alcOpenDevice(NULL);  // default device
+  device = alcOpenDevice(nullptr);  // default device
   if (!device) {
     OO_LOG(kOOLogSoundInitError, "{}", "Failed to open default sound device");
     return false;
   }
-  context = alcCreateContext(device, NULL);  // default context
+  context = alcCreateContext(device, nullptr);  // default context
   if (!alcMakeContextCurrent(context)) {
     OO_LOG(kOOLogSoundInitError, "{}",
            "Failed to create default sound context");
@@ -89,7 +89,7 @@ ALfloat OOOpenALController::masterVolume() {
 // is there a better way to handle this?
 void OOOpenALController::shutdown() {
   if (OOSoundMixer* mixer = OOSoundMixer::sharedMixer()) mixer->shutdown();
-  OOAL(alcMakeContextCurrent(NULL));
+  OOAL(alcMakeContextCurrent(nullptr));
   OOAL(alcDestroyContext(context));
   OOAL(alcCloseDevice(device));
 }

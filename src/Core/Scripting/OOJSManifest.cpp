@@ -105,7 +105,7 @@ void InitOOJSManifest(JSContext* context, JSValueConst global) {
       OOJSInitClass(context, global, sManifestClassID, JS_UNDEFINED,
                     OOJSUnconstructableConstruct, 0, sManifestProperties,
                     OOJS_COUNT(sManifestProperties), sManifestMethods,
-                    OOJS_COUNT(sManifestMethods), NULL, 0);
+                    OOJS_COUNT(sManifestMethods), nullptr, 0);
   OOJSRegisterObjectConverter(sManifestClassID,
                               OOJSBasicPrivateObjectConverter);
 
@@ -190,7 +190,7 @@ static int ManifestGetOwnProperty(JSContext* context,
              : nullptr);  // null: no good is defined, as a message to nil
     if (key.has_value() && commodities != nullptr &&
         commodities->goodDefined(*key)) {
-      if (desc != NULL) {
+      if (desc != nullptr) {
         desc->flags = JS_PROP_C_W_E;
         desc->value = JS_NewInt32(
             context,

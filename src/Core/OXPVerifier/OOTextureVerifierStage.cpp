@@ -121,7 +121,7 @@ void OOTextureVerifierStage::checkTextureNamed(const std::string& name,
            "***** ERROR: image {} could not be read.",
            displayName.value_or("(null)"));
   } else {
-    success = loader->getResult(&pixmap, &format, NULL, NULL);
+    success = loader->getResult(&pixmap, &format, nullptr, nullptr);
 
     if (success) {
       rWidth = OORoundUpToPowerOf2_PixMap((2 * pixmap.width) / 3);

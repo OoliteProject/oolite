@@ -163,7 +163,7 @@ oo::Ref<OOTexture> OOStandaloneAtmosphereGenerator::planetTextureWithInfo(
 
 bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(
     oo::Ref<OOTexture>* texture, const oo::PList& planetInfo, RANROTSeed seed) {
-  OOCParameterAssert(texture != NULL);
+  OOCParameterAssert(texture != nullptr);
 
   const oo::Ref<OOStandaloneAtmosphereGenerator> atmoGen =
       generatorWithPlanetInfo(planetInfo, seed);
@@ -227,8 +227,8 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
 
   bool success = false;
 
-  uint8_t *aBuffer = NULL, *apx = NULL;
-  float* randomBuffer = NULL;
+  uint8_t *aBuffer = nullptr, *apx = nullptr;
+  float* randomBuffer = nullptr;
 
   _height = _info.height = 1 << (_planetScale + _info.planetScaleOffset);
   _width = _info.width = _height * _info.planetAspectRatio;
@@ -445,11 +445,11 @@ static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info);
 static bool GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info);
 
 static bool FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info) {
-  OOCParameterAssert(info != NULL);
+  OOCParameterAssert(info != nullptr);
 
   // Allocate result buffer.
   info->fbmBuffer = (float*)calloc(info->width * info->height, sizeof(float));
-  if (info->fbmBuffer != NULL) {
+  if (info->fbmBuffer != nullptr) {
     if (!info->perlin3d) {
       GenerateFBMNoise(info);
     } else {
@@ -591,7 +591,7 @@ static float SampleNoise3D(OOStandaloneAtmosphereGeneratorInfo* info,
 static bool MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info) {
   uint16_t* perms =
       (uint16_t*)malloc(sizeof *info->permutations * kPermutationCount);
-  if (EXPECT_NOT(perms == NULL)) return false;
+  if (EXPECT_NOT(perms == nullptr)) return false;
 
   /*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
           Based on pseudocode from
@@ -734,7 +734,7 @@ static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info) {
   size_t ixBufferSize = info->width * sizeof(int);
   char* sharedBuffer =
       (char*)malloc(randomBufferSize + qxBufferSize + ixBufferSize);
-  if (sharedBuffer == NULL) return false;
+  if (sharedBuffer == nullptr) return false;
 
   float* randomBuffer = (float*)sharedBuffer;
   float* qxBuffer = (float*)(sharedBuffer + randomBufferSize);

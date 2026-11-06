@@ -44,7 +44,7 @@ OOCrosshairs::OOCrosshairs(const oo::PList& points, GLfloat scale,
 OOCrosshairs::~OOCrosshairs() { free(_data); }
 
 void OOCrosshairs::render() {
-  if (_data != NULL) {
+  if (_data != nullptr) {
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
@@ -81,7 +81,7 @@ void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale,
                                        OOColor* color, GLfloat alpha) {
   NSUInteger i;
   float colorComps[4] = {0.0f, 1.0f, 0.0f, 1.0f};
-  GLfloat* data = NULL;
+  GLfloat* data = nullptr;
 
   _count = points.count();
   if (_count == 0) return;

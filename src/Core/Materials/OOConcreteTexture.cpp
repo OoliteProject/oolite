@@ -135,7 +135,7 @@ OOConcreteTexture::~OOConcreteTexture() {
       _textureName = 0;
     }
     free(_bytes);
-    _bytes = NULL;
+    _bytes = nullptr;
   }
 
 #ifndef OOTEXTURE_NO_CACHE
@@ -265,7 +265,7 @@ OOPixMap OOConcreteTexture::copyPixMapRepresentation() {
 
   OOPixMap px = kOONullPixMap;
 
-  if (_bytes != NULL) {
+  if (_bytes != nullptr) {
     // If possible, just copy our existing buffer.
     px = OOMakePixMap(_bytes, _width, _height, _format, 0, 0);
     px = OODuplicatePixMap(px, 0);
@@ -476,7 +476,7 @@ void OOConcreteTexture::uploadTexture() {
 #if OOTEXTURE_RELOADABLE
     if (isReloadable()) {
       free(_bytes);
-      _bytes = NULL;
+      _bytes = nullptr;
     }
 #endif
   }
@@ -566,7 +566,7 @@ void OOConcreteTexture::forceRebind() {
       OO_LOG("texture.reload", "Reloading texture {}", description());
 
       free(_bytes);
-      _bytes = NULL;
+      _bytes = nullptr;
       _loaded = false;
       _uploaded = false;
       _valid = false;
@@ -586,8 +586,8 @@ bool OOConcreteTexture::isReloadable() { return _path.has_value(); }
 static bool DecodeFormat(OOTextureDataFormat format, uint32_t options,
                          GLenum* outFormat, GLenum* outInternalFormat,
                          GLenum* outType) {
-  OOCParameterAssert(outFormat != NULL && outInternalFormat != NULL &&
-                     outType != NULL);
+  OOCParameterAssert(outFormat != nullptr && outInternalFormat != nullptr &&
+                     outType != nullptr);
 
   switch (format) {
     case kOOTextureDataRGBA:

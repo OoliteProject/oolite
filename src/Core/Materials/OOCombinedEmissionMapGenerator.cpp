@@ -67,8 +67,8 @@ oo::Ref<OOColor> ModulateColor(OOColor* a, OOColor* b) {
 }
 
 void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB) {
-  OOCParameterAssert(pmA != NULL && pmB != NULL && OOIsValidPixMap(*pmA) &&
-                     OOIsValidPixMap(*pmB));
+  OOCParameterAssert(pmA != nullptr && pmB != nullptr &&
+                     OOIsValidPixMap(*pmA) && OOIsValidPixMap(*pmB));
 
   OOPixMapDimension minWidth = MIN(pmA->width, pmB->width);
   OOPixMapDimension minHeight = MIN(pmA->height, pmB->height);
@@ -127,8 +127,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
   uint32_t options;
   GLfloat anisotropy;
   GLfloat lodBias;
-  cxx_OOInterpretTextureSpecifier(spec, NULL, &options, &anisotropy, &lodBias,
-                                  true);
+  cxx_OOInterpretTextureSpecifier(spec, nullptr, &options, &anisotropy,
+                                  &lodBias, true);
   options = OOApplyTextureOptionDefaults(options);
 
   if (initWithPath(std::string("<generated emission map>"), options)) {
@@ -187,7 +187,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
             OOTextureLoader::loaderWithTextureSpecifier(
                 _emissionSpec, 0, std::string("Textures"));
         if (emissionMapLoader)
-          emissionMapLoader->getResult(&_emissionPx, &format, NULL, NULL);
+          emissionMapLoader->getResult(&_emissionPx, &format, nullptr, nullptr);
 #ifndef NDEBUG
         _emissionDesc =
             (emissionMapLoader ? emissionMapLoader->shortDescription()
@@ -199,8 +199,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
             OOTextureLoader::loaderWithTextureSpecifier(
                 _illuminationSpec, 0, std::string("Textures"));
         if (illuminationMapLoader)
-          illuminationMapLoader->getResult(&_illuminationPx, &format, NULL,
-                                           NULL);
+          illuminationMapLoader->getResult(&_illuminationPx, &format, nullptr,
+                                           nullptr);
 #ifndef NDEBUG
         _illuminationDesc =
             (illuminationMapLoader ? illuminationMapLoader->shortDescription()
@@ -370,7 +370,7 @@ void OOCombinedEmissionMapGenerator::loadTexture() {
               "illumination map and combined emission/illumination map.");
 
     illuminationPx = _illuminationPx;
-    _illuminationPx.pixels = NULL;
+    _illuminationPx.pixels = nullptr;
     haveIllumination = true;
     DUMP(illuminationPx, "source illumination map");
   }
@@ -407,7 +407,7 @@ void OOCombinedEmissionMapGenerator::loadTexture() {
       // emission map.
       _emissionPx = illuminationPx;
       haveEmission = true;
-      illuminationPx.pixels = NULL;
+      illuminationPx.pixels = nullptr;
     }
     haveIllumination =
         false;  // Either way, illumination is now baked into emission.
@@ -425,9 +425,9 @@ void OOCombinedEmissionMapGenerator::loadTexture() {
     _rowBytes = _emissionPx.rowBytes;
     _format = _emissionPx.format;
 
-    _emissionPx.pixels = NULL;  // So it won't be freed by the destructor.
+    _emissionPx.pixels = nullptr;  // So it won't be freed by the destructor.
   }
-  if (_data == NULL) {
+  if (_data == nullptr) {
     OO_LOG_ERR("texture.combinedEmissionMap.error", "Unknown error loading {}",
                description());
   }

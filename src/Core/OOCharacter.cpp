@@ -410,7 +410,8 @@ void OOCharacter::setCharacterScript(const std::string& scriptName) {
 
 void OOCharacter::doScriptEvent(OOJSPropID message) {
   JSContext* context = OOJSAcquireContext();
-  if (_script != nullptr) _script->callMethod(message, context, NULL, 0, NULL);
+  if (_script != nullptr)
+    _script->callMethod(message, context, nullptr, 0, nullptr);
   OOJSRelinquishContext(context);
 }
 
