@@ -9,9 +9,9 @@ oolite_sources += files(
     'OOTCPStreamDecoderAbstractionLayer.m',
 )
 
-# TODO (port, phase 4): debug console. The JS console object is not yet
-# ported to QuickJS.
-if not use_quickjs
+if use_quickjs
+    oolite_sources += files('QuickJS/OOJSConsole.m')
+else
     oolite_sources += files('OOJSConsole.m')
 endif
 
