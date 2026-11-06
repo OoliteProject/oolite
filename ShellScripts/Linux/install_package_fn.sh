@@ -153,19 +153,6 @@ install_package() {
 
         "doxygen") pkg_name="doxygen graphviz" ;;
 
-        "weasyprint-deps")
-            case "$CURRENT_DISTRO" in
-                debian)
-                    pkg_name="libharfbuzz0b libpango-1.0-0 libpangoft2-1.0-0 shared-mime-info"
-                    ;;
-                redhat)
-                    pkg_name="pango harfbuzz shared-mime-info"
-                    ;;
-                arch)
-                    pkg_name="pango harfbuzz shared-mime-info"
-                    ;;
-            esac ;;
-
         *)
             echo "❌ Could not translate '$generic_name' for $CURRENT_DISTRO!" >&2
             return 1

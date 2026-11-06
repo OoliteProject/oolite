@@ -17,7 +17,6 @@ create_flatpak() {
     cd "$flatpak_dir"
 
     cp ../../installers/flatpak/space.oolite.Oolite.* ./
-    cp ../../installers/flatpak/python-weasyprint.* ./
     mkdir -p shared-modules/glu
     if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
         echo "❌ Flatpak download of glu shared module failed!" >&2
@@ -25,7 +24,7 @@ create_flatpak() {
     fi
 
     local manifest="space.oolite.Oolite.yaml"
-    if ! sed -i "s|^[[:space:]]*- \./mk.sh.*|      - ./mk.sh flatpak-internal $build_type --ver-full=\"$ver_full\" --buildtime=\"$buildtime\" --github-repository=\"$github_repository\"|" "$manifest"; then
+    if ! sed -i "s|^[[:space:]]*- \./mk.sh.*|      - ./mk.sh flatpak-internal $build_type --setup-flags=\"-Ddocs=enabled\" --ver-full=\"$ver_full\" --buildtime=\"$buildtime\" --github-repository=\"$github_repository\"|" "$manifest"; then
         echo "❌ Replacement of ./mk.sh line in $manifest failed!" >&2
         return 1
     fi
