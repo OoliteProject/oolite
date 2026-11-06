@@ -30,11 +30,13 @@ SOFTWARE.
 #include <cstring>
 #include <typeinfo>
 
+#include "OODescription.h"
 #include "OOFunctionAttributes.h"
 #include "OOMaterialSpecifier.h"
-#include "OOObjCPList.h"
 #include "OOTexture.h"
 #include "Universe.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 #define FACE GL_FRONT_AND_BACK
 

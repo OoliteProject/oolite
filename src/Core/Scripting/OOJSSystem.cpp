@@ -32,6 +32,7 @@ OOJSSystem.m (QuickJS-ng)
 #include "OOConstToJSString.h"
 #include "OOConstToString.h"
 #include "OODebugStandards.h"
+#include "OODescription.h"
 #include "OOEntityFilterPredicate.h"
 #include "OOJSEntity.h"
 #include "OOJSPlayer.h"
@@ -41,7 +42,6 @@ OOJSSystem.m (QuickJS-ng)
 #include "OOJSSystemInfo.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
-#include "OOObjCPList.h"
 #include "OOPlanetEntity.h"
 #include "OOSunEntity.h"  // the sun is C++
 #include "PlayerEntityLegacyScriptEngine.h"
@@ -49,6 +49,8 @@ OOJSSystem.m (QuickJS-ng)
 #include "ShipEntity.h"
 #include "StationEntity.h"
 #include "Universe.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 static JSClassID sSystemClassID;

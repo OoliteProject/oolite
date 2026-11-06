@@ -11,7 +11,9 @@
 */
 
 #include "OOMaths.h"
-#include "OOObjCPList.h"
+#include "OODescription.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oo_test.hpp"
 
 namespace {

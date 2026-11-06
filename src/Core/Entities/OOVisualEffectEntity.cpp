@@ -32,12 +32,12 @@ MA 02110-1301, USA.
 #include "OOConstToString.h"
 #include "OODebugFlags.h"
 #include "OODebugGLDrawing.h"
+#include "OODescription.h"
 #include "OOFlasherEntity.h"
 #include "OOJSScript.h"
 #include "OOJSVisualEffect.h"
 #include "OOMaths.h"
 #include "OOMesh.h"
-#include "OOObjCPList.h"
 #include "OOOpenGLExtensionManager.h"
 #include "OOPListGameTypes.h"
 #include "OOPolygonSprite.h"
@@ -46,7 +46,9 @@ MA 02110-1301, USA.
 #include "OOStringParsing.h"
 #include "ResourceManager.h"
 #include "Universe.h"
+#include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

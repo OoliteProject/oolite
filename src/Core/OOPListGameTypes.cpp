@@ -26,10 +26,12 @@ MA 02110-1301, USA.
 
 #include "OOPListGameTypes.h"
 
-#include "OOObjCPList.h"
+#include "OODescription.h"
 #include "OOStringParsing.h"
 #include "OOVector.h"
 #include "legacy_random.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 namespace {
 

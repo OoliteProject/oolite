@@ -34,12 +34,12 @@ SOFTWARE.
 #include <map>
 
 #include "OOConcreteTexture.h"
+#include "OODescription.h"
 #include "OODrawable.h"
 #include "OOJSConsole.h"
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSScript.h"
 #include "OOJSSpecialFunctions.h"
-#include "OOObjCPList.h"
 #include "OOTexture.h"
 #include "ResourceManager.h"
 #include "oofnd/Defaults.hpp"
@@ -47,7 +47,9 @@ SOFTWARE.
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/Notification.hpp"
+#include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 

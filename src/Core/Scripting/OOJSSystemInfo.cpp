@@ -29,16 +29,18 @@ MA 02110-1301, USA.
 
 #include "OOCommodities.h"
 #include "OOConstToString.h"
+#include "OODescription.h"
 #include "OOIsNumberLiteral.h"
 #include "OOJSScript.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
-#include "OOObjCPList.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOTypes.h"  // OOCreditsQuantity (samplePrice)
 #include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
 #include "oofnd/Notification.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

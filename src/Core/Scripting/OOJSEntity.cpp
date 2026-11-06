@@ -26,14 +26,16 @@ MA 02110-1301, USA.
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToJSString.h"
+#include "OODescription.h"
 #include "OOJSCall.h"
 #include "OOJSPlayer.h"
 #include "OOJSQuaternion.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
-#include "OOObjCPList.h"
 #include "PlayerEntity.h"
 #include "ShipEntity.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 /*
         The Entity class is the shared base for every other entity binding

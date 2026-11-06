@@ -39,6 +39,7 @@ SOFTWARE.
 #include "OOConstToString.h"
 #include "OODebugFlags.h"
 #include "OODebugMonitor.h"
+#include "OODescription.h"
 #include "OOJSCall.h"
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSEntity.h"
@@ -46,9 +47,10 @@ SOFTWARE.
 #include "OOJSVector.h"
 #include "OOLogHeader.h"  // OOPlatformDescription()
 #include "OOLoggingExtended.h"
-#include "OOObjCPList.h"
 #include "OOOpenGLExtensionManager.h"
 #include "ResourceManager.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #if OO_DEBUG
 #include "OOShaderUniformMethodType.h"  // callObjC()'s scalar results on the console
 #include "OOTypeEncodings.h"            // the monitor rows' measured encodings

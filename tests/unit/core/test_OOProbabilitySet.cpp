@@ -16,7 +16,8 @@
 #include <cstring>
 
 #include "OODescription.h"
-#include "OOObjCPList.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "OOProbabilitySet.h"
 #include "legacy_random.h"
 #include "oo_test.hpp"

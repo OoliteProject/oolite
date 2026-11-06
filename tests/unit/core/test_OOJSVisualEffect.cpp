@@ -28,7 +28,8 @@
 #include "OOEntityHold.h"	// the sub-entity lists
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "OOObjCPList.h"
+#include "OODescription.h"
+#include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
 #include "OOScript.h"
 

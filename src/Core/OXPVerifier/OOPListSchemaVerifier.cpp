@@ -27,7 +27,9 @@ SOFTWARE.
 
 #include "OOPListSchemaVerifier.h"
 
-#include "OOObjCPList.h"
+#include "OODescription.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 #if OO_OXP_VERIFIER_ENABLED
 

@@ -30,12 +30,12 @@
 #include "OOCallByName.h"  // oo::ScheduleEntityCall
 #include "OOConstToJSString.h"
 #include "OOConstToString.h"
+#include "OODescription.h"
 #include "OOEntityFilterPredicate.h"
 #include "OOJSFunction.h"
 #include "OOJSScript.h"
 #include "OOJavaScriptEngine.h"
 #include "OOMaths.h"
-#include "OOObjCPList.h"
 #include "OOPListGameTypes.h"
 #include "OOPlanetEntity.h"
 #include "OOShipGroup.h"
@@ -49,6 +49,8 @@
 #include "Universe.h"
 #include "WormholeEntity.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

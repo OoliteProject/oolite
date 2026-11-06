@@ -48,9 +48,11 @@ sets that will then be immutablized.
 
 #include "OOProbabilitySet.h"
 
+#include "OODescription.h"
 #include "OOFunctionAttributes.h"
-#include "OOObjCPList.h"
 #include "legacy_random.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 

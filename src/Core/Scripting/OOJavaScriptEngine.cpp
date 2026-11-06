@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToJSString.h"
+#include "OODescription.h"
 #include "OOFoundation.h"  // OOLITE_DEBUG
 #include "OOJSClock.h"
 #include "OOJSDock.h"
@@ -63,7 +64,6 @@ MA 02110-1301, USA.
 #include "OOJSWaypoint.h"
 #include "OOJSWorldScripts.h"
 #include "OOJSWormhole.h"
-#include "OOObjCPList.h"  // Object nodes (OOJSValueFromPList)
 #include "OOPlanetEntity.h"
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"

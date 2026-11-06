@@ -29,7 +29,7 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #include "OODescription.h"
-#include "OOObjCPList.h"
+#include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
 
 #include <quickjs.h>
