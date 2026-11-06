@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 
 #define OOJS_QUICKJS 1
 
-#define OOJSENGINE_MONITOR_SUPPORT 0 // TODO (phase 4): debug console support.
+#define OOJSENGINE_MONITOR_SUPPORT OOLITE_DEBUG
 
 // Number of entries in a JSCFunctionListEntry (or other) array.
 #define OOJS_COUNT(array) (sizeof(array) / sizeof *(array))
@@ -79,6 +79,7 @@ MA 02110-1301, USA.
 #import "OOJSPropID.h"
 
 @class Entity;
+@protocol OOJavaScriptEngineMonitor;
 
 @interface OOJavaScriptEngine : NSObject {
 @private
@@ -90,6 +91,9 @@ MA 02110-1301, USA.
 #ifndef NDEBUG
     BOOL _dumpStackForErrors;
     BOOL _dumpStackForWarnings;
+#endif
+#if OOJSENGINE_MONITOR_SUPPORT
+    id<OOJavaScriptEngineMonitor> _monitor;
 #endif
 }
 
@@ -136,6 +140,44 @@ MA 02110-1301, USA.
 - (NSUInteger)shutDown;
 
 @end
+
+#if OOJSENGINE_MONITOR_SUPPORT
+
+/*	Protocol for debugging "monitor" object.
+        The monitor is an object -- in Oolite, or via Distributed Objects -- which
+        is provided with debugging information by the OOJavaScriptEngine.
+
+        QuickJS has no JSErrorReport, so problems are described by severity
+        (@"exception" or @"warning") and the innermost location on the stack, if
+        any (file is nil otherwise).
+*/
+@protocol OOJavaScriptEngineMonitor <NSObject>
+
+// Sent for JS errors or warnings.
+- (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
+                context:(in JSContext*)context
+      problemOfSeverity:(in NSString*)severity
+                 inFile:(in NSString*)file
+                   line:(in unsigned)line
+              stackSkip:(in unsigned)stackSkip
+        showingLocation:(in BOOL)showLocation
+            withMessage:(in NSString*)message;
+
+// Sent for JS log messages. Note: messageClass will be nil if Log() is used rather than LogWithClass().
+- (oneway void)jsEngine:(in byref OOJavaScriptEngine*)engine
+                context:(in JSContext*)context
+             logMessage:(in NSString*)message
+                ofClass:(in NSString*)messageClass;
+
+@end
+
+@interface OOJavaScriptEngine (OOMonitorSupport)
+
+- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)monitor;
+
+@end
+
+#endif
 
 // There is only one context, created on the main thread.
 OOINLINE JSContext* OOJSAcquireContext(void)

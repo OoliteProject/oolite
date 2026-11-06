@@ -84,6 +84,24 @@ MA 02110-1301, USA.
 #endif
 
 static OOJavaScriptEngine* sSharedEngine = nil;
+#if OOJSENGINE_MONITOR_SUPPORT
+
+@interface OOJavaScriptEngine (OOMonitorSupportInternal)
+
+- (void)sendMonitorProblemOfSeverity:(NSString*)severity
+                              inFile:(NSString*)file
+                                line:(unsigned)line
+                         withMessage:(NSString*)message
+                           inContext:(JSContext*)context;
+
+- (void)sendMonitorLogMessage:(NSString*)message
+             withMessageClass:(NSString*)messageClass
+                    inContext:(JSContext*)context;
+
+@end
+
+#endif
+
 static unsigned sErrorHandlerStackSkip = 0;
 
 JSContext* gOOJSMainThreadContext = NULL;
@@ -413,6 +431,44 @@ static BOOL IsRunningJavaScript(JSContext* context)
 
 @end
 
+#if OOJSENGINE_MONITOR_SUPPORT
+
+@implementation OOJavaScriptEngine (OOMonitorSupport)
+
+- (void)setMonitor:(id<OOJavaScriptEngineMonitor>)inMonitor
+{
+    [_monitor autorelease];
+    _monitor = [inMonitor retain];
+}
+
+@end
+
+@implementation OOJavaScriptEngine (OOMonitorSupportInternal)
+
+- (void)sendMonitorProblemOfSeverity:(NSString*)severity
+                              inFile:(NSString*)file
+                                line:(unsigned)line
+                         withMessage:(NSString*)message
+                           inContext:(JSContext*)theContext
+{
+    if ([_monitor respondsToSelector:@selector(jsEngine:context:problemOfSeverity:inFile:line:stackSkip:showingLocation:withMessage:)]) {
+        [_monitor jsEngine:self context:theContext problemOfSeverity:severity inFile:file line:line stackSkip:sErrorHandlerStackSkip showingLocation:[self showErrorLocations] withMessage:message];
+    }
+}
+
+- (void)sendMonitorLogMessage:(NSString*)message
+             withMessageClass:(NSString*)messageClass
+                    inContext:(JSContext*)theContext
+{
+    if ([_monitor respondsToSelector:@selector(jsEngine:context:logMessage:ofClass:)]) {
+        [_monitor jsEngine:self context:theContext logMessage:message ofClass:messageClass];
+    }
+}
+
+@end
+
+#endif
+
 /*	Define the SpiderMonkey extensions OXPs rely on (toSource(), uneval()...)
         before any other script runs. The script is run as plain global code, not
         wrapped like normal scripts.
@@ -663,6 +719,16 @@ static void LogProblem(JSContext* context, NSString* severity, NSString* errorNa
     BOOL dump = [severity isEqualToString:@"warning"] ? [jsEng dumpStackForWarnings] : [jsEng dumpStackForErrors];
     if (dump && stack != nil)
         OOLog(@"script.javaScript.stackTrace", @"%@", stack);
+#endif
+
+#if OOJSENGINE_MONITOR_SUPPORT
+    if (file == nil)
+        GetLocationFromStack(stack, &file, &line);
+    [jsEng sendMonitorProblemOfSeverity:severity
+                                 inFile:file
+                                   line:line
+                            withMessage:message
+                              inContext:context];
 #endif
 }
 
