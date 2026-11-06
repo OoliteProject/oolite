@@ -480,8 +480,7 @@ std::optional<std::string> OOOXZManager::humanSize(NSUInteger bytes)
         return OO_DESC("oolite-oxzmanager-missing-field");
     } else if (bytes < 1024) {
         return "<1 kB";
-    } else if (bytes < static_cast<NSUInteger>(1024) * 1024) // the product in NSUInteger, as the Objective-C
-                                                             // compare promoted it
+    } else if (bytes < static_cast<NSUInteger>(1024) * 1024) // the product in NSUInteger
     {
         return oo::str::format("%zu kB", (size_t)(bytes >> 10));
     } else {

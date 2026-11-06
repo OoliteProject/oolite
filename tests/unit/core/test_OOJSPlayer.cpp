@@ -9,8 +9,7 @@
 	stations' objects the root's), the universe (messages, speech, nearby systems), the display
 	strings, the script event names and the engine functions the binding links against, with the
 	engine headers' signatures (OOJSEngineCore.h, upstream #768's QuickJS-ng API; script event names
-	are atoms). The expectations were written against the Objective-C file and run on it first; they
-	pin the JS-visible behaviour: the Player class and the player object, every property both ways,
+	are atoms). The tests pin the JS-visible behaviour: the Player class and the player object, every property both ways,
 	each method with its arguments and errors (messages, reputations, the arrival report, speech,
 	replaceShip(), setEscapePodDestination() in each of its forms, setPlayerRole()), the events the
 	player is sent, and a native's exception. Run: bash tools/check-core-tests.sh

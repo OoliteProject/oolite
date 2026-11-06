@@ -161,7 +161,7 @@ void Reset() {
                         GL_FALSE, zero);
 }
 
-// The uniform's description, as the facade's -description printed it (nil:
+// The uniform's description, as its description() prints it (nil:
 // "(null)").
 std::string Description(const oo::Ref<OOShaderUniform>& uniform) {
   return uniform->description().value_or("(null)");
@@ -480,7 +480,7 @@ OO_TEST(cxxTargetConvertOptions) {
   }
 }
 
-// --- The C++ class and the facade (after the conversion)
+// --- The C++ class and the root
 // -----------------------------------------
 
 OO_TEST(cxxAPI) {

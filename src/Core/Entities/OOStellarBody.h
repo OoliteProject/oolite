@@ -43,10 +43,9 @@ typedef enum {
 #define PLANET_MINIATURE_FACTOR 0.00185
 #define MAX_SUBDIVIDE 6
 
-/*	-radius and -planetType of a stellar body's Objective-C object: the sun and the
-        planet are asked directly
-        (their object is the root Entity's facade, which does not answer them); any other body by
-        selector. Nil answers 0, as the message to nil did. Defined in OOSunEntity.mm.
+/*	The radius and planet type of a stellar body: the sun and the
+        planet are asked directly; any other body by
+        selector. Null answers 0. Defined in OOSunEntity.mm.
 */
 class Entity;
 double OOStellarBodyRadius(Entity* body); // of the C++ entity

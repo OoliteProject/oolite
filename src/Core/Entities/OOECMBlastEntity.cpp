@@ -2,10 +2,7 @@
 
 OOECMBlastEntity.m
 
-See OOECMBlastEntity.h. The bodies are the Objective-C ones: a message to self
-is a member call, the universe is handed the C++ entity and the scripts the
-entity's Objective-C object, oo::ToObjC(this). The ship stays its Objective-C
-object.
+See OOECMBlastEntity.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

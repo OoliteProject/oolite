@@ -4,8 +4,7 @@
 
 	The SDL joystick layer runs against one SDL virtual joystick (SDL_AttachVirtualJoystick), with
 	every hardware driver hinted off so a pad plugged into the machine cannot change the answers.
-	The expectations were written against the Objective-C API and run on the unconverted class
-	first: the stick is opened and named, SDL ids map to stick indices, the three event makers copy
+	The stick is opened and named, SDL ids map to stick indices, the three event makers copy
 	the event and translate its id, the axis is read from SDL, and handleSDLEvent: routes an event
 	of a known stick to the superclass's decoder (whose state the test reads back) and refuses
 	everything else. Run: bash tools/check-core-tests.sh

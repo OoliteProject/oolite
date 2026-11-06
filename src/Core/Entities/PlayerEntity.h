@@ -6,10 +6,9 @@ Entity subclass nominally representing the player's ship, but also
 implementing much of the interaction, menu system etc. Breaking it up into
 ten or so different classes is a perennial to-do item.
 
-The player is made in C++ by PlayerEntity::sharedPlayer() and its Objective-C
-object is the root's facade (which answers the selectors the game still finds
+The player is made in C++ by PlayerEntity::sharedPlayer(). The game finds selectors
 by name on the player: legacy-script actions and queries, callObjC(), shader
-bindings, deferred calls, for the player's C++ part only).
+bindings, deferred calls.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -335,32 +334,27 @@ inline constexpr std::string_view MISSION_DEST_LEGACY = "__oolite_legacy_destina
 
 /*	The player.
 
-        The ivars are data members with the same names, every one
-   zero-initialised as the runtime zeroed them, except three that shared a name
+        Every data member is zero-initialised, except three that share a name
    with a member function the player overrides (alertConditionLevel,
-   legalStatusValue, suppressTargetLostFlag). Pointers to other entities and to
-   Objective-C objects keep their objects alive as before: oo::ObjCRef, or
-   retained by hand where noted.
+   legalStatusValue, suppressTargetLostFlag).
 */
 class PlayerEntity : public ShipEntity {
 public:
-    /*	The shared player, made on first use: the C++
-            player and its Objective-C object (a ship's), kept for the process as
-       +alloc's was. Its initialiser ran nothing but the ship's part;
-       deferredInit() sets up the ship.
+    /*	The shared player, made on first use and kept for the process. Construction runs
+       nothing but the ship's part; deferredInit() sets up the ship.
     */
     static PlayerEntity* sharedPlayer();
     // Out of line, where every member's class is complete (a test makes a player).
     PlayerEntity();
     ~PlayerEntity() override;
-    // [[PlayerEntity alloc] init]: a new player, its Objective-C object retained (+1), as the universe
+    // A new player, retained (+1), as the universe
     // makes one when its entity list is empty; sharedPlayer() keeps the first one.
     static ::ShipEntity* newPlayerObject();
     void deferredInit();
-    // What the facade's -dealloc did first, before the ship's: the root's facade calls it.
+    // Run first when the player is destroyed, before the ship's teardown.
     void willDealloc();
 
-    // What the facade answered for selectors whose C++ member is named for an ivar.
+    // Members named for a data member the player keeps.
     OOAlertCondition alertCondition() override;
     int legalStatus() override;
     void suppressTargetLost() override;
@@ -1384,14 +1378,11 @@ public:
     int findIndexOfCommander(const std::string& cdrName);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    /*	Names the members the analyser would call unused because only the categories read them
-            (it was a method of the Objective-C class, built only into builds with the debug monitor).
-    */
+    // Built only into builds with the debug monitor.
     bool suppressClangStuff() const;
 #endif
 
-    // @private in Objective-C: test_PlayerEntity reaches them through its
-    // PlayerEntityTestAccess.
+    // test_PlayerEntity reaches the private members through its PlayerEntityTestAccess.
     friend struct PlayerEntityTestAccess;
 
 private:

@@ -28,9 +28,7 @@ struct OOALObject {
 
 struct OOALAutoreleasePool {
     std::vector<std::unique_ptr<OOALObject>> objects;
-    // Was an Objective-C autorelease pool pushed with this one.
-    // Declared last so it drains first, before the objects are freed, as the pool
-    // was popped before they were.
+    // Declared last so it drains first, before the objects are freed.
     oo::AutoreleaseScope deferred;
 };
 
@@ -61,7 +59,7 @@ std::string DescriptionOf(OOALObjectRef object)
 // Simulate literal CF/NS strings. Each literal string that is used becomes a
 // single object. Since it uses pointers as keys, it should only be used with
 // literals. Called from OOTCPStreamDecoder.c through OOALSTR(), so it keeps C
-// linkage now that this file is Objective-C++.
+// linkage.
 extern "C" OOALStringRef OOALGetConstantString(const char* string);
 OOALStringRef OOALGetConstantString(const char* string)
 {
@@ -86,10 +84,7 @@ void OOALRelease(OOALObjectRef object) { delete object; }
 OOALStringRef OOTypeDescription(OOALObjectRef object)
 {
     // What the handle holds: "(null)" for nothing, else the property-list type's
-    // name ("string", "array", ...). It was the class name of the Foundation
-    // object built for the value
-    // ([[object class] description], GNUstep's private classes such as
-    // GSCInlineString).
+    // name ("string", "array", ...).
     auto* mutableObject = const_cast<OOALObject*>(object);
     if (mutableObject->typeDescription == nullptr) {
         const std::string name = object->value.isNull()

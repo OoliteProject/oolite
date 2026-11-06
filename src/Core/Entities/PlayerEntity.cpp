@@ -401,16 +401,15 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
 
 PlayerEntity* gOOPlayer = nullptr;
 
-/*	The player's life: +sharedPlayer, -init, -deferredInit and the first
-   part of -dealloc, which were the facade's. The player's Objective-C object is
-   a ship's (OOEntityWithDrawable's facade).
+/*	The player's life: sharedPlayer(), construction, deferredInit() and the first
+   part of destruction.
 
         Nasty initialization mechanism:
         PlayerEntity is made on demand by sharedPlayer(). This
         initialization doesn't actually set anything up -- apart from the
         assertion, it's like doing a bare alloc. deferredInit() does the work
-        that -init "should" be doing. It assumes that -[ShipEntity
-   cxx_initWithKey: definition:] will not return an object other than self. This
+        that construction "should" be doing. It assumes that ShipEntity's
+   initialisation will not return an object other than self. This
    is necessary because we need a pointer to the PlayerEntity early in startup,
    when ship data hasn't been loaded yet. In particular, we need a pointer to
    the player to set up the JavaScript environment, we need the JavaScript
@@ -422,7 +421,7 @@ PlayerEntity::~PlayerEntity() = default;
 PlayerEntity* PlayerEntity::sharedPlayer()
 {
     if (EXPECT_NOT(gOOPlayer == nullptr)) {
-        // kept for the process, as +alloc's object was
+        // kept for the process
         gOOPlayer = static_cast<PlayerEntity*>(newPlayerObject());
     }
     return gOOPlayer;
@@ -430,8 +429,7 @@ PlayerEntity* PlayerEntity::sharedPlayer()
 
 ::ShipEntity* PlayerEntity::newPlayerObject()
 {
-    // -init: the ship's part only ([super initBypassForPlayer]), under the facade oo::NewEntityFacade
-    // picks (the drawable's); the player, its object retained (+1).
+    // The ship's part only; the player, its object retained (+1).
     OOCAssert(gOOPlayer == nullptr, "Expected only one PlayerEntity to exist at a time.");
     oo::Ref<PlayerEntity> player = oo::makeRef<PlayerEntity>();
     {
@@ -443,8 +441,7 @@ PlayerEntity* PlayerEntity::sharedPlayer()
 void PlayerEntity::deferredInit()
 {
     OOCAssert(gOOPlayer == this, "Expected only one PlayerEntity to exist at a time.");
-    // -[ShipEntity cxx_initWithKey:definition:] sent again: the root's -initWithCxxEntity:
-    // (what the ship's -initShipPart sent an initialised ship), then the ship's set-up.
+    // The ship's initialisation runs again over the entity, then the ship's set-up.
     OOCAssert(oo::EntityInitAgain(this) == this && initShipSetUp(std::string(PLAYER_SHIP_DESC), oo::PList(oo::PList::Dict { })), "PlayerEntity requires -[ShipEntity cxx_initWithKey:definition:] to return unmodified self.");
 
     maxFieldOfView = MAX_FOV;
@@ -479,7 +476,7 @@ void PlayerEntity::deferredInit()
     initControls();
 }
 
-// The player's part of -dealloc, which ran before the ship's: -[ShipEntity dealloc] calls it first.
+// The player's part of destruction, which runs before the ship's.
 void PlayerEntity::willDealloc()
 {
     compassTarget = nullptr;
@@ -499,8 +496,7 @@ void PlayerEntity::willDealloc()
 
     destroySound();
 
-    wormholeObject = nullptr; // the wormhole's Objective-C object
-    wormhole = nullptr;
+    wormholeObject = nullptr;    wormhole = nullptr;
 
     int i;
     for (i = 0; i < PLAYER_MAX_MISSILES; i++)
@@ -510,13 +506,13 @@ void PlayerEntity::willDealloc()
 }
 
 /*	Members named for an ivar the player keeps (alertCondition, legalStatus, suppressTargetLost):
-        the facade answered these selectors with the getters, so the ship's virtual members do too.
+        the ship's virtual members answer with the getters.
 */
 OOAlertCondition PlayerEntity::alertCondition() { return getAlertCondition(); }
 int PlayerEntity::legalStatus() { return getLegalStatus(); }
 void PlayerEntity::suppressTargetLost() { getSuppressTargetLost(); }
 
-// The player's JS class name, which its facade's category PlayerEntity (OOJavaScriptExtensions) answered.
+// The player's JS class name.
 JSClassID PlayerEntity::jsClassID() { return JSPlayerShipClassID(); }
 std::optional<std::string> PlayerEntity::jsClassName() { return OOJSPlayerShipJSClassName(); }
 
@@ -1102,9 +1098,8 @@ bool PlayerEntity::infoSystemOnRoute()
 
 void PlayerEntity::setWormhole(::WormholeEntity* newWormhole)
 {
-    // The wormhole is C++: its Objective-C object (the root's facade, which
-    // owns it) is what is retained. oo::ToObjC answers it autoreleased: the pool drains that here,
-    // so the object's retain count is its holders' alone afterwards, as before.
+    // The wormhole is held through wormholeObject; the pool drains here so that its retain count
+    // is its holders' alone afterwards.
     {
         oo::AutoreleaseScope pool; // was @autoreleasepool
         wormholeObject = oo::EntityHold(newWormhole); // null for null
@@ -4993,7 +4988,7 @@ void PlayerEntity::validateCompassTarget()
 
         if (EXPECT_NOT(new_target != getCompassTargetEntity())) {
             setCompassTargetEntity(new_target);
-            // a nil target was left out of the Objective-C argument array, as before
+            // a null target is left out of the argument array
             std::vector<oo::PList> compassArguments;
             if (new_target != nullptr)
                 compassArguments.push_back(oo::EntityObjectNode(new_target));
@@ -5193,8 +5188,7 @@ std::optional<std::string> PlayerEntity::dialTargetName()
         result = OO_DESC("no-target-string");
     }
 
-    // A wormhole answered -identFromShip: through its facade; it is asked
-    // directly now, and any other target that answers the selector as before.
+    // A wormhole is asked directly, and any other target that answers identFromShip().
     if (WormholeEntity* wh = dynamic_cast<WormholeEntity*>(target_entity)) {
         result = wh->identFromShip(this);
     } else if (::ShipEntity* ship = oo::ToShip(target_entity)) // what answered -identFromShip:
@@ -6053,7 +6047,7 @@ void PlayerEntity::takeEnergyDamage(double amount, Entity* entPart, Entity* othe
             /* Heat increase from energy impacts will never directly cause
              * overheating - too easy for missile hits to cause an uncredited
              * death by overheating against NPCs, so same rules for player */
-            ship_temperature += amount * (mass > 400000 ? 200000 / mass : 0.5) / heatInsulation(); // SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR, which named the facade's C++ entity
+            ship_temperature += amount * (mass > 400000 ? 200000 / mass : 0.5) / heatInsulation(); // SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR
             if (ship_temperature > SHIP_MAX_CABIN_TEMP) {
                 ship_temperature = SHIP_MAX_CABIN_TEMP;
             }
@@ -6341,7 +6335,7 @@ void PlayerEntity::dumpCargo()
         return;
     }
 
-    // what -[ShipEntity dumpCargo] did, keeping the commodity it returned (nil for no pod or no type)
+    // ShipEntity::dumpCargo(), keeping the commodity it returns (none for no pod or no type)
     ::ShipEntity* jetto = dumpCargoItem(std::nullopt);
     const std::optional<std::string> result = jetto != nil ? (jetto != nullptr ? jetto->commodityType() : std::optional<std::string>()) : std::nullopt;
     if (result.has_value()) {
@@ -7216,7 +7210,7 @@ void PlayerEntity::enterWormhole(::WormholeEntity* w_hole)
     }
     BOOL misjump = scriptedMisjump() || (w_hole != nullptr ? w_hole->withMisjump() : false) || flightPitch == max_flight_pitch || randf() > 0.995;
     wormholeObject.leak(); // a wormhole held here was dropped without a release, as before
-    wormholeObject = oo::EntityHold(w_hole); // held (its Objective-C object)
+    wormholeObject = oo::EntityHold(w_hole); // held
     wormhole = w_hole;
     addScannedWormhole(wormhole);
     setStatus(STATUS_ENTERING_WITCHSPACE);
@@ -7281,7 +7275,7 @@ void PlayerEntity::enterWitchspace()
 
     // Create the players' wormhole
     {
-        // +alloc/-init...: a new C++ wormhole and its Objective-C object, +1.
+        // A new C++ wormhole, +1.
         oo::Ref<WormholeEntity> whRef = oo::makeRef<WormholeEntity>();
         wormholeObject.leak(); // a wormhole held here was dropped without a release, as before
         wormholeObject = oo::EntityHold(oo::MadeEntity(whRef));
@@ -10378,7 +10372,7 @@ void PlayerEntity::setGuiToMarketScreen()
         gui->clearAndKeepBackground(!guiChanged);
 
         // The docked station (else a targeted station that broadcasts its market)
-        // was looked up here and never read; the dead lookup went with the facade
+        // was never read
 
         gui->setTitle(marketScreenTitle());
 

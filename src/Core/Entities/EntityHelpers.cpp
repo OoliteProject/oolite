@@ -2,10 +2,8 @@
 
 EntityHelpers.mm
 
-The questions the deleted root entity facade answered (EntityHelpers.h): its
-categories' and its helpers' bodies, asked of the C++ entity, and the entities'
-own counts (OOEntityHold.h): what -retain, -release, -autorelease and the
-facade's creation did.
+The questions asked of an entity (EntityHelpers.h), and the entities'
+own counts (OOEntityHold.h).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -45,8 +43,7 @@ extern size_t gTotalEntityMemory;
 
 namespace {
 
-// The parts the facade's categories asked (ShipPart, EffectPart, the waypoint): each is nullptr for
-// any other entity.
+// The parts asked for (ShipPart, EffectPart, the waypoint): each is nullptr for any other entity.
 ShipEntity* ShipPart(Entity* entity) { return dynamic_cast<ShipEntity*>(entity); }
 OOVisualEffectEntity* EffectPart(Entity* entity) { return dynamic_cast<OOVisualEffectEntity*>(entity); }
 OOWaypointEntity* WaypointPart(Entity* entity) { return dynamic_cast<OOWaypointEntity*>(entity); }
@@ -98,7 +95,7 @@ Entity* oo::MadeEntityRetained(const Ref<Entity>& entity)
 {
     if (entity == nullptr)
         return nullptr;
-    // The facade's -initWithCxxEntity:: from here the entity has its object, and it is counted.
+    // From here the entity has its object, and it is counted.
     entity->setMadeWithObject();
 #ifdef OO_DEBUG_MONITOR_ENABLED
     gLiveEntityCount++;
@@ -140,7 +137,7 @@ std::string oo::EntityOwnDescription(Entity* entity)
 {
     if (entity == nullptr)
         return "(null)";
-    // The facade's -cxx_description: the C++ class's name and components.
+    // The C++ class's name and components.
     std::string result = str::format("<%s %s>", EntityClassName(entity).c_str(), str::pointerDescription(entity).c_str());
     if (const std::optional<std::string> components = entity->descriptionComponents())
         result += "{" + *components + "}";
@@ -154,8 +151,7 @@ std::string oo::EntityDescription(Entity* entity)
 
 std::string oo::EntityShortDescription(Entity* entity)
 {
-    // OOObject's -cxx_shortDescription, which the facade did not override: its class (the root
-    // facade's, Entity) and address, no components.
+    // Its class (Entity) and address, no components.
     if (WithObject(entity) == nullptr)
         return "(null)";
     return str::format("<Entity %s>", str::pointerDescription(entity).c_str());

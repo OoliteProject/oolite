@@ -36,8 +36,7 @@ struct OOLaserShotEntityTestAccess;
 
 class OOLaserShotEntity : public Entity {
 public:
-    // A new shot, initialised. A caller that hands it to Objective-C gives it a facade
-    // (oo::NewEntityFacade).
+    // A new shot, initialised.
     static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship, OOWeaponFacing direction, Vector offset);
 
     std::optional<std::string> descriptionComponents() const override;

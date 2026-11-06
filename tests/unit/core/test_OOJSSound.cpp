@@ -8,8 +8,8 @@
 	(OOJSEngineNativeWrappers.mm), and stands in for the classes the binding calls (the sound, the
 	custom-sound look-up, ResourceManager, OOMusicController, the SoundSource binding and the player
 	answer only what the binding asks) and for the engine functions it links against, with the
-	engine headers' linkage. The expectations were written against the Objective-C file and run on
-	it first; they pin the JS-visible behaviour (name, toString(), the four static methods and their
+	engine headers' linkage. The expectations pin the JS-visible behaviour (name, toString(), the
+	four static methods and their
 	errors, SoundFromJSValue() for a Sound and for a name, a native's exception) and what the
 	category answered the engine. The sound is a C++ stand-in, the category's answers are the
 	functions that held its bodies, and a Sound object's slot holds the binding's holder of the
@@ -143,7 +143,6 @@ OOSound *MakeSound(const std::optional<std::string> &name)
 } // namespace
 
 
-// Was +[OOSound cxx_soundWithCustomSoundKey:] (the category went with the facade).
 OOSound *OOSoundWithCustomSoundKey(const std::string &key)
 {
 	return MakeSound("custom:" + key);
@@ -151,7 +150,7 @@ OOSound *OOSoundWithCustomSoundKey(const std::string &key)
 
 
 // ResourceManager: C++ definitions of the statics the code under test calls,
-// with the Objective-C stand-in's answers.
+// with the stand-in's answers.
 OOSound * ResourceManager::ooSoundNamed(const std::string &fileName, const std::optional<std::string> &folderName)
 {
 	if (fileName == "missing.ogg")  return nullptr;

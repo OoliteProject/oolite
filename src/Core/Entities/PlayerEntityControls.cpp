@@ -4314,7 +4314,7 @@ void PlayerEntity::pollDockedControls(double delta_t)
 
 void PlayerEntity::handleUndockControl()
 {
-    // FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
+    // FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and StationEntity::becomeExplosion()) -- Ahruman 20080308
     if (UNIVERSE != nullptr)
         UNIVERSE->setUpUniverseFromStation(); // player pre-launch
     if (dockedStation() == nil)

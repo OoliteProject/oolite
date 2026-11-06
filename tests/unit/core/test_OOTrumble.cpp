@@ -145,7 +145,7 @@ class TestEntityObject final : public oo::RefCounted {
  public:
   const char* className() const {
     return "Entity";
-  }  // its Objective-C class's runtime name
+  }  // the class's runtime name
 
   oo::Ref<Entity> _cxxEntity;
 };
@@ -723,7 +723,7 @@ OO_TEST(cxxClass) {
   OO_CHECK(blank->dictionary().count() == 9);
 }
 
-// The pods' objects (Entity+ObjCBridge.mm's oo::ToObjC, which the test does not
+// The pods' objects (oo::ToObjC, which the test does not
 // link).
 ::TestEntityObject* TestObjectOf(Entity* entity);
 #define OO_ENTITY_HELPERS_STAND_IN_NO_DESCRIPTIONS \

@@ -11,7 +11,7 @@
    (clamped, rounded to the planet data's levels, and computed from the view
    distance and the screen width), which parts are opaque or translucent, the
    bounds, the material and its name, and a copy. Drawing needs OpenGL and is
-   left to the goldens. The drawable is made and read through the one block of
+   left to the integration tests. The drawable is made and read through the one block of
    helpers below. Run: bash tools/check-core-tests.sh
 */
 

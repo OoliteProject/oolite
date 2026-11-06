@@ -108,8 +108,7 @@ private:
     bool _dirty = { };
 };
 
-// The write task write() schedules (was the Objective-C OOAsyncCacheWriter in
-// the bridge).
+// The write task write() schedules.
 class OOAsyncCacheWriter : public OOAsyncWorkTask {
 public:
     // Null for a null contents (-initWithCacheContents: answered nil).

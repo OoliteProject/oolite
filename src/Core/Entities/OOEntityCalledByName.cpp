@@ -2,14 +2,11 @@
 
 OOEntityCalledByName.mm
 
-An entity's method called by name, on its C++ part (declared in OOCallByName.h). The facade's
-by-name categories are the generated table OOEntityCalledByNameTable.h
-(tools/gen-entity-by-name-table.py): a tabled name is answered for the C++ part it applies to,
-exactly as the root facade's -respondsToSelector: and the category method answered it, and called as
-OOCallByName called the method (the same signature rules, read from the declared types' encodings
-instead of the method's type encoding: @encode()'s, measured literals). Any other name, and a tabled name that does not apply, are
-answered without the entity's Objective-C object, as OOCallByName answered them on it
-(OOEntityObjectNamesTable.h). callObjC() reads a typed result through oo::CallEntityByNameTyped. The table is the source: a tabled name that applies but whose signature the
+An entity's method called by name, on its C++ part (declared in OOCallByName.h). The by-name
+table is OOEntityCalledByNameTable.h: a tabled name is answered for the C++ part it applies to,
+and called as OOCallByName calls the method (the signature rules read from the declared types'
+encodings: @encode()'s, measured literals). Any other name, and a tabled name that does not apply, are
+answered from OOEntityObjectNamesTable.h. callObjC() reads a typed result through oo::CallEntityByNameTyped. The table is the source: a tabled name that applies but whose signature the
 call cannot use is logged here, and oo::ScheduleEntityCall holds the deferred calls.
 
 Oolite
@@ -46,7 +43,7 @@ MA 02110-1301, USA.
 #include "OOCallByName.h"
 #include "OODescription.h"
 #include "OOEntityWithDrawable.h"
-#include "OOPlanetEntity.h" // the facade rows
+#include "OOPlanetEntity.h" // the root-entity rows
 #include "OOQuiriumCascadeEntity.h"
 #include "OOTypeEncodings.h" // the rows' measured encodings
 #include "OOVisualEffectEntity.h"
@@ -62,8 +59,7 @@ MA 02110-1301, USA.
 
 namespace {
 
-// The parts the category methods' bodies read, as the facade's
-// (Entity+ObjCBridge.mm) are.
+// The parts the table's method bodies read.
 ShipEntity* ShipPart(Entity* entity)
 {
     return dynamic_cast<ShipEntity*>(entity);
@@ -165,17 +161,16 @@ void OOEntityByNameTyped(Entity* entity, OOEntityByNameValue& value)
 
 #include "OOEntityCalledByNameTable.h"
 
-/*	The root facade's own selectors that callObjC() lists and the by-name table does not, so
+/*	The root entity's own names that callObjC() lists and the by-name table does not, so
         callObjC() asks and calls an entity's C++ part for every name of its table. Each function is
-        the facade method's body (Entity+ObjCBridge.mm, and the cascade's deleted category),
-        verbatim, with the entity for the facade's own C++ entity, after a guard for no entity
-        (zero, as a message to nil answered; the calls never pass one); a name whose result
+        the method's body on the C++ entity, after a guard for no entity
+        (zero; the calls never pass one); a name whose result
         callObjC() cannot read (a string, a vector of objects, a matrix, a high-precision vector, a
-        bounding box: "cannot be called", or no result) has no function. The answers are the root
-        facade's -respondsToSelector:'s: every entity but for the planet's shader selectors (a
+        bounding box: "cannot be called", or no result) has no function. Every entity answers
+        them but for the planet's shader selectors (a
         planet's part) and the beacon protocol's (a ship's, an effect's or a waypoint's part). The
         entity results (nextBeacon, prevBeacon, parentEntity, rootShipEntity) are the C++ entity:
-        callObjC() makes its Object node, the same as the object's.
+        callObjC() makes its Object node.
 */
 namespace {
 
@@ -847,9 +842,9 @@ const OOEntityByNameRow* oo::EntityByNameRowNamed(const std::string& name)
     return found != rows.end() ? found->second : nullptr;
 }
 
-// As the root facade's -respondsToSelector: answered the name sets (the visual
+// The name sets (the visual
 // effect's first). A name only the effect's set holds is answered by the root
-// (super) for any entity, as the facade did; its body answers zero for any part
+// for any entity; its body answers zero for any part
 // but an effect's.
 bool oo::EntityByNameRowApplies(const OOEntityByNameRow& row, Entity* entity)
 {
@@ -880,7 +875,7 @@ bool oo::CallEntityByNameTyped(Entity* entity, const std::string& name,
         row->typed(entity, value);
         return true;
     }
-    // A facade row: the facade method's body, for an entity that answers it.
+    // A root-entity row: the method's body, for an entity that answers it.
     const OOEntityFacadeRow* facade = EntityFacadeRowNamed(name);
     if (facade == nullptr || facade->typed == nullptr || (facade->answers != nullptr && !facade->answers(entity)))
         return false;
@@ -958,8 +953,7 @@ std::optional<oo::PList> CallRow(const OOEntityByNameRow& row, Entity* entity,
     return (result == Kind::PList) ? std::move(answer) : oo::PList();
 }
 
-/*	The class OOCallByName's lines named: the entity's object's, the root's
-   facade, of class Entity (not asked).
+/*	The class OOCallByName's lines name: the entity's object's, of class Entity (not asked).
 */
 const char* ObjectClassName(Entity*) { return "Entity"; }
 
@@ -1006,12 +1000,10 @@ const OOEntityObjectName* AnsweredObjectName(Entity* entity,
         : nullptr;
 }
 
-/*	A C++ entity's name outside the by-name table, as OOCallByName answered
-   it on the entity's object, without the object: a facade row's method with no
-   argument that the call called is the row's body (its result ignored, as the
-   call ignored it); any other name the object answered is logged as the call
-   logged it (the method's type encoding), a root-class or lifetime method
-   included, which is no longer called; any other name does not respond. The
+/*	A C++ entity's name outside the by-name table: a root-entity row's method with no
+   argument that the call called is the row's body (its result ignored); any other
+   name the object answers is logged (the method's type encoding), a root-class or lifetime method
+   included, which is never called; any other name does not respond. The
    texts are OOCallByName's (OOCallByName.mm LogUnknown, LogBadSignature).
 */
 oo::PList CallObjectName(Entity* entity, const std::string& name,
@@ -1046,8 +1038,7 @@ bool oo::EntityRespondsToName(Entity* entity, const std::string& name)
         return false;
     if (const OOEntityByNameRow* row = EntityByNameRowNamed(name))
         return EntityByNameRowApplies(*row, entity);
-    // A facade row: the root facade's
-    // -respondsToSelector:'s answer for the facade's method.
+    // A root-entity row's answer.
     if (const OOEntityFacadeRow* facade = EntityFacadeRowNamed(name))
         return facade->answers == nullptr || facade->answers(entity);
     // Any other name the entity's object answered: the object is not asked.
@@ -1088,8 +1079,7 @@ void oo::ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity),
 {
     if (entity == nullptr || call == nullptr)
         return;
-    // The call holds the entity, so it keeps the entity alive until it has run, as the Objective-C
-    // holder OOEntityDeferredCall did.
+    // The call holds the entity, so it keeps the entity alive until it has run.
     oo::Ref<Entity> held(entity);
     OOScheduleDeferredCall([held, call]() { call(held.get()); }, delay);
 }

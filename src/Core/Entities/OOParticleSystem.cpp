@@ -2,11 +2,7 @@
 
 OOParticleSystem.m
 
-See OOParticleSystem.h. The bodies are the Objective-C ones: a message to self
-is a member call, [super ...] the base's member, a superclass initialiser that
-could not fail keeps its guarded statements in a plain block, and the universe
-is handed the entity's Objective-C object, oo::ToObjC(this). Other entities stay
-their Objective-C objects.
+See OOParticleSystem.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

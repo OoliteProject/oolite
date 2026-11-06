@@ -2,14 +2,12 @@
 
 EntityHelpers.h
 
-What is kept of the root entity facade in Entity+ObjCBridge.h: the questions the facade's
-methods and categories answered for an entity's object, asked of the C++ entity, and the entity's
+The questions asked of an entity's object, answered by the C++ entity, and the entity's
 property-list node.
 Imported as the last line of Entity.h; do not import it directly.
 
-An entity "has its object" (Entity::hasObject()) from the creator that made its facade until
-its last release begins: what oo::ToObjC() answering non-nil was. Where an answer was nil's for an
-entity without one, these answer as nil did.
+An entity "has its object" (Entity::hasObject()) from the creator that made it until
+its last release begins. For an entity without one, these answer nil, NO or nothing.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -46,11 +44,10 @@ class OOHUDBeaconIcon; // OOPolygonSprite.h
 
 namespace oo {
 
-/*	What oo::ShortDescriptionOf() of the entity's object printed: "<Entity
-   0x...>" (the facade's class, the short description has no components);
+/*	The entity's short description: "<Entity
+   0x...>" (no components);
    "(null)" for null and for an entity without its object. callObjC()'s "does
-   not respond" error prints it. The address is the C++ entity's (it was
-   the object's).
+   not respond" error prints it. The address is the C++ entity's.
 */
 std::string EntityShortDescription(Entity* entity);
 
@@ -59,25 +56,20 @@ std::string EntityShortDescription(Entity* entity);
 // nothing for null or an entity without its object.
 void InspectEntity(Entity* entity);
 
-// What oo::DescriptionOf() of the entity's object printed: "<C++ class
-// 0x...>{components}"; "(null)" as above. The address is the C++ entity's (it
-// was the object's).
+// The entity's description: "<C++ class
+// 0x...>{components}"; "(null)" as above. The address is the C++ entity's.
 std::string EntityDescription(Entity* entity);
 
 // The same, whether or not the entity has its object: its last release's log
-// line, which the facade's -dealloc wrote describing itself.
+// line, which describes itself.
 std::string EntityOwnDescription(Entity* entity);
 
-/*	What the root's debug size method answered for an entity's object, which
-   the live-entity memory count and the debug monitor's dump add up: the root
-   facade's instance size (isa, the weak-reference root's weakSelf and its
-   reference to the C++ entity; every entity's object was of the root facade's
-   class). Kept as that size, so the debug output is unchanged.
+/*	The size the live-entity memory count and the debug monitor's dump add up
+   for an entity's object: three pointers.
 */
 inline size_t EntityObjectSize(Entity*) { return 3 * sizeof(void*); }
 
-// The live C++ entity a weak reference reads (what oo::WeakEntityObject() of it, +0, answered the
-// part of): null once it has gone, and for an entity without its object.
+// The live C++ entity a weak reference reads: null once it has gone, and for an entity without its object.
 inline Entity* LiveEntity(const WeakRef<Entity>& ref) { return WithObject(ref.get()); }
 
 // The entity's owner, null for none or once it has gone (Entity::owner()).
@@ -86,18 +78,16 @@ inline Entity* LiveOwner(Entity* entity)
     return entity != nullptr ? entity->owner() : nullptr;
 }
 
-// The facade's -initWithCxxEntity: sent to an initialised entity
-// (PlayerEntity's deferred initialisation): the -init body runs again over the
-// same entity, which is counted again, as the facade counted it.
+// For an initialised entity (PlayerEntity's deferred initialisation): init() runs again over the
+// same entity, which is counted again.
 // Answers the entity.
 Entity* EntityInitAgain(Entity* entity);
 
 // The class name "%@" and the debug dumps print: the C++ class's name ("cxx::" dropped).
 std::string EntityClassName(Entity* entity);
 
-/*	What the root facade's -isShip, -isSubEntity, -isPlayer, -isPlanet and
-   -status answered for an entity's object: the C++ member each forwarded to;
-   nil's answer for none.
+/*	The ship, sub-entity, player, planet and status questions: the C++ member each
+   forwards to; nil's answer for none.
 */
 inline bool EntityIsShip(Entity* entity)
 {
@@ -125,14 +115,12 @@ inline OOEntityStatus EntityStatus(Entity* entity)
 // else (and for none).
 bool EntityIsShipWithSubEntityShip(Entity* entity, Entity* other);
 
-// What the facade's -isBeacon answered: the ship's,
+// Whether the entity is a beacon: the ship's,
 // effect's or waypoint's member, NO for anything else.
 bool EntityIsBeacon(Entity* entity);
 
-/*	The beacon list's links and code: what the protocol's messages to the
-   entities' objects answered and did, the facade's category answering them
-   with the ship's, the visual effect's or the waypoint's member (asked of
-   those members directly); nil's
+/*	The beacon list's links and code: answered with the ship's, the visual effect's or the
+   waypoint's member (asked of those members directly); nil's
    answer, and nothing, for none, for an entity without its object, and for any
    other entity.
 */

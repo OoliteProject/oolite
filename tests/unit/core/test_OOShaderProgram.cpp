@@ -8,8 +8,8 @@
 	attribute bindings), the failures (no source, a source that does not compile, a file that is not
 	there), the cache (one program per key while it lives, none without a key, a new one once it has
 	gone), the files asked for, and apply() / applyNone() (the program in use, kept while it is).
-	There is no game view here, so no standard matrix uniforms are bound. Those checks ran on the
-	Objective-C class first; the cases ask the C++ class with the same expectations (null for nil, a
+	There is no game view here, so no standard matrix uniforms are bound. The cases ask the C++
+	class (null for nil, a
 	held Ref for retain/release). Run: bash tools/check-core-tests.sh
 */
 
@@ -137,8 +137,8 @@ OO_TEST(programsFromSources)
 		OO_CHECK(Make(kVertex, std::nullopt) != nullptr);
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 
-		/*	A failed initialiser leaves exactly one GL_INVALID_VALUE behind (observed on the
-			Objective-C class before its conversion: its teardown deletes program 0), and a
+		/*	A failed initialiser leaves exactly one GL_INVALID_VALUE behind (its teardown deletes
+		program 0), and a
 			successful one none.
 		*/
 		OO_CHECK(Make(std::nullopt, std::nullopt) == nullptr);	// none is not
@@ -304,7 +304,7 @@ bool Contains(const std::string &text, const std::string &part)
 }
 
 
-// What upstream's NSRegularExpression rewrite gives, run through the C++ one.
+// What upstream's regular-expression rewrite gives, run through the C++ one.
 std::string Translated(const std::string &source, bool isVertexShader, oo::PList::Dict &bindings)
 {
 	return OOTranslateGLSL330To120(source, isVertexShader, bindings).value_or("(null)");

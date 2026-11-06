@@ -10,8 +10,7 @@
 	it, the cache, the script loader, the legacy-condition sanitizer, the standards switches) and
 	for the player and the engine functions the binding links against, with the engine headers'
 	linkage. The engine's native-object conversion asks the object for -oo_jsValueInContext:, as
-	the engine does, so the category's JS object is what the script sees. The expectations were
-	written against the Objective-C file and run on it first; they pin the JS-visible behaviour
+	the engine does, so the category's JS object is what the script sees. The tests pin the JS-visible behaviour
 	(every property, the display colour and effective tech level both ways, the prototype,
 	infoForKey(), allEquipment, a native's exception), the C functions other bindings call
 	(JSValueToEquipmentType(), JSValueToEquipmentKey(), JSValueToEquipmentKeyRelaxed()) and what

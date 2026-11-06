@@ -6,8 +6,7 @@
 	exception translator (OOJSEngineNativeWrappers.mm) and the number-literal test it calls
 	(OOIsNumberLiteral.cpp). It stands in for the player (its mission variables, kept in a
 	dictionary) and for the engine functions the binding links against, with the engine headers'
-	linkage. The expectations were written against the Objective-C file and run on it first; they
-	pin the JS-visible behaviour: the missionVariables object, reading a variable (a number literal
+	linkage. The tests pin the JS-visible behaviour: the missionVariables object, reading a variable (a number literal
 	as a number, any other string as itself, a missing one as null, a name with a leading underscore
 	as nothing), writing one (as its string, null clearing it, a bad name an error), delete,
 	enumeration (only mission_ keys, in key order), and a native's exception. Run: bash

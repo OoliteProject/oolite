@@ -7,8 +7,7 @@
 	the rest of the engine would provide is defined below as the smallest stand-in that does the
 	same thing: the engine object (which calls the function), the script stack (OOJSScript) and
 	Vector3D (a plain array here). The engine's and OOJSScript's headers are not imported, because
-	the test defines those classes; the class's header names OOJSScript with @class for that. The
-	expectations were written against the Objective-C class and run on it first; they pin the
+	the test defines those classes; the class's header names OOJSScript with @class for that. The tests pin the
 	initial state, the callback and its `this` (kept alive across a garbage collection), the run
 	(its `this`, its location, the owning script pushed and popped), an engine reset, and the weak
 	reference to a definition. Run: bash tools/check-core-tests.sh

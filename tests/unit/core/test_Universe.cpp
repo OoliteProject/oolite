@@ -5,9 +5,8 @@
    player), so the test links the whole game but main
    (tests/unit/core/meson.build entry ['*']) and
    uses Universes that were never initialised, as the entity tests do: zeroed,
-   as the runtime zeroed the ivars. The drawing is pinned by the goldens, not
-   here. The expectations were written against the Objective-C API and run on
-   the unconverted class first: the state a universe starts with, the settings
+   as the runtime zeroed the ivars. The drawing is pinned by the integration tests, not
+   here. The state a universe starts with, the settings
    and flags a headless universe can answer and their clamping, the post-FX and
         colour-blind modes, and the public members other classes read directly
    (the entity list, the collision lists, the cursor row, the ambient star
@@ -253,8 +252,7 @@ OO_TEST(facadeAndPart) {
 
     // A new universe is zeroed, as the runtime zeroed the ivars.
     Universe* fresh =
-        new Universe();  // never released: its teardown is the facade's
-                         // -dealloc, which clears UNIVERSE
+        new Universe();  // never released: its teardown clears UNIVERSE
     OO_CHECK(fresh->n_entities == 0 && fresh->x_list_start == nil &&
              fresh->gameView == nil);
     OO_CHECK(fresh->sortedEntities[UNIVERSE_MAX_ENTITIES] == nil &&
@@ -266,9 +264,8 @@ OO_TEST(facadeAndPart) {
 }
 
 // The units a universe that was never initialised can answer,
-// written against the Objective-C API and run on the unconverted class first.
 // Pausing, quitting and the set-up from a station or witchspace need
-// the player, the GUI and the game controller, and is pinned by the goldens.
+// the player, the GUI and the game controller, and is pinned by the integration tests.
 
 OO_TEST(slice2StartUpFlagsAddOnsAndEntityList) {
   {
@@ -538,8 +535,7 @@ OO_TEST(slice13EntityLookUp) {
 }
 
 // Demo ships, safe vectors, hazards on route, laser
-// hits. Written against the Objective-C API and run on the unconverted class
-// first. The entities sit in the universe's sorted list by hand (no
+// hits. The entities sit in the universe's sorted list by hand (no
 // -addEntity:, which needs the whole game).
 
 // PLAYER: a stand-in (OOGetPlayer() asserts there is a player, and an entity's
@@ -552,7 +548,7 @@ class UniverseTestPlayer : public PlayerEntity {
   ::StationEntity* dockedStation() override { return nil; }
 };
 
-// A C++ player under the ship's facade, as PlayerEntity::sharedPlayer() makes
+// A C++ player, as PlayerEntity::sharedPlayer() makes
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
@@ -679,8 +675,7 @@ OO_TEST(slice14Hazard) {
 }
 
 // Counting and finding entities by predicate, time,
-// collisions, the view direction. Written against the Objective-C API and run
-// on the unconverted class first; the entities sit in the sorted list by hand,
+// collisions, the view direction. The entities sit in the sorted list by hand,
 // as the demo-ship cases do. Counts as a ship for the ship predicates (a C++
 // entity whose ship flag, which -isShip and the predicates read, is set).
 class Slice15ShipLike : public Entity {
@@ -805,9 +800,8 @@ OO_TEST(slice15TimeAndCollisions) {
 }
 
 // The view direction, custom sounds, screen
-// backgrounds, messages. Written against the Objective-C API and run on the
-// unconverted class first. A headless universe has no GUIs and no player (the
-// messages that reach the player's script events are left to the goldens), so
+// backgrounds, messages. A headless universe has no GUIs and no player (the
+// messages that reach the player's script events are left to the integration tests), so
 // the messages are seen in the members that remember them (the current message
 // and its repeat times).
 namespace {
@@ -904,7 +898,7 @@ OO_TEST(slice16SoundsAndBackgrounds) {
 }
 
 // Update:, time acceleration, ECM visual effects.
-// Written against the Objective-C API and run on the unconverted class first. A
+// A
 // full update needs the whole game (the player, the JavaScript engine); a
 // universe whose updates are off only lets go of the dead.
 OO_TEST(slice17UpdateOff) {
@@ -958,7 +952,6 @@ OO_TEST(slice17Settings) {
 
 // FilterSortedLists, which marks the entities that
 // cannot meet another on the z axis and chains the rest for the collision test.
-// Written against the Objective-C API and run on the unconverted class first.
 // The x, y and z lists are linked by hand in one order.
 namespace {
 
@@ -1010,8 +1003,7 @@ OO_TEST(slice18FilterSortedLists) {
 }
 
 // Galaxy and system changes, descriptions, scenarios,
-// characters, mission text, system data and names, finding systems. Written
-// against the Objective-C API and run on the unconverted class first. A
+// characters, mission text, system data and names, finding systems. A
 // headless universe has no system manager, so the state these answer is set in
 // the members by hand.
 OO_TEST(slice19Descriptions) {
@@ -1078,9 +1070,8 @@ OO_TEST(slice19DataAndNames) {
 
 // Neighbouring systems, system-name look-up, routes,
 // planet textures, global and equipment data, the commodity market, time
-// descriptions. Written against the Objective-C API and run on the unconverted
-// class first; with no system manager, what needs the galaxy's data is left to
-// the goldens.
+// descriptions. With no system manager, what needs the galaxy's data is left to
+// the integration tests.
 OO_TEST(slice20NamesAndRoutes) {
   {
     oo::AutoreleaseScope scope;
@@ -1128,8 +1119,7 @@ OO_TEST(slice20DataAndTime) {
 }
 
 // Short time descriptions, sun skimmers, station
-// markets. Written against the Objective-C API and run on the unconverted class
-// first; the words come from descriptions set in the member by hand (no plural
+// markets. The words come from descriptions set in the member by hand (no plural
 // rules: "%0" is the singular, "%1" the plural).
 OO_TEST(slice21ShortTimeAndMarkets) {
   {
@@ -1162,9 +1152,8 @@ OO_TEST(slice21ShortTimeAndMarkets) {
 }
 
 // Witchspace exit and sun-skim positions, beacons by
-// code, script events to all ships, the GUIs and display flags. Written against
-// the Objective-C API and run on the unconverted class first; trade-in values
-// and brochures need the ship registry (the goldens).
+// code, script events to all ships, the GUIs and display flags. Trade-in values
+// and brochures need the ship registry (the integration tests).
 OO_TEST(slice23PositionsAndLists) {
   {
     oo::AutoreleaseScope scope;
@@ -1211,10 +1200,9 @@ OO_TEST(slice23GUIsAndFlags) {
 
 // Autosave, wireframe and detail levels, shaders,
 // exceptions, speech (eSpeak and none), message logs, settings, session IDs.
-// Written against the Objective-C API and run on the unconverted class first.
 // The setters that write the user's preferences
 // (-setWireframeGraphics:, -setDetailLevel:) and the set-up that loads the
-// game's files are left to the goldens; their state is set in the members by
+// game's files are left to the integration tests; their state is set in the members by
 // hand.
 OO_TEST(slice24DetailAndLogs) {
   {
@@ -1286,10 +1274,9 @@ OO_TEST(slice24Voices) {
 
 // Reinitialising and the demo, the initial universe,
 // random positions, removing entities, preloading sounds, wormhole population,
-// graph dumps. Written against the Objective-C API and run on the unconverted
-// class first; the selectors only the private category declared are declared
+// graph dumps. The selectors only the private category declared are declared
 // here, as test_Entity's (TestPrivate). Reinitialising and the initial universe
-// need the whole game (the goldens).
+// need the whole game (the integration tests).
 
 OO_TEST(slice25RandomPositions) {
   {
@@ -1363,10 +1350,9 @@ OO_TEST(slice25DoRemoveEntity) {
 
 // Graph-viz references, localisation tools,
 // planet-material pruning, condition scripts, the custom-sound categories of
-// OOSound and OOSoundSource, description look-ups. Written against the
-// Objective-C API and run on the unconverted class first. Loading a condition
-// script or a sound file needs the JavaScript engine and the game's files (the
-// goldens): here only what is missing.
+// OOSound and OOSoundSource, description look-ups. Loading a condition
+// script or a sound file needs the JavaScript engine and the game's files (the integration tests):
+// here only what is missing.
 
 OO_TEST(slice26GraphVizAndTools) {
   {

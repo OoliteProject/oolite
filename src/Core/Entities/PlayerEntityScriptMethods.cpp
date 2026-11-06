@@ -50,9 +50,8 @@ oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape)
     return oo::PList(std::move(marker));
 }
 
-// What -boolValue / -integerValue of the value an Objective-C dictionary held
-// gave (NO / 0 for none): NSString's and NSNumber's own conversions, as
-// NSUserDefaults -boolForKey: / -integerForKey: read them.
+// The bool and integer value of a property-list value (NO / 0 for none): NSString's and
+// NSNumber's own conversions, as NSUserDefaults -boolForKey: / -integerForKey: read them.
 BOOL BoolValueOf(const oo::PList* value)
 {
     if (value == nullptr)

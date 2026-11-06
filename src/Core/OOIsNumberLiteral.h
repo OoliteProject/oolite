@@ -34,7 +34,7 @@
 #else
 /*	Plain C++ translation unit (OOIsNumberLiteral.cpp): only BOOL
    is needed, and OOFoundation.h imports Foundation, which does not compile
-   outside Objective-C.
+   in a plain C++ unit.
 */
 #include "oofnd/objc/OOFoundationTypes.h" // BOOL
 #endif

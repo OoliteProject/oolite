@@ -133,7 +133,7 @@ OODebugWFState OODebugBeginWireframe(bool ignoreZ)
 {
     OO_ENTER_OPENGL();
 
-    // The current material, held until OODebugEndWireframe() (it was the facade's autoreleased object).
+    // The current material, held until OODebugEndWireframe().
     OODebugWFState state = { .material = OOMaterialRetainCurrent() };
     OOMaterialApplyNone();
 

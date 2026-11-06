@@ -55,10 +55,8 @@ MA 02110-1301, USA.
 #endif
 
 /*	The universe makes it with
-   oo::makeRef<OOSunEntity>(), hands it to Objective-C with oo::NewEntityFacade
-   (its object is the root Entity's facade) and holds it as the C++ class; its
-   OOStellarBody answers are members (OOStellarBodyRadius() asks them for an
-   Objective-C object).
+   oo::makeRef<OOSunEntity>() and holds it as the C++ class; its
+   OOStellarBody answers are members (OOStellarBodyRadius()).
 */
 class OOSunEntity : public Entity {
 public:
@@ -85,7 +83,7 @@ public:
     void drawDirectVisionSunGlare();
     void resetNova();
 
-    // OOStellarBody's name (-cxx_name / -cxx_setName:), which the facade answered.
+    // OOStellarBody's name.
     std::optional<std::string> name();
     void setName(const std::optional<std::string>& name);
 
@@ -101,7 +99,7 @@ public:
     bool isSun() override;
     bool isVisible() override;
 
-    // The binding's bodies (OOJSSun.mm), which the facade forwarded to.
+    // The binding's bodies (OOJSSun.mm).
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
     bool isVisibleToScripts() override;

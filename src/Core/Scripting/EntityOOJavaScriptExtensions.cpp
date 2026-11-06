@@ -138,10 +138,8 @@ void EntityJSDeleteJSSelf(Entity* entity)
     }
 }
 
-/*	What the facade's -cxx_oo_jsDescription answered (OOObject (OOJavaScriptConversion)'s
-        OOObjectJSDescription): "[<JS class name> <components>]", or "[object <JS class name>]" with no
-        components; the JS class name is -cxx_oo_jsClassName's (the C++ entity's jsClassName()), else
-        the root facade's class name, "Entity".
+/*	The entity's JS description: "[<JS class name> <components>]", or "[object <JS class name>]" with no
+        components; the JS class name is the entity's jsClassName(), else "Entity".
 */
 std::optional<std::string> EntityJSDescription(Entity* entity)
 {
@@ -149,7 +147,7 @@ std::optional<std::string> EntityJSDescription(Entity* entity)
         return std::nullopt; // (the holder asks only a live entity)
     std::optional<std::string> name = entity->jsClassName();
     if (!name.has_value())
-        name = std::string("Entity"); // the root facade's class
+        name = std::string("Entity"); // the root class
     if (const std::optional<std::string> components = entity->descriptionComponents()) {
         return oo::str::format("[%s %s]", name->c_str(), components->c_str());
     }
@@ -198,7 +196,7 @@ void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target)
         target = oo::ToShip((target != nullptr ? target->owner() : nullptr));
     }
     if (me == nullptr)
-        return; // what ToShip(ToObjC(me)) asked
+        return; // not a ship
     if (target != nil) {
         if (me != nullptr)
             me->addTarget(target);

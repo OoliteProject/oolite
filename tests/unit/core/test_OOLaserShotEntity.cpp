@@ -7,9 +7,8 @@
 	plain entity as PLAYER. The ship that fires is an entity of the test's own that answers the
 	selectors the class sends a ship (its root ship, speed and weapon range); the class asserts that
 	it is a ship, so the test sets that flag. It is a C++ ship whose fields give those answers. The
-	expectations were written against the Objective-C API and run on the unconverted class first;
-	the cases ask the C++ class, and the shots are made as the ship makes them, laserFromShip() then
-	oo::NewEntityFacade. They cover: where the shot starts and how it is turned for each facing, its
+	cases ask the C++ class, and the shots are made as the ship makes them, laserFromShip() then
+	their set-up. They cover: where the shot starts and how it is turned for each facing, its
 	velocity, owner, range and status; its colour (default red, a set colour brightened, the alpha
 	constant); the lifetime in its description; following the player's ship; removal when its
 	lifetime has run out. The colour is private; the test reads it through the access struct below.
@@ -43,8 +42,8 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// NewTestPlayer<TestPlayer>(): a C++ player, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -106,7 +105,7 @@ void SetUp()
 // The ship that fires: what OOLaserShotEntity asks of a ShipEntity (its root
 // ship, itself; its speed and weapon range). The class calls the ship's
 // members, so it is a C++ ship (never set up) under its object
-// (oo::NewEntityFacade, autoreleased as the test's entity was) whose fields
+// whose fields
 // give those answers.
 Entity *MakeShip()
 {
@@ -120,8 +119,7 @@ Entity *MakeShip()
 }
 
 
-// A shot, made as the ship makes one: its Objective-C object is autoreleased in the test's pool and
-// holds it.
+// A shot, made as the ship makes one: it is held in the test's pool.
 oo::Ref<OOLaserShotEntity> Shot(Entity *ship, OOWeaponFacing direction, Vector offset)
 {
 	oo::Ref<OOLaserShotEntity> shot = OOLaserShotEntity::laserFromShip(oo::ToShip(ship), direction, offset);

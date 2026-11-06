@@ -248,7 +248,7 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
 
         const oo::PList& entry = StickFunctionAt(stickFunctions, selFunctionIdx);
         int hw = IntValueForKey(entry, KEY_ALLOWABLE);
-        stickHandler->setCallback([this](const oo::PList& hwDict) { updateFunction(hwDict); }, hw); // was -updateFunction: on the root facade, by name
+        stickHandler->setCallback([this](const oo::PList& hwDict) { updateFunction(hwDict); }, hw);
 
         // Print instructions
         std::string instructions;

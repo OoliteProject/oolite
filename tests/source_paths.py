@@ -7,8 +7,8 @@ goes - every ``.m`` became ``.mm`` in one step and they are renamed again to
 tree walk that silently found nothing. This module is the one place that knows which suffixes an
 implementation file may carry, so the next rename is a change here and not in every test.
 
-Stdlib only; imported by the GUI tier (oolite-dev/tests/gui) and the golden tier
-(tests/golden), both of which put this directory on ``pythonpath`` in their pytest.ini.
+Stdlib only; imported by the GUI tests (oolite-dev/tests/gui), which put this directory on
+``pythonpath`` in their pytest.ini.
 
 It never guesses. ``resolve_source`` returns the ONE existing file with that stem; none, or more
 than one (a half-finished rename leaving both ``X.m`` and ``X.mm``), is an error that names every

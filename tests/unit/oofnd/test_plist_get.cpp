@@ -17,8 +17,7 @@
    so a fallback is always visible. meson test --suite oofnd-plist
 */
 
-// Included as Objective-C++ game code includes it, after OOCocoa.h's true/false
-// macros.
+// Included where true/false are macros, as OOCocoa.h defined them.
 #define true 1
 #define false 0
 #include "oofnd/PListGet.hpp"
@@ -1043,8 +1042,7 @@ OO_TEST(noFallbackFormsUseTheExtractorDefaults) {
       -1);  // -oo_objectAtIndex: is nil past the end, never a range exception
 }
 
-// A receiver of the wrong kind (the Objective-C method would not exist) finds
-// nothing.
+// A receiver of the wrong kind finds nothing.
 OO_TEST(wrongReceiverKindGivesFallback) {
   const PList s("text");
   OO_CHECK_EQ(s.get<int>("k", 4), 4);

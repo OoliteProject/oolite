@@ -9,8 +9,7 @@
 	façade), and stands in for the classes the binding messages (Entity, OOPlanetEntity and the
 	universe answer only the selectors the binding sends), for the Vector and Quaternion conversions
 	(arrays [x, y, z] and [w, x, y, z] here) and for the engine functions the binding links against,
-	with the engine headers' linkage. The expectations were written against the Objective-C file and
-	run on it first; they pin the JS-visible behaviour (the twelve properties, the colours both
+	with the engine headers' linkage. The tests pin the JS-visible behaviour (the twelve properties, the colours both
 	ways, a texture that loads or does not, a moon, a non-planet, a native's exception) and what the
 	category answers the engine. Run: tests/run.sh unit
 */
@@ -209,7 +208,7 @@ std::optional<std::string> OOPlanetEntity::jsClassName()  { return ::OOJSPlanetJ
 bool OOPlanetEntity::isVisibleToScripts()  { return ::OOJSPlanetIsVisibleToScripts(this); }
 
 
-// A new C++ planet and its object (what oo::NewEntityFacade makes in the game); the object owns it.
+// A new C++ planet and its object (as in the game); the object owns it.
 OOPlanetEntity *NewPlanet()
 {
 	oo::Ref<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();

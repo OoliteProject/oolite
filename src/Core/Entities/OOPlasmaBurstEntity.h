@@ -27,11 +27,7 @@ MA 02110-1301, USA.
 
 #include "OOLightParticleEntity.h"
 
-/*	A global class over OOLightParticleEntity, with no facade of its own.
-   Unconverted code makes one with burstWithPosition() and hands it to
-   Objective-C with oo::NewEntityFacade, whose object is an
-   OOLightParticleEntity.
-*/
+// A global class over OOLightParticleEntity, made with burstWithPosition().
 class OOPlasmaBurstEntity : public OOLightParticleEntity {
 public:
     // [[OOPlasmaBurstEntity alloc] initWithPosition:]: a new burst, initialised.

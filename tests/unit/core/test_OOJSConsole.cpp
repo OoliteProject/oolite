@@ -11,9 +11,7 @@
 	can be inspected, the script stack, the error reporters and the string and property-list
 	converters.
 	It imports neither OOJavaScriptEngine.h nor Universe.h, which would bring in the game classes.
-	The expectations were written against the Objective-C file and run on it first (commit
-	ea566a254, with an Objective-C stand-in of the extension manager's facade; since the
-	conversion the stand-in is the C++ manager's members); they pin the JS-visible behaviour of
+	The tests pin the JS-visible behaviour of
 	every property and method that compiles in the test flavour.
 	Run: bash tools/check-core-tests.sh test_OOJSConsole
 */
@@ -363,8 +361,8 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *, JSValu
 std::optional<std::string> OOJSEntityJSClassName(Entity *)  { std::abort(); }
 bool OOJSCallEntityMethod(JSContext *, Entity *, const std::string &, int, JSValueConst *, JSValue *)  { std::abort(); }
 OOShaderUniformType OOShaderUniformTypeFromEncoding(const char *)  { std::abort(); }
-// oo::EntityIn() (Entity+ObjCBridge.h) reads ::TestEntityObject's _cxxEntity ivar; its offset variable is
-// emitted by the @implementation in Entity+ObjCBridge.mm, which this test does not link. The name
+// oo::EntityIn() reads ::TestEntityObject's _cxxEntity ivar; its offset variable is
+// emitted by the game's Entity implementation, which this test does not link. The name
 // is the one clang gives it: the ivar's type encoding, with its '=' written as byte 2.
 extern "C" int gOOTestEntityCxxEntityIvarOffset __asm__("__objc_ivar_offset_Entity._cxxEntity.{Ref<Entity>\002^{Entity}}");
 int gOOTestEntityCxxEntityIvarOffset = 0;

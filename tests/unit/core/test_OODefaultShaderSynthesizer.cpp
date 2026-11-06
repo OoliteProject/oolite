@@ -142,7 +142,7 @@ void CheckSynthesized(const char* name, const Synthesized& actual,
 
 }  // namespace
 
-// --- The entry point, through the Objective-C era API
+// --- The entry point, through the entry-point API
 // ------------------------------------------
 
 // No configuration but the material key: a diffuse map named after it, lit by

@@ -162,9 +162,7 @@ public:
             textureWithName() and the one-argument textureWithConfiguration()
        answer through these settable factories, which are the real loaders
        (loadTextureWithName(), loadTextureWithConfiguration()) unless a test
-       replaces them, as tests replaced the facade's
-            +cxx_textureWithName:inFolder:options:anisotropy:lodBias: and
-       +cxx_textureWithConfiguration:. The game never sets them; the other
+       replaces them. The game never sets them; the other
        factories call the real loaders directly.
     */
     using NameFactory = oo::Ref<OOTexture> (*)(
@@ -238,15 +236,14 @@ public:
     virtual std::optional<std::string> descriptionComponents() const;
     virtual std::optional<std::string> shortDescriptionComponents() const;
 
-    /*	The former facade's descriptions, with the texture's address: "%@" was
-            <CxxClass 0x...>{components} (its -cxx_description override); the
-       short form named the facade's class, <OOTexture 0x...>{short components},
+    /*	The descriptions, with the texture's address: <CxxClass 0x...>{components}; the
+       short form names the class OOTexture, <OOTexture 0x...>{short components},
        which the emission-map generator puts into its cache key.
     */
     std::string description() const override;
     std::string shortDescription() const;
 
-    // oo::PListForeign: the facade's class, which a property-list writer named.
+    // oo::PListForeign: the class name, which a property-list writer uses.
     std::string className() const override;
 
     // Internal: OOTextureInternal.h's subclass interface, for the subclasses.
@@ -259,7 +256,7 @@ public:
 
 protected:
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    bool _trace = { }; // was the facade's @protected ivar; the subclasses read it
+    bool _trace = { }; // the subclasses read it
 #endif
 
 private:
@@ -267,8 +264,7 @@ private:
 };
 
 /*	A texture carried through plist data as a PList::Object node: the
-   texture is the node's foreign object (what oo::PListObject() and
-   oo::ObjectIn() did for the facade).
+   texture is the node's foreign object.
 */
 inline oo::PList OOTextureObjectNode(
     OOTexture* texture) // null texture -> null PList

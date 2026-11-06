@@ -40,10 +40,8 @@ typedef enum {
 
 /*	A task: performed on a work thread by performAsyncTask(), then, if it
    has a completion (hasCompleteAsyncTask()), completed on the main thread by
-   completeAsyncTask(). This was the Objective-C protocol OOAsyncWorkTask, whose
-   -completeAsyncTask was optional; the manager's -respondsToSelector: test is
-   hasCompleteAsyncTask(). The manager retains a task while it
-   is queued or pending, as it retained the Objective-C object.
+   completeAsyncTask(). The manager retains a task while it is queued or
+   pending.
 */
 class OOAsyncWorkTask : public oo::RefCounted {
 public:

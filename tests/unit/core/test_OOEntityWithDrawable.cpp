@@ -14,7 +14,7 @@
    ask the drawable; -drawImmediate:translucent: skips an entity beyond its draw
         distance and draws the right parts otherwise. The tests after those pin
    the intermediate class's crossing: a C++ subclass's object holds it. The
-   entities are C++ under the root's facade (oo::NewEntityFacade): the class's
+   entities are C++ under the root's object: the class's
    own selectors (-drawable, -setDrawable:) are member calls and the root's are
    still sent to the object. Run: bash tools/check-core-tests.sh
 */

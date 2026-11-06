@@ -11,8 +11,8 @@
 	warning reporters, the object getter and converters, the JS glue that OOObject gets from
 	OOJavaScriptEngine.mm, the engine object (which calls the timer's function), the script stack
 	and the universe's clock. The engine's and OOJSScript's headers are not imported, because the
-	test defines those classes. The expectations were written against the Objective-C files and run
-	on them first; they pin the JS-visible behaviour: the constructor and its errors, the three
+	test defines those classes. They pin the JS-visible behaviour: the constructor and its errors,
+	the three
 	properties, start() and stop(), toString(), firing with the right `this`, a timer whose `this`
 	is null, and what an engine reset does. A timer that is garbage-collected while running
 	(unrootedRunningTimerGC) must not call back into the engine from its finalizer: describing it

@@ -35,15 +35,15 @@ THE KEYBOARD-ONLY OBSERVABLE: WHERE THE SELECTION ENDED UP
 -----------------------------------------------------------
 The discriminator is upstream of the exit, in HOW THE SELECTION MOVED. This test never moves the
 pointer and never presses a mouse button, so the only thing that can move the selection is the
-arrow key: ``-[GuiDisplayGen setNextRow:]`` (GuiDisplayGen.m:517) is the game's ONLY relative
+arrow key: ``GuiDisplayGen::setNextRow()`` is the game's ONLY relative
 selection move, it has exactly TWO call sites in the whole tree (PlayerEntityControls.m:729 and
 :749), both inside ``-handleGUIUpDownArrowKeys`` and both gated on ``checkKeyPress:`` of an arrow
 key, while that same method's mouse branches (:765-:787) jump ABSOLUTELY to
 ``UNIVERSE->cursor_row``. All of that is pinned by a tree-wide grep in
 ``test_a_single_row_step_is_reachable_only_from_the_arrow_keys``.
 
-HOW THE SELECTION IS OBSERVED, AND WHY NOT THE OBVIOUS WAY. ``-reportSelectedRow:``
-(GuiDisplayGen.m:572) fires a ``guiSelectedRowChanged`` world-script event, and reading that over
+HOW THE SELECTION IS OBSERVED, AND WHY NOT THE OBVIOUS WAY. ``GuiDisplayGen::reportSelectedRow()``
+fires a ``guiSelectedRowChanged`` world-script event, and reading that over
 the debug console was the first design. IT DOES NOT WORK, and the measurement is recorded here so
 nobody spends the afternoon again: with the handler installed on ``console.script`` and
 ``typeof`` confirming it was a function, a MOUSE-CONFIRMED row change that demonstrably happened

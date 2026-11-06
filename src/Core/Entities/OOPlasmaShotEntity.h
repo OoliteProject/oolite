@@ -29,10 +29,7 @@ MA 02110-1301, USA.
 
 #include "OOLightParticleEntity.h"
 
-/*	A global class over OOLightParticleEntity, with no facade of its own.
-   ShipEntity makes one with shotWithPosition() and hands it to Objective-C with
-   oo::NewEntityFacade, whose object is an OOLightParticleEntity.
-*/
+// A global class over OOLightParticleEntity. ShipEntity makes one with shotWithPosition().
 class OOPlasmaShotEntity : public OOLightParticleEntity {
 public:
     // [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.

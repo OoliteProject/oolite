@@ -771,8 +771,7 @@ Vector Octree::randomPoint()
 size_t Octree::totalSize()
 {
     // (the data object is now a member: its size is sizeof _data where it was the
-    // Foundation object's) (sizeof *this is the object's own size, as the
-    // Objective-C instance size was)
+    // Foundation object's) (sizeof *this is the object's own size)
     return sizeof *this + _nodeCount * sizeof _data + _data.length() + _nodeCount * sizeof *_collisionOctree;
 }
 #endif

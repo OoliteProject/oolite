@@ -3,12 +3,11 @@
 
 	The matcher compiles a JavaScript function, "return regexp.test(string);", and runs it on a
 	RegExp object it caches by pattern and flags. The test links the game's own OORegExpMatcher and
-	the QuickJS-ng engine, so every match below is the real engine's answer. The Objective-C glue
+	the QuickJS-ng engine, so every match below is the real engine's answer. The glue
 	the matcher uses but whose files reach the whole game (the engine singleton, OOJSFunction,
 	OOJSValue, the two value converters and the exception reporter; OOJavaScriptEngine.mm links
 	everything) is replaced by the minimal definitions below (OOJSFunction's C++ members), which
-	count what the matcher asks of them. The expectations were written against the Objective-C API
-	and run on the unconverted class first: what matches, the flags, the empty pattern, the cache
+	count what the matcher asks of them. What matches, the flags, the empty pattern, the cache
 	(one compiled RegExp per pattern and flags), and the pseudo-singleton (one matcher per
 	autorelease pool, a new one after the pool drains; nil, and asked again, when the tester does
 	not compile). The cases ask the C++ matcher: see the note above the tests. Run: bash

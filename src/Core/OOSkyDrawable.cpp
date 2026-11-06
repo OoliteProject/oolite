@@ -73,7 +73,7 @@ enum : uint8_t {
 
 /*	Class containing a set of quads with the same texture. This form is
         optimized for rendering.
-        A second class in the file with no caller outside it: global, no facade.
+        A second class in the file with no caller outside it: global.
 */
 class OOSkyQuadSet : public oo::RefCounted {
 public:
@@ -637,7 +637,7 @@ void OOSkyQuadSet::render()
 #ifdef OO_DEBUG_MONITOR_ENABLED
 size_t OOSkyQuadSet::totalSize()
 {
-    // sizeof *this stands for the Objective-C instance size (the object's own size).
+    // sizeof *this is the object's own size.
     return sizeof *this + static_cast<size_t>(_count) * 4 * (sizeof *_positions + sizeof *_texCoords + sizeof *_colors);
 }
 

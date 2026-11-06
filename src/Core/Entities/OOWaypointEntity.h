@@ -38,16 +38,11 @@ MA 02110-1301, USA.
    initializer is -cxx_initWithDictionary:.
 */
 
-/*	The universe makes it with waypointWithDictionary() and hands it to
-   Objective-C with oo::NewEntityFacade, whose object is the root Entity's
-   facade. That object answers the OOBeaconEntity selectors the beacon list
-   sends for a waypoint's part (the root's category Entity (OOWaypointBeacon),
-   Entity+ObjCBridge.mm).
-*/
+// The universe makes it with waypointWithDictionary(). It answers the OOBeaconEntity members the
+// beacon list uses.
 class OOWaypointEntity : public Entity {
 public:
-    // +waypointWithDictionary:: a new waypoint, initialised. Callers hand it to Objective-C with
-    // oo::NewEntityFacade.
+    // A new waypoint, initialised.
     static oo::Ref<OOWaypointEntity> waypointWithDictionary(const oo::PList& info);
 
     // -cxx_initWithDictionary:'s body after [super init] (the constructor ran
@@ -64,13 +59,12 @@ public:
     bool isWaypoint() override;
     void drawImmediate(bool immediate, bool translucent) override;
 
-    // The binding's bodies (OOJSWaypoint.mm), which the facade forwarded to.
+    // The binding's bodies (OOJSWaypoint.mm).
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
     bool isVisibleToScripts() override;
 
-    // OOBeaconEntity, answered for the waypoint by the root facade's category
-    // (the facade's). Other beacons stay their Objective-C objects.
+    // OOBeaconEntity, answered for the waypoint.
     OOComparisonResult compareBeaconCodeWith(Entity* other);
     std::optional<std::string> beaconCode();
     void setBeaconCode(const std::optional<std::string>& bcode);

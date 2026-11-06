@@ -2,16 +2,15 @@
 
 OOEntityObjectNamesTable.h
 
-The names a C++ entity's Objective-C object (the root's facade, class Entity) answered outside the
-by-name table OOEntityCalledByNameTable.h: measured on main 0836d09a6 by asking the facade of a
-ship, a station, a dock, the player, a proxy, a visual effect and a waypoint each name of its class
+The names a C++ entity answers outside the by-name table OOEntityCalledByNameTable.h: for a
+ship, a station, a dock, the player, a proxy, a visual effect and a waypoint, each name of its class
 and its root classes, with OOCallByName's rules (a planet's five shader names from their
 declarations). This file is the source.
 
-One row per name: when the object answered it (null: every entity; the planet's and the beacon's
-names for the parts the facade's -respondsToSelector: answered them for), the kind (OOEntityCalledByName.h)
-and the method's type encoding, as OOCallByName logged it. The JS glue the facade no longer answers
-(isVisibleToScripts, deleteJSSelf) has no row: a call to it does not respond.
+One row per name: when the object answers it (null: every entity; the planet's and the beacon's
+names for the parts that answer them), the kind (OOEntityCalledByName.h)
+and the method's type encoding, as OOCallByName logs it. The JS glue (isVisibleToScripts,
+deleteJSSelf) has no row: a call to it does not respond.
 Included by OOEntityCalledByName.mm only, after AnswersPlanet() and AnswersBeacon().
 
 */

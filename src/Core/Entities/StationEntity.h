@@ -4,10 +4,9 @@ StationEntity.h
 
 ShipEntity subclass representing a space station or dockable ship.
 
-A station is made in C++ by StationEntity::newStationObject() and its
-Objective-C object is a ship's (the root's facade answers the selectors the game
-still finds by name on a station: AI actions, legacy-script and callObjC()
-calls, shader bindings, for a station's C++ part only).
+A station is made in C++ by StationEntity::newStationObject(). The game finds
+names on a station: AI actions, legacy-script and callObjC()
+calls, shader bindings.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -56,9 +55,7 @@ typedef enum {
 
 /*	The station's state and members.
 
-        The ivars are data members with the same names, every one
-   zero-initialised as the runtime zeroed them. Pointers to Objective-C objects
-   stay what they were, retained by hand where they were.
+        Every data member is zero-initialised.
 */
 class StationEntity : public ShipEntity {
 public:
@@ -72,15 +69,14 @@ public:
     // -cxx_initWithKey:definition:'s body after [super cxx_initWithKey:definition:].
     void initStationDefaults();
 
-    // The facade's -dealloc body, which the root's -dealloc calls first for a
-    // station's part, as the subclass's -dealloc ran before its superclass's.
+    // Run first when a station is destroyed, before the ship's own teardown.
     void willDealloc();
 
     // Class shell, market and shipyard, flags and accessors.
     bool isUnpiloted() override;
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
-    // The ship's answer, which the facade inherited.
+    // The ship's answer.
     bool isVisibleToScripts() override;
     OOTechLevelID getEquivalentTechLevel();
     void setEquivalentTechLevel(OOTechLevelID value);
@@ -187,8 +183,8 @@ public:
     unsigned currentlyInLaunchingQueues();
 
     // NPC launchers. Not overrides: ShipEntity's same-named members are
-    // not virtual (the ship's answer "not a station"); the root's facade asks a
-    // station's part first.
+    // not virtual (the ship's answer "not a station"); a
+    // station's part is asked first.
     oo::PList launchIndependentShip(const std::string& role); // the ship launched, as an Object node (null: none)
     oo::PList launchPolice(); // the ships launched, as Object nodes
     ::ShipEntity* launchDefenseShip();
@@ -200,8 +196,7 @@ public:
     ::ShipEntity* launchPatrol();
     void launchShipWithRole(const std::string& role);
 
-    // @private in Objective-C; still public (the tests read them), as the
-    // player's were.
+    // Public: the tests read them.
     oo::WeakSet<Entity> _shipsOnHold = { }; // the ships' C++ parts, weakly
     ::DockEntity* player_reserved_dock = { };
     double last_launch_time = { };

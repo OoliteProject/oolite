@@ -78,10 +78,10 @@ public:
 
     // What "%@" prints between the braces of <OOCharacter 0x...>{...} (OODescription.h).
     std::optional<std::string> descriptionComponents() const;
-    // The JavaScript class the character's Objective-C object answered (-oo_jsClassName).
+    // The JavaScript class the character answers.
     std::optional<std::string> oo_jsClassName();
 
-    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOCharacter 0x...>{...}).
+    // oo::PListForeign: the class name, and "%@" as <OOCharacter 0x...>{...}.
     std::string className() const override;
     std::string description() const override;
 

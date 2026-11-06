@@ -1,9 +1,8 @@
 /*
 
-OOColor.mm
+OOColor.cpp
 
-Method bodies are the Objective-C ones with message sends turned into calls; the
-arithmetic is verbatim. An Object node's colour is the node's foreign object.
+An Object node's colour is the node's foreign object.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -35,8 +34,7 @@ MA 02110-1301, USA.
 namespace {
 
 /*	The named colours colorWithDescription() accepts: the class methods
-   whose names end in "Color", which the Objective-C class looked up by selector
-   name and -respondsToSelector: (an explicit table for a selector called by
+   whose names end in "Color" (an explicit table for a selector called by
    name).
 */
 struct NamedColor {

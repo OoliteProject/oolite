@@ -6,15 +6,13 @@
 	a Universe that was never initialised, subclassed to answer the time the test sets and to record
 	-addEntity: and -removeEntity:, and a plain entity as PLAYER. The ship that fired is a plain
 	entity marked as a ship (so it is its own root ship entity; a C++ ship under its object, never
-	set up), and the entity hit is an entity subclass that records the damage. The expectations were
-	written against the Objective-C API and run on the unconverted class first: a shot is a no-draw
+	set up), and the entity hit is an entity subclass that records the damage. A shot is a no-draw
 	effect of diameter 12 and collision radius 2 with the given position, velocity, energy and
 	colour (always opaque); it cannot collide for its first 0.05 seconds; it collides with anything
 	but an effect or its owner's ship; it damages what it collides with (unless that is its owner's
 	ship), removes itself and leaves a plasma burst where it was; and it removes itself when its
 	time is up. The shots are made, and their colour read, through the one block of helpers below:
-	the shot is a C++ entity whose Objective-C object is the OOLightParticleEntity facade
-	oo::NewEntityFacade made. Run: bash tools/check-core-tests.sh
+	the shot is a C++ entity, an OOLightParticleEntity. Run: bash tools/check-core-tests.sh
 */
 
 #include "OOPlasmaShotEntity.h"
@@ -45,8 +43,8 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// NewTestPlayer<TestPlayer>(): a C++ player, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -146,7 +144,7 @@ Entity *Shot(HPVector position, Vector velocity, float energy, OOTimeDelta durat
 	return oo::MadeEntity(OOPlasmaShotEntity::shotWithPosition(position, velocity, energy, duration, color));
 }
 
-OOLightParticleEntity *Particle(Entity *shot)	{ return static_cast<OOLightParticleEntity *>(shot); }	// the root's facade
+OOLightParticleEntity *Particle(Entity *shot)	{ return static_cast<OOLightParticleEntity *>(shot); }
 const GLfloat *ColorComponents(Entity *shot)	{ return Particle(shot)->_colorComponents; }
 void SetColliding(Entity *shot, Entity *other)	{ shot->collidingEntities.emplace_back(other); }
 void SetIsShip(Entity *e)						{ e->isShip = true; }
@@ -160,8 +158,7 @@ Entity *RedShot()
 }
 
 
-// A ship: C++ (its root ship entity is the C++ ship), under its object
-// (oo::NewEntityFacade, autoreleased as the plain entity was), never set up,
+// A ship: C++ (its root ship entity is the C++ ship), never set up,
 // marked as a ship.
 Entity *Ship()
 {

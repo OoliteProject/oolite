@@ -4,14 +4,13 @@
 
         OOMaterial is the root of the material hierarchy (OOBasicMaterial and
    the three materials under it) and owns the one piece of global render state,
-   the current material. So this pins, from the Objective-C bodies, what the
-   root computed before the conversion, through the Objective-C API its callers
+   the current material. So this pins what the root computes, through the API its callers
    use: the defaults a subclass inherits, -apply / +applyNone / +current (the
    previous material told what comes next, the current material retained, a
    failed -doApply leaving none), -willDealloc's imbalance path, the
-   description, and [super ...] from an Objective-C subclass. Then the
+   description, and a call to the root from a subclass. Then the
    hierarchy's crossing both ways, as test_OOOXPVerifierStage.mm does, and the
-   current material keeping an Objective-C material alive while C++ holds it.
+   current material keeping a material alive while C++ holds it.
    Run: bash tools/check-core-tests.sh
 */
 
@@ -44,8 +43,7 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction) {
 static std::vector<std::pair<OOMaterial*, OOMaterial*>> gUnapplied;
 static int gDeallocs = 0;
 
-// An unconverted material was an Objective-C subclass, as OOBasicMaterial was;
-// now a C++ subclass with the same overrides, named as it was so that its
+// A C++ subclass of the root, named so that its
 // description is unchanged.
 class TestObjCMaterial : public OOMaterial {
  public:
@@ -266,8 +264,7 @@ OO_TEST(description) {
 }
 
 // A C++ material's overrides and the root's defaults, as its callers reach them
-// (the C++ half of cxxMaterialBehindTheFacade, whose facade half went with the
-// facade).
+// .
 OO_TEST(cxxMaterial) {
   {
     const oo::Ref<TestCxxMaterial> material =

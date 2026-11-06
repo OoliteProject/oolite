@@ -59,9 +59,7 @@ namespace {
 OOAsyncWorkManager* sSingleton = nullptr;
 
 /*	A first-in-first-out queue of tasks whose dequeue() blocks until one is
-   there: the part of OOAsyncQueue the manager used, holding tasks
-   (OOAsyncQueue holds Objective-C objects). A queued task is retained, as
-   OOAsyncQueue retained it.
+   there, holding tasks. A queued task is retained.
 */
 class TaskQueue {
 public:
@@ -229,11 +227,8 @@ std::mutex sInitLock;
 
 } // namespace
 
-/*	The manager is made once, here, and its +1 is never released: the
-   Objective-C class's +allocWithZone: refused a second
-   instance and its -retain/-release/ -retainCount made the one immortal, so
-   that boilerplate is not translated. The class name is logged as
-   oo::DescriptionOf([sSingleton class]) logged it.
+/*	The manager is made once, here, and its +1 is never released, so the one
+   instance is immortal.
 */
 static void InitAsyncWorkManager(void)
 {

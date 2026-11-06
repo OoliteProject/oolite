@@ -111,8 +111,8 @@ std::string ExpandTildeInPath(const std::string& path)
 }
 
 /*	The stages verifyOXP.plist names ("stages") that are C++. A leaf stage
-   has no Objective-C class, so no name is looked up as a class;
-   -registerBaseStages looks here first and registers the stage. A new stage
+   is only a name here, not a looked-up class;
+   registerBaseStages() looks here first and registers the stage. A new stage
    adds its line.
 */
 struct CxxStage {
@@ -400,8 +400,7 @@ void OOOXPVerifier::registerBaseStages()
                 }
             }
 
-            /*	No class has the name: every stage is C++, and there is no
-               Objective-C runtime to find one in.
+            /*	No class has the name: every stage is in the table above.
             */
             OO_LOG("verifyOXP.registration.failed", "Attempt to register unknown class {} as a verifier stage, ignoring.", stageName);
         }

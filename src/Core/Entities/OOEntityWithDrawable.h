@@ -4,8 +4,6 @@ OOEntityWithDrawable.h
 
 Abstract intermediate class for entities which use an OODrawable to render.
 
-The object of a ship, a sky or a visual effect is the root's facade.
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 

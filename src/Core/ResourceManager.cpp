@@ -154,7 +154,7 @@ bool IsWellFormedUTF8(const std::string& bytes)
     return oo::utf16ToUtf8(oo::utf8ToUtf16(bytes)) == bytes;
 }
 
-// An array of strings, as the Objective-C array of them was.
+// An array of strings.
 oo::PList StringArray(const std::vector<std::string>& strings)
 {
     oo::PList::Array result;
@@ -164,7 +164,7 @@ oo::PList StringArray(const std::vector<std::string>& strings)
     return oo::PList(std::move(result));
 }
 
-// -stringByAbbreviatingWithTildeInPath of a search path: the home directory
+// A search path abbreviated with a tilde: the home directory
 // (NSHomeDirectory(), ResourcePaths::homeDirectory()) at its start becomes "~".
 // The search paths are already standard
 // ('/'-separated, absolute, no "." or ".." components: ResourcePaths and the
@@ -182,14 +182,12 @@ std::string AbbreviatedWithTilde(const std::string& path)
     return "~" + path.substr(home.size());
 }
 
-// -[a isEqual:b] of the Foundation objects two property-list values converted
-// to; a missing or null one (nil) is
-// never equal. Numbers (booleans among them) compare by value as NSNumber
-// -compare: did: integers as integers, anything with a real as doubles (PList's
-// type-strict == does not); a number never equals a string. Arrays compare
-// element by element and dictionaries entry by entry, as -isEqualToArray: /
-// -isEqualToDictionary: did; strings, data and dates by value; an Object node's
-// object by -isEqual:.
+// Whether two property-list values are equal; a missing or null one is never
+// equal. Numbers (booleans among them) compare by value: integers as integers,
+// anything with a real as doubles (PList's type-strict == does not); a number
+// never equals a string. Arrays compare element by element and dictionaries
+// entry by entry; strings, data and dates by value; Object nodes are never
+// equal.
 bool PListIsEqual(const oo::PList* a, const oo::PList* b)
 {
     if (a == nullptr || b == nullptr || a->isNull() || b->isNull())
@@ -227,8 +225,7 @@ bool PListIsEqual(const oo::PList* a, const oo::PList* b)
         }
         return true;
     }
-    // Object nodes: the -isEqual: of the Objective-C objects they held, nil's NO
-    // for any other node (no game object is an Objective-C object).
+    // Object nodes are never equal.
     if (a->getIf<oo::PList::Object>() != nullptr)
         return false;
     return *a == *b; // strings, data, dates
@@ -1269,7 +1266,7 @@ bool ResourceManager::checkCacheUpToDateForPaths(const std::vector<std::string>&
     for (const std::string& path : searchPaths) {
         const auto modTime = oo::fs::modificationTimeSince1970(oo::fs::pathFromUTF8(path));
         if (modTime) {
-            // Double, as before: the cache stored -timeIntervalSince1970 of NSFileModificationDate.
+            // Double: the cache stores the time since 1970 of the file's modification date.
             modDates.emplace_back(*modTime);
         }
     }
@@ -1980,8 +1977,7 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::stri
 
     const std::optional<std::string> path = pathForFileNamed(fileName, folderName, YES);
     if (path.has_value()) {
-        // +stringWithContentsOfUnicodeFile: (NSStringOOExtensions): the file's bytes, read as it read
-        // them (through the OXZ reader), decoded as it decoded them.
+        // The file's bytes, read through the OXZ reader, then decoded.
         const std::optional<oo::Data> data = OODataFromOXZFile(*path);
         if (data.has_value())
             result = oo::str::decodeUnicodeText(data->stringView());
@@ -2096,7 +2092,7 @@ bool ResourceManager::writeDiagnosticString(const std::string& string, const std
 
 bool ResourceManager::writeDiagnosticPList(const oo::PList& plist, const std::string& name)
 {
-    // The old-school writer (oo::writeOldStylePList, the port of the retired Objective-C old-school plist writer). Its
+    // The old-school writer (oo::writeOldStylePList). Its
     // XML fallback's result was never used, so a plist it cannot write is not written.
     const auto data = oo::writeOldStylePList(plist);
     if (!data.has_value())

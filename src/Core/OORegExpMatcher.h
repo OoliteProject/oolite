@@ -3,7 +3,7 @@
 OORegExpMatcher.h
 
 Regular expression utility built on top of JavaScript regexp objects in lieu
-of Objective-C regexp support. Not thread-safe.
+of native regexp support. Not thread-safe.
 
 If we had a performance-critical need for regexps, I'd want a real library,
 but this will do for light usage.
@@ -54,10 +54,7 @@ public:
     */
     static oo::Ref<OORegExpMatcher> regExpMatcher();
 
-    // Strings are UTF-8. The Objective-C string category
-    // -oo_matchesRegularExpression: was [[OORegExpMatcher regExpMatcher]
-    // string:self matchesExpression:regExp]; its callers now send that message
-    // themselves.
+    // Strings are UTF-8.
     bool string(const std::string& string, const std::string& regExp);
     bool string(const std::string& string, const std::string& regExp, NSUInteger flags);
 

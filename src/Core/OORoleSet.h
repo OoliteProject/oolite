@@ -45,8 +45,7 @@ SOFTWARE.
 */
 class OORoleSet : public oo::RefCounted {
 public:
-    // The Objective-C initialisers' factories: null where -init returned nil (no
-    // roles).
+    // The factories: null where there are no roles.
     static oo::Ref<OORoleSet> roleSetWithString(const std::string& roleString);
     static oo::Ref<OORoleSet> roleSetWithRole(const std::string& role,
         float probability);

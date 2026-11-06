@@ -4,8 +4,8 @@ OOJSEngineNativeWrappers.h (QuickJS-ng)
 
 Exception safety and profiling macros.
 
-Every JavaScript native callback that could concievably cause an
-Objective-C exception should begin with OOJS_NATIVE_ENTER() and end with
+Every JavaScript native callback that could concievably throw
+should begin with OOJS_NATIVE_ENTER() and end with
 OOJS_NATIVE_EXIT. Callbacks which have been carefully audited for potential
 exceptions, and support functions called from JavaScript native callbacks,
 may start with OOJS_PROFILE_ENTER and end with OOJS_PROFILE_EXIT to be
@@ -70,7 +70,7 @@ MA 02110-1301, USA.
 #define OOJS_PROFILE (OOLITE_DEBUG && !OOJS_POC_HARNESS)
 
 /*	OOJS_NATIVE_ENTER()/OOJS_NATIVE_EXIT bracket natives that call into
-        Objective-C code which may throw; the exception is converted into a JS
+        code which may throw; the exception is converted into a JS
         error. OOJS_PROFILE_ENTER/EXIT bracket natives that cannot throw. When
         OOJS_PROFILE is set, both also record the time spent in the native for
         the profiler.
@@ -99,7 +99,7 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame);
 
 /*
         The pairs below are a C++ try, a catch (...) and scope guards, so a
-   binding file that uses them contains no Objective-C exception syntax:
+   binding file that uses them contains no exception syntax of its own:
           * OOJS_NATIVE_EXIT catches whatever the body throws and hands it to
             OOJSReportCurrentException() (OOJSEngineNativeWrappers.mm), which
    reports the game's exception (oo::Exception). It also reports a C++
@@ -186,7 +186,7 @@ void OOJSReportCurrentException(JSContext* context);
     }                        \
     }
 
-// The scope OOJS_BEGIN_FULL_NATIVE opens: what its Objective-C try and finally did, in the same order.
+// The scope OOJS_BEGIN_FULL_NATIVE opens: a try and a finally, in the same order.
 void OOJSPauseTimeLimiter(void);
 void OOJSResumeTimeLimiter(void);
 

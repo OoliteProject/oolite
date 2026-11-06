@@ -60,8 +60,7 @@ public:
             timers. Failing to balance these will crash!
             Passing a nil script is valid for cases where JS is used which is not
             attached to a specific script.
-            The weak form is for a holder that keeps its script weakly (it pushed the weak reference
-            proxy the script's facade gave it); pop it with its get().
+            The weak form is for a holder that keeps its script weakly; pop it with its get().
     */
     static void pushScript(OOJSScript* script);
     static void pushScript(const oo::WeakRef<OOJSScript>& script);

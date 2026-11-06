@@ -9,8 +9,7 @@
 	which call the mission screen's callback), the music controller (a converted class the binding
 	only calls, stood in for by C++ members), the string expander, the standards switches and the
 	engine functions the binding links against, with the engine headers' linkage; the log is
-	captured with oo::log::logger().setSink. The expectations were written against the Objective-C
-	file and run on it first; they pin the JS-visible behaviour: the mission object and its
+	captured with oo::log::logger().setSink. The tests pin the JS-visible behaviour: the mission object and its
 	properties, markSystem()/unmarkSystem() with numbers and markers, addMessageText(),
 	setInstructions()/setInstructionsKey() in each form, runScreen() (its settings, its errors, and
 	the callback MissionRunCallback() makes, including an exception in it, which is logged and

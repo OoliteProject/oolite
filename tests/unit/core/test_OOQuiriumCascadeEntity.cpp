@@ -5,12 +5,11 @@
 	Its object needs the game graph, so the test links the whole game but main (['*']) and uses a
 	Universe that was never initialised, of a test subclass that records what is removed, and a
 	plain entity as PLAYER. The ship it is made from is a plain entity too: the class asks it only
-	for its position and owner (a C++ ship under its object, never set up). The expectations were
-	written against the Objective-C API and run on the unconverted class first: nil from a nil ship;
+	for its position and owner (a C++ ship under its object, never set up). Nil from a nil ship;
 	what it takes from the ship; that it is the cascade weapon (and other entities are not); the
 	collision delay, the expansion, the energy it deals to what it collides with, and its removal
 	after twenty seconds; its description. Making a cascade goes through the helper below: it is
-	made by its factory and handed to Objective-C as an Entity facade. Run: bash
+	made by its factory as an Entity. Run: bash
 	tools/check-core-tests.sh
 */
 
@@ -41,8 +40,8 @@ public:
 	HPVector viewpointPosition() override	{ return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
-// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's object was.
+// NewTestPlayer<TestPlayer>(): a C++ player, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T *NewTestPlayer()
 {

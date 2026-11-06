@@ -2,8 +2,8 @@
 
 OOObjCPList.h
 
-Forwarding header for objects inside an oo::PList: no game object is an
-Objective-C object, so no node holds one (an entity's node is
+Forwarding header for objects inside an oo::PList: no node holds an
+Objective-C object (an entity's node is
 oo::EntityPListForeign, every other node's payload a C++ oo::PListForeign). This
 header exists so its includers need no change; it includes what they need.
 

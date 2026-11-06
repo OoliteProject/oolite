@@ -31,13 +31,13 @@ MA 02110-1301, USA.
 
 namespace {
 
-// The queue's order (it sent -compareByNextFireTime: to its Objective-C elements).
+// The queue's order.
 OOComparisonResult CompareByNextFireTime(OOScriptTimer* a, OOScriptTimer* b)
 {
     return a->compareByNextFireTime(b);
 }
 
-// The scheduled timers, held (the queue held their facades, which held them).
+// The scheduled timers, held.
 OOPriorityQueueOf<OOScriptTimer>* sTimers;
 
 // During an update, new timers must be deferred to avoid an infinite loop.
@@ -206,7 +206,7 @@ void OOScriptTimer::updateTimers()
         if (next == nullptr || now < next->nextTime())
             break;
 
-        // Held while it fires and is rescheduled (the queue autoreleased its facade).
+        // Held while it fires and is rescheduled.
         const oo::Ref<OOScriptTimer> timer = sTimers->removeNextObject();
 
         // Must fire before rescheduling so that the timer callback can stop itself. -- Ahruman 2011-01-01

@@ -48,9 +48,7 @@ public:
     // The entity, borrowed; null once it has gone (what the weak reference proxy's underlying object was: nil).
     Entity* entity() const { return _entity.get(); }
 
-    // The entity's own glue, as the engine sent its selectors to the slot's weak reference, which
-    // forwarded them to the facade: its JS value, nothing on finalization (OOObject's
-    // -oo_clearJSSelf:), its description; null, nothing and nullopt once it has gone.
+    // The entity's own glue: its JS value, nothing on finalization, its description; null, nothing and nullopt once it has gone.
     JSValue jsValueInContext(JSContext* context) override;
     void clearJSSelf(JSValueConst selfVal) override;
     std::optional<std::string> jsDescription() override;

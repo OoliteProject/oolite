@@ -377,7 +377,7 @@ void OOJSEntityHolder::clearJSSelf(JSValueConst)  {}
 std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::nullopt; }
 
 
-// oo::ToObjC (Entity+ObjCBridge.mm): the object of each C++ part the test wrapped, nil for any
+// oo::ToObjC: the object of each C++ part the test wrapped, nil for any
 // other (the binding asks it where its natives still message the object).
 namespace {
 std::map<Entity *, TestEntityObject *> sObjects;

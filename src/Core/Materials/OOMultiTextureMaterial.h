@@ -4,8 +4,6 @@ OOMultiTextureMaterial.h
 
 A material that uses multitexturing and texture combiners.
 
-Objective-C sees one as an OOMaterial.
-
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -48,8 +46,7 @@ public:
     static oo::Ref<OOMultiTextureMaterial> materialWithName(
         const std::optional<std::string>& name, const oo::PList& configuration);
 
-    // Runs once, right after construction; false where the Objective-C
-    // initialiser answered nil.
+    // Runs once, right after construction; false on failure.
     bool initWithName(
         const std::optional<std::string>& name,
         const oo::PList& configuration); // shared with OOBasicMaterial

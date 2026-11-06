@@ -85,7 +85,7 @@ typedef NSUInteger OOExpandOptions;
    look it up and insert the value. The resulting string is then recursively
    expanded.
           * %H is replaced with <planetName>. If systemName is nil, a planet
-   name is retrieved through -[Universe getSystemName:], treating <seed> as a
+   name is retrieved through Universe::getSystemName(), treating <seed> as a
             system seed.
           * %I is equivalent to "%H[planetname-derivative-suffix]".
           * %N is replaced with a random "alien" name using the planet name

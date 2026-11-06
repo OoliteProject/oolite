@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #else
 /*	A plain C or C++ translation unit (OOConstToJSString) needs only the C
    types OOFoundation.h's floor gives (NSInteger, NSUInteger). OOFoundation.h
-   itself declares @interfaces.
+   itself declares more.
 */
 #include <limits.h>
 

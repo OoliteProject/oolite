@@ -209,7 +209,7 @@ void ShipEntity::setAIScript(const std::string& aiString) {
   static_cast<TestShip*>(_object)->_script = aiString;
 }
 
-// The test's object of an entity (Entity+ObjCBridge.mm's stand-in, which
+// The test's object of an entity (a stand-in for the game's, which
 // the test does not link).
 ::TestEntityObject* TestObjectOf(Entity* entity) {
   return entity != nullptr ? entity->_object : nullptr;

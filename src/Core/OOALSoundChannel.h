@@ -94,13 +94,11 @@ private:
 
     OOSoundChannel* _next = { };
     OOSoundChannelDelegate* _delegate = { };
-    oo::Ref<OOSound> _sound; // retained, as the Objective-C sound was
+    oo::Ref<OOSound> _sound; // retained
     ALuint _buffer = { };
     ALuint _lastBuffer = { };
     bool _bigSound = { };
     ALuint _source = { };
-    // (The Objective-C class's _playing, which nothing read or wrote, is not
-    // kept: -Wunused-private-field.)
     bool _loop = { };
 
     friend struct ::OOSoundChannelTestAccess; // tests only

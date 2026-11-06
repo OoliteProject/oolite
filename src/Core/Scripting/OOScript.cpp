@@ -59,7 +59,7 @@ static std::optional<std::vector<std::string>> StringsFromArrayFile(const std::s
     return result;
 }
 
-// The C++ class's name, as [self class] named an Objective-C script's class.
+// The C++ class's name.
 static std::string ClassName(const OOScript& script)
 {
     int status = 0;
@@ -300,13 +300,13 @@ bool OOScript::callMethod(JSAtom, JSContext*, JSValueConst*, int, JSValue* outRe
     return false;
 }
 
-// The deleted facade's class, which a writer error named.
+// The class name a writer error names.
 std::string OOScript::className() const
 {
     return "OOScript";
 }
 
-// The deleted facade's -description: the C++ class's name and the address (the script's, which is
+// The description: the C++ class's name and the address (the script's, which is
 // its identity now), then the components.
 std::string OOScript::description() const
 {
@@ -317,8 +317,7 @@ std::string OOScript::description() const
     return result;
 }
 
-// OOObject's -oo_jsValueInContext: (OOObjectJSValueInContext), which the facade answered for every
-// script but a JS one.
+// The JS value of a script: null for every script but a JS one.
 JSValue OOScript::jsValueInContext(JSContext*)
 {
     return JS_UNDEFINED;

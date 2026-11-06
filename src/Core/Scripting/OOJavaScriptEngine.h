@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 #endif
 
 /*	The plain C++ part of the engine API: reporters, converters, argument and
-        return macros, the native wrappers. A binding with no Objective-C includes only that header.
+        return macros, the native wrappers. A binding includes only that header.
 */
 #include "OOJSEngineCore.h"
 
@@ -152,7 +152,7 @@ public:
 
     JSValue jsValueInContext(JSContext* context); // JS null
 
-    // oo::PListForeign: what the facade answered (its class, and "%@" as "<null>").
+    // oo::PListForeign: the class name, and "%@" as "<null>".
     std::string className() const override;
     std::string description() const override; // "<null>"
 };

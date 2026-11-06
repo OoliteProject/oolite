@@ -284,7 +284,7 @@ class TestCxxScript final : public OOScript {
 OO_TEST(crossingCxxSubclass) {
   SetUp();
   {
-    // A C++ subclass's overrides answer (they answered through its facade).
+    // A C++ subclass's overrides answer.
     const oo::Ref<TestCxxScript> script = oo::makeRef<TestCxxScript>();
     OO_CHECK_EQ(script->name().value_or("<none>"), "cxx");
     OO_CHECK_EQ(script->version().value_or("<none>"), "2");

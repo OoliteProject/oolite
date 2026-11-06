@@ -47,8 +47,7 @@ inline const NamedAnswer kDeclaredAnswers[] = {
     {"creditsFormattedForLegacySubstitution", "1234.5"},
 };
 
-// A text through a Foundation string and back, as the stub's Objective-C forms
-// took and gave it.
+// A text through UTF-16 units and back.
 inline std::string RoundTrip(const std::string& text) {
   return oo::utf16ToUtf8(oo::utf8ToUtf16(text));
 }

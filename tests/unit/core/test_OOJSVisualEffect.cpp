@@ -12,7 +12,7 @@
 	compass answer only the selectors the binding sends), for the Vector conversions (an array [x,
 	y, z] here) and for the engine functions the binding links against, with the engine headers'
 	linkage. The binding header is not imported; InitOOJSVisualEffect is declared here. The
-	expectations were written against the Objective-C file and run on it first; they pin the
+	expectations pin the
 	JS-visible behaviour (the properties both ways, a beacon code that registers or clears a beacon,
 	the methods, a stale effect, a non-effect, a native's exception) and what the category answers
 	the engine. The binding makes and asks a C++ mesh, so the stand-in for it is a C++ class OOMesh
@@ -57,7 +57,6 @@ public:
 	::TestEntityObject *_object = nullptr;	// the object holding this part (not retained)
 };
 
-// An entity's object: the root's facade, which holds its C++ part (oo::ToCxx reads it).
 // What an entity's JS object holds: a weak reference to the C++ entity.
 #include "OOJSEntityHolder.h"
 
@@ -66,7 +65,7 @@ public:
 class TestEntityObject final : public oo::RefCounted
 {
 public:
-	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
+	const char *className() const  { return "Entity"; }	// the class's runtime name
 	JSClassID oo_jsClassID();
 	std::optional<std::string> cxx_oo_jsClassName();
 	bool isVisibleToScripts();
@@ -265,8 +264,8 @@ void OOScript::clearJSSelf(JSValueConst)						{}
 #include <vector>
 
 
-// The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions+ObjCBridge.mm):
-// the engine sent these selectors to the wrapped object.
+// The root's JS category, as the game's asks the C++ part: the
+// engine sends these selectors to the wrapped object.
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
 std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
 bool TestEntityObject::isVisibleToScripts()  { return _cxxEntity->isVisibleToScripts(); }
@@ -544,7 +543,7 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 	{
 		std::string name = std::string("[") + object->className() + "]";
 		// An entity's object is named by its C++ part's class, as
-    // oo::EntityClassName() names it (an effect's object is the root's facade).
+    // oo::EntityClassName() names it.
 		if (object->_cxxEntity != nullptr)
 		{
 			if (dynamic_cast<OOVisualEffectEntity *>(object->_cxxEntity.get()) != nullptr)  name = "[OOVisualEffectEntity]";

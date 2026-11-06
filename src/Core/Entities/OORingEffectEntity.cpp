@@ -2,9 +2,7 @@
 
 OORingEffectEntity.m
 
-See OORingEffectEntity.h. The bodies are the Objective-C ones: a message to self
-is a member call, [super ...] the base's member, and the universe is handed the
-entity's Objective-C object, oo::ToObjC(this).
+See OORingEffectEntity.h.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

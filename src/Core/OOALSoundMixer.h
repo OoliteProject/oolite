@@ -70,7 +70,4 @@ private:
     // the complete class in every includer); the free list is borrowed.
     OOSoundChannel* _channels[kMixerGeneralChannels] = { };
     OOSoundChannel* _freeList = { };
-
-    // (The Objective-C class's _maxChannels and _playMask, which nothing read or wrote, are not
-    // kept: -Wunused-private-field.)
 };

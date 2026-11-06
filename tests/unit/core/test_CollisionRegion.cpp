@@ -5,8 +5,7 @@
    the whole game but main (tests/unit/core/meson.build entry ['*']), and
    defines the one global main.mm did, gDebugFlags. The regions are driven with
    plain Entity objects and no Universe (UNIVERSE is nil: no sun, so no
-   shadowing work). The expectations were written against the Objective-C API
-   and run on the unconverted class first: the region tree (a sphere that fits
+   shadowing work). The tests pin the region tree (a sphere that fits
    goes into the subregion, one that crosses a border is left out), which region
    an entity is filed in (the first subregion within whose borders it lies, else
    the universe), the counts in -debugOut, the description text, the collision

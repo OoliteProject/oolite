@@ -84,12 +84,12 @@ public:
     void clearJSSelf(JSValueConst selfVal) override;
     std::optional<std::string> jsDescription() override;
 
-    // oo::PListForeign: what the facade answered (its class, and "%@" as <OOShipGroup 0x...>{...}).
+    // oo::PListForeign: the class name, and "%@" as <OOShipGroup 0x...>{...}.
     std::string className() const override;
     std::string description() const override;
 
 private:
-    // The cursor and the range-for read the ivars, as they did from inside the Objective-C class.
+    // The cursor and the range-for read the members directly.
     friend class ::OOShipGroupCursor;
     friend class ::OOShipGroupMembers;
 

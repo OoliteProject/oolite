@@ -3,10 +3,8 @@
 OOParticleSystem.h
 
 The two fragment bursts here and OOExplosionCloudEntity are global classes
-over Entity, with no facade: nothing messages them by their own selectors. Their
-callers (ShipEntity, Universe) make them with a factory and hand the universe
-the Entity facade oo::NewEntityFacade makes, which is each one's Objective-C
-object from then on.
+over Entity. Their
+callers (ShipEntity, Universe) make them with a factory.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

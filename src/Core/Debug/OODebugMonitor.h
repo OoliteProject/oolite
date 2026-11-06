@@ -127,13 +127,12 @@ public:
         const std::string& message,
         const std::optional<std::string>& messageClass) override;
 
-    // The console's JS glue (OOJSPrivateObject): its JavaScript object, made on first use and kept
-    // (what the facade's -oo_jsValueInContext: answered); nothing when a wrapper is finalized, as
-    // OOObject's -oo_clearJSSelf: did for the facade.
+    // The console's JS glue (OOJSPrivateObject): its JavaScript object, made on first use and kept;
+    // nothing when a wrapper is finalized.
     JSValue jsValueInContext(JSContext* context) override; // owned
     void clearJSSelf(JSValueConst selfVal) override;
 
-    // oo::PListForeign: what the facade answered (its class, and "%@" as <OODebugMonitor 0x...>).
+    // oo::PListForeign: the class name, and a description of the form <OODebugMonitor 0x...>.
     std::string className() const override;
     std::string description() const override;
 

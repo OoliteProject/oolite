@@ -117,7 +117,7 @@ oo::Ref<OOSystemDescriptionManager> NewManager() {
 
 }  // namespace
 
-// --- The Objective-C API, as it was before the conversion
+// --- The API the callers use
 // ------------------------------------
 
 OO_TEST(emptyManager) {
@@ -449,7 +449,7 @@ OO_TEST(routeCacheAndSeeds) {
   }
 }
 
-// --- The C++ classes, and the facade's contract
+// --- The C++ classes, and the root's contract
 // --------------------------------------------
 
 OO_TEST(cxxApi) {

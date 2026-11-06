@@ -5,7 +5,7 @@ OOOpenGLCheck.h
 OpenGL error checking (cxx_OOCheckOpenGLErrors(), OOGL() and friends),
 split out of OOOpenGL.h so that a plain C++ translation unit can use it:
 this header includes only OOOpenGLOnly.h and oofnd headers (no Cocoa
-compatibility header, no Objective-C).
+compatibility header).
 
 
 Oolite

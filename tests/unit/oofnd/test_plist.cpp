@@ -5,9 +5,8 @@
    and writers use for NSString's code units. meson test --suite oofnd-plist
 */
 
-// PList.hpp is included by Objective-C++ game code after OOCocoa.h, which
-// defines true/false as 1/0: it must compile under those macros and hand them
-// back unchanged (as test_cocoa_macros.cpp checks for
+// PList.hpp may be included where true/false are defined as 1/0 (as OOCocoa.h did): it must
+// compile under those macros and hand them back unchanged (as test_cocoa_macros.cpp checks for
 // Data/FileSystem/ResourcePaths).
 #define true 1
 #define false 0

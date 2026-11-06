@@ -3,8 +3,8 @@
 OOJSPrivateObject.cpp
 
 The engine glue for a JS object whose private slot holds a C++ object. Each function is the C++
-counterpart of the Objective-C one named beside it in OOJavaScriptEngine.mm, dispatching to
-OOJSPrivateObject's virtual members where that one sent a selector to an id.
+counterpart of the one named beside it in OOJavaScriptEngine.cpp, dispatching to
+OOJSPrivateObject's virtual members.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

@@ -93,7 +93,7 @@ public:
     */
     virtual bool callMethod(JSAtom methodID, JSContext* context, JSValueConst* argv, int argc, JSValue* outResult);
 
-    // oo::PListForeign: the facade's class name, and its -description ("<C++ class address>{components}").
+    // oo::PListForeign: the class name, and the description ("<C++ class address>{components}").
     std::string className() const override;
     std::string description() const override;
 

@@ -7,13 +7,13 @@
 	exception translator (OOJSEngineNativeWrappers.mm), and stands in for the classes the binding
 	calls (the source and the sound answer only what the binding asks), for the Sound and Vector3D
 	conversions (a vector is the array [x, y, z] here) and for the engine functions it links
-	against, with the engine headers' linkage. The expectations were written against the Objective-C
-	file and run on it first; they pin the JS-visible behaviour (construction, the seven properties
+	against, with the engine headers' linkage. The expectations pin the JS-visible behaviour
+	(construction, the seven properties
 	and their clamps, play(), stop(), playOrRepeat(), a native's exception) and what the category
 	answered the engine. The source and the sound are C++ stand-ins (their members over a record per
 	object), the category's answers are the functions that held its bodies, and the engine's C++
-	private-slot glue (OOJSPrivateObject.h) is stood in for as its Objective-C getter, finalizer and
-	toString() were. Run: tests/run.sh unit
+	private-slot glue (OOJSPrivateObject.h) is stood in for: its getter, finalizer and toString().
+	Run: tests/run.sh unit
 */
 
 #include "OOFoundation.h"
@@ -289,8 +289,8 @@ OOSound *SoundFromJSValue(JSContext *, JSValueConst value)
 }
 
 
-/*	The engine's C++ private-slot glue (OOJSPrivateObject.cpp), stood in for as its Objective-C
-	counterparts were: the slot holds the object retained; the getter checks the JS class (the
+/*	The engine's C++ private-slot glue (OOJSPrivateObject.cpp), stood in for: the slot holds the
+object retained; the getter checks the JS class (the
 	class registry's OOJSIsSubclass(), OOJSClasses.mm) and gives the slot's object; the finalizer
 	does nothing (as the stub's did); toString() is the shared one's answer here.
 */

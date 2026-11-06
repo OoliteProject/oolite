@@ -106,7 +106,7 @@ public:
     std::optional<std::string> descriptionComponents() const;
 
 private:
-    oo::Ref<OOSound> _sound; // retained, as the Objective-C sound was
+    oo::Ref<OOSound> _sound; // retained
     ::OOSoundChannel* _channel = { }; // borrowed from the mixer, not retained, as before
     bool _loop = { };
     uint8_t _repeatCount = { },

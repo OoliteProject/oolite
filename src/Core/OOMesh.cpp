@@ -732,8 +732,7 @@ void OOMesh::dumpSelfState()
 #ifdef OO_DEBUG_MONITOR_ENABLED
 std::vector<oo::Ref<OOTexture>> OOMesh::allTextures()
 {
-    // Every material's textures; id forwarder NSSetFromObjects drops duplicates
-    // as -unionSet: did.
+    // Every material's textures; duplicates are dropped.
     std::vector<oo::Ref<OOTexture>> result;
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
@@ -764,7 +763,7 @@ size_t OOMesh::totalSize()
 
     OOMeshMaterialCount i;
     for (i = 0; i != materialCount; i++) {
-        // The object's own size (was its facade class's instance size), 0 for nil.
+        // The object's own size, 0 for nil.
         if (materials[i] != nullptr)
             result += materials[i]->objectSize();
     }
@@ -848,11 +847,8 @@ oo::Ref<OOMesh> OOMesh::mutableCopyWithZone(OOZone* /*zone*/)
 {
     OOMeshMaterialCount i;
 
-    // NSCopyObject(self, 0, zone) without Foundation: a new
-    // mesh whose members are copied one by one (the copy constructor), as
-    // NSCopyObject copied the ivars bitwise and the C++ ones were then
-    // constructed afresh over the copy, so the buffers are shared. Zones are
-    // unused, as on GNUstep.
+    // A new mesh whose members are copied one by one (the copy constructor),
+    // so the buffers are shared. Zones are unused.
     oo::Ref<OOMesh> result = oo::makeRef<OOMesh>(*this);
 
     // (The binding target is a weak reference, copied; the octree is a C++

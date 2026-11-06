@@ -14,7 +14,7 @@
    hidden window's; the extension manager runs with its collaborators stubbed as
    in test_OOOpenGLExtensionManager. The cases ask the C++ class
    (materialWithName(), a held Ref); crossesAsTheBasicMaterialFacade pins what
-   Objective-C sees: the nearest facade, OOBasicMaterial's. Run: bash
+   the root sees: the nearest base, OOBasicMaterial's. Run: bash
    tools/check-core-tests.sh
 */
 
@@ -460,7 +460,7 @@ OO_TEST(applyAndUnapply) {
   }
 }
 
-// --- The C++ class and the facade (after the conversion)
+// --- The C++ class and the root
 // -----------------------------------------
 
 OO_TEST(cxxAPI) {
@@ -484,8 +484,7 @@ OO_TEST(cxxAPI) {
     OO_CHECK(m->allTextures().size() == 2);
 #endif
 
-    // apply() is virtual: through a root pointer, twice (the second was the
-    // root facade's -apply).
+    // apply() is virtual: through a root pointer, twice.
     OOMaterial* root = m.get();
     root->apply();
 #ifndef NDEBUG

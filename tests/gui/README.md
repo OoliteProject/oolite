@@ -37,7 +37,7 @@ shells out to the same `tools/gui-lock` with a distinct owner tag (`jsapi`, `smo
 `splashcheck`) so the ownership-checked release can tell them apart. This tier keeps its own
 in-fixture implementation, because it must still work with no bash.
 
-Two launchers are exempt, on purpose: `tests/golden/golden_run.py` runs N scenarios concurrently by
+Two launchers are exempt, on purpose: the scenario runner, which runs N scenarios concurrently by
 design and never needs the foreground, and `tests/component/console.py` is the transport those N
 runs share. `tools/check-desktop-lock.sh` enforces the rule and the exemptions. It detects a
 launcher **by its spawn** — a `Popen`/`subprocess.run`/`os.startfile`/`DebugConsole`/shell command

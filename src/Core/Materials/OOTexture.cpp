@@ -98,8 +98,7 @@ OOCache* sRecentTextures;
 static BOOL sCheckedExtensions;
 OOTextureInfo gOOTextureInfo;
 
-// The ObjC tree kept a trace context here for the debug monitor; nothing in the
-// C++ tree reads it, so the markers are no-ops in every build.
+// Nothing reads a trace context, so the markers are no-ops in every build.
 #define SET_TRACE_CONTEXT(str) \
     do {                       \
     } while (0)
@@ -406,7 +405,7 @@ std::optional<std::string> OOTexture::shortDescriptionComponents() const
 
 namespace {
 
-// The C++ class's name, as the facade's -cxx_description named it.
+// The C++ class's name.
 std::string ClassName(const OOTexture& texture)
 {
     int status = 0;
@@ -718,10 +717,8 @@ BOOL cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
         lodBias = specifier.get<float>("texture_LOD_bias", kOOTextureDefaultLODBias);
     } else {
         // Bad type
-        // "got" names an object's class, or the property-list type (it was the
-        // class of the Foundation object built for the value, such as
-        // GSInlineArray). An Object node held no Objective-C object: nil's class,
-        // "(null)", as before.
+        // "got" names an object's class, or the property-list type; an Object node
+        // is "(null)".
         if (!specifier.isNull())
             OO_LOG(cxx_kOOLogParameterError,
                 "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__,

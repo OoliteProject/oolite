@@ -14,12 +14,11 @@
    component), a Foundation string or the native vector handed to the game,
    anything else the default; +numberWithFloat: / +numberWithDouble: for the
    writers; FuzzyBooleanProbabilityFromString for a string whose -floatValue is
-   0. The game's own OO*FromObject forward to these functions (the goldens run
-   every former caller through them). meson test --suite oofnd-plist
+   0. The game's own OO*FromObject forward to these functions (the game's
+   integration tests run every caller through them). meson test --suite oofnd-plist
 */
 
-// Included as Objective-C++ game code includes it, after OOCocoa.h's true/false
-// macros.
+// Included where true/false are macros, as OOCocoa.h defined them.
 #define true 1
 #define false 0
 #include "oofnd/PListGet.hpp"

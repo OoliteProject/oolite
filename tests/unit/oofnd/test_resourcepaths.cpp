@@ -1,6 +1,6 @@
 /*	test_resourcepaths.cpp
         Unit tests for oofnd/ResourcePaths.hpp: oo::ResourcePaths,
-   checked against the paths the Objective-C code computes today
+   checked against the paths the game computes
    (NSHomeDirectory() under GNUstep, SDL/main.mm's HOMEPATH,
    NSFileManagerOOExtensions, OOLogOutputHandler, OOOXZManager,
    ResourceManager), for both the Windows and the POSIX rules, driven by a fake
@@ -22,7 +22,7 @@ namespace fs = oo::fs;
 using Platform = oo::PathEnvironment::Platform;
 
 // Paths compare element-wise: "a/b" and "a\\b" are the same path on Windows,
-// and lexically_normal() folds the "x/../y" the Objective-C code also leaves
+// and lexically_normal() folds the "x/../y" the game's paths also leave
 // in.
 bool same(const fs::Path& a, const fs::Path& b) {
   return a.lexically_normal() == b.lexically_normal();

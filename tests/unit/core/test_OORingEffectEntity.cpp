@@ -10,8 +10,7 @@
    velocity, is an effect that cannot collide, owned by the source; its
    description counts the time passed; it removes itself after two seconds. The
    rings are made through the one block of helpers below: each ring is a C++
-   entity whose Objective-C object is the Entity facade oo::NewEntityFacade
-   made. Run: bash tools/check-core-tests.sh
+   entity. Run: bash tools/check-core-tests.sh
 */
 
 #include <string>
@@ -36,7 +35,7 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// NewTestPlayer<TestPlayer>(): a C++ player, as
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
 // object was.
 template <class T>

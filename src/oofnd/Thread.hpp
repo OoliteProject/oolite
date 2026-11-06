@@ -38,7 +38,7 @@
 
 #pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// Callers see OOFoundation.h's `#define true 1` / `#define false
 // 0`; suspend them for the standard headers (as oofnd/Data.hpp does).
 #pragma push_macro("true")
 #pragma push_macro("false")
@@ -53,7 +53,7 @@
 #if defined(_WIN32)
 // The three kernel32 entry points, declared exactly as <processthreadsapi.h> declares them (HANDLE
 // = void *, HRESULT = long, BOOL = int), so this header does not drag <windows.h> (and its BOOL,
-// min/max and interface macros) into Objective-C++ game code. A TU that also includes <windows.h>
+// min/max and interface macros) into game code. A TU that also includes <windows.h>
 // sees identical redeclarations.
 extern "C" {
 __declspec(dllimport) void* __stdcall GetCurrentThread(void);

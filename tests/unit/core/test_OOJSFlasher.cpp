@@ -13,8 +13,7 @@
 	signatures but not its class (OOFlasherEntity.h pulls in the game's classes), as
 	test_OOJSGlobal.mm stands in for the engine, under a stand-in C++ root whose JS members the
 	stand-in root category asks, as the game's does. The binding header is not imported;
-	InitOOJSFlasher is declared here. The expectations were written against the Objective-C file
-	and run on it first; they pin the JS-visible behaviour (the six properties and their ranges,
+	InitOOJSFlasher is declared here. The tests pin the JS-visible behaviour (the six properties and their ranges,
 	the colour both ways, remove() from a ship and from a visual effect, a stale flasher, a
 	native's exception) and what the category answers the engine.
 	Run: tests/run.sh unit
@@ -157,8 +156,7 @@ void OOVisualEffectEntity::removeSubEntity(OOVisualEffectSubEntity *sub)  { _rem
 #include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 void OOVisualEffectEntity::removeSubEntity(Entity *sub)  { _removed = TestObjectOf(sub); }	// its object, as the binding passed it
 
-// The root's JS category, as the game's asks the C++ part
-// (EntityOOJavaScriptExtensions+ObjCBridge.mm): the engine sends these
+// The root's JS category, as the game's asks the C++ part: the engine sends these
 // selectors to the wrapped object.
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
 std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
@@ -382,7 +380,7 @@ void OOJSEntityHolder::clearJSSelf(JSValueConst)  {}
 std::optional<std::string> OOJSEntityHolder::jsDescription()  { return std::nullopt; }
 
 
-// oo::ToObjC (Entity+ObjCBridge.mm): the object of each C++ part the test wrapped, nil for any
+// oo::ToObjC: the object of each C++ part the test wrapped, nil for any
 // other (the binding asks it where its natives still message the object).
 namespace {
 std::map<Entity *, TestEntityObject *> sObjects;

@@ -408,7 +408,7 @@ def test_the_scanner_probe_is_computed_from_the_hud_definition():
 def test_a_frame_with_no_scanner_scores_zero(tmp_path):
     """The red detector must actually be able to return zero, and to find the ellipse.
 
-    Built here rather than committed as a fixture image: a golden PNG in the tree would be a
+    Built here rather than committed as a fixture image: a reference PNG in the tree would be a
     second thing to keep in step with hud.plist.
     """
     from PIL import Image

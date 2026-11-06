@@ -55,10 +55,9 @@ private:
     OOALStreamedSound() = default;
 
     char* _buffer = { };
-    // (The Objective-C class's _size, which nothing read or wrote, is not kept: -Wunused-private-field.)
     double _sampleRate = { };
     std::optional<std::string> _name; // nil-able, as the name was
     bool _stereo = { };
-    oo::Ref<OOALSoundDecoder> decoder; // retained, as the Objective-C decoder was
+    oo::Ref<OOALSoundDecoder> decoder; // retained
     bool _reachedEnd = { };
 };

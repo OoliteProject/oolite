@@ -13,7 +13,7 @@
 	object for its JS value, as the engine does, so a SystemInfo's JS object is the one the class
 	makes. The SystemInfo's slot holds the C++ system info, so it also links the engine's C++
 	private-slot glue (OOJSPrivateObject.cpp: the getter, finalizer and toString()). The
-	expectations were written against the Objective-C file and run on it first; they pin the
+	expectations pin the
 	JS-visible behaviour (the cached object, the four properties and their errors, system data both
 	ways, enumeration, the four methods and the two static ones, interstellar space, a native's
 	exception) and what the wrapped object answers the engine (its class name, description and

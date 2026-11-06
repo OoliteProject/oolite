@@ -8,8 +8,7 @@
 	would provide is defined below as the smallest stand-in that does the same thing: the error and
 	warning reporters, OOJSValue (a held JS value, which a deferred add keeps), the time limiter and
 	the universe's time acceleration. The engine's header is not imported, because the test
-	defines OOJSValue. The expectations were written against the Objective-C file and run on it
-	first; they pin the three functions and their errors, the delta each callback receives, adds
+	defines OOJSValue. The tests pin the three functions and their errors, the delta each callback receives, adds
 	and removes made while the callbacks run (deferred to the end of the frame), a throwing
 	callback, growth past the first 16 slots, and removing all.
 	Run: bash tools/check-core-tests.sh

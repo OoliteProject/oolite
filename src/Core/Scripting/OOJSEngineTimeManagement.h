@@ -182,7 +182,7 @@ private:
 class OOJavaScriptEngine;
 
 /*	Formerly installed the watchdog thread and operation callback. The QuickJS
-        interrupt handler is installed by -[OOJavaScriptEngine init], so this
+        interrupt handler is installed by OOJavaScriptEngine's constructor, so this
         does nothing; it is kept for source compatibility.
 */
 void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime);

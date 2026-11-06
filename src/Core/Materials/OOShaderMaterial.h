@@ -4,10 +4,6 @@ OOShaderMaterial.h
 
 Managers a combination of a shader program, textures and uniforms.
 
-Objective-C sees one as an OOMaterial. The two informal protocols on OOObject
-that shader binding targets implement (-superShaderBindingTarget,
--randomSeedForShaders) are in their implementers' header, Entity+ObjCBridge.h.
-
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -97,8 +93,7 @@ public:
         const oo::PList& macros, // null = nil
         Entity* target);
 
-    // Runs once, right after construction; false where the Objective-C
-    // initialiser answered nil.
+    // Runs once, right after construction; false on failure.
     bool initWithName(const std::optional<std::string>& name,
         const oo::PList& configuration, // null = nil
         const oo::PList& macros, // null = nil

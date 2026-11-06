@@ -2,8 +2,7 @@
 
 `oofnd` is the C++20 library that replaces GNUstep Foundation (`libgnustep-base`) during the
 migration ([architecture §3.4](../../../docs/architecture.md)). It is built bottom-up,
-one component per seam, each with its own unit tests, and adopted by Objective-C++ call sites
-while the classes are still Objective-C. Namespace `oo`.
+one component per seam, each with its own unit tests. Namespace `oo`.
 
 Rules that hold for every component:
 
@@ -50,7 +49,6 @@ Rules that hold for every component:
 | `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++20 |
 | `tests/unit/oofnd/oo_test.hpp` | the whole test harness: `OO_TEST`, `OO_CHECK`, `OO_CHECK_EQ`, `OO_TEST_MAIN` |
 | `tests/unit/oofnd/plist_dump.hpp` | canonical one-line dump of a `PList`, the format the PList tests' GNUstep-captured expectations are written in |
-| `tests/unit/oofnd/test_*.mm` | Objective-C++ tests of `src/oofnd/objc`, linked against libobjc2 alone; `tools/check-oofnd-objc.sh` builds them and proves the import table has no gnustep-base |
 | `tests/unit/oofnd/meson.build` | registers each test in `meson test --suite oofnd` |
 
 
@@ -131,7 +129,7 @@ cd oolite-dev && ./mk.sh build test
 meson test -C build/meson_test --suite oofnd
 ```
 
-Objective-C++ game code builds as `c++20` and sees OOFoundation.h's `#define true 1` / `#define false 0`:
+Game code builds as `c++20` and sees OOFoundation.h's `#define true 1` / `#define false 0`:
 a header that game code includes must suspend them with `#pragma push_macro`/`pop_macro` as
 `Data.hpp` does (`tests/unit/oofnd/test_cocoa_macros.cpp` checks it).
 

@@ -11,8 +11,8 @@
 	the class's own units: sharedPlayer(), the player made (the ship made the player's way, and the
 	only player), deferredInit() (the ship's initialiser sent again over the same object, and the
 	player's own defaults), and the object's -dealloc (it releases what the player held). The player
-	is C++, made as the game makes it (oo::makeRef, its object the ship's facade,
-	oo::NewEntityFacade), and the stand-ins are C++ subclasses overriding the members; the test
+	is C++, made as the game makes it (oo::makeRef), and the stand-ins are C++ subclasses
+	overriding the members; the test
 	reads and sets the members directly. The case after those pins the crossing: the player's object
 	is a ship whose C++ part is the player, and it answers the player's selectors called by name.
 	Run: bash tools/check-core-tests.sh test_PlayerEntity
@@ -226,8 +226,8 @@ void UncountSecondInit(Entity *entity)
 #endif
 
 
-// A player made as the game makes one (PlayerEntity::newPlayerObject()): the C++ player, owned by
-// its Objective-C object, the ship's facade, which the caller releases (+1).
+// A player made as the game makes one (PlayerEntity::newPlayerObject()): the C++ player, which the
+// caller releases (+1).
 template <class T>
 T *NewTestPlayer()
 {
@@ -357,7 +357,7 @@ OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
-		Entity *object = player;	// the drawable's facade
+		Entity *object = player;	// the drawable
 		OO_CHECK(object != nil && oo::ToShip(object) != nullptr);	// a ship's object
 		OO_CHECK(object == player);
 		OO_CHECK(dynamic_cast<PlayerEntity *>(object) == player);
@@ -539,7 +539,7 @@ OO_TEST(slice3Wormhole)
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->getWormhole() == nil);
-		// A C++ wormhole: the player retains its Objective-C object.
+		// A C++ wormhole: the player retains it.
 		oo::Ref<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
@@ -1096,7 +1096,7 @@ OO_TEST(slice18ScriptingListsAndSystemData)
 
 // The game options and load / save screens, the equip-screen key highlight and
 // the available facings have no unit case: every unit reads the GUI, the ship
-// registry or the game's data, which the goldens cover.
+// registry or the game's data, which the integration tests cover.
 
 // --- The equip-ship screen and upgrade information
 // ------------------------
@@ -1347,7 +1347,7 @@ OO_TEST(slice28ClearanceMarkerKeyAndExtraKeys)
 // PlayerEntityContracts.mm, PlayerEntityLoadSave.mm. Each case pins units a
 // player in a never-initialised universe can answer; the screens, the controls'
 // polling and the load / save panels read the GUI, the keyboard or the game's
-// files, which the goldens cover. ------------------------
+// files, which the integration tests cover. ------------------------
 
 namespace {
 Entity *sCategoryTarget = nil;	// what a CategoryPlayer answers as its primary target (not retained)
@@ -1472,7 +1472,7 @@ OO_TEST(controlsSlice1FirstKeyCodeAndPlanetSearch)
 }
 
 // PlayerEntityControls.mm's other units have no unit case: every unit polls the
-// keyboard, the joystick or the GUI, which the goldens cover.
+// keyboard, the joystick or the GUI, which the integration tests cover.
 
 // PlayerEntityControls.mm: the ident button safes the
 // missiles, engages ident and, with a target, plays the locked-on sound and
@@ -1705,7 +1705,7 @@ OO_TEST(contractsSlice3MissingSubEntities)
 
 
 // PlayerEntityLoadSave.mm's other units read the save files, the scenarios and
-// the GUI, which the goldens cover.
+// the GUI, which the integration tests cover.
 
 // PlayerEntityLoadSave.mm: a commander is found by its
 // save name, else its name; one not in the list is not found.

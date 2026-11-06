@@ -200,8 +200,7 @@ void PlayerEntity::stickProfileGraphAxisProfile(GLfloat alpha, Vector screenAt, 
 }
 
 /* StickProfileScreen's methods. "Is kind of" a profile class is a
- * dynamic_cast. GuiDisplayGen, UNIVERSE and PLAYER are still Objective-C and
- * are messaged as before.
+ * dynamic_cast.
  */
 StickProfileScreen::StickProfileScreen()
 {

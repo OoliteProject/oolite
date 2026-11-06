@@ -531,8 +531,7 @@ void OOEquipmentType::clearJSSelf(JSValueConst selfVal)
         _jsSelf = JS_UNDEFINED;
 }
 
-// What the facade's -cxx_oo_jsDescription answered (OOObject (OOJavaScriptConversion)): the JS
-// class name and the components.
+// The JS class name and the components.
 std::optional<std::string> OOEquipmentType::jsDescription()
 {
     const std::optional<std::string> components = descriptionComponents();

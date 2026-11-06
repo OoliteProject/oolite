@@ -420,8 +420,8 @@ void OOCharacter::setLegacyScript(const oo::PList& some_actions)
 
 void OOCharacter::setCharacterScript(const std::string& scriptName)
 {
-    // (the script's "character" is this character, an Object node, as it was self; it reaches
-    // JavaScript as undefined, as the facade did)
+    // (the script's "character" is this character, an Object node, ; it reaches
+    // JavaScript as undefined)
     _script = OOScript::jsScriptFromFileNamed(scriptName,
         oo::PList(oo::PList::Dict { { "character", oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(this))) } }));
 }

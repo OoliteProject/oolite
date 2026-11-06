@@ -32,7 +32,7 @@
 
 #pragma once
 
-// Objective-C++ callers see OOFoundation.h's `#define true 1` / `#define false
+// Callers see OOFoundation.h's `#define true 1` / `#define false
 // 0`; suspend them for the standard headers (as oofnd/Data.hpp does).
 #pragma push_macro("true")
 #pragma push_macro("false")
@@ -48,7 +48,7 @@
 
 #if defined(_WIN32)
 // Declared exactly as the Windows headers declare them (DWORD = unsigned long, UINT = unsigned
-// int, BOOL = int), so this header does not pull <windows.h> into Objective-C++ game code.
+// int, BOOL = int), so this header does not pull <windows.h> into game code.
 extern "C" {
 __declspec(dllimport) unsigned long __stdcall GetVersion(void);
 __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int CodePage, unsigned long dwFlags, const wchar_t* lpWideCharStr, int cchWideChar, char* lpMultiByteStr, int cbMultiByte, const char* lpDefaultChar, int* lpUsedDefaultChar);

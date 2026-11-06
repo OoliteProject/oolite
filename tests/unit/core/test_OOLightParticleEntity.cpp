@@ -11,9 +11,8 @@
    white), the colour and diameter setters, -drawSubEntityImmediate:translucent:
    (the owner's camera distance, the cut-off, and the draw it sends to self),
    and that the texture a subclass answers is the one the debug texture list
-   reports. The colour components, a @protected ivar, are read through the one
-   helper below. A particle is made in C++ and handed to Objective-C with
-   oo::NewEntityFacade, whose object is the root Entity's facade: the test
+   reports. The colour components, are read through the one
+   helper below. A particle is made in C++: the test
    subclass is a C++ subclass with the same answers, the class's own selectors
    are member calls and the root's are still sent to the object. Run: bash
    tools/check-core-tests.sh
@@ -42,7 +41,7 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player under the ship's facade, as
+// NewTestPlayer<TestPlayer>(): a C++ player, as
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
 // object was.
 template <class T>
@@ -109,8 +108,8 @@ bool ComponentsAre(OOLightParticleEntity* e, GLfloat r, GLfloat g, GLfloat b,
 }
 
 /*	A new
-   C++ particle, its object (the root's facade, autoreleased) made first and the
-   initialiser's body run after, the facade's order. The object holds the
+   C++ particle, its object made first and the
+   initialiser's body run after. The object holds the
    particle; the test sends it the root's selectors.
 */
 template <class T>

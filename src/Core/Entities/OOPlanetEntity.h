@@ -45,15 +45,13 @@ MA 02110-1301, USA.
 class OOMaterial;
 class OOTexture;
 class ShipEntity;
-class OOPlanetDrawable; // no facade: this class is its one caller
+class OOPlanetDrawable; // this class is its one caller
 
 /*	The universe and the legacy scripts make it with
-   oo::makeRef<OOPlanetEntity>(), hand it to Objective-C with
-   oo::NewEntityFacade (its object is the root Entity's facade) and hold it as
-   the C++ class. Its OOStellarBody answers are members (OOStellarBodyRadius()
-   asks them for an Objective-C object), and the root's facade answers the
-   shader binding selectors for a planet only (Entity (OOPlanetShaderBindings),
-   Entity+ObjCBridge.mm).
+   oo::makeRef<OOPlanetEntity>() and hold it as
+   the C++ class. Its OOStellarBody answers are members (OOStellarBodyRadius()),
+   and the shader binding names are answered for a planet only
+   (OOEntityCalledByName.cpp).
 */
 class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
 public:
@@ -82,7 +80,7 @@ public:
 
     bool setUpPlanetFromTexture(const std::optional<std::string>& fileName); // nullopt: none
 
-    // The drawables' materials: Objective-C objects, as the drawables keep them.
+    // The drawables' materials, as the drawables keep them.
     OOMaterial* material();
     OOMaterial* atmosphereMaterial();
     OOMaterial* atmosphereShaderMaterial();
@@ -120,7 +118,7 @@ public:
     bool isPlanet() override;
     bool isVisible() override;
 
-    // The binding's bodies (OOJSPlanet.mm), which the facade forwarded to.
+    // The binding's bodies (OOJSPlanet.mm).
     JSClassID jsClassID() override;
     std::optional<std::string> jsClassName() override;
     bool isVisibleToScripts() override;

@@ -235,9 +235,7 @@ std::optional<std::string> OOShaderUniform::description()
     const char* valueType = nullptr;
 
     if (isBinding && entityMember) {
-        // An entity's member: the class the selector path
-        // printed (rows bind only for the root facade's own class), the entity's
-        // address and the property.
+        // An entity's member: the class, the entity's address and the property.
         oo::RefCounted* cxxObject = cxxTarget.get();
         if (cxxObject != nullptr)
             valueDesc = oo::str::format(
@@ -255,8 +253,7 @@ std::optional<std::string> OOShaderUniform::description()
         else
             valueDesc = "0";
     } else if (isBinding) {
-        // Nothing bound (an entity binding no row answered): what the Objective-C
-        // target's branch printed for no target.
+        // Nothing bound (an entity binding no row answered).
         valueDesc = "0";
     } else {
         switch (type) {
@@ -328,8 +325,7 @@ std::optional<std::string> OOShaderUniform::description()
     /*	Examples:
                     <OOShaderUniform 0xf00>{1: int tex1 = 1;}
                     <OOShaderUniform 0xf00>{3: float laser_heat_level =
-       [<ShipEntity 0xba8> laserHeatLevel];} The class is named as a literal and
-       the address is the facade's, as [self class] and self were.
+       [<ShipEntity 0xba8> laserHeatLevel];} The class is named as a literal.
     */
     return oo::str::format("<%s %s>{%i: %s %s = %s;}", "OOShaderUniform",
         oo::str::pointerDescription(this).c_str(), location,
@@ -355,8 +351,8 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target)
     if (cxxTargetOnly)
         return; // a C++ target's member is bound once, by its factory
 
-    /*	The Objective-C target's steps for the entity: the super target followed
-       up the entities (-superShaderBindingTarget), then the member table's row
+    /*	The steps for an entity target: the super target followed
+       up the entities (superTarget hook), then the member table's row
        for the name, read from the entity.
     */
     entityMember = NO;
