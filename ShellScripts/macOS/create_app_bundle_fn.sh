@@ -66,6 +66,18 @@ bundle_dylibs() {
             if [[ "$dep" == @loader_path/* && -n "${origin[$binary]:-}" ]]; then
                 src="$(dirname "${origin[$binary]}")/${dep#@loader_path/}"
             fi
+            # An @rpath dependency (libc++ -> libc++abi, libunwind) is found through the rpaths
+            # of the file it was copied from, not those of the bundled copy.
+            if [[ "$dep" == @rpath/* ]]; then
+                local orig="${origin[$binary]:-$binary}" rp
+                while read -r rp; do
+                    rp="${rp/@loader_path/$(dirname "$orig")}"
+                    if [[ -f "$rp/${dep#@rpath/}" ]]; then
+                        src="$rp/${dep#@rpath/}"
+                        break
+                    fi
+                done < <(otool -l "$orig" | awk '/cmd LC_RPATH/{getline; getline; print $2}')
+            fi
             _is_bundleable_lib "$src" || continue
             local name
             name=$(basename "$src")
