@@ -1309,7 +1309,7 @@ void PlayerEntity::awardEquipment(
 {
   if (::scriptTarget != this) return;
 
-  const std::string equipKey = equipString;
+  const std::string& equipKey = equipString;
   if (equipKey == "EQ_FUEL") {
     setFuel(fuelCapacity());
   }
@@ -1345,7 +1345,7 @@ void PlayerEntity::removeEquipment(
 {
   if (::scriptTarget != this) return;
 
-  const std::string equipKey = equipString;
+  const std::string& equipKey = equipString;
   if (equipKey == "EQ_FUEL") {
     fuel = 0;
     return;
@@ -1369,7 +1369,7 @@ void PlayerEntity::setPlanetinfo(
     const std::string&
         key_valueString)  // called by name; uses key=value format
 {
-  const std::string argument = key_valueString;
+  const std::string& argument = key_valueString;
   const std::vector<std::string> tokens = oo::str::split(argument, "=");
 
   if (tokens.size() != 2) {
@@ -1395,7 +1395,7 @@ void PlayerEntity::setSpecificPlanetInfo(
     const std::string&
         key_valueString)  // called by name; uses galaxy#=planet#=key=value
 {
-  const std::string argument = key_valueString;
+  const std::string& argument = key_valueString;
   const std::vector<std::string> tokens = oo::str::split(argument, "=");
   int gnum, pnum;
 
@@ -1424,7 +1424,7 @@ void PlayerEntity::awardCargo(
 {
   if (::scriptTarget != this) return;
 
-  const std::string argument = amount_typeString;
+  const std::string& argument = amount_typeString;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
   OOCargoQuantityDelta amount;
   OOMassUnit unit;
@@ -1517,7 +1517,7 @@ void PlayerEntity::useSpecialCargo(
 {
   if (::scriptTarget != this) return;
 
-  const std::string description = descriptionString;
+  const std::string& description = descriptionString;
   removeAllCargo(true);
   OO_LOG(kOOLogNoteUseSpecialCargo, "Going to useSpecialCargo:'{}'",
          description);
@@ -1549,7 +1549,7 @@ void PlayerEntity::awardFuel(
 void PlayerEntity::messageShipAIs(
     const std::string& roles_message)  // called by name
 {
-  const std::string argument = roles_message;
+  const std::string& argument = roles_message;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
 
   if (tokens.size() < 2) {
@@ -1584,7 +1584,7 @@ void PlayerEntity::ejectItem(const std::string& itemKey)  // called by name
 
 void PlayerEntity::addShips(const std::string& roles_number)  // called by name
 {
-  const std::string argument = roles_number;
+  const std::string& argument = roles_number;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
 
   if (tokens.size() != 2) {
@@ -1617,7 +1617,7 @@ void PlayerEntity::addShips(const std::string& roles_number)  // called by name
 void PlayerEntity::addSystemShips(
     const std::string& roles_number_position)  // called by name
 {
-  const std::string argument = roles_number_position;
+  const std::string& argument = roles_number_position;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
 
   if (tokens.size() != 3) {
@@ -1652,7 +1652,7 @@ void PlayerEntity::addSystemShips(
 void PlayerEntity::addShipsAt(
     const std::string& roles_number_system_x_y_z)  // called by name
 {
-  const std::string argument = roles_number_system_x_y_z;
+  const std::string& argument = roles_number_system_x_y_z;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
 
   if (tokens.size() != 6) {
@@ -1697,7 +1697,7 @@ void PlayerEntity::addShipsAt(
 void PlayerEntity::addShipsAtPrecisely(
     const std::string& roles_number_system_x_y_z)  // called by name
 {
-  const std::string argument = roles_number_system_x_y_z;
+  const std::string& argument = roles_number_system_x_y_z;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
 
   if (tokens.size() != 6) {
@@ -1742,7 +1742,7 @@ void PlayerEntity::addShipsAtPrecisely(
 void PlayerEntity::addShipsWithinRadius(
     const std::string& roles_number_system_x_y_z_r)  // called by name
 {
-  const std::string argument = roles_number_system_x_y_z_r;
+  const std::string& argument = roles_number_system_x_y_z_r;
   const std::vector<std::string> tokens = oo::str::tokens(argument);
 
   if (tokens.size() != 7) {
@@ -1802,7 +1802,7 @@ void PlayerEntity::spawnShip(const std::string& ship_key)  // called by name
 void PlayerEntity::set(
     const std::string& missionvariable_value)  // called by name
 {
-  const std::string argument = missionvariable_value;
+  const std::string& argument = missionvariable_value;
   std::vector<std::string> tokens = oo::str::tokens(argument);
   std::string missionVariableString;
   std::string valueString;
@@ -1863,7 +1863,7 @@ void PlayerEntity::reset(const std::string& missionvariable)  // called by name
 void PlayerEntity::increment(
     const std::string& missionVariableObject)  // called by name
 {
-  const std::string missionVariableString = missionVariableObject;
+  const std::string& missionVariableString = missionVariableObject;
   bool hasMissionPrefix, hasLocalPrefix;
   int value = 0;
 
@@ -1895,7 +1895,7 @@ void PlayerEntity::increment(
 void PlayerEntity::decrement(
     const std::string& missionVariableObject)  // called by name
 {
-  const std::string missionVariableString = missionVariableObject;
+  const std::string& missionVariableString = missionVariableObject;
   bool hasMissionPrefix, hasLocalPrefix;
   int value = 0;
 
@@ -1927,7 +1927,7 @@ void PlayerEntity::decrement(
 void PlayerEntity::add(
     const std::string& missionVariableString_value)  // called by name
 {
-  const std::string argument = missionVariableString_value;
+  const std::string& argument = missionVariableString_value;
   std::string missionVariableString;
   std::string valueString;
   double value;
@@ -1971,7 +1971,7 @@ void PlayerEntity::add(
 void PlayerEntity::subtract(
     const std::string& missionVariableString_value)  // called by name
 {
-  const std::string argument = missionVariableString_value;
+  const std::string& argument = missionVariableString_value;
   std::string missionVariableString;
   std::string valueString;
   double value;
@@ -2245,7 +2245,7 @@ void PlayerEntity::removeMissionDestination(
 
 void PlayerEntity::showShipModel(const std::string& role)  // called by name
 {
-  const std::string roleString = role;
+  const std::string& roleString = role;
   if (roleString == "none" || roleString.empty()) {
     if (UNIVERSE != nullptr) UNIVERSE->removeDemoShips();
     return;
@@ -2279,7 +2279,7 @@ void PlayerEntity::setMissionTitle(const std::optional<std::string>& value) {
 
 // Not declared in the header; called by name (setMissionImage: is whitelisted).
 void PlayerEntity::setMissionImage(const std::string& value) {
-  const std::string imageName = value;
+  const std::string& imageName = value;
   if (!IsNoneValue(imageName)) {
     setMissionOverlayDescriptor(
         oo::PList(oo::PList::Dict{{"name", oo::PList(imageName)}}));
@@ -2290,7 +2290,7 @@ void PlayerEntity::setMissionImage(const std::string& value) {
 
 // called by name
 void PlayerEntity::setMissionBackground(const std::string& value) {
-  const std::string backgroundName = value;
+  const std::string& backgroundName = value;
   if (!IsNoneValue(backgroundName)) {
     setMissionBackgroundDescriptor(
         oo::PList(oo::PList::Dict{{"name", oo::PList(backgroundName)}}));
