@@ -82,6 +82,13 @@ install_package() {
                 arch)   pkg_name="libpng" ;;
             esac ;;
 
+        "curl-dev")
+            case "$CURRENT_DISTRO" in
+                debian) pkg_name="libcurl4-openssl-dev" ;;
+                redhat) pkg_name="libcurl-devel" ;;
+                arch) pkg_name="curl" ;;
+            esac ;;
+
         "zlib-dev")
             case "$CURRENT_DISTRO" in
                 debian) pkg_name="zlib1g-dev" ;;

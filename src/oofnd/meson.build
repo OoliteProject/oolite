@@ -22,7 +22,9 @@ oofnd_override_options = ['cpp_std=c++20', 'warning_level=2',
 # icu-uc is named too: String.hpp calls it directly (uloc_getDefault, unorm2_*), and icu-i18n.pc
 # lists it only under Requires.private, so a shared link on Linux does not get -licuuc from i18n.
 oofnd_icu_dep = [dependency('icu-uc', required: true), dependency('icu-i18n', required: true)]
-oofnd_dep = declare_dependency(include_directories: oofnd_inc, dependencies: oofnd_icu_dep)
+# libcurl: oofnd/Http.hpp fetches http(s) with it on every platform.
+oofnd_curl_dep = dependency('libcurl', required: true)
+oofnd_dep = declare_dependency(include_directories: oofnd_inc, dependencies: oofnd_icu_dep + [oofnd_curl_dep])
 
 # oofnd/objc's C++ support, OORaiseException (Exception.cpp) and OOCAssert's failure path (no unit is
 # Objective-C). Test consumers: tests/unit/oofnd/test_objc_assert.cpp.

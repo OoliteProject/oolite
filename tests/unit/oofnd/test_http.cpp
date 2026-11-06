@@ -8,12 +8,12 @@
         or fail), except where the header comment of Http.hpp lists a deliberate
         difference (the relative redirect, an unparseable URL).
 
-        On Windows the test runs its own HTTP server on 127.0.0.1 (winsock): no
-        network is used. Link: -lwinhttp -lws2_32 (tests/unit/oofnd/meson.build;
-        tools/check-oofnd.sh reads this line:)
+        The test runs its own HTTP server on 127.0.0.1 (winsock on Windows, BSD
+        sockets elsewhere): no network is used. Link on Windows: -lws2_32
+        (tests/unit/oofnd/meson.build; tools/check-oofnd.sh reads this line:)
 */
 // clang-format on
-// oofnd-link-windows: -lwinhttp -lws2_32
+// oofnd-link-windows: -lws2_32
 
 #include <type_traits>
 
@@ -34,6 +34,13 @@
 #if defined(_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #endif
 
 namespace {
@@ -276,23 +283,37 @@ OO_TEST(cancel_before_taking_drops_everything) {
   download.cancel();  // twice is harmless
 }
 
-#if defined(_WIN32)
-
 // --- a loopback HTTP/1.1 server replaying the probe's exchanges
 // ---------------------------------------
+
+#if defined(_WIN32)
+using Socket = SOCKET;
+using SocketLength = int;
+constexpr Socket kNoSocket = INVALID_SOCKET;
+inline void closeSocket(Socket s) { closesocket(s); }
+#else
+using Socket = int;
+using SocketLength = socklen_t;
+constexpr Socket kNoSocket = -1;
+inline void closeSocket(Socket s) { close(s); }
+#endif
 
 class Server {
  public:
   Server() {
+#if defined(_WIN32)
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
+#else
+    signal(SIGPIPE, SIG_IGN);  // a client that hangs up mid-send
+#endif
     listener_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     sockaddr_in addr = {};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = 0;
     bind(listener_, reinterpret_cast<sockaddr*>(&addr), sizeof addr);
-    int length = sizeof addr;
+    SocketLength length = sizeof addr;
     getsockname(listener_, reinterpret_cast<sockaddr*>(&addr), &length);
     port_ = ntohs(addr.sin_port);
     listen(listener_, 16);
@@ -301,11 +322,13 @@ class Server {
 
   ~Server() {
     stopping_ = true;
-    closesocket(listener_);
     acceptor_.join();
+    closeSocket(listener_);
     std::lock_guard<std::mutex> lock(mutex_);
     for (std::thread& t : connections_) t.join();
+#if defined(_WIN32)
     WSACleanup();
+#endif
   }
 
   std::string url(const std::string& path) const {
@@ -317,15 +340,25 @@ class Server {
 
  private:
   void acceptLoop() {
-    for (;;) {
-      SOCKET c = accept(listener_, nullptr, nullptr);
-      if (c == INVALID_SOCKET) return;
+    // Waits in slices: closing a listening socket does not wake accept() on
+    // every platform.
+    while (!stopping_) {
+      fd_set readable;
+      FD_ZERO(&readable);
+      FD_SET(listener_, &readable);
+      timeval slice = {0, 20 * 1000};
+      if (select(static_cast<int>(listener_) + 1, &readable, nullptr, nullptr,
+                 &slice) <= 0) {
+        continue;
+      }
+      Socket c = accept(listener_, nullptr, nullptr);
+      if (c == kNoSocket) return;
       std::lock_guard<std::mutex> lock(mutex_);
       connections_.emplace_back([this, c]() { serve(c); });
     }
   }
 
-  static void sendAll(SOCKET c, const std::string& bytes) {
+  static void sendAll(Socket c, const std::string& bytes) {
     size_t sent = 0;
     while (sent < bytes.size()) {
       const int n = send(c, bytes.data() + sent,
@@ -347,7 +380,7 @@ class Server {
     return "Content-Length: " + std::to_string(body.size());
   }
 
-  void serve(SOCKET c) {
+  void serve(Socket c) {
     std::string buffer;
     char chunk[4096];
     for (;;) {
@@ -355,7 +388,7 @@ class Server {
       while ((end = buffer.find("\r\n\r\n")) == std::string::npos) {
         const int n = recv(c, chunk, sizeof chunk, 0);
         if (n <= 0) {
-          closesocket(c);
+          closeSocket(c);
           return;
         }
         buffer.append(chunk, static_cast<size_t>(n));
@@ -366,14 +399,14 @@ class Server {
       const std::string path =
           head.substr(sp + 1, head.find(' ', sp + 1) - sp - 1);
       if (!respond(c, path, head)) {
-        closesocket(c);
+        closeSocket(c);
         return;
       }
     }
   }
 
   // false: close the connection after this response.
-  bool respond(SOCKET c, const std::string& path, const std::string& head) {
+  bool respond(Socket c, const std::string& path, const std::string& head) {
     if (path == "/ok") {
       sendAll(c, reply("200 OK", {"Content-Length: 5", "Set-Cookie: a=b"},
                        "hello"));
@@ -426,7 +459,7 @@ class Server {
     return true;
   }
 
-  SOCKET listener_ = INVALID_SOCKET;
+  Socket listener_ = kNoSocket;
   unsigned short port_ = 0;
   std::thread acceptor_;
   std::mutex mutex_;
@@ -517,7 +550,7 @@ OO_TEST(refused_connection_fails) {
   OO_CHECK(t.failed);
   OO_CHECK(!t.finished);
   OO_CHECK_EQ(t.responses, 0);
-  OO_CHECK(t.error.find("12029") != std::string::npos);
+  OO_CHECK(t.error.find("libcurl error 7") != std::string::npos);  // couldn't connect
   OO_CHECK(!t.eventAfterEnd);
 }
 
@@ -551,8 +584,6 @@ OO_TEST(cancel_interrupts_a_stalled_body) {
   OO_CHECK(std::chrono::steady_clock::now() - start < std::chrono::seconds(10));
   server().stopping_ = true;
 }
-
-#endif  // _WIN32
 
 }  // namespace
 
