@@ -354,22 +354,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView) {
 
   // Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
-#if OOLITE_MAC_COCOA_UI
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-    /*
-            NSSpeechSynthesizer can take over a second on an SSD and several
-            seconds on an HDD for a cold start, and a third of a second upward
-            for a warm start. There are no particular thread safety consider-
-            ations documented for NSSpeechSynthesizer, so I'm assuming the
-            default one-thread-at-a-time access rule applies.
-            -- Ahruman 2012-09-13
-    */
-    OO_LOG("speech.setup.begin", "Starting to set up speech synthesizer.");
-    NSSpeechSynthesizer* synth = [[NSSpeechSynthesizer alloc] init];
-    OO_LOG("speech.setup.end", "Finished setting up speech synthesizer.");
-    speechSynthesizer = synth;
-  });
-#elif OOLITE_ESPEAK
+#if OOLITE_ESPEAK
   int volume = ::OOSound::masterVolume() * 100;
   espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);
   espeak_SetParameter(espeakVOLUME, volume, 0);
@@ -499,9 +484,7 @@ void Universe::dealloc() {
 
 #if OOLITE_SPEECH_SYNTH
   speechArray = oo::PList();
-#if OOLITE_MAC_COCOA_UI
-  [speechSynthesizer release];
-#elif OOLITE_ESPEAK
+#if OOLITE_ESPEAK
   espeak_Cancel();
 #endif
 #endif
@@ -7242,9 +7225,7 @@ void Universe::speakWithSubstitutions(const std::optional<std::string>& text) {
               OptionalStringAt(thePair, 0);
 
           NSUInteger replacementIndex;
-#if OOLITE_MAC_COCOA_UI
-          replacementIndex = 1;
-#elif OOLITE_ESPEAK
+#if OOLITE_ESPEAK
           replacementIndex = thePair.count() > 2 ? 2 : 1;
 #endif
 
@@ -10448,28 +10429,7 @@ void Universe::setAirResistanceFactor(GLfloat newFactor) {
 }
 
 // The speech arms. The Mac's is not built.
-#if OOLITE_MAC_COCOA_UI
-
-void Universe::startSpeakingString(const std::string& text) {
-  [speechSynthesizer
-      startSpeakingString:oo::NSStringFrom(oo::str::format(
-                              "[[volm %.3f]]%s",
-                              0.3333333f * OOSound::masterVolume(),
-                              text.c_str()))];
-}
-
-void Universe::stopSpeaking() {
-  if ([speechSynthesizer
-          respondsToSelector:@selector(stopSpeakingAtBoundary:)]) {
-    [speechSynthesizer stopSpeakingAtBoundary:NSSpeechWordBoundary];
-  } else {
-    [speechSynthesizer stopSpeaking];
-  }
-}
-
-bool Universe::isSpeaking() { return [speechSynthesizer isSpeaking]; }
-
-#elif OOLITE_ESPEAK
+#if OOLITE_ESPEAK
 
 void Universe::startSpeakingString(const std::string& text) {
   // the UTF-8 bytes of the text

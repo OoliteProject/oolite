@@ -161,9 +161,6 @@ MA 02110-1301, USA.
 #define OOLITE_SDL 0
 #endif
 
-// The Cocoa (AppKit) front end, as opposed to Apple Foundation with SDL.
-#define OOLITE_MAC_COCOA_UI (OOLITE_MAC_OS_X && !OOLITE_SDL)
-
 #ifndef OOLITE_SPEECH_SYNTH
 #define OOLITE_SPEECH_SYNTH 0
 #endif

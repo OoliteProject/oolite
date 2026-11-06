@@ -44,8 +44,6 @@ SOFTWARE.
 // The OpenGL feature switches and the Windows extension function pointers.
 #include "OOOpenGLExtensionPointers.h"
 
-#define OOOPENGLEXTMGR_LOCK_SET_ACCESS (!OOLITE_MAC_COCOA_UI)
-
 class OOOpenGLExtensionManager : public oo::RefCounted {
  public:
   /*	The shared manager, made (and reset()) on first use; borrowed, never
@@ -114,9 +112,7 @@ class OOOpenGLExtensionManager : public oo::RefCounted {
 
   // An ivar that shares its name with a member function (its own or
   // oo::RefCounted's) has the suffix _.
-#if OOOPENGLEXTMGR_LOCK_SET_ACCESS
   std::mutex lock = {};
-#endif
   // The extension names, and the vendor /
   // renderer strings (nullopt where OpenGL answered NULL, as the strings were
   // nil).

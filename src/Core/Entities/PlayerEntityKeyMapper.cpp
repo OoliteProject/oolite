@@ -152,9 +152,6 @@ std::string KeyMappingsFileName(void) {
 #if OOLITE_LINUX
   map = "keymappings_linux.plist";
 #endif
-#if OOLITE_MAC_COCOA_UI
-  map = "keymappings_mac.plist";
-#endif
   return map;
 }
 
@@ -665,14 +662,8 @@ void PlayerEntity::outputKeyDefinition(const std::string& key,
                       GUI_ROW_KC_MOD1 + skiprows);
       }
 
-#if OOLITE_MAC_COCOA_UI
-      [gui cxx_setArray:Columns(
-                            {OO_DESC("oolite-keyconfig-update-mod2-mac"), mod2})
-                 forRow:GUI_ROW_KC_MOD2 + skiprows];
-#else
       gui->setArray(Columns({OO_DESC("oolite-keyconfig-update-mod2-pc"), mod2}),
                     GUI_ROW_KC_MOD2 + skiprows);
-#endif
       gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_KC_MOD2 + skiprows);
     }
   }

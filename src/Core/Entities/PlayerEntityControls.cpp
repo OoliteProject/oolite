@@ -271,11 +271,7 @@ void PlayerEntity::initControls() {
 
   keyShiftText = OO_DESC("oolite-keyconfig-shift");
   keyMod1Text = OO_DESC("oolite-keyconfig-mod1");
-#if OOLITE_MAC_COCOA_UI
-  keyMod2Text = OO_DESC("oolite-keyconfig-mod2-mac");
-#else
   keyMod2Text = OO_DESC("oolite-keyconfig-mod2-pc");
-#endif
 
   initKeyConfigSettings();
 

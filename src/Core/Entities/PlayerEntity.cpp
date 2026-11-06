@@ -9323,7 +9323,6 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     }
 #endif
 #endif
-#if !OOLITE_MAC_COCOA_UI
     // window/fullscreen
     if ((gameView != nullptr ? gameView->inFullScreenMode() : false)) {
       gui->setText(OO_DESC("gameoptions-play-in-window"),
@@ -9333,7 +9332,6 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
                    GUI_ROW(GAME, DISPLAYSTYLE), GUI_ALIGN_CENTER);
     }
     gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, DISPLAYSTYLE));
-#endif
 
     gui->setText(OO_DESC("gameoptions-joystick-configuration"),
                  GUI_ROW(GAME, STICKMAPPER), GUI_ALIGN_CENTER);

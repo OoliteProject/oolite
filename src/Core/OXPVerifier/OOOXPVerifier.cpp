@@ -793,10 +793,7 @@ void OpenLogFile() {
     const oo::PList openLog =
         oo::Defaults::standard().object("oxp-verifier-open-log");
     if (oo::PListGet<bool>::from(openLog.isNull() ? nullptr : &openLog, true)) {
-#if OOLITE_MAC_COCOA_UI
-      [[NSWorkspace sharedWorkspace]
-          openFile:oo::NSStringOrNil(cxx_OOLogHandlerGetLogPath())];
-#elif OOLITE_WINDOWS
+#if OOLITE_WINDOWS
       // ShellExecute will automatically use the app associated with .log files
       // A nil path's -UTF8String was NULL.
       const std::optional<std::string> logPath = cxx_OOLogHandlerGetLogPath();
