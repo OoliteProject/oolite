@@ -233,13 +233,13 @@ oo::Ref<OOTexture> OOTexture::textureWithGenerator(
 }
 
 OOTexture::OOTexture() {
-  if (EXPECT_NOT(sAllLiveTextures == NULL))
+  if (EXPECT_NOT(sAllLiveTextures == nullptr))
     sAllLiveTextures = new std::unordered_set<OOTexture*>;
   sAllLiveTextures->insert(this);
 }
 
 OOTexture::~OOTexture() {
-  if (sAllLiveTextures != NULL) sAllLiveTextures->erase(this);
+  if (sAllLiveTextures != nullptr) sAllLiveTextures->erase(this);
 }
 
 void OOTexture::apply() { OOLogGenericSubclassResponsibility(); }
@@ -293,7 +293,7 @@ void OOTexture::clearCache() {
           live texture objects.
   */
   SET_TRACE_CONTEXT("clearing sLiveTextureCache");
-  if (sLiveTextureCache != NULL) sLiveTextureCache->clear();
+  if (sLiveTextureCache != nullptr) sLiveTextureCache->clear();
 
   SET_TRACE_CONTEXT("clearing sRecentTextures");
   // [sRecentTextures autorelease]: released at the drain of the nearest
@@ -312,7 +312,7 @@ void OOTexture::rebindAllTextures() {
   sRecentTextures = nullptr;
   oo::release(recentTextures);
 
-  if (sAllLiveTextures == NULL) return;
+  if (sAllLiveTextures == nullptr) return;
   // A copy: the set is unordered (as the Foundation set was) and must not
   // change under the loop.
   const std::vector<OOTexture*> textures(sAllLiveTextures->begin(),
@@ -335,7 +335,7 @@ std::vector<oo::Ref<OOTexture>> OOTexture::cachedTexturesByAge() {
 
 std::vector<oo::Ref<OOTexture>> OOTexture::allTextures() {
   std::vector<oo::Ref<OOTexture>> result;
-  if (sAllLiveTextures != NULL) {
+  if (sAllLiveTextures != nullptr) {
     result.reserve(sAllLiveTextures->size());
     for (OOTexture* texture : *sAllLiveTextures) result.emplace_back(texture);
   }
@@ -420,7 +420,7 @@ void OOTexture::addToCaches() {
 
   // Add self to in-use textures cache, as a raw pointer so the texture isn't
   // retained by the cache.
-  if (EXPECT_NOT(sLiveTextureCache == NULL))
+  if (EXPECT_NOT(sLiveTextureCache == nullptr))
     sLiveTextureCache = new std::unordered_map<std::string, OOTexture*>;
 
   SET_TRACE_CONTEXT("in-use textures cache - SHOULD NOT RETAIN");
@@ -446,7 +446,7 @@ void OOTexture::removeFromCaches() {
   const std::optional<std::string> cacheKey = this->cacheKey();
   if (!cacheKey.has_value()) return;
 
-  if (sLiveTextureCache != NULL) sLiveTextureCache->erase(*cacheKey);
+  if (sLiveTextureCache != nullptr) sLiveTextureCache->erase(*cacheKey);
   // Called from a texture's destructor: the cached texture is compared by
   // address.
   OOTexture* cached = OOTextureInObjectNode(
@@ -481,7 +481,7 @@ OOTexture* OOTexture::existingTextureForKey(
     const std::optional<std::string>& key) {
 #ifndef OOTEXTURE_NO_CACHE
   if (key.has_value()) {
-    if (sLiveTextureCache == NULL) return nullptr;
+    if (sLiveTextureCache == nullptr) return nullptr;
     auto it = sLiveTextureCache->find(*key);
     return (it != sLiveTextureCache->end()) ? it->second : nullptr;
   }
@@ -704,10 +704,10 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
 
   if (name.empty()) return false;
 
-  if (outName != NULL) *outName = name;
-  if (outOptions != NULL) *outOptions = options;
-  if (outAnisotropy != NULL) *outAnisotropy = anisotropy;
-  if (outLODBias != NULL) *outLODBias = lodBias;
+  if (outName != nullptr) *outName = name;
+  if (outOptions != nullptr) *outOptions = options;
+  if (outAnisotropy != nullptr) *outAnisotropy = anisotropy;
+  if (outLODBias != nullptr) *outLODBias = lodBias;
 
   return true;
 }

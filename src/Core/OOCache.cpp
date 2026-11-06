@@ -199,7 +199,7 @@ bool OOCache::initWithPList(const oo::PList& pList) {
 
   if (OK) {
     cache = CacheAllocate();
-    if (cache == NULL) OK = false;
+    if (cache == nullptr) OK = false;
   }
 
   if (!pList.isNull()) {
@@ -370,7 +370,7 @@ static OOCacheImpl* CacheAllocate(void) {
 }
 
 static void CacheFree(OOCacheImpl* cache) {
-  if (cache == NULL) return;
+  if (cache == nullptr) return;
 
   CacheNodeFree(cache, cache->root);
   delete cache;
@@ -378,12 +378,12 @@ static void CacheFree(OOCacheImpl* cache) {
 
 static bool CacheInsert(OOCacheImpl* cache, const std::string& key,
                         const oo::PList& value) {
-  OOCacheNode* node = NULL;
+  OOCacheNode* node = nullptr;
 
-  if (cache == NULL || value.isNull()) return false;
+  if (cache == nullptr || value.isNull()) return false;
 
   node = TreeInsert(cache, key, value);
-  if (node != NULL) {
+  if (node != nullptr) {
     AgeListMakeYoungest(cache, node);
     return true;
   } else
@@ -391,19 +391,19 @@ static bool CacheInsert(OOCacheImpl* cache, const std::string& key,
 }
 
 static bool CacheRemove(OOCacheImpl* cache, const std::string& key) {
-  OOCacheNode *node = NULL, *newRoot = NULL;
+  OOCacheNode *node = nullptr, *newRoot = nullptr;
 
   node = TreeSplay(&cache->root, key);
-  if (node != NULL) {
-    if (node->leftChild == NULL)
+  if (node != nullptr) {
+    if (node->leftChild == nullptr)
       newRoot = node->rightChild;
     else {
       newRoot = node->leftChild;
       TreeSplay(&newRoot, key);
       newRoot->rightChild = node->rightChild;
     }
-    node->leftChild = NULL;
-    node->rightChild = NULL;
+    node->leftChild = nullptr;
+    node->rightChild = nullptr;
 
     cache->root = newRoot;
     --cache->count;
@@ -419,7 +419,7 @@ static bool CacheRemove(OOCacheImpl* cache, const std::string& key) {
 namespace {
 bool CacheRemoveOldest(OOCacheImpl* cache, const std::string& logKey) {
   // This could be more efficient, but does it need to be?
-  if (cache == NULL || cache->oldest == NULL) return false;
+  if (cache == nullptr || cache->oldest == nullptr) return false;
 
   OO_LOG(logKey, "Pruning cache \"{}\": removing {}",
          cache->name.value_or("(null)"), cache->oldest->key);
@@ -430,13 +430,13 @@ bool CacheRemoveOldest(OOCacheImpl* cache, const std::string& logKey) {
 
 static const oo::PList* CacheRetrieve(OOCacheImpl* cache,
                                       const std::string& key) {
-  OOCacheNode* node = NULL;
+  OOCacheNode* node = nullptr;
   const oo::PList* result = nullptr;
 
-  if (cache == NULL) return nullptr;
+  if (cache == nullptr) return nullptr;
 
   node = TreeSplay(&cache->root, key);
-  if (node != NULL) {
+  if (node != nullptr) {
     result = CacheNodeGetValue(node);
     AgeListMakeYoungest(cache, node);
   }
@@ -447,14 +447,14 @@ namespace {
 
 // Empty for an empty cache (the Foundation version returned nil).
 std::vector<oo::PList> CacheArrayOfContentsByAge(OOCacheImpl* cache) {
-  OOCacheNode* node = NULL;
+  OOCacheNode* node = nullptr;
   std::vector<oo::PList> result;
 
-  if (cache == NULL || cache->count == 0) return result;
+  if (cache == nullptr || cache->count == 0) return result;
 
   result.reserve(cache->count);
 
-  for (node = cache->youngest; node != NULL; node = node->older) {
+  for (node = cache->youngest; node != nullptr; node = node->older) {
     result.emplace_back(node->value);
   }
   return result;
@@ -463,14 +463,14 @@ std::vector<oo::PList> CacheArrayOfContentsByAge(OOCacheImpl* cache) {
 // Property-list data: [{key, value}, ...] from oldest to youngest; null for an
 // empty cache (nil).
 oo::PList CacheArrayOfNodesByAge(OOCacheImpl* cache) {
-  OOCacheNode* node = NULL;
+  OOCacheNode* node = nullptr;
   oo::PList::Array result;
 
-  if (cache == NULL || cache->count == 0) return oo::PList();
+  if (cache == nullptr || cache->count == 0) return oo::PList();
 
   result.reserve(cache->count);
 
-  for (node = cache->oldest; node != NULL; node = node->younger) {
+  for (node = cache->oldest; node != nullptr; node = node->younger) {
     oo::PList::Dict entry;
     entry.emplace(kSerializedEntryKeyKey, oo::PList(node->key));
     entry.emplace(kSerializedEntryKeyValue, node->value);
@@ -520,7 +520,7 @@ static void CacheCheckIntegrity(OOCacheImpl* cache,
 // inserting it in the structures.
 static OOCacheNode* CacheNodeAllocate(const std::string& key,
                                       const oo::PList& value) {
-  if (value.isNull()) return NULL;
+  if (value.isNull()) return nullptr;
 
   // Null links, as calloc gave; the key and value are C++ members.
   return new OOCacheNode{.key = key, .value = value};
@@ -529,7 +529,7 @@ static OOCacheNode* CacheNodeAllocate(const std::string& key,
 // CacheNodeFree(): recursively delete a cache node and its children in the
 // splay tree. To delete an individual node, first clear its child pointers.
 static void CacheNodeFree(OOCacheImpl* cache, OOCacheNode* node) {
-  if (node == NULL) return;
+  if (node == nullptr) return;
 
   AgeListRemove(cache, node);
 
@@ -541,7 +541,7 @@ static void CacheNodeFree(OOCacheImpl* cache, OOCacheNode* node) {
 
 // CacheNodeGetValue(): retrieve the value of a cache node
 static const oo::PList* CacheNodeGetValue(OOCacheNode* node) {
-  if (node == NULL) return nullptr;
+  if (node == nullptr) return nullptr;
 
   return &node->value;
 }
@@ -549,7 +549,7 @@ static const oo::PList* CacheNodeGetValue(OOCacheNode* node) {
 // CacheNodeSetValue(): change the value of a cache node (as when
 // setObject:forKey: is called for an existing key).
 static void CacheNodeSetValue(OOCacheNode* node, const oo::PList& value) {
-  if (node == NULL) return;
+  if (node == nullptr) return;
 
   node->value = value;
 }
@@ -577,31 +577,31 @@ static std::string CacheNodeGetDescription(OOCacheNode* node) {
 */
 static OOCacheNode* TreeSplay(OOCacheNode** root, const std::string& key) {
   int order;
-  OOCacheNode N = {.leftChild = NULL, .rightChild = NULL};
-  OOCacheNode *node = NULL, *temp = NULL, *l = &N, *r = &N;
+  OOCacheNode N = {.leftChild = nullptr, .rightChild = nullptr};
+  OOCacheNode *node = nullptr, *temp = nullptr, *l = &N, *r = &N;
   bool exact = false;
 
-  if (root == NULL || *root == NULL) return NULL;
+  if (root == nullptr || *root == nullptr) return nullptr;
 
   node = *root;
 
   for (;;) {
 #ifndef NDEBUG
-    if (node == NULL) {
+    if (node == nullptr) {
       OO_LOG("node.error", "{}", "node is NULL");
     }
 #endif
     order = key.compare(node->key);
     if (order < 0) {
       // Closest match is in left subtree
-      if (node->leftChild == NULL) break;
+      if (node->leftChild == nullptr) break;
       if (key.compare(node->leftChild->key) < 0) {
         // Rotate right
         temp = node->leftChild;
         node->leftChild = temp->rightChild;
         temp->rightChild = node;
         node = temp;
-        if (node->leftChild == NULL) break;
+        if (node->leftChild == nullptr) break;
       }
       // Link right
       r->leftChild = node;
@@ -609,14 +609,14 @@ static OOCacheNode* TreeSplay(OOCacheNode** root, const std::string& key) {
       node = node->leftChild;
     } else if (order > 0) {
       // Closest match is in right subtree
-      if (node->rightChild == NULL) break;
+      if (node->rightChild == nullptr) break;
       if (key.compare(node->rightChild->key) > 0) {
         // Rotate left
         temp = node->rightChild;
         node->rightChild = temp->leftChild;
         temp->leftChild = node;
         node = temp;
-        if (node->rightChild == NULL) break;
+        if (node->rightChild == nullptr) break;
       }
       // Link left
       l->rightChild = node;
@@ -636,29 +636,29 @@ static OOCacheNode* TreeSplay(OOCacheNode** root, const std::string& key) {
   node->rightChild = N.leftChild;
 
   *root = node;
-  return exact ? node : NULL;
+  return exact ? node : nullptr;
 }
 
 static OOCacheNode* TreeInsert(OOCacheImpl* cache, const std::string& key,
                                const oo::PList& value) {
-  OOCacheNode *closest = NULL, *node = NULL;
+  OOCacheNode *closest = nullptr, *node = nullptr;
   int order;
 
-  if (cache == NULL || value.isNull()) return NULL;
+  if (cache == nullptr || value.isNull()) return nullptr;
 
-  if (cache->root == NULL) {
+  if (cache->root == nullptr) {
     node = CacheNodeAllocate(key, value);
     cache->root = node;
     cache->count = 1;
   } else {
     node = TreeSplay(&cache->root, key);
-    if (node != NULL) {
+    if (node != nullptr) {
       // Exact match: key already exists, reuse its node
       CacheNodeSetValue(node, value);
     } else {
       closest = cache->root;
       node = CacheNodeAllocate(key, value);
-      if (EXPECT_NOT(node == NULL)) return NULL;
+      if (EXPECT_NOT(node == nullptr)) return nullptr;
 
       order = key.compare(closest->key);
 
@@ -666,14 +666,14 @@ static OOCacheNode* TreeInsert(OOCacheImpl* cache, const std::string& key,
         // Insert to left
         node->leftChild = closest->leftChild;
         node->rightChild = closest;
-        closest->leftChild = NULL;
+        closest->leftChild = nullptr;
         cache->root = node;
         ++cache->count;
       } else if (order > 0) {
         // Insert to right
         node->rightChild = closest->rightChild;
         node->leftChild = closest;
-        closest->rightChild = NULL;
+        closest->rightChild = nullptr;
         cache->root = node;
         ++cache->count;
       } else {
@@ -683,7 +683,7 @@ static OOCacheNode* TreeInsert(OOCacheImpl* cache, const std::string& key,
             "{}() internal inconsistency for cache \"{}\", insertion failed.",
             __PRETTY_FUNCTION__, cache->name.value_or("(null)"));
         CacheNodeFree(cache, node);
-        return NULL;
+        return nullptr;
       }
     }
   }
@@ -765,22 +765,22 @@ static OOCacheNode* TreeCheckIntegrity(OOCacheImpl* cache, OOCacheNode* node,
 // AgeListMakeYoungest(): place a given cache node at the youngest end of the
 // age list.
 static void AgeListMakeYoungest(OOCacheImpl* cache, OOCacheNode* node) {
-  if (cache == NULL || node == NULL) return;
+  if (cache == nullptr || node == nullptr) return;
 
   AgeListRemove(cache, node);
   node->older = cache->youngest;
-  if (NULL != cache->youngest) cache->youngest->younger = node;
+  if (nullptr != cache->youngest) cache->youngest->younger = node;
   cache->youngest = node;
-  if (cache->oldest == NULL) cache->oldest = node;
+  if (cache->oldest == nullptr) cache->oldest = node;
 }
 
 // AgeListRemove(): remove a cache node from the age-sorted tree. Does not
 // affect its position in the splay tree.
 static void AgeListRemove(OOCacheImpl* cache, OOCacheNode* node) {
-  OOCacheNode* younger = NULL;
-  OOCacheNode* older = NULL;
+  OOCacheNode* younger = nullptr;
+  OOCacheNode* older = nullptr;
 
-  if (node == NULL) return;
+  if (node == nullptr) return;
 
   younger = node->younger;
   older = node->older;
@@ -788,11 +788,11 @@ static void AgeListRemove(OOCacheImpl* cache, OOCacheNode* node) {
   if (cache->youngest == node) cache->youngest = older;
   if (cache->oldest == node) cache->oldest = younger;
 
-  node->younger = NULL;
-  node->older = NULL;
+  node->younger = nullptr;
+  node->older = nullptr;
 
-  if (younger != NULL) younger->older = older;
-  if (older != NULL) older->younger = younger;
+  if (younger != nullptr) younger->older = older;
+  if (older != nullptr) older->younger = younger;
 }
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
@@ -891,13 +891,13 @@ void OOCache::appendNodesFromSubTree(OOCacheNode* subTree,
                               oo::str::pointerDescription(subTree).c_str(),
                               cxx_EscapedGraphVizString(subTree->key).c_str());
 
-  if (subTree->leftChild != NULL) {
+  if (subTree->leftChild != nullptr) {
     appendNodesFromSubTree(subTree->leftChild, ioString);
     ioString += oo::str::format(
         "\tn%s:f0 -> n%s:f1;\n", oo::str::pointerDescription(subTree).c_str(),
         oo::str::pointerDescription(subTree->leftChild).c_str());
   }
-  if (subTree->rightChild != NULL) {
+  if (subTree->rightChild != nullptr) {
     appendNodesFromSubTree(subTree->rightChild, ioString);
     ioString += oo::str::format(
         "\tn%s:f2 -> n%s:f1;\n", oo::str::pointerDescription(subTree).c_str(),
@@ -918,7 +918,7 @@ std::optional<std::string> OOCache::generateGraphVizBodyWithRootNamed(
                           : std::string("(null)"))
           .c_str());
 
-  if (cache == NULL) return result;
+  if (cache == nullptr) return result;
 
   // Cache
   appendNodesFromSubTree(cache->root, result);

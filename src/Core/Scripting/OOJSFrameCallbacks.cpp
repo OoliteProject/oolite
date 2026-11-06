@@ -207,10 +207,10 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
     JS_FreeValue(context, global);
     JS_FreeValue(context, deltaVal);
 
-    if (EXPECT_NOT(sDeferredOps != NULL)) {
+    if (EXPECT_NOT(sDeferredOps != nullptr)) {
       RunDeferredOperations(context);
       delete sDeferredOps;
-      sDeferredOps = NULL;
+      sDeferredOps = nullptr;
     }
     OOJSRelinquishContext(context);
   }
@@ -334,8 +334,8 @@ namespace {
 static bool AddCallback(JSContext* context, JSValueConst callback,
                         uint32_t trackingID,
                         std::optional<std::string>* errorString) {
-  OOCParameterAssert(context != NULL);
-  OOCParameterAssert(errorString != NULL);
+  OOCParameterAssert(context != nullptr);
+  OOCParameterAssert(errorString != nullptr);
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
@@ -357,14 +357,14 @@ static bool AddCallback(JSContext* context, JSValueConst callback,
 namespace {
 static bool GrowCallbackList(JSContext* context,
                              std::optional<std::string>* errorString) {
-  OOCParameterAssert(context != NULL);
-  OOCParameterAssert(errorString != NULL);
+  OOCParameterAssert(context != nullptr);
+  OOCParameterAssert(errorString != nullptr);
 
   NSUInteger newSpace = MAX(sSpace * 2, (NSUInteger)kMinCount);
 
   CallbackEntry* newCallbacks =
       (CallbackEntry*)calloc(sizeof(CallbackEntry), newSpace);
-  if (newCallbacks == NULL) {
+  if (newCallbacks == nullptr) {
     *errorString = "Failed to allocate space for frame callback.";
     return false;
   }
@@ -384,7 +384,7 @@ static bool GrowCallbackList(JSContext* context,
 
 namespace {
 static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex) {
-  OOCParameterAssert(outIndex != NULL);
+  OOCParameterAssert(outIndex != nullptr);
 
   /*	It is assumed that few frame callbacks will be active at once, so a
           linear search is reasonable. If they become unexpectedly popular, we
@@ -406,7 +406,7 @@ static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex) {
 namespace {
 static bool RemoveCallbackWithTrackingID(JSContext* context,
                                          uint32_t trackingID) {
-  OOCParameterAssert(context != NULL);
+  OOCParameterAssert(context != nullptr);
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
@@ -421,8 +421,8 @@ static bool RemoveCallbackWithTrackingID(JSContext* context,
 }  // namespace
 
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index) {
-  OOCParameterAssert(context != NULL);
-  OOCParameterAssert(index < sCount && sCallbacks != NULL);
+  OOCParameterAssert(context != nullptr);
+  OOCParameterAssert(index < sCount && sCallbacks != nullptr);
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
@@ -453,7 +453,8 @@ static void QueueDeferredOperation(const std::string& opType,
             "%s can only be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
-  if (sDeferredOps == NULL) sDeferredOps = new std::vector<DeferredOperation>;
+  if (sDeferredOps == nullptr)
+    sDeferredOps = new std::vector<DeferredOperation>;
   sDeferredOps->push_back(
       DeferredOperation{opType, trackingID, oo::Ref<OOJSValue>(value)});
 }

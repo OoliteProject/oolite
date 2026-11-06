@@ -2840,7 +2840,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
     {
       ::StationEntity* stationLaunchedFrom = oo::ToStation(
           (UNIVERSE != nullptr ? UNIVERSE->nearestEntityMatchingPredicate(
-                                     IsStationPredicate, NULL, this)
+                                     IsStationPredicate, nullptr, this)
                                : nullptr));
       setStatus(STATUS_IN_FLIGHT);
       // awaken JS-based AIs
@@ -13851,7 +13851,7 @@ OOTimeAbsolute ShipEntity::getDemoStartTime() { return demoStartTime; }
 // *** Script event dispatch.
 void ShipEntity::doScriptEvent(OOJSPropID message) {
   JSContext* context = OOJSAcquireContext();
-  doScriptEvent(message, context, NULL, 0);
+  doScriptEvent(message, context, nullptr, 0);
   OOJSRelinquishContext(context);
 }
 
@@ -13885,14 +13885,14 @@ void ShipEntity::doScriptEvent(OOJSPropID message,
                                const std::vector<oo::PList>& arguments) {
   JSContext* context = OOJSAcquireContext();
   int i, argc;
-  OOJSVal* argv = NULL;
+  OOJSVal* argv = nullptr;
 
   // Convert arguments to JS values and make them temporarily
   // un-garbage-collectable.
   argc = (int)arguments.size();
   if (argc != 0) {
     argv = (decltype(argv))malloc(sizeof *argv * argc);
-    if (argv != NULL) {
+    if (argv != nullptr) {
       for (i = 0; i != argc; ++i) {
         argv[i] = OOJSValueFromPList(context, arguments[i]);
       }
@@ -13903,7 +13903,7 @@ void ShipEntity::doScriptEvent(OOJSPropID message,
   doScriptEvent(message, context, argv, argc);
 
   // Release the arguments and free the array.
-  if (argv != NULL) {
+  if (argv != nullptr) {
     for (i = 0; i != argc; ++i) {
       OOJSFreeValue(context, argv[i]);
     }
@@ -13922,9 +13922,10 @@ void ShipEntity::doScriptEvent(OOJSPropID message, OOJSVal* argv, int argc) {
 void ShipEntity::doScriptEvent(OOJSPropID message, JSContext* context,
                                OOJSVal* argv, int argc) {
   // This method is a bottleneck so that PlayerEntity can override at one point.
-  if (script != nullptr) script->callMethod(message, context, argv, argc, NULL);
+  if (script != nullptr)
+    script->callMethod(message, context, argv, argc, nullptr);
   if (aiScript != nullptr)
-    aiScript->callMethod(message, context, argv, argc, NULL);
+    aiScript->callMethod(message, context, argv, argc, nullptr);
 }
 
 void ShipEntity::reactToAIMessage(

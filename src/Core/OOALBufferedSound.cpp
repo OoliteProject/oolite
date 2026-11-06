@@ -33,7 +33,7 @@ SOFTWARE.
 
 OOALBufferedSound::~OOALBufferedSound() {
   free(_buffer);
-  _buffer = NULL;
+  _buffer = nullptr;
 }
 
 std::optional<std::string> OOALBufferedSound::name() { return _name; }

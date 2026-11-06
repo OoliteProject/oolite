@@ -283,12 +283,13 @@ static void InitOOJSConsole(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sConsoleClassID, JS_UNDEFINED,
                 OOJSUnconstructableConstruct, 0, sConsoleProperties,
                 OOJS_COUNT(sConsoleProperties), sConsoleMethods,
-                OOJS_COUNT(sConsoleMethods), NULL, 0);
+                OOJS_COUNT(sConsoleMethods), nullptr, 0);
   OOJSRegisterObjectConverter(sConsoleClassID, ConsoleConverter);
 
   OOJSRegisterClass(&sConsoleSettingsClassID, &sConsoleSettingsClass);
   OOJSInitClass(context, global, sConsoleSettingsClassID, JS_UNDEFINED,
-                OOJSUnconstructableConstruct, 0, NULL, 0, NULL, 0, NULL, 0);
+                OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0,
+                nullptr, 0);
   OOJSRegisterObjectConverter(sConsoleSettingsClassID, ConsoleConverter);
 }
 
@@ -587,7 +588,7 @@ bool DoWeDefineAllDebugFlags(enum OODebugFlags flags) {
         ignored, and reads fall through to Object.prototype.
 */
 static bool IsSettingsPrototype(JSValueConst object) {
-  return JS_GetOpaque(object, sConsoleSettingsClassID) == NULL;
+  return JS_GetOpaque(object, sConsoleSettingsClassID) == nullptr;
 }
 
 // Setting key for a string property ID, or nullopt for other IDs (symbols).
@@ -1276,7 +1277,7 @@ static JSValue ConsoleProfile(OOJS_NATIVE_ARGS) {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
     oo::Ref<OOTimeProfile> profile;
 
-    if (PerformProfiling(context, "profile", argc, OOJS_ARGV, NULL, false,
+    if (PerformProfiling(context, "profile", argc, OOJS_ARGV, nullptr, false,
                          &profile)) {
       result = OOJSValueFromPList(
           context, profile
@@ -1309,7 +1310,7 @@ static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS) {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
     oo::Ref<OOTimeProfile> profile;
 
-    if (PerformProfiling(context, "getProfile", argc, OOJS_ARGV, NULL, false,
+    if (PerformProfiling(context, "getProfile", argc, OOJS_ARGV, nullptr, false,
                          &profile)) {
       result = profile ? profile->oo_jsValueInContext(context) : JS_NULL;
     } else {
@@ -1339,7 +1340,7 @@ static JSValue ConsoleTrace(OOJS_NATIVE_ARGS) {
   {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
     if (PerformProfiling(context, "trace", argc, OOJS_ARGV, &rval, true,
-                         NULL)) {
+                         nullptr)) {
       result = rval;
     } else {
       result = OOJSNativeFailure(context);
@@ -1391,11 +1392,11 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
   OOJSBeginProfiling(trace);
 
   // Call the function.
-  JSValue rval = JS_Call(context, function, thisObj, 0, NULL);
+  JSValue rval = JS_Call(context, function, thisObj, 0, nullptr);
 
   // Get results.
   oo::Ref<OOTimeProfile> profile = OOJSEndProfiling();
-  if (outProfile != NULL) *outProfile = std::move(profile);
+  if (outProfile != nullptr) *outProfile = std::move(profile);
 
   // Restore original timer state.
   OOJSSetTimeLimiterLimit(originalLimit);
@@ -1408,7 +1409,7 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
     return false;
   }
 
-  if (outRval != NULL)
+  if (outRval != nullptr)
     *outRval = rval;
   else
     JS_FreeValue(context, rval);

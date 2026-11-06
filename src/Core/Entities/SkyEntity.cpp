@@ -221,7 +221,7 @@ bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1,
   oo::Ref<OOColor> color;
   bool nebulaSet = false;
 
-  assert(ioColor1 != NULL && ioColor2 != NULL);
+  assert(ioColor1 != nullptr && ioColor2 != nullptr);
 
   const std::optional<std::string> string =
       OptionalStringForKey(dictionary, "sky_rgb_colors");

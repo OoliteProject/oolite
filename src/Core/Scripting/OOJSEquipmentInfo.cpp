@@ -302,7 +302,7 @@ std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context,
     }
   }
 
-  if (outExists != NULL) *outExists = exists;
+  if (outExists != nullptr) *outExists = exists;
   return result;
 
   OOJS_PROFILE_EXIT

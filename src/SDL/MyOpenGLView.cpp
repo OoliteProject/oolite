@@ -431,7 +431,7 @@ bool MyOpenGLView::init() {
         AUDIO_OUTPUT_PLAYBACK, 100,
         ResourceManager::builtInPath().value_or(std::string()).c_str(), 0);
   } else {
-    espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
+    espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, nullptr, 0);
   }
 #endif
 #endif
@@ -545,7 +545,7 @@ void MyOpenGLView::endSplashScreen() {
     // focus when the new one is mapped.
     SDL_Window* previousWindow =
         window;  // the window in use so far, which showed the splash
-    window = NULL;
+    window = nullptr;
     createWindowWithSize(firstScreen);
     SDL_DestroyWindow(previousWindow);
     // createWindowWithSize() left glContext current, and SDL_DestroyWindow
@@ -719,7 +719,7 @@ void MyOpenGLView::initSplashScreen() {
   if (!showSplashScreen) return;
 
   // too early for OOTexture!
-  SDL_Surface* image = NULL;
+  SDL_Surface* image = nullptr;
   SDL_Rect dest;
 
   const std::string imagesDir = oo::str::appendingPathComponent(
@@ -728,7 +728,7 @@ void MyOpenGLView::initSplashScreen() {
   image = SDL_LoadBMP(
       oo::str::appendingPathComponent(imagesDir, "splash.bmp").c_str());
 
-  if (image == NULL) {
+  if (image == nullptr) {
     SDL_DestroySurface(image);
     OO_LOG_WARN("sdl.gameStart", "{}", "image 'splash.bmp' not found!");
     endSplashScreen();
@@ -1270,7 +1270,7 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
 #if OOLITE_MACOS
   // No window surface on macOS (see createWindowWithSize()); describe the GL
   // drawable instead.
-  SDL_Surface* surface = NULL;
+  SDL_Surface* surface = nullptr;
   {
     int pixelWidth, pixelHeight;
     SDL_GetWindowSizeInPixels(window, &pixelWidth, &pixelHeight);
@@ -1369,7 +1369,7 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
 void MyOpenGLView::dumpRGBAToFileNamed(const std::string& name, uint8_t* bytes,
                                        NSUInteger width, NSUInteger height,
                                        NSUInteger rowBytes) {
-  if (bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)
+  if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width * 4)
     return;
 
   // use the snapshots directory
@@ -1389,7 +1389,7 @@ void MyOpenGLView::dumpRGBAToFileNamed(const std::string& name, uint8_t* bytes,
 void MyOpenGLView::dumpRGBToFileNamed(const std::string& name, uint8_t* bytes,
                                       NSUInteger width, NSUInteger height,
                                       NSUInteger rowBytes) {
-  if (bytes == NULL || width == 0 || height == 0 || rowBytes < width * 3)
+  if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width * 3)
     return;
 
   // use the snapshots directory
@@ -1409,7 +1409,7 @@ void MyOpenGLView::dumpRGBToFileNamed(const std::string& name, uint8_t* bytes,
 void MyOpenGLView::dumpGrayToFileNamed(const std::string& name, uint8_t* bytes,
                                        NSUInteger width, NSUInteger height,
                                        NSUInteger rowBytes) {
-  if (bytes == NULL || width == 0 || height == 0 || rowBytes < width) return;
+  if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width) return;
 
   // use the snapshots directory
   std::string dumpFile = oo::str::appendingPathComponent(
@@ -1439,7 +1439,7 @@ void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string& name,
                                             uint8_t* bytes, NSUInteger width,
                                             NSUInteger height,
                                             NSUInteger rowBytes) {
-  if (bytes == NULL || width == 0 || height == 0 || rowBytes < width * 2)
+  if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width * 2)
     return;
 
   // use the snapshots directory
@@ -1472,7 +1472,7 @@ void MyOpenGLView::dumpRGBAToRGBFileNamed(
     const std::optional<std::string>& rgbName,
     const std::optional<std::string>& grayName, uint8_t* bytes,
     NSUInteger width, NSUInteger height, NSUInteger rowBytes) {
-  if ((!rgbName.has_value() && !grayName.has_value()) || bytes == NULL ||
+  if ((!rgbName.has_value() && !grayName.has_value()) || bytes == nullptr ||
       width == 0 || height == 0 || rowBytes < width * 4)
     return;
 
@@ -1481,10 +1481,10 @@ void MyOpenGLView::dumpRGBAToRGBFileNamed(
   bool trivalAlpha = true;
 
   rgbPx = rgbBytes = (uint8_t*)malloc(width * height * 3);
-  if (rgbBytes == NULL) return;
+  if (rgbBytes == nullptr) return;
 
   grayPx = grayBytes = (uint8_t*)malloc(width * height);
-  if (grayBytes == NULL) {
+  if (grayBytes == nullptr) {
     free(rgbBytes);
     return;
   }

@@ -102,7 +102,7 @@ void InitOOJSFlasher(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sFlasherClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sFlasherProperties,
                 OOJS_COUNT(sFlasherProperties), sFlasherMethods,
-                OOJS_COUNT(sFlasherMethods), NULL, 0);
+                OOJS_COUNT(sFlasherMethods), nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sFlasherClassID, OOJSEntityObjectConverter);
@@ -118,7 +118,7 @@ static bool JSFlasherGetFlasherEntity(JSContext* context, JSValueConst jsobj,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, jsobj, &entity);

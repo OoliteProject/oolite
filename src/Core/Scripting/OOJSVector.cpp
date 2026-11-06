@@ -164,7 +164,7 @@ JSValue JSVectorWithVector(JSContext* context, Vector vector) {
 }
 
 bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) {
-  assert(outValue != NULL);
+  assert(outValue != nullptr);
 
   return HPVectorToJSValue(context, vectorToHPVector(vector), outValue);
 }
@@ -172,10 +172,10 @@ bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) {
 JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) {
   OOJS_PROFILE_ENTER
 
-  HPVector* priv = NULL;
+  HPVector* priv = nullptr;
 
   priv = (HPVector*)malloc(sizeof *priv);
-  if (EXPECT_NOT(priv == NULL)) return JS_ThrowOutOfMemory(context);
+  if (EXPECT_NOT(priv == nullptr)) return JS_ThrowOutOfMemory(context);
 
   *priv = vector;
 
@@ -194,7 +194,7 @@ JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) {
 bool HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue) {
   OOJS_PROFILE_ENTER
 
-  assert(outValue != NULL);
+  assert(outValue != nullptr);
 
   JSValue object = JSVectorWithHPVector(context, vector);
   if (EXPECT_NOT(JS_IsException(object))) {
@@ -244,9 +244,9 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj,
                        HPVector* outVector) {
   OOJS_PROFILE_ENTER
 
-  assert(outVector != NULL);
+  assert(outVector != nullptr);
 
-  HPVector* priv = NULL;
+  HPVector* priv = nullptr;
   int64_t arrayLength;
   double x, y, z;
 
@@ -257,7 +257,7 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj,
 
   // If this is a (JS) Vector...
   priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
-  if (EXPECT(priv != NULL)) {
+  if (EXPECT(priv != nullptr)) {
     *outVector = *priv;
     return true;
   }
@@ -322,12 +322,12 @@ bool JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj,
                          HPVector vector) {
   OOJS_PROFILE_ENTER
 
-  HPVector* priv = NULL;
+  HPVector* priv = nullptr;
 
   if (EXPECT_NOT(!JS_IsObject(vectorObj))) return false;
 
   priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
-  if (priv != NULL)  // If this is a (JS) Vector...
+  if (priv != nullptr)  // If this is a (JS) Vector...
   {
     *priv = vector;
     return true;
@@ -353,14 +353,14 @@ static bool VectorFromArgumentListNoErrorInternal(JSContext* context, int argc,
   double x, y, z;
 
   if (EXPECT_NOT(argc == 0)) return false;
-  assert(argv != NULL && outVector != NULL);
+  assert(argv != nullptr && outVector != nullptr);
 
-  if (outConsumed != NULL) *outConsumed = 0;
+  if (outConsumed != nullptr) *outConsumed = 0;
 
   // Is first object a vector, array or entity?
   if (JS_IsObject(argv[0])) {
     if (JSObjectGetVector(context, argv[0], outVector)) {
-      if (outConsumed != NULL) *outConsumed = 1;
+      if (outConsumed != nullptr) *outConsumed = 1;
       return true;
     }
   }
@@ -380,7 +380,7 @@ static bool VectorFromArgumentListNoErrorInternal(JSContext* context, int argc,
 
   // We got our three numbers.
   *outVector = make_HPvector(x, y, z);
-  if (outConsumed != NULL) *outConsumed = 3;
+  if (outConsumed != nullptr) *outConsumed = 3;
 
   return true;
 
@@ -505,7 +505,7 @@ static JSValue VectorConstruct(JSContext* context, JSValueConst newTarget,
 
   if (argc != 0) {
     if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(
-            context, argc, argv, &vector, NULL, true))) {
+            context, argc, argv, &vector, nullptr, true))) {
       cxx_OOJSReportBadArguments(context, std::nullopt, std::nullopt, argc,
                                  argv,
                                  "Could not construct vector from parameters",
@@ -559,7 +559,7 @@ static JSValue VectorAdd(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "add")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "add", argc,
-                                         OOJS_ARGV, &thatv, NULL)))
+                                         OOJS_ARGV, &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPvector_add(thisv, thatv);
@@ -578,7 +578,7 @@ static JSValue VectorSubtract(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "subtract")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "subtract", argc,
-                                         OOJS_ARGV, &thatv, NULL)))
+                                         OOJS_ARGV, &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPvector_subtract(thisv, thatv);
@@ -598,7 +598,7 @@ static JSValue VectorDistanceTo(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "distanceTo")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "distanceTo",
-                                         argc, OOJS_ARGV, &thatv, NULL)))
+                                         argc, OOJS_ARGV, &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPdistance(thisv, thatv);
@@ -620,7 +620,7 @@ static JSValue VectorSquaredDistanceTo(OOJS_NATIVE_ARGS) {
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D",
                                          "squaredDistanceTo", argc, OOJS_ARGV,
-                                         &thatv, NULL)))
+                                         &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPdistance2(thisv, thatv);
@@ -640,7 +640,7 @@ static JSValue VectorMultiply(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "multiply")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(
-          context, "Vector3D", "multiply", argc, OOJS_ARGV, &scalar, NULL)))
+          context, "Vector3D", "multiply", argc, OOJS_ARGV, &scalar, nullptr)))
     return JS_EXCEPTION;
 
   result = HPvector_multiply_scalar(thisv, scalar);
@@ -660,7 +660,7 @@ static JSValue VectorDot(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "dot")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "dot", argc,
-                                         OOJS_ARGV, &thatv, NULL)))
+                                         OOJS_ARGV, &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPdot_product(thisv, thatv);
@@ -680,7 +680,7 @@ static JSValue VectorAngleTo(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "angleTo")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "angleTo", argc,
-                                         OOJS_ARGV, &thatv, NULL)))
+                                         OOJS_ARGV, &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPdot_product(HPvector_normal(thisv), HPvector_normal(thatv));
@@ -704,7 +704,7 @@ static JSValue VectorCross(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "cross")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "cross", argc,
-                                         OOJS_ARGV, &thatv, NULL)))
+                                         OOJS_ARGV, &thatv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPtrue_cross_product(thisv, thatv);
@@ -731,7 +731,7 @@ static JSValue VectorTripleProduct(OOJS_NATIVE_ARGS) {
   argc -= consumed;
   argv += consumed;
   if (EXPECT_NOT(!VectorFromArgumentList(context, "Vector3D", "tripleProduct",
-                                         argc, argv, &theotherv, NULL)))
+                                         argc, argv, &theotherv, nullptr)))
     return JS_EXCEPTION;
 
   result = HPtriple_product(thisv, thatv, theotherv);
@@ -814,7 +814,7 @@ static JSValue VectorRotationTo(OOJS_NATIVE_ARGS) {
   if (argc != 0)  // limit parameter is optional.
   {
     if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(
-            context, "Vector3D", "rotationTo", argc, argv, &limit, NULL)))
+            context, "Vector3D", "rotationTo", argc, argv, &limit, nullptr)))
       return JS_EXCEPTION;
     gotLimit = true;
   } else
@@ -842,7 +842,7 @@ static JSValue VectorRotateBy(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, "rotateBy")))
     return JS_EXCEPTION;
   if (EXPECT_NOT(!QuaternionFromArgumentList(context, "Vector3D", "rotateBy",
-                                             argc, OOJS_ARGV, &q, NULL)))
+                                             argc, OOJS_ARGV, &q, nullptr)))
     return JS_EXCEPTION;
 
   result = quaternion_rotate_HPvector(q, thisv);
@@ -908,7 +908,7 @@ static JSValue VectorStaticInterpolate(OOJS_NATIVE_ARGS) {
   argv += consumed;
   if (EXPECT_NOT(argc < 1)) goto INSUFFICIENT_ARGUMENTS;
   if (EXPECT_NOT(!cxx_OOJSArgumentListGetNumber(
-          context, "Vector3D", "interpolate", argc, argv, &interp, NULL)))
+          context, "Vector3D", "interpolate", argc, argv, &interp, nullptr)))
     return JS_EXCEPTION;
 
   result = OOHPVectorInterpolate(av, bv, interp);
@@ -931,7 +931,7 @@ static JSValue VectorStaticRandom(OOJS_NATIVE_ARGS) {
   double maxLength;
 
   if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV,
-                                                     &maxLength, NULL))
+                                                     &maxLength, nullptr))
     maxLength = 1.0;
 
   OOJS_RETURN_HPVECTOR(OOHPVectorRandomSpatial(maxLength));
@@ -945,8 +945,8 @@ static JSValue VectorStaticRandomDirection(OOJS_NATIVE_ARGS) {
 
   double scale;
 
-  if (argc == 0 ||
-      !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &scale, NULL))
+  if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV,
+                                                     &scale, nullptr))
     scale = 1.0;
 
   OOJS_RETURN_HPVECTOR(HPvector_multiply_scalar(OORandomUnitHPVector(), scale));
@@ -961,7 +961,7 @@ static JSValue VectorStaticRandomDirectionAndLength(OOJS_NATIVE_ARGS) {
   double maxLength;
 
   if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV,
-                                                     &maxLength, NULL))
+                                                     &maxLength, nullptr))
     maxLength = 1.0;
 
   OOJS_RETURN_HPVECTOR(OOHPVectorRandomRadial(maxLength));

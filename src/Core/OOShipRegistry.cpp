@@ -1240,7 +1240,7 @@ oo::PList OOShipRegistry::canonicalizeSubentityDeclaration(
     const oo::PList& shipData, bool* outFatalError) {
   oo::PList result;
 
-  assert(outFatalError != NULL);
+  assert(outFatalError != nullptr);
   *outFatalError = false;
 
   if (declaration.isString()) {
@@ -1668,9 +1668,9 @@ void GatherStringAddrs(const oo::PList& object,
 
 void DumpStringAddrs(const oo::PList& dict, const std::string& context) {
   return;
-  static FILE* dump = NULL;
-  if (dump == NULL) dump = fopen("strings.txt", "w");
-  if (dump == NULL) return;
+  static FILE* dump = nullptr;
+  if (dump == nullptr) dump = fopen("strings.txt", "w");
+  if (dump == nullptr) return;
 
   std::vector<StringAddr> strings;
   GatherStringAddrs(dict, strings, context);

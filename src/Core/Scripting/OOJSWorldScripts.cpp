@@ -108,7 +108,7 @@ static int WorldScriptsGetOwnProperty(JSContext* context,
           script = scriptRef.get();
       }
       if (script != nullptr) {
-        if (desc != NULL) {
+        if (desc != nullptr) {
           /*	If script is an OOJSScript, this should return a JS Script
                   object. For other OOScript subclasses, it will return
                   null. If no script exists, the value will be
@@ -147,7 +147,7 @@ static int WorldScriptsGetOwnPropertyNames(JSContext* context,
 
     JSPropertyEnum* table =
         (JSPropertyEnum*)js_malloc(context, sizeof *table * MAX(count, 1U));
-    if (table == NULL) return -1;
+    if (table == nullptr) return -1;
 
     for (i = 0; i < count; i++) {
       table[i].is_enumerable = true;

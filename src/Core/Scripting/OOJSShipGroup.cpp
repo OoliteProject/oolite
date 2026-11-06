@@ -105,7 +105,7 @@ void InitOOJSShipGroup(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sShipGroupClassID, JS_UNDEFINED,
                 ShipGroupConstruct, 0, sShipGroupProperties,
                 OOJS_COUNT(sShipGroupProperties), sShipGroupMethods,
-                OOJS_COUNT(sShipGroupMethods), NULL, 0);
+                OOJS_COUNT(sShipGroupMethods), nullptr, 0);
   OOJSRegisterObjectConverter(sShipGroupClassID, ShipGroupConverter);
 }
 

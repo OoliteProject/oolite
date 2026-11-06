@@ -71,7 +71,7 @@ void InitOOJSExhaustPlume(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sExhaustPlumeClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sExhaustPlumeProperties,
                 OOJS_COUNT(sExhaustPlumeProperties), sExhaustPlumeMethods,
-                OOJS_COUNT(sExhaustPlumeMethods), NULL, 0);
+                OOJS_COUNT(sExhaustPlumeMethods), nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sExhaustPlumeClassID, OOJSEntityObjectConverter);
@@ -87,7 +87,7 @@ static bool JSExhaustPlumeGetExhaustPlumeEntity(
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, jsobj, &entity);

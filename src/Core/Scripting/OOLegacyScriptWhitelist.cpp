@@ -83,7 +83,7 @@ static std::string StringFromStack(SanStackElement* topOfStack);
 oo::PList OOSanitizeLegacyScript(const oo::PList& script,
                                  const std::optional<std::string>& context,
                                  bool allowAIMethods) {
-  SanStackElement stackRoot = {NULL, context, 0};
+  SanStackElement stackRoot = {nullptr, context, 0};
   return OOSanitizeLegacyScriptInternal(
       script, &stackRoot,
       allowAIMethods);  // a fresh tree, as the deep copy was
@@ -131,7 +131,7 @@ static oo::PList OOSanitizeLegacyScriptInternal(const oo::PList& script,
 oo::PList OOSanitizeLegacyScriptConditions(
     const oo::PList& conditions, const std::optional<std::string>& context) {
   SanStackElement stackRoot = {
-      NULL,
+      nullptr,
       context ? context : std::optional<std::string>("<anonymous conditions>"),
       0};
   return OOSanitizeLegacyScriptConditionsInternal(
@@ -454,7 +454,7 @@ namespace {
 static OOOperationType ClassifyLHSConditionSelector(
     const std::string& selectorString,
     std::optional<std::string>* outSanitizedSelector) {
-  assert(outSanitizedSelector != NULL);
+  assert(outSanitizedSelector != nullptr);
 
   *outSanitizedSelector = selectorString;
 
@@ -632,7 +632,7 @@ static bool IsAlwaysFalseConditions(const oo::PList& conditions) {
 
 namespace {
 static std::string StringFromStackInternal(SanStackElement* topOfStack) {
-  if (topOfStack == NULL) return std::string();
+  if (topOfStack == nullptr) return std::string();
 
   std::string base = StringFromStackInternal(topOfStack->back);
 

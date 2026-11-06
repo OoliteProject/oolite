@@ -175,7 +175,7 @@ void FireOneDueDeferredCall(void) {
       sDeferredCalls.erase(it);
 
       // The call and its handler.
-      const char *exceptionName = NULL, *exceptionReason = NULL;
+      const char *exceptionName = nullptr, *exceptionReason = nullptr;
       if (!DeferredCallRunCatching(*call.call, &exceptionName,
                                    &exceptionReason)) {
         LogDeferredCallException(exceptionName, exceptionReason, call.call);

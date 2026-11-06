@@ -80,7 +80,7 @@ void InitOOJSWormhole(JSContext* context, JSValueConst global) {
             "Entity must be initialized before Wormhole.");
   OOJSInitClass(context, global, sWormholeClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sWormholeProperties,
-                OOJS_COUNT(sWormholeProperties), NULL, 0, NULL, 0);
+                OOJS_COUNT(sWormholeProperties), nullptr, 0, nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sWormholeClassID, OOJSEntityObjectConverter);
@@ -97,7 +97,7 @@ static bool JSWormholeGetWormholeEntity(JSContext* context,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, wormholeObj, &entity);

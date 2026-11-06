@@ -57,8 +57,8 @@ bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object,
                            oo::RefCounted** outObject) {
   OOJS_PROFILE_ENTER
 
-  OOCParameterAssert(context != NULL && requiredClassID != 0 &&
-                     outObject != NULL);
+  OOCParameterAssert(context != nullptr && requiredClassID != 0 &&
+                     outObject != nullptr);
 
   /*
           Ensure it's a valid type of JS object. This is absolutely necessary,
@@ -71,7 +71,7 @@ bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object,
     const char* className = OOJSClassName(requiredClassID);
     std::optional<std::string> got = cxx_OOStringFromJSValue(context, object);
     cxx_OOJSReportError(context, "Native method expected %s, got %s.",
-                        className != NULL ? className : "(null)",
+                        className != nullptr ? className : "(null)",
                         got ? got->c_str() : "(null)");
     return false;
   }
@@ -121,7 +121,7 @@ JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal,
   if (!description.has_value()) {
     const char* className = OOJSClassName(JS_GetClassID(thisVal));
     description =
-        oo::str::format("[object %s]", className != NULL ? className : "");
+        oo::str::format("[object %s]", className != nullptr ? className : "");
   }
 
   return JS_NewStringLen(context, description->data(), description->size());

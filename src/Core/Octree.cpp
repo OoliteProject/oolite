@@ -79,7 +79,7 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
     _nodeCount = (uint32_t)nodeCount;
 
     // (no bytes read as NULL, as they did for empty Foundation data)
-    _octree = (_data.length() != 0) ? (const int*)_data.bytes() : NULL;
+    _octree = (_data.length() != 0) ? (const int*)_data.bytes() : nullptr;
 
     _collisionOctree = (unsigned char*)calloc(1, _nodeCount);
   }
@@ -89,7 +89,7 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
 // returned nil.
 oo::Ref<Octree> Octree::initWithData(const oo::Data& data, GLfloat radius) {
   oo::Ref<Octree> result = oo::adopt(new Octree(data, radius));
-  if (result->_octree == NULL || result->_collisionOctree == NULL) {
+  if (result->_octree == nullptr || result->_collisionOctree == nullptr) {
     return nullptr;
   }
 
@@ -699,7 +699,7 @@ static GLfloat volumeOfOctree(Octree_details octree_details,
   unsigned i;
 
   nextDetails.radius = 0.5f * octRadius;
-  nextDetails.octree_collision = NULL;  // Placate static analyzer
+  nextDetails.octree_collision = nullptr;  // Placate static analyzer
 
   for (i = 0; i < 8; i++) {
     if (nextBuffer[i])  // don't test empty octants
@@ -739,7 +739,7 @@ static Vector randomFullNodeFrom(Octree_details details, Vector offset) {
   unsigned i, oct;
 
   nextDetails.radius = 0.5f * octRadius;
-  nextDetails.octree_collision = NULL;
+  nextDetails.octree_collision = nullptr;
   oct = Ranrot() & 7;
 
   for (i = 0; i < 8; i++) {
@@ -807,7 +807,7 @@ OOOctreeBuilder::OOOctreeBuilder() {
   {
     _capacity = kMinimumBuilderCapacity;
     _octree = (int*)malloc(_capacity * sizeof *_octree);
-    if (_octree == NULL) {
+    if (_octree == nullptr) {
       // -init released itself and returned nil; a constructor cannot, so it
       // raises what SetNode_slow() raises.
       OORaiseException(OOMallocException,
@@ -832,7 +832,7 @@ oo::Ref<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius) {
 
   size_t dataSize = _nodeCount * sizeof *_octree;
   int* resized = (int*)realloc(_octree, dataSize);
-  if (resized == NULL) resized = _octree;
+  if (resized == nullptr) resized = _octree;
 
   /*	Copy the bytes into the data object, which will be used directly by
           the Octree, and free them (the Foundation data object took them over).
@@ -840,7 +840,7 @@ oo::Ref<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius) {
   oo::Data data(resized, dataSize);
   free(resized);
 
-  _octree = NULL;
+  _octree = nullptr;
   _nodeCount = 0;
   _capacity = 0;
 
@@ -915,7 +915,7 @@ void OOOctreeBuilder::SetNode_slow(OOOctreeBuilder* self, uint32_t index,
 
   int* newBuffer =
       (int*)realloc(self->_octree, newCapacity * sizeof *newBuffer);
-  if (EXPECT_NOT(newBuffer == NULL)) {
+  if (EXPECT_NOT(newBuffer == nullptr)) {
     OORaiseException(OOMallocException,
                      "Failed to allocate memory for octree.");
   }

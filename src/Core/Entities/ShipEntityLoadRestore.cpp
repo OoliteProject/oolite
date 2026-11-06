@@ -324,7 +324,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
 
 void ShipEntity::simplifyShipdata(oo::PList::Dict& data,
                                   std::vector<std::string>* deletes) {
-  OOCParameterAssert(deletes != NULL);
+  OOCParameterAssert(deletes != nullptr);
   deletes->clear();
 
   // Get original ship data.

@@ -138,7 +138,7 @@ void InitOOJSOolite(JSContext* context, JSValueConst global) {
       OOJSInitClass(context, global, sOoliteClassID, JS_UNDEFINED,
                     OOJSUnconstructableConstruct, 0, sOoliteProperties,
                     OOJS_COUNT(sOoliteProperties), sOoliteMethods,
-                    OOJS_COUNT(sOoliteMethods), NULL, 0);
+                    OOJS_COUNT(sOoliteMethods), nullptr, 0);
   JS_DefinePropertyValueStr(
       context, global, "oolite",
       JS_NewObjectProtoClass(context, oolitePrototype, sOoliteClassID),

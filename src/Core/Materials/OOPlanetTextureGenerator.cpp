@@ -241,7 +241,7 @@ oo::Ref<OOTexture> OOPlanetTextureGenerator::planetTextureWithInfo(
 bool OOPlanetTextureGenerator::generatePlanetTextureAndAtmosphere(
     oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* atmosphere,
     const oo::PList& planetInfo, RANROTSeed seed) {
-  OOCParameterAssert(texture != NULL);
+  OOCParameterAssert(texture != nullptr);
 
   const oo::Ref<OOPlanetTextureGenerator> diffuseGen =
       generatorWithPlanetInfo(planetInfo, seed);
@@ -262,7 +262,7 @@ bool OOPlanetTextureGenerator::generatePlanetTextureAndAtmosphere(
 bool OOPlanetTextureGenerator::generatePlanetTexture(
     oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* secondaryTexture,
     const oo::PList& planetInfo, RANROTSeed seed) {
-  OOCParameterAssert(texture != NULL);
+  OOCParameterAssert(texture != nullptr);
 
   bool enqueue = false;
 
@@ -270,7 +270,7 @@ bool OOPlanetTextureGenerator::generatePlanetTexture(
       generatorWithPlanetInfo(planetInfo, seed);
   if (!diffuseGen) return false;
 
-  if (secondaryTexture != NULL) {
+  if (secondaryTexture != nullptr) {
     OOPlanetNormalMapGenerator* normalGen = diffuseGen->normalMapGenerator();
     if (normalGen == nullptr) return false;
 
@@ -288,7 +288,7 @@ bool OOPlanetTextureGenerator::generatePlanetTexture(
     oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* secondaryTexture,
     oo::Ref<OOTexture>* atmosphere, const oo::PList& planetInfo,
     RANROTSeed seed) {
-  OOCParameterAssert(texture != NULL);
+  OOCParameterAssert(texture != nullptr);
 
   bool enqueue = false;
 
@@ -296,7 +296,7 @@ bool OOPlanetTextureGenerator::generatePlanetTexture(
       generatorWithPlanetInfo(planetInfo, seed);
   if (!diffuseGen) return false;
 
-  if (secondaryTexture != NULL) {
+  if (secondaryTexture != nullptr) {
     OOPlanetNormalMapGenerator* normalGen = diffuseGen->normalMapGenerator();
     if (normalGen == nullptr) return false;
 
@@ -310,7 +310,7 @@ bool OOPlanetTextureGenerator::generatePlanetTexture(
 
   *atmosphere = OOTexture::textureWithGenerator(atmoGen);
   if (atmosphere->get() == nullptr) {
-    if (secondaryTexture != NULL) {
+    if (secondaryTexture != nullptr) {
       *secondaryTexture = nullptr;
     }
     return false;
@@ -410,10 +410,10 @@ void OOPlanetTextureGenerator::loadTexture() {
   bool generateNormalMap = (bool)_nMapGenerator;
   bool generateAtmosphere = (bool)_atmoGenerator;
 
-  uint8_t *buffer = NULL, *px = NULL;
-  uint8_t *nBuffer = NULL, *npx = NULL;
-  uint8_t *aBuffer = NULL, *apx = NULL;
-  float* randomBuffer = NULL;
+  uint8_t *buffer = nullptr, *px = nullptr;
+  uint8_t *nBuffer = nullptr, *npx = nullptr;
+  uint8_t *aBuffer = nullptr, *apx = nullptr;
+  float* randomBuffer = nullptr;
 
   _height = _info.height = 1 << (_planetScale + _info.planetScaleOffset);
   _width = _info.width = _height * _info.planetAspectRatio;
@@ -816,11 +816,11 @@ static bool GenerateFBMNoise(OOPlanetTextureGeneratorInfo* info);
 static bool GenerateFBMNoise3D(OOPlanetTextureGeneratorInfo* info);
 
 static bool FillFBMBuffer(OOPlanetTextureGeneratorInfo* info) {
-  OOCParameterAssert(info != NULL);
+  OOCParameterAssert(info != nullptr);
 
   // Allocate result buffer.
   info->fbmBuffer = (float*)calloc(info->width * info->height, sizeof(float));
-  if (info->fbmBuffer != NULL) {
+  if (info->fbmBuffer != nullptr) {
     if (!info->perlin3d) {
       GenerateFBMNoise(info);
     } else {
@@ -956,7 +956,7 @@ static float SampleNoise3D(OOPlanetTextureGeneratorInfo* info, Vector p) {
 static bool MakePermutationTable(OOPlanetTextureGeneratorInfo* info) {
   uint16_t* perms =
       (uint16_t*)malloc(sizeof *info->permutations * kPermutationCount);
-  if (EXPECT_NOT(perms == NULL)) return false;
+  if (EXPECT_NOT(perms == nullptr)) return false;
 
   perms[0] = 0;
   uint16_t n;
@@ -1089,7 +1089,7 @@ static bool GenerateFBMNoise(OOPlanetTextureGeneratorInfo* info) {
   size_t ixBufferSize = info->width * sizeof(int);
   char* sharedBuffer =
       (char*)malloc(randomBufferSize + qxBufferSize + ixBufferSize);
-  if (sharedBuffer == NULL) return false;
+  if (sharedBuffer == nullptr) return false;
 
   float* randomBuffer = (float*)sharedBuffer;
   float* qxBuffer = (float*)(sharedBuffer + randomBufferSize);

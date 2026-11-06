@@ -85,7 +85,7 @@ void InitOOJSDock(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sDockClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sDockProperties,
                 OOJS_COUNT(sDockProperties), sDockMethods,
-                OOJS_COUNT(sDockMethods), NULL, 0);
+                OOJS_COUNT(sDockMethods), nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sDockClassID, OOJSEntityObjectConverter);
@@ -105,7 +105,7 @@ static bool JSDockGetDockEntity(JSContext* context, JSValueConst dockObj,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, dockObj, &entity);
@@ -128,7 +128,7 @@ static bool JSDockGetShipEntity(JSContext* context, JSValueConst shipObj,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, shipObj, &entity);

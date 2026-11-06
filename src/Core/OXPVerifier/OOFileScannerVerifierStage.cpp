@@ -680,15 +680,15 @@ bool CheckNameConflict(
     std::string* outExisting, std::string* outExistingType) {
   const auto directory = directoryCases.find(lcName);
   if (directory != directoryCases.end()) {
-    if (outExisting != NULL) *outExisting = directory->second;
-    if (outExistingType != NULL) *outExistingType = "directory";
+    if (outExisting != nullptr) *outExisting = directory->second;
+    if (outExistingType != nullptr) *outExistingType = "directory";
     return true;
   }
 
   const auto file = rootFiles.find(lcName);
   if (file != rootFiles.end()) {
-    if (outExisting != NULL) *outExisting = file->second;
-    if (outExistingType != NULL) *outExistingType = "file";
+    if (outExisting != nullptr) *outExisting = file->second;
+    if (outExistingType != nullptr) *outExistingType = "file";
     return true;
   }
 

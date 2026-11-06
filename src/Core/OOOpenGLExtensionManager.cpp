@@ -237,14 +237,14 @@ std::vector<std::string> ArrayOfExtensions(
 
 // What -initWithUTF8String: gave for a glGetString() result: nil for NULL.
 std::optional<std::string> OptionalGLString(const GLubyte* string) {
-  if (string == NULL) return std::nullopt;
+  if (string == nullptr) return std::nullopt;
   return std::string(reinterpret_cast<const char*>(string));
 }
 
 }  // namespace
 
 void OOOpenGLExtensionManager::reset() {
-  const GLubyte *versionString = NULL, *curr = NULL;
+  const GLubyte *versionString = nullptr, *curr = nullptr;
 
   const std::optional<std::string> extensionsStr =
       OptionalGLString(glGetString(GL_EXTENSIONS));
@@ -259,7 +259,7 @@ void OOOpenGLExtensionManager::reset() {
   renderer = OptionalGLString(glGetString(GL_RENDERER));
 
   versionString = glGetString(GL_VERSION);
-  if (versionString != NULL) {
+  if (versionString != nullptr) {
     /*	String is supposed to be "major.minorFOO" or
      "major.minor.releaseFOO" where FOO is an empty string or
      a string beginning with space.
@@ -505,9 +505,9 @@ NSUInteger OOOpenGLExtensionManager::releaseVersionNumber() { return release_; }
 void OOOpenGLExtensionManager::getVersionMajor(unsigned* outMajor,
                                                unsigned* outMinor,
                                                unsigned* outRelease) {
-  if (outMajor != NULL) *outMajor = major;
-  if (outMinor != NULL) *outMinor = minor;
-  if (outRelease != NULL) *outRelease = release_;
+  if (outMajor != nullptr) *outMajor = major;
+  if (outMinor != nullptr) *outMinor = minor;
+  if (outRelease != nullptr) *outRelease = release_;
 }
 
 bool OOOpenGLExtensionManager::versionIsAtLeastMajor(unsigned maj,
@@ -532,7 +532,7 @@ bool OOOpenGLExtensionManager::useLineSmoothing() { return useLineSmoothing_; }
 bool OOOpenGLExtensionManager::useDustShader() { return useDustShader_; }
 
 static unsigned IntegerFromString(const GLubyte** ioString) {
-  if (EXPECT_NOT(ioString == NULL)) return 0;
+  if (EXPECT_NOT(ioString == nullptr)) return 0;
 
   unsigned result = 0;
   const GLubyte* curr = *ioString;
@@ -576,11 +576,11 @@ void OOOpenGLExtensionManager::checkShadersSupported() {
       "GL_ARB_vertex_shader",
       "GL_ARB_multitexture",
       "GL_ARB_shader_objects",
-      NULL  // sentinel - don't remove!
+      nullptr  // sentinel - don't remove!
   };
-  const char* const* required = NULL;
+  const char* const* required = nullptr;
 
-  for (required = requiredExtension; *required != NULL; ++required) {
+  for (required = requiredExtension; *required != nullptr; ++required) {
     if (!haveExtension(*required)) {
       OO_LOG(kOOLogOpenGLShaderSupport,
              "Shaders will not be used (OpenGL extension {} is not available).",

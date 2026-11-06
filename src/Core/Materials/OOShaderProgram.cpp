@@ -73,17 +73,17 @@ OOOpenGLMatrixManager* GameViewMatrixManager() {
 */
 namespace {
 
-std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = NULL;
+std::unordered_map<std::string, OOShaderProgram*>* sShaderCache = nullptr;
 
 OOShaderProgram* CachedShaderProgram(
     const std::optional<std::string>& cacheKey) {
-  if (!cacheKey.has_value() || sShaderCache == NULL) return nullptr;
+  if (!cacheKey.has_value() || sShaderCache == nullptr) return nullptr;
   auto it = sShaderCache->find(*cacheKey);
   return (it != sShaderCache->end()) ? it->second : nullptr;
 }
 
 void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program) {
-  if (sShaderCache == NULL)
+  if (sShaderCache == nullptr)
     sShaderCache = new std::unordered_map<std::string, OOShaderProgram*>;
   (*sShaderCache)[cacheKey] = program;
 }
@@ -217,7 +217,7 @@ OOShaderProgram::~OOShaderProgram() {
 #endif
 
   if (key.has_value()) {
-    if (sShaderCache != NULL) sShaderCache->erase(*key);
+    if (sShaderCache != nullptr) sShaderCache->erase(*key);
     key = std::nullopt;
   }
 
@@ -329,7 +329,7 @@ bool OOShaderProgram::initWithVertexShaderSource(
     const oo::PList& attributeBindings,
     const std::optional<std::string>& inKey) {
   bool OK = true;
-  const GLcharARB* sourceStrings[3] = {"", "#line 0\n", NULL};
+  const GLcharARB* sourceStrings[3] = {"", "#line 0\n", nullptr};
   GLhandleARB vertexShader = NULL_SHADER;
   GLhandleARB fragmentShader = NULL_SHADER;
 
@@ -349,7 +349,7 @@ bool OOShaderProgram::initWithVertexShaderSource(
     OOGL(vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB));
     if (vertexShader != NULL_SHADER) {
       sourceStrings[2] = vertexSource->c_str();
-      OOGL(glShaderSourceARB(vertexShader, 3, sourceStrings, NULL));
+      OOGL(glShaderSourceARB(vertexShader, 3, sourceStrings, nullptr));
       OOGL(glCompileShaderARB(vertexShader));
 
       OK = ValidateShaderObject(vertexShader, vertexName);
@@ -362,7 +362,7 @@ bool OOShaderProgram::initWithVertexShaderSource(
     OOGL(fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB));
     if (fragmentShader != NULL_SHADER) {
       sourceStrings[2] = fragmentSource->c_str();
-      OOGL(glShaderSourceARB(fragmentShader, 3, sourceStrings, NULL));
+      OOGL(glShaderSourceARB(fragmentShader, 3, sourceStrings, nullptr));
       OOGL(glCompileShaderARB(fragmentShader));
 
       OK = ValidateShaderObject(fragmentShader, fragmentName);
@@ -500,7 +500,7 @@ bool GetShaderSource(const std::optional<std::string>& fileName,
           result = [prefix stringByAppendingString:result];
   }
   */
-  if (outResult != NULL) *outResult = result;
+  if (outResult != nullptr) *outResult = result;
   return true;
 }
 
@@ -546,7 +546,7 @@ bool IsWellFormedUTF8(std::string_view bytes) {
 // its bytes read as ISO Latin-1.
 std::string GetGLSLInfoLog(GLhandleARB shaderObject) {
   GLint length;
-  GLcharARB* log = NULL;
+  GLcharARB* log = nullptr;
   std::string result;
 
   OO_ENTER_OPENGL();
@@ -557,12 +557,12 @@ std::string GetGLSLInfoLog(GLhandleARB shaderObject) {
   OOGL(glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB,
                                  &length));
   log = (GLcharARB*)malloc(length);
-  if (log == NULL) {
+  if (log == nullptr) {
     length = 1024;
     log = (GLcharARB*)malloc(length);
-    if (log == NULL) return "<out of memory>";
+    if (log == nullptr) return "<out of memory>";
   }
-  OOGL(glGetInfoLogARB(shaderObject, length, NULL, log));
+  OOGL(glGetInfoLogARB(shaderObject, length, nullptr, log));
 
   result = log;
   if (!IsWellFormedUTF8(result)) {

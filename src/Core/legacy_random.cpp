@@ -86,7 +86,7 @@ unsigned Ranrot(void) {
 }
 
 unsigned RanrotWithSeed(RANROTSeed* ioSeed) {
-  assert(ioSeed != NULL);
+  assert(ioSeed != nullptr);
 
   ioSeed->high = (ioSeed->high << 16) + (ioSeed->high >> 16);
   ioSeed->high += ioSeed->low;

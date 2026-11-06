@@ -181,7 +181,7 @@ void InitOOJSVisualEffect(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sVisualEffectClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sVisualEffectProperties,
                 OOJS_COUNT(sVisualEffectProperties), sVisualEffectMethods,
-                OOJS_COUNT(sVisualEffectMethods), NULL, 0);
+                OOJS_COUNT(sVisualEffectMethods), nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sVisualEffectClassID, OOJSEntityObjectConverter);
@@ -198,7 +198,7 @@ static bool JSVisualEffectGetVisualEffectEntity(
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, visualEffectObj, &entity);

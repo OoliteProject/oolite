@@ -206,7 +206,7 @@ std::string OOPolygonSprite::description() const {
 
 void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo) {
   if (count == 0) return;
-  OOCParameterAssert(vbo != NULL && data != NULL);
+  OOCParameterAssert(vbo != nullptr && data != nullptr);
 
   OO_ENTER_OPENGL();
   OOSetOpenGLState(OPENGL_STATE_OVERLAY);
@@ -278,7 +278,7 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
                                    float outlineWidth) {
   OOCParameterAssert(dataArray);
 
-  GLUtesselator* tesselator = NULL;
+  GLUtesselator* tesselator = nullptr;
   std::vector<OOPolygonContour>
       contours;  // the tesselator points into these until the end
   std::vector<OOPolygonContour>
@@ -300,7 +300,7 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
   }
 
   tesselator = gluNewTess();
-  if (tesselator == NULL) {
+  if (tesselator == nullptr) {
     polygonData.OK = false;
     goto END;
   }
@@ -336,16 +336,16 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
     if (_solidCount != 0) {
       _solidData = (GLfloat*)realloc(polygonData.data,
                                      polygonData.count * sizeof(GLfloat) * 2);
-      if (_solidData != NULL)
-        polygonData.data = NULL;  // realloc succeded.
+      if (_solidData != nullptr)
+        polygonData.data = nullptr;  // realloc succeded.
       else {
         // Unlikely, but legal: realloc failed to shrink buffer.
         _solidData = polygonData.data;
-        if (_solidData == NULL) polygonData.OK = false;
+        if (_solidData == nullptr) polygonData.OK = false;
       }
     } else {
       // Empty polygon.
-      _solidData = NULL;
+      _solidData = nullptr;
     }
   }
   if (!polygonData.OK) goto END;
@@ -353,7 +353,7 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
   /*** Tesselate polygon outline ***/
   gluDeleteTess(tesselator);
   tesselator = gluNewTess();
-  if (tesselator == NULL) {
+  if (tesselator == nullptr) {
     polygonData.OK = false;
     goto END;
   }
@@ -403,17 +403,17 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
       _outlineCount = polygonData.count;
       _outlineData = (GLfloat*)realloc(polygonData.data,
                                        polygonData.count * sizeof(GLfloat) * 2);
-      if (_outlineData != NULL)
-        polygonData.data = NULL;  // realloc succeded.
+      if (_outlineData != nullptr)
+        polygonData.data = nullptr;  // realloc succeded.
       else {
         // Unlikely, but legal: realloc failed to shrink buffer.
         _outlineData = polygonData.data;
-        if (_outlineData == NULL) polygonData.OK = false;
+        if (_outlineData == nullptr) polygonData.OK = false;
       }
     } else {
       // Empty polygon.
       _outlineCount = 0;
-      _outlineData = NULL;
+      _outlineData = nullptr;
     }
   }
 
@@ -607,23 +607,23 @@ OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray,
 }  // namespace
 
 static bool GrowTessPolygonData(TessPolygonData* data, size_t capacityHint) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   size_t minCapacity = data->capacity + 1;
   size_t desiredCapacity = MAX(capacityHint, minCapacity);
   size_t newCapacity = 0;
   GLfloat* newData =
       (GLfloat*)realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2);
-  if (newData != NULL) {
+  if (newData != nullptr) {
     newCapacity = desiredCapacity;
   } else {
     desiredCapacity = minCapacity;
     newData =
         (GLfloat*)realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2);
-    if (newData != NULL) newCapacity = desiredCapacity;
+    if (newData != nullptr) newCapacity = desiredCapacity;
   }
 
-  if (newData == NULL) return false;
+  if (newData == nullptr) return false;
 
   OOCAssert(newCapacity > data->capacity, "Buffer regrow logic error");
 
@@ -633,7 +633,7 @@ static bool GrowTessPolygonData(TessPolygonData* data, size_t capacityHint) {
 }
 
 static bool AppendVertex(TessPolygonData* data, NSPoint vertex) {
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   if (data->capacity == data->count &&
       !GrowTessPolygonData(data, data->capacity * 2))
@@ -647,7 +647,7 @@ static bool AppendVertex(TessPolygonData* data, NSPoint vertex) {
 
 static void APIENTRY TessBeginCallback(GLenum type, void* polygonData) {
   TessPolygonData* data = (TessPolygonData*)polygonData;
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   data->mode = type;
   data->vCount = 0;
@@ -658,7 +658,7 @@ static void APIENTRY TessBeginCallback(GLenum type, void* polygonData) {
 static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData) {
   TessPolygonData* data = (TessPolygonData*)polygonData;
   const NSPoint* vertPoint = static_cast<const NSPoint*>(vertexData);
-  OOCParameterAssert(vertPoint != NULL && data != NULL);
+  OOCParameterAssert(vertPoint != nullptr && data != nullptr);
   if (!data->OK) return;
 
   NSPoint p = *vertPoint;
@@ -757,7 +757,7 @@ void APIENTRY TessCombineCallback(GLdouble coords[3], void* /*vertexData*/[4],
 
 static void APIENTRY TessEndCallback(void* polygonData) {
   TessPolygonData* data = (TessPolygonData*)polygonData;
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   data->mode = 0;
   data->vCount = 0;
@@ -767,7 +767,7 @@ static void APIENTRY TessEndCallback(void* polygonData) {
 
 static void APIENTRY ErrorCallback(GLenum error, void* polygonData) {
   TessPolygonData* data = (TessPolygonData*)polygonData;
-  OOCParameterAssert(data != NULL);
+  OOCParameterAssert(data != nullptr);
 
   std::string name;
 #ifndef NDEBUG

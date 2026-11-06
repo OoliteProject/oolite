@@ -169,7 +169,7 @@ void OODebugMonitor::performJSConsoleCommand(const std::string& command) {
   OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
   if (_script != nullptr)
     _script->callMethod(OOJSID("consolePerformJSCommand"), context, &commandVal,
-                        1, NULL);
+                        1, nullptr);
   OOJSStopTimeLimiter();
   OOJSFreeValue(context, commandVal);
   OOJSRelinquishContext(context);

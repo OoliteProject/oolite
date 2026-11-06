@@ -33,7 +33,7 @@ SOFTWARE.
 // The decoder is released by its oo::Ref.
 OOALStreamedSound::~OOALStreamedSound() {
   free(_buffer);
-  _buffer = NULL;
+  _buffer = nullptr;
 }
 
 std::optional<std::string> OOALStreamedSound::name() { return _name; }

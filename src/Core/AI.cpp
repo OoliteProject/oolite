@@ -398,7 +398,7 @@ struct AIStackElement {
   const std::string* context;
 };
 
-static AIStackElement* sStack = NULL;
+static AIStackElement* sStack = nullptr;
 #endif
 
 void AI::reactToMessage(
@@ -453,7 +453,7 @@ void AI::reactToMessage(
 #ifndef NDEBUG
     AIStackElement* stack = sStack;
     unsigned depth = 0;
-    while (stack != NULL) {
+    while (stack != nullptr) {
       OO_LOG("ai.error.recursion.stackTrace", "{}  {} - {}:{}.{} ({})", depth++,
              oo::EntityShortDescription(stack->owner), stack->aiName,
              stack->state.value_or("(null)"), *stack->message, *stack->context);
@@ -461,7 +461,7 @@ void AI::reactToMessage(
     }
 
     // unwind.
-    if (sStack != NULL) sStack = sStack->back;
+    if (sStack != nullptr) sStack = sStack->back;
 #endif
 
     return;
@@ -473,7 +473,7 @@ void AI::reactToMessage(
 #ifndef NDEBUG
     // Unwind the frame pushed above (this exit used to leave sStack pointing at
     // it).
-    if (sStack != NULL) sStack = sStack->back;
+    if (sStack != nullptr) sStack = sStack->back;
 #endif
     return;
   }
@@ -524,7 +524,7 @@ void AI::reactToMessage(
   sCurrentlyRunningAI = previousRunning;
 #ifndef NDEBUG
   // Unwind stack.
-  if (sStack != NULL) sStack = sStack->back;
+  if (sStack != nullptr) sStack = sStack->back;
 #endif
 }
 
@@ -692,7 +692,7 @@ void AI::dumpState() {
 void AI::performDeferredCall(const char* selectorName,
                              const std::string& argument,
                              NSTimeInterval delay) {
-  if (selectorName != NULL) {
+  if (selectorName != nullptr) {
     // The call keeps the AI alive until it has run.
     oo::Ref<AI> ai(this);
     OOScheduleDeferredCall(

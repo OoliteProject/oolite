@@ -297,7 +297,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   }
 
   if (dustIntensity > 0.0) {
-    float* color = NULL;
+    float* color = nullptr;
     if (player->isSunlit)
       color = color_fv;
     else

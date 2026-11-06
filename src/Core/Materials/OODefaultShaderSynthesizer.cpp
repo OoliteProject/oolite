@@ -86,9 +86,9 @@ bool OOSynthesizeMaterialShader(const oo::PList& configuration,
                                 std::string* outFragmentShader,
                                 oo::PList* outTextureSpecs,
                                 oo::PList* outUniformSpecs) {
-  OOCParameterAssert(!configuration.isNull() && outVertexShader != NULL &&
-                     outFragmentShader != NULL && outTextureSpecs != NULL &&
-                     outUniformSpecs != NULL);
+  OOCParameterAssert(!configuration.isNull() && outVertexShader != nullptr &&
+                     outFragmentShader != nullptr &&
+                     outTextureSpecs != nullptr && outUniformSpecs != nullptr);
 
   {
     oo::Ref<OODefaultShaderSynthesizer> synthesizer =
@@ -458,7 +458,7 @@ void OODefaultShaderSynthesizer::setUpOneTexture(const oo::PList& textureSpec) {
 void OODefaultShaderSynthesizer::getSampleName(std::string* outSampleName,
                                                std::string* outSwizzleOp,
                                                const oo::PList& textureSpec) {
-  OOCParameterAssert(outSampleName != NULL && outSwizzleOp != NULL &&
+  OOCParameterAssert(outSampleName != nullptr && outSwizzleOp != nullptr &&
                      !textureSpec.isNull());
 
   setUpOneTexture(textureSpec);

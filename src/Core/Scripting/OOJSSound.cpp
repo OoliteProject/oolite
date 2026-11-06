@@ -260,7 +260,7 @@ static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS) {
 
   if (argc > 2) {
     if (!cxx_OOJSArgumentListGetNumber(context, "Sound", "playMusic", 2,
-                                       OOJS_ARGV + 2, &gain, NULL)) {
+                                       OOJS_ARGV + 2, &gain, nullptr)) {
       cxx_OOJSReportBadArguments(context, "Sound", "playMusic", 1,
                                  OOJS_ARGV + 2, std::nullopt, "float");
       return OOJSNativeFailure(context);

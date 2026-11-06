@@ -116,8 +116,8 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
   std::optional<std::string> path;
   uint32_t options = 0;
 
-  if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL,
-                                       false))
+  if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, nullptr,
+                                       nullptr, false))
     return nullptr;
   options |= extraOptions;
   path = ResourceManager::pathForFileNamed(name, folder);
@@ -199,14 +199,14 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
 
 OOTextureLoader::~OOTextureLoader() {
   free(_data);
-  _data = NULL;
+  _data = nullptr;
 }
 
 std::optional<std::string> OOTextureLoader::descriptionComponents() const {
   const char* state = nullptr;
 
   if (_ready) {
-    if (_data != NULL)
+    if (_data != nullptr)
       state = "ready";
     else
       state = "failed";
@@ -270,7 +270,7 @@ bool OOTextureLoader::isReady() { return _ready; }
 bool OOTextureLoader::getResult(OOPixMap* result,
                                 OOTextureDataFormat* outFormat,
                                 uint32_t* outWidth, uint32_t* outHeight) {
-  OOCParameterAssert(result != NULL && outFormat != NULL);
+  OOCParameterAssert(result != nullptr && outFormat != nullptr);
 
   bool OK = true;
 
@@ -278,17 +278,17 @@ bool OOTextureLoader::getResult(OOPixMap* result,
     // The work manager knows the task as the C++ loader.
     OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(this);
   }
-  if (_data == NULL) OK = false;
+  if (_data == nullptr) OK = false;
 
   if (OK) {
     *result = OOMakePixMap(
         _data, _width, _height,
         (OOPixMapFormat)OOTextureComponentsForFormat(_format), 0, 0);
-    _data = NULL;
+    _data = nullptr;
     *outFormat = _format;
     OK = OOIsValidPixMap(*result);
-    if (outWidth != NULL) *outWidth = _originalWidth;
-    if (outHeight != NULL) *outHeight = _originalHeight;
+    if (outWidth != nullptr) *outWidth = _originalWidth;
+    if (outHeight != nullptr) *outHeight = _originalHeight;
   }
 
   if (!OK) {
@@ -341,16 +341,16 @@ void OOTextureLoader::performAsyncTask() {
     loadTexture();
 
     // Catch an error I've seen but not diagnosed yet.
-    if (_data != NULL && OOTextureComponentsForFormat(_format) == 0) {
+    if (_data != nullptr && OOTextureComponentsForFormat(_format) == 0) {
       OO_LOG("texture.load.failed.internalError",
              "Texture loader internal error for {}: data is non-null but data "
              "format is invalid ({}).",
              _path, static_cast<unsigned>(_format));
       free(_data);
-      _data = NULL;
+      _data = nullptr;
     }
 
-    if (_data != NULL) applySettings();
+    if (_data != nullptr) applySettings();
 
     OO_LOG("texture.load.asyncLoad.done", "{}", "Loading complete.");
   } catch (...) {
@@ -362,13 +362,13 @@ void OOTextureLoader::performAsyncTask() {
 
     // Be sure to signal load failure.
     free(_data);
-    _data = NULL;
+    _data = nullptr;
   }
 }
 
 void OOTextureLoader::generateMipMapsForCubeMap() {
   // Generate mip maps for each cube face.
-  OOCParameterAssert(_data != NULL);
+  OOCParameterAssert(_data != nullptr);
 
   uint8_t components = OOTextureComponentsForFormat(_format);
   size_t srcSideSize =
@@ -379,7 +379,7 @@ void OOTextureLoader::generateMipMapsForCubeMap() {
   size_t newSize = newSideSize * 6;        // Space for all six sides.
 
   void* newData = malloc(newSize);
-  if (EXPECT_NOT(newData == NULL)) {
+  if (EXPECT_NOT(newData == nullptr)) {
     _generateMipMaps = false;
     _options =
         (_options & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
@@ -556,8 +556,8 @@ void OOTextureLoader::getDesiredWidth(OOPixMapDimension* outDesiredWidth,
     desiredHeight = _height;
   }
 
-  if (outDesiredWidth != NULL) *outDesiredWidth = desiredWidth;
-  if (outDesiredHeight != NULL) *outDesiredHeight = desiredHeight;
+  if (outDesiredWidth != nullptr) *outDesiredWidth = desiredWidth;
+  if (outDesiredHeight != nullptr) *outDesiredHeight = desiredHeight;
 }
 
 void OOTextureLoader::completeAsyncTask() { _ready = true; }

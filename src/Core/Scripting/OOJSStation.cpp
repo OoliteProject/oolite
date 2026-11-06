@@ -174,7 +174,7 @@ void InitOOJSStation(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sStationClassID, parentPrototype,
                 OOJSUnconstructableConstruct, 0, sStationProperties,
                 OOJS_COUNT(sStationProperties), sStationMethods,
-                OOJS_COUNT(sStationMethods), NULL, 0);
+                OOJS_COUNT(sStationMethods), nullptr, 0);
   JS_FreeValue(context, parentPrototype);
 
   OOJSRegisterObjectConverter(sStationClassID, OOJSEntityObjectConverter);
@@ -195,7 +195,7 @@ static bool JSStationGetStationEntity(JSContext* context,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, stationObj, &entity);
@@ -218,7 +218,7 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj,
   bool result;
   Entity* entity = nullptr;  // the slot holds the C++ entity
 
-  if (outEntity == NULL) return false;
+  if (outEntity == nullptr) return false;
   *outEntity = nullptr;
 
   result = OOJSEntityGetEntity(context, shipObj, &entity);

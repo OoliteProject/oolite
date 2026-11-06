@@ -1140,7 +1140,7 @@ void OOPlanetEntity::setTextureFileName(
   } else {
     OOPlanetTextureGenerator::generatePlanetTexture(
         &generatedDiffuseMap,
-        (detailLevel >= DETAIL_LEVEL_SHADERS) ? &generatedNormalMap : NULL,
+        (detailLevel >= DETAIL_LEVEL_SHADERS) ? &generatedNormalMap : nullptr,
         _materialParameters, _noiseMapSeed);
     diffuseMap = generatedDiffuseMap;
     normalMap = generatedNormalMap;

@@ -108,8 +108,8 @@ oo::Ref<OOALSoundDecoder> OOALSoundDecoder::codecWithPath(
 size_t OOALSoundDecoder::streamToBuffer(char* /*ioBuffer*/) { return 0; }
 
 bool OOALSoundDecoder::readCreatingBuffer(char** outBuffer, size_t* outSize) {
-  if (NULL != outBuffer) *outBuffer = NULL;
-  if (NULL != outSize) *outSize = 0;
+  if (nullptr != outBuffer) *outBuffer = nullptr;
+  if (nullptr != outSize) *outSize = 0;
 
   return false;
 }
@@ -170,8 +170,8 @@ bool OOALSoundVorbisCodec::initWithPath(
 
       if (path.has_value()) {
         file = fopen(path->c_str(), "rb");
-        if (NULL != file) {
-          err = ov_open_callbacks(file, &_vf, NULL, 0, OV_CALLBACKS_DEFAULT);
+        if (nullptr != file) {
+          err = ov_open_callbacks(file, &_vf, nullptr, 0, OV_CALLBACKS_DEFAULT);
           if (0 == err) {
             OK = true;
           }
@@ -193,7 +193,7 @@ bool OOALSoundVorbisCodec::initWithPath(
               components.begin() + i + 1, components.end()));
 
       uf = unzOpen64(zipFile.c_str());
-      if (uf == NULL) {
+      if (uf == nullptr) {
         OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}", zipFile);
         return false;
       } else {
@@ -205,8 +205,8 @@ bool OOALSoundVorbisCodec::initWithPath(
         } else {
           int err = UNZ_OK;
           unz_file_info64 file_info = {};
-          err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL,
-                                        0);
+          err = unzGetCurrentFileInfo64(uf, &file_info, nullptr, 0, nullptr, 0,
+                                        nullptr, 0);
           if (err != UNZ_OK) {
             unzClose(uf);
             OO_LOG(cxx_kOOLogFileNotFound,
@@ -224,11 +224,11 @@ bool OOALSoundVorbisCodec::initWithPath(
             } else {
               ov_callbacks _callbacks = {
                   OOReadOXZVorbis,   // read sequentially
-                  NULL,              // no seek
+                  nullptr,           // no seek
                   OOCloseOXZVorbis,  // close file
-                  NULL,              // no tell
+                  nullptr,           // no tell
               };
-              err = ov_open_callbacks(this, &_vf, NULL, 0, _callbacks);
+              err = ov_open_callbacks(this, &_vf, nullptr, 0, _callbacks);
               if (0 == err) {
                 OK = true;
                 _readStarted = false;
@@ -269,7 +269,7 @@ OOALSoundVorbisCodec::comments() {
   std::optional<std::map<std::string, std::string>> result;
 
   comments = ov_comment(&_vf, -1);
-  if (NULL != comments) {
+  if (nullptr != comments) {
     count = comments->comments;
     if (0 != count) {
       result.emplace();
@@ -292,7 +292,7 @@ OOALSoundVorbisCodec::comments() {
 
 bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
                                               size_t* outSize) {
-  char *buffer = NULL, *dst;
+  char *buffer = nullptr, *dst;
   size_t sizeInFrames = 0;
   int remaining;
   long framesRead;
@@ -301,9 +301,9 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
   ogg_int64_t totalSizeInFrames;
   bool OK = true;
 
-  if (NULL != outBuffer) *outBuffer = NULL;
-  if (NULL != outSize) *outSize = 0;
-  if (NULL == outBuffer || NULL == outSize) OK = false;
+  if (nullptr != outBuffer) *outBuffer = nullptr;
+  if (nullptr != outSize) *outSize = 0;
+  if (nullptr == outBuffer || nullptr == outSize) OK = false;
 
   if (OK) {
     totalSizeInFrames = ov_pcm_total(&_vf, -1);
@@ -328,7 +328,7 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
       if (remaining < toRead) {
         toRead = remaining;
       }
-      framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, NULL);
+      framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, nullptr);
       if (framesRead <= 0) {
         if (OV_HOLE == framesRead) continue;
         // else:
@@ -366,7 +366,7 @@ size_t OOALSoundVorbisCodec::streamToBuffer(char* buffer) {
     if (remaining < toRead) {
       toRead = remaining;
     }
-    framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, NULL);
+    framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, nullptr);
     if (framesRead <= 0) {
       if (OV_HOLE == framesRead) continue;
       // else:
@@ -426,11 +426,11 @@ void OOALSoundVorbisCodec::reset() {
   ov_clear(&_vf);
   ov_callbacks _callbacks = {
       OOReadOXZVorbis,   // read sequentially
-      NULL,              // no seek
+      nullptr,           // no seek
       OOCloseOXZVorbis,  // close file
-      NULL,              // no tell
+      nullptr,           // no tell
   };
-  ov_open_callbacks(this, &_vf, NULL, 0, _callbacks);
+  ov_open_callbacks(this, &_vf, nullptr, 0, _callbacks);
   _readStarted = false;
 }
 

@@ -312,7 +312,7 @@ void OOScript::runWithTarget(Entity*) {
 // overrides).
 bool OOScript::callMethod(JSAtom, JSContext*, JSValueConst*, int,
                           JSValue* outResult) {
-  if (outResult != NULL) *outResult = JS_UNDEFINED;
+  if (outResult != nullptr) *outResult = JS_UNDEFINED;
   return false;
 }
 

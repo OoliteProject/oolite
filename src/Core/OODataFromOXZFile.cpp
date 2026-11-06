@@ -83,12 +83,12 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
           components.begin() + static_cast<std::ptrdiff_t>(i) + 1,
           components.end()));
 
-  unzFile uf = NULL;
+  unzFile uf = nullptr;
   const char* zipname = zipFile.c_str();
-  if (zipname != NULL) {
+  if (zipname != nullptr) {
     uf = unzOpen64(zipname);
   }
-  if (uf == NULL) {
+  if (uf == nullptr) {
     // This is not necessarily an error - the OXZ manager tries to
     // do this as a test for the presence of managed OXZs
     //		OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}",
@@ -110,7 +110,8 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
 
   int err = UNZ_OK;
   unz_file_info64 file_info = {};
-  err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
+  err = unzGetCurrentFileInfo64(uf, &file_info, nullptr, 0, nullptr, 0, nullptr,
+                                0);
   if (err != UNZ_OK) {
     unzClose(uf);
     OO_LOG(cxx_kOOLogFileNotFound,
@@ -183,7 +184,7 @@ bool OOOxzFileExistsAtPath(const std::string& path) {
           components.end()));
 
   unzFile uf = unzOpen64(zipFile.c_str());
-  if (uf == NULL) {
+  if (uf == nullptr) {
     return false;
   }
   bool result = true;
@@ -191,8 +192,8 @@ bool OOOxzFileExistsAtPath(const std::string& path) {
     result = false;
   } else {
     unz_file_info64 file_info = {};
-    if (unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0) !=
-        UNZ_OK) {
+    if (unzGetCurrentFileInfo64(uf, &file_info, nullptr, 0, nullptr, 0, nullptr,
+                                0) != UNZ_OK) {
       result = false;
     }
   }

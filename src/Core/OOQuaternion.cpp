@@ -174,7 +174,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector* outRight,
   yz = y * zz;
   zz = z * zz;
 
-  if (outRight != NULL) {
+  if (outRight != nullptr) {
     outRight->x = 1.0f - yy - zz;
     outRight->y = xy - wz;
     outRight->z = xz + wy;
@@ -185,7 +185,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector* outRight,
       *outRight = make_vector(1.0f, 0.0f, 0.0f);
   }
 
-  if (outUp != NULL) {
+  if (outUp != nullptr) {
     outUp->x = xy + wz;
     outUp->y = 1.0f - xx - zz;
     outUp->z = yz - wx;
@@ -196,7 +196,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector* outRight,
       *outUp = make_vector(0.0f, 1.0f, 0.0f);
   }
 
-  if (outForward != NULL) {
+  if (outForward != nullptr) {
     outForward->x = xz - wy;
     outForward->y = yz + wx;
     outForward->z = 1.0f - xx - yy;

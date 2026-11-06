@@ -344,10 +344,10 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
     case kSystem_allShips:
       OOJS_BEGIN_FULL_NATIVE(context)
       result = oo::EntityNodesFrom(
-          (UNIVERSE != nullptr
-               ? UNIVERSE->findShipsMatchingPredicate(
-                     JSEntityIsJavaScriptSearchablePredicate, NULL, -1, nullptr)
-               : std::vector<oo::EntityHold>()));
+          (UNIVERSE != nullptr ? UNIVERSE->findShipsMatchingPredicate(
+                                     JSEntityIsJavaScriptSearchablePredicate,
+                                     nullptr, -1, nullptr)
+                               : std::vector<oo::EntityHold>()));
       OOJS_END_FULL_NATIVE
       handled = true;
       break;
@@ -357,7 +357,7 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       result = oo::EntityNodesFrom(
           (UNIVERSE != nullptr
                ? UNIVERSE->findShipsMatchingPredicate(
-                     JSEntityIsDemoShipPredicate, NULL, -1, nullptr)
+                     JSEntityIsDemoShipPredicate, nullptr, -1, nullptr)
                : std::vector<oo::EntityHold>()));
       OOJS_END_FULL_NATIVE
       handled = true;
@@ -366,10 +366,10 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
     case kSystem_allVisualEffects:
       OOJS_BEGIN_FULL_NATIVE(context)
       result = oo::EntityNodesFrom(
-          (UNIVERSE != nullptr
-               ? UNIVERSE->findVisualEffectsMatchingPredicate(
-                     JSEntityIsJavaScriptSearchablePredicate, NULL, -1, nullptr)
-               : std::vector<oo::EntityHold>()));
+          (UNIVERSE != nullptr ? UNIVERSE->findVisualEffectsMatchingPredicate(
+                                     JSEntityIsJavaScriptSearchablePredicate,
+                                     nullptr, -1, nullptr)
+                               : std::vector<oo::EntityHold>()));
       OOJS_END_FULL_NATIVE
       handled = true;
       break;
@@ -1193,8 +1193,8 @@ static JSValue SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS) {
                  !OOJSValueToInt32(context, OOJS_ARGV[1], &count) ||
                  count < 1 || 64 < count || !coordScheme.has_value() ||
                  argc < 4 ||
-                 !VectorFromArgumentListNoError(context, argc - 3,
-                                                OOJS_ARGV + 3, &where, NULL))) {
+                 !VectorFromArgumentListNoError(
+                     context, argc - 3, OOJS_ARGV + 3, &where, nullptr))) {
     cxx_OOJSReportBadArguments(context, "System", "legacy_addShipsAt", argc,
                                OOJS_ARGV, std::nullopt,
                                "role, positive count no greater than 64, "
@@ -1233,8 +1233,8 @@ static JSValue SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS) {
                  !OOJSValueToInt32(context, OOJS_ARGV[1], &count) ||
                  count < 1 || 64 < count || !coordScheme.has_value() ||
                  argc < 4 ||
-                 !VectorFromArgumentListNoError(context, argc - 3,
-                                                OOJS_ARGV + 3, &where, NULL))) {
+                 !VectorFromArgumentListNoError(
+                     context, argc - 3, OOJS_ARGV + 3, &where, nullptr))) {
     cxx_OOJSReportBadArguments(context, "System", "legacy_addShipsAtPrecisely",
                                argc, OOJS_ARGV, std::nullopt,
                                "role, positive count no greater than 64, "
@@ -1829,7 +1829,7 @@ static std::vector<oo::EntityHold> FindJSVisibleEntities(
 
   std::vector<oo::EntityHold> result;
   BinaryOperationPredicateParameter param = {
-      JSEntityIsJavaScriptSearchablePredicate, NULL, predicate, parameter};
+      JSEntityIsJavaScriptSearchablePredicate, nullptr, predicate, parameter};
 
   result = (UNIVERSE != nullptr ? UNIVERSE->findEntitiesMatchingPredicate(
                                       ANDPredicate, &param, range, relativeTo)
@@ -1855,8 +1855,8 @@ static std::vector<oo::EntityHold> FindShips(EntityFilterPredicate predicate,
                                              Entity* relativeTo, double range) {
   OOJS_PROFILE_ENTER
 
-  BinaryOperationPredicateParameter param = {IsShipPredicate, NULL, predicate,
-                                             parameter};
+  BinaryOperationPredicateParameter param = {IsShipPredicate, nullptr,
+                                             predicate, parameter};
   return FindJSVisibleEntities(ANDPredicate, &param, relativeTo, range);
 
   OOJS_PROFILE_EXIT

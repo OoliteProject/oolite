@@ -733,10 +733,10 @@ std::vector<oo::Ref<OOTexture>> OOMesh::allTextures() {
 
 size_t OOMesh::totalSize() {
   size_t result = OODrawable::totalSize();
-  if (_vertices != NULL) result += sizeof *_vertices * vertexCount;
-  if (_normals != NULL) result += sizeof *_normals * vertexCount;
-  if (_tangents != NULL) result += sizeof *_tangents * vertexCount;
-  if (_faces != NULL) result += sizeof *_faces * faceCount;
+  if (_vertices != nullptr) result += sizeof *_vertices * vertexCount;
+  if (_normals != nullptr) result += sizeof *_normals * vertexCount;
+  if (_tangents != nullptr) result += sizeof *_tangents * vertexCount;
+  if (_faces != nullptr) result += sizeof *_faces * faceCount;
 
   result += _displayLists.count *
             (sizeof(GLint) + sizeof(GLfloat) + sizeof(Vector) * 3);
@@ -962,8 +962,8 @@ bool OOMesh::setModelFromModelData(const oo::PList& dict,
                     ->second->data()
                     .mutableBytes();
   } else {
-    _normals = NULL;
-    _tangents = NULL;
+    _normals = nullptr;
+    _tangents = nullptr;
   }
 
   // Copy material keys (oo_stringAtIndex: a string, or a number's
@@ -1198,7 +1198,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
             for (i = 0; (int)i < n_v; i++) {
               if (scanner->scanInt(&vi)) {
                 _faces[j].vertex[i] = vi;
-                if (faceRefs != NULL) VFRAddFace(&faceRefs[vi], j);
+                if (faceRefs != nullptr) VFRAddFace(&faceRefs[vi], j);
               } else {
                 failFlag = true;
                 failString += oo::str::format(
@@ -1496,7 +1496,7 @@ bool OOMesh::setUpVertexArrays() {
             if (is_edge_vertex[v]) {
               getNormal(&normal, &tangent, v, _faces[fi].smoothGroup);
             } else {
-              OOCAssert(_normals != NULL && _tangents != NULL,
+              OOCAssert(_normals != nullptr && _tangents != nullptr,
                         "Normal/tangent buffers not allocated in %s",
                         __PRETTY_FUNCTION__);
 
@@ -1596,7 +1596,7 @@ void* OOMesh::allocateBytesWithSize(size_t size, NSUInteger count,
   holder.setLength(size);  // zero-filled (malloc left it uninitialised)
   setRetainedObject(std::move(holder), key);
   void* bytes = _retainedObjects.find(key)->second->data().mutableBytes();
-  if (bytes != NULL) {
+  if (bytes != nullptr) {
     Scribble(bytes, size);
   }
   return bytes;
@@ -1605,7 +1605,7 @@ void* OOMesh::allocateBytesWithSize(size_t size, NSUInteger count,
 bool OOMesh::allocateVertexBuffersWithCount(NSUInteger /*count*/) {
   _vertices = (Vector*)allocateBytesWithSize(sizeof *_vertices, vertexCount,
                                              "vertices");
-  return _vertices != NULL;
+  return _vertices != nullptr;
 }
 
 bool OOMesh::allocateNormalBuffersWithCount(NSUInteger /*count*/) {
@@ -1613,13 +1613,13 @@ bool OOMesh::allocateNormalBuffersWithCount(NSUInteger /*count*/) {
       (Vector*)allocateBytesWithSize(sizeof *_normals, vertexCount, "normals");
   _tangents = (Vector*)allocateBytesWithSize(sizeof *_tangents, vertexCount,
                                              "tangents");
-  return _normals != NULL && _tangents != NULL;
+  return _normals != nullptr && _tangents != nullptr;
 }
 
 bool OOMesh::allocateFaceBuffersWithCount(NSUInteger /*count*/) {
   _faces =
       (OOMeshFace*)allocateBytesWithSize(sizeof *_faces, faceCount, "faces");
-  return _faces != NULL;
+  return _faces != nullptr;
 }
 
 bool OOMesh::allocateVertexArrayBuffersWithCount(NSUInteger count) {
@@ -1634,11 +1634,11 @@ bool OOMesh::allocateVertexArrayBuffersWithCount(NSUInteger count) {
   _displayLists.tangentArray = (Vector*)allocateBytesWithSize(
       sizeof *_displayLists.tangentArray, count * 3, "tangentArray");
 
-  return _faces != NULL && _displayLists.indexArray != NULL &&
-         _displayLists.textureUVArray != NULL &&
-         _displayLists.vertexArray != NULL &&
-         _displayLists.normalArray != NULL &&
-         _displayLists.tangentArray != NULL;
+  return _faces != nullptr && _displayLists.indexArray != nullptr &&
+         _displayLists.textureUVArray != nullptr &&
+         _displayLists.vertexArray != nullptr &&
+         _displayLists.normalArray != nullptr &&
+         _displayLists.tangentArray != nullptr;
 }
 
 void OOMesh::renameTexturesFrom(const std::string& from,
@@ -1774,12 +1774,12 @@ void OOMesh::calculateVertexNormalsAndTangentsWithFaceRefs(
     VertexFaceRef* faceRefs) {
   OOJS_PROFILE_ENTER
 
-  OOCParameterAssert(faceRefs != NULL);
+  OOCParameterAssert(faceRefs != nullptr);
 
   NSUInteger i, j;
   std::vector<float> triangle_area(faceCount);
 
-  OOCAssert(_normals != NULL && _tangents != NULL,
+  OOCAssert(_normals != nullptr && _tangents != nullptr,
             "Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
 
   for (i = 0; i < faceCount; i++) {
@@ -1817,7 +1817,7 @@ void OOMesh::calculateVertexNormalsAndTangentsWithFaceRefs(
 void OOMesh::calculateVertexTangentsWithFaceRefs(VertexFaceRef* faceRefs) {
   OOJS_PROFILE_ENTER
 
-  OOCParameterAssert(faceRefs != NULL);
+  OOCParameterAssert(faceRefs != nullptr);
 
   /*	This is conceptually broken.
           At the moment, it's calculating one tangent per "input" vertex. It
@@ -1868,7 +1868,7 @@ void OOMesh::getNormal(Vector* outNormal, Vector* outTangent,
                        OOMeshSmoothGroup smoothGroup) {
   OOJS_PROFILE_ENTER
 
-  assert(outNormal != NULL && outTangent != NULL);
+  assert(outNormal != nullptr && outTangent != nullptr);
 
   NSUInteger j;
   Vector normal_sum = kZeroVector;
@@ -1939,7 +1939,7 @@ void OOMesh::calculateBoundingVolumes() {
 void OOMesh::rescaleByFactor(GLfloat factor) {
   // Rescale base vertices used for geometry calculations.
   OOMeshVertexCount i;
-  Vector* vertex = NULL;
+  Vector* vertex = nullptr;
 
   for (i = 0; i < vertexCount; i++) {
     vertex = &_vertices[i];
@@ -2005,7 +2005,7 @@ void OOCacheManagerSetOctree(Octree* inOctree, const std::string& inKey) {
 }
 
 static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index) {
-  OOCParameterAssert(vfr != NULL);
+  OOCParameterAssert(vfr != nullptr);
 
   if (index < UINT16_MAX && vfr->internCount < kVertexFaceDefInternalCount) {
     vfr->internFaces[vfr->internCount++] = index;
@@ -2015,13 +2015,13 @@ static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index) {
 }
 
 static NSUInteger VFRGetCount(VertexFaceRef* vfr) {
-  OOCParameterAssert(vfr != NULL);
+  OOCParameterAssert(vfr != nullptr);
 
   return vfr->internCount + vfr->extra.size();
 }
 
 static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index) {
-  OOCParameterAssert(vfr != NULL && index < VFRGetCount(vfr));
+  OOCParameterAssert(vfr != nullptr && index < VFRGetCount(vfr));
 
   if (index < vfr->internCount)
     return vfr->internFaces[index];

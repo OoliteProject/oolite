@@ -371,8 +371,8 @@ float OOColor::greenComponent() { return rgba[1]; }
 float OOColor::blueComponent() { return rgba[2]; }
 
 void OOColor::getRed(float* red, float* green, float* blue, float* alpha) {
-  OOCParameterAssert(red != NULL && green != NULL && blue != NULL &&
-                     alpha != NULL);
+  OOCParameterAssert(red != nullptr && green != nullptr && blue != nullptr &&
+                     alpha != nullptr);
 
   *red = rgba[0];
   *green = rgba[1];
@@ -436,8 +436,8 @@ float OOColor::brightnessComponent() {
 
 void OOColor::getHue(float* hue, float* saturation, float* brightness,
                      float* alpha) {
-  OOCParameterAssert(hue != NULL && saturation != NULL && brightness != NULL &&
-                     alpha != NULL);
+  OOCParameterAssert(hue != nullptr && saturation != nullptr &&
+                     brightness != nullptr && alpha != nullptr);
 
   *alpha = rgba[3];
 

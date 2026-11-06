@@ -138,7 +138,7 @@ void InitOOJSSoundSource(JSContext* context, JSValueConst global) {
   OOJSInitClass(context, global, sSoundSourceClassID, JS_UNDEFINED,
                 SoundSourceConstruct, 0, sSoundSourceProperties,
                 OOJS_COUNT(sSoundSourceProperties), sSoundSourceMethods,
-                OOJS_COUNT(sSoundSourceMethods), NULL, 0);
+                OOJS_COUNT(sSoundSourceMethods), nullptr, 0);
   OOJSRegisterObjectConverter(sSoundSourceClassID, SoundSourceConverter);
 }
 
