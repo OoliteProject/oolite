@@ -4726,6 +4726,9 @@ static const OOMatrix starboard_matrix = { { { 0.0f, 0.0f, 1.0f, 0.0f },
                 // case GUI_SCREEN_KEYBOARD:
                 //  no HUD rendering on this screen
                 // break;
+                case GUI_SCREEN_KEYBINDINGS:
+                    // the key list uses the whole screen
+                    break;
                 default:
                     [theHUD setLineWidth:lineWidth];
                     [theHUD renderHUD];

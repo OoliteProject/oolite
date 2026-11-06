@@ -86,6 +86,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -602,6 +605,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -1117,6 +1123,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -1638,6 +1647,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -2155,6 +2167,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -2686,6 +2701,10 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+            shift = true;
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -3200,6 +3219,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -3721,6 +3743,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -4238,6 +4263,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -4757,6 +4785,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -5272,6 +5303,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -5791,6 +5825,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -6309,6 +6346,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -6830,6 +6870,9 @@
         }, {
             key = "f8";
         });
+        key_gui_keybindings = ({
+            key = "9";
+        });
 
         key_gui_arrow_left = ({
             key = "arrowLeft";
@@ -7347,6 +7390,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({
@@ -7866,6 +7912,9 @@
             key = "8";
         }, {
             key = "f8";
+        });
+        key_gui_keybindings = ({
+            key = "9";
         });
 
         key_gui_arrow_left = ({

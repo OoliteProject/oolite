@@ -44,6 +44,28 @@ static NSDictionary* kdic_check = nil;
 static NSArray* nav_keys = nil;
 static NSArray* camera_keys = nil;
 
+// key bindings screen: each page is a list of strings to draw, laid out by -layoutKeyBindings
+#define KB_CHAR_WIDTH 12.0f
+#define KB_CHAR_HEIGHT 13.0f
+#define KB_LINE_HEIGHT 14.0f
+#define KB_TOP_Y 198.0f
+#define KB_BOTTOM_Y -220.0f
+#define KB_FOOTER_Y -236.0f
+#define KB_SIDE_MARGIN 16.0f
+#define KB_MIN_COLUMN_WIDTH 230.0f
+#define KB_COLUMN_GAP 16.0f
+#define KB_KEY_GAP 8.0f
+
+#define KEY_KB_TEXT @"text"
+#define KEY_KB_X @"x"
+#define KEY_KB_Y @"y"
+#define KEY_KB_COLOR @"color"
+#define KEY_KB_RIGHT_ALIGN @"rightAlign"
+
+static NSArray* kb_pages = nil;
+static NSUInteger kb_page = 0;
+static GLfloat kb_layout_x_offset = 0.0f;
+
 @interface PlayerEntity (KeyMapperInternal)
 
 - (void)resetKeyFunctions;
@@ -69,6 +91,8 @@ static NSArray* camera_keys = nil;
 - (void)deleteAllKeySettings;
 - (NSDictionary*)loadKeySettings;
 - (void)reloadPage;
+- (void)layoutKeyBindings;
+- (NSString*)keyBindingsAssignmentForEntry:(NSDictionary*)entry;
 
 @end
 
@@ -889,6 +913,7 @@ static NSArray* camera_keys = nil;
     [funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_chart_screens") keyDef:@"key_gui_chart_screens"]];
     [funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_system_data") keyDef:@"key_gui_system_data"]];
     [funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_market") keyDef:@"key_gui_market"]];
+    [funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_keybindings") keyDef:@"key_gui_keybindings"]];
 
     [funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-propulsion")]];
     [funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_left") keyDef:@"key_roll_left"]];
@@ -1041,6 +1066,214 @@ static NSArray* camera_keys = nil;
         }
     }
     return funcList;
+}
+
+- (void)setGuiToKeyBindingsScreen:(NSInteger)page
+{
+    GuiDisplayGen* gui = [UNIVERSE gui];
+    OOGUIScreenID oldScreen = gui_screen;
+    BOOL guiChanged = (oldScreen != GUI_SCREEN_KEYBINDINGS);
+
+    if (guiChanged) {
+        [self noteGUIWillChangeTo:GUI_SCREEN_KEYBINDINGS];
+        // rebuild on entry so changes made in the keyboard config screen show up
+        [self layoutKeyBindings];
+    }
+    gui_screen = GUI_SCREEN_KEYBINDINGS;
+    kb_page = (NSUInteger)OOClampInteger(page, 0, (NSInteger)[kb_pages count] - 1);
+
+    [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+    [gui clearAndKeepBackground:!guiChanged];
+    [gui setTitle:DESC(@"oolite-keybindings-title")];
+    [gui setSelectableRange:NSMakeRange(0, 0)];
+    [gui setNoSelectedRow];
+    [gui setShowTextCursor:NO];
+
+    [self setShowDemoShips:NO];
+    [[UNIVERSE gameView] clearMouse];
+    [UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+
+    if (guiChanged) {
+        if ([self status] == STATUS_DOCKED)
+            [gui setForegroundTextureKey:@"docked_overlay"];
+        else
+            [gui setForegroundTextureKey:[[UNIVERSE gameController] isGamePaused] ? @"paused_overlay" : @"overlay"];
+        if (![gui setBackgroundTextureKey:@"keybindings"])
+            [gui setBackgroundTextureKey:@"keyboardsettings"];
+        [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+    }
+}
+
+- (NSUInteger)keyBindingsPage
+{
+    return kb_page;
+}
+
+- (NSUInteger)keyBindingsPageCount
+{
+    return [kb_pages count];
+}
+
+- (void)drawKeyBindingsList:(GLfloat)alpha screenAt:(Vector)screenAt
+{
+    // the column count depends on the window shape, so lay out again if the window was resized
+    if (kb_layout_x_offset != [[UNIVERSE gameView] x_offset]) {
+        [self layoutKeyBindings];
+        kb_page = MIN(kb_page, [kb_pages count] - 1);
+    }
+
+    NSSize charSize = NSMakeSize(KB_CHAR_WIDTH, KB_CHAR_HEIGHT);
+    NSArray* items = [kb_pages oo_arrayAtIndex:kb_page];
+    NSUInteger i, count = [items count];
+
+    OOStartDrawingStrings();
+    for (i = 0; i < count; i++) {
+        NSDictionary* item = [items objectAtIndex:i];
+        OOColor* color = [item objectForKey:KEY_KB_COLOR];
+        glColor4f([color redComponent], [color greenComponent], [color blueComponent], alpha);
+        OODrawStringQuadsAligned([item oo_stringForKey:KEY_KB_TEXT], screenAt.x + [item oo_floatForKey:KEY_KB_X], screenAt.y + [item oo_floatForKey:KEY_KB_Y],
+            screenAt.z, charSize, [item oo_boolForKey:KEY_KB_RIGHT_ALIGN]);
+    }
+    OOStopDrawingStrings();
+}
+
+- (NSString*)keyBindingsAssignmentForEntry:(NSDictionary*)entry
+{
+    NSString* key_def = [entry oo_stringForKey:KEY_KC_DEFINITION];
+    NSString* assignment = nil;
+
+    if ([self entryIsDictCustomEquip:entry]) {
+        NSUInteger idx = [self getCustomEquipIndex:key_def];
+        if (idx < [customEquipActivation count]) {
+            assignment = [self getKeyBindingDescription:[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:[self getCustomEquipKeyDefType:key_def]]];
+        }
+    } else {
+        assignment = [self keyBindingDescription2:key_def];
+    }
+    // getKeyBindingDescription joins alternatives with " or ", which wastes width here
+    return [assignment stringByReplacingOccurrencesOfString:@" or " withString:@" / "];
+}
+
+static NSString* KeyBindingsTruncate(NSString* text, GLfloat width, NSSize charSize)
+{
+    if (OORectFromString(text, 0.0f, 0.0f, charSize).size.width <= width)
+        return text;
+
+    NSUInteger length = [text length];
+    NSString* result = nil;
+    do {
+        length--;
+        result = [[text substringToIndex:length] stringByAppendingString:@"..."];
+    } while (length > 1 && OORectFromString(result, 0.0f, 0.0f, charSize).size.width > width);
+    return result;
+}
+
+- (void)layoutKeyBindings
+{
+    NSSize charSize = NSMakeSize(KB_CHAR_WIDTH, KB_CHAR_HEIGHT);
+    OOColor* headerColor = [OOColor cyanColor];
+    OOColor* functionColor = [OOColor yellowColor];
+    OOColor* keyColor = [OOColor whiteColor];
+
+    // Use the whole width of the window: wider windows get more columns.
+    kb_layout_x_offset = [[UNIVERSE gameView] x_offset];
+    GLfloat width = 2.0f * kb_layout_x_offset - 2.0f * KB_SIDE_MARGIN;
+    NSUInteger n_columns = MAX(2, (NSUInteger)((width + KB_COLUMN_GAP) / (KB_MIN_COLUMN_WIDTH + KB_COLUMN_GAP)));
+    GLfloat column_width = (width - KB_COLUMN_GAP * (n_columns - 1)) / n_columns;
+    NSUInteger n_rows = (NSUInteger)((KB_TOP_Y - KB_BOTTOM_Y) / KB_LINE_HEIGHT) + 1;
+
+    // Lines are either a one-element header array or a {function, key} pair.
+    // Functions with no key assigned are left out, as are headers with nothing under them.
+    NSMutableArray* lines = [NSMutableArray array];
+    NSArray* functions = [self keyFunctionList];
+    NSString* header = nil;
+    BOOL skipSection = NO;
+    NSUInteger i;
+    for (i = 0; i < [functions count]; i++) {
+        NSDictionary* entry = [functions objectAtIndex:i];
+        if ([entry objectForKey:KEY_KC_HEADER]) {
+            header = [entry oo_stringForKey:KEY_KC_HEADER];
+#ifndef OO_DEBUG_MONITOR_ENABLED
+            // the debug keys do nothing in this build
+            skipSection = [header isEqualToString:DESC(@"oolite-keydesc-header-debug")];
+#endif
+            continue;
+        }
+        if (skipSection)
+            continue;
+        NSString* assignment = [self keyBindingsAssignmentForEntry:entry];
+        if ([assignment length] == 0)
+            continue;
+        if (header != nil) {
+            [lines addObject:[NSArray arrayWithObject:header]];
+            header = nil;
+        }
+        [lines addObject:[NSArray arrayWithObjects:[entry oo_stringForKey:KEY_KC_GUIDESC], assignment, nil]];
+    }
+
+    // Flow the lines down the columns, and the columns across the pages.
+    NSMutableArray* pages = [NSMutableArray array];
+    NSMutableArray* items = [NSMutableArray array];
+    NSUInteger row = 0, column = 0;
+    NSArray* section = nil;
+    for (i = 0; i < [lines count]; i++) {
+        NSArray* line = [lines objectAtIndex:i];
+        BOOL isHeader = ([line count] == 1);
+
+        // don't leave a header on its own at the bottom of a column
+        if (row >= n_rows || (isHeader && row > 0 && row + 1 >= n_rows)) {
+            row = 0;
+            column++;
+            // a column that carries on from a section starts with that section's header again
+            if (!isHeader && section != nil) {
+                line = section;
+                isHeader = YES;
+                i--;
+            }
+        }
+        if (column >= n_columns) {
+            [pages addObject:items];
+            items = [NSMutableArray array];
+            column = 0;
+        }
+        if (isHeader)
+            section = line;
+
+        GLfloat x = -0.5f * width + column * (column_width + KB_COLUMN_GAP);
+        NSNumber* y = [NSNumber numberWithFloat:KB_TOP_Y - row * KB_LINE_HEIGHT];
+        if (isHeader) {
+            [items addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                     KeyBindingsTruncate([line objectAtIndex:0], column_width, charSize), KEY_KB_TEXT,
+                                 [NSNumber numberWithFloat:x], KEY_KB_X, y, KEY_KB_Y, headerColor, KEY_KB_COLOR, nil]];
+        } else {
+            NSString* key = KeyBindingsTruncate([line objectAtIndex:1], 0.5f * column_width, charSize);
+            GLfloat key_width = OORectFromString(key, 0.0f, 0.0f, charSize).size.width;
+            NSString* function = KeyBindingsTruncate([line objectAtIndex:0], column_width - key_width - KB_KEY_GAP, charSize);
+            [items addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                     function, KEY_KB_TEXT, [NSNumber numberWithFloat:x], KEY_KB_X, y, KEY_KB_Y, functionColor, KEY_KB_COLOR, nil]];
+            [items addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                     key, KEY_KB_TEXT, [NSNumber numberWithFloat:x + column_width], KEY_KB_X, y, KEY_KB_Y, keyColor, KEY_KB_COLOR,
+                                 [NSNumber numberWithBool:YES], KEY_KB_RIGHT_ALIGN, nil]];
+        }
+        row++;
+    }
+    [pages addObject:items];
+
+    // page footers
+    NSUInteger n_pages = [pages count];
+    if (n_pages > 1) {
+        NSString* pageKey = [self keyBindingDescription2:@"key_gui_keybindings"];
+        for (i = 0; i < n_pages; i++) {
+            NSString* footer = [NSString stringWithFormat:DESC(@"oolite-keybindings-page-%d-of-%d"), (int)(i + 1), (int)n_pages, pageKey];
+            GLfloat footer_width = OORectFromString(footer, 0.0f, 0.0f, charSize).size.width;
+            [[pages objectAtIndex:i] addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                       footer, KEY_KB_TEXT, [NSNumber numberWithFloat:-0.5f * footer_width], KEY_KB_X,
+                                                   [NSNumber numberWithFloat:KB_FOOTER_Y], KEY_KB_Y, [OOColor greenColor], KEY_KB_COLOR, nil]];
+        }
+    }
+
+    [kb_pages release];
+    kb_pages = [pages copy];
 }
 
 - (NSDictionary*)makeKeyGuiDict:(NSString*)what keyDef:(NSString*)key_def
