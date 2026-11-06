@@ -246,13 +246,13 @@ static void DumpMipMap(void* data, OOPixMapDimension width,
 #else
 #define DUMP_MIP_MAP_PREPARE(pl) \
   do {                           \
-    (void)pl;                    \
+    (void)(pl);                  \
   } while (0)
 #define DUMP_MIP_MAP_DUMP(px, w, h) \
   do {                              \
-    (void)px;                       \
-    (void)w;                        \
-    (void)h;                        \
+    (void)(px);                     \
+    (void)(w);                      \
+    (void)(h);                      \
   } while (0)
 #endif
 

@@ -2090,11 +2090,11 @@ playerReadOnly:
 
 // *** Methods ***
 
-#define GET_THIS_SHIP(THISENT)                                          \
-  do {                                                                  \
-    if (EXPECT_NOT(!JSShipGetShipEntity(context, OOJS_THIS, &THISENT))) \
-      return OOJSNativeFailure(context); /* Exception */                \
-    if (OOIsStaleEntity(THISENT)) OOJS_RETURN_VOID;                     \
+#define GET_THIS_SHIP(THISENT)                                            \
+  do {                                                                    \
+    if (EXPECT_NOT(!JSShipGetShipEntity(context, OOJS_THIS, &(THISENT)))) \
+      return OOJSNativeFailure(context); /* Exception */                  \
+    if (OOIsStaleEntity(THISENT)) OOJS_RETURN_VOID;                       \
   } while (0)
 
 // setScript(scriptName : String)

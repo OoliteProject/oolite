@@ -344,7 +344,7 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
 
 #define DECL_GEOMETRY(NAME, CAP) \
   GeometryData NAME;             \
-  InitGeometryData(&NAME, CAP);
+  InitGeometryData(&(NAME), CAP);
 
   DECL_GEOMETRY(g_000, subCapacity);
   DECL_GEOMETRY(g_001, subCapacity);

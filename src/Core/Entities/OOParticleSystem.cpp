@@ -119,16 +119,16 @@ void OOParticleSystem::update(OOTimeDelta delta_t) {
   }
 }
 
-#define DrawQuadForView(x, y, z, sz) \
-  do {                               \
-    glTexCoord2f(0.0, 1.0);          \
-    glVertex3f(x - sz, y - sz, z);   \
-    glTexCoord2f(1.0, 1.0);          \
-    glVertex3f(x + sz, y - sz, z);   \
-    glTexCoord2f(1.0, 0.0);          \
-    glVertex3f(x + sz, y + sz, z);   \
-    glTexCoord2f(0.0, 0.0);          \
-    glVertex3f(x - sz, y + sz, z);   \
+#define DrawQuadForView(x, y, z, sz)       \
+  do {                                     \
+    glTexCoord2f(0.0, 1.0);                \
+    glVertex3f((x) - (sz), (y) - (sz), z); \
+    glTexCoord2f(1.0, 1.0);                \
+    glVertex3f((x) + (sz), (y) - (sz), z); \
+    glTexCoord2f(1.0, 0.0);                \
+    glVertex3f((x) + (sz), (y) + (sz), z); \
+    glTexCoord2f(0.0, 0.0);                \
+    glVertex3f((x) - (sz), (y) + (sz), z); \
   } while (0)
 
 void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent) {

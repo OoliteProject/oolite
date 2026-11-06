@@ -237,12 +237,12 @@ static bool JSStationGetShipEntity(JSContext* context, JSValueConst shipObj,
         error is pending, and QuickJS natives must not return normally with an
         exception pending.
 */
-#define GET_THIS_STATION(THISENT)                                   \
-  do {                                                              \
-    if (!JSStationGetStationEntity(context, OOJS_THIS, &THISENT)) { \
-      if (JS_HasException(context)) return JS_EXCEPTION;            \
-      OOJS_RETURN_VOID; /* stale reference, no-op */                \
-    }                                                               \
+#define GET_THIS_STATION(THISENT)                                     \
+  do {                                                                \
+    if (!JSStationGetStationEntity(context, OOJS_THIS, &(THISENT))) { \
+      if (JS_HasException(context)) return JS_EXCEPTION;              \
+      OOJS_RETURN_VOID; /* stale reference, no-op */                  \
+    }                                                                 \
   } while (0)
 
 // The bodies of StationEntity (OOJavaScriptExtensions), which StationEntity's

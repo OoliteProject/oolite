@@ -525,8 +525,8 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/,
   OOVerifyOpenGLState();
 }
 
-#define PREV(n) ((n + kExhaustFrameCount - 1) % kExhaustFrameCount)
-#define NEXT(n) ((n + 1) % kExhaustFrameCount)
+#define PREV(n) (((n) + kExhaustFrameCount - 1) % kExhaustFrameCount)
+#define NEXT(n) (((n) + 1) % kExhaustFrameCount)
 
 void OOExhaustPlumeEntity::saveToLastFrame() {
   ::ShipEntity* ship = oo::ToShip(owner());
