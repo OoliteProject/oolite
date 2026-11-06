@@ -34,10 +34,10 @@
 #include "OODebugFlags.h"
 #include "OODebugGLDrawing.h"
 #include "OODebugStandards.h"
+#include "OODescription.h"
 #include "OOJSScript.h"
 #include "OOJSStation.h"
 #include "OOLegacyScriptWhitelist.h"
-#include "OOObjCPList.h"
 #include "OOPListGameTypes.h"
 #include "OOPlanetEntity.h"
 #include "OOQuiriumCascadeEntity.h"
@@ -47,6 +47,8 @@
 #include "ShipEntityAI.h"
 #include "Universe.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 // -oo_stringForKey:'s value without the Foundation type: a

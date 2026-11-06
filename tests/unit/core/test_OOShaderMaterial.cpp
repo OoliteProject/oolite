@@ -28,7 +28,8 @@
 #include <vector>
 
 #include "OODescription.h"
-#include "OOObjCPList.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "OOOpenGLExtensionManager.h"
 #include "OORegExpMatcher.h"
 #include "OOShaderMaterial.h"

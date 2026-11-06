@@ -20,7 +20,8 @@
 
 #include "OODebugMonitor.h"
 #include "OOColor.h"
-#include "OOObjCPList.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "OODescription.h"
 #include "OOEntityHold.h"	// the universe's entity list holds C++ entities
 

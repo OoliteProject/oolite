@@ -37,10 +37,12 @@
 #include <cstring>
 
 #include "OOColor.h"
-#include "OOObjCPList.h"
+#include "OODescription.h"
 #include "OOPlanetTextureGenerator.h"
 #include "oofnd/Defaults.hpp"
+#include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

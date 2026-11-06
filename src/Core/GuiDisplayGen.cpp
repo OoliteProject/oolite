@@ -29,8 +29,8 @@ MA 02110-1301, USA.
 
 #include "GameController.h"
 #include "HeadUpDisplay.h"
+#include "OODescription.h"
 #include "OOJavaScriptEngine.h"
-#include "OOObjCPList.h"
 #include "OOSound.h"
 #include "OOStringExpander.h"
 #include "OOStringParsing.h"
@@ -43,6 +43,8 @@ MA 02110-1301, USA.
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

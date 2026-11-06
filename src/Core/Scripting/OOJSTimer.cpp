@@ -25,11 +25,13 @@ MA 02110-1301, USA.
 
 #include "OOJSTimer.h"
 
+#include "OODescription.h"
 #include "OOJSScript.h"
 #include "OOJavaScriptEngine.h"
-#include "OOObjCPList.h"
 #include "Universe.h"
 #include "oofnd/Notification.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

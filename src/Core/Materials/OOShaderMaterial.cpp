@@ -27,8 +27,10 @@ SOFTWARE.
 
 #include "OOShaderMaterial.h"
 
-#include "OOObjCPList.h"
+#include "OODescription.h"
 #include "OOShaderUniformMethodType.h"  // the binding target's hooks
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 #if OO_SHADERS
 

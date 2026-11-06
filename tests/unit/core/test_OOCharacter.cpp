@@ -20,7 +20,9 @@
 #include <string>
 
 #include "OOCharacter.h"
-#include "OOObjCPList.h"
+#include "OODescription.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "OOStringExpander.h"
 #include "oo_test.hpp"
 

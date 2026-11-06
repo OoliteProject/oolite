@@ -26,7 +26,7 @@
 
         The last two rows are the typed carrier for
    configuration dictionaries that mix property-list data with live objects. No
-   parser produces either; the game side (src/Core/OOObjCPList.h) makes an
+   parser produces either; the game side makes an
    Object from a live Objective-C object and reads it back. An Object is an
    oo::Ref to a PListForeign, which oofnd never looks into: it compares by
    identity and describes itself.

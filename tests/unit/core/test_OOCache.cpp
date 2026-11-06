@@ -12,7 +12,8 @@
 
 #include "OOCache.h"
 #include "OODescription.h"
-#include "OOObjCPList.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oo_test.hpp"
 
 /*	The game's OOStringParsing.mm reaches the JavaScript engine, so it is

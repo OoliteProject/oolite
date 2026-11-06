@@ -27,8 +27,9 @@ SOFTWARE.
 
 #include "OOJSEngineTimeManagement.h"
 
-#include "OOObjCPList.h"
+#include "OODescription.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"

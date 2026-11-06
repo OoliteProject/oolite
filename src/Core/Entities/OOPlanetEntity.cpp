@@ -26,8 +26,10 @@ A leaf of Entity. The class is global.
 
 #include "OOPlanetEntity.h"
 
+#include "OODescription.h"
 #include "OOJSPlanet.h"
-#include "OOObjCPList.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 #define NEW_ATMOSPHERE 1
 

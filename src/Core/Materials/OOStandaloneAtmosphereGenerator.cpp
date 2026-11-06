@@ -37,8 +37,10 @@
 #include <cstring>
 
 #include "OOColor.h"
-#include "OOObjCPList.h"
+#include "OODescription.h"
 #include "OOStandaloneAtmosphereGenerator.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

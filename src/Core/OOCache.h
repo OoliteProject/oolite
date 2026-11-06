@@ -15,7 +15,7 @@ whenever the prune threshold is exceeded. If auto-pruning is off, the cache
 can be pruned to the prune threshold by explicitly calling -prune.
 
 Keys are UTF-8 std::strings and values are oo::PList: property-list data, or a
-PList::Object node (OOObjCPList.h) for a live object such as a texture. An
+PList::Object node for a live object such as a texture. An
 OOCache is essentially a string-keyed dictionary with a prune limit. A null
 PList is "no value": it is never stored, and it is what a lookup of an absent
 key returns.

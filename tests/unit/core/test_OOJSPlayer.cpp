@@ -22,7 +22,8 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "OOObjCPList.h"
+#include "OODescription.h"
+#include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
 
 

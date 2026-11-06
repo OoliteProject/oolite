@@ -25,14 +25,16 @@ MA 02110-1301, USA.
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOColor.h"
+#include "OODescription.h"
 #include "OOJSEntity.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
 #include "OOMesh.h"
-#include "OOObjCPList.h"
 #include "OOScript.h"
 #include "OOVisualEffectEntity.h"
 #include "ResourceManager.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 /*
