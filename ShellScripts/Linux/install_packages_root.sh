@@ -81,7 +81,7 @@ run_script() {
         pkgs=(
             procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev nspr-dev
             espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev
-            doxygen weasyprint-deps
+            doxygen
         )
         for pkg in "${pkgs[@]}"; do
             install_package "$pkg"
@@ -94,7 +94,6 @@ run_script() {
             echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/$espeak_folder!"
             return 1
         fi
-        source ./install_pandoc_fn.sh && install_pandoc /usr/local/bin "$outputdir"
         source ./install_typst_fn.sh && install_typst /usr/local/bin "$outputdir"
     fi
 

@@ -44,3 +44,7 @@ nav:
   - API Reference: api/html/index.html  # This points to the Doxygen output
 
 not_in_nav: "api/html/**"
+
+# Sources for the PDFs, not pages
+exclude_docs: |
+  typst/

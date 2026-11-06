@@ -34,8 +34,6 @@ install() {
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     source "$script_dir/install_gitversion_fn.sh"
-    source "$script_dir/install_pandoc_fn.sh"
-    source "$script_dir/install_weasyprint_fn.sh"
     source "$script_dir/install_typst_fn.sh"
     pushd "$script_dir"
 
@@ -44,12 +42,10 @@ run_script() {
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
     pacboy -S --noconfirm binutils curl espeak-ng libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
-    pacboy -S --noconfirm cairo doxygen graphviz fontconfig harfbuzz gdk-pixbuf2 pango python-brotli python-cffi python-pillow python-pyzopfli
+    pacboy -S --noconfirm doxygen graphviz
     mkdir -p ../../build/packages
     cd ../../build
     install_gitversion "."
-    install_pandoc "."
-    install_weasyprint
     install_typst "."
 
     cd packages

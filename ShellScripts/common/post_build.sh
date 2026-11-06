@@ -14,6 +14,7 @@ run_script() {
     local buildtime="${10}"
     local gnustep_folder="${11}"
     local stamp_file="${12}"
+    local build_docs="${13:-yes}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir" > /dev/null
@@ -160,19 +161,22 @@ run_script() {
             xargs -I {} cp -Lrfu {} "$progdir/"
     fi
 
-    if ! build_documentation "YES" "NO"; then
-        popd
-        return 1
+    if [[ "$build_docs" == "yes" ]]; then
+        if ! build_documentation "NO"; then
+            echo "❌ Documentation build failed! Configure with -Ddocs=disabled to build without it." >&2
+            popd
+            return 1
+        fi
+        local docdir="$progdir"
+        if [[ "$host_os" == "darwin" ]]; then
+            # Files in the bundle root break its signature, so the PDFs go next to the app instead
+            # and create_dmg_fn.sh puts them in a Documentation folder on the disk image
+            rm -f "$progdir"/*.pdf
+            docdir="$(dirname "$progdir")/Documentation"
+            mkdir -p "$docdir"
+        fi
+        cp -fu build/documentation/docs/assets/pdfs/* "$docdir"
     fi
-    local docdir="$progdir"
-    if [[ "$host_os" == "darwin" ]]; then
-        # Files in the bundle root break its signature, so the PDFs go next to the app instead
-        # and create_dmg_fn.sh puts them in a Documentation folder on the disk image
-        rm -f "$progdir"/*.pdf
-        docdir="$(dirname "$progdir")/Documentation"
-        mkdir -p "$docdir"
-    fi
-    cp -fu build/documentation/docs/assets/pdfs/* "$docdir"
 
     echo "✅ Oolite post-build completed successfully"
     touch "$appdir/$stamp_file"

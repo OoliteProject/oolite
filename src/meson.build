@@ -37,6 +37,8 @@ oolite_bin = executable(
 )
 
 bash_prog = find_program('bash')
+typst_prog = find_program('typst', version: '>=0.15.0', required: get_option('docs'))  # 0.15 for the vendored cmarker
+build_docs = get_option('docs').allowed() and typst_prog.found()
 prog_dir = meson.global_build_root() / appname + '.app'
 stamp_file = '.oolite_bundle.stamp'
 post_build_args = [
@@ -52,6 +54,7 @@ post_build_args = [
     version_vars.get('buildtime'),
     gnustep_folder,
     stamp_file,
+    build_docs ? 'yes' : 'no',
 ]
 post_build_script = files('../ShellScripts/common/post_build.sh')
 generate_manifest_script = files('../ShellScripts/common/generate_manifest_fn.sh')

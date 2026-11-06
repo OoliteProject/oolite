@@ -66,9 +66,12 @@ run_script() {
             fi
         fi
     fi
-    if ! cp -rfu "$progdir/"*.pdf "$fulldatadir"; then
-        echo "❌ Failed to copy pdfs to '$fulldatadir'!" >&2
-        return 1
+    # No PDFs when the documentation was not built (-Ddocs=disabled, or typst not found)
+    if compgen -G "$progdir/*.pdf" > /dev/null; then
+        if ! cp -rfu "$progdir/"*.pdf "$fulldatadir"; then
+            echo "❌ Failed to copy pdfs to '$fulldatadir'!" >&2
+            return 1
+        fi
     fi
     local resources_src="$progdir/Resources/."
     local resources_dst="$fulldatadir/Resources"
