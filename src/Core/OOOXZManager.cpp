@@ -492,9 +492,9 @@ oo::PList OOOXZManager::applyCurrentFilter(const oo::PList& list) {
      manifest and the parameter (the prefixes are ASCII, so the byte offset is
      the old character offset).
   */
-  typedef bool (OOOXZManager::*OneArgumentFilter)(const oo::PList&);
-  typedef bool (OOOXZManager::*TwoArgumentFilter)(const oo::PList&,
-                                                  const std::string&);
+  using OneArgumentFilter = bool (OOOXZManager::*)(const oo::PList&);
+  using TwoArgumentFilter =
+      bool (OOOXZManager::*)(const oo::PList&, const std::string&);
   OneArgumentFilter oneArgumentFilter = &OOOXZManager::applyFilterByNoFilter;
   TwoArgumentFilter twoArgumentFilter = nullptr;
   std::string parameter;

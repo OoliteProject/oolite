@@ -32,11 +32,11 @@ SOFTWARE.
 
 enum { kNoSlot = UINT8_MAX };
 
-typedef struct OOSoundSourcePoolElement {
+using PoolElement = struct OOSoundSourcePoolElement {
   OOSoundSource* source;  // one retain, or null
   OOTimeAbsolute expiryTime;
   float priority;
-} PoolElement;
+};
 
 oo::Ref<OOSoundSourcePool> OOSoundSourcePool::poolWithCount(
     uint8_t count, OOTimeDelta minRepeat) {

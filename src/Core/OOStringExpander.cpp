@@ -51,8 +51,8 @@ MA 02110-1301, USA.
    (Universe, PlayerEntity, ResourceManager) and the log and JavaScript reports
    are converted at the call.
 */
-typedef std::u16string OOUnits;
-typedef std::optional<std::u16string> OOMaybeUnits;
+using OOUnits = std::u16string;
+using OOMaybeUnits = std::optional<std::u16string>;
 
 namespace {
 
@@ -169,7 +169,7 @@ OOMaybeUnits ExpandStringKeyKeyboardBinding(OOStringExpansionContext* context,
    Never iterated. The value is the name the method is called by
    (oo::CallEntityByName).
 */
-typedef std::map<std::string, std::string, std::less<>> OOSelectorTable;
+using OOSelectorTable = std::map<std::string, std::string, std::less<>>;
 
 const std::string* LookUpSelector(const OOSelectorTable* table,
                                   const std::string& key) {

@@ -56,7 +56,7 @@ bool sSetup = false;
 
 }  // namespace
 
-typedef enum {
+using OOStandardsEnforcement = enum {
   // do nothing (equivalent to release build)
   STANDARDS_ENFORCEMENT_OFF = 0,
   // warn in log but otherwise do nothing
@@ -65,7 +65,7 @@ typedef enum {
   STANDARDS_ENFORCEMENT_ENFORCE,
   // note in log, then exit if deprecated or error condition occurs
   STANDARDS_ENFORCEMENT_QUIT
-} OOStandardsEnforcement;
+};
 
 // Deployment builds stay quiet unless an OXP developer opts in with
 // enforce-oxp-standards.

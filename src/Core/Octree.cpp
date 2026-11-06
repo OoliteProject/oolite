@@ -47,11 +47,11 @@ MA 02110-1301, USA.
   } while (0)
 #endif
 
-typedef struct Octree_details {
+using Octree_details = struct Octree_details {
   GLfloat radius;
   const int* octree;
   unsigned char* octree_collision;
-} Octree_details;
+};
 
 static const int change_oct[] = {
     0, 1, 2, 4, 3, 5, 6, 7};  // used to move from nearest to furthest octant

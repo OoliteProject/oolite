@@ -75,11 +75,11 @@ enum {
   kOctreeSmallSizeThreshold = 20
 };
 
-typedef enum {
+using OOMeshNormalMode = enum {
   kNormalModePerFace,
   kNormalModeSmooth,
   kNormalModeExplicit
-} OOMeshNormalMode;
+};
 
 static const char* const kOOLogMeshDataNotFound =
     "mesh.load.failed.fileNotFound";  // an OO_LOG message class
@@ -119,11 +119,11 @@ enum {
 #endif
 };
 
-typedef struct VertexFaceRef {
+using VertexFaceRef = struct VertexFaceRef {
   uint16_t internCount;
   uint16_t internFaces[kVertexFaceDefInternalCount];
   std::vector<NSUInteger> extra;
-} VertexFaceRef;
+};
 
 static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index);
 static NSUInteger VFRGetCount(VertexFaceRef* vfr);

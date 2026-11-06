@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
-typedef enum {
+using MethodType = enum {
   kMethodTypeInvalid = kOOShaderUniformTypeInvalid,
 
   kMethodTypeCharVoid = kOOShaderUniformTypeChar,
@@ -67,7 +67,7 @@ typedef enum {
   kMethodTypeVoidVoid,
   kMethodTypeVoidObject,
   kMethodTypePListVoid
-} MethodType;
+};
 
 namespace {
 OOINLINE bool MethodExpectsParameter(MethodType type) {
