@@ -85,7 +85,7 @@ class OOSkyQuadSet : public oo::RefCounted {
                                                         OOSkyQuadDesc* array,
                                                         unsigned totalCount);
 
-  ~OOSkyQuadSet();
+  ~OOSkyQuadSet() override;
 
   // What "%@" printed between the braces of <OOSkyQuadSet 0x...>{...}.
   std::optional<std::string> descriptionComponents() const;
