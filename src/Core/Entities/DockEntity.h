@@ -78,8 +78,8 @@ class DockEntity : public ShipEntity {
 
   // Docking guidance, the approach queue and docking instructions.
   oo::PList dockingInstructionsForShip(
-    // a dictionary (the station an Object node); null: none
-    ::ShipEntity* ship);
+      // a dictionary (the station an Object node); null: none
+      ::ShipEntity* ship);
   std::optional<std::string> canAcceptShipForDocking(::ShipEntity* ship);
   bool shipIsInDockingQueue(::ShipEntity* ship);
   void abortDockingForShip(::ShipEntity* ship);
