@@ -856,42 +856,42 @@ NSInteger IntegerIn(const oo::PList* dict, std::string_view key)
                         axisfn:STICK_NOFUNCTION
                          butfn:BUTTON_ENERGYBOMB]);
 
-    [funcList addObject:[self makeStickGuiDictHeader:DESC(@"stickmapper-header-gui")]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-left")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUILEFT]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-right")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUIRIGHT]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-up")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUIUP]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-down")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUIDOWN]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-page-up")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUIPAGEUP]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-page-down")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUIPAGEDOWN]];
-    [funcList addObject:
-        [self makeStickGuiDict:DESC(@"stickmapper-gui-select")
-                         allowable:HW_BUTTON
-                            axisfn:STICK_NOFUNCTION
-                             butfn:BUTTON_GUISELECT]];
+    funcList.push_back([self makeStickGuiDictHeader:oo::StdString(DESC(@"stickmapper-header-gui"))]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-left"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUILEFT]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-right"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUIRIGHT]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-up"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUIUP]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-down"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUIDOWN]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-page-up"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUIPAGEUP]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-page-down"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUIPAGEDOWN]);
+    funcList.push_back(
+        [self makeStickGuiDict:oo::StdString(DESC(@"stickmapper-gui-select"))
+                     allowable:HW_BUTTON
+                        axisfn:STICK_NOFUNCTION
+                         butfn:BUTTON_GUISELECT]);
 
     // misc
     funcList.push_back([self makeStickGuiDictHeader:oo::StdString(DESC(@"stickmapper-header-misc"))]);
