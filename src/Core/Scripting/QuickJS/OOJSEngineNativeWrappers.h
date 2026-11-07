@@ -46,8 +46,9 @@ MA 02110-1301, USA.
 /*	With QuickJS, the exception safety and profiling macros
         (OOJS_NATIVE_ENTER()/OOJS_NATIVE_EXIT, OOJS_PROFILE_ENTER/OOJS_PROFILE_EXIT,
         OOJS_BEGIN_FULL_NATIVE()/OOJS_END_FULL_NATIVE and friends) are defined in
-        OOJavaScriptEngine.h. This header remains so existing imports keep working.
-        The profiling hooks are not ported (see OOJSEngineTimeManagement.h).
+        OOJavaScriptEngine.h, as is OOJS_PROFILE; the profiler itself is in
+        OOJSEngineTimeManagement.m. This header remains so existing imports keep
+        working.
 */
 
 #import "OOJavaScriptEngine.h"
