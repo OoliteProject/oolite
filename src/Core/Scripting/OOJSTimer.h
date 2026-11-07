@@ -27,18 +27,19 @@ MA 02110-1301, USA.
 
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"
-#include <jsapi.h>
+#include <quickjs.h>
 
 @interface OOJSTimer : OOScriptTimer {
 @private
-    jsval _function;
-    JSObject* _jsThis; // The object that is 'this' in the function call.
+    JSValue _function; // Owned; released on engine reset.
+    JSValue _jsThis; // The object that is 'this' in the function call. Owned; may be JS_NULL.
 
     OOJSScript* _owningScript;
+    NSString* _functionName;
 
-    JSObject* _jsSelf; // The JS Timer object proxy for this OOJSTimer.
+    JSValue _jsSelf; // The JS Timer object proxy for this OOJSTimer. Not owned (it owns us); cleared when finalized.
 }
 
 @end
 
-void InitOOJSTimer(JSContext* context, JSObject* global);
+void InitOOJSTimer(JSContext* context, JSValueConst global);

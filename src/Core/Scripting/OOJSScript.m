@@ -1,6 +1,6 @@
 /*
 
-OOJSScript.m
+OOJSScript.m (QuickJS-ng)
 
 JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
@@ -34,6 +34,9 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "NSStringOOExtensions.h"
 #import "OOCollectionExtractors.h"
+#if OO_CACHE_JS_SCRIPTS
+#import "OOCacheManager.h"
+#endif
 #import "OOConstToJSString.h"
 #import "OOConstToString.h"
 #import "OODebugStandards.h"
@@ -41,61 +44,43 @@ MA 02110-1301, USA.
 #import "OOManifestProperties.h"
 #import "OOPListParsing.h"
 
-#if OO_CACHE_JS_SCRIPTS
-#import "OOCacheManager.h"
-#include <jsxdrapi.h>
-#endif
-
 typedef struct RunningStack RunningStack;
 struct RunningStack {
     RunningStack* back;
     OOJSScript* current;
 };
 
-static JSObject* sScriptPrototype;
+static JSClassID sScriptClassID;
 static RunningStack* sRunningStack = NULL;
 
 static void AddStackToArrayReversed(NSMutableArray* array, RunningStack* stack);
 
-static JSScript* LoadScriptWithName(JSContext* context, NSString* path, JSObject* object, JSObject** outScriptObject, NSString** outErrorMessage);
-
-#if OO_CACHE_JS_SCRIPTS
-static NSData* CompiledScriptData(JSContext* context, JSScript* script);
-static JSScript* ScriptWithCompiledData(JSContext* context, NSData* data);
-#endif
+static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst object, NSString** outErrorMessage);
 
 static NSString* StrippedName(NSString* string);
+static NSString* RewriteLegacyConst(JSContext* context, NSString* source);
+static BOOL HasModernScopeDirective(NSString* source);
 
-static JSBool ScriptAddProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
+#if OO_CACHE_JS_SCRIPTS
+static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source);
+static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled);
+#endif
 
-static JSClass sScriptClass = {
-    "Script",
-    JSCLASS_HAS_PRIVATE,
-
-    ScriptAddProperty,
-    JS_PropertyStub,
-    JS_PropertyStub,
-    JS_StrictPropertyStub,
-    JS_EnumerateStub,
-    JS_ResolveStub,
-    JS_ConvertStub,
-    OOJSObjectWrapperFinalize
+static JSClassDef sScriptClass = {
+    .class_name = "Script",
+    .finalizer = OOJSObjectWrapperFinalize,
 };
 
-static JSFunctionSpec sScriptMethods[] = {
-    // JS name					Function					min args
-    {
-        "toString",
-        OOJSObjectWrapperToString,
-        0,
-    },
-    { 0 }
+static const JSCFunctionListEntry sScriptMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
 };
 
 @interface OOJSScript (OOPrivate)
 
 - (NSString*)scriptNameFromPath:(NSString*)path;
 - (NSDictionary*)defaultPropertiesFromPath:(NSString*)path;
+- (void)checkForTickle:(JSContext*)context;
 
 @end
 
@@ -110,9 +95,6 @@ static JSFunctionSpec sScriptMethods[] = {
 {
     JSContext* context = NULL;
     NSString* problem = nil; // Acts as error flag.
-    JSScript* script = NULL;
-    JSObject* scriptObject = NULL;
-    jsval returnValue = JSVAL_VOID;
     NSString* key = nil;
     id property = nil;
 
@@ -122,30 +104,23 @@ static JSFunctionSpec sScriptMethods[] = {
     else {
         context = OOJSAcquireContext();
 
-        if (JS_IsExceptionPending(context)) {
-            JS_ClearPendingException(context);
+        if (JS_HasException(context)) {
+            JS_FreeValue(context, JS_GetException(context));
             OOLogERR(@"script.javaScript.load.waitingException", @"Prior to loading script %@, there was a pending JavaScript exception, which has been cleared. This is an internal error, please report it.", path);
         }
 
         // Set up JS object
         if (!problem) {
-            _jsSelf = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL);
-            if (_jsSelf == NULL)
+            _jsSelf = JS_NewObjectClass(context, (int)sScriptClassID);
+            if (JS_IsException(_jsSelf)) {
+                JS_FreeValue(context, JS_GetException(context));
+                _jsSelf = JS_UNDEFINED;
                 problem = @"allocation failure";
-        }
-
-        if (!problem && !OOJSAddGCObjectRoot(context, &_jsSelf, "Script object")) {
-            problem = @"could not add JavaScript root object";
-        }
-
-        if (!problem && !OOJSAddGCObjectRoot(context, &scriptObject, "Script GC holder")) {
-            problem = @"could not add JavaScript root object";
+            }
         }
 
         if (!problem) {
-            if (!JS_SetPrivate(context, _jsSelf, OOConsumeReference([self weakRetain]))) {
-                problem = @"could not set private backreference";
-            }
+            JS_SetOpaque(_jsSelf, OOConsumeReference([self weakRetain]));
         }
 
         // Push self on stack of running scripts.
@@ -156,12 +131,6 @@ static JSFunctionSpec sScriptMethods[] = {
         sRunningStack = &stackElement;
 
         filePath = [path retain];
-
-        if (!problem) {
-            OOLog(@"script.javaScript.willLoad", @"About to load JavaScript %@", path);
-            script = LoadScriptWithName(context, path, _jsSelf, &scriptObject, &problem);
-        }
-        OOLogIndentIf(@"script.javaScript.willLoad");
 
         // Set default properties from manifest.plist
         NSDictionary* defaultProperties = [self defaultPropertiesFromPath:path];
@@ -196,26 +165,25 @@ static JSFunctionSpec sScriptMethods[] = {
                 the script object can't be renamed after the initial run. This could
                 probably also be achieved by fiddling with JS property attributes.
         */
-        jsid nameID = OOJSID("name");
+        JSAtom nameID = OOJSID("name");
         [self setProperty:[self scriptNameFromPath:path] withID:nameID inContext:context];
 
         // Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
         if (!problem) {
-            OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-            if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue)) {
-                problem = @"could not run script";
+            OOLog(@"script.javaScript.willLoad", @"About to load JavaScript %@", path);
+            OOLogIndentIf(@"script.javaScript.willLoad");
+
+            if (!RunScriptWithName(context, path, _jsSelf, &problem)) {
+                if (problem == nil)
+                    problem = @"could not run script";
             }
-            OOJSStopTimeLimiter();
-
-            // We don't need the script any more - the event handlers hang around as long as the JS object exists.
-            JS_DestroyScript(context, script);
         }
-
-        JS_RemoveObjectRoot(context, &scriptObject);
 
         sRunningStack = stackElement.back;
 
         if (!problem) {
+            [self checkForTickle:context];
+
             // Get display attributes from script
             DESTROY(name);
             name = [StrippedName([[self propertyWithID:nameID inContext:context] description]) copy];
@@ -237,7 +205,8 @@ static JSFunctionSpec sScriptMethods[] = {
 
     if (problem) {
         OOLog(@"script.javaScript.load.failed", @"***** Error loading JavaScript script %@ -- %@", path, problem);
-        JS_ReportPendingException(context);
+        if (context != NULL && JS_HasException(context))
+            OOJSReportPendingException(context);
         DESTROY(self);
     }
 
@@ -264,11 +233,15 @@ static JSFunctionSpec sScriptMethods[] = {
     DESTROY(version);
     DESTROY(filePath);
 
-    if (_jsSelf != NULL) {
+    if (JS_IsObject(_jsSelf)) {
         JSContext* context = OOJSAcquireContext();
 
-        OOJSObjectWrapperFinalize(context, _jsSelf); // Release weakref to self
-        JS_RemoveObjectRoot(context, &_jsSelf); // Unroot jsSelf
+        // Release weakref to self, as the finalizer would; the JS object may outlive us.
+        JSClassID ignored;
+        [(id)JS_GetAnyOpaque(_jsSelf, &ignored) release];
+        JS_SetOpaque(_jsSelf, NULL);
+        JS_FreeValue(context, _jsSelf);
+        _jsSelf = JS_UNDEFINED;
 
         OOJSRelinquishContext(context);
     }
@@ -285,7 +258,7 @@ static JSFunctionSpec sScriptMethods[] = {
 
 - (NSString*)descriptionComponents
 {
-    if (_jsSelf != NULL)
+    if (JS_IsObject(_jsSelf))
         return [super descriptionComponents];
     else
         return @"invalid script";
@@ -294,11 +267,9 @@ static JSFunctionSpec sScriptMethods[] = {
 - (void)javaScriptEngineWillReset:(NSNotification*)notification
 {
     // All scripts become invalid when the JS engine resets.
-    if (_jsSelf != NULL) {
-        _jsSelf = NULL;
-        JSContext* context = OOJSAcquireContext();
-        JS_RemoveObjectRoot(context, &_jsSelf);
-        OOJSRelinquishContext(context);
+    if (JS_IsObject(_jsSelf)) {
+        JS_FreeValue(OOJSAcquireContext(), _jsSelf);
+        _jsSelf = JS_UNDEFINED;
     }
 }
 
@@ -354,30 +325,31 @@ static JSFunctionSpec sScriptMethods[] = {
 {
 }
 
-- (BOOL)callMethod:(jsid)methodID
+- (BOOL)callMethod:(JSAtom)methodID
          inContext:(JSContext*)context
-     withArguments:(jsval*)argv
-             count:(intN)argc
-            result:(jsval*)outResult
+     withArguments:(JSValueConst*)argv
+             count:(int)argc
+            result:(JSValue*)outResult
 {
-    NSParameterAssert(name != NULL && (argv != NULL || argc == 0) && context != NULL && JS_IsInRequest(context));
-    if (_jsSelf == NULL)
+    NSParameterAssert(name != NULL && (argv != NULL || argc == 0) && context != NULL);
+    if (outResult != NULL)
+        *outResult = JS_UNDEFINED;
+    if (!JS_IsObject(_jsSelf))
         return NO;
 
-    JSObject* root = NULL;
     BOOL OK = NO;
-    jsval method;
-    jsval ignoredResult = JSVAL_VOID;
 
-    if (outResult == NULL)
-        outResult = &ignoredResult;
-    OOJSAddGCObjectRoot(context, &root, "OOJSScript method root");
+    JSValue method = JS_GetProperty(context, _jsSelf, methodID);
+    if (EXPECT_NOT(JS_IsException(method))) {
+        OOJSReportPendingException(context);
+        return NO;
+    }
 
-    if (EXPECT(JS_GetMethodById(context, _jsSelf, methodID, &root, &method) && !JSVAL_IS_VOID(method))) {
+    if (EXPECT(!JS_IsUndefined(method))) {
 #ifndef NDEBUG
-        if (JS_IsExceptionPending(context)) {
+        if (JS_HasException(context)) {
             OOLog(@"script.internalBug", @"Exception pending on context before calling method in %s, clearing. This is an internal error, please report it.", __PRETTY_FUNCTION__);
-            JS_ClearPendingException(context);
+            JS_FreeValue(context, JS_GetException(context));
         }
 
         OOLog(@"script.javaScript.call", @"Calling [%@].%@()", [self name], OOStringFromJSID(methodID));
@@ -393,12 +365,18 @@ static JSFunctionSpec sScriptMethods[] = {
 
         // Call the method.
         OOJSStartTimeLimiter();
-        OK = JS_CallFunctionValue(context, _jsSelf, method, argc, argv, outResult);
+        JSValue result = JS_Call(context, method, _jsSelf, argc, argv);
         OOJSStopTimeLimiter();
 
-        if (JS_IsExceptionPending(context)) {
-            JS_ReportPendingException(context);
+        if (JS_IsException(result)) {
+            OOJSReportPendingException(context);
             OK = NO;
+        } else {
+            OK = YES;
+            if (outResult != NULL)
+                *outResult = result;
+            else
+                JS_FreeValue(context, result);
         }
 
         // Pop running scripts stack
@@ -409,49 +387,52 @@ static JSFunctionSpec sScriptMethods[] = {
 #endif
     }
 
-    JS_RemoveObjectRoot(context, &root);
-
+    JS_FreeValue(context, method);
     return OK;
 }
 
-- (id)propertyWithID:(jsid)propID inContext:(JSContext*)context
+- (id)propertyWithID:(JSAtom)propID inContext:(JSContext*)context
 {
-    NSParameterAssert(context != NULL && JS_IsInRequest(context));
-    if (_jsSelf == NULL)
+    NSParameterAssert(context != NULL);
+    if (!JS_IsObject(_jsSelf))
         return nil;
 
-    jsval jsValue = JSVAL_VOID;
-    if (JS_GetPropertyById(context, _jsSelf, propID, &jsValue)) {
-        return OOJSNativeObjectFromJSValue(context, jsValue);
+    JSValue jsValue = JS_GetProperty(context, _jsSelf, propID);
+    if (JS_IsException(jsValue)) {
+        JS_FreeValue(context, JS_GetException(context));
+        return nil;
     }
-    return nil;
+
+    id result = OOJSNativeObjectFromJSValue(context, jsValue);
+    JS_FreeValue(context, jsValue);
+    return result;
 }
 
-- (BOOL)setProperty:(id)value withID:(jsid)propID inContext:(JSContext*)context
+- (BOOL)setProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context
 {
-    NSParameterAssert(context != NULL && JS_IsInRequest(context));
-    if (_jsSelf == NULL)
+    NSParameterAssert(context != NULL);
+    if (!JS_IsObject(_jsSelf))
         return NO;
 
-    jsval jsValue = OOJSValueFromNativeObject(context, value);
-    return JS_SetPropertyById(context, _jsSelf, propID, &jsValue);
+    // JS_SetProperty() takes ownership of the value.
+    return JS_SetProperty(context, _jsSelf, propID, OOJSValueFromNativeObject(context, value)) >= 0;
 }
 
-- (BOOL)defineProperty:(id)value withID:(jsid)propID inContext:(JSContext*)context
+- (BOOL)defineProperty:(id)value withID:(JSAtom)propID inContext:(JSContext*)context
 {
-    NSParameterAssert(context != NULL && JS_IsInRequest(context));
-    if (_jsSelf == NULL)
+    NSParameterAssert(context != NULL);
+    if (!JS_IsObject(_jsSelf))
         return NO;
 
-    jsval jsValue = OOJSValueFromNativeObject(context, value);
-    return JS_DefinePropertyById(context, _jsSelf, propID, jsValue, NULL, NULL, OOJS_PROP_READONLY);
+    // JS_DefinePropertyValue() takes ownership of the value.
+    return JS_DefinePropertyValue(context, _jsSelf, propID, OOJSValueFromNativeObject(context, value), OOJS_PROP_READONLY) >= 0;
 }
 
 - (id)propertyNamed:(NSString*)propName
 {
     if (propName == nil)
         return nil;
-    if (_jsSelf == NULL)
+    if (!JS_IsObject(_jsSelf))
         return nil;
 
     JSContext* context = OOJSAcquireContext();
@@ -465,7 +446,7 @@ static JSFunctionSpec sScriptMethods[] = {
 {
     if (value == nil || propName == nil)
         return NO;
-    if (_jsSelf == NULL)
+    if (!JS_IsObject(_jsSelf))
         return NO;
 
     JSContext* context = OOJSAcquireContext();
@@ -479,7 +460,7 @@ static JSFunctionSpec sScriptMethods[] = {
 {
     if (value == nil || propName == nil)
         return NO;
-    if (_jsSelf == NULL)
+    if (!JS_IsObject(_jsSelf))
         return NO;
 
     JSContext* context = OOJSAcquireContext();
@@ -489,11 +470,11 @@ static JSFunctionSpec sScriptMethods[] = {
     return result;
 }
 
-- (jsval)oo_jsValueInContext:(JSContext*)context
+- (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    if (_jsSelf == NULL)
-        return JSVAL_VOID;
-    return OBJECT_TO_JSVAL(_jsSelf);
+    if (!JS_IsObject(_jsSelf))
+        return JS_UNDEFINED;
+    return JS_DupValue(context, _jsSelf);
 }
 
 + (void)pushScript:(OOJSScript*)script
@@ -596,40 +577,44 @@ static JSFunctionSpec sScriptMethods[] = {
     return properties;
 }
 
+/*	Complain about scripts using the tickle event handler. SpiderMonkey
+        reported this from the class's addProperty hook; QuickJS has no such
+        hook, so check once the script's top level has run (which is where
+        handlers are normally defined).
+*/
+- (void)checkForTickle:(JSContext*)context
+{
+    JSValue tickle = JS_GetPropertyStr(context, _jsSelf, "tickle");
+    if (JS_IsException(tickle)) {
+        JS_FreeValue(context, JS_GetException(context));
+    } else if (!JS_IsUndefined(tickle)) {
+        OOJSReportWarning(context, @"Script %@ appears to use the tickle() event handler, which is no longer supported.", [self name]);
+    }
+    JS_FreeValue(context, tickle);
+}
+
 @end
 
 @implementation OOScript (JavaScriptEvents)
 
-- (BOOL)callMethod:(jsid)methodID
+- (BOOL)callMethod:(JSAtom)methodID
          inContext:(JSContext*)context
-     withArguments:(jsval*)argv
-             count:(intN)argc
-            result:(jsval*)outResult
+     withArguments:(JSValueConst*)argv
+             count:(int)argc
+            result:(JSValue*)outResult
 {
+    if (outResult != NULL)
+        *outResult = JS_UNDEFINED;
     return NO;
 }
 
 @end
 
-void InitOOJSScript(JSContext* context, JSObject* global)
+void InitOOJSScript(JSContext* context, JSValueConst global)
 {
-    sScriptPrototype = JS_InitClass(context, global, NULL, &sScriptClass, OOJSUnconstructableConstruct, 0, NULL, sScriptMethods, NULL, NULL);
-    OOJSRegisterObjectConverter(&sScriptClass, OOJSBasicPrivateObjectConverter);
-}
-
-static JSBool ScriptAddProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
-{
-    // Complain about attempts to set the property tickle.
-    if (JSID_IS_STRING(propID)) {
-        JSString* propName = JSID_TO_STRING(propID);
-        JSBool match;
-        if (JS_StringEqualsAscii(context, propName, "tickle", &match) && match) {
-            OOJSScript* thisScript = OOJSNativeObjectOfClassFromJSObject(context, this, [OOJSScript class]);
-            OOJSReportWarning(context, @"Script %@ appears to use the tickle() event handler, which is no longer supported.", [thisScript name]);
-        }
-    }
-
-    return YES;
+    OOJSRegisterClass(&sScriptClassID, &sScriptClass);
+    OOJSInitClass(context, global, sScriptClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, NULL, 0, sScriptMethods, OOJS_COUNT(sScriptMethods), NULL, 0);
+    OOJSRegisterObjectConverter(sScriptClassID, OOJSBasicPrivateObjectConverter);
 }
 
 static void AddStackToArrayReversed(NSMutableArray* array, RunningStack* stack)
@@ -640,116 +625,293 @@ static void AddStackToArrayReversed(NSMutableArray* array, RunningStack* stack)
     }
 }
 
-static JSScript* LoadScriptWithName(JSContext* context, NSString* path, JSObject* object, JSObject** outScriptObject, NSString** outErrorMessage)
+/*	Compile and run a script file with object as its this and, unless the
+        script opts out with the "use oolite modern" directive, at the head of
+        its scope chain.
+*/
+static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst object, NSString** outErrorMessage)
 {
-#if OO_CACHE_JS_SCRIPTS
-    OOCacheManager* cache = nil;
-#endif
     NSString* fileContents = nil;
-    NSData* data = nil;
-    JSScript* script = NULL;
 
-    NSCParameterAssert(outScriptObject != NULL && outErrorMessage != NULL);
+    NSCParameterAssert(outErrorMessage != NULL);
     *outErrorMessage = nil;
 
-#if OO_CACHE_JS_SCRIPTS
-    // Look for cached compiled script
-    cache = [OOCacheManager sharedCache];
-    data = [cache objectForKey:path inCache:@"compiled JavaScript scripts"];
-    if (data != nil) {
-        script = ScriptWithCompiledData(context, data);
+    fileContents = [NSString stringWithContentsOfUnicodeFile:path];
+    if (fileContents == nil) {
+        *outErrorMessage = @"could not load file";
+        return NO;
     }
-#endif
 
-    if (script == NULL) {
-        fileContents = [NSString stringWithContentsOfUnicodeFile:path];
-
-        if (fileContents != nil) {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-            /* FIXME: this isn't strictly the right test, since strict
-             * mode can be enabled with this string within a function
-             * definition, but it seems unlikely anyone is actually doing
-             * that here. */
-            if ([fileContents rangeOfString:@"\"use strict\";"].location == NSNotFound && [fileContents rangeOfString:@"'use strict';"].location == NSNotFound) {
-                OOStandardsDeprecated([NSString stringWithFormat:@"Script %@ does not \"use strict\";", path]);
-                if (OOEnforceStandards()) {
-                    // prepend it anyway
-                    // TODO: some time after 1.82, make this required
-                    fileContents = [@"\"use strict\";\n" stringByAppendingString:fileContents];
-                }
-            }
+    /* FIXME: this isn't strictly the right test, since strict
+     * mode can be enabled with this string within a function
+     * definition, but it seems unlikely anyone is actually doing
+     * that here. */
+    if ([fileContents rangeOfString:@"\"use strict\";"].location == NSNotFound && [fileContents rangeOfString:@"'use strict';"].location == NSNotFound) {
+        OOStandardsDeprecated([NSString stringWithFormat:@"Script %@ does not \"use strict\";", path]);
+        if (OOEnforceStandards()) {
+            // prepend it anyway (before wrapping: see OOJSWrapScriptSource())
+            // TODO: some time after 1.82, make this required
+            fileContents = [@"\"use strict\";\n" stringByAppendingString:fileContents];
+        }
+    }
 #endif
-            data = [fileContents utf16DataWithBOM:NO];
+
+    /*	Scripts marked with the "use oolite modern" directive (for example by
+            tools/oxp-upgrade) don't rely on SpiderMonkey 1.8.5 scoping, so they
+            run without its emulation: no with(this) and no const rewrite.
+    */
+    BOOL modern = HasModernScopeDirective(fileContents);
+    if (modern) {
+        OOLog(@"script.javaScript.load.modern", @"Script %@ uses modern scoping.", path);
+        NSString* lineEnd = [fileContents hasSuffix:@"\n"] ? @"" : @"\n";
+        fileContents = [NSString stringWithFormat:@"(function(){%@%@})", fileContents, lineEnd];
+    } else {
+        fileContents = [NSString stringWithFormat:@"(function(){%@})", OOJSWrapScriptSource(RewriteLegacyConst(context, fileContents))];
+    }
+
+    /*	QuickJS runs compiled (and cached) code only with the global object as
+            its this (JS_EvalFunction()), so the wrapped script is compiled as a
+            function expression, which is then called with the script object as
+            this. The extra prefix is on the first line, so line numbers are
+            unchanged.
+    */
+    NSString* wrapped = fileContents;
+    NSData* source = [wrapped dataUsingEncoding:NSUTF8StringEncoding];
+
+    JSValue compiled = JS_UNDEFINED;
+#if OO_CACHE_JS_SCRIPTS
+    compiled = CachedCompiledScript(context, path, source);
+#endif
+
+    if (JS_IsUndefined(compiled)) {
+        NSMutableData* terminated = [NSMutableData dataWithData:source];
+        [terminated appendBytes:"" length:1]; // JS_Eval requires a terminating NUL.
+
+        compiled = JS_Eval(context, [terminated bytes], [source length], [path UTF8String], JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY);
+        if (JS_IsException(compiled)) {
+            OOJSReportPendingException(context);
+            *outErrorMessage = @"compilation failed";
+            return NO;
         }
-        if (data == nil)
-            *outErrorMessage = @"could not load file";
-        else {
-            script = JS_CompileUCScript(context, object, [data bytes], [data length] / sizeof(unichar), [path UTF8String], 1);
-            if (script != NULL)
-                *outScriptObject = JS_NewScriptObject(context, script);
-            else
-                *outErrorMessage = @"compilation failed";
-        }
+#if OO_CACHE_JS_SCRIPTS
+        CacheCompiledScript(context, path, source, compiled);
+#endif
+    }
+
+    OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
+    JSValue result;
+    JSValue function = JS_EvalFunction(context, compiled); // Takes ownership of compiled.
+    if (JS_IsException(function)) {
+        result = function;
+    } else {
+        result = JS_Call(context, function, object, 0, NULL);
+        JS_FreeValue(context, function);
+    }
+    OOJSStopTimeLimiter();
+
+    if (JS_IsException(result)) {
+        OOJSReportPendingException(context);
+        *outErrorMessage = @"could not run script";
+        return NO;
+    }
+
+    JS_FreeValue(context, result);
+    return YES;
+}
 
 #if OO_CACHE_JS_SCRIPTS
-        if (script != NULL) {
-            // Write compiled script to cache
-            data = CompiledScriptData(context, script);
-            [cache setObject:data forKey:path inCache:@"compiled JavaScript scripts"];
-        }
-#endif
-    }
+/*	Compiled scripts are cached by path, like the SpiderMonkey version's XDR
+        data, but under a different cache name. Each entry also records a hash of
+        the exact text that was compiled (after the const rewrite and wrapping),
+        the QuickJS version and the entry format, and is only used if all three
+        match. As before, the whole cache is cleared when the Oolite version or
+        the search paths change (see OOCacheManager and ResourceManager).
+*/
+static NSString* const kCompiledScriptCache = @"compiled QuickJS scripts";
+static NSString* const kCompiledScriptKeyHash = @"source hash";
+static NSString* const kCompiledScriptKeyEngine = @"engine";
+static NSString* const kCompiledScriptKeyFormat = @"format";
+static NSString* const kCompiledScriptKeyBytecode = @"bytecode";
+enum {
+    kCompiledScriptFormat = 1 // Increment when the compiled text or the way it is run changes.
+};
 
-    return script;
+// 64-bit FNV-1a and length. Only needs to detect changed source, not resist tampering.
+static NSString* SourceHash(NSData* source)
+{
+    const uint8_t* bytes = [source bytes];
+    NSUInteger length = [source length];
+    uint64_t hash = 0xcbf29ce484222325ULL;
+    for (NSUInteger i = 0; i < length; i++) {
+        hash ^= bytes[i];
+        hash *= 0x100000001b3ULL;
+    }
+    return [NSString stringWithFormat:@"%016llx:%lu", (unsigned long long)hash, (unsigned long)length];
 }
 
-#if OO_CACHE_JS_SCRIPTS
-static NSData* CompiledScriptData(JSContext* context, JSScript* script)
+// Owned compiled script from the cache, or JS_UNDEFINED if there is no usable entry.
+static JSValue CachedCompiledScript(JSContext* context, NSString* path, NSData* source)
 {
-    JSXDRState* xdr = NULL;
-    NSData* result = nil;
-    uint32 length;
-    void* bytes = NULL;
+    NSDictionary* entry = [[OOCacheManager sharedCache] objectForKey:path inCache:kCompiledScriptCache];
+    if (![entry isKindOfClass:[NSDictionary class]])
+        return JS_UNDEFINED;
 
-    xdr = JS_XDRNewMem(context, JSXDR_ENCODE);
-    if (xdr != NULL) {
-        if (JS_XDRScript(xdr, &script)) {
-            bytes = JS_XDRMemGetData(xdr, &length);
-            if (bytes != NULL) {
-                result = [NSData dataWithBytes:bytes length:length];
+    NSData* bytecode = [entry objectForKey:kCompiledScriptKeyBytecode];
+    if (![bytecode isKindOfClass:[NSData class]]
+        || [entry oo_unsignedIntForKey:kCompiledScriptKeyFormat] != kCompiledScriptFormat
+        || ![[entry oo_stringForKey:kCompiledScriptKeyEngine] isEqualToString:[NSString stringWithUTF8String:JS_GetVersion()]]
+        || ![[entry oo_stringForKey:kCompiledScriptKeyHash] isEqualToString:SourceHash(source)]) {
+        OOLog(@"script.javaScript.cache.stale", @"Compiled script cache entry for %@ is out of date.", path);
+        return JS_UNDEFINED;
+    }
+
+    // Trusted input: the cache is written only by CacheCompiledScript().
+    JSValue compiled = JS_ReadObject(context, [bytecode bytes], [bytecode length], JS_READ_OBJ_BYTECODE);
+    if (JS_IsException(compiled)) {
+        JS_FreeValue(context, JS_GetException(context));
+        OOLog(@"script.javaScript.cache.readFailed", @"Could not read compiled script cache entry for %@; compiling instead.", path);
+        return JS_UNDEFINED;
+    }
+
+    OOLog(@"script.javaScript.cache.load", @"Loaded compiled script %@ from cache.", path);
+    return compiled;
+}
+
+static void CacheCompiledScript(JSContext* context, NSString* path, NSData* source, JSValueConst compiled)
+{
+    size_t length = 0;
+    uint8_t* bytes = JS_WriteObject(context, &length, compiled, JS_WRITE_OBJ_BYTECODE);
+    if (bytes == NULL) {
+        if (JS_HasException(context))
+            JS_FreeValue(context, JS_GetException(context));
+        return;
+    }
+
+    NSData* bytecode = [NSData dataWithBytes:bytes length:length];
+    js_free(context, bytes);
+
+    NSDictionary* entry = [NSDictionary dictionaryWithObjectsAndKeys:
+            bytecode, kCompiledScriptKeyBytecode,
+        SourceHash(source), kCompiledScriptKeyHash,
+        [NSString stringWithUTF8String:JS_GetVersion()], kCompiledScriptKeyEngine,
+        [NSNumber numberWithUnsignedInt:kCompiledScriptFormat], kCompiledScriptKeyFormat,
+        nil];
+
+    [[OOCacheManager sharedCache] setObject:entry forKey:path inCache:kCompiledScriptCache];
+    OOLog(@"script.javaScript.cache.store", @"Cached compiled script %@.", path);
+}
+#endif
+
+/*	Whether the script's directive prologue (the string literal statements
+        at its start, like "use strict") includes "use oolite modern".
+*/
+static BOOL HasModernScopeDirective(NSString* source)
+{
+    NSUInteger length = [source length];
+    NSUInteger i = 0;
+    if (length > 0 && [source characterAtIndex:0] == 0xFEFF)
+        i = 1;
+
+    for (;;) {
+        // Skip white space and comments.
+        BOOL skipped = YES;
+        while (skipped && i < length) {
+            skipped = NO;
+            unichar c = [source characterAtIndex:i];
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == 0xA0 || c == 0xFEFF) {
+                i++;
+                skipped = YES;
+            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '/') {
+                while (i < length && [source characterAtIndex:i] != '\n')
+                    i++;
+                skipped = YES;
+            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '*') {
+                NSRange end = [source rangeOfString:@"*/" options:0 range:NSMakeRange(i + 2, length - i - 2)];
+                if (end.location == NSNotFound)
+                    return NO;
+                i = end.location + 2;
+                skipped = YES;
             }
         }
-        JS_XDRDestroy(xdr);
-    }
+        if (i >= length)
+            return NO;
 
-    return result;
+        // A directive: a string literal, followed by ; or a line break.
+        unichar quote = [source characterAtIndex:i];
+        if (quote != '"' && quote != '\'')
+            return NO;
+        NSUInteger start = ++i;
+        BOOL escaped = NO;
+        while (i < length && [source characterAtIndex:i] != quote) {
+            unichar c = [source characterAtIndex:i];
+            if (c == '\\') {
+                escaped = YES;
+                i++;
+            }
+            if (c == '\n')
+                return NO;
+            i++;
+        }
+        if (i >= length)
+            return NO;
+        NSString* directive = [source substringWithRange:NSMakeRange(start, i - start)];
+        i++;
+
+        BOOL lineBreak = NO;
+        while (i < length) {
+            unichar c = [source characterAtIndex:i];
+            if (c == '\n') {
+                lineBreak = YES;
+            } else if (c == '/' && i + 1 < length && [source characterAtIndex:i + 1] == '/') {
+                while (i < length && [source characterAtIndex:i] != '\n')
+                    i++;
+                continue;
+            } else if (c != ' ' && c != '\t' && c != '\r') {
+                break;
+            }
+            i++;
+        }
+        if (i < length && [source characterAtIndex:i] == ';')
+            i++;
+        else if (!lineBreak && i < length && [source characterAtIndex:i] != '}')
+            return NO; // Part of a larger expression, so not a directive.
+
+        if (!escaped && [directive isEqualToString:@"use oolite modern"])
+            return YES;
+    }
 }
 
-static JSScript* ScriptWithCompiledData(JSContext* context, NSData* data)
+/*	In SpiderMonkey 1.8.5, const declarations were function-scoped and usable
+        before the declaration, like var; under ES2015 rules they are
+        block-scoped with a temporal dead zone, which breaks some OXPs. The
+        compatibility script's __ooliteRewriteLegacyConst() replaces the const
+        keyword with var (keeping line and column positions).
+*/
+static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
 {
-    JSXDRState* xdr = NULL;
-    JSScript* result = NULL;
+    if ([source rangeOfString:@"const"].location == NSNotFound)
+        return source;
 
-    if (data == nil)
-        return NULL;
+    JSValue global = JS_GetGlobalObject(context);
+    JSValue rewriter = JS_GetPropertyStr(context, global, "__ooliteRewriteLegacyConst");
+    NSString* result = source;
 
-    xdr = JS_XDRNewMem(context, JSXDR_DECODE);
-    if (xdr != NULL) {
-        NSUInteger length = [data length];
-        if (EXPECT_NOT(length > UINT32_MAX))
-            return NULL;
-
-        JS_XDRMemSetData(xdr, (void*)[data bytes], (uint32_t)length);
-        if (!JS_XDRScript(xdr, &result))
-            result = NULL;
-
-        JS_XDRMemSetData(xdr, NULL, 0); // Don't let it be freed by XDRDestroy
-        JS_XDRDestroy(xdr);
+    if (JS_IsFunction(context, rewriter)) {
+        JSValue argument = OOJSValueFromNativeObject(context, source);
+        JSValue rewritten = JS_Call(context, rewriter, global, 1, (JSValueConst*)&argument);
+        if (JS_IsException(rewritten))
+            OOJSReportPendingException(context);
+        else
+            result = OOStringFromJSValue(context, rewritten) ?: source;
+        JS_FreeValue(context, rewritten);
+        JS_FreeValue(context, argument);
     }
 
+    JS_FreeValue(context, rewriter);
+    JS_FreeValue(context, global);
     return result;
 }
-#endif
 
 static NSString* StrippedName(NSString* string)
 {

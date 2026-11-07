@@ -3,7 +3,9 @@
 oolite_sources += files(
     'EntityOOJavaScriptExtensions.m',
     'OOConstToJSString.m',
+    'OOJavaScriptEngine.m',
     'OOJSCall.m',
+    'OOJSClasses.m',
     'OOJSClock.m',
     'OOJSDock.m',
     'OOJSEngineDebuggerHelpers.m',
@@ -43,7 +45,6 @@ oolite_sources += files(
     'OOJSWaypoint.m',
     'OOJSWorldScripts.m',
     'OOJSWormhole.m',
-    'OOJavaScriptEngine.m',
     'OOLegacyScriptWhitelist.m',
     'OOPListScript.m',
     'OOScript.m',
@@ -51,4 +52,3 @@ oolite_sources += files(
 )
 
 oolite_includes += include_directories('.')
-
