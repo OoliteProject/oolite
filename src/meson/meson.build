@@ -1,5 +1,6 @@
 cc = meson.get_compiler('c')
 ccid = cc.get_id()
+use_quickjs = get_option('js_engine') == 'quickjs'
 
 if (host_os == 'windows' or host_os == 'cygwin')
     subdir('windows')
@@ -11,6 +12,17 @@ endif
 
 if ccid == 'gcc'
     oolite_override_options += 'c_std=gnu99'
+endif
+
+if use_quickjs
+    oolite_dependencies += dependency(
+        'quickjs-ng',
+        version: '>=0.17.0',
+        # No LTO for QuickJS: with clang on Windows (MSYS2), the static library's
+        # LTO objects are archived without a symbol index, so linking fails.
+        default_options: ['default_library=static', 'libc=false', 'b_lto=false'],
+    )
+    add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 endif
 
 if get_option('b_lto')

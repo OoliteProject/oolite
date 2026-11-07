@@ -1235,8 +1235,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void)doScriptEvent:(OOJSPropID)message withArgument:(id)argument1 andArgument:(id)argument2;
 - (void)doScriptEvent:(OOJSPropID)message withArguments:(NSArray*)arguments;
 // argv is borrowed: with QuickJS, the caller remains responsible for freeing the values.
+#if OOJS_QUICKJS
+- (void)doScriptEvent:(OOJSPropID)message withArguments:(JSValue*)argv count:(int)argc;
+- (void)doScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(JSValue*)argv count:(int)argc;
+#else
 - (void)doScriptEvent:(OOJSPropID)message withArguments:(jsval*)argv count:(int)argc;
 - (void)doScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(jsval*)argv count:(int)argc;
+#endif
 
 /*	Convenience to send an event with raw JS values, for example:
         ShipScriptEvent(context, ship, "doSomething", OOJSValueFromDouble(context, 42));
