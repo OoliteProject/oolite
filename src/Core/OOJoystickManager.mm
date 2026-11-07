@@ -412,7 +412,7 @@ static id sSharedStickHandler = nil;
                     function:(int)function
                        stick:(int)stickNum
 {
-    NSParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
+    OOParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
 
     int i, j;
     for (i = 0; i < MAX_BUTTONS; i++) {
