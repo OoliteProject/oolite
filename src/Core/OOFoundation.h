@@ -37,11 +37,16 @@ MA 02110-1301, USA.
 #include <math.h>
 #include <stdbool.h>
 
-/*	-sortedArrayUsingFunction: and friends take NSInteger (*)(id, id, void*). Oolite's sort
-        functions return NSComparisonResult, which has the same size and calling convention but is
-        a distinct enum type that C++ will not convert implicitly.
+/*	Apple's -sortedArrayUsingFunction: and friends take NSInteger (*)(id, id, void*). Oolite's
+        sort functions return NSComparisonResult, which has the same size and calling convention
+        but is a distinct enum type that C++ will not convert implicitly. GNUstep declares them
+        with NSComparisonResult, so there the functions are passed as they are.
 */
+#ifdef GNUSTEP_BASE_LIBRARY
+#define OOSortFunction(function) (function)
+#else
 #define OOSortFunction(function) ((NSInteger (*)(id, id, void*))(function))
+#endif
 
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
