@@ -265,7 +265,7 @@ void OOSDLJoystickManager::decodeButtonEvent(SDL_JoyButtonEvent* evt)
         butstate[function] = bs;
     }
     if (guifunction >= 0) {
-        base->butstate[guifunction] = bs;
+        butstate[guifunction] = bs;
     }
 }
 
