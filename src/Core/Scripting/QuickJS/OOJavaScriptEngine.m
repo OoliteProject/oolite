@@ -712,8 +712,8 @@ static void LogProblem(JSContext* context, NSString* severity, NSString* errorNa
     NSString* highlight = [severity isEqualToString:@"warning"] ? @"-----" : @"*****";
     OOJavaScriptEngine* jsEng = [OOJavaScriptEngine sharedEngine];
 
-    // Skip the rest if this is a warning being ignored.
-    if (!OOLogWillDisplayMessagesInClass(messageClass))
+    // Skip the rest if this is a warning being ignored. Errors and exceptions always go to the debug monitor.
+    if ([severity isEqualToString:@"warning"] && !OOLogWillDisplayMessagesInClass(messageClass))
         return;
 
     // avoid windows DEP exceptions!
