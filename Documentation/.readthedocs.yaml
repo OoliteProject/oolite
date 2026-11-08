@@ -7,10 +7,6 @@ build:
     - doxygen
     - graphviz
     - jq
-    - libharfbuzz0b
-    - libpango-1.0-0
-    - libpangoft2-1.0-0
-    - shared-mime-info
   jobs:
     pre_build:
       - ./Documentation/build_readthedocs.sh

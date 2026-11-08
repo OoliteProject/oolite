@@ -43,6 +43,9 @@ option('dev_release', type: 'boolean', value: false,
 
 option('strip_bin', type: 'boolean', value: false, description: 'Enable stripping')
 
+option('docs', type: 'feature', value: 'auto',
+       description: 'Build the PDF documentation (needs typst; auto builds it only if typst is found)')
+
 # Windows Specific Customizations
 option('pdb', type: 'boolean', value: false,
        description: 'Windows Clang builds only: Generate native .pdb debug symbol files')

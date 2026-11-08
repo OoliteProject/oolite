@@ -16,9 +16,16 @@ run_script() {
 
     source ./build_documentation_fn.sh
 
-    if ! build_documentation "NO"; then
+    if ! build_documentation; then
         popd
         return 1
+    fi
+
+    # mkdocs goes in the .venv made by install_mkdocs, if there is one
+    if [[ -f "../.venv/Scripts/activate" ]]; then
+        source "../.venv/Scripts/activate"
+    elif [[ -f "../.venv/bin/activate" ]]; then
+        source "../.venv/bin/activate"
     fi
 
     cd ../build/documentation
