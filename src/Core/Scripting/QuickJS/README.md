@@ -137,7 +137,11 @@ numbers don't change. Cache activity is logged under `script.javaScript.cache`
   remembered but has no effect, `dumpNamedRoots()` is gone, `dumpHeap()`
   writes QuickJS's memory usage summary, and console error reports have no
   "Error" or "strict mode" variants (QuickJS reports every error as an
-  exception).
+  exception). Locations in code typed into the console are reported like any
+  other location, not as `<console input>`.
+- Debug builds: a `debugger;` statement no longer logs a stack dump (QuickJS
+  has no debugger hook), and the `OO_DEBUG` vector and quaternion conversion
+  counters (`reportJSVectorStatistics` and friends) are gone.
 
 - Assigning to a read-only property in strict code throws `TypeError: no setter
   for property` (SpiderMonkey quoted the expression).
