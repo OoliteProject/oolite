@@ -324,16 +324,18 @@ static std::string GetCPUDescription() {
 }
 
 static std::optional<std::string> GetSysCtlString(const char* name) {
-  char* buffer = nullptr;
   size_t size = 0;
 
   // Get size
   sysctlbyname(name, nullptr, &size, nullptr, 0);
   if (size == 0) return std::nullopt;
 
-  buffer = static_cast<char*>(alloca(size));
-  if (sysctlbyname(name, buffer, &size, nullptr, 0) != 0) return std::nullopt;
-  return std::string(buffer);
+  std::string buffer(size, '\0');
+  if (sysctlbyname(name, buffer.data(), &size, nullptr, 0) != 0)
+    return std::nullopt;
+  if (const size_t end = buffer.find('\0'); end != std::string::npos)
+    buffer.resize(end);
+  return buffer;
 }
 
 static unsigned long long GetSysCtlInt(const char* name) {
