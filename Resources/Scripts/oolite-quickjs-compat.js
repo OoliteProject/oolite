@@ -288,8 +288,9 @@ MA 02110-1301, USA.
 		return out.join("");
 	}
 
-	// Called by the engine on every script before it is compiled (OOJSScript.m).
-	define(global, "__ooliteRewriteLegacyConst", oojsRewriteLegacyConst);
+	// Called by the engine on every script before it is compiled (OOJSScript.m). Read-only and
+	// permanent, so that one OXP's script cannot change how every later script is compiled.
+	Object.defineProperty(global, "__ooliteRewriteLegacyConst", { value: oojsRewriteLegacyConst, writable: false, configurable: false, enumerable: false });
 
 	// SpiderMonkey returned decompiled source; QuickJS keeps the original source text.
 	define(Function.prototype, "toSource", function toSource() { return Function.prototype.toString.call(this); });
