@@ -1568,6 +1568,6 @@ extern Universe* gSharedUniverse;
 @end
 
 // The look-ups' messages to UNIVERSE (Universe+ObjCBridge.h).
-std::optional<std::string> OOUniverseDescriptionForKey(const std::string& key) { return UNIVERSE != nil ? [UNIVERSE cxx_descriptionForKey:key] : std::nullopt; } // nil: a C++ result from a nil receiver is garbage
+std::optional<std::string> OOUniverseDescriptionForKey(const std::string& key) { return [UNIVERSE cxx_descriptionForKey:key]; }
 const oo::PList* OOUniverseDescriptions() { return [UNIVERSE cxx_descriptions]; }
-std::optional<std::string> OOUniverseSoundNameForCustomSoundKey(const std::string& key) { return UNIVERSE != nil ? [UNIVERSE soundNameForCustomSoundKey:key] : std::nullopt; }
+std::optional<std::string> OOUniverseSoundNameForCustomSoundKey(const std::string& key) { return [UNIVERSE soundNameForCustomSoundKey:key]; }
