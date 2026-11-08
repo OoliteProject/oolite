@@ -1981,12 +1981,8 @@ void HeadUpDisplay::drawSecondaryTargetReticle(const oo::PList& info) {
           (player != nullptr ? player->targetMemory()
                              : std::vector<oo::WeakRef<Entity>>())
               .at(i);  // an empty slot (was OONull) is an empty ref
-      // isProxy = weakref ; not = OONull (in this case...)
-      // can't use isKindOfClass because that throws
-      // OOInvalidArgumentException when called on a weakref
-      // with a dropped object.
-      // TODO: fix the weak reference proxy so isKindOfClass works (moot for
-      // oo::WeakRef)
+      // An empty slot is an empty reference; a set one whose entity has gone
+      // gives null from oo::LiveEntity below.
       if (sec_ref != oo::WeakRef<Entity>())  // a weak reference (-isProxy), not
                                              // an empty slot
       {
