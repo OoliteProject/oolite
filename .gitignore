@@ -25,9 +25,6 @@ deps/libpng
 build/
 /compile_commands.json
 doxygen/
-libobjc2/
-libs-base/
-tools-make/
 tests/__pycache__
 
 # Debug output

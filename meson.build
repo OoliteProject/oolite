@@ -99,7 +99,6 @@ if get_option('dev_release')
     )
 endif
 
-gnustep_folder = ''  # Not needed for Windows
 # dependencies, compiler/linker flags and build
 subdir('src')
 

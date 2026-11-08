@@ -88,7 +88,6 @@ launch_guarded() {
         printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_USERADDONSDIR" "User-specified directory for OXPs" "\$GAME_DATA/AddOns"
         printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_ADDONSEXTRACTDIR" "Directory for extracted OXPs" "\${OO_USERADDONSDIR:-\$GAME_DATA/AddOns}"
         printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_ADDITIONALADDONSDIRS" "List of extra addon search paths" ""
-        printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_GNUSTEPDIR" "GNUstep directory" "\$GAME_DATA/.GNUstep"
         printf "${G}%-25s${N} | %-40s | %-40s\n" "OO_GNUSTEPDEFAULTSDIR" "User preferences defaults file location" "\$GAME_DATA"
         echo ""
         echo ""
@@ -137,19 +136,12 @@ find_exe_resources_dirs() {
 }
 
 
-make_gnustepconf_template() {
-    BASEDIR="$(readlink -f "$BASEDIR")"
-    export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
-    sed -e "s|@BASEDIR@|$BASEDIR|g" "$OO_RESOURCESDIR/GNUstep.conf.template" > "$GNUSTEP_CONFIG_FILE"
-}
-
 # Check if we are running inside a Flatpak
 if [[ -n "$FLATPAK_ID" ]]; then
     BASEDIR="/app"
     OO_EXEDIR="$(readlink -f "$BASEDIR/bin")"
     OO_RESOURCESDIR="$(readlink -f "$BASEDIR/share/oolite/Resources")"
     GAME_DATA="$(readlink -f "$HOME/.var/app/$FLATPAK_ID")"
-    make_gnustepconf_template
 
 # Check if we are running inside an AppImage
 elif [[ -n "$APPIMAGE" ]]; then
@@ -167,7 +159,6 @@ elif [[ -n "$APPIMAGE" ]]; then
         HERE="$(dirname "$(readlink -f "$APPIMAGE")")"
         GAME_DATA="$HERE/GameData"
     fi
-    make_gnustepconf_template
 else
     # Check if OO_DIRTYPE set
     if [[ -n "$OO_DIRTYPE" ]]; then
@@ -181,10 +172,6 @@ else
         GAME_DATA="$HERE/GameData"
     fi
     find_exe_resources_dirs
-    export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
-    if [[ -f "$OO_RESOURCESDIR/GNUstep.conf.orig" ]]; then
-        cp "$OO_RESOURCESDIR/GNUstep.conf.orig" "$GNUSTEP_CONFIG_FILE"
-    fi
 fi
 
 mkdir -p "$GAME_DATA"
@@ -212,25 +199,7 @@ if [ -n "$OO_ADDITIONALADDONSDIRS" ]; then
     (IFS=,; mkdir -p $OO_ADDITIONALADDONSDIRS)
 fi
 
-OO_GNUSTEPDIR="$(readlink -f "${OO_GNUSTEPDIR:-$GAME_DATA/.GNUstep}")"
-mkdir -p "$OO_GNUSTEPDIR"
 OO_GNUSTEPDEFAULTSDIR="$(readlink -f "${OO_GNUSTEPDEFAULTSDIR:-${GAME_DATA}}")"
 mkdir -p "$OO_GNUSTEPDEFAULTSDIR"
 
-echo "" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_CONFIG_FILE=$GNUSTEP_CONFIG_FILE" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_APPS=$OO_GNUSTEPDIR/Applications" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_ADMIN_APPS=$OO_GNUSTEPDIR/Applications/Admin" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_WEB_APPS=$OO_GNUSTEPDIR/WebApplications" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_TOOLS=$OO_GNUSTEPDIR/Tools" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_ADMIN_TOOLS=$OO_GNUSTEPDIR/Tools/Admin" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_LIBRARY=$OO_GNUSTEPDIR/Library" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_HEADERS=$OO_GNUSTEPDIR/Library/Headers" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_LIBRARIES=$OO_GNUSTEPDIR/Library/Libraries" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_DOC=$OO_GNUSTEPDIR/Library/Documentation" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_DOC_MAN=$OO_GNUSTEPDIR/Library/Documentation/man" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DIR_DOC_INFO=$OO_GNUSTEPDIR/Library/Documentation/info" >> "$GNUSTEP_CONFIG_FILE"
-echo "GNUSTEP_USER_DEFAULTS_DIR=$OO_GNUSTEPDEFAULTSDIR" >> "$GNUSTEP_CONFIG_FILE"
-
 launch_guarded "$@"
-rm "$GNUSTEP_CONFIG_FILE"

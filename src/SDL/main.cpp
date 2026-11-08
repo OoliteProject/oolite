@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 #define TABS3 "\t\t\t"
 #define TABS4 ""
 
-  // Detect current working directory and set up GNUstep environment variables
+  // Find the executable's directory, to put it first on PATH
   // (32767 characters is the longest path Windows allows).
   std::string currentWorkingDir(32768, '\0');
   DWORD bufferSize = static_cast<DWORD>(currentWorkingDir.size());
@@ -133,12 +133,7 @@ int main(int argc, char* argv[]) {
     finalPath += systemPath;
   }
 
-  SDL_setenv_unsafe("GNUSTEP_PATH_HANDLING", "windows", true);
   SDL_setenv_unsafe(pathEnvVar, finalPath.c_str(), true);
-  SDL_setenv_unsafe("GNUSTEP_SYSTEM_ROOT", currentWorkingDir.c_str(), true);
-  SDL_setenv_unsafe("GNUSTEP_LOCAL_ROOT", currentWorkingDir.c_str(), true);
-  SDL_setenv_unsafe("GNUSTEP_NETWORK_ROOT", currentWorkingDir.c_str(), true);
-  SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir.c_str(), true);
 #if OO_GAME_DATA_TO_USER_FOLDER
   // The path is built in a string of its own; LOCALAPPDATA is the
   // environment's buffer and must not be appended to.

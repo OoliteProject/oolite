@@ -57,7 +57,6 @@ post_build_args = [
     version_vars.get('ver_quad'),
     version_vars.get('ver_githash'),
     version_vars.get('buildtime'),
-    gnustep_folder,
     stamp_file,
     build_docs ? 'yes' : 'no',
 ]
