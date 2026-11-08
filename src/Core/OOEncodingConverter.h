@@ -30,8 +30,6 @@ SOFTWARE.
 
 #pragma once
 
-#ifndef OOENCODINGCONVERTER_EXCLUDE  // For the convenience of fonttexgen
-
 #include "OOFoundation.h"
 #include "oofnd/Encoding.hpp"
 #include "oofnd/PList.hpp"
@@ -72,8 +70,6 @@ class OOEncodingConverter : public oo::RefCounted {
   std::vector<std::pair<std::string, std::string>> _substitutions =
       {};  // in the order they are applied
 };
-
-#endif  // OOENCODINGCONVERTER_EXCLUDE
 
 /*
         There are a variety of overlapping naming schemes for text encoding.

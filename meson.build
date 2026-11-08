@@ -137,6 +137,10 @@ if not get_option('deployment_release') and host_machine.system() == 'windows'
     subdir('tests/unit/core')
 endif
 
+# tools/icosmesh generates src/Core/OOPlanetData.{cpp,h}; its test checks the checked-in files are
+# what it generates (meson test --suite tools). Plain C++, so on every platform.
+subdir('tools/icosmesh')
+
 # Every game and test header compiles on its own, so include order never matters and clang-format
 # may sort includes freely (meson test --suite headers). Windows-only like the unit tests above,
 # whose headers it also checks; it needs the finished build's dependency log, which meson test has.
