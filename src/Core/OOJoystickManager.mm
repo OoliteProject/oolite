@@ -446,6 +446,11 @@ void OOJoystickManager::clearMappings()
 {
     memset(axismap, STICK_NOFUNCTION, sizeof axismap);
     memset(buttonmap, STICK_NOFUNCTION, sizeof buttonmap);
+    // Upstream #783 omits this reset, leaving the GUI table all 0
+    // (BUTTON_INCTHRUST): every button without a GUI function then drove
+    // BUTTON_INCTHRUST, and a save and reload bound BUTTON_INCTHRUST to the last
+    // stick's last button, unbinding the player's increase-thrust button.
+    memset(guibuttonmap, STICK_NOFUNCTION, sizeof guibuttonmap);
 }
 
 void OOJoystickManager::clearStickStates()
