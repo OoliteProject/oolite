@@ -669,7 +669,8 @@ static BOOL GetLocationFromStack(NSString* stack, NSString** outFile, unsigned* 
             continue;
         frame = [frame substringFromIndex:3];
 
-        NSRange open = [frame rangeOfString:@"(" options:NSBackwardsSearch];
+        // The first "(" opens the location: the path may itself contain parentheses ("Program Files (x86)").
+        NSRange open = [frame rangeOfString:@"("];
         if (open.location != NSNotFound && [frame hasSuffix:@")"]) {
             frame = [frame substringWithRange:NSMakeRange(open.location + 1, [frame length] - open.location - 2)];
         }
