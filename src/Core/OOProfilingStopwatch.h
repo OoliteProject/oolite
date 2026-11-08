@@ -83,8 +83,8 @@ typedef uint64_t OOHighResTimeValue;
 // DWORD and timeGetTime(), from their own headers: <windows.h> here would bring
 // in the old <winsock.h> ahead of a later <winsock2.h>.
 #include <windef.h>
-
-#include <timeapi.h>  // needs windef.h's types first
+// timeapi.h needs windef.h's types first.
+#include <timeapi.h>
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue;  // Rolls over once every 50 days, but we can
                                    // live with that.
