@@ -1402,9 +1402,9 @@ OO_TEST(stickMapperHardwareAndGuiDicts)
 	{
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
-		OO_CHECK(player->hwToString(HW_AXIS) == "axis");
-		OO_CHECK(player->hwToString(HW_BUTTON) == "button");
-		OO_CHECK(player->hwToString(HW_AXIS | HW_BUTTON) == "axis/button");
+		OO_CHECK(player->hwToString(HW_AXIS) == OO_DESC("stickmapper-axis"));
+		OO_CHECK(player->hwToString(HW_BUTTON) == OO_DESC("stickmapper-button"));
+		OO_CHECK(player->hwToString(HW_AXIS | HW_BUTTON) == OO_DESC("stickmapper-axis-button"));
 		const oo::PList dict = player->makeStickGuiDict("Roll", HW_AXIS, 3, -1);
 		OO_CHECK(dict.get<std::string>(std::string(KEY_GUIDESC)) == "Roll");
 		OO_CHECK(dict.get<long long>(std::string(KEY_ALLOWABLE)) == HW_AXIS && dict.get<long long>(std::string(KEY_AXISFN)) == 3);
