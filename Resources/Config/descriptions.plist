@@ -1264,6 +1264,7 @@
 	"oolite-keydesc-key_gui_chart_screens"		= "Galactic chart screen";
 	"oolite-keydesc-key_gui_system_data"		= "Planet info screen";
 	"oolite-keydesc-key_gui_market"				= "Market screen";
+	"oolite-keydesc-key_gui_keybindings"		= "Key bindings screen";
 
 	"oolite-keydesc-key_gui_arrow_left"			= "GUI Left";
 	"oolite-keydesc-key_gui_arrow_right"		= "GUI Right";
@@ -1394,6 +1395,8 @@
 	"oolite-keydesc-key_debug_off"				= "Turn off debug messages";
 
 	"oolite-keyconfig-header"					= "Configure Keyboard";
+	"oolite-keybindings-title"					= "Key Bindings";
+	"oolite-keybindings-page-%d-of-%d"			= "Page %d of %d - left/right or '%@' for more";
 	"oolite-keyconfig-keyboard"					= "Current keyboard layout";
 	"oolite-keyconfig-keyboard-info"			= "Select your current keyboard layout from the available options.";
 	"oolite-keyconfig-validation-error"			= "Key conflicts have been detected!";

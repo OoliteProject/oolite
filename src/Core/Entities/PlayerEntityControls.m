@@ -136,6 +136,7 @@ static BOOL switching_status_screens;
 // static BOOL				switching_market_screens;
 static BOOL switching_equipship_screens;
 static BOOL switching_interface_screens;
+static BOOL switching_keybindings_screens;
 static BOOL zoom_pressed;
 static BOOL customView_pressed;
 static BOOL weaponsOnlineToggle_pressed;
@@ -178,6 +179,7 @@ static NSTimeInterval time_last_frame;
 - (void)pollViewControls;
 - (void)pollGuiScreenControls;
 - (void)pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
+- (void)pollKeyBindingsScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
 - (void)pollMarketScreenControls;
 - (void)handleUndockControl;
 - (void)pollGameOverControls:(double)delta_t;
@@ -378,6 +380,7 @@ static NSTimeInterval time_last_frame;
     LOAD_KEY_SETTING2(n_key_gui_chart_screens, '6', NO, NO, gvFunctionKey6, NO, NO);
     LOAD_KEY_SETTING2(n_key_gui_system_data, '7', NO, NO, gvFunctionKey7, NO, NO);
     LOAD_KEY_SETTING2(n_key_gui_market, '8', NO, NO, gvFunctionKey8, NO, NO);
+    LOAD_KEY_SETTING2(n_key_gui_keybindings, '9', NO, NO, 0, NO, NO);
 
     LOAD_KEY_SETTING2(n_key_gui_arrow_left, gvArrowKeyLeft, NO, NO, 0, NO, NO);
     LOAD_KEY_SETTING2(n_key_gui_arrow_right, gvArrowKeyRight, NO, NO, 0, NO, NO);
@@ -1631,12 +1634,13 @@ static NSTimeInterval time_last_frame;
                 [gameView clearKeys];
                 [self setGuiToLoadSaveScreen];
             }
+            [self pollKeyBindingsScreenControlsWithFKeyAlias:YES];
 
 #if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
             [self pollCustomViewControls]; // allow custom views during pause
 #endif
 
-            if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR || gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT) {
+            if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR || gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT || gui_screen == GUI_SCREEN_KEYBINDINGS) {
                 if ([UNIVERSE pauseMessageVisible])
                     [[UNIVERSE messageGUI] leaveLastLine];
                 else
@@ -2473,6 +2477,27 @@ static NSTimeInterval time_last_frame;
             spacePressed = YES;
         } else
             spacePressed = NO;
+        break;
+    case GUI_SCREEN_KEYBINDINGS:
+        if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
+            if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+                if ([self keyBindingsPage] > 0) {
+                    [self playMenuPagePrevious];
+                    [self setGuiToKeyBindingsScreen:[self keyBindingsPage] - 1];
+                }
+                timeLastKeyPress = script_time;
+            }
+        }
+        if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
+            if ((!leftRightKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
+                if ([self keyBindingsPage] + 1 < [self keyBindingsPageCount]) {
+                    [self playMenuPageNext];
+                    [self setGuiToKeyBindingsScreen:[self keyBindingsPage] + 1];
+                }
+                timeLastKeyPress = script_time;
+            }
+        }
+        leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] | [self checkKeyPress:n_key_gui_arrow_left] | [self checkKeyPress:n_key_gui_page_down] | [self checkKeyPress:n_key_gui_page_up] | joyButtonState[BUTTON_GUILEFT] | joyButtonState[BUTTON_GUIRIGHT] | joyButtonState[BUTTON_GUIPAGEUP] | joyButtonState[BUTTON_GUIPAGEDOWN];
         break;
     case GUI_SCREEN_STATUS:
         [self handleGUIUpDownArrowKeys];
@@ -3982,6 +4007,8 @@ static NSTimeInterval time_last_frame;
         }
     }
 
+    [self pollKeyBindingsScreenControlsWithFKeyAlias:fKeyAlias];
+
     if (docked_okay) {
         if (([self checkKeyPress:n_key_gui_screen_options fKey_only:!fKeyAlias]) && (gui_screen != GUI_SCREEN_OPTIONS)) {
             [gameView clearKeys];
@@ -4026,6 +4053,25 @@ static NSTimeInterval time_last_frame;
         } else {
             switching_interface_screens = NO;
         }
+    }
+}
+
+// shows the key bindings screen, or turns its page if it's already showing
+- (void)pollKeyBindingsScreenControlsWithFKeyAlias:(BOOL)fKeyAlias
+{
+    MyOpenGLView* gameView = [UNIVERSE gameView];
+
+    if ([self checkKeyPress:n_key_gui_keybindings fKey_only:!fKeyAlias] && ![gameView allowingStringInput]) {
+        if (!switching_keybindings_screens) {
+            switching_keybindings_screens = YES;
+            [gameView clearKeys];
+            if (gui_screen == GUI_SCREEN_KEYBINDINGS)
+                [self setGuiToKeyBindingsScreen:([self keyBindingsPage] + 1) % [self keyBindingsPageCount]];
+            else
+                [self setGuiToKeyBindingsScreen:0];
+        }
+    } else {
+        switching_keybindings_screens = NO;
     }
 }
 
