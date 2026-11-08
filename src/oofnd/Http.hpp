@@ -187,6 +187,10 @@ inline std::optional<Url> parseUrl(std::string_view text) {
       return std::nullopt;
     const std::size_t query = target.find('?');
     std::string path = detail::percentDecoded(target.substr(0, query));
+#if defined(_WIN32)
+    // file:///C:/dir/file names C:/dir/file.
+    if (path.size() >= 3 && path[0] == '/' && path[2] == ':') path.erase(0, 1);
+#endif
     if (path.empty()) return std::nullopt;
     url.path = std::move(path);
     return url;
