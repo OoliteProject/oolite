@@ -1,6 +1,6 @@
 /*
 
-OOOpenALController.mm
+OOOpenALController.cpp
 
 
 Oolite

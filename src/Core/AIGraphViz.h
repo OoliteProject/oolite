@@ -2,9 +2,9 @@
 
 AIGraphViz.h
 
-GenerateGraphVizForAIStateMachine(), defined in AIGraphViz.mm (DEBUG_GRAPHVIZ
+GenerateGraphVizForAIStateMachine(), defined in AIGraphViz.cpp (DEBUG_GRAPHVIZ
 builds only). It is declared here, next to its definition, and uses the C++
-types AI.mm holds the state machine in.
+types AI.cpp holds the state machine in.
 
 
 Oolite

@@ -10,7 +10,7 @@ reads as a stale reference once it has gone. The slot retains the holder
 object.
 
 Include it after Entity's definition (Entity.h; a test's stand-in): oo::WeakRef
-needs the complete class. The JS glue members are defined in OOJSEntity.mm (a
+needs the complete class. The JS glue members are defined in OOJSEntity.cpp (a
 narrow test that links a binding without it defines them as stand-ins).
 
 Oolite

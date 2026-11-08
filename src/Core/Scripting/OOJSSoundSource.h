@@ -51,7 +51,7 @@ std::optional<std::string> OOJSSoundSourceJSClassName(void);
    has its own holder, which retains the source; the slot retains the holder
    (OOJSSetCxxPrivate) and the finalizer releases it
    (OOJSCxxObjectWrapperFinalize). Its toString() is the JS class name and the
-   source's components. Defined in OOJSSoundSource.mm; only the binding makes
+   source's components. Defined in OOJSSoundSource.cpp; only the binding makes
    one.
 */
 class OOJSSoundSourceHolder final : public oo::RefCounted,

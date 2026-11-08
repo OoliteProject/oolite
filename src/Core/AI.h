@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 
 class ShipEntity;
 class Entity;
-class OOPreservedAIStateMachine;  // private to AI.mm; global
+class OOPreservedAIStateMachine;  // private to AI.cpp; global
 
 /*	A ship's AI. Held as oo::Ref<AI>; a ship's shipAI owns it.
  */
@@ -134,7 +134,7 @@ class AI : public oo::RefCounted {
   void reportStackOverflow();
 
   // Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs.
-  // <selectorName> is found in the deferred calls' name table (AI.mm) and
+  // <selectorName> is found in the deferred calls' name table (AI.cpp) and
   // called with <argument>.
   void performDeferredCall(const char* selectorName,
                            const std::string& argument, NSTimeInterval delay);

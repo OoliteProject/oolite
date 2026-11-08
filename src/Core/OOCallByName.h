@@ -2,52 +2,29 @@
 
 OOCallByName.h
 
-Calling a method the game names at run time (an AI action, a legacy-script
-action or query, a HUD dial, a deferred call) with C++ arguments.
-Foundation-free.
+Calling an entity's method that the game names at run time (an AI action, a
+legacy-script action or query, a string-expander [selector] key, ship.call(), a
+deferred call), with C++ arguments.
 
-A method called by name has one of its dispatcher's signatures; OOCallByName
-reads the method's type encoding and calls it through an IMP of exactly that
-type:
+oo::CallEntityByName(entity, name [, argument]) looks <name> up in the by-name
+table (OOEntityCalledByNameTable.h) and calls the method if it has one of these
+forms:
 
-        call                                     the method may be result
-        ---------------------------------------
----------------------------------------  ----------------- OOCallByName(target,
-sel)                - (void) sel                              null PList
-                                                 - (oo::PList) sel what it
-returns OOCallByName(target, sel, "text")        - (void) sel:(const std::string
-&)s       null PList
-                                                 - (oo::PList) sel:(const
-std::string &)s  what it returns OOCallByName(target, sel, plist)         -
-(void) sel:(const oo::PList &)p         null PList
+  - no argument: void name() or oo::PList name();
+  - a string:    void name(const std::string&) or
+                 oo::PList name(const std::string&);
+  - a PList:     void name(const oo::PList&).
 
-A scalar result (bool, float...) or an object result (the ship a launch action
-returns) is ignored: no dispatcher reads one (OOJSCall calls an
-object-returning method itself). A method with an object (id) parameter is not
-called (see below). A string argument reaches a (const oo::PList &) parameter
-as a string PList; a PList argument reaches a (const std::string &) parameter
-only when it is a string.
+A void method's call answers a null PList; a PList method's call answers what
+it returns. A scalar or object result (the ship a launch action returns) is
+ignored: no caller reads one (OOJSCall calls an object-returning method
+itself). A string argument reaches a (const oo::PList&) parameter as a string
+PList; a PList argument reaches a (const std::string&) parameter only when it
+is a string.
 
-        dispatcher                                                  argument
-result
-        ----------------------------------------------------------
---------------  ----------- AI actions, deferred AI calls (AI.mm), legacy-script
-none or string  void / PList actions, ship.call() (OOJSCall.mm) legacy-script
-queries (*_string, *_number, *_bool),         none            PList (a string
-        expander [selector] keys or a number) HUD dials (HeadUpDisplay.mm),
-joystick callbacks            PList           void
-
-An entity's method is called by its name through oo::CallEntityByName (below):
-the AI's actions and messages and the legacy script engine.
-
-A method with an id parameter that takes the argument as an object
-is logged (callByName.badSignature) and not called.
-
-A nil target does nothing (as messaging nil). A target that does not answer
-<selector>, or whose method has no signature above, is logged
-(callByName.unknownSelector / callByName.badSignature) and not called; the
-result is a null PList. A forwarding proxy (an entity's weak reference) is
-followed.
+A null entity does nothing. A name the entity does not answer, or whose method
+has none of the forms above, is logged (callByName.unknownSelector /
+callByName.badSignature) and not called; the result is a null PList.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -74,8 +51,6 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObject.h"
-
-// The signatures above are the entity call's (below).
 
 /*	An entity's method called by name: the same call on the entity's C++
    part. A name in the generated table (OOEntityCalledByNameTable.h) is answered

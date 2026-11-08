@@ -903,7 +903,7 @@ void WormholeEntity::dumpSelfState() {
   }
 }
 
-// The binding's bodies (OOJSWormhole.mm).
+// The binding's bodies (OOJSWormhole.cpp).
 JSClassID WormholeEntity::jsClassID() { return ::JSWormholeClassID(); }
 
 std::optional<std::string> WormholeEntity::jsClassName() {

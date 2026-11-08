@@ -40,4 +40,4 @@ SOFTWARE.
 class OOColor;
 
 // The creators are static members of OOMaterial (materialWithName(), in
-// OOMaterial.h), defined in OOMaterialConvenienceCreators.mm.
+// OOMaterial.h), defined in OOMaterialConvenienceCreators.cpp.

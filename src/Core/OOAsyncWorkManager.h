@@ -60,7 +60,7 @@ class OOAsyncWorkTask : public oo::RefCounted {
   ~OOAsyncWorkTask() override = default;
 };
 
-/*	The concrete managers are private to OOAsyncWorkManager.mm.
+/*	The concrete managers are private to OOAsyncWorkManager.cpp.
  */
 class OOAsyncWorkManager : public oo::RefCounted {
  public:

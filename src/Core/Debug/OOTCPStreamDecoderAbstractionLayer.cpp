@@ -1,10 +1,8 @@
-/*	OOTCPStreamDecoderAbstractionLayer.h
+/*	OOTCPStreamDecoderAbstractionLayer.cpp
 
-        Abstraction layer to allow OOTCPStreamDecoder to work with
-   CoreFoundation/ CF-Lite, Cocoa Foundation or GNUstep Foundation.
-
-        oofnd implementation: each handle is a struct OOALObject holding its
-   value as an oo::PList (a string, a data buffer or the parsed packet).
+        The oofnd implementation of OOTCPStreamDecoderAbstractionLayer.h: each
+   handle is a struct OOALObject holding its value as an oo::PList (a string, a
+   data buffer or the parsed packet).
 */
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

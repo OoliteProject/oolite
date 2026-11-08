@@ -1,6 +1,6 @@
 /*
 
-OOOXPVerifier.mm
+OOOXPVerifier.cpp
 
 OOOXPVerifier. The stages are kept as C++ stages and described with their
 description().

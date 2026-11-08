@@ -105,11 +105,7 @@ typedef enum {
 #define CHART_ZOOM_SHOW_LABELS 2.0
 
 // OO_RESOLUTION_OPTION: true if full screen resolution can be changed.
-#if OOLITE_MAC_OS_X && OOLITE_64_BIT
-#define OO_RESOLUTION_OPTION 0
-#else
 #define OO_RESOLUTION_OPTION 1
-#endif
 
 // dictionary keys - used in the custom key config for oxp equipment
 inline constexpr std::string_view CUSTOMEQUIP_EQUIPKEY = "equipmentKey";
@@ -986,7 +982,7 @@ class PlayerEntity : public ShipEntity {
   void dumpSelfState() override;
 #endif
 
-  // Category ScriptMethods (PlayerEntityScriptMethods.mm): methods for use by
+  // Category ScriptMethods (PlayerEntityScriptMethods.cpp): methods for use by
   // scripting mechanisms. std::nullopt is nil in the Foundation-typed forms.
   virtual unsigned score();
   void setScore(unsigned value);
@@ -1026,8 +1022,8 @@ class PlayerEntity : public ShipEntity {
   std::optional<std::string> creditsFormattedForSubstitution();
   std::optional<std::string> creditsFormattedForLegacySubstitution();
 
-  // PlayerEntitySound.mm: the interface, warning, damage and weapon sounds, and
-  // the afterburner loop.
+  // PlayerEntitySound.cpp: the interface, warning, damage and weapon sounds,
+  // and the afterburner loop.
   void setUpSound();
   void setUpWeaponSounds();
   void destroySound();
@@ -1117,7 +1113,7 @@ class PlayerEntity : public ShipEntity {
   void playGameOver();
   void playLegacyScriptSound(const std::string& key);
 
-  // PlayerEntityStickMapper.mm, the categories StickMapper: defined in that
+  // PlayerEntityStickMapper.cpp, the categories StickMapper: defined in that
   // file.
   void resetStickFunctions();
   void setGuiToStickMapperScreen(unsigned skip);
@@ -1134,14 +1130,14 @@ class PlayerEntity : public ShipEntity {
                              int butfn);
   oo::PList makeStickGuiDictHeader(const std::string& header);
 
-  // PlayerEntityStickProfile.mm, the categories StickProfile: defined in that
+  // PlayerEntityStickProfile.cpp, the categories StickProfile: defined in that
   // file.
   void setGuiToStickProfileScreen(::GuiDisplayGen* gui);
   void stickProfileInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* gameView);
   void stickProfileGraphAxisProfile(GLfloat alpha, Vector screenAt,
                                     NSSize screenSize);
 
-  // PlayerEntityControls.mm, the categories Controls, OOControlsPrivate:
+  // PlayerEntityControls.cpp, the categories Controls, OOControlsPrivate:
   // defined in that file.
   virtual void initControls();
   void initKeyConfigSettings();
@@ -1192,7 +1188,7 @@ class PlayerEntity : public ShipEntity {
   void handleButtonIdent();
   void handleButtonTargetMissile();
 
-  // PlayerEntityKeyMapper.mm, the categories KeyMapper: defined in that file.
+  // PlayerEntityKeyMapper.cpp, the categories KeyMapper: defined in that file.
   void initCheckingDictionary();
   void resetKeyFunctions();
   void setGuiToKeyMapperScreen(unsigned skip);
@@ -1244,7 +1240,7 @@ class PlayerEntity : public ShipEntity {
   oo::PList loadKeySettings();
   void reloadPage();
 
-  // PlayerEntityLegacyScriptEngine.mm, the categories Scripting: defined in
+  // PlayerEntityLegacyScriptEngine.cpp, the categories Scripting: defined in
   // that file.
   virtual void setScriptTarget(::ShipEntity* ship);
   // The player its own script target, through the virtual member
@@ -1415,7 +1411,7 @@ class PlayerEntity : public ShipEntity {
   void setGalacticHyperspaceFixedCoordsTo(
       const std::string& galacticHyperspaceFixedCoordsString);
 
-  // PlayerEntityContracts.mm, the categories Contracts: defined in that file.
+  // PlayerEntityContracts.cpp, the categories Contracts: defined in that file.
   std::optional<std::string> processEscapePods();
   std::optional<std::string> checkPassengerContracts();
   OOCargoQuantity contractedVolumeForGood(const std::string& good);
@@ -1468,7 +1464,7 @@ class PlayerEntity : public ShipEntity {
                           const oo::PList& ship_info,
                           const oo::PList& ship_base_dict);
 
-  // PlayerEntityLoadSave.mm, the categories LoadSave, OOLoadSavePrivate:
+  // PlayerEntityLoadSave.cpp, the categories LoadSave, OOLoadSavePrivate:
   // defined in that file.
   bool loadPlayer();
   void savePlayer();
@@ -2012,7 +2008,7 @@ OOINLINE PlayerEntity* OOGetPlayer(void) {
 #define GRAMS_PER_POD (KILOGRAMS_PER_POD * 1000)
 #define MAX_GRAMS_IN_SAFE ((GRAMS_PER_POD / 2) - 1)
 
-// C++ forms, defined in OOConstToString.mm: std::string results
+// C++ forms, defined in OOConstToString.cpp: std::string results
 // (never nil), const std::string & parameters (nil arrived as "" and matched
 // nothing: the defaults).
 std::string cxx_OOStringFromGUIScreenID(OOGUIScreenID screen);

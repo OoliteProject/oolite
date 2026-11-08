@@ -42,7 +42,7 @@ class OOAIStateMachineVerifierStage;
    role sets are sorted std::vectors of strings.
 
    A subclass of OOTextureHandlingStage. Nothing outside this file names it,
-   and the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and
+   and the verifier makes it from its name (kCxxStages in OOOXPVerifier.cpp) and
    holds it. It is the schema verifier's delegate, through the C++ interface
    OOPListSchemaVerifierDelegate.
 */

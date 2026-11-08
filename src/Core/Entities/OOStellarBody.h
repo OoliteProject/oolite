@@ -45,7 +45,7 @@ typedef enum {
 
 /*	The radius and planet type of a stellar body: the sun and the
         planet are asked directly; any other body by
-        selector. Null answers 0. Defined in OOSunEntity.mm.
+        selector. Null answers 0. Defined in OOSunEntity.cpp.
 */
 class Entity;
 double OOStellarBodyRadius(Entity* body);                 // of the C++ entity

@@ -1,4 +1,4 @@
-/*	oofnd/objc/OOAssert.mm
+/*	oofnd/objc/OOAssert.cpp
         Foundation-free assertions: the failure path (see OOAssert.h).
 */
 

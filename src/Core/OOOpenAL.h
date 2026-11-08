@@ -27,15 +27,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOFoundation.h"
-
-#if OOLITE_MAC_OS_X
-#import <OpenAL/al.h>
-#import <OpenAL/alc.h>
-#else
 #include <AL/al.h>
 #include <AL/alc.h>
-#endif
+
+#include "OOFoundation.h"
 
 // alGetError should always be called before openAL calls to reset the
 // error stack

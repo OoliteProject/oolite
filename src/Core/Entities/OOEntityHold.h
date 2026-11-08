@@ -44,7 +44,7 @@ namespace oo {
 
 namespace detail {
 
-// EntityHelpers.mm (a narrow test's stand-in defines its own): a retain or
+// EntityHelpers.cpp (a narrow test's stand-in defines its own): a retain or
 // release of an entity that has its object, nothing otherwise; whether it has
 // one.
 bool EntityHasObject(const Entity* entity) noexcept;
@@ -110,7 +110,7 @@ class EntityHold {
 };
 
 /*	The universe's +1 creators and the references the universe and the
-   entities keep by hand (EntityHelpers.mm): what -retain, -release and
+   entities keep by hand (EntityHelpers.cpp): what -retain, -release and
    -autorelease of the entity's object did, on the entity's own count
    (-autorelease hands the reference to the innermost oo::AutoreleaseScope,
         oo::autorelease(), so it is released at the same drain, in the same

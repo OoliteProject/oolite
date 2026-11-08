@@ -946,7 +946,7 @@ std::optional<std::string> Entity::jsClassName() {
 
 bool Entity::isVisibleToScripts() { return ::EntityJSIsVisibleToScripts(); }
 
-// The JS glue: the bodies are EntityOOJavaScriptExtensions.mm's.
+// The JS glue: the bodies are EntityOOJavaScriptExtensions.cpp's.
 JSValue Entity::jsValueInContext(JSContext* context) {
   return ::EntityJSValueInContext(this, context);
 }

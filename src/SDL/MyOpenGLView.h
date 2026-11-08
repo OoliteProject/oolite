@@ -268,7 +268,7 @@ class MyOpenGLView : public oo::RefCounted {
                               NSUInteger height, NSUInteger rowBytes);
 #endif
 
-  // Input (MyOpenGLView+Input.mm): the former (Input) category. A getter named
+  // Input (MyOpenGLView+Input.cpp): the former (Input) category. A getter named
   // like its member is get<Name>.
   void initKeyMappingData();
   void autoShowMouse();
@@ -311,8 +311,8 @@ class MyOpenGLView : public oo::RefCounted {
   // versions.
   void handleStringInput(SDL_KeyboardEvent* kbd_event, Uint16 key_id);
 
-  // tests/unit/core/test_MyOpenGLView.mm and test_OOOpenGLMatrixManager.mm read
-  // and set the state below.
+  // tests/unit/core/test_MyOpenGLView.cpp and test_OOOpenGLMatrixManager.cpp
+  // read and set the state below.
   friend struct MyOpenGLViewTestAccess;
 
  private:

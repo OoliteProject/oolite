@@ -98,7 +98,7 @@ class OOSunEntity : public Entity {
   bool isSun() override;
   bool isVisible() override;
 
-  // The binding's bodies (OOJSSun.mm).
+  // The binding's bodies (OOJSSun.cpp).
   JSClassID jsClassID() override;
   std::optional<std::string> jsClassName() override;
   bool isVisibleToScripts() override;

@@ -74,7 +74,7 @@ class OOPolygonSprite : public OOHUDBeaconIcon, public OOGraphicsResetClient {
   void resetGraphicsState() override;
 
   // OOHUDBeaconIcon: the drawing of the sprite's OOHUDBeaconIcon category
-  // (HeadUpDisplay.mm).
+  // (HeadUpDisplay.cpp).
   void drawHUDBeaconIconAt(NSPoint where, NSSize size, GLfloat alpha,
                            GLfloat z) override;
 

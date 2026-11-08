@@ -58,40 +58,6 @@ SOFTWARE.
    and the flush deadline.
 */
 
-#if OOLITE_MAC_OS_X
-
-#include <dlfcn.h>
-
-#ifndef NDEBUG
-
-#define SET_CRASH_REPORTER_INFO 1
-
-// Function to set "Application Specific Information" field in crash reporter
-// log in Leopard. Extremely unsupported, so not used in release builds.
-static void InitCrashReporterInfo(void);
-static void SetCrashReporterInfo(const char* info);
-static bool sCrashReporterInfoAvailable = false;
-
-#endif
-
-typedef void (*LogCStringFunctionProc)(const char* string, unsigned length,
-                                       bool withSyslogBanner);
-typedef LogCStringFunctionProc (*LogCStringFunctionGetterProc)(void);
-typedef void (*LogCStringFunctionSetterProc)(LogCStringFunctionProc);
-
-static LogCStringFunctionGetterProc _NSLogCStringFunction = NULL;
-static LogCStringFunctionSetterProc _NSSetLogCStringFunction = NULL;
-
-static void LoadLogCStringFunctions(void);
-static void OONSLogCStringFunction(const char* string, unsigned length,
-                                   bool withSyslogBanner);
-
-static std::string GetAppName(void);
-
-static LogCStringFunctionProc sDefaultLogCStringFunction = NULL;
-
-#endif
-
 namespace {
 
 bool DirectoryExistCreatingIfNecessary(const std::string& path);
@@ -138,10 +104,6 @@ std::thread::id sMainThreadID;
 void OOLogOutputHandlerInit() {
   if (sInited) return;
 
-#if SET_CRASH_REPORTER_INFO
-  InitCrashReporterInfo();
-#endif
-
   sMainThreadID = std::this_thread::get_id();
   sLogger = StartLogger();
   sInited = true;
@@ -152,18 +114,6 @@ void OOLogOutputHandlerInit() {
   } else {
     sWriteToStderr = true;
   }
-
-#if OOLITE_MAC_OS_X
-  LoadLogCStringFunctions();
-  if (_NSSetLogCStringFunction != NULL) {
-    sDefaultLogCStringFunction = _NSLogCStringFunction();
-    _NSSetLogCStringFunction(OONSLogCStringFunction);
-  } else {
-    OO_LOG("logging.nsLogFilter.install.failed", "{}",
-           "Failed to install Foundation log filter; system messages will not "
-           "be logged in log file.");
-  }
-#endif
 
   atexit(OOLogOutputHandlerClose);
 }
@@ -189,14 +139,6 @@ void OOLogOutputHandlerClose() {
 
     if (sLogger != nullptr) sLogger->end(Postamble());
     sLogger.reset();
-
-#if OOLITE_MAC_OS_X
-    if (sDefaultLogCStringFunction != NULL &&
-        _NSSetLogCStringFunction != NULL) {
-      _NSSetLogCStringFunction(sDefaultLogCStringFunction);
-      sDefaultLogCStringFunction = NULL;
-    }
-#endif
   }
 }
 
@@ -217,9 +159,6 @@ void OOLogOutputHandlerPrintLine(std::string_view line) {
   if (sInited && sLogger != nullptr && !sWriteToStdout) AsyncLogMessage(line);
 
   bool doCStringStuff = sWriteToStderr || sWriteToStdout;
-#if SET_CRASH_REPORTER_INFO
-  doCStringStuff = doCStringStuff || sCrashReporterInfoAvailable;
-#endif
 
   if (doCStringStuff) {
     const std::string cStr = oo::log::consoleBytes(line);
@@ -227,10 +166,6 @@ void OOLogOutputHandlerPrintLine(std::string_view line) {
       fputs(cStr.c_str(), stdout);
     else if (sWriteToStderr)
       fputs(cStr.c_str(), stderr);
-
-#if SET_CRASH_REPORTER_INFO
-    if (sCrashReporterInfoAvailable) SetCrashReporterInfo(cStr.c_str());
-#endif
   }
 }
 
@@ -312,59 +247,6 @@ void AsyncLogMessage(std::string_view message) {
 
 }  // namespace
 
-#if OOLITE_MAC_OS_X
-
-/*	LoadLogCStringFunctions()
-
-        We wish to make NSLogv() call our custom function
-   OONSLogCStringFunction() rather than printing to stdout, by calling
-   _NSSetLogCStringFunction(). Additionally, in order to close the logger
-   cleanly, we wish to be able to restore the standard logger, which requires us
-   to call _NSLogCStringFunction(). These functions are private.
-        _NSLogCStringFunction() is undocumented. _NSSetLogCStringFunction() is
-        documented at http://docs.info.apple.com/article.html?artnum=70081 ,
-        with the warning:
-
-                Be aware that this code references private APIs; this is an
-                unsupported workaround and users should use these instructions
-   at their own risk. Apple will not guarantee or provide support for this
-   procedure.
-
-        The approach taken here is to load the functions dynamically. This makes
-        us safe in the case of Apple removing the functions. In the unlikely
-   event that they change the functions' paramters without renaming them, we
-   would have a problem.
-*/
-static void LoadLogCStringFunctions(void) {
-  CFBundleRef foundationBundle = NULL;
-  LogCStringFunctionGetterProc getter = NULL;
-  LogCStringFunctionSetterProc setter = NULL;
-
-  foundationBundle =
-      CFBundleGetBundleWithIdentifier(CFSTR("com.apple.Foundation"));
-  if (foundationBundle != NULL) {
-    getter = (LogCStringFunctionGetterProc)CFBundleGetFunctionPointerForName(
-        foundationBundle, CFSTR("_NSLogCStringFunction"));
-    setter = (LogCStringFunctionSetterProc)CFBundleGetFunctionPointerForName(
-        foundationBundle, CFSTR("_NSSetLogCStringFunction"));
-
-    if (getter != NULL && setter != NULL) {
-      _NSLogCStringFunction = getter;
-      _NSSetLogCStringFunction = setter;
-    }
-  }
-}
-
-static void OONSLogCStringFunction(const char* string, unsigned length,
-                                   bool withSyslogBanner) {
-  if (oo::log::willDisplay("system")) {
-    oo::log::logger().write("system", NULL, NULL, 0,
-                            string != NULL ? string : "(null)");
-  }
-}
-
-#endif
-
 namespace {
 
 bool DirectoryExistCreatingIfNecessary(const std::string& path) {
@@ -386,53 +268,6 @@ bool DirectoryExistCreatingIfNecessary(const std::string& path) {
 }
 
 }  // namespace
-
-#if OOLITE_MAC_OS_X
-static void ExcludeFromTimeMachine(const std::string& path) {
-  OSStatus (*CSBackupSetItemExcluded)(NSURL* item, Boolean exclude,
-                                      Boolean excludeByPath) = NULL;
-  CFBundleRef carbonCoreBundle = CFBundleGetBundleWithIdentifier(
-      CFSTR("com.apple.CoreServices.CarbonCore"));
-  if (carbonCoreBundle) {
-    CSBackupSetItemExcluded = (OSStatus (*)(NSURL*, Boolean, Boolean))
-        CFBundleGetFunctionPointerForName(carbonCoreBundle,
-                                          CFSTR("CSBackupSetItemExcluded"));
-    if (CSBackupSetItemExcluded != NULL) {
-      (void)CSBackupSetItemExcluded(
-          [NSURL fileURLWithPath:oo::NSStringFrom(path)], true, false);
-    }
-  }
-}
-
-static std::string GetAppName(void) {
-  static std::optional<std::string> appName;
-
-  if (!appName.has_value()) {
-    const oo::fs::Path plistPath =
-        oo::ResourcePaths::current().builtInResourcesDirectory() /
-        "Info-gnustep.plist";
-    oo::PList info;
-    if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath);
-        bytes && !bytes->empty()) {
-      if (oo::Expected<oo::PList, oo::PListError> parsed =
-              oo::parsePropertyList(bytes->stringView());
-          parsed && parsed->isDict())
-        info = std::move(*parsed);
-    }
-    if (const oo::PList* name = info.find("CFBundleName");
-        name && name->isString())
-      appName = *name->getIf<std::string>();
-    if (!appName.has_value()) {
-      if (const oo::PList* ident = info.find("CFBundleIdentifier");
-          ident && ident->isString())
-        appName = *ident->getIf<std::string>();
-    }
-    if (!appName.has_value()) appName = "<unknown application>";
-  }
-
-  return *appName;
-}
-#endif
 
 /*	Foundation's -stringByAppendingPathComponent: as GNUstep 1.31.1 answers
    it on Windows for the paths used here (probed): trailing '/' and '\' of
@@ -472,11 +307,7 @@ const std::optional<std::string>& LogBasePath() {
     if (logdirEnv) {
       path = logdirEnv;
     } else {
-#if OOLITE_MAC_OS_X
-      // ~/Library
-      path = oo::StdString([NSSearchPathForDirectoriesInDomains(
-          NSLibraryDirectory, NSUserDomainMask, true) objectAtIndex:0]);
-#elif OOLITE_LINUX
+#if OOLITE_LINUX
       // ~/.Oolite
       path = AppendPathComponent(
           oo::fs::utf8String(oo::ResourcePaths::current().homeDirectory()),
@@ -490,16 +321,7 @@ const std::optional<std::string>& LogBasePath() {
       // .../Logs
       path = AppendPathComponent(path, "Logs");
       if (!DirectoryExistCreatingIfNecessary(path)) return basePath;
-
-#if OOLITE_MAC_OS_X
-      // ~/Library/Logs/Oolite
-      path = AppendPathComponent(path, GetAppName());
-      if (!DirectoryExistCreatingIfNecessary(path)) return basePath;
-#endif
     }
-#if OOLITE_MAC_OS_X
-    ExcludeFromTimeMachine(path);
-#endif
     basePath = path;
   }
 
@@ -521,46 +343,3 @@ std::optional<std::string> LogPath() {
 }
 
 }  // namespace
-
-#if SET_CRASH_REPORTER_INFO
-
-static char** sCrashReporterInfo = NULL;
-static char* sOldCrashReporterInfo = NULL;
-static std::mutex sCrashReporterInfoLock;
-
-// Evil hackery based on
-// http://www.allocinit.net/blog/2008/01/04/application-specific-information-in-leopard-crash-reports/
-static void InitCrashReporterInfo(void) {
-  sCrashReporterInfo = (char**)dlsym(RTLD_DEFAULT, "__crashreporter_info__");
-  if (sCrashReporterInfo != NULL) {
-    sCrashReporterInfoAvailable = true;
-  }
-}
-
-static void SetCrashReporterInfo(const char* info) {
-  char *copy = NULL, *old = NULL;
-
-  /*	Don't do anything if setup failed or the string is NULL or empty.
-          (The NULL and empty checks may not be desirable in other uses.)
-  */
-  if (!sCrashReporterInfoAvailable || info == NULL || *info == '\0') return;
-
-  // Copy the string, which we assume to be dynamic...
-  copy = strdup(info);
-  if (copy == NULL) return;
-
-  /*	...and swap it in.
-          Note that we keep a separate pointer to the old value, in case
-          something else overwrites __crashreporter_info__.
-  */
-  sCrashReporterInfoLock.lock();
-  *sCrashReporterInfo = copy;
-  old = sOldCrashReporterInfo;
-  sOldCrashReporterInfo = copy;
-  sCrashReporterInfoLock.unlock();
-
-  // Delete our old string.
-  if (old != NULL) free(old);
-}
-
-#endif

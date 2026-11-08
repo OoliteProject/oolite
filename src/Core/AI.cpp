@@ -111,8 +111,8 @@ void FireAIDeferredCall(AI* ai, const char* selectorName,
       return;
     }
   }
-  // The by-name call's line for a selector its target did not answer
-  // (OOCallByName.mm LogUnknown).
+  // The by-name call's line for a selector its target does not answer
+  // (the same text as CallObjectName's in OOEntityCalledByName.cpp).
   OO_LOG_ERR("callByName.unknownSelector", "{} does not respond to {}.", "AI",
              selectorName);
 }

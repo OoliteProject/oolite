@@ -24,7 +24,7 @@
    (Latest.log). Both kinds of call site share one Logger, so settings,
    indentation and line layout are identical whichever API wrote the line.
 
-        Behaviour is OOLogging.mm's, captured by driving the original file
+        Behaviour is OOLogging.cpp's, captured by driving the original file
    against gnustep-base 1.31.1 (tests/unit/oofnd/test_log.cpp): settings
    resolution, the internal diagnostics it prints (same function names and
    text), prefix order and spelling, indentation (two spaces a level, at most
@@ -433,8 +433,9 @@ class Logger {
     }
   }
 
-  // A cycle of metaclasses recursed until the stack overflowed in OOLogging.mm;
-  // here it falls back to _default (the one deliberate difference).
+  // A cycle of metaclasses recursed until the stack overflowed in
+  // OOLogging.cpp; here it falls back to _default (the one deliberate
+  // difference).
   bool resolveMeta(std::string meta,
                    std::vector<std::string>& diagnostics) const {
     std::unordered_set<std::string> seen;

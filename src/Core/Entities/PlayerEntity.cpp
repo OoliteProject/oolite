@@ -114,7 +114,7 @@ namespace {
    a configuration held as an oo::PList: a string is nullopt when the key is
    absent or holds neither a string nor a number; vectors and quaternions go
    through OOCollectionExtractors' readers (unmigrated) with their defaults for
-   a missing key. (Same readers as ShipEntity.mm's.)
+   a missing key. (Same readers as ShipEntity.cpp's.)
 */
 std::optional<std::string> StringForKey(const oo::PList& dict,
                                         std::string_view key) {
@@ -177,7 +177,7 @@ unsigned char CoordinateAt(const std::vector<std::string>& tokens,
 // cxx_OOExpandKeyWithSeed(seed, key, ...) with its arguments as a Dict (ints as
 // PList::signedInteger, NSUIntegers as PList::unsignedInteger, strings as
 // std::string); no arguments passes the null PList, as the macro did; nothing
-// expanded is "". Exemplar: OOShipLibraryDescriptions.mm ExpandCategoryKey.
+// expanded is "". Exemplar: OOShipLibraryDescriptions.cpp ExpandCategoryKey.
 std::string ExpandKeyWithSeed(Random_Seed seed, const std::string& key,
                               const oo::PList::Dict& args) {
   return cxx_OOExpandDescriptionString(

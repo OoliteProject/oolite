@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityScriptMethods.mm
+PlayerEntityScriptMethods.cpp
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

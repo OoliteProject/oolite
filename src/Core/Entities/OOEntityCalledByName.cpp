@@ -1,6 +1,6 @@
 /*
 
-OOEntityCalledByName.mm
+OOEntityCalledByName.cpp
 
 An entity's method called by name, on its C++ part (declared in OOCallByName.h).
 The by-name table is OOEntityCalledByNameTable.h: a tabled name is answered for
@@ -728,8 +728,7 @@ enum class Kind : std::uint8_t {
   Unsupported
 };
 
-// As OOCallByName classifies a method's return type encoding (OOCallByName.mm,
-// ResultKind()).
+// Classifies a method's return type encoding as the Objective-C dispatcher did.
 Kind ResultKind(const char* encoding) {
   std::string_view type = encoding;
   while (!type.empty() && std::strchr("rnNoORV", type.front()) != nullptr)
@@ -789,7 +788,7 @@ std::optional<oo::PList> CallRow(const OOEntityByNameRow& row, Entity* entity,
 const char* ObjectClassName(Entity*) { return "Entity"; }
 
 /*	The line OOCallByName logged for a method whose signature the call
-   cannot use (OOCallByName.mm LogBadSignature), for a tabled name that applies:
+   cannot use (LogBadSignature), for a tabled name that applies:
    the class of the entity's object, as the category method was its; the type
    encoding is the row's, @encode() of the result, of self and _cmd and of the
    argument, without the frame offsets the method's encoding had.
@@ -833,8 +832,8 @@ const OOEntityObjectName* AnsweredObjectName(Entity* entity,
    method with no argument that the call called is the row's body (its result
    ignored); any other name the object answers is logged (the method's type
    encoding), a root-class or lifetime method included, which is never called;
-   any other name does not respond. The texts are OOCallByName's
-   (OOCallByName.mm LogUnknown, LogBadSignature).
+   any other name does not respond. The texts are the Objective-C dispatcher's
+   (its unknown-selector and bad-signature lines).
 */
 oo::PList CallObjectName(Entity* entity, const std::string& name,
                          bool hasArgument) {

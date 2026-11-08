@@ -185,7 +185,7 @@ namespace {
 
 // cxx_OOExpandKey(key, ...) with its arguments as a Dict: ints as
 // PList::signedInteger, strings as std::string (exemplar
-// OOShipLibraryDescriptions.mm ExpandCategoryKey); nothing expanded is "".
+// OOShipLibraryDescriptions.cpp ExpandCategoryKey); nothing expanded is "".
 std::string ExpandKeyWithArguments(const char* key,
                                    const oo::PList::Dict& args) {
   return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), key,
@@ -972,9 +972,7 @@ void PlayerEntity::pollApplicationControls() {
                             (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY));
 
   try {
-//  command-key controls
-#if !OOLITE_MAC_OS_X || !OOLITE_64_BIT  // On 64-bit Macs, these are handled by
-                                        // normal menu shortcuts.
+    //  command-key controls
     if ((gameController != nullptr ? gameController->inFullScreenMode()
                                    : false)) {
       exceptionContext = "command key controls";
@@ -995,7 +993,6 @@ void PlayerEntity::pollApplicationControls() {
                                                        nullptr);
       }
     }
-#endif
 
     // handle pressing Q or [esc] in error-handling mode
     if (status() == STATUS_HANDLING_ERROR) {
@@ -2171,7 +2168,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
 	// but putting this here in case we do later
 	else if (gui_screen == GUI_SCREEN_OXZMANAGER && ::OOOXZManager::sharedManager()->isAcceptingTextInput())
 	{
-		[gameView setStringInput: gvStringInputAll];
+		if (gameView != nullptr) gameView->setStringInput(gvStringInputAll);
 	}
 #endif
   else {

@@ -30,6 +30,6 @@ MA 02110-1301, USA.
 #include "ShipEntity.h"
 
 /*	The ShipEntity (ScriptMethods) members are declared in ShipEntity.h and
-   defined in ShipEntityScriptMethods.mm. This header stays for the files that
+   defined in ShipEntityScriptMethods.cpp. This header stays for the files that
    import it.
 */

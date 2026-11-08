@@ -139,7 +139,7 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 std::string VectorDescription(Vector vector);  // "(x, y, z)"
 
 /*	For storing vectors in property lists: a PList::Object node holds the
-   box (OOJSShip.mm makes them, OOPListGameTypes.mm and the JavaScript engine
+   box (OOJSShip.cpp makes them, OOPListGameTypes.cpp and the JavaScript engine
    read them). The box is the node's foreign object itself.
 */
 class OONativeVector : public oo::PListForeign {

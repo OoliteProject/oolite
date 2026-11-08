@@ -594,23 +594,14 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj,
 #define OOJS_RETURN_INT(v) OOJS_RETURN(JS_NewInt32(context, (v)))
 #define OOJS_RETURN_DOUBLE(v) OOJS_RETURN(JS_NewFloat64(context, (v)))
 
-/*	PList return slots. A native returns C++
-   values as oo::PList, converted by OOJSValueFromPList() (the same JS value
-        OOJSValueFromNativeObject() gave for the Foundation object it replaces):
+/*	PList return slots. A native returns C++ values as oo::PList, converted
+   by OOJSValueFromPList():
 
-        OOJS_RETURN_PLIST(plist)            the value of <plist> (null for a
-   null PList) OOJS_RETURN_STRING_OR_NULL(opt)     a std::optional<std::string>:
-   the string, or null for nullopt (what nil gave)
+   - OOJS_RETURN_PLIST(plist): the value of <plist> (null for a null PList);
+   - OOJS_RETURN_STRING_OR_NULL(opt): a std::optional<std::string>, the string
+     or null for nullopt.
 
-        The recipe the chunks followed (OOJS_RETURN_OBJECT,
-   OOJSValueFromNativeObject(), oo::PListFromObjects() and the Foundation
-   bridges are deleted):
-
-        OOJS_RETURN_OBJECT(oo::NSStringFrom(s)) OOJS_RETURN_PLIST(oo::PList(s))
-        OOJS_RETURN_OBJECT(oo::NSStringOrNil(o)) OOJS_RETURN_STRING_OR_NULL(o)
-        OOJS_RETURN_OBJECT(oo::ObjectFromPList(p))        OOJS_RETURN_PLIST(p)
-
-        Exemplar: OOJSObjectWrapperToString() in OOJavaScriptEngine.mm.
+   Exemplar: OOJSObjectWrapperToString() in OOJavaScriptEngine.cpp.
 */
 #define OOJS_RETURN_PLIST(plist) \
   OOJS_RETURN(OOJSValueFromPList(context, (plist)))

@@ -671,7 +671,7 @@ void OOExhaustPlumeEntity::resetGraphicsState() {
   sPlumeTexture = nullptr;
 }
 
-// The binding's bodies (OOJSExhaustPlume.mm).
+// The binding's bodies (OOJSExhaustPlume.cpp).
 JSClassID OOExhaustPlumeEntity::jsClassID() {
   return ::JSExhaustPlumeClassID();
 }

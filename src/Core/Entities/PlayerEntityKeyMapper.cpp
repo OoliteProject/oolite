@@ -75,7 +75,7 @@ bool Contains(const std::vector<std::string>& list, const std::string& item) {
 }
 
 // The "keyboard-code" default as -oo_stringForKey:defaultValue:@"default" read
-// it (MyOpenGLView+Input.mm).
+// it (MyOpenGLView+Input.cpp).
 std::string KeyboardCode() {
   const oo::PList kbdValue = oo::Defaults::standard().object("keyboard-code");
   return oo::PListGet<std::string>::from(

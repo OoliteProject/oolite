@@ -1,6 +1,6 @@
 /*
 
-OOGraphicsResetManager.mm
+OOGraphicsResetManager.cpp
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors

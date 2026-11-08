@@ -118,7 +118,7 @@ class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
   bool isPlanet() override;
   bool isVisible() override;
 
-  // The binding's bodies (OOJSPlanet.mm).
+  // The binding's bodies (OOJSPlanet.cpp).
   JSClassID jsClassID() override;
   std::optional<std::string> jsClassName() override;
   bool isVisibleToScripts() override;

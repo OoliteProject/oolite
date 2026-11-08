@@ -38,7 +38,7 @@ SOFTWARE.
 #include "oofnd/objc/OOObject.h"
 
 #if OOLITE_WINDOWS
-struct fd_set;  // winsock2.h's, which the .mm includes
+struct fd_set;  // winsock2.h's, which the .cpp includes
 #else
 #include <sys/select.h>
 #endif

@@ -498,9 +498,9 @@ bool MyOpenGLView::init() {
 
   timeIntervalAtLastClick =
       (NSTimeInterval)SDL_GetTicksNS() /
-      1e9;  // the clock SDL stamps events on (MyOpenGLView+Input.mm)
+      1e9;  // the clock SDL stamps events on (MyOpenGLView+Input.cpp)
   timeSinceLastMouseWheel =
-      oo::date::monotonicSeconds();  // intervals only (MyOpenGLView+Input.mm)
+      oo::date::monotonicSeconds();  // intervals only (MyOpenGLView+Input.cpp)
 
   _mouseWheelDelta = 0.0f;
 

@@ -1,40 +1,25 @@
 /*	oofnd/objc/OOAssert.h
-        Foundation-free assertions. Same semantics as gnustep-base 1.31.1's
-   macros, pinned with a throwaway harness (a method, a class method and a C
-   function, each plain and parameter form):
-
-            Foundation                                  here
-            ------------------------------------------
-   --------------------------------------------- NSAssert(cond, @"fmt %@", obj)
-   OOAssert(cond, "fmt %s", text)      (printf) NSAssert1 .. NSAssert5 OOAssert
-   (variadic) NSCAssert(cond, @"fmt", ...), NSCAssert1..5 OOCAssert(cond, "fmt",
-   ...) NSParameterAssert(cond)                     OOParameterAssert(cond)
-            NSCParameterAssert(cond)                    OOCParameterAssert(cond)
+        Foundation-free assertions with the semantics of gnustep-base 1.31.1's
+   macros (pinned with a throwaway harness). OOCAssert(cond, fmt, ...) stands
+   for NSCAssert, NSAssert and their numbered forms; OOCParameterAssert(cond)
+   for NSParameterAssert and NSCParameterAssert. The format is printf-style:
+   pass UTF-8 strings with %s, never %@.
 
         LIVE IN EVERY FLAVOUR, deployment (NDEBUG) included, because
    Foundation's were. Upstream's OOFoundation.h defines NS_BLOCK_ASSERTIONS iff
    NDEBUG, but only AFTER it imports the Foundation umbrella header, and
    gnustep-base's include-guarded exception header picks the blocked or live
    assertion macros when it is first parsed, so the define came too late and
-        never blocked anything. Blocking these under NDEBUG skips the side
-   effect in PlayerEntity's -deferredInit assertion (the player's ship set-up),
-   and a deployment build cannot launch. The arguments are always evaluated, and
-   a false condition logs one line in message class "gnustep" (where the NSLog
-   hook, OOLogOutputHandler, sent gnustep-base's assertion log; NSLog's own
-   date/process prefix is not reproduced) and raises an OOException named
-   OOInternalInconsistencyException (the parameter forms too, as in
-   gnustep-base) with Foundation's reason text:
+   never blocked anything. Blocking these under NDEBUG skips the side effect in
+   PlayerEntity's -deferredInit assertion (the player's ship set-up), and a
+   deployment build cannot launch.
 
-            <__FILE__>:<__LINE__>  Assertion failed in <Class>(instance), method
-   <selector>.  <message>
-            <__FILE__>:<__LINE__>  Assertion failed in <__PRETTY_FUNCTION__>.
-   <message>
-
-        (gnustep-base prints "(instance)" for a class method too: it names [self
-   class], never a metaclass.) The parameter forms' message is "Invalid
-   parameter not satisfying: <#cond>".
-        %@ has no meaning in the format: pass UTF-8 strings (%s), as with
-   +[OOException raise:format:].
+        The arguments are always evaluated. A false condition logs one line in
+   message class "gnustep" (where gnustep-base's assertion log went) and raises
+   an OOException named OOInternalInconsistencyException, the parameter form
+   too, with Foundation's reason text: "<file>:<line>  Assertion failed in
+   <function>.  <message>". The parameter form's message is "Invalid parameter
+   not satisfying: <condition>".
 */
 
 #pragma once

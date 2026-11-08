@@ -1257,7 +1257,7 @@ void OOPlanetEntity::setName(const std::optional<std::string>& name) {
   _name = name;
 }
 
-// The binding's bodies (OOJSPlanet.mm).
+// The binding's bodies (OOJSPlanet.cpp).
 JSClassID OOPlanetEntity::jsClassID() { return ::JSPlanetClassID(); }
 
 std::optional<std::string> OOPlanetEntity::jsClassName() {

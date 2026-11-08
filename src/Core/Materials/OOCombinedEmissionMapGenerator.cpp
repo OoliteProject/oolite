@@ -1,6 +1,6 @@
 /*
 
-OOCombinedEmissionMapGenerator.mm
+OOCombinedEmissionMapGenerator.cpp
 
 
 Copyright (C) 2010-2013 Jens Ayton

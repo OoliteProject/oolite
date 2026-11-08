@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
 
-class OOJSScript;  // imported by the .mm, so that a test can stand in for it
+class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 
 /*	The definition owns references to its callback and callbackThis, which
    are released on destruction and when the JavaScript engine is reset.

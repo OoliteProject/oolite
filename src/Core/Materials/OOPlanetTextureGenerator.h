@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #include "OOTextureGenerator.h"
 #include "oofnd/PList.hpp"
 
-class OOPlanetNormalMapGenerator;  // private to OOPlanetTextureGenerator.mm
+class OOPlanetNormalMapGenerator;  // private to OOPlanetTextureGenerator.cpp
 class OOPlanetAtmosphereGenerator;
 
 typedef struct OOPlanetTextureGeneratorInfo {
@@ -140,7 +140,7 @@ class OOPlanetTextureGenerator : public OOTextureGenerator {
   atmosphereGenerator();  // Must be called before generator is enqueued for
                           // rendering.
   void dumpNoiseBuffer(
-      float* noise);  // defined where the .mm's DEBUG_DUMP_RAW is set
+      float* noise);  // defined where the .cpp's DEBUG_DUMP_RAW is set
 
   OOPlanetTextureGeneratorInfo _info = {};
   unsigned _planetScale = {};

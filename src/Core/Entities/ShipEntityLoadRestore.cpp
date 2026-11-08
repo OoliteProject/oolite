@@ -343,22 +343,6 @@ void ShipEntity::simplifyShipdata(oo::PList::Dict& data,
       deletes->push_back(key);
     }
   }
-
-  // after rev3010 this loop was using cycles without doing anything -
-  // commenting this whole loop out for now. -- kaks 20100207
-  /*
-          // Discard anything that hasn't changed.
-          for (enumerator = [data keyEnumerator]; (key = [enumerator
-     nextObject]); )
-          {
-                  id referenceVal = [referenceData objectForKey:key];
-                  id myVal = [data objectForKey:key];
-                  if ([referenceVal isEqual:myVal])
-                  {
-                  //	[data removeObjectForKey:key];
-                  }
-          }
-  */
 }
 
 namespace {

@@ -100,6 +100,17 @@ CHECKS = [
         r"|\bIBOutlet\b|\bIBAction\b|\bOOLITE_OPTIONAL\b|\bOO_RETURNS_RETAINED\b"
         r"|\bOO_NS_CONSUMED\b|\bCFSTR\b|\bOOALSTR\b",
     ),
+    Check(
+        "objc-syntax",
+        "Objective-C syntax in code, live or under a false #if: @\"\" literals, @keywords, #import,"
+        " and [receiver message:] / [receiver message] sends",
+        r'@"|@(interface|implementation|selector|end|protocol|class|optional|try|catch|finally'
+        r"|autoreleasepool)\b|^\s*#\s*import\b"
+        r"|\[\s*[A-Za-z_][\w:]*(\s*->\s*\w+|\(\))?\s+[a-zA-Z_]\w*\s*:"
+        r"|\[\s*[A-Za-z_]\w*\s+[a-zA-Z_]\w*\s*\]"
+        r"|\[\[(?!(noreturn|nodiscard|maybe_unused|fallthrough|likely|unlikely|deprecated"
+        r"|no_unique_address)\b)",
+    ),
     Check("extern-const", "extern const declarations", r"\bextern\s+const\b"),
     Check(
         "define-const",
@@ -421,6 +432,7 @@ POSITIVE_SAMPLES = {
     "c-headers": "#include <stdlib.h>\n",
     "mac-blocks": "#if OOLITE_MAC_OS_X\n#endif\n",
     "dead-code-leftovers": "@interface Foo\n",
+    "objc-syntax": "[gameView setStringInput:mode];\n",
     "extern-const": "extern const int kFoo;\n",
     "unscoped-enum": "enum Mode { A, B };\n",
     "ns-integer": "NSUInteger count;\n",

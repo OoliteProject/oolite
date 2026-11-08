@@ -99,7 +99,7 @@ class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
   /*	Was +channel:didFinishPlayingSound:, the class as the delegate of a
      stopped source's channel. Its first keyword is the instance member's, which
      a static member cannot overload. The channel reaches it through the
-     stopped-source handler in OOSoundSource.mm.
+     stopped-source handler in OOSoundSource.cpp.
   */
   static void channelOfStoppedSource(::OOSoundChannel* inChannel,
                                      OOSound* inSound);

@@ -46,7 +46,7 @@ enum {
 /*
 
 To avoid pulling in unnecessary headers, some functions defined in
-OOConstToString.mm are declared in the header with the appropriate type
+OOConstToString.cpp are declared in the header with the appropriate type
 declaration, each with its C++ (cxx_) form beside it, in particular:
 
         Entity.h:

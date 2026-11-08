@@ -1,5 +1,5 @@
 /*
-        OOPlanetTextureGenerator.mm
+        OOPlanetTextureGenerator.cpp
 
         Generator for planet diffuse maps.
 
@@ -601,13 +601,10 @@ END:
     const std::string lightsName = oo::str::format(
         "planet-%u-%u-lights-new", _info.seed.high, _info.seed.low);
 
-    [(UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr)
-        cxx_dumpRGBAToRGBFileNamed:diffuseName
-                  andGrayFileNamed:lightsName
-                             bytes:buffer
-                             width:_width
-                            height:_height
-                          rowBytes:_width * 4];
+    if (MyOpenGLView* gameView =
+            (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
+      gameView->dumpRGBAToRGBFileNamed(diffuseName, lightsName, buffer, _width,
+                                       _height, _width * 4);
   }
 #endif
 }
@@ -618,7 +615,7 @@ void OOPlanetTextureGenerator::dumpNoiseBuffer(float* noise) {
   const std::string noiseName = oo::str::format(
       "planet-%u-%u-noise-new", _info.seed.high, _info.seed.low);
 
-  uint8_t* noisePx = malloc(_width * _height);
+  uint8_t* noisePx = static_cast<uint8_t*>(malloc(_width * _height));
   unsigned x, y;
   for (y = 0; y < _height; y++) {
     for (x = 0; x < _width; x++) {
@@ -626,12 +623,9 @@ void OOPlanetTextureGenerator::dumpNoiseBuffer(float* noise) {
     }
   }
 
-  [(UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr)
-      cxx_dumpGrayToFileNamed:noiseName
-                        bytes:noisePx
-                        width:_width
-                       height:_height
-                     rowBytes:_width];
+  if (MyOpenGLView* gameView =
+          (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
+    gameView->dumpGrayToFileNamed(noiseName, noisePx, _width, _height, _width);
   FREE(noisePx);
 }
 
@@ -1214,13 +1208,10 @@ void OOPlanetNormalMapGenerator::completeWithData(void* data_, unsigned width_,
   const std::string specularName =
       oo::str::format("planet-%u-%u-specular-new", _seed.high, _seed.low);
 
-  [(UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr)
-      cxx_dumpRGBAToRGBFileNamed:normalName
-                andGrayFileNamed:specularName
-                           bytes:_data
-                           width:_width
-                          height:_height
-                        rowBytes:_width * 4];
+  if (MyOpenGLView* gameView =
+          (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
+    gameView->dumpRGBAToRGBFileNamed(normalName, specularName, _data, _width,
+                                     _height, _width * 4);
 #endif
 }
 
@@ -1300,12 +1291,9 @@ void OOPlanetAtmosphereGenerator::completeWithData(void* data_, unsigned width_,
   const std::string alphaName = oo::str::format(
       "planet-%u-%u-atmosphere-alpha-new", _seed.high, _seed.low);
 
-  [(UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr)
-      cxx_dumpRGBAToRGBFileNamed:rgbName
-                andGrayFileNamed:alphaName
-                           bytes:_data
-                           width:_width
-                          height:_height
-                        rowBytes:_width * 4];
+  if (MyOpenGLView* gameView =
+          (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
+    gameView->dumpRGBAToRGBFileNamed(rgbName, alphaName, _data, _width, _height,
+                                     _width * 4);
 #endif
 }

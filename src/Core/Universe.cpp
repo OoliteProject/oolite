@@ -817,7 +817,7 @@ unsigned sDescriptionsGeneration = 0;
 
 // +dictionaryWithContentsOfFile: of the dictionary class: the file's property
 // list if it is a dictionary, else (missing, unreadable, unparsable, another
-// kind) a null PList. As ResourceManager.mm.
+// kind) a null PList. As ResourceManager.cpp.
 oo::PList DictionaryWithContentsOfFile(const std::string& path) {
   const auto data = oo::fs::readFile(oo::fs::pathFromUTF8(path));
   if (!data) return oo::PList();
@@ -9117,33 +9117,7 @@ std::vector<OOSystemID> Universe::neighboursToSystem(OOSystemID s) {
         -- Ahruman 2012-06-29
 */
 void Universe::preloadPlanetTexturesForSystem(OOSystemID /*s*/) {
-// #if NEW_PLANETS
-#if 0
-	prunePreloadingPlanetMaterials();
-	
-	if (_preloadingPlanetMaterials.size() < 3)
-	{
-		
-		::OOPlanetEntity *planet = [[::OOPlanetEntity alloc] initAsMainPlanetForSystem:s];
-		::OOMaterial *surface = [planet material];
-		// can be nil if texture mis-defined
-		if (surface != nullptr)
-		{
-			// if it's already loaded, no need to continue
-			if (![surface isFinishedLoading])
-			{
-				_preloadingPlanetMaterials.push_back(oo::Ref<::OOMaterial>(surface));
-		
-				// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
-				// Trying to add nil to _preloadingPlanetMaterials will prematurely terminate the calling function.(!) --Kaks 20100107
-				::OOMaterial *atmo = [planet atmosphereMaterial];
-				if (atmo != nullptr)  _preloadingPlanetMaterials.push_back(oo::Ref<::OOMaterial>(atmo));
-			}
-		}
-		
-		[planet release];
-	}
-#endif
+  // Disabled; see above.
 }
 
 oo::PList Universe::getGlobalSettings() { return globalSettings; }

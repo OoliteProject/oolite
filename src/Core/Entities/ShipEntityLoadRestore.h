@@ -45,6 +45,6 @@ struct OOShipSaveContext {
 };
 
 /*	The ShipEntity (LoadRestore) members are declared in ShipEntity.h and
-        defined in ShipEntityLoadRestore.mm. This header stays for the files
+        defined in ShipEntityLoadRestore.cpp. This header stays for the files
         that import it, and for OOShipSaveContext.
 */

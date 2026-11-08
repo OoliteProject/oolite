@@ -38,16 +38,16 @@
 
         "~" is homeDirectory(). On Windows that is GNUstep's rule: %HOMEPATH%
    (prefixed with %HOMEDRIVE% unless it already starts with a drive letter),
-   else %USERPROFILE%. SDL/main.mm points HOMEPATH at the executable's directory
-   (or %LOCALAPPDATA%\Oolite\oolite.app under OO_GAME_DATA_TO_USER_FOLDER)
-   before anything reads it, which is why saves, Logs and GNUstep/Library all
-   live next to oolite.exe. On Linux it is $HOME. With neither, the current
-        directory. The macOS (Cocoa) layout is not reproduced: that platform is
-   not supported. The home and GNUstep/Library rules were probed against
-   gnustep-base 1.31 on this toolchain (HOMEPATH with and without a drive,
-   NSSearchPathForDirectoriesInDomains); the rest transcribe the Objective-C
-   cited above. fs::utf8String() of an answer is the string the Objective-C code
-   produces today, '/' separators included.
+   else %USERPROFILE%. SDL/main.cpp points HOMEPATH at the executable's
+   directory (or %LOCALAPPDATA%\Oolite\oolite.app under
+   OO_GAME_DATA_TO_USER_FOLDER) before anything reads it, which is why saves,
+   Logs and GNUstep/Library all live next to oolite.exe. On Linux it is $HOME.
+   With neither, the current directory. The macOS (Cocoa) layout is not
+   reproduced: that platform is not supported. The home and GNUstep/Library
+   rules were probed against gnustep-base 1.31 on this toolchain (HOMEPATH with
+   and without a drive, NSSearchPathForDirectoriesInDomains); the rest
+   transcribe the Objective-C cited above. fs::utf8String() of an answer is the
+   string the Objective-C code produces today, '/' separators included.
 
         ResourcePaths is a pure function of a PathEnvironment (platform,
    environment lookup, current directory), so tests drive it with a fake

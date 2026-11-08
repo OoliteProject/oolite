@@ -41,7 +41,7 @@ enum { kExhaustFrameCount = 16 };
 /*	The ships make it with exhaustForShip(). The engine's JS
    questions reach it through the root's virtual members, an owner's
    OOSubEntity messages through cxx::OOSubEntityInterface, and the graphics
-   reset manager through a C++ client in OOExhaustPlumeEntity.mm.
+   reset manager through a C++ client in OOExhaustPlumeEntity.cpp.
 */
 class OOExhaustPlumeEntity : public Entity, public cxx::OOSubEntityInterface {
  public:
@@ -64,7 +64,7 @@ class OOExhaustPlumeEntity : public Entity, public cxx::OOSubEntityInterface {
 
   static void setUpTexture();
   static OOTexture* plumeTexture();
-  // What the graphics reset client (OOExhaustPlumeEntity.mm) runs.
+  // What the graphics reset client (OOExhaustPlumeEntity.cpp) runs.
   static void resetGraphicsState();
 
   // OOSubEntity.

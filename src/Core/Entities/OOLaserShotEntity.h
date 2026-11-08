@@ -58,7 +58,7 @@ class OOLaserShotEntity : public Entity {
   static void setUpTexture();
   static OOTexture* innerTexture();
   static OOTexture* outerTexture();
-  // The graphics reset client is a file-local C++ one (OOLaserShotEntity.mm).
+  // The graphics reset client is a file-local C++ one (OOLaserShotEntity.cpp).
   static void resetGraphicsState();
 
  private:

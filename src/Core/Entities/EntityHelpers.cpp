@@ -1,6 +1,6 @@
 /*
 
-EntityHelpers.mm
+EntityHelpers.cpp
 
 The questions asked of an entity (EntityHelpers.h), and the entities'
 own counts (OOEntityHold.h).

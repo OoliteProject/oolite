@@ -1,6 +1,6 @@
 /*
 
-OOProbabilitySet.mm
+OOProbabilitySet.cpp
 
 The class cluster is a C++ hierarchy.
 

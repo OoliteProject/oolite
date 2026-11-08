@@ -108,7 +108,7 @@ MethodType MethodTypeOfRow(const OOJSCallEntityMethodRow& row) {
    list does not respond, and a listed one is called with the table's signature.
    An entity's by-name methods (the generated table OOEntityCalledByNameTable.h)
    are asked of and called on its C++ part, and so are the methods the table
-   lists (its rows in OOEntityCalledByName.mm). Its "does not respond" error
+   lists (its rows in OOEntityCalledByName.cpp). Its "does not respond" error
    names the entity's object, whose address the text holds. The debug console's
    callObjC() is only given an entity or a monitor as `this`.
 */

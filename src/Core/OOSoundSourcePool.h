@@ -42,7 +42,7 @@ SOFTWARE.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObject.h"
 
-struct OOSoundSourcePoolElement;  // OOSoundSourcePool.mm
+struct OOSoundSourcePoolElement;  // OOSoundSourcePool.cpp
 
 class OOSoundSourcePool : public oo::RefCounted {
  public:

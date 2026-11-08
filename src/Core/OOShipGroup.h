@@ -46,7 +46,7 @@ class Entity;  // the members are held as weak references to the ships' C++
                // parts
 
 class OOShipGroupCursor;
-class OOShipGroupMembers;  // OOShipGroup.mm's range-for over the members
+class OOShipGroupMembers;  // OOShipGroup.cpp's range-for over the members
 
 class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
  public:
@@ -80,8 +80,8 @@ class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
   // (OODescription.h).
   std::optional<std::string> descriptionComponents() const;
 
-  // The JS glue (OOJSPrivateObject), defined in OOJSShipGroup.mm: the ShipGroup
-  // object, made on first use; forgetting it when it is finalized;
+  // The JS glue (OOJSPrivateObject), defined in OOJSShipGroup.cpp: the
+  // ShipGroup object, made on first use; forgetting it when it is finalized;
   // "[OOShipGroup <components>]".
   JSValue jsValueInContext(JSContext* context) override;  // owned
   void clearJSSelf(JSValueConst selfVal) override;

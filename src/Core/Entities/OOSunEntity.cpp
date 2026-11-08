@@ -767,7 +767,7 @@ void OOSunEntity::setName(const std::optional<std::string>& name) {
   _name = name;
 }
 
-// The binding's bodies (OOJSSun.mm).
+// The binding's bodies (OOJSSun.cpp).
 JSClassID OOSunEntity::jsClassID() { return ::JSSunClassID(); }
 
 std::optional<std::string> OOSunEntity::jsClassName() {
