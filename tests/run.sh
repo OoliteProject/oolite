@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run Oolite's test tiers from this directory, inside a private virtualenv.
 #
-#     tests/run.sh unit        meson suites: oofnd, core, headers (needs ./mk.sh build dev)
+#     tests/run.sh unit        meson suites: oofnd, core, headers, tools (needs ./mk.sh build dev)
 #     tests/run.sh component   Gherkin scenarios over the debug console
 #     tests/run.sh gui         PyAutoGUI tier (real window; do not touch the mouse)
 #     tests/run.sh smoke       launch_snapshot.py via mk.sh
@@ -85,7 +85,7 @@ require_build() {
 run_unit() {
     require_build
     local suite
-    for suite in oofnd core headers; do
+    for suite in oofnd core headers tools; do
         echo "--> meson test --suite $suite"
         meson test -C "build/meson_${BUILD_TYPE}" --suite "$suite" --print-errorlogs
     done

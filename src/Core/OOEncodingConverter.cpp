@@ -24,8 +24,6 @@ SOFTWARE.
 
 */
 
-#ifndef OOENCODINGCONVERTER_EXCLUDE
-
 #include "OOEncodingConverter.h"
 
 #include "OOCache.h"
@@ -200,8 +198,6 @@ void OOEncodingConverter::profileFire(void* junk) {
   sCacheHits = sCacheMisses = 0;
 }
 #endif
-
-#endif  // OOENCODINGCONVERTER_EXCLUDE
 
 #include "oofnd/Encoding.hpp"
 
