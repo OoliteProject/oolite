@@ -327,6 +327,49 @@ jobs:
             build/OoliteInstall*.exe
           retention-days: 5
 
+  unit-tests-windows:
+    needs: clang-format-check
+    runs-on: windows-latest
+    steps:
+      - name: Git line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          MSYSTEM: UCRT64
+          update: true
+          cache: false
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
+          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
+          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true
+          ShellScripts/Windows/install_deps.sh clang
+      - name: Build Oolite (test flavour)
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+          PYTHONUTF8: "1"
+        run: |
+          ./mk.sh build test
+      - name: Unit tests (oofnd, core, headers, tools)
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+          PYTHONUTF8: "1"
+        run: |
+          tests/run.sh unit
+
   build-macos:
     needs: clang-format-check
     runs-on: macos-latest
