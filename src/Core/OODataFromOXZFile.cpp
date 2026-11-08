@@ -1,6 +1,6 @@
 /*
 
-OODataFromOXZFile.mm
+OODataFromOXZFile.cpp
 
 OXZ-aware file reader.
 
@@ -45,13 +45,6 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
   // if i == cl then the path is entirely uncompressed
   if (i == cl) {
     const oo::fs::Path filePath = oo::fs::pathFromUTF8(path);
-/* -initWithContentsOfMappedFile fails quietly under OS X if there's no file,
-   but GNUstep complains. */
-#if OOLITE_MAC_OS_X
-    auto data = oo::fs::readFile(filePath);
-    if (data) return std::move(*data);
-    return std::nullopt;
-#else
     const oo::fs::FileType type = oo::fs::fileType(filePath);
 
     if (type != oo::fs::FileType::none) {
@@ -70,7 +63,6 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
       }
     }
     return std::nullopt;
-#endif
   }
   // otherwise components 0..i are the OXZ path, and i+1..n are the
   // path inside the OXZ

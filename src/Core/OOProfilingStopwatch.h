@@ -62,22 +62,7 @@ SOFTWARE.
    in seconds.
 */
 
-#if OOLITE_MAC_OS_X
-
-// Mac OS X: always use MACH_ABSOLUTE_TIME.
-#define OO_PROFILING_STOPWATCH_MACH_ABSOLUTE_TIME 1
-#import <mach/mach_time.h>
-
-typedef uint64_t OOHighResTimeValue;
-
-#define OOGetHighResTime mach_absolute_time
-#define OODisposeHighResTime(time) \
-  do {                             \
-    (void)time;                    \
-  } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
-
-#elif OOLITE_WINDOWS
+#if OOLITE_WINDOWS
 
 // Windows: use timeGetTime.
 // DWORD and timeGetTime(), from their own headers: <windows.h> here would bring

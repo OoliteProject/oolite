@@ -273,9 +273,9 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
   void setAtmosphereFogging(OOColor* fogging);
   oo::Ref<OOColor> fogUniform();
 
-  // The category ShaderBindings (EntityShaderBindings.mm): more values the
+  // The category ShaderBindings (EntityShaderBindings.cpp): more values the
   // shader uniforms bind to by name, through the entities' shader binding
-  // member table (EntityShaderBindings.mm).
+  // member table (EntityShaderBindings.cpp).
   GLfloat clock();
   unsigned pseudoFixedD100();
   unsigned pseudoFixedD256();
@@ -303,7 +303,7 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
           the engine wraps a C++ entity with
      OOJSValueFromCxxObject(). Its JS object's private slot holds an
      OOJSEntityHolder (OOJSEntity.h), a weak reference to the entity. The bodies
-     are EntityOOJavaScriptExtensions.mm's. deleteJSSelf() is the engine's
+     are EntityOOJavaScriptExtensions.cpp's. deleteJSSelf() is the engine's
      reset; destruction calls it.
   */
   // jsValueInContext(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
@@ -420,7 +420,7 @@ class OOSubEntityInterface {
 
 #include "oofnd/StdLib.hpp"
 
-// C++ forms, defined in OOConstToString.mm: std::string results (never nil),
+// C++ forms, defined in OOConstToString.cpp: std::string results (never nil),
 // const std::string & parameters (nil arrived as "" and matched nothing: the
 // defaults).
 std::string cxx_OOStringFromEntityStatus(OOEntityStatus status);
@@ -429,10 +429,11 @@ OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string);
 std::string cxx_OOStringFromScanClass(OOScanClass scanClass);
 OOScanClass cxx_OOScanClassFromString(const std::string& string);
 
-/*	The entities' shader binding member table (EntityShaderBindings.mm): the
-   binding a uniform bound to the property name on this entity makes, reading
-   the entity itself. False where no row has the name, the row does not apply to
-   this entity, or its type is not bindable (as the selector path failed).
+/*	The entities' shader binding member table (EntityShaderBindings.cpp):
+   the binding a uniform bound to the property name on this entity makes,
+   reading the entity itself. False where no row has the name, the row does not
+   apply to this entity, or its type is not bindable (as the selector path
+   failed).
 */
 struct OOShaderMemberBinding;  // OOShaderUniformMethodType.h
 bool EntityShaderMemberBindingFor(Entity* entity, const char* property,
@@ -457,7 +458,7 @@ class EntityWeakPListForeign final : public PListForeign {
   }  // what the proxy's class was
   std::string description()
       const override;  // the entity's description, or <Dead OOWeakReference
-                       // 0x...> (Entity.mm)
+                       // 0x...> (Entity.cpp)
 
  private:
   WeakRef<Entity> _entity;

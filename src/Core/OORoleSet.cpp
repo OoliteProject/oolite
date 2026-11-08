@@ -1,6 +1,6 @@
 /*
 
-OORoleSet.mm
+OORoleSet.cpp
 
 
 Copyright (C) 2007-2013 Jens Ayton

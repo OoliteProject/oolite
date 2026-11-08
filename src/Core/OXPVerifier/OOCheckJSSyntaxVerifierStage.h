@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 /*	A leaf of OOFileHandlingVerifierStage. Nothing outside this file names
-   it; the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and
+   it; the verifier makes it from its name (kCxxStages in OOOXPVerifier.cpp) and
    holds it.
 */
 class OOCheckJSSyntaxVerifierStage : public OOFileHandlingVerifierStage {

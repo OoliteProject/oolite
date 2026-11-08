@@ -58,7 +58,7 @@ struct OOPListSchemaVerifierError {
 };
 
 /*	The key path the verification core hands down, one link per level.
-   Defined in OOPListSchemaVerifier.mm, the only file that uses it; the
+   Defined in OOPListSchemaVerifier.cpp, the only file that uses it; the
    verification core's members below take it.
 */
 struct BackLinkChain;
@@ -123,7 +123,7 @@ class OOPListSchemaVerifier : public oo::RefCounted {
                      // that is neither string nor number
 
   // Internal (the OOPrivate category): the verification core and the delegate
-  // calls, which the type verifiers in OOPListSchemaVerifier.mm (file-static
+  // calls, which the type verifiers in OOPListSchemaVerifier.cpp (file-static
   // functions) call directly.
   bool delegateVerifierWithPropertyList(
       const oo::PList& rootPList, const std::string& name,

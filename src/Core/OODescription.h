@@ -2,45 +2,15 @@
 
 OODescription.h
 
-The description family as C++ text. Foundation-free: it names nothing from
-gnustep-base.
+oo::DescriptionOf(const oo::PList&): the text "%@" printed for a property
+list's object graph, gnustep-base's -description byte for byte (oo::describe,
+oofnd/PListDescription.hpp).
 
-A class describes itself by overriding one method, and every printer wraps it:
-
-        override                              printed by as
-        ------------------------------------  ----------------------------------
---------------------------------- -cxx_descriptionComponents -cxx_description,
-oo::DescriptionOf <ClassName 0xnnnnnnnn>{components} -cxx_oo_jsDescription (JS)
-[jsClassName components] -cxx_shortDescriptionComponents -cxx_shortDescription,
-<ClassName 0xnnnnnnnn>{components} oo::ShortDescriptionOf -cxx_description
-(whole text)         oo::DescriptionOf                   whatever it returns
-
-Without components (nullopt, the root's default) the text is <ClassName
-0xnnnnnnnn>. The pointer is oo::str::pointerDescription's (GNUstep's %p: the low
-32 bits). A subclass that extends its superclass's components calls [super
-cxx_descriptionComponents] and appends to it.
-
-        - (std::optional<std::string>) cxx_descriptionComponents
-        {
-                return oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1],
-rgba[2], rgba[3]);
-        }
-
-All four return std::optional<std::string>, so a message to nil is a valid
-nullopt. The signature is virtual
-std::optional<std::string> descriptionComponents() const.
-
-oo::DescriptionOf(x) is the text "%@" put in a formatted string for x: "(null)"
-for nil, the class name for a class object, -cxx_description for an OOObject;
-for an oo::PList, what "%@" printed for its object graph (oo::describe).
-oo::ShortDescriptionOf(x) is its short twin. OOConstantString describes itself
-as its text in both.
-
-The four methods are the @optional protocol OODescription, which a class
-implements to describe itself. A class without its own method gets the root's
-default; nil gets nullopt.
-
-An object not rooted on OOObject describes as <ClassName 0xnnnnnnnn> in both.
+An object describes itself through a virtual
+std::optional<std::string> descriptionComponents() const: the text is
+<ClassName 0xnnnnnnnn>{components}, or <ClassName 0xnnnnnnnn> for nullopt. The
+pointer is oo::str::pointerDescription's (GNUstep's %p: the low 32 bits). A
+subclass extends its base's components by calling the base and appending.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

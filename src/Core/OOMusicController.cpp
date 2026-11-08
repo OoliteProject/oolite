@@ -239,47 +239,7 @@ void OOMusicController::setMode(OOMusicMode mode) {
 // The singleton category (+allocWithZone:, -retain and the rest) is not
 // translated: the controller has no other creator and is never released.
 
-// The private category: the iTunes integration, compiled for the Mac only.
-#if OOLITE_MAC_OS_X
-void OOMusicController::playiTunesPlaylist(const char* playlistNameUTF8) {
-  NSString* playlistName = oo::NSStringFrom(playlistNameUTF8);
-  NSString* ootunesScriptString =
-      [NSString stringWithFormat:
-                    @"with timeout of 1 second\n"
-                     "    tell application \"iTunes\"\n"
-                     "        copy playlist \"%@\" to thePlaylist\n"
-                     "        if thePlaylist exists then\n"
-                     "            play some track of thePlaylist\n"
-                     "        end if\n"
-                     "    end tell\n"
-                     "end timeout",
-                    playlistName];
-
-  NSAppleScript* ootunesScript =
-      [[[NSAppleScript alloc] initWithSource:ootunesScriptString] autorelease];
-  NSDictionary* errDict = nullptr;
-
-  [ootunesScript executeAndReturnError:&errDict];
-  if (errDict)
-    OO_LOG("sound.music.iTunesIntegration.failed", "ootunes returned :{}",
-           oo::DescriptionOf(errDict));
-}
-
-void OOMusicController::pauseiTunes() {
-  NSString* ootunesScriptString =
-      [NSString stringWithFormat:
-                    @"try\nignoring application responses\ntell application "
-                    @"\"iTunes\" to pause\nend ignoring\nend try"];
-  NSAppleScript* ootunesScript =
-      [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-  NSDictionary* errDict = nullptr;
-  [ootunesScript executeAndReturnError:&errDict];
-  if (errDict)
-    OO_LOG("sound.music.iTunesIntegration.failed", "ootunes returned :{}",
-           oo::DescriptionOf(errDict));
-  [ootunesScript release];
-}
-#else
+// The iTunes integration. Upstream's Cocoa build drove iTunes with AppleScript;
+// no other build has it, so these do nothing.
 void OOMusicController::playiTunesPlaylist(const char* /*playlistName*/) {}
 void OOMusicController::pauseiTunes() {}
-#endif

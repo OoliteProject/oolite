@@ -51,7 +51,7 @@ class MyOpenGLView;
 /*	The application controller: the class shell, its state and accessors;
    the frame loop and deferred calls; start-up, splash and progress messages,
         exit and the player file; the SDL full-screen members
-        (SDL/GameController+SDLFullScreen.mm), the former FullScreen category.
+        (SDL/GameController+SDLFullScreen.cpp), the former FullScreen category.
 */
 class GameController : public oo::RefCounted {
  public:
@@ -135,7 +135,7 @@ class GameController : public oo::RefCounted {
   void windowDidResize();
 
 #if OOLITE_SDL
-  // Full screen (SDL/GameController+SDLFullScreen.mm): the former FullScreen
+  // Full screen (SDL/GameController+SDLFullScreen.cpp): the former FullScreen
   // category. -displayModes is getDisplayModes(), as the state has a
   // displayModes.
   void setUpDisplayModes();  // internal use only
@@ -153,7 +153,7 @@ class GameController : public oo::RefCounted {
       const char* selectorName, oo::RefCounted* target);  // by name (was a SEL)
 #endif
 
-  // tests/unit/core/test_GameController.mm reads and sets the state below.
+  // tests/unit/core/test_GameController.cpp reads and sets the state below.
   friend struct GameControllerTestAccess;
 
  private:

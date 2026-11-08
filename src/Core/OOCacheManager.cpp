@@ -255,11 +255,9 @@ OOCacheManager::cacheDirectoryPathCreatingIfNecessary(bool create) {
       oo::fs::utf8String(oo::ResourcePaths::current().cachesDirectory());
   if (!directoryExists(cachePath, create)) return std::nullopt;
 
-#if !OOLITE_MAC_OS_X
   // the old cache file on GNUstep was one level up, so remove it if it exists
   (void)oo::fs::removeItem(oo::fs::pathFromUTF8(
       oo::str::appendingPathComponent(cachePath, "Oolite-cache.plist")));
-#endif
 
   cachePath = oo::str::appendingPathComponent(cachePath, "org.aegidian.oolite");
   if (!directoryExists(cachePath, create)) return std::nullopt;
@@ -531,18 +529,6 @@ bool OOCacheManager::directoryExists(const std::string& inPath, bool inCreate) {
   return true;
 }
 
-#if OOLITE_MAC_OS_X
-
-std::optional<std::string> OOCacheManager::cachePathCreatingIfNecessary(
-    bool create) {
-  const std::optional<std::string> cachePath =
-      cacheDirectoryPathCreatingIfNecessary(create);
-  if (!cachePath.has_value()) return std::nullopt;
-  return oo::str::appendingPathComponent(*cachePath, "Data Cache.plist");
-}
-
-#else
-
 std::optional<std::string> OOCacheManager::cachePathCreatingIfNecessary(
     bool create) {
   const std::optional<std::string> cachePath =
@@ -550,8 +536,6 @@ std::optional<std::string> OOCacheManager::cachePathCreatingIfNecessary(
   if (!cachePath.has_value()) return std::nullopt;
   return oo::str::appendingPathComponent(*cachePath, "Oolite-cache.plist");
 }
-
-#endif
 
 oo::Ref<OOAsyncCacheWriter> OOAsyncCacheWriter::writerWithCacheContents(
     const oo::PList& cacheContents) {

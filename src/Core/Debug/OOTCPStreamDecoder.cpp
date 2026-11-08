@@ -27,8 +27,8 @@ SOFTWARE.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
-#define OO_PLAIN_CPP_UNIT \
-  \n 1  // a plain C++ unit: the protocol header spells OOALSTR as a handle
+// A plain C++ unit: the protocol header spells OOALSTR as a handle.
+#define OO_PLAIN_CPP_UNIT 1
 #include "OOTCPStreamDecoder.h"
 
 #include <stdarg.h>

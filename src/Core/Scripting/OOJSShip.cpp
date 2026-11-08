@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 namespace {
 
 // The weapon offsets as the old accessors handed them to JavaScript: an array
-// of OONativeVector (as ShipEntity+FoundationBridge.mm built it).
+// of OONativeVector (as the Objective-C bridge built it).
 oo::PList NativeVectorArray(const std::vector<Vector>& vectors) {
   oo::PList::Array result;
   result.reserve(vectors.size());

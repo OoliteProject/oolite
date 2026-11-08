@@ -47,10 +47,10 @@ class Entity;  // Entity.h: the shader binding target
 #include "oofnd/StdLib.hpp"
 
 class OOMaterial;
-struct VertexFaceRef;  // OOMesh.mm: the faces that use one vertex, while
+struct VertexFaceRef;  // OOMesh.cpp: the faces that use one vertex, while
                        // loading
-class OOMeshBuffer;    // OOMesh.mm: one refcounted buffer (an oo::Data), shared
-                       // by a mesh and its mutable copies
+class OOMeshBuffer;  // OOMesh.cpp: one refcounted buffer (an oo::Data), shared
+                     // by a mesh and its mutable copies
 
 #define OOMESH_PROFILE 0
 #if OOMESH_PROFILE

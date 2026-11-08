@@ -43,8 +43,9 @@ class OOCrosshairs : public oo::RefCounted {
   void render();
 
  private:
-  friend struct OOCrosshairsTestAccess;  // tests/unit/core/test_OOCrosshairs.mm
-                                         // reads the vertex buffer
+  friend struct
+      OOCrosshairsTestAccess;  // tests/unit/core/test_OOCrosshairs.cpp
+                               // reads the vertex buffer
 
   void setUpDataWithPoints(const oo::PList& points, GLfloat scale,
                            OOColor* color, GLfloat alpha);

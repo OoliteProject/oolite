@@ -60,7 +60,7 @@ class OOEncodingConverter : public oo::RefCounted {
 
  private:
   std::optional<oo::Data> performConversionForString(const std::string& string);
-  void profileFire(void* junk);  // defined only when the .mm's
+  void profileFire(void* junk);  // defined only when the .cpp's
                                  // PROFILE_ENCODING_CONVERTER is on
 
   std::optional<oo::str::Encoding> _encoding =

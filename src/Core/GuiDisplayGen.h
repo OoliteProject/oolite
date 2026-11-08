@@ -470,6 +470,6 @@ class GuiDisplayGen : public oo::RefCounted {
                                OORouteType optimizeBy, OOScalar zoom);
 };
 
-// One-line bridge for the file-scope helpers of GuiDisplayGen.mm, which may not
-// message the universe themselves. Deleted with the universe's conversion.
+// One-line bridge for the file-scope helpers of GuiDisplayGen.cpp, which may
+// not message the universe themselves. Deleted with the universe's conversion.
 bool GuiDisplayGenUniverseUseShaders();

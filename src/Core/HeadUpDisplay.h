@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 #include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOObject.h"
 
-struct OOHUDWidget;  // HeadUpDisplay.mm
+struct OOHUDWidget;  // HeadUpDisplay.cpp
 
 class OOColor;
 class OOCrosshairs;
@@ -250,8 +250,8 @@ class PlayerEntity;
 class GuiDisplayGen;
 
 /*	The HUD itself. The dials are called by name through a table of member
-        pointers (HeadUpDisplay.mm, kDials). Getters named after their state are
-   get + the name.
+        pointers (HeadUpDisplay.cpp, kDials). Getters named after their state
+   are get + the name.
 */
 class HeadUpDisplay : public oo::RefCounted {
  public:

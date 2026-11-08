@@ -196,7 +196,7 @@ std::string RepeatString(std::string_view str, NSUInteger times) {
 
 /*	cxx_OOExpandKey(key, <argument>): the expansion of a description key
    with the one-entry argument dictionary the macro builds from the variable's
-   name (OOShipLibraryDescriptions.mm's pattern). A nil argument (which the
+   name (OOShipLibraryDescriptions.cpp's pattern). A nil argument (which the
    macro could not have put in a dictionary) is left out.
 */
 std::optional<std::string> ExpandKeyWithArgument(
@@ -13614,7 +13614,7 @@ void ShipEntity::setTrackCloseContacts(bool value) {
   closeContactsInfo.clear();
 }
 
-#if OO_SALVAGE_SUPPORT || defined(OO_DEBUG_MONITOR_ENABLED)
+#ifdef OO_DEBUG_MONITOR_ENABLED
 // The role set's description: "(null)" for none, else
 // <OORoleSet 0x...>{roles} (OODescription.h).
 namespace {
@@ -13630,95 +13630,8 @@ std::string RoleSetDescription(::OORoleSet* roleSet) {
 }  // namespace
 #endif
 
-#if OO_SALVAGE_SUPPORT
-// Never used.
-
-void ShipEntity::claimAsSalvage() {
-  // Create a bouy and beacon where the hulk is.
-  // Get the main GalCop station to launch a pilot boat to deliver a pilot to
-  // the hulk.
-  OO_LOG("claimAsSalvage.called", "claimAsSalvage called on {} {}",
-         [this cxx_name].value_or("(null)"),
-         RoleSetDescription(getRoleSet().get()));
-
-  // Not an abandoned hulk, so don't allow the salvage
-  if (![this isHulk]) {
-    OO_LOG("claimAsSalvage.failed.notHulk", "{}",
-           "claimAsSalvage failed because not a hulk");
-    return;
-  }
-
-  // Set target to main station, and return now if it can't be found
-  [this setTargetToSystemStation];
-  if ([this primaryTarget] == nullptr) {
-    OO_LOG("claimAsSalvage.failed.noStation", "{}",
-           "claimAsSalvage failed because did not find a station");
-    return;
-  }
-
-  // Get the station to launch a pilot boat to bring a pilot out to the hulk
-  // (use a viper for now)
-  ::StationEntity* station = oo::ToStation([this primaryTarget]);
-  OO_LOG("claimAsSalvage.requestingPilot", "{}",
-         "claimAsSalvage asking station to launch a pilot boat");
-  [station launchShipWithRole:"pilot"];
-  [this setReportAIMessages:true];
-  OO_LOG("claimAsSalvage.success", "{}",
-         "claimAsSalvage setting own state machine to capturedShipAI.plist");
-  [this setAITo:"capturedShipAI.plist"];
-}
-
-void ShipEntity::sendCoordinatesToPilot() {
-  ::Entity* scan;
-  ::ShipEntity *scanShip, *pilot;
-
-  n_scanned_ships = 0;
-  scan = z_previous;
-  OO_LOG("ship.pilotage", "{}", "searching for pilot boat");
-  while (scan && (scan->isShip == false)) {
-    scan = scan->z_previous;  // skip non-ships
-  }
-
-  pilot = nullptr;
-  while (scan) {
-    if (scan->isShip) {
-      scanShip = oo::ToShip(scan);
-
-      if ([this hasRole:"pilot"] == true) {
-        if ([scanShip primaryTarget] == nullptr) {
-          OO_LOG("ship.pilotage", "{}",
-                 "found pilot boat with no target, will use this one");
-          pilot = scanShip;
-          [pilot setPrimaryRole:"pilot"];
-          break;
-        }
-      }
-    }
-    scan = scan->z_previous;
-    while (scan && (scan->isShip == false)) {
-      scan = scan->z_previous;
-    }
-  }
-
-  if (pilot != nullptr) {
-    OO_LOG("ship.pilotage", "{}", "becoming pilot target and setting AI");
-    [pilot setReportAIMessages:true];
-    [pilot addTarget:this];
-    [pilot setAITo:"pilotAI.plist"];
-    [this cxx_reactToAIMessage:"FOUND_PILOT" context:"flight update"];
-  }
-}
-#endif
-
 // Salvage pilot, debug dump, script info, demo ship, script events and AI
 // reactions, alert condition, shader helpers. Members of the C++ ship.
-
-#if OO_SALVAGE_SUPPORT
-void ShipEntity::pilotArrived() {
-  [this setHulk:false];
-  [this cxx_reactToAIMessage:"PILOT_ARRIVED" context:"flight update"];
-}
-#endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 void ShipEntity::dumpSelfState() {
@@ -14102,8 +14015,8 @@ bool OOUniformBindingPermitted(const std::string& propertyName,
     if (entity->getIsShip()) {
       if (shipWhitelist.contains(propertyName)) return true;
     }
-    // -isPlayerLikeShip answered YES for these two only (ProxyPlayerEntity.mm);
-    // it is asked of the C++ part.
+    // -isPlayerLikeShip answered YES for these two only
+    // (ProxyPlayerEntity.cpp); it is asked of the C++ part.
     if (dynamic_cast<PlayerEntity*>(entity) != nullptr ||
         dynamic_cast<ProxyPlayerEntity*>(entity) != nullptr) {
       if (playerShipWhitelist.contains(propertyName)) return true;

@@ -222,11 +222,10 @@ OOINLINE void SqueezeHorizontally(OOPixMap pixMap,
 }
 
 #if DUMP_MIP_MAPS || DUMP_SCALE
-// NOTE: currently only works on OS X because of OSAtomicAdd32() (used to
-// increment ID counter in thread-safe way). A simple increment would be
-// sufficient if limited to a single thread (in OOTextureLoader).
-volatile int32_t sPreviousDumpID = 0;
-int32_t OSAtomicAdd32(int32_t __theAmount, volatile int32_t* __theValue);
+#include <atomic>
+
+// Dump IDs are taken on the texture loader's worker threads.
+static std::atomic<int32_t> sPreviousDumpID{0};
 
 #endif
 
@@ -237,12 +236,12 @@ int32_t OSAtomicAdd32(int32_t __theAmount, volatile int32_t* __theValue);
   uint32_t dumpPlanes = pl;                          \
   uint32_t dumpLevel = 0;                            \
   bool dumpThis = (dumpPlanes & DUMP_CHANNELS) != 0; \
-  SInt32 dumpID = dumpThis ? OSAtomicAdd32(1, &sPreviousDumpID) : 0;
+  int32_t dumpID = dumpThis ? sPreviousDumpID.fetch_add(1) + 1 : 0;
 #define DUMP_MIP_MAP_DUMP(px, w, h) \
   if (dumpThis) DumpMipMap(px, w, h, dumpPlanes, dumpID, dumpLevel++);
 static void DumpMipMap(void* data, OOPixMapDimension width,
                        OOPixMapDimension height, OOPixMapFormat format,
-                       SInt32 ID, uint32_t level);
+                       int32_t ID, uint32_t level);
 #else
 #define DUMP_MIP_MAP_PREPARE(pl) \
   do {                           \
@@ -258,7 +257,7 @@ static void DumpMipMap(void* data, OOPixMapDimension width,
 
 #if DUMP_SCALE
 #define DUMP_SCALE_PREPARE() \
-  SInt32 dumpID = OSAtomicAdd32(1, &sPreviousDumpID), dumpCount = 0;
+  int32_t dumpID = sPreviousDumpID.fetch_add(1) + 1, dumpCount = 0;
 #define DUMP_SCALE_DUMP(PM, stage)                                           \
   do {                                                                       \
     OOPixMap* pm = &(PM);                                                    \
@@ -893,7 +892,7 @@ static void ScaleToHalf_4_x2(void* srcBytes, void* dstBytes,
 #if DUMP_MIP_MAPS
 static void DumpMipMap(void* data, OOPixMapDimension width,
                        OOPixMapDimension height, OOPixMapFormat format,
-                       SInt32 ID, uint32_t level) {
+                       int32_t ID, uint32_t level) {
   OOPixMap pixMap = OOMakePixMap(data, width, height, format, 0, 0);
   OODumpPixMap(pixMap, oo::str::format(
                            "mipmap dump ID %u lv%u %s %ux%u", ID, level,

@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 namespace {
 
 // keys in trade-goods.plist (sort_order, trumble_opinion, comment and
-// short_comment are read only by OOCommodityMarket.mm)
+// short_comment are read only by OOCommodityMarket.cpp)
 constexpr std::string_view kOOCommodityName = "name";
 constexpr std::string_view kOOCommodityClasses = "classes";
 constexpr std::string_view kOOCommodityContainer = "quantity_unit";

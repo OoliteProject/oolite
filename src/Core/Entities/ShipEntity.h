@@ -53,7 +53,7 @@ class WormholeEntity;
 #include "OOShipGroup.h"      // the groups are oo::Ref
 class OOFlasherEntity;
 class OOExhaustPlumeEntity;  // Universe.h's, for the members of
-                             // ShipEntityAI.mm's scans.
+                             // ShipEntityAI.cpp's scans.
 typedef bool (*EntityFilterPredicate)(Entity* entity, void* parameter);
 
 #define MAX_TARGETS 24
@@ -972,16 +972,9 @@ class ShipEntity : public OOEntityWithDrawable,
   int checkShipsInVicinityForWitchJumpExit();
   bool getTrackCloseContacts();
   void setTrackCloseContacts(bool value);
-#if OO_SALVAGE_SUPPORT
-  void claimAsSalvage();
-  void sendCoordinatesToPilot();
-#endif
 
   // salvage pilot, debug dump, script info, demo ship, script events and AI
   // reactions, alert condition, shader helpers.
-#if OO_SALVAGE_SUPPORT
-  void pilotArrived();
-#endif
 #ifdef OO_DEBUG_MONITOR_ENABLED
   void dumpSelfState() override;
 #endif
@@ -1017,7 +1010,7 @@ class ShipEntity : public OOEntityWithDrawable,
   std::optional<std::string> descriptionForObjDump() override;
 #endif
 
-  // Category ScriptMethods (ShipEntityScriptMethods.mm): methods for use by
+  // Category ScriptMethods (ShipEntityScriptMethods.cpp): methods for use by
   // scripting mechanisms. std::nullopt ejects nothing, as nil did.
   ::ShipEntity* ejectShipOfType(
       const std::optional<std::string>& shipKey);  // Note: ship type, not role.
@@ -1025,7 +1018,7 @@ class ShipEntity : public OOEntityWithDrawable,
   std::vector<oo::EntityHold> spawnShipsWithRole(const std::string& role,
                                                  NSUInteger count);
 
-  // Category LoadRestore (ShipEntityLoadRestore.mm): saving and restoring
+  // Category LoadRestore (ShipEntityLoadRestore.cpp): saving and restoring
   // individual non-player ships. The context (nullptr for none) synchronises
   // the groups of ships saved together.
   oo::PList savedShipDictionaryWithContext(OOShipSaveContext* context);
@@ -1037,7 +1030,7 @@ class ShipEntity : public OOEntityWithDrawable,
       std::vector<std::string>*
           deletes);  // the file's private category LoadRestoreInternal
 
-  // ShipEntityAI.mm: AI category, OOAIPrivate (ship and station) and the
+  // ShipEntityAI.cpp: AI category, OOAIPrivate (ship and station) and the
   // station stubs.
   void setAITo(const std::string& aiString);
   void setAIScript(const std::string& aiString);
@@ -1079,7 +1072,7 @@ class ShipEntity : public OOEntityWithDrawable,
   void scanForNearestShipWithNegatedPredicate(EntityFilterPredicate predicate,
                                               void* parameter);
   virtual void acceptDistressMessageFrom(::ShipEntity* other);
-  // ShipEntityAI.mm: stubs that StationEntity's members answer for a station.
+  // ShipEntityAI.cpp: stubs that StationEntity's members answer for a station.
   void increaseAlertLevel();
   void decreaseAlertLevel();
   oo::PList launchPolice();
@@ -1094,7 +1087,7 @@ class ShipEntity : public OOEntityWithDrawable,
   void launchShipWithRole(const std::string& param);
   void abortAllDockings();
 
-  // ShipEntityAI.mm: PureAI part 1: state, speed, scans for prey and loot,
+  // ShipEntityAI.cpp: PureAI part 1: state, speed, scans for prey and loot,
   // planets, legal status.
   void setStateTo(const std::string& state);
   void pauseAI(const std::string& intervalString);
@@ -1132,8 +1125,8 @@ class ShipEntity : public OOEntityWithDrawable,
   void setDestinationWithinTarget();
   void checkCourseToDestination();
 
-  // ShipEntityAI.mm: PureAI part 2: checks, comms, Thargoids, escorts, patrols,
-  // target marking.
+  // ShipEntityAI.cpp: PureAI part 2: checks, comms, Thargoids, escorts,
+  // patrols, target marking.
   void checkAegis();
   void checkEnergy();
   void checkHeatInsulation();
@@ -1172,7 +1165,7 @@ class ShipEntity : public OOEntityWithDrawable,
   void markTargetForOffence(const std::string& valueString);
   void storeTarget();
 
-  // ShipEntityAI.mm: PureAI part 3: stored targets, nearest-ship scans,
+  // ShipEntityAI.cpp: PureAI part 3: stored targets, nearest-ship scans,
   // stations, script actions, beacons.
   void recallStoredTarget();
   void scanForRocks();
@@ -1628,7 +1621,7 @@ GLfloat getWeaponRangeFromType(OOWeaponType weapon_type);
 
 bool isWeaponNone(OOWeaponType weapon);
 
-// C++ forms, defined in OOConstToString.mm.
+// C++ forms, defined in OOConstToString.cpp.
 std::string cxx_OOStringFromBehaviour(OOBehaviour behaviour);
 std::string cxx_OOStringFromShipDamageType(OOShipDamageType type);
 

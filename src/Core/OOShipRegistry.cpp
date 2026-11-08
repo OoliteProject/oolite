@@ -45,8 +45,6 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 
-#define PRELOAD 0
-
 namespace {
 
 OOShipRegistry* sSingleton = nullptr;  // the one +1 is never released
@@ -363,12 +361,6 @@ void OOShipRegistry::loadShipData() {
   // Sanitize conditions.
   if (!sanitizeConditions(result)) return;
   OO_LOG("shipData.load.progress", "{}", "Finished validating data...");
-
-#if PRELOAD
-  // Preload and cache meshes.
-  if (!preloadShipMeshes(result)) return;
-  OO_LOG("shipData.load.progress", "{}", "Finished loading meshes...");
-#endif
 
   _shipData = std::move(result);
   OOCacheManager::sharedCache()->setPList(_shipData, kShipDataCacheKey,
@@ -1151,53 +1143,6 @@ bool OOShipRegistry::canonicalizeAndTagSubentities(oo::PList& ioData) {
 
   return true;
 }
-
-#if PRELOAD
-bool OOShipRegistry::preloadShipMeshes(oo::PList& ioData) {
-  oo::PList::Dict& ships = Entries(ioData);
-  OOMesh* mesh = nullptr;
-  std::size_t i = 0, count;
-
-  count = ships.size();
-
-  // Preload ship meshes.
-  for (auto ship = ships.begin(); ship != ships.end();) {
-    const oo::PList& shipEntry = ship->second;
-    const std::optional<std::string> modelName =
-        StringForKey(&shipEntry, "model");
-    {
-      oo::AutoreleaseScope pool;  // was @autoreleasepool
-      [[::GameController sharedController]
-          setProgressBarValue:(float)i++ / (float)count];
-
-      // (PRELOAD is 0: this names a -meshWithName: form OOMesh no longer has.)
-      const oo::PList* materials = shipEntry.get<oo::PList::Dict>("materials");
-      const oo::PList* shaders = shipEntry.get<oo::PList::Dict>("shaders");
-      mesh = [OOMesh
-                 meshWithName:modelName
-           materialDictionary:(materials != nullptr ? *materials : oo::PList())
-            shadersDictionary:(shaders != nullptr ? *shaders : oo::PList())
-                       smooth:shipEntry.get<bool>("smooth")
-                 shaderMacros:nullptr
-          shaderBindingTarget:nullptr];
-    }  // NOTE: mesh is now invalid, but pointer nil check is OK.
-
-    if (mesh == nullptr) {
-      // FIXME: what if it's a subentity? Need to rearrange things.
-      OO_LOG_ERR("shipData.load.error",
-                 "model \"{}\" could not be loaded for ship \"{}\", removing.",
-                 modelName.value_or("(null)"), ship->first);
-      ship = ships.erase(ship);
-    } else {
-      ++ship;
-    }
-  }
-
-  [[::GameController sharedController] setProgressBarValue:-1.0f];
-
-  return true;
-}
-#endif
 
 void OOShipRegistry::mergeShipRoles(
     const std::string& roles, const std::string& shipKey,

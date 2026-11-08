@@ -69,7 +69,7 @@ enum trumble_mouth {
   TRUMBLE_MOUTH_NORMAL
 };
 
-struct OOTrumbleTestAccess;  // tests/unit/core/test_OOTrumble.mm
+struct OOTrumbleTestAccess;  // tests/unit/core/test_OOTrumble.cpp
 
 class OOTrumble : public oo::RefCounted {
  public:

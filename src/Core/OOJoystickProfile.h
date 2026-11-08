@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 #define STICKPROFILE_TYPE_SPLINE 2
 #define STICKPROFILE_MAX_POWER 10.0
 
-class OOJoystickSplineSegment;  // private to OOJoystickProfile.mm
+class OOJoystickSplineSegment;  // private to OOJoystickProfile.cpp
 
 class OOJoystickAxisProfile : public oo::RefCounted {
  public:

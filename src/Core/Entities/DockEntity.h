@@ -72,7 +72,7 @@ class DockEntity : public ShipEntity {
   bool isOffCentre();
   void setVirtual();
 
-  // The ID locks (the private category of DockEntity.mm).
+  // The ID locks (the private category of DockEntity.cpp).
   void clearIdLocks(::ShipEntity* ship);
   void clearAllIdLocks();
 

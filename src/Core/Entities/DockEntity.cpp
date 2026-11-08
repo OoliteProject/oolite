@@ -216,7 +216,7 @@ void DockEntity::setDimensionsAndCorridor(bool docking, bool ddc,
 
 bool DockEntity::isDock() { return true; }
 
-// The binding's bodies (OOJSDock.mm).
+// The binding's bodies (OOJSDock.cpp).
 JSClassID DockEntity::jsClassID() { return ::JSDockClassID(); }
 
 bool DockEntity::isVisibleToScripts() {

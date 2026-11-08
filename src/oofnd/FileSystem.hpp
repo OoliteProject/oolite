@@ -24,7 +24,7 @@
             [NSData dataWithContentsOfFile:p]             oo::fs::readFile(p)
             +[NSData oo_dataWithOXZFile:] (path may OODataFromOXZFile(path)
    (declared below; defined in pass through a .oxz zip component)
-   Core/OODataFromOXZFile.mm) [data writeToFile:p atomically:YES / NO]
+   Core/OODataFromOXZFile.cpp) [data writeToFile:p atomically:YES / NO]
    oo::fs::writeFile(p, data, WriteMode::atomic / direct) [fm createFileAtPath:p
    contents:nil ...] + [NSFileHandle fileHandleForWritingAtPath:p]
    oo::fs::createFileForWriting(p)  (a FILE *) [handle synchronizeFile]
@@ -435,13 +435,13 @@ inline bool synchronizeFile(std::FILE* file) noexcept {
    file inside it. nullopt where +oo_dataWithOXZFile: returned
    nil: no such file, a directory, an empty plain file, or an archive or entry
    that cannot be read (with the same log lines). Defined in Core
-        (OODataFromOXZFile.mm); uses MiniZip for .oxz segments.
+        (OODataFromOXZFile.cpp); uses MiniZip for .oxz segments.
 */
 std::optional<oo::Data> OODataFromOXZFile(const std::string& path);
 
 /*	True when the path names an existing non-directory file, including a
    path that crosses a .oxz zip component. Same answers as the
    file manager's -oo_oxzFileExistsAtPath:. Defined in Core
-   (OODataFromOXZFile.mm).
+   (OODataFromOXZFile.cpp).
 */
 bool OOOxzFileExistsAtPath(const std::string& path);

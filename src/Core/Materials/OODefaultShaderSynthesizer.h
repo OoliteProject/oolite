@@ -120,7 +120,7 @@ class OODefaultShaderSynthesizer : public oo::RefCounted {
 #endif
 
   /*	Stages. These should only be called through the REQUIRE_STAGE macro (in
-     the .mm) to avoid duplicated code and ensure data depedencies are met.
+     the .cpp) to avoid duplicated code and ensure data depedencies are met.
   */
 
   /*	writeTextureCoordRead

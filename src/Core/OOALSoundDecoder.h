@@ -7,7 +7,7 @@ class is an implementation detail. Do not use it directly; use OOSound to
 load sounds.
 
 The sounds call it directly. The Vorbis codec, the class cluster's one
-concrete decoder, is private to OOALSoundDecoder.mm.
+concrete decoder, is private to OOALSoundDecoder.cpp.
 
 
 OOALSound - OpenAL sound implementation for Oolite.

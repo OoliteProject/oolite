@@ -26,8 +26,8 @@
    have this signature; see src/oofnd/README.md "Migrating oo_*ForKey".
 
         Semantics, each pinned by tests/unit/oofnd/test_plist_get.cpp against
-   values captured from OOCollectionExtractors.mm running on GNUstep base 1.31.1
-   (the build the game links):
+   values captured from upstream's OOCollectionExtractors.m running on GNUstep
+   base 1.31.1 (the build the game links):
 
           * A missing key (or index out of range) gives the fallback. So does a
    value of a kind the conversion does not accept (a dict where a number is

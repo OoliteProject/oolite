@@ -1,6 +1,6 @@
 /*
 
-OOJSEngineNativeWrappers.mm
+OOJSEngineNativeWrappers.cpp
 
 The handler behind OOJS_NATIVE_EXIT (OOJSEngineNativeWrappers.h). The macro is
 a C++ catch (...); this file is the one place that tells the game's exception

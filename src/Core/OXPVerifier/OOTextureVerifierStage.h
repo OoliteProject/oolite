@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 
    OOTextureVerifierStage is a leaf of OOFileHandlingVerifierStage; nothing
    outside this file messages it (the verifier makes it from its name,
-   kCxxStages in OOOXPVerifier.mm). OOTextureHandlingStage is an intermediate
+   kCxxStages in OOOXPVerifier.cpp). OOTextureHandlingStage is an intermediate
    class that the ship data and model stages subclass.
 */
 class OOTextureVerifierStage : public OOFileHandlingVerifierStage {

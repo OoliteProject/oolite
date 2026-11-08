@@ -1,6 +1,6 @@
 /*
 
-OOPListGameTypes.mm
+OOPListGameTypes.cpp
 
 See OOPListGameTypes.h.
 

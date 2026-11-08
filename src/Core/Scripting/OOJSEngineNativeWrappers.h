@@ -102,7 +102,7 @@ void OOJSProfileExit(OOJSProfileStackFrame* frame);
         The pairs below are a C++ try, a catch (...) and scope guards, so a
    binding file that uses them contains no exception syntax of its own:
           * OOJS_NATIVE_EXIT catches whatever the body throws and hands it to
-            OOJSReportCurrentException() (OOJSEngineNativeWrappers.mm), which
+            OOJSReportCurrentException() (OOJSEngineNativeWrappers.cpp), which
    reports the game's exception (oo::Exception). It also reports a C++
    exception ("Native exception: <what()>").
           * The native then returns

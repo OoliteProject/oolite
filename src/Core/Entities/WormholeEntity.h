@@ -119,7 +119,7 @@ class WormholeEntity : public Entity {
   void drawImmediate(bool immediate, bool translucent) override;
   void dumpSelfState() override;
 
-  // The binding's bodies (OOJSWormhole.mm).
+  // The binding's bodies (OOJSWormhole.cpp).
   JSClassID jsClassID() override;
   std::optional<std::string> jsClassName() override;
   bool isVisibleToScripts() override;

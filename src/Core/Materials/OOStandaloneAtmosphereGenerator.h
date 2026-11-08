@@ -97,7 +97,7 @@ class OOStandaloneAtmosphereGenerator : public OOTextureGenerator {
 
  private:
   void dumpNoiseBuffer(
-      float* noise);  // defined where the .mm's DEBUG_DUMP_RAW is set
+      float* noise);  // defined where the .cpp's DEBUG_DUMP_RAW is set
 
   OOStandaloneAtmosphereGeneratorInfo _info = {};
   unsigned _planetScale = {};

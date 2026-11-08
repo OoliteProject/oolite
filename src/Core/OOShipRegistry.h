@@ -93,9 +93,6 @@ class OOShipRegistry : public oo::RefCounted {
   bool sanitizeConditions(oo::PList& ioData);
 
   bool canonicalizeAndTagSubentities(oo::PList& ioData);
-  bool preloadShipMeshes(
-      oo::PList& ioData);  // defined only when OOShipRegistry.mm's PRELOAD is
-                           // set (it is 0)
 
   oo::PList mergeShip(
       const oo::PList& child,

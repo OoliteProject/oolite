@@ -2,7 +2,7 @@
 
 OOExplosionCloudEntity.m
 
-See OOParticleSystem.h and OOParticleSystem.mm.
+See OOParticleSystem.h and OOParticleSystem.cpp.
 
 
 Oolite

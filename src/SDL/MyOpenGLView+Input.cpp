@@ -1,6 +1,6 @@
 /*
 
-MyOpenGLView+Input.mm
+MyOpenGLView+Input.cpp
 
 Oolite
 
@@ -196,7 +196,7 @@ void MyOpenGLView::pollControls() {
   float mouseVirtualStickSensitivityY =
       viewSize.height * _mouseVirtualStickSensitivityFactor;
   NSTimeInterval timeNow =
-      oo::date::monotonicSeconds();  // same clock as MyOpenGLView.mm's -init
+      oo::date::monotonicSeconds();  // same clock as MyOpenGLView.cpp's -init
   Uint16 key_id;
   SDL_Scancode scan_code;
   float inDelta;

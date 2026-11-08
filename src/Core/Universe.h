@@ -1014,7 +1014,7 @@ void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source,
 
 #include "oofnd/StdLib.hpp"
 
-// C++ forms, defined in OOConstToString.mm: nullopt where the
+// C++ forms, defined in OOConstToString.cpp: nullopt where the
 // old Foundation forms gave nil.
 std::optional<std::string> cxx_OODisplayStringFromGovernmentID(
     OOGovernmentID government);

@@ -57,7 +57,7 @@ std::optional<std::string> OOJSSoundJSClassName(void);
    holder, which retains the sound; the slot retains the holder
    (OOJSSetCxxPrivate) and the finalizer releases it
    (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
-   OOJSSound.mm; only the binding makes one.
+   OOJSSound.cpp; only the binding makes one.
 */
 class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
  public:

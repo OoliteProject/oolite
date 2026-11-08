@@ -37,11 +37,7 @@ SOFTWARE.
    currently not using it under OS X either, for cross-platform consistency.
         -- Ahruman 2008-01-27
 */
-#if OOLITE_MAC_OS_X
 #define USE_COMPATIBILITY_MAPPING 0
-#else
-#define USE_COMPATIBILITY_MAPPING 0
-#endif
 
 #define PROFILE_ENCODING_CONVERTER 0
 

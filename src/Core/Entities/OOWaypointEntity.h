@@ -59,7 +59,7 @@ class OOWaypointEntity : public Entity {
   bool isWaypoint() override;
   void drawImmediate(bool immediate, bool translucent) override;
 
-  // The binding's bodies (OOJSWaypoint.mm).
+  // The binding's bodies (OOJSWaypoint.cpp).
   JSClassID jsClassID() override;
   std::optional<std::string> jsClassName() override;
   bool isVisibleToScripts() override;

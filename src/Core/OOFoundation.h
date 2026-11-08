@@ -2,8 +2,8 @@
 
 OOFoundation.h
 
-Import OpenStep main headers and define some Macisms and other compatibility
-stuff.
+Platform and build macros (OOLITE_WINDOWS, OOLITE_LINUX, OOLITE_MACOS,
+OOLITE_DEBUG and friends) and the basic types every game file uses.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -35,18 +35,6 @@ MA 02110-1301, USA.
 
 #include <math.h>
 #include <stdbool.h>
-
-/*	Apple's -sortedArrayUsingFunction: and friends take NSInteger (*)(id,
-   id, void*). Oolite's sort functions return NSComparisonResult, which has the
-   same size and calling convention but is a distinct enum type that C++ will
-   not convert implicitly. GNUstep declares them with NSComparisonResult, so
-   there the functions are passed as they are.
-*/
-#ifdef GNUSTEP_BASE_LIBRARY
-#define OOSortFunction(function) (function)
-#else
-#define OOSortFunction(function) ((NSInteger (*)(id, id, void*))(function))
-#endif
 
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
@@ -128,21 +116,7 @@ MA 02110-1301, USA.
 #define OOLITE_ESPEAK 1
 #endif
 
-// Pseudo-keywords used for AppKit UI bindings.
-#ifndef IBOutlet
-#define IBOutlet /**/
-#endif
-#ifndef IBAction
-#define IBAction void
-#endif
-
-#ifndef OOLITE_MAC_OS_X
-#define OOLITE_MAC_OS_X 0
-#endif
-
-// macOS as a platform (SDL front end, Apple's GL and libc), without Apple
-// Foundation. OOLITE_MAC_OS_X above is the legacy Foundation/Cocoa switch and
-// stays 0.
+// macOS as a platform (SDL front end, Apple's GL and libc).
 #ifdef __APPLE__
 #define OOLITE_MACOS 1
 #else
@@ -173,8 +147,6 @@ MA 02110-1301, USA.
 #define OOLITE_64_BIT 0
 #endif
 
-#define OOLITE_PROPERTY_SYNTAX (OOLITE_MAC_OS_X || OOLITE_HAVE_CLANG)
-
 #include "OOLogging.h"
 #include "oofnd/objc/OOObject.h"
 
@@ -183,63 +155,14 @@ MA 02110-1301, USA.
  */
 #include "OODescription.h"
 
-#if OOLITE_MAC_OS_X
-#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
-#else
-#define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
-#endif
-
-/*	The ordering type and values under Oolite's own names: game code spells
-        OOComparisonResult / OOOrdered*, never the NS names. It is Oolite's own
-   NSInteger enum with Foundation's values; the Mac OS X path keeps AppKit's
-   NSInteger callbacks and Foundation's constants.
+/*	The ordering type and values: an NSInteger enum with Foundation's
+   NSComparisonResult values.
 */
-#if OOLITE_MAC_OS_X
-typedef NSInteger OOComparisonResult;
-inline constexpr OOComparisonResult OOOrderedAscending = NSOrderedAscending;
-inline constexpr OOComparisonResult OOOrderedSame = NSOrderedSame;
-inline constexpr OOComparisonResult OOOrderedDescending = NSOrderedDescending;
-#else
 enum OOComparisonResult : NSInteger {
   OOOrderedAscending = -1,
   OOOrderedSame = 0,
   OOOrderedDescending = 1
 };
-#endif
-
-#define OOLITE_OPTIONAL(protocolName) @optional
-
-/*	instancetype contextual keyword; added in Clang 3.0ish.
-
-        Pseudo-type indicating that the return value of an instance method is an
-        instance of the same class as the receiver, or for a class mothod, is an
-        instance of that class.
-
-        For example, given:
-                @interface Foo: OOObject
-                + (instancetype) fooWithProperty:(id)property;
-                @end
-
-                @interface Bar: Foo
-                @end
-
-        the type of [Bar fooWithProperty] is inferred to be Bar *.
-
-        Clang treats methods of type id as instancetype when their names begin
-   with +alloc, +new, -init, -autorelease, -retain, or -self.
-
-        For compilers without instancetype support, id is appropriate but less
-        type-safe.
-
-        NOTE: it is not appropriate to use instancetype for a factory method
-   which chooses which publicly-visible subclass to instantiate based on
-   parameters. For instance, calling one of the OOMaterial convenience factory
-   methods on OOShaderMaterial might return an OOSingleTextureMaterial, so the
-   correct return type is either OOMaterial or id. On the other hand, it is
-   appropriate on factory methods which just wrap the corresponding -init and/or
-   -init + configuration through properties. (Such factory methods should be
-   implemented in terms of [[self alloc] init...].)
-*/
 
 // OO_DEBUG is defined at the top of this file, where the enumeration macros can
 // test it.

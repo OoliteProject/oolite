@@ -28,12 +28,9 @@ MA 02110-1301, USA.
 
 #include <cstring>
 
-#include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
 
-#if OOLITE_MAC_OS_X
-#include <sys/sysctl.h>
-#elif (OOLITE_LINUX || OOLITE_WINDOWS || OOLITE_MACOS)
+#if (OOLITE_LINUX || OOLITE_WINDOWS || OOLITE_MACOS)
 // Workaround for clang/glibc incompatibility.
 #if !OOLITE_HAVE_CLANG
 #define __block __glibc_block
@@ -88,9 +85,7 @@ void OOCPUInfoInit() {
 #endif
 
   // Count processors
-#if OOLITE_MAC_OS_X
-  sNumberOfCPUs = oo::process::processorCount();
-#elif OOLITE_WINDOWS
+#if OOLITE_WINDOWS
   SYSTEM_INFO sysInfo;
 
   GetSystemInfo(&sysInfo);

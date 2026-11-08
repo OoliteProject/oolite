@@ -5,24 +5,21 @@ OOEntityObjectNamesTable.h
 The names a C++ entity answers outside the by-name table
 OOEntityCalledByNameTable.h: for a ship, a station, a dock, the player, a proxy,
 a visual effect and a waypoint, each name of its class and its root classes,
-with OOCallByName's rules (a planet's five shader names from their
+with the Objective-C dispatcher's rules (a planet's five shader names from their
 declarations). This file is the source.
 
 One row per name: when the object answers it (null: every entity; the planet's
 and the beacon's names for the parts that answer them), the kind
-(OOEntityCalledByName.h) and the method's type encoding, as OOCallByName logs
+(OOEntityCalledByName.h) and the method's type encoding, as the dispatcher logs
 it. The JS glue (isVisibleToScripts, deleteJSSelf) has no row: a call to it does
-not respond. Included by OOEntityCalledByName.mm only, after AnswersPlanet() and
-AnswersBeacon().
+not respond. Included by OOEntityCalledByName.cpp only, after AnswersPlanet()
+and AnswersBeacon().
 
 */
 
 #pragma once
 
 const OOEntityObjectName kOOEntityObjectNames[] = {
-    {".cxx_construct", nullptr, kOOEntityObjectLifetime, "@16@0:8"},
-    {".cxx_destruct", nullptr, kOOEntityObjectLifetime, "v16@0:8"},
-    {"_ARCCompliantRetainRelease", nullptr, kOOEntityObjectLifetime, "v16@0:8"},
     {"absolutePositionForSubentity", nullptr, kOOEntityObjectSignature,
      "{HPVector=ddd}16@0:8"},
     {"absolutePositionForSubentityOffset:", nullptr, kOOEntityObjectSignature,

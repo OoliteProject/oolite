@@ -31,13 +31,10 @@ SOFTWARE.
 
 #pragma once
 
-#ifndef OOALSTR
-#ifndef OO_PLAIN_CPP_UNIT
-#include "OOFoundation.h"  // (OOALSTR(x) was the literal @"" x: no game unit spells one)
-#else                      // a plain C++ unit
-#include <CoreFoundation/CoreFoundation.h>
-#define OOALSTR(x) CFSTR(x)
-#endif
+// OODebugTCPConsoleClient defines OOALSTR as a plain literal before including
+// this; the C decoder gets it from OOTCPStreamDecoderAbstractionLayer.h.
+#if !defined(OOALSTR) && !defined(OO_PLAIN_CPP_UNIT)
+#include "OOFoundation.h"
 #endif
 
 enum {

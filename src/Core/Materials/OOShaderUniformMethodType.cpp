@@ -106,7 +106,7 @@ static void InitTemplates() {
   GET_TEMPLATE(kOOShaderUniformTypeMatrix, OOMatrix);
   GET_TEMPLATE(kOOShaderUniformTypePoint, NSPoint);
   // The colour bindings (laserColor, fogUniform) answer the C++ colour
-  // (OOShaderUniform.mm).
+  // (OOShaderUniform.cpp).
   GET_TEMPLATE(kOOShaderUniformTypeColor, OOColor*);
   GET_TEMPLATE(kOOShaderUniformTypeObject, OOObjCId);  // id's
 

@@ -109,8 +109,8 @@ struct OOShaderMemberBinding {
 
 /*	A material's binding target is the C++ entity. What the uniform and the
    material ask of the entity they ask through these,
-   which the entities register (EntityShaderBindings.mm), so the materials still
-   link without them; with none registered an entity target binds nothing.
+   which the entities register (EntityShaderBindings.cpp), so the materials
+   still link without them; with none registered an entity target binds nothing.
 */
 class Entity;
 struct OOShaderEntityHooks {
