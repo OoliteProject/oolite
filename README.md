@@ -105,16 +105,6 @@ you prefer):
 sudo ShellScripts/Linux/install_packages_root.sh
 ```
 
-Next run the following to build the GNUstep libraries needed by Oolite:
-
-```bash
-ShellScripts/Linux/build_gnustep.sh
-```
-
-By default, the above command will install to $HOME/.local, but you can supply an argument system or build
-to specify /usr/local or the project build folder respectively. When installing to /usr/local, sudo is used by 
-default, but you can supply a further argument to specify an alternative like doas.
-
 ### Building Oolite
 
 The underlying build system is Meson, but it is recommended to build via the mk.sh script which also allow you to pass
@@ -215,8 +205,8 @@ This action builds a disk image (.dmg) containing the app bundle, which can be f
 
 ### Mac OS
 
-Apple Silicon Macs can build and run Oolite from source. The macOS build uses Apple's Foundation framework instead of
-GNUstep, with the same SDL front end as Linux and Windows. It needs Xcode (or the Xcode command line tools) and
+Apple Silicon Macs can build and run Oolite from source. The macOS build is the same C++ code and SDL front end as
+Linux and Windows. It needs Xcode (or the Xcode command line tools) and
 [Homebrew](https://brew.sh). After checking out the repository, install the required packages:
 
 ```bash

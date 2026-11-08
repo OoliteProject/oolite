@@ -21,8 +21,6 @@ install_freedesktop() {
     local freedesktopdir="../../installers/FreeDesktop"
     local appshr="$app_folder/share"
     local resourcesdir="$appshr/oolite/Resources"
-    rm -f "$resourcesdir/GNUstep.conf.orig"
-    install -D "$freedesktopdir/GNUstep.conf.template" "$resourcesdir/GNUstep.conf.template" || { echo "$err_msg GNUstep template" >&2; return 1; }
 
     local app_metainfo="$appshr/metainfo/space.oolite.Oolite.$metainfo_suffix.xml"
     install -D "$freedesktopdir/space.oolite.Oolite.metainfo.xml.template" "$app_metainfo" || { echo "$err_msg metainfo template" >&2; return 1; }
