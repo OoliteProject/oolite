@@ -247,6 +247,13 @@ BOOL OOJSValueToInt32(JSContext* context, JSValueConst value, int32_t* outValue)
 */
 NSString* OOJSWrapScriptSource(NSString* source);
 
+/*	The compatibility script's const rewriter (see RewriteLegacyConst() in
+        OOJSScript.m), or JS_UNDEFINED if it failed to load. Kept here rather
+        than on the global object so that OXPs can't see or replace it. The
+        caller does not own the returned value.
+*/
+JSValueConst OOJSLegacyConstRewriter(void);
+
 // Report and clear a pending exception, as SpiderMonkey's error reporter did.
 void OOJSReportPendingException(JSContext* context);
 
