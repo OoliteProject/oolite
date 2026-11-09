@@ -38,6 +38,8 @@ MA 02110-1301, USA.
     NSString* _functionName;
 
     JSValue _jsSelf; // The JS Timer object proxy for this OOJSTimer. Not owned (it owns us); cleared when finalized.
+
+    BOOL _firing; // In the callback, during which the timer is still scheduled.
 }
 
 @end
