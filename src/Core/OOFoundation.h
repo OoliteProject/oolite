@@ -89,6 +89,9 @@ MA 02110-1301, USA.
 #endif
 #import "oofnd/objc/OOFoundationTypes.h"
 #include <assert.h>
+// Foundation.h also brought in <string.h> (memcpy, strcmp, ...); without it only <windows.h>
+// does, so Linux and macOS need it here.
+#include <string.h>
 #define OOLITE_GNUSTEP 1
 
 // gnustep-base's macro; the Mac OS X path below defines the same one.
