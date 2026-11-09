@@ -83,8 +83,8 @@ MA 02110-1301, USA.
 - (void)setGameController:(GameController*)controller;
 
 - (BOOL)isRunningOnPrimaryDisplayDevice;
-#if OOLITE_WINDOWS
 - (void)getDisplayDimensions:(unsigned*)width height:(unsigned*)height;
+#if OOLITE_WINDOWS
 - (BOOL)atDesktopResolution;
 - (float)hdrMaxBrightness;
 - (void)setHDRMaxBrightness:(float)newMaxBrightness;

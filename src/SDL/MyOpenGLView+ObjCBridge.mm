@@ -186,12 +186,12 @@ cxx::MyOpenGLView* oo::ToCxx(MyOpenGLView* view)
     return _cxxView->isRunningOnPrimaryDisplayDevice();
 }
 
-#if OOLITE_WINDOWS
 - (void)getDisplayDimensions:(unsigned*)width height:(unsigned*)height
 {
     _cxxView->getDisplayDimensions(width, height);
 }
 
+#if OOLITE_WINDOWS
 - (BOOL)atDesktopResolution
 {
     return _cxxView->getAtDesktopResolution();
