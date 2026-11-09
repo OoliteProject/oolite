@@ -552,7 +552,7 @@ static void LoadCompatibilityScript(JSContext* context)
     static BOOL checked = NO;
     if (!checked) {
         checked = YES;
-        const char* test = "(function () { 'use strict'; try { 'x'.oolite = 1; return true; } catch (e) { return false; } })()";
+        const char* test = "(function () { 'use strict'; try { 'x'.oolite = 1; new Math.max(); return true; } catch (e) { return false; } })()";
         JSValue patched = JS_Eval(context, test, strlen(test), "<compatibility check>", JS_EVAL_TYPE_GLOBAL);
         if (!JS_IsException(patched) && !OOJSValueToBOOL(context, patched)) {
             OOLogWARN(@"script.javaScript.init.unpatchedEngine", @"%@", @"This QuickJS-ng library lacks Oolite's compatibility patches; some OXPs that worked with SpiderMonkey may fail. Build with the bundled QuickJS-ng subproject.");

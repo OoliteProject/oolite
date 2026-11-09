@@ -91,6 +91,12 @@ Behaviour that needed emulating, all in the engine core:
   (`script.javaScript.init.unpatchedEngine`) is logged if Oolite is linked
   against an unpatched system QuickJS-ng. An upstream option to replace the
   patch has been requested (quickjs-ng/quickjs#1837).
+- **`new` on native functions.** SpiderMonkey 1.8.5 let any native function
+  be called with `new`, and OXPs do it by mistake (`new Vector3D.random()`);
+  QuickJS throws "not a constructor". QuickJS-ng is patched to do what
+  SpiderMonkey did: the function is called with a new plain object as `this`,
+  and that object is the result unless the function returns an object. The
+  `unpatchedEngine` check tests for this too.
 - **Profiling.** In debug builds `OOJS_PROFILE` is on, as with SpiderMonkey:
   natives bracketed by `OOJS_NATIVE_ENTER`/`OOJS_PROFILE_ENTER` are timed, and
   the debug console's `profile()`, `getProfile()` and `trace()` work. As in
@@ -107,8 +113,8 @@ function called with the script object as `this`. `tools/oxp-upgrade` rewrites
 OXP scripts so that they don't need the emulation, and adds the directive; its
 README explains what changes and why. Marked scripts are logged under
 `script.javaScript.load.modern` (off by default). The other compatibility
-measures (own properties, `toSource()`/`uneval()` and the primitive property
-patch) apply to every script.
+measures (own properties, `toSource()`/`uneval()` and the QuickJS-ng
+patches) apply to every script.
 
 The emulation is intended to stay until OXPs have had time to upgrade; the
 proposed timeline is in the tool's README.
