@@ -72,9 +72,18 @@ Behaviour that needed emulating, all in the engine core:
 - **`const`.** In SpiderMonkey 1.8.5, `const` was function-scoped and usable
   before its declaration, and a few OXPs rely on that. Before compiling, every
   script's `const` keywords are replaced with `var` (same length, so positions
-  are unchanged) by `__ooliteRewriteLegacyConst()` in the compatibility script;
+  are unchanged) by a rewriter in the compatibility script, which the engine
+  keeps out of OXPs' reach (`OOJSLegacyConstRewriter()`);
   only the read-only check is lost. The rewriter was checked against acorn's
   tokenizer on 488 OXP scripts: it changed exactly the `const` keywords.
+- **Global object.** QuickJS-ng defines ES2015 and later globals (`Map`,
+  `Symbol`, `Promise`, `globalThis` and so on) that SpiderMonkey 1.8.5 didn't
+  have. They are removed when the context is created
+  (`RemoveNonSpiderMonkeyGlobals()`), so the global object has the same names
+  under both engines and OXPs can't come to depend on QuickJS-only built-ins.
+  Some couldn't work anyway: nothing runs QuickJS's job queue, so `Promise`
+  reactions and `queueMicrotask()` callbacks would never be called. Newer
+  syntax and methods on the remaining built-ins are not affected.
 - **Properties on primitives.** SpiderMonkey 1.8.5 silently ignored
   `"str".foo = 1` even in strict code (Route Planner relies on this); QuickJS
   throws. QuickJS-ng is patched to match

@@ -885,7 +885,7 @@ static BOOL HasModernScopeDirective(NSString* source)
 /*	In SpiderMonkey 1.8.5, const declarations were function-scoped and usable
         before the declaration, like var; under ES2015 rules they are
         block-scoped with a temporal dead zone, which breaks some OXPs. The
-        compatibility script's __ooliteRewriteLegacyConst() replaces the const
+        compatibility script's const rewriter (OOJSLegacyConstRewriter()) replaces the const
         keyword with var (keeping line and column positions).
 
         The rewriter is interpreted JavaScript, and a ship script is loaded again
@@ -903,13 +903,12 @@ static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
     if (cached != nil)
         return cached;
 
-    JSValue global = JS_GetGlobalObject(context);
-    JSValue rewriter = JS_GetPropertyStr(context, global, "__ooliteRewriteLegacyConst");
+    JSValueConst rewriter = OOJSLegacyConstRewriter();
     NSString* result = source;
 
     if (JS_IsFunction(context, rewriter)) {
         JSValue argument = OOJSValueFromNativeObject(context, source);
-        JSValue rewritten = JS_Call(context, rewriter, global, 1, (JSValueConst*)&argument);
+        JSValue rewritten = JS_Call(context, rewriter, JS_UNDEFINED, 1, (JSValueConst*)&argument);
         if (JS_IsException(rewritten)) {
             OOJSReportPendingException(context);
         } else {
@@ -922,8 +921,6 @@ static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
         JS_FreeValue(context, argument);
     }
 
-    JS_FreeValue(context, rewriter);
-    JS_FreeValue(context, global);
     return result;
 }
 
