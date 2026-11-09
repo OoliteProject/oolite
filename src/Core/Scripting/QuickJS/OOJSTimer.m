@@ -58,6 +58,7 @@ static JSClassDef sTimerClass;
                this:(JSValueConst)jsThis;
 
 - (void)clearJSSelf;
+- (BOOL)willNotFireAgain;
 - (JSValue)transferJSSelf;
 - (void)releaseJSValues;
 
@@ -215,11 +216,13 @@ static JSClassDef sTimerClass;
     JSValue jsThis = JS_DupValue(context, _jsThis);
 
     [OOJSScript pushScript:_owningScript];
+    _firing = YES;
     [engine callJSFunction:function
                  forObject:jsThis
                       argc:0
                       argv:NULL
                     result:&rval];
+    _firing = NO;
     [OOJSScript popScript:_owningScript];
 
     JS_FreeValue(context, rval);
@@ -243,6 +246,16 @@ static JSClassDef sTimerClass;
 - (void)clearJSSelf
 {
     _jsSelf = JS_UNDEFINED;
+}
+
+/*	A one-shot timer stays scheduled while its callback runs, and is dropped
+        afterwards. A callback that replaces the only reference to its own timer
+        (e.g. with a new timer) frees the JS object at once under QuickJS's
+        reference counting, which SpiderMonkey's GC almost never did.
+*/
+- (BOOL)willNotFireAgain
+{
+    return _firing && [self interval] <= 0.0;
 }
 
 /*	The reference created with the JS object in -initWithDelay:... belongs to
@@ -377,7 +390,7 @@ static void TimerFinalize(JSRuntime* runtime, JSValueConst this)
     OOJSTimer* timer = (OOJSTimer*)JS_GetOpaque(this, sTimerClassID);
 
     if (timer != nil) {
-        if ([timer isScheduled]) {
+        if ([timer isScheduled] && ![timer willNotFireAgain]) {
             OOLogWARN(@"script.javaScript.unrootedTimer", @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
         }
         [timer clearJSSelf];
