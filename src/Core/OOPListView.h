@@ -81,7 +81,6 @@ OO_PLISTVIEW_SCALAR(unsigned short, OOUnsignedShortFromObject, 0)
 OO_PLISTVIEW_SCALAR(unsigned int, OOUnsignedIntFromObject, 0)
 OO_PLISTVIEW_SCALAR(unsigned long, OOUnsignedLongFromObject, 0)
 OO_PLISTVIEW_SCALAR(unsigned long long, OOUnsignedLongLongFromObject, 0) // also NSUInteger (Windows)
-OO_PLISTVIEW_SCALAR(BOOL, OOBooleanFromObject, NO)
 OO_PLISTVIEW_SCALAR(float, OOFloatFromObject, 0.0f)
 OO_PLISTVIEW_SCALAR(double, OODoubleFromObject, 0.0)
 OO_PLISTVIEW_SCALAR(Vector, OOVectorFromObject, kZeroVector)
@@ -90,6 +89,8 @@ OO_PLISTVIEW_SCALAR(Quaternion, OOQuaternionFromObject, kIdentityQuaternion)
 
 #undef OO_PLISTVIEW_SCALAR
 
+// Booleans are read as bool. There is no BOOL row: BOOL is unsigned char in the GNUstep runtime
+// on Linux, where it would redefine the unsigned char one.
 template <>
 struct PListViewGet<bool> {
     using Result = bool;
