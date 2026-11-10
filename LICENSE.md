@@ -245,8 +245,7 @@ license: <https://creativecommons.org/licenses/by/3.0/>
 
 ----------------------------------------------------------
 
-Oolite makes use of various external open source libraries, some of them modified to fit certain requirements of the
-game. For more information about where to find the source code of those libraries, as well as information about the
-modifications required to make them build for Oolite, please refer to the file *ExternalLibrariesSourceCodeChanges.txt*,
-found inside the Doc folder of the game’s source code distribution.
+Oolite makes use of various external open source libraries. QuickJS-ng is the one modified for the game: its source is
+the release named in *subprojects/quickjs-ng.wrap*, and the changes Oolite applies to it are the patches in
+*subprojects/packagefiles*, each of which describes its change.
 
