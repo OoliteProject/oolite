@@ -355,13 +355,16 @@ jobs:
           echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
           cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true
           ShellScripts/Windows/install_deps.sh clang
-      - name: Build Oolite (test flavour)
+      # Without LTO: 74 core tests link the whole game, and with ThinLTO each of those links
+      # re-optimises all of it (most of the job's time). The test flavour's macros are unchanged;
+      # build-fedora still builds the test flavour with LTO.
+      - name: Build Oolite (test flavour, no LTO)
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
         run: |
-          ./mk.sh build test
+          ./mk.sh build test --setup-flags="-Db_lto=false"
       # The runner has no GPU, and Windows finds System32's opengl32.dll (GDI, OpenGL 1.1, no
       # shaders) before PATH. The core suite's GL tests need a real context, so they get Mesa's
       # opengl32.dll beside them and its software rasteriser, as the game's package does.
