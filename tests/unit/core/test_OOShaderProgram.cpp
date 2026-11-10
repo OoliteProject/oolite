@@ -122,6 +122,17 @@ GLint CurrentProgram()
 	return current;
 }
 
+
+/*	A failed initialiser's teardown deletes program 0 (glDeleteObjectARB(0), as upstream's -dealloc
+	does). Drivers differ there: NVIDIA reports GL_INVALID_VALUE, Mesa ignores it (as every driver
+	ignores glDeleteProgram(0)). That one error or none, and nothing else, is left behind.
+*/
+bool OnlyTheTeardownsError()
+{
+	const GLenum first = glGetError();
+	return (first == GL_INVALID_VALUE || first == GL_NO_ERROR) && glGetError() == GL_NO_ERROR;
+}
+
 }	// namespace
 
 
@@ -137,23 +148,22 @@ OO_TEST(programsFromSources)
 		OO_CHECK(Make(kVertex, std::nullopt) != nullptr);
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 
-		/*	A failed initialiser leaves exactly one GL_INVALID_VALUE behind (its teardown deletes
-		program 0), and a
-			successful one none.
+		/*	A failed initialiser leaves at most its teardown's error behind (OnlyTheTeardownsError),
+			and a successful one none.
 		*/
 		OO_CHECK(Make(std::nullopt, std::nullopt) == nullptr);	// none is not
-		OO_CHECK(glGetError() == GL_INVALID_VALUE && glGetError() == GL_NO_ERROR);
+		OO_CHECK(OnlyTheTeardownsError());
 
 		// The prefix is prepended to both sources; an empty one is none.
 		OO_CHECK(Make(kVertex, kFragmentNeedingPrefix) == nullptr);
-		OO_CHECK(glGetError() == GL_INVALID_VALUE && glGetError() == GL_NO_ERROR);
+		OO_CHECK(OnlyTheTeardownsError());
 		OO_CHECK(Make(kVertex, kFragmentNeedingPrefix, std::string("")) == nullptr);
-		OO_CHECK(glGetError() == GL_INVALID_VALUE && glGetError() == GL_NO_ERROR);
+		OO_CHECK(OnlyTheTeardownsError());
 		OO_CHECK(Make(kVertex, kFragmentNeedingPrefix, std::string("#define PREFIXED 0.5\n")) != nullptr);
 		OO_CHECK(glGetError() == GL_NO_ERROR);
 
 		OO_CHECK(Make(std::string("this is not GLSL"), kFragment) == nullptr);	// does not compile
-		OO_CHECK(glGetError() == GL_INVALID_VALUE && glGetError() == GL_NO_ERROR);
+		OO_CHECK(OnlyTheTeardownsError());
 	}
 }
 
