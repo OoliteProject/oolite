@@ -13630,8 +13630,8 @@ std::string RoleSetDescription(::OORoleSet* roleSet) {
 }  // namespace
 #endif
 
-// Salvage pilot, debug dump, script info, demo ship, script events and AI
-// reactions, alert condition, shader helpers. Members of the C++ ship.
+// Debug dump, script info, demo ship, script events and AI reactions, alert
+// condition, shader helpers. Members of the C++ ship.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 void ShipEntity::dumpSelfState() {

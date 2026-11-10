@@ -973,8 +973,8 @@ class ShipEntity : public OOEntityWithDrawable,
   bool getTrackCloseContacts();
   void setTrackCloseContacts(bool value);
 
-  // salvage pilot, debug dump, script info, demo ship, script events and AI
-  // reactions, alert condition, shader helpers.
+  // Debug dump, script info, demo ship, script events and AI reactions, alert
+  // condition, shader helpers.
 #ifdef OO_DEBUG_MONITOR_ENABLED
   void dumpSelfState() override;
 #endif
