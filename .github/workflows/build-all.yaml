@@ -340,7 +340,8 @@ jobs:
         with:
           MSYSTEM: UCRT64
           update: true
-          cache: false
+          # Caches the downloaded packages between runs (they are still installed each run).
+          cache: true
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
@@ -355,16 +356,38 @@ jobs:
           echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
           cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true
           ShellScripts/Windows/install_deps.sh clang
+          pacboy -S --noconfirm ccache:p
+      # ccache's store is carried between runs. A run saves it under its own commit and restores
+      # the newest one from this branch (or the default branch).
+      - name: Restore the compiler cache
+        uses: actions/cache@v4
+        with:
+          path: build/.ccache
+          key: ccache-unit-tests-windows-${{ github.sha }}
+          restore-keys: ccache-unit-tests-windows-
       # Without LTO: 74 core tests link the whole game, and with ThinLTO each of those links
       # re-optimises all of it (most of the job's time). The test flavour's macros are unchanged;
       # build-fedora still builds the test flavour with LTO.
-      - name: Build Oolite (test flavour, no LTO)
+      # ccache: meson wraps a compiler with ccache only when it detects the compiler itself, so the
+      # job names "ccache clang" in its own copy of clang.ini. The version and build date are
+      # pinned: they are -D flags on every compile, and their per-commit values would make every
+      # file a cache miss. Nothing this job builds is shipped.
+      - name: Build Oolite (test flavour, no LTO, ccache)
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
+          CCACHE_DIR: ${{ github.workspace }}/build/.ccache
+          CCACHE_MAXSIZE: 2G
         run: |
-          ./mk.sh build test --setup-flags="-Db_lto=false"
+          mkdir -p build
+          sed -e "s/^c = 'clang'/c = ['ccache', 'clang']/" \
+              -e "s/^cpp = 'clang++'/cpp = ['ccache', 'clang++']/" clang.ini > build/clang-ccache.ini
+          grep -q "'ccache', 'clang++'" build/clang-ccache.ini
+          ccache --zero-stats
+          ./mk.sh build test --native-file=build/clang-ccache.ini --setup-flags="-Db_lto=false" \
+              --ver-full=1.93.1-ci-unit-tests --buildtime="2000.01.01 00:00"
+          ccache --show-stats
       # The runner has no GPU, and Windows finds System32's opengl32.dll (GDI, OpenGL 1.1, no
       # shaders) before PATH. The core suite's GL tests need a real context, so they get Mesa's
       # opengl32.dll beside them and its software rasteriser, as the game's package does.
