@@ -362,11 +362,21 @@ jobs:
           PYTHONUTF8: "1"
         run: |
           ./mk.sh build test
+      # The runner has no GPU, and Windows finds System32's opengl32.dll (GDI, OpenGL 1.1, no
+      # shaders) before PATH. The core suite's GL tests need a real context, so they get Mesa's
+      # opengl32.dll beside them and its software rasteriser, as the game's package does.
+      - name: Use Mesa (llvmpipe) for the GL unit tests
+        shell: msys2 {0}
+        env:
+          MSYSTEM: UCRT64
+        run: |
+          cp "$MINGW_PREFIX/bin/opengl32.dll" build/meson_test/tests/unit/core/
       - name: Unit tests (oofnd, core, headers, tools)
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
+          GALLIUM_DRIVER: llvmpipe
         run: |
           tests/run.sh unit
 
