@@ -358,9 +358,11 @@ jobs:
           ShellScripts/Windows/install_deps.sh clang
           pacboy -S --noconfirm ccache:p
       # ccache's store is carried between runs. A run saves it under its own commit and restores
-      # the newest one from this branch (or the default branch).
+      # the newest one from this branch (or the default branch). Restore and save are separate
+      # steps so the store is saved after a build even when a test fails.
       - name: Restore the compiler cache
-        uses: actions/cache@v4
+        id: ccache-restore
+        uses: actions/cache/restore@v4
         with:
           path: build/.ccache
           key: ccache-unit-tests-windows-${{ github.sha }}
@@ -388,6 +390,12 @@ jobs:
           ./mk.sh build test --native-file=build/clang-ccache.ini --setup-flags="-Db_lto=false" \
               --ver-full=1.93.1-ci-unit-tests --buildtime="2000.01.01 00:00"
           ccache --show-stats
+      - name: Save the compiler cache
+        if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/.ccache
+          key: ccache-unit-tests-windows-${{ github.sha }}
       # The runner has no GPU, and Windows finds System32's opengl32.dll (GDI, OpenGL 1.1, no
       # shaders) before PATH. The core suite's GL tests need a real context, so they get Mesa's
       # opengl32.dll beside them and its software rasteriser, as the game's package does.
