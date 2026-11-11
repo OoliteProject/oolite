@@ -27,7 +27,6 @@ jobs:
       contents: write
       pages: write
       id-token: write
-    if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout Oolite
         uses: actions/checkout@v6
@@ -58,6 +57,7 @@ jobs:
           path: './build/documentation/site'
       - name: Deploy to GitHub Pages
         id: deployment
+        if: github.ref == 'refs/heads/master'
         uses: actions/deploy-pages@v5
 
   build-appimage:
