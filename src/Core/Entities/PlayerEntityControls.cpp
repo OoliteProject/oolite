@@ -3445,8 +3445,7 @@ void PlayerEntity::handleKeyMapperScreenKeys()
     const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     keyMapperInputHandler(gui, gameView);
-    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down) ||
-        joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
+    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down) || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         std::optional<std::string> key = gui->keyForRow(gui->getSelectedRow());
         if (checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_page_down) || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
@@ -3481,7 +3480,7 @@ void PlayerEntity::handleKeyboardLayoutKeys()
     const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     handleKeyboardLayoutEntryKeys(gui, gameView);
-    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down) 
+    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down)
         || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         std::optional<std::string> key = gui->keyForRow(gui->getSelectedRow());
@@ -3517,8 +3516,7 @@ void PlayerEntity::handleStickMapperScreenKeys()
     const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     stickMapperInputHandler(gui, gameView);
-    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down) ||
-        joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
+    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down) || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         std::optional<std::string> key = gui->keyForRow(gui->getSelectedRow());
         if (checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_page_down) || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
