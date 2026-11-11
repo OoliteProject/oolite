@@ -86,6 +86,10 @@ oolite_sources += files(
     'legacy_random.cpp',
 )
 
+# OO_VERSION_FULL, OO_BUILD_DATE and OO_BUILDER (meson.build); on the include path through the
+# include_directories('.') below, which covers this build directory.
+configure_file(output: 'OOVersion.h', configuration: oo_version_conf)
+
 oolite_includes += include_directories('.')
 
 # Enter child subdirectories

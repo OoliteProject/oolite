@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 #include "OOSystemDescriptionManager.h"
 #include "OOTexture.h"
 #include "OOTrumble.h"
+#include "OOVersion.h"
 #include "Octree.h"
 #include "PlayerEntityContracts.h"
 #include "PlayerEntityControls.h"

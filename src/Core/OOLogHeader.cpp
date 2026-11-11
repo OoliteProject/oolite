@@ -33,6 +33,7 @@ SOFTWARE.
 #include "OOOXPVerifier.h"
 #include "OOSound.h"
 #include "OOStellarBody.h"
+#include "OOVersion.h"
 #include "Universe.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Log.hpp"

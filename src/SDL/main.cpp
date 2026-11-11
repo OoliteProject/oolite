@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #include "GameController.h"
 #include "OOLoggingExtended.h"
+#include "OOVersion.h"
 #include "oofnd/Process.hpp"
 #include "oofnd/Ref.hpp"  // oo::AutoreleaseScope
 #include "oofnd/String.hpp"
@@ -71,11 +72,6 @@ uint32_t gDebugFlags = 0;
 #ifndef STRINGIFY  // provided by GNUstep
 #define STRINGIFY_(s) #s
 #define STRINGIFY(s) STRINGIFY_(s)
-#endif
-
-// This macro is normally defined in the build command
-#ifndef OO_VERSION_FULL
-#define OO_VERSION_FULL "Undefined"
 #endif
 
 /**
