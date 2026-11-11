@@ -46,7 +46,7 @@ BUILDTIME=""
 GITHUB_REPOSITORY=""
 CLEAN_BUILD=false
 PRINT_MESON_LOG=false
-USE_CCACHE=false
+USE_CCACHE=auto  # auto | yes | no
 SETUP_FLAGS=() # Array to cleanly store additional meson setup arguments
 COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
 CONFIGURE_FLAGS=() # Array to cleanly store additional meson configure arguments
@@ -146,7 +146,8 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36m--buildtime=\"...\"\033[0m              Specify build time"
     echo -e "  \033[36m--github-repository=\"...\"\033[0m      Specify target GitHub repository"
     echo -e "  \033[36m--meson-log\033[0m                    Output the Meson log file contents"
-    echo -e "  \033[36m--ccache\033[0m                       Compile through ccache (a copy of the native file names it)"
+    echo -e "  \033[36m--ccache\033[0m                       Compile through ccache; fail if it is missing (default: if installed)"
+    echo -e "  \033[36m--no-ccache\033[0m                    Do not compile through ccache"
     echo ""
     echo "Build Type Actions (Requires build_type as second parameter):"
     echo -e "  \033[36msetup <build_type>\033[0m             Setup a release build directory"
@@ -357,7 +358,11 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --ccache)
-            USE_CCACHE=true
+            USE_CCACHE=yes
+            shift
+            ;;
+        --no-ccache)
+            USE_CCACHE=no
             shift
             ;;
         --meson-log|--output-meson-log)
@@ -450,14 +455,18 @@ if [[ -z "$NATIVE_FILE" ]]; then
     fi
 fi
 
-# --ccache: meson wraps a compiler with ccache only when it detects the compiler itself, not when a
+# ccache: meson wraps a compiler with ccache only when it detects the compiler itself, not when a
 # native file names it, so compile through a copy of the native file whose c and cpp are
-# ['ccache', '<compiler>'].
-if [[ "$USE_CCACHE" == true ]]; then
-    if ! command -v ccache &> /dev/null; then
+# ['ccache', '<compiler>']. A new build directory takes it; meson keeps an existing one's compilers.
+#   auto (default): if ccache runs; --ccache: ccache, or fail; --no-ccache: never
+if [[ "$USE_CCACHE" != no ]] && ! ccache --version &> /dev/null; then
+    if [[ "$USE_CCACHE" == yes ]]; then
         echo "❌ --ccache: ccache is not installed!" >&2
         exit 1
     fi
+    USE_CCACHE=no
+fi
+if [[ "$USE_CCACHE" != no ]]; then
     mkdir -p build
     ccache_native_file="build/$(basename "${NATIVE_FILE%.ini}")-ccache.ini"
     sed -E "s/^(c|cpp)[[:space:]]*=[[:space:]]*'([^']*)'[[:space:]]*$/\1 = ['ccache', '\2']/" \
