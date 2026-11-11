@@ -1,8 +1,6 @@
 #!/bin/bash
-#
-# Calculates the Oolite version number and build dates
-#
 
+# Calculates the Oolite version number and build dates
 
 if [[ -v MINGW_PREFIX ]]; then
     WIN_PID=$(ps -p $$ | awk 'NR>1 {print $4}')

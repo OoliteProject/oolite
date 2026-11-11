@@ -1,4 +1,5 @@
 #!/bin/bash -e
+# Builds documentation site for GitHub Pages. Called from build-github-pages GitHub Actions workflow.
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

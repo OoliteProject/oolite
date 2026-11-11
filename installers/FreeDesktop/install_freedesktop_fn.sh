@@ -1,9 +1,8 @@
 #!/bin/bash -x
-#
-# Installs the manifest and injects version number
-
 
 install_freedesktop() {
+    # Installs the metadata and manifest and injects version number
+    # Called via create_flatpak_fn and flatpak_postbuild_fn
     local -n output_ver_full="$1"  # Oolite version
     local build_folder="$2"  # oolite.app directory path (source)
     local app_folder="$3"  # app folder (destination)

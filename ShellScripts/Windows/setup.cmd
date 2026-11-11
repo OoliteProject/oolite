@@ -1,3 +1,5 @@
+:: Downloads and installs MSYS2 environment, then calls install_deps.sh in MSYS2 environment's shell
+
 @echo off
 setlocal
 

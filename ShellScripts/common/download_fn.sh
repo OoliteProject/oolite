@@ -1,5 +1,8 @@
-# Usage: download <URL> <DESTINATION_PATH> ["+x"]
 download() {
+    # Download file
+    # Parameter one: download URL
+    # Parameter two: destination path
+    # Parameter three: optional +x to make executable
     local download_url="$1"
     local outputdir="$2"
     local make_exec="${3:-}"

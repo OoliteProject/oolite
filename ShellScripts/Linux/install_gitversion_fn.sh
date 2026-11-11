@@ -1,4 +1,7 @@
 install_gitversion() {
+    # Installs gitversion
+    # Parameter one: where to install gitversion binary (defaults to /usr/local/bin)
+    # Parameter two: temporary folder to use for extraction of compressed file
     local installdir="${1:-/usr/local/bin}"
     local tmpdir="${2:-/tmp}"
 

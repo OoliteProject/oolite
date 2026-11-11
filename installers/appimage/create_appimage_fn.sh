@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#
-# Creates the appimage.
-
 create_appimage() {
-    local build_type="$1"  # Typically one of "deployment", "test", "dev"
-    local build_folder="$2"  # Build folder
+    # Creates an appimage. Called via mk.sh.
+    # Parameter one: build type - typically one of "deployment", "test", "dev"
+    # Parameter two: build folder
+    local build_type="$1"
+    local build_folder="$2"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"

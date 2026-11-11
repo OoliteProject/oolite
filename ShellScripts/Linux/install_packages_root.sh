@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# This script must be run as root (for example with sudo).
+# Installs all required packages and dependencies. This script must be run as root (for example with sudo).
 
 run_script() {
     # If current user ID is NOT 0 (root)

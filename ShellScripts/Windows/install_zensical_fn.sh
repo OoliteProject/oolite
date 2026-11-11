@@ -1,4 +1,6 @@
 install_zensical() {
+    # Installs Zensical
+    # Parameter one: Python virtualenv folder
     local venv_dir="$1"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

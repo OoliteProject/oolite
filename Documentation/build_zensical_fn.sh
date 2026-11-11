@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_zensical() {
+    # Builds documentation site eg. on GitHub Pages
     local python_cmd
     if python3 --version >/dev/null 2>&1; then
         python_cmd="python3"

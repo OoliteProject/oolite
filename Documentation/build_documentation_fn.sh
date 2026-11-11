@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_documentation() {
+    # Converts mds and typst reference sheet to pdfs and optionally builds Doxygen html documentation
     local include_doxygen="${1:-YES}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

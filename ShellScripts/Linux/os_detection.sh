@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# --- 1. Global Setup & OS Detection ---
+# Global setup & OS detection
 # We detect the OS once at the start to avoid repeating it.
 
 if [ -f /etc/os-release ]; then

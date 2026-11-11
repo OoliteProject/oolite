@@ -1,6 +1,8 @@
 #!/bin/bash
 
 create_venv() {
+    # Creates a Python virtualenv
+    # Parameter one: where to create virtualenv. Defaults to <project root>/.venv.
     if ! command -v python3 >/dev/null 2>&1; then
         echo "❌ Python not installed!" >&2
         return 1

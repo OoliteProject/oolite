@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#
-# Creates a macOS disk image (.dmg) containing Oolite.app, a link to /Applications so the app
-# can be installed by dragging it across, and a Documentation folder with the PDFs.
-
 create_dmg() {
-    local build_type="$1"  # Typically one of "deployment", "test", "dev"
-    local app_folder="$2"  # App bundle relative to the build folder, e.g. meson_dev/oolite.app
+    # Creates a macOS disk image (.dmg) containing Oolite.app, a link to /Applications so the app
+    # can be installed by dragging it across, and a Documentation folder with the PDFs. Called via mk.sh.
+    # Parameter one: build type - typically one of "deployment", "test", "dev"
+    # Parameter two: app bundle relative to the build folder, e.g. meson_dev/oolite.app
+    local build_type="$1"
+    local app_folder="$2"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     local build_dir=$(cd "$script_dir/../../build" &> /dev/null && pwd)

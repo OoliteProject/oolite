@@ -1,4 +1,6 @@
 parse_manifest() {
+    # Parse the manifest file and extract values from it. Called via install_freedesktop_fn.sh and create_nsis_fn.sh
+
     local -n _ver_full="$1"
     local -n _ver_quad="$2"
     local -n _githash="$3"

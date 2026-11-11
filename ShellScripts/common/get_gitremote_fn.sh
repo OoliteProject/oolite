@@ -1,5 +1,7 @@
 get_gitremote() {
+    # Helper to work out the correct git directory
     # Accept a variable name as the first argument to use as a nameref return
+
     local -n _final_url=$1
 
     local raw_url resolved_git_dir upstream_url

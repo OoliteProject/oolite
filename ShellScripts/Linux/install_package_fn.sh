@@ -1,6 +1,8 @@
 #!/bin/bash
 
 install_package() {
+    # Installs a package or group of packages. Supports Debian, Redhat and Arch package managers.
+    # Parameter one: name of package or package group to install
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     source $script_dir/os_detection.sh
 
