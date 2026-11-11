@@ -24,8 +24,9 @@ jobs:
   build-github-pages:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # create the release; also needed in forks, where the token is read-only by default
-      actions: write   # remove old workflow runs
+      contents: write
+      actions: write
+      id-token: write
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout repository
@@ -119,6 +120,7 @@ jobs:
           retention-days: 5
 
   build-ubuntu:
+    needs: clang-format-check
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -167,6 +169,7 @@ jobs:
           ./mk.sh pkg-appimage dev
 
   build-fedora:
+    needs: clang-format-check
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
@@ -363,7 +366,7 @@ jobs:
           retention-days: 5
 
   release:
-    needs: [build-appimage, build-flatpak, build-windows, build-macos]
+    needs: [build-appimage, build-flatpak, build-windows, build-macos, build-github-pages]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # create the release; also needed in forks, where the token is read-only by default
