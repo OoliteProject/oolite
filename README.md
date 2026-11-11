@@ -5,7 +5,7 @@ Oolite is an open source Elite clone on steroids. While it can run just like the
 - Homepage: https://oolite.space/
 - Wiki: https://wiki.alioth.net/index.php/Oolite_Main_Page
 - Forum: https://bb.oolite.space/
-- Documentation: https://oolite.readthedocs.io/
+- Documentation: https://ooliteproject.github.io/oolite/
 
 ## What does it look like?
 
@@ -56,7 +56,7 @@ chmod +x Oolite_XXX-x86_64.AppImage
 
 ## Playing Oolite
 
-Information about playing Oolite can be found [here](https://oolite.readthedocs.io/en/latest/).
+Information about playing Oolite can be found [here](https://ooliteproject.github.io/oolite/).
 
 For more information, see also [oolite.space](http://www.oolite.space/) and
 [Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
@@ -68,7 +68,7 @@ the instructions below. Note that the scripts require sudo for activities like i
 libraries built from source and for installing packages on some Linux distros. If you run into
 difficulties, you can seek help on the [Oolite Bulletin Board](https://bb.oolite.space/).
 
-API documentation is available [here](https://oolite.readthedocs.io/en/latest/api/html/).
+API documentation is available [here](https://ooliteproject.github.io/oolite/api/html/index.html).
 
 ### Git
 
