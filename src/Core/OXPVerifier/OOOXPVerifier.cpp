@@ -401,7 +401,7 @@ void OOOXPVerifier::registerBaseStages()
             }
 
             /*	No class has the name: every stage is in the table above.
-            */
+             */
             OO_LOG("verifyOXP.registration.failed", "Attempt to register unknown class {} as a verifier stage, ignoring.", stageName);
         }
     }

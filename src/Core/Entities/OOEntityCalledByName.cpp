@@ -954,7 +954,7 @@ std::optional<oo::PList> CallRow(const OOEntityByNameRow& row, Entity* entity,
 }
 
 /*	The class OOCallByName's lines name: the entity's object's, of class Entity (not asked).
-*/
+ */
 const char* ObjectClassName(Entity*) { return "Entity"; }
 
 /*	The line OOCallByName logged for a method whose signature the call cannot use (OOCallByName.mm

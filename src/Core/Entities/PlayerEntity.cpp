@@ -496,7 +496,8 @@ void PlayerEntity::willDealloc()
 
     destroySound();
 
-    wormholeObject = nullptr;    wormhole = nullptr;
+    wormholeObject = nullptr;
+    wormhole = nullptr;
 
     int i;
     for (i = 0; i < PLAYER_MAX_MISSILES; i++)

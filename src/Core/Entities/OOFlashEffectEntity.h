@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #include "OOLightParticleEntity.h"
 
 /*	The ship and the universe call the factories.
-*/
+ */
 class OOFlashEffectEntity : public OOLightParticleEntity {
 public:
     // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a
