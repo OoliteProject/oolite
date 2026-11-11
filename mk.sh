@@ -46,6 +46,7 @@ BUILDTIME=""
 GITHUB_REPOSITORY=""
 CLEAN_BUILD=false
 PRINT_MESON_LOG=false
+USE_CCACHE=false
 SETUP_FLAGS=() # Array to cleanly store additional meson setup arguments
 COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
 CONFIGURE_FLAGS=() # Array to cleanly store additional meson configure arguments
@@ -145,6 +146,7 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36m--buildtime=\"...\"\033[0m              Specify build time"
     echo -e "  \033[36m--github-repository=\"...\"\033[0m      Specify target GitHub repository"
     echo -e "  \033[36m--meson-log\033[0m                    Output the Meson log file contents"
+    echo -e "  \033[36m--ccache\033[0m                       Compile through ccache (a copy of the native file names it)"
     echo ""
     echo "Build Type Actions (Requires build_type as second parameter):"
     echo -e "  \033[36msetup <build_type>\033[0m             Setup a release build directory"
@@ -354,6 +356,10 @@ while [[ $# -gt 0 ]]; do
             GITHUB_REPOSITORY="${1#*=}"
             shift
             ;;
+        --ccache)
+            USE_CCACHE=true
+            shift
+            ;;
         --meson-log|--output-meson-log)
             PRINT_MESON_LOG=true
             shift
@@ -442,6 +448,25 @@ if [[ -z "$NATIVE_FILE" ]]; then
     else
         NATIVE_FILE="clang.ini"  # Apply default if it wasn't passed as an option
     fi
+fi
+
+# --ccache: meson wraps a compiler with ccache only when it detects the compiler itself, not when a
+# native file names it, so compile through a copy of the native file whose c and cpp are
+# ['ccache', '<compiler>'].
+if [[ "$USE_CCACHE" == true ]]; then
+    if ! command -v ccache &> /dev/null; then
+        echo "❌ --ccache: ccache is not installed!" >&2
+        exit 1
+    fi
+    mkdir -p build
+    ccache_native_file="build/$(basename "${NATIVE_FILE%.ini}")-ccache.ini"
+    sed -E "s/^(c|cpp)[[:space:]]*=[[:space:]]*'([^']*)'[[:space:]]*$/\1 = ['ccache', '\2']/" \
+        "$NATIVE_FILE" > "$ccache_native_file"
+    if ! grep -q "^cpp = \['ccache', " "$ccache_native_file"; then
+        echo "❌ --ccache: could not wrap the compilers named in $NATIVE_FILE!" >&2
+        exit 1
+    fi
+    NATIVE_FILE="$ccache_native_file"
 fi
 
 execute_target "$ACTION" "$BUILD_TYPE"

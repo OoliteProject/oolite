@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #include "OOSDLJoystickManager.h"
 #include "OOSound.h"
 #include "OOStellarBody.h"
+#include "OOVersion.h"
 #include "PlayerEntity.h"
 #include "ResourceManager.h"
 #include "Universe.h"

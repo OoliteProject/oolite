@@ -32,12 +32,13 @@ foreach line : file_contents.split('\n')
     value = parts[1].strip('"\' ')
     version_vars += { key : value }
 endforeach
-add_project_arguments(
-    '-DOO_VERSION_FULL="@0@"'.format(version_string),
-    '-DOO_BUILD_DATE="@0@"'.format(version_vars.get('app_date')),
-    '-DOO_BUILDER="@0@"'.format(version_vars.get('builder')),
-    language: c_family,
-)
+# The version, build date and builder go in a generated header (src/Core/OOVersion.h), not on
+# every compile line: only the files that print them include it, so a new commit or day
+# recompiles those few files and leaves every other object (and its compiler-cache entry) alone.
+oo_version_conf = configuration_data()
+oo_version_conf.set_quoted('OO_VERSION_FULL', version_string)
+oo_version_conf.set_quoted('OO_BUILD_DATE', version_vars.get('app_date'))
+oo_version_conf.set_quoted('OO_BUILDER', version_vars.get('builder'))
 
 is_debug = (get_option('optimization') == '0' or get_option('debug'))
 if is_debug

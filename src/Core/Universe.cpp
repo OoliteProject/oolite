@@ -78,6 +78,7 @@ MA 02110-1301, USA.
 #include "OOSunEntity.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOTexture.h"
+#include "OOVersion.h"
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"
 #include "Octree.h"
