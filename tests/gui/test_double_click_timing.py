@@ -22,20 +22,15 @@ between two synthetic releases; the live proof is the GUI tier itself (tests/nig
 
 import os
 import re
-import sys
 
 import pytest
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-TESTS_DIR = os.path.abspath(os.path.join(HERE, ".."))
-if TESTS_DIR not in sys.path:
-    sys.path.insert(0, TESTS_DIR)
-
-from source_paths import resolve_source  # noqa: E402
+SRC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "src")
 
 
 def _read(*parts):
-    with open(resolve_source(*parts), "r", encoding="utf-8", errors="replace") as handle:
+    """The text of src/<parts>.cpp."""
+    with open(os.path.join(SRC_DIR, *parts) + ".cpp", "r", encoding="utf-8", errors="replace") as handle:
         return handle.read()
 
 
