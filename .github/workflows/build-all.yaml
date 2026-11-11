@@ -389,12 +389,13 @@ jobs:
         id: version
         run: |
           set -x          
-          # 1. Check that there are exactly 6 files recursively in the artifacts directory
+          # 1. Check that there are exactly 7 files recursively in the artifacts directory
+          # (includes artifact.tar produced by GitHub pages and 2 flatpak files)
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [[ "$FILE_COUNT" -ne 6 ]]; then
+          if [[ "$FILE_COUNT" -ne 7 ]]; then
             FILE_LIST=$(find artifacts -type f | tr '\n' ',' | sed 's/,$//')
-            echo "❌ Expected exactly 6 files, but found $FILE_COUNT: ($FILE_LIST)." >&2
+            echo "❌ Expected exactly 7 files, but found $FILE_COUNT: ($FILE_LIST)." >&2
             exit 1
           fi
           # 2. Get the path of the first available AppImage
