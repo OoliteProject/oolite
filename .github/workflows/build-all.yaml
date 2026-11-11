@@ -390,7 +390,7 @@ jobs:
         run: |
           set -x          
           # 1. Check that there are exactly 7 files recursively in the artifacts directory
-          # (includes artifact.tar produced by GitHub pages and 2 flatpak files)
+          # (includes artifact.tar produced by GitHub pages and 2 Flatpak files)
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
           if [[ "$FILE_COUNT" -ne 7 ]]; then
