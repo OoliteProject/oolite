@@ -3,7 +3,7 @@ install_typst() {
     local tmpdir="${2:-/tmp}"
 
     # If current user ID is NOT 0 (root)
-    if [[ $EUID -ne 0 && "${READTHEDOCS:-}" != "True" ]]; then
+    if [[ $EUID -ne 0 && "${GITHUB_JOB:-}" != "build-github-pages" ]]; then
         echo "This script requires root to install dependencies. Rerun and escalate privileges (eg. sudo ...)"
         return 1
     fi

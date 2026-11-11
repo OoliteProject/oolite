@@ -22,7 +22,6 @@ jobs:
           check-path: 'src'
 
   build-github-pages:
-    needs: clang-format-check
     runs-on: ubuntu-latest
     permissions:
       contents: write  # create the release; also needed in forks, where the token is read-only by default
