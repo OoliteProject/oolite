@@ -1,5 +1,5 @@
 install_gitversion() {
-    # Installs gitversion
+    # Installs gitversion. Called via install_deps.sh.
     # Parameter one: where to install gitversion binary (defaults to ./)
     local outputdir="${1:-.}"
 

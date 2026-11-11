@@ -1,5 +1,5 @@
 install_zensical() {
-    # Installs Zensical
+    # Installs Zensical. Called via build_sitedocs.sh and install_zensical.
     # Parameter one: Python virtualenv folder
     local venv_dir="$1"
 

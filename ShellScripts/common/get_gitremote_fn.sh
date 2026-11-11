@@ -1,5 +1,5 @@
 get_gitremote() {
-    # Helper to work out the correct git directory
+    # Helper to work out the correct git directory. Called via generate_manifest.
     # Accept a variable name as the first argument to use as a nameref return
 
     local -n _final_url=$1

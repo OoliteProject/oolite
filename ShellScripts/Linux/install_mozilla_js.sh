@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Get the directory where the script is located
+# Installs the Spidermonkey library
 # Parameter one: "system", "home", or "build" (defaults to home)
 # Parameter two: escalate command (defaults to sudo for 'system')
 

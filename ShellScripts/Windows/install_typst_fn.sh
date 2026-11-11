@@ -1,5 +1,5 @@
 install_typst() {
-    # Installs Typst
+    # Installs Typst. Called via install_deps.sh and  build_sitedocs.sh.
     # Parameter one: where to install Typst binary (defaults to ./)
     local outputdir="${1:-.}"
 

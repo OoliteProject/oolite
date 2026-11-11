@@ -1,7 +1,7 @@
 #!/bin/bash
 
 create_venv() {
-    # Creates a Python virtualenv
+    # Creates a Python virtualenv. Called via install_zensical.
     # Parameter one: where to create virtualenv. Defaults to <project root>/.venv.
     if ! command -v python >/dev/null 2>&1; then
         echo "❌ Python not installed!" >&2

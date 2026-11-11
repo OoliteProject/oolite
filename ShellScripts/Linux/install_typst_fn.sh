@@ -1,5 +1,5 @@
 install_typst() {
-    # Installs Typst
+    # Installs Typst. Called via install_packages_root.sh and  build_sitedocs.sh.
     # Parameter one: where to install Typst binary (defaults to /usr/local/bin)
     # Parameter two: temporary folder to use for extraction of compressed file
     local installdir="${1:-/usr/local/bin}"

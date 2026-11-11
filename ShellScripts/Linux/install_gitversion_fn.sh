@@ -1,5 +1,5 @@
 install_gitversion() {
-    # Installs gitversion
+    # Installs gitversion. Called via install_packages_root.sh and from build-flatpak GitHub Actions workflow.
     # Parameter one: where to install gitversion binary (defaults to /usr/local/bin)
     # Parameter two: temporary folder to use for extraction of compressed file
     local installdir="${1:-/usr/local/bin}"
