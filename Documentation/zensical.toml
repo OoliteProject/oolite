@@ -1,6 +1,6 @@
 [project]
 site_name = "Oolite Documentation"
-site_url = "https://oolite.github.io/"
+site_url = "https://ooliteproject.github.io/oolite/"
 strict = true
 
 markdown_extensions = [
