@@ -29,8 +29,10 @@ jobs:
       id-token: write
     if: github.ref == 'refs/heads/master'
     steps:
-      - name: Checkout repository
+      - name: Checkout Oolite
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Install packages
         run: |
           sudo apt update
@@ -76,7 +78,7 @@ jobs:
       - name: Update Arch
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed git zip
+          pacman -S --noconfirm --needed git
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -391,15 +393,16 @@ jobs:
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
           if [[ "$FILE_COUNT" -ne 6 ]]; then
-            echo "❌ Expected exactly 6 files, but found $FILE_COUNT." >&2
+            FILE_LIST=$(find artifacts -type f | tr '\n' ',' | sed 's/,$//')
+            echo "❌ Expected exactly 6 files, but found $FILE_COUNT ($FILE_LIST)." >&2
             exit 1
-          fi                    
+          fi
           # 2. Get the path of the first available AppImage
           APPIMAGE_PATH=$(find artifacts -type f -name "*.AppImage" | head -n 1)          
           if [[ -z "$APPIMAGE_PATH" ]]; then
             echo "❌ No AppImages found in the downloaded artifacts!" >&2
             exit 1
-          fi          
+          fi
           echo "Found AppImage: $APPIMAGE_PATH"                    
           # 3. Run with packageinfo and extract the string inside quotes
           chmod +x "$APPIMAGE_PATH"
@@ -407,7 +410,7 @@ jobs:
           if [[ -z "$VER_FULL" ]]; then
             echo "❌ Failed to extract version string from packageinfo output!" >&2
             exit 1
-          fi                     
+          fi
           echo "Extracted Version: $VER_FULL"          
           # 4. Output the extracted version for subsequent steps
           echo "VER_FULL=$VER_FULL" >> "$GITHUB_OUTPUT"
