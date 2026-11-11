@@ -336,16 +336,26 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
       - name: Set up MSYS2
+        id: msys2
         uses: msys2/setup-msys2@v2
         with:
           MSYSTEM: UCRT64
           update: true
-          # Caches the downloaded packages between runs (they are still installed each run).
+          # Caches the packages this action itself installs (the base system).
           cache: true
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      # The packages install_deps.sh downloads (about 300 MB), kept in pacman's own package cache
+      # so a run installs from it instead of the mirrors. Saved under the installed package list,
+      # so a new entry is written only when a package changes.
+      - name: Restore the pacman package cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.msys2.outputs.msys2-location }}\var\cache\pacman\pkg
+          key: pacman-pkg-unit-tests-windows-restore-only
+          restore-keys: pacman-pkg-unit-tests-windows-
       - name: Install packages
         shell: msys2 {0}
         env:
@@ -357,6 +367,16 @@ jobs:
           cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true
           ShellScripts/Windows/install_deps.sh clang
           pacboy -S --noconfirm ccache:p
+          # Keep only the versions now installed, then record them for the cache key.
+          pacman -Sc --noconfirm
+          pacman -Q > build/pacman-installed.txt
+      - name: Save the pacman package cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.msys2.outputs.msys2-location }}\var\cache\pacman\pkg
+          key: pacman-pkg-unit-tests-windows-${{ hashFiles('build/pacman-installed.txt') }}
+        # An entry with the same key already exists when nothing changed; that is not an error.
+        continue-on-error: true
       # ccache's store is carried between runs. A run saves it under its own commit and restores
       # the newest one from this branch (or the default branch). Restore and save are separate
       # steps so the store is saved after a build even when a test fails.
