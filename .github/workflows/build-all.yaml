@@ -4,13 +4,20 @@ on:
   push:
   pull_request:
 
+# Jobs that need more ask for it (release).
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   clang-format-check:
+    # A pull request from this repository already ran on its push; one from a fork runs here.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout Oolite
         uses: actions/checkout@v6
@@ -22,7 +29,10 @@ jobs:
           check-path: 'src'
 
   build-github-pages:
+    # A pull request from this repository already ran on its push; one from a fork runs here.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: write
       pages: write
@@ -61,7 +71,10 @@ jobs:
         uses: actions/deploy-pages@v5
 
   oxp-upgrade:
+    # A pull request from this repository already ran on its push; one from a fork runs here.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout Oolite
         uses: actions/checkout@v6
@@ -78,6 +91,7 @@ jobs:
   build-appimage:
     needs: clang-format-check
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     container:
       image: archlinux:latest
       options: >-
@@ -90,10 +104,18 @@ jobs:
       #   run: |
       #     printenv | sort
 
+      # pacman's downloaded packages, saved under the installed package list (a new entry only when a
+      # package changes).
+      - name: Restore the pacman package cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /var/cache/pacman/pkg
+          key: pacman-pkg-build-appimage-restore-only
+          restore-keys: pacman-pkg-build-appimage-
       - name: Update Arch
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed git
+          pacman -S --noconfirm --needed git ccache
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -136,6 +158,7 @@ jobs:
   build-ubuntu:
     needs: clang-format-check
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     container:
       image: ubuntu:26.04
       options: >-
@@ -143,10 +166,20 @@ jobs:
         --device /dev/fuse
         --security-opt apparmor:unconfined
     steps:
+      # apt's downloaded packages (the image deletes them after each install unless told to keep
+      # them), saved under the installed package list.
+      - name: Restore the apt package cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /var/cache/apt/archives
+          key: apt-pkg-build-ubuntu-restore-only
+          restore-keys: apt-pkg-build-ubuntu-
       - name: Update Ubuntu
         run: |
-          apt update          
-          apt install -y git curl ca-certificates zip
+          rm -f /etc/apt/apt.conf.d/docker-clean
+          echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-downloads
+          apt update
+          apt install -y git curl ca-certificates zip ccache
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -182,6 +215,7 @@ jobs:
   build-fedora:
     needs: clang-format-check
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     container:
       image: fedora:latest
       options: >-
@@ -189,10 +223,22 @@ jobs:
         --device /dev/fuse
         --security-opt apparmor:unconfined
     steps:
+      # dnf's downloaded packages (kept with keepcache), saved under the installed package list. The
+      # cache action needs tar, which the image may not have, so that comes first.
+      - name: Prepare dnf
+        run: |
+          echo 'keepcache=True' >> /etc/dnf/dnf.conf
+          command -v tar > /dev/null || dnf -y install tar
+      - name: Restore the dnf package cache
+        uses: actions/cache/restore@v6
+        with:
+          path: /var/cache/libdnf5
+          key: dnf-pkg-build-fedora-restore-only
+          restore-keys: dnf-pkg-build-fedora-
       - name: Update Fedora
         run: |
           dnf -y update
-          dnf -y install git
+          dnf -y install git ccache
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -225,6 +271,7 @@ jobs:
   build-flatpak:
     needs: clang-format-check
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
@@ -260,6 +307,7 @@ jobs:
   build-windows:
     needs: clang-format-check
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -271,15 +319,24 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
       - name: Set up MSYS2
+        id: msys2
         uses: msys2/setup-msys2@v2
         with:
           MSYSTEM: UCRT64
           update: true
-          cache: false
+          # Caches the packages this action itself installs (the base system).
+          cache: true
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      # The packages install_deps.sh downloads, as in unit-tests-windows.
+      - name: Restore the pacman package cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.msys2.outputs.msys2-location }}\var\cache\pacman\pkg
+          key: pacman-pkg-build-windows-restore-only
+          restore-keys: pacman-pkg-build-windows-
       - name: Install packages
         shell: msys2 {0}
         env:
@@ -288,13 +345,33 @@ jobs:
         run: |
           echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
           echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
-          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true          
+          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true
           ShellScripts/Windows/install_deps.sh clang
+          pacboy -S --noconfirm ccache:p
+          pacman -Sc --noconfirm
+          pacman -Q > build/pacman-installed.txt
+      - name: Save the pacman package cache
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ steps.msys2.outputs.msys2-location }}\var\cache\pacman\pkg
+          key: pacman-pkg-build-windows-${{ hashFiles('build/pacman-installed.txt') }}
+        continue-on-error: true  # the same key exists when nothing changed
+      # ccache's store, carried between runs: saved under each commit, restored from the newest
+      # one on this branch (or the default branch).
+      - name: Restore the compiler cache
+        id: ccache-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: build/.ccache
+          key: ccache-build-windows-${{ github.sha }}
+          restore-keys: ccache-build-windows-
       - name: Build Oolite
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
+          CCACHE_DIR: ${{ github.workspace }}/build/.ccache
+          CCACHE_MAXSIZE: 1G
         run: |
           ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
       - name: Test Oolite
@@ -330,6 +407,7 @@ jobs:
   unit-tests-windows:
     needs: clang-format-check
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - name: Git line endings
         run: |
@@ -351,7 +429,7 @@ jobs:
       # so a run installs from it instead of the mirrors. Saved under the installed package list,
       # so a new entry is written only when a package changes.
       - name: Restore the pacman package cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ steps.msys2.outputs.msys2-location }}\var\cache\pacman\pkg
           key: pacman-pkg-unit-tests-windows-restore-only
@@ -371,7 +449,7 @@ jobs:
           pacman -Sc --noconfirm
           pacman -Q > build/pacman-installed.txt
       - name: Save the pacman package cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ steps.msys2.outputs.msys2-location }}\var\cache\pacman\pkg
           key: pacman-pkg-unit-tests-windows-${{ hashFiles('build/pacman-installed.txt') }}
@@ -382,7 +460,7 @@ jobs:
       # steps so the store is saved after a build even when a test fails.
       - name: Restore the compiler cache
         id: ccache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: build/.ccache
           key: ccache-unit-tests-windows-${{ github.sha }}
@@ -390,29 +468,20 @@ jobs:
       # Without LTO: 74 core tests link the whole game, and with ThinLTO each of those links
       # re-optimises all of it (most of the job's time). The test flavour's macros are unchanged;
       # build-fedora still builds the test flavour with LTO.
-      # ccache: meson wraps a compiler with ccache only when it detects the compiler itself, so the
-      # job names "ccache clang" in its own copy of clang.ini. The version and build date are
-      # pinned: they are -D flags on every compile, and their per-commit values would make every
-      # file a cache miss. Nothing this job builds is shipped.
-      - name: Build Oolite (test flavour, no LTO, ccache)
+      - name: Build Oolite (test flavour, no LTO)
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
           PYTHONUTF8: "1"
           CCACHE_DIR: ${{ github.workspace }}/build/.ccache
-          CCACHE_MAXSIZE: 2G
+          CCACHE_MAXSIZE: 1G
         run: |
-          mkdir -p build
-          sed -e "s/^c = 'clang'/c = ['ccache', 'clang']/" \
-              -e "s/^cpp = 'clang++'/cpp = ['ccache', 'clang++']/" clang.ini > build/clang-ccache.ini
-          grep -q "'ccache', 'clang++'" build/clang-ccache.ini
           ccache --zero-stats
-          ./mk.sh build test --native-file=build/clang-ccache.ini --setup-flags="-Db_lto=false" \
-              --ver-full=1.93.1-ci-unit-tests --buildtime="2000.01.01 00:00"
+          ./mk.sh build test --ccache --setup-flags="-Db_lto=false"
           ccache --show-stats
       - name: Save the compiler cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: build/.ccache
           key: ccache-unit-tests-windows-${{ github.sha }}
@@ -437,6 +506,7 @@ jobs:
   build-macos:
     needs: clang-format-check
     runs-on: macos-latest
+    timeout-minutes: 60
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
@@ -448,6 +518,16 @@ jobs:
       - name: Install packages
         run: |
           ShellScripts/macOS/install_packages.sh
+          brew install ccache
+      # ccache's store, carried between runs: saved under each commit, restored from the newest
+      # one on this branch (or the default branch).
+      - name: Restore the compiler cache
+        id: ccache-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: build/.ccache
+          key: ccache-build-macos-${{ github.sha }}
+          restore-keys: ccache-build-macos-
       - name: Build Oolite
         run: |
           ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
@@ -473,11 +553,12 @@ jobs:
   release:
     needs: [build-appimage, build-flatpak, build-windows, build-macos, build-github-pages]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write  # create the release; also needed in forks, where the token is read-only by default
       actions: write   # remove old workflow runs
-    # Only run for internal requests (so not for PRs from forks)
-    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+    # Only for pushes to master and develop: not for other branches, and not for pull requests.
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
