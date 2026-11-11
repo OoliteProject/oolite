@@ -854,6 +854,6 @@ std::string OODebugMonitor::description() const
 }
 
 /*	The one monitor is made by sharedDebugMonitor() and never released.
-*/
+ */
 
 #endif /* OO_DEBUG_MONITOR_ENABLED */

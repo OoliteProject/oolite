@@ -380,7 +380,8 @@ Entity* ShaderSuperTarget(Entity* entity)
 
 std::string ShaderClassName(Entity* entity)
 {
-    return (oo::WithObject(entity) != nullptr) ? std::string("Entity") : std::string("(null)");}
+    return (oo::WithObject(entity) != nullptr) ? std::string("Entity") : std::string("(null)");
+}
 
 std::string ShaderDescription(Entity* entity)
 {
