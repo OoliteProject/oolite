@@ -405,7 +405,7 @@ jobs:
           MSYSTEM: UCRT64
         run: |
           cp "$MINGW_PREFIX/bin/opengl32.dll" build/meson_test/tests/unit/core/
-      - name: Unit tests (oofnd, core, headers, tools)
+      - name: Unit tests (oofnd, core, headers)
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64

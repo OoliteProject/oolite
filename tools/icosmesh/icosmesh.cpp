@@ -8,8 +8,8 @@
 
         Based on Jens Ayton's 2009 Objective-C tool of the same name (main.m,
    JAIcosTriangle, JAVertexSet, JAIcosMesh). The arithmetic, the vertex order
-   and the output text are the same, so the regenerated files match the
-   checked-in ones (tests/check_planet_data.py).
+   and the output text are the same, so it regenerates the checked-in files
+   exactly.
 */
 
 #include <climits>

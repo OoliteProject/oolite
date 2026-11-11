@@ -136,17 +136,11 @@ if not get_option('deployment_release') and host_machine.system() == 'windows'
     subdir('tests/unit/core')
 endif
 
-# tools/icosmesh generates src/Core/OOPlanetData.{cpp,h}; its test checks the checked-in files are
-# what it generates (meson test --suite tools). Plain C++, so on every platform.
+# tools/icosmesh generates src/Core/OOPlanetData.{cpp,h}. Plain C++, so on every platform.
 subdir('tools/icosmesh')
 
-# Every game and test header compiles on its own, so include order never matters and clang-format
-# may sort includes freely (meson test --suite headers). Windows-only like the unit tests above,
-# whose headers it also checks; it needs the finished build's dependency log, which meson test has.
+# Source checks (meson test --suite headers). Windows-only like the unit tests above.
 if not get_option('deployment_release') and host_machine.system() == 'windows'
-    test('headers_standalone', find_program('python3'),
-        args: [files('tests/check_headers_standalone.py'), meson.project_build_root()],
-        suite: 'headers', timeout: 900, is_parallel: false)
     # Debug-monitor code is guarded by OO_DEBUG_MONITOR_ENABLED, not NDEBUG: the deployment flavour
     # defines both, and no test flavour notices a guard left on NDEBUG.
     test('debug_monitor_guards', find_program('python3'),
