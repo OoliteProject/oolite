@@ -94,12 +94,12 @@ PList CallEntityByName(Entity* entity, const std::string& name,
 PList CallEntityByName(Entity* entity, const std::string& name,
     const PList& argument);
 
-    /*	An entity's method called after <delay> seconds, as
-       OOScheduleDeferredCall() does (the afterburner sound's update, a ship's
-       cargo dumped a canister at a time). The call holds the entity, and calls
-       <call> with it when it fires; <call> asks for the entity's class. A null
-       entity schedules nothing. Defined in OOEntityCalledByName.cpp.
-    */
-    void ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity), double delay);
+/*	An entity's method called after <delay> seconds, as
+   OOScheduleDeferredCall() does (the afterburner sound's update, a ship's
+   cargo dumped a canister at a time). The call holds the entity, and calls
+   <call> with it when it fires; <call> asks for the entity's class. A null
+   entity schedules nothing. Defined in OOEntityCalledByName.cpp.
+*/
+void ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity), double delay);
 
 } // namespace oo
