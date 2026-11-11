@@ -16,8 +16,8 @@ Plain NDEBUG asserts and sanity checks, which upstream still guards with NDEBUG,
 
     python3 tests/check_debug_monitor_guards.py [--root DIR]
 
-Scope and comment handling are idiom_check.py's (src/Core, src/SDL, src/oofnd; comments and
-literals blanked). Prints one 'path:line: reason' per hit; exit 1 if any, 0 if none.
+Scope: src/Core, src/SDL and src/oofnd, less vendored code, with comments and literals blanked.
+Prints one 'path:line: reason' per hit; exit 1 if any, 0 if none.
 """
 
 import argparse
@@ -25,7 +25,129 @@ import os
 import re
 import sys
 
-import idiom_check
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCAN_DIRS = ("src/Core", "src/SDL", "src/oofnd")
+SUFFIXES = (".h", ".hpp", ".cpp")
+VENDORED = (
+    "src/Core/MiniZip",
+    "src/SDL/EXRSnapshotSupport",
+    "src/SDL/stb_image_write.h",
+    "src/Core/OOPlanetData.cpp",
+)
+
+
+def strip_comments_and_literals(text):
+    """Blank comments, string literals and character literals, keeping every newline.
+
+    A comment becomes one space; "..." becomes "" and '...' becomes ''. Raw strings R"x(...)x" and
+    C++14 digit separators (1'000) are understood, so neither confuses the scan.
+    """
+    out = []
+    i = 0
+    n = len(text)
+
+    def skip_newlines(chunk):
+        out.append("\n" * chunk.count("\n"))
+
+    while i < n:
+        c = text[i]
+        two = text[i : i + 2]
+        if two == "//":
+            j = i
+            while j < n and text[j] != "\n":
+                if text[j] == "\\" and j + 1 < n and text[j + 1] in "\r\n":
+                    j += 2  # a backslash-newline continues a line comment
+                    if text[j - 1] == "\r" and j < n and text[j] == "\n":
+                        j += 1
+                    continue
+                j += 1
+            out.append(" ")
+            skip_newlines(text[i:j])
+            i = j
+        elif two == "/*":
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            out.append(" ")
+            skip_newlines(text[i:j])
+            i = j
+        elif c == '"':
+            # Raw string: the quote is preceded by R (optionally with an encoding prefix).
+            m = re.match(r'"([^()\\\s"]{0,16})\(', text[i:])
+            if m and i > 0 and text[i - 1] == "R":
+                close = ")" + m.group(1) + '"'
+                j = text.find(close, i + m.end())
+                j = n if j < 0 else j + len(close)
+                out.append('""')
+                skip_newlines(text[i:j])
+                i = j
+                continue
+            j = i + 1
+            while j < n and text[j] != '"':
+                if text[j] == "\\":
+                    j += 1
+                elif text[j] == "\n":
+                    break  # an unterminated literal ends with its line
+                j += 1
+            j = min(j + 1, n)
+            out.append('""')
+            skip_newlines(text[i:j])
+            i = j
+        elif c == "'":
+            k = i - 1
+            while k >= 0 and (text[k].isalnum() or text[k] in "_'"):
+                k -= 1
+            if k < i - 1 and text[k + 1].isdigit():
+                out.append(c)  # a digit separator, not a character literal
+                i += 1
+                continue
+            j = i + 1
+            while j < n and text[j] != "'":
+                if text[j] == "\\":
+                    j += 1
+                elif text[j] == "\n":
+                    break
+                j += 1
+            j = min(j + 1, n)
+            out.append("''")
+            skip_newlines(text[i:j])
+            i = j
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+def logical_lines(stripped_text):
+    """Yield (first_line_number, text) for each logical line (backslash continuations joined)."""
+    lines = stripped_text.split("\n")
+    i = 0
+    while i < len(lines):
+        start = i
+        joined = lines[i]
+        while joined.rstrip().endswith("\\") and i + 1 < len(lines):
+            i += 1
+            joined = joined.rstrip()[:-1] + " " + lines[i]
+        yield start + 1, joined
+        i += 1
+
+
+def source_files(root):
+    """[(relative path, stripped text)] for every file in scope."""
+    found = []
+    for top in SCAN_DIRS:
+        for directory, dirs, files in os.walk(os.path.join(root, top)):
+            dirs.sort()
+            for name in sorted(files):
+                if not name.endswith(SUFFIXES):
+                    continue
+                rel = os.path.relpath(os.path.join(directory, name), root).replace(os.sep, "/")
+                if any(rel == v or rel.startswith(v + "/") for v in VENDORED):
+                    continue
+                with open(os.path.join(root, rel), "rb") as handle:
+                    raw = handle.read().decode("utf-8", errors="replace")
+                raw = raw.replace("\r\n", "\n").replace("\r", "\n")
+                found.append((rel, strip_comments_and_literals(raw)))
+    return found
 
 # Names upstream (7437f22a5) declares or defines only under OO_DEBUG_MONITOR_ENABLED.
 MONITOR_NAMES = (
@@ -51,7 +173,7 @@ def hits_in(stripped):
     """[(line, reason)] for one file's comment-stripped text."""
     hits = []
     stack = []  # the condition text of each enclosing conditional's current branch
-    for number, line in idiom_check.logical_lines(stripped):
+    for number, line in logical_lines(stripped):
         m = DIRECTIVE.match(line)
         if m:
             kind, rest = m.group(1), m.group(2)
@@ -78,10 +200,9 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--root", help="oolite-dev tree to check (default: this script's)")
     args = parser.parse_args(argv)
-    if args.root:
-        idiom_check.ROOT = os.path.abspath(args.root)
+    root = os.path.abspath(args.root) if args.root else ROOT
     found = 0
-    for rel, _, stripped in idiom_check.source_files():
+    for rel, stripped in source_files(root):
         for number, reason in hits_in(stripped):
             print("%s:%d: %s" % (rel, number, reason))
             found += 1
