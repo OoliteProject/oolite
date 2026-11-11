@@ -9,7 +9,7 @@ create_venv() {
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     local VENV_DIR="${1:-$SCRIPT_DIR/../../.venv}"
 
-    if [ ! -d "$VENV_DIR" ]; then
+    if [[ ! -d "$VENV_DIR" ]]; then
         echo "Creating virtual environment..."
         python3 -m venv "$VENV_DIR"
     fi

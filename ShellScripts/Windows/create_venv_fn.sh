@@ -9,13 +9,13 @@ create_venv() {
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     local VENV_DIR="${1:-$SCRIPT_DIR/../../.venv}"
 
-    if [ ! -d "$VENV_DIR" ]; then
+    if [[ ! -d "$VENV_DIR" ]]; then
         echo "Creating virtual environment..."
         python -m venv --system-site-packages "$VENV_DIR"
     fi
 
     # Windows/MSYS2 uses 'Scripts' directory for the activation script
-    if [ -f "$VENV_DIR/Scripts/activate" ]; then
+    if [[ -f "$VENV_DIR/Scripts/activate" ]]; then
         source "$VENV_DIR/Scripts/activate"
     else
         # Fallback for standard POSIX structure just in case

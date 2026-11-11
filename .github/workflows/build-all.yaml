@@ -21,6 +21,43 @@ jobs:
           clang-format-version: '22'
           check-path: 'src'
 
+  build-github-pages:
+    needs: clang-format-check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the release; also needed in forks, where the token is read-only by default
+      actions: write   # remove old workflow runs
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Install packages
+        run: |
+          sudo apt update
+          sudo apt install -y doxygen graphviz jq zip
+      - name: Build site documentation
+        run: |
+          Documentation/build_sitedocs.sh
+      - name: Zip pdfs
+        run: |
+          zip -j ./build/oolite-documentation.zip ./build/documentation/docs/assets/pdfs/*.pdf
+      - name: Archive documentation
+        uses: actions/upload-artifact@v6
+        with:
+          name: oolite-documentation
+          path: |
+            build/oolite-documentation.zip
+          retention-days: 5
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: './build/documentation/site'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
   build-appimage:
     needs: clang-format-check
     runs-on: ubuntu-latest
@@ -80,16 +117,6 @@ jobs:
           name: oolite-linux-appimage-deployment
           path: |
             build/Oolite*.AppImage
-          retention-days: 5
-      - name: Zip pdfs
-        run: |
-          zip -j ./build/oolite-documentation.zip ./build/documentation/docs/assets/pdfs/*.pdf
-      - name: Archive documentation
-        uses: actions/upload-artifact@v6
-        with:
-          name: oolite-documentation
-          path: |
-            build/oolite-documentation.zip
           retention-days: 5
 
   build-ubuntu:
