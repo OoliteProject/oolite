@@ -19,7 +19,11 @@ Checks: >
   modernize-use-using,
   modernize-redundant-void-arg,
   readability-redundant-void-arg,
-  readability-make-member-function-const
+  readability-make-member-function-const,
+  cppcoreguidelines-no-malloc,
+  cppcoreguidelines-use-enum-class,
+  readability-identifier-naming,
+  google-readability-casting
 WarningsAsErrors: >
   bugprone-*,
   performance-*,
@@ -59,6 +63,13 @@ WarningsAsErrors: >
   -performance-unnecessary-copy-initialization,
   -performance-unnecessary-value-param,
   -performance-use-std-move
+# Spec 009's guards (cppcoreguidelines-no-malloc, cppcoreguidelines-use-enum-class,
+# readability-identifier-naming for scoped enum constants, google-readability-casting) report but
+# do not fail a run until their category reaches zero; each joins WarningsAsErrors then.
+CheckOptions:
+  cppcoreguidelines-use-enum-class.IgnoreUnscopedEnumsInClasses: false
+  readability-identifier-naming.ScopedEnumConstantCase: CamelCase
+  readability-identifier-naming.ScopedEnumConstantPrefix: k
 HeaderFilterRegex: '.*/src/(Core|SDL|oofnd)/.*'
 # Vendored code is not ours to tidy. Headers are excluded here; the .clang-tidy files inside
 # src/Core/MiniZip and src/SDL/EXRSnapshotSupport switch every check off for the sources there.
