@@ -37,8 +37,8 @@
 
 #include <chrono>
 #include <cstdint>
-#include <cstdio>
 #include <ctime>
+#include <format>
 #include <string>
 
 namespace oo::date {
@@ -83,43 +83,23 @@ inline double monotonicSeconds() {
 
 // NSDate -description at a given UTC offset: "YYYY-MM-DD HH:MM:SS +hhmm".
 inline std::string description(Clock::time_point t, int utcOffsetMinutes) {
-  const std::int64_t unixSeconds =
-      std::chrono::floor<std::chrono::seconds>(t.time_since_epoch()).count();
-  const std::int64_t localSeconds =
-      unixSeconds + static_cast<std::int64_t>(utcOffsetMinutes) * 60;
-
-  // Civil date from days since 1970-01-01 (Howard Hinnant's algorithm): no
-  // time-zone database and no gmtime, so the result does not depend on the C
-  // runtime.
-  std::int64_t days = localSeconds / 86400;
-  std::int64_t secOfDay = localSeconds % 86400;
-  if (secOfDay < 0) {
-    secOfDay += 86400;
-    days -= 1;
-  }
-  days += 719468;
-  const std::int64_t era = (days >= 0 ? days : days - 146096) / 146097;
-  const std::int64_t doe = days - era * 146097;
-  const std::int64_t yoe =
-      (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-  const std::int64_t doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-  const std::int64_t mp = (5 * doy + 2) / 153;
-  const std::int64_t day = doy - (153 * mp + 2) / 5 + 1;
-  const std::int64_t month = mp < 10 ? mp + 3 : mp - 9;
-  const std::int64_t year = yoe + era * 400 + (month <= 2 ? 1 : 0);
-
+  using namespace std::chrono;
+  // The calendar date of t shifted by the offset, from std::chrono's civil
+  // calendar: no time-zone database and no gmtime, so the result does not
+  // depend on the C runtime.
+  const sys_seconds local =
+      floor<seconds>(t) + minutes(static_cast<long long>(utcOffsetMinutes));
+  const sys_days day = floor<days>(local);
+  const year_month_day date{day};
+  const hh_mm_ss<seconds> time{local - day};
   const int offset =
       utcOffsetMinutes < 0 ? -utcOffsetMinutes : utcOffsetMinutes;
-  char buffer[64];
-  std::snprintf(buffer, sizeof buffer,
-                "%04lld-%02lld-%02lld %02lld:%02lld:%02lld %c%02d%02d",
-                static_cast<long long>(year), static_cast<long long>(month),
-                static_cast<long long>(day),
-                static_cast<long long>(secOfDay / 3600),
-                static_cast<long long>(secOfDay / 60 % 60),
-                static_cast<long long>(secOfDay % 60),
-                utcOffsetMinutes < 0 ? '-' : '+', offset / 60, offset % 60);
-  return std::string(buffer);
+  return std::format(
+      "{:04}-{:02}-{:02} {:02}:{:02}:{:02} {}{:02}{:02}",
+      static_cast<int>(date.year()), static_cast<unsigned>(date.month()),
+      static_cast<unsigned>(date.day()), time.hours().count(),
+      time.minutes().count(), time.seconds().count(),
+      utcOffsetMinutes < 0 ? '-' : '+', offset / 60, offset % 60);
 }
 
 // The local time zone's UTC offset at t, in minutes (daylight saving included).
