@@ -79,6 +79,17 @@ CheckOptions:
   cppcoreguidelines-use-enum-class.IgnoreUnscopedEnumsInClasses: false
   readability-identifier-naming.ScopedEnumConstantCase: CamelCase
   readability-identifier-naming.ScopedEnumConstantPrefix: k
+  # Spec 009 T083: the C string functions go behind the check (already fatal through bugprone-*),
+  # each with its replacement. vsnprintf is not listed: oofnd's printf engine keeps it for the
+  # printf-syntax data formats (FR-026).
+  bugprone-unsafe-functions.CustomFunctions: >-
+    ^::strcpy$,std::string,;^::strncpy$,std::string,;^::strcat$,std::string::append,;
+    ^::strncat$,std::string::append,;^::strcmp$,std::string_view comparison,;
+    ^::strncmp$,std::string_view::compare,;^::strcasecmp$,oo::str::caseInsensitiveCompare,;
+    ^::strlen$,std::string_view::size,;^::strdup$,std::string,;^::strchr$,std::string_view::find,;
+    ^::strrchr$,std::string_view::rfind,;^::strstr$,std::string_view::find,;
+    ^::strtok$,oo::str::split,;^::sprintf$,std::format,;^::snprintf$,std::format,;
+    ^::atoi$,std::from_chars,;^::atof$,std::from_chars,
 HeaderFilterRegex: '.*/src/(Core|SDL|oofnd)/.*'
 # Vendored code is not ours to tidy. Headers are excluded here; the .clang-tidy files inside
 # src/Core/MiniZip and src/SDL/EXRSnapshotSupport switch every check off for the sources there.
