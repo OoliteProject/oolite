@@ -56,11 +56,13 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <charconv>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
+#include <format>
 #include <functional>
 #include <limits>
 #include <map>
@@ -226,7 +228,6 @@ inline void appendOpenStepString(std::string& out, std::string_view utf8) {
     return;
   }
   out += '"';
-  char buf[8];
   for (char16_t u : utf8ToUtf16(utf8)) {
     switch (u) {
       case '"':
@@ -256,14 +257,11 @@ inline void appendOpenStepString(std::string& out, std::string_view utf8) {
         break;
     }
     if (u < 0x20 || u == 0x7F)
-      std::snprintf(buf, sizeof buf, "\\%03o", static_cast<unsigned>(u));
+      out += std::format("\\{:03o}", static_cast<unsigned>(u));
     else if (u >= 0x80)
-      std::snprintf(buf, sizeof buf, "\\U%04X", static_cast<unsigned>(u));
-    else {
+      out += std::format("\\U{:04X}", static_cast<unsigned>(u));
+    else
       out += static_cast<char>(u);
-      continue;
-    }
-    out += buf;
   }
   out += '"';
 }
@@ -272,7 +270,7 @@ using SinglePrecision = std::function<bool(const PList& real)>;
 
 inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
                            const SinglePrecision& single) {
-  char buf[48];
+  std::array<char, 48> buf{};
   switch (v.type()) {
     case PList::Type::Null:
       out += "\"<null>\"";
@@ -285,26 +283,26 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
       return;
     case PList::Type::Integer: {
       const PList::Integer& i = *v.getIf<PList::Integer>();
-      if (i.isUnsigned)
-        std::snprintf(buf, sizeof buf, "%llu",
-                      static_cast<unsigned long long>(i.unsignedValue()));
-      else
-        std::snprintf(buf, sizeof buf, "%lld", static_cast<long long>(i.value));
-      appendOpenStepString(out, buf);
+      appendOpenStepString(
+          out, i.isUnsigned
+                   ? std::format("{}", static_cast<unsigned long long>(
+                                           i.unsignedValue()))
+                   : std::format("{}", static_cast<long long>(i.value)));
       return;
     }
     case PList::Type::Real: {
       const double d = *v.getIf<double>();
+      std::string text;
       if (std::isnan(d))
-        std::snprintf(buf, sizeof buf, "nan");
+        text = "nan";
       else if (std::isinf(d))
-        std::snprintf(buf, sizeof buf, d < 0 ? "-inf" : "inf");
+        text = d < 0 ? "-inf" : "inf";
       else if (v.isSinglePrecision() || (single && single(v)))
-        std::snprintf(buf, sizeof buf, "%.7g",
-                      static_cast<double>(static_cast<float>(d)));
+        text =
+            std::format("{:.7g}", static_cast<double>(static_cast<float>(d)));
       else
-        std::snprintf(buf, sizeof buf, "%.16g", d);
-      appendOpenStepString(out, buf);
+        text = std::format("{:.16g}", d);
+      appendOpenStepString(out, text);
       return;
     }
     case PList::Type::String:
@@ -315,9 +313,7 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
       out += '<';
       for (std::size_t i = 0; i < data.length(); ++i) {
         if (i > 0 && i % 4 == 0) out += ' ';
-        std::snprintf(buf, sizeof buf, "%02x",
-                      static_cast<unsigned>(data.bytes()[i]));
-        out += buf;
+        out += std::format("{:02x}", static_cast<unsigned>(data.bytes()[i]));
       }
       out += '>';
       return;
@@ -332,8 +328,8 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
 #else
       localtime_r(&t, &local);
 #endif
-      std::strftime(buf, sizeof buf, "%Y-%m-%d %H:%M:%S %z", &local);
-      appendOpenStepString(out, buf);
+      std::strftime(buf.data(), buf.size(), "%Y-%m-%d %H:%M:%S %z", &local);
+      appendOpenStepString(out, buf.data());
       return;
     }
     case PList::Type::Array: {

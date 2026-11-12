@@ -55,6 +55,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <expected>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -264,10 +265,9 @@ class OldStyleScanner {
   bool usedGNUstepExtensions() const noexcept { return !old_; }
 
   std::string errorMessage() const {
-    char buf[64];
-    std::snprintf(buf, sizeof buf, "Parse failed at line %u (char %zu) - ",
-                  lin_ + 1, pos_ + 1);
-    return std::string(buf) + err_;
+    return std::format("Parse failed at line {} (char {}) - ", lin_ + 1,
+                       pos_ + 1) +
+           err_;
   }
 
  private:

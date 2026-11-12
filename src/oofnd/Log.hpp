@@ -163,10 +163,8 @@ inline std::string timeStamp(std::chrono::system_clock::time_point when) {
 #else
   localtime_r(&seconds, &tm);
 #endif
-  char buf[16];
-  std::snprintf(buf, sizeof buf, "%02d:%02d:%02d.%03d", tm.tm_hour, tm.tm_min,
-                tm.tm_sec, milli);
-  return buf;
+  return std::format("{:02}:{:02}:{:02}.{:03}", tm.tm_hour, tm.tm_min,
+                     tm.tm_sec, milli);
 }
 
 // The line OOLogWithFunctionFileAndLineAndArguments() hands to the output

@@ -65,6 +65,7 @@
 
 #pragma once
 
+#include <array>
 #include <cerrno>
 #include <chrono>
 #include <cstdint>
@@ -361,11 +362,12 @@ inline Result<Data> readFile(const Path& path) {
   if (f == nullptr) return std::unexpected(detail::lastError(EACCES));
 
   std::vector<std::uint8_t> bytes;
-  unsigned char buffer[64 * 1024];
+  std::array<unsigned char, 64 * 1024> buffer{};
   for (;;) {
-    const std::size_t n = std::fread(buffer, 1, sizeof buffer, f);
-    bytes.insert(bytes.end(), buffer, buffer + n);
-    if (n < sizeof buffer) break;
+    const std::size_t n = std::fread(buffer.data(), 1, buffer.size(), f);
+    bytes.insert(bytes.end(), buffer.begin(),
+                 buffer.begin() + static_cast<std::ptrdiff_t>(n));
+    if (n < buffer.size()) break;
   }
   const bool failed = std::ferror(f) != 0;
   std::fclose(f);

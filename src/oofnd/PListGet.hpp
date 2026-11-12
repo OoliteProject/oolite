@@ -75,6 +75,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -122,7 +123,7 @@ inline std::string intBuf(std::u16string_view s) {
   return buf;
 }
 
-// strtoll()/strtol() of an intBuf: sign, digits, saturating at the type's
+// C's strtoll and strtol of an intBuf: sign, digits, saturating at the type's
 // range.
 template <class I>
 I saturatingParse(std::string_view buf) noexcept {
@@ -180,7 +181,7 @@ inline bool scanDoubleAt(std::u16string_view s, std::size_t& location,
   // Leading zeros are dropped (counted in `shift` after the point); at most 19
   // digits are kept, then 18 are used. Digits past the 19th are skipped without
   // moving the decimal point.
-  char mantissa[20];
+  std::array<char, 20> mantissa{};
   int mantissaLength = 0;
   int dotPos = -1;
   unsigned shift = 0;
@@ -209,9 +210,11 @@ inline bool scanDoubleAt(std::u16string_view s, std::size_t& location,
 
   int hi = 0;
   int lo = 0;
-  const char* ptr = mantissa;
-  for (; mantissaLength > 9; --mantissaLength) hi = hi * 10 + (*ptr++ - '0');
-  for (; mantissaLength > 0; --mantissaLength) lo = lo * 10 + (*ptr++ - '0');
+  std::size_t next = 0;
+  for (; mantissaLength > 9; --mantissaLength)
+    hi = hi * 10 + (mantissa[next++] - '0');
+  for (; mantissaLength > 0; --mantissaLength)
+    lo = lo * 10 + (mantissa[next++] - '0');
   double result = (1.0e9 * hi) + lo;
 
   // The exponent accumulates in an int; GNUstep lets it wrap, so it wraps here
@@ -509,26 +512,21 @@ inline float fuzzyProbabilityFrom(const PList* v, float fallback) noexcept {
 
 // NSNumber -stringValue.
 inline std::string numberStringValue(const PList& v) {
-  char buf[64];
   if (const bool* b = v.getIf<bool>()) return *b ? "1" : "0";
   if (const PList::Integer* i = v.getIf<PList::Integer>()) {
     if (i->isUnsigned)
-      std::snprintf(buf, sizeof buf, "%llu",
-                    static_cast<unsigned long long>(i->unsignedValue()));
-    else
-      std::snprintf(buf, sizeof buf, "%lld", static_cast<long long>(i->value));
-    return buf;
+      return std::format("{}",
+                         static_cast<unsigned long long>(i->unsignedValue()));
+    return std::format("{}", static_cast<long long>(i->value));
   }
   const double d = v.doubleValue();
   if (std::isnan(d)) return "nan";
   if (std::isinf(d)) return d < 0 ? "-inf" : "inf";
   if (v.isSinglePrecision())
-    std::snprintf(buf, sizeof buf, "%0.7g",
-                  static_cast<double>(
-                      static_cast<float>(d)));  // +numberWithFloat: (captured)
-  else
-    std::snprintf(buf, sizeof buf, "%0.16g", d);
-  return buf;
+    return std::format("{:.7g}",
+                       static_cast<double>(static_cast<float>(
+                           d)));  // +numberWithFloat: (captured)
+  return std::format("{:.16g}", d);
 }
 
 }  // namespace plist_get

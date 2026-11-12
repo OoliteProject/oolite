@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -91,7 +92,6 @@ inline void appendElementString(std::string& out, std::string_view s) {
     return;
   }
   out += '"';
-  char buffer[8];
   for (char16_t c : u) {
     switch (c) {
       case u'"':
@@ -119,13 +119,9 @@ inline void appendElementString(std::string& out, std::string_view s) {
         break;
       default:
         if (c < 0x20 || c == 0x7F) {
-          std::snprintf(buffer, sizeof buffer, "\\%03o",
-                        static_cast<unsigned>(c));
-          out += buffer;
+          out += std::format("\\{:03o}", static_cast<unsigned>(c));
         } else if (c > 0x7F) {
-          std::snprintf(buffer, sizeof buffer, "\\U%04X",
-                        static_cast<unsigned>(c));
-          out += buffer;
+          out += std::format("\\U{:04X}", static_cast<unsigned>(c));
         } else {
           out += static_cast<char>(c);
         }
@@ -135,20 +131,15 @@ inline void appendElementString(std::string& out, std::string_view s) {
 }
 
 inline std::string numberText(const PList& v) {
-  char buffer[40];
   if (const bool* b = v.getIf<bool>()) return *b ? "1" : "0";
   if (const PList::Integer* i = v.getIf<PList::Integer>()) {
     if (i->isUnsigned)
-      std::snprintf(buffer, sizeof buffer, "%llu",
-                    static_cast<unsigned long long>(i->unsignedValue()));
-    else
-      std::snprintf(buffer, sizeof buffer, "%lld",
-                    static_cast<long long>(i->value));
-    return buffer;
+      return std::format("{}",
+                         static_cast<unsigned long long>(i->unsignedValue()));
+    return std::format("{}", static_cast<long long>(i->value));
   }
-  std::snprintf(buffer, sizeof buffer,
-                v.isSinglePrecision() ? "%0.7g" : "%0.16g", v.doubleValue());
-  return buffer;
+  return v.isSinglePrecision() ? std::format("{:.7g}", v.doubleValue())
+                               : std::format("{:.16g}", v.doubleValue());
 }
 
 inline std::string dataText(const Data& data) {

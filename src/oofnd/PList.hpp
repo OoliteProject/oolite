@@ -350,7 +350,7 @@ struct PListError {
   friend bool operator==(const PListError&, const PListError&) = default;
 };
 
-inline const char* typeName(PList::Type t) noexcept {
+inline std::string_view typeName(PList::Type t) noexcept {
   switch (t) {
     case PList::Type::Null:
       return "null";

@@ -57,6 +57,7 @@
 #include <curl/curl.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -472,7 +473,7 @@ class Download {
     // Accept: is removed; curl sends no cookies, no Accept-Encoding and no
     // credentials unless asked.
     curl_slist* headers = curl_slist_append(nullptr, "Accept:");
-    char errorBuffer[CURL_ERROR_SIZE] = {};
+    std::array<char, CURL_ERROR_SIZE> errorBuffer{};
     Transfer transfer;
     transfer.download = this;
     const std::string target = curlUrl(url);
@@ -496,7 +497,7 @@ class Download {
     curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS,
                      static_cast<long>(CURLSSLOPT_NATIVE_CA));
 #endif
-    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer.data());
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &Download::onHeader);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &transfer);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &Download::onData);
@@ -513,7 +514,7 @@ class Download {
     // A body the server cut short finished with what had arrived.
     if (code != CURLE_OK &&
         !(code == CURLE_PARTIAL_FILE && transfer.responded)) {
-      push(failure(curlErrorText(code, errorBuffer)));
+      push(failure(curlErrorText(code, errorBuffer.data())));
       return;
     }
     Event done;
