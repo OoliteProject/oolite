@@ -249,8 +249,8 @@ void OOSDLJoystickManager::decodeButtonEvent(SDL_JoyButtonEvent* evt)
     int function;
     int guifunction;
     if (evt->button < MAX_BUTTONS) {
-        function = base->buttonmap[evt->which][evt->button];
-        guifunction = base->guibuttonmap[evt->which][evt->button];
+        function = buttonmap[evt->which][evt->button];
+        guifunction = guibuttonmap[evt->which][evt->button];
     } else {
         OO_LOG("decodeButtonEvent", "Joystick button out of range: {}", evt->button);
         return;

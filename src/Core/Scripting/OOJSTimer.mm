@@ -217,11 +217,7 @@ void OOJSTimer::timerFired()
 
     OOJSScript::pushScript(_owningScript);
     _firing = true;
-    [engine callJSFunction:function
-                 forObject:jsThis
-                      argc:0
-                      argv:NULL
-                    result:&rval];
+    engine->callJSFunction(function, jsThis, 0, NULL, &rval);
     _firing = false;
     OOJSScript::popScript(_owningScript.get());
 

@@ -45,28 +45,28 @@ constexpr bool kDecodesHats = requires(T* manager, SDL_JoyHatEvent* evt) {
 // The core manager decodes nothing and includes nothing of SDL's events.
 OO_TEST(coreManagerHasNoSDLDecoding) {
   OO_CHECK(!kCoreManagerIncludesSDLEvents);
-  OO_CHECK(!kDecodesAxes<cxx::OOJoystickManager>);
-  OO_CHECK(!kDecodesButtons<cxx::OOJoystickManager>);
-  OO_CHECK(!kDecodesHats<cxx::OOJoystickManager>);
+  OO_CHECK(!kDecodesAxes<OOJoystickManager>);
+  OO_CHECK(!kDecodesButtons<OOJoystickManager>);
+  OO_CHECK(!kDecodesHats<OOJoystickManager>);
 }
 
 // The SDL manager's own members decode SDL's event types, and its event makers
 // answer SDL's types.
 OO_TEST(sdlManagerDecodesSDLEvents) {
-  OO_CHECK((std::is_same_v<decltype(&cxx::OOSDLJoystickManager::decodeAxisEvent),
-                           void (cxx::OOSDLJoystickManager::*)(SDL_JoyAxisEvent*)>));
+  OO_CHECK((std::is_same_v<decltype(&OOSDLJoystickManager::decodeAxisEvent),
+                           void (OOSDLJoystickManager::*)(SDL_JoyAxisEvent*)>));
   OO_CHECK(
-      (std::is_same_v<decltype(&cxx::OOSDLJoystickManager::decodeButtonEvent),
-                      void (cxx::OOSDLJoystickManager::*)(SDL_JoyButtonEvent*)>));
-  OO_CHECK((std::is_same_v<decltype(&cxx::OOSDLJoystickManager::decodeHatEvent),
-                           void (cxx::OOSDLJoystickManager::*)(SDL_JoyHatEvent*)>));
-  OO_CHECK((std::is_same_v<decltype(std::declval<cxx::OOSDLJoystickManager&>()
+      (std::is_same_v<decltype(&OOSDLJoystickManager::decodeButtonEvent),
+                      void (OOSDLJoystickManager::*)(SDL_JoyButtonEvent*)>));
+  OO_CHECK((std::is_same_v<decltype(&OOSDLJoystickManager::decodeHatEvent),
+                           void (OOSDLJoystickManager::*)(SDL_JoyHatEvent*)>));
+  OO_CHECK((std::is_same_v<decltype(std::declval<OOSDLJoystickManager&>()
                                         .makeJoyAxisEvent(nullptr)),
                            SDL_JoyAxisEvent>));
-  OO_CHECK((std::is_same_v<decltype(std::declval<cxx::OOSDLJoystickManager&>()
+  OO_CHECK((std::is_same_v<decltype(std::declval<OOSDLJoystickManager&>()
                                         .makeJoyButtonEvent(nullptr)),
                            SDL_JoyButtonEvent>));
-  OO_CHECK((std::is_same_v<decltype(std::declval<cxx::OOSDLJoystickManager&>()
+  OO_CHECK((std::is_same_v<decltype(std::declval<OOSDLJoystickManager&>()
                                         .makeJoyHatEvent(nullptr)),
                            SDL_JoyHatEvent>));
 }

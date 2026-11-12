@@ -1403,7 +1403,7 @@ OO_TEST(stickMapperHardwareAndGuiDicts)
 		RecordingPlayer *player = MakeRecordingPlayer();
 		// The hardware names come from descriptions.plist (upstream #786), which this universe never
 		// loaded (loading it with no resources is fatal), so the test supplies the three entries.
-		oo::PList &descriptions = UNIVERSE->_cxxUniverse->_descriptions;
+		oo::PList &descriptions = UNIVERSE->_descriptions;
 		const oo::PList savedDescriptions = descriptions;
 		descriptions = oo::PList(oo::PList::Dict{ { "stickmapper-axis", oo::PList(std::string("axis")) }, { "stickmapper-button", oo::PList(std::string("button")) }, { "stickmapper-axis-button", oo::PList(std::string("axis/button")) } });
 		OO_CHECK(player->hwToString(HW_AXIS) == "axis");
