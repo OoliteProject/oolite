@@ -299,23 +299,33 @@ inline constexpr std::uint16_t kOOTCPConsolePort = 0x002173; /* = 8563 */
         minor version will be changed when new non-critical packets are added.
 */
 
-#define OOTCP_ENCODE_VERSION(f, mj, mi)              \
-  ((((f) << 16) & kOOTCPProtocolVersionFormatMask) | \
-   (((f) << 8) & kOOTCPProtocolVersionMajorMask) |   \
-   ((mi) & kOOTCPProtocolVersionMinorMask))
+inline constexpr std::uint32_t kOOTCPProtocolVersionFormatMask = 0x00FF0000;
+inline constexpr std::uint32_t kOOTCPProtocolVersionMajorMask = 0x0000FF00;
+inline constexpr std::uint32_t kOOTCPProtocolVersionMinorMask = 0x000000FF;
 
-#define OOTCP_VERSION_FORMAT(v) (((v) & kOOTCPProtocolVersionFormatMask) >> 16)
-#define OOTCP_VERSION_MAJOR(v) (((v) & kOOTCPProtocolVersionMajorMask) >> 8)
-#define OOTCP_VERSION_MINOR(v) ((v) & kOOTCPProtocolVersionMinorMask)
+inline constexpr std::uint32_t kOOTCPProtocolVersionPListFormat = 1;
 
-enum {
-  kOOTCPProtocolVersionFormatMask = 0x00FF0000,
-  kOOTCPProtocolVersionMajorMask = 0x0000FF00,
-  kOOTCPProtocolVersionMinorMask = 0x000000FF,
+// A version number from its format, major and minor numbers. Upstream's
+// OOTCP_ENCODE_VERSION shifted the format, not the major number, into the
+// major byte; kept, so 1:1.0 is still 0x00010100 (spec 009 research R14).
+constexpr std::uint32_t OOTCPEncodeVersion(std::uint32_t format,
+                                           std::uint32_t /*major*/,
+                                           std::uint32_t minor) {
+  return ((format << 16) & kOOTCPProtocolVersionFormatMask) |
+         ((format << 8) & kOOTCPProtocolVersionMajorMask) |
+         (minor & kOOTCPProtocolVersionMinorMask);
+}
+constexpr std::uint32_t OOTCPVersionFormat(std::uint32_t version) {
+  return (version & kOOTCPProtocolVersionFormatMask) >> 16;
+}
+constexpr std::uint32_t OOTCPVersionMajor(std::uint32_t version) {
+  return (version & kOOTCPProtocolVersionMajorMask) >> 8;
+}
+constexpr std::uint32_t OOTCPVersionMinor(std::uint32_t version) {
+  return version & kOOTCPProtocolVersionMinorMask;
+}
 
-  kOOTCPProtocolVersionPListFormat = 1,
-
-  // 1:1.0, first version.
-  kOOTCPProtocolVersion_1_1_0 =
-      OOTCP_ENCODE_VERSION(kOOTCPProtocolVersionPListFormat, 1, 0)
-};
+// 1:1.0, first version.
+inline constexpr std::uint32_t kOOTCPProtocolVersion_1_1_0 =
+    OOTCPEncodeVersion(kOOTCPProtocolVersionPListFormat, 1, 0);
+static_assert(kOOTCPProtocolVersion_1_1_0 == 0x00010100);

@@ -2,7 +2,6 @@
 
 OOTextureLoader.m
 
-
 Copyright (C) 2007-2014 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -56,14 +55,12 @@ SOFTWARE.
 
 #define DUMP_CONVERTED_CUBE_MAPS 0
 
-enum {
-  // Thresholds for reduced-detail texture shrinking in different circumstances.
-  kNeverShrinkThreshold = UINT32_MAX,
-  kDefaultShrinkThreshold = 512,
-  kExtraShrinkThreshold = 128,
-  kExtraShrinkMaxSize = 256,
-  kCubeShrinkThreshold = 256
-};
+// Thresholds for reduced-detail texture shrinking in different circumstances.
+constexpr unsigned kNeverShrinkThreshold = UINT32_MAX;
+constexpr unsigned kDefaultShrinkThreshold = 512;
+constexpr unsigned kExtraShrinkThreshold = 128;
+constexpr unsigned kExtraShrinkMaxSize = 256;
+constexpr unsigned kCubeShrinkThreshold = 256;
 
 static unsigned sGLMaxSize;
 static uint32_t sUserMaxSize;

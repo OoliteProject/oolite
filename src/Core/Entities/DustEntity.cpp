@@ -49,7 +49,9 @@ MA 02110-1301, USA.
 #define NEAR_PLANE (DUST_SCALE * 0.25f)
 
 #if OO_SHADERS
-enum { kShaderModeOff, kShaderModeOn, kShaderModeUnknown };
+constexpr int kShaderModeOff = 0;
+constexpr int kShaderModeOn = kShaderModeOff + 1;
+constexpr int kShaderModeUnknown = kShaderModeOn + 1;
 #endif
 
 #if OO_SHADERS

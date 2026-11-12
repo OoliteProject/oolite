@@ -2,7 +2,6 @@
 
 OODebugMonitor.m
 
-
 Oolite debug support
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -336,9 +335,7 @@ void OODebugMonitor::writeMemStat(const std::string& line) {
 namespace {
 
 std::string SizeString(size_t size) {
-  enum {
-    kThreshold = 2  // 2 KiB, 2 MiB etc.
-  };
+  constexpr int kThreshold = 2;  // 2 KiB, 2 MiB etc.
 
   unsigned magnitude = 0;
 

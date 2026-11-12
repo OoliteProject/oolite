@@ -35,7 +35,8 @@ MA 02110-1301, USA.
 class OOTexture;
 class OOColor;
 
-enum { kFragmentBurstMaxParticles = 64, kBigFragmentBurstMaxParticles = 16 };
+inline constexpr int kFragmentBurstMaxParticles = 64;
+inline constexpr int kBigFragmentBurstMaxParticles = 16;
 
 class OOParticleSystem : public Entity {
  public:

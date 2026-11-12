@@ -4,7 +4,6 @@ OOShaderMaterial.h
 
 Managers a combination of a shader program, textures and uniforms.
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -193,14 +192,12 @@ class OOShaderMaterial : public OOBasicMaterial {
   OOTexture** textures = {};
 };
 
-enum {
-  /*	ID of vertex attribute used for tangents. A fixed ID is used for
-          simplicty.
-          NOTE: on Nvidia hardware, attribute 15 is aliased to
-          gl_MultiTexCoord7. This is not expected to become a problem.
-  */
-  kTangentAttributeIndex = 15
-};
+/*	ID of vertex attribute used for tangents. A fixed ID is used for
+        simplicty.
+        NOTE: on Nvidia hardware, attribute 15 is aliased to
+        gl_MultiTexCoord7. This is not expected to become a problem.
+*/
+inline constexpr int kTangentAttributeIndex = 15;
 
 /*	OOUniformBindingPermitted()
 
