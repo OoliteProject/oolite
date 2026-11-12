@@ -321,7 +321,7 @@ std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed, const std:
 	{
 		for (const auto &entry : *dict)  result += "{" + entry.first + "=" + oo::DescriptionOf(entry.second) + "}";
 	}
-	if (options & kOOExpandBackslashN)  result += "\\n";
+	if (oo::Any(options & OOExpandOptions::kBackslashN))  result += "\\n";
 	return result;
 }
 

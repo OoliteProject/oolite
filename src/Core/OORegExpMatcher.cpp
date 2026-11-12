@@ -82,11 +82,11 @@ OORegExpMatcher::~OORegExpMatcher() {
 
 bool OORegExpMatcher::string(const std::string& string,
                              const std::string& regExp) {
-  return this->string(string, regExp, 0);
+  return this->string(string, regExp, OORegExpFlags::kNone);
 }
 
 bool OORegExpMatcher::string(const std::string& string,
-                             const std::string& regExp, std::size_t flags) {
+                             const std::string& regExp, OORegExpFlags flags) {
   OOCAssert(oo::thread::isMainThread(),
             "OORegExpMatcher may only be used on the main thread.");
 
@@ -105,8 +105,8 @@ bool OORegExpMatcher::string(const std::string& string,
     // constructor.
     _cachedRegExpString = regExp;
     std::string flagString;
-    if (flags & kOORegExpCaseInsensitive) flagString += "i";
-    if (flags & kOORegExpMultiLine) flagString += "m";
+    if (oo::Any(flags & OORegExpFlags::kCaseInsensitive)) flagString += "i";
+    if (oo::Any(flags & OORegExpFlags::kMultiLine)) flagString += "m";
     JSValue global = JS_GetGlobalObject(context);
     JSValue constructor = JS_GetPropertyStr(context, global, "RegExp");
     JSValue args[2] = {

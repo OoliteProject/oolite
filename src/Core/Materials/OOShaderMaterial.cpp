@@ -564,19 +564,19 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs,
       gotValue = true;
     } else if (target != nullptr && type == "binding") {
       if (definition.isDict()) {
-        convertOptions = 0;
+        convertOptions = OOUniformConvertOptions::kNone;
         if (definition.get<bool>("clamped", false))
-          convertOptions |= kOOUniformConvertClamp;
+          convertOptions |= OOUniformConvertOptions::kClamp;
         if (definition.get<bool>("normalized",
                                  definition.get<bool>("normalised", false))) {
-          convertOptions |= kOOUniformConvertNormalize;
+          convertOptions |= OOUniformConvertOptions::kNormalize;
         }
         if (definition.get<bool>("asMatrix", true))
-          convertOptions |= kOOUniformConvertToMatrix;
+          convertOptions |= OOUniformConvertOptions::kToMatrix;
         if (!definition.get<bool>("bindToSubentity", false))
-          convertOptions |= kOOUniformBindToSuperTarget;
+          convertOptions |= OOUniformConvertOptions::kBindToSuperTarget;
       } else {
-        convertOptions = kOOUniformConvertDefaults;
+        convertOptions = OOUniformConvertOptions::kDefaults;
       }
 
       bindSafeUniform(name, target, binding, convertOptions);

@@ -27,30 +27,29 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <cstddef>
+
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOMaths.h"
 
 // Option flags for OOExpandDescriptionString().
-enum {
-  kOOExpandForJavaScript =
-      0x00000001,  ///< Report warnings through JavaScript runtime system
-                   ///< instead of normal logging.
-  kOOExpandBackslashN =
-      0x00000002,  ///< Convert literal "\\n"s to line breaks (used for
-                   ///< missiontext.plist for historical reasons).
-  kOOExpandGoodRNG = 0x00000004,  ///< Use RANDROT for selecting from
-                                  ///< description arrays and for %N expansion.
-  kOOExpandReseedRNG =
-      0x00000008,  ///< Set "really random" seeds while expanding.
-  kOOExpandKey =
-      0x00000010,  ///< Treat string as a key. Expand(@"foo", kOOExpandKey) ==
-                   ///< Expand(@"[foo]", kOOExpandNoOptions).
-  kOOExpandDisallowPercentI =
-      0x00000020,  ///< Disallow %I expansion (used when expanding %I itself).
-
-  kOOExpandNoOptions = 0
+enum class OOExpandOptions : std::size_t {
+  kNone = 0,
+  kForJavaScript = 0x00000001,  ///< Report warnings through JavaScript runtime
+                                ///< system instead of normal logging.
+  kBackslashN = 0x00000002,  ///< Convert literal "\\n"s to line breaks (used
+                             ///< for missiontext.plist for historical reasons).
+  kGoodRNG = 0x00000004,    ///< Use RANDROT for selecting from description
+                            ///< arrays and for %N expansion.
+  kReseedRNG = 0x00000008,  ///< Set "really random" seeds while expanding.
+  kKey = 0x00000010,        ///< Treat string as a key. Expand(@"foo",
+                      ///< OOExpandOptions::kKey) == Expand(@"[foo]",
+                      ///< OOExpandOptions::kNone).
+  kDisallowPercentI =
+      0x00000020  ///< Disallow %I expansion (used when expanding %I itself).
 };
-typedef std::size_t OOExpandOptions;
+constexpr std::true_type OOEnableFlagOperators(OOExpandOptions);
 
 /*
         OOExpandDescriptionString(string, seed, overrides, locals, systemName,
@@ -108,12 +107,13 @@ typedef std::size_t OOExpandOptions;
           * %] is replaced with ].
 
         Syntax errors and, in non-Deployment builds, warnings may be generated.
-   If <options & kOOExpandForJavaScript>, warnings are sent through
+   If <options & OOExpandOptions::kForJavaScript>, warnings are sent through
         OOJSReportWarning, otherwise they are logged.
 
-        If <options & kOOExpandBackslashN>, literal \n in strings (i.e., "\\n")
-   are converted to line breaks. This is used for expanding missiontext.plist
-        entries, which may have literal \n especially in XML format.
+        If <options & OOExpandOptions::kBackslashN>, literal \n in strings
+   (i.e., "\\n") are converted to line breaks. This is used for expanding
+   missiontext.plist entries, which may have literal \n especially in XML
+   format.
 */
 #include <algorithm>
 #include <chrono>
@@ -347,16 +347,17 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void);
 #define cxx_OOExpandKey(key, ...) \
   cxx_OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
 
-#define cxx_OOExpandKeyRandomized(key, ...) \
-  cxx_OOExpandWithOptions(                  \
-      OOStringExpanderDefaultRandomSeed(),  \
-      kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
+#define cxx_OOExpandKeyRandomized(key, ...)                                   \
+  cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(),                \
+                          OOExpandOptions::kKey | OOExpandOptions::kGoodRNG | \
+                              OOExpandOptions::kReseedRNG,                    \
+                          key, __VA_ARGS__)
 
 #define cxx_OOExpandWithSeed(seed, string, ...) \
-  cxx_OOExpandWithOptions(seed, kOOExpandNoOptions, string, __VA_ARGS__)
+  cxx_OOExpandWithOptions(seed, OOExpandOptions::kNone, string, __VA_ARGS__)
 
 #define cxx_OOExpandKeyWithSeed(seed, key, ...) \
-  cxx_OOExpandWithOptions(seed, kOOExpandKey, key, __VA_ARGS__)
+  cxx_OOExpandWithOptions(seed, OOExpandOptions::kKey, key, __VA_ARGS__)
 
 #define cxx_OOExpandWithOptions(seed, options, string, ...)               \
   cxx_OOExpandDescriptionString(seed, string,                             \

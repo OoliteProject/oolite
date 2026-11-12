@@ -554,11 +554,11 @@ OO_TEST(uniformsFromTheConfiguration) {
         "e vector 1 2 3 4",
         "f quaternion 1 0 0 0 vector",
         oo::str::format("g binding someBinding options %u",
-                        (unsigned)kOOUniformConvertDefaults),
+                        (unsigned)OOUniformConvertOptions::kDefaults),
         // h: forbidden, not bound. i: every option.
         oo::str::format(
             "i binding someBinding options %u",
-            (unsigned)(kOOUniformConvertClamp | kOOUniformConvertNormalize)),
+            (unsigned)(OOUniformConvertOptions::kClamp | OOUniformConvertOptions::kNormalize)),
         // j: could not interpret.
         oo::str::format("k float %g", random),
         "uGloss float 0.25",
@@ -601,11 +601,11 @@ OO_TEST(settingUniforms) {
                                         oo::PList(3.0)}));  // a vector: w is 1
     m->setUniform("q", kIdentityQuaternion, true);
     OO_CHECK(
-        m->bindUniform("b", target, "someBinding", kOOUniformConvertClamp));
-    OO_CHECK(m->bindSafeUniform("s", target, std::string("someBinding"), 0));
-    OO_CHECK(!m->bindSafeUniform("n", target, std::nullopt, 0));
-    OO_CHECK(!m->bindSafeUniform("x", target, std::string("forbidden"), 0));
-    OO_CHECK(!m->bindUniform("bad", target, "someBinding", 0));
+        m->bindUniform("b", target, "someBinding", OOUniformConvertOptions::kClamp));
+    OO_CHECK(m->bindSafeUniform("s", target, std::string("someBinding"), OOUniformConvertOptions::kNone));
+    OO_CHECK(!m->bindSafeUniform("n", target, std::nullopt, OOUniformConvertOptions::kNone));
+    OO_CHECK(!m->bindSafeUniform("x", target, std::string("forbidden"), OOUniformConvertOptions::kNone));
+    OO_CHECK(!m->bindUniform("bad", target, "someBinding", OOUniformConvertOptions::kNone));
     const std::vector<std::string> expected = {
         "i int 7",
         "f float 0.5",
@@ -614,7 +614,7 @@ OO_TEST(settingUniforms) {
         "p vector 1 2 3 1",
         "q quaternion 1 0 0 0 matrix",
         oo::str::format("b binding someBinding options %u",
-                        (unsigned)kOOUniformConvertClamp),
+                        (unsigned)OOUniformConvertOptions::kClamp),
         "s binding someBinding options 0",
         oo::str::format("bad binding someBinding options %u", 0u),
     };

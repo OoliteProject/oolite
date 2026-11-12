@@ -208,9 +208,9 @@ void OOCharacter::basicSetUp() {
     genName = givenName + " " + familyName;
   } else {
     /*	NOTE: we can't use "%R %R" because that will produce the same string
-            twice. TODO: is there a reason not to use %N and kOOExpandGoodRNG
-            here? Is there some context where we rely on being able to get the
-            same name for a given genSeed?
+            twice. TODO: is there a reason not to use %N and
+       OOExpandOptions::kGoodRNG here? Is there some context where we rely on
+       being able to get the same name for a given genSeed?
      */
     const std::string givenName =
         cxx_OOExpandWithSeed(genSeed, "%R").value_or("(null)");

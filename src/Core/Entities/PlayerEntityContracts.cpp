@@ -1204,12 +1204,12 @@ std::vector<std::string> PlayerEntity::contractsListFromEntries(
     if (destination) arguments["destination"] = oo::PList(*destination);
     if (deadline) arguments["deadline"] = oo::PList(*deadline);
     if (feeDesc) arguments["feeDesc"] = oo::PList(*feeDesc);
-    result.push_back(
-        cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
-                                      std::string(formatString),
-                                      oo::PList(std::move(arguments)),
-                                      oo::PList(), std::nullopt, kOOExpandKey)
-            .value_or(std::string()));
+    result.push_back(cxx_OOExpandDescriptionString(
+                         OOStringExpanderDefaultRandomSeed(),
+                         std::string(formatString),
+                         oo::PList(std::move(arguments)), oo::PList(),
+                         std::nullopt, OOExpandOptions::kKey)
+                         .value_or(std::string()));
   }
 
   return result;
@@ -1568,10 +1568,10 @@ std::optional<std::string> OptionalStringAt(const oo::PList& array,
 // cxx_OOExpandKey(key, ...) with the arguments it would have named after their
 // variables; nothing expanded is "".
 std::string ExpandKey(const char* key, oo::PList::Dict arguments) {
-  return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
-                                       std::string(key),
-                                       oo::PList(std::move(arguments)),
-                                       oo::PList(), std::nullopt, kOOExpandKey)
+  return cxx_OOExpandDescriptionString(
+             OOStringExpanderDefaultRandomSeed(), std::string(key),
+             oo::PList(std::move(arguments)), oo::PList(), std::nullopt,
+             OOExpandOptions::kKey)
       .value_or(std::string());
 }
 

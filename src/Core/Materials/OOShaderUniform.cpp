@@ -167,9 +167,11 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
 
   result->name = uniformName;
   result->isBinding = true;
-  result->convertClamp = (options & kOOUniformConvertClamp) != 0;
-  result->convertNormalize = (options & kOOUniformConvertNormalize) != 0;
-  result->convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
+  result->convertClamp = oo::Any(options & OOUniformConvertOptions::kClamp);
+  result->convertNormalize =
+      oo::Any(options & OOUniformConvertOptions::kNormalize);
+  result->convertToMatrix =
+      oo::Any(options & OOUniformConvertOptions::kToMatrix);
   result->type = boundType;
   result->value.binding.cxxGet = get;
   result->cxxTargetOnly = true;
@@ -208,10 +210,13 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithEntityTarget(
   result->name = uniformName;
   result->isBinding = true;
   result->cxxProperty = property;
-  result->convertClamp = (options & kOOUniformConvertClamp) != 0;
-  result->convertNormalize = (options & kOOUniformConvertNormalize) != 0;
-  result->convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
-  result->bindToSuper = (options & kOOUniformBindToSuperTarget) != 0;
+  result->convertClamp = oo::Any(options & OOUniformConvertOptions::kClamp);
+  result->convertNormalize =
+      oo::Any(options & OOUniformConvertOptions::kNormalize);
+  result->convertToMatrix =
+      oo::Any(options & OOUniformConvertOptions::kToMatrix);
+  result->bindToSuper =
+      oo::Any(options & OOUniformConvertOptions::kBindToSuperTarget);
 
   if (target != nullptr) result->setEntityBindingTarget(target);
   return result;

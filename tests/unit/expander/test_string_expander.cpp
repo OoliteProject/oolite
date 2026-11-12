@@ -242,7 +242,7 @@ std::optional<Units> Expand(Random_Seed seed, const Units &string, const std::op
 
 const OOExpandOptions kOptionSets[] =
 {
-	kOOExpandNoOptions, kOOExpandGoodRNG, kOOExpandBackslashN | kOOExpandGoodRNG, kOOExpandForJavaScript, kOOExpandDisallowPercentI
+	OOExpandOptions::kNone, OOExpandOptions::kGoodRNG, OOExpandOptions::kBackslashN | OOExpandOptions::kGoodRNG, OOExpandOptions::kForJavaScript, OOExpandOptions::kDisallowPercentI
 };
 enum { kOptionCount = sizeof kOptionSets / sizeof *kOptionSets };
 
@@ -369,7 +369,7 @@ int main(int argc, char **argv)
 			{
 				ranrot_srand(1000 + s * 7 + o);
 				seed_for_planet_description(seed);
-				std::optional<Units> r = Expand(seed, key, (o & 1) ? std::optional<std::string>("Zaonce") : std::nullopt, kOptionSets[o] | kOOExpandKey);
+				std::optional<Units> r = Expand(seed, key, (o & 1) ? std::optional<std::string>("Zaonce") : std::nullopt, kOptionSets[o] | OOExpandOptions::kKey);
 				Record(U(std::format("seed {} key ", s)) + key + U(std::format(" opt {}", o)), r);
 			}
 		}
@@ -417,7 +417,7 @@ int main(int argc, char **argv)
 			std::optional<Units> r;
 			try
 			{
-				r = UnitsOf(cxx_OOExpandDescriptionString(seed, oo::utf16ToUtf8(c[0]), del, oo::PList(), std::nullopt, kOOExpandNoOptions));
+				r = UnitsOf(cxx_OOExpandDescriptionString(seed, oo::utf16ToUtf8(c[0]), del, oo::PList(), std::nullopt, OOExpandOptions::kNone));
 			}
 			catch (const oo::Exception &e)
 			{

@@ -35,6 +35,7 @@ SOFTWARE.
 #include <vector>
 
 #include "OOBasicMaterial.h"
+#include "OOEnumFlags.h"
 #include "OOMaths.h"
 #include "OOShaderProgram.h"
 #include "oofnd/PList.hpp"
@@ -45,17 +46,17 @@ class OOTexture;
 class OOShaderUniform;
 class Entity;  // Entity.h: the binding target
 
-enum {
-  // Conversion settings for uniform bindings
-  kOOUniformConvertClamp = 0x0001U,
-  kOOUniformConvertNormalize = 0x0002U,
-  kOOUniformConvertToMatrix = 0x0004U,
-  kOOUniformBindToSuperTarget = 0x0008U,
+// Conversion settings for uniform bindings.
+enum class OOUniformConvertOptions : std::uint16_t {
+  kNone = 0,
+  kClamp = 0x0001U,
+  kNormalize = 0x0002U,
+  kToMatrix = 0x0004U,
+  kBindToSuperTarget = 0x0008U,
 
-  kOOUniformConvertDefaults =
-      kOOUniformConvertToMatrix | kOOUniformBindToSuperTarget
+  kDefaults = kToMatrix | kBindToSuperTarget
 };
-typedef uint16_t OOUniformConvertOptions;
+constexpr std::true_type OOEnableFlagOperators(OOUniformConvertOptions);
 
 class OOShaderMaterial : public OOBasicMaterial {
  public:

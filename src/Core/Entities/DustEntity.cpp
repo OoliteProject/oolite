@@ -201,12 +201,12 @@ OOShaderProgram* DustEntity::getShader() {
     oo::Ref<OOShaderUniform> uWarp = OOShaderUniform::initWithName(
         "uWarp", shader.get(), this, "warpVector",
         kOOShaderUniformTypeVector,  // -warpVector's return type
-        DustWarpVectorBinding, 0);
+        DustWarpVectorBinding, OOUniformConvertOptions::kNone);
     oo::Ref<OOShaderUniform> uOffsetPlayerPosition =
         OOShaderUniform::initWithName(
             "uOffsetPlayerPosition", shader.get(), this, "offsetPlayerPosition",
             kOOShaderUniformTypeVector,  // -offsetPlayerPosition's return type
-            DustOffsetPlayerPositionBinding, 0);
+            DustOffsetPlayerPositionBinding, OOUniformConvertOptions::kNone);
 
     uniforms.push_back(uWarp);
     uniforms.push_back(uOffsetPlayerPosition);

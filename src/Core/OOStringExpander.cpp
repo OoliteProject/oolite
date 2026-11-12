@@ -280,17 +280,17 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
                         : std::nullopt,
       .overrides = overrides,
       .legacyLocals = legacyLocals,
-      .isJavaScript = (bool)(options & kOOExpandForJavaScript),
-      .convertBackslashN = (bool)(options & kOOExpandBackslashN),
-      .useGoodRNG = (bool)(options & kOOExpandGoodRNG)};
+      .isJavaScript = oo::Any(options & OOExpandOptions::kForJavaScript),
+      .convertBackslashN = oo::Any(options & OOExpandOptions::kBackslashN),
+      .useGoodRNG = oo::Any(options & OOExpandOptions::kGoodRNG)};
 
   // Avoid recursive %I expansion by pre-seeding cache with literal %I.
-  if (options & kOOExpandDisallowPercentI) {
+  if (oo::Any(options & OOExpandOptions::kDisallowPercentI)) {
     context.systemNameWithIan = OOUnits(u"%I");
   }
 
   OORandomState savedRandomState;
-  if (options & kOOExpandReseedRNG) {
+  if (oo::Any(options & OOExpandOptions::kReseedRNG)) {
     savedRandomState = OOSaveRandomState();
     OOSetReallyRandomRANROTAndRndSeeds();
   }
@@ -306,7 +306,7 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
     // unwinds.)
     OOMaybeUnits intermediate;
     const OOUnits units = oo::utf8ToUtf16(string);
-    if (options & kOOExpandKey) {
+    if (oo::Any(options & OOExpandOptions::kKey)) {
       intermediate = ExpandStringKey(&context, units, kStackAllocationLimit,
                                      kRecursionLimit);
     } else {
@@ -318,7 +318,7 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
     }
     if (intermediate.has_value()) result = oo::utf16ToUtf8(*intermediate);
 
-    if (options & kOOExpandReseedRNG) {
+    if (oo::Any(options & OOExpandOptions::kReseedRNG)) {
       OORestoreRandomState(savedRandomState);
     }
   }
@@ -330,7 +330,7 @@ std::optional<std::string> cxx_OOGenerateSystemDescription(
   seed_RNG_only_for_planet_description(seed);
   return cxx_OOExpandDescriptionString(seed, "system-description-string",
                                        oo::PList(), oo::PList(), name,
-                                       kOOExpandKey);
+                                       OOExpandOptions::kKey);
 }
 
 Random_Seed OOStringExpanderDefaultRandomSeed() {
@@ -1408,7 +1408,8 @@ OOMaybeUnits GetSystemNameIan(OOStringExpansionContext* context) {
     const std::optional<std::string> name = cxx_OOExpandDescriptionString(
         context->seed, "planetname-possessive", oo::PList(), oo::PList(),
         std::nullopt,
-        kOOExpandDisallowPercentI | kOOExpandGoodRNG | kOOExpandKey);
+        OOExpandOptions::kDisallowPercentI | OOExpandOptions::kGoodRNG |
+            OOExpandOptions::kKey);
     if (name.has_value()) context->systemNameWithIan = oo::utf8ToUtf16(*name);
   }
 

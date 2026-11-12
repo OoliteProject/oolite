@@ -52,13 +52,19 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOJSEngineCore.h"  // OOJSValue, which the matcher holds
 #include "OOJSFunction.h"
 #include "oofnd/Ref.hpp"
 
 // Same values as SpiderMonkey's JSREG_FOLD and JSREG_MULTILINE.
-enum { kOORegExpCaseInsensitive = 0x01, kOORegExpMultiLine = 0x04 };
+enum class OORegExpFlags : std::size_t {
+  kNone = 0,
+  kCaseInsensitive = 0x01,
+  kMultiLine = 0x04
+};
+constexpr std::true_type OOEnableFlagOperators(OORegExpFlags);
 
 class OORegExpMatcher : public oo::RefCounted {
  public:
@@ -71,7 +77,7 @@ class OORegExpMatcher : public oo::RefCounted {
   // Strings are UTF-8.
   bool string(const std::string& string, const std::string& regExp);
   bool string(const std::string& string, const std::string& regExp,
-              std::size_t flags);
+              OORegExpFlags flags);
 
   ~OORegExpMatcher() override;
 
@@ -85,5 +91,5 @@ class OORegExpMatcher : public oo::RefCounted {
   std::optional<std::string> _cachedRegExpString =
       {};  // UTF-8; nullopt: nothing cached
   oo::Ref<OOJSValue> _cachedRegExpObject = {};
-  std::size_t _cachedFlags = {};
+  OORegExpFlags _cachedFlags = {};
 };

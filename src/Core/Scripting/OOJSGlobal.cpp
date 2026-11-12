@@ -277,7 +277,7 @@ static JSValue GlobalExpandDescription(OOJS_NATIVE_ARGS) {
   OOJS_BEGIN_FULL_NATIVE(context)
   string = cxx_OOExpandDescriptionString(
       kNilRandomSeed, *string, overrides, oo::PList(), std::nullopt,
-      kOOExpandForJavaScript | kOOExpandGoodRNG);
+      OOExpandOptions::kForJavaScript | OOExpandOptions::kGoodRNG);
   OOJS_END_FULL_NATIVE
 
   OOJS_RETURN_STRING_OR_NULL(string);
@@ -332,8 +332,8 @@ static JSValue GlobalExpandMissionText(OOJS_NATIVE_ARGS) {
   if (string.has_value())
     string = cxx_OOExpandDescriptionString(
         kNilRandomSeed, *string, overrides, oo::PList(), std::nullopt,
-        kOOExpandForJavaScript | kOOExpandBackslashN |
-            kOOExpandGoodRNG);  // nil expanded to nil
+        OOExpandOptions::kForJavaScript | OOExpandOptions::kBackslashN |
+            OOExpandOptions::kGoodRNG);  // nil expanded to nil
 
   OOJS_RETURN_STRING_OR_NULL(string);
 
