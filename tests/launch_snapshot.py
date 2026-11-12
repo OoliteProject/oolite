@@ -117,10 +117,6 @@ DEFAULT_PORT = 8563  # kOOTCPConsolePort
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_OUTPUT = "./test_output"
 MIN_FILE_SIZE_KB = 100  # Threshold for a valid render
-# The macOS CI runner renders with Apple's software renderer and can take
-# 20 seconds or more after startup before the game services the console
-READY_TIMEOUT = 90
-READY_TOKEN = "oolite-test-ready"
 
 # How much of the game's own clock must pass, after it starts answering, before a frame is worth
 # capturing. This is a duration in GAME-CLOCK SECONDS, not a count of frames: it is compared
@@ -179,38 +175,320 @@ def receive_plist_packet(sock):
         return None
 
 
-def wait_until_ready(sock, timeout):
+def perform(conn, js):
+    """Fire a JS string into the game without waiting for anything back."""
+    return send_plist_packet(conn, {PACKET_TYPE_KEY: PERFORM_COMMAND, MESSAGE_KEY: js})
+
+
+def evaluate(conn, js, timeout=20):
+    """Run a JS expression in the game and return its result as a string, or None on failure.
+
+    The console answers a command with Console Output packets, so a value has to be sent back
+    deliberately: the expression is wrapped and printed between a unique marker this call waits
+    for. The marker is split in the source because the console echoes the command text back as
+    Console Output before any result, and a marker appearing literally in the command would match
+    that echo - the answer would then be read out of the wrong packet.
     """
-    Sends a harmless command and waits for its result. The game only reads
-    console commands from its main loop, so a reply means it is running.
-    """
-    send_plist_packet(
-        sock, {PACKET_TYPE_KEY: PERFORM_COMMAND, MESSAGE_KEY: f"'{READY_TOKEN}'"}
+    head = f"@@{os.getpid()}"
+    tail = f"{int(time.time() * 1000) % 1000000}@@"
+    marker = head + tail
+    wrapped = (
+        "(function(){ try { return String(%s); } catch (e) { return 'ERROR: ' + e; } })()" % js
     )
+    # debugConsole.consoleMessage(colorCode, message) - OOJSConsole.m. It is a method on the
+    # debugConsole global, not a bare function, and the colour key comes first. This route ends in
+    # appendJSConsoleLine, which the TCP client forwards to us as a Console Output packet.
+    if not perform(
+        conn,
+        'debugConsole.consoleMessage("command-result", '
+        f'"{head}" + "{tail}" + {wrapped} + "{head}" + "{tail}");',
+    ):
+        return None
+
     deadline = time.time() + timeout
     while time.time() < deadline:
-        readable, _, _ = select.select([sock], [], [], 1)
+        readable, _, _ = select.select([conn], [], [], 1)
         if not readable:
             continue
-        pkt = receive_plist_packet(sock)
+        pkt = receive_plist_packet(conn)
         if pkt is None:
+            print("[!] Console connection closed mid-command.")
+            return None
+        if pkt.get(PACKET_TYPE_KEY) != CONSOLE_OUTPUT:
+            continue
+        text = str(pkt.get(MESSAGE_KEY, ""))
+        if text.count(marker) >= 2:
+            return text.split(marker)[1]
+    print(f"[!] No answer to {js!r} within {timeout}s.")
+    return None
+
+
+def wait_until_answering(conn, ready_timeout=120):
+    """Block until Oolite is actually servicing the debug console.
+
+    Sleeping a fixed number of seconds after sending the approval measures the wrong clock. The
+    approval is answered by the game's run loop, and until loading finishes there is no run loop
+    to answer it: on a slow machine the entire sleep elapses during startup, the approval and the
+    snapshot command are then consumed in the same poll, and the snapshot is taken on the first
+    frame the game ever services - before anything has been drawn. That produces a black frame and
+    looks like a rendering fault rather than the race it is.
+
+    Ping is echoed back as Pong with the same message (OODebugTCPConsoleProtocol.h), so readiness
+    is directly observable instead of guessed at.
+    """
+    token = f"ready-{os.getpid()}-{time.time()}"
+    started = time.time()
+    deadline = started + ready_timeout
+
+    while time.time() < deadline:
+        if not send_plist_packet(conn, {PACKET_TYPE_KEY: PING, MESSAGE_KEY: token}):
+            print("[!] Failure: could not send Ping.")
             return False
-        if (
-            pkt.get(PACKET_TYPE_KEY) == "Console Output"
-            and pkt.get("color key") == "command-result"
-            and pkt.get(MESSAGE_KEY) == READY_TOKEN
-        ):
+        # select rather than a socket timeout: receive_plist_packet reports every exception, and
+        # a timeout per poll is normal here, not an error worth printing.
+        readable, _, _ = select.select([conn], [], [], 2)
+        if not readable:
+            continue
+        pkt = receive_plist_packet(conn)
+        if pkt is None:
+            print("[!] Failure: console connection closed while waiting for Oolite.")
+            return False
+        if pkt.get(PACKET_TYPE_KEY) == PONG and pkt.get(MESSAGE_KEY) == token:
+            print(f"[+] Oolite is servicing the console after {time.time() - started:.1f}s")
             return True
+        # Anything else (console output, configuration notes) is not an answer; keep waiting.
+
+    print(f"[!] Failure: Oolite did not answer a Ping within {ready_timeout}s.")
     return False
 
 
-def sample_process(proc):
-    """Shows where a hung process is stuck (macOS only)."""
-    if sys.platform == "darwin" and proc.poll() is None:
-        subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
+def wait_until_rendering(conn, settle_game_seconds, timeout=120):
+    """Wait until the game has actually drawn frames, counted on the game's own clock.
+
+    Answering a Ping proves the run loop is alive; it does not prove anything has been drawn.
+    clock.absoluteSeconds is UNIVERSE's time (OOJSClock.m), which only advances while the run loop
+    steps, so requiring it to move forward is equivalent to requiring frames - and unlike a sleep
+    on this script's clock it cannot be spent while the game is still loading.
+    """
+    first = evaluate(conn, "clock.absoluteSeconds")
+    if first is None:
+        return False
+    try:
+        start = float(first)
+    except ValueError:
+        print(f"[!] Failure: clock.absoluteSeconds returned {first!r}.")
+        return False
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        now = evaluate(conn, "clock.absoluteSeconds")
+        if now is None:
+            return False
+        try:
+            elapsed = float(now) - start
+        except ValueError:
+            print(f"[!] Failure: clock.absoluteSeconds returned {now!r}.")
+            return False
+        if elapsed >= settle_game_seconds:
+            screen = evaluate(conn, "guiScreen") or "?"
+            print(f"[+] {elapsed:.1f}s of game time drawn; guiScreen={screen}")
+            return True
+        time.sleep(0.5)
+
+    print(f"[!] Failure: game time did not advance {settle_game_seconds}s within {timeout}s.")
+    return False
 
 
-def run_test(bin_name, test_output):
+def wait_until_docked(conn, timeout=60):
+    """Confirm a --load run reached the docked screen rather than the main-menu demo."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        docked = evaluate(conn, "player.ship.docked")
+        if docked is None:
+            return False
+        if docked.strip().lower() == "true":
+            screen = evaluate(conn, "guiScreen") or "?"
+            print(f"[+] Loaded save is docked; guiScreen={screen}")
+            return True
+        time.sleep(1)
+    print(f"[!] Failure: the loaded save was not docked within {timeout}s.")
+    return False
+
+
+def _console_config_dir(host, port):
+    """Create a throwaway resource root that tells the game which console port to dial.
+
+    The game reads console-host/console-port out of debugConfig.plist, merged across every search
+    path (OODebugSupport.m:67-80), so this is the only way to move it off 8563. A directory named
+    in OO_ADDITIONALADDONSDIRS becomes a search root (OOOXZManager.m:286 -> ResourceManager
+    userRootPaths), and a plain directory root needs no manifest.plist. The stock Debug OXP leaves
+    both keys commented out, so whatever this writes wins the merge regardless of path order.
+
+    Returned path must be removed by the caller.
+    """
+    root = tempfile.mkdtemp(prefix=f"oolite-console-{port}-")
+    config = os.path.join(root, "Config")
+    os.makedirs(config, exist_ok=True)
+    with open(os.path.join(config, "debugConfig.plist"), "wb") as handle:
+        plistlib.dump({"console-host": host, "console-port": port}, handle,
+                      fmt=plistlib.FMT_XML)
+    return root
+
+
+# --- per-run prefs isolation --------------------------------------------------------------------
+#
+# Real copies rather than links: these are the directories the GAME WRITES, and sharing them is
+# the collision. GNUstep/ holds Defaults/oolite.plist (the raced file), Logs/ holds Latest.log,
+# oolite-saves/ holds commanders.
+PRIVATE_SUBDIRS = ("GNUstep", "Logs", "oolite-saves")
+
+
+def _link_dir(source, target):
+    """Junction (Windows) or symlink: a read-only directory shared with the real build."""
+    if IS_WINDOWS:
+        import _winapi
+
+        _winapi.CreateJunction(source, target)
+    else:
+        os.symlink(source, target)
+
+
+# On macOS the binary lives in oolite.app/Contents/MacOS and finds its dylibs and resources through
+# paths relative to itself (@loader_path/../Frameworks, ../Resources). A staged copy of MacOS alone
+# would lose them, so the other entries of Contents are linked in beside it. Logs is left out: the
+# game's logs are redirected to the test output directory.
+BUNDLE_BINARY_DIR = "MacOS"
+BUNDLE_SKIPPED_SIBLINGS = ("Logs",)
+
+
+def _bundle_contents(app_dir):
+    """The Contents directory when app_dir is an app bundle's MacOS directory, else None."""
+    if os.path.basename(app_dir) != BUNDLE_BINARY_DIR:
+        return None
+    contents = os.path.dirname(app_dir)
+    if os.path.basename(contents) != "Contents":
+        return None
+    return contents
+
+
+def _bundle_siblings(contents):
+    return [name for name in sorted(os.listdir(contents))
+            if name != BUNDLE_BINARY_DIR and name not in BUNDLE_SKIPPED_SIBLINGS]
+
+
+def _link_bundle_siblings(app_dir, staged):
+    """Make a staged MacOS directory look like part of a bundle; a no-op for any other layout."""
+    contents = _bundle_contents(app_dir)
+    if contents is None or os.path.basename(staged) != BUNDLE_BINARY_DIR:
+        return
+    staged_contents = os.path.dirname(staged)
+    for name in _bundle_siblings(contents):
+        target = os.path.join(staged_contents, name)
+        if not os.path.lexists(target):
+            os.symlink(os.path.join(contents, name), target)
+
+
+def stage_app(app_dir, staged):
+    """Build a private copy of oolite.app whose GNUSTEP_USERS_ROOT is this run's alone.
+
+    Cheap on purpose: the game only needs its BINARY to sit in a private directory, because that
+    directory is what main.m:119 turns into GNUSTEP_USERS_ROOT. Read-only directories (Resources,
+    the GL DLLs' folders) are junctions into the real build, files are hard links, and only the
+    three directories the game writes are real copies.
+    """
+    os.makedirs(staged, exist_ok=True)
+    for name in sorted(os.listdir(app_dir)):
+        source = os.path.join(app_dir, name)
+        target = os.path.join(staged, name)
+        if os.path.exists(target) or os.path.islink(target):
+            continue
+        if os.path.isdir(source):
+            if name in PRIVATE_SUBDIRS:
+                shutil.copytree(source, target, dirs_exist_ok=True)
+            else:
+                _link_dir(source, target)
+        else:
+            try:
+                os.link(source, target)
+            except OSError:
+                shutil.copy2(source, target)
+    for name in PRIVATE_SUBDIRS:
+        os.makedirs(os.path.join(staged, name), exist_ok=True)
+    _link_bundle_siblings(app_dir, staged)
+    return staged
+
+
+def unstage_app(staged):
+    """Remove a staged app WITHOUT following its junctions into the real build.
+
+    shutil.rmtree over a tree containing junctions is exactly how a harness deletes the build it
+    was supposed to read, so links are removed as links and only real copies are recursed into.
+    """
+    if not os.path.isdir(staged):
+        return
+    for name in os.listdir(staged):
+        path = os.path.join(staged, name)
+        if os.path.islink(path) or (os.path.isdir(path) and _is_reparse_point(path)):
+            try:
+                os.rmdir(path)
+            except OSError:
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
+        elif os.path.isdir(path):
+            shutil.rmtree(path, ignore_errors=True)
+        else:
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+    try:
+        os.rmdir(staged)
+    except OSError:
+        pass
+    _unlink_bundle_siblings(staged)
+
+
+def _unlink_bundle_siblings(staged):
+    """Remove the links _link_bundle_siblings made beside a staged MacOS directory."""
+    if os.path.basename(staged) != BUNDLE_BINARY_DIR:
+        return
+    staged_contents = os.path.dirname(staged)
+    if not os.path.isdir(staged_contents):
+        return
+    for name in os.listdir(staged_contents):
+        path = os.path.join(staged_contents, name)
+        if os.path.islink(path):
+            os.unlink(path)
+    try:
+        os.rmdir(staged_contents)
+    except OSError:
+        pass
+
+
+def _is_reparse_point(path):
+    """A junction is not an os.path.islink on stock CPython < 3.8 and is not always one now."""
+    try:
+        return bool(os.lstat(path).st_file_attributes & 0x400)  # FILE_ATTRIBUTE_REPARSE_POINT
+    except (OSError, AttributeError):
+        return False
+
+
+def run_test(bin_name, test_output, port, host, load_save, settle_game_seconds, ready_timeout,
+             app_dir=None, keep_staged=False):
+    """Launch one game and capture one snapshot. Safe to run N times concurrently.
+
+    ``app_dir`` is the built oolite.app to run. The game is NOT launched from it: a private copy
+    is staged under a per-run temporary directory and the binary is launched from there, so this
+    run's GNUSTEP_USERS_ROOT - which the game derives from its own executable's location and which
+    no environment variable can override - is nobody else's. Defaults to the current directory,
+    which is what the CLI chdir'd into.
+    """
+    if app_dir is None:
+        app_dir = os.getcwd()
+    app_dir = os.path.abspath(app_dir)
+
     # Setup TCP Server
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -289,7 +567,9 @@ def run_test(bin_name, test_output):
 
         if not conn:
             print("[!] Failure: Oolite failed to connect.")
-            sample_process(proc)
+            if sys.platform == "darwin" and proc.poll() is None:
+                # Show where a hung process is stuck
+                subprocess.run(["sample", str(proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
             return False
 
         # 2. THE HANDSHAKE
@@ -311,16 +591,13 @@ def run_test(bin_name, test_output):
             print("[!] Handshake failed: Expected 'Request Connection'.")
             return False
 
-        # Wait until the game's main loop is servicing the console
-        ready_start = time.time()
-        if not wait_until_ready(conn, READY_TIMEOUT):
-            print(f"[!] Failure: Oolite did not answer the console within {READY_TIMEOUT}s.")
-            sample_process(proc)
+        # Wait for the game itself, not for the clock. See wait_until_answering.
+        if not wait_until_answering(conn, ready_timeout=ready_timeout):
             return False
-        print(f"[*] Oolite ready after {time.time() - ready_start:.1f}s.", flush=True)
-
-        # Allow time for the title screen to render
-        time.sleep(5)
+        if not wait_until_rendering(conn, settle_game_seconds):
+            return False
+        if load_save and not wait_until_docked(conn):
+            return False
 
         # 3. THE COMMAND. Snapshot and quit are separate, and the file is waited for: sending
         # both at once means the game may quit on the same frame it snapshots.
@@ -351,7 +628,6 @@ def run_test(bin_name, test_output):
             proc.wait(timeout=30)
         except subprocess.TimeoutExpired:
             print("[!] Error: Oolite ignored the shutdown command.")
-            sample_process(proc)
             return False
 
         # 5. VERIFY OUTPUT
