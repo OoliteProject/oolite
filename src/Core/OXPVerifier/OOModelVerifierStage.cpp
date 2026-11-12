@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOModelVerifierStage.h"
 
+#include <format>
+
 #if OO_OXP_VERIFIER_ENABLED
 
 #include "OOFileScannerVerifierStage.h"
@@ -73,8 +75,7 @@ bool OOModelVerifierStage::modelNamed(
   if (name.empty()) return false;
 
   if (entryName.has_value())
-    context = oo::str::format("entry \"%s\" of %s", entryName->c_str(),
-                              fileName.c_str());
+    context = std::format("entry \"{}\" of {}", *entryName, fileName);
   else
     context = fileName;
 

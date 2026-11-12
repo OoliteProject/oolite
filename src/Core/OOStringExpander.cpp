@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -603,19 +604,19 @@ OOMaybeUnits Operator_idcr(const OOMaybeUnits& string,
 OOMaybeUnits Operator_precision(const OOMaybeUnits& string,
                                 const OOMaybeUnits& param) {
   return UnitsFromUTF8(
-      oo::str::format("%.*f", IntValue(param), DoubleValue(string)));
+      std::format("{:.{}f}", DoubleValue(string), IntValue(param)));
 }
 
 OOMaybeUnits Operator_multiply(const OOMaybeUnits& string,
                                const OOMaybeUnits& param) {
   return UnitsFromUTF8(
-      oo::str::format("%g", DoubleValue(string) * DoubleValue(param)));
+      std::format("{:g}", DoubleValue(string) * DoubleValue(param)));
 }
 
 OOMaybeUnits Operator_add(const OOMaybeUnits& string,
                           const OOMaybeUnits& param) {
   return UnitsFromUTF8(
-      oo::str::format("%g", DoubleValue(string) + DoubleValue(param)));
+      std::format("{:g}", DoubleValue(string) + DoubleValue(param)));
 }
 
 /*	ApplyOneOperator(string, op, param)

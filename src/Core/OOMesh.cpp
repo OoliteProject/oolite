@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #include "OOMesh.h"
 
 #include <cstring>
+#include <format>
 
 #include "Entity.h"  // for NO_DRAW_DISTANCE_FACTOR.
 #include "OOBasicMaterial.h"
@@ -285,8 +286,8 @@ const char* NormalModeDescription(OOMeshNormalMode mode) {
 std::optional<std::string> OOMesh::descriptionComponents() const {
   OOMesh* mesh = const_cast<OOMesh*>(this);  // the getters are not const
   const std::optional<std::string> modelName = mesh->modelName();
-  return oo::str::format(
-      "\"%s\", %zu vertices, %zu faces, radius: %g m normals: %s",
+  return std::format(
+      "\"{}\", {} vertices, {} faces, radius: {:g} m normals: {}",
       modelName ? modelName->c_str() : "(null)", mesh->getVertexCount(),
       mesh->getFaceCount(), mesh->collisionRadius(),
       NormalModeDescription((OOMeshNormalMode)_normalMode));
@@ -369,9 +370,7 @@ void OOMesh::renderOpaqueParts() {
     OOCAssert(
         OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported(),
         "Mesh %s uses %zu texture units, but multitexturing is not available.",
-        oo::str::format("<OOMesh %s>",
-                        oo::str::pointerDescription(this).c_str())
-            .c_str(),
+        std::format("<OOMesh {}>", oo::str::pointerDescription(this)).c_str(),
         _textureUnitCount);
 
     for (unit = 0; unit < _textureUnitCount; unit++) {
@@ -787,7 +786,7 @@ bool OOMesh::initWithName(const std::string& name,
       PROFILE("finished calculateBoundingVolumes (again\?\?)");
 
       baseFile = name;
-      baseFileOctreeCacheRef = oo::str::format("%s-%.3f", name.c_str(), scale);
+      baseFileOctreeCacheRef = std::format("{}-{:.3f}", name, scale);
 
       /*	New in r3033: save the material-defining parameters here so we
               can rebind the materials at any time.
@@ -997,8 +996,8 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
   std::map<std::string, unsigned, std::less<>> texFileName2Idx;
   bool using_preloaded = false;
 
-  const std::string cacheKey =
-      oo::str::format("%s:%u:%.3f", filename.c_str(), _normalMode, scale);
+  const std::string cacheKey = std::format(
+      "{}:{}:{:.3f}", filename, static_cast<unsigned>(_normalMode), scale);
   const oo::PList cacheData = OOCacheManagerMeshDataForName(cacheKey);
   if (cacheData) {
     if (setModelFromModelData(cacheData, filename)) {
@@ -1132,8 +1131,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
           if (!failFlag) {
             _vertices[j] = make_vector(x * scale, y * scale, z * scale);
           } else {
-            failString += oo::str::format(
-                "Failed to read a value for vertex[%d] in %s\n", j, "VERTEX");
+            failString +=
+                std::format("Failed to read a value for vertex[{}] in {}\n",
+                            static_cast<int>(j), "VERTEX");
           }
         }
       }
@@ -1158,8 +1158,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
           if (!failFlag) {
             _faces[j].smoothGroup = r;
           } else {
-            failString += oo::str::format(
-                "Failed to read a color for face[%d] in FACES\n", j);
+            failString +=
+                std::format("Failed to read a color for face[{}] in FACES\n",
+                            static_cast<int>(j));
           }
 
           // normal
@@ -1169,16 +1170,17 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
           if (!failFlag) {
             _faces[j].normal = vector_normal(make_vector(nx, ny, nz));
           } else {
-            failString += oo::str::format(
-                "Failed to read a normal for face[%d] in FACES\n", j);
+            failString +=
+                std::format("Failed to read a normal for face[{}] in FACES\n",
+                            static_cast<int>(j));
           }
 
           // vertices
           if (scanner->scanInt(&n_v)) {
             if (n_v < 3) {
               failFlag = true;
-              failString += oo::str::format(
-                  "Face[%u] has fewer than three vertices.\n", j);
+              failString +=
+                  std::format("Face[{}] has fewer than three vertices.\n", j);
             } else if (n_v > 3) {
               OO_LOG_WARN("mesh.load.warning.nonTriangular",
                           "Face[{}] of {} has {} vertices specified. Only the "
@@ -1189,8 +1191,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
             }
           } else {
             failFlag = true;
-            failString += oo::str::format(
-                "Failed to read number of vertices for face[%d] in FACES\n", j);
+            failString += std::format(
+                "Failed to read number of vertices for face[{}] in FACES\n",
+                static_cast<int>(j));
           }
 
           if (!failFlag) {
@@ -1201,8 +1204,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
                 if (faceRefs != nullptr) VFRAddFace(&faceRefs[vi], j);
               } else {
                 failFlag = true;
-                failString += oo::str::format(
-                    "Failed to read vertex[%d] for face[%d] in FACES\n", i, j);
+                failString += std::format(
+                    "Failed to read vertex[{}] for face[{}] in FACES\n",
+                    static_cast<int>(i), static_cast<int>(j));
               }
             }
           }
@@ -1227,9 +1231,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
           if (!scanner->scanUpToCharactersFromSet(whitespaceCharSet,
                                                   &scannedKey)) {
             failFlag = true;
-            failString += oo::str::format(
-                "Failed to read texture filename for face[%d] in TEXTURES\n",
-                j);
+            failString += std::format(
+                "Failed to read texture filename for face[{}] in TEXTURES\n",
+                static_cast<int>(j));
           } else {
             materialKey = std::move(scannedKey);
             const auto indexIt = texFileName2Idx.find(materialKey);
@@ -1256,10 +1260,10 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
             if (!scanner->scanFloat(&max_x)) failFlag = true;
             if (!scanner->scanFloat(&max_y)) failFlag = true;
             if (failFlag)
-              failString += oo::str::format(
-                  "Failed to read texture size for max_x and max_y in face[%d] "
+              failString += std::format(
+                  "Failed to read texture size for max_x and max_y in face[{}] "
                   "in TEXTURES\n",
-                  j);
+                  static_cast<int>(j));
           }
 
           // vertices
@@ -1272,10 +1276,10 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
                 _faces[j].s[i] = s / max_x;
                 _faces[j].t[i] = t / max_y;
               } else
-                failString += oo::str::format(
-                    "Failed to read s t coordinates for vertex[%d] in face[%d] "
+                failString += std::format(
+                    "Failed to read s t coordinates for vertex[{}] in face[{}] "
                     "in TEXTURES\n",
-                    i, j);
+                    static_cast<int>(i), static_cast<int>(j));
             }
           }
         }
@@ -1306,7 +1310,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
             failFlag = true;
             failString += "Expected file name\n";
           } else {
-            renameTexturesFrom(oo::str::format("%u", j), scannedName);
+            renameTexturesFrom(std::format("{}", j), scannedName);
           }
         }
       }
@@ -1335,8 +1339,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
           if (!failFlag) {
             _normals[j] = vector_normal(make_vector(x, y, z));
           } else {
-            failString += oo::str::format(
-                "Failed to read a value for vertex[%d] in %s\n", j, "NORMALS");
+            failString +=
+                std::format("Failed to read a value for vertex[{}] in {}\n",
+                            static_cast<int>(j), "NORMALS");
           }
         }
       }
@@ -1352,9 +1357,9 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
             if (!failFlag) {
               _tangents[j] = vector_normal(make_vector(x, y, z));
             } else {
-              failString += oo::str::format(
-                  "Failed to read a value for vertex[%d] in %s\n", j,
-                  "TANGENTS");
+              failString +=
+                  std::format("Failed to read a value for vertex[{}] in {}\n",
+                              static_cast<int>(j), "TANGENTS");
             }
           }
         }

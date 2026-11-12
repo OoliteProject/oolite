@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "OOStringParsing.h"
 
+#include <format>
+
 #include "HeadUpDisplay.h"
 #include "OOFunctionAttributes.h"
 #include "OOJSEngineTimeManagement.h"
@@ -156,7 +158,7 @@ Quaternion cxx_QuaternionFromString(
 }
 
 std::string cxx_StringFromPoint(NSPoint point) {
-  return oo::str::format("%f %f", point.x, point.y);
+  return std::format("{:f} {:f}", point.x, point.y);
 }
 
 NSPoint cxx_PointFromString(const std::string& xyString) {
@@ -203,8 +205,10 @@ Random_Seed cxx_RandomSeedFromString(
 }
 
 std::string cxx_StringFromRandomSeed(Random_Seed seed) {
-  return oo::str::format("%d %d %d %d %d %d", seed.a, seed.b, seed.c, seed.d,
-                         seed.e, seed.f);
+  return std::format("{} {} {} {} {} {}", static_cast<int8_t>(seed.a),
+                     static_cast<int8_t>(seed.b), static_cast<int8_t>(seed.c),
+                     static_cast<int8_t>(seed.d), static_cast<int8_t>(seed.e),
+                     static_cast<int8_t>(seed.f));
 }
 
 std::string cxx_OOPadStringToEms(const std::string& string, float padEms) {
@@ -237,7 +241,7 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
           can't happen.
   */
   static bool reentrancyLock;
-  if (reentrancyLock) return oo::str::format("%0.1f", tenthsOfCredits * 0.1);
+  if (reentrancyLock) return std::format("{:0.1f}", tenthsOfCredits * 0.1);
 
   reentrancyLock = true;
 
@@ -270,7 +274,7 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
   OOJSRelinquishContext(context);
 
   if (EXPECT_NOT(!result.has_value()))
-    result = oo::str::format("%li", (long)(tenthsOfCredits) / 10);
+    result = std::format("{}", (long)(tenthsOfCredits) / 10);
 
   reentrancyLock = false;
 
@@ -395,7 +399,7 @@ std::string cxx_GraphVizTokenString(const std::string& string,
     unsigned uniqueID = 2;
 
     for (;;) {
-      uniqueToken = oo::str::format("%s%u", token.c_str(), uniqueID);
+      uniqueToken = std::format("{}{}", token, uniqueID);
       if (!NameIsTaken(uniqueToken, uniqueSet)) break;
     }
     token = uniqueToken;

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -2459,7 +2460,7 @@ void HeadUpDisplay::drawEnergyGauge(const oo::PList& info) {
     GLfloat labelStartX = x + 0.5f * barSize.width + 3.0f;
     NSSize labelSize = NSMakeSize(9.0, (bankHeight < 18.0) ? bankHeight : 18.0);
     for (i = 0; i < n_bars; i++) {
-      cxx_OODrawString(oo::str::format("E%x", n_bars - i), labelStartX,
+      cxx_OODrawString(std::format("E{:x}", n_bars - i), labelStartX,
                        bankY - midBank, z1, labelSize);
       bankY += bankHeight;
     }
@@ -3369,12 +3370,11 @@ void HeadUpDisplay::drawFPSInfoCounter(const oo::PList& info) {
   siz.height = useDefined(cached.height, FPSINFO_DISPLAY_HEIGHT);
 
   HPVector playerPos = (PLAYER != nullptr ? PLAYER->getPosition() : HPVector{});
-  std::string positionInfo = oo::str::format(
-      "abs %.2f %.2f %.2f / %s", playerPos.x, playerPos.y, playerPos.z,
+  std::string positionInfo = std::format(
+      "abs {:.2f} {:.2f} {:.2f} / {}", playerPos.x, playerPos.y, playerPos.z,
       (UNIVERSE != nullptr ? UNIVERSE->expressPosition(playerPos, "pwm")
                            : std::optional<std::string>())
-          .value_or("(null)")
-          .c_str());
+          .value_or("(null)"));
 
   // We would normally set a variable alpha value here, but in this case we
   // don't. We prefer the FPS counter to be always visible - Nikos 20100405
@@ -3385,17 +3385,15 @@ void HeadUpDisplay::drawFPSInfoCounter(const oo::PList& info) {
 
 #ifndef NDEBUG
   NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
-  std::string collDebugInfo = oo::str::format(
-      "%s - %s",
-      (PLAYER != nullptr ? PLAYER->dial_objinfo() : std::string()).c_str(),
-      (UNIVERSE != nullptr ? UNIVERSE->collisionDescription() : std::string())
-          .c_str());
+  std::string collDebugInfo = std::format(
+      "{} - {}", PLAYER != nullptr ? PLAYER->dial_objinfo() : std::string(),
+      UNIVERSE != nullptr ? UNIVERSE->collisionDescription() : std::string());
   cxx_OODrawString(collDebugInfo, x, y - siz.height, z1, siz);
 
   cxx_OODrawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
 
-  std::string timeAccelerationFactorInfo = oo::str::format(
-      "TAF: %s%.2f", OO_DESC("multiplication-sign").c_str(),
+  std::string timeAccelerationFactorInfo = std::format(
+      "TAF: {}{:.2f}", OO_DESC("multiplication-sign").c_str(),
       (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0));
   cxx_OODrawString(timeAccelerationFactorInfo, x, y - 3.2 * siz08.height, z1,
                    siz08);
@@ -3977,11 +3975,9 @@ void hudDrawReticleOnTarget(
       range = 0.0f;  // avoids the occasional -0.001 km distance.
     NSSize textsize = NSMakeSize(rdist * scale, rdist * scale);
     float line_height = rdist * scale;
-    std::string infoline =
-        oo::str::format("%0.3f %s", range, distance_unit.c_str());
+    std::string infoline = std::format("{:0.3f} {}", range, distance_unit);
     if (legal_desc.has_value())
-      infoline =
-          oo::str::format("%s (%s)", infoline.c_str(), legal_desc->c_str());
+      infoline = std::format("{} ({})", infoline, *legal_desc);
     // no need to set colour here
     cxx_OODrawString(HeadUpDisplayPlayerDialTargetName(player1).value_or(""),
                      rs0, 0.5 * rs2, 0, textsize);
@@ -4098,8 +4094,7 @@ void hudDrawWaypoint(Entity* waypoint, PlayerEntity* player1, GLfloat /*z1*/,
       range = 0.0f;  // avoids the occasional -0.001 km distance.
     NSSize textsize = NSMakeSize(rdist * scale, rdist * scale);
     float line_height = rdist * scale;
-    std::string infoline =
-        oo::str::format("%0.3f %s", range, distance_unit.c_str());
+    std::string infoline = std::format("{:0.3f} {}", range, distance_unit);
     cxx_OODrawString(infoline, rs0 * 0.5, -rs2 - line_height, 0, textsize);
   }
 

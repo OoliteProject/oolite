@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #include "OOColor.h"
 
+#include <format>
+
 #include "OOMaths.h"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
@@ -350,14 +352,15 @@ oo::Ref<OOColor> OOColor::blendedColorWithFraction(float fraction,
 }
 
 std::optional<std::string> OOColor::descriptionComponents() const {
-  return oo::str::format("%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]);
+  return std::format("{:g}, {:g}, {:g}, {:g}", rgba[0], rgba[1], rgba[2],
+                     rgba[3]);
 }
 
 std::string OOColor::className() const { return "OOColor"; }
 
 std::string OOColor::description() const {
-  std::string result = oo::str::format(
-      "<OOColor %s>", oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<OOColor {}>", oo::str::pointerDescription(this));
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
   return result;
@@ -499,11 +502,11 @@ std::optional<std::string> OOColor::hsbaDescription() {
 }
 
 std::string OORGBAComponentsDescription(OORGBAComponents components) {
-  return oo::str::format("{%.3g, %.3g, %.3g, %.3g}", components.r, components.g,
-                         components.b, components.a);
+  return std::format("{{{:.3g}, {:.3g}, {:.3g}, {:.3g}}}", components.r,
+                     components.g, components.b, components.a);
 }
 
 std::string OOHSBAComponentsDescription(OOHSBAComponents components) {
-  return oo::str::format("{%i, %.3g, %.3g, %.3g}", (int)components.h,
-                         components.s, components.b, components.a);
+  return std::format("{{{}, {:.3g}, {:.3g}, {:.3g}}}", (int)components.h,
+                     components.s, components.b, components.a);
 }

@@ -75,6 +75,7 @@ MA 02110-1301, USA.
 */
 
 #include <cstring>
+#include <format>
 #include <new>
 #include <vector>
 
@@ -253,7 +254,7 @@ oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(
 
 std::optional<std::string> OOMeshToOctreeConverter::descriptionComponents()
     const {
-  return oo::str::format("%u triangles", _data.count);
+  return std::format("{} triangles", _data.count);
 }
 
 void OOMeshToOctreeConverter::addTriangle(Triangle tri) {

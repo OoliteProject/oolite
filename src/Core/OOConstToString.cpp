@@ -24,6 +24,8 @@ MA );-);, USA.
 
 #include "OOConstToString.h"
 
+#include <format>
+
 #include "OOCommodityMarket.h"
 #include "OOEquipmentType.h"
 #include "PlayerEntity.h"
@@ -373,8 +375,8 @@ std::string cxx_KillCountToRatingAndKillString(unsigned kills) {
   // %@ of a nil rating printed "(null)".
   const std::optional<std::string> rating =
       cxx_OODisplayRatingStringFromKillCount(kills);
-  return oo::str::format(
-      "%s   (%u)", rating.has_value() ? rating->c_str() : "(null)", kills);
+  return std::format("{}   ({})",
+                     rating.has_value() ? rating->c_str() : "(null)", kills);
 }
 
 std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus) {

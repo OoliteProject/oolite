@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OOSkyDrawable.h"
 
+#include <format>
+
 #include "GameController.h"
 #include "OOColor.h"
 #include "OOGraphicsResetManager.h"
@@ -609,10 +611,9 @@ OOSkyQuadSet::~OOSkyQuadSet() {
 }
 
 std::optional<std::string> OOSkyQuadSet::descriptionComponents() const {
-  return oo::str::format(
-      "%u quads, texture: %s", _count,
-      ((_texture != nullptr) ? _texture->description() : std::string("(null)"))
-          .c_str());
+  return std::format(
+      "{} quads, texture: {}", _count,
+      (_texture != nullptr) ? _texture->description() : std::string("(null)"));
 }
 
 void OOSkyQuadSet::render() {

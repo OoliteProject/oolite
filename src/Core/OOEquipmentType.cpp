@@ -28,6 +28,7 @@ SOFTWARE.
 #include "OOEquipmentType.h"
 
 #include <algorithm>
+#include <format>
 
 #include "OOCacheManager.h"
 #include "OOColor.h"
@@ -333,13 +334,11 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info) {
                "conditions", _identifier);
       }
       if (legacyConditions) {
-        cxx_OOStandardsDeprecated(
-            oo::str::format("The conditions key is deprecated for equipment %s",
-                            _name.c_str()));
+        cxx_OOStandardsDeprecated(std::format(
+            "The conditions key is deprecated for equipment {}", _name));
         if (!OOEnforceStandards()) {
           _conditions = OOSanitizeLegacyScriptConditions(
-              legacyConditions,
-              oo::str::format("<equipment type \"%s\">", _name.c_str()));
+              legacyConditions, std::format("<equipment type \"{}\">", _name));
         }
       }
 
@@ -426,14 +425,14 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info) {
 }
 
 std::optional<std::string> OOEquipmentType::descriptionComponents() const {
-  return oo::str::format("%s \"%s\"", _identifier.c_str(), _name.c_str());
+  return std::format("{} \"{}\"", _identifier, _name);
 }
 
 std::string OOEquipmentType::className() const { return "OOEquipmentType"; }
 
 std::string OOEquipmentType::description() const {
-  std::string result = oo::str::format(
-      "<OOEquipmentType %s>", oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<OOEquipmentType {}>", oo::str::pointerDescription(this));
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
   return result;
@@ -653,7 +652,7 @@ OOTechLevelID OOEquipmentType::effectiveTechLevel() {
   tl = techLevel();
   if (tl == kOOVariableTechLevel) {
     cxx_OOStandardsDeprecated(
-        oo::str::format("TL99 is deprecated for %s", _identifier.c_str()));
+        std::format("TL99 is deprecated for {}", _identifier));
     if (!OOEnforceStandards()) {
       const oo::PList missionValue =
           (PLAYER != nullptr

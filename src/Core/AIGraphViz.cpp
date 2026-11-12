@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #include "AIGraphViz.h"
 
+#include <format>
+
 #include "OOStringParsing.h"
 #include "ResourceManager.h"
 #include "oofnd/String.hpp"
@@ -57,8 +59,7 @@ std::string HandlerToken(const std::string& state, const std::string& handler,
   const auto found = stateDict.find(handler);
   if (found != stateDict.end()) return found->second;
 
-  std::string result =
-      oo::str::format("%s_h_%s", state.c_str(), handler.c_str());
+  std::string result = std::format("{}_h_{}", state, handler);
   result = cxx_GraphVizTokenString(result, &uniqueSet);
 
   stateDict[handler] = result;
@@ -72,13 +73,13 @@ void AddSimpleSpecialNodeLink(std::string& graphViz,
                               const char* color,
                               std::set<std::string>& specialNodes) {
   std::string identifier = cxx_GraphVizTokenString("special_" + name, nullptr);
-  std::string declaration = oo::str::format(
-      "\t%s [label=\"%s\" color=\"#%s\" shape=%s]\n", identifier.c_str(),
-      cxx_EscapedGraphVizString(name).c_str(), color, shape);
+  std::string declaration =
+      std::format("\t{} [label=\"{}\" color=\"#{}\" shape={}]\n", identifier,
+                  cxx_EscapedGraphVizString(name), color, shape);
   specialNodes.insert(declaration);
 
-  graphViz += oo::str::format("\t%s -> %s [color=\"#%s\"]\n",
-                              handlerToken.c_str(), identifier.c_str(), color);
+  graphViz += std::format("\t{} -> {} [color=\"#{}\"]\n", handlerToken,
+                          identifier, color);
 }
 
 void AddExitAINode(std::string& graphViz, const std::string& handlerToken,
@@ -94,11 +95,10 @@ void AddExitAINode(std::string& graphViz, const std::string& handlerToken,
     label = cxx_EscapedGraphVizString("exitAIWithMessage:\n" + *message);
   }
 
-  specialNodes.insert(
-      oo::str::format("\t%s [label=\"%s\" color=\"#0000A0\" shape=ellipse]\n",
-                      token.c_str(), label.c_str()));
-  graphViz += oo::str::format("\t%s -> %s [color=\"#0000C0\"]\n",
-                              handlerToken.c_str(), token.c_str());
+  specialNodes.insert(std::format(
+      "\t{} [label=\"{}\" color=\"#0000A0\" shape=ellipse]\n", token, label));
+  graphViz +=
+      std::format("\t{} -> {} [color=\"#0000C0\"]\n", handlerToken, token);
 }
 
 void AddChangeAINode(std::string& graphViz, const std::string& handlerToken,
@@ -111,10 +111,8 @@ void AddChangeAINode(std::string& graphViz, const std::string& handlerToken,
 
   if (components.size() > 1) {
     const std::string& targetAI = components[1];
-    std::string token =
-        oo::str::format("%s_%s", methodTag.c_str(), targetAI.c_str());
-    std::string label =
-        oo::str::format("%s\n%s", method.c_str(), targetAI.c_str());
+    std::string token = std::format("{}_{}", methodTag, targetAI);
+    std::string label = std::format("{}\n{}", method, targetAI);
 
     // Look through remaining commands for a setStateTo:, which applies to the
     // new AI.
@@ -129,26 +127,24 @@ void AddChangeAINode(std::string& graphViz, const std::string& handlerToken,
       }
     }
     if (targetState.has_value()) {
-      token = oo::str::format("%s_%s", token.c_str(), targetState->c_str());
-      label = oo::str::format("%s (%s)", label.c_str(), targetState->c_str());
+      token = std::format("{}_{}", token, *targetState);
+      label = std::format("{} ({})", label, *targetState);
     }
 
     token = cxx_GraphVizTokenString(token, nullptr);
     label = cxx_EscapedGraphVizString(label);
 
-    specialNodes.insert(
-        oo::str::format("\t%s [label=\"%s\" color=\"#408000\" shape=ellipse]\n",
-                        token.c_str(), label.c_str()));
-    graphViz += oo::str::format("\t%s -> %s [color=\"#408000\"]\n",
-                                handlerToken.c_str(), token.c_str());
-  } else {
-    specialNodes.insert(oo::str::format(
-        "\tspecial_broken_%s [label=\"Broken %s command!\\n(No target AI "
-        "specified.)\" color=\"#C00000\" shape=diamond]\n",
-        methodTag.c_str(), method.c_str()));
+    specialNodes.insert(std::format(
+        "\t{} [label=\"{}\" color=\"#408000\" shape=ellipse]\n", token, label));
     graphViz +=
-        oo::str::format("\t%s -> tspecial_broken_%s [color=\"#C00000\"]\n",
-                        handlerToken.c_str(), methodTag.c_str());
+        std::format("\t{} -> {} [color=\"#408000\"]\n", handlerToken, token);
+  } else {
+    specialNodes.insert(std::format(
+        "\tspecial_broken_{} [label=\"Broken {} command!\\n(No target AI "
+        "specified.)\" color=\"#C00000\" shape=diamond]\n",
+        methodTag, method));
+    graphViz += std::format("\t{} -> tspecial_broken_{} [color=\"#C00000\"]\n",
+                            handlerToken, methodTag);
   }
 }
 
@@ -179,18 +175,17 @@ void HandleOneCommand(std::string& graphViz, const std::string& stateKey,
       if (targetState == stateKey || targetState == "GLOBAL")
         constraint = false;
 
-      graphViz += oo::str::format("\t%s -> %s [lhead=cluster_%s%s]\n",
-                                  handlerToken.c_str(), targetLabel.c_str(),
-                                  targetState.c_str(),
-                                  constraint ? "" : " constraint=false");
+      graphViz += std::format("\t{} -> {} [lhead=cluster_{}{}]\n", handlerToken,
+                              targetLabel, targetState,
+                              constraint ? "" : " constraint=false");
     } else {
       specialNodes.insert(
           "\tspecial_brokenSetStateTo [label=\"Broken setStateTo: "
           "command!\\n(No target state specified.)\" color=\"#C00000\" "
           "shape=diamond]\n");
-      graphViz += oo::str::format(
-          "\t%s -> special_brokenSetStateTo [color=\"#C00000\"]\n",
-          handlerToken.c_str());
+      graphViz +=
+          std::format("\t{} -> special_brokenSetStateTo [color=\"#C00000\"]\n",
+                      handlerToken);
     }
   } else if (method == "becomeExplosion") {
     AddSimpleSpecialNodeLink(graphViz, handlerToken, "becomeExplosion",
@@ -234,19 +229,16 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine,
   std::set<std::string> uniqueSet;
   HandlerKeys handlerKeys;
 
-  std::string graphViz = oo::str::format(
-      "digraph ai_flow\n{\n"
-      "\tgraph [charset=\"UTF-8\", label=\"%s transition diagram\", "
-      "labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.1 "
-      "ranksep=2.5 fontname=Helvetica]\n"
-      "\tedge [arrowhead=normal]\n"
-      "\tnode [shape=box height=0.2 width=3.5 fontname=Helvetica "
-      "color=\"#808080\"]\n\t\n"
-      "\tspecial_start [shape=ellipse color=\"#0000C0\" "
-      "label=\"Start\"]\n\tspecial_start -> %s [lhead=\"cluster_GLOBAL\" "
-      "color=\"#0000A0\"]\n",
-      cxx_EscapedGraphVizString(smName).c_str(),
-      HandlerToken("GLOBAL", "ENTER", handlerKeys, uniqueSet).c_str());
+  std::string graphViz = std::format(
+      "digraph ai_flow\n{{\n\tgraph [charset=\"UTF-8\", label=\"{} transition "
+      "diagram\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.1 "
+      "ranksep=2.5 fontname=Helvetica]\n\tedge [arrowhead=normal]\n\tnode "
+      "[shape=box height=0.2 width=3.5 fontname=Helvetica "
+      "color=\"#808080\"]\n\t\n\tspecial_start [shape=ellipse "
+      "color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> {} "
+      "[lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n",
+      cxx_EscapedGraphVizString(smName),
+      HandlerToken("GLOBAL", "ENTER", handlerKeys, uniqueSet));
 
   std::set<std::string> specialNodes;
 
@@ -255,27 +247,26 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine,
       // Nothing here autoreleases, so there is no pool per state; the scope
       // below is what the pool's lifetime was.
       {
-        graphViz += oo::str::format(
-            "\t\n\tsubgraph cluster_%s\n\t{\n\t\tlabel=\"%s\"\n",
-            stateKey.c_str(), cxx_EscapedGraphVizString(stateKey).c_str());
+        graphViz +=
+            std::format("\t\n\tsubgraph cluster_{}\n\t{{\n\t\tlabel=\"{}\"\n",
+                        stateKey, cxx_EscapedGraphVizString(stateKey));
 
         const oo::PList::Dict* state = stateValue.getIf<oo::PList::Dict>();
         if (state != nullptr) {
           for (const auto& [handlerKey, handlerValue] : *state) {
-            graphViz += oo::str::format(
-                "\t\t%s [label=\"%s\"]\n",
-                HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet)
-                    .c_str(),
-                cxx_EscapedGraphVizString(handlerKey).c_str());
+            graphViz += std::format(
+                "\t\t{} [label=\"{}\"]\n",
+                HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet),
+                cxx_EscapedGraphVizString(handlerKey));
           }
         }
 
         // Ensure there is an ENTER handler for arrows to point at.
         if (state == nullptr || state->find("ENTER") == state->end()) {
-          graphViz += oo::str::format(
-              "\t\t%s [label=\"ENTER (implicit)\"] // No ENTER handler in "
+          graphViz += std::format(
+              "\t\t{} [label=\"ENTER (implicit)\"] // No ENTER handler in "
               "file, but it's still the target of any incoming transitions.\n",
-              HandlerToken(stateKey, "ENTER", handlerKeys, uniqueSet).c_str());
+              HandlerToken(stateKey, "ENTER", handlerKeys, uniqueSet));
         }
 
         graphViz += "\t}\n";
@@ -311,7 +302,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine,
 
   graphViz += "}\n";
   ResourceManager::writeDiagnosticString(
-      graphViz, oo::str::format("AI Dumps/%s.dot", smName.c_str()));
+      graphViz, std::format("AI Dumps/{}.dot", smName));
 }
 
 #endif

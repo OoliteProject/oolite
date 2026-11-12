@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -204,7 +205,7 @@ GuiDisplayGen::GuiDisplayGen() {
 
   for (i = 0; i < n_rows; i++) {
     rowText.push_back(oo::PList("."));
-    rowKey.push_back(oo::str::format("%d", (int)i));
+    rowKey.push_back(std::format("{}", (int)i));
     rowColor.push_back(oo::Ref<OOColor>(OOColor::yellowColor()));
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
@@ -328,8 +329,7 @@ void GuiDisplayGen::resizeTo(NSSize gui_size, int csize,
   pixel_title_size = NSMakeSize(csize * 1.75f, csize * 1.5f);
 
   OO_LOG("gui.reset", "gui {} reset to rows:{} columns:{} start:{}",
-         oo::str::format("<GuiDisplayGen %s>",
-                         oo::str::pointerDescription(this).c_str()),
+         std::format("<GuiDisplayGen {}>", oo::str::pointerDescription(this)),
          n_rows, n_columns, pixel_row_start);
 
   rowRange = NSMakeRange(0, n_rows);
@@ -774,7 +774,7 @@ oo::PList GuiDisplayGen::getLastLines()  // text, colour, fade time - text,
     if (!text.isString() && !text.isNumber()) return false;
     result.emplace_back(oo::PList(oo::PList::Array{text}).at<std::string>(0));
     result.emplace_back(
-        oo::str::format("%.3g %.3g %.3g %.3g", c.r, c.g, c.b, c.a));
+        std::format("{:.3g} {:.3g} {:.3g} {:.3g}", c.r, c.g, c.b, c.a));
     result.push_back(
         oo::PList::singleReal(rowFadeTime[r]));  // +numberWithFloat:
     return true;
@@ -990,8 +990,8 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
       case GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST:
         bgDescriptor =
             (UNIVERSE != nullptr
-                 ? UNIVERSE->screenTextureDescriptorForKey(oo::str::format(
-                       "long_range_chart%d_mission", galaxy_number + 1))
+                 ? UNIVERSE->screenTextureDescriptorForKey(std::format(
+                       "long_range_chart{}_mission", galaxy_number + 1))
                  : oo::PList());
         if (bgDescriptor.isNull()) {
           bgDescriptor =
@@ -1001,8 +1001,8 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
           if (bgDescriptor.isNull()) {
             bgDescriptor =
                 (UNIVERSE != nullptr
-                     ? UNIVERSE->screenTextureDescriptorForKey(oo::str::format(
-                           "long_range_chart%d", galaxy_number + 1))
+                     ? UNIVERSE->screenTextureDescriptorForKey(
+                           std::format("long_range_chart{}", galaxy_number + 1))
                      : oo::PList());
             if (bgDescriptor.isNull()) {
               bgDescriptor = (UNIVERSE != nullptr
@@ -1684,12 +1684,13 @@ void GuiDisplayGen::setStarChartTitle() {
                  false)
            : 0);
 
-  const std::string location_key = oo::str::format(
-      "long-range-chart-title-%d-%ld", galaxy_number, (long)system_id);
+  const std::string location_key = std::format("long-range-chart-title-{}-{}",
+                                               static_cast<int>(galaxy_number),
+                                               static_cast<long>(system_id));
   if (!(UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(location_key)
                             : std::optional<std::string>())) {
-    const std::string gal_key =
-        oo::str::format("long-range-chart-title-%d", galaxy_number);
+    const std::string gal_key = std::format("long-range-chart-title-{}",
+                                            static_cast<int>(galaxy_number));
     if (!(UNIVERSE != nullptr ? UNIVERSE->descriptionForKey(gal_key)
                               : std::optional<std::string>())) {
       setTitle(oo::str::formatRuntime(OO_DESC("long-range-chart-title-d"),
@@ -1912,8 +1913,9 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
         } else {
           thisConnectionColor =
               OOColor::colorWithDescription(systemManager->getProperty(
-                  "link_color", oo::str::format("interstellar: %d %ld %ld", g,
-                                                (long)i, (long)j)));
+                  "link_color",
+                  std::format("interstellar: {} {} {}", static_cast<int>(g),
+                              static_cast<long>(i), static_cast<long>(j))));
 
           if (thisConnectionColor == nullptr) {
             thisConnectionColor = defaultConnectionColor;
@@ -1926,8 +1928,9 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
           // and the other colour for the other end
           thatConnectionColor =
               OOColor::colorWithDescription(systemManager->getProperty(
-                  "link_color", oo::str::format("interstellar: %d %ld %ld", g,
-                                                (long)j, (long)i)));
+                  "link_color",
+                  std::format("interstellar: {} {} {}", static_cast<int>(g),
+                              static_cast<long>(j), static_cast<long>(i))));
 
           if (thatConnectionColor == nullptr) {
             thatConnectionColor = thisConnectionColor;

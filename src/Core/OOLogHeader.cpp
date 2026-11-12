@@ -164,11 +164,10 @@ void OOPrintLogHeader() {
 #endif
   if (versionString.empty()) versionString = "<unknown version>";
 
-  std::string miscString = oo::str::format(
-      "Opening log for Oolite %s by %s (" CPU_TYPE_STRING RELEASE_VARIANT_STRING
-      ") under %s at %s.\n",
-      versionString.c_str(), OO_BUILDER, systemString.c_str(),
-      oo::date::description().c_str());
+  std::string miscString = std::format(
+      "Opening log for Oolite {} by {} (" CPU_TYPE_STRING RELEASE_VARIANT_STRING
+      ") under {} at {}.\n",
+      versionString, OO_BUILDER, systemString, oo::date::description());
 
   miscString += AdditionalLogHeaderInfo();
 
@@ -178,7 +177,7 @@ void OOPrintLogHeader() {
     featureDesc += feature;
   }
   if (featureDesc.empty()) featureDesc = "none";
-  miscString += oo::str::format("\nBuild options: %s.\n", featureDesc.c_str());
+  miscString += std::format("\nBuild options: {}.\n", featureDesc);
 
   miscString +=
       "\nNote that the contents of the log file can be adjusted by editing "
@@ -205,6 +204,8 @@ std::string OOPlatformDescription() {
 #include <mach/machine.h>
 #include <sys/sysctl.h>
 
+#include <format>
+
 static std::optional<std::string> GetSysCtlString(const char* name);
 static unsigned long long GetSysCtlInt(const char* name);
 static std::string GetCPUDescription();
@@ -218,9 +219,9 @@ std::string AdditionalLogHeaderInfo() {
   sysPhysMem = GetSysCtlInt("hw.memsize");
 
   // "%@" printed a nil model as "(null)".
-  return oo::str::format("Machine type: %s, %llu MiB memory, %s.",
-                         sysModel ? sysModel->c_str() : "(null)",
-                         sysPhysMem >> 20, GetCPUDescription().c_str());
+  return std::format("Machine type: {}, {} MiB memory, {}.",
+                     sysModel ? sysModel->c_str() : "(null)", sysPhysMem >> 20,
+                     GetCPUDescription());
 }
 }  // namespace
 
@@ -299,7 +300,7 @@ static std::string GetCPUDescription() {
           break;
 
         default:
-          subTypeStr = oo::str::format(" (family 0x%llx)", sysCPUFamily);
+          subTypeStr = std::format(" (family 0x{:x})", sysCPUFamily);
       }
       break;
 
@@ -307,21 +308,18 @@ static std::string GetCPUDescription() {
       typeStr = "ARM";
   }
 
-  if (!typeStr.has_value())
-    typeStr = oo::str::format("CPU type %llu", sysCPUType);
+  if (!typeStr.has_value()) typeStr = std::format("CPU type {}", sysCPUType);
 
   std::string countStr;
   if (sysCPUCount == sysLogicalCPUCount)
-    countStr = oo::str::format("%llu", sysCPUCount);
+    countStr = std::format("{}", sysCPUCount);
   else
-    countStr =
-        oo::str::format("%llu (%llu logical)", sysCPUCount, sysLogicalCPUCount);
+    countStr = std::format("{} ({} logical)", sysCPUCount, sysLogicalCPUCount);
 
   // "%@" printed a nil sub-type as "(null)".
-  return oo::str::format("%s x %s%s @ %llu MHz", countStr.c_str(),
-                         typeStr->c_str(),
-                         subTypeStr ? subTypeStr->c_str() : "(null)",
-                         (sysCPUFrequency + 500000) / 1000000);
+  return std::format("{} x {}{} @ {} MHz", countStr, *typeStr,
+                     subTypeStr ? subTypeStr->c_str() : "(null)",
+                     (sysCPUFrequency + 500000) / 1000000);
 }
 
 static std::optional<std::string> GetSysCtlString(const char* name) {
@@ -362,9 +360,9 @@ std::string AdditionalLogHeaderInfo(void) {
   const std::string cpuDescription = OOCPUDescription();
   OOMemoryStatus systemMemoryStatus = OOSystemMemoryStatus();
 
-  return oo::str::format(
-      "%s %u processor%s detected. System RAM: %llu MB (free: %llu MB).",
-      cpuDescription.c_str(), cpuCount, cpuCount != 1 ? "s" : "",
+  return std::format(
+      "{} {} processor{} detected. System RAM: {} MB (free: {} MB).",
+      cpuDescription, static_cast<unsigned>(cpuCount), cpuCount != 1 ? "s" : "",
       systemMemoryStatus.ooPhysicalMemory,
       systemMemoryStatus.ooAvailableMemory);
 }

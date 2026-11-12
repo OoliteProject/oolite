@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #include "OOProfilingStopwatch.h"
 #endif
 #include <cstring>
+#include <format>
 
 #include "oofnd/objc/OOAssert.h"
 
@@ -110,7 +111,7 @@ OOCacheManager::~OOCacheManager() { clear(); }
 // what this class's own -description printed. (It reads _dirty, which -dirty
 // returned.)
 std::optional<std::string> OOCacheManager::descriptionComponents() const {
-  return oo::str::format("dirty=%s", _dirty ? "yes" : "no");
+  return std::format("dirty={}", _dirty ? "yes" : "no");
 }
 
 OOCacheManager* OOCacheManager::sharedCache() {

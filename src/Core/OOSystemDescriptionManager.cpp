@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #include "OOSystemDescriptionManager.h"
 
+#include <format>
+
 #include "OOStringParsing.h"
 #include "OOTypes.h"
 #include "PlayerEntity.h"
@@ -516,8 +518,8 @@ void OOSystemDescriptionManager::updateCacheEntry(std::size_t i) {
             "Invalid cache entry number");  // (the cast: tier-a re-keyed a
                                             // pre-existing widening finding
                                             // when OOAssert became OOCAssert)
-  const std::string key = oo::str::format("%zu %zu", i / OO_SYSTEMS_PER_GALAXY,
-                                          i % OO_SYSTEMS_PER_GALAXY);
+  const std::string key = std::format("{} {}", i / OO_SYSTEMS_PER_GALAXY,
+                                      i % OO_SYSTEMS_PER_GALAXY);
   propertyCache[i] = calculatePropertiesForSystemKey(key);
 }
 
@@ -527,8 +529,8 @@ void OOSystemDescriptionManager::updateCacheEntry(std::size_t i,
             "Invalid cache entry number");  // (the cast: tier-a re-keyed a
                                             // pre-existing widening finding
                                             // when OOAssert became OOCAssert)
-  const std::string key = oo::str::format("%zu %zu", i / OO_SYSTEMS_PER_GALAXY,
-                                          i % OO_SYSTEMS_PER_GALAXY);
+  const std::string key = std::format("{} {}", i / OO_SYSTEMS_PER_GALAXY,
+                                      i % OO_SYSTEMS_PER_GALAXY);
   oo::PList current = getProperty(property, key);
   oo::PList::Dict& cache = *propertyCache[i].getIf<oo::PList::Dict>();
   if (current.isNull()) {

@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOAIStateMachineVerifierStage.h"
 
+#include <format>
+
 #include "OOPListParsing.h"
 
 #if OO_OXP_VERIFIER_ENABLED
@@ -115,8 +117,7 @@ void OOAIStateMachineVerifierStage::stateMachineNamed(
       verifier()->stageWithName(OOFileScannerVerifierStage::kName));
   if (fileScanner == nullptr ||
       !fileScanner->fileExists(
-          name, "AIs",
-          oo::str::format("shipdata.plist entry \"%s\"", shipName.c_str()),
+          name, "AIs", std::format("shipdata.plist entry \"{}\"", shipName),
           true)) {
     OO_LOG("verifyOXP.validateAI.notFound",
            "----- WARNING: AI state machine \"{}\" referenced in "

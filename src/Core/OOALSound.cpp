@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include "OOALSound.h"
 
+#include <format>
 #include <string_view>
 #include <typeinfo>
 
@@ -163,8 +164,8 @@ std::string OOSound::description() const {
   const std::size_t colons = name.rfind("::");
   if (colons != std::string::npos) name.erase(0, colons + 2);
 
-  std::string result = oo::str::format(
-      "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<{} {}>", name, oo::str::pointerDescription(this));
   if (const std::optional<std::string> components = descriptionComponents())
     result += "{" + *components + "}";
   return result;

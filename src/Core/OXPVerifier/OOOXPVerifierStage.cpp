@@ -36,6 +36,7 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#include <format>
 #include <typeinfo>
 
 #include "OODemangle.h"
@@ -64,8 +65,8 @@ std::optional<std::string> OOOXPVerifierStage::descriptionComponents() const {
 
 // "<Class 0x...>{name}", the stage's description.
 std::string OOOXPVerifierStage::description() const {
-  return oo::str::format("<%s %s>{", className().c_str(),
-                         oo::str::pointerDescription(this).c_str()) +
+  return std::format("<{} {}>{{", className(),
+                     oo::str::pointerDescription(this)) +
          descriptionComponents().value_or("") + "}";
 }
 

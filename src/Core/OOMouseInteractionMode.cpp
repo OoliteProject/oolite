@@ -27,6 +27,8 @@ MA 02110-1301, USA.
   1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOMouseInteractionMode.h"
 
+#include <format>
+
 #include "oofnd/String.hpp"
 
 std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode) {
@@ -41,7 +43,7 @@ std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode) {
       return "FLIGHT_WITH_MOUSE_CONTROL";
   }
 
-  return oo::str::format("<unknown mode %u>", mode);
+  return std::format("<unknown mode {}>", static_cast<unsigned int>(mode));
 }
 
 bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode) {

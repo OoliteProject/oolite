@@ -36,6 +36,8 @@ MA 02110-1301, USA.
 #define __block __glibc_block
 #endif
 #include <unistd.h>
+
+#include <format>
 #if !OOLITE_HAVE_CLANG
 #undef __block
 #endif
@@ -201,9 +203,11 @@ std::string operatingSystemFullVersion(void) {
   // through the C locale instead).
   const std::string csdVersion = oo::utf16ToUtf8(std::u16string_view(
       reinterpret_cast<const char16_t*>(osver.szCSDVersion)));
-  return oo::str::format("%lu.%lu.%lu%s %s", osver.dwMajorVersion,
-                         osver.dwMinorVersion, osver.dwBuildNumber,
-                         outUBRString.c_str(), csdVersion.c_str());
+  return std::format("{}.{}.{}{} {}",
+                     static_cast<unsigned long>(osver.dwMajorVersion),
+                     static_cast<unsigned long>(osver.dwMinorVersion),
+                     static_cast<unsigned long>(osver.dwBuildNumber),
+                     outUBRString, csdVersion);
 }
 
 /*

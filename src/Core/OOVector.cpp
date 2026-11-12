@@ -22,6 +22,8 @@ MA 02110-1301, USA.
 
 */
 
+#include <format>
+
 #include "OOMaths.h"
 #include "legacy_random.h"  // randf
 #include "oofnd/String.hpp"
@@ -38,7 +40,7 @@ const Vector2D kBasisYVector2D = {0.0f, 1.0f};
 const BoundingBox kZeroBoundingBox = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
 
 std::string VectorDescription(Vector vector) {
-  return oo::str::format("(%g, %g, %g)", vector.x, vector.y, vector.z);
+  return std::format("({:g}, {:g}, {:g})", vector.x, vector.y, vector.z);
 }
 
 OONativeVector::OONativeVector(Vector vect) { v = vect; }
@@ -48,8 +50,7 @@ Vector OONativeVector::getVector() { return v; }
 std::string OONativeVector::className() const { return "OONativeVector"; }
 
 std::string OONativeVector::description() const {
-  return oo::str::format("<OONativeVector %s>",
-                         oo::str::pointerDescription(this).c_str());
+  return std::format("<OONativeVector {}>", oo::str::pointerDescription(this));
 }
 
 /*	This generates random vectors distrubuted evenly over the surface of the

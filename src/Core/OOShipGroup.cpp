@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 
 #include "OOShipGroup.h"
 
+#include <format>
+
 #include "OOMaths.h"
 #include "ShipEntity.h"
 #include "oofnd/String.hpp"
@@ -132,8 +134,8 @@ oo::Ref<OOShipGroup> OOShipGroup::groupWithName(
 std::string OOShipGroup::className() const { return "OOShipGroup"; }
 
 std::string OOShipGroup::description() const {
-  std::string result = oo::str::format(
-      "<OOShipGroup %s>", oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<OOShipGroup {}>", oo::str::pointerDescription(this));
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
   return result;
@@ -148,14 +150,13 @@ OOShipGroup::~OOShipGroup() {
 std::optional<std::string> OOShipGroup::descriptionComponents() const {
   // leader() drops a stale weak reference, so it is not const.
   OOShipGroup* mutableThis = const_cast<OOShipGroup*>(this);
-  std::string desc = oo::str::format("%zu ships", _count);
+  std::string desc = std::format("{} ships", _count);
   if (_name.has_value()) {
-    desc = oo::str::format("\"%s\", %s", _name->c_str(), desc.c_str());
+    desc = std::format("\"{}\", {}", *_name, desc);
   }
   if (mutableThis->leader() != nullptr) {
-    desc = oo::str::format(
-        "%s, leader: %s", desc.c_str(),
-        oo::EntityShortDescription(mutableThis->leader()).c_str());
+    desc = std::format("{}, leader: {}", desc,
+                       oo::EntityShortDescription(mutableThis->leader()));
   }
   return desc;
 }
