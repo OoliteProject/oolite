@@ -94,6 +94,7 @@ class StickProfileScreen;  // PlayerEntityStickProfile.h
 // OOGUIScreenID, OOGalacticHyperspaceBehaviour and their defaults (plain
 // header).
 #include "OOEntityEnums.h"
+#include "OOEnumFlags.h"
 
 enum class OOPrimedEquipmentMode : int { kActivated, kMode };
 
@@ -227,16 +228,33 @@ typedef enum {
   SCOOP_STATUS_ACTIVE
 } OOFuelScoopStatus;
 
-enum {
-  ALERT_FLAG_DOCKED = 0x010,
-  ALERT_FLAG_MASS_LOCK = 0x020,
-  ALERT_FLAG_YELLOW_LIMIT = 0x03f,
-  ALERT_FLAG_TEMP = 0x040,
-  ALERT_FLAG_ALT = 0x080,
-  ALERT_FLAG_ENERGY = 0x100,
-  ALERT_FLAG_HOSTILES = 0x200
+// The bits of PlayerEntity's alert flags, which the player keeps as a number
+// (getAlertFlags(), the by-name "alertFlags"). kYellowLimit is not a bit: flags
+// above it are condition red.
+enum class OOAlertFlags : std::uint16_t {
+  kNone = 0,
+  kDocked = 0x010,
+  kMassLock = 0x020,
+  kYellowLimit = 0x03f,
+  kTemp = 0x040,
+  kAlt = 0x080,
+  kEnergy = 0x100,
+  kHostiles = 0x200
 };
-typedef uint16_t OOAlertFlags;
+constexpr std::true_type OOEnableFlagOperators(OOAlertFlags);
+
+// The numbers a by-name "alertFlags" call answers.
+static_assert(oo::ToUnderlying(OOAlertFlags::kDocked) == 0x010);
+static_assert(oo::ToUnderlying(OOAlertFlags::kMassLock) == 0x020);
+static_assert(oo::ToUnderlying(OOAlertFlags::kYellowLimit) == 0x03f);
+static_assert(oo::ToUnderlying(OOAlertFlags::kTemp) == 0x040);
+static_assert(oo::ToUnderlying(OOAlertFlags::kAlt) == 0x080);
+static_assert(oo::ToUnderlying(OOAlertFlags::kEnergy) == 0x100);
+static_assert(oo::ToUnderlying(OOAlertFlags::kHostiles) == 0x200);
+
+inline bool OOAlertFlagIsOn(int flags, OOAlertFlags flag) noexcept {
+  return (flags & oo::ToUnderlying(flag)) != 0;
+}
 
 typedef enum {
   // Exposed to shaders.
@@ -643,7 +661,7 @@ class PlayerEntity : public ShipEntity {
   void selectNextMissile();
   void clearAlertFlags();
   int getAlertFlags();
-  void setAlertFlag(int flag, bool value);
+  void setAlertFlag(OOAlertFlags flag, bool value);
   OOAlertCondition realAlertCondition() override;
 
   // alert condition, AI messages, mounting and firing missiles and mines, the
@@ -1652,7 +1670,7 @@ class PlayerEntity : public ShipEntity {
   double last_ecm_time = {};
 
   OOGUIScreenID gui_screen = {};
-  OOAlertFlags alertFlags = {};
+  std::uint16_t alertFlags = {};              // OOAlertFlags bits
   OOAlertCondition alertConditionLevel = {};  // the ivar alertCondition
   OOAlertCondition lastScriptAlertCondition = {};
   OOPlayerFleeingStatus fleeing_status = {};

@@ -3462,7 +3462,7 @@ void PlayerEntity::doBookkeeping(double delta_t) {
       if (travelling_at_hyperspeed) {
         // decrease speed to maximum normal speed
         float deceleration = (speed_delta * delta_t * HYPERSPEED_FACTOR);
-        if (alertFlags & ALERT_FLAG_MASS_LOCK) {
+        if (OOAlertFlagIsOn(alertFlags, OOAlertFlags::kMassLock)) {
           // decelerate much quicker in masslocks
           // this does also apply to injector deceleration
           // but it's not very noticeable
@@ -3632,7 +3632,7 @@ void PlayerEntity::updateAlertConditionForNearbyEntities() {
       // here we could also force masslock for higher than yellow alert, but
       // if we are going to hand over masslock control to scripting, might as
       // well hand it over fully
-      if (getMassLockable() /*|| alertFlags > ALERT_FLAG_YELLOW_LIMIT*/) {
+      if (getMassLockable() /*|| alertFlags > OOAlertFlags::kYellowLimit*/) {
         massLocked |= checkEntityForMassLock(
             scannedEntity, theirClass);  // we just need one masslocker..
       }
@@ -3672,9 +3672,9 @@ void PlayerEntity::updateAlertConditionForNearbyEntities() {
   }
 #endif
 
-  setAlertFlag(ALERT_FLAG_MASS_LOCK, massLocked);
+  setAlertFlag(OOAlertFlags::kMassLock, massLocked);
 
-  setAlertFlag(ALERT_FLAG_HOSTILES, foundHostiles);
+  setAlertFlag(OOAlertFlags::kHostiles, foundHostiles);
 
   for (i = 0; i < ent_count; i++) {
     oo::ReleaseEntity(my_entities[i]);  //	released
@@ -3684,11 +3684,11 @@ void PlayerEntity::updateAlertConditionForNearbyEntities() {
   if (energy < 64 && energy < maxEnergy * 0.8) {
     energyCritical = true;
   }
-  setAlertFlag(ALERT_FLAG_ENERGY, energyCritical);
+  setAlertFlag(OOAlertFlags::kEnergy, energyCritical);
 
-  setAlertFlag(ALERT_FLAG_TEMP, (hullHeatLevel() > .90));
+  setAlertFlag(OOAlertFlags::kTemp, (hullHeatLevel() > .90));
 
-  setAlertFlag(ALERT_FLAG_ALT, (dialAltitude() < .10));
+  setAlertFlag(OOAlertFlags::kAlt, (dialAltitude() < .10));
 }
 
 void PlayerEntity::setMaxFlightPitch(GLfloat newValue) {
@@ -4781,7 +4781,7 @@ void PlayerEntity::setMassLockable(bool newValue) {
 bool PlayerEntity::getMassLockable() { return massLockable; }
 
 bool PlayerEntity::massLocked() {
-  return ((alertFlags & ALERT_FLAG_MASS_LOCK) != 0);
+  return OOAlertFlagIsOn(alertFlags, OOAlertFlags::kMassLock);
 }
 
 bool PlayerEntity::atHyperspeed() { return travelling_at_hyperspeed; }
@@ -5855,12 +5855,11 @@ void PlayerEntity::clearAlertFlags() { alertFlags = 0; }
 
 int PlayerEntity::getAlertFlags() { return alertFlags; }
 
-void PlayerEntity::setAlertFlag(int flag, bool value) {
+void PlayerEntity::setAlertFlag(OOAlertFlags flag, bool value) {
   if (value) {
-    alertFlags |= flag;
+    alertFlags |= oo::ToUnderlying(flag);
   } else {
-    int comp = ~flag;
-    alertFlags &= comp;
+    alertFlags &= oo::ToUnderlying(~flag);
   }
 }
 
@@ -5876,15 +5875,15 @@ OOAlertCondition PlayerEntity::getAlertCondition() {
   OOAlertCondition old_alert_condition = alertConditionLevel;
   alertConditionLevel = ALERT_CONDITION_GREEN;
 
-  setAlertFlag(ALERT_FLAG_DOCKED, status() == STATUS_DOCKED);
+  setAlertFlag(OOAlertFlags::kDocked, status() == STATUS_DOCKED);
 
-  if (alertFlags & ALERT_FLAG_DOCKED) {
+  if (OOAlertFlagIsOn(alertFlags, OOAlertFlags::kDocked)) {
     alertConditionLevel = ALERT_CONDITION_DOCKED;
   } else {
     if (alertFlags != 0) {
       alertConditionLevel = ALERT_CONDITION_YELLOW;
     }
-    if (alertFlags > ALERT_FLAG_YELLOW_LIMIT) {
+    if (alertFlags > oo::ToUnderlying(OOAlertFlags::kYellowLimit)) {
       alertConditionLevel = ALERT_CONDITION_RED;
     }
   }
@@ -7180,7 +7179,7 @@ void PlayerEntity::docked() {
   weapon_temp = 0.0f;
   ship_temperature = 60.0f;
 
-  setAlertFlag(ALERT_FLAG_DOCKED, true);
+  setAlertFlag(OOAlertFlags::kDocked, true);
 
   if ((dockedStation != nullptr ? dockedStation->getLocalMarket()
                                 : (OOCommodityMarket*)nullptr) == nullptr) {
@@ -7314,7 +7313,7 @@ void PlayerEntity::leaveDock(::StationEntity* station) {
   if (station != nullptr) station->autoDockShipsOnApproach();
   if (station != nullptr) station->clearDockingCorridor();
 
-  //	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
+  //	[self setAlertFlag:OOAlertFlags::kDocked to:NO];
   clearAlertFlags();
   setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
 
