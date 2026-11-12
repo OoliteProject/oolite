@@ -406,7 +406,7 @@ static void SynthDiffuse(OOMaterialSynthContext* context, NSString* name)
     if (diffuseMapSpec != nil && context->texturesUsed < context->maxTextures) {
         AddTexture(context, @"uDiffuseMap", kOOMaterialDiffuseMapName, @"OOSTD_DIFFUSE_MAP", diffuseMapSpec);
 
-        if (oo::PListView(diffuseMapSpec).get<BOOL>(@"cube_map")) {
+        if (oo::PListView(diffuseMapSpec).get<bool>(@"cube_map")) {
             [context->macros setObject:@"1" forKey:@"OOSTD_DIFFUSE_MAP_IS_CUBE_MAP"];
         }
     } else {

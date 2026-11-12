@@ -602,26 +602,26 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     equipmentPriceFactor = fmax(equipmentPriceFactor, 0.5f);
     hasNPCTraffic = (unsigned char)oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_npc_traffic", (maxFlightSpeed == 0)); // carriers default to NO
     hasPatrolShips = oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_patrol_ships", NO);
-    suppress_arrival_reports = (unsigned char)oo::PListView(dict).get<BOOL>(@"suppress_arrival_reports", NO);
+    suppress_arrival_reports = (unsigned char)oo::PListView(dict).get<bool>(@"suppress_arrival_reports", NO);
     [self setAllegiance:oo::PListView(dict).get<NSString*>(@"allegiance")];
 
     marketCapacity = oo::PListView(dict).get<unsigned int>(@"market_capacity", MAIN_SYSTEM_MARKET_LIMIT);
     marketDefinition = [oo::PListView(dict).get<NSArray*>(@"market_definition", nil) retain];
     marketScriptName = [oo::PListView(dict).get<NSString*>(@"market_script", nil) retain];
-    marketMonitored = (unsigned char)oo::PListView(dict).get<BOOL>(@"market_monitored", NO);
-    marketBroadcast = (unsigned char)oo::PListView(dict).get<BOOL>(@"market_broadcast", YES);
+    marketMonitored = (unsigned char)oo::PListView(dict).get<bool>(@"market_monitored", NO);
+    marketBroadcast = (unsigned char)oo::PListView(dict).get<bool>(@"market_broadcast", YES);
 
     // Non main stations may have requiresDockingClearance set to yes as a result of the code below,
     // but this variable should be irrelevant for them, as they do not make use of it anyway.
-    requiresDockingClearance = (unsigned char)oo::PListView(dict).get<BOOL>(@"requires_docking_clearance", [UNIVERSE dockingClearanceProtocolActive]);
+    requiresDockingClearance = (unsigned char)oo::PListView(dict).get<bool>(@"requires_docking_clearance", [UNIVERSE dockingClearanceProtocolActive]);
 
-    allowsFastDocking = (unsigned char)oo::PListView(dict).get<BOOL>(@"allows_fast_docking", NO);
+    allowsFastDocking = (unsigned char)oo::PListView(dict).get<bool>(@"allows_fast_docking", NO);
 
-    allowsAutoDocking = (unsigned char)oo::PListView(dict).get<BOOL>(@"allows_auto_docking", YES);
+    allowsAutoDocking = (unsigned char)oo::PListView(dict).get<bool>(@"allows_auto_docking", YES);
 
     allowsSaving = [UNIVERSE deterministicPopulation];
 
-    interstellarUndockingAllowed = (unsigned char)oo::PListView(dict).get<BOOL>(@"interstellar_undocking", NO);
+    interstellarUndockingAllowed = (unsigned char)oo::PListView(dict).get<bool>(@"interstellar_undocking", NO);
 
     double unitime = [UNIVERSE getTime];
 
@@ -2039,7 +2039,7 @@ NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
 - (BOOL)isRotatingStation
 {
-    if (oo::PListView(shipinfoDictionary).get<BOOL>(@"rotating", NO))
+    if (oo::PListView(shipinfoDictionary).get<bool>(@"rotating", NO))
         return YES;
     return [[shipinfoDictionary objectForKey:@"roles"] rangeOfString:@"rotating-station"].location != NSNotFound; // legacy
 }

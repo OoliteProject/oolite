@@ -622,7 +622,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             */
             reportedBadShips = [NSMutableArray array];
             foreach (key, remainingLikeShips) {
-                if (!oo::PListView(oo::PListView(ioData).get<NSDictionary*>(key)).get<BOOL>(@"is_external_dependency")) {
+                if (!oo::PListView(oo::PListView(ioData).get<NSDictionary*>(key)).get<bool>(@"is_external_dependency")) {
                     [reportedBadShips addObject:key];
                 }
                 [ioData removeObjectForKey:key];
@@ -887,7 +887,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             }
 
             if (badSubentities != nil) {
-                if (!oo::PListView(shipEntry).get<BOOL>(@"is_external_dependency")) {
+                if (!oo::PListView(shipEntry).get<bool>(@"is_external_dependency")) {
                     badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
                     OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
                     OOStandardsError(@"Bad subentity definition found");
@@ -917,9 +917,9 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         shipEntry = [ioData objectForKey:shipKey];
         remove = NO;
 
-        if (oo::PListView(shipEntry).get<BOOL>(@"is_template") || oo::PListView(shipEntry).get<BOOL>(@"_oo_deferred_remove"))
+        if (oo::PListView(shipEntry).get<bool>(@"is_template") || oo::PListView(shipEntry).get<bool>(@"_oo_deferred_remove"))
             remove = YES;
-        else if (shipMode && [oo::PListView(shipEntry).get<NSString*>(@"roles") length] == 0 && !oo::PListView(shipEntry).get<BOOL>(@"_oo_is_subentity") && !oo::PListView(shipEntry).get<BOOL>(@"_oo_is_effect")) {
+        else if (shipMode && [oo::PListView(shipEntry).get<NSString*>(@"roles") length] == 0 && !oo::PListView(shipEntry).get<bool>(@"_oo_is_subentity") && !oo::PListView(shipEntry).get<bool>(@"_oo_is_effect")) {
             OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
             remove = YES;
             OOStandardsError(@"Error in shipdata.plist");
@@ -1073,7 +1073,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             mesh = [OOMesh meshWithName:modelName
                      materialDictionary:oo::PListView(shipEntry).get<NSDictionary*>(@"materials")
                       shadersDictionary:oo::PListView(shipEntry).get<NSDictionary*>(@"shaders")
-                                 smooth:oo::PListView(shipEntry).get<BOOL>(@"smooth")
+                                 smooth:oo::PListView(shipEntry).get<bool>(@"smooth")
                            shaderMacros:nil
                     shaderBindingTarget:nil];
         } // NOTE: mesh is now invalid, but pointer nil check is OK.
@@ -1170,7 +1170,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
     }
 
     // For frangible ships, bad subentities are non-fatal.
-    if (*outFatalError && oo::PListView(oo::PListView(shipData).get<NSDictionary*>(shipKey)).get<BOOL>(@"frangible"))
+    if (*outFatalError && oo::PListView(oo::PListView(shipData).get<NSDictionary*>(shipKey)).get<bool>(@"frangible"))
         *outFatalError = NO;
 
     return result;
@@ -1377,7 +1377,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
 
     frequency = oo::PListView(declaration).get<float>(@"frequency", 2.0);
     phase = oo::PListView(declaration).get<float>(@"phase", 0.0);
-    initiallyOn = oo::PListView(declaration).get<BOOL>(@"initially_on", YES);
+    initiallyOn = oo::PListView(declaration).get<bool>(@"initially_on", YES);
 
     result = [NSMutableDictionary dictionaryWithCapacity:8];
     [result setObject:@"flasher" forKey:@"type"];
@@ -1436,7 +1436,7 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
             weaponEnergy = 100.0f;
         }
     } else {
-        isDock = oo::PListView(declaration).get<BOOL>(@"is_dock");
+        isDock = oo::PListView(declaration).get<bool>(@"is_dock");
     }
 
     position = oo::PListView(declaration).get<Vector>(@"position");
@@ -1456,9 +1456,9 @@ static NSString* const kVisualEffectDataCacheKey = @"visual effect data";
         NSString* docklabel = oo::PListView(declaration).get<NSString*>(@"dock_label", @"the docking bay");
         [result setObject:docklabel forKey:@"dock_label"];
 
-        BOOL dockable = oo::PListView(declaration).get<BOOL>(@"allow_docking", YES);
-        BOOL playerdockable = oo::PListView(declaration).get<BOOL>(@"disallowed_docking_collides", NO);
-        BOOL undockable = oo::PListView(declaration).get<BOOL>(@"allow_launching", YES);
+        BOOL dockable = oo::PListView(declaration).get<bool>(@"allow_docking", YES);
+        BOOL playerdockable = oo::PListView(declaration).get<bool>(@"disallowed_docking_collides", NO);
+        BOOL undockable = oo::PListView(declaration).get<bool>(@"allow_launching", YES);
 
         [result oo_setBool:dockable forKey:@"allow_docking"];
         [result oo_setBool:playerdockable forKey:@"disallowed_docking_collides"];

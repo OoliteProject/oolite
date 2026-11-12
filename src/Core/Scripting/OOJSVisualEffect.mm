@@ -604,7 +604,7 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS, OOVisualEffect
                                cacheKey:nil
                      materialDictionary:materials
                       shadersDictionary:shaders
-                                 smooth:oo::PListView(effectDict).get<BOOL>(@"smooth", NO)
+                                 smooth:oo::PListView(effectDict).get<bool>(@"smooth", NO)
                            shaderMacros:oo::PListView([ResourceManager materialDefaults]).get<NSDictionary*>(@"ship-prefix-macros")
                     shaderBindingTarget:thisEnt];
 

@@ -114,7 +114,7 @@ MA 02110-1301, USA.
                                    cacheKey:_effectKey
                          materialDictionary:oo::PListView(effectDict).get<NSDictionary*>(@"materials")
                           shadersDictionary:oo::PListView(effectDict).get<NSDictionary*>(@"shaders")
-                                     smooth:oo::PListView(effectDict).get<BOOL>(@"smooth", NO)
+                                     smooth:oo::PListView(effectDict).get<bool>(@"smooth", NO)
                                shaderMacros:OODefaultShipShaderMacros()
                         shaderBindingTarget:self];
         if (mesh == nil)

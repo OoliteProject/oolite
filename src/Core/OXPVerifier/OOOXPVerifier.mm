@@ -313,12 +313,12 @@ static void OpenLogFile(NSString* name);
     NSString* messageClass = nil;
     id verbose = nil;
 
-    OOLogSetShowMessageClassTemporary(oo::PListView(_verifierPList).get<BOOL>(@"logShowMessageClassOverride", NO));
+    OOLogSetShowMessageClassTemporary(oo::PListView(_verifierPList).get<bool>(@"logShowMessageClassOverride", NO));
 
     overrides = oo::PListView(_verifierPList).get<NSDictionary*>(@"logControlOverride");
     foreachkey(messageClass, overrides)
     {
-        OOLogSetDisplayMessagesInClass(messageClass, oo::PListView(overrides).get<BOOL>(messageClass, NO));
+        OOLogSetDisplayMessagesInClass(messageClass, oo::PListView(overrides).get<bool>(messageClass, NO));
     }
 
     /*	Since actually editing logControlOverride is a pain, we also allow
@@ -665,7 +665,7 @@ static void OpenLogFile(NSString* name)
 {
     //	Open log file in appropriate application / provide feedback.
 
-    if (oo::PListView([NSUserDefaults standardUserDefaults]).get<BOOL>(@"oxp-verifier-open-log", YES)) {
+    if (oo::PListView([NSUserDefaults standardUserDefaults]).get<bool>(@"oxp-verifier-open-log", YES)) {
 #if OOLITE_MAC_COCOA_UI
         [[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 #elif OOLITE_WINDOWS

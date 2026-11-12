@@ -139,7 +139,7 @@ MA 02110-1301, USA.
     else
         speciesString = [UNIVERSE getSystemInhabitants:[self planetIDOfOrigin] plural:NO];
 
-    if (!oo::PListView([UNIVERSE descriptions]).get<BOOL>(@"lowercase_ignore")) {
+    if (!oo::PListView([UNIVERSE descriptions]).get<bool>(@"lowercase_ignore")) {
         speciesString = [speciesString lowercaseString];
     }
 

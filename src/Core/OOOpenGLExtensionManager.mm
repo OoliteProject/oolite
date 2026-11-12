@@ -295,9 +295,9 @@ static NSArray* ArrayOfExtensions(NSString* extensionString)
         textureUnitCount = MAX(texUnitOverride, 0);
 #endif
 
-    usePointSmoothing = oo::PListView(gpuConfig).get<BOOL>(@"smooth_points", YES);
-    useLineSmoothing = oo::PListView(gpuConfig).get<BOOL>(@"smooth_lines", YES);
-    useDustShader = oo::PListView(gpuConfig).get<BOOL>(@"use_dust_shader", YES);
+    usePointSmoothing = oo::PListView(gpuConfig).get<bool>(@"smooth_points", YES);
+    useLineSmoothing = oo::PListView(gpuConfig).get<bool>(@"smooth_lines", YES);
+    useDustShader = oo::PListView(gpuConfig).get<bool>(@"use_dust_shader", YES);
 }
 
 - (void)dealloc

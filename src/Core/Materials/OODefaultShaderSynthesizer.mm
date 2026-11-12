@@ -965,7 +965,7 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     if ([specularColor isBlack])
         return;
 
-    BOOL modulateWithDiffuse = oo::PListView(specularColorMap).get<BOOL>(kOOTextureSpecifierSelfColorKey);
+    BOOL modulateWithDiffuse = oo::PListView(specularColorMap).get<bool>(kOOTextureSpecifierSelfColorKey);
 
     REQUIRE_STAGE(writeTotalColor);
     REQUIRE_STAGE(writeNormalIfNeeded);
@@ -1067,7 +1067,7 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
     // Check if we need the diffuse colour term.
     for (idx = 0; idx < count; idx++) {
         NSDictionary* lightMapSpec = oo::PListView(lightMaps).at<NSDictionary*>(idx);
-        if (oo::PListView(lightMapSpec).get<BOOL>(kOOTextureSpecifierIlluminationModeKey)) {
+        if (oo::PListView(lightMapSpec).get<bool>(kOOTextureSpecifierIlluminationModeKey)) {
             REQUIRE_STAGE(writeDiffuseColorTerm);
             REQUIRE_STAGE(writeDiffuseLighting);
             break;
@@ -1081,7 +1081,7 @@ static NSString* KeyFromTextureSpec(NSDictionary* spec)
         NSDictionary* textureSpec = OOTextureSpecFromObject(lightMapSpec, nil);
         NSArray* color = oo::PListView(lightMapSpec).get<NSArray*>(kOOTextureSpecifierModulateColorKey);
         float rgba[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        BOOL isIllumination = oo::PListView(lightMapSpec).get<BOOL>(kOOTextureSpecifierIlluminationModeKey);
+        BOOL isIllumination = oo::PListView(lightMapSpec).get<bool>(kOOTextureSpecifierIlluminationModeKey);
 
         if (EXPECT_NOT(color == nil && textureSpec == nil)) {
             [_fragmentBody appendString:@"\t// Light map with neither colour nor texture has no effect.\n\t\n"];

@@ -368,7 +368,7 @@ static const BaseFace kTexturedFaces[][3] = {
     OOTexture* texture = oo::PListView(dict).get<OOTexture*>(@"_oo_textureObject");
     if (texture != nil) {
         _texture = [texture retain];
-        isTextureImage = oo::PListView(dict).get<BOOL>(@"_oo_isExplicitlyTextured");
+        isTextureImage = oo::PListView(dict).get<bool>(@"_oo_isExplicitlyTextured");
     } else {
         NSDictionary* textureSpec = oo::PListView(dict).get<oo::TextureSpecifier>(@"texture", nil);
         if (textureSpec != nil) {
@@ -444,7 +444,7 @@ static const BaseFace kTexturedFaces[][3] = {
         sea_hsb.y = 1.0;
         sea_hsb.z = 1.0; // fully-saturated fully bright (red)
         // override the mainPlanet texture colour...
-        [self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:oo::PListView(dict).get<BOOL>(@"mainForLocalSystem", NO)];
+        [self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:oo::PListView(dict).get<bool>(@"mainForLocalSystem", NO)];
     } else {
         // random land & sea colours.
         land_hsb.x = gen_rnd_number() / 256.0;

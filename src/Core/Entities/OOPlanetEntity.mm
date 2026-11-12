@@ -80,7 +80,7 @@ MA 02110-1301, USA.
     if (s != [PLAYER systemID]) {
         [planetInfo oo_setBool:YES forKey:@"isMiniature"];
     }
-    return [self initFromDictionary:planetInfo withAtmosphere:oo::PListView(planetInfo).get<BOOL>(@"has_atmosphere", YES) andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
+    return [self initFromDictionary:planetInfo withAtmosphere:oo::PListView(planetInfo).get<bool>(@"has_atmosphere", YES) andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
 static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect starts at 10x the height of the clouds
@@ -279,8 +279,8 @@ static OOColor* ColorWithHSBColor(Vector c)
 
 - (void)setUpTypeParametersWithSourceInfo:(NSDictionary*)sourceInfo targetInfo:(NSMutableDictionary*)targetInfo
 {
-    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<BOOL>(@"mainForLocalSystem") forKey:@"mainForLocalSystem"];
-    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<BOOL>(@"isMiniature") forKey:@"isMiniature"];
+    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<bool>(@"mainForLocalSystem") forKey:@"mainForLocalSystem"];
+    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<bool>(@"isMiniature") forKey:@"isMiniature"];
 }
 
 - (void)setUpTerrainParametersWithSourceInfo:(NSDictionary*)sourceInfo targetInfo:(NSMutableDictionary*)targetInfo

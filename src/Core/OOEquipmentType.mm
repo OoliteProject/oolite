@@ -216,22 +216,22 @@ static NSDictionary* sMissilesRegistry = nil;
         extra = oo::PListView(info).at<NSDictionary*>(EQUIPMENT_EXTRA_INFO_INDEX);
         if (extra != nil) {
 
-            _isAvailableToAll = (unsigned char)oo::PListView(extra).get<BOOL>(@"available_to_all", _isAvailableToAll);
-            _isAvailableToPlayer = (unsigned char)oo::PListView(extra).get<BOOL>(@"available_to_player", _isAvailableToPlayer);
-            _isAvailableToNPCs = (unsigned char)oo::PListView(extra).get<BOOL>(@"available_to_NPCs", _isAvailableToNPCs);
+            _isAvailableToAll = (unsigned char)oo::PListView(extra).get<bool>(@"available_to_all", _isAvailableToAll);
+            _isAvailableToPlayer = (unsigned char)oo::PListView(extra).get<bool>(@"available_to_player", _isAvailableToPlayer);
+            _isAvailableToNPCs = (unsigned char)oo::PListView(extra).get<bool>(@"available_to_NPCs", _isAvailableToNPCs);
 
-            _isMissileOrMine = (unsigned char)oo::PListView(extra).get<BOOL>(@"is_external_store", _isMissileOrMine);
-            _requiresEmptyPylon = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_empty_pylon", _requiresEmptyPylon);
-            _requiresMountedPylon = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_mounted_pylon", _requiresMountedPylon);
-            _requiresClean = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_clean", _requiresClean);
-            _requiresNotClean = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_not_clean", _requiresNotClean);
-            _portableBetweenShips = (unsigned char)oo::PListView(extra).get<BOOL>(@"portable_between_ships", _portableBetweenShips);
-            _requiresFreePassengerBerth = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_free_passenger_berth", _requiresFreePassengerBerth);
-            _requiresFullFuel = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_full_fuel", _requiresFullFuel);
-            _requiresNonFullFuel = (unsigned char)oo::PListView(extra).get<BOOL>(@"requires_non_full_fuel", _requiresNonFullFuel);
-            _isVisible = (unsigned char)oo::PListView(extra).get<BOOL>(@"visible", _isVisible);
-            _canCarryMultiple = (unsigned char)oo::PListView(extra).get<BOOL>(@"can_carry_multiple", NO);
-            _hideValues = (unsigned char)oo::PListView(extra).get<BOOL>(@"hide_values", NO);
+            _isMissileOrMine = (unsigned char)oo::PListView(extra).get<bool>(@"is_external_store", _isMissileOrMine);
+            _requiresEmptyPylon = (unsigned char)oo::PListView(extra).get<bool>(@"requires_empty_pylon", _requiresEmptyPylon);
+            _requiresMountedPylon = (unsigned char)oo::PListView(extra).get<bool>(@"requires_mounted_pylon", _requiresMountedPylon);
+            _requiresClean = (unsigned char)oo::PListView(extra).get<bool>(@"requires_clean", _requiresClean);
+            _requiresNotClean = (unsigned char)oo::PListView(extra).get<bool>(@"requires_not_clean", _requiresNotClean);
+            _portableBetweenShips = (unsigned char)oo::PListView(extra).get<bool>(@"portable_between_ships", _portableBetweenShips);
+            _requiresFreePassengerBerth = (unsigned char)oo::PListView(extra).get<bool>(@"requires_free_passenger_berth", _requiresFreePassengerBerth);
+            _requiresFullFuel = (unsigned char)oo::PListView(extra).get<bool>(@"requires_full_fuel", _requiresFullFuel);
+            _requiresNonFullFuel = (unsigned char)oo::PListView(extra).get<bool>(@"requires_non_full_fuel", _requiresNonFullFuel);
+            _isVisible = (unsigned char)oo::PListView(extra).get<bool>(@"visible", _isVisible);
+            _canCarryMultiple = (unsigned char)oo::PListView(extra).get<bool>(@"can_carry_multiple", NO);
+            _hideValues = (unsigned char)oo::PListView(extra).get<bool>(@"hide_values", NO);
 
             _requiredCargoSpace = oo::PListView(extra).get<unsigned int>(@"requires_cargo_space", _requiredCargoSpace);
 
@@ -311,8 +311,8 @@ static NSDictionary* sMissilesRegistry = nil;
                 _script = nil;
             [_script retain];
             if (_script != nil) {
-                _fastAffinityA = !!oo::PListView(extra).get<BOOL>(@"fast_affinity_defensive");
-                _fastAffinityB = !!oo::PListView(extra).get<BOOL>(@"fast_affinity_offensive");
+                _fastAffinityA = !!oo::PListView(extra).get<bool>(@"fast_affinity_defensive");
+                _fastAffinityB = !!oo::PListView(extra).get<bool>(@"fast_affinity_offensive");
 
                 // look for default activate and mode key settings
                 // note: the customEquipmentActivation array is only populated when starting a game
@@ -639,12 +639,12 @@ static NSDictionary* sMissilesRegistry = nil;
 // weapon properties follow
 - (BOOL)isTurretLaser
 {
-    return oo::PListView(_weaponInfo).get<BOOL>(@"is_turret_laser", NO);
+    return oo::PListView(_weaponInfo).get<bool>(@"is_turret_laser", NO);
 }
 
 - (BOOL)isMiningLaser
 {
-    return oo::PListView(_weaponInfo).get<BOOL>(@"is_mining_laser", NO);
+    return oo::PListView(_weaponInfo).get<bool>(@"is_mining_laser", NO);
 }
 
 - (NSDictionary*)weaponInfo

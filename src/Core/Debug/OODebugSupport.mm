@@ -91,7 +91,7 @@ void OOInitDebugSupport(void)
     }
 
     if (!activateDebugConsole) {
-        activateDebugConsole = oo::PListView(debugSettings).get<BOOL>(@"always-load-debug-console");
+        activateDebugConsole = oo::PListView(debugSettings).get<bool>(@"always-load-debug-console");
     }
 
     if (activateDebugConsole) {

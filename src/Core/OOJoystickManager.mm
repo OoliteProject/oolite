@@ -348,7 +348,7 @@ static id sSharedStickHandler = nil;
 
 - (void)setFunction:(int)function withDict:(NSDictionary*)stickFn
 {
-    BOOL isAxis = oo::PListView(stickFn).get<BOOL>(STICK_ISAXIS);
+    BOOL isAxis = oo::PListView(stickFn).get<bool>(STICK_ISAXIS);
     int stickNum = oo::PListView(stickFn).get<int>(STICK_NUMBER);
     int stickAxBt = oo::PListView(stickFn).get<int>(STICK_AXBUT);
 
