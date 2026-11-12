@@ -57,11 +57,14 @@ MA 02110-1301, USA.
 
 enum class StateFlag : std::uint8_t { kFalse = false, kTrue = true, kMaybe };
 
+#if OO_GL_STATE_VERIFICATION
 // A flag as the GL dump logs it: anything but kFalse reads as on, as the
-// unscoped enum converted to bool.
+// unscoped enum converted to bool. (The dump, and OOGLFlagToString, exist only
+// with the state verifier.)
 std::string StateFlagToString(StateFlag flag) {
   return OOGLFlagToString(flag != StateFlag::kFalse);
 }
+#endif
 
 using OOOpenGLState = struct {
   const char* name;
