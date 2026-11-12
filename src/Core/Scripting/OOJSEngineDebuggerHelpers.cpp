@@ -79,6 +79,7 @@ MA 02110-1301, USA.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <string>
 #include <utility>
@@ -165,11 +166,11 @@ const char* JSValueToStrSafeDbg(JSValue val) {
 
   switch (JS_VALUE_GET_TAG(val)) {
     case JS_TAG_INT:
-      formatted = oo::str::format("%i", JS_VALUE_GET_INT(val));
+      formatted = std::format("{}", JS_VALUE_GET_INT(val));
       break;
 
     case JS_TAG_FLOAT64:
-      formatted = oo::str::format("%g", JS_VALUE_GET_FLOAT64(val));
+      formatted = std::format("{:g}", JS_VALUE_GET_FLOAT64(val));
       break;
 
     case JS_TAG_BOOL:
@@ -221,7 +222,7 @@ const char* JSIDToStrSafeDbg(JSAtom anID) {
     JS_FreeCString(context, chars);
   } else {
     JS_FreeValue(context, JS_GetException(context));
-    formatted = oo::str::format("unknown <0x%X>", (unsigned)anID);
+    formatted = std::format("unknown <0x{:X}>", (unsigned)anID);
   }
 
   return DebuggerCString(std::move(formatted));

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -708,7 +709,7 @@ static int InterruptHandler(JSRuntime* runtime, void* opaque) {
              "Script \"{}\" ran for {} seconds and has been terminated.",
              ((runningScript != nullptr) ? runningScript->name() : std::nullopt)
                  .value_or("(null)"),
-             oo::str::format("%g", elapsed));
+             std::format("{:g}", elapsed));
 #ifdef OO_DEBUG_MONITOR_ENABLED
   OOJSDumpStack(gOOJSMainThreadContext);
 #endif
@@ -975,7 +976,7 @@ std::string cxx_OOStringFromJSPropertyMagic(int magic,
     if (list[i].def_type == JS_DEF_CGETSET_MAGIC && list[i].magic == magic)
       return std::string(list[i].name);
   }
-  return oo::str::format("%i", magic);
+  return std::format("{}", magic);
 }
 
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj,
@@ -1302,8 +1303,7 @@ JSValue OOJSValue::jsValueInContext(JSContext* context) {
 std::string OOJSValue::className() const { return "OOJSValue"; }
 
 std::string OOJSValue::description() const {
-  return oo::str::format("<OOJSValue %s>",
-                         oo::str::pointerDescription(this).c_str());
+  return std::format("<OOJSValue {}>", oo::str::pointerDescription(this));
 }
 
 //===========================================================================
@@ -1408,15 +1408,14 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
           arrayDesc += itemDesc;
         }
         if (effectiveCount != count) {
-          arrayDesc +=
-              oo::str::format(", ... <%lli items total>]", (long long)count);
+          arrayDesc += std::format(", ... <{} items total>]", (long long)count);
         } else {
           arrayDesc += "]";
         }
 
         result = arrayDesc;
       } else {
-        result = oo::str::format("[<%lli items>]", (long long)count);
+        result = std::format("[<{} items>]", (long long)count);
       }
     } else {
       JS_FreeValue(context, JS_GetException(context));
@@ -1592,7 +1591,7 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj,
 
   const char* className = OOJSClassName(JS_GetClassID(thisObj));
   if (className != nullptr) {
-    description = oo::str::format("[object %s]", className);
+    description = std::format("[object {}]", className);
   }
   if (!description.has_value()) description = std::string("[object]");
 

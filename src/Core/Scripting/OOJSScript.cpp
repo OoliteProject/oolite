@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 
 #include "OOJSScript.h"
 
+#include <format>
+
 #include "Entity.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEngineTimeManagement.h"
@@ -494,8 +496,8 @@ std::optional<std::string> OOJSScript::jsDescription() {
   const std::string className = jsClassName().value_or("Script");
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value())
-    return oo::str::format("[%s %s]", className.c_str(), components->c_str());
-  return oo::str::format("[object %s]", className.c_str());
+    return std::format("[{} {}]", className, *components);
+  return std::format("[object {}]", className);
 }
 
 void OOJSScript::pushScript(OOJSScript* script) {
@@ -673,7 +675,7 @@ static JSValue ScriptToString(OOJS_NATIVE_ARGS) {
   if (!description.has_value()) {
     const char* className = OOJSClassName(JS_GetClassID(OOJS_THIS));
     description =
-        oo::str::format("[object %s]", className != nullptr ? className : "");
+        std::format("[object {}]", className != nullptr ? className : "");
   }
 
   OOJS_RETURN_STRING_OR_NULL(description);
@@ -826,8 +828,8 @@ static std::string SourceHash(std::string_view source) {
     hash ^= static_cast<unsigned char>(c);
     hash *= 0x100000001b3ULL;
   }
-  return oo::str::format("%016llx:%lu", (unsigned long long)hash,
-                         (unsigned long)source.size());
+  return std::format("{:016x}:{}", (unsigned long long)hash,
+                     (unsigned long)source.size());
 }
 
 // The entry's member, or null.

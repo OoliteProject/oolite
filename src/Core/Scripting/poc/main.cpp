@@ -14,6 +14,7 @@ Usage: oojs-quickjs-poc <tests directory>
 #include <chrono>
 #include <cstdio>
 #include <ctime>
+#include <format>
 #include <optional>
 #include <string>
 
@@ -140,8 +141,8 @@ void RunTimeLimiterTests(const std::string& testDir) {
 
   Check(result == std::nullopt, "infinite loop is terminated");
   Check(elapsed >= 1.0 && elapsed < 3.0,
-        oo::str::format("termination after the 1 second limit (took %.2f s)",
-                        elapsed));
+        std::format("termination after the 1 second limit (took {:.2f} s)",
+                    elapsed));
   Check(LogContains("Script \"poc_runaway\" ran for"), "termination logged");
   Check(!LogContains("JavaScript exception"),
         "termination not also reported as an exception");
@@ -189,8 +190,8 @@ int main(int argc, const char* argv[]) {
 
   std::size_t leaked = engine->shutDown();
   Check(leaked == 0,
-        oo::str::format("runtime destroyed with no leaked objects (%lu alive)",
-                        static_cast<unsigned long>(leaked)));
+        std::format("runtime destroyed with no leaked objects ({} alive)",
+                    static_cast<unsigned long>(leaked)));
 
   fprintf(stdout, "\n%u checks, %u failures\n", sChecks, sFailures);
   return sFailures == 0 ? 0 : 1;

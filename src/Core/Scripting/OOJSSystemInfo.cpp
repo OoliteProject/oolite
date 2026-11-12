@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <optional>
 #include <set>
 #include <string>
@@ -260,7 +261,7 @@ static OOSystemInfo* SystemInfoForObject(JSValueConst obj) {
 OOSystemInfo::OOSystemInfo(OOGalaxyID galaxy, OOSystemID system)
     : _galaxy(galaxy),
       _system(system),
-      _planetKey(oo::str::format("%u %i", galaxy, system)) {}
+      _planetKey(std::format("{} {}", galaxy, system)) {}
 
 oo::Ref<OOSystemInfo> OOSystemInfo::initWithGalaxy(OOGalaxyID galaxy,
                                                    OOSystemID system) {
@@ -285,7 +286,7 @@ bool OOSystemInfo::isNullAssignedForKey(const std::string& key) const {
 }
 
 std::optional<std::string> OOSystemInfo::descriptionComponents() const {
-  return oo::str::format("galaxy %u, system %i", _galaxy, _system);
+  return std::format("galaxy {}, system {}", _galaxy, _system);
 }
 
 std::optional<std::string> OOSystemInfo::shortDescriptionComponents() const {
@@ -399,15 +400,14 @@ std::string OOSystemInfo::className() const { return "OOSystemInfo"; }
 
 std::string OOSystemInfo::description() const {
   const std::optional<std::string> components = descriptionComponents();
-  return oo::str::format("<OOSystemInfo>{%s}", components.value_or("").c_str());
+  return std::format("<OOSystemInfo>{{{}}}", components.value_or(""));
 }
 
 std::optional<std::string> OOSystemInfo::jsDescription() {
   const std::optional<std::string> components = descriptionComponents();
   const std::string name = oo_jsClassName().value_or("OOSystemInfo");
-  if (components.has_value())
-    return oo::str::format("[%s %s]", name.c_str(), components->c_str());
-  return oo::str::format("[object %s]", name.c_str());
+  if (components.has_value()) return std::format("[{} {}]", name, *components);
+  return std::format("[object {}]", name);
 }
 
 // OOJSBasicPrivateObjectConverter for the C++ system info the slot holds: the
@@ -1301,7 +1301,9 @@ static JSValue SystemInfoStaticSetInterstellarProperty(OOJS_NATIVE_ARGS) {
     manifest = RunningScriptManifest();
   }
 
-  std::string key = oo::str::format("interstellar: %u %u %u", g, s1, s2);
+  std::string key =
+      std::format("interstellar: {} {} {}", static_cast<unsigned>(g),
+                  static_cast<unsigned>(s1), static_cast<unsigned>(s2));
 
   OOSystemDescriptionManager* systemManager =
       (UNIVERSE != nullptr

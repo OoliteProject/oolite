@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -544,9 +545,9 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
     case kEquipmentInfo_effectiveTechLevel:
-      cxx_OOStandardsDeprecated(oo::str::format(
-          "TL99 for variable tech level is deprecated for %s",
-          Ask(type, &OOEquipmentType::identifier).value_or("(null)").c_str()));
+      cxx_OOStandardsDeprecated(std::format(
+          "TL99 for variable tech level is deprecated for {}",
+          Ask(type, &OOEquipmentType::identifier).value_or("(null)")));
       if (!OOEnforceStandards() &&
           Ask(type, &OOEquipmentType::techLevel) == kOOVariableTechLevel) {
         if (JS_IsNull(value)) {
@@ -563,7 +564,7 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
           if (15 < iValue && iValue != kOOVariableTechLevel) iValue = 15;
           if (PlayerEntity* player = OOPlayerForScripting())
             player->setMissionVariable(
-                oo::PList(oo::str::format("%u", iValue)),
+                oo::PList(std::format("{}", static_cast<uint32_t>(iValue))),
                 "mission_TL_FOR_" +
                     Ask(type, &OOEquipmentType::identifier).value_or(""));
           return JS_UNDEFINED;
@@ -639,9 +640,8 @@ std::optional<std::string> OOEquipmentType::jsDescription() {
   const std::optional<std::string> components = descriptionComponents();
   const std::string name =
       OOJSEquipmentInfoJSClassName().value_or("EquipmentInfo");
-  if (components.has_value())
-    return oo::str::format("[%s %s]", name.c_str(), components->c_str());
-  return oo::str::format("[object %s]", name.c_str());
+  if (components.has_value()) return std::format("[{} {}]", name, *components);
+  return std::format("[object {}]", name);
 }
 
 std::optional<std::string> OOJSEquipmentInfoJSClassName() {

@@ -29,6 +29,7 @@ SOFTWARE.
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -235,11 +236,9 @@ static void UpdateProfileForFrame(OOHighResTimeValue now,
 std::optional<std::string> OOTimeProfile::description() {
   double totalTime = this->totalTime();
 
-  std::string result = oo::str::format(
-      "Total time: %g ms\n"
-      "JavaScript: %g ms, native: %g ms\n"
-      "Counted towards limit: %g ms, excluded: %g ms\n"
-      "Profiler overhead: %g ms",
+  std::string result = std::format(
+      "Total time: {:g} ms\nJavaScript: {:g} ms, native: {:g} ms\nCounted "
+      "towards limit: {:g} ms, excluded: {:g} ms\nProfiler overhead: {:g} ms",
       totalTime * 1000.0, javaScriptTime() * 1000.0, nativeTime() * 1000.0,
       nonExtensionTime() * 1000.0, extensionTime() * 1000.0,
       profilerOverhead() * 1000.0);
@@ -257,9 +256,9 @@ std::optional<std::string> OOTimeProfile::description() {
       double totalPc = entry->totalTimeSum() * 100.0 / totalTime;
       double selfPc = entry->selfTimeSum() * 100.0 / totalTime;
 
-      result += oo::str::format(
-          "\n%60s  %c%7lu %8.2f %8.2f   %5.1f   %5.1f %8.2f",
-          entry->function().value_or("(null)").c_str(),
+      result += std::format(
+          "\n{:>60}  {}{:7} {:8.2f} {:8.2f}   {:5.1f}   {:5.1f} {:8.2f}",
+          entry->function().value_or("(null)"),
           entry->isJavaScriptFrame() ? 'J' : 'N',
           (unsigned long)entry->hitCount(), entry->totalTimeSum() * 1000.0,
           entry->selfTimeSum() * 1000.0, totalPc, selfPc,
@@ -345,7 +344,7 @@ void OOTimeProfileEntry::addSampleWithTotalTime(OOTimeDelta totalTime,
 std::optional<std::string> OOTimeProfileEntry::description() {
   const char* function = _function.has_value() ? _function->c_str()
                                                : "(null)";  // as %@ printed nil
-  if (_hitCount == 0) return oo::str::format("%s: --", function);
+  if (_hitCount == 0) return std::format("{}: --", function);
 
   // Convert everything to milliseconds.
   float totalTimeSum = _totalTimeSum * 1000.0;
@@ -355,20 +354,20 @@ std::optional<std::string> OOTimeProfileEntry::description() {
 
   if (totalTimeSum == selfTimeSum && totalTimeMax == selfTimeMax) {
     if (_hitCount == 1) {
-      return oo::str::format("%s: 1 time, %g ms", function, totalTimeSum);
+      return std::format("{}: 1 time, {:g} ms", function, totalTimeSum);
     } else {
-      return oo::str::format("%s: %lu times, total %g ms, avg %g ms, max %g ms",
-                             function, _hitCount, totalTimeSum,
-                             totalTimeSum / _hitCount, totalTimeMax);
+      return std::format(
+          "{}: {} times, total {:g} ms, avg {:g} ms, max {:g} ms", function,
+          _hitCount, totalTimeSum, totalTimeSum / _hitCount, totalTimeMax);
     }
   } else {
     if (_hitCount == 1) {
-      return oo::str::format("%s: 1 time, %g ms (self %g ms)", function,
-                             totalTimeSum, selfTimeSum);
+      return std::format("{}: 1 time, {:g} ms (self {:g} ms)", function,
+                         totalTimeSum, selfTimeSum);
     } else {
-      return oo::str::format(
-          "%s: %lu times, total %g ms (self %g ms), avg %g ms (self %g ms), "
-          "max %g ms, max self %g ms",
+      return std::format(
+          "{}: {} times, total {:g} ms (self {:g} ms), avg {:g} ms (self {:g} "
+          "ms), max {:g} ms, max self {:g} ms",
           function, _hitCount, totalTimeSum, selfTimeSum,
           totalTimeSum / _hitCount, selfTimeSum / _hitCount, totalTimeMax,
           selfTimeMax);

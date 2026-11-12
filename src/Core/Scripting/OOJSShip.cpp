@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -2674,8 +2675,8 @@ static JSValue ShipRunLegacyScriptActions(OOJS_NATIVE_ARGS) {
     if (player != nullptr)
       player->runUnsanitizedScriptActions(
           actions, true,
-          oo::str::format("<ship \"%s\" legacy actions>",
-                          ship->getName().value_or("(null)").c_str()),
+          std::format("<ship \"{}\" legacy actions>",
+                      ship->getName().value_or("(null)")),
           target);
   }
 
@@ -3308,9 +3309,9 @@ static JSValue ShipSetCargoType(OOJS_NATIVE_ARGS) {
   if (ship->cargoType() != CARGO_NOT_CARGO) {
     cxx_OOJSReportBadArguments(
         context, "Ship", "setCargoType", argc, OOJS_ARGV, std::nullopt,
-        oo::str::format(
-            "Can only be used on cargo pod carriers, not cargo pods (%s)",
-            ship->shipDataKey().value_or("(null)").c_str()));
+        std::format(
+            "Can only be used on cargo pod carriers, not cargo pods ({})",
+            ship->shipDataKey().value_or("(null)")));
     return OOJSNativeFailure(context);
   }
   bool ok = true;

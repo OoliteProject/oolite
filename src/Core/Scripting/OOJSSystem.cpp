@@ -28,6 +28,7 @@ OOJSSystem.m (QuickJS-ng)
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -706,12 +707,12 @@ static JSValue SystemToString(OOJS_NATIVE_ARGS) {
       (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList());
   const oo::PList* systemName =
       systemData.find(KEY_NAME);  // -objectForKey:; "(null)" for none
-  systemDesc = oo::str::format(
-      "[System %u:%u \"%s\"]",
+  systemDesc = std::format(
+      "[System {}:{} \"{}\"]",
       (player != nullptr ? player->currentGalaxyID() : OOGalaxyID{}),
-      (player != nullptr ? player->currentSystemID() : 0),
-      oo::DescriptionOf(systemName != nullptr ? *systemName : oo::PList())
-          .c_str());
+      static_cast<unsigned int>(
+          (player != nullptr ? player->currentSystemID() : 0)),
+      oo::DescriptionOf(systemName != nullptr ? *systemName : oo::PList()));
   OOJS_RETURN_PLIST(oo::PList(systemDesc));
 
   OOJS_NATIVE_EXIT
@@ -1211,8 +1212,8 @@ static JSValue SystemLegacyAddShipsAt(OOJS_NATIVE_ARGS) {
   }
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  arg = oo::str::format("%s %d %s %f %f %f", role->c_str(), count,
-                        coordScheme->c_str(), where.x, where.y, where.z);
+  arg = std::format("{} {} {} {:f} {:f} {:f}", *role, count, *coordScheme,
+                    where.x, where.y, where.z);
   if (player != nullptr) player->addShipsAt(arg);
   OOJS_END_FULL_NATIVE
 
@@ -1251,8 +1252,8 @@ static JSValue SystemLegacyAddShipsAtPrecisely(OOJS_NATIVE_ARGS) {
   }
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  arg = oo::str::format("%s %d %s %f %f %f", role->c_str(), count,
-                        coordScheme->c_str(), where.x, where.y, where.z);
+  arg = std::format("{} {} {} {:f} {:f} {:f}", *role, count, *coordScheme,
+                    where.x, where.y, where.z);
   if (player != nullptr) player->addShipsAtPrecisely(arg);
   OOJS_END_FULL_NATIVE
 
@@ -1294,9 +1295,8 @@ static JSValue SystemLegacyAddShipsWithinRadius(OOJS_NATIVE_ARGS) {
   }
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  arg =
-      oo::str::format("%s %d %s %f %f %f %f", role->c_str(), count,
-                      coordScheme->c_str(), where.x, where.y, where.z, radius);
+  arg = std::format("{} {} {} {:f} {:f} {:f} {:f}", *role, count, *coordScheme,
+                    where.x, where.y, where.z, radius);
   if (player != nullptr) player->addShipsWithinRadius(arg);
   OOJS_END_FULL_NATIVE
 
@@ -1402,7 +1402,8 @@ static JSValue SystemStaticInfoForSystem(OOJS_NATIVE_ARGS) {
   if (galaxyID < 0 || galaxyID > kOOMaximumGalaxyID) {
     cxx_OOJSReportBadArguments(
         context, "System", "infoForSystem", 1, OOJS_ARGV, "Invalid galaxy ID",
-        oo::str::format("number in the range 0 to %u", kOOMaximumGalaxyID));
+        std::format("number in the range 0 to {}",
+                    static_cast<unsigned int>(kOOMaximumGalaxyID)));
     return OOJSNativeFailure(context);
   }
 
@@ -1410,8 +1411,9 @@ static JSValue SystemStaticInfoForSystem(OOJS_NATIVE_ARGS) {
     cxx_OOJSReportBadArguments(
         context, "System", "infoForSystem", 1, OOJS_ARGV + 1,
         "Invalid system ID",
-        oo::str::format("number in the range %i to %i", kOOMinimumSystemID,
-                        kOOMaximumSystemID));
+        std::format("number in the range {} to {}",
+                    static_cast<int>(kOOMinimumSystemID),
+                    static_cast<int>(kOOMaximumSystemID)));
     return OOJSNativeFailure(context);
   }
 

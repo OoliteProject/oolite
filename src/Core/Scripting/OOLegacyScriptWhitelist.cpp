@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "OOLegacyScriptWhitelist.h"
 
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <set>
 #include <string>
@@ -645,7 +646,7 @@ static std::string StringFromStackInternal(SanStackElement* topOfStack) {
 
   std::string string = topOfStack->key
                            ? *topOfStack->key
-                           : oo::str::format("%zu", (size_t)topOfStack->index);
+                           : std::format("{}", (size_t)topOfStack->index);
   if (base.size() > 0) base += ".";
 
   base += string;

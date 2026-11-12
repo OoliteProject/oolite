@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "OOJSShipGroup.h"
 
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <string>
 #include <vector>
@@ -285,7 +286,7 @@ void OOShipGroup::clearJSSelf(JSValueConst selfVal) {
 std::optional<std::string> OOShipGroup::jsDescription() {
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value())
-    return oo::str::format("[OOShipGroup %s]", components->c_str());
+    return std::format("[OOShipGroup {}]", *components);
   return std::string("[object OOShipGroup]");
 }
 

@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #include "OOScript.h"
 
+#include <format>
 #include <typeinfo>
 
 #include "OODebugStandards.h"
@@ -115,7 +116,7 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::worldScriptsAtPath(
     filePath = oo::str::appendingPathComponent(path, "script.plist");
     if (OOOxzFileExistsAtPath(filePath)) {
       cxx_OOStandardsDeprecated(
-          oo::str::format("Legacy script %s is deprecated", filePath.c_str()));
+          std::format("Legacy script {} is deprecated", filePath));
       if (!OOEnforceStandards()) {
         foundScript = true;
         OO_LOG("script.load.pList", "Trying to load property list script {}",
@@ -190,7 +191,7 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::scriptsFromFileAtPath(
     return result;
   } else if (extension == "plist") {
     cxx_OOStandardsDeprecated(
-        oo::str::format("Legacy script %s is deprecated", filePath.c_str()));
+        std::format("Legacy script {} is deprecated", filePath));
     if (OOEnforceStandards()) {
       return std::nullopt;
     }
@@ -261,8 +262,8 @@ oo::Ref<OOScript> OOScript::jsAIScriptFromFileNamed(
 }
 
 std::optional<std::string> OOScript::descriptionComponents() {
-  return oo::str::format("\"%s\" version %s", name().value_or("(null)").c_str(),
-                         version().value_or("(null)").c_str());
+  return std::format("\"{}\" version {}", name().value_or("(null)"),
+                     version().value_or("(null)"));
 }
 
 std::optional<std::string> OOScript::name() {
@@ -288,8 +289,7 @@ std::optional<std::string> OOScript::displayName() {
   std::optional<std::string> version = this->version();
 
   if (version.has_value())
-    return oo::str::format("%s %s", name.value_or("(null)").c_str(),
-                           version->c_str());
+    return std::format("{} {}", name.value_or("(null)"), *version);
   else
     return name;
 }
@@ -316,9 +316,8 @@ std::string OOScript::className() const { return "OOScript"; }
 // its identity now), then the components.
 std::string OOScript::description() const {
   OOScript& script = const_cast<OOScript&>(*this);
-  std::string result =
-      oo::str::format("<%s %s>", ClassName(script).c_str(),
-                      oo::str::pointerDescription(this).c_str());
+  std::string result = std::format("<{} {}>", ClassName(script),
+                                   oo::str::pointerDescription(this));
   if (const std::optional<std::string> components =
           script.descriptionComponents())
     result += "{" + *components + "}";
