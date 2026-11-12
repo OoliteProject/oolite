@@ -74,8 +74,9 @@ void OOLaserShotEntity::initLaserFromShip(::ShipEntity* srcEntity,
                                           Vector offset) {
   // [super init] could not fail: the constructor ran Entity's -init body.
 
-  ::ShipEntity* ship = oo::ToShip(
-      (srcEntity != nullptr ? srcEntity->rootShipEntity() : (Entity*)nullptr));
+  ::ShipEntity* ship =
+      oo::ToShip((srcEntity != nullptr ? srcEntity->rootShipEntity()
+                                       : static_cast<Entity*>(nullptr)));
   Vector middle = OOBoundingBoxCenter(
       (srcEntity != nullptr ? srcEntity->getBoundingBox() : BoundingBox{}));
 

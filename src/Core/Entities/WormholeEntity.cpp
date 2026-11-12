@@ -330,10 +330,12 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship) {
     // MKW 2011.02.27 - calculate speed based on group leader, if any, to
     // try and prevent escorts from entering the wormhole before their mother.
     ::ShipEntity* leader =
-        ((ship != nullptr ? ship->group() : (OOShipGroup*)nullptr) != nullptr
-             ? (ship != nullptr ? ship->group() : (OOShipGroup*)nullptr)
+        ((ship != nullptr ? ship->group()
+                          : static_cast<OOShipGroup*>(nullptr)) != nullptr
+             ? (ship != nullptr ? ship->group()
+                                : static_cast<OOShipGroup*>(nullptr))
                    ->leader()
-             : (::ShipEntity*)nullptr);
+             : static_cast<::ShipEntity*>(nullptr));
     if (leader && (leader != ship)) {
       afterburnerFactor =
           (leader != nullptr ? leader->hasFuelInjection() : false) &&
@@ -381,8 +383,9 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship) {
     ship->getAI()->clearStack();  // get rid of any preserved states
 
   if ((ship != nullptr ? ship->getIsStation() : false)) {
-    if ((PLAYER != nullptr ? PLAYER->dockedStation()
-                           : (StationEntity*)nullptr) == oo::ToStation(ship)) {
+    if ((PLAYER != nullptr
+             ? PLAYER->dockedStation()
+             : static_cast<StationEntity*>(nullptr)) == oo::ToStation(ship)) {
       // the carrier has jumped while the player is docked
       if (ship != nullptr) oo::ToShip(oo::RetainEntity(ship));
       if (UNIVERSE != nullptr)

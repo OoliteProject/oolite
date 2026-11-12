@@ -63,7 +63,7 @@ oo::Ref<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(
     ::ShipEntity* ship, const std::vector<std::string>& definition,
     float scale) {
   oo::Ref<OOExhaustPlumeEntity> exhaust = oo::makeRef<OOExhaustPlumeEntity>();
-  if (!exhaust->initForShip(ship, definition, (float)scale)) return nullptr;
+  if (!exhaust->initForShip(ship, definition, scale)) return nullptr;
   return exhaust;
 }
 
@@ -133,8 +133,8 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/) {
   GLfloat length;
   HPVector vertex;
   GLfloat ex_emissive[4];
-  if (::OOColor* emissive =
-          (ship != nullptr ? ship->exhaustEmissiveColor() : (OOColor*)nullptr))
+  if (::OOColor* emissive = (ship != nullptr ? ship->exhaustEmissiveColor()
+                                             : static_cast<OOColor*>(nullptr)))
     emissive->getRed(&ex_emissive[0], &ex_emissive[1], &ex_emissive[2],
                      &ex_emissive[3]);  // a nil colour left them as they were
   const GLfloat s1[8] = {0.0, M_SQRT1_2,  1.0,  M_SQRT1_2,
@@ -167,10 +167,10 @@ void OOExhaustPlumeEntity::update(OOTimeDelta /*delta_t*/) {
     red_factor = 1.5;
   }
 
-  if ((int)(ranrot_rand() % 50) < dam - 50)  // flicker the damaged engines
+  if ((ranrot_rand() % 50) < dam - 50)  // flicker the damaged engines
     red_factor = 0.0;
-  if ((int)(ranrot_rand() % 40) < dam - 60) green_factor = 0.0;
-  if ((int)(ranrot_rand() % 25) < dam - 75) flare_factor = 0.0;
+  if ((ranrot_rand() % 40) < dam - 60) green_factor = 0.0;
+  if ((ranrot_rand() % 25) < dam - 75) flare_factor = 0.0;
 
   HPVector currentPos = ship->position;
   Vector vfwd = (ship != nullptr ? ship->forwardVector() : Vector{});
@@ -417,13 +417,13 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/,
   for (unsigned n = 0; n < 34 * 3; n++) {
     switch (n % 3) {
       case 0:  // x coordinates
-        _glVertices[n] = (GLfloat)(_vertices[n] - cam.x);
+        _glVertices[n] = static_cast<GLfloat>(_vertices[n] - cam.x);
         break;
       case 1:  // y coordinates
-        _glVertices[n] = (GLfloat)(_vertices[n] - cam.y);
+        _glVertices[n] = static_cast<GLfloat>(_vertices[n] - cam.y);
         break;
       case 2:  // z coordinates
-        _glVertices[n] = (GLfloat)(_vertices[n] - cam.z);
+        _glVertices[n] = static_cast<GLfloat>(_vertices[n] - cam.z);
         break;
     }
   }
@@ -447,10 +447,9 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/,
 
   double intpart,
       dphase =
-          1.0 -
-          modf((double)(UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) * 2.5,
-               &intpart);
-  GLfloat phase = (GLfloat)dphase;
+          1.0 - modf((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) * 2.5,
+                     &intpart);
+  GLfloat phase = static_cast<GLfloat>(dphase);
 
   GLfloat texCoords[68] = {
       0.5, phase + pA[0],
@@ -591,14 +590,14 @@ Frame OOExhaustPlumeEntity::frameAtTime(
   posn.y = f0 * frame_zero.position.y + f1 * frame_one.position.y;
   posn.z = f0 * frame_zero.position.z + f1 * frame_one.position.z;
   Quaternion qrot;
-  qrot.w = (float)f0 * frame_zero.orientation.w +
-           (float)f1 * frame_one.orientation.w;
-  qrot.x = (float)f0 * frame_zero.orientation.x +
-           (float)f1 * frame_one.orientation.x;
-  qrot.y = (float)f0 * frame_zero.orientation.y +
-           (float)f1 * frame_one.orientation.y;
-  qrot.z = (float)f0 * frame_zero.orientation.z +
-           (float)f1 * frame_one.orientation.z;
+  qrot.w = static_cast<float>(f0) * frame_zero.orientation.w +
+           static_cast<float>(f1) * frame_one.orientation.w;
+  qrot.x = static_cast<float>(f0) * frame_zero.orientation.x +
+           static_cast<float>(f1) * frame_one.orientation.x;
+  qrot.y = static_cast<float>(f0) * frame_zero.orientation.y +
+           static_cast<float>(f1) * frame_one.orientation.y;
+  qrot.z = static_cast<float>(f0) * frame_zero.orientation.z +
+           static_cast<float>(f1) * frame_one.orientation.z;
 
   Frame result;
   result.position = posn;

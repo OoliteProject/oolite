@@ -164,8 +164,8 @@ void ShipEntity::scanForHostiles() {
     GLfloat d2 = distance2_scanned_ships[i];
     if ((d2 < found_d2) &&
         ((thing != nullptr ? thing->isThargoid() : false) ||
-         (((thing != nullptr ? thing->primaryTarget() : (Entity*)nullptr) ==
-           this) &&
+         (((thing != nullptr ? thing->primaryTarget()
+                             : static_cast<Entity*>(nullptr)) == this) &&
           (thing != nullptr ? thing->hasHostileTarget() : false)) ||
          (thing != nullptr ? thing->isDefenseTarget(this) : false)) &&
         !(thing != nullptr ? thing->isCloaked() : false)) {
@@ -203,19 +203,22 @@ void ShipEntity::groupAttackTarget() {
     if (ship != nullptr)
       ship->doScriptEvent(OOJSID("helpRequestReceived"), this, target);
 
-    if ((ship != nullptr ? ship->escortGroup() : (OOShipGroup*)nullptr) !=
-            (ship != nullptr ? ship->group() : (OOShipGroup*)nullptr) &&
-        ((ship != nullptr ? ship->escortGroup() : (OOShipGroup*)nullptr) !=
-                 nullptr
-             ? (ship != nullptr ? ship->escortGroup() : (OOShipGroup*)nullptr)
+    if ((ship != nullptr ? ship->escortGroup()
+                         : static_cast<OOShipGroup*>(nullptr)) !=
+            (ship != nullptr ? ship->group()
+                             : static_cast<OOShipGroup*>(nullptr)) &&
+        ((ship != nullptr ? ship->escortGroup()
+                          : static_cast<OOShipGroup*>(nullptr)) != nullptr
+             ? (ship != nullptr ? ship->escortGroup()
+                                : static_cast<OOShipGroup*>(nullptr))
                    ->count()
              : 0) > 1)  // Ship has a seperate escort group.
     {
       for (const oo::EntityHold& escortRef :
-           ((ship != nullptr ? ship->escortGroup() : (OOShipGroup*)nullptr) !=
-                    nullptr
+           ((ship != nullptr ? ship->escortGroup()
+                             : static_cast<OOShipGroup*>(nullptr)) != nullptr
                 ? (ship != nullptr ? ship->escortGroup()
-                                   : (OOShipGroup*)nullptr)
+                                   : static_cast<OOShipGroup*>(nullptr))
                       ->memberArrayExcludingLeader()
                 : std::vector<oo::EntityHold>())) {
         ::ShipEntity* escort = oo::ToShip(escortRef.get());
@@ -446,9 +449,9 @@ void ShipEntity::scanForNearestIncomingMissile() {
 }
 
 void ShipEntity::enterPlayerWormhole() {
-  enterWormhole(
-      (PLAYER != nullptr ? PLAYER->getWormhole() : (WormholeEntity*)nullptr),
-      false);
+  enterWormhole((PLAYER != nullptr ? PLAYER->getWormhole()
+                                   : static_cast<WormholeEntity*>(nullptr)),
+                false);
 }
 
 void ShipEntity::enterTargetWormhole() {
@@ -462,7 +465,7 @@ void ShipEntity::enterTargetWormhole() {
       whole = static_cast<WormholeEntity*>(targEnt);
     else if (targEnt->getIsPlayer())
       whole = (PLAYER != nullptr ? PLAYER->getWormhole()
-                                 : (WormholeEntity*)nullptr);
+                                 : static_cast<WormholeEntity*>(nullptr));
   }
 
   if (!whole) {
@@ -544,8 +547,8 @@ bool ShipEntity::suggestEscortTo(::ShipEntity* mother) {
       }
 
       setOwner(mother);
-      setGroup(
-          (mother != nullptr ? mother->escortGroup() : (OOShipGroup*)nullptr));
+      setGroup((mother != nullptr ? mother->escortGroup()
+                                  : static_cast<OOShipGroup*>(nullptr)));
       if (shipAI != nullptr) shipAI->message("ESCORTING");
       return true;
     }
@@ -779,8 +782,8 @@ void ShipEntity::scanForNearestShipWithNegatedPredicate(
 }
 
 void ShipEntity::acceptDistressMessageFrom(::ShipEntity* other) {
-  setFoundTarget(
-      (other != nullptr ? other->primaryTarget() : (Entity*)nullptr));
+  setFoundTarget((other != nullptr ? other->primaryTarget()
+                                   : static_cast<Entity*>(nullptr)));
   if (isPolice()) {
     if (oo::ToShip(foundTarget()) != nullptr)
       oo::ToShip(foundTarget())
@@ -851,11 +854,13 @@ void StationEntity::acceptDistressMessageFrom(::ShipEntity* other) {
   if (this != (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) return;
 
   const oo::WeakRef<Entity> old_target = _primaryTarget;
-  _primaryTarget = oo::WeakRef<Entity>(other != nullptr ? other->primaryTarget()
-                                                        : (Entity*)nullptr);
+  _primaryTarget =
+      oo::WeakRef<Entity>(other != nullptr ? other->primaryTarget()
+                                           : static_cast<Entity*>(nullptr));
   if (oo::ToShip((other != nullptr ? other->primaryTarget()
-                                   : (Entity*)nullptr)) != nullptr)
-    oo::ToShip((other != nullptr ? other->primaryTarget() : (Entity*)nullptr))
+                                   : static_cast<Entity*>(nullptr))) != nullptr)
+    oo::ToShip((other != nullptr ? other->primaryTarget()
+                                 : static_cast<Entity*>(nullptr)))
         ->markAsOffender(
             8,
             OOLegalStatusReason::kDistressCall);  // mark their card
@@ -1257,8 +1262,8 @@ void ShipEntity::fightOrFleeMissile() {
   for (i = 0; (i < n_scanned_ships) && (missile == nullptr); i++) {
     ::ShipEntity* thing = scanned_ships[i];
     if (thing->scanClass == OOScanClass::kMissile) {
-      target = oo::ToShip(
-          (thing != nullptr ? thing->primaryTarget() : (Entity*)nullptr));
+      target = oo::ToShip((thing != nullptr ? thing->primaryTarget()
+                                            : static_cast<Entity*>(nullptr)));
 
       if (target == this) {
         missile = thing;
@@ -1546,8 +1551,8 @@ void ShipEntity::findNewDefenseTarget() {
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* ship = scanned_ships[i];
     if (!(ship != nullptr ? ship->isCloaked() : false) &&
-        (((ship != nullptr ? ship->primaryTarget() : (Entity*)nullptr) ==
-              this &&
+        (((ship != nullptr ? ship->primaryTarget()
+                           : static_cast<Entity*>(nullptr)) == this &&
           (ship != nullptr ? ship->hasHostileTarget() : false)) ||
          (ship != nullptr ? ship->isMine() : false) ||
          ((ship != nullptr ? ship->isThargoid() : false) != isThargoid()))) {
@@ -1597,10 +1602,10 @@ void ShipEntity::scanForOffenders() {
       if ((d2 < found_d2) && (random_factor < legal_factor) &&
           (legal_factor > worst_legal_factor)) {
         if (group == nullptr ||
-            group != (ship != nullptr
-                          ? ship->group()
-                          : (OOShipGroup*)nullptr))  // fellows with bounty
-                                                     // can't be offenders
+            group != (ship != nullptr ? ship->group()
+                                      : static_cast<OOShipGroup*>(
+                                            nullptr)))  // fellows with bounty
+                                                        // can't be offenders
         {
           setFoundTarget(ship);
           worst_legal_factor = legal_factor;
@@ -1732,7 +1737,8 @@ void ShipEntity::scanForNonThargoid() {
 void ShipEntity::thargonCheckMother() {
   ::ShipEntity* mother = oo::ToShip(owner());
   if (mother == nullptr && group())
-    mother = (group() != nullptr ? group()->leader() : (::ShipEntity*)nullptr);
+    mother = (group() != nullptr ? group()->leader()
+                                 : static_cast<::ShipEntity*>(nullptr));
 
   double maxRange2 = scannerRange * scannerRange;
 
@@ -1748,12 +1754,15 @@ void ShipEntity::thargonCheckMother() {
     if (foundTarget() != nullptr) {
       mother = oo::ToShip(foundTarget());
       setOwner(mother);
-      if ((mother != nullptr ? mother->group() : (OOShipGroup*)nullptr) !=
-          (mother != nullptr ? mother->escortGroup()
-                             : (OOShipGroup*)nullptr))  // avoid adding thargon
-                                                        // to an escort group.
+      if ((mother != nullptr ? mother->group()
+                             : static_cast<OOShipGroup*>(nullptr)) !=
+          (mother != nullptr
+               ? mother->escortGroup()
+               : static_cast<OOShipGroup*>(nullptr)))  // avoid adding thargon
+                                                       // to an escort group.
       {
-        setGroup((mother != nullptr ? mother->group() : (OOShipGroup*)nullptr));
+        setGroup((mother != nullptr ? mother->group()
+                                    : static_cast<OOShipGroup*>(nullptr)));
       }
     };
   }
@@ -1767,8 +1776,8 @@ void ShipEntity::becomeUncontrolledThargon() {
   for (i = 0; i < ent_count; i++)
     if (uni_entities[i]->isShip) {
       ::ShipEntity* other = oo::ToShip(uni_entities[i]);
-      if ((other != nullptr ? other->primaryTarget() : (Entity*)nullptr) ==
-          this) {
+      if ((other != nullptr ? other->primaryTarget()
+                            : static_cast<Entity*>(nullptr)) == this) {
         if (other != nullptr) other->removeTarget(this);
       }
       if ((other != nullptr ? other->isDefenseTarget(this) : false)) {
@@ -1842,13 +1851,13 @@ void ShipEntity::escortCheckMother() {
 
   if ((mother != nullptr ? mother->acceptAsEscort(this) : false)) {
     setOwner(mother);
-    setGroup(
-        (mother != nullptr ? mother->escortGroup() : (OOShipGroup*)nullptr));
+    setGroup((mother != nullptr ? mother->escortGroup()
+                                : static_cast<OOShipGroup*>(nullptr)));
     if (shipAI != nullptr) shipAI->message("ESCORTING");
   } else {
     setOwner(this);
-    if (group() ==
-        (mother != nullptr ? mother->escortGroup() : (OOShipGroup*)nullptr))
+    if (group() == (mother != nullptr ? mother->escortGroup()
+                                      : static_cast<OOShipGroup*>(nullptr)))
       setGroup(nullptr);
     if (shipAI != nullptr) shipAI->message("NOT_ESCORTING");
   }
@@ -1859,7 +1868,8 @@ void ShipEntity::checkGroupOddsVersusTarget() {
                               (ranrot_rand() & 3);  // add a random fudge factor
   ::ShipEntity* target = oo::ToShip(primaryTarget());
   ::OOShipGroup* targetGroup =
-      (target != nullptr ? target->group() : (OOShipGroup*)nullptr);
+      (target != nullptr ? target->group()
+                         : static_cast<OOShipGroup*>(nullptr));
   std::size_t targetGroupCount =
       (targetGroup != nullptr ? targetGroup->count() : 0) +
       (ranrot_rand() & 3);  // add a random fudge factor
@@ -1882,7 +1892,8 @@ void ShipEntity::scanForFormationLeader() {
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* ship = scanned_ships[i];
     if ((ship != this) && (!ship->isPlayer) && (ship->scanClass == scanClass) &&
-        (ship != nullptr ? ship->primaryTarget() : (Entity*)nullptr) != this &&
+        (ship != nullptr ? ship->primaryTarget()
+                         : static_cast<Entity*>(nullptr)) != this &&
         !(ship != nullptr ? ship->isCloaked() : false))  // look for alike
     {
       GLfloat d2 = distance2_scanned_ships[i];
@@ -1928,7 +1939,8 @@ void ShipEntity::setPlanetPatrolCoordinates() {
   if (HPmagnitude2(r_pos) < 1000000 || patrol_counter == 0) {
     Entity* the_sun = (UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr);
     ::ShipEntity* the_station =
-        (group() != nullptr ? group()->leader() : (::ShipEntity*)nullptr);
+        (group() != nullptr ? group()->leader()
+                            : static_cast<::ShipEntity*>(nullptr));
     if (!the_station ||
         !(the_station != nullptr ? the_station->getIsStation() : false))
       the_station =
@@ -2050,7 +2062,8 @@ void ShipEntity::setSunSkimExitCoordinates() {
 void ShipEntity::patrolReportIn() {
   // Set a report time in the patrolled station to delay a new launch.
   ::ShipEntity* the_station =
-      (group() != nullptr ? group()->leader() : (::ShipEntity*)nullptr);
+      (group() != nullptr ? group()->leader()
+                          : static_cast<::ShipEntity*>(nullptr));
   if (!the_station ||
       !(the_station != nullptr ? the_station->getIsStation() : false))
     the_station =
@@ -2061,7 +2074,8 @@ void ShipEntity::patrolReportIn() {
 
 void ShipEntity::checkForMotherStation() {
   ::ShipEntity* motherStation =
-      (group() != nullptr ? group()->leader() : (::ShipEntity*)nullptr);
+      (group() != nullptr ? group()->leader()
+                          : static_cast<::ShipEntity*>(nullptr));
   if ((!motherStation) || (!(motherStation->isStation))) {
     if (shipAI != nullptr) shipAI->message("NOTHING_FOUND");
     return;
@@ -2227,7 +2241,8 @@ void ShipEntity::setDestinationToDockingAbort() {
 
 void ShipEntity::requestNewTarget() {
   ::ShipEntity* mother =
-      (group() != nullptr ? group()->leader() : (::ShipEntity*)nullptr);
+      (group() != nullptr ? group()->leader()
+                          : static_cast<::ShipEntity*>(nullptr));
   if (mother == nullptr) {
     if (shipAI != nullptr) shipAI->message("MOTHER_LOST");
     return;
@@ -2247,8 +2262,8 @@ void ShipEntity::requestNewTarget() {
     if ((d2 < found_d2) && !(thing != nullptr ? thing->isCloaked() : false) &&
         (((thing != nullptr ? thing->isThargoid() : false) &&
           !(mother != nullptr ? mother->isThargoid() : false)) ||
-         (((thing != nullptr ? thing->primaryTarget() : (Entity*)nullptr) ==
-           mother) &&
+         (((thing != nullptr ? thing->primaryTarget()
+                             : static_cast<Entity*>(nullptr)) == mother) &&
           (thing != nullptr ? thing->hasHostileTarget() : false)))) {
       if (e1 > max_e) {
         setFoundTarget(thing);
@@ -2478,9 +2493,10 @@ void ShipEntity::setCoordinates(
     zString = std::format("{:.3f}", bellf(RandArgument(zString)));
 
   // -floatValue
-  HPVector posn = make_HPvector((float)oo::str::doubleValue(xString),
-                                (float)oo::str::doubleValue(yString),
-                                (float)oo::str::doubleValue(zString));
+  HPVector posn =
+      make_HPvector(static_cast<float>(oo::str::doubleValue(xString)),
+                    static_cast<float>(oo::str::doubleValue(yString)),
+                    static_cast<float>(oo::str::doubleValue(zString)));
   GLfloat scalar = 1.0;
 
   coordinates = (UNIVERSE != nullptr ? UNIVERSE->coordinatesForPosition(
@@ -2597,8 +2613,8 @@ void ShipEntity::scriptActionOnTarget(
 #endif
 
   if ((targEnt != nullptr ? targEnt->getIsShip() : false)) {
-    oldTarget =
-        (player != nullptr ? player->scriptTarget() : (::ShipEntity*)nullptr);
+    oldTarget = (player != nullptr ? player->scriptTarget()
+                                   : static_cast<::ShipEntity*>(nullptr));
     if (player != nullptr) player->setScriptTarget(oo::ToShip(targEnt));
     if (player != nullptr)
       player->runUnsanitizedScriptActions(
@@ -2625,8 +2641,8 @@ void ShipEntity::safeScriptActionOnTarget(
   ::ShipEntity* oldTarget = nullptr;
 
   if ((targEnt != nullptr ? targEnt->getIsShip() : false)) {
-    oldTarget =
-        (player != nullptr ? player->scriptTarget() : (::ShipEntity*)nullptr);
+    oldTarget = (player != nullptr ? player->scriptTarget()
+                                   : static_cast<::ShipEntity*>(nullptr));
     if (player != nullptr) player->setScriptTarget(oo::ToShip(targEnt));
     if (player != nullptr)
       player->runUnsanitizedScriptActions(
@@ -2720,7 +2736,7 @@ void ShipEntity::targetNextBeaconWithCode(
                      return beacon.get() == current_beacon;
                    });
   std::size_t i = found != all_beacons.end()
-                      ? (std::size_t)(found - all_beacons.begin())
+                      ? static_cast<std::size_t>(found - all_beacons.begin())
                       : oo::kNotFound;
 
   if (i == oo::kNotFound) {

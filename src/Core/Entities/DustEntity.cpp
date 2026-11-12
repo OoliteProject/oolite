@@ -145,9 +145,10 @@ bool DustEntity::canCollide() { return false; }
 void DustEntity::updateCameraRelativePosition() {
   HPVector c_pos =
       (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector{});
-  cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x, DUST_SCALE),
-                                       (OOScalar)-fmod(c_pos.y, DUST_SCALE),
-                                       (OOScalar)-fmod(c_pos.z, DUST_SCALE));
+  cameraRelativePosition =
+      make_vector(static_cast<OOScalar>(-fmod(c_pos.x, DUST_SCALE)),
+                  static_cast<OOScalar>(-fmod(c_pos.y, DUST_SCALE)),
+                  static_cast<OOScalar>(-fmod(c_pos.z, DUST_SCALE)));
 }
 
 void DustEntity::update(OOTimeDelta /*delta_t*/) {
@@ -187,7 +188,7 @@ OOShaderProgram* DustEntity::getShader() {
         "#define OODUST_SCALE_FACTOR (float({:g}))\n"
         "#define OODUST_SIZE         (float({:g}))\n",
         FAR_PLANE / NEAR_PLANE, 1.0f / (FAR_PLANE - NEAR_PLANE),
-        (float)DUST_SCALE);
+        static_cast<float>(DUST_SCALE));
 
     // Reuse tangent attribute ID for "warpiness", as we don't need a tangent.
     oo::PList::Dict attributes;
@@ -221,9 +222,9 @@ Vector DustEntity::offsetPlayerPosition() {
   // used as shader uniform, so needs to be low precision
   HPVector c_pos =
       (PLAYER != nullptr ? PLAYER->viewpointPosition() : HPVector{});
-  Vector offset = make_vector((OOScalar)fmod(c_pos.x, DUST_SCALE),
-                              (OOScalar)fmod(c_pos.y, DUST_SCALE),
-                              (OOScalar)fmod(c_pos.z, DUST_SCALE));
+  Vector offset = make_vector(static_cast<OOScalar>(fmod(c_pos.x, DUST_SCALE)),
+                              static_cast<OOScalar>(fmod(c_pos.y, DUST_SCALE)),
+                              static_cast<OOScalar>(fmod(c_pos.z, DUST_SCALE)));
   return vector_subtract(
       offset,
       make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
