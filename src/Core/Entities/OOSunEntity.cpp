@@ -228,7 +228,7 @@ bool OOSunEntity::canCollide() { return true; }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 bool OOSunEntity::checkCloseCollisionWith(Entity* other) {
-  if (gDebugFlags & DEBUG_COLLISIONS) {
+  if (OODebugFlagIsOn(OODebugFlags::kCollisions)) {
     OO_LOG("sun.collide", "{}", "SUN Collision!");
   }
 

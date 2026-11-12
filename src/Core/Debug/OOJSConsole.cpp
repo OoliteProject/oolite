@@ -225,20 +225,22 @@ static const JSCFunctionListEntry sConsoleProperties[] = {
     OOJS_PROPERTY_RO("glFragmentShaderTextureUnitCount", ConsoleGetProperty,
                      kConsole_glFragmentShaderTextureUnitCount),
 
-#define DEBUG_FLAG_DECL(x) \
-  OOJS_PROPERTY_RO(#x, ConsoleGetProperty, kConsole_##x)
-    DEBUG_FLAG_DECL(DEBUG_LINKED_LISTS),
-    DEBUG_FLAG_DECL(DEBUG_COLLISIONS),
-    DEBUG_FLAG_DECL(DEBUG_DOCKING),
-    DEBUG_FLAG_DECL(DEBUG_OCTREE_LOGGING),
-    DEBUG_FLAG_DECL(DEBUG_BOUNDING_BOXES),
-    DEBUG_FLAG_DECL(DEBUG_OCTREE_DRAW),
-    DEBUG_FLAG_DECL(DEBUG_DRAW_NORMALS),
-    DEBUG_FLAG_DECL(DEBUG_NO_DUST),
-    DEBUG_FLAG_DECL(DEBUG_NO_SHADER_FALLBACK),
-    DEBUG_FLAG_DECL(DEBUG_SHADER_VALIDATION),
+// Each flag's name is its OOEnumName, as console.DEBUG_* always was.
+#define DEBUG_FLAG_DECL(flag, magic)                                          \
+  OOJS_PROPERTY_RO(OOEnumName(OODebugFlags::flag).data(), ConsoleGetProperty, \
+                   magic)
+    DEBUG_FLAG_DECL(kLinkedLists, kConsole_DEBUG_LINKED_LISTS),
+    DEBUG_FLAG_DECL(kCollisions, kConsole_DEBUG_COLLISIONS),
+    DEBUG_FLAG_DECL(kDocking, kConsole_DEBUG_DOCKING),
+    DEBUG_FLAG_DECL(kOctreeLogging, kConsole_DEBUG_OCTREE_LOGGING),
+    DEBUG_FLAG_DECL(kBoundingBoxes, kConsole_DEBUG_BOUNDING_BOXES),
+    DEBUG_FLAG_DECL(kOctreeDraw, kConsole_DEBUG_OCTREE_DRAW),
+    DEBUG_FLAG_DECL(kDrawNormals, kConsole_DEBUG_DRAW_NORMALS),
+    DEBUG_FLAG_DECL(kNoDust, kConsole_DEBUG_NO_DUST),
+    DEBUG_FLAG_DECL(kNoShaderFallback, kConsole_DEBUG_NO_SHADER_FALLBACK),
+    DEBUG_FLAG_DECL(kShaderValidation, kConsole_DEBUG_SHADER_VALIDATION),
 
-    DEBUG_FLAG_DECL(DEBUG_MISC),
+    DEBUG_FLAG_DECL(kMisc, kConsole_DEBUG_MISC),
 #undef DEBUG_FLAG_DECL
 };
 
@@ -465,21 +467,22 @@ static JSValue ConsoleGetProperty(OOJS_GETTER_ARGS) {
           context,
           OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount());
 
-#define DEBUG_FLAG_CASE(x) \
-  case kConsole_##x:       \
-    return JS_NewInt32(context, x);
-      DEBUG_FLAG_CASE(DEBUG_LINKED_LISTS);
-      DEBUG_FLAG_CASE(DEBUG_COLLISIONS);
-      DEBUG_FLAG_CASE(DEBUG_DOCKING);
-      DEBUG_FLAG_CASE(DEBUG_OCTREE_LOGGING);
-      DEBUG_FLAG_CASE(DEBUG_BOUNDING_BOXES);
-      DEBUG_FLAG_CASE(DEBUG_OCTREE_DRAW);
-      DEBUG_FLAG_CASE(DEBUG_DRAW_NORMALS);
-      DEBUG_FLAG_CASE(DEBUG_NO_DUST);
-      DEBUG_FLAG_CASE(DEBUG_NO_SHADER_FALLBACK);
-      DEBUG_FLAG_CASE(DEBUG_SHADER_VALIDATION);
+#define DEBUG_FLAG_CASE(flag, magic) \
+  case magic:                        \
+    return JS_NewInt32(              \
+        context, static_cast<int32_t>(oo::ToUnderlying(OODebugFlags::flag)));
+      DEBUG_FLAG_CASE(kLinkedLists, kConsole_DEBUG_LINKED_LISTS);
+      DEBUG_FLAG_CASE(kCollisions, kConsole_DEBUG_COLLISIONS);
+      DEBUG_FLAG_CASE(kDocking, kConsole_DEBUG_DOCKING);
+      DEBUG_FLAG_CASE(kOctreeLogging, kConsole_DEBUG_OCTREE_LOGGING);
+      DEBUG_FLAG_CASE(kBoundingBoxes, kConsole_DEBUG_BOUNDING_BOXES);
+      DEBUG_FLAG_CASE(kOctreeDraw, kConsole_DEBUG_OCTREE_DRAW);
+      DEBUG_FLAG_CASE(kDrawNormals, kConsole_DEBUG_DRAW_NORMALS);
+      DEBUG_FLAG_CASE(kNoDust, kConsole_DEBUG_NO_DUST);
+      DEBUG_FLAG_CASE(kNoShaderFallback, kConsole_DEBUG_NO_SHADER_FALLBACK);
+      DEBUG_FLAG_CASE(kShaderValidation, kConsole_DEBUG_SHADER_VALIDATION);
 
-      DEBUG_FLAG_CASE(DEBUG_MISC);
+      DEBUG_FLAG_CASE(kMisc, kConsole_DEBUG_MISC);
 #undef DEBUG_FLAG_CASE
 
     default:
@@ -556,10 +559,10 @@ static JSValue ConsoleSetProperty(OOJS_SETTER_ARGS) {
 
 namespace {
 
-bool DoWeDefineAllDebugFlags(enum OODebugFlags flags) GCC_ATTR((unused));
-bool DoWeDefineAllDebugFlags(enum OODebugFlags flags) {
+bool DoWeDefineAllDebugFlags(OODebugFlags flags) GCC_ATTR((unused));
+bool DoWeDefineAllDebugFlags(OODebugFlags flags) {
   /*	This function doesn't do anything, but will generate a warning
-          (Enumeration value 'DEBUG_FOO' not handled in switch) if a debug flag
+          (Enumeration value 'kFoo' not handled in switch) if a debug flag
           is added without updating it. The point is that if you get such a
           warning, you should first add a JS symbolic constant for the flag,
           then add it to the switch to suppress the warning.
@@ -567,18 +570,21 @@ bool DoWeDefineAllDebugFlags(enum OODebugFlags flags) {
           -- Ahruman 2010-04-11
   */
   switch (flags) {
-    case DEBUG_LINKED_LISTS:
-    case DEBUG_COLLISIONS:
-    case DEBUG_DOCKING:
-    case DEBUG_OCTREE_LOGGING:
-    case DEBUG_BOUNDING_BOXES:
-    case DEBUG_OCTREE_DRAW:
-    case DEBUG_DRAW_NORMALS:
-    case DEBUG_NO_DUST:
-    case DEBUG_NO_SHADER_FALLBACK:
-    case DEBUG_SHADER_VALIDATION:
-    case DEBUG_MISC:
+    case OODebugFlags::kLinkedLists:
+    case OODebugFlags::kCollisions:
+    case OODebugFlags::kDocking:
+    case OODebugFlags::kOctreeLogging:
+    case OODebugFlags::kBoundingBoxes:
+    case OODebugFlags::kOctreeDraw:
+    case OODebugFlags::kDrawNormals:
+    case OODebugFlags::kNoDust:
+    case OODebugFlags::kNoShaderFallback:
+    case OODebugFlags::kShaderValidation:
+    case OODebugFlags::kMisc:
       return true;
+    case OODebugFlags::kNone:
+    case OODebugFlags::kAll:
+      return false;
   }
 
   return false;

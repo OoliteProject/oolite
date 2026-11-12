@@ -255,7 +255,7 @@ void OOPlanetDrawable::renderCommonParts() {
 
   OOGLPopModelView();
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_DRAW_NORMALS) debugDrawNormals();
+  if (OODebugFlagIsOn(OODebugFlags::kDrawNormals)) debugDrawNormals();
 #endif
 
   OOMaterial::applyNone();

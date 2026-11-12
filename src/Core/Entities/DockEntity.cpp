@@ -987,7 +987,7 @@ bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
   if ((ship != nullptr ? ship->getIsPlayer() : false) &&
-      (gDebugFlags & DEBUG_DOCKING)) {
+      OODebugFlagIsOn(OODebugFlags::kDocking)) {
     bool inLane;
     float range;
     unsigned laneFlags = 0;

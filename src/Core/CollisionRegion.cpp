@@ -262,7 +262,7 @@ void CollisionRegion::findCollisions() {
   }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_COLLISIONS) {
+  if (OODebugFlagIsOn(OODebugFlags::kCollisions)) {
     OO_LOG("collisionRegion.debug",
            "DEBUG in collision region {} testing {} out of {} entities",
            std::format("<CollisionRegion {}>{{{}}}",
@@ -315,7 +315,7 @@ void CollisionRegion::findCollisions() {
         min_dist2 = r0 * r0;
         if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2) {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-          if (gDebugFlags & DEBUG_COLLISIONS) {
+          if (OODebugFlagIsOn(OODebugFlags::kCollisions)) {
             OO_LOG("collisionRegion.debug",
                    "DEBUG Testing collision between {} ({}) and {} ({})",
                    oo::EntityDescription(e1),
@@ -403,7 +403,7 @@ void CollisionRegion::findCollisions() {
   }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_COLLISIONS) {
+  if (OODebugFlagIsOn(OODebugFlags::kCollisions)) {
     OO_LOG("collisionRegion.debug",
            "Collision test checks {}, within range {}, for {} entities",
            checks_this_tick, checks_within_range, n_entities_to_test);

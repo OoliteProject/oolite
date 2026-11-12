@@ -1976,7 +1976,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           !(gameView != nullptr ? gameView->getAllowingStringInput()
                                 : StringInput{}))  // look for the 'd' key
       {
-        gDebugFlags = DEBUG_ALL;
+        gDebugFlags = oo::ToUnderlying(OODebugFlags::kAll);
         if (UNIVERSE != nullptr) UNIVERSE->addMessage("Full debug ON", 3);
       }
 
@@ -1984,7 +1984,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           !(gameView != nullptr ? gameView->getAllowingStringInput()
                                 : StringInput{}))  // look for the 'b' key
       {
-        gDebugFlags |= DEBUG_COLLISIONS;
+        gDebugFlags |= oo::ToUnderlying(OODebugFlags::kCollisions);
         if (UNIVERSE != nullptr) UNIVERSE->addMessage("Collision debug ON", 3);
       }
 
@@ -2015,7 +2015,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           !(gameView != nullptr ? gameView->getAllowingStringInput()
                                 : StringInput{}))  // look for the 'x' key
       {
-        gDebugFlags |= DEBUG_BOUNDING_BOXES;
+        gDebugFlags |= oo::ToUnderlying(OODebugFlags::kBoundingBoxes);
         if (UNIVERSE != nullptr)
           UNIVERSE->addMessage("Bounding box debug ON", 3);
       }

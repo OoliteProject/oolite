@@ -196,7 +196,7 @@ bool Entity::validForAddToUniverse() {
 
 void Entity::addToLinkedLists() {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_LINKED_LISTS)
+  if (OODebugFlagIsOn(OODebugFlags::kLinkedLists))
     OO_LOG(kOOLogEntityAddToList, "DEBUG adding entity {} to linked lists",
            oo::EntityDescription(this));
 #endif
@@ -247,7 +247,7 @@ void Entity::addToLinkedLists() {
   }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_LINKED_LISTS) {
+  if (OODebugFlagIsOn(OODebugFlags::kLinkedLists)) {
     if (!checkLinkedLists()) {
       OO_LOG(kOOLogEntityAddToListError,
              "DEBUG LINKED LISTS - problem encountered while adding {} to "
@@ -261,7 +261,7 @@ void Entity::addToLinkedLists() {
 
 void Entity::removeFromLinkedLists() {
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_LINKED_LISTS)
+  if (OODebugFlagIsOn(OODebugFlags::kLinkedLists))
     OO_LOG(kOOLogEntityRemoveFromList,
            "DEBUG removing entity {} from linked lists",
            oo::EntityDescription(this));
@@ -297,7 +297,7 @@ void Entity::removeFromLinkedLists() {
   z_next = nullptr;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_LINKED_LISTS) {
+  if (OODebugFlagIsOn(OODebugFlags::kLinkedLists)) {
     if (!checkLinkedLists()) {
       OO_LOG(kOOLogEntityRemoveFromListError,
              "DEBUG LINKED LISTS - problem encountered while removing {} from "
@@ -392,7 +392,7 @@ void Entity::updateLinkedLists() {
     return;  // not in the lists - don't do this!
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_LINKED_LISTS) {
+  if (OODebugFlagIsOn(OODebugFlags::kLinkedLists)) {
     if (!checkLinkedLists()) {
       OO_LOG(kOOLogEntityVerificationError,
              "DEBUG LINKED LISTS problem encountered before updating linked "
@@ -480,7 +480,7 @@ void Entity::updateLinkedLists() {
 
   // done
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_LINKED_LISTS) {
+  if (OODebugFlagIsOn(OODebugFlags::kLinkedLists)) {
     if (!checkLinkedLists()) {
       OO_LOG(kOOLogEntityUpdateError,
              "DEBUG LINKED LISTS problem encountered after updating linked "
