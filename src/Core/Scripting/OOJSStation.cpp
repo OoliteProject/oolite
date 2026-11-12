@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -1242,7 +1243,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
   uint32_t superRand2 =
       ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
   superRand2 &= Ranrot();
-  std::string shipID = oo::str::format("%06x-%06x", superRand1, superRand2);
+  std::string shipID = std::format("{:06x}-{:06x}", superRand1, superRand2);
   result[std::string(SHIPYARD_KEY_ID)] = shipID;
 
   if (!shipyardDefinition.get<oo::PList>(std::string(SHIPYARD_KEY_PRICE))) {

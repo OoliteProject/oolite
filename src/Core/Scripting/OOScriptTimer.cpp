@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOScriptTimer.h"
 
+#include <format>
+
 #include "OOLogging.h"
 #include "OOPriorityQueue.h"
 #include "Universe.h"
@@ -100,8 +102,7 @@ std::string OOScriptTimer::description() const {
 std::string OOScriptTimer::descriptionWithComponents(
     const std::optional<std::string>& components) const {
   std::string result =
-      oo::str::format("<%s %s>", className().c_str(),
-                      oo::str::pointerDescription(this).c_str());
+      std::format("<{} {}>", className(), oo::str::pointerDescription(this));
   if (components.has_value()) result += "{" + *components + "}";
   return result;
 }
@@ -112,10 +113,10 @@ std::optional<std::string> OOScriptTimer::descriptionComponents() const {
   if (_interval <= 0.0)
     intervalDesc = "one-shot";
   else
-    intervalDesc = oo::str::format("interval: %g", _interval);
+    intervalDesc = std::format("interval: {:g}", _interval);
 
-  return oo::str::format("nextTime: %g, %s, %srunning", _nextTime,
-                         intervalDesc.c_str(), _isScheduled ? "" : "not ");
+  return std::format("nextTime: {:g}, {}, {}running", _nextTime, intervalDesc,
+                     _isScheduled ? "" : "not ");
 }
 
 OOTimeAbsolute OOScriptTimer::nextTime() { return _nextTime; }

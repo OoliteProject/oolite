@@ -30,6 +30,7 @@ MA 02110-1301, USA.
   1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOJSPrivateObject.h"
 
+#include <format>
 #include <string>
 
 #include "OOJSEngineCore.h"
@@ -121,7 +122,7 @@ JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal,
   if (!description.has_value()) {
     const char* className = OOJSClassName(JS_GetClassID(thisVal));
     description =
-        oo::str::format("[object %s]", className != nullptr ? className : "");
+        std::format("[object {}]", className != nullptr ? className : "");
   }
 
   return JS_NewStringLen(context, description->data(), description->size());

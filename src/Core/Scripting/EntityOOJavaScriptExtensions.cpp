@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 
 #include "EntityOOJavaScriptExtensions.h"
 
+#include <format>
+
 #include "DockEntity.h"
 #include "OOJSDock.h"
 #include "OOJSEntity.h"
@@ -136,9 +138,9 @@ std::optional<std::string> EntityJSDescription(Entity* entity) {
   if (!name.has_value()) name = std::string("Entity");  // the root class
   if (const std::optional<std::string> components =
           entity->descriptionComponents()) {
-    return oo::str::format("[%s %s]", name->c_str(), components->c_str());
+    return std::format("[{} {}]", *name, *components);
   }
-  return oo::str::format("[object %s]", name->c_str());
+  return std::format("[object {}]", *name);
 }
 
 // MARK: ShipEntity (OOJavaScriptExtensions)

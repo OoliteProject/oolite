@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -1758,7 +1759,7 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS) {
     return OOJSNativeFailure(context);
   }
   std::string positionstr =
-      oo::str::format("%f %f %f", position.x, position.y, position.z);
+      std::format("{:f} {:f} {:f}", position.x, position.y, position.z);
 
   Quaternion orientation = kIdentityQuaternion;
   bool gotquat = JSValueToQuaternion(context, OOJS_ARGV[1], &orientation);
@@ -1769,8 +1770,8 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS) {
     return OOJSNativeFailure(context);
   }
   std::string orientationstr =
-      oo::str::format("%f %f %f %f", orientation.w, orientation.x,
-                      orientation.y, orientation.z);
+      std::format("{:f} {:f} {:f} {:f}", orientation.w, orientation.x,
+                  orientation.y, orientation.z);
 
   viewData["view_position"] = positionstr;
   viewData["view_orientation"] = orientationstr;

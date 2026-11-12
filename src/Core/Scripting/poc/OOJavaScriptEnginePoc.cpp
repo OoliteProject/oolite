@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include <cmath>
 #include <cstdarg>
 #include <cstdlib>
+#include <format>
 #include <string_view>
 #include <unordered_map>
 
@@ -825,16 +826,15 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
           arrayDesc += itemDesc;
         }
         if (effectiveCount != count) {
-          arrayDesc += oo::str::format(", ... <%lli items total>]",
-                                       static_cast<long long>(count));
+          arrayDesc += std::format(", ... <{} items total>]",
+                                   static_cast<long long>(count));
         } else {
           arrayDesc += "]";
         }
 
         result = arrayDesc;
       } else {
-        result =
-            oo::str::format("[<%lli items>]", static_cast<long long>(count));
+        result = std::format("[<{} items>]", static_cast<long long>(count));
       }
     } else {
       result = "[...]";

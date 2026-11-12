@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "OOJSFunction.h"
 
 #include <climits>
+#include <format>
 
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSScript.h"
@@ -161,7 +162,7 @@ void OOJSFunction::deleteJSValue() {
 OOJSFunction::~OOJSFunction() { deleteJSValue(); }
 
 std::optional<std::string> OOJSFunction::descriptionComponents() const {
-  return oo::str::format("%s()", _name.value_or("<anonymous>").c_str());
+  return std::format("{}()", _name.value_or("<anonymous>"));
 }
 
 std::optional<std::string> OOJSFunction::name() { return _name; }

@@ -510,8 +510,8 @@ static JSValue QuaternionToSource(OOJS_NATIVE_ARGS) {
   if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, "toSource")))
     return JS_EXCEPTION;
 
-  OOJS_RETURN_PLIST(oo::PList(oo::str::format(
-      "Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z)));
+  OOJS_RETURN_PLIST(oo::PList(std::format("Quaternion({:g}, {:g}, {:g}, {:g})",
+                                          thisq.w, thisq.x, thisq.y, thisq.z)));
 
   OOJS_NATIVE_EXIT
 }

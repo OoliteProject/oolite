@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "OOJSSound.h"
 
+#include <format>
+
 #include "OOJSPrivateObject.h"
 #include "OOJSSoundSource.h"
 #include "OOJavaScriptEngine.h"
@@ -323,10 +325,9 @@ JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context) {
 }
 
 std::optional<std::string> OOJSSoundJSDescription(OOSound* sound) {
-  return oo::str::format("[Sound \"%s\"]",
-                         ((sound != nullptr) ? sound->name() : std::nullopt)
-                             .value_or("(null)")
-                             .c_str());
+  return std::format(
+      "[Sound \"{}\"]",
+      ((sound != nullptr) ? sound->name() : std::nullopt).value_or("(null)"));
 }
 
 std::optional<std::string> OOJSSoundJSClassName() {

@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #endif
 
 #include <cstring>
+#include <format>
 
 #include "oofnd/String.hpp"
 
@@ -545,7 +546,7 @@ static JSValue VectorToSource(OOJS_NATIVE_ARGS) {
     return JS_EXCEPTION;
 
   OOJS_RETURN_PLIST(oo::PList(
-      oo::str::format("Vector3D(%g, %g, %g)", thisv.x, thisv.y, thisv.z)));
+      std::format("Vector3D({:g}, {:g}, {:g})", thisv.x, thisv.y, thisv.z)));
 
   OOJS_NATIVE_EXIT
 }
@@ -1022,8 +1023,8 @@ static JSValue VectorFromCoordinateSystem(OOJS_NATIVE_ARGS) {
   }
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  std::string arg = oo::str::format("%s %f %f %f", coordScheme->c_str(),
-                                    thisv.x, thisv.y, thisv.z);
+  std::string arg =
+      std::format("{} {:f} {:f} {:f}", *coordScheme, thisv.x, thisv.y, thisv.z);
   result = (UNIVERSE != nullptr
                 ? UNIVERSE->coordinatesFromCoordinateSystemString(arg)
                 : HPVector{});

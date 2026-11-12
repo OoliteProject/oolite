@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "OOJSSoundSource.h"
 
+#include <format>
+
 #include "OOJSPrivateObject.h"
 #include "OOJSSound.h"
 #include "OOJSVector.h"
@@ -109,7 +111,7 @@ std::optional<std::string> OOJSSoundSourceHolder::jsDescription() {
   const std::optional<std::string> components =
       _source->descriptionComponents();
   if (components.has_value())
-    return oo::str::format("[SoundSource %s]", components->c_str());
+    return std::format("[SoundSource {}]", *components);
   return std::string("[object SoundSource]");
 }
 
