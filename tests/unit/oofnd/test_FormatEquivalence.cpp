@@ -72,6 +72,13 @@ OO_TEST(floatsWithPrecision) {
     SAME(oo::str::format("%.*f", precision, 2.71828), std::format("{:.{}f}", 2.71828, precision));
 }
 
+OO_TEST(floatArgumentsWithG) {
+  // printf widens a float to double; std::format formats the float itself. The widening is
+  // exact, so both round the same value (DustEntity's shader prefix passes floats to {:g}).
+  for (float v : {0.0f, 1.0f / 3.0f, 0.1f, 3.14159265f, 1e-7f, 65536.0f, 1e20f, 4.0e4f / 0.5f})
+    SAME(oo::str::format("%g", static_cast<double>(v)), std::format("{:g}", v));
+}
+
 OO_TEST(widthAndAlignment) {
   // printf right-aligns strings; std::format left-aligns them unless told.
   SAME(oo::str::format("%60s", "right"), std::format("{:>60}", "right"));
