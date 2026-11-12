@@ -982,7 +982,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
 
     case kPlayerShip_galacticHyperspaceBehaviour:
       ghBehaviour = OOGalacticHyperspaceBehaviourFromJSValue(context, value);
-      if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN) {
+      if (ghBehaviour != OOGalacticHyperspaceBehaviour::kUnknown) {
         if (player != nullptr)
           player->setGalacticHyperspaceBehaviour(ghBehaviour);
         return JS_UNDEFINED;

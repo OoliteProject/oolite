@@ -1375,7 +1375,7 @@ void Universe::carryPlayerOn(::StationEntity* /*carrier */,
     if (player != nullptr)
       player->setBounty(
           ((player != nullptr ? player->getLegalStatus() : int{}) / 2),
-          kOOLegalStatusReasonNewSystem);
+          OOLegalStatusReason::kNewSystem);
     if ((player != nullptr ? player->random_factor() : int{}) < 8) {
       if (player != nullptr) player->erodeReputation();
     }  // every 32 systems or so, dro
@@ -3239,8 +3239,8 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
       if (ship != nullptr)
         ship->setBounty(
             (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05) ? 63 : 23),
-            kOOLegalStatusReasonSetup);  // they already have a price on their
-                                         // heads
+            OOLegalStatusReason::kSetup);  // they already have a price on their
+                                           // heads
     }
     if (!(ship != nullptr ? ship->getCrew()
                           : std::optional<std::vector<oo::Ref<OOCharacter>>>())
@@ -3393,8 +3393,8 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
         if (ship != nullptr)
           ship->setBounty(
               (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05) ? 63 : 23),
-              kOOLegalStatusReasonSetup);  // they already have a price on their
-                                           // heads
+              OOLegalStatusReason::kSetup);  // they already have a price on
+                                             // their heads
       }
 
       // Status changes inside the following call: AI state GLOBAL, then
@@ -4438,10 +4438,11 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(
           // them.
           if (role == "pirate") {
             if (ship != nullptr)
-              ship->setBounty(20 + randf() * 50, kOOLegalStatusReasonSetup);
+              ship->setBounty(20 + randf() * 50, OOLegalStatusReason::kSetup);
           }
           if (role == "trader") {
-            if (ship != nullptr) ship->setBounty(0, kOOLegalStatusReasonSetup);
+            if (ship != nullptr)
+              ship->setBounty(0, OOLegalStatusReason::kSetup);
           }
           if (role == "police") {
             if (ship != nullptr) ship->setScanClass(OOScanClass::kPolice);

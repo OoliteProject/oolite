@@ -274,7 +274,7 @@ void SetUp() {
   if (sShip != nullptr) sShip->setReportAIMessages(true);
   if (sShip != nullptr) sShip->setTrackCloseContacts(true);
   if (sShip != nullptr) sShip->setAIScriptWakeTime(12.5);
-  if (sShip != nullptr) sShip->setBounty(25, kOOLegalStatusReasonSetup);
+  if (sShip != nullptr) sShip->setBounty(25, OOLegalStatusReason::kSetup);
   sOther = static_cast<PlainShip*>(oo::ToShip(oo::NewShipObject(
       oo::makeRef<PlainShip>(), "other",
       oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Other"))}}))));

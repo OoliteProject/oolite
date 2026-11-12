@@ -45,22 +45,13 @@ typedef enum {
 #include "OOGUIScreenID.tbl"
 } OOGUIScreenID;
 
-#define GALACTIC_HYPERSPACE_ENTRY(label, value) \
-  GALACTIC_HYPERSPACE_##label = value,
-
-typedef enum {
-#include "OOGalacticHyperspaceBehaviour.tbl"
-
-  GALACTIC_HYPERSPACE_MAX = GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES
-} OOGalacticHyperspaceBehaviour;
-
 #undef ENTRY
-#undef GALACTIC_HYPERSPACE_ENTRY
+
+#include "OOGalacticHyperspaceBehaviour.h"
 
 enum {
   // Values used for unknown strings.
-  kOOGUIScreenIDDefault = GUI_SCREEN_MAIN,
-  kOOGalacticHyperspaceBehaviourDefault = GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN
+  kOOGUIScreenIDDefault = GUI_SCREEN_MAIN
 };
 
 // From Entities/ShipEntity.h.

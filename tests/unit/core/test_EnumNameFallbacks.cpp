@@ -45,45 +45,45 @@ OO_TEST(cxx_OOStringFromEntityStatus) {
 }
 
 OO_TEST(cxx_OOStringFromBehaviour) {
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_IDLE) == "BEHAVIOUR_IDLE");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_TRACK_TARGET) == "BEHAVIOUR_TRACK_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_TUMBLE) == "BEHAVIOUR_TUMBLE");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_STOP_STILL) == "BEHAVIOUR_STOP_STILL");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_STATION_KEEPING) == "BEHAVIOUR_STATION_KEEPING");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_TARGET) == "BEHAVIOUR_ATTACK_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_FLY_TO_TARGET) == "BEHAVIOUR_ATTACK_FLY_TO_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_FLY_FROM_TARGET) == "BEHAVIOUR_ATTACK_FLY_FROM_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_RUNNING_DEFENSE) == "BEHAVIOUR_RUNNING_DEFENSE");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FLEE_TARGET) == "BEHAVIOUR_FLEE_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX) == "BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_MINING_TARGET) == "BEHAVIOUR_ATTACK_MINING_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_EVASIVE_ACTION) == "BEHAVIOUR_EVASIVE_ACTION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FLEE_EVASIVE_ACTION) == "BEHAVIOUR_FLEE_EVASIVE_ACTION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_BREAK_OFF_TARGET) == "BEHAVIOUR_ATTACK_BREAK_OFF_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_SLOW_DOGFIGHT) == "BEHAVIOUR_ATTACK_SLOW_DOGFIGHT");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE) == "BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_SNIPER) == "BEHAVIOUR_ATTACK_SNIPER");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_BROADSIDE) == "BEHAVIOUR_ATTACK_BROADSIDE");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_BROADSIDE_LEFT) == "BEHAVIOUR_ATTACK_BROADSIDE_LEFT");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ATTACK_BROADSIDE_RIGHT) == "BEHAVIOUR_ATTACK_BROADSIDE_RIGHT");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE) == "BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_CLOSE_WITH_TARGET) == "BEHAVIOUR_CLOSE_WITH_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_AVOID_COLLISION) == "BEHAVIOUR_AVOID_COLLISION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_TRACK_AS_TURRET) == "BEHAVIOUR_TRACK_AS_TURRET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FLY_RANGE_FROM_DESTINATION) == "BEHAVIOUR_FLY_RANGE_FROM_DESTINATION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FLY_TO_DESTINATION) == "BEHAVIOUR_FLY_TO_DESTINATION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FLY_FROM_DESTINATION) == "BEHAVIOUR_FLY_FROM_DESTINATION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FACE_DESTINATION) == "BEHAVIOUR_FACE_DESTINATION");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FLY_THRU_NAVPOINTS) == "BEHAVIOUR_FLY_THRU_NAVPOINTS");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_LAND_ON_PLANET) == "BEHAVIOUR_LAND_ON_PLANET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_COLLECT_TARGET) == "BEHAVIOUR_COLLECT_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_INTERCEPT_TARGET) == "BEHAVIOUR_INTERCEPT_TARGET");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FORMATION_FORM_UP) == "BEHAVIOUR_FORMATION_FORM_UP");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_FORMATION_BREAK) == "BEHAVIOUR_FORMATION_BREAK");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_ENERGY_BOMB_COUNTDOWN) == "BEHAVIOUR_ENERGY_BOMB_COUNTDOWN");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_TRACTORED) == "BEHAVIOUR_TRACTORED");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_SCRIPTED_AI) == "BEHAVIOUR_SCRIPTED_AI");
-  OO_CHECK(cxx_OOStringFromBehaviour(BEHAVIOUR_SCRIPTED_ATTACK_AI) == "BEHAVIOUR_SCRIPTED_ATTACK_AI");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kIdle) == "BEHAVIOUR_IDLE");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kTrackTarget) == "BEHAVIOUR_TRACK_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kTumble) == "BEHAVIOUR_TUMBLE");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kStopStill) == "BEHAVIOUR_STOP_STILL");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kStationKeeping) == "BEHAVIOUR_STATION_KEEPING");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackTarget) == "BEHAVIOUR_ATTACK_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackFlyToTarget) == "BEHAVIOUR_ATTACK_FLY_TO_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackFlyFromTarget) == "BEHAVIOUR_ATTACK_FLY_FROM_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kRunningDefense) == "BEHAVIOUR_RUNNING_DEFENSE");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFleeTarget) == "BEHAVIOUR_FLEE_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackFlyToTargetSix) == "BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackMiningTarget) == "BEHAVIOUR_ATTACK_MINING_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kEvasiveAction) == "BEHAVIOUR_EVASIVE_ACTION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFleeEvasiveAction) == "BEHAVIOUR_FLEE_EVASIVE_ACTION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackBreakOffTarget) == "BEHAVIOUR_ATTACK_BREAK_OFF_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackSlowDogfight) == "BEHAVIOUR_ATTACK_SLOW_DOGFIGHT");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackFlyToTargetTwelve) == "BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackSniper) == "BEHAVIOUR_ATTACK_SNIPER");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackBroadside) == "BEHAVIOUR_ATTACK_BROADSIDE");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackBroadsideLeft) == "BEHAVIOUR_ATTACK_BROADSIDE_LEFT");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAttackBroadsideRight) == "BEHAVIOUR_ATTACK_BROADSIDE_RIGHT");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kCloseToBroadsideRange) == "BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kCloseWithTarget) == "BEHAVIOUR_CLOSE_WITH_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kAvoidCollision) == "BEHAVIOUR_AVOID_COLLISION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kTrackAsTurret) == "BEHAVIOUR_TRACK_AS_TURRET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFlyRangeFromDestination) == "BEHAVIOUR_FLY_RANGE_FROM_DESTINATION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFlyToDestination) == "BEHAVIOUR_FLY_TO_DESTINATION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFlyFromDestination) == "BEHAVIOUR_FLY_FROM_DESTINATION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFaceDestination) == "BEHAVIOUR_FACE_DESTINATION");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFlyThruNavpoints) == "BEHAVIOUR_FLY_THRU_NAVPOINTS");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kLandOnPlanet) == "BEHAVIOUR_LAND_ON_PLANET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kCollectTarget) == "BEHAVIOUR_COLLECT_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kInterceptTarget) == "BEHAVIOUR_INTERCEPT_TARGET");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFormationFormUp) == "BEHAVIOUR_FORMATION_FORM_UP");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kFormationBreak) == "BEHAVIOUR_FORMATION_BREAK");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kEnergyBombCountdown) == "BEHAVIOUR_ENERGY_BOMB_COUNTDOWN");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kTractored) == "BEHAVIOUR_TRACTORED");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kScriptedAi) == "BEHAVIOUR_SCRIPTED_AI");
+  OO_CHECK(cxx_OOStringFromBehaviour(OOBehaviour::kScriptedAttackAi) == "BEHAVIOUR_SCRIPTED_ATTACK_AI");
 }
 
 OO_TEST(cxx_OOStringFromCompassMode) {
@@ -105,10 +105,10 @@ OO_TEST(cxx_OOStringFromLongRangeChartMode) {
 }
 
 OO_TEST(cxx_OOStringFromGalacticHyperspaceBehaviour) {
-  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD) == "BEHAVIOUR_STANDARD");
-  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE) == "BEHAVIOUR_ALL_SYSTEMS_REACHABLE");
-  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES) == "BEHAVIOUR_FIXED_COORDINATES");
-  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN) == "BEHAVIOUR_UNKNOWN");
+  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour::kStandard) == "BEHAVIOUR_STANDARD");
+  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour::kAllSystemsReachable) == "BEHAVIOUR_ALL_SYSTEMS_REACHABLE");
+  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour::kFixedCoordinates) == "BEHAVIOUR_FIXED_COORDINATES");
+  OO_CHECK(cxx_OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour::kUnknown) == "BEHAVIOUR_UNKNOWN");
 }
 
 OO_TEST(cxx_OOStringFromGUIScreenID) {
@@ -173,23 +173,23 @@ OO_TEST(cxx_OOStringFromShipDamageType) {
 }
 
 OO_TEST(cxx_OOStringFromLegalStatusReason) {
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonUnknown) == "unknown");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonSetup) == "setup actions");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonByScript) == "scripted");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonAttackedPolice) == "attacked police");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonAttackedMainStation) == "attacked main station");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonAttackedInnocent) == "attacked innocent");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonSeenByPolice) == "seen by police");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonDistressCall) == "distress call");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonIllegalExports) == "illegal exports");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonIllegalImports) == "illegal imports");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonAssistingOffender) == "assisting offenders");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonNewGalaxy) == "new galaxy");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonNewSystem) == "new system");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonPaidFine) == "paid fine");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonEscapePod) == "escape pod");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonAssistingPolice) == "assisting police");
-  OO_CHECK(cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonPoliceAreClean) == "police are clean");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown) == "unknown");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kSetup) == "setup actions");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kByScript) == "scripted");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kAttackedPolice) == "attacked police");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kAttackedMainStation) == "attacked main station");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kAttackedInnocent) == "attacked innocent");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kSeenByPolice) == "seen by police");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kDistressCall) == "distress call");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kIllegalExports) == "illegal exports");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kIllegalImports) == "illegal imports");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kAssistingOffender) == "assisting offenders");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kNewGalaxy) == "new galaxy");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kNewSystem) == "new system");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kPaidFine) == "paid fine");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kEscapePod) == "escape pod");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kAssistingPolice) == "assisting police");
+  OO_CHECK(cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kPoliceAreClean) == "police are clean");
 }
 
 OO_TEST(cxx_OOEntityStatusFromString) {
@@ -230,12 +230,12 @@ OO_TEST(cxx_OOCompassModeFromString) {
 }
 
 OO_TEST(cxx_OOGalacticHyperspaceBehaviourFromString) {
-  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_STANDARD") == GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD);
-  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_ALL_SYSTEMS_REACHABLE") == GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE);
-  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_FIXED_COORDINATES") == GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES);
-  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_UNKNOWN") == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN);
-  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("NOT_A_NAME") == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN);  // the fallback
-  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("") == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN);
+  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_STANDARD") == OOGalacticHyperspaceBehaviour::kStandard);
+  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_ALL_SYSTEMS_REACHABLE") == OOGalacticHyperspaceBehaviour::kAllSystemsReachable);
+  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_FIXED_COORDINATES") == OOGalacticHyperspaceBehaviour::kFixedCoordinates);
+  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("BEHAVIOUR_UNKNOWN") == OOGalacticHyperspaceBehaviour::kUnknown);
+  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("NOT_A_NAME") == OOGalacticHyperspaceBehaviour::kUnknown);  // the fallback
+  OO_CHECK(cxx_OOGalacticHyperspaceBehaviourFromString("") == OOGalacticHyperspaceBehaviour::kUnknown);
 }
 
 OO_TEST(cxx_OOGUIScreenIDFromString) {
@@ -637,16 +637,16 @@ OO_TEST(jsGUIScreenID) {
 
 OO_TEST(jsGalacticHyperspaceBehaviour) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD)) == "BEHAVIOUR_STANDARD");
-  { JSValue v = js.string("BEHAVIOUR_STANDARD"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE)) == "BEHAVIOUR_ALL_SYSTEMS_REACHABLE");
-  { JSValue v = js.string("BEHAVIOUR_ALL_SYSTEMS_REACHABLE"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES)) == "BEHAVIOUR_FIXED_COORDINATES");
-  { JSValue v = js.string("BEHAVIOUR_FIXED_COORDINATES"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)) == "BEHAVIOUR_UNKNOWN");
-  { JSValue v = js.string("BEHAVIOUR_UNKNOWN"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN); JS_FreeValue(js.context, v); }
-  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == (OOGalacticHyperspaceBehaviour)(GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)); JS_FreeValue(js.context, v); }  // the fallback
-  OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOGalacticHyperspaceBehaviour)(GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN));  // not a string
+  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, OOGalacticHyperspaceBehaviour::kStandard)) == "BEHAVIOUR_STANDARD");
+  { JSValue v = js.string("BEHAVIOUR_STANDARD"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == OOGalacticHyperspaceBehaviour::kStandard); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, OOGalacticHyperspaceBehaviour::kAllSystemsReachable)) == "BEHAVIOUR_ALL_SYSTEMS_REACHABLE");
+  { JSValue v = js.string("BEHAVIOUR_ALL_SYSTEMS_REACHABLE"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == OOGalacticHyperspaceBehaviour::kAllSystemsReachable); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, OOGalacticHyperspaceBehaviour::kFixedCoordinates)) == "BEHAVIOUR_FIXED_COORDINATES");
+  { JSValue v = js.string("BEHAVIOUR_FIXED_COORDINATES"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == OOGalacticHyperspaceBehaviour::kFixedCoordinates); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGalacticHyperspaceBehaviour(js.context, OOGalacticHyperspaceBehaviour::kUnknown)) == "BEHAVIOUR_UNKNOWN");
+  { JSValue v = js.string("BEHAVIOUR_UNKNOWN"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == OOGalacticHyperspaceBehaviour::kUnknown); JS_FreeValue(js.context, v); }
+  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, v) == (OOGalacticHyperspaceBehaviour)(OOGalacticHyperspaceBehaviour::kUnknown)); JS_FreeValue(js.context, v); }  // the fallback
+  OO_CHECK(OOGalacticHyperspaceBehaviourFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOGalacticHyperspaceBehaviour)(OOGalacticHyperspaceBehaviour::kUnknown));  // not a string
 }
 
 OO_TEST(jsViewID) {
@@ -684,23 +684,23 @@ OO_TEST(jsShipDamageType) {
 
 OO_TEST(jsLegalStatusReason) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonUnknown)) == "unknown");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonSetup)) == "setup actions");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonByScript)) == "scripted");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonAttackedPolice)) == "attacked police");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonAttackedMainStation)) == "attacked main station");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonAttackedInnocent)) == "attacked innocent");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonSeenByPolice)) == "seen by police");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonDistressCall)) == "distress call");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonIllegalExports)) == "illegal exports");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonIllegalImports)) == "illegal imports");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonAssistingOffender)) == "assisting offenders");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonNewGalaxy)) == "new galaxy");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonNewSystem)) == "new system");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonPaidFine)) == "paid fine");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonEscapePod)) == "escape pod");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonAssistingPolice)) == "assisting police");
-  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, kOOLegalStatusReasonPoliceAreClean)) == "police are clean");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kUnknown)) == "unknown");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kSetup)) == "setup actions");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kByScript)) == "scripted");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kAttackedPolice)) == "attacked police");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kAttackedMainStation)) == "attacked main station");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kAttackedInnocent)) == "attacked innocent");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kSeenByPolice)) == "seen by police");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kDistressCall)) == "distress call");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kIllegalExports)) == "illegal exports");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kIllegalImports)) == "illegal imports");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kAssistingOffender)) == "assisting offenders");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kNewGalaxy)) == "new galaxy");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kNewSystem)) == "new system");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kPaidFine)) == "paid fine");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kEscapePod)) == "escape pod");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kAssistingPolice)) == "assisting police");
+  OO_CHECK(js.text(OOJSValueFromLegalStatusReason(js.context, OOLegalStatusReason::kPoliceAreClean)) == "police are clean");
 }
 
 OO_TEST_MAIN()

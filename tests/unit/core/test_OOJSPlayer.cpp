@@ -747,7 +747,7 @@ OO_TEST(writeProperties)
 	sPlayer->_credits = 100.5;
 
 	OO_CHECK_EVAL("(function () { player.bounty = 60; return player.bounty + ':' + player.legalStatus; })()", "60:Fugitive");
-	OO_CHECK(sPlayer->_bountyReason == kOOLegalStatusReasonByScript);
+	OO_CHECK(sPlayer->_bountyReason == OOLegalStatusReason::kByScript);
 	OO_CHECK_EVAL("(function () { player.bounty = -10; return player.bounty; })()", "0");
 	OO_CHECK_EVAL("(function () { player.bounty = 'x'; return 'set'; })()", "threw: bad property value");
 	sPlayer->_legalStatus = 30;

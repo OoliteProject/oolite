@@ -148,17 +148,17 @@ OO_TEST(slice1Behaviours)
 		SetUp();
 		TestAIShip *ship = MakeShip("pilot");
 		struct { void (*perform)(TestAIShip *); OOBehaviour behaviour; } cases[] = {
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performCollect(); }, BEHAVIOUR_COLLECT_TARGET },
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performFaceDestination(); }, BEHAVIOUR_FACE_DESTINATION },
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performFlyToRangeFromDestination(); }, BEHAVIOUR_FLY_RANGE_FROM_DESTINATION },
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performIdle(); }, BEHAVIOUR_IDLE },
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performIntercept(); }, BEHAVIOUR_INTERCEPT_TARGET },
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performScriptedAI(); }, BEHAVIOUR_SCRIPTED_AI },
-			{ [](TestAIShip *s) { if (s != nullptr)  s->performScriptedAttackAI(); }, BEHAVIOUR_SCRIPTED_ATTACK_AI },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performCollect(); }, OOBehaviour::kCollectTarget },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performFaceDestination(); }, OOBehaviour::kFaceDestination },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performFlyToRangeFromDestination(); }, OOBehaviour::kFlyRangeFromDestination },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performIdle(); }, OOBehaviour::kIdle },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performIntercept(); }, OOBehaviour::kInterceptTarget },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performScriptedAI(); }, OOBehaviour::kScriptedAi },
+			{ [](TestAIShip *s) { if (s != nullptr)  s->performScriptedAttackAI(); }, OOBehaviour::kScriptedAttackAi },
 		};
 		for (const auto &c : cases)
 		{
-			SetBehaviour(ship, BEHAVIOUR_TUMBLE);
+			SetBehaviour(ship, OOBehaviour::kTumble);
 			SetFrustration(ship, 5);
 			c.perform(ship);
 			OO_CHECK(Behaviour(ship) == c.behaviour && Frustration(ship) == 0);
@@ -167,25 +167,25 @@ OO_TEST(slice1Behaviours)
 		SetDesiredSpeed(ship, 50);
 		SetFrustration(ship, 5);
 		if (ship != nullptr)  ship->performHold();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_TRACK_TARGET && DesiredSpeed(ship) == 0 && Frustration(ship) == 0);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kTrackTarget && DesiredSpeed(ship) == 0 && Frustration(ship) == 0);
 
 		SetDesiredSpeed(ship, 50);
 		if (ship != nullptr)  ship->performStop();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_STOP_STILL && DesiredSpeed(ship) == 0);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kStopStill && DesiredSpeed(ship) == 0);
 
 		if (ship != nullptr)  ship->performBuoyTumble();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_TUMBLE && StickRoll(ship) == 0.10f && StickPitch(ship) == 0.15f);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kTumble && StickRoll(ship) == 0.10f && StickPitch(ship) == 0.15f);
 
 		SetMaxFlight(ship, 100, 2, 1);
 		if (ship != nullptr)  ship->performTumble();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_TUMBLE && std::fabs(StickRoll(ship)) <= 2.0f && std::fabs(StickPitch(ship)) <= 1.0f);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kTumble && std::fabs(StickRoll(ship)) <= 2.0f && std::fabs(StickPitch(ship)) <= 1.0f);
 
-		SetBehaviour(ship, BEHAVIOUR_IDLE);
+		SetBehaviour(ship, OOBehaviour::kIdle);
 		if (ship != nullptr)  ship->performEscort();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_FORMATION_FORM_UP && Frustration(ship) == 0);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kFormationFormUp && Frustration(ship) == 0);
 		SetFrustration(ship, 5);
 		if (ship != nullptr)  ship->performEscort();		// already forming up: nothing changes
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_FORMATION_FORM_UP && Frustration(ship) == 5);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kFormationFormUp && Frustration(ship) == 5);
 	}
 }
 
@@ -195,32 +195,32 @@ OO_TEST(slice1AttackFleeMiningLanding)
 	{
 		SetUp();
 		TestAIShip *ship = MakeShip("fighter");
-		SetBehaviour(ship, BEHAVIOUR_IDLE);
+		SetBehaviour(ship, OOBehaviour::kIdle);
 		if (ship != nullptr)  ship->performAttack();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_ATTACK_TARGET && DesiredRange(ship) >= 750 && DesiredRange(ship) <= 2000);
-		SetBehaviour(ship, BEHAVIOUR_EVASIVE_ACTION);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kAttackTarget && DesiredRange(ship) >= 750 && DesiredRange(ship) <= 2000);
+		SetBehaviour(ship, OOBehaviour::kEvasiveAction);
 		if (ship != nullptr)  ship->performAttack();		// evading: carries on
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_EVASIVE_ACTION);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kEvasiveAction);
 
 		SetAccuracy(ship, COMBAT_AI_ISNT_AWFUL);	// no aspect check
-		SetBehaviour(ship, BEHAVIOUR_IDLE);
+		SetBehaviour(ship, OOBehaviour::kIdle);
 		if (ship != nullptr)  ship->performFlee();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_FLEE_TARGET && Frustration(ship) == 0);
-		SetBehaviour(ship, BEHAVIOUR_FLEE_EVASIVE_ACTION);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kFleeTarget && Frustration(ship) == 0);
+		SetBehaviour(ship, OOBehaviour::kFleeEvasiveAction);
 		if (ship != nullptr)  ship->performFlee();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_FLEE_EVASIVE_ACTION);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kFleeEvasiveAction);
 
 		// Mining a target that is not a rock: lost target, idle.
-		SetBehaviour(ship, BEHAVIOUR_TUMBLE);
+		SetBehaviour(ship, OOBehaviour::kTumble);
 		if (ship != nullptr)  ship->performMining();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_IDLE);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kIdle);
 
 		// Landing away from any planet's surface: idle.
 		SetNearPlanetSurface(ship, false);
-		SetBehaviour(ship, BEHAVIOUR_TUMBLE);
+		SetBehaviour(ship, OOBehaviour::kTumble);
 		SetFrustration(ship, 5);
 		if (ship != nullptr)  ship->performLandOnPlanet();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_IDLE && Frustration(ship) == 0);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kIdle && Frustration(ship) == 0);
 	}
 }
 
@@ -368,7 +368,7 @@ OO_TEST(slice1MembersFromCxx)
 		TestAIShip *ship = MakeShip("member");
 		ShipEntity *part = ship;
 		part->performStop();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_STOP_STILL);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kStopStill);
 		OO_CHECK(part->launchPolice().isNull() && !part->launchPatrol());
 
 		TestAIShip *caller = MakeShip("caller");
@@ -521,7 +521,7 @@ OO_TEST(slice2MessagesOnly)
 	{
 		SetUp();
 		TestAIShip *ship = MakeShip("quiet");
-		SetBehaviour(ship, BEHAVIOUR_IDLE);
+		SetBehaviour(ship, OOBehaviour::kIdle);
 		if (ship != nullptr)  ship->setStateTo("GLOBAL");
 		if (ship != nullptr)  ship->pauseAI("2.5");
 		if (ship != nullptr)  ship->randomPauseAI("1 2");
@@ -534,7 +534,7 @@ OO_TEST(slice2MessagesOnly)
 		if (ship != nullptr)  ship->exitAIWithMessage("");
 		if (ship != nullptr)  ship->setCourseToPlanet();			// no planet
 		if (ship != nullptr)  ship->setTakeOffFromPlanet();		// no planet: logged
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_IDLE && (ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kIdle && (ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
 	}
 }
 
@@ -846,7 +846,7 @@ OO_TEST(slice4ActionsAndRacepoints)
 
 		SetCollisionRadius4(ship, 25);
 		if (ship != nullptr)  ship->performFlyRacepoints();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_FLY_THRU_NAVPOINTS && DesiredRange(ship) == 25 && NextNavpoint4(ship) == 0);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kFlyThruNavpoints && DesiredRange(ship) == 25 && NextNavpoint4(ship) == 0);
 	}
 }
 
@@ -863,7 +863,7 @@ OO_TEST(slice4MembersFromCxx)
 		OO_CHECK((ship != nullptr ? ship->getFuel() : OOFuelQuantity{}) == 20);
 		SetCollisionRadius4(ship, 12);
 		part->performFlyRacepoints();
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_FLY_THRU_NAVPOINTS && DesiredRange(ship) == 12);
+		OO_CHECK(Behaviour(ship) == OOBehaviour::kFlyThruNavpoints && DesiredRange(ship) == 12);
 	}
 }
 

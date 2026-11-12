@@ -419,9 +419,9 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS) {
         if (player != nullptr)
           player->PlayerEntity::setBounty(
               iValue,
-              kOOLegalStatusReasonByScript);  // qualified: the final overrider,
-                                              // so the binding test stands in
-                                              // for it
+              OOLegalStatusReason::kByScript);  // qualified: the final
+                                                // overrider, so the binding
+                                                // test stands in for it
         return JS_UNDEFINED;
       }
       break;

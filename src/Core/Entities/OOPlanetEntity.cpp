@@ -917,7 +917,7 @@ bool OOPlanetEntity::checkCloseCollisionWith(Entity* other) {
   if (other->isShip) {
     ::ShipEntity* ship = oo::ToShip(other);
     if ((ship != nullptr ? ship->getBehaviour() : OOBehaviour{}) ==
-        BEHAVIOUR_LAND_ON_PLANET) {
+        OOBehaviour::kLandOnPlanet) {
       return false;
     }
   }
