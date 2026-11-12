@@ -58,33 +58,37 @@ static JSClassDef sSoundSourceClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
+namespace {
+
+enum class SoundSourceProperty : std::int16_t {
   // Property IDs
-  kSoundSource_sound,
-  kSoundSource_isPlaying,
-  kSoundSource_loop,
-  kSoundSource_position,
-  kSoundSource_positional,
-  kSoundSource_repeatCount,
-  kSoundSource_volume
+  kSound,
+  kIsPlaying,
+  kLoop,
+  kPosition,
+  kPositional,
+  kRepeatCount,
+  kVolume
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sSoundSourceProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RO("isPlaying", SoundSourceGetProperty,
-                     kSoundSource_isPlaying),
+                     SoundSourceProperty::kIsPlaying),
     OOJS_PROPERTY_RW("loop", SoundSourceGetProperty, SoundSourceSetProperty,
-                     kSoundSource_loop),
+                     SoundSourceProperty::kLoop),
     OOJS_PROPERTY_RW("position", SoundSourceGetProperty, SoundSourceSetProperty,
-                     kSoundSource_position),
+                     SoundSourceProperty::kPosition),
     OOJS_PROPERTY_RW("positional", SoundSourceGetProperty,
-                     SoundSourceSetProperty, kSoundSource_positional),
+                     SoundSourceSetProperty, SoundSourceProperty::kPositional),
     OOJS_PROPERTY_RW("repeatCount", SoundSourceGetProperty,
-                     SoundSourceSetProperty, kSoundSource_repeatCount),
+                     SoundSourceSetProperty, SoundSourceProperty::kRepeatCount),
     OOJS_PROPERTY_RW("sound", SoundSourceGetProperty, SoundSourceSetProperty,
-                     kSoundSource_sound),
+                     SoundSourceProperty::kSound),
     OOJS_PROPERTY_RW("volume", SoundSourceGetProperty, SoundSourceSetProperty,
-                     kSoundSource_volume),
+                     SoundSourceProperty::kVolume),
 };
 
 static const JSCFunctionListEntry sSoundSourceMethods[] = {
@@ -172,34 +176,35 @@ static JSValue SoundSourceGetProperty(OOJS_GETTER_ARGS) {
   if (!JSSoundSourceGetSoundSource(context, thisObj, &soundSource))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
+  switch (static_cast<SoundSourceProperty>(magic)) {
+    using enum SoundSourceProperty;
     // (Each answers what a message to nil did for the prototype, which has no
     // source.)
-    case kSoundSource_sound:
+    case kSound:
       return OOJSSoundJSValueInContext(
           (soundSource != nullptr) ? soundSource->sound() : nullptr, context);
 
-    case kSoundSource_isPlaying:
+    case kIsPlaying:
       return OOJSValueFromBOOL(soundSource != nullptr &&
                                soundSource->isPlaying());
 
-    case kSoundSource_loop:
+    case kLoop:
       return OOJSValueFromBOOL(soundSource != nullptr && soundSource->loop());
 
-    case kSoundSource_repeatCount:
+    case kRepeatCount:
       return JS_NewInt32(
           context, (soundSource != nullptr) ? soundSource->repeatCount() : 0);
 
-    case kSoundSource_position:
+    case kPosition:
       OOJS_RETURN_VECTOR((soundSource != nullptr)
                              ? soundSource->position()
                              : Vector{});  // a zeroed struct, as from nil
 
-    case kSoundSource_positional:
+    case kPositional:
       return OOJSValueFromBOOL(soundSource != nullptr &&
                                soundSource->positional());
 
-    case kSoundSource_volume:
+    case kVolume:
       return JS_NewNumber(
           context, (soundSource != nullptr) ? soundSource->gain() : 0.0f);
 
@@ -225,21 +230,22 @@ static JSValue SoundSourceSetProperty(OOJS_SETTER_ARGS) {
   if (!JSSoundSourceGetSoundSource(context, thisObj, &soundSource))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kSoundSource_sound:
+  switch (static_cast<SoundSourceProperty>(magic)) {
+    using enum SoundSourceProperty;
+    case kSound:
       if (soundSource != nullptr)
         soundSource->setSound(SoundFromJSValue(context, value));
       return JS_UNDEFINED;
       break;
 
-    case kSoundSource_loop:
+    case kLoop:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (soundSource != nullptr) soundSource->setLoop(bValue != 0);
         return JS_UNDEFINED;
       }
       break;
 
-    case kSoundSource_repeatCount:
+    case kRepeatCount:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue > 100) iValue = 100;
         if (100 < 1) iValue = 1;
@@ -248,21 +254,21 @@ static JSValue SoundSourceSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSoundSource_position:
+    case kPosition:
       if (JSValueToVector(context, value, &vValue)) {
         if (soundSource != nullptr) soundSource->setPosition(vValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kSoundSource_positional:
+    case kPositional:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (soundSource != nullptr) soundSource->setPositional(bValue != 0);
         return JS_UNDEFINED;
       }
       break;
 
-    case kSoundSource_volume:
+    case kVolume:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         fValue = OOClamp_0_max_d(fValue, 1);
         if (soundSource != nullptr) soundSource->setGain(fValue);

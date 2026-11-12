@@ -94,20 +94,27 @@ static JSClassDef sVectorClass = {
     .finalizer = VectorFinalize,
 };
 
-enum {
+namespace {
+
+enum class VectorProperty : std::int16_t {
   // Property IDs
-  kVector_x,
-  kVector_y,
-  kVector_z
+  kX,
+  kY,
+  kZ
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sVectorProperties[] = {
     // JS name, getter, setter, ID, flags
-    JS_CGETSET_MAGIC_DEF2("x", VectorGetProperty, VectorSetProperty, kVector_x,
+    JS_CGETSET_MAGIC_DEF2("x", VectorGetProperty, VectorSetProperty,
+                          OOJSPropertyMagic(VectorProperty::kX),
                           OOJS_PROP_READWRITE_CB),
-    JS_CGETSET_MAGIC_DEF2("y", VectorGetProperty, VectorSetProperty, kVector_y,
+    JS_CGETSET_MAGIC_DEF2("y", VectorGetProperty, VectorSetProperty,
+                          OOJSPropertyMagic(VectorProperty::kY),
                           OOJS_PROP_READWRITE_CB),
-    JS_CGETSET_MAGIC_DEF2("z", VectorGetProperty, VectorSetProperty, kVector_z,
+    JS_CGETSET_MAGIC_DEF2("z", VectorGetProperty, VectorSetProperty,
+                          OOJSPropertyMagic(VectorProperty::kZ),
                           OOJS_PROP_READWRITE_CB),
 };
 
@@ -425,16 +432,17 @@ static JSValue VectorGetProperty(JSContext* context, JSValueConst thisObj,
   if (EXPECT_NOT(!JSObjectGetVector(context, thisObj, &vector)))
     return JS_UNDEFINED;
 
-  switch (magic) {
-    case kVector_x:
+  switch (static_cast<VectorProperty>(magic)) {
+    using enum VectorProperty;
+    case kX:
       fValue = vector.x;
       break;
 
-    case kVector_y:
+    case kY:
       fValue = vector.y;
       break;
 
-    case kVector_z:
+    case kZ:
       fValue = vector.z;
       break;
 
@@ -465,16 +473,17 @@ static JSValue VectorSetProperty(JSContext* context, JSValueConst thisObj,
     return JS_EXCEPTION;
   }
 
-  switch (magic) {
-    case kVector_x:
+  switch (static_cast<VectorProperty>(magic)) {
+    using enum VectorProperty;
+    case kX:
       vector.x = dval;
       break;
 
-    case kVector_y:
+    case kY:
       vector.y = dval;
       break;
 
-    case kVector_z:
+    case kZ:
       vector.z = dval;
       break;
 

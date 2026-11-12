@@ -76,14 +76,18 @@ static JSClassDef sManifestClass = {
     .exotic = &sManifestExoticMethods,
 };
 
-enum {
-  kManifest_list  // manifest list, array of commodities: name, unit, quantity,
-                  // displayName - read-only
+namespace {
+
+enum class ManifestProperty : std::int16_t {
+  kList  // manifest list, array of commodities: name, unit, quantity,
+         // displayName - read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sManifestProperties[] = {
     // JS name					Getter ID
-    OOJS_PROPERTY_RO("list", ManifestGetProperty, kManifest_list),
+    OOJS_PROPERTY_RO("list", ManifestGetProperty, ManifestProperty::kList),
 };
 
 static const JSCFunctionListEntry sManifestMethods[] = {
@@ -153,8 +157,9 @@ static JSValue ManifestGetProperty(OOJS_GETTER_ARGS) {
   oo::PList result;  // null: nil
   PlayerEntity* entity = OOPlayerForScripting();
 
-  switch (magic) {
-    case kManifest_list:
+  switch (static_cast<ManifestProperty>(magic)) {
+    using enum ManifestProperty;
+    case kList:
       result = (entity != nullptr
                     ? entity->PlayerEntity::cargoListForScripting()
                     : oo::PList());  // qualified: the final overrider, so the

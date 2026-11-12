@@ -208,394 +208,433 @@ static JSClassDef sShipClass = {
  * close to the limit yet.
  * - CIM 29/9/2013
  */
-enum {
+namespace {
+
+enum class ShipProperty : std::int16_t {
   // Property IDs
-  kShip_accuracy = -128,     // the ship's accuracy, float, read/write
-  kShip_aftWeapon,           // the ship's aft weapon, equipmentType, read/write
-  kShip_AI,                  // AI state machine name, string, read-only
-  kShip_AIScript,            // AI script, Script, read-only
-  kShip_AIScriptWakeTime,    // next wakeup time, integer, read/write
-  kShip_AIState,             // AI state machine state, string, read/write
-  kShip_AIFoundTarget,       // AI "found target", entity, read/write
-  kShip_AIPrimaryAggressor,  // AI "primary aggressor", entity, read/write
-  kShip_alertCondition,      // number 0-3, read-only, combat alert level
-  kShip_autoAI,              // bool, read-only, auto_ai from shipdata
-  kShip_autoWeapons,         // bool, read-only, auto_weapons from shipdata
-  kShip_beaconCode,          // beacon code, string, read/write
-  kShip_beaconLabel,         // beacon label, string, read/write
-  kShip_boundingBox,         // boundingBox, vector, read-only
-  kShip_bounty,              // bounty, unsigned int, read/write
-  kShip_cargoList,           // cargo on board, array of objects, read-only
-  kShip_cargoSpaceAvailable,  // free cargo space, integer, read-only
-  kShip_cargoSpaceCapacity,   // maximum cargo, integer, read/write
-  kShip_cargoSpaceUsed,       // cargo on board, integer, read-only
-  kShip_collisionExceptions,  // collision exception list, array, read-only
-  kShip_contracts,  // cargo contracts contracts, array - strings & whatnot,
-                    // read only
-  kShip_commodity,  // commodity of a ship, read only
-  kShip_commodityAmount,  // commodityAmount of a ship, read only
-  kShip_cloakAutomatic,   // should cloack start by itself or by script,
-                          // read/write
-  kShip_crew,             // crew, list, read only
-  kShip_cruiseSpeed,      // desired cruising speed, number, read only
-  kShip_currentWeapon,    // the ship's active weapon, equipmentType, read/write
-  kShip_dataKey,          // string, read-only, shipdata.plist key
-  kShip_defenseTargets,   // array, read-only, defense targets
-  kShip_desiredRange,     // desired Range, double, read/write
-  kShip_desiredSpeed,     // AI desired flight speed, double, read/write
-  kShip_destination,      // flight destination, Vector, read/write
-  kShip_destinationSystem,    // destination system, number, read/write
-  kShip_displayName,          // name displayed on screen, string, read/write
-  kShip_dockingInstructions,  // name displayed on screen, string, read/write
-  kShip_energyRechargeRate,   // energy recharge rate, float, read-only
-  kShip_entityPersonality,    // per-ship random number, int, read-only
-  kShip_equipment,    // the ship's equipment, array of EquipmentInfo, read only
-  kShip_escortGroup,  // group, ShipGroup, read-only
-  kShip_escorts,      // deployed escorts, array of Ship, read-only
-  kShip_exhaustEmissiveColor,  // exhaust emissive color, array, read/write
-  kShip_exhausts,              // exhausts, array, read-only
-  kShip_extraCargo,     // cargo space increase granted by large cargo bay, int,
+  kAccuracy = -128,      // the ship's accuracy, float, read/write
+  kAftWeapon,            // the ship's aft weapon, equipmentType, read/write
+  kAI,                   // AI state machine name, string, read-only
+  kAIScript,             // AI script, Script, read-only
+  kAIScriptWakeTime,     // next wakeup time, integer, read/write
+  kAIState,              // AI state machine state, string, read/write
+  kAIFoundTarget,        // AI "found target", entity, read/write
+  kAIPrimaryAggressor,   // AI "primary aggressor", entity, read/write
+  kAlertCondition,       // number 0-3, read-only, combat alert level
+  kAutoAI,               // bool, read-only, auto_ai from shipdata
+  kAutoWeapons,          // bool, read-only, auto_weapons from shipdata
+  kBeaconCode,           // beacon code, string, read/write
+  kBeaconLabel,          // beacon label, string, read/write
+  kBoundingBox,          // boundingBox, vector, read-only
+  kBounty,               // bounty, unsigned int, read/write
+  kCargoList,            // cargo on board, array of objects, read-only
+  kCargoSpaceAvailable,  // free cargo space, integer, read-only
+  kCargoSpaceCapacity,   // maximum cargo, integer, read/write
+  kCargoSpaceUsed,       // cargo on board, integer, read-only
+  kCollisionExceptions,  // collision exception list, array, read-only
+  kContracts,          // cargo contracts contracts, array - strings & whatnot,
+                       // read only
+  kCommodity,          // commodity of a ship, read only
+  kCommodityAmount,    // commodityAmount of a ship, read only
+  kCloakAutomatic,     // should cloack start by itself or by script,
+                       // read/write
+  kCrew,               // crew, list, read only
+  kCruiseSpeed,        // desired cruising speed, number, read only
+  kCurrentWeapon,      // the ship's active weapon, equipmentType, read/write
+  kDataKey,            // string, read-only, shipdata.plist key
+  kDefenseTargets,     // array, read-only, defense targets
+  kDesiredRange,       // desired Range, double, read/write
+  kDesiredSpeed,       // AI desired flight speed, double, read/write
+  kDestination,        // flight destination, Vector, read/write
+  kDestinationSystem,  // destination system, number, read/write
+  kDisplayName,        // name displayed on screen, string, read/write
+  kDockingInstructions,  // name displayed on screen, string, read/write
+  kEnergyRechargeRate,   // energy recharge rate, float, read-only
+  kEntityPersonality,    // per-ship random number, int, read-only
+  kEquipment,    // the ship's equipment, array of EquipmentInfo, read only
+  kEscortGroup,  // group, ShipGroup, read-only
+  kEscorts,      // deployed escorts, array of Ship, read-only
+  kExhaustEmissiveColor,  // exhaust emissive color, array, read/write
+  kExhausts,              // exhausts, array, read-only
+  kExtraCargo,          // cargo space increase granted by large cargo bay, int,
                         // read-only
-  kShip_flashers,       // flashers, array, read-only
-  kShip_forwardWeapon,  // the ship's forward weapon, equipmentType, read/write
-  kShip_fuel,           // fuel, float, read/write
-  kShip_fuelChargeRate,       // fuel scoop rate & charge multiplier, float,
-                              // read-only
-  kShip_group,                // group, ShipGroup, read/write
-  kShip_hasHostileTarget,     // has hostile target, boolean, read-only
-  kShip_hasHyperspaceMotor,   // has hyperspace motor, boolean, read-only
-  kShip_hasSuspendedAI,       // AI has suspended states, boolean, read-only
-  kShip_heading,              // forwardVector of a ship, read-only
-  kShip_heatInsulation,       // hull heat insulation, double, read/write
-  kShip_homeSystem,           // home system, number, read/write
-  kShip_hyperspaceSpinTime,   // hyperspace spin time, float, read/write
-  kShip_injectorBurnRate,     // injector burn rate, number, read/write dLY/s
-  kShip_injectorSpeedFactor,  // injector speed factor, number, read/write
-  kShip_isBeacon,             // is beacon, boolean, read-only
-  kShip_isBoulder,    // is a boulder (generates splinters), boolean, read/write
-  kShip_isCargo,      // contains cargo, boolean, read-only
-  kShip_isCloaked,    // cloaked, boolean, read/write (if cloaking device
-                      // installed)
-  kShip_isDerelict,   // is an abandoned ship, boolean, read-only
-  kShip_isFrangible,  // frangible, boolean, read-only
-  kShip_isFleeing,    // is fleeing, boolean, read-only
-  kShip_isJamming,    // jamming scanners, boolean, read/write (if jammer
-                      // installed)
-  kShip_isMinable,    // is a sensible target for mining, boolean, read-only
-  kShip_isMine,       // is mine, boolean, read-only
-  kShip_isMissile,    // is missile, boolean, read-only
-  kShip_isPiloted,    // is piloted, boolean, read-only (includes stations)
-  kShip_isPirate,     // is pirate, boolean, read-only
-  kShip_isPirateVictim,     // is pirate victim, boolean, read-only
-  kShip_isPolice,           // is police, boolean, read-only
-  kShip_isRock,             // is a rock (hermits included), boolean, read-only
-  kShip_isThargoid,         // is thargoid, boolean, read-only
-  kShip_isTurret,           // is turret, boolean, read-only
-  kShip_isTrader,           // is trader, boolean, read-only
-  kShip_isWeapon,           // is missile or mine, boolean, read-only
-  kShip_laserHeatLevel,     // active laser temperature, float, read-only
-  kShip_laserHeatLevelAft,  // aft laser temperature, float, read-only
-  kShip_laserHeatLevelForward,    // fore laser temperature, float, read-only
-  kShip_laserHeatLevelPort,       // port laser temperature, float, read-only
-  kShip_laserHeatLevelStarboard,  // starboard laser temperature, float,
-                                  // read-only
-  kShip_lightsActive,     // flasher/shader light flag, boolean, read/write
-  kShip_markedForFines,   // has been marked for fines
-  kShip_maxEscorts,       // maximum escort count, int, read/write
-  kShip_maxPitch,         // maximum flight pitch, double, read-only
-  kShip_maxSpeed,         // maximum flight speed, double, read-only
-  kShip_maxRoll,          // maximum flight roll, double, read-only
-  kShip_maxYaw,           // maximum flight yaw, double, read-only
-  kShip_maxThrust,        // maximum thrust, double, read-only
-  kShip_missileCapacity,  // max missiles capacity, integer, read-only
-  kShip_missileLoadTime,  // missile load time, double, read/write
-  kShip_missiles,         // the ship's missiles / external storage, array of
-                          // equipmentTypes, read only
-  kShip_name,             // name, string, read-only
-  kShip_parcelCount,      // number of parcels on ship, integer, read-only
-  kShip_parcels,  // parcel contracts, array - strings & whatnot, read only
-  kShip_passengerCapacity,  // amount of passenger space on ship, integer,
-                            // read-only
-  kShip_passengerCount,     // number of passengers on ship, integer, read-only
-  kShip_passengers,  // passengers contracts, array - strings & whatnot, read
-                     // only
-  kShip_pitch,       // pitch level, float, read-only
-  kShip_portWeapon,  // the ship's port weapon, equipmentType, read/write
-  kShip_potentialCollider,  // "proximity alert" ship, Entity, read-only
-  kShip_primaryRole,        // Primary role, string, read/write
-  kShip_reactionTime,       // AI reaction time, read/write
-  kShip_reportAIMessages,   // report AI messages, boolean, read/write
-  kShip_roleWeights,        // roles and weights, dictionary, read-only
-  kShip_roles,              // roles, array, read-only
-  kShip_roll,               // roll level, float, read-only
-  kShip_savedCoordinates,   // coordinates in system space for AI use, Vector,
-                            // read/write
-  kShip_scanDescription,    // STE scan class label, string, read/write
-  kShip_scannerDisplayColor1,  // color of lollipop shown on scanner, array,
-                               // read/write
-  kShip_scannerDisplayColor2,  // color of lollipop shown on scanner when
-                               // flashing, array, read/write
-  kShip_scannerHostileDisplayColor1,  // color of lollipop shown on scanner,
-                                      // array, read/write
-  kShip_scannerHostileDisplayColor2,  // color of lollipop shown on scanner when
-                                      // flashing, array, read/write
-  kShip_scannerRange,                 // scanner range, double, read-only
-  kShip_script,                       // script, Script, read-only
-  kShip_scriptedMisjump,       // next jump will miss if set to true, boolean,
-                               // read/write
-  kShip_scriptedMisjumpRange,  // 0..1 range of next misjump, float, read/write
-  kShip_scriptInfo,         // arbitrary data for scripts, dictionary, read-only
-  kShip_shipClassName,      // ship type name, string, read/write
-  kShip_shipUniqueName,     // uniqish name, string, read/write
-  kShip_speed,              // current flight speed, double, read/write
-  kShip_starboardWeapon,    // the ship's starboard weapon, equipmentType,
-                            // read/write
-  kShip_subEntities,        // subentities, array of Ship, read-only
-  kShip_subEntityCapacity,  // max subentities for this ship, int, read-only
-  kShip_subEntityRotation,  // subentity rotation velocity, quaternion,
-                            // read/write
-  kShip_sunGlareFilter,     // sun glare filter multiplier, float, read/write
-  kShip_target,             // target, Ship, read/write
-  kShip_temperature,        // hull temperature, double, read/write
-  kShip_thrust,             // the ship's thrust, double, read/write
-  kShip_thrustVector,       // thrust-related component of velocity, vector,
-                            // read-only
-  kShip_trackCloseContacts,       // generate close contact events, boolean,
-                                  // read/write
-  kShip_vectorForward,            // forwardVector of a ship, read-only
-  kShip_vectorRight,              // rightVector of a ship, read-only
-  kShip_vectorUp,                 // upVector of a ship, read-only
-  kShip_velocity,                 // velocity, vector, read/write
-  kShip_weaponFacings,            // available facings, int, read-only
-  kShip_weaponPositionAft,        // weapon offset, vector, read-only
-  kShip_weaponPositionForward,    // weapon offset, vector, read-only
-  kShip_weaponPositionPort,       // weapon offset, vector, read-only
-  kShip_weaponPositionStarboard,  // weapon offset, vector, read-only
-  kShip_weaponRange,              // weapon range, double, read-only
-  kShip_withinStationAegis,  // within main station aegis, boolean, read/write
-  kShip_yaw,                 // yaw level, float, read-only
+  kFlashers,            // flashers, array, read-only
+  kForwardWeapon,       // the ship's forward weapon, equipmentType, read/write
+  kFuel,                // fuel, float, read/write
+  kFuelChargeRate,      // fuel scoop rate & charge multiplier, float,
+                        // read-only
+  kGroup,               // group, ShipGroup, read/write
+  kHasHostileTarget,    // has hostile target, boolean, read-only
+  kHasHyperspaceMotor,  // has hyperspace motor, boolean, read-only
+  kHasSuspendedAI,      // AI has suspended states, boolean, read-only
+  kHeading,             // forwardVector of a ship, read-only
+  kHeatInsulation,      // hull heat insulation, double, read/write
+  kHomeSystem,          // home system, number, read/write
+  kHyperspaceSpinTime,  // hyperspace spin time, float, read/write
+  kInjectorBurnRate,    // injector burn rate, number, read/write dLY/s
+  kInjectorSpeedFactor,  // injector speed factor, number, read/write
+  kIsBeacon,             // is beacon, boolean, read-only
+  kIsBoulder,       // is a boulder (generates splinters), boolean, read/write
+  kIsCargo,         // contains cargo, boolean, read-only
+  kIsCloaked,       // cloaked, boolean, read/write (if cloaking device
+                    // installed)
+  kIsDerelict,      // is an abandoned ship, boolean, read-only
+  kIsFrangible,     // frangible, boolean, read-only
+  kIsFleeing,       // is fleeing, boolean, read-only
+  kIsJamming,       // jamming scanners, boolean, read/write (if jammer
+                    // installed)
+  kIsMinable,       // is a sensible target for mining, boolean, read-only
+  kIsMine,          // is mine, boolean, read-only
+  kIsMissile,       // is missile, boolean, read-only
+  kIsPiloted,       // is piloted, boolean, read-only (includes stations)
+  kIsPirate,        // is pirate, boolean, read-only
+  kIsPirateVictim,  // is pirate victim, boolean, read-only
+  kIsPolice,        // is police, boolean, read-only
+  kIsRock,          // is a rock (hermits included), boolean, read-only
+  kIsThargoid,      // is thargoid, boolean, read-only
+  kIsTurret,        // is turret, boolean, read-only
+  kIsTrader,        // is trader, boolean, read-only
+  kIsWeapon,        // is missile or mine, boolean, read-only
+  kLaserHeatLevel,  // active laser temperature, float, read-only
+  kLaserHeatLevelAft,        // aft laser temperature, float, read-only
+  kLaserHeatLevelForward,    // fore laser temperature, float, read-only
+  kLaserHeatLevelPort,       // port laser temperature, float, read-only
+  kLaserHeatLevelStarboard,  // starboard laser temperature, float,
+                             // read-only
+  kLightsActive,             // flasher/shader light flag, boolean, read/write
+  kMarkedForFines,           // has been marked for fines
+  kMaxEscorts,               // maximum escort count, int, read/write
+  kMaxPitch,                 // maximum flight pitch, double, read-only
+  kMaxSpeed,                 // maximum flight speed, double, read-only
+  kMaxRoll,                  // maximum flight roll, double, read-only
+  kMaxYaw,                   // maximum flight yaw, double, read-only
+  kMaxThrust,                // maximum thrust, double, read-only
+  kMissileCapacity,          // max missiles capacity, integer, read-only
+  kMissileLoadTime,          // missile load time, double, read/write
+  kMissiles,                 // the ship's missiles / external storage, array of
+                             // equipmentTypes, read only
+  kName,                     // name, string, read-only
+  kParcelCount,              // number of parcels on ship, integer, read-only
+  kParcels,            // parcel contracts, array - strings & whatnot, read only
+  kPassengerCapacity,  // amount of passenger space on ship, integer,
+                       // read-only
+  kPassengerCount,     // number of passengers on ship, integer, read-only
+  kPassengers,         // passengers contracts, array - strings & whatnot, read
+                       // only
+  kPitch,              // pitch level, float, read-only
+  kPortWeapon,         // the ship's port weapon, equipmentType, read/write
+  kPotentialCollider,  // "proximity alert" ship, Entity, read-only
+  kPrimaryRole,        // Primary role, string, read/write
+  kReactionTime,       // AI reaction time, read/write
+  kReportAIMessages,   // report AI messages, boolean, read/write
+  kRoleWeights,        // roles and weights, dictionary, read-only
+  kRoles,              // roles, array, read-only
+  kRoll,               // roll level, float, read-only
+  kSavedCoordinates,   // coordinates in system space for AI use, Vector,
+                       // read/write
+  kScanDescription,    // STE scan class label, string, read/write
+  kScannerDisplayColor1,         // color of lollipop shown on scanner, array,
+                                 // read/write
+  kScannerDisplayColor2,         // color of lollipop shown on scanner when
+                                 // flashing, array, read/write
+  kScannerHostileDisplayColor1,  // color of lollipop shown on scanner,
+                                 // array, read/write
+  kScannerHostileDisplayColor2,  // color of lollipop shown on scanner when
+                                 // flashing, array, read/write
+  kScannerRange,                 // scanner range, double, read-only
+  kScript,                       // script, Script, read-only
+  kScriptedMisjump,              // next jump will miss if set to true, boolean,
+                                 // read/write
+  kScriptedMisjumpRange,   // 0..1 range of next misjump, float, read/write
+  kScriptInfo,             // arbitrary data for scripts, dictionary, read-only
+  kShipClassName,          // ship type name, string, read/write
+  kShipUniqueName,         // uniqish name, string, read/write
+  kSpeed,                  // current flight speed, double, read/write
+  kStarboardWeapon,        // the ship's starboard weapon, equipmentType,
+                           // read/write
+  kSubEntities,            // subentities, array of Ship, read-only
+  kSubEntityCapacity,      // max subentities for this ship, int, read-only
+  kSubEntityRotation,      // subentity rotation velocity, quaternion,
+                           // read/write
+  kSunGlareFilter,         // sun glare filter multiplier, float, read/write
+  kTarget,                 // target, Ship, read/write
+  kTemperature,            // hull temperature, double, read/write
+  kThrust,                 // the ship's thrust, double, read/write
+  kThrustVector,           // thrust-related component of velocity, vector,
+                           // read-only
+  kTrackCloseContacts,     // generate close contact events, boolean,
+                           // read/write
+  kVectorForward,          // forwardVector of a ship, read-only
+  kVectorRight,            // rightVector of a ship, read-only
+  kVectorUp,               // upVector of a ship, read-only
+  kVelocity,               // velocity, vector, read/write
+  kWeaponFacings,          // available facings, int, read-only
+  kWeaponPositionAft,      // weapon offset, vector, read-only
+  kWeaponPositionForward,  // weapon offset, vector, read-only
+  kWeaponPositionPort,     // weapon offset, vector, read-only
+  kWeaponPositionStarboard,  // weapon offset, vector, read-only
+  kWeaponRange,              // weapon range, double, read-only
+  kWithinStationAegis,       // within main station aegis, boolean, read/write
+  kYaw,                      // yaw level, float, read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sShipProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("accuracy", ShipGetProperty, ShipSetProperty,
-                     kShip_accuracy),
+                     ShipProperty::kAccuracy),
     OOJS_PROPERTY_RW("aftWeapon", ShipGetProperty, ShipSetProperty,
-                     kShip_aftWeapon),
-    OOJS_PROPERTY_RO("AI", ShipGetProperty, kShip_AI),
-    OOJS_PROPERTY_RO("AIScript", ShipGetProperty, kShip_AIScript),
+                     ShipProperty::kAftWeapon),
+    OOJS_PROPERTY_RO("AI", ShipGetProperty, ShipProperty::kAI),
+    OOJS_PROPERTY_RO("AIScript", ShipGetProperty, ShipProperty::kAIScript),
     OOJS_PROPERTY_RW("AIScriptWakeTime", ShipGetProperty, ShipSetProperty,
-                     kShip_AIScriptWakeTime),
+                     ShipProperty::kAIScriptWakeTime),
     OOJS_PROPERTY_RW("AIState", ShipGetProperty, ShipSetProperty,
-                     kShip_AIState),
+                     ShipProperty::kAIState),
     OOJS_PROPERTY_RW("AIFoundTarget", ShipGetProperty, ShipSetProperty,
-                     kShip_AIFoundTarget),
+                     ShipProperty::kAIFoundTarget),
     OOJS_PROPERTY_RW("AIPrimaryAggressor", ShipGetProperty, ShipSetProperty,
-                     kShip_AIPrimaryAggressor),
-    OOJS_PROPERTY_RO("alertCondition", ShipGetProperty, kShip_alertCondition),
-    OOJS_PROPERTY_RO("autoAI", ShipGetProperty, kShip_autoAI),
-    OOJS_PROPERTY_RO("autoWeapons", ShipGetProperty, kShip_autoWeapons),
+                     ShipProperty::kAIPrimaryAggressor),
+    OOJS_PROPERTY_RO("alertCondition", ShipGetProperty,
+                     ShipProperty::kAlertCondition),
+    OOJS_PROPERTY_RO("autoAI", ShipGetProperty, ShipProperty::kAutoAI),
+    OOJS_PROPERTY_RO("autoWeapons", ShipGetProperty,
+                     ShipProperty::kAutoWeapons),
     OOJS_PROPERTY_RW("beaconCode", ShipGetProperty, ShipSetProperty,
-                     kShip_beaconCode),
+                     ShipProperty::kBeaconCode),
     OOJS_PROPERTY_RW("beaconLabel", ShipGetProperty, ShipSetProperty,
-                     kShip_beaconLabel),
-    OOJS_PROPERTY_RO("boundingBox", ShipGetProperty, kShip_boundingBox),
-    OOJS_PROPERTY_RW("bounty", ShipGetProperty, ShipSetProperty, kShip_bounty),
-    OOJS_PROPERTY_RO("cargoList", ShipGetProperty, kShip_cargoList),
-    OOJS_PROPERTY_RO("cargoSpaceUsed", ShipGetProperty, kShip_cargoSpaceUsed),
+                     ShipProperty::kBeaconLabel),
+    OOJS_PROPERTY_RO("boundingBox", ShipGetProperty,
+                     ShipProperty::kBoundingBox),
+    OOJS_PROPERTY_RW("bounty", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kBounty),
+    OOJS_PROPERTY_RO("cargoList", ShipGetProperty, ShipProperty::kCargoList),
+    OOJS_PROPERTY_RO("cargoSpaceUsed", ShipGetProperty,
+                     ShipProperty::kCargoSpaceUsed),
     OOJS_PROPERTY_RW("cargoSpaceCapacity", ShipGetProperty, ShipSetProperty,
-                     kShip_cargoSpaceCapacity),
+                     ShipProperty::kCargoSpaceCapacity),
     OOJS_PROPERTY_RO("cargoSpaceAvailable", ShipGetProperty,
-                     kShip_cargoSpaceAvailable),
+                     ShipProperty::kCargoSpaceAvailable),
     OOJS_PROPERTY_RO("collisionExceptions", ShipGetProperty,
-                     kShip_collisionExceptions),
-    OOJS_PROPERTY_RO("commodity", ShipGetProperty, kShip_commodity),
-    OOJS_PROPERTY_RO("commodityAmount", ShipGetProperty, kShip_commodityAmount),
+                     ShipProperty::kCollisionExceptions),
+    OOJS_PROPERTY_RO("commodity", ShipGetProperty, ShipProperty::kCommodity),
+    OOJS_PROPERTY_RO("commodityAmount", ShipGetProperty,
+                     ShipProperty::kCommodityAmount),
     // contracts instead of cargo to distinguish them from the manifest
-    OOJS_PROPERTY_RO("contracts", ShipGetProperty, kShip_contracts),
+    OOJS_PROPERTY_RO("contracts", ShipGetProperty, ShipProperty::kContracts),
     OOJS_PROPERTY_RW("cloakAutomatic", ShipGetProperty, ShipSetProperty,
-                     kShip_cloakAutomatic),
-    OOJS_PROPERTY_RO("crew", ShipGetProperty, kShip_crew),
-    OOJS_PROPERTY_RO("cruiseSpeed", ShipGetProperty, kShip_cruiseSpeed),
+                     ShipProperty::kCloakAutomatic),
+    OOJS_PROPERTY_RO("crew", ShipGetProperty, ShipProperty::kCrew),
+    OOJS_PROPERTY_RO("cruiseSpeed", ShipGetProperty,
+                     ShipProperty::kCruiseSpeed),
     OOJS_PROPERTY_RW("currentWeapon", ShipGetProperty, ShipSetProperty,
-                     kShip_currentWeapon),
-    OOJS_PROPERTY_RO("dataKey", ShipGetProperty, kShip_dataKey),
-    OOJS_PROPERTY_RO("defenseTargets", ShipGetProperty, kShip_defenseTargets),
+                     ShipProperty::kCurrentWeapon),
+    OOJS_PROPERTY_RO("dataKey", ShipGetProperty, ShipProperty::kDataKey),
+    OOJS_PROPERTY_RO("defenseTargets", ShipGetProperty,
+                     ShipProperty::kDefenseTargets),
     OOJS_PROPERTY_RW("desiredRange", ShipGetProperty, ShipSetProperty,
-                     kShip_desiredRange),
+                     ShipProperty::kDesiredRange),
     OOJS_PROPERTY_RW("desiredSpeed", ShipGetProperty, ShipSetProperty,
-                     kShip_desiredSpeed),
+                     ShipProperty::kDesiredSpeed),
     OOJS_PROPERTY_RW("destination", ShipGetProperty, ShipSetProperty,
-                     kShip_destination),
+                     ShipProperty::kDestination),
     OOJS_PROPERTY_RW("destinationSystem", ShipGetProperty, ShipSetProperty,
-                     kShip_destinationSystem),
+                     ShipProperty::kDestinationSystem),
     OOJS_PROPERTY_RW("displayName", ShipGetProperty, ShipSetProperty,
-                     kShip_displayName),
+                     ShipProperty::kDisplayName),
     OOJS_PROPERTY_RO("dockingInstructions", ShipGetProperty,
-                     kShip_dockingInstructions),
+                     ShipProperty::kDockingInstructions),
     OOJS_PROPERTY_RW("energyRechargeRate", ShipGetProperty, ShipSetProperty,
-                     kShip_energyRechargeRate),
+                     ShipProperty::kEnergyRechargeRate),
     OOJS_PROPERTY_RW("entityPersonality", ShipGetProperty, ShipSetProperty,
-                     kShip_entityPersonality),
-    OOJS_PROPERTY_RO("equipment", ShipGetProperty, kShip_equipment),
-    OOJS_PROPERTY_RO("escorts", ShipGetProperty, kShip_escorts),
-    OOJS_PROPERTY_RO("escortGroup", ShipGetProperty, kShip_escortGroup),
+                     ShipProperty::kEntityPersonality),
+    OOJS_PROPERTY_RO("equipment", ShipGetProperty, ShipProperty::kEquipment),
+    OOJS_PROPERTY_RO("escorts", ShipGetProperty, ShipProperty::kEscorts),
+    OOJS_PROPERTY_RO("escortGroup", ShipGetProperty,
+                     ShipProperty::kEscortGroup),
     OOJS_PROPERTY_RW("exhaustEmissiveColor", ShipGetProperty, ShipSetProperty,
-                     kShip_exhaustEmissiveColor),
-    OOJS_PROPERTY_RO("exhausts", ShipGetProperty, kShip_exhausts),
-    OOJS_PROPERTY_RO("extraCargo", ShipGetProperty, kShip_extraCargo),
-    OOJS_PROPERTY_RO("flashers", ShipGetProperty, kShip_flashers),
+                     ShipProperty::kExhaustEmissiveColor),
+    OOJS_PROPERTY_RO("exhausts", ShipGetProperty, ShipProperty::kExhausts),
+    OOJS_PROPERTY_RO("extraCargo", ShipGetProperty, ShipProperty::kExtraCargo),
+    OOJS_PROPERTY_RO("flashers", ShipGetProperty, ShipProperty::kFlashers),
     OOJS_PROPERTY_RW("forwardWeapon", ShipGetProperty, ShipSetProperty,
-                     kShip_forwardWeapon),
-    OOJS_PROPERTY_RW("fuel", ShipGetProperty, ShipSetProperty, kShip_fuel),
-    OOJS_PROPERTY_RO("fuelChargeRate", ShipGetProperty, kShip_fuelChargeRate),
-    OOJS_PROPERTY_RW("group", ShipGetProperty, ShipSetProperty, kShip_group),
+                     ShipProperty::kForwardWeapon),
+    OOJS_PROPERTY_RW("fuel", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kFuel),
+    OOJS_PROPERTY_RO("fuelChargeRate", ShipGetProperty,
+                     ShipProperty::kFuelChargeRate),
+    OOJS_PROPERTY_RW("group", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kGroup),
     OOJS_PROPERTY_RO("hasHostileTarget", ShipGetProperty,
-                     kShip_hasHostileTarget),
+                     ShipProperty::kHasHostileTarget),
     OOJS_PROPERTY_RO("hasHyperspaceMotor", ShipGetProperty,
-                     kShip_hasHyperspaceMotor),
-    OOJS_PROPERTY_RO("hasSuspendedAI", ShipGetProperty, kShip_hasSuspendedAI),
+                     ShipProperty::kHasHyperspaceMotor),
+    OOJS_PROPERTY_RO("hasSuspendedAI", ShipGetProperty,
+                     ShipProperty::kHasSuspendedAI),
     OOJS_PROPERTY_RW("heatInsulation", ShipGetProperty, ShipSetProperty,
-                     kShip_heatInsulation),
-    OOJS_PROPERTY_RO("heading", ShipGetProperty, kShip_heading),
+                     ShipProperty::kHeatInsulation),
+    OOJS_PROPERTY_RO("heading", ShipGetProperty, ShipProperty::kHeading),
     OOJS_PROPERTY_RW("homeSystem", ShipGetProperty, ShipSetProperty,
-                     kShip_homeSystem),
+                     ShipProperty::kHomeSystem),
     OOJS_PROPERTY_RW("hyperspaceSpinTime", ShipGetProperty, ShipSetProperty,
-                     kShip_hyperspaceSpinTime),
+                     ShipProperty::kHyperspaceSpinTime),
     OOJS_PROPERTY_RW("injectorBurnRate", ShipGetProperty, ShipSetProperty,
-                     kShip_injectorBurnRate),
+                     ShipProperty::kInjectorBurnRate),
     OOJS_PROPERTY_RW("injectorSpeedFactor", ShipGetProperty, ShipSetProperty,
-                     kShip_injectorSpeedFactor),
+                     ShipProperty::kInjectorSpeedFactor),
     OOJS_PROPERTY_RW("homeSystem", ShipGetProperty, ShipSetProperty,
-                     kShip_homeSystem),
-    OOJS_PROPERTY_RO("isBeacon", ShipGetProperty, kShip_isBeacon),
+                     ShipProperty::kHomeSystem),
+    OOJS_PROPERTY_RO("isBeacon", ShipGetProperty, ShipProperty::kIsBeacon),
     OOJS_PROPERTY_RW("isCloaked", ShipGetProperty, ShipSetProperty,
-                     kShip_isCloaked),
-    OOJS_PROPERTY_RO("isCargo", ShipGetProperty, kShip_isCargo),
-    OOJS_PROPERTY_RO("isDerelict", ShipGetProperty, kShip_isDerelict),
-    OOJS_PROPERTY_RO("isFrangible", ShipGetProperty, kShip_isFrangible),
-    OOJS_PROPERTY_RO("isFleeing", ShipGetProperty, kShip_isFleeing),
-    OOJS_PROPERTY_RO("isJamming", ShipGetProperty, kShip_isJamming),
-    OOJS_PROPERTY_RO("isMinable", ShipGetProperty, kShip_isMinable),
-    OOJS_PROPERTY_RO("isMine", ShipGetProperty, kShip_isMine),
-    OOJS_PROPERTY_RO("isMissile", ShipGetProperty, kShip_isMissile),
-    OOJS_PROPERTY_RO("isPiloted", ShipGetProperty, kShip_isPiloted),
-    OOJS_PROPERTY_RO("isPirate", ShipGetProperty, kShip_isPirate),
-    OOJS_PROPERTY_RO("isPirateVictim", ShipGetProperty, kShip_isPirateVictim),
-    OOJS_PROPERTY_RO("isPolice", ShipGetProperty, kShip_isPolice),
-    OOJS_PROPERTY_RO("isRock", ShipGetProperty, kShip_isRock),
+                     ShipProperty::kIsCloaked),
+    OOJS_PROPERTY_RO("isCargo", ShipGetProperty, ShipProperty::kIsCargo),
+    OOJS_PROPERTY_RO("isDerelict", ShipGetProperty, ShipProperty::kIsDerelict),
+    OOJS_PROPERTY_RO("isFrangible", ShipGetProperty,
+                     ShipProperty::kIsFrangible),
+    OOJS_PROPERTY_RO("isFleeing", ShipGetProperty, ShipProperty::kIsFleeing),
+    OOJS_PROPERTY_RO("isJamming", ShipGetProperty, ShipProperty::kIsJamming),
+    OOJS_PROPERTY_RO("isMinable", ShipGetProperty, ShipProperty::kIsMinable),
+    OOJS_PROPERTY_RO("isMine", ShipGetProperty, ShipProperty::kIsMine),
+    OOJS_PROPERTY_RO("isMissile", ShipGetProperty, ShipProperty::kIsMissile),
+    OOJS_PROPERTY_RO("isPiloted", ShipGetProperty, ShipProperty::kIsPiloted),
+    OOJS_PROPERTY_RO("isPirate", ShipGetProperty, ShipProperty::kIsPirate),
+    OOJS_PROPERTY_RO("isPirateVictim", ShipGetProperty,
+                     ShipProperty::kIsPirateVictim),
+    OOJS_PROPERTY_RO("isPolice", ShipGetProperty, ShipProperty::kIsPolice),
+    OOJS_PROPERTY_RO("isRock", ShipGetProperty, ShipProperty::kIsRock),
     OOJS_PROPERTY_RW("isBoulder", ShipGetProperty, ShipSetProperty,
-                     kShip_isBoulder),
-    OOJS_PROPERTY_RO("isThargoid", ShipGetProperty, kShip_isThargoid),
-    OOJS_PROPERTY_RO("isTurret", ShipGetProperty, kShip_isTurret),
-    OOJS_PROPERTY_RO("isTrader", ShipGetProperty, kShip_isTrader),
-    OOJS_PROPERTY_RO("isWeapon", ShipGetProperty, kShip_isWeapon),
-    OOJS_PROPERTY_RO("laserHeatLevel", ShipGetProperty, kShip_laserHeatLevel),
+                     ShipProperty::kIsBoulder),
+    OOJS_PROPERTY_RO("isThargoid", ShipGetProperty, ShipProperty::kIsThargoid),
+    OOJS_PROPERTY_RO("isTurret", ShipGetProperty, ShipProperty::kIsTurret),
+    OOJS_PROPERTY_RO("isTrader", ShipGetProperty, ShipProperty::kIsTrader),
+    OOJS_PROPERTY_RO("isWeapon", ShipGetProperty, ShipProperty::kIsWeapon),
+    OOJS_PROPERTY_RO("laserHeatLevel", ShipGetProperty,
+                     ShipProperty::kLaserHeatLevel),
     OOJS_PROPERTY_RO("laserHeatLevelAft", ShipGetProperty,
-                     kShip_laserHeatLevelAft),
+                     ShipProperty::kLaserHeatLevelAft),
     OOJS_PROPERTY_RO("laserHeatLevelForward", ShipGetProperty,
-                     kShip_laserHeatLevelForward),
+                     ShipProperty::kLaserHeatLevelForward),
     OOJS_PROPERTY_RO("laserHeatLevelPort", ShipGetProperty,
-                     kShip_laserHeatLevelPort),
+                     ShipProperty::kLaserHeatLevelPort),
     OOJS_PROPERTY_RO("laserHeatLevelStarboard", ShipGetProperty,
-                     kShip_laserHeatLevelStarboard),
+                     ShipProperty::kLaserHeatLevelStarboard),
     OOJS_PROPERTY_RW("lightsActive", ShipGetProperty, ShipSetProperty,
-                     kShip_lightsActive),
-    OOJS_PROPERTY_RO("markedForFines", ShipGetProperty, kShip_markedForFines),
+                     ShipProperty::kLightsActive),
+    OOJS_PROPERTY_RO("markedForFines", ShipGetProperty,
+                     ShipProperty::kMarkedForFines),
     OOJS_PROPERTY_RW("maxEscorts", ShipGetProperty, ShipSetProperty,
-                     kShip_maxEscorts),
+                     ShipProperty::kMaxEscorts),
     OOJS_PROPERTY_RW("maxPitch", ShipGetProperty, ShipSetProperty,
-                     kShip_maxPitch),
+                     ShipProperty::kMaxPitch),
     OOJS_PROPERTY_RW("maxSpeed", ShipGetProperty, ShipSetProperty,
-                     kShip_maxSpeed),
+                     ShipProperty::kMaxSpeed),
     OOJS_PROPERTY_RW("maxRoll", ShipGetProperty, ShipSetProperty,
-                     kShip_maxRoll),
-    OOJS_PROPERTY_RW("maxYaw", ShipGetProperty, ShipSetProperty, kShip_maxYaw),
+                     ShipProperty::kMaxRoll),
+    OOJS_PROPERTY_RW("maxYaw", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kMaxYaw),
     OOJS_PROPERTY_RW("maxThrust", ShipGetProperty, ShipSetProperty,
-                     kShip_maxThrust),
-    OOJS_PROPERTY_RO("missileCapacity", ShipGetProperty, kShip_missileCapacity),
+                     ShipProperty::kMaxThrust),
+    OOJS_PROPERTY_RO("missileCapacity", ShipGetProperty,
+                     ShipProperty::kMissileCapacity),
     OOJS_PROPERTY_RW("missileLoadTime", ShipGetProperty, ShipSetProperty,
-                     kShip_missileLoadTime),
-    OOJS_PROPERTY_RO("missiles", ShipGetProperty, kShip_missiles),
-    OOJS_PROPERTY_RW("name", ShipGetProperty, ShipSetProperty, kShip_name),
-    OOJS_PROPERTY_RO("parcelCount", ShipGetProperty, kShip_parcelCount),
-    OOJS_PROPERTY_RO("parcels", ShipGetProperty, kShip_parcels),
-    OOJS_PROPERTY_RO("passengerCount", ShipGetProperty, kShip_passengerCount),
+                     ShipProperty::kMissileLoadTime),
+    OOJS_PROPERTY_RO("missiles", ShipGetProperty, ShipProperty::kMissiles),
+    OOJS_PROPERTY_RW("name", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kName),
+    OOJS_PROPERTY_RO("parcelCount", ShipGetProperty,
+                     ShipProperty::kParcelCount),
+    OOJS_PROPERTY_RO("parcels", ShipGetProperty, ShipProperty::kParcels),
+    OOJS_PROPERTY_RO("passengerCount", ShipGetProperty,
+                     ShipProperty::kPassengerCount),
     OOJS_PROPERTY_RO("passengerCapacity", ShipGetProperty,
-                     kShip_passengerCapacity),
-    OOJS_PROPERTY_RO("passengers", ShipGetProperty, kShip_passengers),
-    OOJS_PROPERTY_RO("pitch", ShipGetProperty, kShip_pitch),
+                     ShipProperty::kPassengerCapacity),
+    OOJS_PROPERTY_RO("passengers", ShipGetProperty, ShipProperty::kPassengers),
+    OOJS_PROPERTY_RO("pitch", ShipGetProperty, ShipProperty::kPitch),
     OOJS_PROPERTY_RW("portWeapon", ShipGetProperty, ShipSetProperty,
-                     kShip_portWeapon),
+                     ShipProperty::kPortWeapon),
     OOJS_PROPERTY_RO("potentialCollider", ShipGetProperty,
-                     kShip_potentialCollider),
+                     ShipProperty::kPotentialCollider),
     OOJS_PROPERTY_RW("primaryRole", ShipGetProperty, ShipSetProperty,
-                     kShip_primaryRole),
+                     ShipProperty::kPrimaryRole),
     OOJS_PROPERTY_RW("reactionTime", ShipGetProperty, ShipSetProperty,
-                     kShip_reactionTime),
+                     ShipProperty::kReactionTime),
     OOJS_PROPERTY_RW("reportAIMessages", ShipGetProperty, ShipSetProperty,
-                     kShip_reportAIMessages),
-    OOJS_PROPERTY_RO("roleWeights", ShipGetProperty, kShip_roleWeights),
-    OOJS_PROPERTY_RO("roles", ShipGetProperty, kShip_roles),
-    OOJS_PROPERTY_RO("roll", ShipGetProperty, kShip_roll),
+                     ShipProperty::kReportAIMessages),
+    OOJS_PROPERTY_RO("roleWeights", ShipGetProperty,
+                     ShipProperty::kRoleWeights),
+    OOJS_PROPERTY_RO("roles", ShipGetProperty, ShipProperty::kRoles),
+    OOJS_PROPERTY_RO("roll", ShipGetProperty, ShipProperty::kRoll),
     OOJS_PROPERTY_RW("savedCoordinates", ShipGetProperty, ShipSetProperty,
-                     kShip_savedCoordinates),
+                     ShipProperty::kSavedCoordinates),
     OOJS_PROPERTY_RW("scanDescription", ShipGetProperty, ShipSetProperty,
-                     kShip_scanDescription),
+                     ShipProperty::kScanDescription),
     OOJS_PROPERTY_RW("scannerDisplayColor1", ShipGetProperty, ShipSetProperty,
-                     kShip_scannerDisplayColor1),
+                     ShipProperty::kScannerDisplayColor1),
     OOJS_PROPERTY_RW("scannerDisplayColor2", ShipGetProperty, ShipSetProperty,
-                     kShip_scannerDisplayColor2),
+                     ShipProperty::kScannerDisplayColor2),
     OOJS_PROPERTY_RW("scannerHostileDisplayColor1", ShipGetProperty,
-                     ShipSetProperty, kShip_scannerHostileDisplayColor1),
+                     ShipSetProperty,
+                     ShipProperty::kScannerHostileDisplayColor1),
     OOJS_PROPERTY_RW("scannerHostileDisplayColor2", ShipGetProperty,
-                     ShipSetProperty, kShip_scannerHostileDisplayColor2),
-    OOJS_PROPERTY_RO("scannerRange", ShipGetProperty, kShip_scannerRange),
-    OOJS_PROPERTY_RO("script", ShipGetProperty, kShip_script),
+                     ShipSetProperty,
+                     ShipProperty::kScannerHostileDisplayColor2),
+    OOJS_PROPERTY_RO("scannerRange", ShipGetProperty,
+                     ShipProperty::kScannerRange),
+    OOJS_PROPERTY_RO("script", ShipGetProperty, ShipProperty::kScript),
     OOJS_PROPERTY_RW("scriptedMisjump", ShipGetProperty, ShipSetProperty,
-                     kShip_scriptedMisjump),
+                     ShipProperty::kScriptedMisjump),
     OOJS_PROPERTY_RW("scriptedMisjumpRange", ShipGetProperty, ShipSetProperty,
-                     kShip_scriptedMisjumpRange),
-    OOJS_PROPERTY_RO("scriptInfo", ShipGetProperty, kShip_scriptInfo),
+                     ShipProperty::kScriptedMisjumpRange),
+    OOJS_PROPERTY_RO("scriptInfo", ShipGetProperty, ShipProperty::kScriptInfo),
     OOJS_PROPERTY_RW("shipClassName", ShipGetProperty, ShipSetProperty,
-                     kShip_shipClassName),
+                     ShipProperty::kShipClassName),
     OOJS_PROPERTY_RW("shipUniqueName", ShipGetProperty, ShipSetProperty,
-                     kShip_shipUniqueName),
-    OOJS_PROPERTY_RW("speed", ShipGetProperty, ShipSetProperty, kShip_speed),
+                     ShipProperty::kShipUniqueName),
+    OOJS_PROPERTY_RW("speed", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kSpeed),
     OOJS_PROPERTY_RW("starboardWeapon", ShipGetProperty, ShipSetProperty,
-                     kShip_starboardWeapon),
-    OOJS_PROPERTY_RO("subEntities", ShipGetProperty, kShip_subEntities),
+                     ShipProperty::kStarboardWeapon),
+    OOJS_PROPERTY_RO("subEntities", ShipGetProperty,
+                     ShipProperty::kSubEntities),
     OOJS_PROPERTY_RO("subEntityCapacity", ShipGetProperty,
-                     kShip_subEntityCapacity),
+                     ShipProperty::kSubEntityCapacity),
     OOJS_PROPERTY_RW("subEntityRotation", ShipGetProperty, ShipSetProperty,
-                     kShip_subEntityRotation),
+                     ShipProperty::kSubEntityRotation),
     OOJS_PROPERTY_RW("sunGlareFilter", ShipGetProperty, ShipSetProperty,
-                     kShip_sunGlareFilter),
-    OOJS_PROPERTY_RW("target", ShipGetProperty, ShipSetProperty, kShip_target),
+                     ShipProperty::kSunGlareFilter),
+    OOJS_PROPERTY_RW("target", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kTarget),
     OOJS_PROPERTY_RW("temperature", ShipGetProperty, ShipSetProperty,
-                     kShip_temperature),
-    OOJS_PROPERTY_RW("thrust", ShipGetProperty, ShipSetProperty, kShip_thrust),
-    OOJS_PROPERTY_RO("thrustVector", ShipGetProperty, kShip_thrustVector),
+                     ShipProperty::kTemperature),
+    OOJS_PROPERTY_RW("thrust", ShipGetProperty, ShipSetProperty,
+                     ShipProperty::kThrust),
+    OOJS_PROPERTY_RO("thrustVector", ShipGetProperty,
+                     ShipProperty::kThrustVector),
     OOJS_PROPERTY_RW("trackCloseContacts", ShipGetProperty, ShipSetProperty,
-                     kShip_trackCloseContacts),
-    OOJS_PROPERTY_RO("vectorForward", ShipGetProperty, kShip_vectorForward),
-    OOJS_PROPERTY_RO("vectorRight", ShipGetProperty, kShip_vectorRight),
-    OOJS_PROPERTY_RO("vectorUp", ShipGetProperty, kShip_vectorUp),
+                     ShipProperty::kTrackCloseContacts),
+    OOJS_PROPERTY_RO("vectorForward", ShipGetProperty,
+                     ShipProperty::kVectorForward),
+    OOJS_PROPERTY_RO("vectorRight", ShipGetProperty,
+                     ShipProperty::kVectorRight),
+    OOJS_PROPERTY_RO("vectorUp", ShipGetProperty, ShipProperty::kVectorUp),
     OOJS_PROPERTY_RW("velocity", ShipGetProperty, ShipSetProperty,
-                     kShip_velocity),
-    OOJS_PROPERTY_RO("weaponFacings", ShipGetProperty, kShip_weaponFacings),
+                     ShipProperty::kVelocity),
+    OOJS_PROPERTY_RO("weaponFacings", ShipGetProperty,
+                     ShipProperty::kWeaponFacings),
     OOJS_PROPERTY_RO("weaponPositionAft", ShipGetProperty,
-                     kShip_weaponPositionAft),
+                     ShipProperty::kWeaponPositionAft),
     OOJS_PROPERTY_RO("weaponPositionForward", ShipGetProperty,
-                     kShip_weaponPositionForward),
+                     ShipProperty::kWeaponPositionForward),
     OOJS_PROPERTY_RO("weaponPositionPort", ShipGetProperty,
-                     kShip_weaponPositionPort),
+                     ShipProperty::kWeaponPositionPort),
     OOJS_PROPERTY_RO("weaponPositionStarboard", ShipGetProperty,
-                     kShip_weaponPositionStarboard),
-    OOJS_PROPERTY_RO("weaponRange", ShipGetProperty, kShip_weaponRange),
+                     ShipProperty::kWeaponPositionStarboard),
+    OOJS_PROPERTY_RO("weaponRange", ShipGetProperty,
+                     ShipProperty::kWeaponRange),
     OOJS_PROPERTY_RO("withinStationAegis", ShipGetProperty,
-                     kShip_withinStationAegis),
-    OOJS_PROPERTY_RO("yaw", ShipGetProperty, kShip_yaw),
+                     ShipProperty::kWithinStationAegis),
+    OOJS_PROPERTY_RO("yaw", ShipGetProperty, ShipProperty::kYaw),
 };
 
 static const JSCFunctionListEntry sShipMethods[] = {
@@ -805,34 +844,35 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
   }
   ShipEntity* ship = entity;  // not null: entity is not
 
-  switch (magic) {
-    case kShip_name:
+  switch (static_cast<ShipProperty>(magic)) {
+    using enum ShipProperty;
+    case kName:
       result = StringOrNull(ship->getName());
       break;
 
-    case kShip_displayName:
+    case kDisplayName:
       result = StringOrNull(ship->getDisplayName());
       break;
 
-    case kShip_shipUniqueName:
+    case kShipUniqueName:
       result = StringOrNull(ship->getShipUniqueName());
       break;
 
-    case kShip_shipClassName:
+    case kShipClassName:
       result = StringOrNull(ship->getShipClassName());
       break;
 
-    case kShip_scanDescription:
+    case kScanDescription:
       result = StringOrNull(ship->scanDescriptionForScripting());
       break;
 
-    case kShip_roles: {
+    case kRoles: {
       const oo::Ref<OORoleSet> roleSet = ship->getRoleSet();
       result = roleSet != nullptr ? StringArray(roleSet->sortedRoles())
                                   : oo::PList();
     } break;
 
-    case kShip_roleWeights: {
+    case kRoleWeights: {
       // Floats, as numberWithFloat: made them; nil when there is no role set.
       const oo::Ref<OORoleSet> roleSet = ship->getRoleSet();
       if (const auto roleWeights = (roleSet != nullptr)
@@ -846,78 +886,78 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       }
     } break;
 
-    case kShip_primaryRole:
+    case kPrimaryRole:
       result = StringOrNull(ship->getPrimaryRole());
       break;
 
-    case kShip_AI:
+    case kAI:
       result = StringOrNull(AIName(ship));
       break;
 
-    case kShip_AIState:
+    case kAIState:
       result = StringOrNull(AIState(ship));
       break;
 
-    case kShip_AIFoundTarget:
+    case kAIFoundTarget:
       result = oo::EntityObjectNode(ship->foundTarget());
       break;
 
-    case kShip_AIPrimaryAggressor:
+    case kAIPrimaryAggressor:
       result = oo::EntityObjectNode(ship->primaryAggressor());
       break;
 
-    case kShip_alertCondition:
+    case kAlertCondition:
       return JS_NewNumber(context,
                           oo::ToUnderlying(ship->realAlertCondition()));
 
-    case kShip_autoAI:
+    case kAutoAI:
       return OOJSValueFromBOOL(ship->hasAutoAI());
 
-    case kShip_autoWeapons:
+    case kAutoWeapons:
       return OOJSValueFromBOOL(ship->hasAutoWeapons());
 
-    case kShip_accuracy:
+    case kAccuracy:
       return JS_NewNumber(context, ship->getAccuracy());
 
-    case kShip_fuel:
+    case kFuel:
       return JS_NewNumber(context, ship->getFuel() * 0.1);
 
-    case kShip_fuelChargeRate:
+    case kFuelChargeRate:
       return JS_NewNumber(context, ship->fuelChargeRate());
 
-    case kShip_bounty:
+    case kBounty:
       return JS_NewNumber(context, ship->getBounty());
 
-    case kShip_subEntities:
+    case kSubEntities:
       // What -subEntitiesForScript answered: ShipEntity's
       // (OOJavaScriptExtensions) method, which no subclass overrides, forwards
       // to this function.
       result = oo::EntityNodesFrom(ShipEntityJSSubEntitiesForScript(entity));
       break;
 
-    case kShip_exhausts:
+    case kExhausts:
       result = oo::EntityNodesFrom(ship->exhausts());
       break;
 
-    case kShip_flashers:
+    case kFlashers:
       result = oo::EntityNodesFrom(ship->flasherEnumerator());
       break;
 
-    case kShip_subEntityCapacity:
+    case kSubEntityCapacity:
       return JS_NewNumber(context, ship->maxShipSubEntities());
 
-    case kShip_subEntityRotation:
+    case kSubEntityRotation:
       OOJS_RETURN_QUATERNION(ship->subEntityRotationalVelocity());
 
-    case kShip_hasSuspendedAI:
+    case kHasSuspendedAI:
       return OOJSValueFromBOOL(AIHasSuspendedStateMachines(ship));
 
-    case kShip_target:
+    case kTarget:
       result = oo::EntityObjectNode(
           ship->primaryTarget());  // the C++ entity's object node or nil
       break;
 
-    case kShip_defenseTargets: {
+    case kDefenseTargets: {
       ship->validateDefenseTargets();
       std::vector<oo::EntityHold> targets;
       targets.reserve(ship->defenseTargetCount());
@@ -932,7 +972,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       break;
     }
 
-    case kShip_crew:
+    case kCrew:
       if (ship->getCrew().has_value())  // unpiloted: nil, as before
       {
         const std::vector<oo::PList> entries = ship->crewForScripting();
@@ -940,7 +980,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       }
       break;
 
-    case kShip_escorts: {
+    case kEscorts: {
       OOShipGroup* escortGroup = ship->escortGroup();
       result =
           (escortGroup != nullptr)
@@ -948,69 +988,69 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
               : oo::PList();
     } break;
 
-    case kShip_group:
+    case kGroup:
       result = OOShipGroupObjectNode(ship->group());
       break;
 
-    case kShip_escortGroup:
+    case kEscortGroup:
       result = OOShipGroupObjectNode(ship->escortGroup());
       break;
 
-    case kShip_temperature:
+    case kTemperature:
       return JS_NewNumber(context, ship->temperature() / SHIP_MAX_CABIN_TEMP);
 
-    case kShip_heatInsulation:
+    case kHeatInsulation:
       return JS_NewNumber(context, ship->heatInsulation());
 
-    case kShip_heading:
+    case kHeading:
       OOJS_RETURN_VECTOR(ship->forwardVector());
 
-    case kShip_energyRechargeRate:
+    case kEnergyRechargeRate:
       return JS_NewNumber(context, ship->energyRechargeRate());
 
-    case kShip_entityPersonality:
+    case kEntityPersonality:
       return JS_NewInt32(context, ship->entityPersonalityInt());
 
-    case kShip_isBeacon:
+    case kIsBeacon:
       return OOJSValueFromBOOL(ship->isBeacon());
 
-    case kShip_beaconCode:
+    case kBeaconCode:
       result = StringOrNull(ship->beaconCode());
       break;
 
-    case kShip_beaconLabel:
+    case kBeaconLabel:
       result = StringOrNull(ship->beaconLabel());
       break;
 
-    case kShip_isFrangible:
+    case kIsFrangible:
       return OOJSValueFromBOOL(ship->getIsFrangible());
 
-    case kShip_isCloaked:
+    case kIsCloaked:
       return OOJSValueFromBOOL(ship->isCloaked());
 
-    case kShip_cloakAutomatic:
+    case kCloakAutomatic:
       return OOJSValueFromBOOL(ship->hasAutoCloak());
 
-    case kShip_isJamming:
+    case kIsJamming:
       return OOJSValueFromBOOL(ship->isJammingScanning());
 
-    case kShip_potentialCollider:
+    case kPotentialCollider:
       result = oo::EntityObjectNode(ship->proximityAlert());
       break;
 
-    case kShip_hasHostileTarget:
+    case kHasHostileTarget:
       return OOJSValueFromBOOL(ship->hasHostileTarget());
 
-    case kShip_hasHyperspaceMotor:
+    case kHasHyperspaceMotor:
       return OOJSValueFromBOOL(ship->hasHyperspaceMotor());
 
-    case kShip_hyperspaceSpinTime:
+    case kHyperspaceSpinTime:
       return JS_NewNumber(context, ship->hyperspaceSpinTime());
 
-    case kShip_weaponRange:
+    case kWeaponRange:
       return JS_NewNumber(context, ship->getWeaponRange());
 
-    case kShip_weaponFacings:
+    case kWeaponFacings:
       if (ship->getIsPlayer()) {
         PlayerEntity* pent = static_cast<PlayerEntity*>(entity);
         return JS_NewNumber(context, (pent != nullptr ? pent->availableFacings()
@@ -1018,167 +1058,167 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       }
       return JS_NewNumber(context, ship->weaponFacings());
 
-    case kShip_weaponPositionAft:
+    case kWeaponPositionAft:
       result = NativeVectorArray(ship->getAftWeaponOffset());
       break;
 
-    case kShip_weaponPositionForward:
+    case kWeaponPositionForward:
       result = NativeVectorArray(ship->getForwardWeaponOffset());
       break;
       //			OOJS_RETURN_VECTOR([entity
       // forwardWeaponOffset]);
 
-    case kShip_weaponPositionPort:
+    case kWeaponPositionPort:
       result = NativeVectorArray(ship->getPortWeaponOffset());
       break;
 
-    case kShip_weaponPositionStarboard:
+    case kWeaponPositionStarboard:
       result = NativeVectorArray(ship->getStarboardWeaponOffset());
       break;
 
-    case kShip_scannerRange:
+    case kScannerRange:
       return JS_NewNumber(context, ship->getScannerRange());
 
-    case kShip_reactionTime:
+    case kReactionTime:
       return JS_NewNumber(context, ship->getReactionTime());
 
-    case kShip_reportAIMessages:
+    case kReportAIMessages:
       return OOJSValueFromBOOL(ship->getReportAIMessages());
 
-    case kShip_withinStationAegis:
+    case kWithinStationAegis:
       return OOJSValueFromBOOL(ship->withinStationAegis());
 
-    case kShip_cargoSpaceCapacity:
+    case kCargoSpaceCapacity:
       return JS_NewInt32(context, ship->maxAvailableCargoSpace());
 
-    case kShip_cargoSpaceUsed:
+    case kCargoSpaceUsed:
       return JS_NewInt32(context, ship->maxAvailableCargoSpace() -
                                       ship->availableCargoSpace());
 
-    case kShip_cargoSpaceAvailable:
+    case kCargoSpaceAvailable:
       return JS_NewInt32(context, ship->availableCargoSpace());
 
-    case kShip_cargoList:
+    case kCargoList:
       result = ship->cargoListForScripting();
       break;
 
-    case kShip_extraCargo:
+    case kExtraCargo:
       return JS_NewNumber(context, ship->extraCargo());
 
-    case kShip_commodity:
+    case kCommodity:
       if (ship->commodityAmount() > 0) {
         result = StringOrNull(ship->commodityType());
       }
       break;
 
-    case kShip_commodityAmount:
+    case kCommodityAmount:
       return JS_NewInt32(context, ship->commodityAmount());
 
-    case kShip_collisionExceptions:
+    case kCollisionExceptions:
       result = oo::EntityNodesFrom(ship->collisionExceptions());
       break;
 
-    case kShip_speed:
+    case kSpeed:
       return JS_NewNumber(context, ship->getFlightSpeed());
 
-    case kShip_cruiseSpeed:
+    case kCruiseSpeed:
       return JS_NewNumber(context, ship->getCruiseSpeed());
 
-    case kShip_dataKey:
+    case kDataKey:
       result = StringOrNull(ship->shipDataKey());
       break;
 
-    case kShip_desiredRange:
+    case kDesiredRange:
       return JS_NewNumber(context, ship->desiredRange());
 
-    case kShip_desiredSpeed:
+    case kDesiredSpeed:
       return JS_NewNumber(context, ship->desiredSpeed());
 
-    case kShip_destination:
+    case kDestination:
       OOJS_RETURN_HPVECTOR(ship->destination());
 
-    case kShip_markedForFines:
+    case kMarkedForFines:
       return OOJSValueFromBOOL(ship->markedForFines());
 
-    case kShip_maxEscorts:
+    case kMaxEscorts:
       return JS_NewNumber(context, ship->maxEscortCount());
 
-    case kShip_maxPitch:
+    case kMaxPitch:
       return JS_NewNumber(context, ship->maxFlightPitch());
 
-    case kShip_maxSpeed:
+    case kMaxSpeed:
       return JS_NewNumber(context, ship->getMaxFlightSpeed());
 
-    case kShip_maxRoll:
+    case kMaxRoll:
       return JS_NewNumber(context, ship->maxFlightRoll());
 
-    case kShip_maxYaw:
+    case kMaxYaw:
       return JS_NewNumber(context, ship->maxFlightYaw());
 
-    case kShip_injectorBurnRate:
+    case kInjectorBurnRate:
       return JS_NewNumber(context, ship->afterburnerRate());
 
-    case kShip_injectorSpeedFactor:
+    case kInjectorSpeedFactor:
       return JS_NewNumber(context, ship->afterburnerFactor());
 
-    case kShip_script:
+    case kScript:
       result = OOScriptObjectNode(ship->shipScript());
       break;
 
-    case kShip_AIScript:
+    case kAIScript:
       result = OOScriptObjectNode(ship->shipAIScript());
       break;
 
-    case kShip_AIScriptWakeTime:
+    case kAIScriptWakeTime:
       return JS_NewNumber(context, ship->shipAIScriptWakeTime());
       break;
 
-    case kShip_destinationSystem:
+    case kDestinationSystem:
       return JS_NewNumber(context, ship->destinationSystem());
       break;
 
-    case kShip_homeSystem:
+    case kHomeSystem:
       return JS_NewNumber(context, ship->homeSystem());
       break;
 
-    case kShip_isPirate:
+    case kIsPirate:
       return OOJSValueFromBOOL(ship->isPirate());
 
-    case kShip_isPolice:
+    case kIsPolice:
       return OOJSValueFromBOOL(ship->isPolice());
 
-    case kShip_isThargoid:
+    case kIsThargoid:
       return OOJSValueFromBOOL(ship->isThargoid());
 
-    case kShip_isTurret:
+    case kIsTurret:
       return OOJSValueFromBOOL(ship->isTurret());
 
-    case kShip_isTrader:
+    case kIsTrader:
       return OOJSValueFromBOOL(ship->isTrader());
 
-    case kShip_isPirateVictim:
+    case kIsPirateVictim:
       return OOJSValueFromBOOL(ship->isPirateVictim());
 
-    case kShip_isMissile:
+    case kIsMissile:
       return OOJSValueFromBOOL(ship->getIsMissile());
 
-    case kShip_isMine:
+    case kIsMine:
       return OOJSValueFromBOOL(ship->isMine());
 
-    case kShip_isWeapon:
+    case kIsWeapon:
       return OOJSValueFromBOOL(ship->isWeapon());
 
-    case kShip_isRock:
+    case kIsRock:
       return OOJSValueFromBOOL(ship->getScanClass() ==
                                OOScanClass::kRock);  // hermits and asteroids!
 
-    case kShip_isMinable:
+    case kIsMinable:
       return OOJSValueFromBOOL(ship->isMinable());
 
-    case kShip_isBoulder:
+    case kIsBoulder:
       return OOJSValueFromBOOL(ship->isBoulder());
 
-    case kShip_isFleeing:
+    case kIsFleeing:
       if (ship->getIsPlayer()) {
         return OOJSValueFromBOOL(
             (static_cast<PlayerEntity*>(entity) != nullptr
@@ -1190,171 +1230,171 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
             ship->getBehaviour() == OOBehaviour::kFleeEvasiveAction);
       }
 
-    case kShip_isCargo:
+    case kIsCargo:
       return OOJSValueFromBOOL(ship->getScanClass() == OOScanClass::kCargo &&
                                ship->commodityAmount() > 0);
 
-    case kShip_isDerelict:
+    case kIsDerelict:
       return OOJSValueFromBOOL(ship->getIsHulk());
 
-    case kShip_isPiloted:
+    case kIsPiloted:
       return OOJSValueFromBOOL(
           ship->getIsPlayer() ||
           ship->getCrew().value_or(std::vector<oo::Ref<OOCharacter>>()).size() >
               0);
 
-    case kShip_scriptedMisjump:
+    case kScriptedMisjump:
       return OOJSValueFromBOOL(ship->scriptedMisjump());
 
-    case kShip_scriptedMisjumpRange:
+    case kScriptedMisjumpRange:
       return JS_NewNumber(context, ship->scriptedMisjumpRange());
 
-    case kShip_scriptInfo:
+    case kScriptInfo:
       result = ship->getScriptInfo();  // empty dict, never null
       break;
 
-    case kShip_sunGlareFilter:
+    case kSunGlareFilter:
       return JS_NewNumber(context, ship->getSunGlareFilter());
 
-    case kShip_trackCloseContacts:
+    case kTrackCloseContacts:
       return OOJSValueFromBOOL(ship->getTrackCloseContacts());
 
-    case kShip_passengerCount:
+    case kPassengerCount:
       return JS_NewNumber(context, ship->passengerCount());
 
-    case kShip_parcelCount:
+    case kParcelCount:
       return JS_NewNumber(context, ship->parcelCount());
 
-    case kShip_passengerCapacity:
+    case kPassengerCapacity:
       return JS_NewNumber(context, ship->passengerCapacity());
 
-    case kShip_missileCapacity:
+    case kMissileCapacity:
       return JS_NewNumber(context, ship->missileCapacity());
 
-    case kShip_missileLoadTime:
+    case kMissileLoadTime:
       return JS_NewNumber(context, ship->missileLoadTime());
 
-    case kShip_savedCoordinates:
+    case kSavedCoordinates:
       OOJS_RETURN_HPVECTOR(ship->getCoordinates());
 
-    case kShip_equipment:
+    case kEquipment:
       result = OOEquipmentTypeObjectNodes(ship->equipmentListForScripting());
       break;
 
-    case kShip_currentWeapon:
+    case kCurrentWeapon:
       result = OOEquipmentTypeObjectNode(
           ship->weaponTypeForFacing(ship->getCurrentWeaponFacing(), true));
       break;
 
-    case kShip_forwardWeapon:
+    case kForwardWeapon:
       result = OOEquipmentTypeObjectNode(
           ship->weaponTypeForFacing(OOWeaponFacing::kForward, true));
       break;
 
-    case kShip_aftWeapon:
+    case kAftWeapon:
       result = OOEquipmentTypeObjectNode(
           ship->weaponTypeForFacing(OOWeaponFacing::kAft, true));
       break;
 
-    case kShip_portWeapon:
+    case kPortWeapon:
       result = OOEquipmentTypeObjectNode(
           ship->weaponTypeForFacing(OOWeaponFacing::kPort, true));
       break;
 
-    case kShip_starboardWeapon:
+    case kStarboardWeapon:
       result = OOEquipmentTypeObjectNode(
           ship->weaponTypeForFacing(OOWeaponFacing::kStarboard, true));
       break;
 
-    case kShip_laserHeatLevel:
+    case kLaserHeatLevel:
       return JS_NewNumber(context, ship->laserHeatLevel());
 
-    case kShip_laserHeatLevelAft:
+    case kLaserHeatLevelAft:
       return JS_NewNumber(context, ship->laserHeatLevelAft());
 
-    case kShip_laserHeatLevelForward:
+    case kLaserHeatLevelForward:
       return JS_NewNumber(context, ship->laserHeatLevelForward());
 
-    case kShip_laserHeatLevelPort:
+    case kLaserHeatLevelPort:
       return JS_NewNumber(context, ship->laserHeatLevelPort());
 
-    case kShip_laserHeatLevelStarboard:
+    case kLaserHeatLevelStarboard:
       return JS_NewNumber(context, ship->laserHeatLevelStarboard());
 
-    case kShip_missiles:
+    case kMissiles:
       result = OOEquipmentTypeObjectNodes(ship->missilesList());
       break;
 
-    case kShip_passengers:
+    case kPassengers:
       result = ship->passengerListForScripting();
       break;
 
-    case kShip_parcels:
+    case kParcels:
       result = ship->parcelListForScripting();
       break;
 
-    case kShip_contracts:
+    case kContracts:
       result = ship->contractListForScripting();
       break;
 
-    case kShip_dockingInstructions:
+    case kDockingInstructions:
       result = ship->getDockingInstructions();
       break;
 
-    case kShip_scannerDisplayColor1:
+    case kScannerDisplayColor1:
       result = NormalizedColorComponents(ship->scannerDisplayColor1());
       break;
 
-    case kShip_scannerDisplayColor2:
+    case kScannerDisplayColor2:
       result = NormalizedColorComponents(ship->scannerDisplayColor2());
       break;
 
-    case kShip_scannerHostileDisplayColor1:
+    case kScannerHostileDisplayColor1:
       result = NormalizedColorComponents(ship->scannerDisplayColorHostile1());
       break;
 
-    case kShip_scannerHostileDisplayColor2:
+    case kScannerHostileDisplayColor2:
       result = NormalizedColorComponents(ship->scannerDisplayColorHostile2());
       break;
 
-    case kShip_exhaustEmissiveColor:
+    case kExhaustEmissiveColor:
       result = NormalizedColorComponents(ship->exhaustEmissiveColor());
       break;
 
-    case kShip_maxThrust:
+    case kMaxThrust:
       return JS_NewNumber(context, ship->maxThrust());
 
-    case kShip_thrust:
+    case kThrust:
       return JS_NewNumber(context, ship->getThrust());
 
-    case kShip_lightsActive:
+    case kLightsActive:
       return OOJSValueFromBOOL(ship->lightsActive());
 
-    case kShip_vectorRight:
+    case kVectorRight:
       OOJS_RETURN_VECTOR(ship->rightVector());
 
-    case kShip_vectorForward:
+    case kVectorForward:
       OOJS_RETURN_VECTOR(ship->forwardVector());
 
-    case kShip_vectorUp:
+    case kVectorUp:
       OOJS_RETURN_VECTOR(ship->upVector());
 
-    case kShip_velocity:
+    case kVelocity:
       OOJS_RETURN_VECTOR(ship->getVelocity());
 
-    case kShip_thrustVector:
+    case kThrustVector:
       OOJS_RETURN_VECTOR(ship->thrustVector());
 
-    case kShip_pitch:
+    case kPitch:
       return JS_NewNumber(context, ship->getFlightPitch());
 
-    case kShip_roll:
+    case kRoll:
       return JS_NewNumber(context, ship->getFlightRoll());
 
-    case kShip_yaw:
+    case kYaw:
       return JS_NewNumber(context, ship->getFlightYaw());
 
-    case kShip_boundingBox: {
+    case kBoundingBox: {
       Vector bbvect;
       BoundingBox box;
 
@@ -1403,8 +1443,9 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       !ship->isTemplateCargoPod(),
       "-OOJSShip: a template cargo pod has become accessible to Javascript");
 
-  switch (magic) {
-    case kShip_name:
+  switch (static_cast<ShipProperty>(magic)) {
+    using enum ShipProperty;
+    case kName:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       sValue = cxx_OOStringFromJSValue(context, value);
@@ -1414,7 +1455,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_displayName:
+    case kDisplayName:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       sValue = cxx_OOStringFromJSValue(context, value);
@@ -1424,7 +1465,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_shipUniqueName:
+    case kShipUniqueName:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         ship->setShipUniqueName(sValue);
@@ -1432,7 +1473,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_shipClassName:
+    case kShipClassName:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         ship->setShipClassName(sValue);
@@ -1440,13 +1481,13 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_scanDescription:
+    case kScanDescription:
       sValue = cxx_OOStringFromJSValue(context, value);
       // can set to nil
       ship->setScanDescription(sValue);
       return JS_UNDEFINED;
 
-    case kShip_primaryRole:
+    case kPrimaryRole:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       sValue = cxx_OOStringFromJSValue(context, value);
@@ -1456,7 +1497,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_AIState:
+    case kAIState:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       sValue = cxx_OOStringFromJSValue(context, value);
@@ -1467,7 +1508,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_beaconCode:
+    case kBeaconCode:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       sValue = cxx_OOStringFromJSValue(context, value);
@@ -1496,7 +1537,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       return JS_UNDEFINED;
       break;
 
-    case kShip_beaconLabel:
+    case kBeaconLabel:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
@@ -1505,7 +1546,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_accuracy:
+    case kAccuracy:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
@@ -1514,7 +1555,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_fuel:
+    case kFuel:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         fValue = OOClamp_0_max_d(fValue, MAX_JUMP_RANGE);
         ship->setFuel(lround(fValue * 10.0));
@@ -1522,7 +1563,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_entityPersonality:
+    case kEntityPersonality:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0 || iValue > (int32_t)ENTITY_PERSONALITY_MAX) {
           cxx_OOJSReportError(
@@ -1537,14 +1578,14 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
         return JS_UNDEFINED;
       }
 
-    case kShip_hyperspaceSpinTime:
+    case kHyperspaceSpinTime:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         ship->setHyperspaceSpinTime(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_bounty:
+    case kBounty:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         ship->setBounty(iValue, OOLegalStatusReason::kByScript);
@@ -1552,7 +1593,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_cargoSpaceCapacity:
+    case kCargoSpaceCapacity:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         // OXPs using equipment with weight requirements may make us end up with
@@ -1569,7 +1610,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_destinationSystem:
+    case kDestinationSystem:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         ship->setDestinationSystem(iValue);
@@ -1577,7 +1618,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_homeSystem:
+    case kHomeSystem:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         ship->setHomeSystem(iValue);
@@ -1585,7 +1626,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_target:
+    case kTarget:
       if (JS_IsNull(value)) {
         ShipEntityJSSetTargetForScript(
             entity,
@@ -1597,7 +1638,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_AIFoundTarget:
+    case kAIFoundTarget:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if (JS_IsNull(value)) {
@@ -1609,7 +1650,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_AIPrimaryAggressor:
+    case kAIPrimaryAggressor:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if (JS_IsNull(value)) {
@@ -1622,7 +1663,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_group:
+    case kGroup:
       group = OOShipGroupInObjectNode(cxx_OOJSPListFromJSValue(
           context, value));  // a ShipGroup's group, else null
       if (group != nullptr || JS_IsNull(value)) {
@@ -1631,14 +1672,14 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_AIScriptWakeTime:
+    case kAIScriptWakeTime:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         ship->setAIScriptWakeTime(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_temperature:
+    case kTemperature:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         fValue = fmax(fValue, 0.0);
         ship->setTemperature(fValue * SHIP_MAX_CABIN_TEMP);
@@ -1646,7 +1687,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_heatInsulation:
+    case kHeatInsulation:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         fValue = fmax(fValue, 0.125);
         ship->setHeatInsulation(fValue);
@@ -1654,28 +1695,28 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_isCloaked:
+    case kIsCloaked:
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
         ship->setCloaked(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_cloakAutomatic:
+    case kCloakAutomatic:
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
         ship->setAutoCloak(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_missileLoadTime:
+    case kMissileLoadTime:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         ship->setMissileLoadTime(fmax(0.0, fValue));
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_reactionTime:
+    case kReactionTime:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
@@ -1684,21 +1725,21 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_reportAIMessages:
+    case kReportAIMessages:
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
         ship->setReportAIMessages(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_trackCloseContacts:
+    case kTrackCloseContacts:
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
         ship->setTrackCloseContacts(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_isBoulder:
+    case kIsBoulder:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
@@ -1707,7 +1748,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_destination:
+    case kDestination:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if (JSValueToHPVector(context, value, &hpvValue)) {
@@ -1718,7 +1759,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_desiredSpeed:
+    case kDesiredSpeed:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
@@ -1727,7 +1768,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_speed:
+    case kSpeed:
       // Writable so a script can put a ship at a KNOWN flight speed, and in
       // particular can hold it at rest.
       //
@@ -1763,7 +1804,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_desiredRange:
+    case kDesiredRange:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
@@ -1772,14 +1813,14 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_savedCoordinates:
+    case kSavedCoordinates:
       if (JSValueToHPVector(context, value, &hpvValue)) {
         ship->setCoordinate(hpvValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_scannerDisplayColor1:
+    case kScannerDisplayColor1:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1788,7 +1829,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_scannerDisplayColor2:
+    case kScannerDisplayColor2:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1797,7 +1838,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_scannerHostileDisplayColor1:
+    case kScannerHostileDisplayColor1:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1806,7 +1847,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_scannerHostileDisplayColor2:
+    case kScannerHostileDisplayColor2:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1815,7 +1856,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_exhaustEmissiveColor:
+    case kExhaustEmissiveColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1824,14 +1865,14 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_scriptedMisjump:
+    case kScriptedMisjump:
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
         ship->setScriptedMisjump(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_scriptedMisjumpRange:
+    case kScriptedMisjumpRange:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue > 0.0 && fValue < 1.0) {
           ship->setScriptedMisjumpRange(fValue);
@@ -1847,14 +1888,14 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_subEntityRotation:
+    case kSubEntityRotation:
       if (JSValueToQuaternion(context, value, &qValue)) {
         ship->setSubEntityRotationalVelocity(qValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_sunGlareFilter:
+    case kSunGlareFilter:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue >= 0.0f && fValue <= 1.0f) {
           ship->setSunGlareFilter(fValue);
@@ -1870,7 +1911,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_thrust:
+    case kThrust:
       //			if (EXPECT_NOT(ship->getIsPlayer()))  goto
       // playerReadOnly;
 
@@ -1880,7 +1921,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_maxPitch:
+    case kMaxPitch:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context, "ship.maxPitch cannot be negative.");
@@ -1891,7 +1932,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_maxSpeed:
+    case kMaxSpeed:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context, "ship.maxSpeed cannot be negative.");
@@ -1902,7 +1943,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_maxRoll:
+    case kMaxRoll:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context, "ship.maxRoll cannot be negative.");
@@ -1913,7 +1954,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_maxYaw:
+    case kMaxYaw:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context, "ship.maxYaw cannot be negative.");
@@ -1924,7 +1965,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_injectorBurnRate:
+    case kInjectorBurnRate:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context,
@@ -1936,7 +1977,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_injectorSpeedFactor:
+    case kInjectorSpeedFactor:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 1) {
           cxx_OOJSReportError(
@@ -1965,7 +2006,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_maxThrust:
+    case kMaxThrust:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context, "ship.maxThrust cannot be negative.");
@@ -1976,7 +2017,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_energyRechargeRate:
+    case kEnergyRechargeRate:
       if ((JS_ToFloat64(context, &fValue, value) == 0)) {
         if (fValue < 0) {
           cxx_OOJSReportError(context,
@@ -1988,7 +2029,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_lightsActive:
+    case kLightsActive:
       if (((bValue = JS_ToBool(context, value)) >= 0)) {
         if (bValue)
           ship->switchLightsOn();
@@ -1998,37 +2039,39 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShip_velocity:
+    case kVelocity:
       if (JSValueToVector(context, value, &vValue)) {
         ship->setTotalVelocity(vValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kShip_portWeapon:
-    case kShip_starboardWeapon:
-    case kShip_aftWeapon:
-    case kShip_forwardWeapon:
-    case kShip_currentWeapon: {
+    case kPortWeapon:
+    case kStarboardWeapon:
+    case kAftWeapon:
+    case kForwardWeapon:
+    case kCurrentWeapon: {
       const std::string weaponKey =
           JSValueToEquipmentKeyRelaxed(context, value, &exists)
               .value_or("EQ_WEAPON_NONE");
       OOWeaponFacing facing = OOWeaponFacing::kForward;
-      switch (magic) {
-        case kShip_aftWeapon:
+      switch (static_cast<ShipProperty>(magic)) {
+        case kAftWeapon:
           facing = OOWeaponFacing::kAft;
           break;
-        case kShip_forwardWeapon:
+        case kForwardWeapon:
           facing = OOWeaponFacing::kForward;
           break;
-        case kShip_portWeapon:
+        case kPortWeapon:
           facing = OOWeaponFacing::kPort;
           break;
-        case kShip_starboardWeapon:
+        case kStarboardWeapon:
           facing = OOWeaponFacing::kStarboard;
           break;
-        case kShip_currentWeapon:
+        case kCurrentWeapon:
           facing = ship->getCurrentWeaponFacing();
+          break;
+        default:  // only the weapon properties reach here
           break;
       }
       if (ship->getIsPlayer()) {
@@ -2041,7 +2084,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       return JS_UNDEFINED;
     }
 
-    case kShip_maxEscorts:
+    case kMaxEscorts:
       if (EXPECT_NOT(ship->getIsPlayer())) goto playerReadOnly;
 
       if (OOJSValueToInt32(context, value, &iValue)) {

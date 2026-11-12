@@ -62,30 +62,34 @@ static JSClassDef sFlasherClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class FlasherProperty : std::int16_t {
   // Property IDs
-  kFlasher_active,
-  kFlasher_color,
-  kFlasher_fraction,
-  kFlasher_frequency,
-  kFlasher_phase,
-  kFlasher_size
+  kActive,
+  kColor,
+  kFraction,
+  kFrequency,
+  kPhase,
+  kSize
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sFlasherProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("active", FlasherGetProperty, FlasherSetProperty,
-                     kFlasher_active),
+                     FlasherProperty::kActive),
     OOJS_PROPERTY_RW("color", FlasherGetProperty, FlasherSetProperty,
-                     kFlasher_color),
+                     FlasherProperty::kColor),
     OOJS_PROPERTY_RW("fraction", FlasherGetProperty, FlasherSetProperty,
-                     kFlasher_fraction),
+                     FlasherProperty::kFraction),
     OOJS_PROPERTY_RW("frequency", FlasherGetProperty, FlasherSetProperty,
-                     kFlasher_frequency),
+                     FlasherProperty::kFrequency),
     OOJS_PROPERTY_RW("phase", FlasherGetProperty, FlasherSetProperty,
-                     kFlasher_phase),
+                     FlasherProperty::kPhase),
     OOJS_PROPERTY_RW("size", FlasherGetProperty, FlasherSetProperty,
-                     kFlasher_size),
+                     FlasherProperty::kSize),
 };
 
 static const JSCFunctionListEntry sFlasherMethods[] = {
@@ -154,24 +158,25 @@ static JSValue FlasherGetProperty(OOJS_GETTER_ARGS) {
     return JS_UNDEFINED;
   }
 
-  switch (magic) {
-    case kFlasher_active:
+  switch (static_cast<FlasherProperty>(magic)) {
+    using enum FlasherProperty;
+    case kActive:
       return OOJSValueFromBOOL(entity->isActive());
 
-    case kFlasher_color:
+    case kColor:
       result = NormalizedColorComponents(entity->color().get());
       break;
 
-    case kFlasher_frequency:
+    case kFrequency:
       return JS_NewNumber(context, entity->frequency());
 
-    case kFlasher_fraction:
+    case kFraction:
       return JS_NewNumber(context, entity->fraction());
 
-    case kFlasher_phase:
+    case kPhase:
       return JS_NewNumber(context, entity->phase());
 
-    case kFlasher_size:
+    case kSize:
       return JS_NewNumber(context, entity->diameter());
 
     default:
@@ -197,15 +202,16 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
     return OOJSNativeFailure(context);
   if (entity == nullptr) return JS_UNDEFINED;
 
-  switch (magic) {
-    case kFlasher_active:
+  switch (static_cast<FlasherProperty>(magic)) {
+    using enum FlasherProperty;
+    case kActive:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         entity->setActive((bool)bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kFlasher_color:
+    case kColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -214,7 +220,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kFlasher_frequency:
+    case kFrequency:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue >= 0.0) {
           entity->setFrequency(fValue);
@@ -223,7 +229,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kFlasher_fraction:
+    case kFraction:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue > 0.0 && fValue <= 1.0) {
           entity->setFraction(fValue);
@@ -232,14 +238,14 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kFlasher_phase:
+    case kPhase:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         entity->setPhase(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kFlasher_size:
+    case kSize:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue > 0.0) {
           entity->setDiameter(fValue);

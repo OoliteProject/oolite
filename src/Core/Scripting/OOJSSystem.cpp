@@ -123,94 +123,104 @@ static JSClassDef sSystemClass = {
     .class_name = "System",
 };
 
-enum {
+namespace {
+
+enum class SystemProperty : std::int16_t {
   // Property IDs
-  kSystem_allDemoShips,           // demo ships, array of Ship, read-only
-  kSystem_allShips,               // ships in system, array of Ship, read-only
-  kSystem_allVisualEffects,       // VEs in system, array of VEs, read-only
-  kSystem_ambientLevel,           // ambient light level, float, read/write
-  kSystem_breakPattern,           // witchspace break pattern shown
-  kSystem_description,            // description, string, read/write
-  kSystem_economy,                // economy ID, integer, read/write
-  kSystem_economyDescription,     // economy ID description, string, read-only
-  kSystem_government,             // government ID, integer, read/write
-  kSystem_governmentDescription,  // government ID description, string,
-                                  // read-only
-  kSystem_ID,                     // planet number, integer, read-only
-  kSystem_info,  // system info dictionary, SystemInfo, read/write
-  kSystem_inhabitantsDescription,  // description of inhabitant species, string,
-                                   // read/write
-  kSystem_isInterstellarSpace,     // is interstellar space, boolean, read-only
-  kSystem_mainPlanet,              // system's main planet, Planet, read-only
-  kSystem_mainStation,             // system's main station, Station, read-only
-  kSystem_name,                    // name, string, read/write
-  kSystem_planets,             // planets in system, array of Planet, read-only
-  kSystem_population,          // population, integer, read/write
-  kSystem_populatorSettings,   // populator settings, dictionary, read-only
-  kSystem_productivity,        // productivity, integer, read/write
-  kSystem_pseudoRandom100,     // constant-per-system pseudorandom number in
-                               // [0..100), integer, read-only
-  kSystem_pseudoRandom256,     // constant-per-system pseudorandom number in
-                               // [0..256), integer, read-only
-  kSystem_pseudoRandomNumber,  // constant-per-system pseudorandom number in
-                               // [0..1), double, read-only
-  kSystem_sun,                 // system's sun, Planet, read-only
-  kSystem_stations,            // list of dockable entities, read-only
-  kSystem_techLevel,           // tech level ID, integer, read/write
-  kSystem_waypoints,  // dictionary of current player waypoints, read-only
-  kSystem_wormholes,  // list of active entry wormholes, read-only
+  kAllDemoShips,            // demo ships, array of Ship, read-only
+  kAllShips,                // ships in system, array of Ship, read-only
+  kAllVisualEffects,        // VEs in system, array of VEs, read-only
+  kAmbientLevel,            // ambient light level, float, read/write
+  kBreakPattern,            // witchspace break pattern shown
+  kDescription,             // description, string, read/write
+  kEconomy,                 // economy ID, integer, read/write
+  kEconomyDescription,      // economy ID description, string, read-only
+  kGovernment,              // government ID, integer, read/write
+  kGovernmentDescription,   // government ID description, string,
+                            // read-only
+  kID,                      // planet number, integer, read-only
+  kInfo,                    // system info dictionary, SystemInfo, read/write
+  kInhabitantsDescription,  // description of inhabitant species, string,
+                            // read/write
+  kIsInterstellarSpace,     // is interstellar space, boolean, read-only
+  kMainPlanet,              // system's main planet, Planet, read-only
+  kMainStation,             // system's main station, Station, read-only
+  kName,                    // name, string, read/write
+  kPlanets,                 // planets in system, array of Planet, read-only
+  kPopulation,              // population, integer, read/write
+  kPopulatorSettings,       // populator settings, dictionary, read-only
+  kProductivity,            // productivity, integer, read/write
+  kPseudoRandom100,         // constant-per-system pseudorandom number in
+                            // [0..100), integer, read-only
+  kPseudoRandom256,         // constant-per-system pseudorandom number in
+                            // [0..256), integer, read-only
+  kPseudoRandomNumber,      // constant-per-system pseudorandom number in
+                            // [0..1), double, read-only
+  kSun,                     // system's sun, Planet, read-only
+  kStations,                // list of dockable entities, read-only
+  kTechLevel,               // tech level ID, integer, read/write
+  kWaypoints,               // dictionary of current player waypoints, read-only
+  kWormholes,               // list of active entry wormholes, read-only
 
 };
 
+}  // namespace
+
 static const JSCFunctionListEntry sSystemProperties[] = {
     // JS name, getter, setter, ID
-    OOJS_PROPERTY_RO("allDemoShips", SystemGetProperty, kSystem_allDemoShips),
-    OOJS_PROPERTY_RO("allShips", SystemGetProperty, kSystem_allShips),
+    OOJS_PROPERTY_RO("allDemoShips", SystemGetProperty,
+                     SystemProperty::kAllDemoShips),
+    OOJS_PROPERTY_RO("allShips", SystemGetProperty, SystemProperty::kAllShips),
     OOJS_PROPERTY_RO("allVisualEffects", SystemGetProperty,
-                     kSystem_allVisualEffects),
+                     SystemProperty::kAllVisualEffects),
     OOJS_PROPERTY_RW("ambientLevel", SystemGetProperty, SystemSetProperty,
-                     kSystem_ambientLevel),
+                     SystemProperty::kAmbientLevel),
     OOJS_PROPERTY_RW("breakPattern", SystemGetProperty, SystemSetProperty,
-                     kSystem_breakPattern),
+                     SystemProperty::kBreakPattern),
     OOJS_PROPERTY_RW("description", SystemGetProperty, SystemSetProperty,
-                     kSystem_description),
+                     SystemProperty::kDescription),
     OOJS_PROPERTY_RW("economy", SystemGetProperty, SystemSetProperty,
-                     kSystem_economy),
+                     SystemProperty::kEconomy),
     OOJS_PROPERTY_RO("economyDescription", SystemGetProperty,
-                     kSystem_economyDescription),
+                     SystemProperty::kEconomyDescription),
     OOJS_PROPERTY_RW("government", SystemGetProperty, SystemSetProperty,
-                     kSystem_government),
+                     SystemProperty::kGovernment),
     OOJS_PROPERTY_RO("governmentDescription", SystemGetProperty,
-                     kSystem_governmentDescription),
-    OOJS_PROPERTY_RO("ID", SystemGetProperty, kSystem_ID),
-    OOJS_PROPERTY_RO("info", SystemGetProperty, kSystem_info),
+                     SystemProperty::kGovernmentDescription),
+    OOJS_PROPERTY_RO("ID", SystemGetProperty, SystemProperty::kID),
+    OOJS_PROPERTY_RO("info", SystemGetProperty, SystemProperty::kInfo),
     OOJS_PROPERTY_RW("inhabitantsDescription", SystemGetProperty,
-                     SystemSetProperty, kSystem_inhabitantsDescription),
+                     SystemSetProperty,
+                     SystemProperty::kInhabitantsDescription),
     OOJS_PROPERTY_RO("isInterstellarSpace", SystemGetProperty,
-                     kSystem_isInterstellarSpace),
-    OOJS_PROPERTY_RO("mainPlanet", SystemGetProperty, kSystem_mainPlanet),
-    OOJS_PROPERTY_RO("mainStation", SystemGetProperty, kSystem_mainStation),
+                     SystemProperty::kIsInterstellarSpace),
+    OOJS_PROPERTY_RO("mainPlanet", SystemGetProperty,
+                     SystemProperty::kMainPlanet),
+    OOJS_PROPERTY_RO("mainStation", SystemGetProperty,
+                     SystemProperty::kMainStation),
     OOJS_PROPERTY_RW("name", SystemGetProperty, SystemSetProperty,
-                     kSystem_name),
-    OOJS_PROPERTY_RO("planets", SystemGetProperty, kSystem_planets),
+                     SystemProperty::kName),
+    OOJS_PROPERTY_RO("planets", SystemGetProperty, SystemProperty::kPlanets),
     OOJS_PROPERTY_RW("population", SystemGetProperty, SystemSetProperty,
-                     kSystem_population),
+                     SystemProperty::kPopulation),
     OOJS_PROPERTY_RO("populatorSettings", SystemGetProperty,
-                     kSystem_populatorSettings),
+                     SystemProperty::kPopulatorSettings),
     OOJS_PROPERTY_RW("productivity", SystemGetProperty, SystemSetProperty,
-                     kSystem_productivity),
+                     SystemProperty::kProductivity),
     OOJS_PROPERTY_RO("pseudoRandom100", SystemGetProperty,
-                     kSystem_pseudoRandom100),
+                     SystemProperty::kPseudoRandom100),
     OOJS_PROPERTY_RO("pseudoRandom256", SystemGetProperty,
-                     kSystem_pseudoRandom256),
+                     SystemProperty::kPseudoRandom256),
     OOJS_PROPERTY_RO("pseudoRandomNumber", SystemGetProperty,
-                     kSystem_pseudoRandomNumber),
-    OOJS_PROPERTY_RO("stations", SystemGetProperty, kSystem_stations),
-    OOJS_PROPERTY_RO("sun", SystemGetProperty, kSystem_sun),
+                     SystemProperty::kPseudoRandomNumber),
+    OOJS_PROPERTY_RO("stations", SystemGetProperty, SystemProperty::kStations),
+    OOJS_PROPERTY_RO("sun", SystemGetProperty, SystemProperty::kSun),
     OOJS_PROPERTY_RW("techLevel", SystemGetProperty, SystemSetProperty,
-                     kSystem_techLevel),
-    OOJS_PROPERTY_RO("waypoints", SystemGetProperty, kSystem_waypoints),
-    OOJS_PROPERTY_RO("wormholes", SystemGetProperty, kSystem_wormholes),
+                     SystemProperty::kTechLevel),
+    OOJS_PROPERTY_RO("waypoints", SystemGetProperty,
+                     SystemProperty::kWaypoints),
+    OOJS_PROPERTY_RO("wormholes", SystemGetProperty,
+                     SystemProperty::kWormholes),
 };
 
 static const JSCFunctionListEntry sSystemMethods[] = {
@@ -279,34 +289,35 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
   player = OOPlayerForScripting();
 
   // Handle cases which don't require systemData.
-  switch (magic) {
-    case kSystem_ID:
+  switch (static_cast<SystemProperty>(magic)) {
+    using enum SystemProperty;
+    case kID:
       return JS_NewInt32(context,
                          player != nullptr ? player->currentSystemID() : 0);
 
-    case kSystem_isInterstellarSpace:
+    case kIsInterstellarSpace:
       return OOJSValueFromBOOL(
           (UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false));
 
-    case kSystem_mainStation:
+    case kMainStation:
       result = oo::EntityObjectNode(
           (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr));
       handled = true;
       break;
 
-    case kSystem_mainPlanet:
+    case kMainPlanet:
       result = oo::EntityObjectNode(
           (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr));
       handled = true;
       break;
 
-    case kSystem_sun:
+    case kSun:
       result = oo::EntityObjectNode(
           (UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr));
       handled = true;
       break;
 
-    case kSystem_planets: {
+    case kPlanets: {
       std::vector<oo::EntityHold> visible;  // the planets (their objects held)
       for (const auto& r :
            (UNIVERSE != nullptr ? UNIVERSE->planets()
@@ -320,14 +331,14 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       break;
     }
 
-    case kSystem_stations:
+    case kStations:
       result = oo::EntityNodesFrom((UNIVERSE != nullptr
                                         ? UNIVERSE->stations()
                                         : std::vector<oo::EntityHold>()));
       handled = true;
       break;
 
-    case kSystem_waypoints: {
+    case kWaypoints: {
       // An immutable dictionary of the waypoints by key, as -currentWaypoints
       // built it.
       oo::PList::Dict waypoints;
@@ -343,14 +354,14 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       break;
     }
 
-    case kSystem_wormholes:
+    case kWormholes:
       result = oo::EntityNodesFrom((UNIVERSE != nullptr
                                         ? UNIVERSE->wormholes()
                                         : std::vector<oo::EntityHold>()));
       handled = true;
       break;
 
-    case kSystem_allShips:
+    case kAllShips:
       OOJS_BEGIN_FULL_NATIVE(context)
       result = oo::EntityNodesFrom(
           (UNIVERSE != nullptr ? UNIVERSE->findShipsMatchingPredicate(
@@ -361,7 +372,7 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       handled = true;
       break;
 
-    case kSystem_allDemoShips:
+    case kAllDemoShips:
       OOJS_BEGIN_FULL_NATIVE(context)
       result = oo::EntityNodesFrom(
           (UNIVERSE != nullptr
@@ -372,7 +383,7 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       handled = true;
       break;
 
-    case kSystem_allVisualEffects:
+    case kAllVisualEffects:
       OOJS_BEGIN_FULL_NATIVE(context)
       result = oo::EntityNodesFrom(
           (UNIVERSE != nullptr ? UNIVERSE->findVisualEffectsMatchingPredicate(
@@ -383,40 +394,43 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       handled = true;
       break;
 
-    case kSystem_ambientLevel:
+    case kAmbientLevel:
       return JS_NewNumber(
           context,
           (UNIVERSE != nullptr ? UNIVERSE->getAmbientLightLevel() : 0.0f));
 
-    case kSystem_info:
+    case kInfo:
       return GetJSSystemInfoForSystem(
           context,
           (player != nullptr ? player->currentGalaxyID() : OOGalaxyID{}),
           (player != nullptr ? player->currentSystemID() : 0));
 
-    case kSystem_pseudoRandomNumber:
+    case kPseudoRandomNumber:
       return JS_NewNumber(
           context,
           (player != nullptr ? player->systemPseudoRandomFloat() : 0.0));
 
-    case kSystem_pseudoRandom100:
+    case kPseudoRandom100:
       return JS_NewInt32(context, player != nullptr
                                       ? player->systemPseudoRandom100()
                                       : unsigned{});
 
-    case kSystem_pseudoRandom256:
+    case kPseudoRandom256:
       return JS_NewInt32(context, player != nullptr
                                       ? player->systemPseudoRandom256()
                                       : unsigned{});
 
-    case kSystem_breakPattern:
+    case kBreakPattern:
       return OOJSValueFromBOOL(
           (UNIVERSE != nullptr ? UNIVERSE->witchspaceBreakPattern() : false));
 
-    case kSystem_populatorSettings:
+    case kPopulatorSettings:
       return OOJSValueFromPList(
           context, (UNIVERSE != nullptr ? UNIVERSE->getPopulatorSettings()
                                         : oo::PList()));
+
+    default:  // the properties that need the system's data: below
+      break;
   }
 
   if (!handled) {
@@ -426,53 +440,54 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       const oo::PList systemData =
           (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList());
 
-      switch (magic) {
-        case kSystem_name:
+      switch (static_cast<SystemProperty>(magic)) {
+        using enum SystemProperty;
+        case kName:
           if (const oo::PList* entry = systemData.find(KEY_NAME))
             result = *entry;  // -objectForKey:
           break;
 
-        case kSystem_description:
+        case kDescription:
           if (const oo::PList* entry = systemData.find(KEY_DESCRIPTION))
             result = *entry;  // -objectForKey:
           break;
 
-        case kSystem_inhabitantsDescription:
+        case kInhabitantsDescription:
           if (const oo::PList* entry = systemData.find(KEY_INHABITANTS))
             result = *entry;  // -objectForKey:
           break;
 
-        case kSystem_government:
+        case kGovernment:
           return JS_NewInt32(context,
                              systemData.get<int>(std::string(KEY_GOVERNMENT)));
 
-        case kSystem_governmentDescription:
+        case kGovernmentDescription:
           result =
               oo::PList(cxx_OODisplayStringFromGovernmentID(
                             systemData.get<int>(std::string(KEY_GOVERNMENT)))
                             .value_or(std::string(OO_DESC("not-applicable"))));
           break;
 
-        case kSystem_economy:
+        case kEconomy:
           return JS_NewInt32(context,
                              systemData.get<int>(std::string(KEY_ECONOMY)));
 
-        case kSystem_economyDescription:
+        case kEconomyDescription:
           result =
               oo::PList(cxx_OODisplayStringFromEconomyID(
                             systemData.get<int>(std::string(KEY_ECONOMY)))
                             .value_or(std::string(OO_DESC("not-applicable"))));
           break;
 
-        case kSystem_techLevel:
+        case kTechLevel:
           return JS_NewInt32(context,
                              systemData.get<int>(std::string(KEY_TECHLEVEL)));
 
-        case kSystem_population:
+        case kPopulation:
           return JS_NewInt32(context,
                              systemData.get<int>(std::string(KEY_POPULATION)));
 
-        case kSystem_productivity:
+        case kProductivity:
           return JS_NewInt32(
               context, systemData.get<int>(std::string(KEY_PRODUCTIVITY)));
 
@@ -484,40 +499,41 @@ static JSValue SystemGetProperty(OOJS_GETTER_ARGS) {
       }
     } else {
       // if in interstellar space, systemData values are null & void!
-      switch (magic) {
-        case kSystem_name:
+      switch (static_cast<SystemProperty>(magic)) {
+        using enum SystemProperty;
+        case kName:
           result = oo::PList(std::string(OO_DESC("interstellar-space")));
           break;
 
-        case kSystem_description:
+        case kDescription:
           result = oo::PList(std::string());
           break;
 
-        case kSystem_inhabitantsDescription:
+        case kInhabitantsDescription:
           result = oo::PList(std::string(OO_DESC("not-applicable")));
           break;
 
-        case kSystem_government:
+        case kGovernment:
           return JS_NewInt32(context, -1);
 
-        case kSystem_governmentDescription:
+        case kGovernmentDescription:
           result = oo::PList(std::string(OO_DESC("not-applicable")));
           break;
 
-        case kSystem_economy:
+        case kEconomy:
           return JS_NewInt32(context, -1);
 
-        case kSystem_economyDescription:
+        case kEconomyDescription:
           result = oo::PList(std::string(OO_DESC("not-applicable")));
           break;
 
-        case kSystem_techLevel:
+        case kTechLevel:
           return JS_NewInt32(context, -1);
 
-        case kSystem_population:
+        case kPopulation:
           return JS_NewInt32(context, 0);
 
-        case kSystem_productivity:
+        case kProductivity:
           return JS_NewInt32(context, 0);
 
         default:
@@ -552,8 +568,9 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
   galaxy = (player != nullptr ? player->currentGalaxyID() : OOGalaxyID{});
   system = (player != nullptr ? player->currentSystemID() : 0);
 
-  switch (magic) {
-    case kSystem_ambientLevel:
+  switch (static_cast<SystemProperty>(magic)) {
+    using enum SystemProperty;
+    case kAmbientLevel:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (UNIVERSE != nullptr) UNIVERSE->setAmbientLightLevel(fValue);
         if (UNIVERSE != nullptr) UNIVERSE->setLighting();
@@ -561,7 +578,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_breakPattern:
+    case kBreakPattern:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (UNIVERSE != nullptr) UNIVERSE->setWitchspaceBreakPattern(bValue);
         return JS_UNDEFINED;
@@ -586,8 +603,9 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
           ? std::optional<std::string>(*manifest.getIf<std::string>())
           : std::nullopt;
 
-  switch (magic) {
-    case kSystem_name:
+  switch (static_cast<SystemProperty>(magic)) {
+    using enum SystemProperty;
+    case kName:
       stringValue = cxx_OOStringFromJSValue(context, value);
       if (stringValue.has_value()) {
         if (UNIVERSE != nullptr)
@@ -598,7 +616,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_description:
+    case kDescription:
       stringValue = cxx_OOStringFromJSValue(context, value);
       if (stringValue.has_value()) {
         if (UNIVERSE != nullptr)
@@ -609,7 +627,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_inhabitantsDescription:
+    case kInhabitantsDescription:
       stringValue = cxx_OOStringFromJSValue(context, value);
       if (stringValue.has_value()) {
         if (UNIVERSE != nullptr)
@@ -620,7 +638,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_government:
+    case kGovernment:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         if (7 < iValue) iValue = 7;
@@ -633,7 +651,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_economy:
+    case kEconomy:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         if (7 < iValue) iValue = 7;
@@ -646,7 +664,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_techLevel:
+    case kTechLevel:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         if (15 < iValue) iValue = 15;
@@ -659,7 +677,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_population:
+    case kPopulation:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (UNIVERSE != nullptr)
           UNIVERSE->setSystemDataForGalaxy(galaxy, system,
@@ -670,7 +688,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kSystem_productivity:
+    case kProductivity:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (UNIVERSE != nullptr)
           UNIVERSE->setSystemDataForGalaxy(galaxy, system,

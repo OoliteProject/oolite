@@ -81,79 +81,89 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS);
 static JSValue PlayerSetPlayerRole(OOJS_NATIVE_ARGS);
 static JSValue PlayerStopAudioMessage(OOJS_NATIVE_ARGS);
 
-enum {
+namespace {
+
+enum class PlayerProperty : std::int16_t {
   // Property IDs
-  kPlayer_alertAltitude,     // low altitude alert flag, boolean, read-only
-  kPlayer_alertCondition,    // alert level, integer, read-only
-  kPlayer_alertEnergy,       // low energy alert flag, boolean, read-only
-  kPlayer_alertHostiles,     // hostiles present alert flag, boolean, read-only
-  kPlayer_alertMassLocked,   // mass lock alert flag, boolean, read-only
-  kPlayer_alertTemperature,  // cabin temperature alert flag, boolean, read-only
-  kPlayer_bounty,            // bounty, unsigned int, read/write
-  kPlayer_contractReputation,  // reputation for cargo contracts, integer, read
-                               // only
-  kPlayer_contractReputationPrecise,  // reputation for cargo contracts, float,
-                                      // read only
-  kPlayer_credits,                    // credit balance, float, read/write
-  kPlayer_dockingClearanceStatus,     // docking clearance status, string, read
-                                      // only
-  kPlayer_escapePodRescueTime,  // override for the amount of time an escape pod
+  kAlertAltitude,       // low altitude alert flag, boolean, read-only
+  kAlertCondition,      // alert level, integer, read-only
+  kAlertEnergy,         // low energy alert flag, boolean, read-only
+  kAlertHostiles,       // hostiles present alert flag, boolean, read-only
+  kAlertMassLocked,     // mass lock alert flag, boolean, read-only
+  kAlertTemperature,    // cabin temperature alert flag, boolean, read-only
+  kBounty,              // bounty, unsigned int, read/write
+  kContractReputation,  // reputation for cargo contracts, integer, read
+                        // only
+  kContractReputationPrecise,   // reputation for cargo contracts, float,
+                                // read only
+  kCredits,                     // credit balance, float, read/write
+  kDockingClearanceStatus,      // docking clearance status, string, read
+                                // only
+  kEscapePodRescueTime,         // override for the amount of time an escape pod
                                 // rescue takes, read/write
-  kPlayer_legalStatus,          // legalStatus, string, read-only
-  kPlayer_name,                 // Player name, string, read/write
-  kPlayer_parcelReputation,     // reputation for parcel contracts, integer,
+  kLegalStatus,                 // legalStatus, string, read-only
+  kName,                        // Player name, string, read/write
+  kParcelReputation,            // reputation for parcel contracts, integer,
                                 // read-only
-  kPlayer_parcelReputationPrecise,  // reputation for parcel contracts, float,
-                                    // read-only
-  kPlayer_passengerReputation,  // reputation for passenger contracts, integer,
+  kParcelReputationPrecise,     // reputation for parcel contracts, float,
                                 // read-only
-  kPlayer_passengerReputationPrecise,  // reputation for passenger contracts,
-                                       // float, read-only
-  kPlayer_rank,                        // rank, string, read-only
-  kPlayer_roleWeights,                 // role weights, array, read-only
-  kPlayer_score,                       // kill count, integer, read/write
-  kPlayer_trumbleCount,                // number of trumbles, integer, read-only
+  kPassengerReputation,         // reputation for passenger contracts, integer,
+                                // read-only
+  kPassengerReputationPrecise,  // reputation for passenger contracts,
+                                // float, read-only
+  kRank,                        // rank, string, read-only
+  kRoleWeights,                 // role weights, array, read-only
+  kScore,                       // kill count, integer, read/write
+  kTrumbleCount,                // number of trumbles, integer, read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sPlayerProperties[] = {
     // JS name, getter, setter, ID
-    OOJS_PROPERTY_RO("alertAltitude", PlayerGetProperty, kPlayer_alertAltitude),
+    OOJS_PROPERTY_RO("alertAltitude", PlayerGetProperty,
+                     PlayerProperty::kAlertAltitude),
     OOJS_PROPERTY_RO("alertCondition", PlayerGetProperty,
-                     kPlayer_alertCondition),
-    OOJS_PROPERTY_RO("alertEnergy", PlayerGetProperty, kPlayer_alertEnergy),
-    OOJS_PROPERTY_RO("alertHostiles", PlayerGetProperty, kPlayer_alertHostiles),
+                     PlayerProperty::kAlertCondition),
+    OOJS_PROPERTY_RO("alertEnergy", PlayerGetProperty,
+                     PlayerProperty::kAlertEnergy),
+    OOJS_PROPERTY_RO("alertHostiles", PlayerGetProperty,
+                     PlayerProperty::kAlertHostiles),
     OOJS_PROPERTY_RO("alertMassLocked", PlayerGetProperty,
-                     kPlayer_alertMassLocked),
+                     PlayerProperty::kAlertMassLocked),
     OOJS_PROPERTY_RO("alertTemperature", PlayerGetProperty,
-                     kPlayer_alertTemperature),
+                     PlayerProperty::kAlertTemperature),
     OOJS_PROPERTY_RW("bounty", PlayerGetProperty, PlayerSetProperty,
-                     kPlayer_bounty),
+                     PlayerProperty::kBounty),
     OOJS_PROPERTY_RO("contractReputation", PlayerGetProperty,
-                     kPlayer_contractReputation),
+                     PlayerProperty::kContractReputation),
     OOJS_PROPERTY_RO("contractReputationPrecise", PlayerGetProperty,
-                     kPlayer_contractReputationPrecise),
+                     PlayerProperty::kContractReputationPrecise),
     OOJS_PROPERTY_RW("credits", PlayerGetProperty, PlayerSetProperty,
-                     kPlayer_credits),
+                     PlayerProperty::kCredits),
     OOJS_PROPERTY_RO("dockingClearanceStatus", PlayerGetProperty,
-                     kPlayer_dockingClearanceStatus),
+                     PlayerProperty::kDockingClearanceStatus),
     OOJS_PROPERTY_RW("escapePodRescueTime", PlayerGetProperty,
-                     PlayerSetProperty, kPlayer_escapePodRescueTime),
-    OOJS_PROPERTY_RO("legalStatus", PlayerGetProperty, kPlayer_legalStatus),
+                     PlayerSetProperty, PlayerProperty::kEscapePodRescueTime),
+    OOJS_PROPERTY_RO("legalStatus", PlayerGetProperty,
+                     PlayerProperty::kLegalStatus),
     OOJS_PROPERTY_RW("name", PlayerGetProperty, PlayerSetProperty,
-                     kPlayer_name),
+                     PlayerProperty::kName),
     OOJS_PROPERTY_RO("parcelReputation", PlayerGetProperty,
-                     kPlayer_parcelReputation),
+                     PlayerProperty::kParcelReputation),
     OOJS_PROPERTY_RO("parcelReputationPrecise", PlayerGetProperty,
-                     kPlayer_parcelReputationPrecise),
+                     PlayerProperty::kParcelReputationPrecise),
     OOJS_PROPERTY_RO("passengerReputation", PlayerGetProperty,
-                     kPlayer_passengerReputation),
+                     PlayerProperty::kPassengerReputation),
     OOJS_PROPERTY_RO("passengerReputationPrecise", PlayerGetProperty,
-                     kPlayer_passengerReputationPrecise),
-    OOJS_PROPERTY_RO("rank", PlayerGetProperty, kPlayer_rank),
-    OOJS_PROPERTY_RO("roleWeights", PlayerGetProperty, kPlayer_roleWeights),
+                     PlayerProperty::kPassengerReputationPrecise),
+    OOJS_PROPERTY_RO("rank", PlayerGetProperty, PlayerProperty::kRank),
+    OOJS_PROPERTY_RO("roleWeights", PlayerGetProperty,
+                     PlayerProperty::kRoleWeights),
     OOJS_PROPERTY_RW("score", PlayerGetProperty, PlayerSetProperty,
-                     kPlayer_score),
-    OOJS_PROPERTY_RO("trumbleCount", PlayerGetProperty, kPlayer_trumbleCount),
+                     PlayerProperty::kScore),
+    OOJS_PROPERTY_RO("trumbleCount", PlayerGetProperty,
+                     PlayerProperty::kTrumbleCount),
 };
 
 static const JSCFunctionListEntry sPlayerMethods[] = {
@@ -227,26 +237,27 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
   oo::PList result;  // null maps to null
   PlayerEntity* player = OOPlayerForScripting();
 
-  switch (magic) {
-    case kPlayer_name:
+  switch (static_cast<PlayerProperty>(magic)) {
+    using enum PlayerProperty;
+    case kName:
       if (const std::optional<std::string> name =
               (player != nullptr ? player->commanderName()
                                  : std::optional<std::string>()))
         result = oo::PList(*name);
       break;
 
-    case kPlayer_score:
+    case kScore:
       return JS_NewInt32(
           context, (player != nullptr
                         ? player->PlayerEntity::score()
                         : unsigned{}));  // qualified: the final overrider, so
                                          // the binding test stands in for it
 
-    case kPlayer_credits:
+    case kCredits:
       return JS_NewNumber(context,
                           (player != nullptr ? player->creditBalance() : 0.0));
 
-    case kPlayer_rank: {
+    case kRank: {
       const std::optional<std::string> text =
           cxx_OODisplayRatingStringFromKillCount(
               (player != nullptr
@@ -257,7 +268,7 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
           context, text.has_value() ? oo::PList(*text) : oo::PList());
     }
 
-    case kPlayer_legalStatus: {
+    case kLegalStatus: {
       const std::optional<std::string> text =
           cxx_OODisplayStringFromLegalStatus(
               (player != nullptr ? player->getLegalStatus() : int{}));
@@ -265,7 +276,7 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
           context, text.has_value() ? oo::PList(*text) : oo::PList());
     }
 
-    case kPlayer_alertCondition:
+    case kAlertCondition:
       return JS_NewInt32(
           context,
           oo::ToUnderlying(
@@ -274,36 +285,36 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
                   : OOAlertCondition{}));  // qualified: the final overrider, so
                                            // the binding test stands in for it
 
-    case kPlayer_alertTemperature:
+    case kAlertTemperature:
       return OOJSValueFromBOOL(
           OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
                           OOAlertFlags::kTemp));
 
-    case kPlayer_alertMassLocked:
+    case kAlertMassLocked:
       return OOJSValueFromBOOL(
           OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
                           OOAlertFlags::kMassLock));
 
-    case kPlayer_alertAltitude:
+    case kAlertAltitude:
       return OOJSValueFromBOOL(
           OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
                           OOAlertFlags::kAlt));
 
-    case kPlayer_alertEnergy:
+    case kAlertEnergy:
       return OOJSValueFromBOOL(
           OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
                           OOAlertFlags::kEnergy));
 
-    case kPlayer_alertHostiles:
+    case kAlertHostiles:
       return OOJSValueFromBOOL(
           OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
                           OOAlertFlags::kHostiles));
 
-    case kPlayer_escapePodRescueTime:
+    case kEscapePodRescueTime:
       return JS_NewNumber(
           context, (player != nullptr ? player->escapePodRescueTime() : 0.0));
 
-    case kPlayer_trumbleCount:
+    case kTrumbleCount:
       return JS_NewNumber(
           context,
           (player != nullptr ? player->PlayerEntity::getTrumbleCount()
@@ -312,57 +323,57 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
 
       /* For compatibility with previous versions, these are still on
        * a -7 to +7 scale */
-    case kPlayer_contractReputation:
+    case kContractReputation:
       return JS_NewNumber(
           context,
           (int)(((float)(player != nullptr ? player->contractReputation()
                                            : int{})) /
                 10.0));
 
-    case kPlayer_passengerReputation:
+    case kPassengerReputation:
       return JS_NewNumber(
           context,
           (int)(((float)(player != nullptr ? player->passengerReputation()
                                            : int{})) /
                 10.0));
 
-    case kPlayer_parcelReputation:
+    case kParcelReputation:
       return JS_NewNumber(
           context, (int)(((float)(player != nullptr ? player->parcelReputation()
                                                     : int{})) /
                          10.0));
 
       /* Full-precision reputations */
-    case kPlayer_contractReputationPrecise:
+    case kContractReputationPrecise:
       return JS_NewNumber(
           context,
           ((float)(player != nullptr ? player->contractReputation() : int{})) /
               10.0);
 
-    case kPlayer_passengerReputationPrecise:
+    case kPassengerReputationPrecise:
       return JS_NewNumber(
           context,
           ((float)(player != nullptr ? player->passengerReputation() : int{})) /
               10.0);
 
-    case kPlayer_parcelReputationPrecise:
+    case kParcelReputationPrecise:
       return JS_NewNumber(
           context,
           ((float)(player != nullptr ? player->parcelReputation() : int{})) /
               10.0);
 
-    case kPlayer_dockingClearanceStatus:
+    case kDockingClearanceStatus:
       // EMMSTRAN: OOConstToJSString-ify this.
       return OOJSValueFromPList(
           context, oo::PList(cxx_DockingClearanceStatusToString(
                        (player != nullptr ? player->getDockingClearanceStatus()
                                           : OODockingClearanceStatus{}))));
 
-    case kPlayer_bounty:
+    case kBounty:
       return JS_NewInt32(
           context, (player != nullptr ? player->getLegalStatus() : int{}));
 
-    case kPlayer_roleWeights: {
+    case kRoleWeights: {
       const std::vector<std::string> roleWeights =
           (player != nullptr ? player->getRoleWeights()
                              : std::vector<std::string>());
@@ -389,8 +400,9 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS) {
   int32_t iValue;
   std::optional<std::string> sValue;
 
-  switch (magic) {
-    case kPlayer_name:
+  switch (static_cast<PlayerProperty>(magic)) {
+    using enum PlayerProperty;
+    case kName:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (player != nullptr) player->setCommanderName(sValue);
@@ -398,7 +410,7 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayer_score:
+    case kScore:
       if (OOJSValueToInt32(context, value, &iValue)) {
         iValue = MAX(iValue, 0);
         if (player != nullptr) player->setScore(iValue);
@@ -406,14 +418,14 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayer_credits:
+    case kCredits:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setCreditBalance(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayer_bounty:
+    case kBounty:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
         if (player != nullptr)
@@ -426,7 +438,7 @@ static JSValue PlayerSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayer_escapePodRescueTime:
+    case kEscapePodRescueTime:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setEscapePodRescueTime(fValue);
         return JS_UNDEFINED;

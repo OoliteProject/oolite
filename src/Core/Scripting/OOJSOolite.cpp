@@ -82,47 +82,56 @@ static JSClassDef sOoliteClass = {
     .class_name = "Oolite",
 };
 
-enum {
+namespace {
+
+enum class OoliteProperty : std::int16_t {
   // Property IDs
-  kOolite_version,          // version number components, array, read-only
-  kOolite_versionString,    // version number as string, string, read-only
-  kOolite_jsVersion,        // JavaScript version, integer, read-only
-  kOolite_jsVersionString,  // JavaScript version as string, string, read-only
-  kOolite_gameSettings,     // Various game settings, object, read-only
-  kOolite_resourcePaths,  // Paths containing resources, built-in plus oxp/oxz,
-                          // read-only
-  kOolite_colorSaturation,  // Color saturation, integer, read/write
-  kOolite_postFX,         // current post processing effect, integer, read/write
-  kOolite_hdrToneMapper,  // currently active HDR tone mapper, string,
-                          // read/write
-  kOolite_sdrToneMapper,  // currently active SDR tone mapper, string,
-                          // read/write
+  kVersion,          // version number components, array, read-only
+  kVersionString,    // version number as string, string, read-only
+  kJsVersion,        // JavaScript version, integer, read-only
+  kJsVersionString,  // JavaScript version as string, string, read-only
+  kGameSettings,     // Various game settings, object, read-only
+  kResourcePaths,    // Paths containing resources, built-in plus oxp/oxz,
+                     // read-only
+  kColorSaturation,  // Color saturation, integer, read/write
+  kPostFX,           // current post processing effect, integer, read/write
+  kHdrToneMapper,    // currently active HDR tone mapper, string,
+                     // read/write
+  kSdrToneMapper,    // currently active SDR tone mapper, string,
+                     // read/write
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  kOolite_timeAccelerationFactor,  // time acceleration, float, read/write
+  kTimeAccelerationFactor,  // time acceleration, float, read/write
 #endif
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sOoliteProperties[] = {
     // JS name					Getter
     // Setter				ID
-    OOJS_PROPERTY_RO("gameSettings", OoliteGetProperty, kOolite_gameSettings),
-    OOJS_PROPERTY_RO("jsVersion", OoliteGetProperty, kOolite_jsVersion),
+    OOJS_PROPERTY_RO("gameSettings", OoliteGetProperty,
+                     OoliteProperty::kGameSettings),
+    OOJS_PROPERTY_RO("jsVersion", OoliteGetProperty,
+                     OoliteProperty::kJsVersion),
     OOJS_PROPERTY_RO("jsVersionString", OoliteGetProperty,
-                     kOolite_jsVersionString),
-    OOJS_PROPERTY_RO("version", OoliteGetProperty, kOolite_version),
-    OOJS_PROPERTY_RO("versionString", OoliteGetProperty, kOolite_versionString),
-    OOJS_PROPERTY_RO("resourcePaths", OoliteGetProperty, kOolite_resourcePaths),
+                     OoliteProperty::kJsVersionString),
+    OOJS_PROPERTY_RO("version", OoliteGetProperty, OoliteProperty::kVersion),
+    OOJS_PROPERTY_RO("versionString", OoliteGetProperty,
+                     OoliteProperty::kVersionString),
+    OOJS_PROPERTY_RO("resourcePaths", OoliteGetProperty,
+                     OoliteProperty::kResourcePaths),
     OOJS_PROPERTY_RW("colorSaturation", OoliteGetProperty, OoliteSetProperty,
-                     kOolite_colorSaturation),
+                     OoliteProperty::kColorSaturation),
     OOJS_PROPERTY_RW("postFX", OoliteGetProperty, OoliteSetProperty,
-                     kOolite_postFX),
+                     OoliteProperty::kPostFX),
     OOJS_PROPERTY_RW("hdrToneMapper", OoliteGetProperty, OoliteSetProperty,
-                     kOolite_hdrToneMapper),
+                     OoliteProperty::kHdrToneMapper),
     OOJS_PROPERTY_RW("sdrToneMapper", OoliteGetProperty, OoliteSetProperty,
-                     kOolite_sdrToneMapper),
+                     OoliteProperty::kSdrToneMapper),
 #ifdef OO_DEBUG_MONITOR_ENABLED
     OOJS_PROPERTY_RW("timeAccelerationFactor", OoliteGetProperty,
-                     OoliteSetProperty, kOolite_timeAccelerationFactor),
+                     OoliteSetProperty,
+                     OoliteProperty::kTimeAccelerationFactor),
 #endif
 };
 
@@ -152,8 +161,9 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
   MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
 
-  switch (magic) {
-    case kOolite_version: {
+  switch (static_cast<OoliteProperty>(magic)) {
+    using enum OoliteProperty;
+    case kVersion: {
       // The components as ComponentsFromVersionString() gave them: an array of
       // unsigned numbers.
       oo::PList::Array components;
@@ -163,24 +173,24 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
       break;
     }
 
-    case kOolite_versionString: {
+    case kVersionString: {
       const std::optional<std::string> version = VersionString();
       if (version.has_value()) result = oo::PList(*version);
       break;
     }
 
-    case kOolite_jsVersion:
+    case kJsVersion:
       return JS_NewInt32(context, kOOJSCompatibleJSVersion);
 
-    case kOolite_jsVersionString:
+    case kJsVersionString:
       result = oo::PList(std::string("QuickJS-ng ") + JS_GetVersion());
       break;
 
-    case kOolite_gameSettings:
+    case kGameSettings:
       result = (UNIVERSE != nullptr ? UNIVERSE->gameSettings() : oo::PList());
       break;
 
-    case kOolite_resourcePaths:
+    case kResourcePaths:
       // user name in displayed paths masked for privacy - remember that the
       // console can be run remotely too
       {
@@ -192,15 +202,15 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
         break;
       }
 
-    case kOolite_colorSaturation:
+    case kColorSaturation:
       return JS_NewNumber(
           context, (gameView != nullptr ? gameView->colorSaturation() : 0.0f));
 
-    case kOolite_postFX:
+    case kPostFX:
       return JS_NewInt32(context,
                          (UNIVERSE != nullptr ? UNIVERSE->currentPostFX() : 0));
 
-    case kOolite_hdrToneMapper: {
+    case kHdrToneMapper: {
       std::optional<std::string> toneMapperStr = "OOHDR_TONEMAPPER_UNDEFINED";
 #if OOLITE_WINDOWS
       if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
@@ -213,7 +223,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
       break;
     }
 
-    case kOolite_sdrToneMapper: {
+    case kSdrToneMapper: {
       std::optional<std::string> toneMapperStr = "OOSDR_TONEMAPPER_UNDEFINED";
       if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
         toneMapperStr = cxx_OOStringFromSDRToneMapper(
@@ -225,7 +235,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    case kOolite_timeAccelerationFactor:
+    case kTimeAccelerationFactor:
       return JS_NewNumber(
           context,
           (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0));
@@ -251,8 +261,9 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
   MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
 
-  switch (magic) {
-    case kOolite_colorSaturation:
+  switch (static_cast<OoliteProperty>(magic)) {
+    using enum OoliteProperty;
+    case kColorSaturation:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         float currentColorSaturation =
             (gameView != nullptr ? gameView->colorSaturation() : 0.0f);
@@ -262,7 +273,7 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kOolite_postFX:
+    case kPostFX:
       if (OOJSValueToInt32(context, value, &iValue)) {
         iValue = MAX(iValue, 0);
         if (UNIVERSE != nullptr) UNIVERSE->setCurrentPostFX(iValue);
@@ -270,7 +281,7 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kOolite_hdrToneMapper:
+    case kHdrToneMapper:
       if (!JS_IsString(value)) break;  // non-string is not allowed
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
@@ -287,7 +298,7 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kOolite_sdrToneMapper:
+    case kSdrToneMapper:
       if (!JS_IsString(value)) break;  // non-string is not allowed
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
@@ -303,7 +314,7 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
       break;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    case kOolite_timeAccelerationFactor:
+    case kTimeAccelerationFactor:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (UNIVERSE != nullptr) UNIVERSE->setTimeAccelerationFactor(fValue);
         return JS_UNDEFINED;

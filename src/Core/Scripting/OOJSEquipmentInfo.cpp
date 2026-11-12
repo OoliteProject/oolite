@@ -92,126 +92,133 @@ static JSClassDef sEquipmentInfoClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
+namespace {
+
+enum class EquipmentInfoProperty : std::int16_t {
   // Property IDs
-  kEquipmentInfo_calculatedPrice,
-  kEquipmentInfo_canBeDamaged,
-  kEquipmentInfo_canCarryMultiple,
-  kEquipmentInfo_damageProbability,
-  kEquipmentInfo_description,
-  kEquipmentInfo_displayColor,
-  kEquipmentInfo_effectiveTechLevel,
-  kEquipmentInfo_equipmentKey,
-  kEquipmentInfo_fastAffinityDefensive,
-  kEquipmentInfo_fastAffinityOffensive,
-  kEquipmentInfo_defaultActivateKey,
-  kEquipmentInfo_defaultModeKey,
-  kEquipmentInfo_incompatibleEquipment,
-  kEquipmentInfo_installationTime,
-  kEquipmentInfo_isAvailableToAll,
-  kEquipmentInfo_isAvailableToNPCs,
-  kEquipmentInfo_isAvailableToPlayer,
-  kEquipmentInfo_isExternalStore,  // is missile or mine
-  kEquipmentInfo_isPortableBetweenShips,
-  kEquipmentInfo_isVisible,
-  kEquipmentInfo_name,
-  kEquipmentInfo_price,
-  kEquipmentInfo_provides,
-  kEquipmentInfo_repairTime,
-  kEquipmentInfo_requiredCargoSpace,
-  kEquipmentInfo_requiresAnyEquipment,
-  kEquipmentInfo_requiresCleanLegalRecord,
-  kEquipmentInfo_requiresEmptyPylon,
-  kEquipmentInfo_requiresEquipment,
-  kEquipmentInfo_requiresFreePassengerBerth,
-  kEquipmentInfo_requiresFullFuel,
-  kEquipmentInfo_requiresMountedPylon,
-  kEquipmentInfo_requiresNonCleanLegalRecord,
-  kEquipmentInfo_requiresNonFullFuel,
-  kEquipmentInfo_scriptInfo,  // arbitrary data for scripts, dictionary,
-                              // read-only
-  kEquipmentInfo_scriptName,
-  kEquipmentInfo_techLevel,
-  kEquipmentInfo_weaponInfo
+  kCalculatedPrice,
+  kCanBeDamaged,
+  kCanCarryMultiple,
+  kDamageProbability,
+  kDescription,
+  kDisplayColor,
+  kEffectiveTechLevel,
+  kEquipmentKey,
+  kFastAffinityDefensive,
+  kFastAffinityOffensive,
+  kDefaultActivateKey,
+  kDefaultModeKey,
+  kIncompatibleEquipment,
+  kInstallationTime,
+  kIsAvailableToAll,
+  kIsAvailableToNPCs,
+  kIsAvailableToPlayer,
+  kIsExternalStore,  // is missile or mine
+  kIsPortableBetweenShips,
+  kIsVisible,
+  kName,
+  kPrice,
+  kProvides,
+  kRepairTime,
+  kRequiredCargoSpace,
+  kRequiresAnyEquipment,
+  kRequiresCleanLegalRecord,
+  kRequiresEmptyPylon,
+  kRequiresEquipment,
+  kRequiresFreePassengerBerth,
+  kRequiresFullFuel,
+  kRequiresMountedPylon,
+  kRequiresNonCleanLegalRecord,
+  kRequiresNonFullFuel,
+  kScriptInfo,  // arbitrary data for scripts, dictionary,
+                // read-only
+  kScriptName,
+  kTechLevel,
+  kWeaponInfo
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sEquipmentInfoProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RO("calculatedPrice", EquipmentInfoGetProperty,
-                     kEquipmentInfo_calculatedPrice),
+                     EquipmentInfoProperty::kCalculatedPrice),
     OOJS_PROPERTY_RO("canBeDamaged", EquipmentInfoGetProperty,
-                     kEquipmentInfo_canBeDamaged),
+                     EquipmentInfoProperty::kCanBeDamaged),
     OOJS_PROPERTY_RO("canCarryMultiple", EquipmentInfoGetProperty,
-                     kEquipmentInfo_canCarryMultiple),
+                     EquipmentInfoProperty::kCanCarryMultiple),
     OOJS_PROPERTY_RO("damageProbability", EquipmentInfoGetProperty,
-                     kEquipmentInfo_damageProbability),
+                     EquipmentInfoProperty::kDamageProbability),
     OOJS_PROPERTY_RO("description", EquipmentInfoGetProperty,
-                     kEquipmentInfo_description),
+                     EquipmentInfoProperty::kDescription),
     OOJS_PROPERTY_RW("displayColor", EquipmentInfoGetProperty,
-                     EquipmentInfoSetProperty, kEquipmentInfo_displayColor),
+                     EquipmentInfoSetProperty,
+                     EquipmentInfoProperty::kDisplayColor),
     OOJS_PROPERTY_RW("effectiveTechLevel", EquipmentInfoGetProperty,
                      EquipmentInfoSetProperty,
-                     kEquipmentInfo_effectiveTechLevel),
+                     EquipmentInfoProperty::kEffectiveTechLevel),
     OOJS_PROPERTY_RO("equipmentKey", EquipmentInfoGetProperty,
-                     kEquipmentInfo_equipmentKey),
+                     EquipmentInfoProperty::kEquipmentKey),
     OOJS_PROPERTY_RO("fastAffinityDefensive", EquipmentInfoGetProperty,
-                     kEquipmentInfo_fastAffinityDefensive),
+                     EquipmentInfoProperty::kFastAffinityDefensive),
     OOJS_PROPERTY_RO("fastAffinityOffensive", EquipmentInfoGetProperty,
-                     kEquipmentInfo_fastAffinityOffensive),
+                     EquipmentInfoProperty::kFastAffinityOffensive),
     OOJS_PROPERTY_RO("defaultActivateKey", EquipmentInfoGetProperty,
-                     kEquipmentInfo_defaultActivateKey),
+                     EquipmentInfoProperty::kDefaultActivateKey),
     OOJS_PROPERTY_RO("defaultModeKey", EquipmentInfoGetProperty,
-                     kEquipmentInfo_defaultModeKey),
+                     EquipmentInfoProperty::kDefaultModeKey),
     OOJS_PROPERTY_RO("incompatibleEquipment", EquipmentInfoGetProperty,
-                     kEquipmentInfo_incompatibleEquipment),
+                     EquipmentInfoProperty::kIncompatibleEquipment),
     OOJS_PROPERTY_RO("installationTime", EquipmentInfoGetProperty,
-                     kEquipmentInfo_installationTime),
+                     EquipmentInfoProperty::kInstallationTime),
     OOJS_PROPERTY_RO("isAvailableToAll", EquipmentInfoGetProperty,
-                     kEquipmentInfo_isAvailableToAll),
+                     EquipmentInfoProperty::kIsAvailableToAll),
     OOJS_PROPERTY_RO("isAvailableToNPCs", EquipmentInfoGetProperty,
-                     kEquipmentInfo_isAvailableToNPCs),
+                     EquipmentInfoProperty::kIsAvailableToNPCs),
     OOJS_PROPERTY_RO("isAvailableToPlayer", EquipmentInfoGetProperty,
-                     kEquipmentInfo_isAvailableToPlayer),
+                     EquipmentInfoProperty::kIsAvailableToPlayer),
     OOJS_PROPERTY_RO("isExternalStore", EquipmentInfoGetProperty,
-                     kEquipmentInfo_isExternalStore),
+                     EquipmentInfoProperty::kIsExternalStore),
     OOJS_PROPERTY_RO("isPortableBetweenShips", EquipmentInfoGetProperty,
-                     kEquipmentInfo_isPortableBetweenShips),
+                     EquipmentInfoProperty::kIsPortableBetweenShips),
     OOJS_PROPERTY_RO("isVisible", EquipmentInfoGetProperty,
-                     kEquipmentInfo_isVisible),
-    OOJS_PROPERTY_RO("name", EquipmentInfoGetProperty, kEquipmentInfo_name),
-    OOJS_PROPERTY_RO("price", EquipmentInfoGetProperty, kEquipmentInfo_price),
+                     EquipmentInfoProperty::kIsVisible),
+    OOJS_PROPERTY_RO("name", EquipmentInfoGetProperty,
+                     EquipmentInfoProperty::kName),
+    OOJS_PROPERTY_RO("price", EquipmentInfoGetProperty,
+                     EquipmentInfoProperty::kPrice),
     OOJS_PROPERTY_RO("provides", EquipmentInfoGetProperty,
-                     kEquipmentInfo_provides),
+                     EquipmentInfoProperty::kProvides),
     OOJS_PROPERTY_RO("repairTime", EquipmentInfoGetProperty,
-                     kEquipmentInfo_repairTime),
+                     EquipmentInfoProperty::kRepairTime),
     OOJS_PROPERTY_RO("requiredCargoSpace", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiredCargoSpace),
+                     EquipmentInfoProperty::kRequiredCargoSpace),
     OOJS_PROPERTY_RO("requiresAnyEquipment", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresAnyEquipment),
+                     EquipmentInfoProperty::kRequiresAnyEquipment),
     OOJS_PROPERTY_RO("requiresCleanLegalRecord", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresCleanLegalRecord),
+                     EquipmentInfoProperty::kRequiresCleanLegalRecord),
     OOJS_PROPERTY_RO("requiresEmptyPylon", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresEmptyPylon),
+                     EquipmentInfoProperty::kRequiresEmptyPylon),
     OOJS_PROPERTY_RO("requiresEquipment", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresEquipment),
+                     EquipmentInfoProperty::kRequiresEquipment),
     OOJS_PROPERTY_RO("requiresFreePassengerBerth", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresFreePassengerBerth),
+                     EquipmentInfoProperty::kRequiresFreePassengerBerth),
     OOJS_PROPERTY_RO("requiresFullFuel", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresFullFuel),
+                     EquipmentInfoProperty::kRequiresFullFuel),
     OOJS_PROPERTY_RO("requiresMountedPylon", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresMountedPylon),
+                     EquipmentInfoProperty::kRequiresMountedPylon),
     OOJS_PROPERTY_RO("requiresNonCleanLegalRecord", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresNonCleanLegalRecord),
+                     EquipmentInfoProperty::kRequiresNonCleanLegalRecord),
     OOJS_PROPERTY_RO("requiresNonFullFuel", EquipmentInfoGetProperty,
-                     kEquipmentInfo_requiresNonFullFuel),
+                     EquipmentInfoProperty::kRequiresNonFullFuel),
     OOJS_PROPERTY_RO("scriptInfo", EquipmentInfoGetProperty,
-                     kEquipmentInfo_scriptInfo),
+                     EquipmentInfoProperty::kScriptInfo),
     OOJS_PROPERTY_RO("scriptName", EquipmentInfoGetProperty,
-                     kEquipmentInfo_scriptName),
+                     EquipmentInfoProperty::kScriptName),
     OOJS_PROPERTY_RO("techLevel", EquipmentInfoGetProperty,
-                     kEquipmentInfo_techLevel),
+                     EquipmentInfoProperty::kTechLevel),
     OOJS_PROPERTY_RO("weaponInfo", EquipmentInfoGetProperty,
-                     kEquipmentInfo_weaponInfo),
+                     EquipmentInfoProperty::kWeaponInfo),
 };
 
 static const JSCFunctionListEntry sEquipmentInfoMethods[] = {
@@ -328,16 +335,17 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
   if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &type)))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kEquipmentInfo_equipmentKey:
+  switch (static_cast<EquipmentInfoProperty>(magic)) {
+    using enum EquipmentInfoProperty;
+    case kEquipmentKey:
       result = StringOrNull(Ask(type, &OOEquipmentType::identifier));
       break;
 
-    case kEquipmentInfo_name:
+    case kName:
       result = StringOrNull(Ask(type, &OOEquipmentType::name));
       break;
 
-    case kEquipmentInfo_calculatedPrice:
+    case kCalculatedPrice:
       if (Ask(type, &OOEquipmentType::identifier) == "EQ_FUEL") {
         PlayerEntity* player =
             OOPlayerForScripting();  // fuelChargeRate qualified: the final
@@ -367,145 +375,145 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
                                  : 0)
                           : Ask(type, &OOEquipmentType::price)));
       }
-    case kEquipmentInfo_canCarryMultiple:
+    case kCanCarryMultiple:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::canCarryMultiple));
 
-    case kEquipmentInfo_canBeDamaged:
+    case kCanBeDamaged:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::canBeDamaged));
 
-    case kEquipmentInfo_description:
+    case kDescription:
       result = StringOrNull(Ask(type, &OOEquipmentType::descriptiveText));
       break;
 
-    case kEquipmentInfo_damageProbability:
+    case kDamageProbability:
       return JS_NewNumber(context,
                           Ask(type, &OOEquipmentType::damageProbability));
 
-    case kEquipmentInfo_displayColor:
+    case kDisplayColor:
       result = NormalizedColorComponents(
           Ask(type, &OOEquipmentType::displayColor).get());
       break;
 
-    case kEquipmentInfo_fastAffinityDefensive:
+    case kFastAffinityDefensive:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::fastAffinityDefensive));
 
-    case kEquipmentInfo_fastAffinityOffensive:
+    case kFastAffinityOffensive:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::fastAffinityOffensive));
 
-    case kEquipmentInfo_defaultActivateKey:
+    case kDefaultActivateKey:
       result = Ask(type, &OOEquipmentType::defaultActivateKey);
       break;
 
-    case kEquipmentInfo_defaultModeKey:
+    case kDefaultModeKey:
       result = Ask(type, &OOEquipmentType::defaultModeKey);
       break;
 
-    case kEquipmentInfo_techLevel:
+    case kTechLevel:
       return JS_NewInt32(context,
                          (int32_t)Ask(type, &OOEquipmentType::techLevel));
 
-    case kEquipmentInfo_effectiveTechLevel:
+    case kEffectiveTechLevel:
       return JS_NewInt32(
           context, (int32_t)Ask(type, &OOEquipmentType::effectiveTechLevel));
 
-    case kEquipmentInfo_price:
+    case kPrice:
       return JS_NewNumber(context, Ask(type, &OOEquipmentType::price));
 
-    case kEquipmentInfo_provides: {
+    case kProvides: {
       const std::vector<std::string> provides =
           Ask(type, &OOEquipmentType::providesForScripting);
       result = oo::PList(oo::PList::Array(provides.begin(), provides.end()));
     } break;
 
-    case kEquipmentInfo_installationTime:
+    case kInstallationTime:
       inst_time = Ask(type, &OOEquipmentType::installTime);
       if (inst_time == 0) {
         inst_time = Ask(type, &OOEquipmentType::price) + 600;
       }
       return JS_NewInt32(context, (int32_t)inst_time);
 
-    case kEquipmentInfo_isAvailableToAll:
+    case kIsAvailableToAll:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isAvailableToAll));
 
-    case kEquipmentInfo_isAvailableToNPCs:
+    case kIsAvailableToNPCs:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isAvailableToNPCs));
 
-    case kEquipmentInfo_isAvailableToPlayer:
+    case kIsAvailableToPlayer:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::isAvailableToPlayer));
 
-    case kEquipmentInfo_repairTime:
+    case kRepairTime:
       return JS_NewInt32(context,
                          (int32_t)Ask(type, &OOEquipmentType::repairTime));
 
-    case kEquipmentInfo_requiresEmptyPylon:
+    case kRequiresEmptyPylon:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresEmptyPylon));
 
-    case kEquipmentInfo_requiresMountedPylon:
+    case kRequiresMountedPylon:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::requiresMountedPylon));
 
-    case kEquipmentInfo_requiresCleanLegalRecord:
+    case kRequiresCleanLegalRecord:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::requiresCleanLegalRecord));
 
-    case kEquipmentInfo_requiresNonCleanLegalRecord:
+    case kRequiresNonCleanLegalRecord:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::requiresNonCleanLegalRecord));
 
-    case kEquipmentInfo_requiresFreePassengerBerth:
+    case kRequiresFreePassengerBerth:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::requiresFreePassengerBerth));
 
-    case kEquipmentInfo_requiresFullFuel:
+    case kRequiresFullFuel:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresFullFuel));
 
-    case kEquipmentInfo_requiresNonFullFuel:
+    case kRequiresNonFullFuel:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::requiresNonFullFuel));
 
-    case kEquipmentInfo_isExternalStore:
+    case kIsExternalStore:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isMissileOrMine));
 
-    case kEquipmentInfo_isPortableBetweenShips:
+    case kIsPortableBetweenShips:
       return OOJSValueFromBOOL(
           Ask(type, &OOEquipmentType::isPortableBetweenShips));
 
-    case kEquipmentInfo_isVisible:
+    case kIsVisible:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isVisible));
 
-    case kEquipmentInfo_requiredCargoSpace:
+    case kRequiredCargoSpace:
       return JS_NewInt32(
           context, (int32_t)Ask(type, &OOEquipmentType::requiredCargoSpace));
 
-    case kEquipmentInfo_requiresEquipment:
+    case kRequiresEquipment:
       result = KeyArrayOrNull(Ask(type, &OOEquipmentType::requiresEquipment));
       break;
 
-    case kEquipmentInfo_requiresAnyEquipment:
+    case kRequiresAnyEquipment:
       result =
           KeyArrayOrNull(Ask(type, &OOEquipmentType::requiresAnyEquipment));
       break;
 
-    case kEquipmentInfo_incompatibleEquipment:
+    case kIncompatibleEquipment:
       result =
           KeyArrayOrNull(Ask(type, &OOEquipmentType::incompatibleEquipment));
       break;
 
-    case kEquipmentInfo_scriptInfo: {
+    case kScriptInfo: {
       const oo::PList info = Ask(type, &OOEquipmentType::scriptInfo);
       result = info.isNull() ? oo::PList(oo::PList::Dict{})
                              : info;  // empty rather than null
     } break;
 
-    case kEquipmentInfo_scriptName:
+    case kScriptName:
       result = oo::PList(
           Ask(type, &OOEquipmentType::scriptName).value_or(std::string()));
       break;
 
-    case kEquipmentInfo_weaponInfo:
+    case kWeaponInfo:
       result = Ask(type, &OOEquipmentType::weaponInfo);
       if (result.isNull())
         result = oo::PList(oo::PList::Dict{});  // empty rather than null
@@ -533,8 +541,9 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
   if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &type)))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kEquipmentInfo_displayColor:
+  switch (static_cast<EquipmentInfoProperty>(magic)) {
+    using enum EquipmentInfoProperty;
+    case kDisplayColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -544,7 +553,7 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
         return JS_UNDEFINED;
       }
       break;
-    case kEquipmentInfo_effectiveTechLevel:
+    case kEffectiveTechLevel:
       cxx_OOStandardsDeprecated(std::format(
           "TL99 for variable tech level is deprecated for {}",
           Ask(type, &OOEquipmentType::identifier).value_or("(null)")));

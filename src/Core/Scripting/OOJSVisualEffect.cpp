@@ -94,78 +94,94 @@ static JSClassDef sVisualEffectClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class VisualEffectProperty : std::int16_t {
   // Property IDs
-  kVisualEffect_beaconCode,
-  kVisualEffect_beaconLabel,
-  kVisualEffect_dataKey,
-  kVisualEffect_hullHeatLevel,
-  kVisualEffect_isBreakPattern,
-  kVisualEffect_scaleX,
-  kVisualEffect_scaleY,
-  kVisualEffect_scaleZ,
-  kVisualEffect_scannerDisplayColor1,
-  kVisualEffect_scannerDisplayColor2,
-  kVisualEffect_script,
-  kVisualEffect_scriptInfo,
-  kVisualEffect_shaderFloat1,
-  kVisualEffect_shaderFloat2,
-  kVisualEffect_shaderInt1,
-  kVisualEffect_shaderInt2,
-  kVisualEffect_shaderVector1,
-  kVisualEffect_shaderVector2,
-  kVisualEffect_subEntities,
-  kVisualEffect_vectorForward,
-  kVisualEffect_vectorRight,
-  kVisualEffect_vectorUp
+  kBeaconCode,
+  kBeaconLabel,
+  kDataKey,
+  kHullHeatLevel,
+  kIsBreakPattern,
+  kScaleX,
+  kScaleY,
+  kScaleZ,
+  kScannerDisplayColor1,
+  kScannerDisplayColor2,
+  kScript,
+  kScriptInfo,
+  kShaderFloat1,
+  kShaderFloat2,
+  kShaderInt1,
+  kShaderInt2,
+  kShaderVector1,
+  kShaderVector2,
+  kSubEntities,
+  kVectorForward,
+  kVectorRight,
+  kVectorUp
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sVisualEffectProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("beaconCode", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_beaconCode),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kBeaconCode),
     OOJS_PROPERTY_RW("beaconLabel", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_beaconLabel),
-    OOJS_PROPERTY_RO("dataKey", VisualEffectGetProperty, kVisualEffect_dataKey),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kBeaconLabel),
+    OOJS_PROPERTY_RO("dataKey", VisualEffectGetProperty,
+                     VisualEffectProperty::kDataKey),
     OOJS_PROPERTY_RW("isBreakPattern", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_isBreakPattern),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kIsBreakPattern),
     OOJS_PROPERTY_RW("scaleX", VisualEffectGetProperty, VisualEffectSetProperty,
-                     kVisualEffect_scaleX),
+                     VisualEffectProperty::kScaleX),
     OOJS_PROPERTY_RW("scaleY", VisualEffectGetProperty, VisualEffectSetProperty,
-                     kVisualEffect_scaleY),
+                     VisualEffectProperty::kScaleY),
     OOJS_PROPERTY_RW("scaleZ", VisualEffectGetProperty, VisualEffectSetProperty,
-                     kVisualEffect_scaleZ),
+                     VisualEffectProperty::kScaleZ),
     OOJS_PROPERTY_RW("scannerDisplayColor1", VisualEffectGetProperty,
                      VisualEffectSetProperty,
-                     kVisualEffect_scannerDisplayColor1),
+                     VisualEffectProperty::kScannerDisplayColor1),
     OOJS_PROPERTY_RW("scannerDisplayColor2", VisualEffectGetProperty,
                      VisualEffectSetProperty,
-                     kVisualEffect_scannerDisplayColor2),
+                     VisualEffectProperty::kScannerDisplayColor2),
     OOJS_PROPERTY_RW("hullHeatLevel", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_hullHeatLevel),
-    OOJS_PROPERTY_RO("script", VisualEffectGetProperty, kVisualEffect_script),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kHullHeatLevel),
+    OOJS_PROPERTY_RO("script", VisualEffectGetProperty,
+                     VisualEffectProperty::kScript),
     OOJS_PROPERTY_RO("scriptInfo", VisualEffectGetProperty,
-                     kVisualEffect_scriptInfo),
+                     VisualEffectProperty::kScriptInfo),
     OOJS_PROPERTY_RW("shaderFloat1", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_shaderFloat1),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kShaderFloat1),
     OOJS_PROPERTY_RW("shaderFloat2", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_shaderFloat2),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kShaderFloat2),
     OOJS_PROPERTY_RW("shaderInt1", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_shaderInt1),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kShaderInt1),
     OOJS_PROPERTY_RW("shaderInt2", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_shaderInt2),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kShaderInt2),
     OOJS_PROPERTY_RW("shaderVector1", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_shaderVector1),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kShaderVector1),
     OOJS_PROPERTY_RW("shaderVector2", VisualEffectGetProperty,
-                     VisualEffectSetProperty, kVisualEffect_shaderVector2),
+                     VisualEffectSetProperty,
+                     VisualEffectProperty::kShaderVector2),
     OOJS_PROPERTY_RO("subEntities", VisualEffectGetProperty,
-                     kVisualEffect_subEntities),
+                     VisualEffectProperty::kSubEntities),
     OOJS_PROPERTY_RO("vectorForward", VisualEffectGetProperty,
-                     kVisualEffect_vectorForward),
+                     VisualEffectProperty::kVectorForward),
     OOJS_PROPERTY_RO("vectorRight", VisualEffectGetProperty,
-                     kVisualEffect_vectorRight),
+                     VisualEffectProperty::kVectorRight),
     OOJS_PROPERTY_RO("vectorUp", VisualEffectGetProperty,
-                     kVisualEffect_vectorUp),
+                     VisualEffectProperty::kVectorUp),
 };
 
 static const JSCFunctionListEntry sVisualEffectMethods[] = {
@@ -251,97 +267,98 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS) {
     return JS_UNDEFINED;
   }
 
-  switch (magic) {
-    case kVisualEffect_beaconCode:
+  switch (static_cast<VisualEffectProperty>(magic)) {
+    using enum VisualEffectProperty;
+    case kBeaconCode:
       if (const std::optional<std::string> text =
               (entity != nullptr ? entity->beaconCode()
                                  : std::optional<std::string>()))
         result = oo::PList(*text);
       break;
 
-    case kVisualEffect_beaconLabel:
+    case kBeaconLabel:
       if (const std::optional<std::string> text =
               (entity != nullptr ? entity->beaconLabel()
                                  : std::optional<std::string>()))
         result = oo::PList(*text);
       break;
 
-    case kVisualEffect_dataKey:
+    case kDataKey:
       if (const std::optional<std::string> text =
               (entity != nullptr ? entity->effectKey()
                                  : std::optional<std::string>()))
         result = oo::PList(*text);
       break;
 
-    case kVisualEffect_isBreakPattern:
+    case kIsBreakPattern:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->isBreakPattern() : false));
 
-    case kVisualEffect_vectorRight:
+    case kVectorRight:
       OOJS_RETURN_VECTOR(
           (entity != nullptr ? entity->rightVector() : kZeroVector));
 
-    case kVisualEffect_vectorForward:
+    case kVectorForward:
       OOJS_RETURN_VECTOR(
           (entity != nullptr ? entity->forwardVector() : kZeroVector));
 
-    case kVisualEffect_vectorUp:
+    case kVectorUp:
       OOJS_RETURN_VECTOR(
           (entity != nullptr ? entity->upVector() : kZeroVector));
 
-    case kVisualEffect_scaleX:
+    case kScaleX:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->scaleX() : 0.0f));
 
-    case kVisualEffect_scaleY:
+    case kScaleY:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->scaleY() : 0.0f));
 
-    case kVisualEffect_scaleZ:
+    case kScaleZ:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->scaleZ() : 0.0f));
 
-    case kVisualEffect_scannerDisplayColor1:
+    case kScannerDisplayColor1:
       result = NormalizedColorComponents((entity != nullptr
                                               ? entity->scannerDisplayColor1()
                                               : (OOColor*)nullptr));
       break;
 
-    case kVisualEffect_scannerDisplayColor2:
+    case kScannerDisplayColor2:
       result = NormalizedColorComponents((entity != nullptr
                                               ? entity->scannerDisplayColor2()
                                               : (OOColor*)nullptr));
       break;
 
-    case kVisualEffect_hullHeatLevel:
+    case kHullHeatLevel:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->hullHeatLevel() : 0.0f));
 
-    case kVisualEffect_shaderFloat1:
+    case kShaderFloat1:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->shaderFloat1() : 0.0f));
 
-    case kVisualEffect_shaderFloat2:
+    case kShaderFloat2:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->shaderFloat2() : 0.0f));
 
-    case kVisualEffect_shaderInt1:
+    case kShaderInt1:
       return JS_NewInt32(context,
                          (entity != nullptr ? entity->shaderInt1() : 0));
 
-    case kVisualEffect_shaderInt2:
+    case kShaderInt2:
       return JS_NewInt32(context,
                          (entity != nullptr ? entity->shaderInt2() : 0));
 
-    case kVisualEffect_shaderVector1:
+    case kShaderVector1:
       OOJS_RETURN_VECTOR(
           (entity != nullptr ? entity->shaderVector1() : kZeroVector));
 
-    case kVisualEffect_shaderVector2:
+    case kShaderVector2:
       OOJS_RETURN_VECTOR(
           (entity != nullptr ? entity->shaderVector2() : kZeroVector));
 
-    case kVisualEffect_subEntities: {
+    case kSubEntities: {
       // nil before the first subentity (was [subEntitiesForScript] == nil)
       const auto subs =
           (entity != nullptr ? entity->visualEffectSubEntityEnumerator()
@@ -349,12 +366,12 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS) {
       if (subs.has_value()) result = oo::EntityNodesFrom(*subs);
     } break;
 
-    case kVisualEffect_script:
+    case kScript:
       result = OOScriptObjectNode(
           (entity != nullptr ? entity->script() : (OOScript*)nullptr));
       break;
 
-    case kVisualEffect_scriptInfo:
+    case kScriptInfo:
       result = (entity != nullptr ? entity->scriptInfo()
                                   : oo::PList());  // empty dict, never null
       break;
@@ -386,8 +403,9 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
     return OOJSNativeFailure(context);
   if (entity == nullptr) return JS_UNDEFINED;
 
-  switch (magic) {
-    case kVisualEffect_beaconCode:
+  switch (static_cast<VisualEffectProperty>(magic)) {
+    using enum VisualEffectProperty;
+    case kBeaconCode:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (!sValue.has_value() || sValue->empty()) {
         if ((entity != nullptr ? entity->isBeacon() : false)) {
@@ -414,7 +432,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       return JS_UNDEFINED;
       break;
 
-    case kVisualEffect_beaconLabel:
+    case kBeaconLabel:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (entity != nullptr) entity->setBeaconLabel(sValue);
@@ -422,14 +440,14 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kVisualEffect_isBreakPattern:
+    case kIsBreakPattern:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setIsBreakPattern(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_scannerDisplayColor1:
+    case kScannerDisplayColor1:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -439,7 +457,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kVisualEffect_scannerDisplayColor2:
+    case kScannerDisplayColor2:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -449,7 +467,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kVisualEffect_scaleX:
+    case kScaleX:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue > 0.0) {
           if (entity != nullptr) entity->setScaleX(fValue);
@@ -458,7 +476,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kVisualEffect_scaleY:
+    case kScaleY:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue > 0.0) {
           if (entity != nullptr) entity->setScaleY(fValue);
@@ -467,7 +485,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kVisualEffect_scaleZ:
+    case kScaleZ:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue > 0.0) {
           if (entity != nullptr) entity->setScaleZ(fValue);
@@ -476,49 +494,49 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kVisualEffect_hullHeatLevel:
+    case kHullHeatLevel:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (entity != nullptr) entity->setHullHeatLevel(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_shaderFloat1:
+    case kShaderFloat1:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (entity != nullptr) entity->setShaderFloat1(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_shaderFloat2:
+    case kShaderFloat2:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (entity != nullptr) entity->setShaderFloat2(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_shaderInt1:
+    case kShaderInt1:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (entity != nullptr) entity->setShaderInt1(iValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_shaderInt2:
+    case kShaderInt2:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (entity != nullptr) entity->setShaderInt2(iValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_shaderVector1:
+    case kShaderVector1:
       if (JSValueToVector(context, value, &vValue)) {
         if (entity != nullptr) entity->setShaderVector1(vValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kVisualEffect_shaderVector2:
+    case kShaderVector2:
       if (JSValueToVector(context, value, &vValue)) {
         if (entity != nullptr) entity->setShaderVector2(vValue);
         return JS_UNDEFINED;

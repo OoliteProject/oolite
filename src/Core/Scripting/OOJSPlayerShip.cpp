@@ -147,242 +147,262 @@ static bool ValidateContracts(JSContext* context, int argc, JSValueConst* argv,
                               double* premium, const std::string& functionName,
                               unsigned* risk);
 
-enum {
+namespace {
+
+enum class PlayerShipProperty : std::int16_t {
   // Property IDs
-  kPlayerShip_activeMissile,  // index in 'missiles' array of current active
-                              // missile
-  kPlayerShip_aftShield,      // aft shield charge level, nonnegative float,
-                              // read/write
-  kPlayerShip_aftShieldRechargeRate,  // aft shield recharge rate, positive
-                                      // float, read-only
-  kPlayerShip_chartHightlightMode,    // what type of information is being shown
-                                      // on the chart
-  kPlayerShip_compassMode,            // compass mode, string, read/write
-  kPlayerShip_compassTarget,          // object targeted by the compass, entity,
-                                      // read/write
-  kPlayerShip_compassType,            // basic / advanced, string, read/write
-  kPlayerShip_currentWeapon,  // shortcut property to _aftWeapon, etc. overrides
-                              // kShip generic version
-  kPlayerShip_crosshairs,     // custom plist file defining crosshairs
-  kPlayerShip_cursorCoordinates,  // cursor coordinates (unscaled), Vector3D,
-                                  // read only
-  kPlayerShip_cursorCoordinatesInLY,  // cursor coordinates (in LY), Vector3D,
-                                      // read only
-  kPlayerShip_docked,                 // docked, boolean, read-only
-  kPlayerShip_dockedStation,          // docked station, entity, read-only
-  kPlayerShip_fastEquipmentA,         // fast equipment A, string, read/write
-  kPlayerShip_fastEquipmentB,         // fast equipment B, string, read/write
-  kPlayerShip_forwardShield,  // forward shield charge level, nonnegative float,
-                              // read/write
-  kPlayerShip_forwardShieldRechargeRate,    // forward shield recharge rate,
-                                            // positive float, read-only
-  kPlayerShip_fuelLeakRate,                 // fuel leak rate, float, read/write
-  kPlayerShip_galacticHyperspaceBehaviour,  // can be standard, all systems
-                                            // reachable or fixed coordinates,
-                                            // integer, read-only
-  kPlayerShip_galacticHyperspaceFixedCoords,      // used when fixed coords
-                                                  // behaviour is selected,
-                                                  // Vector3D, read/write
-  kPlayerShip_galacticHyperspaceFixedCoordsInLY,  // used when fixed coords
-                                                  // behaviour is selected,
-                                                  // Vector3D, read/write
-  kPlayerShip_galaxyCoordinates,  // galaxy coordinates (unscaled), Vector3D,
-                                  // read only
-  kPlayerShip_galaxyCoordinatesInLY,  // galaxy coordinates (in LY), Vector3D,
-                                      // read only
-  kPlayerShip_hud,                    // hud name identifier, string, read/write
-  kPlayerShip_hudAllowsBigGui,        // hud big gui, string, read only
-  kPlayerShip_hudHidden,              // hud visibility, boolean, read/write
-  kPlayerShip_injectorsEngaged,       // injectors in use, boolean, read-only
-  kPlayerShip_massLockable,  // mass-lockability of player ship, read/write
-  kPlayerShip_maxAftShield,  // maximum aft shield charge level, positive float,
-                             // read-only
-  kPlayerShip_maxForwardShield,     // maximum forward shield charge level,
-                                    // positive float, read-only
-  kPlayerShip_messageGuiTextColor,  // message gui standard text color, array,
-                                    // read/write
-  kPlayerShip_messageGuiTextCommsColor,  // message gui incoming comms text
-                                         // color, array, read/write
-  kPlayerShip_multiFunctionDisplays,     // mfd count, positive int, read-only
-  kPlayerShip_multiFunctionDisplayList,  // active mfd list, array, read-only
-  kPlayerShip_missilesOnline,  // bool (false for ident mode, true for missile
-                               // mode)
-  kPlayerShip_pitch,           // pitch (overrules Ship)
-  kPlayerShip_price,  // idealised trade-in value decicredits, positive int,
-                      // read-only
-  kPlayerShip_primedEquipment,     // currently primed equipment, string,
-                                   // read/write
-  kPlayerShip_renovationCost,      // int read-only current renovation cost
-  kPlayerShip_reticleColorTarget,  // Reticle color for normal targets, array,
-                                   // read/write
-  kPlayerShip_reticleColorTargetSensitive,  // Reticle color for targets picked
-                                            // up when sensitive mode is on,
-                                            // array, read/write
-  kPlayerShip_reticleColorWormhole,    // REticle color for wormholes, array,
-                                       // read/write
-  kPlayerShip_renovationMultiplier,    // float read-only multiplier for
-                                       // renovation costs
-  kPlayerShip_reticleTargetSensitive,  // target box changes color when primary
-                                       // target in crosshairs, boolean,
-                                       // read/write
-  kPlayerShip_roll,                    // roll (overrules Ship)
-  kPlayerShip_routeMode,               // ANA mode
-  kPlayerShip_scannerMinimalistic,     // essentially scanner without gridlines
-  kPlayerShip_scannerNonLinear,        // non linear scanner setting, boolean,
-                                       // read/write
-  kPlayerShip_scannerUltraZoom,        // scanner zoom in powers of 2, boolean,
-                                       // read/write
-  kPlayerShip_scoopOverride,           // Scooping
-  kPlayerShip_serviceLevel,  // servicing level, positive int 75-100, read-only
-  kPlayerShip_specialCargo,  // special cargo, string, read-only
-  kPlayerShip_targetSystem,  // target system id, int, read-write
-  kPlayerShip_nextSystem,    // next hop system id, read-only
-  kPlayerShip_infoSystem,    // info (F7 screen) system id, int, read-write
-  kPlayerShip_previousSystem,   // previous system id, read-only
-  kPlayerShip_torusEngaged,     // torus in use, boolean, read-only
-  kPlayerShip_viewDirection,    // view direction identifier, string, read-only
-  kPlayerShip_viewPositionAft,  // view position offset, vector, read-only
-  kPlayerShip_viewPositionForward,    // view position offset, vector, read-only
-  kPlayerShip_viewPositionPort,       // view position offset, vector, read-only
-  kPlayerShip_viewPositionStarboard,  // view position offset, vector, read-only
-  kPlayerShip_weaponsOnline,  // weapons online status, boolean, read-only
-  kPlayerShip_yaw,            // yaw (overrules Ship)
+  kActiveMissile,          // index in 'missiles' array of current active
+                           // missile
+  kAftShield,              // aft shield charge level, nonnegative float,
+                           // read/write
+  kAftShieldRechargeRate,  // aft shield recharge rate, positive
+                           // float, read-only
+  kChartHightlightMode,    // what type of information is being shown
+                           // on the chart
+  kCompassMode,            // compass mode, string, read/write
+  kCompassTarget,          // object targeted by the compass, entity,
+                           // read/write
+  kCompassType,            // basic / advanced, string, read/write
+  kCurrentWeapon,          // shortcut property to _aftWeapon, etc. overrides
+                           // kShip generic version
+  kCrosshairs,             // custom plist file defining crosshairs
+  kCursorCoordinates,      // cursor coordinates (unscaled), Vector3D,
+                           // read only
+  kCursorCoordinatesInLY,  // cursor coordinates (in LY), Vector3D,
+                           // read only
+  kDocked,                 // docked, boolean, read-only
+  kDockedStation,          // docked station, entity, read-only
+  kFastEquipmentA,         // fast equipment A, string, read/write
+  kFastEquipmentB,         // fast equipment B, string, read/write
+  kForwardShield,          // forward shield charge level, nonnegative float,
+                           // read/write
+  kForwardShieldRechargeRate,          // forward shield recharge rate,
+                                       // positive float, read-only
+  kFuelLeakRate,                       // fuel leak rate, float, read/write
+  kGalacticHyperspaceBehaviour,        // can be standard, all systems
+                                       // reachable or fixed coordinates,
+                                       // integer, read-only
+  kGalacticHyperspaceFixedCoords,      // used when fixed coords
+                                       // behaviour is selected,
+                                       // Vector3D, read/write
+  kGalacticHyperspaceFixedCoordsInLY,  // used when fixed coords
+                                       // behaviour is selected,
+                                       // Vector3D, read/write
+  kGalaxyCoordinates,      // galaxy coordinates (unscaled), Vector3D,
+                           // read only
+  kGalaxyCoordinatesInLY,  // galaxy coordinates (in LY), Vector3D,
+                           // read only
+  kHud,                    // hud name identifier, string, read/write
+  kHudAllowsBigGui,        // hud big gui, string, read only
+  kHudHidden,              // hud visibility, boolean, read/write
+  kInjectorsEngaged,       // injectors in use, boolean, read-only
+  kMassLockable,           // mass-lockability of player ship, read/write
+  kMaxAftShield,           // maximum aft shield charge level, positive float,
+                           // read-only
+  kMaxForwardShield,       // maximum forward shield charge level,
+                           // positive float, read-only
+  kMessageGuiTextColor,    // message gui standard text color, array,
+                           // read/write
+  kMessageGuiTextCommsColor,  // message gui incoming comms text
+                              // color, array, read/write
+  kMultiFunctionDisplays,     // mfd count, positive int, read-only
+  kMultiFunctionDisplayList,  // active mfd list, array, read-only
+  kMissilesOnline,            // bool (false for ident mode, true for missile
+                              // mode)
+  kPitch,                     // pitch (overrules Ship)
+  kPrice,               // idealised trade-in value decicredits, positive int,
+                        // read-only
+  kPrimedEquipment,     // currently primed equipment, string,
+                        // read/write
+  kRenovationCost,      // int read-only current renovation cost
+  kReticleColorTarget,  // Reticle color for normal targets, array,
+                        // read/write
+  kReticleColorTargetSensitive,  // Reticle color for targets picked
+                                 // up when sensitive mode is on,
+                                 // array, read/write
+  kReticleColorWormhole,         // REticle color for wormholes, array,
+                                 // read/write
+  kRenovationMultiplier,         // float read-only multiplier for
+                                 // renovation costs
+  kReticleTargetSensitive,       // target box changes color when primary
+                                 // target in crosshairs, boolean,
+                                 // read/write
+  kRoll,                         // roll (overrules Ship)
+  kRouteMode,                    // ANA mode
+  kScannerMinimalistic,          // essentially scanner without gridlines
+  kScannerNonLinear,             // non linear scanner setting, boolean,
+                                 // read/write
+  kScannerUltraZoom,             // scanner zoom in powers of 2, boolean,
+                                 // read/write
+  kScoopOverride,                // Scooping
+  kServiceLevel,           // servicing level, positive int 75-100, read-only
+  kSpecialCargo,           // special cargo, string, read-only
+  kTargetSystem,           // target system id, int, read-write
+  kNextSystem,             // next hop system id, read-only
+  kInfoSystem,             // info (F7 screen) system id, int, read-write
+  kPreviousSystem,         // previous system id, read-only
+  kTorusEngaged,           // torus in use, boolean, read-only
+  kViewDirection,          // view direction identifier, string, read-only
+  kViewPositionAft,        // view position offset, vector, read-only
+  kViewPositionForward,    // view position offset, vector, read-only
+  kViewPositionPort,       // view position offset, vector, read-only
+  kViewPositionStarboard,  // view position offset, vector, read-only
+  kWeaponsOnline,          // weapons online status, boolean, read-only
+  kYaw,                    // yaw (overrules Ship)
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sPlayerShipProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RO("activeMissile", PlayerShipGetProperty,
-                     kPlayerShip_activeMissile),
+                     PlayerShipProperty::kActiveMissile),
     OOJS_PROPERTY_RW("aftShield", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_aftShield),
+                     PlayerShipProperty::kAftShield),
     OOJS_PROPERTY_RW("aftShieldRechargeRate", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_aftShieldRechargeRate),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kAftShieldRechargeRate),
     OOJS_PROPERTY_RW("chartHighlightMode", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_chartHightlightMode),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kChartHightlightMode),
     OOJS_PROPERTY_RW("compassMode", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_compassMode),
+                     PlayerShipSetProperty, PlayerShipProperty::kCompassMode),
     OOJS_PROPERTY_RW("compassTarget", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_compassTarget),
+                     PlayerShipSetProperty, PlayerShipProperty::kCompassTarget),
     OOJS_PROPERTY_RW("compassType", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_compassType),
+                     PlayerShipSetProperty, PlayerShipProperty::kCompassType),
     OOJS_PROPERTY_RW("currentWeapon", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_currentWeapon),
+                     PlayerShipSetProperty, PlayerShipProperty::kCurrentWeapon),
     OOJS_PROPERTY_RW("crosshairs", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_crosshairs),
+                     PlayerShipProperty::kCrosshairs),
     OOJS_PROPERTY_RO("cursorCoordinates", PlayerShipGetProperty,
-                     kPlayerShip_cursorCoordinates),
+                     PlayerShipProperty::kCursorCoordinates),
     OOJS_PROPERTY_RO("cursorCoordinatesInLY", PlayerShipGetProperty,
-                     kPlayerShip_cursorCoordinatesInLY),
-    OOJS_PROPERTY_RO("docked", PlayerShipGetProperty, kPlayerShip_docked),
+                     PlayerShipProperty::kCursorCoordinatesInLY),
+    OOJS_PROPERTY_RO("docked", PlayerShipGetProperty,
+                     PlayerShipProperty::kDocked),
     OOJS_PROPERTY_RO("dockedStation", PlayerShipGetProperty,
-                     kPlayerShip_dockedStation),
+                     PlayerShipProperty::kDockedStation),
     OOJS_PROPERTY_RW("fastEquipmentA", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_fastEquipmentA),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kFastEquipmentA),
     OOJS_PROPERTY_RW("fastEquipmentB", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_fastEquipmentB),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kFastEquipmentB),
     OOJS_PROPERTY_RW("forwardShield", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_forwardShield),
+                     PlayerShipSetProperty, PlayerShipProperty::kForwardShield),
     OOJS_PROPERTY_RW("forwardShieldRechargeRate", PlayerShipGetProperty,
                      PlayerShipSetProperty,
-                     kPlayerShip_forwardShieldRechargeRate),
+                     PlayerShipProperty::kForwardShieldRechargeRate),
     OOJS_PROPERTY_RW("fuelLeakRate", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_fuelLeakRate),
+                     PlayerShipSetProperty, PlayerShipProperty::kFuelLeakRate),
     OOJS_PROPERTY_RW("galacticHyperspaceBehaviour", PlayerShipGetProperty,
                      PlayerShipSetProperty,
-                     kPlayerShip_galacticHyperspaceBehaviour),
+                     PlayerShipProperty::kGalacticHyperspaceBehaviour),
     OOJS_PROPERTY_RW("galacticHyperspaceFixedCoords", PlayerShipGetProperty,
                      PlayerShipSetProperty,
-                     kPlayerShip_galacticHyperspaceFixedCoords),
+                     PlayerShipProperty::kGalacticHyperspaceFixedCoords),
     OOJS_PROPERTY_RW("galacticHyperspaceFixedCoordsInLY", PlayerShipGetProperty,
                      PlayerShipSetProperty,
-                     kPlayerShip_galacticHyperspaceFixedCoordsInLY),
+                     PlayerShipProperty::kGalacticHyperspaceFixedCoordsInLY),
     OOJS_PROPERTY_RO("galaxyCoordinates", PlayerShipGetProperty,
-                     kPlayerShip_galaxyCoordinates),
+                     PlayerShipProperty::kGalaxyCoordinates),
     OOJS_PROPERTY_RO("galaxyCoordinatesInLY", PlayerShipGetProperty,
-                     kPlayerShip_galaxyCoordinatesInLY),
+                     PlayerShipProperty::kGalaxyCoordinatesInLY),
     OOJS_PROPERTY_RW("hud", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_hud),
+                     PlayerShipProperty::kHud),
     OOJS_PROPERTY_RO("hudAllowsBigGui", PlayerShipGetProperty,
-                     kPlayerShip_hudAllowsBigGui),
+                     PlayerShipProperty::kHudAllowsBigGui),
     OOJS_PROPERTY_RW("hudHidden", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_hudHidden),
+                     PlayerShipProperty::kHudHidden),
     OOJS_PROPERTY_RO("injectorsEngaged", PlayerShipGetProperty,
-                     kPlayerShip_injectorsEngaged),
+                     PlayerShipProperty::kInjectorsEngaged),
     OOJS_PROPERTY_RW("massLockable", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_massLockable),
+                     PlayerShipSetProperty, PlayerShipProperty::kMassLockable),
     // manifest defined in OOJSManifest.m
     OOJS_PROPERTY_RW("maxAftShield", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_maxAftShield),
+                     PlayerShipSetProperty, PlayerShipProperty::kMaxAftShield),
     OOJS_PROPERTY_RW("maxForwardShield", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_maxForwardShield),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kMaxForwardShield),
     OOJS_PROPERTY_RW("messageGuiTextColor", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_messageGuiTextColor),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kMessageGuiTextColor),
     OOJS_PROPERTY_RW("messageGuiTextCommsColor", PlayerShipGetProperty,
                      PlayerShipSetProperty,
-                     kPlayerShip_messageGuiTextCommsColor),
+                     PlayerShipProperty::kMessageGuiTextCommsColor),
     OOJS_PROPERTY_RO("missilesOnline", PlayerShipGetProperty,
-                     kPlayerShip_missilesOnline),
+                     PlayerShipProperty::kMissilesOnline),
     OOJS_PROPERTY_RO("multiFunctionDisplays", PlayerShipGetProperty,
-                     kPlayerShip_multiFunctionDisplays),
+                     PlayerShipProperty::kMultiFunctionDisplays),
     OOJS_PROPERTY_RO("multiFunctionDisplayList", PlayerShipGetProperty,
-                     kPlayerShip_multiFunctionDisplayList),
-    OOJS_PROPERTY_RO("price", PlayerShipGetProperty, kPlayerShip_price),
+                     PlayerShipProperty::kMultiFunctionDisplayList),
+    OOJS_PROPERTY_RO("price", PlayerShipGetProperty,
+                     PlayerShipProperty::kPrice),
     OOJS_PROPERTY_RW("pitch", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_pitch),
+                     PlayerShipProperty::kPitch),
     OOJS_PROPERTY_RW("primedEquipment", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_primedEquipment),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kPrimedEquipment),
     OOJS_PROPERTY_RO("renovationCost", PlayerShipGetProperty,
-                     kPlayerShip_renovationCost),
+                     PlayerShipProperty::kRenovationCost),
     OOJS_PROPERTY_RW("reticleColorTarget", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_reticleColorTarget),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kReticleColorTarget),
     OOJS_PROPERTY_RW("reticleColorTargetSensitive", PlayerShipGetProperty,
                      PlayerShipSetProperty,
-                     kPlayerShip_reticleColorTargetSensitive),
+                     PlayerShipProperty::kReticleColorTargetSensitive),
     OOJS_PROPERTY_RW("reticleColorWormhole", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_reticleColorWormhole),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kReticleColorWormhole),
     OOJS_PROPERTY_RO("renovationMultiplier", PlayerShipGetProperty,
-                     kPlayerShip_renovationMultiplier),
+                     PlayerShipProperty::kRenovationMultiplier),
     OOJS_PROPERTY_RW("reticleTargetSensitive", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_reticleTargetSensitive),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kReticleTargetSensitive),
     OOJS_PROPERTY_RW("roll", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_roll),
-    OOJS_PROPERTY_RO("routeMode", PlayerShipGetProperty, kPlayerShip_routeMode),
+                     PlayerShipProperty::kRoll),
+    OOJS_PROPERTY_RO("routeMode", PlayerShipGetProperty,
+                     PlayerShipProperty::kRouteMode),
     OOJS_PROPERTY_RW("scannerMinimalistic", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_scannerMinimalistic),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kScannerMinimalistic),
     OOJS_PROPERTY_RW("scannerNonLinear", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_scannerNonLinear),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kScannerNonLinear),
     OOJS_PROPERTY_RW("scannerUltraZoom", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_scannerUltraZoom),
+                     PlayerShipSetProperty,
+                     PlayerShipProperty::kScannerUltraZoom),
     OOJS_PROPERTY_RW("scoopOverride", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_scoopOverride),
+                     PlayerShipSetProperty, PlayerShipProperty::kScoopOverride),
     OOJS_PROPERTY_RW("serviceLevel", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_serviceLevel),
+                     PlayerShipSetProperty, PlayerShipProperty::kServiceLevel),
     OOJS_PROPERTY_RO("specialCargo", PlayerShipGetProperty,
-                     kPlayerShip_specialCargo),
+                     PlayerShipProperty::kSpecialCargo),
     OOJS_PROPERTY_RW("targetSystem", PlayerShipGetProperty,
-                     PlayerShipSetProperty, kPlayerShip_targetSystem),
+                     PlayerShipSetProperty, PlayerShipProperty::kTargetSystem),
     OOJS_PROPERTY_RO("nextSystem", PlayerShipGetProperty,
-                     kPlayerShip_nextSystem),
+                     PlayerShipProperty::kNextSystem),
     OOJS_PROPERTY_RW("infoSystem", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_infoSystem),
+                     PlayerShipProperty::kInfoSystem),
     OOJS_PROPERTY_RO("previousSystem", PlayerShipGetProperty,
-                     kPlayerShip_previousSystem),
+                     PlayerShipProperty::kPreviousSystem),
     OOJS_PROPERTY_RO("torusEngaged", PlayerShipGetProperty,
-                     kPlayerShip_torusEngaged),
+                     PlayerShipProperty::kTorusEngaged),
     OOJS_PROPERTY_RO("viewDirection", PlayerShipGetProperty,
-                     kPlayerShip_viewDirection),
+                     PlayerShipProperty::kViewDirection),
     OOJS_PROPERTY_RO("viewPositionAft", PlayerShipGetProperty,
-                     kPlayerShip_viewPositionAft),
+                     PlayerShipProperty::kViewPositionAft),
     OOJS_PROPERTY_RO("viewPositionForward", PlayerShipGetProperty,
-                     kPlayerShip_viewPositionForward),
+                     PlayerShipProperty::kViewPositionForward),
     OOJS_PROPERTY_RO("viewPositionPort", PlayerShipGetProperty,
-                     kPlayerShip_viewPositionPort),
+                     PlayerShipProperty::kViewPositionPort),
     OOJS_PROPERTY_RO("viewPositionStarboard", PlayerShipGetProperty,
-                     kPlayerShip_viewPositionStarboard),
+                     PlayerShipProperty::kViewPositionStarboard),
     OOJS_PROPERTY_RO("weaponsOnline", PlayerShipGetProperty,
-                     kPlayerShip_weaponsOnline),
+                     PlayerShipProperty::kWeaponsOnline),
     OOJS_PROPERTY_RW("yaw", PlayerShipGetProperty, PlayerShipSetProperty,
-                     kPlayerShip_yaw),
+                     PlayerShipProperty::kYaw),
 };
 
 static const JSCFunctionListEntry sPlayerShipMethods[] = {
@@ -511,112 +531,113 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
   oo::PList result;  // null maps to null
   PlayerEntity* player = OOPlayerForScripting();
 
-  switch (magic) {
-    case kPlayerShip_activeMissile:
+  switch (static_cast<PlayerShipProperty>(magic)) {
+    using enum PlayerShipProperty;
+    case kActiveMissile:
       return JS_NewNumber(context,
                           (player != nullptr ? player->getActiveMissile() : 0));
 
-    case kPlayerShip_fuelLeakRate:
+    case kFuelLeakRate:
       return JS_NewNumber(context,
                           (player != nullptr ? player->fuelLeakRate() : 0.0f));
 
-    case kPlayerShip_docked:
+    case kDocked:
       return OOJSValueFromBOOL(player != nullptr ? player->isDocked() : false);
 
-    case kPlayerShip_dockedStation:
+    case kDockedStation:
       result =
           oo::EntityObjectNode(player != nullptr ? player->dockedStation()
                                                  : (StationEntity*)nullptr);
       break;
 
-    case kPlayerShip_specialCargo:
+    case kSpecialCargo:
       result = StringOrNull(player != nullptr ? player->getSpecialCargo()
                                               : std::optional<std::string>());
       break;
 
-    case kPlayerShip_reticleColorTarget:
+    case kReticleColorTarget:
       result = NormalizedColorComponents(
           HudReticleColor(player, OO_RETICLE_COLOR_TARGET).get());
       break;
 
-    case kPlayerShip_reticleColorTargetSensitive:
+    case kReticleColorTargetSensitive:
       result = NormalizedColorComponents(
           HudReticleColor(player, OO_RETICLE_COLOR_TARGET_SENSITIVE).get());
       break;
 
-    case kPlayerShip_reticleColorWormhole:
+    case kReticleColorWormhole:
       result = NormalizedColorComponents(
           HudReticleColor(player, OO_RETICLE_COLOR_WORMHOLE).get());
       break;
 
-    case kPlayerShip_reticleTargetSensitive:
+    case kReticleTargetSensitive:
       return OOJSValueFromBOOL(
           AskHud(player, &HeadUpDisplay::getReticleTargetSensitive));
 
-    case kPlayerShip_galacticHyperspaceBehaviour:
+    case kGalacticHyperspaceBehaviour:
       return OOJSValueFromGalacticHyperspaceBehaviour(
           context, (player != nullptr ? player->getGalacticHyperspaceBehaviour()
                                       : OOGalacticHyperspaceBehaviour{}));
 
-    case kPlayerShip_galacticHyperspaceFixedCoords:
+    case kGalacticHyperspaceFixedCoords:
       OOJS_RETURN_WITH_HELPER(
           NSPointToVectorJSValue,
           (player != nullptr ? player->getGalacticHyperspaceFixedCoords()
                              : NSPoint{}));
 
-    case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
+    case kGalacticHyperspaceFixedCoordsInLY:
       OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal(
           player != nullptr ? player->getGalacticHyperspaceFixedCoords()
                             : NSPoint{}));
 
-    case kPlayerShip_fastEquipmentA:
+    case kFastEquipmentA:
       result = StringOrNull(player != nullptr ? player->fastEquipmentA()
                                               : std::optional<std::string>());
       break;
 
-    case kPlayerShip_fastEquipmentB:
+    case kFastEquipmentB:
       result = StringOrNull(player != nullptr ? player->fastEquipmentB()
                                               : std::optional<std::string>());
       break;
 
-    case kPlayerShip_primedEquipment:
+    case kPrimedEquipment:
       result = oo::PList(player != nullptr ? player->currentPrimedEquipment()
                                            : std::string());
       break;
 
-    case kPlayerShip_forwardShield:
+    case kForwardShield:
       return JS_NewNumber(
           context, (player != nullptr ? player->forwardShieldLevel() : 0.0f));
 
-    case kPlayerShip_aftShield:
+    case kAftShield:
       return JS_NewNumber(
           context, (player != nullptr ? player->aftShieldLevel() : 0.0f));
 
-    case kPlayerShip_maxForwardShield:
+    case kMaxForwardShield:
       return JS_NewNumber(
           context,
           (player != nullptr ? player->maxForwardShieldLevel() : 0.0f));
 
-    case kPlayerShip_maxAftShield:
+    case kMaxAftShield:
       return JS_NewNumber(
           context, (player != nullptr ? player->maxAftShieldLevel() : 0.0f));
 
-    case kPlayerShip_forwardShieldRechargeRate:
+    case kForwardShieldRechargeRate:
       // No distinction made internally
       return JS_NewNumber(
           context,
           (player != nullptr ? player->forwardShieldRechargeRate() : 0.0f));
 
-    case kPlayerShip_aftShieldRechargeRate:
+    case kAftShieldRechargeRate:
       // No distinction made internally
       return JS_NewNumber(
           context,
           (player != nullptr ? player->aftShieldRechargeRate() : 0.0f));
 
-    case kPlayerShip_multiFunctionDisplays:
+    case kMultiFunctionDisplays:
       return JS_NewNumber(context, AskHud(player, &HeadUpDisplay::mfdCount));
 
-    case kPlayerShip_multiFunctionDisplayList: {
+    case kMultiFunctionDisplayList: {
       oo::PList::Array list;  // [OONull null] for an inactive MFD
       for (const std::optional<std::string>& key :
            (player != nullptr ? player->multiFunctionDisplayList()
@@ -626,51 +647,51 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
       result = oo::PList(std::move(list));
     } break;
 
-    case kPlayerShip_missilesOnline:
+    case kMissilesOnline:
       return OOJSValueFromBOOL(
           !(player != nullptr ? player->dialIdentEngaged() : false));
 
-    case kPlayerShip_chartHightlightMode:
+    case kChartHightlightMode:
       result = oo::PList(cxx_OOStringFromLongRangeChartMode(
           player != nullptr ? player->getLongRangeChartMode()
                             : OOLongRangeChartMode{}));
       break;
 
-    case kPlayerShip_galaxyCoordinates:
+    case kGalaxyCoordinates:
       OOJS_RETURN_WITH_HELPER(
           NSPointToVectorJSValue,
           (player != nullptr ? player->getGalaxy_coordinates() : NSPoint{}));
 
-    case kPlayerShip_galaxyCoordinatesInLY:
+    case kGalaxyCoordinatesInLY:
       OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal(
           player != nullptr ? player->getGalaxy_coordinates() : NSPoint{}));
 
-    case kPlayerShip_cursorCoordinates:
+    case kCursorCoordinates:
       OOJS_RETURN_WITH_HELPER(
           NSPointToVectorJSValue,
           (player != nullptr ? player->getCursor_coordinates() : NSPoint{}));
 
-    case kPlayerShip_cursorCoordinatesInLY:
+    case kCursorCoordinatesInLY:
       OOJS_RETURN_VECTOR(OOGalacticCoordinatesFromInternal(
           player != nullptr ? player->getCursor_coordinates() : NSPoint{}));
 
-    case kPlayerShip_targetSystem:
+    case kTargetSystem:
       return JS_NewInt32(context,
                          player != nullptr ? player->targetSystemID() : 0);
 
-    case kPlayerShip_nextSystem:
+    case kNextSystem:
       return JS_NewInt32(
           context, player != nullptr ? player->nextHopTargetSystemID() : 0);
 
-    case kPlayerShip_infoSystem:
+    case kInfoSystem:
       return JS_NewInt32(context,
                          player != nullptr ? player->infoSystemID() : 0);
 
-    case kPlayerShip_previousSystem:
+    case kPreviousSystem:
       return JS_NewInt32(context,
                          player != nullptr ? player->previousSystemID() : 0);
 
-    case kPlayerShip_routeMode: {
+    case kRouteMode: {
       OORouteType route =
           (player != nullptr ? player->ANAMode() : OORouteType{});
       switch (route) {
@@ -687,42 +708,42 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
       break;
     }
 
-    case kPlayerShip_scannerMinimalistic:
+    case kScannerMinimalistic:
       return OOJSValueFromBOOL(
           AskHud(player, &HeadUpDisplay::minimalisticScanner));
 
-    case kPlayerShip_scannerNonLinear:
+    case kScannerNonLinear:
       return OOJSValueFromBOOL(
           AskHud(player, &HeadUpDisplay::nonlinearScanner));
 
-    case kPlayerShip_scannerUltraZoom:
+    case kScannerUltraZoom:
       return OOJSValueFromBOOL(
           AskHud(player, &HeadUpDisplay::scannerUltraZoom));
 
-    case kPlayerShip_scoopOverride:
+    case kScoopOverride:
       return OOJSValueFromBOOL(player != nullptr ? player->getScoopOverride()
                                                  : false);
 
-    case kPlayerShip_injectorsEngaged:
+    case kInjectorsEngaged:
       return OOJSValueFromBOOL(player != nullptr ? player->injectorsEngaged()
                                                  : false);
 
-    case kPlayerShip_massLockable:
+    case kMassLockable:
       return OOJSValueFromBOOL(player != nullptr ? player->getMassLockable()
                                                  : false);
 
-    case kPlayerShip_torusEngaged:
+    case kTorusEngaged:
       return OOJSValueFromBOOL(player != nullptr ? player->hyperspeedEngaged()
                                                  : false);
 
-    case kPlayerShip_compassTarget:
+    case kCompassTarget:
       result = oo::EntityObjectNode(
           player != nullptr
               ? player->getCompassTargetEntity()
               : (Entity*)nullptr);  // the C++ entity's node, the same object's
       break;
 
-    case kPlayerShip_compassType:
+    case kCompassType:
       result = oo::PList(
           (cxx_OOStringFromCompassMode(
                player != nullptr ? player->getCompassMode()
@@ -731,52 +752,52 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
               : "OO_COMPASSTYPE_ADVANCED");
       break;
 
-    case kPlayerShip_compassMode:
+    case kCompassMode:
       return OOJSValueFromCompassMode(
           context,
           (player != nullptr ? player->getCompassMode() : OOCompassMode{}));
 
-    case kPlayerShip_hud:
+    case kHud:
       result = StringOrNull(AskHud(player, &HeadUpDisplay::getHudName));
       break;
 
-    case kPlayerShip_crosshairs:
+    case kCrosshairs:
       result =
           StringOrNull(AskHud(player, &HeadUpDisplay::getCrosshairDefinition));
       break;
 
-    case kPlayerShip_hudAllowsBigGui:
+    case kHudAllowsBigGui:
       return OOJSValueFromBOOL(AskHud(player, &HeadUpDisplay::getAllowBigGui));
 
-    case kPlayerShip_hudHidden:
+    case kHudHidden:
       return OOJSValueFromBOOL(AskHud(player, &HeadUpDisplay::isHidden));
 
-    case kPlayerShip_weaponsOnline:
+    case kWeaponsOnline:
       return OOJSValueFromBOOL(player != nullptr ? player->weaponsOnline()
                                                  : false);
 
-    case kPlayerShip_viewDirection:
+    case kViewDirection:
       return OOJSValueFromViewID(
           context,
           (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}));
 
-    case kPlayerShip_viewPositionAft:
+    case kViewPositionAft:
       OOJS_RETURN_VECTOR(
           (player != nullptr ? player->viewpointOffsetAft() : Vector{}));
 
-    case kPlayerShip_viewPositionForward:
+    case kViewPositionForward:
       OOJS_RETURN_VECTOR(
           (player != nullptr ? player->viewpointOffsetForward() : Vector{}));
 
-    case kPlayerShip_viewPositionPort:
+    case kViewPositionPort:
       OOJS_RETURN_VECTOR(
           (player != nullptr ? player->viewpointOffsetPort() : Vector{}));
 
-    case kPlayerShip_viewPositionStarboard:
+    case kViewPositionStarboard:
       OOJS_RETURN_VECTOR(
           (player != nullptr ? player->viewpointOffsetStarboard() : Vector{}));
 
-    case kPlayerShip_currentWeapon:
+    case kCurrentWeapon:
       result = OOEquipmentTypeObjectNode(
           player != nullptr
               ? player->weaponTypeForFacing(
@@ -786,7 +807,7 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
               : (OOEquipmentType*)nullptr);
       break;
 
-    case kPlayerShip_price:
+    case kPrice:
       return JS_NewNumber(
           context,
           (UNIVERSE != nullptr
@@ -795,38 +816,38 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
                                         : oo::PList()))
                : 0));
 
-    case kPlayerShip_serviceLevel:
+    case kServiceLevel:
       return JS_NewNumber(
           context, (player != nullptr ? player->tradeInFactor() : int{}));
 
-    case kPlayerShip_renovationCost:
+    case kRenovationCost:
       return JS_NewNumber(
           context, (player != nullptr ? player->renovationCosts() : 0.0));
 
-    case kPlayerShip_renovationMultiplier:
+    case kRenovationMultiplier:
       return JS_NewNumber(
           context, (player != nullptr ? player->renovationFactor() : 0.0));
 
       // make roll, pitch, yaw reported to JS use same +/- convention as
       // for NPC ships
-    case kPlayerShip_pitch:
+    case kPitch:
       return JS_NewNumber(
           context, -(player != nullptr ? player->getFlightPitch() : 0.0f));
 
-    case kPlayerShip_roll:
+    case kRoll:
       return JS_NewNumber(
           context, -(player != nullptr ? player->getFlightRoll() : 0.0f));
 
-    case kPlayerShip_yaw:
+    case kYaw:
       return JS_NewNumber(context,
                           -(player != nullptr ? player->getFlightYaw() : 0.0f));
 
-    case kPlayerShip_messageGuiTextColor:
+    case kMessageGuiTextColor:
       result =
           NormalizedColorComponents(UNIVERSE->messageGUI()->getTextColor());
       break;
 
-    case kPlayerShip_messageGuiTextCommsColor:
+    case kMessageGuiTextCommsColor:
       result = NormalizedColorComponents(
           UNIVERSE->messageGUI()->getTextCommsColor());
       break;
@@ -858,22 +879,23 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
   oo::Ref<OOColor> colorForScript;  // the colours are converted (OOColor)
   Entity* eValue = nullptr;  // as JSValueToEntity() answers (the C++ entity)
 
-  switch (magic) {
-    case kPlayerShip_fuelLeakRate:
+  switch (static_cast<PlayerShipProperty>(magic)) {
+    using enum PlayerShipProperty;
+    case kFuelLeakRate:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setFuelLeakRate(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_massLockable:
+    case kMassLockable:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (player != nullptr) player->setMassLockable(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_reticleTargetSensitive:
+    case kReticleTargetSensitive:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (HeadUpDisplay* hud = HudOf(player))
           hud->setReticleTargetSensitive(bValue);
@@ -881,7 +903,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_chartHightlightMode:
+    case kChartHightlightMode:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         OOLongRangeChartMode chartMode =
@@ -906,7 +928,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       return OOJSNativeFailure(context);  // not reachable if successfully set
       break;
 
-    case kPlayerShip_compassMode:
+    case kCompassMode:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         OOCompassMode mode = OOCompassModeFromJSValue(context, value);
@@ -916,7 +938,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_compassType:
+    case kCompassType:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (*sValue == "OO_COMPASSTYPE_BASIC") {
@@ -943,7 +965,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_compassTarget:
+    case kCompassTarget:
       // can't change compass target in basic mode
       if (!(player != nullptr
                 ? player->hasEquipmentItemProviding("EQ_ADVANCED_COMPASS")
@@ -980,7 +1002,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_galacticHyperspaceBehaviour:
+    case kGalacticHyperspaceBehaviour:
       ghBehaviour = OOGalacticHyperspaceBehaviourFromJSValue(context, value);
       if (ghBehaviour != OOGalacticHyperspaceBehaviour::kUnknown) {
         if (player != nullptr)
@@ -989,7 +1011,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_galacticHyperspaceFixedCoords:
+    case kGalacticHyperspaceFixedCoords:
       if (JSValueToVector(context, value, &vValue)) {
         NSPoint coords = {vValue.x, vValue.y};
         if (player != nullptr) player->setGalacticHyperspaceFixedCoords(coords);
@@ -997,7 +1019,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
+    case kGalacticHyperspaceFixedCoordsInLY:
       if (JSValueToVector(context, value, &vValue)) {
         NSPoint coords = OOInternalCoordinatesFromGalactic(vValue);
         if (player != nullptr) player->setGalacticHyperspaceFixedCoords(coords);
@@ -1005,7 +1027,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_fastEquipmentA:
+    case kFastEquipmentA:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (player != nullptr) player->setFastEquipmentA(sValue);
@@ -1013,7 +1035,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_fastEquipmentB:
+    case kFastEquipmentB:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (player != nullptr) player->setFastEquipmentB(sValue);
@@ -1021,7 +1043,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_primedEquipment:
+    case kPrimedEquipment:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         // As before, failure stops the script without an error.
@@ -1032,7 +1054,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_pitch:
+    case kPitch:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (!isnan(fValue))  // guard against undefined
         {
@@ -1045,7 +1067,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_roll:
+    case kRoll:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (!isnan(fValue))  // guard against undefined
         {
@@ -1057,7 +1079,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_yaw:
+    case kYaw:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (!isnan(fValue))  // guard against undefined
         {
@@ -1069,49 +1091,49 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_forwardShield:
+    case kForwardShield:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setForwardShieldLevel(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_aftShield:
+    case kAftShield:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setAftShieldLevel(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_maxForwardShield:
+    case kMaxForwardShield:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setMaxForwardShieldLevel(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_maxAftShield:
+    case kMaxAftShield:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setMaxAftShieldLevel(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_forwardShieldRechargeRate:
+    case kForwardShieldRechargeRate:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setForwardShieldRechargeRate(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_aftShieldRechargeRate:
+    case kAftShieldRechargeRate:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (player != nullptr) player->setAftShieldRechargeRate(fValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_scannerMinimalistic:
+    case kScannerMinimalistic:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (HeadUpDisplay* hud = HudOf(player))
           hud->setMinimalisticScanner(bValue);
@@ -1119,7 +1141,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_scannerNonLinear:
+    case kScannerNonLinear:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (HeadUpDisplay* hud = HudOf(player))
           hud->setNonlinearScanner(bValue);
@@ -1127,7 +1149,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_scannerUltraZoom:
+    case kScannerUltraZoom:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (HeadUpDisplay* hud = HudOf(player))
           hud->setScannerUltraZoom(bValue);
@@ -1135,14 +1157,14 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_scoopOverride:
+    case kScoopOverride:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (player != nullptr) player->setScoopOverride(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_hud:
+    case kHud:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (sValue.has_value() && player != nullptr)
@@ -1155,7 +1177,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_crosshairs:
+    case kCrosshairs:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (!sValue.has_value()) {
         // reset HUD back to its plist settings
@@ -1175,14 +1197,14 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_hudHidden:
+    case kHudHidden:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (HeadUpDisplay* hud = HudOf(player)) hud->setHidden(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlayerShip_serviceLevel:
+    case kServiceLevel:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         int newLevel = (int)fValue;
         if (player != nullptr)
@@ -1197,7 +1219,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       */
       break;
 
-    case kPlayerShip_currentWeapon: {
+    case kCurrentWeapon: {
       bool exists = false;  // JSValueToEquipmentKeyRelaxed() takes a bool *
       sValue = JSValueToEquipmentKeyRelaxed(context, value, &exists);
       if (!exists || !sValue.has_value()) {
@@ -1209,7 +1231,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       return JS_UNDEFINED;
     }
 
-    case kPlayerShip_targetSystem:
+    case kTargetSystem:
       /* This first check is essential: if removed, it would be
        * possible to make jumps of arbitrary length - CIM */
       if ((player != nullptr ? player->status() : OOEntityStatus{}) !=
@@ -1252,7 +1274,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
         return OOJSNativeFailure(context);
       }
 
-    case kPlayerShip_infoSystem:
+    case kInfoSystem:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY) {
           if (player != nullptr) player->setInfoSystemID(iValue, true);
@@ -1263,7 +1285,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_messageGuiTextColor:
+    case kMessageGuiTextColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1272,7 +1294,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_messageGuiTextCommsColor:
+    case kMessageGuiTextCommsColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1281,7 +1303,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_reticleColorTarget:
+    case kReticleColorTarget:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1293,7 +1315,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_reticleColorTargetSensitive:
+    case kReticleColorTargetSensitive:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -1305,7 +1327,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlayerShip_reticleColorWormhole:
+    case kReticleColorWormhole:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {

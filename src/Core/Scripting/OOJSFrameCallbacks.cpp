@@ -67,18 +67,17 @@ SOFTWARE.
   } while (0)
 #endif
 
-enum {
-  kMinCount = 16,
+constexpr std::size_t kMinCount = 16;
 
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
-  kIDScrambleMask = 0,
-  kIDIncrement = 1
+constexpr uint32_t kIDScrambleMask = 0;
+constexpr uint32_t kIDIncrement = 1;
 #else
-  kIDScrambleMask = 0x2315EB16,  // Just a random number.
-  kIDIncrement = 992699  // A large prime number, to produce a non-obvious
-                         // sequence which still uses all 2^32 values.
+constexpr uint32_t kIDScrambleMask = 0x2315EB16;  // Just a random number.
+constexpr uint32_t kIDIncrement =
+    992699;  // A large prime number, to produce a non-obvious sequence which
+             // still uses all 2^32 values.
 #endif
-};
 
 using CallbackEntry = struct {
   JSValue callback;  // Owned.
@@ -360,7 +359,7 @@ static bool GrowCallbackList(JSContext* context,
   OOCParameterAssert(context != nullptr);
   OOCParameterAssert(errorString != nullptr);
 
-  std::size_t newSpace = MAX(sSpace * 2, (std::size_t)kMinCount);
+  std::size_t newSpace = MAX(sSpace * 2, kMinCount);
 
   CallbackEntry* newCallbacks =
       (CallbackEntry*)calloc(sizeof(CallbackEntry), newSpace);

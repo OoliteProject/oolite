@@ -48,27 +48,31 @@ static JSClassDef sDockClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
+namespace {
+
+enum class DockProperty : std::int16_t {
   // Property IDs
-  kDock_allowsDocking,
-  kDock_disallowedDockingCollides,
-  kDock_allowsLaunching,
-  kDock_dockingQueueLength,
-  kDock_launchingQueueLength
+  kAllowsDocking,
+  kDisallowedDockingCollides,
+  kAllowsLaunching,
+  kDockingQueueLength,
+  kLaunchingQueueLength
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sDockProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("allowsDocking", DockGetProperty, DockSetProperty,
-                     kDock_allowsDocking),
+                     DockProperty::kAllowsDocking),
     OOJS_PROPERTY_RW("disallowedDockingCollides", DockGetProperty,
-                     DockSetProperty, kDock_disallowedDockingCollides),
+                     DockSetProperty, DockProperty::kDisallowedDockingCollides),
     OOJS_PROPERTY_RW("allowsLaunching", DockGetProperty, DockSetProperty,
-                     kDock_allowsLaunching),
+                     DockProperty::kAllowsLaunching),
     OOJS_PROPERTY_RO("dockingQueueLength", DockGetProperty,
-                     kDock_dockingQueueLength),
+                     DockProperty::kDockingQueueLength),
     OOJS_PROPERTY_RO("launchingQueueLength", DockGetProperty,
-                     kDock_launchingQueueLength),
+                     DockProperty::kLaunchingQueueLength),
 };
 
 static const JSCFunctionListEntry sDockMethods[] = {
@@ -157,25 +161,26 @@ static JSValue DockGetProperty(OOJS_GETTER_ARGS) {
     return JS_UNDEFINED;
   }
 
-  switch (magic) {
-    case kDock_allowsDocking:
+  switch (static_cast<DockProperty>(magic)) {
+    using enum DockProperty;
+    case kAllowsDocking:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->allowsDocking() : false));
 
-    case kDock_disallowedDockingCollides:
+    case kDisallowedDockingCollides:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->disallowedDockingCollides() : false));
 
-    case kDock_allowsLaunching:
+    case kAllowsLaunching:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->allowsLaunching() : false));
 
-    case kDock_dockingQueueLength:
+    case kDockingQueueLength:
       return JS_NewNumber(
           context,
           (entity != nullptr ? entity->countOfShipsInDockingQueue() : 0));
 
-    case kDock_launchingQueueLength:
+    case kLaunchingQueueLength:
       return JS_NewNumber(
           context,
           (entity != nullptr ? entity->countOfShipsInLaunchQueue() : 0));
@@ -200,22 +205,23 @@ static JSValue DockSetProperty(OOJS_SETTER_ARGS) {
     return OOJSNativeFailure(context);
   if (entity == nullptr) return JS_UNDEFINED;
 
-  switch (magic) {
-    case kDock_allowsDocking:
+  switch (static_cast<DockProperty>(magic)) {
+    using enum DockProperty;
+    case kAllowsDocking:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setAllowsDocking(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kDock_allowsLaunching:
+    case kAllowsLaunching:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setAllowsLaunching(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kDock_disallowedDockingCollides:
+    case kDisallowedDockingCollides:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setDisallowedDockingCollides(bValue);
         return JS_UNDEFINED;
