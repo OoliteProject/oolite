@@ -15,10 +15,11 @@
    names do not change
 
         The name and reason are copied; a null one becomes "", as
-   -initWithName:reason: did. It is deliberately NOT a std::exception: a handler
-   for std::exception never caught an OOException, so it must not catch this one
-   either. %@ has no meaning in OORaiseException's format: callers pass UTF-8
-   strings (%s).
+   -initWithName:reason: did. It is a std::exception whose what() is the reason
+   (spec 009 FR-014), so standard handlers see the game's exceptions too; the
+   one game handler for std::exception (OOJSReportCurrentException) comes after
+   the oo::Exception handler in the same try and reports the same text. %@ has
+   no meaning in OORaiseException's format: callers pass UTF-8 strings (%s).
 
         The game's @try/@catch/@finally as C++ try/catch:
 
@@ -48,6 +49,7 @@
 
 #pragma once
 
+#include <exception>
 #include <optional>
 #include <string>
 #include <utility>
@@ -70,7 +72,7 @@ void OORaiseException(const char* name, const char* format, ...)
 
 namespace oo {
 
-class Exception {
+class Exception : public std::exception {
  public:
   Exception(const char* name, const char* reason)
       : _name(name != nullptr ? name : ""),
@@ -79,6 +81,9 @@ class Exception {
   // UTF-8, owned by the exception: valid while it is alive.
   const char* name() const noexcept { return _name.c_str(); }
   const char* reason() const noexcept { return _reason.c_str(); }
+
+  // The reason, as a standard exception reports it.
+  const char* what() const noexcept override { return _reason.c_str(); }
 
  private:
   std::string _name;

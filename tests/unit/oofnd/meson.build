@@ -5,6 +5,7 @@
 
 oofnd_tests = [
     'test_expected',
+    'test_exception_std',
     'test_ref',
     'test_weakset',
     'test_data',
