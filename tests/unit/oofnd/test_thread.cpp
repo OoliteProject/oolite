@@ -45,7 +45,7 @@ bool RunDetachedAndWait(F body) {
 }  // namespace
 
 OO_TEST(mainThreadIsTheStaticInitThread) {
-  OO_CHECK(std::this_thread::get_id() == oo::thread::kMainThreadId);
+  OO_CHECK(oo::thread::isMainThread());
   OO_CHECK(oo::thread::kMainThreadId == std::this_thread::get_id());
 }
 
@@ -53,7 +53,7 @@ OO_TEST(detachedThreadRunsAndIsNotMain) {
   std::atomic<int> ran{0};
   std::atomic<bool> wasMain{true};
   OO_CHECK(RunDetachedAndWait([&] {
-    wasMain = std::this_thread::get_id() == oo::thread::kMainThreadId;
+    wasMain = oo::thread::isMainThread();
     ++ran;
   }));
   OO_CHECK_EQ(ran.load(), 1);

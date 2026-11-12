@@ -40,7 +40,7 @@ static OORegExpMatcher* sActiveInstance;
 }  // namespace
 
 oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  OOCAssert(std::this_thread::get_id() == oo::thread::kMainThreadId,
+  OOCAssert(oo::thread::isMainThread(),
             "OORegExpMatcher may only be used on the main thread.");
 
   if (sActiveInstance == nullptr) {
@@ -87,7 +87,7 @@ bool OORegExpMatcher::string(const std::string& string,
 
 bool OORegExpMatcher::string(const std::string& string,
                              const std::string& regExp, NSUInteger flags) {
-  OOCAssert(std::this_thread::get_id() == oo::thread::kMainThreadId,
+  OOCAssert(oo::thread::isMainThread(),
             "OORegExpMatcher may only be used on the main thread.");
 
   const std::u16string regExpUnits = oo::utf8ToUtf16(regExp);
