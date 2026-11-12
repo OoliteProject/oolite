@@ -27,6 +27,7 @@ Checks: >
 WarningsAsErrors: >
   bugprone-*,
   performance-*,
+  cppcoreguidelines-use-enum-class,
   -bugprone-assignment-in-if-condition,
   -bugprone-branch-clone,
   -bugprone-command-processor,
@@ -66,9 +67,9 @@ WarningsAsErrors: >
   -performance-unnecessary-copy-initialization,
   -performance-unnecessary-value-param,
   -performance-use-std-move
-# Spec 009's guards (cppcoreguidelines-no-malloc, cppcoreguidelines-use-enum-class,
-# readability-identifier-naming for scoped enum constants, google-readability-casting) report but
-# do not fail a run until their category reaches zero; each joins WarningsAsErrors then.
+# Spec 009's guards (cppcoreguidelines-no-malloc, readability-identifier-naming for scoped enum
+# constants, google-readability-casting) report but do not fail a run until their category reaches
+# zero; each joins WarningsAsErrors then (cppcoreguidelines-use-enum-class has).
 CheckOptions:
   # A deliberate (void) discard is accepted; a result dropped silently is still reported. Spec 009
   # T030: std::expected is a checked return type where oo::Expected was not, and the game's nine
