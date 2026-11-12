@@ -70,6 +70,7 @@ core_tests = {
     'test_OOMusicController': ['Core/OOMusicController.cpp'],
     'test_OOShipGroup': ['Core/OOShipGroup.cpp'],
     'test_OOGraphicsResetManager': ['Core/OOGraphicsResetManager.cpp', 'Core/OOOpenGLExtensionManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLStateManager.cpp'],
+    'test_OOMathsHeaders': [],	# the maths headers stand alone (upstream #748)
     'test_OOOpenGLOnly': [],	# src/Core/OOOpenGLOnly.h (upstream #748)
     'test_OOOpenGLExtensionManager': ['Core/OOOpenGLExtensionManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLStateManager.cpp'],
     'test_OOOpenGLStateManager': ['Core/OOOpenGLStateManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLExtensionManager.cpp'],
