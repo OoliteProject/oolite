@@ -15,7 +15,7 @@
           * anything else                     -> oo::parseOldStylePList
    (oofnd/PListOldStyle.hpp)
 
-            oo::Expected<oo::PList, oo::PListError> r =
+            std::expected<oo::PList, oo::PListError> r =
    oo::parsePropertyList(bytes); if (!r) OOLog(kOOLogPListFoundationParseError,
    "Failed to parse %s as a property list.\n%s", whereFrom,
    r.error().description().c_str()); else if (r->isNull()) ...   // GNUstep's
@@ -28,10 +28,10 @@
 #pragma once
 
 #include <cstddef>
+#include <expected>
 #include <string>
 #include <string_view>
 
-#include "oofnd/Expected.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListOldStyle.hpp"
 #include "oofnd/PListXML.hpp"
@@ -40,19 +40,19 @@ namespace oo {
 
 // -[NSPropertyListSerialization propertyListWithData:options:format:error:] (no
 // DTD change).
-inline Expected<PList, PListError> parsePropertyListData(
+inline std::expected<PList, PListError> parsePropertyListData(
     std::string_view bytes, PListFormat* format = nullptr) {
   if (bytes.empty())
-    return Unexpected(PListError{"empty data argument passed to method"});
+    return std::unexpected(PListError{"empty data argument passed to method"});
   const auto* b = reinterpret_cast<const unsigned char*>(bytes.data());
   if (bytes.size() >= 8 && bytes.substr(0, 8) == "bplist00") {
     if (format != nullptr) *format = PListFormat::Binary;
-    return Unexpected(
+    return std::unexpected(
         PListError{"binary property lists are not supported by oofnd"});
   }
   if (b[0] == 0 || b[0] == 1) {
     if (format != nullptr) *format = PListFormat::GNUstepBinary;
-    return Unexpected(
+    return std::unexpected(
         PListError{"binary property lists are not supported by oofnd"});
   }
   std::size_t index = 0;
@@ -65,7 +65,7 @@ inline Expected<PList, PListError> parsePropertyListData(
 }
 
 // OOPropertyListFromData(data, whereFrom) without the log lines.
-inline Expected<PList, PListError> parsePropertyList(
+inline std::expected<PList, PListError> parsePropertyList(
     std::string_view bytes, PListFormat* format = nullptr) {
   const std::string data = changeDTDIfApplicable(bytes);
   return parsePropertyListData(data, format);

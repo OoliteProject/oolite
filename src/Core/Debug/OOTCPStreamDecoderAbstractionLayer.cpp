@@ -147,7 +147,7 @@ void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool) {
 OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data,
                                        OOALStringRef* errStr) {
   const oo::Data& bytes = *data->value.getIf<oo::PList::Data>();
-  oo::Expected<oo::PList, oo::PListError> parsed =
+  std::expected<oo::PList, oo::PListError> parsed =
       oo::parsePropertyList(std::string_view(
           reinterpret_cast<const char*>(bytes.bytes()), bytes.length()));
   if (!parsed || parsed->isNull()) {

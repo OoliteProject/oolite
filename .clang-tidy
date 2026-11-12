@@ -70,6 +70,10 @@ WarningsAsErrors: >
 # readability-identifier-naming for scoped enum constants, google-readability-casting) report but
 # do not fail a run until their category reaches zero; each joins WarningsAsErrors then.
 CheckOptions:
+  # A deliberate (void) discard is accepted; a result dropped silently is still reported. Spec 009
+  # T030: std::expected is a checked return type where oo::Expected was not, and the game's nine
+  # (void) discards of oo::fs results were already explicit.
+  bugprone-unused-return-value.AllowCastToVoid: true
   cppcoreguidelines-use-enum-class.IgnoreUnscopedEnumsInClasses: false
   readability-identifier-naming.ScopedEnumConstantCase: CamelCase
   readability-identifier-naming.ScopedEnumConstantPrefix: k

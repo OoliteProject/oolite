@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path,
                            std::string* outError) {
-  const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(plist);
+  const std::expected<oo::Data, oo::PListError> data = oo::writeXMLPList(plist);
   if (!data) {
     if (outError != nullptr) {
       *outError = "could not convert property list to XML: " +

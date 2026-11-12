@@ -731,17 +731,17 @@ const std::string_view kW12Xml =
     "</plist>"sv;
 
 oo::PList parsedOrNull(std::string_view in) {
-  oo::Expected<oo::PList, oo::PListError> r = oo::parsePropertyList(in);
+  std::expected<oo::PList, oo::PListError> r = oo::parsePropertyList(in);
   return r ? std::move(*r) : oo::PList();
 }
 
 std::string oldStyle(const oo::PList& p) {
-  oo::Expected<oo::Data, oo::PListError> r = oo::writeOldStylePList(p);
+  std::expected<oo::Data, oo::PListError> r = oo::writeOldStylePList(p);
   return r ? r->toString() : "WRITEERR " + r.error().message + "\n";
 }
 
 std::string xml(const oo::PList& p) {
-  oo::Expected<oo::Data, oo::PListError> r = oo::writeXMLPList(p);
+  std::expected<oo::Data, oo::PListError> r = oo::writeXMLPList(p);
   return r ? r->toString() : "WRITEERR " + r.error().message + "\n";
 }
 
@@ -903,7 +903,7 @@ OO_TEST(roundTrips) {
       {"a", PList(PList::Array{PList("x"), PList(PList::Array{}),
                                PList(PList::Dict{})})},
   });
-  const oo::Expected<oo::Data, oo::PListError> x = oo::writeXMLPList(all);
+  const std::expected<oo::Data, oo::PListError> x = oo::writeXMLPList(all);
   OO_CHECK(x.has_value());
   OO_CHECK(oo::parsePropertyList(x->stringView()).value() == all);
 
@@ -920,7 +920,7 @@ OO_TEST(roundTrips) {
                                   PList(PList::Dict{{"k", PList("v")}})})},
       {"Upper", PList("")},
   });
-  const oo::Expected<oo::Data, oo::PListError> o = oo::writeOldStylePList(text);
+  const std::expected<oo::Data, oo::PListError> o = oo::writeOldStylePList(text);
   OO_CHECK(o.has_value());
   OO_CHECK(oo::parsePropertyList(o->stringView()).value() == text);
   OO_CHECK_EQ(
@@ -998,7 +998,7 @@ OO_TEST(xmlWritesForeignObjectAsItsDescription_capture) {
   oo::PList::Dict outer;
   outer["configuration"] = oo::PList(inner);
   outer["packet type"] = oo::PList(std::string("Note Configuration"));
-  const oo::Expected<oo::Data, oo::PListError> r =
+  const std::expected<oo::Data, oo::PListError> r =
       oo::writeXMLPList(oo::PList(outer));
   OO_CHECK(static_cast<bool>(r));
   const std::string expected =

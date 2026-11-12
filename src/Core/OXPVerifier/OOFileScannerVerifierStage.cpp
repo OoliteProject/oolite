@@ -235,7 +235,7 @@ oo::PList OOFileScannerVerifierStage::plistNamed(
   {
     // +[NSPropertyListSerialization propertyListFromData:...errorDescription:];
     // the error string it gave is PListError::description().
-    oo::Expected<oo::PList, oo::PListError> parsed =
+    std::expected<oo::PList, oo::PListError> parsed =
         oo::parsePropertyListData(data->stringView(), &format);
     if (parsed)
       plist = std::move(*parsed);

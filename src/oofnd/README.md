@@ -8,7 +8,7 @@ Rules that hold for every component:
 - **C++23.** Where the standard library has the thing, game code uses it directly and the
   `oofnd` copy goes (spec 009); a component stays only where the standard has no equivalent or
   gives different answers.
-- **No exceptions across oofnd APIs.** Fallible operations return `oo::Expected<T, E>`. The game
+- **No exceptions across oofnd APIs.** Fallible operations return `std::expected<T, E>`. The game
   itself does throw (`OORaiseException`, `oo::Exception`), so nothing is built with
   `-fno-exceptions`.
 - **Header-first.** A component is a header in this directory until it needs a `.cpp`; then
@@ -19,7 +19,6 @@ Rules that hold for every component:
 
 | Path | What |
 |---|---|
-| `src/oofnd/Expected.hpp` | `oo::Expected<T, E>`, `oo::Unexpected<E>`, `oo::unexpect`, `oo::BadExpectedAccess<E>`: `std::expected`'s C++23 API |
 | `src/oofnd/Ref.hpp` | `oo::RefCounted`, `oo::Ref<T>`, `oo::WeakRef<T>`, `oo::AutoreleaseScope`: ObjC retain/release/autorelease and `OOWeakReference` 1:1; the banner maps each ObjC idiom |
 | `src/oofnd/WeakSet.hpp` | `oo::WeakSet<T>`: `OOWeakSet` |
 | `src/oofnd/PList.hpp` | `oo::PList`: the property-list value (null/bool/integer/real/string/data/date/array/dict) replacing the Foundation plist object graph; UTF-16 <-> UTF-8 helpers |

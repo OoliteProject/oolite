@@ -340,7 +340,7 @@ bool OOOXPVerifier::initWithPath(const std::optional<std::string>& path) {
     if (const oo::fs::Result<oo::Data> bytes =
             oo::fs::readFile(oo::fs::pathFromUTF8(verifierPListPath));
         bytes && !bytes->empty()) {
-      oo::Expected<oo::PList, oo::PListError> parsed =
+      std::expected<oo::PList, oo::PListError> parsed =
           oo::parsePropertyList(bytes->stringView());
       if (parsed && parsed->isDict()) _verifierPList = std::move(*parsed);
     }

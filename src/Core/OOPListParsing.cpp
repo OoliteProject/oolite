@@ -46,7 +46,7 @@ oo::PList cxx_OOPropertyListFromData(
     // ChangeDTDIfApplicable did.
     const std::string_view bytes(reinterpret_cast<const char*>(data->bytes()),
                                  data->length());
-    const oo::Expected<oo::PList, oo::PListError> parsed =
+    const std::expected<oo::PList, oo::PListError> parsed =
         oo::parsePropertyList(bytes);
     if (parsed) result = *parsed;
     if (result.isNull())  // parser failed

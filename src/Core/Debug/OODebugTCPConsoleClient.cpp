@@ -220,7 +220,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key) {
   oo::PList info;
   if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath);
       bytes && !bytes->empty()) {
-    if (oo::Expected<oo::PList, oo::PListError> parsed =
+    if (std::expected<oo::PList, oo::PListError> parsed =
             oo::parsePropertyList(bytes->stringView());
         parsed && parsed->isDict())
       info = std::move(*parsed);
@@ -649,7 +649,7 @@ void OODebugTCPConsoleClient::sendDictionary(const oo::PList& dictionary) {
      written as its description, probed); writeXMLPList fails only on a null
      list, which is not sent. The log keeps GNUstep's fallback text.
   */
-  const oo::Expected<oo::Data, oo::PListError> data =
+  const std::expected<oo::Data, oo::PListError> data =
       oo::writeXMLPList(dictionary);
   if (!data) {
     OO_LOG("debugTCP.conversionFailure",
@@ -1019,7 +1019,7 @@ void OODebugTCPConsoleClient::DecoderError(void* cbInfo,
 #ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
 void LogOOTCPStreamDecoderPacket(OOALObjectRef packetHandle) {
   // GNUstep's XML property-list serialisation, byte for byte.
-  const oo::Expected<oo::Data, oo::PListError> data =
+  const std::expected<oo::Data, oo::PListError> data =
       oo::writeXMLPList(OOALObjectPList(packetHandle));
   const std::string xml =
       data ? std::string(data->stringView()) : std::string();
@@ -1027,7 +1027,8 @@ void LogOOTCPStreamDecoderPacket(OOALObjectRef packetHandle) {
 }
 
 static void LogSendPacket(const oo::PList& packet) {
-  const oo::Expected<oo::Data, oo::PListError> data = oo::writeXMLPList(packet);
+  const std::expected<oo::Data, oo::PListError> data =
+      oo::writeXMLPList(packet);
   const std::string xml =
       data ? std::string(data->stringView()) : std::string();
   OO_LOG("debugTCP.send", "Sent packet:\n{}", xml);

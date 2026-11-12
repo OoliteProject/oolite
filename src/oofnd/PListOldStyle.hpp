@@ -6,7 +6,7 @@
   what OOPropertyListFromData runs - on any data that does not start with "<?"
   (XML) or look binary.
 
-            oo::Expected<oo::PList, oo::PListError> r =
+            std::expected<oo::PList, oo::PListError> r =
   oo::parseOldStylePList(bytes); if (!r) OOLog(..., "%s",
   r.error().description().c_str());
 
@@ -54,13 +54,13 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <expected>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include "oofnd/Expected.hpp"
 #include "oofnd/PList.hpp"
 
 namespace oo {
@@ -653,7 +653,7 @@ class OldStyleScanner {
 // propertyListWithData:...]. An error has GNUstep's message; a parse that
 // GNUstep finishes with nil and no error yields a null PList. *format, if
 // given, receives OpenStep, or GNUstep if an extension was used.
-inline Expected<PList, PListError> parseOldStylePList(
+inline std::expected<PList, PListError> parseOldStylePList(
     std::string_view bytes, PListFormat* format = nullptr) {
   plist_detail::OldStyleScanner scanner(bytes);
   std::optional<PList> result = scanner.parseItem();
@@ -661,7 +661,7 @@ inline Expected<PList, PListError> parseOldStylePList(
     *format = scanner.usedGNUstepExtensions() ? PListFormat::GNUstep
                                               : PListFormat::OpenStep;
   if (scanner.error() != nullptr)
-    return Unexpected(PListError{scanner.errorMessage()});
+    return std::unexpected(PListError{scanner.errorMessage()});
   return result ? std::move(*result) : PList();
 }
 

@@ -19,7 +19,7 @@
 namespace {
 
 std::string parsed(std::string_view in) {
-  oo::Expected<oo::PList, oo::PListError> r = oo::parseOldStylePList(in);
+  std::expected<oo::PList, oo::PListError> r = oo::parseOldStylePList(in);
   return r ? oo_test::dump(*r) : "ERROR " + r.error().message;
 }
 
