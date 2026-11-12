@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 
 #include <unordered_map>
 
-typedef struct RunningStack RunningStack;
+namespace {
 struct RunningStack {
     RunningStack* back = nullptr;
     // The running script, held weakly (the stack held its Objective-C object, or
