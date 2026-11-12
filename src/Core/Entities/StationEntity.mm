@@ -605,29 +605,29 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     max_police = dict.get<unsigned int>("max_police", STATION_MAX_POLICE);
     equipmentPriceFactor = dict.get<oo::NonNegative<float>>("equipment_price_factor", 1.0);
     equipmentPriceFactor = fmax(equipmentPriceFactor, 0.5f);
-    hasNPCTraffic = (unsigned char)oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_npc_traffic", (maxFlightSpeed == 0)); // carriers default to NO
-    hasPatrolShips = oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_patrol_ships", NO);
-    suppress_arrival_reports = (unsigned char)oo::PListView(dict).get<bool>(@"suppress_arrival_reports", NO);
-    [self cxx_setAllegiance:OptionalStringValue([dict objectForKey:@"allegiance"])];
+    hasNPCTraffic = (unsigned char)OOFuzzyBooleanFromPList(dict.find("has_npc_traffic"), (maxFlightSpeed == 0)); // carriers default to NO
+    hasPatrolShips = OOFuzzyBooleanFromPList(dict.find("has_patrol_ships"), NO);
+    suppress_arrival_reports = (unsigned char)dict.get<bool>("suppress_arrival_reports", NO);
+    [self cxx_setAllegiance:OptionalStringValue(dict.find("allegiance"))];
 
-    marketCapacity = oo::PListView(dict).get<unsigned int>(@"market_capacity", MAIN_SYSTEM_MARKET_LIMIT);
-    oo::PList marketDefinitionValue = oo::PListFrom([dict objectForKey:@"market_definition"]);
-    marketDefinition = marketDefinitionValue.isArray() ? std::move(marketDefinitionValue) : oo::PList(); // oo_arrayForKey:
-    marketScriptName = OptionalStringValue([dict objectForKey:@"market_script"]);
-    marketMonitored = (unsigned char)oo::PListView(dict).get<bool>(@"market_monitored", NO);
-    marketBroadcast = (unsigned char)oo::PListView(dict).get<bool>(@"market_broadcast", YES);
+    marketCapacity = dict.get<unsigned int>("market_capacity", MAIN_SYSTEM_MARKET_LIMIT);
+    const oo::PList* marketDefinitionValue = dict.get<oo::PList::Array>("market_definition");
+    marketDefinition = (marketDefinitionValue != nullptr) ? *marketDefinitionValue : oo::PList(); // oo_arrayForKey:
+    marketScriptName = OptionalStringValue(dict.find("market_script"));
+    marketMonitored = (unsigned char)dict.get<bool>("market_monitored", NO);
+    marketBroadcast = (unsigned char)dict.get<bool>("market_broadcast", YES);
 
     // Non main stations may have requiresDockingClearance set to yes as a result of the code below,
     // but this variable should be irrelevant for them, as they do not make use of it anyway.
-    requiresDockingClearance = (unsigned char)oo::PListView(dict).get<bool>(@"requires_docking_clearance", [UNIVERSE dockingClearanceProtocolActive]);
+    requiresDockingClearance = (unsigned char)dict.get<bool>("requires_docking_clearance", [UNIVERSE dockingClearanceProtocolActive]);
 
-    allowsFastDocking = (unsigned char)oo::PListView(dict).get<bool>(@"allows_fast_docking", NO);
+    allowsFastDocking = (unsigned char)dict.get<bool>("allows_fast_docking", NO);
 
-    allowsAutoDocking = (unsigned char)oo::PListView(dict).get<bool>(@"allows_auto_docking", YES);
+    allowsAutoDocking = (unsigned char)dict.get<bool>("allows_auto_docking", YES);
 
     allowsSaving = [UNIVERSE deterministicPopulation];
 
-    interstellarUndockingAllowed = (unsigned char)oo::PListView(dict).get<bool>(@"interstellar_undocking", NO);
+    interstellarUndockingAllowed = (unsigned char)dict.get<bool>("interstellar_undocking", NO);
 
     double unitime = [UNIVERSE getTime];
 

@@ -153,12 +153,12 @@ enum {
 #define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
-#define AXIS_SETTINGS @"JoystickAxes" // NSUserDefaults
-#define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
-#define GUI_BUTTON_SETTINGS @"GuiJoystickButs" // NSUserDefaults
-#define STICK_ISAXIS @"isAxis" // YES=axis NO=button
-#define STICK_NUMBER @"stickNum" // Stick number 0 to 4
-#define STICK_AXBUT @"stickAxBt" // Axis or button number
+inline constexpr std::string_view AXIS_SETTINGS = "JoystickAxes"; // oo::Defaults key
+inline constexpr std::string_view BUTTON_SETTINGS = "JoystickButs"; // oo::Defaults key
+inline constexpr std::string_view GUI_BUTTON_SETTINGS = "GuiJoystickButs"; // oo::Defaults key
+inline constexpr std::string_view STICK_ISAXIS = "isAxis"; // YES=axis NO=button
+inline constexpr std::string_view STICK_NUMBER = "stickNum"; // Stick number 0 to 4
+inline constexpr std::string_view STICK_AXBUT = "stickAxBt"; // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
 inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING = "RollAxisProfile"; // Joystick Profiles
 inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING = "PitchAxisProfile"; // Joystick Profiles

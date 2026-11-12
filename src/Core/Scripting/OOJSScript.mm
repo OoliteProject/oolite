@@ -49,6 +49,9 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
+#include <string>
+#include <unordered_map>
+
 typedef struct RunningStack RunningStack;
 struct RunningStack {
     RunningStack* back;
@@ -906,14 +909,14 @@ static BOOL HasModernScopeDirective(NSString* source)
 */
 static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
 {
-    static NSMutableDictionary* sRewritten = nil;
+    static std::unordered_map<std::string, std::string> sRewritten;
 
     if ([source rangeOfString:@"const"].location == NSNotFound)
         return source;
 
-    NSString* cached = [sRewritten objectForKey:source];
-    if (cached != nil)
-        return cached;
+    const auto cached = sRewritten.find(oo::StdString(source));
+    if (cached != sRewritten.end())
+        return oo::NSStringOrNil(cached->second);
 
     JSValueConst rewriter = OOJSLegacyConstRewriter();
     NSString* result = source;
@@ -924,10 +927,8 @@ static NSString* RewriteLegacyConst(JSContext* context, NSString* source)
         if (JS_IsException(rewritten)) {
             OOJSReportPendingException(context);
         } else {
-            result = OOStringFromJSValue(context, rewritten) ?: source;
-            if (sRewritten == nil)
-                sRewritten = [[NSMutableDictionary alloc] init];
-            [sRewritten setObject:result forKey:source];
+            result = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, rewritten)) ?: source;
+            sRewritten.emplace(oo::StdString(source), oo::StdString(result));
         }
         JS_FreeValue(context, rewritten);
         JS_FreeValue(context, argument);

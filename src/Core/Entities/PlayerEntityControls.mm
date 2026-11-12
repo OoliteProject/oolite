@@ -2919,8 +2919,8 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
             if (!hdrMaxBrightnessControlPressed) {
                 int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
-                const oo::PList brightnessesValue = oo::PListFrom([[UNIVERSE descriptions] objectForKey:@"hdr_maxBrightness_array"]);
-                const oo::PList brightnesses = brightnessesValue.isArray() ? brightnessesValue : oo::PList();
+                const oo::PList* brightnessesValue = [UNIVERSE cxx_descriptions]->find("hdr_maxBrightness_array");
+                const oo::PList brightnesses = (brightnessesValue != nullptr && brightnessesValue->isArray()) ? *brightnessesValue : oo::PList();
                 // -indexOfObject: with the %d string: only string elements ever matched; not found was NSNotFound narrowed to int
                 const std::string currentBrightness = std::to_string((int)[gameView hdrMaxBrightness]);
                 int brightnessIdx = static_cast<int>(NSNotFound);
@@ -4243,7 +4243,7 @@ static BOOL autopilot_pause;
             } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 5 + row_zero) {
                 [self setGuiToOXZManager];
             } else if (([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == 6 + row_zero) {
-                [[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
+                [[UNIVERSE gameController] cxx_exitAppWithContext:"Exit Game selected on start screen"];
             } else {
                 disc_operation_in_progress = NO;
             }

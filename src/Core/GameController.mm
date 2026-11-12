@@ -165,7 +165,7 @@ static GameController* sSharedController = nil;
 - (void)setEcoQoS:(BOOL)efficiencyModeRequested
 {
 #if OOLITE_WINDOWS
-    if (oo::PListView([NSUserDefaults standardUserDefaults]).get<bool>(@"ecoqos", YES)) {
+    if (oo::Defaults::standard().object("ecoqos").isNull() ? YES : oo::Defaults::standard().boolForKey("ecoqos")) {
         BOOL setEfficiencyMode = !!efficiencyModeRequested; // yes or no, not 42
         HANDLE currentProcess = GetCurrentProcess();
 
@@ -1109,7 +1109,9 @@ static void SetUpSparkle(void)
 #define DEFAULT_TEST_RELEASE 1
 #endif
 
-    BOOL useTestReleases = oo::PListView([NSUserDefaults standardUserDefaults]).get<bool>(@"use-test-release-updates", DEFAULT_TEST_RELEASE);
+    BOOL useTestReleases = oo::Defaults::standard().object("use-test-release-updates").isNull()
+        ? DEFAULT_TEST_RELEASE
+        : oo::Defaults::standard().boolForKey("use-test-release-updates");
 
     SUUpdater* updater = [SUUpdater sharedUpdater];
     [updater setFeedURL:[NSURL URLWithString:useTestReleases ? TEST_RELEASE_FEED_URL : DEPLOYMENT_FEED_URL]];

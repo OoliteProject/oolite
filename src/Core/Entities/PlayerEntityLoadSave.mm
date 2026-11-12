@@ -350,7 +350,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
-    std::string dir = oo::StdString([[UNIVERSE gameController] playerFileDirectory]);
+    std::string dir = [[UNIVERSE gameController] cxx_playerFileDirectory].value_or("");
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     int idx;
@@ -371,13 +371,13 @@ unsigned char FirstUnitLowByte(const std::string& string)
     }
 
     // handle page <-- and page --> keys
-    if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) && [[gui keyForRow:BACKROW] isEqual:GUI_KEY_OK]) {
+    if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) && ([gui cxx_keyForRow:BACKROW] == GUI_KEY_OK)) {
         currentPage--;
         [self playMenuPagePrevious];
         [self lsCommanders:gui directory:dir pageNumber:currentPage highlightName:std::nullopt];
         [gameView suppressKeysUntilKeyUp];
     }
-    if (([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) && [[gui keyForRow:MOREROW] isEqual:GUI_KEY_OK]) {
+    if (([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) && ([gui cxx_keyForRow:MOREROW] == GUI_KEY_OK)) {
         currentPage++;
         [self playMenuPageNext];
         [self lsCommanders:gui directory:dir pageNumber:currentPage highlightName:std::nullopt];
@@ -436,7 +436,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
-    std::string dir = oo::StdString([[UNIVERSE gameController] playerFileDirectory]);
+    std::string dir = [[UNIVERSE gameController] cxx_playerFileDirectory].value_or("");
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     if ([self handleGUIUpDownArrowKeys]) {
@@ -467,14 +467,14 @@ unsigned char FirstUnitLowByte(const std::string& string)
 
     // handle page <-- and page --> keys, and on-screen buttons
     if (((([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == BACKROW) || ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]))
-        && [[gui keyForRow:BACKROW] isEqual:GUI_KEY_OK]) {
+        && ([gui cxx_keyForRow:BACKROW] == GUI_KEY_OK)) {
         currentPage--;
         [self lsCommanders:gui directory:dir pageNumber:currentPage highlightName:std::nullopt];
         [gameView suppressKeysUntilKeyUp];
     }
     //
     if (((([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT]) && [gui selectedRow] == MOREROW) || ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]))
-        && [[gui keyForRow:MOREROW] isEqual:GUI_KEY_OK]) {
+        && ([gui cxx_keyForRow:MOREROW] == GUI_KEY_OK)) {
         currentPage++;
         [self lsCommanders:gui directory:dir pageNumber:currentPage highlightName:std::nullopt];
         [gameView suppressKeysUntilKeyUp];
