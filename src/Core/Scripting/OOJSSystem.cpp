@@ -611,7 +611,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
         if (UNIVERSE != nullptr)
           UNIVERSE->setSystemDataForGalaxy(
               galaxy, system, std::string(KEY_NAME), oo::PList(*stringValue),
-              manifestID, OO_LAYER_OXP_DYNAMIC);
+              manifestID, OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -622,7 +622,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
         if (UNIVERSE != nullptr)
           UNIVERSE->setSystemDataForGalaxy(
               galaxy, system, std::string(KEY_DESCRIPTION),
-              oo::PList(*stringValue), manifestID, OO_LAYER_OXP_DYNAMIC);
+              oo::PList(*stringValue), manifestID, OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -633,7 +633,7 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
         if (UNIVERSE != nullptr)
           UNIVERSE->setSystemDataForGalaxy(
               galaxy, system, std::string(KEY_INHABITANTS),
-              oo::PList(*stringValue), manifestID, OO_LAYER_OXP_DYNAMIC);
+              oo::PList(*stringValue), manifestID, OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -643,10 +643,10 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
         if (iValue < 0) iValue = 0;
         if (7 < iValue) iValue = 7;
         if (UNIVERSE != nullptr)
-          UNIVERSE->setSystemDataForGalaxy(galaxy, system,
-                                           std::string(KEY_GOVERNMENT),
-                                           oo::PList::signedInteger(iValue),
-                                           manifestID, OO_LAYER_OXP_DYNAMIC);
+          UNIVERSE->setSystemDataForGalaxy(
+              galaxy, system, std::string(KEY_GOVERNMENT),
+              oo::PList::signedInteger(iValue), manifestID,
+              OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -656,10 +656,10 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
         if (iValue < 0) iValue = 0;
         if (7 < iValue) iValue = 7;
         if (UNIVERSE != nullptr)
-          UNIVERSE->setSystemDataForGalaxy(galaxy, system,
-                                           std::string(KEY_ECONOMY),
-                                           oo::PList::signedInteger(iValue),
-                                           manifestID, OO_LAYER_OXP_DYNAMIC);
+          UNIVERSE->setSystemDataForGalaxy(
+              galaxy, system, std::string(KEY_ECONOMY),
+              oo::PList::signedInteger(iValue), manifestID,
+              OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -669,10 +669,10 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
         if (iValue < 0) iValue = 0;
         if (15 < iValue) iValue = 15;
         if (UNIVERSE != nullptr)
-          UNIVERSE->setSystemDataForGalaxy(galaxy, system,
-                                           std::string(KEY_TECHLEVEL),
-                                           oo::PList::signedInteger(iValue),
-                                           manifestID, OO_LAYER_OXP_DYNAMIC);
+          UNIVERSE->setSystemDataForGalaxy(
+              galaxy, system, std::string(KEY_TECHLEVEL),
+              oo::PList::signedInteger(iValue), manifestID,
+              OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -680,10 +680,10 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
     case kPopulation:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (UNIVERSE != nullptr)
-          UNIVERSE->setSystemDataForGalaxy(galaxy, system,
-                                           std::string(KEY_POPULATION),
-                                           oo::PList::signedInteger(iValue),
-                                           manifestID, OO_LAYER_OXP_DYNAMIC);
+          UNIVERSE->setSystemDataForGalaxy(
+              galaxy, system, std::string(KEY_POPULATION),
+              oo::PList::signedInteger(iValue), manifestID,
+              OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -691,10 +691,10 @@ static JSValue SystemSetProperty(OOJS_SETTER_ARGS) {
     case kProductivity:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (UNIVERSE != nullptr)
-          UNIVERSE->setSystemDataForGalaxy(galaxy, system,
-                                           std::string(KEY_PRODUCTIVITY),
-                                           oo::PList::signedInteger(iValue),
-                                           manifestID, OO_LAYER_OXP_DYNAMIC);
+          UNIVERSE->setSystemDataForGalaxy(
+              galaxy, system, std::string(KEY_PRODUCTIVITY),
+              oo::PList::signedInteger(iValue), manifestID,
+              OOSystemLayer::kOXPDynamic);
         return JS_UNDEFINED;
       }
       break;
@@ -1870,7 +1870,7 @@ static std::vector<oo::EntityHold> FindJSVisibleEntities(
         result.begin(), result.end(),
         [relativeTo](const oo::EntityHold& a, const oo::EntityHold& b) {
           return CompareEntitiesByDistance(a.get(), b.get(), relativeTo) ==
-                 OOOrderedAscending;
+                 OOComparisonResult::kAscending;
         });
   }
   return result;  // empty for no matches, as the empty array was
@@ -1903,11 +1903,11 @@ static OOComparisonResult CompareEntitiesByDistance(Entity* a, Entity* b,
   d2 = HPdistance2(eb->position, r->position);
 
   if (d1 < d2)
-    return OOOrderedAscending;
+    return OOComparisonResult::kAscending;
   else if (d1 > d2)
-    return OOOrderedDescending;
+    return OOComparisonResult::kDescending;
   else
-    return OOOrderedSame;
+    return OOComparisonResult::kSame;
 
   OOJS_PROFILE_EXIT
 }

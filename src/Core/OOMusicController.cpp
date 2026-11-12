@@ -57,11 +57,11 @@ OOMusicController::OOMusicController() {
     const std::optional<std::string> modeString =
         oo::Defaults::standard().stringForKey("music mode");
     if (modeString == "off")
-      _mode = kOOMusicOff;
+      _mode = OOMusicMode::kOff;
     else if (modeString == "iTunes")
-      _mode = kOOMusicITunes;
+      _mode = OOMusicMode::kITunes;
     else
-      _mode = kOOMusicOn;
+      _mode = OOMusicMode::kOn;
 
     // Handle unlikely case of taking prefs from iTunes-enabled system to other.
     if (_mode > kOOMusicModeMax) _mode = kOOMusicModeMax;
@@ -78,8 +78,8 @@ void OOMusicController::playMusicNamed(const std::string& name, bool loop,
                                        float gain) {
   if (isPlaying() && name == playingMusic()) return;
 
-  if (_mode == kOOMusicOn ||
-      (_mode == kOOMusicITunes && name == "OoliteTheme.ogg")) {
+  if (_mode == OOMusicMode::kOn ||
+      (_mode == OOMusicMode::kITunes && name == "OoliteTheme.ogg")) {
     oo::Ref<OOMusic> music =
         ResourceManager::ooMusicNamed(name, std::string("Music"));
     if (music) {
@@ -101,7 +101,7 @@ void OOMusicController::playThemeMusic() {
 void OOMusicController::playDockingMusic() {
   _special = kSpecialDocking;
 
-  if (_mode == kOOMusicITunes) {
+  if (_mode == OOMusicMode::kITunes) {
     playiTunesPlaylist("Oolite-Docking");
   } else {
     playMusicNamed("BlueDanube.ogg", true);
@@ -111,7 +111,7 @@ void OOMusicController::playDockingMusic() {
 void OOMusicController::playDockedMusic() {
   _special = kSpecialDocked;
 
-  if (_mode == kOOMusicITunes) {
+  if (_mode == OOMusicMode::kITunes) {
     playiTunesPlaylist("Oolite-Docked");
   } else {
     playMusicNamed("OoliteDocked.ogg", false);
@@ -140,7 +140,7 @@ void OOMusicController::justStop() {
 void OOMusicController::stop() {
   justStop();
 
-  if (_mode == kOOMusicITunes) {
+  if (_mode == OOMusicMode::kITunes) {
     playiTunesPlaylist("Oolite-Inflight");
   }
 }
@@ -165,7 +165,7 @@ void OOMusicController::stopMissionMusic() {
 }
 
 void OOMusicController::toggleDockingMusic() {
-  if (_mode != kOOMusicOn) return;
+  if (_mode != OOMusicMode::kOn) return;
 
   if (!isPlaying())
     playDockingMusic();
@@ -189,10 +189,10 @@ OOMusicMode OOMusicController::mode() { return _mode; }
 
 void OOMusicController::setMode(OOMusicMode mode) {
   if (mode <= kOOMusicModeMax && _mode != mode) {
-    if (_mode == kOOMusicITunes) pauseiTunes();
+    if (_mode == OOMusicMode::kITunes) pauseiTunes();
     _mode = mode;
 
-    if (_mode == kOOMusicOff)
+    if (_mode == OOMusicMode::kOff)
       stop();
     else
       switch (_special) {
@@ -219,13 +219,13 @@ void OOMusicController::setMode(OOMusicMode mode) {
 
     std::optional<std::string> modeString;
     switch (_mode) {
-      case kOOMusicOff:
+      case OOMusicMode::kOff:
         modeString = "off";
         break;
-      case kOOMusicOn:
+      case OOMusicMode::kOn:
         modeString = "on";
         break;
-      case kOOMusicITunes:
+      case OOMusicMode::kITunes:
         modeString = "iTunes";
         break;
     }

@@ -2007,7 +2007,7 @@ OO_TEST(heatPersonalityAlignmentAndBeacons)
 		TestShip *other = FlyingShip("beacon");
 		if (ship != nullptr)  ship->setBeaconCode(std::string("alpha"));
 		if (other != nullptr)  other->setBeaconCode(std::string("BETA"));
-		OO_CHECK((ship != nullptr ? ship->compareBeaconCodeWith(other) : OOComparisonResult{}) == OOOrderedAscending && (other != nullptr ? other->compareBeaconCodeWith(ship) : OOComparisonResult{}) == OOOrderedDescending);
+		OO_CHECK((ship != nullptr ? ship->compareBeaconCodeWith(other) : OOComparisonResult{}) == OOComparisonResult::kAscending && (other != nullptr ? other->compareBeaconCodeWith(ship) : OOComparisonResult{}) == OOComparisonResult::kDescending);
 	}
 }
 

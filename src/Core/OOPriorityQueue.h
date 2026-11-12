@@ -116,7 +116,7 @@ class OOPriorityQueueOf {
   void bubbleUpFrom(size_t i) {
     while (0 < i) {
       const size_t pi = Parent(i);
-      if (_comparator(_heap[i].get(), _heap[pi].get()) < 0) {
+      if (oo::ToUnderlying(_comparator(_heap[i].get(), _heap[pi].get())) < 0) {
         std::swap(_heap[i], _heap[pi]);
         i = pi;
       } else
@@ -132,9 +132,12 @@ class OOPriorityQueueOf {
       // If left child has lower priority than right child, or there is only one
       // child...
       const size_t next =
-          (li == end || _comparator(_heap[li].get(), _heap[ri].get()) < 0) ? li
-                                                                           : ri;
-      if (_comparator(_heap[next].get(), _heap[i].get()) < 0) {
+          (li == end ||
+           oo::ToUnderlying(_comparator(_heap[li].get(), _heap[ri].get())) < 0)
+              ? li
+              : ri;
+      if (oo::ToUnderlying(_comparator(_heap[next].get(), _heap[i].get())) <
+          0) {
         // Exchange parent with lowest-priority child
         std::swap(_heap[i], _heap[next]);
         i = next;

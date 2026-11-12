@@ -245,9 +245,9 @@ OOComparisonResult OOScriptTimer::compareByNextFireTime(OOScriptTimer* other) {
   if (other != nullptr) otherTime = other->nextTime();
 
   if (_nextTime < otherTime)
-    return OOOrderedAscending;
+    return OOComparisonResult::kAscending;
   else if (_nextTime > otherTime)
-    return OOOrderedDescending;
+    return OOComparisonResult::kDescending;
   else
-    return OOOrderedSame;
+    return OOComparisonResult::kSame;
 }

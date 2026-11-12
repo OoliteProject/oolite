@@ -275,37 +275,37 @@ OO_TEST(interfaceCompare) {
   // By category, then by title, ignoring case.
   OO_CHECK_EQ(
       Interface("alpha", "z")->interfaceCompare(Interface("Beta", "a").get()),
-      OOOrderedAscending);
+      OOComparisonResult::kAscending);
   OO_CHECK_EQ(
       Interface("beta", "a")->interfaceCompare(Interface("ALPHA", "z").get()),
-      OOOrderedDescending);
+      OOComparisonResult::kDescending);
   OO_CHECK_EQ(Interface("same", "apple")
                   ->interfaceCompare(Interface("SAME", "Banana").get()),
-              OOOrderedAscending);
+              OOComparisonResult::kAscending);
   OO_CHECK_EQ(Interface("same", "Banana")
                   ->interfaceCompare(Interface("same", "apple").get()),
-              OOOrderedDescending);
+              OOComparisonResult::kDescending);
   OO_CHECK_EQ(
       Interface("same", "x")->interfaceCompare(Interface("same", "X").get()),
-      OOOrderedSame);
+      OOComparisonResult::kSame);
   // No category of its own: the same category as anything (a message to nil);
   // then the titles.
   OO_CHECK_EQ(Interface(std::nullopt, "b")
                   ->interfaceCompare(Interface("cat", "a").get()),
-              OOOrderedDescending);
+              OOComparisonResult::kDescending);
   // The other's missing category or title is the empty string.
   OO_CHECK_EQ(Interface("cat", "a")
                   ->interfaceCompare(Interface(std::nullopt, "a").get()),
-              OOOrderedDescending);
+              OOComparisonResult::kDescending);
   OO_CHECK_EQ(Interface("", "a")->interfaceCompare(
                   Interface(std::nullopt, std::nullopt).get()),
-              OOOrderedDescending);
+              OOComparisonResult::kDescending);
   OO_CHECK_EQ(Interface("", std::nullopt)
                   ->interfaceCompare(Interface(std::nullopt, "a").get()),
-              OOOrderedSame);
+              OOComparisonResult::kSame);
   // Null: its category and title are missing.
   OO_CHECK_EQ(Interface("cat", "a")->interfaceCompare(nullptr),
-              OOOrderedDescending);
+              OOComparisonResult::kDescending);
 }
 
 OO_TEST(engineReset) {

@@ -574,8 +574,8 @@ bool IsRestarting() { return OOOXZManager::sharedManager()->isRestarting(); }
 void FinishDownload() {
   const auto deadline =
       std::chrono::steady_clock::now() + std::chrono::seconds(20);
-  while ((Manager()->_downloadStatus == OXZ_DOWNLOAD_STARTED ||
-          Manager()->_downloadStatus == OXZ_DOWNLOAD_RECEIVING) &&
+  while ((Manager()->_downloadStatus == OXZDownloadStatus::kStarted ||
+          Manager()->_downloadStatus == OXZDownloadStatus::kReceiving) &&
          std::chrono::steady_clock::now() < deadline) {
     Manager()->processDownloadEvents();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -626,15 +626,15 @@ OO_TEST(installExtractAndRemove) {
     Manager()->setFilteredList(Manager()->manifests());
     OO_CHECK_TEXT(Titles(Manager()->manifests()),
                   "Alpha 3.0, Beta 1.0, Gamma 1.0");
-    Manager()->_downloadStatus = OXZ_DOWNLOAD_NONE;
+    Manager()->_downloadStatus = OXZDownloadStatus::kNone;
 
     OO_CHECK(!InstallOXZ(3));
     OO_CHECK(InstallOXZ(2));
-    OO_CHECK(Manager()->_interfaceState == OXZ_STATE_INSTALLING);
+    OO_CHECK(Manager()->_interfaceState == OXZInterfaceState::kInstalling);
     OO_CHECK(!InstallOXZ(2));  // one download at a time
     FinishDownload();
-    OO_CHECK(Manager()->_downloadStatus == OXZ_DOWNLOAD_COMPLETE);
-    OO_CHECK(Manager()->_interfaceState == OXZ_STATE_TASKDONE);
+    OO_CHECK(Manager()->_downloadStatus == OXZDownloadStatus::kComplete);
+    OO_CHECK(Manager()->_interfaceState == OXZInterfaceState::kTaskdone);
     OO_CHECK(Manager()->_changesMade);
     OO_CHECK(Manager()->_dependencyStack.empty());
     OO_CHECK(stdfs::exists(sRoot / "Managed" / "oolite.oxp.test.gamma.oxz"));
@@ -643,7 +643,7 @@ OO_TEST(installExtractAndRemove) {
     OO_CHECK_TEXT(InstallStatus(*Manager()->manifests().at(2)),
                   "oolite-oxzmanager-installable-already");
     OO_CHECK_TEXT(Color(*Manager()->manifests().at(2)), "white");
-    Manager()->_downloadStatus = OXZ_DOWNLOAD_NONE;
+    Manager()->_downloadStatus = OXZDownloadStatus::kNone;
     OO_CHECK(!InstallOXZ(2));  // already installed
 
     // Extracting: Gamma into the extract folder; again (it exists); Alpha (a
@@ -666,7 +666,7 @@ OO_TEST(installExtractAndRemove) {
     OO_CHECK(!RemoveOXZ(9));
     OO_CHECK(RemoveOXZ(3));
     OO_CHECK(!stdfs::exists(sRoot / "Managed" / "oolite.oxp.test.gamma.oxz"));
-    OO_CHECK(Manager()->_interfaceState == OXZ_STATE_REMOVING);
+    OO_CHECK(Manager()->_interfaceState == OXZInterfaceState::kRemoving);
     OO_CHECK_TEXT(Titles(Manager()->managedOXZs()),
                   "Late 1, Local 3, Alpha 1.0");
   }
@@ -675,11 +675,11 @@ OO_TEST(installExtractAndRemove) {
 OO_TEST(restartAndUpdateAll) {
   SetUp();
   {
-    Manager()->_interfaceState = OXZ_STATE_RESTARTING;
+    Manager()->_interfaceState = OXZInterfaceState::kRestarting;
     OO_CHECK(IsRestarting());
-    OO_CHECK(Manager()->_interfaceState == OXZ_STATE_MAIN);
+    OO_CHECK(Manager()->_interfaceState == OXZInterfaceState::kMain);
     OO_CHECK(!Manager()->_changesMade);
-    OO_CHECK(Manager()->_downloadStatus == OXZ_DOWNLOAD_NONE);
+    OO_CHECK(Manager()->_downloadStatus == OXZDownloadStatus::kNone);
     OO_CHECK(!IsRestarting());
 
     // Alpha 3.0 updates the managed Alpha 1.0; its URL names no file, so the
@@ -688,11 +688,11 @@ OO_TEST(restartAndUpdateAll) {
     OO_CHECK(Manager()->_downloadAllDependencies);
     OO_CHECK_EQ(Manager()->_dependencyStack.size(), 1u);
     OO_CHECK_EQ(Manager()->_item, 0u);
-    OO_CHECK(Manager()->_interfaceState == OXZ_STATE_INSTALLING);
+    OO_CHECK(Manager()->_interfaceState == OXZInterfaceState::kInstalling);
     OO_CHECK_TEXT(Titles(Manager()->_filteredList),
                   "Alpha 3.0, Beta 1.0, Gamma 1.0");
     FinishDownload();
-    OO_CHECK(Manager()->_downloadStatus == OXZ_DOWNLOAD_ERROR);
+    OO_CHECK(Manager()->_downloadStatus == OXZDownloadStatus::kError);
   }
 }
 
@@ -887,7 +887,7 @@ OO_TEST(guiPages) {
     m->setFilter("*");
     standIn.universe->testGui->selected = 0;
 
-    m->_interfaceState = OXZ_STATE_NODATA;
+    m->_interfaceState = OXZInterfaceState::kNoData;
     m->gui();
     OO_CHECK_PAGE("nodata", standIn.Page(),
                   "clear keep\n"
@@ -902,7 +902,7 @@ OO_TEST(guiPages) {
                   "range 25+4\n"
                   "select 26\n");
 
-    m->_interfaceState = OXZ_STATE_SETFILTER;
+    m->_interfaceState = OXZInterfaceState::kSetfilter;
     m->gui();
     OO_CHECK_PAGE("setfilter", standIn.Page(),
                   "clear keep\n"
@@ -911,14 +911,14 @@ OO_TEST(guiPages) {
                   "text 26 0 oolite-oxzmanager-currentfilter-is-@\n"
                   "long 1 0 oolite-oxzmanager-filterhelp\n");
 
-    m->_interfaceState = OXZ_STATE_RESTARTING;
+    m->_interfaceState = OXZInterfaceState::kRestarting;
     m->gui();
     OO_CHECK_PAGE("restarting", standIn.Page(),
                   "clear keep\n"
                   "title oolite-oxzmanager-title\n"
                   "long 1 0 oolite-oxzmanager-restart\n");
 
-    m->_interfaceState = OXZ_STATE_MAIN;
+    m->_interfaceState = OXZInterfaceState::kMain;
     m->gui();
     OO_CHECK_PAGE("main", standIn.Page(),
                   "clear keep\n"
@@ -939,8 +939,8 @@ OO_TEST(guiPages) {
                   "range 22+7\n"
                   "select 22\n");
 
-    m->_interfaceState = OXZ_STATE_UPDATING;
-    m->_downloadStatus = OXZ_DOWNLOAD_RECEIVING;
+    m->_interfaceState = OXZInterfaceState::kUpdating;
+    m->_downloadStatus = OXZDownloadStatus::kReceiving;
     m->_currentDownloadName = "The list";
     m->_downloadProgress = 2048;
     m->_downloadExpected = 4096;
@@ -959,7 +959,7 @@ OO_TEST(guiPages) {
                   "range 26+3\n"
                   "select 26\n");
 
-    m->_interfaceState = OXZ_STATE_DEPENDENCIES;
+    m->_interfaceState = OXZInterfaceState::kDependencies;
     m->gui();
     OO_CHECK_PAGE("dependencies", standIn.Page(),
                   "clear keep\n"
@@ -978,7 +978,7 @@ OO_TEST(guiPages) {
                   "range 23+6\n"
                   "select 23\n");
 
-    m->_interfaceState = OXZ_STATE_REMOVING;
+    m->_interfaceState = OXZInterfaceState::kRemoving;
     m->gui();
     OO_CHECK_PAGE("removing", standIn.Page(),
                   "clear keep\n"
@@ -991,8 +991,8 @@ OO_TEST(guiPages) {
                   "range 26+3\n"
                   "select 26\n");
 
-    m->_interfaceState = OXZ_STATE_TASKDONE;
-    m->_downloadStatus = OXZ_DOWNLOAD_COMPLETE;
+    m->_interfaceState = OXZInterfaceState::kTaskdone;
+    m->_downloadStatus = OXZDownloadStatus::kComplete;
     m->_changesMade = true;
     m->gui();
     OO_CHECK_PAGE("taskdone", standIn.Page(),
@@ -1007,7 +1007,7 @@ OO_TEST(guiPages) {
                   "range 26+3\n"
                   "select 26\n");
 
-    m->_interfaceState = OXZ_STATE_EXTRACTDONE;
+    m->_interfaceState = OXZInterfaceState::kExtractdone;
     m->gui();
     OO_CHECK_PAGE("extractdone", standIn.Page(),
                   "clear keep\n"
@@ -1022,7 +1022,7 @@ OO_TEST(guiPages) {
 
     m->setFilteredList(m->managedOXZs());
     m->_item = 2;
-    m->_interfaceState = OXZ_STATE_EXTRACT;
+    m->_interfaceState = OXZInterfaceState::kExtract;
     m->gui();
     OO_CHECK_PAGE("extract", standIn.Page(),
                   "clear keep\n"
@@ -1043,9 +1043,9 @@ OO_TEST(guiPages) {
     // The list pages (the options), with the filter line through the
     // string expander.
     m->_changesMade = false;
-    m->_downloadStatus = OXZ_DOWNLOAD_NONE;
+    m->_downloadStatus = OXZDownloadStatus::kNone;
     standIn.universe->testGui->selected = OXZ_GUI_ROW_LISTSTART;
-    m->_interfaceState = OXZ_STATE_PICK_INSTALL;
+    m->_interfaceState = OXZInterfaceState::kPickInstall;
     m->gui();
     OO_CHECK_PAGE(
         "pick install", standIn.Page(),
@@ -1123,7 +1123,7 @@ OO_TEST(guiPages) {
         "range 1+28\n"
         "select 22\n");
 
-    m->_interfaceState = OXZ_STATE_PICK_INSTALLED;
+    m->_interfaceState = OXZInterfaceState::kPickInstalled;
     m->gui();
     OO_CHECK_PAGE(
         "pick installed", standIn.Page(),
@@ -1199,7 +1199,7 @@ OO_TEST(guiPages) {
         "range 1+28\n"
         "select 22\n");
 
-    m->_interfaceState = OXZ_STATE_PICK_REMOVE;
+    m->_interfaceState = OXZInterfaceState::kPickRemove;
     m->gui();
     OO_CHECK_PAGE(
         "pick remove", standIn.Page(),
@@ -1270,8 +1270,8 @@ OO_TEST(guiPages) {
         "range 1+28\n"
         "select 22\n");
 
-    m->_interfaceState = OXZ_STATE_UPDATING;
-    m->_downloadStatus = OXZ_DOWNLOAD_ERROR;
+    m->_interfaceState = OXZInterfaceState::kUpdating;
+    m->_downloadStatus = OXZDownloadStatus::kError;
     m->gui();
     OO_CHECK_PAGE("updating error", standIn.Page(),
                   "clear keep\n"
@@ -1286,8 +1286,8 @@ OO_TEST(guiPages) {
                   "range 26+3\n"
                   "select 26\n");
 
-    m->_interfaceState = OXZ_STATE_MAIN;
-    m->_downloadStatus = OXZ_DOWNLOAD_NONE;
+    m->_interfaceState = OXZInterfaceState::kMain;
+    m->_downloadStatus = OXZDownloadStatus::kNone;
     m->setProgressStatus("");
   }
 }
@@ -1306,14 +1306,14 @@ OO_TEST(guiInput) {
     TestGui* gui = standIn.universe->testGui.get();
 
     // The filter: the key, typed text, its prompt.
-    m->_interfaceState = OXZ_STATE_NODATA;
+    m->_interfaceState = OXZInterfaceState::kNoData;
     m->processFilterKey();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_NODATA);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kNoData);
     OO_CHECK(!m->isAcceptingTextInput());
-    m->_interfaceState = OXZ_STATE_MAIN;
+    m->_interfaceState = OXZInterfaceState::kMain;
     m->_interfaceShowingOXZDetail = true;
     m->processFilterKey();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_SETFILTER);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kSetfilter);
     OO_CHECK(!m->_interfaceShowingOXZDetail);
     OO_CHECK_EQ(standIn.universe->testGameView->resets, 1);
     OO_CHECK(m->isAcceptingTextInput());
@@ -1328,10 +1328,10 @@ OO_TEST(guiInput) {
                   "text 27 0 oolite-oxzmanager-text-prompt-@\n"
                   "color 27 100,50,0\n");
     m->processTextInput("k:");
-    OO_CHECK(m->_interfaceState == OXZ_STATE_SETFILTER);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kSetfilter);
     OO_CHECK_PAGE("text invalid", standIn.Page(), "");
     m->processTextInput("C:Ships");
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickInstall);
     OO_CHECK_TEXT(m->_currentFilter, "c:ships");
     OO_CHECK_PAGE(
         "text valid", standIn.Page(),
@@ -1568,17 +1568,17 @@ OO_TEST(guiInput) {
     // Extracting is offered from the installed list only.
     gui->selected = OXZ_GUI_ROW_LISTSTART;
     m->processExtractKey();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
-    m->_interfaceState = OXZ_STATE_PICK_INSTALLED;
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickInstall);
+    m->_interfaceState = OXZInterfaceState::kPickInstalled;
     m->gui();
     standIn.Page();
     OO_CHECK_EQ(gui->selected,
                 OXZ_GUI_ROW_INSTALL);  // the page selected its first control
     m->processExtractKey();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALLED);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickInstalled);
     gui->selected = OXZ_GUI_ROW_LISTSTART;
     m->processExtractKey();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_EXTRACT);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kExtract);
     OO_CHECK_EQ(m->_item, 0u);
     OO_CHECK_PAGE("extract key", standIn.Page(),
                   "clear keep\n"
@@ -1599,7 +1599,7 @@ OO_TEST(guiInput) {
     // Selections.
     gui->selected = OXZ_GUI_ROW_CANCEL;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kMain);
     OO_CHECK_PAGE("extract cancelled", standIn.Page(),
                   "clear keep\n"
                   "title oolite-oxzmanager-title\n"
@@ -1620,35 +1620,35 @@ OO_TEST(guiInput) {
                   "select 22\n");
     gui->selected = OXZ_GUI_ROW_INSTALLED;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALLED);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickInstalled);
     standIn.Page();
     gui->selected = OXZ_GUI_ROW_REMOVE;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_REMOVE);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickRemove);
     standIn.Page();
-    m->_interfaceState = OXZ_STATE_REMOVING;
+    m->_interfaceState = OXZInterfaceState::kRemoving;
     gui->selected = OXZ_GUI_ROW_UPDATE;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_REMOVE);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickRemove);
     standIn.Page();
     gui->selected = OXZ_GUI_ROW_INSTALL;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_PICK_INSTALL);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kPickInstall);
     standIn.Page();
     m->_changesMade = false;
     gui->selected = OXZ_GUI_ROW_EXIT;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kMain);
     OO_CHECK_PAGE("exit", standIn.Page(), "");
     m->_changesMade = true;
     m->processSelection();
-    OO_CHECK(m->_interfaceState == OXZ_STATE_RESTARTING);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kRestarting);
     OO_CHECK_PAGE("exit to restart", standIn.Page(),
                   "clear keep\n"
                   "title oolite-oxzmanager-title\n"
                   "long 1 0 oolite-oxzmanager-restart\n");
     OO_CHECK(m->isRestarting());
-    OO_CHECK(m->_interfaceState == OXZ_STATE_MAIN);
+    OO_CHECK(m->_interfaceState == OXZInterfaceState::kMain);
   }
 #endif
 }
@@ -1692,7 +1692,7 @@ OO_TEST(optionPages) {
     m->setOXZList(oo::PList(std::move(many)));
     m->setFilter("*");
     m->setFilteredList(m->manifests());
-    m->_interfaceState = OXZ_STATE_PICK_INSTALL;
+    m->_interfaceState = OXZInterfaceState::kPickInstall;
     m->_offset = 0;
 
     OO_CHECK_TEXT(OptionTitles(InstallOptions()),
@@ -1870,7 +1870,7 @@ OO_TEST(optionPages) {
     standIn.Page();
 
     // The remove list: the managed OXZs, then nothing.
-    m->_interfaceState = OXZ_STATE_PICK_REMOVE;
+    m->_interfaceState = OXZInterfaceState::kPickRemove;
     m->showOptionsUpdate();
     OO_CHECK_TEXT(Titles(m->_filteredList), "Late 1, Local 3, Alpha 1.0");
     OO_CHECK_TEXT(OptionTitles(RemoveOptions()), "Late 1, Local 3, Alpha 1.0");
@@ -1934,7 +1934,7 @@ OO_TEST(optionPages) {
     m->setOXZList(savedList);
     m->setFilteredList(m->manifests());
     m->_offset = 0;
-    m->_interfaceState = OXZ_STATE_MAIN;
+    m->_interfaceState = OXZInterfaceState::kMain;
   }
 }
 #endif
@@ -1969,7 +1969,7 @@ OO_TEST(copyUrlKey) {
     m->_interfaceShowingOXZDetail = false;
 
     // Outside the pick states the key does nothing.
-    m->_interfaceState = OXZ_STATE_MAIN;
+    m->_interfaceState = OXZInterfaceState::kMain;
     gui->selected = OXZ_GUI_ROW_LISTSTART;
     clipboard = "untouched";
     m->processCopyUrlKey();
@@ -1977,8 +1977,8 @@ OO_TEST(copyUrlKey) {
 
     // A pick list: the selected entry's URL, as the manifest spells it.
     for (OXZInterfaceState state :
-         {OXZ_STATE_PICK_INSTALL, OXZ_STATE_PICK_INSTALLED,
-          OXZ_STATE_PICK_REMOVE}) {
+         {OXZInterfaceState::kPickInstall, OXZInterfaceState::kPickInstalled,
+          OXZInterfaceState::kPickRemove}) {
       m->_interfaceState = state;
       gui->selected = OXZ_GUI_ROW_LISTSTART;
       clipboard = "";
@@ -2002,7 +2002,7 @@ OO_TEST(copyUrlKey) {
 
     // The info page: showing it copies nothing; the key then copies the URL it
     // showed, lowercased.
-    m->_interfaceState = OXZ_STATE_PICK_INSTALL;
+    m->_interfaceState = OXZInterfaceState::kPickInstall;
     m->_interfaceShowingOXZDetail = false;
     gui->selected = OXZ_GUI_ROW_LISTSTART;
     clipboard = "untouched";
@@ -2022,7 +2022,7 @@ OO_TEST(copyUrlKey) {
     m->processCopyUrlKey();
     OO_CHECK_TEXT(clipboard, "untouched");
     m->_interfaceShowingOXZDetail = false;
-    m->_interfaceState = OXZ_STATE_MAIN;
+    m->_interfaceState = OXZInterfaceState::kMain;
   }
 }
 

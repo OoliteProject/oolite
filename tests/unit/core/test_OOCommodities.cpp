@@ -83,7 +83,7 @@ oo::PList TradeGoods()
 // with the stand-in's answers.
 oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, OOResourceMergeMode mergeMode, bool useCache)
 {
-	gLog.push_back("resources " + fileName + " in " + folderName.value_or("-") + " merge " + std::to_string(mergeMode) + " cache " + std::to_string((int)useCache));
+	gLog.push_back("resources " + fileName + " in " + folderName.value_or("-") + " merge " + std::to_string(oo::ToUnderlying(mergeMode)) + " cache " + std::to_string((int)useCache));
 	return TradeGoods();
 }
 

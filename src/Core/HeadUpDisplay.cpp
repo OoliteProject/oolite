@@ -554,14 +554,14 @@ void HeadUpDisplay::resetGuis(const oo::PList& info) {
 
     if (line1) {
       gui->printLongText(
-          OptionalStringAt(lastLines, 0), GUI_ALIGN_CENTER,
+          OptionalStringAt(lastLines, 0), OOGUIAlignment::kCenter,
           OOColor::colorFromString(lastLines.at<std::string>(1)).get(),
           (permanent ? 0.0 : lastLines.at<float>(2)), std::nullopt, nullptr);
     }
     if (lastLines.count() > 3 &&
         (line1 || OptionalStringAt(lastLines, 3) != "")) {
       gui->printLongText(
-          OptionalStringAt(lastLines, 3), GUI_ALIGN_CENTER,
+          OptionalStringAt(lastLines, 3), OOGUIAlignment::kCenter,
           OOColor::colorFromString(lastLines.at<std::string>(4)).get(),
           (permanent ? 0.0 : lastLines.at<float>(5)), std::nullopt, nullptr);
     }
@@ -619,8 +619,8 @@ void HeadUpDisplay::resetGuis(const oo::PList& info) {
     resetGui(gui, *gui_info);
 
     for (i = 0; i < commCount; i++) {
-      gui->printLongText(cLog[i], GUI_ALIGN_LEFT, nullptr, 0.0, std::nullopt,
-                         nullptr);
+      gui->printLongText(cLog[i], OOGUIAlignment::kLeft, nullptr, 0.0,
+                         std::nullopt, nullptr);
     }
   }
 
@@ -636,9 +636,9 @@ void HeadUpDisplay::resetGuis(const oo::PList& info) {
       gui->setBackgroundColor(
           OOColor::colorWithRed(0.0, 0.05, 0.45, 0.5).get());
       gui->setTextColor(OOColor::whiteColor().get());
-      gui->printLongText(OO_DESC("communications-log-string"), GUI_ALIGN_CENTER,
-                         OOColor::yellowColor().get(), 0, std::nullopt,
-                         nullptr);
+      gui->printLongText(OO_DESC("communications-log-string"),
+                         OOGUIAlignment::kCenter, OOColor::yellowColor().get(),
+                         0, std::nullopt, nullptr);
     }
   }
 

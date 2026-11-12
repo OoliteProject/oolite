@@ -418,11 +418,11 @@ bool OOOperationQueueAsyncWorkManager::addTask(OOAsyncWorkTask* task,
                                                OOAsyncWorkPriority priority) {
   if (EXPECT_NOT(task == nullptr)) return false;
 
-  unsigned index = kOOAsyncPriorityMedium;
-  if (priority == kOOAsyncPriorityLow)
-    index = kOOAsyncPriorityLow;
-  else if (priority == kOOAsyncPriorityHigh)
-    index = kOOAsyncPriorityHigh;
+  unsigned index = oo::ToUnderlying(OOAsyncWorkPriority::kMedium);
+  if (priority == OOAsyncWorkPriority::kLow)
+    index = oo::ToUnderlying(OOAsyncWorkPriority::kLow);
+  else if (priority == OOAsyncWorkPriority::kHigh)
+    index = oo::ToUnderlying(OOAsyncWorkPriority::kHigh);
 
   {
     std::lock_guard<std::mutex> lock(_operationQueue->mutex);
@@ -443,8 +443,10 @@ void OOOperationQueueAsyncWorkManager::workThread(unsigned threadNumber,
     {
       std::unique_lock<std::mutex> lock(_operationQueue->mutex);
       while (task == nullptr && !stop.stop_requested()) {
-        for (int index = kOOAsyncPriorityHigh;
-             index >= (int)kOOAsyncPriorityLow && task == nullptr; index--) {
+        for (int index = oo::ToUnderlying(OOAsyncWorkPriority::kHigh);
+             index >= oo::ToUnderlying(OOAsyncWorkPriority::kLow) &&
+             task == nullptr;
+             index--) {
           std::deque<oo::Ref<OOAsyncWorkTask>>& queue =
               _operationQueue->tasks[index];
           if (!queue.empty()) {

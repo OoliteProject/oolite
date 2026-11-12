@@ -197,7 +197,7 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip,
                 GUI_ROW_INSTRUCT);
 
   gui->setText(OO_DESC("stickmapper-help-text-2"), GUI_ROW_INSTRUCT + 1,
-               GUI_ALIGN_CENTER);
+               OOGUIAlignment::kCenter);
 
   if (resetCurrentRow) {
     gui->setSelectedRow(GUI_ROW_STICKPROFILE);

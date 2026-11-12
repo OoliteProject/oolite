@@ -146,7 +146,7 @@ OO_TEST(theSharedControllerReadsItsMode) {
   OOMusicController* controller = OOMusicController::sharedController();
   OO_CHECK(controller != nullptr &&
            OOMusicController::sharedController() == controller);
-  OO_CHECK(controller->mode() == kOOMusicOff);
+  OO_CHECK(controller->mode() == OOMusicMode::kOff);
   OO_CHECK(!controller->isPlaying() &&
            !controller->playingMusic().has_value() &&
            controller->soundSource() == nullptr);
@@ -162,20 +162,20 @@ OO_TEST(modeChangesAreKept) {
   SetUp();
   OOMusicController* controller = OOMusicController::sharedController();
   {
-    controller->setMode(kOOMusicOn);
-    OO_CHECK(controller->mode() == kOOMusicOn &&
+    controller->setMode(OOMusicMode::kOn);
+    OO_CHECK(controller->mode() == OOMusicMode::kOn &&
              ModeDefault() == std::optional<std::string>("on"));
     OO_CHECK(
         (TakeLog() == std::vector<std::string>{"play OoliteTheme.ogg looped"}));
-    controller->setMode(kOOMusicITunes);  // not on this platform: refused
-    OO_CHECK(controller->mode() == kOOMusicOn &&
+    controller->setMode(OOMusicMode::kITunes);  // not on this platform: refused
+    OO_CHECK(controller->mode() == OOMusicMode::kOn &&
              ModeDefault() == std::optional<std::string>("on"));
-    controller->setMode(kOOMusicOff);
-    OO_CHECK(controller->mode() == kOOMusicOff &&
+    controller->setMode(OOMusicMode::kOff);
+    OO_CHECK(controller->mode() == OOMusicMode::kOff &&
              ModeDefault() == std::optional<std::string>("off"));
     OO_CHECK((TakeLog() == std::vector<std::string>{"stop OoliteTheme.ogg"}));
     controller->setMode(
-        kOOMusicOn);  // the stop forgot the theme: nothing plays
+        OOMusicMode::kOn);  // the stop forgot the theme: nothing plays
     OO_CHECK(TakeLog().empty() && !controller->isPlaying());
   }
   OO_CHECK(gLiveMusics == 0);
@@ -255,19 +255,19 @@ OO_TEST(specialMusic) {
     // A change of mode stops the music, and on again starts the special one.
     controller->playDockedMusic();
     TakeLog();
-    controller->setMode(kOOMusicOff);
+    controller->setMode(OOMusicMode::kOff);
     OO_CHECK((TakeLog() == std::vector<std::string>{"stop OoliteDocked.ogg"}));
     controller->toggleDockingMusic();  // only when on
     OO_CHECK(TakeLog().empty());
     controller->playDockedMusic();  // off: remembered, not played
     OO_CHECK(TakeLog().empty());
-    controller->setMode(kOOMusicOn);
+    controller->setMode(OOMusicMode::kOn);
     OO_CHECK((TakeLog() == std::vector<std::string>{"play OoliteDocked.ogg"}));
 
     controller->justStop();
     OO_CHECK((TakeLog() == std::vector<std::string>{"stop OoliteDocked.ogg"}));
-    controller->setMode(kOOMusicOff);
-    controller->setMode(kOOMusicOn);  // nothing special any more: just stops
+    controller->setMode(OOMusicMode::kOff);
+    controller->setMode(OOMusicMode::kOn);  // nothing special any more: just stops
     controller->stop();
     OO_CHECK(TakeLog().empty());
   }
@@ -281,7 +281,7 @@ OO_TEST(cxxApi) {
   OO_CHECK(controller != nullptr &&
            controller == OOMusicController::sharedController());
   {
-    OO_CHECK(controller->mode() == kOOMusicOn);
+    OO_CHECK(controller->mode() == OOMusicMode::kOn);
     controller->setMissionMusic(std::string("c.ogg"));
     controller->playMissionMusic();
     OO_CHECK((TakeLog() == std::vector<std::string>{"play c.ogg"}));

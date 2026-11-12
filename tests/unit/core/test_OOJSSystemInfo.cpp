@@ -597,11 +597,11 @@ void SetUpContext()
 	sUniverse->_data[Key(0, 7, "government")] = oo::PList(std::string("4"));
 	sUniverse->_data[Key(0, 7, "name")] = oo::PList(std::string("Lave"));
 	// The system manager holds the same data (the binding reads values there).
-	sUniverse->_systemManager->setProperty("economy", "0 7", OO_LAYER_CORE, oo::PList(2.0), std::nullopt);
-	sUniverse->_systemManager->setProperty("government", "0 7", OO_LAYER_CORE, oo::PList(std::string("4")), std::nullopt);
-	sUniverse->_systemManager->setProperty("name", "0 7", OO_LAYER_CORE, oo::PList(std::string("Lave")), std::nullopt);
-	sUniverse->_systemManager->setProperty("population", "0 7", OO_LAYER_CORE, oo::PList(std::string("2.5")), std::nullopt);
-	sUniverse->_systemManager->setProperty("techlevel", "0 7", OO_LAYER_CORE, oo::PList(8.0), std::nullopt);
+	sUniverse->_systemManager->setProperty("economy", "0 7", OOSystemLayer::kCore, oo::PList(2.0), std::nullopt);
+	sUniverse->_systemManager->setProperty("government", "0 7", OOSystemLayer::kCore, oo::PList(std::string("4")), std::nullopt);
+	sUniverse->_systemManager->setProperty("name", "0 7", OOSystemLayer::kCore, oo::PList(std::string("Lave")), std::nullopt);
+	sUniverse->_systemManager->setProperty("population", "0 7", OOSystemLayer::kCore, oo::PList(std::string("2.5")), std::nullopt);
+	sUniverse->_systemManager->setProperty("techlevel", "0 7", OOSystemLayer::kCore, oo::PList(8.0), std::nullopt);
 	sScript = oo::makeRef<OOJSScript>().leakRef();
 	sScriptManifest = oo::PList(std::string("org.test.script"));
 	Define("lave", GetJSSystemInfoForSystem(sContext, 0, 7));

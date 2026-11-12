@@ -265,7 +265,7 @@ OO_TEST(cxxApi) {
     // The work manager takes the C++ loader.
     OO_CHECK(loader->description().starts_with("<OOPNGTextureLoader 0x"));
     OO_CHECK(OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
-        loader.get(), kOOAsyncPriorityMedium));
+        loader.get(), OOAsyncWorkPriority::kMedium));
     OOPixMap pixMap = kOONullPixMap;
     OOTextureDataFormat format = kOOPixMapInvalidFormat;
     OO_CHECK(loader->getResult(&pixMap, &format, nullptr, nullptr) &&

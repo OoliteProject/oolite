@@ -398,8 +398,8 @@ void OOCacheManager::write() {
          endT);
 #endif
 
-  OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(_scheduledWrite.get(),
-                                                        kOOAsyncPriorityLow);
+  OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
+      _scheduledWrite.get(), OOAsyncWorkPriority::kLow);
 #else
 #if PROFILE_WRITES
   OO_LOG("dataCache.profile", "Time to prepare cache data: {:g} seconds.",

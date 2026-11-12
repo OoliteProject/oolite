@@ -44,25 +44,30 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOTypes.h"
 #include "legacy_random.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
-typedef enum {
-  OO_LAYER_CORE = 0,
-  OO_LAYER_OXP_STATIC = 1,
-  OO_LAYER_OXP_DYNAMIC = 2,
-  OO_LAYER_OXP_PRIORITY = 3
-} OOSystemLayer;
+enum class OOSystemLayer : std::int32_t {
+  kCore = 0,
+  kOXPStatic = 1,
+  kOXPDynamic = 2,
+  kOXPPriority = 3,
+};
+static_assert(static_cast<std::int32_t>(OOSystemLayer::kCore) == 0);
+static_assert(static_cast<std::int32_t>(OOSystemLayer::kOXPStatic) == 1);
+static_assert(static_cast<std::int32_t>(OOSystemLayer::kOXPDynamic) == 2);
+static_assert(static_cast<std::int32_t>(OOSystemLayer::kOXPPriority) == 3);
 
-typedef enum {
-  OO_SYSTEMCONCEALMENT_NONE = 0,
-  OO_SYSTEMCONCEALMENT_NODATA = 100,
-  OO_SYSTEMCONCEALMENT_NONAME = 200,
-  OO_SYSTEMCONCEALMENT_NOTHING = 300
-} OOSystemConcealment;
+// A system's concealment: planetinfo.plist's number, compared with these
+// thresholds (any value may occur), so typed constants (design D5's reading).
+inline constexpr int OO_SYSTEMCONCEALMENT_NONE = 0;
+inline constexpr int OO_SYSTEMCONCEALMENT_NODATA = 100;
+inline constexpr int OO_SYSTEMCONCEALMENT_NONAME = 200;
+inline constexpr int OO_SYSTEMCONCEALMENT_NOTHING = 300;
 
 #define OO_SYSTEM_LAYERS 4
 #define OO_SYSTEMS_PER_GALAXY (kOOMaximumSystemID + 1)

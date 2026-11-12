@@ -400,7 +400,7 @@ OO_TEST(beacons)
 		// An empty code is none.
 		effect->setBeaconCode(std::optional<std::string>(""));
 		OO_CHECK(!effect->beaconCode().has_value());
-		OO_CHECK(effect->compareBeaconCodeWith(other) == OOOrderedSame);
+		OO_CHECK(effect->compareBeaconCodeWith(other) == OOComparisonResult::kSame);
 	}
 }
 

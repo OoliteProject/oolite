@@ -110,8 +110,8 @@ OO_TEST(baseDefaults) {
 
     // The one method with an empty body.
     controller->noteMouseInteractionModeChangedFrom(
-        MOUSE_MODE_UI_SCREEN_NO_INTERACTION,
-        MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL);
+        OOMouseInteractionMode::kUiScreenNoInteraction,
+        OOMouseInteractionMode::kFlightWithMouseControl);
     OO_CHECK(gSubclassResponsibilities == 7);
 
     controller = nullptr;

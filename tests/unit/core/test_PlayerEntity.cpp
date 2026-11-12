@@ -476,16 +476,16 @@ OO_TEST(slice2ChartZoomAndCentre)
 		PlayerEntityTestAccess::chart_centre_coordinates(part) = NSMakePoint(100, 110);
 		PlayerEntityTestAccess::chart_focus_coordinates(part) = NSMakePoint(100, 110);
 
-		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = GUI_BACKGROUND_SPECIAL_NONE;
+		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = OOGUIBackgroundSpecial::kNone;
 		OO_CHECK(player->getChart_zoom() == 1.0);
 		OO_CHECK(Near(player->adjusted_chart_centre(), NSMakePoint(100, 110)));
-		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = GUI_BACKGROUND_SPECIAL_SHORT;
+		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = OOGUIBackgroundSpecial::kShort;
 		OO_CHECK(player->getChart_zoom() == 1.0);
 		OO_CHECK(Near(player->adjusted_chart_centre(), NSMakePoint(20, 30)));
-		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST;
+		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = OOGUIBackgroundSpecial::kLongAnaQuickest;
 		OO_CHECK(player->getChart_zoom() == (OOScalar)CHART_MAX_ZOOM);
 		OO_CHECK(Near(player->adjusted_chart_centre(), NSMakePoint(128, 128)));
-		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = GUI_BACKGROUND_SPECIAL_CUSTOM;
+		PlayerEntityTestAccess::_missionBackgroundSpecial(part) = OOGUIBackgroundSpecial::kCustom;
 		OO_CHECK(player->getChart_zoom() == 3.0);
 		OO_CHECK(Near(player->adjusted_chart_centre(), NSMakePoint(50, 60)));
 	}
@@ -608,7 +608,7 @@ OO_TEST(slice6NearestValidAndAtmosphere)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
-		OO_CHECK(player->compareZeroDistance(player) == OOOrderedDescending);
+		OO_CHECK(player->compareZeroDistance(player) == OOComparisonResult::kDescending);
 		OO_CHECK(player->validForAddToUniverse());
 		OO_CHECK(player->insideAtmosphereFraction() == 0.0f);
 		OO_CHECK(player->lookingAtSunWithThresholdAngleCos(0.5f) == 0.0f);	// no sun

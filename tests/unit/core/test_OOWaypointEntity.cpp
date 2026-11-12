@@ -229,11 +229,11 @@ OO_TEST(compareBeaconCodes) {
     oo::AutoreleaseScope scope;
     SetUp();
     OO_CHECK(Part(Waypoint("a"))->compareBeaconCodeWith(Waypoint("B")) ==
-             OOOrderedAscending);
+             OOComparisonResult::kAscending);
     OO_CHECK(Part(Waypoint("b"))->compareBeaconCodeWith(Waypoint("A")) ==
-             OOOrderedDescending);
+             OOComparisonResult::kDescending);
     OO_CHECK(Part(Waypoint("abc"))->compareBeaconCodeWith(Waypoint("ABC")) ==
-             OOOrderedSame);
+             OOComparisonResult::kSame);
   }
 }
 

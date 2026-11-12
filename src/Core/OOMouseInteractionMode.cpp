@@ -33,13 +33,13 @@ MA 02110-1301, USA.
 
 std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode) {
   switch (mode) {
-    case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
+    case OOMouseInteractionMode::kUiScreenNoInteraction:
       return "UI_SCREEN_NO_INTERACTION";
-    case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
+    case OOMouseInteractionMode::kUiScreenWithInteraction:
       return "UI_SCREEN_WITH_INTERACTION";
-    case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
+    case OOMouseInteractionMode::kFlightNoMouseControl:
       return "FLIGHT_NO_MOUSE_CONTROL";
-    case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
+    case OOMouseInteractionMode::kFlightWithMouseControl:
       return "FLIGHT_WITH_MOUSE_CONTROL";
   }
 
@@ -48,13 +48,13 @@ std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode) {
 
 bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode) {
   switch (mode) {
-    case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
+    case OOMouseInteractionMode::kUiScreenNoInteraction:
       return true;
-    case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
+    case OOMouseInteractionMode::kUiScreenWithInteraction:
       return true;
-    case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
+    case OOMouseInteractionMode::kFlightNoMouseControl:
       return false;
-    case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
+    case OOMouseInteractionMode::kFlightWithMouseControl:
       return false;
   }
 
@@ -63,13 +63,13 @@ bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode) {
 
 bool OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode) {
   switch (mode) {
-    case MOUSE_MODE_UI_SCREEN_NO_INTERACTION:
+    case OOMouseInteractionMode::kUiScreenNoInteraction:
       return false;
-    case MOUSE_MODE_UI_SCREEN_WITH_INTERACTION:
+    case OOMouseInteractionMode::kUiScreenWithInteraction:
       return false;
-    case MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL:
+    case OOMouseInteractionMode::kFlightNoMouseControl:
       return true;
-    case MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL:
+    case OOMouseInteractionMode::kFlightWithMouseControl:
       return true;
   }
 

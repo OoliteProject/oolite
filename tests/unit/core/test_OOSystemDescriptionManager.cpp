@@ -214,7 +214,7 @@ OO_TEST(layersAndUniversal) {
     OO_CHECK(manager->getProperty("economy", "0 7") == oo::PList(6));
 
     // Priority (3) over dynamic (2) over static.
-    manager->setProperty("economy", "0 7", OO_LAYER_OXP_DYNAMIC, oo::PList(7),
+    manager->setProperty("economy", "0 7", OOSystemLayer::kOXPDynamic, oo::PList(7),
                          std::nullopt);
     OO_CHECK(manager->getProperty("economy", 7, 0) == oo::PList(7));
     manager->setProperties(
@@ -226,10 +226,10 @@ OO_TEST(layersAndUniversal) {
     OO_CHECK(manager->getProperty("economy", 7, 0) == oo::PList(9));
 
     // Removing the top layers' values uncovers the ones below.
-    manager->setProperty("economy", "0 7", OO_LAYER_OXP_PRIORITY, oo::PList(),
+    manager->setProperty("economy", "0 7", OOSystemLayer::kOXPPriority, oo::PList(),
                          std::nullopt);
     OO_CHECK(manager->getProperty("economy", 7, 0) == oo::PList(7));
-    manager->setProperty("economy", "0 7", OO_LAYER_OXP_DYNAMIC, oo::PList(),
+    manager->setProperty("economy", "0 7", OOSystemLayer::kOXPDynamic, oo::PList(),
                          std::nullopt);
     OO_CHECK(manager->getProperty("economy", 7, 0) == oo::PList(6));
 
@@ -306,7 +306,7 @@ OO_TEST(interstellar) {
 
     // A region's own properties win, and are not cached as a system.
     manager->setProperty("sky_n_stars", "interstellar: 0 7 8",
-                         OO_LAYER_OXP_STATIC, oo::PList(5), std::nullopt);
+                         OOSystemLayer::kOXPStatic, oo::PList(5), std::nullopt);
     OO_CHECK(manager->getPropertiesForSystemKey("interstellar: 0 7 8") ==
              Dict({{"economy", oo::PList(1)}, {"sky_n_stars", oo::PList(5)}}));
     OO_CHECK(manager->getProperty("sky_n_stars", "interstellar: 0 7 8") ==
@@ -323,17 +323,17 @@ OO_TEST(scriptedChanges) {
     oo::Ref<OOSystemDescriptionManager> manager = NewManager();
     // Saved under manifest~|~key~|~property~|~layer; not saved without a
     // manifest.
-    manager->setProperty("description", "0 7", OO_LAYER_OXP_DYNAMIC,
+    manager->setProperty("description", "0 7", OOSystemLayer::kOXPDynamic,
                          Str("A nice place."),
                          std::string("org.test.installed"));
-    manager->setProperty("economy", "0 7", OO_LAYER_OXP_DYNAMIC, oo::PList(4),
+    manager->setProperty("economy", "0 7", OOSystemLayer::kOXPDynamic, oo::PList(4),
                          std::nullopt);
     manager->setProperty("sky_n_stars", "interstellar: 0 7 8",
-                         OO_LAYER_OXP_PRIORITY, oo::PList(9),
+                         OOSystemLayer::kOXPPriority, oo::PList(9),
                          std::string("org.test.gone"));
     // A key that is neither a system nor an interstellar region: set, not
     // saved.
-    manager->setProperty("economy", "elsewhere", OO_LAYER_OXP_DYNAMIC,
+    manager->setProperty("economy", "elsewhere", OOSystemLayer::kOXPDynamic,
                          oo::PList(4), std::string("org.test.installed"));
     const oo::PList exported = manager->exportScriptedChanges();
     OO_CHECK(exported ==
@@ -348,7 +348,7 @@ OO_TEST(scriptedChanges) {
 
     // Removing the value removes the saved change.
     manager->setProperty("sky_n_stars", "interstellar: 0 7 8",
-                         OO_LAYER_OXP_PRIORITY, oo::PList(),
+                         OOSystemLayer::kOXPPriority, oo::PList(),
                          std::string("org.test.gone"));
     OO_CHECK(manager->exportScriptedChanges() ==
              Dict({{"org.test.installed~|~0 7~|~description~|~2",
@@ -470,7 +470,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(manager->getProperty("name", 7, 0) == Str("Lave"));
     OO_CHECK(manager->getPropertiesForCurrentSystem() ==
              manager->getPropertiesForSystemKey("0 7"));
-    manager->setProperty("name", "0 7", OO_LAYER_OXP_PRIORITY, Str("Leesti"),
+    manager->setProperty("name", "0 7", OOSystemLayer::kOXPPriority, Str("Leesti"),
                          std::string("org.test.installed"));
     OO_CHECK(manager->getProperty("name", 7, 0) == Str("Leesti"));
     OO_CHECK(manager->exportScriptedChanges() ==
@@ -489,19 +489,19 @@ OO_TEST(cxxApi) {
 OO_TEST(entry) {
   oo::Ref<OOSystemDescriptionEntry> entry =
       oo::makeRef<OOSystemDescriptionEntry>();
-  OO_CHECK(entry->getProperty("name", OO_LAYER_CORE).isNull());
-  entry->setProperty("name", OO_LAYER_CORE, Str("Lave"));
-  entry->setProperty("name", OO_LAYER_OXP_STATIC, Str("Diso"));
-  OO_CHECK(entry->getProperty("name", OO_LAYER_CORE) == Str("Lave"));
-  OO_CHECK(entry->getProperty("name", OO_LAYER_OXP_STATIC) == Str("Diso"));
-  OO_CHECK(entry->getProperty("name", OO_LAYER_OXP_DYNAMIC).isNull());
+  OO_CHECK(entry->getProperty("name", OOSystemLayer::kCore).isNull());
+  entry->setProperty("name", OOSystemLayer::kCore, Str("Lave"));
+  entry->setProperty("name", OOSystemLayer::kOXPStatic, Str("Diso"));
+  OO_CHECK(entry->getProperty("name", OOSystemLayer::kCore) == Str("Lave"));
+  OO_CHECK(entry->getProperty("name", OOSystemLayer::kOXPStatic) == Str("Diso"));
+  OO_CHECK(entry->getProperty("name", OOSystemLayer::kOXPDynamic).isNull());
   // Validated as the manager's setters validate; null removes.
-  entry->setProperty("radius", OO_LAYER_CORE, oo::PList(4000));
-  OO_CHECK(entry->getProperty("radius", OO_LAYER_CORE) == Str("4000"));
-  entry->setProperty("name", OO_LAYER_CORE, oo::PList(1));
-  OO_CHECK(entry->getProperty("name", OO_LAYER_CORE) == Str("Lave"));
-  entry->setProperty("name", OO_LAYER_CORE, oo::PList());
-  OO_CHECK(entry->getProperty("name", OO_LAYER_CORE).isNull());
+  entry->setProperty("radius", OOSystemLayer::kCore, oo::PList(4000));
+  OO_CHECK(entry->getProperty("radius", OOSystemLayer::kCore) == Str("4000"));
+  entry->setProperty("name", OOSystemLayer::kCore, oo::PList(1));
+  OO_CHECK(entry->getProperty("name", OOSystemLayer::kCore) == Str("Lave"));
+  entry->setProperty("name", OOSystemLayer::kCore, oo::PList());
+  OO_CHECK(entry->getProperty("name", OOSystemLayer::kCore).isNull());
 }
 
 OO_TEST_MAIN()

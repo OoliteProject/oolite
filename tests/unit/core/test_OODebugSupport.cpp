@@ -60,7 +60,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
     const std::string& fileName, const std::optional<std::string>& folderName,
     OOResourceMergeMode mergeMode, bool useCache) {
   if (fileName == "debugConfig.plist" && folderName == "Config" &&
-      mergeMode == MERGE_BASIC && !useCache)
+      mergeMode == OOResourceMergeMode::kBasic && !useCache)
     return sRecord.configuration;
   return oo::PList();
 }

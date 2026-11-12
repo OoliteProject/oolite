@@ -101,7 +101,7 @@ TestLoader* Loader(const char* path, OOTextureFlags options, uint32_t width,
 bool Queue(OOTextureLoader* loader) {
   // The work manager's task is the C++ loader.
   return OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
-      loader, kOOAsyncPriorityMedium);
+      loader, OOAsyncWorkPriority::kMedium);
 }
 
 struct Result {

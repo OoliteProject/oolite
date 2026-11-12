@@ -102,7 +102,7 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
 
   if (result != nullptr) {
     if (!OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
-            result.get(), kOOAsyncPriorityMedium))
+            result.get(), OOAsyncWorkPriority::kMedium))
       result = nullptr;
   }
 

@@ -324,7 +324,7 @@ void OOShipRegistry::loadShipData() {
 
   // Load shipdata.plist.
   oo::PList result = ResourceManager::dictionaryFromFilesNamed(
-      "shipdata.plist", "Config", MERGE_BASIC, false);
+      "shipdata.plist", "Config", OOResourceMergeMode::kBasic, false);
   if (result.isNull()) return;
 
   DumpStringAddrs(result, "shipdata.plist");
@@ -373,7 +373,7 @@ void OOShipRegistry::loadShipData() {
   _effectData = oo::PList();
 
   result = ResourceManager::dictionaryFromFilesNamed(
-      "effectdata.plist", "Config", MERGE_BASIC, false);
+      "effectdata.plist", "Config", OOResourceMergeMode::kBasic, false);
   if (result.isNull()) return;
 
   // Make each entry mutable to simplify later stages. Also removes any entries
@@ -783,7 +783,7 @@ bool OOShipRegistry::makeShipEntriesMutable(oo::PList& ioData) {
 bool OOShipRegistry::loadAndApplyShipDataOverrides(oo::PList& ioData) {
   oo::PList::Dict& ships = Entries(ioData);
   const oo::PList overrides = ResourceManager::dictionaryFromFilesNamed(
-      "shipdata-overrides.plist", "Config", MERGE_SMART, false);
+      "shipdata-overrides.plist", "Config", OOResourceMergeMode::kSmart, false);
 
   if (const oo::PList::Dict* overrideEntries =
           overrides.getIf<oo::PList::Dict>()) {
@@ -832,9 +832,9 @@ bool OOShipRegistry::loadAndMergeShipyard(oo::PList& ioData) {
   }
 
   const oo::PList shipyard = ResourceManager::dictionaryFromFilesNamed(
-      "shipyard.plist", "Config", MERGE_BASIC, false);
+      "shipyard.plist", "Config", OOResourceMergeMode::kBasic, false);
   const oo::PList shipyardOverrides = ResourceManager::dictionaryFromFilesNamed(
-      "shipyard-overrides.plist", "Config", MERGE_SMART, false);
+      "shipyard-overrides.plist", "Config", OOResourceMergeMode::kSmart, false);
 
   playerShips.reserve(shipyard.count());
 

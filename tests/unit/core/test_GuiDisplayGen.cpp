@@ -257,9 +257,9 @@ OO_TEST(rowTextsAndKeys)
 		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setText("one", 1);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("one"));
-		gui->setText(std::optional<std::string>("two"), 2, GUI_ALIGN_RIGHT);
+		gui->setText(std::optional<std::string>("two"), 2, OOGUIAlignment::kRight);
 		OO_CHECK(RowString(gui.get(), 2) == std::optional<std::string>("two"));
-		gui->setText(std::optional<std::string>(std::nullopt), 2, GUI_ALIGN_LEFT);	// none: no change
+		gui->setText(std::optional<std::string>(std::nullopt), 2, OOGUIAlignment::kLeft);	// none: no change
 		OO_CHECK(RowString(gui.get(), 2) == std::optional<std::string>("two"));
 		gui->setText("out", 5);	// out of range: ignored
 		gui->setText("out", -1);
@@ -355,12 +355,12 @@ OO_TEST(currentRowIsWhereALineIsPrinted)
 	{
 		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setCurrentRow(3);
-		gui->printLineNoScroll("printed", GUI_ALIGN_LEFT, nullptr, 0.0f, "pk", nullptr);
+		gui->printLineNoScroll("printed", OOGUIAlignment::kLeft, nullptr, 0.0f, "pk", nullptr);
 		OO_CHECK(RowString(gui.get(), 3) == std::optional<std::string>("printed"));
 		OO_CHECK(gui->keyForRow(3) == std::optional<std::string>("pk"));
 		gui->setCurrentRow(5);	// out of range: no current row (and no text cursor)
 		gui->setCurrentRow(1);
-		gui->printLineNoScroll("again", GUI_ALIGN_LEFT, nullptr, 0.0f, std::nullopt, nullptr);
+		gui->printLineNoScroll("again", OOGUIAlignment::kLeft, nullptr, 0.0f, std::nullopt, nullptr);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("again"));
 		gui->setShowTextCursor(true);
 	}
@@ -534,10 +534,10 @@ OO_TEST(longTextAndReflow)
 {
 	{
 		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
-		OO_CHECK_EQ(gui->addLongText(std::nullopt, 1, GUI_ALIGN_LEFT), 1);
-		OO_CHECK_EQ(gui->addLongText("one line", 1, GUI_ALIGN_LEFT), 2);
+		OO_CHECK_EQ(gui->addLongText(std::nullopt, 1, OOGUIAlignment::kLeft), 1);
+		OO_CHECK_EQ(gui->addLongText("one line", 1, OOGUIAlignment::kLeft), 2);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("one line"));
-		OO_CHECK_EQ(gui->addLongText("a\nb\nc", 2, GUI_ALIGN_CENTER), 5);
+		OO_CHECK_EQ(gui->addLongText("a\nb\nc", 2, OOGUIAlignment::kCenter), 5);
 		OO_CHECK(RowString(gui.get(), 2) == std::optional<std::string>("a"));
 		OO_CHECK(RowString(gui.get(), 4) == std::optional<std::string>("c"));
 
@@ -554,7 +554,7 @@ OO_TEST(printingScrollsAndKeepsTheLines)
 		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");	// 5 rows
 		gui->setCurrentRow(3);
 		std::vector<std::string> printed;
-		gui->printLongText("first\nsecond", GUI_ALIGN_LEFT, OOColor::redColor().get(), 2.0f, "pk", &printed);
+		gui->printLongText("first\nsecond", OOGUIAlignment::kLeft, OOColor::redColor().get(), 2.0f, "pk", &printed);
 		OO_CHECK(printed == (std::vector<std::string>{ "first", "second" }));
 		// "first" goes on row 3; "second" would go on the last row, so everything scrolls up by one
 		// before it is printed: "first" on row 2, row 3 empty.
@@ -563,12 +563,12 @@ OO_TEST(printingScrollsAndKeepsTheLines)
 		OO_CHECK(RowString(gui.get(), 4) == std::optional<std::string>("second"));
 		OO_CHECK(gui->keyForRow(4) == std::optional<std::string>("pk"));
 		// The current row is still the last: the next line scrolls everything up by one again.
-		gui->printLongText("third", GUI_ALIGN_LEFT, nullptr, 0.0f, std::nullopt, nullptr);
+		gui->printLongText("third", OOGUIAlignment::kLeft, nullptr, 0.0f, std::nullopt, nullptr);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("first"));
 		OO_CHECK(RowString(gui.get(), 2) == std::optional<std::string>(""));
 		OO_CHECK(RowString(gui.get(), 3) == std::optional<std::string>("second"));
 		OO_CHECK(RowString(gui.get(), 4) == std::optional<std::string>("third"));
-		gui->printLongText(std::nullopt, GUI_ALIGN_LEFT, nullptr, 0.0f, std::nullopt, &printed);
+		gui->printLongText(std::nullopt, OOGUIAlignment::kLeft, nullptr, 0.0f, std::nullopt, &printed);
 		OO_CHECK_EQ(printed.size(), 2u);
 
 		const oo::PList lines = gui->getLastLines();
@@ -671,8 +671,8 @@ OO_TEST(noTexturesWithoutAUniverse)
 		OO_CHECK(!gui->setForegroundTextureKey("anything"));
 		OO_CHECK(!gui->preloadGUITexture(oo::PList()));
 		gui->clearBackground();
-		gui->setBackgroundTextureSpecial(GUI_BACKGROUND_SPECIAL_LONG, true);
-		gui->setBackgroundTextureSpecial(GUI_BACKGROUND_SPECIAL_NONE, false);
+		gui->setBackgroundTextureSpecial(OOGUIBackgroundSpecial::kLong, true);
+		gui->setBackgroundTextureSpecial(OOGUIBackgroundSpecial::kNone, false);
 
 		// A JS null is "no texture" (an empty descriptor), and an empty string the same.
 		JSContext *context = OOJSAcquireContext();
@@ -688,12 +688,12 @@ OO_TEST(cxxSlice2API)
 	{
 		StartJavaScript();
 		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
-		OO_CHECK_EQ(gui->addLongText("a\nb", 0, GUI_ALIGN_LEFT), 2);
+		OO_CHECK_EQ(gui->addLongText("a\nb", 0, OOGUIAlignment::kLeft), 2);
 		OO_CHECK(gui->objectForRow(1) == oo::PList("b"));
 		OO_CHECK(gui->reflowTextForMFD("x y") == std::optional<std::string>("x y\n"));
 		gui->setCurrentRow(2);
 		std::vector<std::string> printed;
-		gui->printLineNoScroll("p", GUI_ALIGN_LEFT, nullptr, 0.0f, std::optional<std::string>("pk"), &printed);
+		gui->printLineNoScroll("p", OOGUIAlignment::kLeft, nullptr, 0.0f, std::optional<std::string>("pk"), &printed);
 		OO_CHECK(gui->keyForRow(2) == std::optional<std::string>("pk") && printed.size() == 1);
 		gui->setArray({ "c1", "c2" }, 3);
 		OO_CHECK(gui->objectForRow(3).isArray());

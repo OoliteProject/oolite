@@ -1554,7 +1554,7 @@ void Universe::setUpUniverseFromWitchspace() {
         std::format(
             "{} {}", TextOrNull(getSystemName(systemID)),
             player != nullptr ? player->dial_clock_adjusted() : std::string()),
-        GUI_ALIGN_CENTER, OOColor::whiteColor().get(), 0, std::nullopt,
+        OOGUIAlignment::kCenter, OOColor::whiteColor().get(), 0, std::nullopt,
         &printedLines);
   std::vector<std::string>* commLog =
       (player != nullptr ? player->getCommLog()
@@ -4012,7 +4012,7 @@ void Universe::setLibraryTextForDemoShip() {
 
   override = LibrarySetting(librarySettings, kOODemoShipDescription, nullptr);
   if (override.has_value()) {
-    gui->addLongText(ExpandText(*override), descRow, GUI_ALIGN_LEFT);
+    gui->addLongText(ExpandText(*override), descRow, OOGUIAlignment::kLeft);
   }
 
   // line 19: ship categories
@@ -4962,13 +4962,13 @@ oo::PList Universe::gameSettings() {
 
   const char* desc = "UNDEFINED";
   switch (OOMusicController::sharedController()->mode()) {
-    case kOOMusicOff:
+    case OOMusicMode::kOff:
       desc = "MUSIC_OFF";
       break;
-    case kOOMusicOn:
+    case OOMusicMode::kOn:
       desc = "MUSIC_ON";
       break;
-    case kOOMusicITunes:
+    case OOMusicMode::kITunes:
       desc = "MUSIC_ITUNES";
       break;
   }
@@ -5766,7 +5766,7 @@ void Universe::drawMessage() {
   if (displayGUI) {
     if ((gameController() != nullptr ? gameController()->mouseInteractionMode()
                                      : OOMouseInteractionMode{}) ==
-        MOUSE_MODE_UI_SCREEN_WITH_INTERACTION) {
+        OOMouseInteractionMode::kUiScreenWithInteraction) {
       cursor_row = (gui != nullptr) ? gui->drawGUI(1.0, true)
                                     : 0;  // a nil GUI answered 0
     } else {
@@ -7342,8 +7342,8 @@ void Universe::addCommsMessage(const std::optional<std::string>& text,
     // the printed lines go to the player's comm log
     std::vector<std::string> printedLines;
     if (comm_log_gui != nullptr)
-      comm_log_gui->printLongText(expandedMessage, GUI_ALIGN_LEFT, nullptr, 0.0,
-                                  std::nullopt, &printedLines);
+      comm_log_gui->printLongText(expandedMessage, OOGUIAlignment::kLeft,
+                                  nullptr, 0.0, std::nullopt, &printedLines);
     std::vector<std::string>* commLog =
         (player != nullptr ? player->getCommLog()
                            : (std::vector<std::string>*)nullptr);
@@ -7365,10 +7365,10 @@ void Universe::showGUIMessage(const std::optional<std::string>& text,
                               OOTimeDelta how_long) {
   if (message_gui == nullptr) return;  // messages to nil did nothing
   if (scroll) {
-    message_gui->printLongText(text, GUI_ALIGN_CENTER, selectedColor, how_long,
-                               std::nullopt, nullptr);
+    message_gui->printLongText(text, OOGUIAlignment::kCenter, selectedColor,
+                               how_long, std::nullopt, nullptr);
   } else {
-    message_gui->printLineNoScroll(text, GUI_ALIGN_CENTER, selectedColor,
+    message_gui->printLineNoScroll(text, OOGUIAlignment::kCenter, selectedColor,
                                    how_long, std::nullopt, nullptr);
   }
   message_gui->setAlpha(1.0f);
@@ -8410,7 +8410,7 @@ bool Universe::inInterstellarSpace() { return sun() == nullptr; }
 void Universe::setSystemDataKey(const std::string& key, const oo::PList& value,
                                 const std::optional<std::string>& manifest) {
   setSystemDataForGalaxy(galaxyID, systemID, key, value, manifest,
-                         OO_LAYER_OXP_DYNAMIC);
+                         OOSystemLayer::kOXPDynamic);
 }
 
 void Universe::setSystemDataForGalaxy(
@@ -10283,7 +10283,7 @@ std::vector<oo::EntityHold> Universe::listBeaconsWithCode(
   std::stable_sort(result.begin(), result.end(),
                    [](const oo::EntityHold& a, const oo::EntityHold& b) {
                      return oo::CompareBeaconCodes(a.get(), b.get()) ==
-                            OOOrderedAscending;
+                            OOComparisonResult::kAscending;
                    });
   return result;
 }
@@ -10325,9 +10325,9 @@ void Universe::clearGUIs() {
   if (message_gui != nullptr) message_gui->clear();
   if (comm_log_gui == nullptr) return;
   comm_log_gui->clear();
-  comm_log_gui->printLongText(OO_DESC("communications-log-string"),
-                              GUI_ALIGN_CENTER, OOColor::yellowColor().get(), 0,
-                              std::nullopt, nullptr);
+  comm_log_gui->printLongText(
+      OO_DESC("communications-log-string"), OOGUIAlignment::kCenter,
+      OOColor::yellowColor().get(), 0, std::nullopt, nullptr);
 }
 
 void Universe::resetCommsLogColor() {
@@ -10597,7 +10597,8 @@ void Universe::setUpSettings() {
       "customsounds.plist", std::string("Config"), true);
 
   globalSettings = ResourceManager::dictionaryFromFilesNamed(
-      "global-settings.plist", std::string("Config"), MERGE_SMART, true);
+      "global-settings.plist", std::string("Config"),
+      OOResourceMergeMode::kSmart, true);
 
   replacedSystemManager =
       std::move(systemManager);  // [systemManager autorelease]

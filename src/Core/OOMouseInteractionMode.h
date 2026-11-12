@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 */
 #include "oofnd/objc/OOFoundationTypes.h"  // bool
 #endif
-
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -53,6 +52,8 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
+
 /*
         OOMouseInteractionMode
         Mouse interaction states, defined in game-centric terms. The precise
@@ -70,12 +71,20 @@ MA 02110-1301, USA.
         Flight screens have two modes, one for mouse control enabled and one for
         mouse control disabled.
 */
-typedef enum {
-  MOUSE_MODE_UI_SCREEN_NO_INTERACTION,
-  MOUSE_MODE_UI_SCREEN_WITH_INTERACTION,
-  MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL,
-  MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
-} OOMouseInteractionMode;
+enum class OOMouseInteractionMode : std::int32_t {
+  kUiScreenNoInteraction,
+  kUiScreenWithInteraction,
+  kFlightNoMouseControl,
+  kFlightWithMouseControl,
+};
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kUiScreenNoInteraction) == 0);
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kUiScreenWithInteraction) == 1);
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kFlightNoMouseControl) == 2);
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kFlightWithMouseControl) == 3);
 
 std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
 bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
