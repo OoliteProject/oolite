@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOSDLJoystickManager.h"
 
+#include <format>
+
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 
@@ -50,7 +52,7 @@ OOSDLJoystickManager::OOSDLJoystickManager() {
 
       stick[i] = SDL_OpenJoystick(joystickIds[i]);
       if (stick[i]) {
-        idMap[oo::str::format("%d", joystickIds[i])] = i;
+        idMap[std::format("{}", static_cast<int>(joystickIds[i]))] = i;
       } else {
         OO_LOG("joystick.init", "Failed to open joystick #{}", i);
       }
@@ -63,7 +65,8 @@ OOSDLJoystickManager::OOSDLJoystickManager() {
 
 std::ptrdiff_t OOSDLJoystickManager::getJoystickIndexFromId(
     SDL_JoystickID joystickId) {
-  const auto index = joystickIdMap.find(oo::str::format("%d", joystickId));
+  const auto index =
+      joystickIdMap.find(std::format("{}", static_cast<int>(joystickId)));
   if (index != joystickIdMap.end()) {
     return index->second;
   }

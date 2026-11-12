@@ -39,6 +39,7 @@ SOFTWARE.
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -375,8 +376,8 @@ void OODebugTCPConsoleClient::debugMonitor(
 }
 
 std::string OODebugTCPConsoleClient::description() const {
-  return oo::str::format("<OODebugTCPConsoleClient %s>",
-                         oo::str::pointerDescription(this).c_str());
+  return std::format("<OODebugTCPConsoleClient {}>",
+                     oo::str::pointerDescription(this));
 }
 
 void OODebugTCPConsoleClient::debugMonitorClearConsole(
@@ -941,10 +942,10 @@ void OODebugTCPConsoleClient::breakConnectionWithStreamError(int error) {
 
   if (error != 0) errorDesc = SocketErrorDescription(error);
   if (!errorDesc.has_value()) errorDesc = "bad stream.";
-  breakConnectionWithMessage(oo::str::format(
-      "Connection to debug console failed: '%s' (outStream status: %zu, "
-      "inStream status: %zu).",
-      errorDesc->c_str(), (size_t)_outStatus, (size_t)_inStatus));
+  breakConnectionWithMessage(
+      std::format("Connection to debug console failed: '{}' (outStream status: "
+                  "{}, inStream status: {}).",
+                  *errorDesc, (size_t)_outStatus, (size_t)_inStatus));
 }
 
 bool OODebugTCPConsoleIsWaitingForInput() {
