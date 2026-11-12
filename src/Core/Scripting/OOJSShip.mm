@@ -3019,10 +3019,10 @@ static JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt, B
     // First we test to see if we can create the mesh.
     OOMesh* mesh = [OOMesh meshWithName:shipDict.get<std::string>("model")
                                cacheKey:std::nullopt
-                     materialDictionary:oo::PListFrom(materials)
-                      shadersDictionary:oo::PListFrom(shaders)
-                                 smooth:oo::PListView(shipDict).get<bool>(@"smooth", NO)
-                           shaderMacros:oo::PListFrom(oo::PListView([ResourceManager materialDefaults]).get<NSDictionary*>(@"ship-prefix-macros"))
+                     materialDictionary:materials
+                      shadersDictionary:shaders
+                                 smooth:shipDict.get<bool>("smooth", false)
+                           shaderMacros:(prefixMacros != nullptr && prefixMacros->isDict()) ? *prefixMacros : oo::PList()
                     shaderBindingTarget:thisEnt];
 
     if (mesh != nil) {

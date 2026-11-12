@@ -122,3 +122,7 @@ if (not get_option('deployment_release') or get_option('deployment_unit_tests'))
     # Unit tests that need no game build (meson test --suite oofnd).
     subdir('tests/unit/oofnd')
 endif
+if not get_option('deployment_release') and host_machine.system() == 'windows'
+    # Game-side unit tests of gnustep-base shims (meson test --suite game-unit).
+    subdir('tests/unit/game')
+endif

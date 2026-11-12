@@ -235,22 +235,22 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
         if (extra != nullptr) {
             const oo::PList& extraInfo = *extra;
 
-            _isAvailableToAll = (unsigned char)oo::PListView(extra).get<bool>(@"available_to_all", _isAvailableToAll);
-            _isAvailableToPlayer = (unsigned char)oo::PListView(extra).get<bool>(@"available_to_player", _isAvailableToPlayer);
-            _isAvailableToNPCs = (unsigned char)oo::PListView(extra).get<bool>(@"available_to_NPCs", _isAvailableToNPCs);
+            _isAvailableToAll = (unsigned char)extraInfo.get<bool>("available_to_all", _isAvailableToAll);
+            _isAvailableToPlayer = (unsigned char)extraInfo.get<bool>("available_to_player", _isAvailableToPlayer);
+            _isAvailableToNPCs = (unsigned char)extraInfo.get<bool>("available_to_NPCs", _isAvailableToNPCs);
 
-            _isMissileOrMine = (unsigned char)oo::PListView(extra).get<bool>(@"is_external_store", _isMissileOrMine);
-            _requiresEmptyPylon = (unsigned char)oo::PListView(extra).get<bool>(@"requires_empty_pylon", _requiresEmptyPylon);
-            _requiresMountedPylon = (unsigned char)oo::PListView(extra).get<bool>(@"requires_mounted_pylon", _requiresMountedPylon);
-            _requiresClean = (unsigned char)oo::PListView(extra).get<bool>(@"requires_clean", _requiresClean);
-            _requiresNotClean = (unsigned char)oo::PListView(extra).get<bool>(@"requires_not_clean", _requiresNotClean);
-            _portableBetweenShips = (unsigned char)oo::PListView(extra).get<bool>(@"portable_between_ships", _portableBetweenShips);
-            _requiresFreePassengerBerth = (unsigned char)oo::PListView(extra).get<bool>(@"requires_free_passenger_berth", _requiresFreePassengerBerth);
-            _requiresFullFuel = (unsigned char)oo::PListView(extra).get<bool>(@"requires_full_fuel", _requiresFullFuel);
-            _requiresNonFullFuel = (unsigned char)oo::PListView(extra).get<bool>(@"requires_non_full_fuel", _requiresNonFullFuel);
-            _isVisible = (unsigned char)oo::PListView(extra).get<bool>(@"visible", _isVisible);
-            _canCarryMultiple = (unsigned char)oo::PListView(extra).get<bool>(@"can_carry_multiple", NO);
-            _hideValues = (unsigned char)oo::PListView(extra).get<bool>(@"hide_values", NO);
+            _isMissileOrMine = (unsigned char)extraInfo.get<bool>("is_external_store", _isMissileOrMine);
+            _requiresEmptyPylon = (unsigned char)extraInfo.get<bool>("requires_empty_pylon", _requiresEmptyPylon);
+            _requiresMountedPylon = (unsigned char)extraInfo.get<bool>("requires_mounted_pylon", _requiresMountedPylon);
+            _requiresClean = (unsigned char)extraInfo.get<bool>("requires_clean", _requiresClean);
+            _requiresNotClean = (unsigned char)extraInfo.get<bool>("requires_not_clean", _requiresNotClean);
+            _portableBetweenShips = (unsigned char)extraInfo.get<bool>("portable_between_ships", _portableBetweenShips);
+            _requiresFreePassengerBerth = (unsigned char)extraInfo.get<bool>("requires_free_passenger_berth", _requiresFreePassengerBerth);
+            _requiresFullFuel = (unsigned char)extraInfo.get<bool>("requires_full_fuel", _requiresFullFuel);
+            _requiresNonFullFuel = (unsigned char)extraInfo.get<bool>("requires_non_full_fuel", _requiresNonFullFuel);
+            _isVisible = (unsigned char)extraInfo.get<bool>("visible", _isVisible);
+            _canCarryMultiple = (unsigned char)extraInfo.get<bool>("can_carry_multiple", false);
+            _hideValues = (unsigned char)extraInfo.get<bool>("hide_values", false);
 
             _requiredCargoSpace = extraInfo.get<unsigned int>("requires_cargo_space", _requiredCargoSpace);
 
@@ -306,13 +306,13 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
             if (const oo::PList* scriptInfo = extraInfo.get<oo::PList::Dict>("script_info"))
                 _scriptInfo = *scriptInfo;
 
-            _script = oo::PListView(extra).get<NSString*>(@"script");
-            if (_script != nil && ![OOScript jsScriptFromFileNamed:_script properties:nil])
-                _script = nil;
-            [_script retain];
-            if (_script != nil) {
-                _fastAffinityA = !!oo::PListView(extra).get<bool>(@"fast_affinity_defensive");
-                _fastAffinityB = !!oo::PListView(extra).get<bool>(@"fast_affinity_offensive");
+            _script = StringFor(extraInfo, "script");
+            // +jsScriptFromFileNamed:properties: is not migrated: the name crosses at the call.
+            if (_script.has_value() && ![OOScript jsScriptFromFileNamed:oo::NSStringFrom(*_script) properties:nil])
+                _script.reset();
+            if (_script.has_value()) {
+                _fastAffinityA = !!extraInfo.get<bool>("fast_affinity_defensive");
+                _fastAffinityB = !!extraInfo.get<bool>("fast_affinity_offensive");
 
                 // look for default activate and mode key settings
                 // note: the customEquipmentActivation array is only populated when starting a game
@@ -610,12 +610,12 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(const oo::PList& extra
 // weapon properties follow
 - (BOOL)isTurretLaser
 {
-    return oo::PListView(_weaponInfo).get<bool>(@"is_turret_laser", NO);
+    return _weaponInfo.get<bool>("is_turret_laser", false);
 }
 
 - (BOOL)isMiningLaser
 {
-    return oo::PListView(_weaponInfo).get<bool>(@"is_mining_laser", NO);
+    return _weaponInfo.get<bool>("is_mining_laser", false);
 }
 
 - (oo::PList)cxx_weaponInfo

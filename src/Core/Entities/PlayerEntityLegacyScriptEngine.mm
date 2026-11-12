@@ -1842,8 +1842,8 @@ static int shipsFound;
             } else if (alignmentChoice == "RIGHT") {
                 alignment = GUI_ALIGN_RIGHT;
             }
-            id colorDesc = [choiceOpts objectForKey:@"color"];
-            if (oo::PListView(choiceOpts).get<bool>(@"unselectable")) {
+            const oo::PList* colorDesc = choiceValue.find("color");
+            if (choiceValue.get<bool>("unselectable")) {
                 selectable = NO;
             }
             if (colorDesc != nullptr) {

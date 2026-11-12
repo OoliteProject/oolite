@@ -125,8 +125,6 @@ JSContext* gOOJSMainThreadContext = NULL;
 
 static JSValue sLegacyConstRewriter = JS_UNDEFINED;
 
-NSString* const kOOJavaScriptEngineWillResetNotification = @"org.aegidian.oolite OOJavaScriptEngine will reset";
-NSString* const kOOJavaScriptEngineDidResetNotification = @"org.aegidian.oolite OOJavaScriptEngine did reset";
 const char* const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine will reset";
 const char* const kOOJavaScriptEngineDidResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine did reset";
 
@@ -750,10 +748,20 @@ static BOOL GetLocationFromStack(const std::optional<std::string>& stack, std::o
     if (!stack.has_value())
         return NO;
 
+    std::string_view rest(*stack);
+    while (!rest.empty()) {
+        const std::size_t newline = rest.find('\n');
+        std::string_view frame = TrimWhitespace(rest.substr(0, newline));
+        rest = (newline == std::string_view::npos) ? std::string_view() : rest.substr(newline + 1);
+
+        if (frame.substr(0, 3) != "at ")
+            continue;
+        frame.remove_prefix(3);
+
         // The first "(" opens the location: the path may itself contain parentheses ("Program Files (x86)").
-        NSRange open = [frame rangeOfString:@"("];
-        if (open.location != NSNotFound && [frame hasSuffix:@")"]) {
-            frame = [frame substringWithRange:NSMakeRange(open.location + 1, [frame length] - open.location - 2)];
+        const std::size_t open = frame.find('(');
+        if (open != std::string_view::npos && !frame.empty() && frame.back() == ')') {
+            frame = frame.substr(open + 1, frame.size() - open - 2);
         }
 
         // file:line:column; the file may itself contain colons.
@@ -798,7 +806,7 @@ static void LogProblem(JSContext* context, const std::string& severity, const st
     OOJavaScriptEngine* jsEng = [OOJavaScriptEngine sharedEngine];
 
     // Skip the rest if this is a warning being ignored. Errors and exceptions always go to the debug monitor.
-    if ([severity isEqualToString:@"warning"] && !OOLogWillDisplayMessagesInClass(messageClass))
+    if (severity == "warning" && !oo::log::willDisplay(messageClass))
         return;
 
     // avoid windows DEP exceptions!

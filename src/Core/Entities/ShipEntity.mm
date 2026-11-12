@@ -421,7 +421,7 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
     _showDamage = shipDict.get<bool>("show_damage", (energy_recharge_rate > 0));
     // Each new ship should start in seemingly good operating condition, unless specifically told not to - this does not affect the ship's energy levels
-    [self setThrowSparks:oo::PListView(shipDict).get<bool>(@"throw_sparks", NO)];
+    [self setThrowSparks:shipDict.get<bool>("throw_sparks", NO)];
 
     weapon_facings = shipDict.get<int>("weapon_facings", VALID_WEAPON_FACINGS) & VALID_WEAPON_FACINGS;
     if (weapon_facings & WEAPON_FACING_FORWARD)
@@ -506,8 +506,8 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     max_cargo = shipDict.get<unsigned int>("max_cargo");
     extra_cargo = shipDict.get<unsigned int>("extra_cargo", 15);
 
-    hyperspaceMotorSpinTime = oo::PListView(shipDict).get<float>(@"hyperspace_motor_spin_time", DEFAULT_HYPERSPACE_SPIN_TIME);
-    if (!oo::PListView(shipDict).get<bool>(@"hyperspace_motor", YES))
+    hyperspaceMotorSpinTime = shipDict.get<float>("hyperspace_motor_spin_time", DEFAULT_HYPERSPACE_SPIN_TIME);
+    if (!shipDict.get<bool>("hyperspace_motor", YES))
         hyperspaceMotorSpinTime = -1;
 
     name = shipDict.get<std::string>("name", "?");
@@ -523,12 +523,12 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     if (modelName.has_value()) {
         OOMesh* mesh = nil;
 
-        mesh = [OOMesh meshWithName:oo::StdString(modelName)
-                           cacheKey:oo::OptionalString([NSString stringWithFormat:@"%@-%.3f", _shipKey, _scaleFactor])
-                 materialDictionary:oo::PListFrom(oo::PListView(shipDict).get<NSDictionary*>(@"materials"))
-                  shadersDictionary:oo::PListFrom(oo::PListView(shipDict).get<NSDictionary*>(@"shaders"))
-                             smooth:oo::PListView(shipDict).get<bool>(@"smooth", NO)
-                       shaderMacros:oo::PListFrom(OODefaultShipShaderMacros())
+        mesh = [OOMesh meshWithName:*modelName
+                           cacheKey:oo::str::format("%s-%.3f", _shipKey.value_or("(null)").c_str(), _scaleFactor) // %@ printed nil as (null)
+                 materialDictionary:DictionaryForKey(shipDict, "materials")
+                  shadersDictionary:DictionaryForKey(shipDict, "shaders")
+                             smooth:shipDict.get<bool>("smooth", false)
+                       shaderMacros:OODefaultShipShaderMacros()
                 shaderBindingTarget:self
                         scaleFactor:_scaleFactor
                      cacheWriteable:YES];
@@ -751,7 +751,7 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     primaryRole.reset();
 
     [self setOwner:self];
-    [self setHulk:oo::PListView(shipDict).get<bool>(@"is_hulk")];
+    [self setHulk:shipDict.get<bool>("is_hulk")];
 
     // these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined. nil means use default from shipData.
     [self setScannerDisplayColor1:nil];
@@ -816,7 +816,7 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     [self setBeaconLabel:oo::NSStringOrNil(label)];
 
     // contact tracking entities
-    [self setTrackCloseContacts:oo::PListView(shipDict).get<bool>(@"track_contacts", NO)];
+    [self setTrackCloseContacts:shipDict.get<bool>("track_contacts", NO)];
 
     // ship skin insulation factor (1.0 is normal)
     [self setHeatInsulation:shipDict.get<float>("heat_insulation", [self hasHeatShield] ? 2.0 : 1.0)];
@@ -983,8 +983,8 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
         return NO;
     }
 
-    if (!asTurret && [self isStation] && oo::PListView(subentDict).get<bool>(@"is_dock")) {
-        subentity = [UNIVERSE newDockWithName:subentKey andScaleFactor:_scaleFactor];
+    if (!asTurret && [self isStation] && subentDict.get<bool>("is_dock")) {
+        subentity = [UNIVERSE newDockWithName:oo::NSStringFrom(*subentKey) andScaleFactor:_scaleFactor];
     } else {
         subentity = [UNIVERSE newSubentityWithName:oo::NSStringFrom(*subentKey) andScaleFactor:_scaleFactor];
     }
@@ -1024,12 +1024,12 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
     bounding_box_add_vector(&totalBoundingBox, sebb.max);
     bounding_box_add_vector(&totalBoundingBox, sebb.min);
 
-    if (!asTurret && [self isStation] && oo::PListView(subentDict).get<bool>(@"is_dock")) {
-        BOOL allow_docking = oo::PListView(subentDict).get<bool>(@"allow_docking", YES);
-        BOOL ddc = oo::PListView(subentDict).get<bool>(@"disallowed_docking_collides", NO);
-        BOOL allow_launching = oo::PListView(subentDict).get<bool>(@"allow_launching", YES);
+    if (!asTurret && [self isStation] && subentDict.get<bool>("is_dock")) {
+        BOOL allow_docking = subentDict.get<bool>("allow_docking", true);
+        BOOL ddc = subentDict.get<bool>("disallowed_docking_collides", false);
+        BOOL allow_launching = subentDict.get<bool>("allow_launching", true);
         // do not include this key in OOShipRegistry; should never be set by shipdata
-        BOOL virtual_dock = oo::PListView(subentDict).get<bool>(@"_is_virtual_dock", NO);
+        BOOL virtual_dock = subentDict.get<bool>("_is_virtual_dock", false);
         if (virtual_dock) {
             [(DockEntity*)subentity setVirtual];
         }
@@ -1637,7 +1637,7 @@ static ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other);
 
 - (BOOL)countsAsKill
 {
-    return oo::PListView([self shipInfoDictionary]).get<bool>(@"counts_as_kill", YES);
+    return shipinfoDictionary.get<bool>("counts_as_kill", true);
 }
 
 - (void)setUpEscorts
@@ -6757,8 +6757,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
     if (planets.empty())
         return nil;
 
-    planets = [planets sortedArrayUsingFunction:OOSortFunction(ComparePlanetsBySurfaceDistance) context:self];
-    result = [planets objectAtIndex:0];
+    // ComparePlanetsBySurfaceDistance's order; the nearest comes first.
+    std::stable_sort(planets.begin(), planets.end(), [self](const oo::ObjCRef<OOPlanetEntity*>& a, const oo::ObjCRef<OOPlanetEntity*>& b) {
+        return ComparePlanetsBySurfaceDistance(a.get(), b.get(), self) == NSOrderedAscending;
+    });
+    result = planets[0].get();
 
     return result;
 }
@@ -7884,15 +7887,15 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
     _scaleFactor *= factor;
     OOMesh* mesh = nil;
 
-    NSDictionary* shipDict = [self shipInfoDictionary];
-    NSString* modelName = oo::PListView(shipDict).get<NSString*>(@"model");
-    if (modelName != nil) {
-        mesh = [OOMesh meshWithName:oo::StdString(modelName)
-                           cacheKey:oo::OptionalString([NSString stringWithFormat:@"%@-%.3f", _shipKey, _scaleFactor])
-                 materialDictionary:oo::PListFrom(oo::PListView(shipDict).get<NSDictionary*>(@"materials"))
-                  shadersDictionary:oo::PListFrom(oo::PListView(shipDict).get<NSDictionary*>(@"shaders"))
-                             smooth:oo::PListView(shipDict).get<bool>(@"smooth", NO)
-                       shaderMacros:oo::PListFrom(OODefaultShipShaderMacros())
+    const oo::PList& shipDict = shipinfoDictionary;
+    const std::optional<std::string> modelName = StringForKey(shipDict, "model");
+    if (modelName.has_value()) {
+        mesh = [OOMesh meshWithName:*modelName
+                           cacheKey:oo::str::format("%s-%.3f", _shipKey.value_or("(null)").c_str(), _scaleFactor) // %@ printed nil as (null)
+                 materialDictionary:DictionaryForKey(shipDict, "materials")
+                  shadersDictionary:DictionaryForKey(shipDict, "shaders")
+                             smooth:shipDict.get<bool>("smooth", false)
+                       shaderMacros:OODefaultShipShaderMacros()
                 shaderBindingTarget:self
                         scaleFactor:factor
                      cacheWriteable:writeToCache];

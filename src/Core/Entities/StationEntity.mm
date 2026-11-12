@@ -2021,7 +2021,7 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
 
 - (BOOL)isRotatingStation
 {
-    if (oo::PListView(shipinfoDictionary).get<bool>(@"rotating", NO))
+    if (shipinfoDictionary.get<bool>("rotating", false))
         return YES;
     // legacy. Sent to the roles object as before (nil when absent, whose zeroed range is not NSNotFound).
     const oo::PList* roles = shipinfoDictionary.find("roles");

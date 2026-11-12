@@ -390,11 +390,11 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value)
     }
     const oo::PList next = coordinatesStack[1];
 
-    docking_stage = oo::PListView(nextCoords).get<int>(@"docking_stage");
-    speedAdvised = oo::PListView(nextCoords).get<float>(@"speed");
-    rangeAdvised = oo::PListView(nextCoords).get<float>(@"range");
-    BOOL match_rotation = oo::PListView(nextCoords).get<bool>(@"match_rotation");
-    NSString* comms_message = oo::PListView(nextCoords).get<NSString*>(@"comms_message");
+    docking_stage = next.get<int>("docking_stage");
+    speedAdvised = next.get<float>("speed");
+    rangeAdvised = next.get<float>("range");
+    BOOL match_rotation = next.get<bool>("match_rotation");
+    const std::optional<std::string> comms_message = OptionalStringValue(next.find("comms_message"));
 
     if (comms_message) {
         [station sendExpandedMessage:oo::NSStringFrom(*comms_message) toShip:ship];
