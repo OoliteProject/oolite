@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 
 class ShipEntity;
 
-enum { kOOMeshToOctreeConverterSmallDataCapacity = 16 };
+inline constexpr uint32_t kOOMeshToOctreeConverterSmallDataCapacity = 16;
 
 struct OOMeshToOctreeConverterInternalData {
   Triangle* triangles;

@@ -142,7 +142,7 @@ typedef enum {
 #include "OOCompassMode.tbl"
 } OOCompassMode;
 
-enum { kOOCompassModeDefault = COMPASS_MODE_BASIC };
+inline constexpr OOCompassMode kOOCompassModeDefault = COMPASS_MODE_BASIC;
 
 #undef ENTRY
 
@@ -181,7 +181,7 @@ enum {
   MAX_ENTITY_UID = MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
 };
 
-enum { kOOVariableTechLevel = 99 };
+inline constexpr int kOOVariableTechLevel = 99;
 typedef std::size_t OOTechLevelID;  // 0..14, 99 is special. oo::kNotFound is
                                     // used, so std::size_t required.
 

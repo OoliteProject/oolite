@@ -30,7 +30,7 @@ SOFTWARE.
 #include "OOSound.h"
 #include "Universe.h"
 
-enum { kNoSlot = UINT8_MAX };
+constexpr uint8_t kNoSlot = UINT8_MAX;
 
 using PoolElement = struct OOSoundSourcePoolElement {
   OOSoundSource* source;  // one retain, or null

@@ -53,7 +53,7 @@ typedef struct {
   Vector k;  // direction vectors
 } Frame;
 
-enum { kExhaustFrameCount = 16 };
+inline constexpr int kExhaustFrameCount = 16;
 
 /*	The ships make it with exhaustForShip(). The engine's JS
    questions reach it through the root's virtual members, an owner's

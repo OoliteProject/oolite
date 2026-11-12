@@ -340,7 +340,7 @@ void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
           As of r5374, up to 16 entries are stored on the stack and there is no
           benefit to specifying a minimum here any longer.
   */
-  enum { kFactor = 2 };
+  constexpr uint32_t kFactor = 2;
   uint32_t subCapacity = data->count * kFactor;
 
 #define DECL_GEOMETRY(NAME, CAP) \

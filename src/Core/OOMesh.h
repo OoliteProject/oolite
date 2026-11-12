@@ -74,7 +74,7 @@ class OOMeshBuffer;  // OOMesh.cpp: one refcounted buffer (an oo::Data), shared
 #include "OOProfilingStopwatch.h"
 #endif
 
-enum { kOOMeshMaxMaterials = 8 };
+inline constexpr int kOOMeshMaxMaterials = 8;
 
 typedef uint16_t OOMeshSmoothGroup;
 typedef uint8_t OOMeshMaterialIndex, OOMeshMaterialCount;

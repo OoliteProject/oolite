@@ -40,7 +40,7 @@ SOFTWARE.
 
 class OOSoundChannel;
 
-enum { kMixerGeneralChannels = 32 };
+inline constexpr int kMixerGeneralChannels = 32;
 
 class OOSoundMixer : public oo::RefCounted {
  public:

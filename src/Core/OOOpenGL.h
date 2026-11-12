@@ -193,7 +193,8 @@ void GLDrawPoints(OOGLVector* points, int n);
 void GLDrawFilledPoints(OOGLVector* points, int n);
 void GLDrawQuadStrip(OOGLVector* points, int n);
 
-enum { kOOShaderSettingDefault = SHADERS_NOT_SUPPORTED };
+inline constexpr OOShaderSetting kOOShaderSettingDefault =
+    SHADERS_NOT_SUPPORTED;
 
 // The shader mode strings (OOShaderSettingFromString() and friends) are
 // declared in OOConstToString.h.
