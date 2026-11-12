@@ -427,7 +427,8 @@ MA 02110-1301, USA.
                     break;
                 case HW_BUTTON:
                     allowedThings = DESC(@"stickmapper-allowed-button");
-                    int bf = [butFuncKey integerValue];
+                    int bf;
+                    bf = [butFuncKey integerValue];
                     if (bf < 10000) {
                         if (bf >= BUTTON_GUILEFT && bf <= BUTTON_GUISELECT) {
                             assignment = [self describeStickDict:
