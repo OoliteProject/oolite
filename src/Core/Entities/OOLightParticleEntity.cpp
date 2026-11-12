@@ -179,7 +179,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
 
   OOViewID viewDir =
       (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{});
-  if (viewDir != VIEW_GUI_DISPLAY)
+  if (viewDir != OOViewID::kGUIDisplay)
     OOGLMultModelView(
         (PLAYER != nullptr ? PLAYER->drawRotationMatrix() : OOMatrix{}));
   if (OOTexture* blob = texture())
@@ -194,8 +194,8 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
 
   OOGLBEGIN(GL_QUADS);
   switch (viewDir) {
-    case VIEW_FORWARD:
-    case VIEW_GUI_DISPLAY:
+    case OOViewID::kForward:
+    case OOViewID::kGUIDisplay:
       glTexCoord2f(0.0, 1.0);
       glVertex3f(-_diameter, -_diameter, -viewOffset);
 
@@ -209,7 +209,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
       glVertex3f(-_diameter, _diameter, -viewOffset);
       break;
 
-    case VIEW_AFT:
+    case OOViewID::kAft:
       glTexCoord2f(0.0, 1.0);
       glVertex3f(_diameter, -_diameter, viewOffset);
 
@@ -223,7 +223,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
       glVertex3f(_diameter, _diameter, viewOffset);
       break;
 
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       glTexCoord2f(0.0, 1.0);
       glVertex3f(-viewOffset, -_diameter, _diameter);
 
@@ -237,7 +237,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
       glVertex3f(-viewOffset, _diameter, _diameter);
       break;
 
-    case VIEW_PORT:
+    case OOViewID::kPort:
       glTexCoord2f(0.0, 1.0);
       glVertex3f(viewOffset, -_diameter, -_diameter);
 
@@ -251,7 +251,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
       glVertex3f(viewOffset, _diameter, -_diameter);
       break;
 
-    case VIEW_CUSTOM: {
+    case OOViewID::kCustom: {
       ::PlayerEntity* player = PLAYER;
       Vector vi =
           (player != nullptr ? player->getCustomViewRightVector() : Vector{});

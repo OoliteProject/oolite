@@ -621,7 +621,7 @@ static JSValue GlobalSetScreenBackground(OOJS_NATIVE_ARGS) {
   }
 
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) ==
-      VIEW_GUI_DISPLAY) {
+      OOViewID::kGUIDisplay) {
     GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     oo::PList descriptor = gui->textureDescriptorFromJSValue(
         value, context, "setScreenBackground()");
@@ -724,7 +724,7 @@ static JSValue GlobalSetScreenOverlay(OOJS_NATIVE_ARGS) {
   }
 
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) ==
-      VIEW_GUI_DISPLAY) {
+      OOViewID::kGUIDisplay) {
     GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     oo::PList descriptor =
         gui->textureDescriptorFromJSValue(value, context, "setScreenOverlay()");

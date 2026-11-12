@@ -324,7 +324,7 @@ void Reset() {
     gSharedUniverse = new StandInUniverse();
     gSharedUniverse->market = oo::makeRef<OOCommodityMarket>();
   }
-  gSharedUniverse->view = VIEW_FORWARD;
+  gSharedUniverse->view = OOViewID::kForward;
   PlayerEntity* p = Player();
   p->pitch = p->roll = p->heat = 0.0f;
   p->appetite = 0.0f;
@@ -578,7 +578,7 @@ OO_TEST(living) {
 
   {
     oo::AutoreleaseScope pool;
-    for (OOViewID view : {VIEW_FORWARD, VIEW_AFT, VIEW_STARBOARD, VIEW_PORT}) {
+    for (OOViewID view : {OOViewID::kForward, OOViewID::kAft, OOViewID::kStarboard, OOViewID::kPort}) {
       Reset();
       gSharedUniverse->view = view;
       PlayerEntity* p = Player();

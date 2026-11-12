@@ -480,7 +480,7 @@ void PlayerEntity::deferredInit() {
   fov_delta = 2.0;  // multiply by 2 each second
 #endif
 
-  compassMode = COMPASS_MODE_BASIC;
+  compassMode = OOCompassMode::kBasic;
 
   afterburnerSoundLooping = false;
 
@@ -1824,9 +1824,9 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
                                          // compatibility.
 
   if (hasEquipmentItemProviding("EQ_ADVANCED_COMPASS"))
-    compassMode = COMPASS_MODE_PLANET;
+    compassMode = OOCompassMode::kPlanet;
   else
-    compassMode = COMPASS_MODE_BASIC;
+    compassMode = OOCompassMode::kBasic;
   compassTarget = nullptr;
 
   // speech
@@ -2596,7 +2596,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
 
   ecm_in_operation = false;
   last_ecm_time = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
-  compassMode = COMPASS_MODE_BASIC;
+  compassMode = OOCompassMode::kBasic;
   ident_engaged = false;
 
   max_cargo = 20;  // will be reset later
@@ -2920,7 +2920,7 @@ GLfloat PlayerEntity::lookingAtSunWithThresholdAngleCos(
       if (oo::EntityIsPlanet(uni_entities[i]) ||
           (oo::EntityIsShip(uni_entities[i]) && uni_entities[i]->isVisible())) {
         // the player ship can't shadow internal views
-        if (EXPECT(vdir > VIEW_STARBOARD ||
+        if (EXPECT(vdir > OOViewID::kStarboard ||
                    !oo::EntityIsPlayer(uni_entities[i]))) {
           float shadow = 1.5f;
           shadowAtPointOcclusionToValue(viewpointPosition(), 1.0f,
@@ -2940,19 +2940,19 @@ GLfloat PlayerEntity::lookingAtSunWithThresholdAngleCos(
       viewpointPosition(), (sun != nullptr ? sun->getPosition() : HPVector{})));
   unitRelativePosition = vector_normal_or_zbasis(relativePosition);
   switch (vdir) {
-    case VIEW_FORWARD:
+    case OOViewID::kForward:
       measuredCos = -dot_product(unitRelativePosition, v_forward);
       break;
-    case VIEW_AFT:
+    case OOViewID::kAft:
       measuredCos = +dot_product(unitRelativePosition, v_forward);
       break;
-    case VIEW_PORT:
+    case OOViewID::kPort:
       measuredCos = +dot_product(unitRelativePosition, v_right);
       break;
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       measuredCos = -dot_product(unitRelativePosition, v_right);
       break;
-    case VIEW_CUSTOM: {
+    case OOViewID::kCustom: {
       Vector relativeView = getCustomViewForwardVector();
       Vector absoluteView = quaternion_rotate_vector(
           quaternion_conjugate(getOrientation()), relativeView);
@@ -3403,7 +3403,7 @@ void PlayerEntity::doBookkeeping(double delta_t) {
           oo::ReleaseEntity(
               player_ship);  // we only wanted it for its polygons!
       }
-      if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(VIEW_FORWARD);
+      if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
       if (UNIVERSE != nullptr)
         UNIVERSE->setBlockJSPlayerShipProps(false);  // re-enable player.ship!
       enterDock(oo::ToStation(dockTargetEntity));
@@ -4223,9 +4223,9 @@ void PlayerEntity::performWitchspaceExitUpdates(OOTimeDelta delta_t) {
             3.0);
       // and reset the compass
       if (hasEquipmentItemProviding("EQ_ADVANCED_COMPASS"))
-        compassMode = COMPASS_MODE_PLANET;
+        compassMode = OOCompassMode::kPlanet;
       else
-        compassMode = COMPASS_MODE_BASIC;
+        compassMode = OOCompassMode::kBasic;
     } else {
       if ((UNIVERSE != nullptr ? UNIVERSE->inInterstellarSpace() : false)) {
         if (UNIVERSE != nullptr)
@@ -4715,16 +4715,16 @@ Vector PlayerEntity::viewpointOffset() {
   // now done by positioning break pattern correctly
 
   switch ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{})) {
-    case VIEW_FORWARD:
+    case OOViewID::kForward:
       return forwardViewOffset;
-    case VIEW_AFT:
+    case OOViewID::kAft:
       return aftViewOffset;
-    case VIEW_PORT:
+    case OOViewID::kPort:
       return portViewOffset;
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       return starboardViewOffset;
     /* GILES custom viewpoints */
-    case VIEW_CUSTOM:
+    case OOViewID::kCustom:
       return customViewOffset;
       /* -- */
 
@@ -5340,10 +5340,10 @@ void PlayerEntity::validateCompassTarget() {
     OOAegisStatus aegis = checkForAegis();
 
     switch (getCompassMode()) {
-      case COMPASS_MODE_INACTIVE:
+      case OOCompassMode::kInactive:
         break;
 
-      case COMPASS_MODE_BASIC:
+      case OOCompassMode::kBasic:
         if ((aegis == OOAegisStatus::kCloseToMainPlanet ||
              aegis == OOAegisStatus::kInDockingRange) &&
             the_station) {
@@ -5353,23 +5353,23 @@ void PlayerEntity::validateCompassTarget() {
         }
         break;
 
-      case COMPASS_MODE_PLANET:
+      case OOCompassMode::kPlanet:
         new_target = the_planet;
         break;
 
-      case COMPASS_MODE_STATION:
+      case OOCompassMode::kStation:
         new_target = the_station;
         break;
 
-      case COMPASS_MODE_SUN:
+      case OOCompassMode::kSun:
         new_target = the_sun;  // the sun is C++
         break;
 
-      case COMPASS_MODE_TARGET:
+      case OOCompassMode::kTarget:
         new_target = the_target;
         break;
 
-      case COMPASS_MODE_BEACONS:
+      case OOCompassMode::kBeacons:
         new_target = beacon;
         break;
     }
@@ -5377,7 +5377,7 @@ void PlayerEntity::validateCompassTarget() {
     if (new_target == nullptr ||
         oo::EntityStatus(new_target) < OOEntityStatus::kActive ||
         oo::EntityStatus(new_target) == OOEntityStatus::kInHold) {
-      setCompassMode(COMPASS_MODE_PLANET);
+      setCompassMode(OOCompassMode::kPlanet);
       new_target = the_planet;
     }
 
@@ -5396,30 +5396,30 @@ void PlayerEntity::validateCompassTarget() {
 
 std::optional<std::string> PlayerEntity::compassTargetLabel() {
   switch (compassMode) {
-    case COMPASS_MODE_INACTIVE:
+    case OOCompassMode::kInactive:
       return "";
-    case COMPASS_MODE_BASIC:
+    case OOCompassMode::kBasic:
       return "";
-    case COMPASS_MODE_BEACONS: {
+    case OOCompassMode::kBeacons: {
       Entity* target = getCompassTargetEntity();
       if (target) {
         return oo::BeaconLabel(target);  // the beacon category's answer
       }
       return "";
     }
-    case COMPASS_MODE_PLANET:
+    case OOCompassMode::kPlanet:
       return ((UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr) != nullptr
                   ? UNIVERSE->planet()->name()
                   : std::optional<std::string>());
-    case COMPASS_MODE_SUN:
+    case OOCompassMode::kSun:
       return ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) != nullptr
                   ? UNIVERSE->sun()->name()
                   : std::optional<std::string>());
-    case COMPASS_MODE_STATION:
+    case OOCompassMode::kStation:
       return ((UNIVERSE != nullptr ? UNIVERSE->station() : nullptr) != nullptr
                   ? UNIVERSE->station()->getDisplayName()
                   : std::optional<std::string>());
-    case COMPASS_MODE_TARGET:
+    case OOCompassMode::kTarget:
       return OO_DESC("oolite-beacon-label-target");
   }
   return "";
@@ -5437,9 +5437,9 @@ void PlayerEntity::setPrevCompassMode() {
   Entity* beacon = nullptr;  // the C++ beacons, linked through their objects
 
   switch (compassMode) {
-    case COMPASS_MODE_INACTIVE:
-    case COMPASS_MODE_BASIC:
-    case COMPASS_MODE_PLANET:
+    case OOCompassMode::kInactive:
+    case OOCompassMode::kBasic:
+    case OOCompassMode::kPlanet:
       beacon = (UNIVERSE != nullptr ? UNIVERSE->lastBeacon() : nullptr);
       while (beacon != nullptr && oo::BeaconIsJammingScanning(beacon)) {
         beacon = oo::PrevBeacon(beacon);
@@ -5447,12 +5447,12 @@ void PlayerEntity::setPrevCompassMode() {
       setNextBeacon(beacon);
 
       if (beacon != nullptr) {
-        setCompassMode(COMPASS_MODE_BEACONS);
+        setCompassMode(OOCompassMode::kBeacons);
         break;
       }
       // else fall through to switch to target mode.
 
-    case COMPASS_MODE_BEACONS:
+    case OOCompassMode::kBeacons:
       beacon = nextBeacon();
       do {
         beacon = oo::PrevBeacon(beacon);
@@ -5461,30 +5461,30 @@ void PlayerEntity::setPrevCompassMode() {
 
       if (beacon == nullptr) {
         if (primaryTarget()) {
-          setCompassMode(COMPASS_MODE_TARGET);
+          setCompassMode(OOCompassMode::kTarget);
         } else {
-          setCompassMode(COMPASS_MODE_SUN);
+          setCompassMode(OOCompassMode::kSun);
         }
         break;
       }
       break;
 
-    case COMPASS_MODE_TARGET:
-      setCompassMode(COMPASS_MODE_SUN);
+    case OOCompassMode::kTarget:
+      setCompassMode(OOCompassMode::kSun);
       break;
 
-    case COMPASS_MODE_SUN:
+    case OOCompassMode::kSun:
       aegis = checkForAegis();
       if (aegis == OOAegisStatus::kCloseToMainPlanet ||
           aegis == OOAegisStatus::kInDockingRange) {
-        setCompassMode(COMPASS_MODE_STATION);
+        setCompassMode(OOCompassMode::kStation);
       } else {
-        setCompassMode(COMPASS_MODE_PLANET);
+        setCompassMode(OOCompassMode::kPlanet);
       }
       break;
 
-    case COMPASS_MODE_STATION:
-      setCompassMode(COMPASS_MODE_PLANET);
+    case OOCompassMode::kStation:
+      setCompassMode(OOCompassMode::kPlanet);
       break;
   }
 }
@@ -5494,31 +5494,31 @@ void PlayerEntity::setNextCompassMode() {
   Entity* beacon = nullptr;  // the C++ beacons, linked through their objects
 
   switch (compassMode) {
-    case COMPASS_MODE_INACTIVE:
-    case COMPASS_MODE_BASIC:
-    case COMPASS_MODE_PLANET:
+    case OOCompassMode::kInactive:
+    case OOCompassMode::kBasic:
+    case OOCompassMode::kPlanet:
       aegis = checkForAegis();
       if ((UNIVERSE != nullptr && UNIVERSE->station() != nullptr) &&
           (aegis == OOAegisStatus::kCloseToMainPlanet ||
            aegis == OOAegisStatus::kInDockingRange)) {
-        setCompassMode(COMPASS_MODE_STATION);
+        setCompassMode(OOCompassMode::kStation);
       } else {
-        setCompassMode(COMPASS_MODE_SUN);
+        setCompassMode(OOCompassMode::kSun);
       }
       break;
 
-    case COMPASS_MODE_STATION:
-      setCompassMode(COMPASS_MODE_SUN);
+    case OOCompassMode::kStation:
+      setCompassMode(OOCompassMode::kSun);
       break;
 
-    case COMPASS_MODE_SUN:
+    case OOCompassMode::kSun:
       if (primaryTarget()) {
-        setCompassMode(COMPASS_MODE_TARGET);
+        setCompassMode(OOCompassMode::kTarget);
         break;
       }
       // else fall through to switch to beacon mode.
 
-    case COMPASS_MODE_TARGET:
+    case OOCompassMode::kTarget:
       beacon = (UNIVERSE != nullptr ? UNIVERSE->firstBeacon() : nullptr);
       while (beacon != nullptr && oo::BeaconIsJammingScanning(beacon)) {
         beacon = oo::NextBeacon(beacon);
@@ -5526,12 +5526,12 @@ void PlayerEntity::setNextCompassMode() {
       setNextBeacon(beacon);
 
       if (beacon != nullptr)
-        setCompassMode(COMPASS_MODE_BEACONS);
+        setCompassMode(OOCompassMode::kBeacons);
       else
-        setCompassMode(COMPASS_MODE_PLANET);
+        setCompassMode(OOCompassMode::kPlanet);
       break;
 
-    case COMPASS_MODE_BEACONS:
+    case OOCompassMode::kBeacons:
       beacon = nextBeacon();
       do {
         beacon = oo::NextBeacon(beacon);
@@ -5539,7 +5539,7 @@ void PlayerEntity::setNextCompassMode() {
       setNextBeacon(beacon);
 
       if (beacon == nullptr) {
-        setCompassMode(COMPASS_MODE_PLANET);
+        setCompassMode(OOCompassMode::kPlanet);
       }
       break;
   }
@@ -5949,19 +5949,19 @@ void PlayerEntity::interpretAIMessage(const std::string& message) {
 
   // aegis messages to advanced compass so in planet mode it behaves like the
   // old compass
-  if (compassMode != COMPASS_MODE_BASIC) {
+  if (compassMode != OOCompassMode::kBasic) {
     if ((message == "AEGIS_CLOSE_TO_MAIN_PLANET") &&
-        (compassMode == COMPASS_MODE_PLANET)) {
+        (compassMode == OOCompassMode::kPlanet)) {
       playAegisCloseToPlanet();
-      setCompassMode(COMPASS_MODE_STATION);
+      setCompassMode(OOCompassMode::kStation);
     }
     if ((message == "AEGIS_IN_DOCKING_RANGE") &&
-        (compassMode == COMPASS_MODE_PLANET)) {
+        (compassMode == OOCompassMode::kPlanet)) {
       playAegisCloseToStation();
-      setCompassMode(COMPASS_MODE_STATION);
+      setCompassMode(OOCompassMode::kStation);
     }
-    if ((message == "AEGIS_NONE") && (compassMode == COMPASS_MODE_STATION)) {
-      setCompassMode(COMPASS_MODE_PLANET);
+    if ((message == "AEGIS_NONE") && (compassMode == OOCompassMode::kStation)) {
+      setCompassMode(OOCompassMode::kPlanet);
     }
   }
 }
@@ -6604,7 +6604,7 @@ void PlayerEntity::takeHeatDamage(double amount) {
 
   if ((UNIVERSE != nullptr ? UNIVERSE->getDisplayGUI() : false))
     switchToMainView();  // Clear the F7 screen!
-  if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(VIEW_FORWARD);
+  if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
 
   if (status() == OOEntityStatus::kDead) return nullptr;
 
@@ -7066,7 +7066,7 @@ void PlayerEntity::getDestroyedBy(Entity* whom, OOShipDamageType type) {
   disengageAutopilot();
 
   if (UNIVERSE != nullptr) UNIVERSE->setDisplayText(false);
-  if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(VIEW_AFT);
+  if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kAft);
 
   // Let scripts know the player died.
   noteKilledBy(whom,
@@ -7407,8 +7407,8 @@ void PlayerEntity::witchStart() {
 
   OOViewID previousViewDirection =
       (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{});
-  if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(VIEW_FORWARD);
-  noteSwitchToView(VIEW_FORWARD,
+  if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
+  noteSwitchToView(OOViewID::kForward,
                    previousViewDirection);  // notifies scripts of the switch
 
   currentWeaponFacing = OOWeaponFacing::kForward;
@@ -12175,8 +12175,8 @@ bool PlayerEntity::addEquipmentItem(const std::string& equipmentKey,
 
   if (OK) {
     if (hasEquipmentItemProviding("EQ_ADVANCED_COMPASS") &&
-        getCompassMode() == COMPASS_MODE_BASIC) {
-      setCompassMode(COMPASS_MODE_PLANET);
+        getCompassMode() == OOCompassMode::kBasic) {
+      setCompassMode(OOCompassMode::kPlanet);
     }
 
     if (!equipmentKey.empty())
@@ -12264,8 +12264,8 @@ void PlayerEntity::validateCustomEquipActivationArray() {
 
 void PlayerEntity::removeEquipmentItem(const std::string& equipmentKey) {
   if (!hasEquipmentItemProviding("EQ_ADVANCED_COMPASS") &&
-      getCompassMode() != COMPASS_MODE_BASIC) {
-    setCompassMode(COMPASS_MODE_BASIC);
+      getCompassMode() != OOCompassMode::kBasic) {
+    setCompassMode(OOCompassMode::kBasic);
   }
   ShipEntity::removeEquipmentItem(equipmentKey);
   if (!hasOneEquipmentItem(equipmentKey, false,

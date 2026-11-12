@@ -561,7 +561,7 @@ OO_TEST(beaconCode)
 	int cleared = sGame->_cleared;
 	OO_CHECK_EVAL("(function () { waypoint.beaconCode = ''; return waypoint.beaconCode; })()", "null");
 	OO_CHECK_EQ(sGame->_cleared, cleared + 1);
-	OO_CHECK_EQ(sGame->_compassMode, static_cast<int>(COMPASS_MODE_PLANET));
+	OO_CHECK_EQ(sGame->_compassMode, static_cast<int>(OOCompassMode::kPlanet));
 	// Clearing a waypoint that is not a beacon does nothing.
 	OO_CHECK_EVAL("(function () { waypoint.beaconCode = null; return waypoint.beaconCode; })()", "null");
 	OO_CHECK_EQ(sGame->_cleared, cleared + 1);

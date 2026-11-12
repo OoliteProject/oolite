@@ -43,8 +43,8 @@ void ProxyPlayerEntity::initProxyDefaults() {
   setDialFuelScoopStatus(hasScoop() ? OOFuelScoopStatus::kOkay
                                     : OOFuelScoopStatus::kNotInstalled);
   setCompassMode(hasEquipmentItemProviding("EQ_ADVANCED_COMPASS")
-                     ? COMPASS_MODE_PLANET
-                     : COMPASS_MODE_BASIC);
+                     ? OOCompassMode::kPlanet
+                     : OOCompassMode::kBasic);
   setTradeInFactor(95);
 }
 

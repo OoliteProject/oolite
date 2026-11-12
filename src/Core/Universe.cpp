@@ -1507,7 +1507,7 @@ void Universe::setUpUniverseFromStation() {
     }
   }
 
-  if (!autoSaveNow) setViewDirection(VIEW_FORWARD);
+  if (!autoSaveNow) setViewDirection(OOViewID::kForward);
   displayGUI = false;
 
   // reset atmospherics in case we ejected while we were in the atmophere
@@ -1543,7 +1543,7 @@ void Universe::setUpUniverseFromWitchspace() {
   if (playerObject != nullptr)
     oo::ReleaseEntity(playerObject);  // released here
 
-  setViewDirection(VIEW_FORWARD);
+  setViewDirection(OOViewID::kForward);
 
   // the printed lines go to the player's comm log
   std::vector<std::string> printedLines;
@@ -1592,7 +1592,7 @@ void Universe::setUpUniverseFromMisjump() {
   if (playerObject != nullptr)
     oo::ReleaseEntity(playerObject);  // released here
 
-  setViewDirection(VIEW_FORWARD);
+  setViewDirection(OOViewID::kForward);
 
   displayGUI = false;
 }
@@ -3590,7 +3590,7 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
   oo::PList colorDesc;
   oo::Ref<OOColor> color;
 
-  setViewDirection(VIEW_FORWARD);
+  setViewDirection(OOViewID::kForward);
 
   q.w = -q.w;  // reverse the quaternion because this is from the player's
                // viewpoint
@@ -5056,25 +5056,25 @@ void Universe::getActiveViewMatrix(OOMatrix* outMatrix, Vector* outForward,
   ::PlayerEntity* player = nullptr;
 
   switch (viewDirection) {
-    case VIEW_AFT:
+    case OOViewID::kAft:
       *outMatrix = aft_matrix;
       *outForward = vector_flip(kBasisZVector);
       *outUp = kBasisYVector;
       return;
 
-    case VIEW_PORT:
+    case OOViewID::kPort:
       *outMatrix = port_matrix;
       *outForward = vector_flip(kBasisXVector);
       *outUp = kBasisYVector;
       return;
 
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       *outMatrix = starboard_matrix;
       *outForward = kBasisXVector;
       *outUp = kBasisYVector;
       return;
 
-    case VIEW_CUSTOM:
+    case OOViewID::kCustom:
       OOCParameterAssert(
           outUp !=
           nullptr);  // as the assert above (the analyser follows this one)
@@ -5086,10 +5086,10 @@ void Universe::getActiveViewMatrix(OOMatrix* outMatrix, Vector* outForward,
       *outUp = (player != nullptr ? player->getCustomViewUpVector() : Vector{});
       return;
 
-    case VIEW_FORWARD:
-    case VIEW_NONE:
-    case VIEW_GUI_DISPLAY:
-    case VIEW_BREAK_PATTERN:;
+    case OOViewID::kForward:
+    case OOViewID::kNone:
+    case OOViewID::kGUIDisplay:
+    case OOViewID::kBreakPattern:;
   }
 
   *outMatrix = fwd_matrix;
@@ -6609,13 +6609,13 @@ Entity* Universe::firstEntityTargetedByPlayer() {
   // Note: deliberately tied to view direction, not weapon facing. All custom
   // views count as forward for targeting.
   switch (viewDirection) {
-    case VIEW_AFT:
+    case OOViewID::kAft:
       quaternion_rotate_about_axis(&q1, u1, M_PI);
       break;
-    case VIEW_PORT:
+    case OOViewID::kPort:
       quaternion_rotate_about_axis(&q1, u1, 0.5 * M_PI);
       break;
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       quaternion_rotate_about_axis(&q1, u1, -0.5 * M_PI);
       break;
     default:
@@ -6669,28 +6669,28 @@ Entity* Universe::firstEntityTargetedByPlayerPrecisely() {
   };
 
   switch (viewDirection) {
-    case VIEW_FORWARD:
+    case OOViewID::kForward:
       targetFacing = OOWeaponFacing::kForward;
       laserPortOffset = firstWeaponOffset(
           (player != nullptr ? player->getForwardWeaponOffset()
                              : std::vector<Vector>()));
       break;
 
-    case VIEW_AFT:
+    case OOViewID::kAft:
       targetFacing = OOWeaponFacing::kAft;
       laserPortOffset =
           firstWeaponOffset((player != nullptr ? player->getAftWeaponOffset()
                                                : std::vector<Vector>()));
       break;
 
-    case VIEW_PORT:
+    case OOViewID::kPort:
       targetFacing = OOWeaponFacing::kPort;
       laserPortOffset =
           firstWeaponOffset((player != nullptr ? player->getPortWeaponOffset()
                                                : std::vector<Vector>()));
       break;
 
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       targetFacing = OOWeaponFacing::kStarboard;
       laserPortOffset = firstWeaponOffset(
           (player != nullptr ? player->getStarboardWeaponOffset()
@@ -6968,31 +6968,32 @@ void Universe::setViewDirection(OOViewID vd) {
   std::optional<std::string> ms;
   bool guiSelected = false;
 
-  if ((viewDirection == vd) && (vd != VIEW_CUSTOM) && (!displayGUI)) return;
+  if ((viewDirection == vd) && (vd != OOViewID::kCustom) && (!displayGUI))
+    return;
 
   switch (vd) {
-    case VIEW_FORWARD:
+    case OOViewID::kForward:
       ms = cxx_OOLookUpDescriptionPRIV("forward-view-string");
       break;
 
-    case VIEW_AFT:
+    case OOViewID::kAft:
       ms = cxx_OOLookUpDescriptionPRIV("aft-view-string");
       break;
 
-    case VIEW_PORT:
+    case OOViewID::kPort:
       ms = cxx_OOLookUpDescriptionPRIV("port-view-string");
       break;
 
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       ms = cxx_OOLookUpDescriptionPRIV("starboard-view-string");
       break;
 
-    case VIEW_CUSTOM:
+    case OOViewID::kCustom:
       ms = (PLAYER != nullptr ? PLAYER->getCustomViewDescription()
                               : std::optional<std::string>());
       break;
 
-    case VIEW_GUI_DISPLAY:
+    case OOViewID::kGUIDisplay:
       setDisplayText(true);
       setMainLightPosition((Vector){DEMO_LIGHT_POSITION});
       guiSelected = true;
@@ -7012,7 +7013,7 @@ void Universe::setViewDirection(OOViewID vd) {
       gameController()->setMouseInteractionModeForFlight();
   }
 
-  if (viewDirection != vd || viewDirection == VIEW_CUSTOM) {
+  if (viewDirection != vd || viewDirection == OOViewID::kCustom) {
 #if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
     bool gamePaused =
         (gameController() != nullptr ? gameController()->isGamePaused()
@@ -7021,8 +7022,9 @@ void Universe::setViewDirection(OOViewID vd) {
     bool gamePaused = false;
 #endif
     // view notifications for when the player switches to/from gui!
-    // if (EXPECT(viewDirection == VIEW_GUI_DISPLAY || vd == VIEW_GUI_DISPLAY ))
-    // [PLAYER noteViewDidChangeFrom:viewDirection toView:vd];
+    // if (EXPECT(viewDirection == OOViewID::kGUIDisplay || vd ==
+    // OOViewID::kGUIDisplay )) [PLAYER noteViewDidChangeFrom:viewDirection
+    // toView:vd];
     viewDirection = vd;
     if (ms.has_value() && !gamePaused) {
       addMessage(ms, 3);
@@ -7034,7 +7036,7 @@ void Universe::setViewDirection(OOViewID vd) {
 
 void Universe::enterGUIViewModeWithMouseInteraction(bool mouseInteraction) {
   OOViewID vd = viewDirection;
-  setViewDirection(VIEW_GUI_DISPLAY);
+  setViewDirection(OOViewID::kGUIDisplay);
   if (viewDirection != vd) {
     ::PlayerEntity* player = PLAYER;
     JSContext* context = OOJSAcquireContext();

@@ -176,7 +176,7 @@ class FakePlayer : public PlayerEntity {
   bool getMassLockable() override { return true; }
   bool hyperspeedEngaged() override { return false; }
   Entity* getCompassTargetEntity() override { return _compassTarget; }
-  OOCompassMode getCompassMode() override { return COMPASS_MODE_PLANET; }
+  OOCompassMode getCompassMode() override { return OOCompassMode::kPlanet; }
   bool weaponsOnline() override { return true; }
   Vector viewpointOffsetAft() override { return make_vector(0, 0, -1); }
   Vector viewpointOffsetForward() override { return make_vector(0, 0, 1); }
@@ -478,7 +478,7 @@ void SetUp() {
       gOOPlayer;  // the one InitOOJSPlayerShip() made, which player.ship holds
 
   sUniverse = new FakeUniverse();
-  sUniverse->_viewDirection = VIEW_AFT;
+  sUniverse->_viewDirection = OOViewID::kAft;
   sUniverse->_gui = oo::makeRef<FakeGui>();
   sUniverse->_gui->_textColor = OOColor::colorWithRed(1.0f, 0.5f, 0.25f, 1.0f);
   sUniverse->_gui->_textCommsColor =
@@ -844,7 +844,7 @@ OO_TEST(setterChartAndCompass) {
       "undefined");
   OO_CHECK_LOG(sPlayer->_log,
                oo::str::format("setCompassMode %d; validateCompassTarget",
-                               static_cast<int>(COMPASS_MODE_SUN)));
+                               static_cast<int>(OOCompassMode::kSun)));
   // The compass target: only with an advanced compass; the modes are cycled
   // until it is found.
   OO_CHECK_EVAL(
@@ -862,8 +862,8 @@ OO_TEST(setterChartAndCompass) {
       "undefined");
   OO_CHECK_LOG(sPlayer->_log,
                oo::str::format("setCompassMode %d; setCompassMode %d",
-                               static_cast<int>(COMPASS_MODE_BASIC),
-                               static_cast<int>(COMPASS_MODE_PLANET)));
+                               static_cast<int>(OOCompassMode::kBasic),
+                               static_cast<int>(OOCompassMode::kPlanet)));
   OO_CHECK(Eval("(function () { player.ship.compassType = "
                 "'OO_COMPASSTYPE_FANCY'; })()")
                .rfind("threw: ", 0) == 0);
@@ -1016,7 +1016,7 @@ OO_TEST(customViews) {
   OO_CHECK_EVAL(
       "player.ship.resetCustomView()",
       "threw: PlayerShip.setCustomView only works when custom view is active.");
-  sUniverse->_viewDirection = VIEW_CUSTOM;
+  sUniverse->_viewDirection = OOViewID::kCustom;
   OO_CHECK_EVAL("player.ship.setCustomView([1, 2, 3], [1, 0, 0, 0])", "true");
   OO_CHECK_EVAL(
       "player.ship.setCustomView([1, 2, 3], [1, 0, 0, 0], 'WEAPON_FACING_AFT')",
@@ -1033,9 +1033,9 @@ OO_TEST(customViews) {
           "3.000000\"; \"weapon_facing\" = \"WEAPON_FACING_AFT\"; } 0; "
           "noteSwitchToView %d %d; "
           "resetCustomView; noteSwitchToView %d %d",
-          static_cast<int>(VIEW_CUSTOM), static_cast<int>(VIEW_CUSTOM),
-          static_cast<int>(VIEW_CUSTOM), static_cast<int>(VIEW_CUSTOM),
-          static_cast<int>(VIEW_CUSTOM), static_cast<int>(VIEW_CUSTOM)));
+          static_cast<int>(OOViewID::kCustom), static_cast<int>(OOViewID::kCustom),
+          static_cast<int>(OOViewID::kCustom), static_cast<int>(OOViewID::kCustom),
+          static_cast<int>(OOViewID::kCustom), static_cast<int>(OOViewID::kCustom)));
   OO_CHECK(Eval("player.ship.setCustomView([1, 2, 3])").rfind("threw: ", 0) ==
            0);
   OO_CHECK(Eval("player.ship.setCustomView('here', [1, 0, 0, 0])")
@@ -1047,7 +1047,7 @@ OO_TEST(customViews) {
                 "threw: Native exception: Tried to add nil value for key "
                 "'weapon_facing' to dictionary");
   OO_CHECK_LOG(sPlayer->_log, "");
-  sUniverse->_viewDirection = VIEW_AFT;
+  sUniverse->_viewDirection = OOViewID::kAft;
 
   OO_CHECK_EVAL("player.ship.resetScannerZoom()", "undefined");
   OO_CHECK_EVAL("player.ship.takeInternalDamage()", "true");

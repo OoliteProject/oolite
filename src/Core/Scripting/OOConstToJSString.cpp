@@ -102,9 +102,8 @@ static JSAtom sUndefinedAtom;
 #define DIFF_STRING_ENTRY(label, string) \
   {.value = (label), .cString = (string), .atom = JS_ATOM_NULL},
 
-static TableEntry sOOCompassModeTableEntries[] = {
-#include "OOCompassMode.tbl"
-};
+static std::array<TableEntry, kOOCompassModeTable.entries.size()>
+    sOOCompassModeTableEntries = EntriesFrom(kOOCompassModeTable);
 
 static std::array<TableEntry, kOOEntityStatusTable.entries.size()>
     sOOEntityStatusTableEntries = EntriesFrom(kOOEntityStatusTable);
@@ -121,9 +120,8 @@ static TableEntry sOOGUIScreenIDTableEntries[] = {
 static std::array<TableEntry, kOOScanClassTable.entries.size()>
     sOOScanClassTableEntries = EntriesFrom(kOOScanClassTable);
 
-static TableEntry sOOViewIDTableEntries[] = {
-#include "OOViewID.tbl"
-};
+static std::array<TableEntry, kOOViewIDTable.entries.size()>
+    sOOViewIDTableEntries = EntriesFrom(kOOViewIDTable);
 
 static std::array<TableEntry, kOOShipDamageTypeTable.entries.size()>
     sOOShipDamageTypeTableEntries = EntriesFrom(kOOShipDamageTypeTable);
@@ -139,7 +137,8 @@ static TableEntry sOOLongRangeChartModeTableEntries[] = {
 #undef GALACTIC_HYPERSPACE_ENTRY
 #undef DIFF_STRING_ENTRY
 
-ConstTable gOOCompassModeConstTable = TABLE(sOOCompassModeTableEntries);
+ConstTable gOOCompassModeConstTable = {sOOCompassModeTableEntries.size(),
+                                       sOOCompassModeTableEntries.data()};
 ConstTable gOOEntityStatusConstTable = {sOOEntityStatusTableEntries.size(),
                                         sOOEntityStatusTableEntries.data()};
 ConstTable gOOGalacticHyperspaceBehaviourConstTable = {
@@ -148,7 +147,8 @@ ConstTable gOOGalacticHyperspaceBehaviourConstTable = {
 ConstTable gOOGUIScreenIDConstTable = TABLE(sOOGUIScreenIDTableEntries);
 ConstTable gOOScanClassConstTable = {sOOScanClassTableEntries.size(),
                                      sOOScanClassTableEntries.data()};
-ConstTable gOOViewIDConstTable = TABLE(sOOViewIDTableEntries);
+ConstTable gOOViewIDConstTable = {sOOViewIDTableEntries.size(),
+                                  sOOViewIDTableEntries.data()};
 ConstTable gOOShipDamageTypeConstTable = {sOOShipDamageTypeTableEntries.size(),
                                           sOOShipDamageTypeTableEntries.data()};
 ConstTable gOOLegalStatusReasonConstTable = {

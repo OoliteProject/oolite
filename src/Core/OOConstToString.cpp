@@ -57,11 +57,8 @@ std::string cxx_OOStringFromBehaviour(OOBehaviour value) {
 }
 
 std::string cxx_OOStringFromCompassMode(OOCompassMode value) {
-  switch (value) {
-#include "OOCompassMode.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode value) {
@@ -114,9 +111,7 @@ OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string) {
 }
 
 OOCompassMode cxx_OOCompassModeFromString(const std::string& string) {
-#include "OOCompassMode.tbl"
-
-  return kOOCompassModeDefault;
+  return kOOCompassModeTable.value(string).value_or(kOOCompassModeDefault);
 }
 
 OOGalacticHyperspaceBehaviour cxx_OOGalacticHyperspaceBehaviourFromString(

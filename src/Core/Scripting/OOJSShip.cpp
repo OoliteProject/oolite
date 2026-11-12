@@ -1479,7 +1479,8 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
             UNIVERSE->clearBeacon(entity);  // the C++ entity
           if ((PLAYER != nullptr ? PLAYER->nextBeaconEntity() : nullptr) ==
               entity) {
-            if (PLAYER != nullptr) PLAYER->setCompassMode(COMPASS_MODE_PLANET);
+            if (PLAYER != nullptr)
+              PLAYER->setCompassMode(OOCompassMode::kPlanet);
           }
         }
       } else {

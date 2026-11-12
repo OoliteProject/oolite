@@ -444,16 +444,16 @@ void OOTrumble::updateTrumble(double delta_t) {
                       (player != nullptr ? player->dialRoll() : 0.0f));
   switch ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{})) {
     GLfloat t;
-    case VIEW_AFT:
+    case OOViewID::kAft:
       p_mov.x = -p_mov.x;
       p_mov.y = -p_mov.y;
       break;
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       t = p_mov.x;
       p_mov.x = -p_mov.y;
       p_mov.y = t;
       break;
-    case VIEW_PORT:
+    case OOViewID::kPort:
       t = p_mov.x;
       p_mov.x = p_mov.y;
       p_mov.y = -t;
