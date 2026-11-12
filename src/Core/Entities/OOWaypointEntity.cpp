@@ -174,8 +174,8 @@ void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent) {
 /* beacons */
 
 OOComparisonResult OOWaypointEntity::compareBeaconCodeWith(Entity* other) {
-  return (OOComparisonResult)oo::str::caseInsensitiveCompare(
-      beaconCode().value_or(""), oo::BeaconCode(other).value_or(""));
+  return static_cast<OOComparisonResult>(oo::str::caseInsensitiveCompare(
+      beaconCode().value_or(""), oo::BeaconCode(other).value_or("")));
 }
 
 std::optional<std::string> OOWaypointEntity::beaconCode() {

@@ -125,13 +125,13 @@ oo::PList StationEntity::launchIndependentShip(
 
   if ((trader && (randf() < 0.1)) || sunskimmer) {
     ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("sunskim-trader")
-                                : (::ShipEntity*)nullptr);
+                                : static_cast<::ShipEntity*>(nullptr));
     sunskimmer = true;
     trader = true;
     shipRole = "trader";  // make sure also sunskimmers get trader role.
   } else {
     ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(shipRole)
-                                : (::ShipEntity*)nullptr);
+                                : static_cast<::ShipEntity*>(nullptr));
   }
 
   if (!fitsInDock(ship)) {
@@ -173,8 +173,10 @@ oo::PList StationEntity::launchIndependentShip(
     addShipToLaunchQueue(ship, false);
 
     ::OOShipGroup* escortGroup =
-        (ship != nullptr ? ship->escortGroup() : (OOShipGroup*)nullptr);
-    if ((ship != nullptr ? ship->group() : (OOShipGroup*)nullptr) == nullptr) {
+        (ship != nullptr ? ship->escortGroup()
+                         : static_cast<OOShipGroup*>(nullptr));
+    if ((ship != nullptr ? ship->group()
+                         : static_cast<OOShipGroup*>(nullptr)) == nullptr) {
       if (ship != nullptr) ship->setGroup(escortGroup);
     }
     // Eric: Escorts are defined both as _group and as _escortGroup because
@@ -230,12 +232,14 @@ oo::PList StationEntity::launchPolice()  // called by name
      * ships */
     if ((Ranrot() & 3) + 9 < techlevel) {
       police_ship =
-          (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("interceptor")
-                               : (::ShipEntity*)nullptr);  // retain count = 1
+          (UNIVERSE != nullptr
+               ? UNIVERSE->newShipWithRole("interceptor")
+               : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     } else {
       police_ship =
-          (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("police")
-                               : (::ShipEntity*)nullptr);  // retain count = 1
+          (UNIVERSE != nullptr
+               ? UNIVERSE->newShipWithRole("police")
+               : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     }
 
     if (police_ship && fitsInDock(police_ship)) {
@@ -322,7 +326,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (defense_ship_key) {
     defense_ship =
         (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*defense_ship_key)
-                             : (::ShipEntity*)nullptr);
+                             : static_cast<::ShipEntity*>(nullptr));
   }
   // The retry below was a pointer comparison of the role with the default role
   // string: it ran exactly when shipdata supplied defense_ship_role
@@ -336,13 +340,13 @@ oo::PList StationEntity::launchPolice()  // called by name
     defense_ship = (UNIVERSE != nullptr
                         ? UNIVERSE->newShipWithRole(defense_ship_role.value_or(
                               default_defense_ship_role))
-                        : (::ShipEntity*)nullptr);
+                        : static_cast<::ShipEntity*>(nullptr));
   }
 
   if (!defense_ship && shipdataSuppliedRole)
     defense_ship = (UNIVERSE != nullptr
                         ? UNIVERSE->newShipWithRole(default_defense_ship_role)
-                        : (::ShipEntity*)nullptr);
+                        : static_cast<::ShipEntity*>(nullptr));
 
   if (!defense_ship || !fitsInDock(defense_ship)) {
     if (defense_ship != nullptr) oo::ReleaseEntity(defense_ship);
@@ -431,8 +435,9 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (scavengers_launched >= max_scavengers) return nullptr;
 
   scavenger_ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("scavenger")
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole("scavenger")
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (!fitsInDock(scavenger_ship)) {
     if (scavenger_ship != nullptr) oo::ReleaseEntity(scavenger_ship);
@@ -491,9 +496,9 @@ oo::PList StationEntity::launchPolice()  // called by name
   // count miners as scavengers...
   if (scavengers_launched >= max_scavengers) return nullptr;
 
-  miner_ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("miner")
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+  miner_ship = (UNIVERSE != nullptr
+                    ? UNIVERSE->newShipWithRole("miner")
+                    : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (!fitsInDock(miner_ship)) {
     if (miner_ship != nullptr) oo::ReleaseEntity(miner_ship);
@@ -555,8 +560,9 @@ oo::PList StationEntity::launchPolice()  // called by name
 
   // Yep! The standard hermit defence ships, even if they're the aggressor.
   pirate_ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("pirate")
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole("pirate")
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   // Nope, use standard pirates in a generic method.
 
   if (!fitsInDock(pirate_ship)) {
@@ -615,8 +621,9 @@ oo::PList StationEntity::launchPolice()  // called by name
   ::ShipEntity* shuttle_ship;
 
   shuttle_ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("shuttle")
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole("shuttle")
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (!fitsInDock(shuttle_ship)) {
     if (shuttle_ship != nullptr) oo::ReleaseEntity(shuttle_ship);
@@ -659,8 +666,9 @@ oo::PList StationEntity::launchPolice()  // called by name
   ::ShipEntity* escort_ship;
 
   escort_ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("escort")
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole("escort")
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (escort_ship && fitsInDock(escort_ship)) {
     if (!(escort_ship != nullptr
@@ -698,12 +706,14 @@ oo::PList StationEntity::launchPolice()  // called by name
 
     if ((Ranrot() & 7) + 6 <= techlevel)
       patrol_ship =
-          (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("interceptor")
-                               : (::ShipEntity*)nullptr);  // retain count = 1
+          (UNIVERSE != nullptr
+               ? UNIVERSE->newShipWithRole("interceptor")
+               : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     else
       patrol_ship =
-          (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("police")
-                               : (::ShipEntity*)nullptr);  // retain count = 1
+          (UNIVERSE != nullptr
+               ? UNIVERSE->newShipWithRole("police")
+               : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
     if (!fitsInDock(patrol_ship)) {
       if (patrol_ship != nullptr) oo::ReleaseEntity(patrol_ship);
@@ -759,8 +769,9 @@ void StationEntity::launchShipWithRole(
   }
   const std::string& shipRole = role;
   ::ShipEntity* ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(shipRole)
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole(shipRole)
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   if (ship && fitsInDock(ship)) {
     if (!(ship != nullptr ? ship->getCrew()
                           : std::optional<std::vector<oo::Ref<OOCharacter>>>())
@@ -1019,9 +1030,10 @@ bool StationEntity::setUpShipFromDictionary(const oo::PList& dict) {
           oo::str::split(*portDimensionsStr, "x");
       if (tokens.size() == 3) {
         // -floatValue
-        port_dimensions = make_vector((float)oo::str::doubleValue(tokens[0]),
-                                      (float)oo::str::doubleValue(tokens[1]),
-                                      (float)oo::str::doubleValue(tokens[2]));
+        port_dimensions =
+            make_vector(static_cast<float>(oo::str::doubleValue(tokens[0])),
+                        static_cast<float>(oo::str::doubleValue(tokens[1])),
+                        static_cast<float>(oo::str::doubleValue(tokens[2])));
       }
     }
   }
@@ -1036,13 +1048,13 @@ bool StationEntity::setUpShipFromDictionary(const oo::PList& dict) {
   equipmentPriceFactor =
       dict.get<oo::NonNegative<float>>("equipment_price_factor", 1.0);
   equipmentPriceFactor = fmax(equipmentPriceFactor, 0.5f);
-  hasNPCTraffic = (unsigned char)OOFuzzyBooleanFromPList(
+  hasNPCTraffic = static_cast<unsigned char>(OOFuzzyBooleanFromPList(
       dict.find("has_npc_traffic"),
-      (maxFlightSpeed == 0));  // carriers default to NO
+      (maxFlightSpeed == 0)));  // carriers default to NO
   hasPatrolShips =
       OOFuzzyBooleanFromPList(dict.find("has_patrol_ships"), false);
-  suppress_arrival_reports =
-      (unsigned char)dict.get<bool>("suppress_arrival_reports", false);
+  suppress_arrival_reports = static_cast<unsigned char>(
+      dict.get<bool>("suppress_arrival_reports", false));
   setAllegiance(OptionalStringValue(dict.find("allegiance")));
 
   marketCapacity =
@@ -1053,28 +1065,30 @@ bool StationEntity::setUpShipFromDictionary(const oo::PList& dict) {
                          ? *marketDefinitionValue
                          : oo::PList();  // oo_arrayForKey:
   marketScriptName = OptionalStringValue(dict.find("market_script"));
-  marketMonitored = (unsigned char)dict.get<bool>("market_monitored", false);
-  marketBroadcast = (unsigned char)dict.get<bool>("market_broadcast", true);
+  marketMonitored =
+      static_cast<unsigned char>(dict.get<bool>("market_monitored", false));
+  marketBroadcast =
+      static_cast<unsigned char>(dict.get<bool>("market_broadcast", true));
 
   // Non main stations may have requiresDockingClearance set to yes as a result
   // of the code below, but this variable should be irrelevant for them, as they
   // do not make use of it anyway.
-  requiresDockingClearance = (unsigned char)dict.get<bool>(
+  requiresDockingClearance = static_cast<unsigned char>(dict.get<bool>(
       "requires_docking_clearance",
       (UNIVERSE != nullptr ? UNIVERSE->dockingClearanceProtocolActive()
-                           : false));
+                           : false)));
 
   allowsFastDocking =
-      (unsigned char)dict.get<bool>("allows_fast_docking", false);
+      static_cast<unsigned char>(dict.get<bool>("allows_fast_docking", false));
 
   allowsAutoDocking =
-      (unsigned char)dict.get<bool>("allows_auto_docking", true);
+      static_cast<unsigned char>(dict.get<bool>("allows_auto_docking", true));
 
   allowsSaving =
       (UNIVERSE != nullptr ? UNIVERSE->deterministicPopulation() : false);
 
-  interstellarUndockingAllowed =
-      (unsigned char)dict.get<bool>("interstellar_undocking", false);
+  interstellarUndockingAllowed = static_cast<unsigned char>(
+      dict.get<bool>("interstellar_undocking", false));
 
   double unitime = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
 
@@ -1278,7 +1292,7 @@ void StationEntity::generateShipyard(OOTechLevelID stationTechLevel) {
   std::vector<oo::PList>* shipyard = getLocalShipyard();
   const oo::PList::Dict* shipyardRecord =
       (PLAYER != nullptr ? PLAYER->shipyardRecord()
-                         : (oo::PList::Dict*)nullptr);
+                         : static_cast<oo::PList::Dict*>(nullptr));
 
   // remove ships that the player has already bought
   for (i = 0; i < shipyard->size(); i++) {
@@ -1464,7 +1478,7 @@ void StationEntity::abortAllDockings() {
   ::PlayerEntity* player = PLAYER;
 
   if ((player != nullptr ? player->getTargetDockStation()
-                         : (::StationEntity*)nullptr) == this &&
+                         : static_cast<::StationEntity*>(nullptr)) == this &&
       (player != nullptr ? player->getDockingClearanceStatus()
                          : OODockingClearanceStatus{}) >=
           OODockingClearanceStatus::kRequested) {
@@ -1552,7 +1566,7 @@ oo::PList StationEntity::dockingInstructionsForShip(::ShipEntity* ship) {
                           : OODockingClearanceStatus{}) ==
            OODockingClearanceStatus::kRequested &&
        (this == (player != nullptr ? player->getTargetDockStation()
-                                   : (::StationEntity*)nullptr)));
+                                   : static_cast<::StationEntity*>(nullptr))));
 
   ::DockEntity* chosenDock = nullptr;
   std::optional<std::string> docking;  // nullopt: no dock asked yet (was nil)
@@ -1739,7 +1753,7 @@ void StationEntity::update(OOTimeDelta delta_t) {
 
   bool isDockingStation =
       (this == (player != nullptr ? player->getTargetDockStation()
-                                  : (::StationEntity*)nullptr));
+                                  : static_cast<::StationEntity*>(nullptr)));
   if (isDockingStation &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
           OOEntityStatus::kInFlight) {
@@ -2067,7 +2081,7 @@ void StationEntity::noteDockedShip(::ShipEntity* ship) {
 
   bool isDockingStation =
       (this == (player != nullptr ? player->getTargetDockStation()
-                                  : (::StationEntity*)nullptr));
+                                  : static_cast<::StationEntity*>(nullptr)));
   if (isDockingStation &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
           OOEntityStatus::kInFlight &&
@@ -2148,10 +2162,11 @@ void StationEntity::takeEnergyDamage(double amount, Entity* entPart,
   if (oo::EntityIsShip(other) && group != nullptr) {
     ::OOShipGroup* otherGroup =
         (oo::ToShip(other) != nullptr ? oo::ToShip(other)->group()
-                                      : (OOShipGroup*)nullptr);
-    isFriend = otherGroup == group ||
-               (otherGroup != nullptr ? otherGroup->leader()
-                                      : (::ShipEntity*)nullptr) == self;
+                                      : static_cast<OOShipGroup*>(nullptr));
+    isFriend =
+        otherGroup == group ||
+        (otherGroup != nullptr ? otherGroup->leader()
+                               : static_cast<::ShipEntity*>(nullptr)) == self;
   }
 
   // If this is the system's main station...
@@ -2230,9 +2245,10 @@ void StationEntity::setAlertLevel(OOStationAlertLevel level,
     OOStationAlertLevel oldLevel = alertLevel;
     alertLevel = level;
     if (signallingScript) {
-      self->doScriptEvent(OOJSID("alertConditionChanged"),
-                          std::vector<oo::PList>{oo::PList((int)level),
-                                                 oo::PList((int)oldLevel)});
+      self->doScriptEvent(
+          OOJSID("alertConditionChanged"),
+          std::vector<oo::PList>{oo::PList(static_cast<int>(level)),
+                                 oo::PList(static_cast<int>(oldLevel))});
     }
     switch (level) {
       case OOStationAlertLevel::kGreen:
@@ -2281,7 +2297,7 @@ void StationEntity::becomeExplosion() {
        (player != nullptr ? player->status() : OOEntityStatus{}) ==
            OOEntityStatus::kDocking) &&
       ((player != nullptr ? player->dockedStation()
-                          : (::StationEntity*)nullptr) == this)) {
+                          : static_cast<::StationEntity*>(nullptr)) == this)) {
     // undock the player!
     if (player != nullptr) player->leaveDock(this);
     if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
@@ -2363,7 +2379,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
   // time-out or cancellation (but only for the Player).
   if (!result && (other != nullptr ? other->getIsPlayer() : false) &&
       this == (player != nullptr ? player->getTargetDockStation()
-                                 : (::StationEntity*)nullptr)) {
+                                 : static_cast<::StationEntity*>(nullptr))) {
     switch ((player != nullptr ? player->getDockingClearanceStatus()
                                : OODockingClearanceStatus{})) {
       case OODockingClearanceStatus::kTimingOut:
@@ -2415,7 +2431,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
   // switching docking targets - even if we later set it back to NONE.
   if (!result && (other != nullptr ? other->getIsPlayer() : false) &&
       this != (player != nullptr ? player->getTargetDockStation()
-                                 : (::StationEntity*)nullptr)) {
+                                 : static_cast<::StationEntity*>(nullptr))) {
     player_reserved_dock = nullptr;  // and clear any previously reserved dock
     if (player != nullptr)
       player->setDockingClearanceStatus(OODockingClearanceStatus::kRequested);

@@ -241,7 +241,8 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
   if (techLevel > 14) techLevel = 14;
   _shuttlesOnGround = 1 + techLevel / 2;
   _shuttleLaunchInterval =
-      3600.0 / (double)_shuttlesOnGround;  // All are launched in one hour.
+      3600.0 /
+      static_cast<double>(_shuttlesOnGround);  // All are launched in one hour.
   _lastLaunchTime =
       (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) + 30.0 -
       _shuttleLaunchInterval;  // launch 30s after player enters universe.
@@ -411,9 +412,9 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
 }
 
 static Vector RandomHSBColor() {
-  return (Vector){(OOScalar)(gen_rnd_number() / 256.0),
-                  (OOScalar)(gen_rnd_number() / 256.0),
-                  (OOScalar)(0.5 + gen_rnd_number() / 512.0)};
+  return (Vector){static_cast<OOScalar>(gen_rnd_number() / 256.0),
+                  static_cast<OOScalar>(gen_rnd_number() / 256.0),
+                  static_cast<OOScalar>(0.5 + gen_rnd_number() / 512.0)};
 }
 
 static Vector LighterHSBColor(Vector c) {
@@ -659,7 +660,7 @@ OOPlanetEntity::~OOPlanetEntity() {
 std::optional<std::string> OOPlanetEntity::descriptionComponents() const {
   return std::format("position: {} radius: {:g} m",
                      cxx_HPVectorDescription(position),
-                     (double)collision_radius);
+                     static_cast<double>(collision_radius));
 }
 
 void OOPlanetEntity::setOrientation(Quaternion quat) {
@@ -784,7 +785,7 @@ void OOPlanetEntity::update(OOTimeDelta delta_t) {
           _cloudsShaderDrawable->setRadius(collision_radius);
       }
       if ((PLAYER != nullptr ? PLAYER->findNearestPlanet()
-                             : (OOPlanetEntity*)nullptr) ==
+                             : static_cast<OOPlanetEntity*>(nullptr)) ==
           this)  // ensure no problems in case of more than one planets
       {
         if (UNIVERSE != nullptr)
@@ -967,8 +968,9 @@ void OOPlanetEntity::launchShuttle() {
                     vector_forward_from_quaternion(q1), start_distance)));
 
   ::ShipEntity* shuttle_ship =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("shuttle")
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole("shuttle")
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   if (shuttle_ship) {
     if ((shuttle_ship != nullptr
              ? shuttle_ship->getCrew()

@@ -72,9 +72,9 @@ void OOECMBlastEntity::update(OOTimeDelta delta_t) {
 
   if (_nextBlast <= 0.0 && validShip) {
     // Do ECM stuff.
-    double radius =
-        OOClamp_0_1_d((double)(ECM_PULSE_COUNT - _blastsRemaining + 1) * 1.0 /
-                      (double)ECM_PULSE_COUNT);
+    double radius = OOClamp_0_1_d(
+        static_cast<double>(ECM_PULSE_COUNT - _blastsRemaining + 1) * 1.0 /
+        static_cast<double>(ECM_PULSE_COUNT));
     radius *= SCANNER_MAX_RANGE;
     _blastsRemaining--;
 

@@ -359,10 +359,11 @@ void DockEntity::abortAllDockings() {
   ::PlayerEntity* player = PLAYER;
   ::StationEntity* station = oo::ToStation(parentEntity());
   bool isDockingStation =
-      (station == (player != nullptr ? player->getTargetDockStation()
-                                     : (::StationEntity*)nullptr)) &&
+      (station == (player != nullptr
+                       ? player->getTargetDockStation()
+                       : static_cast<::StationEntity*>(nullptr))) &&
       ((station != nullptr ? station->playerReservedDock()
-                           : (::DockEntity*)nullptr) == this);
+                           : static_cast<::DockEntity*>(nullptr)) == this);
   if (isDockingStation &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
           OOEntityStatus::kInFlight &&
@@ -474,7 +475,7 @@ oo::PList DockEntity::dockingInstructionsForShip(::ShipEntity* ship) {
   OOUniversalID ship_id =
       (ship != nullptr ? ship->getUniversalID() : OOUniversalID{});
   const unsigned short shipID =
-      (unsigned short)ship_id;  // +numberWithUnsignedShort:
+      static_cast<unsigned short>(ship_id);  // +numberWithUnsignedShort:
   ::StationEntity* station = oo::ToStation(parentEntity());
 
   HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(
@@ -545,7 +546,7 @@ oo::PList DockEntity::dockingInstructionsForShip(::ShipEntity* ship) {
     // some error has occurred - log it, and send the try-again message
     oo::PList::Dict queue;
     for (const auto& [queuedID, queuedStack] : shipsOnApproach)
-      queue[std::format("{}", (unsigned)queuedID)] =
+      queue[std::format("{}", static_cast<unsigned>(queuedID))] =
           oo::PList(oo::PList::Array(queuedStack));
     OO_LOG_ERR("station.issueDockingInstructions.failed",
                "couldn't addShipToShipsOnApproach:{} in {}, retrying later -- "
@@ -702,10 +703,9 @@ void DockEntity::addShipToShipsOnApproach(::ShipEntity* ship) {
   int corridor_count = 9;
   int corridor_final_approach = 3;
 
-  const unsigned short shipID =
-      (unsigned short)(ship != nullptr
-                           ? ship->getUniversalID()
-                           : OOUniversalID{});  // +numberWithUnsignedShort:
+  const unsigned short shipID = static_cast<unsigned short>(
+      ship != nullptr ? ship->getUniversalID()
+                      : OOUniversalID{});  // +numberWithUnsignedShort:
   ::StationEntity* station = oo::ToStation(parentEntity());
 
   HPVector launchVector = HPvector_forward_from_quaternion(quaternion_multiply(
@@ -788,7 +788,7 @@ void DockEntity::addShipToShipsOnApproach(::ShipEntity* ship) {
       float ssize = MAX(port_depth, 1500.0);
       rx += c2 * ssize;
       ry += s2 * ssize;
-      rz += ssize * ((float)offset_id3 / 4.0);
+      rz += ssize * (static_cast<float>(offset_id3) / 4.0);
 
       //			// docking.debug: Adjusted coordinates by
       // c2/s2/ssize factors
@@ -848,7 +848,7 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
   OOUniversalID ship_id =
       (ship != nullptr ? ship->getUniversalID() : OOUniversalID{});
   const unsigned short shipID =
-      (unsigned short)ship_id;  // +numberWithUnsignedShort:
+      static_cast<unsigned short>(ship_id);  // +numberWithUnsignedShort:
 
   shipsOnApproach.erase(shipID);
 
@@ -900,7 +900,7 @@ bool DockEntity::shipIsInDockingQueue(::ShipEntity* ship) {
   OOUniversalID ship_id =
       (ship != nullptr ? ship->getUniversalID() : OOUniversalID{});
   const unsigned short shipID =
-      (unsigned short)ship_id;  // +numberWithUnsignedShort:
+      static_cast<unsigned short>(ship_id);  // +numberWithUnsignedShort:
 
   if (shipsOnApproach.contains(shipID)) {
     return true;
@@ -909,7 +909,7 @@ bool DockEntity::shipIsInDockingQueue(::ShipEntity* ship) {
   if ((ship != nullptr ? ship->getIsPlayer() : false) &&
       (oo::ToStation(owner()) != nullptr
            ? oo::ToStation(owner())->playerReservedDock()
-           : (::DockEntity*)nullptr) == this) {
+           : static_cast<::DockEntity*>(nullptr)) == this) {
     return true;
   }
   return false;
@@ -1289,7 +1289,7 @@ bool DockEntity::dockingCorridorIsEmpty() {
 
   ::StationEntity* station = oo::ToStation(parentEntity());
   if ((station != nullptr ? station->playerReservedDock()
-                          : (::DockEntity*)nullptr) == this) {
+                          : static_cast<::DockEntity*>(nullptr)) == this) {
     // player probably will not appreciate a ship launch right now
     return false;
   }

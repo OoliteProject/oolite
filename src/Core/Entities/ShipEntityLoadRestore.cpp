@@ -148,7 +148,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
   if (_group != nullptr) {
     result[KEY_GROUP_ID] =
         oo::PList::unsignedInteger(GroupIDForGroup(_group.get(), *context));
-    if ((_group != nullptr ? _group->leader() : (::ShipEntity*)nullptr) == this)
+    if ((_group != nullptr ? _group->leader()
+                           : static_cast<::ShipEntity*>(nullptr)) == this)
       result[KEY_IS_GROUP_LEADER] = oo::PList(static_cast<bool>(true));
     const std::optional<std::string> groupName =
         (_group != nullptr ? _group->name() : std::optional<std::string>());
@@ -166,8 +167,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
      escorted group.
   */
   else if (_group != nullptr &&
-           (_group != nullptr ? _group->leader() : (::ShipEntity*)nullptr) ==
-               this) {
+           (_group != nullptr ? _group->leader()
+                              : static_cast<::ShipEntity*>(nullptr)) == this) {
     result[KEY_ESCORT_GROUP_ID] =
         oo::PList::unsignedInteger(GroupIDForGroup(_group.get(), *context));
   }
@@ -254,7 +255,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
 
     ship = oo::ToShip(oo::AutoreleaseEntity(
         (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*shipPrimaryRole)
-                             : (::ShipEntity*)nullptr)));
+                             : static_cast<::ShipEntity*>(nullptr))));
     if (ship == nullptr) return nullptr;
   }
 
@@ -304,10 +305,12 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
       if (group != nullptr) group->setName(groupName);
     }
     if ((ship != nullptr ? ship->hasPrimaryRole("escort") : false) &&
-        ship != (group != nullptr ? group->leader() : (::ShipEntity*)nullptr)) {
+        ship != (group != nullptr ? group->leader()
+                                  : static_cast<::ShipEntity*>(nullptr))) {
       if (ship != nullptr)
-        ship->setOwner(
-            (group != nullptr ? group->leader() : (::ShipEntity*)nullptr));
+        ship->setOwner((group != nullptr
+                            ? group->leader()
+                            : static_cast<::ShipEntity*>(nullptr)));
     }
   }
 

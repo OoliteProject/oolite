@@ -248,7 +248,7 @@ OOComparisonResult oo::CompareBeaconCodes(Entity* beacon, Entity* other) {
     return effect->compareBeaconCodeWith(other);
   if (OOWaypointEntity* waypoint = WaypointPart(beacon))
     return waypoint->compareBeaconCodeWith(other);
-  return (OOComparisonResult)0;
+  return static_cast<OOComparisonResult>(0);
 }
 
 bool oo::BeaconIsJammingScanning(Entity* beacon) {

@@ -498,38 +498,38 @@ Vector cxx_positionOffsetForShipInRotationToAlignment(
       ship->findBoundingBoxRelativeToPosition(kZeroHPVector, i, j, k);
   Vector result = kZeroVector;
   switch (padAlign[0]) {
-    case (uint16_t)'c':
-    case (uint16_t)'C':
+    case static_cast<uint16_t>('c'):
+    case static_cast<uint16_t>('C'):
       result.x = 0.5 * (arbb.min.x + arbb.max.x);
       break;
-    case (uint16_t)'M':
+    case static_cast<uint16_t>('M'):
       result.x = arbb.max.x;
       break;
-    case (uint16_t)'m':
+    case static_cast<uint16_t>('m'):
       result.x = arbb.min.x;
       break;
   }
   switch (padAlign[1]) {
-    case (uint16_t)'c':
-    case (uint16_t)'C':
+    case static_cast<uint16_t>('c'):
+    case static_cast<uint16_t>('C'):
       result.y = 0.5 * (arbb.min.y + arbb.max.y);
       break;
-    case (uint16_t)'M':
+    case static_cast<uint16_t>('M'):
       result.y = arbb.max.y;
       break;
-    case (uint16_t)'m':
+    case static_cast<uint16_t>('m'):
       result.y = arbb.min.y;
       break;
   }
   switch (padAlign[2]) {
-    case (uint16_t)'c':
-    case (uint16_t)'C':
+    case static_cast<uint16_t>('c'):
+    case static_cast<uint16_t>('C'):
       result.z = 0.5 * (arbb.min.z + arbb.max.z);
       break;
-    case (uint16_t)'M':
+    case static_cast<uint16_t>('M'):
       result.z = arbb.max.z;
       break;
-    case (uint16_t)'m':
+    case static_cast<uint16_t>('m'):
       result.z = arbb.min.z;
       break;
   }
@@ -552,7 +552,7 @@ struct AuthorityPredicateParameter {
 
 bool AuthorityPredicate(Entity* entity, void* parameter) {
   const AuthorityPredicateParameter* param =
-      (const AuthorityPredicateParameter*)parameter;
+      static_cast<const AuthorityPredicateParameter*>(parameter);
   Entity* entityPart = entity;
 
   // Select main station, if victim is in aegis
@@ -764,8 +764,8 @@ bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
 #endif
 
   // can it be 'mined' for alloys?
-  canFragment =
-      (unsigned char)FuzzyBooleanForKey(shipDict, "fragment_chance", 0.9);
+  canFragment = static_cast<unsigned char>(
+      FuzzyBooleanForKey(shipDict, "fragment_chance", 0.9));
   isWreckage = false;
 
   // can subentities be destroyed separately?
@@ -805,7 +805,7 @@ bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
   }
 
   float density = shipDict.get<float>("density", 1.0f);
-  if (octree) mass = (GLfloat)(density * 20.0f * octree->volume());
+  if (octree) mass = static_cast<GLfloat>(density * 20.0f * octree->volume());
 
   default_laser_color =
       OOColor::brightColorWithDescription(ValueForKey(shipDict, "laser_color"));
@@ -960,7 +960,8 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
     weapon_damage_override = 0;
   }
 
-  scannerRange = shipDict.get<float>("scanner_range", (float)SCANNER_MAX_RANGE);
+  scannerRange = shipDict.get<float>("scanner_range",
+                                     static_cast<float>(SCANNER_MAX_RANGE));
 
   fuel = shipDict.get<unsigned short>(
       "fuel");  // Does it make sense that this defaults to 0? Should it not be
@@ -977,7 +978,8 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   setAITo(shipDict.get<std::string>("ai_type", "nullAI.plist"));
 
   likely_cargo = shipDict.get<unsigned int>("likely_cargo");
-  noRocks = (unsigned char)FuzzyBooleanForKey(shipDict, "no_boulders");
+  noRocks =
+      static_cast<unsigned char>(FuzzyBooleanForKey(shipDict, "no_boulders"));
 
   commodity_amount = 0;
   commodity_type = std::nullopt;
@@ -1137,7 +1139,7 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
 
   // unpiloted (like missiles asteroids etc.)
   _explicitlyUnpiloted =
-      (unsigned char)FuzzyBooleanForKey(shipDict, "unpiloted");
+      static_cast<unsigned char>(FuzzyBooleanForKey(shipDict, "unpiloted"));
   if (_explicitlyUnpiloted) {
     setCrew(std::nullopt);
   } else {
@@ -1195,17 +1197,18 @@ void ShipEntity::deserializeShipSubEntitiesFrom(const std::string& string) {
   const std::vector<oo::EntityHold> subEnts = shipSubEntities();
   const std::u16string units = oo::utf8ToUtf16(
       string);  // indexed in UTF-16 units, as -substringWithRange: was
-  std::ptrdiff_t i, idx, start = (std::ptrdiff_t)subEnts.size() - 1;
-  std::ptrdiff_t strMaxIdx = (std::ptrdiff_t)units.size() - 1;
+  std::ptrdiff_t i, idx,
+      start = static_cast<std::ptrdiff_t>(subEnts.size()) - 1;
+  std::ptrdiff_t strMaxIdx = static_cast<std::ptrdiff_t>(units.size()) - 1;
 
   ::ShipEntity* se = nullptr;
 
   for (i = start; i >= 0; i--) {
-    se = oo::ToShip(subEnts[(std::size_t)i].get());
+    se = oo::ToShip(subEnts[static_cast<std::size_t>(i)].get());
     idx = (se != nullptr
                ? se->subIdx()
                : 0);  // should be identical to i, but better safe than sorry...
-    if (idx <= strMaxIdx && units[(std::size_t)idx] == u'0') {
+    if (idx <= strMaxIdx && units[static_cast<std::size_t>(idx)] == u'0') {
       if (se != nullptr) se->setSuppressExplosion(false);
       if (se != nullptr) se->setEnergy(1);
       if (se != nullptr)
@@ -1315,11 +1318,11 @@ bool ShipEntity::setUpOneStandardSubentity(const oo::PList& subentDict,
   if (!asTurret && getIsStation() && subentDict.get<bool>("is_dock")) {
     subentity = (UNIVERSE != nullptr
                      ? UNIVERSE->newDockWithName(*subentKey, _scaleFactor)
-                     : (::ShipEntity*)nullptr);
+                     : static_cast<::ShipEntity*>(nullptr));
   } else {
     subentity = (UNIVERSE != nullptr
                      ? UNIVERSE->newSubentityWithName(*subentKey, _scaleFactor)
-                     : (::ShipEntity*)nullptr);
+                     : static_cast<::ShipEntity*>(nullptr));
   }
   if (subentity == nullptr) {
     OO_LOG("setup.ship.badEntry.subentities", "Failed to set up entity {}",
@@ -1464,7 +1467,7 @@ void ShipEntity::clearSubEntities() {
   collision_radius = findCollisionRadius();
   _profileRadius = collision_radius;
   float density = shipinfoDictionary.get<float>("density", 1.0f);
-  if (octree) mass = (GLfloat)(density * 20.0f * octree->volume());
+  if (octree) mass = static_cast<GLfloat>(density * 20.0f * octree->volume());
 }
 
 Quaternion ShipEntity::subEntityRotationalVelocity() {
@@ -1585,7 +1588,8 @@ std::vector<oo::EntityHold> ShipEntity::exhausts() {
 #ifndef NDEBUG
   // Sanity check - there have been problems here, see fireLaserShotInDirection:
   // -parentEntity will take care of reporting insanity.
-  if ((result != nullptr ? result->parentEntity() : (Entity*)nullptr) != this)
+  if ((result != nullptr ? result->parentEntity()
+                         : static_cast<Entity*>(nullptr)) != this)
     result = nullptr;
 #endif
 
@@ -1679,7 +1683,7 @@ GLfloat ShipEntity::doesHitLine(HPVector v0, HPVector v1) {
 
 GLfloat ShipEntity::doesHitLine(HPVector v0, HPVector v1,
                                 ::ShipEntity** hitEntity) {
-  if (hitEntity) hitEntity[0] = (::ShipEntity*)nullptr;
+  if (hitEntity) hitEntity[0] = static_cast<::ShipEntity*>(nullptr);
   Vector u0 = HPVectorToVector(
       HPvector_between(position, v0));  // relative to origin of model / octree
   Vector u1 = HPVectorToVector(HPvector_between(position, v1));
@@ -1930,7 +1934,7 @@ void ShipEntity::setUpEscorts() {
   if (escortRole != defaultRole) {
     if (!oo::ToShip(oo::AutoreleaseEntity(
             (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(escortRole)
-                                 : (::ShipEntity*)nullptr)))) {
+                                 : static_cast<::ShipEntity*>(nullptr))))) {
       escortRole = defaultRole;
     }
   }
@@ -1942,7 +1946,7 @@ void ShipEntity::setUpEscorts() {
   if (escortShipKey.has_value()) {
     if (!oo::ToShip(oo::AutoreleaseEntity(
             (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*escortShipKey)
-                                 : (::ShipEntity*)nullptr)))) {
+                                 : static_cast<::ShipEntity*>(nullptr))))) {
       escortShipKey = std::nullopt;
     } else {
       escortRole = std::format("[{}]", *escortShipKey);
@@ -1969,8 +1973,9 @@ void ShipEntity::setUpEscorts() {
 
     ::ShipEntity* escorter = nullptr;
 
-    escorter = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(escortRole)
-                                    : (::ShipEntity*)nullptr);  // retained
+    escorter = (UNIVERSE != nullptr
+                    ? UNIVERSE->newShipWithRole(escortRole)
+                    : static_cast<::ShipEntity*>(nullptr));  // retained
 
     if (escorter == nullptr) break;
     setUpOneEscort(escorter, escortGroup, escortRole, ex_pos,
@@ -2045,8 +2050,9 @@ void ShipEntity::setUpMixedEscorts() {
       if (!escortRole.empty()) {
         HPVector ex_pos = coordinatesForEscortPosition(currentEscortCount);
         ::ShipEntity* escorter =
-            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(escortRole)
-                                 : (::ShipEntity*)nullptr);  // retained
+            (UNIVERSE != nullptr
+                 ? UNIVERSE->newShipWithRole(escortRole)
+                 : static_cast<::ShipEntity*>(nullptr));  // retained
         if (escorter == nullptr) {
           break;
         }
@@ -2208,7 +2214,8 @@ void ShipEntity::setUpOneEscort(::ShipEntity* escorter,
     autoAI = autoAIMap.get<std::string>("escort", "nullAI.plist");
   }
 
-  escortAI = (escorter != nullptr ? escorter->getAI() : (::AI*)nullptr);
+  escortAI =
+      (escorter != nullptr ? escorter->getAI() : static_cast<::AI*>(nullptr));
 
   // Let the populator decide which AI to use, unless we have a working
   // alternative AI & we specify auto_ai = NO ! (Both callers always passed a
@@ -2409,16 +2416,16 @@ void ShipEntity::addSubentityToCollisionRadius(Entity* subent) {
   pod = (UNIVERSE != nullptr
              ? UNIVERSE->newShipWithRole(
                    StringForKey(info, "escape_pod_role").value_or(""))
-             : (::ShipEntity*)nullptr);  // or nil
+             : static_cast<::ShipEntity*>(nullptr));  // or nil
   if (!pod) {
     //	_role not defined? it might have _model defined;
     pod =
         (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(info.get<std::string>(
                                    "escape_pod_model", "escape-capsule"))
-                             : (::ShipEntity*)nullptr);
+                             : static_cast<::ShipEntity*>(nullptr));
     if (!pod) {
       pod = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("escape-capsule")
-                                 : (::ShipEntity*)nullptr);
+                                 : static_cast<::ShipEntity*>(nullptr));
       OO_LOG("shipEntity.noEscapePod",
              "Ship {} has no correct escape_pod_role defined. Now using "
              "default capsule.",
@@ -2695,16 +2702,21 @@ void ShipEntity::update(OOTimeDelta delta_t) {
 #endif
 
   // cool all weapons.
-  weapon_temp =
-      fmaxf(weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+  weapon_temp = fmaxf(
+      weapon_temp - static_cast<float>(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
   forward_weapon_temp = fmaxf(
-      forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-  aft_weapon_temp =
-      fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-  port_weapon_temp =
-      fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
-  starboard_weapon_temp = fmaxf(
-      starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+      forward_weapon_temp - static_cast<float>(WEAPON_COOLING_FACTOR * delta_t),
+      0.0f);
+  aft_weapon_temp = fmaxf(
+      aft_weapon_temp - static_cast<float>(WEAPON_COOLING_FACTOR * delta_t),
+      0.0f);
+  port_weapon_temp = fmaxf(
+      port_weapon_temp - static_cast<float>(WEAPON_COOLING_FACTOR * delta_t),
+      0.0f);
+  starboard_weapon_temp =
+      fmaxf(starboard_weapon_temp -
+                static_cast<float>(WEAPON_COOLING_FACTOR * delta_t),
+            0.0f);
 
   // update time between shots
   shot_time += delta_t;
@@ -2730,8 +2742,8 @@ void ShipEntity::update(OOTimeDelta delta_t) {
       if ((sun != nullptr ? sun->goneNova() : false)) external_temp *= 100;
 
       if (hasFuelScoop() && alt1 > 0.75 && getFuel() < fuelCapacity()) {
-        fuel_accumulator +=
-            (float)(delta_t * flightSpeed * 0.010 / fuelChargeRate());
+        fuel_accumulator += static_cast<float>(delta_t * flightSpeed * 0.010 /
+                                               fuelChargeRate());
         // are we fast enough to collect any fuel?
         while (fuel_accumulator > 1.0f) {
           setFuel(getFuel() + 1);
@@ -2957,7 +2969,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
 
         ::ShipEntity* leader =
             (escortGroup() != nullptr ? escortGroup()->leader()
-                                      : (::ShipEntity*)nullptr);
+                                      : static_cast<::ShipEntity*>(nullptr));
         if (leader != nullptr &&
             ((leader != nullptr ? leader->getScanClass() : OOScanClass{}) !=
              getScanClass())) {
@@ -3197,8 +3209,8 @@ void ShipEntity::respondToAttackFrom(Entity* from, Entity* other) {
       ::OOShipGroup* group = this->group();
 
       if (group != nullptr &&
-          group ==
-              (hunter != nullptr ? hunter->group() : (OOShipGroup*)nullptr)) {
+          group == (hunter != nullptr ? hunter->group()
+                                      : static_cast<OOShipGroup*>(nullptr))) {
         // we are in the same group, do we forgive you?
         // criminals are less likely to forgive
         if (randf() < (0.8 - static_cast<OOCreditsQuantity>(
@@ -3209,7 +3221,8 @@ void ShipEntity::respondToAttackFrom(Entity* from, Entity* other) {
         }
 
         ::ShipEntity* groupLeader =
-            (group != nullptr ? group->leader() : (::ShipEntity*)nullptr);
+            (group != nullptr ? group->leader()
+                              : static_cast<::ShipEntity*>(nullptr));
         if (hunter == groupLeader) {
           // oops we were attacked by our leader, desert him
           if (group != nullptr) group->removeShip(this);
@@ -3317,7 +3330,7 @@ bool ShipEntity::hasPrimaryWeapon(OOWeaponType weaponType) {
 }
 
 std::size_t ShipEntity::countEquipmentItem(const std::string& eqkey) {
-  return (std::size_t)std::ranges::count(_equipment, eqkey);
+  return static_cast<std::size_t>(std::ranges::count(_equipment, eqkey));
 }
 
 bool ShipEntity::hasEquipmentItem(const oo::PList& equipmentKeys,
@@ -4014,7 +4027,7 @@ bool ShipEntity::removeExternalStore(::OOEquipmentType* eqType) {
 
   if (!eqRole.has_value()) {
     missile = (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*shipKey)
-                                   : (::ShipEntity*)nullptr);
+                                   : static_cast<::ShipEntity*>(nullptr));
     if (!missile) {
       if (isRandomMissile)
         OO_LOG_WARN(
@@ -4533,8 +4546,9 @@ void ShipEntity::behaviour_attack_break_off_target(double delta_t) {
   double aspect = approachAspectToPrimaryTarget();
   if (range > 3000.0 ||
       (oo::EntityIsShip(target) &&
-       (oo::ToShip(target) != nullptr ? oo::ToShip(target)->primaryTarget()
-                                      : (Entity*)nullptr) != this) ||
+       (oo::ToShip(target) != nullptr
+            ? oo::ToShip(target)->primaryTarget()
+            : static_cast<Entity*>(nullptr)) != this) ||
       frustration - floor(frustration) > fmin(1.6 / max_flight_roll, aspect)) {
     trackPrimaryTarget(delta_t, true);
   } else {
@@ -4768,7 +4782,7 @@ void ShipEntity::behaviour_attack_target(double /*delta_t*/) {
              oo::EntityIsShip(target) &&
              (oo::ToShip(target) != nullptr
                   ? oo::ToShip(target)->primaryTarget()
-                  : (Entity*)nullptr) != this &&
+                  : static_cast<Entity*>(nullptr)) != this &&
              range < COMBAT_OUT_RANGE_FACTOR * weaponRange) {
       // then back off a bit for weapons to cool so we get a good attack run
       // later, rather than weaving closer
@@ -5345,8 +5359,8 @@ void ShipEntity::behaviour_attack_fly_to_target(double delta_t) {
   if (range <= slow_down_range) {
     if (range < back_off_range) {
       if (accuracy < COMBAT_AI_IS_SMART ||
-          ((target != nullptr ? target->primaryTarget() : (Entity*)nullptr) ==
-               this &&
+          ((target != nullptr ? target->primaryTarget()
+                              : static_cast<Entity*>(nullptr)) == this &&
            aspect > 0.8) ||
           aim_tolerance * range > COMBAT_AI_CONFIDENCE_FACTOR) {
         if (accuracy >= COMBAT_AI_FLEES_BETTER && aspect > 0.8) {
@@ -5363,8 +5377,9 @@ void ShipEntity::behaviour_attack_fly_to_target(double delta_t) {
     } else {
       if (accuracy < COMBAT_AI_IS_SMART ||
           ((target != nullptr ? target->getIsShip() : false) &&
-           (oo::ToShip(target) != nullptr ? oo::ToShip(target)->primaryTarget()
-                                          : (Entity*)nullptr) == this) ||
+           (oo::ToShip(target) != nullptr
+                ? oo::ToShip(target)->primaryTarget()
+                : static_cast<Entity*>(nullptr)) == this) ||
           range > weaponRange / 2.0) {
         desired_speed = fmax(target_speed * 1.5, maxFlightSpeed);
       } else {  // smart, and not being shot at right now - slow down to attack
@@ -5433,11 +5448,12 @@ void ShipEntity::behaviour_attack_fly_to_target(double delta_t) {
            !isWeaponNone((target != nullptr
                               ? target->weaponTypeForFacing(
                                     OOWeaponFacing::kForward, false)
-                              : (OOEquipmentType*)nullptr))) ||
+                              : static_cast<OOEquipmentType*>(nullptr)))) ||
           (aspect < -0.999 &&
-           !isWeaponNone((target != nullptr ? target->weaponTypeForFacing(
-                                                  OOWeaponFacing::kAft, false)
-                                            : (OOEquipmentType*)nullptr)))) {
+           !isWeaponNone(
+               (target != nullptr
+                    ? target->weaponTypeForFacing(OOWeaponFacing::kAft, false)
+                    : static_cast<OOEquipmentType*>(nullptr))))) {
         frustration = 0.0;
         behaviour = OOBehaviour::kEvasiveAction;
       }
@@ -5593,7 +5609,7 @@ void ShipEntity::behaviour_flee_target(double delta_t) {
 
   if (missiles && oo::EntityIsShip(target) &&
       (oo::ToShip(target) != nullptr ? oo::ToShip(target)->primaryTarget()
-                                     : (Entity*)nullptr) == this) {
+                                     : static_cast<Entity*>(nullptr)) == this) {
     considerFiringMissile(delta_t);
   }
 
@@ -5947,7 +5963,7 @@ void ShipEntity::behaviour_track_as_turret(double delta_t) {
   ::ShipEntity* turret_owner = oo::ToShip(owner());
   ::ShipEntity* turret_target =
       oo::ToShip((turret_owner != nullptr ? turret_owner->primaryTarget()
-                                          : (Entity*)nullptr));
+                                          : static_cast<Entity*>(nullptr)));
   if (turret_owner && turret_target &&
       (turret_owner != nullptr ? turret_owner->hasHostileTarget() : false)) {
     aim = ballTrackLeadingTarget(delta_t, turret_target);
@@ -6714,7 +6730,7 @@ void ShipEntity::avoidCollision() {
   if (prox_ship) {
     oo::PList::Dict condition;
     condition["behaviour"] =
-        oo::PList((long)behaviour);  // as oo_setInteger: stored it
+        oo::PList(static_cast<long>(behaviour));  // as oo_setInteger: stored it
     if (primaryTarget() != nullptr) {
       // must use the weak ref here to prevent potential over-retention
       condition["primaryTarget"] = oo::EntityWeakNode(
@@ -6745,7 +6761,7 @@ void ShipEntity::avoidCollision() {
 void ShipEntity::resumePostProximityAlert() {
   if (previousCondition.isNull()) return;
 
-  behaviour = (OOBehaviour)previousCondition.get<int>("behaviour");
+  behaviour = static_cast<OOBehaviour>(previousCondition.get<int>("behaviour"));
   const oo::PList* previousTarget = previousCondition.find("primaryTarget");
   _primaryTarget = oo::WeakRef<Entity>(
       previousTarget != nullptr ? oo::EntityInWeakNode(*previousTarget)
@@ -7184,7 +7200,7 @@ bool ShipEntity::hasHostileTarget() {
   if ((behaviour == OOBehaviour::kAvoidCollision) &&
       (!previousCondition.isNull())) {
     int old_behaviour = previousCondition.get<int>("behaviour");
-    return IsBehaviourHostile((OOBehaviour)old_behaviour);
+    return IsBehaviourHostile(static_cast<OOBehaviour>(old_behaviour));
   }
   return IsBehaviourHostile(behaviour);
 }
@@ -7808,7 +7824,8 @@ void ShipEntity::setBounty(OOCreditsQuantity amount,
   } else {
     JSContext* context = OOJSAcquireContext();
 
-    OOJSVal amountVal = OOJSValueFromDouble(context, (int)amount - (int)bounty);
+    OOJSVal amountVal = OOJSValueFromDouble(
+        context, static_cast<int>(amount) - static_cast<int>(bounty));
 
     bounty = amount;  // can't set the new bounty until the size of the change
                       // is known
@@ -7834,7 +7851,7 @@ OOCreditsQuantity ShipEntity::getBounty() {
 int ShipEntity::legalStatus() {
   if (scanClass == OOScanClass::kThargoid) return 5 * collision_radius;
   if (scanClass == OOScanClass::kRock) return 0;
-  return (int)getBounty();
+  return static_cast<int>(getBounty());
 }
 
 void ShipEntity::setCommodity(const std::string& co_type,
@@ -7894,7 +7911,7 @@ OOCargoQuantity ShipEntity::availableCargoSpace() {
 OOCargoQuantity ShipEntity::cargoQuantityOnBoard() {
   std::size_t result = cargoCount();
   OOCAssert(result < UINT32_MAX, "Cargo quantity out of bounds.");
-  return (OOCargoQuantity)result;
+  return static_cast<OOCargoQuantity>(result);
 }
 
 OOCargoType ShipEntity::cargoType() { return cargo_type; }
@@ -7928,7 +7945,7 @@ oo::PList ShipEntity::cargoListForScripting() {
     // A pod whose commodity is not a good (or has none) indexed past the array
     // before; it is skipped.
     if (j != goods.end())
-      quantityInHold[(std::size_t)(j - goods.begin())] +=
+      quantityInHold[static_cast<std::size_t>(j - goods.begin())] +=
           (container != nullptr ? container->commodityAmount() : 0);
   }
 
@@ -8221,7 +8238,9 @@ GLfloat ShipEntity::heatInsulation() { return _heatInsulation; }
 
 void ShipEntity::setHeatInsulation(GLfloat value) { _heatInsulation = value; }
 
-int ShipEntity::damage() { return (int)(100 - (100 * energy / maxEnergy)); }
+int ShipEntity::damage() {
+  return static_cast<int>(100 - (100 * energy / maxEnergy));
+}
 
 void ShipEntity::dealEnergyDamage(GLfloat baseDamage, GLfloat range,
                                   GLfloat velocityBias) {
@@ -8507,7 +8526,7 @@ void ShipEntity::releaseCargoPodsDebris() {
       ::ShipEntity* cargoObj = oo::ToShip(jetsam[i].get());
       ::ShipEntity* container =
           (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj)
-                               : (::ShipEntity*)nullptr);
+                               : static_cast<::ShipEntity*>(nullptr));
       /* TODO: this debris position/velocity setting code is
        * duplicated - sometimes not very cleanly - all over the
        * place. Unify to a single function - CIM */
@@ -8535,8 +8554,8 @@ void ShipEntity::releaseCargoPodsDebris() {
         UNIVERSE->addEntity(
             container);  // OOEntityStatus::kInFlight, AI state GLOBAL
 
-      ::AI* containerAI =
-          (container != nullptr ? container->getAI() : (::AI*)nullptr);
+      ::AI* containerAI = (container != nullptr ? container->getAI()
+                                                : static_cast<::AI*>(nullptr));
       if ((containerAI != nullptr ? containerAI->hasSuspendedStateMachines()
                                   : false))  // check if new or recycled cargo.
       {
@@ -8727,9 +8746,9 @@ void ShipEntity::becomeExplosion() {
                                                       defaultRole);
             for (i = 0; i < n_rocks; i++) {
               ::ShipEntity* rock =
-                  (UNIVERSE != nullptr
-                       ? UNIVERSE->newShipWithRole(debrisRole)
-                       : (::ShipEntity*)nullptr);  // retain count = 1
+                  (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(debrisRole)
+                                       : static_cast<::ShipEntity*>(
+                                             nullptr));  // retain count = 1
               if (rock) {
                 float r_speed =
                     (rock != nullptr ? rock->getMaxFlightSpeed() : 0.0f) > 0
@@ -8839,8 +8858,9 @@ void ShipEntity::becomeExplosion() {
       //
       for (i = 0; i < numAlloys; i++) {
         ::ShipEntity* plate =
-            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("alloy")
-                                 : (::ShipEntity*)nullptr);  // retain count = 1
+            (UNIVERSE != nullptr
+                 ? UNIVERSE->newShipWithRole("alloy")
+                 : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
         if (plate) {
           HPVector rpos = xposition;
           Vector rrand = OORandomPositionInBoundingBox(boundingBox);
@@ -8984,38 +9004,38 @@ Vector ShipEntity::positionOffsetForAlignment(const std::string& align) {
   const std::u16string padAlign = oo::utf8ToUtf16(std::format("{}---", align));
   Vector result = kZeroVector;
   switch (padAlign[0]) {
-    case (uint16_t)'c':
-    case (uint16_t)'C':
+    case static_cast<uint16_t>('c'):
+    case static_cast<uint16_t>('C'):
       result.x = 0.5 * (boundingBox.min.x + boundingBox.max.x);
       break;
-    case (uint16_t)'M':
+    case static_cast<uint16_t>('M'):
       result.x = boundingBox.max.x;
       break;
-    case (uint16_t)'m':
+    case static_cast<uint16_t>('m'):
       result.x = boundingBox.min.x;
       break;
   }
   switch (padAlign[1]) {
-    case (uint16_t)'c':
-    case (uint16_t)'C':
+    case static_cast<uint16_t>('c'):
+    case static_cast<uint16_t>('C'):
       result.y = 0.5 * (boundingBox.min.y + boundingBox.max.y);
       break;
-    case (uint16_t)'M':
+    case static_cast<uint16_t>('M'):
       result.y = boundingBox.max.y;
       break;
-    case (uint16_t)'m':
+    case static_cast<uint16_t>('m'):
       result.y = boundingBox.min.y;
       break;
   }
   switch (padAlign[2]) {
-    case (uint16_t)'c':
-    case (uint16_t)'C':
+    case static_cast<uint16_t>('c'):
+    case static_cast<uint16_t>('C'):
       result.z = 0.5 * (boundingBox.min.z + boundingBox.max.z);
       break;
-    case (uint16_t)'M':
+    case static_cast<uint16_t>('M'):
       result.z = boundingBox.max.z;
       break;
-    case (uint16_t)'m':
+    case static_cast<uint16_t>('m'):
       result.z = boundingBox.min.z;
       break;
   }
@@ -9072,9 +9092,9 @@ void ShipEntity::collectBountyFor(::ShipEntity* other) {
 }
 
 OOComparisonResult ShipEntity::compareBeaconCodeWith(Entity* other) {
-  return (OOComparisonResult)oo::str::caseInsensitiveCompare(
+  return static_cast<OOComparisonResult>(oo::str::caseInsensitiveCompare(
       beaconCode().value_or(""),
-      oo::BeaconCode(other).value_or(""));  // the other's -beaconCode
+      oo::BeaconCode(other).value_or("")));  // the other's -beaconCode
 }
 
 // for shaders, equivalent to 1.76's NPC laserHeatLevel
@@ -9120,12 +9140,13 @@ GLfloat ShipEntity::laserHeatLevelStarboard() {
 }
 
 GLfloat ShipEntity::hullHeatLevel() {
-  GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+  GLfloat result = static_cast<GLfloat>(ship_temperature) /
+                   static_cast<GLfloat>(SHIP_MAX_CABIN_TEMP);
   return OOClamp_0_1_f(result);
 }
 
 GLfloat ShipEntity::entityPersonality() {
-  return entity_personality / (float)ENTITY_PERSONALITY_MAX;
+  return entity_personality / static_cast<float>(ENTITY_PERSONALITY_MAX);
 }
 
 GLint ShipEntity::entityPersonalityInt() { return entity_personality; }
@@ -9488,7 +9509,8 @@ bool ShipEntity::isFriendlyTo(::ShipEntity* otherShip) {
   bool isFriendly = false;
   ::OOShipGroup* myGroup = group();
   ::OOShipGroup* otherGroup =
-      (otherShip != nullptr ? otherShip->group() : (OOShipGroup*)nullptr);
+      (otherShip != nullptr ? otherShip->group()
+                            : static_cast<OOShipGroup*>(nullptr));
 
   if ((otherShip == this) ||
       (isPolice() && (otherShip != nullptr ? otherShip->isPolice() : false)) ||
@@ -9496,8 +9518,9 @@ bool ShipEntity::isFriendlyTo(::ShipEntity* otherShip) {
        (otherShip != nullptr ? otherShip->isThargoid() : false)) ||
       (myGroup != nullptr && otherGroup != nullptr &&
        (myGroup == otherGroup ||
-        (otherGroup != nullptr ? otherGroup->leader()
-                               : (::ShipEntity*)nullptr) == this)) ||
+        (otherGroup != nullptr
+             ? otherGroup->leader()
+             : static_cast<::ShipEntity*>(nullptr)) == this)) ||
       (getScanClass() == OOScanClass::kMilitary &&
        (otherShip != nullptr ? otherShip->getScanClass() : OOScanClass{}) ==
            OOScanClass::kMilitary)) {
@@ -10129,7 +10152,7 @@ double ShipEntity::missileTrackPrimaryTarget(double delta_t) {
   // Adjust missile course by taking into account target's velocity and missile
   // accuracy. Modification on original code contributed by Cmdr James.
 
-  float missileSpeed = (float)speed();
+  float missileSpeed = static_cast<float>(speed());
 
   // Avoid getting ourselves in a divide by zero situation by setting a
   // missileSpeed low threshold. Arbitrarily chosen 0.01, since it seems to work
@@ -10526,7 +10549,7 @@ GLfloat ShipEntity::currentAimTolerance() {
     // better general targeting
     best_cos = 0.999999;  // ~14m in 10km (track won't go better than 10)
     // if missing, aim better!
-    basic_aim /= 1.0 + ((GLfloat)missedShots() / 4.0);
+    basic_aim /= 1.0 + (static_cast<GLfloat>(missedShots()) / 4.0);
   }
   if (accuracy >= COMBAT_AI_TRACKS_CLOSER) {
     // deadly shots
@@ -10961,7 +10984,7 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
   ::ShipEntity* victim =
       (UNIVERSE != nullptr ? UNIVERSE->firstShipHitByLaserFromShip(
                                  this, direction, kZeroVector, &hitAtRange)
-                           : (::ShipEntity*)nullptr);
+                           : static_cast<::ShipEntity*>(nullptr));
   setShipHitByLaser(victim);
 
   const oo::Ref<OOLaserShotEntity> shot =
@@ -10977,8 +11000,9 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
       if (PLAYER != nullptr) PLAYER->addRoleForAggression(victim);
     }
 
-    ::ShipEntity* subent = (victim != nullptr ? victim->subEntityTakingDamage()
-                                              : (::ShipEntity*)nullptr);
+    ::ShipEntity* subent =
+        (victim != nullptr ? victim->subEntityTakingDamage()
+                           : static_cast<::ShipEntity*>(nullptr));
     if (subent != nullptr &&
         (victim != nullptr ? victim->getIsFrangible() : false)) {
       // do 1% bleed-through damage...
@@ -11017,8 +11041,8 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
 
     // see ATTACKER_MISSED section of main entity laser routine
     if (!(parent != nullptr ? parent->isCloaked() : false)) {
-      victim = oo::ToShip(
-          (parent != nullptr ? parent->primaryTarget() : (Entity*)nullptr));
+      victim = oo::ToShip((parent != nullptr ? parent->primaryTarget()
+                                             : static_cast<Entity*>(nullptr)));
 
       Vector shotDirection =
           vector_forward_from_quaternion(shot->getOrientation());
@@ -11104,7 +11128,7 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
       (UNIVERSE != nullptr
            ? UNIVERSE->firstShipHitByLaserFromShip(
                  this, OOWeaponFacing::kForward, kZeroVector, &hit_at_range)
-           : (::ShipEntity*)nullptr);
+           : static_cast<::ShipEntity*>(nullptr));
   setShipHitByLaser(victim);
   orientation = q_save;  // restore rotation
 
@@ -11121,8 +11145,9 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
   shot->setVelocity(vel);
 
   if (victim != nullptr) {
-    ::ShipEntity* subent = (victim != nullptr ? victim->subEntityTakingDamage()
-                                              : (::ShipEntity*)nullptr);
+    ::ShipEntity* subent =
+        (victim != nullptr ? victim->subEntityTakingDamage()
+                           : static_cast<::ShipEntity*>(nullptr));
     if (subent != nullptr &&
         (victim != nullptr ? victim->getIsFrangible() : false)) {
       // do 1% bleed-through damage...
@@ -11204,7 +11229,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
   GLfloat effective_damage = weapon_damage;
   if (barrels > 1 && !_multiplyWeapons) {
     // then divide the shot power between the shots
-    effective_damage /= (GLfloat)barrels;
+    effective_damage /= static_cast<GLfloat>(barrels);
   }
 
   for (i = 0; i < barrels; i++) {
@@ -11216,7 +11241,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
         (UNIVERSE != nullptr
              ? UNIVERSE->firstShipHitByLaserFromShip(
                    this, direction, laserPortOffset, &hit_at_range)
-             : (::ShipEntity*)nullptr);
+             : static_cast<::ShipEntity*>(nullptr));
     setShipHitByLaser(victim);
 
     shot = OOLaserShotEntity::laserFromShip(this, direction, laserPortOffset);
@@ -11247,7 +11272,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
       */
       ::ShipEntity* subent =
           (victim != nullptr ? victim->subEntityTakingDamage()
-                             : (::ShipEntity*)nullptr);
+                             : static_cast<::ShipEntity*>(nullptr));
       if (subent != nullptr &&
           (victim != nullptr ? victim->getIsFrangible() : false)) {
         // do 1% bleed-through damage...
@@ -11461,12 +11486,12 @@ Vector ShipEntity::missileLaunchPosition() {
   unsigned i;
   if (!identifier.has_value()) {
     // use a random missile from the list
-    i = floor(randf() * (double)missiles);
+    i = floor(randf() * static_cast<double>(missiles));
     identifier = (missile_list[i] != nullptr ? missile_list[i]->identifier()
                                              : std::optional<std::string>());
     missile = (UNIVERSE != nullptr
                    ? UNIVERSE->newShipWithRole(identifier.value_or(""))
-                   : (::ShipEntity*)nullptr);
+                   : static_cast<::ShipEntity*>(nullptr));
     if (EXPECT_NOT(missile == nullptr))  // invalid missile role.
     {
       // remove that invalid missile role from the missiles list.
@@ -11475,7 +11500,7 @@ Vector ShipEntity::missileLaunchPosition() {
     }
   } else
     missile = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*identifier)
-                                   : (::ShipEntity*)nullptr);
+                                   : static_cast<::ShipEntity*>(nullptr));
 
   if (EXPECT_NOT(missile == nullptr)) return nullptr;
 
@@ -11526,10 +11551,11 @@ Vector ShipEntity::missileLaunchPosition() {
                    .get());  // the ship keeps it
 
     ::ShipEntity* thisGroupLeader =
-        (_group != nullptr ? _group->leader() : (::ShipEntity*)nullptr);
+        (_group != nullptr ? _group->leader()
+                           : static_cast<::ShipEntity*>(nullptr));
 
     if ((thisGroupLeader != nullptr ? thisGroupLeader->escortGroup()
-                                    : (OOShipGroup*)nullptr) !=
+                                    : static_cast<OOShipGroup*>(nullptr)) !=
         _group)  // avoid adding tharons to escort groups
     {
       if (missile != nullptr) missile->setGroup(group());
@@ -11647,7 +11673,7 @@ bool ShipEntity::launchCascadeMine() {
   setSpeed(maxFlightSpeed + 300);
   ::ShipEntity* bomb =
       (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("energy-bomb")
-                           : (::ShipEntity*)nullptr);
+                           : static_cast<::ShipEntity*>(nullptr));
   if (bomb == nullptr) return false;
 
   removeEquipmentItem("EQ_QC_MINE");
@@ -11805,10 +11831,11 @@ void ShipEntity::dumpCargo() { dumpCargoItem(std::nullopt); }
 }
 
 OOCargoType ShipEntity::dumpItem(::ShipEntity* cargoObj) {
-  if (!cargoObj) return (OOCargoType)0;
+  if (!cargoObj) return static_cast<OOCargoType>(0);
 
-  ::ShipEntity* jetto = (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj)
-                                             : (::ShipEntity*)nullptr);
+  ::ShipEntity* jetto =
+      (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj)
+                           : static_cast<::ShipEntity*>(nullptr));
 
   int result = (jetto != nullptr ? static_cast<int>(jetto->cargoType()) : 0);
   ::AI* jettoAI = nullptr;
@@ -11892,7 +11919,7 @@ OOCargoType ShipEntity::dumpItem(::ShipEntity* cargoObj) {
   if (UNIVERSE != nullptr)
     UNIVERSE->addEntity(jetto);  // OOEntityStatus::kInFlight, AI state GLOBAL
 
-  jettoAI = (jetto != nullptr ? jetto->getAI() : (::AI*)nullptr);
+  jettoAI = (jetto != nullptr ? jetto->getAI() : static_cast<::AI*>(nullptr));
   if ((jettoAI != nullptr
            ? jettoAI->hasSuspendedStateMachines()
            : false))  // check if this was previous scooped cargo.
@@ -11908,7 +11935,7 @@ OOCargoType ShipEntity::dumpItem(::ShipEntity* cargoObj) {
   doScriptEvent(OOJSID("shipDumpedCargo"), jetto);
 
   cargo_dump_time = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
-  return (OOCargoType)result;
+  return static_cast<OOCargoType>(result);
 }
 
 // Collisions, velocity, tractoring and scooping. Members of the C++ ship.
@@ -11952,7 +11979,8 @@ bool ShipEntity::collideWithShip(::ShipEntity* other) {
   if (!other) return false;
 
   ::ShipEntity* otherParent =
-      oo::ToShip((other != nullptr ? other->parentEntity() : (Entity*)nullptr));
+      oo::ToShip((other != nullptr ? other->parentEntity()
+                                   : static_cast<Entity*>(nullptr)));
   bool otherIsStation =
       other == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr);
   // calculate line of centers using centres
@@ -12086,8 +12114,9 @@ bool ShipEntity::collideWithShip(::ShipEntity* other) {
 
   // remove self from other's collision list
   if (std::vector<oo::EntityHold>* colliding =
-          (other != nullptr ? other->getCollidingEntities()
-                            : (std::vector<oo::EntityHold>*)nullptr))
+          (other != nullptr
+               ? other->getCollidingEntities()
+               : static_cast<std::vector<oo::EntityHold>*>(nullptr)))
     std::erase_if(*colliding, [this](const oo::EntityHold& e) {
       return e.get() == this;
     });  // -removeObject:
@@ -12166,7 +12195,7 @@ void ShipEntity::getTractoredBy(::ShipEntity* other) {
     // 'Dibs!' - Stops other ships from trying to scoop/shoot this cargo.
     if (other != scooper &&
         this == (scooper != nullptr ? scooper->primaryTarget()
-                                    : (Entity*)nullptr)) {
+                                    : static_cast<Entity*>(nullptr))) {
       if (scooper != nullptr) scooper->noteLostTarget();
     }
   }
@@ -12344,8 +12373,9 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
   }
 
   if (std::vector<oo::EntityHold>* colliding =
-          (other != nullptr ? other->getCollidingEntities()
-                            : (std::vector<oo::EntityHold>*)nullptr))
+          (other != nullptr
+               ? other->getCollidingEntities()
+               : static_cast<std::vector<oo::EntityHold>*>(nullptr)))
     std::erase_if(*colliding, [this](const oo::EntityHold& e) {
       return e.get() == this;
     });  // -removeObject:, so it can't be scooped twice!
@@ -12361,7 +12391,7 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
     if (this != scooper &&
         other == (scooper != nullptr
                       ? scooper->primaryTargetWithoutValidityCheck()
-                      : (Entity*)nullptr)) {
+                      : static_cast<Entity*>(nullptr))) {
       if (scooper != nullptr) scooper->noteLostTarget();
     }
   }
@@ -12495,12 +12525,13 @@ void ShipEntity::takeEnergyDamage(double amount, Entity* entPart,
     if (!hasNewAI()) {
       // additionally, tell our group we've been attacked
       if (group != nullptr &&
-          group !=
-              (hunter != nullptr ? hunter->group() : (OOShipGroup*)nullptr) &&
+          group != (hunter != nullptr ? hunter->group()
+                                      : static_cast<OOShipGroup*>(nullptr)) &&
           !(iAmTheLaw || uAreTheLaw)) {
         if (isTrader() || isEscort()) {
           ::ShipEntity* groupLeader =
-              (group != nullptr ? group->leader() : (::ShipEntity*)nullptr);
+              (group != nullptr ? group->leader()
+                                : static_cast<::ShipEntity*>(nullptr));
           if (groupLeader != this) {
             if (groupLeader != nullptr) groupLeader->setFoundTarget(hunter);
             if (groupLeader != nullptr)
@@ -12552,8 +12583,8 @@ void ShipEntity::takeEnergyDamage(double amount, Entity* entPart,
     }
 
     if ((group != nullptr &&
-         (hunter != nullptr ? hunter->group() : (OOShipGroup*)nullptr) ==
-             group) ||
+         (hunter != nullptr ? hunter->group()
+                            : static_cast<OOShipGroup*>(nullptr)) == group) ||
         (iAmTheLaw && uAreTheLaw)) {
       // avoid shooting each other
       if ((hunter != nullptr ? hunter->getBehaviour() : OOBehaviour{}) ==
@@ -12649,8 +12680,9 @@ bool ShipEntity::abandonShip() {
         for (const auto& escortRef : escortArray()) {
           ::ShipEntity* escort = oo::ToShip(escortRef.get());
           // act individually now!
-          if ((escort != nullptr ? escort->group() : (OOShipGroup*)nullptr) ==
-              escortGroup) {
+          if ((escort != nullptr
+                   ? escort->group()
+                   : static_cast<OOShipGroup*>(nullptr)) == escortGroup) {
             if (escort != nullptr) escort->setGroup(nullptr);
           }
           if (oo::LiveOwner(escort) == this) {
@@ -13184,11 +13216,13 @@ void ShipEntity::dockEscorts() {
   for (const auto& escortRef : escortArray()) {
     ::ShipEntity* escort = oo::ToShip(escortRef.get());
     float delay = i++ * 3.0 + 1.5;  // send them off at three second intervals
-    ::AI* ai = (escort != nullptr ? escort->getAI() : (::AI*)nullptr);
+    ::AI* ai =
+        (escort != nullptr ? escort->getAI() : static_cast<::AI*>(nullptr));
 
     // act individually now!
-    if ((escort != nullptr ? escort->group() : (OOShipGroup*)nullptr) ==
-        escortGroup) {
+    if ((escort != nullptr
+             ? escort->group()
+             : static_cast<OOShipGroup*>(nullptr)) == escortGroup) {
       if (escort != nullptr) escort->setGroup(nullptr);
     }
     if (oo::LiveOwner(escort) == this) {
@@ -13214,8 +13248,8 @@ void ShipEntity::dockEscorts() {
 void ShipEntity::setTargetToNearestStationIncludingHostiles(
     bool includeHostiles) {
   // check if the groupID (parent ship) points to a station...
-  Entity* mother =
-      (group() != nullptr ? group()->leader() : (::ShipEntity*)nullptr);
+  Entity* mother = (group() != nullptr ? group()->leader()
+                                       : static_cast<::ShipEntity*>(nullptr));
   if (mother != nullptr && mother->getIsStation()) {
     addTarget(mother);
     setTargetStation(mother);
@@ -13358,7 +13392,7 @@ void ShipEntity::broadcastHitByLaserFrom(::ShipEntity* aggressor_ship) {
   {
     AuthorityPredicateParameter param = {
         this, (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr),
-        (bool)withinStationAegis()};
+        withinStationAegis()};
     const std::vector<oo::EntityHold> authorities =
         (UNIVERSE != nullptr ? UNIVERSE->findShipsMatchingPredicate(
                                    AuthorityPredicate, &param, -1, nullptr)
@@ -13647,7 +13681,7 @@ int ShipEntity::checkShipsInVicinityForWitchJumpExit() {
 bool ShipEntity::getTrackCloseContacts() { return trackCloseContacts; }
 
 void ShipEntity::setTrackCloseContacts(bool value) {
-  if (value == (bool)trackCloseContacts) return;
+  if (value == static_cast<bool>(trackCloseContacts)) return;
 
   trackCloseContacts = value;
   // A fresh (empty) record either way; it is only read while tracking.
@@ -13842,9 +13876,9 @@ void ShipEntity::doScriptEvent(OOJSPropID message,
 
   // Convert arguments to JS values and make them temporarily
   // un-garbage-collectable.
-  argc = (int)arguments.size();
+  argc = static_cast<int>(arguments.size());
   if (argc != 0) {
-    argv = (decltype(argv))malloc(sizeof *argv * argc);
+    argv = static_cast<decltype(argv)>(malloc(sizeof *argv * argc));
     if (argv != nullptr) {
       for (i = 0; i != argc; ++i) {
         argv[i] = OOJSValueFromPList(context, arguments[i]);

@@ -789,11 +789,12 @@ double OOStellarBodyRadius(Entity* body) {
 }
 
 OOStellarBodyType OOStellarBodyPlanetType(Entity* body) {
-  if (body == nullptr) return (OOStellarBodyType)0;
+  if (body == nullptr) return static_cast<OOStellarBodyType>(0);
   if (OOSunEntity* sun = dynamic_cast<OOSunEntity*>(body))
     return sun->planetType();
   if (OOPlanetEntity* planet = dynamic_cast<OOPlanetEntity*>(body))
     return planet->planetType();
-  return (OOStellarBodyType)0;  // any other body: none in the game; its object
-                                // did not answer -planetType
+  return static_cast<OOStellarBodyType>(
+      0);  // any other body: none in the game; its object
+           // did not answer -planetType
 }
