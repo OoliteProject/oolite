@@ -36,13 +36,6 @@
 
 #pragma once
 
-// Callers see OOFoundation.h's `#define true 1` / `#define false
-// 0`; suspend them for this header.
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
-
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/Thread.hpp"

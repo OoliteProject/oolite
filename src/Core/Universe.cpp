@@ -3100,7 +3100,7 @@ std::vector<oo::EntityHold> Universe::addShipsAt(HPVector pos, const std::string
 
     std::vector<oo::EntityHold> ships;
     ships.reserve(count);
-    ::ShipEntity* ship = nil;
+    ::ShipEntity* ship = nullptr;
     oo::Ref<::OOShipGroup> group; // kept for the pass
 
     if (isGroup) {
@@ -7755,7 +7755,7 @@ void Universe::setSystemDataKey(const std::string& key, const oo::PList& value, 
 void Universe::setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const std::string& key, const oo::PList& value, const std::optional<std::string>& manifest, OOSystemLayer layer)
 {
     oo::PList object = value; // the script value (null: none)
-    static BOOL sysdataLocked = NO;
+    static bool sysdataLocked = false;
     if (sysdataLocked) {
         OO_LOG_ERR("script.error", "{}", "System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
         return;

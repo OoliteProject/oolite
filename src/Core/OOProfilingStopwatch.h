@@ -42,16 +42,6 @@ SOFTWARE.
 #if defined(WIN32) && !defined(OOLITE_WINDOWS)
 #define OOLITE_WINDOWS 1
 #endif
-#if OOLITE_WINDOWS
-// DWORD and timeGetTime(), below, as OOFoundation.h's <windows.h> gives them (with the Windows
-// BOOL renamed, as there, so the floor's BOOL stays BOOL; __OBJC_BOOL
-// keeps <minwindef.h> from declaring its own, as OOFoundation.h does).
-#define BOOL WinBOOL
-#define __OBJC_BOOL 1
-#include <windows.h>
-#undef __OBJC_BOOL
-#undef BOOL
-#endif
 #endif
 #include "OOFunctionAttributes.h"
 #include "OOTypes.h"

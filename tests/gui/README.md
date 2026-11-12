@@ -23,43 +23,10 @@ time**: nothing locks the desktop, and a second window (another GUI run, or a ga
 hand) steals the foreground mid-click. It runs in the full gate and nightly, **never per change**.
 An RDP disconnect takes the desktop with it.
 
-### The lock is not this tier's private business
-
-**Any tool that launches the game on the interactive desktop must take `tools/gui-lock`**. This tier is not the only thing that opens a window: on Windows the console-driven
-"headless" launchers are not headless either, because `SDL_VIDEODRIVER=offscreen` is deliberately
-left unset there (MSYS2's Mesa ships no EGL, so the offscreen driver cannot create a context — see
-`tests/component/console.py::_env`). A JS-API snapshot run that skipped the lock stole the
-foreground from a G1 click, once in 35 measured G1 runs on a clean tree.
-
-Python launchers outside this tier take it through `tools/desktop_lock.py`, a thin wrapper that
-shells out to the same `tools/gui-lock` with a distinct owner tag (`jsapi`, `smoke`, `component`,
-`splashcheck`) so the ownership-checked release can tell them apart. This tier keeps its own
-in-fixture implementation, because it must still work with no bash.
-
-Two launchers are exempt, on purpose: the scenario runner, which runs N scenarios concurrently by
-design and never needs the foreground, and `tests/component/console.py` is the transport those N
-runs share. `tools/check-desktop-lock.sh` enforces the rule and the exemptions. It detects a
-launcher **by its spawn** — a `Popen`/`subprocess.run`/`os.startfile`/`DebugConsole`/shell command
-whose target resolves to the game binary, across `*.py`, `*.sh`, `*.bat` and `*.cmd` — not by one
-string idiom, so it fails on a new launcher in neither list however that launcher is spelled.
-`tools/desktop-lock-rogue-proof` plants five rogue spellings plus a prose-only negative control and
-asserts the exit code of each.
-
-A hold is reclaimed on **liveness first, age second**. `tools/gui-lock` records
-`livepid=<host> <pid>` — the long-lived owner process, not the short-lived shell that wrote the
-file — and an acquirer that finds that pid absent from **this host's** process table reclaims the
-lock immediately, with no age requirement at all. A pid on another host, a record with no
-`livepid=`, or a process table that cannot be read all mean "cannot prove dead", and such a holder
-is left strictly alone and ages out as before. `OO_GUI_LOCK_STALE` (default 600s) is that age
-fallback, and it **must stay below `OO_GUI_LOCK_TIMEOUT`**: it used to be 1800s against a 900s
-timeout, so an abandoned lock could never be reclaimed within one acquire and every acquirer burned
-its full timeout before failing. A timed-out acquire now says so in its second stderr line.
-
-A hold is also **heartbeated**. A JS-API enumeration can legitimately hold the desktop longer than
-the stale window, so `tools/desktop_lock.py` runs a daemon thread calling `tools/gui-lock refresh`
-(ownership-checked) every third of that window. A crashed holder stops refreshing *and* loses its
-liveness, so its lock is reclaimable at once — both directions are proved by
-`tools/desktop-lock-selftest` checks 5 and 6 and by `tools/gui-lock-liveness-selftest`.
+On Windows the console-driven "headless" launchers are not headless either, because
+`SDL_VIDEODRIVER=offscreen` is deliberately left unset there (MSYS2's Mesa ships no EGL, so the
+offscreen driver cannot create a context - see `tests/component/console.py::_env`). Do not run
+them while this tier is running.
 
 It also needs a built game: by default `oolite-dev/build/meson_test/oolite.app`, overridden
 with `--oolite-app <path>` or `OO_APP_DIR`.

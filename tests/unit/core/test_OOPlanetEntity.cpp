@@ -157,7 +157,7 @@ oo::PList PlanetDict(int radiusKm)
 
 
 // A new C++ planet.
-OOPlanetEntity *Planet(BOOL atmosphere, int radiusKm = 5000)
+OOPlanetEntity *Planet(bool atmosphere, int radiusKm = 5000)
 {
 	Random_Seed seed = { 1, 2, 3, 4, 5, 6 };
 	oo::Ref<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
@@ -388,7 +388,7 @@ OO_TEST(facade)
 		SetUp();
 		OOPlanetEntity *moon = Planet(false);
 		Entity *object = moon;
-		OO_CHECK(object != nil);	// A C++ entity.
+		OO_CHECK(object != nullptr);	// A C++ entity.
 		OO_CHECK(object == moon);
 		OOPlanetEntity *mini = Miniature(moon);
 		OO_CHECK(mini == mini);	// The shader bindings: the planet's values, which its object's selectors

@@ -29,14 +29,6 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#ifdef __cplusplus
-/* <tgmath.h> is <cmath> in C++, and libc++ declares templates there, which cannot have C
-   language linkage. Include it before the extern "C" block opens; its include guard makes the
-   include below a no-op. */
-#include <tgmath.h>
-extern "C" {
-#endif
-
 #include "OOBoundingBox.h"
 #include "OOHPVector.h"
 #include "OOMathsBase.h"

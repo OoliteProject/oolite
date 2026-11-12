@@ -296,9 +296,9 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow)
 
 void PlayerEntity::keyMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    bool selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
     if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
         if (gameView != nullptr)
             gameView->clearMouse();
@@ -617,9 +617,9 @@ void PlayerEntity::outputKeyDefinition(const std::string& key, const std::string
 
 void PlayerEntity::handleKeyConfigKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    bool selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
     if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
         if (gameView != nullptr)
             gameView->clearMouse();
@@ -831,10 +831,10 @@ void PlayerEntity::setGuiToConfirmClearScreen()
 
 void PlayerEntity::handleKeyMapperConfirmClearKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
 
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    bool selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
     if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
         if (gameView != nullptr)
             gameView->clearMouse();
@@ -1218,9 +1218,9 @@ void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip, bool /*resetCurre
 
 void PlayerEntity::handleKeyboardLayoutEntryKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    bool selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
     if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
         if (gameView != nullptr)
             gameView->clearMouse();

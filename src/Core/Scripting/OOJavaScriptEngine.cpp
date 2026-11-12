@@ -522,7 +522,7 @@ static void LoadCompatibilityScript(JSContext* context)
     */
     static bool checked = false;
     if (!checked) {
-        checked = YES;
+        checked = true;
         const char* test = "(function () { 'use strict'; try { 'x'.oolite = 1; new Math.max(); return true; } catch (e) { return false; } })()";
         JSValue patched = JS_Eval(context, test, strlen(test), "<compatibility check>", JS_EVAL_TYPE_GLOBAL);
         if (!JS_IsException(patched) && !OOJSValueToBOOL(context, patched)) {

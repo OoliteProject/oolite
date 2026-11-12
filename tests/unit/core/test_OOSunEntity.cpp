@@ -302,7 +302,7 @@ OO_TEST(facade)
 		SetUp();
 		OOSunEntity *sun = RedSun();
 		Entity *object = sun;
-		OO_CHECK(object != nil);	// A C++ entity.
+		OO_CHECK(object != nullptr);	// A C++ entity.
 		OO_CHECK(dynamic_cast<OOSunEntity *>(object) == sun);
 	}
 }

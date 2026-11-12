@@ -782,6 +782,11 @@ if __name__ == "__main__":
         print(f"[*] Moving to {target_dir}")
         os.chdir(target_dir)
 
+        # This is the smoke test, and it launches ONE game - which on Windows means one real
+        # window on the interactive desktop, because SDL_VIDEODRIVER=offscreen is deliberately
+        # not set there. Two games on the desktop at once steal each other's foreground, so run
+        # it alone (tests/run.sh smoke).
+        #
         # Run the test from within the Oolite directory
         success = run_test(
             bin_name,

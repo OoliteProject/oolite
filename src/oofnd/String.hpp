@@ -55,13 +55,6 @@
 
 #pragma once
 
-// Callers see OOFoundation.h's `#define true 1` / `#define false
-// 0`; suspend them for this header.
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
-
 #include "oofnd/Data.hpp"
 #include "oofnd/PList.hpp" // utf8ToUtf16 / utf16ToUtf8, and PListGet.hpp's GNUstep number readers
 #include "oofnd/PrintfFormat.h"

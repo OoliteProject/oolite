@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 
 #include "OOFunctionAttributes.h"
 
-#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // a game unit, not a plain C++ one
+#ifndef OO_PLAIN_CPP_UNIT
 #include "OOOpenGL.h"
 #else
 /*	A plain C or C++ translation unit (OOVoxel.c, for one) needs only the GL types. OOOpenGL.h

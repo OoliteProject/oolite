@@ -700,7 +700,7 @@ struct StandInUniverse
 {
 	TestUniverse *universe;
 	StandInUniverse()  { universe = new TestUniverse(); gSharedUniverse = universe; }
-	~StandInUniverse()  { gSharedUniverse = nil; }	// never released: a universe's teardown flushes the caches and the GL objects
+	~StandInUniverse()  { gSharedUniverse = nullptr; }	// never released: a universe's teardown flushes the caches and the GL objects
 	std::string Page()
 	{
 		std::string page;
