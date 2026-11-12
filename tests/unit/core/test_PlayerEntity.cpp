@@ -358,7 +358,7 @@ OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		Entity *object = player;	// the drawable
-		OO_CHECK(object != nil && oo::ToShip(object) != nullptr);	// a ship's object
+		OO_CHECK(object != nullptr && oo::ToShip(object) != nullptr);	// a ship's object
 		OO_CHECK(object == player);
 		OO_CHECK(dynamic_cast<PlayerEntity *>(object) == player);
 		OO_CHECK(oo::EntityRespondsToName(player, "commanderName_string"));
@@ -538,7 +538,7 @@ OO_TEST(slice3Wormhole)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
-		OO_CHECK(player->getWormhole() == nil);
+		OO_CHECK(player->getWormhole() == nullptr);
 		// A C++ wormhole: the player retains it.
 		oo::Ref<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));

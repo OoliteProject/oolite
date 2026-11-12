@@ -17,57 +17,6 @@ from console import DebugConsole
 SCENARIO_TIMEOUT_SECONDS = int(os.environ.get("OO_COMPONENT_TIMEOUT", "300"))
 
 
-def _desktop_lock_helper():
-    """tools/desktop_lock from the OUTER repository, or None when there is none.
-
-    Located at runtime by walking up, because this tier lives in a subtree that is also pushed to
-    the fork on its own, where tools/ does not exist.
-    """
-    here = os.path.dirname(os.path.abspath(__file__))
-    while True:
-        tools = os.path.join(here, "tools")
-        if os.path.isfile(os.path.join(tools, "gui-lock")) and os.path.isfile(
-            os.path.join(tools, "desktop_lock.py")
-        ):
-            if tools not in sys.path:
-                sys.path.insert(0, tools)
-            import desktop_lock  # noqa: F401  - located at runtime, on purpose
-
-            return desktop_lock
-        parent = os.path.dirname(here)
-        if parent == here:
-            return None
-        here = parent
-
-
-@pytest.fixture(scope="session")
-def desktop_lock():
-    """Hold the interactive-desktop mutex for the whole session.
-
-    This tier is "headless" only in the sense that nothing clicks it. On Windows
-    ``SDL_VIDEODRIVER=offscreen`` is deliberately left unset (console.py::_env - MSYS2's Mesa
-    ships no EGL and the offscreen driver cannot make a context), so every scenario opens a REAL
-    window on the real desktop, which can take the foreground away from a running GUI test.
-
-    Session-scoped, not per-scenario: scenarios run sequentially on ONE console port
-    (``console_port`` below), so the tier is a single desktop user from start to finish, and
-    taking the lock per scenario would only hand the desktop back and forth mid-run.
-
-    This is deliberately here rather than inside ``console.py``: a mutex in the transport
-    would serialise or deadlock any caller that runs several games at once. The lock belongs to
-    whoever decides how many games run at once, which is the tier, not the transport.
-    """
-    helper = _desktop_lock_helper()
-    if helper is None:
-        yield None
-        return
-    try:
-        with helper.desktop_lock("component", start=__file__) as path:
-            yield path
-    except helper.DesktopLockError as exc:
-        pytest.fail(str(exc))
-
-
 def pytest_addoption(parser):
     parser.addoption(
         "--oolite-app",

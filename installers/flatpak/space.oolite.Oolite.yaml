@@ -121,19 +121,11 @@ modules:
         url: https://github.com/OoliteProject/oolite.git
         tag: "1.92.1.0"
         commit: dd117d31c2f0e756d478e64584120d3d5cbf64d8
-      # QuickJS-ng, from subprojects/quickjs-ng.wrap: flatpak-builder has no network
-      # access, so the source and the wrap's diff_files patches are provided here.
-      - type: git
-        url: https://github.com/quickjs-ng/quickjs.git
-        tag: v0.17.0
-        commit: 6d46d07d04041b40f4f49eaa7fdebe44c314c699
-        dest: subprojects/quickjs-ng
-      - type: patch
-        path: ../../subprojects/packagefiles/quickjs-ng/0001-oolite-primitive-property-assignment.patch
-        dest: subprojects/quickjs-ng
-      - type: patch
-        path: ../../subprojects/packagefiles/quickjs-ng/0002-oolite-new-on-native-functions.patch
-        dest: subprojects/quickjs-ng
-      - type: patch
-        path: ../../subprojects/packagefiles/quickjs-ng/0003-oolite-no-pthread-on-windows.patch
-        dest: subprojects/quickjs-ng
+      # QuickJS-ng, the JS engine, is a meson subproject (subprojects/quickjs-ng.wrap) linked
+      # statically into oolite. The flatpak build is offline, so its wrap tarball is fetched here
+      # and placed where meson's subproject packagecache looks for it.
+      - type: file
+        url: https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.17.0.tar.gz
+        sha256: 559bc4c420475e55c7ab4510adbc562f55d7524d75e8e89d79ce4bb02f5687d9
+        dest: subprojects/packagecache
+        dest-filename: quickjs-ng-0.17.0.tar.gz

@@ -1,7 +1,7 @@
 """Binds the T1 tutorial walkthrough to the keyboard steps and the shared step library.
 
 The keyboard steps press real keys (keyboard.py), which is implemented for Windows only - the
-platform this tier runs natively on (ADR-0017).
+platform this tier runs natively on.
 """
 
 import sys

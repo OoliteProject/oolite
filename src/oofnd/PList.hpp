@@ -69,14 +69,6 @@
 #ifndef OOFND_PLIST_HPP
 #define OOFND_PLIST_HPP
 
-// Callers see OOFoundation.h's `#define true 1` / `#define false
-// 0`; C++20 needs the keywords. Suspend the macros for this header and restore
-// them at its end (as oofnd/Data.hpp does).
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
-
 #include "oofnd/Data.hpp"
 #include "oofnd/Ref.hpp"
 

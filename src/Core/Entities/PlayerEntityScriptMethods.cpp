@@ -50,9 +50,9 @@ oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape)
     return oo::PList(std::move(marker));
 }
 
-// The bool and integer value of a property-list value (NO / 0 for none): NSString's and
-// NSNumber's own conversions, as NSUserDefaults -boolForKey: / -integerForKey: read them.
-BOOL BoolValueOf(const oo::PList* value)
+// The bool and integer value of a property-list value (false / 0 for none): NSString's and NSNumber's own conversions, as
+// NSUserDefaults -boolForKey: / -integerForKey: read them.
+bool BoolValueOf(const oo::PList* value)
 {
     if (value == nullptr)
         return false;

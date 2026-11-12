@@ -211,15 +211,15 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
         if ((gameView != nullptr ? gameView->isDown(27) : false)) {
             stickHandler->clearCallback();
             gui->setArray(std::vector<std::string> { OO_DESC("stickmapper-set-aborted") }, GUI_ROW_INSTRUCT);
-            waitingForStickCallback = NO;
+            waitingForStickCallback = false;
         }
 
         // Break out now.
         return;
     }
-    const BOOL* joyButtonState = stickHandler->getAllButtonStates();
+    const bool* joyButtonState = stickHandler->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    bool selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
 
     if (gui->getSelectedRow() == GUI_ROW_STICKPROFILE && selectKeyPress) {
         setGuiToStickProfileScreen(gui);

@@ -394,7 +394,7 @@ OO_TEST(facade)
 		SetUp();
 		WormholeEntity *wh = ToNine(Ship(1000.0f));
 		Entity *object = wh;
-		OO_CHECK(object != nil);	// A C++ entity.
+		OO_CHECK(object != nullptr);	// A C++ entity.
 		OO_CHECK(dynamic_cast<WormholeEntity *>(object) == wh);
 	}
 }

@@ -344,7 +344,7 @@ std::optional<std::string> PlayerEntity::commanderSelector()
     ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     std::string dir = (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr ? UNIVERSE->gameController()->playerFileDirectory() : std::optional<std::string>()).value_or("");
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     int idx;
     if (handleGUIUpDownArrowKeys()) {
@@ -382,7 +382,7 @@ std::optional<std::string> PlayerEntity::commanderSelector()
 
     // Enter pressed - find the commander name underneath.
     // ignore Ctrl for the moment - we check for it explicitly later
-    if (checkKeyPressIgnoreCtrl(n_key_gui_select, YES) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) {
+    if (checkKeyPressIgnoreCtrl(n_key_gui_select, true) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) {
         switch (gui->getSelectedRow()) {
         case EXITROW:
             if (status() == STATUS_START_GAME) {
@@ -437,7 +437,7 @@ void PlayerEntity::saveCommanderInputHandler()
     ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     std::string dir = (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr ? UNIVERSE->gameController()->playerFileDirectory() : std::optional<std::string>()).value_or("");
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     if (handleGUIUpDownArrowKeys()) {
         int guiSelectedRow = gui->getSelectedRow();
@@ -483,7 +483,7 @@ void PlayerEntity::saveCommanderInputHandler()
     }
 
     // ignore Ctrl if pressed together with Enter for the moment - we check for it explicitly immediately after
-    if ((checkKeyPressIgnoreCtrl(n_key_gui_select, YES) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) && !commanderNameString.empty()) {
+    if ((checkKeyPressIgnoreCtrl(n_key_gui_select, true) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) && !commanderNameString.empty()) {
         if (IsCommandModifierKeyDown(gameView) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
             int guiSelectedRow = gui->getSelectedRow();
             int idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
@@ -530,7 +530,7 @@ void PlayerEntity::overwriteCommanderInputHandler()
 {
     ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
+    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     handleGUIUpDownArrowKeys();
 
@@ -543,7 +543,7 @@ void PlayerEntity::overwriteCommanderInputHandler()
     cNo = FirstUnitLowByte(valueNo); // Use lower byte of unichar.
 
     if (((checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT]) && (gui->getSelectedRow() == SAVE_OVERWRITE_YES_ROW)) || (gameView != nullptr ? gameView->isDown(cYes) : false) || (gameView != nullptr ? gameView->isDown(cYes - 32) : false)) {
-        pollControls = YES;
+        pollControls = true;
         nativeSavePlayer(commanderNameString);
         playSaveOverwriteYes();
         if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)

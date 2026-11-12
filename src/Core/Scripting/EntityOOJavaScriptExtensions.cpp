@@ -197,7 +197,7 @@ void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target)
     }
     if (me == nullptr)
         return; // not a ship
-    if (target != nil) {
+    if (target != nullptr) {
         if (me != nullptr)
             me->addTarget(target);
     } else {

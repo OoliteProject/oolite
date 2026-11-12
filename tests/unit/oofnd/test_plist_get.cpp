@@ -17,9 +17,6 @@
    so a fallback is always visible. meson test --suite oofnd-plist
 */
 
-// Included where true/false are macros, as OOCocoa.h defined them.
-#define true 1
-#define false 0
 #include "oofnd/PListGet.hpp"
 
 #include <cmath>

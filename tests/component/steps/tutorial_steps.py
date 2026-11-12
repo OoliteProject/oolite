@@ -1,6 +1,6 @@
 """Keyboard steps: the tutorial walkthrough (T1) and anything else about player input.
 
-A new step family, and therefore a seam (ADR-0018 section 5): the rest of the tier drives the game
+A new step family, and therefore a seam: the rest of the tier drives the game
 only through JS, and these steps PRESS KEYS (keyboard.py) and read the effect back over the
 console. Every observable is JS that already exists - nothing here adds a native property:
 

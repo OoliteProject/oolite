@@ -273,8 +273,8 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z,
     GLfloat radius, GLfloat zoom,
     GLfloat alpha);
 
-static OOTexture* sFontTexture = nil;
-static OOEncodingConverter* sEncodingCoverter = nil;
+static OOTexture* sFontTexture = nullptr;
+static OOEncodingConverter* sEncodingCoverter = nullptr;
 static std::string distance_unit;
 
 enum {

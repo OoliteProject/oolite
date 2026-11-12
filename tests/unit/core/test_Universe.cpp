@@ -253,9 +253,9 @@ OO_TEST(facadeAndPart) {
     // A new universe is zeroed, as the runtime zeroed the ivars.
     Universe* fresh =
         new Universe();  // never released: its teardown clears UNIVERSE
-    OO_CHECK(fresh->n_entities == 0 && fresh->x_list_start == nil &&
-             fresh->gameView == nil);
-    OO_CHECK(fresh->sortedEntities[UNIVERSE_MAX_ENTITIES] == nil &&
+    OO_CHECK(fresh->n_entities == 0 && fresh->x_list_start == nullptr &&
+             fresh->gameView == nullptr);
+    OO_CHECK(fresh->sortedEntities[UNIVERSE_MAX_ENTITIES] == nullptr &&
              fresh->frustum[5][3] == 0.0f);
     OO_CHECK(fresh->entities.empty() && fresh->demo_ships.isNull() &&
              !fresh->currentMessage.has_value());

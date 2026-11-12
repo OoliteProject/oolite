@@ -9,7 +9,7 @@ wrapdb_version = 0.17.0-1
 # SpiderMonkey 1.8.5 behaviour that OXPs rely on (upstream request for an
 # option instead: https://github.com/quickjs-ng/quickjs/issues/1837). 0003
 # keeps -pthread out of Windows links, where clang warns that it is unused.
-diff_files = quickjs-ng/0001-oolite-primitive-property-assignment.patch, quickjs-ng/0002-oolite-new-on-native-functions.patch, quickjs-ng/0003-oolite-no-pthread-on-windows.patch
+diff_files = quickjs-ng-o2.patch, quickjs-ng-void-return.patch, quickjs-ng/0001-oolite-primitive-property-assignment.patch, quickjs-ng/0002-oolite-new-on-native-functions.patch, quickjs-ng/0003-oolite-no-pthread-on-windows.patch
 
 [provide]
 dependency_names = quickjs-ng

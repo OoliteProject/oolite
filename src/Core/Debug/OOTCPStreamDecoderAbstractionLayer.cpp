@@ -60,7 +60,7 @@ std::string DescriptionOf(OOALObjectRef object)
 // single object. Since it uses pointers as keys, it should only be used with
 // literals. Called from OOTCPStreamDecoder.c through OOALSTR(), so it keeps C
 // linkage.
-extern "C" OOALStringRef OOALGetConstantString(const char* string);
+OOALStringRef OOALGetConstantString(const char* string);
 OOALStringRef OOALGetConstantString(const char* string)
 {
     static std::map<const char*, std::unique_ptr<OOALObject>>* sStrings = nullptr;

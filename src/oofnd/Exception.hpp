@@ -48,14 +48,6 @@
 
 #pragma once
 
-// Callers see OOFoundation.h's `#define true 1` / `#define false
-// 0`; suspend them for the standard headers (as oofnd/Data.hpp does).
-#pragma push_macro("true")
-#pragma push_macro("false")
-#undef true
-#undef false
-
-#include "oofnd/PrintfFormat.h"
 #include <optional>
 #include <string>
 #include <utility>

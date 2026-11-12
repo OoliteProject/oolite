@@ -226,7 +226,7 @@ public:
 
     // This one just returns a pointer to the entire state array to
     // allow for multiple lookups with only one call
-    const BOOL* getAllButtonStates();
+    const bool* getAllButtonStates();
 
     // Hardware introspection.
     std::vector<std::string> listSticks();
