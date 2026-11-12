@@ -181,7 +181,7 @@ static NSPoint centre_at_mouse_click;
 static std::size_t searchStringLength;
 static double timeLastKeyPress;
 // static OOGUIRow			oldSelection;
-static int saved_view_direction;
+static OOViewID saved_view_direction;
 static double saved_script_time;
 static int saved_gui_screen;
 static OOWeaponFacing saved_weapon_facing;
@@ -1205,7 +1205,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
 
     if (!paused && gui_screen == GUI_SCREEN_MISSION) {
       exceptionContext = "mission screen";
-      OOViewID view = VIEW_NONE;
+      OOViewID view = OOViewID::kNone;
 
       NSPoint virtualView = NSZeroPoint;
       double view_threshold = 0.5;
@@ -1223,22 +1223,22 @@ void PlayerEntity::pollFlightControls(double delta_t) {
       if (checkKeyPress(n_key_view_forward) ||
           (virtualView.y < -view_threshold) ||
           joyButtonState[BUTTON_VIEWFORWARD]) {
-        view = VIEW_FORWARD;
+        view = OOViewID::kForward;
       }
       if (checkKeyPress(n_key_view_aft) | (virtualView.y > view_threshold) ||
           joyButtonState[BUTTON_VIEWAFT]) {
-        view = VIEW_AFT;
+        view = OOViewID::kAft;
       }
       if (checkKeyPress(n_key_view_port) || (virtualView.x < -view_threshold) ||
           joyButtonState[BUTTON_VIEWPORT]) {
-        view = VIEW_PORT;
+        view = OOViewID::kPort;
       }
       if (checkKeyPress(n_key_view_starboard) ||
           (virtualView.x > view_threshold) ||
           joyButtonState[BUTTON_VIEWSTARBOARD]) {
-        view = VIEW_STARBOARD;
+        view = OOViewID::kStarboard;
       }
-      if (view == VIEW_NONE) {
+      if (view == OOViewID::kNone) {
         // still in mission screen, process the input.
         pollDemoControls(delta_t);
       } else {
@@ -1302,7 +1302,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
               ((gameView != nullptr ? gameView->mouseWheelState() : 0) ==
                gvMouseWheelUp) &&
               ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection()
-                                    : OOViewID{}) <= VIEW_STARBOARD ||
+                                    : OOViewID{}) <= OOViewID::kStarboard ||
                !(gameView != nullptr ? gameView->isCapsLockOn() : false)))) &&
             (flightSpeed < maxFlightSpeed) && (!afterburner_engaged)) {
           flightSpeed += speed_delta * delta_t * mouseWheelDeltaFactor;
@@ -1314,7 +1314,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
               ((gameView != nullptr ? gameView->mouseWheelState() : 0) ==
                gvMouseWheelDown) &&
               ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection()
-                                    : OOViewID{}) <= VIEW_STARBOARD ||
+                                    : OOViewID{}) <= OOViewID::kStarboard ||
                !(gameView != nullptr ? gameView->isCapsLockOn() : false)))) &&
             (!afterburner_engaged)) {
           flightSpeed -= speed_delta * delta_t * mouseWheelDeltaFactor;
@@ -1371,7 +1371,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
               ((gameView != nullptr ? gameView->isDown(gvMouseLeftButton)
                                     : false)) &&
               ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection()
-                                    : OOViewID{}) <= VIEW_STARBOARD ||
+                                    : OOViewID{}) <= OOViewID::kStarboard ||
                !(gameView != nullptr ? gameView->isCapsLockOn() : false))) ||
              joyButtonState[BUTTON_FIRE]) &&
             (shot_time > weapon_recharge_rate)) {
@@ -4386,7 +4386,7 @@ void PlayerEntity::pollCustomViewControls() {
         !(gameView != nullptr ? gameView->getAllowingStringInput()
                               : StringInput{})) {
       if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) ==
-          VIEW_CUSTOM)  // already in custom view mode
+          OOViewID::kCustom)  // already in custom view mode
       {
         // rotate the custom views
         _customViewIndex = (_customViewIndex + 1) % _customViews.size();
@@ -4399,8 +4399,9 @@ void PlayerEntity::pollCustomViewControls() {
           (customView.isDict() ? customView : oo::PList()),
           true);  // null unless a Dict
 
-      switchToThisView(VIEW_CUSTOM, false);  // weapon facing must not change,
-                                             // we just want an external view
+      switchToThisView(OOViewID::kCustom,
+                       false);  // weapon facing must not change,
+                                // we just want an external view
     }
     customView_pressed = true;
   } else
@@ -4408,7 +4409,7 @@ void PlayerEntity::pollCustomViewControls() {
   double this_time =
       oo::date::monotonicSeconds();  // intervals only (last_time)
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) >
-          VIEW_STARBOARD &&
+          OOViewID::kStarboard &&
       (gameView != nullptr ? gameView->isCapsLockOn() : false)) {
     bool ctrl_down = (gameView != nullptr ? gameView->isCtrlDown() : false);
     float customViewZoomSpeed =
@@ -4575,20 +4576,20 @@ void PlayerEntity::pollViewControls() {
          gui_screen != GUI_SCREEN_LONG_RANGE_CHART) ||
         joyButtonState[BUTTON_HYPERDRIVE]) &&
        (UNIVERSE != nullptr ? UNIVERSE->getDisplayGUI() : false))) {
-    switchToThisView(VIEW_FORWARD);
+    switchToThisView(OOViewID::kForward);
   }
   if ((checkKeyPress(n_key_view_aft)) || (virtualView.y > view_threshold) ||
       joyButtonState[BUTTON_VIEWAFT]) {
-    switchToThisView(VIEW_AFT);
+    switchToThisView(OOViewID::kAft);
   }
   if ((checkKeyPress(n_key_view_port)) || (virtualView.x < -view_threshold) ||
       joyButtonState[BUTTON_VIEWPORT]) {
-    switchToThisView(VIEW_PORT);
+    switchToThisView(OOViewID::kPort);
   }
   if ((checkKeyPress(n_key_view_starboard)) ||
       (virtualView.x > view_threshold) ||
       joyButtonState[BUTTON_VIEWSTARBOARD]) {
-    switchToThisView(VIEW_STARBOARD);
+    switchToThisView(OOViewID::kStarboard);
   }
 
   pollCustomViewControls();
@@ -4634,7 +4635,8 @@ void PlayerEntity::pollViewControls() {
     if (checkKeyPress(n_key_prev_compass_mode) ||
         joyButtonState[BUTTON_COMPASSMODE_PREV])  // look for the '|' key
     {
-      if ((!prev_compass_mode_pressed) && (compassMode != COMPASS_MODE_BASIC))
+      if ((!prev_compass_mode_pressed) &&
+          (compassMode != OOCompassMode::kBasic))
         setPrevCompassMode();
       prev_compass_mode_pressed = true;
     } else {
@@ -4644,7 +4646,8 @@ void PlayerEntity::pollViewControls() {
     if (checkKeyPress(n_key_next_compass_mode) ||
         joyButtonState[BUTTON_COMPASSMODE])  // look for the '\' key
     {
-      if ((!next_compass_mode_pressed) && (compassMode != COMPASS_MODE_BASIC))
+      if ((!next_compass_mode_pressed) &&
+          (compassMode != OOCompassMode::kBasic))
         setNextCompassMode();
       next_compass_mode_pressed = true;
     } else {
@@ -4752,7 +4755,7 @@ void PlayerEntity::pollFlightArrowKeyControls(double delta_t) {
   double yaw_dampner = YAW_DAMPING_FACTOR * delta_t;
   bool capsLockCustomView =
       (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) ==
-          VIEW_CUSTOM &&
+          OOViewID::kCustom &&
       (gameView != nullptr ? gameView->isCapsLockOn() : false);
 
   bool isCtrlDown = (gameView != nullptr ? gameView->isCtrlDown() : false);
@@ -5694,7 +5697,7 @@ void PlayerEntity::handleMissionCallback() {
   setGuiToMissionEndScreen();  // need this to find out if we call a new mission
                                // screen inside callback.
 
-  if (status() != OOEntityStatus::kDocked) switchToThisView(VIEW_FORWARD);
+  if (status() != OOEntityStatus::kDocked) switchToThisView(OOViewID::kForward);
 
   if (_missionWithCallback) {
     doMissionCallback();
@@ -5800,19 +5803,19 @@ void PlayerEntity::switchToThisView(OOViewID viewDirection,
   if (processWeaponFacing) {
     OOWeaponFacing facing = OOWeaponFacing::kNone;
     switch (viewDirection) {
-      case VIEW_FORWARD:
+      case OOViewID::kForward:
         facing = OOWeaponFacing::kForward;
         break;
 
-      case VIEW_AFT:
+      case OOViewID::kAft:
         facing = OOWeaponFacing::kAft;
         break;
 
-      case VIEW_PORT:
+      case OOViewID::kPort:
         facing = OOWeaponFacing::kPort;
         break;
 
-      case VIEW_STARBOARD:
+      case OOViewID::kStarboard:
         facing = OOWeaponFacing::kStarboard;
         break;
 
@@ -5830,7 +5833,8 @@ void PlayerEntity::switchToThisView(OOViewID viewDirection,
                  static_cast<unsigned>(viewDirection));
     }
   }
-  if ((oldViewDirection != viewDirection || viewDirection == VIEW_CUSTOM) &&
+  if ((oldViewDirection != viewDirection ||
+       viewDirection == OOViewID::kCustom) &&
       !(UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr
             ? UNIVERSE->gameController()->isGamePaused()
             : false)) {
@@ -5964,7 +5968,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking) {
     ship_clock_adjust += 1200.0;  // 20 minutes penalty to enter dock
     ident_engaged = false;
     safeAllMissiles();
-    if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(VIEW_FORWARD);
+    if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
     enterDock(ts);
   } else {
     // Standard docking - engage autopilot

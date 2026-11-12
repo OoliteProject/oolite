@@ -66,7 +66,7 @@ OO_TEST(defaults) {
     OO_CHECK(u->entityCount() == 0);
     OO_CHECK(u->getTime() == 0.0 && u->getTimeDelta() == 0.0);
     OO_CHECK(u->currentSystemID() == 0);
-    OO_CHECK(u->getViewDirection() == VIEW_FORWARD);
+    OO_CHECK(u->getViewDirection() == OOViewID::kForward);
     OO_CHECK(u->getAmbientLightLevel() == 0.0f);
     OO_CHECK(u->getAirResistanceFactor() == 0.0f);
     GLfloat* sky = u->getSkyClearColor();
@@ -794,8 +794,8 @@ OO_TEST(slice15TimeAndCollisions) {
     u->dumpCollisions();
     OO_CHECK(u->dumpCollisionInfo);
 
-    u->viewDirection = VIEW_AFT;
-    OO_CHECK(u->getViewDirection() == VIEW_AFT);
+    u->viewDirection = OOViewID::kAft;
+    OO_CHECK(u->getViewDirection() == OOViewID::kAft);
   }
 }
 
@@ -857,9 +857,9 @@ OO_TEST(slice16ViewDirection) {
     // The view it already has, with no GUI shown: nothing changes and nothing
     // is said. (A change speaks through the player's script events, which need
     // the whole game.)
-    u->viewDirection = VIEW_AFT;
-    u->setViewDirection(VIEW_AFT);
-    OO_CHECK(u->getViewDirection() == VIEW_AFT &&
+    u->viewDirection = OOViewID::kAft;
+    u->setViewDirection(OOViewID::kAft);
+    OO_CHECK(u->getViewDirection() == OOViewID::kAft &&
              !CurrentMessage(u).has_value() && !u->getDisplayGUI());
   }
 }

@@ -944,7 +944,7 @@ OO_TEST(beacons)
 	sGame->_compassMode = -1;
 	OO_CHECK_EVAL("(function () { effect.beaconCode = ''; return effect.beaconCode; })()", "null");
 	OO_CHECK_EQ(sGame->_cleared, 1);
-	OO_CHECK_EQ(sGame->_compassMode, static_cast<int>(COMPASS_MODE_PLANET));
+	OO_CHECK_EQ(sGame->_compassMode, static_cast<int>(OOCompassMode::kPlanet));
 	// Clearing a non-beacon does nothing.
 	sGame->_compassMode = -1;
 	OO_CHECK_EVAL("(function () { effect.beaconCode = null; return effect.beaconCode; })()", "null");

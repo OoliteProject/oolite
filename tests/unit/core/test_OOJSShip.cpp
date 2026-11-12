@@ -597,7 +597,7 @@ OO_TEST(setterBeaconCode) {
   OO_CHECK_EVAL(SET("beaconCode", "''"),
                 "C");  // cleared from the universe's list, code kept
   OO_CHECK_LOG("clearBeacon; setCompassMode " +
-               std::to_string(static_cast<int>(COMPASS_MODE_PLANET)));
+               std::to_string(static_cast<int>(OOCompassMode::kPlanet)));
   sNextBeacon = nullptr;
   OO_CHECK_EVAL(SET("beaconCode", "null"), "C");
   OO_CHECK_LOG("clearBeacon");

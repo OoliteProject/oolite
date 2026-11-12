@@ -63,13 +63,10 @@ constexpr std::string_view OOEnumName(OORouteType value) noexcept {
   return {};
 }
 
+#include "OOCompassMode.h"
+#include "OOViewID.h"
+
 #define ENTRY(label, value) label,
-
-typedef enum {
-#include "OOViewID.tbl"
-
-  kOOViewIDDefault = VIEW_NONE
-} OOViewID;
 
 typedef enum {
 #include "OOLongRangeChartMode.tbl"
@@ -217,16 +214,6 @@ constexpr std::string_view OOEnumName(OOEnergyUnitType value) noexcept {
   }
   return {};
 }
-
-#define ENTRY(label, value) label = value,
-
-typedef enum {
-#include "OOCompassMode.tbl"
-} OOCompassMode;
-
-inline constexpr OOCompassMode kOOCompassModeDefault = COMPASS_MODE_BASIC;
-
-#undef ENTRY
 
 #include "OOLegalStatusReason.h"
 

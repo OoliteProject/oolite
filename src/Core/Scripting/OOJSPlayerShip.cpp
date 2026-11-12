@@ -920,7 +920,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (*sValue == "OO_COMPASSTYPE_BASIC") {
-          if (player != nullptr) player->setCompassMode(COMPASS_MODE_BASIC);
+          if (player != nullptr) player->setCompassMode(OOCompassMode::kBasic);
         } else if (*sValue == "OO_COMPASSTYPE_ADVANCED") {
           if (!(player != nullptr
                     ? player->hasEquipmentItemProviding("EQ_ADVANCED_COMPASS")
@@ -931,7 +931,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
                 "not carry the EQ_ADVANCED_COMPASS equipment or has it "
                 "damaged.");
           }
-          if (player != nullptr) player->setCompassMode(COMPASS_MODE_PLANET);
+          if (player != nullptr) player->setCompassMode(OOCompassMode::kPlanet);
         } else {
           cxx_OOJSReportError(
               context,
@@ -1741,7 +1741,7 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS) {
 
   // must be in custom view
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) !=
-      VIEW_CUSTOM) {
+      OOViewID::kCustom) {
     cxx_OOJSReportError(
         context,
         "PlayerShip.setCustomView only works when custom view is active.");
@@ -1790,7 +1790,8 @@ static JSValue PlayerShipSetCustomView(OOJS_NATIVE_ARGS) {
   if (player != nullptr)
     player->setCustomViewDataFromDictionary(oo::PList(std::move(viewData)),
                                             false);
-  if (player != nullptr) player->noteSwitchToView(VIEW_CUSTOM, VIEW_CUSTOM);
+  if (player != nullptr)
+    player->noteSwitchToView(OOViewID::kCustom, OOViewID::kCustom);
 
   OOJS_RETURN_BOOL(true);
   OOJS_NATIVE_EXIT
@@ -1804,7 +1805,7 @@ static JSValue PlayerShipResetCustomView(OOJS_NATIVE_ARGS) {
 
   // must be in custom view
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) !=
-      VIEW_CUSTOM) {
+      OOViewID::kCustom) {
     cxx_OOJSReportError(
         context,
         "PlayerShip.setCustomView only works when custom view is active.");
@@ -1812,7 +1813,8 @@ static JSValue PlayerShipResetCustomView(OOJS_NATIVE_ARGS) {
   }
 
   if (player != nullptr) player->resetCustomView();
-  if (player != nullptr) player->noteSwitchToView(VIEW_CUSTOM, VIEW_CUSTOM);
+  if (player != nullptr)
+    player->noteSwitchToView(OOViewID::kCustom, OOViewID::kCustom);
 
   OOJS_RETURN_BOOL(true);
   OOJS_NATIVE_EXIT

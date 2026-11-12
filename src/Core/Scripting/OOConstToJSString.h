@@ -111,7 +111,8 @@ OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext* context,
                                                 JSValueConst value) {
   extern struct ConstTable gOOCompassModeConstTable;
   return (OOCompassMode)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOCompassModeConstTable, kOOCompassModeDefault);
+      context, value, &gOOCompassModeConstTable,
+      oo::ToUnderlying(kOOCompassModeDefault));
 }
 
 /*	JSValue OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
@@ -169,7 +170,7 @@ OOINLINE JSValue OOJSValueFromViewID(JSContext* context, OOViewID value) {
 OOINLINE OOViewID OOViewIDFromJSValue(JSContext* context, JSValueConst value) {
   extern struct ConstTable gOOViewIDConstTable;
   return (OOViewID)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOViewIDConstTable, kOOViewIDDefault);
+      context, value, &gOOViewIDConstTable, oo::ToUnderlying(kOOViewIDDefault));
 }
 
 /*	JSValue OOJSValueFromShipDamageType(JSContext *, OOShipDamageType)

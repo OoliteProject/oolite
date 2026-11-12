@@ -87,13 +87,13 @@ OO_TEST(cxx_OOStringFromBehaviour) {
 }
 
 OO_TEST(cxx_OOStringFromCompassMode) {
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_INACTIVE) == "COMPASS_MODE_INACTIVE");
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_BASIC) == "COMPASS_MODE_BASIC");
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_PLANET) == "COMPASS_MODE_PLANET");
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_STATION) == "COMPASS_MODE_STATION");
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_SUN) == "COMPASS_MODE_SUN");
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_TARGET) == "COMPASS_MODE_TARGET");
-  OO_CHECK(cxx_OOStringFromCompassMode(COMPASS_MODE_BEACONS) == "COMPASS_MODE_BEACONS");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kInactive) == "COMPASS_MODE_INACTIVE");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kBasic) == "COMPASS_MODE_BASIC");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kPlanet) == "COMPASS_MODE_PLANET");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kStation) == "COMPASS_MODE_STATION");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kSun) == "COMPASS_MODE_SUN");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kTarget) == "COMPASS_MODE_TARGET");
+  OO_CHECK(cxx_OOStringFromCompassMode(OOCompassMode::kBeacons) == "COMPASS_MODE_BEACONS");
 }
 
 OO_TEST(cxx_OOStringFromLongRangeChartMode) {
@@ -218,15 +218,15 @@ OO_TEST(cxx_OOEntityStatusFromString) {
 }
 
 OO_TEST(cxx_OOCompassModeFromString) {
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_INACTIVE") == COMPASS_MODE_INACTIVE);
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_BASIC") == COMPASS_MODE_BASIC);
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_PLANET") == COMPASS_MODE_PLANET);
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_STATION") == COMPASS_MODE_STATION);
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_SUN") == COMPASS_MODE_SUN);
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_TARGET") == COMPASS_MODE_TARGET);
-  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_BEACONS") == COMPASS_MODE_BEACONS);
-  OO_CHECK(cxx_OOCompassModeFromString("NOT_A_NAME") == COMPASS_MODE_BASIC);  // the fallback
-  OO_CHECK(cxx_OOCompassModeFromString("") == COMPASS_MODE_BASIC);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_INACTIVE") == OOCompassMode::kInactive);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_BASIC") == OOCompassMode::kBasic);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_PLANET") == OOCompassMode::kPlanet);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_STATION") == OOCompassMode::kStation);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_SUN") == OOCompassMode::kSun);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_TARGET") == OOCompassMode::kTarget);
+  OO_CHECK(cxx_OOCompassModeFromString("COMPASS_MODE_BEACONS") == OOCompassMode::kBeacons);
+  OO_CHECK(cxx_OOCompassModeFromString("NOT_A_NAME") == OOCompassMode::kBasic);  // the fallback
+  OO_CHECK(cxx_OOCompassModeFromString("") == OOCompassMode::kBasic);
 }
 
 OO_TEST(cxx_OOGalacticHyperspaceBehaviourFromString) {
@@ -553,22 +553,22 @@ OO_TEST(jsScanClass) {
 
 OO_TEST(jsCompassMode) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_INACTIVE)) == "COMPASS_MODE_INACTIVE");
-  { JSValue v = js.string("COMPASS_MODE_INACTIVE"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_INACTIVE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_BASIC)) == "COMPASS_MODE_BASIC");
-  { JSValue v = js.string("COMPASS_MODE_BASIC"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_BASIC); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_PLANET)) == "COMPASS_MODE_PLANET");
-  { JSValue v = js.string("COMPASS_MODE_PLANET"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_PLANET); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_STATION)) == "COMPASS_MODE_STATION");
-  { JSValue v = js.string("COMPASS_MODE_STATION"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_STATION); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_SUN)) == "COMPASS_MODE_SUN");
-  { JSValue v = js.string("COMPASS_MODE_SUN"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_SUN); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_TARGET)) == "COMPASS_MODE_TARGET");
-  { JSValue v = js.string("COMPASS_MODE_TARGET"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_TARGET); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, COMPASS_MODE_BEACONS)) == "COMPASS_MODE_BEACONS");
-  { JSValue v = js.string("COMPASS_MODE_BEACONS"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == COMPASS_MODE_BEACONS); JS_FreeValue(js.context, v); }
-  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == (OOCompassMode)(COMPASS_MODE_BASIC)); JS_FreeValue(js.context, v); }  // the fallback
-  OO_CHECK(OOCompassModeFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOCompassMode)(COMPASS_MODE_BASIC));  // not a string
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kInactive)) == "COMPASS_MODE_INACTIVE");
+  { JSValue v = js.string("COMPASS_MODE_INACTIVE"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kInactive); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kBasic)) == "COMPASS_MODE_BASIC");
+  { JSValue v = js.string("COMPASS_MODE_BASIC"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kBasic); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kPlanet)) == "COMPASS_MODE_PLANET");
+  { JSValue v = js.string("COMPASS_MODE_PLANET"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kPlanet); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kStation)) == "COMPASS_MODE_STATION");
+  { JSValue v = js.string("COMPASS_MODE_STATION"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kStation); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kSun)) == "COMPASS_MODE_SUN");
+  { JSValue v = js.string("COMPASS_MODE_SUN"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kSun); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kTarget)) == "COMPASS_MODE_TARGET");
+  { JSValue v = js.string("COMPASS_MODE_TARGET"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kTarget); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromCompassMode(js.context, OOCompassMode::kBeacons)) == "COMPASS_MODE_BEACONS");
+  { JSValue v = js.string("COMPASS_MODE_BEACONS"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == OOCompassMode::kBeacons); JS_FreeValue(js.context, v); }
+  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOCompassModeFromJSValue(js.context, v) == (OOCompassMode)(OOCompassMode::kBasic)); JS_FreeValue(js.context, v); }  // the fallback
+  OO_CHECK(OOCompassModeFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOCompassMode)(OOCompassMode::kBasic));  // not a string
 }
 
 OO_TEST(jsGUIScreenID) {
@@ -651,24 +651,24 @@ OO_TEST(jsGalacticHyperspaceBehaviour) {
 
 OO_TEST(jsViewID) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_FORWARD)) == "VIEW_FORWARD");
-  { JSValue v = js.string("VIEW_FORWARD"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_FORWARD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_AFT)) == "VIEW_AFT");
-  { JSValue v = js.string("VIEW_AFT"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_AFT); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_PORT)) == "VIEW_PORT");
-  { JSValue v = js.string("VIEW_PORT"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_PORT); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_STARBOARD)) == "VIEW_STARBOARD");
-  { JSValue v = js.string("VIEW_STARBOARD"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_STARBOARD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_CUSTOM)) == "VIEW_CUSTOM");
-  { JSValue v = js.string("VIEW_CUSTOM"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_CUSTOM); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_NONE)) == "VIEW_NONE");
-  { JSValue v = js.string("VIEW_NONE"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_NONE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_GUI_DISPLAY)) == "VIEW_GUI_DISPLAY");
-  { JSValue v = js.string("VIEW_GUI_DISPLAY"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_GUI_DISPLAY); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromViewID(js.context, VIEW_BREAK_PATTERN)) == "VIEW_BREAK_PATTERN");
-  { JSValue v = js.string("VIEW_BREAK_PATTERN"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == VIEW_BREAK_PATTERN); JS_FreeValue(js.context, v); }
-  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == (OOViewID)(VIEW_NONE)); JS_FreeValue(js.context, v); }  // the fallback
-  OO_CHECK(OOViewIDFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOViewID)(VIEW_NONE));  // not a string
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kForward)) == "VIEW_FORWARD");
+  { JSValue v = js.string("VIEW_FORWARD"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kForward); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kAft)) == "VIEW_AFT");
+  { JSValue v = js.string("VIEW_AFT"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kAft); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kPort)) == "VIEW_PORT");
+  { JSValue v = js.string("VIEW_PORT"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kPort); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kStarboard)) == "VIEW_STARBOARD");
+  { JSValue v = js.string("VIEW_STARBOARD"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kStarboard); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kCustom)) == "VIEW_CUSTOM");
+  { JSValue v = js.string("VIEW_CUSTOM"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kCustom); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kNone)) == "VIEW_NONE");
+  { JSValue v = js.string("VIEW_NONE"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kNone); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kGUIDisplay)) == "VIEW_GUI_DISPLAY");
+  { JSValue v = js.string("VIEW_GUI_DISPLAY"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kGUIDisplay); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromViewID(js.context, OOViewID::kBreakPattern)) == "VIEW_BREAK_PATTERN");
+  { JSValue v = js.string("VIEW_BREAK_PATTERN"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == OOViewID::kBreakPattern); JS_FreeValue(js.context, v); }
+  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOViewIDFromJSValue(js.context, v) == (OOViewID)(OOViewID::kNone)); JS_FreeValue(js.context, v); }  // the fallback
+  OO_CHECK(OOViewIDFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOViewID)(OOViewID::kNone));  // not a string
 }
 
 OO_TEST(jsShipDamageType) {

@@ -568,7 +568,7 @@ void SetUpContext()
 	gOOPlayer = sPlayer;
 	sUniverse = new StandInUniverse();
 	sUniverse->_timeAcceleration = 1;
-	sUniverse->_view = VIEW_GUI_DISPLAY;
+	sUniverse->_view = OOViewID::kGUIDisplay;
 	sGui = oo::makeRef<GuiDisplayGen>();	// kept for the life of the test
 	sUniverse->_gui = sGui.get();
 	gSharedUniverse = sUniverse;
@@ -724,11 +724,11 @@ OO_TEST(screens)
 	OO_CHECK(!sGuiForeground.isNull());
 	OO_CHECK_EVAL("setScreenOverlay(undefined)", "threw: bad arguments: -.setScreenOverlay(1) - / GUI texture descriptor");
 	// Not on a GUI view: nothing is set.
-	sUniverse->_view = VIEW_FORWARD;
+	sUniverse->_view = OOViewID::kForward;
 	sGuiForeground = oo::PList();
 	OO_CHECK_EVAL("setScreenOverlay({name: 'fg.png'})", "false");
 	OO_CHECK(sGuiForeground.isNull());
-	sUniverse->_view = VIEW_GUI_DISPLAY;
+	sUniverse->_view = OOViewID::kGUIDisplay;
 	// Backgrounds by key.
 	OO_CHECK_EVAL("setScreenBackgroundForKey('long_range_chart', {name: 'lrc.png'})", "true");
 	OO_CHECK_EVAL("getScreenBackgroundForKey('long_range_chart').name", "lrc.png");

@@ -311,7 +311,7 @@ OO_TEST(deferredInit)
 		OO_CHECK(player->temperature() == SHIP_MIN_CABIN_TEMP && player->weaponRechargeRate() == 6.0f);
 		OO_CHECK(player->getFuel() == 5);	// what the bodies do not set stays
 		OO_CHECK(std::fabs(PlayerEntityTestAccess::maxFieldOfView(player) - MAX_FOV) < 1e-6);
-		OO_CHECK(player->getCompassMode() == COMPASS_MODE_BASIC);
+		OO_CHECK(player->getCompassMode() == OOCompassMode::kBasic);
 		OO_CHECK(!PlayerEntityTestAccess::scoopsActive(player) && PlayerEntityTestAccess::target_memory_index(player) == 0);
 		OO_CHECK(!PlayerEntityTestAccess::save_path(player).has_value());
 		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(player)[i] == nullptr);
@@ -815,8 +815,8 @@ OO_TEST(slice12CompassIdentAndAlertFlags)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		TestPlayer *player = MakePlayer();
-		player->setCompassMode(COMPASS_MODE_TARGET);
-		OO_CHECK(player->getCompassMode() == COMPASS_MODE_TARGET);
+		player->setCompassMode(OOCompassMode::kTarget);
+		OO_CHECK(player->getCompassMode() == OOCompassMode::kTarget);
 		player->setDialIdentEngaged((bool)3);
 		OO_CHECK(player->dialIdentEngaged());
 		player->max_missiles = 5;
@@ -1133,8 +1133,8 @@ OO_TEST(slice21ChangeNotes)
 		sSent.flag = true;
 		player->noteGUIDidChangeFrom(GUI_SCREEN_STATUS, GUI_SCREEN_MARKET);
 		OO_CHECK(sSent.count == 1 && sSent.number == (int)GUI_SCREEN_STATUS * 100 + (int)GUI_SCREEN_MARKET && !sSent.flag);
-		player->noteViewDidChangeFrom(VIEW_AFT, VIEW_FORWARD);
-		OO_CHECK(sSent.count == 2 && sSent.number == (int)VIEW_AFT * 100 + (int)VIEW_FORWARD);
+		player->noteViewDidChangeFrom(OOViewID::kAft, OOViewID::kForward);
+		OO_CHECK(sSent.count == 2 && sSent.number == (int)OOViewID::kAft * 100 + (int)OOViewID::kForward);
 	}
 }
 

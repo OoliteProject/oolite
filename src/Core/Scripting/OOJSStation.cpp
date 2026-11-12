@@ -597,7 +597,7 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS) {
       player->PlayerEntity::safeAllMissiles();  // qualified: the final
                                                 // overrider, so the binding
                                                 // test stands in for it
-    if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(VIEW_FORWARD);
+    if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
     if (player != nullptr)
       player->PlayerEntity::enterDock(
           stationForDockingPlayer);  // qualified: the final overrider, so the

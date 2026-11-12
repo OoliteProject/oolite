@@ -271,7 +271,7 @@ void hudDrawWaypoint(Entity* waypoint, PlayerEntity* player1, GLfloat z1,
 }  // namespace
 static void hudRotateViewpointForVirtualDepth(PlayerEntity* player1, Vector p1);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
-                            int v_dir, GLfloat thickness, GLfloat zoom,
+                            OOViewID v_dir, GLfloat thickness, GLfloat zoom,
                             bool nonlinear, bool minimalistic);
 static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom,
                                     GLfloat scale);
@@ -1014,7 +1014,7 @@ void HeadUpDisplay::drawCrosshairs() {
   bool weaponsOnline = (PLAYER != nullptr ? PLAYER->weaponsOnline() : false);
   oo::PList points;
 
-  if (viewID == VIEW_CUSTOM || overallAlpha == 0.0f ||
+  if (viewID == OOViewID::kCustom || overallAlpha == 0.0f ||
       !((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
             OOEntityStatus::kInFlight ||
         (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
@@ -1839,10 +1839,10 @@ void HeadUpDisplay::drawCompass(const oo::PList& info) {
     siz.height *= 0.2;
     OOGL(GLScaledLineWidth(2.0 * lineWidth));
     switch ((PLAYER != nullptr ? PLAYER->getCompassMode() : OOCompassMode{})) {
-      case COMPASS_MODE_INACTIVE:
+      case OOCompassMode::kInactive:
         break;
 
-      case COMPASS_MODE_BASIC:
+      case OOCompassMode::kBasic:
         if (reference != nullptr &&
             reference
                 ->getIsStation())  // validateCompassTarget in PlayerEntity.m
@@ -1855,23 +1855,23 @@ void HeadUpDisplay::drawCompass(const oo::PList& info) {
           drawCompassPlanetBlipAt(relativePosition, siz, alpha);
         break;
 
-      case COMPASS_MODE_PLANET:
+      case OOCompassMode::kPlanet:
         drawCompassPlanetBlipAt(relativePosition, siz, alpha);
         break;
 
-      case COMPASS_MODE_STATION:
+      case OOCompassMode::kStation:
         drawCompassStationBlipAt(relativePosition, siz, alpha);
         break;
 
-      case COMPASS_MODE_SUN:
+      case OOCompassMode::kSun:
         drawCompassSunBlipAt(relativePosition, siz, alpha);
         break;
 
-      case COMPASS_MODE_TARGET:
+      case OOCompassMode::kTarget:
         drawCompassTargetBlipAt(relativePosition, siz, alpha);
         break;
 
-      case COMPASS_MODE_BEACONS:
+      case OOCompassMode::kBeacons:
         drawCompassBeaconBlipAt(relativePosition, siz, alpha);
         Entity* beacon = (PLAYER != nullptr ? PLAYER->nextBeacon() : nullptr);
         OOHUDBeaconIcon* beaconIcon =
@@ -1893,7 +1893,7 @@ void HeadUpDisplay::drawAegis(
                                 // info
 {
   if (((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) ==
-       VIEW_GUI_DISPLAY) ||
+       OOViewID::kGUIDisplay) ||
       ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) == nullptr) ||
       ((PLAYER != nullptr ? PLAYER->checkForAegis() : OOAegisStatus{}) !=
        OOAegisStatus::kInDockingRange))
@@ -3092,7 +3092,7 @@ void HeadUpDisplay::drawDirectionCue(const oo::PList& /*info*/) {
   rotMatrix = (PLAYER != nullptr ? PLAYER->rotationMatrix() : OOMatrix{});
 
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) !=
-      VIEW_GUI_DISPLAY) {
+      OOViewID::kGUIDisplay) {
     const GLfloat innerSize = CROSSHAIR_SIZE;
     const GLfloat width = CROSSHAIR_SIZE * ONE_EIGHTH;
     const GLfloat outerSize = CROSSHAIR_SIZE * (1.0f + ONE_EIGHTH + ONE_EIGHTH);
@@ -3106,22 +3106,22 @@ void HeadUpDisplay::drawDirectionCue(const oo::PList& /*info*/) {
     Vector forward = kZeroVector;
 
     switch ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{})) {
-      case VIEW_FORWARD:
+      case OOViewID::kForward:
         forward = kBasisZVector;
         break;
-      case VIEW_AFT:
+      case OOViewID::kAft:
         drawPos.x = -drawPos.x;
         forward = vector_flip(kBasisZVector);
         break;
-      case VIEW_PORT:
+      case OOViewID::kPort:
         drawPos.x = drawPos.z;
         forward = vector_flip(kBasisXVector);
         break;
-      case VIEW_STARBOARD:
+      case OOViewID::kStarboard:
         drawPos.x = -drawPos.z;
         forward = kBasisXVector;
         break;
-      case VIEW_CUSTOM:
+      case OOViewID::kCustom:
         return;
 
       default:
@@ -3307,7 +3307,7 @@ void HeadUpDisplay::drawWeaponsOfflineText(const oo::PList& info) {
       (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{});
   GLfloat textColor[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 
-  if (viewID == VIEW_CUSTOM || overallAlpha == 0.0f ||
+  if (viewID == OOViewID::kCustom || overallAlpha == 0.0f ||
       !((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
             OOEntityStatus::kInFlight ||
         (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
@@ -4131,34 +4131,34 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity* player1,
   Vector view_dir, view_up = kBasisYVector;
   switch (HeadUpDisplayUniverseViewDirection()) {
     default:
-    case VIEW_FORWARD:
+    case OOViewID::kForward:
       view_dir.x = 0.0;
       view_dir.y = 0.0;
       view_dir.z = 1.0;
       break;
 
-    case VIEW_AFT:
+    case OOViewID::kAft:
       view_dir.x = 0.0;
       view_dir.y = 0.0;
       view_dir.z = -1.0;
       quaternion_rotate_about_axis(&back_q, v1, M_PI);
       break;
 
-    case VIEW_PORT:
+    case OOViewID::kPort:
       view_dir.x = -1.0;
       view_dir.y = 0.0;
       view_dir.z = 0.0;
       quaternion_rotate_about_axis(&back_q, v1, 0.5 * M_PI);
       break;
 
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       view_dir.x = 1.0;
       view_dir.y = 0.0;
       view_dir.z = 0.0;
       quaternion_rotate_about_axis(&back_q, v1, -0.5 * M_PI);
       break;
 
-    case VIEW_CUSTOM:
+    case OOViewID::kCustom:
       view_dir = HeadUpDisplayPlayerCustomViewForwardVector(player1);
       view_up = HeadUpDisplayPlayerCustomViewUpVector(player1);
       back_q = quaternion_multiply(
@@ -4552,7 +4552,7 @@ static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom,
 }
 
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
-                            int v_dir, GLfloat thickness, GLfloat zoom,
+                            OOViewID v_dir, GLfloat thickness, GLfloat zoom,
                             bool nonlinear, bool minimalistic) {
   OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
@@ -4662,35 +4662,40 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
   double sinfov = tanfov * cosfov;
 
   switch (v_dir) {
-    case VIEW_BREAK_PATTERN:
-    case VIEW_GUI_DISPLAY:
-    case VIEW_FORWARD:
-    case VIEW_NONE:
+    case OOViewID::kBreakPattern:
+    case OOViewID::kGUIDisplay:
+    case OOViewID::kForward:
+    case OOViewID::kNone:
       glVertex3f(x, y, z);
       glVertex3f(x - ww * sinfov, y + hh * cosfov, z);
       glVertex3f(x, y, z);
       glVertex3f(x + ww * sinfov, y + hh * cosfov, z);
       break;
 
-    case VIEW_AFT:
+    case OOViewID::kAft:
       glVertex3f(x, y, z);
       glVertex3f(x - ww * sinfov, y - hh * cosfov, z);
       glVertex3f(x, y, z);
       glVertex3f(x + ww * sinfov, y - hh * cosfov, z);
       break;
 
-    case VIEW_PORT:
+    case OOViewID::kPort:
       glVertex3f(x, y, z);
       glVertex3f(x - ww * cosfov, y + hh * sinfov, z);
       glVertex3f(x, y, z);
       glVertex3f(x - ww * cosfov, y - hh * sinfov, z);
       break;
 
-    case VIEW_STARBOARD:
+    case OOViewID::kStarboard:
       glVertex3f(x, y, z);
       glVertex3f(x + ww * cosfov, y + hh * sinfov, z);
       glVertex3f(x, y, z);
       glVertex3f(x + ww * cosfov, y - hh * sinfov, z);
+      break;
+
+    case OOViewID::kCustom:
+      // Upstream draws no view lines in a custom view (spec 009 research R14):
+      // kept as it is.
       break;
   }
   OOGLEND();

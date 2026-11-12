@@ -478,7 +478,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/,
   // reduced detail for internal view to avoid rendering artefacts
   if (oo::EntityIsPlayer(owner()) &&
       (UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) !=
-          VIEW_CUSTOM) {
+          OOViewID::kCustom) {
     OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr1));
     OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr2));
     OOGL(glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, afttstr3));

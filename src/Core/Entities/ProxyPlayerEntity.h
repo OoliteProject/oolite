@@ -85,7 +85,8 @@ class ProxyPlayerEntity : public ShipEntity {
   OOFuelScoopStatus dialFuelScoopStatus();
   void setDialFuelScoopStatus(OOFuelScoopStatus value);
 
-  // Default: COMPASS_MODE_BASIC or COMPASS_MODE_PLANET depending on equipment.
+  // Default: OOCompassMode::kBasic or OOCompassMode::kPlanet depending on
+  // equipment.
   OOCompassMode compassMode();
   void setCompassMode(OOCompassMode value);
 
