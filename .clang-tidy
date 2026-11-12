@@ -28,6 +28,7 @@ WarningsAsErrors: >
   bugprone-*,
   performance-*,
   cppcoreguidelines-use-enum-class,
+  google-readability-casting,
   -bugprone-assignment-in-if-condition,
   -bugprone-branch-clone,
   -bugprone-command-processor,

@@ -2335,7 +2335,8 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
 
     noNova = !nearby_systems[i].nova;
     OOCAssert(chart_mode <= OOLongRangeChartMode::kTechLevel,
-              "Long range chart mode %i out of range", (int)chart_mode);
+              "Long range chart mode %i out of range",
+              static_cast<int>(chart_mode));
 
     if (markedDestinations.has_value()) {
       const auto markersIt = markedDestinations->find(i);

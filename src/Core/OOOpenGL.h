@@ -29,7 +29,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <cstdint>
 #include <string_view>
+#include <type_traits>
 
 #ifndef OO_PLAIN_CPP_UNIT
 #include "OOFoundation.h"
@@ -66,11 +68,18 @@ constexpr std::string_view OOEnumName(OOShaderSetting value) noexcept {
   return {};
 }
 
-#define NULL_SHADER ((GLhandleARB)0)
+#define NULL_SHADER (static_cast<GLhandleARB>(0))
 
-// GLhandleARB is a pointer type on macOS; convert to a GLuint for the core
-// GL 2.0+ shader API.
-#define OOGLProgramName(handle) ((GLuint)(uintptr_t)(handle))
+// GLhandleARB is a pointer type on macOS and an integer elsewhere; convert it
+// to a GLuint for the core GL 2.0+ shader API.
+template <class Handle>
+inline GLuint OOGLProgramName(Handle handle) {
+  if constexpr (std::is_pointer_v<Handle>) {
+    return static_cast<GLuint>(reinterpret_cast<std::uintptr_t>(handle));
+  } else {
+    return static_cast<GLuint>(handle);
+  }
+}
 
 /*
         OOSetOpenGLState(stateType)

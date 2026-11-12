@@ -394,8 +394,8 @@ static JSValue OoliteCompareVersion(OOJS_NATIVE_ARGS) {
   }
 
   if (versionSpec.has_value()) {
-    OOJS_RETURN_INT(
-        (int32_t)oo::str::compareVersions(*versionSpec, VersionComponents()));
+    OOJS_RETURN_INT(static_cast<int32_t>(
+        oo::str::compareVersions(*versionSpec, VersionComponents())));
   } else {
     OOJS_RETURN_VOID;
   }

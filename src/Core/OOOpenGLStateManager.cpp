@@ -450,8 +450,9 @@ inline void SetFunctionTracking(bool /*value*/) {}
 
 void OOSetOpenGLState_(OOOpenGLStateID state, const char* function,
                        unsigned line) {
-  OOCParameterAssert((unsigned)state < (unsigned)oo::ToUnderlying(
-                                           OOOpenGLStateID::kInternalUseOnly));
+  OOCParameterAssert(static_cast<unsigned>(state) <
+                     static_cast<unsigned>(
+                         oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly)));
 
   OOGLNoteCurrentFunction(function, line);
   SetFunctionTracking(false);
@@ -486,7 +487,7 @@ static void GetCurrentOpenGLState(OOOpenGLState* state) {
   state->name = name;
 
 #define ITEM_STATEFLAG(NAME) \
-  OOGL(state->NAME = (StateFlag)glIsEnabled(GL_##NAME))
+  OOGL(state->NAME = static_cast<StateFlag>(glIsEnabled(GL_##NAME)))
 #define ITEM_CLIENTSTATEFLAG(NAME) OOGL(state->NAME = glIsEnabled(GL_##NAME))
 #define ITEM_SPECIAL(NAME, _, __) state->NAME = GetState_##NAME()
 #define ITEM_INT(NAME) OOGL(glGetIntegerv(GL_##NAME, &state->NAME))
@@ -611,8 +612,9 @@ static void VerifyOpenGLStateInternal(const char* caller,
 */
 
 void OOSetOpenGLState(OOOpenGLStateID state) {
-  OOCParameterAssert((unsigned)state < (unsigned)oo::ToUnderlying(
-                                           OOOpenGLStateID::kInternalUseOnly));
+  OOCParameterAssert(static_cast<unsigned>(state) <
+                     static_cast<unsigned>(
+                         oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly)));
 
   if (state != sCurrentStateID) {
     SwitchOpenGLStateInternal(

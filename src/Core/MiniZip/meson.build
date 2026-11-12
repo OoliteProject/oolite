@@ -1,6 +1,6 @@
 # Generated Meson configuration for sub-module: MiniZip
 
-oolite_sources += files(
+oolite_vendored_sources += files(
     'ioapi.cpp',
     'unzip.cpp',
 )

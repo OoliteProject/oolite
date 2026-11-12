@@ -693,7 +693,8 @@ std::vector<oo::Ref<OOTexture>> OOShaderMaterial::allTextures() {
 
 std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
     const oo::PList& textureSpecs, GLuint max) {
-  GLuint i, count = static_cast<GLuint>(MIN(textureSpecs.count(), (size_t)max));
+  GLuint i, count = static_cast<GLuint>(
+                MIN(textureSpecs.count(), static_cast<size_t>(max)));
   std::vector<oo::Ref<OOTexture>> result;
   result.reserve(count);
 
@@ -710,7 +711,8 @@ std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
 void OOShaderMaterial::addTexturesFromArray(
     const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max) {
   // Allocate space for texture object name array
-  texCount = static_cast<uint32_t>(MIN(textureObjects.size(), (size_t)max));
+  texCount = static_cast<uint32_t>(
+      MIN(textureObjects.size(), static_cast<size_t>(max)));
   if (texCount == 0) return;
 
   textures = static_cast<OOTexture**>(malloc(texCount * sizeof *textures));

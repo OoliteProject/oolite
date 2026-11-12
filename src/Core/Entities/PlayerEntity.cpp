@@ -8519,7 +8519,8 @@ void PlayerEntity::activatePrimableEquipment(std::size_t index,
     ::OOScript* eqScript = eqScripts[index].second.get();
     JSContext* context = OOJSAcquireContext();
     OOCAssert(mode <= OOPrimedEquipmentMode::kMode,
-              "Primable equipment mode %i out of range", (int)mode);
+              "Primable equipment mode %i out of range",
+              static_cast<int>(mode));
 
     switch (mode) {
       case OOPrimedEquipmentMode::kMode:

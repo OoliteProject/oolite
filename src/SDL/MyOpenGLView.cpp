@@ -47,8 +47,6 @@ MA 02110-1301, USA.
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
 #include "png.h"
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 // The save and snapshot directory names.
@@ -655,8 +653,7 @@ void MyOpenGLView::initialiseGLWithSize(NSSize v_size) {
   viewSize = v_size;
 
   OO_LOG("display.initGL", "Requested a new surface of {} x {}, {}.",
-         static_cast<int>((int)viewSize.width),
-         static_cast<int>((int)viewSize.height),
+         static_cast<int>(viewSize.width), static_cast<int>(viewSize.height),
          std::string((fullScreen ? "fullscreen" : "windowed")));
 
   SDL_GL_SwapWindow(window);  // clear the buffer before resize
@@ -683,8 +680,7 @@ void MyOpenGLView::initialiseGLWithSize(NSSize v_size) {
   updateGLSize(NSMakeSize(pixelWidth, pixelHeight));
 
   OO_LOG("display.initGL", "Created a new surface of {} x {}, {}.",
-         static_cast<int>((int)viewSize.width),
-         static_cast<int>((int)viewSize.height),
+         static_cast<int>(viewSize.width), static_cast<int>(viewSize.height),
          std::string((fullScreen ? "fullscreen" : "windowed")));
 
   autoShowMouse();

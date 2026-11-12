@@ -7,6 +7,7 @@ oolite_sources += files(
     'OOSDLJoystickManager.cpp',
     'main.cpp',
 )
+oolite_vendored_sources += files('stb_image_write.cpp')
 
 oolite_includes += include_directories('.')
 

@@ -66,7 +66,7 @@
       void* x__ = x;                              \
       x__ = x__;                                  \
     } /* Preceeding is for type checking only. */ \
-    void** x_ = (void**)&(x);                     \
+    void** x_ = reinterpret_cast<void**>(&(x));   \
     free(*x_);                                    \
     *x_ = NULL;                                   \
   } while (0)

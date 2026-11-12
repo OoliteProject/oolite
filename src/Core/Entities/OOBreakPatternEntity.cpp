@@ -36,7 +36,8 @@ MA 02110-1301, USA.
 void OOBreakPatternEntity::initWithPolygonSides(std::size_t sides,
                                                 float startAngleDegrees,
                                                 float aspectRatio) {
-  sides = MIN(MAX((std::size_t)3, sides), (std::size_t)kOOBreakPatternMaxSides);
+  sides = MIN(MAX(static_cast<std::size_t>(3), sides),
+              static_cast<std::size_t>(kOOBreakPatternMaxSides));
 
   // [super init] could not fail: the constructor ran Entity's -init body.
   {

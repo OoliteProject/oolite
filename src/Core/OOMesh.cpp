@@ -703,7 +703,7 @@ void OOMesh::dumpSelfState() {
   OO_LOG("dumpState.mesh", "Vertex count: {}, face count: {}",
          static_cast<unsigned>(vertexCount), static_cast<unsigned>(faceCount));
   OO_LOG("dumpState.mesh", "Normals: {}",
-         NormalModeDescription((OOMeshNormalMode)_normalMode));
+         NormalModeDescription(static_cast<OOMeshNormalMode>(_normalMode)));
 }
 #endif
 
