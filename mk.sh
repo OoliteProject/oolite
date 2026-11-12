@@ -168,6 +168,7 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36mclean-all\033[0m                      Remove generated artifacts for all builds"
     echo -e "  \033[36mformat\033[0m                         Reformat src/ in place with clang-format (as the CI check expects)"
     echo -e "  \033[36mformat-check\033[0m                   Report src/ files clang-format would change, without editing"
+    echo -e "  \033[36mtidy\033[0m                           Run .clang-tidy's checks over src/; fail on a WarningsAsErrors finding"
     echo -e "  \033[36mhelp\033[0m                           Show this breakdown menu"
     echo ""
     echo "Build Types:"
@@ -437,6 +438,44 @@ if [[ "$ACTION" == "format" || "$ACTION" == "format-check" ]]; then
     trap - ERR
     popd > /dev/null
     echo "✅ Oolite task '$ACTION' completed successfully"
+    exit 0
+fi
+
+# Intercept global action 'tidy': .clang-tidy's checks over the game's own sources, read from the
+# root compile database that a build writes. A WarningsAsErrors finding fails the run. Vendored
+# code (MiniZip, EXRSnapshotSupport) is skipped: its .clang-tidy turns every check off, and
+# clang-tidy exits nonzero when no check is enabled.
+if [[ "$ACTION" == "tidy" ]]; then
+    tidy_bin_dir=""
+    if [[ -x /opt/homebrew/opt/llvm@22/bin/run-clang-tidy ]]; then
+        tidy_bin_dir=/opt/homebrew/opt/llvm@22/bin  # clang-tidy 22, the version CI's clang-format uses
+    fi
+    run_clang_tidy="${tidy_bin_dir:+$tidy_bin_dir/}run-clang-tidy"
+    clang_tidy="${tidy_bin_dir:+$tidy_bin_dir/}clang-tidy"
+    if ! command -v "$run_clang_tidy" > /dev/null || ! command -v "$clang_tidy" > /dev/null; then
+        echo "❌ run-clang-tidy and clang-tidy not found (on macOS: brew install llvm@22)." >&2
+        exit 1
+    fi
+    if [[ ! -f compile_commands.json ]]; then
+        echo "--> No compile database yet: building the test flavour first"
+        "$SCRIPT_DIR/mk.sh" build test
+    fi
+    echo "--> Running $("$clang_tidy" --version | grep -m1 -i 'version')"
+    tidy_extra_args=()
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        # Homebrew's clang-tidy does not apply the compiler driver's default SDK.
+        tidy_extra_args+=("-extra-arg=-isysroot$(xcrun --show-sdk-path)")
+    fi
+    tidy_status=0
+    "$run_clang_tidy" -p . -quiet -clang-tidy-binary "$clang_tidy" ${tidy_extra_args[@]+"${tidy_extra_args[@]}"} \
+        '^(?!.*/(MiniZip|EXRSnapshotSupport)/).*/src/(Core|SDL|oofnd)/.*\.cpp$' || tidy_status=$?
+    trap - ERR
+    popd > /dev/null
+    if [[ $tidy_status -ne 0 ]]; then
+        echo "❌ clang-tidy reported a WarningsAsErrors finding (or failed to run); see above." >&2
+        exit 1
+    fi
+    echo "✅ Oolite task 'tidy' completed successfully"
     exit 0
 fi
 

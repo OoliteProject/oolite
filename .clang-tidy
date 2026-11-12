@@ -27,6 +27,7 @@ WarningsAsErrors: >
   -bugprone-branch-clone,
   -bugprone-derived-method-shadowing-base-method,
   -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
   -bugprone-float-loop-counter,
   -bugprone-implicit-widening-of-multiplication-result,
   -bugprone-incorrect-roundings,
