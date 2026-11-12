@@ -138,6 +138,7 @@ core_tests = {
     'test_OOFastArithmetic': [],
     'test_OOProfilingStopwatch': ['Core/OOProfilingStopwatch.cpp'],
     'test_OOAsyncWorkManager': ['Core/OOAsyncWorkManager.cpp', 'Core/OOCPUInfo.cpp'],
+    'test_OOAsyncWorkManagerShutdown': ['Core/OOAsyncWorkManager.cpp', 'Core/OOCPUInfo.cpp'],
     'test_AI': ['Core/AI.cpp'],
     'test_OOJSFunction': ['Core/Scripting/OOJSFunction.cpp'],
     'test_OOJSPrivateObject': ['Core/Scripting/OOJSPrivateObject.cpp', 'Core/Scripting/OOJSEngineNativeWrappers.cpp', 'Core/Scripting/OOJSClasses.cpp'],
