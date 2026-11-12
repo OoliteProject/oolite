@@ -37,20 +37,15 @@ SOFTWARE.
 #include <condition_variable>
 #include <deque>
 #include <mutex>
+#include <stop_token>
 #include <string>
+#include <thread>
 #include <vector>
 
-#define USE_PTHREAD_ONCE (!OOLITE_WINDOWS)
-
-#if USE_PTHREAD_ONCE
-#include <pthread.h>
-#endif
 #include "oofnd/Defaults.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 namespace {
-
-OOAsyncWorkManager* sSingleton = nullptr;
 
 /*	A first-in-first-out queue of tasks whose dequeue() blocks until one is
    there, holding tasks. A queued task is retained.
@@ -77,6 +72,16 @@ class TaskQueue {
     return task;
   }
 
+  // Blocks until the queue is non-empty or stop is requested; null on stop.
+  oo::Ref<OOAsyncWorkTask> dequeue(const std::stop_token& stop) {
+    std::unique_lock<std::mutex> lock(_mutex);
+    if (!_available.wait(lock, stop, [this] { return !_tasks.empty(); }))
+      return {};
+    oo::Ref<OOAsyncWorkTask> task = std::move(_tasks.front());
+    _tasks.pop_front();
+    return task;
+  }
+
   oo::Ref<OOAsyncWorkTask> tryDequeue()  // null if empty
   {
     std::lock_guard<std::mutex> lock(_mutex);
@@ -88,7 +93,7 @@ class TaskQueue {
 
  private:
   std::mutex _mutex;
-  std::condition_variable _available;
+  std::condition_variable_any _available;
   std::deque<oo::Ref<OOAsyncWorkTask>> _tasks;
 };
 
@@ -100,9 +105,13 @@ class OOAsyncWorkManagerInternal : public OOAsyncWorkManager {
  public:
   void completePendingTasks() override;
   void waitForTaskToComplete(OOAsyncWorkTask* task) override;
+  void shutdown() noexcept override;
 
  protected:
   OOAsyncWorkManagerInternal();
+
+  // The work threads, owned here and joined by shutdown().
+  std::vector<std::jthread> _workers;
 
   void queueResult(OOAsyncWorkTask* task);
 
@@ -124,7 +133,7 @@ class OOManualDispatchAsyncWorkManager : public OOAsyncWorkManagerInternal {
   bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority) override;
 
  private:
-  void queueTask(unsigned threadNumber);
+  void queueTask(unsigned threadNumber, const std::stop_token& stop);
 
   TaskQueue _taskQueue;
 };
@@ -137,7 +146,7 @@ class OOManualDispatchAsyncWorkManager : public OOAsyncWorkManagerInternal {
 */
 struct OOPrioritizedTaskQueue {
   std::mutex mutex;
-  std::condition_variable available;
+  std::condition_variable_any available;
   std::deque<oo::Ref<OOAsyncWorkTask>>
       tasks[3];  // indexed by OOAsyncWorkPriority: low, medium, high
 };
@@ -151,7 +160,7 @@ class OOOperationQueueAsyncWorkManager : public OOAsyncWorkManagerInternal {
   bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority) override;
 
  private:
-  void workThread(unsigned threadNumber);
+  void workThread(unsigned threadNumber, const std::stop_token& stop);
   void dispatchTask(OOAsyncWorkTask* task);
 
   OOPrioritizedTaskQueue* _operationQueue = {};
@@ -171,22 +180,26 @@ unsigned WorkThreadCount() {
 #endif
 }
 
-/*	Starts `count` detached work threads running body(threadNumber),
+/*	Starts `count` work threads running body(threadNumber, stopToken),
    numbered from 1, as Foundation's detachNewThreadSelector:toTarget:withObject:
-   did with [manager selector:threadNumber]. The thread number is a plain
-   unsigned now. The manager is an immortal singleton, so a
-   thread needs no retain on it; the thread body opens its own pool.
+   did with [manager selector:threadNumber]. The threads are owned by the
+   returned jthreads, which shutdown() stops and joins. The manager is never
+   destroyed, so a thread needs no retain on it; the thread body opens its own
+   pool.
 */
 template <class Body>
-void StartWorkThreads(Body body, unsigned count) {
+std::vector<std::jthread> StartWorkThreads(Body body, unsigned count) {
+  std::vector<std::jthread> workers;
+  workers.reserve(count);
   for (unsigned threadNumber = 1; threadNumber <= count; threadNumber++) {
-    oo::thread::detach([body, threadNumber]() {
+    workers.emplace_back([body, threadNumber](const std::stop_token& stop) {
       {
         oo::AutoreleaseScope pool;  // was @autoreleasepool
-        body(threadNumber);
+        body(threadNumber, stop);
       }
     });
   }
+  return workers;
 }
 
 void SetUpWorkThread(unsigned threadNumber) {
@@ -207,30 +220,24 @@ void PendingRemove(std::vector<oo::Ref<OOAsyncWorkTask>>& pending,
   if (it != pending.end()) pending.erase(it);
 }
 
-#if !USE_PTHREAD_ONCE
-std::mutex sInitLock;
-#endif
-
 }  // namespace
 
 /*	The manager is made once, here, and its +1 is never released, so the one
-   instance is immortal.
+   instance is never destroyed.
 */
-static void InitAsyncWorkManager() {
-  OOCAssert(sSingleton == nullptr,
-            "Async Work Manager singleton not nil in one-time init");
-
+static OOAsyncWorkManager* MakeAsyncWorkManager() {
+  OOAsyncWorkManager* manager = nullptr;
   const char* className = nullptr;
   if (OOOperationQueueAsyncWorkManager::canBeUsed()) {
-    sSingleton = oo::makeRef<OOOperationQueueAsyncWorkManager>().leakRef();
+    manager = oo::makeRef<OOOperationQueueAsyncWorkManager>().leakRef();
     className = "OOOperationQueueAsyncWorkManager";
   }
-  if (sSingleton == nullptr) {
-    sSingleton = oo::makeRef<OOManualDispatchAsyncWorkManager>().leakRef();
+  if (manager == nullptr) {
+    manager = oo::makeRef<OOManualDispatchAsyncWorkManager>().leakRef();
     className = "OOManualDispatchAsyncWorkManager";
   }
 
-  if (sSingleton == nullptr) {
+  if (manager == nullptr) {
     OO_LOG("asyncWorkManager.setUpDispatcher.failed", "{}",
            "***** FATAL ERROR: could not set up async work manager!");
     exit(EXIT_FAILURE);
@@ -238,22 +245,14 @@ static void InitAsyncWorkManager() {
 
   OO_LOG("asyncWorkManager.dispatchMethod", "Selected async work manager: {}",
          className);
+  return manager;
 }
 
 OOAsyncWorkManager* OOAsyncWorkManager::sharedAsyncWorkManager() {
-#if USE_PTHREAD_ONCE
-  static pthread_once_t once = PTHREAD_ONCE_INIT;
-  pthread_once(&once, InitAsyncWorkManager);
+  // A function-local static is initialised once, thread-safely (what
+  // the POSIX once-call and the Windows mutex did).
+  static OOAsyncWorkManager* const sSingleton = MakeAsyncWorkManager();
   OOCAssert(sSingleton != nullptr, "Async Work Manager init failed");
-#else
-  sInitLock.lock();
-  if (sSingleton == nullptr) {
-    InitAsyncWorkManager();
-    OOCAssert(sSingleton != nullptr, "Async Work Manager init failed");
-  }
-  sInitLock.unlock();
-#endif
-
   return sSingleton;
 }
 
@@ -280,6 +279,15 @@ namespace {
 OOAsyncWorkManagerInternal::OOAsyncWorkManagerInternal() {
   // (The ready queue is a member, so -init's release-and-return-nil branch is
   // gone.)
+}
+
+void OOAsyncWorkManagerInternal::shutdown() noexcept {
+  for (std::jthread& worker : _workers) worker.request_stop();
+  // A waiting worker wakes on its stop request (condition_variable_any with a
+  // stop token); a busy one finishes its task first.
+  for (std::jthread& worker : _workers)
+    if (worker.joinable()) worker.join();
+  _workers.clear();
 }
 
 void OOAsyncWorkManagerInternal::completePendingTasks() {
@@ -345,8 +353,11 @@ OOManualDispatchAsyncWorkManager::OOManualDispatchAsyncWorkManager() {
   // (The work queue is a member, so -init's failure branch is gone.)
 
   // Set up loading threads.
-  StartWorkThreads([this](unsigned threadNumber) { queueTask(threadNumber); },
-                   WorkThreadCount());
+  _workers = StartWorkThreads(
+      [this](unsigned threadNumber, const std::stop_token& stop) {
+        queueTask(threadNumber, stop);
+      },
+      WorkThreadCount());
 }
 
 bool OOManualDispatchAsyncWorkManager::addTask(
@@ -359,15 +370,17 @@ bool OOManualDispatchAsyncWorkManager::addTask(
   return _taskQueue.enqueue(task);
 }
 
-void OOManualDispatchAsyncWorkManager::queueTask(unsigned threadNumber) {
+void OOManualDispatchAsyncWorkManager::queueTask(unsigned threadNumber,
+                                                 const std::stop_token& stop) {
   {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
     SetUpWorkThread(threadNumber);
 
-    for (;;) {
+    while (!stop.stop_requested()) {
       {
         oo::AutoreleaseScope taskPool;  // was @autoreleasepool
-        const oo::Ref<OOAsyncWorkTask> task = _taskQueue.dequeue();
+        const oo::Ref<OOAsyncWorkTask> task = _taskQueue.dequeue(stop);
+        if (task == nullptr) break;  // stop requested
         try {
           task->performAsyncTask();
         } catch (...) {
@@ -394,8 +407,11 @@ bool OOOperationQueueAsyncWorkManager::canBeUsed() {
 
 OOOperationQueueAsyncWorkManager::OOOperationQueueAsyncWorkManager() {
   _operationQueue = new OOPrioritizedTaskQueue;
-  StartWorkThreads([this](unsigned threadNumber) { workThread(threadNumber); },
-                   WorkThreadCount());
+  _workers = StartWorkThreads(
+      [this](unsigned threadNumber, const std::stop_token& stop) {
+        workThread(threadNumber, stop);
+      },
+      WorkThreadCount());
 }
 
 bool OOOperationQueueAsyncWorkManager::addTask(OOAsyncWorkTask* task,
@@ -418,14 +434,15 @@ bool OOOperationQueueAsyncWorkManager::addTask(OOAsyncWorkTask* task,
   return true;
 }
 
-void OOOperationQueueAsyncWorkManager::workThread(unsigned threadNumber) {
+void OOOperationQueueAsyncWorkManager::workThread(unsigned threadNumber,
+                                                  const std::stop_token& stop) {
   SetUpWorkThread(threadNumber);
 
-  for (;;) {
+  while (!stop.stop_requested()) {
     oo::Ref<OOAsyncWorkTask> task;
     {
       std::unique_lock<std::mutex> lock(_operationQueue->mutex);
-      while (task == nullptr) {
+      while (task == nullptr && !stop.stop_requested()) {
         for (int index = kOOAsyncPriorityHigh;
              index >= (int)kOOAsyncPriorityLow && task == nullptr; index--) {
           std::deque<oo::Ref<OOAsyncWorkTask>>& queue =
@@ -435,9 +452,15 @@ void OOOperationQueueAsyncWorkManager::workThread(unsigned threadNumber) {
             queue.pop_front();
           }
         }
-        if (task == nullptr) _operationQueue->available.wait(lock);
+        if (task == nullptr)
+          _operationQueue->available.wait(lock, stop, [this] {
+            return !_operationQueue->tasks[0].empty() ||
+                   !_operationQueue->tasks[1].empty() ||
+                   !_operationQueue->tasks[2].empty();
+          });
       }
     }
+    if (task == nullptr) break;  // stop requested
 
     {
       oo::AutoreleaseScope pool;  // was @autoreleasepool
