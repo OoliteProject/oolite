@@ -46,13 +46,43 @@ Rules that hold for every component:
 | `src/oofnd/objc/OOObject.h` | `OOZone`, the opaque zone type (always null) that OOMesh's copy members take |
 | `src/oofnd/objc/OOException.h` | forwards to `oofnd/Exception.hpp` (`oo::Exception`, `OORaiseException`) |
 | `src/oofnd/objc/OOAssert.h` | `OOCAssert` / `OOCParameterAssert`: gnustep-base's assertion semantics, live in every flavour |
-| `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`std::ptrdiff_t`/`std::size_t`, `NSRange`, `oo::kNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `double`, `double`) with GNUstep's exact definitions and names; refuses to compile beside a Foundation header. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
+| `src/oofnd/objc/OOFoundationTypes.h` | what is left of Foundation's C types: `NSRange`, `NSPoint`/`NSSize`/`NSRect` with `NSMake*`/`NSEqual*`, and `oo::kNotFound`, with GNUstep's exact definitions; refuses to compile beside a Foundation header. The integer, interval and `CGFloat` aliases became the standard types (spec 009 T033). Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
 | `src/oofnd/meson.build` | `oofnd_dep` (include path `src/`, so consumers write `#include "oofnd/X.hpp"`) |
 | `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++23 |
 | `tests/unit/oofnd/oo_test.hpp` | the whole test harness: `OO_TEST`, `OO_CHECK`, `OO_CHECK_EQ`, `OO_TEST_MAIN` |
 | `tests/unit/oofnd/plist_dump.hpp` | canonical one-line dump of a `PList`, the format the PList tests' GNUstep-captured expectations are written in |
 | `tests/unit/oofnd/meson.build` | registers each test in `meson test --suite oofnd` |
 
+
+## Surviving components
+
+What stays in `oofnd` after spec 009 moved game code onto the standard library, and why. A
+component stays when the standard library has no equivalent, or gives a different answer the game
+depends on (then a test pins the difference), or when it is a thin helper over the standard
+facility that reads better at the call site (spec 009 decision 11).
+
+| Component | Why it stays | Pinned by |
+|---|---|---|
+| `Data` | `oo::PList`'s data alternative; `bytes()` is never null when empty and `append` of itself is safe, unlike `std::vector` | `test_data` |
+| `String` (`oo::str`) | GNUstep's answers: `hasPrefix("")` is false (`starts_with("")` is true), UTF-16 ordering and lengths, case tables, whitespace set, `intValue` through `long`, the 18-digit `doubleValue`, path rules | `test_string`, `test_string_compare`, `test_string_path_extension`, `test_string_sweep` |
+| `FileSystem` (`oo::fs`) | GNUstep semantics (`removeItem` errors on a missing path, `moveItem` never overwrites, atomic `writeFile`, `/` separators); `fileExists` and five more are thin helpers over `std::filesystem` that read better than its `error_code` calls | `test_filesystem` |
+| `Date` (`oo::date`) | NSDate's 2001 reference date, its `-description` text and the local UTC offset; the calendar itself is `std::chrono` | `test_date` |
+| `Exception` | the game's exception, a `std::exception` since spec 009, with the name `OORaiseException` gives it | `test_exception_std` |
+| `Finally` | `@finally`: the standard library has no scope guard in C++23 (`std::scope_exit` is a TS) | `test_std_differences` |
+| `NSRange`, `NSPoint`, `NSSize`, `NSRect` | no standard equivalent | `test_foundation_types` |
+| `PrintfFormat` | the printf-format attribute that `oo::str::vformat`, `OORaiseException` and `OOCAssert` still need for data formats | `test_string_format_runtime` |
+| `Notification` | no standard equivalent | `test_notification` |
+| `Scanner` | GNUstep 1.31.1's character-set tables and `NSScanner` | `test_scanner` |
+| `Process` | the captured arguments and GNUstep's OS version string | `test_process` |
+| `Log` | OOLogging's message classes and the exact Latest.log line | `test_log` |
+| `LogFile` | the Latest.log writer, byte for byte | `test_logfile` |
+| `Http` | the OXZ manager's download, on libcurl | `test_http` |
+| `Defaults` | `NSUserDefaults`'s search list and coercions, and the OpenStep writer | `test_defaults` |
+| `ResourcePaths` | the game's own locations | `test_resourcepaths` |
+| `Encoding` | the five Windows code pages and libiconv's transliterations | `test_encoding`, `test_unicode_file` |
+| `PList` (and its parsers, writers and description) | GNUstep's property lists, byte for byte | `test_plist`, `test_plist_*` |
+| `OOAssert` | gnustep-base's assertion semantics | `test_objc_assert` |
+| `Thread` (`oo::thread`) | thread naming and priority, which `std::thread` cannot do, and `isMainThread()`, a helper over the standard id | `test_thread` |
 
 ## Conventions
 
