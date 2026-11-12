@@ -161,6 +161,12 @@ jobs:
         with:
           path: build/.ccache
           key: ccache-build-appimage-${{ github.sha }}
+      # The clang-tidy guards (.clang-tidy's WarningsAsErrors), over the compile database the build
+      # just wrote. The version is printed so a finding seen only here can be traced to it.
+      - name: clang-tidy guards
+        run: |
+          clang-tidy --version
+          ./mk.sh tidy
       - name: Test Oolite
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
