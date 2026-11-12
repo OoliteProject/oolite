@@ -108,7 +108,8 @@ static inline NSRange NSMakeRange(std::size_t location, std::size_t length) {
     fprintf(
         stderr,
         "oofnd: NSMakeRange(%llu, %llu): range location + length too great\n",
-        (unsigned long long)location, (unsigned long long)length);
+        static_cast<unsigned long long>(location),
+        static_cast<unsigned long long>(length));
     abort();
   }
   range.location = location;

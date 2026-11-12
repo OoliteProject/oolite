@@ -145,8 +145,9 @@ std::size_t GameController::indexOfCurrentDisplayMode() {
   if (mode == nullptr)
     return oo::kNotFound;
   else
-    return (std::size_t)(mode - displayModes.data());  // the first match, as
-                                                       // -indexOfObject: found
+    return static_cast<std::size_t>(
+        mode - displayModes.data());  // the first match, as
+                                      // -indexOfObject: found
 
   return oo::kNotFound;
 }

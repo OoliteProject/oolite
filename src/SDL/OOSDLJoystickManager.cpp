@@ -124,10 +124,12 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt) {
   switch (evt->type) {
     case SDL_EVENT_GAMEPAD_AXIS_MOTION:
     case SDL_EVENT_JOYSTICK_AXIS_MOTION: {
-      SDL_JoyAxisEvent joyEvt = makeJoyAxisEvent((SDL_JoyAxisEvent*)evt);
+      SDL_JoyAxisEvent joyEvt =
+          makeJoyAxisEvent(reinterpret_cast<SDL_JoyAxisEvent*>(evt));
       // The index, not joyEvt.which: an unknown stick's -1 is 0xFFFFFFFF in the
       // unsigned SDL_JoystickID, which passed a `which >= 0` test).
-      if (getJoystickIndexFromId(((SDL_JoyAxisEvent*)evt)->which) >= 0) {
+      if (getJoystickIndexFromId(
+              (reinterpret_cast<SDL_JoyAxisEvent*>(evt))->which) >= 0) {
         decodeAxisEvent(&joyEvt);
         rc = true;
       }
@@ -138,8 +140,10 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt) {
     case SDL_EVENT_GAMEPAD_BUTTON_UP:
     case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
     case SDL_EVENT_JOYSTICK_BUTTON_UP: {
-      SDL_JoyButtonEvent joyEvt = makeJoyButtonEvent((SDL_JoyButtonEvent*)evt);
-      if (getJoystickIndexFromId(((SDL_JoyButtonEvent*)evt)->which) >= 0) {
+      SDL_JoyButtonEvent joyEvt =
+          makeJoyButtonEvent(reinterpret_cast<SDL_JoyButtonEvent*>(evt));
+      if (getJoystickIndexFromId(
+              (reinterpret_cast<SDL_JoyButtonEvent*>(evt))->which) >= 0) {
         decodeButtonEvent(&joyEvt);
         rc = true;
       }
@@ -147,8 +151,10 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt) {
     }
 
     case SDL_EVENT_JOYSTICK_HAT_MOTION: {
-      SDL_JoyHatEvent joyEvt = makeJoyHatEvent((SDL_JoyHatEvent*)evt);
-      if (getJoystickIndexFromId(((SDL_JoyHatEvent*)evt)->which) >= 0) {
+      SDL_JoyHatEvent joyEvt =
+          makeJoyHatEvent(reinterpret_cast<SDL_JoyHatEvent*>(evt));
+      if (getJoystickIndexFromId(
+              (reinterpret_cast<SDL_JoyHatEvent*>(evt))->which) >= 0) {
         decodeHatEvent(&joyEvt);
         rc = true;
       }
@@ -167,7 +173,7 @@ bool OOSDLJoystickManager::handleSDLEvent(SDL_Event* evt) {
 void OOSDLJoystickManager::decodeAxisEvent(SDL_JoyAxisEvent* evt) {
   // Which axis moved? Does the value need to be made to fit a
   // certain function? Convert axis value to a double.
-  double axisvalue = (double)evt->value;
+  double axisvalue = static_cast<double>(evt->value);
 
   // First check if there is a callback and...
   if (cbCallback && (cbHardware & HW_AXIS)) {
@@ -210,7 +216,8 @@ void OOSDLJoystickManager::decodeAxisEvent(SDL_JoyAxisEvent* evt) {
       break;
     case AXIS_THRUST:
       // Normalize the thrust setting.
-      axstate[function] = (float)(65536 - (axisvalue + 32768)) / 65536;
+      axstate[function] =
+          static_cast<float>(65536 - (axisvalue + 32768)) / 65536;
       break;
     case AXIS_ROLL:
     case AXIS_PITCH:

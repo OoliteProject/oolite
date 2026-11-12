@@ -429,7 +429,7 @@ static JSValue ConsoleGetProperty(OOJS_GETTER_ARGS) {
     using enum ConsoleProperty;
 #ifdef OO_DEBUG_MONITOR_ENABLED
     case kDebugFlags:
-      return JS_NewUint32(context, (uint32_t)gDebugFlags);
+      return JS_NewUint32(context, static_cast<uint32_t>(gDebugFlags));
 #endif
 
     case kDetailLevel:
@@ -775,7 +775,8 @@ static JSValue ConsoleConsoleMessage(OOJS_NATIVE_ARGS) {
     // Attempt to get two numbers, specifying an emphasis range.
     if (JS_ToFloat64(context, &location, OOJS_ARGV[2]) == 0 &&
         JS_ToFloat64(context, &length, OOJS_ARGV[3]) == 0) {
-      emphasisRange = (NSRange){(std::size_t)location, (std::size_t)length};
+      emphasisRange = (NSRange){static_cast<std::size_t>(location),
+                                static_cast<std::size_t>(length)};
     }
   }
 
@@ -1133,9 +1134,9 @@ static bool IsIncompleteSyntaxError(JSContext* context, JSValueConst exception,
       static_cast<size_t>(std::count(code.begin(), code.end(), '\n')) + 1;
   const std::string lastLine =
       (lastNewline == std::string::npos) ? code : code.substr(lastNewline + 1);
-  const std::string endLocation =
-      std::format("<console input>:{}:{}", (unsigned long)lineCount,
-                  (unsigned long)oo::utf8ToUtf16(lastLine).size() + 1);
+  const std::string endLocation = std::format(
+      "<console input>:{}:{}", static_cast<unsigned long>(lineCount),
+      static_cast<unsigned long>(oo::utf8ToUtf16(lastLine).size()) + 1);
   const std::string firstFrame = stack.substr(0, stack.find('\n'));
   return firstFrame.find(endLocation) != std::string::npos;
 }
@@ -1244,7 +1245,7 @@ static JSValue ConsoleWriteJSMemoryStats(OOJS_NATIVE_ARGS) {
 static size_t JSHeapSize(JSRuntime* runtime) {
   JSMemoryUsage usage;
   JS_ComputeMemoryUsage(runtime, &usage);
-  return (size_t)usage.malloc_size;
+  return static_cast<size_t>(usage.malloc_size);
 }
 
 // function garbageCollect() : string

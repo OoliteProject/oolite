@@ -123,7 +123,7 @@ constexpr std::uint8_t kStreamStatusReading = 3;
 constexpr std::uint8_t kStreamStatusAtEnd = 5;
 constexpr std::uint8_t kStreamStatusError = 7;
 
-const uintptr_t kNoSocket = ~(uintptr_t)0;
+const uintptr_t kNoSocket = ~static_cast<uintptr_t>(0);
 
 #if OOLITE_WINDOWS
 typedef SOCKET OOSocket;
@@ -147,11 +147,12 @@ constexpr int kSendFlags = 0;
 // none.
 std::optional<std::string> SocketErrorDescription(int error) {
   wchar_t* buffer = NULL;
-  DWORD length = FormatMessageW(
-      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-          FORMAT_MESSAGE_IGNORE_INSERTS,
-      NULL, (DWORD)error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-      (LPWSTR)&buffer, 0, NULL);
+  DWORD length = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                                    FORMAT_MESSAGE_FROM_SYSTEM |
+                                    FORMAT_MESSAGE_IGNORE_INSERTS,
+                                NULL, static_cast<DWORD>(error),
+                                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                reinterpret_cast<LPWSTR>(&buffer), 0, NULL);
   std::optional<std::string> result;
   if (length != 0 && buffer != NULL) {
     result = oo::utf16ToUtf8(
@@ -410,7 +411,7 @@ void OODebugTCPConsoleClient::debugMonitor(OODebugMonitor* /*debugMonitor*/,
 
 void OODebugTCPConsoleClient::closeConnection() {
   if (_socket != kNoSocket) {
-    CloseSocket((OOSocket)_socket);
+    CloseSocket(static_cast<OOSocket>(_socket));
     _socket = kNoSocket;
     sLiveClients.erase(
         std::remove(sLiveClients.begin(), sLiveClients.end(), this),
@@ -457,18 +458,18 @@ bool OODebugTCPConsoleClient::openSocketToHost(const std::string& address,
 
   s = ::socket(AF_INET, SOCK_STREAM,
                IPPROTO_TCP);  // the C function, not socket() below
-  if ((uintptr_t)s == kNoSocket) return false;
+  if (static_cast<uintptr_t>(s) == kNoSocket) return false;
   if (!SetNonBlocking(s)) {
     CloseSocket(s);
     return false;
   }
 
   _hostName = address;
-  _socket = (uintptr_t)s;
+  _socket = static_cast<uintptr_t>(s);
   sLiveClients.push_back(this);
   _inStatus = _outStatus = kStreamStatusOpening;
 
-  if (connect(s, (struct sockaddr*)&host, sizeof host) == 0) {
+  if (connect(s, reinterpret_cast<struct sockaddr*>(&host), sizeof host) == 0) {
     _inStatus = _outStatus = kStreamStatusOpen;
   } else {
     int error = LastSocketError();
@@ -490,7 +491,9 @@ std::ptrdiff_t OODebugTCPConsoleClient::receive(uint8_t* buffer,
   if (_inStatus != kStreamStatusOpen && _inStatus != kStreamStatusReading)
     return -1;
 
-  int received = (int)recv((OOSocket)_socket, (char*)buffer, (int)length, 0);
+  int received = static_cast<int>(recv(static_cast<OOSocket>(_socket),
+                                       reinterpret_cast<char*>(buffer),
+                                       static_cast<int>(length), 0));
   if (received > 0) {
     _inStatus = kStreamStatusOpen;
     return received;
@@ -532,7 +535,7 @@ uintptr_t OODebugTCPConsoleClient::socket() { return _socket; }
 void OODebugTCPConsoleClient::addToWaitSets(fd_set* readSet, fd_set* writeSet,
                                             fd_set* exceptSet) {
   if (_socket == kNoSocket) return;
-  OOSocket s = (OOSocket)_socket;
+  OOSocket s = static_cast<OOSocket>(_socket);
   if (_inStatus == kStreamStatusOpening || _outStatus == kStreamStatusOpening) {
     // Connecting: done when writable; failed when exceptional (Windows) or
     // writable with an error.
@@ -551,8 +554,8 @@ void OODebugTCPConsoleClient::handleWaitResultRead(bool readable, bool writable,
 
     int error = 0;
     OOSocketLength size = sizeof error;
-    if (getsockopt((OOSocket)_socket, SOL_SOCKET, SO_ERROR, (char*)&error,
-                   &size) != 0)
+    if (getsockopt(static_cast<OOSocket>(_socket), SOL_SOCKET, SO_ERROR,
+                   reinterpret_cast<char*>(&error), &size) != 0)
       error = LastSocketError();
     if (error == 0 && !exceptional) {
       // The streams' open-completed and space-available events: the delegate
@@ -602,10 +605,10 @@ void OODebugTCPConsoleClient::serviceSocketFor(double seconds) {
       // rounded up. (Not std::this_thread: on this toolchain it sleeps in 15.6
       // ms steps whatever the timer resolution, measured.)
 #if OOLITE_WINDOWS
-      Sleep((DWORD)ceil(remaining * 1000.0));
+      Sleep(static_cast<DWORD>(ceil(remaining * 1000.0)));
 #else
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds((long long)ceil(remaining * 1000.0)));
+      std::this_thread::sleep_for(std::chrono::milliseconds(
+          static_cast<long long>(ceil(remaining * 1000.0))));
 #endif
     }
   }
@@ -623,7 +626,8 @@ bool OODebugTCPConsoleClient::sendBytes(const void* bytes, size_t count) {
       written = -1;
     else {
       written =
-          send((OOSocket)_socket, (const char*)bytes, (int)count, kSendFlags);
+          send(static_cast<OOSocket>(_socket), static_cast<const char*>(bytes),
+               static_cast<int>(count), kSendFlags);
       if (written < 0) {
         int error = LastSocketError();
         if (ErrorIsAbortOnSend(error)) {
@@ -638,7 +642,7 @@ bool OODebugTCPConsoleClient::sendBytes(const void* bytes, size_t count) {
     if (written < 1) return false;
 
     count -= written;
-    bytes = (const uint8_t*)bytes + written;
+    bytes = static_cast<const uint8_t*>(bytes) + written;
   } while (count > 0);
 
   return true;
@@ -749,8 +753,8 @@ void OODebugTCPConsoleClient::readData() {
     // The bytes go to the decoder in a data handle
     // (OOTCPStreamDecoderAbstractionLayer), which is released once the decoder
     // has taken them, as the no-copy data object was.
-    auto data = OOALDataCreateMutable((size_t)length);
-    OOALMutableDataAppendBytes(data, buffer, (size_t)length);
+    auto data = OOALDataCreateMutable(static_cast<size_t>(length));
+    OOALMutableDataAppendBytes(data, buffer, static_cast<size_t>(length));
     OOTCPStreamDecoderReceiveData(_decoder, data);
     OOALRelease(data);
     length = receive(buffer, kBufferSize);
@@ -942,7 +946,8 @@ void OODebugTCPConsoleClient::breakConnectionWithStreamError(int error) {
   breakConnectionWithMessage(
       std::format("Connection to debug console failed: '{}' (outStream status: "
                   "{}, inStream status: {}).",
-                  *errorDesc, (size_t)_outStatus, (size_t)_inStatus));
+                  *errorDesc, static_cast<size_t>(_outStatus),
+                  static_cast<size_t>(_inStatus)));
 }
 
 bool OODebugTCPConsoleIsWaitingForInput() {
@@ -972,16 +977,17 @@ void OODebugTCPConsoleServiceInput(double timeout) {
   for (OODebugTCPConsoleClient* client : sLiveClients) {
     if (client->isWaitingForInput()) {
       client->addToWaitSets(&readSet, &writeSet, &exceptSet);
-      if ((int)client->socket() > highest) highest = (int)client->socket();
+      if (static_cast<int>(client->socket()) > highest)
+        highest = static_cast<int>(client->socket());
     }
   }
   if (highest < 0) return;
 
   if (timeout >= 0.0) {
     // Whole milliseconds, rounded up, as the run loop waited (measured).
-    const long long millis = (long long)ceil(timeout * 1000.0);
-    limit.tv_sec = (long)(millis / 1000);
-    limit.tv_usec = (long)(millis % 1000) * 1000;
+    const long long millis = static_cast<long long>(ceil(timeout * 1000.0));
+    limit.tv_sec = static_cast<long>(millis / 1000);
+    limit.tv_usec = static_cast<long>(millis % 1000) * 1000;
     limitPtr = &limit;
   }
   if (select(highest + 1, &readSet, &writeSet, &exceptSet, limitPtr) <= 0)
@@ -990,7 +996,7 @@ void OODebugTCPConsoleServiceInput(double timeout) {
   for (OODebugTCPConsoleClient* client :
        std::vector<OODebugTCPConsoleClient*>(sLiveClients)) {
     if (client->socket() == kNoSocket) continue;
-    OOSocket s = (OOSocket)client->socket();
+    OOSocket s = static_cast<OOSocket>(client->socket());
     bool readable = FD_ISSET(s, &readSet) != 0;
     bool writable = FD_ISSET(s, &writeSet) != 0;
     bool exceptional = FD_ISSET(s, &exceptSet) != 0;

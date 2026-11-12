@@ -256,7 +256,8 @@ void OOCache::removePListForKey(const std::string& key) {
 }
 
 void OOCache::setPruneThreshold(unsigned threshold) {
-  threshold = MAX(threshold, (unsigned)kOOCacheMinimumPruneThreshold);
+  threshold =
+      MAX(threshold, static_cast<unsigned>(kOOCacheMinimumPruneThreshold));
   if (threshold != _pruneThreshold) {
     _pruneThreshold = threshold;
     if (_autoPrune) prune();

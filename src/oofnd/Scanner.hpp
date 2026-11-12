@@ -416,14 +416,14 @@ class Scanner {
         if (num >= limit)
           overflow = true;
         else
-          num = num * 10 + unsigned(units_[loc] - u'0');
+          num = num * 10 + static_cast<unsigned>(units_[loc] - u'0');
       }
       digits = true;
     }
     if (!digits) return false;
     if (value != nullptr) {
-      if (overflow ||
-          num > (negative ? unsigned(INT_MAX) + 1u : unsigned(INT_MAX)))
+      if (overflow || num > (negative ? static_cast<unsigned>(INT_MAX) + 1u
+                                      : static_cast<unsigned>(INT_MAX)))
         *value = negative ? INT_MIN : INT_MAX;
       else
         *value = negative ? static_cast<int>(0u - num) : static_cast<int>(num);
