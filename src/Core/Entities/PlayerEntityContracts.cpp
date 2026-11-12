@@ -493,8 +493,9 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
         } else {
           // see if the amount of goods delivered is acceptable
 
-          float percent_delivered =
-              100.0 * (float)quantity_on_hand / (float)contract_amount;
+          float percent_delivered = 100.0 *
+                                    static_cast<float>(quantity_on_hand) /
+                                    static_cast<float>(contract_amount);
           float acceptable_ratio =
               100.0 - 10.0 * system_id / 256.0;  // down to 90%
 
@@ -1290,7 +1291,8 @@ void PlayerEntity::setGuiToManifestScreen() {
     if (total_rows > max_rows) {
       max_rows -= 2;
       page_offset = (gui->getStatusPage() - 1) * max_rows;
-      if (page_offset < 0 || (std::size_t)page_offset >= total_rows) {
+      if (page_offset < 0 ||
+          static_cast<std::size_t>(page_offset) >= total_rows) {
         gui->setStatusPage(0);
         page_offset = 0;
       }
@@ -1623,14 +1625,15 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
     station = (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr);
     stationTechLevel = oo::kNotFound;
   }
-  if ((station != nullptr ? station->getLocalShipyard()
-                          : (std::vector<oo::PList>*)nullptr) == nullptr) {
+  if ((station != nullptr
+           ? station->getLocalShipyard()
+           : static_cast<std::vector<oo::PList>*>(nullptr)) == nullptr) {
     if (station != nullptr) station->generateShipyard(stationTechLevel);
   }
 
   std::vector<oo::PList>* stationShipyard =
       (station != nullptr ? station->getLocalShipyard()
-                          : (std::vector<oo::PList>*)nullptr);
+                          : static_cast<std::vector<oo::PList>*>(nullptr));
   const std::vector<oo::PList> shipyard =
       stationShipyard != nullptr ? *stationShipyard
                                  : std::vector<oo::PList>();  // read only here
@@ -1703,7 +1706,8 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
         gui->setArray({OO_DESC("gui-back"), " <-- "}, GUI_ROW_SHIPYARD_START);
         gui->setKey(std::format("More:{}", previous), GUI_ROW_SHIPYARD_START);
       }
-      for (i = 0; i < (shipCount - skip) && (int)i < rowCount; i++) {
+      for (i = 0; i < (shipCount - skip) && static_cast<int>(i) < rowCount;
+           i++) {
         const oo::PList& ship_info = shipyard[i + skip];
         OOCreditsQuantity ship_price =
             ship_info.get<unsigned long long>("price");  // SHIPYARD_KEY_PRICE
@@ -1971,8 +1975,9 @@ bool PlayerEntity::buySelectedShip() {
   const std::optional<std::string> shipDataKey = OptionalStringForKey(
       shipInfo, "shipdata_key");  // SHIPYARD_KEY_SHIPDATA_KEY
   std::vector<oo::PList>* dockedShipyard =
-      (dockedStation() != nullptr ? dockedStation()->getLocalShipyard()
-                                  : (std::vector<oo::PList>*)nullptr);
+      (dockedStation() != nullptr
+           ? dockedStation()->getLocalShipyard()
+           : static_cast<std::vector<oo::PList>*>(nullptr));
   const std::size_t boughtIndex = selectedRow - GUI_ROW_SHIPYARD_START;
   oo::PList::Array buyArguments;
   for (const oo::PList& argument :
@@ -2033,9 +2038,9 @@ bool PlayerEntity::buySelectedShip() {
   }
 
   // remove the ship from the localShipyard
-  dockedShipyard =
-      (dockedStation() != nullptr ? dockedStation()->getLocalShipyard()
-                                  : (std::vector<oo::PList>*)nullptr);
+  dockedShipyard = (dockedStation() != nullptr
+                        ? dockedStation()->getLocalShipyard()
+                        : static_cast<std::vector<oo::PList>*>(nullptr));
   if (dockedShipyard != nullptr)
     dockedShipyard->erase(dockedShipyard->begin() +
                           (selectedRow - GUI_ROW_SHIPYARD_START));

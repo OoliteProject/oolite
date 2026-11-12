@@ -460,11 +460,12 @@ void StickProfileScreen::graphProfile(GLfloat alpha, Vector at, NSSize size) {
   OOGL(GLScaledLineWidth(2.0f));
   OOGLBEGIN(GL_LINE_STRIP);
   for (i = 0; i <= size.width - 20; i++) {
-    glVertex3f(at.x + i + 10,
-               at.y + 10 +
-                   (size.height - 20) *
-                       profile->rawValue(((float)i) / (size.width - 20)),
-               at.z);
+    glVertex3f(
+        at.x + i + 10,
+        at.y + 10 +
+            (size.height - 20) *
+                profile->rawValue((static_cast<float>(i)) / (size.width - 20)),
+        at.z);
   }
   OOGLEND();
   OOGL(glColor4f(0.5, 0.0, 0.5, alpha));
@@ -474,7 +475,7 @@ void StickProfileScreen::graphProfile(GLfloat alpha, Vector at, NSSize size) {
   spline_profile = dynamic_cast<OOJoystickSplineAxisProfile*>(profile);
   if (spline_profile != nullptr) {
     control_points = spline_profile->controlPoints();
-    for (i = 0; i < (std::ptrdiff_t)control_points.size(); i++) {
+    for (i = 0; i < static_cast<std::ptrdiff_t>(control_points.size()); i++) {
       if (i == selected_control_point) {
         OOGL(glColor4f(1.0, 0.0, 0.0, alpha));
       } else {
@@ -533,7 +534,7 @@ void StickProfileScreen::showScreen() {
   gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_STICKPROFILE_AXIS);
   value = profile != nullptr ? profile->deadzone()
                              : 0.0;  // -deadzone sent to nil answered 0
-  bars = (int)(20 * value / STICK_MAX_DEADZONE + 0.5);
+  bars = static_cast<int>(20 * value / STICK_MAX_DEADZONE + 0.5);
   if (bars < 0) bars = 0;
   if (bars > 20) bars = 20;
   gui->setArray(ColumnsUpToNil({OO_DESC("oolite-stickprofile-deadzone"),
@@ -548,7 +549,7 @@ void StickProfileScreen::showScreen() {
   standard_profile = dynamic_cast<OOJoystickStandardAxisProfile*>(profile);
   if (standard_profile != nullptr) {
     power = standard_profile->power();
-    bars = (int)(20 * power / STICKPROFILE_MAX_POWER + 0.5);
+    bars = static_cast<int>(20 * power / STICKPROFILE_MAX_POWER + 0.5);
     if (bars < 0) bars = 0;
     if (bars > 20) bars = 20;
     gui->setArray(ColumnsUpToNil({OO_DESC("oolite-stickprofile-range"),

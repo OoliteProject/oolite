@@ -235,8 +235,8 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
 
     setShowDemoShips(false);
 
-    for (i = (std::size_t)page * n_rows; i < count && row < start_row + n_rows;
-         i++) {
+    for (i = static_cast<std::size_t>(page) * n_rows;
+         i < count && row < start_row + n_rows; i++) {
       const oo::PList* scenario = scenarios.at(i);
       const std::optional<std::string> scenarioTitle =
           scenario != nullptr ? OptionalStringValue(scenario->find("name"))
@@ -248,7 +248,7 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
       ++row;
     }
 
-    if ((std::size_t)(page + 1) * n_rows < count) {
+    if (static_cast<std::size_t>(page + 1) * n_rows < count) {
       gui->setArray({OO_DESC("gui-more"), " --> "}, row);
       gui->setColor(OOColor::greenColor().get(), row);
       gui->setKey(std::format("__page:{}", page + 1), row);
@@ -374,8 +374,8 @@ std::optional<std::string> PlayerEntity::commanderSelector() {
     }
 
   } else {
-    idx =
-        (gui->getSelectedRow() - STARTROW) + (OOGUIRow)(currentPage * NUMROWS);
+    idx = (gui->getSelectedRow() - STARTROW) +
+          static_cast<OOGUIRow>(currentPage * NUMROWS);
   }
 
   // handle page <-- and page --> keys
@@ -421,7 +421,7 @@ std::optional<std::string> PlayerEntity::commanderSelector() {
         if (gameView != nullptr) gameView->suppressKeysUntilKeyUp();
         break;
       default: {
-        if (idx < 0 || (std::size_t)idx >= cdrDetailArray.size())
+        if (idx < 0 || static_cast<std::size_t>(idx) >= cdrDetailArray.size())
           break;  // (-objectAtIndex: raised)
         const oo::PList cdr = cdrDetailArray[idx];
         if (cdr.get<bool>("isSavedGame"))
@@ -468,7 +468,7 @@ void PlayerEntity::saveCommanderInputHandler() {
     int idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
     if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW) {
       showCommanderShip(idx);
-      if (idx >= 0 && (std::size_t)idx < cdrDetailArray.size() &&
+      if (idx >= 0 && static_cast<std::size_t>(idx) < cdrDetailArray.size() &&
           cdrDetailArray[idx].get<bool>(
               "isSavedGame"))  // don't show things that aren't saved games
         commanderNameString =
@@ -531,7 +531,7 @@ void PlayerEntity::saveCommanderInputHandler() {
       int guiSelectedRow = gui->getSelectedRow();
       int idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
       const oo::PList cdr =
-          (idx >= 0 && (std::size_t)idx < cdrDetailArray.size())
+          (idx >= 0 && static_cast<std::size_t>(idx) < cdrDetailArray.size())
               ? cdrDetailArray[idx]
               : oo::PList();  // (-objectAtIndex: raised)
 
@@ -1238,7 +1238,8 @@ bool PlayerEntity::existingNativeSave(const std::string& cdrName) {
 void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   if (UNIVERSE != nullptr) UNIVERSE->removeDemoShips();
-  if (cdrArrayIndex < 0 || (std::size_t)cdrArrayIndex >= cdrDetailArray.size())
+  if (cdrArrayIndex < 0 ||
+      static_cast<std::size_t>(cdrArrayIndex) >= cdrDetailArray.size())
     return;  // (-objectAtIndex: raised)
   const oo::PList cdr = cdrDetailArray[cdrArrayIndex];
 

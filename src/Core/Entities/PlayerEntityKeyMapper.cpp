@@ -565,7 +565,8 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow) {
 
     if (key_list.count() > i) {
       const oo::PList& def = *key_list.at(i);
-      k_int = (OOKeyCode)def.get<long long>("key");  // -integerValue
+      k_int =
+          static_cast<OOKeyCode>(def.get<long long>("key"));  // -integerValue
       if (k_int > 0) {
         keystring = keyCodeDescription(k_int);
         if (def.get<bool>("shift") == true)
@@ -748,8 +749,8 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen() {
   }
   const oo::PList* def = key_list.at(key_index);
   // if ([key isEqualToString:@"(not set)"]) key = @"";
-  OOKeyCode k_int = (OOKeyCode)(def != nullptr ? def->get<long long>("key")
-                                               : 0);  // -integerValue
+  OOKeyCode k_int = static_cast<OOKeyCode>(
+      def != nullptr ? def->get<long long>("key") : 0);  // -integerValue
   if (gameView != nullptr) gameView->resetTypedString();
   if (gameView != nullptr)
     gameView->setTypedString(
@@ -868,7 +869,7 @@ void PlayerEntity::updateShiftKeyDefinition(const std::string& key,
     // force the key into upper or lower case, to limit invalid key combos as
     // much as possible
     std::ptrdiff_t k_int =
-        (OOKeyCode)key_def.get<long long>("key");  // -integerValue
+        static_cast<OOKeyCode>(key_def.get<long long>("key"));  // -integerValue
     if (k_int > 0) {
       const std::optional<std::string> keystring = keyCodeDescription(k_int);
       std::optional<std::string> newstring;
@@ -1026,7 +1027,7 @@ void PlayerEntity::displayKeyFunctionList(::GuiDisplayGen* gui,
       gui->setKey(std::format("More:{}", previous), GUI_ROW_KC_FUNCSTART);
     }
 
-    for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
+    for (i = 0; i < (n_functions - skip) && static_cast<int>(i) < n_rows; i++) {
       const oo::PList& entry = keyFunctions[i + skip];
       if (entry.find(std::string(KEY_KC_HEADER)) != nullptr) {
         const std::optional<std::string> header =
@@ -1697,7 +1698,7 @@ void PlayerEntity::displayKeyboardLayoutList(::GuiDisplayGen* gui,
 
     const std::string kbd = KeyboardCode();
 
-    for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
+    for (i = 0; i < (n_functions - skip) && static_cast<int>(i) < n_rows; i++) {
       const oo::PList& entry = kbdLayouts[i + skip];
       const std::optional<std::string> desc =
           OptionalStringForKey(entry, "description");
