@@ -113,12 +113,10 @@ MA 02110-1301, USA.
 
 static constexpr std::string_view PLAYER_DEFAULT_NAME = "Jameson";
 
-enum {
-  // If comm log is kCommLogTrimThreshold or more lines long, it will be cut to
-  // kCommLogTrimSize.
-  kCommLogTrimThreshold = 15U,
-  kCommLogTrimSize = 10U
-};
+// If comm log is kCommLogTrimThreshold or more lines long, it will be cut to
+// kCommLogTrimSize.
+constexpr unsigned kCommLogTrimThreshold = 15U;
+constexpr unsigned kCommLogTrimSize = 10U;
 
 namespace {
 

@@ -2,7 +2,6 @@
 
 OODebugTCPConsoleClient.m
 
-
 Oolite Debug Support
 
 Copyright (C) 2009-2013 Jens Ayton and contributors
@@ -117,14 +116,12 @@ OOINLINE bool StatusIsSendable(OOTCPClientConnectionStatus status) {
 */
 namespace {
 
-enum : uint8_t {
-  kStreamStatusNotOpen = 0,
-  kStreamStatusOpening = 1,
-  kStreamStatusOpen = 2,
-  kStreamStatusReading = 3,
-  kStreamStatusAtEnd = 5,
-  kStreamStatusError = 7
-};
+constexpr std::uint8_t kStreamStatusNotOpen = 0;
+constexpr std::uint8_t kStreamStatusOpening = 1;
+constexpr std::uint8_t kStreamStatusOpen = 2;
+constexpr std::uint8_t kStreamStatusReading = 3;
+constexpr std::uint8_t kStreamStatusAtEnd = 5;
+constexpr std::uint8_t kStreamStatusError = 7;
 
 const uintptr_t kNoSocket = ~(uintptr_t)0;
 

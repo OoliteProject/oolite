@@ -4,7 +4,6 @@ OOBreakPatternEntity.h
 
 Entity implementing tunnel effect for hyperspace and stations.
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -29,10 +28,9 @@ MA 02110-1301, USA.
 
 #include "Entity.h"
 
-enum {
-  kOOBreakPatternMaxSides = 128,
-  kOOBreakPatternMaxVertices = (kOOBreakPatternMaxSides + 1) * 2
-};
+inline constexpr int kOOBreakPatternMaxSides = 128;
+inline constexpr int kOOBreakPatternMaxVertices =
+    (kOOBreakPatternMaxSides + 1) * 2;
 
 #define BREAK_PATTERN_RING_SPACING 50.0
 #define BREAK_PATTERN_RING_SPEED 200.0

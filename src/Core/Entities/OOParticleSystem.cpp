@@ -251,7 +251,8 @@ std::vector<oo::Ref<OOTexture>> OOParticleSystem::allTextures() {
 void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition,
                                                        Vector fragVelocity,
                                                        GLfloat size) {
-  enum { kMinSpeed = 100, kMaxSpeed = 400 };
+  constexpr int kMinSpeed = 100;
+  constexpr int kMaxSpeed = 400;
 
   unsigned count = 0.4f * size;
   count = MIN(count | 12, (unsigned)kFragmentBurstMaxParticles);

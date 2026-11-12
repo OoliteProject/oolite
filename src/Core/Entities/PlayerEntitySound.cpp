@@ -35,13 +35,12 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 
 // Sizes of sound source pools
-enum {
-  kBuySellSourcePoolSize = 4,
-  kWarningPoolSize = 6,
-  kWeaponPoolSize = 3,
-  kDamagePoolSize = 4,
-  kMiscPoolSize = 2
-};
+
+constexpr int kBuySellSourcePoolSize = 4;
+constexpr int kWarningPoolSize = 6;
+constexpr int kWeaponPoolSize = 3;
+constexpr int kDamagePoolSize = 4;
+constexpr int kMiscPoolSize = 2;
 
 static OOSoundSourcePool* sWarningSoundPool;
 static OOSoundSourcePool* sWeaponSoundPool;

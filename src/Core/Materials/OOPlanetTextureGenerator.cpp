@@ -3,7 +3,6 @@
 
         Generator for planet diffuse maps.
 
-
         Oolite
         Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -153,17 +152,17 @@ static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo* info, float q,
 static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo* info, float q,
                            float nearPole);
 
-enum {
-  kPlanetScale256x256 = 1,
-  kPlanetScale512x512,
-  kPlanetScale1024x1024,
-  kPlanetScale2048x2048,
-  kPlanetScale4096x4096,
+constexpr int kPlanetScale256x256 = 1;
+constexpr int kPlanetScale512x512 = kPlanetScale256x256 + 1;
+constexpr int kPlanetScale1024x1024 = kPlanetScale512x512 + 1;
+constexpr int kPlanetScale2048x2048 = kPlanetScale1024x1024 + 1;
+#ifdef TEXGEN_TEST_RIG
+constexpr int kPlanetScale4096x4096 = kPlanetScale2048x2048 + 1;
+#endif
 
-  kPlanetScaleReducedDetail = kPlanetScale512x512,
-  kPlanetScaleFullDetail = kPlanetScale1024x1024,
-  kPlanetScaleExtraDetail = kPlanetScale2048x2048
-};
+constexpr int kPlanetScaleReducedDetail = kPlanetScale512x512;
+constexpr int kPlanetScaleFullDetail = kPlanetScale1024x1024;
+constexpr int kPlanetScaleExtraDetail = kPlanetScale2048x2048;
 
 oo::Ref<OOPlanetTextureGenerator>
 OOPlanetTextureGenerator::generatorWithPlanetInfo(const oo::PList& planetInfo,
@@ -831,16 +830,14 @@ static bool FillFBMBuffer(OOPlanetTextureGeneratorInfo* info) {
   return false;
 }
 
-enum {
-  //	Size of permutation buffer used to map integer coordinates to gradients.
-  // Must be power of two.
-  kPermutationCount = 1 << 10,
-  kPermutationMask = kPermutationCount - 1,
+//	Size of permutation buffer used to map integer coordinates to gradients.
+// Must be power of two.
+constexpr int kPermutationCount = 1 << 10;
+constexpr int kPermutationMask = kPermutationCount - 1;
 
-  // Number of different gradient vectors used. The most important thing is that
-  // the gradients are evenly distributed and sum to 0.
-  kGradientCount = 12
-};
+// Number of different gradient vectors used. The most important thing is that
+// the gradients are evenly distributed and sum to 0.
+constexpr int kGradientCount = 12;
 
 #define LUT_DOT 1
 

@@ -90,61 +90,59 @@ inline constexpr std::string_view SNAPSHOTHDR_EXTENSION_HDR = ".hdr";
 class Entity;
 class GameController;
 
-enum GameViewKeys {
-  gvFunctionKey1 = 256,
-  gvFunctionKey2,
-  gvFunctionKey3,
-  gvFunctionKey4,
-  gvFunctionKey5,  // 260
-  gvFunctionKey6,
-  gvFunctionKey7,
-  gvFunctionKey8,
-  gvFunctionKey9,
-  gvFunctionKey10,
-  gvFunctionKey11,
-  gvArrowKeyRight,
-  gvArrowKeyLeft,
-  gvArrowKeyDown,
-  gvArrowKeyUp,  // 270
-  gvPauseKey,
-  gvPrintScreenKey,  // 272
-  gvMouseLeftButton = 301,
-  gvMouseDoubleClick,
-  gvHomeKey,
-  gvEndKey,
-  gvInsertKey,
-  gvDeleteKey,
-  gvPageUpKey,
-  gvPageDownKey,   // 308
-  gvBackspaceKey,  // 309
-  gvNumberKey0 = 48,
-  gvNumberKey1,
-  gvNumberKey2,
-  gvNumberKey3,
-  gvNumberKey4,
-  gvNumberKey5,
-  gvNumberKey6,
-  gvNumberKey7,
-  gvNumberKey8,
-  gvNumberKey9,  // 57
-  gvNumberPadKey0 = 310,
-  gvNumberPadKey1,
-  gvNumberPadKey2,
-  gvNumberPadKey3,
-  gvNumberPadKey4,
-  gvNumberPadKey5,
-  gvNumberPadKey6,
-  gvNumberPadKey7,
-  gvNumberPadKey8,
-  gvNumberPadKey9,
-  gvNumberPadKeyDivide,  // 320
-  gvNumberPadKeyMultiply,
-  gvNumberPadKeyMinus,
-  gvNumberPadKeyPlus,
-  gvNumberPadKeyPeriod,
-  gvNumberPadKeyEquals,
-  gvNumberPadKeyEnter  // 326
-};
+inline constexpr int gvFunctionKey1 = 256;
+inline constexpr int gvFunctionKey2 = gvFunctionKey1 + 1;
+inline constexpr int gvFunctionKey3 = gvFunctionKey2 + 1;
+inline constexpr int gvFunctionKey4 = gvFunctionKey3 + 1;
+inline constexpr int gvFunctionKey5 = gvFunctionKey4 + 1;  // 260
+inline constexpr int gvFunctionKey6 = gvFunctionKey5 + 1;
+inline constexpr int gvFunctionKey7 = gvFunctionKey6 + 1;
+inline constexpr int gvFunctionKey8 = gvFunctionKey7 + 1;
+inline constexpr int gvFunctionKey9 = gvFunctionKey8 + 1;
+inline constexpr int gvFunctionKey10 = gvFunctionKey9 + 1;
+inline constexpr int gvFunctionKey11 = gvFunctionKey10 + 1;
+inline constexpr int gvArrowKeyRight = gvFunctionKey11 + 1;
+inline constexpr int gvArrowKeyLeft = gvArrowKeyRight + 1;
+inline constexpr int gvArrowKeyDown = gvArrowKeyLeft + 1;
+inline constexpr int gvArrowKeyUp = gvArrowKeyDown + 1;  // 270
+inline constexpr int gvPauseKey = gvArrowKeyUp + 1;
+inline constexpr int gvPrintScreenKey = gvPauseKey + 1;  // 272
+inline constexpr int gvMouseLeftButton = 301;
+inline constexpr int gvMouseDoubleClick = gvMouseLeftButton + 1;
+inline constexpr int gvHomeKey = gvMouseDoubleClick + 1;
+inline constexpr int gvEndKey = gvHomeKey + 1;
+inline constexpr int gvInsertKey = gvEndKey + 1;
+inline constexpr int gvDeleteKey = gvInsertKey + 1;
+inline constexpr int gvPageUpKey = gvDeleteKey + 1;
+inline constexpr int gvPageDownKey = gvPageUpKey + 1;     // 308
+inline constexpr int gvBackspaceKey = gvPageDownKey + 1;  // 309
+inline constexpr int gvNumberKey0 = 48;
+inline constexpr int gvNumberKey1 = gvNumberKey0 + 1;
+inline constexpr int gvNumberKey2 = gvNumberKey1 + 1;
+inline constexpr int gvNumberKey3 = gvNumberKey2 + 1;
+inline constexpr int gvNumberKey4 = gvNumberKey3 + 1;
+inline constexpr int gvNumberKey5 = gvNumberKey4 + 1;
+inline constexpr int gvNumberKey6 = gvNumberKey5 + 1;
+inline constexpr int gvNumberKey7 = gvNumberKey6 + 1;
+inline constexpr int gvNumberKey8 = gvNumberKey7 + 1;
+inline constexpr int gvNumberKey9 = gvNumberKey8 + 1;  // 57
+inline constexpr int gvNumberPadKey0 = 310;
+inline constexpr int gvNumberPadKey1 = gvNumberPadKey0 + 1;
+inline constexpr int gvNumberPadKey2 = gvNumberPadKey1 + 1;
+inline constexpr int gvNumberPadKey3 = gvNumberPadKey2 + 1;
+inline constexpr int gvNumberPadKey4 = gvNumberPadKey3 + 1;
+inline constexpr int gvNumberPadKey5 = gvNumberPadKey4 + 1;
+inline constexpr int gvNumberPadKey6 = gvNumberPadKey5 + 1;
+inline constexpr int gvNumberPadKey7 = gvNumberPadKey6 + 1;
+inline constexpr int gvNumberPadKey8 = gvNumberPadKey7 + 1;
+inline constexpr int gvNumberPadKey9 = gvNumberPadKey8 + 1;
+inline constexpr int gvNumberPadKeyDivide = gvNumberPadKey9 + 1;  // 320
+inline constexpr int gvNumberPadKeyMultiply = gvNumberPadKeyDivide + 1;
+inline constexpr int gvNumberPadKeyMinus = gvNumberPadKeyMultiply + 1;
+inline constexpr int gvNumberPadKeyPlus = gvNumberPadKeyMinus + 1;
+inline constexpr int gvNumberPadKeyPeriod = gvNumberPadKeyPlus + 1;
+inline constexpr int gvNumberPadKeyEquals = gvNumberPadKeyPeriod + 1;
+inline constexpr int gvNumberPadKeyEnter = gvNumberPadKeyEquals + 1;  // 326
 
 enum MouseWheelStatus {
   gvMouseWheelDown = -1,

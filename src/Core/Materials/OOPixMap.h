@@ -54,12 +54,13 @@ typedef uint32_t OOPixMapDimension;  // Note: dimensions are assumed to be less
 
 #define OORoundUpToPowerOf2_PixMap OORoundUpToPowerOf2_32
 
-typedef enum {
-  kOOPixMapInvalidFormat = 0,
-  kOOPixMapGrayscale = 1,
-  kOOPixMapGrayscaleAlpha = 2,
-  kOOPixMapRGBA = 4
-} OOPixMapFormat;
+// A pixel map's format: its number of components per pixel, which sizes rows
+// and buffers (design D5: typed constants, not an enumeration).
+using OOPixMapFormat = int;
+inline constexpr OOPixMapFormat kOOPixMapInvalidFormat = 0;
+inline constexpr OOPixMapFormat kOOPixMapGrayscale = 1;
+inline constexpr OOPixMapFormat kOOPixMapGrayscaleAlpha = 2;
+inline constexpr OOPixMapFormat kOOPixMapRGBA = 4;
 
 typedef struct OOPixMap {
   void* pixels;

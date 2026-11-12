@@ -2,7 +2,6 @@
 
 OOOpenGLExtensionManager.m
 
-
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -47,7 +46,8 @@ SOFTWARE.
         well go all the way to 3.3.
         -- Nikos 20220817
 */
-enum { kMinMajorVersion = 3, kMinMinorVersion = 3 };
+constexpr int kMinMajorVersion = 3;
+constexpr int kMinMinorVersion = 3;
 
 #if OOLITE_WINDOWS
 /*	Define the function pointers for the OpenGL extensions used in the game
