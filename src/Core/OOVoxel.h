@@ -34,12 +34,12 @@ MA 02110-1301, USA.
 // order.
 #include "OOVector.h"
 
-#define CUBE_FACE_RIGHT 0x01
-#define CUBE_FACE_LEFT 0x02
-#define CUBE_FACE_TOP 0x04
-#define CUBE_FACE_BOTTOM 0x08
-#define CUBE_FACE_FRONT 0x10
-#define CUBE_FACE_BACK 0x20
+inline constexpr int CUBE_FACE_RIGHT = 0x01;
+inline constexpr int CUBE_FACE_LEFT = 0x02;
+inline constexpr int CUBE_FACE_TOP = 0x04;
+inline constexpr int CUBE_FACE_BOTTOM = 0x08;
+inline constexpr int CUBE_FACE_FRONT = 0x10;
+inline constexpr int CUBE_FACE_BACK = 0x20;
 
 Vector lineIntersectionWithFace(Vector p1, Vector p2, long mask,
                                 GLfloat rd) CONST_FUNC;
