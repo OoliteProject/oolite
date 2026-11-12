@@ -181,9 +181,9 @@ void DustEntity::update(OOTimeDelta /*delta_t*/) {
 OOShaderProgram* DustEntity::getShader() {
   if (shader == nullptr) {
     std::string prefix = std::format(
-        "#define OODUST_SCALE_MAX    (float({:g}))\n#define "
-        "OODUST_SCALE_FACTOR (float({:g}))\n#define OODUST_SIZE         "
-        "(float({:g}))\n",
+        "#define OODUST_SCALE_MAX    (float({:g}))\n"
+        "#define OODUST_SCALE_FACTOR (float({:g}))\n"
+        "#define OODUST_SIZE         (float({:g}))\n",
         FAR_PLANE / NEAR_PLANE, 1.0f / (FAR_PLANE - NEAR_PLANE),
         (float)DUST_SCALE);
 
