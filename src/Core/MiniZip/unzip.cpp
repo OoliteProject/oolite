@@ -155,7 +155,7 @@ typedef struct {
   uLong crc32_wait;              /* crc32 we must obtain after decompress all */
   ZPOS64_T rest_read_compressed; /* number of byte to be decompressed */
   ZPOS64_T
-      rest_read_uncompressed; /*number of byte to be obtained after decomp*/
+  rest_read_uncompressed; /*number of byte to be obtained after decomp*/
   zlib_filefunc64_32_def z_filefunc;
   voidpf filestream;                /* io structore of the zipfile */
   uLong compression_method;         /* compression method (0==store) */

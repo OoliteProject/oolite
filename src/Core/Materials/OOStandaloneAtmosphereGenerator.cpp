@@ -461,7 +461,7 @@ static bool FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info) {
 
 enum {
   //	Size of permutation buffer used to map integer coordinates to gradients.
-  //Must be power of two.
+  // Must be power of two.
   kPermutationCount = 1 << 10,
   kPermutationMask = kPermutationCount - 1,
 

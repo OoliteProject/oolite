@@ -4,14 +4,14 @@
    (OOJSEngineCore.h, implemented in src/Core/Scripting/OOJavaScriptEngine.mm,
    as #768 does).
 
-	These cases were test_OOJSEngineTimeManagement's, when the limiter and its watchdog thread lived
-	in OOJSEngineTimeManagement. The limiter is now the engine's, so the test links every game
-	object but main's (tests/unit/core/meson.build entry ['*']), points the user's directories at a
-	scratch folder and runs the real engine. The expectations cover the limiter's limit through
-	nesting, an extra stop, pause and resume; and the
-	engine stopping an endless script, logging the running script's name, after which scripts run
-	again.
-	Run: tests/run.sh unit
+        These cases were test_OOJSEngineTimeManagement's, when the limiter and
+   its watchdog thread lived in OOJSEngineTimeManagement. The limiter is now the
+   engine's, so the test links every game object but main's
+   (tests/unit/core/meson.build entry ['*']), points the user's directories at a
+        scratch folder and runs the real engine. The expectations cover the
+   limiter's limit through nesting, an extra stop, pause and resume; and the
+        engine stopping an endless script, logging the running script's name,
+   after which scripts run again. Run: tests/run.sh unit
 */
 
 #include <process.h>

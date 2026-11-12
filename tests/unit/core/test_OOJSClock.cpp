@@ -2,14 +2,16 @@
         Unit tests for the clock JS binding
    (src/Core/Scripting/OOJSClock.h/.mm).
 
-	Like test_OOJSVector.mm, it runs the JS class in a real QuickJS-ng context and links the game's
-	own objects for the binding, the class registration (OOJSClasses.mm) and the engine's exception
-	translator (OOJSEngineNativeWrappers.mm). What the rest of the game would provide (the player's
-	clock, the universe's time, the clock-string formatter, the deprecation warning, error reporting
-	and the string helpers) is defined below as the smallest stand-in that does the same thing. The tests pin the
-	JS-visible behaviour: the global `clock` object and every property, the three methods, their
-	errors, and how an exception under a native reaches JS.
-	Run: tests/run.sh unit
+        Like test_OOJSVector.mm, it runs the JS class in a real QuickJS-ng
+   context and links the game's own objects for the binding, the class
+   registration (OOJSClasses.mm) and the engine's exception translator
+   (OOJSEngineNativeWrappers.mm). What the rest of the game would provide (the
+   player's clock, the universe's time, the clock-string formatter, the
+   deprecation warning, error reporting and the string helpers) is defined below
+   as the smallest stand-in that does the same thing. The tests pin the
+        JS-visible behaviour: the global `clock` object and every property, the
+   three methods, their errors, and how an exception under a native reaches JS.
+        Run: tests/run.sh unit
 */
 
 #include <cstdarg>

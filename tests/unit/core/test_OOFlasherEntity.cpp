@@ -2,20 +2,22 @@
         Unit tests for OOFlasherEntity (src/Core/Entities/OOFlasherEntity.h),
    the blinking lights that ships and visual effects carry as subentities.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
-	uses a Universe that was never initialised and a plain entity as PLAYER. The tests cover: a
-	flasher reads its size, frequency (doubled), phase, bright fraction, colours and initial state
-	from its dictionary (defaults 1, 1, 0, 0.5, none, on); its accessors; its colour is its current
-	components; -update: cycles its colours on the wave's falling half and sets its brightness, or
-	keeps it opaque at frequency 0; it draws only while active; it is a flasher (and an entity is
-	not); its collision radius is half its diameter; -rescaleBy: scales the diameter and
-	-rescaleBy:writeToCache: does nothing. The colour components, an ivar of OOLightParticleEntity,
-	are read and set through the one block of helpers below. The flashers are made as the callers
-	make them (flasherWithDictionary()). The cases ask the C++ class; the
-	facade case pins the crossing (the object is OOLightParticleEntity's, whose C++ part is
-	the flasher), and jsExtensions pins that the engine's selectors reach the C++ class's overrides
-	through the root.
-	Run: tests/run.sh unit
+        The entity reads Universe and PLAYER, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised and a plain
+   entity as PLAYER. The tests cover: a flasher reads its size, frequency
+   (doubled), phase, bright fraction, colours and initial state from its
+   dictionary (defaults 1, 1, 0, 0.5, none, on); its accessors; its colour is
+   its current components; -update: cycles its colours on the wave's falling
+   half and sets its brightness, or keeps it opaque at frequency 0; it draws
+   only while active; it is a flasher (and an entity is not); its collision
+   radius is half its diameter; -rescaleBy: scales the diameter and
+        -rescaleBy:writeToCache: does nothing. The colour components, an ivar of
+   OOLightParticleEntity, are read and set through the one block of helpers
+   below. The flashers are made as the callers make them
+   (flasherWithDictionary()). The cases ask the C++ class; the facade case pins
+   the crossing (the object is OOLightParticleEntity's, whose C++ part is the
+   flasher), and jsExtensions pins that the engine's selectors reach the C++
+   class's overrides through the root. Run: tests/run.sh unit
 */
 
 #include <cmath>

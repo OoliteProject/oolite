@@ -221,8 +221,8 @@ void OOSystemDescriptionManager::saveScriptedChangeToProperty(
     return;
   }
   //	OO_LOG("saving change", "{} {} {} {}", oo::DescriptionOf(manifest),
-  //oo::DescriptionOf(key), oo::DescriptionOf(property),
-  //static_cast<int>(layer));
+  // oo::DescriptionOf(key), oo::DescriptionOf(property),
+  // static_cast<int>(layer));
   // The four parts (the layer as its number's text) joined into one key: the
   // plist format can't have array keys, so they couldn't be saved.
   std::string overrideKeyStr = *manifest;
@@ -253,8 +253,8 @@ void OOSystemDescriptionManager::importScriptedChanges(
       const std::string& manifest = key[0];
       if (!ResourceManager::manifestForIdentifier(manifest).isNull()) {
         //				OO_LOG("importing", "{} -> {}",
-        //oo::DescriptionOf(keyStr), oo::DescriptionOf([scripted
-        //objectForKey:keyStr]));
+        // oo::DescriptionOf(keyStr), oo::DescriptionOf([scripted
+        // objectForKey:keyStr]));
         setProperty(key[2], key[1],
                     OOSystemLayerFromNumber(
                         static_cast<unsigned int>(oo::str::intValue(key[3]))),

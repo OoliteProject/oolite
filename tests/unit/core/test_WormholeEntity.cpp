@@ -2,22 +2,26 @@
         Unit tests for WormholeEntity (src/Core/Entities/WormholeEntity.h), the
    witchspace wormholes ships leave behind.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
-	a Universe that was never initialised, subclassed to answer the current system, the system names
-	and a real system description manager (with the coordinates of the systems the test uses) and
-	the clock format, with no sun, and to record what is removed; PLAYER is an entity that answers
-	the galaxy, the clock, its galactic coordinates and its forward vector; the ship that opens a
-	wormhole is a plain entity of the mass the test sets (a C++ ship under its object, never set
-	up). A wormhole made by a ship is a no-mass-yet effect of the wormhole scan class whose size,
-	expiry and arrival follow from the ship's mass and the distance; one made from a saved
-	dictionary reads its systems, times (crossed times fixed), position and misjump back, and
-	-getDict writes them; the misjump setters move the exit and the arrival; the scan state; who can
-	collide with it; -update: shrinks nothing at no mass, hides it and removes it once it has
-	expired; -suckInShip: refuses a missing ship, one already leaving, another system and an expired
-	wormhole; -disgorgeShips moves a wormhole that held the player behind the player; and the
-	description. Masses and distances are set through the one helper below. The cases make the C++
-	wormhole and ask the C++ class, and the facade
-	case pins the crossing: the wormhole is the root Entity. Run: bash tools/check-core-tests.sh
+        The entity reads Universe and PLAYER, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised, subclassed
+   to answer the current system, the system names and a real system description
+   manager (with the coordinates of the systems the test uses) and the clock
+   format, with no sun, and to record what is removed; PLAYER is an entity that
+   answers the galaxy, the clock, its galactic coordinates and its forward
+   vector; the ship that opens a wormhole is a plain entity of the mass the test
+   sets (a C++ ship under its object, never set up). A wormhole made by a ship
+   is a no-mass-yet effect of the wormhole scan class whose size, expiry and
+   arrival follow from the ship's mass and the distance; one made from a saved
+        dictionary reads its systems, times (crossed times fixed), position and
+   misjump back, and -getDict writes them; the misjump setters move the exit and
+   the arrival; the scan state; who can collide with it; -update: shrinks
+   nothing at no mass, hides it and removes it once it has expired; -suckInShip:
+   refuses a missing ship, one already leaving, another system and an expired
+        wormhole; -disgorgeShips moves a wormhole that held the player behind
+   the player; and the description. Masses and distances are set through the one
+   helper below. The cases make the C++ wormhole and ask the C++ class, and the
+   facade case pins the crossing: the wormhole is the root Entity. Run: bash
+   tools/check-core-tests.sh
 */
 
 #include <cmath>
@@ -148,24 +152,20 @@ bool Near(double a, double b) {
   return std::fabs(a - b) < 1e-3 * std::fmax(1.0, std::fabs(b));
 }
 
-
 // A ship: C++ (the wormhole calls its members), never set up.
-Entity *Ship(GLfloat mass)
-{
-	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
-	SetMass(ship, mass);
-	ship->setPosition(make_HPvector(1, 2, 3));
-	return ship;
+Entity* Ship(GLfloat mass) {
+  Entity* ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
+  SetMass(ship, mass);
+  ship->setPosition(make_HPvector(1, 2, 3));
+  return ship;
 }
 
-
 // A new C++ wormhole.
-WormholeEntity *ToNine(Entity *ship)
-{
-	oo::Ref<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
-	(void)oo::MadeEntity(wh);
-	wh->initWormholeTo(9, oo::ToShip(ship));
-	return wh.get();
+WormholeEntity* ToNine(Entity* ship) {
+  oo::Ref<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
+  (void)oo::MadeEntity(wh);
+  wh->initWormholeTo(9, oo::ToShip(ship));
+  return wh.get();
 }
 
 WormholeEntity* FromDict(const oo::PList& dict) {
@@ -378,16 +378,14 @@ OO_TEST(description) {
   }
 }
 
-
-OO_TEST(facade)
-{
-	{
-		SetUp();
-		WormholeEntity *wh = ToNine(Ship(1000.0f));
-		Entity *object = wh;
-		OO_CHECK(object != nullptr);	// A C++ entity.
-		OO_CHECK(dynamic_cast<WormholeEntity *>(object) == wh);
-	}
+OO_TEST(facade) {
+  {
+    SetUp();
+    WormholeEntity* wh = ToNine(Ship(1000.0f));
+    Entity* object = wh;
+    OO_CHECK(object != nullptr);  // A C++ entity.
+    OO_CHECK(dynamic_cast<WormholeEntity*>(object) == wh);
+  }
 }
 
 // Registers Entity's JS class and the given class (a child of Entity) in the
@@ -404,23 +402,22 @@ static void RegisterJSClasses(void (*initClass)(JSContext*, JSValueConst)) {
   JS_FreeValue(context, global);
 }
 
-
 // The binding's category: what
 // the engine asks a WormholeEntity for by selector is what OOJSWormhole.mm
 // answers.
-OO_TEST(jsExtensions)
-{
-	{
-		SetUp();
-		WormholeEntity *wh = ToNine(Ship(1000.0f));
-		RegisterJSClasses(InitOOJSWormhole);
-		Entity *object = wh;	// what the engine asks
-		const JSClassID jsClass = OOJSEntityJSClassID(object);
-		const JSClassID expectedClass = JSWormholeClassID();
-		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("Wormhole"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == true);
-	}
+OO_TEST(jsExtensions) {
+  {
+    SetUp();
+    WormholeEntity* wh = ToNine(Ship(1000.0f));
+    RegisterJSClasses(InitOOJSWormhole);
+    Entity* object = wh;  // what the engine asks
+    const JSClassID jsClass = OOJSEntityJSClassID(object);
+    const JSClassID expectedClass = JSWormholeClassID();
+    OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+    OO_CHECK(OOJSEntityJSClassName(object) ==
+             std::optional<std::string>("Wormhole"));
+    OO_CHECK(OOJSEntityIsVisibleToScripts(object) == true);
+  }
 }
 
 OO_TEST_MAIN()

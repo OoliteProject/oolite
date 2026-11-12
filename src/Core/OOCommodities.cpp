@@ -184,8 +184,10 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateManifestForPlayer() {
   for (const auto& [commodity, info] : _commodityLists)  // key order
   {
     oo::PList good =
-        info.isDict() ? info : oo::PList(oo::PList::Dict{});  // +dictionaryWithDictionary:
-                                                              // of the entry
+        info.isDict()
+            ? info
+            : oo::PList(oo::PList::Dict{});  // +dictionaryWithDictionary:
+                                             // of the entry
     SetUnsigned(good, kOOCommodityPriceCurrent, 0);
     SetUnsigned(good, kOOCommodityQuantityCurrent, 0);
     /* The actual capacity of the player ship is a total, not
@@ -204,8 +206,10 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateBlankMarket() {
   for (const auto& [commodity, info] : _commodityLists)  // key order
   {
     oo::PList good =
-        info.isDict() ? info : oo::PList(oo::PList::Dict{});  // +dictionaryWithDictionary:
-                                                              // of the entry
+        info.isDict()
+            ? info
+            : oo::PList(oo::PList::Dict{});  // +dictionaryWithDictionary:
+                                             // of the entry
     SetUnsigned(good, kOOCommodityPriceCurrent, 0);
     SetUnsigned(good, kOOCommodityQuantityCurrent, 0);
     SetUnsigned(good, kOOCommodityCapacity, 0);

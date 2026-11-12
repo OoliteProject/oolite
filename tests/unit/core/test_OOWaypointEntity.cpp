@@ -2,20 +2,24 @@
         Unit tests for OOWaypointEntity (src/Core/Entities/OOWaypointEntity.h),
    the scripted beacon waypoints.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
-	a Universe that was never initialised and a plain entity as PLAYER. A waypoint reads its
-	position, orientation, size and beacon code and label from its dictionary (defaults: the origin,
-	the identity, 1000, "W" and "Waypoint"; an empty dictionary reads zeros and no beacon); a zero
-	orientation is the identity and marks it unoriented; its size sets its draw distance and ignores
-	a size that is not positive; it is a no-draw effect and a waypoint; the beacon code and label
-	setters (an empty string is none; a code gives a blank label its text) and the case-insensitive
-	comparison; its beacon icon is kept until the code changes; and its neighbours in the beacon
-	list are weak references. The draw distance is read through the one helper below. The waypoints
-	are made as the universe makes them: by the C++ factory. The object still answers the
-	beacon selectors (the root's category Entity (OOWaypointBeacon)), so the beacon checks send
-	them; the class's own selectors are member calls; the last tests pin that the object is a C++
-	entity's, that only a waypoint's object (or an entity that implements them) answers the beacon
-	selectors, and the JS answers. Run: bash tools/check-core-tests.sh
+        The entity reads Universe and PLAYER, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised and a plain
+   entity as PLAYER. A waypoint reads its position, orientation, size and beacon
+   code and label from its dictionary (defaults: the origin, the identity, 1000,
+   "W" and "Waypoint"; an empty dictionary reads zeros and no beacon); a zero
+        orientation is the identity and marks it unoriented; its size sets its
+   draw distance and ignores a size that is not positive; it is a no-draw effect
+   and a waypoint; the beacon code and label setters (an empty string is none; a
+   code gives a blank label its text) and the case-insensitive comparison; its
+   beacon icon is kept until the code changes; and its neighbours in the beacon
+        list are weak references. The draw distance is read through the one
+   helper below. The waypoints are made as the universe makes them: by the C++
+   factory. The object still answers the beacon selectors (the root's category
+   Entity (OOWaypointBeacon)), so the beacon checks send them; the class's own
+   selectors are member calls; the last tests pin that the object is a C++
+        entity's, that only a waypoint's object (or an entity that implements
+   them) answers the beacon selectors, and the JS answers. Run: bash
+   tools/check-core-tests.sh
 */
 
 #include <cmath>
@@ -42,8 +46,8 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return kZeroHPVector; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
-// retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer()
+// makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
   oo::Ref<T> player = oo::makeRef<T>();
@@ -267,17 +271,16 @@ OO_TEST(neighbours) {
   }
 }
 
-OO_TEST(facade)
-{
-	{
-		oo::AutoreleaseScope scope;
-		SetUp();
-		Entity *wp = Waypoint("W");	// the root entity (the protocol type would
+OO_TEST(facade) {
+  {
+    oo::AutoreleaseScope scope;
+    SetUp();
+    Entity* wp = Waypoint("W");  // the root entity (the protocol type would
                                  // pick a subclass's crossing)
     // A C++ entity.
-		OO_CHECK(dynamic_cast<OOWaypointEntity *>(wp) != nullptr);
-		OO_CHECK(wp == wp);
-	}
+    OO_CHECK(dynamic_cast<OOWaypointEntity*>(wp) != nullptr);
+    OO_CHECK(wp == wp);
+  }
 }
 
 // Registers Entity's JS class and the given class (a child of Entity) in the
@@ -293,7 +296,6 @@ static void RegisterJSClasses(void (*initClass)(JSContext*, JSValueConst)) {
   initClass(context, global);
   JS_FreeValue(context, global);
 }
-
 
 // The beacon selectors on the root entity: answered for a waypoint's part,
 // and not for another entity's, whose object did not answer them. The beacon

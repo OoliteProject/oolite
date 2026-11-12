@@ -3,17 +3,19 @@
    (src/Core/Entities/OOLaserShotEntity.h), the beam a ship's laser draws for
    one shot.
 
-	Its object needs the game graph, so the test links the whole game but main (['*']) and uses a
-	Universe that was never initialised, of a test subclass that records what is removed, and a
-	plain entity as PLAYER. The ship that fires is an entity of the test's own that answers the
-	selectors the class sends a ship (its root ship, speed and weapon range); the class asserts that
-	it is a ship, so the test sets that flag. It is a C++ ship whose fields give those answers. The
-	cases ask the C++ class, and the shots are made as the ship makes them, laserFromShip() then
-	their set-up. They cover: where the shot starts and how it is turned for each facing, its
-	velocity, owner, range and status; its colour (default red, a set colour brightened, the alpha
-	constant); the lifetime in its description; following the player's ship; removal when its
-	lifetime has run out. The colour is private; the test reads it through the access struct below.
-	Run: tests/run.sh unit
+        Its object needs the game graph, so the test links the whole game but
+   main (['*']) and uses a Universe that was never initialised, of a test
+   subclass that records what is removed, and a plain entity as PLAYER. The ship
+   that fires is an entity of the test's own that answers the selectors the
+   class sends a ship (its root ship, speed and weapon range); the class asserts
+   that it is a ship, so the test sets that flag. It is a C++ ship whose fields
+   give those answers. The cases ask the C++ class, and the shots are made as
+   the ship makes them, laserFromShip() then their set-up. They cover: where the
+   shot starts and how it is turned for each facing, its velocity, owner, range
+   and status; its colour (default red, a set colour brightened, the alpha
+        constant); the lifetime in its description; following the player's ship;
+   removal when its lifetime has run out. The colour is private; the test reads
+   it through the access struct below. Run: tests/run.sh unit
 */
 
 #include <cmath>
@@ -107,13 +109,13 @@ Entity* MakeShip() {
   return ship;
 }
 
-
 // A shot, made as the ship makes one: it is held in the test's pool.
-oo::Ref<OOLaserShotEntity> Shot(Entity *ship, OOWeaponFacing direction, Vector offset)
-{
-	oo::Ref<OOLaserShotEntity> shot = OOLaserShotEntity::laserFromShip(oo::ToShip(ship), direction, offset);
-	oo::MadeEntity(shot);
-	return shot;
+oo::Ref<OOLaserShotEntity> Shot(Entity* ship, OOWeaponFacing direction,
+                                Vector offset) {
+  oo::Ref<OOLaserShotEntity> shot =
+      OOLaserShotEntity::laserFromShip(oo::ToShip(ship), direction, offset);
+  oo::MadeEntity(shot);
+  return shot;
 }
 
 bool Near(double a, double b) { return fabs(a - b) < 1e-4; }

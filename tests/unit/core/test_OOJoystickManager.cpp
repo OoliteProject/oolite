@@ -2,17 +2,19 @@
         Unit tests for OOJoystickManager (src/Core/OOJoystickManager.h), the
    root of a hierarchy whose one subclass is the SDL manager.
 
-	The manager keeps the stick-to-function tables, decodes stick events into axis and button states
-	(the SDL manager decodes, upstream #742: the cases that decode use an SDL manager that answers
-	for the hardware as the base does), reports the next moved axis or pressed button to a callback,
-	and loads and saves the tables and the axis profiles in the user defaults. The test points the
-	defaults' home (HOMEPATH) at a scratch folder before they are first read, so nothing of the
-	user's is read or written. They call the C++ members. They cover: the default mapping; axis
-	decoding (normalised, thrust, view, raw, out of range, the profiles and precision mode); buttons
-	and hats; reassigning and unsetting functions; the callback for both kinds of hardware; saving
-	and reloading the tables and both kinds of profile; a subclass's overrides reached by the base
-	(also from -init) and [super ...]; the shared handler of a registered factory. Run: bash
-	tests/run.sh unit
+        The manager keeps the stick-to-function tables, decodes stick events
+   into axis and button states (the SDL manager decodes, upstream #742: the
+   cases that decode use an SDL manager that answers for the hardware as the
+   base does), reports the next moved axis or pressed button to a callback, and
+   loads and saves the tables and the axis profiles in the user defaults. The
+   test points the defaults' home (HOMEPATH) at a scratch folder before they are
+   first read, so nothing of the user's is read or written. They call the C++
+   members. They cover: the default mapping; axis decoding (normalised, thrust,
+   view, raw, out of range, the profiles and precision mode); buttons and hats;
+   reassigning and unsetting functions; the callback for both kinds of hardware;
+   saving and reloading the tables and both kinds of profile; a subclass's
+   overrides reached by the base (also from -init) and [super ...]; the shared
+   handler of a registered factory. Run: bash tests/run.sh unit
 */
 
 #include <process.h>

@@ -3,12 +3,13 @@
    the OOJoystickManager subclass: the class derives from the C++
    OOJoystickManager and the tests call its members.
 
-	The SDL joystick layer runs against one SDL virtual joystick (SDL_AttachVirtualJoystick), with
-	every hardware driver hinted off so a pad plugged into the machine cannot change the answers.
-	The stick is opened and named, SDL ids map to stick indices, the three event makers copy
-	the event and translate its id, the axis is read from SDL, and handleSDLEvent: routes an event
-	of a known stick to the superclass's decoder (whose state the test reads back) and refuses
-	everything else. Run: bash tests/run.sh unit
+        The SDL joystick layer runs against one SDL virtual joystick
+   (SDL_AttachVirtualJoystick), with every hardware driver hinted off so a pad
+   plugged into the machine cannot change the answers. The stick is opened and
+   named, SDL ids map to stick indices, the three event makers copy the event
+   and translate its id, the axis is read from SDL, and handleSDLEvent: routes
+   an event of a known stick to the superclass's decoder (whose state the test
+   reads back) and refuses everything else. Run: bash tests/run.sh unit
 */
 
 #include <SDL3/SDL.h>

@@ -3,14 +3,16 @@
    (src/Core/Materials/OOStandaloneAtmosphereGenerator.h), the texture generator
    of a planet's cloud layer when its surface is not generated.
 
-	It reads the cloud parameters from the planet's material parameters (colours as PList::Object
-	nodes holding OOColors), sizes its texture by the detail level (no universe here: the lowest,
-	so 512 x 512, or 512 x 256 with 3D noise), keys it by its parameters, and fills it with clouds
-	from the seed's noise, their alpha scaled by cloud_alpha. It links the whole game but main
-	(tests/unit/core/meson.build entry ['*']), on the hidden GL context of oo_gl_test_context.hpp.
-	Making a generator and the class methods go through the helpers below. The class is a global
-	C++ class. The last test pins the C++ API.
-	Run: bash tools/check-core-tests.sh test_OOStandaloneAtmosphereGenerator
+        It reads the cloud parameters from the planet's material parameters
+   (colours as PList::Object nodes holding OOColors), sizes its texture by the
+   detail level (no universe here: the lowest, so 512 x 512, or 512 x 256 with
+   3D noise), keys it by its parameters, and fills it with clouds from the
+   seed's noise, their alpha scaled by cloud_alpha. It links the whole game but
+   main (tests/unit/core/meson.build entry ['*']), on the hidden GL context of
+   oo_gl_test_context.hpp. Making a generator and the class methods go through
+   the helpers below. The class is a global C++ class. The last test pins the
+   C++ API. Run: bash tools/check-core-tests.sh
+   test_OOStandaloneAtmosphereGenerator
 */
 
 #include <cstdlib>

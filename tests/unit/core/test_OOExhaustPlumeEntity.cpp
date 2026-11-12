@@ -3,21 +3,25 @@
    (src/Core/Entities/OOExhaustPlumeEntity.h), the engine plumes ships carry as
    subentities.
 
-	The entity reads Universe and its ship, so the test links the whole game but main (['*']) and
-	uses a Universe that was never initialised, subclassed to answer the time the test sets, a
-	plain entity as PLAYER, and as the ship an entity that answers the ShipEntity selectors the
-	plume sends (a C++ ship stand-in). The RNG is seeded, as the game seeds it, so the plume's
-	random fluctuations repeat. The tests cover: a plume is made for its ship from six tokens
-	(position and scale, scaled by the ship's scale but for the scale's z, which outside 0.5..2 is
-	1), and from none is nil; its scale accessors; it is an exhaust (and an entity is not); its
-	collision radius is what -update: last measured; -update: does nothing without a visible ship,
-	measures nothing below a minimal speed, and otherwise measures the plume (the value is pinned);
-	-rescaleBy: scales it and -rescaleBy:writeToCache: does nothing; and its texture is loaded
-	once, by name (the loader replaced as in test_OOParticleSystem). The collision radius is set
-	through the one helper below. The plumes are made as the ship makes them (exhaustForShip()). The cases ask the C++ class; the facade case pins the crossing (the
-	object is the root's, whose C++ part is the plume), and jsExtensions pins that the
-	engine's selectors reach the C++ class's overrides through the root.
-	Run: tests/run.sh unit
+        The entity reads Universe and its ship, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised, subclassed
+   to answer the time the test sets, a plain entity as PLAYER, and as the ship
+   an entity that answers the ShipEntity selectors the plume sends (a C++ ship
+   stand-in). The RNG is seeded, as the game seeds it, so the plume's random
+   fluctuations repeat. The tests cover: a plume is made for its ship from six
+   tokens (position and scale, scaled by the ship's scale but for the scale's z,
+   which outside 0.5..2 is 1), and from none is nil; its scale accessors; it is
+   an exhaust (and an entity is not); its collision radius is what -update: last
+   measured; -update: does nothing without a visible ship, measures nothing
+   below a minimal speed, and otherwise measures the plume (the value is
+   pinned); -rescaleBy: scales it and -rescaleBy:writeToCache: does nothing; and
+   its texture is loaded once, by name (the loader replaced as in
+   test_OOParticleSystem). The collision radius is set through the one helper
+   below. The plumes are made as the ship makes them (exhaustForShip()). The
+   cases ask the C++ class; the facade case pins the crossing (the object is the
+   root's, whose C++ part is the plume), and jsExtensions pins that the engine's
+   selectors reach the C++ class's overrides through the root. Run: tests/run.sh
+   unit
 */
 
 #include <cmath>
