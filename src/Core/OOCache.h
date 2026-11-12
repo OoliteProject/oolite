@@ -20,7 +20,6 @@ OOCache is essentially a string-keyed dictionary with a prune limit. A null
 PList is "no value": it is never stored, and it is what a lookup of an absent
 key returns.
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -65,11 +64,9 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
-enum {
-  kOOCacheMinimumPruneThreshold = 25U,
-  kOOCacheDefaultPruneThreshold = 200U,
-  kOOCacheNoPrune = 0xFFFFFFFFU
-};
+inline constexpr unsigned kOOCacheMinimumPruneThreshold = 25U;
+inline constexpr unsigned kOOCacheDefaultPruneThreshold = 200U;
+inline constexpr unsigned kOOCacheNoPrune = 0xFFFFFFFFU;
 
 class OOCache : public oo::RefCounted {
  public:

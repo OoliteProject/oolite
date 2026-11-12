@@ -2,7 +2,6 @@
 
 OOPListSchemaVerifier.m
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -56,11 +55,9 @@ SOFTWARE.
 
 #define PLIST_VERIFIER_DEBUG_DUMP_ENABLED 1
 
-enum {
-  // Largest allowable number of characters for string included in error
-  // message.
-  kMaximumLengthForStringInErrorMessage = 100
-};
+// Largest allowable number of characters for string included in error
+// message.
+constexpr int kMaximumLengthForStringInErrorMessage = 100;
 
 // Internal error codes.
 enum {

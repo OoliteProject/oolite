@@ -110,31 +110,29 @@ constexpr std::string_view kOOOXZFilterTag = "t:";
 
 // OXZInstallableState is declared in OOOXZManager.h (a member's result).
 
-enum {
-  OXZ_GUI_ROW_LISTHEAD = 0,
-  OXZ_GUI_ROW_FIRSTRUN = 1,
-  OXZ_GUI_ROW_PROGRESS = 1,
-  OXZ_GUI_ROW_FILTERHELP = 1,
-  OXZ_GUI_ROW_LISTPREV = 1,
-  OXZ_GUI_ROW_LISTSTART = 2,
-  OXZ_GUI_NUM_LISTROWS = 10,
-  OXZ_GUI_ROW_LISTNEXT = 12,
-  OXZ_GUI_ROW_LISTSTATUS = 14,
-  OXZ_GUI_ROW_LISTDESC = 16,
-  OXZ_GUI_ROW_LISTINFO1 = 19,
-  OXZ_GUI_ROW_LISTINFO2 = 20,
-  OXZ_GUI_ROW_LISTFILTER = 21,
-  OXZ_GUI_ROW_INSTALL = 22,
-  OXZ_GUI_ROW_INSTALLED = 23,
-  OXZ_GUI_ROW_UPDATE_ALL = 24,
-  OXZ_GUI_ROW_REMOVE = 25,
-  OXZ_GUI_ROW_PROCEED = 25,
-  OXZ_GUI_ROW_UPDATE = 26,
-  OXZ_GUI_ROW_CANCEL = 26,
-  OXZ_GUI_ROW_FILTERCURRENT = 26,
-  OXZ_GUI_ROW_INPUT = 27,
-  OXZ_GUI_ROW_EXIT = 27
-};
+constexpr int OXZ_GUI_ROW_LISTHEAD = 0;
+constexpr int OXZ_GUI_ROW_FIRSTRUN = 1;
+constexpr int OXZ_GUI_ROW_PROGRESS = 1;
+constexpr int OXZ_GUI_ROW_FILTERHELP = 1;
+constexpr int OXZ_GUI_ROW_LISTPREV = 1;
+constexpr int OXZ_GUI_ROW_LISTSTART = 2;
+constexpr int OXZ_GUI_NUM_LISTROWS = 10;
+constexpr int OXZ_GUI_ROW_LISTNEXT = 12;
+constexpr int OXZ_GUI_ROW_LISTSTATUS = 14;
+constexpr int OXZ_GUI_ROW_LISTDESC = 16;
+constexpr int OXZ_GUI_ROW_LISTINFO1 = 19;
+constexpr int OXZ_GUI_ROW_LISTINFO2 = 20;
+constexpr int OXZ_GUI_ROW_LISTFILTER = 21;
+constexpr int OXZ_GUI_ROW_INSTALL = 22;
+constexpr int OXZ_GUI_ROW_INSTALLED = 23;
+constexpr int OXZ_GUI_ROW_UPDATE_ALL = 24;
+constexpr int OXZ_GUI_ROW_REMOVE = 25;
+constexpr int OXZ_GUI_ROW_PROCEED = 25;
+constexpr int OXZ_GUI_ROW_UPDATE = 26;
+constexpr int OXZ_GUI_ROW_CANCEL = 26;
+constexpr int OXZ_GUI_ROW_FILTERCURRENT = 26;
+constexpr int OXZ_GUI_ROW_INPUT = 27;
+constexpr int OXZ_GUI_ROW_EXIT = 27;
 
 namespace {
 

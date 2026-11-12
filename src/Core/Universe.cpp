@@ -123,7 +123,9 @@ MA 02110-1301, USA.
 #include "OOConvertSystemDescriptions.h"
 #endif
 
-enum { DEMO_FLY_IN = 101, DEMO_SHOW_THING, DEMO_FLY_OUT };
+constexpr int DEMO_FLY_IN = 101;
+constexpr int DEMO_SHOW_THING = DEMO_FLY_IN + 1;
+constexpr int DEMO_FLY_OUT = DEMO_SHOW_THING + 1;
 
 #define DEMO2_VANISHING_DISTANCE 650.0
 #define DEMO2_FLY_IN_STAGE_TIME 0.4
@@ -2503,7 +2505,6 @@ void Universe::setLighting() {
   Shaders: this light is also used inside the station and needs to have its
   position reset relative to the player whenever demo ships or background scenes
   are to be shown -- 20100111
-
 
   GL_LIGHT0 is the light for inside the station and needs to have its position
   reset relative to the player whenever demo ships or background scenes are to

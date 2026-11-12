@@ -767,15 +767,13 @@ size_t Octree::totalSize() {
 }
 #endif
 
-enum {
-  /*
-          Initial capacity of OOOctreeBuilder. 16 KibiEntries is enough to
-     handle all but 2 built-in models; I expect similar results for OXPs, since
-          geometry detail has limited effect on the octree. Large models with
-          higher depth are more likely to need growth.
-  */
-  kMinimumBuilderCapacity = 16 << 10
-};
+/*
+        Initial capacity of OOOctreeBuilder. 16 KibiEntries is enough to
+   handle all but 2 built-in models; I expect similar results for OXPs, since
+        geometry detail has limited effect on the octree. Large models with
+        higher depth are more likely to need growth.
+*/
+constexpr int kMinimumBuilderCapacity = 16 << 10;
 
 // Extract top of state stack.
 OOINLINE OOOctreeBuilder::OOOctreeBuildState* OOOctreeBuilder::State(

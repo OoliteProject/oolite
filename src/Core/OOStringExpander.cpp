@@ -2,7 +2,6 @@
 
 OOStringExpander.m
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -79,26 +78,24 @@ bool HasSuffix(const OOUnits& string, std::u16string_view suffix);
 #define OO_EXPANDER_RANDOM \
   (context->useGoodRNG ? (Ranrot() & 0xFF) : gen_rnd_number())
 
-enum {
-  /*
-          Total stack limit for strings being parsed (in UTF-16 code elements,
-          i.e. units of 2 bytes), used recursively - for instance, if the root
-          string takes 10,000 characters, any string it recurses into gets
-          kStackAllocationLimit - 10,000. If the limit would be exceeded,
-          the unexpanded string is returned instead.
+/*
+        Total stack limit for strings being parsed (in UTF-16 code elements,
+        i.e. units of 2 bytes), used recursively - for instance, if the root
+        string takes 10,000 characters, any string it recurses into gets
+        kStackAllocationLimit - 10,000. If the limit would be exceeded,
+        the unexpanded string is returned instead.
 
-          The limit is expected to be much higher than necessary for any
-     practical string, and exists only to catch pathological behaviour without
-     crashing.
-  */
-  kStackAllocationLimit = UINT16_MAX,
+        The limit is expected to be much higher than necessary for any
+   practical string, and exists only to catch pathological behaviour without
+   crashing.
+*/
+constexpr int kStackAllocationLimit = UINT16_MAX;
 
-  /*
-          Recursion limit, for much the same purpose. Without it, we crash about
-          22,000 stack frames deep when trying to expand a = "[a]" on a Mac.
-  */
-  kRecursionLimit = 100
-};
+/*
+        Recursion limit, for much the same purpose. Without it, we crash about
+        22,000 stack frames deep when trying to expand a = "[a]" on a Mac.
+*/
+constexpr int kRecursionLimit = 100;
 
 /*	OOStringExpansionContext
 

@@ -12,7 +12,6 @@ following reasons:
         effect of iteration.
  *	Many uses of ship groups involve iterating over the whole group anyway.
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -43,7 +42,8 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
-enum { kMinSize = 4, kMaxFreeSpace = 128 };
+constexpr int kMinSize = 4;
+constexpr int kMaxFreeSpace = 128;
 
 /*	OOShipGroupMembers: range-for over a group's live members, in _members
    order, replacing the for-in fast-enumeration conformance. It
