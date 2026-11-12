@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityStickMapper.h"
 
+#include <format>
+
 #include "HeadUpDisplay.h"
 #include "OOJoystickManager.h"
 #include "OOTexture.h"
@@ -157,8 +159,8 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip,
 
   for (i = 0; i < stickCount; i++) {
     std::string stickNameForThisRow =
-        oo::str::format("%s %d %s", OO_DESC("stickmapper-stick").c_str(), i + 1,
-                        stickList[i].c_str());
+        std::format("{} {} {}", OO_DESC("stickmapper-stick").c_str(),
+                    static_cast<int>(i + 1), stickList[i]);
     // for more than 2 sticks, the stick name rows are populated by more than
     // one name if needed
     std::optional<std::string> stickNameAdditional;
@@ -171,8 +173,8 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip,
     unsigned j = i + 2;
     if (j < stickCount) {
       stickNameAdditional =
-          oo::str::format("%s %d %s", OO_DESC("stickmapper-stick").c_str(),
-                          j + 1, stickList[j].c_str());
+          std::format("{} {} {}", OO_DESC("stickmapper-stick").c_str(),
+                      static_cast<int>(j + 1), stickList[j]);
       if (cxx_OOStringWidthInEm(*stickNameAdditional) > 11.0) {
         // string is too long, truncate it until its length gets below threshold
         do {
@@ -501,7 +503,7 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, std::size_t skip) {
       gui->setColor(OOColor::greenColor().get(), GUI_ROW_FUNCSTART);
       gui->setArray(ColumnsUpToNil({OO_DESC("gui-back"), std::string(" <-- ")}),
                     GUI_ROW_FUNCSTART);
-      gui->setKey(oo::str::format("More:%zd", previous), GUI_ROW_FUNCSTART);
+      gui->setKey(std::format("More:{}", previous), GUI_ROW_FUNCSTART);
     }
 
     for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
@@ -583,14 +585,14 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, std::size_t skip) {
                                       assignment, allowedThings}),
                       i + start_row);
         //[gui setKey: GUI_KEY_OK forRow: i + start_row];
-        gui->setKey(oo::str::format("Index:%zu", i + skip), i + start_row);
+        gui->setKey(std::format("Index:{}", i + skip), i + start_row);
       }
     }
     if (i < n_functions - skip) {
       gui->setColor(OOColor::greenColor().get(), start_row + i);
       gui->setArray(ColumnsUpToNil({OO_DESC("gui-more"), std::string(" --> ")}),
                     start_row + i);
-      gui->setKey(oo::str::format("More:%zu", n_rows + skip), start_row + i);
+      gui->setKey(std::format("More:{}", n_rows + skip), start_row + i);
       i++;
     }
 
@@ -609,21 +611,20 @@ std::optional<std::string> PlayerEntity::describeStickDict(
     // Button or axis?
     const std::string stick = OO_DESC("stickmapper-stick");
     if (BoolValueForKey(*stickDict, STICK_ISAXIS)) {
-      desc =
-          oo::str::format("%s %d %s %d", stick.c_str(), stickNumber + 1,
-                          OO_DESC("stickmapper-axis").c_str(), thingNumber + 1);
+      desc = std::format("{} {} {} {}", stick, stickNumber + 1,
+                         OO_DESC("stickmapper-axis").c_str(), thingNumber + 1);
     } else if (thingNumber >= MAX_REAL_BUTTONS) {
       const std::string dir[] = {
           OO_DESC("stickmapper-hat-up"), OO_DESC("stickmapper-hat-right"),
           OO_DESC("stickmapper-hat-down"), OO_DESC("stickmapper-hat-left")};
-      desc = oo::str::format("%s %d %s %d %s", stick.c_str(), stickNumber + 1,
-                             OO_DESC("stickmapper-hat").c_str(),
-                             (thingNumber - MAX_REAL_BUTTONS) / 4 + 1,
-                             dir[thingNumber & 3].c_str());
+      desc = std::format("{} {} {} {} {}", stick, stickNumber + 1,
+                         OO_DESC("stickmapper-hat").c_str(),
+                         (thingNumber - MAX_REAL_BUTTONS) / 4 + 1,
+                         dir[thingNumber & 3]);
     } else {
-      desc = oo::str::format("%s %d %s %d", stick.c_str(), stickNumber + 1,
-                             OO_DESC("stickmapper-button").c_str(),
-                             thingNumber + 1);
+      desc =
+          std::format("{} {} {} {}", stick, stickNumber + 1,
+                      OO_DESC("stickmapper-button").c_str(), thingNumber + 1);
     }
   }
   return desc;
@@ -856,20 +857,16 @@ std::vector<oo::PList> PlayerEntity::stickFunctionList() {
     for (i = 0; static_cast<std::size_t>(i) < customEquipActivation.size();
          i++) {
       funcList.push_back(makeStickGuiDict(
-          oo::str::format(
-              "%s '%s'", OO_DESC("stickmapper-cust-activate").c_str(),
-              OptionalStringForKey(customEquipActivation[i],
-                                   std::string(CUSTOMEQUIP_EQUIPNAME))
-                  .value_or("(null)")
-                  .c_str()),
+          std::format("{} '{}'", OO_DESC("stickmapper-cust-activate").c_str(),
+                      OptionalStringForKey(customEquipActivation[i],
+                                           std::string(CUSTOMEQUIP_EQUIPNAME))
+                          .value_or("(null)")),
           HW_BUTTON, STICK_NOFUNCTION, (i + 10000)));
       funcList.push_back(makeStickGuiDict(
-          oo::str::format(
-              "%s '%s'", OO_DESC("stickmapper-cust-mode").c_str(),
-              OptionalStringForKey(customEquipActivation[i],
-                                   std::string(CUSTOMEQUIP_EQUIPNAME))
-                  .value_or("(null)")
-                  .c_str()),
+          std::format("{} '{}'", OO_DESC("stickmapper-cust-mode").c_str(),
+                      OptionalStringForKey(customEquipActivation[i],
+                                           std::string(CUSTOMEQUIP_EQUIPNAME))
+                          .value_or("(null)")),
           HW_BUTTON, STICK_NOFUNCTION, (i + 20000)));
     }
   }

@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -4205,11 +4206,10 @@ void PlayerEntity::performWitchspaceExitUpdates(OOTimeDelta delta_t) {
     if ((UNIVERSE != nullptr && UNIVERSE->planet() != nullptr)) {
       if (UNIVERSE != nullptr)
         UNIVERSE->addMessage(
-            oo::str::format(" %s. ", (UNIVERSE != nullptr
-                                          ? UNIVERSE->getSystemName(system_id)
-                                          : std::optional<std::string>())
-                                         .value_or("(null)")
-                                         .c_str()),
+            std::format(" {}. ", (UNIVERSE != nullptr
+                                      ? UNIVERSE->getSystemName(system_id)
+                                      : std::optional<std::string>())
+                                     .value_or("(null)")),
             3.0);
       // and reset the compass
       if (hasEquipmentItemProviding("EQ_ADVANCED_COMPASS"))
@@ -5094,16 +5094,17 @@ std::string PlayerEntity::dial_clock_adjusted() {
 
 std::string PlayerEntity::dial_fpsinfo() {
   unsigned fpsVal = fps_counter;
-  return oo::str::format("FPS: %3d", fpsVal);
+  return std::format("FPS: {:3}", static_cast<int>(fpsVal));
 }
 
 std::string PlayerEntity::dial_objinfo() {
-  std::string result = oo::str::format(
-      "Entities: %3zu", (UNIVERSE != nullptr ? UNIVERSE->entityCount() : 0));
+  std::string result = std::format(
+      "Entities: {:3}", (UNIVERSE != nullptr ? UNIVERSE->entityCount() : 0));
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  result = oo::str::format("%s (%d, %zu KiB, avg %zu bytes)", result.c_str(),
-                           gLiveEntityCount, gTotalEntityMemory >> 10,
-                           gTotalEntityMemory / gLiveEntityCount);
+  result = std::format("{} ({}, {} KiB, avg {} bytes)", result,
+                       static_cast<int32_t>(gLiveEntityCount),
+                       gTotalEntityMemory >> 10,
+                       gTotalEntityMemory / gLiveEntityCount);
 #endif
 
   return result;
@@ -6991,8 +6992,7 @@ bool PlayerEntity::takeInternalDamage() {
     if (UNIVERSE != nullptr) UNIVERSE->clearPreviousMessage();
     removeEquipmentItem(*system_key);
 
-    const std::string damagedKey =
-        oo::str::format("%s_DAMAGED", system_key->c_str());
+    const std::string damagedKey = std::format("{}_DAMAGED", *system_key);
     addEquipmentItem(damagedKey, false,
                      "damage");  // for possible future repair.
     doScriptEvent(OOJSID("equipmentDamaged"), {oo::PList(*system_key)});
@@ -7753,7 +7753,7 @@ void PlayerEntity::enterWitchspace() {
       doScriptEvent(OOJSID("playerJumpFailed"), {oo::PList("malfunction")});
       return;
     } else {
-      setFuelLeak(oo::str::format("%f", (randf() + randf()) * 5.0));
+      setFuelLeak(std::format("{:f}", (randf() + randf()) * 5.0));
     }
   }
 #endif
@@ -8030,12 +8030,11 @@ void PlayerEntity::setGuiToStatusScreen() {
                                           : std::optional<std::string>());
   if (isDocked() && dockedStation() !=
                         (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) {
-    systemName = oo::str::format(
-        "%s : %s", systemName.value_or("(null)").c_str(),
+    systemName = std::format(
+        "{} : {}", systemName.value_or("(null)"),
         (dockedStation() != nullptr ? dockedStation()->getDisplayName()
                                     : std::optional<std::string>())
-            .value_or("(null)")
-            .c_str());
+            .value_or("(null)"));
   }
 
   targetSystemName =
@@ -8092,7 +8091,7 @@ void PlayerEntity::setGuiToStatusScreen() {
     legal_desc = cxx_OODisplayStringFromLegalStatus(legalStatusValue);
     rating_desc = cxx_KillCountToRatingAndKillString(ship_kills);
     alert_desc = cxx_OODisplayStringFromAlertCondition(getAlertCondition());
-    fuel_desc = oo::str::format("%.1f %s", fuel / 10.0, lightYearsDesc.c_str());
+    fuel_desc = std::format("{:.1f} {}", fuel / 10.0, lightYearsDesc);
     credits_desc = cxx_OOCredits(credits);
 
     gui->clearAndKeepBackground(!guiChanged);
@@ -8857,7 +8856,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
       if (distance == 0.0 && info_system_id != system_id) {
         distance = 0.1;
       }
-      std::string distanceInfo = oo::str::format("%.1f ly", distance);
+      std::string distanceInfo = std::format("{:.1f} ly", distance);
       if (ANA_mode != OPTIMIZED_BY_NONE) {
         const oo::PList routeInfo =
             (UNIVERSE != nullptr ? UNIVERSE->routeFromSystem(
@@ -8882,16 +8881,16 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
                                                          // arguments
           const std::string jumpsText =
               OO_DESC_PLURAL("sysdata-route-jumps", routeJumps);
-          distanceInfo = oo::str::format(
-              "%.1f ly / %.1f %s / %d %s", routeDistance, routeTime,
-              hoursText.c_str(), routeJumps, jumpsText.c_str());
+          distanceInfo =
+              std::format("{:.1f} ly / {:.1f} {} / {} {}", routeDistance,
+                          routeTime, hoursText, routeJumps, jumpsText);
         }
       }
 
       OOGUIRow i;
 
       for (i = 1; i <= 16; i++) {
-        const std::string ln = oo::str::format("sysdata-line-%ld", (long)i);
+        const std::string ln = std::format("sysdata-line-{}", (long)i);
         const std::string line = ExpandKeyWithSeed(
             infoSystemRandomSeed, ln,
             {{"economy_desc", oo::PList(economy_desc)},
@@ -9253,9 +9252,9 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       const std::string soundVolumeWordDesc =
           OO_DESC("gameoptions-sound-volume");
       if (vol > 0)
-        gui->setText(oo::str::format("%s%s ", soundVolumeWordDesc.c_str(),
-                                     SliderString(vol).c_str()),
-                     GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
+        gui->setText(
+            std::format("{}{} ", soundVolumeWordDesc, SliderString(vol)),
+            GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
       else
         gui->setText(OO_DESC("gameoptions-sound-volume-mute"),
                      GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
@@ -9273,10 +9272,10 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     const std::string fovWordDesc = OO_DESC("gameoptions-fov-value");
     // %c 176 gave U+00B0 (probed on GNUstep base); written as its
     // UTF-8 bytes
-    gui->setText(oo::str::format("%s%s (%d%s) ", fovWordDesc.c_str(),
-                                 SliderString(fovTicks).c_str(), (int)fov,
-                                 "\xC2\xB0" /*the degrees symbol*/),
-                 GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
+    gui->setText(
+        std::format("{}{} ({}{}) ", fovWordDesc, SliderString(fovTicks),
+                    (int)fov, "\xC2\xB0" /*the degrees symbol*/),
+        GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
     gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, FOV));
 
     // color blind mode
@@ -9390,9 +9389,9 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
                                   (MAX_HDR_PAPERWHITE - MIN_HDR_PAPERWHITE));
       const std::string paperWhiteWordDesc =
           OO_DESC("gameoptions-hdr-paperwhite");
-      gui->setText(oo::str::format("%s%s (%d) ", paperWhiteWordDesc.c_str(),
-                                   SliderString(paperWhiteTicks).c_str(),
-                                   (int)paperWhite),
+      gui->setText(std::format("{}{} ({}) ", paperWhiteWordDesc,
+                               SliderString(paperWhiteTicks),
+                               static_cast<int>(paperWhite)),
                    GUI_ROW(GAME, HDRPAPERWHITE), GUI_ALIGN_CENTER);
       gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, HDRPAPERWHITE));
     }
@@ -9836,11 +9835,11 @@ void PlayerEntity::setGuiToEquipShipScreen(
         if (eqKeyForSelectFacing.has_value()) {
           previous = 0;
           // keep weapon selected if we go back.
-          gui->setKey(oo::str::format("More:%d:%s", previous,
-                                      eqKeyForSelectFacing->c_str()),
+          gui->setKey(std::format("More:{}:{}", static_cast<int>(previous),
+                                  *eqKeyForSelectFacing),
                       row);
         } else {
-          gui->setKey(oo::str::format("More:%d", previous), row);
+          gui->setKey(std::format("More:{}", static_cast<int>(previous)), row);
         }
         gui->setColor(gui->colorFromSetting(cxx_kGuiEquipmentScrollColor,
                                             OOColor::greenColor().get())
@@ -9856,11 +9855,10 @@ void PlayerEntity::setGuiToEquipShipScreen(
             OOEquipmentType::equipmentTypeWithIdentifier(eqKey).get();
         OOCreditsQuantity pricePerUnit =
             (eqInfo != nullptr ? eqInfo->price() : 0);
-        std::string desc = oo::str::format(
-            " %s ",
+        std::string desc = std::format(
+            " {} ",
             (eqInfo != nullptr ? eqInfo->name() : std::optional<std::string>())
-                .value_or("(null)")
-                .c_str());
+                .value_or("(null)"));
         double price;
 
         oo::Ref<OOColor> dispCol((eqInfo != nullptr
@@ -9912,8 +9910,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
             (UNIVERSE != nullptr ? UNIVERSE->shortTimeDescription(installTime)
                                  : std::optional<std::string>())
                 .value_or("(null)");
-        std::string priceString =
-            oo::str::format(" %s ", cxx_OOCredits(price).c_str());
+        std::string priceString = std::format(" {} ", cxx_OOCredits(price));
 
         if (eqKeyForSelectFacing == eqKey) {
           // Weapons purchase subscreen.
@@ -9977,8 +9974,8 @@ void PlayerEntity::setGuiToEquipShipScreen(
                              // is used to display the name of the weapon being
                              // purchased.
             {
-              priceString = oo::str::format(
-                  " %s ", cxx_OOCredits(price * multiplier).c_str());
+              priceString =
+                  std::format(" {} ", cxx_OOCredits(price * multiplier));
 
               gui->setKey(eqKey, row);
               gui->setArray(
@@ -10010,7 +10007,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
                           .get(),
                       row - 1);
         gui->setArray({OO_DESC("gui-more"), "", " --> "}, row - 1);
-        gui->setKey(oo::str::format("More:%d", i - 1), row - 1);
+        gui->setKey(std::format("More:{}", static_cast<int>(i - 1)), row - 1);
       }
 
       gui->setSelectableRange(NSMakeRange(start_row, row - start_row));
@@ -10196,8 +10193,7 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
           }
         }
 
-        gui->setKey(oo::str::format("More:%d", static_cast<int>(previous)),
-                    row);
+        gui->setKey(std::format("More:{}", static_cast<int>(previous)), row);
         gui->setColor(gui->colorFromSetting(cxx_kGuiInterfaceScrollColor,
                                             OOColor::greenColor().get())
                           .get(),
@@ -10238,7 +10234,7 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
                           .get(),
                       row - 1);
         gui->setArray({OO_DESC("gui-more"), " --> "}, row - 1);
-        gui->setKey(oo::str::format("More:%d", i - 1), row - 1);
+        gui->setKey(std::format("More:{}", i - 1), row - 1);
       }
 
       gui->setSelectableRange(NSMakeRange(start_row, row - start_row));
@@ -10373,42 +10369,42 @@ void PlayerEntity::setupStartScreenGui() {
   text = OO_DESC("oolite-start-option-1");
   gui->setText(text, row, GUI_ALIGN_CENTER);
   gui->setColor(OOColor::yellowColor().get(), row);
-  gui->setKey(oo::str::format("Start:%d", row), row);
+  gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-2");
   gui->setText(text, row, GUI_ALIGN_CENTER);
   gui->setColor(OOColor::yellowColor().get(), row);
-  gui->setKey(oo::str::format("Start:%d", row), row);
+  gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-3");
   gui->setText(text, row, GUI_ALIGN_CENTER);
   gui->setColor(OOColor::yellowColor().get(), row);
-  gui->setKey(oo::str::format("Start:%d", row), row);
+  gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-4");
   gui->setText(text, row, GUI_ALIGN_CENTER);
   gui->setColor(OOColor::yellowColor().get(), row);
-  gui->setKey(oo::str::format("Start:%d", row), row);
+  gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-5");
   gui->setText(text, row, GUI_ALIGN_CENTER);
   gui->setColor(OOColor::yellowColor().get(), row);
-  gui->setKey(oo::str::format("Start:%d", row), row);
+  gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-6");
   gui->setText(text, row, GUI_ALIGN_CENTER);
   gui->setColor(OOColor::yellowColor().get(), row);
-  gui->setKey(oo::str::format("Start:%d", row), row);
+  gui->setKey(std::format("Start:{}", row), row);
 
   gui->setSelectableRange(NSMakeRange(initialRow, row - initialRow + 1));
   gui->setSelectedRow(initialRow);
@@ -11438,11 +11434,10 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row,
                                             OOCargoQuantity quantity) {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   const std::string desc =
-      oo::str::format(" %s ", (shipCommodityData != nullptr
-                                   ? shipCommodityData->nameForGood(good)
-                                   : std::optional<std::string>())
-                                  .value_or("(null)")
-                                  .c_str());  // %@ of nil
+      std::format(" {} ", (shipCommodityData != nullptr
+                               ? shipCommodityData->nameForGood(good)
+                               : std::optional<std::string>())
+                              .value_or("(null)"));  // %@ of nil
   OOCargoQuantity available_units =
       (localMarket != nullptr ? localMarket->quantityForGood(good) : 0);
   OOCargoQuantity units_in_hold = quantity;
@@ -11453,31 +11448,28 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row,
                                     : UNITS_TONS);
 
   const std::string available = cxx_OOPadStringToEms(
-      ((available_units > 0) ? oo::str::format("%d", available_units)
-                             : OO_DESC("commodity-quantity-none")),
+      ((available_units > 0)
+           ? std::format("{}", static_cast<int>(available_units))
+           : OO_DESC("commodity-quantity-none")),
       2.5);
 
   std::size_t priceDecimal = pricePerUnit % 10;
-  const std::string price =
-      oo::str::format(" %s.%zu ",
-                      cxx_OOPadStringToEms(
-                          oo::str::format("%" PRIu64, (pricePerUnit / 10)), 2.5)
-                          .c_str(),
-                      priceDecimal);
+  const std::string price = std::format(
+      " {}.{} ",
+      cxx_OOPadStringToEms(std::format("{}", pricePerUnit / 10), 2.5),
+      priceDecimal);
 
   // this works with up to 9999 tons of gemstones. Any more than that, they
   // deserve the formatting they get! :)
 
   const std::string owned = cxx_OOPadStringToEms(
-      (units_in_hold > 0) ? oo::str::format("%d", units_in_hold)
+      (units_in_hold > 0) ? std::format("{}", static_cast<int>(units_in_hold))
                           : OO_DESC("commodity-quantity-none"),
       4.5);
   const std::string units =
       cxx_DisplayStringForMassUnit(unit).value_or("(null)");
-  const std::string units_available =
-      oo::str::format(" %s %s ", available.c_str(), units.c_str());
-  const std::string units_owned =
-      oo::str::format(" %s %s ", owned.c_str(), units.c_str());
+  const std::string units_available = std::format(" {} {} ", available, units);
+  const std::string units_owned = std::format(" {} {} ", owned, units);
 
   std::size_t import_legality =
       (localMarket != nullptr ? localMarket->importLegalityForGood(good) : 0);
@@ -11497,7 +11489,7 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row,
       legaldesc = OO_DESC("oolite-legality-neither");
     }
   }
-  legaldesc = oo::str::format(" %s ", legaldesc.c_str());
+  legaldesc = std::format(" {} ", legaldesc);
 
   const std::optional<std::string> extradesc =
       (shipCommodityData != nullptr
@@ -12452,12 +12444,11 @@ void PlayerEntity::receiveCommsMessage(const std::string& message_text,
   }
   if (UNIVERSE != nullptr)
     UNIVERSE->addCommsMessage(
-        oo::str::format("%s:\n %s",
-                        (other != nullptr ? other->getDisplayName()
-                                          : std::optional<std::string>())
-                            .value_or("(null)")
-                            .c_str(),
-                        message_text.c_str()),
+        std::format("{}:\n {}",
+                    (other != nullptr ? other->getDisplayName()
+                                      : std::optional<std::string>())
+                        .value_or("(null)"),
+                    message_text),
         4.5);
   ShipEntity::receiveCommsMessage(message_text, other);
 }
@@ -12629,8 +12620,8 @@ std::size_t PlayerEntity::getTrumbleCount() { return trumbleCount; }
 // rotating and panning the custom view. (Sends to self are member calls.)
 
 oo::PList PlayerEntity::trumbleValue() {
-  const std::string namekey = oo::str::format(
-      "%s-humbletrash", commanderName().value_or("(null)").c_str());
+  const std::string namekey =
+      std::format("{}-humbletrash", commanderName().value_or("(null)"));
   int trumbleHash;
 
   clear_checksum();
@@ -12662,8 +12653,8 @@ void PlayerEntity::setTrumbleValueFrom(const oo::PList& trumbleValue) {
   int putativeNTrumbles = 0;
   oo::PList putativeTrumbleArray;  // null unless an array
   int i;
-  const std::string namekey = oo::str::format(
-      "%s-humbletrash", commanderName().value_or("(null)").c_str());
+  const std::string namekey =
+      std::format("{}-humbletrash", commanderName().value_or("(null)"));
 
   setUpTrumbles();
 
@@ -13707,8 +13698,8 @@ std::optional<std::string> PlayerEntity::markerKey(const oo::PList& marker) {
   const oo::PList* markerName = marker.find("name");
   const std::string* nameText =
       (markerName != nullptr) ? markerName->getIf<std::string>() : nullptr;
-  return oo::str::format("%d-%s", marker.get<int>("system", 0),
-                         (nameText != nullptr) ? nameText->c_str() : "(null)");
+  return std::format("{}-{}", marker.get<int>("system", 0),
+                     (nameText != nullptr) ? nameText->c_str() : "(null)");
 }
 
 void PlayerEntity::addMissionDestinationMarker(const oo::PList& marker) {

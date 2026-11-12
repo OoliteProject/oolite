@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOQuiriumCascadeEntity.h"
 
+#include <format>
+
 #include "OOMacroOpenGL.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
@@ -67,8 +69,8 @@ oo::Ref<OOQuiriumCascadeEntity> OOQuiriumCascadeEntity::quiriumCascadeFromShip(
 
 std::optional<std::string> OOQuiriumCascadeEntity::descriptionComponents()
     const {
-  return oo::str::format("%f seconds passed of %f", _timePassed,
-                         kQuiriumCascadeDuration);
+  return std::format("{:f} seconds passed of {:f}", _timePassed,
+                     kQuiriumCascadeDuration);
 }
 
 void OOQuiriumCascadeEntity::update(OOTimeDelta delta_t) {

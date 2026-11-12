@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "DockEntity.h"
 
+#include <format>
+
 #include "AI.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "HeadUpDisplay.h"
@@ -543,7 +545,7 @@ oo::PList DockEntity::dockingInstructionsForShip(::ShipEntity* ship) {
     // some error has occurred - log it, and send the try-again message
     oo::PList::Dict queue;
     for (const auto& [queuedID, queuedStack] : shipsOnApproach)
-      queue[oo::str::format("%u", (unsigned)queuedID)] =
+      queue[std::format("{}", (unsigned)queuedID)] =
           oo::PList(oo::PList::Array(queuedStack));
     OO_LOG_ERR("station.issueDockingInstructions.failed",
                "couldn't addShipToShipsOnApproach:{} in {}, retrying later -- "

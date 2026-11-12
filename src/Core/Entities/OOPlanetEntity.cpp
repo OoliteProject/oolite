@@ -27,6 +27,7 @@ A leaf of Entity. The class is global.
 #include "OOPlanetEntity.h"
 
 #include <cstddef>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -587,8 +588,8 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(
   terminatorThreshold = VectorForKey(sourceInfo, "terminator_threshold_vector",
                                      OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT);
   SetInfo(targetInfo, "terminator_threshold_vector",
-          oo::str::format("%f %f %f", terminatorThreshold.x,
-                          terminatorThreshold.y, terminatorThreshold.z));
+          std::format("{:f} {:f} {:f}", terminatorThreshold.x,
+                      terminatorThreshold.y, terminatorThreshold.z));
 }
 
 // -initAsMiniatureVersionOfPlanet:, run by miniatureVersion() on the object it
@@ -656,9 +657,9 @@ OOPlanetEntity::~OOPlanetEntity() {
 
 // -position and -radius read these members.
 std::optional<std::string> OOPlanetEntity::descriptionComponents() const {
-  return oo::str::format("position: %s radius: %g m",
-                         cxx_HPVectorDescription(position).c_str(),
-                         (double)collision_radius);
+  return std::format("position: {} radius: {:g} m",
+                     cxx_HPVectorDescription(position),
+                     (double)collision_radius);
 }
 
 void OOPlanetEntity::setOrientation(Quaternion quat) {

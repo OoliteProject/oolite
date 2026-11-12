@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 */
 
+#include <format>
 #include <typeinfo>
 
 #include "Entity.h"
@@ -127,8 +128,8 @@ std::string oo::EntityClassName(Entity* entity) {
 std::string oo::EntityOwnDescription(Entity* entity) {
   if (entity == nullptr) return "(null)";
   // The C++ class's name and components.
-  std::string result = str::format("<%s %s>", EntityClassName(entity).c_str(),
-                                   str::pointerDescription(entity).c_str());
+  std::string result = std::format("<{} {}>", EntityClassName(entity),
+                                   str::pointerDescription(entity));
   if (const std::optional<std::string> components =
           entity->descriptionComponents())
     result += "{" + *components + "}";
@@ -143,7 +144,7 @@ std::string oo::EntityDescription(Entity* entity) {
 std::string oo::EntityShortDescription(Entity* entity) {
   // Its class (Entity) and address, no components.
   if (WithObject(entity) == nullptr) return "(null)";
-  return str::format("<Entity %s>", str::pointerDescription(entity).c_str());
+  return std::format("<Entity {}>", str::pointerDescription(entity));
 }
 
 void oo::InspectEntity(Entity* entity) {

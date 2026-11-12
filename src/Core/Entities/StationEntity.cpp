@@ -26,6 +26,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -1128,8 +1129,8 @@ bool StationEntity::setUpSubEntities() {
     return true;
   }
 
-  cxx_OOStandardsDeprecated(oo::str::format(
-      "No docks set up for %s", oo::EntityDescription(self).c_str()));
+  cxx_OOStandardsDeprecated(
+      std::format("No docks set up for {}", oo::EntityDescription(self)));
   OO_LOG("ship.setup.docks", "No docks set up for {}, making virtual dock",
          oo::EntityDescription(self));
 
@@ -1295,9 +1296,8 @@ void StationEntity::setHasBreakPattern(bool newValue) {
 }
 
 std::optional<std::string> StationEntity::descriptionComponents() const {
-  return oo::str::format(
-      "\"%s\" %s", name.value_or("(null)").c_str(),
-      ShipEntity::descriptionComponents().value_or("(null)").c_str());
+  return std::format("\"{}\" {}", name.value_or("(null)"),
+                     ShipEntity::descriptionComponents().value_or("(null)"));
 }
 
 void StationEntity::dumpSelfState() {

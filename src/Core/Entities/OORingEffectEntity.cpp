@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #include "OORingEffectEntity.h"
 
+#include <format>
+
 #include "OOMacroOpenGL.h"
 #include "Universe.h"
 #include "oofnd/String.hpp"
@@ -108,7 +110,7 @@ oo::Ref<OORingEffectEntity> OORingEffectEntity::shrinkingRingFromEntity(
 }
 
 std::optional<std::string> OORingEffectEntity::descriptionComponents() const {
-  return oo::str::format("%f seconds passed of %f", _timePassed, kRingDuration);
+  return std::format("{:f} seconds passed of {:f}", _timePassed, kRingDuration);
 }
 
 void OORingEffectEntity::update(OOTimeDelta delta_t) {

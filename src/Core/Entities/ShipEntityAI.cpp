@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -80,8 +81,7 @@ std::optional<std::string> DebugContext(
     const char* suffix)  // the entity's object's short description
 {
 #ifndef NDEBUG
-  return oo::str::format("%s %s", oo::EntityShortDescription(entity).c_str(),
-                         suffix);
+  return std::format("{} {}", oo::EntityShortDescription(entity), suffix);
 #else
   (void)entity;
   (void)suffix;
@@ -987,12 +987,12 @@ void ShipEntity::setTargetToPrimaryAggressor() {
     if ((primeTarget) && (primeTarget->isShip)) {
       ::ShipEntity* currentShip = oo::ToShip(primaryTarget());
       if (currentShip != nullptr && currentShip->getAI() != nullptr)
-        currentShip->getAI()->message(oo::str::format(
-            "%s %d %d", std::string(AIMS_AGGRESSOR_SWITCHED_TARGET).c_str(),
-            universalID,
-            (primaryAggressor() != nullptr
-                 ? primaryAggressor()->getUniversalID()
-                 : OOUniversalID{})));
+        currentShip->getAI()->message(
+            std::format("{} {} {}", std::string(AIMS_AGGRESSOR_SWITCHED_TARGET),
+                        universalID,
+                        (primaryAggressor() != nullptr
+                             ? primaryAggressor()->getUniversalID()
+                             : OOUniversalID{})));
       if (currentShip != nullptr)
         currentShip->doScriptEvent(OOJSID("shipAttackerDistracted"),
                                    primaryAggressor());
@@ -2263,7 +2263,7 @@ void ShipEntity::rollD(const std::string& die_number)  // called by name
   if (die_sides > 0) {
     int die_roll = 1 + (ranrot_rand() % die_sides);
     if (shipAI != nullptr)
-      shipAI->reactToMessage(oo::str::format("ROLL_%d", die_roll), "rollD:");
+      shipAI->reactToMessage(std::format("ROLL_{}", die_roll), "rollD:");
   } else {
     OO_LOG("ai.rollD.invalidValue",
            "***** ERROR: invalid value supplied to rollD: '{}'.", die_number);
@@ -2466,13 +2466,13 @@ void ShipEntity::setCoordinates(
   const std::string& systemString = tokens[0];
   std::string xString = tokens[1];
   if (oo::str::hasPrefix(xString, "rand:"))
-    xString = oo::str::format("%.3f", bellf(RandArgument(xString)));
+    xString = std::format("{:.3f}", bellf(RandArgument(xString)));
   std::string yString = tokens[2];
   if (oo::str::hasPrefix(yString, "rand:"))
-    yString = oo::str::format("%.3f", bellf(RandArgument(yString)));
+    yString = std::format("{:.3f}", bellf(RandArgument(yString)));
   std::string zString = tokens[3];
   if (oo::str::hasPrefix(zString, "rand:"))
-    zString = oo::str::format("%.3f", bellf(RandArgument(zString)));
+    zString = std::format("{:.3f}", bellf(RandArgument(zString)));
 
   // -floatValue
   HPVector posn = make_HPvector((float)oo::str::doubleValue(xString),
@@ -2600,15 +2600,13 @@ void ShipEntity::scriptActionOnTarget(
     if (player != nullptr)
       player->runUnsanitizedScriptActions(
           oo::PList(oo::PList::Array{oo::PList(action)}), true,
-          oo::str::format("<AI \"%s\" state %s - scriptActionOnTarget:>",
-                          (getAI() != nullptr ? getAI()->name()
-                                              : std::optional<std::string>())
-                              .value_or("(null)")
-                              .c_str(),
-                          (getAI() != nullptr ? getAI()->state()
-                                              : std::optional<std::string>())
-                              .value_or("(null)")
-                              .c_str()),
+          std::format("<AI \"{}\" state {} - scriptActionOnTarget:>",
+                      (getAI() != nullptr ? getAI()->name()
+                                          : std::optional<std::string>())
+                          .value_or("(null)"),
+                      (getAI() != nullptr ? getAI()->state()
+                                          : std::optional<std::string>())
+                          .value_or("(null)")),
           targEnt);
     if (player != nullptr)
       player->checkScript();  // react immediately to any changes this makes
@@ -2630,15 +2628,13 @@ void ShipEntity::safeScriptActionOnTarget(
     if (player != nullptr)
       player->runUnsanitizedScriptActions(
           oo::PList(oo::PList::Array{oo::PList(action)}), true,
-          oo::str::format("<AI \"%s\" state %s - safeScriptActionOnTarget:>",
-                          (getAI() != nullptr ? getAI()->name()
-                                              : std::optional<std::string>())
-                              .value_or("(null)")
-                              .c_str(),
-                          (getAI() != nullptr ? getAI()->state()
-                                              : std::optional<std::string>())
-                              .value_or("(null)")
-                              .c_str()),
+          std::format("<AI \"{}\" state {} - safeScriptActionOnTarget:>",
+                      (getAI() != nullptr ? getAI()->name()
+                                          : std::optional<std::string>())
+                          .value_or("(null)"),
+                      (getAI() != nullptr ? getAI()->state()
+                                          : std::optional<std::string>())
+                          .value_or("(null)")),
           targEnt);
     if (player != nullptr) player->setScriptTarget(oldTarget);
   }
@@ -2672,8 +2668,8 @@ void ShipEntity::explodeSelf() { getDestroyedBy(nullptr, kOODamageTypeEnergy); }
 
 void ShipEntity::ai_debugMessage(const std::string& message)  // called by name
 {
-  std::string desc = oo::str::format(
-      "%s %d", getName().value_or("(null)").c_str(), getUniversalID());
+  std::string desc =
+      std::format("{} {}", getName().value_or("(null)"), getUniversalID());
   if (getIsPlayer()) desc = "player autopilot";
   OO_LOG("ai.takeAction.debugMessage", "DEBUG: AI MESSAGE from {}: {}", desc,
          message);
