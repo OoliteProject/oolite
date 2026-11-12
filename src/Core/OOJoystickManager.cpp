@@ -344,9 +344,7 @@ void OOJoystickManager::setFunction(int function, const oo::PList& stickFn)
             stickNum);
     } else {
         if (function >= BUTTON_GUILEFT && function <= BUTTON_GUISELECT) {
-            setGuiFunctionForButton(stickAxBt,
-                function,
-                stickNum);
+            setGuiFunctionForButton(stickAxBt, function, stickNum);
         } else {
             setFunctionForButton(stickAxBt,
                 function,
@@ -393,8 +391,7 @@ void OOJoystickManager::setFunctionForButton(int button,
     buttonmap[stickNum][button] = function;
 }
 
-void OOJoystickManager::setGuiFunctionForButton(int button,
-    int function,
+void OOJoystickManager::setGuiFunctionForButton(int button, int function,
     int stickNum)
 {
     OOCParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
@@ -553,8 +550,7 @@ void OOJoystickManager::loadStickSettings()
     if (guiButtonSettings) {
         if (const oo::PList::Dict* settings = guiButtonSettings.getIf<oo::PList::Dict>()) {
             for (const auto& [key, stickFn] : *settings) {
-                setFunction(oo::str::intValue(key),
-                    stickFn);
+                setFunction(oo::str::intValue(key), stickFn);
             }
         }
     }

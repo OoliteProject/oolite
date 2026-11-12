@@ -717,7 +717,6 @@ bool PlayerEntity::handleGUIUpDownArrowKeys()
     ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
-
     bool result = false;
     bool arrow_up = checkKeyPress(n_key_gui_arrow_up) || joyButtonState[BUTTON_GUIUP];
     bool arrow_down = checkKeyPress(n_key_gui_arrow_down) || joyButtonState[BUTTON_GUIDOWN];
@@ -2472,7 +2471,10 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t)
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+            joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT],
+            joyButtonState[BUTTON_GUIPAGEUP],
+            joyButtonState[BUTTON_GUIPAGEDOWN] });
 
         if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) {
             if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
@@ -2513,7 +2515,10 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t)
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+            joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT],
+            joyButtonState[BUTTON_GUIPAGEUP],
+            joyButtonState[BUTTON_GUIPAGEDOWN] });
         if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) // 'enter'
         {
             if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
@@ -2607,7 +2612,10 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t)
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+            joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT],
+            joyButtonState[BUTTON_GUIPAGEUP],
+            joyButtonState[BUTTON_GUIPAGEDOWN] });
 
         if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) {
             if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
@@ -2655,7 +2663,10 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t)
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+            joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT],
+            joyButtonState[BUTTON_GUIPAGEUP],
+            joyButtonState[BUTTON_GUIPAGEDOWN] });
 
         if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) {
             if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
@@ -2700,7 +2711,10 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t)
                 timeLastKeyPress = script_time;
             }
         }
-        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+        leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+            joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIRIGHT],
+            joyButtonState[BUTTON_GUIPAGEUP],
+            joyButtonState[BUTTON_GUIPAGEDOWN] });
 
         if (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT]) // 'enter' NOT double-click
         {
@@ -3284,8 +3298,8 @@ void PlayerEntity::handleGameOptionsScreenKeys()
     if ((guiSelectedRow == GUI_ROW(GAME, VOLUME))
         && ((checkKeyPress(n_key_gui_arrow_right) || joyButtonState[BUTTON_GUIRIGHT]) || (checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT]))) {
         if ((!volumeControlPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-            bool rightKeyDown = (checkKeyPress(n_key_gui_arrow_right) || joyButtonState[BUTTON_GUIRIGHT]);
-            bool leftKeyDown = (checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT]);
+            bool rightKeyDown = checkKeyPress(n_key_gui_arrow_right) || joyButtonState[BUTTON_GUIRIGHT];
+            bool leftKeyDown = checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT];
             double volume = 100.0 * ::OOSound::masterVolume();
             int vol = (volume / 5.0 + 0.5);
             if (rightKeyDown)
@@ -3316,8 +3330,8 @@ void PlayerEntity::handleGameOptionsScreenKeys()
     if ((guiSelectedRow == GUI_ROW(GAME, FOV))
         && ((checkKeyPress(n_key_gui_arrow_right) || joyButtonState[BUTTON_GUIRIGHT]) || (checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT]))) {
         if (!fovControlPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-            bool rightKeyDown = (checkKeyPress(n_key_gui_arrow_right) || joyButtonState[BUTTON_GUIRIGHT]);
-            bool leftKeyDown = (checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT]);
+            bool rightKeyDown = checkKeyPress(n_key_gui_arrow_right) || joyButtonState[BUTTON_GUIRIGHT];
+            bool leftKeyDown = checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT];
             float fov = (gameView != nullptr ? gameView->fov(false) : 0.0f);
             float fovStep = (MAX_FOV_DEG - MIN_FOV_DEG) / 20.0f;
             fov += (((rightKeyDown && (fov < MAX_FOV_DEG)) ? fovStep : 0.0f) - ((leftKeyDown && (fov > MIN_FOV_DEG)) ? fovStep : 0.0f));
@@ -3519,8 +3533,7 @@ void PlayerEntity::handleKeyboardLayoutKeys()
     const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     handleKeyboardLayoutEntryKeys(gui, gameView);
-    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down)
-        || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
+    leftRightKeyPressed = checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_arrow_left) || checkKeyPress(n_key_gui_page_up) || checkKeyPress(n_key_gui_page_down) || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
         std::optional<std::string> key = gui->keyForRow(gui->getSelectedRow());
         if (checkKeyPress(n_key_gui_arrow_right) || checkKeyPress(n_key_gui_page_down)) {
@@ -4510,7 +4523,9 @@ void PlayerEntity::pollDemoControls(double /*delta_t*/)
                 }
             }
         }
-        pageUpDownKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+        pageUpDownKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+            joyButtonState[BUTTON_GUIPAGEUP],
+            joyButtonState[BUTTON_GUIPAGEDOWN] });
 
         if (!selectPressed) {
             if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) // enter
@@ -4555,7 +4570,10 @@ void PlayerEntity::pollDemoControls(double /*delta_t*/)
                         oxzmanager->processOptionsNext();
                     }
                 }
-                leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up), joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUILEFT], joyButtonState[BUTTON_GUIPAGEUP], joyButtonState[BUTTON_GUIPAGEDOWN] });
+                leftRightKeyPressed = AnyKeyPressed({ checkKeyPress(n_key_gui_arrow_right), checkKeyPress(n_key_gui_arrow_left), checkKeyPress(n_key_gui_page_down), checkKeyPress(n_key_gui_page_up),
+                    joyButtonState[BUTTON_GUIRIGHT], joyButtonState[BUTTON_GUILEFT],
+                    joyButtonState[BUTTON_GUIPAGEUP],
+                    joyButtonState[BUTTON_GUIPAGEDOWN] });
 
                 if (!selectPressed) {
                     if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) // enter
@@ -4598,7 +4616,8 @@ void PlayerEntity::pollDemoControls(double /*delta_t*/)
         }
         if (_missionTextEntry) {
             refreshMissionScreenTextEntry();
-            if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) //  '<enter/return>' or double click
+            if (checkKeyPress(n_key_gui_select) || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false) || joyButtonState[BUTTON_GUISELECT]) //  '<enter/return>' or double
+                                                                                                                                                             //  click
             {
                 setMissionChoice((gameView != nullptr ? gameView->getTypedString() : std::optional<std::string>()), std::string("enter"));
                 OOMusicController::sharedController()->stopMissionMusic();

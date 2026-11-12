@@ -530,7 +530,6 @@ void PlayerEntity::overwriteCommanderInputHandler()
 {
     ::MyOpenGLView* gameView = (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-    const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
     const bool* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
 
