@@ -74,11 +74,7 @@ constexpr int kOctreeSizeThreshold =
     900;  // Size at which we start increasing octree depth
 constexpr int kOctreeSmallSizeThreshold = 20;
 
-using OOMeshNormalMode = enum {
-  kNormalModePerFace,
-  kNormalModeSmooth,
-  kNormalModeExplicit
-};
+enum class OOMeshNormalMode : int { kPerFace, kSmooth, kExplicit };
 
 static const char* const kOOLogMeshDataNotFound =
     "mesh.load.failed.fileNotFound";  // an OO_LOG message class
@@ -151,11 +147,11 @@ static bool IsLegacyNormalMode(OOMeshNormalMode mode) {
           and smooth. These modes require automatic winding correction.
   */
   switch (mode) {
-    case kNormalModePerFace:
-    case kNormalModeSmooth:
+    case OOMeshNormalMode::kPerFace:
+    case OOMeshNormalMode::kSmooth:
       return true;
 
-    case kNormalModeExplicit:
+    case OOMeshNormalMode::kExplicit:
       return false;
   }
 
@@ -170,11 +166,11 @@ static bool IsPerVertexNormalMode(OOMeshNormalMode mode) {
   /*	True for modes that have per-vertex normals, i.e. not per-face mode.
    */
   switch (mode) {
-    case kNormalModePerFace:
+    case OOMeshNormalMode::kPerFace:
       return false;
 
-    case kNormalModeSmooth:
-    case kNormalModeExplicit:
+    case OOMeshNormalMode::kSmooth:
+    case OOMeshNormalMode::kExplicit:
       return true;
   }
 
@@ -267,11 +263,11 @@ namespace {
 
 const char* NormalModeDescription(OOMeshNormalMode mode) {
   switch (mode) {
-    case kNormalModePerFace:
+    case OOMeshNormalMode::kPerFace:
       return "per-face";
-    case kNormalModeSmooth:
+    case OOMeshNormalMode::kSmooth:
       return "smooth";
-    case kNormalModeExplicit:
+    case OOMeshNormalMode::kExplicit:
       return "explicit";
   }
 
@@ -771,7 +767,8 @@ bool OOMesh::initWithName(const std::string& name,
   // as [self release] did.
   bool loaded = false;
   {
-    _normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
+    _normalMode = oo::ToUnderlying(smooth ? OOMeshNormalMode::kSmooth
+                                          : OOMeshNormalMode::kPerFace);
     _cacheWriteable = cacheWriteable;
 
 #if OOMESH_PROFILE
@@ -1317,7 +1314,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
 
     // Get explicit normals.
     if (scanner->scanString("NORMALS")) {
-      _normalMode = kNormalModeExplicit;
+      _normalMode = oo::ToUnderlying(OOMeshNormalMode::kExplicit);
       if (!allocateNormalBuffersWithCount(vertexCount)) {
         OO_LOG(cxx_kOOLogAllocationFailure,
                "***** ERROR: failed to allocate memory for model {} ({} "
@@ -1375,7 +1372,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
     }
 
     // check for smooth shading and recalculate normals
-    if (_normalMode == kNormalModeSmooth) {
+    if (_normalMode == oo::ToUnderlying(OOMeshNormalMode::kSmooth)) {
       if (!allocateNormalBuffersWithCount(vertexCount)) {
         OO_LOG(cxx_kOOLogAllocationFailure,
                "***** ERROR: failed to allocate memory for model {} ({} "
@@ -1465,7 +1462,7 @@ bool OOMesh::setUpVertexArrays() {
     is_edge_vertex[vi] = false;
     smoothGroup[vi] = -1;
   }
-  if (_normalMode == kNormalModeSmooth) {
+  if (_normalMode == oo::ToUnderlying(OOMeshNormalMode::kSmooth)) {
     for (fi = 0; fi < faceCount; fi++) {
       GLfloat rv = _faces[fi].smoothGroup;
       int i;
@@ -1688,7 +1685,8 @@ void OOMesh::checkNormalsAndAdjustWinding() {
   Vector calculatedNormal;
   OOMeshFaceCount i;
 
-  OOCParameterAssert(_normalMode != kNormalModeExplicit);
+  OOCParameterAssert(_normalMode !=
+                     oo::ToUnderlying(OOMeshNormalMode::kExplicit));
 
   for (i = 0; i < faceCount; i++) {
     Vector v0, v1, v2, norm;

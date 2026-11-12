@@ -55,7 +55,13 @@ MA 02110-1301, USA.
         static const object).
 */
 
-using StateFlag = enum { kStateFalse = false, kStateTrue = true, kStateMaybe };
+enum class StateFlag : std::uint8_t { kFalse = false, kTrue = true, kMaybe };
+
+// A flag as the GL dump logs it: anything but kFalse reads as on, as the
+// unscoped enum converted to bool.
+std::string StateFlagToString(StateFlag flag) {
+  return OOGLFlagToString(flag != StateFlag::kFalse);
+}
 
 using OOOpenGLState = struct {
   const char* name;
@@ -84,25 +90,25 @@ static const OOOpenGLState
         {
             // [OOOpenGLStateID::kOpaque]
             .name = "OPENGL_STATE_OPAQUE",
-            .LIGHTING = kStateTrue,
-            .LIGHT0 = kStateMaybe,
-            /* FIXME: in shader mode, these should not be kStateMaybe, but
+            .LIGHTING = StateFlag::kTrue,
+            .LIGHT0 = StateFlag::kMaybe,
+            /* FIXME: in shader mode, these should not be StateFlag::kMaybe, but
              * false for 0 and true for 1. On the other hand, in shader mode
              * these settings are supposed to be irrelevant. */
-            .LIGHT1 = kStateMaybe,  // FIXME: see above
-            .LIGHT2 = kStateFalse,
-            .LIGHT3 = kStateFalse,
-            .LIGHT4 = kStateFalse,
-            .LIGHT5 = kStateFalse,
-            .LIGHT6 = kStateFalse,
-            .LIGHT7 = kStateFalse,
-            .TEXTURE_2D = kStateTrue,
-            .COLOR_MATERIAL = kStateFalse,
-            .BLEND = kStateFalse,
-            .FOG = kStateMaybe,
-            .DEPTH_TEST = kStateTrue,
-            .NORMALIZE = kStateFalse,
-            .RESCALE_NORMAL = kStateFalse,
+            .LIGHT1 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT2 = StateFlag::kFalse,
+            .LIGHT3 = StateFlag::kFalse,
+            .LIGHT4 = StateFlag::kFalse,
+            .LIGHT5 = StateFlag::kFalse,
+            .LIGHT6 = StateFlag::kFalse,
+            .LIGHT7 = StateFlag::kFalse,
+            .TEXTURE_2D = StateFlag::kTrue,
+            .COLOR_MATERIAL = StateFlag::kFalse,
+            .BLEND = StateFlag::kFalse,
+            .FOG = StateFlag::kMaybe,
+            .DEPTH_TEST = StateFlag::kTrue,
+            .NORMALIZE = StateFlag::kFalse,
+            .RESCALE_NORMAL = StateFlag::kFalse,
             .VERTEX_ARRAY = true,
             .NORMAL_ARRAY = true,
             .COLOR_ARRAY = false,
@@ -110,7 +116,7 @@ static const OOOpenGLState
             .TEXTURE_COORD_ARRAY = false,
             .EDGE_FLAG_ARRAY = false,
             .DEPTH_WRITEMASK = true,
-            .CULL_FACE = kStateTrue,
+            .CULL_FACE = StateFlag::kTrue,
             .SHADE_MODEL = GL_SMOOTH,
             .TEXTURE_ENV_MODE = GL_MODULATE,
             .ACTIVE_TEXTURE = GL_TEXTURE0,
@@ -123,22 +129,22 @@ static const OOOpenGLState
         {
             // [OOOpenGLStateID::kTranslucentPass]
             .name = "OPENGL_STATE_TRANSLUCENT_PASS",
-            .LIGHTING = kStateFalse,
-            .LIGHT0 = kStateMaybe,  // FIXME: see above
-            .LIGHT1 = kStateMaybe,  // FIXME: see above
-            .LIGHT2 = kStateFalse,
-            .LIGHT3 = kStateFalse,
-            .LIGHT4 = kStateFalse,
-            .LIGHT5 = kStateFalse,
-            .LIGHT6 = kStateFalse,
-            .LIGHT7 = kStateFalse,
-            .TEXTURE_2D = kStateFalse,
-            .COLOR_MATERIAL = kStateFalse,
-            .BLEND = kStateFalse,
-            .FOG = kStateMaybe,
-            .DEPTH_TEST = kStateTrue,
-            .NORMALIZE = kStateFalse,
-            .RESCALE_NORMAL = kStateFalse,
+            .LIGHTING = StateFlag::kFalse,
+            .LIGHT0 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT1 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT2 = StateFlag::kFalse,
+            .LIGHT3 = StateFlag::kFalse,
+            .LIGHT4 = StateFlag::kFalse,
+            .LIGHT5 = StateFlag::kFalse,
+            .LIGHT6 = StateFlag::kFalse,
+            .LIGHT7 = StateFlag::kFalse,
+            .TEXTURE_2D = StateFlag::kFalse,
+            .COLOR_MATERIAL = StateFlag::kFalse,
+            .BLEND = StateFlag::kFalse,
+            .FOG = StateFlag::kMaybe,
+            .DEPTH_TEST = StateFlag::kTrue,
+            .NORMALIZE = StateFlag::kFalse,
+            .RESCALE_NORMAL = StateFlag::kFalse,
             .VERTEX_ARRAY = false,
             .NORMAL_ARRAY = false,
             .COLOR_ARRAY = false,
@@ -146,7 +152,7 @@ static const OOOpenGLState
             .TEXTURE_COORD_ARRAY = false,
             .EDGE_FLAG_ARRAY = false,
             .DEPTH_WRITEMASK = false,
-            .CULL_FACE = kStateTrue,
+            .CULL_FACE = StateFlag::kTrue,
             .SHADE_MODEL = GL_SMOOTH,
             .TEXTURE_ENV_MODE = GL_MODULATE,
             .ACTIVE_TEXTURE = GL_TEXTURE0,
@@ -159,22 +165,22 @@ static const OOOpenGLState
         {
             // [OOOpenGLStateID::kAdditiveBlending]
             .name = "OPENGL_STATE_ADDITIVE_BLENDING",
-            .LIGHTING = kStateFalse,
-            .LIGHT0 = kStateMaybe,  // FIXME: see above
-            .LIGHT1 = kStateMaybe,  // FIXME: see above
-            .LIGHT2 = kStateFalse,
-            .LIGHT3 = kStateFalse,
-            .LIGHT4 = kStateFalse,
-            .LIGHT5 = kStateFalse,
-            .LIGHT6 = kStateFalse,
-            .LIGHT7 = kStateFalse,
-            .TEXTURE_2D = kStateFalse,
-            .COLOR_MATERIAL = kStateFalse,
-            .BLEND = kStateTrue,
-            .FOG = kStateMaybe,
-            .DEPTH_TEST = kStateTrue,
-            .NORMALIZE = kStateFalse,
-            .RESCALE_NORMAL = kStateFalse,
+            .LIGHTING = StateFlag::kFalse,
+            .LIGHT0 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT1 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT2 = StateFlag::kFalse,
+            .LIGHT3 = StateFlag::kFalse,
+            .LIGHT4 = StateFlag::kFalse,
+            .LIGHT5 = StateFlag::kFalse,
+            .LIGHT6 = StateFlag::kFalse,
+            .LIGHT7 = StateFlag::kFalse,
+            .TEXTURE_2D = StateFlag::kFalse,
+            .COLOR_MATERIAL = StateFlag::kFalse,
+            .BLEND = StateFlag::kTrue,
+            .FOG = StateFlag::kMaybe,
+            .DEPTH_TEST = StateFlag::kTrue,
+            .NORMALIZE = StateFlag::kFalse,
+            .RESCALE_NORMAL = StateFlag::kFalse,
             .VERTEX_ARRAY = true,
             .NORMAL_ARRAY = false,
             .COLOR_ARRAY = false,
@@ -182,7 +188,7 @@ static const OOOpenGLState
             .TEXTURE_COORD_ARRAY = false,
             .EDGE_FLAG_ARRAY = false,
             .DEPTH_WRITEMASK = false,
-            .CULL_FACE = kStateFalse,
+            .CULL_FACE = StateFlag::kFalse,
             .SHADE_MODEL = GL_SMOOTH,
             .TEXTURE_ENV_MODE = GL_MODULATE,  // Should be GL_BLEND?
             .ACTIVE_TEXTURE = GL_TEXTURE0,
@@ -195,22 +201,22 @@ static const OOOpenGLState
         {
             // [OOOpenGLStateID::kOverlay]
             .name = "OPENGL_STATE_OVERLAY",
-            .LIGHTING = kStateFalse,
-            .LIGHT0 = kStateMaybe,  // FIXME: see above
-            .LIGHT1 = kStateMaybe,  // FIXME: see above
-            .LIGHT2 = kStateFalse,
-            .LIGHT3 = kStateFalse,
-            .LIGHT4 = kStateFalse,
-            .LIGHT5 = kStateFalse,
-            .LIGHT6 = kStateFalse,
-            .LIGHT7 = kStateFalse,
-            .TEXTURE_2D = kStateFalse,
-            .COLOR_MATERIAL = kStateFalse,
-            .BLEND = kStateTrue,
-            .FOG = kStateFalse,
-            .DEPTH_TEST = kStateFalse,
-            .NORMALIZE = kStateFalse,
-            .RESCALE_NORMAL = kStateFalse,
+            .LIGHTING = StateFlag::kFalse,
+            .LIGHT0 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT1 = StateFlag::kMaybe,  // FIXME: see above
+            .LIGHT2 = StateFlag::kFalse,
+            .LIGHT3 = StateFlag::kFalse,
+            .LIGHT4 = StateFlag::kFalse,
+            .LIGHT5 = StateFlag::kFalse,
+            .LIGHT6 = StateFlag::kFalse,
+            .LIGHT7 = StateFlag::kFalse,
+            .TEXTURE_2D = StateFlag::kFalse,
+            .COLOR_MATERIAL = StateFlag::kFalse,
+            .BLEND = StateFlag::kTrue,
+            .FOG = StateFlag::kFalse,
+            .DEPTH_TEST = StateFlag::kFalse,
+            .NORMALIZE = StateFlag::kFalse,
+            .RESCALE_NORMAL = StateFlag::kFalse,
             .VERTEX_ARRAY = false,
             .NORMAL_ARRAY = false,
             .COLOR_ARRAY = false,
@@ -218,7 +224,7 @@ static const OOOpenGLState
             .TEXTURE_COORD_ARRAY = false,
             .EDGE_FLAG_ARRAY = false,
             .DEPTH_WRITEMASK = false,
-            .CULL_FACE = kStateFalse,  // ??
+            .CULL_FACE = StateFlag::kFalse,  // ??
             .SHADE_MODEL = GL_SMOOTH,
             .TEXTURE_ENV_MODE = GL_MODULATE,
             .ACTIVE_TEXTURE = GL_TEXTURE0,
@@ -231,22 +237,22 @@ static const OOOpenGLState
         {
             // [OOOpenGLStateID::kInternalUseOnly]
             .name = "<canonical initial state>",
-            .LIGHTING = kStateFalse,
-            .LIGHT0 = kStateFalse,
-            .LIGHT1 = kStateFalse,
-            .LIGHT2 = kStateFalse,
-            .LIGHT3 = kStateFalse,
-            .LIGHT4 = kStateFalse,
-            .LIGHT5 = kStateFalse,
-            .LIGHT6 = kStateFalse,
-            .LIGHT7 = kStateFalse,
-            .TEXTURE_2D = kStateFalse,
-            .COLOR_MATERIAL = kStateFalse,
-            .BLEND = kStateFalse,
-            .FOG = kStateFalse,
-            .DEPTH_TEST = kStateFalse,
-            .NORMALIZE = kStateFalse,
-            .RESCALE_NORMAL = kStateFalse,
+            .LIGHTING = StateFlag::kFalse,
+            .LIGHT0 = StateFlag::kFalse,
+            .LIGHT1 = StateFlag::kFalse,
+            .LIGHT2 = StateFlag::kFalse,
+            .LIGHT3 = StateFlag::kFalse,
+            .LIGHT4 = StateFlag::kFalse,
+            .LIGHT5 = StateFlag::kFalse,
+            .LIGHT6 = StateFlag::kFalse,
+            .LIGHT7 = StateFlag::kFalse,
+            .TEXTURE_2D = StateFlag::kFalse,
+            .COLOR_MATERIAL = StateFlag::kFalse,
+            .BLEND = StateFlag::kFalse,
+            .FOG = StateFlag::kFalse,
+            .DEPTH_TEST = StateFlag::kFalse,
+            .NORMALIZE = StateFlag::kFalse,
+            .RESCALE_NORMAL = StateFlag::kFalse,
             .VERTEX_ARRAY = false,
             .NORMAL_ARRAY = false,
             .COLOR_ARRAY = false,
@@ -254,7 +260,7 @@ static const OOOpenGLState
             .TEXTURE_COORD_ARRAY = false,
             .EDGE_FLAG_ARRAY = false,
             .DEPTH_WRITEMASK = true,
-            .CULL_FACE = kStateFalse,
+            .CULL_FACE = StateFlag::kFalse,
             .SHADE_MODEL = GL_SMOOTH,
             .TEXTURE_ENV_MODE = GL_MODULATE,
             .ACTIVE_TEXTURE = GL_TEXTURE0,
@@ -497,11 +503,11 @@ namespace {
 static bool StatesEqual(const OOOpenGLState* a, const OOOpenGLState* b) {
   OOCParameterAssert(a != nullptr && b != nullptr);
 
-#define ITEM_STATEFLAG(NAME)                            \
-  do {                                                  \
-    if (a->NAME != b->NAME && a->NAME != kStateMaybe && \
-        b->NAME != kStateMaybe)                         \
-      return false;                                     \
+#define ITEM_STATEFLAG(NAME)                                  \
+  do {                                                        \
+    if (a->NAME != b->NAME && a->NAME != StateFlag::kMaybe && \
+        b->NAME != StateFlag::kMaybe)                         \
+      return false;                                           \
   } while (0)
 #define ITEM_CLIENTSTATEFLAG(NAME)        \
   do {                                    \
@@ -559,9 +565,9 @@ static void VerifyOpenGLStateInternal(const char* caller,
            DISP_(expectedState->NAME_), DISP_(currentState.NAME_));         \
   }
 
-#define ITEM_STATEFLAG(NAME)                \
-  if (expectedState->NAME != kStateMaybe) { \
-    TEST_ITEM(NAME, OOGLFlagToString)       \
+#define ITEM_STATEFLAG(NAME)                      \
+  if (expectedState->NAME != StateFlag::kMaybe) { \
+    TEST_ITEM(NAME, StateFlagToString)            \
   }
 #define ITEM_CLIENTSTATEFLAG(NAME) TEST_ITEM(NAME, OOGLFlagToString)
 #define ITEM_SPECIAL(NAME, _, __) TEST_ITEM(NAME, OOGLFlagToString)
@@ -621,14 +627,15 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState,
   OOCParameterAssert(sourceState != nullptr && targetState != nullptr);
   OO_ENTER_OPENGL();
 
-#define ITEM_STATEFLAG(NAME)                                                  \
-  if (sourceState->NAME != targetState->NAME &&                               \
-      sourceState->NAME != kStateMaybe && targetState->NAME != kStateMaybe) { \
-    if (targetState->NAME) {                                                  \
-      OOGL(glEnable(GL_##NAME));                                              \
-    } else {                                                                  \
-      OOGL(glDisable(GL_##NAME));                                             \
-    }                                                                         \
+#define ITEM_STATEFLAG(NAME)                      \
+  if (sourceState->NAME != targetState->NAME &&   \
+      sourceState->NAME != StateFlag::kMaybe &&   \
+      targetState->NAME != StateFlag::kMaybe) {   \
+    if (targetState->NAME != StateFlag::kFalse) { \
+      OOGL(glEnable(GL_##NAME));                  \
+    } else {                                      \
+      OOGL(glDisable(GL_##NAME));                 \
+    }                                             \
   }
 #define ITEM_CLIENTSTATEFLAG(NAME)              \
   if (sourceState->NAME != targetState->NAME) { \
@@ -654,7 +661,8 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState,
    * always reset the blend function even if this should be unnecessary
    * CIM: 3/1/13 */
   if (sourceState->BLEND_SRC != targetState->BLEND_SRC ||
-      sourceState->BLEND_DST != targetState->BLEND_DST || !sourceState->BLEND) {
+      sourceState->BLEND_DST != targetState->BLEND_DST ||
+      sourceState->BLEND == StateFlag::kFalse) {
     OOGL(glBlendFunc(targetState->BLEND_SRC, targetState->BLEND_DST));
   }
 

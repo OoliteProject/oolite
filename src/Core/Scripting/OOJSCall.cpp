@@ -43,31 +43,35 @@ MA 02110-1301, USA.
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
-using MethodType = enum {
-  kMethodTypeInvalid = kOOShaderUniformTypeInvalid,
-
-  kMethodTypeCharVoid = kOOShaderUniformTypeChar,
-  kMethodTypeUnsignedCharVoid = kOOShaderUniformTypeUnsignedChar,
-  kMethodTypeShortVoid = kOOShaderUniformTypeShort,
-  kMethodTypeUnsignedShortVoid = kOOShaderUniformTypeUnsignedShort,
-  kMethodTypeIntVoid = kOOShaderUniformTypeInt,
-  kMethodTypeUnsignedIntVoid = kOOShaderUniformTypeUnsignedInt,
-  kMethodTypeLongVoid = kOOShaderUniformTypeLong,
-  kMethodTypeUnsignedLongVoid = kOOShaderUniformTypeUnsignedLong,
-  kMethodTypeFloatVoid = kOOShaderUniformTypeFloat,
-  kMethodTypeDoubleVoid = kOOShaderUniformTypeDouble,
-  kMethodTypeVectorVoid = kOOShaderUniformTypeVector,
-  kMethodTypeQuaternionVoid = kOOShaderUniformTypeQuaternion,
-  kMethodTypeMatrixVoid = kOOShaderUniformTypeMatrix,
-  kMethodTypePointVoid = kOOShaderUniformTypePoint,
-  kMethodTypeColorVoid = kOOShaderUniformTypeColor,  // a colour (OOColor *)
-
-  kMethodTypeObjectVoid = kOOShaderUniformTypeObject,
-  kMethodTypeObjectObject,
-  kMethodTypeVoidVoid,
-  kMethodTypeVoidObject,
-  kMethodTypePListVoid
-};
+// The by-name call kinds: the uniform type numbers and the ones after them,
+// so typed constants as they are.
+using MethodType = int;
+constexpr MethodType kMethodTypeInvalid = kOOShaderUniformTypeInvalid;
+constexpr MethodType kMethodTypeCharVoid = kOOShaderUniformTypeChar;
+constexpr MethodType kMethodTypeUnsignedCharVoid =
+    kOOShaderUniformTypeUnsignedChar;
+constexpr MethodType kMethodTypeShortVoid = kOOShaderUniformTypeShort;
+constexpr MethodType kMethodTypeUnsignedShortVoid =
+    kOOShaderUniformTypeUnsignedShort;
+constexpr MethodType kMethodTypeIntVoid = kOOShaderUniformTypeInt;
+constexpr MethodType kMethodTypeUnsignedIntVoid =
+    kOOShaderUniformTypeUnsignedInt;
+constexpr MethodType kMethodTypeLongVoid = kOOShaderUniformTypeLong;
+constexpr MethodType kMethodTypeUnsignedLongVoid =
+    kOOShaderUniformTypeUnsignedLong;
+constexpr MethodType kMethodTypeFloatVoid = kOOShaderUniformTypeFloat;
+constexpr MethodType kMethodTypeDoubleVoid = kOOShaderUniformTypeDouble;
+constexpr MethodType kMethodTypeVectorVoid = kOOShaderUniformTypeVector;
+constexpr MethodType kMethodTypeQuaternionVoid = kOOShaderUniformTypeQuaternion;
+constexpr MethodType kMethodTypeMatrixVoid = kOOShaderUniformTypeMatrix;
+constexpr MethodType kMethodTypePointVoid = kOOShaderUniformTypePoint;
+constexpr MethodType kMethodTypeColorVoid =
+    kOOShaderUniformTypeColor;  // a colour (OOColor *)
+constexpr MethodType kMethodTypeObjectVoid = kOOShaderUniformTypeObject;
+constexpr MethodType kMethodTypeObjectObject = kMethodTypeObjectVoid + 1;
+constexpr MethodType kMethodTypeVoidVoid = kMethodTypeObjectObject + 1;
+constexpr MethodType kMethodTypeVoidObject = kMethodTypeVoidVoid + 1;
+constexpr MethodType kMethodTypePListVoid = kMethodTypeVoidObject + 1;
 
 namespace {
 OOINLINE bool MethodExpectsParameter(MethodType type) {

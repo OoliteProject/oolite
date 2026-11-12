@@ -137,7 +137,7 @@ const char* const kUnknownTypeErrorKey =
 const char* const kUndefinedMacroErrorKey =
     "org.aegidian.oolite.OOPListSchemaVerifier undefined macro";
 
-using SchemaType = enum {
+enum class SchemaType : int {
   kTypeUnknown,
   kTypeString,
   kTypeArray,
@@ -463,7 +463,7 @@ bool OOPListSchemaVerifier::verifyPList(
     const oo::PList& subProperty, const oo::PList& subSchema,
     BackLinkChain keyPath, bool tentative,
     std::optional<OOPListSchemaVerifierError>* outError, bool* outStop) {
-  SchemaType type = kTypeUnknown;
+  SchemaType type = SchemaType::kTypeUnknown;
   std::optional<OOPListSchemaVerifierError> error;
   oo::PList resolvedSpecifier;
 
@@ -481,7 +481,7 @@ bool OOPListSchemaVerifier::verifyPList(
 
 // The type verifiers take the verifier.
 #define VERIFY_CASE(T)                                                        \
-  case kType##T:                                                              \
+  case SchemaType::kType##T:                                                  \
     error = Verify_##T(this, subProperty, resolvedSpecifier, rootPList, name, \
                        keyPath, tentative, outStop);                          \
     break;
@@ -502,7 +502,7 @@ bool OOPListSchemaVerifier::verifyPList(
       VERIFY_CASE(Quaternion);
       VERIFY_CASE(DelegatedType);
 
-      case kTypeUnknown:
+      case SchemaType::kTypeUnknown:
         // resolveSchemaType() or StringToSchemaType() should have provided an
         // error.
         *outStop = true;
@@ -591,26 +591,26 @@ SchemaType StringToSchemaType(
     const std::string& string,
     std::optional<OOPListSchemaVerifierError>* outError) {
   static const std::map<std::string, SchemaType, std::less<>> typeMap = {
-      {"string", kTypeString},
-      {"array", kTypeArray},
-      {"dictionary", kTypeDictionary},
-      {"integer", kTypeInteger},
-      {"positiveInteger", kTypePositiveInteger},
-      {"float", kTypeFloat},
-      {"positiveFloat", kTypePositiveFloat},
-      {"oneOf", kTypeOneOf},
-      {"enumeration", kTypeEnumeration},
-      {"boolean", kTypeBoolean},
-      {"fuzzyBoolean", kTypeFuzzyBoolean},
-      {"vector", kTypeVector},
-      {"quaternion", kTypeQuaternion},
-      {"delegatedType", kTypeDelegatedType},
+      {"string", SchemaType::kTypeString},
+      {"array", SchemaType::kTypeArray},
+      {"dictionary", SchemaType::kTypeDictionary},
+      {"integer", SchemaType::kTypeInteger},
+      {"positiveInteger", SchemaType::kTypePositiveInteger},
+      {"float", SchemaType::kTypeFloat},
+      {"positiveFloat", SchemaType::kTypePositiveFloat},
+      {"oneOf", SchemaType::kTypeOneOf},
+      {"enumeration", SchemaType::kTypeEnumeration},
+      {"boolean", SchemaType::kTypeBoolean},
+      {"fuzzyBoolean", SchemaType::kTypeFuzzyBoolean},
+      {"vector", SchemaType::kTypeVector},
+      {"quaternion", SchemaType::kTypeQuaternion},
+      {"delegatedType", SchemaType::kTypeDelegatedType},
   };
   SchemaType result;
 
   const auto found = typeMap.find(string);
-  result = (found != typeMap.end()) ? found->second : kTypeUnknown;
-  if (result == kTypeUnknown && outError != nullptr) {
+  result = (found != typeMap.end()) ? found->second : SchemaType::kTypeUnknown;
+  if (result == SchemaType::kTypeUnknown && outError != nullptr) {
     if (oo::str::hasPrefix(string, "$")) {
       *outError = ErrorWithProperty(
           OOPListSchemaVerifierErrorCode::kSchemaUnknownType, nullptr,
