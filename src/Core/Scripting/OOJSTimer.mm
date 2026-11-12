@@ -210,7 +210,7 @@ void OOJSTimer::timerFired()
     JSValue function = JS_DupValue(context, _function);
     JSValue jsThis = JS_DupValue(context, _jsThis);
 
-    [OOJSScript pushScript:_owningScript.get()];
+    [::OOJSScript pushScript:_owningScript.get()];
     _firing = true;
     [engine callJSFunction:function
                  forObject:jsThis
@@ -218,7 +218,7 @@ void OOJSTimer::timerFired()
                       argv:NULL
                     result:&rval];
     _firing = false;
-    [OOJSScript popScript:_owningScript.get()];
+    [::OOJSScript popScript:_owningScript.get()];
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, function);

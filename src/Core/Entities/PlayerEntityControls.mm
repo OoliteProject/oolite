@@ -3266,22 +3266,6 @@ static int ClickedGUIRow(GuiDisplayGen* gui)
     }
 #endif
 
-#if !NEW_PLANETS
-    if ((guiSelectedRow == GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
-        if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) != [UNIVERSE doProcedurallyTexturedPlanets]) {
-            [UNIVERSE setDoProcedurallyTexturedPlanets:([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT])];
-            [self playChangedOption];
-            if ([UNIVERSE planet]) {
-                [UNIVERSE setUpPlanet];
-            }
-        }
-        if ([UNIVERSE doProcedurallyTexturedPlanets])
-            [gui cxx_setText:OO_DESC("gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
-        else
-            [gui cxx_setText:OO_DESC("gameoptions-procedurally-textured-planets-no") forRow:GUI_ROW(GAME, PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
-    }
-#endif
-
     if (guiSelectedRow == GUI_ROW(GAME, SHADEREFFECTS) && ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT])) {
         if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
             int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
