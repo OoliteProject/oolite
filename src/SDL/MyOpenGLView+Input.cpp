@@ -76,7 +76,7 @@ void MyOpenGLView::allowStringInput(bool value) {
   else
     allowingStringInput = gvStringInputNo;
 }
-enum StringInput MyOpenGLView::getAllowingStringInput() {
+StringInput MyOpenGLView::getAllowingStringInput() {
   return allowingStringInput;
 }
 std::optional<std::string> MyOpenGLView::getTypedString() {
