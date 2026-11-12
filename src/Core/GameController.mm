@@ -85,56 +85,6 @@ static cxx::GameController* sSharedController = nullptr;
 - (void)doPerformGameTick;
 
 @end
-
-@implementation GameController
-
-+ (GameController*)sharedController
-{
-    if (sSharedController == nil) {
-        sSharedController = [[self alloc] init];
-    }
-    return sSharedController;
-}
-
-- (id)init
-{
-    if (sSharedController != nil) {
-        [self release];
-        [OOException raise:OOInternalInconsistencyException format:"%s: expected only one GameController to exist at a time.", __PRETTY_FUNCTION__];
-    }
-
-    if ((self = [super init])) {
-        _finishedLaunching = NO;
-        last_timeInterval = oo::date::monotonicSeconds(); // the frame clock: intervals only (-doPerformGameTick)
-        delta_t = 0.01; // one hundredth of a second
-        {
-            oo::Defaults& prefs = oo::Defaults::standard();
-            _animationTimerInterval = prefs.object("animation_timer_interval").isNull() ? MINIMUM_ANIMATION_TICK : prefs.doubleForKey("animation_timer_interval");
-        }
-
-        // rather than seeding this with the date repeatedly, seed it
-        // once here at startup
-        // OO_RANDOM_SEED pins the seed so a run can be reproduced.
-        // Downstream component tests depend on it.
-        // Unset to keep wall-clock seeding.
-        const char* seedEnv = getenv("OO_RANDOM_SEED");
-        if (seedEnv != NULL && *seedEnv != '\0') {
-            ranrot_srand((uint32_t)strtoul(seedEnv, NULL, 10));
-            OO_LOG("rand.seed", "RANROT seeded from OO_RANDOM_SEED={}", seedEnv);
-        } else {
-            ranrot_srand((uint32_t)oo::date::timeIntervalSince1970()); // reset randomiser with current time
-        }
-
-        _splashStart = oo::date::monotonicSeconds();
-    }
-
-    return self;
-}
-
-- (void)dealloc
-{
-#if OOLITE_MAC_COCOA_UI
-    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:UNIVERSE];
 #endif
 
 /*	The frame loop (ADR-0029 Decision 5; proposed ADR-0033).
@@ -281,9 +231,9 @@ GameController::GameController()
 
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
-        // OO_RANDOM_SEED pins the seed so a run can be reproduced. Nothing downstream of
-        // RANROT is repeatable without it, which both the goldens (0.4) and the component
-        // tier (0.13b) depend on. Unset - the normal case - keeps wall-clock seeding.
+        // OO_RANDOM_SEED pins the seed so a run can be reproduced.
+        // Downstream component tests depend on it.
+        // Unset to keep wall-clock seeding.
         const char* seedEnv = getenv("OO_RANDOM_SEED");
         if (seedEnv != NULL && *seedEnv != '\0') {
             ranrot_srand((uint32_t)strtoul(seedEnv, NULL, 10));
