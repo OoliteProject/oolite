@@ -13,9 +13,8 @@ run_script() {
     local ver_quad="$8"
     local ver_githash="$9"
     local buildtime="${10}"
-    local gnustep_folder="${11}"
-    local stamp_file="${12}"
-    local build_docs="${13:-yes}"
+    local stamp_file="${11}"
+    local build_docs="${12:-yes}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir" > /dev/null

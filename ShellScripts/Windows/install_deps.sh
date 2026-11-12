@@ -15,7 +15,7 @@ run_script() {
     pacman -S --noconfirm dos2unix git jq pactoys unzip
     pacboy -S --noconfirm binutils curl espeak-ng icu libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
     pacboy -S --noconfirm doxygen graphviz
-    mkdir -p ../../build/packages
+    mkdir -p ../../build
     cd ../../build
     install_gitversion "."
     install_typst "."
