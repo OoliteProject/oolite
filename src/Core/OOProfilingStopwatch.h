@@ -82,9 +82,12 @@ typedef uint64_t OOHighResTimeValue;
 // Windows: use timeGetTime.
 // DWORD and timeGetTime(), from their own headers: <windows.h> here would bring
 // in the old <winsock.h> ahead of a later <winsock2.h>.
+// clang-format off
+// windef.h must come first: timeapi.h's mmsyscom.h uses BYTE, DWORD and
+// DECLARE_HANDLE without defining them. Don't let the include sorter reorder.
 #include <windef.h>
-// timeapi.h needs windef.h's types first.
 #include <timeapi.h>
+// clang-format on
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue;  // Rolls over once every 50 days, but we can
                                    // live with that.

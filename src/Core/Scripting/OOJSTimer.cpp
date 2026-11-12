@@ -220,7 +220,7 @@ void OOJSTimer::timerFired() {
 
   OOJSScript::pushScript(_owningScript);
   _firing = true;
-  engine->callJSFunction(function, jsThis, 0, NULL, &rval);
+  engine->callJSFunction(function, jsThis, 0, nullptr, &rval);
   _firing = false;
   OOJSScript::popScript(_owningScript.get());
 
