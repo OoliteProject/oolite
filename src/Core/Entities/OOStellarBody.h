@@ -32,12 +32,12 @@ MA 02110-1301, USA.
 #include "OOTypes.h"
 #include "oofnd/objc/OOObject.h"
 
-typedef enum {
-  STELLAR_TYPE_SUN,
-  STELLAR_TYPE_NORMAL_PLANET,  // Terrestrial planet with atmosphere and oceans
-  STELLAR_TYPE_MOON,           // Rocky/airless planet
-  STELLAR_TYPE_MINIATURE       // Display proxy for a "normal" planet
-} OOStellarBodyType;
+enum class OOStellarBodyType : int {
+  kSun,
+  kNormalPlanet,  // Terrestrial planet with atmosphere and oceans
+  kMoon,          // Rocky/airless planet
+  kMiniature      // Display proxy for a "normal" planet
+};
 
 #define ATMOSPHERE_DEPTH 500.0
 #define PLANET_MINIATURE_FACTOR 0.00185

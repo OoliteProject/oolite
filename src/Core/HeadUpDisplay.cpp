@@ -1896,7 +1896,7 @@ void HeadUpDisplay::drawAegis(
        VIEW_GUI_DISPLAY) ||
       ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) == nullptr) ||
       ((PLAYER != nullptr ? PLAYER->checkForAegis() : OOAegisStatus{}) !=
-       AEGIS_IN_DOCKING_RANGE))
+       OOAegisStatus::kInDockingRange))
     return;  // don't draw
 
   int x, y;

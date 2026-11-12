@@ -134,14 +134,15 @@ JSClassID JSPlanetClassID() { return sPlanetClassID; }
 bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet) {
   OOStellarBodyType type =
       (planet != nullptr ? planet->planetType() : (OOStellarBodyType)0);
-  return type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON;
+  return type == OOStellarBodyType::kNormalPlanet ||
+         type == OOStellarBodyType::kMoon;
 }
 
 std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet) {
   switch ((planet != nullptr ? planet->planetType() : (OOStellarBodyType)0)) {
-    case STELLAR_TYPE_NORMAL_PLANET:
+    case OOStellarBodyType::kNormalPlanet:
       return std::string("Planet");
-    case STELLAR_TYPE_MOON:
+    case OOStellarBodyType::kMoon:
       return std::string("Moon");
     default:
       return std::string("Unknown");

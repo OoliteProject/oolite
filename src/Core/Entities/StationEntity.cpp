@@ -153,7 +153,7 @@ oo::PList StationEntity::launchIndependentShip(
 
     if (trader) {
       if (ship != nullptr) ship->setBounty(0, kOOLegalStatusReasonSetup);
-      if (ship != nullptr) ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+      if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
       if (sunskimmer) {
         if (ship != nullptr) ship->setFuel((Ranrot() & 31));
         if (UNIVERSE != nullptr) UNIVERSE->makeSunSkimmer(ship, true);
@@ -628,7 +628,7 @@ oo::PList StationEntity::launchPolice()  // called by name
     docked_shuttles--;
     if (shuttle_ship != nullptr) shuttle_ship->setScanClass(CLASS_NEUTRAL);
     if (shuttle_ship != nullptr)
-      shuttle_ship->setCargoFlag(CARGO_FLAG_FULL_SCARCE);
+      shuttle_ship->setCargoFlag(OOCargoFlag::kFullScarce);
     if (shuttle_ship != nullptr)
       shuttle_ship->switchAITo("oolite-shuttleAI.js");
     addShipToLaunchQueue(shuttle_ship, false);
@@ -664,7 +664,7 @@ oo::PList StationEntity::launchPolice()  // called by name
 
     if (escort_ship != nullptr) escort_ship->setScanClass(CLASS_NEUTRAL);
     if (escort_ship != nullptr)
-      escort_ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+      escort_ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
     if (escort_ship != nullptr) escort_ship->switchAITo("oolite-escortAI.js");
     addShipToLaunchQueue(escort_ship, false);
   }
@@ -1835,7 +1835,7 @@ void StationEntity::update(OOTimeDelta delta_t) {
     // begin launch of shuttles, traders, patrols
     if ((docked_shuttles > 0) && (!isRockHermit)) {
       if (unitime > last_shuttle_launch_time + shuttle_launch_interval) {
-        if ((getHasNPCTraffic()) && (aegis_status != AEGIS_NONE)) {
+        if ((getHasNPCTraffic()) && (aegis_status != OOAegisStatus::kNone)) {
           launchShuttle();
         }
         last_shuttle_launch_time = unitime;

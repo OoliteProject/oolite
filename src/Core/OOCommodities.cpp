@@ -470,7 +470,7 @@ std::string OOCommodities::getRandomCommodity() {
 OOMassUnit OOCommodities::massUnitForGood(const std::string& good) {
   const auto entry = _commodityLists.find(good);
   if (entry == _commodityLists.end() || !entry->second.isDict()) {
-    return UNITS_TONS;
+    return OOMassUnit::kTons;
   }
   return OOMassUnitFromNumber(
       entry->second.get<unsigned int>(kOOCommodityContainer));

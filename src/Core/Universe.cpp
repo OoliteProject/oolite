@@ -3210,12 +3210,12 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
          CLASS_NOT_SET))
       if (ship != nullptr) ship->setScanClass(CLASS_NEUTRAL);
     if (role == "trader") {
-      if (ship != nullptr) ship->setCargoFlag(CARGO_FLAG_FULL_SCARCE);
+      if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullScarce);
       if ((ship != nullptr ? ship->hasRole("sunskim-trader") : false) &&
           randf() <
               0.25)  // select 1/4 of the traders suitable for sunskimming.
       {
-        if (ship != nullptr) ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+        if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
         makeSunSkimmer(ship, true);
       } else {
         if (ship != nullptr) ship->switchAITo("oolite-traderAI.js");
@@ -3230,7 +3230,7 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
       }
     }
     if (role == "pirate") {
-      if (ship != nullptr) ship->setCargoFlag(CARGO_FLAG_PIRATE);
+      if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kPirate);
       if (ship != nullptr)
         ship->setBounty(
             (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05) ? 63 : 23),
@@ -3350,9 +3350,9 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
         if (ship != nullptr)
           ship->setCargoFlag(
               (randf() < 0.66f
-                   ? CARGO_FLAG_FULL_PLENTIFUL
-                   : CARGO_FLAG_FULL_SCARCE));  // most of them will carry the
-                                                // cargo produced in-system.
+                   ? OOCargoFlag::kFullPlentiful
+                   : OOCargoFlag::kFullScarce));  // most of them will carry the
+                                                  // cargo produced in-system.
       }
 
       uint8_t pendingEscortCount =
@@ -3376,10 +3376,10 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
     } else  // witchspace incoming traders & pirates need extra settings.
     {
       if (trader) {
-        if (ship != nullptr) ship->setCargoFlag(CARGO_FLAG_FULL_SCARCE);
+        if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullScarce);
         if ((ship != nullptr ? ship->hasRole("sunskim-trader") : false) &&
             randf() < 0.25) {
-          if (ship != nullptr) ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+          if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
           makeSunSkimmer(ship, true);
         } else {
           if (ship != nullptr) ship->switchAITo("oolite-traderAI.js");
@@ -4828,16 +4828,16 @@ OOCargoQuantity Universe::getRandomAmountOfCommodity(
   OOMassUnit units;
 
   units = (commodities != nullptr ? commodities->massUnitForGood(co_type)
-                                  : UNITS_TONS);
+                                  : OOMassUnit::kTons);
   switch (units) {
-    case 0:  // TONNES
+    case OOMassUnit::kTons:
       return 1;
-    case 1:  // KILOGRAMS
+    case OOMassUnit::kKilograms:
       return 1 + (Ranrot() % 6) + (Ranrot() % 6) + (Ranrot() % 6);
-    case 2:  // GRAMS
+    case OOMassUnit::kGrams:
       return 4 + (Ranrot() % 16) + (Ranrot() % 11) + (Ranrot() % 6);
-    case UNITS_UNKNOWN:  // not a unit: warned about below, as any other value
-                         // was
+    case OOMassUnit::kUnknown:  // not a unit: warned about below, as any
+                                // other value was
       break;
   }
   OO_LOG("universe.commodityAmount.warning",
@@ -4859,7 +4859,7 @@ std::optional<std::string> Universe::displayNameForCommodity(
 
 std::optional<std::string> Universe::describeCommodity(
     const std::string& co_type, OOCargoQuantity co_amount) {
-  int units;
+  OOMassUnit units;
   std::string unitDesc;
   std::optional<std::string> typeDesc;
   const oo::PList commodity = commodityDataForType(co_type);
@@ -4868,29 +4868,29 @@ std::optional<std::string> Universe::describeCommodity(
 
   units =
       (commodityMarket != nullptr ? commodityMarket->massUnitForGood(co_type)
-                                  : UNITS_TONS);
+                                  : OOMassUnit::kTons);
   if (co_amount == 1) {
     switch (units) {
-      case UNITS_KILOGRAMS:  // KILOGRAM
+      case OOMassUnit::kKilograms:  // KILOGRAM
         unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-kilogram");
         break;
-      case UNITS_GRAMS:  // GRAM
+      case OOMassUnit::kGrams:  // GRAM
         unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-gram");
         break;
-      case UNITS_TONS:  // TONNE
+      case OOMassUnit::kTons:  // TONNE
       default:
         unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-ton");
         break;
     }
   } else {
     switch (units) {
-      case UNITS_KILOGRAMS:  // KILOGRAMS
+      case OOMassUnit::kKilograms:  // KILOGRAMS
         unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-kilograms");
         break;
-      case UNITS_GRAMS:  // GRAMS
+      case OOMassUnit::kGrams:  // GRAMS
         unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-grams");
         break;
-      case UNITS_TONS:  // TONNES
+      case OOMassUnit::kTons:  // TONNES
       default:
         unitDesc = cxx_OOLookUpDescriptionPRIV("cargo-tons");
         break;

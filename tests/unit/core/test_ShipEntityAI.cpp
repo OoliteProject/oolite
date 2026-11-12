@@ -584,9 +584,9 @@ OO_TEST(slice3ChecksAndScans)
 		// An aegis status out of range is an internal error, and is reset.
 		SetAegisStatus3(ship, 99);
 		if (ship != nullptr)  ship->checkAegis();
-		OO_CHECK(AegisStatus3(ship) == AEGIS_NONE);
+		OO_CHECK(AegisStatus3(ship) == OOAegisStatus::kNone);
 		if (ship != nullptr)  ship->checkAegis();
-		OO_CHECK(AegisStatus3(ship) == AEGIS_NONE);
+		OO_CHECK(AegisStatus3(ship) == OOAegisStatus::kNone);
 
 		SetEnergy3(ship, 50, 100);
 		if (ship != nullptr)  ship->checkEnergy();
@@ -707,7 +707,7 @@ OO_TEST(slice3MembersFromCxx)
 		OO_CHECK((ship != nullptr ? ship->rememberedShip() : (Entity *)nullptr) == other);
 		SetAegisStatus3(ship, 42);
 		part->checkAegis();
-		OO_CHECK(AegisStatus3(ship) == AEGIS_NONE);
+		OO_CHECK(AegisStatus3(ship) == OOAegisStatus::kNone);
 		part->disengageAutopilot();		// virtual: the ship's, which logs
 	}
 }

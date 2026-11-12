@@ -36,8 +36,8 @@ operandArray is an array of operands. Each operand is itself an array
 of two items: a boolean indicating whether it's a method selector
 (true) or a string (false), and a string.
 
-The special opType OP_FALSE doesn't require any other elements in the
-array. All other valid opTypes require the array to have five elements.
+The special opType OOOperationType::kFalse doesn't require any other elements in
+the array. All other valid opTypes require the array to have five elements.
 
 
 A complete example: given the following script (the Cloaking Device mission
@@ -70,16 +70,17 @@ is:
                 (
                         true,	// This is a conditonal statement
                         (		// conditions
-                                (OP_NUMBER, "...", "galaxy_number",
-COMPARISON_EQUAL, ((false, "4"))), (OP_STRING, "...", "status_string",
-COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))), (OP_MISSION_VAR,
-"...", "mission_cloak", COMPARISON_UNDEFINED, ())
+                                (OOOperationType::kNumber, "...",
+"galaxy_number", OOComparisonType::kEqual, ((false, "4"))),
+(OOOperationType::kString, "...", "status_string", OOComparisonType::kEqual,
+((false, "STATUS_EXITING_WITCHSPACE"))), (OOOperationType::kMissionVar,
+"...", "mission_cloak", OOComparisonType::kUndefined, ())
                         ),
                         (		// do
                                 (
                                         true,
-                                        ( (OP_MISSION_VAR, "...",
-"mission_cloakcounter", COMPARISON_UNDEFINED, ()) ), ( (false, "set:",
+                                        ( (OOOperationType::kMissionVar, "...",
+"mission_cloakcounter", OOComparisonType::kUndefined, ()) ), ( (false, "set:",
 "mission_cloakcounter 0") ),
                                         ()
                                 ),
@@ -87,9 +88,10 @@ COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))), (OP_MISSION_VAR,
                                 (false, "checkForShips:", "asp-cloaked"),
                                 (true,
                                         (
-                                                (OP_NUMBER, "...",
-"shipsFound_number", COMPARISON_EQUAL, ((false, "0"))), (OP_MISSION_VAR, "...",
-"mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
+                                                (OOOperationType::kNumber,
+"...", "shipsFound_number", OOComparisonType::kEqual, ((false, "0"))),
+(OOOperationType::kMissionVar, "...", "mission_cloakcounter,
+OOComparisonType::kGreaterThan, ((false, "6"))),
                                         ),
                                         (
                                                 (false, "addShips:",

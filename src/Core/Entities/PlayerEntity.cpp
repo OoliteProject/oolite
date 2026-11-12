@@ -702,7 +702,7 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
   OOMassUnit units = manifest->massUnitForGood(type);
 
   if (quantity > 0) {
-    if (units == UNITS_TONS) {
+    if (units == OOMassUnit::kTons) {
       // easy case
       for (j = 0; j < quantity; j++) {
         createCargoPodWithType(type, 1);  // or CTD if unsuccesful (!)
@@ -712,7 +712,7 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
       OOCargoQuantity podsRequiredForQuantity, amountToLoadInCargopod,
           tmpQuantity;
       // reserve up to 1/2 ton of each commodity for the safe
-      if (units == UNITS_KILOGRAMS) {
+      if (units == OOMassUnit::kKilograms) {
         if (quantity <= MAX_KILOGRAMS_IN_SAFE) {
           tmpQuantity = quantity;
           quantity = 0;
@@ -758,12 +758,12 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
                                         OOCargoQuantity quantity) {
   OOMassUnit unit =
       (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type)
-                                    : UNITS_TONS);
+                                    : OOMassUnit::kTons);
 
   while (quantity) {
-    if (unit != UNITS_TONS) {
+    if (unit != OOMassUnit::kTons) {
       int amount_per_container =
-          (unit == UNITS_KILOGRAMS) ? KILOGRAMS_PER_POD : GRAMS_PER_POD;
+          (unit == OOMassUnit::kKilograms) ? KILOGRAMS_PER_POD : GRAMS_PER_POD;
       while (quantity > 0) {
         int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
         if (cargo.size() < maxAvailableCargoSpace()) {
@@ -786,9 +786,10 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
                             ? shipCommodityData->quantityForGood(type)
                             : 0) +
                        smaller_quantity;
-          if (amount > MAX_GRAMS_IN_SAFE && unit == UNITS_GRAMS)
+          if (amount > MAX_GRAMS_IN_SAFE && unit == OOMassUnit::kGrams)
             amount = MAX_GRAMS_IN_SAFE;
-          else if (amount > MAX_KILOGRAMS_IN_SAFE && unit == UNITS_KILOGRAMS)
+          else if (amount > MAX_KILOGRAMS_IN_SAFE &&
+                   unit == OOMassUnit::kKilograms)
             amount = MAX_KILOGRAMS_IN_SAFE;
 
           if (shipCommodityData != nullptr)
@@ -2009,26 +2010,27 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
                                        : std::vector<std::string>())) {
       units = (shipCommodityData != nullptr
                    ? shipCommodityData->massUnitForGood(type)
-                   : UNITS_TONS);
+                   : OOMassUnit::kTons);
 
       oldAmount = (shipCommodityData != nullptr
                        ? shipCommodityData->quantityForGood(type)
                        : 0);
       bool roundedTon =
-          (units != UNITS_TONS) &&
-          ((units == UNITS_KILOGRAMS && oldAmount > MAX_KILOGRAMS_IN_SAFE) ||
-           (units == UNITS_GRAMS && oldAmount > MAX_GRAMS_IN_SAFE));
-      if (roundedTon || (units == UNITS_TONS && oldAmount > 0)) {
+          (units != OOMassUnit::kTons) &&
+          ((units == OOMassUnit::kKilograms &&
+            oldAmount > MAX_KILOGRAMS_IN_SAFE) ||
+           (units == OOMassUnit::kGrams && oldAmount > MAX_GRAMS_IN_SAFE));
+      if (roundedTon || (units == OOMassUnit::kTons && oldAmount > 0)) {
         // let's remove stuff
         OOCargoQuantity partAmount = oldAmount;
         toRemove = 0;
         while (remainingExcess > 0 && partAmount > 0) {
-          if (EXPECT_NOT(roundedTon && ((units == UNITS_KILOGRAMS &&
+          if (EXPECT_NOT(roundedTon && ((units == OOMassUnit::kKilograms &&
                                          partAmount > MAX_KILOGRAMS_IN_SAFE) ||
-                                        (units == UNITS_GRAMS &&
+                                        (units == OOMassUnit::kGrams &&
                                          partAmount > MAX_GRAMS_IN_SAFE)))) {
             toRemove +=
-                (units == UNITS_KILOGRAMS)
+                (units == OOMassUnit::kKilograms)
                     ? (partAmount > (KILOGRAMS_PER_POD + MAX_KILOGRAMS_IN_SAFE)
                            ? KILOGRAMS_PER_POD
                            : partAmount - MAX_KILOGRAMS_IN_SAFE)
@@ -3712,7 +3714,8 @@ bool PlayerEntity::checkEntityForMassLock(Entity* ent, int theirClass) {
 
   if (EXPECT_NOT(ent->isStellarObject())) {
     Entity* stellar = ent;  // a sun or a planet
-    if (EXPECT(OOStellarBodyPlanetType(stellar) != STELLAR_TYPE_MINIATURE)) {
+    if (EXPECT(OOStellarBodyPlanetType(stellar) !=
+               OOStellarBodyType::kMiniature)) {
       double dist = stellar->zero_distance;
       double rad = stellar->collision_radius;
       double factor = (stellar->isSun()) ? 2.0 : 4.0;
@@ -5329,8 +5332,8 @@ void PlayerEntity::validateCompassTarget() {
         break;
 
       case COMPASS_MODE_BASIC:
-        if ((aegis == AEGIS_CLOSE_TO_MAIN_PLANET ||
-             aegis == AEGIS_IN_DOCKING_RANGE) &&
+        if ((aegis == OOAegisStatus::kCloseToMainPlanet ||
+             aegis == OOAegisStatus::kInDockingRange) &&
             the_station) {
           new_target = the_station;
         } else {
@@ -5417,7 +5420,7 @@ OOCompassMode PlayerEntity::getCompassMode() { return compassMode; }
 void PlayerEntity::setCompassMode(OOCompassMode value) { compassMode = value; }
 
 void PlayerEntity::setPrevCompassMode() {
-  OOAegisStatus aegis = AEGIS_NONE;
+  OOAegisStatus aegis = OOAegisStatus::kNone;
   Entity* beacon = nullptr;  // the C++ beacons, linked through their objects
 
   switch (compassMode) {
@@ -5459,8 +5462,8 @@ void PlayerEntity::setPrevCompassMode() {
 
     case COMPASS_MODE_SUN:
       aegis = checkForAegis();
-      if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET ||
-          aegis == AEGIS_IN_DOCKING_RANGE) {
+      if (aegis == OOAegisStatus::kCloseToMainPlanet ||
+          aegis == OOAegisStatus::kInDockingRange) {
         setCompassMode(COMPASS_MODE_STATION);
       } else {
         setCompassMode(COMPASS_MODE_PLANET);
@@ -5474,7 +5477,7 @@ void PlayerEntity::setPrevCompassMode() {
 }
 
 void PlayerEntity::setNextCompassMode() {
-  OOAegisStatus aegis = AEGIS_NONE;
+  OOAegisStatus aegis = OOAegisStatus::kNone;
   Entity* beacon = nullptr;  // the C++ beacons, linked through their objects
 
   switch (compassMode) {
@@ -5483,8 +5486,8 @@ void PlayerEntity::setNextCompassMode() {
     case COMPASS_MODE_PLANET:
       aegis = checkForAegis();
       if ((UNIVERSE != nullptr && UNIVERSE->station() != nullptr) &&
-          (aegis == AEGIS_CLOSE_TO_MAIN_PLANET ||
-           aegis == AEGIS_IN_DOCKING_RANGE)) {
+          (aegis == OOAegisStatus::kCloseToMainPlanet ||
+           aegis == OOAegisStatus::kInDockingRange)) {
         setCompassMode(COMPASS_MODE_STATION);
       } else {
         setCompassMode(COMPASS_MODE_SUN);
@@ -8472,15 +8475,15 @@ void PlayerEntity::activatePrimableEquipment(std::size_t index,
   if (index < eqScripts.size()) {
     ::OOScript* eqScript = eqScripts[index].second.get();
     JSContext* context = OOJSAcquireContext();
-    OOCAssert(mode <= OOPRIMEDEQUIP_MODE,
+    OOCAssert(mode <= OOPrimedEquipmentMode::kMode,
               "Primable equipment mode %i out of range", (int)mode);
 
     switch (mode) {
-      case OOPRIMEDEQUIP_MODE:
+      case OOPrimedEquipmentMode::kMode:
         if (eqScript != nullptr)
           eqScript->callMethod(OOJSID("mode"), context, nullptr, 0, nullptr);
         break;
-      case OOPRIMEDEQUIP_ACTIVATED:
+      case OOPrimedEquipmentMode::kActivated:
         if (eqScript != nullptr)
           eqScript->callMethod(OOJSID("activated"), context, nullptr, 0,
                                nullptr);
@@ -11190,8 +11193,8 @@ OOCargoQuantity PlayerEntity::setCargoQuantityForType(const std::string& type,
                                                       OOCargoQuantity amount) {
   OOMassUnit unit =
       (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type)
-                                    : UNITS_TONS);
-  if (getSpecialCargo().has_value() && unit == UNITS_TONS)
+                                    : OOMassUnit::kTons);
+  if (getSpecialCargo().has_value() && unit == OOMassUnit::kTons)
     return 0;  // don't do anything if we've got a special cargo...
 
   OOCargoQuantity oldAmount = cargoQuantityForType(type);
@@ -11199,20 +11202,20 @@ OOCargoQuantity PlayerEntity::setCargoQuantityForType(const std::string& type,
   bool inPods = (status() != STATUS_DOCKED);
 
   // check it against the max amount.
-  if (unit == UNITS_TONS && (available + oldAmount) < amount) {
+  if (unit == OOMassUnit::kTons && (available + oldAmount) < amount) {
     amount = available + oldAmount;
   }
   // if we have 1499 kg the ship registers only 1 ton, so it's possible to
   // exceed the max cargo: eg: with maxAvailableCargoSpace 2 & gold 1499kg, you
   // can still add 1 ton alloy.
-  else if (unit == UNITS_KILOGRAMS && amount > oldAmount) {
+  else if (unit == OOMassUnit::kKilograms && amount > oldAmount) {
     // Allow up to 0.5 ton of kg (& g) goods above the cargo capacity but
     // respect existing quantities.
     OOCargoQuantity safeAmount =
         available * KILOGRAMS_PER_POD + MAX_KILOGRAMS_IN_SAFE;
     if (safeAmount < amount)
       amount = (safeAmount < oldAmount) ? oldAmount : safeAmount;
-  } else if (unit == UNITS_GRAMS && amount > oldAmount) {
+  } else if (unit == OOMassUnit::kGrams && amount > oldAmount) {
     OOCargoQuantity safeAmount = available * GRAMS_PER_POD + MAX_GRAMS_IN_SAFE;
     if (safeAmount < amount)
       amount = (safeAmount < oldAmount) ? oldAmount : safeAmount;
@@ -11265,16 +11268,16 @@ OOCargoQuantity PlayerEntity::cargoQuantityOnBoard() {
 
     OOMassUnit commodityUnits =
         (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(good)
-                                      : UNITS_TONS);
+                                      : OOMassUnit::kTons);
 
-    if (commodityUnits != UNITS_TONS) {
+    if (commodityUnits != OOMassUnit::kTons) {
       // calculate the number of pods that would be used
       // we're using integer math, so 99/100 = 0 ,  100/100 = 1, etc...
 
       assert(KILOGRAMS_PER_POD > MAX_KILOGRAMS_IN_SAFE &&
              GRAMS_PER_POD > MAX_GRAMS_IN_SAFE);  // otherwise we're in trouble!
 
-      if (commodityUnits == UNITS_KILOGRAMS)
+      if (commodityUnits == OOMassUnit::kKilograms)
         quantity =
             ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + quantity) /
             KILOGRAMS_PER_POD;
@@ -11445,7 +11448,7 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row,
       (localMarket != nullptr ? localMarket->priceForGood(good) : 0);
   OOMassUnit unit =
       (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(good)
-                                    : UNITS_TONS);
+                                    : OOMassUnit::kTons);
 
   const std::string available = cxx_OOPadStringToEms(
       ((available_units > 0)
@@ -11859,7 +11862,7 @@ void PlayerEntity::setGuiToMarketInfoScreen() {
       OOMassUnit unit =
           (shipCommodityData != nullptr
                ? shipCommodityData->massUnitForGood(selectedCommodity)
-               : UNITS_TONS);
+               : OOMassUnit::kTons);
       gui->setColor(
           gui->colorFromSetting(cxx_kGuiMarketContractedColor, nullptr).get(),
           GUI_ROW_MARKET_START + 1);
@@ -11938,9 +11941,9 @@ bool PlayerEntity::tryBuyingCommodity(const std::string& index, bool all) {
       (localMarket != nullptr ? localMarket->priceForGood(index) : 0);
   OOMassUnit unit =
       (localMarket != nullptr ? localMarket->massUnitForGood(index)
-                              : UNITS_TONS);
+                              : OOMassUnit::kTons);
 
-  if (specialCargo.has_value() && unit == UNITS_TONS) {
+  if (specialCargo.has_value() && unit == OOMassUnit::kTons) {
     return false;  // can't buy tons of stuff when carrying a specialCargo
   }
   int manifest_quantity =
@@ -11967,7 +11970,7 @@ bool PlayerEntity::tryBuyingCommodity(const std::string& index, bool all) {
     purchase = floor(credits / pricePerUnit);  // limit to what's affordable
   }
   // TODO - fix brokenness here...
-  if (unit == UNITS_TONS &&
+  if (unit == OOMassUnit::kTons &&
       purchase + current_cargo > maxAvailableCargoSpace()) {
     purchase = availableCargoSpace();  // limit to available cargo space
   } else {
@@ -11975,14 +11978,14 @@ bool PlayerEntity::tryBuyingCommodity(const std::string& index, bool all) {
       // other cases are fine so long as buying is limited to <1000kg /
       // <1000000g but if this case is true, we need to see if there is more
       // space in the manifest (safe) or an already-accounted-for pod
-      if (unit == UNITS_KILOGRAMS) {
+      if (unit == OOMassUnit::kKilograms) {
         if (manifest_quantity % KILOGRAMS_PER_POD <= MAX_KILOGRAMS_IN_SAFE &&
             (manifest_quantity + purchase) % KILOGRAMS_PER_POD >
                 MAX_KILOGRAMS_IN_SAFE) {
           // going from < n500 to >= n500 would increase pods needed by 1
           purchase = MAX_KILOGRAMS_IN_SAFE - manifest_quantity;  // max possible
         }
-      } else  // UNITS_GRAMS
+      } else  // OOMassUnit::kGrams
       {
         if (manifest_quantity % GRAMS_PER_POD <= MAX_GRAMS_IN_SAFE &&
             (manifest_quantity + purchase) % GRAMS_PER_POD >

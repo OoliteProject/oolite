@@ -188,7 +188,7 @@ OOCargoQuantity OOCommodityMarket::quantityForGood(const std::string& good) {
 OOMassUnit OOCommodityMarket::massUnitForGood(const std::string& good) {
   const oo::PList* definition = definitionPointerForGood(good);
   if (definition == nullptr) {
-    return UNITS_TONS;
+    return OOMassUnit::kTons;
   }
   return OOMassUnitFromNumber(definition->get<unsigned int>(kContainer));
 }

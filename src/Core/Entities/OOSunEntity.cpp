@@ -703,7 +703,7 @@ bool OOSunEntity::changeSunProperty(const std::string& key,
   return true;
 }
 
-OOStellarBodyType OOSunEntity::planetType() { return STELLAR_TYPE_SUN; }
+OOStellarBodyType OOSunEntity::planetType() { return OOStellarBodyType::kSun; }
 
 void OOSunEntity::getDiffuseComponents(GLfloat components[4]) {
   OOCParameterAssert(components != nullptr);

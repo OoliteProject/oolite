@@ -1680,12 +1680,12 @@ bool JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter) {
     switch (static_cast<OOPlanetEntity*>(entity)
                 ->planetType())  // a planet: not nil
     {
-      case STELLAR_TYPE_MOON:
-      case STELLAR_TYPE_NORMAL_PLANET:
-      case STELLAR_TYPE_SUN:
+      case OOStellarBodyType::kMoon:
+      case OOStellarBodyType::kNormalPlanet:
+      case OOStellarBodyType::kSun:
         return true;
 
-      case STELLAR_TYPE_MINIATURE:
+      case OOStellarBodyType::kMiniature:
         return false;
     }
   }

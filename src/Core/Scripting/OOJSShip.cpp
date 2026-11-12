@@ -3316,15 +3316,15 @@ static JSValue ShipSetCargoType(OOJS_NATIVE_ARGS) {
   }
   bool ok = true;
   if (*cargoType == "SCARCE_GOODS") {
-    ship->setCargoFlag(CARGO_FLAG_FULL_SCARCE);
+    ship->setCargoFlag(OOCargoFlag::kFullScarce);
   } else if (*cargoType == "PLENTIFUL_GOODS") {
-    ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+    ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
   } else if (*cargoType == "MEDICAL_GOODS") {
-    ship->setCargoFlag(CARGO_FLAG_FULL_MEDICAL);
+    ship->setCargoFlag(OOCargoFlag::kFullMedical);
   } else if (*cargoType == "ILLEGAL_GOODS") {
-    ship->setCargoFlag(CARGO_FLAG_FULL_CONTRABAND);
+    ship->setCargoFlag(OOCargoFlag::kFullContraband);
   } else if (*cargoType == "PIRATE_GOODS") {
-    ship->setCargoFlag(CARGO_FLAG_PIRATE);
+    ship->setCargoFlag(OOCargoFlag::kPirate);
   } else {
     ok = false;
   }

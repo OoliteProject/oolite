@@ -1325,7 +1325,7 @@ void ShipEntity::setCourseToPlanet() {
   ::OOPlanetEntity* the_planet = findNearestPlanetExcludingMoons();
   if (the_planet) {
     double variation =
-        (aegis_status == AEGIS_NONE
+        (aegis_status == OOAegisStatus::kNone
              ? 0.5
              : 0.2);  // more random deviation when far from planet.
     HPVector p_pos = the_planet->position;
@@ -1451,7 +1451,7 @@ void ShipEntity::checkCourseToDestination() {
   if (hazard == nullptr ||
       (oo::EntityIsShip(hazard) &&
        HPdistance(position, hazard->getPosition()) > scannerRange) ||
-      (oo::EntityIsPlanet(hazard) && aegis_status == AEGIS_NONE)) {
+      (oo::EntityIsPlanet(hazard) && aegis_status == OOAegisStatus::kNone)) {
     if (shipAI != nullptr) shipAI->message("COURSE_OK");
   }  // Avoid going into a waypoint.plist for far away objects, it cripples the
      // main AI a bit in its funtionality.
@@ -1475,21 +1475,21 @@ void ShipEntity::checkCourseToDestination() {
 
 void ShipEntity::checkAegis() {
   switch (aegis_status) {
-    case AEGIS_CLOSE_TO_MAIN_PLANET:
+    case OOAegisStatus::kCloseToMainPlanet:
       if (shipAI != nullptr) shipAI->message("AEGIS_CLOSE_TO_MAIN_PLANET");
       // It's been a few years since 1.71 - it should be safe enough to comment
       // out the line below for 1.77/1.78 -- Kaks 20120917
       //[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for
       // main planets, kept for compatibility with pre-1.72 AI plists.
       return;
-    case AEGIS_CLOSE_TO_ANY_PLANET: {
+    case OOAegisStatus::kCloseToAnyPlanet: {
       Entity* nearest = findNearestStellarBody();
 
       if (nearest != nullptr && nearest->isSun()) {
         if (shipAI != nullptr) shipAI->message("CLOSE_TO_SUN");
       } else {
         if (shipAI != nullptr) shipAI->message("CLOSE_TO_PLANET");
-        if (OOStellarBodyPlanetType(nearest) == STELLAR_TYPE_MOON) {
+        if (OOStellarBodyPlanetType(nearest) == OOStellarBodyType::kMoon) {
           if (shipAI != nullptr) shipAI->message("CLOSE_TO_MOON");
         } else {
           if (shipAI != nullptr) shipAI->message("CLOSE_TO_SECONDARY_PLANET");
@@ -1497,10 +1497,10 @@ void ShipEntity::checkAegis() {
       }
       return;
     }
-    case AEGIS_IN_DOCKING_RANGE:
+    case OOAegisStatus::kInDockingRange:
       if (shipAI != nullptr) shipAI->message("AEGIS_IN_DOCKING_RANGE");
       return;
-    case AEGIS_NONE:
+    case OOAegisStatus::kNone:
       if (shipAI != nullptr) shipAI->message("AEGIS_NONE");
       return;
   }
@@ -1509,7 +1509,7 @@ void ShipEntity::checkAegis() {
          "Aegis status for {} has taken on invalid value {}. This is an "
          "internal error, please report it.",
          oo::EntityDescription(this), static_cast<int>(aegis_status));
-  aegis_status = AEGIS_NONE;
+  aegis_status = OOAegisStatus::kNone;
   if (shipAI != nullptr) shipAI->message("AEGIS_NONE");
 }
 

@@ -1088,10 +1088,10 @@ bool PlayerEntity::awardContract(unsigned qty, const std::string& type,
   OOCargoQuantity cargoSpaceRequired = qty;
   OOMassUnit contractCargoUnits =
       (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type)
-                                    : UNITS_TONS);
+                                    : OOMassUnit::kTons);
 
-  if (contractCargoUnits == UNITS_KILOGRAMS) cargoSpaceRequired /= 1000;
-  if (contractCargoUnits == UNITS_GRAMS) cargoSpaceRequired /= 1000000;
+  if (contractCargoUnits == OOMassUnit::kKilograms) cargoSpaceRequired /= 1000;
+  if (contractCargoUnits == OOMassUnit::kGrams) cargoSpaceRequired /= 1000000;
 
   if (cargoSpaceRequired > availableCargoSpace()) return false;
 

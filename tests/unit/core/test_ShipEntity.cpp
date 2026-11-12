@@ -1684,9 +1684,9 @@ OO_TEST(weaponAndScannerValues)
 		if (ship != nullptr)  ship->setReportAIMessages(true);
 		OO_CHECK((ship != nullptr ? ship->getReportAIMessages() : false));
 
-		SetAegisStatus(ship, AEGIS_IN_DOCKING_RANGE);
+		SetAegisStatus(ship, OOAegisStatus::kInDockingRange);
 		if (ship != nullptr)  ship->transitionToAegisNone();
-		OO_CHECK(AegisStatus(ship) == AEGIS_NONE);
+		OO_CHECK(AegisStatus(ship) == OOAegisStatus::kNone);
 	}
 }
 
@@ -1701,7 +1701,7 @@ OO_TEST(aegisSystemsAndStatus)
 		if (ship != nullptr)  ship->forceAegisCheck();
 		OO_CHECK(NextAegisCheck(ship) == -1.0);
 		OO_CHECK(!(ship != nullptr ? ship->withinStationAegis() : false));
-		SetAegisStatus(ship, AEGIS_IN_DOCKING_RANGE);
+		SetAegisStatus(ship, OOAegisStatus::kInDockingRange);
 		OO_CHECK((ship != nullptr ? ship->withinStationAegis() : false));
 
 		OO_CHECK((ship != nullptr ? ship->lastAegisLock() : (Entity *)nullptr) == nullptr);
@@ -1857,8 +1857,8 @@ OO_TEST(commoditiesAndCargo)
 
 		OO_CHECK((ship != nullptr ? ship->cargoFlag() : OOCargoFlag{}) == (OOCargoFlag)0 && !(ship != nullptr ? ship->showScoopMessage() : false));	// TestShip skips the set-up that reads both
 		if (ship != nullptr)  ship->setMaxAvailableCargoSpace(0);
-		if (ship != nullptr)  ship->setCargoFlag(CARGO_FLAG_FULL_PASSENGERS);		// no room: no cargo
-		OO_CHECK((ship != nullptr ? ship->cargoFlag() : OOCargoFlag{}) == CARGO_FLAG_FULL_PASSENGERS && (ship != nullptr ? ship->cargoCount() : 0) == 0);
+		if (ship != nullptr)  ship->setCargoFlag(OOCargoFlag::kFullPassengers);		// no room: no cargo
+		OO_CHECK((ship != nullptr ? ship->cargoFlag() : OOCargoFlag{}) == OOCargoFlag::kFullPassengers && (ship != nullptr ? ship->cargoCount() : 0) == 0);
 	}
 }
 

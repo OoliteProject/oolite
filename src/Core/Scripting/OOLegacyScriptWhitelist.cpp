@@ -224,7 +224,7 @@ static oo::PList SanitizeCondition(const std::string& condition,
   selectorString = tokens[0];
   opType =
       ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString);
-  if (opType >= OP_INVALID) {
+  if (opType >= OOOperationType::kInvalid) {
     OO_LOG("script.unpermittedMethod",
            "***** SCRIPT ERROR: in {} (\"{}\"), method \"{}\" not allowed.",
            StringFromStack(stack), condition, selectorString);
@@ -235,18 +235,18 @@ static oo::PList SanitizeCondition(const std::string& condition,
   if (tokenCount > 1) {
     comparatorString = tokens[1];
     if (comparatorString == "equal")
-      comparatorValue = COMPARISON_EQUAL;
+      comparatorValue = OOComparisonType::kEqual;
     else if (comparatorString == "notequal")
-      comparatorValue = COMPARISON_NOTEQUAL;
+      comparatorValue = OOComparisonType::kNotEqual;
     else if (comparatorString == "lessthan")
-      comparatorValue = COMPARISON_LESSTHAN;
+      comparatorValue = OOComparisonType::kLessThan;
     else if (comparatorString == "greaterthan" ||
              comparatorString == "morethan")
-      comparatorValue = COMPARISON_GREATERTHAN;
+      comparatorValue = OOComparisonType::kGreaterThan;
     else if (comparatorString == "oneof")
-      comparatorValue = COMPARISON_ONEOF;
+      comparatorValue = OOComparisonType::kOneOf;
     else if (comparatorString == "undefined")
-      comparatorValue = COMPARISON_UNDEFINED;
+      comparatorValue = OOComparisonType::kUndefined;
     else {
       OO_LOG("script.debug.syntax.badComparison",
              "***** SCRIPT ERROR: in {} (\"{}\"), unknown comparison operator "
@@ -268,17 +268,18 @@ static oo::PList SanitizeCondition(const std::string& condition,
   }
 
   // Check for invalid opType/comparator combinations.
-  if (opType == OP_NUMBER && comparatorValue == COMPARISON_UNDEFINED) {
+  if (opType == OOOperationType::kNumber &&
+      comparatorValue == OOComparisonType::kUndefined) {
     OO_LOG("script.debug.syntax.invalidOperator",
            "***** SCRIPT ERROR: in {} (\"{}\"), comparison operator \"{}\" is "
            "not valid for {}.",
            StringFromStack(stack), condition, "undefined", "numbers");
     return oo::PList();
-  } else if (opType == OP_BOOL) {
+  } else if (opType == OOOperationType::kBool) {
     switch (comparatorValue) {
       // Valid comparators
-      case COMPARISON_EQUAL:
-      case COMPARISON_NOTEQUAL:
+      case OOComparisonType::kEqual:
+      case OOComparisonType::kNotEqual:
         break;
 
       default:
@@ -339,10 +340,12 @@ static oo::PList SanitizeCondition(const std::string& condition,
   // gives back +numberWithUnsignedLongLong: (same value; the consumers read
   // -unsignedIntValue).
   return oo::PList(oo::PList::Array{
-      oo::PList::unsignedInteger(opType), oo::PList(rawString),
+      oo::PList::unsignedInteger(oo::ToUnderlying(opType)),
+      oo::PList(rawString),
       oo::PList(sanitizedSelectorString ? *sanitizedSelectorString
                                         : std::string()),
-      oo::PList::unsignedInteger(comparatorValue), oo::PList(std::move(rhs))});
+      oo::PList::unsignedInteger(oo::ToUnderlying(comparatorValue)),
+      oo::PList(std::move(rhs))});
 }
 }  // namespace
 
@@ -467,26 +470,31 @@ static OOOperationType ClassifyLHSConditionSelector(
   *outSanitizedSelector = selectorString;
 
   // Allow arbitrary mission_foo or local_foo pseudo-selectors.
-  if (oo::str::hasPrefix(selectorString, "mission_")) return OP_MISSION_VAR;
-  if (oo::str::hasPrefix(selectorString, "local_")) return OP_LOCAL_VAR;
+  if (oo::str::hasPrefix(selectorString, "mission_"))
+    return OOOperationType::kMissionVar;
+  if (oo::str::hasPrefix(selectorString, "local_"))
+    return OOOperationType::kLocalVar;
 
   // If it's a real method, check against whitelist.
   *outSanitizedSelector = SanitizeQueryMethod(selectorString);
   if (!*outSanitizedSelector) {
-    return OP_INVALID;
+    return OOOperationType::kInvalid;
   }
 
   // If it's a real method, and in the whitelist, classify by suffix.
-  if (oo::str::hasSuffix(selectorString, "_string")) return OP_STRING;
-  if (oo::str::hasSuffix(selectorString, "_number")) return OP_NUMBER;
-  if (oo::str::hasSuffix(selectorString, "_bool")) return OP_BOOL;
+  if (oo::str::hasSuffix(selectorString, "_string"))
+    return OOOperationType::kString;
+  if (oo::str::hasSuffix(selectorString, "_number"))
+    return OOOperationType::kNumber;
+  if (oo::str::hasSuffix(selectorString, "_bool"))
+    return OOOperationType::kBool;
 
   // If we got here, something's wrong.
   OO_LOG("script.sanitize.unclassifiedSelector",
          "***** ERROR: Whitelisted query method \"{}\" has no type suffix, "
          "treating as invalid.",
          selectorString);
-  return OP_INVALID;
+  return OOOperationType::kInvalid;
 }
 }  // namespace
 
@@ -619,8 +627,9 @@ static oo::PList AlwaysFalseConditions() {
   */
   static oo::PList alwaysFalse;
   if (!alwaysFalse.isNull()) {
-    alwaysFalse = oo::PList(oo::PList::Array{
-        oo::PList(oo::PList::Array{oo::PList::unsignedInteger(OP_FALSE)})});
+    alwaysFalse = oo::PList(
+        oo::PList::Array{oo::PList(oo::PList::Array{oo::PList::unsignedInteger(
+            oo::ToUnderlying(OOOperationType::kFalse))})});
   }
 
   return alwaysFalse;
@@ -634,7 +643,8 @@ static bool IsAlwaysFalseConditions(const oo::PList& conditions) {
   const oo::PList* first = conditions.at(0);
   oo::PList firstCondition =
       (first != nullptr && first->isArray()) ? *first : oo::PList();
-  return firstCondition.at<unsigned int>(0) == OP_FALSE;
+  return firstCondition.at<unsigned int>(0) ==
+         oo::ToUnderlying(OOOperationType::kFalse);
 }
 }  // namespace
 

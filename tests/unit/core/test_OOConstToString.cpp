@@ -290,7 +290,7 @@ OO_TEST(massUnitOfACommodity) {
   {
     LoadEquipment();
 
-    // No market: a message to nil answered 0, UNITS_TONS.
+    // No market: a message to nil answered 0, OOMassUnit::kTons.
     gSharedUniverse->market = nullptr;
     OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") ==
              std::optional<std::string>("t"));
@@ -315,7 +315,7 @@ OO_TEST(massUnitOfACommodity) {
     OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("unobtainium") ==
              std::optional<std::string>("t"));
     OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("alloys") ==
-             cxx_DisplayStringForMassUnit(UNITS_UNKNOWN));
+             cxx_DisplayStringForMassUnit(OOMassUnit::kUnknown));
 
     gSharedUniverse->market = nullptr;
   }

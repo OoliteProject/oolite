@@ -272,8 +272,8 @@ OO_TEST(goods)
 		OO_CHECK(c->goodDefined("food") && !c->goodDefined("junk") && !c->goodDefined("unobtainium"));
 		OO_CHECK(expect(c->goodNamed("<Furs>").value_or("-")));
 		OO_CHECK(expect(c->goodNamed("Furs").value_or("-")));
-		OO_CHECK(c->massUnitForGood("food") == UNITS_TONS && c->massUnitForGood("furs") == UNITS_KILOGRAMS && c->massUnitForGood("gems") == UNITS_GRAMS);
-		OO_CHECK(c->massUnitForGood("junk") == UNITS_TONS && c->massUnitForGood("unobtainium") == UNITS_TONS);
+		OO_CHECK(c->massUnitForGood("food") == OOMassUnit::kTons && c->massUnitForGood("furs") == OOMassUnit::kKilograms && c->massUnitForGood("gems") == OOMassUnit::kGrams);
+		OO_CHECK(c->massUnitForGood("junk") == OOMassUnit::kTons && c->massUnitForGood("unobtainium") == OOMassUnit::kTons);
 		std::string random;
 		for (int i = 0; i < 8; i++)  random += c->getRandomCommodity() + " ";
 		OO_CHECK(expect(random));
@@ -372,7 +372,7 @@ OO_TEST(cxxClass)
 		OO_CHECK(c->count() == 4 && c->goods() == std::vector<std::string>({ "food", "furs", "gems", "junk" }));
 		OO_CHECK(c->goodDefined("furs") && !c->goodDefined("junk"));
 		OO_CHECK(c->goodNamed("<Gem-stones>") == std::optional<std::string>("gems"));
-		OO_CHECK(c->massUnitForGood("gems") == UNITS_GRAMS);
+		OO_CHECK(c->massUnitForGood("gems") == OOMassUnit::kGrams);
 		OO_CHECK(OOCommodities::legacyCommodityType(11) == std::optional<std::string>("furs"));
 
 		// Its markets are C++ markets; the same answers as above.
