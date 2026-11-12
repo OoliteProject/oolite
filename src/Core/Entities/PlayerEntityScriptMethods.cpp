@@ -117,18 +117,19 @@ void PlayerEntity::awardCommodityType(const std::string& type,
 
   unit =
       (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type)
-                                    : UNITS_TONS);
+                                    : OOMassUnit::kTons);
 
   if (status() != STATUS_DOCKED) {
     // in-flight
     while (amount) {
-      if (unit != UNITS_TONS) {
+      if (unit != OOMassUnit::kTons) {
         if (specialCargo) {
           // is this correct behaviour?
           if (shipCommodityData != nullptr)
             shipCommodityData->addQuantity(amount, type);
         } else {
-          int amount_per_container = (unit == UNITS_KILOGRAMS) ? 1000 : 1000000;
+          int amount_per_container =
+              (unit == OOMassUnit::kKilograms) ? 1000 : 1000000;
           while (amount > 0) {
             int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
             if (cargo.size() < maxAvailableCargoSpace()) {
@@ -183,7 +184,7 @@ void PlayerEntity::awardCommodityType(const std::string& type,
     while ((amount) && (current_cargo < maxAvailableCargoSpace())) {
       manifest_quantity++;
       amount--;
-      if (unit == UNITS_TONS) current_cargo++;
+      if (unit == OOMassUnit::kTons) current_cargo++;
     }
     if (shipCommodityData != nullptr)
       shipCommodityData->setQuantity(manifest_quantity, type);

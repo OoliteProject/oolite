@@ -95,10 +95,7 @@ class StickProfileScreen;  // PlayerEntityStickProfile.h
 // header).
 #include "OOEntityEnums.h"
 
-typedef enum {
-  OOPRIMEDEQUIP_ACTIVATED,
-  OOPRIMEDEQUIP_MODE
-} OOPrimedEquipmentMode;
+enum class OOPrimedEquipmentMode : int { kActivated, kMode };
 
 typedef enum {
   OOSPEECHSETTINGS_OFF = 0,

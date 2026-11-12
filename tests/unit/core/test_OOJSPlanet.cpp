@@ -531,7 +531,7 @@ void SetUpContext()
 	InitOOJSPlanet(sContext, sGlobal);
 
 	sPlanet = NewPlanet();	// its object is kept for the life of the test
-	sPlanet->_type = STELLAR_TYPE_NORMAL_PLANET;
+	sPlanet->_type = OOStellarBodyType::kNormalPlanet;
 	sPlanet->_radius = 5000;
 	sPlanet->_name = "Lave";
 	sPlanet->_airColor = OOColor::colorWithRed(0.5f, 0.25f, 1, 1);
@@ -543,7 +543,7 @@ void SetUpContext()
 	sPlanet->_terminatorThresholdVector = make_vector(0.25, 1, 2);
 	TestObjectOf(sPlanet)->_orientation = make_quaternion(1, 0, 0, 0);
 	sMoon = NewPlanet();
-	sMoon->_type = STELLAR_TYPE_MOON;
+	sMoon->_type = OOStellarBodyType::kMoon;
 	sMoon->_radius = 1000;
 	sUniverse = new FakeUniverse();
 	sUniverse->_planet = sPlanet;
@@ -612,10 +612,10 @@ OO_TEST(category)
 	OO_CHECK(TestObjectOf(sMoon)->isVisibleToScripts());
 	OOPlanetEntity *mini = NewPlanet();
 	oo::autorelease(TestObjectOf(mini));
-	mini->_type = STELLAR_TYPE_MINIATURE;
+	mini->_type = OOStellarBodyType::kMiniature;
 	OO_CHECK(TestObjectOf(mini)->cxx_oo_jsClassName() == std::optional<std::string>("Unknown"));
 	OO_CHECK(!TestObjectOf(mini)->isVisibleToScripts());
-	mini->_type = STELLAR_TYPE_SUN;
+	mini->_type = OOStellarBodyType::kSun;
 	OO_CHECK(!TestObjectOf(mini)->isVisibleToScripts());
 }
 

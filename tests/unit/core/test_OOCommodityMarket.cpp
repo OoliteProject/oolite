@@ -113,11 +113,11 @@ OO_TEST(goodsAndDefinitions) {
              m->priceForGood("unobtainium") == 0);
     OO_CHECK(m->quantityForGood("food") == 20 &&
              m->quantityForGood("unobtainium") == 0);
-    OO_CHECK(m->massUnitForGood("food") == UNITS_TONS &&
-             m->massUnitForGood("furs") == UNITS_KILOGRAMS &&
-             m->massUnitForGood("gems") == UNITS_GRAMS);
-    OO_CHECK(m->massUnitForGood("alloys") == UNITS_UNKNOWN &&
-             m->massUnitForGood("unobtainium") == UNITS_TONS);
+    OO_CHECK(m->massUnitForGood("food") == OOMassUnit::kTons &&
+             m->massUnitForGood("furs") == OOMassUnit::kKilograms &&
+             m->massUnitForGood("gems") == OOMassUnit::kGrams);
+    OO_CHECK(m->massUnitForGood("alloys") == OOMassUnit::kUnknown &&
+             m->massUnitForGood("unobtainium") == OOMassUnit::kTons);
     OO_CHECK(m->exportLegalityForGood("furs") == 1 &&
              m->importLegalityForGood("furs") == 2);
     OO_CHECK(m->exportLegalityForGood("food") == 0 &&

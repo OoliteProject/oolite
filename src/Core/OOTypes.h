@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <cstdint>
+
+#include "OOEnumFlags.h"
 #include "OOFunctionAttributes.h"
 #ifndef OO_PLAIN_CPP_UNIT
 #include "OOFoundation.h"
@@ -62,12 +65,13 @@ typedef enum {
 
 #undef ENTRY
 
-typedef enum {
-  AEGIS_NONE,
-  AEGIS_CLOSE_TO_ANY_PLANET,
-  AEGIS_CLOSE_TO_MAIN_PLANET,
-  AEGIS_IN_DOCKING_RANGE
-} OOAegisStatus;
+// Encoded "i" (OOTypeEncodings.h): a by-name call answers it as a number.
+enum class OOAegisStatus : std::int32_t {
+  kNone,
+  kCloseToAnyPlanet,
+  kCloseToMainPlanet,
+  kInDockingRange
+};
 
 typedef enum {
   CARGO_NOT_CARGO = -1,
@@ -107,24 +111,28 @@ Everything else is data-driven. COMMODITY_FOOD,		//	=  0
 typedef std::ptrdiff_t OOCommodityType;
 */
 
-typedef enum {
-  CARGO_FLAG_NONE = 400,
-  CARGO_FLAG_FULL_PLENTIFUL = 501,
-  CARGO_FLAG_FULL_SCARCE = 502,
-  CARGO_FLAG_FULL_MEDICAL = 503,
-  CARGO_FLAG_FULL_CONTRABAND = 504,
-  CARGO_FLAG_PIRATE = 505,
-  CARGO_FLAG_FULL_UNIFORM = 510,
-  CARGO_FLAG_CANISTERS = 600,
-  CARGO_FLAG_FULL_PASSENGERS = 700
-} OOCargoFlag;
+enum class OOCargoFlag : int {
+  kNone = 400,
+  kFullPlentiful = 501,
+  kFullScarce = 502,
+  kFullMedical = 503,
+  kFullContraband = 504,
+  kPirate = 505,
+  kFullUniform = 510,
+  kCanisters = 600,
+  kFullPassengers = 700
+};
 
-typedef enum {
-  UNITS_TONS,
-  UNITS_KILOGRAMS,
-  UNITS_GRAMS,
-  UNITS_UNKNOWN  // a quantity_unit that is none of the above; displays as "??"
-} OOMassUnit;
+// trade-goods.plist's quantity_unit numbers (OOMassUnitFromNumber).
+enum class OOMassUnit : unsigned {
+  kTons,
+  kKilograms,
+  kGrams,
+  kUnknown  // a quantity_unit that is none of the above; displays as "??"
+};
+static_assert(oo::ToUnderlying(OOMassUnit::kTons) == 0);
+static_assert(oo::ToUnderlying(OOMassUnit::kKilograms) == 1);
+static_assert(oo::ToUnderlying(OOMassUnit::kGrams) == 2);
 
 typedef enum {
   ENERGY_UNIT_NONE,

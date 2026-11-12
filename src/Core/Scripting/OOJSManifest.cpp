@@ -217,13 +217,13 @@ static bool ManifestSetProperty(JSContext* context, JSValueConst thisObj,
 
   OOCommodityMarket* market =
       (UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket() : nullptr);
-  OOMassUnit unit =
-      (market != nullptr)
-          ? market->massUnitForGood(key)
-          : UNITS_TONS;  // UNITS_TONS (0): what a message to nil answered
+  OOMassUnit unit = (market != nullptr)
+                        ? market->massUnitForGood(key)
+                        : OOMassUnit::kTons;  // OOMassUnit::kTons (0): what a
+                                              // message to nil answered
   // we can always change gold, platinum & gem-stones quantities, even with
   // special cargo
-  if (unit == UNITS_TONS &&
+  if (unit == OOMassUnit::kTons &&
       (entity != nullptr ? entity->PlayerEntity::getSpecialCargo()
                          : std::optional<std::string>())
           .has_value())  // qualified: the final overrider, so the binding test

@@ -108,12 +108,11 @@ struct OOEntityFacadeRow {
    retain, release,
    ...) is answered but never called.
 */
-enum OOEntityObjectNameKind : std::uint8_t {
-  kOOEntityObjectSignature,  // no signature a by-name call can use: logged
-  kOOEntityObjectCalled,     // a root-entity row's method with no argument: the
-                             // row's body, called
-  kOOEntityObjectLifetime  // a root-class or lifetime method: answered, logged,
-                           // never called
+enum class OOEntityObjectNameKind : std::uint8_t {
+  kSignature,  // no signature a by-name call can use: logged
+  kCalled,     // a root-entity row's method with no argument: the row's body,
+               // called
+  kLifetime  // a root-class or lifetime method: answered, logged, never called
 };
 
 struct OOEntityObjectName {

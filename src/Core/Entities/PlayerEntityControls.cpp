@@ -1536,7 +1536,8 @@ void PlayerEntity::pollFlightControls(double delta_t) {
         if (checkKeyPress(n_key_activate_equipment) ||
             joyButtonState[BUTTON_ACTIVATEEQUIPMENT]) {
           if (!activate_equipment_pressed) {
-            activatePrimableEquipment(primedEquipment, OOPRIMEDEQUIP_ACTIVATED);
+            activatePrimableEquipment(primedEquipment,
+                                      OOPrimedEquipmentMode::kActivated);
           }
           activate_equipment_pressed = true;
         } else
@@ -1548,7 +1549,8 @@ void PlayerEntity::pollFlightControls(double delta_t) {
         if (checkKeyPress(n_key_mode_equipment) ||
             joyButtonState[BUTTON_MODEEQUIPMENT]) {
           if (!mode_equipment_pressed) {
-            activatePrimableEquipment(primedEquipment, OOPRIMEDEQUIP_MODE);
+            activatePrimableEquipment(primedEquipment,
+                                      OOPrimedEquipmentMode::kMode);
           }
           mode_equipment_pressed = true;
         } else
@@ -1560,7 +1562,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           if (!fastactivate_a_pressed) {
             activatePrimableEquipment(
                 eqScriptIndexForKey(fastEquipmentA().value_or("")),
-                OOPRIMEDEQUIP_ACTIVATED);
+                OOPrimedEquipmentMode::kActivated);
           }
           fastactivate_a_pressed = true;
         } else
@@ -1572,7 +1574,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           if (!fastactivate_b_pressed) {
             activatePrimableEquipment(
                 eqScriptIndexForKey(fastEquipmentB().value_or("")),
-                OOPRIMEDEQUIP_ACTIVATED);
+                OOPrimedEquipmentMode::kActivated);
           }
           fastactivate_b_pressed = true;
         } else
@@ -1604,7 +1606,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
               if (!customActivatePressed[i]) {
                 // initate the activate JS code
                 activatePrimableEquipment(eqScriptIndexForKey(equipKey),
-                                          OOPRIMEDEQUIP_ACTIVATED);
+                                          OOPrimedEquipmentMode::kActivated);
               }
               customActivatePressed[i] = true;
             } else
@@ -1619,7 +1621,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
               if (!customModePressed[i]) {
                 // initiate the activate JS code
                 activatePrimableEquipment(eqScriptIndexForKey(equipKey),
-                                          OOPRIMEDEQUIP_MODE);
+                                          OOPrimedEquipmentMode::kMode);
               }
               customModePressed[i] = true;
             } else

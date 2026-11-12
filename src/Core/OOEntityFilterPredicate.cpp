@@ -113,7 +113,8 @@ bool IsStationPredicate(Entity* entity, void* /*parameter*/) {
 bool IsPlanetPredicate(Entity* entity, void* /*parameter*/) {
   if (!(entity != nullptr && entity->isPlanet())) return false;
   OOStellarBodyType type = OOStellarBodyPlanetType(entity);
-  return (type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON);
+  return (type == OOStellarBodyType::kNormalPlanet ||
+          type == OOStellarBodyType::kMoon);
 }
 
 bool IsSunPredicate(Entity* entity, void* /*parameter*/) {

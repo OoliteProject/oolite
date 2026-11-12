@@ -466,13 +466,13 @@ std::optional<std::string> cxx_DisplayStringForMassUnit(OOMassUnit unit) {
   // DESC() is Universe's description lookup (not migrated yet), converted at
   // the call.
   switch (unit) {
-    case UNITS_TONS:
+    case OOMassUnit::kTons:
       return OO_DESC("cargo-tons-symbol");
-    case UNITS_KILOGRAMS:
+    case OOMassUnit::kKilograms:
       return OO_DESC("cargo-kilograms-symbol");
-    case UNITS_GRAMS:
+    case OOMassUnit::kGrams:
       return OO_DESC("cargo-grams-symbol");
-    case UNITS_UNKNOWN:
+    case OOMassUnit::kUnknown:
       break;
   }
 
@@ -481,11 +481,12 @@ std::optional<std::string> cxx_DisplayStringForMassUnit(OOMassUnit unit) {
 
 std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(
     const std::string& commodity) {
-  // No market: -massUnitForGood: sent to nil answered 0, UNITS_TONS.
+  // No market: -massUnitForGood: sent to nil answered 0, OOMassUnit::kTons.
   OOCommodityMarket* market =
       (UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket() : nullptr);
-  return cxx_DisplayStringForMassUnit(
-      (market != nullptr) ? market->massUnitForGood(commodity) : UNITS_TONS);
+  return cxx_DisplayStringForMassUnit((market != nullptr)
+                                          ? market->massUnitForGood(commodity)
+                                          : OOMassUnit::kTons);
 }
 
 OORouteType cxx_StringToRouteType(const std::string& string) {

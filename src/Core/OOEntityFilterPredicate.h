@@ -88,7 +88,7 @@ bool IsStationPredicate(
 bool IsPlanetPredicate(
     Entity* entity,
     void* parameter);  // Parameter: ignored. Tests isPlanet and planetType ==
-                       // STELLAR_TYPE_NORMAL_PLANET.
+                       // OOStellarBodyType::kNormalPlanet.
 bool IsSunPredicate(Entity* entity,
                     void* parameter);  // Parameter: ignored. Tests isSun.
 bool IsVisualEffectPredicate(

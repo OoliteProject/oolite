@@ -50,28 +50,44 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "oofnd/PList.hpp"
 
 class OOScript;
 
-typedef enum {
-  COMPARISON_EQUAL,
-  COMPARISON_NOTEQUAL,
-  COMPARISON_LESSTHAN,
-  COMPARISON_GREATERTHAN,
-  COMPARISON_ONEOF,
-  COMPARISON_UNDEFINED
-} OOComparisonType;
+// A sanitized legacy condition stores both as plist unsigned integers
+// (OOLegacyScriptWhitelist.h), so their numbers are pinned.
+enum class OOComparisonType : unsigned {
+  kEqual,
+  kNotEqual,
+  kLessThan,
+  kGreaterThan,
+  kOneOf,
+  kUndefined
+};
+static_assert(oo::ToUnderlying(OOComparisonType::kEqual) == 0);
+static_assert(oo::ToUnderlying(OOComparisonType::kNotEqual) == 1);
+static_assert(oo::ToUnderlying(OOComparisonType::kLessThan) == 2);
+static_assert(oo::ToUnderlying(OOComparisonType::kGreaterThan) == 3);
+static_assert(oo::ToUnderlying(OOComparisonType::kOneOf) == 4);
+static_assert(oo::ToUnderlying(OOComparisonType::kUndefined) == 5);
 
-typedef enum {
-  OP_STRING,
-  OP_NUMBER,
-  OP_BOOL,
-  OP_MISSION_VAR,
-  OP_LOCAL_VAR,
-  OP_FALSE,
+enum class OOOperationType : unsigned {
+  kString,
+  kNumber,
+  kBool,
+  kMissionVar,
+  kLocalVar,
+  kFalse,
 
-  OP_INVALID  // Must be last.
-} OOOperationType;
+  kInvalid  // Must be last.
+};
+static_assert(oo::ToUnderlying(OOOperationType::kString) == 0);
+static_assert(oo::ToUnderlying(OOOperationType::kNumber) == 1);
+static_assert(oo::ToUnderlying(OOOperationType::kBool) == 2);
+static_assert(oo::ToUnderlying(OOOperationType::kMissionVar) == 3);
+static_assert(oo::ToUnderlying(OOOperationType::kLocalVar) == 4);
+static_assert(oo::ToUnderlying(OOOperationType::kFalse) == 5);
+static_assert(oo::ToUnderlying(OOOperationType::kInvalid) == 6);
 
 std::string cxx_OOComparisonTypeToString(OOComparisonType type);

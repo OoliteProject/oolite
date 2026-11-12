@@ -670,9 +670,9 @@ void OOPlanetEntity::setOrientation(Quaternion quat) {
 double OOPlanetEntity::radius() { return collision_radius; }
 
 OOStellarBodyType OOPlanetEntity::planetType() {
-  if (_miniature) return STELLAR_TYPE_MINIATURE;
-  if (_atmosphereDrawable != nullptr) return STELLAR_TYPE_NORMAL_PLANET;
-  return STELLAR_TYPE_MOON;
+  if (_miniature) return OOStellarBodyType::kMiniature;
+  if (_atmosphereDrawable != nullptr) return OOStellarBodyType::kNormalPlanet;
+  return OOStellarBodyType::kMoon;
 }
 
 oo::Ref<OOPlanetEntity> OOPlanetEntity::miniatureVersion() {
@@ -983,7 +983,7 @@ void OOPlanetEntity::launchShuttle() {
 
     if (shuttle_ship != nullptr) shuttle_ship->setScanClass(CLASS_NEUTRAL);
     if (shuttle_ship != nullptr)
-      shuttle_ship->setCargoFlag(CARGO_FLAG_FULL_PLENTIFUL);
+      shuttle_ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
     if (shuttle_ship != nullptr)
       shuttle_ship->switchAITo("oolite-shuttleAI.js");
     if (UNIVERSE != nullptr)

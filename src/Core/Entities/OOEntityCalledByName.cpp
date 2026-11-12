@@ -843,7 +843,7 @@ oo::PList CallObjectName(Entity* entity, const std::string& name,
                ObjectClassName(entity), name);
     return oo::PList();
   }
-  if (row->kind == kOOEntityObjectCalled && !hasArgument) {
+  if (row->kind == OOEntityObjectNameKind::kCalled && !hasArgument) {
     const OOEntityFacadeRow* facade = oo::EntityFacadeRowNamed(name);
     if (facade != nullptr && facade->typed != nullptr) {
       OOEntityByNameValue ignored;

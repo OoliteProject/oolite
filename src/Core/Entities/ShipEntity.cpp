@@ -984,11 +984,11 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
       StringForKey(shipDict, "cargo_carried");
   if (cargoString.has_value()) {
     if (*cargoString == "SCARCE_GOODS") {
-      cargo_flag = CARGO_FLAG_FULL_SCARCE;
+      cargo_flag = OOCargoFlag::kFullScarce;
     } else if (*cargoString == "PLENTIFUL_GOODS") {
-      cargo_flag = CARGO_FLAG_FULL_PLENTIFUL;
+      cargo_flag = OOCargoFlag::kFullPlentiful;
     } else {
-      cargo_flag = CARGO_FLAG_FULL_UNIFORM;
+      cargo_flag = OOCargoFlag::kFullUniform;
 
       std::optional<std::string> c_commodity;
       int c_amount = 1;
@@ -2805,7 +2805,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
     if (_nextAegisCheck < distanceTravelled ||
         !vector_equal(OOEntityWithDrawable::getVelocity(), kZeroVector)) {
       aegis_status = checkForAegis();  // is a station or something nearby??
-      if (aegis_status == AEGIS_NONE) {
+      if (aegis_status == OOAegisStatus::kNone) {
         // in open space: check every km
         _nextAegisCheck = distanceTravelled + 1000.0;
       } else {
@@ -7230,7 +7230,7 @@ bool ShipEntity::getReportAIMessages() { return reportAIMessages; }
 void ShipEntity::setReportAIMessages(bool yn) { reportAIMessages = yn; }
 
 void ShipEntity::transitionToAegisNone() {
-  if (!suppressAegisMessages && aegis_status != AEGIS_NONE) {
+  if (!suppressAegisMessages && aegis_status != OOAegisStatus::kNone) {
     Entity* lastAegisLock = this->lastAegisLock();  // the C++ entity
     if (lastAegisLock != nullptr) {
       doScriptEvent(OOJSID("shipExitedPlanetaryVicinity"), lastAegisLock);
@@ -7242,11 +7242,11 @@ void ShipEntity::transitionToAegisNone() {
       }
     }
 
-    if (aegis_status != AEGIS_CLOSE_TO_ANY_PLANET) {
+    if (aegis_status != OOAegisStatus::kCloseToAnyPlanet) {
       if (shipAI != nullptr) shipAI->message("AEGIS_NONE");
     }
   }
-  aegis_status = AEGIS_NONE;
+  aegis_status = OOAegisStatus::kNone;
 }
 
 ::OOPlanetEntity* ShipEntity::findNearestPlanet() {
@@ -7269,7 +7269,7 @@ void ShipEntity::transitionToAegisNone() {
         planetRef.get());  // the list holds only planets
     // Ignore miniature planets.
     if ((planet != nullptr ? planet->planetType() : OOStellarBodyType{}) ==
-        STELLAR_TYPE_MINIATURE)
+        OOStellarBodyType::kMiniature)
       continue;
 
     float range = SurfaceDistanceSqaredV(myPosition, planetRef.get());
@@ -7303,7 +7303,8 @@ Entity* ShipEntity::findNearestStellarBody() {
   for (const auto& planet :
        (UNIVERSE != nullptr ? UNIVERSE->planets()
                             : std::vector<oo::EntityHold>())) {
-    if (OOStellarBodyPlanetType(planet.get()) == STELLAR_TYPE_NORMAL_PLANET)
+    if (OOStellarBodyPlanetType(planet.get()) ==
+        OOStellarBodyType::kNormalPlanet)
       planets.push_back(planet);
   }
 
@@ -7331,16 +7332,16 @@ OOAegisStatus ShipEntity::checkForAegis() {
            : false);
 
   if (nearest == nullptr) {
-    if (aegis_status != AEGIS_NONE) {
+    if (aegis_status != OOAegisStatus::kNone) {
       // Planet disappeared!
       transitionToAegisNone();
     }
-    return AEGIS_NONE;
+    return OOAegisStatus::kNone;
   }
   // check planet
   float cr = OOStellarBodyRadius(nearest);
   float cr2 = cr * cr;
-  OOAegisStatus result = AEGIS_NONE;
+  OOAegisStatus result = OOAegisStatus::kNone;
   float d2 =
       HPmagnitude2(HPvector_subtract(nearest->getPosition(), getPosition()));
   // not scannerRange: aegis shouldn't depend on that
@@ -7379,21 +7380,21 @@ OOAegisStatus ShipEntity::checkForAegis() {
   // again, notional scanner range is intentional
   if (sd2 < SCANNER_MAX_RANGE2 * 4.0f)  // double scanner range
   {
-    result = AEGIS_IN_DOCKING_RANGE;
+    result = OOAegisStatus::kInDockingRange;
   } else if (EXPECT_NOT(isNearPlanetSurface ||
                         d2 < cr2 * 9.0f))  // to 3x radius of any planet/moon -
                                            // or 500m of tiny ones,
   {
-    result = AEGIS_CLOSE_TO_ANY_PLANET;
+    result = OOAegisStatus::kCloseToAnyPlanet;
     if (EXPECT(nearest ==
                (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr))) {
-      result = AEGIS_CLOSE_TO_MAIN_PLANET;
+      result = OOAegisStatus::kCloseToMainPlanet;
     }
   }
   // need to do this check separately from above case to avoid oddity where
   // main planet and small moon are at just the wrong distance. - CIM
-  if (result != AEGIS_CLOSE_TO_MAIN_PLANET &&
-      result != AEGIS_IN_DOCKING_RANGE && !sunGoneNova) {
+  if (result != OOAegisStatus::kCloseToMainPlanet &&
+      result != OOAegisStatus::kInDockingRange && !sunGoneNova) {
     // are we also close to the main planet?
     ::OOPlanetEntity* mainPlanet =
         (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr);
@@ -7404,7 +7405,7 @@ OOAegisStatus ShipEntity::checkForAegis() {
     cr2 *= cr2;
     if (d2 < cr2 * 9.0f) {
       nearest = mainPlanet;  // the C++ planet
-      result = AEGIS_CLOSE_TO_MAIN_PLANET;
+      result = OOAegisStatus::kCloseToMainPlanet;
     }
   }
 
@@ -7421,13 +7422,13 @@ OOAegisStatus ShipEntity::checkForAegis() {
   */
   if (EXPECT(!suppressAegisMessages)) {
     // script/AI messages on change in status
-    if (EXPECT_NOT(aegis_status == AEGIS_IN_DOCKING_RANGE &&
+    if (EXPECT_NOT(aegis_status == OOAegisStatus::kInDockingRange &&
                    result != aegis_status)) {
       doScriptEvent(OOJSID("shipExitedStationAegis"), the_station);
       if (shipAI != nullptr) shipAI->message("AEGIS_LEAVING_DOCKING_RANGE");
     }
 
-    if (EXPECT_NOT(result == AEGIS_IN_DOCKING_RANGE &&
+    if (EXPECT_NOT(result == OOAegisStatus::kInDockingRange &&
                    aegis_status != result)) {
       doScriptEvent(OOJSID("shipEnteredStationAegis"), the_station);
       if (shipAI != nullptr) shipAI->message("AEGIS_IN_DOCKING_RANGE");
@@ -7440,7 +7441,8 @@ OOAegisStatus ShipEntity::checkForAegis() {
                       (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr));
         setLastAegisLock((UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr));
       }
-    } else if (EXPECT_NOT(result == AEGIS_NONE && aegis_status != result)) {
+    } else if (EXPECT_NOT(result == OOAegisStatus::kNone &&
+                          aegis_status != result)) {
       if (lastAegisLock() == nullptr && !sunGoneNova) {
         setLastAegisLock((UNIVERSE != nullptr
                               ? UNIVERSE->planet()
@@ -7450,10 +7452,10 @@ OOAegisStatus ShipEntity::checkForAegis() {
       transitionToAegisNone();
     }
     // approaching..
-    else if (EXPECT_NOT((result == AEGIS_CLOSE_TO_ANY_PLANET ||
-                         result == AEGIS_CLOSE_TO_MAIN_PLANET) &&
+    else if (EXPECT_NOT((result == OOAegisStatus::kCloseToAnyPlanet ||
+                         result == OOAegisStatus::kCloseToMainPlanet) &&
                         lastAegisLock() != nearest)) {
-      if (aegis_status != AEGIS_NONE &&
+      if (aegis_status != OOAegisStatus::kNone &&
           lastAegisLock() != nullptr)  // we were close to another stellar body
       {
         doScriptEvent(OOJSID("shipExitedPlanetaryVicinity"), lastAegisLock());
@@ -7471,7 +7473,7 @@ OOAegisStatus ShipEntity::checkForAegis() {
       } else {
         if (shipAI != nullptr) shipAI->message("CLOSE_TO_PLANET");
 
-        if (EXPECT(result == AEGIS_CLOSE_TO_MAIN_PLANET)) {
+        if (EXPECT(result == OOAegisStatus::kCloseToMainPlanet)) {
           // It's been years since 1.71 - it should be safe enough to comment
           // out the line below for 1.77/1.78 -- Kaks 20120917
           //[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	    // fires only for
@@ -7480,7 +7482,7 @@ OOAegisStatus ShipEntity::checkForAegis() {
             shipAI->message(
                 "AEGIS_CLOSE_TO_MAIN_PLANET");  // fires only for main planet.
         } else if (EXPECT_NOT(OOStellarBodyPlanetType(nearest) ==
-                              STELLAR_TYPE_MOON)) {
+                              OOStellarBodyType::kMoon)) {
           if (shipAI != nullptr) shipAI->message("CLOSE_TO_MOON");
         } else {
           if (shipAI != nullptr) shipAI->message("CLOSE_TO_SECONDARY_PLANET");
@@ -7488,7 +7490,7 @@ OOAegisStatus ShipEntity::checkForAegis() {
       }
     }
   }
-  if (result == AEGIS_NONE) {
+  if (result == OOAegisStatus::kNone) {
     setLastAegisLock(nullptr);
   }
 
@@ -7499,7 +7501,7 @@ OOAegisStatus ShipEntity::checkForAegis() {
 void ShipEntity::forceAegisCheck() { _nextAegisCheck = -1.0f; }
 
 bool ShipEntity::withinStationAegis() {
-  return aegis_status == AEGIS_IN_DOCKING_RANGE;
+  return aegis_status == OOAegisStatus::kInDockingRange;
 }
 
 // A planet or sun, the C++ entity: null, and forgotten, when its object is
@@ -7838,13 +7840,13 @@ void ShipEntity::setCommodityForPod(const std::optional<std::string>& co_type,
   OOCommodityMarket* market =
       (UNIVERSE != nullptr ? UNIVERSE->getCommodityMarket()
                            : nullptr);  // null: tons, as a message to nil
-  OOMassUnit unit =
-      (market != nullptr) ? market->massUnitForGood(*co_type) : UNITS_TONS;
-  if (unit == UNITS_TONS && co_amount > 1)
+  OOMassUnit unit = (market != nullptr) ? market->massUnitForGood(*co_type)
+                                        : OOMassUnit::kTons;
+  if (unit == OOMassUnit::kTons && co_amount > 1)
     co_amount = 1;
-  else if (unit == UNITS_KILOGRAMS && co_amount > 1000)
+  else if (unit == OOMassUnit::kKilograms && co_amount > 1000)
     co_amount = 1000;
-  else if (unit == UNITS_GRAMS && co_amount > 1000000)
+  else if (unit == OOMassUnit::kGrams && co_amount > 1000000)
     co_amount = 1000000;
   setCommodity(*co_type, co_amount);
 }
@@ -8001,7 +8003,7 @@ void ShipEntity::setCargoFlag(OOCargoFlag flag) {
     }
     if (num > 0) {
       switch (cargo_flag) {
-        case CARGO_FLAG_FULL_UNIFORM: {
+        case OOCargoFlag::kFullUniform: {
           const oo::PList& info = shipinfoDictionary;
           newCargo =
               (UNIVERSE != nullptr
@@ -8009,35 +8011,35 @@ void ShipEntity::setCargoFlag(OOCargoFlag flag) {
                          StringForKey(info, "cargo_carried").value_or(""), num)
                    : std::vector<oo::EntityHold>());
         } break;
-        case CARGO_FLAG_FULL_PLENTIFUL:
+        case OOCargoFlag::kFullPlentiful:
           newCargo = (UNIVERSE != nullptr
                           ? UNIVERSE->getContainersOfGoods(num, false, true)
                           : std::vector<oo::EntityHold>());
           break;
-        case CARGO_FLAG_FULL_SCARCE:
+        case OOCargoFlag::kFullScarce:
           newCargo = (UNIVERSE != nullptr
                           ? UNIVERSE->getContainersOfGoods(num, true, true)
                           : std::vector<oo::EntityHold>());
           break;
-        case CARGO_FLAG_FULL_MEDICAL:
+        case OOCargoFlag::kFullMedical:
           newCargo = (UNIVERSE != nullptr
                           ? UNIVERSE->getContainersOfCommodity("Narcotics", num)
                           : std::vector<oo::EntityHold>());
           break;
-        case CARGO_FLAG_FULL_CONTRABAND:
+        case OOCargoFlag::kFullContraband:
           newCargo = (UNIVERSE != nullptr
                           ? UNIVERSE->getContainersOfGoods(num, true, false)
                           : std::vector<oo::EntityHold>());
           break;
-        case CARGO_FLAG_PIRATE:
+        case OOCargoFlag::kPirate:
           newCargo = (UNIVERSE != nullptr
                           ? UNIVERSE->getContainersOfGoods(
                                 (Ranrot() % (1 + num / 2)), true, false)
                           : std::vector<oo::EntityHold>());
           break;
-        case CARGO_FLAG_FULL_PASSENGERS:
+        case OOCargoFlag::kFullPassengers:
           // TODO: allow passengers to survive
-        case CARGO_FLAG_NONE:
+        case OOCargoFlag::kNone:
         default:
           break;
       }
@@ -12236,7 +12238,7 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
     if (co_type.has_value()) {
       if (other != nullptr) other->setCommodity(*co_type, co_amount);
     }  // belt and braces setting this! (nil changed nothing)
-    cargo_flag = CARGO_FLAG_CANISTERS;
+    cargo_flag = OOCargoFlag::kCanisters;
 
     if (isPlayer) {
       const std::optional<std::vector<oo::Ref<OOCharacter>>> otherCrew =

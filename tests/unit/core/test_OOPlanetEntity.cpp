@@ -190,7 +190,7 @@ OO_TEST(moon)
 		OO_CHECK(moon->status() == STATUS_ACTIVE);
 		OO_CHECK(moon->getScanClass() == CLASS_NO_DRAW);
 		OO_CHECK(moon->isPlanet() && moon->isVisible());
-		OO_CHECK(moon->planetType() == STELLAR_TYPE_MOON);
+		OO_CHECK(moon->planetType() == OOStellarBodyType::kMoon);
 		OO_CHECK(!moon->hasAtmosphere());
 		OO_CHECK(moon->rotationalVelocity() == (double)0.02f);
 		OO_CHECK(QuaternionNear(moon->getOrientation(), (Quaternion){ (float)M_SQRT1_2, (float)M_SQRT1_2, 0, 0 }));
@@ -216,7 +216,7 @@ OO_TEST(planetWithAtmosphere)
 	{
 		SetUp();
 		OOPlanetEntity *planet = Planet(true);
-		OO_CHECK(planet->planetType() == STELLAR_TYPE_NORMAL_PLANET);
+		OO_CHECK(planet->planetType() == OOStellarBodyType::kNormalPlanet);
 		OO_CHECK(planet->hasAtmosphere());
 		// The dictionary's air colour, through its hue, saturation and brightness.
 		OOColor *air = planet->airColor();
@@ -297,7 +297,7 @@ OO_TEST(miniature)
 		OOPlanetEntity *planet = Planet(true);
 		OOPlanetEntity *mini = Miniature(planet);
 		OO_CHECK(mini != nullptr && mini != planet && dynamic_cast<OOPlanetEntity *>(static_cast<Entity *>(mini)) != nullptr);
-		OO_CHECK(mini->planetType() == STELLAR_TYPE_MINIATURE);
+		OO_CHECK(mini->planetType() == OOStellarBodyType::kMiniature);
 		OO_CHECK(mini->status() == STATUS_COCKPIT_DISPLAY);
 		OO_CHECK(mini->getScanClass() == CLASS_NO_DRAW);
 		OO_CHECK(Near(mini->radius(), 50000.0 * PLANET_MINIATURE_FACTOR));
@@ -307,7 +307,7 @@ OO_TEST(miniature)
 		Vector t = mini->terminatorThresholdVector();
 		OO_CHECK(Near(t.x, 0.105) && Near(t.y, 0.18) && Near(t.z, 0.28));
 		// The original is unchanged.
-		OO_CHECK(planet->radius() == 50000.0 && planet->planetType() == STELLAR_TYPE_NORMAL_PLANET);
+		OO_CHECK(planet->radius() == 50000.0 && planet->planetType() == OOStellarBodyType::kNormalPlanet);
 	}
 }
 
