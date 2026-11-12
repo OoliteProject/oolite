@@ -97,6 +97,7 @@ core_tests = {
     'test_OOCommodities': ['Core/OOCommodities.cpp', 'Core/OOCommodityMarket.cpp', 'Core/legacy_random.cpp'],
     'test_OOCommodityMarket': ['Core/OOCommodityMarket.cpp'],
     'test_OOEquipmentType': ['Core/OOEquipmentType.cpp', 'Core/OOColor.cpp'],
+    'test_EnumNameFallbacks': ['*'],
     'test_OOConstToString': ['Core/OOConstToString.cpp', 'Core/OOEquipmentType.cpp', 'Core/OOColor.cpp', 'Core/OOCommodityMarket.cpp'],
     'test_OOPriorityQueue': [],
     'test_OORoleSet': ['Core/OORoleSet.cpp', 'Core/legacy_random.cpp'],
