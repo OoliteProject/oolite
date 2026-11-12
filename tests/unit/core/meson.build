@@ -159,6 +159,7 @@ core_tests = {
     'test_Universe': ['*'],
     'test_ShipEntity': ['*'],
     'test_PlayerEntity': ['*'],
+    'test_SaveEnumValues': ['*'],
     'test_EntityScriptEvents': ['*'],	# upstream #780's script events
     'test_ProxyPlayerEntity': ['*'],
     'test_StationEntity': ['*'],
