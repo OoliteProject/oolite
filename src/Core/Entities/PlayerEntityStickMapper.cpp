@@ -218,6 +218,7 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
         return;
     }
     const bool* joyButtonState = stickHandler->getAllButtonStates();
+
     handleGUIUpDownArrowKeys();
     bool selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
 
@@ -489,7 +490,8 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip)
                 // -objectForKey: of a nil key found nothing
                 const oo::PList* assignedAxis = axFuncKey.has_value() ? assignedAxes.find(*axFuncKey) : nullptr;
                 const oo::PList* assignedButton = butFuncKey.has_value() ? assignedButs.find(*butFuncKey) : nullptr;
-                const oo::PList* assignedGuiButton = butFuncKey.has_value() ? assignedGuiButs.find(*butFuncKey) : nullptr;
+                const oo::PList* assignedGuiButton = butFuncKey.has_value() ? assignedGuiButs.find(*butFuncKey)
+                                                                            : nullptr;
                 int allowable = entry.get<int>(KEY_ALLOWABLE);
                 switch (allowable) {
                 case HW_AXIS:
@@ -523,7 +525,9 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip)
                     // axis has priority
                     assignment = describeStickDict(assignedAxis);
                     if (!assignment.has_value()) {
-                        int bf = butFuncKey.has_value() ? static_cast<int>(oo::str::longLongValue(*butFuncKey)) : 0; // -integerValue (nil: 0)
+                        bf = butFuncKey.has_value()
+                            ? static_cast<int>(oo::str::longLongValue(*butFuncKey))
+                            : 0; // -integerValue (nil: 0)
                         if (bf >= BUTTON_GUILEFT && bf <= BUTTON_GUISELECT) {
                             assignment = describeStickDict(assignedGuiButton);
                         } else {
@@ -711,20 +715,26 @@ std::vector<oo::PList> PlayerEntity::stickFunctionList()
         makeStickGuiDict(OO_DESC("stickmapper-fastactivate-b"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_ENERGYBOMB));
 
     funcList.push_back(makeStickGuiDictHeader(OO_DESC("stickmapper-header-gui")));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-left"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUILEFT));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-right"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUIRIGHT));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-up"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUIUP));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-down"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUIDOWN));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-page-up"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUIPAGEUP));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-page-down"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUIPAGEDOWN));
-    funcList.push_back(
-        makeStickGuiDict(OO_DESC("stickmapper-gui-select"), HW_BUTTON, STICK_NOFUNCTION, BUTTON_GUISELECT));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-left"),
+        HW_BUTTON, STICK_NOFUNCTION,
+        BUTTON_GUILEFT));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-right"),
+        HW_BUTTON, STICK_NOFUNCTION,
+        BUTTON_GUIRIGHT));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-up"), HW_BUTTON,
+        STICK_NOFUNCTION, BUTTON_GUIUP));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-down"),
+        HW_BUTTON, STICK_NOFUNCTION,
+        BUTTON_GUIDOWN));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-page-up"),
+        HW_BUTTON, STICK_NOFUNCTION,
+        BUTTON_GUIPAGEUP));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-page-down"),
+        HW_BUTTON, STICK_NOFUNCTION,
+        BUTTON_GUIPAGEDOWN));
+    funcList.push_back(makeStickGuiDict(OO_DESC("stickmapper-gui-select"),
+        HW_BUTTON, STICK_NOFUNCTION,
+        BUTTON_GUISELECT));
 
     // misc
     funcList.push_back(makeStickGuiDictHeader(OO_DESC("stickmapper-header-misc")));
