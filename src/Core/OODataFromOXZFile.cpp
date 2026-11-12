@@ -27,6 +27,8 @@ SOFTWARE.
 
 */
 
+#include <vector>
+
 #include "OOFoundation.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/String.hpp"
@@ -121,9 +123,9 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
   }
 
   oo::Data tmp;
-  void* buf = (void*)malloc(ZIP_BUFFER_SIZE);
+  std::vector<char> buf(ZIP_BUFFER_SIZE);
   do {
-    err = unzReadCurrentFile(uf, buf, ZIP_BUFFER_SIZE);
+    err = unzReadCurrentFile(uf, buf.data(), ZIP_BUFFER_SIZE);
     if (err < 0) {
       OO_LOG(cxx_kOOLogFileNotFound,
              "Could not read {} within OXZ at {} (err {})", containedFile,
@@ -133,9 +135,8 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
     if (err == 0) {
       break;
     }
-    tmp.append(buf, static_cast<std::size_t>(err));
+    tmp.append(buf.data(), static_cast<std::size_t>(err));
   } while (err > 0);
-  free(buf);
 
   err = unzCloseCurrentFile(uf);
   if (err != UNZ_OK) {
