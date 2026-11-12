@@ -26,11 +26,11 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
-#import "OOTypes.h"
+#include "OOFoundation.h"
+#include "OOTypes.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
-#import "oofnd/objc/OOObject.h"
+#include "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 
 #include "oofnd/Ref.hpp"
