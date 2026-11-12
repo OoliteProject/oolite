@@ -91,7 +91,7 @@ const char* const kOOTextureSpecifierFlagValueInternalKey =
         sLiveTextureCache, and the textures in sLiveTextureCache are a superset
         of sRecentTextures.
 */
-enum { kRecentTexturesCount = 50 };
+constexpr unsigned kRecentTexturesCount = 50;
 
 namespace {
 
