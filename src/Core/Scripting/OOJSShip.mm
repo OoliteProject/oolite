@@ -1631,7 +1631,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS)
         // PLAYER: read-only, as for desiredSpeed just above. The player's flightSpeed is
         // driven by the throttle every frame through PlayerEntity's control path, so a write
         // here would be silently reverted.
-        if (EXPECT_NOT([entity isPlayer]))
+        if (EXPECT_NOT(ship->getIsPlayer()))
             goto playerReadOnly;
 
         if ((JS_ToFloat64(context, &fValue, value) == 0)) {
