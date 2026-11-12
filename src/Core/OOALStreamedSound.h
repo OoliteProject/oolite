@@ -29,6 +29,8 @@ SOFTWARE.
 
 #pragma once
 
+#include <vector>
+
 #include "OOALSound.h"
 #include "OOALSoundDecoder.h"
 #include "oofnd/StdLib.hpp"
@@ -54,7 +56,7 @@ class OOALStreamedSound : public OOSound {
 
   OOALStreamedSound() = default;
 
-  char* _buffer = {};
+  std::vector<char> _buffer;  // one OOAL_STREAM_CHUNK_SIZE chunk
   double _sampleRate = {};
   std::optional<std::string> _name;  // nil-able, as the name was
   bool _stereo = {};

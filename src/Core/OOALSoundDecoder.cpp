@@ -440,14 +440,12 @@ static size_t OOReadOXZVorbis(void* ptr, size_t size, size_t nmemb,
                               void* datasource) {
   OOALSoundVorbisCodec* src = (OOALSoundVorbisCodec*)datasource;
   size_t toRead = size * nmemb;
-  void* buf = (void*)malloc(toRead);
+  // Read straight into the decoder's buffer. This used to read into a malloc'd
+  // copy that was never freed: a leak on every read of a Vorbis file in an OXZ.
   int err = UNZ_OK;
-  err = unzReadCurrentFile(src->uf, buf, toRead);
+  err = unzReadCurrentFile(src->uf, ptr, toRead);
   //	OO_LOG("sound.replay", "Read {} blocks, got {}",
   // static_cast<int>(toRead), static_cast<int>(err));
-  if (err > 0) {
-    memcpy(ptr, buf, err);
-  }
   if (err < 0) {
     return OV_EREAD;
   }
