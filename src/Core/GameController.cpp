@@ -141,7 +141,7 @@ std::vector<OODeferredCall> sDeferredCalls;  // in scheduling order
 
 // namespace
 void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay) {
-  if (!oo::thread::isMainThread() || !call) return;
+  if (std::this_thread::get_id() != oo::thread::kMainThreadId || !call) return;
 
   if (delay <= 0.0) delay = 0.0001;  // as the Foundation timer did
   OODeferredCall entry = {

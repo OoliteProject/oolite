@@ -20,7 +20,7 @@
 
 namespace {
 
-// Runs `body` through oo::thread::detach and waits for it to finish. The wait
+// Runs `body` on a detached std::thread and waits for it to finish. The wait
 // is UNBOUNDED: a 10 s bound flaked under a loaded ASan build,
 // and a timed-out wait returned while the detached lambda still held references
 // to this frame's m/cv/done - a use-after-return in the test itself. A hung
@@ -31,12 +31,12 @@ bool RunDetachedAndWait(F body) {
   std::mutex m;
   std::condition_variable cv;
   bool done = false;
-  oo::thread::detach([&] {
+  std::thread([&] {
     body();
     std::lock_guard<std::mutex> lock(m);
     done = true;
     cv.notify_one();
-  });
+  }).detach();
   std::unique_lock<std::mutex> lock(m);
   cv.wait(lock, [&] { return done; });
   return done;
@@ -45,7 +45,7 @@ bool RunDetachedAndWait(F body) {
 }  // namespace
 
 OO_TEST(mainThreadIsTheStaticInitThread) {
-  OO_CHECK(oo::thread::isMainThread());
+  OO_CHECK(std::this_thread::get_id() == oo::thread::kMainThreadId);
   OO_CHECK(oo::thread::kMainThreadId == std::this_thread::get_id());
 }
 
@@ -53,7 +53,7 @@ OO_TEST(detachedThreadRunsAndIsNotMain) {
   std::atomic<int> ran{0};
   std::atomic<bool> wasMain{true};
   OO_CHECK(RunDetachedAndWait([&] {
-    wasMain = oo::thread::isMainThread();
+    wasMain = std::this_thread::get_id() == oo::thread::kMainThreadId;
     ++ran;
   }));
   OO_CHECK_EQ(ran.load(), 1);

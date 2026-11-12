@@ -309,7 +309,7 @@ void OOAsyncWorkManagerInternal::waitForTaskToComplete(OOAsyncWorkTask* task) {
 
 #if OO_DEBUG
   OOCParameterAssert(task->hasCompleteAsyncTask());
-  OOCAssert(oo::thread::isMainThread(),
+  OOCAssert(std::this_thread::get_id() == oo::thread::kMainThreadId,
             "%s can only be called from the main thread.", __PRETTY_FUNCTION__);
 #endif
 

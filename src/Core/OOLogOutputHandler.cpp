@@ -50,6 +50,7 @@ SOFTWARE.
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/StdLib.hpp"
+#include "oofnd/Thread.hpp"
 
 /*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp): the
    rotation to Previous.log, the writer thread, CRLF, the 1 GiB saturation and
@@ -97,14 +98,12 @@ const int64_t kFlushNever = INT64_MAX;
 std::atomic<bool> sFlushPending{false};
 std::atomic<int64_t> sFlushDeadline{
     kFlushNever};  // steady_clock ticks since its epoch
-std::thread::id sMainThreadID;
 
 }  // namespace
 
 void OOLogOutputHandlerInit() {
   if (sInited) return;
 
-  sMainThreadID = std::this_thread::get_id();
   sLogger = StartLogger();
   sInited = true;
 
@@ -235,7 +234,7 @@ void AsyncLogMessage(std::string_view message) {
 
   if (!sFlushPending.exchange(true)) {
     // No pending flush
-    if (std::this_thread::get_id() == sMainThreadID) {
+    if (std::this_thread::get_id() == oo::thread::kMainThreadId) {
       std::chrono::steady_clock::time_point deadline =
           std::chrono::steady_clock::now() +
           std::chrono::duration_cast<std::chrono::steady_clock::duration>(
