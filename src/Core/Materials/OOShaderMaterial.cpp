@@ -291,7 +291,7 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
       bool gammaCorrect = configuration.get<bool>(
           "gamma_correct",
           !oo::Defaults::standard().boolForKey("no-gamma-correct"));
-      setUniform("uGammaCorrect", (float)gammaCorrect);
+      setUniform("uGammaCorrect", static_cast<float>(gammaCorrect));
     }
   }
 
@@ -459,7 +459,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs,
   } else {
     // The material's address, as (uint32_t)(uintptr_t)self was: now the C++
     // object's.
-    randomSeed = (uint32_t)(uintptr_t)this;
+    randomSeed = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this));
   }
   savedSeed = RANROTGetFullSeed();
   ranrot_srand(randomSeed);
@@ -529,7 +529,7 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs,
       if (value.isNumber())
         floatValue = oo::plist_get::numberFloatValue(value);
       else if (const std::string* string = value.getIf<std::string>())
-        floatValue = (float)oo::str::doubleValue(*string);
+        floatValue = static_cast<float>(oo::str::doubleValue(*string));
       else
         gotValue = false;
 
@@ -546,10 +546,10 @@ void OOShaderMaterial::addUniformsFromDictionary(const oo::PList& uniformDefs,
       */
       // -intValue: only a number or a string answers it.
       if (value.isNumber()) {
-        setUniform(name, (int)value.int64Value());
+        setUniform(name, static_cast<int>(value.int64Value()));
         gotValue = true;
       } else if (const std::string* string = value.getIf<std::string>()) {
-        setUniform(name, (int)oo::str::intValue(*string));
+        setUniform(name, oo::str::intValue(*string));
         gotValue = true;
       }
     } else if (type == "vector") {
@@ -693,7 +693,7 @@ std::vector<oo::Ref<OOTexture>> OOShaderMaterial::allTextures() {
 
 std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
     const oo::PList& textureSpecs, GLuint max) {
-  GLuint i, count = (GLuint)MIN(textureSpecs.count(), (size_t)max);
+  GLuint i, count = static_cast<GLuint>(MIN(textureSpecs.count(), (size_t)max));
   std::vector<oo::Ref<OOTexture>> result;
   result.reserve(count);
 
@@ -710,10 +710,10 @@ std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
 void OOShaderMaterial::addTexturesFromArray(
     const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max) {
   // Allocate space for texture object name array
-  texCount = (uint32_t)MIN(textureObjects.size(), (size_t)max);
+  texCount = static_cast<uint32_t>(MIN(textureObjects.size(), (size_t)max));
   if (texCount == 0) return;
 
-  textures = (OOTexture**)malloc(texCount * sizeof *textures);
+  textures = static_cast<OOTexture**>(malloc(texCount * sizeof *textures));
   if (textures == nullptr) {
     texCount = 0;
     return;

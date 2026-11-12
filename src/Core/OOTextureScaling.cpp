@@ -411,7 +411,7 @@ static bool GenerateMipMaps1(void* textureBytes, OOPixMapDimension width,
   uint8_t *curr, *next;
 
   DUMP_MIP_MAP_PREPARE(1);
-  curr = (uint8_t*)textureBytes;
+  curr = static_cast<uint8_t*>(textureBytes);
 
 #if OOLITE_NATIVE_64_BIT
   while (8 < w && 1 < h) {
@@ -463,9 +463,9 @@ static void ScaleToHalf_1_x1(void* srcBytes, void* dstBytes,
   uint8_t px00, px01, px10, px11;
   uint16_t sum;
 
-  src0 = (uint8_t*)srcBytes;
+  src0 = static_cast<uint8_t*>(srcBytes);
   src1 = src0 + srcWidth;
-  dst = (uint8_t*)dstBytes;
+  dst = static_cast<uint8_t*>(dstBytes);
 
   y = srcHeight >> 1;
   do {
@@ -504,9 +504,9 @@ static void ScaleToHalf_1_x4(void* srcBytes, void* dstBytes,
   uint32_t sum0, sum1;
 
   srcWidth >>= 2;  // Four (output) pixels at a time
-  src0 = (uint32_t*)srcBytes;
+  src0 = static_cast<uint32_t*>(srcBytes);
   src1 = src0 + srcWidth;
-  dst = (uint32_t*)dstBytes;
+  dst = static_cast<uint32_t*>(dstBytes);
 
   y = srcHeight >> 1;
   do {
@@ -621,7 +621,7 @@ static bool GenerateMipMaps2(void* textureBytes, OOPixMapDimension width,
   uint16_t *curr, *next;
 
   DUMP_MIP_MAP_PREPARE(2);
-  curr = (uint16_t*)textureBytes;
+  curr = static_cast<uint16_t*>(textureBytes);
 
   // TODO: multiple pixel two-plane scalers.
 #if 0
@@ -678,9 +678,9 @@ static void ScaleToHalf_2_x1(void* srcBytes, void* dstBytes,
   uint16_t px00, px01, px10, px11;
   uint32_t sumHi, sumLo;
 
-  src0 = (uint16_t*)srcBytes;
+  src0 = static_cast<uint16_t*>(srcBytes);
   src1 = src0 + srcWidth;
-  dst = (uint16_t*)dstBytes;
+  dst = static_cast<uint16_t*>(dstBytes);
 
   y = srcHeight >> 1;
   do {
@@ -717,7 +717,7 @@ static bool GenerateMipMaps4(void* textureBytes, OOPixMapDimension width,
   uint32_t *curr, *next;
 
   DUMP_MIP_MAP_PREPARE(4);
-  curr = (uint32_t*)textureBytes;
+  curr = static_cast<uint32_t*>(textureBytes);
 
 #if OOLITE_NATIVE_64_BIT
   while (2 < w && 1 < h) {
@@ -773,9 +773,9 @@ static void ScaleToHalf_4_x1(void* srcBytes, void* dstBytes,
   */
   uint32_t ag, br;
 
-  src0 = (uint32_t*)srcBytes;
+  src0 = static_cast<uint32_t*>(srcBytes);
   src1 = src0 + srcWidth;
-  dst = (uint32_t*)dstBytes;
+  dst = static_cast<uint32_t*>(dstBytes);
 
   y = srcHeight >> 1;
   do {
@@ -911,9 +911,10 @@ static void StretchVerticallyN_x1(OOPixMap srcPx, OOPixMap dstPx) {
   uint16_t weight0, weight1;
   uint32_t fractY;  // Y coordinate, fixed-point (24.8)
 
-  src = (uint8_t*)srcPx.pixels;
+  src = static_cast<uint8_t*>(srcPx.pixels);
   srcRowBytes = srcPx.rowBytes;
-  dst = (uint8_t*)dstPx.pixels;  // Assumes dstPx.width == dstPx.rowBytes.
+  dst = static_cast<uint8_t*>(
+      dstPx.pixels);  // Assumes dstPx.width == dstPx.rowBytes.
 
   src0 = prev = src;
 
@@ -942,7 +943,7 @@ static void StretchVerticallyN_x1(OOPixMap srcPx, OOPixMap dstPx) {
   // row the final pass blended from, which is that same last row only while
   // dstPx.height < 2 * srcPx.height, and one row past the end of the buffer
   // otherwise (an ASan heap-buffer-overflow READ).
-  src0 = (uint8_t*)(src + srcRowBytes * (srcPx.height - 1));
+  src0 = (src + srcRowBytes * (srcPx.height - 1));
   x = xCount;
   while (x--) {
     *dst++ = *src0++;
@@ -960,11 +961,11 @@ static void StretchVerticallyN_x4(OOPixMap srcPx, OOPixMap dstPx) {
   uint16_t weight0, weight1;
   uint32_t fractY;  // Y coordinate, fixed-point (24.8)
 
-  src = (uint8_t*)srcPx.pixels;
+  src = static_cast<uint8_t*>(srcPx.pixels);
   srcRowBytes = srcPx.rowBytes;
-  dst = (uint32_t*)dstPx.pixels;  // Assumes no row padding.
+  dst = static_cast<uint32_t*>(dstPx.pixels);  // Assumes no row padding.
 
-  src0 = prev = (uint32_t*)src;
+  src0 = prev = reinterpret_cast<uint32_t*>(src);
 
   xCount = (srcPx.width * OOPixMapBytesPerPixel(srcPx)) >> 2;
 
@@ -972,7 +973,8 @@ static void StretchVerticallyN_x4(OOPixMap srcPx, OOPixMap dstPx) {
     fractY = ((srcPx.height * y) << 8) / dstPx.height;
 
     src0 = prev;
-    prev = src1 = (uint32_t*)(src + srcRowBytes * (fractY >> 8));
+    prev = src1 =
+        reinterpret_cast<uint32_t*>(src + srcRowBytes * (fractY >> 8));
 
     weight1 = fractY & 0xFF;
     weight0 = 0x100 - weight1;
@@ -995,7 +997,7 @@ static void StretchVerticallyN_x4(OOPixMap srcPx, OOPixMap dstPx) {
   // row the final pass blended from, which is that same last row only while
   // dstPx.height < 2 * srcPx.height, and one row past the end of the buffer
   // otherwise (an ASan heap-buffer-overflow READ).
-  src0 = (uint32_t*)(src + srcRowBytes * (srcPx.height - 1));
+  src0 = reinterpret_cast<uint32_t*>(src + srcRowBytes * (srcPx.height - 1));
   x = xCount;
   while (x--) {
     *dst++ = *src0++;
@@ -1071,10 +1073,10 @@ static void StretchHorizontally1(OOPixMap srcPx, OOPixMap dstPx) {
       OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 1 &&
       OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 1);
 
-  srcStart = (uint8_t*)srcPx.pixels;
+  srcStart = static_cast<uint8_t*>(srcPx.pixels);
   srcRowBytes = srcPx.rowBytes;
   xCount = dstPx.width;
-  dst = (uint8_t*)dstPx.pixels;  // Assumes no row padding
+  dst = static_cast<uint8_t*>(dstPx.pixels);  // Assumes no row padding
 
   deltaX = (srcPx.width << 12) / dstPx.width;
   px1 = *srcStart;
@@ -1095,7 +1097,8 @@ static void StretchHorizontally1(OOPixMap srcPx, OOPixMap dstPx) {
       *dst++ = (px0 * weight0 + px1 * weight1) >> 8;
     }
 
-    srcStart = (uint8_t*)((char*)srcStart + srcRowBytes);
+    srcStart = reinterpret_cast<uint8_t*>(reinterpret_cast<char*>(srcStart) +
+                                          srcRowBytes);
     px1 = *srcStart;
   }
 
@@ -1134,10 +1137,10 @@ static void StretchHorizontally2(OOPixMap srcPx, OOPixMap dstPx) {
       OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 2 &&
       OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 2);
 
-  srcStart = (uint16_t*)srcPx.pixels;
+  srcStart = static_cast<uint16_t*>(srcPx.pixels);
   srcRowBytes = srcPx.rowBytes;
   xCount = dstPx.width;
-  dst = (uint16_t*)dstPx.pixels;  // Assumes no row padding
+  dst = static_cast<uint16_t*>(dstPx.pixels);  // Assumes no row padding
 
   deltaX = (srcPx.width << 12) / dstPx.width;
   px1 = *srcStart;
@@ -1161,7 +1164,8 @@ static void StretchHorizontally2(OOPixMap srcPx, OOPixMap dstPx) {
       *dst++ = ((hi & 0xFF0000) | (lo & 0x00FF00)) >> 8;
     }
 
-    srcStart = (uint16_t*)((char*)srcStart + srcRowBytes);
+    srcStart = reinterpret_cast<uint16_t*>(reinterpret_cast<char*>(srcStart) +
+                                           srcRowBytes);
     px1 = *srcStart;
   }
 
@@ -1203,10 +1207,10 @@ static void StretchHorizontally4(OOPixMap srcPx, OOPixMap dstPx) {
       OOIsValidPixMap(srcPx) && OOPixMapBytesPerPixel(srcPx) == 4 &&
       OOIsValidPixMap(dstPx) && OOPixMapBytesPerPixel(dstPx) == 4);
 
-  srcStart = (uint32_t*)srcPx.pixels;
+  srcStart = static_cast<uint32_t*>(srcPx.pixels);
   srcRowBytes = srcPx.rowBytes;
   xCount = dstPx.width;
-  dst = (uint32_t*)dstPx.pixels;  // Assumes no row padding
+  dst = static_cast<uint32_t*>(dstPx.pixels);  // Assumes no row padding
 
   deltaX = (srcPx.width << 12) / dstPx.width;
   px1 = *srcStart;
@@ -1231,7 +1235,8 @@ static void StretchHorizontally4(OOPixMap srcPx, OOPixMap dstPx) {
       *dst++ = (ag & 0xFF00FF00) | ((br & 0xFF00FF00) >> 8);
     }
 
-    srcStart = (uint32_t*)((char*)srcStart + srcRowBytes);
+    srcStart = reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(srcStart) +
+                                           srcRowBytes);
     px1 = *srcStart;
   }
 
@@ -1267,7 +1272,7 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth) {
   OOCParameterAssert(OOIsValidPixMap(srcPx) &&
                      OOPixMapBytesPerPixel(srcPx) == 1);
 
-  srcStart = (uint8_t*)srcPx.pixels;
+  srcStart = static_cast<uint8_t*>(srcPx.pixels);
   dst = srcStart;  // Output is placed in same buffer, without line padding.
   srcRowBytes = srcPx.rowBytes;
 
@@ -1308,7 +1313,8 @@ static void SqueezeHorizontally1(OOPixMap srcPx, OOPixMapDimension dstWidth) {
       *dst++ = accum / weight;
     }
 
-    srcStart = (uint8_t*)((char*)srcStart + srcRowBytes);
+    srcStart = reinterpret_cast<uint8_t*>(reinterpret_cast<char*>(srcStart) +
+                                          srcRowBytes);
   }
 }
 
@@ -1323,8 +1329,8 @@ static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight) {
   OOCParameterAssert(OOIsValidPixMap(srcPx) &&
                      OOPixMapBytesPerPixel(srcPx) == 1);
 
-  dst = (uint8_t*)srcPx
-            .pixels;  // Output is placed in same buffer, without line padding.
+  dst = static_cast<uint8_t*>(
+      srcPx.pixels);  // Output is placed in same buffer, without line padding.
   srcRowBytes = srcPx.rowBytes;
   xCount = srcPx.width;
 
@@ -1344,7 +1350,8 @@ static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight) {
     startWeight = 0xFF - endWeight;
     endWeight = (endFractY >> 4) & 0xFF;
 
-    srcStart = (uint8_t*)((char*)srcPx.pixels + srcRowBytes * startY);
+    srcStart = reinterpret_cast<uint8_t*>(static_cast<char*>(srcPx.pixels) +
+                                          srcRowBytes * startY);
 
     for (x = 0; x != xCount; ++x) {
       src = srcStart++;
@@ -1354,7 +1361,8 @@ static void SqueezeVertically1(OOPixMap srcPx, OOPixMapDimension dstHeight) {
       y = startY;
       for (;;) {
         ++y;
-        src = (uint8_t*)((char*)src + srcRowBytes);
+        src = reinterpret_cast<uint8_t*>(reinterpret_cast<char*>(src) +
+                                         srcRowBytes);
         if (EXPECT_NOT(y == endY)) {
           /*	<= as in SqueezeVertically2/4: with < the last
                   source row's endWeight was counted in weight but not in accum,
@@ -1411,7 +1419,7 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth) {
   OOCParameterAssert(OOIsValidPixMap(srcPx) &&
                      OOPixMapBytesPerPixel(srcPx) == 2);
 
-  srcStart = (uint16_t*)srcPx.pixels;
+  srcStart = static_cast<uint16_t*>(srcPx.pixels);
   dst = srcStart;  // Output is placed in same buffer, without line padding.
   srcRowBytes = srcPx.rowBytes;
 
@@ -1451,7 +1459,8 @@ static void SqueezeHorizontally2(OOPixMap srcPx, OOPixMapDimension dstWidth) {
       *dst++ = ACCUM2TOPX();
     }
 
-    srcStart = (uint16_t*)((char*)srcStart + srcRowBytes);
+    srcStart = reinterpret_cast<uint16_t*>(reinterpret_cast<char*>(srcStart) +
+                                           srcRowBytes);
   }
 }
 
@@ -1466,8 +1475,8 @@ static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight) {
   OOCParameterAssert(OOIsValidPixMap(srcPx) &&
                      OOPixMapBytesPerPixel(srcPx) == 2);
 
-  dst = (uint16_t*)srcPx
-            .pixels;  // Output is placed in same buffer, without line padding.
+  dst = static_cast<uint16_t*>(
+      srcPx.pixels);  // Output is placed in same buffer, without line padding.
   srcRowBytes = srcPx.rowBytes;
   xCount = srcPx.width;
 
@@ -1487,7 +1496,8 @@ static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight) {
     startWeight = 0xFF - endWeight;
     endWeight = (endFractY >> 4) & 0xFF;
 
-    srcStart = (uint16_t*)((char*)srcPx.pixels + srcRowBytes * startY);
+    srcStart = reinterpret_cast<uint16_t*>(static_cast<char*>(srcPx.pixels) +
+                                           srcRowBytes * startY);
 
     for (x = 0; x != xCount; ++x) {
       src = srcStart++;
@@ -1498,7 +1508,8 @@ static void SqueezeVertically2(OOPixMap srcPx, OOPixMapDimension dstHeight) {
       y = startY;
       for (;;) {
         ++y;
-        src = (uint16_t*)((char*)src + srcRowBytes);
+        src = reinterpret_cast<uint16_t*>(reinterpret_cast<char*>(src) +
+                                          srcRowBytes);
         if (EXPECT_NOT(y == endY)) {
           if (EXPECT(endY <= lastRow)) ACCUM2(*src, endWeight);
           break;
@@ -1561,7 +1572,7 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth) {
   OOCParameterAssert(OOIsValidPixMap(srcPx) &&
                      OOPixMapBytesPerPixel(srcPx) == 4);
 
-  srcStart = (uint32_t*)srcPx.pixels;
+  srcStart = static_cast<uint32_t*>(srcPx.pixels);
   dst = srcStart;  // Output is placed in same buffer, without line padding.
   srcRowBytes = srcPx.rowBytes;
 
@@ -1601,7 +1612,8 @@ static void SqueezeHorizontally4(OOPixMap srcPx, OOPixMapDimension dstWidth) {
       *dst++ = ACCUM4TOPX();
     }
 
-    srcStart = (uint32_t*)((char*)srcStart + srcRowBytes);
+    srcStart = reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(srcStart) +
+                                           srcRowBytes);
   }
 }
 
@@ -1617,8 +1629,8 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight) {
   OOCParameterAssert(OOIsValidPixMap(srcPx) &&
                      OOPixMapBytesPerPixel(srcPx) == 4);
 
-  dst = (uint32_t*)srcPx
-            .pixels;  // Output is placed in same buffer, without line padding.
+  dst = static_cast<uint32_t*>(
+      srcPx.pixels);  // Output is placed in same buffer, without line padding.
   srcRowBytes = srcPx.rowBytes;
   xCount = srcPx.width;
 
@@ -1638,7 +1650,8 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight) {
     startWeight = 0xFF - endWeight;
     endWeight = (endFractY >> 4) & 0xFF;
 
-    srcStart = (uint32_t*)((char*)srcPx.pixels + srcRowBytes * startY);
+    srcStart = reinterpret_cast<uint32_t*>(static_cast<char*>(srcPx.pixels) +
+                                           srcRowBytes * startY);
 
     for (x = 0; x != xCount; ++x) {
       src = srcStart++;
@@ -1649,7 +1662,8 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight) {
       y = startY;
       for (;;) {
         ++y;
-        src = (uint32_t*)((char*)src + srcRowBytes);
+        src = reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(src) +
+                                          srcRowBytes);
         if (EXPECT_NOT(y == endY)) {
           if (EXPECT(endY <= lastRow)) ACCUM4(*src, endWeight);
           break;

@@ -33,9 +33,10 @@
   0.7f  // Overall darkening of everything, allowing better contrast for snow
         // and specular highlights.
 
+#include <array>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <format>
 #include <optional>
 #include <string>
@@ -243,7 +244,8 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
   } while (0)
 #define FAIL_IF_NULL(x) FAIL_IF((x) == NULL)
 
-  aBuffer = (uint8_t*)malloc(4 * static_cast<size_t>(_width) * _height);
+  aBuffer =
+      static_cast<uint8_t*>(malloc(4 * static_cast<size_t>(_width) * _height));
   FAIL_IF_NULL(aBuffer);
   apx = aBuffer;
 
@@ -265,11 +267,12 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
 
     float cloudFraction = _info.cloudFraction;
 
-    for (y = (int)_height - 1, fy = (float)y; y >= 0; y--, fy--) {
+    for (y = static_cast<int>(_height) - 1, fy = static_cast<float>(y); y >= 0;
+         y--, fy--) {
       nearPole = (2.0f * fy - fHeight) * rHeight;
       nearPole *= nearPole;
 
-      for (x = (int)_width - 1; x >= 0; x--) {
+      for (x = static_cast<int>(_width) - 1; x >= 0; x--) {
         q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction,
                     nearPole);
         color = CloudMix(&_info, q, nearPole);
@@ -281,7 +284,7 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
     }
 
     success = true;
-    _format = (OOTextureDataFormat)kOOTextureDataRGBA;
+    _format = kOOTextureDataRGBA;
   }
 
 END:
@@ -433,9 +436,8 @@ OOINLINE float Hermite(float q) { return 3.0f * q * q - 2.0f * q * q * q; }
 // Works OK for -32728 to 32727.99999236688
 OOINLINE int32_t fast_floor(double val) {
   val += 68719476736.0 * 1.5;
-  int32_t words[2];  // the double's two 32-bit halves, read without
-                     // type-punning (GCC -Wstrict-aliasing)
-  std::memcpy(words, &val, sizeof words);
+  // the double's two 32-bit halves
+  const auto words = std::bit_cast<std::array<int32_t, 2>>(val);
   return (words[iman_] >> 16);
 }
 
@@ -446,7 +448,8 @@ static bool FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info) {
   OOCParameterAssert(info != nullptr);
 
   // Allocate result buffer.
-  info->fbmBuffer = (float*)calloc(info->width * info->height, sizeof(float));
+  info->fbmBuffer =
+      static_cast<float*>(calloc(info->width * info->height, sizeof(float)));
   if (info->fbmBuffer != nullptr) {
     if (!info->perlin3d) {
       GenerateFBMNoise(info);
@@ -585,8 +588,8 @@ static float SampleNoise3D(OOStandaloneAtmosphereGeneratorInfo* info,
         which is a lot more than RanRot will actually give us.
 */
 static bool MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info) {
-  uint16_t* perms =
-      (uint16_t*)malloc(sizeof *info->permutations * kPermutationCount);
+  uint16_t* perms = static_cast<uint16_t*>(
+      malloc(sizeof *info->permutations * kPermutationCount));
   if (EXPECT_NOT(perms == nullptr)) return false;
 
   /*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
@@ -728,13 +731,14 @@ static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info) {
       kRandomBufferSize * kRandomBufferSize * sizeof(float);
   size_t qxBufferSize = info->width * sizeof(float);
   size_t ixBufferSize = info->width * sizeof(int);
-  char* sharedBuffer =
-      (char*)malloc(randomBufferSize + qxBufferSize + ixBufferSize);
+  char* sharedBuffer = static_cast<char*>(
+      malloc(randomBufferSize + qxBufferSize + ixBufferSize));
   if (sharedBuffer == nullptr) return false;
 
-  float* randomBuffer = (float*)sharedBuffer;
-  float* qxBuffer = (float*)(sharedBuffer + randomBufferSize);
-  int* ixBuffer = (int*)(sharedBuffer + randomBufferSize + qxBufferSize);
+  float* randomBuffer = reinterpret_cast<float*>(sharedBuffer);
+  float* qxBuffer = reinterpret_cast<float*>(sharedBuffer + randomBufferSize);
+  int* ixBuffer =
+      reinterpret_cast<int*>(sharedBuffer + randomBufferSize + qxBufferSize);
 
   // Get us some value noise.
   FillRandomBuffer(randomBuffer, info->seed);

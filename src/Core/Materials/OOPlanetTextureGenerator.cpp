@@ -33,9 +33,10 @@
   0.7f  // Overall darkening of everything, allowing better contrast for snow
         // and specular highlights.
 
+#include <array>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <format>
 #include <optional>
 #include <string>
@@ -411,8 +412,8 @@ void OOPlanetTextureGenerator::loadTexture() {
          description());
 
   bool success = false;
-  bool generateNormalMap = (bool)_nMapGenerator;
-  bool generateAtmosphere = (bool)_atmoGenerator;
+  bool generateNormalMap = static_cast<bool>(_nMapGenerator);
+  bool generateAtmosphere = static_cast<bool>(_atmoGenerator);
 
   uint8_t *buffer = nullptr, *px = nullptr;
   uint8_t *nBuffer = nullptr, *npx = nullptr;
@@ -428,18 +429,21 @@ void OOPlanetTextureGenerator::loadTexture() {
   } while (0)
 #define FAIL_IF_NULL(x) FAIL_IF((x) == NULL)
 
-  buffer = (uint8_t*)malloc(4 * static_cast<size_t>(_width) * _height);
+  buffer =
+      static_cast<uint8_t*>(malloc(4 * static_cast<size_t>(_width) * _height));
   FAIL_IF_NULL(buffer);
   px = buffer;
 
   if (generateNormalMap) {
-    nBuffer = (uint8_t*)malloc(4 * static_cast<size_t>(_width) * _height);
+    nBuffer = static_cast<uint8_t*>(
+        malloc(4 * static_cast<size_t>(_width) * _height));
     FAIL_IF_NULL(nBuffer);
     npx = nBuffer;
   }
 
   if (generateAtmosphere) {
-    aBuffer = (uint8_t*)malloc(4 * static_cast<size_t>(_width) * _height);
+    aBuffer = static_cast<uint8_t*>(
+        malloc(4 * static_cast<size_t>(_width) * _height));
     FAIL_IF_NULL(aBuffer);
     apx = aBuffer;
   }
@@ -489,15 +493,16 @@ void OOPlanetTextureGenerator::loadTexture() {
                                                   // inside each loop!
 
     // first pass, calculate q.
-    _info.qBuffer =
-        (float*)malloc(static_cast<size_t>(_width * _height) * sizeof(float));
+    _info.qBuffer = static_cast<float*>(
+        malloc(static_cast<size_t>(_width * _height) * sizeof(float)));
     FAIL_IF_NULL(_info.qBuffer);
 
-    for (y = (int)_height - 1, fy = (float)y; y >= 0; y--, fy--) {
+    for (y = static_cast<int>(_height) - 1, fy = static_cast<float>(y); y >= 0;
+         y--, fy--) {
       nearPole = (2.0f * fy - fHeight) * rHeight;
       nearPole *= nearPole;
 
-      for (x = (int)_width - 1; x >= 0; x--) {
+      for (x = static_cast<int>(_width) - 1; x >= 0; x--) {
         _info.qBuffer[y * _width + x] = QFactor(_info.fbmBuffer, x, y, _width,
                                                 poleValue, seaBias, nearPole);
       }
@@ -508,11 +513,12 @@ void OOPlanetTextureGenerator::loadTexture() {
     unsigned widthMask = _width - 1;
     unsigned heightMask = _height - 1;
 
-    for (y = (int)_height - 1, fy = (float)y; y >= 0; y--, fy--) {
+    for (y = static_cast<int>(_height) - 1, fy = static_cast<float>(y); y >= 0;
+         y--, fy--) {
       nearPole = (2.0f * fy - fHeight) * rHeight;
       nearPole *= nearPole;
 
-      for (x = (int)_width - 1; x >= 0; x--) {
+      for (x = static_cast<int>(_width) - 1; x >= 0; x--) {
         q = _info.qBuffer[y * _width + x];  // no need to use GetQ, x and y are
                                             // always within bounds.
         yN = GetQ(_info.qBuffer, x, y - 1, _width, _height, widthMask,
@@ -573,7 +579,7 @@ void OOPlanetTextureGenerator::loadTexture() {
     }
 
     success = true;
-    _format = (OOTextureDataFormat)kOOTextureDataRGBA;
+    _format = kOOTextureDataRGBA;
   }
 
 END:
@@ -804,9 +810,8 @@ OOINLINE float Hermite(float q) { return 3.0f * q * q - 2.0f * q * q * q; }
 // Works OK for -32728 to 32727.99999236688
 OOINLINE int32_t fast_floor(double val) {
   val += 68719476736.0 * 1.5;
-  int32_t words[2];  // the double's two 32-bit halves, read without
-                     // type-punning (GCC -Wstrict-aliasing)
-  std::memcpy(words, &val, sizeof words);
+  // the double's two 32-bit halves
+  const auto words = std::bit_cast<std::array<int32_t, 2>>(val);
   return (words[iman_] >> 16);
 }
 
@@ -817,7 +822,8 @@ static bool FillFBMBuffer(OOPlanetTextureGeneratorInfo* info) {
   OOCParameterAssert(info != nullptr);
 
   // Allocate result buffer.
-  info->fbmBuffer = (float*)calloc(info->width * info->height, sizeof(float));
+  info->fbmBuffer =
+      static_cast<float*>(calloc(info->width * info->height, sizeof(float)));
   if (info->fbmBuffer != nullptr) {
     if (!info->perlin3d) {
       GenerateFBMNoise(info);
@@ -950,8 +956,8 @@ static float SampleNoise3D(OOPlanetTextureGeneratorInfo* info, Vector p) {
 
 //	Noise map generator
 static bool MakePermutationTable(OOPlanetTextureGeneratorInfo* info) {
-  uint16_t* perms =
-      (uint16_t*)malloc(sizeof *info->permutations * kPermutationCount);
+  uint16_t* perms = static_cast<uint16_t*>(
+      malloc(sizeof *info->permutations * kPermutationCount));
   if (EXPECT_NOT(perms == nullptr)) return false;
 
   perms[0] = 0;
@@ -1083,13 +1089,14 @@ static bool GenerateFBMNoise(OOPlanetTextureGeneratorInfo* info) {
       kRandomBufferSize * kRandomBufferSize * sizeof(float);
   size_t qxBufferSize = info->width * sizeof(float);
   size_t ixBufferSize = info->width * sizeof(int);
-  char* sharedBuffer =
-      (char*)malloc(randomBufferSize + qxBufferSize + ixBufferSize);
+  char* sharedBuffer = static_cast<char*>(
+      malloc(randomBufferSize + qxBufferSize + ixBufferSize));
   if (sharedBuffer == nullptr) return false;
 
-  float* randomBuffer = (float*)sharedBuffer;
-  float* qxBuffer = (float*)(sharedBuffer + randomBufferSize);
-  int* ixBuffer = (int*)(sharedBuffer + randomBufferSize + qxBufferSize);
+  float* randomBuffer = reinterpret_cast<float*>(sharedBuffer);
+  float* qxBuffer = reinterpret_cast<float*>(sharedBuffer + randomBufferSize);
+  int* ixBuffer =
+      reinterpret_cast<int*>(sharedBuffer + randomBufferSize + qxBufferSize);
 
   // Get us some value noise.
   FillRandomBuffer(randomBuffer, info->seed);
@@ -1199,7 +1206,7 @@ void OOPlanetNormalMapGenerator::completeWithData(void* data_, unsigned width_,
   _data = data_;
   _width = width_;
   _height = height_;
-  _format = (OOTextureDataFormat)kOOTextureDataRGBA;
+  _format = kOOTextureDataRGBA;
 
   // Enqueue so superclass can apply texture options and so forth.
   OOTextureGenerator::enqueue();
@@ -1282,7 +1289,7 @@ void OOPlanetAtmosphereGenerator::completeWithData(void* data_, unsigned width_,
   _data = data_;
   _width = width_;
   _height = height_;
-  _format = (OOTextureDataFormat)kOOTextureDataRGBA;
+  _format = kOOTextureDataRGBA;
 
   // Enqueue so superclass can apply texture options and so forth.
   OOTextureGenerator::enqueue();
