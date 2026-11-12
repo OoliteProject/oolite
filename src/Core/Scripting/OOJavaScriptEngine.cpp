@@ -25,6 +25,14 @@ MA 02110-1301, USA.
 
 #include <time.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToJSString.h"
 #include "OODescription.h"
@@ -77,7 +85,6 @@ MA 02110-1301, USA.
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/Scanner.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

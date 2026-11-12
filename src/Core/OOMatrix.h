@@ -145,7 +145,23 @@ void GLUniformMatrix3(GLint location, OOMatrix M);
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 
-#include "oofnd/StdLib.hpp"
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 std::string OOMatrixDescription(
     OOMatrix
         matrix);  // "{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"

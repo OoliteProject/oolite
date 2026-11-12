@@ -27,7 +27,17 @@
 #include "OOTexture.h"
 // Before OOConcreteTexture.h, in a block of its own: OOTextureInternal.h tests
 // OOTEXTURE_RELOADABLE, which OOConcreteTexture.h defines.
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <typeinfo>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "OOCPUInfo.h"
 #include "OOCache.h"
@@ -46,7 +56,6 @@
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

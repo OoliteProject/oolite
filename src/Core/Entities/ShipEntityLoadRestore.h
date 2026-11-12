@@ -27,9 +27,26 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "ShipEntity.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 /*	A saved ship is an oo::PList (a Dict; null for no ship, as nil was), and
         the save/restore context, which was a mutable dictionary keyed by group

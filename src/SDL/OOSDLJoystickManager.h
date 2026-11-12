@@ -44,10 +44,27 @@ MA 02110-1301, USA.
 
 #include <SDL3/SDL_events.h>
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOFoundation.h"
 #include "OOJoystickManager.h"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 class OOSDLJoystickManager : public OOJoystickManager {
  public:

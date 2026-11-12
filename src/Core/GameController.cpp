@@ -52,14 +52,21 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #endif
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <thread>
+#include <utility>
+#include <vector>
 
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/ResourcePaths.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/Thread.hpp"
 #include "oofnd/objc/OOException.h"

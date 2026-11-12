@@ -25,6 +25,11 @@ MA 02110-1301, USA.
 #include "OOCharacter.h"
 
 #include <cinttypes>  // PRIu64
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #include "OODescription.h"
 #include "OOJSScript.h"
@@ -33,7 +38,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Scanner.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

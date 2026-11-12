@@ -27,8 +27,13 @@ SOFTWARE.
 
 #include "OOBasicMaterial.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <optional>
+#include <string>
 #include <typeinfo>
+#include <vector>
 
 #include "OODescription.h"
 #include "OOFunctionAttributes.h"
@@ -36,7 +41,6 @@ SOFTWARE.
 #include "OOTexture.h"
 #include "Universe.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 #define FACE GL_FRONT_AND_BACK
 

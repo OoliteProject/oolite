@@ -153,7 +153,23 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2,
                                       HPVector v3) CONST_FUNC;
 
 #ifndef OO_PLAIN_CPP_UNIT
-#include "oofnd/StdLib.hpp"
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 std::string cxx_HPVectorDescription(HPVector vector);        // "(x, y, z)"
 std::vector<double> cxx_ArrayFromHPVector(HPVector vector);  // { x, y, z }
 

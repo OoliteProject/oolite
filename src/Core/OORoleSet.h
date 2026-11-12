@@ -33,9 +33,26 @@ SOFTWARE.
 
 #pragma once
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 /*	Roles are UTF-8 std::strings. An empty
         role means "no role", as nil did. Results that could be nil are

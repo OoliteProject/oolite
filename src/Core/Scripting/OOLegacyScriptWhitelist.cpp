@@ -25,12 +25,19 @@ MA 02110-1301, USA.
 
 #include "OOLegacyScriptWhitelist.h"
 
+#include <cstddef>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OOFoundation.h"
 #include "OOStringParsing.h"
 #include "PlayerEntityLegacyScriptEngine.h"
 #include "ResourceManager.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 #define INCLUDE_RAW_STRING \

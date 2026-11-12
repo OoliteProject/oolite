@@ -24,6 +24,17 @@
 
 #include "ShipEntityAI.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "AI.h"
 #include "EntityOOJavaScriptExtensions.h"  // OOJSEntityJSValue
 #include "GameController.h"
@@ -50,7 +61,6 @@
 #include "WormholeEntity.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

@@ -24,6 +24,17 @@ MA 02110-1301, USA.
 
 #include "ResourceManager.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "HeadUpDisplay.h"
 #include "MyOpenGLView.h"
 #include "OOALMusic.h"
@@ -47,7 +58,6 @@ MA 02110-1301, USA.
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/PListWriting.hpp"
 #include "oofnd/ResourcePaths.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 #include "unzip.h"

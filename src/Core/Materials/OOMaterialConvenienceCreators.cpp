@@ -39,6 +39,14 @@ SOFTWARE.
 #include "ResourceManager.h"
 #endif
 
+#include <cstddef>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OOCacheManager.h"
 #include "OODebugFlags.h"
 #include "OOMultiTextureMaterial.h"
@@ -49,7 +57,6 @@ SOFTWARE.
 #include "Universe.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListWriting.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

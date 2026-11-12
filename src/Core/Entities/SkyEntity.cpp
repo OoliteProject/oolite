@@ -24,6 +24,13 @@ MA 02110-1301, USA.
 
 #include "SkyEntity.h"
 
+#include <cstddef>
+#include <functional>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+
 #include "MyOpenGLView.h"
 #include "OOColor.h"
 #include "OODescription.h"
@@ -35,7 +42,6 @@ MA 02110-1301, USA.
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 #define SKY_BASIS_STARS 4800

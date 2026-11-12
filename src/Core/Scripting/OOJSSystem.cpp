@@ -26,7 +26,16 @@ OOJSSystem.m (QuickJS-ng)
 #include "OOJSSystem.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <optional>
 #include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToJSString.h"
@@ -50,7 +59,6 @@ OOJSSystem.m (QuickJS-ng)
 #include "StationEntity.h"
 #include "Universe.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 static JSClassID sSystemClassID;

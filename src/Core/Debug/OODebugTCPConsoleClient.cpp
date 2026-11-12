@@ -35,6 +35,17 @@ SOFTWARE.
 #define OOALSTR(x) "" x
 #include <stdint.h>
 
+#include <algorithm>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OODebugMonitor.h"
 #include "OODebugTCPConsoleProtocol.h"
 #include "OOFunctionAttributes.h"
@@ -42,7 +53,6 @@ SOFTWARE.
 #include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
-#include "oofnd/StdLib.hpp"
 
 #if OOLITE_WINDOWS
 #include <winsock2.h>

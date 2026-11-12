@@ -29,8 +29,25 @@ SOFTWARE.
 
 #pragma once
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOMaths.h"
-#include "oofnd/StdLib.hpp"
 
 typedef uint32_t OOPixMapDimension;  // Note: dimensions are assumed to be less
                                      // than 1048576 (2^20) pixels.

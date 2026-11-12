@@ -5,11 +5,10 @@
         std::chrono, NSLock/NSConditionLock ->
    std::mutex/std::condition_variable).
 
-        A game file or header that needs a standard container includes this
-   header instead of <vector> etc. (test_stdlib.cpp checks it).
-
-        Add a standard header here when game code first needs it; do not include
-   standard headers directly from game code.
+        No longer used by game code: since spec 009 (T031) each game file
+   includes the standard headers it uses directly. Kept, unchanged in content,
+   for tests/unit/oofnd/test_stdlib.cpp until Jon decides whether that test is
+   retired.
 */
 
 #pragma once

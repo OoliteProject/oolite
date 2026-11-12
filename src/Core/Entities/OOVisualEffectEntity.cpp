@@ -25,6 +25,15 @@ MA 02110-1301, USA.
 
 #include "OOVisualEffectEntity.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "HeadUpDisplay.h"
 #include "MyOpenGLView.h"
 #include "OOColor.h"
@@ -48,7 +57,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

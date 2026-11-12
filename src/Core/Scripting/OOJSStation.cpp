@@ -23,6 +23,15 @@ MA 02110-1301, USA.
 
 #include "OOJSStation.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "GameController.h"
 #include "OOCommodities.h"
@@ -39,7 +48,6 @@ MA 02110-1301, USA.
 #include "PlayerEntityContracts.h"
 #include "StationEntity.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 

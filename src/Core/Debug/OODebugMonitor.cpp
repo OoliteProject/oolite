@@ -31,7 +31,15 @@ SOFTWARE.
 
 #include "OODebugMonitor.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <map>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "OOConcreteTexture.h"
 #include "OODescription.h"
@@ -49,7 +57,6 @@ SOFTWARE.
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 

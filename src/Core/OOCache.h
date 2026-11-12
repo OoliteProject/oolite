@@ -43,10 +43,27 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOFoundation.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 enum {
   kOOCacheMinimumPruneThreshold = 25U,
