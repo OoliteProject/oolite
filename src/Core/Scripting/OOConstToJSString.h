@@ -131,7 +131,8 @@ OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext* context,
                                                 JSValueConst value) {
   extern struct ConstTable gOOGUIScreenIDConstTable;
   return (OOGUIScreenID)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOGUIScreenIDConstTable, kOOGUIScreenIDDefault);
+      context, value, &gOOGUIScreenIDConstTable,
+      oo::ToUnderlying(kOOGUIScreenIDDefault));
 }
 
 /*	JSValue OOJSValueFromGalacticHyperspaceBehaviour(JSContext *,

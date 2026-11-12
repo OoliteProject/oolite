@@ -61,8 +61,6 @@ using ConstTable = struct ConstTable {
   TableEntry* entries;
 };
 
-#define TABLE(entries) {sizeof(entries) / sizeof *(entries), entries}
-
 // A table's rows as entries: the names are literals, so NUL-terminated.
 constexpr const char* NameCString(std::string_view literal) {
   return literal.data();
@@ -91,16 +89,9 @@ static bool sAtomsInterned = false;
 static JSAtom sUndefinedAtom;
 
 /*
-        Initialize table contents (with C strings, see above) from table files.
+        Initialize table contents (with C strings, see above) from each enum's
+        name table (the headers in Tables).
 */
-#define ENTRY(label, val) \
-  {.value = (label), .cString = #label, .atom = JS_ATOM_NULL},
-#define GALACTIC_HYPERSPACE_ENTRY(label, val) \
-  {.value = GALACTIC_HYPERSPACE_##label,      \
-   .cString = #label,                         \
-   .atom = JS_ATOM_NULL},
-#define DIFF_STRING_ENTRY(label, string) \
-  {.value = (label), .cString = (string), .atom = JS_ATOM_NULL},
 
 static std::array<TableEntry, kOOCompassModeTable.entries.size()>
     sOOCompassModeTableEntries = EntriesFrom(kOOCompassModeTable);
@@ -113,9 +104,8 @@ static std::array<TableEntry,
     sOOGalacticHyperspaceBehaviourTableEntries =
         EntriesFrom(kOOGalacticHyperspaceBehaviourTable);
 
-static TableEntry sOOGUIScreenIDTableEntries[] = {
-#include "OOGUIScreenID.tbl"
-};
+static std::array<TableEntry, kOOGUIScreenIDTable.entries.size()>
+    sOOGUIScreenIDTableEntries = EntriesFrom(kOOGUIScreenIDTable);
 
 static std::array<TableEntry, kOOScanClassTable.entries.size()>
     sOOScanClassTableEntries = EntriesFrom(kOOScanClassTable);
@@ -129,13 +119,8 @@ static std::array<TableEntry, kOOShipDamageTypeTable.entries.size()>
 static std::array<TableEntry, kOOLegalStatusReasonTable.entries.size()>
     sOOLegalStatusReasonTableEntries = EntriesFrom(kOOLegalStatusReasonTable);
 
-static TableEntry sOOLongRangeChartModeTableEntries[] = {
-#include "OOLongRangeChartMode.tbl"
-};
-
-#undef ENTRY
-#undef GALACTIC_HYPERSPACE_ENTRY
-#undef DIFF_STRING_ENTRY
+static std::array<TableEntry, kOOLongRangeChartModeTable.entries.size()>
+    sOOLongRangeChartModeTableEntries = EntriesFrom(kOOLongRangeChartModeTable);
 
 ConstTable gOOCompassModeConstTable = {sOOCompassModeTableEntries.size(),
                                        sOOCompassModeTableEntries.data()};
@@ -144,7 +129,8 @@ ConstTable gOOEntityStatusConstTable = {sOOEntityStatusTableEntries.size(),
 ConstTable gOOGalacticHyperspaceBehaviourConstTable = {
     sOOGalacticHyperspaceBehaviourTableEntries.size(),
     sOOGalacticHyperspaceBehaviourTableEntries.data()};
-ConstTable gOOGUIScreenIDConstTable = TABLE(sOOGUIScreenIDTableEntries);
+ConstTable gOOGUIScreenIDConstTable = {sOOGUIScreenIDTableEntries.size(),
+                                       sOOGUIScreenIDTableEntries.data()};
 ConstTable gOOScanClassConstTable = {sOOScanClassTableEntries.size(),
                                      sOOScanClassTableEntries.data()};
 ConstTable gOOViewIDConstTable = {sOOViewIDTableEntries.size(),
@@ -154,8 +140,9 @@ ConstTable gOOShipDamageTypeConstTable = {sOOShipDamageTypeTableEntries.size(),
 ConstTable gOOLegalStatusReasonConstTable = {
     sOOLegalStatusReasonTableEntries.size(),
     sOOLegalStatusReasonTableEntries.data()};
-ConstTable gOOLongRangeChartModeConstTable =
-    TABLE(sOOLongRangeChartModeTableEntries);
+ConstTable gOOLongRangeChartModeConstTable = {
+    sOOLongRangeChartModeTableEntries.size(),
+    sOOLongRangeChartModeTableEntries.data()};
 
 static void InitTable(JSContext* context, ConstTable* table);
 

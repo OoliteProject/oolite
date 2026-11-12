@@ -800,7 +800,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
     if (player != nullptr)
       player->setMissionExitScreen(OOGUIScreenIDFromJSValue(context, value));
   } else {
-    if (player != nullptr) player->setMissionExitScreen(GUI_SCREEN_STATUS);
+    if (player != nullptr) player->setMissionExitScreen(OOGUIScreenID::kStatus);
   }
   JS_FreeValue(context, value);
 

@@ -162,7 +162,7 @@ class FakePlayer : public PlayerEntity {
   }
   bool dialIdentEngaged() override { return true; }
   OOLongRangeChartMode getLongRangeChartMode() override {
-    return OOLRC_MODE_ECONOMY;
+    return OOLongRangeChartMode::kEconomy;
   }
   NSPoint getGalaxy_coordinates() override { return NSMakePoint(20, 40); }
   NSPoint getCursor_coordinates() override { return NSMakePoint(30, 60); }
@@ -835,7 +835,7 @@ OO_TEST(setterChartAndCompass) {
   OO_CHECK_LOG(
       sPlayer->_log,
       oo::str::format("setLongRangeChartMode %d; event(OOLRC_MODE_ECONOMY)",
-                      static_cast<int>(OOLRC_MODE_TECHLEVEL)));
+                      static_cast<int>(OOLongRangeChartMode::kTechLevel)));
   OO_CHECK(Eval("(function () { player.ship.chartHighlightMode = "
                 "'OOLRC_MODE_NONSENSE'; })()")
                .rfind("threw: ", 0) == 0);

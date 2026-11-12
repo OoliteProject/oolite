@@ -97,11 +97,11 @@ OO_TEST(cxx_OOStringFromCompassMode) {
 }
 
 OO_TEST(cxx_OOStringFromLongRangeChartMode) {
-  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLRC_MODE_UNKNOWN) == "OOLRC_MODE_UNKNOWN");
-  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLRC_MODE_SUNCOLOR) == "OOLRC_MODE_SUNCOLOR");
-  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLRC_MODE_ECONOMY) == "OOLRC_MODE_ECONOMY");
-  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLRC_MODE_GOVERNMENT) == "OOLRC_MODE_GOVERNMENT");
-  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLRC_MODE_TECHLEVEL) == "OOLRC_MODE_TECHLEVEL");
+  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode::kUnknown) == "OOLRC_MODE_UNKNOWN");
+  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode::kSunColor) == "OOLRC_MODE_SUNCOLOR");
+  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode::kEconomy) == "OOLRC_MODE_ECONOMY");
+  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode::kGovernment) == "OOLRC_MODE_GOVERNMENT");
+  OO_CHECK(cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode::kTechLevel) == "OOLRC_MODE_TECHLEVEL");
 }
 
 OO_TEST(cxx_OOStringFromGalacticHyperspaceBehaviour) {
@@ -112,35 +112,35 @@ OO_TEST(cxx_OOStringFromGalacticHyperspaceBehaviour) {
 }
 
 OO_TEST(cxx_OOStringFromGUIScreenID) {
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_MAIN) == "GUI_SCREEN_MAIN");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_INTRO1) == "GUI_SCREEN_INTRO1");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_SHIPLIBRARY) == "GUI_SCREEN_SHIPLIBRARY");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_KEYBOARD) == "GUI_SCREEN_KEYBOARD");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_NEWGAME) == "GUI_SCREEN_NEWGAME");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_OXZMANAGER) == "GUI_SCREEN_OXZMANAGER");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_STATUS) == "GUI_SCREEN_STATUS");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_MANIFEST) == "GUI_SCREEN_MANIFEST");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_EQUIP_SHIP) == "GUI_SCREEN_EQUIP_SHIP");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_SHIPYARD) == "GUI_SCREEN_SHIPYARD");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_LONG_RANGE_CHART) == "GUI_SCREEN_LONG_RANGE_CHART");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_SHORT_RANGE_CHART) == "GUI_SCREEN_SHORT_RANGE_CHART");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_SYSTEM_DATA) == "GUI_SCREEN_SYSTEM_DATA");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_MARKET) == "GUI_SCREEN_MARKET");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_MARKETINFO) == "GUI_SCREEN_MARKETINFO");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_OPTIONS) == "GUI_SCREEN_OPTIONS");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_GAMEOPTIONS) == "GUI_SCREEN_GAMEOPTIONS");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_LOAD) == "GUI_SCREEN_LOAD");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_SAVE) == "GUI_SCREEN_SAVE");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_SAVE_OVERWRITE) == "GUI_SCREEN_SAVE_OVERWRITE");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_STICKMAPPER) == "GUI_SCREEN_STICKMAPPER");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_STICKPROFILE) == "GUI_SCREEN_STICKPROFILE");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_MISSION) == "GUI_SCREEN_MISSION");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_REPORT) == "GUI_SCREEN_REPORT");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_INTERFACES) == "GUI_SCREEN_INTERFACES");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_KEYBOARD_CONFIRMCLEAR) == "GUI_SCREEN_KEYBOARD_CONFIRMCLEAR");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_KEYBOARD_CONFIG) == "GUI_SCREEN_KEYBOARD_CONFIG");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_KEYBOARD_ENTRY) == "GUI_SCREEN_KEYBOARD_ENTRY");
-  OO_CHECK(cxx_OOStringFromGUIScreenID(GUI_SCREEN_KEYBOARD_LAYOUT) == "GUI_SCREEN_KEYBOARD_LAYOUT");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kMain) == "GUI_SCREEN_MAIN");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kIntro1) == "GUI_SCREEN_INTRO1");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kShipLibrary) == "GUI_SCREEN_SHIPLIBRARY");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kKeyboard) == "GUI_SCREEN_KEYBOARD");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kNewGame) == "GUI_SCREEN_NEWGAME");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kOXZManager) == "GUI_SCREEN_OXZMANAGER");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kStatus) == "GUI_SCREEN_STATUS");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kManifest) == "GUI_SCREEN_MANIFEST");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kEquipShip) == "GUI_SCREEN_EQUIP_SHIP");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kShipyard) == "GUI_SCREEN_SHIPYARD");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kLongRangeChart) == "GUI_SCREEN_LONG_RANGE_CHART");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kShortRangeChart) == "GUI_SCREEN_SHORT_RANGE_CHART");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kSystemData) == "GUI_SCREEN_SYSTEM_DATA");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kMarket) == "GUI_SCREEN_MARKET");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kMarketInfo) == "GUI_SCREEN_MARKETINFO");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kOptions) == "GUI_SCREEN_OPTIONS");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kGameOptions) == "GUI_SCREEN_GAMEOPTIONS");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kLoad) == "GUI_SCREEN_LOAD");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kSave) == "GUI_SCREEN_SAVE");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kSaveOverwrite) == "GUI_SCREEN_SAVE_OVERWRITE");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kStickMapper) == "GUI_SCREEN_STICKMAPPER");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kStickProfile) == "GUI_SCREEN_STICKPROFILE");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kMission) == "GUI_SCREEN_MISSION");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kReport) == "GUI_SCREEN_REPORT");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kInterfaces) == "GUI_SCREEN_INTERFACES");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kKeyboardConfirmClear) == "GUI_SCREEN_KEYBOARD_CONFIRMCLEAR");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kKeyboardConfig) == "GUI_SCREEN_KEYBOARD_CONFIG");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kKeyboardEntry) == "GUI_SCREEN_KEYBOARD_ENTRY");
+  OO_CHECK(cxx_OOStringFromGUIScreenID(OOGUIScreenID::kKeyboardLayout) == "GUI_SCREEN_KEYBOARD_LAYOUT");
 }
 
 OO_TEST(cxx_OOStringFromScanClass) {
@@ -239,37 +239,37 @@ OO_TEST(cxx_OOGalacticHyperspaceBehaviourFromString) {
 }
 
 OO_TEST(cxx_OOGUIScreenIDFromString) {
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MAIN") == GUI_SCREEN_MAIN);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_INTRO1") == GUI_SCREEN_INTRO1);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SHIPLIBRARY") == GUI_SCREEN_SHIPLIBRARY);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD") == GUI_SCREEN_KEYBOARD);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_NEWGAME") == GUI_SCREEN_NEWGAME);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_OXZMANAGER") == GUI_SCREEN_OXZMANAGER);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_STATUS") == GUI_SCREEN_STATUS);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MANIFEST") == GUI_SCREEN_MANIFEST);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_EQUIP_SHIP") == GUI_SCREEN_EQUIP_SHIP);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SHIPYARD") == GUI_SCREEN_SHIPYARD);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_LONG_RANGE_CHART") == GUI_SCREEN_LONG_RANGE_CHART);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SHORT_RANGE_CHART") == GUI_SCREEN_SHORT_RANGE_CHART);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SYSTEM_DATA") == GUI_SCREEN_SYSTEM_DATA);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MARKET") == GUI_SCREEN_MARKET);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MARKETINFO") == GUI_SCREEN_MARKETINFO);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_OPTIONS") == GUI_SCREEN_OPTIONS);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_GAMEOPTIONS") == GUI_SCREEN_GAMEOPTIONS);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_LOAD") == GUI_SCREEN_LOAD);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SAVE") == GUI_SCREEN_SAVE);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SAVE_OVERWRITE") == GUI_SCREEN_SAVE_OVERWRITE);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_STICKMAPPER") == GUI_SCREEN_STICKMAPPER);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_STICKPROFILE") == GUI_SCREEN_STICKPROFILE);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MISSION") == GUI_SCREEN_MISSION);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_REPORT") == GUI_SCREEN_REPORT);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_INTERFACES") == GUI_SCREEN_INTERFACES);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_CONFIRMCLEAR") == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_CONFIG") == GUI_SCREEN_KEYBOARD_CONFIG);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_ENTRY") == GUI_SCREEN_KEYBOARD_ENTRY);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_LAYOUT") == GUI_SCREEN_KEYBOARD_LAYOUT);
-  OO_CHECK(cxx_OOGUIScreenIDFromString("NOT_A_NAME") == GUI_SCREEN_MAIN);  // the fallback
-  OO_CHECK(cxx_OOGUIScreenIDFromString("") == GUI_SCREEN_MAIN);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MAIN") == OOGUIScreenID::kMain);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_INTRO1") == OOGUIScreenID::kIntro1);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SHIPLIBRARY") == OOGUIScreenID::kShipLibrary);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD") == OOGUIScreenID::kKeyboard);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_NEWGAME") == OOGUIScreenID::kNewGame);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_OXZMANAGER") == OOGUIScreenID::kOXZManager);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_STATUS") == OOGUIScreenID::kStatus);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MANIFEST") == OOGUIScreenID::kManifest);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_EQUIP_SHIP") == OOGUIScreenID::kEquipShip);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SHIPYARD") == OOGUIScreenID::kShipyard);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_LONG_RANGE_CHART") == OOGUIScreenID::kLongRangeChart);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SHORT_RANGE_CHART") == OOGUIScreenID::kShortRangeChart);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SYSTEM_DATA") == OOGUIScreenID::kSystemData);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MARKET") == OOGUIScreenID::kMarket);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MARKETINFO") == OOGUIScreenID::kMarketInfo);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_OPTIONS") == OOGUIScreenID::kOptions);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_GAMEOPTIONS") == OOGUIScreenID::kGameOptions);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_LOAD") == OOGUIScreenID::kLoad);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SAVE") == OOGUIScreenID::kSave);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_SAVE_OVERWRITE") == OOGUIScreenID::kSaveOverwrite);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_STICKMAPPER") == OOGUIScreenID::kStickMapper);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_STICKPROFILE") == OOGUIScreenID::kStickProfile);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_MISSION") == OOGUIScreenID::kMission);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_REPORT") == OOGUIScreenID::kReport);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_INTERFACES") == OOGUIScreenID::kInterfaces);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_CONFIRMCLEAR") == OOGUIScreenID::kKeyboardConfirmClear);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_CONFIG") == OOGUIScreenID::kKeyboardConfig);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_ENTRY") == OOGUIScreenID::kKeyboardEntry);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("GUI_SCREEN_KEYBOARD_LAYOUT") == OOGUIScreenID::kKeyboardLayout);
+  OO_CHECK(cxx_OOGUIScreenIDFromString("NOT_A_NAME") == OOGUIScreenID::kMain);  // the fallback
+  OO_CHECK(cxx_OOGUIScreenIDFromString("") == OOGUIScreenID::kMain);
 }
 
 OO_TEST(cxx_OOScanClassFromString) {
@@ -294,13 +294,13 @@ OO_TEST(cxx_OOScanClassFromString) {
 }
 
 OO_TEST(cxx_OOLongRangeChartModeFromString) {
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_UNKNOWN") == OOLRC_MODE_UNKNOWN);
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_SUNCOLOR") == OOLRC_MODE_SUNCOLOR);
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_ECONOMY") == OOLRC_MODE_ECONOMY);
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_GOVERNMENT") == OOLRC_MODE_GOVERNMENT);
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_TECHLEVEL") == OOLRC_MODE_TECHLEVEL);
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("NOT_A_NAME") == OOLRC_MODE_UNKNOWN);  // the fallback
-  OO_CHECK(cxx_OOLongRangeChartModeFromString("") == OOLRC_MODE_UNKNOWN);
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_UNKNOWN") == OOLongRangeChartMode::kUnknown);
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_SUNCOLOR") == OOLongRangeChartMode::kSunColor);
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_ECONOMY") == OOLongRangeChartMode::kEconomy);
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_GOVERNMENT") == OOLongRangeChartMode::kGovernment);
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("OOLRC_MODE_TECHLEVEL") == OOLongRangeChartMode::kTechLevel);
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("NOT_A_NAME") == OOLongRangeChartMode::kUnknown);  // the fallback
+  OO_CHECK(cxx_OOLongRangeChartModeFromString("") == OOLongRangeChartMode::kUnknown);
 }
 
 OO_TEST(cxx_RouteTypeToString) {
@@ -573,66 +573,66 @@ OO_TEST(jsCompassMode) {
 
 OO_TEST(jsGUIScreenID) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_MAIN)) == "GUI_SCREEN_MAIN");
-  { JSValue v = js.string("GUI_SCREEN_MAIN"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_MAIN); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_INTRO1)) == "GUI_SCREEN_INTRO1");
-  { JSValue v = js.string("GUI_SCREEN_INTRO1"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_INTRO1); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_SHIPLIBRARY)) == "GUI_SCREEN_SHIPLIBRARY");
-  { JSValue v = js.string("GUI_SCREEN_SHIPLIBRARY"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_SHIPLIBRARY); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_KEYBOARD)) == "GUI_SCREEN_KEYBOARD");
-  { JSValue v = js.string("GUI_SCREEN_KEYBOARD"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_KEYBOARD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_NEWGAME)) == "GUI_SCREEN_NEWGAME");
-  { JSValue v = js.string("GUI_SCREEN_NEWGAME"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_NEWGAME); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_OXZMANAGER)) == "GUI_SCREEN_OXZMANAGER");
-  { JSValue v = js.string("GUI_SCREEN_OXZMANAGER"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_OXZMANAGER); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_STATUS)) == "GUI_SCREEN_STATUS");
-  { JSValue v = js.string("GUI_SCREEN_STATUS"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_STATUS); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_MANIFEST)) == "GUI_SCREEN_MANIFEST");
-  { JSValue v = js.string("GUI_SCREEN_MANIFEST"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_MANIFEST); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_EQUIP_SHIP)) == "GUI_SCREEN_EQUIP_SHIP");
-  { JSValue v = js.string("GUI_SCREEN_EQUIP_SHIP"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_EQUIP_SHIP); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_SHIPYARD)) == "GUI_SCREEN_SHIPYARD");
-  { JSValue v = js.string("GUI_SCREEN_SHIPYARD"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_SHIPYARD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_LONG_RANGE_CHART)) == "GUI_SCREEN_LONG_RANGE_CHART");
-  { JSValue v = js.string("GUI_SCREEN_LONG_RANGE_CHART"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_LONG_RANGE_CHART); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_SHORT_RANGE_CHART)) == "GUI_SCREEN_SHORT_RANGE_CHART");
-  { JSValue v = js.string("GUI_SCREEN_SHORT_RANGE_CHART"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_SHORT_RANGE_CHART); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_SYSTEM_DATA)) == "GUI_SCREEN_SYSTEM_DATA");
-  { JSValue v = js.string("GUI_SCREEN_SYSTEM_DATA"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_SYSTEM_DATA); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_MARKET)) == "GUI_SCREEN_MARKET");
-  { JSValue v = js.string("GUI_SCREEN_MARKET"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_MARKET); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_MARKETINFO)) == "GUI_SCREEN_MARKETINFO");
-  { JSValue v = js.string("GUI_SCREEN_MARKETINFO"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_MARKETINFO); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_OPTIONS)) == "GUI_SCREEN_OPTIONS");
-  { JSValue v = js.string("GUI_SCREEN_OPTIONS"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_OPTIONS); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_GAMEOPTIONS)) == "GUI_SCREEN_GAMEOPTIONS");
-  { JSValue v = js.string("GUI_SCREEN_GAMEOPTIONS"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_GAMEOPTIONS); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_LOAD)) == "GUI_SCREEN_LOAD");
-  { JSValue v = js.string("GUI_SCREEN_LOAD"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_LOAD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_SAVE)) == "GUI_SCREEN_SAVE");
-  { JSValue v = js.string("GUI_SCREEN_SAVE"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_SAVE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_SAVE_OVERWRITE)) == "GUI_SCREEN_SAVE_OVERWRITE");
-  { JSValue v = js.string("GUI_SCREEN_SAVE_OVERWRITE"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_SAVE_OVERWRITE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_STICKMAPPER)) == "GUI_SCREEN_STICKMAPPER");
-  { JSValue v = js.string("GUI_SCREEN_STICKMAPPER"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_STICKMAPPER); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_STICKPROFILE)) == "GUI_SCREEN_STICKPROFILE");
-  { JSValue v = js.string("GUI_SCREEN_STICKPROFILE"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_STICKPROFILE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_MISSION)) == "GUI_SCREEN_MISSION");
-  { JSValue v = js.string("GUI_SCREEN_MISSION"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_MISSION); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_REPORT)) == "GUI_SCREEN_REPORT");
-  { JSValue v = js.string("GUI_SCREEN_REPORT"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_REPORT); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_INTERFACES)) == "GUI_SCREEN_INTERFACES");
-  { JSValue v = js.string("GUI_SCREEN_INTERFACES"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_INTERFACES); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_KEYBOARD_CONFIRMCLEAR)) == "GUI_SCREEN_KEYBOARD_CONFIRMCLEAR");
-  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_CONFIRMCLEAR"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_KEYBOARD_CONFIG)) == "GUI_SCREEN_KEYBOARD_CONFIG");
-  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_CONFIG"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_KEYBOARD_CONFIG); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_KEYBOARD_ENTRY)) == "GUI_SCREEN_KEYBOARD_ENTRY");
-  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_ENTRY"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_KEYBOARD_ENTRY); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, GUI_SCREEN_KEYBOARD_LAYOUT)) == "GUI_SCREEN_KEYBOARD_LAYOUT");
-  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_LAYOUT"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == GUI_SCREEN_KEYBOARD_LAYOUT); JS_FreeValue(js.context, v); }
-  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == (OOGUIScreenID)(GUI_SCREEN_MAIN)); JS_FreeValue(js.context, v); }  // the fallback
-  OO_CHECK(OOGUIScreenIDFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOGUIScreenID)(GUI_SCREEN_MAIN));  // not a string
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kMain)) == "GUI_SCREEN_MAIN");
+  { JSValue v = js.string("GUI_SCREEN_MAIN"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kMain); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kIntro1)) == "GUI_SCREEN_INTRO1");
+  { JSValue v = js.string("GUI_SCREEN_INTRO1"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kIntro1); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kShipLibrary)) == "GUI_SCREEN_SHIPLIBRARY");
+  { JSValue v = js.string("GUI_SCREEN_SHIPLIBRARY"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kShipLibrary); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kKeyboard)) == "GUI_SCREEN_KEYBOARD");
+  { JSValue v = js.string("GUI_SCREEN_KEYBOARD"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kKeyboard); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kNewGame)) == "GUI_SCREEN_NEWGAME");
+  { JSValue v = js.string("GUI_SCREEN_NEWGAME"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kNewGame); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kOXZManager)) == "GUI_SCREEN_OXZMANAGER");
+  { JSValue v = js.string("GUI_SCREEN_OXZMANAGER"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kOXZManager); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kStatus)) == "GUI_SCREEN_STATUS");
+  { JSValue v = js.string("GUI_SCREEN_STATUS"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kStatus); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kManifest)) == "GUI_SCREEN_MANIFEST");
+  { JSValue v = js.string("GUI_SCREEN_MANIFEST"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kManifest); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kEquipShip)) == "GUI_SCREEN_EQUIP_SHIP");
+  { JSValue v = js.string("GUI_SCREEN_EQUIP_SHIP"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kEquipShip); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kShipyard)) == "GUI_SCREEN_SHIPYARD");
+  { JSValue v = js.string("GUI_SCREEN_SHIPYARD"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kShipyard); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kLongRangeChart)) == "GUI_SCREEN_LONG_RANGE_CHART");
+  { JSValue v = js.string("GUI_SCREEN_LONG_RANGE_CHART"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kLongRangeChart); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kShortRangeChart)) == "GUI_SCREEN_SHORT_RANGE_CHART");
+  { JSValue v = js.string("GUI_SCREEN_SHORT_RANGE_CHART"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kShortRangeChart); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kSystemData)) == "GUI_SCREEN_SYSTEM_DATA");
+  { JSValue v = js.string("GUI_SCREEN_SYSTEM_DATA"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kSystemData); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kMarket)) == "GUI_SCREEN_MARKET");
+  { JSValue v = js.string("GUI_SCREEN_MARKET"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kMarket); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kMarketInfo)) == "GUI_SCREEN_MARKETINFO");
+  { JSValue v = js.string("GUI_SCREEN_MARKETINFO"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kMarketInfo); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kOptions)) == "GUI_SCREEN_OPTIONS");
+  { JSValue v = js.string("GUI_SCREEN_OPTIONS"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kOptions); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kGameOptions)) == "GUI_SCREEN_GAMEOPTIONS");
+  { JSValue v = js.string("GUI_SCREEN_GAMEOPTIONS"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kGameOptions); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kLoad)) == "GUI_SCREEN_LOAD");
+  { JSValue v = js.string("GUI_SCREEN_LOAD"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kLoad); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kSave)) == "GUI_SCREEN_SAVE");
+  { JSValue v = js.string("GUI_SCREEN_SAVE"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kSave); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kSaveOverwrite)) == "GUI_SCREEN_SAVE_OVERWRITE");
+  { JSValue v = js.string("GUI_SCREEN_SAVE_OVERWRITE"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kSaveOverwrite); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kStickMapper)) == "GUI_SCREEN_STICKMAPPER");
+  { JSValue v = js.string("GUI_SCREEN_STICKMAPPER"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kStickMapper); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kStickProfile)) == "GUI_SCREEN_STICKPROFILE");
+  { JSValue v = js.string("GUI_SCREEN_STICKPROFILE"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kStickProfile); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kMission)) == "GUI_SCREEN_MISSION");
+  { JSValue v = js.string("GUI_SCREEN_MISSION"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kMission); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kReport)) == "GUI_SCREEN_REPORT");
+  { JSValue v = js.string("GUI_SCREEN_REPORT"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kReport); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kInterfaces)) == "GUI_SCREEN_INTERFACES");
+  { JSValue v = js.string("GUI_SCREEN_INTERFACES"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kInterfaces); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kKeyboardConfirmClear)) == "GUI_SCREEN_KEYBOARD_CONFIRMCLEAR");
+  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_CONFIRMCLEAR"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kKeyboardConfirmClear); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kKeyboardConfig)) == "GUI_SCREEN_KEYBOARD_CONFIG");
+  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_CONFIG"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kKeyboardConfig); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kKeyboardEntry)) == "GUI_SCREEN_KEYBOARD_ENTRY");
+  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_ENTRY"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kKeyboardEntry); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromGUIScreenID(js.context, OOGUIScreenID::kKeyboardLayout)) == "GUI_SCREEN_KEYBOARD_LAYOUT");
+  { JSValue v = js.string("GUI_SCREEN_KEYBOARD_LAYOUT"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == OOGUIScreenID::kKeyboardLayout); JS_FreeValue(js.context, v); }
+  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOGUIScreenIDFromJSValue(js.context, v) == (OOGUIScreenID)(OOGUIScreenID::kMain)); JS_FreeValue(js.context, v); }  // the fallback
+  OO_CHECK(OOGUIScreenIDFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOGUIScreenID)(OOGUIScreenID::kMain));  // not a string
 }
 
 OO_TEST(jsGalacticHyperspaceBehaviour) {

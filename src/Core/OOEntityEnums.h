@@ -39,20 +39,8 @@ MA 02110-1301, USA.
 
 // From Entities/PlayerEntity.h.
 
-#define ENTRY(label, value) label,
-
-typedef enum {
-#include "OOGUIScreenID.tbl"
-} OOGUIScreenID;
-
-#undef ENTRY
-
+#include "OOGUIScreenID.h"
 #include "OOGalacticHyperspaceBehaviour.h"
-
-enum {
-  // Values used for unknown strings.
-  kOOGUIScreenIDDefault = GUI_SCREEN_MAIN
-};
 
 // From Entities/ShipEntity.h.
 

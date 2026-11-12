@@ -68,7 +68,7 @@ std::string Bars(char mark, int count) {
 }  // namespace
 
 void PlayerEntity::setGuiToStickProfileScreen(::GuiDisplayGen* gui) {
-  gui_screen = GUI_SCREEN_STICKPROFILE;
+  gui_screen = OOGUIScreenID::kStickProfile;
   if (stickProfileScreen != nullptr)
     stickProfileScreen->startGui(gui);  // a nil screen ignored the message
   return;

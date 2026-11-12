@@ -254,7 +254,7 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip,
 
   if (!kdic_check) initCheckingDictionary();
 
-  gui_screen = GUI_SCREEN_KEYBOARD;
+  gui_screen = OOGUIScreenID::kKeyboard;
   bool guiChanged = (oldScreen != gui_screen);
   if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
     UNIVERSE->gameController()
@@ -538,7 +538,7 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow) {
   tabStop[1] = 290;
   gui->setTabStops(tabStop);
 
-  gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
+  gui_screen = OOGUIScreenID::kKeyboardConfig;
   bool guiChanged = (oldScreen != gui_screen);
   gui->clear();
   gui->setTitle(OO_DESC("oolite-keyconfig-update-title"));  // @"%@"
@@ -734,7 +734,7 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen() {
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
   OOGUIScreenID oldScreen = gui_screen;
-  gui_screen = GUI_SCREEN_KEYBOARD_ENTRY;
+  gui_screen = OOGUIScreenID::kKeyboardEntry;
   bool guiChanged = (oldScreen != gui_screen);
 
   // make sure the index we're looking for exists
@@ -897,7 +897,7 @@ void PlayerEntity::setGuiToConfirmClearScreen() {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   OOGUIScreenID oldScreen = gui_screen;
 
-  gui_screen = GUI_SCREEN_KEYBOARD_CONFIRMCLEAR;
+  gui_screen = OOGUIScreenID::kKeyboardConfirmClear;
   bool guiChanged = (oldScreen != gui_screen);
 
   gui->clear();
@@ -1520,7 +1520,7 @@ void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip,
   tabStop[1] = 290;
   gui->setTabStops(tabStop);
 
-  gui_screen = GUI_SCREEN_KEYBOARD_LAYOUT;
+  gui_screen = OOGUIScreenID::kKeyboardLayout;
   bool guiChanged = (oldScreen != gui_screen);
 
   if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
