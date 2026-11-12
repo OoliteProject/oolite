@@ -34,27 +34,8 @@ MA 02110-1301, USA.
 
 // From Entities/Entity.h.
 
-#define ENTRY(label, value) label = value,
-
-typedef enum OOEntityStatus {
-#include "OOEntityStatus.tbl"
-} OOEntityStatus;
-
-#ifndef OO_SCANCLASS_TYPE
-#define OO_SCANCLASS_TYPE
-#endif
-
-enum OOScanClass {
-#include "OOScanClass.tbl"
-};
-
-#undef ENTRY
-
-enum {
-  // Values used for unknown strings.
-  kOOEntityStatusDefault = STATUS_INACTIVE,
-  kOOScanClassDefault = CLASS_NOT_SET
-};
+#include "OOEntityStatus.h"
+#include "OOScanClass.h"
 
 // From Entities/PlayerEntity.h.
 
@@ -84,10 +65,4 @@ enum {
 
 // From Entities/ShipEntity.h.
 
-typedef enum {
-#define DIFF_STRING_ENTRY(label, string) label,
-#include "OOShipDamageType.tbl"
-#undef DIFF_STRING_ENTRY
-
-  kOOShipDamageTypeDefault = kOODamageTypeEnergy
-} OOShipDamageType;
+#include "OOShipDamageType.h"

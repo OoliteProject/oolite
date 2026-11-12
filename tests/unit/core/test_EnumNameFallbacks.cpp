@@ -22,26 +22,26 @@
 #include "oo_test.hpp"
 
 OO_TEST(cxx_OOStringFromEntityStatus) {
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_START_GAME) == "STATUS_START_GAME");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_RESTART_GAME) == "STATUS_RESTART_GAME");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_DEAD) == "STATUS_DEAD");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_INACTIVE) == "STATUS_INACTIVE");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_TEST) == "STATUS_TEST");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_COCKPIT_DISPLAY) == "STATUS_COCKPIT_DISPLAY");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_ACTIVE) == "STATUS_ACTIVE");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_EFFECT) == "STATUS_EFFECT");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_IN_FLIGHT) == "STATUS_IN_FLIGHT");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_DOCKED) == "STATUS_DOCKED");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_AUTOPILOT_ENGAGED) == "STATUS_AUTOPILOT_ENGAGED");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_DOCKING) == "STATUS_DOCKING");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_LAUNCHING) == "STATUS_LAUNCHING");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_WITCHSPACE_COUNTDOWN) == "STATUS_WITCHSPACE_COUNTDOWN");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_ENTERING_WITCHSPACE) == "STATUS_ENTERING_WITCHSPACE");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_EXITING_WITCHSPACE) == "STATUS_EXITING_WITCHSPACE");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_ESCAPE_SEQUENCE) == "STATUS_ESCAPE_SEQUENCE");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_IN_HOLD) == "STATUS_IN_HOLD");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_BEING_SCOOPED) == "STATUS_BEING_SCOOPED");
-  OO_CHECK(cxx_OOStringFromEntityStatus(STATUS_HANDLING_ERROR) == "STATUS_HANDLING_ERROR");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kStartGame) == "STATUS_START_GAME");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kRestartGame) == "STATUS_RESTART_GAME");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kDead) == "STATUS_DEAD");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kInactive) == "STATUS_INACTIVE");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kTest) == "STATUS_TEST");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kCockpitDisplay) == "STATUS_COCKPIT_DISPLAY");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kActive) == "STATUS_ACTIVE");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kEffect) == "STATUS_EFFECT");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kInFlight) == "STATUS_IN_FLIGHT");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kDocked) == "STATUS_DOCKED");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kAutopilotEngaged) == "STATUS_AUTOPILOT_ENGAGED");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kDocking) == "STATUS_DOCKING");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kLaunching) == "STATUS_LAUNCHING");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kWitchspaceCountdown) == "STATUS_WITCHSPACE_COUNTDOWN");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kEnteringWitchspace) == "STATUS_ENTERING_WITCHSPACE");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kExitingWitchspace) == "STATUS_EXITING_WITCHSPACE");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kEscapeSequence) == "STATUS_ESCAPE_SEQUENCE");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kInHold) == "STATUS_IN_HOLD");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kBeingScooped) == "STATUS_BEING_SCOOPED");
+  OO_CHECK(cxx_OOStringFromEntityStatus(OOEntityStatus::kHandlingError) == "STATUS_HANDLING_ERROR");
 }
 
 OO_TEST(cxx_OOStringFromBehaviour) {
@@ -144,32 +144,32 @@ OO_TEST(cxx_OOStringFromGUIScreenID) {
 }
 
 OO_TEST(cxx_OOStringFromScanClass) {
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_NOT_SET) == "CLASS_NOT_SET");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_NO_DRAW) == "CLASS_NO_DRAW");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_NEUTRAL) == "CLASS_NEUTRAL");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_STATION) == "CLASS_STATION");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_TARGET) == "CLASS_TARGET");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_CARGO) == "CLASS_CARGO");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_MISSILE) == "CLASS_MISSILE");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_ROCK) == "CLASS_ROCK");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_MINE) == "CLASS_MINE");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_THARGOID) == "CLASS_THARGOID");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_BUOY) == "CLASS_BUOY");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_VISUAL_EFFECT) == "CLASS_VISUAL_EFFECT");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_WORMHOLE) == "CLASS_WORMHOLE");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_PLAYER) == "CLASS_PLAYER");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_POLICE) == "CLASS_POLICE");
-  OO_CHECK(cxx_OOStringFromScanClass(CLASS_MILITARY) == "CLASS_MILITARY");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kNotSet) == "CLASS_NOT_SET");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kNoDraw) == "CLASS_NO_DRAW");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kNeutral) == "CLASS_NEUTRAL");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kStation) == "CLASS_STATION");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kTarget) == "CLASS_TARGET");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kCargo) == "CLASS_CARGO");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kMissile) == "CLASS_MISSILE");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kRock) == "CLASS_ROCK");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kMine) == "CLASS_MINE");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kThargoid) == "CLASS_THARGOID");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kBuoy) == "CLASS_BUOY");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kVisualEffect) == "CLASS_VISUAL_EFFECT");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kWormhole) == "CLASS_WORMHOLE");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kPlayer) == "CLASS_PLAYER");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kPolice) == "CLASS_POLICE");
+  OO_CHECK(cxx_OOStringFromScanClass(OOScanClass::kMilitary) == "CLASS_MILITARY");
 }
 
 OO_TEST(cxx_OOStringFromShipDamageType) {
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeScrape) == "scrape damage");
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeHeat) == "heat damage");
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeEnergy) == "energy damage");
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeCascadeWeapon) == "cascade weapon");
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeHitAPlanet) == "hit a planet");
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeHitASun) == "hit a sun");
-  OO_CHECK(cxx_OOStringFromShipDamageType(kOODamageTypeRemoved) == "removed");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kScrape) == "scrape damage");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kHeat) == "heat damage");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kEnergy) == "energy damage");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kCascadeWeapon) == "cascade weapon");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kHitAPlanet) == "hit a planet");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kHitASun) == "hit a sun");
+  OO_CHECK(cxx_OOStringFromShipDamageType(OOShipDamageType::kRemoved) == "removed");
 }
 
 OO_TEST(cxx_OOStringFromLegalStatusReason) {
@@ -193,28 +193,28 @@ OO_TEST(cxx_OOStringFromLegalStatusReason) {
 }
 
 OO_TEST(cxx_OOEntityStatusFromString) {
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_START_GAME") == STATUS_START_GAME);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_RESTART_GAME") == STATUS_RESTART_GAME);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_DEAD") == STATUS_DEAD);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_INACTIVE") == STATUS_INACTIVE);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_TEST") == STATUS_TEST);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_COCKPIT_DISPLAY") == STATUS_COCKPIT_DISPLAY);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_ACTIVE") == STATUS_ACTIVE);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_EFFECT") == STATUS_EFFECT);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_IN_FLIGHT") == STATUS_IN_FLIGHT);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_DOCKED") == STATUS_DOCKED);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_AUTOPILOT_ENGAGED") == STATUS_AUTOPILOT_ENGAGED);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_DOCKING") == STATUS_DOCKING);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_LAUNCHING") == STATUS_LAUNCHING);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_WITCHSPACE_COUNTDOWN") == STATUS_WITCHSPACE_COUNTDOWN);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_ENTERING_WITCHSPACE") == STATUS_ENTERING_WITCHSPACE);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_EXITING_WITCHSPACE") == STATUS_EXITING_WITCHSPACE);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_ESCAPE_SEQUENCE") == STATUS_ESCAPE_SEQUENCE);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_IN_HOLD") == STATUS_IN_HOLD);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_BEING_SCOOPED") == STATUS_BEING_SCOOPED);
-  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_HANDLING_ERROR") == STATUS_HANDLING_ERROR);
-  OO_CHECK(cxx_OOEntityStatusFromString("NOT_A_NAME") == STATUS_INACTIVE);  // the fallback
-  OO_CHECK(cxx_OOEntityStatusFromString("") == STATUS_INACTIVE);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_START_GAME") == OOEntityStatus::kStartGame);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_RESTART_GAME") == OOEntityStatus::kRestartGame);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_DEAD") == OOEntityStatus::kDead);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_INACTIVE") == OOEntityStatus::kInactive);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_TEST") == OOEntityStatus::kTest);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_COCKPIT_DISPLAY") == OOEntityStatus::kCockpitDisplay);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_ACTIVE") == OOEntityStatus::kActive);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_EFFECT") == OOEntityStatus::kEffect);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_IN_FLIGHT") == OOEntityStatus::kInFlight);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_DOCKED") == OOEntityStatus::kDocked);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_AUTOPILOT_ENGAGED") == OOEntityStatus::kAutopilotEngaged);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_DOCKING") == OOEntityStatus::kDocking);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_LAUNCHING") == OOEntityStatus::kLaunching);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_WITCHSPACE_COUNTDOWN") == OOEntityStatus::kWitchspaceCountdown);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_ENTERING_WITCHSPACE") == OOEntityStatus::kEnteringWitchspace);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_EXITING_WITCHSPACE") == OOEntityStatus::kExitingWitchspace);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_ESCAPE_SEQUENCE") == OOEntityStatus::kEscapeSequence);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_IN_HOLD") == OOEntityStatus::kInHold);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_BEING_SCOOPED") == OOEntityStatus::kBeingScooped);
+  OO_CHECK(cxx_OOEntityStatusFromString("STATUS_HANDLING_ERROR") == OOEntityStatus::kHandlingError);
+  OO_CHECK(cxx_OOEntityStatusFromString("NOT_A_NAME") == OOEntityStatus::kInactive);  // the fallback
+  OO_CHECK(cxx_OOEntityStatusFromString("") == OOEntityStatus::kInactive);
 }
 
 OO_TEST(cxx_OOCompassModeFromString) {
@@ -273,24 +273,24 @@ OO_TEST(cxx_OOGUIScreenIDFromString) {
 }
 
 OO_TEST(cxx_OOScanClassFromString) {
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_NOT_SET") == CLASS_NOT_SET);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_NO_DRAW") == CLASS_NO_DRAW);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_NEUTRAL") == CLASS_NEUTRAL);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_STATION") == CLASS_STATION);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_TARGET") == CLASS_TARGET);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_CARGO") == CLASS_CARGO);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_MISSILE") == CLASS_MISSILE);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_ROCK") == CLASS_ROCK);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_MINE") == CLASS_MINE);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_THARGOID") == CLASS_THARGOID);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_BUOY") == CLASS_BUOY);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_VISUAL_EFFECT") == CLASS_VISUAL_EFFECT);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_WORMHOLE") == CLASS_WORMHOLE);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_PLAYER") == CLASS_PLAYER);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_POLICE") == CLASS_POLICE);
-  OO_CHECK(cxx_OOScanClassFromString("CLASS_MILITARY") == CLASS_MILITARY);
-  OO_CHECK(cxx_OOScanClassFromString("NOT_A_NAME") == CLASS_NOT_SET);  // the fallback
-  OO_CHECK(cxx_OOScanClassFromString("") == CLASS_NOT_SET);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_NOT_SET") == OOScanClass::kNotSet);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_NO_DRAW") == OOScanClass::kNoDraw);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_NEUTRAL") == OOScanClass::kNeutral);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_STATION") == OOScanClass::kStation);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_TARGET") == OOScanClass::kTarget);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_CARGO") == OOScanClass::kCargo);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_MISSILE") == OOScanClass::kMissile);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_ROCK") == OOScanClass::kRock);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_MINE") == OOScanClass::kMine);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_THARGOID") == OOScanClass::kThargoid);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_BUOY") == OOScanClass::kBuoy);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_VISUAL_EFFECT") == OOScanClass::kVisualEffect);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_WORMHOLE") == OOScanClass::kWormhole);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_PLAYER") == OOScanClass::kPlayer);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_POLICE") == OOScanClass::kPolice);
+  OO_CHECK(cxx_OOScanClassFromString("CLASS_MILITARY") == OOScanClass::kMilitary);
+  OO_CHECK(cxx_OOScanClassFromString("NOT_A_NAME") == OOScanClass::kNotSet);  // the fallback
+  OO_CHECK(cxx_OOScanClassFromString("") == OOScanClass::kNotSet);
 }
 
 OO_TEST(cxx_OOLongRangeChartModeFromString) {
@@ -469,86 +469,86 @@ JSStrings& Strings() {
 
 OO_TEST(jsEntityStatus) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_START_GAME)) == "STATUS_START_GAME");
-  { JSValue v = js.string("STATUS_START_GAME"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_START_GAME); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_RESTART_GAME)) == "STATUS_RESTART_GAME");
-  { JSValue v = js.string("STATUS_RESTART_GAME"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_RESTART_GAME); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_DEAD)) == "STATUS_DEAD");
-  { JSValue v = js.string("STATUS_DEAD"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_DEAD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_INACTIVE)) == "STATUS_INACTIVE");
-  { JSValue v = js.string("STATUS_INACTIVE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_INACTIVE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_TEST)) == "STATUS_TEST");
-  { JSValue v = js.string("STATUS_TEST"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_TEST); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_COCKPIT_DISPLAY)) == "STATUS_COCKPIT_DISPLAY");
-  { JSValue v = js.string("STATUS_COCKPIT_DISPLAY"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_COCKPIT_DISPLAY); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_ACTIVE)) == "STATUS_ACTIVE");
-  { JSValue v = js.string("STATUS_ACTIVE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_ACTIVE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_EFFECT)) == "STATUS_EFFECT");
-  { JSValue v = js.string("STATUS_EFFECT"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_EFFECT); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_IN_FLIGHT)) == "STATUS_IN_FLIGHT");
-  { JSValue v = js.string("STATUS_IN_FLIGHT"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_IN_FLIGHT); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_DOCKED)) == "STATUS_DOCKED");
-  { JSValue v = js.string("STATUS_DOCKED"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_DOCKED); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_AUTOPILOT_ENGAGED)) == "STATUS_AUTOPILOT_ENGAGED");
-  { JSValue v = js.string("STATUS_AUTOPILOT_ENGAGED"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_AUTOPILOT_ENGAGED); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_DOCKING)) == "STATUS_DOCKING");
-  { JSValue v = js.string("STATUS_DOCKING"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_DOCKING); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_LAUNCHING)) == "STATUS_LAUNCHING");
-  { JSValue v = js.string("STATUS_LAUNCHING"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_LAUNCHING); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_WITCHSPACE_COUNTDOWN)) == "STATUS_WITCHSPACE_COUNTDOWN");
-  { JSValue v = js.string("STATUS_WITCHSPACE_COUNTDOWN"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_WITCHSPACE_COUNTDOWN); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_ENTERING_WITCHSPACE)) == "STATUS_ENTERING_WITCHSPACE");
-  { JSValue v = js.string("STATUS_ENTERING_WITCHSPACE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_ENTERING_WITCHSPACE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_EXITING_WITCHSPACE)) == "STATUS_EXITING_WITCHSPACE");
-  { JSValue v = js.string("STATUS_EXITING_WITCHSPACE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_EXITING_WITCHSPACE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_ESCAPE_SEQUENCE)) == "STATUS_ESCAPE_SEQUENCE");
-  { JSValue v = js.string("STATUS_ESCAPE_SEQUENCE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_ESCAPE_SEQUENCE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_IN_HOLD)) == "STATUS_IN_HOLD");
-  { JSValue v = js.string("STATUS_IN_HOLD"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_IN_HOLD); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_BEING_SCOOPED)) == "STATUS_BEING_SCOOPED");
-  { JSValue v = js.string("STATUS_BEING_SCOOPED"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_BEING_SCOOPED); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, STATUS_HANDLING_ERROR)) == "STATUS_HANDLING_ERROR");
-  { JSValue v = js.string("STATUS_HANDLING_ERROR"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == STATUS_HANDLING_ERROR); JS_FreeValue(js.context, v); }
-  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == (OOEntityStatus)(STATUS_INACTIVE)); JS_FreeValue(js.context, v); }  // the fallback
-  OO_CHECK(OOEntityStatusFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOEntityStatus)(STATUS_INACTIVE));  // not a string
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kStartGame)) == "STATUS_START_GAME");
+  { JSValue v = js.string("STATUS_START_GAME"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kStartGame); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kRestartGame)) == "STATUS_RESTART_GAME");
+  { JSValue v = js.string("STATUS_RESTART_GAME"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kRestartGame); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kDead)) == "STATUS_DEAD");
+  { JSValue v = js.string("STATUS_DEAD"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kDead); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kInactive)) == "STATUS_INACTIVE");
+  { JSValue v = js.string("STATUS_INACTIVE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kInactive); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kTest)) == "STATUS_TEST");
+  { JSValue v = js.string("STATUS_TEST"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kTest); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kCockpitDisplay)) == "STATUS_COCKPIT_DISPLAY");
+  { JSValue v = js.string("STATUS_COCKPIT_DISPLAY"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kCockpitDisplay); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kActive)) == "STATUS_ACTIVE");
+  { JSValue v = js.string("STATUS_ACTIVE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kActive); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kEffect)) == "STATUS_EFFECT");
+  { JSValue v = js.string("STATUS_EFFECT"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kEffect); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kInFlight)) == "STATUS_IN_FLIGHT");
+  { JSValue v = js.string("STATUS_IN_FLIGHT"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kInFlight); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kDocked)) == "STATUS_DOCKED");
+  { JSValue v = js.string("STATUS_DOCKED"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kDocked); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kAutopilotEngaged)) == "STATUS_AUTOPILOT_ENGAGED");
+  { JSValue v = js.string("STATUS_AUTOPILOT_ENGAGED"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kAutopilotEngaged); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kDocking)) == "STATUS_DOCKING");
+  { JSValue v = js.string("STATUS_DOCKING"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kDocking); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kLaunching)) == "STATUS_LAUNCHING");
+  { JSValue v = js.string("STATUS_LAUNCHING"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kLaunching); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kWitchspaceCountdown)) == "STATUS_WITCHSPACE_COUNTDOWN");
+  { JSValue v = js.string("STATUS_WITCHSPACE_COUNTDOWN"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kWitchspaceCountdown); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kEnteringWitchspace)) == "STATUS_ENTERING_WITCHSPACE");
+  { JSValue v = js.string("STATUS_ENTERING_WITCHSPACE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kEnteringWitchspace); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kExitingWitchspace)) == "STATUS_EXITING_WITCHSPACE");
+  { JSValue v = js.string("STATUS_EXITING_WITCHSPACE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kExitingWitchspace); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kEscapeSequence)) == "STATUS_ESCAPE_SEQUENCE");
+  { JSValue v = js.string("STATUS_ESCAPE_SEQUENCE"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kEscapeSequence); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kInHold)) == "STATUS_IN_HOLD");
+  { JSValue v = js.string("STATUS_IN_HOLD"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kInHold); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kBeingScooped)) == "STATUS_BEING_SCOOPED");
+  { JSValue v = js.string("STATUS_BEING_SCOOPED"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kBeingScooped); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromEntityStatus(js.context, OOEntityStatus::kHandlingError)) == "STATUS_HANDLING_ERROR");
+  { JSValue v = js.string("STATUS_HANDLING_ERROR"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == OOEntityStatus::kHandlingError); JS_FreeValue(js.context, v); }
+  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOEntityStatusFromJSValue(js.context, v) == (OOEntityStatus)(OOEntityStatus::kInactive)); JS_FreeValue(js.context, v); }  // the fallback
+  OO_CHECK(OOEntityStatusFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOEntityStatus)(OOEntityStatus::kInactive));  // not a string
 }
 
 OO_TEST(jsScanClass) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_NOT_SET)) == "CLASS_NOT_SET");
-  { JSValue v = js.string("CLASS_NOT_SET"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_NOT_SET); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_NO_DRAW)) == "CLASS_NO_DRAW");
-  { JSValue v = js.string("CLASS_NO_DRAW"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_NO_DRAW); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_NEUTRAL)) == "CLASS_NEUTRAL");
-  { JSValue v = js.string("CLASS_NEUTRAL"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_NEUTRAL); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_STATION)) == "CLASS_STATION");
-  { JSValue v = js.string("CLASS_STATION"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_STATION); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_TARGET)) == "CLASS_TARGET");
-  { JSValue v = js.string("CLASS_TARGET"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_TARGET); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_CARGO)) == "CLASS_CARGO");
-  { JSValue v = js.string("CLASS_CARGO"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_CARGO); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_MISSILE)) == "CLASS_MISSILE");
-  { JSValue v = js.string("CLASS_MISSILE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_MISSILE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_ROCK)) == "CLASS_ROCK");
-  { JSValue v = js.string("CLASS_ROCK"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_ROCK); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_MINE)) == "CLASS_MINE");
-  { JSValue v = js.string("CLASS_MINE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_MINE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_THARGOID)) == "CLASS_THARGOID");
-  { JSValue v = js.string("CLASS_THARGOID"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_THARGOID); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_BUOY)) == "CLASS_BUOY");
-  { JSValue v = js.string("CLASS_BUOY"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_BUOY); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_VISUAL_EFFECT)) == "CLASS_VISUAL_EFFECT");
-  { JSValue v = js.string("CLASS_VISUAL_EFFECT"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_VISUAL_EFFECT); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_WORMHOLE)) == "CLASS_WORMHOLE");
-  { JSValue v = js.string("CLASS_WORMHOLE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_WORMHOLE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_PLAYER)) == "CLASS_PLAYER");
-  { JSValue v = js.string("CLASS_PLAYER"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_PLAYER); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_POLICE)) == "CLASS_POLICE");
-  { JSValue v = js.string("CLASS_POLICE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_POLICE); JS_FreeValue(js.context, v); }
-  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, CLASS_MILITARY)) == "CLASS_MILITARY");
-  { JSValue v = js.string("CLASS_MILITARY"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == CLASS_MILITARY); JS_FreeValue(js.context, v); }
-  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == (OOScanClass)(CLASS_NOT_SET)); JS_FreeValue(js.context, v); }  // the fallback
-  OO_CHECK(OOScanClassFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOScanClass)(CLASS_NOT_SET));  // not a string
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kNotSet)) == "CLASS_NOT_SET");
+  { JSValue v = js.string("CLASS_NOT_SET"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kNotSet); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kNoDraw)) == "CLASS_NO_DRAW");
+  { JSValue v = js.string("CLASS_NO_DRAW"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kNoDraw); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kNeutral)) == "CLASS_NEUTRAL");
+  { JSValue v = js.string("CLASS_NEUTRAL"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kNeutral); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kStation)) == "CLASS_STATION");
+  { JSValue v = js.string("CLASS_STATION"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kStation); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kTarget)) == "CLASS_TARGET");
+  { JSValue v = js.string("CLASS_TARGET"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kTarget); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kCargo)) == "CLASS_CARGO");
+  { JSValue v = js.string("CLASS_CARGO"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kCargo); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kMissile)) == "CLASS_MISSILE");
+  { JSValue v = js.string("CLASS_MISSILE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kMissile); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kRock)) == "CLASS_ROCK");
+  { JSValue v = js.string("CLASS_ROCK"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kRock); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kMine)) == "CLASS_MINE");
+  { JSValue v = js.string("CLASS_MINE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kMine); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kThargoid)) == "CLASS_THARGOID");
+  { JSValue v = js.string("CLASS_THARGOID"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kThargoid); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kBuoy)) == "CLASS_BUOY");
+  { JSValue v = js.string("CLASS_BUOY"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kBuoy); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kVisualEffect)) == "CLASS_VISUAL_EFFECT");
+  { JSValue v = js.string("CLASS_VISUAL_EFFECT"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kVisualEffect); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kWormhole)) == "CLASS_WORMHOLE");
+  { JSValue v = js.string("CLASS_WORMHOLE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kWormhole); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kPlayer)) == "CLASS_PLAYER");
+  { JSValue v = js.string("CLASS_PLAYER"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kPlayer); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kPolice)) == "CLASS_POLICE");
+  { JSValue v = js.string("CLASS_POLICE"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kPolice); JS_FreeValue(js.context, v); }
+  OO_CHECK(js.text(OOJSValueFromScanClass(js.context, OOScanClass::kMilitary)) == "CLASS_MILITARY");
+  { JSValue v = js.string("CLASS_MILITARY"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == OOScanClass::kMilitary); JS_FreeValue(js.context, v); }
+  { JSValue v = js.string("NOT_A_NAME"); OO_CHECK(OOScanClassFromJSValue(js.context, v) == (OOScanClass)(OOScanClass::kNotSet)); JS_FreeValue(js.context, v); }  // the fallback
+  OO_CHECK(OOScanClassFromJSValue(js.context, JS_NewInt32(js.context, 1)) == (OOScanClass)(OOScanClass::kNotSet));  // not a string
 }
 
 OO_TEST(jsCompassMode) {
@@ -673,13 +673,13 @@ OO_TEST(jsViewID) {
 
 OO_TEST(jsShipDamageType) {
   JSStrings& js = Strings();
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeScrape)) == "scrape damage");
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeHeat)) == "heat damage");
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeEnergy)) == "energy damage");
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeCascadeWeapon)) == "cascade weapon");
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeHitAPlanet)) == "hit a planet");
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeHitASun)) == "hit a sun");
-  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, kOODamageTypeRemoved)) == "removed");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kScrape)) == "scrape damage");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kHeat)) == "heat damage");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kEnergy)) == "energy damage");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kCascadeWeapon)) == "cascade weapon");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kHitAPlanet)) == "hit a planet");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kHitASun)) == "hit a sun");
+  OO_CHECK(js.text(OOJSValueFromShipDamageType(js.context, OOShipDamageType::kRemoved)) == "removed");
 }
 
 OO_TEST(jsLegalStatusReason) {

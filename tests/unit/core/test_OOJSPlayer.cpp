@@ -621,7 +621,7 @@ void SetUpContext()
 	sPlayer->_parcelReputation = 70;
 	sPlayer->_dockingClearanceStatus = OODockingClearanceStatus::kGranted;
 	sPlayer->_roleWeights = { "trader", "pirate", "trader" };
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_status = OOEntityStatus::kDocked;
 	sPlayer->_targetSystem = -1;
 	sStation = oo::makeRef<TestEntityObject>().leakRef();
 	sStation->_cxxEntity = oo::makeRef<ShipEntity>();
@@ -850,9 +850,9 @@ OO_TEST(replaceShip)
 	OO_CHECK_EQ(sPlayer->_personality, 32766);
 	Events();
 	OO_CHECK_EVAL("player.replaceShip()", "threw: bad arguments: Player.replaceShip(0) - / string (shipyard key)");
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->_status = OOEntityStatus::kInFlight;
 	OO_CHECK_EVAL("player.replaceShip('cobra3-player')", "threw: Player.replaceShip() only works while the player is docked.");
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_status = OOEntityStatus::kDocked;
 }
 
 

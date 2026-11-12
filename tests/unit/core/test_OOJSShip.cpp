@@ -862,7 +862,7 @@ OO_TEST(methodsRemoveAndExplode) {
   PlainShip* queued = static_cast<PlainShip*>(oo::ToShip(oo::NewShipObject(
       oo::makeRef<PlainShip>(), "queued",
       oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Queued"))}}))));
-  if (queued != nullptr) queued->setStatus(STATUS_DOCKED);
+  if (queued != nullptr) queued->setStatus(OOEntityStatus::kDocked);
   JSContext* context = OOJSAcquireContext();
   JS_SetPropertyStr(context, OOJavaScriptEngine::sharedEngine()->globalObject(),
                     "queued", queued->jsValueInContext(context));
@@ -870,7 +870,7 @@ OO_TEST(methodsRemoveAndExplode) {
   Log();
   OO_CHECK_EVAL("queued.remove(true)", "undefined");
   OO_CHECK((queued != nullptr ? queued->status() : OOEntityStatus{}) ==
-           STATUS_DEAD);
+           OOEntityStatus::kDead);
   OO_CHECK((queued != nullptr ? queued->shipScript() : (OOScript*)nullptr) ==
            nullptr);  // suppressing the death event drops the script
   OO_CHECK_LOG("");

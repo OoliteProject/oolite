@@ -263,7 +263,7 @@ OO_TEST(isUnpiloted)
 		TestStation *station = MakeStation("rock", { { "scan_class", oo::PList(std::string("CLASS_CARGO")) } });
 		OO_CHECK((station != nullptr ? station->isUnpiloted() : false));			// unpiloted = yes
 		SetExplicitlyUnpiloted(station, false);
-		OO_CHECK(!(station != nullptr ? station->isUnpiloted() : false));			// a ship of CLASS_CARGO would be
+		OO_CHECK(!(station != nullptr ? station->isUnpiloted() : false));			// a ship of OOScanClass::kCargo would be
 		if (station != nullptr)  station->setHulk(true);
 		OO_CHECK((station != nullptr ? station->isUnpiloted() : false));
 		if (station != nullptr)  station->setHulk(false);
@@ -454,7 +454,7 @@ OO_TEST(slice2NoDocks)
 		if (station != nullptr)  station->clearDockingCorridor();
 		if (station != nullptr)  station->sanityCheckShipsOnApproach();
 		if (station != nullptr)  station->autoDockShipsOnHold();
-		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_IN_FLIGHT && (station != nullptr ? station->status() : OOEntityStatus{}) == STATUS_IN_FLIGHT);
+		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight && (station != nullptr ? station->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
 	}
 }
 
@@ -680,7 +680,7 @@ OO_TEST(slice4LaunchersWithoutLaunchDock)
 
 		OO_CHECK(DefendersLaunched4(station) == defenders && ScavengersLaunched4(station) == scavengers && DockedShuttles4(station) == shuttles);
 		OO_CHECK((station != nullptr ? station->countOfShipsInLaunchQueueWithPrimaryRole("police") : unsigned{}) == 0 && (station != nullptr ? station->currentlyInLaunchingQueues() : unsigned{}) == 0);
-		OO_CHECK((station != nullptr ? station->status() : OOEntityStatus{}) == STATUS_IN_FLIGHT);
+		OO_CHECK((station != nullptr ? station->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
 	}
 }
 

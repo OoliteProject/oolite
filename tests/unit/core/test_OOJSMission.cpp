@@ -827,7 +827,7 @@ void SetUpContext()
 
 	// Kept for the life of the test.
 	sPlayer = new PlayerEntity;
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_status = OOEntityStatus::kDocked;
 	sPlayer->_exitScreen = GUI_SCREEN_STATUS;
 	gOOPlayer = sPlayer;
 	sUniverse = new StandInUniverse();
@@ -1047,12 +1047,12 @@ OO_TEST(runScreenOtherSettings)
 	sUniverse->_calls.clear();
 
 	// In flight: interruptible, and no model by role.
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->_status = OOEntityStatus::kInFlight;
 	OO_CHECK_EVAL("mission.runScreen({model: 'cobra', allowInterrupt: false})", "true");
 	OO_CHECK_EQ(sLastWarning, std::string("Mission.runScreen: model cannot be displayed while in flight."));
 	OO_CHECK_CALLS(sUniverse->_calls, "removeDemoShips");
 	OO_CHECK(Take(sPlayer->_calls).find("allowInterrupt") != std::string::npos);
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_status = OOEntityStatus::kDocked;
 
 	// The callback with a this of its own; an exception in it is logged and ignored.
 	OO_CHECK_EVAL("mission.runScreen({}, function () { this.called = true; }, theScript)", "true");
@@ -1076,10 +1076,10 @@ OO_TEST(runScreenErrors)
 	OO_CHECK_EVAL("mission.runScreen()", "threw: bad arguments: mission.runScreen(0) - / parameter object");
 	OO_CHECK_EVAL("mission.runScreen({}, 'not a function')", "threw: bad arguments: mission.runScreen(1) - / function");
 	OO_CHECK_CALLS(sPlayer->_calls, "");
-	sPlayer->_status = STATUS_START_GAME;
+	sPlayer->_status = OOEntityStatus::kStartGame;
 	OO_CHECK_EVAL("mission.runScreen({title: 'x'})", "false");	// not during the intro
 	OO_CHECK_CALLS(sPlayer->_calls, "");
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_status = OOEntityStatus::kDocked;
 	OO_CHECK_EQ(sLimiterPauses, 0);
 }
 
@@ -1090,12 +1090,12 @@ OO_TEST(runShipLibrary)
 	sPlayer->_calls.clear();
 	OO_CHECK_EVAL("mission.runShipLibrary()", "true");
 	OO_CHECK_CALLS(sPlayer->_calls, "introFirstGo(NO)");
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->_status = OOEntityStatus::kInFlight;
 	sLastWarning.clear();
 	OO_CHECK_EVAL("mission.runShipLibrary()", "false");
 	OO_CHECK_EQ(sLastWarning, std::string("Mission.runShipLibrary: must be docked."));
 	OO_CHECK_CALLS(sPlayer->_calls, "");
-	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_status = OOEntityStatus::kDocked;
 }
 
 

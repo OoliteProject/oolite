@@ -145,7 +145,7 @@ OO_TEST(made) {
     OO_CHECK(sun->radius() == 1000.0 && sun->collisionRadius() == 1000.0f);
     OO_CHECK(sun->name() == std::optional<std::string>("Sol"));
     OO_CHECK(sun->planetType() == OOStellarBodyType::kSun);
-    OO_CHECK(sun->getScanClass() == CLASS_NO_DRAW);
+    OO_CHECK(sun->getScanClass() == OOScanClass::kNoDraw);
     OO_CHECK(sun->isSun() && sun->isVisible() && sun->canCollide());
     OO_CHECK(!sun->willGoNova() && !sun->goneNova());
   }

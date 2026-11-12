@@ -81,8 +81,8 @@ void WormholeEntity::init() {
     witch_mass = 0.0;
     shipsInTransit.reserve(4);
     collision_radius = 0.0;
-    setStatus(STATUS_EFFECT);
-    scanClass = CLASS_WORMHOLE;
+    setStatus(OOEntityStatus::kEffect);
+    scanClass = OOScanClass::kWormhole;
     isWormhole = true;
     scan_info = WORMHOLE_SCANINFO::kNone;
     scan_time = 0;
@@ -288,7 +288,7 @@ GLfloat WormholeEntity::misjumpRange() { return _misjumpRange; }
 
 bool WormholeEntity::suckInShip(::ShipEntity* ship) {
   if (!ship || (ship != nullptr ? ship->status() : OOEntityStatus{}) ==
-                   STATUS_ENTERING_WITCHSPACE) {
+                   OOEntityStatus::kEnteringWitchspace) {
     return false;
   }
   if (origin != (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0)) {
@@ -371,7 +371,7 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship) {
   if (UNIVERSE != nullptr) UNIVERSE->addWitchspaceJumpEffectForShip(ship);
 
   // Should probably pass the wormhole, but they have no JS representation
-  if (ship != nullptr) ship->setStatus(STATUS_ENTERING_WITCHSPACE);
+  if (ship != nullptr) ship->setStatus(OOEntityStatus::kEnteringWitchspace);
   if (ship != nullptr) ship->doScriptEvent(OOJSID("shipWillEnterWormhole"));
   if (ship != nullptr && ship->getAI() != nullptr)
     ship->getAI()->message("ENTERED_WITCHSPACE");
@@ -409,7 +409,8 @@ void WormholeEntity::disgorgeShips() {
     double ship_arrival_time = arrival_time + shipInfo.time;
     double time_passed = now - ship_arrival_time;
 
-    if ((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_DEAD)
+    if ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
+        OOEntityStatus::kDead)
       continue;  // skip dead ships.
 
     if (ship_arrival_time > now) {
@@ -705,11 +706,13 @@ void WormholeEntity::update(OOTimeDelta delta_t) {
                        NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
   }
 
-  scanClass = (witch_mass > 0.0) ? CLASS_WORMHOLE : CLASS_NO_DRAW;
+  scanClass =
+      (witch_mass > 0.0) ? OOScanClass::kWormhole : OOScanClass::kNoDraw;
 
   if (now > expiry_time) {
-    scanClass = CLASS_NO_DRAW;  // witch_mass not certain to be limiting factor
-                                // on extremely short jumps, so make sure now
+    scanClass =
+        OOScanClass::kNoDraw;  // witch_mass not certain to be limiting factor
+                               // on extremely short jumps, so make sure now
 
     // If we're a saved wormhole waiting to disgorge more ships, it's safe
     // to remove self from UNIVERSE, but we need the current position!
@@ -727,7 +730,7 @@ void WormholeEntity::drawImmediate(bool /*immediate*/, bool translucent) {
 
   if (collision_radius <= 0.0) return;
 
-  if (getScanClass() == CLASS_NO_DRAW) return;
+  if (getScanClass() == OOScanClass::kNoDraw) return;
 
   if (translucent) {
     // for now, a simple copy of the energy bomb draw routine

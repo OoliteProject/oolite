@@ -1170,7 +1170,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
 
     case kShip_isRock:
       return OOJSValueFromBOOL(ship->getScanClass() ==
-                               CLASS_ROCK);  // hermits and asteroids!
+                               OOScanClass::kRock);  // hermits and asteroids!
 
     case kShip_isMinable:
       return OOJSValueFromBOOL(ship->isMinable());
@@ -1191,7 +1191,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       }
 
     case kShip_isCargo:
-      return OOJSValueFromBOOL(ship->getScanClass() == CLASS_CARGO &&
+      return OOJSValueFromBOOL(ship->getScanClass() == OOScanClass::kCargo &&
                                ship->commodityAmount() > 0);
 
     case kShip_isDerelict:
@@ -2408,13 +2408,14 @@ static JSValue ShipAddCargoEntity(OOJS_NATIVE_ARGS) {
   }
   if (target == nullptr ||
       target->getScanClass() !=
-          CLASS_CARGO)  // none: CLASS_NO_DRAW, as a message to nil
+          OOScanClass::kCargo)  // none: OOScanClass::kNoDraw, as a message to
+                                // nil
   {
     cxx_OOJSReportWarningForCaller(context, "PlayerShip", "addCargoEntity",
                                    "Scoopable entity not cargo.");
     return OOJSNativeFailure(context);
   }
-  if (target->status() != STATUS_IN_FLIGHT) {
+  if (target->status() != OOEntityStatus::kInFlight) {
     cxx_OOJSReportWarningForCaller(context, "PlayerShip", "addCargoEntity",
                                    "Scoopable entity not in flight.");
     return OOJSNativeFailure(context);
@@ -2439,7 +2440,7 @@ static JSValue ShipAddCargoEntity(OOJS_NATIVE_ARGS) {
   ship->scoopUpProcess(target, procEvents, procMessages);
   OOJS_END_FULL_NATIVE
 
-  OOJS_RETURN_BOOL(target->status() == STATUS_IN_HOLD);
+  OOJS_RETURN_BOOL(target->status() == OOEntityStatus::kInHold);
 
   OOJS_NATIVE_EXIT
 }
@@ -3549,11 +3550,11 @@ JSValue RemoveOrExplodeShip(OOJS_NATIVE_ARGS, bool explode) {
     if (UNIVERSE != nullptr) UNIVERSE->unMagicMainStation();
   }
 
-  if (EXPECT_NOT(ship->status() == STATUS_DOCKED)) {
+  if (EXPECT_NOT(ship->status() == OOEntityStatus::kDocked)) {
     /* If it's in the launch queue and hasn't yet been added to
      * the universe, set the status to DEAD (so it gets removed
      * from the launch queue) */
-    ship->setStatus(STATUS_DEAD);
+    ship->setStatus(OOEntityStatus::kDead);
     /* No shipDied event occurs in this place - it never really
      * existed. This case is just to prevent an error from the
      * usual code branch - removing ships while they're still
@@ -3824,8 +3825,8 @@ static JSValue ShipMarkTargetForFines(OOJS_NATIVE_ARGS) {
 
   ShipEntity* ship = oo::ToShip(thisEnt->primaryTarget());
   bool ok = false;
-  if ((ship != nullptr) && (ship->status() != STATUS_DEAD) &&
-      (ship->status() != STATUS_DOCKED)) {
+  if ((ship != nullptr) && (ship->status() != OOEntityStatus::kDead) &&
+      (ship->status() != OOEntityStatus::kDocked)) {
     ok = ship->markForFines();
   }
 
@@ -3841,7 +3842,7 @@ static JSValue ShipEnterWormhole(OOJS_NATIVE_ARGS) {
   Entity* hole = nullptr;
 
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-      STATUS_ENTERING_WITCHSPACE) {
+      OOEntityStatus::kEnteringWitchspace) {
     cxx_OOJSReportError(context,
                         "Cannot use this function while player's ship not "
                         "entering witchspace.");

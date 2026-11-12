@@ -110,8 +110,8 @@ OO_TEST(initWithPosition) {
     OO_CHECK(vector_equal(spark->getVelocity(), make_vector(10, 0, 0)));
     OO_CHECK(spark->collisionRadius() == 2.0f &&
              Particle(spark)->diameter() == 4.0f);
-    OO_CHECK(spark->status() == STATUS_EFFECT &&
-             spark->getScanClass() == CLASS_NO_DRAW);
+    OO_CHECK(spark->status() == OOEntityStatus::kEffect &&
+             spark->getScanClass() == OOScanClass::kNoDraw);
     OO_CHECK(spark->isEffect() && !spark->canCollide());
     OO_CHECK(ComponentsAre(spark, 0.2f, 0.4f, 0.6f, 0.8f));
     OO_CHECK(oo::EntityDescription(spark).starts_with("<OOSparkEntity 0x"));

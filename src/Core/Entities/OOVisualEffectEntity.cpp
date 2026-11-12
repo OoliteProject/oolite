@@ -173,9 +173,9 @@ bool OOVisualEffectEntity::setUpVisualEffectFromDictionary(
   setScannerDisplayColor1(nullptr);
   setScannerDisplayColor2(nullptr);
 
-  scanClass = CLASS_VISUAL_EFFECT;
+  scanClass = OOScanClass::kVisualEffect;
 
-  setStatus(STATUS_EFFECT);
+  setStatus(OOEntityStatus::kEffect);
 
   _hullHeatLevel = 60.0 / 256.0;
   _shaderFloat1 = 0.0;

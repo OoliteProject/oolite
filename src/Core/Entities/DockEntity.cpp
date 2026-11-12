@@ -265,7 +265,7 @@ void DockEntity::update(OOTimeDelta delta_t) {
       dockingCorridorIsEmpty()) {
     const oo::EntityHold se = launchQueue.front();
     // check to make sure ship has not been destroyed in queue by script
-    if (oo::EntityStatus(se.get()) == STATUS_DOCKED) {
+    if (oo::EntityStatus(se.get()) == OOEntityStatus::kDocked) {
       launchShip(oo::ToShip(se.get()));
     }
     if (!launchQueue.empty())
@@ -365,7 +365,7 @@ void DockEntity::abortAllDockings() {
                            : (::DockEntity*)nullptr) == this);
   if (isDockingStation &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
-          STATUS_IN_FLIGHT &&
+          OOEntityStatus::kInFlight &&
       (player != nullptr ? player->getDockingClearanceStatus()
                          : OODockingClearanceStatus{}) >=
           OODockingClearanceStatus::kRequested) {
@@ -855,7 +855,7 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
   if ((ship != nullptr ? ship->getIsPlayer() : false)) {
     ::PlayerEntity* player = PLAYER;
     if ((player != nullptr ? player->status() : OOEntityStatus{}) ==
-            STATUS_IN_FLIGHT &&
+            OOEntityStatus::kInFlight &&
         (player != nullptr ? player->getDockingClearanceStatus()
                            : OODockingClearanceStatus{}) >=
             OODockingClearanceStatus::kRequested) {
@@ -893,7 +893,8 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
 bool DockEntity::shipIsInDockingQueue(::ShipEntity* ship) {
   if (!(ship != nullptr ? ship->getIsShip() : false)) return false;
   if ((ship != nullptr ? ship->getIsPlayer() : false) &&
-      (ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_DEAD)
+      (ship != nullptr ? ship->status() : OOEntityStatus{}) ==
+          OOEntityStatus::kDead)
     return false;
 
   OOUniversalID ship_id =
@@ -933,7 +934,8 @@ void DockEntity::abortAllLaunches() {
 bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
   if (!(ship != nullptr ? ship->getIsShip() : false)) return false;
   if ((ship != nullptr ? ship->getIsPlayer() : false) &&
-      (ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_DEAD)
+      (ship != nullptr ? ship->status() : OOEntityStatus{}) ==
+          OOEntityStatus::kDead)
     return false;
 
   bool allow_docking_thisship = allow_docking || !disallowed_docking_collides;
@@ -943,7 +945,7 @@ bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
 
   ::StationEntity* station = oo::ToStation(parentEntity());
   if ((station != nullptr ? station->status() : OOEntityStatus{}) ==
-      STATUS_DEAD) {
+      OOEntityStatus::kDead) {
     return false;
   }
 
@@ -1013,9 +1015,9 @@ bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
     if ((station != nullptr ? station->getRequiresDockingClearance() : false) &&
         (ship != nullptr ? ship->getIsPlayer() : false) &&
         (ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-            STATUS_LAUNCHING &&
+            OOEntityStatus::kLaunching &&
         (ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-            STATUS_AUTOPILOT_ENGAGED &&
+            OOEntityStatus::kAutopilotEngaged &&
         (PLAYER != nullptr ? PLAYER->getDockingClearanceStatus()
                            : OODockingClearanceStatus{}) <
             OODockingClearanceStatus::kGranted) {
@@ -1038,7 +1040,7 @@ bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
   if ((arbb.max.x < ww) && (arbb.min.x > -ww) && (arbb.max.y < hh) &&
       (arbb.min.y > -hh)) {
     if ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-            STATUS_LAUNCHING &&
+            OOEntityStatus::kLaunching &&
         !allow_docking_thisship) {  // launch-only dock: will collide!
       if (arbb.min.z < dd) {
         if (ship != nullptr)
@@ -1070,7 +1072,7 @@ bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
   }
 
   if ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
-      STATUS_LAUNCHING) {
+      OOEntityStatus::kLaunching) {
     return true;
   }
 
@@ -1146,7 +1148,7 @@ void DockEntity::addShipToLaunchQueue(::ShipEntity* ship, bool priority) {
 
   if (ship == nullptr) return;
 
-  if (ship != nullptr) ship->setStatus(STATUS_DOCKED);
+  if (ship != nullptr) ship->setStatus(OOEntityStatus::kDocked);
   if (priority) {
     launchQueue.insert(launchQueue.begin(), oo::EntityHold(ship));
   } else {
@@ -1206,7 +1208,7 @@ void DockEntity::launchShip(::ShipEntity* ship) {
   if (ship != nullptr) ship->setPitch(0.0);
   if (ship != nullptr) ship->setYaw(0.0);
   if (UNIVERSE != nullptr) UNIVERSE->addEntity(ship);
-  if (ship != nullptr) ship->setStatus(STATUS_LAUNCHING);
+  if (ship != nullptr) ship->setStatus(OOEntityStatus::kLaunching);
   if (ship != nullptr)
     ship->setDesiredSpeed(launchSpeed);  // must be set after initialising the
                                          // AI to correct any speed set by AI
@@ -1322,7 +1324,7 @@ bool DockEntity::dockingCorridorIsEmpty() {
         HPdistance2((station != nullptr ? station->getPosition() : HPVector{}),
                     ship->getPosition());
     if ((ship != station) && (d2 < 25000000) &&
-        (ship->status() != STATUS_DOCKED))  // within 5km
+        (ship->status() != OOEntityStatus::kDocked))  // within 5km
     {
       HPVector ppos = absolutePositionForSubentity();
       d2 = HPdistance2(ppos, ship->position);
@@ -1386,7 +1388,7 @@ void DockEntity::clearDockingCorridor() {
         HPdistance2((station != nullptr ? station->getPosition() : HPVector{}),
                     ship->getPosition());
     if ((ship != station) && (d2 < 25000000) &&
-        (ship->status() != STATUS_DOCKED))  // within 5km
+        (ship->status() != OOEntityStatus::kDocked))  // within 5km
     {
       HPVector ppos = absolutePositionForSubentity();
       float time_out = -15.00;  // 15 secs

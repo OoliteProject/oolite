@@ -715,28 +715,28 @@ void PlayerEntity::getPollControls(double delta_t) {
       exceptionContext = "pollApplicationControls";
       pollApplicationControls();  // quit command-f etc.
       switch (status()) {
-        case STATUS_WITCHSPACE_COUNTDOWN:
-        case STATUS_IN_FLIGHT:
+        case OOEntityStatus::kWitchspaceCountdown:
+        case OOEntityStatus::kInFlight:
           exceptionContext = "pollFlightControls";
           pollFlightControls(delta_t);
           break;
 
-        case STATUS_DEAD:
+        case OOEntityStatus::kDead:
           exceptionContext = "pollGameOverControls";
           pollGameOverControls(delta_t);
           break;
 
-        case STATUS_AUTOPILOT_ENGAGED:
+        case OOEntityStatus::kAutopilotEngaged:
           exceptionContext = "pollAutopilotControls";
           pollAutopilotControls(delta_t);
           break;
 
-        case STATUS_DOCKED:
+        case OOEntityStatus::kDocked:
           exceptionContext = "pollDockedControls";
           pollDockedControls(delta_t);
           break;
 
-        case STATUS_START_GAME:
+        case OOEntityStatus::kStartGame:
           exceptionContext = "pollDemoControls";
           pollDemoControls(delta_t);
           break;
@@ -921,7 +921,7 @@ void PlayerEntity::beginWitchspaceCountdown(int spin_time) {
         witchspaceCountdown = spin_time;
       }
     }
-    setStatus(STATUS_WITCHSPACE_COUNTDOWN);
+    setStatus(OOEntityStatus::kWitchspaceCountdown);
     playStandardHyperspace();
     // say it!
     if (UNIVERSE != nullptr) UNIVERSE->clearPreviousMessage();
@@ -953,8 +953,8 @@ void PlayerEntity::beginWitchspaceCountdown() {
 }
 
 void PlayerEntity::cancelWitchspaceCountdown() {
-  if (status() == STATUS_WITCHSPACE_COUNTDOWN) {
-    setStatus(STATUS_IN_FLIGHT);
+  if (status() == OOEntityStatus::kWitchspaceCountdown) {
+    setStatus(OOEntityStatus::kInFlight);
     playHyperspaceAborted();
   }
   // say it!
@@ -1003,7 +1003,7 @@ void PlayerEntity::pollApplicationControls() {
     }
 
     // handle pressing Q or [esc] in error-handling mode
-    if (status() == STATUS_HANDLING_ERROR) {
+    if (status() == OOEntityStatus::kHandlingError) {
       exceptionContext = "error handling mode";
       if ((gameView != nullptr ? gameView->isDown(113) : false) ||
           (gameView != nullptr ? gameView->isDown(81) : false) ||
@@ -1019,10 +1019,10 @@ void PlayerEntity::pollApplicationControls() {
     if ((gameController != nullptr ? gameController->isGamePaused() : false)) {
       // What's the status?
       switch (status()) {
-        case STATUS_WITCHSPACE_COUNTDOWN:
-        case STATUS_IN_FLIGHT:
-        case STATUS_AUTOPILOT_ENGAGED:
-        case STATUS_DOCKED:
+        case OOEntityStatus::kWitchspaceCountdown:
+        case OOEntityStatus::kInFlight:
+        case OOEntityStatus::kAutopilotEngaged:
+        case OOEntityStatus::kDocked:
           // Pause is handled inside their pollControls, no need to unpause.
           break;
 
@@ -1791,7 +1791,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
             hasHyperspaceMotor())  // look for the 'h' key
         {
           if (!hyperspace_pressed) {
-            if (status() == STATUS_WITCHSPACE_COUNTDOWN) {
+            if (status() == OOEntityStatus::kWitchspaceCountdown) {
               cancelWitchspaceCountdown();
               if (galactic_witchjump) {
                 galactic_witchjump = false;
@@ -1818,7 +1818,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
                 "EQ_GAL_DRIVE")))  // look for the 'g' key
         {
           if (!galhyperspace_pressed) {
-            if (status() == STATUS_WITCHSPACE_COUNTDOWN) {
+            if (status() == OOEntityStatus::kWitchspaceCountdown) {
               cancelWitchspaceCountdown();
               if (galactic_witchjump) {
                 galactic_witchjump = false;
@@ -1839,7 +1839,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
               else
                 witchspaceCountdown = DEFAULT_HYPERSPACE_SPIN_TIME;
 
-              setStatus(STATUS_WITCHSPACE_COUNTDOWN);
+              setStatus(OOEntityStatus::kWitchspaceCountdown);
               playGalacticHyperspace();
               // say it!
               if (UNIVERSE != nullptr)
@@ -2193,7 +2193,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
   switch (gui_screen) {
     case GUI_SCREEN_LONG_RANGE_CHART:
 
-      if (status() != STATUS_WITCHSPACE_COUNTDOWN) {
+      if (status() != OOEntityStatus::kWitchspaceCountdown) {
         if (oo::str::length((gameView != nullptr ? gameView->getTypedString()
                                                  : std::optional<std::string>())
                                 .value_or("")) > 0) {
@@ -2267,7 +2267,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
         chartInfoPressed = false;
       }
 
-      if (status() != STATUS_WITCHSPACE_COUNTDOWN) {
+      if (status() != OOEntityStatus::kWitchspaceCountdown) {
         if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
           if (checkKeyPress(n_key_advanced_nav_array_next) ||
               checkKeyPress(n_key_advanced_nav_array_previous)) {
@@ -4933,7 +4933,7 @@ void PlayerEntity::pollGuiScreenControlsWithFKeyAlias(bool fKeyAlias) {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
-  bool docked_okay = (status() == STATUS_DOCKED);
+  bool docked_okay = (status() == OOEntityStatus::kDocked);
 
   //  text displays
   if (checkKeyPress(n_key_gui_screen_status, !fKeyAlias)) {
@@ -4956,7 +4956,7 @@ void PlayerEntity::pollGuiScreenControlsWithFKeyAlias(bool fKeyAlias) {
     if (!switching_chart_screens) {
       switching_chart_screens = true;
       // handles http://aegidian.org/bb/viewtopic.php?p=233189#p233189
-      if (EXPECT_NOT(status() == STATUS_WITCHSPACE_COUNTDOWN &&
+      if (EXPECT_NOT(status() == OOEntityStatus::kWitchspaceCountdown &&
                      gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) {
         // don't switch to LRC if countdown in progress
         switching_chart_screens = false;
@@ -5694,14 +5694,14 @@ void PlayerEntity::handleMissionCallback() {
   setGuiToMissionEndScreen();  // need this to find out if we call a new mission
                                // screen inside callback.
 
-  if (status() != STATUS_DOCKED) switchToThisView(VIEW_FORWARD);
+  if (status() != OOEntityStatus::kDocked) switchToThisView(VIEW_FORWARD);
 
   if (_missionWithCallback) {
     doMissionCallback();
   }
 
-  if (status() !=
-      STATUS_DOCKED)  // did we launch inside callback? / are we in flight?
+  if (status() != OOEntityStatus::kDocked)  // did we launch inside callback? /
+                                            // are we in flight?
   {
     // TODO: This is no longer doing anything because of an 'isDocked' check
     // inside the function. ***** Probably remove it for 1.76
@@ -5724,7 +5724,7 @@ void PlayerEntity::setGuiToMissionEndScreen() {
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
   if (gameView != nullptr) gameView->clearKeys();
-  if (status() != STATUS_DOCKED) {
+  if (status() != OOEntityStatus::kDocked) {
     // this setting is only applied when not docked
     setGuiToStatusScreen();
     return;

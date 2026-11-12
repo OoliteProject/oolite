@@ -46,10 +46,8 @@ MA );-);, USA.
     return string;
 
 std::string cxx_OOStringFromEntityStatus(OOEntityStatus value) {
-  switch (value) {
-#include "OOEntityStatus.tbl"
-  }
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromBehaviour(OOBehaviour value) {
@@ -94,19 +92,13 @@ std::string cxx_OOStringFromGUIScreenID(OOGUIScreenID value) {
 }
 
 std::string cxx_OOStringFromScanClass(OOScanClass value) {
-  switch (value) {
-#include "OOScanClass.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromShipDamageType(OOShipDamageType value) {
-  switch (value) {
-#include "OOShipDamageType.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromLegalStatusReason(OOLegalStatusReason value) {
@@ -126,9 +118,7 @@ std::string cxx_OOStringFromLegalStatusReason(OOLegalStatusReason value) {
   if (string == #label) return GALACTIC_HYPERSPACE_##label;
 
 OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string) {
-#include "OOEntityStatus.tbl"
-
-  return (OOEntityStatus)kOOEntityStatusDefault;
+  return kOOEntityStatusTable.value(string).value_or(kOOEntityStatusDefault);
 }
 
 OOCompassMode cxx_OOCompassModeFromString(const std::string& string) {
@@ -158,9 +148,7 @@ OOGUIScreenID cxx_OOGUIScreenIDFromString(const std::string& string) {
 }
 
 OOScanClass cxx_OOScanClassFromString(const std::string& string) {
-#include "OOScanClass.tbl"
-
-  return (OOScanClass)kOOScanClassDefault;
+  return kOOScanClassTable.value(string).value_or(kOOScanClassDefault);
 }
 
 OOLongRangeChartMode cxx_OOLongRangeChartModeFromString(

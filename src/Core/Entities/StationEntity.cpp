@@ -147,8 +147,8 @@ oo::PList StationEntity::launchIndependentShip(
     }
     if (ship != nullptr) ship->setPrimaryRole(shipRole);
 
-    if (trader || ship->scanClass == CLASS_NOT_SET) {
-      if (ship != nullptr) ship->setScanClass(CLASS_NEUTRAL);
+    if (trader || ship->scanClass == OOScanClass::kNotSet) {
+      if (ship != nullptr) ship->setScanClass(OOScanClass::kNeutral);
     }  // keep defined scanclasses for non-traders.
 
     if (trader) {
@@ -255,8 +255,9 @@ oo::PList StationEntity::launchPolice()  // called by name
             (UNIVERSE != nullptr ? UNIVERSE->entityForUniversalID(police_target)
                                  : nullptr));
       if ((police_ship != nullptr ? police_ship->getScanClass()
-                                  : OOScanClass{}) == CLASS_NOT_SET)
-        if (police_ship != nullptr) police_ship->setScanClass(CLASS_POLICE);
+                                  : OOScanClass{}) == OOScanClass::kNotSet)
+        if (police_ship != nullptr)
+          police_ship->setScanClass(OOScanClass::kPolice);
       if (police_ship != nullptr)
         police_ship->setBounty(0, kOOLegalStatusReasonSetup);
       if ((police_ship != nullptr ? police_ship->heatInsulation() : 0.0f) <
@@ -302,7 +303,8 @@ oo::PList StationEntity::launchPolice()  // called by name
   else
     default_defense_ship_role = "police";
 
-  if (scanClass == CLASS_ROCK) default_defense_ship_role = "hermit-ship";
+  if (scanClass == OOScanClass::kRock)
+    default_defense_ship_role = "hermit-ship";
 
   if (defenders_launched >=
       max_defense_ships)  // shuttles are to rockhermits what police ships are
@@ -382,12 +384,15 @@ oo::PList StationEntity::launchPolice()  // called by name
         (UNIVERSE != nullptr ? UNIVERSE->entityForUniversalID(defense_target)
                              : nullptr));
 
-  if ((scanClass != CLASS_ROCK) && (scanClass != CLASS_STATION)) {
+  if ((scanClass != OOScanClass::kRock) &&
+      (scanClass != OOScanClass::kStation)) {
     if (defense_ship != nullptr)
       defense_ship->setScanClass(scanClass);  // same as self
-  } else if ((defense_ship != nullptr ? defense_ship->getScanClass()
-                                      : OOScanClass{}) == CLASS_NOT_SET) {
-    if (defense_ship != nullptr) defense_ship->setScanClass(CLASS_NEUTRAL);
+  } else if ((defense_ship != nullptr
+                  ? defense_ship->getScanClass()
+                  : OOScanClass{}) == OOScanClass::kNotSet) {
+    if (defense_ship != nullptr)
+      defense_ship->setScanClass(OOScanClass::kNeutral);
   }
 
   if ((defense_ship != nullptr ? defense_ship->heatInsulation() : 0.0f) <
@@ -444,7 +449,8 @@ oo::PList StationEntity::launchPolice()  // called by name
     }
 
     scavengers_launched++;
-    if (scavenger_ship != nullptr) scavenger_ship->setScanClass(CLASS_NEUTRAL);
+    if (scavenger_ship != nullptr)
+      scavenger_ship->setScanClass(OOScanClass::kNeutral);
     if ((scavenger_ship != nullptr ? scavenger_ship->heatInsulation() : 0.0f) <
         heatInsulation())
       if (scavenger_ship != nullptr)
@@ -503,7 +509,7 @@ oo::PList StationEntity::launchPolice()  // called by name
     }
 
     scavengers_launched++;
-    if (miner_ship != nullptr) miner_ship->setScanClass(CLASS_NEUTRAL);
+    if (miner_ship != nullptr) miner_ship->setScanClass(OOScanClass::kNeutral);
     if ((miner_ship != nullptr ? miner_ship->heatInsulation() : 0.0f) <
         heatInsulation())
       if (miner_ship != nullptr)
@@ -578,7 +584,8 @@ oo::PList StationEntity::launchPolice()  // called by name
       pirate_ship->addTarget(
           (UNIVERSE != nullptr ? UNIVERSE->entityForUniversalID(defense_target)
                                : nullptr));
-    if (pirate_ship != nullptr) pirate_ship->setScanClass(CLASS_NEUTRAL);
+    if (pirate_ship != nullptr)
+      pirate_ship->setScanClass(OOScanClass::kNeutral);
     if ((pirate_ship != nullptr ? pirate_ship->heatInsulation() : 0.0f) <
         heatInsulation())
       if (pirate_ship != nullptr)
@@ -626,7 +633,8 @@ oo::PList StationEntity::launchPolice()  // called by name
     }
 
     docked_shuttles--;
-    if (shuttle_ship != nullptr) shuttle_ship->setScanClass(CLASS_NEUTRAL);
+    if (shuttle_ship != nullptr)
+      shuttle_ship->setScanClass(OOScanClass::kNeutral);
     if (shuttle_ship != nullptr)
       shuttle_ship->setCargoFlag(OOCargoFlag::kFullScarce);
     if (shuttle_ship != nullptr)
@@ -662,7 +670,8 @@ oo::PList StationEntity::launchPolice()  // called by name
       if (escort_ship != nullptr) escort_ship->setSingleCrewWithRole("hunter");
     }
 
-    if (escort_ship != nullptr) escort_ship->setScanClass(CLASS_NEUTRAL);
+    if (escort_ship != nullptr)
+      escort_ship->setScanClass(OOScanClass::kNeutral);
     if (escort_ship != nullptr)
       escort_ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
     if (escort_ship != nullptr) escort_ship->switchAITo("oolite-escortAI.js");
@@ -713,8 +722,9 @@ oo::PList StationEntity::launchPolice()  // called by name
       defenders_launched++;
       if (patrol_ship != nullptr) patrol_ship->switchLightsOff();
       if ((patrol_ship != nullptr ? patrol_ship->getScanClass()
-                                  : OOScanClass{}) == CLASS_NOT_SET)
-        if (patrol_ship != nullptr) patrol_ship->setScanClass(CLASS_POLICE);
+                                  : OOScanClass{}) == OOScanClass::kNotSet)
+        if (patrol_ship != nullptr)
+          patrol_ship->setScanClass(OOScanClass::kPolice);
       if ((patrol_ship != nullptr ? patrol_ship->heatInsulation() : 0.0f) <
           heatInsulation())
         if (patrol_ship != nullptr)
@@ -757,8 +767,8 @@ void StationEntity::launchShipWithRole(
              .has_value()) {
       if (ship != nullptr) ship->setSingleCrewWithRole(shipRole);
     }
-    if (ship->scanClass == CLASS_NOT_SET) {
-      if (ship != nullptr) ship->setScanClass(CLASS_NEUTRAL);
+    if (ship->scanClass == OOScanClass::kNotSet) {
+      if (ship != nullptr) ship->setScanClass(OOScanClass::kNeutral);
     }
     if (ship != nullptr) ship->setPrimaryRole(shipRole);
     if (ship != nullptr) ship->setGroup(stationGroup());  // who's your Daddy
@@ -1672,7 +1682,8 @@ void StationEntity::abortDockingForShip(::ShipEntity* ship) {
 bool StationEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
   if (!(ship != nullptr ? ship->getIsShip() : false)) return false;
   if ((ship != nullptr ? ship->getIsPlayer() : false) &&
-      (ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_DEAD)
+      (ship != nullptr ? ship->status() : OOEntityStatus{}) ==
+          OOEntityStatus::kDead)
     return false;
 
   for (const oo::EntityHold& dock : dockSubEntities()) {
@@ -1712,7 +1723,7 @@ void StationEntity::clearDockingCorridor() {
 }
 
 void StationEntity::update(OOTimeDelta delta_t) {
-  bool isRockHermit = (scanClass == CLASS_ROCK);
+  bool isRockHermit = (scanClass == OOScanClass::kRock);
   bool isMainStation =
       (this == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr));
 
@@ -1731,7 +1742,7 @@ void StationEntity::update(OOTimeDelta delta_t) {
                                   : (::StationEntity*)nullptr));
   if (isDockingStation &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
-          STATUS_IN_FLIGHT) {
+          OOEntityStatus::kInFlight) {
     if ((player != nullptr ? player->getDockingClearanceStatus()
                            : OODockingClearanceStatus{}) >=
         OODockingClearanceStatus::kGranted) {
@@ -2059,7 +2070,7 @@ void StationEntity::noteDockedShip(::ShipEntity* ship) {
                                   : (::StationEntity*)nullptr));
   if (isDockingStation &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
-          STATUS_IN_FLIGHT &&
+          OOEntityStatus::kInFlight &&
       (player != nullptr ? player->getDockingClearanceStatus()
                          : OODockingClearanceStatus{}) ==
           OODockingClearanceStatus::kRequested) {
@@ -2266,9 +2277,9 @@ void StationEntity::becomeExplosion() {
   ::PlayerEntity* player = PLAYER;
   if ((player) &&
       ((player != nullptr ? player->status() : OOEntityStatus{}) ==
-           STATUS_DOCKED ||
+           OOEntityStatus::kDocked ||
        (player != nullptr ? player->status() : OOEntityStatus{}) ==
-           STATUS_DOCKING) &&
+           OOEntityStatus::kDocking) &&
       ((player != nullptr ? player->dockedStation()
                           : (::StationEntity*)nullptr) == this)) {
     // undock the player!
@@ -2279,7 +2290,7 @@ void StationEntity::becomeExplosion() {
     if (player != nullptr) player->warnAboutHostiles();  // sound a klaxon
   }
 
-  if (scanClass == CLASS_ROCK)  // ie we're a rock hermit or similar
+  if (scanClass == OOScanClass::kRock)  // ie we're a rock hermit or similar
   {
     // set the role so that we break up into rocks!
     setPrimaryRole("asteroid");

@@ -513,7 +513,7 @@ class PlayerEntity : public ShipEntity {
   void setMaxFlightPitch(GLfloat newValue) override;
   void setMaxFlightRoll(GLfloat newValue) override;
   void setMaxFlightYaw(GLfloat newValue) override;
-  bool checkEntityForMassLock(Entity* ent, int theirClass);
+  bool checkEntityForMassLock(Entity* ent, OOScanClass theirClass);
   void updateAlertCondition();
   void updateFuelScoops(OOTimeDelta delta_t);
   void updateClocks(OOTimeDelta delta_t);

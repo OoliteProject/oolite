@@ -928,13 +928,13 @@ static JSValue SystemShipsWithRole(OOJS_NATIVE_ARGS) {
 static JSValue SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
-  OOScanClass scanClass = CLASS_NOT_SET;
+  OOScanClass scanClass = OOScanClass::kNotSet;
   Entity* relativeTo = nullptr;  // the C++ entity
   double range = -1;
   unsigned result;
 
   if (argc > 0) scanClass = OOScanClassFromJSValue(context, OOJS_ARGV[0]);
-  if (scanClass == CLASS_NOT_SET) {
+  if (scanClass == OOScanClass::kNotSet) {
     cxx_OOJSReportBadArguments(context, "System", "countEntitiesWithScanClass",
                                MIN(argc, 1), OOJS_ARGV, std::nullopt,
                                "string (scan class)");
@@ -964,13 +964,13 @@ static JSValue SystemCountEntitiesWithScanClass(OOJS_NATIVE_ARGS) {
 static JSValue SystemEntitiesWithScanClass(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
-  OOScanClass scanClass = CLASS_NOT_SET;
+  OOScanClass scanClass = OOScanClass::kNotSet;
   Entity* relativeTo = nullptr;  // the C++ entity
   double range = -1;
   std::vector<oo::EntityHold> result;
 
   if (argc > 0) scanClass = OOScanClassFromJSValue(context, OOJS_ARGV[0]);
-  if (scanClass == CLASS_NOT_SET) {
+  if (scanClass == OOScanClass::kNotSet) {
     cxx_OOJSReportBadArguments(context, "System", "countEntitiesWithScanClass",
                                MIN(argc, 1), OOJS_ARGV, std::nullopt,
                                "string (scan class)");

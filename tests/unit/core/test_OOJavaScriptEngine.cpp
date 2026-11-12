@@ -819,7 +819,7 @@ OO_TEST(entityPredicates)
 		OO_CHECK(!JSEntityIsDemoShipPredicate(nullptr, NULL));
 
 		TestScriptEntity *entity = static_cast<TestScriptEntity *>(oo::MadeEntity(oo::makeRef<TestScriptEntity>()));
-		entity->setStatus(STATUS_IN_FLIGHT);
+		entity->setStatus(OOEntityStatus::kInFlight);
 		OO_CHECK(!JSEntityIsJavaScriptVisiblePredicate(entity, NULL));
 		OO_CHECK(!JSEntityIsJavaScriptSearchablePredicate(entity, NULL));
 
@@ -834,7 +834,7 @@ OO_TEST(entityPredicates)
 		entity->isSubEntity = true;
 		OO_CHECK(!JSEntityIsJavaScriptSearchablePredicate(entity, NULL));
 		entity->isSubEntity = false;
-		entity->setStatus(STATUS_COCKPIT_DISPLAY);
+		entity->setStatus(OOEntityStatus::kCockpitDisplay);
 		OO_CHECK(!JSEntityIsJavaScriptSearchablePredicate(entity, NULL));
 		OO_CHECK(JSEntityIsDemoShipPredicate(entity, NULL));
 		entity->isSubEntity = true;

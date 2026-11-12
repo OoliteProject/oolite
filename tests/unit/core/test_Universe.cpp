@@ -744,9 +744,9 @@ OO_TEST(slice15CountAndFind) {
     OO_CHECK(u->entitiesWithinRange(2000, nullptr).empty());
 
     // The scan class.
-    c->setScanClass(CLASS_ROCK);
-    OO_CHECK(u->countShipsWithScanClass(CLASS_ROCK, -1, nullptr) == 1);
-    OO_CHECK(u->countShipsWithScanClass(CLASS_NEUTRAL, -1, nullptr) == 0);
+    c->setScanClass(OOScanClass::kRock);
+    OO_CHECK(u->countShipsWithScanClass(OOScanClass::kRock, -1, nullptr) == 1);
+    OO_CHECK(u->countShipsWithScanClass(OOScanClass::kNeutral, -1, nullptr) == 0);
 
     u->n_entities = 0;
   }

@@ -143,8 +143,8 @@ OO_TEST(flagsAndColors) {
     SetUp();
     oo::Ref<OOBreakPatternEntity> ring =
         OOBreakPatternEntity::breakPatternWithPolygonSides(3, 45.0f, 1.0f);
-    OO_CHECK(ring->status() == STATUS_EFFECT &&
-             ring->scanClass == CLASS_NO_DRAW);
+    OO_CHECK(ring->status() == OOEntityStatus::kEffect &&
+             ring->scanClass == OOScanClass::kNoDraw);
     OO_CHECK(ring->isImmuneToBreakPatternHide && !ring->canCollide());
     oo::Ref<Entity> other = oo::makeRef<Entity>();
     OO_CHECK(dynamic_cast<OOBreakPatternEntity*>(ring.get()) != nullptr &&
@@ -174,7 +174,7 @@ OO_TEST(lifetime) {
     oo::Ref<OOBreakPatternEntity> ring =
         OOBreakPatternEntity::breakPatternWithPolygonSides(4, 0.0f, 1.0f);
     Entity* facade = oo::MadeEntity(ring);  // what removeEntity: is sent
-    ring->setStatus(STATUS_EFFECT);
+    ring->setStatus(OOEntityStatus::kEffect);
     ring->setVelocity(make_vector(0, 0, 10));
     ring->setLifetime(100.0);
 

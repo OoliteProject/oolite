@@ -132,8 +132,8 @@ OO_TEST(initWithDiameter) {
     OO_CHECK(particle != nullptr &&
              typeid(*particle) == typeid(OOLightParticleEntity));
     OO_CHECK(particle->diameter() == 8.0f);
-    OO_CHECK(object->getScanClass() == CLASS_NO_DRAW &&
-             object->status() == STATUS_EFFECT);
+    OO_CHECK(object->getScanClass() == OOScanClass::kNoDraw &&
+             object->status() == OOEntityStatus::kEffect);
     OO_CHECK(object->isEffect() && !object->canCollide());
     OO_CHECK(ComponentsAre(particle, 1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -148,7 +148,7 @@ OO_TEST(initWithDiameter) {
     // A subclass initialises the same way.
     Entity* subObject = nullptr;
     TestParticle* sub = NewParticle<TestParticle>(2.0f, &subObject);
-    OO_CHECK(sub->diameter() == 2.0f && subObject->status() == STATUS_EFFECT &&
+    OO_CHECK(sub->diameter() == 2.0f && subObject->status() == OOEntityStatus::kEffect &&
              subObject->isEffect());
   }
 }
@@ -251,7 +251,7 @@ OO_TEST(cxxSubclassFacade) {
     Entity* facade = oo::MadeEntity(particle);
     OO_CHECK(facade != nullptr);
     OO_CHECK(particle->diameter() == 6.0f && facade->isEffect() &&
-             !facade->canCollide() && facade->status() == STATUS_EFFECT);
+             !facade->canCollide() && facade->status() == OOEntityStatus::kEffect);
     particle->setColor(OOColor::colorWithRed(0.5f, 0.25f, 0.0f, 1.0f).get(),
                        0.5f);
     OO_CHECK(ComponentsAre(particle.get(), 0.5f, 0.25f, 0.0f, 0.5f));

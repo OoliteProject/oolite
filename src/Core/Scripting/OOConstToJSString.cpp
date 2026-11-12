@@ -27,6 +27,9 @@ MA 02110-1301, USA.
   1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOConstToJSString.h"
 
+#include <array>
+#include <string_view>
+
 #include "oofnd/objc/OOAssert.h"
 
 /*
@@ -60,6 +63,23 @@ using ConstTable = struct ConstTable {
 
 #define TABLE(entries) {sizeof(entries) / sizeof *(entries), entries}
 
+// A table's rows as entries: the names are literals, so NUL-terminated.
+constexpr const char* NameCString(std::string_view literal) {
+  return literal.data();
+}
+
+template <class E, std::size_t N>
+constexpr std::array<TableEntry, N> EntriesFrom(
+    const oo::EnumTable<E, N>& table) {
+  std::array<TableEntry, N> entries{};
+  for (std::size_t i = 0; i < N; ++i) {
+    entries[i] = {.value = oo::ToUnderlying(table.entries[i].first),
+                  .cString = NameCString(table.entries[i].second),
+                  .atom = JS_ATOM_NULL};
+  }
+  return entries;
+}
+
 // Unconditional, as upstream's: OOCAssert reads it in every flavour.
 static bool sInited = false;
 static bool sAtomsInterned = false;
@@ -86,9 +106,8 @@ static TableEntry sOOCompassModeTableEntries[] = {
 #include "OOCompassMode.tbl"
 };
 
-static TableEntry sOOEntityStatusTableEntries[] = {
-#include "OOEntityStatus.tbl"
-};
+static std::array<TableEntry, kOOEntityStatusTable.entries.size()>
+    sOOEntityStatusTableEntries = EntriesFrom(kOOEntityStatusTable);
 
 static TableEntry sOOGalacticHyperspaceBehaviourTableEntries[] = {
 #include "OOGalacticHyperspaceBehaviour.tbl"
@@ -98,17 +117,15 @@ static TableEntry sOOGUIScreenIDTableEntries[] = {
 #include "OOGUIScreenID.tbl"
 };
 
-static TableEntry sOOScanClassTableEntries[] = {
-#include "OOScanClass.tbl"
-};
+static std::array<TableEntry, kOOScanClassTable.entries.size()>
+    sOOScanClassTableEntries = EntriesFrom(kOOScanClassTable);
 
 static TableEntry sOOViewIDTableEntries[] = {
 #include "OOViewID.tbl"
 };
 
-static TableEntry sOOShipDamageTypeTableEntries[] = {
-#include "OOShipDamageType.tbl"
-};
+static std::array<TableEntry, kOOShipDamageTypeTable.entries.size()>
+    sOOShipDamageTypeTableEntries = EntriesFrom(kOOShipDamageTypeTable);
 
 static TableEntry sOOLegalStatusReasonTableEntries[] = {
 #include "OOLegalStatusReason.tbl"
@@ -123,13 +140,16 @@ static TableEntry sOOLongRangeChartModeTableEntries[] = {
 #undef DIFF_STRING_ENTRY
 
 ConstTable gOOCompassModeConstTable = TABLE(sOOCompassModeTableEntries);
-ConstTable gOOEntityStatusConstTable = TABLE(sOOEntityStatusTableEntries);
+ConstTable gOOEntityStatusConstTable = {sOOEntityStatusTableEntries.size(),
+                                        sOOEntityStatusTableEntries.data()};
 ConstTable gOOGalacticHyperspaceBehaviourConstTable =
     TABLE(sOOGalacticHyperspaceBehaviourTableEntries);
 ConstTable gOOGUIScreenIDConstTable = TABLE(sOOGUIScreenIDTableEntries);
-ConstTable gOOScanClassConstTable = TABLE(sOOScanClassTableEntries);
+ConstTable gOOScanClassConstTable = {sOOScanClassTableEntries.size(),
+                                     sOOScanClassTableEntries.data()};
 ConstTable gOOViewIDConstTable = TABLE(sOOViewIDTableEntries);
-ConstTable gOOShipDamageTypeConstTable = TABLE(sOOShipDamageTypeTableEntries);
+ConstTable gOOShipDamageTypeConstTable = {sOOShipDamageTypeTableEntries.size(),
+                                          sOOShipDamageTypeTableEntries.data()};
 ConstTable gOOLegalStatusReasonConstTable =
     TABLE(sOOLegalStatusReasonTableEntries);
 ConstTable gOOLongRangeChartModeConstTable =

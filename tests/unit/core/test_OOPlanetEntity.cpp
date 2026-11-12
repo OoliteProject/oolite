@@ -187,8 +187,8 @@ OO_TEST(moon)
 		OO_CHECK(moon->radius() == 50000.0);
 		OO_CHECK(moon->collisionRadius() == 50000.0f);
 		OO_CHECK(moon->getEnergy() == 50000.0f * 1000.0f);
-		OO_CHECK(moon->status() == STATUS_ACTIVE);
-		OO_CHECK(moon->getScanClass() == CLASS_NO_DRAW);
+		OO_CHECK(moon->status() == OOEntityStatus::kActive);
+		OO_CHECK(moon->getScanClass() == OOScanClass::kNoDraw);
 		OO_CHECK(moon->isPlanet() && moon->isVisible());
 		OO_CHECK(moon->planetType() == OOStellarBodyType::kMoon);
 		OO_CHECK(!moon->hasAtmosphere());
@@ -298,8 +298,8 @@ OO_TEST(miniature)
 		OOPlanetEntity *mini = Miniature(planet);
 		OO_CHECK(mini != nullptr && mini != planet && dynamic_cast<OOPlanetEntity *>(static_cast<Entity *>(mini)) != nullptr);
 		OO_CHECK(mini->planetType() == OOStellarBodyType::kMiniature);
-		OO_CHECK(mini->status() == STATUS_COCKPIT_DISPLAY);
-		OO_CHECK(mini->getScanClass() == CLASS_NO_DRAW);
+		OO_CHECK(mini->status() == OOEntityStatus::kCockpitDisplay);
+		OO_CHECK(mini->getScanClass() == OOScanClass::kNoDraw);
 		OO_CHECK(Near(mini->radius(), 50000.0 * PLANET_MINIATURE_FACTOR));
 		OO_CHECK(mini->rotationalVelocity() == (double)0.04f);
 		OO_CHECK(QuaternionNear(mini->getOrientation(), planet->getOrientation()));

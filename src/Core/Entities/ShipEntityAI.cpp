@@ -310,7 +310,7 @@ void ShipEntity::performMining() {
   // mining is not seen as hostile behaviour, so ensure it is only used against
   // rocks.
   if (target && (target != nullptr ? target->getScanClass() : OOScanClass{}) ==
-                    CLASS_ROCK) {
+                    OOScanClass::kRock) {
     behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
     frustration = 0.0;
   } else {
@@ -437,7 +437,7 @@ void ShipEntity::recallDockingInstructions() {
 }
 
 void ShipEntity::scanForNearestIncomingMissile() {
-  OOScanClass missileClass = CLASS_MISSILE;
+  OOScanClass missileClass = OOScanClass::kMissile;
   BinaryOperationPredicateParameter param = {
       HasScanClassPredicate,
       &missileClass,  // the predicate reads an OOScanClass
@@ -579,7 +579,7 @@ void ShipEntity::broadcastDistressMessageWithDumping(bool dumpCargo) {
   // don't send too many distress messages at once, space them out semi-randomly
   if (messageTime > 2.0 * randf()) return;
 
-  bool is_buoy = (scanClass == CLASS_BUOY);
+  bool is_buoy = (scanClass == OOScanClass::kBuoy);
   const char* distress_message =
       is_buoy ? "[buoy-distress-call]" : "[distress-call]";
 
@@ -661,7 +661,7 @@ bool ShipEntity::performHyperSpaceExitReplace(bool replace,
       shipAI->reactToMessage("WITCHSPACE UNAVAILABLE", "performHyperSpaceExit");
     return false;
   }
-  if (status() == STATUS_ENTERING_WITCHSPACE) {
+  if (status() == OOEntityStatus::kEnteringWitchspace) {
     // already in a wormhole
     return false;
   }
@@ -759,9 +759,9 @@ void ShipEntity::scanForNearestShipWithPredicate(
   for (i = 0; i < n_scanned_ships; i++) {
     candidate = scanned_ships[i];
     d2 = distance2_scanned_ships[i];
-    if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) &&
+    if ((d2 < found_d2) && (candidate->scanClass != OOScanClass::kCargo) &&
         ((candidate != nullptr ? candidate->status() : OOEntityStatus{}) !=
-         STATUS_DOCKED) &&
+         OOEntityStatus::kDocked) &&
         predicate(candidate, parameter) &&
         !(candidate != nullptr ? candidate->isCloaked() : false)) {
       setFoundTarget(candidate);
@@ -1031,9 +1031,9 @@ void ShipEntity::scanForNearestMerchantman() {
     ship = scanned_ships[i];
     if ((ship != nullptr ? ship->isPirateVictim() : false) &&
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-         STATUS_DEAD) &&
+         OOEntityStatus::kDead) &&
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-         STATUS_DOCKED) &&
+         OOEntityStatus::kDocked) &&
         !(ship != nullptr ? ship->isCloaked() : false)) {
       d2 = distance2_scanned_ships[i];
       if (PIRATES_PREFER_PLAYER && (d2 < desired_range * desired_range) &&
@@ -1062,9 +1062,9 @@ void ShipEntity::scanForRandomMerchantman() {
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* ship = scanned_ships[i];
     if (((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-         STATUS_DEAD) &&
+         OOEntityStatus::kDead) &&
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-         STATUS_DOCKED) &&
+         OOEntityStatus::kDocked) &&
         (ship != nullptr ? ship->isPirateVictim() : false) &&
         !(ship != nullptr ? ship->isCloaked() : false))
       ids_found[n_found++] = ship;
@@ -1113,10 +1113,10 @@ void ShipEntity::scanForLoot() {
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* other = oo::ToShip(scanned_ships[i]);
     if ((other != nullptr ? other->getScanClass() : OOScanClass{}) ==
-            CLASS_CARGO &&
+            OOScanClass::kCargo &&
         (other == nullptr || other->cargoType() != OOCargoType::kNotCargo) &&
         (other != nullptr ? other->status() : OOEntityStatus{}) !=
-            STATUS_BEING_SCOOPED) {
+            OOEntityStatus::kBeingScooped) {
       if ((!isPolice()) ||
           ((other != nullptr ? other->commodityType()
                              : std::optional<std::string>()) ==
@@ -1152,10 +1152,10 @@ void ShipEntity::scanForRandomLoot() {
   for (i = 0; (i < n_scanned_ships) && (things_found < 16); i++) {
     ::ShipEntity* other = scanned_ships[i];
     if ((other != nullptr ? other->getScanClass() : OOScanClass{}) ==
-            CLASS_CARGO &&
+            OOScanClass::kCargo &&
         (other == nullptr || other->cargoType() != OOCargoType::kNotCargo) &&
         (other != nullptr ? other->status() : OOEntityStatus{}) !=
-            STATUS_BEING_SCOOPED) {
+            OOEntityStatus::kBeingScooped) {
       thing_uids_found[things_found++] = other;
     }
   }
@@ -1255,7 +1255,7 @@ void ShipEntity::fightOrFleeMissile() {
   checkScannerIgnoringUnpowered();
   for (i = 0; (i < n_scanned_ships) && (missile == nullptr); i++) {
     ::ShipEntity* thing = scanned_ships[i];
-    if (thing->scanClass == CLASS_MISSILE) {
+    if (thing->scanClass == OOScanClass::kMissile) {
       target = oo::ToShip(
           (thing != nullptr ? thing->primaryTarget() : (Entity*)nullptr));
 
@@ -1392,7 +1392,7 @@ void ShipEntity::checkTargetLegalStatus() {
 }
 
 void ShipEntity::checkOwnLegalStatus() {
-  if (scanClass == CLASS_THARGOID) {
+  if (scanClass == OOScanClass::kThargoid) {
     if (shipAI != nullptr) shipAI->message("SELF_THARGOID");
     return;
   }
@@ -1582,11 +1582,11 @@ void ShipEntity::scanForOffenders() {
   ::OOShipGroup* group = this->group();
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* ship = scanned_ships[i];
-    if ((ship->scanClass != CLASS_CARGO) &&
+    if ((ship->scanClass != OOScanClass::kCargo) &&
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-         STATUS_DEAD) &&
+         OOEntityStatus::kDead) &&
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
-         STATUS_DOCKED) &&
+         OOEntityStatus::kDocked) &&
         !(ship != nullptr ? ship->isCloaked() : false)) {
       GLfloat d2 = distance2_scanned_ships[i];
       float legal_factor =
@@ -1713,9 +1713,9 @@ void ShipEntity::scanForNonThargoid() {
     ::ShipEntity* thing = scanned_ships[i];
     GLfloat d2 = distance2_scanned_ships[i];
     if (((thing != nullptr ? thing->getScanClass() : OOScanClass{}) !=
-         CLASS_CARGO) &&
+         OOScanClass::kCargo) &&
         ((thing != nullptr ? thing->status() : OOEntityStatus{}) !=
-         STATUS_DOCKED) &&
+         OOEntityStatus::kDocked) &&
         !(thing != nullptr ? thing->isThargoid() : false) &&
         !(thing != nullptr ? thing->isCloaked() : false) && (d2 < found_d2)) {
       setFoundTarget(thing);
@@ -1775,7 +1775,7 @@ void ShipEntity::becomeUncontrolledThargon() {
       }
     }
   // now we're just a bunch of alien artefacts!
-  scanClass = CLASS_CARGO;
+  scanClass = OOScanClass::kCargo;
   reportAIMessages = false;
   setAITo("dumbAI.plist");
   _primaryTarget = nullptr;
@@ -2079,9 +2079,10 @@ void ShipEntity::sendTargetCommsMessage(
 {
   ::ShipEntity* ship = oo::ToShip(primaryTarget());
   if ((ship == nullptr) ||
-      ((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_DEAD) ||
       ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
-       STATUS_DOCKED)) {
+       OOEntityStatus::kDead) ||
+      ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
+       OOEntityStatus::kDocked)) {
     noteLostTarget();
     return;
   }
@@ -2091,9 +2092,10 @@ void ShipEntity::sendTargetCommsMessage(
 void ShipEntity::markTargetForFines() {
   ::ShipEntity* ship = oo::ToShip(primaryTarget());
   if ((ship == nullptr) ||
-      ((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_DEAD) ||
       ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
-       STATUS_DOCKED)) {
+       OOEntityStatus::kDead) ||
+      ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
+       OOEntityStatus::kDocked)) {
     noteLostTarget();
     return;
   }
@@ -2105,13 +2107,13 @@ void ShipEntity::markTargetForFines() {
 void ShipEntity::markTargetForOffence(
     const std::string& valueString)  // called by name
 {
-  if ((isStation) || (scanClass == CLASS_POLICE)) {
+  if ((isStation) || (scanClass == OOScanClass::kPolice)) {
     ::ShipEntity* ship = oo::ToShip(primaryTarget());
     if ((ship == nullptr) ||
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
-         STATUS_DEAD) ||
+         OOEntityStatus::kDead) ||
         ((ship != nullptr ? ship->status() : OOEntityStatus{}) ==
-         STATUS_DOCKED)) {
+         OOEntityStatus::kDocked)) {
       noteLostTarget();
       return;
     }
@@ -2664,7 +2666,9 @@ void ShipEntity::sendScriptMessage(
 
 void ShipEntity::ai_throwSparks() { setThrowSparks(true); }
 
-void ShipEntity::explodeSelf() { getDestroyedBy(nullptr, kOODamageTypeEnergy); }
+void ShipEntity::explodeSelf() {
+  getDestroyedBy(nullptr, OOShipDamageType::kEnergy);
+}
 
 void ShipEntity::ai_debugMessage(const std::string& message)  // called by name
 {

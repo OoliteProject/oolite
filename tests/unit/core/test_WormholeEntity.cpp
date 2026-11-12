@@ -197,8 +197,8 @@ OO_TEST(madeByShip) {
              dynamic_cast<WormholeEntity*>(static_cast<Entity*>(wh)) !=
                  nullptr &&
              wh->getIsWormhole());
-    OO_CHECK(wh->status() == STATUS_EFFECT &&
-             wh->getScanClass() == CLASS_WORMHOLE);
+    OO_CHECK(wh->status() == OOEntityStatus::kEffect &&
+             wh->getScanClass() == OOScanClass::kWormhole);
     OO_CHECK(wh->getOrigin() == 7 && wh->getDestination() == 9);
     NSPoint o = wh->originCoordinates(), d = wh->destinationCoordinates();
     OO_CHECK(o.x == 10 && o.y == 20 && d.x == 13 && d.y == 24);
@@ -314,7 +314,7 @@ OO_TEST(update) {
     SetUp();
     WormholeEntity* saved = FromDict(Saved());
     saved->update(0.1);
-    OO_CHECK(saved->getScanClass() == CLASS_NO_DRAW);  // no mass
+    OO_CHECK(saved->getScanClass() == OOScanClass::kNoDraw);  // no mass
     OO_CHECK(sUniverse->_removed == nullptr);
     sPlayer->_clock = 1600.0;  // past its expiry
     saved->update(0.1);
@@ -323,7 +323,7 @@ OO_TEST(update) {
     sPlayer->_clock = 1000.0;
     WormholeEntity* wh = ToNine(Ship(1000.0f));
     wh->update(1.0);
-    OO_CHECK(wh->getScanClass() == CLASS_WORMHOLE);
+    OO_CHECK(wh->getScanClass() == OOScanClass::kWormhole);
     OO_CHECK(Near(
         wh->collisionRadius(),
         0.5 * M_PI * std::pow(200000.0 - WORMHOLE_SHRINK_RATE, 1.0 / 3.0)));
@@ -336,7 +336,7 @@ OO_TEST(suckInRefused) {
     WormholeEntity* wh = ToNine(Ship(1000.0f));
     OO_CHECK(!wh->suckInShip(nullptr));
     Entity* leaving = Ship(10.0f);
-    leaving->setStatus(STATUS_ENTERING_WITCHSPACE);
+    leaving->setStatus(OOEntityStatus::kEnteringWitchspace);
     OO_CHECK(!wh->suckInShip(oo::ToShip(leaving)));
     sUniverse->_system = 8;
     OO_CHECK(!wh->suckInShip(oo::ToShip(Ship(10.0f))));

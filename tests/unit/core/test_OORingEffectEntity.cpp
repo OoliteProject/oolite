@@ -117,8 +117,8 @@ OO_TEST(ringTakesTheSource) {
       OO_CHECK(q.w == 0 && q.x == 1 && q.y == 0 && q.z == 0);
       Vector v = ring->getVelocity();
       OO_CHECK(v.x == 4 && v.y == 5 && v.z == 6);
-      OO_CHECK(ring->status() == STATUS_EFFECT &&
-               ring->getScanClass() == CLASS_NO_DRAW);
+      OO_CHECK(ring->status() == OOEntityStatus::kEffect &&
+               ring->getScanClass() == OOScanClass::kNoDraw);
       OO_CHECK(ring->owner() == source);
       OO_CHECK(ring->isEffect() && !ring->canCollide());
       OO_CHECK(!ring->getIsShip() && !ring->getIsVisualEffect());

@@ -231,7 +231,7 @@ OO_TEST(virtualDockTakesNoDamage) {
     if (dock != nullptr) dock->takeEnergyDamage(50.0, nullptr, nullptr, "");
     OO_CHECK((dock != nullptr ? dock->getEnergy() : 0.0f) == energy);
     if (dock != nullptr)
-      dock->noteTakingDamage(50.0, nullptr, kOODamageTypeEnergy);
+      dock->noteTakingDamage(50.0, nullptr, OOShipDamageType::kEnergy);
     OO_CHECK((dock != nullptr ? dock->getEnergy() : 0.0f) == energy);
     if (dock != nullptr)
       dock->drawImmediate(
@@ -354,9 +354,9 @@ OO_TEST(launchQueue) {
              part->launchQueue[1].get() ==
                  first);  // the queue holds the C++ ships
     OO_CHECK((first != nullptr ? first->status() : OOEntityStatus{}) ==
-                 STATUS_DOCKED &&
+                 OOEntityStatus::kDocked &&
              (second != nullptr ? second->status() : OOEntityStatus{}) ==
-                 STATUS_DOCKED);
+                 OOEntityStatus::kDocked);
     OO_CHECK((dock != nullptr ? dock->countOfShipsInLaunchQueueWithPrimaryRole(
                                     "no-such-role")
                               : 0) == 0);
