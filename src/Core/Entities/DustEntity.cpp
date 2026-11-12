@@ -230,7 +230,7 @@ Vector DustEntity::offsetPlayerPosition() {
 void DustEntity::checkShaderMode() {
   shaderMode = kShaderModeOff;
   if ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{}) >=
-      DETAIL_LEVEL_SHADERS) {
+      OOGraphicsDetail::kShaders) {
     if (OOOpenGLExtensionManager::sharedManager()->useDustShader()) {
       shaderMode = kShaderModeOn;
     }

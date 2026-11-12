@@ -58,7 +58,7 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(
   unsigned i;
   unsigned maxCount =
       (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{}) <=
-              DETAIL_LEVEL_SHADERS
+              OOGraphicsDetail::kShaders
           ? 10
           : 25;
   HPVector pos = entity != nullptr ? entity->getPosition()

@@ -336,9 +336,9 @@ void OOOpenGLExtensionManager::reset() {
         gpuConfig.get<std::string>("default_shader_level", "SHADERS_FULL"));
     maximumShaderSetting = cxx_OOShaderSettingFromString(
         gpuConfig.get<std::string>("maximum_shader_level", "SHADERS_FULL"));
-    if (maximumShaderSetting <= SHADERS_OFF) {
+    if (maximumShaderSetting <= OOShaderSetting::kOff) {
       shadersAvailable = false;
-      maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+      maximumShaderSetting = OOShaderSetting::kNotSupported;
       {
         // A name that is not a string fell back to the renderer, which may
         // itself be nil.
@@ -359,8 +359,8 @@ void OOOpenGLExtensionManager::reset() {
       OO_LOG(kOOLogOpenGLShaderSupport, "{}", "Shaders are supported.");
     }
   } else {
-    defaultShaderSetting = SHADERS_NOT_SUPPORTED;
-    maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+    defaultShaderSetting = OOShaderSetting::kNotSupported;
+    maximumShaderSetting = OOShaderSetting::kNotSupported;
   }
 
   GLint texImageUnitOverride =
@@ -434,25 +434,25 @@ bool OOOpenGLExtensionManager::shadersForceDisabled() {
 
 OOGraphicsDetail OOOpenGLExtensionManager::defaultDetailLevel() {
 #if OO_SHADERS
-  if (defaultShaderSetting < SHADERS_FULL) {
-    return DETAIL_LEVEL_MINIMUM;
+  if (defaultShaderSetting < OOShaderSetting::kFull) {
+    return OOGraphicsDetail::kMinimum;
   } else {
-    return DETAIL_LEVEL_MAXIMUM;
+    return kOOGraphicsDetailMaximum;
   }
 #else
-  return SHADERS_NOT_SUPPORTED;
+  return OOShaderSetting::kNotSupported;
 #endif
 }
 
 OOGraphicsDetail OOOpenGLExtensionManager::maximumDetailLevel() {
 #if OO_SHADERS
-  if (maximumShaderSetting < SHADERS_FULL) {
-    return DETAIL_LEVEL_MINIMUM;
+  if (maximumShaderSetting < OOShaderSetting::kFull) {
+    return OOGraphicsDetail::kMinimum;
   } else {
-    return DETAIL_LEVEL_MAXIMUM;
+    return kOOGraphicsDetailMaximum;
   }
 #else
-  return DETAIL_LEVEL_MINIMUM;
+  return OOGraphicsDetail::kMinimum;
 #endif
 }
 

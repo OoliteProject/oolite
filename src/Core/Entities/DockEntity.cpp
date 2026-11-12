@@ -368,7 +368,7 @@ void DockEntity::abortAllDockings() {
           STATUS_IN_FLIGHT &&
       (player != nullptr ? player->getDockingClearanceStatus()
                          : OODockingClearanceStatus{}) >=
-          DOCKING_CLEARANCE_STATUS_REQUESTED) {
+          OODockingClearanceStatus::kRequested) {
     if (HPmagnitude2(HPvector_subtract(
             (player != nullptr ? player->getPosition() : HPVector{}),
             absolutePositionForSubentity())) >
@@ -378,7 +378,7 @@ void DockEntity::abortAllDockings() {
         station->sendExpandedMessage(
             "[station-docking-clearance-abort-cancelled]", player);
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
       if (player != nullptr)
         player->doScriptEvent(OOJSID("stationWithdrewDockingClearance"));
     } else {
@@ -391,7 +391,7 @@ void DockEntity::abortAllDockings() {
         if (station != nullptr) station->sendExpandedMessage(*message, player);
       }  // nil: nothing sent, as before
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_TIMING_OUT);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kTimingOut);
     }
   }
 
@@ -858,7 +858,7 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
             STATUS_IN_FLIGHT &&
         (player != nullptr ? player->getDockingClearanceStatus()
                            : OODockingClearanceStatus{}) >=
-            DOCKING_CLEARANCE_STATUS_REQUESTED) {
+            OODockingClearanceStatus::kRequested) {
       if (HPmagnitude2(HPvector_subtract(
               (player != nullptr ? player->getPosition() : HPVector{}),
               absolutePositionForSubentity())) >
@@ -869,7 +869,7 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
               ->sendExpandedMessage(
                   "[station-docking-clearance-abort-cancelled]", player);
         if (player != nullptr)
-          player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+          player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
       } else {
         int seconds = 10;  // when very close to the port, give the player a few
                            // seconds to react on the abort message.
@@ -881,7 +881,7 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
         }  // nil: nothing sent, as before
         if (player != nullptr)
           player->setDockingClearanceStatus(
-              DOCKING_CLEARANCE_STATUS_TIMING_OUT);
+              OODockingClearanceStatus::kTimingOut);
       }
     }
   }
@@ -1016,9 +1016,9 @@ bool DockEntity::shipIsInDockingCorridor(::ShipEntity* ship) {
             STATUS_LAUNCHING &&
         (ship != nullptr ? ship->status() : OOEntityStatus{}) !=
             STATUS_AUTOPILOT_ENGAGED &&
-        (PLAYER != nullptr
-             ? PLAYER->getDockingClearanceStatus()
-             : OODockingClearanceStatus{}) < DOCKING_CLEARANCE_STATUS_GRANTED) {
+        (PLAYER != nullptr ? PLAYER->getDockingClearanceStatus()
+                           : OODockingClearanceStatus{}) <
+            OODockingClearanceStatus::kGranted) {
       if ((0.90 * arbb.max.z + 0.10 * arbb.min.z < 3000) &&
           (dot_product(vk, (ship != nullptr ? ship->forwardVector()
                                             : Vector{})) < -0.9)) {

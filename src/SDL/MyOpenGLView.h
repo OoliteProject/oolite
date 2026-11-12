@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOMouseInteractionMode.h"
 #include "OOOpenGL.h"
@@ -160,57 +161,71 @@ enum StringInput {
 
 enum KeyboardType { gvKeyboardAuto, gvKeyboardUS, gvKeyboardUK };
 
-typedef enum {
-  OOHDR_TONEMAPPER_NONE = -1,
-  OOHDR_TONEMAPPER_ACES_APPROX = 0,
-  OOHDR_TONEMAPPER_DICE,
-  OOHDR_TONEMAPPER_UCHIMURA,
-  OOHDR_TONEMAPPER_REINHARD
-} OOHDRToneMapper;
+enum class OOHDRToneMapper : std::int32_t {
+  kNone = -1,
+  kAcesApprox = 0,
+  kDice,
+  kUchimura,
+  kReinhard
+};
+// The numbers the preferences and JS use.
+static_assert(oo::ToUnderlying(OOHDRToneMapper::kNone) == -1);
+static_assert(oo::ToUnderlying(OOHDRToneMapper::kAcesApprox) == 0);
+static_assert(oo::ToUnderlying(OOHDRToneMapper::kDice) == 1);
+static_assert(oo::ToUnderlying(OOHDRToneMapper::kUchimura) == 2);
+static_assert(oo::ToUnderlying(OOHDRToneMapper::kReinhard) == 3);
 
 // The names the game writes for OOHDRToneMapper (saves, logs and plists).
 constexpr std::string_view OOEnumName(OOHDRToneMapper value) noexcept {
   switch (value) {
-    case OOHDR_TONEMAPPER_NONE:
+    case OOHDRToneMapper::kNone:
       return "OOHDR_TONEMAPPER_NONE";
-    case OOHDR_TONEMAPPER_ACES_APPROX:
+    case OOHDRToneMapper::kAcesApprox:
       return "OOHDR_TONEMAPPER_ACES_APPROX";
-    case OOHDR_TONEMAPPER_DICE:
+    case OOHDRToneMapper::kDice:
       return "OOHDR_TONEMAPPER_DICE";
-    case OOHDR_TONEMAPPER_UCHIMURA:
+    case OOHDRToneMapper::kUchimura:
       return "OOHDR_TONEMAPPER_UCHIMURA";
-    case OOHDR_TONEMAPPER_REINHARD:
+    case OOHDRToneMapper::kReinhard:
       return "OOHDR_TONEMAPPER_REINHARD";
   }
   return {};
 }
 
-typedef enum {
-  OOSDR_TONEMAPPER_NONE = -1,
-  OOSDR_TONEMAPPER_ACES = 0,
-  OOSDR_TONEMAPPER_AgX,
-  OOSDR_TONEMAPPER_HEJLDAWSON,
-  OOSDR_TONEMAPPER_UC2,
-  OOSDR_TONEMAPPER_UCHIMURA,
-  OOSDR_TONEMAPPER_REINHARD
-} OOSDRToneMapper;
+enum class OOSDRToneMapper : std::int32_t {
+  kNone = -1,
+  kAces = 0,
+  kAgX,
+  kHejlDawson,
+  kUC2,
+  kUchimura,
+  kReinhard
+};
+// The numbers the preferences and JS use.
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kNone) == -1);
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kAces) == 0);
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kAgX) == 1);
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kHejlDawson) == 2);
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kUC2) == 3);
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kUchimura) == 4);
+static_assert(oo::ToUnderlying(OOSDRToneMapper::kReinhard) == 5);
 
 // The names the game writes for OOSDRToneMapper (saves, logs and plists).
 constexpr std::string_view OOEnumName(OOSDRToneMapper value) noexcept {
   switch (value) {
-    case OOSDR_TONEMAPPER_NONE:
+    case OOSDRToneMapper::kNone:
       return "OOSDR_TONEMAPPER_NONE";
-    case OOSDR_TONEMAPPER_ACES:
+    case OOSDRToneMapper::kAces:
       return "OOSDR_TONEMAPPER_ACES";
-    case OOSDR_TONEMAPPER_AgX:
+    case OOSDRToneMapper::kAgX:
       return "OOSDR_TONEMAPPER_AgX";
-    case OOSDR_TONEMAPPER_HEJLDAWSON:
+    case OOSDRToneMapper::kHejlDawson:
       return "OOSDR_TONEMAPPER_HEJLDAWSON";
-    case OOSDR_TONEMAPPER_UC2:
+    case OOSDRToneMapper::kUC2:
       return "OOSDR_TONEMAPPER_UC2";
-    case OOSDR_TONEMAPPER_UCHIMURA:
+    case OOSDRToneMapper::kUchimura:
       return "OOSDR_TONEMAPPER_UCHIMURA";
-    case OOSDR_TONEMAPPER_REINHARD:
+    case OOSDRToneMapper::kReinhard:
       return "OOSDR_TONEMAPPER_REINHARD";
   }
   return {};
@@ -431,11 +446,11 @@ class MyOpenGLView : public oo::RefCounted {
   RECT lastGoodRect = {};
   float _hdrMaxBrightness = {};
   float _hdrPaperWhiteBrightness = {};
-  int _hdrToneMapper = {};
+  OOHDRToneMapper _hdrToneMapper = {};
 
 #endif
 
-  int _sdrToneMapper = {};
+  OOSDRToneMapper _sdrToneMapper = {};
   float _colorSaturation = {};
 
   bool _hdrOutput = {};

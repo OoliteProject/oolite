@@ -2274,30 +2274,30 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
             if (!pling_pressed) {
               if (checkKeyPress(n_key_advanced_nav_array_previous)) {
                 switch (ANA_mode) {
-                  case OPTIMIZED_BY_NONE:
-                    ANA_mode = OPTIMIZED_BY_TIME;
+                  case OORouteType::kNone:
+                    ANA_mode = OORouteType::kTime;
                     break;
-                  case OPTIMIZED_BY_TIME:
-                    ANA_mode = OPTIMIZED_BY_JUMPS;
+                  case OORouteType::kTime:
+                    ANA_mode = OORouteType::kJumps;
                     break;
                   default:
-                    ANA_mode = OPTIMIZED_BY_NONE;
+                    ANA_mode = OORouteType::kNone;
                     break;
                 }
               } else {
                 switch (ANA_mode) {
-                  case OPTIMIZED_BY_NONE:
-                    ANA_mode = OPTIMIZED_BY_JUMPS;
+                  case OORouteType::kNone:
+                    ANA_mode = OORouteType::kJumps;
                     break;
-                  case OPTIMIZED_BY_JUMPS:
-                    ANA_mode = OPTIMIZED_BY_TIME;
+                  case OORouteType::kJumps:
+                    ANA_mode = OORouteType::kTime;
                     break;
                   default:
-                    ANA_mode = OPTIMIZED_BY_NONE;
+                    ANA_mode = OORouteType::kNone;
                     break;
                 }
               }
-              if (ANA_mode == OPTIMIZED_BY_NONE || !infoSystemOnRoute()) {
+              if (ANA_mode == OORouteType::kNone || !infoSystemOnRoute()) {
                 setInfoSystemID(target_system_id, false);
               }
             }
@@ -2306,7 +2306,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
             pling_pressed = false;
           }
         } else {
-          ANA_mode = OPTIMIZED_BY_NONE;
+          ANA_mode = OORouteType::kNone;
         }
 
         if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick)
@@ -4152,22 +4152,23 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       */
       if ((((UNIVERSE != nullptr
                  ? UNIVERSE->getDetailLevel()
-                 : OOGraphicsDetail{}) == DETAIL_LEVEL_MINIMUM) &&
+                 : OOGraphicsDetail{}) == OOGraphicsDetail::kMinimum) &&
            (direction == -1)) ||
           (((UNIVERSE != nullptr
                  ? UNIVERSE->getDetailLevel()
-                 : OOGraphicsDetail{}) == DETAIL_LEVEL_MAXIMUM) &&
+                 : OOGraphicsDetail{}) == kOOGraphicsDetailMaximum) &&
            (direction == 1)))
         direction = 0;
 
-      OOGraphicsDetail detailLevel =
-          (OOGraphicsDetail)(UNIVERSE->getDetailLevel() + direction);
+      OOGraphicsDetail detailLevel = static_cast<OOGraphicsDetail>(
+          oo::ToUnderlying(UNIVERSE->getDetailLevel()) + direction);
       if (UNIVERSE != nullptr) UNIVERSE->setDetailLevel(detailLevel);
       detailLevel = (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
                                          : OOGraphicsDetail{});
 
       const std::string shaderEffectsOptionsString =
-          cxx_OOExpand("gameoptions-detaillevel-[detailLevel]", detailLevel)
+          cxx_OOExpand("gameoptions-detaillevel-[detailLevel]",
+                       oo::ToUnderlying(detailLevel))
               .value_or(std::string());
       gui->setText(
           ExpandKeyWithArguments(shaderEffectsOptionsString.c_str(), {}),
@@ -5957,7 +5958,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking) {
       }
     }
 
-    setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+    setDockingClearanceStatus(OODockingClearanceStatus::kGranted);
 
     if (UNIVERSE != nullptr) UNIVERSE->forceWitchspaceEntries();
     ship_clock_adjust += 1200.0;  // 20 minutes penalty to enter dock

@@ -3988,12 +3988,12 @@ void hudDrawReticleOnTarget(
       //       falls through to the next.  Cases arranged in reverse order.
       switch (
           HeadUpDisplayWormholeScanInfo(static_cast<WormholeEntity*>(target))) {
-        case WH_SCANINFO_SHIP:
+        case WORMHOLE_SCANINFO::kShip:
           // TOOD: Render anything on the HUD for this?
-        case WH_SCANINFO_DESTINATION:
+        case WORMHOLE_SCANINFO::kDestination:
           // Rendered above in dialTargetName, so no need to do anything here
           // unless we want a separate line Destination: XXX ?
-        case WH_SCANINFO_ARRIVAL_TIME: {
+        case WORMHOLE_SCANINFO::kArrivalTime: {
           // a format read at run time
           const std::string etaFormat =
               OO_DESC("wormhole-ETA-@");  // the format first, as Clang
@@ -4007,7 +4007,7 @@ void hudDrawReticleOnTarget(
           cxx_OODrawString(wormholeETA, rs0, 0.5 * rs2 - 3 * line_height, 0,
                            textsize);
         }
-        case WH_SCANINFO_COLLAPSE_TIME: {
+        case WORMHOLE_SCANINFO::kCollapseTime: {
           OOTimeDelta timeForCollapsing =
               HeadUpDisplayWormholeExpiryTime(
                   static_cast<WormholeEntity*>(target)) -
@@ -4021,8 +4021,8 @@ void hudDrawReticleOnTarget(
           cxx_OODrawString(wormholeExpiringIn, rs0, 0.5 * rs2 - 2 * line_height,
                            0, textsize);
         }
-        case WH_SCANINFO_SCANNED:
-        case WH_SCANINFO_NONE:
+        case WORMHOLE_SCANINFO::kScanned:
+        case WORMHOLE_SCANINFO::kNone:
           break;
       }
     }

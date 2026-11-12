@@ -984,7 +984,7 @@ static JSValue SystemInfoRouteToSystem(OOJS_NATIVE_ARGS) {
   OOSystemInfo* thisInfo = nullptr;
   OOSystemInfo* otherInfo = nullptr;
   oo::PList result;
-  OORouteType routeType = OPTIMIZED_BY_JUMPS;
+  OORouteType routeType = OORouteType::kJumps;
 
   if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))
     return OOJSNativeFailure(context);

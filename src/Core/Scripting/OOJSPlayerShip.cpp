@@ -674,13 +674,13 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
       OORouteType route =
           (player != nullptr ? player->ANAMode() : OORouteType{});
       switch (route) {
-        case OPTIMIZED_BY_TIME:
+        case OORouteType::kTime:
           result = oo::PList("OPTIMIZED_BY_TIME");
           break;
-        case OPTIMIZED_BY_JUMPS:
+        case OORouteType::kJumps:
           result = oo::PList("OPTIMIZED_BY_JUMPS");
           break;
-        case OPTIMIZED_BY_NONE:
+        case OORouteType::kNone:
           result = oo::PList("OPTIMIZED_BY_NONE");
           break;
       }

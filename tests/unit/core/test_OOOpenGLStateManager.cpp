@@ -49,7 +49,7 @@ bool OORegExpMatcher::string(const std::string&, const std::string&) {
 OORegExpMatcher::~OORegExpMatcher() {}
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
-  return string == "SHADERS_FULL" ? SHADERS_FULL : SHADERS_NOT_SUPPORTED;
+  return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 
 // OOLogging.mm's (it would bring the resource manager into the link); only the

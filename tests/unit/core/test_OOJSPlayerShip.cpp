@@ -170,7 +170,7 @@ class FakePlayer : public PlayerEntity {
   OOSystemID nextHopTargetSystemID() override { return 8; }
   OOSystemID infoSystemID() override { return 9; }
   OOSystemID previousSystemID() override { return 6; }
-  OORouteType ANAMode() override { return OPTIMIZED_BY_TIME; }
+  OORouteType ANAMode() override { return OORouteType::kTime; }
   bool getScoopOverride() override { return true; }
   bool injectorsEngaged() override { return false; }
   bool getMassLockable() override { return true; }

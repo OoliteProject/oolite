@@ -1850,7 +1850,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
   oo::Ref<OOColor> thatConnectionColor;
 
   float jumpRange =
-      MAX_JUMP_RANGE * ((optimizeBy == OPTIMIZED_BY_NONE)
+      MAX_JUMP_RANGE * ((optimizeBy == OORouteType::kNone)
                             ? (PLAYER != nullptr ? PLAYER->dialFuel() : 0.0f)
                             : 1.0);
 
@@ -1868,7 +1868,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
     }
 
     /* Concealment */
-    if (optimizeBy == OPTIMIZED_BY_NONE && i != planetNumber) {
+    if (optimizeBy == OORouteType::kNone && i != planetNumber) {
       continue;
     }
 
@@ -1879,11 +1879,11 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
 
     // if in non-route mode, we're always starting from i, so need
     // to do <i here too.
-    OOSystemID loopstart = (optimizeBy == OPTIMIZED_BY_NONE) ? 0 : (i + 1);
+    OOSystemID loopstart = (optimizeBy == OORouteType::kNone) ? 0 : (i + 1);
 
     for (OOSystemID j = loopstart; j < 256; j++) {
       if (i == j) {
-        continue;  // for OPTIMIZED_BY_NONE case
+        continue;  // for OORouteType::kNone case
       }
 
       if (concealment[j] >= OO_SYSTEMCONCEALMENT_NOTHING) {
@@ -1899,7 +1899,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
       {
         star2.x = (float)(star2abs.x * hscale);
         star2.y = (float)(star2abs.y * vscale);
-        if (optimizeBy == OPTIMIZED_BY_NONE) {
+        if (optimizeBy == OORouteType::kNone) {
           currentJumpColorStart->getRed(&lr, &lg, &lb, &la);
           currentJumpColorEnd->getRed(&lr2, &lg2, &lb2, &la2);
           OOGL(glColor4f(lr, lg, lb, la * alpha));
@@ -1945,7 +1945,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
   }
   OOGLEND();
 
-  if (optimizeBy == OPTIMIZED_BY_NONE) {
+  if (optimizeBy == OORouteType::kNone) {
     return;
   }
 
@@ -1960,7 +1960,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
     std::size_t i,
         route_hops = ((routeArray != nullptr) ? routeArray->count() : 0) - 1;
 
-    if (optimizeBy == OPTIMIZED_BY_JUMPS) {
+    if (optimizeBy == OORouteType::kJumps) {
       // route optimised by distance
       setGLColorFromSetting(cxx_kGuiChartRouteShortColor,
                             OOColor::yellowColor().get(), alpha);
@@ -2174,21 +2174,21 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
 
   static OOSystemID savedPlanetNumber = 0;
   static OOSystemID savedDestNumber = 0;
-  static OORouteType savedArrayMode = OPTIMIZED_BY_NONE;
+  static OORouteType savedArrayMode = OORouteType::kNone;
   static oo::PList routeInfo;  // null: no cached route
 
   /* May override current mode for mission screens */
   if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST ||
       backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST ||
       backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST) {
-    advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
+    advancedNavArrayMode = OORouteType::kJumps;
   } else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
              backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST ||
              backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST) {
-    advancedNavArrayMode = OPTIMIZED_BY_TIME;
+    advancedNavArrayMode = OORouteType::kTime;
   }
 
-  if (advancedNavArrayMode != OPTIMIZED_BY_NONE &&
+  if (advancedNavArrayMode != OORouteType::kNone &&
       (player != nullptr
            ? player->hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")
            : false)) {
@@ -2232,7 +2232,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
     }
   } else {
     drawAdvancedNavArrayAtX(x + hoffset, y + voffset, z, alpha, oo::PList(),
-                            OPTIMIZED_BY_NONE, zoom);
+                            OORouteType::kNone, zoom);
   }
   if (!routeExists) {
     NSPoint targetCoordinates =
@@ -2452,7 +2452,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
         if (i == foundIndex || n_matches == 1) {
           if (n_matches == 1) foundSystem = 0;
           if (zoom > CHART_ZOOM_SHOW_LABELS &&
-              advancedNavArrayMode == OPTIMIZED_BY_NONE) {
+              advancedNavArrayMode == OORouteType::kNone) {
             setGLColorFromSetting(cxx_kGuiChartMatchLabelColor,
                                   OOColor::cyanColor().get(), alpha);
             cxx_OODrawString(

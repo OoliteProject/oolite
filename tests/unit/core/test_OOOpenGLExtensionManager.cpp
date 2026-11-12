@@ -70,10 +70,10 @@ void OOLogOutdent(void) {}
 OORegExpMatcher::~OORegExpMatcher() {}
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
-  if (string == "SHADERS_OFF") return SHADERS_OFF;
-  if (string == "SHADERS_SIMPLE") return SHADERS_SIMPLE;
-  if (string == "SHADERS_FULL") return SHADERS_FULL;
-  return SHADERS_NOT_SUPPORTED;
+  if (string == "SHADERS_OFF") return OOShaderSetting::kOff;
+  if (string == "SHADERS_SIMPLE") return OOShaderSetting::kSimple;
+  if (string == "SHADERS_FULL") return OOShaderSetting::kFull;
+  return OOShaderSetting::kNotSupported;
 }
 
 // --- What OpenGL itself says
@@ -189,8 +189,8 @@ OO_TEST(readsTheDriver) {
       GLint imageUnits = 0;
       glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &imageUnits);
       OO_CHECK(manager->textureImageUnitCount() == imageUnits);
-      OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MAXIMUM);
-      OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MAXIMUM);
+      OO_CHECK(manager->defaultDetailLevel() == kOOGraphicsDetailMaximum);
+      OO_CHECK(manager->maximumDetailLevel() == kOOGraphicsDetailMaximum);
     }
     OO_CHECK(OOShadersSupported() == manager->shadersSupported());
   }
@@ -241,11 +241,11 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder) {
       OO_CHECK(manager->shadersSupported());
       OO_CHECK(manager->textureImageUnitCount() == 2);
       OO_CHECK(manager->defaultDetailLevel() ==
-               DETAIL_LEVEL_MINIMUM);  // SHADERS_SIMPLE < SHADERS_FULL
-      OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MAXIMUM);
+               OOGraphicsDetail::kMinimum);  // OOShaderSetting::kSimple < OOShaderSetting::kFull
+      OO_CHECK(manager->maximumDetailLevel() == kOOGraphicsDetailMaximum);
     }
 
-    // An override can only lower a limit; a maximum of SHADERS_OFF turns
+    // An override can only lower a limit; a maximum of OOShaderSetting::kOff turns
     // shaders off.
     sGPUSettings = Dict({
         {"d-off", Dict({{"name", oo::PList("test GPU")},
@@ -259,8 +259,8 @@ OO_TEST(gpuSettingsMatchInPrecedenceOrder) {
              manager->useDustShader());
     if (shaders) {
       OO_CHECK(manager->textureImageUnitCount() == 0);
-      OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MINIMUM);
-      OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MINIMUM);
+      OO_CHECK(manager->defaultDetailLevel() == OOGraphicsDetail::kMinimum);
+      OO_CHECK(manager->maximumDetailLevel() == OOGraphicsDetail::kMinimum);
     }
     GLint units = 1;
     if (manager->textureCombinersSupported())
@@ -317,8 +317,8 @@ OO_TEST(noShadersArgument) {
     OO_CHECK(manager->shadersForceDisabled() == true);
     OO_CHECK(manager->shadersSupported() == false);
     OO_CHECK(OOShadersSupported() == false);
-    OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MINIMUM);
-    OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MINIMUM);
+    OO_CHECK(manager->defaultDetailLevel() == OOGraphicsDetail::kMinimum);
+    OO_CHECK(manager->maximumDetailLevel() == OOGraphicsDetail::kMinimum);
 
     SetArguments({"test_OOOpenGLExtensionManager"});
     manager->reset();

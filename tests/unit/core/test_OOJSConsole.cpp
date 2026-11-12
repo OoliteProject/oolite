@@ -329,7 +329,7 @@ std::string cxx_OOStringFromGraphicsDetail(OOGraphicsDetail detail)
 
 OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string &string)
 {
-	return (string == "DETAIL_2") ? DETAIL_LEVEL_SHADERS : DETAIL_LEVEL_MINIMUM;
+	return (string == "DETAIL_2") ? OOGraphicsDetail::kShaders : OOGraphicsDetail::kMinimum;
 }
 
 
@@ -418,7 +418,7 @@ OOOpenGLExtensionManager *OOOpenGLExtensionManager::sharedManager()
 }
 
 OOOpenGLExtensionManager::~OOOpenGLExtensionManager()  {}
-OOGraphicsDetail OOOpenGLExtensionManager::maximumDetailLevel()  { return DETAIL_LEVEL_MAXIMUM; }
+OOGraphicsDetail OOOpenGLExtensionManager::maximumDetailLevel()  { return kOOGraphicsDetailMaximum; }
 std::optional<std::string> OOOpenGLExtensionManager::vendorString()  { return std::string("Test Vendor"); }
 std::optional<std::string> OOOpenGLExtensionManager::rendererString()  { return std::nullopt; }
 GLint OOOpenGLExtensionManager::textureUnitCount()  { return 4; }

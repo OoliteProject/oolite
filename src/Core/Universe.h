@@ -133,7 +133,7 @@ enum {
   OO_POSTFX_ENDOFLIST  // keep this for last
 };
 
-#define SHADERS_MIN SHADERS_OFF
+#define SHADERS_MIN OOShaderSetting::kOff
 
 #define MAX_MESSAGES 5
 

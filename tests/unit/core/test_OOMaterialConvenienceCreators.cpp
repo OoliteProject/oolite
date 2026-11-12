@@ -102,7 +102,7 @@ bool OORegExpMatcher::string(const std::string&, const std::string&) {
 OORegExpMatcher::~OORegExpMatcher() {}
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
-  return string == "SHADERS_FULL" ? SHADERS_FULL : SHADERS_NOT_SUPPORTED;
+  return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 
 // The cache manager: the synthesized configurations, by key, as they are
@@ -310,7 +310,7 @@ const char* kFragment =
     "uniform sampler2D uDiffuseMap;\nvoid main() { gl_FragColor = "
     "texture2D(uDiffuseMap, vec2(0.0)); }\n";
 
-bool SetUp(bool useShaders, OOGraphicsDetail detail = DETAIL_LEVEL_MINIMUM) {
+bool SetUp(bool useShaders, OOGraphicsDetail detail = OOGraphicsDetail::kMinimum) {
   if (!OOTestGLContext()) return false;
   OOOpenGLExtensionManager::sharedManager();
   if (gUniverse == nullptr) gUniverse = new TestUniverse();
@@ -399,7 +399,7 @@ OO_TEST(namedShaders) {
 }
 
 OO_TEST(synthesizedShaders) {
-  if (!SetUp(true, DETAIL_LEVEL_SHADERS)) {
+  if (!SetUp(true, OOGraphicsDetail::kShaders)) {
     OO_CHECK(false);
     return;
   }
@@ -462,7 +462,7 @@ OO_TEST(synthesizedShaders) {
 }
 
 OO_TEST(synthesisTriggersAndLoops) {
-  if (!SetUp(true, DETAIL_LEVEL_MINIMUM)) {
+  if (!SetUp(true, OOGraphicsDetail::kMinimum)) {
     OO_CHECK(false);
     return;
   }
@@ -542,7 +542,7 @@ OO_TEST(cxxStaticMembers) {
     OO_CHECK(Make("Named", {})->name() == std::optional<std::string>("Named"));
   }
 
-  if (!SetUp(true, DETAIL_LEVEL_SHADERS)) {
+  if (!SetUp(true, OOGraphicsDetail::kShaders)) {
     OO_CHECK(false);
     return;
   }

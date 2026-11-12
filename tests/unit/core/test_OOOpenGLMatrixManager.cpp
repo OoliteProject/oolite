@@ -56,7 +56,7 @@ void OOLogIndent(void) {}
 void OOLogOutdent(void) {}
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
-  return string == "SHADERS_FULL" ? SHADERS_FULL : SHADERS_NOT_SUPPORTED;
+  return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 
 // UNIVERSE is gSharedUniverse; its getGameView() answers sView, the C++ view,

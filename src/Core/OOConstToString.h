@@ -35,13 +35,12 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOTypes.h"
 
-enum {
-  // Values used for unknown strings.
-  kOOCargoTypeDefault = CARGO_NOT_CARGO,
-  //	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
-  kOOEnergyUnitTypeDefault = ENERGY_UNIT_NONE,
-  kOORouteTypeDefault = OPTIMIZED_BY_JUMPS
-};
+// Values used for unknown strings.
+inline constexpr OOCargoType kOOCargoTypeDefault = OOCargoType::kNotCargo;
+//	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
+inline constexpr OOEnergyUnitType kOOEnergyUnitTypeDefault =
+    OOEnergyUnitType::kNone;
+inline constexpr OORouteType kOORouteTypeDefault = OORouteType::kJumps;
 
 /*
 

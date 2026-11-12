@@ -286,7 +286,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
     // radius
     double atmosphereRadius =
         (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
-                             : OOGraphicsDetail{}) >= DETAIL_LEVEL_SHADERS
+                             : OOGraphicsDetail{}) >= OOGraphicsDetail::kShaders
             ? collision_radius
             : collision_radius + ATMOSPHERE_DEPTH;
     _atmosphereDrawable =
@@ -689,8 +689,9 @@ void OOPlanetEntity::update(OOTimeDelta delta_t) {
   if (EXPECT(!_miniature)) {
     bool canDrawShaderAtmosphere =
         _atmosphereShaderDrawable != nullptr &&
-        (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
-                             : OOGraphicsDetail{}) >= DETAIL_LEVEL_SHADERS;
+        (UNIVERSE != nullptr
+             ? UNIVERSE->getDetailLevel()
+             : OOGraphicsDetail{}) >= OOGraphicsDetail::kShaders;
     if (EXPECT_NOT(_atmosphereDrawable != nullptr &&
                    cam_zero_distance < _mesopause2)) {
       OOCAssert(_airColor != nullptr,
@@ -826,7 +827,7 @@ void OOPlanetEntity::drawImmediate(bool /*immediate*/, bool /*translucent*/) {
   bool canDrawShaderAtmosphere =
       _atmosphereShaderDrawable != nullptr &&
       (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{}) >=
-          DETAIL_LEVEL_SHADERS;
+          OOGraphicsDetail::kShaders;
 
   if ((UNIVERSE != nullptr ? UNIVERSE->breakPatternHide() : false))
     return;  // DON'T DRAW
@@ -1097,7 +1098,7 @@ void OOPlanetEntity::setTextureFileName(
 #if OO_SHADERS
   OOGraphicsDetail detailLevel =
       (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{});
-  bool shadersOn = detailLevel >= DETAIL_LEVEL_SHADERS;
+  bool shadersOn = detailLevel >= OOGraphicsDetail::kShaders;
 #else
   const bool shadersOn = false;
 #endif
@@ -1148,7 +1149,8 @@ void OOPlanetEntity::setTextureFileName(
   } else {
     OOPlanetTextureGenerator::generatePlanetTexture(
         &generatedDiffuseMap,
-        (detailLevel >= DETAIL_LEVEL_SHADERS) ? &generatedNormalMap : nullptr,
+        (detailLevel >= OOGraphicsDetail::kShaders) ? &generatedNormalMap
+                                                    : nullptr,
         _materialParameters, _noiseMapSeed);
     diffuseMap = generatedDiffuseMap;
     normalMap = generatedNormalMap;

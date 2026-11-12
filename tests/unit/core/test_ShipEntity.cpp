@@ -482,7 +482,7 @@ OO_TEST(setUpShipFromDictionaryNPC)
 		OO_CHECK(part->_explicitlyUnpiloted && part->crew == std::nullopt);
 		OO_CHECK(part->reactionTime == 2.0f);
 		OO_CHECK(vector_equal((ship != nullptr ? ship->forwardVector() : Vector{}), kBasisZVector) && vector_equal((ship != nullptr ? ship->upVector() : Vector{}), kBasisYVector) && vector_equal((ship != nullptr ? ship->rightVector() : Vector{}), kBasisXVector));
-		OO_CHECK(part->cargo_type == CARGO_NOT_CARGO);
+		OO_CHECK(part->cargo_type == OOCargoType::kNotCargo);
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) != nullptr && (ship != nullptr ? ship->owner() : nullptr) == ship);
 	}
 }
@@ -538,11 +538,11 @@ OO_TEST(cargoTypeAndTemplatePod)
 		TestShip *ship = MakeShip<TestShip>("pod", Definition());
 		OO_CHECK(!(ship != nullptr ? ship->isTemplateCargoPod() : false));
 		if (ship != nullptr)  ship->setUpCargoType("CARGO_ALLOY");
-		OO_CHECK(Part(ship)->cargo_type == CARGO_RANDOM && Part(ship)->commodity_type == std::optional<std::string>("alloys") && Part(ship)->commodity_amount == 1);
+		OO_CHECK(Part(ship)->cargo_type == OOCargoType::kRandom && Part(ship)->commodity_type == std::optional<std::string>("alloys") && Part(ship)->commodity_amount == 1);
 		if (ship != nullptr)  ship->setUpCargoType("CARGO_SCRIPTED_ITEM");
-		OO_CHECK(Part(ship)->cargo_type == CARGO_SCRIPTED_ITEM && Part(ship)->commodity_type == std::nullopt && Part(ship)->commodity_amount == 1);
+		OO_CHECK(Part(ship)->cargo_type == OOCargoType::kScriptedItem && Part(ship)->commodity_type == std::nullopt && Part(ship)->commodity_amount == 1);
 		if (ship != nullptr)  ship->setUpCargoType("CARGO_NOT_CARGO");
-		OO_CHECK(Part(ship)->cargo_type == CARGO_NOT_CARGO);
+		OO_CHECK(Part(ship)->cargo_type == OOCargoType::kNotCargo);
 	}
 }
 

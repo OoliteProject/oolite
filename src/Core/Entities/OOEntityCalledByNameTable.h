@@ -314,7 +314,7 @@ OOCargoQuantity ByName_143(Entity *entity)
 OOCargoQuantity ByName_144(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->cargoQuantityOnBoard() : OOCargoQuantity{}; }
 OOCargoType ByName_145(Entity *entity)
-{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->cargoType() : CARGO_NOT_CARGO; }
+{ ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->cargoType() : OOCargoType::kNotCargo; }
 std::size_t ByName_146(Entity *entity)
 { ShipEntity *ship = ShipPart(entity); return ship != nullptr ? ship->cargoCount() : std::size_t{}; }
 oo::PList ByName_147(Entity *entity)

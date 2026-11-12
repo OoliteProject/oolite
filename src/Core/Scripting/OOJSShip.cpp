@@ -3307,7 +3307,7 @@ static JSValue ShipSetCargoType(OOJS_NATIVE_ARGS) {
                                std::nullopt, "cargo type name");
     return OOJSNativeFailure(context);
   }
-  if (ship->cargoType() != CARGO_NOT_CARGO) {
+  if (ship->cargoType() != OOCargoType::kNotCargo) {
     cxx_OOJSReportBadArguments(
         context, "Ship", "setCargoType", argc, OOJS_ARGV, std::nullopt,
         std::format(
@@ -4226,7 +4226,7 @@ static JSValue ShipAdjustCargo(OOJS_NATIVE_ARGS) {
     return OOJSNativeFailure(context);
   }
 
-  if (ship->cargoType() != CARGO_NOT_CARGO || ship->getIsPlayer()) {
+  if (ship->cargoType() != OOCargoType::kNotCargo || ship->getIsPlayer()) {
     cxx_OOJSReportError(
         context, "ship.adjustCargo may only be used on NPC cargo carriers");
     return OOJSNativeFailure(context);

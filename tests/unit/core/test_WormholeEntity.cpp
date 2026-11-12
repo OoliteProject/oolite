@@ -212,7 +212,7 @@ OO_TEST(madeByShip) {
     OO_CHECK(wh->estimatedArrivalTime() == wh->arrivalTime());
     OO_CHECK(Near(wh->expiryTime(), 1000.0 + 200000.0 / WORMHOLE_SHRINK_RATE));
     OO_CHECK(!wh->withMisjump() && !wh->isScanned() &&
-             wh->scanInfo() == WH_SCANINFO_NONE);
+             wh->scanInfo() == WORMHOLE_SCANINFO::kNone);
     OO_CHECK(wh->exitSpeed() == 50.0);
     OO_CHECK(wh->canCollide());
     OO_CHECK(wh->getShipsInTransit() == oo::PList(oo::PList::Array{}));
@@ -257,7 +257,7 @@ OO_TEST(saved) {
              wh->estimatedArrivalTime() == 2000.0);
     OO_CHECK(HPvector_equal(wh->getPosition(), make_HPvector(4, 5, 6)));
     OO_CHECK(wh->withMisjump() && wh->isScanned() &&
-             wh->scanInfo() == WH_SCANINFO_SCANNED);
+             wh->scanInfo() == WORMHOLE_SCANINFO::kScanned);
     OO_CHECK(!wh->canCollide());  // no mass
 
     oo::PList dict = wh->getDict();
@@ -281,11 +281,11 @@ OO_TEST(scanning) {
     WormholeEntity* wh = ToNine(Ship(1000.0f));
     wh->setScannedAt(1234.0);
     OO_CHECK(wh->isScanned() && wh->scanTime() == 1234.0 &&
-             wh->scanInfo() == WH_SCANINFO_SCANNED);
+             wh->scanInfo() == WORMHOLE_SCANINFO::kScanned);
     wh->setScannedAt(5678.0);
     OO_CHECK(wh->scanTime() == 1234.0);
-    wh->setScanInfo(WH_SCANINFO_DESTINATION);
-    OO_CHECK(wh->scanInfo() == WH_SCANINFO_DESTINATION);
+    wh->setScanInfo(WORMHOLE_SCANINFO::kDestination);
+    OO_CHECK(wh->scanInfo() == WORMHOLE_SCANINFO::kDestination);
     wh->setExitSpeed(75.0);
     OO_CHECK(wh->exitSpeed() == 75.0);
   }

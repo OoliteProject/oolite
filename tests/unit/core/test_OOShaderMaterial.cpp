@@ -103,7 +103,7 @@ bool OORegExpMatcher::string(const std::string&, const std::string&) {
 OORegExpMatcher::~OORegExpMatcher() {}
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
-  return string == "SHADERS_FULL" ? SHADERS_FULL : SHADERS_NOT_SUPPORTED;
+  return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 
 // Link stubs, never reached here: OOTexture.mm's
